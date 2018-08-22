@@ -1,3 +1,9 @@
+Purpose
+-------
+Creating an algorithmic parser for experiments in converting "natural language" code (called "spell," a subset of the english language) into machine-readable code (currently Javascript).  Programs are expressed in syntactially correct English and are then translated into equivalent Javascript code.
+
+At the root of this is a "Rule Syntax" which resembles regular expressions on steroids -- allowing the language developer to express **any** language rules (not just "spell") in a way that feels natural to anyone familiar with regular expressions.  The parser itself is dead simple (src/Parser.js), and it's the formulation of the rules (src/rules/) which provides the power.  In contrast to other rule-based parsers, it's easy for the language developer to add additional rules to the system by simply importing them dynamically, even at runtime.  The parser core could easily be re-written in other languages (e.g. python) and other "compilation targets" are easily possible.
+
 To get started
 ----------------
 - Clone this repo
