@@ -184,7 +184,7 @@ export default class Parser {
 		}
 
 		// Set `ruleName` if it hasn't been explicitly set.
-		if (!rule.ruleName) rule.ruleName = ruleName;
+//		if (!rule.ruleName) rule.ruleName = ruleName;
 
 		// If a rule of this name already exists
 		const existing = this._rules[ruleName];
@@ -237,7 +237,16 @@ export default class Parser {
 		}, {});
 	}
 
-  // Define one or more rules according to a `ruleSetup` as an object with:
+  // Define multiple rules at once using ruleSyntax.
+  // See `defineRule()`
+  defineRules() {
+    for (const ruleSetup of arguments) {
+      this.defineRule(ruleSetup);
+    }
+    return this;
+  }
+
+  // Define one or more rules using ruleSyntax to create the rule instances.
   //  `name` (identifier, required)  Base name of the rule.
   //  `syntax` (string, required) RuleSyntax string for this rule.
   //  `constructor` (class, required) Class which will be used to instantiate the rule.
@@ -245,43 +254,44 @@ export default class Parser {
   //  `alias` (string or [string], optinal) Other names to define rule under.
   //  `mutatesScope` (boolean, optional) Set to `true` if the rule mutates the scope it is defined in.
   //  `precedence` (number, optional) Precedence number for the rule (currently doesn't do anything)
-  defineRules(...ruleSetups) {
-    for (const ruleSetup of arguments) {
-      const { name, alias = [], mutatesScope, precedence, syntax, constructor } = ruleSetup;
-      const names = [name].concat(alias);
+  defineRule({ name, syntax, constructor, alias = [], mutatesScope, precedence }) {
+    const names = [name].concat(alias);
 
-      // throw if we're re-using a constructor
-      if (constructor.prototype.ruleName) {
-        throw new TypeError(`parser.define(): Attempting to re-use constructor for rule '${ruleName}'`);
-      }
-
-      // Set properties on prototype.constructor
-      Object.defineProperty(constructor.prototype, "ruleName", { value: name });
-      Object.defineProperty(constructor.prototype, "names", { value: names });
-      if (mutatesScope) Object.defineProperty(constructor.prototype, "mutatesScope", { value: true });
-      if (precedence) Object.defineProperty(constructor.prototype, "precedence", { value: precedence });
-
-      let syntaxStream = Rule.tokeniseRuleSyntax(syntax);
-      let rules = Rule.parseRuleSyntax_tokens(syntaxStream, []);
-      if (rules.length === 0) {
-        throw new SyntaxError(`parser.defineRule(${names[0]}, ${syntax}): no rule produced`);
-      }
-
-      // Make an instance of the rule and add relevant properties to its prototype non-enumerably
-      let rule = new constructor();
-      if (rule instanceof Rule.Keyword || rule instanceof Rule.Symbol) {
-        Object.defineProperty(constructor.prototype, "match", { value: rules[0].match });
-      }
-      else if (rule instanceof Rule.List) {
-        Object.defineProperty(constructor.prototype, "item", { value: rules[0].item });
-        Object.defineProperty(constructor.prototype, "delimiter", { value: rules[0].delimiter });
-      }
-      else {
-        Object.defineProperty(constructor.prototype, "rules", { value: rules });
-      }
-
-      names.forEach(name => this.addRule(name, rule));
+    // throw if we're re-using a constructor
+    if (constructor.prototype.names) {
+      throw new TypeError(`parser.define(): Attempting to re-use constructor for rule '${ruleName}'`);
     }
+
+    // Set properties on prototype.constructor
+    Object.defineProperty(constructor.prototype, "names", { value: names });
+    if (mutatesScope) Object.defineProperty(constructor.prototype, "mutatesScope", { value: true });
+    if (precedence) Object.defineProperty(constructor.prototype, "precedence", { value: precedence });
+
+    let syntaxStream = Rule.tokeniseRuleSyntax(syntax);
+    let rules = Rule.parseRuleSyntax_tokens(syntaxStream, []);
+    if (rules.length === 0) {
+      throw new SyntaxError(`parser.defineRule(${names[0]}, ${syntax}): no rule produced`);
+    }
+
+    // Make an instance of the rule and add relevant properties to its prototype non-enumerably
+    let rule;
+    if (constructor.prototype instanceof Rule.Keyword
+     || constructor.prototype instanceof Rule.Symbol
+     || constructor.prototype instanceof Rule.List
+    ) {
+      for (let property in rules[0]) {
+        Object.defineProperty(constructor.prototype, property, { value: rules[0][property] });
+      }
+      rule = new constructor();
+    }
+    else {
+      Object.defineProperty(constructor.prototype, "rules", { value: rules });
+      rule = new constructor();
+    }
+
+    names.forEach(name => this.addRule(name, rule));
+
+    return this;
   }
 
 
