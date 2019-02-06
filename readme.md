@@ -1,3 +1,9 @@
+Purpose
+-------
+Creating an algorithmic parser for experiments in converting "natural language" code (called "spell," a subset of the english language) into machine-readable code (currently Javascript).  Programs are expressed in syntactially correct English and are then translated into equivalent Javascript code.
+
+At the root of this is a "Rule Syntax" which resembles regular expressions on steroids -- allowing the language developer to express **any** language rules (not just "spell") in a way that feels natural to anyone familiar with regular expressions.  The parser itself is dead simple (src/Parser.js), and it's the formulation of the rules (src/rules/) which provides the power.  In contrast to other rule-based parsers, it's easy for the language developer to add additional rules to the system by simply importing them dynamically, even at runtime.  The parser core could easily be re-written in other languages (e.g. python) and other "compilation targets" are easily possible.
+
 To get started
 ----------------
 - Clone this repo
@@ -46,11 +52,10 @@ or
 To "compile" text into javascript:
 
 - `parser.compile("a = 1")`
-- `parser.parse("expression", "a = 1")`
 
 
-Rule
-----
+Rules
+-----
 - `Rule`s match specific characters/logical structures the provided text.
 - Simple rules are composed into larger rules, for example:
 	- `the` is a simple rule satisified with simple text match
@@ -65,7 +70,7 @@ Rule
 	- `List`s match a delmited list of zero or more items.
 - You'll generally specify rules using our `RuleSyntax`, which is a human-friendly way
 	of specifying a sequence of rules as a string, e.g.
-	- `{identifier} = {literal-value}` creates a `sequence` of
+	- `{identifier} = {literal-value}` automatically creates a `sequence` of
 		1. `identifier` subrule
 		2. `=` keyword
 		3. `literal-value` subrule
@@ -84,9 +89,10 @@ RuleSyntax
 | (...)		| Parenthesis indicate a parenthesized expression, often a set of `Alternatives` or used to make a rule optional (see below). |
 | [...]		| Indicates a `List` expresion. |
 | (...&#124;...)	| A vertical pipe, generally found inside parenthesis, indicates a set of `Alternatives`, any one of which will work.
+| ...?		| A question mark indicates that the preceding rule is optional. |
 | ...*		| An asterisk indicates that the preceding rule is optional, and may repeat one or more times. |
-| ...+		| A plus indicates that the preceding rule is required, and MAY be repeated. |
-| whitespace	| Whitespace is used for nesting blocks and separating pattern/keyword rules, and is automatically consumed. **NOTE: Use `tab` characters for nesting.** |
+| ...+		| A plus indicates that the preceding rule is required, and MAY be repeated one or more times. |
+| whitespace	| Whitespace is used for nesting blocks and separating pattern/keyword rules, and is automatically consumed. **NOTE: Use `tab` and `return` characters for nesting.** |
 | anything else	| Pretty much anything else indicates a keyword, which may be punctuation, e.g. `=`, or english words `is`, `not`, `play`, etc. |
 
 Examples:
@@ -99,4 +105,4 @@ License
 -------
 [MIT License](https://opensource.org/licenses/MIT)
 
-Copyright &copy; 2017 Matthew Owen Williams
+Copyright &copy; 2017-2018 Matthew Owen Williams
