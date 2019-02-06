@@ -177,14 +177,11 @@ export default class Parser {
 			rule = new rule();
 		}
 
-		// If we got an array of `ruleNames`, recursively add under each name with the same `rule`.
+		// If we got an array of `ruleName`s, recursively add under each name with the same `rule`.
 		if (Array.isArray(ruleName)) {
 			ruleName.forEach(ruleName => this.addRule(ruleName, rule) );
 			return rule;
 		}
-
-		// Set `ruleName` if it hasn't been explicitly set.
-//		if (!rule.ruleName) rule.ruleName = ruleName;
 
 		// If a rule of this name already exists
 		const existing = this._rules[ruleName];
@@ -204,7 +201,6 @@ export default class Parser {
 		else {
 			this._rules[ruleName] = rule;
 		}
-
 
 		// make a note if we're adding a left-recursive rule
 //TODO: this doesn't fly if adding under multiple names...  :-(
@@ -238,12 +234,11 @@ export default class Parser {
 	}
 
   // Define multiple rules at once using ruleSyntax.
-  // See `defineRule()`
+  // See `RuleSyntax.js::defineRule()`
   defineRules() {
-    for (const ruleSetup of arguments) {
-      this.defineRule(ruleSetup);
+    for (const rule of arguments) {
+      this.defineRule(rule);
     }
-    return this;
   }
 
   // Define one or more rules using ruleSyntax or patterns to create the rule instances.
@@ -261,12 +256,13 @@ export default class Parser {
     const names = [name].concat(alias);
 
     // throw if we're re-using a constructor
-    if (constructor.prototype.names) {
+    if (constructor.prototype.ruleNames) {
       throw new TypeError(`parser.define(): Attempting to re-use constructor for rule '${ruleName}'`);
     }
 
     // Set properties on prototype.constructor
-    Object.defineProperty(constructor.prototype, "names", { value: names });
+    Object.defineProperty(constructor.prototype, "ruleNames", { value: names });
+    if (pattern) Object.defineProperty(constructor.prototype, "pattern", { value: pattern });
     if (mutatesScope) Object.defineProperty(constructor.prototype, "mutatesScope", { value: true });
     if (precedence) Object.defineProperty(constructor.prototype, "precedence", { value: precedence });
     if (blacklist) {
@@ -276,33 +272,15 @@ export default class Parser {
     }
     if (canonical) Rule[canonical] = constructor;
 
-    if (pattern) {
-      Object.defineProperty(constructor.prototype, "pattern", { value: pattern });
+    let rule;
+    if (syntax) {
+      rule = Rule.parseRule(syntax, constructor);
     }
-    else if (syntax) {
-      let syntaxStream = Rule.tokeniseRuleSyntax(syntax);
-      let rules = Rule.parseRuleSyntax_tokens(syntaxStream, []);
-      if (rules.length === 0) {
-        throw new SyntaxError(`parser.defineRule(${names[0]}, ${syntax}): no rule produced`);
-      }
-
-      // Make an instance of the rule and add relevant properties to its prototype non-enumerably
-      if (constructor.prototype instanceof Rule.Keyword
-       || constructor.prototype instanceof Rule.Symbol
-       || constructor.prototype instanceof Rule.List
-      ) {
-        for (let property in rules[0]) {
-          Object.defineProperty(constructor.prototype, property, { value: rules[0][property] });
-        }
-      }
-      else {
-        Object.defineProperty(constructor.prototype, "rules", { value: rules });
-      }
+    else {
+      rule = new constructor();
     }
 
-    let rule = new constructor();
-    names.forEach(name => this.addRule(name, rule));
-    return rule;
+    this.addRule(names, rule);
   }
 
 

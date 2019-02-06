@@ -1,9 +1,21 @@
 import { defineMemoized } from "./memoize.js";
 import Parser from "./Parser.js";
 import Rule from "./Rule.js";
+import global from "./utils/global";
 
 // re-export Rule for testing
 export default Rule;
+
+// Clone a class, re-using the original name.
+// TODO: move to utility?
+function cloneClass(constructor, name = constructor.name) {
+  // Clone the constructor, keeping the same name
+  global.__cloneClass__ = constructor;
+  const clone = new Function("name", `return class ${name} extends __cloneClass__ {}`)();
+  delete global.__cloneClass__;
+  return clone;
+}
+
 
 //
 //	# Parsing `ruleSyntax` to create rules automatically.
@@ -16,6 +28,43 @@ Object.assign(Rule, {
 //
 // ## group: parsing syntax
 //
+
+
+  parseRule(syntax, constructor) {
+    // If we got an array of possible syntaxes...
+    if (Array.isArray(syntax)) {
+      // recursively parse each syntax, using a CLONE of the constructor
+      const rules = syntax.map(syntax => {
+        return Rule.parseRule(syntax, cloneClass(constructor));
+      });
+      // return an alternatives with the correct name
+      const altClass = cloneClass(Rule.Alternatives, constructor.name);
+      Object.defineProperty(altClass.prototype, "rules", { value: rules });
+      return new altClass();
+    };
+
+    let syntaxStream = Rule.tokeniseRuleSyntax(syntax);
+    let rules = Rule.parseRuleSyntax_tokens(syntaxStream, []);
+    if (rules.length === 0) {
+      throw new SyntaxError(`parser.defineRule(${names[0]}, ${syntax}): no rule produced`);
+    }
+
+    // Make an instance of the rule and add relevant properties to its prototype non-enumerably
+    if (constructor.prototype instanceof Rule.Keyword
+     || constructor.prototype instanceof Rule.Symbol
+     || constructor.prototype instanceof Rule.List
+    ) {
+      for (let property in rules[0]) {
+        Object.defineProperty(constructor.prototype, property, { value: rules[0][property] });
+      }
+    }
+    else {
+      Object.defineProperty(constructor.prototype, "rules", { value: rules });
+    }
+
+    return new constructor();
+  },
+
 
 	parseRuleSyntax(syntax, SequenceConstructor = Rule.Sequence) {
 		let syntaxStream = Rule.tokeniseRuleSyntax(syntax);

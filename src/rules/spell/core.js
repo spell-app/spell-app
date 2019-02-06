@@ -11,18 +11,19 @@ import Tokenizer from "../../Tokenizer";
 const parser = Parser.forName("core");
 export default parser;
 
-
-//
-// ### Install standard rules
-//
-
-parser.addRule("statements", Rule.Statements);
-parser.addRule("comment", Rule.Comment);
-
-
-// `word` = is a single alphanumeric word.
-// MUST start with a lower-case letter (?)
 parser.defineRules(
+  {
+    name: "statements",
+    constructor: Rule.Statements
+  },
+
+  {
+    name: "comment",
+    constructor: Rule.Comment
+  },
+
+  // `word` = is a single alphanumeric word.
+  // MUST start with a lower-case letter (?)
   {
     name: "word",
     pattern: /^[a-z][\w\-]*$/,
