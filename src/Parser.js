@@ -246,7 +246,7 @@ export default class Parser {
     return this;
   }
 
-  // Define one or more rules using ruleSyntax to create the rule instances.
+  // Define one or more rules using ruleSyntax or patterns to create the rule instances.
   //  `name` (identifier, required)  Base name of the rule.
   //  `syntax` (string, required) RuleSyntax string for this rule.
   //  `constructor` (class, required) Class which will be used to instantiate the rule.
@@ -254,7 +254,10 @@ export default class Parser {
   //  `alias` (string or [string], optinal) Other names to define rule under.
   //  `mutatesScope` (boolean, optional) Set to `true` if the rule mutates the scope it is defined in.
   //  `precedence` (number, optional) Precedence number for the rule (currently doesn't do anything)
-  defineRule({ name, syntax, constructor, alias = [], mutatesScope, precedence }) {
+  //  `pattern` (RegExp, optional) Regular expression for `Pattern` rules
+  //  `blacklist` ([string], optional) Array of strings as blacklist for pattern rules.
+  //  `canonical` (string, optional) Canonical name for the rule, available on `Rule` for debugging.
+  defineRule({ name, syntax, constructor, alias = [], mutatesScope, precedence, pattern, blacklist, canonical }) {
     const names = [name].concat(alias);
 
     // throw if we're re-using a constructor
@@ -266,32 +269,40 @@ export default class Parser {
     Object.defineProperty(constructor.prototype, "names", { value: names });
     if (mutatesScope) Object.defineProperty(constructor.prototype, "mutatesScope", { value: true });
     if (precedence) Object.defineProperty(constructor.prototype, "precedence", { value: precedence });
-
-    let syntaxStream = Rule.tokeniseRuleSyntax(syntax);
-    let rules = Rule.parseRuleSyntax_tokens(syntaxStream, []);
-    if (rules.length === 0) {
-      throw new SyntaxError(`parser.defineRule(${names[0]}, ${syntax}): no rule produced`);
+    if (blacklist) {
+      const map = {};
+      for (const key of blacklist) map[key] = true;
+      Object.defineProperty(constructor.prototype, "blacklist", { value: map });
     }
+    if (canonical) Rule[canonical] = constructor;
 
-    // Make an instance of the rule and add relevant properties to its prototype non-enumerably
-    let rule;
-    if (constructor.prototype instanceof Rule.Keyword
-     || constructor.prototype instanceof Rule.Symbol
-     || constructor.prototype instanceof Rule.List
-    ) {
-      for (let property in rules[0]) {
-        Object.defineProperty(constructor.prototype, property, { value: rules[0][property] });
+    if (pattern) {
+      Object.defineProperty(constructor.prototype, "pattern", { value: pattern });
+    }
+    else if (syntax) {
+      let syntaxStream = Rule.tokeniseRuleSyntax(syntax);
+      let rules = Rule.parseRuleSyntax_tokens(syntaxStream, []);
+      if (rules.length === 0) {
+        throw new SyntaxError(`parser.defineRule(${names[0]}, ${syntax}): no rule produced`);
       }
-      rule = new constructor();
-    }
-    else {
-      Object.defineProperty(constructor.prototype, "rules", { value: rules });
-      rule = new constructor();
+
+      // Make an instance of the rule and add relevant properties to its prototype non-enumerably
+      if (constructor.prototype instanceof Rule.Keyword
+       || constructor.prototype instanceof Rule.Symbol
+       || constructor.prototype instanceof Rule.List
+      ) {
+        for (let property in rules[0]) {
+          Object.defineProperty(constructor.prototype, property, { value: rules[0][property] });
+        }
+      }
+      else {
+        Object.defineProperty(constructor.prototype, "rules", { value: rules });
+      }
     }
 
+    let rule = new constructor();
     names.forEach(name => this.addRule(name, rule));
-
-    return this;
+    return rule;
   }
 
 
