@@ -157,6 +157,7 @@ export default class Parser {
 
   // Merge `rule` into `map` of rules by `ruleName`.
   // If we already have a rule with that name, we'll add it as an alternative.
+//TESTME
   _mergeRule(map, ruleName, rule) {
     let existing = map[ruleName];
     if (!existing) {
@@ -222,7 +223,7 @@ export default class Parser {
     }
   }
 
-  // Define one or more rules using ruleSyntax or patterns to create the rule instances.
+  // Define a rule using (rule)`syntax` or `patterns` to create the rule instances.
   //  `name` (identifier, required)  Base name of the rule.
   //  `alias` (string or [string], optinal) Other names to define rule under.
   //  `canonical` (string, optional) Canonical name for the rule, available on `Rule` for debugging.

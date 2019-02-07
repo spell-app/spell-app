@@ -73,7 +73,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "first",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return 1 }
     }
   },
@@ -81,7 +81,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "second",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return 2 }
     }
   },
@@ -89,7 +89,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "third",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return 3 }
     }
   },
@@ -97,7 +97,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "fourth",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return 4 }
     }
   },
@@ -105,7 +105,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "fifth",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return 5 }
     }
   },
@@ -113,7 +113,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "sixth",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return 6 }
     }
   },
@@ -121,7 +121,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "seventh",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return 7 }
     }
   },
@@ -129,7 +129,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "eighth",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return 8 }
     }
   },
@@ -137,7 +137,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "ninth",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return 9 }
     }
   },
@@ -145,7 +145,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "tenth",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return 10 }
     }
   },
@@ -153,7 +153,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "penultimate",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return -2 }
     }
   },
@@ -161,7 +161,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "final",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return -1 }
     }
   },
@@ -169,7 +169,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "last",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return -1 }
     }
   },
@@ -181,7 +181,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "top",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return 1 }
     }
   },
@@ -189,7 +189,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "bottom",
-    constructor: class ordinal extends Rule.Keyword{
+    constructor: class ordinal extends Rule.Keywords{
       toSource() { return -1 }
     }
   },
@@ -357,7 +357,7 @@ parser.defineRules(
     alias: "expression",
     syntax: "{list:expression} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
     leftRecursive: true,
-    testRule: new Rule.Keyword({ match: "where" }),
+    testRule: new Rule.Keywords({ match: "where" }),
     constructor: class list_membership_test extends Rule.Sequence {
       toSource(context) {
         let { identifier, operator, filter, list } = this.getMatchedSource(context);

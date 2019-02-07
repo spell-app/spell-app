@@ -206,7 +206,7 @@ test("me expression", () => {
 	expect(match.toSource()).toBe('this.foo');
 });
 
-test("I expression", () => {
+test.only("I expression", () => {
 	let match = parser.parse("expression", "I is empty");
 	expect(match.toSource()).toBe('spell.isEmpty(this)');
 });

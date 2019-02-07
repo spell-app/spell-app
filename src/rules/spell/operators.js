@@ -48,7 +48,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 6,
     syntax: "and",
-    constructor: class and extends Rule.Keyword {
+    constructor: class and extends Rule.Keywords {
       apply(a,b) { return `(${a} && ${b})` }
     }
   },
@@ -57,7 +57,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 5,
     syntax: "or",
-    constructor: class or extends Rule.Keyword {
+    constructor: class or extends Rule.Keywords {
       apply(a,b) { return `(${a} || ${b})` }
     }
   },
@@ -66,7 +66,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 10,
     syntax: "is",
-    constructor: class is extends Rule.Keyword {
+    constructor: class is extends Rule.Keywords {
       apply(a,b) { return `(${a} == ${b})` }
     }
   },
@@ -75,7 +75,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 10,
     syntax: "is not",
-    constructor: class is_not extends Rule.Keyword {
+    constructor: class is_not extends Rule.Keywords {
       apply(a,b) { return `(${a} != ${b})` }
     }
   },
@@ -84,7 +84,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 10,
     syntax: "is exactly",
-    constructor: class is_exactly extends Rule.Keyword {
+    constructor: class is_exactly extends Rule.Keywords {
       apply(a,b) { return `(${a} === ${b})` }
     }
   },
@@ -92,7 +92,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 10,
     syntax: "is not exactly",
-    constructor: class is_not_exactly extends Rule.Keyword {
+    constructor: class is_not_exactly extends Rule.Keywords {
       apply(a,b) { return `(${a} !== ${b})` }
     }
   },
@@ -106,7 +106,7 @@ parser.defineRules(
       "is a",
       "is an"
     ],
-    constructor: class is_a extends Rule.Keyword {
+    constructor: class is_a extends Rule.Keywords {
       apply(thing, type) { return `spell.isOfType(${thing}, '${type}')` }
     }
   },
@@ -118,7 +118,7 @@ parser.defineRules(
       "is not a",
       "is not an"
     ],
-    constructor: class is_not_a extends Rule.Keyword {
+    constructor: class is_not_a extends Rule.Keywords {
       apply(thing, type) { return `!spell.isOfType(${thing}, '${type}')` }
     }
   },
@@ -131,7 +131,7 @@ parser.defineRules(
       "is in",
       "is one of"
     ],
-    constructor: class is_in extends Rule.Keyword {
+    constructor: class is_in extends Rule.Keywords {
       apply(thing, list) { return `${list}.includes(${thing})` }
     }
   },
@@ -143,7 +143,7 @@ parser.defineRules(
       "is not in",
       "is not one of"
     ],
-    constructor: class is_not_in extends Rule.Keyword {
+    constructor: class is_not_in extends Rule.Keywords {
       apply(thing, list) { return `!${list}.includes(${thing})` }
     }
   },
@@ -157,7 +157,7 @@ parser.defineRules(
       "includes",
       "contains"
     ],
-    constructor: class includes extends Rule.Keyword {
+    constructor: class includes extends Rule.Keywords {
       apply(list, thing) { return `${list}.includes(${thing})` }
     }
   },
@@ -169,7 +169,7 @@ parser.defineRules(
       "does not include",
       "does not contain"
     ],
-    constructor: class does_not_include extends Rule.Keyword {
+    constructor: class does_not_include extends Rule.Keywords {
       apply(list, thing) { return `!${list}.includes(${thing})` }
     }
   },
@@ -179,7 +179,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 11,
     syntax: ">",
-    constructor: class gt extends Rule.Symbol {
+    constructor: class gt extends Rule.Symbols {
       apply(a,b) { return`(${a} > ${b})` }
     }
   },
@@ -187,7 +187,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 11,
     syntax: "is greater than",
-    constructor: class is_gt extends Rule.Keyword {
+    constructor: class is_gt extends Rule.Keywords {
       apply(a,b) { return`(${a} > ${b})` }
     }
   },
@@ -196,7 +196,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 11,
     syntax: ">=",
-    constructor: class gte extends Rule.Symbol {
+    constructor: class gte extends Rule.Symbols {
       apply(a,b) { return`(${a} >= ${b})` }
     }
   },
@@ -204,7 +204,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 11,
     syntax: "is greater than or equal to",
-    constructor: class is_gte extends Rule.Keyword {
+    constructor: class is_gte extends Rule.Keywords {
       apply(a,b) { return`(${a} >= ${b})` }
     }
   },
@@ -213,7 +213,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 11,
     syntax: "<",
-    constructor: class lt extends Rule.Symbol {
+    constructor: class lt extends Rule.Symbols {
       apply(a,b) { return`(${a} < ${b})` }
     }
   },
@@ -221,7 +221,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 11,
     syntax: "is less than",
-    constructor: class is_lt extends Rule.Keyword {
+    constructor: class is_lt extends Rule.Keywords {
       apply(a,b) { return`(${a} < ${b})` }
     }
   },
@@ -230,7 +230,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 11,
     syntax: "<=",
-    constructor: class lte extends Rule.Symbol {
+    constructor: class lte extends Rule.Symbols {
       apply(a,b) { return`(${a} <= ${b})` }
     }
   },
@@ -238,7 +238,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 11,
     syntax: "is less than or equal to",
-    constructor: class is_lte extends Rule.Keyword {
+    constructor: class is_lte extends Rule.Keywords {
       apply(a,b) { return`(${a} <= ${b})` }
     }
   },
@@ -248,7 +248,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 13,
     syntax: "\\+",
-    constructor: class plus extends Rule.Symbol {
+    constructor: class plus extends Rule.Symbols {
       apply(a,b) { return`${a} + ${b}` }
     }
   },
@@ -256,7 +256,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 13,
     syntax: "plus",
-    constructor: class plus extends Rule.Keyword {
+    constructor: class plus extends Rule.Keywords {
       apply(a,b) { return`${a} + ${b}` }
     }
   },
@@ -265,7 +265,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 13,
     syntax: "-",
-    constructor: class minus extends Rule.Symbol {
+    constructor: class minus extends Rule.Symbols {
       apply(a,b) { return`${a} - ${b}` }
     }
   },
@@ -273,7 +273,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 13,
     syntax: "minus",
-    constructor: class minus extends Rule.Keyword {
+    constructor: class minus extends Rule.Keywords {
       apply(a,b) { return`${a} - ${b}` }
     }
   },
@@ -282,7 +282,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 14,
     syntax: "\\*",
-    constructor: class times extends Rule.Symbol {
+    constructor: class times extends Rule.Symbols {
       apply(a,b) { return`${a} * ${b}` }
     }
   },
@@ -290,7 +290,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 14,
     syntax: "times",
-    constructor: class times extends Rule.Keyword {
+    constructor: class times extends Rule.Keywords {
       apply(a,b) { return`${a} * ${b}` }
     }
   },
@@ -299,7 +299,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 14,
     syntax: "/",
-    constructor: class divided_by extends Rule.Symbol {
+    constructor: class divided_by extends Rule.Symbols {
       apply(a,b) { return`${a} / ${b}` }
     }
   },
@@ -307,7 +307,7 @@ parser.defineRules(
     name: "infix_operator",
     precedence: 14,
     syntax: "divided by",
-    constructor: class divided_by extends Rule.Keyword {
+    constructor: class divided_by extends Rule.Keywords {
       apply(a,b) { return`${a} / ${b}` }
     }
   },
@@ -337,7 +337,7 @@ parser.defineRules(
   {
     name: "postfix_operator",
     syntax: "is defined",
-    constructor: class is_defined extends Rule.Keyword {
+    constructor: class is_defined extends Rule.Keywords {
       apply(thing) { return `(typeof ${thing} !== 'undefined')` }
     }
   },
@@ -347,7 +347,7 @@ parser.defineRules(
       "is undefined",
       "is not defined"
     ],
-    constructor: class is_undefined extends Rule.Keyword {
+    constructor: class is_undefined extends Rule.Keywords {
       apply(thing) { return `(typeof ${thing} === 'undefined')` }
     }
   },
@@ -356,14 +356,14 @@ parser.defineRules(
   {
     name: "postfix_operator",
     syntax: "is empty",
-    constructor: class is_empty extends Rule.Keyword {
+    constructor: class is_empty extends Rule.Keywords {
       apply(thing) { return `spell.isEmpty(${thing})` }
     }
   },
   {
     name: "postfix_operator",
     syntax: "is not empty",
-    constructor: class is_not_empty extends Rule.Keyword {
+    constructor: class is_not_empty extends Rule.Keywords {
       apply(thing) { return `!spell.isEmpty(${thing})` }
     }
   },

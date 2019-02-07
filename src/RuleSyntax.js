@@ -34,8 +34,8 @@ export default function parseRule(syntax, constructor) {
   }
 
   // Make an instance of the rule and add relevant properties to its prototype non-enumerably
-  if (constructor.prototype instanceof Rule.Keyword
-   || constructor.prototype instanceof Rule.Symbol
+  if (constructor.prototype instanceof Rule.Keywords
+   || constructor.prototype instanceof Rule.Symbols
    || constructor.prototype instanceof Rule.List
    || constructor.prototype instanceof Rule.Alternatives
   ) {
@@ -69,7 +69,7 @@ export function parseSyntax(syntax, rules = [], start = 0) {
     if (rule) {
       let last = rules[rules.length-1];
       // If this is a `Symbol` and last was a `Symbol`, merge together
-      if (last && last instanceof Rule.Symbol && rule instanceof Rule.Symbol) {
+      if (last && last instanceof Rule.Symbols && rule instanceof Rule.Symbols) {
         // remove the last rule
         rules.pop();
         // and replace with a rule that merges the keywords
@@ -127,7 +127,7 @@ function parseToken(syntaxStream, rules = [], start = 0) {
 //
 // Returns `[ rule, end ]`
 // Throws if invalid.
-function parseKeyword(syntaxStream, rules = [], start = 0, constructor) {
+function parseKeyword(syntaxStream, rules = [], start = 0, constructor = Rule.Keywords) {
   let match = [], end;
   // eat keywords while they last
   for (var i = start; i < syntaxStream.length; i++) {
@@ -139,18 +139,16 @@ function parseKeyword(syntaxStream, rules = [], start = 0, constructor) {
     else break;
   }
 
-  if (!constructor) constructor = Rule.Keyword;
   let rule = new constructor({ match });
-
   return [ rule, end ];
 }
 
 // Match `keyword` in syntax rules.
 // Returns `[ rule, end ]`
 // Throws if invalid.
-function parseSymbol(syntaxStream, rules = [], start = 0, constructor = Rule.Symbol) {
+function parseSymbol(syntaxStream, rules = [], start = 0, constructor = Rule.Symbols) {
   let string = syntaxStream[start];
-  if (!constructor) constructor = Rule.Symbol;
+  if (!constructor) constructor = Rule.Symbols;
 
   // If string starts with `\\`, it's an escaped literal (eg: `\[` needs to input as `\\[`).
   let isEscaped = string.startsWith("\\");

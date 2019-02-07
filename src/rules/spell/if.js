@@ -30,7 +30,7 @@ parser.defineRules(
     alias: "statement",
     syntax: "{statement} if {condition:expression} (?:(else|otherwise) {elseStatement:statement})?",
     leftRecursive: true,
-    testRule: new Rule.Keyword({ match: "if" }),
+    testRule: new Rule.Keywords({ match: "if" }),
     constructor: class backwards_if extends Rule.Sequence {
       toSource(context) {
         let { condition, statement, elseStatement } = this.getMatchedSource(context);

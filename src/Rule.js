@@ -56,6 +56,12 @@ export default class Rule {
 		tokens.forEach(token => this.blacklist[token] = true);
 	}
 
+  // Return `true` if the `token` is in our `blacklist`.
+  // Returns `false` if we don't have a `blacklist`.
+	blacklistContains(token) {
+    return !!this.blacklist && this.blacklist[token];
+	}
+
 //
 // ## output as source
 //
@@ -81,70 +87,55 @@ export default class Rule {
 }
 
 
-// Abstract rule for one or more sequential literal values to match, which include punctuation such as `(` etc.
-// `rule.match` is the literal string or array of literal strings to match.
-Rule.Match = class match extends Rule {
+// Abstract rule for one or more sequential literal values to match.
+// `rule.literals` is the literal string or array of literal strings to match.
+Rule.Literals = class literals extends Rule {
 	constructor(...props) {
 		super(...props);
 		// coerce to an array (a bit slower but cleaner).
 		if (!Array.isArray(this.match)) this.match = [this.match];
 	}
 
-  get matchDelimiter() {
-    return "";
-  }
-
 	// Attempt to match this rule in the `tokens`.
 	// Returns results of the parse or `undefined`.
 	parse(parser, tokens, start = 0, end, stack) {
-		if (!this.headStartsWith(this.match, tokens, start, end)) return undefined;
-		// if only one and we have a blacklist, make sure it's not in the blacklist!
-		if (this.match.length === 1 && this.blacklist && this.blacklist[this.match[0]]) return undefined;
-
+		if (!this.matchRun(tokens, start, end)) return undefined;
 		return this.clone({
 			matched: this.match.join(this.matchDelimiter),
 			nextStart: start + this.match.length
 		});
 	}
 
-	// Does this match appear anywhere in the tokens?
-	test(parser, tokens, start = 0, end) {
-		let matchStart = tokens.indexOf(this.match[0], start);
-		return matchStart !== -1 && this.headStartsWith(this.match, tokens, matchStart, end);
+	// Does this match appear ANYWHERE in the tokens?
+	test(parser, tokens, start = 0, end = tokens.length) {
+	  let first = this.match[0];
+	  for (var index = start; index < end; index++) {
+	    if (tokens[index] !== first) continue;
+	    if (this.matchRun(tokens, index, end)) return true;
+	  }
+	  return false;
 	}
 
-	// Does the head of the tokens start with an array of matches?
-	headStartsWith(matches, tokens, start = 0, end = tokens.length) {
-//TODO: this is probably just 1 line in lodash
-		// bail if match would go beyond the end
-		if (start + matches.length > end) return false;
-
-		// Special case for one match, maybe premature optimization but...
-		if (matches.length === 1) return (matches[0] === tokens[start]);
-
-		for (let i = 0; i < matches.length; i++) {
-			if (matches[i] !== tokens[start + i]) return false
-		}
-		return true;
+	// Match our `match` between `start` and `end` of tokens.
+	matchRun(tokens, start = 0, end = tokens.length) {
+	  if (this.match.length === 1) return tokens[start] === this.match[0];
+    return this.match.every((match, i) => (start + i < end) && (match === tokens[start + i]));
 	}
 
 	toString() {
-		return `${this.match.join(this.matchDelimiter)}${this.optional ? '?' : ''}`;
+		return `${this.match.join(this.matchDelimiter || "")}${this.optional ? '?' : ''}`;
 	}
 }
 
-Rule.Symbol = class symbol extends Rule.Match {
-  get matchDelimiter() {
-    return "";
-  }
-}
+// One or more literal symbols: `<`, `%` etc.
+// Symbols join WITHOUT spaces.
+Rule.Symbols = class symbols extends Rule.Literals {}
 
 
-Rule.Keyword = class keyword extends Rule.Match {
-  get matchDelimiter() {
-    return " ";
-  }
-}
+// One or more literal keywords.
+// Keywords join WITH spaces.
+Rule.Keywords = class keywords extends Rule.Literals {}
+Object.defineProperty(Rule.Keywords.prototype, "matchDelimiter", { value: " " });
 
 
 
@@ -422,7 +413,7 @@ Rule.Repeat = class repeat extends Rule {
 
 	toString() {
 		let isCompoundRule = (this.rule instanceof Rule.Sequence)
-						  || (this.rule instanceof Rule.Keyword && this.rule.match.length > 1);
+						  || (this.rule instanceof Rule.Keywords && this.rule.match.length > 1);
 		const rule = isCompoundRule ? `(${this.rule})` : `${this.rule}`;
 		return `${rule}${this.optional ? '*' : '+'}`;
 	}

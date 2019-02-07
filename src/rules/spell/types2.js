@@ -7,7 +7,7 @@ export default Parser.forName("types").defineRules(
     alias: "infix_operator",
     syntax: "is exactly",
     precedence: 10,
-    constructor: class is_exactly extends Rule.Keyword {
+    constructor: class is_exactly extends Rule.Keywords {
       toSource() { return 1 }
     }
   },

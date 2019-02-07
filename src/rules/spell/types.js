@@ -327,7 +327,7 @@ export default Parser.forName("types").defineRules(
     name: "me",
     alias: "expression",
     syntax: "me",
-    constructor: class me extends Rule.Keyword {
+    constructor: class me extends Rule.Keywords {
       toSource(context) {
         return "this";
       }
@@ -339,7 +339,7 @@ export default Parser.forName("types").defineRules(
     name: "I",
     alias: "expression",
     syntax: "I",
-    constructor: class I extends Rule.Keyword {
+    constructor: class I extends Rule.Keywords {
       toSource(context) {
         return "this";
       }
