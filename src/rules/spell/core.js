@@ -33,7 +33,26 @@ parser.defineRules(
       toSource() {
         return this.matched.replace(/\-/g, "_");
       }
-    }
+    },
+    tests: [
+      {
+        title: "correctly matches words",
+        tests: [
+          ["abc", "abc"],
+          ["abc-def", "abc_def"],
+          ["abc_def", "abc_def"],
+          ["abc01", "abc01"],
+          ["abc-def_01", "abc_def_01"],
+        ]
+      },
+      {
+        title: "doesn't match things that aren't words",
+        tests: [
+          ["$asda", undefined],
+          ["(asda)", undefined]     // TODO... ???
+        ]
+      },
+    ]
   },
 
   // `identifier` = variables or property name.
@@ -100,6 +119,34 @@ parser.defineRules(
       // TESTME
       "one", "two", "three", "four", "five",
       "six", "seven", "eight", "nine", "ten",
+    ],
+    tests: [
+      {
+        title: "correctly matches identifiers",
+        tests: [
+          ["", undefined],
+          ["abc", "abc"],
+          ["abc-def", "abc_def"],
+          ["abc_def", "abc_def"],
+          ["abc01", "abc01"],
+          ["abc-def_01", "abc_def_01"],
+        ]
+      },
+      {
+        title: "doesn't match things that aren't identifiers",
+        tests: [
+          ["", undefined],
+          ["$asda", undefined],
+          ["(asda)", undefined],     // TODO... ???
+          ["Abc", undefined],
+        ]
+      },
+      {
+        title: "skips items in its blacklist",
+        tests: [
+          ["yes", undefined]
+        ]
+      }
     ]
   },
 
@@ -132,7 +179,33 @@ parser.defineRules(
         }
       }
     },
-    blacklist: [ "I" ]
+    blacklist: [ "I" ],
+    tests: [
+      {
+        title: "correctly matches types",
+        tests: [
+          ["Abc", "Abc"],
+          ["Abc-def", "Abc_def"],
+          ["Abc_Def", "Abc_Def"],
+          ["Abc01", "Abc01"],
+          ["Abc-def_01", "Abc_def_01"],
+        ]
+      },
+      {
+        title: "doesn't match things that aren't types",
+        tests: [
+          ["", undefined],
+          ["$Asda", undefined],     // TODO... ???
+          ["(Asda)", undefined],    // TODO... ???
+        ]
+      },
+      {
+        title: "skips items in its blacklist",
+        tests: [
+          ["I", undefined]
+        ]
+      }
+    ]
   },
 
 
@@ -157,7 +230,31 @@ parser.defineRules(
             return false;
         }
       }
-    }
+    },
+    tests: [
+      {
+        title: "correctly matches booleans",
+        tests: [
+          ["", undefined],
+          ["true", true],
+          ["yes", true],
+          ["ok", true],
+          ["success", true],
+          ["false", false],
+          ["no", false],
+          ["cancel", false],
+          ["failure", false]
+        ]
+      },
+      {
+        title: "doesn't match in the middle of a longer keyword",
+        tests: [
+          ["yessir", undefined],
+          ["yes-sir", undefined],
+          ["yes_sir", undefined]
+        ]
+      },
+    ]
   },
 
   // `number` as either float or integer, created with custom constructor for debugging.
@@ -199,7 +296,35 @@ parser.defineRules(
       toSource() {
         return this.matched;
       }
-    }
+    },
+    tests: [
+      {
+        title: "correctly matches numbers",
+        tests: [
+          ["1", 1],
+          ["1000", 1000],
+          ["-1", -1],
+          ["1.1", 1.1],
+          ["000.1", 0.1],
+          ["1.", 1],
+          [".1", 0.1],
+          ["-111.111", -111.111],
+        ]
+      },
+      {
+        title: "doesn't match things that aren't numbers",
+        tests: [
+          ["", undefined],
+          [".", undefined],
+        ]
+      },
+      {
+        title: "requires negative sign to be touching the number",
+        tests: [
+          ["- 1", undefined]
+        ]
+      },
+    ]
   },
 
   // Literal `text` string, created with custom constructor for debugging.
@@ -223,7 +348,22 @@ parser.defineRules(
       toSource() {
         return this.matched;
       }
-    }
+    },
+    tests: [
+      {
+        title: "correctly matches text",
+        tests: [
+          ['""', '""'],
+          ["''", "''"],
+          ['"a"', '"a"'],
+          ["'a'", "'a'"],
+          ['"abcd"', '"abcd"'],
+          ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
+          ['"...Can\'t touch this"', '"...Can\'t touch this"'],
+//FIXME          ["'\"Gadzooks! I can\\'t believe it!\" he said'", "'\"Gadzooks! I can\'t believe it!\" he said'"],
+        ]
+      },
+    ]
   },
 
   // Literal list (array), eg:  `[1,2 , true,false ]`
@@ -236,12 +376,32 @@ parser.defineRules(
         let { list } = this.results;
         return `[${list ? list.join(", ") : ""}]`;
       }
-    }
+    },
+    tests: [
+      {
+        title: "correctly matches literal lists",
+        tests: [
+          ["[]", "[]"],
+          ["[1]", "[1]"],
+          ["[1,]", "[1]"],
+          ["[1,2,3]", "[1, 2, 3]"],
+          ["[1, 2, 3]", "[1, 2, 3]"],
+          ["[1,2,3,]", "[1, 2, 3]"],
+          ["[yes,no,'a',1]", "[true, false, 'a', 1]"],
+        ]
+      },
+      {
+        title: "doesn't match malformed lists ",
+        tests: [
+          ["", undefined],
+          ["[,1]", undefined]
+        ]
+      },
+    ]
   },
 
 
   // Parenthesized expression
-  //TESTME
   {
     name: "parenthesized_expression",
     alias: "expression",
@@ -253,7 +413,33 @@ parser.defineRules(
         if (typeof expression === "string" && expression.startsWith("(") && expression.endsWith(")")) return expression;
         return "(" + expression + ")";
       }
-    }
+    },
+    tests: [
+      {
+        title: "correctly matches parenthesized expressions",
+        tests: [
+          ["(someVar)", "(someVar)"],
+          ["((someVar))", "(someVar)"],
+          ["(1 and yes)", "(1 && true)"],
+        ]
+      },
+      {
+        title: "correctly matches multiple parenthesis",
+        compileAs: "expression",
+        tests: [
+          ["(1) and (yes)", "((1) && (true))"],
+          ["((1) and (yes))", "((1) && (true))"],
+          ["((1) and ((yes)))", "((1) && (true))"],
+        ]
+      },
+      {
+        title: "doesn't match malformed parenthesized expressions",
+        tests: [
+          ["(foo", undefined],
+          ["(foo(bar)baz", undefined],
+        ]
+      },
+    ]
   }
 
 );

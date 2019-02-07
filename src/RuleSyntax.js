@@ -253,7 +253,7 @@ function parseRepeat(syntaxStream, rules = [], start = 0) {
   return [ undefined, start ]
 }
 
-// Match `{<ruleName>}` in syntax rules.
+// Match `{<subrule>}` in syntax rules.
 // Returns `[ rule, end ]`
 // Throws if invalid.
 function parseSubrule(syntaxStream, rules = [], start = 0) {

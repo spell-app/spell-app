@@ -1,3 +1,4 @@
+import { ParserError } from "./Parser.js";
 import Rule from "./Rule.js";
 import { parseSyntax } from "./RuleSyntax.js";
 
@@ -102,7 +103,7 @@ test("parse list with keyword delimiter", () => {
 
 test("fail list with extra stuff", () => {
 	expect(() => parseSyntax("[{good},bad input]"))
-		.toThrow(SyntaxError);
+		.toThrow(ParserError);
 });
 
 
@@ -254,26 +255,26 @@ test("parse + repeated list", () => {
 //
 test("thrown on improperly balanced parenthesis, etc", () => {
 	expect(() => parseSyntax("(abc"))
-		.toThrow(SyntaxError);
+		.toThrow(ParserError);
 
 	expect(() => parseSyntax("[abc"))
-		.toThrow(SyntaxError);
+		.toThrow(ParserError);
 
 	expect(() => parseSyntax("{abc"))
-		.toThrow(SyntaxError);
+		.toThrow(ParserError);
 
 });
 
 test("throw on invalid end tokens", () => {
 	expect(() => parseSyntax("}"))
-		.toThrow(SyntaxError);
+		.toThrow(ParserError);
 
 	expect(() => parseSyntax(")"))
-		.toThrow(SyntaxError);
+		.toThrow(ParserError);
 
 	expect(() => parseSyntax("]"))
-		.toThrow(SyntaxError);
+		.toThrow(ParserError);
 
 	expect(() => parseSyntax("|"))
-		.toThrow(SyntaxError);
+		.toThrow(ParserError);
 });

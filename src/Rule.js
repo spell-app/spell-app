@@ -67,6 +67,11 @@ export default class Rule {
 	toStructure() {
 		return undefined;
 	}
+
+//
+// ## reflection
+//
+
 }
 
 
@@ -248,7 +253,7 @@ Rule.Sequence = class sequence extends Rule {
 	// Only callable after parse is completed.
 	// Returns an object with properties from the `matched` array indexed by one of the following:
 	//		- `match.argument`:		argument set when rule was declared, eg: `{value:literal}` => `value`
-	//		- `match.ruleName`:		name of rule when defined
+	//		- `match.group`:		  name of group rule was added to
 	//		- `match.constructor.name`:			name of the rule type
 	get results() {
 		if (!this.matched) return undefined;
@@ -331,7 +336,7 @@ Rule.Alternatives = class alternatives extends Rule {
 
 		// uncomment the below to print alternatives
 		// if (matches.length > 1) {
-		//	console.info(this.argument || this.ruleName, matches, matches.map(match => match.matchedText));
+		//	console.info(this.argument || this.group, matches, matches.map(match => match.matchedText));
 		// }
 
 		let bestMatch = (matches.length === 1 ? matches[0] : this.getBestMatch(matches));

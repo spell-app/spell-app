@@ -11,6 +11,14 @@ import { cloneClass } from "./utils/class.js";
 if (!console.group) console.group = console.log;
 if (!console.groupEnd) console.groupEnd = console.log;
 
+// Error we'll throw for problems when parsing.
+// Uses a specific type so we can check for it in tests.
+export function ParseError(...args) {
+  Error.apply(this, args);
+  if (Error.captureStackTrace) Error.captureStackTrace(this, ParseError);
+}
+ParseError.prototype = new Error();
+
 export default class Parser {
 	// Set to `true` to output debug info while adding rules
 	static DEBUG = false;
@@ -20,6 +28,9 @@ export default class Parser {
 
 	// Set to `true` to output timing info.
 	static TIME = false;
+
+  // Add to Parser console debugging
+  static ParseError = ParseError;
 
 	// Constructor.
 	constructor(properties) {
@@ -76,7 +87,9 @@ export default class Parser {
 			ruleName = "statements";
 		}
 		let result = this.parse(ruleName, text);
-		if (!result) throw new SyntaxError(`parser.parse('${ruleName}', '${text}'): can't parse this`);
+		if (!result) {
+		  throw new ParseError(`parser.parse('${ruleName}', '${text}'): can't parse text`);
+		}
 		return result.toSource(this);
 	}
 
@@ -86,7 +99,7 @@ export default class Parser {
 	// Throws if rule is not implemented.
 	parseNamedRule(ruleName, tokens, start, end, stack, callingContext = "parseNamedRule") {
     const rule = this.rules[ruleName];
-		if (!rule) throw new SyntaxError(`${callingContext}: rule '${ruleName}' not found`);
+		if (!rule) throw new ParseError(`${callingContext}: rule '${ruleName}' not found`);
     return rule.parse(this, tokens, start, end, stack);
 	}
 
@@ -234,36 +247,42 @@ export default class Parser {
   //    specifying this can let us jump out quickly if there is no possible match
   //
   // Note that we munge the `constructor` passed in for efficiency while parsing.
-  defineRule({
-    name, constructor, alias = [], canonical,
-    syntax, blacklist,
-    ...otherProps
-    // pattern, precedence, , leftRecursive, testRule
-  }) {
-    const names = [name].concat(alias);
-
+  defineRule({ constructor, ...props }) {
+    // throw if required params not provided
+    if (!constructor || !props.name) {
+      throw new TypeError(`parser.define(): You must pass 'constructor' and 'name'`);
+    }
     // throw if we're re-using a constructor
-    if (constructor.prototype.ruleNames) {
+    if (constructor.prototype.name) {
       throw new TypeError(`parser.define(): Attempting to re-use constructor for rule '${ruleName}'`);
     }
 
-    // Set properties on prototype.constructor
-    Object.defineProperty(constructor.prototype, "ruleNames", { value: names });
-    if (canonical) Rule[canonical] = constructor;
-    if (blacklist) {
+    // If we're a "canonical" rule, set on Rule.
+    // Use this if you want to check the type of a rule in a test or something.
+    if (props.canonical) Rule[props.canonical] = constructor;
+
+    // Convert blacklist from list of strings to a map
+    if (props.blacklist && Array.isArray(props.blacklist)) {
       const map = {};
-      for (const key of blacklist) map[key] = true;
-      Object.defineProperty(constructor.prototype, "blacklist", { value: map });
+      for (const key of props.blacklist) map[key] = true;
+      props.blacklist = map;
     }
 
-    for (const key of Object.keys(otherProps)) {
-//console.info(name, key, otherProps[key]);
-      Object.defineProperty(constructor.prototype, key, { value: otherProps[key] });
+    // Add props to the contructor protoype non-enumerably and non-writably
+    //  so we'll get an error if something tries to overwrite them.
+    for (const key of Object.keys(props)) {
+      Object.defineProperty(constructor.prototype, key, { value: props[key] });
     }
 
-    const rule = syntax
-      ? parseRule(syntax, constructor)
+    // Instantiate the rule.
+    const rule = props.syntax
+      ? parseRule(props.syntax, constructor)
       : new constructor();
+
+    // Combine aliases with the main name
+    const names = [props.name].concat(props.alias || []);
+    // note if we have tests so we can select this component easily
+    if (props.tests) names.push("_testable_");
 
     this.addRule(names, rule);
   }
@@ -293,7 +312,7 @@ export default class Parser {
 	// If successful, returns `{ start, end, slice }`
 	// Throws if unsucessful.
 	static findNestedTokens(tokens, startToken, endToken, start = 0) {
-		if (tokens[start] !== startToken) throw new SyntaxError(`Expected '${startToken}' at index ${start} of tokens`);
+		if (tokens[start] !== startToken) throw new ParseError(`Expected '${startToken}' at index ${start} of tokens`);
 		let nesting = 0;
 		let nested = false;
 		for (let end = start + 1, lastIndex = tokens.length; end < lastIndex; end++) {
@@ -308,7 +327,7 @@ export default class Parser {
 				nesting--;
 			}
 		}
-		throw new SyntaxError(`Couldn't find matching '${endToken}'s starting at item ${start}`);
+		throw new ParseError(`Couldn't find matching '${endToken}'s starting at item ${start}`);
 	}
 }
 
