@@ -89,41 +89,42 @@ export default class Rule {
 
 // Abstract rule for one or more sequential literal values to match.
 // `rule.literals` is the literal string or array of literal strings to match.
+// `rule.literalSeparator` is the string to put between multiple literals when joining.
 Rule.Literals = class literals extends Rule {
 	constructor(...props) {
 		super(...props);
 		// coerce to an array (a bit slower but cleaner).
-		if (!Array.isArray(this.match)) this.match = [this.match];
+		if (!Array.isArray(this.literals)) this.literals = [this.literals];
 	}
 
 	// Attempt to match this rule in the `tokens`.
 	// Returns results of the parse or `undefined`.
 	parse(parser, tokens, start = 0, end, stack) {
-		if (!this.matchRun(tokens, start, end)) return undefined;
+		if (!this.matchesStartingAt(tokens, start, end)) return undefined;
 		return this.clone({
-			matched: this.match.join(this.matchDelimiter),
-			nextStart: start + this.match.length
+			matched: this.literals.join(this.literalSeparator),
+			nextStart: start + this.literals.length
 		});
 	}
 
 	// Does this match appear ANYWHERE in the tokens?
 	test(parser, tokens, start = 0, end = tokens.length) {
-	  let first = this.match[0];
+	  let first = this.literals[0];
 	  for (var index = start; index < end; index++) {
 	    if (tokens[index] !== first) continue;
-	    if (this.matchRun(tokens, index, end)) return true;
+	    if (this.matchesStartingAt(tokens, index, end)) return true;
 	  }
 	  return false;
 	}
 
-	// Match our `match` between `start` and `end` of tokens.
-	matchRun(tokens, start = 0, end = tokens.length) {
-	  if (this.match.length === 1) return tokens[start] === this.match[0];
-    return this.match.every((match, i) => (start + i < end) && (match === tokens[start + i]));
+	// Match our `literals` between `start` and `end` of tokens.
+	matchesStartingAt(tokens, start = 0, end = tokens.length) {
+	  if (this.literals.length === 1) return tokens[start] === this.literals[0];
+    return this.literals.every((literal, i) => (start + i < end) && (literal === tokens[start + i]));
 	}
 
 	toString() {
-		return `${this.match.join(this.matchDelimiter || "")}${this.optional ? '?' : ''}`;
+		return `${this.literals.join(this.literalSeparator || "")}${this.optional ? '?' : ''}`;
 	}
 }
 
@@ -135,7 +136,7 @@ Rule.Symbols = class symbols extends Rule.Literals {}
 // One or more literal keywords.
 // Keywords join WITH spaces.
 Rule.Keywords = class keywords extends Rule.Literals {}
-Object.defineProperty(Rule.Keywords.prototype, "matchDelimiter", { value: " " });
+Object.defineProperty(Rule.Keywords.prototype, "literalSeparator", { value: " " });
 
 
 
@@ -337,7 +338,7 @@ Rule.Alternatives = class alternatives extends Rule {
 
 		let bestMatch = (matches.length === 1 ? matches[0] : this.getBestMatch(matches));
 
-		// assign `argName` or `ruleName` for `results`
+		// assign `argName` or `group` for `results`
 		if (this.argument) bestMatch.argument = this.argument;
 		else if (this.group) bestMatch.group = this.group;
 //TODO: other things to copy here???

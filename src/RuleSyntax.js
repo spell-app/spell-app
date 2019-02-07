@@ -73,7 +73,7 @@ export function parseSyntax(syntax, rules = [], start = 0) {
         // remove the last rule
         rules.pop();
         // and replace with a rule that merges the keywords
-        rule.match = last.match.concat(rule.match);
+        rule.literals = last.literals.concat(rule.literals);
       }
       rules.push(rule);
     }
@@ -128,18 +128,18 @@ function parseToken(syntaxStream, rules = [], start = 0) {
 // Returns `[ rule, end ]`
 // Throws if invalid.
 function parseKeyword(syntaxStream, rules = [], start = 0, constructor = Rule.Keywords) {
-  let match = [], end;
+  let literals = [], end;
   // eat keywords while they last
   for (var i = start; i < syntaxStream.length; i++) {
     let next = syntaxStream[i];
     if (typeof next === "string" && next.match(KEYWORD_PATTERN)) {
-      match.push(next);
+      literals.push(next);
       end = i;
     }
     else break;
   }
 
-  let rule = new constructor({ match });
+  let rule = new constructor({ literals });
   return [ rule, end ];
 }
 
@@ -152,13 +152,13 @@ function parseSymbol(syntaxStream, rules = [], start = 0, constructor = Rule.Sym
 
   // If string starts with `\\`, it's an escaped literal (eg: `\[` needs to input as `\\[`).
   let isEscaped = string.startsWith("\\");
-  let match = isEscaped ? string.substr(1) : string;
+  let literals = isEscaped ? string.substr(1) : string;
 
-  let rule = new constructor({ match });
+  let rule = new constructor({ literals });
 
   if (isEscaped) {
     rule.toString = function() {
-      return `\\${match}${this.optional ? '?' : ''}`;
+      return `\\${literals}${this.optional ? '?' : ''}`;
     }
   }
 

@@ -4,18 +4,18 @@ import { parseSyntax } from "./RuleSyntax.js";
 //
 //	Rule.String
 //
-test("parse single symbols", () => {
+test.only("parse single symbols", () => {
 	let rules = parseSyntax(">");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Symbols);
-	expect(rules[0].match).toEqual([">"]);
+	expect(rules[0].literals).toEqual([">"]);
 });
 
 test("parse multiple symbols", () => {
 	let rules = parseSyntax(">=");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Symbols);
-	expect(rules[0].match).toEqual([">", "="]);
+	expect(rules[0].literals).toEqual([">", "="]);
 	expect(rules[0].toString()).toBe(">=");
 });
 
@@ -24,7 +24,7 @@ test("parse escaped symbol", () => {
 	let rules = parseSyntax("\\(");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Symbols);
-	expect(rules[0].match).toEqual(["("]);
+	expect(rules[0].literals).toEqual(["("]);
 	expect(rules[0].toString()).toBe("\\(");
 });
 
@@ -35,7 +35,7 @@ test("parse single keyword", () => {
 	let rules = parseSyntax("is");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Keywords);
-	expect(rules[0].match).toEqual(["is"]);
+	expect(rules[0].literals).toEqual(["is"]);
 	expect(rules[0].toString()).toBe("is");
 });
 
@@ -43,7 +43,7 @@ test("parse multiple keywords as a keyword", () => {
 	let rules = parseSyntax("is not");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Keywords);
-	expect(rules[0].match).toEqual(["is", "not"]);
+	expect(rules[0].literals).toEqual(["is", "not"]);
 	expect(rules[0].toString()).toBe("is not");
 });
 
@@ -96,7 +96,7 @@ test("parse list with keyword delimiter", () => {
 	expect(rules[0]).toBeInstanceOf(Rule.List);
 	expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
 	expect(rules[0].delimiter).toBeInstanceOf(Rule.Keywords);
-	expect(rules[0].delimiter.match).toEqual(["and"]);
+	expect(rules[0].delimiter.literals).toEqual(["and"]);
 	expect(rules[0].toString()).toBe("[{number} and]");
 });
 
@@ -118,13 +118,13 @@ test("parse simple alternatives", () => {
 	expect(rules[0].rules.length).toBe(3);
 
 	expect(rules[0].rules[0]).toBeInstanceOf(Rule.Keywords);
-	expect(rules[0].rules[0].match).toEqual(["a"]);
+	expect(rules[0].rules[0].literals).toEqual(["a"]);
 
 	expect(rules[0].rules[1]).toBeInstanceOf(Rule.Keywords);
-	expect(rules[0].rules[1].match).toEqual(["bb"]);
+	expect(rules[0].rules[1].literals).toEqual(["bb"]);
 
 	expect(rules[0].rules[2]).toBeInstanceOf(Rule.Keywords);
-	expect(rules[0].rules[2].match).toEqual(["cccccc"]);
+	expect(rules[0].rules[2].literals).toEqual(["cccccc"]);
 
 	expect(rules[0].toString()).toBe("(a|bb|cccccc)");
 });
@@ -139,10 +139,10 @@ test("parse named alternatives", () => {
 	expect(rules[0].rules.length).toBe(2);
 
 	expect(rules[0].rules[0]).toBeInstanceOf(Rule.Keywords);
-	expect(rules[0].rules[0].match).toEqual(["a"]);
+	expect(rules[0].rules[0].literals).toEqual(["a"]);
 
 	expect(rules[0].rules[1]).toBeInstanceOf(Rule.Keywords);
-	expect(rules[0].rules[1].match).toEqual(["b"]);
+	expect(rules[0].rules[1].literals).toEqual(["b"]);
 
 	expect(rules[0].toString()).toBe("(foo:a|b)");
 });
@@ -171,7 +171,7 @@ test("parse optional string", () => {
 	let rules = parseSyntax(";?");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Symbols);
-	expect(rules[0].match).toEqual([";"]);
+	expect(rules[0].literals).toEqual([";"]);
 	expect(rules[0].optional).toBe(true);
 	expect(rules[0].toString()).toBe(";?");
 });
