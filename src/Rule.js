@@ -109,7 +109,7 @@ Rule.Literals = class literals extends Rule {
     return this.literals.every((literal, i) => (start + i < end) && (literal === tokens[start + i]));
 	}
 
-	toString() {
+	toSyntax() {
 		return `${this.literals.join(this.literalSeparator || "")}${this.optional ? '?' : ''}`;
 	}
 }
@@ -159,7 +159,7 @@ Rule.Pattern = class pattern extends Rule {
 		return tokens.slice(start, end).some(token => typeof token === "string" && pattern.test(token));
 	}
 
-	toString() {
+	toSyntax() {
 		return this.pattern.source;
 	}
 }
@@ -183,7 +183,7 @@ Rule.Subrule = class subrule extends Rule {
 		return parser.test(this.subrule, tokens, start, end);
 	}
 
-	toString() {
+	toSyntax() {
 		return `{${this.argument ? this.argument+":" : ""}${this.subrule}}${this.optional ? '?' : ''}`;
 	}
 }
@@ -290,7 +290,8 @@ Rule.Sequence = class sequence extends Rule {
 	}
 
 	// Echo this rule back out.
-	toString() {
+	toSyntax() {
+	  const rules = this.rules.map(rule => rule.toSyntax());
 		return `${this.rules.join(" ")}${this.optional ? '?' : ''}`;
 	}
 
@@ -361,15 +362,11 @@ Rule.Alternatives = class alternatives extends Rule {
 		this.rules.push(...rule);
 	}
 
-	toSource(context) {
-		return this.matched.toSource(context);
-	}
-
-	toString() {
-		return `(${this.argument ? this.argument+":" : ""}${this.rules.join("|")})${this.optional ? '?' : ''}`;
+	toSyntax() {
+	  const rules = this.rules.map(rule => rule.toSyntax()).join("|");
+		return `(${this.argument ? this.argument+":" : ""}${rules})${this.optional ? '?' : ''}`;
 	}
 };
-
 
 
 // Repeating rule.
@@ -414,10 +411,11 @@ Rule.Repeat = class repeat extends Rule {
 		return this.matched.map(match => match.toSource(context));
 	}
 
-	toString() {
+	toSyntax() {
 		let isCompoundRule = (this.repeat instanceof Rule.Sequence)
-						  || (this.repeat instanceof Rule.Keywords && this.repeat.literals.length > 1);
-		const rule = isCompoundRule ? `(${this.repeat})` : `${this.repeat}`;
+      || (this.repeat instanceof Rule.Literals && this.repeat.literals.length > 1);
+    const repeat = this.repeat.toSyntax();
+		const rule = isCompoundRule ? `(${repeat})` : `${repeat}`;
 		return `${rule}${this.optional ? '*' : '+'}`;
 	}
 }
@@ -470,8 +468,10 @@ Rule.List = class list extends Rule {
 		return this.matched.map( match => match.toSource(context) );
 	}
 
-	toString() {
-		return `[${this.argument ? this.argument+":" : ""}${this.item} ${this.delimiter}]${this.optional ? '?' : ''}`;
+	toSyntax() {
+	  const item = this.item.toSyntax();
+	  const delimiter = this.delimiter.toSyntax();
+		return `[${this.argument ? this.argument+":" : ""}${item} ${delimiter}]${this.optional ? '?' : ''}`;
 	}
 };
 

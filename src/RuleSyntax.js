@@ -157,7 +157,7 @@ function parseSymbol(syntaxStream, rules = [], start = 0, constructor = Rule.Sym
   let rule = new constructor({ literals });
 
   if (isEscaped) {
-    rule.toString = function() {
+    rule.toSyntax = function() {
       return `\\${literals}${this.optional ? '?' : ''}`;
     }
   }
