@@ -200,24 +200,6 @@ export default class Parser {
 
 		// Add to our list of _rules
 		this._mergeRule(this._rules, ruleName, rule);
-
-		// make a note if we're adding a left-recursive rule
-//TODO: this doesn't fly if adding under multiple names...  :-(
-		if (Parser.ruleIsLeftRecursive(ruleName, rule)) {
-			if (!rule instanceof Rule.Sequence) {
-				throw new TypeError(`Error defining rule '${ruleName}': Only Sequence rules can be leftRecusive`);
-			}
-			// You must define a `testRule` for left recursive sequences.
-			// e.g. `testRule = new Rule.Keyword({ match: ["something"] })`
-			if (!rule.testRule || !rule.constructor.testRule) {
-				throw new TypeError(`Error defining rule '${rule.ruleName}': You must define a 'testRule' for leftRecusive rules.`);
-			}
-			if (Parser.DEBUG) console.info("marking ", rule, " as left recursive!");
-
-//TODO: rule.prototype.leftRecursive ???
-			rule.leftRecursive = true;
-		}
-
 		return rule;
 	}
 
@@ -242,17 +224,23 @@ export default class Parser {
 
   // Define one or more rules using ruleSyntax or patterns to create the rule instances.
   //  `name` (identifier, required)  Base name of the rule.
-  //  `syntax` (string, required) RuleSyntax string for this rule.
-  //  `constructor` (class, required) Class which will be used to instantiate the rule.
   //  `alias` (string or [string], optinal) Other names to define rule under.
+  //  `canonical` (string, optional) Canonical name for the rule, available on `Rule` for debugging.
+  //  `constructor` (class, required) Class which will be used to instantiate the rule.
+  //  `syntax` (string, required) RuleSyntax string for this rule.
+  //  `pattern` (RegExp, optional) Regular expression for `Pattern` rules
   //  `mutatesScope` (boolean, optional) Set to `true` if the rule mutates the scope it is defined in.
   //  `precedence` (number, optional) Precedence number for the rule (currently doesn't do anything)
-  //  `pattern` (RegExp, optional) Regular expression for `Pattern` rules
   //  `blacklist` ([string], optional) Array of strings as blacklist for pattern rules.
-  //  `canonical` (string, optional) Canonical name for the rule, available on `Rule` for debugging.
-  //
-  // Note that we munge the `constructor` passed in for efficiency in creating rules.
-  defineRule({ name, syntax, constructor, alias = [], mutatesScope, precedence, pattern, blacklist, canonical }) {
+  //  `leftRecursive'
+  //  `testRule`
+  // Note that we munge the `constructor` passed in for efficiency while parsing.
+  defineRule({
+    name, constructor, alias = [], canonical,
+    syntax, blacklist,
+    ...otherProps
+    // pattern, mutatesScope, precedence, , leftRecursive, testRule
+  }) {
     const names = [name].concat(alias);
 
     // throw if we're re-using a constructor
@@ -262,23 +250,21 @@ export default class Parser {
 
     // Set properties on prototype.constructor
     Object.defineProperty(constructor.prototype, "ruleNames", { value: names });
-    if (pattern) Object.defineProperty(constructor.prototype, "pattern", { value: pattern });
-    if (mutatesScope) Object.defineProperty(constructor.prototype, "mutatesScope", { value: true });
-    if (precedence) Object.defineProperty(constructor.prototype, "precedence", { value: precedence });
+    if (canonical) Rule[canonical] = constructor;
     if (blacklist) {
       const map = {};
       for (const key of blacklist) map[key] = true;
       Object.defineProperty(constructor.prototype, "blacklist", { value: map });
     }
-    if (canonical) Rule[canonical] = constructor;
 
-    let rule;
-    if (syntax) {
-      rule = parseRule(syntax, constructor);
+    for (const key of Object.keys(otherProps)) {
+//console.info(name, key, otherProps[key]);
+      Object.defineProperty(constructor.prototype, key, { value: otherProps[key] });
     }
-    else {
-      rule = new constructor();
-    }
+
+    const rule = syntax
+      ? parseRule(syntax, constructor)
+      : new constructor();
 
     this.addRule(names, rule);
   }
@@ -302,21 +288,6 @@ export default class Parser {
 //
 // ## Utility methods
 //
-
-	// Is the specified rule left-recursive?
-	// True for sequences where the first non-optional rule recursively calls `ruleName`.
-	static ruleIsLeftRecursive(ruleName, rule) {
-		if (!(rule instanceof Rule.Sequence) || !rule.rules) return false;
-//console.log(ruleName, rule);
-		let index = 0, subrule = undefined;
-		while (subrule = rule.rules[index++]) {
-			// ignore optional rules
-			if (subrule.optional) continue;
-			if (subrule instanceof Rule.Subrule && subrule.rule === ruleName) return true;
-			return false;
-		}
-		return false;
-	}
 
 	// Find the matching instance of possibly nested `endToken` to balance `startToken`
 	//	in array of `tokens` (strings).

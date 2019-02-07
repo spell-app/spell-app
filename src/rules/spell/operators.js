@@ -30,11 +30,9 @@ parser.defineRules(
     name: "infix_operator_expression",
     alias: "expression",
     syntax: "{lhs:expression} {operator:infix_operator} {rhs:expression}",
+    leftRecursive: true,
+    testRule: "infix_operator",
     constructor: class infix_operator_expression extends Rule.Sequence {
-      // We CANNOT match if `infix_operator` isn't found in the expression.
-      static testRule = "infix_operator";
-      get testRule() { return this.constructor.testRule }
-
       toSource(context) {
         let { lhs, rhs, operator } = this.results;
         return operator.apply(lhs.toSource(context), rhs.toSource(context));
@@ -326,11 +324,9 @@ parser.defineRules(
     name: "postfix_operator_expression",
     alias: "expression",
     syntax: "{expression} {operator:postfix_operator}",
+    leftRecursive: true,
+    testRule: "postfix_operator",
     constructor: class postfix_operator_expresion extends Rule.Sequence {
-      // We CANNOT match if `postfix_operator` isn't found in the expression.
-      static testRule = "postfix_operator";
-      get testRule() { return this.constructor.testRule }
-
       toSource(context) {
         let { expression, operator } = this.results;
         return operator.apply(expression.toSource(context));

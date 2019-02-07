@@ -356,11 +356,9 @@ parser.defineRules(
     name: "list_membership_test",
     alias: "expression",
     syntax: "{list:expression} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
+    leftRecursive: true,
+    testRule: new Rule.Keyword({ match: "where" }),
     constructor: class list_membership_test extends Rule.Sequence {
-      // Add test rule for quicker processing
-      static testRule = new Rule.Keyword({ match: ["where"] });
-      get testRule() { return this.constructor.testRule }
-
       toSource(context) {
         let { identifier, operator, filter, list } = this.getMatchedSource(context);
         let bang = operator === "has" ? "" : "!";
