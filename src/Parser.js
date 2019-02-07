@@ -5,6 +5,7 @@
 import Tokenizer from "./Tokenizer.js";
 import Rule from "./Rule.js";
 import parseRule from "./RuleSyntax.js";
+import { cloneClass } from "./utils/class.js";
 
 // GRRR... will SOMEONE on the node team please implement console.group ???
 if (!console.group) console.group = console.log;
@@ -140,36 +141,49 @@ export default class Parser {
 	// NOTE: We memoize this, so make sure to clear `__rules` if you're manipulating rules or imports!
 	get rules() {
 		if (!this.__rules) {
-			let output = this.__rules = {};
+			const output = this.__rules = {};
 			// Get all imported parsers, with us last
 			const imports = [this].concat(this.imports.map(Parser.forName));
 
 			// For each parser
 			imports.forEach(parser => {
-				// Merge rules into an Alternatives in output rules.
-				for (let ruleName in parser._rules) {
-					let rule = parser._rules[ruleName];
-					let alternatives = output[ruleName] || (output[ruleName] = new Rule.Alternatives({ ruleName }));
-
-					if (rule instanceof Rule.Alternatives
-					 && rule.ruleName === ruleName
-					 && !rule.argument
-					) {
-						rule.rules.forEach( alternative => alternatives.addRule(alternative) );
-					}
-					else {
-						alternatives.addRule(rule);
-					}
+				for (const ruleName in parser._rules) {
+				  this._mergeRule(output, ruleName, parser._rules[ruleName]);
 				}
 			});
 		}
 		return this.__rules;
 	}
 
+  // Merge `rule` into `map` of rules by `ruleName`.
+  // If we already have a rule with that name, we'll add it as an alternative.
+  _mergeRule(map, ruleName, rule) {
+    let existing = map[ruleName];
+    if (!existing) {
+      map[ruleName] = rule;
+      return;
+    }
+
+    if (!(existing instanceof Rule.Alternatives) || (existing.group !== ruleName)) {
+      const altConstructor = cloneClass(Rule.Alternatives, ruleName);
+      existing = map[ruleName] = new altConstructor({
+        group: ruleName,
+        rules: [ existing ]
+      });
+    }
+
+    if (rule instanceof Rule.Alternatives && (rule.group === ruleName)) {
+      existing.addRule(...rule.rules);
+    }
+    else {
+      existing.addRule(rule);
+    }
+  }
+
 	// Add a `rule` to our list of rules!
 	// Converts to `alternatives` on re-defining the same rule.
 	addRule(ruleName, rule) {
-		// Clear memoized `__rules` so we'll recalculate `parser.rules`
+		// Clear memoized `__rules` so we'll recalculate `parser.rules` as necessary
 		delete this.__rules;
 
 		// If passed a function, create an instance for the actual rule.
@@ -184,24 +198,8 @@ export default class Parser {
 			return rule;
 		}
 
-		// If a rule of this name already exists
-		const existing = this._rules[ruleName];
-		if (existing) {
-			// Convert to an `Alternatives` if not one already.
-			if (!(existing instanceof Rule.Alternatives)) {
-				if (Parser.DEBUG) console.log(`Converting rule '${ruleName}' to alternatives`);
-				this._rules[ruleName] = new Rule.Alternatives({ ruleName, rules: [existing] });
-				// copy argument name over (???)
-				if (existing.argument) this._rules[ruleName].argument = existing.argument;
-			}
-			if (Parser.DEBUG) console.log(`Adding rule '${rule.ruleName}' to '${ruleName}': `, rule);
-			// Add rule to the alternatives.
-			this._rules[ruleName].addRule(rule);
-		}
-		// Otherwise just remember the rule.
-		else {
-			this._rules[ruleName] = rule;
-		}
+		// Add to our list of _rules
+		this._mergeRule(this._rules, ruleName, rule);
 
 		// make a note if we're adding a left-recursive rule
 //TODO: this doesn't fly if adding under multiple names...  :-(

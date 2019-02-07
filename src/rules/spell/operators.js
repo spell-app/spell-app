@@ -48,11 +48,6 @@ parser.defineRules(
   //		 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
   {
     name: "infix_operator",
-    constructor: class infix_operator extends Rule.Alternatives {}
-  },
-
-  {
-    name: "infix_operator",
     precedence: 6,
     syntax: "and",
     constructor: class and extends Rule.Keyword {
@@ -341,11 +336,6 @@ parser.defineRules(
         return operator.apply(expression.toSource(context));
       }
     }
-  },
-
-  {
-    name: "postfix_operator",
-    constructor: class postfix_operator extends Rule.Alternatives{}
   },
 
   {

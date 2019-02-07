@@ -16,6 +16,9 @@ import Parser from "./Parser.js";
 import global from "./utils/global";
 import { getTabs, isWhitespace } from "./utils/string";
 
+
+// Abstract Rule class.
+// TODOC
 export default class Rule {
 	constructor(...props) {
 		Object.assign(this, ...props);
@@ -74,13 +77,6 @@ export default class Rule {
 //
 	toStructure(context) {
 		return undefined;
-	}
-
-//
-// ## group: reflection
-//
-	get ruleType() {
-		return this.constructor.name;
 	}
 }
 
@@ -273,7 +269,7 @@ Rule.Sequence = class sequence extends Rule {
 				return this._addResults(results, match.matched);
 			}
 			else {
-				let argName = match.argument || match.ruleName || match.constructor.name;
+				let argName = match.argument || match.group || match.constructor.name;
 				// If arg already exists, convert to an array
 				if (argName in results) {
 					if (!Array.isArray(results[argName])) results[argName] = [results[argName]];
@@ -352,7 +348,7 @@ Rule.Alternatives = class alternatives extends Rule {
 
 		// assign `argName` or `ruleName` for `results`
 		if (this.argument) bestMatch.argument = this.argument;
-		else if (this.ruleName) bestMatch.ruleName = this.ruleName;
+		else if (this.group) bestMatch.group = this.group;
 //TODO: other things to copy here???
 
 		return bestMatch;
@@ -368,8 +364,8 @@ Rule.Alternatives = class alternatives extends Rule {
 		}, matches[0]);
 	}
 
-	addRule(rule) {
-		this.rules.push(rule);
+	addRule(...rule) {
+		this.rules.push(...rule);
 	}
 
 	toSource(context) {

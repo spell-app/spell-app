@@ -1,17 +1,9 @@
 import { defineMemoized } from "./memoize.js";
 import Parser from "./Parser.js";
 import Rule from "./Rule.js";
-import global from "./utils/global";
+import { cloneClass } from "./utils/class.js";
+import global from "./utils/global.js";
 
-// Clone a class, re-using the original name.
-// TODO: move to utility?
-function cloneClass(constructor, name = constructor.name) {
-  // Clone the constructor, keeping the same name
-  global.__cloneClass__ = constructor;
-  const clone = new Function("name", `return class ${name} extends __cloneClass__ {}`)();
-  delete global.__cloneClass__;
-  return clone;
-}
 
 
 //
