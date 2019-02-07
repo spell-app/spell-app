@@ -195,7 +195,7 @@ Rule.Subrule = class subrule extends Rule {
 
 	// Ask the subrule to figure out if a match is possible.
 	test(parser, tokens, start = 0, end) {
-		return parser.testRule(this.rule, tokens, start, end);
+		return parser.test(this.rule, tokens, start, end);
 	}
 
 	toString() {
@@ -210,7 +210,7 @@ Rule.Sequence = class sequence extends Rule {
 		// If we have a `testRule` defined
 		if (this.testRule) {
 			// Forget it if there is NO WAY the rule could be matched.
-			if (parser.testRule(this.testRule, tokens, start) === false) return undefined;
+			if (parser.test(this.testRule, tokens, start) === false) return undefined;
 		}
 
 		// If we're a leftRecursive sequence...

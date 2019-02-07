@@ -99,7 +99,7 @@ export default class Parser {
 	//	- `true` if the rule MIGHT be matched.
 	//	- `false` if there is NO WAY the rule can be matched.
 	//	- `undefined` if not determinstic (eg: no way to tell quickly).
-	testRule(rule, tokens, start, end) {
+	test(rule, tokens, start, end) {
 	  if (typeof rule === "string") {
 	    rule = this.rules[rule];
 	    if (!rule) return undefined;    // TODO: throw?
@@ -232,8 +232,11 @@ export default class Parser {
   //  `mutatesScope` (boolean, optional) Set to `true` if the rule mutates the scope it is defined in.
   //  `precedence` (number, optional) Precedence number for the rule (currently doesn't do anything)
   //  `blacklist` ([string], optional) Array of strings as blacklist for pattern rules.
-  //  `leftRecursive'
-  //  `testRule`
+  //  `leftRecursive' (boolean, optional) Set to `true` if the rule is left-recursive,
+  //    i.e. it calls itself as a subrule before matching any literal tokens
+  //  `testRule` (Rule or string, optional) Rule or rule name to use as a test rule
+  //    specifying this can let us jump out quickly if there is no possible match
+  //
   // Note that we munge the `constructor` passed in for efficiency while parsing.
   defineRule({
     name, constructor, alias = [], canonical,
@@ -289,7 +292,7 @@ export default class Parser {
 // ## Utility methods
 //
 
-	// Find the matching instance of possibly nested `endToken` to balance `startToken`
+	// Find the matching instance of (possibly nested) `endToken` to balance `startToken`
 	//	in array of `tokens` (strings).
 	// If successful, returns `{ start, end, slice }`
 	// Throws if unsucessful.
