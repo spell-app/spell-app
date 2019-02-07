@@ -214,7 +214,6 @@ test("parse optional list", () => {
 //
 test("parse * repeated subrule", () => {
 	let rules = parseSyntax("{number}*");
-console.warn(rules);
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Repeat);
 	expect(rules[0].optional).toBe(true);

@@ -277,11 +277,10 @@ Rule.Sequence = class sequence extends Rule {
 
 	// Return `toSource()` for our `results` as a map.
 	// If you pass `keys`, we'll restrict to just those keys.
-	getMatchedSource(context, ...keys) {
+	getMatchedSource(context) {
 		let results = this.results;
 		let output = {};
-		if (!keys.length) keys = Object.keys(results);
-		keys.forEach(key => {
+		Object.keys(results).forEach(key => {
 			let value = results[key];
 			if (value == null) return;
 			if (value.toSource) output[key] = value.toSource(context);
