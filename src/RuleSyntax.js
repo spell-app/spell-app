@@ -237,7 +237,7 @@ function parseRepeat(syntaxStream, rules = [], start = 0) {
   // Transform last rule into a repeat for `*` and `+`.
   if (symbol === "*" || symbol === "+") {
     let argument = rule.argument;
-    rule = new Rule.Repeat({ rule });
+    rule = new Rule.Repeat({ repeat: rule });
     if (argument) rule.argument = argument;
     // push into rule stack in place of old rule
     rules[rules.length - 1] = rule;
@@ -263,13 +263,13 @@ function parseSubrule(syntaxStream, rules = [], start = 0) {
   }
   if (match.slice.length > 1) throw new SyntaxError(`Can't process rules with more than one rule name: {${match.slice.join("")}}`);
 
-  let params = { rule: match.slice[0] };
+  let params = { subrule: match.slice[0] };
 
   // see if there's a `not` rule in there
-  let bangPosition = params.rule.indexOf("!");
+  let bangPosition = params.subrule.indexOf("!");
   if (bangPosition !== -1) {
-    params.not = params.rule.substr(bangPosition + 1); //[ params.rule.substr(bangPosition + 1) ];
-    params.rule = params.rule.substr(0, bangPosition);
+    params.not = params.subrule.substr(bangPosition + 1);
+    params.subrule = params.subrule.substr(0, bangPosition);
   }
 
   let rule = new Rule.Subrule(params);

@@ -175,10 +175,10 @@ Rule.Pattern = class pattern extends Rule {
 
 
 // Subrule -- name of another rule to be called.
-// `rule.rule` is the name of the rule in `parser.rules`.
+// `rule.subrule` is the name of the rule in `parser.rules`.
 Rule.Subrule = class subrule extends Rule {
 	parse(parser, tokens, start = 0, end, stack) {
-		let result = parser.parseNamedRule(this.rule, tokens, start, end, stack, `parse subrule '${this.rule}'`);
+		let result = parser.parseNamedRule(this.subrule, tokens, start, end, stack, `parse subrule '${this.rule}'`);
 		if (!result) return undefined;
 
 		if (this.argument) result.argument = this.argument;
@@ -187,11 +187,11 @@ Rule.Subrule = class subrule extends Rule {
 
 	// Ask the subrule to figure out if a match is possible.
 	test(parser, tokens, start = 0, end) {
-		return parser.test(this.rule, tokens, start, end);
+		return parser.test(this.subrule, tokens, start, end);
 	}
 
 	toString() {
-		return `{${this.argument ? this.argument+":" : ""}${this.rule}}${this.optional ? '?' : ''}`;
+		return `{${this.argument ? this.argument+":" : ""}${this.subrule}}${this.optional ? '?' : ''}`;
 	}
 }
 
@@ -372,7 +372,8 @@ Rule.Alternatives = class alternatives extends Rule {
 
 
 // Repeating rule.
-//	`this.rule` is the rule that repeats.
+//	`this.repeat` is the rule that repeats.
+//  `this.optional` is true if the prodution is optional.
 //
 // After matching:
 //	`this.matched` is array of results of matches.
@@ -384,7 +385,7 @@ Rule.Repeat = class repeat extends Rule {
 		let matched = [];
 		let nextStart = start;
 		while (true) {
-			let match = this.rule.parse(parser, tokens, nextStart, end, stack);
+			let match = this.repeat.parse(parser, tokens, nextStart, end, stack);
 			if (!match) break;
 
 			matched.push(match);
@@ -413,9 +414,9 @@ Rule.Repeat = class repeat extends Rule {
 	}
 
 	toString() {
-		let isCompoundRule = (this.rule instanceof Rule.Sequence)
-						  || (this.rule instanceof Rule.Keywords && this.rule.match.length > 1);
-		const rule = isCompoundRule ? `(${this.rule})` : `${this.rule}`;
+		let isCompoundRule = (this.repeat instanceof Rule.Sequence)
+						  || (this.repeat instanceof Rule.Keywords && this.repeat.literals.length > 1);
+		const rule = isCompoundRule ? `(${this.repeat})` : `${this.repeat}`;
 		return `${rule}${this.optional ? '*' : '+'}`;
 	}
 }
