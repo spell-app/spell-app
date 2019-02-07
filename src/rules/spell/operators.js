@@ -183,7 +183,7 @@ parser.defineRules(
 
 
   {
-    alias: "infix_operator",
+    name: "infix_operator",
     precedence: 11,
     syntax: ">",
     constructor: class gt extends Rule.Symbol {
@@ -200,7 +200,7 @@ parser.defineRules(
   },
 
   {
-    alias: "infix_operator",
+    name: "infix_operator",
     precedence: 11,
     syntax: ">=",
     constructor: class gte extends Rule.Symbol {
@@ -217,7 +217,7 @@ parser.defineRules(
   },
 
   {
-    alias: "infix_operator",
+    name: "infix_operator",
     precedence: 11,
     syntax: "<",
     constructor: class lt extends Rule.Symbol {
@@ -234,7 +234,7 @@ parser.defineRules(
   },
 
   {
-    alias: "infix_operator",
+    name: "infix_operator",
     precedence: 11,
     syntax: "<=",
     constructor: class lte extends Rule.Symbol {
@@ -252,7 +252,7 @@ parser.defineRules(
 
 
   {
-    alias: "infix_operator",
+    name: "infix_operator",
     precedence: 13,
     syntax: "\\+",
     constructor: class plus extends Rule.Symbol {
@@ -269,7 +269,7 @@ parser.defineRules(
   },
 
   {
-    alias: "infix_operator",
+    name: "infix_operator",
     precedence: 13,
     syntax: "-",
     constructor: class minus extends Rule.Symbol {
@@ -286,7 +286,7 @@ parser.defineRules(
   },
 
   {
-    alias: "infix_operator",
+    name: "infix_operator",
     precedence: 14,
     syntax: "\\*",
     constructor: class times extends Rule.Symbol {
@@ -303,7 +303,7 @@ parser.defineRules(
   },
 
   {
-    alias: "infix_operator",
+    name: "infix_operator",
     precedence: 14,
     syntax: "/",
     constructor: class divided_by extends Rule.Symbol {

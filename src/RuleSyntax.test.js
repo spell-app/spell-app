@@ -4,43 +4,46 @@ import Rule from "./RuleSyntax.js";
 //	Rule.String
 //
 test("parse single symbols", () => {
-	let rule = Rule.parseRuleSyntax(">");
-	expect(rule).toBeInstanceOf(Rule.Symbol);
-	expect(rule.match).toEqual([">"]);
+	let rules = Rule.parseRuleSyntax(">");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Symbol);
+	expect(rules[0].match).toEqual([">"]);
 });
 
 test("parse multiple symbols", () => {
-	let rule = Rule.parseRuleSyntax(">=");
-	expect(rule).toBeInstanceOf(Rule.Symbol);
-	expect(rule.match).toEqual([">", "="]);
-	expect(rule.toString()).toBe(">=");
+	let rules = Rule.parseRuleSyntax(">=");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Symbol);
+	expect(rules[0].match).toEqual([">", "="]);
+	expect(rules[0].toString()).toBe(">=");
 });
 
 
 test("parse escaped symbol", () => {
-	let rule = Rule.parseRuleSyntax("\\(");
-	expect(rule).toBeInstanceOf(Rule.Symbol);
-	expect(rule.match).toEqual(["("]);
-	expect(rule.toString()).toBe("\\(");
+	let rules = Rule.parseRuleSyntax("\\(");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Symbol);
+	expect(rules[0].match).toEqual(["("]);
+	expect(rules[0].toString()).toBe("\\(");
 });
 
 //
 //	Rule.Keyword
 //
 test("parse single keyword", () => {
-	let rule = Rule.parseRuleSyntax("is");
-	expect(rule).toBeInstanceOf(Rule.Keyword);
-	expect(rule.match).toEqual(["is"]);
-
-	expect(rule.toString()).toBe("is");
+	let rules = Rule.parseRuleSyntax("is");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Keyword);
+	expect(rules[0].match).toEqual(["is"]);
+	expect(rules[0].toString()).toBe("is");
 });
 
 test("parse multiple keywords as a keyword", () => {
-	let rule = Rule.parseRuleSyntax("is not");
-	expect(rule).toBeInstanceOf(Rule.Keyword);
-	expect(rule.match).toEqual(["is", "not"]);
-
-	expect(rule.toString()).toBe("is not");
+	let rules = Rule.parseRuleSyntax("is not");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Keyword);
+	expect(rules[0].match).toEqual(["is", "not"]);
+	expect(rules[0].toString()).toBe("is not");
 });
 
 
@@ -48,18 +51,19 @@ test("parse multiple keywords as a keyword", () => {
 //	Rule.Subrule
 //
 test("parse subrule", () => {
-	let rule = Rule.parseRuleSyntax("{subrule}");
-	expect(rule).toBeInstanceOf(Rule.Subrule);
-	expect(rule.rule).toBe("subrule");
+	let rules = Rule.parseRuleSyntax("{subrule}");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Subrule);
+	expect(rules[0].rule).toBe("subrule");
 });
 
 test("parse subrule with named argument", () => {
-	let rule = Rule.parseRuleSyntax("{arg:subrule}");
-	expect(rule).toBeInstanceOf(Rule.Subrule);
-	expect(rule.rule).toBe("subrule");
-	expect(rule.argument).toBe("arg");
-
-	expect(rule.toString()).toBe("{arg:subrule}");
+	let rules = Rule.parseRuleSyntax("{arg:subrule}");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Subrule);
+	expect(rules[0].rule).toBe("subrule");
+	expect(rules[0].argument).toBe("arg");
+	expect(rules[0].toString()).toBe("{arg:subrule}");
 });
 
 
@@ -67,31 +71,32 @@ test("parse subrule with named argument", () => {
 //	Rule.List
 //
 test("parse list", () => {
-	let rule = Rule.parseRuleSyntax("[{number},]");
-	expect(rule).toBeInstanceOf(Rule.List);
-	expect(rule.item).toBeInstanceOf(Rule.Subrule);
-	expect(rule.delimiter).toBeInstanceOf(Rule.Symbol);
-
-	expect(rule.toString()).toBe("[{number} ,]");
+	let rules = Rule.parseRuleSyntax("[{number},]");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.List);
+	expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
+	expect(rules[0].delimiter).toBeInstanceOf(Rule.Symbol);
+	expect(rules[0].toString()).toBe("[{number} ,]");
 });
 
 test("parse list with named argument", () => {
-	let rule = Rule.parseRuleSyntax("[my-list:{number},]");
-	expect(rule).toBeInstanceOf(Rule.List);
-	expect(rule.item).toBeInstanceOf(Rule.Subrule);
-	expect(rule.delimiter).toBeInstanceOf(Rule.Symbol);
-	expect(rule.argument).toBe("my-list");
-	expect(rule.toString()).toBe("[my-list:{number} ,]");
+	let rules = Rule.parseRuleSyntax("[my-list:{number},]");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.List);
+	expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
+	expect(rules[0].delimiter).toBeInstanceOf(Rule.Symbol);
+	expect(rules[0].argument).toBe("my-list");
+	expect(rules[0].toString()).toBe("[my-list:{number} ,]");
 });
 
 test("parse list with keyword delimiter", () => {
-	let rule = Rule.parseRuleSyntax("[{number}and]");
-	expect(rule).toBeInstanceOf(Rule.List);
-	expect(rule.item).toBeInstanceOf(Rule.Subrule);
-	expect(rule.delimiter).toBeInstanceOf(Rule.Keyword);
-	expect(rule.delimiter.match).toEqual(["and"]);
-
-	expect(rule.toString()).toBe("[{number} and]");
+	let rules = Rule.parseRuleSyntax("[{number}and]");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.List);
+	expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
+	expect(rules[0].delimiter).toBeInstanceOf(Rule.Keyword);
+	expect(rules[0].delimiter.match).toEqual(["and"]);
+	expect(rules[0].toString()).toBe("[{number} and]");
 });
 
 test("fail list with extra stuff", () => {
@@ -104,50 +109,57 @@ test("fail list with extra stuff", () => {
 //	Rule.Alternatives
 //
 test("parse simple alternatives", () => {
-	let rule = Rule.parseRuleSyntax("(a|bb| cccccc )");
+	let rules = Rule.parseRuleSyntax("(a|bb| cccccc )");
+	expect(rules.length).toBe(1);
+	expect(rules[0].rules.length).toBe(3);
 
-	expect(rule).toBeInstanceOf(Rule.Alternatives);
-	expect(rule.rules.length).toBe(3);
+	expect(rules[0]).toBeInstanceOf(Rule.Alternatives);
+	expect(rules[0].rules.length).toBe(3);
 
-	expect(rule.rules[0]).toBeInstanceOf(Rule.Keyword);
-	expect(rule.rules[0].match).toEqual(["a"]);
+	expect(rules[0].rules[0]).toBeInstanceOf(Rule.Keyword);
+	expect(rules[0].rules[0].match).toEqual(["a"]);
 
-	expect(rule.rules[1]).toBeInstanceOf(Rule.Keyword);
-	expect(rule.rules[1].match).toEqual(["bb"]);
+	expect(rules[0].rules[1]).toBeInstanceOf(Rule.Keyword);
+	expect(rules[0].rules[1].match).toEqual(["bb"]);
 
-	expect(rule.rules[2]).toBeInstanceOf(Rule.Keyword);
-	expect(rule.rules[2].match).toEqual(["cccccc"]);
+	expect(rules[0].rules[2]).toBeInstanceOf(Rule.Keyword);
+	expect(rules[0].rules[2].match).toEqual(["cccccc"]);
 
-	expect(rule.toString()).toBe("(a|bb|cccccc)");
+	expect(rules[0].toString()).toBe("(a|bb|cccccc)");
 });
 
 test("parse named alternatives", () => {
-	let rule = Rule.parseRuleSyntax("(foo:a|b)");
+	let rules = Rule.parseRuleSyntax("(foo:a|b)");
+	expect(rules.length).toBe(1);
+	expect(rules[0].rules.length).toBe(2);
 
-	expect(rule).toBeInstanceOf(Rule.Alternatives);
-	expect(rule.argument).toBe("foo");
-	expect(rule.rules.length).toBe(2);
+	expect(rules[0]).toBeInstanceOf(Rule.Alternatives);
+	expect(rules[0].argument).toBe("foo");
+	expect(rules[0].rules.length).toBe(2);
 
-	expect(rule.rules[0]).toBeInstanceOf(Rule.Keyword);
-	expect(rule.rules[0].match).toEqual(["a"]);
+	expect(rules[0].rules[0]).toBeInstanceOf(Rule.Keyword);
+	expect(rules[0].rules[0].match).toEqual(["a"]);
 
-	expect(rule.rules[1]).toBeInstanceOf(Rule.Keyword);
-	expect(rule.rules[1].match).toEqual(["b"]);
+	expect(rules[0].rules[1]).toBeInstanceOf(Rule.Keyword);
+	expect(rules[0].rules[1].match).toEqual(["b"]);
 
-	expect(rule.toString()).toBe("(foo:a|b)");
+	expect(rules[0].toString()).toBe("(foo:a|b)");
 });
 
 test("parse complex alternatives", () => {
-	let rule = Rule.parseRuleSyntax("( is a test | {named:subrule} | [{number},] | (a|b) )");
-	expect(rule).toBeInstanceOf(Rule.Alternatives);
+	let rules = Rule.parseRuleSyntax("( is a test | {named:subrule} | [{number},] | (a|b) )");
+	expect(rules.length).toBe(1);
+	expect(rules[0].rules.length).toBe(4);
 
-	expect(rule.rules.length).toBe(4);
-	expect(rule.rules[0]).toBeInstanceOf(Rule.Keyword);
-	expect(rule.rules[1]).toBeInstanceOf(Rule.Subrule);
-	expect(rule.rules[2]).toBeInstanceOf(Rule.List);
-	expect(rule.rules[3]).toBeInstanceOf(Rule.Alternatives);
+	expect(rules[0]).toBeInstanceOf(Rule.Alternatives);
 
-	expect(rule.toString()).toBe("(is a test|{named:subrule}|[{number} ,]|(a|b))");
+	expect(rules[0].rules.length).toBe(4);
+	expect(rules[0].rules[0]).toBeInstanceOf(Rule.Keyword);
+	expect(rules[0].rules[1]).toBeInstanceOf(Rule.Subrule);
+	expect(rules[0].rules[2]).toBeInstanceOf(Rule.List);
+	expect(rules[0].rules[3]).toBeInstanceOf(Rule.Alternatives);
+
+	expect(rules[0].toString()).toBe("(is a test|{named:subrule}|[{number} ,]|(a|b))");
 });
 
 
@@ -155,44 +167,44 @@ test("parse complex alternatives", () => {
 //	Optional
 //
 test("parse optional string", () => {
-	let rule = Rule.parseRuleSyntax(";?");
-	expect(rule).toBeInstanceOf(Rule.Symbol);
-	expect(rule.match).toEqual([";"]);
-	expect(rule.optional).toBe(true);
-
-	expect(rule.toString()).toBe(";?");
+	let rules = Rule.parseRuleSyntax(";?");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Symbol);
+	expect(rules[0].match).toEqual([";"]);
+	expect(rules[0].optional).toBe(true);
+	expect(rules[0].toString()).toBe(";?");
 });
 
 test("parse optional keyword", () => {
-	let rule = Rule.parseRuleSyntax("yah?");
-	expect(rule).toBeInstanceOf(Rule.Keyword);
-	expect(rule.optional).toBe(true);
-
-	expect(rule.toString()).toBe("yah?");
+	let rules = Rule.parseRuleSyntax("yah?");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Keyword);
+	expect(rules[0].optional).toBe(true);
+	expect(rules[0].toString()).toBe("yah?");
 });
 
 test("parse optional subrule", () => {
-	let rule = Rule.parseRuleSyntax("{number}?");
-	expect(rule).toBeInstanceOf(Rule.Subrule);
-	expect(rule.optional).toBe(true);
-
-	expect(rule.toString()).toBe("{number}?");
+	let rules = Rule.parseRuleSyntax("{number}?");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Subrule);
+	expect(rules[0].optional).toBe(true);
+	expect(rules[0].toString()).toBe("{number}?");
 });
 
 test("parse optional alternatives", () => {
-	let rule = Rule.parseRuleSyntax("(a|b)?");
-	expect(rule).toBeInstanceOf(Rule.Alternatives);
-	expect(rule.optional).toBe(true);
-
-	expect(rule.toString()).toBe("(a|b)?");
+	let rules = Rule.parseRuleSyntax("(a|b)?");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Alternatives);
+	expect(rules[0].optional).toBe(true);
+	expect(rules[0].toString()).toBe("(a|b)?");
 });
 
 test("parse optional list", () => {
-	let rule = Rule.parseRuleSyntax("[{number},]?");
-	expect(rule).toBeInstanceOf(Rule.List);
-	expect(rule.optional).toBe(true);
-
-	expect(rule.toString()).toBe("[{number} ,]?");
+	let rules = Rule.parseRuleSyntax("[{number},]?");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.List);
+	expect(rules[0].optional).toBe(true);
+	expect(rules[0].toString()).toBe("[{number} ,]?");
 });
 
 
@@ -200,40 +212,39 @@ test("parse optional list", () => {
 //	Repeats
 //
 test("parse * repeated subrule", () => {
-	let rule = Rule.parseRuleSyntax("{number}*");
-	expect(rule).toBeInstanceOf(Rule.Repeat);
-	expect(rule.optional).toBe(true);
-	expect(rule.rule).toBeInstanceOf(Rule.Subrule);
-
-
-	expect(rule.toString()).toBe("{number}*");
+	let rules = Rule.parseRuleSyntax("{number}*");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Repeat);
+	expect(rules[0].optional).toBe(true);
+	expect(rules[0].rule).toBeInstanceOf(Rule.Subrule);
+	expect(rules[0].toString()).toBe("{number}*");
 });
 
 test("parse + repeated subrule", () => {
-	let rule = Rule.parseRuleSyntax("{number}+");
-	expect(rule).toBeInstanceOf(Rule.Repeat);
-	expect(rule.optional).toBeUndefined();
-	expect(rule.rule).toBeInstanceOf(Rule.Subrule);
-
-	expect(rule.toString()).toBe("{number}+");
+	let rules = Rule.parseRuleSyntax("{number}+");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Repeat);
+	expect(rules[0].optional).toBeUndefined();
+	expect(rules[0].rule).toBeInstanceOf(Rule.Subrule);
+	expect(rules[0].toString()).toBe("{number}+");
 });
 
 test("parse + repeated sequence", () => {
-	let rule = Rule.parseRuleSyntax("(one or more)+");
-	expect(rule).toBeInstanceOf(Rule.Repeat);
-	expect(rule.optional).toBeUndefined();
-	expect(rule.rule).toBeInstanceOf(Rule.Keyword);
-
-	expect(rule.toString()).toBe("(one or more)+");
+	let rules = Rule.parseRuleSyntax("(one or more)+");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Repeat);
+	expect(rules[0].optional).toBeUndefined();
+	expect(rules[0].rule).toBeInstanceOf(Rule.Keyword);
+	expect(rules[0].toString()).toBe("(one or more)+");
 });
 
 test("parse + repeated list", () => {
-	let rule = Rule.parseRuleSyntax("[{number},]+");
-	expect(rule).toBeInstanceOf(Rule.Repeat);
-	expect(rule.optional).toBeUndefined();
-	expect(rule.rule).toBeInstanceOf(Rule.List);
-
-	expect(rule.toString()).toBe("[{number} ,]+");
+	let rules = Rule.parseRuleSyntax("[{number},]+");
+	expect(rules.length).toBe(1);
+	expect(rules[0]).toBeInstanceOf(Rule.Repeat);
+	expect(rules[0].optional).toBeUndefined();
+	expect(rules[0].rule).toBeInstanceOf(Rule.List);
+	expect(rules[0].toString()).toBe("[{number} ,]+");
 });
 
 

@@ -34,17 +34,14 @@ Object.assign(Rule, {
     // If we got an array of possible syntaxes...
     if (Array.isArray(syntax)) {
       // recursively parse each syntax, using a CLONE of the constructor
-      const rules = syntax.map(syntax => {
-        return Rule.parseRule(syntax, cloneClass(constructor));
-      });
+      const rules = syntax.map(syntax => Rule.parseRule(syntax, cloneClass(constructor)) );
       // return an alternatives with the correct name
       const altClass = cloneClass(Rule.Alternatives, constructor.name);
       Object.defineProperty(altClass.prototype, "rules", { value: rules });
       return new altClass();
     };
 
-    let syntaxStream = Rule.tokeniseRuleSyntax(syntax);
-    let rules = Rule.parseRuleSyntax_tokens(syntaxStream, []);
+    let rules = Rule.parseRuleSyntax(syntax, []);
     if (rules.length === 0) {
       throw new SyntaxError(`parser.defineRule(${names[0]}, ${syntax}): no rule produced`);
     }
@@ -53,6 +50,7 @@ Object.assign(Rule, {
     if (constructor.prototype instanceof Rule.Keyword
      || constructor.prototype instanceof Rule.Symbol
      || constructor.prototype instanceof Rule.List
+     || constructor.prototype instanceof Rule.Alternatives
     ) {
       for (let property in rules[0]) {
         Object.defineProperty(constructor.prototype, property, { value: rules[0][property] });
@@ -65,24 +63,6 @@ Object.assign(Rule, {
     return new constructor();
   },
 
-
-//DEPRECATED
-	parseRuleSyntax(syntax, SequenceConstructor = Rule.Sequence) {
-		let syntaxStream = Rule.tokeniseRuleSyntax(syntax);
-		let rules = Rule.parseRuleSyntax_tokens(syntaxStream, []);
-
-		let rule;
-		// If we only got one thing, return that as the result
-		if (rules.length === 1) {
-			rule = rules[0];
-		}
-		else {
-			rule = new SequenceConstructor({ rules });
-		}
-
-		return rule;
-	},
-
 	tokeniseRuleSyntax(syntax) {
 		const SYNTAX_EXPRESSION = /(?:[\w\-]+|\\[\[\(\{\)\}\]]|[^\s\w]|\|)/g;
 		let syntaxStream = syntax.match(SYNTAX_EXPRESSION);
@@ -91,7 +71,11 @@ Object.assign(Rule, {
 	},
 
 //RENAME to parseRuleSyntax
-	parseRuleSyntax_tokens(syntaxStream, rules = [], start = 0) {
+	parseRuleSyntax(syntax, rules = [], start = 0) {
+	  const syntaxStream = typeof syntax === "string"
+	    ? Rule.tokeniseRuleSyntax(syntax)
+	    : syntax;
+
 		let lastIndex = syntaxStream.length;
 		while (start < lastIndex) {
 			let [ rule, end ] = Rule.parseRuleSyntax_token(syntaxStream, rules, start);
@@ -221,7 +205,7 @@ Object.assign(Rule, {
 		let alternatives =
 			groupAlternatives(slice)
 			.map(function(group) {
-				let results = Rule.parseRuleSyntax_tokens(group, []);
+				let results = Rule.parseRuleSyntax(group, []);
 				if (results.length === 1) {
 					return results[0];
 				}
@@ -321,7 +305,7 @@ Object.assign(Rule, {
 			slice = slice.slice(2);
 		}
 
-		let results = Rule.parseRuleSyntax_tokens(slice, []);
+		let results = Rule.parseRuleSyntax(slice, []);
 		if (results.length !== 2) {
 			throw new SyntaxError(`Unexpected stuff at end of list: [${slice.join(" ")}]`);
 		}
@@ -334,93 +318,3 @@ Object.assign(Rule, {
 
 });
 
-
-
-// ##  Add methods to Parser to define rules using the above syntax.
-Object.defineProperties(Parser.prototype, {
-
-	// Parse a `ruleSyntax` rule and add it to our list of rules.
-	// Returns the new rule.
-	// Logs parsing errors but allows things to continue.
-	addSequence: { value: function(name, ruleSyntax, constructor = Rule.Sequence) {
-		// Add a bunch of syntaxes at once if we got an array of syntaxes
-		if (Array.isArray(ruleSyntax))
-			return ruleSyntax.map(syntax => this.addSequence(name, syntax, constructor))[0];
-		try {
-			let rule = Rule.parseRuleSyntax(ruleSyntax, constructor);
-			// Reflect the rule back out to make sure it looks (more or less) the same
-			if (Parser.DEBUG) console.log(`Added rule '${name}':\n  INPUT: ${ruleSyntax} \n OUTPUT: ${rule}`);
-
-			return this.addRule(name, rule);
-		} catch (e) {
-			console.group(`Error parsing syntax for rule '${name}':`);
-			console.log(`syntax: ${ruleSyntax}`);
-			console.error(e);
-		}
-	}},
-
-	addStatement: { value: function(name, ruleSyntax, constructor = Rule.Statement) {
-		// Add a bunch of syntaxes at once if we got an array of syntaxes
-		if (Array.isArray(ruleSyntax))
-			return ruleSyntax.map(syntax => this.addStatement(name, syntax, constructor))[0];
-
-		let rule = this.addSequence(name, ruleSyntax, constructor);
-		if (rule) return this.addRule("statement", rule);
-	}},
-
-	addExpression: { value: function(name, ruleSyntax, constructor = Rule.Expression) {
-		// Add a bunch of syntaxes at once if we got an array of syntaxes
-		if (Array.isArray(ruleSyntax))
-			return ruleSyntax.map(syntax => this.addExpression(name, syntax, constructor))[0];
-
-		let rule = this.addSequence(name, ruleSyntax, constructor);
-		if (rule) return this.addRule("expression", rule);
-	}},
-
-	addList: { value: function(name, ruleSyntax, constructor = Rule.List) {
-		// Add a bunch of syntaxes at once if we got an array of syntaxes
-		if (Array.isArray(ruleSyntax))
-			return ruleSyntax.map(syntax => this.addList(name, syntax, constructor))[0];
-
-		let stream = Rule.tokeniseRuleSyntax(ruleSyntax);
-		let rule = (Rule.parseRuleSyntax_list(stream, [], 0, constructor) || [])[0];
-		if (!rule) throw new SyntaxError(`Rule.addList(${name}, ${ruleSyntax}): no rule produced`);
-		return this.addRule(name, rule);
-	}},
-
-	addKeyword: { value: function(name, ruleSyntax, constructor = Rule.Keyword) {
-		// Add a bunch of syntaxes at once if we got an array of syntaxes
-		if (Array.isArray(ruleSyntax))
-			return ruleSyntax.map(syntax => this.addKeyword(name, syntax, constructor))[0];
-
-		let stream = Rule.tokeniseRuleSyntax(ruleSyntax);
-		let rule = (Rule.parseRuleSyntax_keyword(stream, [], 0, constructor) || [])[0];
-		if (!rule) throw new SyntaxError(`Rule.addKeyword(${name}, ${ruleSyntax}): no rule produced`);
-		return this.addRule(name, rule);
-	}},
-
-	addSymbol: { value: function(name, ruleSyntax, constructor = Rule.Symbol) {
-		// Add a bunch of syntaxes at once if we got an array of syntaxes
-		if (Array.isArray(ruleSyntax))
-			return ruleSyntax.map(syntax => this.addSymbol(name, syntax, constructor))[0];
-
-		// Parse as `tokens`, which will merge Symbols for us.
-		let stream = Rule.tokeniseRuleSyntax(ruleSyntax);
-		let rules = (Rule.parseRuleSyntax_tokens(stream, [], 0, constructor) || []);
-
-		if (rules.length === 0) {
-			throw new SyntaxError(`Rule.addSymbol(${name}, ${ruleSyntax}): no rule produced`);
-		}
-
-		if (rules.length > 1 || !(rules[0] instanceof Rule.Symbol)) {
-			throw new SyntaxError(`Rule.addSymbol(${name}, ${ruleSyntax}): generated something `+
-				` other than a single Symbol.  Use Rule.addSyntax() instead.`);
-		}
-
-		let rule = rules[0];
-		// Convert to proper type if necessary
-		if (constructor !== Rule.Symbol) rule = new constructor(rule);
-		return this.addRule(name, rule);
-	}},
-
-});
