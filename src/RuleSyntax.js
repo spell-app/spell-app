@@ -169,7 +169,7 @@ function parseSymbol(syntaxStream, rules = [], start = 0, constructor = Rule.Sym
 // Match grouping expression `(...|...)` in syntax rules.
 // Returns `[ rule, end ]`
 // You can specify an explicit `rule.argument` with:  `(somearg:...)`
-// You can specify that the results should be `promoted` to enclosing context with: `(?:...)`
+// You can specify that the results should be `promoted` to enclosing rule with: `(?:...)`
 //
 // NOTE: nested parens may not have alternatives... :-(   `(a|(b|c))` won't work???
 function parseAlternatives(syntaxStream, rules = [], start = 0) {

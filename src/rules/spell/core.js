@@ -7,7 +7,7 @@ import Parser from "../../Parser";
 import Rule from "../../Rule";
 import Tokenizer from "../../Tokenizer";
 
-// Create `core` parser context.
+// Create `core` parser.
 const parser = Parser.forName("core");
 export default parser;
 
@@ -30,7 +30,7 @@ parser.defineRules(
     canonical: "Word",
     constructor: class word extends Rule.Pattern {
       // Convert "-" to "_" in source output.
-      toSource(context) {
+      toSource() {
         return this.matched.replace(/\-/g, "_");
       }
     }
@@ -46,7 +46,7 @@ parser.defineRules(
     pattern: /^[a-z][\w\-]*$/,
     constructor: class identifier extends Rule.Pattern {
       // Convert "-" to "_" in source output.
-      toSource(context) {
+      toSource() {
         return this.matched.replace(/\-/g, "_");
       }
     },
@@ -112,7 +112,7 @@ parser.defineRules(
     pattern: /^([A-Z][\w\-]*|list|text|number|integer|decimal|character|boolean|object)$/,
     constructor: class type extends Rule.Pattern {
       // Convert "-" to "_" in source output.
-      toSource(context) {
+      toSource() {
         let type = this.matched;
         switch(type) {
           // Alias `List` to `Array`
@@ -145,7 +145,7 @@ parser.defineRules(
     canonical: "Boolean",
     pattern: /^(true|false|yes|no|ok|cancel|success|failure)$/,
     constructor: class boolean extends Rule.Pattern {
-      toSource(context) {
+      toSource() {
         switch (this.matched) {
           case "true":
           case "yes":
@@ -196,7 +196,7 @@ parser.defineRules(
       }
 
       // Convert to number on source output.
-      toSource(context) {
+      toSource() {
         return this.matched;
       }
     }
@@ -220,7 +220,7 @@ parser.defineRules(
         });
       }
 
-      toSource(context) {
+      toSource() {
         return this.matched;
       }
     }
@@ -232,8 +232,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "\\[[list:{expression},]?\\]",
     constructor: class literal_list extends Rule.Sequence {
-      toSource(context) {
-        let { list } = this.getMatchedSource(context);
+      toSource() {
+        let { list } = this.getMatchedSource();
         return `[${list ? list.join(", ") : ""}]`;
       }
     }
@@ -247,8 +247,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "\\({expression}\\)",
     constructor: class parenthesized_expression extends Rule.Sequence {
-      toSource(context) {
-        let { expression } = this.getMatchedSource(context);
+      toSource() {
+        let { expression } = this.getMatchedSource();
         // don't double parens if not necessary
         if (typeof expression === "string" && expression.startsWith("(") && expression.endsWith(")")) return expression;
         return `(${expression})`;

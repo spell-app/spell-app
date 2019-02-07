@@ -10,7 +10,7 @@ import Rule from "../../Rule";
 
 import { isPlural, singularize } from "../../utils/string";
 
-// Create "lists" parser context.
+// Create "lists" parser.
 const parser = Parser.forName("lists");
 export default parser;
 
@@ -41,8 +41,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "the? number of {identifier} in {list:expression}",
     constructor: class list_length extends Rule.Sequence {
-      toSource(context) {
-        let { list, identifier } = this.getMatchedSource(context);
+      toSource() {
+        let { list, identifier } = this.getMatchedSource();
   // TODO: special case 'words', 'lines', etc
         return `${list}.length`;
       }
@@ -59,8 +59,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "the? position of {thing:expression} in {list:expression}",
     constructor: class list_position extends Rule.Sequence {
-      toSource(context) {
-        let { thing, list } = this.getMatchedSource(context);
+      toSource() {
+        let { thing, list } = this.getMatchedSource();
         return `spell.positionOf(${thing}, ${list})`
       }
     }
@@ -217,8 +217,8 @@ parser.defineRules(
       "the {position:ordinal} {identifier} of (the?) {expression}"
     ],
     constructor: class position_expression extends Rule.Sequence{
-      toSource(context) {
-        let { identifier, position, expression } = this.getMatchedSource(context);
+      toSource() {
+        let { identifier, position, expression } = this.getMatchedSource();
         // If we got a positive number literal, compensate for JS 0-based arrays now, for nicer output.
         if (typeof position === "number" && position > 0) {
           return `${expression}[${position - 1}]`;
@@ -237,8 +237,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "a random {identifier} (of|from|in) (the)? {list:expression}",
     constructor: class random_position_expression extends Rule.Sequence {
-      toSource(context) {
-        let { list } = this.getMatchedSource(context);
+      toSource() {
+        let { list } = this.getMatchedSource();
         return `spell.getRandomItemOf(${list})`;
       }
     }
@@ -254,8 +254,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "{number} random {identifier} (of|from|in) (the)? {list:expression}",
     constructor: class random_positions_expression extends Rule.Sequence {
-      toSource(context) {
-        let { number, list } = this.getMatchedSource(context);
+      toSource() {
+        let { number, list } = this.getMatchedSource();
         return `spell.getRandomItemsOf(${list}, ${number})`;
       }
     }
@@ -274,8 +274,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "{identifier} {start:expression} to {end:expression} of {list:expression}",
     constructor: class range_expression extends Rule.Sequence {
-      toSource(context) {
-        let { start, end, list } = this.getMatchedSource(context);
+      toSource() {
+        let { start, end, list } = this.getMatchedSource();
         return `spell.getRange(${list}, ${start}, ${end})`;
       }
     }
@@ -290,8 +290,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "first {number:expression} {identifier} (in|of) {list:expression}",
     constructor: class range_expression extends Rule.Sequence {
-      toSource(context) {
-        let { number, list } = this.getMatchedSource(context);
+      toSource() {
+        let { number, list } = this.getMatchedSource();
         return `spell.getRange(${list}, 1, ${number})`;
       }
     }
@@ -306,8 +306,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "last {number:expression} {identifier} (in|of) {list:expression}",
     constructor: class range_expression extends Rule.Sequence {
-      toSource(context) {
-        let { number, list } = this.getMatchedSource(context);
+      toSource() {
+        let { number, list } = this.getMatchedSource();
         return `spell.getEndRange(${list}, 1, ${number})`;
       }
     }
@@ -323,8 +323,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "{identifier} (in|of) {list:expression} starting with {thing:expression}",
     constructor: class range_expression extends Rule.Sequence {
-      toSource(context) {
-        let { thing, list } = this.getMatchedSource(context);
+      toSource() {
+        let { thing, list } = this.getMatchedSource();
         return `spell.getRange(${list}, spell.positionOf(${thing}, ${list}))`;
       }
     }
@@ -339,10 +339,10 @@ parser.defineRules(
     alias: "expression",
     syntax: "{identifier} (in|of) {list:expression} where {condition:expression}",
     constructor: class list_filter extends Rule.Sequence {
-      toSource(context) {
-        let { identifier, condition, list } = this.getMatchedSource(context);
+      toSource() {
+        let { identifier, condition, list } = this.getMatchedSource();
         // use singular of identifier for method argument
-        let argument = singularize(identifier.toSource(context));
+        let argument = singularize(identifier.toSource());
         return `spell.filter(${list}, ${argument} => ${condition})`;
       }
     }
@@ -359,11 +359,11 @@ parser.defineRules(
     leftRecursive: true,
     testRule: new Rule.Keywords({ match: "where" }),
     constructor: class list_membership_test extends Rule.Sequence {
-      toSource(context) {
-        let { identifier, operator, filter, list } = this.getMatchedSource(context);
+      toSource() {
+        let { identifier, operator, filter, list } = this.getMatchedSource();
         let bang = operator === "has" ? "" : "!";
         // use singular of identifier for method argument
-        let argument = singularize(identifier.toSource(context));
+        let argument = singularize(identifier.toSource());
         return `${bang}spell.any(${list}, ${argument} => ${filter})`;
       }
     }
@@ -383,8 +383,8 @@ parser.defineRules(
       "add {thing:expression} to ((the?) end of)? {list:expression}"
     ],
     constructor: class list_append extends Rule.Sequence {
-      toSource(context) {
-        let { thing, list } = this.getMatchedSource(context);
+      toSource() {
+        let { thing, list } = this.getMatchedSource();
         return `spell.append(${list}, ${thing})`;
       }
     }
@@ -400,8 +400,8 @@ parser.defineRules(
       "add {thing:expression} to the (start|front|top) of {list:expression}"
     ],
     constructor: class list_prepend extends Rule.Sequence {
-      toSource(context) {
-        let { thing, list } = this.getMatchedSource(context);
+      toSource() {
+        let { thing, list } = this.getMatchedSource();
         return `spell.prepend(${list}, ${thing})`;
       }
     }
@@ -414,8 +414,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "add {thing:expression} to {list:expression} at position {position:expression}",
     constructor: class list_splice extends Rule.Sequence {
-      toSource(context) {
-        let { thing, position, list } = this.getMatchedSource(context);
+      toSource() {
+        let { thing, position, list } = this.getMatchedSource();
         return `spell.splice(${list}, ${position}, ${thing})`;
       }
     }
@@ -431,8 +431,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "add {thing:expression} to {list:expression} after {item:expression}",
     constructor: class list_add_after extends Rule.Sequence {
-      toSource(context) {
-        let { thing, item, list } = this.getMatchedSource(context);
+      toSource() {
+        let { thing, item, list } = this.getMatchedSource();
         return `spell.splice(${list}, spell.positionOf(${list}, ${item}), ${thing})`;
       }
     }
@@ -450,8 +450,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "(empty|clear) {list:expression}",
     constructor: class list_empty extends Rule.Sequence {
-      toSource(context) {
-        let { list } = this.getMatchedSource(context);
+      toSource() {
+        let { list } = this.getMatchedSource();
         return `spell.clear(${list})`;
       }
     }
@@ -464,8 +464,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "remove {identifier} {number:expression} of {list:expression}",
     constructor: class list_remove_position extends Rule.Sequence {
-      toSource(context) {
-        let { number, list } = this.getMatchedSource(context);
+      toSource() {
+        let { number, list } = this.getMatchedSource();
         return `spell.removeItem(${list}, ${number})`;
       }
     }
@@ -480,8 +480,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "remove {identifier} {start:expression} to {end:expression} of {list:expression}",
     constructor: class list_remove_position extends Rule.Sequence {
-      toSource(context) {
-        let { start, end, list } = this.getMatchedSource(context);
+      toSource() {
+        let { start, end, list } = this.getMatchedSource();
         return `spell.removeRange(${list}, ${start}, ${end})`;
       }
     }
@@ -495,8 +495,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "remove {thing:expression} from {list:expression}",
     constructor: class list_remove extends Rule.Sequence {
-      toSource(context) {
-        let { thing, list } = this.getMatchedSource(context);
+      toSource() {
+        let { thing, list } = this.getMatchedSource();
         return `spell.remove(${list}, ${thing})`;
       }
     }
@@ -510,10 +510,10 @@ parser.defineRules(
     alias: "statement",
     syntax: "remove {identifier} (in|of|from) {list:expression} where {condition:expression}",
     constructor: class list_remove_where extends Rule.Sequence {
-      toSource(context) {
-        let { identifier, condition, list } = this.getMatchedSource(context);
+      toSource() {
+        let { identifier, condition, list } = this.getMatchedSource();
         // use singular of identifier for method argument
-        let argument = singularize(identifier.toSource(context));
+        let argument = singularize(identifier.toSource());
         return `spell.removeWhere(${list}, ${argument} => ${condition})`;
       }
     }
@@ -531,8 +531,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "reverse {list:expression}",
     constructor: class list_reverse extends Rule.Sequence {
-      toSource(context) {
-        let { list } = this.getMatchedSource(context);
+      toSource() {
+        let { list } = this.getMatchedSource();
         return `spell.reverse(${list})`;
       }
     }
@@ -545,8 +545,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "(randomize|shuffle) {list:expression}",
     constructor: class list_shuffle extends Rule.Sequence {
-      toSource(context) {
-        let { list } = this.getMatchedSource(context);
+      toSource() {
+        let { list } = this.getMatchedSource();
         return `spell.shuffle(${list})`;
       }
     }
@@ -563,8 +563,8 @@ parser.defineRules(
       "for (each)? {itemVar:identifier} (and|,) {positionVar:identifier} in {list:expression}:? {statement}?",
     ],
     constructor: class list_iteration extends Rule.BlockStatement {
-      toSource(context) {
-        let { itemVar, positionVar, list, statement, block } = this.getMatchedSource(context);
+      toSource() {
+        let { itemVar, positionVar, list, statement, block } = this.getMatchedSource();
         let output;
         if (positionVar) {
           output = `for (let ${positionVar} = 1, bar; ${itemVar} = ${list}[${positionVar}-1], ${positionVar} <= ${list}.length; ${positionVar}++) `
@@ -587,8 +587,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "range {start:expression} to {end:expression}",
     constructor: class range_expression extends Rule.Sequence {
-      toSource(context) {
-        let { start, end } = this.getMatchedSource(context);
+      toSource() {
+        let { start, end } = this.getMatchedSource();
         return `spell.getRange(${start}, ${end})`;
       }
     }

@@ -5,7 +5,7 @@
 import Parser from "../../Parser";
 import Rule from "../../Rule";
 
-// Create "operators" parser context.
+// Create "operators" parser.
 const parser = Parser.forName("operators");
 export default parser;
 
@@ -33,9 +33,9 @@ parser.defineRules(
     leftRecursive: true,
     testRule: "infix_operator",
     constructor: class infix_operator_expression extends Rule.Sequence {
-      toSource(context) {
+      toSource() {
         let { lhs, rhs, operator } = this.results;
-        return operator.apply(lhs.toSource(context), rhs.toSource(context));
+        return operator.apply(lhs.toSource(), rhs.toSource());
       }
     }
   },
@@ -327,9 +327,9 @@ parser.defineRules(
     leftRecursive: true,
     testRule: "postfix_operator",
     constructor: class postfix_operator_expresion extends Rule.Sequence {
-      toSource(context) {
+      toSource() {
         let { expression, operator } = this.results;
-        return operator.apply(expression.toSource(context));
+        return operator.apply(expression.toSource());
       }
     }
   },

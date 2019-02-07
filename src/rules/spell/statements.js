@@ -5,7 +5,7 @@
 import Parser from "../../Parser";
 import Rule from "../../Rule";
 
-// Create "statements" parser context.
+// Create "statements" parser.
 const parser = Parser.forName("statements");
 export default parser;
 
@@ -21,8 +21,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "return {expression}",
     constructor: class return_statement extends Rule.Sequence {
-      toSource(context) {
-        let { expression } = this.getMatchedSource(context);
+      toSource() {
+        let { expression } = this.getMatchedSource();
         return `return ${expression}`;
       }
     }
@@ -43,8 +43,8 @@ parser.defineRules(
       "put {value:expression} into {thing:expression}"
     ],
     constructor: class assignment extends Rule.Sequence {
-      toSource(context) {
-        let { thing, value } = this.getMatchedSource(context);
+      toSource() {
+        let { thing, value } = this.getMatchedSource();
         // TODO: declare identifier if not in scope, etc
         return `${thing} = ${value}`;
       }
@@ -58,8 +58,8 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "get {value:expression}",
     constructor: class get_value extends Rule.Sequence {
-      toSource(context) {
-        let { value } = this.getMatchedSource(context);;
+      toSource() {
+        let { value } = this.getMatchedSource();;
         return `it = ${value}`
       }
     }
@@ -80,8 +80,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "alert {message:expression} (?:with {okButton:text})?",
     constructor: class alert extends Rule.Sequence {
-      toSource(context) {
-        let { message, okButton = `"OK"` } = this.getMatchedSource(context);
+      toSource() {
+        let { message, okButton = `"OK"` } = this.getMatchedSource();
         return `await spell.alert(${message}, ${okButton})`;
       }
     }
@@ -95,8 +95,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "warn {expression:expression} (?:with {okButton:text})?",
     constructor: class warn extends Rule.Sequence {
-      toSource(context) {
-        let { message, okButton = `"OK"` } = this.getMatchedSource(context);
+      toSource() {
+        let { message, okButton = `"OK"` } = this.getMatchedSource();
         return `await spell.warn(${message}, ${okButton})`;
       }
     }
@@ -111,8 +111,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "confirm {message:expression} (?:with {okButton:text} (?: (and|or) {cancelButton:text})? )?",
     constructor: class confirm extends Rule.Sequence {
-      toSource(context) {
-        let { message, okButton = `"OK"`, cancelButton = `"Cancel"` } = this.getMatchedSource(context);
+      toSource() {
+        let { message, okButton = `"OK"`, cancelButton = `"Cancel"` } = this.getMatchedSource();
         return `await spell.confirm(${message}, ${okButton}, ${cancelButton})`;
       }
     }

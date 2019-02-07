@@ -9,7 +9,7 @@
 //
 //	The clone returned above can be manipulated with
 //		- `rule.results`			Return matched arguments in a format suitable to do:
-//		- `rule.toSource(context)`	Return javascript source to interpret the rule.
+//		- `rule.toSource()`	Return javascript source to interpret the rule.
 //
 import Parser from "./Parser.js";
 import Tokenizer from "./Tokenizer.js";
@@ -55,7 +55,7 @@ export default class Rule {
 //
 
 	// Output value for this INSTANTIATED rule as source.
-	toSource(context) {
+	toSource() {
 		return this.matched;
 	}
 
@@ -63,7 +63,7 @@ export default class Rule {
 //
 // ## output as structure:
 //
-	toStructure(context) {
+	toStructure() {
 		return undefined;
 	}
 }
@@ -109,7 +109,7 @@ Rule.Literals = class literals extends Rule {
     return this.literals.every((literal, i) => (start + i < end) && (literal === tokens[start + i]));
 	}
 
-  toSource(context) {
+  toSource() {
     return this.matched;
   }
 
@@ -261,27 +261,22 @@ Rule.Sequence = class sequence extends Rule {
 		let index = 0, match = undefined;
 		while (match = matched[index++]) {
 			if (match.promote) {
-			//TODO: unclear that promote should return, that will ignore subsequent stuff, right?
-				return this._addResults(results, match.matched);
+				this._addResults(results, match.matched);
 			}
 			else {
 				let resultName = match.argument || match.group || match.constructor.name;
-				let sourceName = "_" + resultName;
-
-				let source = match.toSource();
 				// If arg already exists, convert to an array
 				if (resultName in results) {
 					if (!Array.isArray(results[resultName])) {
 					  results[resultName] = [results[resultName]];
-					  results[sourceName] = [results[sourceName]];
+//					  results[sourceName] = [results[sourceName]];
 					}
 					results[resultName].push(match);
-					results[sourceName].push(source);
-//					results[`$${resultName}`] = value && value.toSource ? value.toSource() : undefined;
+//					results[sourceName].push(source);
 				}
 				else {
 					results[resultName] = match;
-					results[sourceName] = source;
+//					results[sourceName] = source;
 				}
 			}
 		}
@@ -290,13 +285,12 @@ Rule.Sequence = class sequence extends Rule {
 
 	// Return `toSource()` for our `results` as a map.
 	// If you pass `keys`, we'll restrict to just those keys.
-	getMatchedSource(context) {
+	getMatchedSource() {
 		let results = this.results;
 		let output = {};
 		Object.keys(results).forEach(key => {
 			let value = results[key];
-			if (value == null) return;
-			if (value.toSource) output[key] = value.toSource(context);
+			if (value.toSource) output[key] = value.toSource();
 			else output[key] = value;
 		});
 		return output;
@@ -411,9 +405,9 @@ Rule.Repeat = class repeat extends Rule {
 		});
 	}
 
-	toSource(context) {
+	toSource() {
 		if (!this.matched) return undefined;
-		return this.matched.map(match => match.toSource(context));
+		return this.matched.map(match => match.toSource());
 	}
 
 	toSyntax() {
@@ -468,9 +462,9 @@ Rule.List = class list extends Rule {
 	}
 
 	// Returns list of values as source.
-	toSource(context) {
+	toSource() {
 		if (!this.matched) return [];
-		return this.matched.map( match => match.toSource(context) );
+		return this.matched.map( match => match.toSource() );
 	}
 
 	toSyntax() {
@@ -564,14 +558,14 @@ Rule.Block = class block extends Rule.Sequence {
 	}
 
 	// Return source for this block as an array of indented lines WITHOUT `{` OR `}`.
-	blockToSource(context, block = this.matched) {
+	blockToSource(block = this.matched) {
 		let results = [], statement;
 
 		for (var i = 0; i < block.length; i++) {
 			let match = block[i];
       //console.info(i, match);
       try {
-            statement = match.toSource(context) || "";
+            statement = match.toSource() || "";
       } catch (e) {
         console.error(e);
         console.warn("Error converting block: ", block, "statement:", match);
@@ -597,21 +591,21 @@ Rule.Block = class block extends Rule.Sequence {
 		return results.join("\n");
 	}
 
-	toSource(context) {
-		return " {\n" + this.blockToSource(context) + "\n" + "}";
+	toSource() {
+		return " {\n" + this.blockToSource() + "\n" + "}";
 	}
 
 	// Convert to logical representation of structure by converting individual statements and grouping
 	// NOTE: you should override this and include "type"
-	toStructure(context) {
-		let { name, superType } = this.getMatchedSource(context);
+	toStructure() {
+		let { name, superType } = this.getMatchedSource();
 		let block = (this.block && this.block.matched) || [];
 
 		let named = {};
 		let properties = [];
 		let methods = [];
 		let other = [];
-		block.map(statement => statement.toStructure(context))
+		block.map(statement => statement.toStructure())
 			 .filter(Boolean)
 			 .forEach(addStructure);
 
@@ -687,8 +681,8 @@ Rule.Statements = class statements extends Rule.Block {
 	}
 
 	// Output statements WITHOUT curly braces around them.
-	toSource(context) {
-		return this.matched.blockToSource(context);
+	toSource() {
+		return this.matched.blockToSource();
 	}
 }
 
@@ -709,11 +703,11 @@ Rule.BlockStatement = class block_statement extends Rule.Block {
 
 	// Return `toSource()` for our `results` as a map.
 	// If you pass `keys`, we'll restrict to just those keys.
-	getMatchedSource(context, ...keys) {
-		let output = super.getMatchedSource(context, ...keys);
+	getMatchedSource() {
+		let output = super.getMatchedSource();
 		// add `block` to output if defined.
 		if (this.block) {
-			output.block = this.block.blockToSource(context);
+			output.block = this.block.blockToSource();
 		}
 		return output;
 	}
@@ -722,7 +716,7 @@ Rule.BlockStatement = class block_statement extends Rule.Block {
 
 // Blank line representation in parser output.
 Rule.BlankLine = class blank_line extends Rule {
-	toSource(context) {
+	toSource() {
 		return "\n";
 	}
 }
@@ -739,7 +733,7 @@ Rule.Comment = class comment extends Rule {
 		});
 	}
 
-	toSource(context) {
+	toSource() {
 		return `//${this.matched.whitespace}${this.matched.comment}`;
 	}
 }
@@ -760,7 +754,7 @@ Rule.StatementParseError = class parse_error extends Rule {
 		return "CAN'T PARSE STATEMENT: `" + this.unparsed + "`";
 	}
 
-	toSource(context) {
+	toSource() {
 		return "// " + this.message.split("\n").join("\n// ");
 	}
 }

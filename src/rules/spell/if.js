@@ -5,7 +5,7 @@
 import Parser from "../../Parser";
 import Rule from "../../Rule";
 
-// Create "if" parser context.
+// Create "if" parser.
 const parser = Parser.forName("if");
 export default parser;
 
@@ -15,8 +15,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "if {condition:expression} (then|:)? {statement}?",
     constructor: class if_ extends Rule.BlockStatement {
-      toSource(context) {
-        let { condition, statement, block } = this.getMatchedSource(context);
+      toSource() {
+        let { condition, statement, block } = this.getMatchedSource();
   //			if (statement && block) throw new SyntaxError("if may only have inline statement OR block");
         let statements = Rule.Block.encloseStatements(statement, block);
         return `if (${condition}) ${statements}`;
@@ -32,8 +32,8 @@ parser.defineRules(
     leftRecursive: true,
     testRule: new Rule.Keywords({ literals: [ "if" ] }),
     constructor: class backwards_if extends Rule.Sequence {
-      toSource(context) {
-        let { condition, statement, elseStatement } = this.getMatchedSource(context);
+      toSource() {
+        let { condition, statement, elseStatement } = this.getMatchedSource();
         let output = `if (${condition}) { ${statement} }`;
         if (elseStatement) output += `\nelse { ${elseStatement} }`
         return output;
@@ -46,8 +46,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "(else|otherwise) if {condition:expression} (then|:) {statement}?",
     constructor: class else_if extends Rule.BlockStatement {
-      toSource(context) {
-        let { condition, statement, block } = this.getMatchedSource(context);
+      toSource() {
+        let { condition, statement, block } = this.getMatchedSource();
   //			if (statement && block) throw new SyntaxError("else if may only have inline statement OR block");
         let statements = Rule.Block.encloseStatements(statement, block);
         return `else if (${condition}) ${statements}`
@@ -60,8 +60,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "(else|otherwise) (:)? {statement}?",
     constructor: class else_ extends Rule.BlockStatement {
-      toSource(context) {
-        let { statement, block } = this.getMatchedSource(context);
+      toSource() {
+        let { statement, block } = this.getMatchedSource();
   //			if (statement && block) throw new SyntaxError("else if may only have inline statement OR block");
         let statements = Rule.Block.encloseStatements(statement, block);
         return `else ${statements}`
