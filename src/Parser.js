@@ -21,10 +21,6 @@ export default class Parser {
 	// Set to `true` to output timing info.
 	static TIME = false;
 
-	// Pointer to our tokenizer.
-	// TODO: dependency inject this?
-	Tokenzier = Tokenizer;
-
 	// Constructor.
 	constructor(properties) {
 		Object.assign(this, properties);
@@ -230,7 +226,6 @@ export default class Parser {
   //  `constructor` (class, required) Class which will be used to instantiate the rule.
   //  `syntax` (string, required) RuleSyntax string for this rule.
   //  `pattern` (RegExp, optional) Regular expression for `Pattern` rules
-  //  `mutatesScope` (boolean, optional) Set to `true` if the rule mutates the scope it is defined in.
   //  `precedence` (number, optional) Precedence number for the rule (currently doesn't do anything)
   //  `blacklist` ([string], optional) Array of strings as blacklist for pattern rules.
   //  `leftRecursive' (boolean, optional) Set to `true` if the rule is left-recursive,
@@ -243,7 +238,7 @@ export default class Parser {
     name, constructor, alias = [], canonical,
     syntax, blacklist,
     ...otherProps
-    // pattern, mutatesScope, precedence, , leftRecursive, testRule
+    // pattern, precedence, , leftRecursive, testRule
   }) {
     const names = [name].concat(alias);
 

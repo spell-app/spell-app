@@ -36,8 +36,7 @@ parser.defineRules(
   //TODO: distinguish between `new_identifier` and `scoped_identifier`
   {
     name: "assignment",
-    alias: "statement",
-    mutatesScope: true,
+    alias: ["statement", "mutatesScope"],
     syntax: [
       "{thing:expression} = {value:expression}",
       "set {thing:expression} to {value:expression}",
@@ -56,8 +55,7 @@ parser.defineRules(
   // TODO: `it` may not already be defined... ???
   {
     name: "get_value",
-    alias: "statement",
-    mutatesScope: true,
+    alias: ["statement", "mutatesScope"],
     syntax: "get {value:expression}",
     constructor: class get_value extends Rule.Sequence {
       toSource(context) {

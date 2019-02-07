@@ -14,8 +14,7 @@ import { pluralize } from "../../utils/string";
 export default Parser.forName("types").defineRules(
   {
     name: "define_type",
-    alias: "statement",
-    mutatesScope: true,
+    alias: ["statement", "mutatesScope"],
     syntax: "define type {name:type} (?:as (a|an) {superType:type})?",
     constructor: class define_type extends Rule.BlockStatement {
       // Return a logical representation of the data structure
@@ -59,8 +58,7 @@ export default Parser.forName("types").defineRules(
   // Declare instance method or normal function.
   {
     name: "declare_method",
-    alias: "statement",
-    mutatesScope: true,
+    alias: ["statement", "mutatesScope"],
     syntax: "(operator:to|on) {name:identifier} {args}? (\\:)? {statement}?",
     constructor: class declare_method extends Rule.BlockStatement {
       // Return a logical representation of the data structure
@@ -88,8 +86,7 @@ export default Parser.forName("types").defineRules(
   //TESTME
   {
     name: "declare_action",
-    alias: "statement",
-    mutatesScope: true,
+    alias: ["statement", "mutatesScope"],
     syntax: "action (keywords:{word}|{type})+ (\\:)? {statement}?",
     constructor: class declare_action extends Rule.BlockStatement {
       // Add `name`, `args` and `types` to matched source
@@ -164,8 +161,7 @@ export default Parser.forName("types").defineRules(
   // TODO: `to get...` ?
   {
     name: "getter",
-    alias: "statement",
-    mutatesScope: true,
+    alias: ["statement", "mutatesScope"],
     syntax: "get {name:identifier}\\: {expression}?",
     constructor: class getter extends Rule.BlockStatement {
       toSource(context) {
@@ -196,8 +192,7 @@ export default Parser.forName("types").defineRules(
   // TODO: `to set...` ?
   {
     name: "setter",
-    alias: "statement",
-    mutatesScope: true,
+    alias: ["statement", "mutatesScope"],
     syntax: "set {name:identifier} {args}? (\\:)? {statement}?",
     constructor: class setter extends Rule.BlockStatement {
       toSource(context) {
@@ -229,8 +224,7 @@ export default Parser.forName("types").defineRules(
   //TODO: another name for `constant` ?
   {
     name: "declare_property",
-    alias: "statement",
-    mutatesScope: true,
+    alias: ["statement", "mutatesScope"],
     syntax: "(scope:property|constant|shared property) {name:identifier} (?:= {value:expression})?",
     constructor: class declare_property extends Rule.Sequence {
       toSource(context) {
@@ -264,8 +258,7 @@ export default Parser.forName("types").defineRules(
   // TODO: initial value
   {
     name: "declare_property_of_type",
-    alias: "statement",
-    mutatesScope: true,
+    alias: ["statement", "mutatesScope"],
     syntax: "property {name:identifier} as (a|an)? {type}",
     constructor: class declare_property_of_type extends Rule.Sequence {
       toSource(context) {
@@ -286,8 +279,7 @@ export default Parser.forName("types").defineRules(
   // TODO: warn on invalid set?  shared?  undefined? something other than the first value as default?
   {
     name: "declare_property_as_one_of",
-    alias: "statement",
-    mutatesScope: true,
+    alias: ["statement", "mutatesScope"],
     syntax: "property {name:identifier} as one of {list:literal_list}",
     constructor: class declare_property_as_one_of extends Rule.Sequence {
       getMatchedSource(context) {

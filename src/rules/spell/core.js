@@ -109,7 +109,7 @@ parser.defineRules(
     name: "type",
     alias: "expression",
     canonical: "Type",
-    pattern: /([A-Z][\w\-]*|list|text|number|integer|decimal|character|boolean|object)/,
+    pattern: /^([A-Z][\w\-]*|list|text|number|integer|decimal|character|boolean|object)$/,
     constructor: class type extends Rule.Pattern {
       // Convert "-" to "_" in source output.
       toSource(context) {

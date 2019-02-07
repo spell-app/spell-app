@@ -12,6 +12,7 @@
 //		- `rule.toSource(context)`	Return javascript source to interpret the rule.
 //
 import Parser from "./Parser.js";
+import Tokenizer from "./Tokenizer.js";
 
 import global from "./utils/global";
 import { getTabs, isWhitespace } from "./utils/string";
@@ -155,7 +156,7 @@ Rule.Pattern = class pattern extends Rule {
 
 	// Test to see if any of our pattern is found ANYWHERE in the tokens.
 	test(parser, tokens, start = 0, end) {
-		return tokens.slice(start, end).some(token => typeof token === "string" && token.match(this.pattern));
+		return tokens.slice(start, end).some(token => typeof token === "string" && pattern.test(token));
 	}
 
 	toString() {
@@ -424,7 +425,7 @@ Rule.Repeat = class repeat extends Rule {
 
 // List match rule:   `[<item><delimiter>]`. eg" `[{number},]` to match `1,2,3`
 //	`rule.item` is the rule for each item,
-//	`rule.delimiter` is the delimiter between each item.
+//	`rule.delimiter` is the delimiter between each item, which is optional at the end.
 //
 // After matching:
 //	`this.matched` is array of matched rules.
@@ -434,6 +435,7 @@ Rule.Repeat = class repeat extends Rule {
 Rule.List = class list extends Rule {
 	parse(parser, tokens, start = 0, end, stack) {
 		// ensure item and delimiter are optional so we don't barf in `parseRule`
+//TODO: ???
 		this.item.optional = true;
 		this.delimiter.optional = true;
 
@@ -473,53 +475,6 @@ Rule.List = class list extends Rule {
 	}
 };
 
-
-
-// Blank line representation in parser output.
-Rule.BlankLine = class blank_line extends Rule {
-	toSource(context) {
-		return "\n";
-	}
-}
-
-// Parser error representation in parser output.
-Rule.StatementParseError = class parse_error extends Rule {
-	constructor(...props) {
-		super(...props);
-		if (Parser.WARN) console.warn(this.message);
-	}
-
-	get message() {
-		if (this.parsed) {
-			return "CANT PARSE ENTIRE STATEMENT\n"
-				 + "PARSED      : `"+ this.parsed + "`\n"
-				 + "CAN'T PARSE : `"+ this.unparsed + "`";
-		}
-		return "CAN'T PARSE STATEMENT: `" + this.unparsed + "`";
-	}
-
-	toSource(context) {
-		return "// " + this.message.split("\n").join("\n// ");
-	}
-}
-
-
-// Comment rule -- matches tokens of type `Tokenizer.Comment`.
-Rule.Comment = class comment extends Rule {
-	// Comments are special nodes in our token stream.
-	parse(parser, tokens, start = 0, end, stack) {
-		let token = tokens[start];
-		if (!(token instanceof Tokenizer.Comment)) return undefined;
-		return this.clone({
-			matched: token,
-			nextStart: start + 1
-		});
-	}
-
-	toSource(context) {
-		return `//${this.matched.whitespace}${this.matched.comment}`;
-	}
-}
 
 
 // A block is used to parse a nested block of statements.
@@ -758,4 +713,51 @@ Rule.BlockStatement = class block_statement extends Rule.Block {
 		return output;
 	}
 }
+
+
+// Blank line representation in parser output.
+Rule.BlankLine = class blank_line extends Rule {
+	toSource(context) {
+		return "\n";
+	}
+}
+
+// Comment rule -- matches tokens of type `Tokenizer.Comment`.
+Rule.Comment = class comment extends Rule {
+	// Comments are special nodes in our token stream.
+	parse(parser, tokens, start = 0, end, stack) {
+		let token = tokens[start];
+		if (!(token instanceof Tokenizer.Comment)) return undefined;
+		return this.clone({
+			matched: token,
+			nextStart: start + 1
+		});
+	}
+
+	toSource(context) {
+		return `//${this.matched.whitespace}${this.matched.comment}`;
+	}
+}
+
+// Parser error representation in parser output.
+Rule.StatementParseError = class parse_error extends Rule {
+	constructor(...props) {
+		super(...props);
+		if (Parser.WARN) console.warn(this.message);
+	}
+
+	get message() {
+		if (this.parsed) {
+			return "CANT PARSE ENTIRE STATEMENT\n"
+				 + "PARSED      : `"+ this.parsed + "`\n"
+				 + "CAN'T PARSE : `"+ this.unparsed + "`";
+		}
+		return "CAN'T PARSE STATEMENT: `" + this.unparsed + "`";
+	}
+
+	toSource(context) {
+		return "// " + this.message.split("\n").join("\n// ");
+	}
+}
+
 
