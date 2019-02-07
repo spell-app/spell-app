@@ -34,8 +34,8 @@ parser.defineRules(
     testRule: "infix_operator",
     constructor: class infix_operator_expression extends Rule.Sequence {
       toSource() {
-        let { lhs, rhs, operator } = this.results;
-        return operator.apply(lhs.toSource(), rhs.toSource());
+        let { lhs, rhs, _operator } = this.results;
+        return _operator.apply(lhs, rhs);
       }
     }
   },
@@ -328,8 +328,8 @@ parser.defineRules(
     testRule: "postfix_operator",
     constructor: class postfix_operator_expresion extends Rule.Sequence {
       toSource() {
-        let { expression, operator } = this.results;
-        return operator.apply(expression.toSource());
+        let { expression, _operator } = this.results;
+        return _operator.apply(expression);
       }
     }
   },

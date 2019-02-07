@@ -233,7 +233,7 @@ parser.defineRules(
     syntax: "\\[[list:{expression},]?\\]",
     constructor: class literal_list extends Rule.Sequence {
       toSource() {
-        let { list } = this.getMatchedSource();
+        let { list } = this.results;
         return `[${list ? list.join(", ") : ""}]`;
       }
     }
@@ -248,10 +248,10 @@ parser.defineRules(
     syntax: "\\({expression}\\)",
     constructor: class parenthesized_expression extends Rule.Sequence {
       toSource() {
-        let { expression } = this.getMatchedSource();
+        let { expression } = this.results;
         // don't double parens if not necessary
         if (typeof expression === "string" && expression.startsWith("(") && expression.endsWith(")")) return expression;
-        return `(${expression})`;
+        return "(" + expression + ")";
       }
     }
   }

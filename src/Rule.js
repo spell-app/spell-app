@@ -8,8 +8,9 @@
 //			- `nextStart`	Place where next match should start (eg: one beyond what you matched).
 //
 //	The clone returned above can be manipulated with
-//		- `rule.results`			Return matched arguments in a format suitable to do:
-//		- `rule.toSource()`	Return javascript source to interpret the rule.
+//		- `rule.toSource()`	  Return javascript source to interpret the rule.
+//		- `rule.toSyntax()`	  Return ruleSyntax for the rule (mostly for debugging)
+//    -
 //
 import Parser from "./Parser.js";
 import Tokenizer from "./Tokenizer.js";
@@ -245,55 +246,43 @@ Rule.Sequence = class sequence extends Rule {
 //TODOC
 	// "gather" arguments in preparation to call `toSource()`
 	// Only callable after parse is completed.
-	// Returns an object with properties from the `matched` array indexed by
+	// Returns an object with properties from the `matched` array indexed by one of the following:
 	//		- `match.argument`:		argument set when rule was declared, eg: `{value:literal}` => `value`
 	//		- `match.ruleName`:		name of rule when defined
-	//		- `rule type`:			name of the rule type
-	// NOTE: memoizes the results.
+	//		- `match.constructor.name`:			name of the rule type
 	get results() {
 		if (!this.matched) return undefined;
-		let results = this._addResults({}, this.matched);
+		let results = addResults({}, this.matched);
 		if (this.comment) results.comment = this.comment;
 		return results;
-	}
 
-	_addResults(results, matched) {
-		let index = 0, match = undefined;
-		while (match = matched[index++]) {
-			if (match.promote) {
-				this._addResults(results, match.matched);
-			}
-			else {
-				let resultName = match.argument || match.group || match.constructor.name;
-				// If arg already exists, convert to an array
-				if (resultName in results) {
-					if (!Array.isArray(results[resultName])) {
-					  results[resultName] = [results[resultName]];
-//					  results[sourceName] = [results[sourceName]];
-					}
-					results[resultName].push(match);
-//					results[sourceName].push(source);
-				}
-				else {
-					results[resultName] = match;
-//					results[sourceName] = source;
-				}
-			}
-		}
-		return results;
-	}
-
-	// Return `toSource()` for our `results` as a map.
-	// If you pass `keys`, we'll restrict to just those keys.
-	getMatchedSource() {
-		let results = this.results;
-		let output = {};
-		Object.keys(results).forEach(key => {
-			let value = results[key];
-			if (value.toSource) output[key] = value.toSource();
-			else output[key] = value;
-		});
-		return output;
+    function addResults(results, matched) {
+      let index = 0, match = undefined;
+      while (match = matched[index++]) {
+        if (match.promote) {
+          addResults(results, match.matched);
+        }
+        else {
+          const sourceName = match.argument || match.group || match.constructor.name;
+          const matchName = "_" + sourceName;
+          const source = match.toSource();
+          // If arg already exists, convert to an array
+          if (matchName in results) {
+            if (!Array.isArray(results[matchName])) {
+              results[matchName] = [results[matchName]];
+              results[sourceName] = [results[sourceName]];
+            }
+            results[matchName].push(match);
+            results[sourceName].push(source)
+          }
+          else {
+            results[matchName] = match;
+            results[sourceName] = source;
+          }
+        }
+      }
+      return results;
+    }
 	}
 
 	// Echo this rule back out.
@@ -598,7 +587,7 @@ Rule.Block = class block extends Rule.Sequence {
 	// Convert to logical representation of structure by converting individual statements and grouping
 	// NOTE: you should override this and include "type"
 	toStructure() {
-		let { name, superType } = this.getMatchedSource();
+		let { _name: name, _superType: superType } = this.results;
 		let block = (this.block && this.block.matched) || [];
 
 		let named = {};
@@ -692,7 +681,7 @@ Rule.Statements = class statements extends Rule.Block {
 //	- MAY have an inline `statement` (on the same line, possibly after a `:`)
 //	- MAY have contents as an embedded `block`
 //
-//	In your `getMatchedSource()`, `block` will be the resulting block output, if there is one.
+//	In your `results`, `block` will be the resulting block output, if there is one.
 //	It's up to your rule to do something with it...
 Rule.BlockStatement = class block_statement extends Rule.Block {
 
@@ -701,16 +690,15 @@ Rule.BlockStatement = class block_statement extends Rule.Block {
 		this.block = super.parseBlock(...arguments);
 	}
 
-	// Return `toSource()` for our `results` as a map.
-	// If you pass `keys`, we'll restrict to just those keys.
-	getMatchedSource() {
-		let output = super.getMatchedSource();
-		// add `block` to output if defined.
-		if (this.block) {
-			output.block = this.block.blockToSource();
-		}
-		return output;
-	}
+  // Add our `block` to the results
+  get results() {
+    let results = super.results;
+    if (results && this.block) {
+      results._block = this.block;
+      results.block = this.block.toSource();
+    }
+    return results;
+  }
 }
 
 

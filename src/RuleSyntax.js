@@ -177,7 +177,9 @@ function parseAlternatives(syntaxStream, rules = [], start = 0) {
 
   // pull out explicit "promote" flag: `?:`
   let promote = (slice[0] === "?" && slice[1] === ":");
-  if (promote) slice = slice.slice(2);
+  if (promote) {
+    slice = slice.slice(2);
+  }
 
   // pull out explicit argument name
   let argument;
@@ -203,29 +205,29 @@ function parseAlternatives(syntaxStream, rules = [], start = 0) {
   if (argument) rule.argument = argument;
   if (promote) rule.promote = true;
   return [ rule, end ];
+}
 
-  function groupAlternatives(tokens) {
-    let alternatives = [];
-    let current = [];
-    for (let i = 0, token; token = tokens[i]; i++) {
-      // handle alternate marker
-      if (token === "|") {
-        alternatives.push(current);
-        current = [];
-      }
-      // handle nested parens
-      else if (token === "(") {
-        let { end } = Parser.findNestedTokens(tokens, "(", ")", i);
-        current = current.concat(tokens.slice(i, end + 1));
-        i = end;
-      }
-      else {
-        current.push(token);
-      }
+function groupAlternatives(tokens) {
+  let alternatives = [];
+  let current = [];
+  for (let i = 0, token; token = tokens[i]; i++) {
+    // handle alternate marker
+    if (token === "|") {
+      alternatives.push(current);
+      current = [];
     }
-    if (current.length) alternatives.push(current);
-    return alternatives;
+    // handle nested parens
+    else if (token === "(") {
+      let { end } = Parser.findNestedTokens(tokens, "(", ")", i);
+      current = current.concat(tokens.slice(i, end + 1));
+      i = end;
+    }
+    else {
+      current.push(token);
+    }
   }
+  if (current.length) alternatives.push(current);
+  return alternatives;
 }
 
 // Match repeat indicator `?`, `+` or `*` by attaching it to the previous rule.

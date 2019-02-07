@@ -22,7 +22,7 @@ parser.defineRules(
     syntax: "return {expression}",
     constructor: class return_statement extends Rule.Sequence {
       toSource() {
-        let { expression } = this.getMatchedSource();
+        let { expression } = this.results;
         return `return ${expression}`;
       }
     }
@@ -44,7 +44,7 @@ parser.defineRules(
     ],
     constructor: class assignment extends Rule.Sequence {
       toSource() {
-        let { thing, value } = this.getMatchedSource();
+        let { thing, value } = this.results;
         // TODO: declare identifier if not in scope, etc
         return `${thing} = ${value}`;
       }
@@ -59,7 +59,7 @@ parser.defineRules(
     syntax: "get {value:expression}",
     constructor: class get_value extends Rule.Sequence {
       toSource() {
-        let { value } = this.getMatchedSource();;
+        let { value } = this.results;;
         return `it = ${value}`
       }
     }
@@ -81,7 +81,7 @@ parser.defineRules(
     syntax: "alert {message:expression} (?:with {okButton:text})?",
     constructor: class alert extends Rule.Sequence {
       toSource() {
-        let { message, okButton = `"OK"` } = this.getMatchedSource();
+        let { message, okButton = `"OK"` } = this.results;
         return `await spell.alert(${message}, ${okButton})`;
       }
     }
@@ -96,7 +96,7 @@ parser.defineRules(
     syntax: "warn {expression:expression} (?:with {okButton:text})?",
     constructor: class warn extends Rule.Sequence {
       toSource() {
-        let { message, okButton = `"OK"` } = this.getMatchedSource();
+        let { message, okButton = `"OK"` } = this.results;
         return `await spell.warn(${message}, ${okButton})`;
       }
     }
@@ -112,7 +112,7 @@ parser.defineRules(
     syntax: "confirm {message:expression} (?:with {okButton:text} (?: (and|or) {cancelButton:text})? )?",
     constructor: class confirm extends Rule.Sequence {
       toSource() {
-        let { message, okButton = `"OK"`, cancelButton = `"Cancel"` } = this.getMatchedSource();
+        let { message, okButton = `"OK"`, cancelButton = `"Cancel"` } = this.results;
         return `await spell.confirm(${message}, ${okButton}, ${cancelButton})`;
       }
     }

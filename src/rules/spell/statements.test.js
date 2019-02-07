@@ -12,11 +12,12 @@ test("assign number to identifier", () => {
 	expect(match).toBeInstanceOf(Rule.Sequence);
 	expect(match.toSource()).toBe("a = 1");
 
-	expect(match.results.thing).toBeInstanceOf(Rule.Pattern);
-	expect(match.results.thing.toSource()).toBe("a");
+  let results = match.results;
+	expect(results._thing).toBeInstanceOf(Rule.Pattern);
+	expect(results.thing).toBe("a");
 
-	expect(match.results.value).toBeInstanceOf(Rule.Number);
-	expect(match.results.value.toSource()).toBe(1);
+	expect(results._value).toBeInstanceOf(Rule.Number);
+	expect(results.value).toBe(1);
 });
 
 test("assign string to identifier", () => {
@@ -24,8 +25,9 @@ test("assign string to identifier", () => {
 	expect(match).toBeInstanceOf(Rule.Sequence);
 	expect(match.toSource()).toBe("a = 'a'");
 
-	expect(match.results.value).toBeInstanceOf(Rule.Text);
-	expect(match.results.value.toSource()).toBe("'a'");
+  let results = match.results;
+	expect(results._value).toBeInstanceOf(Rule.Text);
+	expect(results.value).toBe("'a'");
 });
 
 test("assign boolean to identifier", () => {
@@ -33,8 +35,9 @@ test("assign boolean to identifier", () => {
 	expect(match).toBeInstanceOf(Rule.Sequence);
 	expect(match.toSource()).toBe("a = true");
 
-	expect(match.results.value).toBeInstanceOf(Rule.Boolean);
-	expect(match.results.value.toSource()).toBe(true);
+  let results = match.results;
+	expect(results._value).toBeInstanceOf(Rule.Boolean);
+	expect(results.value).toBe(true);
 });
 
 test("assign list to identifier", () => {

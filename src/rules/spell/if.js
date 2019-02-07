@@ -16,7 +16,7 @@ parser.defineRules(
     syntax: "if {condition:expression} (then|:)? {statement}?",
     constructor: class if_ extends Rule.BlockStatement {
       toSource() {
-        let { condition, statement, block } = this.getMatchedSource();
+        let { condition, statement, block } = this.results;
   //			if (statement && block) throw new SyntaxError("if may only have inline statement OR block");
         let statements = Rule.Block.encloseStatements(statement, block);
         return `if (${condition}) ${statements}`;
@@ -33,7 +33,7 @@ parser.defineRules(
     testRule: new Rule.Keywords({ literals: [ "if" ] }),
     constructor: class backwards_if extends Rule.Sequence {
       toSource() {
-        let { condition, statement, elseStatement } = this.getMatchedSource();
+        let { condition, statement, elseStatement } = this.results;
         let output = `if (${condition}) { ${statement} }`;
         if (elseStatement) output += `\nelse { ${elseStatement} }`
         return output;
@@ -47,7 +47,7 @@ parser.defineRules(
     syntax: "(else|otherwise) if {condition:expression} (then|:) {statement}?",
     constructor: class else_if extends Rule.BlockStatement {
       toSource() {
-        let { condition, statement, block } = this.getMatchedSource();
+        let { condition, statement, block } = this.results;
   //			if (statement && block) throw new SyntaxError("else if may only have inline statement OR block");
         let statements = Rule.Block.encloseStatements(statement, block);
         return `else if (${condition}) ${statements}`
@@ -61,7 +61,7 @@ parser.defineRules(
     syntax: "(else|otherwise) (:)? {statement}?",
     constructor: class else_ extends Rule.BlockStatement {
       toSource() {
-        let { statement, block } = this.getMatchedSource();
+        let { statement, block } = this.results;
   //			if (statement && block) throw new SyntaxError("else if may only have inline statement OR block");
         let statements = Rule.Block.encloseStatements(statement, block);
         return `else ${statements}`
