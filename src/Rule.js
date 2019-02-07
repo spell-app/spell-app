@@ -309,13 +309,6 @@ Rule.Sequence = class sequence extends Rule {
 
 }
 
-// Syntactic sugar for debugging
-Rule.Expression = class expression extends Rule.Sequence {}
-
-
-// A statement takes up the entire line.
-Rule.Statement = class statement extends Rule.Sequence {}
-
 
 // Alternative syntax, matching one of a number of different rules.
 // The result of a parse is the longest rule that actually matched.
@@ -539,7 +532,7 @@ Rule.Comment = class comment extends Rule {
 
 // A block is used to parse a nested block of statements.
 // Abstract class.
-Rule.Block = class block extends Rule.Statement {
+Rule.Block = class block extends Rule.Sequence {
 
 	// Parse the entire `block`, returning results.
 	parseBlock(parser, block, indent = 0) {

@@ -9,7 +9,7 @@ test("parser is defined", () => {
 //
 test("assign number to identifier", () => {
 	let match = parser.parse("assignment", "a = 1");
-	expect(match).toBeInstanceOf(Rule.Statement);
+	expect(match).toBeInstanceOf(Rule.Sequence);
 	expect(match.toSource()).toBe("a = 1");
 
 	expect(match.results.thing).toBeInstanceOf(Rule.Pattern);
@@ -21,7 +21,7 @@ test("assign number to identifier", () => {
 
 test("assign string to identifier", () => {
 	let match = parser.parse("assignment", "a = 'a'");
-	expect(match).toBeInstanceOf(Rule.Statement);
+	expect(match).toBeInstanceOf(Rule.Sequence);
 	expect(match.toSource()).toBe("a = 'a'");
 
 	expect(match.results.value).toBeInstanceOf(Rule.Text);
@@ -30,7 +30,7 @@ test("assign string to identifier", () => {
 
 test("assign boolean to identifier", () => {
 	let match = parser.parse("assignment", "a = yes");
-	expect(match).toBeInstanceOf(Rule.Statement);
+	expect(match).toBeInstanceOf(Rule.Sequence);
 	expect(match.toSource()).toBe("a = true");
 
 	expect(match.results.value).toBeInstanceOf(Rule.Boolean);
@@ -39,6 +39,6 @@ test("assign boolean to identifier", () => {
 
 test("assign list to identifier", () => {
 	let match = parser.parse("assignment", "a = [1,2,yes,'a']");
-	expect(match).toBeInstanceOf(Rule.Statement);
+	expect(match).toBeInstanceOf(Rule.Sequence);
 	expect(match.toSource()).toBe("a = [1, 2, true, 'a']");
 });

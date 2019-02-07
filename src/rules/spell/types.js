@@ -232,7 +232,7 @@ export default Parser.forName("types").defineRules(
     alias: "statement",
     mutatesScope: true,
     syntax: "(scope:property|constant|shared property) {name:identifier} (?:= {value:expression})?",
-    constructor: class declare_property extends Rule.Statement {
+    constructor: class declare_property extends Rule.Sequence {
       toSource(context) {
         let { scope, name, value = "" } = this.getMatchedSource(context);
         if (value) value = ` = ${value}`;
@@ -267,7 +267,7 @@ export default Parser.forName("types").defineRules(
     alias: "statement",
     mutatesScope: true,
     syntax: "property {name:identifier} as (a|an)? {type}",
-    constructor: class declare_property_of_type extends Rule.Statement {
+    constructor: class declare_property_of_type extends Rule.Sequence {
       toSource(context) {
         let { name, type } = this.getMatchedSource(context);
         return `get ${name}() { return this.__${name} }\n`
@@ -289,7 +289,7 @@ export default Parser.forName("types").defineRules(
     alias: "statement",
     mutatesScope: true,
     syntax: "property {name:identifier} as one of {list:literal_list}",
-    constructor: class declare_property_as_one_of extends Rule.Statement {
+    constructor: class declare_property_as_one_of extends Rule.Sequence {
       getMatchedSource(context) {
         let output = super.getMatchedSource(context);
         output.plural = pluralize(output.name);
@@ -355,7 +355,7 @@ export default Parser.forName("types").defineRules(
     name: "property_expression",
     alias: "expression",
     syntax: "(properties:the {identifier} of)+ the? {expression}",
-    constructor: class property_expression extends Rule.Expression {
+    constructor: class property_expression extends Rule.Sequence {
       getMatchedSource(context) {
         let { expression, properties } = this.results;
         return {
@@ -378,7 +378,7 @@ export default Parser.forName("types").defineRules(
     name: "my_property_expression",
     alias: "expression",
     syntax: "(my|this) {identifier}",
-    constructor: class my_property_expression extends Rule.Expression {
+    constructor: class my_property_expression extends Rule.Sequence {
       toSource(context) {
         let { identifier } = this.getMatchedSource(context);
         return `this.${identifier}`;

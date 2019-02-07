@@ -216,7 +216,7 @@ parser.defineRules(
       "{identifier} {position:expression} of (the?) {expression}",
       "the {position:ordinal} {identifier} of (the?) {expression}"
     ],
-    constructor: class position_expression extends Rule.Expression{
+    constructor: class position_expression extends Rule.Sequence{
       toSource(context) {
         let { identifier, position, expression } = this.getMatchedSource(context);
         // If we got a positive number literal, compensate for JS 0-based arrays now, for nicer output.
@@ -236,7 +236,7 @@ parser.defineRules(
     name: "random_position_expression",
     alias: "expression",
     syntax: "a random {identifier} (of|from|in) (the)? {list:expression}",
-    constructor: class random_position_expression extends Rule.Expression {
+    constructor: class random_position_expression extends Rule.Sequence {
       toSource(context) {
         let { list } = this.getMatchedSource(context);
         return `spell.getRandomItemOf(${list})`;
@@ -253,7 +253,7 @@ parser.defineRules(
     name: "random_positions_expression",
     alias: "expression",
     syntax: "{number} random {identifier} (of|from|in) (the)? {list:expression}",
-    constructor: class random_positions_expression extends Rule.Expression {
+    constructor: class random_positions_expression extends Rule.Sequence {
       toSource(context) {
         let { number, list } = this.getMatchedSource(context);
         return `spell.getRandomItemsOf(${list}, ${number})`;
@@ -273,7 +273,7 @@ parser.defineRules(
     name: "range_expression",
     alias: "expression",
     syntax: "{identifier} {start:expression} to {end:expression} of {list:expression}",
-    constructor: class range_expression extends Rule.Expression {
+    constructor: class range_expression extends Rule.Sequence {
       toSource(context) {
         let { start, end, list } = this.getMatchedSource(context);
         return `spell.getRange(${list}, ${start}, ${end})`;
@@ -289,7 +289,7 @@ parser.defineRules(
     name: "first_in_range",
     alias: "expression",
     syntax: "first {number:expression} {identifier} (in|of) {list:expression}",
-    constructor: class range_expression extends Rule.Expression {
+    constructor: class range_expression extends Rule.Sequence {
       toSource(context) {
         let { number, list } = this.getMatchedSource(context);
         return `spell.getRange(${list}, 1, ${number})`;
@@ -305,7 +305,7 @@ parser.defineRules(
     name: "last_in_range",
     alias: "expression",
     syntax: "last {number:expression} {identifier} (in|of) {list:expression}",
-    constructor: class range_expression extends Rule.Expression {
+    constructor: class range_expression extends Rule.Sequence {
       toSource(context) {
         let { number, list } = this.getMatchedSource(context);
         return `spell.getEndRange(${list}, 1, ${number})`;
@@ -322,7 +322,7 @@ parser.defineRules(
     name: "range_expression",
     alias: "expression",
     syntax: "{identifier} (in|of) {list:expression} starting with {thing:expression}",
-    constructor: class range_expression extends Rule.Expression {
+    constructor: class range_expression extends Rule.Sequence {
       toSource(context) {
         let { thing, list } = this.getMatchedSource(context);
         return `spell.getRange(${list}, spell.positionOf(${thing}, ${list}))`;
@@ -338,7 +338,7 @@ parser.defineRules(
     name: "list_filter",
     alias: "expression",
     syntax: "{identifier} (in|of) {list:expression} where {condition:expression}",
-    constructor: class list_filter extends Rule.Expression {
+    constructor: class list_filter extends Rule.Sequence {
       toSource(context) {
         let { identifier, condition, list } = this.getMatchedSource(context);
         // use singular of identifier for method argument
@@ -356,7 +356,7 @@ parser.defineRules(
     name: "list_membership_test",
     alias: "expression",
     syntax: "{list:expression} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
-    constructor: class list_membership_test extends Rule.Expression {
+    constructor: class list_membership_test extends Rule.Sequence {
       // Add test rule for quicker processing
       static testRule = new Rule.Keyword({ match: ["where"] });
       get testRule() { return this.constructor.testRule }
@@ -384,7 +384,7 @@ parser.defineRules(
       "append {thing:expression} to {list:expression}",
       "add {thing:expression} to ((the?) end of)? {list:expression}"
     ],
-    constructor: class list_append extends Rule.Statement {
+    constructor: class list_append extends Rule.Sequence {
       toSource(context) {
         let { thing, list } = this.getMatchedSource(context);
         return `spell.append(${list}, ${thing})`;
@@ -401,7 +401,7 @@ parser.defineRules(
       "prepend {thing:expression} to {list:expression}",
       "add {thing:expression} to the (start|front|top) of {list:expression}"
     ],
-    constructor: class list_prepend extends Rule.Statement {
+    constructor: class list_prepend extends Rule.Sequence {
       toSource(context) {
         let { thing, list } = this.getMatchedSource(context);
         return `spell.prepend(${list}, ${thing})`;
@@ -415,7 +415,7 @@ parser.defineRules(
     name: "list_add_at",
     alias: "statement",
     syntax: "add {thing:expression} to {list:expression} at position {position:expression}",
-    constructor: class list_splice extends Rule.Statement {
+    constructor: class list_splice extends Rule.Sequence {
       toSource(context) {
         let { thing, position, list } = this.getMatchedSource(context);
         return `spell.splice(${list}, ${position}, ${thing})`;
@@ -432,7 +432,7 @@ parser.defineRules(
     name: "list_add_after",
     alias: "statement",
     syntax: "add {thing:expression} to {list:expression} after {item:expression}",
-    constructor: class list_add_after extends Rule.Statement {
+    constructor: class list_add_after extends Rule.Sequence {
       toSource(context) {
         let { thing, item, list } = this.getMatchedSource(context);
         return `spell.splice(${list}, spell.positionOf(${list}, ${item}), ${thing})`;
@@ -451,7 +451,7 @@ parser.defineRules(
     name: "list_empty",
     alias: "statement",
     syntax: "(empty|clear) {list:expression}",
-    constructor: class list_empty extends Rule.Statement {
+    constructor: class list_empty extends Rule.Sequence {
       toSource(context) {
         let { list } = this.getMatchedSource(context);
         return `spell.clear(${list})`;
@@ -465,7 +465,7 @@ parser.defineRules(
     name: "list_remove_position",
     alias: "statement",
     syntax: "remove {identifier} {number:expression} of {list:expression}",
-    constructor: class list_remove_position extends Rule.Statement {
+    constructor: class list_remove_position extends Rule.Sequence {
       toSource(context) {
         let { number, list } = this.getMatchedSource(context);
         return `spell.removeItem(${list}, ${number})`;
@@ -481,7 +481,7 @@ parser.defineRules(
     name: "list_remove_range",
     alias: "statement",
     syntax: "remove {identifier} {start:expression} to {end:expression} of {list:expression}",
-    constructor: class list_remove_position extends Rule.Statement {
+    constructor: class list_remove_position extends Rule.Sequence {
       toSource(context) {
         let { start, end, list } = this.getMatchedSource(context);
         return `spell.removeRange(${list}, ${start}, ${end})`;
@@ -496,7 +496,7 @@ parser.defineRules(
     name: "list_remove",
     alias: "statement",
     syntax: "remove {thing:expression} from {list:expression}",
-    constructor: class list_remove extends Rule.Statement {
+    constructor: class list_remove extends Rule.Sequence {
       toSource(context) {
         let { thing, list } = this.getMatchedSource(context);
         return `spell.remove(${list}, ${thing})`;
@@ -511,7 +511,7 @@ parser.defineRules(
     name: "list_remove_where",
     alias: "statement",
     syntax: "remove {identifier} (in|of|from) {list:expression} where {condition:expression}",
-    constructor: class list_remove_where extends Rule.Statement {
+    constructor: class list_remove_where extends Rule.Sequence {
       toSource(context) {
         let { identifier, condition, list } = this.getMatchedSource(context);
         // use singular of identifier for method argument
@@ -532,7 +532,7 @@ parser.defineRules(
     name: "list_reverse",
     alias: "statement",
     syntax: "reverse {list:expression}",
-    constructor: class list_reverse extends Rule.Statement {
+    constructor: class list_reverse extends Rule.Sequence {
       toSource(context) {
         let { list } = this.getMatchedSource(context);
         return `spell.reverse(${list})`;
@@ -546,7 +546,7 @@ parser.defineRules(
     name: "list_shuffle",
     alias: "statement",
     syntax: "(randomize|shuffle) {list:expression}",
-    constructor: class list_shuffle extends Rule.Statement {
+    constructor: class list_shuffle extends Rule.Sequence {
       toSource(context) {
         let { list } = this.getMatchedSource(context);
         return `spell.shuffle(${list})`;
@@ -588,7 +588,7 @@ parser.defineRules(
     name: "range_expression",
     alias: "expression",
     syntax: "range {start:expression} to {end:expression}",
-    constructor: class range_expression extends Rule.Expression {
+    constructor: class range_expression extends Rule.Sequence {
       toSource(context) {
         let { start, end } = this.getMatchedSource(context);
         return `spell.getRange(${start}, ${end})`;

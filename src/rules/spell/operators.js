@@ -30,7 +30,7 @@ parser.defineRules(
     name: "infix_operator_expression",
     alias: "expression",
     syntax: "{lhs:expression} {operator:infix_operator} {rhs:expression}",
-    constructor: class infix_operator_expression extends Rule.Expression {
+    constructor: class infix_operator_expression extends Rule.Sequence {
       // We CANNOT match if `infix_operator` isn't found in the expression.
       static testRule = "infix_operator";
       get testRule() { return this.constructor.testRule }
@@ -331,7 +331,7 @@ parser.defineRules(
     name: "postfix_operator_expression",
     alias: "expression",
     syntax: "{expression} {operator:postfix_operator}",
-    constructor: class postfix_operator_expresion extends Rule.Expression {
+    constructor: class postfix_operator_expresion extends Rule.Sequence {
       // We CANNOT match if `postfix_operator` isn't found in the expression.
       static testRule = "postfix_operator";
       get testRule() { return this.constructor.testRule }

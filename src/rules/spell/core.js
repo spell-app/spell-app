@@ -231,7 +231,7 @@ parser.defineRules(
     name: "literal_list",
     alias: "expression",
     syntax: "\\[[list:{expression},]?\\]",
-    constructor: class literal_list extends Rule.Expression {
+    constructor: class literal_list extends Rule.Sequence {
       toSource(context) {
         let { list } = this.getMatchedSource(context);
         return `[${list ? list.join(", ") : ""}]`;
@@ -246,7 +246,7 @@ parser.defineRules(
     name: "parenthesized_expression",
     alias: "expression",
     syntax: "\\({expression}\\)",
-    constructor: class parenthesized_expression extends Rule.Expression {
+    constructor: class parenthesized_expression extends Rule.Sequence {
       get results() {
         return this.matched[1];
       }

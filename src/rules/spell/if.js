@@ -29,7 +29,7 @@ parser.defineRules(
     name: "backwards_if",
     alias: "statement",
     syntax: "{statement} if {condition:expression} (?:(else|otherwise) {elseStatement:statement})?",
-    constructor: class backwards_if extends Rule.Statement {
+    constructor: class backwards_if extends Rule.Sequence {
       static testRule = new Rule.Keyword({ match: ["if"] });
       get testRule() { return this.constructor.testRule }
 
