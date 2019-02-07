@@ -49,28 +49,9 @@ export default class Rule {
 		return undefined;
 	}
 
-  // Add a set of strings to a blacklist for this rule.
-  // This is used in some subclasses to disallow certain tokens.
-	addToBlacklist(...tokens) {
-		if (!this.blacklist) this.blacklist = {};
-		tokens.forEach(token => this.blacklist[token] = true);
-	}
-
-  // Return `true` if the `token` is in our `blacklist`.
-  // Returns `false` if we don't have a `blacklist`.
-	blacklistContains(token) {
-    return !!this.blacklist && this.blacklist[token];
-	}
-
 //
 // ## output as source
 //
-
-	// "gather" arguments in preparation to call `toSource()`
-	// Only callable after parse is completed.
-	get results() {
-		return this;
-	}
 
 	// Output value for this INSTANTIATED rule as source.
 	toSource(context) {
@@ -90,6 +71,10 @@ export default class Rule {
 // Abstract rule for one or more sequential literal values to match.
 // `rule.literals` is the literal string or array of literal strings to match.
 // `rule.literalSeparator` is the string to put between multiple literals when joining.
+//
+// After parsing
+//  `rule.matched` will be the string which was matched
+//  `rule.nextStart` is the index of the next start token
 Rule.Literals = class literals extends Rule {
 	constructor(...props) {
 		super(...props);
@@ -142,8 +127,13 @@ Object.defineProperty(Rule.Keywords.prototype, "literalSeparator", { value: " " 
 
 // Regex pattern to match a SINGLE token.
 // `rule.pattern` is the regular expression to match.
-// Note that you MUST start your pattern with `^` and end with `$` to make sure it matches the entire token.
-// Note that this can only match a single token!
+//    Note that you MUST start your pattern with `^` and end with `$` to make sure it matches the entire token.
+//    Note that this can only match a single token!
+// `rule.blacklist` is a map of `{ key: true }` for strings which will NOT be accepted.
+//
+// After parsing
+//  `rule.matched` will be the string which was matched.
+//  `rule.nextStart` is the index of the next start token.
 Rule.Pattern = class pattern extends Rule {
 	// Attempt to match this pattern at the beginning of the tokens.
 	parse(parser, tokens, start = 0, end, stack) {
@@ -176,13 +166,15 @@ Rule.Pattern = class pattern extends Rule {
 
 // Subrule -- name of another rule to be called.
 // `rule.subrule` is the name of the rule in `parser.rules`.
+//
+// After parsing
+//  we'll return the actual rule that was matched (rather than a clone of this rule)
 Rule.Subrule = class subrule extends Rule {
 	parse(parser, tokens, start = 0, end, stack) {
-		let result = parser.parseNamedRule(this.subrule, tokens, start, end, stack, `parse subrule '${this.rule}'`);
-		if (!result) return undefined;
-
-		if (this.argument) result.argument = this.argument;
-		return result;
+		let matchedRule = parser.parseNamedRule(this.subrule, tokens, start, end, stack, `parse subrule '${this.rule}'`);
+		if (!matchedRule) return undefined;
+		if (this.argument) matchedRule.argument = this.argument;
+		return matchedRule;
 	}
 
 	// Ask the subrule to figure out if a match is possible.
@@ -197,6 +189,13 @@ Rule.Subrule = class subrule extends Rule {
 
 
 // Sequence of rules to match.
+//  `rule.rules` is the array of rules to match.
+//  `rule.leftRecursive` should be `true` if the first non-optional rule in our `rules`
+//    may end up calling us again.  In this case, you should provide `rule.testRule`.
+//
+// After parsing
+//  `rule.matched` will be the array of rules which were matched.
+//  `rule.nextStart` is the index of the next start token.
 Rule.Sequence = class sequence extends Rule {
 	parse(parser, tokens, start = 0, end, stack) {
 		// If we have a `testRule` defined
@@ -301,7 +300,9 @@ Rule.Sequence = class sequence extends Rule {
 // The result of a parse is the longest rule that actually matched.
 // NOTE: Currently takes the longest valid match.
 // TODO: match all valid alternatives
-// TODO: rename?
+//
+// After parsing
+//  we'll return the rule which is the "best match" (rather than cloning this rule).
 Rule.Alternatives = class alternatives extends Rule {
 	constructor(...props) {
 		super(...props);
@@ -373,12 +374,12 @@ Rule.Alternatives = class alternatives extends Rule {
 // Repeating rule.
 //	`this.repeat` is the rule that repeats.
 //  `this.optional` is true if the prodution is optional.
+//	Note: Automatically consumes whitespace before rules.
+//	Note: Returns `undefined` if we don't match at least once.
 //
 // After matching:
-//	`this.matched` is array of results of matches.
-//
-//	Automatically consumes whitespace before rules.
-//	If doesn't match at least one, returns `undefined`.
+//	`this.matched` is array of matched rules.
+//  `rule.nextStart` is the index of the next start token.
 Rule.Repeat = class repeat extends Rule {
 	parse(parser, tokens, start = 0, end, stack) {
 		let matched = [];
@@ -404,7 +405,7 @@ Rule.Repeat = class repeat extends Rule {
 	// Returns an array with arguments of all results.
 	get results() {
 		if (!this.matched) return [];
-		return this.matched.map( match => match.results );
+		return this.matched.map( match => (match.results || match.matched) );
 	}
 
 	toSource(context) {
@@ -424,7 +425,10 @@ Rule.Repeat = class repeat extends Rule {
 // List match rule:   `[<item><delimiter>]`. eg" `[{number},]` to match `1,2,3`
 //	`rule.item` is the rule for each item,
 //	`rule.delimiter` is the delimiter between each item.
-// 	`rule.matched` in the output is the list of values.
+//
+// After matching:
+//	`this.matched` is array of matched rules.
+//  `rule.nextStart` is the index of the next start token.
 //
 // NOTE: we assume that a List rule itself will NOT repeat (????)
 Rule.List = class list extends Rule {
