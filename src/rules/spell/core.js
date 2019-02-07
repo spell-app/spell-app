@@ -215,13 +215,13 @@ parser.defineRules(
         let token = tokens[start];
         if (!(token instanceof Tokenizer.Text)) return undefined;
         return this.clone({
-          matched: token,
+          matched: token.quotedString,
           nextStart: start + 1
         });
       }
 
       toSource(context) {
-        return this.matched.quotedString;
+        return this.matched;
       }
     }
   },
@@ -247,11 +247,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "\\({expression}\\)",
     constructor: class parenthesized_expression extends Rule.Sequence {
-      get results() {
-        return this.matched[1];
-      }
       toSource(context) {
-        let expression = this.results.toSource(context);
+        let { expression } = this.getMatchedSource(context);
         // don't double parens if not necessary
         if (typeof expression === "string" && expression.startsWith("(") && expression.endsWith(")")) return expression;
         return `(${expression})`;

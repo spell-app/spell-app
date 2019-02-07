@@ -15,7 +15,7 @@ import Parser from "./Parser.js";
 import Tokenizer from "./Tokenizer.js";
 
 import global from "./utils/global";
-import { getTabs, isWhitespace } from "./utils/string";
+import { isWhitespace } from "./utils/string";
 
 
 // Abstract Rule class.
@@ -108,6 +108,10 @@ Rule.Literals = class literals extends Rule {
 	  if (this.literals.length === 1) return tokens[start] === this.literals[0];
     return this.literals.every((literal, i) => (start + i < end) && (literal === tokens[start + i]));
 	}
+
+  toSource(context) {
+    return this.matched;
+  }
 
 	toSyntax() {
 		return `${this.literals.join(this.literalSeparator || "")}${this.optional ? '?' : ''}`;
@@ -261,14 +265,23 @@ Rule.Sequence = class sequence extends Rule {
 				return this._addResults(results, match.matched);
 			}
 			else {
-				let argName = match.argument || match.group || match.constructor.name;
+				let resultName = match.argument || match.group || match.constructor.name;
+				let sourceName = "_" + resultName;
+
+				let source = match.toSource();
 				// If arg already exists, convert to an array
-				if (argName in results) {
-					if (!Array.isArray(results[argName])) results[argName] = [results[argName]];
-					results[argName].push(match);
+				if (resultName in results) {
+					if (!Array.isArray(results[resultName])) {
+					  results[resultName] = [results[resultName]];
+					  results[sourceName] = [results[sourceName]];
+					}
+					results[resultName].push(match);
+					results[sourceName].push(source);
+//					results[`$${resultName}`] = value && value.toSource ? value.toSource() : undefined;
 				}
 				else {
-					results[argName] = match;
+					results[resultName] = match;
+					results[sourceName] = source;
 				}
 			}
 		}
@@ -396,14 +409,6 @@ Rule.Repeat = class repeat extends Rule {
 			matched,
 			nextStart
 		});
-	}
-
-	// "gather" arguments in preparation to call `toSource()`
-	// Only callable after parse is completed.
-	// Returns an array with arguments of all results.
-	get results() {
-		if (!this.matched) return [];
-		return this.matched.map( match => (match.results || match.matched) );
 	}
 
 	toSource(context) {
