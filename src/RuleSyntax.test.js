@@ -1,17 +1,18 @@
-import Rule from "./RuleSyntax.js";
+import Rule from "./Rule.js";
+import { parseSyntax } from "./RuleSyntax.js";
 
 //
 //	Rule.String
 //
 test("parse single symbols", () => {
-	let rules = Rule.parseRuleSyntax(">");
+	let rules = parseSyntax(">");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Symbol);
 	expect(rules[0].match).toEqual([">"]);
 });
 
 test("parse multiple symbols", () => {
-	let rules = Rule.parseRuleSyntax(">=");
+	let rules = parseSyntax(">=");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Symbol);
 	expect(rules[0].match).toEqual([">", "="]);
@@ -20,7 +21,7 @@ test("parse multiple symbols", () => {
 
 
 test("parse escaped symbol", () => {
-	let rules = Rule.parseRuleSyntax("\\(");
+	let rules = parseSyntax("\\(");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Symbol);
 	expect(rules[0].match).toEqual(["("]);
@@ -31,7 +32,7 @@ test("parse escaped symbol", () => {
 //	Rule.Keyword
 //
 test("parse single keyword", () => {
-	let rules = Rule.parseRuleSyntax("is");
+	let rules = parseSyntax("is");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Keyword);
 	expect(rules[0].match).toEqual(["is"]);
@@ -39,7 +40,7 @@ test("parse single keyword", () => {
 });
 
 test("parse multiple keywords as a keyword", () => {
-	let rules = Rule.parseRuleSyntax("is not");
+	let rules = parseSyntax("is not");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Keyword);
 	expect(rules[0].match).toEqual(["is", "not"]);
@@ -51,14 +52,14 @@ test("parse multiple keywords as a keyword", () => {
 //	Rule.Subrule
 //
 test("parse subrule", () => {
-	let rules = Rule.parseRuleSyntax("{subrule}");
+	let rules = parseSyntax("{subrule}");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Subrule);
 	expect(rules[0].rule).toBe("subrule");
 });
 
 test("parse subrule with named argument", () => {
-	let rules = Rule.parseRuleSyntax("{arg:subrule}");
+	let rules = parseSyntax("{arg:subrule}");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Subrule);
 	expect(rules[0].rule).toBe("subrule");
@@ -71,7 +72,7 @@ test("parse subrule with named argument", () => {
 //	Rule.List
 //
 test("parse list", () => {
-	let rules = Rule.parseRuleSyntax("[{number},]");
+	let rules = parseSyntax("[{number},]");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.List);
 	expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
@@ -80,7 +81,7 @@ test("parse list", () => {
 });
 
 test("parse list with named argument", () => {
-	let rules = Rule.parseRuleSyntax("[my-list:{number},]");
+	let rules = parseSyntax("[my-list:{number},]");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.List);
 	expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
@@ -90,7 +91,7 @@ test("parse list with named argument", () => {
 });
 
 test("parse list with keyword delimiter", () => {
-	let rules = Rule.parseRuleSyntax("[{number}and]");
+	let rules = parseSyntax("[{number}and]");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.List);
 	expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
@@ -100,7 +101,7 @@ test("parse list with keyword delimiter", () => {
 });
 
 test("fail list with extra stuff", () => {
-	expect(() => Rule.parseRuleSyntax("[{good},bad input]"))
+	expect(() => parseSyntax("[{good},bad input]"))
 		.toThrow(SyntaxError);
 });
 
@@ -109,7 +110,7 @@ test("fail list with extra stuff", () => {
 //	Rule.Alternatives
 //
 test("parse simple alternatives", () => {
-	let rules = Rule.parseRuleSyntax("(a|bb| cccccc )");
+	let rules = parseSyntax("(a|bb| cccccc )");
 	expect(rules.length).toBe(1);
 	expect(rules[0].rules.length).toBe(3);
 
@@ -129,7 +130,7 @@ test("parse simple alternatives", () => {
 });
 
 test("parse named alternatives", () => {
-	let rules = Rule.parseRuleSyntax("(foo:a|b)");
+	let rules = parseSyntax("(foo:a|b)");
 	expect(rules.length).toBe(1);
 	expect(rules[0].rules.length).toBe(2);
 
@@ -147,7 +148,7 @@ test("parse named alternatives", () => {
 });
 
 test("parse complex alternatives", () => {
-	let rules = Rule.parseRuleSyntax("( is a test | {named:subrule} | [{number},] | (a|b) )");
+	let rules = parseSyntax("( is a test | {named:subrule} | [{number},] | (a|b) )");
 	expect(rules.length).toBe(1);
 	expect(rules[0].rules.length).toBe(4);
 
@@ -167,7 +168,7 @@ test("parse complex alternatives", () => {
 //	Optional
 //
 test("parse optional string", () => {
-	let rules = Rule.parseRuleSyntax(";?");
+	let rules = parseSyntax(";?");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Symbol);
 	expect(rules[0].match).toEqual([";"]);
@@ -176,7 +177,7 @@ test("parse optional string", () => {
 });
 
 test("parse optional keyword", () => {
-	let rules = Rule.parseRuleSyntax("yah?");
+	let rules = parseSyntax("yah?");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Keyword);
 	expect(rules[0].optional).toBe(true);
@@ -184,7 +185,7 @@ test("parse optional keyword", () => {
 });
 
 test("parse optional subrule", () => {
-	let rules = Rule.parseRuleSyntax("{number}?");
+	let rules = parseSyntax("{number}?");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Subrule);
 	expect(rules[0].optional).toBe(true);
@@ -192,7 +193,7 @@ test("parse optional subrule", () => {
 });
 
 test("parse optional alternatives", () => {
-	let rules = Rule.parseRuleSyntax("(a|b)?");
+	let rules = parseSyntax("(a|b)?");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Alternatives);
 	expect(rules[0].optional).toBe(true);
@@ -200,7 +201,7 @@ test("parse optional alternatives", () => {
 });
 
 test("parse optional list", () => {
-	let rules = Rule.parseRuleSyntax("[{number},]?");
+	let rules = parseSyntax("[{number},]?");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.List);
 	expect(rules[0].optional).toBe(true);
@@ -212,7 +213,7 @@ test("parse optional list", () => {
 //	Repeats
 //
 test("parse * repeated subrule", () => {
-	let rules = Rule.parseRuleSyntax("{number}*");
+	let rules = parseSyntax("{number}*");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Repeat);
 	expect(rules[0].optional).toBe(true);
@@ -221,7 +222,7 @@ test("parse * repeated subrule", () => {
 });
 
 test("parse + repeated subrule", () => {
-	let rules = Rule.parseRuleSyntax("{number}+");
+	let rules = parseSyntax("{number}+");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Repeat);
 	expect(rules[0].optional).toBeUndefined();
@@ -230,7 +231,7 @@ test("parse + repeated subrule", () => {
 });
 
 test("parse + repeated sequence", () => {
-	let rules = Rule.parseRuleSyntax("(one or more)+");
+	let rules = parseSyntax("(one or more)+");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Repeat);
 	expect(rules[0].optional).toBeUndefined();
@@ -239,7 +240,7 @@ test("parse + repeated sequence", () => {
 });
 
 test("parse + repeated list", () => {
-	let rules = Rule.parseRuleSyntax("[{number},]+");
+	let rules = parseSyntax("[{number},]+");
 	expect(rules.length).toBe(1);
 	expect(rules[0]).toBeInstanceOf(Rule.Repeat);
 	expect(rules[0].optional).toBeUndefined();
@@ -252,27 +253,27 @@ test("parse + repeated list", () => {
 //	Error cases
 //
 test("thrown on improperly balanced parenthesis, etc", () => {
-	expect(() => Rule.parseRuleSyntax("(abc"))
+	expect(() => parseSyntax("(abc"))
 		.toThrow(SyntaxError);
 
-	expect(() => Rule.parseRuleSyntax("[abc"))
+	expect(() => parseSyntax("[abc"))
 		.toThrow(SyntaxError);
 
-	expect(() => Rule.parseRuleSyntax("{abc"))
+	expect(() => parseSyntax("{abc"))
 		.toThrow(SyntaxError);
 
 });
 
 test("throw on invalid end tokens", () => {
-	expect(() => Rule.parseRuleSyntax("}"))
+	expect(() => parseSyntax("}"))
 		.toThrow(SyntaxError);
 
-	expect(() => Rule.parseRuleSyntax(")"))
+	expect(() => parseSyntax(")"))
 		.toThrow(SyntaxError);
 
-	expect(() => Rule.parseRuleSyntax("]"))
+	expect(() => parseSyntax("]"))
 		.toThrow(SyntaxError);
 
-	expect(() => Rule.parseRuleSyntax("|"))
+	expect(() => parseSyntax("|"))
 		.toThrow(SyntaxError);
 });

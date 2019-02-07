@@ -4,7 +4,7 @@
 // NOTE: many of the below are created as custom Pattern subclasses for debugging.
 //
 import Parser from "../../Parser";
-import Rule from "../../RuleSyntax";
+import Rule from "../../Rule";
 import Tokenizer from "../../Tokenizer";
 
 // Create `core` parser context.

@@ -3,7 +3,7 @@
 //
 import Parser from "../../Parser";
 import Tokenizer from "../../Tokenizer";
-import Rule from "../../RuleSyntax";
+import Rule from "../../Rule";
 
 // Create "JSX" parser context.
 const parser = Parser.forName("JSX");

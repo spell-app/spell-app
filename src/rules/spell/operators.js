@@ -3,7 +3,7 @@
 //
 
 import Parser from "../../Parser";
-import Rule from "../../RuleSyntax";
+import Rule from "../../Rule";
 
 // Create "operators" parser context.
 const parser = Parser.forName("operators");

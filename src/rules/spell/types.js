@@ -6,7 +6,7 @@
 // TODO: mixins / traits / composed classes / annotations
 
 import Parser from "../../Parser";
-import Rule from "../../RuleSyntax";
+import Rule from "../../Rule";
 
 import global from "../../utils/global";
 import { pluralize } from "../../utils/string";

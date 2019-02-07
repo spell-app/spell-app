@@ -4,6 +4,7 @@
 // TODO: dependency-inject tokenizer?
 import Tokenizer from "./Tokenizer.js";
 import Rule from "./Rule.js";
+import parseRule from "./RuleSyntax.js";
 
 // GRRR... will SOMEONE on the node team please implement console.group ???
 if (!console.group) console.group = console.log;
@@ -245,13 +246,14 @@ export default class Parser {
   //  `name` (identifier, required)  Base name of the rule.
   //  `syntax` (string, required) RuleSyntax string for this rule.
   //  `constructor` (class, required) Class which will be used to instantiate the rule.
-  //    Note that you cannot re-use constructors!
   //  `alias` (string or [string], optinal) Other names to define rule under.
   //  `mutatesScope` (boolean, optional) Set to `true` if the rule mutates the scope it is defined in.
   //  `precedence` (number, optional) Precedence number for the rule (currently doesn't do anything)
   //  `pattern` (RegExp, optional) Regular expression for `Pattern` rules
   //  `blacklist` ([string], optional) Array of strings as blacklist for pattern rules.
   //  `canonical` (string, optional) Canonical name for the rule, available on `Rule` for debugging.
+  //
+  // Note that we munge the `constructor` passed in for efficiency in creating rules.
   defineRule({ name, syntax, constructor, alias = [], mutatesScope, precedence, pattern, blacklist, canonical }) {
     const names = [name].concat(alias);
 
@@ -274,7 +276,7 @@ export default class Parser {
 
     let rule;
     if (syntax) {
-      rule = Rule.parseRule(syntax, constructor);
+      rule = parseRule(syntax, constructor);
     }
     else {
       rule = new constructor();
