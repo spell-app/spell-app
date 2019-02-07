@@ -29,7 +29,7 @@ Object.assign(Rule, {
 // ## group: parsing syntax
 //
 
-
+  //TODOC
   parseRule(syntax, constructor) {
     // If we got an array of possible syntaxes...
     if (Array.isArray(syntax)) {
@@ -66,6 +66,7 @@ Object.assign(Rule, {
   },
 
 
+//DEPRECATED
 	parseRuleSyntax(syntax, SequenceConstructor = Rule.Sequence) {
 		let syntaxStream = Rule.tokeniseRuleSyntax(syntax);
 		let rules = Rule.parseRuleSyntax_tokens(syntaxStream, []);
@@ -89,6 +90,7 @@ Object.assign(Rule, {
 		return syntaxStream;
 	},
 
+//RENAME to parseRuleSyntax
 	parseRuleSyntax_tokens(syntaxStream, rules = [], start = 0) {
 		let lastIndex = syntaxStream.length;
 		while (start < lastIndex) {
