@@ -419,7 +419,7 @@ Rule.Repeat = class repeat extends Rule {
 //	`rule.delimiter` is the delimiter between each item, which is optional at the end.
 //
 // After matching:
-//	`this.matched` is array of matched rules.
+//	`this.matched` is array of matched item rules (delmiter is ignored).
 //  `rule.nextStart` is the index of the next start token.
 //
 // NOTE: we assume that a List rule itself will NOT repeat (????)
@@ -455,7 +455,8 @@ Rule.List = class list extends Rule {
 		});
 	}
 
-	// Returns list of values as source.
+	// Returns JS Array of matched items as source.
+//TODO: `JSDelimiter` to return as a single string?
 	toSource() {
 		if (!this.matched) return [];
 		return this.matched.map( match => match.toSource() );
@@ -484,10 +485,12 @@ Rule.Block = class block extends Rule.Sequence {
 				matched.push(new Rule.BlankLine());
 			}
 			else if (item instanceof Tokenizer.Block) {
+			  // if the last matched item wants to eat a block, give it the block
 				let last = matched[matched.length - 1];
 				if (last.parseBlock) {
 					last.parseBlock(parser, item, indent + 1);
 				}
+				// otherwise add the block to the stream
 				else {
 					let block = this.parseBlock(parser, item, indent + 1);
 					if (block !== undefined) matched.push(block);
@@ -586,7 +589,7 @@ Rule.Block = class block extends Rule.Sequence {
 	}
 
 	toSource() {
-		return " {\n" + this.blockToSource() + "\n" + "}";
+		return "{\n" + this.blockToSource() + "\n" + "}";
 	}
 
 	// Convert to logical representation of structure by converting individual statements and grouping
@@ -631,6 +634,8 @@ Rule.Block = class block extends Rule.Sequence {
 	//	- if `statements` is empty, returns `{}`
 	//	- if `statements is a single line, returns `{ statement }`
 	//	- else returns multiple lines
+  //
+	// Indents with tabs, e.g.  `{¬»statement_1¬»statement2¬}`
 	static encloseStatements(...args) {
 		var statements = [];
 		for (var i = 0; i < args.length; i++) {
@@ -650,6 +655,16 @@ Rule.Block = class block extends Rule.Sequence {
 		}
 		if (statements[0] !== "\t") statements = `\t${statements}`;
 		return `{\n${statements}\n}`;
+	}
+
+  // Enclose a single statement.
+	static encloseStatement(statement, forceWrap) {
+		if (!statement) return "{}";
+		if (!forceWrap && !statement.includes("\n") && statement.length < 40) {
+			return `{ ${statement.trim()} }`;
+		}
+		if (statement[0] !== "\t") statement = `\t${statement}`;
+		return `{\n${statement}\n}`;
 	}
 
 }
@@ -685,22 +700,41 @@ Rule.Statements = class statements extends Rule.Block {
 //	- is assumed to have an initial partial `statement`
 //	- MAY have an inline `statement` (on the same line, possibly after a `:`)
 //	- MAY have contents as an embedded `block`
+// Note that it's considered an error to have BOTH an inline statement AND a nested block.
 //
-//	In your `results`, `block` will be the resulting block output, if there is one.
-//	It's up to your rule to do something with it...
+//  e.g. a `BlockStatement` with syntax `if {expression} then {statement}?` will attemt to:
+//  - match the optional `statement` as an inline-statement (as `results.statement`)
+//  - match an INDENTED block starting on the next line (as `result.block`)
+//
+//	For your convenience in `toSource()`, you can just look at `results.statements`
+//  which will be one of the following (whichever comes first):
+//    - the block and its statements, enclosed in curly braces and indented, or
+//    - the formatted `statement`, enclosed in curly brackets,
+//    - `{}` if neither statement or block was matched.
 Rule.BlockStatement = class block_statement extends Rule.Block {
 
-	// Parse a block and add it to `this.block`
-	parseBlock(parser, block, indent = 0) {
-		this.block = super.parseBlock(...arguments);
+	// Parse a nested block which appears directly after our "main" rule.
+	// Adds to our `matched` list as necessary.
+	parseBlock() {
+	  if (!this.matched) throw new ParseError(`${this.name||"blockStatement"}.parseBlock(): no matched!`);
+	  const block = super.parseBlock(...arguments);
+	  if (block) this.matched.push(block);
 	}
 
-  // Add our `block` to the results
+  // Add `statements` to the results.
   get results() {
-    let results = super.results;
-    if (results && this.block) {
-      results._block = this.block;
-      results.block = this.block.toSource();
+    const results = super.results;
+    if (!results) return results;
+
+    // If we got a block, use that for our `statements`
+    if (results.block) {
+      results._statements = results._block;
+      results.statements = results.block;
+    }
+    // otherwise use the `statement`, if it's empty this will return the empty string.
+    else {
+      results._statements = results._statement;
+      results.statements = Rule.Block.encloseStatement(results.statement);
     }
     return results;
   }

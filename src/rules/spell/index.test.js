@@ -37,35 +37,50 @@ function executeRuleTests({ name, tests }) {
   });
 }
 
-function executeTestBlock(name, { title, compileAs: ruleName = name, normalize, tests }) {
+function executeTestBlock(name, { title, compileAs: ruleName = name, showAll, tests }) {
   const description = `${title} (as ${ruleName})`;
-  // Execute all of the tests, gathering results as booleans
-  const results = tests.map(([input, output]) => executeTest(description, ruleName, normalize, input, output));
+
+  // normalize tests, including figuring out the test title
+  // If an array, it's a simple list of `[input, output]`
+  if (Array.isArray(tests)) {
+    tests = tests
+      .map(([input, output]) => {
+        // skip blank tests
+        if (input === "" && output == "") return undefined;
+        return { input, output, title: showWhitespace(input) };
+      })
+      .filter(Boolean);
+  }
+  // If `tests` is an object, that's a map of `{ title: [input, output] }`
+  else if (tests && tests.constructor === Object) {
+    tests = Object.keys(tests).map(title => {
+      return { input: tests[title][0], output: tests[title][1], title };
+    });
+  }
+  else throw new TypeError(`Test block ${title}: tests must be object or array`);
+
+  const results = tests.map(test => executeTest(test, ruleName, description, showAll));
+
   // If they all passed, output description text sublty with check
-  if (results.every(Boolean)) {
+  if (!showAll && results.every(Boolean)) {
     test(description, () => expect(true).toBe(true));
   }
 }
 
-function executeTest(description, ruleName, normalize, input, output) {
-  // ignore if input and ouput are both "" -- assume it is copy-pasta in the test file.
-  if (input === "" && output === "") return true;
-
+function executeTest({ input, output, title }, ruleName, description, showAll) {
   const result = executeCompileTest(ruleName, input, output);
-  // don't output anything if the test worked as expected
-  if (result === output) return true;
-
-  // write title first, then failed test output
-  // note that multiple tests with same description will be merged in the output
-  describe(description, () => {
-    // Replace returns in the output display with `¬` so we're not dealing with spacing issues
-    const _input  = typeof result === "string" ? showWhitespace(input) : input;
-    const _result = typeof result === "string" ? showWhitespace(result) : result;
-    const _output = typeof output === "string" ? showWhitespace(output) : output;
-
-    test(_input, () => expect(_result).toBe(_output));
-  });
-  return false;
+  // only output the test if the test worked as expected or `showAll` is true
+  if (result !== output || showAll) {
+    // write title first, then failed test output
+    // note that multiple tests with same description will be merged in the output
+    describe(description, () => {
+      // Show returns and tabs in the output display
+      test(title, () =>
+        expect(showWhitespace(result)).toBe(showWhitespace(output))
+      );
+    });
+  }
+  return result === output;
 }
 
 function executeCompileTest(ruleName, input, output) {

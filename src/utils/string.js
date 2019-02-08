@@ -6,9 +6,10 @@ export function isWhitespace(text) {
 	return ALL_WHITESPACE.test(text)
 }
 
-export function showWhitespace(string = "") {
+export function showWhitespace(string) {
+  if (typeof string !== "string") return string;
   return string.replace(/\n/g, "¬")
-          .replace(/\t/g, "»");
+          .replace(/\t/g, "∆");
 }
 
 // Return the plural of `word`.
