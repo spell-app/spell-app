@@ -157,38 +157,12 @@ export default class Parser {
 			// For each parser
 			imports.forEach(parser => {
 				for (const ruleName in parser._rules) {
-				  this._mergeRule(output, ruleName, parser._rules[ruleName]);
+				  Parser.mergeRule(output, ruleName, parser._rules[ruleName]);
 				}
 			});
 		}
 		return this.__rules;
 	}
-
-  // Merge `rule` into `map` of rules by `ruleName`.
-  // If we already have a rule with that name, we'll add it as an alternative.
-//TESTME
-  _mergeRule(map, ruleName, rule) {
-    let existing = map[ruleName];
-    if (!existing) {
-      map[ruleName] = rule;
-      return;
-    }
-
-    if (!(existing instanceof Rule.Alternatives) || (existing.group !== ruleName)) {
-      const altConstructor = cloneClass(Rule.Alternatives, ruleName);
-      existing = map[ruleName] = new altConstructor({
-        group: ruleName,
-        rules: [ existing ]
-      });
-    }
-
-    if (rule instanceof Rule.Alternatives && (rule.group === ruleName)) {
-      existing.addRule(...rule.rules);
-    }
-    else {
-      existing.addRule(rule);
-    }
-  }
 
 	// Add a `rule` to our list of rules!
 	// Converts to `alternatives` on re-defining the same rule.
@@ -209,7 +183,7 @@ export default class Parser {
 		}
 
 		// Add to our list of _rules
-		this._mergeRule(this._rules, ruleName, rule);
+		Parser.mergeRule(this._rules, ruleName, rule);
 		return rule;
 	}
 
@@ -277,17 +251,23 @@ export default class Parser {
       Object.defineProperty(constructor.prototype, key, { value: props[key] });
     }
 
-    // Instantiate the rule.
-    const rule = props.syntax
-      ? parseRule(props.syntax, constructor)
-      : new constructor();
-
     // Combine aliases with the main name
     const names = [props.name].concat(props.alias || []);
-    // note if we have tests so we can select this component easily
-    if (props.tests) names.push("_testable_");
 
-    this.addRule(names, rule);
+    // Instantiate or parse to create rules to work with
+    const rules = props.syntax
+      ? parseRule(props.syntax, constructor)
+      : [ new constructor() ]
+    if (!rules) throw new ParseError(`defineRule(${props.syntax}): didnt get rules back`);
+
+    // Sometimes `parseRule` will give us an array back, normalize to always have an array
+    rules.forEach(rule => this.addRule(names, rule));
+
+    // if tests were defined, mark only as testable
+    if (props.tests) {
+      // (only use the first rule if we got more than one)
+      this.addRule("_testable_", rules[0]);
+    }
   }
 
 
@@ -309,6 +289,32 @@ export default class Parser {
 //
 // ## Utility methods
 //
+
+  // Merge `rule` into `map` of rules by `ruleName`.
+  // If we already have a rule with that name, we'll add it as an alternative.
+//TESTME
+  static mergeRule(map, ruleName, rule) {
+    let existing = map[ruleName];
+    if (!existing) {
+      map[ruleName] = rule;
+      return;
+    }
+
+    if (!(existing instanceof Rule.Alternatives) || (existing.group !== ruleName)) {
+      const altConstructor = cloneClass(Rule.Alternatives, ruleName);
+      existing = map[ruleName] = new altConstructor({
+        group: ruleName,
+        rules: [ existing ]
+      });
+    }
+
+    if (rule instanceof Rule.Alternatives && (rule.group === ruleName)) {
+      existing.addRule(...rule.rules);
+    }
+    else {
+      existing.addRule(rule);
+    }
+  }
 
 	// Find the matching instance of (possibly nested) `endToken` to balance `startToken`
 	//	in array of `tokens` (strings).

@@ -16,7 +16,7 @@ import "./JSX.js";
 // Create parser which combines all of the above...
 const parser = Parser.forModule("spell");
 // ...which depends on rules loaded above...
-parser.import("core", "lists", "operators", "if", "statements", "types", "JSX");
+parser.import("core", "types", "lists", "operators", "if", "statements", "JSX");
 // ...as the default export
 export default parser;
 

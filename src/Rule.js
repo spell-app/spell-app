@@ -254,7 +254,7 @@ Rule.Sequence = class sequence extends Rule {
 	// Returns an object with properties from the `matched` array indexed by one of the following:
 	//		- `match.argument`:		argument set when rule was declared, eg: `{value:literal}` => `value`
 	//		- `match.group`:		  name of group rule was added to
-	//		- `match.constructor.name`:			name of the rule type
+	//    - `match.name`:       name of the rule if set up by parseRule
 	get results() {
 		if (!this.matched) return undefined;
 		let results = addResults({}, this.matched);
@@ -268,7 +268,7 @@ Rule.Sequence = class sequence extends Rule {
           addResults(results, match.matched);
         }
         else {
-          const sourceName = match.argument || match.group || match.constructor.name;
+          const sourceName = match.argument || match.group || match.name;
           const matchName = "_" + sourceName;
           const source = match.toSource();
           // If arg already exists, convert to an array
@@ -718,7 +718,9 @@ Rule.BlockStatement = class block_statement extends Rule.Block {
 	parseBlock() {
 	  if (!this.matched) throw new ParseError(`${this.name||"blockStatement"}.parseBlock(): no matched!`);
 	  const block = super.parseBlock(...arguments);
-	  if (block) this.matched.push(block);
+	  if (!block) return;
+	  block.argument = "block";
+	  this.matched.push(block);
 	}
 
   // Add `statements` to the results.
