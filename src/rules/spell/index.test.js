@@ -1,7 +1,7 @@
 import groupBy from "lodash/groupBy";
 
 import { ParseError } from "../../Parser.js";
-import { showReturns } from "../../utils/string.js";
+import { showWhitespace } from "../../utils/string.js";
 
 import parser from "./index.js";
 
@@ -59,9 +59,9 @@ function executeTest(description, ruleName, normalize, input, output) {
   // note that multiple tests with same description will be merged in the output
   describe(description, () => {
     // Replace returns in the output display with `¬` so we're not dealing with spacing issues
-    const _input  = typeof result === "string" ? showReturns(input) : input;
-    const _result = typeof result === "string" ? showReturns(result) : result;
-    const _output = typeof output === "string" ? showReturns(output) : output;
+    const _input  = typeof result === "string" ? showWhitespace(input) : input;
+    const _result = typeof result === "string" ? showWhitespace(result) : result;
+    const _output = typeof output === "string" ? showWhitespace(output) : output;
 
     test(_input, () => expect(_result).toBe(_output));
   });

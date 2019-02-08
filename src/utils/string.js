@@ -6,7 +6,7 @@ export function isWhitespace(text) {
 	return ALL_WHITESPACE.test(text)
 }
 
-export function showReturns(string = "") {
+export function showWhitespace(string = "") {
   return string.replace(/\n/g, "¬")
           .replace(/\t/g, "»");
 }
