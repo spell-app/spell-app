@@ -34,7 +34,7 @@ parser.defineRules(
     },
     tests: [
       {
-        showAll: true,
+        // showAll: true,
         tests: [
           ["with a", "a"],
           ["with a, b, c", "a, b, c"],
@@ -67,7 +67,7 @@ parser.defineRules(
     tests: [
       {
         title: "",
-        showAll: true,
+        // showAll: true,
         tests: [
           [`a = 1`, `{ "a": 1 }`],
           [`a = 1,`, `{ "a": 1 }`],
@@ -114,6 +114,7 @@ parser.defineRules(
   // `new` or `create`
   // This works as an expression OR a statement.
   // NOTE: we assume that all types take an object of properties????
+//FIXME: `list`, `text`, etc don't follow these semantics and should be disallowed... ???
   {
     name: "new_thing",
     alias: ["expression", "statement"],
@@ -132,9 +133,9 @@ parser.defineRules(
     },
     tests: [
       {
-        title: "Normal objects",
+        title: "creates normal objects properly",
         compileAs: "statement",
-        showAll: true,
+        // showAll: true,
         tests: [
          [`create Object`, `{}`],
          [`new Object`, `{}`],
@@ -144,20 +145,31 @@ parser.defineRules(
         ]
       },
       {
-        title: "special types",
+        title: "creates special types",
         compileAs: "expression",
-        showAll: true,
+        // showAll: true,
         tests: [
-          [`create object`, `{}`],
-          [`create list`, `new Array()`],
+          ["create object", "{}"],
+//FIXME: the following don't make sense if they have arguments...
+          ["create List", "new Array()"],
+          ["create list", "new Array()"],
+//FIXME: the following don't make sense in JS but are legal parse-wise
+
+//           ["create text", "new String()"],
+//           ["create character", "new Character()"],
+//           ["create number", "new Number()"],
+//           ["create integer", "new Integer()"],
+//           ["create decimal", "new Decimal()"],
+//           ["create boolean", "new Boolean()"],
         ]
       },
     ]
 
   },
-/*
+
 
   // Declare instance method or normal function.
+  // TODO: static/etc
   {
     name: "declare_method",
     alias: ["statement", "mutatesScope"],
@@ -171,12 +183,31 @@ parser.defineRules(
       }
 
       toSource() {
-        let { name, args = [], statement, block } = this.results;
-        let output = `${name}(${args.join(", ")}) `;
-        output += Rule.Block.encloseStatements(statement, block);
-        return output;
+        let { name, args = "", statements } = this.results;
+        return `${name}(${args}) ${statements}`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "statements",
+        showAll: true,
+        tests: [
+          ["on foo", "foo() {}"],
+          ["to foo", "foo() {}"],
+          ["to foo:", "foo() {}"],
+          ["to foo with a", "foo(a) {}"],
+          ["to foo with a, b", "foo(a, b) {}"],
+          ["to foo with a,b,c", "foo(a, b, c) {}"],
+          ["to foo a = yes", "foo() { a = true }"],
+          ["to foo: a = yes", "foo() { a = true }"],
+          ["to foo with a: a = yes", "foo(a) { a = true }"],
+          ["to foo\n\ta = yes", "foo() {\n\ta = true\n}"],
+          ["to foo with a, b\n\ta = yes\n\tb = no", "foo(a, b) {\n\ta = true\n\tb = false\n}"],
+          ["", ""],
+        ]
+      },
+    ]
+
   },
 
   // Declare "action", which can be called globally and affects the parser.
@@ -478,5 +509,4 @@ parser.defineRules(
       }
     }
   },
-*/
 );

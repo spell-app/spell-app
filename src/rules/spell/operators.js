@@ -157,7 +157,7 @@ parser.defineRules(
     ]
   },
 
-  //TODO: `spell.isOfType(thing, type)`
+//FIXME: no validation that `type` is a legal JS type
   //TODO: `is same type as` ?
   {
     name: "is_a",
