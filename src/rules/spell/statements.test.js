@@ -1,7 +1,8 @@
-import testRulesForModule from "./_testModules.js";
+import unitTestModuleRules from "../../utils/unitTestRules.js";
+import parser from "./index.js";
 
 describe("testing spell module statements", () => {
-  testRulesForModule("statements");
+  unitTestModuleRules(parser, "statements");
 
   describe("integration tests", () => {
 

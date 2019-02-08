@@ -203,7 +203,6 @@ parser.defineRules(
           ["to foo with a: a = yes", "foo(a) { a = true }"],
           ["to foo\n\ta = yes", "foo() {\n\ta = true\n}"],
           ["to foo with a, b\n\ta = yes\n\tb = no", "foo(a, b) {\n\ta = true\n\tb = false\n}"],
-          ["", ""],
         ]
       },
     ]
