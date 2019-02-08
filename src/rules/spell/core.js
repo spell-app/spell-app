@@ -200,6 +200,20 @@ parser.defineRules(
         ]
       },
       {
+        title: "converts special types",
+        tests: [
+          ["List", "Array"],
+          ["list", "Array"],
+          ["text", "String"],
+          ["character", "Character"],
+          ["number", "Number"],
+          ["integer", "Integer"],
+          ["decimal", "Decimal"],
+          ["boolean", "Boolean"],
+          ["object", "Object"],
+        ]
+      },
+      {
         title: "skips items in its blacklist",
         tests: [
           ["I", undefined]

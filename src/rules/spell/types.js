@@ -15,6 +15,68 @@ const parser = Parser.forModule("types");
 export default parser;
 
 parser.defineRules(
+
+  //MOVE TO `functions`?
+  // Arguments clause for methods
+  //	`with foo` or `with foo and bar and baz`
+  //TODO: {identifier} = {expression}	=> requires `,` instead of `and`
+  //TODO: `with foo as Type`
+  //TODO:	`with foo...` for splat?
+  {
+    name: "args",
+    syntax: "with [args:{identifier},]",
+    constructor: class args extends Rule.Sequence {
+      // Returns an array of argument values
+      toSource() {
+        const { args } = this.results;
+        return args.join(", ");
+      }
+    },
+    tests: [
+      {
+        showAll: true,
+        tests: [
+          ["with a", "a"],
+          ["with a, b, c", "a, b, c"],
+          ["with a, b, c,", "a, b, c"],
+        ]
+      },
+    ]
+  },
+
+
+  // Properties clause: creates an object with one or more property values.
+  //	`foo = 1, bar = 2`
+  //TODO: would like to use `and` but that will barf on expressions...
+  //TODO: how to do properties on multiple lines?
+  {
+    name: "object_literal_properties",
+    syntax: "[({key:identifier}(?:= {value:expression})?) ,]",
+    constructor: class object_literal_properties extends Rule.List {
+      toSource() {
+        let props = this.matched.map(function (prop) {
+            let { key, value } = prop.results;
+//TODO: don't quote if we don't have to?
+//TOOD: multiple lines if > 2 props?
+            if (value) return `"${key}": ${value}`
+            return key;
+          });
+        return `{ ${props.join(", ")} }`;
+      }
+    },
+    tests: [
+      {
+        title: "",
+        showAll: true,
+        tests: [
+          [`a = 1`, `{ "a": 1 }`],
+          [`a = 1,`, `{ "a": 1 }`],
+          [`a = 1, b = yes, c = "quoted"`, `{ "a": 1, "b": true, "c": "quoted" }`],
+        ]
+      },
+    ]
+  },
+
   {
     name: "define_type",
     alias: ["statement", "mutatesScope"],
@@ -28,13 +90,25 @@ parser.defineRules(
       }
 
       toSource() {
-        let { name, superType, block } = this.results;
+        let { name, superType, statements } = this.results;
         let output = `class ${name}`;
         if (superType) output += ` extends ${superType}`;
-        output += " " + Rule.Block.encloseStatements(block);
+        output += " " + statements;
         return output;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "statements",
+        tests: [
+          ["define type Foo", "class Foo {}"],
+          ["define type Foo as a Bar", "class Foo extends Bar {}"],
+          ["define type Foo\n\ta = true", "class Foo {\n\ta = true\n}"],
+//TESTME: more involved tests...
+        ]
+      },
+    ]
+
   },
 
   // `new` or `create`
@@ -55,8 +129,33 @@ parser.defineRules(
 
         return `new ${type}(${props})`;
       }
-    }
+    },
+    tests: [
+      {
+        title: "Normal objects",
+        compileAs: "statement",
+        showAll: true,
+        tests: [
+         [`create Object`, `{}`],
+         [`new Object`, `{}`],
+         [`new Object with a = 1, b = yes`, `{ "a": 1, "b": true }`],
+         [`new Foo`, `new Foo()`],
+         [`new Foo with a = 1, b = yes`, `new Foo({ "a": 1, "b": true })`],
+        ]
+      },
+      {
+        title: "special types",
+        compileAs: "expression",
+        showAll: true,
+        tests: [
+          [`create object`, `{}`],
+          [`create list`, `new Array()`],
+        ]
+      },
+    ]
+
   },
+/*
 
   // Declare instance method or normal function.
   {
@@ -379,47 +478,5 @@ parser.defineRules(
       }
     }
   },
-
-
-  //
-  //	Utility
-  //
-
-
-  // Properties clause: creates an object with one or more property values.
-  //	`foo = 1, bar = 2`
-  //TODO: would like to use `and` but that will barf on expressions...
-  //TODO: how to do properties on multiple lines?
-  {
-    name: "object_literal_properties",
-    syntax: "[({key:identifier}(?:= {value:expression})?) ,]",
-    constructor: class object_literal_properties extends Rule.List {
-      toSource() {
-        let props = this.results.matched.map(function (prop) {
-            let { key, value } = prop.results;
-            if (value) return `"${key}": ${value}`
-            return key;
-          });
-        return `{ ${props.join(", ")} }`;
-      }
-    }
-  },
-
-
-  //MOVE TO `functions`?
-  // Arguments clause for methods
-  //	`with foo` or `with foo and bar and baz`
-  //TODO: {identifier} = {expression}	=> requires `,` instead of `and`
-  //TODO: `with foo as Type`
-  //TODO:	`with foo...` for splat?
-  {
-    name: "args",
-    syntax: "with [args:{identifier},]",
-    constructor: class args extends Rule.Sequence {
-      // Returns an array of argument values
-      toSource() {
-        return this.results._args.matched.map(arg => arg.toSource());
-      }
-    }
-  }
+*/
 );

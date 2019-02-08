@@ -5,31 +5,31 @@ import { showWhitespace } from "../../utils/string.js";
 
 import parser from "./index.js";
 
-describe("defineRule tests", () => {
-  // Get all of the `_testable_` rules
-  const rules = !!parser.rules._testable_
-    && (parser.rules._testable_ instanceof Rule.Alternatives)
-    && Array.isArray(parser.rules._testable_.rules)
-    && parser.rules._testable_.rules;
+export function getTestableRulesForModule(moduleName) {
+  const testableRules = !!parser.rules._testable_
+      && (parser.rules._testable_ instanceof Rule.Alternatives)
+      && Array.isArray(parser.rules._testable_.rules)
+      && parser.rules._testable_.rules;
 
-  test("testable rules found", () => {
-    expect(!!rules && !!rules.length).toBe(true);
-  })
-  // bail if no rules
-  if (!rules) return;
+  if (!testableRules) return undefined;
 
-  // divide rules into chunks by their `module`
-  const modules = groupBy(rules, "module");
+  const modules = groupBy(testableRules, "module");
+  return modules[moduleName];
+}
 
-  // Run each module separately
-  Object.keys(modules)
-    .reverse()        // in reverse order (so more general modules go first)
-    .forEach(key => {
-      describe(`\n    module '${key}'`, () => {
-        modules[key].forEach(executeRuleTests);
-      });
-    });
-});
+export default function testRulesForModule(moduleName) {
+  describe(`rule unit tests`, () => {
+    const rules = getTestableRulesForModule(moduleName);
+    if (!rules || rules.lenth === 0) {
+      test("no testable rules found", () => {
+        expect(false).toBe(true);
+      })
+      return;
+    }
+
+    rules.forEach(executeRuleTests);
+  });
+}
 
 function executeRuleTests({ name, tests }) {
   describe(`rule '${name}'`, () => {

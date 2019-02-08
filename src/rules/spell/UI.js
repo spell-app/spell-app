@@ -25,7 +25,6 @@ parser.defineRules(
     tests: [
       {
         compileAs: "statement",
-        showAll: true,
         tests: [
           [`alert 'Yo!'`, `await spell.alert('Yo!', "OK")`],
           [`alert "Yo!"`, `await spell.alert("Yo!", "OK")`],
@@ -52,7 +51,6 @@ parser.defineRules(
     tests: [
       {
         compileAs: "statement",
-        showAll: true,
         tests: [
           [`warn 'Yo!'`, `await spell.warn('Yo!', "OK")`],
           [`warn 'Yo!' with 'yep'`, `await spell.warn('Yo!', 'yep')`],
@@ -80,7 +78,6 @@ parser.defineRules(
     tests: [
       {
         compileAs: "statement",
-        showAll: true,
         tests: [
           [`confirm 'Yo!'`, `await spell.confirm('Yo!', "OK", "Cancel")`],
           [`confirm 'Yo!' with 'yep'`, `await spell.confirm('Yo!', 'yep', "Cancel")`],
