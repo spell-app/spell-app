@@ -13,7 +13,7 @@ import "./types";
 import "./JSX";
 
 // Create parser which combines all of the above...
-const parser = Parser.forName("spell");
+const parser = Parser.forModule("spell");
 // ...which depends on rules loaded above...
 parser.import("core", "lists", "operators", "if", "statements", "types", "JSX");
 // ...as the default export

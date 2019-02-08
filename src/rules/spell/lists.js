@@ -11,7 +11,7 @@ import Rule from "../../Rule";
 import { isPlural, singularize } from "../../utils/string";
 
 // Create "lists" parser.
-const parser = Parser.forName("lists");
+const parser = Parser.forModule("lists");
 export default parser;
 
 

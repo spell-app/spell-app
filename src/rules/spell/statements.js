@@ -6,7 +6,7 @@ import Parser from "../../Parser";
 import Rule from "../../Rule";
 
 // Create "statements" parser.
-const parser = Parser.forName("statements");
+const parser = Parser.forModule("statements");
 export default parser;
 
 parser.defineRules(

@@ -6,7 +6,7 @@ import Parser from "../../Parser";
 import Rule from "../../Rule";
 
 // Create "if" parser.
-const parser = Parser.forName("if");
+const parser = Parser.forModule("if");
 export default parser;
 
 parser.defineRules(

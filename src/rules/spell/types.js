@@ -11,7 +11,10 @@ import Rule from "../../Rule";
 import global from "../../utils/global";
 import { pluralize } from "../../utils/string";
 
-export default Parser.forName("types").defineRules(
+const parser = Parser.forModule("types");
+export default parser;
+
+parser.defineRules(
   {
     name: "define_type",
     alias: ["statement", "mutatesScope"],

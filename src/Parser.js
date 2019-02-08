@@ -152,7 +152,7 @@ export default class Parser {
 		if (!this.__rules) {
 			const output = this.__rules = {};
 			// Get all imported parsers, with us last
-			const imports = [this].concat(this.imports.map(Parser.forName));
+			const imports = [this].concat(this.imports.map(Parser.forModule));
 
 			// For each parser
 			imports.forEach(parser => {
@@ -257,6 +257,9 @@ export default class Parser {
       throw new TypeError(`parser.define(): Attempting to re-use constructor for rule '${ruleName}'`);
     }
 
+    // Note the module that the rule was defined in
+    if (this.module) props.module = this.module;
+
     // If we're a "canonical" rule, set on Rule.
     // Use this if you want to check the type of a rule in a test or something.
     if (props.canonical) Rule[props.canonical] = constructor;
@@ -295,11 +298,11 @@ export default class Parser {
 
 	// Get a parser for a given `contextName`.
 	// Will re-use existing parser, or create a new one if not already defined.
-	static forName(name) {
-		if (!Parser.REGISTRY[name]) {
-			Parser.REGISTRY[name] = new Parser({ name });
+	static forModule(module) {
+		if (!Parser.REGISTRY[module]) {
+			Parser.REGISTRY[module] = new Parser({ module });
 		}
-		return Parser.REGISTRY[name];
+		return Parser.REGISTRY[module];
 	}
 
 

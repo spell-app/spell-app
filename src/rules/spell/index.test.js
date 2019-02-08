@@ -1,3 +1,5 @@
+import groupBy from "lodash/groupBy";
+
 import { ParseError } from "../../Parser.js";
 
 import parser from "./index.js";
@@ -13,42 +15,48 @@ describe("defineRule tests", () => {
   test("testable rules found", () => {
     expect(!!rules && !!rules.length).toBe(true);
   })
+  // bail if no rules
+  if (!rules) return;
 
-  if (rules) {
-    // For each testable rule
-    for (const rule of rules) {
-      const { name, tests } = rule;
-      describe(`--- rule '${name}'`, () => {
+  // divide rules into chunks by their `module`
+  const modules = groupBy(rules, "module");
 
-        // For each test block
-        for (const { title, compileAs: ruleName = name, tests } of tests) {
-            const description = `${title} (as ${ruleName})`;
-            // For each input/output pair
-            let errorFound;
-            for (const [input, output] of tests) {
-              // run the test
-              const result = executeCompileTest(ruleName, input, output);
-              // if no match
-              if (result !== output) {
-//console.warn(result, "\n", input, "\n", output);
-                // write title first, then failed tests
-                // note that multiple tests with same description will be merged in the output
-                describe(description, () => {
-                  test(input, () => expect(result).toBe(output));
-                });
-                errorFound = true;
-              }
-            } // end input/output pair
-
-            // If no error found, print the test title lightly and checked
-            if (!errorFound) {
-              test(description, () => expect(true).toBe(true));
-            }
-        } // end test block
-      });
-    } // end testable rule
-  }
+  // Run each module separately
+  Object.keys(modules).forEach(key => {
+    describe(`\n    module '${key}'`, () => {
+      modules[key].forEach(executeRuleTests);
+    });
+  });
 });
+
+function executeRuleTests({ name, tests }) {
+  describe(`- rule '${name}'`, () => {
+    tests.forEach(test => executeTestBlock(name, test));
+  });
+}
+
+function executeTestBlock(name, { title, compileAs: ruleName = name, tests }) {
+  const description = `${title} (as ${ruleName})`;
+  // Execute all of the tests, gathering results as booleans
+  const results = tests.map(([input, output]) => executeTest(description, ruleName, input, output));
+  // If they all passed, output description text sublty with check
+  if (results.every(Boolean)) {
+    test(description, () => expect(true).toBe(true));
+  }
+}
+
+function executeTest(description, ruleName, input, output) {
+  const result = executeCompileTest(ruleName, input, output);
+  // don't output anything if the test worked as expected
+  if (result === output) return true;
+
+  // write title first, then failed test output
+  // note that multiple tests with same description will be merged in the output
+  describe(description, () => {
+    test(input, () => expect(result).toBe(output));
+  });
+  return false;
+}
 
 function executeCompileTest(ruleName, input, output) {
   try {

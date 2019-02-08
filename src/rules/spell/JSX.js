@@ -6,7 +6,7 @@ import Tokenizer from "../../Tokenizer";
 import Rule from "../../Rule";
 
 // Create "JSX" parser.
-const parser = Parser.forName("JSX");
+const parser = Parser.forModule("JSX");
 export default parser;
 
 parser.defineRules(
