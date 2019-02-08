@@ -6,17 +6,18 @@ import Tokenizer from "../../Tokenizer.js";
 
 // Load all standard rules files.
 import "./core.js";
+import "./if.js";
+import "./JSX.js";
 import "./lists.js";
 import "./operators.js";
-import "./if.js";
 import "./statements.js";
 import "./types.js";
-import "./JSX.js";
+import "./UI.js";
 
 // Create parser which combines all of the above...
 const parser = Parser.forModule("spell");
 // ...which depends on rules loaded above...
-parser.import("core", "types", "lists", "operators", "if", "statements", "JSX");
+parser.import("core", "types", "lists", "operators", "if", "statements", "JSX", "UI");
 // ...as the default export
 export default parser;
 

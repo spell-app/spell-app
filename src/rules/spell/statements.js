@@ -15,7 +15,6 @@ parser.defineRules(
   //
 
   // Return a value
-  //TESTME
   {
     name: "return_statement",
     alias: "statement",
@@ -25,15 +24,22 @@ parser.defineRules(
         let { expression } = this.results;
         return `return ${expression}`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "statement",
+        tests: [
+          ["return thing", "return thing"],
+        ]
+      },
+    ]
   },
 
   //
   //	## Assignment
   //
 
-  //TESTME
-  //TODO: distinguish between `new_identifier` and `scoped_identifier`
+  //TODO: distinguish between `new_identifier` and `scoped_identifier`?
   {
     name: "assignment",
     alias: ["statement", "mutatesScope"],
@@ -48,11 +54,19 @@ parser.defineRules(
         // TODO: declare identifier if not in scope, etc
         return `${thing} = ${value}`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "statement",
+        tests: [
+          ["thing = yes", "thing = true"],
+          ["set thing to yes", "thing = true"],
+          ["put yes into thing", "thing = true"],
+        ]
+      },
+    ]
   },
 
-  //TESTME
-  // TODO: `it` may not already be defined... ???
   {
     name: "get_value",
     alias: ["statement", "mutatesScope"],
@@ -60,61 +74,18 @@ parser.defineRules(
     constructor: class get_value extends Rule.Sequence {
       toSource() {
         let { value } = this.results;;
-        return `it = ${value}`
+        return `var it = ${value}`
       }
-    }
+    },
+    tests: [
+      {
+        title: "correctly matches ",
+        compileAs: "statement",
+        tests: [
+          ["get thing", "var it = thing"],
+        ]
+      },
+    ]
   },
 
-
-
-  //
-  //	## User interaction
-  // TODO: move into another file
-  //
-
-  // Alert a message.
-  // TODO: need some fancy promise juju here?
-  //TESTME
-  {
-    name: "alert",
-    alias: "statement",
-    syntax: "alert {message:expression} (?:with {okButton:text})?",
-    constructor: class alert extends Rule.Sequence {
-      toSource() {
-        let { message, okButton = `"OK"` } = this.results;
-        return `await spell.alert(${message}, ${okButton})`;
-      }
-    }
-  },
-
-  // Warning message -- like alert but fancier.
-  // TODO: need some fancy promise juju here?
-  //TESTME
-  {
-    name: "warn",
-    alias: "statement",
-    syntax: "warn {expression:expression} (?:with {okButton:text})?",
-    constructor: class warn extends Rule.Sequence {
-      toSource() {
-        let { message, okButton = `"OK"` } = this.results;
-        return `await spell.warn(${message}, ${okButton})`;
-      }
-    }
-  },
-
-
-  // Confirm message -- present a question with two answers.
-  // TODO: need some fancy promise juju here?
-  //TESTME
-  {
-    name: "confirm",
-    alias: "statement",
-    syntax: "confirm {message:expression} (?:with {okButton:text} (?: (and|or) {cancelButton:text})? )?",
-    constructor: class confirm extends Rule.Sequence {
-      toSource() {
-        let { message, okButton = `"OK"`, cancelButton = `"Cancel"` } = this.results;
-        return `await spell.confirm(${message}, ${okButton}, ${cancelButton})`;
-      }
-    }
-  }
 );

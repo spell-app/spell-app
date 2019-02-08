@@ -42,7 +42,13 @@ function executeRuleTests({ name, tests }) {
   });
 }
 
-function executeTestBlock(name, { title, compileAs: ruleName = name, showAll, tests }) {
+function executeTestBlock(name, { title, compileAs = name, showAll, tests }) {
+  if (!compileAs) {
+    test("compileAs property of test is defined", () => {
+      expect(compileAs).toBeTruthy();
+    });
+    return;
+  }
   // normalize tests, including figuring out the test title
   // If an array, it's a simple list of `[input, output]`
   if (Array.isArray(tests)) {
@@ -66,7 +72,7 @@ function executeTestBlock(name, { title, compileAs: ruleName = name, showAll, te
   else {
     throw new TypeError(`Test block ${title}: tests must be object or array`);
   }
-  const results = tests.map(test => executeTest(test, ruleName, showAll));
+  const results = tests.map(test => executeTest(test, compileAs, showAll));
 
   // If they all passed, output number of elided tests
   if (!showAll && results.every(Boolean)) {

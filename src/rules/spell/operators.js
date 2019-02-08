@@ -10,9 +10,6 @@ const parser = Parser.forModule("operators");
 export default parser;
 
 parser.defineRules(
-  //TODO:  `+=` etc?  other math functions?
-  //TODO: round, round down, round up
-
   // TODO:
   // 	// Find best match according to operator precedence as defined below.
   // 	getBestMatch(matches) {
