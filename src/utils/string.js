@@ -6,6 +6,11 @@ export function isWhitespace(text) {
 	return ALL_WHITESPACE.test(text)
 }
 
+export function showReturns(string = "") {
+  return string.replace(/\n/g, "¬")
+          .replace(/\t/g, "»");
+}
+
 // Return the plural of `word`.
 // NOTE: this is not very good at all!!!
 // TODO: exceptions, etc.

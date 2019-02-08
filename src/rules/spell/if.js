@@ -21,7 +21,34 @@ parser.defineRules(
         let statements = Rule.Block.encloseStatements(statement, block);
         return `if (${condition}) ${statements}`;
       }
-    }
+    },
+    tests: [
+      {
+        title: "correctly matches single-line if blocks",
+        compileAs: "statement",
+        tests: [
+          ["if a then", "if (a) {}"],
+          ["if a then b = 1", "if (a) { b = 1 }"],
+          ["if a: b = 1", "if (a) { b = 1 }"],
+          ["if a : b = 1", "if (a) { b = 1 }"],
+        ]
+      },
+      {
+//TESTME: test nested blocks
+        title: "correctly matches multi-line if blocks",
+        compileAs: "statements",
+        normalize: true,
+        tests: [
+          // Separate blocks if no indentation on second line.
+          ["if a:\nb = 1", "if (a) {}\nb = 1"],
+          // ANY number of spaces should count as indentation
+          ["if a:\n b = 1", "if (a) {\n\tb = 1\n}"],
+          ["", ""],
+          ["", ""],
+          ["", ""],
+        ]
+      },
+    ]
   },
 
   // NOTE: this is NOT a block statement... ???
@@ -38,7 +65,18 @@ parser.defineRules(
         if (elseStatement) output += `\nelse { ${elseStatement} }`
         return output;
       }
-    }
+    },
+    tests: [
+      {
+        title: "correctly matches single-line backwards_if blocks",
+        compileAs: "statement",
+        tests: [
+          ["b = 1 if a", "if (a) { b = 1 }"],
+          ["b = 1 if a else b = 2", "if (a) { b = 1 }\nelse { b = 2 }"],
+          ["b = 1 if a otherwise b = 2", "if (a) { b = 1 }\nelse { b = 2 }"],
+        ]
+      }
+    ]
   },
 
   {
@@ -52,7 +90,29 @@ parser.defineRules(
         let statements = Rule.Block.encloseStatements(statement, block);
         return `else if (${condition}) ${statements}`
       }
-    }
+    },
+    tests: [
+      {
+        title: "correctly matches single-line else_if blocks",
+        compileAs: "statement",
+        tests: [
+          ["else if a then", "else if (a) {}"],
+          ["else if a then b = 1", "else if (a) { b = 1 }"],
+          ["else if a: b = 1", "else if (a) { b = 1 }"],
+        ]
+      },
+      {
+//TESTME: test nested blocks
+        title: "correctly matches multi-line else_if blocks",
+        compileAs: "statements",
+        tests: [
+          ["", ""],
+          ["", ""],
+          ["", ""],
+          ["", ""],
+        ]
+      },
+    ]
   },
 
   {
@@ -66,6 +126,28 @@ parser.defineRules(
         let statements = Rule.Block.encloseStatements(statement, block);
         return `else ${statements}`
       }
-    }
+    },
+    tests: [
+      {
+        title: "correctly matches single-line else blocks",
+        compileAs: "statement",
+        tests: [
+          ["else", "else {}"],
+          ["otherwise", "else {}"],
+          ["else b = 1", "else { b = 1 }"],
+        ]
+      },
+      {
+//TESTME: test nested blocks
+        title: "correctly matches multi-line else blocks",
+        compileAs: "statement",
+        tests: [
+          ["", ""],
+          ["", ""],
+          ["", ""],
+          ["", ""],
+        ]
+      },
+    ]
   }
 );
