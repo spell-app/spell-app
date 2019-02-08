@@ -263,9 +263,10 @@ export default class Parser {
     // Sometimes `parseRule` will give us an array back, normalize to always have an array
     rules.forEach(rule => this.addRule(names, rule));
 
-    // if tests were defined, mark only as testable
+    // if tests were defined, mark as `_testable_`
     if (props.tests) {
-      // (only use the first rule if we got more than one)
+      // only use the first rule if we got more than one
+      // so we don't run the same tests more than once.
       this.addRule("_testable_", rules[0]);
     }
   }

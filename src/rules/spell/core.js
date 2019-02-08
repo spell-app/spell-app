@@ -22,6 +22,27 @@ parser.defineRules(
     constructor: Rule.Comment
   },
 
+  // `undefined` as an expression... ???
+  {
+    name: "undefined",
+    alias: "expression",
+    syntax: "undefined",
+    constructor: class _undefined extends Rule.Keywords {
+      toSource() {
+        return "undefined";
+      }
+    },
+    tests: [
+      {
+        compileAs: "expression",
+        tests: [
+          ["undefined", "undefined"],
+        ]
+      },
+    ]
+
+  },
+
   // `word` = is a single alphanumeric word.
   // MUST start with a lower-case letter (?)
   {

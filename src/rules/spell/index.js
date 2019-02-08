@@ -33,6 +33,7 @@ if (typeof window !== "undefined") {
 		tokenize: Tokenizer.tokenize.bind(exports.Tokenizer),
 
 		parser,
+		rules: parser.rules,
 		parse: parser.parse.bind(parser),
 		compile: parser.compile.bind(parser),
 	});

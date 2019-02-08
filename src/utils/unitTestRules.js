@@ -3,7 +3,9 @@
 //  To make a rule testable, add a `tests` block to parser rules with `defineRules()`.
 //  Call `unitTestModuleRules(<moduleName>)` to test all rules in that module.
 //
-//  TODO: rules w/specific titles to `{ title, intput, output }`
+//  TODO: `showAll` as global flag?
+//  TODO: add `only` to test block to skip everything else in the file
+//  TODO: rules w/specific titles to `{ title, input, output }`
 //  TODO: output as a function?
 
 import groupBy from "lodash/groupBy";
@@ -40,6 +42,7 @@ export default function unitTestModuleRules(parser, moduleName) {
   function executeRuleTests({ name, tests }) {
     describe(`rule '${name}'`, () => {
       tests.forEach(test => {
+        if (test.skip) return;
         if (test.title) {
           describe(test.title, () => executeTestBlock(name, test));
         }
