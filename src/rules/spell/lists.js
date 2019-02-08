@@ -34,8 +34,7 @@ export default parser;
 
 
 parser.defineRules(
-  // Return the length of the list.
-  //TESTME
+  // Return the length of a list.
   {
     name: "list_length",
     alias: "expression",
@@ -44,15 +43,25 @@ parser.defineRules(
       toSource() {
         let { list, identifier } = this.results;
   // TODO: special case 'words', 'lines', etc
-        return `${list}.length`;
+        return `spell.lengthOf(${list})`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "expression",
+        tests: [
+          ["number of items in myList", "spell.lengthOf(myList)"],
+          ["the number of foos in the foo of the bar", "spell.lengthOf(bar.foo)"],
+          ["the number of items in [1,2,3]", "spell.lengthOf([1, 2, 3])"],
+        ]
+      },
+    ]
+
   },
 
   // Return the first position of specified item in the list as an array.
   // If item is not found, returns `undefined`.
   // NOTE: this position returned is **1-based**.
-  //TESTME
   // TODO: `positions`, `last position`, `after...`
   {
     name: "list_position",
@@ -63,17 +72,56 @@ parser.defineRules(
         let { thing, list } = this.results;
         return `spell.positionOf(${thing}, ${list})`
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "expression",
+        tests: [
+          ["position of thing in myList", "spell.positionOf(thing, myList)"],
+          ["the position of thing in the foo of the bar", "spell.positionOf(thing, bar.foo)"],
+          ["the position of 'a' in ['a', 'b', 'c']", "spell.positionOf('a', ['a', 'b', 'c'])"],
+        ]
+      },
+    ]
+
   },
 
   //
   //	Ordinal numbers (first, second, last, etc).
-  // TODO: sixty-fifth, two hundred forty ninth...
+  // TODO: sixty-fifth, two hundred forty ninth... with custom parser?
   //
   {
     name: "ordinal",
+    constructor: class ordinal extends Rule.Alternatives {},
+    tests: [
+      {
+        tests: [
+          ["first", 1],
+          ["second", 2],
+          ["third", 3],
+          ["fourth", 4],
+          ["fifth", 5],
+          ["sixth", 6],
+          ["seventh", 7],
+          ["eighth", 8],
+          ["ninth", 9],
+          ["tenth", 10],
+
+          ["penultimate", -2],
+          ["final", -1],
+          ["last", -1],
+
+          ["top", 1],
+          ["bottom", -1],
+        ]
+      },
+    ]
+  },
+
+  {
+    name: "ordinal",
     syntax: "first",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_first extends Rule.Keywords{
       toSource() { return 1 }
     }
   },
@@ -81,7 +129,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "second",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_second extends Rule.Keywords{
       toSource() { return 2 }
     }
   },
@@ -89,7 +137,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "third",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_third extends Rule.Keywords{
       toSource() { return 3 }
     }
   },
@@ -97,7 +145,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "fourth",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_fourth extends Rule.Keywords{
       toSource() { return 4 }
     }
   },
@@ -105,7 +153,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "fifth",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_fifth extends Rule.Keywords{
       toSource() { return 5 }
     }
   },
@@ -113,7 +161,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "sixth",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_sixth extends Rule.Keywords{
       toSource() { return 6 }
     }
   },
@@ -121,7 +169,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "seventh",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_seventh extends Rule.Keywords{
       toSource() { return 7 }
     }
   },
@@ -129,7 +177,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "eighth",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_eighth extends Rule.Keywords{
       toSource() { return 8 }
     }
   },
@@ -137,7 +185,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "ninth",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_ninth extends Rule.Keywords{
       toSource() { return 9 }
     }
   },
@@ -145,7 +193,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "tenth",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_tenth extends Rule.Keywords{
       toSource() { return 10 }
     }
   },
@@ -153,7 +201,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "penultimate",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_penultimate extends Rule.Keywords{
       toSource() { return -2 }
     }
   },
@@ -161,7 +209,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "final",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_final extends Rule.Keywords{
       toSource() { return -1 }
     }
   },
@@ -169,7 +217,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "last",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_last extends Rule.Keywords{
       toSource() { return -1 }
     }
   },
@@ -181,7 +229,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "top",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_top extends Rule.Keywords{
       toSource() { return 1 }
     }
   },
@@ -189,7 +237,7 @@ parser.defineRules(
   {
     name: "ordinal",
     syntax: "bottom",
-    constructor: class ordinal extends Rule.Keywords{
+    constructor: class ordinal_bottom extends Rule.Keywords{
       toSource() { return -1 }
     }
   },
@@ -206,42 +254,60 @@ parser.defineRules(
   //
   // NOTE: Our positions are **1-based** and Javascript is **0-based**.
   //		 e.g. `item 1 of the array`  = `array[0]`
-  //
-  // TODO: if `identifier` is "word", output `getWord()` etc
-  // TODO: special case 'words', 'lines', etc ?
   {
     name: "position_expression",
     alias: "expression",
     syntax: [
-      "{identifier} {position:expression} of (the?) {expression}",
-      "the {position:ordinal} {identifier} of (the?) {expression}"
+      "{identifier} {position:expression} of {expression}",
+      "the {position:ordinal} {identifier} (in|of) {expression}"
     ],
     constructor: class position_expression extends Rule.Sequence{
       toSource() {
-        let { identifier, position, expression } = this.results;
-        // If we got a positive number literal, compensate for JS 0-based arrays now, for nicer output.
-        if (typeof position === "number" && position > 0) {
-          return `${expression}[${position - 1}]`;
-        }
-        return `spell.getItem(${expression}, ${position})`;
+        let { identifier, position, ordinal, expression } = this.results;
+        return `spell.getItem(${expression}, ${position}, '${identifier}')`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "expression",
+        tests: [
+          ["item 1 of my-list", "spell.getItem(my_list, 1, 'item')"],
+          ["card 10 of deck", "spell.getItem(deck, 10, 'card')"],
+          ["foo n of the foos of the bar", "spell.getItem(bar.foos, n, 'foo')"],
+
+          ["the first item of my-list", "spell.getItem(my_list, 1, 'item')"],
+          ["the tenth card of deck", "spell.getItem(deck, 10, 'card')"],
+          ["the penultimate word in words", "spell.getItem(words, -2, 'word')"],
+        ]
+      },
+    ]
+
   },
 
 
   // Pick a SINGLE random item from the list.
   // TODO: confirm identifier is plural?
-  //TESTME
   {
     name: "random_position_expression",
     alias: "expression",
-    syntax: "a random {identifier} (of|from|in) (the)? {list:expression}",
+    syntax: "a random {identifier} (of|from|in) {list:expression}",
     constructor: class random_position_expression extends Rule.Sequence {
       toSource() {
-        let { list } = this.results;
-        return `spell.getRandomItemOf(${list})`;
+        let { list, identifier } = this.results;
+        return `spell.getRandomItemOf(${list}, '${identifier}')`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "expression",
+        tests: [
+          ["a random item of my-list", "spell.getRandomItemOf(my_list, 'item')"],
+          ["a random word in 'some words'", "spell.getRandomItemOf('some words', 'word')"],
+          ["a random card from deck", "spell.getRandomItemOf(deck, 'card')"],
+        ]
+      },
+    ]
+
   },
 
   // Pick a unique set of random items from the list, returning an array.
@@ -252,13 +318,23 @@ parser.defineRules(
   {
     name: "random_positions_expression",
     alias: "expression",
-    syntax: "{number} random {identifier} (of|from|in) (the)? {list:expression}",
+    syntax: "{number} random {identifier} (of|from|in) {list:expression}",
     constructor: class random_positions_expression extends Rule.Sequence {
       toSource() {
-        let { number, list } = this.results;
-        return `spell.getRandomItemsOf(${list}, ${number})`;
+        let { number, list, identifier } = this.results;
+        return `spell.getRandomItemsOf(${list}, ${number}, '${identifier}')`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "expression",
+        tests: [
+          ["2 random items of my-list", "spell.getRandomItemsOf(my_list, 2, 'items')"],
+          ["2 random words in 'some other words'", "spell.getRandomItemsOf('some other words', 2, 'words')"],
+          ["3 random cards from deck", "spell.getRandomItemsOf(deck, 3, 'cards')"],
+        ]
+      },
+    ]
   },
 
 
@@ -266,68 +342,78 @@ parser.defineRules(
   // Returns a new list.
   // NOTE: `start` is **1-based**.
   // NOTE: `end` is inclusive!
-  // TODO: confirm identifier is plural?
-  // TODO: `list.clone()` to return new list of same type.
-  //TESTME
   {
     name: "range_expression",
     alias: "expression",
-    syntax: "{identifier} {start:expression} to {end:expression} of {list:expression}",
+    syntax: "{identifier} {start:expression} to {end:expression} (of|in|from) {list:expression}",
     constructor: class range_expression extends Rule.Sequence {
       toSource() {
-        let { start, end, list } = this.results;
-        return `spell.getRange(${list}, ${start}, ${end})`;
+        let { list, start, end, identifier } = this.results;
+        return `spell.getRange(${list}, ${start}, ${end}, '${identifier}')`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "expression",
+        tests: [
+          ["item 1 to 2 of my-list", "spell.getRange(my_list, 1, 2, 'item')"],
+          ["word 2 to 3 in 'some other words'", "spell.getRange('some other words', 2, 3, 'word')"],
+          ["card 1 to 3 from deck", "spell.getRange(deck, 1, 3, 'card')"],
+        ]
+      },
+    ]
   },
 
-  // Starting range expression.
+  // Alternative form of range expression.
   // Returns a new list.
-  // e.g.	`first 4 items of list`
-  //TESTME
   {
-    name: "first_in_range",
+    name: "ordinal_range_expression",
     alias: "expression",
-    syntax: "first {number:expression} {identifier} (in|of) {list:expression}",
-    constructor: class range_expression extends Rule.Sequence {
+    syntax: "{ordinal} {number} {identifier} (of|in|from) {list:expression}",
+    constructor: class ordinal_range_expression extends Rule.Sequence {
       toSource() {
-        let { number, list } = this.results;
-        return `spell.getRange(${list}, 1, ${number})`;
+        let { ordinal, number, list, identifier } = this.results;
+        return `spell.slice(${list}, ${ordinal}, ${number}, '${identifier}')`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "expression",
+        tests: [
+          ["top 2 items of my-list", "spell.slice(my_list, 1, 2, 'items')"],
+          ["first 2 words in 'some other words'", "spell.slice('some other words', 1, 2, 'words')"],
+          ["last two cards from deck", "spell.slice(deck, -1, 2, 'cards')"],
+        ]
+      },
+    ]
   },
-
-  // Ending range expression.
-  // Returns a new list.
-  // e.g.	`last 4 items of list`
-  //TESTME
-  {
-    name: "last_in_range",
-    alias: "expression",
-    syntax: "last {number:expression} {identifier} (in|of) {list:expression}",
-    constructor: class range_expression extends Rule.Sequence {
-      toSource() {
-        let { number, list } = this.results;
-        return `spell.getEndRange(${list}, 1, ${number})`;
-      }
-    }
-  },
-
 
   // Range expression starting at some item in the list.
   // Returns a new list.
   // If item is not found, returns an empty list. (???)
   //TESTME
   {
-    name: "range_expression",
+    name: "range_expression_starting_with",
     alias: "expression",
     syntax: "{identifier} (in|of) {list:expression} starting with {thing:expression}",
-    constructor: class range_expression extends Rule.Sequence {
+    constructor: class range_expression_starting_with extends Rule.Sequence {
       toSource() {
-        let { thing, list } = this.results;
-        return `spell.getRange(${list}, spell.positionOf(${thing}, ${list}))`;
+        let { thing, list, identifier } = this.results;
+        return `spell.getRange(${list}, spell.positionOf(${thing}, ${list}), undefined, '${identifier}')`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "expression",
+        tests: [
+          ["items in my-list starting with it",
+           "spell.getRange(my_list, spell.positionOf(it, my_list), undefined, 'items')"],
+          ["words in 'some words' starting with 'some'",
+           "spell.getRange('some words', spell.positionOf('some', 'some words'), undefined, 'words')"],
+        ]
+      },
+    ]
+
   },
 
 
@@ -342,10 +428,23 @@ parser.defineRules(
       toSource() {
         let { identifier, condition, list } = this.results;
         // use singular of identifier for method argument
-        let argument = singularize(identifier.toSource());
-        return `spell.filter(${list}, ${argument} => ${condition})`;
+        let argument = singularize(identifier);
+        return `spell.filter(${list}, ${argument} => ${condition}, '${identifier}')`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "expression",
+        showAll: true,
+        tests: [
+          ["items in my-list where the id of the item > 1", "spell.filter(my_list, item => item.id > 1, 'items')"],
+          ["", ""],
+          ["", ""],
+          ["", ""],
+        ]
+      },
+    ]
+
   },
 
 
