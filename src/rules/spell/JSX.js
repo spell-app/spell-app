@@ -12,7 +12,7 @@ export default parser;
 parser.defineRules(
   {
     name: "jsx",
-    alias: [ "expression", "statement" ],
+    alias: [ "expression" ],    // TODO: statement ???
     constructor: class jsxElement extends Rule {
       // Text strings get encoded as `text` objects in the token stream.
       parse(parser, tokens, start = 0, end = tokens.length) {
@@ -32,7 +32,7 @@ parser.defineRules(
 
         let attrs = attributes.map( ({ name, value }) => {
           // if NO value, assume it's a variable of the same name
-          if (value === undefined) value = name;
+          if (value === undefined) value = "true";
           // if it's an array, it's a spell expression, possibly with nested JSX elements...
           else if (value instanceof Tokenizer.JSXExpression) {
             value = this.jsxExpressionToSource(value);
@@ -82,17 +82,17 @@ parser.defineRules(
       // Convert JSX expression ( `{...}` ) to JS source.
       jsxExpressionToSource(jsxExpression) {
         let tokens = jsxExpression.tokens;
-    console.info(jsxExpression, tokens);
+//    console.info(jsxExpression, tokens);
         return "/" + `*TODO: ${tokens.join(" ")}*` + "/";
       }
 
       jsxElementToSource(jsxElement = this.matched) {
         // get the bits of the output
-        let tagName = `"${jsxElement.tagName}"`;
+        let tagName = `'${jsxElement.tagName}'`;
         let attrs = this.attrsToSource(jsxElement);
         let children = this.childrenToSource(jsxElement);
 
-        let output = `createElement(${tagName}`;
+        let output = "spell.createElement(" + tagName;
         if (!attrs && children) attrs = "null";
 
         if (attrs) output += `, ${attrs}`;
@@ -106,6 +106,22 @@ parser.defineRules(
       toSource() {
         return this.jsxElementToSource(this.matched);
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "expression",
+        showAll: true,
+        tests: [
+          [`<a/>`, `spell.createElement('a')`],
+          [`<a b=1 c="ccc"/>`, `spell.createElement('a', { b: 1, c: "ccc" })`],
+          [`<a b=1 c="ccc" d></a>`, `spell.createElement('a', { b: 1, c: "ccc", d: true })`],
+
+          [`<a><b/></a>`, `spell.createElement('a', null,\n\tspell.createElement('b')\n)`],
+          [`<a><b></b></a>`, `spell.createElement('a', null,\n\tspell.createElement('b')\n)`],
+          [`<a A=1><b c=1>foo</b></a>`,
+           `spell.createElement('a', { A: 1 },\n\tspell.createElement('b', { c: 1 },\n\t\t"foo"\n\t)\n)`],
+        ]
+      },
+    ]
   }
 );

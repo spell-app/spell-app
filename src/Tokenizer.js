@@ -445,12 +445,12 @@ const Tokenizer = {
 			return attrs;
 		}
 
-		// Return our attributes as a string
+		// Return our attributes as a string (used in toString only)
 //TESTME
 		get attrsAsString() {
 			if (!this.attributes) return "";
 			return " " + this.attributes.map( ({ name, value }) => {
-				if (value === undefined) return name;
+				if (value === undefined) return "true";
 				// convert value array (tokens) to string
 				// TODO: this will want to be smarter...
 				if (Array.isArray(value)) value = `{${value.join(" ")}}`;
@@ -458,7 +458,7 @@ const Tokenizer = {
 			}).join(" ");
 		}
 
-		// Return our children as a string.
+		// Return our children as a string  (used in toString only)
 //TESTME
 		get childrenAsString() {
 			if (!this.children) return "";
@@ -468,6 +468,7 @@ const Tokenizer = {
 			}).join("");
 		}
 
+//TESTME
 		toString() {
 			let attrs = this.attrsAsString;
 			let children = this.childrenAsString;
