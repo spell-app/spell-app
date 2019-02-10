@@ -73,9 +73,24 @@
     "@babel/plugin-syntax-import-meta": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-react": "^7.0.0",
+    "eslint-plugin-prettier": "^3.0.1",
     "jest": "^24.1.0",
     "less": "^3.9.0",
     "prettier": "1.16.4"
+  },
+  "eslintConfig": {
+    "env": {
+      "jest": true,
+      "shared-node-browser": true
+    },
+    "extends": "eslint:recommended",
+    "plugins": ["prettier"],
+    "parser": "babel-eslint",
+    "rules": {
+      "max-len": ["off", { "code": 100, "tabWidth": 2 } ],
+      "no-console": "off",
+      "prettier/prettier": "warn"
+    }
   },
   "prettier": {
     "printWidth": 100
