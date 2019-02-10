@@ -9,6 +9,13 @@ import Rule from "../../Rule";
 const parser = Parser.forModule("if");
 export default parser;
 
+// Given a condiiton expression string, wrap it in parens iff it is not already parenthesized properly.
+// TESTME
+export function parenthesizeCondition(condition) {
+  if (condition.startsWith("(") && condition.endsWith(")")) return condition;
+  return `(${condition})`;
+}
+
 parser.defineRules(
   {
     name: "if",
@@ -16,8 +23,8 @@ parser.defineRules(
     syntax: "if {condition:expression} (then|:)? {statement}?",
     constructor: class if_ extends Rule.BlockStatement {
       toSource() {
-        let { condition, statements } = this.results;
-        return `if (${condition}) ${statements}`;
+        const { condition, statements } = this.results;
+        return `if ${parenthesizeCondition(condition)} ${statements}`;
       }
     },
     tests: [
@@ -62,8 +69,8 @@ parser.defineRules(
     syntax: "(else|otherwise) if {condition:expression} (then|:) {statement}?",
     constructor: class else_if extends Rule.BlockStatement {
       toSource() {
-        let { condition, statements } = this.results;
-        return `else if (${condition}) ${statements}`
+        const { condition, statements } = this.results;
+        return `else if ${parenthesizeCondition(condition)} ${statements}`
       }
     },
     tests: [
@@ -103,7 +110,7 @@ parser.defineRules(
     syntax: "(else|otherwise) (:)? {statement}?",
     constructor: class else_ extends Rule.BlockStatement {
       toSource() {
-        let { statements } = this.results;
+        const { statements } = this.results;
         return `else ${statements}`
       }
     },
@@ -144,7 +151,7 @@ parser.defineRules(
     testRule: new Rule.Keywords({ literals: [ "if" ] }),
     constructor: class backwards_if extends Rule.Sequence {
       toSource() {
-        let { condition, statement, elseStatement } = this.results;
+        const { condition, statement, elseStatement } = this.results;
 //TODO: smarter wrapping?
         let output = `if (${condition}) { ${statement} }`;
         if (elseStatement) output += `\nelse { ${elseStatement} }`

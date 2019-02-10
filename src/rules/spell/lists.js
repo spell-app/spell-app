@@ -41,22 +41,21 @@ parser.defineRules(
     syntax: "the? number of {identifier} in {list:expression}",
     constructor: class list_length extends Rule.Sequence {
       toSource() {
-        let { list, identifier } = this.results;
-  // TODO: special case 'words', 'lines', etc
-        return `spell.lengthOf(${list})`;
+        const { list, identifier } = this.results;
+        const singular = singularize(identifier);
+        return `spell.lengthOf(${list}, '${singular}')`;
       }
     },
     tests: [
       {
         compileAs: "expression",
         tests: [
-          ["number of items in my-list", "spell.lengthOf(my_list)"],
-          ["the number of foos in the foo of the bar", "spell.lengthOf(bar.foo)"],
-          ["the number of items in [1,2,3]", "spell.lengthOf([1, 2, 3])"],
+          ["number of items in my-list", "spell.lengthOf(my_list, 'item')"],
+          ["the number of foos in the foo of the bar", "spell.lengthOf(bar.foo, 'foo')"],
+          ["the number of items in [1,2,3]", "spell.lengthOf([1, 2, 3], 'item')"],
         ]
       },
     ]
-
   },
 
   // Return the first position of specified item in the list as an array.
@@ -69,7 +68,7 @@ parser.defineRules(
     syntax: "the? position of {thing:expression} in {list:expression}",
     constructor: class list_position extends Rule.Sequence {
       toSource() {
-        let { thing, list } = this.results;
+        const { thing, list } = this.results;
         return `spell.positionOf(${thing}, ${list})`
       }
     },
@@ -94,7 +93,7 @@ parser.defineRules(
     syntax: "{list:expression} starts with {expression}",
     constructor: class list_starts_with extends Rule.Sequence {
       toSource() {
-        let { list, expression } = this.results;
+        const { list, expression } = this.results;
         return `spell.startsWith(${list}, ${expression})`
       }
     },
@@ -118,7 +117,7 @@ parser.defineRules(
     syntax: "{list:expression} ends with {expression}",
     constructor: class list_ends_with extends Rule.Sequence {
       toSource() {
-        let { list, expression } = this.results;
+        const { list, expression } = this.results;
         return `spell.endsWith(${list}, ${expression})`
       }
     },
@@ -272,7 +271,6 @@ parser.defineRules(
 
 
   // treat list as a stack or queue
-  //TESTME
   {
     name: "ordinal",
     syntax: "top",
@@ -310,7 +308,7 @@ parser.defineRules(
     ],
     constructor: class position_expression extends Rule.Sequence{
       toSource() {
-        let { identifier, position, ordinal, expression } = this.results;
+        const { identifier, position, ordinal, expression } = this.results;
         return `spell.getItem(${expression}, ${position}, '${identifier}')`;
       }
     },
@@ -328,7 +326,6 @@ parser.defineRules(
         ]
       },
     ]
-
   },
 
 
@@ -340,7 +337,7 @@ parser.defineRules(
     syntax: "a random {identifier} (of|from|in) {list:expression}",
     constructor: class random_position_expression extends Rule.Sequence {
       toSource() {
-        let { list, identifier } = this.results;
+        const { list, identifier } = this.results;
         return `spell.getRandomItemOf(${list}, '${identifier}')`;
       }
     },
@@ -354,21 +351,19 @@ parser.defineRules(
         ]
       },
     ]
-
   },
 
   // Pick a unique set of random items from the list, returning an array.
   // TODO: `two random items...`
   // TODO: confirm identifier is plural?
   // TODO: `list.clone()` to return new list of same type.
-  //TESTME
   {
     name: "random_positions_expression",
     alias: "expression",
     syntax: "{number} random {identifier} (of|from|in) {list:expression}",
     constructor: class random_positions_expression extends Rule.Sequence {
       toSource() {
-        let { number, list, identifier } = this.results;
+        const { number, list, identifier } = this.results;
         return `spell.getRandomItemsOf(${list}, ${number}, '${identifier}')`;
       }
     },
@@ -395,7 +390,7 @@ parser.defineRules(
     syntax: "{identifier} {start:expression} to {end:expression} (of|in|from) {list:expression}",
     constructor: class range_expression extends Rule.Sequence {
       toSource() {
-        let { list, start, end, identifier } = this.results;
+        const { list, start, end, identifier } = this.results;
         return `spell.getRange(${list}, ${start}, ${end}, '${identifier}')`;
       }
     },
@@ -419,7 +414,7 @@ parser.defineRules(
     syntax: "{ordinal} {number} {identifier} (of|in|from) {list:expression}",
     constructor: class ordinal_range_expression extends Rule.Sequence {
       toSource() {
-        let { ordinal, number, list, identifier } = this.results;
+        const { ordinal, number, list, identifier } = this.results;
         return `spell.slice(${list}, ${ordinal}, ${number}, '${identifier}')`;
       }
     },
@@ -438,14 +433,13 @@ parser.defineRules(
   // Range expression starting at some item in the list.
   // Returns a new list.
   // If item is not found, returns an empty list. (???)
-  //TESTME
   {
     name: "range_expression_starting_with",
     alias: "expression",
     syntax: "{identifier} (in|of) {list:expression} starting with {thing:expression}",
     constructor: class range_expression_starting_with extends Rule.Sequence {
       toSource() {
-        let { thing, list, identifier } = this.results;
+        const { thing, list, identifier } = this.results;
         return `spell.getRange(${list}, spell.positionOf(${thing}, ${list}), undefined, '${identifier}')`;
       }
     },
@@ -460,7 +454,6 @@ parser.defineRules(
         ]
       },
     ]
-
   },
 
 
@@ -472,10 +465,10 @@ parser.defineRules(
     syntax: "{identifier} (in|of) {list:expression} where {condition:expression}",
     constructor: class list_filter extends Rule.Sequence {
       toSource() {
-        let { identifier, condition, list } = this.results;
+        const { identifier, condition, list } = this.results;
         // use singular of identifier for method argument
-        let argument = singularize(identifier);
-        return `spell.filter(${list}, ${argument} => ${condition}, '${identifier}')`;
+        const argument = singularize(identifier);
+        return `spell.filter(${list}, ${argument} => ${condition}, '${argument}')`;
       }
     },
     tests: [
@@ -490,7 +483,6 @@ skip: true,
         ]
       },
     ]
-
   },
 
 
@@ -504,11 +496,11 @@ skip: true,
     testRule: "where",
     constructor: class list_membership_test extends Rule.Sequence {
       toSource() {
-        let { identifier, operator, filter, list } = this.results;
+        const { identifier, operator, filter, list } = this.results;
         const bang = operator === "has" ? "" : "!";
         // use singular of identifier for method argument
-        identifier = singularize(identifier);
-        return `${bang}spell.any(${list}, ${identifier} => ${filter}, '${identifier}')`;
+        argument = singularize(identifier);
+        return `${bang}spell.any(${list}, ${argument} => ${filter}, '${argument}')`;
       }
     },
     tests: [
@@ -525,7 +517,6 @@ skip: true,
         ]
       },
     ]
-
   },
 
   //
@@ -533,7 +524,6 @@ skip: true,
   //
 
   // Add to beginning of list.
-  //TESTME
   {
     name: "list_prepend",
     alias: "statement",
@@ -543,14 +533,13 @@ skip: true,
     ],
     constructor: class list_prepend extends Rule.Sequence {
       toSource() {
-        let { thing, list } = this.results;
+        const { thing, list } = this.results;
         return `spell.prepend(${list}, ${thing})`;
       }
     },
     tests: [
       {
         compileAs: "statement",
-        showAll: true,
         tests: [
           ["prepend thing to my-list", "spell.prepend(my_list, thing)"],
           ["add thing to the start of my-list", "spell.prepend(my_list, thing)"],
@@ -562,7 +551,6 @@ skip: true,
   },
 
   // Add to end of list.
-  //TESTME
   {
     name: "list_append",
     alias: "statement",
@@ -572,7 +560,7 @@ skip: true,
     ],
     constructor: class list_append extends Rule.Sequence {
       toSource() {
-        let { thing, list } = this.results;
+        const { thing, list } = this.results;
         return `spell.append(${list}, ${thing})`;
       }
     },
@@ -590,35 +578,40 @@ skip: true,
     ]
   },
 
+  //
   // Add to middle of list, pushing existing items out of the way.
-  //TESTME
+  //
+
+
+  // TODO: Add to middle of list, pushing existing items out of the way.
+  //       "add {thing:expression} to position {position:expression} of {list:expression}",
+
+  // Add to list before/after something else
+  // TODO: `relative_position_expression` rule?
   {
-    name: "list_add_at",
+    name: "list_add_relative",
     alias: "statement",
-    syntax: "add {thing:expression} to {list:expression} at position {position:expression}",
-    constructor: class list_splice extends Rule.Sequence {
+    syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
+    constructor: class list_add_relative extends Rule.Sequence {
       toSource() {
-        let { thing, position, list } = this.results;
+        const { thing, item, list, operator } = this.results;
+        const position = operator === "before"
+          ? `spell.positionOf(${list}, ${item})`
+          : `spell.positionOf(${list}, ${item}) + 1`
         return `spell.splice(${list}, ${position}, ${thing})`;
       }
-    }
-  },
-
-
-  // TODO:  	"add {thing:expression} to {list:expression} before {item:expression}",
-
-  // Add to middle of list, pushing existing items out of the way.
-  //TESTME
-  {
-    name: "list_add_after",
-    alias: "statement",
-    syntax: "add {thing:expression} to {list:expression} after {item:expression}",
-    constructor: class list_add_after extends Rule.Sequence {
-      toSource() {
-        let { thing, item, list } = this.results;
-        return `spell.splice(${list}, spell.positionOf(${list}, ${item}), ${thing})`;
-      }
-    }
+    },
+    tests: [
+      {
+        compileAs: "statement",
+        tests: [
+          ["add thing to my-list before other-thing",
+           "spell.splice(my_list, spell.positionOf(my_list, other_thing), thing)"],
+          ["add thing to my-list after other-thing",
+           "spell.splice(my_list, spell.positionOf(my_list, other_thing) + 1, thing)"],
+        ]
+      },
+    ]
   },
 
   //
@@ -627,79 +620,128 @@ skip: true,
 
   // Empty list.
   //TODO: make `empty` and/or `clear` a generic statement???
-  //TESTME
   {
     name: "list_empty",
     alias: "statement",
     syntax: "(empty|clear) {list:expression}",
     constructor: class list_empty extends Rule.Sequence {
       toSource() {
-        let { list } = this.results;
+        const { list } = this.results;
         return `spell.clear(${list})`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "statement",
+        tests: [
+          ["empty my-list", "spell.clear(my_list)"],
+          ["clear the cards of deck", "spell.clear(deck.cards)"],
+        ]
+      },
+    ]
   },
 
   // Remove one item from list by position.
-  //TESTME
   {
     name: "list_remove_position",
     alias: "statement",
-    syntax: "remove {identifier} {number:expression} of {list:expression}",
+    syntax: [
+      "remove {number:ordinal} {identifier} of {list:expression}",
+      "remove {identifier} {number:expression} of {list:expression}",
+    ],
     constructor: class list_remove_position extends Rule.Sequence {
       toSource() {
-        let { number, list } = this.results;
-        return `spell.removeItem(${list}, ${number})`;
+        const { number, list, identifier } = this.results;
+        return `spell.removeItem(${list}, ${number}, '${identifier}')`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "statement",
+        tests: [
+          ["remove second card of deck", "spell.removeItem(deck, 2, 'card')"],
+          ["remove item 4 of my-list", "spell.removeItem(my_list, 4, 'item')"],
+        ]
+      },
+    ]
   },
 
   // Remove range of things from list.
   // NOTE: `start` is **1-based**.
   // NOTE: `end` is inclusive!
-  //TESTME
   {
     name: "list_remove_range",
     alias: "statement",
-    syntax: "remove {identifier} {start:expression} to {end:expression} of {list:expression}",
+    syntax: [
+      "remove {start:ordinal} to {end:ordinal} {identifier} of {list:expression}",
+      "remove {identifier} {start:expression} to {end:expression} of {list:expression}",
+    ],
     constructor: class list_remove_position extends Rule.Sequence {
       toSource() {
-        let { start, end, list } = this.results;
-        return `spell.removeRange(${list}, ${start}, ${end})`;
+        const { start, end, list, identifier } = this.results;
+        return `spell.removeRange(${list}, ${start}, ${end}, '${singularize(identifier)}')`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "statement",
+        tests: [
+          ["remove first to third card of deck", "spell.removeRange(deck, 1, 3, 'card')"],
+          ["remove items 2 to 4 of my-list", "spell.removeRange(my_list, 2, 4, 'item')"],
+        ]
+      },
+    ]
   },
 
 
   // Remove all instances of something from a list.
-  //TESTME
   {
     name: "list_remove",
     alias: "statement",
     syntax: "remove {thing:expression} from {list:expression}",
     constructor: class list_remove extends Rule.Sequence {
       toSource() {
-        let { thing, list } = this.results;
+        const { thing, list } = this.results;
         return `spell.remove(${list}, ${thing})`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "statement",
+        tests: [
+          ["remove thing from my-list", "spell.remove(my_list, thing)"],
+        ]
+      },
+    ]
   },
 
   // Remove all items from list where condition is true.
   // NOTE: we will singularize `identifier` and use that as the argument to `expression`.
-  //TESTME
   {
     name: "list_remove_where",
     alias: "statement",
     syntax: "remove {identifier} (in|of|from) {list:expression} where {condition:expression}",
     constructor: class list_remove_where extends Rule.Sequence {
       toSource() {
-        let { identifier, condition, list } = this.results;
+        const { identifier, condition, list } = this.results;
         // use singular of identifier for method argument
-        let argument = singularize(identifier.toSource());
-        return `spell.removeWhere(${list}, ${argument} => ${condition})`;
+        const argument = singularize(identifier);
+        return `spell.removeWhere(${list}, ${argument} => ${condition}, '${argument}')`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "statement",
+        tests: [
+          ["remove items from list where item is undefined",
+           "spell.removeWhere(list, item => (item == undefined), 'item')"],
+          ["remove words of text where word starts with 'a'",
+           "spell.removeWhere(text, word => spell.startsWith(word, 'a'), 'word')"],
+          ["remove cards in deck where the suit of the card is ace",
+           "spell.removeWhere(deck, card => (card.suit == ace), 'card')"],
+        ]
+      },
+    ]
   },
 
 
@@ -708,72 +750,91 @@ skip: true,
   //
 
   // Reverse list in-place.
-  //TESTME
   {
     name: "list_reverse",
     alias: "statement",
     syntax: "reverse {list:expression}",
     constructor: class list_reverse extends Rule.Sequence {
       toSource() {
-        let { list } = this.results;
+        const { list } = this.results;
         return `spell.reverse(${list})`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "statement",
+        tests: [
+          ["reverse my-list", "spell.reverse(my_list)"],
+        ]
+      },
+    ]
   },
 
   // Shuffle list in-place.
-  //TESTME
   {
     name: "list_shuffle",
     alias: "statement",
-    syntax: "(randomize|shuffle) {list:expression}",
+    syntax: "(randomize|shuffle) ({identifier} (in|of))? {list:expression}",
     constructor: class list_shuffle extends Rule.Sequence {
       toSource() {
-        let { list } = this.results;
+        const { list } = this.results;
         return `spell.shuffle(${list})`;
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "statement",
+        tests: [
+          ["randomize my-list", "spell.shuffle(my_list)"],
+          ["shuffle cards of deck", "spell.shuffle(deck)"],
+        ]
+      },
+    ]
   },
 
 
   // Iteration
-  //TESTME
+  // TODO: can work for object enumeration as well (maybe with 'of'?)
+  // TODO: return values e.g. array.map() ???
   {
     name: "list_iteration",
     alias: "statement",
     syntax: [
-      "for (each)? {itemVar:identifier} in {list:expression}:? {statement}?",
-      "for (each)? {itemVar:identifier} (and|,) {positionVar:identifier} in {list:expression}:? {statement}?",
+      "for (each)? {item:identifier} in {list:expression}:? {statement}?",
+      "for (each)? {item:identifier} (and|,) {position:identifier} in {list:expression}:? {statement}?",
     ],
     constructor: class list_iteration extends Rule.BlockStatement {
       toSource() {
-        let { itemVar, positionVar, list, statement, block } = this.results;
-        let output;
-        if (positionVar) {
-          output = `for (let ${positionVar} = 1, bar; ${itemVar} = ${list}[${positionVar}-1], ${positionVar} <= ${list}.length; ${positionVar}++) `
+        const { item, position, list, statements } = this.results;
+        const itemVar = singularize(item);
+        if (!position) {
+          return `for (const ${itemVar} of ${list}) ${statements}`;
         }
-        else {
-          // NOTE: this is relatively slow...  probably doesn't matter...
-          output = `for (let ${itemVar} of ${list}) `;
-        }
-        output += Rule.Block.encloseStatements(statement, block);
-        return output;
+        const positionVar = singularize(position);
+        // NOTE: `spell.entries()` must return **1-based** indexes ???
+        return `for (const [${positionVar}, ${itemVar}] of spell.entries(${list}) ${statements}`
       }
-    }
+    },
+    tests: [
+      {
+        compileAs: "statements",
+        tests: [
+          ["for each card in deck:", "for (const card of deck) {}"],
+          ["for item, index in my-list:", "for (const [index, item] of spell.entries(my_list) {}"],
+
+          ["for each card in deck: set the direction of the card to 'down'",
+           "for (const card of deck) { card.direction = 'down' }"],
+          ["for message, index in messages: add message + index to messages",
+           "for (const [index, message] of spell.entries(messages) {\n\tspell.append(messages, (message + index))\n}"],
+
+          ["for each card in deck:\n\tset the direction of the card to 'down'",
+           "for (const card of deck) {\n\tcard.direction = 'down'\n}"],
+          ["for message and index in messages:\n\tif index is greater than 2 add message to messages",
+           "for (const [index, message] of spell.entries(messages) {\n\tif (index > 2) { spell.append(messages, message) }\n}"],
+        ]
+      },
+    ]
   },
 
 
-  // Range
-  //TESTME
-  {
-    name: "range_expression",
-    alias: "expression",
-    syntax: "range {start:expression} to {end:expression}",
-    constructor: class range_expression extends Rule.Sequence {
-      toSource() {
-        let { start, end } = this.results;
-        return `spell.getRange(${start}, ${end})`;
-      }
-    }
-  }
 );

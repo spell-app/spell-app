@@ -623,7 +623,7 @@ parser.defineRules(
     name: "is_undefined",
     alias: ["postfix_operator"],
     syntax: [
-      "is undefined",
+//FIXME      "is undefined",   // conflicts with `undefined` as expression from core
       "is not defined"
     ],
     constructor: class is_undefined extends Rule.Keywords {
@@ -633,7 +633,7 @@ parser.defineRules(
       {
         compileAs: "expression",
         tests: [
-          ["thing is undefined", "(typeof thing === 'undefined')"],
+//          ["thing is undefined", "(typeof thing === 'undefined')"],
           ["thing is not defined", "(typeof thing === 'undefined')"],
         ]
       },

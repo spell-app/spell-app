@@ -1,10 +1,23 @@
 import unitTestModuleRules from "../../utils/unitTestRules.js";
+
 import parser from "./index.js";
+import { parenthesizeCondition } from "./if.js";
 
 describe("testing spell module if", () => {
+
   unitTestModuleRules(parser, "if");
 
-  describe("integration tests", () => {
+  describe("\n    methods defined in rule file", () => {
+    describe("parenthesizedCondition()", () => {
+      test("adds parenthesis as necessary", () => {
+        expect(parenthesizeCondition("a")).toBe("(a)");
+      });
 
+      test("doesn't parenthesize when not necessary", () => {
+        expect(parenthesizeCondition("(a)")).toBe("(a)");
+      });
+    });
   });
+
+  describe("integration tests", () => {});
 });
