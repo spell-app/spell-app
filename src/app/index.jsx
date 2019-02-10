@@ -5,11 +5,14 @@ import ReactDOM from 'react-dom';
 // Parser
 import parser from "../rules/spell/index.js";
 
-// App-specific imports
-import SpellEditor from "./SpellEditor.jsx";
+function renderApp() {
+  const SpellEditor = require("./SpellEditor.jsx").default;
+  ReactDOM.render(
+    <SpellEditor />,
+    document.getElementById('react-root')
+  );
+};
 
-// Kick off our top-level element
-ReactDOM.render(
-  <SpellEditor />,
-  document.getElementById('react-root')
-);
+renderApp();
+
+//module.hot.accept(renderApp);

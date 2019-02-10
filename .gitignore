@@ -3,3 +3,5 @@ coverage
 npm-debug.log
 build
 yarn-error.log
+.cache
+dist
