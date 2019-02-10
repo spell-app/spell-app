@@ -43,20 +43,38 @@ parser.defineRules(
       {
         title: "correctly matches multi-line if blocks",
         compileAs: "statements",
-        tests: {
-          "Separate blocks if no indentation on second line.":
-              ["if a:\nb = 1", "if (a) {}\nb = 1"],
-          "Indent with tab":
-              ["if a:\n\tb = 1", "if (a) {\n\tb = 1\n}"],
-          "ANY number of spaces should count as indentation":
-              ["if a:\n b = 1", "if (a) {\n\tb = 1\n}"],
-          "Multiple lines in the nested block":
-              ["if a:\n\tb = 1\n\tc = 2", "if (a) {\n\tb = 1\n\tc = 2\n}"],
-          "Nested ifs work fine":
-              ["if a\n\tif b\n\t\tc=2", "if (a) {\n\tif (b) {\n\t\tc = 2\n\t}\n}"],
-          "Prefer nested block to inlined statement":
-              ["if a b = 1\n\tc = 2", "if (a) {\n\tc = 2\n}"],
-        }
+        tests: [
+          {
+            title: "Separate blocks if no indentation on second line.",
+            input: "if a:\nb = 1",
+            output: "if (a) {}\nb = 1"
+          },
+          {
+            title: "Indent with tab",
+            input: "if a:\n\tb = 1",
+            output: "if (a) {\n\tb = 1\n}"
+          },
+          {
+            title: "ANY number of spaces should count as indentation",
+            input: "if a:\n b = 1",
+            output: "if (a) {\n\tb = 1\n}"
+          },
+          {
+            title: "Multiple lines in the nested block",
+            input: "if a:\n\tb = 1\n\tc = 2",
+            output: "if (a) {\n\tb = 1\n\tc = 2\n}"
+          },
+          {
+            title: "Nested ifs work fine",
+            input: "if a\n\tif b\n\t\tc=2",
+            output: "if (a) {\n\tif (b) {\n\t\tc = 2\n\t}\n}"
+          },
+          {
+            title: "Prefer nested block to inlined statement",
+            input: "if a b = 1\n\tc = 2",
+            output: "if (a) {\n\tc = 2\n}"
+          },
+        ]
       },
 //TESTME: test full if/else if/else blocks
     ]
@@ -86,20 +104,40 @@ parser.defineRules(
       {
         title: "correctly matches multi-line else_if blocks",
         compileAs: "statements",
-        tests: {
-          "Separate blocks if no indentation on second line.":
-              ["else if a:\nb = 1", "else if (a) {}\nb = 1"],
-          "Indent with tab":
-              ["else if a:\n\tb = 1", "else if (a) {\n\tb = 1\n}"],
-          "ANY number of spaces should count as indentation":
-              ["else if a:\n b = 1", "else if (a) {\n\tb = 1\n}"],
-          "Multiple lines in the nested block":
-              ["else if a:\n\tb = 1\n\tc = 2", "else if (a) {\n\tb = 1\n\tc = 2\n}"],
-//FIXME          "Nested ifs work fine":
-//            ["else if a\n\tif b\n\t\tc=2", "else if (a) {\n\tif (b) {\n\t\tc = 2\n\t}\n}"],
-//FIXME          "Prefer nested block to inlined statement":
-//            ["else if a b = 1\n\tc = 2", "else if (a) {\n\tc = 2\n}"],
-        }
+        tests: [
+          {
+            title: "Separate blocks if no indentation on second line.",
+            input: "else if a:\nb = 1",
+            output: "else if (a) {}\nb = 1"
+          },
+          {
+            title: "Indent with tab",
+            input: "else if a:\n\tb = 1",
+            output: "else if (a) {\n\tb = 1\n}"
+          },
+          {
+            title: "ANY number of spaces should count as indentation",
+            input: "else if a:\n b = 1",
+            output: "else if (a) {\n\tb = 1\n}"
+          },
+          {
+            title: "Multiple lines in the nested block",
+            input: "else if a:\n\tb = 1\n\tc = 2",
+            output: "else if (a) {\n\tb = 1\n\tc = 2\n}"
+          },
+          {
+            skip: true, // FIXME
+            title: "Nested ifs work fine",
+            input: "else if a\n\tif b\n\t\tc=2",
+            output: "else if (a) {\n\tif (b) {\n\t\tc = 2\n\t}\n}"
+          },
+          {
+            skip: true, // FIXME
+            title: "Prefer nested block to inlined statement",
+            input: "else if a b = 1\n\tc = 2",
+            output: "else if (a) {\n\tc = 2\n}"
+          },
+        ]
       },
     ]
   },
@@ -128,16 +166,28 @@ parser.defineRules(
       {
         title: "correctly matches multi-line else blocks",
         compileAs: "statements",
-        tests: {
-          "Separate blocks if no indentation on second line.":
-              ["else\nb = 1", "else {}\nb = 1"],
-          "Indent with tab":
-              ["else\n\tb = 1", "else {\n\tb = 1\n}"],
-          "ANY number of spaces should count as indentation":
-              ["else\n b = 1", "else {\n\tb = 1\n}"],
-          "Multiple lines in the nested block":
-              ["else\n\tb = 1\n\tc = 2", "else {\n\tb = 1\n\tc = 2\n}"],
-        }
+        tests: [
+          {
+            title: "Separate blocks if no indentation on second line.",
+            input: "else\nb = 1",
+            output: "else {}\nb = 1"
+          },
+          {
+            title: "Indent with tab",
+            input: "else\n\tb = 1",
+            output: "else {\n\tb = 1\n}"
+          },
+          {
+            title: "ANY number of spaces should count as indentation",
+            input: "else\n b = 1",
+            output: "else {\n\tb = 1\n}"
+          },
+          {
+            title: "Multiple lines in the nested block",
+            input: "else\n\tb = 1\n\tc = 2",
+            output: "else {\n\tb = 1\n\tc = 2\n}"
+          },
+        ]
       },
     ]
   },

@@ -306,10 +306,10 @@ parser.defineRules(
     tests: [
       {
         compileAs: "expression",
-        tests: {
-          "with spaces": ["a > b", "(a > b)"],
-          "without spaces": ["a>b", "(a > b)"],
-        }
+        tests: [
+          { title: "with spaces", input: "a > b", output: "(a > b)" },
+          { title: "without spaces", input: "a>b", output: "(a > b)"},
+        ]
       },
     ]
   },
@@ -342,10 +342,10 @@ parser.defineRules(
     tests: [
       {
         compileAs: "expression",
-        tests: {
-          "with spaces": ["a >= b", "(a >= b)"],
-          "without spaces": ["a>=b", "(a >= b)"],
-        }
+        tests: [
+          { title: "with spaces", input: "a >= b", output: "(a >= b)" },
+          { title: "without spaces", input: "a>=b", output: "(a >= b)" },
+        ]
       },
     ]
   },
@@ -378,10 +378,10 @@ parser.defineRules(
     tests: [
       {
         compileAs: "expression",
-        tests: {
-          "with spaces": ["a > b", "(a > b)"],
-          "without spaces": ["a>b", "(a > b)"],
-        }
+        tests: [
+          { title: "with spaces", input: "a > b", output: "(a > b)" },
+          { title: "without spaces", input: "a>b", output: "(a > b)" },
+        ]
       },
     ]
   },
@@ -414,10 +414,10 @@ parser.defineRules(
     tests: [
       {
         compileAs: "expression",
-        tests: {
-          "with spaces": ["a <= b", "(a <= b)"],
-          "without spaces": ["a<=b", "(a <= b)"],
-        }
+        tests: [
+          { title: "with spaces", input: "a <= b", output: "(a <= b)" },
+          { title: "without spaces", input: "a<=b", output: "(a <= b)" },
+        ]
       },
     ]
   },
@@ -488,10 +488,13 @@ parser.defineRules(
     tests: [
       {
         compileAs: "expression",
-        tests: {
-//        "without spaces": ["a-b", "(a - b)"],   // minus requires space
-          "with spaces": ["a - b", "(a - b)"],
-        }
+        tests: [
+          {
+            skip: "minus requires space",
+            title: "without spaces", input: "a-b", output: "(a - b)"
+          },
+          { title: "with spaces", input: "a - b", output: "(a - b)" },
+        ]
       },
     ]
   },
@@ -524,10 +527,10 @@ parser.defineRules(
     tests: [
       {
         compileAs: "expression",
-        tests: {
-          "without spaces": ["a*b", "(a * b)"],
-          "with spaces": ["a * b", "(a * b)"],
-        }
+        tests: [
+          { title: "without spaces", input: "a*b", output: "(a * b)" },
+          { title: "with spaces", input: "a * b", output: "(a * b)" },
+        ]
       },
     ]
   },
@@ -560,10 +563,10 @@ parser.defineRules(
     tests: [
       {
         compileAs: "expression",
-        tests: {
-          "without spaces": ["a/b", "(a / b)"],
-          "with spaces": ["a / b", "(a / b)"],
-        }
+        tests: [
+          { title: "without spaces", input: "a/b", output: "(a / b)" },
+          { title: "with spaces", input: "a / b", output: "(a / b)" },
+        ]
       },
     ]
   },

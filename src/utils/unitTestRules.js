@@ -58,29 +58,24 @@ export default function unitTestModuleRules(parser, moduleName) {
       });
       return;
     }
-    // normalize tests, including figuring out the test title
-    // If an array, it's a simple list of `[input, output]`
-    if (Array.isArray(tests)) {
-      tests = tests
-        .map(([input, output]) => {
-          // skip blank tests
-          if (input === "" && output == "") return undefined;
-          return { input, output, title: showWhitespace(input) };
-        })
-        .filter(Boolean);
 
-      // bail early if no actual tests
-      if (tests.length === 0) return;
-    }
-    // If `tests` is an object, that's a map of `{ title: [input, output] }`
-    else if (tests && tests.constructor === Object) {
-      tests = Object.keys(tests).map(title => {
-        return { input: tests[title][0], output: tests[title][1], title };
-      });
-    }
-    else {
-      throw new TypeError(`Test block ${title}: tests must be object or array`);
-    }
+    // Normalize tests as `[input, output]` to `{ title: input, input, output }`
+    tests = tests
+      .map(test => {
+        if (Array.isArray(test)) {
+          const [ input, output ] = test;
+          test = { title: showWhitespace(input), input, output }
+        }
+        // skip blank tests or where `skip` is true
+        if (test.skip || test.input === "") return undefined;
+        return test;
+      })
+      .filter(Boolean);
+
+    // bail early if no actual tests
+    if (tests.length === 0) return;
+
+    // Excute each test
     const results = tests.map(test => executeTest(test, compileAs, showAll));
 
     // If they all passed, output number of elided tests
