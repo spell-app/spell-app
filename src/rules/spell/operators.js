@@ -1,5 +1,5 @@
 //
-//	# Rules for infix and prefix operators.
+//  # Rules for infix and prefix operators.
 //
 
 import Parser from "../../Parser";
@@ -11,19 +11,19 @@ export default parser;
 
 parser.defineRules(
   // TODO:
-  // 	// Find best match according to operator precedence as defined below.
-  // 	getBestMatch(matches) {
-  // 		console.warn("GBM", matches, matches.map(match => match.precedence), matches.map(match => match.matchedText));
-  // 		return matches.reduce(function (best, next) {
-  // 			// take highest precedence match first
-  // 			if (next.precedence > best.precedence) return next;
-  // 			// take longest match if same precedence
-  // 			if (next.precedence === best.precedence) {
-  // 				if (next.endIndex > best.endIndex) return next;
-  // 			}
-  // 			return best;
-  // 		}, matches[0]);
-  // 	}
+  //   // Find best match according to operator precedence as defined below.
+  //   getBestMatch(matches) {
+  //     console.warn("GBM", matches, matches.map(match => match.precedence), matches.map(match => match.matchedText));
+  //     return matches.reduce(function (best, next) {
+  //       // take highest precedence match first
+  //       if (next.precedence > best.precedence) return next;
+  //       // take longest match if same precedence
+  //       if (next.precedence === best.precedence) {
+  //         if (next.endIndex > best.endIndex) return next;
+  //       }
+  //       return best;
+  //     }, matches[0]);
+  //   }
 
 
   {
@@ -49,7 +49,7 @@ parser.defineRules(
   //## Infix operators:   `{lhs} <operator> {rhs}`, eg: `a is 1`
   // NOTE: `operator.applyOperator` MUST return a function which transforms two arguments (`lhs` and `rhs`) into output.
   // NOTE: `precedence` numbers come from Javascript equivalents
-  //		 https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
+  //     https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
   {
     name: "and",
     alias: ["infix_operator"],

@@ -8,10 +8,10 @@ import global from "./utils/global.js";
 
 
 //
-//	# Parsing `ruleSyntax` to create rules automatically.
+//  # Parsing `ruleSyntax` to create rules automatically.
 //
-// TODO:	Better name for `ruleSyntax`
-// TODO:	Use keywords in syntax to make a quick regex-based `test` function for the entire rule
+// TODO:  Better name for `ruleSyntax`
+// TODO:  Use keywords in syntax to make a quick regex-based `test` function for the entire rule
 
 //
 // ## group: parsing syntax
@@ -99,12 +99,12 @@ function parseToken(syntaxStream, rules = [], start = 0) {
   }
 
   switch (syntaxToken) {
-    case "{":	return parseSubrule(syntaxStream, rules, start);
-    case "(":	return parseAlternatives(syntaxStream, rules, start);
-    case "[":	return parseList(syntaxStream, rules, start);
+    case "{":  return parseSubrule(syntaxStream, rules, start);
+    case "(":  return parseAlternatives(syntaxStream, rules, start);
+    case "[":  return parseList(syntaxStream, rules, start);
     case "*":
     case "+":
-    case "?":	return parseRepeat(syntaxStream, rules, start);
+    case "?":  return parseRepeat(syntaxStream, rules, start);
 
     // the following should ALWAYS be consumed by the above
     case "}":
@@ -127,9 +127,9 @@ function parseToken(syntaxStream, rules = [], start = 0) {
 // Match `keyword` in syntax rules.
 // If more than one keyword appears in a row, combines them into a single `Keyword` object.
 // This is pretty safe, unless you have an optional keyword like
-//		`the {identifier} of the? {expression}`
+//    `the {identifier} of the? {expression}`
 // in which case you can put the optional keyword in parens
-//		`the {identifier} of (the?) {expression}`
+//    `the {identifier} of (the?) {expression}`
 //
 // Returns `[ rule, end ]`
 // Throws if invalid.

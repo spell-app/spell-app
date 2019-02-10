@@ -1,5 +1,5 @@
 //
-//	# Rules for if statements.
+//  # Rules for if statements.
 //
 
 import Parser, { ParseError } from "../../Parser";

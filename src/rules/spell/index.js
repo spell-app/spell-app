@@ -23,18 +23,18 @@ export default parser;
 
 // Stick other stuff on `window` for reflection and ad-hoc testing.
 if (typeof window !== "undefined") {
-	Object.assign(window, {
-		Parser,
-		parseRule,
+  Object.assign(window, {
+    Parser,
+    parseRule,
 
-		Rule,
+    Rule,
 
-		Tokenizer,
-		tokenize: Tokenizer.tokenize.bind(Tokenizer),
+    Tokenizer,
+    tokenize: Tokenizer.tokenize.bind(Tokenizer),
 
-		parser,
-		rules: parser.rules,
-		parse: parser.parse.bind(parser),
-		compile: parser.compile.bind(parser),
-	});
+    parser,
+    rules: parser.rules,
+    parse: parser.parse.bind(parser),
+    compile: parser.compile.bind(parser),
+  });
 }

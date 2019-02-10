@@ -1,5 +1,5 @@
 //
-//	# Rules for creating variables, property access, etc
+//  # Rules for creating variables, property access, etc
 //
 
 import Parser from "../../Parser";
@@ -11,7 +11,7 @@ export default parser;
 
 parser.defineRules(
   //
-  //	## Returns
+  //  ## Returns
   //
 
   // Return a value
@@ -36,7 +36,7 @@ parser.defineRules(
   },
 
   //
-  //	## Assignment
+  //  ## Assignment
   //
 
   //TODO: distinguish between `new_identifier` and `scoped_identifier`?

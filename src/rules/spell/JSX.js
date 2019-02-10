@@ -1,5 +1,5 @@
 //
-//	# Rules parsing jsx
+//  # Rules parsing jsx
 //
 import Parser from "../../Parser";
 import Tokenizer from "../../Tokenizer";

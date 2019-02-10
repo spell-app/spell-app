@@ -1,5 +1,5 @@
 //
-//	# Rules for dealing with lists
+//  # Rules for dealing with lists
 //
 
 // TODO: confirm identifiers are plural in some of the below?
@@ -16,21 +16,21 @@ export default parser;
 
 
 // WORKING FROM OTHER RULES (testme)
-//	`the length of <list>`
-//	`<thing> is not? in <list>`
-//	`<list> is not? empty`
-//	`set item 1 of my-list to 'a'`
+//  `the length of <list>`
+//  `<thing> is not? in <list>`
+//  `<list> is not? empty`
+//  `set item 1 of my-list to 'a'`
 
 
-// TODO: 	`create list with <exp>, <exp>, <exp>`
-// TODO:	`duplicate list`
-// TODO:	`duplicate list with <exp>, <exp>, <exp>` ???
-// TODO:	`the size of <list>` => will map to `list.size`...
-//				- install `size` as an alias to `length`?
-// TODO:	`move <thing> to end of <list>` ???
-// TODO:	`Set` for a unique list?
-// TODO:	typed list?
-// TODO:	list which won't take null/undefined
+// TODO:   `create list with <exp>, <exp>, <exp>`
+// TODO:  `duplicate list`
+// TODO:  `duplicate list with <exp>, <exp>, <exp>` ???
+// TODO:  `the size of <list>` => will map to `list.size`...
+//        - install `size` as an alias to `length`?
+// TODO:  `move <thing> to end of <list>` ???
+// TODO:  `Set` for a unique list?
+// TODO:  typed list?
+// TODO:  list which won't take null/undefined
 
 
 parser.defineRules(
@@ -133,7 +133,7 @@ parser.defineRules(
   },
 
   //
-  //	Ordinal numbers (first, second, last, etc).
+  //  Ordinal numbers (first, second, last, etc).
   // TODO: sixty-fifth, two hundred forty ninth... with custom parser?
   //
   {
@@ -290,15 +290,15 @@ parser.defineRules(
 
 
   // Index expression: numeric position in some list.
-  //	e.g.	`card 1 of the pile`
-  //			`card #2 of the pile`
-  //			`the first card of the pile`
+  //  e.g.  `card 1 of the pile`
+  //      `card #2 of the pile`
+  //      `the first card of the pile`
   //
   // NOTE: Negative numeric positions come from the END of the list.
-  //	e.g.	`card -1 of the pile`
+  //  e.g.  `card -1 of the pile`
   //
   // NOTE: Our positions are **1-based** and Javascript is **0-based**.
-  //		 e.g. `item 1 of the array`  = `array[0]`
+  //     e.g. `item 1 of the array`  = `array[0]`
   {
     name: "position_expression",
     alias: "expression",
@@ -520,7 +520,7 @@ skip: true,
   },
 
   //
-  //	Adding to list (in-place)
+  //  Adding to list (in-place)
   //
 
   // Add to beginning of list.
@@ -615,7 +615,7 @@ skip: true,
   },
 
   //
-  //	Removing from list (in-place)
+  //  Removing from list (in-place)
   //
 
   // Empty list.
@@ -746,7 +746,7 @@ skip: true,
 
 
   //
-  //	Random (in-place) list manipulation.
+  //  Random (in-place) list manipulation.
   //
 
   // Reverse list in-place.

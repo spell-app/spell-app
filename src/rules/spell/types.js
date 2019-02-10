@@ -1,5 +1,5 @@
 //
-//	# Rules for defining classes (known as `types`)
+//  # Rules for defining classes (known as `types`)
 //
 
 // TODO: constructor
@@ -18,7 +18,7 @@ export default parser;
 
 parser.defineRules(
   //
-  //	Self-reference
+  //  Self-reference
   //
 
   // TODO: confusing???
@@ -62,7 +62,7 @@ parser.defineRules(
   },
 
   //
-  //	Property access
+  //  Property access
   //
 
   {
@@ -84,7 +84,7 @@ parser.defineRules(
         properties = properties.reverse().join(".");
         return `${expression}.${properties}`;
   // NOTE: the following is safer, but ugly for demo purposes
-  //			return `spell.get(${expression}, ['${properties}'])`;
+  //      return `spell.get(${expression}, ['${properties}'])`;
       }
     },
     tests: [
@@ -124,10 +124,10 @@ parser.defineRules(
 
   //MOVE TO `functions`?
   // Arguments clause for methods
-  //	`with foo` or `with foo and bar and baz`
-  //TODO: {identifier} = {expression}	=> requires `,` instead of `and`
+  //  `with foo` or `with foo and bar and baz`
+  //TODO: {identifier} = {expression}  => requires `,` instead of `and`
   //TODO: `with foo as Type`
-  //TODO:	`with foo...` for splat?
+  //TODO:  `with foo...` for splat?
   {
     name: "args",
     syntax: "with [args:{identifier},]",
@@ -151,7 +151,7 @@ parser.defineRules(
 
 
   // Properties clause: creates an object with one or more property values.
-  //	`foo = 1, bar = 2`
+  //  `foo = 1, bar = 2`
   //TODO: would like to use `and` but that conflicts with "and" operator
   //TODO: don't quote if we don't have to? (ASCII and blacklist only)
   //TOOD: multiple lines if > 2 props?
@@ -273,7 +273,7 @@ parser.defineRules(
 
 
   //
-  //	declare properties
+  //  declare properties
   //
 
   {
@@ -452,11 +452,11 @@ parser.defineRules(
   // Setter.
   // Complains if you specify more than one argument.
   // If you don't pass an explicit argument, we'll assume it's the same as the identifier.
-  // eg;	`set color: set the color of my text to color`
+  // eg;  `set color: set the color of my text to color`
   //
   // TODO: internal getter/setter semantics ala objective C
-  //			`set color: if color is in ["red", "blue"] then set my color to color`
-  //		 => `my color` within setter should automatically translate to `this._color` ???
+  //      `set color: if color is in ["red", "blue"] then set my color to color`
+  //     => `my color` within setter should automatically translate to `this._color` ???
   // TODO: `to set...` ?
   {
     name: "setter",
@@ -550,8 +550,8 @@ parser.defineRules(
   // TODO: `with` clause (will conflict with `word`)
   // TODO: install the action as a special in the parser somehow
   // TODO: create instance function?  or maybe we don't need it:
-  //			`action turn Card over` for an instance is just `turn me over`
-  //			`action add card to deck` => `add me to deck`
+  //      `action turn Card over` for an instance is just `turn me over`
+  //      `action add card to deck` => `add me to deck`
   //TESTME
   {
     name: "declare_action",

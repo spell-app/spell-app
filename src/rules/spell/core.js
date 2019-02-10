@@ -1,5 +1,5 @@
 //
-//	# Core `rules` -- simple datatypes, etc.
+//  # Core `rules` -- simple datatypes, etc.
 //
 // NOTE: many of the below are created as custom Pattern subclasses for debugging.
 //
@@ -94,9 +94,9 @@ parser.defineRules(
       // Add English prepositions to identifier blacklist.
       //
       // Wikipedia "Preposition":
-      //	"Prepositions...are a class of words that
-      //	express spatial or temporal relations  (in, under, towards, before)
-      //	or mark various semantic roles (of, for).
+      //  "Prepositions...are a class of words that
+      //  express spatial or temporal relations  (in, under, towards, before)
+      //  or mark various semantic roles (of, for).
       // TESTME
       "about", "above", "after", "and", "as", "at",
       "before", "behind", "below", "beneath", "beside", "between", "beyond", "by",
@@ -184,17 +184,17 @@ parser.defineRules(
         let type = this.matched;
         switch(type) {
           // Alias `List` to `Array`
-          case "List":		return "Array";
+          case "List":    return "Array";
 
           // special case to take the following as lowercase
-          case "list":		return "Array";
-          case "text":		return "String";
-          case "character":	return "Character";
-          case "number":		return "Number";
-          case "integer":		return "Integer";
-          case "decimal":		return "Decimal";
-          case "boolean":		return "Boolean";
-          case "object":		return "Object";
+          case "list":    return "Array";
+          case "text":    return "String";
+          case "character":  return "Character";
+          case "number":    return "Number";
+          case "integer":    return "Integer";
+          case "decimal":    return "Decimal";
+          case "boolean":    return "Boolean";
+          case "object":    return "Object";
           default:
             return type.replace(/\-/g, "_");
         }

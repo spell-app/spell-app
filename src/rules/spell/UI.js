@@ -1,5 +1,5 @@
 //
-//	# Rules for creating variables, property access, etc
+//  # Rules for creating variables, property access, etc
 //
 
 import Parser from "../../Parser";
