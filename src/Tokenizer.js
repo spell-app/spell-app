@@ -2,16 +2,14 @@ import { getTabs } from "./utils/string";
 
 // GRRR... node doesn't include this???
 // CHECK DIFFERENT NODE VERSIONS...
-if (!(Array.prototype.includes)) {
+if (!Array.prototype.includes) {
   Object.defineProperty(Array.prototype, "includes", {
     value: function(value, start) {
       let index = this.indexOf(value, start);
-      return (index !== -1);
+      return index !== -1;
     }
   });
 }
-
-
 
 // `whitespace` class for normal (non-indent, non-newline) whitespace.
 class whitespace {
@@ -29,14 +27,11 @@ class whitespace {
   }
 }
 
-
 // `indent` class.
 class indent extends whitespace {}
 
-
 // Newline singleton.
 class newline extends whitespace {}
-
 
 //
 //  # Tokenizer
@@ -46,9 +41,8 @@ class newline extends whitespace {}
 // TODO: error checking / reporting, especially in JSX expressions.
 // TODO: have normal `tokenize` stick whitespace elements in the stream, then `tokenizeLines()` takes them out?
 const Tokenizer = {
-
   // Should we warn about anomalous conditions?
-  WARN : false,
+  WARN: false,
 
   // Whitespace constructor.
   Whitespace: whitespace,
@@ -67,7 +61,7 @@ const Tokenizer = {
   //  - `{ type: "text", literal: "'abc'", text: "abc" }
   //  - `{ type: "indent", level: 7 }`
   //  - `{ type: "comment", comment: "string", commentSymbol, whitespace }`
-//TESTME
+  //TESTME
   tokenize(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     // quick return out of range or only whitespace
@@ -81,7 +75,8 @@ const Tokenizer = {
       start = nextStart;
     }
     if (start !== end) {
-      if (Tokenizer.WARN) console.warn("tokenize(): didn't consume: `", text.slice(start, end) + "`");
+      if (Tokenizer.WARN)
+        console.warn("tokenize(): didn't consume: `", text.slice(start, end) + "`");
     }
 
     return results;
@@ -90,7 +85,7 @@ const Tokenizer = {
   // Repeatedly execute a `method` (bound to `this) which returns a `[result, nextStart]` or `undefined`.
   // Places matched results together in `results` array and returns `[results, nextStart]` for the entire set.
   // Stops if `method` doesn't return anything, or if calling `method` is unproductive.
-//TESTME
+  //TESTME
   eatTokens(method, text, start = 0, end, results = []) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -112,19 +107,19 @@ const Tokenizer = {
   },
 
   // Match a single top-level token at `text[start]`.
-//TESTME
+  //TESTME
   matchTopTokens(text, start, end) {
-    return  this.matchWhitespace(text, start, end)
-       || this.matchWord(text, start, end)
-       || this.matchNumber(text, start, end)
-       || this.matchNewline(text, start, end)
-       || this.matchJSXElement(text, start, end)
-       || this.matchText(text, start, end)
-       || this.matchComment(text, start, end)
-       || this.matchSymbol(text, start, end)
-    ;
+    return (
+      this.matchWhitespace(text, start, end) ||
+      this.matchWord(text, start, end) ||
+      this.matchNumber(text, start, end) ||
+      this.matchNewline(text, start, end) ||
+      this.matchJSXElement(text, start, end) ||
+      this.matchText(text, start, end) ||
+      this.matchComment(text, start, end) ||
+      this.matchSymbol(text, start, end)
+    );
   },
-
 
   //
   //  ### Symbol character
@@ -137,9 +132,8 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    return [text[start], start + 1]
+    return [text[start], start + 1];
   },
-
 
   //
   //  ### Whitespace
@@ -159,7 +153,6 @@ const Tokenizer = {
     return whiteSpaceEnd;
   },
 
-
   //
   //  ### Whitespace
   //  NOTE: Whitespace at the beginning of `text` or the beginning of a line
@@ -177,14 +170,11 @@ const Tokenizer = {
 
     let whitespace = text.slice(start, whitespaceEnd);
     let token;
-    if (start === 0 || text[start-1] === "\n")
-      token = new Tokenizer.Indent(whitespace);
-    else
-      token = new Tokenizer.Whitespace(whitespace);
+    if (start === 0 || text[start - 1] === "\n") token = new Tokenizer.Indent(whitespace);
+    else token = new Tokenizer.Whitespace(whitespace);
 
     return [token, whitespaceEnd];
   },
-
 
   //
   //  ### Newline
@@ -200,7 +190,6 @@ const Tokenizer = {
     return [Tokenizer.NEWLINE, start + 1];
   },
 
-
   //
   //  ### Word
   //
@@ -209,7 +198,7 @@ const Tokenizer = {
   // Returns `[word, wordEnd]`.
   // Returns an empty array if couldn't match a word.
   WORD_START: /[A-Za-z]/,
-  WORD_CHAR : /^[\w_-]/,
+  WORD_CHAR: /^[\w_-]/,
   matchWord(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -226,7 +215,6 @@ const Tokenizer = {
     return [word, wordEnd];
   },
 
-
   //
   //  ### Numbers
   //
@@ -234,7 +222,7 @@ const Tokenizer = {
   // Eat a single number.
   // Returns a `Number` if matched.
   NUMBER_START: /[0-9-.]/,
-  NUMBER : /^-?([0-9]*\.)?[0-9]+/,
+  NUMBER: /^-?([0-9]*\.)?[0-9]+/,
   matchNumber(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -249,14 +237,13 @@ const Tokenizer = {
     return [number, start + numberStr.length];
   },
 
-
   //
   //  ### Text literal
   //
 
   // Eat a text literal (starts/ends with `'` or `"`).
   // Returns a `Tokenizer.Text` if matched.
-//TESTME:  not sure the escaping logic is really right...
+  //TESTME:  not sure the escaping logic is really right...
   matchText(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -284,7 +271,7 @@ const Tokenizer = {
 
   // `Text` class for string literals.
   // Pass the literal value, use `.text` to get just the bit inside the quotes.
-  Text : class text {
+  Text: class text {
     constructor(quotedString) {
       this.quotedString = quotedString;
     }
@@ -294,7 +281,7 @@ const Tokenizer = {
       let start = 0;
       let end = string.length;
       if (string[start] === '"' || string[start] === "'") start = 1;
-      if (string[end-1] === '"' || string[end-1] === "'") end = -1;
+      if (string[end - 1] === '"' || string[end - 1] === "'") end = -1;
       return string.slice(start, end);
     }
     toString() {
@@ -308,17 +295,17 @@ const Tokenizer = {
 
   // Eat a comment (until the end of the line).
   // Returns a `Tokenizer.Comment` if matched.
-  COMMENT : /^(##+|--+|\/\/+)(\s*)(.*)/,
+  COMMENT: /^(##+|--+|\/\/+)(\s*)(.*)/,
   matchComment(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
     let commentStart = text.slice(start, start + 2);
-    if (commentStart !== "--" && commentStart !== "\/\/" && commentStart !== "##") return undefined;
+    if (commentStart !== "--" && commentStart !== "//" && commentStart !== "##") return undefined;
 
     // comment eats until the end of the line
     let line = this.getLineAtHead(text, start, end);
-    let commentMatch = line.match(this.COMMENT)
+    let commentMatch = line.match(this.COMMENT);
     if (!commentMatch) return undefined;
 
     let [match, commentSymbol, whitespace, comment] = commentMatch;
@@ -327,9 +314,9 @@ const Tokenizer = {
   },
 
   // Comment class
-//TESTME
-  Comment : class comment {
-    constructor (props) {
+  //TESTME
+  Comment: class comment {
+    constructor(props) {
       Object.assign(this, props);
     }
     toString() {
@@ -337,13 +324,12 @@ const Tokenizer = {
     }
   },
 
-
   //
   //  ### JSX
   //
 
   // Eat a (nested) JSX expression.
-//TESTME
+  //TESTME
   matchJSXElement(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -366,8 +352,8 @@ const Tokenizer = {
   // Returns `[jsxElement, nextStart]` or `undefined`.
   // Use `matchJSXElement()` to match children, end tag, etc.
   // Ignores leading whitespace.
-  JSX_TAG_START : /^<([A-Za-z][\w-\.]*)(\s*\/>|\s*>|\s+)/,
-// TODO: clean this stuff up, maybe with findFirstAtHead?
+  JSX_TAG_START: /^<([A-Za-z][\w-\.]*)(\s*\/>|\s*>|\s+)/,
+  // TODO: clean this stuff up, maybe with findFirstAtHead?
   matchJSXStartTag(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -379,7 +365,7 @@ const Tokenizer = {
     let tagMatch = this.matchExpressionAtHead(this.JSX_TAG_START, text, nextStart, end);
     if (!tagMatch) return undefined;
 
-    let [ matchText, tagName, endBit ] = tagMatch;
+    let [matchText, tagName, endBit] = tagMatch;
     let jsxElement = new Tokenizer.JSXElement(tagName);
     nextStart = nextStart + matchText.length;
 
@@ -392,7 +378,7 @@ const Tokenizer = {
 
     // If we didn't immediately get an end marker, attempt to match attributes
     if (endBit !== ">" && endBit !== "/>") {
-      let [ attrs, attrEnd ] = this.eatTokens(this.matchJSXAttribute, text, nextStart, end);
+      let [attrs, attrEnd] = this.eatTokens(this.matchJSXAttribute, text, nextStart, end);
       jsxElement.attributes = attrs;
       nextStart = attrEnd;
     }
@@ -401,8 +387,7 @@ const Tokenizer = {
     if (text[nextStart] === "/" && text[nextStart + 1] === ">") {
       endBit = "/>";
       nextStart += 2;
-    }
-    else if (text[nextStart] === ">") {
+    } else if (text[nextStart] === ">") {
       endBit = text[nextStart];
       nextStart += 1;
     }
@@ -416,7 +401,11 @@ const Tokenizer = {
     // advance past `>`
     if (endBit !== ">") {
       if (Tokenizer.WARN) {
-        console.warn("Missing expected end `>` for jsxElement", jsxElement, "`"+text.slice(start, nextStart)+"`");
+        console.warn(
+          "Missing expected end `>` for jsxElement",
+          jsxElement,
+          "`" + text.slice(start, nextStart) + "`"
+        );
       }
       jsxElement.error = "No end >";
       return [jsxElement, nextStart];
@@ -425,9 +414,8 @@ const Tokenizer = {
     return [jsxElement, nextStart];
   },
 
-
   // JSX element class
-  JSXElement : class jsxElement {
+  JSXElement: class jsxElement {
     constructor(tagName, attributes, children) {
       this.tagName = tagName;
       if (attributes) this.attributes = attributes;
@@ -435,40 +423,48 @@ const Tokenizer = {
     }
 
     // Return attributes as a map.
-//TESTME
+    //TESTME
     get attrs() {
       let attrs = {};
-      if (this.attributes) this.attributes.forEach(attr => {
-        // ignore unnamed attributes
-        if (attr.name) attrs[attr.name] = attr.value
-      });
+      if (this.attributes)
+        this.attributes.forEach(attr => {
+          // ignore unnamed attributes
+          if (attr.name) attrs[attr.name] = attr.value;
+        });
       return attrs;
     }
 
     // Return our attributes as a string (used in toString only)
-//TESTME
+    //TESTME
     get attrsAsString() {
       if (!this.attributes) return "";
-      return " " + this.attributes.map( ({ name, value }) => {
-        if (value === undefined) return "true";
-        // convert value array (tokens) to string
-        // TODO: this will want to be smarter...
-        if (Array.isArray(value)) value = `{${value.join(" ")}}`;
-        return `name=${value}`;
-      }).join(" ");
+      return (
+        " " +
+        this.attributes
+          .map(({ name, value }) => {
+            if (value === undefined) return "true";
+            // convert value array (tokens) to string
+            // TODO: this will want to be smarter...
+            if (Array.isArray(value)) value = `{${value.join(" ")}}`;
+            return `name=${value}`;
+          })
+          .join(" ")
+      );
     }
 
     // Return our children as a string  (used in toString only)
-//TESTME
+    //TESTME
     get childrenAsString() {
       if (!this.children) return "";
-      return this.children.map(child => {
-        if (Array.isArray(child)) return `{${child.join(" ")}}`;
-        return "" + child;
-      }).join("");
+      return this.children
+        .map(child => {
+          if (Array.isArray(child)) return `{${child.join(" ")}}`;
+          return "" + child;
+        })
+        .join("");
     }
 
-//TESTME
+    //TESTME
     toString() {
       let attrs = this.attrsAsString;
       let children = this.childrenAsString;
@@ -477,7 +473,6 @@ const Tokenizer = {
     }
   },
 
-
   //
   //  ### JSX children
   //
@@ -485,7 +480,7 @@ const Tokenizer = {
   // Match JSX element children of `<tagName>` at `text[start]`.
   // Matches nested children and stops after matching end tag: `</tagName>`.
   // Returns `[children, nextStart]`.
-//TESTME
+  //TESTME
   matchJSXChildren(tagName, text, start, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -495,7 +490,7 @@ const Tokenizer = {
     let endTag = `</${tagName}>`;
 
     let nextStart = start;
-    while(true) {
+    while (true) {
       let result = this.matchJSXChild(endTag, text, nextStart, end);
       if (!result) break;
 
@@ -503,18 +498,19 @@ const Tokenizer = {
       nextStart = childEnd;
       // If we got the endTag, update nesting and break out of loop if nesting !== 0
       if (child === endTag) {
-        nesting --;
+        nesting--;
         if (nesting === 0) break;
         continue;
-      }
-      else {
+      } else {
         if (child) children.push(child);
       }
     }
-// TODO: how to surface this error???
+    // TODO: how to surface this error???
     if (nesting !== 0) {
       if (Tokenizer.WARN) {
-        console.warn(`matchJSXChildren(${text.slice(start, nextStart + 10)}: didn't match end child!`);
+        console.warn(
+          `matchJSXChildren(${text.slice(start, nextStart + 10)}: didn't match end child!`
+        );
       }
     }
     return [children, nextStart];
@@ -526,11 +522,13 @@ const Tokenizer = {
   //  - nested JSX element
   //  - (anything else) as jsxText expression.
   matchJSXChild(endTag, text, start = 0, end) {
-    return this.matchJSXEndTag(endTag, text, start, end)
-      || this.matchJSXExpression(text, start, end)
-      || this.matchJSXElement(text, start, end)
-// TODO: newline and indent?
-      || this.matchJSXText(text, start, end);
+    return (
+      this.matchJSXEndTag(endTag, text, start, end) ||
+      this.matchJSXExpression(text, start, end) ||
+      this.matchJSXElement(text, start, end) ||
+      // TODO: newline and indent?
+      this.matchJSXText(text, start, end)
+    );
   },
 
   // Attempt to match a specific end tag.
@@ -544,14 +542,13 @@ const Tokenizer = {
     return [endTag, nextStart + endTag.length];
   },
 
-
   //
   //  ### JSX attributes
   //
 
   // Match a single JSX element attribute as `<attr>={<value>}`
-// TODO: {...xxx}
-  JSX_ATTRIBUTE_START : /^\s*([\w-]+\b)\s*(=?)\s*/,
+  // TODO: {...xxx}
+  JSX_ATTRIBUTE_START: /^\s*([\w-]+\b)\s*(=?)\s*/,
   matchJSXAttribute(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -563,7 +560,7 @@ const Tokenizer = {
     let result = this.matchExpressionAtHead(this.JSX_ATTRIBUTE_START, text, start, end);
     if (!result) return undefined;
 
-    let [ match, name, equals ] = result;
+    let [match, name, equals] = result;
     let nextStart = start + match.length;
     let attribute = new Tokenizer.JSXAttribute(name);
 
@@ -583,12 +580,13 @@ const Tokenizer = {
   // Match a value expression for a JSX element attribute:
   // NOTE: we will be called immediately after the `=` (and subsequent whitespace).
   matchJSXAttributeValue(text, start, end) {
-    return this.matchText(text, start, end)
-      || this.matchJSXExpression(text, start, end)
-      || this.matchJSXElement(text, start, end)
-      || this.matchJSXAttributeValueIdentifier(text, start, end)
-      || this.matchNumber(text, start, end)
-    ;
+    return (
+      this.matchText(text, start, end) ||
+      this.matchJSXExpression(text, start, end) ||
+      this.matchJSXElement(text, start, end) ||
+      this.matchJSXAttributeValueIdentifier(text, start, end) ||
+      this.matchNumber(text, start, end)
+    );
   },
 
   // Match a single identifer as a JSX attribute value.
@@ -597,7 +595,7 @@ const Tokenizer = {
     let result = this.matchWord(text, start, end);
     if (!result) return;
 
-    let [ word, nextStart ] = result;
+    let [word, nextStart] = result;
     let token = new Tokenizer.JSXExpression(word);
     return [token, nextStart];
   },
@@ -611,7 +609,7 @@ const Tokenizer = {
   //    - `<....>`      // JSX element.
   //    - `1`        // Number.  Note: this is an extension to JSX.
 
-  JSXAttribute : class jsxAttribute {
+  JSXAttribute: class jsxAttribute {
     constructor(name, value) {
       this.name = name;
       if (value !== undefined) this.value = value;
@@ -622,14 +620,13 @@ const Tokenizer = {
     }
   },
 
-
   // Match a JSX expression enclosed in curly braces, eg:  `{ ... }`.
   //  Handles nested curlies, quotes, etc.
   // Returns array of tokens of internal match.
   // Ignores leading whitespace.
-//TODO: newlines/indents???
-//TODO: {...xxx}
-//TESTME
+  //TODO: newlines/indents???
+  //TODO: {...xxx}
+  //TESTME
   matchJSXExpression(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -647,7 +644,7 @@ const Tokenizer = {
   },
 
   // JSX expression, composed of inline tokens which should yield an `expression`.
-  JSXExpression : class jsxExpression {
+  JSXExpression: class jsxExpression {
     constructor(contents) {
       this.contents = contents || "";
     }
@@ -659,8 +656,8 @@ const Tokenizer = {
 
   // Match JSXText until the one of `{`, `<`, `>` or `}`.
   // NOTE: INCLUDES leading / trailing whitespace.
-  JSX_TEXT_END_CHARS : ["{", "<", ">", "}"],
-//TESTME
+  JSX_TEXT_END_CHARS: ["{", "<", ">", "}"],
+  //TESTME
   matchJSXText(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -674,7 +671,9 @@ const Tokenizer = {
     // if no match, we've got some sort of error
     if (endIndex === undefined) {
       if (Tokenizer.WARN) {
-        console.warn("matchJSXText("+text.slice(start, start + 50)+"): JSX seems to be unbalanced.");
+        console.warn(
+          "matchJSXText(" + text.slice(start, start + 50) + "): JSX seems to be unbalanced."
+        );
       }
       return undefined;
     }
@@ -684,9 +683,6 @@ const Tokenizer = {
     return [jsxText, endIndex];
   },
 
-
-
-
   //
   //  ## Utility functions
   //
@@ -694,7 +690,7 @@ const Tokenizer = {
   // Return characters up to, but not including, the next newline char after `start`.
   // If `start` is a newline char or start >= end, returns empty string.
   // If at the end of the string (eg: no more newlines), returns from start to end.
-//TESTME
+  //TESTME
   getLineAtHead(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return "";
@@ -705,7 +701,7 @@ const Tokenizer = {
   },
 
   // Match a multi-char string starting at `text[start]`.
-//TESTME
+  //TESTME
   matchStringAtHead(string, text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -715,12 +711,11 @@ const Tokenizer = {
     return string === text.slice(start, stringEnd);
   },
 
-
   // Match a regular expression starting at `text[start]`, returning the match.
   // Returns `null` if no match.
   //
   // NOTE: The expression MUST start with `/^.../`
-//TESTME
+  //TESTME
   matchExpressionAtHead(expression, text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -738,7 +733,7 @@ const Tokenizer = {
   //    we'll skip scanning until we find a matching quote.
   //
   //  eg:  `findMatchingAtHead("{", "}", "{aa{a}aa}")` => 8
-//TESTME
+  //TESTME
   findMatchingAtHead(startDelimiter, endDelimiter, text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -762,27 +757,22 @@ const Tokenizer = {
       else if (char === "'" || char === '"') {
         let [token, afterQuote] = this.matchText(text, current, end) || [];
         current = afterQuote;
-        continue;  // continue so we don't add 1 to curent below
+        continue; // continue so we don't add 1 to curent below
       }
       // If backslash, skip an extra char if it's either delimiter or a quote
       else if (char === "\\") {
         char = text[current + 1];
-        if (char === startDelimiter
-         || char === endDelimiter
-         || char === "'"
-         || char === '"'
-        ) {
-          current++;;
+        if (char === startDelimiter || char === endDelimiter || char === "'" || char === '"') {
+          current++;
         }
       }
       current++;
     }
   },
 
-
   // Return the index of the first NON-ESCAPED character in `chars` after `text[start]`.
   // Returns `undefined` if we didn't find a match.
-//TESTME
+  //TESTME
   findFirstAtHead(chars, text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -791,17 +781,16 @@ const Tokenizer = {
       let char = text[start];
       if (chars.includes(char)) return start;
       // if we got an escape char, ignore the next char if it's in `chars`
-      if (char === "\\" && chars.includes(text[start+1])) start++;
+      if (char === "\\" && chars.includes(text[start + 1])) start++;
       start++;
     }
     if (start >= end) return undefined;
     return start;
   },
 
-
-//
-// ### Utility
-//
+  //
+  // ### Utility
+  //
 
   // Given a set of tokens, slice whitespace (indent, NEWLINE or normal whitespace) from the front.
   removeLeadingWhitespace(tokens, start = 0) {
@@ -815,22 +804,22 @@ const Tokenizer = {
     return tokens.filter(token => !Tokenizer.isNormalWhitespace(token));
   },
 
-
   // Return `true` if `token` is "normal" whitespce (not a newline or indent)
   isNormalWhitespace(token) {
-    return token instanceof Tokenizer.Whitespace
-      && !(token instanceof Tokenizer.Indent)
-      && (token !== Tokenizer.NEWLINE);
+    return (
+      token instanceof Tokenizer.Whitespace &&
+      !(token instanceof Tokenizer.Indent) &&
+      token !== Tokenizer.NEWLINE
+    );
   },
 
-
-//
-// ### Block / indent processing
-//
+  //
+  // ### Block / indent processing
+  //
 
   // Simple block class for `breakIntoBlocks`.
   Block: class block {
-    constructor(props){
+    constructor(props) {
       Object.assign(this, props);
       if (!this.contents) this.contents = [];
     }
@@ -897,7 +886,6 @@ const Tokenizer = {
     }
   },
 
-
   // Return the indent of a line of tokens.
   // Returns `0` if not indented.
   // Returns `undefined` if a blank line.
@@ -913,7 +901,7 @@ const Tokenizer = {
     // restrict to tokens of interest
     tokens = tokens.slice(start, end);
     // remove "normal" whitespace
-//TODO: better to leave this to consumers???
+    //TODO: better to leave this to consumers???
     tokens = Tokenizer.removeNormalWhitespace(tokens);
 
     // break into lines & return early if no lines
@@ -930,7 +918,7 @@ const Tokenizer = {
     // stack of blocks
     let stack = [block];
 
-    lines.forEach( (line, index) => {
+    lines.forEach((line, index) => {
       // Remove leading whitespace (eg: indents)
       line = Tokenizer.removeLeadingWhitespace(line);
 
@@ -958,11 +946,7 @@ const Tokenizer = {
     });
 
     return block;
-  },
-
-
-
-
+  }
 };
 
 export default Tokenizer;

@@ -19,7 +19,7 @@ export default function unitTestModuleRules(parser, moduleName) {
     if (!rules || rules.lenth === 0) {
       test("no testable rules found", () => {
         expect(false).toBe(true);
-      })
+      });
       return;
     }
 
@@ -27,10 +27,11 @@ export default function unitTestModuleRules(parser, moduleName) {
   });
 
   function getTestableRulesForModule(moduleName) {
-    const testableRules = !!parser.rules._testable_
-        && (parser.rules._testable_ instanceof Rule.Alternatives)
-        && Array.isArray(parser.rules._testable_.rules)
-        && parser.rules._testable_.rules;
+    const testableRules =
+      !!parser.rules._testable_ &&
+      parser.rules._testable_ instanceof Rule.Alternatives &&
+      Array.isArray(parser.rules._testable_.rules) &&
+      parser.rules._testable_.rules;
 
     if (!testableRules) return undefined;
 
@@ -38,15 +39,13 @@ export default function unitTestModuleRules(parser, moduleName) {
     return modules[moduleName];
   }
 
-
   function executeRuleTests({ name, tests }) {
     describe(`rule '${name}'`, () => {
       tests.forEach(test => {
         if (test.skip) return;
         if (test.title) {
           describe(test.title, () => executeTestBlock(name, test));
-        }
-        else executeTestBlock(name, test)
+        } else executeTestBlock(name, test);
       });
     });
   }
@@ -63,8 +62,8 @@ export default function unitTestModuleRules(parser, moduleName) {
     tests = tests
       .map(test => {
         if (Array.isArray(test)) {
-          const [ input, output ] = test;
-          test = { title: showWhitespace(input), input, output }
+          const [input, output] = test;
+          test = { title: showWhitespace(input), input, output };
         }
         // skip blank tests or where `skip` is true
         if (test.skip || test.input === "") return undefined;
@@ -80,7 +79,8 @@ export default function unitTestModuleRules(parser, moduleName) {
 
     // If they all passed, output number of elided tests
     if (!showAll && results.every(Boolean)) {
-      test(`(${results.length} successful test${results.length !== 1 ? "s" : ""})`, () => expect(true).toBe(true));
+      test(`(${results.length} successful test${results.length !== 1 ? "s" : ""})`, () =>
+        expect(true).toBe(true));
     }
   }
 
@@ -89,9 +89,7 @@ export default function unitTestModuleRules(parser, moduleName) {
     // only output the test if the test worked as expected or `showAll` is true
     if (result !== output || showAll) {
       // Show returns and tabs in the output display
-      test(title, () =>
-        expect(showWhitespace(result)).toBe(showWhitespace(output))
-      );
+      test(title, () => expect(showWhitespace(result)).toBe(showWhitespace(output)));
     }
     return result === output;
   }
@@ -104,6 +102,4 @@ export default function unitTestModuleRules(parser, moduleName) {
       return e;
     }
   }
-
 }
-

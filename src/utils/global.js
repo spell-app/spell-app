@@ -8,22 +8,21 @@
 
 let global_identifier;
 if (typeof global !== "undefined") {
-//  console.log("Running in node");
+  //  console.log("Running in node");
   global_identifier = global;
 }
 
 if (typeof window !== "undefined") {
-//  console.log("Running in a web browser");
+  //  console.log("Running in a web browser");
   window.global = window;
   global_identifier = window;
 }
 
 if (typeof self !== "undefined") {
-//  console.log("Running in a web worker");
+  //  console.log("Running in a web worker");
   self.global = self;
   global_identifier = self;
 }
 
 // Export for consumption by import.
 export default global_identifier;
-

@@ -37,14 +37,14 @@ export default class Parser {
     Object.assign(this, properties);
   }
 
-//
-//### Parsing
-//
+  //
+  //### Parsing
+  //
   // Parse `ruleName` rule at head of `text`.
   // If you pass only one argument, we'll assume that's `text` and you want to match `statements`.
   // Handles optional and repeating rules as well as eating whitespace.
   // Returns result of parse.
-//TESTME
+  //TESTME
   parse(ruleName, text) {
     // If only one argument, assume that's the text and parse `statements`
     if (arguments.length === 1) {
@@ -74,12 +74,10 @@ export default class Parser {
     return result;
   }
 
-
-
   // Parse `text` and return the resulting source code.
   //  - if one string argument, compiles as "statements"
   // Throws if not parseable.
-//TESTME
+  //TESTME
   compile(ruleName, text) {
     // If only one argument, assume that's the text and parse `statements`
     if (arguments.length === 1) {
@@ -92,7 +90,6 @@ export default class Parser {
     }
     return result.toSource(this);
   }
-
 
   // Parse a named rule (defined in this parser or in any of our `imports`), returning the "best" match.
   // Returns `undefined` if no match.
@@ -111,18 +108,17 @@ export default class Parser {
   test(rule, tokens, start, end) {
     if (typeof rule === "string") {
       rule = this.rules[rule];
-      if (!rule) return undefined;    // TODO: throw?
+      if (!rule) return undefined; // TODO: throw?
     }
     return rule.test(this, tokens, start, end);
   }
 
-
-//
-// ###   Imports
-//    Parsers can depend on other parsers for additional `rules`.
-//    Imports are lazy-bound into `parser.rules` as necessary.
-//    We assume the top-level parser for a language will include all necessary imports automatically.
-//
+  //
+  // ###   Imports
+  //    Parsers can depend on other parsers for additional `rules`.
+  //    Imports are lazy-bound into `parser.rules` as necessary.
+  //    We assume the top-level parser for a language will include all necessary imports automatically.
+  //
 
   // Add one or more named imports to this parser.
   // Imports increase in priority the later they are in the list.
@@ -138,11 +134,11 @@ export default class Parser {
     delete this.__rules;
   }
 
-//
-// ### Rules
-//    List of all known rules for this parser.
-//    You can access named rules as `parser.rules["ruleName"]`
-//
+  //
+  // ### Rules
+  //    List of all known rules for this parser.
+  //    You can access named rules as `parser.rules["ruleName"]`
+  //
   // Start with an empty map of rules.
   _rules = {};
 
@@ -150,7 +146,7 @@ export default class Parser {
   // NOTE: We memoize this, so make sure to clear `__rules` if you're manipulating rules or imports!
   get rules() {
     if (!this.__rules) {
-      const output = this.__rules = {};
+      const output = (this.__rules = {});
       // Get all imported parsers, with us last
       const imports = [this].concat(this.imports.map(Parser.forModule));
 
@@ -178,7 +174,7 @@ export default class Parser {
 
     // If we got an array of `ruleName`s, recursively add under each name with the same `rule`.
     if (Array.isArray(ruleName)) {
-      ruleName.forEach(ruleName => this.addRule(ruleName, rule) );
+      ruleName.forEach(ruleName => this.addRule(ruleName, rule));
       return rule;
     }
 
@@ -244,9 +240,7 @@ export default class Parser {
     const names = [props.name].concat(props.alias || []);
 
     // Instantiate or parse to create rules to work with
-    const rules = props.syntax
-      ? parseRule(props.syntax, constructor)
-      : [ new constructor() ]
+    const rules = props.syntax ? parseRule(props.syntax, constructor) : [new constructor()];
     if (!rules) throw new ParseError(`defineRule(${props.syntax}): didnt get rules back`);
 
     // Sometimes `parseRule` will give us an array back, normalize to always have an array
@@ -260,10 +254,9 @@ export default class Parser {
     }
   }
 
-
-//
-// ### Parser registry.
-//
+  //
+  // ### Parser registry.
+  //
   static REGISTRY = {};
 
   // Get a parser for a given `contextName`.
@@ -275,14 +268,13 @@ export default class Parser {
     return Parser.REGISTRY[module];
   }
 
-
-//
-// ## Utility methods
-//
+  //
+  // ## Utility methods
+  //
 
   // Merge `rule` into `map` of rules by `ruleName`.
   // If we already have a rule with that name, we'll add it as an alternative.
-//TESTME
+  //TESTME
   static mergeRule(map, ruleName, rule) {
     let existing = map[ruleName];
     if (!existing) {
@@ -293,10 +285,10 @@ export default class Parser {
     // If merging with anything other than a `Group`,
     //  create a `Group` and add the existing rule to that
     if (!(existing instanceof Rule.Group)) {
-      const Group = cloneClass(Rule.Group, ruleName+"_group");
+      const Group = cloneClass(Rule.Group, ruleName + "_group");
       map[ruleName] = new Group({
         group: ruleName,
-        rules: [ existing ]
+        rules: [existing]
       });
       existing = map[ruleName];
     }
@@ -304,8 +296,7 @@ export default class Parser {
     // If BOTH are groups, we can safely mush them together
     if (rule instanceof Rule.Group) {
       existing.addRule(...rule.rules);
-    }
-    else {
+    } else {
       existing.addRule(rule);
     }
   }
@@ -325,12 +316,10 @@ export default class Parser {
         nested = true;
       }
       if (token === endToken) {
-        if (nesting === 0)
-          return { start, end, slice: tokens.slice(start+1, end), nested };
+        if (nesting === 0) return { start, end, slice: tokens.slice(start + 1, end), nested };
         nesting--;
       }
     }
     throw new ParseError(`Couldn't find matching '${endToken}'s starting at item ${start}`);
   }
 }
-

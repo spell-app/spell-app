@@ -18,7 +18,6 @@ import Tokenizer from "./Tokenizer.js";
 import global from "./utils/global";
 import { isWhitespace } from "./utils/string";
 
-
 // Abstract Rule class.
 // TODOC
 export default class Rule {
@@ -31,9 +30,9 @@ export default class Rule {
     return new this.constructor(this, props);
   }
 
-//
-//  Parsing primitives -- you MUST implement these in your subclasses!
-//
+  //
+  //  Parsing primitives -- you MUST implement these in your subclasses!
+  //
 
   // Attempt to match this rule between `start` and `end` of `tokens`.
   // Returns results of the parse or `undefined`.
@@ -51,29 +50,26 @@ export default class Rule {
     return undefined;
   }
 
-//
-// ## output as source
-//
+  //
+  // ## output as source
+  //
 
   // Output value for this INSTANTIATED rule as source.
   toSource() {
     return this.matched;
   }
 
-
-//
-// ## output as structure:
-//
+  //
+  // ## output as structure:
+  //
   toStructure() {
     return undefined;
   }
 
-//
-// ## reflection
-//
-
+  //
+  // ## reflection
+  //
 }
-
 
 // Abstract rule for one or more sequential literal values to match.
 // `rule.literals` is the literal string or array of literal strings to match.
@@ -112,7 +108,7 @@ Rule.Literals = class literals extends Rule {
   // Match our `literals` between `start` and `end` of tokens.
   matchesStartingAt(tokens, start = 0, end = tokens.length) {
     if (this.literals.length === 1) return tokens[start] === this.literals[0];
-    return this.literals.every((literal, i) => (start + i < end) && (literal === tokens[start + i]));
+    return this.literals.every((literal, i) => start + i < end && literal === tokens[start + i]);
   }
 
   toSource() {
@@ -120,21 +116,18 @@ Rule.Literals = class literals extends Rule {
   }
 
   toSyntax() {
-    return `${this.literals.join(this.literalSeparator || "")}${this.optional ? '?' : ''}`;
+    return `${this.literals.join(this.literalSeparator || "")}${this.optional ? "?" : ""}`;
   }
-}
+};
 
 // One or more literal symbols: `<`, `%` etc.
 // Symbols join WITHOUT spaces.
-Rule.Symbols = class symbols extends Rule.Literals {}
-
+Rule.Symbols = class symbols extends Rule.Literals {};
 
 // One or more literal keywords.
 // Keywords join WITH spaces.
-Rule.Keywords = class keywords extends Rule.Literals {}
+Rule.Keywords = class keywords extends Rule.Literals {};
 Object.defineProperty(Rule.Keywords.prototype, "literalSeparator", { value: " " });
-
-
 
 // Regex pattern to match a SINGLE token.
 // `rule.pattern` is the regular expression to match.
@@ -172,8 +165,7 @@ Rule.Pattern = class pattern extends Rule {
   toSyntax() {
     return this.pattern.source;
   }
-}
-
+};
 
 // Subrule -- name of another rule to be called.
 // `rule.subrule` is the name of the rule in `parser.rules`.
@@ -194,10 +186,9 @@ Rule.Subrule = class subrule extends Rule {
   }
 
   toSyntax() {
-    return `{${this.argument ? this.argument+":" : ""}${this.subrule}}${this.optional ? '?' : ''}`;
+    return `{${this.argument ? this.argument + ":" : ""}${this.subrule}}${this.optional ? "?" : ""}`;
   }
-}
-
+};
 
 // Sequence of rules to match.
 //  `rule.rules` is the array of rules to match.
@@ -231,8 +222,9 @@ Rule.Sequence = class sequence extends Rule {
 
     let matched = [];
     let nextStart = start;
-    let index = 0, rule = undefined;
-    while (rule = this.rules[index++]) {
+    let index = 0,
+      rule = undefined;
+    while ((rule = this.rules[index++])) {
       let match = rule.parse(parser, tokens, nextStart, end, stack);
       if (!match && !rule.optional) return undefined;
       if (match) {
@@ -247,8 +239,7 @@ Rule.Sequence = class sequence extends Rule {
     });
   }
 
-
-//TODOC
+  //TODOC
   // "gather" arguments in preparation to call `toSource()`
   // Only callable after parse is completed.
   // Returns an object with properties from the `matched` array indexed by one of the following:
@@ -262,12 +253,12 @@ Rule.Sequence = class sequence extends Rule {
     return results;
 
     function addResults(results, matched) {
-      let index = 0, match = undefined;
-      while (match = matched[index++]) {
+      let index = 0,
+        match = undefined;
+      while ((match = matched[index++])) {
         if (match.promote) {
           addResults(results, match.matched);
-        }
-        else {
+        } else {
           const sourceName = match.argument || match.group || match.name;
           const matchName = "_" + sourceName;
           const source = match.toSource();
@@ -278,9 +269,8 @@ Rule.Sequence = class sequence extends Rule {
               results[sourceName] = [results[sourceName]];
             }
             results[matchName].push(match);
-            results[sourceName].push(source)
-          }
-          else {
+            results[sourceName].push(source);
+          } else {
             results[matchName] = match;
             results[sourceName] = source;
           }
@@ -293,11 +283,9 @@ Rule.Sequence = class sequence extends Rule {
   // Echo this rule back out.
   toSyntax() {
     const rules = this.rules.map(rule => rule.toSyntax());
-    return `${this.rules.join(" ")}${this.optional ? '?' : ''}`;
+    return `${this.rules.join(" ")}${this.optional ? "?" : ""}`;
   }
-
-}
-
+};
 
 // Alternative syntax, matching one of a number of different rules.
 // The result of a parse is the longest rule that actually matched.
@@ -316,8 +304,9 @@ Rule.Alternatives = class alternatives extends Rule {
   // NOTE: this should only be called if we're specified as a `testRule`
   //     and then only if all of our rules are deterministic.
   test(parser, tokens, start = 0, end) {
-    let index = 0, rule = undefined;
-    while (rule = this.rules[index++]) {
+    let index = 0,
+      rule = undefined;
+    while ((rule = this.rules[index++])) {
       if (rule.test(parser, tokens, start, end)) return true;
     }
     return false;
@@ -326,8 +315,9 @@ Rule.Alternatives = class alternatives extends Rule {
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(parser, tokens, start = 0, end, stack) {
     let matches = [];
-    let index = 0, rule = undefined;
-    while (rule = this.rules[index++]) {
+    let index = 0,
+      rule = undefined;
+    while ((rule = this.rules[index++])) {
       let match = rule.parse(parser, tokens, start, end, stack);
       if (match) matches.push(match);
     }
@@ -339,12 +329,12 @@ Rule.Alternatives = class alternatives extends Rule {
     //  console.info(this.argument || this.group, matches, matches.map(match => match.matchedText));
     // }
 
-    let bestMatch = (matches.length === 1 ? matches[0] : this.getBestMatch(matches));
+    let bestMatch = matches.length === 1 ? matches[0] : this.getBestMatch(matches);
 
     // assign `argName` or `group` for `results`
     if (this.argument) bestMatch.argument = this.argument;
     else if (this.group) bestMatch.group = this.group;
-//TODO: other things to copy here???
+    //TODO: other things to copy here???
 
     return bestMatch;
   }
@@ -353,7 +343,7 @@ Rule.Alternatives = class alternatives extends Rule {
   // Default is to return the longest match.
   // Implement something else to do, eg, precedence rules.
   getBestMatch(matches) {
-    return matches.reduce(function (best, current) {
+    return matches.reduce(function(best, current) {
       if (current.nextStart > best.nextStart) return current;
       return best;
     }, matches[0]);
@@ -365,7 +355,7 @@ Rule.Alternatives = class alternatives extends Rule {
 
   toSyntax() {
     const rules = this.rules.map(rule => rule.toSyntax()).join("|");
-    return `(${this.argument ? this.argument+":" : ""}${rules})${this.optional ? '?' : ''}`;
+    return `(${this.argument ? this.argument + ":" : ""}${rules})${this.optional ? "?" : ""}`;
   }
 };
 
@@ -374,8 +364,7 @@ Rule.Alternatives = class alternatives extends Rule {
 // This lets us distinguish
 //  - actually defining a semantically-meaning "alternatives" and
 //  - smooshing rules together because they share the same name
-Rule.Group = class group extends Rule.Alternatives {}
-
+Rule.Group = class group extends Rule.Alternatives {};
 
 // Repeating rule.
 //  `this.repeat` is the rule that repeats.
@@ -412,14 +401,13 @@ Rule.Repeat = class repeat extends Rule {
   }
 
   toSyntax() {
-    let isCompoundRule = (this.repeat instanceof Rule.Sequence)
-      || (this.repeat instanceof Rule.Literals && this.repeat.literals.length > 1);
+    let isCompoundRule =
+      this.repeat instanceof Rule.Sequence || (this.repeat instanceof Rule.Literals && this.repeat.literals.length > 1);
     const repeat = this.repeat.toSyntax();
     const rule = isCompoundRule ? `(${repeat})` : `${repeat}`;
-    return `${rule}${this.optional ? '*' : '+'}`;
+    return `${rule}${this.optional ? "*" : "+"}`;
   }
-}
-
+};
 
 // List match rule:   `[<item><delimiter>]`. eg" `[{number},]` to match `1,2,3`
 //  `rule.item` is the rule for each item,
@@ -433,7 +421,7 @@ Rule.Repeat = class repeat extends Rule {
 Rule.List = class list extends Rule {
   parse(parser, tokens, start = 0, end, stack) {
     // ensure item and delimiter are optional so we don't barf in `parseRule`
-//TODO: ???
+    //TODO: ???
     this.item.optional = true;
     this.delimiter.optional = true;
 
@@ -463,35 +451,31 @@ Rule.List = class list extends Rule {
   }
 
   // Returns JS Array of matched items as source.
-//TODO: `JSDelimiter` to return as a single string?
+  //TODO: `JSDelimiter` to return as a single string?
   toSource() {
     if (!this.matched) return [];
-    return this.matched.map( match => match.toSource() );
+    return this.matched.map(match => match.toSource());
   }
 
   toSyntax() {
     const item = this.item.toSyntax();
     const delimiter = this.delimiter.toSyntax();
-    return `[${this.argument ? this.argument+":" : ""}${item} ${delimiter}]${this.optional ? '?' : ''}`;
+    return `[${this.argument ? this.argument + ":" : ""}${item} ${delimiter}]${this.optional ? "?" : ""}`;
   }
 };
-
-
 
 // A block is used to parse a nested block of statements.
 // Abstract class.
 Rule.Block = class block extends Rule.Sequence {
-
   // Parse the entire `block`, returning results.
   parseBlock(parser, block, indent = 0) {
     let matched = [];
-//console.warn("block:", block);
+    //console.warn("block:", block);
     block.contents.forEach((item, index) => {
       let result;
       if (item.length === 0) {
         matched.push(new Rule.BlankLine());
-      }
-      else if (item instanceof Tokenizer.Block) {
+      } else if (item instanceof Tokenizer.Block) {
         // if the last matched item wants to eat a block, give it the block
         let last = matched[matched.length - 1];
         if (last.parseBlock) {
@@ -502,8 +486,7 @@ Rule.Block = class block extends Rule.Sequence {
           let block = this.parseBlock(parser, item, indent + 1);
           if (block !== undefined) matched.push(block);
         }
-      }
-      else {
+      } else {
         matched = matched.concat(this.parseStatement(parser, item));
       }
     });
@@ -520,15 +503,16 @@ Rule.Block = class block extends Rule.Sequence {
   // Returns array of results.
   parseStatement(parser, tokens) {
     let results = [];
-    let start = 0, end = tokens.length;
+    let start = 0,
+      end = tokens.length;
     let statement, comment;
 
     // check for an indent at the start of the line
     if (tokens[start] instanceof Tokenizer.Whitespace) start++;
 
     // check for a comment at the end of the tokens
-    if (tokens[end-1] instanceof Tokenizer.Comment) {
-      comment = parser.parseNamedRule("comment", tokens, end-1, end, undefined, "parseStatement");
+    if (tokens[end - 1] instanceof Tokenizer.Comment) {
+      comment = parser.parseNamedRule("comment", tokens, end - 1, end, undefined, "parseStatement");
       // add comment FIRST if found
       results.push(comment);
       end--;
@@ -547,8 +531,8 @@ Rule.Block = class block extends Rule.Sequence {
     // complain if we can't parse the entire line!
     else if (statement && statement.nextStart !== end) {
       let error = new Rule.StatementParseError({
-        parsed : tokens.slice(start, statement.nextStart).join(" "),
-        unparsed : tokens.slice(statement.nextStart, end).join(" ")
+        parsed: tokens.slice(start, statement.nextStart).join(" "),
+        unparsed: tokens.slice(statement.nextStart, end).join(" ")
       });
       results.push(error);
     }
@@ -563,13 +547,14 @@ Rule.Block = class block extends Rule.Sequence {
 
   // Return source for this block as an array of indented lines WITHOUT `{` OR `}`.
   blockToSource(block = this.matched) {
-    let results = [], statement;
+    let results = [],
+      statement;
 
     for (var i = 0; i < block.length; i++) {
       let match = block[i];
       //console.info(i, match);
       try {
-            statement = match.toSource() || "";
+        statement = match.toSource() || "";
       } catch (e) {
         console.error(e);
         console.warn("Error converting block: ", block, "statement:", match);
@@ -577,15 +562,12 @@ Rule.Block = class block extends Rule.Sequence {
       //console.info(i, statement);
       if (isWhitespace(statement)) {
         results.push("");
-      }
-      else if (Array.isArray(statement)) {
+      } else if (Array.isArray(statement)) {
         results = results.concat(statement);
-      }
-      else if (typeof statement === "string") {
+      } else if (typeof statement === "string") {
         statement = statement.split("\n");
         results = results.concat(statement);
-      }
-      else {
+      } else {
         console.warn("blockToSource(): DON'T KNOW HOW TO WORK WITH\n\t", statement, "\n\tfrom match", match);
       }
     }
@@ -609,9 +591,10 @@ Rule.Block = class block extends Rule.Sequence {
     let properties = [];
     let methods = [];
     let other = [];
-    block.map(statement => statement.toStructure())
-       .filter(Boolean)
-       .forEach(addStructure);
+    block
+      .map(statement => statement.toStructure())
+      .filter(Boolean)
+      .forEach(addStructure);
 
     return {
       type: "unknown",
@@ -621,7 +604,7 @@ Rule.Block = class block extends Rule.Sequence {
       properties,
       methods,
       other
-    }
+    };
 
     function addStructure(structure) {
       // add arrays as individual items
@@ -649,8 +632,7 @@ Rule.Block = class block extends Rule.Sequence {
       let arg = args[i];
       if (Array.isArray(arg)) {
         statements = statements.concat(arg);
-      }
-      else if (typeof arg === "string") {
+      } else if (typeof arg === "string") {
         statements.push(arg);
       }
     }
@@ -673,16 +655,13 @@ Rule.Block = class block extends Rule.Sequence {
     if (statement[0] !== "\t") statement = `\t${statement}`;
     return `{\n${statement}\n}`;
   }
-
-}
-
+};
 
 // `Statements` are a special case for a block of `Statement` rules
 //  that understand nesting and comments.
 //
 // This is a top-level construct, e.g. used to parse an entire file.
 Rule.Statements = class statements extends Rule.Block {
-
   // Split statements up into blocks and parse 'em.
   parse(parser, tokens, start = 0, end = tokens.length, stack) {
     var block = Tokenizer.breakIntoBlocks(tokens, start, end);
@@ -700,8 +679,7 @@ Rule.Statements = class statements extends Rule.Block {
   toSource() {
     return this.matched.blockToSource();
   }
-}
-
+};
 
 // A `BlockStatement` (e.g. an `if` or `repeat`):
 //  - is assumed to have an initial partial `statement`
@@ -719,11 +697,10 @@ Rule.Statements = class statements extends Rule.Block {
 //    - the formatted `statement`, enclosed in curly brackets,
 //    - `{}` if neither statement or block was matched.
 Rule.BlockStatement = class block_statement extends Rule.Block {
-
   // Parse a nested block which appears directly after our "main" rule.
   // Adds to our `matched` list as necessary.
   parseBlock() {
-    if (!this.matched) throw new ParseError(`${this.name||"blockStatement"}.parseBlock(): no matched!`);
+    if (!this.matched) throw new ParseError(`${this.name || "blockStatement"}.parseBlock(): no matched!`);
     const block = super.parseBlock(...arguments);
     if (!block) return;
     block.argument = "block";
@@ -747,15 +724,14 @@ Rule.BlockStatement = class block_statement extends Rule.Block {
     }
     return results;
   }
-}
-
+};
 
 // Blank line representation in parser output.
 Rule.BlankLine = class blank_line extends Rule {
   toSource() {
     return "\n";
   }
-}
+};
 
 // Comment rule -- matches tokens of type `Tokenizer.Comment`.
 Rule.Comment = class comment extends Rule {
@@ -772,7 +748,7 @@ Rule.Comment = class comment extends Rule {
   toSource() {
     return `//${this.matched.whitespace}${this.matched.comment}`;
   }
-}
+};
 
 // Parser error representation in parser output.
 Rule.StatementParseError = class parse_error extends Rule {
@@ -783,9 +759,15 @@ Rule.StatementParseError = class parse_error extends Rule {
 
   get message() {
     if (this.parsed) {
-      return "CANT PARSE ENTIRE STATEMENT\n"
-         + "PARSED      : `"+ this.parsed + "`\n"
-         + "CAN'T PARSE : `"+ this.unparsed + "`";
+      return (
+        "CANT PARSE ENTIRE STATEMENT\n" +
+        "PARSED      : `" +
+        this.parsed +
+        "`\n" +
+        "CAN'T PARSE : `" +
+        this.unparsed +
+        "`"
+      );
     }
     return "CAN'T PARSE STATEMENT: `" + this.unparsed + "`";
   }
@@ -793,6 +775,4 @@ Rule.StatementParseError = class parse_error extends Rule {
   toSource() {
     return "// " + this.message.split("\n").join("\n// ");
   }
-}
-
-
+};

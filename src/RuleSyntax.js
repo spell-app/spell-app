@@ -5,8 +5,6 @@ import Rule from "./Rule.js";
 import { cloneClass } from "./utils/class.js";
 import global from "./utils/global.js";
 
-
-
 //
 //  # Parsing `ruleSyntax` to create rules automatically.
 //
@@ -22,8 +20,8 @@ export default function parseRule(syntax, constructor) {
   // If we got an array of possible syntaxes...
   if (Array.isArray(syntax)) {
     // ...recursively parse each syntax, using a CLONE of the constructor.
-    return flatten(syntax.map(syntax => parseRule(syntax, constructor && cloneClass(constructor)) ));
-  };
+    return flatten(syntax.map(syntax => parseRule(syntax, constructor && cloneClass(constructor))));
+  }
 
   let rules = parseSyntax(syntax);
   if (rules.length === 0) {
@@ -35,24 +33,23 @@ export default function parseRule(syntax, constructor) {
     if (rules.length === 1) return rules;
 
     // Otherwise group the rules together and return that
-    return [ new Rule.Alternatives({ rules }) ];
-  }
-  else {
+    return [new Rule.Alternatives({ rules })];
+  } else {
     // Make an instance of the rule and add relevant properties to its prototype non-enumerably
-    if (constructor.prototype instanceof Rule.Keywords
-     || constructor.prototype instanceof Rule.Symbols
-     || constructor.prototype instanceof Rule.List
-     || constructor.prototype instanceof Rule.Alternatives
+    if (
+      constructor.prototype instanceof Rule.Keywords ||
+      constructor.prototype instanceof Rule.Symbols ||
+      constructor.prototype instanceof Rule.List ||
+      constructor.prototype instanceof Rule.Alternatives
     ) {
       for (let property in rules[0]) {
         Object.defineProperty(constructor.prototype, property, { value: rules[0][property] });
       }
-    }
-    else {
+    } else {
       Object.defineProperty(constructor.prototype, "rules", { value: rules });
     }
 
-    return [ new constructor() ];
+    return [new constructor()];
   }
 }
 
@@ -65,15 +62,13 @@ function tokeniseRuleSyntax(syntax) {
 
 export function parseSyntax(syntax, rules = [], start = 0) {
   if (syntax == null) throw new TypeError("parseSyntax(): `syntax` is required");
-  const syntaxStream = typeof syntax === "string"
-    ? tokeniseRuleSyntax(syntax)
-    : syntax;
+  const syntaxStream = typeof syntax === "string" ? tokeniseRuleSyntax(syntax) : syntax;
 
   let lastIndex = syntaxStream.length;
   while (start < lastIndex) {
-    let [ rule, end ] = parseToken(syntaxStream, rules, start);
+    let [rule, end] = parseToken(syntaxStream, rules, start);
     if (rule) {
-      let last = rules[rules.length-1];
+      let last = rules[rules.length - 1];
       // If this is a `Symbol` and last was a `Symbol`, merge together
       if (last && last instanceof Rule.Symbols && rule instanceof Rule.Symbols) {
         // remove the last rule
@@ -99,12 +94,16 @@ function parseToken(syntaxStream, rules = [], start = 0) {
   }
 
   switch (syntaxToken) {
-    case "{":  return parseSubrule(syntaxStream, rules, start);
-    case "(":  return parseAlternatives(syntaxStream, rules, start);
-    case "[":  return parseList(syntaxStream, rules, start);
+    case "{":
+      return parseSubrule(syntaxStream, rules, start);
+    case "(":
+      return parseAlternatives(syntaxStream, rules, start);
+    case "[":
+      return parseList(syntaxStream, rules, start);
     case "*":
     case "+":
-    case "?":  return parseRepeat(syntaxStream, rules, start);
+    case "?":
+      return parseRepeat(syntaxStream, rules, start);
 
     // the following should ALWAYS be consumed by the above
     case "}":
@@ -116,13 +115,11 @@ function parseToken(syntaxStream, rules = [], start = 0) {
     default:
       if (syntaxToken.match(KEYWORD_PATTERN)) {
         return parseKeyword(syntaxStream, rules, start);
-      }
-      else {
+      } else {
         return parseSymbol(syntaxStream, rules, start);
       }
   }
 }
-
 
 // Match `keyword` in syntax rules.
 // If more than one keyword appears in a row, combines them into a single `Keyword` object.
@@ -134,19 +131,19 @@ function parseToken(syntaxStream, rules = [], start = 0) {
 // Returns `[ rule, end ]`
 // Throws if invalid.
 function parseKeyword(syntaxStream, rules = [], start = 0, constructor = Rule.Keywords) {
-  let literals = [], end;
+  let literals = [],
+    end;
   // eat keywords while they last
   for (var i = start; i < syntaxStream.length; i++) {
     let next = syntaxStream[i];
     if (typeof next === "string" && next.match(KEYWORD_PATTERN)) {
       literals.push(next);
       end = i;
-    }
-    else break;
+    } else break;
   }
 
   let rule = new constructor({ literals });
-  return [ rule, end ];
+  return [rule, end];
 }
 
 // Match `keyword` in syntax rules.
@@ -164,13 +161,12 @@ function parseSymbol(syntaxStream, rules = [], start = 0, constructor = Rule.Sym
 
   if (isEscaped) {
     rule.toSyntax = function() {
-      return `\\${literals}${this.optional ? '?' : ''}`;
-    }
+      return `\\${literals}${this.optional ? "?" : ""}`;
+    };
   }
 
-  return [ rule, start ];
+  return [rule, start];
 }
-
 
 // Match grouping expression `(...|...)` in syntax rules.
 // Returns `[ rule, end ]`
@@ -182,7 +178,7 @@ function parseAlternatives(syntaxStream, rules = [], start = 0) {
   let { end, slice } = Parser.findNestedTokens(syntaxStream, "(", ")", start);
 
   // pull out explicit "promote" flag: `?:`
-  let promote = (slice[0] === "?" && slice[1] === ":");
+  let promote = slice[0] === "?" && slice[1] === ":";
   if (promote) {
     slice = slice.slice(2);
   }
@@ -195,31 +191,27 @@ function parseAlternatives(syntaxStream, rules = [], start = 0) {
   }
 
   // split into groups, including nested parens
-  let alternatives =
-    groupAlternatives(slice)
-    .map(function(group) {
-      let results = parseSyntax(group, []);
-      if (results.length === 1) {
-        return results[0];
-      }
-      else {
-        return new Rule.Sequence({ rules: results });
-      }
-    });
+  let alternatives = groupAlternatives(slice).map(function(group) {
+    let results = parseSyntax(group, []);
+    if (results.length === 1) {
+      return results[0];
+    } else {
+      return new Rule.Sequence({ rules: results });
+    }
+  });
 
-  let rule = alternatives.length === 1
-    ? alternatives[0]
-    : new Rule.Alternatives({ rules: alternatives });
+  let rule =
+    alternatives.length === 1 ? alternatives[0] : new Rule.Alternatives({ rules: alternatives });
 
   if (argument) rule.argument = argument;
   if (promote) rule.promote = true;
-  return [ rule, end ];
+  return [rule, end];
 }
 
 function groupAlternatives(tokens) {
   let alternatives = [];
   let current = [];
-  for (let i = 0, token; token = tokens[i]; i++) {
+  for (let i = 0, token; (token = tokens[i]); i++) {
     // handle alternate marker
     if (token === "|") {
       alternatives.push(current);
@@ -230,8 +222,7 @@ function groupAlternatives(tokens) {
       let { end } = Parser.findNestedTokens(tokens, "(", ")", i);
       current = current.concat(tokens.slice(i, end + 1));
       i = end;
-    }
-    else {
+    } else {
       current.push(token);
     }
   }
@@ -259,7 +250,7 @@ function parseRepeat(syntaxStream, rules = [], start = 0) {
     rule.optional = true;
   }
 
-  return [ undefined, start ]
+  return [undefined, start];
 }
 
 // Match `{<subrule>}` in syntax rules.
@@ -272,7 +263,10 @@ function parseSubrule(syntaxStream, rules = [], start = 0) {
     argument = match.slice[0];
     match.slice = match.slice.slice(2);
   }
-  if (match.slice.length > 1) throw new SyntaxError(`Can't process rules with more than one rule name: {${match.slice.join("")}}`);
+  if (match.slice.length > 1)
+    throw new SyntaxError(
+      `Can't process rules with more than one rule name: {${match.slice.join("")}}`
+    );
 
   let params = { subrule: match.slice[0] };
 
@@ -285,7 +279,7 @@ function parseSubrule(syntaxStream, rules = [], start = 0) {
 
   let rule = new Rule.Subrule(params);
   if (argument) rule.argument = argument;
-  return [ rule, match.end ];
+  return [rule, match.end];
 }
 
 // Match list expression `[<item><delimiter>]` or `[<argument>:<item><delimiter>]` in syntax rules.
@@ -305,9 +299,9 @@ function parseList(syntaxStream, rules = [], start = 0, constructor = Rule.List)
   if (results.length !== 2) {
     throw new SyntaxError(`Unexpected stuff at end of list: [${slice.join(" ")}]`);
   }
-  let [ item, delimiter ] = results;
+  let [item, delimiter] = results;
 
   let rule = new constructor({ item, delimiter });
   if (argument) rule.argument = argument;
-  return [ rule, end ];
+  return [rule, end];
 }
