@@ -20,7 +20,6 @@ test("parse multiple symbols", () => {
   expect(rules[0].toSyntax()).toBe(">=");
 });
 
-
 test("parse escaped symbol", () => {
   let rules = parseSyntax("\\(");
   expect(rules.length).toBe(1);
@@ -48,7 +47,6 @@ test("parse multiple keywords as a keyword", () => {
   expect(rules[0].toSyntax()).toBe("is not");
 });
 
-
 //
 //  Rule.Subrule
 //
@@ -67,7 +65,6 @@ test("parse subrule with named argument", () => {
   expect(rules[0].argument).toBe("arg");
   expect(rules[0].toSyntax()).toBe("{arg:subrule}");
 });
-
 
 //
 //  Rule.List
@@ -102,10 +99,8 @@ test("parse list with keyword delimiter", () => {
 });
 
 test("fail list with extra stuff", () => {
-  expect(() => parseSyntax("[{good},bad input]"))
-    .toThrow(ParserError);
+  expect(() => parseSyntax("[{good},bad input]")).toThrow(ParserError);
 });
-
 
 //
 //  Rule.Alternatives
@@ -164,7 +159,6 @@ test("parse complex alternatives", () => {
   expect(rules[0].toSyntax()).toBe("(is a test|{named:subrule}|[{number} ,]|(a|b))");
 });
 
-
 //
 //  Optional
 //
@@ -209,7 +203,6 @@ test("parse optional list", () => {
   expect(rules[0].toSyntax()).toBe("[{number} ,]?");
 });
 
-
 //
 //  Repeats
 //
@@ -249,32 +242,23 @@ test("parse + repeated list", () => {
   expect(rules[0].toSyntax()).toBe("[{number} ,]+");
 });
 
-
 //
 //  Error cases
 //
 test("thrown on improperly balanced parenthesis, etc", () => {
-  expect(() => parseSyntax("(abc"))
-    .toThrow(ParserError);
+  expect(() => parseSyntax("(abc")).toThrow(ParserError);
 
-  expect(() => parseSyntax("[abc"))
-    .toThrow(ParserError);
+  expect(() => parseSyntax("[abc")).toThrow(ParserError);
 
-  expect(() => parseSyntax("{abc"))
-    .toThrow(ParserError);
-
+  expect(() => parseSyntax("{abc")).toThrow(ParserError);
 });
 
 test("throw on invalid end tokens", () => {
-  expect(() => parseSyntax("}"))
-    .toThrow(ParserError);
+  expect(() => parseSyntax("}")).toThrow(ParserError);
 
-  expect(() => parseSyntax(")"))
-    .toThrow(ParserError);
+  expect(() => parseSyntax(")")).toThrow(ParserError);
 
-  expect(() => parseSyntax("]"))
-    .toThrow(ParserError);
+  expect(() => parseSyntax("]")).toThrow(ParserError);
 
-  expect(() => parseSyntax("|"))
-    .toThrow(ParserError);
+  expect(() => parseSyntax("|")).toThrow(ParserError);
 });

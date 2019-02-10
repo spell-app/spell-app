@@ -69,7 +69,14 @@ export default class Parser {
     }
 
     // Parse the rule or throw an exception if rule not found.
-    let result = this.parseNamedRule(ruleName, tokens, 0, tokens.length, undefined, "parser.parse()");
+    let result = this.parseNamedRule(
+      ruleName,
+      tokens,
+      0,
+      tokens.length,
+      undefined,
+      "parser.parse()"
+    );
     if (Parser.TIME) console.timeEnd("parse");
     return result;
   }
@@ -216,7 +223,9 @@ export default class Parser {
     }
     // throw if we're re-using a constructor
     if (constructor.prototype.name) {
-      throw new TypeError(`parser.define(): Attempting to re-use constructor for rule '${ruleName}'`);
+      throw new TypeError(
+        `parser.define(): Attempting to re-use constructor for rule '${ruleName}'`
+      );
     }
 
     // Note the module that the rule was defined in
@@ -309,7 +318,8 @@ export default class Parser {
   // If successful, returns `{ start, end, slice }`
   // Throws if unsucessful.
   static findNestedTokens(tokens, startToken, endToken, start = 0) {
-    if (tokens[start] !== startToken) throw new ParseError(`Expected '${startToken}' at index ${start} of tokens`);
+    if (tokens[start] !== startToken)
+      throw new ParseError(`Expected '${startToken}' at index ${start} of tokens`);
     let nesting = 0;
     let nested = false;
     for (let end = start + 1, lastIndex = tokens.length; end < lastIndex; end++) {

@@ -1,6 +1,5 @@
 import Tokenizer from "./Tokenizer.js";
 
-
 //
 // eatWhitespace()
 //
@@ -63,7 +62,6 @@ test("eatWhitespace():  Works properly if end is out of range", () => {
   let result = Tokenizer.eatWhitespace("   ", 0, 100);
   expect(result).toEqual(3);
 });
-
 
 //
 // matchWhitespace()
@@ -159,8 +157,6 @@ test("matchWhitespace():  Whitespace in middle of other stuff is not indent", ()
   expect(nextStart).toBe(2);
 });
 
-
-
 //
 // matchNewline()
 //
@@ -219,8 +215,6 @@ test("matchNewline():  Matches if end is out of range", () => {
   expect(result).toEqual([Tokenizer.NEWLINE, 1]);
 });
 
-
-
 //
 // matchSymbol()
 //
@@ -258,9 +252,6 @@ test("matchSymbol():  Matches if end is out of range", () => {
   let result = Tokenizer.matchSymbol(":", 0, 100);
   expect(result).toEqual([":", 1]);
 });
-
-
-
 
 //
 // matchWord()
@@ -334,8 +325,6 @@ test("matchWord():  Matches if end is out of range", () => {
   let result = Tokenizer.matchWord("xxx", 0, 100);
   expect(result).toEqual(["xxx", 3]);
 });
-
-
 
 //
 // matchNumber()
@@ -425,8 +414,6 @@ test("matchNumber():  Matches if end is out of range", () => {
   expect(result).toEqual([99, 3]);
 });
 
-
-
 //
 // matchText()
 //
@@ -507,9 +494,6 @@ test("matchText():  Matches if end is out of range", () => {
   expect(token.text).toBe("aaa");
   expect(nextStart).toBe(5);
 });
-
-
-
 
 //
 // matchComment()
@@ -629,10 +613,6 @@ test("matchComment():  Matches if end is out of range", () => {
   expect(nextStart).toBe(15);
 });
 
-
-
-
-
 //
 // matchJSXStartTag()
 //
@@ -688,7 +668,7 @@ test("matchJSXStartTag():  Matches start tag with attributes at beginning of str
   expect(attributes[0].value.text).toEqual("a\\'a");
 
   expect(attributes[1].name).toEqual("bbb");
-  expect(attributes[1].value).toBe(1)
+  expect(attributes[1].value).toBe(1);
 
   expect(attributes[2].name).toEqual("c-0-a");
   expect(attributes[2].value).toBeInstanceOf(Tokenizer.JSXExpression);
@@ -714,7 +694,7 @@ test("matchJSXStartTag():  Matches unary tag with attributes at beginning of str
   expect(attributes[0].value.text).toEqual("a\\'a");
 
   expect(attributes[1].name).toEqual("bbb");
-  expect(attributes[1].value).toBe(1)
+  expect(attributes[1].value).toBe(1);
 
   expect(attributes[2].name).toEqual("c-0-a");
   expect(attributes[2].value).toBeInstanceOf(Tokenizer.JSXExpression);
@@ -740,7 +720,7 @@ test("matchJSXStartTag():  Doesn't incorrectly match in the middle of the string
 });
 
 test("matchJSXStartTag():  Doesn't stop at newline", () => {
-  let [token, nextStart] = Tokenizer.matchJSXStartTag("xxx<test aprop\n bprop/>xxx", 3)
+  let [token, nextStart] = Tokenizer.matchJSXStartTag("xxx<test aprop\n bprop/>xxx", 3);
   expect(token).toBeInstanceOf(Tokenizer.JSXElement);
   expect(token.tagName).toBe("test");
   expect(token.isUnaryTag).toBe(true);
@@ -751,7 +731,7 @@ test("matchJSXStartTag():  Doesn't stop at newline", () => {
 });
 
 test("matchJSXStartTag():  Matches but doesn't go beyond the end", () => {
-  let [token, nextStart] = Tokenizer.matchJSXStartTag("<test aprop\n bprop/>", 0, 10)
+  let [token, nextStart] = Tokenizer.matchJSXStartTag("<test aprop\n bprop/>", 0, 10);
   expect(token).toBeInstanceOf(Tokenizer.JSXElement);
   expect(token.tagName).toBe("test");
   expect(token.isUnaryTag).toBe(undefined);
@@ -764,17 +744,17 @@ test("matchJSXStartTag():  Matches but doesn't go beyond the end", () => {
 });
 
 test("matchJSXStartTag():  Doesn't match if start > end", () => {
-  let result = Tokenizer.matchJSXStartTag("xxx<test aprop\n bprop/>", 3, 2)
+  let result = Tokenizer.matchJSXStartTag("xxx<test aprop\n bprop/>", 3, 2);
   expect(result).toEqual(undefined);
 });
 
 test("matchJSXStartTag():  Doesn't match if start is out of range", () => {
-  let result = Tokenizer.matchJSXStartTag("xxx<test aprop\n bprop/>", 100)
+  let result = Tokenizer.matchJSXStartTag("xxx<test aprop\n bprop/>", 100);
   expect(result).toEqual(undefined);
 });
 
 test("matchJSXStartTag():  Matches if end is out of range", () => {
-  let [token, nextStart] = Tokenizer.matchJSXStartTag("xxx<test aprop\n bprop/>xxx", 3, 100)
+  let [token, nextStart] = Tokenizer.matchJSXStartTag("xxx<test aprop\n bprop/>xxx", 3, 100);
   expect(token).toBeInstanceOf(Tokenizer.JSXElement);
   expect(token.tagName).toBe("test");
   expect(token.isUnaryTag).toBe(true);
@@ -783,8 +763,6 @@ test("matchJSXStartTag():  Matches if end is out of range", () => {
   expect(token.attributes.length).toEqual(2);
   expect(nextStart).toBe(23);
 });
-
-
 
 //
 // matchJSXEndTag()
@@ -800,45 +778,42 @@ test("matchJSXEndTag():  If no match, returns undefined", () => {
 });
 
 test("matchJSXEndTag():  Matches specified end tag at beginning of string", () => {
-  let [token, nextStart] = Tokenizer.matchJSXEndTag("</test>","</test>");
-  expect(token).toBe("</test>")
+  let [token, nextStart] = Tokenizer.matchJSXEndTag("</test>", "</test>");
+  expect(token).toBe("</test>");
   expect(nextStart).toBe(7);
 });
 
 test("matchJSXEndTag():  Does not match different end tag at beginning of string", () => {
-  let result = Tokenizer.matchJSXEndTag("</bad>","</test>");
+  let result = Tokenizer.matchJSXEndTag("</bad>", "</test>");
   expect(result).toBe(undefined);
 });
 
 test("matchJSXEndTag():  Matches specified end tag in the middle of the string", () => {
-  let [token, nextStart] = Tokenizer.matchJSXEndTag("</test>","xxx</test>", 3);
-  expect(token).toBe("</test>")
+  let [token, nextStart] = Tokenizer.matchJSXEndTag("</test>", "xxx</test>", 3);
+  expect(token).toBe("</test>");
   expect(nextStart).toBe(10);
 });
 
 test("matchJSXEndTag():  Does not incorrectly match in the middle of the string", () => {
-  let result = Tokenizer.matchJSXEndTag("</test>","xxx</test>", 2);
+  let result = Tokenizer.matchJSXEndTag("</test>", "xxx</test>", 2);
   expect(result).toBe(undefined);
 });
 
 test("matchJSXEndTag():  Doesn't match if start > end", () => {
-  let result = Tokenizer.matchJSXEndTag("</test>","xxx</test>", 3, 2);
+  let result = Tokenizer.matchJSXEndTag("</test>", "xxx</test>", 3, 2);
   expect(result).toEqual(undefined);
 });
 
 test("matchJSXEndTag():  Doesn't match if start is out of range", () => {
-  let result = Tokenizer.matchJSXEndTag("</test>","xxx</test>", 100);
+  let result = Tokenizer.matchJSXEndTag("</test>", "xxx</test>", 100);
   expect(result).toEqual(undefined);
 });
 
 test("matchJSXEndTag():  Matches if end is out of range", () => {
-  let [token, nextStart] = Tokenizer.matchJSXEndTag("</test>","xxx</test>", 3, 100);
-  expect(token).toBe("</test>")
+  let [token, nextStart] = Tokenizer.matchJSXEndTag("</test>", "xxx</test>", 3, 100);
+  expect(token).toBe("</test>");
   expect(nextStart).toBe(10);
 });
-
-
-
 
 //
 // matchJSXAttribute()
@@ -866,7 +841,7 @@ test("matchJSXAttribute():  Matches string attribute at beginning of string", ()
   expect(token).toBeInstanceOf(Tokenizer.JSXAttribute);
   expect(token.name).toEqual("xyz");
   expect(token.value).toBeInstanceOf(Tokenizer.Text);
-  expect(token.value.quotedString).toEqual("'abc'")
+  expect(token.value.quotedString).toEqual("'abc'");
   expect(nextStart).toEqual(10);
 });
 
@@ -896,7 +871,6 @@ test("matchJSXAttribute():  Matches identifier attribute at beginning of string"
   expect(nextStart).toEqual(8);
 });
 
-
 test("matchJSXAttribute():  Matches no-value attribute in the middle of the string", () => {
   let [token, nextStart] = Tokenizer.matchJSXAttribute("...xyz ", 3);
   expect(token).toBeInstanceOf(Tokenizer.JSXAttribute);
@@ -910,7 +884,7 @@ test("matchJSXAttribute():  Matches string attribute in the middle of the string
   expect(token).toBeInstanceOf(Tokenizer.JSXAttribute);
   expect(token.name).toEqual("xyz");
   expect(token.value).toBeInstanceOf(Tokenizer.Text);
-  expect(token.value.quotedString).toEqual("'abc'")
+  expect(token.value.quotedString).toEqual("'abc'");
   expect(nextStart).toEqual(13);
 });
 
@@ -923,7 +897,7 @@ test("matchJSXAttribute():  Matches number attribute in the middle of the string
 });
 
 test("matchJSXAttribute():  Matches JSX Expression attribute in the middle of the string", () => {
-  let [token, nextStart] = Tokenizer.matchJSXAttribute("...xyz={foo bar baz} ",3);
+  let [token, nextStart] = Tokenizer.matchJSXAttribute("...xyz={foo bar baz} ", 3);
   expect(token).toBeInstanceOf(Tokenizer.JSXAttribute);
   expect(token.name).toEqual("xyz");
   expect(token.value).toBeInstanceOf(Tokenizer.JSXExpression);
@@ -967,9 +941,6 @@ test("matchJSXAttribute():  Matches if end is out of range", () => {
   expect(nextStart).toEqual(18);
 });
 
-
-
-
 //
 // matchJSXChild()
 //
@@ -1000,7 +971,6 @@ test("matchJSXChild():  Does NOT matches text & whitespace at beginning of strin
   expect(result).toBe(undefined);
 });
 
-
 test("matchJSXChild():  Matches JSX element at beginning of string", () => {
   let [token, nextStart] = Tokenizer.matchJSXChild("</foo>", "<bar/>  ");
   expect(token).toBeInstanceOf(Tokenizer.JSXElement);
@@ -1015,13 +985,11 @@ test("matchJSXChild():  Matches JSX Expression at beginning of string", () => {
   expect(nextStart).toEqual(15);
 });
 
-
 test("matchJSXChild():  Matches JSX end tag in the middle of string", () => {
   let [token, nextStart] = Tokenizer.matchJSXChild("</foo>", "...</foo>", 3);
   expect(token).toEqual("</foo>");
   expect(nextStart).toEqual(9);
 });
-
 
 test("matchJSXChild():  Matches text & whitespace in the middle of string w/end delimiter", () => {
   let [token, nextStart] = Tokenizer.matchJSXChild("</foo>", "...some text here <", 3);
@@ -1033,7 +1001,6 @@ test("matchJSXChild():  Does NOT matches text & whitespace in the middle of stri
   let result = Tokenizer.matchJSXChild("</foo>", "...some text here", 3);
   expect(result).toBe(undefined);
 });
-
 
 test("matchJSXChild():  Matches JSX element in the middle of string", () => {
   let [token, nextStart] = Tokenizer.matchJSXChild("</foo>", "...<bar/>  ", 3);
@@ -1048,7 +1015,6 @@ test("matchJSXChild():  Matches JSX Expression in the middle of string", () => {
   expect(token.contents).toEqual(" foo bar baz ");
   expect(nextStart).toEqual(18);
 });
-
 
 test("matchJSXChild():  Doesn't go beyond the end", () => {
   let result = Tokenizer.matchJSXChild("</foo>", "...{abc}", 3, 4);
@@ -1070,5 +1036,3 @@ test("matchJSXChild():  Matches if end is out of range", () => {
   expect(token).toBe("</foo>");
   expect(nextStart).toEqual(6);
 });
-
-

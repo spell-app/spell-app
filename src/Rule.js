@@ -174,7 +174,14 @@ Rule.Pattern = class pattern extends Rule {
 //  we'll return the actual rule that was matched (rather than a clone of this rule)
 Rule.Subrule = class subrule extends Rule {
   parse(parser, tokens, start = 0, end, stack) {
-    let matchedRule = parser.parseNamedRule(this.subrule, tokens, start, end, stack, `parse subrule '${this.rule}'`);
+    let matchedRule = parser.parseNamedRule(
+      this.subrule,
+      tokens,
+      start,
+      end,
+      stack,
+      `parse subrule '${this.rule}'`
+    );
     if (!matchedRule) return undefined;
     if (this.argument) matchedRule.argument = this.argument;
     return matchedRule;
@@ -186,7 +193,9 @@ Rule.Subrule = class subrule extends Rule {
   }
 
   toSyntax() {
-    return `{${this.argument ? this.argument + ":" : ""}${this.subrule}}${this.optional ? "?" : ""}`;
+    return (
+      `{${this.argument ? this.argument + ":" : ""}` + `${this.subrule}}${this.optional ? "?" : ""}`
+    );
   }
 };
 
@@ -402,7 +411,8 @@ Rule.Repeat = class repeat extends Rule {
 
   toSyntax() {
     let isCompoundRule =
-      this.repeat instanceof Rule.Sequence || (this.repeat instanceof Rule.Literals && this.repeat.literals.length > 1);
+      this.repeat instanceof Rule.Sequence ||
+      (this.repeat instanceof Rule.Literals && this.repeat.literals.length > 1);
     const repeat = this.repeat.toSyntax();
     const rule = isCompoundRule ? `(${repeat})` : `${repeat}`;
     return `${rule}${this.optional ? "*" : "+"}`;
@@ -460,7 +470,10 @@ Rule.List = class list extends Rule {
   toSyntax() {
     const item = this.item.toSyntax();
     const delimiter = this.delimiter.toSyntax();
-    return `[${this.argument ? this.argument + ":" : ""}${item} ${delimiter}]${this.optional ? "?" : ""}`;
+    return (
+      `[${this.argument ? this.argument + ":" : ""}${item} ${delimiter}]` +
+      `${this.optional ? "?" : ""}`
+    );
   }
 };
 
@@ -568,7 +581,12 @@ Rule.Block = class block extends Rule.Sequence {
         statement = statement.split("\n");
         results = results.concat(statement);
       } else {
-        console.warn("blockToSource(): DON'T KNOW HOW TO WORK WITH\n\t", statement, "\n\tfrom match", match);
+        console.warn(
+          "blockToSource(): DON'T KNOW HOW TO WORK WITH\n\t",
+          statement,
+          "\n\tfrom match",
+          match
+        );
       }
     }
     if (this.indent !== 0) {
@@ -700,7 +718,8 @@ Rule.BlockStatement = class block_statement extends Rule.Block {
   // Parse a nested block which appears directly after our "main" rule.
   // Adds to our `matched` list as necessary.
   parseBlock() {
-    if (!this.matched) throw new ParseError(`${this.name || "blockStatement"}.parseBlock(): no matched!`);
+    if (!this.matched)
+      throw new ParseError(`${this.name || "blockStatement"}.parseBlock(): no matched!`);
     const block = super.parseBlock(...arguments);
     if (!block) return;
     block.argument = "block";
