@@ -69,7 +69,7 @@ export default class Parser {
     }
 
     // Parse the rule or throw an exception if rule not found.
-    let result = this.parseNamedRule(
+    const result = this.parseNamedRule(
       ruleName,
       tokens,
       0,
@@ -224,7 +224,7 @@ export default class Parser {
     // throw if we're re-using a constructor
     if (constructor.prototype.name) {
       throw new TypeError(
-        `parser.define(): Attempting to re-use constructor for rule '${ruleName}'`
+        `parser.define(): Attempting to re-use constructor for rule '${props.name}'`
       );
     }
 

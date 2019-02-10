@@ -12,10 +12,9 @@
 //    - `rule.toSyntax()`    Return ruleSyntax for the rule (mostly for debugging)
 //    -
 //
-import Parser from "./Parser.js";
+import Parser, { ParseError } from "./Parser.js";
 import Tokenizer from "./Tokenizer.js";
 
-import global from "./utils/global";
 import { isWhitespace } from "./utils/string";
 
 // Abstract Rule class.
@@ -36,6 +35,7 @@ export default class Rule {
 
   // Attempt to match this rule between `start` and `end` of `tokens`.
   // Returns results of the parse or `undefined`.
+  // eslint-disable-next-line no-unused-vars
   parse(parser, tokens, start = 0, end, stack) {
     return undefined;
   }
@@ -46,6 +46,7 @@ export default class Rule {
   //  - `true` if the rule MIGHT be matched.
   //  - `false` if there is NO WAY the rule can be matched.
   //  - `undefined` if not determinstic (eg: no way to tell quickly).
+  // eslint-disable-next-line no-unused-vars
   test(parser, tokens, start = 0, end) {
     return undefined;
   }
@@ -87,7 +88,7 @@ Rule.Literals = class literals extends Rule {
 
   // Attempt to match this rule in the `tokens`.
   // Returns results of the parse or `undefined`.
-  parse(parser, tokens, start = 0, end, stack) {
+  parse(parser, tokens, start = 0, end) {
     if (!this.matchesStartingAt(tokens, start, end)) return undefined;
     return this.clone({
       matched: this.literals.join(this.literalSeparator),
@@ -140,7 +141,7 @@ Object.defineProperty(Rule.Keywords.prototype, "literalSeparator", { value: " " 
 //  `rule.nextStart` is the index of the next start token.
 Rule.Pattern = class pattern extends Rule {
   // Attempt to match this pattern at the beginning of the tokens.
-  parse(parser, tokens, start = 0, end, stack) {
+  parse(parser, tokens, start = 0) {
     let token = tokens[start];
     if (typeof token !== "string") return undefined;
 
@@ -292,7 +293,7 @@ Rule.Sequence = class sequence extends Rule {
   // Echo this rule back out.
   toSyntax() {
     const rules = this.rules.map(rule => rule.toSyntax());
-    return `${this.rules.join(" ")}${this.optional ? "?" : ""}`;
+    return `${rules.join(" ")}${this.optional ? "?" : ""}`;
   }
 };
 
@@ -386,7 +387,7 @@ Rule.Group = class group extends Rule.Alternatives {};
 //  `rule.nextStart` is the index of the next start token.
 Rule.Repeat = class repeat extends Rule {
   parse(parser, tokens, start = 0, end, stack) {
-    let matched = [];
+    const matched = [];
     let nextStart = start;
     while (true) {
       let match = this.repeat.parse(parser, tokens, nextStart, end, stack);
@@ -484,8 +485,7 @@ Rule.Block = class block extends Rule.Sequence {
   parseBlock(parser, block, indent = 0) {
     let matched = [];
     //console.warn("block:", block);
-    block.contents.forEach((item, index) => {
-      let result;
+    block.contents.forEach(item => {
       if (item.length === 0) {
         matched.push(new Rule.BlankLine());
       } else if (item instanceof Tokenizer.Block) {
@@ -681,7 +681,7 @@ Rule.Block = class block extends Rule.Sequence {
 // This is a top-level construct, e.g. used to parse an entire file.
 Rule.Statements = class statements extends Rule.Block {
   // Split statements up into blocks and parse 'em.
-  parse(parser, tokens, start = 0, end = tokens.length, stack) {
+  parse(parser, tokens, start = 0, end = tokens.length) {
     var block = Tokenizer.breakIntoBlocks(tokens, start, end);
 
     let matched = this.parseBlock(parser, block);
@@ -755,7 +755,7 @@ Rule.BlankLine = class blank_line extends Rule {
 // Comment rule -- matches tokens of type `Tokenizer.Comment`.
 Rule.Comment = class comment extends Rule {
   // Comments are special nodes in our token stream.
-  parse(parser, tokens, start = 0, end, stack) {
+  parse(parser, tokens, start = 0) {
     let token = tokens[start];
     if (!(token instanceof Tokenizer.Comment)) return undefined;
     return this.clone({

@@ -1,5 +1,3 @@
-import { getTabs } from "./utils/string";
-
 // GRRR... node doesn't include this???
 // CHECK DIFFERENT NODE VERSIONS...
 if (!Array.prototype.includes) {
@@ -67,13 +65,9 @@ const Tokenizer = {
     // quick return out of range or only whitespace
     if (start >= end || !text.trim()) return [];
 
-    let tokens = [];
     // Process our top-level rules.
     let [results, nextStart] = this.eatTokens(this.matchTopTokens, text, start, end);
-    if (results) {
-      tokens = tokens.concat(results);
-      start = nextStart;
-    }
+    if (results) start = nextStart;
     if (start !== end) {
       if (Tokenizer.WARN)
         console.warn("tokenize(): didn't consume: `", text.slice(start, end) + "`");
@@ -308,7 +302,7 @@ const Tokenizer = {
     let commentMatch = line.match(this.COMMENT);
     if (!commentMatch) return undefined;
 
-    let [match, commentSymbol, whitespace, comment] = commentMatch;
+    let [_match, commentSymbol, whitespace, comment] = commentMatch;
     let token = new Tokenizer.Comment({ commentSymbol, whitespace, comment });
     return [token, start + line.length];
   },
@@ -441,7 +435,7 @@ const Tokenizer = {
       return (
         " " +
         this.attributes
-          .map(({ name, value }) => {
+          .map(({ value }) => {
             if (value === undefined) return "true";
             // convert value array (tokens) to string
             // TODO: this will want to be smarter...
@@ -755,7 +749,7 @@ const Tokenizer = {
       }
       // if a single or double quote, skip until the matching quote
       else if (char === "'" || char === '"') {
-        let [token, afterQuote] = this.matchText(text, current, end) || [];
+        let [_token, afterQuote] = this.matchText(text, current, end) || [];
         current = afterQuote;
         continue; // continue so we don't add 1 to curent below
       }

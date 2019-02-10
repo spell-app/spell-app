@@ -3,7 +3,6 @@ import flatten from "lodash/flatten.js";
 import Parser from "./Parser.js";
 import Rule from "./Rule.js";
 import { cloneClass } from "./utils/class.js";
-import global from "./utils/global.js";
 
 //
 //  # Parsing `ruleSyntax` to create rules automatically.
@@ -25,7 +24,7 @@ export default function parseRule(syntax, constructor) {
 
   let rules = parseSyntax(syntax);
   if (rules.length === 0) {
-    throw new SyntaxError(`parser.defineRule(${names[0]}, ${syntax}): no rule produced`);
+    throw new SyntaxError(`parser.defineRule(${syntax}): no rule produced`);
   }
 
   if (!constructor) {
@@ -130,7 +129,7 @@ function parseToken(syntaxStream, rules = [], start = 0) {
 //
 // Returns `[ rule, end ]`
 // Throws if invalid.
-function parseKeyword(syntaxStream, rules = [], start = 0, constructor = Rule.Keywords) {
+function parseKeyword(syntaxStream, rules, start = 0, constructor = Rule.Keywords) {
   let literals = [],
     end;
   // eat keywords while they last
@@ -149,7 +148,7 @@ function parseKeyword(syntaxStream, rules = [], start = 0, constructor = Rule.Ke
 // Match `keyword` in syntax rules.
 // Returns `[ rule, end ]`
 // Throws if invalid.
-function parseSymbol(syntaxStream, rules = [], start = 0, constructor = Rule.Symbols) {
+function parseSymbol(syntaxStream, rules, start = 0, constructor = Rule.Symbols) {
   let string = syntaxStream[start];
   if (!constructor) constructor = Rule.Symbols;
 
@@ -174,7 +173,7 @@ function parseSymbol(syntaxStream, rules = [], start = 0, constructor = Rule.Sym
 // You can specify that the results should be `promoted` to enclosing rule with: `(?:...)`
 //
 // NOTE: nested parens may not have alternatives... :-(   `(a|(b|c))` won't work???
-function parseAlternatives(syntaxStream, rules = [], start = 0) {
+function parseAlternatives(syntaxStream, rules, start = 0) {
   let { end, slice } = Parser.findNestedTokens(syntaxStream, "(", ")", start);
 
   // pull out explicit "promote" flag: `?:`
@@ -231,7 +230,7 @@ function groupAlternatives(tokens) {
 }
 
 // Match repeat indicator `?`, `+` or `*` by attaching it to the previous rule.
-function parseRepeat(syntaxStream, rules = [], start = 0) {
+function parseRepeat(syntaxStream, rules, start = 0) {
   let symbol = syntaxStream[start];
   let rule = rules[rules.length - 1];
   if (!rule) throw new SyntaxError(`Can't attach repeat symbol ${symbol} to empty rule!`);
@@ -256,7 +255,7 @@ function parseRepeat(syntaxStream, rules = [], start = 0) {
 // Match `{<subrule>}` in syntax rules.
 // Returns `[ rule, end ]`
 // Throws if invalid.
-function parseSubrule(syntaxStream, rules = [], start = 0) {
+function parseSubrule(syntaxStream, rules, start = 0) {
   let match = Parser.findNestedTokens(syntaxStream, "{", "}", start);
   let argument;
   if (match.slice.length === 3 && match.slice[1] === ":") {
@@ -285,7 +284,7 @@ function parseSubrule(syntaxStream, rules = [], start = 0) {
 // Match list expression `[<item><delimiter>]` or `[<argument>:<item><delimiter>]` in syntax rules.
 // Returns `[ rule, end ]`
 // Throws if invalid.
-function parseList(syntaxStream, rules = [], start = 0, constructor = Rule.List) {
+function parseList(syntaxStream, rules, start = 0, constructor = Rule.List) {
   let { end, slice } = Parser.findNestedTokens(syntaxStream, "[", "]", start);
 
   // get argument if supplied

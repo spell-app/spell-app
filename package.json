@@ -87,8 +87,17 @@
     "plugins": ["prettier"],
     "parser": "babel-eslint",
     "rules": {
+      "no-unused-vars": [
+        "error",
+        {
+          "varsIgnorePattern": "^_",
+          "ignoreRestSiblings": false
+        }
+      ],
+      "no-useless-escape": "off",
       "max-len": ["off", { "code": 100, "tabWidth": 2 } ],
       "no-console": "off",
+      "no-constant-condition": "off",
       "prettier/prettier": "warn"
     }
   },
