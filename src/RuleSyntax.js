@@ -207,7 +207,10 @@ function parseAlternatives(syntaxStream, rules = [], start = 0) {
       }
     });
 
-  let rule = alternatives.length === 1 ? alternatives[0] : new Rule.Alternatives({ rules: alternatives });
+  let rule = alternatives.length === 1
+    ? alternatives[0]
+    : new Rule.Alternatives({ rules: alternatives });
+
   if (argument) rule.argument = argument;
   if (promote) rule.promote = true;
   return [ rule, end ];

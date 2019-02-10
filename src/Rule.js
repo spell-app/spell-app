@@ -369,6 +369,13 @@ Rule.Alternatives = class alternatives extends Rule {
 	}
 };
 
+// Alias for `Rule.Alternatives` used to merge alternatives together
+// when implicitly combining multiple rules under the same name.
+// This lets us distinguish
+//  - actually defining a semantically-meaning "alternatives" and
+//  - smooshing rules together because they share the same name
+Rule.Group = class group extends Rule.Alternatives {}
+
 
 // Repeating rule.
 //	`this.repeat` is the rule that repeats.

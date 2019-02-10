@@ -187,17 +187,6 @@ export default class Parser {
 		return rule;
 	}
 
-	// Return the concatenated blacklist for a given named rule.
-	getBlacklist(ruleName) {
-	  const rule = this.rules[ruleName];
-	  const rules = rule instanceof Rule.Alternatives
-          ? rule.rules
-          : [ rule ];
-		return rules.reduce(function (blacklist, rule) {
-			return Object.assign(blacklist, rule.blacklist);
-		}, {});
-	}
-
   // Define multiple rules at once using ruleSyntax.
   // See `RuleSyntax.js::defineRule()`
   defineRules() {
@@ -301,15 +290,19 @@ export default class Parser {
       return;
     }
 
-    if (!(existing instanceof Rule.Alternatives) || (existing.group !== ruleName)) {
-      const altConstructor = cloneClass(Rule.Alternatives, ruleName);
-      existing = map[ruleName] = new altConstructor({
+    // If merging with anything other than a `Group`,
+    //  create a `Group` and add the existing rule to that
+    if (!(existing instanceof Rule.Group)) {
+      const Group = cloneClass(Rule.Group, ruleName+"_group");
+      map[ruleName] = new Group({
         group: ruleName,
         rules: [ existing ]
       });
+      existing = map[ruleName];
     }
 
-    if (rule instanceof Rule.Alternatives && (rule.group === ruleName)) {
+    // If BOTH are groups, we can safely mush them together
+    if (rule instanceof Rule.Group) {
       existing.addRule(...rule.rules);
     }
     else {
