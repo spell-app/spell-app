@@ -1,5 +1,5 @@
 Arguments: 
-  /Users/owen/.nodenv/versions/9.7.1/bin/node /usr/local/Cellar/yarn/1.5.1_1/libexec/bin/yarn.js test
+  /Users/owen/.nodenv/versions/9.7.1/bin/node /usr/local/Cellar/yarn/1.5.1_1/libexec/bin/yarn.js upgrade --patern react --latest
 
 PATH: 
   /Users/owen/.nodenv/versions/9.7.1/bin:/usr/local/Cellar/nodenv/1.1.2/libexec:/Users/owen/.nodenv/shims:/Users/owen/.npm-packages/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/Users/owen/Library/Android/sdk/platform-tools:/Users/owen/Library/Android/sdk/tools/bin:/Users/owen/Library/Android/sdk/tools:
@@ -19,7 +19,7 @@ npm manifest:
     "license": "MIT",
     "scripts": {
       "watch": "./node_modules/.bin/webpack --progress --watch",
-      "test": "jest"
+      "test": "jest --watch"
     },
     "devDependencies": {
       "babel-core": "^6.23.1",
@@ -4942,16 +4942,12 @@ Lockfile:
       window-size "0.1.0"
 
 Trace: 
-  Error: Command failed.
-  Exit code: 1
-  Command: sh
-  Arguments: -c jest
-  Directory: /www/spell/parser
-  Output:
-  
-      at ProcessTermError.MessageError (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:186:110)
-      at new ProcessTermError (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:226:113)
-      at ChildProcess.<anonymous> (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:30281:17)
-      at ChildProcess.emit (events.js:127:13)
-      at maybeClose (internal/child_process.js:936:16)
-      at Process.ChildProcess._handle.onexit (internal/child_process.js:220:5)
+  Error: Found incompatible module
+      at new MessageError (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:186:110)
+      at checkOne (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:62444:11)
+      at Object.check (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:62463:5)
+      at /usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:22803:73
+      at Generator.next (<anonymous>)
+      at step (/usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:98:30)
+      at /usr/local/Cellar/yarn/1.5.1_1/libexec/lib/cli.js:109:13
+      at <anonymous>
