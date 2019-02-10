@@ -30,7 +30,7 @@ if (typeof window !== "undefined") {
 		Rule,
 
 		Tokenizer,
-		tokenize: Tokenizer.tokenize.bind(exports.Tokenizer),
+		tokenize: Tokenizer.tokenize.bind(Tokenizer),
 
 		parser,
 		rules: parser.rules,

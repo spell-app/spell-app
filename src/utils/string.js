@@ -47,10 +47,3 @@ export function getTabs(number) {
 	return TABS.substr(0, number);
 }
 
-
-// Export all as a lump
-let allExports = {...exports};
-export default allExports;
-
-// DEBUG: put on global for debugging.
-global.STRING = allExports;

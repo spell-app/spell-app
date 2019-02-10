@@ -1,6 +1,6 @@
 import React from "react";
 import propTypes from "prop-types";
-import { TextArea } from 'semantic-ui-react'
+import { TextArea } from "semantic-ui-react"
 
 //
 //	# <TabbableTextArea> -- <SUI.TextArea> in which you can type a tab character:

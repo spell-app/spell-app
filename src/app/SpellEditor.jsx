@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import React from "react";
 import keydown from "react-keydown";
-import { Button, Dropdown, Grid, Menu, Segment, TextArea } from 'semantic-ui-react'
+import { Button, Dropdown, Grid, Menu, Segment, TextArea } from "semantic-ui-react"
 
 import ExampleStore from "./ExampleStore";
 import Spacer from "./Spacer.jsx";
