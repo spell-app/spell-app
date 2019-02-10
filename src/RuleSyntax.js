@@ -1,6 +1,5 @@
 import flatten from "lodash/flatten.js";
 
-import { defineMemoized } from "./memoize.js";
 import Parser from "./Parser.js";
 import Rule from "./Rule.js";
 import { cloneClass } from "./utils/class.js";
