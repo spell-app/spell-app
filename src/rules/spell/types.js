@@ -34,10 +34,8 @@ parser.defineRules(
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["me", "this"],
-        ]
-      },
+        tests: [["me", "this"]]
+      }
     ]
   },
 
@@ -54,10 +52,8 @@ parser.defineRules(
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["I", "this"],
-        ]
-      },
+        tests: [["I", "this"]]
+      }
     ]
   },
 
@@ -66,8 +62,8 @@ parser.defineRules(
   //
 
   {
-// TODO: really low precedence on this so more-specific rules with similar pattern will work
-// TODO: multiple identifiers would be cool...
+    // TODO: really low precedence on this so more-specific rules with similar pattern will work
+    // TODO: multiple identifiers would be cool...
     name: "property_expression",
     alias: "expression",
     syntax: "(properties:the {identifier} of)+ the? {expression}",
@@ -83,8 +79,8 @@ parser.defineRules(
         let { expression, properties } = this.results;
         properties = properties.reverse().join(".");
         return `${expression}.${properties}`;
-  // NOTE: the following is safer, but ugly for demo purposes
-  //      return `spell.get(${expression}, ['${properties}'])`;
+        // NOTE: the following is safer, but ugly for demo purposes
+        //      return `spell.get(${expression}, ['${properties}'])`;
       }
     },
     tests: [
@@ -94,11 +90,10 @@ parser.defineRules(
           ["the foo of bar", "bar.foo"],
           ["the foo of the bar", "bar.foo"],
           ["the foo of the bar of the baz", "baz.bar.foo"],
-          ["the foo-bar of the baz", "baz.foo_bar"],
+          ["the foo-bar of the baz", "baz.foo_bar"]
         ]
-      },
+      }
     ]
-
   },
 
   {
@@ -114,11 +109,8 @@ parser.defineRules(
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["my foo", "this.foo"],
-          ["this bank-account", "this.bank_account"],
-        ]
-      },
+        tests: [["my foo", "this.foo"], ["this bank-account", "this.bank_account"]]
+      }
     ]
   },
 
@@ -140,15 +132,10 @@ parser.defineRules(
     },
     tests: [
       {
-        tests: [
-          ["with a", "a"],
-          ["with a, b, c", "a, b, c"],
-          ["with a, b, c,", "a, b, c"],
-        ]
-      },
+        tests: [["with a", "a"], ["with a, b, c", "a, b, c"], ["with a, b, c,", "a, b, c"]]
+      }
     ]
   },
-
 
   // Properties clause: creates an object with one or more property values.
   //  `foo = 1, bar = 2`
@@ -160,11 +147,11 @@ parser.defineRules(
     syntax: "[({key:identifier}(?:= {value:expression})?) ,]",
     constructor: class object_literal_properties extends Rule.List {
       toSource() {
-        let props = this.matched.map(function (prop) {
-            let { key, value } = prop.results;
-            if (value) return `"${key}": ${value}`
-            return key;
-          });
+        let props = this.matched.map(function(prop) {
+          let { key, value } = prop.results;
+          if (value) return `"${key}": ${value}`;
+          return key;
+        });
         return `{ ${props.join(", ")} }`;
       }
     },
@@ -175,9 +162,9 @@ parser.defineRules(
           [`a = 1`, `{ "a": 1 }`],
           [`a = 1,`, `{ "a": 1 }`],
           [`a = 1, b = yes, c = "quoted"`, `{ "a": 1, "b": true, "c": "quoted" }`],
-          [`a = 1, b = the foo of the bar`, `{ "a": 1, "b": bar.foo }`],
+          [`a = 1, b = the foo of the bar`, `{ "a": 1, "b": bar.foo }`]
         ]
-      },
+      }
     ]
   },
 
@@ -208,18 +195,17 @@ parser.defineRules(
           ["define type Foo", "class Foo {}"],
           ["define type Foo as a Bar", "class Foo extends Bar {}"],
           ["define type Foo\n\ta = yes", "class Foo {\n\ta = true\n}"],
-          ["define type Foo\n\ta = yes\n\tb = no", "class Foo {\n\ta = true\n\tb = false\n}"],
-//TESTME: more involved tests...
+          ["define type Foo\n\ta = yes\n\tb = no", "class Foo {\n\ta = true\n\tb = false\n}"]
+          //TESTME: more involved tests...
         ]
-      },
+      }
     ]
-
   },
 
   // `new` or `create`
   // This works as an expression OR a statement.
   // NOTE: we assume that all types take an object of properties????
-//FIXME: `list`, `text`, etc don't follow these semantics and should be disallowed... ???
+  //FIXME: `list`, `text`, etc don't follow these semantics and should be disallowed... ???
   {
     name: "new_thing",
     alias: ["expression", "statement"],
@@ -241,11 +227,11 @@ parser.defineRules(
         title: "creates normal objects properly",
         compileAs: "statement",
         tests: [
-         [`create Object`, `{}`],
-         [`new Object`, `{}`],
-         [`new Object with a = 1, b = yes`, `{ "a": 1, "b": true }`],
-         [`new Foo`, `new Foo()`],
-         [`new Foo with a = 1, b = yes`, `new Foo({ "a": 1, "b": true })`],
+          [`create Object`, `{}`],
+          [`new Object`, `{}`],
+          [`new Object with a = 1, b = yes`, `{ "a": 1, "b": true }`],
+          [`new Foo`, `new Foo()`],
+          [`new Foo with a = 1, b = yes`, `new Foo({ "a": 1, "b": true })`]
         ]
       },
       {
@@ -253,24 +239,21 @@ parser.defineRules(
         compileAs: "expression",
         tests: [
           ["create object", "{}"],
-//FIXME: the following don't make sense if they have arguments...
+          //FIXME: the following don't make sense if they have arguments...
           ["create List", "new Array()"],
-          ["create list", "new Array()"],
-//FIXME: the following don't make sense in JS but are legal parse-wise
+          ["create list", "new Array()"]
+          //FIXME: the following don't make sense in JS but are legal parse-wise
 
-//           ["create text", "new String()"],
-//           ["create character", "new Character()"],
-//           ["create number", "new Number()"],
-//           ["create integer", "new Integer()"],
-//           ["create decimal", "new Decimal()"],
-//           ["create boolean", "new Boolean()"],
+          //           ["create text", "new String()"],
+          //           ["create character", "new Character()"],
+          //           ["create number", "new Number()"],
+          //           ["create integer", "new Integer()"],
+          //           ["create decimal", "new Decimal()"],
+          //           ["create boolean", "new Boolean()"],
         ]
-      },
+      }
     ]
-
   },
-
-
 
   //
   //  declare properties
@@ -289,7 +272,11 @@ parser.defineRules(
         let declaration = `${name}${value}`;
         switch (scope) {
           case "constant":
-            if (!value) console.warn("parse('declare_property'): constant properties must declare a value:  ", this.matchedText);
+            if (!value)
+              console.warn(
+                "parse('declare_property'): constant properties must declare a value:  ",
+                this.matchedText
+              );
             return `const ${declaration}`;
 
           case "shared property":
@@ -312,14 +299,14 @@ parser.defineRules(
         compileAs: "statement",
         tests: [
           ["property foo", "foo"],
-//FIXME          ["constant foo", "const foo"],
+          //FIXME          ["constant foo", "const foo"],
           ["shared property foo", "@proto foo"],
 
           ["property foo = the foo of the bar", "foo = bar.foo"],
           ["constant foo = 'some text'", "const foo = 'some text'"],
-          ["shared property foo = new object with a = 1", "@proto foo = { \"a\": 1 }"],
+          ["shared property foo = new object with a = 1", '@proto foo = { "a": 1 }']
         ]
-      },
+      }
     ]
   },
 
@@ -346,15 +333,13 @@ parser.defineRules(
       {
         compileAs: "statement",
         tests: [
-          ["property foo as a Foo", "@typed(Foo) foo = undefined" ],
-          ["property foo as text = 'default value'", "@typed(String) foo = 'default value'" ],
-          ["property foo as a list = []", "@typed(Array) foo = []" ],
+          ["property foo as a Foo", "@typed(Foo) foo = undefined"],
+          ["property foo as text = 'default value'", "@typed(String) foo = 'default value'"],
+          ["property foo as a list = []", "@typed(Array) foo = []"]
         ]
-      },
+      }
     ]
-
   },
-
 
   // TODO: `@typed` decorator which takes array to make logic cleaner
   // TODO: assign to first value if no default?
@@ -362,7 +347,8 @@ parser.defineRules(
   {
     name: "declare_property_as_one_of",
     alias: ["statement", "mutatesScope"],
-    syntax: "property {name:identifier} as one of (?:list:[{expression},]+|{literal_list}) (?:= {value:expression})?",
+    syntax:
+      "property {name:identifier} as one of (?:list:[{expression},]+|{literal_list}) (?:= {value:expression})?",
     constructor: class declare_property_as_one_of extends Rule.Sequence {
       get results() {
         let results = super.results;
@@ -377,29 +363,32 @@ parser.defineRules(
         list = flattenDeep(list);
         list = list.length === 1 && typeof list[0] === "string" ? list[0] : list.join(", ");
         if (list[0] !== "[") list = `[${list}]`;
-        return `@typed(${list}) ${name} = ${value}`
+        return `@typed(${list}) ${name} = ${value}`;
       }
 
       // Return a logical representation of the data structure
       toStructure() {
         let { name, plural } = this.results;
-        return [
-          { type: "property", name },
-          { type: "property", subType: "shared", name: plural }
-        ];
+        return [{ type: "property", name }, { type: "property", subType: "shared", name: plural }];
       }
     },
     tests: [
       {
         compileAs: "statement",
         tests: [
-          ["property foo as one of [1, 2, 3]", "@typed([1, 2, 3]) foo = undefined" ],
-          ["property foo as one of yes, no, undefined", "@typed([true, false, undefined]) foo = undefined" ],
+          ["property foo as one of [1, 2, 3]", "@typed([1, 2, 3]) foo = undefined"],
+          [
+            "property foo as one of yes, no, undefined",
+            "@typed([true, false, undefined]) foo = undefined"
+          ],
 
-          ["property foo as one of [1, 2, 3] = 1", "@typed([1, 2, 3]) foo = 1" ],
-          ["property foo as one of yes, no, undefined = yes", "@typed([true, false, undefined]) foo = true" ],
+          ["property foo as one of [1, 2, 3] = 1", "@typed([1, 2, 3]) foo = 1"],
+          [
+            "property foo as one of yes, no, undefined = yes",
+            "@typed([true, false, undefined]) foo = true"
+          ]
         ]
-      },
+      }
     ]
   },
 
@@ -418,12 +407,10 @@ parser.defineRules(
         let statements;
         if (block) {
           statements = block;
-        }
-        else if (expression) {
+        } else if (expression) {
           const returnPrefix = expression.startsWith("return ") ? "" : "return ";
           statements = `{ ${returnPrefix}${expression} }`;
-        }
-        else {
+        } else {
           statements = "{}";
         }
         return `get ${name}() ${statements}`;
@@ -432,7 +419,7 @@ parser.defineRules(
       // Return a logical representation of the data structure
       toStructure() {
         let { name } = this.results;
-        return { type: "property", subType: "getter", name }
+        return { type: "property", subType: "getter", name };
       }
     },
     tests: [
@@ -443,9 +430,12 @@ parser.defineRules(
           ["get foo: a", "get foo() { return a }"],
           ["get foo: return a", "get foo() { return a }"],
           ["get foo:\n\treturn a", "get foo() {\n\treturn a\n}"],
-          ["get foo:\n\tside-effect = yes\n\treturn a", "get foo() {\n\tside_effect = true\n\treturn a\n}"],
+          [
+            "get foo:\n\tside-effect = yes\n\treturn a",
+            "get foo() {\n\tside_effect = true\n\treturn a\n}"
+          ]
         ]
-      },
+      }
     ]
   },
 
@@ -477,7 +467,7 @@ parser.defineRules(
       // Return a logical representation of the data structure
       toStructure() {
         let { name } = this.results;
-        return { type: "property", subType: "setter", name }
+        return { type: "property", subType: "setter", name };
       }
     },
     tests: [
@@ -490,17 +480,41 @@ parser.defineRules(
           ["set color with culr", "set color(culr) {}"],
           ["set color with culr:", "set color(culr) {}"],
           // inline form
-          ["set color set the color of my text to color", "set color(color) { this.text.color = color }"],
-          ["set color: set the color of my text to color", "set color(color) { this.text.color = color }"],
-          ["set color with culr set the color of my text to culr", "set color(culr) { this.text.color = culr }"],
-          ["set color with culr: set the color of my text to culr", "set color(culr) { this.text.color = culr }"],
+          [
+            "set color set the color of my text to color",
+            "set color(color) { this.text.color = color }"
+          ],
+          [
+            "set color: set the color of my text to color",
+            "set color(color) { this.text.color = color }"
+          ],
+          [
+            "set color with culr set the color of my text to culr",
+            "set color(culr) { this.text.color = culr }"
+          ],
+          [
+            "set color with culr: set the color of my text to culr",
+            "set color(culr) { this.text.color = culr }"
+          ],
           // nested block form
-          ["set color\n\tset the color of my text to color", "set color(color) {\n\tthis.text.color = color\n}"],
-          ["set color:\n\tset the color of my text to color", "set color(color) {\n\tthis.text.color = color\n}"],
-          ["set color with culr\n\tset the color of my text to culr", "set color(culr) {\n\tthis.text.color = culr\n}"],
-          ["set color with culr:\n\tset the color of my text to culr", "set color(culr) {\n\tthis.text.color = culr\n}"],
+          [
+            "set color\n\tset the color of my text to color",
+            "set color(color) {\n\tthis.text.color = color\n}"
+          ],
+          [
+            "set color:\n\tset the color of my text to color",
+            "set color(color) {\n\tthis.text.color = color\n}"
+          ],
+          [
+            "set color with culr\n\tset the color of my text to culr",
+            "set color(culr) {\n\tthis.text.color = culr\n}"
+          ],
+          [
+            "set color with culr:\n\tset the color of my text to culr",
+            "set color(culr) {\n\tthis.text.color = culr\n}"
+          ]
         ]
-      },
+      }
     ]
   },
 
@@ -513,8 +527,8 @@ parser.defineRules(
     constructor: class declare_method extends Rule.BlockStatement {
       // Return a logical representation of the data structure
       toStructure() {
-        let { operator, name, args = []} = this.results;
-        let subType = (operator === "to" ? "method" : "event");
+        let { operator, name, args = [] } = this.results;
+        let subType = operator === "to" ? "method" : "event";
         return { type: "function", subType, name, args };
       }
 
@@ -537,11 +551,10 @@ parser.defineRules(
           ["to foo: a = yes", "foo() { a = true }"],
           ["to foo with a: a = yes", "foo(a) { a = true }"],
           ["to foo\n\ta = yes", "foo() {\n\ta = true\n}"],
-          ["to foo with a, b\n\ta = yes\n\tb = no", "foo(a, b) {\n\ta = true\n\tb = false\n}"],
+          ["to foo with a, b\n\ta = yes\n\tb = no", "foo(a, b) {\n\ta = true\n\tb = false\n}"]
         ]
-      },
+      }
     ]
-
   },
 
   // Declare "action", which can be called globally and affects the parser.
@@ -570,12 +583,12 @@ parser.defineRules(
           if (_keywords[0] instanceof Rule.Type) {
             console.error(`parse('declare_action'): one-word actions may not be types: ${keyword}`);
           }
-  // TODO...
-        //   let parser = (context && context.parser) || global.parser;
-        //   let blacklist = parser.getBlacklist("identifier");
-        //   if (blacklist[keyword]) {
-        //     console.error(`parse('declare_action'): one-word actions may not be blacklisted identifiers": ${keyword}`);
-        //   }
+          // TODO...
+          //   let parser = (context && context.parser) || global.parser;
+          //   let blacklist = parser.getBlacklist("identifier");
+          //   if (blacklist[keyword]) {
+          //     console.error(`parse('declare_action'): one-word actions may not be blacklisted identifiers": ${keyword}`);
+          //   }
         }
 
         // figure out arguments and/or types
@@ -583,7 +596,7 @@ parser.defineRules(
         results.types = {};
 
         // if any of the words are types (capital letter) make that an argument of the same name.
-        _keywords.map( (item, index) => {
+        _keywords.map((item, index) => {
           if (item instanceof Rule.Type) {
             let Type = keywords[index];
             let type = Type.toLowerCase();
@@ -603,17 +616,17 @@ parser.defineRules(
       toSource() {
         let { name, args = [], types, statements } = this.results;
         // figure out if there are any conditions due to known argument types
-//         let conditions = [];
-//         for (let arg in types) {
-//           conditions.push(`\tif (!spell.isA(${arg}, ${types[arg]})) return undefined`);
-//         }
+        //         let conditions = [];
+        //         for (let arg in types) {
+        //           conditions.push(`\tif (!spell.isA(${arg}, ${types[arg]})) return undefined`);
+        //         }
         // Create as a STATIC function
         return `static ${name}(${args.join(", ")}) ${statements}`;
       }
 
       toStructure() {
         let { name, args, types } = this.results;
-        return { type: "function", subType: "action", name, args, types }
+        return { type: "function", subType: "action", name, args, types };
       }
     },
     tests: [
@@ -624,12 +637,16 @@ parser.defineRules(
           ["action turn Card over:", "static turn_card_over(card) {}"],
           ["action add Card to Pile:", "static add_card_to_pile(card, pile) {}"],
 
-          ["action turn Card over: set the direction of the card to 'up'", "static turn_card_over(card) { card.direction = 'up' }"],
-          ["action turn Card over:\n\tset the direction of the card to 'up'", "static turn_card_over(card) {\n\tcard.direction = 'up'\n}"],
+          [
+            "action turn Card over: set the direction of the card to 'up'",
+            "static turn_card_over(card) { card.direction = 'up' }"
+          ],
+          [
+            "action turn Card over:\n\tset the direction of the card to 'up'",
+            "static turn_card_over(card) {\n\tcard.direction = 'up'\n}"
+          ]
         ]
-      },
+      }
     ]
-
-  },
-
+  }
 );

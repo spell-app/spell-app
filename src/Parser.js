@@ -192,6 +192,7 @@ export default class Parser {
   }
 
   // Define a rule using (rule)`syntax` or `patterns` to create the rule instances.
+  //  `skip` (boolean, optional) Set to true to skip this rule.
   //  `name` (identifier, required)  Base name of the rule.
   //  `alias` (string or [string], optinal) Other names to define rule under.
   //  `canonical` (string, optional) Canonical name for the rule, available on `Rule` for debugging.
@@ -206,7 +207,9 @@ export default class Parser {
   //    specifying this can let us jump out quickly if there is no possible match
   //
   // Note that we munge the `constructor` passed in for efficiency while parsing.
-  defineRule({ constructor, ...props }) {
+  defineRule({ skip, constructor, ...props }) {
+    if (skip) return;
+
     // throw if required params not provided
     if (!constructor || !props.name) {
       throw new TypeError(`parser.define(): You must pass 'constructor' and 'name'`);

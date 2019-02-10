@@ -35,12 +35,9 @@ parser.defineRules(
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["undefined", "undefined"],
-        ]
-      },
+        tests: [["undefined", "undefined"]]
+      }
     ]
-
   },
 
   // `word` = is a single alphanumeric word.
@@ -63,16 +60,16 @@ parser.defineRules(
           ["abc-def", "abc_def"],
           ["abc_def", "abc_def"],
           ["abc01", "abc01"],
-          ["abc-def_01", "abc_def_01"],
+          ["abc-def_01", "abc_def_01"]
         ]
       },
       {
         title: "doesn't match things that aren't words",
         tests: [
           ["$asda", undefined],
-          ["(asda)", undefined]     // TODO... ???
+          ["(asda)", undefined] // TODO... ???
         ]
-      },
+      }
     ]
   },
 
@@ -98,31 +95,85 @@ parser.defineRules(
       //  express spatial or temporal relations  (in, under, towards, before)
       //  or mark various semantic roles (of, for).
       // TESTME
-      "about", "above", "after", "and", "as", "at",
-      "before", "behind", "below", "beneath", "beside", "between", "beyond", "by",
-      "defined", "down", "during",
-      "each", "empty", "exactly", "except",
-      "for", "from",
+      "about",
+      "above",
+      "after",
+      "and",
+      "as",
+      "at",
+      "before",
+      "behind",
+      "below",
+      "beneath",
+      "beside",
+      "between",
+      "beyond",
+      "by",
+      "defined",
+      "down",
+      "during",
+      "each",
+      "empty",
+      "exactly",
+      "except",
+      "for",
+      "from",
       "greater",
-      "I", "in", "into",
-      "less", "long",
-      "me", "minus", "more",
-      "near", "not",
-      "of", "off", "on", "onto", "opposite", "or", "out", "outside", "over",
-      "short", "since",
-      "than", "the", "then", "through", "thru", "to", "toward", "towards",
-      "undefined", "under", "underneath", "unique", "until", "up", "upon", "upside",
-      "versus", "vs",
-      "where", "with", "within", "without",
+      "I",
+      "in",
+      "into",
+      "less",
+      "long",
+      "me",
+      "minus",
+      "more",
+      "near",
+      "not",
+      "of",
+      "off",
+      "on",
+      "onto",
+      "opposite",
+      "or",
+      "out",
+      "outside",
+      "over",
+      "short",
+      "since",
+      "than",
+      "the",
+      "then",
+      "through",
+      "thru",
+      "to",
+      "toward",
+      "towards",
+      "undefined",
+      "under",
+      "underneath",
+      "unique",
+      "until",
+      "up",
+      "upon",
+      "upside",
+      "versus",
+      "vs",
+      "where",
+      "with",
+      "within",
+      "without",
 
       // Add common english verbs to identifier blacklist.
       "are",
-      "do", "does",
+      "do",
+      "does",
       "contains",
-      "has", "have",
+      "has",
+      "have",
       "is",
       "repeat",
-      "was", "were",
+      "was",
+      "were",
 
       // Add special control keywords to identifier blacklist.
       "else",
@@ -131,15 +182,27 @@ parser.defineRules(
       "while",
 
       // Add boolean tokens to identifier blacklist.
-      "true", "false",
-      "yes", "no",
-      "ok", "cancel",
-      "success", "failure",
+      "true",
+      "false",
+      "yes",
+      "no",
+      "ok",
+      "cancel",
+      "success",
+      "failure",
 
       // Add number words to identifier blacklist.
       // TESTME
-      "one", "two", "three", "four", "five",
-      "six", "seven", "eight", "nine", "ten",
+      "one",
+      "two",
+      "three",
+      "four",
+      "five",
+      "six",
+      "seven",
+      "eight",
+      "nine",
+      "ten"
     ],
     tests: [
       {
@@ -150,7 +213,7 @@ parser.defineRules(
           ["abc-def", "abc_def"],
           ["abc_def", "abc_def"],
           ["abc01", "abc01"],
-          ["abc-def_01", "abc_def_01"],
+          ["abc-def_01", "abc_def_01"]
         ]
       },
       {
@@ -158,15 +221,13 @@ parser.defineRules(
         tests: [
           ["", undefined],
           ["$asda", undefined],
-          ["(asda)", undefined],     // TODO... ???
-          ["Abc", undefined],
+          ["(asda)", undefined], // TODO... ???
+          ["Abc", undefined]
         ]
       },
       {
         title: "skips items in its blacklist",
-        tests: [
-          ["yes", undefined]
-        ]
+        tests: [["yes", undefined]]
       }
     ]
   },
@@ -182,25 +243,34 @@ parser.defineRules(
       // Convert "-" to "_" in source output.
       toSource() {
         let type = this.matched;
-        switch(type) {
+        switch (type) {
           // Alias `List` to `Array`
-          case "List":    return "Array";
+          case "List":
+            return "Array";
 
           // special case to take the following as lowercase
-          case "list":    return "Array";
-          case "text":    return "String";
-          case "character":  return "Character";
-          case "number":    return "Number";
-          case "integer":    return "Integer";
-          case "decimal":    return "Decimal";
-          case "boolean":    return "Boolean";
-          case "object":    return "Object";
+          case "list":
+            return "Array";
+          case "text":
+            return "String";
+          case "character":
+            return "Character";
+          case "number":
+            return "Number";
+          case "integer":
+            return "Integer";
+          case "decimal":
+            return "Decimal";
+          case "boolean":
+            return "Boolean";
+          case "object":
+            return "Object";
           default:
             return type.replace(/\-/g, "_");
         }
       }
     },
-    blacklist: [ "I" ],
+    blacklist: ["I"],
     tests: [
       {
         title: "correctly matches types",
@@ -209,15 +279,15 @@ parser.defineRules(
           ["Abc-def", "Abc_def"],
           ["Abc_Def", "Abc_Def"],
           ["Abc01", "Abc01"],
-          ["Abc-def_01", "Abc_def_01"],
+          ["Abc-def_01", "Abc_def_01"]
         ]
       },
       {
         title: "doesn't match things that aren't types",
         tests: [
           ["", undefined],
-          ["$Asda", undefined],     // TODO... ???
-          ["(Asda)", undefined],    // TODO... ???
+          ["$Asda", undefined], // TODO... ???
+          ["(Asda)", undefined] // TODO... ???
         ]
       },
       {
@@ -231,19 +301,15 @@ parser.defineRules(
           ["integer", "Integer"],
           ["decimal", "Decimal"],
           ["boolean", "Boolean"],
-          ["object", "Object"],
+          ["object", "Object"]
         ]
       },
       {
         title: "skips items in its blacklist",
-        tests: [
-          ["I", undefined]
-        ]
+        tests: [["I", undefined]]
       }
     ]
   },
-
-
 
   // Boolean literal, created with custom constructor for debugging.
   // TODO: better name for this???
@@ -283,12 +349,8 @@ parser.defineRules(
       },
       {
         title: "doesn't match in the middle of a longer keyword",
-        tests: [
-          ["yessir", undefined],
-          ["yes-sir", undefined],
-          ["yes_sir", undefined]
-        ]
-      },
+        tests: [["yessir", undefined], ["yes-sir", undefined], ["yes_sir", undefined]]
+      }
     ]
   },
 
@@ -313,7 +375,7 @@ parser.defineRules(
         eight: 8,
         nine: 9,
         ten: 10
-      }
+      };
 
       // Numbers get encoded as numbers in the token stream.
       parse(parser, tokens, start = 0) {
@@ -343,22 +405,17 @@ parser.defineRules(
           ["000.1", 0.1],
           ["1.", 1],
           [".1", 0.1],
-          ["-111.111", -111.111],
+          ["-111.111", -111.111]
         ]
       },
       {
         title: "doesn't match things that aren't numbers",
-        tests: [
-          ["", undefined],
-          [".", undefined],
-        ]
+        tests: [["", undefined], [".", undefined]]
       },
       {
         title: "requires negative sign to be touching the number",
-        tests: [
-          ["- 1", undefined]
-        ]
-      },
+        tests: [["- 1", undefined]]
+      }
     ]
   },
 
@@ -394,10 +451,10 @@ parser.defineRules(
           ["'a'", "'a'"],
           ['"abcd"', '"abcd"'],
           ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
-          ['"...Can\'t touch this"', '"...Can\'t touch this"'],
-//FIXME          ["'\"Gadzooks! I can\\'t believe it!\" he said'", "'\"Gadzooks! I can\'t believe it!\" he said'"],
+          ['"...Can\'t touch this"', '"...Can\'t touch this"']
+          //FIXME          ["'\"Gadzooks! I can\\'t believe it!\" he said'", "'\"Gadzooks! I can\'t believe it!\" he said'"],
         ]
-      },
+      }
     ]
   },
 
@@ -422,19 +479,15 @@ parser.defineRules(
           ["[1,2,3]", "[1, 2, 3]"],
           ["[1, 2, 3]", "[1, 2, 3]"],
           ["[1,2,3,]", "[1, 2, 3]"],
-          ["[yes,no,'a',1]", "[true, false, 'a', 1]"],
+          ["[yes,no,'a',1]", "[true, false, 'a', 1]"]
         ]
       },
       {
         title: "doesn't match malformed lists ",
-        tests: [
-          ["", undefined],
-          ["[,1]", undefined]
-        ]
-      },
+        tests: [["", undefined], ["[,1]", undefined]]
+      }
     ]
   },
-
 
   // Parenthesized expression
   {
@@ -445,7 +498,12 @@ parser.defineRules(
       toSource() {
         let { expression } = this.results;
         // don't double parens if not necessary
-        if (typeof expression === "string" && expression.startsWith("(") && expression.endsWith(")")) return expression;
+        if (
+          typeof expression === "string" &&
+          expression.startsWith("(") &&
+          expression.endsWith(")")
+        )
+          return expression;
         return "(" + expression + ")";
       }
     },
@@ -455,7 +513,7 @@ parser.defineRules(
         tests: [
           ["(someVar)", "(someVar)"],
           ["((someVar))", "(someVar)"],
-          ["(1 and yes)", "(1 && true)"],
+          ["(1 and yes)", "(1 && true)"]
         ]
       },
       {
@@ -464,17 +522,13 @@ parser.defineRules(
         tests: [
           ["(1) and (yes)", "((1) && (true))"],
           ["((1) and (yes))", "((1) && (true))"],
-          ["((1) and ((yes)))", "((1) && (true))"],
+          ["((1) and ((yes)))", "((1) && (true))"]
         ]
       },
       {
         title: "doesn't match malformed parenthesized expressions",
-        tests: [
-          ["(foo", undefined],
-          ["(foo(bar)baz", undefined],
-        ]
-      },
+        tests: [["(foo", undefined], ["(foo(bar)baz", undefined]]
+      }
     ]
   }
-
 );

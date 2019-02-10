@@ -25,7 +25,6 @@ parser.defineRules(
   //     }, matches[0]);
   //   }
 
-
   {
     name: "infix_operator_expression",
     alias: "expression",
@@ -39,7 +38,10 @@ parser.defineRules(
       }
 
       get precedence() {
-        if (!this.matched) throw new SyntaxError("infix_operator_expression: trying to look up precedence when not parsed!");
+        if (!this.matched)
+          throw new SyntaxError(
+            "infix_operator_expression: trying to look up precedence when not parsed!"
+          );
         const { _operator } = this.results;
         return _operator.precedence;
       }
@@ -56,15 +58,15 @@ parser.defineRules(
     precedence: 6,
     syntax: "and",
     constructor: class and extends Rule.Keywords {
-      applyOperator(a,b) { return `(${a} && ${b})` }
+      applyOperator(a, b) {
+        return `(${a} && ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a and b", "(a && b)"],
-        ]
-      },
+        tests: [["a and b", "(a && b)"]]
+      }
     ]
   },
 
@@ -74,15 +76,15 @@ parser.defineRules(
     precedence: 5,
     syntax: "or",
     constructor: class or extends Rule.Keywords {
-      applyOperator(a,b) { return `(${a} || ${b})` }
+      applyOperator(a, b) {
+        return `(${a} || ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a or b", "(a || b)"],
-        ]
-      },
+        tests: [["a or b", "(a || b)"]]
+      }
     ]
   },
 
@@ -92,15 +94,15 @@ parser.defineRules(
     precedence: 10,
     syntax: "is",
     constructor: class is extends Rule.Keywords {
-      applyOperator(a,b) { return `(${a} == ${b})` }
+      applyOperator(a, b) {
+        return `(${a} == ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a is b", "(a == b)"],
-        ]
-      },
+        tests: [["a is b", "(a == b)"]]
+      }
     ]
   },
 
@@ -110,15 +112,15 @@ parser.defineRules(
     precedence: 10,
     syntax: "is not",
     constructor: class is_not extends Rule.Keywords {
-      applyOperator(a,b) { return `(${a} != ${b})` }
+      applyOperator(a, b) {
+        return `(${a} != ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a is not b", "(a != b)"],
-        ]
-      },
+        tests: [["a is not b", "(a != b)"]]
+      }
     ]
   },
 
@@ -128,15 +130,15 @@ parser.defineRules(
     precedence: 10,
     syntax: "is exactly",
     constructor: class is_exactly extends Rule.Keywords {
-      applyOperator(a,b) { return `(${a} === ${b})` }
+      applyOperator(a, b) {
+        return `(${a} === ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a is exactly b", "(a === b)"],
-        ]
-      },
+        tests: [["a is exactly b", "(a === b)"]]
+      }
     ]
   },
   {
@@ -145,39 +147,35 @@ parser.defineRules(
     precedence: 10,
     syntax: "is not exactly",
     constructor: class is_not_exactly extends Rule.Keywords {
-      applyOperator(a,b) { return `(${a} !== ${b})` }
+      applyOperator(a, b) {
+        return `(${a} !== ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a is not exactly b", "(a !== b)"],
-        ]
-      },
+        tests: [["a is not exactly b", "(a !== b)"]]
+      }
     ]
   },
 
-//FIXME: no validation that `type` is a legal JS type
+  //FIXME: no validation that `type` is a legal JS type
   //TODO: `is same type as` ?
   {
     name: "is_a",
     alias: ["infix_operator"],
     precedence: 11,
-    syntax: [
-      "is a",
-      "is an"
-    ],
+    syntax: ["is a", "is an"],
     constructor: class is_a extends Rule.Keywords {
-      applyOperator(thing, type) { return `spell.isOfType(${thing}, '${type}')` }
+      applyOperator(thing, type) {
+        return `spell.isOfType(${thing}, '${type}')`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a is a B", "spell.isOfType(a, 'B')"],
-          ["a is an A", "spell.isOfType(a, 'A')"],
-        ]
-      },
+        tests: [["a is a B", "spell.isOfType(a, 'B')"], ["a is an A", "spell.isOfType(a, 'A')"]]
+      }
     ]
   },
 
@@ -185,21 +183,20 @@ parser.defineRules(
     name: "is_not_a",
     alias: ["infix_operator"],
     precedence: 11,
-    syntax: [
-      "is not a",
-      "is not an"
-    ],
+    syntax: ["is not a", "is not an"],
     constructor: class is_not_a extends Rule.Keywords {
-      applyOperator(thing, type) { return `!spell.isOfType(${thing}, '${type}')` }
+      applyOperator(thing, type) {
+        return `!spell.isOfType(${thing}, '${type}')`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
         tests: [
           ["a is not a B", "!spell.isOfType(a, 'B')"],
-          ["a is not an A", "!spell.isOfType(a, 'A')"],
+          ["a is not an A", "!spell.isOfType(a, 'A')"]
         ]
-      },
+      }
     ]
   },
 
@@ -208,21 +205,20 @@ parser.defineRules(
     name: "is_in",
     alias: ["infix_operator"],
     precedence: 11,
-    syntax: [
-      "is in",
-      "is one of"
-    ],
+    syntax: ["is in", "is one of"],
     constructor: class is_in extends Rule.Keywords {
-      applyOperator(thing, list) { return `spell.includes(${list}, ${thing})` }
+      applyOperator(thing, list) {
+        return `spell.includes(${list}, ${thing})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
         tests: [
           ["a is in theList", "spell.includes(theList, a)"],
-          ["a is one of theList", "spell.includes(theList, a)"],
+          ["a is one of theList", "spell.includes(theList, a)"]
         ]
-      },
+      }
     ]
   },
 
@@ -230,45 +226,41 @@ parser.defineRules(
     name: "is_not_in",
     alias: ["infix_operator"],
     precedence: 11,
-    syntax: [
-      "is not in",
-      "is not one of"
-    ],
+    syntax: ["is not in", "is not one of"],
     constructor: class is_not_in extends Rule.Keywords {
-      applyOperator(thing, list) { return `!spell.includes(${list}, ${thing})` }
+      applyOperator(thing, list) {
+        return `!spell.includes(${list}, ${thing})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
         tests: [
           ["a is not in theList", "!spell.includes(theList, a)"],
-          ["a is not one of theList", "!spell.includes(theList, a)"],
+          ["a is not one of theList", "!spell.includes(theList, a)"]
         ]
-      },
+      }
     ]
   },
-
-
 
   {
     name: "includes",
     alias: ["infix_operator"],
     precedence: 11,
-    syntax: [
-      "includes",
-      "contains"
-    ],
+    syntax: ["includes", "contains"],
     constructor: class includes extends Rule.Keywords {
-      applyOperator(list, thing) { return `spell.includes(${list}, ${thing})` }
+      applyOperator(list, thing) {
+        return `spell.includes(${list}, ${thing})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
         tests: [
           ["theList includes a", "spell.includes(theList, a)"],
-          ["theList contains a", "spell.includes(theList, a)"],
+          ["theList contains a", "spell.includes(theList, a)"]
         ]
-      },
+      }
     ]
   },
 
@@ -276,24 +268,22 @@ parser.defineRules(
     name: "does_not_include",
     alias: ["infix_operator"],
     precedence: 11,
-    syntax: [
-      "does not include",
-      "does not contain"
-    ],
+    syntax: ["does not include", "does not contain"],
     constructor: class does_not_include extends Rule.Keywords {
-      applyOperator(list, thing) { return `!spell.includes(${list}, ${thing})` }
+      applyOperator(list, thing) {
+        return `!spell.includes(${list}, ${thing})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
         tests: [
           ["theList does not include a", "!spell.includes(theList, a)"],
-          ["theList does not contain a", "!spell.includes(theList, a)"],
+          ["theList does not contain a", "!spell.includes(theList, a)"]
         ]
-      },
+      }
     ]
   },
-
 
   {
     name: "gt",
@@ -301,16 +291,18 @@ parser.defineRules(
     precedence: 11,
     syntax: ">",
     constructor: class gt extends Rule.Symbols {
-      applyOperator(a,b) { return`(${a} > ${b})` }
+      applyOperator(a, b) {
+        return `(${a} > ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
         tests: [
           { title: "with spaces", input: "a > b", output: "(a > b)" },
-          { title: "without spaces", input: "a>b", output: "(a > b)"},
+          { title: "without spaces", input: "a>b", output: "(a > b)" }
         ]
-      },
+      }
     ]
   },
   {
@@ -319,15 +311,15 @@ parser.defineRules(
     precedence: 11,
     syntax: "is greater than",
     constructor: class is_gt extends Rule.Keywords {
-      applyOperator(a,b) { return`(${a} > ${b})` }
+      applyOperator(a, b) {
+        return `(${a} > ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a is greater than b", "(a > b)"],
-        ]
-      },
+        tests: [["a is greater than b", "(a > b)"]]
+      }
     ]
   },
 
@@ -337,16 +329,18 @@ parser.defineRules(
     precedence: 11,
     syntax: ">=",
     constructor: class gte extends Rule.Symbols {
-      applyOperator(a,b) { return`(${a} >= ${b})` }
+      applyOperator(a, b) {
+        return `(${a} >= ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
         tests: [
           { title: "with spaces", input: "a >= b", output: "(a >= b)" },
-          { title: "without spaces", input: "a>=b", output: "(a >= b)" },
+          { title: "without spaces", input: "a>=b", output: "(a >= b)" }
         ]
-      },
+      }
     ]
   },
   {
@@ -355,15 +349,15 @@ parser.defineRules(
     precedence: 11,
     syntax: "is greater than or equal to",
     constructor: class is_gte extends Rule.Keywords {
-      applyOperator(a,b) { return`(${a} >= ${b})` }
+      applyOperator(a, b) {
+        return `(${a} >= ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a is greater than or equal to b", "(a >= b)"],
-        ]
-      },
+        tests: [["a is greater than or equal to b", "(a >= b)"]]
+      }
     ]
   },
 
@@ -373,16 +367,18 @@ parser.defineRules(
     precedence: 11,
     syntax: "<",
     constructor: class lt extends Rule.Symbols {
-      applyOperator(a,b) { return`(${a} < ${b})` }
+      applyOperator(a, b) {
+        return `(${a} < ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
         tests: [
           { title: "with spaces", input: "a > b", output: "(a > b)" },
-          { title: "without spaces", input: "a>b", output: "(a > b)" },
+          { title: "without spaces", input: "a>b", output: "(a > b)" }
         ]
-      },
+      }
     ]
   },
   {
@@ -391,15 +387,15 @@ parser.defineRules(
     precedence: 11,
     syntax: "is less than",
     constructor: class is_lt extends Rule.Keywords {
-      applyOperator(a,b) { return`(${a} < ${b})` }
+      applyOperator(a, b) {
+        return `(${a} < ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a is less than b", "(a < b)"],
-        ]
-      },
+        tests: [["a is less than b", "(a < b)"]]
+      }
     ]
   },
 
@@ -409,16 +405,18 @@ parser.defineRules(
     precedence: 11,
     syntax: "<=",
     constructor: class lte extends Rule.Symbols {
-      applyOperator(a,b) { return`(${a} <= ${b})` }
+      applyOperator(a, b) {
+        return `(${a} <= ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
         tests: [
           { title: "with spaces", input: "a <= b", output: "(a <= b)" },
-          { title: "without spaces", input: "a<=b", output: "(a <= b)" },
+          { title: "without spaces", input: "a<=b", output: "(a <= b)" }
         ]
-      },
+      }
     ]
   },
 
@@ -428,18 +426,17 @@ parser.defineRules(
     precedence: 11,
     syntax: "is less than or equal to",
     constructor: class is_lte extends Rule.Keywords {
-      applyOperator(a,b) { return`(${a} <= ${b})` }
+      applyOperator(a, b) {
+        return `(${a} <= ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a is less than or equal to b", "(a <= b)"],
-        ]
-      },
+        tests: [["a is less than or equal to b", "(a <= b)"]]
+      }
     ]
   },
-
 
   {
     name: "plus_symbol",
@@ -447,16 +444,15 @@ parser.defineRules(
     precedence: 13,
     syntax: "\\+",
     constructor: class plus_symbol extends Rule.Symbols {
-      applyOperator(a,b) { return`(${a} + ${b})` }
+      applyOperator(a, b) {
+        return `(${a} + ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a+b", "(a + b)"],
-          ["a + b", "(a + b)"],
-        ]
-      },
+        tests: [["a+b", "(a + b)"], ["a + b", "(a + b)"]]
+      }
     ]
   },
   {
@@ -465,15 +461,15 @@ parser.defineRules(
     precedence: 13,
     syntax: "plus",
     constructor: class plus extends Rule.Keywords {
-      applyOperator(a,b) { return`(${a} + ${b})` }
+      applyOperator(a, b) {
+        return `(${a} + ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a plus b", "(a + b)"],
-        ]
-      },
+        tests: [["a plus b", "(a + b)"]]
+      }
     ]
   },
 
@@ -483,7 +479,9 @@ parser.defineRules(
     precedence: 13,
     syntax: "-",
     constructor: class minus_symbol extends Rule.Symbols {
-      applyOperator(a,b) { return`(${a} - ${b})` }
+      applyOperator(a, b) {
+        return `(${a} - ${b})`;
+      }
     },
     tests: [
       {
@@ -491,11 +489,13 @@ parser.defineRules(
         tests: [
           {
             skip: "minus requires space",
-            title: "without spaces", input: "a-b", output: "(a - b)"
+            title: "without spaces",
+            input: "a-b",
+            output: "(a - b)"
           },
-          { title: "with spaces", input: "a - b", output: "(a - b)" },
+          { title: "with spaces", input: "a - b", output: "(a - b)" }
         ]
-      },
+      }
     ]
   },
   {
@@ -504,15 +504,15 @@ parser.defineRules(
     precedence: 13,
     syntax: "minus",
     constructor: class minus extends Rule.Keywords {
-      applyOperator(a,b) { return`(${a} - ${b})` }
+      applyOperator(a, b) {
+        return `(${a} - ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a minus b", "(a - b)"],
-        ]
-      },
+        tests: [["a minus b", "(a - b)"]]
+      }
     ]
   },
 
@@ -522,16 +522,18 @@ parser.defineRules(
     precedence: 14,
     syntax: "\\*",
     constructor: class times extends Rule.Symbols {
-      applyOperator(a,b) { return`(${a} * ${b})` }
+      applyOperator(a, b) {
+        return `(${a} * ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
         tests: [
           { title: "without spaces", input: "a*b", output: "(a * b)" },
-          { title: "with spaces", input: "a * b", output: "(a * b)" },
+          { title: "with spaces", input: "a * b", output: "(a * b)" }
         ]
-      },
+      }
     ]
   },
   {
@@ -540,15 +542,15 @@ parser.defineRules(
     precedence: 14,
     syntax: "times",
     constructor: class times extends Rule.Keywords {
-      applyOperator(a,b) { return`(${a} * ${b})` }
+      applyOperator(a, b) {
+        return `(${a} * ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a times b", "(a * b)"],
-        ]
-      },
+        tests: [["a times b", "(a * b)"]]
+      }
     ]
   },
 
@@ -558,16 +560,18 @@ parser.defineRules(
     precedence: 14,
     syntax: "/",
     constructor: class divided_by extends Rule.Symbols {
-      applyOperator(a,b) { return`(${a} / ${b})` }
+      applyOperator(a, b) {
+        return `(${a} / ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
         tests: [
           { title: "without spaces", input: "a/b", output: "(a / b)" },
-          { title: "with spaces", input: "a / b", output: "(a / b)" },
+          { title: "with spaces", input: "a / b", output: "(a / b)" }
         ]
-      },
+      }
     ]
   },
   {
@@ -576,15 +580,15 @@ parser.defineRules(
     precedence: 14,
     syntax: "divided by",
     constructor: class divided_by extends Rule.Keywords {
-      applyOperator(a,b) { return`(${a} / ${b})` }
+      applyOperator(a, b) {
+        return `(${a} / ${b})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a divided by b", "(a / b)"],
-        ]
-      },
+        tests: [["a divided by b", "(a / b)"]]
+      }
     ]
   },
 
@@ -611,35 +615,37 @@ parser.defineRules(
     alias: ["postfix_operator"],
     syntax: "is defined",
     constructor: class is_defined extends Rule.Keywords {
-      applyOperator(thing) { return `(typeof ${thing} !== 'undefined')` }
+      applyOperator(thing) {
+        return `(typeof ${thing} !== 'undefined')`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["a is defined", "(typeof a !== 'undefined')"],
-        ]
-      },
+        tests: [["a is defined", "(typeof a !== 'undefined')"]]
+      }
     ]
   },
   {
     name: "is_undefined",
     alias: ["postfix_operator"],
     syntax: [
-//FIXME      "is undefined",   // conflicts with `undefined` as expression from core
+      //FIXME      "is undefined",   // conflicts with `undefined` as expression from core
       "is not defined"
     ],
     constructor: class is_undefined extends Rule.Keywords {
-      applyOperator(thing) { return `(typeof ${thing} === 'undefined')` }
+      applyOperator(thing) {
+        return `(typeof ${thing} === 'undefined')`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
         tests: [
-//          ["thing is undefined", "(typeof thing === 'undefined')"],
-          ["thing is not defined", "(typeof thing === 'undefined')"],
+          //          ["thing is undefined", "(typeof thing === 'undefined')"],
+          ["thing is not defined", "(typeof thing === 'undefined')"]
         ]
-      },
+      }
     ]
   },
 
@@ -648,15 +654,15 @@ parser.defineRules(
     alias: ["postfix_operator"],
     syntax: "is empty",
     constructor: class is_empty extends Rule.Keywords {
-      applyOperator(thing) { return `spell.isEmpty(${thing})` }
+      applyOperator(thing) {
+        return `spell.isEmpty(${thing})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["thing is empty", "spell.isEmpty(thing)"],
-        ]
-      },
+        tests: [["thing is empty", "spell.isEmpty(thing)"]]
+      }
     ]
   },
   {
@@ -664,18 +670,17 @@ parser.defineRules(
     alias: ["postfix_operator"],
     syntax: "is not empty",
     constructor: class is_not_empty extends Rule.Keywords {
-      applyOperator(thing) { return `!spell.isEmpty(${thing})` }
+      applyOperator(thing) {
+        return `!spell.isEmpty(${thing})`;
+      }
     },
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["thing is not empty", "!spell.isEmpty(thing)"],
-        ]
-      },
+        tests: [["thing is not empty", "!spell.isEmpty(thing)"]]
+      }
     ]
   },
-
 
   //
   //## Prefix operators:   `<operator> {lhs}`, e.g. `round theList`
@@ -684,7 +689,7 @@ parser.defineRules(
   {
     name: "absolute_value",
     alias: "expression",
-//FIXME: make `the` optional
+    //FIXME: make `the` optional
     syntax: "the absolute value of {expression}",
     constructor: class absolute_value extends Rule.Sequence {
       toSource() {
@@ -695,23 +700,21 @@ parser.defineRules(
     tests: [
       {
         compileAs: "expression",
-        tests: [
-          ["the absolute value of thing", "Math.abs(thing)"],
-        ]
-      },
+        tests: [["the absolute value of thing", "Math.abs(thing)"]]
+      }
     ]
   },
 
   {
     name: "max",
     alias: "expression",
-//FIXME: "the?"
+    //FIXME: "the?"
     syntax: "(max|maximum|largest|biggest) {identifier}? (of|in) {expression}",
     constructor: class max extends Rule.Sequence {
       toSource() {
         const { expression } = this.results;
-// TODO: Math.max() doesn't work when passed an array... :-(
-        return `spell.max(${expression})`
+        // TODO: Math.max() doesn't work when passed an array... :-(
+        return `spell.max(${expression})`;
       }
     },
     tests: [
@@ -723,22 +726,22 @@ parser.defineRules(
           ["maximum of thing", "spell.max(thing)"],
           ["largest of thing", "spell.max(thing)"],
           ["biggest in thing", "spell.max(thing)"],
-          ["biggest item in thing", "spell.max(thing)"],
+          ["biggest item in thing", "spell.max(thing)"]
         ]
-      },
+      }
     ]
   },
 
   {
     name: "min",
     alias: "expression",
-//FIXME: "the?"
+    //FIXME: "the?"
     syntax: "(min|minimum|smallest|least) {identifier}? (of|in) {expression}",
     constructor: class min extends Rule.Sequence {
       toSource() {
         const { expression } = this.results;
-// TODO: Math.min() doesn't work when passed an array... :-(
-        return `spell.min(${expression})`
+        // TODO: Math.min() doesn't work when passed an array... :-(
+        return `spell.min(${expression})`;
       }
     },
     tests: [
@@ -750,12 +753,11 @@ parser.defineRules(
           ["minimum of thing", "spell.min(thing)"],
           ["smallest of thing", "spell.min(thing)"],
           ["least of thing", "spell.min(thing)"],
-          ["smallest item in thing", "spell.min(thing)"],
+          ["smallest item in thing", "spell.min(thing)"]
         ]
-      },
+      }
     ]
   },
-
 
   //
   //## "surrounding" operator expressions:   `round thing down`
@@ -768,12 +770,9 @@ parser.defineRules(
     constructor: class round_up_or_down extends Rule.Sequence {
       toSource() {
         const { thing, direction } = this.results;
-        if (direction === "up")
-          return `Math.ceil(${thing})`;
-        else if (direction === "down")
-          return `Math.floor(${thing})`;
-        else
-          return `Math.round(${thing})`;
+        if (direction === "up") return `Math.ceil(${thing})`;
+        else if (direction === "down") return `Math.floor(${thing})`;
+        else return `Math.round(${thing})`;
       }
     },
     tests: [
@@ -783,9 +782,9 @@ parser.defineRules(
           ["round thing", "Math.round(thing)"],
           ["round thing off", "Math.round(thing)"],
           ["round thing up", "Math.ceil(thing)"],
-          ["round thing down", "Math.floor(thing)"],
+          ["round thing down", "Math.floor(thing)"]
         ]
-      },
+      }
     ]
   }
 );

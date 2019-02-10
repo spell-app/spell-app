@@ -15,7 +15,7 @@ parser.defineRules(
     name: "alert",
     alias: ["statement", "mutatesScope", "async"],
     syntax: "alert {message:expression} (?:with {okButton:text})?",
-  // TODO: need some fancy promise juju to make parent funtion async?
+    // TODO: need some fancy promise juju to make parent funtion async?
     constructor: class alert extends Rule.Sequence {
       toSource() {
         let { message, okButton = '"OK"' } = this.results;
@@ -29,7 +29,7 @@ parser.defineRules(
           [`alert 'Yo!'`, `await spell.alert('Yo!', "OK")`],
           [`alert "Yo!"`, `await spell.alert("Yo!", "OK")`],
           [`alert 'Yo!' with 'yep'`, `await spell.alert('Yo!', 'yep')`],
-          [`alert "Yo!" with "yep"`, `await spell.alert("Yo!", "yep")`],
+          [`alert "Yo!" with "yep"`, `await spell.alert("Yo!", "yep")`]
         ]
       }
     ]
@@ -55,12 +55,11 @@ parser.defineRules(
           [`warn 'Yo!'`, `await spell.warn('Yo!', "OK")`],
           [`warn 'Yo!' with 'yep'`, `await spell.warn('Yo!', 'yep')`],
           [`warn "Yo!"`, `await spell.warn("Yo!", "OK")`],
-          [`warn "Yo!" with "yep"`, `await spell.warn("Yo!", "yep")`],
+          [`warn "Yo!" with "yep"`, `await spell.warn("Yo!", "yep")`]
         ]
       }
     ]
   },
-
 
   // Confirm message -- present a question with two answers.
   // TODO: need some fancy promise juju here?
@@ -68,7 +67,8 @@ parser.defineRules(
   {
     name: "confirm",
     alias: "statement",
-    syntax: "confirm {message:expression} (?:with {okButton:text} (?: (and|or) {cancelButton:text})? )?",
+    syntax:
+      "confirm {message:expression} (?:with {okButton:text} (?: (and|or) {cancelButton:text})? )?",
     constructor: class confirm extends Rule.Sequence {
       toSource() {
         let { message, okButton = '"OK"', cancelButton = '"Cancel"' } = this.results;
@@ -83,7 +83,7 @@ parser.defineRules(
           [`confirm 'Yo!' with 'yep'`, `await spell.confirm('Yo!', 'yep', "Cancel")`],
           [`confirm 'Yo!' with 'yep' and 'nope'`, `await spell.confirm('Yo!', 'yep', 'nope')`],
           [`confirm 'Yo!' with 'yep' or 'nope'`, `await spell.confirm('Yo!', 'yep', 'nope')`],
-          [`confirm "Yo!" with "yep" or "nope"`, `await spell.confirm("Yo!", "yep", "nope")`],
+          [`confirm "Yo!" with "yep" or "nope"`, `await spell.confirm("Yo!", "yep", "nope")`]
         ]
       }
     ]

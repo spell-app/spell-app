@@ -4,7 +4,6 @@ import parser from "./index.js";
 import { parenthesizeCondition } from "./if.js";
 
 describe("testing spell module if", () => {
-
   unitTestModuleRules(parser, "if");
 
   describe("\n    methods defined in rule file", () => {

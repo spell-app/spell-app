@@ -37,7 +37,7 @@ parser.defineRules(
           ["if a:", "if (a) {}"],
           ["if a then b = 1", "if (a) { b = 1 }"],
           ["if a: b = 1", "if (a) { b = 1 }"],
-          ["if a : b = 1", "if (a) { b = 1 }"],
+          ["if a : b = 1", "if (a) { b = 1 }"]
         ]
       },
       {
@@ -73,10 +73,10 @@ parser.defineRules(
             title: "Prefer nested block to inlined statement",
             input: "if a b = 1\n\tc = 2",
             output: "if (a) {\n\tc = 2\n}"
-          },
+          }
         ]
-      },
-//TESTME: test full if/else if/else blocks
+      }
+      //TESTME: test full if/else if/else blocks
     ]
   },
 
@@ -88,7 +88,7 @@ parser.defineRules(
     constructor: class else_if extends Rule.BlockStatement {
       toSource() {
         const { condition, statements } = this.results;
-        return `else if ${parenthesizeCondition(condition)} ${statements}`
+        return `else if ${parenthesizeCondition(condition)} ${statements}`;
       }
     },
     tests: [
@@ -98,7 +98,7 @@ parser.defineRules(
         tests: [
           ["else if a then", "else if (a) {}"],
           ["else if a then b = 1", "else if (a) { b = 1 }"],
-          ["else if a: b = 1", "else if (a) { b = 1 }"],
+          ["else if a: b = 1", "else if (a) { b = 1 }"]
         ]
       },
       {
@@ -136,9 +136,9 @@ parser.defineRules(
             title: "Prefer nested block to inlined statement",
             input: "else if a b = 1\n\tc = 2",
             output: "else if (a) {\n\tc = 2\n}"
-          },
+          }
         ]
-      },
+      }
     ]
   },
 
@@ -149,7 +149,7 @@ parser.defineRules(
     constructor: class else_ extends Rule.BlockStatement {
       toSource() {
         const { statements } = this.results;
-        return `else ${statements}`
+        return `else ${statements}`;
       }
     },
     tests: [
@@ -160,7 +160,7 @@ parser.defineRules(
           ["else", "else {}"],
           ["otherwise", "else {}"],
           ["else b = 1", "else { b = 1 }"],
-          ["otherwise b = 1", "else { b = 1 }"],
+          ["otherwise b = 1", "else { b = 1 }"]
         ]
       },
       {
@@ -186,9 +186,9 @@ parser.defineRules(
             title: "Multiple lines in the nested block",
             input: "else\n\tb = 1\n\tc = 2",
             output: "else {\n\tb = 1\n\tc = 2\n}"
-          },
+          }
         ]
-      },
+      }
     ]
   },
 
@@ -198,13 +198,13 @@ parser.defineRules(
     alias: "statement",
     syntax: "{statement} if {condition:expression} (?:(else|otherwise) {elseStatement:statement})?",
     leftRecursive: true,
-    testRule: new Rule.Keywords({ literals: [ "if" ] }),
+    testRule: new Rule.Keywords({ literals: ["if"] }),
     constructor: class backwards_if extends Rule.Sequence {
       toSource() {
         const { condition, statement, elseStatement } = this.results;
-//TODO: smarter wrapping?
+        //TODO: smarter wrapping?
         let output = `if (${condition}) { ${statement} }`;
-        if (elseStatement) output += `\nelse { ${elseStatement} }`
+        if (elseStatement) output += `\nelse { ${elseStatement} }`;
         return output;
       }
     },
@@ -215,9 +215,9 @@ parser.defineRules(
         tests: [
           ["b = 1 if a", "if (a) { b = 1 }"],
           ["b = 1 if a else b = 2", "if (a) { b = 1 }\nelse { b = 2 }"],
-          ["b = 1 if a otherwise b = 2", "if (a) { b = 1 }\nelse { b = 2 }"],
+          ["b = 1 if a otherwise b = 2", "if (a) { b = 1 }\nelse { b = 2 }"]
         ]
       }
     ]
-  },
+  }
 );

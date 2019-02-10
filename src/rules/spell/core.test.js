@@ -4,7 +4,5 @@ import parser from "./index.js";
 describe("testing spell module core", () => {
   unitTestModuleRules(parser, "core");
 
-  describe("integration tests", () => {
-
-  });
+  describe("integration tests", () => {});
 });

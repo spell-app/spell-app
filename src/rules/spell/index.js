@@ -35,6 +35,6 @@ if (typeof window !== "undefined") {
     parser,
     rules: parser.rules,
     parse: parser.parse.bind(parser),
-    compile: parser.compile.bind(parser),
+    compile: parser.compile.bind(parser)
   });
 }

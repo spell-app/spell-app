@@ -28,10 +28,8 @@ parser.defineRules(
     tests: [
       {
         compileAs: "statement",
-        tests: [
-          ["return thing", "return thing"],
-        ]
-      },
+        tests: [["return thing", "return thing"]]
+      }
     ]
   },
 
@@ -61,9 +59,9 @@ parser.defineRules(
         tests: [
           ["thing = yes", "thing = true"],
           ["set thing to yes", "thing = true"],
-          ["put yes into thing", "thing = true"],
+          ["put yes into thing", "thing = true"]
         ]
-      },
+      }
     ]
   },
 
@@ -73,19 +71,16 @@ parser.defineRules(
     syntax: "get {value:expression}",
     constructor: class get_value extends Rule.Sequence {
       toSource() {
-        let { value } = this.results;;
-        return `var it = ${value}`
+        let { value } = this.results;
+        return `var it = ${value}`;
       }
     },
     tests: [
       {
         title: "correctly matches ",
         compileAs: "statement",
-        tests: [
-          ["get thing", "var it = thing"],
-        ]
-      },
+        tests: [["get thing", "var it = thing"]]
+      }
     ]
-  },
-
+  }
 );
