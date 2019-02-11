@@ -45,29 +45,14 @@ export default class Rule {
   //  - `true` if the rule MIGHT be matched.
   //  - `false` if there is NO WAY the rule can be matched.
   //  - `undefined` if not determinstic (eg: no way to tell quickly).
-  test(parser, tokens, start = 0, end) {
-    return undefined;
-  }
+  test(parser, tokens, start, end) {}
 
   //
   // ## output as source
   //
 
   // Output value for this INSTANTIATED rule as source.
-  compile() {
-    return this.matched;
-  }
-
-  //
-  // ## output as structure:
-  //
-  toStructure() {
-    return undefined;
-  }
-
-  //
-  // ## reflection
-  //
+  compile() {}
 }
 
 // Abstract rule for one or more sequential literal values to match.
@@ -595,45 +580,6 @@ Rule.Block = class block extends Rule.Sequence {
 
   compile() {
     return "{\n" + this.blockToSource() + "\n" + "}";
-  }
-
-  // Convert to logical representation of structure by converting individual statements and grouping
-  // NOTE: you should override this and include "type"
-  toStructure() {
-    let { _name: name, _superType: superType } = this.results;
-    let block = (this.block && this.block.matched) || [];
-
-    let named = {};
-    let properties = [];
-    let methods = [];
-    let other = [];
-    block
-      .map(statement => statement.toStructure())
-      .filter(Boolean)
-      .forEach(addStructure);
-
-    return {
-      type: "unknown",
-      name,
-      superType,
-      named,
-      properties,
-      methods,
-      other
-    };
-
-    function addStructure(structure) {
-      // add arrays as individual items
-      if (Array.isArray(structure)) return structure.forEach(addStructure);
-
-      // add under `named` for quick hit of all significant bits...
-      if (structure.name) named[structure.name] = structure;
-
-      // add under 'methods', 'properties' or 'other'
-      if (structure.type === "function") methods.push(structure);
-      else if (structure.type === "property") properties.push(structure);
-      else other.push(structure);
-    }
   }
 
   // Format array of `statements` as a JS output block:

@@ -172,13 +172,6 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "define type {name:type} (?:as (a|an) {superType:type})?",
     constructor: class define_type extends Rule.BlockStatement {
-      // Return a logical representation of the data structure
-      toStructure() {
-        let structure = super.toStructure();
-        structure.type = "class";
-        return structure;
-      }
-
       compile() {
         let { name, superType, statements } = this.results;
         let output = `class ${name}`;
@@ -286,12 +279,6 @@ parser.defineRules(
             return declaration;
         }
       }
-
-      // Return a logical representation of the data structure
-      toStructure() {
-        let { scope, name } = this.results;
-        return { type: "property", name, scope };
-      }
     },
     tests: [
       {
@@ -320,12 +307,6 @@ parser.defineRules(
       compile() {
         let { name, type, value = "undefined" } = this.results;
         return `@typed(${type}) ${name} = ${value}`;
-      }
-
-      // Return a logical representation of the data structure
-      toStructure() {
-        let { name, type } = this.results;
-        return { type: "property", subType: "setter", name, dataType: type };
       }
     },
     tests: [
@@ -363,12 +344,6 @@ parser.defineRules(
         list = list.length === 1 && typeof list[0] === "string" ? list[0] : list.join(", ");
         if (list[0] !== "[") list = `[${list}]`;
         return `@typed(${list}) ${name} = ${value}`;
-      }
-
-      // Return a logical representation of the data structure
-      toStructure() {
-        let { name, plural } = this.results;
-        return [{ type: "property", name }, { type: "property", subType: "shared", name: plural }];
       }
     },
     tests: [
@@ -414,12 +389,6 @@ parser.defineRules(
         }
         return `get ${name}() ${statements}`;
       }
-
-      // Return a logical representation of the data structure
-      toStructure() {
-        let { name } = this.results;
-        return { type: "property", subType: "getter", name };
-      }
     },
     tests: [
       {
@@ -461,12 +430,6 @@ parser.defineRules(
           args = args.trim().split(",")[0];
         }
         return `set ${name}(${args}) ${statements}`;
-      }
-
-      // Return a logical representation of the data structure
-      toStructure() {
-        let { name } = this.results;
-        return { type: "property", subType: "setter", name };
       }
     },
     tests: [
@@ -524,13 +487,6 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "(operator:to|on) {name:identifier} {args}? (\\:)? {statement}?",
     constructor: class declare_method extends Rule.BlockStatement {
-      // Return a logical representation of the data structure
-      toStructure() {
-        let { operator, name, args = [] } = this.results;
-        let subType = operator === "to" ? "method" : "event";
-        return { type: "function", subType, name, args };
-      }
-
       compile() {
         let { name, args = "", statements } = this.results;
         return `${name}(${args}) ${statements}`;
@@ -621,11 +577,6 @@ parser.defineRules(
         //         }
         // Create as a STATIC function
         return `static ${name}(${args.join(", ")}) ${statements}`;
-      }
-
-      toStructure() {
-        let { name, args, types } = this.results;
-        return { type: "function", subType: "action", name, args, types };
       }
     },
     tests: [
