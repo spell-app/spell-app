@@ -13,7 +13,7 @@
 //    -
 //
 import Parser, { ParseError } from "./Parser.js";
-import Tokenizer from "./Tokenizer.js";
+import Tokenizer, { matchLiterals } from "./Tokenizer.js";
 
 import { isWhitespace } from "./utils/string";
 
@@ -30,34 +30,37 @@ export default class Rule {
   }
 
   //
-  //  Parsing primitives -- you MUST implement these in your subclasses!
+  //  Parsing methods -- you MUST implement these in your subclasses!
   //
 
-  // Attempt to match this rule between `start` and `end` of `tokens`.
-  // Returns results of the parse or `undefined`.
-  parse(parser, tokens, start = 0, end, stack) {
-    return undefined;
-  }
-
-  // Test to see if bits of our rule are found ANYWHERE between `start` and `end` in the `tokens`.
-  // This is used by complicated (eg: left recursive) rules to exit quickly if there's no chance.
+  // Test to see if bits of our rule are found ANYWHERE between `start` and `end` of the `tokens`.
+  // This is used by complicated (eg: left recursive) rules to exit quickly
+  // if there's no chance of success.
+  //
   // Returns:
   //  - `true` if the rule MIGHT be matched.
   //  - `false` if there is NO WAY the rule can be matched.
   //  - `undefined` if not determinstic (eg: no way to tell quickly).
   test(parser, tokens, start, end) {}
 
+  // Attempt to match this rule between `start` and `end` of `tokens`.
+  // If successful, returns `{ results, rules, nextStart }` where:
+  //  - `results` is logical "results" of what was matched, depends on rule type
+  //  - `rules` is array of rules that were matched
+  //  - `nextStart` is index of token AFTER last result (e.g. start of next bit to parse)
   //
-  // ## output as source
-  //
+  // If unsuccessful, returns `undefined`.
+  parse(parser, tokens, end, stack) {}
 
   // Output value for this INSTANTIATED rule as source.
   compile() {}
 }
 
 // Abstract rule for one or more sequential literal values to match.
-// `rule.literals` is the literal string or array of literal strings to match.
-// `rule.literalSeparator` is the string to put between multiple literals when joining.
+// `rule.literals`:
+//    the literal string or array of literal strings to match.
+// `rule.literalSeparator`
+//    the string to put between multiple literals when joining multiple literals together.
 //
 // After parsing
 //  `rule.matched` will be the string which was matched
@@ -69,30 +72,25 @@ Rule.Literals = class literals extends Rule {
     if (!Array.isArray(this.literals)) this.literals = [this.literals];
   }
 
-  // Attempt to match this rule in the `tokens`.
-  // Returns results of the parse or `undefined`.
-  parse(parser, tokens, start = 0, end) {
-    if (!this.matchesStartingAt(tokens, start, end)) return undefined;
-    return this.clone({
-      matched: this.literals.join(this.literalSeparator),
-      nextStart: start + this.literals.length
-    });
-  }
-
   // Does this match appear ANYWHERE in the tokens?
   test(parser, tokens, start = 0, end = tokens.length) {
     let first = this.literals[0];
     for (var index = start; index < end; index++) {
       if (tokens[index] !== first) continue;
-      if (this.matchesStartingAt(tokens, index, end)) return true;
+      if (matchLiterals(this.literals, tokens, index, end)) return true;
     }
     return false;
   }
 
-  // Match our `literals` between `start` and `end` of tokens.
-  matchesStartingAt(tokens, start = 0, end = tokens.length) {
-    if (this.literals.length === 1) return tokens[start] === this.literals[0];
-    return this.literals.every((literal, i) => start + i < end && literal === tokens[start + i]);
+  // Attempt to match this rule in the `tokens`.
+  // Returns results of the parse or `undefined`.
+  parse(parser, tokens, start = 0, end) {
+    if (!matchLiterals(this.literals, tokens, start, end)) return undefined;
+
+    return this.clone({
+      matched: this.literals.join(this.literalSeparator),
+      nextStart: start + this.literals.length
+    });
   }
 
   compile() {

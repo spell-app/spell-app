@@ -944,3 +944,10 @@ const Tokenizer = {
 };
 
 export default Tokenizer;
+
+
+// Match a series of text literals against a set of tokens between `start` and `end`
+export function matchLiterals(literals, tokens, start = 0, end = tokens.length) {
+  if (literals.length === 1) return tokens[start] === literals[0];
+  return literals.every((literal, i) => start + i < end && literal === tokens[start + i]);
+}
