@@ -149,7 +149,7 @@ export default class ExampleStore {
         this.output = "Can't parse statements";
       } else {
         console.info("Result", result);
-        this.output = result.toSource(parser);
+        this.output = result.compile(parser);
       }
     }, 100);
   }

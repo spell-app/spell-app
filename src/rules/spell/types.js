@@ -26,7 +26,7 @@ parser.defineRules(
     alias: "expression",
     syntax: "me",
     constructor: class me extends Rule.Keywords {
-      toSource() {
+      compile() {
         return "this";
       }
     },
@@ -44,7 +44,7 @@ parser.defineRules(
     alias: "expression",
     syntax: "I",
     constructor: class I extends Rule.Keywords {
-      toSource() {
+      compile() {
         return "this";
       }
     },
@@ -74,7 +74,7 @@ parser.defineRules(
         return results;
       }
 
-      toSource() {
+      compile() {
         let { expression, properties } = this.results;
         properties = properties.reverse().join(".");
         return `${expression}.${properties}`;
@@ -100,7 +100,7 @@ parser.defineRules(
     alias: "expression",
     syntax: "(my|this) {identifier}",
     constructor: class my_property_expression extends Rule.Sequence {
-      toSource() {
+      compile() {
         let { identifier } = this.results;
         return `this.${identifier}`;
       }
@@ -124,7 +124,7 @@ parser.defineRules(
     syntax: "with [args:{identifier},]",
     constructor: class args extends Rule.Sequence {
       // Returns an array of argument values
-      toSource() {
+      compile() {
         const { args } = this.results;
         return args.join(", ");
       }
@@ -145,7 +145,7 @@ parser.defineRules(
     name: "object_literal_properties",
     syntax: "[({key:identifier}(?:= {value:expression})?) ,]",
     constructor: class object_literal_properties extends Rule.List {
-      toSource() {
+      compile() {
         let props = this.matched.map(function(prop) {
           let { key, value } = prop.results;
           if (value) return `"${key}": ${value}`;
@@ -179,7 +179,7 @@ parser.defineRules(
         return structure;
       }
 
-      toSource() {
+      compile() {
         let { name, superType, statements } = this.results;
         let output = `class ${name}`;
         if (superType) output += ` extends ${superType}`;
@@ -210,7 +210,7 @@ parser.defineRules(
     alias: ["expression", "statement"],
     syntax: "(create|new) {type} (?:with {props:object_literal_properties})?",
     constructor: class new_thing extends Rule.Sequence {
-      toSource() {
+      compile() {
         let { type, props = "" } = this.results;
         // Special case for object, which we'll create with an object literal.
         if (type === "Object") {
@@ -264,7 +264,7 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "(scope:property|constant|shared property) {name:identifier} (?:= {value:expression})?",
     constructor: class declare_property extends Rule.Sequence {
-      toSource() {
+      compile() {
         let { scope, name, value = "" } = this.results;
         if (value) value = ` = ${value}`;
 
@@ -317,7 +317,7 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "property {name:identifier} as (a|an)? {type} (?:= {value:expression})?",
     constructor: class declare_property_of_type extends Rule.Sequence {
-      toSource() {
+      compile() {
         let { name, type, value = "undefined" } = this.results;
         return `@typed(${type}) ${name} = ${value}`;
       }
@@ -355,7 +355,7 @@ parser.defineRules(
         return results;
       }
 
-      toSource() {
+      compile() {
         let { name, list, value = "undefined" } = this.results;
 
         // TODO: this is ugly...
@@ -400,7 +400,7 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "get {name:identifier}\\: return? {expression}?",
     constructor: class getter extends Rule.BlockStatement {
-      toSource() {
+      compile() {
         // NOTE: we need to parse `expression` and `block` manually (unlike other BlockStatements)
         const { name, expression, block } = this.results;
         let statements;
@@ -452,7 +452,7 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "set {name:identifier} {args}? (\\:)? {statement}?",
     constructor: class setter extends Rule.BlockStatement {
-      toSource() {
+      compile() {
         // default args to the setter name
         let { name, args = name, statements } = this.results;
         // Complain if more than one argument
@@ -531,7 +531,7 @@ parser.defineRules(
         return { type: "function", subType, name, args };
       }
 
-      toSource() {
+      compile() {
         let { name, args = "", statements } = this.results;
         return `${name}(${args}) ${statements}`;
       }
@@ -612,7 +612,7 @@ parser.defineRules(
         return results;
       }
 
-      toSource() {
+      compile() {
         let { name, args = [], statements /*, types*/ } = this.results;
         // figure out if there are any conditions due to known argument types
         //         let conditions = [];

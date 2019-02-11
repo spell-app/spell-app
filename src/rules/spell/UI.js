@@ -17,7 +17,7 @@ parser.defineRules(
     syntax: "alert {message:expression} (?:with {okButton:text})?",
     // TODO: need some fancy promise juju to make parent funtion async?
     constructor: class alert extends Rule.Sequence {
-      toSource() {
+      compile() {
         let { message, okButton = '"OK"' } = this.results;
         return `await spell.alert(${message}, ${okButton})`;
       }
@@ -43,7 +43,7 @@ parser.defineRules(
     alias: "statement",
     syntax: "warn {message:expression} (?:with {okButton:text})?",
     constructor: class warn extends Rule.Sequence {
-      toSource() {
+      compile() {
         let { message, okButton = '"OK"' } = this.results;
         return `await spell.warn(${message}, ${okButton})`;
       }
@@ -70,7 +70,7 @@ parser.defineRules(
     syntax:
       "confirm {message:expression} (?:with {okButton:text} (?: (and|or) {cancelButton:text})? )?",
     constructor: class confirm extends Rule.Sequence {
-      toSource() {
+      compile() {
         let { message, okButton = '"OK"', cancelButton = '"Cancel"' } = this.results;
         return `await spell.confirm(${message}, ${okButton}, ${cancelButton})`;
       }

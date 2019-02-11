@@ -20,7 +20,7 @@ parser.defineRules(
     alias: "statement",
     syntax: "return {expression}",
     constructor: class return_statement extends Rule.Sequence {
-      toSource() {
+      compile() {
         let { expression } = this.results;
         return `return ${expression}`;
       }
@@ -47,7 +47,7 @@ parser.defineRules(
       "put {value:expression} into {thing:expression}"
     ],
     constructor: class assignment extends Rule.Sequence {
-      toSource() {
+      compile() {
         let { thing, value } = this.results;
         // TODO: declare identifier if not in scope, etc
         return `${thing} = ${value}`;
@@ -70,7 +70,7 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "get {value:expression}",
     constructor: class get_value extends Rule.Sequence {
-      toSource() {
+      compile() {
         let { value } = this.results;
         return `var it = ${value}`;
       }

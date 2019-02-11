@@ -28,7 +28,7 @@ parser.defineRules(
     alias: "expression",
     syntax: "undefined",
     constructor: class _undefined extends Rule.Keywords {
-      toSource() {
+      compile() {
         return "undefined";
       }
     },
@@ -48,7 +48,7 @@ parser.defineRules(
     canonical: "Word",
     constructor: class word extends Rule.Pattern {
       // Convert "-" to "_" in source output.
-      toSource() {
+      compile() {
         return this.matched.replace(/\-/g, "_");
       }
     },
@@ -83,7 +83,7 @@ parser.defineRules(
     pattern: /^[a-z][\w\-]*$/,
     constructor: class identifier extends Rule.Pattern {
       // Convert "-" to "_" in source output.
-      toSource() {
+      compile() {
         return this.matched.replace(/\-/g, "_");
       }
     },
@@ -241,7 +241,7 @@ parser.defineRules(
     pattern: /^([A-Z][\w\-]*|list|text|number|integer|decimal|character|boolean|object)$/,
     constructor: class type extends Rule.Pattern {
       // Convert "-" to "_" in source output.
-      toSource() {
+      compile() {
         let type = this.matched;
         switch (type) {
           // Alias `List` to `Array`
@@ -319,7 +319,7 @@ parser.defineRules(
     canonical: "Boolean",
     pattern: /^(true|false|yes|no|ok|cancel|success|failure)$/,
     constructor: class boolean extends Rule.Pattern {
-      toSource() {
+      compile() {
         switch (this.matched) {
           case "true":
           case "yes":
@@ -390,7 +390,7 @@ parser.defineRules(
       }
 
       // Convert to number on source output.
-      toSource() {
+      compile() {
         return this.matched;
       }
     },
@@ -437,7 +437,7 @@ parser.defineRules(
         });
       }
 
-      toSource() {
+      compile() {
         return this.matched;
       }
     },
@@ -464,7 +464,7 @@ parser.defineRules(
     alias: "expression",
     syntax: "\\[[list:{expression},]?\\]",
     constructor: class literal_list extends Rule.Sequence {
-      toSource() {
+      compile() {
         let { list } = this.results;
         return `[${list ? list.join(", ") : ""}]`;
       }
@@ -495,7 +495,7 @@ parser.defineRules(
     alias: "expression",
     syntax: "\\({expression}\\)",
     constructor: class parenthesized_expression extends Rule.Sequence {
-      toSource() {
+      compile() {
         let { expression } = this.results;
         // don't double parens if not necessary
         if (

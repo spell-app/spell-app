@@ -8,7 +8,7 @@
 //      - `nextStart`  Place where next match should start (eg: one beyond what you matched).
 //
 //  The clone returned above can be manipulated with
-//    - `rule.toSource()`    Return javascript source to interpret the rule.
+//    - `rule.compile()`    Return javascript source to interpret the rule.
 //    - `rule.toSyntax()`    Return ruleSyntax for the rule (mostly for debugging)
 //    -
 //
@@ -54,7 +54,7 @@ export default class Rule {
   //
 
   // Output value for this INSTANTIATED rule as source.
-  toSource() {
+  compile() {
     return this.matched;
   }
 
@@ -110,7 +110,7 @@ Rule.Literals = class literals extends Rule {
     return this.literals.every((literal, i) => start + i < end && literal === tokens[start + i]);
   }
 
-  toSource() {
+  compile() {
     return this.matched;
   }
 
@@ -248,7 +248,7 @@ Rule.Sequence = class sequence extends Rule {
   }
 
   //TODOC
-  // "gather" arguments in preparation to call `toSource()`
+  // "gather" arguments in preparation to call `compile()`
   // Only callable after parse is completed.
   // Returns an object with properties from the `matched` array indexed by one of the following:
   //    - `match.argument`:    argument set when rule was declared, eg: `{value:literal}` => `value`
@@ -269,7 +269,7 @@ Rule.Sequence = class sequence extends Rule {
         } else {
           const sourceName = match.argument || match.group || match.name;
           const matchName = "_" + sourceName;
-          const source = match.toSource();
+          const source = match.compile();
           // If arg already exists, convert to an array
           if (matchName in results) {
             if (!Array.isArray(results[matchName])) {
@@ -403,9 +403,9 @@ Rule.Repeat = class repeat extends Rule {
     });
   }
 
-  toSource() {
+  compile() {
     if (!this.matched) return undefined;
-    return this.matched.map(match => match.toSource());
+    return this.matched.map(match => match.compile());
   }
 
   toSyntax() {
@@ -461,9 +461,9 @@ Rule.List = class list extends Rule {
 
   // Returns JS Array of matched items as source.
   //TODO: `JSDelimiter` to return as a single string?
-  toSource() {
+  compile() {
     if (!this.matched) return [];
-    return this.matched.map(match => match.toSource());
+    return this.matched.map(match => match.compile());
   }
 
   toSyntax() {
@@ -565,7 +565,7 @@ Rule.Block = class block extends Rule.Sequence {
       let match = block[i];
       //console.info(i, match);
       try {
-        statement = match.toSource() || "";
+        statement = match.compile() || "";
       } catch (e) {
         console.error(e);
         console.warn("Error converting block: ", block, "statement:", match);
@@ -593,7 +593,7 @@ Rule.Block = class block extends Rule.Sequence {
     return results.join("\n");
   }
 
-  toSource() {
+  compile() {
     return "{\n" + this.blockToSource() + "\n" + "}";
   }
 
@@ -692,7 +692,7 @@ Rule.Statements = class statements extends Rule.Block {
   }
 
   // Output statements WITHOUT curly braces around them.
-  toSource() {
+  compile() {
     return this.matched.blockToSource();
   }
 };
@@ -707,7 +707,7 @@ Rule.Statements = class statements extends Rule.Block {
 //  - match the optional `statement` as an inline-statement (as `results.statement`)
 //  - match an INDENTED block starting on the next line (as `result.block`)
 //
-//  For your convenience in `toSource()`, you can just look at `results.statements`
+//  For your convenience in `compile()`, you can just look at `results.statements`
 //  which will be one of the following (whichever comes first):
 //    - the block and its statements, enclosed in curly braces and indented, or
 //    - the formatted `statement`, enclosed in curly brackets,
@@ -745,7 +745,7 @@ Rule.BlockStatement = class block_statement extends Rule.Block {
 
 // Blank line representation in parser output.
 Rule.BlankLine = class blank_line extends Rule {
-  toSource() {
+  compile() {
     return "\n";
   }
 };
@@ -762,7 +762,7 @@ Rule.Comment = class comment extends Rule {
     });
   }
 
-  toSource() {
+  compile() {
     return `//${this.matched.whitespace}${this.matched.comment}`;
   }
 };
@@ -789,7 +789,7 @@ Rule.StatementParseError = class parse_error extends Rule {
     return "CAN'T PARSE STATEMENT: `" + this.unparsed + "`";
   }
 
-  toSource() {
+  compile() {
     return "// " + this.message.split("\n").join("\n// ");
   }
 };
