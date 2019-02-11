@@ -2,7 +2,7 @@
 /* Store of example spell code fragments. */
 import { observable, computed } from "mobx";
 
-import parser from "../rules/spell/index.js";
+
 import global, { localStorage } from "../utils/global.js";
 
 // Make Parser and Tokenizer WARN as we run
