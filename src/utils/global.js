@@ -1,3 +1,5 @@
+/*global global window self*/
+
 // Make sure `global` is defined globally:
 //  - either as the nodejs `global`, or
 //  - as an alias for `window` in browsers, or

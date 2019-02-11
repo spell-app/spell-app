@@ -11,6 +11,7 @@
 import groupBy from "lodash/groupBy";
 
 import { ParseError } from "../Parser.js";
+import Rule from "../Rule.js";
 import { showWhitespace } from "./string.js";
 
 export default function unitTestModuleRules(parser, moduleName) {
@@ -50,7 +51,7 @@ export default function unitTestModuleRules(parser, moduleName) {
     });
   }
 
-  function executeTestBlock(name, { title, compileAs = name, showAll, tests }) {
+  function executeTestBlock(name, { compileAs = name, showAll, tests }) {
     if (!compileAs) {
       test("compileAs property of test is defined", () => {
         expect(compileAs).toBeTruthy();

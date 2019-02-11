@@ -8,7 +8,7 @@
 import Parser from "../../Parser";
 import Rule from "../../Rule";
 
-import { isPlural, singularize } from "../../utils/string";
+import { singularize } from "../../utils/string";
 
 // Create "lists" parser.
 const parser = Parser.forModule("lists");
@@ -331,7 +331,7 @@ parser.defineRules(
     ],
     constructor: class position_expression extends Rule.Sequence {
       toSource() {
-        const { identifier, position, ordinal, expression } = this.results;
+        const { identifier, position, expression } = this.results;
         return `spell.getItem(${expression}, ${position}, '${identifier}')`;
       }
     },
@@ -529,7 +529,7 @@ parser.defineRules(
         const { identifier, operator, filter, list } = this.results;
         const bang = operator === "has" ? "" : "!";
         // use singular of identifier for method argument
-        argument = singularize(identifier);
+        const argument = singularize(identifier);
         return `${bang}spell.any(${list}, ${argument} => ${filter}, '${argument}')`;
       }
     },

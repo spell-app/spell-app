@@ -10,7 +10,6 @@ import flattenDeep from "lodash/flattenDeep.js";
 import Parser from "../../Parser";
 import Rule from "../../Rule";
 
-import global from "../../utils/global";
 import { pluralize } from "../../utils/string";
 
 const parser = Parser.forModule("types");
@@ -614,7 +613,7 @@ parser.defineRules(
       }
 
       toSource() {
-        let { name, args = [], types, statements } = this.results;
+        let { name, args = [], statements/*, types*/ } = this.results;
         // figure out if there are any conditions due to known argument types
         //         let conditions = [];
         //         for (let arg in types) {

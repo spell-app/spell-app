@@ -1,5 +1,3 @@
-import global from "./global";
-
 // Return true if text is all whitespace, including empty string.
 let ALL_WHITESPACE = /^\s*$/;
 export function isWhitespace(text) {

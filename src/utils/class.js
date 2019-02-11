@@ -2,6 +2,8 @@
 //  # Class utilities
 //
 
+import global from "./global.js";
+
 // Clone a class, re-using the original name.
 // TODO: move to utility?
 export function cloneClass(constructor, name = constructor.name) {

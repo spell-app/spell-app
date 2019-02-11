@@ -2,7 +2,7 @@
 //  # Rules for if statements.
 //
 
-import Parser, { ParseError } from "../../Parser";
+import Parser from "../../Parser";
 import Rule from "../../Rule";
 
 // Create "if" parser.
