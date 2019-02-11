@@ -5,26 +5,30 @@
 //  - as an alias for `window` in browsers, or
 //  - for the `self` context in web workers.
 //
-// NOTE: this modifies the "global" environment by making sure "global" is set.!
-//
-
-let global_identifier;
+let _global;
 if (typeof global !== "undefined") {
   //  console.log("Running in node");
-  global_identifier = global;
+  _global = global;
 }
 
 if (typeof window !== "undefined") {
   //  console.log("Running in a web browser");
-  window.global = window;
-  global_identifier = window;
+  _global = window;
 }
 
 if (typeof self !== "undefined") {
   //  console.log("Running in a web worker");
-  self.global = self;
-  global_identifier = self;
+  _global = self;
 }
 
 // Export for consumption by import.
-export default global_identifier;
+export default _global;
+
+// Return localStorage, or make one up if not found
+let _localStorage;
+if (_global.localStorage) {
+  _localStorage = _global.localStorage;
+} else {
+  _localStorage = {};
+}
+export { _localStorage as localStorage };

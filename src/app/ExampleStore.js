@@ -1,5 +1,9 @@
+/*global confirm, prompt */
 /* Store of example spell code fragments. */
-import mobx, { observable, computed } from "mobx";
+import { observable, computed } from "mobx";
+
+import parser from "../rules/spell/index.js";
+import global, { localStorage } from "../utils/global.js";
 
 // Make Parser and Tokenizer WARN as we run
 import Parser from "../Parser";
@@ -39,7 +43,7 @@ export default class ExampleStore {
   reset() {
     delete localStorage.spellEditorExamples;
     delete localStorage.spellEditorExample;
-    window.location.reload();
+    if (global.location) global.location.reload();
   }
 
   // Load examples

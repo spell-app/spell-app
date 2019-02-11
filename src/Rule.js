@@ -35,7 +35,6 @@ export default class Rule {
 
   // Attempt to match this rule between `start` and `end` of `tokens`.
   // Returns results of the parse or `undefined`.
-  // eslint-disable-next-line no-unused-vars
   parse(parser, tokens, start = 0, end, stack) {
     return undefined;
   }
@@ -46,7 +45,6 @@ export default class Rule {
   //  - `true` if the rule MIGHT be matched.
   //  - `false` if there is NO WAY the rule can be matched.
   //  - `undefined` if not determinstic (eg: no way to tell quickly).
-  // eslint-disable-next-line no-unused-vars
   test(parser, tokens, start = 0, end) {
     return undefined;
   }

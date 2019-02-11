@@ -91,6 +91,7 @@
         "error",
         {
           "varsIgnorePattern": "^_",
+          "args": "none",
           "ignoreRestSiblings": false
         }
       ],
