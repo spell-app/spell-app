@@ -10,7 +10,6 @@ Parser.TIME = true;
 import Tokenizer from "../Tokenizer";
 Tokenizer.WARN = true;
 
-
 export default class ExampleStore {
   // CURRENT examples
   @observable examples = {};
@@ -46,8 +45,9 @@ export default class ExampleStore {
   // Load examples
   load() {
     // Load examples from localStorage
-    this.examples = JSON.parse(localStorage.spellEditorExamples
-      || '{"Foo":"define type Foo", "Bar":"define type Bar"}');
+    this.examples = JSON.parse(
+      localStorage.spellEditorExamples || '{"Foo":"define type Foo", "Bar":"define type Bar"}'
+    );
 
     // Save a copy of examples for revert
     this._savedExamples = this.examples;
@@ -79,7 +79,7 @@ export default class ExampleStore {
   // Create a new example.
   // Saves and selects the example automatically.
   update(name, code, skipSave) {
-    this.examples = Object.assign({}, this.examples, { [ name ]: code });
+    this.examples = Object.assign({}, this.examples, { [name]: code });
     this.select(name);
     this.output = "";
     if (!skipSave) this.save();
@@ -114,7 +114,8 @@ export default class ExampleStore {
 
     // Forget it if no name supplied or name is the same
     if (!newName || newName === oldName) return;
-    if (this.examples[newName]) return console.warn(`examples.rename("${newName}"): name already in use`);
+    if (this.examples[newName])
+      return console.warn(`examples.rename("${newName}"): name already in use`);
 
     let code = this.examples[oldName];
     this.delete(oldName);
@@ -127,13 +128,14 @@ export default class ExampleStore {
     if (!newName) newName = prompt("New name for duplicate example?", oldName);
     // Forget it if no name supplied or name is the same
     if (!newName || newName === oldName) return;
-    if (this.examples[newName]) return console.warn(`examples.rename("${newName}"): name already in use`);
+    if (this.examples[newName])
+      return console.warn(`examples.rename("${newName}"): name already in use`);
 
     this.update(newName, this.code);
   }
 
   // Compile the current example, placing it in our `output`.
-//TODO: some way to do this automatically w/ "output" ?
+  //TODO: some way to do this automatically w/ "output" ?
   compile() {
     this.output = "...compiling...";
     setTimeout(() => {
@@ -141,12 +143,10 @@ export default class ExampleStore {
       if (!result) {
         console.warn("Can't parse!");
         this.output = "Can't parse statements";
-      }
-      else {
+      } else {
         console.info("Result", result);
         this.output = result.toSource(parser);
       }
     }, 100);
   }
-
 }
