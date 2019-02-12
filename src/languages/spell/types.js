@@ -524,7 +524,7 @@ parser.defineRules(
 
         // if there's only one keyword, it can't be a type or a blacklisted identifier
         const { keywords } = results;
-        const _keywords = results._keywords.matched;
+        const _keywords = match.matched[1].matched;
         if (_keywords.length === 1) {
           const keyword = keywords[0];
           if (_keywords[0].rule instanceof Rule.Type) {

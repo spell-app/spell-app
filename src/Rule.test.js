@@ -531,9 +531,7 @@ describe("Rule.Sequence", () => {
         expect(match.compile()).toBe("COMPILED");
         const results = match.results;
         expect(results.that).toBe("that");
-        expect(results._that.rule).toBeInstanceOf(Rule.Keywords);
         expect(results.other).toBe("other");
-        expect(results._other.rule).toBeInstanceOf(Rule.Keywords);
       });
 
       it("does not parse in the middle of tokens", () => {

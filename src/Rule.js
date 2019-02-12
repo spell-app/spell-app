@@ -475,18 +475,14 @@ Rule.Sequence = class sequence extends Rule {
           const sourceName = match.name;
           if (sourceName == null) continue;
 
-          const matchName = "_" + sourceName;
           const source = match.compile();
           // If arg already exists, convert to an array
-          if (matchName in results) {
-            if (!Array.isArray(results[matchName])) {
-              results[matchName] = [results[matchName]];
+          if (sourceName in results) {
+            if (!Array.isArray(results[sourceName])) {
               results[sourceName] = [results[sourceName]];
             }
-            results[matchName].push(match);
             results[sourceName].push(source);
           } else {
-            results[matchName] = match;
             results[sourceName] = source;
           }
         }
