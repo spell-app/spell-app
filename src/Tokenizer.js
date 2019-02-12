@@ -66,7 +66,7 @@ const Tokenizer = {
     if (start >= end || !text.trim()) return [];
 
     // Process our top-level rules.
-    let [results, nextStart] = this.eatTokens(this.matchTopTokens, text, start, end);
+    let [results, nextStart] = Tokenizer.eatTokens(Tokenizer.matchTopTokens, text, start, end);
     if (results) start = nextStart;
     if (start !== end) {
       if (Tokenizer.WARN)
@@ -104,14 +104,14 @@ const Tokenizer = {
   //TESTME
   matchTopTokens(text, start, end) {
     return (
-      this.matchWhitespace(text, start, end) ||
-      this.matchWord(text, start, end) ||
-      this.matchNumber(text, start, end) ||
-      this.matchNewline(text, start, end) ||
-      this.matchJSXElement(text, start, end) ||
-      this.matchText(text, start, end) ||
-      this.matchComment(text, start, end) ||
-      this.matchSymbol(text, start, end)
+      Tokenizer.matchWhitespace(text, start, end) ||
+      Tokenizer.matchWord(text, start, end) ||
+      Tokenizer.matchNumber(text, start, end) ||
+      Tokenizer.matchNewline(text, start, end) ||
+      Tokenizer.matchJSXElement(text, start, end) ||
+      Tokenizer.matchText(text, start, end) ||
+      Tokenizer.matchComment(text, start, end) ||
+      Tokenizer.matchSymbol(text, start, end)
     );
   },
 
@@ -158,7 +158,7 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    let whitespaceEnd = this.eatWhitespace(text, start, end);
+    let whitespaceEnd = Tokenizer.eatWhitespace(text, start, end);
     // forget it if no forward motion
     if (whitespaceEnd === start) return undefined;
 
@@ -197,10 +197,10 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    if (!this.WORD_START.test(text[start])) return undefined;
+    if (!Tokenizer.WORD_START.test(text[start])) return undefined;
 
     let wordEnd = start + 1;
-    while (wordEnd < end && this.WORD_CHAR.test(text[wordEnd])) {
+    while (wordEnd < end && Tokenizer.WORD_CHAR.test(text[wordEnd])) {
       wordEnd++;
     }
     if (wordEnd === start) return undefined;
@@ -221,9 +221,9 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    if (!this.NUMBER_START.test(text[start])) return undefined;
+    if (!Tokenizer.NUMBER_START.test(text[start])) return undefined;
 
-    let numberMatch = this.matchExpressionAtHead(this.NUMBER, text, start, end);
+    let numberMatch = Tokenizer.matchExpressionAtHead(Tokenizer.NUMBER, text, start, end);
     if (!numberMatch) return undefined;
 
     let numberStr = numberMatch[0];
@@ -298,8 +298,8 @@ const Tokenizer = {
     if (commentStart !== "--" && commentStart !== "//" && commentStart !== "##") return undefined;
 
     // comment eats until the end of the line
-    let line = this.getLineAtHead(text, start, end);
-    let commentMatch = line.match(this.COMMENT);
+    let line = Tokenizer.getLineAtHead(text, start, end);
+    let commentMatch = line.match(Tokenizer.COMMENT);
     if (!commentMatch) return undefined;
 
     let [_match, commentSymbol, whitespace, comment] = commentMatch;
@@ -328,11 +328,11 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    let [jsxElement, nextStart] = this.matchJSXStartTag(text, start, end) || [];
+    let [jsxElement, nextStart] = Tokenizer.matchJSXStartTag(text, start, end) || [];
     if (!jsxElement) return undefined;
 
     if (!jsxElement.isUnaryTag) {
-      let [children, childEnd] = this.matchJSXChildren(jsxElement.tagName, text, nextStart, end);
+      let [children, childEnd] = Tokenizer.matchJSXChildren(jsxElement.tagName, text, nextStart, end);
       if (children.length) {
         jsxElement.children = children;
         nextStart = childEnd;
@@ -352,11 +352,11 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    let nextStart = this.eatWhitespace(text, start, end);
+    let nextStart = Tokenizer.eatWhitespace(text, start, end);
     // Make sure we start with `<`.
     if (text[nextStart] !== "<") return undefined;
 
-    let tagMatch = this.matchExpressionAtHead(this.JSX_TAG_START, text, nextStart, end);
+    let tagMatch = Tokenizer.matchExpressionAtHead(Tokenizer.JSX_TAG_START, text, nextStart, end);
     if (!tagMatch) return undefined;
 
     let [matchText, tagName, endBit] = tagMatch;
@@ -372,7 +372,7 @@ const Tokenizer = {
 
     // If we didn't immediately get an end marker, attempt to match attributes
     if (endBit !== ">" && endBit !== "/>") {
-      let [attrs, attrEnd] = this.eatTokens(this.matchJSXAttribute, text, nextStart, end);
+      let [attrs, attrEnd] = Tokenizer.eatTokens(Tokenizer.matchJSXAttribute, text, nextStart, end);
       jsxElement.attributes = attrs;
       nextStart = attrEnd;
     }
@@ -485,7 +485,7 @@ const Tokenizer = {
 
     let nextStart = start;
     while (true) {
-      let result = this.matchJSXChild(endTag, text, nextStart, end);
+      let result = Tokenizer.matchJSXChild(endTag, text, nextStart, end);
       if (!result) break;
 
       let [child, childEnd] = result;
@@ -517,11 +517,11 @@ const Tokenizer = {
   //  - (anything else) as jsxText expression.
   matchJSXChild(endTag, text, start = 0, end) {
     return (
-      this.matchJSXEndTag(endTag, text, start, end) ||
-      this.matchJSXExpression(text, start, end) ||
-      this.matchJSXElement(text, start, end) ||
+      Tokenizer.matchJSXEndTag(endTag, text, start, end) ||
+      Tokenizer.matchJSXExpression(text, start, end) ||
+      Tokenizer.matchJSXElement(text, start, end) ||
       // TODO: newline and indent?
-      this.matchJSXText(text, start, end)
+      Tokenizer.matchJSXText(text, start, end)
     );
   },
 
@@ -531,8 +531,8 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    let nextStart = this.eatWhitespace(text, start, end);
-    if (!this.matchStringAtHead(endTag, text, nextStart, end)) return undefined;
+    let nextStart = Tokenizer.eatWhitespace(text, start, end);
+    if (!Tokenizer.matchStringAtHead(endTag, text, nextStart, end)) return undefined;
     return [endTag, nextStart + endTag.length];
   },
 
@@ -548,10 +548,10 @@ const Tokenizer = {
     if (start >= end) return undefined;
 
     // attributes must start with a word character
-    if (!this.WORD_START.test(text[start])) return undefined;
+    if (!Tokenizer.WORD_START.test(text[start])) return undefined;
 
     // attempt to match an attribute name, including `=` if present.
-    let result = this.matchExpressionAtHead(this.JSX_ATTRIBUTE_START, text, start, end);
+    let result = Tokenizer.matchExpressionAtHead(Tokenizer.JSX_ATTRIBUTE_START, text, start, end);
     if (!result) return undefined;
 
     let [match, name, equals] = result;
@@ -560,14 +560,14 @@ const Tokenizer = {
 
     // if there was an equals char, parse the value
     if (equals) {
-      let [value, valueEnd] = this.matchJSXAttributeValue(text, nextStart, end) || [];
+      let [value, valueEnd] = Tokenizer.matchJSXAttributeValue(text, nextStart, end) || [];
       if (value) {
         attribute.value = value;
         nextStart = valueEnd;
       }
     }
     // eat whitespace before the next attribute / tag end
-    nextStart = this.eatWhitespace(text, nextStart, end);
+    nextStart = Tokenizer.eatWhitespace(text, nextStart, end);
     return [attribute, nextStart];
   },
 
@@ -575,18 +575,18 @@ const Tokenizer = {
   // NOTE: we will be called immediately after the `=` (and subsequent whitespace).
   matchJSXAttributeValue(text, start, end) {
     return (
-      this.matchText(text, start, end) ||
-      this.matchJSXExpression(text, start, end) ||
-      this.matchJSXElement(text, start, end) ||
-      this.matchJSXAttributeValueIdentifier(text, start, end) ||
-      this.matchNumber(text, start, end)
+      Tokenizer.matchText(text, start, end) ||
+      Tokenizer.matchJSXExpression(text, start, end) ||
+      Tokenizer.matchJSXElement(text, start, end) ||
+      Tokenizer.matchJSXAttributeValueIdentifier(text, start, end) ||
+      Tokenizer.matchNumber(text, start, end)
     );
   },
 
   // Match a single identifer as a JSX attribute value.
   // Returns as a `JSXExpression`.
   matchJSXAttributeValueIdentifier(text, start, end) {
-    let result = this.matchWord(text, start, end);
+    let result = Tokenizer.matchWord(text, start, end);
     if (!result) return;
 
     let [word, nextStart] = result;
@@ -625,8 +625,8 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    let nextStart = this.eatWhitespace(text, start, end);
-    let endIndex = this.findMatchingAtHead("{", "}", text, nextStart, end);
+    let nextStart = Tokenizer.eatWhitespace(text, start, end);
+    let endIndex = Tokenizer.findMatchingAtHead("{", "}", text, nextStart, end);
     if (endIndex === undefined) return undefined;
 
     // Get contents, including leading and trailing whitespace.
@@ -657,8 +657,8 @@ const Tokenizer = {
     if (start >= end) return undefined;
 
     // temporarily advance past whitespace (we'll include it in the output).
-    let nextStart = this.eatWhitespace(text, start, end);
-    let endIndex = this.findFirstAtHead(this.JSX_TEXT_END_CHARS, text, nextStart, end);
+    let nextStart = Tokenizer.eatWhitespace(text, start, end);
+    let endIndex = Tokenizer.findFirstAtHead(Tokenizer.JSX_TEXT_END_CHARS, text, nextStart, end);
     // If the first non-whitespace char is in our END_CHARS, forget it.
     if (endIndex === nextStart) return undefined;
 
@@ -749,7 +749,7 @@ const Tokenizer = {
       }
       // if a single or double quote, skip until the matching quote
       else if (char === "'" || char === '"') {
-        let [_token, afterQuote] = this.matchText(text, current, end) || [];
+        let [_token, afterQuote] = Tokenizer.matchText(text, current, end) || [];
         current = afterQuote;
         continue; // continue so we don't add 1 to curent below
       }
@@ -946,7 +946,7 @@ const Tokenizer = {
 export default Tokenizer;
 
 
-// Match a series of text literals against a set of tokens between `start` and `end`
+// Match a series of text literals starting at `tokens[start]` and not going past `tokens[end]`.
 export function matchLiterals(literals, tokens, start = 0, end = tokens.length) {
   if (literals.length === 1) return tokens[start] === literals[0];
   return literals.every((literal, i) => start + i < end && literal === tokens[start + i]);
