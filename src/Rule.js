@@ -132,6 +132,17 @@ Rule.Pattern = class pattern extends Rule {
     }
   }
 
+  // Test to see if any of our pattern is found ANYWHERE in the tokens.
+  test(parser, tokens, start = 0, end = tokens.length) {
+    for (let index = start; index < end; index++) {
+      const token = tokens[index];
+      if (typeof token !== "string") continue;
+      if (this.pattern.test(token) && (!this.blacklist || !this.blacklist[token])) return true;
+    }
+    return false;
+  }
+
+
   // Attempt to match this pattern at the beginning of the tokens.
   parse(parser, tokens, start = 0) {
     const token = tokens[start];
@@ -146,14 +157,12 @@ Rule.Pattern = class pattern extends Rule {
 
     return this.clone({
       matched,
-      compile() { return matched },
       nextStart: start + 1
     });
   }
 
-  // Test to see if any of our pattern is found ANYWHERE in the tokens.
-  test(parser, tokens, start = 0, end) {
-    return tokens.slice(start, end).some(token => typeof token === "string" && this.pattern.test(token));
+  compile() {
+    return this.matched;
   }
 
   toSyntax() {
