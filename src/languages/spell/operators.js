@@ -33,8 +33,9 @@ parser.defineRules(
     testRule: "infix_operator",
     constructor: class infix_operator_expression extends Rule.Sequence {
       compile(match) {
-        let { lhs, rhs, _operator } = match.results;
-        return _operator.applyOperator(lhs, rhs);
+        let { lhs, rhs } = match.results;
+        const operatorRule = match.matched[1].rule;
+        return operatorRule.applyOperator(lhs, rhs);
       }
 //       get precedence() {
 //         if (!this.matched)
@@ -603,8 +604,9 @@ parser.defineRules(
     testRule: "postfix_operator",
     constructor: class postfix_operator_expresion extends Rule.Sequence {
       compile(match) {
-        let { expression, _operator } = match.results;
-        return _operator.applyOperator(expression);
+        let { expression } = match.results;
+        const operatorRule = match.matched[1].rule;
+        return operatorRule.applyOperator(expression);
       }
     }
   },

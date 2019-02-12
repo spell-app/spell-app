@@ -65,12 +65,12 @@ parser.defineRules(
     // TODO: multiple identifiers would be cool...
     name: "property_expression",
     alias: "expression",
-    syntax: "(properties:the {identifier} of)+ the? {expression}",
+    syntax: "(the {identifier} of)+ the? {expression}",
     constructor: class property_expression extends Rule.Sequence {
+      // Pull property identifiers out into `result.properties`
       getResults(match) {
         const results = super.getResults(match);
-        results._properties = results._properties.matched;
-        results.properties = results._properties.map(property => property.results.identifier);
+        results.properties = match.matched[0].matched.map(match => match.results.identifier);
         return results;
       }
 

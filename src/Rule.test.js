@@ -50,7 +50,7 @@ describe("Rule.Symbols", () => {
       it("parses at the start of tokens", () => {
         const match = rule.parse(parser, tokenize(">"));
         expect(match.nextStart).toBe(1);
-        expect(match.rule.compile(match)).toBe(">");
+        expect(match.compile()).toBe(">");
       });
 
       it("does not parse in the middle of tokens", () => {
@@ -83,7 +83,7 @@ describe("Rule.Symbols", () => {
       it("parses at the start of tokens", () => {
         const match = rule.parse(parser, tokenize(">="));
         expect(match.nextStart).toBe(2);
-        expect(match.rule.compile(match)).toBe(">=");
+        expect(match.compile()).toBe(">=");
       });
 
       it("does not parse in the middle of tokens", () => {
@@ -137,7 +137,7 @@ describe("Rule.Keywords", () => {
       it("parses at the start of tokens", () => {
         const match = rule.parse(parser, tokenize("this"));
         expect(match.nextStart).toBe(1);
-        expect(match.rule.compile(match)).toBe("this");
+        expect(match.compile()).toBe("this");
       });
 
       it("does not parse in the middle of tokens", () => {
@@ -170,7 +170,7 @@ describe("Rule.Keywords", () => {
       it("parses at the start of tokens", () => {
         const match = rule.parse(parser, tokenize("this that other"));
         expect(match.nextStart).toBe(2);
-        expect(match.rule.compile(match)).toBe("this that");
+        expect(match.compile()).toBe("this that");
       });
 
       it("does not parse in the middle of tokens", () => {
@@ -210,7 +210,7 @@ describe("Rule.Pattern", () => {
     it("parses at the start of tokens", () => {
       const match = rule.parse(parser, tokenize("a-word"));
       expect(match.nextStart).toBe(1);
-      expect(match.rule.compile(match)).toBe("a-word");
+      expect(match.compile()).toBe("a-word");
     });
 
     it("returns undefined if match is in blacklist", () => {
@@ -265,7 +265,7 @@ describe("Rule.Subrule", () => {
       it("parses at the start of tokens", () => {
         const match = rule.parse(parser, tokenize("this that other"));
         expect(match.nextStart).toBe(1);
-        expect(match.rule.compile(match)).toBe("this");
+        expect(match.compile()).toBe("this");
       });
 
       it("does not parse in the middle of tokens", () => {
@@ -297,7 +297,7 @@ describe("Rule.Subrule", () => {
       it("parses at the start of tokens", () => {
         const match = rule.parse(parser, tokenize("this that"));
         expect(match.nextStart).toBe(2);
-        expect(match.rule.compile(match)).toBe("COMPILED");
+        expect(match.compile()).toBe("COMPILED");
       });
 
       it("does not parse in the middle of tokens", () => {
@@ -338,15 +338,15 @@ describe("Rule.Alternatives", () => {
     it("parses any of the alternatives at the start of tokens", () => {
       let match = rule.parse(parser, tokenize("this"));
       expect(match.nextStart).toBe(1);
-      expect(match.rule.compile(match)).toBe("this");
+      expect(match.compile()).toBe("this");
 
       match = rule.parse(parser, tokenize("that"));
       expect(match.nextStart).toBe(1);
-      expect(match.rule.compile(match)).toBe("that");
+      expect(match.compile()).toBe("that");
 
       match = rule.parse(parser, tokenize("other"));
       expect(match.nextStart).toBe(1);
-      expect(match.rule.compile(match)).toBe("other");
+      expect(match.compile()).toBe("other");
     });
 
     it("does not parse in the middle of tokens", () => {
@@ -381,8 +381,7 @@ describe("Rule.Repeat", () => {
   const parser = new Parser();
   const rule = new Rule.Repeat({
     testRule: new Rule.Keywords("word"),
-    repeat: new Rule.Keywords("word"),
-    optional: true
+    repeat: new Rule.Keywords("word")
   });
 
   describe("test() method", () => {
@@ -402,26 +401,21 @@ describe("Rule.Repeat", () => {
     });
   });
   describe("parse() method", () => {
-    it("sets optional on match", () => {
-      const match = rule.parse(parser, tokenize("word nope nope"));
-      expect(match.optional).toBe(true);
-    });
-
     it("returns an array when compiled", () => {
       const match = rule.parse(parser, tokenize("word nope nope"));
-      expect(match.rule.compile(match)).toBeInstanceOf(Array);
+      expect(match.compile()).toBeInstanceOf(Array);
     });
 
     it("parses once at the start of tokens", () => {
       const match = rule.parse(parser, tokenize("word nope nope"));
       expect(match.nextStart).toBe(1);
-      expect(match.rule.compile(match)).toEqual(["word"]);
+      expect(match.compile()).toEqual(["word"]);
     });
 
     it("parses multiple times at the start of tokens", () => {
       const match = rule.parse(parser, tokenize("word word nope nope"));
       expect(match.nextStart).toBe(2);
-      expect(match.rule.compile(match)).toEqual(["word", "word"]);
+      expect(match.compile()).toEqual(["word", "word"]);
     });
 
     it("does not parse in the middle of tokens", () => {
@@ -460,31 +454,31 @@ describe("Rule.List", () => {
   describe("parse() method", () => {
     it("returns an array when compiled", () => {
       const match = rule.parse(parser, tokenize("word nope nope"));
-      expect(match.rule.compile(match)).toBeInstanceOf(Array);
+      expect(match.compile()).toBeInstanceOf(Array);
     });
 
     it("parses once at the start of tokens", () => {
       const match = rule.parse(parser, tokenize("word nope nope"));
       expect(match.nextStart).toBe(1);
-      expect(match.rule.compile(match)).toEqual(["word"]);
+      expect(match.compile()).toEqual(["word"]);
     });
 
     it("parses multiple times at the start of tokens WITH spaces", () => {
       const match = rule.parse(parser, tokenize("word, word nope nope"));
       expect(match.nextStart).toBe(3);
-      expect(match.rule.compile(match)).toEqual(["word", "word"]);
+      expect(match.compile()).toEqual(["word", "word"]);
     });
 
     it("parses multiple times at the start of tokens WITHOUT spaces", () => {
       const match = rule.parse(parser, tokenize("word,word nope nope"));
       expect(match.nextStart).toBe(3);
-      expect(match.rule.compile(match)).toEqual(["word", "word"]);
+      expect(match.compile()).toEqual(["word", "word"]);
     });
 
     it("eats but trailing delimiter", () => {
       const match = rule.parse(parser, tokenize("word, word, nope"));
       expect(match.nextStart).toBe(4);
-      expect(match.rule.compile(match)).toEqual(["word", "word"]);
+      expect(match.compile()).toEqual(["word", "word"]);
     });
 
     it("does not parse in the middle of tokens", () => {
@@ -534,12 +528,12 @@ describe("Rule.Sequence", () => {
       it("parses at the start of tokens", () => {
         const match = rule.parse(parser, tokenize("this that the other"));
         expect(match.nextStart).toBe(4);
-        expect(match.rule.compile(match)).toBe("COMPILED");
+        expect(match.compile()).toBe("COMPILED");
         const results = match.results;
         expect(results.that).toBe("that");
-        expect(results._that).toBeInstanceOf(Rule.Keywords);
+        expect(results._that.rule).toBeInstanceOf(Rule.Keywords);
         expect(results.other).toBe("other");
-        expect(results._other).toBeInstanceOf(Rule.Keywords);
+        expect(results._other.rule).toBeInstanceOf(Rule.Keywords);
       });
 
       it("does not parse in the middle of tokens", () => {
@@ -577,7 +571,7 @@ describe("Rule.", () => {
     it("parses at the start of tokens", () => {
       const match = rule.parse(parser, tokenize("•"));
       expect(match.nextStart).toBe(1);
-      expect(match.rule.compile(match)).toBe("•");
+      expect(match.compile()).toBe("•");
     });
 
     it("does not parse in the middle of tokens", () => {

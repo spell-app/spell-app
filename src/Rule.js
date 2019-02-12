@@ -318,7 +318,7 @@ Rule.Repeat = class repeat extends Rule {
     // Forget it if nothing matched at all
     if (matched.length === 0) return undefined;
 
-    return this.clone({
+    return new Match({
       rule: this,
       matched,
       nextStart
@@ -327,7 +327,7 @@ Rule.Repeat = class repeat extends Rule {
 
   compile(match) {
     if (!match.matched) return undefined;
-    return match.matched.map(match => match.rule.compile(match));
+    return match.matched.map(match => match.compile());
   }
 
   toSyntax() {
@@ -394,7 +394,7 @@ Rule.List = class list extends Rule {
   //TODO: `JSDelimiter` to return as a single string?
   compile(match) {
     if (!match.matched) return [];
-    return match.matched.map(match => match.rule.compile(match));
+    return match.matched.map(match => match.compile());
   }
 
   toSyntax() {
@@ -460,12 +460,7 @@ Rule.Sequence = class sequence extends Rule {
   }
 
   //TODOC
-  // "gather" arguments in preparation to call `compile(match)`
-  // Only callable after parse is completed.
-  // Returns an object with properties from the `matched` array indexed by one of the following:
-  //    - `match.argument`:    argument set when rule was declared, eg: `{value:literal}` => `value`
-  //    - `match.group`:      name of group rule was added to
-  //    - `match.name`:       name of the rule if set up by parseRule
+  // "gather" matched values into a map in preparation to call `compile(match)`
   getResults({ matched }) {
     if (!matched) return undefined;
     let results = addResults({}, matched);
@@ -474,25 +469,24 @@ Rule.Sequence = class sequence extends Rule {
 
     function addResults(results, matched) {
       for (let i = 0, match; match = matched[i]; i++) {
-        const rule = match instanceof Rule ? match : match.rule;
-        if (rule.promote) {
+        if (match.rule.promote) {
           addResults(results, match.matched);
         } else {
-          const sourceName = match.argument || match.group || rule.argument || rule.group || rule.name;
+          const sourceName = match.name;
           if (sourceName == null) continue;
 
           const matchName = "_" + sourceName;
-          const source = rule.compile(match);
+          const source = match.compile();
           // If arg already exists, convert to an array
           if (matchName in results) {
             if (!Array.isArray(results[matchName])) {
               results[matchName] = [results[matchName]];
               results[sourceName] = [results[sourceName]];
             }
-            results[matchName].push(rule);
+            results[matchName].push(match);
             results[sourceName].push(source);
           } else {
-            results[matchName] = rule;
+            results[matchName] = match;
             results[sourceName] = source;
           }
         }
@@ -603,7 +597,7 @@ Rule.Block = class block extends Rule.Sequence {
       let match = block[i];
       //console.info(i, match);
       try {
-        statement = match.rule.compile(match) || "";
+        statement = match.compile() || "";
       } catch (e) {
         console.error(e);
         console.warn("Error converting block: ", block, "statement:", match);

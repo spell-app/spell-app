@@ -28,6 +28,11 @@ export class Match {
   get results() { return this.rule.getResults?.(this) }
   // Syntatic sugar to get the output of the match.
   compile() { return this.rule.compile(this) }
+
+  // "name" for this match
+  get name() {
+    return this.argument || this.group || this.rule.argument || this.rule.group || this.rule.name;
+  }
 }
 
 
