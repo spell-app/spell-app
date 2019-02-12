@@ -133,9 +133,10 @@ Rule.Pattern = class pattern extends Rule {
     super(...props);
     // convert blacklist to a map if necessary
     if (Array.isArray(this.blacklist)) {
-      const map = {};
-      for (const key of this.blacklist) map[key] = true;
-      this.blacklist = map;
+      this.blacklist = this.blacklist.reduce((map, key) => {
+        map[key] = true;
+        return map;
+      }, {});
     }
   }
 
@@ -217,10 +218,8 @@ Rule.Alternatives = class alternatives extends Rule {
   }
 
   // Test to see if any of our alternatives are found ANYWHERE in the tokens.
-  // NOTE: this should only be called if we're specified as a `testRule`
-  //     and then only if all of our rules are deterministic.
   test(parser, tokens, start = 0, end) {
-    for (const rule of this.rules) {
+    for (let i = 0, rule; rule = this.rules[i]; i++) {
       if (rule.test(parser, tokens, start, end)) return true;
     }
     return false;
@@ -228,8 +227,8 @@ Rule.Alternatives = class alternatives extends Rule {
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(parser, tokens, start = 0, end, stack) {
-    let matches = [];
-    for (const rule of this.rules) {
+    const matches = [];
+    for (let i = 0, rule; rule = this.rules[i]; i++) {
       let match = rule.parse(parser, tokens, start, end, stack);
       if (match) matches.push(match);
     }
@@ -439,9 +438,9 @@ Rule.Sequence = class sequence extends Rule {
       //     This would probably allow more interesting things, but it's much much slower.
     }
 
-    let matched = [];
+    const matched = [];
     let nextStart = start;
-    for (const rule of this.rules) {
+    for (let i = 0, rule; rule = this.rules[i]; i++) {
       let match = rule.parse(parser, tokens, nextStart, end, stack);
       if (!match && !rule.optional) return undefined;
       if (match) {
@@ -473,7 +472,7 @@ Rule.Sequence = class sequence extends Rule {
     return results;
 
     function addResults(results, matched) {
-      for (const match of matched) {
+      for (let i = 0, match; match = matched[i]; i++) {
         const rule = match instanceof Rule ? match : match.rule;
         if (rule.promote) {
           addResults(results, match.matched);
@@ -553,8 +552,8 @@ Rule.Block = class block extends Rule.Sequence {
   // Returns array of results.
   parseStatement(parser, tokens) {
     let results = [];
-    let start = 0,
-      end = tokens.length;
+    let start = 0;
+    let end = tokens.length;
     let statement, comment;
 
     // check for an indent at the start of the line

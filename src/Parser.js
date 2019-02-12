@@ -185,7 +185,7 @@ export default class Parser {
   // Define multiple rules at once using ruleSyntax.
   // See `RuleSyntax.js::defineRule()`
   defineRules() {
-    for (const rule of arguments) {
+    for (let i = 0, rule; rule = arguments[i]; i++) {
       this.defineRule(rule);
     }
   }
@@ -241,16 +241,16 @@ export default class Parser {
 
     // Convert blacklist from list of strings to a map
     if (props.blacklist && Array.isArray(props.blacklist)) {
-      const map = {};
-      for (const key of props.blacklist) map[key] = true;
-      props.blacklist = map;
+      props.blacklist = props.blacklist.reduce((map, key) => {
+        map[key] = true;
+        return map;
+      }, {});
     }
 
     // Add props to the contructor protoype non-enumerably and non-writably
     //  so we'll get an error if something tries to overwrite them.
-    for (const key of Object.keys(props)) {
-      Object.defineProperty(constructor.prototype, key, { value: props[key] });
-    }
+    Object.keys(props)
+      .forEach(key => Object.defineProperty(constructor.prototype, key, { value: props[key] }));
 
     // Combine aliases with the main name
     const names = [props.name].concat(props.alias || []);
