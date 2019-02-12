@@ -20,8 +20,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "return {expression}",
     constructor: class return_statement extends Rule.Sequence {
-      compile() {
-        let { expression } = this.results;
+      compile(match) {
+        let { expression } = match.results;
         return `return ${expression}`;
       }
     },
@@ -47,8 +47,8 @@ parser.defineRules(
       "put {value:expression} into {thing:expression}"
     ],
     constructor: class assignment extends Rule.Sequence {
-      compile() {
-        let { thing, value } = this.results;
+      compile(match) {
+        let { thing, value } = match.results;
         // TODO: declare identifier if not in scope, etc
         return `${thing} = ${value}`;
       }
@@ -70,8 +70,8 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "get {value:expression}",
     constructor: class get_value extends Rule.Sequence {
-      compile() {
-        let { value } = this.results;
+      compile(match) {
+        let { value } = match.results;
         return `var it = ${value}`;
       }
     },

@@ -53,7 +53,7 @@ export default class Rule {
   parse(parser, tokens, end, stack) {}
 
   // Output value for this INSTANTIATED rule as source.
-  compile() {}
+  compile(match) {}
 }
 
 // Abstract rule for one or more sequential literal values to match.
@@ -95,14 +95,20 @@ Rule.Literals = class literals extends Rule {
   parse(parser, tokens, start = 0, end) {
     if (!matchLiterals(this.literals, tokens, start, end)) return undefined;
 
-    return this.clone({
-      matched: this.literals.join(this.literalSeparator),
+//     return this.clone({
+//       matched: this.literals.join(this.literalSeparator),
+//       nextStart: start + this.literals.length
+//     });
+
+    return {
+      rule: this,
+      compile: this.compile.bind(this),
       nextStart: start + this.literals.length
-    });
+    }
   }
 
-  compile() {
-    return this.matched;
+  compile(match) {
+    return this.literals.join(this.literalSeparator);
   }
 
   toSyntax() {
@@ -163,14 +169,16 @@ Rule.Pattern = class pattern extends Rule {
     const matched = match[0];
     if (this.blacklist && this.blacklist[matched]) return undefined;
 
-    return this.clone({
+    return {
+      rule: this,
       matched,
+      compile: this.compile.bind(this),
       nextStart: start + 1
-    });
+    }
   }
 
-  compile() {
-    return this.matched;
+  compile(match) {
+    return match.matched;
   }
 
   toSyntax() {
@@ -229,9 +237,7 @@ Rule.Alternatives = class alternatives extends Rule {
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(parser, tokens, start = 0, end, stack) {
     let matches = [];
-    let index = 0,
-      rule = undefined;
-    while ((rule = this.rules[index++])) {
+    for (const rule of this.rules) {
       let match = rule.parse(parser, tokens, start, end, stack);
       if (match) matches.push(match);
     }
@@ -325,9 +331,9 @@ Rule.Repeat = class repeat extends Rule {
     });
   }
 
-  compile() {
-    if (!this.matched) return undefined;
-    return this.matched.map(match => match.compile());
+  compile(match) {
+    if (!match.matched) return undefined;
+    return match.matched.map(match => match.compile(match));
   }
 
   toSyntax() {
@@ -366,7 +372,7 @@ Rule.List = class list extends Rule {
 
     let matched = [];
     let nextStart = start;
-    while (true) {
+    while (nextStart < end) {
       // get next item, exiting if not found
       let item = this.item.parse(parser, tokens, nextStart, end, stack);
       if (!item) break;
@@ -391,9 +397,9 @@ Rule.List = class list extends Rule {
 
   // Returns JS Array of matched items as source.
   //TODO: `JSDelimiter` to return as a single string?
-  compile() {
+  compile(match) {
     if (!this.matched) return [];
-    return this.matched.map(match => match.compile());
+    return this.matched.map(match => match.compile(match));
   }
 
   toSyntax() {
@@ -457,7 +463,7 @@ Rule.Sequence = class sequence extends Rule {
   }
 
   //TODOC
-  // "gather" arguments in preparation to call `compile()`
+  // "gather" arguments in preparation to call `compile(match)`
   // Only callable after parse is completed.
   // Returns an object with properties from the `matched` array indexed by one of the following:
   //    - `match.argument`:    argument set when rule was declared, eg: `{value:literal}` => `value`
@@ -474,21 +480,22 @@ Rule.Sequence = class sequence extends Rule {
         if (match.promote) {
           addResults(results, match.matched);
         } else {
-          const sourceName = match.argument || match.group || match.name;
+          const rule = match instanceof Rule ? match : match.rule;
+          const sourceName = match.argument || match.group || rule.argument || rule.group || rule.name;
           if (sourceName == null) continue;
 
           const matchName = "_" + sourceName;
-          const source = match.compile();
+          const source = match.compile(match);
           // If arg already exists, convert to an array
           if (matchName in results) {
             if (!Array.isArray(results[matchName])) {
               results[matchName] = [results[matchName]];
               results[sourceName] = [results[sourceName]];
             }
-            results[matchName].push(match);
+            results[matchName].push(rule);
             results[sourceName].push(source);
           } else {
-            results[matchName] = match;
+            results[matchName] = rule;
             results[sourceName] = source;
           }
         }
@@ -593,7 +600,7 @@ Rule.Block = class block extends Rule.Sequence {
       let match = block[i];
       //console.info(i, match);
       try {
-        statement = match.compile() || "";
+        statement = match.compile(match) || "";
       } catch (e) {
         console.error(e);
         console.warn("Error converting block: ", block, "statement:", match);
@@ -621,8 +628,8 @@ Rule.Block = class block extends Rule.Sequence {
     return results.join("\n");
   }
 
-  compile() {
-    return "{\n" + this.blockToSource() + "\n" + "}";
+  compile(match) {
+    return "{\n" + match.blockToSource() + "\n" + "}";
   }
 
   // Format array of `statements` as a JS output block:
@@ -681,8 +688,8 @@ Rule.Statements = class statements extends Rule.Block {
   }
 
   // Output statements WITHOUT curly braces around them.
-  compile() {
-    return this.matched.blockToSource();
+  compile(match) {
+    return match.matched.blockToSource();
   }
 };
 
@@ -734,7 +741,7 @@ Rule.BlockStatement = class block_statement extends Rule.Block {
 
 // Blank line representation in parser output.
 Rule.BlankLine = class blank_line extends Rule {
-  compile() {
+  compile(match) {
     return "\n";
   }
 };
@@ -751,8 +758,8 @@ Rule.Comment = class comment extends Rule {
     });
   }
 
-  compile() {
-    return `//${this.matched.whitespace}${this.matched.comment}`;
+  compile(match) {
+    return "//" + `${match.matched.whitespace}${match.matched.comment}`;
   }
 };
 
@@ -778,7 +785,7 @@ Rule.StatementParseError = class parse_error extends Rule {
     return "CAN'T PARSE STATEMENT: `" + this.unparsed + "`";
   }
 
-  compile() {
-    return "// " + this.message.split("\n").join("\n// ");
+  compile(match) {
+    return "// " + match.message.split("\n").join("\n// ");
   }
 };

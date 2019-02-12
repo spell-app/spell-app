@@ -37,8 +37,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "the? number of {identifier} in {list:expression}",
     constructor: class list_length extends Rule.Sequence {
-      compile() {
-        const { list, identifier } = this.results;
+      compile(match) {
+        const { list, identifier } = match.results;
         const singular = singularize(identifier);
         return `spell.lengthOf(${list}, '${singular}')`;
       }
@@ -64,8 +64,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "the? position of {thing:expression} in {list:expression}",
     constructor: class list_position extends Rule.Sequence {
-      compile() {
-        const { thing, list } = this.results;
+      compile(match) {
+        const { thing, list } = match.results;
         return `spell.positionOf(${thing}, ${list})`;
       }
     },
@@ -89,8 +89,8 @@ parser.defineRules(
     testRule: "starts with",
     syntax: "{list:expression} starts with {expression}",
     constructor: class list_starts_with extends Rule.Sequence {
-      compile() {
-        const { list, expression } = this.results;
+      compile(match) {
+        const { list, expression } = match.results;
         return `spell.startsWith(${list}, ${expression})`;
       }
     },
@@ -113,8 +113,8 @@ parser.defineRules(
     testRule: "ends with",
     syntax: "{list:expression} ends with {expression}",
     constructor: class list_ends_with extends Rule.Sequence {
-      compile() {
-        const { list, expression } = this.results;
+      compile(match) {
+        const { list, expression } = match.results;
         return `spell.endsWith(${list}, ${expression})`;
       }
     },
@@ -165,7 +165,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "first",
     constructor: class ordinal_first extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return 1;
       }
     }
@@ -175,7 +175,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "second",
     constructor: class ordinal_second extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return 2;
       }
     }
@@ -185,7 +185,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "third",
     constructor: class ordinal_third extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return 3;
       }
     }
@@ -195,7 +195,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "fourth",
     constructor: class ordinal_fourth extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return 4;
       }
     }
@@ -205,7 +205,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "fifth",
     constructor: class ordinal_fifth extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return 5;
       }
     }
@@ -215,7 +215,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "sixth",
     constructor: class ordinal_sixth extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return 6;
       }
     }
@@ -225,7 +225,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "seventh",
     constructor: class ordinal_seventh extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return 7;
       }
     }
@@ -235,7 +235,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "eighth",
     constructor: class ordinal_eighth extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return 8;
       }
     }
@@ -245,7 +245,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "ninth",
     constructor: class ordinal_ninth extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return 9;
       }
     }
@@ -255,7 +255,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "tenth",
     constructor: class ordinal_tenth extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return 10;
       }
     }
@@ -265,7 +265,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "penultimate",
     constructor: class ordinal_penultimate extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return -2;
       }
     }
@@ -275,7 +275,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "final",
     constructor: class ordinal_final extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return -1;
       }
     }
@@ -285,7 +285,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "last",
     constructor: class ordinal_last extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return -1;
       }
     }
@@ -296,7 +296,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "top",
     constructor: class ordinal_top extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return 1;
       }
     }
@@ -306,7 +306,7 @@ parser.defineRules(
     name: "ordinal",
     syntax: "bottom",
     constructor: class ordinal_bottom extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return -1;
       }
     }
@@ -330,8 +330,8 @@ parser.defineRules(
       "the {position:ordinal} {identifier} (in|of) {expression}"
     ],
     constructor: class position_expression extends Rule.Sequence {
-      compile() {
-        const { identifier, position, expression } = this.results;
+      compile(match) {
+        const { identifier, position, expression } = match.results;
         return `spell.getItem(${expression}, ${position}, '${identifier}')`;
       }
     },
@@ -358,8 +358,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "a random {identifier} (of|from|in) {list:expression}",
     constructor: class random_position_expression extends Rule.Sequence {
-      compile() {
-        const { list, identifier } = this.results;
+      compile(match) {
+        const { list, identifier } = match.results;
         return `spell.getRandomItemOf(${list}, '${identifier}')`;
       }
     },
@@ -384,8 +384,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "{number} random {identifier} (of|from|in) {list:expression}",
     constructor: class random_positions_expression extends Rule.Sequence {
-      compile() {
-        const { number, list, identifier } = this.results;
+      compile(match) {
+        const { number, list, identifier } = match.results;
         return `spell.getRandomItemsOf(${list}, ${number}, '${identifier}')`;
       }
     },
@@ -413,8 +413,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "{identifier} {start:expression} to {end:expression} (of|in|from) {list:expression}",
     constructor: class range_expression extends Rule.Sequence {
-      compile() {
-        const { list, start, end, identifier } = this.results;
+      compile(match) {
+        const { list, start, end, identifier } = match.results;
         return `spell.getRange(${list}, ${start}, ${end}, '${identifier}')`;
       }
     },
@@ -437,8 +437,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "{ordinal} {number} {identifier} (of|in|from) {list:expression}",
     constructor: class ordinal_range_expression extends Rule.Sequence {
-      compile() {
-        const { ordinal, number, list, identifier } = this.results;
+      compile(match) {
+        const { ordinal, number, list, identifier } = match.results;
         return `spell.slice(${list}, ${ordinal}, ${number}, '${identifier}')`;
       }
     },
@@ -462,8 +462,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "{identifier} (in|of) {list:expression} starting with {thing:expression}",
     constructor: class range_expression_starting_with extends Rule.Sequence {
-      compile() {
-        const { thing, list, identifier } = this.results;
+      compile(match) {
+        const { thing, list, identifier } = match.results;
         return `spell.getRange(${list}, spell.positionOf(${thing}, ${list}), undefined, '${identifier}')`;
       }
     },
@@ -491,8 +491,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "{identifier} (in|of) {list:expression} where {condition:expression}",
     constructor: class list_filter extends Rule.Sequence {
-      compile() {
-        const { identifier, condition, list } = this.results;
+      compile(match) {
+        const { identifier, condition, list } = match.results;
         // use singular of identifier for method argument
         const argument = singularize(identifier);
         return `spell.filter(${list}, ${argument} => ${condition}, '${argument}')`;
@@ -525,8 +525,8 @@ parser.defineRules(
     leftRecursive: true,
     testRule: "where",
     constructor: class list_membership_test extends Rule.Sequence {
-      compile() {
-        const { identifier, operator, filter, list } = this.results;
+      compile(match) {
+        const { identifier, operator, filter, list } = match.results;
         const bang = operator === "has" ? "" : "!";
         // use singular of identifier for method argument
         const argument = singularize(identifier);
@@ -568,8 +568,8 @@ parser.defineRules(
       "add {thing:expression} to the (start|front|top) of {list:expression}"
     ],
     constructor: class list_prepend extends Rule.Sequence {
-      compile() {
-        const { thing, list } = this.results;
+      compile(match) {
+        const { thing, list } = match.results;
         return `spell.prepend(${list}, ${thing})`;
       }
     },
@@ -595,8 +595,8 @@ parser.defineRules(
       "add {thing:expression} to (the (end|back) of)? {list:expression}"
     ],
     constructor: class list_append extends Rule.Sequence {
-      compile() {
-        const { thing, list } = this.results;
+      compile(match) {
+        const { thing, list } = match.results;
         return `spell.append(${list}, ${thing})`;
       }
     },
@@ -628,8 +628,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
     constructor: class list_add_relative extends Rule.Sequence {
-      compile() {
-        const { thing, item, list, operator } = this.results;
+      compile(match) {
+        const { thing, item, list, operator } = match.results;
         const position =
           operator === "before"
             ? `spell.positionOf(${list}, ${item})`
@@ -665,8 +665,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "(empty|clear) {list:expression}",
     constructor: class list_empty extends Rule.Sequence {
-      compile() {
-        const { list } = this.results;
+      compile(match) {
+        const { list } = match.results;
         return `spell.clear(${list})`;
       }
     },
@@ -690,8 +690,8 @@ parser.defineRules(
       "remove {identifier} {number:expression} of {list:expression}"
     ],
     constructor: class list_remove_position extends Rule.Sequence {
-      compile() {
-        const { number, list, identifier } = this.results;
+      compile(match) {
+        const { number, list, identifier } = match.results;
         return `spell.removeItem(${list}, ${number}, '${identifier}')`;
       }
     },
@@ -717,8 +717,8 @@ parser.defineRules(
       "remove {identifier} {start:expression} to {end:expression} of {list:expression}"
     ],
     constructor: class list_remove_position extends Rule.Sequence {
-      compile() {
-        const { start, end, list, identifier } = this.results;
+      compile(match) {
+        const { start, end, list, identifier } = match.results;
         return `spell.removeRange(${list}, ${start}, ${end}, '${singularize(identifier)}')`;
       }
     },
@@ -739,8 +739,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "remove {thing:expression} from {list:expression}",
     constructor: class list_remove extends Rule.Sequence {
-      compile() {
-        const { thing, list } = this.results;
+      compile(match) {
+        const { thing, list } = match.results;
         return `spell.remove(${list}, ${thing})`;
       }
     },
@@ -759,8 +759,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "remove {identifier} (in|of|from) {list:expression} where {condition:expression}",
     constructor: class list_remove_where extends Rule.Sequence {
-      compile() {
-        const { identifier, condition, list } = this.results;
+      compile(match) {
+        const { identifier, condition, list } = match.results;
         // use singular of identifier for method argument
         const argument = singularize(identifier);
         return `spell.removeWhere(${list}, ${argument} => ${condition}, '${argument}')`;
@@ -797,8 +797,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "reverse {list:expression}",
     constructor: class list_reverse extends Rule.Sequence {
-      compile() {
-        const { list } = this.results;
+      compile(match) {
+        const { list } = match.results;
         return `spell.reverse(${list})`;
       }
     },
@@ -816,8 +816,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "(randomize|shuffle) ({identifier} (in|of))? {list:expression}",
     constructor: class list_shuffle extends Rule.Sequence {
-      compile() {
-        const { list } = this.results;
+      compile(match) {
+        const { list } = match.results;
         return `spell.shuffle(${list})`;
       }
     },
@@ -843,8 +843,8 @@ parser.defineRules(
       "for (each)? {item:identifier} (and|,) {position:identifier} in {list:expression}:? {statement}?"
     ],
     constructor: class list_iteration extends Rule.BlockStatement {
-      compile() {
-        const { item, position, list, statements } = this.results;
+      compile(match) {
+        const { item, position, list, statements } = match.results;
         const itemVar = singularize(item);
         if (!position) {
           return `for (const ${itemVar} of ${list}) ${statements}`;

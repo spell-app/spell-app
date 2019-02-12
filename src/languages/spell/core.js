@@ -28,7 +28,7 @@ parser.defineRules(
     alias: "expression",
     syntax: "undefined",
     constructor: class _undefined extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return "undefined";
       }
     },
@@ -48,8 +48,8 @@ parser.defineRules(
     canonical: "Word",
     constructor: class word extends Rule.Pattern {
       // Convert "-" to "_" in source output.
-      compile() {
-        return this.matched.replace(/\-/g, "_");
+      compile(match) {
+        return match.matched.replace(/\-/g, "_");
       }
     },
     tests: [
@@ -83,8 +83,8 @@ parser.defineRules(
     pattern: /^[a-z][\w\-]*$/,
     constructor: class identifier extends Rule.Pattern {
       // Convert "-" to "_" in source output.
-      compile() {
-        return this.matched.replace(/\-/g, "_");
+      compile(match) {
+        return match.matched.replace(/\-/g, "_");
       }
     },
     blacklist: [
@@ -241,8 +241,8 @@ parser.defineRules(
     pattern: /^([A-Z][\w\-]*|list|text|number|integer|decimal|character|boolean|object)$/,
     constructor: class type extends Rule.Pattern {
       // Convert "-" to "_" in source output.
-      compile() {
-        let type = this.matched;
+      compile(match) {
+        let type = match.matched;
         switch (type) {
           // Alias `List` to `Array`
           case "List":
@@ -319,8 +319,8 @@ parser.defineRules(
     canonical: "Boolean",
     pattern: /^(true|false|yes|no|ok|cancel|success|failure)$/,
     constructor: class boolean extends Rule.Pattern {
-      compile() {
-        switch (this.matched) {
+      compile(match) {
+        switch (match.matched) {
           case "true":
           case "yes":
           case "ok":
@@ -390,8 +390,8 @@ parser.defineRules(
       }
 
       // Convert to number on source output.
-      compile() {
-        return this.matched;
+      compile(match) {
+        return match.matched;
       }
     },
     tests: [
@@ -437,8 +437,8 @@ parser.defineRules(
         });
       }
 
-      compile() {
-        return this.matched;
+      compile(match) {
+        return match.matched;
       }
     },
     tests: [
@@ -464,8 +464,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "\\[[list:{expression},]?\\]",
     constructor: class literal_list extends Rule.Sequence {
-      compile() {
-        let { list } = this.results;
+      compile(match) {
+        let { list } = match.results;
         return `[${list ? list.join(", ") : ""}]`;
       }
     },
@@ -495,8 +495,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "\\({expression}\\)",
     constructor: class parenthesized_expression extends Rule.Sequence {
-      compile() {
-        let { expression } = this.results;
+      compile(match) {
+        let { expression } = match.results;
         // don't double parens if not necessary
         if (
           typeof expression === "string" &&

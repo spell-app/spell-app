@@ -26,7 +26,7 @@ parser.defineRules(
     alias: "expression",
     syntax: "me",
     constructor: class me extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return "this";
       }
     },
@@ -44,7 +44,7 @@ parser.defineRules(
     alias: "expression",
     syntax: "I",
     constructor: class I extends Rule.Keywords {
-      compile() {
+      compile(match) {
         return "this";
       }
     },
@@ -74,8 +74,8 @@ parser.defineRules(
         return results;
       }
 
-      compile() {
-        let { expression, properties } = this.results;
+      compile(match) {
+        let { expression, properties } = match.results;
         properties = properties.reverse().join(".");
         return `${expression}.${properties}`;
         // NOTE: the following is safer, but ugly for demo purposes
@@ -100,8 +100,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "(my|this) {identifier}",
     constructor: class my_property_expression extends Rule.Sequence {
-      compile() {
-        let { identifier } = this.results;
+      compile(match) {
+        let { identifier } = match.results;
         return `this.${identifier}`;
       }
     },
@@ -124,8 +124,8 @@ parser.defineRules(
     syntax: "with [args:{identifier},]",
     constructor: class args extends Rule.Sequence {
       // Returns an array of argument values
-      compile() {
-        const { args } = this.results;
+      compile(match) {
+        const { args } = match.results;
         return args.join(", ");
       }
     },
@@ -145,8 +145,8 @@ parser.defineRules(
     name: "object_literal_properties",
     syntax: "[({key:identifier}(?:= {value:expression})?) ,]",
     constructor: class object_literal_properties extends Rule.List {
-      compile() {
-        let props = this.matched.map(function(prop) {
+      compile(match) {
+        let props = match.matched.map(function(prop) {
           let { key, value } = prop.results;
           if (value) return `"${key}": ${value}`;
           return key;
@@ -172,8 +172,8 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "define type {name:type} (?:as (a|an) {superType:type})?",
     constructor: class define_type extends Rule.BlockStatement {
-      compile() {
-        let { name, superType, statements } = this.results;
+      compile(match) {
+        let { name, superType, statements } = match.results;
         let output = `class ${name}`;
         if (superType) output += ` extends ${superType}`;
         output += " " + statements;
@@ -203,8 +203,8 @@ parser.defineRules(
     alias: ["expression", "statement"],
     syntax: "(create|new) {type} (?:with {props:object_literal_properties})?",
     constructor: class new_thing extends Rule.Sequence {
-      compile() {
-        let { type, props = "" } = this.results;
+      compile(match) {
+        let { type, props = "" } = match.results;
         // Special case for object, which we'll create with an object literal.
         if (type === "Object") {
           if (!props) return "{}";
@@ -257,8 +257,8 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "(scope:property|constant|shared property) {name:identifier} (?:= {value:expression})?",
     constructor: class declare_property extends Rule.Sequence {
-      compile() {
-        let { scope, name, value = "" } = this.results;
+      compile(match) {
+        let { scope, name, value = "" } = match.results;
         if (value) value = ` = ${value}`;
 
         let declaration = `${name}${value}`;
@@ -304,8 +304,8 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "property {name:identifier} as (a|an)? {type} (?:= {value:expression})?",
     constructor: class declare_property_of_type extends Rule.Sequence {
-      compile() {
-        let { name, type, value = "undefined" } = this.results;
+      compile(match) {
+        let { name, type, value = "undefined" } = match.results;
         return `@typed(${type}) ${name} = ${value}`;
       }
     },
@@ -330,8 +330,8 @@ parser.defineRules(
     syntax:
       "property {name:identifier} as one of (list:[{expression},]+|{literal_list}) (?:= {value:expression})?",
     constructor: class declare_property_as_one_of extends Rule.Sequence {
-      compile() {
-        let { name, list, value = "undefined" } = this.results;
+      compile(match) {
+        let { name, list, value = "undefined" } = match.results;
 
         // TODO: this is ugly...
         list = flattenDeep(list);
@@ -369,9 +369,9 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "get {name:identifier}\\: return? {expression}?",
     constructor: class getter extends Rule.BlockStatement {
-      compile() {
+      compile(match) {
         // NOTE: we need to parse `expression` and `block` manually (unlike other BlockStatements)
-        const { name, expression, block } = this.results;
+        const { name, expression, block } = match.results;
         let statements;
         if (block) {
           statements = block;
@@ -415,9 +415,9 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "set {name:identifier} {args}? (\\:)? {statement}?",
     constructor: class setter extends Rule.BlockStatement {
-      compile() {
+      compile(match) {
         // default args to the setter name
-        let { name, args = name, statements } = this.results;
+        let { name, args = name, statements } = match.results;
         // Complain if more than one argument
         if (args && args.includes(",")) {
           console.warn("parse('setter'): only one argument allowed in setter:  ", args);
@@ -481,8 +481,8 @@ parser.defineRules(
     alias: ["statement", "mutatesScope"],
     syntax: "(operator:to|on) {name:identifier} {args}? (\\:)? {statement}?",
     constructor: class declare_method extends Rule.BlockStatement {
-      compile() {
-        let { name, args = "", statements } = this.results;
+      compile(match) {
+        let { name, args = "", statements } = match.results;
         return `${name}(${args}) ${statements}`;
       }
     },
@@ -518,7 +518,7 @@ parser.defineRules(
   {
     name: "declare_action",
     alias: ["statement", "mutatesScope"],
-    syntax: "action (keywords:{word}|{type})+ \\: {statement}?",
+    syntax: "action (keywords:{word}|{type})+ (\\:)? {statement}?",
     constructor: class declare_action extends Rule.BlockStatement {
       // Add `name`, `args` and `types` to matched source
       get results() {
@@ -529,7 +529,7 @@ parser.defineRules(
         const _keywords = results._keywords.matched;
         if (_keywords.length === 1) {
           const keyword = keywords[0];
-          if (_keywords[0] instanceof Rule.Type) {
+          if (_keywords[0].rule instanceof Rule.Type) {
             console.error(`parse('declare_action'): one-word actions may not be types: ${keyword}`);
           }
           // TODO...
@@ -546,7 +546,7 @@ parser.defineRules(
 
         // if any of the words are types (capital letter) make that an argument of the same name.
         _keywords.map((item, index) => {
-          if (item instanceof Rule.Type) {
+          if (item.rule instanceof Rule.Type) {
             let Type = keywords[index];
             let type = Type.toLowerCase();
 
@@ -562,8 +562,8 @@ parser.defineRules(
         return results;
       }
 
-      compile() {
-        let { name, args = [], statements /*, types*/ } = this.results;
+      compile(match) {
+        let { name, args = [], statements /*, types*/ } = match.results;
         // figure out if there are any conditions due to known argument types
         //         let conditions = [];
         //         for (let arg in types) {

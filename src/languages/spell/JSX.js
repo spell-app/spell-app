@@ -40,7 +40,7 @@ parser.defineRules(
           // else if a JSX element, recurse
           //TODO: indent...
           else if (value instanceof Tokenizer.JSXElement) {
-            value = value.compile();
+            value = value.compile(jsxElement);
           }
           // Otherwise if a number or Text literal, just use it
 

@@ -83,11 +83,11 @@ export default class Parser {
       text = ruleName;
       ruleName = "statements";
     }
-    let result = this.parse(ruleName, text);
-    if (!result) {
+    let match = this.parse(ruleName, text);
+    if (!match) {
       throw new ParseError(`parser.parse('${ruleName}', '${text}'): can't parse text`);
     }
-    return result.compile();
+    return match.compile(match);
   }
 
   // Parse a named rule (defined in this parser or in any of our `imports`), returning the "best" match.

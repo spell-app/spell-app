@@ -32,8 +32,8 @@ parser.defineRules(
     leftRecursive: true,
     testRule: "infix_operator",
     constructor: class infix_operator_expression extends Rule.Sequence {
-      compile() {
-        let { lhs, rhs, _operator } = this.results;
+      compile(match) {
+        let { lhs, rhs, _operator } = match.results;
         return _operator.applyOperator(lhs, rhs);
       }
 
@@ -603,8 +603,8 @@ parser.defineRules(
     leftRecursive: true,
     testRule: "postfix_operator",
     constructor: class postfix_operator_expresion extends Rule.Sequence {
-      compile() {
-        let { expression, _operator } = this.results;
+      compile(match) {
+        let { expression, _operator } = match.results;
         return _operator.applyOperator(expression);
       }
     }
@@ -692,8 +692,8 @@ parser.defineRules(
     //FIXME: make `the` optional
     syntax: "the absolute value of {expression}",
     constructor: class absolute_value extends Rule.Sequence {
-      compile() {
-        const { expression } = this.results;
+      compile(match) {
+        const { expression } = match.results;
         return `Math.abs(${expression})`;
       }
     },
@@ -711,8 +711,8 @@ parser.defineRules(
     //FIXME: "the?"
     syntax: "(max|maximum|largest|biggest) {identifier}? (of|in) {expression}",
     constructor: class max extends Rule.Sequence {
-      compile() {
-        const { expression } = this.results;
+      compile(match) {
+        const { expression } = match.results;
         // TODO: Math.max() doesn't work when passed an array... :-(
         return `spell.max(${expression})`;
       }
@@ -738,8 +738,8 @@ parser.defineRules(
     //FIXME: "the?"
     syntax: "(min|minimum|smallest|least) {identifier}? (of|in) {expression}",
     constructor: class min extends Rule.Sequence {
-      compile() {
-        const { expression } = this.results;
+      compile(match) {
+        const { expression } = match.results;
         // TODO: Math.min() doesn't work when passed an array... :-(
         return `spell.min(${expression})`;
       }
@@ -768,8 +768,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "round {thing:expression} (direction:off|up|down)?",
     constructor: class round_up_or_down extends Rule.Sequence {
-      compile() {
-        const { thing, direction } = this.results;
+      compile(match) {
+        const { thing, direction } = match.results;
         if (direction === "up") return `Math.ceil(${thing})`;
         else if (direction === "down") return `Math.floor(${thing})`;
         else return `Math.round(${thing})`;
