@@ -18,10 +18,17 @@ parser.defineRules(
       parse(parser, tokens, start = 0) {
         let token = tokens[start];
         if (!(token instanceof Tokenizer.JSXElement)) return undefined;
-        return this.clone({
+
+        return {
+          rule: this,
+          compile: this.compile.bind(this),
           matched: token,
           nextStart: start + 1
-        });
+        };
+      }
+
+      compile(match) {
+        return this.jsxElementToSource(match.matched);
       }
 
       // Convert our attributes to source.
@@ -106,9 +113,6 @@ parser.defineRules(
         return output;
       }
 
-      compile() {
-        return this.jsxElementToSource(this.matched);
-      }
     },
     tests: [
       {
