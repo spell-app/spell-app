@@ -199,7 +199,7 @@ describe("Rule.Pattern", () => {
   });
 });
 
-/*
+
 describe("Rule.Subrule", () => {
   const parser = new Parser();
   parser.defineRules(
@@ -208,6 +208,7 @@ describe("Rule.Subrule", () => {
     {
       name: "sequence",
       syntax: "{this} {that}",
+      testRule: new Rule.Keywords({ literals: ["this", "that"] }),
       constructor: class Sequence extends Rule.Sequence {
         compile(results) {
           return "COMPILED";
@@ -249,7 +250,7 @@ describe("Rule.Subrule", () => {
     });
   });
 
-  describe.skip("for sequence rules", () => {
+  describe("for sequence rules", () => {
     const rule = new Rule.Subrule({ subrule: "sequence" });
     describe("test() method", () => {
       it("returns true if matched at the start of tokens", () => {
@@ -258,31 +259,31 @@ describe("Rule.Subrule", () => {
       });
 
       it("returns true if matched anywhere in tokens", () => {
-        const test = rule.test(parser, tokenize("•"));
+        const test = rule.test(parser, tokenize("that this that"));
         expect(test).toBe(true);
       });
 
       it("returns false if NOT matched anywhere in tokens", () => {
-        const test = rule.test(parser, tokenize("•"));
+        const test = rule.test(parser, tokenize("that that that"));
         expect(test).toBe(false);
       });
     });
     describe("parse() method", () => {
       it("parses at the start of tokens", () => {
-        const match = rule.parse(parser, tokenize("•"));
+        const match = rule.parse(parser, tokenize("this that"));
         expect(match).toBeDefined();
-        expect(match.nextStart).toBe(1);
-        expect(match.compile()).toBe("•");
+        expect(match.nextStart).toBe(2);
+        expect(match.compile()).toBe("COMPILED");
       });
 
       it("does not parse in the middle of tokens", () => {
-        const match = rule.parse(parser, tokenize("•"));
+        const match = rule.parse(parser, tokenize("that this that"));
         expect(match).toBeUndefined();
       });
     });
   });
 });
-*/
+
 
 /*
 
