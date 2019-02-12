@@ -475,6 +475,8 @@ Rule.Sequence = class sequence extends Rule {
           addResults(results, match.matched);
         } else {
           const sourceName = match.argument || match.group || match.name;
+          if (sourceName == null) continue;
+
           const matchName = "_" + sourceName;
           const source = match.compile();
           // If arg already exists, convert to an array
