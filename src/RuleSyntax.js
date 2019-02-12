@@ -19,7 +19,7 @@ export default function parseRule(syntax, constructor) {
   // If we got an array of possible syntaxes...
   if (Array.isArray(syntax)) {
     // ...recursively parse each syntax, using a CLONE of the constructor.
-    return flatten(syntax.map(syntax => parseRule(syntax, constructor && cloneClass(constructor))));
+    return flatten(syntax.map(syntax => parseRule(syntax, constructor)));
   }
 
   let rules = parseSyntax(syntax);
@@ -33,23 +33,27 @@ export default function parseRule(syntax, constructor) {
 
     // Otherwise group the rules together and return that
     return [new Rule.Alternatives({ rules })];
-  } else {
-    // Make an instance of the rule and add relevant properties to its prototype non-enumerably
-    if (
-      constructor.prototype instanceof Rule.Keywords ||
-      constructor.prototype instanceof Rule.Symbols ||
-      constructor.prototype instanceof Rule.List ||
-      constructor.prototype instanceof Rule.Alternatives
-    ) {
-      for (let property in rules[0]) {
-        Object.defineProperty(constructor.prototype, property, { value: rules[0][property] });
-      }
-    } else {
-      Object.defineProperty(constructor.prototype, "rules", { value: rules });
-    }
-
-    return [new constructor()];
   }
+
+  // Make an instance of the provided constructor
+  const rule = new constructor();
+
+  // ...and add relevant properties to its prototype non-enumerably and non-writably
+  // so we'll get an error if something tries to overwrite them
+  if (
+    constructor.prototype instanceof Rule.Keywords ||
+    constructor.prototype instanceof Rule.Symbols ||
+    constructor.prototype instanceof Rule.List ||
+    constructor.prototype instanceof Rule.Alternatives
+  ) {
+    for (const property in rules[0]) {
+      Object.defineProperty(rule, property, { value: rules[0][property] });
+    }
+  } else {
+    Object.defineProperty(rule, "rules", { value: rules });
+  }
+
+  return [rule];
 }
 
 function tokeniseRuleSyntax(syntax) {

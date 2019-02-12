@@ -242,12 +242,6 @@ export default class Parser {
     if (!constructor || !props.name) {
       throw new TypeError(`parser.define(): You must pass 'constructor' and 'name'`);
     }
-    // throw if we're re-using a constructor
-    if (constructor.prototype.name) {
-      throw new TypeError(
-        `parser.define(): Attempting to re-use constructor for rule '${props.name}'`
-      );
-    }
 
     // Note the module that the rule was defined in
     if (this.module) props.module = this.module;
@@ -264,11 +258,6 @@ export default class Parser {
       }, {});
     }
 
-    // Add props to the contructor protoype non-enumerably and non-writably
-    //  so we'll get an error if something tries to overwrite them.
-    Object.keys(props)
-      .forEach(key => Object.defineProperty(constructor.prototype, key, { value: props[key] }));
-
     // Combine aliases with the main name
     const names = [props.name].concat(props.alias || []);
 
@@ -277,7 +266,15 @@ export default class Parser {
     if (!rules) throw new ParseError(`defineRule(${props.syntax}): didnt get rules back`);
 
     // Sometimes `parseRule` will give us an array back, normalize to always have an array
-    rules.forEach(rule => this.addRule(names, rule));
+    rules.forEach(rule => {
+      // Add props to the rule non-enumerably and non-writably
+      //  so we'll get an error if something tries to overwrite them.
+      Object.keys(props)
+        .forEach(key => Object.defineProperty(rule, key, { value: props[key] }));
+
+
+      this.addRule(names, rule)
+    });
 
     // if tests were defined, mark as `_testable_`
     if (props.tests) {
