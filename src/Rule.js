@@ -197,6 +197,7 @@ Rule.Subrule = class subrule extends Rule {
 
 // Sequence of rules to match.
 //  `rule.rules` is the array of rules to match.
+//  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
 //  `rule.leftRecursive` should be `true` if the first non-optional rule in our `rules`
 //    may end up calling us again.  In this case, you should provide `rule.testRule`.
 //
@@ -204,7 +205,7 @@ Rule.Subrule = class subrule extends Rule {
 //  `rule.matched` will be the array of rules which were matched.
 //  `rule.nextStart` is the index of the next start token.
 Rule.Sequence = class sequence extends Rule {
-  test(parser, tokens, start = 0, end = tokens.length) {
+  test(parser, tokens, start, end) {
     if (this.testRule) return parser.test(this.testRule, tokens, start, end);
   }
 
@@ -289,6 +290,7 @@ Rule.Sequence = class sequence extends Rule {
   }
 };
 
+
 // Alternative syntax, matching one of a number of different rules.
 // The result of a parse is the longest rule that actually matched.
 // NOTE: Currently takes the longest valid match.
@@ -331,10 +333,10 @@ Rule.Alternatives = class alternatives extends Rule {
 
     let bestMatch = matches.length === 1 ? matches[0] : this.getBestMatch(matches);
 
-    // assign `argName` or `group` for `results`
+    // assign special properties to the result
     if (this.argument) bestMatch.argument = this.argument;
-    else if (this.group) bestMatch.group = this.group;
-    //TODO: other things to copy here???
+    if (this.group) bestMatch.group = this.group;
+    if (this.promote) bestMatch.promote = this.promote;
 
     return bestMatch;
   }
@@ -355,7 +357,9 @@ Rule.Alternatives = class alternatives extends Rule {
 
   toSyntax() {
     const rules = this.rules.map(rule => rule.toSyntax()).join("|");
-    return `(${this.argument ? this.argument + ":" : ""}${rules})${this.optional ? "?" : ""}`;
+    const promote = this.promote ? "?:" : "";
+    const argument = this.argument ? `${this.argument}:` : "";
+    return `(${promote}${argument}${rules})${this.optional ? "?" : ""}`;
   }
 };
 
@@ -366,9 +370,12 @@ Rule.Alternatives = class alternatives extends Rule {
 //  - smooshing rules together because they share the same name
 Rule.Group = class group extends Rule.Alternatives {};
 
+
 // Repeating rule.
 //  `this.repeat` is the rule that repeats.
 //  `this.optional` is true if the prodution is optional.
+//  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
+//
 //  Note: Automatically consumes whitespace before rules.
 //  Note: Returns `undefined` if we don't match at least once.
 //
@@ -376,17 +383,28 @@ Rule.Group = class group extends Rule.Alternatives {};
 //  `this.matched` is array of matched rules.
 //  `rule.nextStart` is the index of the next start token.
 Rule.Repeat = class repeat extends Rule {
-  parse(parser, tokens, start = 0, end, stack) {
+  // Check `testRule` if provided.
+  test(parser, tokens, start, end) {
+    if (this.testRule) return parser.test(this.testRule, tokens, start, end);
+  }
+
+  parse(parser, tokens, start = 0, end = tokens.length, stack) {
+    // Bail quickly if no chance
+    if (this.test(parser, tokens, start, end) === false) return undefined;
+
     const matched = [];
     let nextStart = start;
-    while (true) {
+    while (nextStart < end) {
       let match = this.repeat.parse(parser, tokens, nextStart, end, stack);
       if (!match) break;
-
+      if (nextStart === match.nextStart) {
+        throw new TypeError(`repeat rule ${this.name}: got unproductive match`);
+      }
       matched.push(match);
       nextStart = match.nextStart;
     }
 
+    // Forget it if nothing matched at all
     if (matched.length === 0) return undefined;
 
     return this.clone({
@@ -420,7 +438,15 @@ Rule.Repeat = class repeat extends Rule {
 //
 // NOTE: we assume that a List rule itself will NOT repeat (????)
 Rule.List = class list extends Rule {
-  parse(parser, tokens, start = 0, end, stack) {
+  // Check `testRule` if provided.
+  test(parser, tokens, start, end) {
+    if (this.testRule) return parser.test(this.testRule, tokens, start, end);
+  }
+
+  parse(parser, tokens, start = 0, end = tokens.length, stack) {
+    // Bail quickly if no chance
+    if (this.test(parser, tokens, start, end) === false) return undefined;
+
     // ensure item and delimiter are optional so we don't barf in `parseRule`
     //TODO: ???
     this.item.optional = true;
@@ -467,6 +493,8 @@ Rule.List = class list extends Rule {
     );
   }
 };
+
+
 
 // A block is used to parse a nested block of statements.
 // Abstract class.

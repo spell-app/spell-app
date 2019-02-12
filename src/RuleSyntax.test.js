@@ -159,6 +159,31 @@ test("parse complex alternatives", () => {
   expect(rules[0].toSyntax()).toBe("(is a test|{named:subrule}|[{number} ,]|(a|b))");
 });
 
+test("sets promote flag", () => {
+  let rules = parseSyntax("(?:a|b)");
+  expect(rules.length).toBe(1);
+  expect(rules[0]).toBeInstanceOf(Rule.Alternatives);
+  expect(rules[0].promote).toBe(true);
+  expect(rules[0].toSyntax()).toBe("(?:a|b)");
+});
+
+test("sets argument", () => {
+  let rules = parseSyntax("(arg:a|b)");
+  expect(rules.length).toBe(1);
+  expect(rules[0]).toBeInstanceOf(Rule.Alternatives);
+  expect(rules[0].argument).toBe("arg");
+  expect(rules[0].toSyntax()).toBe("(arg:a|b)");
+});
+
+test("sets argument AND promote", () => {
+  let rules = parseSyntax("(?:arg:a|b)");
+  expect(rules.length).toBe(1);
+  expect(rules[0]).toBeInstanceOf(Rule.Alternatives);
+  expect(rules[0].promote).toBe(true);
+  expect(rules[0].argument).toBe("arg");
+  expect(rules[0].toSyntax()).toBe("(?:arg:a|b)");
+});
+
 //
 //  Optional
 //

@@ -328,14 +328,8 @@ parser.defineRules(
     name: "declare_property_as_one_of",
     alias: ["statement", "mutatesScope"],
     syntax:
-      "property {name:identifier} as one of (?:list:[{expression},]+|{literal_list}) (?:= {value:expression})?",
+      "property {name:identifier} as one of (list:[{expression},]+|{literal_list}) (?:= {value:expression})?",
     constructor: class declare_property_as_one_of extends Rule.Sequence {
-      get results() {
-        let results = super.results;
-        results.plural = pluralize(results.name);
-        return results;
-      }
-
       compile() {
         let { name, list, value = "undefined" } = this.results;
 
