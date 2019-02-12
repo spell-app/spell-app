@@ -326,7 +326,6 @@ Rule.Repeat = class repeat extends Rule {
   }
 
   compile(match) {
-    if (!match.matched) return undefined;
     return match.matched.map(match => match.compile());
   }
 
@@ -469,21 +468,21 @@ Rule.Sequence = class sequence extends Rule {
 
     function addResults(results, matched) {
       for (let i = 0, match; match = matched[i]; i++) {
-        if (match.rule.promote) {
-          addResults(results, match.matched);
+        const { promote, name } = match;
+        if (promote) {
+          return addResults(results, match.matched);
         } else {
-          const sourceName = match.name;
-          if (sourceName == null) continue;
+          if (name == null) continue;
 
           const source = match.compile();
           // If arg already exists, convert to an array
-          if (sourceName in results) {
-            if (!Array.isArray(results[sourceName])) {
-              results[sourceName] = [results[sourceName]];
+          if (name in results) {
+            if (!Array.isArray(results[name])) {
+              results[name] = [results[name]];
             }
-            results[sourceName].push(source);
+            results[name].push(source);
           } else {
-            results[sourceName] = source;
+            results[name] = source;
           }
         }
       }
