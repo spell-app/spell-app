@@ -206,7 +206,19 @@ export default class Parser {
   //    specifying this can let us jump out quickly if there is no possible match
   //
   // Note that we munge the `constructor` passed in for efficiency while parsing.
-  defineRule({ skip, constructor, ...props }) {
+  defineRule(ruleProps) {
+    // If passed in a `rule` instance, just add it
+    if (ruleProps instanceof Rule) {
+      if (!ruleProps.name) {
+        const message = `parser.defineRule(): you must set rule.name when passing a rule object`;
+        console.error(message, ruleProps);
+        throw new TypeError(message);
+      }
+      this.addRule(ruleProps.name, ruleProps);
+      return;
+    }
+
+    const { skip, constructor, ...props } = ruleProps;
     if (skip) return;
 
     // throw if required params not provided

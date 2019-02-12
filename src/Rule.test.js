@@ -9,9 +9,26 @@ function tokenize(text) {
 }
 
 describe("Rule.Symbols", () => {
+  describe("on construction", () => {
+    it("creates proper rule when passed literals as a string", () => {
+      const rule = new Rule.Keywords({ literals: ">" });
+      expect(rule.literals).toEqual([">"]);
+    });
+
+    it("creates proper rule when passed single symbol as a string", () => {
+      const rule = new Rule.Symbols(">");
+      expect(rule.literals).toEqual([">"]);
+    });
+
+    it("creates proper rule when passed multiple symbols as a string", () => {
+      const rule = new Rule.Symbols(">=");
+      expect(rule.literals).toEqual([">", "="]);
+    });
+  });
+
   const parser = new Parser();
   describe("with a single symbol", () => {
-    const rule = new Rule.Symbols({ literals: ">" });
+    const rule = new Rule.Symbols(">");
     describe("test() method", () => {
       it("returns true if matched at the start of tokens", () => {
         const test = rule.test(parser, tokenize(">"));
@@ -44,7 +61,7 @@ describe("Rule.Symbols", () => {
   });
 
   describe("with multiple symbols", () => {
-    const rule = new Rule.Symbols({ literals: [ ">", "=" ] });
+    const rule = new Rule.Symbols(">=");
     describe("test() method", () => {
       it("returns true if matched at the start of tokens", () => {
         const test = rule.test(parser, tokenize(">="));
@@ -79,9 +96,26 @@ describe("Rule.Symbols", () => {
 
 
 describe("Rule.Keywords", () => {
+  describe("on construction", () => {
+    it("creates proper rule when passed literals as a string", () => {
+      const rule = new Rule.Keywords({ literals: "this" });
+      expect(rule.literals).toEqual(["this"]);
+    });
+
+    it("creates proper rule when passed single keyword as a string", () => {
+      const rule = new Rule.Keywords("this");
+      expect(rule.literals).toEqual(["this"]);
+    });
+
+    it("creates proper rule when passed multiple keywords as a string", () => {
+      const rule = new Rule.Keywords("this that");
+      expect(rule.literals).toEqual(["this", "that"]);
+    });
+  });
+
   const parser = new Parser();
   describe("with a single keyword", () => {
-    const rule = new Rule.Keywords({ literals: "this" });
+    const rule = new Rule.Keywords("this");
     describe("test() method", () => {
       it("returns true if matched at the start of tokens", () => {
         const test = rule.test(parser, tokenize("this"));
@@ -114,7 +148,7 @@ describe("Rule.Keywords", () => {
   });
 
   describe("with multiple keywords", () => {
-    const rule = new Rule.Keywords({ literals: [ "this", "that" ] });
+    const rule = new Rule.Keywords("this that");
     describe("test() method", () => {
       it("returns true if matched at the start of tokens", () => {
         const test = rule.test(parser, tokenize("this that"));
@@ -195,8 +229,8 @@ describe("Rule.Pattern", () => {
 describe("Rule.Subrule", () => {
   const parser = new Parser();
   parser.defineRules(
-    { name: "this", syntax: "this", constructor: class This extends Rule.Keywords {} },
-    { name: "that", syntax: "that", constructor: class That extends Rule.Keywords {} },
+    new Rule.Keywords({ name: "this", literals: "this" }),
+    new Rule.Keywords({ name: "that", literals: "that" }),
     {
       name: "sequence",
       syntax: "{this} {that}",
@@ -454,11 +488,68 @@ describe("Rule.List", () => {
     });
 
     it("does not parse in the middle of tokens", () => {
-      const match = rule.parse(parser, tokenize("nope word,word"));
+      const match = rule.parse(parser, tokenize("nope word,word nope"));
       expect(match).toBeUndefined();
     });
   });
 });
+
+
+describe("Rule.Sequence", () => {
+  const parser = new Parser();
+  parser.defineRules(
+    new Rule.Keywords({ name: "that", literals: "that" }),
+    new Rule.Keywords({ name: "other", literals: "other" }),
+    {
+      name: "simple",
+      syntax: "this {that} the {other}",
+      testRule: new Rule.Keywords("this"),
+      constructor: class simple extends Rule.Sequence{
+        compile() {
+          return "COMPILED";
+        }
+      }
+    }
+  );
+
+  describe("for simple sequences", () => {
+    const rule = parser.rules.simple;
+    describe("test() method", () => {
+      it("returns true if matched at the start of tokens", () => {
+        const test = rule.test(parser, tokenize("this that other"));
+        expect(test).toBe(true);
+      });
+
+      it("returns true if matched anywhere in tokens", () => {
+        const test = rule.test(parser, tokenize("other this that"));
+        expect(test).toBe(true);
+      });
+
+      it("returns false if NOT matched anywhere in tokens", () => {
+        const test = rule.test(parser, tokenize("start middle end"));
+        expect(test).toBe(false);
+      });
+    });
+    describe("parse() method", () => {
+      it("parses at the start of tokens", () => {
+        const match = rule.parse(parser, tokenize("this that the other"));
+        expect(match.nextStart).toBe(4);
+        expect(match.compile()).toBe("COMPILED");
+        const results = match.results;
+        expect(results.that).toBe("that");
+        expect(results._that).toBeInstanceOf(Rule.Keywords);
+        expect(results.other).toBe("other");
+        expect(results._other).toBeInstanceOf(Rule.Keywords);
+      });
+
+      it("does not parse in the middle of tokens", () => {
+        const match = rule.parse(parser, tokenize("something this that the other"));
+        expect(match).toBeUndefined();
+      });
+    });
+  });
+});
+
 
 
 /*
