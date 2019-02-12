@@ -440,6 +440,12 @@ describe("Rule.List", () => {
       expect(match.compile()).toEqual(["word", "word"]);
     });
 
+    it("eats but trailing delimiter", () => {
+      const match = rule.parse(parser, tokenize("word, word, nope"));
+      expect(match.nextStart).toBe(4);
+      expect(match.compile()).toEqual(["word", "word"]);
+    });
+
     it("does not parse in the middle of tokens", () => {
       const match = rule.parse(parser, tokenize("nope word,word"));
       expect(match).toBeUndefined();
