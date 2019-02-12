@@ -1,6 +1,6 @@
 import unitTestModuleRules from "../../utils/unitTestRules.js";
 
-import parser from "./index.js";
+import parser from "./spell.js";
 import { parenthesizeCondition } from "./if.js";
 
 describe("testing spell module if", () => {
