@@ -776,10 +776,10 @@ parser.defineRules(
             "remove words of text where word starts with 'a'",
             "spell.removeWhere(text, word => spell.startsWith(word, 'a'), 'word')"
           ],
-          [
-            "remove cards in deck where the suit of the card is ace",
-            "spell.removeWhere(deck, card => (card.suit == ace), 'card')"
-          ]
+//           [
+//             "remove cards in deck where the suit of the card is ace",
+//             "spell.removeWhere(deck, card => (card.suit == ace), 'card')"
+//           ]
         ]
       }
     ]

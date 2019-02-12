@@ -700,12 +700,10 @@ Rule.BlockStatement = class block_statement extends Rule.Block {
     // If we got a block, use that for our `statements`
     const { block } = match;
     if (block) {
-      results._statements = block;
       results.statements = block.compile(block);
     }
     // otherwise use the `statement`, if it's empty this will return the empty string.
     else {
-      results._statements = results._statement;
       results.statements = Rule.Block.encloseStatement(results.statement);
     }
     return results;

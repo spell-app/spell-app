@@ -152,12 +152,7 @@ export default class Parser {
   // Imports increase in priority the later they are in the list.
   imports = [];
   import(...imports) {
-    // REVERSE the list of imports, so the most general one is LAST
-    // Thus more specific imports will be EARLIER in the `imports` list.
-
-    // Create new array of imports and add import names passed in.
-    this.imports = imports.reverse().concat(this.imports);
-
+    this.imports = this.imports.concat(imports);
     // clear concatenated list of rules so we'll recaculate in `parser.rules`
     delete this.__rules;
   }
