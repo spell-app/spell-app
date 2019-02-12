@@ -227,9 +227,7 @@ Rule.Sequence = class sequence extends Rule {
 
     let matched = [];
     let nextStart = start;
-    let index = 0,
-      rule = undefined;
-    while ((rule = this.rules[index++])) {
+    for (const rule of this.rules) {
       let match = rule.parse(parser, tokens, nextStart, end, stack);
       if (!match && !rule.optional) return undefined;
       if (match) {
@@ -258,9 +256,7 @@ Rule.Sequence = class sequence extends Rule {
     return results;
 
     function addResults(results, matched) {
-      let index = 0,
-        match = undefined;
-      while ((match = matched[index++])) {
+      for (const match of matched) {
         if (match.promote) {
           addResults(results, match.matched);
         } else {
@@ -309,9 +305,7 @@ Rule.Alternatives = class alternatives extends Rule {
   // NOTE: this should only be called if we're specified as a `testRule`
   //     and then only if all of our rules are deterministic.
   test(parser, tokens, start = 0, end) {
-    let index = 0,
-      rule = undefined;
-    while ((rule = this.rules[index++])) {
+    for (const rule of this.rules) {
       if (rule.test(parser, tokens, start, end)) return true;
     }
     return false;
