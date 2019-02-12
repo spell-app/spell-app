@@ -154,15 +154,23 @@ describe("Rule.Keywords", () => {
 describe("Rule.Pattern", () => {
   const parser = new Parser();
   // test with "word" pattern
-  const rule = new Rule.Pattern({ pattern: /^[a-z][\w\-]*$/ });
+  const rule = new Rule.Pattern({
+    pattern: /^[a-z][\w\-]*$/,
+    blacklist: ["nope"]
+  });
+
+  it("converts array blacklist to a map", () => {
+    expect(rule.blacklist.constructor).toBe(Object);
+  });
+
   describe("test() method", () => {
     it("returns true if matched at the start of tokens", () => {
-      const test = rule.test(parser, tokenize("word"));
+      const test = rule.test(parser, tokenize("a-word"));
       expect(test).toBe(true);
     });
 
     it("returns true if matched anywhere in tokens", () => {
-      const test = rule.test(parser, tokenize("Type word 2"));
+      const test = rule.test(parser, tokenize("Type a-word 2"));
       expect(test).toBe(true);
     });
 
@@ -173,28 +181,114 @@ describe("Rule.Pattern", () => {
   });
   describe("parse() method", () => {
     it("parses at the start of tokens", () => {
-      const match = rule.parse(parser, tokenize("word"));
+      const match = rule.parse(parser, tokenize("a-word"));
       expect(match).toBeDefined();
       expect(match.nextStart).toBe(1);
-      expect(match.compile()).toBe("word");
+      expect(match.compile()).toBe("a-word");
+    });
+
+    it("returns undefined if match is in blacklist", () => {
+      const match = rule.parse(parser, tokenize("nope"));
+      expect(match).toBeUndefined();
     });
 
     it("does not parse in the middle of tokens", () => {
-      const match = rule.parse(parser, tokenize("Type word 2"));
+      const match = rule.parse(parser, tokenize("Type a-word 2"));
       expect(match).toBeUndefined();
     });
   });
-
-  // TESTME: blacklist
 });
 
+/*
+describe("Rule.Subrule", () => {
+  const parser = new Parser();
+  parser.defineRules(
+    { name: "this", syntax: "this", constructor: class This extends Rule.Keywords {} },
+    { name: "that", syntax: "that", constructor: class That extends Rule.Keywords {} },
+    {
+      name: "sequence",
+      syntax: "{this} {that}",
+      constructor: class Sequence extends Rule.Sequence {
+        compile(results) {
+          return "COMPILED";
+        }
+      }
+    }
+  );
 
+  describe("for simple rules", () => {
+    const rule = new Rule.Subrule({ subrule: "this" });
+    describe("test() method", () => {
+      it("returns true if matched at the start of tokens", () => {
+        const test = rule.test(parser, tokenize("this that other"));
+        expect(test).toBe(true);
+      });
+
+      it("returns true if matched anywhere in tokens", () => {
+        const test = rule.test(parser, tokenize("that this other"));
+        expect(test).toBe(true);
+      });
+
+      it("returns false if NOT matched anywhere in tokens", () => {
+        const test = rule.test(parser, tokenize("that other else"));
+        expect(test).toBe(false);
+      });
+    });
+    describe("parse() method", () => {
+      it("parses at the start of tokens", () => {
+        const match = rule.parse(parser, tokenize("this that other"));
+        expect(match).toBeDefined();
+        expect(match.nextStart).toBe(1);
+        expect(match.compile()).toBe("this");
+      });
+
+      it("does not parse in the middle of tokens", () => {
+        const match = rule.parse(parser, tokenize("that this other"));
+        expect(match).toBeUndefined();
+      });
+    });
+  });
+
+  describe.skip("for sequence rules", () => {
+    const rule = new Rule.Subrule({ subrule: "sequence" });
+    describe("test() method", () => {
+      it("returns true if matched at the start of tokens", () => {
+        const test = rule.test(parser, tokenize("this that"));
+        expect(test).toBe(true);
+      });
+
+      it("returns true if matched anywhere in tokens", () => {
+        const test = rule.test(parser, tokenize("•"));
+        expect(test).toBe(true);
+      });
+
+      it("returns false if NOT matched anywhere in tokens", () => {
+        const test = rule.test(parser, tokenize("•"));
+        expect(test).toBe(false);
+      });
+    });
+    describe("parse() method", () => {
+      it("parses at the start of tokens", () => {
+        const match = rule.parse(parser, tokenize("•"));
+        expect(match).toBeDefined();
+        expect(match.nextStart).toBe(1);
+        expect(match.compile()).toBe("•");
+      });
+
+      it("does not parse in the middle of tokens", () => {
+        const match = rule.parse(parser, tokenize("•"));
+        expect(match).toBeUndefined();
+      });
+    });
+  });
+});
+*/
 
 /*
 
 describe("Rule.", () => {
   const parser = new Parser();
-  const pattern = new Rule.XXX({ });
+  const rule = new Rule.XXX({ });
   describe("test() method", () => {
     it("returns true if matched at the start of tokens", () => {
       const test = rule.test(parser, tokenize("•"));

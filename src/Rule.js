@@ -122,6 +122,16 @@ Object.defineProperty(Rule.Keywords.prototype, "literalSeparator", { value: " " 
 //  `rule.matched` will be the string which was matched.
 //  `rule.nextStart` is the index of the next start token.
 Rule.Pattern = class pattern extends Rule {
+  constructor(...props) {
+    super(...props);
+    // convert blacklist to a map if necessary
+    if (Array.isArray(this.blacklist)) {
+      const map = {};
+      for (const key of this.blacklist) map[key] = true;
+      this.blacklist = map;
+    }
+  }
+
   // Attempt to match this pattern at the beginning of the tokens.
   parse(parser, tokens, start = 0) {
     const token = tokens[start];
