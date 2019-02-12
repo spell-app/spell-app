@@ -124,25 +124,26 @@ Object.defineProperty(Rule.Keywords.prototype, "literalSeparator", { value: " " 
 Rule.Pattern = class pattern extends Rule {
   // Attempt to match this pattern at the beginning of the tokens.
   parse(parser, tokens, start = 0) {
-    let token = tokens[start];
+    const token = tokens[start];
     if (typeof token !== "string") return undefined;
 
-    let match = token.match(this.pattern);
+    const match = token.match(this.pattern);
     if (!match) return undefined;
 
     // bail if present in blacklist
-    let matched = match[0];
+    const matched = match[0];
     if (this.blacklist && this.blacklist[matched]) return undefined;
 
     return this.clone({
       matched,
+      compile() { return matched },
       nextStart: start + 1
     });
   }
 
   // Test to see if any of our pattern is found ANYWHERE in the tokens.
   test(parser, tokens, start = 0, end) {
-    return tokens.slice(start, end).some(token => typeof token === "string" && pattern.test(token));
+    return tokens.slice(start, end).some(token => typeof token === "string" && this.pattern.test(token));
   }
 
   toSyntax() {
@@ -157,17 +158,10 @@ Rule.Pattern = class pattern extends Rule {
 //  we'll return the actual rule that was matched (rather than a clone of this rule)
 Rule.Subrule = class subrule extends Rule {
   parse(parser, tokens, start = 0, end, stack) {
-    let matchedRule = parser.parseNamedRule(
-      this.subrule,
-      tokens,
-      start,
-      end,
-      stack,
-      `parse subrule '${this.rule}'`
-    );
-    if (!matchedRule) return undefined;
-    if (this.argument) matchedRule.argument = this.argument;
-    return matchedRule;
+    const match = parser.parseNamedRule(this.subrule, tokens, start, end, stack);
+    if (!match) return undefined;
+    if (this.argument) match.argument = this.argument;
+    return match;
   }
 
   // Ask the subrule to figure out if a match is possible.
