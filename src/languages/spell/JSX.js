@@ -21,7 +21,6 @@ parser.defineRules(
 
         return {
           rule: this,
-          compile: this.compile.bind(this),
           matched: token,
           nextStart: start + 1
         };

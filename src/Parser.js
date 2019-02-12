@@ -87,7 +87,7 @@ export default class Parser {
     if (!match) {
       throw new ParseError(`parser.parse('${ruleName}', '${text}'): can't parse text`);
     }
-    return match.compile(match);
+    return match.rule.compile(match);
   }
 
   // Parse a named rule (defined in this parser or in any of our `imports`), returning the "best" match.

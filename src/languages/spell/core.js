@@ -386,7 +386,6 @@ parser.defineRules(
         return {
           rule: this,
           matched: token,
-          compile: this.compile.bind(this),
           nextStart: start + 1
         }
       }
@@ -436,7 +435,6 @@ parser.defineRules(
         return {
           rule: this,
           matched: token.quotedString,
-          compile: this.compile.bind(this),
           nextStart: start + 1
         };
       }

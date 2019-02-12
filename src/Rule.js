@@ -96,7 +96,6 @@ Rule.Literals = class literals extends Rule {
     if (!matchLiterals(this.literals, tokens, start, end)) return undefined;
     return {
       rule: this,
-      compile: this.compile.bind(this),
       nextStart: start + this.literals.length
     }
   }
@@ -166,7 +165,6 @@ Rule.Pattern = class pattern extends Rule {
     return {
       rule: this,
       matched,
-      compile: this.compile.bind(this),
       nextStart: start + 1
     }
   }
@@ -320,6 +318,7 @@ Rule.Repeat = class repeat extends Rule {
     if (matched.length === 0) return undefined;
 
     return this.clone({
+      rule: this,
       matched,
       nextStart
     });
@@ -327,7 +326,7 @@ Rule.Repeat = class repeat extends Rule {
 
   compile(match) {
     if (!match.matched) return undefined;
-    return match.matched.map(match => match.compile(match));
+    return match.matched.map(match => match.rule.compile(match));
   }
 
   toSyntax() {
@@ -386,7 +385,6 @@ Rule.List = class list extends Rule {
     return {
       rule: this,
       matched,
-      compile: this.compile.bind(this),
       nextStart
     }
   }
@@ -395,7 +393,7 @@ Rule.List = class list extends Rule {
   //TODO: `JSDelimiter` to return as a single string?
   compile(match) {
     if (!match.matched) return [];
-    return match.matched.map(match => match.compile(match));
+    return match.matched.map(match => match.rule.compile(match));
   }
 
   toSyntax() {
@@ -457,7 +455,6 @@ Rule.Sequence = class sequence extends Rule {
       rule: this,
       matched,
       results: this.getResults(matched),
-      compile: this.compile.bind(this),
       nextStart
     }
   }
@@ -485,7 +482,7 @@ Rule.Sequence = class sequence extends Rule {
           if (sourceName == null) continue;
 
           const matchName = "_" + sourceName;
-          const source = match.compile(match);
+          const source = rule.compile(match);
           // If arg already exists, convert to an array
           if (matchName in results) {
             if (!Array.isArray(results[matchName])) {
@@ -542,10 +539,12 @@ Rule.Block = class block extends Rule.Sequence {
     });
 
     // FIXME: This is now the only place where we return a Rule instance.
-    return new Rule.Block({
+    const match = new Rule.Block({
       indent,
       matched
     });
+    match.rule = match;
+    return match;
   }
 
   // Parse a single statement (a line's worth of `tokens`).
@@ -605,7 +604,7 @@ Rule.Block = class block extends Rule.Sequence {
       let match = block[i];
       //console.info(i, match);
       try {
-        statement = match.compile(match) || "";
+        statement = match.rule.compile(match) || "";
       } catch (e) {
         console.error(e);
         console.warn("Error converting block: ", block, "statement:", match);
@@ -663,7 +662,6 @@ Rule.Statements = class statements extends Rule.Block {
     return {
       rule: this,
       matched,
-      compile: this.compile.bind(this),
       nextStart: end  // TODO???
     }
   }
@@ -735,7 +733,6 @@ Rule.Comment = class comment extends Rule {
     return {
       rule: this,
       matched: token,
-      compile: this.compile.bind(this),
       nextStart: start + 1
     }
   }
