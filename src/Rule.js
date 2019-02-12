@@ -195,102 +195,6 @@ Rule.Subrule = class subrule extends Rule {
   }
 };
 
-// Sequence of rules to match.
-//  `rule.rules` is the array of rules to match.
-//  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
-//  `rule.leftRecursive` should be `true` if the first non-optional rule in our `rules`
-//    may end up calling us again.  In this case, you should provide `rule.testRule`.
-//
-// After parsing
-//  `rule.matched` will be the array of rules which were matched.
-//  `rule.nextStart` is the index of the next start token.
-Rule.Sequence = class sequence extends Rule {
-  test(parser, tokens, start, end) {
-    if (this.testRule) return parser.test(this.testRule, tokens, start, end);
-  }
-
-  parse(parser, tokens, start = 0, end = tokens.length, stack) {
-    // Bail quickly if no chance
-    if (this.test(parser, tokens, start, end) === false) return undefined;
-
-    // If we're a leftRecursive sequence...
-    if (this.leftRecursive) {
-      // If the stack already contains this rule, forget it.
-      if (stack && stack.includes(this)) return undefined;
-
-      // Clone stack and add this rule for recursion...
-      stack = stack ? stack.concat() : [];
-      stack.push(this);
-
-      // TODO: We could distinguish between productive and unproductive rules
-      //     by checking only rules which occur at the same `start`...
-      //     This would probably allow more interesting things, but it's much much slower.
-    }
-
-    let matched = [];
-    let nextStart = start;
-    for (const rule of this.rules) {
-      let match = rule.parse(parser, tokens, nextStart, end, stack);
-      if (!match && !rule.optional) return undefined;
-      if (match) {
-        matched.push(match);
-        nextStart = match.nextStart;
-      }
-    }
-    // if we get here, we matched all the rules!
-    return this.clone({
-      matched,
-      nextStart
-    });
-  }
-
-  //TODOC
-  // "gather" arguments in preparation to call `compile()`
-  // Only callable after parse is completed.
-  // Returns an object with properties from the `matched` array indexed by one of the following:
-  //    - `match.argument`:    argument set when rule was declared, eg: `{value:literal}` => `value`
-  //    - `match.group`:      name of group rule was added to
-  //    - `match.name`:       name of the rule if set up by parseRule
-  get results() {
-    if (!this.matched) return undefined;
-    let results = addResults({}, this.matched);
-    if (this.comment) results.comment = this.comment;
-    return results;
-
-    function addResults(results, matched) {
-      for (const match of matched) {
-        if (match.promote) {
-          addResults(results, match.matched);
-        } else {
-          const sourceName = match.argument || match.group || match.name;
-          const matchName = "_" + sourceName;
-          const source = match.compile();
-          // If arg already exists, convert to an array
-          if (matchName in results) {
-            if (!Array.isArray(results[matchName])) {
-              results[matchName] = [results[matchName]];
-              results[sourceName] = [results[sourceName]];
-            }
-            results[matchName].push(match);
-            results[sourceName].push(source);
-          } else {
-            results[matchName] = match;
-            results[sourceName] = source;
-          }
-        }
-      }
-      return results;
-    }
-  }
-
-  // Echo this rule back out.
-  toSyntax() {
-    const rules = this.rules.map(rule => rule.toSyntax());
-    return `${rules.join(" ")}${this.optional ? "?" : ""}`;
-  }
-};
-
-
 // Alternative syntax, matching one of a number of different rules.
 // The result of a parse is the longest rule that actually matched.
 // NOTE: Currently takes the longest valid match.
@@ -495,6 +399,100 @@ Rule.List = class list extends Rule {
 };
 
 
+// Sequence of rules to match.
+//  `rule.rules` is the array of rules to match.
+//  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
+//  `rule.leftRecursive` should be `true` if the first non-optional rule in our `rules`
+//    may end up calling us again.  In this case, you should provide `rule.testRule`.
+//
+// After parsing
+//  `rule.matched` will be the array of rules which were matched.
+//  `rule.nextStart` is the index of the next start token.
+Rule.Sequence = class sequence extends Rule {
+  test(parser, tokens, start, end) {
+    if (this.testRule) return parser.test(this.testRule, tokens, start, end);
+  }
+
+  parse(parser, tokens, start = 0, end = tokens.length, stack) {
+    // Bail quickly if no chance
+    if (this.test(parser, tokens, start, end) === false) return undefined;
+
+    // If we're a leftRecursive sequence...
+    if (this.leftRecursive) {
+      // If the stack already contains this rule, forget it.
+      if (stack && stack.includes(this)) return undefined;
+
+      // Clone stack and add this rule for recursion...
+      stack = stack ? stack.concat() : [];
+      stack.push(this);
+
+      // TODO: We could distinguish between productive and unproductive rules
+      //     by checking only rules which occur at the same `start`...
+      //     This would probably allow more interesting things, but it's much much slower.
+    }
+
+    let matched = [];
+    let nextStart = start;
+    for (const rule of this.rules) {
+      let match = rule.parse(parser, tokens, nextStart, end, stack);
+      if (!match && !rule.optional) return undefined;
+      if (match) {
+        matched.push(match);
+        nextStart = match.nextStart;
+      }
+    }
+    // if we get here, we matched all the rules!
+    return this.clone({
+      matched,
+      nextStart
+    });
+  }
+
+  //TODOC
+  // "gather" arguments in preparation to call `compile()`
+  // Only callable after parse is completed.
+  // Returns an object with properties from the `matched` array indexed by one of the following:
+  //    - `match.argument`:    argument set when rule was declared, eg: `{value:literal}` => `value`
+  //    - `match.group`:      name of group rule was added to
+  //    - `match.name`:       name of the rule if set up by parseRule
+  get results() {
+    if (!this.matched) return undefined;
+    let results = addResults({}, this.matched);
+    if (this.comment) results.comment = this.comment;
+    return results;
+
+    function addResults(results, matched) {
+      for (const match of matched) {
+        if (match.promote) {
+          addResults(results, match.matched);
+        } else {
+          const sourceName = match.argument || match.group || match.name;
+          const matchName = "_" + sourceName;
+          const source = match.compile();
+          // If arg already exists, convert to an array
+          if (matchName in results) {
+            if (!Array.isArray(results[matchName])) {
+              results[matchName] = [results[matchName]];
+              results[sourceName] = [results[sourceName]];
+            }
+            results[matchName].push(match);
+            results[sourceName].push(source);
+          } else {
+            results[matchName] = match;
+            results[sourceName] = source;
+          }
+        }
+      }
+      return results;
+    }
+  }
+
+  // Echo this rule back out.
+  toSyntax() {
+    const rules = this.rules.map(rule => rule.toSyntax());
+    return `${rules.join(" ")}${this.optional ? "?" : ""}`;
+  }
+};
 
 // A block is used to parse a nested block of statements.
 // Abstract class.
