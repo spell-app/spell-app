@@ -3,7 +3,7 @@
 //
 // NOTE: many of the below are created as custom Pattern subclasses for debugging.
 //
-import Parser from "../../Parser";
+import Parser, { Match } from "../../Parser";
 import Rule from "../../Rule";
 import Tokenizer from "../../Tokenizer";
 
@@ -383,11 +383,11 @@ parser.defineRules(
         // if a string, attempt to run through our NUMBER_NAMES
         if (typeof token === "string") token = Rule.Number.NUMBER_NAMES[token];
         if (typeof token !== "number") return undefined;
-        return {
+        return new Match({
           rule: this,
           matched: token,
           nextStart: start + 1
-        }
+        })
       }
 
       // Convert to number on source output.
@@ -432,11 +432,11 @@ parser.defineRules(
       parse(parser, tokens, start = 0) {
         let token = tokens[start];
         if (!(token instanceof Tokenizer.Text)) return undefined;
-        return {
+        return new Match({
           rule: this,
           matched: token.quotedString,
           nextStart: start + 1
-        };
+        });
       }
 
       compile(match) {

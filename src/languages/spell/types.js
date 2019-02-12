@@ -67,8 +67,8 @@ parser.defineRules(
     alias: "expression",
     syntax: "(properties:the {identifier} of)+ the? {expression}",
     constructor: class property_expression extends Rule.Sequence {
-      getResults(matched) {
-        const results = super.getResults(matched);
+      getResults(match) {
+        const results = super.getResults(match);
         results._properties = results._properties.matched;
         results.properties = results._properties.map(property => property.results.identifier);
         return results;
@@ -519,8 +519,8 @@ parser.defineRules(
     syntax: "action (keywords:{word}|{type})+ (\\:)? {statement}?",
     constructor: class declare_action extends Rule.BlockStatement {
       // Add `name`, `args` and `types` to matched source
-      getResults(matched) {
-        const results = super.getResults(matched);
+      getResults(match) {
+        const results = super.getResults(match);
 
         // if there's only one keyword, it can't be a type or a blacklisted identifier
         const { keywords } = results;

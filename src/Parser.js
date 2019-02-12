@@ -19,6 +19,18 @@ export function ParseError(...args) {
 }
 ParseError.prototype = new Error();
 
+// Result of a successful parser match.
+export class Match {
+  constructor(props) {
+    Object.assign(this, props);
+  }
+  // Syntactic sugar to get `results` for sequences, etc.
+  get results() { return this.rule.getResults?.(this) }
+  // Syntatic sugar to get the output of the match.
+  compile() { return this.rule.compile(this) }
+}
+
+
 export default class Parser {
   // Set to `true` to output debug info while adding rules
   static DEBUG = false;
@@ -87,7 +99,7 @@ export default class Parser {
     if (!match) {
       throw new ParseError(`parser.parse('${ruleName}', '${text}'): can't parse text`);
     }
-    return match.rule.compile(match);
+    return match.compile();
   }
 
   // Parse a named rule (defined in this parser or in any of our `imports`), returning the "best" match.

@@ -1,7 +1,7 @@
 //
 //  # Rules parsing jsx
 //
-import Parser from "../../Parser";
+import Parser, { Match } from "../../Parser";
 import Tokenizer from "../../Tokenizer";
 import Rule from "../../Rule";
 
@@ -19,11 +19,11 @@ parser.defineRules(
         let token = tokens[start];
         if (!(token instanceof Tokenizer.JSXElement)) return undefined;
 
-        return {
+        return new Match({
           rule: this,
           matched: token,
           nextStart: start + 1
-        };
+        })
       }
 
       compile(match) {
