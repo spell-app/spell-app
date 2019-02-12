@@ -204,12 +204,13 @@ Rule.Subrule = class subrule extends Rule {
 //  `rule.matched` will be the array of rules which were matched.
 //  `rule.nextStart` is the index of the next start token.
 Rule.Sequence = class sequence extends Rule {
-  parse(parser, tokens, start = 0, end, stack) {
-    // If we have a `testRule` defined
-    if (this.testRule) {
-      // Forget it if there is NO WAY the rule could be matched.
-      if (parser.test(this.testRule, tokens, start) === false) return undefined;
-    }
+  test(parser, tokens, start = 0, end = tokens.length) {
+    if (this.testRule) return parser.test(this.testRule, tokens, start, end);
+  }
+
+  parse(parser, tokens, start = 0, end = tokens.length, stack) {
+    // Bail quickly if no chance
+    if (this.test(parser, tokens, start, end) === false) return undefined;
 
     // If we're a leftRecursive sequence...
     if (this.leftRecursive) {
