@@ -347,7 +347,8 @@ describe("Rule.Repeat", () => {
   const parser = new Parser();
   const rule = new Rule.Repeat({
     testRule: new Rule.Keywords({ literals: "word" }),
-    repeat: new Rule.Keywords({ literals: "word", optional: true })
+    repeat: new Rule.Keywords({ literals: "word" }),
+    optional: true
   });
 
   describe("test() method", () => {
@@ -367,6 +368,11 @@ describe("Rule.Repeat", () => {
     });
   });
   describe("parse() method", () => {
+    it("sets optional on match", () => {
+      const match = rule.parse(parser, tokenize("word nope nope"));
+      expect(match.optional).toBe(true);
+    });
+
     it("returns an array when compiled", () => {
       const match = rule.parse(parser, tokenize("word nope nope"));
       expect(match.compile()).toBeInstanceOf(Array);
@@ -390,6 +396,7 @@ describe("Rule.Repeat", () => {
     });
   });
 });
+
 
 describe("Rule.List", () => {
   const parser = new Parser();
