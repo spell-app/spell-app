@@ -30,7 +30,7 @@ Object.assign(global, {
   Rule,
 
   Tokenizer,
-  tokenize: Tokenizer.tokenize.bind(Tokenizer),
+  tokenize: Tokenizer.tokenizeWithoutWhitespace,  // HACK
 
   parser,
   rules: parser.rules,

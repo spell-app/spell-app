@@ -76,6 +76,12 @@ const Tokenizer = {
     return results;
   },
 
+  // Tokenize string and return tokens WITHOUT whitespace
+  tokenizeWithoutWhitespace(text, start, end) {
+    return Tokenizer.tokenize(text, start, end)
+      .filter(token => !Tokenizer.isNormalWhitespace(token));
+  },
+
   // Repeatedly execute a `method` (bound to `this) which returns a `[result, nextStart]` or `undefined`.
   // Places matched results together in `results` array and returns `[results, nextStart]` for the entire set.
   // Stops if `method` doesn't return anything, or if calling `method` is unproductive.

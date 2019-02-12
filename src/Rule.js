@@ -101,6 +101,7 @@ Rule.Literals = class literals extends Rule {
     return `${this.literals.join(this.literalSeparator || "")}${this.optional ? "?" : ""}`;
   }
 };
+Object.defineProperty(Rule.Literals.prototype, "literalSeparator", { value: "" });
 
 // One or more literal symbols: `<`, `%` etc.
 // Symbols join WITHOUT spaces.
@@ -506,14 +507,14 @@ Rule.Block = class block extends Rule.Sequence {
 
     // check for a comment at the end of the tokens
     if (tokens[end - 1] instanceof Tokenizer.Comment) {
-      comment = parser.parseNamedRule("comment", tokens, end - 1, end, undefined, "parseStatement");
+      comment = parser.parseNamedRule("comment", tokens, end - 1, end, undefined);
       // add comment FIRST if found
       results.push(comment);
       end--;
     }
 
     // parse the rest as a "statement"
-    statement = parser.parseNamedRule("statement", tokens, start, end, undefined, "parseStatement");
+    statement = parser.parseNamedRule("statement", tokens, start, end, undefined);
     // complain if no statement and no comment
     if (!statement && !comment) {
       let error = new Rule.StatementParseError({

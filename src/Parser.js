@@ -54,9 +54,8 @@ export default class Parser {
 
     // Convert to tokens.
     if (Parser.TIME) console.time("tokenize");
-    let tokens = Tokenizer.tokenize(text);
-    // eat non-indent whitespace (since we ignore it)
-    tokens = tokens.filter(token => !Tokenizer.isNormalWhitespace(token));
+    // Get tokens WITHOUT NON-INDENTED WHITESPACE since we ignore them anyway
+    let tokens = Tokenizer.tokenizeWithoutWhitespace(text);
     if (Parser.TIME) console.timeEnd("tokenize");
 
     // Bail if we didn't get any tokens back.
@@ -69,14 +68,7 @@ export default class Parser {
     }
 
     // Parse the rule or throw an exception if rule not found.
-    const result = this.parseNamedRule(
-      ruleName,
-      tokens,
-      0,
-      tokens.length,
-      undefined,
-      "parser.parse()"
-    );
+    const result = this.parseNamedRule(ruleName, tokens, 0, tokens.length, undefined);
     if (Parser.TIME) console.timeEnd("parse");
     return result;
   }
@@ -101,9 +93,9 @@ export default class Parser {
   // Parse a named rule (defined in this parser or in any of our `imports`), returning the "best" match.
   // Returns `undefined` if no match.
   // Throws if rule is not implemented.
-  parseNamedRule(ruleName, tokens, start, end, stack, callingContext = "parseNamedRule") {
+  parseNamedRule(ruleName, tokens, start, end, stack) {
     const rule = this.rules[ruleName];
-    if (!rule) throw new ParseError(`${callingContext}: rule '${ruleName}' not found`);
+    if (!rule) throw new ParseError(`rule '${ruleName}' not found`);
     return rule.parse(this, tokens, start, end, stack);
   }
 
