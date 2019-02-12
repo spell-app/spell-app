@@ -293,7 +293,11 @@ const Tokenizer = {
   //  ### Comments
   //
 
-  // Eat a comment (until the end of the line).
+  // Eat a single line comment (comment symbol until the end of the line).
+  // Comments can start with:
+  //    `##`
+  //    `--`
+  //    `//`
   // Returns a `Tokenizer.Comment` if matched.
   COMMENT: /^(##+|--+|\/\/+)(\s*)(.*)/,
   matchComment(text, start = 0, end) {

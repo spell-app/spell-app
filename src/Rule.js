@@ -245,6 +245,7 @@ Rule.Alternatives = class alternatives extends Rule {
     let bestMatch = matches.length === 1 ? matches[0] : this.getBestMatch(matches);
 
     // assign special properties to the result
+//TODO: do we need all of this???
     if (this.argument) bestMatch.argument = this.argument;
     if (this.group) bestMatch.group = this.group;
     if (this.promote) bestMatch.promote = this.promote;
@@ -458,6 +459,11 @@ Rule.Sequence = class sequence extends Rule {
     })
   }
 
+  // You MUST override `compile` in your sequence rule if it is ever going to be called directly.
+  compile(match) {
+    throw new ParseError(`Sequence ${this.name} MUST provide a compile() method`)
+  }
+
   //TODOC
   // "gather" matched values into a map in preparation to call `compile(match)`
   getResults({ matched }) {
@@ -540,7 +546,7 @@ Rule.Block = class block extends Rule.Sequence {
   // Auto-matches comment in the middle of the line.
   // Returns array of results.
   parseStatement(parser, tokens) {
-    let results = [];
+    const results = [];
     let start = 0;
     let end = tokens.length;
     let statement, comment;
@@ -715,6 +721,13 @@ Rule.BlankLine = class blank_line extends Rule {
 
 // Comment rule -- matches tokens of type `Tokenizer.Comment`.
 Rule.Comment = class comment extends Rule {
+  test(parser, tokens, start = 0, end = tokens.length) {
+    for (var index = start; index < end; index++) {
+      if (tokens[index] instanceof Tokenizer.Comment) return true;
+    }
+    return false;
+  }
+
   // Comments are special nodes in our token stream.
   parse(parser, tokens, start = 0) {
     let token = tokens[start];

@@ -243,7 +243,7 @@ describe("Rule.Subrule", () => {
     }
   );
 
-  describe("for simple rules", () => {
+  describe("simple rules", () => {
     const rule = new Rule.Subrule({ subrule: "this" });
     describe("test() method", () => {
       it("returns true if matched at the start of tokens", () => {
@@ -275,7 +275,7 @@ describe("Rule.Subrule", () => {
     });
   });
 
-  describe("for sequence rules", () => {
+  describe("sequence rules", () => {
     const rule = new Rule.Subrule({ subrule: "sequence" });
     describe("test() method", () => {
       it("returns true if matched at the start of tokens", () => {
@@ -495,6 +495,11 @@ describe("Rule.Sequence", () => {
     new Rule.Keywords({ name: "that", literals: "that" }),
     new Rule.Keywords({ name: "other", literals: "other" }),
     {
+      name: "nocompile",
+      syntax: "this {that} the {other}",
+      constructor: Rule.Sequence
+    },
+    {
       name: "simple",
       syntax: "this {that} the {other}",
       testRule: new Rule.Keywords("this"),
@@ -503,10 +508,18 @@ describe("Rule.Sequence", () => {
           return "COMPILED";
         }
       }
-    }
+    },
   );
 
-  describe("for simple sequences", () => {
+  describe("sequences without a compile method", () => {
+    const rule = parser.rules.nocompile;
+    it("throw on compile", () => {
+      const match = rule.parse(parser, tokenize("this that the other"));
+      expect(() => match.compile()).toThrow(ParserError);
+    });
+  }),
+
+  describe("simple sequences", () => {
     const rule = parser.rules.simple;
     describe("test() method", () => {
       it("returns true if matched at the start of tokens", () => {
@@ -542,6 +555,55 @@ describe("Rule.Sequence", () => {
   });
 });
 
+describe("Rule.Comment", () => {
+  const parser = new Parser();
+  parser.defineRules(
+    { name: "comment", constructor: Rule.Comment }
+  );
+  const rule = parser.rules.comment;
+  describe("test() method", () => {
+    it("returns true if matched at the start of tokens", () => {
+      let test = rule.test(parser, tokenize("// foo"));
+      expect(test).toBe(true);
+
+      test = rule.test(parser, tokenize("-- foo"));
+      expect(test).toBe(true);
+
+      test = rule.test(parser, tokenize("## foo"));
+      expect(test).toBe(true);
+    });
+
+    it("returns true if matched anywhere in tokens", () => {
+      const test = rule.test(parser, tokenize("foo -- foo"));
+      expect(test).toBe(true);
+    });
+
+    it("returns false if NOT matched anywhere in tokens", () => {
+      const test = rule.test(parser, tokenize("foo bar baz"));
+      expect(test).toBe(false);
+    });
+  });
+  describe("parse() method", () => {
+    it("parses at the start of tokens", () => {
+      let match = rule.parse(parser, tokenize("// foo bar baz"));
+      expect(match.nextStart).toBe(1);
+      expect(match.compile()).toBe("// foo bar baz");
+
+      match = rule.parse(parser, tokenize("-- foo bar baz"));
+      expect(match.nextStart).toBe(1);
+      expect(match.compile()).toBe("// foo bar baz");
+
+      match = rule.parse(parser, tokenize("## foo bar baz"));
+      expect(match.nextStart).toBe(1);
+      expect(match.compile()).toBe("// foo bar baz");
+    });
+
+    it("does not parse in the middle of tokens", () => {
+      const match = rule.parse(parser, tokenize("foo // bar"));
+      expect(match).toBeUndefined();
+    });
+  });
+});
 
 
 /*
