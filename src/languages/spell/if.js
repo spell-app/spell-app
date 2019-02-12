@@ -22,8 +22,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "if {condition:expression} (then|:)? {statement}?",
     constructor: class if_ extends Rule.BlockStatement {
-      compile() {
-        const { condition, statements } = this.results;
+      compile(match) {
+        const { condition, statements } = match.results;
         return `if ${parenthesizeCondition(condition)} ${statements}`;
       }
     },
@@ -86,8 +86,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "(else|otherwise) if {condition:expression} (then|:) {statement}?",
     constructor: class else_if extends Rule.BlockStatement {
-      compile() {
-        const { condition, statements } = this.results;
+      compile(match) {
+        const { condition, statements } = match.results;
         return `else if ${parenthesizeCondition(condition)} ${statements}`;
       }
     },
@@ -147,8 +147,8 @@ parser.defineRules(
     alias: "statement",
     syntax: "(else|otherwise) (:)? {statement}?",
     constructor: class else_ extends Rule.BlockStatement {
-      compile() {
-        const { statements } = this.results;
+      compile(match) {
+        const { statements } = match.results;
         return `else ${statements}`;
       }
     },
@@ -200,8 +200,8 @@ parser.defineRules(
     leftRecursive: true,
     testRule: new Rule.Keywords({ literals: ["if"] }),
     constructor: class backwards_if extends Rule.Sequence {
-      compile() {
-        const { condition, statement, elseStatement } = this.results;
+      compile(match) {
+        const { condition, statement, elseStatement } = match.results;
         //TODO: smarter wrapping?
         let output = `if (${condition}) { ${statement} }`;
         if (elseStatement) output += `\nelse { ${elseStatement} }`;

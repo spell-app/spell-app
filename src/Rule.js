@@ -389,17 +389,24 @@ Rule.List = class list extends Rule {
     // If we didn't get any matches, forget it.
     if (matched.length === 0) return undefined;
 
-    return this.clone({
+    return {
+      rule: this,
       matched,
+      compile: this.compile.bind(this),
       nextStart
-    });
+    }
+
+//     return this.clone({
+//       matched,
+//       nextStart
+//     });
   }
 
   // Returns JS Array of matched items as source.
   //TODO: `JSDelimiter` to return as a single string?
   compile(match) {
-    if (!this.matched) return [];
-    return this.matched.map(match => match.compile(match));
+    if (!match.matched) return [];
+    return match.matched.map(match => match.compile(match));
   }
 
   toSyntax() {
@@ -455,11 +462,19 @@ Rule.Sequence = class sequence extends Rule {
         nextStart = match.nextStart;
       }
     }
+
     // if we get here, we matched all the rules!
-    return this.clone({
+    return {
+      rule: this,
       matched,
+      results: this.getResults(matched),
+      compile: this.compile.bind(this),
       nextStart
-    });
+    }
+//     return this.clone({
+//       matched,
+//       nextStart
+//     });
   }
 
   //TODOC
@@ -469,18 +484,18 @@ Rule.Sequence = class sequence extends Rule {
   //    - `match.argument`:    argument set when rule was declared, eg: `{value:literal}` => `value`
   //    - `match.group`:      name of group rule was added to
   //    - `match.name`:       name of the rule if set up by parseRule
-  get results() {
-    if (!this.matched) return undefined;
-    let results = addResults({}, this.matched);
-    if (this.comment) results.comment = this.comment;
+  getResults(matched) {
+    if (!matched) return undefined;
+    let results = addResults({}, matched);
+//    if (matched.comment) results.comment = matched.comment;
     return results;
 
     function addResults(results, matched) {
       for (const match of matched) {
-        if (match.promote) {
+        const rule = match instanceof Rule ? match : match.rule;
+        if (rule.promote) {
           addResults(results, match.matched);
         } else {
-          const rule = match instanceof Rule ? match : match.rule;
           const sourceName = match.argument || match.group || rule.argument || rule.group || rule.name;
           if (sourceName == null) continue;
 
@@ -524,8 +539,12 @@ Rule.Block = class block extends Rule.Sequence {
       } else if (item instanceof Tokenizer.Block) {
         // if the last matched item wants to eat a block, give it the block
         let last = matched[matched.length - 1];
-        if (last.parseBlock) {
-          last.parseBlock(parser, item, indent + 1);
+        if (last.rule.parseBlock) {
+          const block = last.rule.parseBlock(parser, item, indent + 1);
+          if (block) {
+            last.results._block = block;
+            last.results.statements = block.compile(block);
+          }
         }
         // otherwise add the block to the stream
         else {
@@ -632,32 +651,6 @@ Rule.Block = class block extends Rule.Sequence {
     return "{\n" + match.blockToSource() + "\n" + "}";
   }
 
-  // Format array of `statements` as a JS output block:
-  //  - if `statements` is empty, returns `{}`
-  //  - if `statements is a single line, returns `{ statement }`
-  //  - else returns multiple lines
-  //
-  // Indents with tabs, e.g.  `{¬»statement_1¬»statement2¬}`
-  static encloseStatements(...args) {
-    var statements = [];
-    for (var i = 0; i < args.length; i++) {
-      let arg = args[i];
-      if (Array.isArray(arg)) {
-        statements = statements.concat(arg);
-      } else if (typeof arg === "string") {
-        statements.push(arg);
-      }
-    }
-    statements = statements.join("\n");
-
-    if (!statements) return "{}";
-    if (!statements.includes("\n") && statements.length < 40) {
-      return `{ ${statements.trim()} }`;
-    }
-    if (statements[0] !== "\t") statements = `\t${statements}`;
-    return `{\n${statements}\n}`;
-  }
-
   // Enclose a single statement.
   static encloseStatement(statement, forceWrap) {
     if (!statement) return "{}";
@@ -712,17 +705,16 @@ Rule.BlockStatement = class block_statement extends Rule.Block {
   // Parse a nested block which appears directly after our "main" rule.
   // Adds to our `matched` list as necessary.
   parseBlock() {
-    if (!this.matched)
-      throw new ParseError(`${this.name || "blockStatement"}.parseBlock(): no matched!`);
     const block = super.parseBlock(...arguments);
     if (!block) return;
+
     block.argument = "block";
-    this.matched.push(block);
+    return block;
   }
 
   // Add `statements` to the results.
-  get results() {
-    const results = super.results;
+  getResults(matched) {
+    const results = super.getResults(matched);
     if (!results) return results;
 
     // If we got a block, use that for our `statements`

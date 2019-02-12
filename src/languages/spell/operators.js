@@ -36,15 +36,14 @@ parser.defineRules(
         let { lhs, rhs, _operator } = match.results;
         return _operator.applyOperator(lhs, rhs);
       }
-
-      get precedence() {
-        if (!this.matched)
-          throw new SyntaxError(
-            "infix_operator_expression: trying to look up precedence when not parsed!"
-          );
-        const { _operator } = this.results;
-        return _operator.precedence;
-      }
+//       get precedence() {
+//         if (!this.matched)
+//           throw new SyntaxError(
+//             "infix_operator_expression: trying to look up precedence when not parsed!"
+//           );
+//         const { _operator } = this.results;
+//         return _operator.precedence;
+//       }
     }
   },
 
