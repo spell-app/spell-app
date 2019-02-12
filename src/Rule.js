@@ -94,12 +94,6 @@ Rule.Literals = class literals extends Rule {
   // Returns results of the parse or `undefined`.
   parse(parser, tokens, start = 0, end) {
     if (!matchLiterals(this.literals, tokens, start, end)) return undefined;
-
-//     return this.clone({
-//       matched: this.literals.join(this.literalSeparator),
-//       nextStart: start + this.literals.length
-//     });
-
     return {
       rule: this,
       compile: this.compile.bind(this),
@@ -395,11 +389,6 @@ Rule.List = class list extends Rule {
       compile: this.compile.bind(this),
       nextStart
     }
-
-//     return this.clone({
-//       matched,
-//       nextStart
-//     });
   }
 
   // Returns JS Array of matched items as source.
@@ -471,10 +460,6 @@ Rule.Sequence = class sequence extends Rule {
       compile: this.compile.bind(this),
       nextStart
     }
-//     return this.clone({
-//       matched,
-//       nextStart
-//     });
   }
 
   //TODOC
@@ -747,10 +732,12 @@ Rule.Comment = class comment extends Rule {
   parse(parser, tokens, start = 0) {
     let token = tokens[start];
     if (!(token instanceof Tokenizer.Comment)) return undefined;
-    return this.clone({
+    return {
+      rule: this,
       matched: token,
+      compile: this.compile.bind(this),
       nextStart: start + 1
-    });
+    }
   }
 
   compile(match) {

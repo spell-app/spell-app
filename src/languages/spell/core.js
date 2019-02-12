@@ -383,10 +383,12 @@ parser.defineRules(
         // if a string, attempt to run through our NUMBER_NAMES
         if (typeof token === "string") token = Rule.Number.NUMBER_NAMES[token];
         if (typeof token !== "number") return undefined;
-        return this.clone({
+        return {
+          rule: this,
           matched: token,
+          compile: this.compile.bind(this),
           nextStart: start + 1
-        });
+        }
       }
 
       // Convert to number on source output.
@@ -431,10 +433,12 @@ parser.defineRules(
       parse(parser, tokens, start = 0) {
         let token = tokens[start];
         if (!(token instanceof Tokenizer.Text)) return undefined;
-        return this.clone({
+        return {
+          rule: this,
           matched: token.quotedString,
+          compile: this.compile.bind(this),
           nextStart: start + 1
-        });
+        };
       }
 
       compile(match) {

@@ -3,7 +3,6 @@
 //
 
 // TODO: confirm identifiers are plural in some of the below?
-// TODO: `list.clone()` to return new list of same type.
 
 import Parser from "../../Parser";
 import Rule from "../../Rule";
@@ -378,7 +377,6 @@ parser.defineRules(
   // Pick a unique set of random items from the list, returning an array.
   // TODO: `two random items...`
   // TODO: confirm identifier is plural?
-  // TODO: `list.clone()` to return new list of same type.
   {
     name: "random_positions_expression",
     alias: "expression",
