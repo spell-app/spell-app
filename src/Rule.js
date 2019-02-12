@@ -67,8 +67,16 @@ export default class Rule {
 //  `rule.nextStart` is the index of the next start token
 Rule.Literals = class literals extends Rule {
   constructor(...props) {
-    super(...props);
-    // coerce to an array (a bit slower but cleaner).
+    // If passed a string, split and use that as our `literals`
+    if (props.length === 1 && typeof props[0] === "string") {
+      super();
+      this.literals = props[0].trim().split(this.literalSeparator);
+    }
+    // otherwise assume we got an array of property maps
+    else {
+      super(...props);
+    }
+    // coerce `literals` to an array
     if (!Array.isArray(this.literals)) this.literals = [this.literals];
   }
 
