@@ -556,6 +556,7 @@ Rule.Block = class block extends Rule.Sequence {
       }
     });
 
+    // FIXME: This is now the only place where we return a Rule instance.
     return new Rule.Block({
       indent,
       matched
@@ -674,10 +675,12 @@ Rule.Statements = class statements extends Rule.Block {
     let matched = this.parseBlock(parser, block);
     if (!matched) return undefined;
 
-    return this.clone({
+    return {
+      rule: this,
       matched,
-      nextStart: end
-    });
+      compile: this.compile.bind(this),
+      nextStart: end  // TODO???
+    }
   }
 
   // Output statements WITHOUT curly braces around them.
