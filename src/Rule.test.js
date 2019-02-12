@@ -234,7 +234,7 @@ describe("Rule.Subrule", () => {
     {
       name: "sequence",
       syntax: "{this} {that}",
-      testRule: new Rule.Keywords({ literals: ["this", "that"] }),
+      testRule: new Rule.Keywords("this that"),
       constructor: class Sequence extends Rule.Sequence {
         compile(results) {
           return "COMPILED";
@@ -380,8 +380,8 @@ describe("Rule.Alternatives", () => {
 describe("Rule.Repeat", () => {
   const parser = new Parser();
   const rule = new Rule.Repeat({
-    testRule: new Rule.Keywords({ literals: "word" }),
-    repeat: new Rule.Keywords({ literals: "word" }),
+    testRule: new Rule.Keywords("word"),
+    repeat: new Rule.Keywords("word"),
     optional: true
   });
 
@@ -435,9 +435,9 @@ describe("Rule.Repeat", () => {
 describe("Rule.List", () => {
   const parser = new Parser();
   const rule = new Rule.List({
-    testRule: new Rule.Keywords({ literals: "word" }),
-    item: new Rule.Keywords({ literals: "word" }),
-    delimiter: new Rule.Symbols({ literals: "," })
+    testRule: new Rule.Keywords("word"),
+    item: new Rule.Keywords("word"),
+    delimiter: new Rule.Symbols(",")
   });
 
   describe("test() method", () => {
