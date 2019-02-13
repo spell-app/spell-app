@@ -45,6 +45,7 @@
     ]
   },
   "dependencies": {
+    "assert": "^1.4.1",
     "mobx": "^5.9.0",
     "mobx-react": "^5.4.3",
     "prop-types": "^15.5.8",
@@ -84,7 +85,9 @@
       "shared-node-browser": true
     },
     "extends": "eslint:recommended",
-    "plugins": ["prettier"],
+    "plugins": [
+      "prettier"
+    ],
     "parser": "babel-eslint",
     "rules": {
       "no-unused-vars": [
@@ -96,7 +99,13 @@
         }
       ],
       "no-useless-escape": "off",
-      "max-len": ["off", { "code": 100, "tabWidth": 2 } ],
+      "max-len": [
+        "off",
+        {
+          "code": 100,
+          "tabWidth": 2
+        }
+      ],
       "no-console": "off",
       "no-constant-condition": "off",
       "prettier/prettier": "warn"
