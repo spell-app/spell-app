@@ -85,7 +85,7 @@ parser.defineRules(
     name: "list_starts_with",
     alias: "expression",
     leftRecursive: true,
-    testRule: "starts with",
+    testRule: new Rule.Keywords("starts with"),
     syntax: "{list:expression} starts with {expression}",
     constructor: class list_starts_with extends Rule.Sequence {
       compile(match) {
@@ -109,7 +109,7 @@ parser.defineRules(
     name: "list_ends_with",
     alias: "expression",
     leftRecursive: true,
-    testRule: "ends with",
+    testRule: new Rule.Keywords("ends with"),
     syntax: "{list:expression} ends with {expression}",
     constructor: class list_ends_with extends Rule.Sequence {
       compile(match) {
@@ -521,7 +521,7 @@ parser.defineRules(
     syntax:
       "{list:expression} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
     leftRecursive: true,
-    testRule: "where",
+    testRule: new Rule.Keywords("where"),
     constructor: class list_membership_test extends Rule.Sequence {
       compile(match) {
         const { identifier, operator, filter, list } = match.results;
