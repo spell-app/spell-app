@@ -558,49 +558,104 @@ describe("Rule.Sequence", () => {
 describe("Rule.Comment", () => {
   const parser = new Parser();
   parser.defineRules(
-    { name: "comment", constructor: Rule.Comment }
+    { name: "comment", constructor: Rule.Comment },
+    { name: "statement", constructor: Rule.Statement },
+    { name: "statements", constructor: Rule.Statements },
+    { name: "this", syntax: "this", constructor: Rule.Keywords },
+    { name: "that", syntax: "that", constructor: Rule.Keywords },
+    {
+      name: "this_and_that",
+      alias: "statement",
+      syntax: "{this} and {that}",
+      constructor: class this_and_that extends Rule.Sequence {
+        compile(match) {
+          return "this && that";
+        }
+      }
+    }
   );
-  const rule = parser.rules.comment;
-  describe("test() method", () => {
-    it("returns true if matched at the start of tokens", () => {
-      let test = rule.test(parser, tokenize("// foo"));
-      expect(test).toBe(true);
+  describe("comment instances", () => {
+    const rule = parser.rules.comment;
+    describe("test() method", () => {
+      it("returns true if matched at the start of tokens", () => {
+        let test = rule.test(parser, tokenize("// foo"));
+        expect(test).toBe(true);
 
-      test = rule.test(parser, tokenize("-- foo"));
-      expect(test).toBe(true);
+        test = rule.test(parser, tokenize("-- foo"));
+        expect(test).toBe(true);
 
-      test = rule.test(parser, tokenize("## foo"));
-      expect(test).toBe(true);
+        test = rule.test(parser, tokenize("## foo"));
+        expect(test).toBe(true);
+      });
+
+      it("returns true if matched anywhere in tokens", () => {
+        const test = rule.test(parser, tokenize("foo -- foo"));
+        expect(test).toBe(true);
+      });
+
+      it("returns false if NOT matched anywhere in tokens", () => {
+        const test = rule.test(parser, tokenize("foo bar baz"));
+        expect(test).toBe(false);
+      });
     });
+    describe("parse() method", () => {
+      it("parses at the start of tokens", () => {
+        let match = rule.parse(parser, tokenize("// foo bar baz"));
+        expect(match.rule).toBeInstanceOf(Rule.Comment);
+        expect(match.nextStart).toBe(1);
+        expect(match.compile()).toBe("// foo bar baz");
 
-    it("returns true if matched anywhere in tokens", () => {
-      const test = rule.test(parser, tokenize("foo -- foo"));
-      expect(test).toBe(true);
-    });
+        match = rule.parse(parser, tokenize("-- foo bar baz"));
+        expect(match.rule).toBeInstanceOf(Rule.Comment);
+        expect(match.nextStart).toBe(1);
+        expect(match.compile()).toBe("// foo bar baz");
 
-    it("returns false if NOT matched anywhere in tokens", () => {
-      const test = rule.test(parser, tokenize("foo bar baz"));
-      expect(test).toBe(false);
+        match = rule.parse(parser, tokenize("## foo bar baz"));
+        expect(match.rule).toBeInstanceOf(Rule.Comment);
+        expect(match.nextStart).toBe(1);
+        expect(match.compile()).toBe("// foo bar baz");
+      });
+
+      it("does not parse in the middle of tokens", () => {
+        const match = rule.parse(parser, tokenize("foo // bar"));
+        expect(match).toBeUndefined();
+      });
+
+      it("eats whitespace before the comment", () => {
+        const match = rule.parse(parser, tokenize("  //foo"));
+        expect(match.compile()).toBe("//foo");
+      });
+
+      it("includes any number of spaces at the beginning of the comment", () => {
+        const match = rule.parse(parser, tokenize("//    foo"));
+        expect(match.compile()).toBe("//    foo");
+      });
+
+      it("includes any number of tabs at the beginning of the comment", () => {
+        const match = rule.parse(parser, tokenize("//\t\t\tfoo"));
+        expect(match.compile()).toBe("//\t\t\tfoo");
+      });
+
+      it("includes a mixture of spaces and tabs at the beginning of the comment", () => {
+        const match = rule.parse(parser, tokenize("//  \t  \tfoo"));
+        expect(match.compile()).toBe("//  \t  \tfoo");
+      });
     });
   });
-  describe("parse() method", () => {
-    it("parses at the start of tokens", () => {
-      let match = rule.parse(parser, tokenize("// foo bar baz"));
-      expect(match.nextStart).toBe(1);
-      expect(match.compile()).toBe("// foo bar baz");
 
-      match = rule.parse(parser, tokenize("-- foo bar baz"));
-      expect(match.nextStart).toBe(1);
-      expect(match.compile()).toBe("// foo bar baz");
-
-      match = rule.parse(parser, tokenize("## foo bar baz"));
-      expect(match.nextStart).toBe(1);
-      expect(match.compile()).toBe("// foo bar baz");
+  describe("comments at the end of statements", () => {
+    it("are appended when parsed as 'statements' with one line", () => {
+      const match = parser.parse("statements", "this and that // comment");
+      expect(match.rule).toBeInstanceOf(Rule.Statements);
+      expect(match.matched.length).toBe(1);
+      expect(match.matched[0].rule).toBeInstanceOf(parser.rules.this_and_that.constructor);
+      expect(match.matched[0].comment.rule).toBeInstanceOf(Rule.Comment);
+      expect(match.compile()).toBe("this && that // comment");
     });
 
-    it("does not parse in the middle of tokens", () => {
-      const match = rule.parse(parser, tokenize("foo // bar"));
-      expect(match).toBeUndefined();
+    it("are appended when parsed as 'statements' with multiple lines", () => {
+      const match = parser.parse("statements", "this and that // comment\nthis and that -- other comment");
+      expect(match.compile()).toBe("this && that // comment\nthis && that // other comment");
     });
   });
 });

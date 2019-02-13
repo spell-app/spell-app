@@ -604,6 +604,11 @@ Rule.Statements = class statements extends Rule {
         console.warn("Error compiling statements: ", match, "statement:", next);
       }
 
+      // Add comment to end of statement if provided
+      if (next.comment) {
+        statement += " " + next.comment.compile();
+      }
+
       if (isWhitespace(statement)) {
         results.push("");
       } else if (Array.isArray(statement)) {
@@ -681,6 +686,7 @@ Rule.BlankLine = class blank_line extends Rule {
 };
 
 // Comment rule -- matches tokens of type `Tokenizer.Comment`.
+// Eats whitespace before the comment if found.
 Rule.Comment = class comment extends Rule {
   test(parser, tokens, start = 0, end = tokens.length) {
     for (var index = start; index < end; index++) {
@@ -690,13 +696,18 @@ Rule.Comment = class comment extends Rule {
   }
 
   // Comments are special nodes in our token stream.
-  parse(parser, tokens, start = 0) {
-    let token = tokens[start];
+  parse(parser, tokens, start = 0, end = tokens.length) {
+    let index = start;
+    while (tokens[index] instanceof Tokenizer.Whitespace) {
+      index++;
+      if (index >= end) return undefined;
+    }
+    let token = tokens[index];
     if (!(token instanceof Tokenizer.Comment)) return undefined;
     return new Match({
       rule: this,
       matched: token,
-      nextStart: start + 1
+      nextStart: index + 1
     })
   }
 

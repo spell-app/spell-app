@@ -41,10 +41,10 @@ export default function parseRule(syntax, constructor) {
   // ...and add relevant properties to its prototype non-enumerably and non-writably
   // so we'll get an error if something tries to overwrite them
   if (
-    constructor.prototype instanceof Rule.Keywords ||
-    constructor.prototype instanceof Rule.Symbols ||
-    constructor.prototype instanceof Rule.List ||
-    constructor.prototype instanceof Rule.Alternatives
+    rule instanceof Rule.Keywords ||
+    rule instanceof Rule.Symbols ||
+    rule instanceof Rule.List ||
+    rule instanceof Rule.Alternatives
   ) {
     for (const property in rules[0]) {
       Object.defineProperty(rule, property, { value: rules[0][property] });

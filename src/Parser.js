@@ -1,5 +1,6 @@
 // Spell "parser" class.
 //
+import flatten from "lodash/flatten";
 
 // TODO: dependency-inject tokenizer?
 import Tokenizer from "./Tokenizer.js";
@@ -197,20 +198,19 @@ export default class Parser {
     // If we got an array of `ruleName`s, recursively add under each name with the same `rule`.
     if (Array.isArray(ruleName)) {
       ruleName.forEach(ruleName => this.addRule(ruleName, rule));
-      return rule;
     }
-
     // Add to our list of _rules
-    Parser.mergeRule(this._rules, ruleName, rule);
+    else {
+      Parser.mergeRule(this._rules, ruleName, rule);
+    }
     return rule;
   }
 
   // Define multiple rules at once using ruleSyntax.
   // See `RuleSyntax.js::defineRule()`
-  defineRules() {
-    for (let i = 0, rule; rule = arguments[i]; i++) {
-      this.defineRule(rule);
-    }
+  defineRules(...ruleProps) {
+    const rules = ruleProps.map(ruleProps => this.defineRule(ruleProps));
+    return flatten(rules).filter(Boolean);
   }
 
   // Define a rule using (rule)`syntax` or `patterns` to create the rule instances.
@@ -237,8 +237,7 @@ export default class Parser {
         console.error(message, ruleProps);
         throw new TypeError(message);
       }
-      this.addRule(ruleProps.name, ruleProps);
-      return;
+      return this.addRule(ruleProps.name, ruleProps);
     }
 
     const { skip, constructor, ...props } = ruleProps;
@@ -288,6 +287,8 @@ export default class Parser {
       // so we don't run the same tests more than once.
       this.addRule("_testable_", rules[0]);
     }
+
+    return rules;
   }
 
   //
