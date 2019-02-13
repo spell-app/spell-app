@@ -13,6 +13,11 @@ export default parser;
 
 parser.defineRules(
   {
+    name: "statement",
+    constructor: Rule.Statement
+  },
+
+  {
     name: "statements",
     constructor: Rule.Statements
   },

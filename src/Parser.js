@@ -152,9 +152,9 @@ export default class Parser {
   // Imports increase in priority the later they are in the list.
   imports = [];
   import(...imports) {
-    this.imports = this.imports.concat(imports);
     // clear concatenated list of rules so we'll recaculate in `parser.rules`
     delete this.__rules;
+    this.imports = this.imports.concat(imports);
   }
 
   //
@@ -170,9 +170,8 @@ export default class Parser {
   get rules() {
     if (!this.__rules) {
       const output = (this.__rules = {});
-      // Get all imported parsers, with us last
+      // Get all imported parsers, with us FIRST
       const imports = [this].concat(this.imports.map(Parser.forModule));
-
       // For each parser
       imports.forEach(parser => {
         for (const ruleName in parser._rules) {

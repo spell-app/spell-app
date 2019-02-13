@@ -255,10 +255,11 @@ Rule.Alternatives = class alternatives extends Rule {
 
   // Return the "best" match given more than one matches at the head of the tokens.
   // Default is to return the longest match.
+  // If more than one rule with same length, takes LATEST one.
   // Implement something else to do, eg, precedence rules.
   getBestMatch(matches) {
-    return matches.reduce(function(best, current) {
-      if (current.nextStart > best.nextStart) return current;
+    return matches.reverse().reduce(function(best, current) {
+      if (current.nextStart >= best.nextStart) return current;
       return best;
     }, matches[0]);
   }
@@ -466,10 +467,13 @@ Rule.Sequence = class sequence extends Rule {
 
   //TODOC
   // "gather" matched values into a map in preparation to call `compile(match)`
-  getResults({ matched }) {
+  getResults({ rule, matched, comment }) {
     if (!matched) return undefined;
     let results = addResults({}, matched);
-//    if (matched.comment) results.comment = matched.comment;
+    if (comment) {
+      console.warn(`statement ${rule.name} got comment`, comment);
+      results.comment = matched.comment;
+    }
     return results;
 
     function addResults(results, matched) {
@@ -503,107 +507,107 @@ Rule.Sequence = class sequence extends Rule {
   }
 };
 
-// A block is used to parse a nested block of statements.
-// Abstract class.
-Rule.Block = class block extends Rule.Sequence {
-  // Parse the entire `block`, returning results.
-  parseBlock(parser, block, indent = 0) {
+// A `statement` generally represents a single line of output.
+// `statements` automatically parse comments at the end of their line
+//  (available as `match.comment`)
+Rule.Statement = class statement extends Rule.Group {
+  parse(parser, tokens, start = 0, end = tokens.length, stack) {
+    let index = start;
+
+    // eat whitespace at the front of the line
+    while (tokens[index] instanceof Tokenizer.Whitespace) start++;
+    if (start >= end) return;   // TODO: blank line?
+
+    // eat comment at end of the line
+    const comment = tokens[end - 1] instanceof Tokenizer.Comment
+      ? parser.parseNamedRule("comment", tokens, end - 1, end)
+      : undefined;
+    if (comment) end--;
+
+    const match = super.parse(parser, tokens, start, end, stack);
+    if (!match && !comment) return;
+    if (!match) return comment;
+
+    if (comment) match.comment = comment;
+    return match;
+  }
+}
+Rule.Statement.prototype.group = "statement";
+
+
+// `Statements` are a special case for a block of `Statement` rules
+//  that understand nesting and comments.
+//
+// This is a top-level construct, e.g. used to parse an entire file.
+Rule.Statements = class statements extends Rule {
+  // Split statements up into blocks and parse 'em.
+  parse(parser, tokens, start = 0, end = tokens.length) {
+    var block = Tokenizer.breakIntoBlocks(tokens, start, end);
+    return Rule.Statements.parseBlock(parser, block);
+  }
+
+  // Parse an entire `block`, returning array of matched elements (NOT as a match).
+  static parseBlock(parser, block) {
     let matched = [];
-    //console.warn("block:", block);
     block.contents.forEach(item => {
       if (item.length === 0) {
         matched.push(new Rule.BlankLine());
-      } else if (item instanceof Tokenizer.Block) {
-        // if the last matched item wants to eat a block, give it the block
-        let last = matched[matched.length - 1];
-        if (last.rule.parseBlock) {
-          const block = last.rule.parseBlock(parser, item, indent + 1);
-          if (block) {
-            last.block = block;
-          }
+      }
+      // got a nested block
+      else if (item instanceof Tokenizer.Block) {
+        const nested = Rule.Statements.parseBlock(parser, item);
+        if (!nested) {
+          console.info("expected nested result, didn't get anything");
+          return;
         }
-        // otherwise add the block to the stream
+        nested.indent = item.indent;
+        nested.enclose = true;
+
+        // If the last statement is a `BlockStatement`,
+        //  give it the block
+        const lastStatement = matched[matched.length - 1];
+        if (lastStatement.rule instanceof Rule.BlockStatement) {
+          lastStatement.block = nested;
+        }
+        // otherwise just aadd it to the stream
         else {
-          let block = this.parseBlock(parser, item, indent + 1);
-          if (block !== undefined) matched.push(block);
+          console.warn("got a nested block when we weren't expecting one");
+          matched.push(nested);
         }
       } else {
-        matched = matched.concat(this.parseStatement(parser, item));
+        // Got a single statement
+        const match = parser.parseNamedRule("statement", item);
+        if (!match) {
+          console.warn("parseBlock expected statement, got", match);
+        } else {
+          matched = matched.concat(match);
+        }
       }
     });
 
-    // FIXME: This is now the only place where we return a Rule instance.
-    const match = new Rule.Block({
-      indent,
-      matched
-    });
-    match.rule = match;
-    return match;
+    if (matched.length === 0) return undefined;
+
+    return new Match({
+      rule: new Rule.Statements(),
+      matched,
+      indent: block.indent,
+      nextStart: matched[matched.length - 1].nextStart
+    })
   }
 
-  // Parse a single statement (a line's worth of `tokens`).
-  // Skips whitespace at the beginning of the line.
-  // Auto-matches comment in the middle of the line.
-  // Returns array of results.
-  parseStatement(parser, tokens) {
-    const results = [];
-    let start = 0;
-    let end = tokens.length;
-    let statement, comment;
-
-    // check for an indent at the start of the line
-    if (tokens[start] instanceof Tokenizer.Whitespace) start++;
-
-    // check for a comment at the end of the tokens
-    if (tokens[end - 1] instanceof Tokenizer.Comment) {
-      comment = parser.parseNamedRule("comment", tokens, end - 1, end, undefined);
-      // add comment FIRST if found
-      results.push(comment);
-      end--;
-    }
-
-    // parse the rest as a "statement"
-    statement = parser.parseNamedRule("statement", tokens, start, end, undefined);
-    // complain if no statement and no comment
-    if (!statement && !comment) {
-      let error = new Rule.StatementParseError({
-        unparsed: tokens.slice(start, end).join(" ")
-      });
-      results.push(error);
-    }
-
-    // complain if we can't parse the entire line!
-    else if (statement && statement.nextStart !== end) {
-      let error = new Rule.StatementParseError({
-        parsed: tokens.slice(start, statement.nextStart).join(" "),
-        unparsed: tokens.slice(statement.nextStart, end).join(" ")
-      });
-      results.push(error);
-    }
-
-    // Otherwise add the statement
-    else if (statement) {
-      results.push(statement);
-    }
-
-    return results;
-  }
-
-  // Return source for this block as an array of indented lines WITHOUT `{` OR `}`.
-  blockToSource(block = this.matched) {
+  // Output statements WITHOUT curly braces around them.
+  compile(match) {
     let results = [],
       statement;
 
-    for (var i = 0; i < block.length; i++) {
-      let match = block[i];
-      //console.info(i, match);
+    for (var i = 0, next; next = match.matched[i]; i++) {
       try {
-        statement = match.compile() || "";
+        statement = next.compile() || "";
       } catch (e) {
         console.error(e);
-        console.warn("Error converting block: ", block, "statement:", match);
+        console.warn("Error compiling statements: ", match, "statement:", next);
       }
-      //console.info(i, statement);
+
       if (isWhitespace(statement)) {
         results.push("");
       } else if (Array.isArray(statement)) {
@@ -616,18 +620,16 @@ Rule.Block = class block extends Rule.Sequence {
           "blockToSource(): DON'T KNOW HOW TO WORK WITH\n\t",
           statement,
           "\n\tfrom match",
-          match
+          next
         );
       }
     }
-    if (this.indent !== 0) {
-      return "\t" + results.join("\n\t");
-    }
-    return results.join("\n");
-  }
+    let lines = (match.indent || match.enclose)
+      ? "\t" + results.join("\n\t")
+      : results.join("\n");
 
-  compile(match) {
-    return "{\n" + match.blockToSource() + "\n" + "}";
+    if (match.enclose) return `{\n${lines}\n}`;
+    return lines;
   }
 
   // Enclose a single statement.
@@ -638,31 +640,6 @@ Rule.Block = class block extends Rule.Sequence {
     }
     if (statement[0] !== "\t") statement = `\t${statement}`;
     return `{\n${statement}\n}`;
-  }
-};
-
-// `Statements` are a special case for a block of `Statement` rules
-//  that understand nesting and comments.
-//
-// This is a top-level construct, e.g. used to parse an entire file.
-Rule.Statements = class statements extends Rule.Block {
-  // Split statements up into blocks and parse 'em.
-  parse(parser, tokens, start = 0, end = tokens.length) {
-    var block = Tokenizer.breakIntoBlocks(tokens, start, end);
-
-    let matched = this.parseBlock(parser, block);
-    if (!matched) return undefined;
-
-    return new Match({
-      rule: this,
-      matched,
-      nextStart: end  // TODO???
-    })
-  }
-
-  // Output statements WITHOUT curly braces around them.
-  compile(match) {
-    return match.matched.blockToSource();
   }
 };
 
@@ -681,17 +658,7 @@ Rule.Statements = class statements extends Rule.Block {
 //    - the block and its statements, enclosed in curly braces and indented, or
 //    - the formatted `statement`, enclosed in curly brackets,
 //    - `{}` if neither statement or block was matched.
-Rule.BlockStatement = class block_statement extends Rule.Block {
-  // Parse a nested block which appears directly after our "main" rule.
-  // Adds to our `matched` list as necessary.
-  parseBlock() {
-    const block = super.parseBlock(...arguments);
-    if (!block) return;
-
-    block.argument = "block";
-    return block;
-  }
-
+Rule.BlockStatement = class block_statement extends Rule.Sequence {
   // Add `statements` to the results.
   getResults(match) {
     const results = super.getResults(match);
@@ -704,7 +671,7 @@ Rule.BlockStatement = class block_statement extends Rule.Block {
     }
     // otherwise use the `statement`, if it's empty this will return the empty string.
     else {
-      results.statements = Rule.Block.encloseStatement(results.statement);
+      results.statements = Rule.Statements.encloseStatement(results.statement);
     }
     return results;
   }

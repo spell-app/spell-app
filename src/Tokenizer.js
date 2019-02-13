@@ -821,18 +821,6 @@ const Tokenizer = {
   // ### Block / indent processing
   //
 
-  // Simple block class for `breakIntoBlocks`.
-  Block: class block {
-    constructor(props) {
-      Object.assign(this, props);
-      if (!this.contents) this.contents = [];
-    }
-
-    toString() {
-      return JSON.stringify(this, null, "\t");
-    }
-  },
-
   // Break tokens into an array of arrays by `NEWLINE`s.
   // Returns an array of lines WITHOUT the `NEWLINE`s.
   // Lines which are composed solely of whitespace are treated as blank.
@@ -899,6 +887,21 @@ const Tokenizer = {
     return 0;
   },
 
+  // Simple block class for `breakIntoBlocks`.
+  Block: class block {
+    constructor(props) {
+      Object.assign(this, props);
+      if (!this.contents) this.contents = [];   // TODO: get rid of `contents`???
+      if (!this.tokens) this.tokens = [];
+    }
+
+    toString() {
+//TODO: this returns a JSON structure rather than a nested string
+//      and we can't get the full output anyway since we don't have whitespace
+      return JSON.stringify(this, null, "\t");
+    }
+  },
+
   // Break `tokens` between `start` and `end` into a `Tokenizer.Block` with nested `contents`.
   // Skips "normal" whitespace and indents in the results.
   breakIntoBlocks: function(tokens, start = 0, end = tokens.length) {
@@ -939,7 +942,7 @@ const Tokenizer = {
         }
       }
       // If outdenting: pop block(s)
-      else if (lineIndent < top.indent) {
+      else if (lineIndent < top.indent) {     // TODO: the else isn't necessary... ?
         while (lineIndent < top.indent) {
           stack.pop();
           top = stack[stack.length - 1];
@@ -947,6 +950,8 @@ const Tokenizer = {
       }
       // add to top block
       top.contents.push(line);
+      if (top.tokens.length > 0) top.tokens.push(Tokenizer.NEWLINE);
+      top.tokens = top.tokens.concat(line);
     });
 
     return block;

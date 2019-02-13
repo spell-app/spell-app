@@ -321,6 +321,21 @@ parser.defineRules(
     ]
   },
 
+  {
+    name: "inline_list",
+    syntax: "((?:[{items:expression},])|{expression})",
+    constructor: class inline_list extends Rule.Sequence {
+      compile(match) {
+        const { expression, items } = match.results;
+        if (items) {
+          if (Array.isArray(items)) return `[${items.join(", ")}]`;
+          return items;
+        }
+        return expression;
+      }
+    }
+  },
+
   // TODO: `@typed` decorator which takes array to make logic cleaner
   // TODO: assign to first value if no default?
   // TODO: allow list to be an expression?
@@ -328,15 +343,10 @@ parser.defineRules(
     name: "declare_property_as_one_of",
     alias: ["statement", "mutatesScope"],
     syntax:
-      "property {name:identifier} as one of (list:[{expression},]+|{literal_list}) (?:= {value:expression})?",
+      "property {name:identifier} as one of {list:inline_list} (?:with value {value:expression})?",
     constructor: class declare_property_as_one_of extends Rule.Sequence {
       compile(match) {
         let { name, list, value = "undefined" } = match.results;
-
-        // TODO: this is ugly...
-        list = flattenDeep(list);
-        list = list.length === 1 && typeof list[0] === "string" ? list[0] : list.join(", ");
-        if (list[0] !== "[") list = `[${list}]`;
         return `@typed(${list}) ${name} = ${value}`;
       }
     },
@@ -344,15 +354,17 @@ parser.defineRules(
       {
         compileAs: "statement",
         tests: [
+          ["property foo as one of my-list", "@typed(my_list) foo = undefined"],
           ["property foo as one of [1, 2, 3]", "@typed([1, 2, 3]) foo = undefined"],
           [
             "property foo as one of yes, no, undefined",
             "@typed([true, false, undefined]) foo = undefined"
           ],
 
-          ["property foo as one of [1, 2, 3] = 1", "@typed([1, 2, 3]) foo = 1"],
+          ["property foo as one of my-list with value 'a'", "@typed(my_list) foo = 'a'"],
+          ["property foo as one of [1, 2, 3] with value 1", "@typed([1, 2, 3]) foo = 1"],
           [
-            "property foo as one of yes, no, undefined = yes",
+            "property foo as one of yes, no, undefined with value yes",
             "@typed([true, false, undefined]) foo = true"
           ]
         ]
