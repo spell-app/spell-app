@@ -319,7 +319,7 @@ export default class Parser {
     }
 
     // If merging with anything other than a `Group`,
-    //  create a `Group` and add the existing rule to that
+    //  create a `Group` and add the existing rule to that.
     if (!(existing instanceof Rule.Group)) {
       const Group = cloneClass(Rule.Group, ruleName + "_group");
       map[ruleName] = new Group({
