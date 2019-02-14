@@ -14,7 +14,9 @@
 //
 import { isNode } from "browser-or-node";
 
-import Parser, { Match, ParseError } from "./Parser.js";
+import Parser from "./Parser.js";
+import Match from "./Match.js";
+import ParseError from "./ParseError.js";
 import Tokenizer, { matchLiterals } from "./Tokenizer.js";
 import { isWhitespace } from "./utils/string";
 
@@ -244,20 +246,20 @@ Rule.Alternatives = class alternatives extends Rule {
     // uncomment the below to print alternatives
     if (DEBUG && matches.length > 1) {
       console.group(`got alternatives for ${this.argument || this.group}`);
-      logStack(stack);
       matches.forEach(match => console.info(match, match.compile()));
+      logStack(stack);
       console.groupEnd();
     }
 
-    let bestMatch = matches.length === 1 ? matches[0] : this.getBestMatch(matches);
+    let match = matches.length === 1 ? matches[0] : this.getBestMatch(matches);
 
     // assign special properties to the result
 //TODO: do we need all of this???
-    if (this.argument) bestMatch.argument = this.argument;
-    if (this.group) bestMatch.group = this.group;
-    if (this.promote) bestMatch.promote = this.promote;
+    if (this.argument) match.argument = this.argument;
+    if (this.group) match.group = this.group;
+    if (this.promote) match.promote = this.promote;
 
-    return bestMatch;
+    return match;
   }
 
   // Return the "best" match given more than one matches at the head of the tokens.
@@ -265,6 +267,8 @@ Rule.Alternatives = class alternatives extends Rule {
   // If more than one rule with same length, takes LATEST one.
   // Implement something else to do, eg, precedence rules.
   getBestMatch(matches) {
+    if (matches.length === 1) return matches[0];
+    // reverse matches
     return [...matches].reverse().reduce(function(best, current) {
       if (current.nextStart >= best.nextStart) return current;
       return best;

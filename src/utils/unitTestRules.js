@@ -10,7 +10,7 @@
 
 import groupBy from "lodash/groupBy";
 
-import { ParseError } from "../Parser.js";
+import ParseError from "../ParseError.js";
 import Rule from "../Rule.js";
 import { showWhitespace } from "./string.js";
 

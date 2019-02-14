@@ -70,14 +70,14 @@ parser.defineRules(
       // Pull property identifiers out into `result.properties`
       getResults(match) {
         const results = super.getResults(match);
-        results.properties = match.matched[0].matched.map(match => match.results.identifier);
+        results.properties = match.matched[0].matched.map(match => match.results.identifier).reverse();
         return results;
       }
 
       compile(match) {
         let { expression, properties } = match.results;
-        properties = properties.reverse().join(".");
-        return `${expression}.${properties}`;
+        // TODO: `[xxx]` for non-identifiers
+        return `${expression}.${properties.join(".")}`;
         // NOTE: the following is safer, but ugly for demo purposes
         //      return `spell.get(${expression}, ['${properties}'])`;
       }

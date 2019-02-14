@@ -3,7 +3,8 @@
 //
 // NOTE: many of the below are created as custom Pattern subclasses for debugging.
 //
-import Parser, { Match } from "../../Parser";
+import Parser from "../../Parser";
+import Match from "../../Match";
 import Rule from "../../Rule";
 import Tokenizer from "../../Tokenizer";
 

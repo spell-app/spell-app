@@ -1,7 +1,8 @@
 //
 //  # Rules parsing jsx
 //
-import Parser, { Match } from "../../Parser";
+import Parser from "../../Parser";
+import Match from "../../Match";
 import Tokenizer from "../../Tokenizer";
 import Rule from "../../Rule";
 

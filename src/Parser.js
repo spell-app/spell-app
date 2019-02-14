@@ -3,6 +3,7 @@
 import flatten from "lodash/flatten";
 
 // TODO: dependency-inject tokenizer?
+import ParseError from "./ParseError.js";
 import Tokenizer from "./Tokenizer.js";
 import Rule from "./Rule.js";
 import parseRule from "./RuleSyntax.js";
@@ -12,42 +13,6 @@ import { cloneClass } from "./utils/class.js";
 if (!console.group) console.group = console.log;
 if (!console.groupCollapsed) console.groupCollapsed = console.group;
 if (!console.groupEnd) console.groupEnd = console.log;
-
-// Error we'll throw for problems when parsing.
-// Uses a specific type so we can check for it in tests.
-export function ParseError(...args) {
-  Error.apply(this, args);
-  if (Error.captureStackTrace) Error.captureStackTrace(this, ParseError);
-}
-ParseError.prototype = new Error();
-
-// Result of a successful parser `rule.parse()`.
-// - `match.rule` (Rule, required) is the rule that was matched.
-// - `match.matched` (string or [Match], optional) actual value matched,
-//    either as a string or as an array of Matches
-export const Match = class match {
-  constructor(props) {
-    Object.assign(this, props);
-  }
-
-  // Syntactic sugar to easily get `results` of the match for sequences, etc.
-  get results() { return this.rule.getResults?.(this) }
-
-  // Syntatic sugar to compile the output of the match.
-  compile() { return this.rule.compile(this) }
-
-  // "name" for this match
-  // TODO: this is too much, figure out what we're actually using here...
-  get name() {
-    return this.argument || this.group || this.rule.argument || this.rule.group || this.rule.name;
-  }
-
-  // Should we promote the match?
-  get promote() {
-    return this._promote || this.rule.promote;
-  }
-  set promote(value) { this._promote = value }
-}
 
 
 export default class Parser {
@@ -59,9 +24,6 @@ export default class Parser {
 
   // Set to `true` to output timing info.
   static TIME = false;
-
-  // Add to Parser console debugging
-  static ParseError = ParseError;
 
   // Constructor.
   constructor(properties) {
