@@ -393,8 +393,7 @@ parser.defineRules(
           ["'a'", "'a'"],
           ['"abcd"', '"abcd"'],
           ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
-          ['"...Can\'t touch this"', '"...Can\'t touch this"']
-          //FIXME          ["'\"Gadzooks! I can\\'t believe it!\" he said'", "'\"Gadzooks! I can\'t believe it!\" he said'"],
+          ['"...Can\'t touch this"', '"...Can\'t touch this"'],
         ]
       }
     ]

@@ -377,14 +377,11 @@ parser.defineRules(
       {
         compileAs: "expression",
         showAll: true,
-        //FIXME: choking on too many expressions in a row
-        skip: true,
         tests: [
           [
-            "items in my-list where the id of the item > 1",
-            "spell.filter(my_list, item => item.id > 1, 'items')"
+            "words in 'a word list' where word starts with 'a'",
+            "spell.filter('a word list', word => spell.startsWith(word, 'a'), 'word')"
           ],
-          ["words in 'a word list' where word starts with 'a'", ""]
         ]
       }
     ]
@@ -412,19 +409,23 @@ parser.defineRules(
       {
         compileAs: "expression",
         showAll: true,
-        //FIXME: choking on too many expressions in a row
-        skip: true,
         tests: [
-          ["my-list has items where item is 1", "spell.any(my_list, item => item == 1, 'item')"],
+          [
+            "my-list has items where item is 1",
+            "spell.any(my_list, item => (item == 1), 'item')"
+          ],
           [
             "my-list has no items where item is 1",
-            "!spell.any(my_list, item => item == 1, 'item')"
+            "!spell.any(my_list, item => (item == 1), 'item')"
           ],
           [
             "my-list doesnt have items where item is 1",
-            "!spell.any(my_list, item => item == 1, 'item')"
+            "!spell.any(my_list, item => (item == 1), 'item')"
           ],
-          ["my-list does not have item is 1", "!spell.any(my_list, item => item == 1, 'item')"]
+          [
+            "my-list does not have items where item is 1",
+            "!spell.any(my_list, item => (item == 1), 'item')"
+          ]
         ]
       }
     ]
