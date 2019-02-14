@@ -84,7 +84,8 @@ parser.defineRules(
     // NOTE: this MUST be before `else` or that will eat `else if` statements... :-(
     name: "else_if",
     alias: "statement",
-    syntax: "(else|otherwise) if {condition:expression} (then|:) {statement}?",
+    syntax: "(else|otherwise) if {condition:expression} (then|:)? {statement}?",
+    precedence: 1,
     constructor: class else_if extends Rule.BlockStatement {
       compile(match) {
         const { condition, statements } = match.results;
@@ -96,9 +97,12 @@ parser.defineRules(
         title: "correctly matches single-line else_if statements",
         compileAs: "statement",
         tests: [
+          ["else if a", "else if (a) {}"],
+          ["else if a:", "else if (a) {}"],
           ["else if a then", "else if (a) {}"],
+          ["else if a b = 1", "else if (a) { b = 1 }"],
+          ["else if a: b = 1", "else if (a) { b = 1 }"],
           ["else if a then b = 1", "else if (a) { b = 1 }"],
-          ["else if a: b = 1", "else if (a) { b = 1 }"]
         ]
       },
       {
@@ -126,13 +130,11 @@ parser.defineRules(
             output: "else if (a) {\n\tb = 1\n\tc = 2\n}"
           },
           {
-            skip: true, // FIXME
             title: "Nested ifs work fine",
             input: "else if a\n\tif b\n\t\tc=2",
             output: "else if (a) {\n\tif (b) {\n\t\tc = 2\n\t}\n}"
           },
           {
-            skip: true, // FIXME
             title: "Prefer nested block to inlined statement",
             input: "else if a b = 1\n\tc = 2",
             output: "else if (a) {\n\tc = 2\n}"
