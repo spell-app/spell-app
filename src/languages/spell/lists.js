@@ -136,7 +136,33 @@ parser.defineRules(
   //
   {
     name: "ordinal",
-    constructor: class ordinal extends Rule.Alternatives {},
+    group: "ordinal",
+    syntax: "(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|penultimate|final|last|top|bottom)",
+    valueMap: {
+      first: 1,
+      second: 2,
+      third: 3,
+      fourth: 4,
+      fifth: 5,
+      sixth: 6,
+      seventh: 7,
+      eighth: 8,
+      ninth: 9,
+      tenth: 10,
+      penultimate: -2,
+      final: -1,
+      last: -1,
+      top: 1,
+      bottom: -1
+    },
+    constructor: class ordinal extends Rule.Alternatives {
+      // On parse, return the value from the valueMap rather than the matched string.
+      parse(parser, tokens, start, end, stack) {
+        const match = super.parse(parser, tokens, start, end, stack);
+        if (match) match.matched = this.valueMap[match.matched];
+        return match;
+      }
+    },
     tests: [
       {
         tests: [
@@ -160,157 +186,6 @@ parser.defineRules(
         ]
       }
     ]
-  },
-
-  {
-    name: "ordinal",
-    syntax: "first",
-    constructor: class ordinal_first extends Rule.Keywords {
-      compile(match) {
-        return 1;
-      }
-    }
-  },
-
-  {
-    name: "ordinal",
-    syntax: "second",
-    constructor: class ordinal_second extends Rule.Keywords {
-      compile(match) {
-        return 2;
-      }
-    }
-  },
-
-  {
-    name: "ordinal",
-    syntax: "third",
-    constructor: class ordinal_third extends Rule.Keywords {
-      compile(match) {
-        return 3;
-      }
-    }
-  },
-
-  {
-    name: "ordinal",
-    syntax: "fourth",
-    constructor: class ordinal_fourth extends Rule.Keywords {
-      compile(match) {
-        return 4;
-      }
-    }
-  },
-
-  {
-    name: "ordinal",
-    syntax: "fifth",
-    constructor: class ordinal_fifth extends Rule.Keywords {
-      compile(match) {
-        return 5;
-      }
-    }
-  },
-
-  {
-    name: "ordinal",
-    syntax: "sixth",
-    constructor: class ordinal_sixth extends Rule.Keywords {
-      compile(match) {
-        return 6;
-      }
-    }
-  },
-
-  {
-    name: "ordinal",
-    syntax: "seventh",
-    constructor: class ordinal_seventh extends Rule.Keywords {
-      compile(match) {
-        return 7;
-      }
-    }
-  },
-
-  {
-    name: "ordinal",
-    syntax: "eighth",
-    constructor: class ordinal_eighth extends Rule.Keywords {
-      compile(match) {
-        return 8;
-      }
-    }
-  },
-
-  {
-    name: "ordinal",
-    syntax: "ninth",
-    constructor: class ordinal_ninth extends Rule.Keywords {
-      compile(match) {
-        return 9;
-      }
-    }
-  },
-
-  {
-    name: "ordinal",
-    syntax: "tenth",
-    constructor: class ordinal_tenth extends Rule.Keywords {
-      compile(match) {
-        return 10;
-      }
-    }
-  },
-
-  {
-    name: "ordinal",
-    syntax: "penultimate",
-    constructor: class ordinal_penultimate extends Rule.Keywords {
-      compile(match) {
-        return -2;
-      }
-    }
-  },
-
-  {
-    name: "ordinal",
-    syntax: "final",
-    constructor: class ordinal_final extends Rule.Keywords {
-      compile(match) {
-        return -1;
-      }
-    }
-  },
-
-  {
-    name: "ordinal",
-    syntax: "last",
-    constructor: class ordinal_last extends Rule.Keywords {
-      compile(match) {
-        return -1;
-      }
-    }
-  },
-
-  // treat list as a stack or queue
-  {
-    name: "ordinal",
-    syntax: "top",
-    constructor: class ordinal_top extends Rule.Keywords {
-      compile(match) {
-        return 1;
-      }
-    }
-  },
-
-  {
-    name: "ordinal",
-    syntax: "bottom",
-    constructor: class ordinal_bottom extends Rule.Keywords {
-      compile(match) {
-        return -1;
-      }
-    }
   },
 
   // Index expression: numeric position in some list.
