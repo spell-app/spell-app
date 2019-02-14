@@ -137,7 +137,7 @@ parser.defineRules(
   {
     name: "ordinal",
     group: "ordinal",
-    syntax: "(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|penultimate|final|last|top|bottom)",
+    pattern: /^(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|penultimate|final|last|top|bottom)$/,
     valueMap: {
       first: 1,
       second: 2,
@@ -155,7 +155,7 @@ parser.defineRules(
       top: 1,
       bottom: -1
     },
-    constructor: class ordinal extends Rule.Alternatives {
+    constructor: class ordinal extends Rule.Pattern {
       // On parse, return the value from the valueMap rather than the matched string.
       parse(parser, tokens, start, end, stack) {
         const match = super.parse(parser, tokens, start, end, stack);
