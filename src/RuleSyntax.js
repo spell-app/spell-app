@@ -1,6 +1,7 @@
 import flatten from "lodash/flatten.js";
 
 import Parser from "./Parser.js";
+import ParseError from "./ParseError.js";
 import Rule from "./Rule.js";
 import Tokenizer from "./Tokenizer.js";
 import { cloneClass } from "./utils/class.js";
@@ -25,7 +26,7 @@ export default function parseRule(syntax, constructor) {
 
   let rules = parseSyntax(syntax);
   if (rules.length === 0) {
-    throw new SyntaxError(`parser.defineRule(${syntax}): no rule produced`);
+    throw new ParseError(`parser.defineRule(${syntax}): no rule produced`);
   }
 
   // If no constructor, just return the rule(s) from parseSyntax()
@@ -46,7 +47,7 @@ export default function parseRule(syntax, constructor) {
   }
   // otherwise add properties from first matched rule to the instance
   else {
-    if (rules.length > 1) throw new TypeError("parseRule(): expected a single rule back");
+    if (rules.length > 1) throw new ParseError("parseRule(): expected a single rule back");
     // Copy non-enumerably so we'll throw if someone tries to override them.
     for (const property in rules[0]) {
       Object.defineProperty(rule, property, { value: rules[0][property] });
@@ -59,12 +60,14 @@ export default function parseRule(syntax, constructor) {
 export function tokeniseRuleSyntax(syntax) {
   const SYNTAX_EXPRESSION = /(?:[\w\-]+|[\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
   let syntaxStream = syntax.match(SYNTAX_EXPRESSION);
-  if (!syntaxStream) throw new SyntaxError(`Can't tokenize parse rule syntax >>${syntax}<<`);
+//TESTME
+  if (!syntaxStream) throw new ParseError(`Can't tokenize parse rule syntax >>${syntax}<<`);
   return syntaxStream;
 }
 
 export function parseSyntax(syntax, rules = [], start = 0) {
-  if (syntax == null) throw new TypeError("parseSyntax(): `syntax` is required");
+  //TESTME
+  if (syntax == null) throw new ParseError("parseSyntax(): `syntax` is required");
   const syntaxStream = typeof syntax === "string" ? tokeniseRuleSyntax(syntax) : syntax;
 
   let lastIndex = syntaxStream.length;
@@ -98,7 +101,7 @@ function parseToken(syntaxStream, rules = [], start = 0) {
     case ")":
     case "]":
     case "|":
-      throw new SyntaxError(`Unexpected ${token} found as item ${start} of \`${syntaxStream.join("")}\``);
+      throw new ParseError(`Unexpected ${token} found as item ${start} of \`${syntaxStream.join("")}\``);
 
     default:
       if (token.match(KEYWORD_PATTERN)) {
@@ -237,7 +240,8 @@ function groupAlternatives(tokens) {
 function parseRepeat(syntaxStream, rules, start = 0) {
   let symbol = syntaxStream[start];
   let rule = rules[rules.length - 1];
-  if (!rule) throw new SyntaxError(`Can't attach repeat symbol ${symbol} to empty rule!`);
+  //TESTME
+  if (!rule) throw new ParseError(`Can't attach repeat symbol ${symbol} to empty rule!`);
 
   // Transform last rule into a repeat for `*` and `+`.
   if (symbol === "*" || symbol === "+") {
@@ -275,7 +279,7 @@ function parseSubrule(syntaxStream, rules, start = 0) {
   }
 
   if (match.slice.length !== 1)
-    throw new SyntaxError(
+    throw new ParseError(
       `Can't process subrules with more than one rule name: {${match.slice.join("")}}`
     );
 
@@ -307,7 +311,7 @@ function parseList(syntaxStream, rules, start = 0, constructor = Rule.List) {
 
   let results = parseSyntax(slice, []);
   if (results.length !== 2) {
-    throw new SyntaxError(`Unexpected stuff at end of list: [${slice.join(" ")}]`);
+    throw new ParseError(`Unexpected stuff at end of list: [${slice.join(" ")}]`);
   }
   let [item, delimiter] = results;
 

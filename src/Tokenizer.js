@@ -1,3 +1,5 @@
+import ParseError from "./ParseError.js";
+
 // GRRR... node doesn't include this???
 // CHECK DIFFERENT NODE VERSIONS...
 if (!Array.prototype.includes) {

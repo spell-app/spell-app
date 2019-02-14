@@ -78,15 +78,6 @@ export default class Parser {
     return match.compile();
   }
 
-  // Parse a named rule (defined in this parser or in any of our `imports`), returning the "best" match.
-  // Returns `undefined` if no match.
-  // Throws if rule is not implemented.
-  parseNamedRule(ruleName, tokens, start, end, stack) {
-    const rule = this.rules[ruleName];
-    if (!rule) throw new ParseError(`rule '${ruleName}' not found`);
-    return rule.parse(this, tokens, start, end, stack);
-  }
-
   // Test whether a rule (which may be specified by name) MIGHT be found in head of stream.
   // Returns:
   //  - `true` if the rule MIGHT be matched.
@@ -94,10 +85,19 @@ export default class Parser {
   //  - `undefined` if not determinstic (eg: no way to tell quickly).
   test(rule, tokens, start, end) {
     if (typeof rule === "string") {
+      if (!this.rules[rule]) throw new ParseError(`parser.test('${rule}'): rule not found`);
       rule = this.rules[rule];
-      if (!rule) return undefined; // TODO: throw?
     }
     return rule.test(this, tokens, start, end);
+  }
+
+  // Parse a named rule (defined in this parser or in any of our `imports`), returning the "best" match.
+  // Returns `undefined` if no match.
+  // Throws if rule is not implemented.
+  parseNamedRule(ruleName, tokens, start, end, stack) {
+    const rule = this.rules[ruleName];
+    if (!rule) throw new ParseError(`parser.parseNamedRule('${ruleName}'): rule not found`);
+    return rule.parse(this, tokens, start, end, stack);
   }
 
   //
@@ -147,12 +147,6 @@ export default class Parser {
   addRule(ruleName, rule) {
     // Clear memoized `__rules` so we'll recalculate `parser.rules` as necessary
     delete this.__rules;
-
-    // If passed a function, create an instance for the actual rule.
-    // This is commonly done so JS will give us meaningful class names in debug output.
-    if (typeof rule === "function") {
-      rule = new rule();
-    }
 
     // If we got an array of `ruleName`s, recursively add under each name with the same `rule`.
     if (Array.isArray(ruleName)) {
@@ -223,8 +217,8 @@ export default class Parser {
     if (ruleProps instanceof Rule) {
       if (!ruleProps.name) {
         const message = `parser.defineRule(): you must set rule.name when passing a rule object`;
-        console.error(message, ruleProps);
-        throw new TypeError(message);
+//        console.error(message, ruleProps);
+        throw new ParseError(message);
       }
       return this.addRule(ruleProps.name, ruleProps);
     }
@@ -234,7 +228,7 @@ export default class Parser {
 
     // throw if required params not provided
     if (!constructor || !props.name) {
-      throw new TypeError(`parser.define(): You must pass 'constructor' and 'name'`);
+      throw new ParseError(`parser.define(): You must pass 'constructor' and 'name'`);
     }
 
     // Note the module that the rule was defined in
@@ -257,7 +251,8 @@ export default class Parser {
 
     // Instantiate or parse to create rules to work with
     const rules = props.syntax ? parseRule(props.syntax, constructor) : [new constructor()];
-    if (!rules) throw new ParseError(`defineRule(${props.syntax}): didnt get rules back`);
+    if (!rules || rules.length === 0)
+      throw new ParseError(`defineRule(${props.syntax}): didnt get rules back`);
 
     // Sometimes `parseRule` will give us an array back, normalize to always have an array
     rules.forEach(rule => {

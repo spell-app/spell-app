@@ -4,7 +4,8 @@
   "scripts": {
     "start": "parcel serve index.html --out-dir build --no-hmr",
     "build": "parcel build index.html --out-dir dist --experimental-scope-hoisting",
-    "test": "jest --watch"
+    "test": "jest --watch",
+    "coverage": "jest --coverage"
   },
   "babel": {
     "presets": [
@@ -45,7 +46,10 @@
       [
         "babel-plugin-transform-builtin-extend",
         {
-          "globals": ["Error", "Array"]
+          "globals": [
+            "Error",
+            "Array"
+          ]
         }
       ]
     ]
