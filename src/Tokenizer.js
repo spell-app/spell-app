@@ -955,7 +955,30 @@ const Tokenizer = {
     });
 
     return block;
-  }
+  },
+
+  // Find the matching instance of (possibly nested) `endToken` to balance `startToken`
+  //  in array of `tokens` (strings).
+  // If successful, returns `{ start, end, slice }`
+  // Throws if unsucessful.
+  findNestedTokens(tokens, startToken, endToken, start = 0) {
+    if (tokens[start] !== startToken)
+      throw new ParseError(`Expected '${startToken}' at index ${start} of tokens`);
+    let nesting = 0;
+    let nested = false;
+    for (let end = start + 1, lastIndex = tokens.length; end < lastIndex; end++) {
+      let token = tokens[end];
+      if (token === startToken) {
+        nesting++;
+        nested = true;
+      }
+      if (token === endToken) {
+        if (nesting === 0) return { start, end, slice: tokens.slice(start + 1, end), nested };
+        nesting--;
+      }
+    }
+    throw new ParseError(`Couldn't find matching '${endToken}'s starting at item ${start}`);
+  },
 };
 
 export default Tokenizer;

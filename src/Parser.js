@@ -8,12 +8,7 @@ import Tokenizer from "./Tokenizer.js";
 import Rule from "./Rule.js";
 import parseRule from "./RuleSyntax.js";
 import { cloneClass } from "./utils/class.js";
-
-// GRRR... will SOMEONE on the node team please implement console.group ???
-if (!console.group) console.group = console.log;
-if (!console.groupCollapsed) console.groupCollapsed = console.group;
-if (!console.groupEnd) console.groupEnd = console.log;
-
+import "./utils/polyfill.js";
 
 export default class Parser {
   // Set to `true` to output debug info while adding rules
@@ -139,7 +134,7 @@ export default class Parser {
       // For each parser
       imports.forEach(parser => {
         for (const ruleName in parser._rules) {
-          Parser.mergeRule(output, ruleName, parser._rules[ruleName]);
+          this.mergeRule(output, ruleName, parser._rules[ruleName]);
         }
       });
     }
@@ -164,9 +159,38 @@ export default class Parser {
     }
     // Add to our list of _rules
     else {
-      Parser.mergeRule(this._rules, ruleName, rule);
+      this.mergeRule(this._rules, ruleName, rule);
     }
     return rule;
+  }
+
+  // Merge `rule` into `map` of rules by `ruleName`.
+  // If we already have a rule with that name, we'll add it as an alternative.
+  //TESTME
+  mergeRule(map, ruleName, rule) {
+    let existing = map[ruleName];
+    if (!existing) {
+      map[ruleName] = rule;
+      return;
+    }
+
+    // If merging with anything other than a `Group`,
+    //  create a `Group` and add the existing rule to that.
+    if (!(existing instanceof Rule.Group)) {
+      const Group = cloneClass(Rule.Group, ruleName + "_group");
+      map[ruleName] = new Group({
+        group: ruleName,
+        rules: [existing]
+      });
+      existing = map[ruleName];
+    }
+
+    // If BOTH are groups, we can safely mush them together
+    if (rule instanceof Rule.Group) {
+      existing.addRule(...rule.rules);
+    } else {
+      existing.addRule(rule);
+    }
   }
 
   // Define multiple rules at once using ruleSyntax.
@@ -266,61 +290,5 @@ export default class Parser {
       Parser.REGISTRY[module] = new Parser({ module });
     }
     return Parser.REGISTRY[module];
-  }
-
-  //
-  // ## Utility methods
-  //
-
-  // Merge `rule` into `map` of rules by `ruleName`.
-  // If we already have a rule with that name, we'll add it as an alternative.
-  //TESTME
-  static mergeRule(map, ruleName, rule) {
-    let existing = map[ruleName];
-    if (!existing) {
-      map[ruleName] = rule;
-      return;
-    }
-
-    // If merging with anything other than a `Group`,
-    //  create a `Group` and add the existing rule to that.
-    if (!(existing instanceof Rule.Group)) {
-      const Group = cloneClass(Rule.Group, ruleName + "_group");
-      map[ruleName] = new Group({
-        group: ruleName,
-        rules: [existing]
-      });
-      existing = map[ruleName];
-    }
-
-    // If BOTH are groups, we can safely mush them together
-    if (rule instanceof Rule.Group) {
-      existing.addRule(...rule.rules);
-    } else {
-      existing.addRule(rule);
-    }
-  }
-
-  // Find the matching instance of (possibly nested) `endToken` to balance `startToken`
-  //  in array of `tokens` (strings).
-  // If successful, returns `{ start, end, slice }`
-  // Throws if unsucessful.
-  static findNestedTokens(tokens, startToken, endToken, start = 0) {
-    if (tokens[start] !== startToken)
-      throw new ParseError(`Expected '${startToken}' at index ${start} of tokens`);
-    let nesting = 0;
-    let nested = false;
-    for (let end = start + 1, lastIndex = tokens.length; end < lastIndex; end++) {
-      let token = tokens[end];
-      if (token === startToken) {
-        nesting++;
-        nested = true;
-      }
-      if (token === endToken) {
-        if (nesting === 0) return { start, end, slice: tokens.slice(start + 1, end), nested };
-        nesting--;
-      }
-    }
-    throw new ParseError(`Couldn't find matching '${endToken}'s starting at item ${start}`);
   }
 }

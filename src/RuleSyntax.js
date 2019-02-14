@@ -2,6 +2,7 @@ import flatten from "lodash/flatten.js";
 
 import Parser from "./Parser.js";
 import Rule from "./Rule.js";
+import Tokenizer from "./Tokenizer.js";
 import { cloneClass } from "./utils/class.js";
 
 //
@@ -178,7 +179,7 @@ function parseSymbol(syntaxStream, rules, start = 0, constructor = Rule.Symbols)
 //
 // NOTE: nested parens may not have alternatives... :-(   `(a|(b|c))` won't work???
 function parseAlternatives(syntaxStream, rules, start = 0) {
-  let { end, slice } = Parser.findNestedTokens(syntaxStream, "(", ")", start);
+  let { end, slice } = Tokenizer.findNestedTokens(syntaxStream, "(", ")", start);
 
   // pull out explicit "promote" flag: `?:`
   let promote = slice[0] === "?" && slice[1] === ":";
@@ -222,7 +223,7 @@ function groupAlternatives(tokens) {
     }
     // handle nested parens
     else if (token === "(") {
-      let { end } = Parser.findNestedTokens(tokens, "(", ")", i);
+      let { end } = Tokenizer.findNestedTokens(tokens, "(", ")", i);
       current = current.concat(tokens.slice(i, end + 1));
       i = end;
     } else {
@@ -260,7 +261,7 @@ function parseRepeat(syntaxStream, rules, start = 0) {
 // Returns `[ rule, end ]`
 // Throws if invalid.
 function parseSubrule(syntaxStream, rules, start = 0) {
-  let match = Parser.findNestedTokens(syntaxStream, "{", "}", start);
+  let match = Tokenizer.findNestedTokens(syntaxStream, "{", "}", start);
   let argument;
   if (match.slice.length === 3 && match.slice[1] === ":") {
     argument = match.slice[0];
@@ -289,7 +290,7 @@ function parseSubrule(syntaxStream, rules, start = 0) {
 // Returns `[ rule, end ]`
 // Throws if invalid.
 function parseList(syntaxStream, rules, start = 0, constructor = Rule.List) {
-  let { end, slice } = Parser.findNestedTokens(syntaxStream, "[", "]", start);
+  let { end, slice } = Tokenizer.findNestedTokens(syntaxStream, "[", "]", start);
 
   // get argument if supplied
   let argument;
