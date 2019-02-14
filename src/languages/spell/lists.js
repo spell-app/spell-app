@@ -647,8 +647,8 @@ parser.defineRules(
         compileAs: "statement",
         tests: [
           [
-            "remove items from list where item is undefined",
-            "spell.removeWhere(list, item => (item == undefined), 'item')"
+            "remove items from list where item is not 'ace'",
+            "spell.removeWhere(list, item => (item != 'ace'), 'item')"
           ],
           [
             "remove words of text where word starts with 'a'",

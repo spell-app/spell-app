@@ -79,8 +79,6 @@ parser.defineRules(
         let { expression, properties } = match.results;
         // TODO: `[xxx]` for non-identifiers
         return `${expression}.${properties.join(".")}`;
-        // NOTE: the following is safer, but ugly for demo purposes
-        //      return `spell.get(${expression}, ['${properties}'])`;
       }
     },
     tests: [
@@ -198,7 +196,7 @@ parser.defineRules(
   // `new` or `create`
   // This works as an expression OR a statement.
   // NOTE: we assume that all types take an object of properties????
-  //FIXME: `list`, `text`, etc don't follow these semantics and should be disallowed... ???
+  //FIXME: `list`, `text`, etc don't follow these semantics???
   {
     name: "new_thing",
     alias: ["expression", "statement"],

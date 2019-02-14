@@ -28,37 +28,36 @@ export default function parseRule(syntax, constructor) {
     throw new SyntaxError(`parser.defineRule(${syntax}): no rule produced`);
   }
 
+  // If no constructor, just return the rule(s) from parseSyntax()
   if (!constructor) {
     // If we only got one rule, just return it
     if (rules.length === 1) return rules;
 
-    // Otherwise group the rules together and return that
-    return [new Rule.Alternatives({ rules })];
+    // Otherwise return a sequence with the specified rules
+    return [new Rule.Sequence({ rules })];
   }
 
   // Make an instance of the provided constructor
   const rule = new constructor();
 
-  // ...and add relevant properties to its prototype non-enumerably and non-writably
-  // so we'll get an error if something tries to overwrite them
-  if (
-    rule instanceof Rule.Keywords ||
-    rule instanceof Rule.Symbols ||
-    rule instanceof Rule.List ||
-    rule instanceof Rule.Alternatives
-  ) {
+  // If the rule is a sequence, copy `rules` to it
+  if (rule instanceof Rule.Sequence) {
+    Object.defineProperty(rule, "rules", { value: rules });
+  }
+  // otherwise add properties from first matched rule to the instance
+  else {
+    if (rules.length > 1) throw new TypeError("parseRule(): expected a single rule back");
+    // Copy non-enumerably so we'll throw if someone tries to override them.
     for (const property in rules[0]) {
       Object.defineProperty(rule, property, { value: rules[0][property] });
     }
-  } else {
-    Object.defineProperty(rule, "rules", { value: rules });
   }
 
   return [rule];
 }
 
-function tokeniseRuleSyntax(syntax) {
-  const SYNTAX_EXPRESSION = /(?:[\w\-]+|\\[\[\(\{\)\}\]]|[^\s\w]|\|)/g;
+export function tokeniseRuleSyntax(syntax) {
+  const SYNTAX_EXPRESSION = /(?:[\w\-]+|[\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
   let syntaxStream = syntax.match(SYNTAX_EXPRESSION);
   if (!syntaxStream) throw new SyntaxError(`Can't tokenize parse rule syntax >>${syntax}<<`);
   return syntaxStream;
@@ -72,14 +71,6 @@ export function parseSyntax(syntax, rules = [], start = 0) {
   while (start < lastIndex) {
     let [rule, end] = parseToken(syntaxStream, rules, start);
     if (rule) {
-      let last = rules[rules.length - 1];
-      // If this is a `Symbol` and last was a `Symbol`, merge together
-      if (last && last instanceof Rule.Symbols && rule instanceof Rule.Symbols) {
-        // remove the last rule
-        rules.pop();
-        // and replace with a rule that merges the keywords
-        rule.literals = last.literals.concat(rule.literals);
-      }
       rules.push(rule);
     }
     start = end + 1;
@@ -89,19 +80,12 @@ export function parseSyntax(syntax, rules = [], start = 0) {
 
 const KEYWORD_PATTERN = /[A-Za-z][\w_-]*/;
 function parseToken(syntaxStream, rules = [], start = 0) {
-  let syntaxToken = syntaxStream[start];
-
-  // if we got a "\\" (which also has to go into the source string as "\\")
-  // treat the next token as a literal string rather than as a special character.
-  if (syntaxToken === "\\") {
-    return parseSymbol(syntaxStream, rules, start + 1);
-  }
-
-  switch (syntaxToken) {
+  let token = syntaxStream[start];
+  switch (token) {
     case "{":
       return parseSubrule(syntaxStream, rules, start);
     case "(":
-      return parseAlternatives(syntaxStream, rules, start);
+      return parseGroup(syntaxStream, rules, start);
     case "[":
       return parseList(syntaxStream, rules, start);
     case "*":
@@ -114,10 +98,10 @@ function parseToken(syntaxStream, rules = [], start = 0) {
     case ")":
     case "]":
     case "|":
-      throw new SyntaxError(`Unexpected ${syntaxToken} found as item ${start} of ${syntaxStream}`);
+      throw new SyntaxError(`Unexpected ${token} found as item ${start} of \`${syntaxStream.join("")}\``);
 
     default:
-      if (syntaxToken.match(KEYWORD_PATTERN)) {
+      if (token.match(KEYWORD_PATTERN)) {
         return parseKeyword(syntaxStream, rules, start);
       } else {
         return parseSymbol(syntaxStream, rules, start);
@@ -125,7 +109,7 @@ function parseToken(syntaxStream, rules = [], start = 0) {
   }
 }
 
-// Match `keyword` in syntax rules.
+// Match `keyword`s in syntax rules.
 // If more than one keyword appears in a row, combines them into a single `Keyword` object.
 // This is pretty safe, unless you have an optional keyword like
 //    `the {identifier} of the? {expression}`
@@ -133,43 +117,58 @@ function parseToken(syntaxStream, rules = [], start = 0) {
 //    `the {identifier} of (the?) {expression}`
 //
 // Returns `[ rule, end ]`
-// Throws if invalid.
 function parseKeyword(syntaxStream, rules, start = 0, constructor = Rule.Keywords) {
-  let literals = [],
-    end;
+  let literals = [];
+  let end;
   // eat keywords while they last
   for (var i = start; i < syntaxStream.length; i++) {
-    let next = syntaxStream[i];
-    if (typeof next === "string" && next.match(KEYWORD_PATTERN)) {
-      literals.push(next);
-      end = i;
-    } else break;
+    let keyword = syntaxStream[i];
+    if (!keyword.match(KEYWORD_PATTERN)) break;
+
+    if (literals.length > 0 && syntaxStream[i+1] === "?") break;
+    literals.push(keyword);
+    end = i;
   }
 
   let rule = new constructor({ literals });
   return [rule, end];
 }
 
-// Match `keyword` in syntax rules.
+const ESCAPED_SYMBOLS = ["{", "(", "[", "|", "*", "+", "?", "]", ")", "}"];
+
+// Match one or more `symbol`s in syntax rules.
 // Returns `[ rule, end ]`
-// Throws if invalid.
 function parseSymbol(syntaxStream, rules, start = 0, constructor = Rule.Symbols) {
-  let string = syntaxStream[start];
-  if (!constructor) constructor = Rule.Symbols;
+  const literals = [];
+  const echo = [];
+  let end;
+  // eat keywords while they last
+  for (var i = start; i < syntaxStream.length; i++) {
+    let symbol = syntaxStream[i];
 
-  // If string starts with `\\`, it's an escaped literal (eg: `\[` needs to input as `\\[`).
-  let isEscaped = string.startsWith("\\");
-  let literals = isEscaped ? string.substr(1) : string;
+    // eat "\\" as escape character, work with next item in stream
+    const escaped = symbol === "\\";
+    if (escaped) symbol = syntaxStream[++i];
 
-  let rule = new constructor({ literals });
+    // forget it if we got a keyword
+    if (!symbol || symbol.match(KEYWORD_PATTERN)) break;
+    // forget it if not escaped and it's one of our special characters
+    if (!escaped && ESCAPED_SYMBOLS.includes(symbol)) break;
+    // Don't mush together if next rule is optional
+    if (literals.length > 0 && syntaxStream[i+1] === "?") break;
 
-  if (isEscaped) {
-    rule.toSyntax = function() {
-      return `\\${literals}${this.optional ? "?" : ""}`;
-    };
+    literals.push(symbol);
+    echo.push(escaped ? `\\${symbol}` : symbol);
+    end = i;
   }
 
-  return [rule, start];
+  const rule = new constructor({
+    literals,
+    toSyntax() {
+      return `${echo.join("")}${this.optional ? "?" : ""}`;
+    }
+  });
+  return [rule, end];
 }
 
 // Match grouping expression `(...|...)` in syntax rules.
@@ -178,7 +177,7 @@ function parseSymbol(syntaxStream, rules, start = 0, constructor = Rule.Symbols)
 // You can specify that the results should be `promoted` to enclosing rule with: `(?:...)`
 //
 // NOTE: nested parens may not have alternatives... :-(   `(a|(b|c))` won't work???
-function parseAlternatives(syntaxStream, rules, start = 0) {
+function parseGroup(syntaxStream, rules, start = 0) {
   let { end, slice } = Tokenizer.findNestedTokens(syntaxStream, "(", ")", start);
 
   // pull out explicit "promote" flag: `?:`

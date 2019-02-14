@@ -154,8 +154,6 @@ parser.defineRules(
     ]
   },
 
-  //FIXME: no validation that `type` is a legal JS type
-  //TODO: `is same type as` ?
   {
     name: "is_a",
     alias: ["infix_operator"],
@@ -195,7 +193,26 @@ parser.defineRules(
     ]
   },
 
-  //TODO: `spell.contains(collection, thing)`
+  {
+    name: "is_same_type_as",
+    alias: ["infix_operator"],
+    precedence: 11,
+    syntax: ["is same type as"],
+    constructor: class is_same_type_as extends Rule.Keywords {
+      applyOperator(thing, otherThing) {
+        return `(spell.typeOf(${thing}) === spell.typeOf(${otherThing}))`;
+      }
+    },
+    tests: [
+      {
+        compileAs: "expression",
+        tests: [
+          ["a is same type as b", "(spell.typeOf(a) === spell.typeOf(b))"]
+        ]
+      }
+    ]
+  },
+
   {
     name: "is_in",
     alias: ["infix_operator"],
@@ -596,6 +613,7 @@ parser.defineRules(
     alias: "expression",
     syntax: "{expression} {operator:postfix_operator}",
     leftRecursive: true,
+    precedence: 1,
     testRule: "postfix_operator",
     constructor: class postfix_operator_expresion extends Rule.Sequence {
       compile(match) {
@@ -626,7 +644,7 @@ parser.defineRules(
     name: "is_undefined",
     alias: ["postfix_operator"],
     syntax: [
-      //FIXME      "is undefined",   // conflicts with `undefined` as expression from core
+      "is undefined",   // conflicts with `undefined` as expression from core
       "is not defined"
     ],
     constructor: class is_undefined extends Rule.Keywords {

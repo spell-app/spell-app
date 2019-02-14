@@ -5,7 +5,7 @@ import _ from "lodash";
 import Parser from "../Parser.js";
 import ParseError from "../ParseError.js";
 import Rule from "../Rule.js";
-import parseRule, { parseSyntax } from "../RuleSyntax.js";
+import parseRule, { parseSyntax, tokeniseRuleSyntax } from "../RuleSyntax.js";
 import Tokenizer from "../Tokenizer.js";
 
 import parser from "../languages/spell/spell.js";
@@ -16,6 +16,7 @@ Object.assign(global, {
   ParseError,
   parseRule,
   parseSyntax,
+  tokeniseRuleSyntax,
 
   Rule,
 
