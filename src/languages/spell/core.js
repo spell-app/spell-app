@@ -238,6 +238,168 @@ parser.defineRules(
     ]
   },
 
+  // Boolean literal, created with custom constructor for debugging.
+  // TODO: better name for this???
+  {
+    name: "boolean",
+    alias: "expression",
+    canonical: "Boolean",
+    pattern: /^(true|false|yes|no|ok|cancel|success|failure)$/,
+    constructor: class boolean extends Rule.Pattern {
+      compile(match) {
+        switch (match.matched) {
+          case "true":
+          case "yes":
+          case "ok":
+          case "success":
+            return true;
+
+          default:
+            return false;
+        }
+      }
+    },
+    tests: [
+      {
+        title: "correctly matches booleans",
+        tests: [
+          ["", undefined],
+          ["true", true],
+          ["yes", true],
+          ["ok", true],
+          ["success", true],
+          ["false", false],
+          ["no", false],
+          ["cancel", false],
+          ["failure", false]
+        ]
+      },
+      {
+        title: "doesn't match in the middle of a longer keyword",
+        tests: [["yessir", undefined], ["yes-sir", undefined], ["yes_sir", undefined]]
+      }
+    ]
+  },
+
+  // `number` as either float or integer, created with custom constructor for debugging.
+  // NOTE: you can also use `one`...`ten` as strings.'
+  // TODO:  `integer` and `decimal`?  too techy?
+  {
+    name: "number",
+    alias: "expression",
+    canonical: "Number",
+    NAME_MAP: {
+      zero: 0,
+      one: 1,
+      two: 2,
+      three: 3,
+      four: 4,
+      five: 5,
+      six: 6,
+      seven: 7,
+      eight: 8,
+      nine: 9,
+      ten: 10
+    },
+    constructor: class number extends Rule {
+      // Numbers get encoded as numbers in the token stream.
+      parse(parser, tokens, start = 0) {
+        let token = tokens[start];
+        // if a string, attempt to run through our NUMBER_NAMES
+        if (typeof token === "string") token = this.NAME_MAP[token];
+        if (typeof token !== "number") return undefined;
+        return new Match({
+          rule: this,
+          matched: token,
+          nextStart: start + 1
+        })
+      }
+
+      compile(match) {
+        return match.matched;
+      }
+    },
+    tests: [
+      {
+        title: "correctly matches numbers",
+        tests: [
+          ["1", 1],
+          ["1000", 1000],
+          ["-1", -1],
+          ["1.1", 1.1],
+          ["000.1", 0.1],
+          ["1.", 1],
+          [".1", 0.1],
+          ["-111.111", -111.111]
+        ]
+      },
+      {
+        title: "correctly matches number strings",
+        tests: [
+          ["zero", 0],
+          ["one", 1],
+          ["two", 2],
+          ["three", 3],
+          ["four", 4],
+          ["five", 5],
+          ["six", 6],
+          ["seven", 7],
+          ["eight", 8],
+          ["nine", 9],
+          ["ten", 10]
+        ]
+      },
+      {
+        title: "doesn't match things that aren't numbers",
+        tests: [["", undefined], [".", undefined]]
+      },
+      {
+        title: "requires negative sign to be touching the number",
+        tests: [["- 1", undefined]]
+      }
+    ]
+  },
+
+  // Literal `text` string, created with custom constructor for debugging.
+  // You can use either single or double quotes on the outside (although double quotes are preferred).
+  // Returned value has enclosing quotes.
+  {
+    name: "text",
+    alias: "expression",
+    canonical: "Text",
+    constructor: class text extends Rule {
+      // Text strings get encoded as `text` objects in the token stream.
+      parse(parser, tokens, start = 0) {
+        let token = tokens[start];
+        if (!(token instanceof Tokenizer.Text)) return undefined;
+        return new Match({
+          rule: this,
+          matched: token.quotedString,
+          nextStart: start + 1
+        });
+      }
+
+      compile(match) {
+        return match.matched;
+      }
+    },
+    tests: [
+      {
+        title: "correctly matches text",
+        tests: [
+          ['""', '""'],
+          ["''", "''"],
+          ['"a"', '"a"'],
+          ["'a'", "'a'"],
+          ['"abcd"', '"abcd"'],
+          ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
+          ['"...Can\'t touch this"', '"...Can\'t touch this"']
+          //FIXME          ["'\"Gadzooks! I can\\'t believe it!\" he said'", "'\"Gadzooks! I can\'t believe it!\" he said'"],
+        ]
+      }
+    ]
+  },
+
   // `Type` = type name.
   // MUST start with an upper-case letter (?)
   {
@@ -313,155 +475,6 @@ parser.defineRules(
       {
         title: "skips items in its blacklist",
         tests: [["I", undefined]]
-      }
-    ]
-  },
-
-  // Boolean literal, created with custom constructor for debugging.
-  // TODO: better name for this???
-  {
-    name: "boolean",
-    alias: "expression",
-    canonical: "Boolean",
-    pattern: /^(true|false|yes|no|ok|cancel|success|failure)$/,
-    constructor: class boolean extends Rule.Pattern {
-      compile(match) {
-        switch (match.matched) {
-          case "true":
-          case "yes":
-          case "ok":
-          case "success":
-            return true;
-
-          default:
-            return false;
-        }
-      }
-    },
-    tests: [
-      {
-        title: "correctly matches booleans",
-        tests: [
-          ["", undefined],
-          ["true", true],
-          ["yes", true],
-          ["ok", true],
-          ["success", true],
-          ["false", false],
-          ["no", false],
-          ["cancel", false],
-          ["failure", false]
-        ]
-      },
-      {
-        title: "doesn't match in the middle of a longer keyword",
-        tests: [["yessir", undefined], ["yes-sir", undefined], ["yes_sir", undefined]]
-      }
-    ]
-  },
-
-  // `number` as either float or integer, created with custom constructor for debugging.
-  // NOTE: you can also use `one`...`ten` as strings.'
-  // TODO:  `integer` and `decimal`?  too techy?
-  {
-    name: "number",
-    alias: "expression",
-    canonical: "Number",
-    constructor: class number extends Rule {
-      // Special words you can use as numbers...
-      static NUMBER_NAMES = {
-        zero: 0,
-        one: 1,
-        two: 2,
-        three: 3,
-        four: 4,
-        five: 5,
-        six: 6,
-        seven: 7,
-        eight: 8,
-        nine: 9,
-        ten: 10
-      };
-
-      // Numbers get encoded as numbers in the token stream.
-      parse(parser, tokens, start = 0) {
-        let token = tokens[start];
-        // if a string, attempt to run through our NUMBER_NAMES
-        if (typeof token === "string") token = Rule.Number.NUMBER_NAMES[token];
-        if (typeof token !== "number") return undefined;
-        return new Match({
-          rule: this,
-          matched: token,
-          nextStart: start + 1
-        })
-      }
-
-      // Convert to number on source output.
-      compile(match) {
-        return match.matched;
-      }
-    },
-    tests: [
-      {
-        title: "correctly matches numbers",
-        tests: [
-          ["1", 1],
-          ["1000", 1000],
-          ["-1", -1],
-          ["1.1", 1.1],
-          ["000.1", 0.1],
-          ["1.", 1],
-          [".1", 0.1],
-          ["-111.111", -111.111]
-        ]
-      },
-      {
-        title: "doesn't match things that aren't numbers",
-        tests: [["", undefined], [".", undefined]]
-      },
-      {
-        title: "requires negative sign to be touching the number",
-        tests: [["- 1", undefined]]
-      }
-    ]
-  },
-
-  // Literal `text` string, created with custom constructor for debugging.
-  // You can use either single or double quotes on the outside (although double quotes are preferred).
-  // Returned value has enclosing quotes.
-  {
-    name: "text",
-    alias: "expression",
-    canonical: "Text",
-    constructor: class text extends Rule {
-      // Text strings get encoded as `text` objects in the token stream.
-      parse(parser, tokens, start = 0) {
-        let token = tokens[start];
-        if (!(token instanceof Tokenizer.Text)) return undefined;
-        return new Match({
-          rule: this,
-          matched: token.quotedString,
-          nextStart: start + 1
-        });
-      }
-
-      compile(match) {
-        return match.matched;
-      }
-    },
-    tests: [
-      {
-        title: "correctly matches text",
-        tests: [
-          ['""', '""'],
-          ["''", "''"],
-          ['"a"', '"a"'],
-          ["'a'", "'a'"],
-          ['"abcd"', '"abcd"'],
-          ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
-          ['"...Can\'t touch this"', '"...Can\'t touch this"']
-          //FIXME          ["'\"Gadzooks! I can\\'t believe it!\" he said'", "'\"Gadzooks! I can\'t believe it!\" he said'"],
-        ]
       }
     ]
   },
