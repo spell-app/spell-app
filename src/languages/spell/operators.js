@@ -704,7 +704,7 @@ parser.defineRules(
     name: "absolute_value",
     alias: "expression",
     //FIXME: make `the` optional
-    syntax: "the absolute value of {expression}",
+    syntax: "the? absolute value of {expression}",
     constructor: class absolute_value extends Rule.Sequence {
       compile(match) {
         const { expression } = match.results;
@@ -723,7 +723,8 @@ parser.defineRules(
     name: "max",
     alias: "expression",
     //FIXME: "the?"
-    syntax: "(max|maximum|largest|biggest) {identifier}? (of|in) {expression}",
+    precedence: 2,
+    syntax: "the? (max|maximum|largest|biggest) {identifier}? (of|in) {expression}",
     constructor: class max extends Rule.Sequence {
       compile(match) {
         const { expression } = match.results;
@@ -750,7 +751,8 @@ parser.defineRules(
     name: "min",
     alias: "expression",
     //FIXME: "the?"
-    syntax: "(min|minimum|smallest|least) {identifier}? (of|in) {expression}",
+    precedence: 2,
+    syntax: "the? (min|minimum|smallest|least) {identifier}? (of|in) {expression}",
     constructor: class min extends Rule.Sequence {
       compile(match) {
         const { expression } = match.results;

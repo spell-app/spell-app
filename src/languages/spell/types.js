@@ -61,24 +61,26 @@ parser.defineRules(
   //
 
   {
+    name: "property_name",
+    syntax: "the {identifier} of",
+    constructor: class property_name extends Rule.Sequence {
+      compile(match) {
+        return match.results.identifier;
+      }
+    }
+  },
+
+  {
     // TODO: really low precedence on this so more-specific rules with similar pattern will work
     // TODO: multiple identifiers would be cool...
     name: "property_expression",
     alias: "expression",
-    syntax: "(the {identifier} of)+ the? {expression}",
-    precedence: 2,
+    syntax: "{properties:property_name}+ the? {expression}",
     constructor: class property_expression extends Rule.Sequence {
-      // Pull property identifiers out into `result.properties`
-      getResults(match) {
-        const results = super.getResults(match);
-        results.properties = match.matched[0].matched.map(match => match.results.identifier).reverse();
-        return results;
-      }
-
       compile(match) {
         let { expression, properties } = match.results;
         // TODO: `[xxx]` for non-identifiers
-        return `${expression}.${properties.join(".")}`;
+        return `${expression}.${properties.reverse().join(".")}`;
       }
     },
     tests: [

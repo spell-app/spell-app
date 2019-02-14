@@ -21,7 +21,7 @@ import Tokenizer, { matchLiterals } from "./Tokenizer.js";
 import { isWhitespace } from "./utils/string";
 
 // Show debug messages on browser only.
-const DEBUG = !isNode;
+const DEBUG = false;//!isNode;
 
 
 // Abstract Rule class.
@@ -198,6 +198,7 @@ Rule.Subrule = class subrule extends Rule {
     const match = parser.parseNamedRule(this.subrule, tokens, start, end, stack);
     if (!match) return undefined;
     if (this.argument) match.argument = this.argument;
+    if (this.promote) match.promote = this.promote;
     return match;
   }
 
@@ -236,11 +237,15 @@ Rule.Alternatives = class alternatives extends Rule {
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(parser, tokens, start = 0, end, stack) {
+    if (DEBUG) console.group(`matching alternatives ${this.group || this.argument || this.name || this.toSyntax()}`);
     const matches = [];
     for (let i = 0, rule; rule = this.rules[i]; i++) {
       let match = rule.parse(parser, tokens, start, end, stack);
       if (match) matches.push(match);
+      if (DEBUG && match) console.log(rule.name, match);
     }
+    if (DEBUG && matches.length) console.log("matches: ", matches);
+    if (DEBUG) console.groupEnd();
 
     if (!matches.length) return undefined;
 
@@ -511,10 +516,15 @@ Rule.Sequence = class sequence extends Rule {
 
   // Log the stack of
   static logStack(stack) {
-    if (!DEBUG || !stack) return;
+    if (!DEBUG) return;
+    if (!stack) {
+      console.group("stack is empty");
+    }
+    else {
 //    console.groupCollapsed("stack");
-    console.group("stack");
-    stack.rules.forEach((rule, i) => console.info(stack.starts[i], rule.name, stack.matched[i]));
+      console.group("stack");
+      stack.rules.forEach((rule, i) => console.info(stack.starts[i], rule.name, [...stack.matched[i]]));
+    }
     console.groupEnd();
   }
 
