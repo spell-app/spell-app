@@ -260,28 +260,35 @@ function parseRepeat(syntaxStream, rules, start = 0) {
 // Returns `[ rule, end ]`
 // Throws if invalid.
 function parseSubrule(syntaxStream, rules, start = 0) {
-  let match = Tokenizer.findNestedTokens(syntaxStream, "{", "}", start);
-  let argument;
-  if (match.slice.length === 3 && match.slice[1] === ":") {
-    argument = match.slice[0];
+  const match = Tokenizer.findNestedTokens(syntaxStream, "{", "}", start);
+  const props = {};
+  // handle promote flag: "?:"
+  if (match.slice[0] === "?" && match.slice[1] === ":") {
+    props.promote = true;
     match.slice = match.slice.slice(2);
   }
-  if (match.slice.length > 1)
-    throw new SyntaxError(
-      `Can't process rules with more than one rule name: {${match.slice.join("")}}`
-    );
 
-  let params = { subrule: match.slice[0] };
-
-  // see if there's a `not` rule in there
-  let bangPosition = params.subrule.indexOf("!");
-  if (bangPosition !== -1) {
-    params.not = params.subrule.substr(bangPosition + 1);
-    params.subrule = params.subrule.substr(0, bangPosition);
+  // handle argument
+  if (match.slice[1] === ":") {
+    props.argument = match.slice[0];
+    match.slice = match.slice.slice(2);
   }
 
-  let rule = new Rule.Subrule(params);
-  if (argument) rule.argument = argument;
+  if (match.slice.length !== 1)
+    throw new SyntaxError(
+      `Can't process subrules with more than one rule name: {${match.slice.join("")}}`
+    );
+
+  props.subrule = match.slice[0];
+
+  // see if there's a `not` rule in there
+//   const bangPosition = props.subrule.indexOf("!");
+//   if (bangPosition !== -1) {
+//     props.not = props.subrule.substr(bangPosition + 1);
+//     props.subrule = props.subrule.substr(0, bangPosition);
+//   }
+
+  const rule = new Rule.Subrule(props);
   return [rule, match.end];
 }
 
