@@ -121,6 +121,7 @@ export default class Parser {
   //    List of all known rules for this parser.
   //    You can access named rules as `parser.rules["ruleName"]`
   //
+
   // Start with an empty map of rules.
   _rules = {};
 
@@ -177,6 +178,7 @@ export default class Parser {
     // If merging with anything other than a `Group`,
     //  create a `Group` and add the existing rule to that.
     if (!(existing instanceof Rule.Group)) {
+      // use `cloneClass()` to get a uniquely named constructor for debugging
       const Group = cloneClass(Rule.Group, ruleName + "_group");
       map[ruleName] = new Group({
         group: ruleName,

@@ -66,6 +66,7 @@ parser.defineRules(
     name: "property_expression",
     alias: "expression",
     syntax: "(the {identifier} of)+ the? {expression}",
+    precedence: 2,
     constructor: class property_expression extends Rule.Sequence {
       // Pull property identifiers out into `result.properties`
       getResults(match) {

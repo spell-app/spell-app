@@ -24,4 +24,9 @@ export default class match {
     return this._promote || this.rule.promote;
   }
   set promote(value) { this._promote = value }
+
+  // Precedence of the match
+  get precedence() {
+    return this.rule.getPrecedence(this);
+  }
 }

@@ -55,8 +55,9 @@ export default class Rule {
   compile(match) {}
 
   // Return the precedence for this rule as matched.
+  // Override to do something funky (e.g. `infix_operator_expression`)
   getPrecedence(match) {
-    return match.rule.precedence;
+    return this.precedence || 0;
   }
 }
 
@@ -246,7 +247,7 @@ Rule.Alternatives = class alternatives extends Rule {
     // uncomment the below to print alternatives
     if (DEBUG && matches.length > 1) {
       console.group(`got alternatives for ${this.argument || this.group}`);
-      matches.forEach(match => console.info(match, match.compile()));
+      matches.forEach(match => console.info(match, match.precedence, match.compile()));
       logStack(stack);
       console.groupEnd();
     }
@@ -268,11 +269,31 @@ Rule.Alternatives = class alternatives extends Rule {
   // Implement something else to do, eg, precedence rules.
   getBestMatch(matches) {
     if (matches.length === 1) return matches[0];
-    // reverse matches
-    return [...matches].reverse().reduce(function(best, current) {
-      if (current.nextStart >= best.nextStart) return current;
-      return best;
-    }, matches[0]);
+
+    // Filter to rules with highest precedence.
+    // NOTE: we run this BACKWARDS to put later-defined rules first
+    let match;
+    let highPriority = [];
+    for (let max = -Infinity, i = 0; match = matches[i++];) {
+      const { precedence } = match;
+      if (precedence > max) {
+        max = precedence;
+        highPriority = [match];
+      }
+      else if (precedence === max) {
+        highPriority.push(match);
+      }
+    }
+
+    if (highPriority.length === 1) return highPriority[0];
+
+    // Return the longest rule (???)
+    // NOTE: we go backwards through the list so the LATEST rule comes first
+    let longest;
+    for (let i = highPriority.length; match = highPriority[--i];) {
+      if (!longest || match.nextStart >= longest.nextStart) longest = match;
+    }
+    return longest;
   }
 
   addRule(...rule) {

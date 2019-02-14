@@ -35,6 +35,7 @@ parser.defineRules(
     name: "list_length",
     alias: "expression",
     syntax: "the? number of {identifier} in {list:expression}",
+    precedence: 3,
     constructor: class list_length extends Rule.Sequence {
       compile(match) {
         const { list, identifier } = match.results;
@@ -62,6 +63,7 @@ parser.defineRules(
     name: "list_position",
     alias: "expression",
     syntax: "the? position of {thing:expression} in {list:expression}",
+    precedence: 3,
     constructor: class list_position extends Rule.Sequence {
       compile(match) {
         const { thing, list } = match.results;
