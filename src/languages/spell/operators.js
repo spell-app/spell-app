@@ -10,21 +10,6 @@ const parser = Parser.forModule("operators");
 export default parser;
 
 parser.defineRules(
-  // TODO:
-  //   // Find best match according to operator precedence as defined below.
-  //   getBestMatch(matches) {
-  //     console.warn("GBM", matches, matches.map(match => match.precedence), matches.map(match => match.matchedText));
-  //     return matches.reduce(function (best, next) {
-  //       // take highest precedence match first
-  //       if (next.precedence > best.precedence) return next;
-  //       // take longest match if same precedence
-  //       if (next.precedence === best.precedence) {
-  //         if (next.endIndex > best.endIndex) return next;
-  //       }
-  //       return best;
-  //     }, matches[0]);
-  //   }
-
   {
     name: "infix_operator_expression",
     alias: "expression",
@@ -45,11 +30,21 @@ parser.defineRules(
 //         const { _operator } = this.results;
 //         return _operator.precedence;
 //       }
-    }
+    },
+    // test multiple infix expressions in a row
+    tests: [
+      {
+        title: "complex expressions",
+        tests: [
+          ["1 + 1 + 1", "(1 + (1 + 1))"],
+          ["(1+1) * (2+2)", "((1 + 1) * (2 + 2))"]
+        ]
+      }
+    ]
   },
 
   //## Infix operators:   `{lhs} <operator> {rhs}`, eg: `a is 1`
-  // NOTE: `operator.applyOperator` MUST return a function which transforms two arguments (`lhs` and `rhs`) into output.
+  // NOTE: `operator.applyOperator` MUST be a function which transforms two arguments (`lhs` and `rhs`) into output.
   // NOTE: `precedence` numbers come from Javascript equivalents
   //     https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
   {
