@@ -27,8 +27,8 @@ const DEBUG = !isNode;
 // Abstract Rule class.
 // TODOC
 export default class Rule {
-  constructor(...props) {
-    Object.assign(this, ...props);
+  constructor(props) {
+    Object.assign(this, props);
   }
 
   //
@@ -72,15 +72,15 @@ export default class Rule {
 //  `match.matched` is the actual string matched
 //  `match.nextStart` is the index of the next start token
 Rule.Literals = class literals extends Rule {
-  constructor(...props) {
+  constructor(props) {
     // If passed a string, split and use that as our `literals`
-    if (props.length === 1 && typeof props[0] === "string") {
+    if (typeof props === "string") {
       super();
-      this.literals = props[0];
+      this.literals = props;
     }
     // otherwise assume we got an array of property maps
     else {
-      super(...props);
+      super(props);
     }
     // coerce `literals` to an array
     if (typeof this.literals === "string") {
@@ -138,8 +138,8 @@ Object.defineProperty(Rule.Keywords.prototype, "literalSeparator", { value: " " 
 //  `rule.matched` will be the string which was matched.
 //  `rule.nextStart` is the index of the next start token.
 Rule.Pattern = class pattern extends Rule {
-  constructor(...props) {
-    super(...props);
+  constructor(props) {
+    super(props);
     // convert blacklist to a map if necessary
     if (Array.isArray(this.blacklist)) {
       this.blacklist = this.blacklist.reduce((map, key) => {
@@ -221,8 +221,8 @@ Rule.Subrule = class subrule extends Rule {
 // After parsing
 //  we'll return the rule which is the "best match" (rather than cloning this rule).
 Rule.Alternatives = class alternatives extends Rule {
-  constructor(...props) {
-    super(...props);
+  constructor(props) {
+    super(props);
     if (!this.rules) this.rules = [];
   }
 
@@ -244,7 +244,6 @@ Rule.Alternatives = class alternatives extends Rule {
 
     if (!matches.length) return undefined;
 
-    // uncomment the below to print alternatives
     if (DEBUG && matches.length > 1) {
       console.group(`got alternatives for ${this.argument || this.group}`);
       matches.forEach(match => console.info(match, match.precedence, match.compile()));
@@ -784,8 +783,8 @@ Rule.Comment = class comment extends Rule {
 
 // Parser error representation in parser output.
 Rule.StatementParseError = class parse_error extends Rule {
-  constructor(...props) {
-    super(...props);
+  constructor(props) {
+    super(props);
     if (Parser.WARN) console.warn(this.message);
   }
 
