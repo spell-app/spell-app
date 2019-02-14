@@ -46,6 +46,8 @@
   },
   "dependencies": {
     "assert": "^1.4.1",
+    "browser-or-node": "^1.1.0",
+    "global": "^4.3.2",
     "mobx": "^5.9.0",
     "mobx-react": "^5.4.3",
     "prop-types": "^15.5.8",

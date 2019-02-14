@@ -1,7 +1,7 @@
 // HACK: expose a bunch of stuff on `global` for browser debugging
+import global from "global";
 import _ from "lodash";
 
-import global from "../utils/global.js";
 import Parser from "../Parser.js";
 import Rule from "../Rule.js";
 import parseRule, { parseSyntax } from "../RuleSyntax.js";

@@ -3,7 +3,8 @@
 import { observable, computed } from "mobx";
 
 
-import global, { localStorage } from "../utils/global.js";
+import global from "global";
+const localStorage = global.localStorage || {};
 
 // Make Parser and Tokenizer WARN as we run
 import Parser from "../Parser";

@@ -12,11 +12,14 @@
 //    - `rule.toSyntax()`    Return ruleSyntax for the rule (mostly for debugging)
 //    -
 //
+import { isNode } from "browser-or-node";
+
 import Parser, { Match, ParseError } from "./Parser.js";
 import Tokenizer, { matchLiterals } from "./Tokenizer.js";
-
 import { isWhitespace } from "./utils/string";
 
+// Show debug messages on browser only.
+const DEBUG = !isNode;
 
 
 // Abstract Rule class.

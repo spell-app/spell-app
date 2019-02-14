@@ -1023,6 +1023,11 @@ braces@^2.3.1:
     split-string "^3.0.2"
     to-regex "^3.0.1"
 
+browser-or-node@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/browser-or-node/-/browser-or-node-1.1.0.tgz#e47e8d7701c42d83edab02abc1f6b532a4d6b66d"
+  integrity sha512-/YRGjKbrTId3N9RCTp91QgQ+AowVUuZxAcOuAYra6B/EkhK7hTDWB2/AAawvAsvOI3QjPnSnKCEEh89xmUoYLg==
+
 browser-process-hrtime@^0.1.2:
   version "0.1.3"
   resolved "https://registry.yarnpkg.com/browser-process-hrtime/-/browser-process-hrtime-0.1.3.tgz#616f00faef1df7ec1b5bf9cfe2bdc3170f26c7b4"
@@ -1683,7 +1688,7 @@ glob@^7.1.1, glob@^7.1.2, glob@^7.1.3:
     once "^1.3.0"
     path-is-absolute "^1.0.0"
 
-global@^4.3.0:
+global@^4.3.0, global@^4.3.2:
   version "4.3.2"
   resolved "https://registry.yarnpkg.com/global/-/global-4.3.2.tgz#e76989268a6c74c38908b1305b10fc0e394e9d0f"
   integrity sha1-52mJJopsdMOJCLEwWxD8DjlOnQ8=

@@ -2,7 +2,7 @@
 //  # Class utilities
 //
 
-import global from "./global.js";
+import global from "global";
 
 // Clone a class, re-using the original name.
 // TODO: move to utility?
