@@ -27,4 +27,5 @@ Object.assign(global, {
   rules: parser.rules,
   parse: parser.parse.bind(parser),
   compile: parser.compile.bind(parser),
+  exp: parser.parse.bind(parser, "expression")
 });

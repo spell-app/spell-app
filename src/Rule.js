@@ -246,8 +246,8 @@ Rule.Alternatives = class alternatives extends Rule {
 
     if (DEBUG && matches.length > 1) {
       console.group(`got alternatives for ${this.argument || this.group}`);
-      matches.forEach(match => console.info(match, match.precedence, match.compile()));
-      logStack(stack);
+      matches.forEach(match => console.info(start, match, match.precedence, match.compile()));
+      Rule.Sequence.logStack(stack);
       console.groupEnd();
     }
 
@@ -440,14 +440,6 @@ Rule.List = class list extends Rule {
 };
 
 
-// Log the stack of
-function logStack(stack) {
-  if (!DEBUG || !stack) return;
-  console.groupCollapsed("stack");
-  stack.rules.forEach((rule, i) => console.info(rule.name, stack.starts[i]));
-  console.groupEnd();
-}
-
 // Sequence of rules to match.
 //  `rule.rules` is the array of rules to match.
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
@@ -470,9 +462,9 @@ Rule.Sequence = class sequence extends Rule {
     if (this.leftRecursive) {
       // If the stack already contains this rule, forget it.
       if (stack) {
-        const index = stack.rules.lastIndexOf(this);
+        const index = stack.rules.indexOf(this);
         if (index > -1) {
-          // if (DEBUG) logStack(stack);
+          // if (DEBUG) Rule.Sequence.logStack(stack);
           if (start > stack.starts[index]) {
             // if (DEBUG) console.info(`${start}: recursing into ${this.name}`);
           }
@@ -486,21 +478,19 @@ Rule.Sequence = class sequence extends Rule {
 // console.info(`${start}: skipping ${this.name}`, stack);
 //         return undefined;
 //       }
-
-      // TODO: We could distinguish between productive and unproductive rules
-      //     by checking only rules which occur at the same `start`...
-      //     This would probably allow more interesting things, but it's much much slower.
     }
 
     // Clone stack and add this rule for recursion...
     // NOTE: we really only need to do this for leftRecursive rules,
     //       consider moving this up into block above
+    const matched = [];
     stack = {
-      rules: stack ? [...stack.rules, this] : [this],
-      starts: stack ? [...stack.starts, start] : [start]
+      rules: stack ? [this, ...stack.rules] : [this],
+      starts: stack ? [start, ...stack.starts] : [start],
+      matched: stack ? [matched, ...stack.matched] : [matched]
     }
 
-    const matched = [];
+    // Match each token in turn
     let nextStart = start;
     for (let i = 0, rule; rule = this.rules[i]; i++) {
       let match = rule.parse(parser, tokens, nextStart, end, stack);
@@ -517,6 +507,15 @@ Rule.Sequence = class sequence extends Rule {
       matched,
       nextStart
     })
+  }
+
+  // Log the stack of
+  static logStack(stack) {
+    if (!DEBUG || !stack) return;
+//    console.groupCollapsed("stack");
+    console.group("stack");
+    stack.rules.forEach((rule, i) => console.info(stack.starts[i], rule.name, stack.matched[i]));
+    console.groupEnd();
   }
 
   // You MUST override `compile` in your sequence rule if it is ever going to be called directly.
