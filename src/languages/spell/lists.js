@@ -84,15 +84,13 @@ parser.defineRules(
 
   // Does list start with some value?.
   {
-    name: "list_starts_with",
-    alias: "expression",
-    leftRecursive: true,
-    testRule: new Rule.Keywords("starts with"),
-    syntax: "{list:expression} starts with {expression}",
-    constructor: class list_starts_with extends Rule.Sequence {
+    name: "starts_with",
+    alias: "infix_operator",
+    syntax: "starts with",
+    constructor: class starts_with extends Rule.Keywords {
       compile(match) {
-        const { list, expression } = match.results;
-        return `spell.startsWith(${list}, ${expression})`;
+        const { lhs, rhs } = match.results;
+        return `spell.startsWith(${lhs}, ${rhs})`;
       }
     },
     tests: [
@@ -108,15 +106,13 @@ parser.defineRules(
 
   // Does list end with some value?.
   {
-    name: "list_ends_with",
-    alias: "expression",
-    leftRecursive: true,
-    testRule: new Rule.Keywords("ends with"),
-    syntax: "{list:expression} ends with {expression}",
-    constructor: class list_ends_with extends Rule.Sequence {
+    name: "ends_with",
+    alias: "infix_operator",
+    syntax: "ends with",
+    constructor: class ends_with extends Rule.Keywords {
       compile(match) {
-        const { list, expression } = match.results;
-        return `spell.endsWith(${list}, ${expression})`;
+        const { lhs, rhs } = match.results;
+        return `spell.endsWith(${lhs}, ${rhs})`;
       }
     },
     tests: [

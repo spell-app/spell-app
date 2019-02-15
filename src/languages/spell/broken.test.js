@@ -4,7 +4,7 @@
 //  - then we can enable them selectively to test them
 //
 
-import parser from "./languages/spell/spell.js";
+import parser from "./spell.js";
 
 describe("broken rules:", () => {
 
