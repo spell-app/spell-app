@@ -2,8 +2,7 @@
 import React from "react";
 import ReactDOM from 'react-dom';
 
-// Parser
-import parser from "../languages/spell/spell.js";
+import "./globals.js";
 
 function renderApp() {
   const SpellEditor = require("./SpellEditor.jsx").default;

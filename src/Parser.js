@@ -259,14 +259,13 @@ export default class Parser {
     if (!rules || rules.length === 0)
       throw new ParseError(`defineRule(${props.syntax}): didnt get rules back`);
 
-    // Sometimes `parseRule` will give us an array back, normalize to always have an array
     rules.forEach(rule => {
       // Add props to the rule non-enumerably and non-writably
       //  so we'll get an error if something tries to overwrite them.
       Object.keys(props)
         .forEach(key => Object.defineProperty(rule, key, { value: props[key] }));
 
-
+      // add the rule!
       this.addRule(names, rule)
     });
 
