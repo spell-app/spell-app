@@ -21,6 +21,7 @@ parser.defineRules(
     name: "this_and_that",
     alias: "statement",
     syntax: "{this} and {that}",
+    testRule: "this",
     constructor: class this_and_that extends Rule.Sequence {
       compile(match) {
         return "this && that";
@@ -62,11 +63,30 @@ describe("parser.compile()", () => {
     const result = parser.compile("this and that");
     expect(result).toBe("this && that");
   });
+
+  test("throws if text can't be parsed", () => {
+    expect(() => parser.compile("blah")).toThrow(ParseError);
+  });
 });
 
 
 
 describe("parser.test()", () => {
+  test("returns true when test succeeds", () => {
+    const result = parser.test("this_and_that", ["this"])
+    expect(result).toBe(true);
+  });
+
+  test("returns false when test fails", () => {
+    const result = parser.test("this_and_that", ["and"])
+    expect(result).toBe(false);
+  });
+
+  test("returns undefined when test can't tell", () => {
+    const result = parser.test("statements", ["and"])
+    expect(result).toBe(undefined);
+  });
+
   test("throws if named rule is not found", () => {
     expect(() => parser.test("missing_rule", ["text"])).toThrow(ParseError);
   });
@@ -109,10 +129,16 @@ describe("defineRule()", () => {
 
 describe("parser debug flags", () => {
   test("TIME flag doesn't affect parsing", () => {
+    const timeSpy = jest.spyOn(console, "time").mockImplementation(()=>undefined);
+    const timeEndSpy = jest.spyOn(console, "time").mockImplementation(()=>undefined);
+
     Parser.TIME = true;
     const match = parser.parse("statements", "this and that");
     expect(match.rule).toBeInstanceOf(Rule.Statements);
     Parser.TIME = false;
+
+    timeSpy.mockRestore();
+    timeEndSpy.mockRestore();
   });
 
   test("DEBUG flag doesn't affect parsing", () => {
@@ -128,5 +154,60 @@ describe("parser debug flags", () => {
     expect(match.rule).toBeInstanceOf(Rule.Statements);
     Parser.WARN = false;
   });
+});
 
+describe("Parser.forModule()", () => {
+  test("returns a new parser when called for the first time", () => {
+    const parser = Parser.forModule("foo");
+    expect(parser).toBeInstanceOf(Parser);
+    expect(parser.module).toBe("foo");
+  });
+
+  test("returns the same parser when called more than once", () => {
+    const parser1 = Parser.forModule("foo");
+    const parser2 = Parser.forModule("foo");
+    expect(parser1).toBe(parser2);
+  });
+});
+
+
+describe("Parser.import()", () => {
+  test("adds named modules to `imports`", () => {
+    const parser = new Parser();
+    parser.import("foo", "bar");
+    expect(parser.imports).toEqual(["foo", "bar"]);
+  });
+
+  test("merges rules as expected", () => {
+    const foo = Parser.forModule("foo");
+    const [ foo1, foo2, foo4 ] = foo.defineRules(
+      { name: "rule1", syntax: "rule1" },
+      { name: "rule2", syntax: "rule2" },
+      { name: "rule4", constructor: Rule.Group },
+    );
+
+    const bar = Parser.forModule("bar");
+    const [ bar1, bar3, bar4, bar4a ] = bar.defineRules(
+      { name: "rule1", syntax: "rule1a" },
+      { name: "rule3", syntax: "rule3" },
+      { name: "rule4", constructor: Rule.Group },
+      { name: "rule4", syntax: "rule4" }
+    );
+
+    foo.import("bar");
+    const rules = foo.rules;
+
+    expect(rules.rule1).toBeInstanceOf(Rule.Group);
+    expect(rules.rule1.group).toBe("rule1");
+    expect(rules.rule1.rules[0]).toBe(foo1);
+    expect(rules.rule1.rules[1]).toBe(bar1);
+
+    expect(rules.rule2).toBe(foo2);
+
+    expect(rules.rule3).toBe(bar3);
+
+    expect(rules.rule4).toBe(foo4);
+    expect(rules.rule4.rules.length).toBe(1);
+    expect(rules.rule4.rules[0]).toBe(bar4a);
+  });
 });

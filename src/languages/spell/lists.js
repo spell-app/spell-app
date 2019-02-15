@@ -202,7 +202,7 @@ parser.defineRules(
     name: "position_expression",
     alias: "expression",
     syntax: [
-      "{identifier} {position:expression} of {expression}",
+      "{identifier} {position:expression} of the? {expression}",
       "the {position:ordinal} {identifier} (in|of) {expression}"
     ],
     constructor: class position_expression extends Rule.Sequence {

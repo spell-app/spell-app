@@ -66,9 +66,8 @@ export function tokeniseRuleSyntax(syntax) {
 }
 
 export function parseSyntax(syntax, rules = [], start = 0) {
-  //TESTME
-  if (syntax == null) throw new ParseError("parseSyntax(): `syntax` is required");
   const syntaxStream = typeof syntax === "string" ? tokeniseRuleSyntax(syntax) : syntax;
+  if (!syntax) throw new ParseError("parseSyntax(): `syntax` is required");
 
   let lastIndex = syntaxStream.length;
   while (start < lastIndex) {

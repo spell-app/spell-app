@@ -11,7 +11,8 @@ describe("parseSyntax()", () => {
     test("input is malformed", () => {
       expect(() => parseSyntax("[{good},bad input]")).toThrow(ParseError);
     });
-    test("improperly balanced parenthesis/etc", () => {
+
+    test("non-closed parenthesis/etc", () => {
       expect(() => parseSyntax("(abc")).toThrow(ParseError);
       expect(() => parseSyntax("[abc")).toThrow(ParseError);
       expect(() => parseSyntax("{abc")).toThrow(ParseError);
@@ -173,13 +174,28 @@ describe("parseSyntax()", () => {
       expect(rules[0].subrule).toBe("subrule");
     });
 
-    test("parse subrule with named argument", () => {
+    test("sets promote flag", () => {
+      let rules = parseSyntax("{?:rulename}");
+      expect(rules.length).toBe(1);
+      expect(rules[0]).toBeInstanceOf(Rule.Subrule);
+      expect(rules[0].promote).toBe(true);
+    });
+
+    test("sets named argument", () => {
       let rules = parseSyntax("{arg:subrule}");
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.Subrule);
       expect(rules[0].subrule).toBe("subrule");
       expect(rules[0].argument).toBe("arg");
       expect(rules[0].toSyntax()).toBe("{arg:subrule}");
+    });
+
+    test("sets promote flag AND named argument", () => {
+      let rules = parseSyntax("{?:arg:rulename}");
+      expect(rules.length).toBe(1);
+      expect(rules[0]).toBeInstanceOf(Rule.Subrule);
+      expect(rules[0].promote).toBe(true);
+      expect(rules[0].argument).toBe("arg");
     });
   });
 

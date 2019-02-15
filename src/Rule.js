@@ -182,10 +182,6 @@ Rule.Pattern = class pattern extends Rule {
   compile(match) {
     return match.matched;
   }
-
-  toSyntax() {
-    return this.pattern.source;
-  }
 };
 
 // Subrule -- name of another rule to be called.
@@ -646,11 +642,8 @@ Rule.Statements = class statements extends Rule {
       } else {
         // Got a single statement
         const match = parser.parseNamedRule("statement", item);
-        if (!match) {
-          console.warn("parseBlock expected statement, got", match);
-        } else {
-          matched = matched.concat(match);
-        }
+        if (match) matched = matched.concat(match);
+//        else console.warn("parseBlock expected statement, got", match);
       }
     });
 
