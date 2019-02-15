@@ -231,7 +231,7 @@ parser.defineRule({
   name: "random_position_expression",
   alias: "expression",
   syntax: "a random {identifier} (of|from|in) {list:expression}",
-  testRule: "a random",
+  testRule: "^a random",
   constructor: class random_position_expression extends Rule.Sequence {
     compile(match) {
       const { list, identifier } = match.results;
@@ -447,7 +447,7 @@ parser.defineRule({
     "prepend {thing:expression} to {list:expression}",
     "add {thing:expression} to the (start|front|top) of {list:expression}"
   ],
-  testRule: "(prepend|add)",
+  testRule: "^(prepend|add)",
   constructor: class list_prepend extends Rule.Sequence {
     compile(match) {
       const { thing, list } = match.results;
@@ -475,7 +475,7 @@ parser.defineRule({
     "append {thing:expression} to {list:expression}",
     "add {thing:expression} to (the (end|back) of)? {list:expression}"
   ],
-  testRule: "(append|add)",
+  testRule: "^(append|add)",
   constructor: class list_append extends Rule.Sequence {
     compile(match) {
       const { thing, list } = match.results;
@@ -509,7 +509,7 @@ parser.defineRule({
   name: "list_add_relative",
   alias: "statement",
   syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
-  testRule: "add",
+  testRule: "^add",
   constructor: class list_add_relative extends Rule.Sequence {
     compile(match) {
       const { thing, item, list, operator } = match.results;
@@ -547,7 +547,7 @@ parser.defineRule({
   name: "list_empty",
   alias: "statement",
   syntax: "(empty|clear) {list:expression}",
-  testRule: "(empty|clear)",
+  testRule: "^(empty|clear)",
   constructor: class list_empty extends Rule.Sequence {
     compile(match) {
       const { list } = match.results;
@@ -573,7 +573,7 @@ parser.defineRule({
     "remove {number:ordinal} {identifier} of {list:expression}",
     "remove {identifier} {number:expression} of {list:expression}"
   ],
-  testRule: "remove",
+  testRule: "^remove",
   constructor: class list_remove_position extends Rule.Sequence {
     compile(match) {
       const { number, list, identifier } = match.results;
@@ -601,7 +601,7 @@ parser.defineRule({
     "remove {start:ordinal} to {end:ordinal} {identifier} of {list:expression}",
     "remove {identifier} {start:expression} to {end:expression} of {list:expression}"
   ],
-  testRule: "remove",
+  testRule: "^remove",
   constructor: class list_remove_position extends Rule.Sequence {
     compile(match) {
       const { start, end, list, identifier } = match.results;
@@ -624,7 +624,7 @@ parser.defineRule({
   name: "list_remove",
   alias: "statement",
   syntax: "remove {thing:expression} from {list:expression}",
-  testRule: "remove",
+  testRule: "^remove",
   constructor: class list_remove extends Rule.Sequence {
     compile(match) {
       const { thing, list } = match.results;
@@ -645,7 +645,7 @@ parser.defineRule({
   name: "list_remove_where",
   alias: "statement",
   syntax: "remove {identifier} (in|of|from) {list:expression} where {condition:expression}",
-  testRule: "remove",
+  testRule: "^remove",
   constructor: class list_remove_where extends Rule.Sequence {
     compile(match) {
       const { identifier, condition, list } = match.results;
@@ -684,7 +684,7 @@ parser.defineRule({
   name: "list_reverse",
   alias: "statement",
   syntax: "reverse {list:expression}",
-  testRule: "reverse",
+  testRule: "^reverse",
   constructor: class list_reverse extends Rule.Sequence {
     compile(match) {
       const { list } = match.results;
@@ -704,7 +704,7 @@ parser.defineRule({
   name: "list_shuffle",
   alias: "statement",
   syntax: "(randomize|shuffle) ({identifier} (in|of))? {list:expression}",
-  testRule: "(randomize|shuffle)",
+  testRule: "^(randomize|shuffle)",
   constructor: class list_shuffle extends Rule.Sequence {
     compile(match) {
       const { list } = match.results;
@@ -732,7 +732,7 @@ parser.defineRule({
     "for (each)? {item:identifier} in {list:expression}:? {statement}?",
     "for (each)? {item:identifier} (and|,) {position:identifier} in {list:expression}:? {statement}?"
   ],
-  testRule: "for",
+  testRule: "^for",
   constructor: class list_iteration extends Rule.BlockStatement {
     compile(match) {
       const { item, position, list, statements } = match.results;

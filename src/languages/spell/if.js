@@ -21,7 +21,7 @@ parser.defineRule({
   name: "if",
   alias: "statement",
   syntax: "if {condition:expression} (then|:)? {statement}?",
-  testRule: "if",
+  testRule: "^if",
   constructor: class if_ extends Rule.BlockStatement {
     compile(match) {
       const { condition, statements } = match.results;
@@ -86,7 +86,7 @@ parser.defineRule({
   name: "else_if",
   alias: "statement",
   syntax: "(else|otherwise) if {condition:expression} (then|:)? {statement}?",
-  testRule: "(else|otherwise)",
+  testRule: "^(else|otherwise)",
   precedence: 1,
   constructor: class else_if extends Rule.BlockStatement {
     compile(match) {
@@ -150,7 +150,7 @@ parser.defineRule({
   name: "else",
   alias: "statement",
   syntax: "(else|otherwise)(:)? {statement}?",
-  testRule: "(else|otherwise)",
+  testRule: "^(else|otherwise)",
   constructor: class else_ extends Rule.BlockStatement {
     compile(match) {
       const { statements } = match.results;

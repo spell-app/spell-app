@@ -478,7 +478,7 @@ parser.defineRule({
   name: "literal_list",
   alias: "expression",
   syntax: "\\[[list:{expression},]?\\]",
-  testRule: new Rule.Symbols("["),
+  testRule: "^\\[",
   constructor: class literal_list extends Rule.Sequence {
     compile(match) {
       let { list } = match.results;
@@ -510,7 +510,7 @@ parser.defineRule({
   name: "parenthesized_expression",
   alias: "expression",
   syntax: "\\({expression}\\)",
-  testRule: new Rule.Symbols("("),
+  testRule: "^\\(",
   constructor: class parenthesized_expression extends Rule.Sequence {
     compile(match) {
       let { expression } = match.results;

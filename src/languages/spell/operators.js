@@ -822,7 +822,7 @@ parser.defineRule({
   name: "round_number",
   alias: "expression",
   syntax: "round {thing:expression} (direction:off|up|down)?",
-  testRule: "round",
+  testRule: "^round",
   constructor: class round_number extends Rule.Sequence {
     compile(match) {
       const { thing, direction } = match.results;

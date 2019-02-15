@@ -18,7 +18,7 @@ parser.defineRule({
   name: "return_statement",
   alias: "statement",
   syntax: "return {expression}",
-  testRule: "return",
+  testRule: "^return",
   constructor: class return_statement extends Rule.Sequence {
     compile(match) {
       let { expression } = match.results;
@@ -35,18 +35,16 @@ parser.defineRule({
 
 //
 //  ## Assignment
+//TODO: distinguish between `new_identifier` and `scoped_identifier`?
 //
 
-//TODO: distinguish between `new_identifier` and `scoped_identifier`?
 parser.defineRule({
   name: "assignment",
   alias: ["statement", "mutatesScope"],
   syntax: [
-    "{thing:expression} = {value:expression}",
-    "set {thing:expression} to {value:expression}",
-    "put {value:expression} into {thing:expression}"
+    "{thing:expression} = {value:expression}"
   ],
-  testRule: "(=|set|put)",
+  testRule: "=",
   constructor: class assignment extends Rule.Sequence {
     compile(match) {
       let { thing, value } = match.results;
@@ -59,6 +57,30 @@ parser.defineRule({
       compileAs: "statement",
       tests: [
         ["thing = yes", "thing = true"],
+      ]
+    }
+  ]
+});
+
+parser.defineRule({
+  name: "assignment",
+  alias: ["statement", "mutatesScope"],
+  syntax: [
+    "set {thing:expression} to {value:expression}",
+    "put {value:expression} into {thing:expression}"
+  ],
+  testRule: "^(set|put)",
+  constructor: class assignment extends Rule.Sequence {
+    compile(match) {
+      let { thing, value } = match.results;
+      // TODO: declare identifier if not in scope, etc
+      return `${thing} = ${value}`;
+    }
+  },
+  tests: [
+    {
+      compileAs: "statement",
+      tests: [
         ["set thing to yes", "thing = true"],
         ["put yes into thing", "thing = true"]
       ]
@@ -70,7 +92,7 @@ parser.defineRule({
   name: "get_value",
   alias: ["statement", "mutatesScope"],
   syntax: "get {value:expression}",
-  testRule: "get",
+  testRule: "^get",
   constructor: class get_value extends Rule.Sequence {
     compile(match) {
       let { value } = match.results;
