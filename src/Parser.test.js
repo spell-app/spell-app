@@ -21,7 +21,7 @@ parser.defineRules(
     name: "this_and_that",
     alias: "statement",
     syntax: "{this} and {that}",
-    testRule: "this",
+    testRule: new Rule.Subrule("this"),
     constructor: class this_and_that extends Rule.Sequence {
       compile(match) {
         return "this && that";

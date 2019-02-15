@@ -99,7 +99,8 @@ parser.defineRules(
   {
     name: "my_property_expression",
     alias: "expression",
-    syntax: "(my|this) {identifier}",
+//    syntax: "(my|this) {identifier}",
+    syntax: "my {identifier}",
     constructor: class my_property_expression extends Rule.Sequence {
       compile(match) {
         let { identifier } = match.results;
@@ -109,7 +110,10 @@ parser.defineRules(
     tests: [
       {
         compileAs: "expression",
-        tests: [["my foo", "this.foo"], ["this bank-account", "this.bank_account"]]
+        tests: [
+          ["my foo", "this.foo"],
+//          ["this bank-account", "this.bank_account"]
+        ]
       }
     ]
   },
@@ -202,7 +206,8 @@ parser.defineRules(
   {
     name: "new_thing",
     alias: ["expression", "statement"],
-    syntax: "(create|new) {type} (?:with {props:object_literal_properties})?",
+//    syntax: "(create|new) {type} (?:with {props:object_literal_properties})?",
+    syntax: "create (a|an) {type} (?:with {props:object_literal_properties})?",
     constructor: class new_thing extends Rule.Sequence {
       compile(match) {
         let { type, props = "" } = match.results;
@@ -220,21 +225,21 @@ parser.defineRules(
         title: "creates normal objects properly",
         compileAs: "statement",
         tests: [
-          [`create Object`, `{}`],
-          [`new Object`, `{}`],
-          [`new Object with a = 1, b = yes`, `{ "a": 1, "b": true }`],
-          [`new Foo`, `new Foo()`],
-          [`new Foo with a = 1, b = yes`, `new Foo({ "a": 1, "b": true })`]
+//          [`new Object`, `{}`],
+          [`create an Object`, `{}`],
+          [`create an Object with a = 1, b = yes`, `{ "a": 1, "b": true }`],
+          [`create a Foo`, `new Foo()`],
+          [`create a Foo with a = 1, b = yes`, `new Foo({ "a": 1, "b": true })`]
         ]
       },
       {
         title: "creates special types",
         compileAs: "expression",
         tests: [
-          ["create object", "{}"],
+          ["create an object", "{}"],
           //FIXME: the following don't make sense if they have arguments...
-          ["create List", "new Array()"],
-          ["create list", "new Array()"]
+          ["create a List", "new Array()"],
+          ["create a list", "new Array()"]
           //FIXME: the following don't make sense in JS but are legal parse-wise
 
           //           ["create text", "new String()"],
@@ -291,7 +296,7 @@ parser.defineRules(
 
           ["property foo = the foo of the bar", "foo = bar.foo"],
           ["constant foo = 'some text'", "const foo = 'some text'"],
-          ["shared property foo = new object with a = 1", '@proto foo = { "a": 1 }']
+          ["shared property foo = create an object with a = 1", '@proto foo = { "a": 1 }']
         ]
       }
     ]

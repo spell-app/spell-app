@@ -332,6 +332,7 @@ parser.defineRules(
     name: "range_expression_starting_with",
     alias: "expression",
     syntax: "{identifier} (in|of) {list:expression} starting with {thing:expression}",
+    testRule: "starting with",
     constructor: class range_expression_starting_with extends Rule.Sequence {
       compile(match) {
         const { thing, list, identifier } = match.results;
@@ -361,6 +362,7 @@ parser.defineRules(
     name: "list_filter",
     alias: "expression",
     syntax: "{identifier} (in|of) {list:expression} where {condition:expression}",
+    testRule: "where",
     constructor: class list_filter extends Rule.Sequence {
       compile(match) {
         const { identifier, condition, list } = match.results;
@@ -391,7 +393,7 @@ parser.defineRules(
     syntax:
       "{list:expression} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
     leftRecursive: true,
-    testRule: new Rule.Keywords("where"),
+    testRule: "where",
     constructor: class list_membership_test extends Rule.Sequence {
       compile(match) {
         const { identifier, operator, filter, list } = match.results;

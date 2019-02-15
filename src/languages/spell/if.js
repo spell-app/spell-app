@@ -200,7 +200,7 @@ parser.defineRules(
     alias: "statement",
     syntax: "{statement} if {condition:expression} (?:(else|otherwise) {elseStatement:statement})?",
     leftRecursive: true,
-    testRule: new Rule.Keywords("if"),
+    testRule: "if",
     constructor: class backwards_if extends Rule.Sequence {
       compile(match) {
         const { condition, statement, elseStatement } = match.results;

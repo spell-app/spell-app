@@ -208,8 +208,8 @@ export default class Parser {
   //  `blacklist` ([string], optional) Array of strings as blacklist for pattern rules.
   //  `leftRecursive' (boolean, optional) Set to `true` if the rule is left-recursive,
   //    i.e. it calls itself as a subrule before matching any literal tokens
-  //  `testRule` (Rule or string, optional) Rule or rule name to use as a test rule
-  //    specifying this can let us jump out quickly if there is no possible match
+  //  `testRule` (Rule or string, optional) Rule or keywords string to use as a test rule.
+  //    Specifying this can let us jump out quickly if there is no possible match.
   //
   // Note that we munge the `constructor` passed in for efficiency while parsing.
   defineRule(ruleProps) {
@@ -244,6 +244,11 @@ export default class Parser {
         map[key] = true;
         return map;
       }, {});
+    }
+
+    // Convert string `testRule` to Rule.Keywords
+    if (props.testRule && typeof props.testRule === "string") {
+      props.testRule = new Rule.Keywords(props.testRule);
     }
 
     // Combine aliases with the main name

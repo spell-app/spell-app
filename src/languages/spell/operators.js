@@ -15,7 +15,7 @@ parser.defineRules(
     alias: "expression",
     syntax: "{lhs:expression} {infix_operator} {rhs:expression}",
     leftRecursive: true,
-    testRule: "infix_operator",
+    testRule: new Rule.Subrule("infix_operator"),
     constructor: class infix_operator_expression extends Rule.Sequence {
       // Special `getResults` to ignore the operator.
       getResults(match) {
@@ -643,7 +643,7 @@ parser.defineRules(
     syntax: "{expression} {operator:postfix_operator}",
     leftRecursive: true,
     precedence: 1,
-    testRule: "postfix_operator",
+    testRule: new Rule.Subrule("postfix_operator"),
     constructor: class postfix_operator_expresion extends Rule.Sequence {
       // Special `getResults` to ignore the operator.
       getResults(match) {
@@ -763,7 +763,8 @@ parser.defineRules(
     alias: "expression",
     //FIXME: "the?"
     precedence: 2,
-    syntax: "the? (max|maximum|largest|biggest) {identifier}? (of|in) {expression}",
+//    syntax: "the? (max|maximum|largest|biggest) {identifier}? (of|in) {expression}",
+    syntax: "the? biggest {identifier}? (of|in) {expression}",
     constructor: class max extends Rule.Sequence {
       compile(match) {
         const { expression } = match.results;
@@ -775,10 +776,10 @@ parser.defineRules(
       {
         compileAs: "expression",
         tests: [
-          ["max of thing", "spell.max(thing)"],
-          ["max in thing", "spell.max(thing)"],
-          ["maximum of thing", "spell.max(thing)"],
-          ["largest of thing", "spell.max(thing)"],
+//           ["max of thing", "spell.max(thing)"],
+//           ["max in thing", "spell.max(thing)"],
+//           ["maximum of thing", "spell.max(thing)"],
+//           ["largest of thing", "spell.max(thing)"],
           ["biggest in thing", "spell.max(thing)"],
           ["biggest item in thing", "spell.max(thing)"]
         ]
@@ -791,7 +792,8 @@ parser.defineRules(
     alias: "expression",
     //FIXME: "the?"
     precedence: 2,
-    syntax: "the? (min|minimum|smallest|least) {identifier}? (of|in) {expression}",
+//    syntax: "the? (min|minimum|smallest|least) {identifier}? (of|in) {expression}",
+    syntax: "the? smallest {identifier}? (of|in) {expression}",
     constructor: class min extends Rule.Sequence {
       compile(match) {
         const { expression } = match.results;
@@ -803,11 +805,11 @@ parser.defineRules(
       {
         compileAs: "expression",
         tests: [
-          ["min of thing", "spell.min(thing)"],
-          ["min in thing", "spell.min(thing)"],
-          ["minimum of thing", "spell.min(thing)"],
+//           ["min of thing", "spell.min(thing)"],
+//           ["min in thing", "spell.min(thing)"],
+//           ["minimum of thing", "spell.min(thing)"],
+//           ["least of thing", "spell.min(thing)"],
           ["smallest of thing", "spell.min(thing)"],
-          ["least of thing", "spell.min(thing)"],
           ["smallest item in thing", "spell.min(thing)"]
         ]
       }

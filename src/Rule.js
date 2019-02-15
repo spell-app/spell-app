@@ -21,7 +21,7 @@ import Tokenizer, { matchLiterals } from "./Tokenizer.js";
 import { isWhitespace } from "./utils/string";
 
 // Show debug messages on browser only.
-const DEBUG = false;//!isNode;
+const DEBUG = !isNode;
 
 
 // Abstract Rule class.
@@ -190,6 +190,16 @@ Rule.Pattern = class pattern extends Rule {
 // After parsing
 //  we'll return the actual rule that was matched (rather than a clone of this rule)
 Rule.Subrule = class subrule extends Rule {
+  constructor(props) {
+    if (typeof props === "string") {
+      super();
+      this.subrule = props;
+    }
+    else {
+      super(props);
+    }
+  }
+
   parse(parser, tokens, start = 0, end, stack) {
     const match = parser.parseNamedRule(this.subrule, tokens, start, end, stack);
     if (!match) return undefined;
