@@ -264,9 +264,9 @@ Rule.Alternatives = class alternatives extends Rule {
   }
 
   // Return the "best" match given more than one matches at the head of the tokens.
-  // Default is to return the longest match.
+  // First we find the match(es) with the highest preceedence.
+  // Then we take the one with the longest matched string.
   // If more than one rule with same length, takes LATEST one.
-  // Implement something else to do, eg, precedence rules.
   getBestMatch(matches) {
     if (matches.length === 1) return matches[0];
 
@@ -657,7 +657,9 @@ Rule.Statements = class statements extends Rule {
     })
   }
 
-  // Output statements WITHOUT curly braces around them.
+  // Output statements match parsed with `parseBlock`
+  // Set `match.enclose` to enclose in curly braces
+  // Set `match.indent` to add a tab to the start of each line.
   compile(match) {
     let results = [],
       statement;
@@ -726,6 +728,7 @@ Rule.Statements = class statements extends Rule {
 //    - the block and its statements, enclosed in curly braces and indented, or
 //    - the formatted `statement`, enclosed in curly brackets,
 //    - `{}` if neither statement or block was matched.
+//
 Rule.BlockStatement = class block_statement extends Rule.Sequence {
   // Add `statements` to the results.
   getResults(match) {

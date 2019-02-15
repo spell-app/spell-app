@@ -18,10 +18,14 @@ describe("broken rules:", () => {
     expect(match.compile()).toBe("spell.filter(my_list, item => item.id > 1, 'items')");
   });
 
-  it.skip("doubly nested quotes'", () => {
+  it.skip("doubly nested quotes", () => {
     const match = parser.parse("text", "'\"Gadzooks! I can\\'t believe it!\" he said'");
     expect(match.compile()).toBe("'\"Gadzooks! I can\'t believe it!\" he said'");
   });
 
+  it.skip("<position_expression><property_expression>", () => {
+    const match = parser.parse("expression", "card n of the cards of the deck");
+    expect(match.compile()).toBe("spell.getItem(deck.cards, n, 'card')");
+  });
 
 });

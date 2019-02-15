@@ -13,23 +13,23 @@ parser.defineRules(
   {
     name: "infix_operator_expression",
     alias: "expression",
-    syntax: "{lhs:expression} {operator:infix_operator} {rhs:expression}",
+    syntax: "{lhs:expression} {infix_operator} {rhs:expression}",
     leftRecursive: true,
     testRule: "infix_operator",
     constructor: class infix_operator_expression extends Rule.Sequence {
-      compile(match) {
-        let { lhs, rhs } = match.results;
-        const operatorRule = match.matched[1].rule;
-        return operatorRule.applyOperator(lhs, rhs);
+      // Special `getResults` to ignore the operator.
+      getResults(match) {
+        return {
+          lhs: match.matched[0].compile(),
+          rhs: match.matched[2].compile()
+        }
       }
-//       get precedence() {
-//         if (!this.matched)
-//           throw new SyntaxError(
-//             "infix_operator_expression: trying to look up precedence when not parsed!"
-//           );
-//         const { _operator } = this.results;
-//         return _operator.precedence;
-//       }
+
+      // Delegate compilation down to the operator which was actually matched.
+      compile(match) {
+        const operatorRule = match.matched[1].rule;
+        return operatorRule.compile(match);
+      }
     },
     // test multiple infix expressions in a row
     tests: [
@@ -53,8 +53,9 @@ parser.defineRules(
     precedence: 6,
     syntax: "and",
     constructor: class and extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} && ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} && ${rhs})`;
       }
     },
     tests: [
@@ -71,8 +72,9 @@ parser.defineRules(
     precedence: 5,
     syntax: "or",
     constructor: class or extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} || ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} || ${rhs})`;
       }
     },
     tests: [
@@ -89,8 +91,9 @@ parser.defineRules(
     precedence: 10,
     syntax: "is",
     constructor: class is extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} == ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} == ${rhs})`;
       }
     },
     tests: [
@@ -107,8 +110,9 @@ parser.defineRules(
     precedence: 10,
     syntax: "is not",
     constructor: class is_not extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} != ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} != ${rhs})`;
       }
     },
     tests: [
@@ -125,8 +129,9 @@ parser.defineRules(
     precedence: 10,
     syntax: "is exactly",
     constructor: class is_exactly extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} === ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} === ${rhs})`;
       }
     },
     tests: [
@@ -142,8 +147,9 @@ parser.defineRules(
     precedence: 10,
     syntax: "is not exactly",
     constructor: class is_not_exactly extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} !== ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} !== ${rhs})`;
       }
     },
     tests: [
@@ -160,8 +166,9 @@ parser.defineRules(
     precedence: 11,
     syntax: ["is a", "is an"],
     constructor: class is_a extends Rule.Keywords {
-      applyOperator(thing, type) {
-        return `spell.isOfType(${thing}, '${type}')`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `spell.isOfType(${lhs}, '${rhs}')`;
       }
     },
     tests: [
@@ -178,8 +185,9 @@ parser.defineRules(
     precedence: 11,
     syntax: ["is not a", "is not an"],
     constructor: class is_not_a extends Rule.Keywords {
-      applyOperator(thing, type) {
-        return `!spell.isOfType(${thing}, '${type}')`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `!spell.isOfType(${lhs}, '${rhs}')`;
       }
     },
     tests: [
@@ -199,8 +207,9 @@ parser.defineRules(
     precedence: 11,
     syntax: ["is same type as"],
     constructor: class is_same_type_as extends Rule.Keywords {
-      applyOperator(thing, otherThing) {
-        return `(spell.typeOf(${thing}) === spell.typeOf(${otherThing}))`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(spell.typeOf(${lhs}) === spell.typeOf(${rhs}))`;
       }
     },
     tests: [
@@ -219,8 +228,9 @@ parser.defineRules(
     precedence: 11,
     syntax: ["is in", "is one of"],
     constructor: class is_in extends Rule.Keywords {
-      applyOperator(thing, list) {
-        return `spell.includes(${list}, ${thing})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `spell.includes(${rhs}, ${lhs})`;
       }
     },
     tests: [
@@ -240,8 +250,9 @@ parser.defineRules(
     precedence: 11,
     syntax: ["is not in", "is not one of"],
     constructor: class is_not_in extends Rule.Keywords {
-      applyOperator(thing, list) {
-        return `!spell.includes(${list}, ${thing})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `!spell.includes(${rhs}, ${lhs})`;
       }
     },
     tests: [
@@ -261,8 +272,9 @@ parser.defineRules(
     precedence: 11,
     syntax: ["includes", "contains"],
     constructor: class includes extends Rule.Keywords {
-      applyOperator(list, thing) {
-        return `spell.includes(${list}, ${thing})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `spell.includes(${lhs}, ${rhs})`;
       }
     },
     tests: [
@@ -282,8 +294,9 @@ parser.defineRules(
     precedence: 11,
     syntax: ["does not include", "does not contain"],
     constructor: class does_not_include extends Rule.Keywords {
-      applyOperator(list, thing) {
-        return `!spell.includes(${list}, ${thing})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `!spell.includes(${lhs}, ${rhs})`;
       }
     },
     tests: [
@@ -303,8 +316,9 @@ parser.defineRules(
     precedence: 11,
     syntax: ">",
     constructor: class gt extends Rule.Symbols {
-      applyOperator(a, b) {
-        return `(${a} > ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} > ${rhs})`;
       }
     },
     tests: [
@@ -323,8 +337,9 @@ parser.defineRules(
     precedence: 11,
     syntax: "is greater than",
     constructor: class is_gt extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} > ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} > ${rhs})`;
       }
     },
     tests: [
@@ -341,8 +356,9 @@ parser.defineRules(
     precedence: 11,
     syntax: ">=",
     constructor: class gte extends Rule.Symbols {
-      applyOperator(a, b) {
-        return `(${a} >= ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} >= ${rhs})`;
       }
     },
     tests: [
@@ -361,8 +377,9 @@ parser.defineRules(
     precedence: 11,
     syntax: "is greater than or equal to",
     constructor: class is_gte extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} >= ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} >= ${rhs})`;
       }
     },
     tests: [
@@ -379,8 +396,9 @@ parser.defineRules(
     precedence: 11,
     syntax: "<",
     constructor: class lt extends Rule.Symbols {
-      applyOperator(a, b) {
-        return `(${a} < ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} < ${rhs})`;
       }
     },
     tests: [
@@ -399,8 +417,9 @@ parser.defineRules(
     precedence: 11,
     syntax: "is less than",
     constructor: class is_lt extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} < ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} < ${rhs})`;
       }
     },
     tests: [
@@ -417,8 +436,9 @@ parser.defineRules(
     precedence: 11,
     syntax: "<=",
     constructor: class lte extends Rule.Symbols {
-      applyOperator(a, b) {
-        return `(${a} <= ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} <= ${rhs})`;
       }
     },
     tests: [
@@ -438,8 +458,9 @@ parser.defineRules(
     precedence: 11,
     syntax: "is less than or equal to",
     constructor: class is_lte extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} <= ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} <= ${rhs})`;
       }
     },
     tests: [
@@ -456,8 +477,9 @@ parser.defineRules(
     precedence: 13,
     syntax: "\\+",
     constructor: class plus_symbol extends Rule.Symbols {
-      applyOperator(a, b) {
-        return `(${a} + ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} + ${rhs})`;
       }
     },
     tests: [
@@ -473,8 +495,9 @@ parser.defineRules(
     precedence: 13,
     syntax: "plus",
     constructor: class plus extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} + ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} + ${rhs})`;
       }
     },
     tests: [
@@ -491,8 +514,9 @@ parser.defineRules(
     precedence: 13,
     syntax: "-",
     constructor: class minus_symbol extends Rule.Symbols {
-      applyOperator(a, b) {
-        return `(${a} - ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} - ${rhs})`;
       }
     },
     tests: [
@@ -516,8 +540,9 @@ parser.defineRules(
     precedence: 13,
     syntax: "minus",
     constructor: class minus extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} - ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} - ${rhs})`;
       }
     },
     tests: [
@@ -534,8 +559,9 @@ parser.defineRules(
     precedence: 14,
     syntax: "\\*",
     constructor: class times extends Rule.Symbols {
-      applyOperator(a, b) {
-        return `(${a} * ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} * ${rhs})`;
       }
     },
     tests: [
@@ -554,8 +580,9 @@ parser.defineRules(
     precedence: 14,
     syntax: "times",
     constructor: class times extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} * ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} * ${rhs})`;
       }
     },
     tests: [
@@ -572,8 +599,9 @@ parser.defineRules(
     precedence: 14,
     syntax: "/",
     constructor: class divided_by extends Rule.Symbols {
-      applyOperator(a, b) {
-        return `(${a} / ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} / ${rhs})`;
       }
     },
     tests: [
@@ -592,8 +620,9 @@ parser.defineRules(
     precedence: 14,
     syntax: "divided by",
     constructor: class divided_by extends Rule.Keywords {
-      applyOperator(a, b) {
-        return `(${a} / ${b})`;
+      compile(match) {
+        const { lhs, rhs } = match.results;
+        return `(${lhs} / ${rhs})`;
       }
     },
     tests: [
@@ -616,10 +645,16 @@ parser.defineRules(
     precedence: 1,
     testRule: "postfix_operator",
     constructor: class postfix_operator_expresion extends Rule.Sequence {
+      // Special `getResults` to ignore the operator.
+      getResults(match) {
+        return {
+          expression: match.matched[0].compile()
+        }
+      }
+
       compile(match) {
-        let { expression } = match.results;
         const operatorRule = match.matched[1].rule;
-        return operatorRule.applyOperator(expression);
+        return operatorRule.compile(match);
       }
     }
   },
@@ -629,8 +664,9 @@ parser.defineRules(
     alias: ["postfix_operator"],
     syntax: "is defined",
     constructor: class is_defined extends Rule.Keywords {
-      applyOperator(thing) {
-        return `(typeof ${thing} !== 'undefined')`;
+      compile(match) {
+        const { expression } = match.results;
+        return `(typeof ${expression} !== 'undefined')`;
       }
     },
     tests: [
@@ -648,8 +684,9 @@ parser.defineRules(
       "is not defined"
     ],
     constructor: class is_undefined extends Rule.Keywords {
-      applyOperator(thing) {
-        return `(typeof ${thing} === 'undefined')`;
+      compile(match) {
+        const { expression } = match.results;
+        return `(typeof ${expression} === 'undefined')`;
       }
     },
     tests: [
@@ -668,8 +705,9 @@ parser.defineRules(
     alias: ["postfix_operator"],
     syntax: "is empty",
     constructor: class is_empty extends Rule.Keywords {
-      applyOperator(thing) {
-        return `spell.isEmpty(${thing})`;
+      compile(match) {
+        const { expression } = match.results;
+        return `spell.isEmpty(${expression})`;
       }
     },
     tests: [
@@ -684,8 +722,9 @@ parser.defineRules(
     alias: ["postfix_operator"],
     syntax: "is not empty",
     constructor: class is_not_empty extends Rule.Keywords {
-      applyOperator(thing) {
-        return `!spell.isEmpty(${thing})`;
+      compile(match) {
+        const { expression } = match.results;
+        return `!spell.isEmpty(${expression})`;
       }
     },
     tests: [

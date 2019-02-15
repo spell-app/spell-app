@@ -265,6 +265,7 @@ function parseRepeat(syntaxStream, rules, start = 0) {
 function parseSubrule(syntaxStream, rules, start = 0) {
   const match = Tokenizer.findNestedTokens(syntaxStream, "{", "}", start);
   const props = {};
+
   // handle promote flag: "?:"
   if (match.slice[0] === "?" && match.slice[1] === ":") {
     props.promote = true;
@@ -283,13 +284,6 @@ function parseSubrule(syntaxStream, rules, start = 0) {
     );
 
   props.subrule = match.slice[0];
-
-  // see if there's a `not` rule in there
-//   const bangPosition = props.subrule.indexOf("!");
-//   if (bangPosition !== -1) {
-//     props.not = props.subrule.substr(bangPosition + 1);
-//     props.subrule = props.subrule.substr(0, bangPosition);
-//   }
 
   const rule = new Rule.Subrule(props);
   return [rule, match.end];

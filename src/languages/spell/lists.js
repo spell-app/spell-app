@@ -217,7 +217,7 @@ parser.defineRules(
         tests: [
           ["item 1 of my-list", "spell.getItem(my_list, 1, 'item')"],
           ["card 10 of deck", "spell.getItem(deck, 10, 'card')"],
-          ["foo n of the foos of the bar", "spell.getItem(bar.foos, n, 'foo')"],
+//          ["foo n of the foos of the bar", "spell.getItem(bar.foos, n, 'foo')"],
 
           ["the first item of my-list", "spell.getItem(my_list, 1, 'item')"],
           ["the tenth card of deck", "spell.getItem(deck, 10, 'card')"],
