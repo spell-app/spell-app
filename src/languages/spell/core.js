@@ -12,543 +12,539 @@ import Tokenizer from "../../Tokenizer";
 const parser = Parser.forModule("core");
 export default parser;
 
-parser.defineRules(
-  {
-    name: "statement",
-    constructor: Rule.Statement
-  },
 
-  {
-    name: "statements",
-    constructor: Rule.Statements
-  },
+parser.defineRule({
+  name: "statement",
+  constructor: Rule.Statement
+});
 
-  {
-    name: "comment",
-    constructor: Rule.Comment
-  },
+parser.defineRule({
+  name: "statements",
+  constructor: Rule.Statements
+});
 
-  // `undefined` as an expression... ???
-  {
-    name: "undefined",
-    alias: "expression",
-    syntax: "undefined",
-    constructor: class _undefined extends Rule.Keywords {
-      compile(match) {
-        return "undefined";
-      }
+parser.defineRule({
+  name: "comment",
+  constructor: Rule.Comment
+});
+
+// `undefined` as an expression... ???
+parser.defineRule({
+  name: "undefined",
+  alias: "expression",
+  syntax: "undefined",
+  testAtStart: true,
+  constructor: class _undefined extends Rule.Keywords {
+    compile(match) {
+      return "undefined";
+    }
+  },
+  tests: [
+    {
+      compileAs: "expression",
+      tests: [["undefined", "undefined"]]
+    }
+  ]
+});
+
+
+// `word` = is a single alphanumeric word.
+// MUST start with a lower-case letter (?)
+parser.defineRule({
+  name: "word",
+  pattern: /^[a-z][\w\-]*$/,
+  canonical: "Word",
+  constructor: class word extends Rule.Pattern {
+    // Convert "-" to "_" in source output.
+    compile(match) {
+      return match.matched.replace(/\-/g, "_");
+    }
+  },
+  tests: [
+    {
+      title: "correctly matches words",
+      tests: [
+        ["abc", "abc"],
+        ["abc-def", "abc_def"],
+        ["abc_def", "abc_def"],
+        ["abc01", "abc01"],
+        ["abc-def_01", "abc_def_01"]
+      ]
     },
-    tests: [
-      {
-        compileAs: "expression",
-        tests: [["undefined", "undefined"]]
-      }
-    ]
+    {
+      title: "doesn't match things that aren't words",
+      tests: [
+        ["$asda", undefined],
+        ["(asda)", undefined] // TODO... ???
+      ]
+    }
+  ]
+});
+
+// `identifier` = variables or property name.
+// MUST start with a lower-case letter (?)
+// NOTE: We blacklist a lot of words as identifiers.
+parser.defineRule({
+  name: "identifier",
+  alias: "expression",
+  canonical: "Idenfifier",
+  pattern: /^[a-z][\w\-]*$/,
+  constructor: class identifier extends Rule.Pattern {
+    // Convert "-" to "_" in source output.
+    compile(match) {
+      return match.matched.replace(/\-/g, "_");
+    }
   },
+  blacklist: [
+    // Add English prepositions to identifier blacklist.
+    //
+    // Wikipedia "Preposition":
+    //  "Prepositions...are a class of words that
+    //  express spatial or temporal relations  (in, under, towards, before)
+    //  or mark various semantic roles (of, for).
+    // TESTME
+    "about",
+    "above",
+    "after",
+    "and",
+    "as",
+    "at",
+    "before",
+    "behind",
+    "below",
+    "beneath",
+    "beside",
+    "between",
+    "beyond",
+    "by",
+    "defined",
+    "down",
+    "during",
+    "each",
+    "empty",
+    "exactly",
+    "except",
+    "for",
+    "from",
+    "greater",
+    "I",
+    "in",
+    "into",
+    "less",
+    "long",
+    "me",
+    "minus",
+    "more",
+    "near",
+    "not",
+    "of",
+    "off",
+    "on",
+    "onto",
+    "opposite",
+    "or",
+    "out",
+    "outside",
+    "over",
+    "short",
+    "since",
+    "than",
+    "the",
+    "then",
+    "through",
+    "thru",
+    "to",
+    "toward",
+    "towards",
+    "undefined",
+    "under",
+    "underneath",
+    "unique",
+    "until",
+    "up",
+    "upon",
+    "upside",
+    "versus",
+    "vs",
+    "where",
+    "with",
+    "within",
+    "without",
 
-  // `word` = is a single alphanumeric word.
-  // MUST start with a lower-case letter (?)
-  {
-    name: "word",
-    pattern: /^[a-z][\w\-]*$/,
-    canonical: "Word",
-    constructor: class word extends Rule.Pattern {
-      // Convert "-" to "_" in source output.
-      compile(match) {
-        return match.matched.replace(/\-/g, "_");
-      }
+    // Add common english verbs to identifier blacklist.
+    "are",
+    "do",
+    "does",
+    "contains",
+    "has",
+    "have",
+    "is",
+    "repeat",
+    "was",
+    "were",
+
+    // Add special control keywords to identifier blacklist.
+    "else",
+    "if",
+    "otherwise",
+    "while",
+
+    // Add boolean tokens to identifier blacklist.
+    "true",
+    "false",
+    "yes",
+    "no",
+    "ok",
+    "cancel",
+    "success",
+    "failure",
+
+    // Add number words to identifier blacklist.
+    // TESTME
+    "one",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten"
+  ],
+  tests: [
+    {
+      title: "correctly matches identifiers",
+      tests: [
+        ["", undefined],
+        ["abc", "abc"],
+        ["abc-def", "abc_def"],
+        ["abc_def", "abc_def"],
+        ["abc01", "abc01"],
+        ["abc-def_01", "abc_def_01"]
+      ]
     },
-    tests: [
-      {
-        title: "correctly matches words",
-        tests: [
-          ["abc", "abc"],
-          ["abc-def", "abc_def"],
-          ["abc_def", "abc_def"],
-          ["abc01", "abc01"],
-          ["abc-def_01", "abc_def_01"]
-        ]
-      },
-      {
-        title: "doesn't match things that aren't words",
-        tests: [
-          ["$asda", undefined],
-          ["(asda)", undefined] // TODO... ???
-        ]
+    {
+      title: "doesn't match things that aren't identifiers",
+      tests: [
+        ["", undefined],
+        ["$asda", undefined],
+        ["(asda)", undefined], // TODO... ???
+        ["Abc", undefined]
+      ]
+    },
+    {
+      title: "skips items in its blacklist",
+      tests: [["yes", undefined]]
+    }
+  ]
+});
+
+// Boolean literal, created with custom constructor for debugging.
+// TODO: better name for this???
+parser.defineRule({
+  name: "boolean",
+  alias: "expression",
+  canonical: "Boolean",
+  pattern: /^(true|false|yes|no|ok|cancel|success|failure)$/,
+  constructor: class boolean extends Rule.Pattern {
+    compile(match) {
+      switch (match.matched) {
+        case "true":
+        case "yes":
+        case "ok":
+        case "success":
+          return true;
+
+        default:
+          return false;
       }
-    ]
+    }
   },
-
-  // `identifier` = variables or property name.
-  // MUST start with a lower-case letter (?)
-  // NOTE: We blacklist a lot of words as identifiers.
-  {
-    name: "identifier",
-    alias: "expression",
-    canonical: "Idenfifier",
-    pattern: /^[a-z][\w\-]*$/,
-    constructor: class identifier extends Rule.Pattern {
-      // Convert "-" to "_" in source output.
-      compile(match) {
-        return match.matched.replace(/\-/g, "_");
-      }
+  tests: [
+    {
+      title: "correctly matches booleans",
+      tests: [
+        ["", undefined],
+        ["true", true],
+        ["yes", true],
+        ["ok", true],
+        ["success", true],
+        ["false", false],
+        ["no", false],
+        ["cancel", false],
+        ["failure", false]
+      ]
     },
-    blacklist: [
-      // Add English prepositions to identifier blacklist.
-      //
-      // Wikipedia "Preposition":
-      //  "Prepositions...are a class of words that
-      //  express spatial or temporal relations  (in, under, towards, before)
-      //  or mark various semantic roles (of, for).
-      // TESTME
-      "about",
-      "above",
-      "after",
-      "and",
-      "as",
-      "at",
-      "before",
-      "behind",
-      "below",
-      "beneath",
-      "beside",
-      "between",
-      "beyond",
-      "by",
-      "defined",
-      "down",
-      "during",
-      "each",
-      "empty",
-      "exactly",
-      "except",
-      "for",
-      "from",
-      "greater",
-      "I",
-      "in",
-      "into",
-      "less",
-      "long",
-      "me",
-      "minus",
-      "more",
-      "near",
-      "not",
-      "of",
-      "off",
-      "on",
-      "onto",
-      "opposite",
-      "or",
-      "out",
-      "outside",
-      "over",
-      "short",
-      "since",
-      "than",
-      "the",
-      "then",
-      "through",
-      "thru",
-      "to",
-      "toward",
-      "towards",
-      "undefined",
-      "under",
-      "underneath",
-      "unique",
-      "until",
-      "up",
-      "upon",
-      "upside",
-      "versus",
-      "vs",
-      "where",
-      "with",
-      "within",
-      "without",
+    {
+      title: "doesn't match in the middle of a longer keyword",
+      tests: [["yessir", undefined], ["yes-sir", undefined], ["yes_sir", undefined]]
+    }
+  ]
+});
 
-      // Add common english verbs to identifier blacklist.
-      "are",
-      "do",
-      "does",
-      "contains",
-      "has",
-      "have",
-      "is",
-      "repeat",
-      "was",
-      "were",
+// `number` as either float or integer, created with custom constructor for debugging.
+// NOTE: you can also use `one`...`ten` as strings.'
+// TODO:  `integer` and `decimal`?  too techy?
+parser.defineRule({
+  name: "number",
+  alias: "expression",
+  canonical: "Number",
+  pattern: /^(-?([0-9]*\.)?[0-9]+|zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
+  constructor: class number extends Rule.Pattern {
+    static NAMES = [
+      "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"
+    ];
 
-      // Add special control keywords to identifier blacklist.
-      "else",
-      "if",
-      "otherwise",
-      "while",
+    // Numbers get encoded as numbers in the token stream.
+    parse(parser, tokens, start, end, stack) {
+      const match = super.parse(parser, tokens, start, end, stack);
+      if (!match) return undefined;
 
-      // Add boolean tokens to identifier blacklist.
-      "true",
-      "false",
-      "yes",
-      "no",
-      "ok",
-      "cancel",
-      "success",
-      "failure",
+      // `match.matched` will be the number as a string, coerce to a number
+      const index = Rule.Number.NAMES.indexOf(match.matched);
+      if (index > -1) match.matched = index;
+      else            match.matched = parseFloat(match.matched);
+      if (isNaN(match.matched)) throw new TypeError("number: didn't get a number back");
+      return match;
+    }
 
-      // Add number words to identifier blacklist.
-      // TESTME
-      "one",
-      "two",
-      "three",
-      "four",
-      "five",
-      "six",
-      "seven",
-      "eight",
-      "nine",
-      "ten"
-    ],
-    tests: [
-      {
-        title: "correctly matches identifiers",
-        tests: [
-          ["", undefined],
-          ["abc", "abc"],
-          ["abc-def", "abc_def"],
-          ["abc_def", "abc_def"],
-          ["abc01", "abc01"],
-          ["abc-def_01", "abc_def_01"]
-        ]
-      },
-      {
-        title: "doesn't match things that aren't identifiers",
-        tests: [
-          ["", undefined],
-          ["$asda", undefined],
-          ["(asda)", undefined], // TODO... ???
-          ["Abc", undefined]
-        ]
-      },
-      {
-        title: "skips items in its blacklist",
-        tests: [["yes", undefined]]
-      }
-    ]
+    compile(match) {
+      return match.matched;
+    }
   },
-
-  // Boolean literal, created with custom constructor for debugging.
-  // TODO: better name for this???
-  {
-    name: "boolean",
-    alias: "expression",
-    canonical: "Boolean",
-    pattern: /^(true|false|yes|no|ok|cancel|success|failure)$/,
-    constructor: class boolean extends Rule.Pattern {
-      compile(match) {
-        switch (match.matched) {
-          case "true":
-          case "yes":
-          case "ok":
-          case "success":
-            return true;
-
-          default:
-            return false;
-        }
-      }
+  tests: [
+    {
+      title: "correctly matches numbers",
+      tests: [
+        ["1", 1],
+        ["1000", 1000],
+        ["-1", -1],
+        ["1.1", 1.1],
+        ["000.1", 0.1],
+        ["1.", 1],
+        [".1", 0.1],
+        ["-111.111", -111.111]
+      ]
     },
-    tests: [
-      {
-        title: "correctly matches booleans",
-        tests: [
-          ["", undefined],
-          ["true", true],
-          ["yes", true],
-          ["ok", true],
-          ["success", true],
-          ["false", false],
-          ["no", false],
-          ["cancel", false],
-          ["failure", false]
-        ]
-      },
-      {
-        title: "doesn't match in the middle of a longer keyword",
-        tests: [["yessir", undefined], ["yes-sir", undefined], ["yes_sir", undefined]]
-      }
-    ]
+    {
+      title: "correctly matches number strings",
+      tests: [
+        ["zero", 0],
+        ["one", 1],
+        ["two", 2],
+        ["three", 3],
+        ["four", 4],
+        ["five", 5],
+        ["six", 6],
+        ["seven", 7],
+        ["eight", 8],
+        ["nine", 9],
+        ["ten", 10]
+      ]
+    },
+    {
+      title: "doesn't match things that aren't numbers",
+      tests: [["", undefined], [".", undefined]]
+    },
+    {
+      title: "requires negative sign to be touching the number",
+      tests: [["- 1", undefined]]
+    }
+  ]
+});
+
+// Literal `text` string, created with custom constructor for debugging.
+// You can use either single or double quotes on the outside (although double quotes are preferred).
+// Returned value has enclosing quotes.
+parser.defineRule({
+  name: "text",
+  alias: "expression",
+  canonical: "Text",
+  testRule: Tokenizer.Text,
+  constructor: class text extends Rule {
+    // Text strings get encoded as `text` objects in the token stream.
+    parse(parser, tokens, start = 0) {
+      let token = tokens[start];
+      if (!(token instanceof Tokenizer.Text)) return undefined;
+      return new Match({
+        rule: this,
+        matched: token.quotedString,
+        nextStart: start + 1
+      });
+    }
+
+    compile(match) {
+      return match.matched;
+    }
   },
+  tests: [
+    {
+      title: "correctly matches text",
+      tests: [
+        ['""', '""'],
+        ["''", "''"],
+        ['"a"', '"a"'],
+        ["'a'", "'a'"],
+        ['"abcd"', '"abcd"'],
+        ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
+        ['"...Can\'t touch this"', '"...Can\'t touch this"'],
+      ]
+    }
+  ]
+});
 
-  // `number` as either float or integer, created with custom constructor for debugging.
-  // NOTE: you can also use `one`...`ten` as strings.'
-  // TODO:  `integer` and `decimal`?  too techy?
-  {
-    name: "number",
-    alias: "expression",
-    canonical: "Number",
-    NAME_MAP: {
-      zero: 0,
-      one: 1,
-      two: 2,
-      three: 3,
-      four: 4,
-      five: 5,
-      six: 6,
-      seven: 7,
-      eight: 8,
-      nine: 9,
-      ten: 10
-    },
-    constructor: class number extends Rule {
-      // Numbers get encoded as numbers in the token stream.
-      parse(parser, tokens, start = 0) {
-        let token = tokens[start];
-        // if a string, attempt to run through our NUMBER_NAMES
-        if (typeof token === "string") token = this.NAME_MAP[token];
-        if (typeof token !== "number") return undefined;
-        return new Match({
-          rule: this,
-          matched: token,
-          nextStart: start + 1
-        })
-      }
+// `Type` = type name.
+// MUST start with an upper-case letter (?)
+parser.defineRule({
+  name: "type",
+  alias: "expression",
+  canonical: "Type",
+  pattern: /^([A-Z][\w\-]*|list|text|number|integer|decimal|character|boolean|object)$/,
+  constructor: class type extends Rule.Pattern {
+    // Convert "-" to "_" in source output.
+    compile(match) {
+      let type = match.matched;
+      switch (type) {
+        // Alias `List` to `Array`
+        case "List":
+          return "Array";
 
-      compile(match) {
-        return match.matched;
+        // special case to take the following as lowercase
+        case "list":
+          return "Array";
+        case "text":
+          return "String";
+        case "character":
+          return "Character";
+        case "number":
+          return "Number";
+        case "integer":
+          return "Integer";
+        case "decimal":
+          return "Decimal";
+        case "boolean":
+          return "Boolean";
+        case "object":
+          return "Object";
+        default:
+          return type.replace(/\-/g, "_");
       }
-    },
-    tests: [
-      {
-        title: "correctly matches numbers",
-        tests: [
-          ["1", 1],
-          ["1000", 1000],
-          ["-1", -1],
-          ["1.1", 1.1],
-          ["000.1", 0.1],
-          ["1.", 1],
-          [".1", 0.1],
-          ["-111.111", -111.111]
-        ]
-      },
-      {
-        title: "correctly matches number strings",
-        tests: [
-          ["zero", 0],
-          ["one", 1],
-          ["two", 2],
-          ["three", 3],
-          ["four", 4],
-          ["five", 5],
-          ["six", 6],
-          ["seven", 7],
-          ["eight", 8],
-          ["nine", 9],
-          ["ten", 10]
-        ]
-      },
-      {
-        title: "doesn't match things that aren't numbers",
-        tests: [["", undefined], [".", undefined]]
-      },
-      {
-        title: "requires negative sign to be touching the number",
-        tests: [["- 1", undefined]]
-      }
-    ]
+    }
   },
-
-  // Literal `text` string, created with custom constructor for debugging.
-  // You can use either single or double quotes on the outside (although double quotes are preferred).
-  // Returned value has enclosing quotes.
-  {
-    name: "text",
-    alias: "expression",
-    canonical: "Text",
-    constructor: class text extends Rule {
-      // Text strings get encoded as `text` objects in the token stream.
-      parse(parser, tokens, start = 0) {
-        let token = tokens[start];
-        if (!(token instanceof Tokenizer.Text)) return undefined;
-        return new Match({
-          rule: this,
-          matched: token.quotedString,
-          nextStart: start + 1
-        });
-      }
-
-      compile(match) {
-        return match.matched;
-      }
+  blacklist: ["I"],
+  tests: [
+    {
+      title: "correctly matches types",
+      tests: [
+        ["Abc", "Abc"],
+        ["Abc-def", "Abc_def"],
+        ["Abc_Def", "Abc_Def"],
+        ["Abc01", "Abc01"],
+        ["Abc-def_01", "Abc_def_01"]
+      ]
     },
-    tests: [
-      {
-        title: "correctly matches text",
-        tests: [
-          ['""', '""'],
-          ["''", "''"],
-          ['"a"', '"a"'],
-          ["'a'", "'a'"],
-          ['"abcd"', '"abcd"'],
-          ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
-          ['"...Can\'t touch this"', '"...Can\'t touch this"'],
-        ]
-      }
-    ]
+    {
+      title: "doesn't match things that aren't types",
+      tests: [
+        ["", undefined],
+        ["$Asda", undefined], // TODO... ???
+        ["(Asda)", undefined] // TODO... ???
+      ]
+    },
+    {
+      title: "converts special types",
+      tests: [
+        ["List", "Array"],
+        ["list", "Array"],
+        ["text", "String"],
+        ["character", "Character"],
+        ["number", "Number"],
+        ["integer", "Integer"],
+        ["decimal", "Decimal"],
+        ["boolean", "Boolean"],
+        ["object", "Object"]
+      ]
+    },
+    {
+      title: "skips items in its blacklist",
+      tests: [["I", undefined]]
+    }
+  ]
+});
+
+// Literal list (array), eg:  `[1,2 , true,false ]`
+parser.defineRule({
+  name: "literal_list",
+  alias: "expression",
+  syntax: "\\[[list:{expression},]?\\]",
+  testRule: new Rule.Symbols("["),
+  constructor: class literal_list extends Rule.Sequence {
+    compile(match) {
+      let { list } = match.results;
+      return `[${list ? list.join(", ") : ""}]`;
+    }
   },
-
-  // `Type` = type name.
-  // MUST start with an upper-case letter (?)
-  {
-    name: "type",
-    alias: "expression",
-    canonical: "Type",
-    pattern: /^([A-Z][\w\-]*|list|text|number|integer|decimal|character|boolean|object)$/,
-    constructor: class type extends Rule.Pattern {
-      // Convert "-" to "_" in source output.
-      compile(match) {
-        let type = match.matched;
-        switch (type) {
-          // Alias `List` to `Array`
-          case "List":
-            return "Array";
-
-          // special case to take the following as lowercase
-          case "list":
-            return "Array";
-          case "text":
-            return "String";
-          case "character":
-            return "Character";
-          case "number":
-            return "Number";
-          case "integer":
-            return "Integer";
-          case "decimal":
-            return "Decimal";
-          case "boolean":
-            return "Boolean";
-          case "object":
-            return "Object";
-          default:
-            return type.replace(/\-/g, "_");
-        }
-      }
+  tests: [
+    {
+      title: "correctly matches literal lists",
+      tests: [
+        ["[]", "[]"],
+        ["[1]", "[1]"],
+        ["[1,]", "[1]"],
+        ["[1,2,3]", "[1, 2, 3]"],
+        ["[1, 2, 3]", "[1, 2, 3]"],
+        ["[1,2,3,]", "[1, 2, 3]"],
+        ["[yes,no,'a',1]", "[true, false, 'a', 1]"]
+      ]
     },
-    blacklist: ["I"],
-    tests: [
-      {
-        title: "correctly matches types",
-        tests: [
-          ["Abc", "Abc"],
-          ["Abc-def", "Abc_def"],
-          ["Abc_Def", "Abc_Def"],
-          ["Abc01", "Abc01"],
-          ["Abc-def_01", "Abc_def_01"]
-        ]
-      },
-      {
-        title: "doesn't match things that aren't types",
-        tests: [
-          ["", undefined],
-          ["$Asda", undefined], // TODO... ???
-          ["(Asda)", undefined] // TODO... ???
-        ]
-      },
-      {
-        title: "converts special types",
-        tests: [
-          ["List", "Array"],
-          ["list", "Array"],
-          ["text", "String"],
-          ["character", "Character"],
-          ["number", "Number"],
-          ["integer", "Integer"],
-          ["decimal", "Decimal"],
-          ["boolean", "Boolean"],
-          ["object", "Object"]
-        ]
-      },
-      {
-        title: "skips items in its blacklist",
-        tests: [["I", undefined]]
-      }
-    ]
+    {
+      title: "doesn't match malformed lists ",
+      tests: [["", undefined], ["[,1]", undefined]]
+    }
+  ]
+});
+
+// Parenthesized expression
+parser.defineRule({
+  name: "parenthesized_expression",
+  alias: "expression",
+  syntax: "\\({expression}\\)",
+  testRule: new Rule.Symbols("("),
+  constructor: class parenthesized_expression extends Rule.Sequence {
+    compile(match) {
+      let { expression } = match.results;
+      // don't double parens if not necessary
+      if (
+        typeof expression === "string" &&
+        expression.startsWith("(") &&
+        expression.endsWith(")")
+      )
+        return expression;
+      return "(" + expression + ")";
+    }
   },
-
-  // Literal list (array), eg:  `[1,2 , true,false ]`
-  {
-    name: "literal_list",
-    alias: "expression",
-    syntax: "\\[[list:{expression},]?\\]",
-    constructor: class literal_list extends Rule.Sequence {
-      compile(match) {
-        let { list } = match.results;
-        return `[${list ? list.join(", ") : ""}]`;
-      }
+  tests: [
+    {
+      title: "correctly matches parenthesized expressions",
+      tests: [
+        ["(someVar)", "(someVar)"],
+        ["((someVar))", "(someVar)"],
+        ["(1 and yes)", "(1 && true)"]
+      ]
     },
-    tests: [
-      {
-        title: "correctly matches literal lists",
-        tests: [
-          ["[]", "[]"],
-          ["[1]", "[1]"],
-          ["[1,]", "[1]"],
-          ["[1,2,3]", "[1, 2, 3]"],
-          ["[1, 2, 3]", "[1, 2, 3]"],
-          ["[1,2,3,]", "[1, 2, 3]"],
-          ["[yes,no,'a',1]", "[true, false, 'a', 1]"]
-        ]
-      },
-      {
-        title: "doesn't match malformed lists ",
-        tests: [["", undefined], ["[,1]", undefined]]
-      }
-    ]
-  },
-
-  // Parenthesized expression
-  {
-    name: "parenthesized_expression",
-    alias: "expression",
-    syntax: "\\({expression}\\)",
-    constructor: class parenthesized_expression extends Rule.Sequence {
-      compile(match) {
-        let { expression } = match.results;
-        // don't double parens if not necessary
-        if (
-          typeof expression === "string" &&
-          expression.startsWith("(") &&
-          expression.endsWith(")")
-        )
-          return expression;
-        return "(" + expression + ")";
-      }
+    {
+      title: "correctly matches multiple parenthesis",
+      compileAs: "expression",
+      tests: [
+        ["(1) and (yes)", "((1) && (true))"],
+        ["((1) and (yes))", "((1) && (true))"],
+        ["((1) and ((yes)))", "((1) && (true))"]
+      ]
     },
-    tests: [
-      {
-        title: "correctly matches parenthesized expressions",
-        tests: [
-          ["(someVar)", "(someVar)"],
-          ["((someVar))", "(someVar)"],
-          ["(1 and yes)", "(1 && true)"]
-        ]
-      },
-      {
-        title: "correctly matches multiple parenthesis",
-        compileAs: "expression",
-        tests: [
-          ["(1) and (yes)", "((1) && (true))"],
-          ["((1) and (yes))", "((1) && (true))"],
-          ["((1) and ((yes)))", "((1) && (true))"]
-        ]
-      },
-      {
-        title: "doesn't match malformed parenthesized expressions",
-        tests: [["(foo", undefined], ["(foo(bar)baz", undefined]]
-      }
-    ]
-  }
-);
+    {
+      title: "doesn't match malformed parenthesized expressions",
+      tests: [["(foo", undefined], ["(foo(bar)baz", undefined]]
+    }
+  ]
+});

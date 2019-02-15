@@ -11,9 +11,17 @@ if (!Array.prototype.includes) {
   });
 }
 
+
+class token {
+  constructor(props) {
+    Object.assign(this, props);
+  }
+}
+
 // `whitespace` class for normal (non-indent, non-newline) whitespace.
-class whitespace {
+class whitespace extends token{
   constructor(whitespace) {
+    super();
     this.whitespace = whitespace;
   }
 
@@ -43,6 +51,9 @@ class newline extends whitespace {}
 const Tokenizer = {
   // Should we warn about anomalous conditions?
   WARN: false,
+
+  // Default token constructor
+  Token: token,
 
   // Whitespace constructor.
   Whitespace: whitespace,
@@ -273,8 +284,9 @@ const Tokenizer = {
 
   // `Text` class for string literals.
   // Pass the literal value, use `.text` to get just the bit inside the quotes.
-  Text: class text {
+  Text: class text extends token {
     constructor(quotedString) {
+      super();
       this.quotedString = quotedString;
     }
     get text() {
@@ -321,10 +333,7 @@ const Tokenizer = {
 
   // Comment class
   //TESTME
-  Comment: class comment {
-    constructor(props) {
-      Object.assign(this, props);
-    }
+  Comment: class comment extends token {
     toString() {
       return `${this.commentSymbol}${this.whitespace}${this.comment}`;
     }
@@ -421,8 +430,9 @@ const Tokenizer = {
   },
 
   // JSX element class
-  JSXElement: class jsxElement {
+  JSXElement: class jsxElement extends token{
     constructor(tagName, attributes, children) {
+      super();
       this.tagName = tagName;
       if (attributes) this.attributes = attributes;
       if (children) this.children = children;
@@ -890,9 +900,9 @@ const Tokenizer = {
   },
 
   // Simple block class for `breakIntoBlocks`.
-  Block: class block {
+  Block: class block extends token {
     constructor(props) {
-      Object.assign(this, props);
+      super(props);
       if (!this.contents) this.contents = [];   // TODO: get rid of `contents`???
       if (!this.tokens) this.tokens = [];
     }
@@ -984,10 +994,3 @@ const Tokenizer = {
 };
 
 export default Tokenizer;
-
-
-// Match a series of text literals starting at `tokens[start]` and not going past `tokens[end]`.
-export function matchLiterals(literals, tokens, start = 0, end = tokens.length) {
-  if (literals.length === 1) return tokens[start] === literals[0];
-  return literals.every((literal, i) => start + i < end && literal === tokens[start + i]);
-}

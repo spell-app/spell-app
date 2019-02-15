@@ -58,7 +58,8 @@ export default function parseRule(syntax, constructor) {
 }
 
 export function tokeniseRuleSyntax(syntax) {
-  const SYNTAX_EXPRESSION = /(?:[\w\-]+|[\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
+//  const SYNTAX_EXPRESSION = /(?:[\w\-]+|[^\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
+  const SYNTAX_EXPRESSION = /(?:[\w\-]+|[\^\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
   let syntaxStream = syntax.match(SYNTAX_EXPRESSION);
 //TESTME
   if (!syntaxStream) throw new ParseError(`Can't tokenize parse rule syntax >>${syntax}<<`);
@@ -84,6 +85,11 @@ const KEYWORD_PATTERN = /[A-Za-z][\w_-]*/;
 function parseToken(syntaxStream, rules = [], start = 0) {
   let token = syntaxStream[start];
   switch (token) {
+    case "^":
+      const result = parseToken(syntaxStream, rules, start+1);
+      if (result) result[0].testAtStart = true;
+      return result;
+
     case "{":
       return parseSubrule(syntaxStream, rules, start);
     case "(":

@@ -6,7 +6,7 @@ import flatten from "lodash/flatten";
 import ParseError from "./ParseError.js";
 import Tokenizer from "./Tokenizer.js";
 import Rule from "./Rule.js";
-import parseRule from "./RuleSyntax.js";
+import parseRule, { parseSyntax } from "./RuleSyntax.js";
 import { cloneClass } from "./utils/class.js";
 import "./utils/polyfill.js";
 
@@ -246,9 +246,26 @@ export default class Parser {
       }, {});
     }
 
-    // Convert string `testRule` to Rule.Keywords
-    if (props.testRule && typeof props.testRule === "string") {
-      props.testRule = new Rule.Keywords(props.testRule);
+    // Convert `testRule` to proper thing if necessary
+    const { testRule } = props;
+    if (testRule) {
+      // Convert string using rule syntax
+      if (typeof testRule === "string") {
+        props.testRule = parseSyntax(testRule)[0];
+      }
+      // For token, convert to function which matches that token type.
+      else if (testRule instanceof Tokenizer.Token) {
+        delete props.testRule;
+        props.test = function test(parser, tokens, start = 0, end = tokens.length, testAtStart = this.testAtStart) {
+          if (testAtStart)
+            if (tokens[start] instanceof testRule) return start;
+
+          for (var index = start; index < end; index++) {
+            if (tokens[index] instanceof testRule) return index;
+          }
+          return false;
+        }
+      }
     }
 
     // Combine aliases with the main name
@@ -258,6 +275,12 @@ export default class Parser {
     const rules = props.syntax ? parseRule(props.syntax, constructor) : [new constructor()];
     if (!rules || rules.length === 0)
       throw new ParseError(`defineRule(${props.syntax}): didnt get rules back`);
+
+    // if we got an expression or a statement, make sure we have a testRule
+    if (rules[0] instanceof Rule.Sequence && (names.includes("expression") || names.includes("statement")) && !props.testRule) {
+console.warn(`defineRule('${props.name}'): you should define a testRule`);
+    }
+
 
     rules.forEach(rule => {
       // Add props to the rule non-enumerably and non-writably

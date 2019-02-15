@@ -21,7 +21,7 @@ parser.defineRules(
     name: "this_and_that",
     alias: "statement",
     syntax: "{this} and {that}",
-    testRule: new Rule.Subrule("this"),
+    testRule: "{this}",
     constructor: class this_and_that extends Rule.Sequence {
       compile(match) {
         return "this && that";
@@ -72,9 +72,9 @@ describe("parser.compile()", () => {
 
 
 describe("parser.test()", () => {
-  test("returns true when test succeeds", () => {
+  test("returns 0 when found at beginning of test", () => {
     const result = parser.test("this_and_that", ["this"])
-    expect(result).toBe(true);
+    expect(result).toBe(0);
   });
 
   test("returns false when test fails", () => {
