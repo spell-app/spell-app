@@ -21,7 +21,7 @@ import Tokenizer, { matchLiterals } from "./Tokenizer.js";
 import { isWhitespace } from "./utils/string";
 
 // Show debug messages on browser only.
-const DEBUG = !isNode;
+const DEBUG = false;//!isNode;
 
 
 // Abstract Rule class.
@@ -234,9 +234,14 @@ Rule.Alternatives = class alternatives extends Rule {
   }
 
   // Test to see if any of our alternatives are found ANYWHERE in the tokens.
+  // - if any subrule tests as `true`, return `true`
+  // - if any subrule tests as `undefined`, return `undefined`
+  // - otherwise return `false`
   test(parser, tokens, start = 0, end) {
     for (let i = 0, rule; rule = this.rules[i]; i++) {
-      if (rule.test(parser, tokens, start, end)) return true;
+      const result = rule.test(parser, tokens, start, end);
+      if (result === true) return true;
+      if (result === undefined) return undefined;
     }
     return false;
   }
