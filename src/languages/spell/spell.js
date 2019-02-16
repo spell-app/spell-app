@@ -13,6 +13,6 @@ import "./UI.js";
 // Create parser which combines all of the above...
 const parser = Parser.forModule("spell");
 // ...which depends on rules loaded above...
-parser.import("core", "types", "lists", "operators", "if", "statements", "JSX", "UI");
+parser.import("core", "operators", "types", "lists", "if", "statements", "JSX", "UI");
 // ...as the default export
 export default parser;

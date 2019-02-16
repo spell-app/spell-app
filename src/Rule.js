@@ -64,6 +64,33 @@ export default class Rule {
   getPrecedence(match) {
     return this.precedence || 0;
   }
+
+  //
+  //  Stack manipulation
+  //
+
+  // Clone stack and add this rule for recursion...
+  static addRuleToStack(stack, rule, start) {
+    return {
+      rules: stack ? [rule, ...stack.rules] : [rule],
+      starts: stack ? [start, ...stack.starts] : [start],
+      matched: stack ? [[], ...stack.matched] : [[]]
+    }
+  }
+
+  // Log the stack
+  static logStack(stack, force) {
+    if (!DEBUG && !force) return;
+    if (!stack) {
+      console.group("stack is empty");
+    }
+    else {
+//    console.groupCollapsed("stack");
+      console.group("stack");
+      stack.rules.forEach((rule, i) => console.info(stack.starts[i], rule.name, [...stack.matched[i]]));
+    }
+    console.groupEnd();
+  }
 }
 
 // Abstract rule for one or more sequential literal values to match.
@@ -104,6 +131,7 @@ Rule.Literals = class literals extends Rule {
     return new Match({
       rule: this,
       matched: this.literals.join(this.literalSeparator),
+      start,
       nextStart: start + this.literals.length
     });
   }
@@ -167,6 +195,7 @@ Rule.Pattern = class pattern extends Rule {
     return new Match({
       rule: this,
       matched,
+      start,
       nextStart: start + 1
     });
   }
@@ -227,6 +256,7 @@ Rule.Alternatives = class alternatives extends Rule {
     if (!this.rules) this.rules = [];
   }
 
+  // Return if ANY of our rules is found.
   test(parser, tokens, start = 0, end, testAtStart = this.testAtStart) {
     let undefinedFound = false;
     for (let i = 0, rule; rule = this.rules[i]; i++) {
@@ -245,21 +275,17 @@ Rule.Alternatives = class alternatives extends Rule {
     for (let i = 0, rule; rule = this.rules[i]; i++) {
       let match = rule.parse(parser, tokens, start, end, stack);
       if (match) matches.push(match);
-      if (DEBUG && match) console.log(rule.name, match);
+//      if (DEBUG && match) console.log(rule.name, match);
     }
-    if (DEBUG && matches.length) console.log("matches: ", matches);
+
+    if (DEBUG) matches.forEach(match => console.log(match.name, match));
+
+    let match = matches.length > 1 ? this.getBestMatch(matches) : matches[0];
+
+    if (DEBUG && matches.length > 1) console.log("best match:", match);
     if (DEBUG) console.groupEnd();
 
-    if (!matches.length) return undefined;
-
-    if (DEBUG && matches.length > 1) {
-      console.group(`got alternatives for ${this.argument || this.group}`);
-      matches.forEach(match => console.info(start, match, match.precedence, match.compile()));
-      Rule.Sequence.logStack(stack);
-      console.groupEnd();
-    }
-
-    let match = matches.length === 1 ? matches[0] : this.getBestMatch(matches);
+    if (!match) return;
 
     // assign special properties to the result
 //TODO: do we need all of this???
@@ -362,6 +388,7 @@ Rule.Repeat = class repeat extends Rule {
     return new Match({
       rule: this,
       matched,
+      start,
       nextStart
     });
   }
@@ -426,6 +453,7 @@ Rule.List = class list extends Rule {
     return new Match({
       rule: this,
       matched,
+      start,
       nextStart
     });
   }
@@ -472,7 +500,7 @@ Rule.Sequence = class sequence extends Rule {
       if (stack) {
         const index = stack.rules.indexOf(this);
         if (index > -1) {
-          // if (DEBUG) Rule.Sequence.logStack(stack);
+          // if (DEBUG) Rule.logStack(stack);
           if (start > stack.starts[index]) {
             // if (DEBUG) console.info(`${start}: recursing into ${this.name}`);
           }
@@ -488,15 +516,7 @@ Rule.Sequence = class sequence extends Rule {
 //       }
     }
 
-    // Clone stack and add this rule for recursion...
-    // NOTE: we really only need to do this for leftRecursive rules,
-    //       consider moving this up into block above
-    const matched = [];
-    stack = {
-      rules: stack ? [this, ...stack.rules] : [this],
-      starts: stack ? [start, ...stack.starts] : [start],
-      matched: stack ? [matched, ...stack.matched] : [matched]
-    }
+    stack = Rule.addRuleToStack(stack, this, start);
 
     // Match each token in turn
     let nextStart = start;
@@ -504,7 +524,7 @@ Rule.Sequence = class sequence extends Rule {
       let match = rule.parse(parser, tokens, nextStart, end, stack);
       if (!match && !rule.optional) return undefined;
       if (match) {
-        matched.push(match);
+        stack.matched[0].push(match);
         nextStart = match.nextStart;
       }
     }
@@ -512,23 +532,10 @@ Rule.Sequence = class sequence extends Rule {
     // if we get here, we matched all the rules!
     return new Match({
       rule: this,
-      matched,
+      matched: stack.matched[0],
+      start,
       nextStart
     })
-  }
-
-  // Log the stack of
-  static logStack(stack) {
-    if (!DEBUG) return;
-    if (!stack) {
-      console.group("stack is empty");
-    }
-    else {
-//    console.groupCollapsed("stack");
-      console.group("stack");
-      stack.rules.forEach((rule, i) => console.info(stack.starts[i], rule.name, [...stack.matched[i]]));
-    }
-    console.groupEnd();
   }
 
   // You MUST override `compile` in your sequence rule if it is ever going to be called directly.
@@ -614,12 +621,12 @@ Rule.Statements = class statements extends Rule {
   // Split statements up into blocks and parse 'em.
   parse(parser, tokens, start = 0, end = tokens.length, stack) {
     var block = Tokenizer.breakIntoBlocks(tokens, start, end);
-    return Rule.Statements.parseBlock(parser, block);
+    return Rule.Statements.parseBlock(parser, block, start);
   }
 
   // Parse an entire `block`, returning array of matched elements (NOT as a match).
   // NOTE: we don't worry about the `stack` here since we've entered a new parsing context.
-  static parseBlock(parser, block) {
+  static parseBlock(parser, block, start) {
     let matched = [];
     block.contents.forEach(item => {
       if (item.length === 0) {
@@ -660,6 +667,7 @@ Rule.Statements = class statements extends Rule {
       rule: new Rule.Statements(),
       matched,
       indent: block.indent,
+      start,
       nextStart: matched[matched.length - 1].nextStart
     })
   }
@@ -787,6 +795,7 @@ Rule.Comment = class comment extends Rule {
     return new Match({
       rule: this,
       matched: token,
+      start,
       nextStart: index + 1
     })
   }
