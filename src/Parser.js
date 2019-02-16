@@ -83,12 +83,16 @@ export default class Parser {
   //  - `true` if the rule MIGHT be matched.
   //  - `false` if there is NO WAY the rule can be matched.
   //  - `undefined` if not determinstic (eg: no way to tell quickly).
-  test(rule, tokens, start, end) {
+  test(rule, tokens, start, end, testAtStart) {
+    // DEBUG: tokenize if we were passed a string
+    if (typeof tokens === "string") {
+      tokens = Tokenizer.tokenizeWithoutWhitespace(tokens);
+    }
     if (typeof rule === "string") {
       if (!this.rules[rule]) throw new ParseError(`parser.test('${rule}'): rule not found`);
       rule = this.rules[rule];
     }
-    return rule.test(this, tokens, start, end);
+    return rule.test(this, tokens, start, end, testAtStart);
   }
 
   // Parse a named rule (defined in this parser or in any of our `imports`), returning the "best" match.
