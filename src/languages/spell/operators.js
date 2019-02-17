@@ -34,10 +34,19 @@ parser.defineRule({
   // test multiple infix expressions in a row
   tests: [
     {
-      title: "complex expressions",
+      title: "complex math expressions",
+      compileAs: "expression",
       tests: [
         ["1 + 1 + 1", "(1 + (1 + 1))"],
-        ["(1+1) * (2+2)", "((1 + 1) * (2 + 2))"]
+        ["(1+1) * (2+2)", "((1 + 1) * (2 + 2))"],
+        ["((1+1) * (2+2))", "((1 + 1) * (2 + 2))"],
+      ]
+    },
+    {
+      title: "complex property/etc expressions",
+      compileAs: "expression",
+      tests: [
+        ["the suit of the card is 'ace'", "(card.suit == 'ace')"],
       ]
     }
   ]

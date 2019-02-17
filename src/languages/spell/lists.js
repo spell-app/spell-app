@@ -199,20 +199,20 @@ parser.defineRule({
   constructor: class position_expression extends Rule.Sequence {
     compile(match) {
       const { identifier, position, expression } = match.results;
-      return `spell.getItem(${expression}, ${position}, '${identifier}')`;
+      return `spell.getItem(${expression}, ${position})`;
     }
   },
   tests: [
     {
       compileAs: "expression",
       tests: [
-        ["item 1 of my-list", "spell.getItem(my_list, 1, 'item')"],
-        ["card 10 of deck", "spell.getItem(deck, 10, 'card')"],
-//          ["foo n of the foos of the bar", "spell.getItem(bar.foos, n, 'foo')"],
+        ["item 1 of my-list", "spell.getItem(my_list, 1)"],
+        ["card 10 of deck", "spell.getItem(deck, 10)"],
+        ["card n of the cards of the deck", "spell.getItem(deck.cards, n)"],
 
-        ["the first item of my-list", "spell.getItem(my_list, 1, 'item')"],
-        ["the tenth card of deck", "spell.getItem(deck, 10, 'card')"],
-        ["the penultimate word in words", "spell.getItem(words, -2, 'word')"]
+        ["the first item of my-list", "spell.getItem(my_list, 1)"],
+        ["the tenth card of deck", "spell.getItem(deck, 10)"],
+        ["the penultimate word in words", "spell.getItem(words, -2)"]
       ]
     }
   ]
@@ -228,16 +228,16 @@ parser.defineRule({
   constructor: class random_position_expression extends Rule.Sequence {
     compile(match) {
       const { list, identifier } = match.results;
-      return `spell.getRandomItemOf(${list}, '${identifier}')`;
+      return `spell.getRandomItemOf(${list})`;
     }
   },
   tests: [
     {
       compileAs: "expression",
       tests: [
-        ["a random item of my-list", "spell.getRandomItemOf(my_list, 'item')"],
-        ["a random word in 'some words'", "spell.getRandomItemOf('some words', 'word')"],
-        ["a random card from deck", "spell.getRandomItemOf(deck, 'card')"]
+        ["a random item of my-list", "spell.getRandomItemOf(my_list)"],
+        ["a random word in 'some words'", "spell.getRandomItemOf('some words')"],
+        ["a random card from deck", "spell.getRandomItemOf(deck)"]
       ]
     }
   ]
@@ -254,19 +254,19 @@ parser.defineRule({
   constructor: class random_positions_expression extends Rule.Sequence {
     compile(match) {
       const { number, list, identifier } = match.results;
-      return `spell.getRandomItemsOf(${list}, ${number}, '${identifier}')`;
+      return `spell.getRandomItemsOf(${list}, ${number})`;
     }
   },
   tests: [
     {
       compileAs: "expression",
       tests: [
-        ["2 random items of my-list", "spell.getRandomItemsOf(my_list, 2, 'items')"],
+        ["2 random items of my-list", "spell.getRandomItemsOf(my_list, 2)"],
         [
           "2 random words in 'some other words'",
-          "spell.getRandomItemsOf('some other words', 2, 'words')"
+          "spell.getRandomItemsOf('some other words', 2)"
         ],
-        ["3 random cards from deck", "spell.getRandomItemsOf(deck, 3, 'cards')"]
+        ["3 random cards from deck", "spell.getRandomItemsOf(deck, 3)"]
       ]
     }
   ]
@@ -284,16 +284,16 @@ parser.defineRule({
   constructor: class range_expression extends Rule.Sequence {
     compile(match) {
       const { list, start, end, identifier } = match.results;
-      return `spell.getRange(${list}, ${start}, ${end}, '${identifier}')`;
+      return `spell.getRange(${list}, ${start}, ${end})`;
     }
   },
   tests: [
     {
       compileAs: "expression",
       tests: [
-        ["item 1 to 2 of my-list", "spell.getRange(my_list, 1, 2, 'item')"],
-        ["word 2 to 3 in 'some other words'", "spell.getRange('some other words', 2, 3, 'word')"],
-        ["card 1 to 3 from deck", "spell.getRange(deck, 1, 3, 'card')"]
+        ["item 1 to 2 of my-list", "spell.getRange(my_list, 1, 2)"],
+        ["word 2 to 3 in 'some other words'", "spell.getRange('some other words', 2, 3)"],
+        ["card 1 to 3 from deck", "spell.getRange(deck, 1, 3)"]
       ]
     }
   ]
@@ -309,16 +309,16 @@ parser.defineRule({
   constructor: class ordinal_range_expression extends Rule.Sequence {
     compile(match) {
       const { ordinal, number, list, identifier } = match.results;
-      return `spell.slice(${list}, ${ordinal}, ${number}, '${identifier}')`;
+      return `spell.slice(${list}, ${ordinal}, ${number})`;
     }
   },
   tests: [
     {
       compileAs: "expression",
       tests: [
-        ["top 2 items of my-list", "spell.slice(my_list, 1, 2, 'items')"],
-        ["first 2 words in 'some other words'", "spell.slice('some other words', 1, 2, 'words')"],
-        ["last two cards from deck", "spell.slice(deck, -1, 2, 'cards')"]
+        ["top 2 items of my-list", "spell.slice(my_list, 1, 2)"],
+        ["first 2 words in 'some other words'", "spell.slice('some other words', 1, 2)"],
+        ["last two cards from deck", "spell.slice(deck, -1, 2)"]
       ]
     }
   ]
@@ -335,7 +335,7 @@ parser.defineRule({
   constructor: class range_expression_starting_with extends Rule.Sequence {
     compile(match) {
       const { thing, list, identifier } = match.results;
-      return `spell.getRange(${list}, spell.positionOf(${thing}, ${list}), undefined, '${identifier}')`;
+      return `spell.getRange(${list}, spell.positionOf(${thing}, ${list}))`;
     }
   },
   tests: [
@@ -344,11 +344,11 @@ parser.defineRule({
       tests: [
         [
           "items in my-list starting with it",
-          "spell.getRange(my_list, spell.positionOf(it, my_list), undefined, 'items')"
+          "spell.getRange(my_list, spell.positionOf(it, my_list))"
         ],
         [
           "words in 'some words' starting with 'some'",
-          "spell.getRange('some words', spell.positionOf('some', 'some words'), undefined, 'words')"
+          "spell.getRange('some words', spell.positionOf('some', 'some words'))"
         ]
       ]
     }
@@ -368,7 +368,7 @@ parser.defineRule({
       const { identifier, condition, list } = match.results;
       // use singular of identifier for method argument
       const argument = singularize(identifier);
-      return `spell.filter(${list}, ${argument} => ${condition}, '${argument}')`;
+      return `spell.filter(${list}, ${argument} => ${condition})`;
     }
   },
   tests: [
@@ -378,8 +378,12 @@ parser.defineRule({
       tests: [
         [
           "words in 'a word list' where word starts with 'a'",
-          "spell.filter('a word list', word => spell.startsWith(word, 'a'), 'word')"
+          "spell.filter('a word list', word => spell.startsWith(word, 'a'))"
         ],
+        [
+          "items in my-list where the id of the item > 1",
+          "spell.filter(my_list, item => (item.id > 1))"
+        ]
       ]
     }
   ]
@@ -572,15 +576,15 @@ parser.defineRule({
   constructor: class list_remove_position extends Rule.Sequence {
     compile(match) {
       const { number, list, identifier } = match.results;
-      return `spell.removeItem(${list}, ${number}, '${identifier}')`;
+      return `spell.removeItem(${list}, ${number})`;
     }
   },
   tests: [
     {
       compileAs: "statement",
       tests: [
-        ["remove second card of deck", "spell.removeItem(deck, 2, 'card')"],
-        ["remove item 4 of my-list", "spell.removeItem(my_list, 4, 'item')"]
+        ["remove second card of deck", "spell.removeItem(deck, 2)"],
+        ["remove item 4 of my-list", "spell.removeItem(my_list, 4)"]
       ]
     }
   ]
