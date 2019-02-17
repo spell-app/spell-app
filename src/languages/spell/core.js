@@ -246,21 +246,14 @@ parser.defineRule({
   name: "boolean",
   alias: "expression",
   canonical: "Boolean",
-  pattern: /^(true|false|yes|no|ok|cancel|success|failure)$/,
-  constructor: class boolean extends Rule.Pattern {
-    compile(match) {
-      switch (match.matched) {
-        case "true":
-        case "yes":
-        case "ok":
-        case "success":
-          return true;
-
-        default:
-          return false;
-      }
-    }
+  pattern: /^(true|false|yes|no|ok|cancel)$/,
+  valueMap: {
+    true: true,
+    yes: true,
+    ok: true,
+    default(matched) { return false }
   },
+  constructor: class boolean extends Rule.Pattern {},
   tests: [
     {
       title: "correctly matches booleans",
@@ -269,11 +262,9 @@ parser.defineRule({
         ["true", true],
         ["yes", true],
         ["ok", true],
-        ["success", true],
         ["false", false],
         ["no", false],
         ["cancel", false],
-        ["failure", false]
       ]
     },
     {
@@ -291,28 +282,21 @@ parser.defineRule({
   alias: "expression",
   canonical: "Number",
   pattern: /^(-?([0-9]*\.)?[0-9]+|zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
-  constructor: class number extends Rule.Pattern {
-    static NAMES = [
-      "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"
-    ];
-
-    // Numbers get encoded as numbers in the token stream.
-    parse(parser, tokens, start, end, stack) {
-      const match = super.parse(parser, tokens, start, end, stack);
-      if (!match) return undefined;
-
-      // `match.matched` will be the number as a string, coerce to a number
-      const index = Rule.Number.NAMES.indexOf(match.matched);
-      if (index > -1) match.matched = index;
-      else            match.matched = parseFloat(match.matched);
-      if (isNaN(match.matched)) throw new TypeError("number: didn't get a number back");
-      return match;
-    }
-
-    compile(match) {
-      return match.matched;
-    }
+  valueMap: {
+    zero: 0,
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+    six: 6,
+    seven: 7,
+    eight: 8,
+    nine: 9,
+    ten: 10,
+    default(matched) { return parseFloat(matched) }
   },
+  constructor: class number extends Rule.Pattern {},
   tests: [
     {
       title: "correctly matches numbers",

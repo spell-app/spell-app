@@ -166,6 +166,8 @@ Object.defineProperty(Rule.Keywords.prototype, "literalSeparator", { value: " " 
 //    Note that you MUST start your pattern with `^` and end with `$` to make sure it matches the entire token.
 //    Note that this can only match a single token!
 // `rule.blacklist` is a map of `{ key: true }` for strings which will NOT be accepted.
+// `rule.valueMap` is a map of `{ <matchedValue>: <returnValue> }` to map result output.
+//    You can provide `default(matchedValue) => value` to handle anything any other matches.
 //
 // After parsing
 //  `rule.matched` will be the string which was matched.
@@ -195,8 +197,16 @@ Rule.Pattern = class pattern extends Rule {
     if (!match) return undefined;
 
     // bail if present in blacklist
-    const matched = match[0];
+    let matched = match[0];
     if (this.blacklist && this.blacklist[matched]) return undefined;
+
+    // if we have a valueMap specified, run through that
+    if (this.valueMap) {
+      if (matched in this.valueMap)
+        matched = this.valueMap[matched];
+      else if (this.valueMap.default)
+        matched = this.valueMap.default(matched)
+    }
 
     return new Match({
       rule: this,
