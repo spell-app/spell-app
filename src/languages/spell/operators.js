@@ -649,7 +649,7 @@ parser.defineRule({
 parser.defineRule({
   name: "postfix_operator_expression",
   alias: "expression",
-  syntax: "{expression} {operator:postfix_operator}",
+  syntax: "{expression!postfix_operator_expression} {operator:postfix_operator}",
   leftRecursive: "expression",
   precedence: 1,
   testRule: "{postfix_operator}",

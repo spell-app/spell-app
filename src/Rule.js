@@ -563,7 +563,8 @@ Rule.Sequence = class sequence extends Rule {
         // bail if this rule is already in the stack and has been non-productive
         const frame = Rule.getStackFrameForRule(stack, this);
         if (frame && start === frame.start) {
-            if (DEBUG) console.info(`${start}: stack is skipping non-productive call to ${this.name}`);
+//            if (DEBUG)
+            console.info(`${start}: stack is skipping non-productive call to ${this.name}`);
             return undefined;
         }
         else {
@@ -576,7 +577,9 @@ Rule.Sequence = class sequence extends Rule {
 //       }
     }
 
-    stack = Rule.addRuleToStack(stack, this, start);
+   stack = Rule.addRuleToStack(stack, this, start);
+const matched = stack[0].matched;
+//    const matched = [];
 
     // Match each token in turn
     let nextStart = start;
@@ -584,7 +587,7 @@ Rule.Sequence = class sequence extends Rule {
       let match = rule.parse(parser, tokens, nextStart, end, stack, rules);
       if (!match && !rule.optional) return undefined;
       if (match) {
-        stack[0].matched.push(match);
+        matched.push(match);
         nextStart = match.nextStart;
       }
     }
@@ -592,7 +595,7 @@ Rule.Sequence = class sequence extends Rule {
     // if we get here, we matched all the rules!
     return new Match({
       rule: this,
-      matched: [...stack[0].matched],
+      matched: [...matched],
       start,
       nextStart
     })

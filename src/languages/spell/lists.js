@@ -395,7 +395,7 @@ parser.defineRule({
   name: "list_membership_test",
   alias: "expression",
   syntax:
-    "{list:expression} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
+    "{list:expression!list_membership_test} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
   leftRecursive: "expression",
   testRule: "(has|has no|doesnt have|does not have)",
   precedence: 2,
