@@ -464,6 +464,12 @@ parser.defineRule({
   syntax: "\\[[list:{expression},]?\\]",
   testRule: "^\\[",
   constructor: class literal_list extends Rule.Sequence {
+    // When parsing, reset the `rules` to the entire set of parser rules.
+    // Otherwise we can't parse things like `[ [a, b] ]`
+    parse(parser, tokens, start, end, stack, rules) {
+      return super.parse(parser, tokens, start, end, stack, parser.rules);
+    }
+
     compile(match) {
       let { list } = match.results;
       return `[${list ? list.join(", ") : ""}]`;
@@ -496,6 +502,12 @@ parser.defineRule({
   syntax: "\\({expression}\\)",
   testRule: "^\\(",
   constructor: class parenthesized_expression extends Rule.Sequence {
+    // When parsing, reset the `rules` to the entire set of parser rules.
+    // Otherwise we can't parse things like `(a+b) * (c+d)`
+    parse(parser, tokens, start, end, stack, rules) {
+      return super.parse(parser, tokens, start, end, stack, parser.rules);
+    }
+
     compile(match) {
       let { expression } = match.results;
       // don't double parens if not necessary
