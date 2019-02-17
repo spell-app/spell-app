@@ -65,6 +65,16 @@ export default class Rule {
     return this.precedence || 0;
   }
 
+
+  //
+  //  Rule manipulation
+  //
+  getRuleOrDie(rules, ruleName) {
+    const rule = rules[ruleName];
+    if (!rule) throw new ParseError(`${this.constructor.name}.parse(): rule '${ruleName}' not found`);
+    return rule;
+  }
+
   //
   //  Stack manipulation
   //
@@ -131,7 +141,7 @@ Rule.Literals = class literals extends Rule {
     return matchLiteralsAnywhere(this.literals, tokens, start, end);
   }
 
-  parse(parser, tokens, start = 0, end, stack, rules = parser.rules) {
+  parse(parser, tokens, start = 0, end = tokens.length, stack, rules = parser.rules) {
     const index = matchLiteralsAtStart(this.literals, tokens, start, end, true);
     if (index === false) return undefined;
     return new Match({
@@ -190,7 +200,7 @@ Rule.Pattern = class pattern extends Rule {
     return matchPatternAnywhere(this.pattern, this.blacklist, tokens, start, end);
   }
 
-  parse(parser, tokens, start = 0, end, stack, rules = parser.rules) {
+  parse(parser, tokens, start = 0, end = tokens.length, stack, rules = parser.rules) {
     const token = tokens[start];
 
     const match = this.pattern.exec(token);
@@ -228,6 +238,7 @@ Rule.Pattern = class pattern extends Rule {
 //  we'll return the actual rule that was matched (rather than a clone of this rule)
 Rule.Subrule = class subrule extends Rule {
   constructor(props) {
+    // If passed a string, use that as our `subrule`
     if (typeof props === "string") {
       super();
       this.subrule = props;
@@ -237,19 +248,19 @@ Rule.Subrule = class subrule extends Rule {
     }
   }
 
-  parse(parser, tokens, start = 0, end, stack, rules = parser.rules) {
-    const match = parser.parseNamedRule(this.subrule, tokens, start, end, stack);
+  // Ask the subrule to figure out if a match is possible.
+  test(parser, tokens, start, end, testAtStart = this.testAtStart) {
+    const rule = this.getRuleOrDie(parser.rules, this.subrule);
+    return rule.test(parser, tokens, start, end, testAtStart);
+  }
+
+  parse(parser, tokens, start = 0, end = tokens.length, stack, rules = parser.rules) {
+    const rule = this.getRuleOrDie(rules, this.subrule);
+    const match = rule.parse(parser, tokens, start, end, stack, rules);
     if (!match) return undefined;
     if (this.argument) match.argument = this.argument;
     if (this.promote) match.promote = this.promote;
     return match;
-  }
-
-  // Ask the subrule to figure out if a match is possible.
-  test(parser, tokens, start, end, testAtStart = this.testAtStart) {
-    const subrule = parser.rules[this.subrule];
-    if (!subrule) throw new ParseError(`subrule '${this.subrule}' test: rule not found`);
-    return subrule.test(parser, tokens, start, end, testAtStart);
   }
 
   toSyntax() {
@@ -273,7 +284,7 @@ Rule.Alternatives = class alternatives extends Rule {
   }
 
   // Return if ANY of our rules is found.
-  test(parser, tokens, start = 0, end, testAtStart = this.testAtStart) {
+  test(parser, tokens, start = 0, end = tokens.length, testAtStart = this.testAtStart) {
     let undefinedFound = false;
     for (let i = 0, rule; rule = this.rules[i]; i++) {
       const result = rule.test(parser, tokens, start, end, testAtStart);
@@ -368,7 +379,7 @@ Rule.Group = class group extends Rule.Alternatives {};
 // Alias for a `group` which `excludes` one or more other rules.
 //  `rule.group` (string, required) is the name of the main rule
 //  `rule.excludes` (string or [], required) is the name of the rule(s) to exclude.
-Rule.ExcludingGroup = class excluding_group extends Rule {
+Rule.RestrictedGroup = class restricted_group extends Rule {
   constructor() {
     super(...arguments);
     // normalize `excludes` string to an array
@@ -377,25 +388,22 @@ Rule.ExcludingGroup = class excluding_group extends Rule {
 
   parse(parser, tokens, start, end, stack, rules = parser.rules) {
     if (DEBUG) console.warn(`excluding ${this.excludes} from ${this.group}`);
-    const mainRule = this.getMainRule(parser);
+
+    const mainRule = this.getRuleOrDie(rules, this.group);
     if (!mainRule && !mainRule instanceof Rule.Group)
       throw new ParseError(`${this.toSyntax()}: can't find main rule '${this.group}'`);
 
-    // TEMPORARILY set rules of main group to the restricted list
-    const originalRules = mainRule.rules;
-    mainRule.rules = mainRule.rules.filter(rule => !this.excludes.includes(rule.name));
-    try {
-      return mainRule.parse(parser, tokens, start, end, stack, rules);
-    }
-    finally {
-      mainRule.rules = originalRules;
-    }
-  }
+    // Clone the mainRule and restrict its rules
+    const restrictedRule = new Rule.Group(mainRule);
+    restrictedRule.rules = mainRule.rules.filter(rule => !this.excludes.includes(rule.name));
 
-  getMainRule(parser) {
-    const rule = parser && parser.rules[this.group];
-    if (!rule) throw new ParseError(`${this.toSyntax()}.getRules() parser rule ${this.group} must be defined`);
-    return rule;
+    // replace the mainRule with a new rule
+    const newRules = {
+      ...rules,
+      [mainRule.group]: restrictedRule
+    }
+
+    return restrictedRule.parse(parser, tokens, start, end, stack, newRules);
   }
 
   toSyntax() {
@@ -649,10 +657,11 @@ Rule.Statement = class statement extends Rule.Group {
     if (start >= end) return;   // TODO: blank line?
 
     // eat comment at end of the line
-    const comment = tokens[end - 1] instanceof Tokenizer.Comment
-      ? parser.parseNamedRule("comment", tokens, end - 1, end)
-      : undefined;
-    if (comment) end--;
+    let comment;
+    if (tokens[end - 1] instanceof Tokenizer.Comment) {
+      comment = this.getRuleOrDie(rules, "comment")
+        .parse(parser, tokens, end - 1, end, stack, rules);
+    }
 
     const match = super.parse(parser, tokens, start, end, stack, rules);
     if (!match && !comment) return;
@@ -673,20 +682,22 @@ Rule.Statements = class statements extends Rule {
   // Split statements up into blocks and parse 'em.
   parse(parser, tokens, start = 0, end = tokens.length, stack, rules = parser.rules) {
     var block = Tokenizer.breakIntoBlocks(tokens, start, end);
-    return Rule.Statements.parseBlock(parser, block, start);
+    return this.parseBlock(parser, block, start);
   }
 
   // Parse an entire `block`, returning array of matched elements (NOT as a match).
-  // NOTE: we don't worry about the `stack` here since we've entered a new parsing context.
-  static parseBlock(parser, block, start) {
+  // NOTE: we don't worry about the `stack` or `rules` here since we've entered a new parsing context.
+  parseBlock(parser, block, start) {
     let matched = [];
+    const statementRule = this.getRuleOrDie(parser.rules, "statement");
+
     block.contents.forEach(item => {
       if (item.length === 0) {
         matched.push(new Rule.BlankLine());
       }
       // got a nested block
       else if (item instanceof Tokenizer.Block) {
-        const nested = Rule.Statements.parseBlock(parser, item);
+        const nested = this.parseBlock(parser, item);
         if (!nested) {
           console.info("expected nested result, didn't get anything");
           return;
@@ -706,8 +717,10 @@ Rule.Statements = class statements extends Rule {
           matched.push(nested);
         }
       } else {
-        // Got a single statement
-        const match = parser.parseNamedRule("statement", item);
+        // Got a single statement, parse the entire thing.
+        // Note that we purposefully reset `stack` and `rules`.
+//TODO: bail if not the entire line???
+        const match = statementRule.parse(parser, item);
         if (match) matched = matched.concat(match);
 //        else console.warn("parseBlock expected statement, got", match);
       }

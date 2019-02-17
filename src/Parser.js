@@ -306,7 +306,7 @@ export default class Parser {
     if (props.leftRecursive) {
       const group = props.leftRecursive;
       const ruleName = `${group}!${props.name}`;
-      const nonRecursiveRule = new Rule.ExcludingGroup({ group, excludes: props.name });
+      const nonRecursiveRule = new Rule.RestrictedGroup({ group, excludes: props.name });
 // TODO: make sure first rule has this syntax?
       this.addRule(ruleName, nonRecursiveRule);
 
