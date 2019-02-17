@@ -98,10 +98,10 @@ export default class Parser {
   // Parse a named rule (defined in this parser or in any of our `imports`), returning the "best" match.
   // Returns `undefined` if no match.
   // Throws if rule is not implemented.
-  parseNamedRule(ruleName, tokens, start, end, stack) {
+  parseNamedRule(ruleName, tokens, start, end) {
     const rule = this.rules[ruleName];
     if (!rule) throw new ParseError(`parser.parseNamedRule('${ruleName}'): rule not found`);
-    return rule.parse(this, tokens, start, end, stack);
+    return rule.parse(this, tokens, start, end);
   }
 
   //
