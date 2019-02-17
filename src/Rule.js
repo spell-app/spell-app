@@ -27,7 +27,7 @@ import {
 import { isWhitespace } from "./utils/string";
 
 // Show debug messages on browser only.
-const DEBUG = false;//!isNode;
+const DEBUG = !isNode;
 
 
 // Abstract Rule class.
@@ -68,6 +68,13 @@ export default class Rule {
   //
   //  Stack manipulation
   //
+
+  // Return the top-most stack frame for the specified rule.
+  // Returns `undefined` if not found.
+  static getStackFrameForRule(stack, rule) {
+    if (!stack) return;
+    return stack.find(frame => frame.rule === rule);
+  }
 
   // Clone stack and add this rule for recursion...
   static addRuleToStack(stack = [], rule, start) {
@@ -250,15 +257,18 @@ Rule.Subrule = class subrule extends Rule {
 // After parsing
 //  we'll return the rule which is the "best match" (rather than cloning this rule).
 Rule.Alternatives = class alternatives extends Rule {
-  constructor(props) {
-    super(props);
-    if (!this.rules) this.rules = [];
+
+  // Return the alternative rules we'll use to parse.
+  // Default is just to use `this.rules`, subclasses may do something smarter.
+  getRules(parser) {
+    return this.rules || [];
   }
 
   // Return if ANY of our rules is found.
   test(parser, tokens, start = 0, end, testAtStart = this.testAtStart) {
+    const rules = this.getRules(parser);
     let undefinedFound = false;
-    for (let i = 0, rule; rule = this.rules[i]; i++) {
+    for (let i = 0, rule; rule = rules[i]; i++) {
       const result = rule.test(parser, tokens, start, end, testAtStart);
       if (result === undefined) undefinedFound = true;
       else if (result !== false) return result;
@@ -268,19 +278,19 @@ Rule.Alternatives = class alternatives extends Rule {
   }
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
-  parse(parser, tokens, start = 0, end, stack) {
-    if (DEBUG) console.group(`matching alternatives ${this.group || this.argument || this.name || this.toSyntax()}`);
+  parse(parser, tokens, start = 0, end = tokens.length, stack) {
+    if (DEBUG) console.group(`matching alternatives ${this.group || this.argument || this.name || this.toSyntax()} in: "${tokens.slice(start, end).join(" ")}"`);
+    const rules = this.getRules(parser);
     const matches = [];
-    for (let i = 0, rule; rule = this.rules[i]; i++) {
+    for (let i = 0, rule; rule = rules[i]; i++) {
       let match = rule.parse(parser, tokens, start, end, stack);
       if (match) matches.push(match);
 //      if (DEBUG && match) console.log(rule.name, match);
     }
 
-    if (DEBUG) matches.forEach(match => console.log(match.name, match));
-
     let match = matches.length > 1 ? this.getBestMatch(matches) : matches[0];
 
+    if (DEBUG && matches.length > 1) matches.forEach((match, index) => console.log(index, match.name, match));
     if (DEBUG && matches.length > 1) console.log("best match:", match);
     if (DEBUG) console.groupEnd();
 
@@ -329,11 +339,12 @@ Rule.Alternatives = class alternatives extends Rule {
   }
 
   addRule(...rule) {
+    if (!this.rules) this.rules = [];
     this.rules.push(...rule);
   }
 
   toSyntax() {
-    const rules = this.rules.map(rule => rule.toSyntax()).join("|");
+    const rules = this.getRules().map(rule => rule.toSyntax()).join("|");
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` : "";
     return `${this.testAtStart ? "^" : ""}(${promote}${argument}${rules})${this.optional ? "?" : ""}`;
@@ -347,6 +358,48 @@ Rule.Alternatives = class alternatives extends Rule {
 //  - smooshing rules together because they share the same name
 Rule.Group = class group extends Rule.Alternatives {};
 
+
+// Alias for a `group` which `excludes` one or more other rules.
+//  `rule.group` (string, required) is the name of the main rule
+//  `rule.excludes` (string or [], required) is the name of the rule(s) to exclude.
+Rule.ExcludingGroup = class excluding_group extends Rule.Alternatives {
+  constructor() {
+    super(...arguments);
+    // normalize `excludes` string to an array
+    if (typeof this.excludes === "string") this.excludes = this.excludes.split(" ");
+  }
+
+  parse(parser, tokens, start, end, stack) {
+    if (DEBUG) console.warn(`excluding ${this.excludes} from ${this.group}`);
+    const mainRule = this.getMainRule(parser);
+    // TEMPORARILY set rules of main group to the restricted list
+    const originalRules = mainRule.rules;
+    mainRule.rules = this.getRules(parser);
+    try {
+      return mainRule.parse(parser, tokens, start, end, stack);
+    }
+    finally {
+      mainRule.rules = originalRules;
+    }
+  }
+
+  getMainRule(parser) {
+    const rule = parser && parser.rules[this.group];
+    if (!rule) throw new ParseError(`${this.toSyntax()}.getRules() parser rule ${this.group} must be defined`);
+    return rule;
+  }
+
+  // Return all rules EXCEPT those we're to exclude
+  getRules(parser) {
+    const rule = this.getMainRule(parser);
+    if (!rule) return [];
+    return rule.rules.filter(rule => !this.excludes.includes(rule.name));
+  }
+
+  toSyntax() {
+    return `{${this.group}!${this.excludes.join("!")}}`
+  }
+}
 
 // Repeating rule.
 //  `this.repeat` is the rule that repeats.
@@ -495,18 +548,16 @@ Rule.Sequence = class sequence extends Rule {
 
     // If we're a leftRecursive sequence...
     if (this.leftRecursive) {
-      // If the stack already contains this rule, forget it.
       if (stack) {
-        const frame = stack.find(frame => frame.rule === this);
-        if (frame) {
-          // if (DEBUG) Rule.logStack(stack);
-          if (start > frame.start) {
-            if (DEBUG) console.info(`${start}: recursing into ${this.name}`);
-          }
-          else {
-            if (DEBUG) console.info(`${start}: stack is skipping ${this.name}`);
+        // if (DEBUG) Rule.logStack(stack);
+        // bail if this rule is already in the stack and has been non-productive
+        const frame = Rule.getStackFrameForRule(stack, this);
+        if (frame && start === frame.start) {
+            if (DEBUG) console.info(`${start}: stack is skipping non-productive call to ${this.name}`);
             return undefined;
-          }
+        }
+        else {
+//          if (DEBUG) console.warn(`${start}: recursing into ${this.name}`);
         }
       }
 //       if (stack && stack.rules.includes(this)) {

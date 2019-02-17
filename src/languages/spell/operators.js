@@ -12,9 +12,10 @@ export default parser;
 parser.defineRule({
   name: "infix_operator_expression",
   alias: "expression",
-  syntax: "{lhs:expression} {infix_operator} {rhs:expression}",
-  leftRecursive: "expresion",
+  syntax: "{lhs:expression!infix_operator_expression} {infix_operator} {rhs:expression}",
+  leftRecursive: "expression",
   testRule: "{infix_operator}",
+  precedence: 1,
   constructor: class infix_operator_expression extends Rule.Sequence {
     // Special `getResults` to ignore the operator.
     getResults(match) {
@@ -823,6 +824,7 @@ parser.defineRule({
   alias: "expression",
   syntax: "round {thing:expression} (direction:off|up|down)?",
   testRule: "^round",
+  precedence: 1,
   constructor: class round_number extends Rule.Sequence {
     compile(match) {
       const { thing, direction } = match.results;

@@ -282,9 +282,8 @@ export default class Parser {
 
     // if we got an expression or a statement, make sure we have a testRule
     if (rules[0] instanceof Rule.Sequence && (names.includes("expression") || names.includes("statement")) && !props.testRule) {
-console.warn(`defineRule('${props.name}'): you should define a testRule`);
+      console.warn(`defineRule('${props.name}'): you should define a testRule`);
     }
-
 
     rules.forEach(rule => {
       // Add props to the rule non-enumerably and non-writably
@@ -301,6 +300,20 @@ console.warn(`defineRule('${props.name}'): you should define a testRule`);
       // only use the first rule if we got more than one
       // so we don't run the same tests more than once.
       this.addRule("_testable_", rules[0]);
+    }
+
+    // if we are `leftRecursive`, define a group which excludes us.
+    if (props.leftRecursive) {
+      const group = props.leftRecursive;
+      const ruleName = `${group}!${props.name}`;
+      const nonRecursiveRule = new Rule.ExcludingGroup({ group, excludes: props.name });
+// TODO: make sure first rule has this syntax?
+      this.addRule(ruleName, nonRecursiveRule);
+
+      // debug
+      const debugRuleName = `__leftRecursive_${group}__`;
+      if (!this.rules[debugRuleName]) this.addRule(debugRuleName, new Rule.Group({ group: debugRuleName }));
+      this.addRule(debugRuleName, rules[0]);
     }
 
     return rules;

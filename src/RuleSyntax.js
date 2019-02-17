@@ -59,7 +59,7 @@ export default function parseRule(syntax, constructor) {
 
 export function tokeniseRuleSyntax(syntax) {
 //  const SYNTAX_EXPRESSION = /(?:[\w\-]+|[^\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
-  const SYNTAX_EXPRESSION = /(?:[\w\-]+|[\^\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
+  const SYNTAX_EXPRESSION = /(?:[\w\-!]+|[\^\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
   let syntaxStream = syntax.match(SYNTAX_EXPRESSION);
 //TESTME
   if (!syntaxStream) throw new ParseError(`Can't tokenize parse rule syntax >>${syntax}<<`);

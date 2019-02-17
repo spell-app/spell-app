@@ -369,6 +369,7 @@ parser.defineRule({
   alias: "expression",
   syntax: "{identifier} (in|of) {list:expression} where {condition:expression}",
   testRule: "where",
+  precedence: 2,
   constructor: class list_filter extends Rule.Sequence {
     compile(match) {
       const { identifier, condition, list } = match.results;
@@ -399,7 +400,8 @@ parser.defineRule({
   syntax:
     "{list:expression} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
   leftRecursive: "expression",
-  testRule: "where",
+  testRule: "(has|has no|doesnt have|does not have)",
+  precedence: 2,
   constructor: class list_membership_test extends Rule.Sequence {
     compile(match) {
       const { identifier, operator, filter, list } = match.results;
