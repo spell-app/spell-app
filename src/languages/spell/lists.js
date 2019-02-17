@@ -398,7 +398,7 @@ parser.defineRule({
   alias: "expression",
   syntax:
     "{list:expression} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
-  leftRecursive: true,
+  leftRecursive: "expression",
   testRule: "where",
   constructor: class list_membership_test extends Rule.Sequence {
     compile(match) {

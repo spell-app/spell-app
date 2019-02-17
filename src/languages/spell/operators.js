@@ -13,7 +13,7 @@ parser.defineRule({
   name: "infix_operator_expression",
   alias: "expression",
   syntax: "{lhs:expression} {infix_operator} {rhs:expression}",
-  leftRecursive: true,
+  leftRecursive: "expresion",
   testRule: "{infix_operator}",
   constructor: class infix_operator_expression extends Rule.Sequence {
     // Special `getResults` to ignore the operator.
@@ -640,7 +640,7 @@ parser.defineRule({
   name: "postfix_operator_expression",
   alias: "expression",
   syntax: "{expression} {operator:postfix_operator}",
-  leftRecursive: true,
+  leftRecursive: "expression",
   precedence: 1,
   testRule: "{postfix_operator}",
   constructor: class postfix_operator_expresion extends Rule.Sequence {

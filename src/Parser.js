@@ -210,7 +210,7 @@ export default class Parser {
   //  `pattern` (RegExp, optional) Regular expression for `Pattern` rules
   //  `precedence` (number, optional) Precedence number for the rule (currently doesn't do anything)
   //  `blacklist` ([string], optional) Array of strings as blacklist for pattern rules.
-  //  `leftRecursive' (boolean, optional) Set to `true` if the rule is left-recursive,
+  //  `leftRecursive' (string, optional) Set to the name of the "main" left-recursive rule if necessary,
   //    i.e. it calls itself as a subrule before matching any literal tokens
   //  `testRule` (Rule or string, optional) Rule or keywords string to use as a test rule.
   //    Specifying this can let us jump out quickly if there is no possible match.

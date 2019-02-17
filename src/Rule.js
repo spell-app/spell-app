@@ -70,12 +70,11 @@ export default class Rule {
   //
 
   // Clone stack and add this rule for recursion...
-  static addRuleToStack(stack, rule, start) {
-    return {
-      rules: stack ? [rule, ...stack.rules] : [rule],
-      starts: stack ? [start, ...stack.starts] : [start],
-      matched: stack ? [[], ...stack.matched] : [[]]
-    }
+  static addRuleToStack(stack = [], rule, start) {
+    return [
+      { rule, start, matched: [] },
+      ...stack
+    ]
   }
 
   // Log the stack
@@ -87,7 +86,7 @@ export default class Rule {
     else {
 //    console.groupCollapsed("stack");
       console.group("stack");
-      stack.rules.forEach((rule, i) => console.info(stack.starts[i], rule.name, [...stack.matched[i]]));
+      stack.forEach(({ rule, start, matched}) => console.info(start, rule, [...matched]));
     }
     console.groupEnd();
   }
@@ -479,7 +478,7 @@ Rule.List = class list extends Rule {
 // Sequence of rules to match.
 //  `rule.rules` is the array of rules to match.
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
-//  `rule.leftRecursive` should be `true` if the first non-optional rule in our `rules`
+//  `rule.leftRecursive` should be the name of another rule if the first non-optional rule in our `rules`
 //    may end up calling us again.  In this case, you should provide `rule.testRule`.
 //
 // After parsing
@@ -498,14 +497,14 @@ Rule.Sequence = class sequence extends Rule {
     if (this.leftRecursive) {
       // If the stack already contains this rule, forget it.
       if (stack) {
-        const index = stack.rules.indexOf(this);
-        if (index > -1) {
+        const frame = stack.find(frame => frame.rule === this);
+        if (frame) {
           // if (DEBUG) Rule.logStack(stack);
-          if (start > stack.starts[index]) {
-            // if (DEBUG) console.info(`${start}: recursing into ${this.name}`);
+          if (start > frame.start) {
+            if (DEBUG) console.info(`${start}: recursing into ${this.name}`);
           }
           else {
-            // if (DEBUG) console.info(`${start}: skipping ${this.name}`);
+            if (DEBUG) console.info(`${start}: stack is skipping ${this.name}`);
             return undefined;
           }
         }
@@ -524,7 +523,7 @@ Rule.Sequence = class sequence extends Rule {
       let match = rule.parse(parser, tokens, nextStart, end, stack);
       if (!match && !rule.optional) return undefined;
       if (match) {
-        stack.matched[0].push(match);
+        stack[0].matched.push(match);
         nextStart = match.nextStart;
       }
     }
@@ -532,7 +531,7 @@ Rule.Sequence = class sequence extends Rule {
     // if we get here, we matched all the rules!
     return new Match({
       rule: this,
-      matched: stack.matched[0],
+      matched: [...stack[0].matched],
       start,
       nextStart
     })
