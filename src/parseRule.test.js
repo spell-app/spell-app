@@ -1,6 +1,6 @@
 import ParseError from "./ParseError.js";
 import Rule from "./Rule.js";
-import parseRule, { parseSyntax } from "./RuleSyntax.js";
+import parseRule, { parseSyntax } from "./parseRule.js";
 
 
 describe("parseSyntax()", () => {

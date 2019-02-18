@@ -10,7 +10,7 @@ import {
 import ParseError from "./ParseError.js";
 import Tokenizer from "./Tokenizer.js";
 import Rule from "./Rule.js";
-import parseRule, { parseSyntax } from "./RuleSyntax.js";
+import parseRule, { parseSyntax } from "./parseRule.js";
 import { cloneClass } from "./utils/class.js";
 import "./utils/polyfill.js";
 
@@ -198,7 +198,7 @@ export default class Parser {
   }
 
   // Define multiple rules at once using ruleSyntax.
-  // See `RuleSyntax.js::defineRule()`
+  // See `parseRule.js`
   defineRules(...ruleProps) {
     const rules = ruleProps.map(ruleProps => this.defineRule(ruleProps));
     return flatten(rules).filter(Boolean);

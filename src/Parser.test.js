@@ -7,7 +7,7 @@ import Parser from "./Parser.js";
 import ParseError from "./ParseError.js";
 import Rule from "./Rule.js";
 
-import * as __parseRule__ from "./RuleSyntax.js"; // for mocking only
+import * as __parseRule__ from "./parseRule.js"; // for mocking only
 
 // Set up parser used in the below
 const parser = new Parser();
