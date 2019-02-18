@@ -1,34 +1,3 @@
-Scope parsing
-- need to be able to define multiple scopes
-- add `endIndex` to `parse()`
-	-
-
-- parser.addScope("define_type", "define type...")
-	- if we parse initial line, matches to balanced indent / EOF
-	- can have custom rules (with higher precedence than default) for matching internal lines
-	- added as normal `statement` as well
-
-	// Add structural rule
-	let define_type = addNestedStructure(
-		"define_type",
-		"define type {type} (?:as (a|an) {superType:type})?",
-		class define_type extends Rule.Statement {...}
-	);
-
-	// Add rules which will only apply when parsing this structure
-	// TODO: statements only???
-	define_type.addStatement(...)
-
-- to add methods / globals / etc to the parse stream:
-	- need to parse types, methods, locals, globals, etc up front
-		BEFORE parsing method contents, variable declaration values, etc
-
-	- BUT: how do we know that this rule is the one we're matching???
-
-	- onParsed() method to update scope???
-
-- CHEAT: just do the above with
-	{expressionOrNestedBlock} ???
 
 
 - Structures
@@ -80,8 +49,6 @@ Scope parsing
 		- if.pattern	= "if {expression} (then|:) {statement}?"
 		- if.structure	= "if {anything} (then|:) {statement}?"
 
-	- paren nesting?
-
 	- scan statements for structure
 		- leading whitespace (changes)
 		- if, loops, etc
@@ -89,9 +56,6 @@ Scope parsing
 		- define type
 		- to/action/get/set
 		- what else??
-
-	- for structure to really work, there will be some mandatory blacklists for mutli-identifiers
-		if, else, then, ":",
 
 	- break up parsing into small sub-tasks
 		- intuit structure
@@ -107,16 +71,10 @@ Scope parsing
 
 
 - refactor
-	- `Text` => `QuotedText`?
 	- include whitespace in JSX parsing
 		- change eg matchAttributes etc to use `matchWhitespace`
 		- include whitespace in `attributes`, have getter which ignores this...
 
-	- test tokenizer
-
-	- tokenizer & bad input
-
-	- conver parser to `[tokens, start, end]` pattern ala tokenizer?
 	- tokenizer to similar `rule` pattern as parser?
 
 	- how to go back to source for annotation w/stream/skip whitespace
@@ -190,10 +148,6 @@ Scope parsing
 		- level of parser in stack = specificity if 2 matches?
 		- how does length of result jibe with this?
 
-- subrule needs to take params
-	- eg: "non-greedy"
-
-
 - parsing feedback
 	- give an optional HTML element
 	- break parsing up into steps
@@ -202,22 +156,12 @@ Scope parsing
 	- as process moves along, provide feedback into html element as react classes
 		- "unknown" (grey) => <if> <keyword> etc (blue, etc)
 
-	- parser.parse() needs to return a promise?
-		-> global `parse()` to print to console for convenience
 
-- parse result.tree
-	=> nested tree of results for visualization, transform
-	=> or is the tree just the matched array???
-
-
-- rule.number vs rule.integer => length rule should disambiguate...
 - `if can play card on pile`	=> want to translate to:
-		- `pile.can_play_card(card)`
-		or
 		- `can_play_card_on_pile(card, pile)
 - `(a,b)` to create array rather than []
 - `is one of "diamonds", "hearts" or "spades"`
-- property X as list of Cards
+- property X as a list of Cards
 - property names can be multi-word!!!!
 	> get top card: return the last card of me
 		=> get top_card()
@@ -226,33 +170,8 @@ Scope parsing
 		=> it = pile.top_card
 
 
-- `each {identifer} of {expression}` => iterate for each item in a list
-	- move Card to Pile
-	- move each card of some pile to another pile
-	- the color of each card in the pile
-
-- getResults(context, name, name, name)
-	=> return results mapped over results.toSource(context)
-- `{` lifter needs to go before comments... ?
-- `the? {identifier}`?  Messes up, eg, `the first item...`
-- line break with ¬ or \ or /
-- numbers `one`, `two`, etc. Should return a `Rule.Number`
-- parseStatements(): return sequence(?) of results?
-- parser.addExpression("name", /pattern/, class), same for addKeyword, etc
-- class constructor?
-	- when creating
-- add things to prototype rather than class...
-- copy of <thing>
-
-
-
-
 
 BIG TICKETS
-- use specificity of results to disambiguate rules?
-	- CSS-like specificity heuristic for rules
-	-
-
 - define Pile:
 	- can play a card on me
 		=> "if can play (the) card on (the) pile"
@@ -262,25 +181,6 @@ BIG TICKETS
 	- `I` ?
 	- "the object is talking out loud to itself..."
 
-
-"confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})? )?"
-	- want result to flatten to `{ message, okButton, cancelButton }`
-	- (^with...)	<= `^` says push results up into parent rule?
-
-- sequence.parseInChunks
-	- parse deterministic bits first, then fill in other bits
-
-Rule.test()
-- for complex rules (eg: ... if ... else), we have `rule.test()` which does a quick-and-dirty test to see if it's remotely possible that the rule will work.
-- only implement a `rule.test()` if:
-	- it's super quick (a single regular expression)
-	- it's faster to do the `test()` than just evaluating the rule
-- if there's no rule.test(), you'll have to evaluate the rule to see if it works.
-- pretty much anything with a nested expression should have a `rule.test()`...
-
-
-- Alternatives `getBestMatch([match, match, match])`
-	- use this to do precedence rules w/ infix operator?
 
 - `preference X (as Y) with default Z`
 	- persistent preference, must cross over to cloud
@@ -293,18 +193,3 @@ Rule.test()
 	- click on a test, see the output in sentence diagram form
 	- drag to reorder nodes in the output diagram to rearrange the source text!
 
-- combine Alternatives w/Patterns into one
-	- combine Symbol and Keyword matches ?
-	- implies parser.optimize step???
-	- only if no custom stuff (toSource, etc)?
-
-	http://stackoverflow.com/questions/9213237/combining-regular-expressions-in-javascript
-	http://stackoverflow.com/questions/869809/combine-regexp
-		- re.any and re.or
-		- re.and, eg    combining keyword AND string
-
-
-- `defineMemoized` as a property @modifier should be a lot smarter...
-
-- remember which file each rule came from
-	- global "RULE_FILE" in each file?

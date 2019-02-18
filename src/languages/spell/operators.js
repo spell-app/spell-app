@@ -10,6 +10,23 @@ const parser = Parser.forModule("operators");
 export default parser;
 
 parser.defineRule({
+  name: "and_or_expression",
+  alias: "expression",
+  syntax: "{lhs:expression!and_or_expression} (operator:and|or) {rhs:expression}",
+  testRule: /^(and|or)$/,
+  precedence: 2,
+  constructor: class and_expression extends Rule.Sequence {
+    // Delegate compilation down to the operator which was actually matched.
+    compile(match) {
+      const { lhs, rhs, operator } = match.results;
+      if (operator === "and")
+        return `(${lhs} && ${rhs})`;
+      return `(${lhs} || ${rhs})`;
+    }
+  }
+});
+
+parser.defineRule({
   name: "infix_operator_expression",
   alias: "expression",
   syntax: "{lhs:expression!infix_operator_expression} {infix_operator} {rhs:expression}",
@@ -51,47 +68,6 @@ parser.defineRule({
   ]
 });
 
-//## Infix operators:   `{lhs} <operator> {rhs}`, eg: `a is 1`
-// NOTE: `operator.applyOperator` MUST be a function which transforms two arguments (`lhs` and `rhs`) into output.
-// NOTE: `precedence` numbers come from Javascript equivalents
-//     https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
-parser.defineRule({
-  name: "and",
-  alias: ["infix_operator"],
-  precedence: 6,
-  syntax: "and",
-  constructor: class and extends Rule.Keywords {
-    compile(match) {
-      const { lhs, rhs } = match.results;
-      return `(${lhs} && ${rhs})`;
-    }
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["a and b", "(a && b)"]]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "or",
-  alias: ["infix_operator"],
-  precedence: 5,
-  syntax: "or",
-  constructor: class or extends Rule.Keywords {
-    compile(match) {
-      const { lhs, rhs } = match.results;
-      return `(${lhs} || ${rhs})`;
-    }
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["a or b", "(a || b)"]]
-    }
-  ]
-});
 
 parser.defineRule({
   name: "is",
@@ -772,7 +748,7 @@ parser.defineRule({
   //FIXME: "the?"
   precedence: 2,
   syntax: "the? (biggest|largest) {identifier}? (of|in) {expression}",
-  testRule: "(biggest|largest)",
+  testRule: /^(biggest|largest)$/,
   constructor: class max extends Rule.Sequence {
     compile(match) {
       const { expression } = match.results;

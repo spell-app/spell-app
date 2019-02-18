@@ -210,8 +210,6 @@ parser.defineRule({
 parser.defineRule({
   name: "new_thing",
   alias: ["expression", "statement"],
-//    syntax: "(create|new) {type} (?:with {props:object_literal_properties})?",
-//    testRule: "(create|new)"
   syntax: "create (a|an) {type} (?:with {props:object_literal_properties})?",
   testRule: "^create",
   constructor: class new_thing extends Rule.Sequence {
@@ -231,7 +229,6 @@ parser.defineRule({
       title: "creates normal objects properly",
       compileAs: "statement",
       tests: [
-//          [`new Object`, `{}`],
         [`create an Object`, `{}`],
         [`create an Object with a = 1, b = yes`, `{ "a": 1, "b": true }`],
         [`create a Foo`, `new Foo()`],

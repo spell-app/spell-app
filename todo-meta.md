@@ -1,10 +1,6 @@
 # Spell Environment ToDo
 
 ## Questions
-- OK to modify JS globals?
-	- eg: `array.size`
-	- Eric says "yes"
-	- as long as it's not inherently part of the parser...
 
 ## Goals
 - Driving toward an interactive "editor" for Spell/Oak

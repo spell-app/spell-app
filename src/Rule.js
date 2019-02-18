@@ -73,7 +73,7 @@ export default class Rule {
   //  Rule manipulation
   //
 
-  getRuleOrDie(rules, ruleName) {
+  static getRuleOrDie(rules, ruleName) {
     const rule = rules[ruleName];
     if (!rule) throw new ParseError(`${this.constructor.name}.parse(): rule '${ruleName}' not found`);
     return rule;
@@ -107,17 +107,19 @@ Rule.Literals = class literals extends Rule {
     }
   }
 
+  get literalText() { return this.literals.join(this.literalSeparator) }
+
   test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
     if (testAtStart) return matchLiteralsAtStart(this.literals, tokens, start, end);
     return matchLiteralsAnywhere(this.literals, tokens, start, end);
   }
 
-  parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
-    const index = matchLiteralsAtStart(this.literals, tokens, start, end, true);
+  parse(parser, tokens, start = 0, end, rules) {
+    const index = matchLiteralsAtStart(this.literals, tokens, start, end);
     if (index === false) return undefined;
     return new Match({
       rule: this,
-      matched: this.literals.join(this.literalSeparator),
+      matched: this.literalText,
       start,
       nextStart: start + this.literals.length
     });
@@ -128,7 +130,9 @@ Rule.Literals = class literals extends Rule {
   }
 
   toSyntax() {
-    return `${this.testAtStart ? "^" : ""}${this.literals.join(this.literalSeparator || "")}${this.optional ? "?" : ""}`;
+    const testAtStart = this.testAtStart ? "^" : "";
+    const optional = this.optional ? "?" : "";
+    return `${testAtStart}${this.literalText}${optional}`;
   }
 };
 Object.defineProperty(Rule.Literals.prototype, "literalSeparator", { value: "" });
@@ -221,12 +225,12 @@ Rule.Subrule = class subrule extends Rule {
 
   // Ask the subrule to figure out if a match is possible.
   test(parser, tokens, start, end, rules = parser.rules, testAtStart = this.testAtStart) {
-    const rule = this.getRuleOrDie(rules, this.subrule);
+    const rule = Rule.getRuleOrDie(rules, this.subrule);
     return rule.test(parser, tokens, start, end, rules, testAtStart);
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
-    let rule = this.getRuleOrDie(rules, this.subrule);
+    let rule = Rule.getRuleOrDie(rules, this.subrule);
 
     // if we have any excludes, filter them out of rule.rules
     if (this.excludes) {
@@ -250,8 +254,13 @@ Rule.Subrule = class subrule extends Rule {
   }
 
   toSyntax() {
+    const testAtStart = this.testAtStart ? "^" : "";
+    const promote = this.promote ? "?:" : "";
+    const argument = this.argument ? `${this.argument}:` : "";
+    const excludes = this.excludes ? `!${this.exludes.join("!")}:` : "";
+    const optional = this.optional ? "?" : "";
     return (
-      `${this.testAtStart ? "^" : ""}{${this.argument ? this.argument + ":" : ""}` + `${this.subrule}}${this.optional ? "?" : ""}`
+      `${testAtStart}{${argument}${this.subrule}${excludes}}${optional}`
     );
   }
 };
@@ -347,9 +356,11 @@ Rule.Alternatives = class alternatives extends Rule {
 
   toSyntax() {
     const rules = this.rules.map(rule => rule.toSyntax()).join("|");
+    const testAtStart = this.testAtStart ? "^" : "";
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` : "";
-    return `${this.testAtStart ? "^" : ""}(${promote}${argument}${rules})${this.optional ? "?" : ""}`;
+    const optional = this.optional ? "?" : "";
+    return `${testAtStart}(${promote}${argument}${rules})${optional}`;
   }
 };
 
@@ -416,7 +427,9 @@ Rule.Repeat = class repeat extends Rule {
       (this.repeat instanceof Rule.Literals && this.repeat.literals.length > 1);
     const repeat = this.repeat.toSyntax();
     const rule = isCompoundRule ? `(${repeat})` : `${repeat}`;
-    return `${this.testAtStart ? "^" : ""}${rule}${this.optional ? "*" : "+"}`;
+    const testAtStart = this.testAtStart ? "^" : "";
+    const optional = this.optional ? "*" : "+";
+    return `${testAtStart}${rule}${optional}`;
   }
 };
 
@@ -481,10 +494,11 @@ Rule.List = class list extends Rule {
   toSyntax() {
     const item = this.item.toSyntax();
     const delimiter = this.delimiter.toSyntax();
-    return (
-      `${this.testAtStart ? "^" : ""}[${this.argument ? this.argument + ":" : ""}${item} ${delimiter}]` +
-      `${this.optional ? "?" : ""}`
-    );
+    const testAtStart = this.testAtStart ? "^" : "";
+    const promote = this.promote ? "?:" : "";
+    const argument = this.argument ? `${this.argument}:` : "";
+    const optional = this.optional ? "?" : "";
+    return `${testAtStart}[${promote}${argument}${item} ${delimiter}]${optional}`;
   }
 };
 
@@ -568,8 +582,10 @@ Rule.Sequence = class sequence extends Rule {
 
   // Echo this rule back out.
   toSyntax() {
-    const rules = this.rules.map(rule => rule.toSyntax());
-    return `${this.testAtStart ? "^" : ""}${rules.join(" ")}${this.optional ? "?" : ""}`;
+    const rules = this.rules.map(rule => rule.toSyntax()).join(" ");
+    const testAtStart = this.testAtStart ? "^" : "";
+    const optional = this.optional ? "?" : "";
+    return `${testAtStart}${rules}${optional}`;
   }
 };
 
@@ -587,7 +603,7 @@ Rule.Statement = class statement extends Rule.Group {
     // eat comment at end of the line
     let comment;
     if (tokens[end - 1] instanceof Tokenizer.Comment) {
-      comment = this.getRuleOrDie(rules, "comment")
+      comment = Rule.getRuleOrDie(rules, "comment")
         .parse(parser, tokens, end - 1, end, rules);
     }
 
@@ -617,7 +633,7 @@ Rule.Statements = class statements extends Rule {
   // NOTE: we assume `rules` have been reset because we're entering a new parsing context
   parseBlock(parser, block, start) {
     let matched = [];
-    const statementRule = this.getRuleOrDie(parser.rules, "statement");
+    const statementRule = Rule.getRuleOrDie(parser.rules, "statement");
 
     block.contents.forEach(item => {
       if (item.length === 0) {

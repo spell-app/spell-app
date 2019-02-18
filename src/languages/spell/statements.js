@@ -66,10 +66,11 @@ parser.defineRule({
   name: "assignment",
   alias: ["statement", "mutatesScope"],
   syntax: [
+    "let {thing:expression} = {value:expression}",
     "set {thing:expression} to {value:expression}",
     "put {value:expression} into {thing:expression}"
   ],
-  testRule: "^(set|put)",
+  testRule: "^(let|set|put)",
   constructor: class assignment extends Rule.Sequence {
     compile(match) {
       let { thing, value } = match.results;
@@ -81,6 +82,7 @@ parser.defineRule({
     {
       compileAs: "statement",
       tests: [
+        ["let the foo of the bar = yes", "bar.foo = true"],
         ["set thing to yes", "thing = true"],
         ["put yes into thing", "thing = true"]
       ]
