@@ -9,6 +9,7 @@ import Rule from "../../Rule";
 const parser = Parser.forModule("operators");
 export default parser;
 
+
 parser.defineRule({
   name: "and_expression",
   alias: "expression",
@@ -35,7 +36,7 @@ parser.defineRule({
   alias: "expression",
   syntax: "{lhs:expression!or_expression} or {rhs:expression}",
   testRule: "or",
-  precedence: 2,
+  precedence: 3,
   constructor: class and_expression extends Rule.Sequence {
     // Delegate compilation down to the operator which was actually matched.
     compile(match) {

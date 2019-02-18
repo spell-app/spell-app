@@ -341,7 +341,6 @@ Rule.Alternatives = class alternatives extends Rule {
     if (highPriority.length === 1) return highPriority[0];
 
     // Return the longest rule (???)
-    // NOTE: we go backwards through the list so the LATEST rule comes first
     let longest;
     for (let i = highPriority.length; match = highPriority[--i];) {
       if (!longest || match.nextStart >= longest.nextStart) longest = match;
