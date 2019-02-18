@@ -8,13 +8,13 @@
 //  Returns `false` if no found.
 //
 export function matchLiteralsAtStart(literals, tokens, start = 0, end = tokens.length) {
-  if (start >= end) return false;
+  const length = literals.length;
+  if (start + length > end) return false;
 
   // Quick exit if no match at start
   if (literals[0] !== tokens[start]) return false;
 
   // if more than one, make sure all the rest match
-  const length = literals.length;
   if (length > 1) {
     for (let i = 1; i < length; i++) {
       if (literals[i] !== tokens[start + i]) return false;
