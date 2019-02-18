@@ -10,20 +10,45 @@ const parser = Parser.forModule("operators");
 export default parser;
 
 parser.defineRule({
-  name: "and_or_expression",
+  name: "and_expression",
   alias: "expression",
-  syntax: "{lhs:expression!and_or_expression} (operator:and|or) {rhs:expression}",
-  testRule: "(and|or)",
+  syntax: "{lhs:expression!and_expression} and {rhs:expression}",
+  testRule: "and",
   precedence: 2,
   constructor: class and_expression extends Rule.Sequence {
     // Delegate compilation down to the operator which was actually matched.
     compile(match) {
-      const { lhs, rhs, operator } = match.results;
-      if (operator === "and")
-        return `(${lhs} && ${rhs})`;
+      const { lhs, rhs } = match.results;
+      return `(${lhs} && ${rhs})`;
+    }
+  },
+  tests: [
+    {
+      compileAs: "expression",
+      tests: [["a and b", "(a && b)"]]
+    }
+  ]
+});
+
+parser.defineRule({
+  name: "or_expression",
+  alias: "expression",
+  syntax: "{lhs:expression!or_expression} or {rhs:expression}",
+  testRule: "or",
+  precedence: 2,
+  constructor: class and_expression extends Rule.Sequence {
+    // Delegate compilation down to the operator which was actually matched.
+    compile(match) {
+      const { lhs, rhs } = match.results;
       return `(${lhs} || ${rhs})`;
     }
-  }
+  },
+  tests: [
+    {
+      compileAs: "expression",
+      tests: [["a or b", "(a || b)"]]
+    }
+  ]
 });
 
 parser.defineRule({
