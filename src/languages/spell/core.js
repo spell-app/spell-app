@@ -329,29 +329,29 @@ parser.defineRule({
   ]
 });
 
-// `number` as either float or integer, created with custom constructor for debugging.
-// NOTE: you can also use `one`...`ten` as strings.'
+
+// `number` as a float or integer token.
 // TODO:  `integer` and `decimal`?  too techy?
 parser.defineRule({
   name: "number",
   alias: "expression",
-  canonical: "Number",
-  pattern: /^(-?([0-9]*\.)?[0-9]+|zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
-  valueMap: {
-    zero: 0,
-    one: 1,
-    two: 2,
-    three: 3,
-    four: 4,
-    five: 5,
-    six: 6,
-    seven: 7,
-    eight: 8,
-    nine: 9,
-    ten: 10,
-    default(matched) { return parseFloat(matched) }
+  testRule: Tokenizer.Number,
+  constructor: class number extends Rule {
+    // Numbers get encoded as JS numbers in the stream.
+    parse(parser, tokens, start = 0) {
+      let token = tokens[start];
+      if (typeof token !== "number") return undefined;
+      return new Match({
+        rule: this,
+        matched: token,
+        nextStart: start + 1
+      });
+    }
+
+    compile(match) {
+      return match.matched;
+    }
   },
-  constructor: class number extends Rule.Pattern {},
   tests: [
     {
       title: "correctly matches numbers",
@@ -366,6 +366,43 @@ parser.defineRule({
         ["-111.111", -111.111]
       ]
     },
+    {
+      title: "doesn't match things that aren't numbers",
+      tests: [
+        ["", undefined],
+        [".", undefined]
+      ]
+    },
+    {
+      title: "requires negative sign to touching the number",
+      tests: [
+        ["- 1", undefined]
+      ]
+    }
+  ]
+});
+
+
+// `number` as a string `zero` to `ten`
+parser.defineRule({
+  name: "number",
+  alias: "expression",
+  pattern: /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
+  valueMap: {
+    zero: 0,
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+    six: 6,
+    seven: 7,
+    eight: 8,
+    nine: 9,
+    ten: 10
+  },
+  constructor: class number_string extends Rule.Pattern {},
+  tests: [
     {
       title: "correctly matches number strings",
       tests: [
@@ -382,16 +419,9 @@ parser.defineRule({
         ["ten", 10]
       ]
     },
-    {
-      title: "doesn't match things that aren't numbers",
-      tests: [["", undefined], [".", undefined]]
-    },
-    {
-      title: "requires negative sign to be touching the number",
-      tests: [["- 1", undefined]]
-    }
   ]
 });
+
 
 // Literal `text` string, created with custom constructor for debugging.
 // You can use either single or double quotes on the outside (although double quotes are preferred).
