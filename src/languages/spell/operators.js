@@ -13,7 +13,7 @@ parser.defineRule({
   name: "and_or_expression",
   alias: "expression",
   syntax: "{lhs:expression!and_or_expression} (operator:and|or) {rhs:expression}",
-  testRule: /^(and|or)$/,
+  testRule: "(and|or)",
   precedence: 2,
   constructor: class and_expression extends Rule.Sequence {
     // Delegate compilation down to the operator which was actually matched.
@@ -748,7 +748,7 @@ parser.defineRule({
   //FIXME: "the?"
   precedence: 2,
   syntax: "the? (biggest|largest) {identifier}? (of|in) {expression}",
-  testRule: /^(biggest|largest)$/,
+  testRule: "^(biggest|largest)",
   constructor: class max extends Rule.Sequence {
     compile(match) {
       const { expression } = match.results;
