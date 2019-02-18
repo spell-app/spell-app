@@ -1089,40 +1089,40 @@ const Tokenizer = {
   //  Returns numeric index where match was found.
   //  Returns `false` if no found.
   //
-  tokenMatchesTypeOf(token, typeName) {
+  tokenIsType(token, typeName) {
     return typeof token === typeName;
   },
 
   matchTypeOfAtStart(typeName, tokens, start = 0, end = tokens.length) {
-    if (start < end && Tokenizer.tokenMatchesTypeOf(tokens[start], typeName)) return start;
+    if (start < end && Tokenizer.tokenIsType(tokens[start], typeName)) return start;
     return false;
   },
 
   matchTypeOfAnywhere(typeName, tokens, start = 0, end = tokens.length) {
     for (var index = start; index < end; index++) {
-      if (Tokenizer.tokenMatchesTypeOf(tokens[index], typeName)) return index;
+      if (Tokenizer.tokenIsType(tokens[index], typeName)) return index;
     }
     return false;
   },
 
 
   //
-  //  Match tokens using Javascript `instanceof <type>` operator.
+  //  Match tokens using Javascript `instanceof <constructor>` operator.
   //  Returns numeric index where match was found.
   //  Returns `false` if no found.
   //
-  tokenMatchesInstanceOf(token, type) {
-    return token instanceof type;
+  tokenIsInstanceOf(token, constructor) {
+    return token instanceof constructor;
   },
 
-  matchInstanceOfAtStart(type, tokens, start = 0, end = tokens.length) {
-    if (start < end && Tokenizer.tokenMatchesInstanceOf(tokens[start], type)) return start;
+  matchInstanceOfAtStart(constructor, tokens, start = 0, end = tokens.length) {
+    if (start < end && Tokenizer.tokenIsInstanceOf(tokens[start], constructor)) return start;
     return false;
   },
 
-  matchInstanceOfAnywhere(type, tokens, start = 0, end = tokens.length) {
+  matchInstanceOfAnywhere(constructor, tokens, start = 0, end = tokens.length) {
     for (var index = start; index < end; index++) {
-      if (Tokenizer.tokenMatchesInstanceOf(tokens[index], type)) return index;
+      if (Tokenizer.tokenIsInstanceOf(tokens[index], constructor)) return index;
     }
     return false;
   },

@@ -345,7 +345,7 @@ parser.defineRule({
     // Numbers get encoded as JS numbers in the stream.
     parse(parser, tokens, start = 0) {
       const token = tokens[start];
-      if (!Tokenizer.tokenMatchesTypeOf(token, "number")) return undefined;
+      if (!Tokenizer.tokenIsType(token, "number")) return undefined;
       return new Match({
         rule: this,
         matched: token,
@@ -442,7 +442,7 @@ parser.defineRule({
     // Text strings get encoded as `text` objects in the token stream.
     parse(parser, tokens, start = 0) {
       const token = tokens[start];
-      if (!Tokenizer.tokenMatchesInstanceOf(token, Tokenizer.Text)) return undefined;
+      if (!Tokenizer.tokenIsInstanceOf(token, Tokenizer.Text)) return undefined;
       return new Match({
         rule: this,
         matched: token.quotedString,

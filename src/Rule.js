@@ -588,7 +588,7 @@ Rule.Statement = class statement extends Rule.Group {
 
     // eat comment at end of the line
     let comment;
-    if (Tokenizer.tokenMatchesInstanceOf(tokens[end - 1], Tokenizer.Comment)) {
+    if (Tokenizer.tokenIsInstanceOf(tokens[end - 1], Tokenizer.Comment)) {
       comment = Rule.getRuleOrDie(rules, "comment")
         .parse(parser, tokens, end - 1, end, rules);
     }
@@ -776,13 +776,13 @@ Rule.Comment = class comment extends Rule {
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
     let index = start;
     // eat whitespace before comment
-    while (Tokenizer.tokenMatchesInstanceOf(tokens[index], Tokenizer.Whitespace)) {
+    while (Tokenizer.tokenIsInstanceOf(tokens[index], Tokenizer.Whitespace)) {
       index++;
       if (index >= end) return undefined;
     }
     // bail if not a comment
     let token = tokens[index];
-    if (!Tokenizer.tokenMatchesInstanceOf(token, Tokenizer.Comment)) return undefined;
+    if (!Tokenizer.tokenIsInstanceOf(token, Tokenizer.Comment)) return undefined;
     return new Match({
       rule: this,
       matched: token,

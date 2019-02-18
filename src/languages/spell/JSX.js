@@ -18,7 +18,7 @@ parser.defineRule({
     // Text strings get encoded as `text` objects in the token stream.
     parse(parser, tokens, start = 0) {
       const token = tokens[start];
-      if (!Tokenizer.tokenMatchesInstanceOf(token, Tokenizer.JSXElement)) return undefined;
+      if (!Tokenizer.tokenIsInstanceOf(token, Tokenizer.JSXElement)) return undefined;
 
       return new Match({
         rule: this,
