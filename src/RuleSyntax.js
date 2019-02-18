@@ -119,11 +119,7 @@ function parseToken(syntaxStream, rules = [], start = 0) {
 
 // Match `keyword`s in syntax rules.
 // If more than one keyword appears in a row, combines them into a single `Keyword` object.
-// This is pretty safe, unless you have an optional keyword like
-//    `the {identifier} of the? {expression}`
-// in which case you can put the optional keyword in parens
-//    `the {identifier} of (the?) {expression}`
-//
+// Put a question mark after the keyword to make it optional, eg, "the? thing"
 // Returns `[ rule, end ]`
 function parseKeyword(syntaxStream, rules, start = 0, constructor = Rule.Keywords) {
   let literals = [];

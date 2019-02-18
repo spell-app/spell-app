@@ -86,7 +86,6 @@ parser.defineRule({
 // NOTE: We blacklist a lot of words as identifiers.
 parser.defineRule({
   name: "identifier",
-  alias: "expression",
   canonical: "Idenfifier",
   pattern: /^[a-z][\w\-]*$/,
   constructor: class identifier extends Rule.Pattern {
@@ -229,13 +228,69 @@ parser.defineRule({
       tests: [
         ["", undefined],
         ["$asda", undefined],
-        ["(asda)", undefined], // TODO... ???
-        ["Abc", undefined]
+        ["(asda)", undefined],
+        ["Abc", undefined],
       ]
     },
     {
       title: "skips items in its blacklist",
-      tests: [["yes", undefined]]
+      tests: [
+        ["yes", undefined],
+        ["the", undefined],
+      ],
+    }
+  ]
+});
+
+parser.defineRule({
+  name: "identifier_expression",
+  alias: "expression",
+  syntax: "the? {identifier}",
+  constructor: class identifier_expression extends Rule.Sequence {
+    compile(match) {
+      return match.results.identifier;
+    }
+  },
+  tests: [
+    {
+      title: "correctly matches identifiers with the",
+      compileAs: "expression",
+      tests: [
+        ["the abc", "abc"],
+        ["the abc-def", "abc_def"],
+        ["the abc_def", "abc_def"],
+        ["the abc01", "abc01"],
+        ["the abc-def_01", "abc_def_01"]
+      ]
+    },
+    {
+      title: "correctly matches identifiers without the",
+      compileAs: "expression",
+      tests: [
+        ["abc", "abc"],
+        ["abc-def", "abc_def"],
+        ["abc_def", "abc_def"],
+        ["abc01", "abc01"],
+        ["abc-def_01", "abc_def_01"]
+      ]
+    },
+    {
+      title: "doesn't match things that aren't identifiers with or without 'the'",
+      compileAs: "expression",
+      tests: [
+        ["", undefined],
+        ["the", undefined],
+        ["the $asda", undefined],
+        ["the (asda)", undefined],
+        ["the Abc", undefined],
+      ]
+    },
+    {
+      title: "skips items in identifier blacklist with or without the",
+      tests: [
+        ["the the", undefined],
+        ["the yes", undefined],
+      ],
     }
   ]
 });

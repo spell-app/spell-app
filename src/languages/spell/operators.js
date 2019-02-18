@@ -773,9 +773,8 @@ parser.defineRule({
   alias: "expression",
   //FIXME: "the?"
   precedence: 2,
-//    syntax: "the? (max|maximum|largest|biggest) {identifier}? (of|in) {expression}",
-  syntax: "the? biggest {identifier}? (of|in) {expression}",
-  testRule: "biggest",
+  syntax: "the? (biggest|largest) {identifier}? (of|in) {expression}",
+  testRule: "(biggest|largest)",
   constructor: class max extends Rule.Sequence {
     compile(match) {
       const { expression } = match.results;
@@ -787,11 +786,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       tests: [
-//           ["max of thing", "spell.max(thing)"],
-//           ["max in thing", "spell.max(thing)"],
-//           ["maximum of thing", "spell.max(thing)"],
-//           ["largest of thing", "spell.max(thing)"],
-        ["biggest in thing", "spell.max(thing)"],
+        ["largest of the numbers", "spell.max(numbers)"],
+        ["biggest in my-list", "spell.max(my_list)"],
         ["biggest item in thing", "spell.max(thing)"]
       ]
     }

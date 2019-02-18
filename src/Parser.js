@@ -281,9 +281,9 @@ export default class Parser {
       throw new ParseError(`defineRule(${props.syntax}): didnt get rules back`);
 
     // if we got an expression or a statement, make sure we have a testRule
-    if (rules[0] instanceof Rule.Sequence && (names.includes("expression") || names.includes("statement")) && !props.testRule) {
-      console.warn(`defineRule('${props.name}'): you should define a testRule`);
-    }
+//     if (rules[0] instanceof Rule.Sequence && (names.includes("expression") || names.includes("statement")) && !props.testRule) {
+//       console.warn(`defineRule('${props.name}'): you should define a testRule`);
+//     }
 
     rules.forEach(rule => {
       // Add props to the rule non-enumerably and non-writably

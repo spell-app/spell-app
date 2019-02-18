@@ -62,10 +62,10 @@ parser.defineRule({
 //
 
 parser.defineRule({
-  name: "property_name",
+  name: "property_accessor",
   syntax: "the {identifier} of",
   testRule: "^the",
-  constructor: class property_name extends Rule.Sequence {
+  constructor: class property_accessor extends Rule.Sequence {
     compile(match) {
       return match.results.identifier;
     }
@@ -73,17 +73,16 @@ parser.defineRule({
 });
 
 parser.defineRule({
-  // TODO: really low precedence on this so more-specific rules with similar pattern will work
   // TODO: multiple identifiers would be cool...
   name: "property_expression",
   alias: "expression",
-  syntax: "{properties:property_name}+ the? {expression}",
-  testRule: "^{property_name}",    // ???
+  syntax: "{property_accessor} {expression}",
+  testRule: "^{property_accessor}",    // ???
   constructor: class property_expression extends Rule.Sequence {
     compile(match) {
-      let { expression, properties } = match.results;
+      let { expression, property_accessor } = match.results;
       // TODO: `[xxx]` for non-identifiers
-      return `${expression}.${properties.reverse().join(".")}`;
+      return `${expression}.${property_accessor}`;
     }
   },
   tests: [
@@ -100,12 +99,11 @@ parser.defineRule({
 });
 
 parser.defineRule({
-  name: "my_property_expression",
-  alias: "expression",
-//    syntax: "(my|this) {identifier}",
+  name: "my_property_accessor",
+  alias: ["expression", "property_accessor"],
   syntax: "my {identifier}",
   testRule: "^my",
-  constructor: class my_property_expression extends Rule.Sequence {
+  constructor: class my_property_accessor extends Rule.Sequence {
     compile(match) {
       let { identifier } = match.results;
       return `this.${identifier}`;
@@ -116,7 +114,8 @@ parser.defineRule({
       compileAs: "expression",
       tests: [
         ["my foo", "this.foo"],
-//          ["this bank-account", "this.bank_account"]
+        ["the foo of my bar", "this.bar.foo"],
+        ["the foo of my bar is 'fooo'", "(this.bar.foo == 'fooo')"],
       ]
     }
   ]
