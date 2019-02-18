@@ -3,6 +3,10 @@
 import flatten from "lodash/flatten";
 
 // TODO: dependency-inject tokenizer?
+import {
+  matchTokenTypeAnywhere,
+  matchTokenTypeAtStart,
+} from "./matchers.js";
 import ParseError from "./ParseError.js";
 import Tokenizer from "./Tokenizer.js";
 import Rule from "./Rule.js";
@@ -83,7 +87,7 @@ export default class Parser {
   //  - `true` if the rule MIGHT be matched.
   //  - `false` if there is NO WAY the rule can be matched.
   //  - `undefined` if not determinstic (eg: no way to tell quickly).
-  test(rule, tokens, start, end, testAtStart) {
+  test(rule, tokens) {
     // DEBUG: tokenize if we were passed a string
     if (typeof tokens === "string") {
       tokens = Tokenizer.tokenizeWithoutWhitespace(tokens);
@@ -92,7 +96,7 @@ export default class Parser {
       if (!this.rules[rule]) throw new ParseError(`parser.test('${rule}'): rule not found`);
       rule = this.rules[rule];
     }
-    return rule.test(this, tokens, start, end, testAtStart);
+    return rule.test(this, tokens);
   }
 
   // Parse a named rule (defined in this parser or in any of our `imports`), returning the "best" match.
@@ -260,14 +264,9 @@ export default class Parser {
       // For token, convert to function which matches that token type.
       else if (testRule instanceof Tokenizer.Token) {
         delete props.testRule;
-        props.test = function test(parser, tokens, start = 0, end = tokens.length, testAtStart = this.testAtStart) {
-          if (testAtStart)
-            if (tokens[start] instanceof testRule) return start;
-
-          for (var index = start; index < end; index++) {
-            if (tokens[index] instanceof testRule) return index;
-          }
-          return false;
+        props.test = function test(parser, tokens, start = 0, end = tokens.length, testAtStart = this.testAtStart, rules = parser.rules) {
+          if (testAtStart) return matchTokenTypeAtStart(testRule, tokens, start, end);
+          return matchTokenTypeAnywhere(testRule, tokens, start, end);
         }
       }
     }

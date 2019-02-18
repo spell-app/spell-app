@@ -16,14 +16,16 @@ import { isNode } from "browser-or-node";
 
 import Parser from "./Parser.js";
 import Match from "./Match.js";
-import ParseError from "./ParseError.js";
-import Tokenizer from "./Tokenizer.js";
 import {
   matchLiteralsAnywhere,
   matchLiteralsAtStart,
   matchPatternAnywhere,
   matchPatternAtStart,
+  matchTokenTypeAnywhere,
+  matchTokenTypeAtStart,
 } from "./matchers.js";
+import ParseError from "./ParseError.js";
+import Tokenizer from "./Tokenizer.js";
 import { isWhitespace } from "./utils/string";
 
 // Show debug messages on browser only.
@@ -48,7 +50,7 @@ export default class Rule {
   //  - `true` if the rule MIGHT be matched.
   //  - `false` if there is NO WAY the rule can be matched.
   //  - `undefined` if not determinstic (eg: no way to tell quickly).
-  test(parser, tokens, start, end, testAtStart = this.testAtStart) {}
+  test(parser, tokens, start, end, rules, testAtStart) {}
 
   // Attempt to match this rule between `start` and `end` of `tokens`.
   // If successful, returns a `Match` object which you can use to figure out the results.
@@ -104,7 +106,7 @@ Rule.Literals = class literals extends Rule {
     }
   }
 
-  test(parser, tokens, start, end, testAtStart = this.testAtStart) {
+  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
     if (testAtStart) return matchLiteralsAtStart(this.literals, tokens, start, end);
     return matchLiteralsAnywhere(this.literals, tokens, start, end);
   }
@@ -162,7 +164,7 @@ Rule.Pattern = class pattern extends Rule {
     }
   }
 
-  test(parser, tokens, start = 0, end = tokens.length, testAtStart = this.testAtStart) {
+  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
     if (testAtStart)
       return matchPatternAtStart(this.pattern, this.blacklist, tokens, start, end);
     return matchPatternAnywhere(this.pattern, this.blacklist, tokens, start, end);
@@ -217,9 +219,9 @@ Rule.Subrule = class subrule extends Rule {
   }
 
   // Ask the subrule to figure out if a match is possible.
-  test(parser, tokens, start, end, testAtStart = this.testAtStart) {
-    const rule = this.getRuleOrDie(parser.rules, this.subrule);
-    return rule.test(parser, tokens, start, end, testAtStart);
+  test(parser, tokens, start, end, rules = parser.rules, testAtStart = this.testAtStart) {
+    const rule = this.getRuleOrDie(rules, this.subrule);
+    return rule.test(parser, tokens, start, end, rules, testAtStart);
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
@@ -252,10 +254,10 @@ Rule.Alternatives = class alternatives extends Rule {
   }
 
   // Return if ANY of our rules is found.
-  test(parser, tokens, start = 0, end = tokens.length, testAtStart = this.testAtStart) {
+  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
     let undefinedFound = false;
     for (let i = 0, rule; rule = this.rules[i]; i++) {
-      const result = rule.test(parser, tokens, start, end, testAtStart);
+      const result = rule.test(parser, tokens, start, end, rules, testAtStart);
       if (result === undefined) undefinedFound = true;
       else if (result !== false) return result;
     }
@@ -392,13 +394,13 @@ Rule.RestrictedGroup = class restricted_group extends Rule {
 //  `rule.nextStart` is the index of the next start token.
 Rule.Repeat = class repeat extends Rule {
   // Check `testRule` if provided.
-  test(parser, tokens, start, end, testAtStart = this.testAtStart) {
-    if (this.testRule) return this.testRule.test(parser, tokens, start, end, testAtStart);
+  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
+    if (this.testRule) return this.testRule.test(parser, tokens, start, end, rules, testAtStart);
   }
 
-  parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
+  parse(parser, tokens, start = 0, end = tokens.length, rules) {
     // Bail quickly if no chance
-    if (this.test(parser, tokens, start, end) === false) return undefined;
+    if (this.test(parser, tokens, start, end, rules) === false) return undefined;
 
     const matched = [];
     let nextStart = start;
@@ -448,13 +450,13 @@ Rule.Repeat = class repeat extends Rule {
 // NOTE: we assume that a List rule itself will NOT repeat (????)
 Rule.List = class list extends Rule {
   // Check `testRule` if provided.
-  test(parser, tokens, start, end, testAtStart = this.testAtStart) {
-    if (this.testRule) return this.testRule.test(parser, tokens, start, end, testAtStart);
+  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
+    if (this.testRule) return this.testRule.test(parser, tokens, start, end, rules, testAtStart);
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
     // Bail quickly if no chance
-    if (this.test(parser, tokens, start, end) === false) return undefined;
+    if (this.test(parser, tokens, start, end, rules) === false) return undefined;
 
     // ensure item and delimiter are optional so we don't barf in `parseRule`
     //TODO: ???
@@ -516,13 +518,13 @@ Rule.List = class list extends Rule {
 //  `rule.matched` will be the array of rules which were matched.
 //  `rule.nextStart` is the index of the next start token.
 Rule.Sequence = class sequence extends Rule {
-  test(parser, tokens, start, end, testAtStart = this.testAtStart) {
-    if (this.testRule) return this.testRule.test(parser, tokens, start, end, testAtStart);
+  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
+    if (this.testRule) return this.testRule.test(parser, tokens, start, end, rules, testAtStart);
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
     // Bail quickly if no chance
-    if (this.test(parser, tokens, start, end) === false) return undefined;
+    if (this.test(parser, tokens, start, end, rules) === false) return undefined;
     const matched = [];
 
     // Match each token in turn
@@ -784,14 +786,9 @@ Rule.BlankLine = class blank_line extends Rule {
 // Comment rule -- matches tokens of type `Tokenizer.Comment`.
 // Eats whitespace before the comment if found.
 Rule.Comment = class comment extends Rule {
-  test(parser, tokens, start = 0, end = tokens.length, testAtStart = this.testAtStart) {
-    if (testAtStart)
-      return (tokens[start] instanceof Tokenizer.Comment);
-
-    for (var index = start; index < end; index++) {
-      if (tokens[index] instanceof Tokenizer.Comment) return index;
-    }
-    return false;
+  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
+    if (testAtStart) return matchTokenTypeAtStart(Tokenizer.Comment, tokens, start, end);
+    return matchTokenTypeAnywhere(Tokenizer.Comment, tokens, start, end);
   }
 
   // Comments are special nodes in our token stream.

@@ -57,3 +57,22 @@ export function matchPatternAnywhere(pattern, blacklist, tokens, start = 0, end 
   }
   return false;
 }
+
+
+//
+//  Matching a particular token type.
+//  Returns numeric index where match was found.
+//  Returns `false` if no found.
+//
+export function matchTokenTypeAtStart(type, tokens, start = 0, end = tokens.length) {
+  if (start < end && tokens[start] instanceof type) return start;
+  return false;
+}
+
+export function matchTokenTypeAnywhere(type, tokens, start = 0, end = tokens.length) {
+  for (var index = start; index < end; index++) {
+    const result = matchTokenTypeAtStart(type, tokens, index, end);
+    if (result !== false) return result;
+  }
+  return false;
+}
