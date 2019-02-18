@@ -149,7 +149,7 @@ parser.defineRule({
 parser.defineRule({
   name: "else",
   alias: "statement",
-  syntax: "(else|otherwise)(:)? {statement}?",
+  syntax: "(else|otherwise) :? {statement}?",
   testRule: "^(else|otherwise)",
   constructor: class else_ extends Rule.BlockStatement {
     compile(match) {
@@ -164,6 +164,8 @@ parser.defineRule({
       tests: [
         ["else", "else {}"],
         ["otherwise", "else {}"],
+        ["else: b = 1", "else { b = 1 }"],
+        ["otherwise: b = 1", "else { b = 1 }"],
         ["else b = 1", "else { b = 1 }"],
         ["otherwise b = 1", "else { b = 1 }"]
       ]

@@ -426,8 +426,8 @@ parser.defineRule({
           "!spell.any(my_list, item => (item == 1), 'item')"
         ],
         [
-          "my-list does not have items where item is 1",
-          "!spell.any(my_list, item => (item == 1), 'item')"
+          "the foo of the bar does not have items where item is 1",
+          "!spell.any(bar.foo, item => (item == 1), 'item')"
         ]
       ]
     }
