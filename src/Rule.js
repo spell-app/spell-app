@@ -29,7 +29,7 @@ import Tokenizer from "./Tokenizer.js";
 import { isWhitespace } from "./utils/string";
 
 // Show debug messages on browser only.
-const DEBUG = !isNode;
+const DEBUG = false;//!isNode;
 
 
 // Abstract Rule class.
@@ -283,7 +283,7 @@ Rule.Alternatives = class alternatives extends Rule {
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
-    if (DEBUG) console.group(`matching alternatives ${this.group || this.argument || this.name || this.toSyntax()} in: "${tokens.slice(start, end).join(" ")}"`);
+    if (DEBUG) console.group(`matching alternatives ${this.argument || this.name || this.toSyntax()} in: "${tokens.slice(start, end).join(" ")}"`);
     const matches = [];
     for (let i = 0, rule; rule = this.rules[i]; i++) {
       let match = rule.parse(parser, tokens, start, end, rules);
@@ -302,7 +302,6 @@ Rule.Alternatives = class alternatives extends Rule {
     // assign special properties to the result
 //TODO: do we need all of this???
     if (this.argument) match.argument = this.argument;
-    if (this.group) match.group = this.group;
     if (this.promote) match.promote = this.promote;
 
     return match;
@@ -356,46 +355,12 @@ Rule.Alternatives = class alternatives extends Rule {
 
 // Alias for `Rule.Alternatives` used to merge alternatives together
 // when implicitly combining multiple rules under the same name.
-// This lets us distinguish
+// This lets us distinguish between:
 //  - actually defining a semantically-meaning "alternatives" and
 //  - smooshing rules together because they share the same name
 Rule.Group = class group extends Rule.Alternatives {};
 
 
-// Alias for a `group` which `excludes` one or more other rules.
-//  `rule.group` (string, required) is the name of the main rule
-//  `rule.excludes` (string or [], required) is the name of the rule(s) to exclude.
-Rule.RestrictedGroup = class restricted_group extends Rule {
-  constructor() {
-    super(...arguments);
-    // normalize `excludes` string to an array
-    if (typeof this.excludes === "string") this.excludes = this.excludes.split(" ");
-  }
-
-  parse(parser, tokens, start, end, rules = parser.rules) {
-    if (DEBUG) console.warn(`excluding ${this.excludes} from ${this.group}`);
-
-    const mainRule = this.getRuleOrDie(rules, this.group);
-    if (!mainRule && !mainRule instanceof Rule.Group)
-      throw new ParseError(`${this.toSyntax()}: can't find main rule '${this.group}'`);
-
-    // Clone the mainRule and restrict its rules
-    const restrictedRule = new Rule.Group(mainRule);
-    restrictedRule.rules = mainRule.rules.filter(rule => !this.excludes.includes(rule.name));
-
-    // replace the mainRule with a new rule
-    const newRules = {
-      ...rules,
-      [mainRule.group]: restrictedRule
-    }
-
-    return restrictedRule.parse(parser, tokens, start, end, newRules);
-  }
-
-  toSyntax() {
-    return `{${this.group}!${this.excludes.join("!")}}`
-  }
-}
 
 // Repeating rule.
 //  `this.repeat` is the rule that repeats.
@@ -634,7 +599,7 @@ Rule.Statement = class statement extends Rule.Group {
     return match;
   }
 }
-Rule.Statement.prototype.group = "statement";
+Rule.Statement.prototype.argument = "statement";
 
 
 // `Statements` are a special case for a block of `Statement` rules

@@ -198,7 +198,7 @@ describe("Parser.import()", () => {
     const rules = foo.rules;
 
     expect(rules.rule1).toBeInstanceOf(Rule.Group);
-    expect(rules.rule1.group).toBe("rule1");
+    expect(rules.rule1.argument).toBe("rule1");
     expect(rules.rule1.rules[0]).toBe(foo1);
     expect(rules.rule1.rules[1]).toBe(bar1);
 

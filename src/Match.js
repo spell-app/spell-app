@@ -16,7 +16,7 @@ export default class match {
   // "name" for this match
   // TODO: this is too much, figure out what we're actually using here...
   get name() {
-    return this.argument || this.group || this.rule.argument || this.rule.group || this.rule.name;
+    return this.argument || this.rule.argument || this.rule.name;
   }
 
   // Should we promote the match?

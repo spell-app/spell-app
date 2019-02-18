@@ -407,7 +407,6 @@ describe("Rule.Alternatives", () => {
   parser.defineRule({
     name: "alt",
     syntax: "(?:arg:this|that|other)",
-    group: "altGroup",
     constructor: class Alt extends Rule.Alternatives {}
   });
   const rule = parser.rules.alt;
@@ -415,7 +414,6 @@ describe("Rule.Alternatives", () => {
   parser.defineRule({
     name: "altStart",
     syntax: "(?:arg:this|that|other)",
-    group: "altGroup",
     testAtStart: true,
     constructor: class Alt2 extends Rule.Alternatives {}
   });
@@ -480,11 +478,6 @@ describe("Rule.Alternatives", () => {
     it("sets 'argument' on the result", () => {
       const match = rule.parse(parser, tokenize("this"));
       expect(match.argument).toBe("arg");
-    });
-
-    it("sets 'group' on the result", () => {
-      const match = rule.parse(parser, tokenize("this"));
-      expect(match.group).toBe("altGroup");
     });
 
     it("sets 'promote' on the result", () => {

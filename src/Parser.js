@@ -183,7 +183,7 @@ export default class Parser {
       // use `cloneClass()` to get a uniquely named constructor for debugging
       const Group = cloneClass(Rule.Group, ruleName + "_group");
       map[ruleName] = new Group({
-        group: ruleName,
+        argument: ruleName,
         rules: [existing]
       });
       existing = map[ruleName];

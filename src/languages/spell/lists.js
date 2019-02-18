@@ -133,7 +133,7 @@ parser.defineRule({
 //
 parser.defineRule({
   name: "ordinal",
-  group: "ordinal",
+  argument: "ordinal",
   pattern: /^(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|penultimate|final|last|top|bottom)$/,
   valueMap: {
     first: 1,

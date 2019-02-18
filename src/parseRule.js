@@ -176,11 +176,10 @@ function parseSymbol(syntaxStream, rules, start = 0, constructor = Rule.Symbols)
 }
 
 // Match grouping expression `(...|...)` in syntax rules.
-// Returns `[ rule, end ]`
-// You can specify an explicit `rule.argument` with:  `(somearg:...)`
 // You can specify that the results should be `promoted` to enclosing rule with: `(?:...)`
+// You can specify an explicit `rule.argument` with:  `(somearg:...)`
 //
-// NOTE: nested parens may not have alternatives... :-(   `(a|(b|c))` won't work???
+// Returns `[ rule, end ]`
 function parseGroup(syntaxStream, rules, start = 0) {
   let { end, slice } = Tokenizer.findNestedTokens(syntaxStream, "(", ")", start);
 
@@ -198,8 +197,8 @@ function parseGroup(syntaxStream, rules, start = 0) {
   }
 
   // split into groups, including nested parens
-  let alternatives = groupAlternatives(slice).map(function(group) {
-    let results = parseSyntax(group, []);
+  let alternatives = groupAlternatives(slice).map(function(alternative) {
+    let results = parseSyntax(alternative, []);
     if (results.length === 1) {
       return results[0];
     } else {
