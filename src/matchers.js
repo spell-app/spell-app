@@ -2,6 +2,18 @@
 //  Matching functions for using during parsing.
 //
 
+export function matchLiteral(literal, token) {
+  return literal === token;
+}
+
+export function indexOfLiteral(literal, tokens, start, end) {
+  while (start < end) {
+    if (matchLiteral(literal, tokens[start])) return start;
+    start++;
+  }
+  return -1;
+}
+
 //
 //  Matching an array of literal strings.
 //  Returns numeric index where match was found.
@@ -12,12 +24,12 @@ export function matchLiteralsAtStart(literals, tokens, start = 0, end = tokens.l
   if (start + length > end) return false;
 
   // Quick exit if no match at start
-  if (literals[0] !== tokens[start]) return false;
+  if (!matchLiteral(literals[0], tokens[start])) return false;
 
   // if more than one, make sure all the rest match
   if (length > 1) {
     for (let i = 1; i < length; i++) {
-      if (literals[i] !== tokens[start + i]) return false;
+      if (!matchLiteral(literals[i], tokens[start + i])) return false;
     }
   }
   return start;
@@ -26,20 +38,18 @@ export function matchLiteralsAtStart(literals, tokens, start = 0, end = tokens.l
 export function matchLiteralsAnywhere(literals, tokens, start = 0, end = tokens.length) {
   // otherwise check anywhere in the string
   const first = literals[0];
-  let index = tokens.indexOf(first, start);
-  while(index !== -1 && index < end) {
+  let index = indexOfLiteral(first, tokens, start, end);
+  while (index !== -1) {
     if (matchLiteralsAtStart(literals, tokens, index, end) !== false) return index;
     // keep going from here if possible, making sure we advance
-    index = tokens.indexOf(first, index + 1);
+    index = indexOfLiteral(first, tokens, index + 1, end);
   }
   return false;
 }
-window.matchLiteralsAtStart = matchLiteralsAtStart;
-window.matchLiteralsAnywhere = matchLiteralsAnywhere;
 
 
 //
-//  Matching regex patterns, including blacklist support.
+//  Matching a single regex pattern, including blacklist support.
 //  Returns numeric index where match was found.
 //  Returns `false` if no found.
 //
