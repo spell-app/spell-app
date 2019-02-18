@@ -204,7 +204,6 @@ parser.defineRule({
   name: "backwards_if",
   alias: "statement",
   syntax: "{statement:statement!backwards_if} if {condition:expression} (?:(else|otherwise) {elseStatement:statement})?",
-  leftRecursive: "statement",
   testRule: "if",
   constructor: class backwards_if extends Rule.Sequence {
     compile(match) {

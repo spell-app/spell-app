@@ -62,17 +62,6 @@ parser.defineRule({
 //
 
 parser.defineRule({
-  name: "property_accessor",
-  syntax: "the {identifier} of",
-  testRule: "^the",
-  constructor: class property_accessor extends Rule.Sequence {
-    compile(match) {
-      return match.results.identifier;
-    }
-  }
-});
-
-parser.defineRule({
   // TODO: multiple identifiers would be cool...
   name: "property_expression",
   alias: "expression",
@@ -96,6 +85,17 @@ parser.defineRule({
       ]
     }
   ]
+});
+
+parser.defineRule({
+  name: "property_accessor",
+  syntax: "the {identifier} of",
+  testRule: "^the",
+  constructor: class property_accessor extends Rule.Sequence {
+    compile(match) {
+      return match.results.identifier;
+    }
+  }
 });
 
 parser.defineRule({

@@ -59,7 +59,7 @@ export default function parseRule(syntax, constructor) {
 
 export function tokeniseRuleSyntax(syntax) {
 //  const SYNTAX_EXPRESSION = /(?:[\w\-]+|[^\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
-  const SYNTAX_EXPRESSION = /(?:[\w\-!]+|[\^\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
+  const SYNTAX_EXPRESSION = /(?:[\w\-]+|[\^\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
   let syntaxStream = syntax.match(SYNTAX_EXPRESSION);
 //TESTME
   if (!syntaxStream) throw new ParseError(`Can't tokenize parse rule syntax >>${syntax}<<`);
@@ -265,30 +265,36 @@ function parseRepeat(syntaxStream, rules, start = 0) {
 // Returns `[ rule, end ]`
 // Throws if invalid.
 function parseSubrule(syntaxStream, rules, start = 0) {
-  const match = Tokenizer.findNestedTokens(syntaxStream, "{", "}", start);
+  let { slice, end } = Tokenizer.findNestedTokens(syntaxStream, "{", "}", start);
   const props = {};
 
   // handle promote flag: "?:"
-  if (match.slice[0] === "?" && match.slice[1] === ":") {
+  if (slice[0] === "?" && slice[1] === ":") {
     props.promote = true;
-    match.slice = match.slice.slice(2);
+    slice = slice.slice(2);
   }
 
   // handle argument
-  if (match.slice[1] === ":") {
-    props.argument = match.slice[0];
-    match.slice = match.slice.slice(2);
+  if (slice[1] === ":") {
+    props.argument = slice[0];
+    slice = slice.slice(2);
   }
 
-  if (match.slice.length !== 1)
-    throw new ParseError(
-      `Can't process subrules with more than one rule name: {${match.slice.join("")}}`
-    );
+  // get rule
+  props.subrule = slice[0];
+  slice = slice.slice(1);
 
-  props.subrule = match.slice[0];
+  // handle any `!` exclude rules
+  while (slice[0] === "!") {
+    const exclude = slice[1];
+    if (!exclude) throw new ParseError(`parseSubrule got bang but no exclude rule: ${syntaxStream.slice(start)}`);
+    if (!props.excludes)  props.excludes = [exclude];
+    else                  props.excludes.push(exclude);
+    slice = slice.slice(2);
+  }
 
   const rule = new Rule.Subrule(props);
-  return [rule, match.end];
+  return [rule, end];
 }
 
 // Match list expression `[<item><delimiter>]` or `[<argument>:<item><delimiter>]` in syntax rules.

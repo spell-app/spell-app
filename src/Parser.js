@@ -214,8 +214,6 @@ export default class Parser {
   //  `pattern` (RegExp, optional) Regular expression for `Pattern` rules
   //  `precedence` (number, optional) Precedence number for the rule (currently doesn't do anything)
   //  `blacklist` ([string], optional) Array of strings as blacklist for pattern rules.
-  //  `leftRecursive' (string, optional) Set to the name of the "main" left-recursive rule if necessary,
-  //    i.e. it calls itself as a subrule before matching any literal tokens
   //  `testRule` (Rule or string, optional) Rule or keywords string to use as a test rule.
   //    Specifying this can let us jump out quickly if there is no possible match.
   //
@@ -279,11 +277,6 @@ export default class Parser {
     if (!rules || rules.length === 0)
       throw new ParseError(`defineRule(${props.syntax}): didnt get rules back`);
 
-    // if we got an expression or a statement, make sure we have a testRule
-//     if (rules[0] instanceof Rule.Sequence && (names.includes("expression") || names.includes("statement")) && !props.testRule) {
-//       console.warn(`defineRule('${props.name}'): you should define a testRule`);
-//     }
-
     rules.forEach(rule => {
       // Add props to the rule non-enumerably and non-writably
       //  so we'll get an error if something tries to overwrite them.
@@ -299,20 +292,6 @@ export default class Parser {
       // only use the first rule if we got more than one
       // so we don't run the same tests more than once.
       this.addRule("_testable_", rules[0]);
-    }
-
-    // if we are `leftRecursive`, define a group which excludes us.
-    if (props.leftRecursive) {
-      const group = props.leftRecursive;
-      const ruleName = `${group}!${props.name}`;
-      const nonRecursiveRule = new Rule.RestrictedGroup({ group, excludes: props.name });
-// TODO: make sure first rule has this syntax?
-      this.addRule(ruleName, nonRecursiveRule);
-
-      // debug
-      const debugRuleName = `__leftRecursive_${group}__`;
-      if (!this.rules[debugRuleName]) this.addRule(debugRuleName, new Rule.Group({ group: debugRuleName }));
-      this.addRule(debugRuleName, rules[0]);
     }
 
     return rules;
