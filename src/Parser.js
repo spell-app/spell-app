@@ -3,10 +3,6 @@
 import flatten from "lodash/flatten";
 
 // TODO: dependency-inject tokenizer?
-import {
-  matchTokenTypeAnywhere,
-  matchTokenTypeAtStart,
-} from "./matchers.js";
 import ParseError from "./ParseError.js";
 import Tokenizer from "./Tokenizer.js";
 import Rule from "./Rule.js";
@@ -263,8 +259,8 @@ export default class Parser {
       else if (testRule instanceof Tokenizer.Token) {
         delete props.testRule;
         props.test = function test(parser, tokens, start = 0, end = tokens.length, testAtStart = this.testAtStart, rules = parser.rules) {
-          if (testAtStart) return matchTokenTypeAtStart(testRule, tokens, start, end);
-          return matchTokenTypeAnywhere(testRule, tokens, start, end);
+          if (testAtStart) return Tokenizer.matchInstanceOfAtStart(testRule, tokens, start, end);
+          return Tokenizer.matchInstanceOfAnywhere(testRule, tokens, start, end);
         }
       }
     }

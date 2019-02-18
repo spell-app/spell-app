@@ -16,14 +16,6 @@ import { isNode } from "browser-or-node";
 
 import Parser from "./Parser.js";
 import Match from "./Match.js";
-import {
-  matchLiteralsAnywhere,
-  matchLiteralsAtStart,
-  matchPatternAnywhere,
-  matchPatternAtStart,
-  matchTokenTypeAnywhere,
-  matchTokenTypeAtStart,
-} from "./matchers.js";
 import ParseError from "./ParseError.js";
 import Tokenizer from "./Tokenizer.js";
 import { isWhitespace } from "./utils/string";
@@ -110,12 +102,12 @@ Rule.Literals = class literals extends Rule {
   get literalText() { return this.literals.join(this.literalSeparator) }
 
   test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (testAtStart) return matchLiteralsAtStart(this.literals, tokens, start, end);
-    return matchLiteralsAnywhere(this.literals, tokens, start, end);
+    if (testAtStart) return Tokenizer.matchLiteralsAtStart(this.literals, tokens, start, end);
+    return Tokenizer.matchLiteralsAnywhere(this.literals, tokens, start, end);
   }
 
   parse(parser, tokens, start = 0, end, rules) {
-    const index = matchLiteralsAtStart(this.literals, tokens, start, end);
+    const index = Tokenizer.matchLiteralsAtStart(this.literals, tokens, start, end);
     if (index === false) return undefined;
     return new Match({
       rule: this,
@@ -171,19 +163,13 @@ Rule.Pattern = class pattern extends Rule {
 
   test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
     if (testAtStart)
-      return matchPatternAtStart(this.pattern, this.blacklist, tokens, start, end);
-    return matchPatternAnywhere(this.pattern, this.blacklist, tokens, start, end);
+      return Tokenizer.matchPatternAtStart(this.pattern, this.blacklist, tokens, start, end);
+    return Tokenizer.matchPatternAnywhere(this.pattern, this.blacklist, tokens, start, end);
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
-    const token = tokens[start];
-
-    const match = this.pattern.exec(token);
-    if (!match) return undefined;
-
-    // bail if present in blacklist
-    let matched = match[0];
-    if (this.blacklist && this.blacklist[matched]) return undefined;
+    let matched = Tokenizer.executePattern(tokens[start], this.pattern, this.blacklist);
+    if (!matched) return undefined;
 
     // if we have a valueMap specified, run through that
     if (this.valueMap) {
@@ -232,7 +218,7 @@ Rule.Subrule = class subrule extends Rule {
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
     let rule = Rule.getRuleOrDie(rules, this.subrule);
 
-    // if we have any excludes, filter them out of rule.rules
+    // if we have any excludes, clone the rule, filtering out the excluded rules
     if (this.excludes) {
       if (!rule instanceof Rule.Group)
         throw new ParseError(`subrule ${this.toSyntax()} expected ${this.subrule} to be a group!`);
@@ -278,7 +264,9 @@ Rule.Alternatives = class alternatives extends Rule {
     if (!this.rules) this.rules = [];
   }
 
-  // Return if ANY of our rules is found.
+  // Return (`true` or index) if ANY of our rules is found.
+  // If ANY rules return `undefined`, this will return `undefined`.
+  // If ALL rules return `false`, this will return `false`.
   test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
     let undefinedFound = false;
     for (let i = 0, rule; rule = this.rules[i]; i++) {
@@ -309,7 +297,6 @@ Rule.Alternatives = class alternatives extends Rule {
     if (!match) return;
 
     // assign special properties to the result
-//TODO: do we need all of this???
     if (this.argument) match.argument = this.argument;
     if (this.promote) match.promote = this.promote;
 
@@ -601,7 +588,7 @@ Rule.Statement = class statement extends Rule.Group {
 
     // eat comment at end of the line
     let comment;
-    if (tokens[end - 1] instanceof Tokenizer.Comment) {
+    if (Tokenizer.tokenMatchesInstanceOf(tokens[end - 1], Tokenizer.Comment)) {
       comment = Rule.getRuleOrDie(rules, "comment")
         .parse(parser, tokens, end - 1, end, rules);
     }
@@ -781,19 +768,21 @@ Rule.BlankLine = class blank_line extends Rule {
 // Eats whitespace before the comment if found.
 Rule.Comment = class comment extends Rule {
   test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (testAtStart) return matchTokenTypeAtStart(Tokenizer.Comment, tokens, start, end);
-    return matchTokenTypeAnywhere(Tokenizer.Comment, tokens, start, end);
+    if (testAtStart) return Tokenizer.matchInstanceOfAtStart(Tokenizer.Comment, tokens, start, end);
+    return Tokenizer.matchInstanceOfAnywhere(Tokenizer.Comment, tokens, start, end);
   }
 
   // Comments are special nodes in our token stream.
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
     let index = start;
-    while (tokens[index] instanceof Tokenizer.Whitespace) {
+    // eat whitespace before comment
+    while (Tokenizer.tokenMatchesInstanceOf(tokens[index], Tokenizer.Whitespace)) {
       index++;
       if (index >= end) return undefined;
     }
+    // bail if not a comment
     let token = tokens[index];
-    if (!(token instanceof Tokenizer.Comment)) return undefined;
+    if (!Tokenizer.tokenMatchesInstanceOf(token, Tokenizer.Comment)) return undefined;
     return new Match({
       rule: this,
       matched: token,

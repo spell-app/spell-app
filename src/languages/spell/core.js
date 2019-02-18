@@ -335,12 +335,17 @@ parser.defineRule({
 parser.defineRule({
   name: "number",
   alias: "expression",
-  testRule: Tokenizer.Number,
+  testAtStart: true,
   constructor: class number extends Rule {
+    test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
+      if (testAtStart) return Tokenizer.matchTypeOfAtStart("number", tokens, start, end);
+      return Tokenizer.matchTypeOfAtStart("number", tokens, start, end);
+    }
+
     // Numbers get encoded as JS numbers in the stream.
     parse(parser, tokens, start = 0) {
-      let token = tokens[start];
-      if (typeof token !== "number") return undefined;
+      const token = tokens[start];
+      if (!Tokenizer.tokenMatchesTypeOf(token, "number")) return undefined;
       return new Match({
         rule: this,
         matched: token,
@@ -370,6 +375,7 @@ parser.defineRule({
       title: "doesn't match things that aren't numbers",
       tests: [
         ["", undefined],
+        ["-", undefined],
         [".", undefined]
       ]
     },
@@ -388,6 +394,7 @@ parser.defineRule({
   name: "number",
   alias: "expression",
   pattern: /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
+  testAtStart: true,
   valueMap: {
     zero: 0,
     one: 1,
@@ -434,8 +441,8 @@ parser.defineRule({
   constructor: class text extends Rule {
     // Text strings get encoded as `text` objects in the token stream.
     parse(parser, tokens, start = 0) {
-      let token = tokens[start];
-      if (!(token instanceof Tokenizer.Text)) return undefined;
+      const token = tokens[start];
+      if (!Tokenizer.tokenMatchesInstanceOf(token, Tokenizer.Text)) return undefined;
       return new Match({
         rule: this,
         matched: token.quotedString,

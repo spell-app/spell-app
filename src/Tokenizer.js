@@ -969,6 +969,12 @@ const Tokenizer = {
     return block;
   },
 
+
+  //
+  //  Utility functions
+  //
+
+
   // Find the matching instance of (possibly nested) `endToken` to balance `startToken`
   //  in array of `tokens` (strings).
   // If successful, returns `{ start, end, slice }`
@@ -991,6 +997,136 @@ const Tokenizer = {
     }
     throw new ParseError(`Couldn't find matching '${endToken}'s starting at item ${start}`);
   },
+
+  //
+  //  Matching functions for using during parsing.
+  //
+
+
+
+  //
+  //  Matching tokens using an array of `literals`.
+  //  Returns numeric index where match was found.
+  //  Returns `false` if no found.
+  //
+
+  // Match a single literal value.
+  tokenMatchesLiteral(token, literal) {
+    return literal === token;
+  },
+
+  // Match a run of `literals`, starting at `start`.
+  matchLiteralsAtStart(literals, tokens, start = 0, end = tokens.length) {
+    const length = literals.length;
+    if (start + length > end) return false;
+
+    // Quick return if only one.
+    if (length === 1) {
+      return Tokenizer.tokenMatchesLiteral(tokens[start], literals[0])
+        ? start
+        : false;
+    }
+
+    // if more than one, make sure all the rest match
+    for (let i = 0; i < length; i++) {
+      if (!Tokenizer.tokenMatchesLiteral(tokens[start + i], literals[i])) return false;
+    }
+    return start;
+  },
+
+  // Match a run of `literals`, starting anywhere from `start` to `end`.
+  matchLiteralsAnywhere(literals, tokens, start = 0, end = tokens.length) {
+    for (var index = start; index < end; index++) {
+      const result = Tokenizer.matchLiteralsAtStart(literals, tokens, index, end);
+      if (result !== false) return index;
+    }
+    return false;
+  },
+
+
+  //
+  //  Matching tokens using a single regex pattern, including blacklist support.
+  //  Returns numeric index where match was found.
+  //  Returns `false` if no found.
+  //
+
+  // Match a single pattern/blacklist.
+  // Returns `true` if matched, else `false`.
+  tokenMatchesPattern(token, pattern, blacklist) {
+    if (!pattern.test(token)) return false;
+    if (blacklist && blacklist[token]) return false;
+    return true;
+  },
+
+  // Execute a `pattern` against `token`, returning `match[0]`.
+  // If `blacklist` is provided, returns `undefined` if match is in blacklist.
+  // Returns `undefined` if no match.
+  executePattern(token, pattern, blacklist) {
+    const result = pattern.exec(token);
+    if (!result) return undefined;
+    const match = result[0];
+    if (blacklist && blacklist[match]) return undefined;
+    return match;
+  },
+
+  // Match a single pattern/blacklist at `start`.
+  matchPatternAtStart(pattern, blacklist, tokens, start = 0, end = tokens.length) {
+    if (start < end && Tokenizer.tokenMatchesPattern(tokens[start], pattern, blacklist)) return start;
+    return false;
+  },
+
+  // Match a single pattern/blacklist anywhere from `start` to `end`.
+  matchPatternAnywhere(pattern, blacklist, tokens, start = 0, end = tokens.length) {
+    for (var index = start; index < end; index++) {
+      if (Tokenizer.tokenMatchesPattern(tokens[index], pattern, blacklist)) return index;
+    }
+    return false;
+  },
+
+
+  //
+  //  Match tokens using Javascript `typeof <typeName>` operator.
+  //  Returns numeric index where match was found.
+  //  Returns `false` if no found.
+  //
+  tokenMatchesTypeOf(token, typeName) {
+    return typeof token === typeName;
+  },
+
+  matchTypeOfAtStart(typeName, tokens, start = 0, end = tokens.length) {
+    if (start < end && Tokenizer.tokenMatchesTypeOf(tokens[start], typeName)) return start;
+    return false;
+  },
+
+  matchTypeOfAnywhere(typeName, tokens, start = 0, end = tokens.length) {
+    for (var index = start; index < end; index++) {
+      if (Tokenizer.tokenMatchesTypeOf(tokens[index], typeName)) return index;
+    }
+    return false;
+  },
+
+
+  //
+  //  Match tokens using Javascript `instanceof <type>` operator.
+  //  Returns numeric index where match was found.
+  //  Returns `false` if no found.
+  //
+  tokenMatchesInstanceOf(token, type) {
+    return token instanceof type;
+  },
+
+  matchInstanceOfAtStart(type, tokens, start = 0, end = tokens.length) {
+    if (start < end && Tokenizer.tokenMatchesInstanceOf(tokens[start], type)) return start;
+    return false;
+  },
+
+  matchInstanceOfAnywhere(type, tokens, start = 0, end = tokens.length) {
+    for (var index = start; index < end; index++) {
+      if (Tokenizer.tokenMatchesInstanceOf(tokens[index], type)) return index;
+    }
+    return false;
+  },
+
 };
 
 export default Tokenizer;
