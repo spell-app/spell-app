@@ -20,7 +20,7 @@ export default class Token {
   // If `literal` is an array, we'll return true if our `value` is included in the array.
   // NOTE: not valid for all token types.
   matchesLiteral(literal) {
-//    if (Array.isArray(literal)) return literal.includes(this.value);
+    if (Array.isArray(literal)) return literal.includes(this.value);
     return this.value === literal;
   }
 

@@ -108,6 +108,63 @@ Rule.TokenType = class tokenType extends Rule {
 }
 
 
+// Abstract rule to match a single literal value.
+// `rule.literal`:
+//
+// On successful parse, yields a `match` where:
+//  `match.rule` is the rule which was parsed
+//  `match.matched` is the actual string matched
+//  `match.nextStart` is the index of the next start token
+Rule.Literal = class literal extends Rule {
+  constructor(props) {
+    // If passed a string, use that as our `literals`
+    if (typeof props === "string") props = { literal: props };
+    super(props);
+  }
+
+  test(parser, tokens, start = 0, end = tokens.length, rules, testLocation = this.testLocation) {
+    if (start >= end) return false;
+    if (testLocation === TestLocation.ANYWHERE) {
+      for (var index = start; index < end; index++) {
+        if (tokens[index].matchesLiteral(this.literal)) return true;
+      }
+      return false;
+    }
+    return tokens[start].matchesLiteral(this.literal);
+  }
+
+  parse(parser, tokens, start = 0, end, rules) {
+    if (!this.test(parser, tokens, start, end, rules, TestLocation.AT_START)) return undefined;
+    const match = new Match({
+      rule: this,
+      matched: tokens[start],
+      start,
+      nextStart: start + 1
+    });
+    if (this.argument) match.argument = this.argument;
+    if (this.promote) match.promote = this.promote;
+    return match;
+  }
+
+  compile(match) {
+    return match.matched.value;
+  }
+
+  toSyntax() {
+    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
+    const promote = this.promote ? "?:" : "";
+    const argument = this.argument ? `${this.argument}:` :"";
+    const isChoice = Array.isArray(this.literal);
+    const literal = isChoice ? this.literal.join("|") : this.literal;
+    const optional = this.optional ? "?" : "";
+    if (isChoice || promote || argument)
+      return `${testLocation}(${promote}${argument}${literal})${optional}`;
+    return `${testLocation}${literal}${optional}`;
+  }
+};
+
+
+
 // Abstract rule for one or more sequential literal values to match.
 // `rule.literals`:
 //    the literal string or array of literal strings to match.
@@ -120,22 +177,15 @@ Rule.TokenType = class tokenType extends Rule {
 //  `match.nextStart` is the index of the next start token
 Rule.Literals = class literals extends Rule {
   constructor(props) {
-    // If passed a string, split and use that as our `literals`
-    if (typeof props === "string") {
-      super();
-      this.literals = props;
-    }
-    // otherwise assume we got an array of property maps
-    else {
-      super(props);
-    }
+    // If passed a string, use that as our `literals`
+    if (typeof props === "string") props = { literals: props };
+    super(props);
+
     // coerce `literals` to an array
     if (typeof this.literals === "string") {
       this.literals = this.literals.split(this.literalSeparator);
     }
   }
-
-  get literalText() { return this.literals.join(this.literalSeparator) }
 
   test(parser, tokens, start = 0, end = tokens.length, rules, testLocation = this.testLocation) {
     if (testLocation === TestLocation.ANYWHERE) {
@@ -164,22 +214,35 @@ Rule.Literals = class literals extends Rule {
 
   parse(parser, tokens, start = 0, end = tokens.length, rules) {
     if (!this._testAtStart(tokens, start, end)) return undefined;
-    return new Match({
+
+    // Return actual tokens matched
+    const match = new Match({
       rule: this,
-      matched: this.literalText,
+      matched: tokens.slice(start, start + this.literals.length),
       start,
       nextStart: start + this.literals.length
     });
+    if (this.argument) match.argument = this.argument;
+    if (this.promote) match.promote = this.promote;
+    return match;
   }
 
   compile(match) {
-    return match.matched;
+    return match.matched
+      .map(match => match.value)
+      .join(this.literalSeparator);
   }
 
   toSyntax() {
     const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
+    const promote = this.promote ? "?:" : "";
+    const argument = this.argument ? `${this.argument}:` :"";
+    const isChoice = this.isChoice;
+    const literals = this.literals.join(this.literalSeparator);
     const optional = this.optional ? "?" : "";
-    return `${testLocation}${this.literalText}${optional}`;
+    if (promote || argument)
+      return `${testLocation}(${promote}${argument}${literals})${optional}`;
+    return `${testLocation}${literals}${optional}`;
   }
 };
 Object.defineProperty(Rule.Literals.prototype, "literalSeparator", { value: "" });
@@ -190,7 +253,18 @@ Rule.Symbols = class symbols extends Rule.Literals {};
 
 // One or more literal keywords.
 // Keywords join WITH spaces.
-Rule.Keywords = class keywords extends Rule.Literals {};
+Rule.Keywords = class keywords extends Rule.Literals {
+  constructor(props) {
+    super(props);
+    // If we got exactly one literal, return a Rule.Literal instead which should be faster
+    if (this.literals && this.literals.length === 1) {
+      const props = {...this};
+      props.literal = props.literals[0];
+      delete props.literals;
+      return new Rule.Literal(props);
+    }
+  }
+};
 Object.defineProperty(Rule.Keywords.prototype, "literalSeparator", { value: " " });
 
 // Regex pattern to match a SINGLE token.

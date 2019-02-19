@@ -37,8 +37,8 @@ parser.defineRule({
 parser.defineRule({
   name: "exit",
   alias: "statement",
-  syntax: "exit",
-  constructor: class return_statement extends Rule.Keywords {
+  literal: "exit",
+  constructor: class return_statement extends Rule.Literal {
     compile(match) {
       return "return undefined";
     }

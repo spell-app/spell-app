@@ -23,8 +23,8 @@ export default parser;
 parser.defineRule({
   name: "me",
   alias: "expression",
-  syntax: "me",
-  constructor: class me extends Rule.Keywords {
+  literal: "me",
+  constructor: class me extends Rule.Literal {
     compile(match) {
       return "this";
     }
@@ -41,8 +41,8 @@ parser.defineRule({
 parser.defineRule({
   name: "I",
   alias: "expression",
-  syntax: "I",
-  constructor: class I extends Rule.Keywords {
+  literal: "I",
+  constructor: class I extends Rule.Literal {
     compile(match) {
       return "this";
     }

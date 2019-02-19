@@ -99,8 +99,8 @@ parser.defineRule({
   name: "is",
   alias: ["infix_operator"],
   precedence: 10,
-  syntax: "is",
-  constructor: class is extends Rule.Keywords {
+  literal: "is",
+  constructor: class is extends Rule.Literal {
     compile(match) {
       const { lhs, rhs } = match.results;
       return `(${lhs} == ${rhs})`;
@@ -215,7 +215,7 @@ parser.defineRule({
   name: "is_same_type_as",
   alias: ["infix_operator"],
   precedence: 11,
-  syntax: ["is same type as"],
+  syntax: "is same type as",
   constructor: class is_same_type_as extends Rule.Keywords {
     compile(match) {
       const { lhs, rhs } = match.results;
@@ -280,8 +280,8 @@ parser.defineRule({
   name: "includes",
   alias: ["infix_operator"],
   precedence: 11,
-  syntax: ["includes", "contains"],
-  constructor: class includes extends Rule.Keywords {
+  literal: ["includes", "contains"],
+  constructor: class includes extends Rule.Literal {
     compile(match) {
       const { lhs, rhs } = match.results;
       return `spell.includes(${lhs}, ${rhs})`;
@@ -324,8 +324,8 @@ parser.defineRule({
   name: "gt",
   alias: ["infix_operator"],
   precedence: 11,
-  syntax: ">",
-  constructor: class gt extends Rule.Symbols {
+  literal: ">",
+  constructor: class gt extends Rule.Literal {
     compile(match) {
       const { lhs, rhs } = match.results;
       return `(${lhs} > ${rhs})`;
@@ -404,8 +404,8 @@ parser.defineRule({
   name: "lt",
   alias: ["infix_operator"],
   precedence: 11,
-  syntax: "<",
-  constructor: class lt extends Rule.Symbols {
+  literal: "<",
+  constructor: class lt extends Rule.Literal {
     compile(match) {
       const { lhs, rhs } = match.results;
       return `(${lhs} < ${rhs})`;
@@ -485,8 +485,8 @@ parser.defineRule({
   name: "plus_symbol",
   alias: ["infix_operator"],
   precedence: 13,
-  syntax: "\\+",
-  constructor: class plus_symbol extends Rule.Symbols {
+  literal: "+",
+  constructor: class plus_symbol extends Rule.Literal {
     compile(match) {
       const { lhs, rhs } = match.results;
       return `(${lhs} + ${rhs})`;
@@ -503,8 +503,8 @@ parser.defineRule({
   name: "plus",
   alias: ["infix_operator"],
   precedence: 13,
-  syntax: "plus",
-  constructor: class plus extends Rule.Keywords {
+  literal: "plus",
+  constructor: class plus extends Rule.Literal {
     compile(match) {
       const { lhs, rhs } = match.results;
       return `(${lhs} + ${rhs})`;
@@ -522,8 +522,8 @@ parser.defineRule({
   name: "minus_symbol",
   alias: ["infix_operator"],
   precedence: 13,
-  syntax: "-",
-  constructor: class minus_symbol extends Rule.Symbols {
+  literal: "-",
+  constructor: class minus_symbol extends Rule.Literal {
     compile(match) {
       const { lhs, rhs } = match.results;
       return `(${lhs} - ${rhs})`;
@@ -548,8 +548,8 @@ parser.defineRule({
   name: "minus",
   alias: ["infix_operator"],
   precedence: 13,
-  syntax: "minus",
-  constructor: class minus extends Rule.Keywords {
+  literal: "minus",
+  constructor: class minus extends Rule.Literal {
     compile(match) {
       const { lhs, rhs } = match.results;
       return `(${lhs} - ${rhs})`;
@@ -567,8 +567,8 @@ parser.defineRule({
   name: "times_sumbol",
   alias: ["infix_operator"],
   precedence: 14,
-  syntax: "\\*",
-  constructor: class times extends Rule.Symbols {
+  literal: "*",
+  constructor: class times extends Rule.Literal {
     compile(match) {
       const { lhs, rhs } = match.results;
       return `(${lhs} * ${rhs})`;
@@ -588,8 +588,8 @@ parser.defineRule({
   name: "times",
   alias: ["infix_operator"],
   precedence: 14,
-  syntax: "times",
-  constructor: class times extends Rule.Keywords {
+  literal: "times",
+  constructor: class times extends Rule.Literal {
     compile(match) {
       const { lhs, rhs } = match.results;
       return `(${lhs} * ${rhs})`;
@@ -607,8 +607,8 @@ parser.defineRule({
   name: "division_symbol",
   alias: ["infix_operator"],
   precedence: 14,
-  syntax: "/",
-  constructor: class divided_by extends Rule.Symbols {
+  literal: "/",
+  constructor: class divided_by extends Rule.Literal {
     compile(match) {
       const { lhs, rhs } = match.results;
       return `(${lhs} / ${rhs})`;

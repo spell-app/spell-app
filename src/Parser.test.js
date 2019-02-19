@@ -18,8 +18,8 @@ parser.defineRules(
   { name: "statement", constructor: Rule.Statement },
   { name: "statements", constructor: Rule.Statements },
 
-  { name: "this", syntax: "this", constructor: Rule.Keywords },
-  { name: "that", syntax: "that", constructor: Rule.Keywords },
+  { name: "this", syntax: "this" },
+  { name: "that", syntax: "that" },
   {
     name: "this_and_that",
     alias: "statement",

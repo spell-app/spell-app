@@ -100,8 +100,8 @@ parser.defineRule({
 parser.defineRule({
   name: "undefined",
   alias: "expression",
-  syntax: "undefined",
-  constructor: class _undefined extends Rule.Keywords {
+  literal: "undefined",
+  constructor: class _undefined extends Rule.Literal {
     compile(match) {
       return "undefined";
     }

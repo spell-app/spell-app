@@ -122,7 +122,7 @@ function parseToken(syntaxStream, rules = [], start = 0) {
 // If more than one keyword appears in a row, combines them into a single `Keyword` object.
 // Put a question mark after the keyword to make it optional, eg, "the? thing"
 // Returns `[ rule, end ]`
-function parseKeyword(syntaxStream, rules, start = 0, constructor = Rule.Keywords) {
+function parseKeyword(syntaxStream, rules, start = 0) {
   let literals = [];
   let end;
   // eat keywords while they last
@@ -135,7 +135,10 @@ function parseKeyword(syntaxStream, rules, start = 0, constructor = Rule.Keyword
     end = i;
   }
 
-  let rule = new constructor({ literals });
+  const rule = (literals.length === 1)
+    ? new Rule.Literal({ literal: literals[0] })
+    : new Rule.Keywords({ literals });
+
   return [rule, end];
 }
 
@@ -143,7 +146,7 @@ const ESCAPED_SYMBOLS = ["{", "(", "[", "|", "*", "+", "?", "]", ")", "}"];
 
 // Match one or more `symbol`s in syntax rules.
 // Returns `[ rule, end ]`
-function parseSymbol(syntaxStream, rules, start = 0, constructor = Rule.Symbols) {
+function parseSymbol(syntaxStream, rules, start = 0) {
   const literals = [];
   const echo = [];
   let end;
@@ -167,12 +170,14 @@ function parseSymbol(syntaxStream, rules, start = 0, constructor = Rule.Symbols)
     end = i;
   }
 
-  const rule = new constructor({
-    literals,
-    toSyntax() {
-      return `${echo.join("")}${this.optional ? "?" : ""}`;
-    }
-  });
+  function toSyntax() {
+    return `${echo.join("")}${this.optional ? "?" : ""}`;
+  }
+
+  const rule = (literals.length === 1)
+    ? new Rule.Literal({ literal: literals[0], toSyntax })
+    : new Rule.Symbols({ literals, toSyntax });
+
   return [rule, end];
 }
 
@@ -207,13 +212,30 @@ function parseGroup(syntaxStream, rules, start = 0) {
     }
   });
 
-  let rule =
-    alternatives.length === 1 ? alternatives[0] : new Rule.Alternatives({ rules: alternatives });
+  let rule;
+  if (alternatives.length === 1) {
+    rule = alternatives[0];
+  }
+  else {
+    const allAreSingles = alternatives.every( rule => {
+      if (!(rule instanceof Rule.Literal)) return false;
+      if (rule.optional || rule.argument) return false;
+      return true;
+    });
+    if (allAreSingles) {
+      const keywords = flatten(alternatives.map(rule => rule.literal));
+      rule = new Rule.Literal({ literal: keywords });
+    }
+    else {
+      rule = new Rule.Alternatives({ rules: alternatives });
+    }
+  }
 
   if (argument) rule.argument = argument;
   if (promote) rule.promote = true;
   return [rule, end];
 }
+window.parseGroup = parseGroup;
 
 function groupAlternatives(tokens) {
   let alternatives = [];

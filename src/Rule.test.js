@@ -14,16 +14,19 @@ describe("Rule.Symbols", () => {
   describe("on construction", () => {
     it("creates proper rule when passed literals as a string", () => {
       const rule = new Rule.Keywords({ literals: ">" });
-      expect(rule.literals).toEqual([">"]);
+      expect(rule).toBeInstanceOf(Rule.Literal);
+      expect(rule.literal).toEqual(">");
     });
 
     it("creates proper rule when passed single symbol as a string", () => {
       const rule = new Rule.Symbols(">");
+      expect(rule).toBeInstanceOf(Rule.Symbols);
       expect(rule.literals).toEqual([">"]);
     });
 
     it("creates proper rule when passed multiple symbols as a string", () => {
       const rule = new Rule.Symbols(">=");
+      expect(rule).toBeInstanceOf(Rule.Symbols);
       expect(rule.literals).toEqual([">", "="]);
     });
   });
@@ -132,16 +135,19 @@ describe("Rule.Keywords", () => {
   describe("on construction", () => {
     it("creates proper rule when passed literals as a string", () => {
       const rule = new Rule.Keywords({ literals: "this" });
-      expect(rule.literals).toEqual(["this"]);
+      expect(rule).toBeInstanceOf(Rule.Literal);
+      expect(rule.literal).toEqual("this");
     });
 
     it("creates proper rule when passed single keyword as a string", () => {
       const rule = new Rule.Keywords("this");
-      expect(rule.literals).toEqual(["this"]);
+      expect(rule).toBeInstanceOf(Rule.Literal);
+      expect(rule.literal).toEqual("this");
     });
 
     it("creates proper rule when passed multiple keywords as a string", () => {
       const rule = new Rule.Keywords("this that");
+      expect(rule).toBeInstanceOf(Rule.Keywords);
       expect(rule.literals).toEqual(["this", "that"]);
     });
   });
@@ -452,21 +458,26 @@ describe("Rule.Subrule", () => {
 describe("Rule.Alternatives", () => {
   const parser = new Parser();
 
-  parser.defineRule({
-    name: "ruleStart",
-    syntax: "(?:arg:this|that|other)",
-    constructor: class Alt2 extends Rule.Alternatives {}
+  const ruleStart = new Rule.Alternatives({
+    rules: [
+      new Rule.Keywords("this"),
+      new Rule.Keywords("that"),
+      new Rule.Keywords("other"),
+    ],
+    promote: true,
+    argument: "arg"
   });
-  const ruleStart = parser.rules.ruleStart;
 
-  parser.defineRule({
-    name: "ruleAnywhere",
-    syntax: "(?:arg:this|that|other)",
-    testLocation: TestLocation.ANYWHERE,
-    constructor: class Alt extends Rule.Alternatives {}
+  const ruleAnywhere = new Rule.Alternatives({
+    rules: [
+      new Rule.Keywords("this"),
+      new Rule.Keywords("that"),
+      new Rule.Keywords("other"),
+    ],
+    promote: true,
+    argument: "arg",
+    testLocation: TestLocation.ANYWHERE
   });
-  const ruleAnywhere = parser.rules.ruleAnywhere;
-
 
   describe("test() method", () => {
     describe("TEST_AT_START", () => {
@@ -821,8 +832,8 @@ describe("Rule.Comment", () => {
   parser.defineRules(
     { name: "statement", constructor: Rule.Statement },
     { name: "statements", constructor: Rule.Statements },
-    { name: "this", syntax: "this", constructor: Rule.Keywords },
-    { name: "that", syntax: "that", constructor: Rule.Keywords },
+    { name: "this", syntax: "this" },
+    { name: "that", syntax: "that" },
     {
       name: "this_and_that",
       alias: "statement",

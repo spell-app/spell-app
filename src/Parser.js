@@ -226,11 +226,15 @@ export default class Parser {
       return this.addRule(ruleProps.name, ruleProps);
     }
 
-    const { skip, constructor, ...props } = ruleProps;
+    let { skip, constructor, ...props } = ruleProps;
     if (skip) return;
 
+    // if `constructor` was not specified, it will be Object
+    // set to null in this case
+    if (constructor === Object) constructor = null;
+
     // throw if required params not provided
-    if (!constructor || !props.name) {
+    if (!props.name) {
       throw new ParseError(`parser.define(): You must pass 'constructor' and 'name'`);
     }
 
