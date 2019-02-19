@@ -150,7 +150,12 @@ Token.JSXAttribute = class jsxAttribute extends Token{
 
 // Loose text in the middle of a JSX block
 // `text.value` is the actual text matched (including whitespace).
-Token.JSXText = class jsxText extends Token {}
+Token.JSXText = class jsxText extends Token {
+//TODO: escape quotes!
+  get quotedText() {
+    return `"${this.value}"`;
+  }
+}
 
 // JSX expression, composed of inline tokens which should yield an `expression`.
 Token.JSXExpression = class jsxExpression extends Token {

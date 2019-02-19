@@ -72,11 +72,9 @@ parser.defineRule({
         children
           .map(child => {
             //TODO: escape inner quotes...
-            if (typeof child === "string") {
-              //forget it if whitespace only... ???
-              let text = child.trim();
-              if (!text) return undefined;
-              return `"${text}"`;
+            if (child instanceof Token.JSXText) {
+              // TODO: forget it if whitespace only... ???
+              return child.quotedText;
             }
             if (child instanceof Token.JSXElement) {
               let childSource = this.jsxElementToSource(child);

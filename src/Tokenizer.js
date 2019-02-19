@@ -404,6 +404,7 @@ const Tokenizer = {
         continue;
       } else {
         if (child) children.push(child);
+        else console.warn("NO");
       }
     }
     // TODO: how to surface this error???
@@ -564,8 +565,12 @@ const Tokenizer = {
     }
 
     // include leading whitespace in the output.
-    const jsxText = text.slice(start, endIndex);
-    return [jsxText, endIndex];
+    const token = new Token.JSXText({
+      value: text.slice(start, endIndex),
+      start,
+      end: endIndex
+    });
+    return [token, token.end];
   },
 
   //

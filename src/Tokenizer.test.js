@@ -1013,7 +1013,9 @@ test("matchJSXChild():  Matches JSX end tag at beginning of string", () => {
 
 test("matchJSXChild():  Matches text & whitespace at beginning of string w/end delimiter", () => {
   let [token, nextStart] = Tokenizer.matchJSXChild("foo", " some text here <");
-  expect(token).toBe(" some text here ");
+  expect(token).toBeInstanceOf(Token.JSXText);
+  expect(token.value).toBe(" some text here ");
+  expect(token.quotedText).toBe(`" some text here "`);
   expect(nextStart).toEqual(16);
 });
 
@@ -1045,7 +1047,9 @@ test("matchJSXChild():  Matches JSX end tag in the middle of string", () => {
 
 test("matchJSXChild():  Matches text & whitespace in the middle of string w/end delimiter", () => {
   let [token, nextStart] = Tokenizer.matchJSXChild("foo", "...some text here <", 3);
-  expect(token).toBe("some text here ");
+  expect(token).toBeInstanceOf(Token.JSXText);
+  expect(token.value).toBe("some text here ");
+  expect(token.quotedText).toBe(`"some text here "`);
   expect(nextStart).toEqual(18);
 });
 
