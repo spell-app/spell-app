@@ -71,13 +71,6 @@ export default class Rule {
     if (!rule) throw new ParseError(`${this.constructor.name}.parse(): rule '${ruleName}' not found`);
     return rule;
   }
-
-
-  //
-  //  Token manipulation
-  //
-
-
 }
 
 // Abstract rule for one or more sequential literal values to match.
@@ -110,12 +103,37 @@ Rule.Literals = class literals extends Rule {
   get literalText() { return this.literals.join(this.literalSeparator) }
 
   test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (testAtStart) return Token.tokensStartWithLiterals(this.literals, tokens, start, end);
-    return Token.tokensContainLiterals(this.literals, tokens, start, end);
+    if (testAtStart) return this._tokensStartWithLiterals(this.literals, tokens, start, end);
+    return this._tokensContainLiterals(this.literals, tokens, start, end);
+  }
+
+  // Match a run of `literals` in `tokens`, starting at `start` and not going beyond `end`.
+  // Returns `true` if found, otherwise `false`.
+  _tokensStartWithLiterals(literals, tokens, start = 0, end = tokens.length) {
+    const length = literals.length;
+    if (start + length > end) return false;
+
+    // Quick return if only one.
+    if (length === 1) return tokens[start].matchesLiteral(literals[0]);
+
+    // if more than one, make sure all the rest match
+    for (let i = 0; i < length; i++) {
+      if (!tokens[start + i].matchesLiteral(literals[i])) return false;
+    }
+    return true;
+  }
+
+  // Match a run of `literals` in `tokens` anywhere between `start` to `end`.
+  // Returns `true` if found, otherwise `false`.
+  _tokensContainLiterals(literals, tokens, start = 0, end = tokens.length) {
+    for (var index = start; index < end; index++) {
+      if (this._tokensStartWithLiterals(literals, tokens, index, end)) return true;
+    }
+    return false;
   }
 
   parse(parser, tokens, start = 0, end, rules) {
-    if (!Token.tokensStartWithLiterals(this.literals, tokens, start, end)) return undefined;
+    if (!this._tokensStartWithLiterals(this.literals, tokens, start, end)) return undefined;
     return new Match({
       rule: this,
       matched: this.literalText,
@@ -787,32 +805,37 @@ Rule.BlankLine = class blank_line extends Rule {
   }
 };
 
-// Comment rule -- matches tokens of type `Token.Comment`.
-Rule.Comment = class comment extends Rule {
-  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (testAtStart) return Token.tokensStartWithType(Token.Comment, tokens, start, end);
-    return Token.tokensContainType(Token.Comment, tokens, start, end);
+
+// Abstract rule for matching tokens of a particular type (constructor)
+Rule.TokenType = class tokenType extends Rule {
+  test(parser, tokens, start = 0, end = tokens.length, rules, testAtStart = this.testAtStart) {
+    if (start >= end) return false;
+    if (testAtStart) return (tokens[start] instanceof this.tokenType);
+
+    let token;
+    while ((token = tokens[start++])) {
+      if (token instanceof this.tokenType) return true;
+    }
+    return false;
   }
 
-  // Comments are special nodes in our token stream.
-  parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
+  parse(parser, tokens, start = 0, end = tokens.length) {
     if (start >= end) return;
-
-    // bail if not a comment
-    let token = tokens[start];
-    if (!(token instanceof Token.Comment)) return undefined;
+    if (!(tokens[start] instanceof this.tokenType)) return;
     return new Match({
       rule: this,
-      matched: token,
+      matched: tokens[start],
       start,
       nextStart: start + 1
-    })
+    });
   }
 
   compile(match) {
-    return "//" + `${match.matched.whitespace}${match.matched.comment}`;
+    return match.matched.value;
   }
-};
+}
+// Test at start by defaults
+Object.defineProperty(Rule.TokenType.prototype, "testAtStart", { value: true });
 
 // Parser error representation in parser output.
 Rule.StatementParseError = class parse_error extends Rule {

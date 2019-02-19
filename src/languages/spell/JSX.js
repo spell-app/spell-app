@@ -13,21 +13,9 @@ export default parser;
 
 parser.defineRule({
   name: "jsx",
-  alias: ["expression"], // TODO: statement ???
-  testRule: Token.JSXElement,
-  constructor: class jsxElement extends Rule {
-    // Text strings get encoded as `text` objects in the token stream.
-    parse(parser, tokens, start = 0) {
-      const token = tokens[start];
-      if (!(token instanceof Token.JSXElement)) return undefined;
-
-      return new Match({
-        rule: this,
-        matched: token,
-        nextStart: start + 1
-      })
-    }
-
+  alias: "expression", // TODO: statement ???
+  tokenType: Token.JSXElement,
+  constructor: class jsxElement extends Rule.TokenType {
     compile(match) {
       return this.jsxElementToSource(match.matched);
     }

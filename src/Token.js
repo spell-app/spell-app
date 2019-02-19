@@ -46,54 +46,6 @@ export default class Token {
     if (blacklist && blacklist[match]) return undefined;
     return match;
   }
-
-
-  //
-  //  Utility methods for matching tokens
-  //
-  //
-
-  // Match a run of `literals` in `tokens`, starting at `start` and not going beyond `end`.
-  // Returns `true` if found, otherwise `false`.
-  static tokensStartWithLiterals(literals, tokens, start = 0, end = tokens.length) {
-    const length = literals.length;
-    if (start + length > end) return false;
-
-    // Quick return if only one.
-    if (length === 1) return tokens[start].matchesLiteral(literals[0]);
-
-    // if more than one, make sure all the rest match
-    for (let i = 0; i < length; i++) {
-      if (!tokens[start + i].matchesLiteral(literals[i])) return false;
-    }
-    return true;
-  }
-
-  // Match a run of `literals` in `tokens` anywhere between `start` to `end`.
-  // Returns `true` if found, otherwise `false`.
-  static tokensContainLiterals(literals, tokens, start = 0, end = tokens.length) {
-    for (var index = start; index < end; index++) {
-      if (Token.tokensStartWithLiterals(literals, tokens, index, end)) return true;
-    }
-    return false;
-  }
-
-  //
-  //  Match tokens using Javascript `instanceof <constructor>` operator.
-  //  Returns numeric index where match was found.
-  //  Returns `false` if no found.
-  //
-  static tokensStartWithType(constructor, tokens, start = 0, end = tokens.length) {
-    return (start < end && (tokens[start] instanceof constructor));
-  }
-
-  static tokensContainType(constructor, tokens, start = 0, end = tokens.length) {
-    for (var index = start; index < end; index++) {
-      if ((tokens[index] instanceof constructor)) return true;
-    }
-    return false;
-  }
-
 }
 
 // `whitespace` class for normal (non-indent, non-newline) whitespace.

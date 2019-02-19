@@ -1,5 +1,6 @@
 import Parser, { ParserError } from "./Parser.js";
 import Rule from "./Rule.js";
+import Token from "./Token.js";
 import Tokenizer from "./Tokenizer.js";
 
 
@@ -756,8 +757,16 @@ describe("Rule.Sequence", () => {
 
 describe("Rule.Comment", () => {
   const parser = new Parser();
+  parser.defineRule({
+    name: "comment",
+    tokenType: Token.Comment,
+    constructor: class comment extends Rule.TokenType {
+      compile(match) {
+        return "//" + `${match.matched.whitespace}${match.matched.comment}`;
+      }
+    }
+  });
   parser.defineRules(
-    { name: "comment", constructor: Rule.Comment },
     { name: "statement", constructor: Rule.Statement },
     { name: "statements", constructor: Rule.Statements },
     { name: "this", syntax: "this", constructor: Rule.Keywords },
@@ -788,9 +797,9 @@ describe("Rule.Comment", () => {
         expect(test).toBe(true);
       });
 
-      it("returns true if present anywhere in tokens", () => {
+      it("returns false if not present at start of tokens", () => {
         const test = rule.test(parser, tokenize("foo -- foo"));
-        expect(test).toBe(true);
+        expect(test).toBe(false);
       });
 
       it("returns false if NOT present anywhere in tokens", () => {
@@ -802,17 +811,17 @@ describe("Rule.Comment", () => {
     describe("parse() method", () => {
       it("parses at the start of tokens", () => {
         let match = rule.parse(parser, tokenize("// foo bar baz"));
-        expect(match.rule).toBeInstanceOf(Rule.Comment);
+        expect(match.rule).toBe(rule);
         expect(match.nextStart).toBe(1);
         expect(match.compile()).toBe("// foo bar baz");
 
         match = rule.parse(parser, tokenize("-- foo bar baz"));
-        expect(match.rule).toBeInstanceOf(Rule.Comment);
+        expect(match.rule).toBe(rule);
         expect(match.nextStart).toBe(1);
         expect(match.compile()).toBe("// foo bar baz");
 
         match = rule.parse(parser, tokenize("## foo bar baz"));
-        expect(match.rule).toBeInstanceOf(Rule.Comment);
+        expect(match.rule).toBe(rule);
         expect(match.nextStart).toBe(1);
         expect(match.compile()).toBe("// foo bar baz");
       });
@@ -845,12 +854,13 @@ describe("Rule.Comment", () => {
   });
 
   describe("comments at the end of statements", () => {
+    const rule = parser.rules.comment;
     it("are appended when parsed as 'statements' with one line", () => {
       const match = parser.parse("statements", "this and that // comment");
       expect(match.rule).toBeInstanceOf(Rule.Statements);
       expect(match.matched.length).toBe(1);
       expect(match.matched[0].rule).toBeInstanceOf(parser.rules.this_and_that.constructor);
-      expect(match.matched[0].comment.rule).toBeInstanceOf(Rule.Comment);
+      expect(match.matched[0].comment.rule).toBe(rule);
       expect(match.compile()).toBe("this && that // comment");
     });
 

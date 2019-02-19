@@ -24,9 +24,76 @@ parser.defineRule({
   constructor: Rule.Statements
 });
 
+// `number` as a float or integer token.
+// TODO:  `integer` and `decimal`?  too techy?
+parser.defineRule({
+  name: "number",
+  alias: "expression",
+  tokenType: Token.Number,
+  constructor: class number extends Rule.TokenType {},
+  tests: [
+    {
+      title: "correctly matches numbers",
+      tests: [
+        ["1", 1],
+        ["1000", 1000],
+        ["-1", -1],
+        ["1.1", 1.1],
+        ["000.1", 0.1],
+        ["1.", 1],
+        [".1", 0.1],
+        ["-111.111", -111.111]
+      ]
+    },
+    {
+      title: "doesn't match things that aren't numbers",
+      tests: [
+        ["", undefined],
+        ["-", undefined],
+        [".", undefined]
+      ]
+    },
+    {
+      title: "requires negative sign to touching the number",
+      tests: [
+        ["- 1", undefined]
+      ]
+    }
+  ]
+});
+
+// Literal `text` string, created with custom constructor for debugging.
+// You can use either single or double quotes on the outside (although double quotes are preferred).
+// Returned value has enclosing quotes.
+parser.defineRule({
+  name: "text",
+  alias: "expression",
+  tokenType: Token.Text,
+  constructor: class text extends Rule.TokenType {},
+  tests: [
+    {
+      title: "correctly matches text",
+      tests: [
+        ['""', '""'],
+        ["''", "''"],
+        ['"a"', '"a"'],
+        ["'a'", "'a'"],
+        ['"abcd"', '"abcd"'],
+        ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
+        ['"...Can\'t touch this"', '"...Can\'t touch this"'],
+      ]
+    }
+  ]
+});
+
 parser.defineRule({
   name: "comment",
-  constructor: Rule.Comment
+  tokenType: Token.Comment,
+  constructor: class comment extends Rule.TokenType {
+    compile(match) {
+      return "//" + `${match.matched.whitespace}${match.matched.comment}`;
+    }
+  }
 });
 
 // `undefined` as an expression... ???
@@ -54,7 +121,6 @@ parser.defineRule({
 parser.defineRule({
   name: "word",
   pattern: /^[a-z][\w\-]*$/,
-  canonical: "Word",
   constructor: class word extends Rule.Pattern {
     // Convert "-" to "_" in source output.
     compile(match) {
@@ -301,7 +367,6 @@ parser.defineRule({
 parser.defineRule({
   name: "boolean",
   alias: "expression",
-  canonical: "Boolean",
   pattern: /^(true|false|yes|no|ok|cancel)$/,
   valueMap: {
     true: true,
@@ -331,59 +396,6 @@ parser.defineRule({
 });
 
 
-// `number` as a float or integer token.
-// TODO:  `integer` and `decimal`?  too techy?
-parser.defineRule({
-  name: "number",
-  alias: "expression",
-  testRule: Token.Number,
-  testAtStart: true,
-  constructor: class number extends Rule {
-    // Numbers get encoded as JS numbers in the stream.
-    parse(parser, tokens, start = 0) {
-      const token = tokens[start];
-      if (!(token instanceof Token.Number)) return undefined;
-      return new Match({
-        rule: this,
-        matched: token.value,
-        nextStart: start + 1
-      });
-    }
-
-    compile(match) {
-      return match.matched;
-    }
-  },
-  tests: [
-    {
-      title: "correctly matches numbers",
-      tests: [
-        ["1", 1],
-        ["1000", 1000],
-        ["-1", -1],
-        ["1.1", 1.1],
-        ["000.1", 0.1],
-        ["1.", 1],
-        [".1", 0.1],
-        ["-111.111", -111.111]
-      ]
-    },
-    {
-      title: "doesn't match things that aren't numbers",
-      tests: [
-        ["", undefined],
-        ["-", undefined],
-        [".", undefined]
-      ]
-    },
-    {
-      title: "requires negative sign to touching the number",
-      tests: [
-        ["- 1", undefined]
-      ]
-    }
-  ]
-});
 
 
 // `number` as a string `zero` to `ten`
@@ -426,46 +438,6 @@ parser.defineRule({
   ]
 });
 
-
-// Literal `text` string, created with custom constructor for debugging.
-// You can use either single or double quotes on the outside (although double quotes are preferred).
-// Returned value has enclosing quotes.
-parser.defineRule({
-  name: "text",
-  alias: "expression",
-  canonical: "Text",
-  testRule: Token.Text,
-  constructor: class text extends Rule {
-    // Text strings get encoded as `text` objects in the token stream.
-    parse(parser, tokens, start = 0) {
-      const token = tokens[start];
-      if (!(token instanceof Token.Text)) return undefined;
-      return new Match({
-        rule: this,
-        matched: token.value,
-        nextStart: start + 1
-      });
-    }
-
-    compile(match) {
-      return match.matched;
-    }
-  },
-  tests: [
-    {
-      title: "correctly matches text",
-      tests: [
-        ['""', '""'],
-        ["''", "''"],
-        ['"a"', '"a"'],
-        ["'a'", "'a'"],
-        ['"abcd"', '"abcd"'],
-        ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
-        ['"...Can\'t touch this"', '"...Can\'t touch this"'],
-      ]
-    }
-  ]
-});
 
 // `Type` = type name.
 // MUST start with an upper-case letter (?)
