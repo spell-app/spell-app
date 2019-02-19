@@ -262,19 +262,14 @@ export default class Parser {
     const names = [props.name].concat(props.alias || []);
 
     // Instantiate or parse to create rules to work with
-    const rules = props.syntax ? parseRule(props.syntax, constructor) : [new constructor()];
+    const rules = props.syntax
+      ? parseRule(props.syntax, constructor, props)
+      : [new constructor(props)]
+    ;
     if (!rules || rules.length === 0)
       throw new ParseError(`defineRule(${props.syntax}): didnt get rules back`);
 
-    rules.forEach(rule => {
-      // Add props to the rule non-enumerably and non-writably
-      //  so we'll get an error if something tries to overwrite them.
-      Object.keys(props)
-        .forEach(key => Object.defineProperty(rule, key, { value: props[key] }));
-
-      // add the rule!
-      this.addRule(names, rule)
-    });
+    rules.forEach(rule => this.addRule(names, rule));
 
     // if tests were defined, mark as `_testable_`
     if (props.tests) {
