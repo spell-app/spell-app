@@ -602,7 +602,7 @@ Rule.Statement = class statement extends Rule.Group {
 
     // eat comment at end of the line
     let comment;
-    if (Tokenizer.tokenIsInstanceOf(tokens[end - 1], Token.Comment)) {
+    if ((tokens[end - 1] instanceof Token.Comment)) {
       comment = Rule.getRuleOrDie(rules, "comment")
         .parse(parser, tokens, end - 1, end, rules);
     }
@@ -791,7 +791,7 @@ Rule.Comment = class comment extends Rule {
 
     // bail if not a comment
     let token = tokens[start];
-    if (!Tokenizer.tokenIsInstanceOf(token, Token.Comment)) return undefined;
+    if (!(token instanceof Token.Comment)) return undefined;
     return new Match({
       rule: this,
       matched: token,

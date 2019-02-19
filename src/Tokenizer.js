@@ -921,18 +921,14 @@ const Tokenizer = {
   //  Returns numeric index where match was found.
   //  Returns `false` if no found.
   //
-  tokenIsInstanceOf(token, constructor) {
-    return token instanceof constructor;
-  },
-
   matchInstanceOfAtStart(constructor, tokens, start = 0, end = tokens.length) {
-    if (start < end && Tokenizer.tokenIsInstanceOf(tokens[start], constructor)) return start;
+    if (start < end && (tokens[start] instanceof constructor)) return start;
     return false;
   },
 
   matchInstanceOfAnywhere(constructor, tokens, start = 0, end = tokens.length) {
     for (var index = start; index < end; index++) {
-      if (Tokenizer.tokenIsInstanceOf(tokens[index], constructor)) return index;
+      if ((tokens[index] instanceof constructor)) return index;
     }
     return false;
   },
