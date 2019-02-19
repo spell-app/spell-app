@@ -78,6 +78,35 @@ export default class Rule {
   }
 }
 
+// Abstract rule for matching tokens of a particular type (Token constructor)
+Rule.TokenType = class tokenType extends Rule {
+  test(parser, tokens, start = 0, end = tokens.length, rules, testLocation = this.testLocation) {
+    if (start >= end) return false;
+    if (testLocation === TestLocation.ANYWHERE) {
+      let token;
+      while ((token = tokens[start++])) {
+        if (token instanceof this.tokenType) return true;
+      }
+      return false;
+    }
+    return (tokens[start] instanceof this.tokenType);
+  }
+
+  parse(parser, tokens, start = 0, end, rules) {
+    if (!(tokens[start] instanceof this.tokenType)) return;
+    return new Match({
+      rule: this,
+      matched: tokens[start],
+      start,
+      nextStart: start + 1
+    });
+  }
+
+  compile(match) {
+    return match.matched.value;
+  }
+}
+
 
 // Abstract rule for one or more sequential literal values to match.
 // `rule.literals`:
@@ -807,36 +836,6 @@ Rule.BlankLine = class blank_line extends Rule {
     return "\n";
   }
 };
-
-
-// Abstract rule for matching tokens of a particular type (constructor)
-Rule.TokenType = class tokenType extends Rule {
-  test(parser, tokens, start = 0, end = tokens.length, rules, testLocation = this.testLocation) {
-    if (start >= end) return false;
-    if (testLocation === TestLocation.ANYWHERE) {
-      let token;
-      while ((token = tokens[start++])) {
-        if (token instanceof this.tokenType) return true;
-      }
-      return false;
-    }
-    return (tokens[start] instanceof this.tokenType);
-  }
-
-  parse(parser, tokens, start = 0, end, rules) {
-    if (!this.test(parser, tokens, start, end, rules)) return;
-    return new Match({
-      rule: this,
-      matched: tokens[start],
-      start,
-      nextStart: start + 1
-    });
-  }
-
-  compile(match) {
-    return match.matched.value;
-  }
-}
 
 
 // Parser error representation in parser output.
