@@ -22,7 +22,7 @@ const Tokenizer = {
     if (start >= end || !text.trim()) return [];
 
     // Process our top-level rules.
-    let [results, nextStart] = Tokenizer.eatTokens(Tokenizer.matchTopTokens, text, start, end);
+    const [results, nextStart] = Tokenizer.eatTokens(Tokenizer.matchTopTokens, text, start, end);
     if (results) start = nextStart;
     if (start !== end) {
       if (Tokenizer.WARN)
@@ -48,10 +48,10 @@ const Tokenizer = {
 
     // process rules repeatedly until we get to the end
     while (start < end) {
-      let result = method.call(this, text, start, end);
+      const result = method.call(this, text, start, end);
       if (!result) break;
 
-      let [tokens, nextStart] = result;
+      const [tokens, nextStart] = result;
       // Bail if we didn't get a productive rule!
       if (start === nextStart) break;
 
@@ -110,7 +110,7 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    let whitespaceEnd = Tokenizer.eatWhitespace(text, start, end);
+    const whitespaceEnd = Tokenizer.eatWhitespace(text, start, end);
     // forget it if no forward motion
     if (whitespaceEnd === start) return undefined;
 
@@ -205,12 +205,12 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    let quoteSymbol = text[start];
+    const quoteSymbol = text[start];
     if (quoteSymbol !== '"' && quoteSymbol !== "'") return undefined;
 
     let textEnd = start + 1;
     while (textEnd < end) {
-      let char = text[textEnd];
+      const char = text[textEnd];
       if (char === quoteSymbol) break;
       // if we get a backquote, ignore quote in next char
       if (char === "\\" && text[textEnd + 1] === quoteSymbol) textEnd++;
@@ -221,8 +221,8 @@ const Tokenizer = {
     // advance past end quote
     textEnd++;
 
-    let value = text.slice(start, textEnd);
-    let token = new Token.Text({
+    const value = text.slice(start, textEnd);
+    const token = new Token.Text({
       value,
       start,
       end: textEnd
@@ -245,16 +245,16 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    let commentStart = text.slice(start, start + 2);
+    const commentStart = text.slice(start, start + 2);
     if (commentStart !== "--" && commentStart !== "//" && commentStart !== "##") return undefined;
 
     // comment eats until the end of the line
-    let line = Tokenizer.getLineAtHead(text, start, end);
-    let commentMatch = line.match(Tokenizer.COMMENT);
+    const line = Tokenizer.getLineAtHead(text, start, end);
+    const commentMatch = line.match(Tokenizer.COMMENT);
     if (!commentMatch) return undefined;
 
-    let [_match, commentSymbol, whitespace, comment] = commentMatch;
-    let token = new Token.Comment({
+    const [_match, commentSymbol, whitespace, comment] = commentMatch;
+    const token = new Token.Comment({
       commentSymbol,
       whitespace,
       comment,
@@ -278,7 +278,7 @@ const Tokenizer = {
     if (!jsxElement) return undefined;
 
     if (!jsxElement.isUnaryTag) {
-      let [children, childEnd] = Tokenizer.matchJSXChildren(jsxElement.tagName, text, nextStart, end);
+      const [children, childEnd] = Tokenizer.matchJSXChildren(jsxElement.tagName, text, nextStart, end);
       if (children.length) {
         jsxElement.children = children;
         nextStart = childEnd;
@@ -303,13 +303,13 @@ const Tokenizer = {
     // Make sure we start with `<`.
     if (text[nextStart] !== "<") return undefined;
 
-    let tagMatch = Tokenizer.matchExpressionAtHead(Tokenizer.JSX_TAG_START, text, nextStart, end);
+    const tagMatch = Tokenizer.matchExpressionAtHead(Tokenizer.JSX_TAG_START, text, nextStart, end);
     if (!tagMatch) return undefined;
 
     let [matchText, tagName, endBit] = tagMatch;
     nextStart = nextStart + matchText.length;
 
-    let jsxElement = new Token.JSXElement({
+    const jsxElement = new Token.JSXElement({
       tagName,
       start,
       end: nextStart
@@ -324,7 +324,7 @@ const Tokenizer = {
 
     // If we didn't immediately get an end marker, attempt to match attributes
     if (endBit !== ">" && endBit !== "/>") {
-      let [attrs, attrEnd] = Tokenizer.eatTokens(Tokenizer.matchJSXAttribute, text, nextStart, end);
+      const [attrs, attrEnd] = Tokenizer.eatTokens(Tokenizer.matchJSXAttribute, text, nextStart, end);
       jsxElement.attributes = attrs;
       jsxElement.end = (nextStart = attrEnd);
     }
@@ -368,16 +368,16 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    let children = [];
+    const children = [];
     let nesting = 1;
-    let endTag = `</${tagName}>`;
+    const endTag = `</${tagName}>`;
 
     let nextStart = start;
     while (true) {
-      let result = Tokenizer.matchJSXChild(endTag, text, nextStart, end);
+      const result = Tokenizer.matchJSXChild(endTag, text, nextStart, end);
       if (!result) break;
 
-      let [child, childEnd] = result;
+      const [child, childEnd] = result;
       nextStart = childEnd;
       // If we got the endTag, update nesting and break out of loop if nesting !== 0
       if (child === endTag) {
@@ -420,7 +420,7 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    let nextStart = Tokenizer.eatWhitespace(text, start, end);
+    const nextStart = Tokenizer.eatWhitespace(text, start, end);
     if (!Tokenizer.matchStringAtHead(endTag, text, nextStart, end)) return undefined;
     return [endTag, nextStart + endTag.length];
   },
@@ -440,16 +440,16 @@ const Tokenizer = {
     if (!Tokenizer.WORD_START.test(text[start])) return undefined;
 
     // attempt to match an attribute name, including `=` if present.
-    let result = Tokenizer.matchExpressionAtHead(Tokenizer.JSX_ATTRIBUTE_START, text, start, end);
+    const result = Tokenizer.matchExpressionAtHead(Tokenizer.JSX_ATTRIBUTE_START, text, start, end);
     if (!result) return undefined;
 
-    let [match, name, equals] = result;
+    const [match, name, equals] = result;
     let nextStart = start + match.length;
-    let attribute = new Token.JSXAttribute(name);
+    const attribute = new Token.JSXAttribute(name);
 
     // if there was an equals char, parse the value
     if (equals) {
-      let [value, valueEnd] = Tokenizer.matchJSXAttributeValue(text, nextStart, end) || [];
+      const [value, valueEnd] = Tokenizer.matchJSXAttributeValue(text, nextStart, end) || [];
       if (value) {
         attribute.value = value;
         nextStart = valueEnd;
@@ -475,11 +475,11 @@ const Tokenizer = {
   // Match a single identifer as a JSX attribute value.
   // Returns as a `JSXExpression`.
   matchJSXAttributeValueIdentifier(text, start, end) {
-    let result = Tokenizer.matchWord(text, start, end);
+    const result = Tokenizer.matchWord(text, start, end);
     if (!result) return;
 
-    let [word, nextStart] = result;
-    let token = new Token.JSXExpression(word);
+    const [word, nextStart] = result;
+    const token = new Token.JSXExpression(word);
     return [token, nextStart];
   },
 
@@ -495,14 +495,14 @@ const Tokenizer = {
     if (start >= end) return undefined;
 
     let nextStart = Tokenizer.eatWhitespace(text, start, end);
-    let endIndex = Tokenizer.findMatchingAtHead("{", "}", text, nextStart, end);
+    const endIndex = Tokenizer.findMatchingAtHead("{", "}", text, nextStart, end);
     if (endIndex === undefined) return undefined;
 
     // Get contents, including leading and trailing whitespace.
-    let contents = text.slice(start + 1, endIndex);
+    const contents = text.slice(start + 1, endIndex);
 
     // return a new JSXExpression, advancing beyond the ending `}`.
-    let expression = new Token.JSXExpression(contents);
+    const expression = new Token.JSXExpression(contents);
     return [expression, endIndex + 1];
   },
 
@@ -515,8 +515,8 @@ const Tokenizer = {
     if (start >= end) return undefined;
 
     // temporarily advance past whitespace (we'll include it in the output).
-    let nextStart = Tokenizer.eatWhitespace(text, start, end);
-    let endIndex = Tokenizer.findFirstAtHead(Tokenizer.JSX_TEXT_END_CHARS, text, nextStart, end);
+    const nextStart = Tokenizer.eatWhitespace(text, start, end);
+    const endIndex = Tokenizer.findFirstAtHead(Tokenizer.JSX_TEXT_END_CHARS, text, nextStart, end);
     // If the first non-whitespace char is in our END_CHARS, forget it.
     if (endIndex === nextStart) return undefined;
 
@@ -531,7 +531,7 @@ const Tokenizer = {
     }
 
     // include leading whitespace in the output.
-    let jsxText = text.slice(start, endIndex);
+    const jsxText = text.slice(start, endIndex);
     return [jsxText, endIndex];
   },
 
@@ -572,7 +572,7 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    let stringEnd = start + string.length;
+    const stringEnd = start + string.length;
     if (stringEnd > end) return undefined;
     return string === text.slice(start, stringEnd);
   },
@@ -586,7 +586,7 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    let head = text.slice(start, end);
+    const head = text.slice(start, end);
     return head.match(expression);
   },
 
@@ -609,7 +609,7 @@ const Tokenizer = {
     let nesting = 0;
     let current = start;
     while (current < end) {
-      let char = text[current];
+      const char = text[current];
       // if startDelimiter, increase nesting
       if (char === startDelimiter) {
         nesting++;
@@ -621,7 +621,7 @@ const Tokenizer = {
       }
       // if a single or double quote, skip until the matching quote
       else if (char === "'" || char === '"') {
-        let [_token, afterQuote] = Tokenizer.matchText(text, current, end) || [];
+        const [_token, afterQuote] = Tokenizer.matchText(text, current, end) || [];
         current = afterQuote;
         continue; // continue so we don't add 1 to curent below
       }
@@ -644,7 +644,7 @@ const Tokenizer = {
     if (start >= end) return undefined;
 
     while (start < end) {
-      let char = text[start];
+      const char = text[start];
       if (chars.includes(char)) return start;
       // if we got an escape char, ignore the next char if it's in `chars`
       if (char === "\\" && chars.includes(text[start + 1])) start++;
@@ -689,7 +689,7 @@ const Tokenizer = {
   breakIntoLines(tokens) {
     // Convert to lines.
     let currentLine = [];
-    let lines = [currentLine];
+    const lines = [currentLine];
     tokens.forEach(token => {
       // add new array for each newline
       if (token instanceof Token.Newline) {
@@ -759,24 +759,24 @@ const Tokenizer = {
     tokens = Tokenizer.removeNormalWhitespace(tokens);
 
     // break into lines & return early if no lines
-    let lines = Tokenizer.breakIntoLines(tokens);
+    const lines = Tokenizer.breakIntoLines(tokens);
     if (lines.length === 0) return [];
 
     // figure out indents
-    let indents = Tokenizer.getLineIndents(lines);
+    const indents = Tokenizer.getLineIndents(lines);
 
     // First block is at the MINIMUM indent of all lines!
-    let maxIndent = Math.min.apply(Math, indents);
-    let block = new Token.Block({ indent: maxIndent });
+    const maxIndent = Math.min.apply(Math, indents);
+    const block = new Token.Block({ indent: maxIndent });
 
     // stack of blocks
-    let stack = [block];
+    const stack = [block];
 
     lines.forEach((line, index) => {
       // Remove leading whitespace (eg: indents)
       line = Tokenizer.removeLeadingWhitespace(line);
 
-      let lineIndent = indents[index];
+      const lineIndent = indents[index];
       let top = stack[stack.length - 1];
       // If indenting, push new block(s)
       if (lineIndent > top.indent) {
@@ -814,7 +814,7 @@ const Tokenizer = {
     let nesting = 0;
     let nested = false;
     for (let end = start + 1, lastIndex = tokens.length; end < lastIndex; end++) {
-      let token = tokens[end];
+      const token = tokens[end];
       if (token === startToken) {
         nesting++;
         nested = true;
