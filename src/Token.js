@@ -130,6 +130,10 @@ Token.JSXElement =  class jsxElement extends Token{
   }
 }
 
+// JSX end tag.
+// `element.tagName` is the tag name.
+Token.JSXEndTag = class jsxEndTag extends Token {}
+
 
 // JSX attribute class
 // `attr.name` is the name of the attribute.
@@ -144,6 +148,9 @@ Token.JSXAttribute = class jsxAttribute extends Token{
   }
 }
 
+// Loose text in the middle of a JSX block
+// `text.value` is the actual text matched (including whitespace).
+Token.JSXText = class jsxText extends Token {}
 
 // JSX expression, composed of inline tokens which should yield an `expression`.
 Token.JSXExpression = class jsxExpression extends Token {

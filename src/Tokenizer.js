@@ -60,17 +60,24 @@ const Tokenizer = {
     if (start >= end) return undefined;
 
     // process rules repeatedly until we get to the end
-    while (start < end) {
-      const result = method(text, start, end);
+    let nextStart = start;
+    while (nextStart < end) {
+      const result = method(text, nextStart, end);
       if (!result) break;
 
-      const [tokens, nextStart] = result;
+      const [token, lastEnd] = result;
       // Bail if we didn't get a productive rule!
-      if (start === nextStart) break;
+      if (nextStart === lastEnd) break;
 
       // handle newResults as an array or single object.
-      if (tokens !== undefined) results = results.concat(tokens);
-      start = nextStart;
+if (!token instanceof Token) console.warn(token);
+      if (token ) {
+        results.push(token);
+      }
+      else {
+        console.warn(`no tokens for '${text.slice(nextStart, end)}'`);
+      }
+      nextStart = lastEnd;
     }
     return results;
   },
@@ -386,17 +393,16 @@ const Tokenizer = {
 
     const children = [];
     let nesting = 1;
-    const endTag = `</${tagName}>`;
 
     let nextStart = start;
     while (true) {
-      const result = Tokenizer.matchJSXChild(endTag, text, nextStart, end);
+      const result = Tokenizer.matchJSXChild(tagName, text, nextStart, end);
       if (!result) break;
 
       const [child, childEnd] = result;
       nextStart = childEnd;
       // If we got the endTag, update nesting and break out of loop if nesting !== 0
-      if (child === endTag) {
+      if (child instanceof Token.JSXEndTag && child.tagName === tagName) {
         nesting--;
         if (nesting === 0) break;
         continue;
@@ -420,9 +426,9 @@ const Tokenizer = {
   //  - `{ jsx expression }`
   //  - nested JSX element
   //  - (anything else) as jsxText expression.
-  matchJSXChild(endTag, text, start = 0, end) {
+  matchJSXChild(tagName, text, start = 0, end) {
     return (
-      Tokenizer.matchJSXEndTag(endTag, text, start, end) ||
+      Tokenizer.matchJSXEndTag(tagName, text, start, end) ||
       Tokenizer.matchJSXExpression(text, start, end) ||
       Tokenizer.matchJSXElement(text, start, end) ||
       // TODO: newline and indent?
@@ -432,13 +438,19 @@ const Tokenizer = {
 
   // Attempt to match a specific end tag.
   // Ignores leading whitespace.
-  matchJSXEndTag(endTag, text, start = 0, end) {
+  matchJSXEndTag(tagName, text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
     const nextStart = Tokenizer.eatWhitespace(text, start, end);
+    const endTag = `</${tagName}>`;
     if (!Tokenizer.matchStringAtHead(endTag, text, nextStart, end)) return undefined;
-    return [endTag, nextStart + endTag.length];
+    const token = new Token.JSXEndTag({
+      tagName,
+      start,
+      end: nextStart + endTag.length
+    });
+    return [token, token.end];
   },
 
   //
