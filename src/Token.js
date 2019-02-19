@@ -146,13 +146,10 @@ Token.JSXAttribute = class jsxAttribute extends Token{
 
 
 // JSX expression, composed of inline tokens which should yield an `expression`.
-Token.JSXExpression = class jsxExpression {
-  constructor(contents) {
-    this.contents = contents || "";
-  }
-  // Divide contents into `tokens`.
-  get tokens() {
-    return Tokenizer.tokenize(this.contents.trim());
+Token.JSXExpression = class jsxExpression extends Token {
+  constructor(props) {
+    super(props);
+    if (!this.contents) this.contents = "";
   }
 }
 

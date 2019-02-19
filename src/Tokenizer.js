@@ -3,6 +3,18 @@ import Token from "./Token.js";
 import "./utils/polyfill.js";
 
 
+// Given a (possibly empty) list of tokens, figure out the `end` of the last token in the list.
+// DEBUG: Throws if `token.end` isn't a number!!!
+function getLastTokenEnd(tokens) {
+  const last = tokens[tokens.length - 1];
+
+  if (typeof last.end !== "number") {
+    console.error("token.end is not set", token);
+    throw new TypeError("token.end is not set");
+  }
+  return last.end;
+}
+
 //
 //  # Tokenizer singleton
 //  - `.tokenize()`     Breaks up long string into tokens, including newlines, JSX expressions, etc.
@@ -25,8 +37,8 @@ const Tokenizer = {
     const tokens = Tokenizer.consume(Tokenizer.matchTopTokens, text, start, end);
     if (!tokens || tokens.length === 0) return [];
 
-    const last = tokens[tokens.length - 1];
-    if (last.end !== end && Tokenizer.WARN) {
+    const lastEnd = getLastTokenEnd(tokens);
+    if (lastEnd !== end && Tokenizer.WARN) {
       console.warn("tokenize(): didn't consume: `", text.slice(start, end) + "`");
     }
 
@@ -329,7 +341,7 @@ const Tokenizer = {
       const attrs = Tokenizer.consume(Tokenizer.matchJSXAttribute, text, nextStart, end);
       if (attrs && attrs.length) {
         jsxElement.attributes = attrs;
-        nextStart = attrs[attrs.length - 1].end;
+        nextStart = getLastTokenEnd(attrs);
       }
     }
 
@@ -483,9 +495,13 @@ const Tokenizer = {
     const result = Tokenizer.matchWord(text, start, end);
     if (!result) return;
 
-    const [word, nextStart] = result;
-    const token = new Token.JSXExpression(word);
-    return [token, nextStart];
+    const [contents, nextStart] = result;
+    const token = new Token.JSXExpression({
+      contents,
+      start,
+      end: nextStart
+    });
+    return [token, token.end];
   },
 
   // Match a JSX expression enclosed in curly braces, eg:  `{ ... }`.
@@ -504,11 +520,15 @@ const Tokenizer = {
     if (endIndex === undefined) return undefined;
 
     // Get contents, including leading and trailing whitespace.
-    const contents = text.slice(start + 1, endIndex);
+    const contents = text.slice(nextStart + 1, endIndex);
 
     // return a new JSXExpression, advancing beyond the ending `}`.
-    const expression = new Token.JSXExpression(contents);
-    return [expression, endIndex + 1];
+    const expression = new Token.JSXExpression({
+      contents,
+      start,
+      end: endIndex + 1
+    });
+    return [expression, expression.end];
   },
 
   // Match JSXText until the one of `{`, `<`, `>` or `}`.
