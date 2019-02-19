@@ -390,11 +390,11 @@ Rule.Subrule = class subrule extends Rule {
 // Alternative syntax, matching one of a number of different rules.
 // The result of a parse is the longest rule that actually matched.
 // NOTE: Currently takes the longest valid match.
-// TODO: match all valid alternatives
+// TODO: match all valid choices
 //
 // After parsing
 //  we'll return the rule which is the "best match" (rather than cloning this rule).
-Rule.Alternatives = class alternatives extends Rule {
+Rule.Choice = class choices extends Rule {
   constructor() {
     super(...arguments);
     if (!this.rules) this.rules = [];
@@ -417,7 +417,7 @@ Rule.Alternatives = class alternatives extends Rule {
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
     if (start >= end) return;
-    if (DEBUG) console.group(`matching alternatives ${this.argument || this.name || this.toSyntax()} in: "${tokens.slice(start, end).join(" ")}"`);
+    if (DEBUG) console.group(`matching choices ${this.argument || this.name || this.toSyntax()} in: "${tokens.slice(start, end).join(" ")}"`);
     const matches = [];
     for (let i = 0, rule; rule = this.rules[i]; i++) {
       let match = rule.parse(parser, tokens, start, end, rules);
@@ -487,12 +487,12 @@ Rule.Alternatives = class alternatives extends Rule {
   }
 };
 
-// Alias for `Rule.Alternatives` used to merge alternatives together
+// Alias for `Rule.Choice` used to merge choices together
 // when implicitly combining multiple rules under the same name.
 // This lets us distinguish between:
-//  - actually defining a semantically-meaning "alternatives" and
+//  - actually defining a semantically-meaning "choices" and
 //  - smooshing rules together because they share the same name
-Rule.Group = class group extends Rule.Alternatives {};
+Rule.Group = class group extends Rule.Choice {};
 
 
 

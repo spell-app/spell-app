@@ -234,11 +234,11 @@ describe("parseSyntax()", () => {
   });
 
   //
-  // # Rule.Alternatives
+  // # Rule.Choice
   //
-  describe("Rule.Alternatives", () => {
+  describe("Rule.Choice", () => {
     describe("as single set of keywords", () => {
-      test("parse simple alternatives to Keywords", () => {
+      test("parse simple Choice to Literal", () => {
         const rules = parseSyntax("(a|bb| cccccc )");
         const rule = rules[0];
         expect(rules.length).toBe(1);
@@ -276,13 +276,13 @@ describe("parseSyntax()", () => {
       });
     });
 
-    describe("as complex set of alternatives", () => {
+    describe("as complex set of rules", () => {
       const rules = parseSyntax("( is a test | {named:subrule} | [{number},] | (a|b) )");
       const rule = rules[0];
 
       test("return a single rule", () => {
         expect(rules.length).toBe(1);
-        expect(rule).toBeInstanceOf(Rule.Alternatives);
+        expect(rule).toBeInstanceOf(Rule.Choice);
 
         expect(rules[0].rules.length).toBe(4);
         expect(rules[0].rules[0]).toBeInstanceOf(Rule.Keywords);
@@ -350,7 +350,7 @@ describe("parseSyntax()", () => {
       expect(rules[0].toSyntax()).toBe("{number}?");
     });
 
-    test("parse optional simple alternatives", () => {
+    test("parse optional simple choices", () => {
       const rules = parseSyntax("(a|b)?");
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.Literal);
@@ -358,10 +358,10 @@ describe("parseSyntax()", () => {
       expect(rules[0].toSyntax()).toBe("(a|b)?");
     });
 
-    test("parse optional complex alternatives", () => {
+    test("parse optional complex choices", () => {
       const rules = parseSyntax("({a}|b)?");
       expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(Rule.Alternatives);
+      expect(rules[0]).toBeInstanceOf(Rule.Choice);
       expect(rules[0].optional).toBe(true);
       expect(rules[0].toSyntax()).toBe("({a}|b)?");
     });
@@ -473,10 +473,10 @@ describe("parseRule()", () => {
       expect(rules[0].rules[1].optional).toBe(true);
     });
 
-    test("works for alternatives", () => {
+    test("works for choices", () => {
       const rules = parseRule("(a|>|{c})");
       expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(Rule.Alternatives);
+      expect(rules[0]).toBeInstanceOf(Rule.Choice);
       expect(rules[0].rules[0]).toBeInstanceOf(Rule.Literal);
       expect(rules[0].rules[1]).toBeInstanceOf(Rule.Literal);
       expect(rules[0].rules[2]).toBeInstanceOf(Rule.Subrule);
@@ -518,8 +518,8 @@ describe("parseRule()", () => {
       expect(rules[0]).toBeInstanceOf(symbolz);
     });
 
-    test("works for alternatives", () => {
-      class altz extends Rule.Alternatives {}
+    test("works for choices", () => {
+      class altz extends Rule.Choice {}
       const rules = parseRule("(a|>|{c})", altz);
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(altz);

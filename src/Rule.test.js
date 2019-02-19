@@ -455,10 +455,10 @@ describe("Rule.Subrule", () => {
   });
 });
 
-describe("Rule.Alternatives", () => {
+describe("Rule.Choice", () => {
   const parser = new Parser();
 
-  const ruleStart = new Rule.Alternatives({
+  const ruleStart = new Rule.Choice({
     rules: [
       new Rule.Keywords("this"),
       new Rule.Keywords("that"),
@@ -468,7 +468,7 @@ describe("Rule.Alternatives", () => {
     argument: "arg"
   });
 
-  const ruleAnywhere = new Rule.Alternatives({
+  const ruleAnywhere = new Rule.Choice({
     rules: [
       new Rule.Keywords("this"),
       new Rule.Keywords("that"),
@@ -511,7 +511,7 @@ describe("Rule.Alternatives", () => {
   });
 
   describe("parse() method", () => {
-    it("parses any of the alternatives at the start of tokens", () => {
+    it("parses any of the choices at the start of tokens", () => {
       let match = ruleStart.parse(parser, tokenize("this"));
       expect(match.nextStart).toBe(1);
       expect(match.compile()).toBe("this");

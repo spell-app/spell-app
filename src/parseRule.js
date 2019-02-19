@@ -203,7 +203,7 @@ function parseGroup(syntaxStream, rules, start = 0) {
   }
 
   // split into groups, including nested parens
-  let alternatives = groupAlternatives(slice).map(function(alternative) {
+  let choices = groupChoices(slice).map(function(alternative) {
     let results = parseSyntax(alternative, []);
     if (results.length === 1) {
       return results[0];
@@ -213,21 +213,21 @@ function parseGroup(syntaxStream, rules, start = 0) {
   });
 
   let rule;
-  if (alternatives.length === 1) {
-    rule = alternatives[0];
+  if (choices.length === 1) {
+    rule = choices[0];
   }
   else {
-    const allAreSingles = alternatives.every( rule => {
+    const allAreSingles = choices.every( rule => {
       if (!(rule instanceof Rule.Literal)) return false;
       if (rule.optional || rule.argument) return false;
       return true;
     });
     if (allAreSingles) {
-      const keywords = flatten(alternatives.map(rule => rule.literal));
+      const keywords = flatten(choices.map(rule => rule.literal));
       rule = new Rule.Literal({ literal: keywords });
     }
     else {
-      rule = new Rule.Alternatives({ rules: alternatives });
+      rule = new Rule.Choice({ rules: choices });
     }
   }
 
@@ -237,13 +237,13 @@ function parseGroup(syntaxStream, rules, start = 0) {
 }
 window.parseGroup = parseGroup;
 
-function groupAlternatives(tokens) {
-  let alternatives = [];
+function groupChoices(tokens) {
+  let choices = [];
   let current = [];
   for (let i = 0, token; (token = tokens[i]); i++) {
     // handle alternate marker
     if (token === "|") {
-      alternatives.push(current);
+      choices.push(current);
       current = [];
     }
     // handle nested parens
@@ -255,8 +255,8 @@ function groupAlternatives(tokens) {
       current.push(token);
     }
   }
-  if (current.length) alternatives.push(current);
-  return alternatives;
+  if (current.length) choices.push(current);
+  return choices;
 }
 
 // Match repeat indicator `?`, `+` or `*` by attaching it to the previous rule.

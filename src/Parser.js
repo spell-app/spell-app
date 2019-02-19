@@ -148,7 +148,7 @@ export default class Parser {
   }
 
   // Add a `rule` to our list of rules!
-  // Converts to `alternatives` on re-defining the same rule.
+  // Converts to `Rule.Group` on re-defining the same rule.
   addRule(ruleName, rule) {
     // Clear memoized `__rules` so we'll recalculate `parser.rules` as necessary
     delete this.__rules;

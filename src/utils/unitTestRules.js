@@ -30,7 +30,7 @@ export default function unitTestModuleRules(parser, moduleName) {
   function getTestableRulesForModule(moduleName) {
     const testableRules =
       !!parser.rules._testable_ &&
-      parser.rules._testable_ instanceof Rule.Alternatives &&
+      parser.rules._testable_ instanceof Rule.Choice &&
       Array.isArray(parser.rules._testable_.rules) &&
       parser.rules._testable_.rules;
 
