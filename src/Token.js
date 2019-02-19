@@ -74,14 +74,6 @@ export default class Token {
     return false;
   }
 
-
-  //
-  //  Matching tokens using a single regex pattern, including blacklist support.
-  //  Returns numeric index where match was found.
-  //  Returns `false` if no found.
-  //
-
-
   //
   //  Match tokens using Javascript `instanceof <constructor>` operator.
   //  Returns numeric index where match was found.
@@ -113,14 +105,16 @@ Token.Whitespace = class whitespace extends Token {
     return this.value;
   }
 }
+Object.defineProperty(Token.Whitespace.prototype, "isNormalWhitespace", { value: true });
 
 // `indent` class.
 Token.Indent = class indent extends Token.Whitespace {}
+Object.defineProperty(Token.Indent.prototype, "isNormalWhitespace", { value: false });
 
 // `newline` class.
 Token.Newline = class newline extends Token.Whitespace {}
-// Assign whitespace in a way which can't be changed.
-Object.defineProperty(Token.Newline, "value", { value: "\n" });
+Object.defineProperty(Token.Newline.prototype, "value", { value: "\n" });
+Object.defineProperty(Token.Newline.prototype, "isNormalWhitespace", { value: false });
 
 
 // Literal string class

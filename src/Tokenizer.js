@@ -36,7 +36,7 @@ const Tokenizer = {
   // Tokenize string and return tokens WITHOUT whitespace
   tokenizeWithoutWhitespace(text, start, end) {
     return Tokenizer.tokenize(text, start, end)
-      .filter(token => !Tokenizer.isNormalWhitespace(token));
+      .filter(token => !token.isNormalWhitespace);
   },
 
   // Repeatedly execute a `method` (bound to `this) which returns a `[result, nextStart]` or `undefined`.
@@ -672,16 +672,7 @@ const Tokenizer = {
 
   // Given a set of tokens, remove ALL "normal" whitespace tokens (NOT indent or newline).
   removeNormalWhitespace(tokens) {
-    return tokens.filter(token => !Tokenizer.isNormalWhitespace(token));
-  },
-
-  // Return `true` if `token` is "normal" whitespce (not a newline or indent)
-  isNormalWhitespace(token) {
-    return (
-      token instanceof Token.Whitespace &&
-      !(token instanceof Token.Indent) &&
-      !(token instanceof Token.Newline)
-    );
+    return tokens.filter(token => !token.isNormalWhitespace);
   },
 
   //
