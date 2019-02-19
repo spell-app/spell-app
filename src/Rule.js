@@ -109,17 +109,19 @@ Rule.Literals = class literals extends Rule {
   get literalText() { return this.literals.join(this.literalSeparator) }
 
   test(parser, tokens, start = 0, end = tokens.length, rules, testLocation = this.testLocation) {
-    const literals = this.literals;
-    const length = literals.length;
-    if (start + length > end) return false;
-
     if (testLocation === TestLocation.ANYWHERE) {
-      // match anywhere inside
       for (var index = start; index < end; index++) {
-        if (this.test(parser, tokens, index, end, rules, TestLocation.AT_START)) return true;
+        if (this._testAtStart(tokens, index, end)) return true;
       }
       return false;
     }
+    return this._testAtStart(tokens, start, end);
+  }
+
+  _testAtStart(tokens, start, end) {
+    const literals = this.literals;
+    const length = literals.length;
+    if (start + length > end) return false;
 
     // Quick return if only one.
     if (length === 1) return tokens[start].matchesLiteral(literals[0]);
@@ -131,8 +133,8 @@ Rule.Literals = class literals extends Rule {
     return true;
   }
 
-  parse(parser, tokens, start = 0, end, rules) {
-    if (!this.test(parser, tokens, start, end, rules, TestLocation.AT_START)) return undefined;
+  parse(parser, tokens, start = 0, end = tokens.length, rules) {
+    if (!this._testAtStart(tokens, start, end)) return undefined;
     return new Match({
       rule: this,
       matched: this.literalText,
@@ -146,7 +148,7 @@ Rule.Literals = class literals extends Rule {
   }
 
   toSyntax() {
-    const testLocation = this.testLocation ? "…" : "";
+    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
     const optional = this.optional ? "?" : "";
     return `${testLocation}${this.literalText}${optional}`;
   }
@@ -271,7 +273,7 @@ Rule.Subrule = class subrule extends Rule {
   }
 
   toSyntax() {
-    const testLocation = this.testLocation ? "…" : "";
+    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` : "";
     const excludes = this.excludes ? `!${this.exludes.join("!")}:` : "";
@@ -373,10 +375,10 @@ Rule.Alternatives = class alternatives extends Rule {
   }
 
   toSyntax() {
-    const rules = this.rules.map(rule => rule.toSyntax()).join("|");
-    const testLocation = this.testLocation ? "…" : "";
+    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` : "";
+    const rules = this.rules.map(rule => rule.toSyntax()).join("|");
     const optional = this.optional ? "?" : "";
     return `${testLocation}(${promote}${argument}${rules})${optional}`;
   }
@@ -441,12 +443,12 @@ Rule.Repeat = class repeat extends Rule {
   }
 
   toSyntax() {
-    let isCompoundRule =
+    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
+    const isCompoundRule =
       this.repeat instanceof Rule.Sequence ||
       (this.repeat instanceof Rule.Literals && this.repeat.literals.length > 1);
     const repeat = this.repeat.toSyntax();
     const rule = isCompoundRule ? `(${repeat})` : `${repeat}`;
-    const testLocation = this.testLocation ? "…" : "";
     const optional = this.optional ? "*" : "+";
     return `${testLocation}${rule}${optional}`;
   }
@@ -512,11 +514,11 @@ Rule.List = class list extends Rule {
   }
 
   toSyntax() {
-    const item = this.item.toSyntax();
-    const delimiter = this.delimiter.toSyntax();
-    const testLocation = this.testLocation ? "…" : "";
+    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` : "";
+    const item = this.item.toSyntax();
+    const delimiter = this.delimiter.toSyntax();
     const optional = this.optional ? "?" : "";
     return `${testLocation}[${promote}${argument}${item} ${delimiter}]${optional}`;
   }
@@ -609,8 +611,8 @@ Rule.Sequence = class sequence extends Rule {
 
   // Echo this rule back out.
   toSyntax() {
+    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
     const rules = this.rules.map(rule => rule.toSyntax()).join(" ");
-    const testLocation = this.testLocation ? "…" : "";
     const optional = this.optional ? "?" : "";
     return `${testLocation}${rules}${optional}`;
   }
