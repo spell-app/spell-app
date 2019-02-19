@@ -31,14 +31,14 @@ describe("Rule.Symbols", () => {
     describe("test() method", () => {
       describe("with no testAtStart", () => {
         const rule = new Rule.Symbols(">");
-        it("returns 0 if present at the start of tokens", () => {
+        it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize(">"));
-          expect(test).toBe(0);
+          expect(test).toBe(true);
         });
 
-        it("returns a number if present in the middle of tokens", () => {
+        it("returns true if present in the middle of tokens", () => {
           const test = rule.test(parser, tokenize("a > b"));
-          expect(test).toBe(1);
+          expect(test).toBe(true);
         });
 
         it("returns false if NOT present anywhere in tokens", () => {
@@ -49,9 +49,9 @@ describe("Rule.Symbols", () => {
 
       describe("WITH testAtStart", () => {
         const rule = new Rule.Symbols({ literals: ">", testAtStart: true });
-        it("returns 0 if present at the start of tokens", () => {
+        it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize(">"));
-          expect(test).toBe(0);
+          expect(test).toBe(true);
         });
 
         it("returns false if not present at the start of tokens", () => {
@@ -79,14 +79,14 @@ describe("Rule.Symbols", () => {
     describe("test() method", () => {
       describe("with no testAtStart", () => {
         const rule = new Rule.Symbols(">=");
-        it("returns 0 if present at the start of tokens", () => {
+        it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize(">="));
-          expect(test).toBe(0);
+          expect(test).toBe(true);
         });
 
-        it("returns a number if present in the middle of tokens", () => {
+        it("returns true if present in the middle of tokens", () => {
           const test = rule.test(parser, tokenize("a >= b"));
-          expect(test).toBe(1);
+          expect(test).toBe(true);
         });
 
         it("returns false if NOT present anywhere in tokens", () => {
@@ -97,9 +97,9 @@ describe("Rule.Symbols", () => {
 
       describe("WITH testAtStart", () => {
         const rule = new Rule.Symbols({ literals: ">=", testAtStart: true });
-        it("returns 0 if present at the start of tokens", () => {
+        it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize(">= b"));
-          expect(test).toBe(0);
+          expect(test).toBe(true);
         });
 
         it("returns false if not present at the start of tokens", () => {
@@ -148,14 +148,14 @@ describe("Rule.Keywords", () => {
     describe("test() method", () => {
       describe("without testAtStart flag", () => {
         const rule = new Rule.Keywords("this");
-        it("returns 0 if present at the start of tokens", () => {
+        it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this"));
-          expect(test).toBe(0);
+          expect(test).toBe(true);
         });
 
-        it("returns a number if present anywhere in tokens", () => {
+        it("returns true if present anywhere in tokens", () => {
           const test = rule.test(parser, tokenize("start this end"));
-          expect(test).toBe(1);
+          expect(test).toBe(true);
         });
 
         it("returns false if NOT present anywhere in tokens", () => {
@@ -166,9 +166,9 @@ describe("Rule.Keywords", () => {
 
       describe("WITH testAtStart flag", () => {
         const rule = new Rule.Keywords({ literals: "this", testAtStart: "true" });
-        it("returns 0 if present at the start of tokens", () => {
+        it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this"));
-          expect(test).toBe(0);
+          expect(test).toBe(true);
         });
 
         it("returns false if not present at the start of tokens", () => {
@@ -196,14 +196,14 @@ describe("Rule.Keywords", () => {
     describe("test() method", () => {
       describe("without testAtStart flag", () => {
         const rule = new Rule.Keywords("this that");
-        it("returns 0 if present at the start of tokens", () => {
+        it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this that"));
-          expect(test).toBe(0);
+          expect(test).toBe(true);
         });
 
-        it("returns a number if present anywhere in tokens", () => {
+        it("returns true if present anywhere in tokens", () => {
           const test = rule.test(parser, tokenize("start this this that end"));
-          expect(test).toBe(2);
+          expect(test).toBe(true);
         });
 
         it("returns false if NOT present anywhere in tokens", () => {
@@ -214,9 +214,9 @@ describe("Rule.Keywords", () => {
 
       describe("WITH testAtStart flag", () => {
         const rule = new Rule.Keywords({ literals: "this that", testAtStart: true });
-        it("returns a number if present at the start of tokens", () => {
+        it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this that"));
-          expect(test).toBe(0);
+          expect(test).toBe(true);
         });
 
         it("returns false if present anywhere in tokens", () => {
@@ -266,14 +266,14 @@ describe("Rule.Pattern", () => {
 
   describe("test() method", () => {
     describe("without testAtStart flag", () => {
-      it("returns 0 if present at the start of tokens", () => {
+      it("returns true if present at the start of tokens", () => {
         const test = rule.test(parser, tokenize("a-word"));
-        expect(test).toBe(0);
+        expect(test).toBe(true);
       });
 
-      it("returns a number if present anywhere in tokens", () => {
+      it("returns true if present anywhere in tokens", () => {
         const test = rule.test(parser, tokenize("Type a-word 2"));
-        expect(test).toBe(1);
+        expect(test).toBe(true);
       });
 
       it("returns false if NOT present anywhere in tokens", () => {
@@ -283,9 +283,9 @@ describe("Rule.Pattern", () => {
     });
 
     describe("with testAtStart flag", () => {
-      it("returns 0 if present at the start of tokens", () => {
+      it("returns true if present at the start of tokens", () => {
         const test = ruleAtStart.test(parser, tokenize("a-word"));
-        expect(test).toBe(0);
+        expect(test).toBe(true);
       });
 
       it("returns false if present anywhere in tokens", () => {
@@ -340,14 +340,14 @@ describe("Rule.Subrule", () => {
   describe("simple rules", () => {
     const rule = new Rule.Subrule({ subrule: "this" });
     describe("test() method", () => {
-      it("returns 0 if present at the start of tokens", () => {
+      it("returns true if present at the start of tokens", () => {
         const test = rule.test(parser, tokenize("this that other"));
-        expect(test).toBe(0);
+        expect(test).toBe(true);
       });
 
-      it("returns a number if present anywhere in tokens", () => {
+      it("returns true if present anywhere in tokens", () => {
         const test = rule.test(parser, tokenize("that this other"));
-        expect(test).toBe(1);
+        expect(test).toBe(true);
       });
 
       it("returns false if NOT present anywhere in tokens", () => {
@@ -372,14 +372,14 @@ describe("Rule.Subrule", () => {
   describe("sequence rules", () => {
     const rule = new Rule.Subrule({ subrule: "sequence" });
     describe("test() method", () => {
-      it("returns 0 if present at the start of tokens", () => {
+      it("returns true if present at the start of tokens", () => {
         const test = rule.test(parser, tokenize("this that"));
-        expect(test).toBe(0);
+        expect(test).toBe(true);
       });
 
       it("returns a numbre if present anywhere in tokens", () => {
         const test = rule.test(parser, tokenize("that this that"));
-        expect(test).toBe(1);
+        expect(test).toBe(true);
       });
 
       it("returns false if NOT present anywhere in tokens", () => {
@@ -421,14 +421,14 @@ describe("Rule.Alternatives", () => {
 
   describe("test() method", () => {
     describe("without testAtStart flag", () => {
-      it("returns 0 if present at the start of tokens", () => {
+      it("returns true if present at the start of tokens", () => {
         const test = rule.test(parser, tokenize("this that other"));
-        expect(test).toBe(0);
+        expect(test).toBe(true);
       });
 
       it("returns 1 if present anywhere in tokens", () => {
         const test = rule.test(parser, tokenize("start that end"));
-        expect(test).toBe(1);
+        expect(test).toBe(true);
       });
 
       it("returns false if NOT present anywhere in tokens", () => {
@@ -437,9 +437,9 @@ describe("Rule.Alternatives", () => {
       });
     });
     describe("WITH testAtStart flag", () => {
-      it("returns 0 if present at the start of tokens", () => {
+      it("returns true if present at the start of tokens", () => {
         const test = ruleStart.test(parser, tokenize("this that other"));
-        expect(test).toBe(0);
+        expect(test).toBe(true);
       });
 
       it("returns false if NOT present at start of tokens", () => {
@@ -509,14 +509,14 @@ describe("Rule.Repeat", () => {
     });
 
     describe("without testAtStart flag", () => {
-      it("returns 0 if present at the start of tokens", () => {
+      it("returns true if present at the start of tokens", () => {
         const test = rule.test(parser, tokenize("word"));
-        expect(test).toBe(0);
+        expect(test).toBe(true);
       });
 
-      it("returns a number if present anywhere in tokens", () => {
+      it("returns true if present anywhere in tokens", () => {
         const test = rule.test(parser, tokenize("nope word nope"));
-        expect(test).toBe(1);
+        expect(test).toBe(true);
       });
 
       it("returns false if NOT present anywhere in tokens", () => {
@@ -526,9 +526,9 @@ describe("Rule.Repeat", () => {
     });
 
     describe("WITH testAtStart flag", () => {
-      it("returns 0 if present at the start of tokens", () => {
+      it("returns true if present at the start of tokens", () => {
         const test = ruleStart.test(parser, tokenize("word"));
-        expect(test).toBe(0);
+        expect(test).toBe(true);
       });
 
       it("returns false if NOT present at start of tokens", () => {
@@ -583,14 +583,14 @@ describe("Rule.List", () => {
     });
 
     describe("without testAtStart flag", () => {
-      it("returns 0 if present at the start of tokens", () => {
+      it("returns true if present at the start of tokens", () => {
         const test = rule.test(parser, tokenize("word"));
-        expect(test).toBe(0);
+        expect(test).toBe(true);
       });
 
-      it("returns a number if present anywhere in tokens", () => {
+      it("returns true if present anywhere in tokens", () => {
         const test = rule.test(parser, tokenize("nope word nope"));
-        expect(test).toBe(1);
+        expect(test).toBe(true);
       });
 
       it("returns false if NOT present anywhere in tokens", () => {
@@ -600,9 +600,9 @@ describe("Rule.List", () => {
     });
 
     describe("WITH testAtStart flag", () => {
-      it("returns 0 if present at the start of tokens", () => {
+      it("returns true if present at the start of tokens", () => {
         const test = ruleStart.test(parser, tokenize("word"));
-        expect(test).toBe(0);
+        expect(test).toBe(true);
       });
 
       it("returns false if NOT present at start in tokens", () => {
@@ -705,14 +705,14 @@ describe("Rule.Sequence", () => {
 
       describe("without testAtStart flag", () => {
         const rule = parser.rules.simple;
-        it("returns 0 if present at the start of tokens", () => {
+        it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this that other"));
-          expect(test).toBe(0);
+          expect(test).toBe(true);
         });
 
-        it("returns a number if present anywhere in tokens", () => {
+        it("returns true if present anywhere in tokens", () => {
           const test = rule.test(parser, tokenize("other this that"));
-          expect(test).toBe(1);
+          expect(test).toBe(true);
         });
 
         it("returns false if NOT present anywhere in tokens", () => {
@@ -723,9 +723,9 @@ describe("Rule.Sequence", () => {
 
       describe("WITH testAtStart flag", () => {
         const rule = parser.rules.simpleTestAtStart;
-        it("returns 0 if present at the start of tokens", () => {
+        it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this that other"));
-          expect(test).toBe(0);
+          expect(test).toBe(true);
         });
 
         it("returns false if NOT present anywhere at start of tokens", () => {
@@ -777,20 +777,20 @@ describe("Rule.Comment", () => {
   describe("comment instances", () => {
     const rule = parser.rules.comment;
     describe("test() method", () => {
-      it("returns 0 if present at the start of tokens", () => {
+      it("returns true if present at the start of tokens", () => {
         let test = rule.test(parser, tokenize("// foo"));
-        expect(test).toBe(0);
+        expect(test).toBe(true);
 
         test = rule.test(parser, tokenize("-- foo"));
-        expect(test).toBe(0);
+        expect(test).toBe(true);
 
         test = rule.test(parser, tokenize("## foo"));
-        expect(test).toBe(0);
+        expect(test).toBe(true);
       });
 
-      it("returns a number if present anywhere in tokens", () => {
+      it("returns true if present anywhere in tokens", () => {
         const test = rule.test(parser, tokenize("foo -- foo"));
-        expect(test).toBe(1);
+        expect(test).toBe(true);
       });
 
       it("returns false if NOT present anywhere in tokens", () => {
@@ -861,40 +861,3 @@ describe("Rule.Comment", () => {
   });
 });
 
-
-/*
-
-describe("Rule.", () => {
-  const parser = new Parser();
-  const rule = new Rule.XXX({ });
-  describe("test() method", () => {
-    it("returns true if present at the start of tokens", () => {
-      const test = rule.test(parser, tokenize("•"));
-      expect(test).toBe(true);
-    });
-
-    it("returns true if present anywhere in tokens", () => {
-      const test = rule.test(parser, tokenize("•"));
-      expect(test).toBe(true);
-    });
-
-    it("returns false if NOT present anywhere in tokens", () => {
-      const test = rule.test(parser, tokenize("•"));
-      expect(test).toBe(false);
-    });
-  });
-  describe("parse() method", () => {
-    it("parses at the start of tokens", () => {
-      const match = rule.parse(parser, tokenize("•"));
-      expect(match.nextStart).toBe(1);
-      expect(match.compile()).toBe("•");
-    });
-
-    it("does not parse in the middle of tokens", () => {
-      const match = rule.parse(parser, tokenize("•"));
-      expect(match).toBeUndefined();
-    });
-  });
-});
-
-*/

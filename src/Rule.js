@@ -110,13 +110,12 @@ Rule.Literals = class literals extends Rule {
   get literalText() { return this.literals.join(this.literalSeparator) }
 
   test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (testAtStart) return Token.matchLiteralsAtStart(this.literals, tokens, start, end);
-    return Token.matchLiteralsAnywhere(this.literals, tokens, start, end);
+    if (testAtStart) return Token.tokensStartWithLiterals(this.literals, tokens, start, end);
+    return Token.tokensContainLiterals(this.literals, tokens, start, end);
   }
 
   parse(parser, tokens, start = 0, end, rules) {
-    const index = Token.matchLiteralsAtStart(this.literals, tokens, start, end);
-    if (index === false) return undefined;
+    if (!Token.tokensStartWithLiterals(this.literals, tokens, start, end)) return undefined;
     return new Match({
       rule: this,
       matched: this.literalText,
@@ -171,9 +170,9 @@ Rule.Pattern = class pattern extends Rule {
 
   test(parser, tokens, start = 0, end = tokens.length, rules, testAtStart = this.testAtStart) {
     if (start >= end) return false;
-    if (testAtStart) end = start + 1;
+    if (testAtStart) return tokens[start].matchesPattern(this.pattern, this.blacklist);
     for (var index = start; index < end; index++) {
-      if (tokens[index].matchesPattern(this.pattern, this.blacklist)) return index;
+      if (tokens[index].matchesPattern(this.pattern, this.blacklist)) return true;
     }
     return false;
   }
@@ -791,8 +790,8 @@ Rule.BlankLine = class blank_line extends Rule {
 // Comment rule -- matches tokens of type `Token.Comment`.
 Rule.Comment = class comment extends Rule {
   test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (testAtStart) return Token.matchTypeAtStart(Token.Comment, tokens, start, end);
-    return Token.matchTypeAnywhere(Token.Comment, tokens, start, end);
+    if (testAtStart) return Token.tokensStartWithType(Token.Comment, tokens, start, end);
+    return Token.tokensContainType(Token.Comment, tokens, start, end);
   }
 
   // Comments are special nodes in our token stream.

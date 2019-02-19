@@ -11,13 +11,22 @@ export default class Token {
     Object.assign(this, props);
   }
 
-  // Do we match a single literal string?
+
+  //
+  //  Methods for matching strings and/or numbers.
+  //
+
+  // Do we match a `literal` value?
+  // If `literal` is an array, we'll return true if our `value` is included in the array.
+  // NOTE: not valid for all token types.
   matchesLiteral(literal) {
+//    if (Array.isArray(literal)) return literal.includes(this.value);
     return this.value === literal;
   }
 
   // Do we match a regular expression `pattern`?
   // If `blacklist` is supplied, we'll return `false` if value is found in blacklist.
+  // NOTE: valid for string types only.
   matchesPattern(pattern, blacklist) {
     if (typeof this.value !== "string") return false;
     if (!pattern.test(this.value)) return false;
@@ -28,6 +37,7 @@ export default class Token {
   // Execute a pattern against this token.
   // Returns initial match as string, or `undefined` if no match.
   // If `blacklist` is supplied, we'll return `undefined` if value is found in blacklist.
+  // NOTE: valid for string types only.
   executePattern(pattern, blacklist) {
     if (typeof this.value !== "string") return false;
     const result = pattern.exec(this.value);
@@ -42,34 +52,28 @@ export default class Token {
   //  Utility methods for matching tokens
   //
   //
-  //  Matching tokens using an array of `literals`.
-  //  Returns numeric index where match was found.
-  //  Returns `false` if no found.
 
-  // Match a run of `literals`, starting at `start`.
-  static matchLiteralsAtStart(literals, tokens, start = 0, end = tokens.length) {
+  // Match a run of `literals` in `tokens`, starting at `start` and not going beyond `end`.
+  // Returns `true` if found, otherwise `false`.
+  static tokensStartWithLiterals(literals, tokens, start = 0, end = tokens.length) {
     const length = literals.length;
     if (start + length > end) return false;
 
     // Quick return if only one.
-    if (length === 1) {
-      return tokens[start].matchesLiteral(literals[0])
-        ? start
-        : false;
-    }
+    if (length === 1) return tokens[start].matchesLiteral(literals[0]);
 
     // if more than one, make sure all the rest match
     for (let i = 0; i < length; i++) {
       if (!tokens[start + i].matchesLiteral(literals[i])) return false;
     }
-    return start;
+    return true;
   }
 
-  // Match a run of `literals`, starting anywhere from `start` to `end`.
-  static matchLiteralsAnywhere(literals, tokens, start = 0, end = tokens.length) {
+  // Match a run of `literals` in `tokens` anywhere between `start` to `end`.
+  // Returns `true` if found, otherwise `false`.
+  static tokensContainLiterals(literals, tokens, start = 0, end = tokens.length) {
     for (var index = start; index < end; index++) {
-      const result = Token.matchLiteralsAtStart(literals, tokens, index, end);
-      if (result !== false) return index;
+      if (Token.tokensStartWithLiterals(literals, tokens, index, end)) return true;
     }
     return false;
   }
@@ -79,14 +83,13 @@ export default class Token {
   //  Returns numeric index where match was found.
   //  Returns `false` if no found.
   //
-  static matchTypeAtStart(constructor, tokens, start = 0, end = tokens.length) {
-    if (start < end && (tokens[start] instanceof constructor)) return start;
-    return false;
+  static tokensStartWithType(constructor, tokens, start = 0, end = tokens.length) {
+    return (start < end && (tokens[start] instanceof constructor));
   }
 
-  static matchTypeAnywhere(constructor, tokens, start = 0, end = tokens.length) {
+  static tokensContainType(constructor, tokens, start = 0, end = tokens.length) {
     for (var index = start; index < end; index++) {
-      if ((tokens[index] instanceof constructor)) return index;
+      if ((tokens[index] instanceof constructor)) return true;
     }
     return false;
   }

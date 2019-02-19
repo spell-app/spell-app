@@ -77,7 +77,7 @@ describe("parser.compile()", () => {
 describe("parser.test()", () => {
   test("returns 0 when found at beginning of test", () => {
     const result = parser.test("this_and_that", tokenize("this"))
-    expect(result).toBe(0);
+    expect(result).toBe(true);
   });
 
   test("returns false when test fails", () => {
