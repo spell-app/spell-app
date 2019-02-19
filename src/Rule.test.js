@@ -1,6 +1,6 @@
 import Parser, { ParserError } from "./Parser.js";
 import parseRule from "./parseRule.js";
-import Rule, { TEST_ANYWHERE } from "./Rule.js";
+import Rule, { TestLocation } from "./Rule.js";
 import Token from "./Token.js";
 import Tokenizer from "./Tokenizer.js";
 
@@ -45,7 +45,7 @@ describe("Rule.Symbols", () => {
       });
 
       describe("TEST_ANYWHERE", () => {
-        const rule = new Rule.Symbols({ literals: ">", testAnywhere: TEST_ANYWHERE });
+        const rule = new Rule.Symbols({ literals: ">", testLocation: TestLocation.ANYWHERE });
         it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize(">"));
           expect(test).toBe(true);
@@ -94,7 +94,7 @@ describe("Rule.Symbols", () => {
       });
 
       describe("TEST_ANYWHERE", () => {
-        const rule = new Rule.Symbols({ literals: ">=", testAnywhere: TEST_ANYWHERE });
+        const rule = new Rule.Symbols({ literals: ">=", testLocation: TestLocation.ANYWHERE });
         it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize(">="));
           expect(test).toBe(true);
@@ -150,7 +150,7 @@ describe("Rule.Keywords", () => {
   describe("with a single keyword", () => {
     describe("test() method", () => {
       describe("TEST_ANYWHERE", () => {
-        const rule = new Rule.Keywords({ literals: "this", testAnywhere: TEST_ANYWHERE });
+        const rule = new Rule.Keywords({ literals: "this", testLocation: TestLocation.ANYWHERE });
         it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this"));
           expect(test).toBe(true);
@@ -198,7 +198,7 @@ describe("Rule.Keywords", () => {
   describe("with multiple keywords", () => {
     describe("test() method", () => {
       describe("TEST_ANYWHERE", () => {
-        const rule = new Rule.Keywords({ literals: "this that", testAnywhere: TEST_ANYWHERE });
+        const rule = new Rule.Keywords({ literals: "this that", testLocation: TestLocation.ANYWHERE });
         it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this that"));
           expect(test).toBe(true);
@@ -260,7 +260,7 @@ describe("Rule.Pattern", () => {
   const ruleAnywhere = new Rule.Pattern({
     pattern: /^[a-z][\w\-]*$/,
     blacklist: ["nope"],
-    testAnywhere: TEST_ANYWHERE
+    testLocation: TestLocation.ANYWHERE
   });
 
   it("converts array blacklist to a map", () => {
@@ -363,7 +363,7 @@ describe("Rule.Subrule", () => {
       });
 
       describe("TEST_ANYWHERE", () => {
-        const rule = new Rule.Subrule({ subrule: "this", testAnywhere: TEST_ANYWHERE });
+        const rule = new Rule.Subrule({ subrule: "this", testLocation: TestLocation.ANYWHERE });
         it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this that other"));
           expect(test).toBe(true);
@@ -416,7 +416,7 @@ describe("Rule.Subrule", () => {
       });
 
       describe("TEST_AT_START", () => {
-        const rule = new Rule.Subrule({ subrule: "this", testAnywhere: TEST_ANYWHERE });
+        const rule = new Rule.Subrule({ subrule: "this", testLocation: TestLocation.ANYWHERE });
         it("returns true if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this that"));
           expect(test).toBe(true);
@@ -462,7 +462,7 @@ describe("Rule.Alternatives", () => {
   parser.defineRule({
     name: "ruleAnywhere",
     syntax: "(?:arg:this|that|other)",
-    testAnywhere: TEST_ANYWHERE,
+    testLocation: TestLocation.ANYWHERE,
     constructor: class Alt extends Rule.Alternatives {}
   });
   const ruleAnywhere = parser.rules.ruleAnywhere;
@@ -549,7 +549,7 @@ describe("Rule.Repeat", () => {
   const ruleAnywhere = new Rule.Repeat({
     testRule: new Rule.Keywords("word"),
     repeat: new Rule.Keywords("word"),
-    testAnywhere: TEST_ANYWHERE
+    testLocation: TestLocation.ANYWHERE
   });
 
   describe("test() method", () => {
@@ -625,7 +625,7 @@ describe("Rule.List", () => {
 
   const ruleNoTest = new Rule.List({ item, delimiter });
   const ruleStart = new Rule.List({ testRule, item, delimiter });
-  const ruleAnywhere = new Rule.List({ testRule, item, delimiter, testAnywhere: TEST_ANYWHERE });
+  const ruleAnywhere = new Rule.List({ testRule, item, delimiter, testLocation: TestLocation.ANYWHERE });
 
   describe("test() method", () => {
     describe("without a testRule", () => {
@@ -728,7 +728,7 @@ describe("Rule.Sequence", () => {
       name: "anywhere",
       syntax: "this {that} the {other}",
       testRule: new Rule.Keywords("this"),
-      testAnywhere: TEST_ANYWHERE,
+      testLocation: TestLocation.ANYWHERE,
       constructor: class anywhere extends Rule.Sequence{}
     },
     {

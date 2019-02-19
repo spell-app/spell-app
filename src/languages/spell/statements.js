@@ -60,9 +60,7 @@ parser.defineRule({
 parser.defineRule({
   name: "assignment",
   alias: ["statement", "mutatesScope"],
-  syntax: [
-    "{thing:expression} = {value:expression}"
-  ],
+  syntax: "{thing:expression} = {value:expression}",
   testRule: "…=",
   constructor: class assignment extends Rule.Sequence {
     compile(match) {
