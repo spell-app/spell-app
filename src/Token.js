@@ -132,18 +132,11 @@ Token.JSXElement =  class jsxElement extends Token{
 
 
 // JSX attribute class
-// `name` is the name of the attribute.
-// `value` is one of:
-//    - `'...'`      // Text (literal string).
-//    - `"..."`      // Text (literal string).
-//    - `{...}`      // Expression.  Results will be tokenized array.
-//    - `<....>`      // JSX element.
-//    - `1`        // Number.  Note: this is an extension to JSX.
-
-Token.JSXAttribute = class jsxAttribute {
-  constructor(name, value) {
-    this.name = name;
-    if (value !== undefined) this.value = value;
+// `attr.name` is the name of the attribute.
+// `attr.value` is one of... TODOC
+Token.JSXAttribute = class jsxAttribute extends Token{
+  constructor(props) {
+    super(props);
   }
   toString() {
     if (this.value === undefined) return this.name;
@@ -168,7 +161,7 @@ Token.Block = class block extends Token {
   constructor(props) {
     super(props);
     if (!this.contents) this.contents = [];   // TODO: get rid of `contents`???
-    if (!this.tokens) this.tokens = [];
+    if (!this.tokens) this.tokens = [];  //TODO: g
   }
 
   toString() {

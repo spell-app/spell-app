@@ -22,14 +22,15 @@ const Tokenizer = {
     if (start >= end || !text.trim()) return [];
 
     // Process our top-level rules.
-    const [results, nextStart] = Tokenizer.eatTokens(Tokenizer.matchTopTokens, text, start, end);
-    if (results) start = nextStart;
-    if (start !== end) {
-      if (Tokenizer.WARN)
-        console.warn("tokenize(): didn't consume: `", text.slice(start, end) + "`");
+    const tokens = Tokenizer.consume(Tokenizer.matchTopTokens, text, start, end);
+    if (!tokens || tokens.length === 0) return [];
+
+    const last = tokens[tokens.length - 1];
+    if (last.end !== end && Tokenizer.WARN) {
+      console.warn("tokenize(): didn't consume: `", text.slice(start, end) + "`");
     }
 
-    return results;
+    return tokens;
   },
 
   // Tokenize string and return tokens WITHOUT whitespace
@@ -42,13 +43,13 @@ const Tokenizer = {
   // Places matched results together in `results` array and returns `[results, nextStart]` for the entire set.
   // Stops if `method` doesn't return anything, or if calling `method` is unproductive.
   //TESTME
-  eatTokens(method, text, start = 0, end, results = []) {
+  consume(method, text, start = 0, end, results = []) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
     // process rules repeatedly until we get to the end
     while (start < end) {
-      const result = method.call(this, text, start, end);
+      const result = method(text, start, end);
       if (!result) break;
 
       const [tokens, nextStart] = result;
@@ -59,7 +60,7 @@ const Tokenizer = {
       if (tokens !== undefined) results = results.concat(tokens);
       start = nextStart;
     }
-    return [results, start];
+    return results;
   },
 
   // Match a single top-level token at `text[start]`.
@@ -284,6 +285,7 @@ const Tokenizer = {
         nextStart = childEnd;
       }
     }
+    jsxElement.end = nextStart;
 
     return [jsxElement, nextStart];
   },
@@ -324,24 +326,25 @@ const Tokenizer = {
 
     // If we didn't immediately get an end marker, attempt to match attributes
     if (endBit !== ">" && endBit !== "/>") {
-      const [attrs, attrEnd] = Tokenizer.eatTokens(Tokenizer.matchJSXAttribute, text, nextStart, end);
-      jsxElement.attributes = attrs;
-      jsxElement.end = (nextStart = attrEnd);
+      const attrs = Tokenizer.consume(Tokenizer.matchJSXAttribute, text, nextStart, end);
+      if (attrs && attrs.length) {
+        jsxElement.attributes = attrs;
+        nextStart = attrs[attrs.length - 1].end;
+      }
     }
 
     // at this point we should get an `/>` or `>` (with no whitespace).
     if (text[nextStart] === "/" && text[nextStart + 1] === ">") {
       endBit = "/>";
-      jsxElement.end = (nextStart += 2);
+      nextStart += 2;
     } else if (text[nextStart] === ">") {
       endBit = text[nextStart];
-      jsxElement.end = (nextStart += 1);
+      nextStart += 1;
     }
 
     // Return immediately for unary tag
     if (endBit === "/>") {
       jsxElement.isUnaryTag = true;
-      jsxElement.end = nextStart;
     }
     else if (endBit !== ">") {
       if (Tokenizer.WARN) {
@@ -353,6 +356,7 @@ const Tokenizer = {
       }
       jsxElement.error = "No end >";
     }
+    jsxElement.end = nextStart;
     return [jsxElement, jsxElement.end];
   },
 
@@ -444,8 +448,8 @@ const Tokenizer = {
     if (!result) return undefined;
 
     const [match, name, equals] = result;
+    const attribute = new Token.JSXAttribute({ name, start });
     let nextStart = start + match.length;
-    const attribute = new Token.JSXAttribute(name);
 
     // if there was an equals char, parse the value
     if (equals) {
@@ -457,6 +461,7 @@ const Tokenizer = {
     }
     // eat whitespace before the next attribute / tag end
     nextStart = Tokenizer.eatWhitespace(text, nextStart, end);
+    attribute.end = nextStart;
     return [attribute, nextStart];
   },
 
