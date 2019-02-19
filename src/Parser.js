@@ -254,15 +254,7 @@ export default class Parser {
     if (testRule) {
       // Convert string using rule syntax
       if (typeof testRule === "string") {
-        props.testRule = parseSyntax(testRule)[0];
-      }
-      // For token, convert to function which matches that token type.
-      else if (testRule.prototype instanceof Token) {
-        delete props.testRule;
-        props.test = function test(parser, tokens, start = 0, end = tokens.length, testAtStart = this.testAtStart, rules = parser.rules) {
-          if (testAtStart) return Token.tokensStartWithType(testRule, tokens, start, end);
-          return Token.tokensContainType(testRule, tokens, start, end);
-        }
+        props.testRule = parseRule(testRule)[0];
       }
     }
 

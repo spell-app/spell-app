@@ -14,7 +14,7 @@ parser.defineRule({
   name: "and_expression",
   alias: "expression",
   syntax: "{lhs:expression!and_expression} and {rhs:expression}",
-  testRule: "and",
+  testRule: "…and",
   precedence: 2,
   constructor: class and_expression extends Rule.Sequence {
     // Delegate compilation down to the operator which was actually matched.
@@ -35,7 +35,7 @@ parser.defineRule({
   name: "or_expression",
   alias: "expression",
   syntax: "{lhs:expression!or_expression} or {rhs:expression}",
-  testRule: "or",
+  testRule: "…or",
   precedence: 3,
   constructor: class and_expression extends Rule.Sequence {
     // Delegate compilation down to the operator which was actually matched.
@@ -56,7 +56,7 @@ parser.defineRule({
   name: "infix_operator_expression",
   alias: "expression",
   syntax: "{lhs:expression!infix_operator_expression} {infix_operator} {rhs:expression}",
-  testRule: "{infix_operator}",
+  testRule: "…{infix_operator}",
   precedence: 1,
   constructor: class infix_operator_expression extends Rule.Sequence {
     // Special `getResults` to ignore the operator.
@@ -652,7 +652,7 @@ parser.defineRule({
   alias: "expression",
   syntax: "{expression!postfix_operator_expression} {operator:postfix_operator}",
   precedence: 1,
-  testRule: "{postfix_operator}",
+  testRule: "…{postfix_operator}",
   constructor: class postfix_operator_expresion extends Rule.Sequence {
     // Special `getResults` to ignore the operator.
     getResults(match) {
@@ -753,7 +753,7 @@ parser.defineRule({
   alias: "expression",
   //FIXME: make `the` optional
   syntax: "the? absolute value of {expression}",
-  testRule: "absolute value",
+  testRule: "…absolute value",
   constructor: class absolute_value extends Rule.Sequence {
     compile(match) {
       const { expression } = match.results;
@@ -774,7 +774,7 @@ parser.defineRule({
   //FIXME: "the?"
   precedence: 2,
   syntax: "the? (biggest|largest) {identifier}? (of|in) {expression}",
-  testRule: "^(biggest|largest)",
+  testRule: "…(biggest|largest)",
   constructor: class max extends Rule.Sequence {
     compile(match) {
       const { expression } = match.results;
@@ -800,7 +800,7 @@ parser.defineRule({
   precedence: 2,
 //    syntax: "the? (min|minimum|smallest|least) {identifier}? (of|in) {expression}",
   syntax: "the? smallest {identifier}? (of|in) {expression}",
-  testRule: "smallest",
+  testRule: "…smallest",
   constructor: class min extends Rule.Sequence {
     compile(match) {
       const { expression } = match.results;
@@ -828,7 +828,7 @@ parser.defineRule({
   name: "round_number",
   alias: "expression",
   syntax: "round {thing:expression} (direction:off|up|down)?",
-  testRule: "^round",
+  testRule: "round",
   precedence: 1,
   constructor: class round_number extends Rule.Sequence {
     compile(match) {

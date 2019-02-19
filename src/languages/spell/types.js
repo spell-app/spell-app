@@ -24,7 +24,6 @@ parser.defineRule({
   name: "me",
   alias: "expression",
   syntax: "me",
-  testRule: "^me",
   constructor: class me extends Rule.Keywords {
     compile(match) {
       return "this";
@@ -43,7 +42,6 @@ parser.defineRule({
   name: "I",
   alias: "expression",
   syntax: "I",
-  testRule: "^I",
   constructor: class I extends Rule.Keywords {
     compile(match) {
       return "this";
@@ -66,7 +64,7 @@ parser.defineRule({
   name: "property_expression",
   alias: "expression",
   syntax: "{property_accessor} {expression}",
-  testRule: "^{property_accessor}",    // ???
+  testRule: "{property_accessor}",    // ???
   constructor: class property_expression extends Rule.Sequence {
     compile(match) {
       let { expression, property_accessor } = match.results;
@@ -90,7 +88,7 @@ parser.defineRule({
 parser.defineRule({
   name: "property_accessor",
   syntax: "the {identifier} of",
-  testRule: "^the",
+  testRule: "the",
   constructor: class property_accessor extends Rule.Sequence {
     compile(match) {
       return match.results.identifier;
@@ -102,7 +100,7 @@ parser.defineRule({
   name: "my_property_accessor",
   alias: ["expression", "property_accessor"],
   syntax: "my {identifier}",
-  testRule: "^my",
+  testRule: "my",
   constructor: class my_property_accessor extends Rule.Sequence {
     compile(match) {
       let { identifier } = match.results;
@@ -179,7 +177,7 @@ parser.defineRule({
   name: "define_type",
   alias: ["statement", "mutatesScope"],
   syntax: "define type {name:type} (?:as (a|an) {superType:type})?",
-  testRule: "^define type",
+  testRule: "define type",
   constructor: class define_type extends Rule.BlockStatement {
     compile(match) {
       let { name, superType, statements } = match.results;
@@ -211,7 +209,7 @@ parser.defineRule({
   name: "new_thing",
   alias: ["expression", "statement"],
   syntax: "create (a|an) {type} (?:with {props:object_literal_properties})?",
-  testRule: "^create",
+  testRule: "create",
   constructor: class new_thing extends Rule.Sequence {
     compile(match) {
       let { type, props = "" } = match.results;
@@ -265,7 +263,7 @@ parser.defineRule({
   name: "declare_property",
   alias: ["statement", "mutatesScope"],
   syntax: "(scope:property|constant|shared property) {name:identifier} (?:= {value:expression})?",
-  testRule: "^(property|constant|shared)",
+  testRule: "(property|constant|shared)",
   constructor: class declare_property extends Rule.Sequence {
     compile(match) {
       let { scope, name, value = "" } = match.results;
@@ -313,7 +311,7 @@ parser.defineRule({
   name: "declare_property_of_type",
   alias: ["statement", "mutatesScope"],
   syntax: "property {name:identifier} as (a|an)? {type} (?:= {value:expression})?",
-  testRule: "^property",
+  testRule: "property",
   constructor: class declare_property_of_type extends Rule.Sequence {
     compile(match) {
       let { name, type, value = "undefined" } = match.results;
@@ -355,7 +353,7 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax:
     "property {name:identifier} as one of {list:inline_list} (?:with value {value:expression})?",
-  testRule: "^property",
+  testRule: "property",
   constructor: class declare_property_as_one_of extends Rule.Sequence {
     compile(match) {
       let { name, list, value = "undefined" } = match.results;
@@ -392,7 +390,7 @@ parser.defineRule({
   name: "getter",
   alias: ["statement", "mutatesScope"],
   syntax: "get {name:identifier}\\: return? {expression}?",
-  testRule: "^get",
+  testRule: "get",
   constructor: class getter extends Rule.BlockStatement {
     compile(match) {
       // NOTE: we need to parse `expression` and `block` manually (unlike other BlockStatements)
@@ -437,7 +435,7 @@ parser.defineRule({
   name: "setter",
   alias: ["statement", "mutatesScope"],
   syntax: "set {name:identifier} {args}? (\\:)? {statement}?",
-  testRule: "^set",
+  testRule: "set",
   constructor: class setter extends Rule.BlockStatement {
     compile(match) {
       // default args to the setter name
@@ -504,7 +502,7 @@ parser.defineRule({
   name: "declare_method",
   alias: ["statement", "mutatesScope"],
   syntax: "(operator:to|on) {name:identifier} {args}? (\\:)? {statement}?",
-  testRule: "^(to|on)",
+  testRule: "(to|on)",
   constructor: class declare_method extends Rule.BlockStatement {
     compile(match) {
       let { name, args = "", statements } = match.results;
@@ -544,7 +542,7 @@ parser.defineRule({
   name: "declare_action",
   alias: ["statement", "mutatesScope"],
   syntax: "action (keywords:{word}|{type})+ (\\:)? {statement}?",
-  testRule: "^action",
+  testRule: "action",
   constructor: class declare_action extends Rule.BlockStatement {
     // Add `name`, `args` and `types` to matched source
     getResults(match) {

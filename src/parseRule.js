@@ -2,7 +2,7 @@ import flatten from "lodash/flatten.js";
 
 import Parser from "./Parser.js";
 import ParseError from "./ParseError.js";
-import Rule from "./Rule.js";
+import Rule, { TEST_AT_START, TEST_ANYWHERE } from "./Rule.js";
 import Tokenizer from "./Tokenizer.js";
 import { cloneClass } from "./utils/class.js";
 
@@ -85,9 +85,10 @@ const KEYWORD_PATTERN = /[A-Za-z][\w_-]*/;
 function parseToken(syntaxStream, rules = [], start = 0) {
   let token = syntaxStream[start];
   switch (token) {
-    case "^":
+    case "…":   // TODOC: ellipsis (`alt-;` on mac) means "test anywhere in tokens"
+    case "^":   // TODOC: caret means "test at beginning only" (which is the default)
       const result = parseToken(syntaxStream, rules, start+1);
-      if (result) result[0].testAtStart = true;
+      if (result) result[0].testAnywhere = (token === "…" ? TEST_ANYWHERE : TEST_AT_START);
       return result;
 
     case "{":

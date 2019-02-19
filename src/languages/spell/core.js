@@ -101,7 +101,6 @@ parser.defineRule({
   name: "undefined",
   alias: "expression",
   syntax: "undefined",
-  testAtStart: true,
   constructor: class _undefined extends Rule.Keywords {
     compile(match) {
       return "undefined";
@@ -403,7 +402,6 @@ parser.defineRule({
   name: "number",
   alias: "expression",
   pattern: /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
-  testAtStart: true,
   valueMap: {
     zero: 0,
     one: 1,
@@ -523,7 +521,7 @@ parser.defineRule({
   name: "literal_list",
   alias: "expression",
   syntax: "\\[[list:{expression},]?\\]",
-  testRule: "^\\[",
+  testRule: "\\[",
   constructor: class literal_list extends Rule.Sequence {
     // When parsing, reset the `rules` to the entire set of parser rules.
     // Otherwise we can't parse things like `[ [a, b] ]`
@@ -561,7 +559,7 @@ parser.defineRule({
   name: "parenthesized_expression",
   alias: "expression",
   syntax: "\\({expression}\\)",
-  testRule: "^\\(",
+  testRule: "\\(",
   constructor: class parenthesized_expression extends Rule.Sequence {
     // When parsing, reset the `rules` to the entire set of parser rules.
     // Otherwise we can't parse things like `(a+b) * (c+d)`

@@ -24,6 +24,8 @@ import { isWhitespace } from "./utils/string";
 // Show debug messages on browser only.
 const DEBUG = false;//!isNode;
 
+export const TEST_AT_START = false;
+export const TEST_ANYWHERE = true;
 
 // Abstract Rule class.
 // TODOC
@@ -44,7 +46,7 @@ export default class Rule {
   //  - `true` if the rule MIGHT be matched.
   //  - `false` if there is NO WAY the rule can be matched.
   //  - `undefined` if not determinstic (eg: no way to tell quickly).
-  test(parser, tokens, start, end, rules, testAtStart) {}
+  test(parser, tokens, start, end, rules, testAnywhere) {}
 
   // Attempt to match this rule between `start` and `end` of `tokens`.
   // If successful, returns a `Match` object which you can use to figure out the results.
@@ -102,30 +104,31 @@ Rule.Literals = class literals extends Rule {
 
   get literalText() { return this.literals.join(this.literalSeparator) }
 
-  test(parser, tokens, start = 0, end = tokens.length, rules, testAtStart = this.testAtStart) {
+  test(parser, tokens, start = 0, end = tokens.length, rules, testAnywhere = this.testAnywhere) {
     const literals = this.literals;
     const length = literals.length;
-    if (testAtStart) {
-      if (start + length > end) return false;
+    if (start + length > end) return false;
 
-      // Quick return if only one.
-      if (length === 1) return tokens[start].matchesLiteral(literals[0]);
-
-      // if more than one, make sure all the rest match
-      for (let i = 0; i < length; i++) {
-        if (!tokens[start + i].matchesLiteral(literals[i])) return false;
+    if (testAnywhere === TEST_ANYWHERE) {
+      // match anywhere inside
+      for (var index = start; index < end; index++) {
+        if (this.test(parser, tokens, index, end, rules, TEST_AT_START)) return true;
       }
-      return true;
+      return false;
     }
-    // match anywhere inside
-    for (var index = start; index < end; index++) {
-      if (this.test(parser, tokens, index, end, rules, "AT_START")) return true;
+
+    // Quick return if only one.
+    if (length === 1) return tokens[start].matchesLiteral(literals[0]);
+
+    // if more than one, make sure all the rest match
+    for (let i = 0; i < length; i++) {
+      if (!tokens[start + i].matchesLiteral(literals[i])) return false;
     }
-    return false;
+    return true;
   }
 
   parse(parser, tokens, start = 0, end, rules) {
-    if (!this.test(parser, tokens, start, end, rules, "AT_START")) return undefined;
+    if (!this.test(parser, tokens, start, end, rules, TEST_AT_START)) return undefined;
     return new Match({
       rule: this,
       matched: this.literalText,
@@ -139,9 +142,9 @@ Rule.Literals = class literals extends Rule {
   }
 
   toSyntax() {
-    const testAtStart = this.testAtStart ? "^" : "";
+    const testAnywhere = this.testAnywhere ? "…" : "";
     const optional = this.optional ? "?" : "";
-    return `${testAtStart}${this.literalText}${optional}`;
+    return `${testAnywhere}${this.literalText}${optional}`;
   }
 };
 Object.defineProperty(Rule.Literals.prototype, "literalSeparator", { value: "" });
@@ -178,13 +181,15 @@ Rule.Pattern = class pattern extends Rule {
     }
   }
 
-  test(parser, tokens, start = 0, end = tokens.length, rules, testAtStart = this.testAtStart) {
+  test(parser, tokens, start = 0, end = tokens.length, rules, testAnywhere = this.testAnywhere) {
     if (start >= end) return false;
-    if (testAtStart) return tokens[start].matchesPattern(this.pattern, this.blacklist);
-    for (var index = start; index < end; index++) {
-      if (tokens[index].matchesPattern(this.pattern, this.blacklist)) return true;
+    if (testAnywhere === TEST_ANYWHERE) {
+      for (var index = start; index < end; index++) {
+        if (tokens[index].matchesPattern(this.pattern, this.blacklist)) return true;
+      }
+      return false;
     }
-    return false;
+    return tokens[start].matchesPattern(this.pattern, this.blacklist);
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
@@ -231,9 +236,9 @@ Rule.Subrule = class subrule extends Rule {
   }
 
   // Ask the subrule to figure out if a match is possible.
-  test(parser, tokens, start, end, rules = parser.rules, testAtStart = this.testAtStart) {
+  test(parser, tokens, start, end, rules = parser.rules, testAnywhere = this.testAnywhere) {
     const rule = Rule.getRuleOrDie(rules, this.subrule);
-    return rule.test(parser, tokens, start, end, rules, testAtStart);
+    return rule.test(parser, tokens, start, end, rules, testAnywhere);
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
@@ -262,13 +267,13 @@ Rule.Subrule = class subrule extends Rule {
   }
 
   toSyntax() {
-    const testAtStart = this.testAtStart ? "^" : "";
+    const testAnywhere = this.testAnywhere ? "…" : "";
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` : "";
     const excludes = this.excludes ? `!${this.exludes.join("!")}:` : "";
     const optional = this.optional ? "?" : "";
     return (
-      `${testAtStart}{${argument}${this.subrule}${excludes}}${optional}`
+      `${testAnywhere}{${argument}${this.subrule}${excludes}}${optional}`
     );
   }
 };
@@ -289,10 +294,10 @@ Rule.Alternatives = class alternatives extends Rule {
   // Return (`true` or index) if ANY of our rules is found.
   // If ANY rules return `undefined`, this will return `undefined`.
   // If ALL rules return `false`, this will return `false`.
-  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
+  test(parser, tokens, start, end, rules, testAnywhere = this.testAnywhere) {
     let undefinedFound = false;
     for (let i = 0, rule; rule = this.rules[i]; i++) {
-      const result = rule.test(parser, tokens, start, end, rules, testAtStart);
+      const result = rule.test(parser, tokens, start, end, rules, testAnywhere);
       if (result === undefined) undefinedFound = true;
       else if (result !== false) return result;
     }
@@ -365,11 +370,11 @@ Rule.Alternatives = class alternatives extends Rule {
 
   toSyntax() {
     const rules = this.rules.map(rule => rule.toSyntax()).join("|");
-    const testAtStart = this.testAtStart ? "^" : "";
+    const testAnywhere = this.testAnywhere ? "…" : "";
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` : "";
     const optional = this.optional ? "?" : "";
-    return `${testAtStart}(${promote}${argument}${rules})${optional}`;
+    return `${testAnywhere}(${promote}${argument}${rules})${optional}`;
   }
 };
 
@@ -395,8 +400,8 @@ Rule.Group = class group extends Rule.Alternatives {};
 //  `rule.nextStart` is the index of the next start token.
 Rule.Repeat = class repeat extends Rule {
   // Check `testRule` if provided.
-  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (this.testRule) return this.testRule.test(parser, tokens, start, end, rules, testAtStart);
+  test(parser, tokens, start, end, rules, testAnywhere = this.testAnywhere) {
+    if (this.testRule) return this.testRule.test(parser, tokens, start, end, rules, testAnywhere);
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules) {
@@ -437,9 +442,9 @@ Rule.Repeat = class repeat extends Rule {
       (this.repeat instanceof Rule.Literals && this.repeat.literals.length > 1);
     const repeat = this.repeat.toSyntax();
     const rule = isCompoundRule ? `(${repeat})` : `${repeat}`;
-    const testAtStart = this.testAtStart ? "^" : "";
+    const testAnywhere = this.testAnywhere ? "…" : "";
     const optional = this.optional ? "*" : "+";
-    return `${testAtStart}${rule}${optional}`;
+    return `${testAnywhere}${rule}${optional}`;
   }
 };
 
@@ -454,8 +459,8 @@ Rule.Repeat = class repeat extends Rule {
 // NOTE: we assume that a List rule itself will NOT repeat (????)
 Rule.List = class list extends Rule {
   // Check `testRule` if provided.
-  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (this.testRule) return this.testRule.test(parser, tokens, start, end, rules, testAtStart);
+  test(parser, tokens, start, end, rules, testAnywhere = this.testAnywhere) {
+    if (this.testRule) return this.testRule.test(parser, tokens, start, end, rules, testAnywhere);
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
@@ -505,11 +510,11 @@ Rule.List = class list extends Rule {
   toSyntax() {
     const item = this.item.toSyntax();
     const delimiter = this.delimiter.toSyntax();
-    const testAtStart = this.testAtStart ? "^" : "";
+    const testAnywhere = this.testAnywhere ? "…" : "";
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` : "";
     const optional = this.optional ? "?" : "";
-    return `${testAtStart}[${promote}${argument}${item} ${delimiter}]${optional}`;
+    return `${testAnywhere}[${promote}${argument}${item} ${delimiter}]${optional}`;
   }
 };
 
@@ -522,8 +527,8 @@ Rule.List = class list extends Rule {
 //  `rule.matched` will be the array of rules which were matched.
 //  `rule.nextStart` is the index of the next start token.
 Rule.Sequence = class sequence extends Rule {
-  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (this.testRule) return this.testRule.test(parser, tokens, start, end, rules, testAtStart);
+  test(parser, tokens, start, end, rules, testAnywhere = this.testAnywhere) {
+    if (this.testRule) return this.testRule.test(parser, tokens, start, end, rules, testAnywhere);
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
@@ -601,9 +606,9 @@ Rule.Sequence = class sequence extends Rule {
   // Echo this rule back out.
   toSyntax() {
     const rules = this.rules.map(rule => rule.toSyntax()).join(" ");
-    const testAtStart = this.testAtStart ? "^" : "";
+    const testAnywhere = this.testAnywhere ? "…" : "";
     const optional = this.optional ? "?" : "";
-    return `${testAtStart}${rules}${optional}`;
+    return `${testAnywhere}${rules}${optional}`;
   }
 };
 
@@ -800,20 +805,20 @@ Rule.BlankLine = class blank_line extends Rule {
 
 // Abstract rule for matching tokens of a particular type (constructor)
 Rule.TokenType = class tokenType extends Rule {
-  test(parser, tokens, start = 0, end = tokens.length, rules, testAtStart = this.testAtStart) {
+  test(parser, tokens, start = 0, end = tokens.length, rules, testAnywhere = this.testAnywhere) {
     if (start >= end) return false;
-    if (testAtStart) return (tokens[start] instanceof this.tokenType);
-
-    let token;
-    while ((token = tokens[start++])) {
-      if (token instanceof this.tokenType) return true;
+    if (testAnywhere === TEST_ANYWHERE) {
+      let token;
+      while ((token = tokens[start++])) {
+        if (token instanceof this.tokenType) return true;
+      }
+      return false;
     }
-    return false;
+    return (tokens[start] instanceof this.tokenType);
   }
 
-  parse(parser, tokens, start = 0, end = tokens.length) {
-    if (start >= end) return;
-    if (!(tokens[start] instanceof this.tokenType)) return;
+  parse(parser, tokens, start = 0, end, rules) {
+    if (!this.test(parser, tokens, start, end, rules, TEST_AT_START)) return;
     return new Match({
       rule: this,
       matched: tokens[start],
@@ -826,8 +831,7 @@ Rule.TokenType = class tokenType extends Rule {
     return match.matched.value;
   }
 }
-// Test at start by defaults
-Object.defineProperty(Rule.TokenType.prototype, "testAtStart", { value: true });
+
 
 // Parser error representation in parser output.
 Rule.StatementParseError = class parse_error extends Rule {
