@@ -71,6 +71,13 @@ export default class Rule {
     if (!rule) throw new ParseError(`${this.constructor.name}.parse(): rule '${ruleName}' not found`);
     return rule;
   }
+
+
+  //
+  //  Token manipulation
+  //
+
+
 }
 
 // Abstract rule for one or more sequential literal values to match.
@@ -103,12 +110,12 @@ Rule.Literals = class literals extends Rule {
   get literalText() { return this.literals.join(this.literalSeparator) }
 
   test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (testAtStart) return Tokenizer.matchLiteralsAtStart(this.literals, tokens, start, end);
-    return Tokenizer.matchLiteralsAnywhere(this.literals, tokens, start, end);
+    if (testAtStart) return Token.matchLiteralsAtStart(this.literals, tokens, start, end);
+    return Token.matchLiteralsAnywhere(this.literals, tokens, start, end);
   }
 
   parse(parser, tokens, start = 0, end, rules) {
-    const index = Tokenizer.matchLiteralsAtStart(this.literals, tokens, start, end);
+    const index = Token.matchLiteralsAtStart(this.literals, tokens, start, end);
     if (index === false) return undefined;
     return new Match({
       rule: this,
@@ -162,15 +169,18 @@ Rule.Pattern = class pattern extends Rule {
     }
   }
 
-  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (testAtStart)
-      return Tokenizer.matchPatternAtStart(this.pattern, this.blacklist, tokens, start, end);
-    return Tokenizer.matchPatternAnywhere(this.pattern, this.blacklist, tokens, start, end);
+  test(parser, tokens, start = 0, end = tokens.length, rules, testAtStart = this.testAtStart) {
+    if (start >= end) return false;
+    if (testAtStart) end = start + 1;
+    for (var index = start; index < end; index++) {
+      if (tokens[index].matchesPattern(this.pattern, this.blacklist)) return index;
+    }
+    return false;
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
     if (start >= end) return;
-    let matched = Tokenizer.executePattern(tokens[start], this.pattern, this.blacklist);
+    let matched = tokens[start].executePattern(this.pattern, this.blacklist);
     if (!matched) return undefined;
 
     // if we have a valueMap specified, run through that
@@ -781,8 +791,8 @@ Rule.BlankLine = class blank_line extends Rule {
 // Comment rule -- matches tokens of type `Token.Comment`.
 Rule.Comment = class comment extends Rule {
   test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (testAtStart) return Tokenizer.matchInstanceOfAtStart(Token.Comment, tokens, start, end);
-    return Tokenizer.matchInstanceOfAnywhere(Token.Comment, tokens, start, end);
+    if (testAtStart) return Token.matchTypeAtStart(Token.Comment, tokens, start, end);
+    return Token.matchTypeAnywhere(Token.Comment, tokens, start, end);
   }
 
   // Comments are special nodes in our token stream.

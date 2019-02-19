@@ -260,8 +260,8 @@ export default class Parser {
       else if (testRule.prototype instanceof Token) {
         delete props.testRule;
         props.test = function test(parser, tokens, start = 0, end = tokens.length, testAtStart = this.testAtStart, rules = parser.rules) {
-          if (testAtStart) return Tokenizer.matchInstanceOfAtStart(testRule, tokens, start, end);
-          return Tokenizer.matchInstanceOfAnywhere(testRule, tokens, start, end);
+          if (testAtStart) return Token.matchTypeAtStart(testRule, tokens, start, end);
+          return Token.matchTypeAnywhere(testRule, tokens, start, end);
         }
       }
     }

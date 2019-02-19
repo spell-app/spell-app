@@ -10,6 +10,95 @@ export default class Token {
   constructor(props) {
     Object.assign(this, props);
   }
+
+  // Do we match a single literal string?
+  matchesLiteral(literal) {
+    return this.value === literal;
+  }
+
+  // Do we match a regular expression `pattern`?
+  // If `blacklist` is supplied, we'll return `false` if value is found in blacklist.
+  matchesPattern(pattern, blacklist) {
+    if (typeof this.value !== "string") return false;
+    if (!pattern.test(this.value)) return false;
+    if (blacklist && blacklist[this.value]) return false;
+    return true;
+  }
+
+  // Execute a pattern against this token.
+  // Returns initial match as string, or `undefined` if no match.
+  // If `blacklist` is supplied, we'll return `undefined` if value is found in blacklist.
+  executePattern(pattern, blacklist) {
+    if (typeof this.value !== "string") return false;
+    const result = pattern.exec(this.value);
+    if (!result) return undefined;
+    const match = result[0];
+    if (blacklist && blacklist[match]) return undefined;
+    return match;
+  }
+
+
+  //
+  //  Utility methods for matching tokens
+  //
+  //
+  //  Matching tokens using an array of `literals`.
+  //  Returns numeric index where match was found.
+  //  Returns `false` if no found.
+
+  // Match a run of `literals`, starting at `start`.
+  static matchLiteralsAtStart(literals, tokens, start = 0, end = tokens.length) {
+    const length = literals.length;
+    if (start + length > end) return false;
+
+    // Quick return if only one.
+    if (length === 1) {
+      return tokens[start].matchesLiteral(literals[0])
+        ? start
+        : false;
+    }
+
+    // if more than one, make sure all the rest match
+    for (let i = 0; i < length; i++) {
+      if (!tokens[start + i].matchesLiteral(literals[i])) return false;
+    }
+    return start;
+  }
+
+  // Match a run of `literals`, starting anywhere from `start` to `end`.
+  static matchLiteralsAnywhere(literals, tokens, start = 0, end = tokens.length) {
+    for (var index = start; index < end; index++) {
+      const result = Token.matchLiteralsAtStart(literals, tokens, index, end);
+      if (result !== false) return index;
+    }
+    return false;
+  }
+
+
+  //
+  //  Matching tokens using a single regex pattern, including blacklist support.
+  //  Returns numeric index where match was found.
+  //  Returns `false` if no found.
+  //
+
+
+  //
+  //  Match tokens using Javascript `instanceof <constructor>` operator.
+  //  Returns numeric index where match was found.
+  //  Returns `false` if no found.
+  //
+  static matchTypeAtStart(constructor, tokens, start = 0, end = tokens.length) {
+    if (start < end && (tokens[start] instanceof constructor)) return start;
+    return false;
+  }
+
+  static matchTypeAnywhere(constructor, tokens, start = 0, end = tokens.length) {
+    for (var index = start; index < end; index++) {
+      if ((tokens[index] instanceof constructor)) return index;
+    }
+    return false;
+  }
+
 }
 
 // `whitespace` class for normal (non-indent, non-newline) whitespace.
