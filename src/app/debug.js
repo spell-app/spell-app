@@ -7,6 +7,7 @@ import ParseError from "../ParseError.js";
 import Rule from "../Rule.js";
 import parseRule, { parseSyntax, tokeniseRuleSyntax } from "../parseRule.js";
 import Tokenizer from "../Tokenizer.js";
+import Token from "../Token.js";
 
 import parser from "../languages/spell/spell.js";
 
@@ -21,6 +22,7 @@ Object.assign(global, {
   Rule,
 
   Tokenizer,
+  Token,
   tokenize: Tokenizer.tokenizeWithoutWhitespace,  // HACK
 
   parser,

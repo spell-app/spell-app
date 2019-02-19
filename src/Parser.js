@@ -4,6 +4,7 @@ import flatten from "lodash/flatten";
 
 // TODO: dependency-inject tokenizer?
 import ParseError from "./ParseError.js";
+import Token from "./Token.js";
 import Tokenizer from "./Tokenizer.js";
 import Rule from "./Rule.js";
 import parseRule, { parseSyntax } from "./parseRule.js";
@@ -256,7 +257,7 @@ export default class Parser {
         props.testRule = parseSyntax(testRule)[0];
       }
       // For token, convert to function which matches that token type.
-      else if (testRule instanceof Tokenizer.Token) {
+      else if (testRule.prototype instanceof Token) {
         delete props.testRule;
         props.test = function test(parser, tokens, start = 0, end = tokens.length, testAtStart = this.testAtStart, rules = parser.rules) {
           if (testAtStart) return Tokenizer.matchInstanceOfAtStart(testRule, tokens, start, end);

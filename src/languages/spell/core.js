@@ -6,6 +6,7 @@
 import Parser from "../../Parser";
 import Match from "../../Match";
 import Rule from "../../Rule";
+import Token from "../../Token";
 import Tokenizer from "../../Tokenizer";
 
 // Create `core` parser.
@@ -335,20 +336,16 @@ parser.defineRule({
 parser.defineRule({
   name: "number",
   alias: "expression",
+  testRule: Token.Number,
   testAtStart: true,
   constructor: class number extends Rule {
-    test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-      if (testAtStart) return Tokenizer.matchTypeOfAtStart("number", tokens, start, end);
-      return Tokenizer.matchTypeOfAtStart("number", tokens, start, end);
-    }
-
     // Numbers get encoded as JS numbers in the stream.
     parse(parser, tokens, start = 0) {
       const token = tokens[start];
-      if (!Tokenizer.tokenIsType(token, "number")) return undefined;
+      if (!Tokenizer.tokenIsInstanceOf(token, Token.Number)) return undefined;
       return new Match({
         rule: this,
-        matched: token,
+        matched: token.value,
         nextStart: start + 1
       });
     }
@@ -437,15 +434,15 @@ parser.defineRule({
   name: "text",
   alias: "expression",
   canonical: "Text",
-  testRule: Tokenizer.Text,
+  testRule: Token.Text,
   constructor: class text extends Rule {
     // Text strings get encoded as `text` objects in the token stream.
     parse(parser, tokens, start = 0) {
       const token = tokens[start];
-      if (!Tokenizer.tokenIsInstanceOf(token, Tokenizer.Text)) return undefined;
+      if (!Tokenizer.tokenIsInstanceOf(token, Token.Text)) return undefined;
       return new Match({
         rule: this,
-        matched: token.quotedString,
+        matched: token.value,
         nextStart: start + 1
       });
     }

@@ -6,3 +6,13 @@
 if (!console.group) console.group = console.log;
 if (!console.groupCollapsed) console.groupCollapsed = console.group;
 if (!console.groupEnd) console.groupEnd = console.log;
+
+// GRRR... node doesn't include this???
+if (!Array.prototype.includes) {
+  Object.defineProperty(Array.prototype, "includes", {
+    value: function(value, start) {
+      let index = this.indexOf(value, start);
+      return index !== -1;
+    }
+  });
+}

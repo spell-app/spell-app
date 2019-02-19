@@ -3,6 +3,7 @@
 //
 import Parser from "../../Parser";
 import Match from "../../Match";
+import Token from "../../Token";
 import Tokenizer from "../../Tokenizer";
 import Rule from "../../Rule";
 
@@ -13,12 +14,12 @@ export default parser;
 parser.defineRule({
   name: "jsx",
   alias: ["expression"], // TODO: statement ???
-  testRule: Tokenizer.JSXElement,
+  testRule: Token.JSXElement,
   constructor: class jsxElement extends Rule {
     // Text strings get encoded as `text` objects in the token stream.
     parse(parser, tokens, start = 0) {
       const token = tokens[start];
-      if (!Tokenizer.tokenIsInstanceOf(token, Tokenizer.JSXElement)) return undefined;
+      if (!Tokenizer.tokenIsInstanceOf(token, Token.JSXElement)) return undefined;
 
       return new Match({
         rule: this,
@@ -41,15 +42,17 @@ parser.defineRule({
         // if NO value, assume it's a variable of the same name
         if (value === undefined) value = "true";
         // if it's an array, it's a spell expression, possibly with nested JSX elements...
-        else if (value instanceof Tokenizer.JSXExpression) {
+        else if (value instanceof Token.JSXExpression) {
           value = this.jsxExpressionToSource(value);
         }
         // else if a JSX element, recurse
         //TODO: indent...
-        else if (value instanceof Tokenizer.JSXElement) {
+        else if (value instanceof Token.JSXElement) {
           value = value.compile(jsxElement);
         }
-        // Otherwise if a number or Text literal, just use it
+        else {
+          value = value.value;
+        }
 
         // special case `class` to `className` because React is effing persnickety.
         if (name === "class") name = "className";
@@ -75,11 +78,11 @@ parser.defineRule({
               if (!text) return undefined;
               return `"${text}"`;
             }
-            if (child instanceof Tokenizer.JSXElement) {
+            if (child instanceof Token.JSXElement) {
               let childSource = this.jsxElementToSource(child);
               return childSource.split("\n").join("\n\t");
             }
-            if (child instanceof Tokenizer.JSXExpression) {
+            if (child instanceof Token.JSXExpression) {
               return this.jsxExpressionToSource(child);
             }
             throw new SyntaxError("childrenToSource(): don't understand child" + child);

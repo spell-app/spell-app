@@ -824,7 +824,7 @@ describe("Rule.Comment", () => {
 
       it("eats whitespace before the comment", () => {
         const match = rule.parse(parser, tokenize("  //foo"));
-        expect(match.compile()).toBe("//foo");
+        expect(match).toBe(undefined);
       });
 
       it("includes any number of spaces at the beginning of the comment", () => {

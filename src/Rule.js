@@ -17,6 +17,7 @@ import { isNode } from "browser-or-node";
 import Parser from "./Parser.js";
 import Match from "./Match.js";
 import ParseError from "./ParseError.js";
+import Token from "./Token.js";
 import Tokenizer from "./Tokenizer.js";
 import { isWhitespace } from "./utils/string";
 
@@ -168,6 +169,7 @@ Rule.Pattern = class pattern extends Rule {
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
+    if (start >= end) return;
     let matched = Tokenizer.executePattern(tokens[start], this.pattern, this.blacklist);
     if (!matched) return undefined;
 
@@ -216,6 +218,7 @@ Rule.Subrule = class subrule extends Rule {
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
+    if (start >= end) return;
     let rule = Rule.getRuleOrDie(rules, this.subrule);
 
     // if we have any excludes, clone the rule, filtering out the excluded rules
@@ -280,6 +283,7 @@ Rule.Alternatives = class alternatives extends Rule {
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
+    if (start >= end) return;
     if (DEBUG) console.group(`matching alternatives ${this.argument || this.name || this.toSyntax()} in: "${tokens.slice(start, end).join(" ")}"`);
     const matches = [];
     for (let i = 0, rule; rule = this.rules[i]; i++) {
@@ -377,6 +381,7 @@ Rule.Repeat = class repeat extends Rule {
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules) {
+    if (start >= end) return;
     // Bail quickly if no chance
     if (this.test(parser, tokens, start, end, rules) === false) return undefined;
 
@@ -435,6 +440,7 @@ Rule.List = class list extends Rule {
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
+    if (start >= end) return;
     // Bail quickly if no chance
     if (this.test(parser, tokens, start, end, rules) === false) return undefined;
 
@@ -502,6 +508,8 @@ Rule.Sequence = class sequence extends Rule {
   }
 
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
+    if (start >= end) return;
+
     // Bail quickly if no chance
     if (this.test(parser, tokens, start, end, rules) === false) return undefined;
     const matched = [];
@@ -509,6 +517,11 @@ Rule.Sequence = class sequence extends Rule {
     // Match each token in turn
     let nextStart = start;
     for (let i = 0, rule; rule = this.rules[i]; i++) {
+      // If we're beyond the end, bail if rule is not optional
+      if (nextStart >= end) {
+        if (rule.optional) continue;
+        return undefined;
+      }
       let match = rule.parse(parser, tokens, nextStart, end, rules);
       if (!match && !rule.optional) return undefined;
       if (match) {
@@ -580,15 +593,16 @@ Rule.Sequence = class sequence extends Rule {
 //  (available as `match.comment`)
 Rule.Statement = class statement extends Rule.Group {
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
+    if (start >= end) return;
     let index = start;
 
     // eat whitespace at the front of the line
-    while (tokens[index] instanceof Tokenizer.Whitespace) start++;
-    if (start >= end) return;   // TODO: blank line?
+    while (tokens[index] instanceof Token.Whitespace) index++;
+    if (index >= end) return;   // TODO: blank line?
 
     // eat comment at end of the line
     let comment;
-    if (Tokenizer.tokenIsInstanceOf(tokens[end - 1], Tokenizer.Comment)) {
+    if (Tokenizer.tokenIsInstanceOf(tokens[end - 1], Token.Comment)) {
       comment = Rule.getRuleOrDie(rules, "comment")
         .parse(parser, tokens, end - 1, end, rules);
     }
@@ -626,7 +640,7 @@ Rule.Statements = class statements extends Rule {
         matched.push(new Rule.BlankLine());
       }
       // got a nested block
-      else if (item instanceof Tokenizer.Block) {
+      else if (item instanceof Token.Block) {
         const nested = this.parseBlock(parser, item);
         if (!nested) {
           console.info("expected nested result, didn't get anything");
@@ -764,30 +778,25 @@ Rule.BlankLine = class blank_line extends Rule {
   }
 };
 
-// Comment rule -- matches tokens of type `Tokenizer.Comment`.
-// Eats whitespace before the comment if found.
+// Comment rule -- matches tokens of type `Token.Comment`.
 Rule.Comment = class comment extends Rule {
   test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (testAtStart) return Tokenizer.matchInstanceOfAtStart(Tokenizer.Comment, tokens, start, end);
-    return Tokenizer.matchInstanceOfAnywhere(Tokenizer.Comment, tokens, start, end);
+    if (testAtStart) return Tokenizer.matchInstanceOfAtStart(Token.Comment, tokens, start, end);
+    return Tokenizer.matchInstanceOfAnywhere(Token.Comment, tokens, start, end);
   }
 
   // Comments are special nodes in our token stream.
   parse(parser, tokens, start = 0, end = tokens.length, rules = parser.rules) {
-    let index = start;
-    // eat whitespace before comment
-    while (Tokenizer.tokenIsInstanceOf(tokens[index], Tokenizer.Whitespace)) {
-      index++;
-      if (index >= end) return undefined;
-    }
+    if (start >= end) return;
+
     // bail if not a comment
-    let token = tokens[index];
-    if (!Tokenizer.tokenIsInstanceOf(token, Tokenizer.Comment)) return undefined;
+    let token = tokens[start];
+    if (!Tokenizer.tokenIsInstanceOf(token, Token.Comment)) return undefined;
     return new Match({
       rule: this,
       matched: token,
       start,
-      nextStart: index + 1
+      nextStart: start + 1
     })
   }
 

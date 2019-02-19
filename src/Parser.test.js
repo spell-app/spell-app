@@ -6,8 +6,11 @@
 import Parser from "./Parser.js";
 import ParseError from "./ParseError.js";
 import Rule from "./Rule.js";
+import Tokenizer from "./Tokenizer.js";
 
 import * as __parseRule__ from "./parseRule.js"; // for mocking only
+
+const { tokenize } = Tokenizer;
 
 // Set up parser used in the below
 const parser = new Parser();
@@ -73,22 +76,22 @@ describe("parser.compile()", () => {
 
 describe("parser.test()", () => {
   test("returns 0 when found at beginning of test", () => {
-    const result = parser.test("this_and_that", ["this"])
+    const result = parser.test("this_and_that", tokenize("this"))
     expect(result).toBe(0);
   });
 
   test("returns false when test fails", () => {
-    const result = parser.test("this_and_that", ["and"])
+    const result = parser.test("this_and_that", tokenize("and"))
     expect(result).toBe(false);
   });
 
   test("returns undefined when test can't tell", () => {
-    const result = parser.test("statements", ["and"])
+    const result = parser.test("statements", tokenize("and"))
     expect(result).toBe(undefined);
   });
 
   test("throws if named rule is not found", () => {
-    expect(() => parser.test("missing_rule", ["text"])).toThrow(ParseError);
+    expect(() => parser.test("missing_rule", tokenize("text"))).toThrow(ParseError);
   });
 });
 
