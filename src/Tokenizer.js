@@ -66,18 +66,14 @@ const Tokenizer = {
       if (!result) break;
 
       const [token, lastEnd] = result;
-      // Bail if we didn't get a productive rule!
-      if (nextStart === lastEnd) break;
+      if (!token) break;
+      results.push(token);
 
-      // handle newResults as an array or single object.
-if (!token instanceof Token) console.warn(token);
-      if (token ) {
-        results.push(token);
+      if (token.end === nextStart) {
+        console.warn("error: got token but didn't advance in stream");
+        break;
       }
-      else {
-        console.warn(`no tokens for '${text.slice(nextStart, end)}'`);
-      }
-      nextStart = lastEnd;
+      nextStart = token.end;
     }
     return results;
   },
