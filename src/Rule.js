@@ -102,38 +102,30 @@ Rule.Literals = class literals extends Rule {
 
   get literalText() { return this.literals.join(this.literalSeparator) }
 
-  test(parser, tokens, start, end, rules, testAtStart = this.testAtStart) {
-    if (testAtStart) return this._tokensStartWithLiterals(this.literals, tokens, start, end);
-    return this._tokensContainLiterals(this.literals, tokens, start, end);
-  }
-
-  // Match a run of `literals` in `tokens`, starting at `start` and not going beyond `end`.
-  // Returns `true` if found, otherwise `false`.
-  _tokensStartWithLiterals(literals, tokens, start = 0, end = tokens.length) {
+  test(parser, tokens, start = 0, end = tokens.length, rules, testAtStart = this.testAtStart) {
+    const literals = this.literals;
     const length = literals.length;
-    if (start + length > end) return false;
+    if (testAtStart) {
+      if (start + length > end) return false;
 
-    // Quick return if only one.
-    if (length === 1) return tokens[start].matchesLiteral(literals[0]);
+      // Quick return if only one.
+      if (length === 1) return tokens[start].matchesLiteral(literals[0]);
 
-    // if more than one, make sure all the rest match
-    for (let i = 0; i < length; i++) {
-      if (!tokens[start + i].matchesLiteral(literals[i])) return false;
+      // if more than one, make sure all the rest match
+      for (let i = 0; i < length; i++) {
+        if (!tokens[start + i].matchesLiteral(literals[i])) return false;
+      }
+      return true;
     }
-    return true;
-  }
-
-  // Match a run of `literals` in `tokens` anywhere between `start` to `end`.
-  // Returns `true` if found, otherwise `false`.
-  _tokensContainLiterals(literals, tokens, start = 0, end = tokens.length) {
+    // match anywhere inside
     for (var index = start; index < end; index++) {
-      if (this._tokensStartWithLiterals(literals, tokens, index, end)) return true;
+      if (this.test(parser, tokens, index, end, rules, "AT_START")) return true;
     }
     return false;
   }
 
   parse(parser, tokens, start = 0, end, rules) {
-    if (!this._tokensStartWithLiterals(this.literals, tokens, start, end)) return undefined;
+    if (!this.test(parser, tokens, start, end, rules, "AT_START")) return undefined;
     return new Match({
       rule: this,
       matched: this.literalText,
