@@ -34,7 +34,7 @@ parser.defineRule({
 
     // Convert our attributes to source.
     // Returns `undefined` if no attributes.
-    attrsToSource(jsxElement = this.matched) {
+    attrsToSource(jsxElement) {
       let attributes = jsxElement.attributes;
       if (!attributes || !attributes.length) return undefined;
 
@@ -65,24 +65,29 @@ parser.defineRule({
 
     // Return an array with source for each of our children.
     // Returns `undefined` if we don't have any children.
-    childrenToSource(jsxElement = this.matched) {
-      let children = jsxElement.children;
+    childrenToSource(jsxElement) {
+      // ignore end tags!
+      const children = jsxElement.children
+        && jsxElement.children.filter(child => !(child instanceof Token.JSXEndTag));
       if (!children || children.length === 0) return undefined;
+
       return (
         children
           .map(child => {
-            //TODO: escape inner quotes...
+            // ignore end tags
+            if (child instanceof Token.JSXEndTag) return;
+
             if (child instanceof Token.JSXText) {
-              // TODO: forget it if whitespace only... ???
               return child.quotedText;
             }
             if (child instanceof Token.JSXElement) {
-              let childSource = this.jsxElementToSource(child);
+              const childSource = this.jsxElementToSource(child);
               return childSource.split("\n").join("\n\t");
             }
             if (child instanceof Token.JSXExpression) {
               return this.jsxExpressionToSource(child);
             }
+
             throw new SyntaxError("childrenToSource(): don't understand child" + child);
           })
           // remove undefined/empty string rules
@@ -92,20 +97,18 @@ parser.defineRule({
 
     // Convert JSX expression ( `{...}` ) to JS source.
     jsxExpressionToSource(jsxExpression) {
-      let tokens = jsxExpression.tokens;
+      const tokens = jsxExpression.tokens;
       //    console.info(jsxExpression, tokens);
       return "/" + `*TODO: ${tokens.join(" ")}*` + "/";
     }
 
-    jsxElementToSource(jsxElement = this.matched) {
+    jsxElementToSource(jsxElement) {
       // get the bits of the output
-      let tagName = `'${jsxElement.tagName}'`;
-      let attrs = this.attrsToSource(jsxElement);
-      let children = this.childrenToSource(jsxElement);
+      const tagName = `'${jsxElement.tagName}'`;
+      const children = this.childrenToSource(jsxElement);
+      const attrs = this.attrsToSource(jsxElement) || (children ? "null" : "");
 
       let output = "spell.createElement(" + tagName;
-      if (!attrs && children) attrs = "null";
-
       if (attrs) output += `, ${attrs}`;
       if (children) {
         output += ",\n\t" + children.join(",\n\t") + "\n";

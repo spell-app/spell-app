@@ -62,10 +62,7 @@ const Tokenizer = {
     // process rules repeatedly until we get to the end
     let nextStart = start;
     while (nextStart < end) {
-      const result = method(text, nextStart, end);
-      if (!result) break;
-
-      const [token, lastEnd] = result;
+      const token = method(text, nextStart, end);
       if (!token) break;
       results.push(token);
 
@@ -103,12 +100,11 @@ const Tokenizer = {
   matchSymbol(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
-    const token = new Token.Literal({
+    return new Token.Literal({
       value: text[start],
       start,
       end: start + 1
     });
-    return [token, token.end];
   },
 
   //
@@ -135,11 +131,9 @@ const Tokenizer = {
       start,
       end: whitespaceEnd
     }
-    const token = (start === 0 || text[start - 1] === "\n")
-      ? new Token.Indent(props)
-      : new Token.Whitespace(props);
-
-    return [token, token.end];
+    if (start === 0 || text[start - 1] === "\n")
+      return new Token.Indent(props);
+    return new Token.Whitespace(props);
   },
 
   //
@@ -152,8 +146,7 @@ const Tokenizer = {
   matchNewline(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end || text[start] !== "\n") return undefined;
-    const token = new Token.Newline({ start, end: start + 1});
-    return [token, token.end];
+    return new Token.Newline({ start, end: start + 1});
   },
 
   //
@@ -178,8 +171,7 @@ const Tokenizer = {
     if (wordEnd === start) return undefined;
 
     const value = text.slice(start, wordEnd);
-    const token = new Token.Literal({ value, start, end: wordEnd });
-    return [token, token.end];
+    return new Token.Literal({ value, start, end: wordEnd });
   },
 
   //
@@ -201,13 +193,12 @@ const Tokenizer = {
 
     const input = numberMatch[0];
     const value = parseFloat(input, 10);
-    const token = new Token.Number({
+    return new Token.Number({
       value,
       input,
       start,
       end: start + input.length
     });
-    return [token, token.end];
   },
 
   //
@@ -238,12 +229,11 @@ const Tokenizer = {
     textEnd++;
 
     const value = text.slice(start, textEnd);
-    const token = new Token.Text({
+    return new Token.Text({
       value,
       start,
       end: textEnd
     });
-    return [token, token.end];
   },
 
   //
@@ -270,14 +260,13 @@ const Tokenizer = {
     if (!commentMatch) return undefined;
 
     const [_match, commentSymbol, whitespace, comment] = commentMatch;
-    const token = new Token.Comment({
+    return new Token.Comment({
       commentSymbol,
       whitespace,
       comment,
       start,
       end: start + line.length
     });
-    return [token, token.end];
   },
 
   //
@@ -290,19 +279,18 @@ const Tokenizer = {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
 
-    let [jsxElement, nextStart] = Tokenizer.matchJSXStartTag(text, start, end) || [];
+    let jsxElement = Tokenizer.matchJSXStartTag(text, start, end);
     if (!jsxElement) return undefined;
 
     if (!jsxElement.isUnaryTag) {
-      const [children, childEnd] = Tokenizer.matchJSXChildren(jsxElement.tagName, text, nextStart, end);
+      const children = Tokenizer.matchJSXChildren(jsxElement.tagName, text, jsxElement.end, end);
       if (children.length) {
         jsxElement.children = children;
-        nextStart = childEnd;
+        jsxElement.end = getLastTokenEnd(children);
       }
     }
-    jsxElement.end = nextStart;
 
-    return [jsxElement, nextStart];
+    return jsxElement;
   },
 
 
@@ -336,7 +324,7 @@ const Tokenizer = {
     endBit = endBit.trim();
     if (endBit === "/>") {
       jsxElement.isUnaryTag = true;
-      return [jsxElement, nextStart];
+      return jsxElement;
     }
 
     // If we didn't immediately get an end marker, attempt to match attributes
@@ -372,7 +360,7 @@ const Tokenizer = {
       jsxElement.error = "No end >";
     }
     jsxElement.end = nextStart;
-    return [jsxElement, jsxElement.end];
+    return jsxElement;
   },
 
   //
@@ -392,19 +380,16 @@ const Tokenizer = {
 
     let nextStart = start;
     while (true) {
-      const result = Tokenizer.matchJSXChild(tagName, text, nextStart, end);
-      if (!result) break;
+      const child = Tokenizer.matchJSXChild(tagName, text, nextStart, end);
+      if (!child) break;
+      children.push(child);
+      nextStart = child.end;
 
-      const [child, childEnd] = result;
-      nextStart = childEnd;
-      // If we got the endTag, update nesting and break out of loop if nesting !== 0
+      // If we got an endTag for tagName, update nesting and break out of loop if nesting !== 0
       if (child instanceof Token.JSXEndTag && child.tagName === tagName) {
         nesting--;
         if (nesting === 0) break;
         continue;
-      } else {
-        if (child) children.push(child);
-        else console.warn("NO");
       }
     }
     // TODO: how to surface this error???
@@ -415,7 +400,7 @@ const Tokenizer = {
         );
       }
     }
-    return [children, nextStart];
+    return children;
   },
 
   // Match a single JSX child:
@@ -442,12 +427,11 @@ const Tokenizer = {
     const nextStart = Tokenizer.eatWhitespace(text, start, end);
     const endTag = `</${tagName}>`;
     if (!Tokenizer.matchStringAtHead(endTag, text, nextStart, end)) return undefined;
-    const token = new Token.JSXEndTag({
+    return new Token.JSXEndTag({
       tagName,
       start,
       end: nextStart + endTag.length
     });
-    return [token, token.end];
   },
 
   //
@@ -474,16 +458,16 @@ const Tokenizer = {
 
     // if there was an equals char, parse the value
     if (equals) {
-      const [value, valueEnd] = Tokenizer.matchJSXAttributeValue(text, nextStart, end) || [];
+      const value = Tokenizer.matchJSXAttributeValue(text, nextStart, end);
       if (value) {
         attribute.value = value;
-        nextStart = valueEnd;
+        nextStart = value.end
       }
     }
     // eat whitespace before the next attribute / tag end
     nextStart = Tokenizer.eatWhitespace(text, nextStart, end);
     attribute.end = nextStart;
-    return [attribute, nextStart];
+    return attribute;
   },
 
   // Match a value expression for a JSX element attribute:
@@ -501,16 +485,13 @@ const Tokenizer = {
   // Match a single identifer as a JSX attribute value.
   // Returns as a `JSXExpression`.
   matchJSXAttributeValueIdentifier(text, start, end) {
-    const result = Tokenizer.matchWord(text, start, end);
-    if (!result) return;
-
-    const [contents, nextStart] = result;
-    const token = new Token.JSXExpression({
+    const contents = Tokenizer.matchWord(text, start, end);
+    if (!contents) return;
+    return new Token.JSXExpression({
       contents,
       start,
-      end: nextStart
+      end: contents.end
     });
-    return [token, token.end];
   },
 
   // Match a JSX expression enclosed in curly braces, eg:  `{ ... }`.
@@ -532,12 +513,11 @@ const Tokenizer = {
     const contents = text.slice(nextStart + 1, endIndex);
 
     // return a new JSXExpression, advancing beyond the ending `}`.
-    const expression = new Token.JSXExpression({
+    return new Token.JSXExpression({
       contents,
       start,
       end: endIndex + 1
     });
-    return [expression, expression.end];
   },
 
   // Match JSXText until the one of `{`, `<`, `>` or `}`.
@@ -565,12 +545,11 @@ const Tokenizer = {
     }
 
     // include leading whitespace in the output.
-    const token = new Token.JSXText({
+    return new Token.JSXText({
       value: text.slice(start, endIndex),
       start,
       end: endIndex
     });
-    return [token, token.end];
   },
 
   //
@@ -659,8 +638,8 @@ const Tokenizer = {
       }
       // if a single or double quote, skip until the matching quote
       else if (char === "'" || char === '"') {
-        const [_token, afterQuote] = Tokenizer.matchText(text, current, end) || [];
-        current = afterQuote;
+        const token = Tokenizer.matchText(text, current, end);
+        current = token.end;
         continue; // continue so we don't add 1 to curent below
       }
       // If backslash, skip an extra char if it's either delimiter or a quote

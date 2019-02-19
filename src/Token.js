@@ -153,7 +153,9 @@ Token.JSXAttribute = class jsxAttribute extends Token{
 Token.JSXText = class jsxText extends Token {
 //TODO: escape quotes!
   get quotedText() {
-    return `"${this.value}"`;
+    const trimmed = this.value.trim();
+    if (!trimmed) return undefined;
+    return `"${trimmed}"`;
   }
 }
 
