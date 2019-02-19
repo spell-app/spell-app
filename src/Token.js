@@ -255,7 +255,6 @@ Token.Block = class block extends Token {
   constructor(props) {
     super(props);
     if (!this.contents) this.contents = [];   // TODO: get rid of `contents`???
-    if (!this.tokens) this.tokens = [];  //TODO: g
   }
 
   toString() {

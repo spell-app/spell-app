@@ -793,8 +793,6 @@ const Tokenizer = {
       }
       // add to top block
       top.contents.push(line);
-      if (top.tokens.length > 0) top.tokens.push(new Token.Newline());
-      top.tokens = top.tokens.concat(line);
     });
 
     return block;
