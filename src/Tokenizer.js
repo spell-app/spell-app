@@ -3,18 +3,6 @@ import Token from "./Token.js";
 import "./utils/polyfill.js";
 
 
-// Given a (possibly empty) list of tokens, figure out the `end` of the last token in the list.
-// DEBUG: Throws if `token.end` isn't a number!!!
-function getLastTokenEnd(tokens) {
-  const last = tokens[tokens.length - 1];
-
-  if (typeof last.end !== "number") {
-    console.error("token.end is not set", token);
-    throw new TypeError("token.end is not set");
-  }
-  return last.end;
-}
-
 //
 //  # Tokenizer singleton
 //  - `.tokenize()`     Breaks up long string into tokens, including newlines, JSX expressions, etc.
@@ -37,7 +25,7 @@ const Tokenizer = {
     const tokens = Tokenizer.consume(Tokenizer.matchTopTokens, text, start, end);
     if (!tokens || tokens.length === 0) return [];
 
-    const lastEnd = getLastTokenEnd(tokens);
+    const lastEnd = tokens[tokens.length - 1].end;
     if (lastEnd !== end && Tokenizer.WARN) {
       console.warn("tokenize(): didn't consume: `", text.slice(start, end) + "`");
     }
@@ -286,7 +274,7 @@ const Tokenizer = {
       const children = Tokenizer.matchJSXChildren(jsxElement.tagName, text, jsxElement.end, end);
       if (children.length) {
         jsxElement.children = children;
-        jsxElement.end = getLastTokenEnd(children);
+        jsxElement.end = children[children.length - 1].end;
       }
     }
 
@@ -332,7 +320,7 @@ const Tokenizer = {
       const attrs = Tokenizer.consume(Tokenizer.matchJSXAttribute, text, nextStart, end);
       if (attrs && attrs.length) {
         jsxElement.attributes = attrs;
-        nextStart = getLastTokenEnd(attrs);
+        nextStart = attrs[attrs.length - 1].end;
       }
     }
 
