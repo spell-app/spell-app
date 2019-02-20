@@ -2,8 +2,8 @@
 //  # Rules for if statements.
 //
 
-import Parser from "../../Parser";
-import Rule from "../../Rule";
+import Parser from "../../parser/Parser";
+import Rule from "../../parser/Rule";
 
 // Create "if" parser.
 const parser = Parser.forModule("if");

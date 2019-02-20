@@ -7,8 +7,8 @@
 
 import flattenDeep from "lodash/flattenDeep.js";
 
-import Parser from "../../Parser";
-import Rule from "../../Rule";
+import Parser from "../../parser/Parser";
+import Rule from "../../parser/Rule";
 
 import { pluralize } from "../../utils/string";
 

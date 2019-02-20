@@ -1,0 +1,27 @@
+# "Standard" US/French playing card setup.
+-- You can set `ace high` and `include jokers` when creating deck.
+-- If you want to subset the cards, redefine `Deck.ranks` in subset or new instance.
+
+
+## Card type
+define type Card
+	### Card identification
+	deck as Deck
+	suit as text
+	rank as text
+
+	### Card orientation as "up" or "down"
+	direction as one of ("up", "down") with default "down"
+	is face up: my direction is "up"
+	is face down: my direction is "down"
+
+	# global actions to switch card orientation
+	to turn (Card) face up
+		set direction of card to "up"
+
+	to turn (Card) face down
+		set direction of card to "down"
+
+	to turn (Card) over
+		if direction of card is "up" then turn card face down
+		else turn card face up

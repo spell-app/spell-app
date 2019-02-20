@@ -3,17 +3,10 @@
 import { observable, computed } from "mobx";
 
 
+import Parser from "../parser/Parser";
+import Tokenizer from "../parser/Tokenizer";
 import global from "global";
 const localStorage = global.localStorage || {};
-
-// Make Parser and Tokenizer WARN as we run
-import Parser from "../Parser";
-Parser.WARN = true;
-Parser.DEBUG = true;
-Parser.TIME = true;
-
-import Tokenizer from "../Tokenizer";
-Tokenizer.WARN = true;
 
 export default class ExampleStore {
   // CURRENT examples

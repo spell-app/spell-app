@@ -19,7 +19,7 @@ import Match from "./Match.js";
 import ParseError from "./ParseError.js";
 import Token from "./Token.js";
 import Tokenizer from "./Tokenizer.js";
-import { isWhitespace } from "./utils/string";
+import { isWhitespace } from "../utils/string";
 
 // Show debug messages on browser only.
 const DEBUG = false;//!isNode;

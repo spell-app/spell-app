@@ -2,12 +2,18 @@
   "repository": "https://github.com/oakjs/parser",
   "license": "MIT",
   "scripts": {
-    "start": "node server.js",
+    "start": "nodemon server.js --exec babel-node",
     "watch": "parcel watch src/index.html --out-dir build",
     "build": "parcel build src/index.html --out-dir dist --experimental-scope-hoisting",
     "pserve": "parcel serve src/index.html --out-dir build --no-hmr",
     "test": "jest --watch",
     "coverage": "jest --coverage"
+  },
+  "nodemonConfig": {
+    "watch": [
+      "server.js",
+      "src/server/"
+    ]
   },
   "babel": {
     "presets": [
@@ -58,11 +64,14 @@
   "dependencies": {
     "assert": "^1.4.1",
     "browser-or-node": "^1.1.0",
+    "fs-extra": "^7.0.1",
     "global": "^4.3.2",
+    "json5": "^2.1.0",
     "mobx": "^5.9.0",
     "mobx-react": "^5.4.3",
     "path": "^0.12.7",
     "prop-types": "^15.5.8",
+    "proper-lockfile": "^3.2.0",
     "react": "^16.8.1",
     "react-dom": "^16.8.1",
     "react-hot-loader": "^4.6.5",
@@ -71,6 +80,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
+    "@babel/node": "^7.2.2",
     "@babel/plugin-proposal-class-properties": "^7.0.0",
     "@babel/plugin-proposal-decorators": "^7.0.0",
     "@babel/plugin-proposal-do-expressions": "^7.0.0",
@@ -89,11 +99,14 @@
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-react": "^7.0.0",
     "babel-plugin-transform-builtin-extend": "^1.1.2",
+    "chalk": "^2.4.2",
     "eslint": "^5.14.1",
     "eslint-plugin-prettier": "^3.0.1",
     "express": "^4.16.4",
+    "express-json5": "^0.1.0",
     "jest": "^24.1.0",
     "less": "^3.9.0",
+    "nodemon": "^1.18.10",
     "parcel-bundler": "^1.11.0",
     "prettier": "1.16.4"
   },

@@ -1,6 +1,6 @@
 import ParseError from "./ParseError.js";
 import Token from "./Token.js";
-import "./utils/polyfill.js";
+import "../utils/polyfill.js";
 
 
 //

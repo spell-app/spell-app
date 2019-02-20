@@ -4,8 +4,8 @@
 
 // TODO: confirm identifiers are plural in some of the below?
 
-import Parser from "../../Parser";
-import Rule from "../../Rule";
+import Parser from "../../parser/Parser";
+import Rule from "../../parser/Rule";
 
 import { singularize } from "../../utils/string";
 

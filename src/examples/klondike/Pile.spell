@@ -1,0 +1,19 @@
+# "Standard" US/French playing card setup.
+## Pile
+-- pile of playing cards
+define type Pile as Cards
+	name as text
+	appearance as one of ("stacked", "staggered", "fanned") with default "stacked"
+
+	### Pile expressions
+	expression bottom card of Pile: the first item of pile
+	expression top card of Pile: the last item of pile
+
+	### Pile actions
+	to shuffle Pile
+		turn pile face down
+		randomize pile
+
+	to flip Pile
+		turn pile face down
+		reverse pile

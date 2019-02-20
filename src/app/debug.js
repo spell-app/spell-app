@@ -2,15 +2,24 @@
 import global from "global";
 import _ from "lodash";
 
-import Parser from "../Parser.js";
-import ParseError from "../ParseError.js";
-import Rule from "../Rule.js";
-import parseRule, { parseSyntax, tokeniseRuleSyntax } from "../parseRule.js";
-import Tokenizer from "../Tokenizer.js";
-import Token from "../Token.js";
+import Parser from "../parser/Parser.js";
+import ParseError from "../parser/ParseError.js";
+import Rule from "../parser/Rule.js";
+import parseRule, { parseSyntax, tokeniseRuleSyntax } from "../parser/parseRule.js";
+import Tokenizer from "../parser/Tokenizer.js";
+import Token from "../parser/Token.js";
 
 import parser from "../languages/spell/spell.js";
 
+
+// Set Parser / Tokenizer debug flags
+Parser.WARN = true;
+Parser.DEBUG = true;
+Parser.TIME = true;
+Tokenizer.WARN = true;
+
+
+// Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
   _,
   Parser,

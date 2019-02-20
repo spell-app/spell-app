@@ -4,7 +4,7 @@ import Parser from "./Parser.js";
 import ParseError from "./ParseError.js";
 import Rule, { TestLocation } from "./Rule.js";
 import Tokenizer from "./Tokenizer.js";
-import { cloneClass } from "./utils/class.js";
+import { cloneClass } from "../utils/class.js";
 
 //
 //  # Parsing `ruleSyntax` to create rules automatically.

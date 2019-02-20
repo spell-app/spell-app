@@ -8,8 +8,8 @@ import Token from "./Token.js";
 import Tokenizer from "./Tokenizer.js";
 import Rule from "./Rule.js";
 import parseRule, { parseSyntax } from "./parseRule.js";
-import { cloneClass } from "./utils/class.js";
-import "./utils/polyfill.js";
+import { cloneClass } from "../utils/class.js";
+import "../utils/polyfill.js";
 
 export default class Parser {
   // Set to `true` to output debug info while adding rules

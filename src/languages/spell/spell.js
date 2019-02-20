@@ -1,4 +1,4 @@
-import Parser from "../../Parser.js";
+import Parser from "../../parser/Parser.js";
 
 // Load all standard rules files.
 import "./core.js";
