@@ -73,29 +73,6 @@ describe("parser.compile()", () => {
 });
 
 
-
-describe("parser.test()", () => {
-  test("returns 0 when found at beginning of test", () => {
-    const result = parser.test("this_and_that", tokenize("this"))
-    expect(result).toBe(true);
-  });
-
-  test("returns false when test fails", () => {
-    const result = parser.test("this_and_that", tokenize("and"))
-    expect(result).toBe(false);
-  });
-
-  test("returns undefined when test can't tell", () => {
-    const result = parser.test("statements", tokenize("and"))
-    expect(result).toBe(undefined);
-  });
-
-  test("throws if named rule is not found", () => {
-    expect(() => parser.test("missing_rule", tokenize("text"))).toThrow(ParseError);
-  });
-});
-
-
 describe("defineRule()", () => {
   test("skips if not passed a 'skip' property", () => {
     const rules = parser.defineRule({ skip: true });

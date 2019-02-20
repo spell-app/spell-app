@@ -57,7 +57,7 @@ export default class Parser {
     }
 
     // Parse the rule or throw an exception if rule not found.
-    const result = this.parseNamedRule(ruleName, tokens, 0, tokens.length, undefined);
+    const result = this.parseNamedRule(ruleName, tokens, 0, tokens.length);
     if (Parser.TIME) console.timeEnd("parse");
     return result;
   }
@@ -77,23 +77,6 @@ export default class Parser {
       throw new ParseError(`parser.parse('${ruleName}', '${text}'): can't parse text`);
     }
     return match.compile();
-  }
-
-  // Test whether a rule (which may be specified by name) MIGHT be found in head of stream.
-  // Returns:
-  //  - `true` if the rule MIGHT be matched.
-  //  - `false` if there is NO WAY the rule can be matched.
-  //  - `undefined` if not determinstic (eg: no way to tell quickly).
-  test(rule, tokens) {
-    // DEBUG: tokenize if we were passed a string
-    if (typeof tokens === "string") {
-      tokens = Tokenizer.tokenizeWithoutWhitespace(tokens);
-    }
-    if (typeof rule === "string") {
-      if (!this.rules[rule]) throw new ParseError(`parser.test('${rule}'): rule not found`);
-      rule = this.rules[rule];
-    }
-    return rule.test(this, tokens);
   }
 
   // Parse a named rule (defined in this parser or in any of our `imports`), returning the "best" match.
