@@ -91,7 +91,7 @@ parser.defineRule({
   tokenType: Token.Comment,
   constructor: class comment extends Rule.TokenType {
     compile(match) {
-      return "//" + `${match.matched.whitespace}${match.matched.comment}`;
+      return "//" + `${match.matched[0].whitespace}${match.matched[0].comment}`;
     }
   }
 });
@@ -121,9 +121,8 @@ parser.defineRule({
   name: "word",
   pattern: /^[a-z][\w\-]*$/,
   constructor: class word extends Rule.Pattern {
-    // Convert "-" to "_" in source output.
-    compile(match) {
-      return match.matched.replace(/\-/g, "_");
+    valueMap(value) {
+      return (""+value).replace(/\-/g, "_")
     }
   },
   tests: [
@@ -155,9 +154,8 @@ parser.defineRule({
   canonical: "Idenfifier",
   pattern: /^[a-z][\w\-]*$/,
   constructor: class identifier extends Rule.Pattern {
-    // Convert "-" to "_" in source output.
-    compile(match) {
-      return match.matched.replace(/\-/g, "_");
+    valueMap(value) {
+      return (""+value).replace(/\-/g, "_")
     }
   },
   blacklist: [
@@ -368,10 +366,12 @@ parser.defineRule({
   alias: "expression",
   pattern: /^(true|false|yes|no|ok|cancel)$/,
   valueMap: {
-    true: true,
+    "true": true,
+    "false": false,
     yes: true,
+    no: false,
     ok: true,
-    default(matched) { return false }
+    cancel: false,
   },
   constructor: class boolean extends Rule.Pattern {},
   tests: [
@@ -444,10 +444,9 @@ parser.defineRule({
   alias: "expression",
   canonical: "Type",
   pattern: /^([A-Z][\w\-]*|list|text|number|integer|decimal|character|boolean|object)$/,
+  blacklist: ["I"],
   constructor: class type extends Rule.Pattern {
-    // Convert "-" to "_" in source output.
-    compile(match) {
-      let type = match.matched;
+    valueMap(type) {
       switch (type) {
         // Alias `List` to `Array`
         case "List":
@@ -475,7 +474,6 @@ parser.defineRule({
       }
     }
   },
-  blacklist: ["I"],
   tests: [
     {
       title: "correctly matches types",

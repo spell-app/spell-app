@@ -33,19 +33,6 @@ export default class Token {
     if (blacklist && blacklist[this.value]) return false;
     return true;
   }
-
-  // Execute a pattern against this token.
-  // Returns initial match as string, or `undefined` if no match.
-  // If `blacklist` is supplied, we'll return `undefined` if value is found in blacklist.
-  // NOTE: valid for string types only.
-  executePattern(pattern, blacklist) {
-    if (typeof this.value !== "string") return false;
-    const result = pattern.exec(this.value);
-    if (!result) return undefined;
-    const match = result[0];
-    if (blacklist && blacklist[match]) return undefined;
-    return match;
-  }
 }
 
 // `whitespace` class for normal (non-indent, non-newline) whitespace.

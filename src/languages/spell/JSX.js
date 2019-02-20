@@ -17,7 +17,7 @@ parser.defineRule({
   tokenType: Token.JSXElement,
   constructor: class jsxElement extends Rule.TokenType {
     compile(match) {
-      return this.jsxElementToSource(match.matched);
+      return this.jsxElementToSource(match.matched[0]);
     }
 
     // Convert our attributes to source.

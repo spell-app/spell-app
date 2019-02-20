@@ -826,7 +826,7 @@ describe("Rule.Comment", () => {
     tokenType: Token.Comment,
     constructor: class comment extends Rule.TokenType {
       compile(match) {
-        return "//" + `${match.matched.whitespace}${match.matched.comment}`;
+        return "//" + `${match.matched[0].whitespace}${match.matched[0].comment}`;
       }
     }
   });

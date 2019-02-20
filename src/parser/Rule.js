@@ -1,16 +1,16 @@
 //  # Parser Rules
 //  Rules can be as simple as a string `Keyword` or a complex sequence of (nested) rules.
 //
-//  Parse a rule with `rule.parse(scope, tokens, start, end)`, this will either:
-//    - return `undefined` if the rule doesn't match the head of the tokens, or
-//    - return a CLONE of the matched rule with at least the following:
-//      - `matched`    Results of your parse.
-//      - `nextStart`  Place where next match should start (eg: one beyond what you matched).
+//  Parse a rule with `rule.parse(scope, tokens, start, end)`.
+//  If UNSUCCESSFUL, it will return `undefined`
+//  If SUCCESSFUL,   it will return a new `Match()` object which is guaranteed to have:
+//    - `match.rule`        : pointer back to the rule.
+//    - `match.matched`     : array of tokens that were actually matched.
+//    - `match.remaining`   : array of tokens which have not yet been matched.
+//    ... and other rule-specific values.
 //
-//  The clone returned above can be manipulated with
-//    - `rule.compile()`    Return javascript source to interpret the rule.
-//    - `rule.toSyntax()`    Return ruleSyntax for the rule (mostly for debugging)
-//    -
+//  The match returned can be manipulated with:
+//    - `match.compile()`    Return javascript source to interpret the rule.
 //
 import { isNode } from "browser-or-node";
 
@@ -85,25 +85,23 @@ Rule.TokenType = class tokenType extends Rule {
     if (!(tokens[start] instanceof this.tokenType)) return;
     return new Match({
       rule: this,
-      matched: tokens[start],
+      matched: [tokens[start]],
       start,
-      nextStart: start + 1
+      nextStart: start + 1,
+      remaining: tokens.slice(start + 1)
     });
   }
 
   compile(match) {
-    return match.matched.value;
+    return match.matched[0].value;
   }
 }
 
 
 // Abstract rule to match a single literal value.
-// `rule.literal`:
-//
-// On successful parse, yields a `match` where:
-//  `match.rule` is the rule which was parsed
-//  `match.matched` is the actual string matched
-//  `match.nextStart` is the index of the next start token
+// `rule.literal` is either:
+//    - string to match, or
+//    - array of strings, any of which will work.
 Rule.Literal = class literal extends Rule {
   constructor(props) {
     // If passed a string, use that as our `literals`
@@ -126,9 +124,10 @@ Rule.Literal = class literal extends Rule {
     if (!this.test(scope, tokens, start, end, TestLocation.AT_START)) return undefined;
     const match = new Match({
       rule: this,
-      matched: tokens[start],
+      matched: [tokens[start]],
       start,
-      nextStart: start + 1
+      nextStart: start + 1,
+      remaining: tokens.slice(start + 1)
     });
     if (this.argument) match.argument = this.argument;
     if (this.promote) match.promote = this.promote;
@@ -136,7 +135,7 @@ Rule.Literal = class literal extends Rule {
   }
 
   compile(match) {
-    return match.matched.value;
+    return match.matched[0].value;
   }
 
   toSyntax() {
@@ -205,11 +204,13 @@ Rule.Literals = class literals extends Rule {
     if (!this._testAtStart(tokens, start, end)) return undefined;
 
     // Return actual tokens matched
+    const nextStart = start + this.literals.length;
     const match = new Match({
       rule: this,
-      matched: tokens.slice(start, start + this.literals.length),
+      matched: tokens.slice(start, nextStart),
       start,
-      nextStart: start + this.literals.length
+      nextStart,
+      remaining: tokens.slice(nextStart)
     });
     if (this.argument) match.argument = this.argument;
     if (this.promote) match.promote = this.promote;
@@ -261,8 +262,9 @@ Object.defineProperty(Rule.Keywords.prototype, "literalSeparator", { value: " " 
 //    Note that you MUST start your pattern with `^` and end with `$` to make sure it matches the entire token.
 //    Note that this can only match a single token!
 // `rule.blacklist` is a map of `{ key: true }` for strings which will NOT be accepted.
-// `rule.valueMap` is a map of `{ <matchedValue>: <returnValue> }` to map result output.
-//    You can provide `default(matchedValue) => value` to handle anything any other matches.
+// `rule.valueMap` can be either:
+//    - a map of `{ <matchedValue>: <returnValue> }` to map result output, or
+//    - a `function(value) => newValue` used to transform the matched value.
 //
 // After parsing
 //  `rule.matched` will be the string which was matched.
@@ -292,27 +294,26 @@ Rule.Pattern = class pattern extends Rule {
 
   parse(scope, tokens, start = 0, end = tokens.length) {
     if (start >= end) return;
-    let matched = tokens[start].executePattern(this.pattern, this.blacklist);
-    if (!matched) return undefined;
-
-    // if we have a valueMap specified, run through that
-    if (this.valueMap) {
-      if (matched in this.valueMap)
-        matched = this.valueMap[matched];
-      else if (this.valueMap.default)
-        matched = this.valueMap.default(matched)
-    }
-
+    if (!tokens[start].matchesPattern(this.pattern, this.blacklist)) return undefined;
     return new Match({
       rule: this,
-      matched,
+      matched: [tokens[start]],
       start,
-      nextStart: start + 1
+      nextStart: start + 1,
+      remaining: tokens.slice(start + 1)
     });
   }
 
   compile(match) {
-    return match.matched;
+    const value = match.matched[0].value;
+
+    // if we have a valueMap specified, run through that
+    const { valueMap } = this;
+    if (valueMap) {
+      if (typeof valueMap === "function") return valueMap(value);
+      return valueMap[value];
+    }
+    return value;
   }
 };
 
@@ -516,7 +517,8 @@ Rule.Repeat = class repeat extends Rule {
       rule: this,
       matched,
       start,
-      nextStart
+      nextStart,
+      remaining: tokens.slice(nextStart)
     });
   }
 
@@ -584,7 +586,8 @@ Rule.List = class list extends Rule {
       rule: this,
       matched,
       start,
-      nextStart
+      nextStart,
+      remaining: tokens.slice(nextStart)
     });
   }
 
@@ -645,9 +648,10 @@ Rule.Sequence = class sequence extends Rule {
     // if we get here, we matched all the rules!
     return new Match({
       rule: this,
-      matched: [...matched],
+      matched,
       start,
-      nextStart
+      nextStart,
+      remaining: tokens.slice(nextStart)
     })
   }
 
@@ -737,12 +741,12 @@ Rule.Statements = class statements extends Rule {
   // Split statements up into blocks and parse 'em.
   parse(scope, tokens, start = 0, end = tokens.length) {
     var block = Tokenizer.breakIntoBlocks(tokens, start, end);
-    return this.parseBlock(scope, block, start);
+    return this.parseBlock(scope, tokens, start, block);
   }
 
   // Parse an entire `block`, returning array of matched elements (NOT as a match).
   // NOTE: we assume we should reset `scope.rules` because we're entering a new parsing context
-  parseBlock(scope, block, start) {
+  parseBlock(scope, tokens, start, block) {
     scope = scope.resetRules();
 
     let matched = [];
@@ -754,7 +758,7 @@ Rule.Statements = class statements extends Rule {
       }
       // got a nested block
       else if (item instanceof Token.Block) {
-        const nested = this.parseBlock(scope, item, 0);
+        const nested = this.parseBlock(scope, tokens, start, item);
         if (!nested) {
           console.info("expected nested result, didn't get anything");
           return;
@@ -784,12 +788,14 @@ Rule.Statements = class statements extends Rule {
 
     if (matched.length === 0) return undefined;
 
+    const nextStart = matched[matched.length - 1].nextStart;
     return new Match({
       rule: new Rule.Statements(),
       matched,
       indent: block.indent,
       start,
-      nextStart: matched[matched.length - 1].nextStart
+      nextStart,
+      remaining: tokens.slice(nextStart)
     })
   }
 
