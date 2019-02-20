@@ -89,7 +89,6 @@ Rule.TokenType = class tokenType extends Rule {
       matchLength: 1,
       start,
       nextStart: start + 1,
-      remaining: tokens.slice(start + 1),
       argument: this.argument,
       promote: this.promote
     });
@@ -131,7 +130,6 @@ Rule.Literal = class literal extends Rule {
       matchLength: 1,
       start,
       nextStart: start + 1,
-      remaining: tokens.slice(start + 1),
       argument: this.argument,
       promote: this.promote
     });
@@ -161,11 +159,6 @@ Rule.Literal = class literal extends Rule {
 //    the literal string or array of literal strings to match.
 // `rule.literalSeparator`
 //    the string to put between multiple literals when joining multiple literals together.
-//
-// On successful parse, yields a `match` where:
-//  `match.rule` is the rule which was parsed
-//  `match.matched` is the actual string matched
-//  `match.nextStart` is the index of the next start token
 Rule.Literals = class literals extends Rule {
   constructor(props) {
     // If passed a string, use that as our `literals`
@@ -211,10 +204,9 @@ Rule.Literals = class literals extends Rule {
     return new Match({
       rule: this,
       matched: tokens.slice(start, nextStart),
-      matchLength: nextStart - start,
+      matchLength: this.literals.length,
       start,
       nextStart,
-      remaining: tokens.slice(nextStart),
       argument: this.argument,
       promote: this.promote
     });
@@ -268,10 +260,6 @@ Object.defineProperty(Rule.Keywords.prototype, "literalSeparator", { value: " " 
 // `rule.valueMap` can be either:
 //    - a map of `{ <matchedValue>: <returnValue> }` to map result output, or
 //    - a `function(value) => newValue` used to transform the matched value.
-//
-// After parsing
-//  `rule.matched` will be the string which was matched.
-//  `rule.nextStart` is the index of the next start token.
 Rule.Pattern = class pattern extends Rule {
   constructor(props) {
     super(props);
@@ -304,7 +292,8 @@ Rule.Pattern = class pattern extends Rule {
       matchLength: 1,
       start,
       nextStart: start + 1,
-      remaining: tokens.slice(start + 1)
+      argument: this.argument,
+      promote: this.promote
     });
   }
 
@@ -516,7 +505,6 @@ Rule.Repeat = class repeat extends Rule {
       matchLength,
       start,
       nextStart,
-      remaining: tokens.slice(nextStart),
       argument: this.argument,
       promote: this.promote
     });
@@ -541,12 +529,6 @@ Rule.Repeat = class repeat extends Rule {
 // List match rule:   `[<item><delimiter>]`. eg" `[{number},]` to match `1,2,3`
 //  `rule.item` is the rule for each item,
 //  `rule.delimiter` is the delimiter between each item, which is optional at the end.
-//
-// After matching:
-//  `this.matched` is array of matched item rules (delmiter is ignored).
-//  `rule.nextStart` is the index of the next start token.
-//
-// NOTE: we assume that a List rule itself will NOT repeat (????)
 Rule.List = class list extends Rule {
   // Check `testRule` if provided.
   test(scope, tokens, start, end, testLocation = this.testLocation) {
@@ -592,7 +574,6 @@ Rule.List = class list extends Rule {
       matchLength,
       start,
       nextStart,
-      remaining: tokens.slice(nextStart),
       argument: this.argument,
       promote: this.promote
     });
@@ -620,10 +601,6 @@ Rule.List = class list extends Rule {
 // Sequence of rules to match.
 //  `rule.rules` is the array of rules to match.
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
-//
-// After parsing
-//  `rule.matched` will be the array of rules which were matched.
-//  `rule.nextStart` is the index of the next start token.
 Rule.Sequence = class sequence extends Rule {
   test(scope, tokens, start, end, testLocation = this.testLocation) {
     if (this.testRule) return this.testRule.test(scope, tokens, start, end, testLocation);
@@ -661,7 +638,6 @@ Rule.Sequence = class sequence extends Rule {
       matchLength,
       start,
       nextStart,
-      remaining: tokens.slice(nextStart),
       argument: this.argument,
       promote: this.promote
     })
@@ -817,7 +793,6 @@ Rule.Statements = class statements extends Rule {
       indent: block.indent,
       start,
       nextStart,
-      remaining: tokens.slice(nextStart),
       argument: this.argument,
       promote: this.promote
     })
