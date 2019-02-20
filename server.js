@@ -16,7 +16,8 @@ const port = process.env.PORT || 5000;
 const startFile = path.join(__dirname, "src/index.html");
 const parcelOptions = {
   outDir: "./build",
-  watch: true
+  watch: true,
+  hmr: false
 }
 const bundler = new Bundler(startFile, parcelOptions);
 

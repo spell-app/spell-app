@@ -523,11 +523,11 @@ parser.defineRule({
   syntax: "\\[[list:{expression},]?\\]",
   testRule: "\\[",
   constructor: class literal_list extends Rule.Sequence {
-    parse(scope, tokens, start, end, rules) {
+    parse(scope, tokens, start, end) {
       // When parsing, reset the `rules` to the entire set of parser rules.
       // Otherwise we can't parse things like `[ [a, b] ]`
       scope = scope.resetRules();
-      return super.parse(scope, tokens, start, end, scope.parser.rules);
+      return super.parse(scope, tokens, start, end);
     }
 
     compile(match) {
@@ -562,11 +562,11 @@ parser.defineRule({
   syntax: "\\({expression}\\)",
   testRule: "\\(",
   constructor: class parenthesized_expression extends Rule.Sequence {
-    parse(scope, tokens, start, end, rules) {
+    parse(scope, tokens, start, end) {
       // When parsing, reset the `rules` to the entire set of parser rules.
       // Otherwise we can't parse things like `(a+b) * (c+d)`
       scope = scope.resetRules();
-      return super.parse(scope, tokens, start, end, scope.parser.rules);
+      return super.parse(scope, tokens, start, end);
     }
 
     compile(match) {

@@ -59,9 +59,8 @@ export default class Parser {
     }
 
     // Parse the rule or throw an exception if rule not found.
-    const rule = this.rules[ruleName];
-    if (!rule) throw new ParseError(`parser.parseNamedRule('${ruleName}'): rule not found`);
     const scope = new Scope(this);
+    const rule = scope.getRuleOrDie(ruleName);
     const result = rule.parse(scope, tokens, 0, tokens.length);
     if (Parser.TIME) console.timeEnd("parse");
     return result;

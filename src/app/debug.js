@@ -6,6 +6,7 @@ import Parser from "../parser/Parser.js";
 import ParseError from "../parser/ParseError.js";
 import Rule from "../parser/Rule.js";
 import parseRule, { parseSyntax, tokeniseRuleSyntax } from "../parser/parseRule.js";
+import Scope from "../parser/Scope.js";
 import Tokenizer from "../parser/Tokenizer.js";
 import Token from "../parser/Token.js";
 
@@ -26,6 +27,7 @@ Tokenizer.WARN = true;
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
   _,
+  Scope,
   Parser,
   ParseError,
   parseRule,
@@ -33,7 +35,6 @@ Object.assign(global, {
   tokeniseRuleSyntax,
 
   Rule,
-
   Tokenizer,
   Token,
   tokenize: Tokenizer.tokenizeWithoutWhitespace,  // HACK
