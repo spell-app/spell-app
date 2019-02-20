@@ -4,10 +4,12 @@ import flatten from "lodash/flatten";
 
 // TODO: dependency-inject tokenizer?
 import ParseError from "./ParseError.js";
+import parseRule, { parseSyntax } from "./parseRule.js";
+import Rule from "./Rule.js";
+import Scope from "./Scope.js";
 import Token from "./Token.js";
 import Tokenizer from "./Tokenizer.js";
-import Rule from "./Rule.js";
-import parseRule, { parseSyntax } from "./parseRule.js";
+
 import { cloneClass } from "../utils/class.js";
 import "../utils/polyfill.js";
 
@@ -59,7 +61,7 @@ export default class Parser {
     // Parse the rule or throw an exception if rule not found.
     const rule = this.rules[ruleName];
     if (!rule) throw new ParseError(`parser.parseNamedRule('${ruleName}'): rule not found`);
-    const scope = { parser: this };
+    const scope = new Scope(this);
     const result = rule.parse(scope, tokens, 0, tokens.length);
     if (Parser.TIME) console.timeEnd("parse");
     return result;

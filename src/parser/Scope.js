@@ -14,7 +14,7 @@ export default class scope {
   }
 
   getRuleOrDie(ruleName) {
-    const rule = (this.rules || parser.rules)[ruleName];
+    const rule = this.rules[ruleName];
     if (!rule) throw new TypeError(`getRuleOrDie('${ruleName}'): rule not found`);
     return rule;
   }
