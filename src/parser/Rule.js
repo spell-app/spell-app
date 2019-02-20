@@ -471,7 +471,7 @@ Rule.Repeat = class repeat extends Rule {
   parse(scope, tokens, start = 0, end = tokens.length) {
     tokens = tokens.slice(start, end);
     // Bail quickly if no chance
-    if (this.test(scope, tokens) === false) return undefined;
+    if (!tokens.length || this.test(scope, tokens) === false) return undefined;
 
     const matched = [];
     let matchLength = 0;
@@ -526,33 +526,31 @@ Rule.List = class list extends Rule {
   }
 
   parse(scope, tokens, start = 0, end = tokens.length) {
-    if (start >= end) return;
+    tokens = tokens.slice(start, end);
     // Bail quickly if no chance
-    if (this.test(scope, tokens, start, end) === false) return undefined;
-
-    // ensure item and delimiter are optional so we don't barf in `parseRule`
-    //TODO: ???
-    this.item.optional = true;
-    this.delimiter.optional = true;
+    if (!tokens.length || this.test(scope, tokens) === false) return undefined;
 
     let matched = [];
     let matchLength = 0;
     let nextStart = start;
-    while (nextStart < end) {
+
+    while (tokens.length) {
       // get next item, exiting if not found
-      let item = this.item.parse(scope, tokens, nextStart, end);
+      let item = this.item.parse(scope, tokens);
       if (!item) break;
 
       matched.push(item);
       matchLength += item.matchLength;
-      nextStart = item.nextStart;
+      nextStart += item.matchLength;
+      tokens = tokens.slice(item.matchLength);
 
       // get delimiter, exiting if not found
-      let delimiter = this.delimiter.parse(scope, tokens, nextStart, end);
+      let delimiter = this.delimiter.parse(scope, tokens);
       if (!delimiter) break;
       // NOTE: we do not push the delimiter into matched, but we do count it's length.
       matchLength += delimiter.matchLength;
-      nextStart = delimiter.nextStart;
+      nextStart += delimiter.matchLength;
+      tokens = tokens.slice(delimiter.matchLength);
     }
 
     // If we didn't get any matches, forget it.
