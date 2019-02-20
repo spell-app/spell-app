@@ -10,8 +10,8 @@
 
 import groupBy from "lodash/groupBy";
 
-import ParseError from "../ParseError.js";
-import Rule from "../Rule.js";
+import ParseError from "../parser/ParseError.js";
+import Rule from "../parser/Rule.js";
 import { showWhitespace } from "./string.js";
 
 export default function unitTestModuleRules(parser, moduleName) {
