@@ -260,7 +260,6 @@ describe("Rule.Pattern", () => {
   const parser = new Parser();
   // test with "word" pattern
   const ruleAtStart = new Rule.Pattern({
-    testAtStart: true,
     pattern: /^[a-z][\w\-]*$/,
     blacklist: ["nope"],
   });

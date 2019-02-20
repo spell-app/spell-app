@@ -41,7 +41,9 @@ export default class Rule {
   //  Parsing methods -- you MUST implement these in your subclasses!
   //
 
-  // Test to see if there is ANY WAY that we can be found in `tokens`.
+  // Test to see if there is ANY WAY that we can be found
+  // starting at `start` position of `tokens`.
+  //
   // This used to exit quickly if there is no chance of success,
   //  and is especially useful for rules which call themselves recursively.
   //
@@ -49,7 +51,10 @@ export default class Rule {
   //  - `true` if the rule MIGHT be matched.
   //  - `false` if there is NO WAY the rule can be matched.
   //  - `undefined` if not determinstic (eg: no way to tell quickly).
-  test(scope, tokens, testLocation) {}
+  testAtStart(scope, tokens, start) {
+    if (start >= tokens.length) return false;
+    if (this.testRule) return this.testRule.testAtStart(scope, tokens, start);
+  }
 
   // Attempt to match this rule at the start of `tokens`.
   // If successful, returns a `Match` object which you can use to figure out the results.
@@ -65,24 +70,49 @@ export default class Rule {
   getPrecedence(match) {
     return this.precedence || 0;
   }
+
+
+  //
+  //  internal
+  //
+//   test(scope, tokens, testLocation = this.testLocation) {
+//     if (!tokens.length) return false;
+//     if (testLocation === TestLocation.ANYWHERE) {
+//       for (let start = 0, length = tokens.length; start < length; start++) {
+//         const result = this.testAtStart(scope, tokens, start);
+//         if (typeof result === "boolean") return result;
+//       }
+//       return false;
+//     }
+//     return this.testAtStart(scope, tokens, 0);
+//   }
+
+  test(scope, tokens, testLocation = this.testLocation) {
+    if (!tokens.length) return false;
+    if (this.testRule) return this.testRule.test(scope, tokens, testLocation);
+
+    if (testLocation === TestLocation.ANYWHERE) {
+      let undefinedFound = false;
+      for (let start = 0, length = tokens.length; start < length; start++) {
+        const result = this.testAtStart(scope, tokens, start);
+        if (result === true) return true;
+        if (result === undefined) undefinedFound = true;
+      }
+      if (undefinedFound) return undefined;
+      return false;
+    }
+    return this.testAtStart(scope, tokens, 0);
+  }
 }
 
 // Abstract rule for matching tokens of a particular type (Token constructor)
 Rule.TokenType = class tokenType extends Rule {
-  test(scope, tokens, testLocation = this.testLocation) {
-    if (testLocation === TestLocation.ANYWHERE) {
-      let token;
-      let index = 0;
-      while ((token = tokens[index++])) {
-        if (token instanceof this.tokenType) return true;
-      }
-      return false;
-    }
-    return (tokens[0] instanceof this.tokenType);
+  testAtStart(scope, tokens, start = 0) {
+    return (tokens[start] instanceof this.tokenType);
   }
 
   parse(scope, tokens) {
-    if (!(tokens[0] instanceof this.tokenType)) return;
+    if (this.testAtStart(scope, tokens, 0) === false) return undefined;
     return new Match({
       rule: this,
       matched: [tokens[0]],
@@ -107,21 +137,13 @@ Rule.Literal = class literal extends Rule {
     super(props);
   }
 
-  test(scope, tokens, testLocation = this.testLocation) {
-    if (tokens.length === 0) return false;
-    if (testLocation === TestLocation.ANYWHERE) {
-      let token;
-      let index = 0;
-      while ((token = tokens[index++])) {
-        if (token.matchesLiteral(this.literal)) return true;
-      }
-      return false;
-    }
-    return tokens[0].matchesLiteral(this.literal);
+  testAtStart(scope, tokens, start = 0) {
+    if (start >= tokens.length) return false;
+    return tokens[start].matchesLiteral(this.literal);
   }
 
   parse(scope, tokens) {
-    if (!this.test(scope, tokens, TestLocation.AT_START)) return undefined;
+    if (this.testAtStart(scope, tokens, 0) === false) return undefined;
     return new Match({
       rule: this,
       matched: [tokens[0]],
@@ -165,17 +187,7 @@ Rule.Literals = class literals extends Rule {
     }
   }
 
-  test(scope, tokens, testLocation = this.testLocation) {
-    if (testLocation === TestLocation.ANYWHERE) {
-      for (let index = 0, length = tokens.length; index < length; index++) {
-        if (this._testAtStart(tokens, index)) return true;
-      }
-      return false;
-    }
-    return this._testAtStart(tokens, 0);
-  }
-
-  _testAtStart(tokens, start = 0) {
+  testAtStart(scope, tokens, start = 0) {
     const literals = this.literals;
     const length = literals.length;
     if (start + length > tokens.length) return false;
@@ -191,7 +203,7 @@ Rule.Literals = class literals extends Rule {
   }
 
   parse(scope, tokens) {
-    if (!this._testAtStart(tokens)) return undefined;
+    if (this.testAtStart(scope, tokens, 0) === false) return undefined;
     return new Match({
       rule: this,
       matched: tokens.slice(0, this.literals.length),
@@ -259,20 +271,13 @@ Rule.Pattern = class pattern extends Rule {
     }
   }
 
-  test(scope, tokens, testLocation = this.testLocation) {
-    if (testLocation === TestLocation.ANYWHERE) {
-      let token;
-      let index = 0;
-      while ((token = tokens[index++])) {
-        if (token.matchesPattern(this.pattern, this.blacklist)) return true;
-      }
-      return false;
-    }
-    return tokens[0].matchesPattern(this.pattern, this.blacklist);
+  testAtStart(scope, tokens, start = 0) {
+    if (start >= tokens.length) return false;
+    return tokens[start].matchesPattern(this.pattern, this.blacklist);
   }
 
   parse(scope, tokens) {
-    if (!this.test(scope, tokens, TestLocation.AT_START)) return undefined;
+    if (this.testAtStart(scope, tokens, 0) === false) return undefined;
     return new Match({
       rule: this,
       matched: [tokens[0]],
@@ -355,17 +360,29 @@ Rule.Choice = class choices extends Rule {
   // Return (`true` or index) if ANY of our rules is found.
   // If ANY rules return `undefined`, this will return `undefined`.
   // If ALL rules return `false`, this will return `false`.
-  test(scope, tokens, testLocation = this.testLocation) {
-    if (!tokens.length) return false;
+  testAtStart(scope, tokens, start = 0) {
+    if (start >= tokens.length) return false;
     let undefinedFound = false;
     for (let i = 0, rule; rule = this.rules[i]; i++) {
-      const result = rule.test(scope, tokens, testLocation);
+      const result = rule.testAtStart(scope, tokens, start);
+      if (result === true) return true;
       if (result === undefined) undefinedFound = true;
-      else if (result !== false) return result;
     }
     if (undefinedFound) return undefined;
     return false;
   }
+
+//   test(scope, tokens, testLocation = this.testLocation) {
+//     if (!tokens.length) return false;
+//     let undefinedFound = false;
+//     for (let i = 0, rule; rule = this.rules[i]; i++) {
+//       const result = rule.test(scope, tokens, testLocation);
+//       if (result === true) return true;
+//       if (result === undefined) undefinedFound = true;
+//     }
+//     if (undefinedFound) return undefined;
+//     return false;
+//   }
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(scope, tokens) {
@@ -455,14 +472,8 @@ Rule.Group = class group extends Rule.Choice {};
 //
 //  Note: Returns `undefined` if we don't match at least once.
 Rule.Repeat = class repeat extends Rule {
-  // Check `testRule` if provided.
-  test(scope, tokens, testLocation = this.testLocation) {
-    if (this.testRule) return this.testRule.test(scope, tokens, testLocation);
-  }
-
   parse(scope, tokens) {
-    // Bail quickly if no chance
-    if (!tokens.length || this.test(scope, tokens) === false) return undefined;
+    if (this.testAtStart(scope, tokens, 0) === false) return undefined;
 
     const matched = [];
     let matchLength = 0;
@@ -509,14 +520,8 @@ Rule.Repeat = class repeat extends Rule {
 //  `rule.item` is the rule for each item,
 //  `rule.delimiter` is the delimiter between each item, which is optional at the end.
 Rule.List = class list extends Rule {
-  // Check `testRule` if provided.
-  test(scope, tokens, testLocation = this.testLocation) {
-    if (this.testRule) return this.testRule.test(scope, tokens, testLocation);
-  }
-
   parse(scope, tokens) {
-    // Bail quickly if no chance
-    if (!tokens.length || this.test(scope, tokens) === false) return undefined;
+    if (this.testAtStart(scope, tokens, 0) === false) return undefined;
 
     let matched = [];
     let matchLength = 0;
@@ -570,13 +575,9 @@ Rule.List = class list extends Rule {
 //  `rule.rules` is the array of rules to match.
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
 Rule.Sequence = class sequence extends Rule {
-  test(scope, tokens, testLocation = this.testLocation) {
-    if (this.testRule) return this.testRule.test(scope, tokens, testLocation);
-  }
-
   parse(scope, tokens) {
-    // Bail quickly if no chance
-    if (!tokens.length || this.test(scope, tokens) === false) return undefined;
+    if (this.test(scope, tokens) === false) return undefined;
+
     const matched = [];
     let matchLength = 0;
 
@@ -691,6 +692,7 @@ Rule.Statement.prototype.argument = "statement";
 Rule.Statements = class statements extends Rule {
   // Split statements up into blocks and parse 'em.
   parse(scope, tokens) {
+    if (!tokens.length) return;
     var block = Tokenizer.breakIntoBlocks(tokens);
     return this.parseBlock(scope, tokens, block);
   }
