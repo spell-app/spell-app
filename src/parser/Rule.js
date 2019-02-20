@@ -593,28 +593,31 @@ Rule.Sequence = class sequence extends Rule {
   }
 
   parse(scope, tokens, start = 0, end = tokens.length) {
+    tokens = tokens.slice(start, end);
     if (start >= end) return;
 
     // Bail quickly if no chance
-    if (this.test(scope, tokens, start, end) === false) return undefined;
+    if (!tokens.length || this.test(scope, tokens, start, end) === false) return undefined;
     const matched = [];
     let matchLength = 0;
 
-    // Match each token in turn
-    let nextStart = start;
-    for (let i = 0, rule; rule = this.rules[i]; i++) {
-      // If we're beyond the end, bail if rule is not optional
-      if (nextStart >= end) {
+    let i = 0;
+    let rule;
+    while ((rule = this.rules[i++])) {
+      // If we're out of tokens, bail if rule is not optional
+      if (tokens.length === 0) {
         if (rule.optional) continue;
         return undefined;
       }
-      let match = rule.parse(scope, tokens, nextStart, end);
-      if (!match && !rule.optional) return undefined;
-      if (match) {
-        matched.push(match);
-        matchLength += match.matchLength;
-        nextStart = match.nextStart;
+      let match = rule.parse(scope, tokens);
+      if (!match) {
+        if (rule.optional) continue;
+        return undefined;
       }
+
+      matched.push(match);
+      matchLength += match.matchLength;
+      tokens = tokens.slice(match.matchLength);
     }
 
     // if we get here, we matched all the rules!
@@ -623,7 +626,7 @@ Rule.Sequence = class sequence extends Rule {
       matched,
       matchLength,
       start,
-      nextStart,
+      nextStart: start + matchLength
     })
   }
 
