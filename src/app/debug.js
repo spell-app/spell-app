@@ -9,6 +9,10 @@ import parseRule, { parseSyntax, tokeniseRuleSyntax } from "../parser/parseRule.
 import Tokenizer from "../parser/Tokenizer.js";
 import Token from "../parser/Token.js";
 
+import ReduxFactory from "../redux/ReduxFactory.js";
+import { getPref, setPref, clearAllPrefs } from "../utils/prefs.js";
+
+// Spell parser
 import parser from "../languages/spell/spell.js";
 
 
@@ -38,5 +42,11 @@ Object.assign(global, {
   rules: parser.rules,
   parse: parser.parse.bind(parser),
   compile: parser.compile.bind(parser),
-  exp: parser.parse.bind(parser, "expression")
+  exp: parser.parse.bind(parser, "expression"),
+
+  getPref,
+  setPref,
+  clearAllPrefs,
+
+  ReduxFactory
 });

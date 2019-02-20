@@ -1,13 +1,13 @@
 {
-  title: "Klondike Solitaire"
+  title: "Klondike Solitaire",
   authors: ["Owen Williams"],
   input: "spell",
   output: "js",
   test: false,
-  files: [
-    { name: "Card", test: false },
-    { name: "Deck", test: false },
-    { name: "Pile", test: false },
-    { name: "Klondike", test: false }
-  ]
+  files: {
+    Card: { test: false },
+    Deck: { test: false },
+    Pile: { test: false },
+    Klondike: { test: false },
+  },
 }

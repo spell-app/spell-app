@@ -1,11 +1,13 @@
-import Bundler from "parcel-bundler"
-import chalk from "chalk"
-import express from "express"
+import Bundler from "parcel-bundler";
+import chalk from "chalk";
+import express from "express";
 import express_json5 from "express-json5";
-import path from "path"
+import "json5/lib/register";
+import path from "path";
 
 import responseUtils from "./src/server/response-utils.js";
 import api from "./src/server/api.js";
+
 
 const buildFolder = path.join(__dirname, "build");
 const port = process.env.PORT || 5000;
