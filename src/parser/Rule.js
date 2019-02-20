@@ -199,7 +199,7 @@ Rule.Literals = class literals extends Rule {
     const nextStart = start + this.literals.length;
     return new Match({
       rule: this,
-      matched: tokens.slice(start, nextStart),
+      matched: tokens.slice(start, start + this.literals.length),
       matchLength: this.literals.length,
       start,
       nextStart,
@@ -469,15 +469,15 @@ Rule.Repeat = class repeat extends Rule {
   }
 
   parse(scope, tokens, start = 0, end = tokens.length) {
-    if (start >= end) return;
+    tokens = tokens.slice(start, end);
     // Bail quickly if no chance
-    if (this.test(scope, tokens, start, end) === false) return undefined;
+    if (this.test(scope, tokens) === false) return undefined;
 
     const matched = [];
     let matchLength = 0;
-    let nextStart = start;
-    while (nextStart < end) {
-      let match = this.repeat.parse(scope, tokens, nextStart, end);
+
+    while (tokens.length) {
+      let match = this.repeat.parse(scope, tokens);
       if (!match) break;
       // TODO... don't think this could happen...
       if (match.matchLength === 0) {
@@ -485,7 +485,7 @@ Rule.Repeat = class repeat extends Rule {
       }
       matched.push(match);
       matchLength += match.matchLength;
-      nextStart = match.nextStart;
+      tokens = tokens.slice(match.matchLength);
     }
 
     // Forget it if nothing matched at all
@@ -496,7 +496,7 @@ Rule.Repeat = class repeat extends Rule {
       matched,
       matchLength,
       start,
-      nextStart,
+      nextStart: start + matchLength
     });
   }
 
