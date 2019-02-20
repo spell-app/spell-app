@@ -5,8 +5,8 @@
 //  If UNSUCCESSFUL, it will return `undefined`
 //  If SUCCESSFUL,   it will return a new `Match()` object which is guaranteed to have:
 //    - `match.rule`        : pointer back to the rule.
-//    - `match.matched`     : array of tokens that were actually matched.
-//    - `match.remaining`   : array of tokens which have not yet been matched.
+//    - `match.matched`     : array of *significant* tokens that were actually matched.
+//    - `match.matchLength` : number of tokens actually consumed (`matched` may not contain them all)
 //    ... and other rule-specific values.
 //
 //  The match returned can be manipulated with:
@@ -86,9 +86,12 @@ Rule.TokenType = class tokenType extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[start]],
+      matchLength: 1,
       start,
       nextStart: start + 1,
-      remaining: tokens.slice(start + 1)
+      remaining: tokens.slice(start + 1),
+      argument: this.argument,
+      promote: this.promote
     });
   }
 
@@ -122,16 +125,16 @@ Rule.Literal = class literal extends Rule {
 
   parse(scope, tokens, start = 0, end) {
     if (!this.test(scope, tokens, start, end, TestLocation.AT_START)) return undefined;
-    const match = new Match({
+    return new Match({
       rule: this,
       matched: [tokens[start]],
+      matchLength: 1,
       start,
       nextStart: start + 1,
-      remaining: tokens.slice(start + 1)
+      remaining: tokens.slice(start + 1),
+      argument: this.argument,
+      promote: this.promote
     });
-    if (this.argument) match.argument = this.argument;
-    if (this.promote) match.promote = this.promote;
-    return match;
   }
 
   compile(match) {
@@ -205,16 +208,16 @@ Rule.Literals = class literals extends Rule {
 
     // Return actual tokens matched
     const nextStart = start + this.literals.length;
-    const match = new Match({
+    return new Match({
       rule: this,
       matched: tokens.slice(start, nextStart),
+      matchLength: nextStart - start,
       start,
       nextStart,
-      remaining: tokens.slice(nextStart)
+      remaining: tokens.slice(nextStart),
+      argument: this.argument,
+      promote: this.promote
     });
-    if (this.argument) match.argument = this.argument;
-    if (this.promote) match.promote = this.promote;
-    return match;
   }
 
   compile(match) {
@@ -298,6 +301,7 @@ Rule.Pattern = class pattern extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[start]],
+      matchLength: 1,
       start,
       nextStart: start + 1,
       remaining: tokens.slice(start + 1)
@@ -306,14 +310,9 @@ Rule.Pattern = class pattern extends Rule {
 
   compile(match) {
     const value = match.matched[0].value;
-
-    // if we have a valueMap specified, run through that
-    const { valueMap } = this;
-    if (valueMap) {
-      if (typeof valueMap === "function") return valueMap(value);
-      return valueMap[value];
-    }
-    return value;
+    if (!this.valueMap) return value;
+    if (typeof this.valueMap === "function") return this.valueMap(value);
+    return this.valueMap[value];
   }
 };
 
@@ -447,7 +446,7 @@ Rule.Choice = class choices extends Rule {
     // Return the longest rule (???)
     let longest;
     for (let i = highPriority.length; match = highPriority[--i];) {
-      if (!longest || match.nextStart >= longest.nextStart) longest = match;
+      if (!longest || match.matchLength >= longest.matchLength) longest = match;
     }
     return longest;
   }
@@ -481,12 +480,7 @@ Rule.Group = class group extends Rule.Choice {};
 //  `this.optional` is true if the prodution is optional.
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
 //
-//  Note: Automatically consumes whitespace before rules.
 //  Note: Returns `undefined` if we don't match at least once.
-//
-// After matching:
-//  `this.matched` is array of matched rules.
-//  `rule.nextStart` is the index of the next start token.
 Rule.Repeat = class repeat extends Rule {
   // Check `testRule` if provided.
   test(scope, tokens, start, end, testLocation = this.testLocation) {
@@ -499,14 +493,17 @@ Rule.Repeat = class repeat extends Rule {
     if (this.test(scope, tokens, start, end) === false) return undefined;
 
     const matched = [];
+    let matchLength = 0;
     let nextStart = start;
     while (nextStart < end) {
       let match = this.repeat.parse(scope, tokens, nextStart, end);
       if (!match) break;
-      if (nextStart === match.nextStart) {
+      // TODO... don't think this could happen...
+      if (match.matchLength === 0) {
         throw new TypeError(`repeat rule ${this.name}: got unproductive match`);
       }
       matched.push(match);
+      matchLength += match.matchLength;
       nextStart = match.nextStart;
     }
 
@@ -516,9 +513,12 @@ Rule.Repeat = class repeat extends Rule {
     return new Match({
       rule: this,
       matched,
+      matchLength,
       start,
       nextStart,
-      remaining: tokens.slice(nextStart)
+      remaining: tokens.slice(nextStart),
+      argument: this.argument,
+      promote: this.promote
     });
   }
 
@@ -564,6 +564,7 @@ Rule.List = class list extends Rule {
     this.delimiter.optional = true;
 
     let matched = [];
+    let matchLength = 0;
     let nextStart = start;
     while (nextStart < end) {
       // get next item, exiting if not found
@@ -571,11 +572,14 @@ Rule.List = class list extends Rule {
       if (!item) break;
 
       matched.push(item);
+      matchLength += item.matchLength;
       nextStart = item.nextStart;
 
       // get delimiter, exiting if not found
       let delimiter = this.delimiter.parse(scope, tokens, nextStart, end);
       if (!delimiter) break;
+      // NOTE: we do not push the delimiter into matched, but we do count it's length.
+      matchLength += delimiter.matchLength;
       nextStart = delimiter.nextStart;
     }
 
@@ -585,9 +589,12 @@ Rule.List = class list extends Rule {
     return new Match({
       rule: this,
       matched,
+      matchLength,
       start,
       nextStart,
-      remaining: tokens.slice(nextStart)
+      remaining: tokens.slice(nextStart),
+      argument: this.argument,
+      promote: this.promote
     });
   }
 
@@ -628,6 +635,7 @@ Rule.Sequence = class sequence extends Rule {
     // Bail quickly if no chance
     if (this.test(scope, tokens, start, end) === false) return undefined;
     const matched = [];
+    let matchLength = 0;
 
     // Match each token in turn
     let nextStart = start;
@@ -641,6 +649,7 @@ Rule.Sequence = class sequence extends Rule {
       if (!match && !rule.optional) return undefined;
       if (match) {
         matched.push(match);
+        matchLength += match.matchLength;
         nextStart = match.nextStart;
       }
     }
@@ -649,9 +658,12 @@ Rule.Sequence = class sequence extends Rule {
     return new Match({
       rule: this,
       matched,
+      matchLength,
       start,
       nextStart,
-      remaining: tokens.slice(nextStart)
+      remaining: tokens.slice(nextStart),
+      argument: this.argument,
+      promote: this.promote
     })
   }
 
@@ -710,11 +722,11 @@ Rule.Sequence = class sequence extends Rule {
 Rule.Statement = class statement extends Rule.Group {
   parse(scope, tokens, start = 0, end = tokens.length) {
     if (start >= end) return;
-    let index = start;
 
     // eat whitespace at the front of the line
-    while (tokens[index] instanceof Token.Whitespace) index++;
-    if (index >= end) return;   // TODO: blank line?
+//     let index = start;
+//     while (tokens[index] instanceof Token.Whitespace) index++;
+//     if (index >= end) return;   // TODO: blank line?
 
     // eat comment at end of the line
     let comment;
@@ -726,7 +738,10 @@ Rule.Statement = class statement extends Rule.Group {
     if (!match && !comment) return;
     if (!match) return comment;
 
-    if (comment) match.comment = comment;
+    if (comment) {
+      match.comment = comment;
+      match.matchLength += comment.matchLength;
+    }
     return match;
   }
 }
@@ -748,9 +763,10 @@ Rule.Statements = class statements extends Rule {
   // NOTE: we assume we should reset `scope.rules` because we're entering a new parsing context
   parseBlock(scope, tokens, start, block) {
     scope = scope.resetRules();
+    const statementRule = scope.getRuleOrDie("statement");
 
     let matched = [];
-    const statementRule = scope.getRuleOrDie("statement");
+    let matchLength = 0;
 
     block.contents.forEach(item => {
       if (item.length === 0) {
@@ -771,17 +787,22 @@ Rule.Statements = class statements extends Rule {
         const lastStatement = matched[matched.length - 1];
         if (lastStatement.rule instanceof Rule.BlockStatement) {
           lastStatement.block = nested;
+          lastStatement.matchLength += nested.matchLength;
         }
         // otherwise just aadd it to the stream
         else {
           console.warn("got a nested block when we weren't expecting one");
           matched.push(nested);
+          matchLength += nested.matchLength;
         }
       } else {
         // Got a single statement, parse the entire thing.
 //TODO: bail if not the entire line???
         const match = statementRule.parse(scope, item);
-        if (match) matched = matched.concat(match);
+        if (match) {
+          matched = matched.concat(match);
+          matchLength += match.matchLength;
+        }
 //        else console.warn("parseBlock expected statement, got", match);
       }
     });
@@ -792,10 +813,13 @@ Rule.Statements = class statements extends Rule {
     return new Match({
       rule: new Rule.Statements(),
       matched,
+      matchLength,
       indent: block.indent,
       start,
       nextStart,
-      remaining: tokens.slice(nextStart)
+      remaining: tokens.slice(nextStart),
+      argument: this.argument,
+      promote: this.promote
     })
   }
 

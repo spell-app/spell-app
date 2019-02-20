@@ -23,7 +23,7 @@ export default class match {
   get promote() {
     return this._promote || this.rule.promote;
   }
-  set promote(value) { this._promote = value }
+  set promote(value) { if (value) this._promote = value }
 
   // Precedence of the match
   get precedence() {
