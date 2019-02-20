@@ -86,9 +86,7 @@ Rule.TokenType = class tokenType extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[start]],
-      matchLength: 1,
-      start,
-      nextStart: start + 1,
+      matchLength: 1
     });
   }
 
@@ -125,9 +123,7 @@ Rule.Literal = class literal extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[start]],
-      matchLength: 1,
-      start,
-      nextStart: start + 1,
+      matchLength: 1
     });
   }
 
@@ -194,15 +190,10 @@ Rule.Literals = class literals extends Rule {
 
   parse(scope, tokens, start = 0, end = tokens.length) {
     if (!this._testAtStart(tokens, start, end)) return undefined;
-
-    // Return actual tokens matched
-    const nextStart = start + this.literals.length;
     return new Match({
       rule: this,
       matched: tokens.slice(start, start + this.literals.length),
-      matchLength: this.literals.length,
-      start,
-      nextStart,
+      matchLength: this.literals.length
     });
   }
 
@@ -283,9 +274,7 @@ Rule.Pattern = class pattern extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[start]],
-      matchLength: 1,
-      start,
-      nextStart: start + 1,
+      matchLength: 1
     });
   }
 
@@ -494,9 +483,7 @@ Rule.Repeat = class repeat extends Rule {
     return new Match({
       rule: this,
       matched,
-      matchLength,
-      start,
-      nextStart: start + matchLength
+      matchLength
     });
   }
 
@@ -532,8 +519,6 @@ Rule.List = class list extends Rule {
 
     let matched = [];
     let matchLength = 0;
-    let nextStart = start;
-
     while (tokens.length) {
       // get next item, exiting if not found
       let item = this.item.parse(scope, tokens);
@@ -541,7 +526,6 @@ Rule.List = class list extends Rule {
 
       matched.push(item);
       matchLength += item.matchLength;
-      nextStart += item.matchLength;
       tokens = tokens.slice(item.matchLength);
 
       // get delimiter, exiting if not found
@@ -549,7 +533,6 @@ Rule.List = class list extends Rule {
       if (!delimiter) break;
       // NOTE: we do not push the delimiter into matched, but we do count it's length.
       matchLength += delimiter.matchLength;
-      nextStart += delimiter.matchLength;
       tokens = tokens.slice(delimiter.matchLength);
     }
 
@@ -559,9 +542,7 @@ Rule.List = class list extends Rule {
     return new Match({
       rule: this,
       matched,
-      matchLength,
-      start,
-      nextStart,
+      matchLength
     });
   }
 
@@ -624,9 +605,7 @@ Rule.Sequence = class sequence extends Rule {
     return new Match({
       rule: this,
       matched,
-      matchLength,
-      start,
-      nextStart: start + matchLength
+      matchLength
     })
   }
 
@@ -772,14 +751,11 @@ Rule.Statements = class statements extends Rule {
 
     if (matched.length === 0) return undefined;
 
-    const nextStart = matched[matched.length - 1].nextStart;
     return new Match({
       rule: new Rule.Statements(),
       matched,
       matchLength,
-      indent: block.indent,
-      start,
-      nextStart,
+      indent: block.indent
     })
   }
 

@@ -71,7 +71,7 @@ describe("Rule.Symbols", () => {
       const rule = new Rule.Symbols(">");
       it("parses at the start of tokens", () => {
         const match = rule.parse(new Scope(parser), tokenize(">"));
-        expect(match.nextStart).toBe(1);
+        expect(match.matchLength).toBe(1);
         expect(match.compile()).toBe(">");
       });
 
@@ -119,7 +119,7 @@ describe("Rule.Symbols", () => {
       const rule = new Rule.Symbols(">=");
       it("parses at the start of tokens", () => {
         const match = rule.parse(new Scope(parser), tokenize(">="));
-        expect(match.nextStart).toBe(2);
+        expect(match.matchLength).toBe(2);
         expect(match.compile()).toBe(">=");
       });
 
@@ -191,7 +191,7 @@ describe("Rule.Keywords", () => {
       const rule = new Rule.Keywords("this");
       it("parses at the start of tokens", () => {
         const match = rule.parse(new Scope(parser), tokenize("this"));
-        expect(match.nextStart).toBe(1);
+        expect(match.matchLength).toBe(1);
         expect(match.compile()).toBe("this");
       });
 
@@ -244,7 +244,7 @@ describe("Rule.Keywords", () => {
       const rule = new Rule.Keywords("this that");
       it("parses at the start of tokens", () => {
         const match = rule.parse(new Scope(parser), tokenize("this that other"));
-        expect(match.nextStart).toBe(2);
+        expect(match.matchLength).toBe(2);
         expect(match.compile()).toBe("this that");
       });
 
@@ -315,7 +315,7 @@ describe("Rule.Pattern", () => {
   describe("parse() method", () => {
     it("parses at the start of tokens", () => {
       const match = ruleAtStart.parse(new Scope(parser), tokenize("a-word"));
-      expect(match.nextStart).toBe(1);
+      expect(match.matchLength).toBe(1);
       expect(match.compile()).toBe("a-word");
     });
 
@@ -391,7 +391,7 @@ describe("Rule.Subrule", () => {
       const rule = new Rule.Subrule({ subrule: "this" });
       it("parses at the start of tokens", () => {
         const match = rule.parse(new Scope(parser), tokenize("this that other"));
-        expect(match.nextStart).toBe(1);
+        expect(match.matchLength).toBe(1);
         expect(match.compile()).toBe("this");
       });
 
@@ -444,7 +444,7 @@ describe("Rule.Subrule", () => {
       const rule = new Rule.Subrule({ subrule: "sequence" });
       it("parses at the start of tokens", () => {
         const match = rule.parse(new Scope(parser), tokenize("this that"));
-        expect(match.nextStart).toBe(2);
+        expect(match.matchLength).toBe(2);
         expect(match.compile()).toBe("COMPILED");
       });
 
@@ -514,15 +514,15 @@ describe("Rule.Choice", () => {
   describe("parse() method", () => {
     it("parses any of the choices at the start of tokens", () => {
       let match = ruleStart.parse(new Scope(parser), tokenize("this"));
-      expect(match.nextStart).toBe(1);
+      expect(match.matchLength).toBe(1);
       expect(match.compile()).toBe("this");
 
       match = ruleStart.parse(new Scope(parser), tokenize("that"));
-      expect(match.nextStart).toBe(1);
+      expect(match.matchLength).toBe(1);
       expect(match.compile()).toBe("that");
 
       match = ruleStart.parse(new Scope(parser), tokenize("other"));
-      expect(match.nextStart).toBe(1);
+      expect(match.matchLength).toBe(1);
       expect(match.compile()).toBe("other");
     });
 
@@ -611,13 +611,13 @@ describe("Rule.Repeat", () => {
 
     it("parses once at the start of tokens", () => {
       const match = ruleStart.parse(new Scope(parser), tokenize("word nope nope"));
-      expect(match.nextStart).toBe(1);
+      expect(match.matchLength).toBe(1);
       expect(match.compile()).toEqual(["word"]);
     });
 
     it("parses multiple times at the start of tokens", () => {
       const match = ruleStart.parse(new Scope(parser), tokenize("word word nope nope"));
-      expect(match.nextStart).toBe(2);
+      expect(match.matchLength).toBe(2);
       expect(match.compile()).toEqual(["word", "word"]);
     });
 
@@ -686,25 +686,25 @@ describe("Rule.List", () => {
 
     it("parses once at the start of tokens", () => {
       const match = ruleStart.parse(new Scope(parser), tokenize("word nope nope"));
-      expect(match.nextStart).toBe(1);
+      expect(match.matchLength).toBe(1);
       expect(match.compile()).toEqual(["word"]);
     });
 
     it("parses multiple times at the start of tokens WITH spaces", () => {
       const match = ruleStart.parse(new Scope(parser), tokenize("word, word nope nope"));
-      expect(match.nextStart).toBe(3);
+      expect(match.matchLength).toBe(3);
       expect(match.compile()).toEqual(["word", "word"]);
     });
 
     it("parses multiple times at the start of tokens WITHOUT spaces", () => {
       const match = ruleStart.parse(new Scope(parser), tokenize("word,word nope nope"));
-      expect(match.nextStart).toBe(3);
+      expect(match.matchLength).toBe(3);
       expect(match.compile()).toEqual(["word", "word"]);
     });
 
     it("eats but trailing delimiter", () => {
       const match = ruleStart.parse(new Scope(parser), tokenize("word, word, nope"));
-      expect(match.nextStart).toBe(4);
+      expect(match.matchLength).toBe(4);
       expect(match.compile()).toEqual(["word", "word"]);
     });
 
@@ -804,7 +804,7 @@ describe("Rule.Sequence", () => {
       const rule = parser.rules.atStart;
       it("parses at the start of tokens", () => {
         const match = rule.parse(new Scope(parser), tokenize("this that the other"));
-        expect(match.nextStart).toBe(4);
+        expect(match.matchLength).toBe(4);
         expect(match.compile()).toBe("COMPILED");
         const results = match.results;
         expect(results.that).toBe("that");
@@ -876,17 +876,17 @@ describe("Rule.Comment", () => {
       it("parses at the start of tokens", () => {
         let match = rule.parse(new Scope(parser), tokenize("// foo bar baz"));
         expect(match.rule).toBe(rule);
-        expect(match.nextStart).toBe(1);
+        expect(match.matchLength).toBe(1);
         expect(match.compile()).toBe("// foo bar baz");
 
         match = rule.parse(new Scope(parser), tokenize("-- foo bar baz"));
         expect(match.rule).toBe(rule);
-        expect(match.nextStart).toBe(1);
+        expect(match.matchLength).toBe(1);
         expect(match.compile()).toBe("// foo bar baz");
 
         match = rule.parse(new Scope(parser), tokenize("## foo bar baz"));
         expect(match.rule).toBe(rule);
-        expect(match.nextStart).toBe(1);
+        expect(match.matchLength).toBe(1);
         expect(match.compile()).toBe("// foo bar baz");
       });
 
