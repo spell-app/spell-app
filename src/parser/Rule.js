@@ -89,8 +89,6 @@ Rule.TokenType = class tokenType extends Rule {
       matchLength: 1,
       start,
       nextStart: start + 1,
-      argument: this.argument,
-      promote: this.promote
     });
   }
 
@@ -130,8 +128,6 @@ Rule.Literal = class literal extends Rule {
       matchLength: 1,
       start,
       nextStart: start + 1,
-      argument: this.argument,
-      promote: this.promote
     });
   }
 
@@ -207,8 +203,6 @@ Rule.Literals = class literals extends Rule {
       matchLength: this.literals.length,
       start,
       nextStart,
-      argument: this.argument,
-      promote: this.promote
     });
   }
 
@@ -292,8 +286,6 @@ Rule.Pattern = class pattern extends Rule {
       matchLength: 1,
       start,
       nextStart: start + 1,
-      argument: this.argument,
-      promote: this.promote
     });
   }
 
@@ -505,8 +497,6 @@ Rule.Repeat = class repeat extends Rule {
       matchLength,
       start,
       nextStart,
-      argument: this.argument,
-      promote: this.promote
     });
   }
 
@@ -574,8 +564,6 @@ Rule.List = class list extends Rule {
       matchLength,
       start,
       nextStart,
-      argument: this.argument,
-      promote: this.promote
     });
   }
 
@@ -638,8 +626,6 @@ Rule.Sequence = class sequence extends Rule {
       matchLength,
       start,
       nextStart,
-      argument: this.argument,
-      promote: this.promote
     })
   }
 
@@ -793,8 +779,6 @@ Rule.Statements = class statements extends Rule {
       indent: block.indent,
       start,
       nextStart,
-      argument: this.argument,
-      promote: this.promote
     })
   }
 
