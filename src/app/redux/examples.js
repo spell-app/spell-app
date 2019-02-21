@@ -7,7 +7,7 @@
 import JSON5 from "json5";
 
 import ReduxFactory from "./ReduxFactory";
-import { getJSON5 } from "../utils/api.js";
+import { getJSON5 } from "./api.js";
 
 
 const examples = new ReduxFactory({

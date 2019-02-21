@@ -81,9 +81,9 @@ import _snakeCase from "lodash/snakeCase";
 import { isNode } from "browser-or-node";
 import { applyMiddleware, bindActionCreators, combineReducers, compose, createStore } from "redux";
 
-import addDebugMethods from "../utils/addDebugMethods.js";
-import makeDeferred from "../utils/makeDeferred.js";
-import { getPref, setPref } from '../utils/prefs.js';
+import addDebugMethods from "./utils/addDebugMethods.js";
+import makeDeferred from "./utils/makeDeferred.js";
+import { getPref, setPref } from './utils/prefs.js';
 
 // Special action stub to pass back to ignore an action.
 export const IGNORE_ACTION = { type: "__IGNORE_ACTION__", promise: Promise.resolve() };
@@ -99,7 +99,7 @@ export default class ReduxFactory {
   }
 
   initialState = {};        // Initial state of our store.
-                  // Override with `new ReduxFactor({ initialState: {...} })`.
+                            // Override on construction: `new ReduxFactor({ initialState: {...} })`.
 
   actionCreators = {};      // Map of `{ <name>: <actionCreator> }
 
@@ -110,7 +110,7 @@ export default class ReduxFactory {
   asyncActions = {};        // Map of `{ <asyncActions>: { <details> }`
 
   middlewares = [];         // Array of middleware functions to use during `createStore()`.
-                  // NOTE: if provided, make sure DO NOT wrap functions with `applyMiddleware()`!
+                            // NOTE: if provided, DO NOT wrap functions with `applyMiddleware()`!
 
 ////////////////////
 //
@@ -337,7 +337,7 @@ export default class ReduxFactory {
         // if an `Error` is returned directly, throw it so we can catch it below
         if (result instanceof Error)
           throw result;
-        // Otheriwse ensure we have a promise with the result
+        // Otherwise ensure we have a promise with the result
         else
           callPromise = Promise.resolve(result);
       }

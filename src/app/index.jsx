@@ -4,9 +4,9 @@ import React from "react";
 import ReactDOM from 'react-dom';
 import { Provider } from "react-redux";
 
-import store from "../redux/store.js";
 import "./debug.js";
-import { setPrefKey } from "../utils/prefs.js";
+import store from "./redux/store.js";
+import { setPrefKey } from "./redux/utils/prefs.js";
 
 setPrefKey("spell_editor");
 

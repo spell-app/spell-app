@@ -9,7 +9,7 @@
 //////////////////////////////
 
 import JSON5 from "json5";
-import { parseJSON, parseJSON5 } from "./json.js";
+import { parseJSON, parseJSON5 } from "./utils/json.js";
 
 export class APIError extends Error {
   constructor(_props) {

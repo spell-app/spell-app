@@ -10,8 +10,8 @@ import Scope from "../parser/Scope.js";
 import Tokenizer from "../parser/Tokenizer.js";
 import Token from "../parser/Token.js";
 
-import ReduxFactory from "../redux/ReduxFactory.js";
-import { getPref, setPref, clearAllPrefs } from "../utils/prefs.js";
+import ReduxFactory from "./redux/ReduxFactory.js";
+import { getPref, setPref, clearAllPrefs } from "./redux/utils/prefs.js";
 
 // Spell parser
 import parser from "../languages/spell/spell.js";

@@ -20,7 +20,7 @@ import {
 } from 'react-router-redux';
 
 import ReduxFactory from "./ReduxFactory";
-import { clearAllPrefs } from "../utils/prefs";
+import { clearAllPrefs } from "./utils/prefs";
 
 
 // Create `history` object we'll use to navigate.
