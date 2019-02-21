@@ -8,6 +8,8 @@ import "./debug.js";
 import store from "./redux/store.js";
 import { setPrefKey } from "./redux/utils/prefs.js";
 
+import "./semantic/semantic.css";
+
 setPrefKey("spell_editor");
 
 function renderApp() {
