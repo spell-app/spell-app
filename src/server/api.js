@@ -56,61 +56,41 @@ router.get("/test", (request, response) => {
 //  Examples support
 //////////////////////////////
 const packagesDir = nodePath.join(__dirname, "..", "packages");
-function getExamplePath(...suffix) {
+function getPackagePath(...suffix) {
   return nodePath.join(packagesDir, ...suffix);
 }
 
 // List all package folders.
 router.get("/packages", (request, response) => {
   const options = { includeDirs: true, includeFiles: false, namesOnly: true };
-  const dirs = fileUtils.listContents(getExamplePath(), options);
+  const dirs = fileUtils.listContents(getPackagePath(), options);
   responseUtils.sendJSON(response, dirs);
 });
 
-// Return the index for an package folder.
-router.get("/packages/:folder", (request, response) => {
-  const folder = request.params.folder;
-  const path = getExamplePath(folder, "index.json5");
-  responseUtils.sendJSONFile(response, path);
-});
-
-// Return a specific package file.
+// Return a specific package file, including the index.
 router.get("/packages/:folder/:file", (request, response) => {
   const folder = request.params.folder;
   const file = request.params.file;
-  const path = getExamplePath(folder, file);
+  const path = getPackagePath(folder, file);
   responseUtils.sendTextFile(response, path);
 });
 
-// Save the index for an package folder.
-router.post("/packages/:folder", async (request, response) => {
-  const folder = request.params.folder;
-  const path = getExamplePath(folder, "index.json5");
-
-  const contents = request.body;
-  try {
-    await fileUtils.saveFile(path, contents);
-    responseUtils.sendText("OK");
-  }
-  catch (e) {
-    return responseUtils.sendError(response, 500, error);
-  }
-});
-
-// Save a specific package file.
+// Save a specific package file, including the index.
 router.post("/packages/:folder/:file", async (request, response) => {
   const folder = request.params.folder;
   const file = request.params.file;
-  const path = getExamplePath(folder, file);
+  const path = getPackagePath(folder, file);
 
   const contents = request.body;
-  try {
-    await fileUtils.saveFile(path, contents);
-    responseUtils.sendText("OK");
-  }
-  catch (e) {
-    return responseUtils.sendError(response, 500, error);
-  }
+console.warn(path);
+console.warn(contents);
+//   try {
+//     await fileUtils.saveFile(path, contents);
+    responseUtils.sendText(response, "OK");
+//   }
+//   catch (e) {
+//     return responseUtils.sendError(response, 500, e);
+//   }
 });
 
 

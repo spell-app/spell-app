@@ -4,9 +4,9 @@
   inputType: "spell",
   outputType: "js",
   files: [
-    { name: "Card" },
-    { name: "Deck" },
-    { name: "Pile" },
-    { name: "Klondike" },
+    { id: "Card" },
+    { id: "Deck" },
+    { id: "Pile" },
+    { id: "Klondike" },
   ],
 }
