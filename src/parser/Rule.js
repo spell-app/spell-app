@@ -379,9 +379,7 @@ Rule.Choice = class choices extends Rule {
   parse(scope, tokens) {
     if (DEBUG) console.group(`matching choices ${this.argument || this.name || this.toSyntax()}`, tokens);
     const matches = [];
-    let i = 0;
-    let rule;
-    while ((rule = this.rules[i++])) {
+    for (let i = 0, rule; rule = this.rules[i++];) {
       const match = rule.parse(scope, tokens);
       if (match) matches.push(match);
     }
@@ -572,9 +570,7 @@ Rule.Sequence = class sequence extends Rule {
     const matched = [];
     let matchLength = 0;
 
-    let i = 0;
-    let rule;
-    while ((rule = this.rules[i++])) {
+    for (let i = 0, rule; rule = this.rules[i++];) {
       // If we're out of tokens, bail if rule is not optional
       if (tokens.length === 0) {
         if (rule.optional) continue;
