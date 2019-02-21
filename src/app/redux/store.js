@@ -5,12 +5,12 @@
 ////////////////////
 
 import ReduxFactory from "./ReduxFactory";
-import examples from "./examples.js";
+import packages from "./packages.js";
 
 export default ReduxFactory.createStore({
     // Factories to initialize as `{ domain: factory }`
     factories: {
-      examples
+      packages,
     },
 
     // Any other reducers as `{ domain: reducer }`

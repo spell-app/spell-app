@@ -16,12 +16,7 @@ export default class SpellEditor extends React.Component {
 
   constructor(props) {
     super(props);
-window.examples = props.examples;
     this.props.examples.load();
-
-    //DEBUG
-    window.spellEditor = this;
-    window.examples = this.props.examples;
   }
 
   @keydown("ctrl+s")

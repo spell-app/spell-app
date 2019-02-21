@@ -16,7 +16,7 @@
 //      name: "myAction",
 //      getParams(...inputParams) {
 //        // munge `inputParams` into a single `actionParams` value passed to `handler()`
-//        // OPTIONAL: if not provided, actionParams will be the first argument to action creator.
+//        // OPTIONAL: if not provided, actionParams will be the argument to action creator as an array.
 //      },
 //      handler(state, actionParams) {
 //        // munge `state` according to `actionParams` and return a new copy of `state`
@@ -31,7 +31,7 @@
 //      name: "myAsyncAction",
 //      getParams(...params) {
 //        // munge `inputParams` into a single `actionParams` value passed to `promise()`
-//        // OPTIONAL: if not provided, `actionParams` will be the first argument to action creator.
+//        // OPTIONAL: if not provided, actionParams will be the argument to action creator as an array.
 //      },
 //      async promise(state, actionParams) {
 //        // Do whatever async stuff you like, using `await somethingThatReturnsAPromise()`
@@ -89,6 +89,27 @@ import { getPref, setPref } from './utils/prefs.js';
 export const IGNORE_ACTION = { type: "__IGNORE_ACTION__", promise: Promise.resolve() };
 
 export default class ReduxFactory {
+  initialState = {};        // Initial state of our store.
+                            // Override on construction: `new ReduxFactor({ initialState: {...} })`.
+
+
+  call = {};                // Map of `{ <actionName>: <actionInvoker> }`
+                            // Use this to invoke an action, returning a promise which will:
+                            //    - resolve when the actions completes with the action promise result, or
+                            //    - reject with the action promise error on failure.
+                            //
+                            //  e.g.   `myFactory.call.someMethod(with, params).then(...)`
+
+
+  _actionCreators = {};     // Map of `{ <name>: <actionCreator> }
+
+  _actionHandlers = {};     // Map of `{ <ACTION>: <actionHandler> }
+
+  _asyncActions = {};       // Map of `{ <asyncActions>: { <details> }`
+
+  middlewares = [];         // Array of middleware functions to use during `createStore()`.
+                            // NOTE: if provided, DO NOT wrap functions with `applyMiddleware()`!
+
   constructor(props) {
     Object.assign(this, props);
     if (!this.domain)
@@ -96,21 +117,17 @@ export default class ReduxFactory {
 
     // Make this instance debuggable with its domain as debug message prefix.
     addDebugMethods(this.domain, this);
+
+    // If we were passed a list of `actions`, set them up using `addAction` and `addAsyncAction`
+    const { actions } = this;
+    if (actions) {
+      delete this.actions;
+      actions.forEach(actionSetup => {
+        if (actionSetup.promise) this.addAsyncAction(actionSetup);
+        else this.addAction(actionSetup);
+      });
+    }
   }
-
-  initialState = {};        // Initial state of our store.
-                            // Override on construction: `new ReduxFactor({ initialState: {...} })`.
-
-  actionCreators = {};      // Map of `{ <name>: <actionCreator> }
-
-  actionHandlers = {};      // Map of `{ <ACTION>: <actionHandler> }
-
-  actionInvokers = {};      // Map of `{ <name>: <actionInvoker> }
-
-  asyncActions = {};        // Map of `{ <asyncActions>: { <details> }`
-
-  middlewares = [];         // Array of middleware functions to use during `createStore()`.
-                            // NOTE: if provided, DO NOT wrap functions with `applyMiddleware()`!
 
 ////////////////////
 //
@@ -118,9 +135,9 @@ export default class ReduxFactory {
 //
 ////////////////////
 
-  // Create reducer which dispatches according to our `actionHandlers`.
+  // Create reducer which dispatches according to our `_actionHandlers`.
   reducer = (state = this.initialState, action) => {
-    const actionHandler = this.actionHandlers[action.type];
+    const actionHandler = this._actionHandlers[action.type];
     if (actionHandler)
       return actionHandler(state, action);
 
@@ -144,7 +161,7 @@ export default class ReduxFactory {
   // `handler` signature is `(state, action)`
   // If watching a async action, `action` will be `{ type, params, result }`
   addActionHandler({ ACTION, handler }) {
-    this.actionHandlers[ACTION] = handler;
+    this._actionHandlers[ACTION] = handler;
   }
 
 
@@ -159,34 +176,38 @@ export default class ReduxFactory {
   // See usage info at the top of this file.
   addAction(actionParams) {
     let {
-      name: actionName,       // (REQUIRED) Name of the method that kicks things off
+      name: actionName, // (REQUIRED) Name of the method that kicks things off
 
-      getParams,          // (OPTIONAL) Function whose purpose is to transform
-                    //  argments passed in to a single `params` object
-                    //  provided to the action to be dispatched.
-                    //
-                    //  NOTE: do NOT pass `{ type: <ACTION> }`,
-                    //  it will be added automatically, outside of this returned params.
+      getParams,        // (OPTIONAL) Function whose purpose is to transform
+                        //  argments passed in to a single `params` object
+                        //  provided to the action to be dispatched.
+                        //  If you don't provide one, we'll use
+                        //  the `arguments` to the actionCreator as an array.
+                        //
+                        //  NOTE: do NOT pass `{ type: <ACTION> }`,
+                        //  it will be added automatically, outside of this returned params.
 
-      actionCreator,        // (OPTIONAL) Function which returns full action.
-                    //  This overrides the default `getParams()` behavior above.
-                    //  NOTE: If using this, you MUST pass `ACTION` in the method result.
-                    //  NOTE: If using this, `once` is ignored.
+      actionCreator,    // (OPTIONAL) Function which returns full action.
+                        //  NOTE: If using this, you MUST pass `ACTION` in the method result.
+                        //  NOTE: If using this, `once` is ignored.
 
       handler,          // (OPTIONAL) Action handler called when the action is sent.
-                    // Signature:  `handler(state, params)`
-                    //
-                    // You don't need to pass one if your event is delegating
-                    //  to a different handler (e.g. if you're passing another `ACTION`).
+                        // Signature:  `handler(state, params)`
+                        //
+                        // You don't need to pass one if your event is delegating
+                        //  to a different handler (e.g. if you're passing another `ACTION`).
 
       ACTION,           // (OPTIONAL) Name for the event created.
-                    // If you don't specify one, we'll derive from `actionName`.
-
+                        // If you don't specify one, we'll derive from `actionName`.
 
       once,             // (OPTIONAL) `true` to execute the action only once.
-                    // `function` to execute action once per parameters
-                    //  using `this.once(params)` to return hash value
-                    //  used to determine if these parameters have been used.
+                        // `function` to execute action once per parameters
+                        //  using `this.once(params)` to return hash value
+                        //  used to determine if these parameters have been used.
+
+      init,             // (OPTIONAL) Function to call ONCE, WHEN THE ACTION IS BEING SET UP.
+                        // Use this to, e.g. initialize global event handlers.
+                        // It will be called as `init(factory, actionParams)`.
     } = actionParams;
 
     // Make sure we have required parameters
@@ -201,19 +222,20 @@ export default class ReduxFactory {
     if (!actionCreator)
       actionCreator = this.getActionCreator(actionName, ACTION, getParams, once);
 
-    this.actionCreators[actionName] = actionCreator;
+    this._actionCreators[actionName] = actionCreator;
 
     // Register actionHandler if provided.
     // (If not provided, we assume that we're calling a different ACTION)
     if (handler) {
       handler = handler.bind(this);
-      this.actionHandlers[ACTION] = (state, action) => handler(state, action.params);
+      this._actionHandlers[ACTION] = (state, action) => handler(state, action.params);
     }
 
-    // Create/register the invoker under both cases
+    // Create an action invoker.
     const invoker = this.getActionInvoker(actionName);
-    this.actionInvokers[actionName] = invoker;
-    this.actionInvokers[ACTION] = invoker;
+    this.call[actionName] = invoker;
+
+    if (init) init(this, actionParams);
 
     // Return a function which will invoke the action after a short delay.
     return invoker;
@@ -229,56 +251,57 @@ export default class ReduxFactory {
 ////////////////////
 
   // Create a promise-based action in a compact form.
-  // Returns a function which will invoke the actionCreator on a short delay.
+  // Returns a function which invokes the actionCreator on a short delay,
+  //  returning a promise which will resolve with the new domain state.
   //
   // TODOC
-  addAsyncAction(promseParams) {
+  addAsyncAction(actionParams) {
     let {
-      name: actionName,       // (REQUIRED) Name of the method that kicks things off
+      name: actionName,         // (REQUIRED) Name of the method that kicks things off
 
-      getParams,          // (OPTIONAL) Function whose purpose is to transform
-                    //  argments passed in to a single `params` object
-                    //  provided to the action to be dispatched.
-                    //
-                    //  NOTE: do NOT pass `{ type: <ACTION> }`,
-                    //  it will be added automatically, outside of this returned params.
+      getParams,                // (OPTIONAL) Function whose purpose is to transform
+                                //  argments passed in to a single `params` object
+                                //  provided to the action to be dispatched.
+                                //
+                                //  NOTE: do NOT pass `{ type: <ACTION> }`,
+                                //  it will be added automatically, outside of this returned params.
 
       promise: actionPromise,   // (REQUIRED) Actual `async` function which does the asynchronous work.
-                    //
-                    // Signature `async function actionPromise(params)` where `params`
-                    //  is the result of `getParams()` above.
-                    //
-                    // Successful promise `result` will be passed to `onSuccess`.
-                    // Failure promise `error` will be passed to `onError`.
+                                //
+                                // Signature `async function actionPromise(params)` where `params`
+                                //  is the result of `getParams()` above.
+                                //
+                                // Successful promise `result` will be passed to `onSuccess`.
+                                // Failure promise `error` will be passed to `onError`.
 
-      onLoading,          // (OPTIONAL) Called automatically BEFORE the `actionPromise` function is called.
-                    // Signature:  `onLoading(state, params)`
-                    // Result will be the new redux state.
+      onLoading,                // (OPTIONAL) Called automatically BEFORE the `actionPromise` function is called.
+                                // Signature:  `onLoading(state, params)`
+                                // Result will be the new redux state.
 
-      onSuccess,          // (REQUIRED) Called automatically when the `actionPromise` resolves
-                    // Signature:  `onSuccess(state, result, params)`
-                    // Result will be the new redux state.
+      onSuccess,                // (REQUIRED) Called automatically when the `actionPromise` resolves
+                                // Signature:  `onSuccess(state, result, params)`
+                                // Result will be the new redux state.
 
-      onError,          // (REQUIRED) Called automatically when the `actionPromise` rejects
-                    // Signature:  `onError(state, error, params)`
-                    // Result will be the new redux state.
+      onError,                  // (REQUIRED) Called automatically when the `actionPromise` rejects
+                                // Signature:  `onError(state, error, params)`
+                                // Result will be the new redux state.
 
 
-      ACTION = actionName,    // Name for events.  We'll snake/uppercase below.
-                    // If you don't specify them, we'll derive from `actionName`.
+      ACTION = actionName,      // Name for events.  We'll snake/uppercase below.
+                                // If you don't specify them, we'll derive from `actionName`.
       DONE_ACTION = `${ACTION}_DONE`,
 
-      once,             // (OPTIONAL) `true` to execute the action only once.
-                    // `function` to execute action once per parameters
-                    //  using `this.once(params)` to return hash value
-                    //  used to determine if these parameters have been used.
-    } = promseParams;
+      once,                     // (OPTIONAL) `true` to execute the action only once.
+                                // `function` to execute action once per parameters
+                                //  using `this.once(params)` to return hash value
+                                //  used to determine if these parameters have been used.
+    } = actionParams;
 
     // Make sure we have required parameters
-    this.assert(actionName, "addPromise(): 'name' parameter is required.", promseParams);
-    this.assert(actionPromise, "addPromise(): 'promise' parameter is required.", promseParams);
-    this.assert(onSuccess, "addPromise(): 'onSuccess' parameter is required.", promseParams);
-    this.assert(onError, "addPromise(): 'onError' parameter is required.", promseParams);
+    this.assert(actionName, "addPromise(): 'name' parameter is required.", actionParams);
+    this.assert(actionPromise, "addPromise(): 'promise' parameter is required.", actionParams);
+    this.assert(onSuccess, "addPromise(): 'onSuccess' parameter is required.", actionParams);
+    this.assert(onError, "addPromise(): 'onError' parameter is required.", actionParams);
 
     // Convert case of ACTIONS as per redux standard
     ACTION = _snakeCase(ACTION).toUpperCase();
@@ -414,17 +437,16 @@ export default class ReduxFactory {
     }
 
     // Register action creator / handlers
-    this.actionCreators[actionName] = actionCreator;
-    this.actionHandlers[ACTION] = actionHandler;
-    this.actionHandlers[DONE_ACTION] = doneHandler;
+    this._actionCreators[actionName] = actionCreator;
+    this._actionHandlers[ACTION] = actionHandler;
+    this._actionHandlers[DONE_ACTION] = doneHandler;
 
-    // Create/register the invoker under both cases
+    // Create an action invoker.
     const invoker = this.getActionInvoker(actionName);
-    this.actionInvokers[actionName] = invoker;
-    this.actionInvokers[ACTION] = invoker;
+    this.call[actionName] = invoker;
 
     // Save promise setup for testing (see `mockAsyncAction()`)
-    this.asyncActions[actionName] = {
+    this._asyncActions[actionName] = {
       actionName, actionCreator, once, actionPromise, onLoading, onSuccess, onError,
       actionHandler, doneHandler, invoker,
       ACTION, DONE_ACTION
@@ -457,7 +479,7 @@ export default class ReduxFactory {
   // Throws if action can't be found.
   async mockAsyncAction(actionName, testParams = {}) {
     let { state = {}, args = [] } = testParams;
-    const invoker = this.actionInvokers[actionName];
+    const invoker = this.call[actionName];
     this.assert(invoker, `mockAsyncAction(${actionName}): action invoker not not found`);
 
     const mock = {
@@ -494,7 +516,7 @@ export default class ReduxFactory {
       mock.dispatched.push(mockAction);
 
       // Dispatch any actions we know about
-      const handler = this.actionHandlers[action.type];
+      const handler = this._actionHandlers[action.type];
       if (handler) {
 //        mockAction.initialState = state;
         state = handler(state, action);
@@ -526,7 +548,7 @@ export default class ReduxFactory {
   //    which will be used to ensure the function is only called once.
   getActionCreator(actionName, ACTION, getParams, once, addPromise) {
     // Default `getParams` to just return first arg passed in as params.
-    if (!getParams) getParams = (params) => params;
+    if (!getParams) getParams = (...args) => args;
 
     // Convert `once = true` to return `undefined` as the key.
     if (once === true) once = () => undefined;
@@ -560,7 +582,7 @@ export default class ReduxFactory {
   //  - Otherwise resolves immediately.
   getActionInvoker(actionName) {
     return (...args) => {
-      const actionCreator = this.actionCreators[actionName];
+      const actionCreator = this._actionCreators[actionName];
       const { dispatch } = this;
 
       try {
@@ -730,7 +752,7 @@ export default class ReduxFactory {
       factory.dispatch = store.dispatch;
 
       // Add to `allActions` map
-      Object.assign(allActions, factory.actionCreators);
+      Object.assign(allActions, factory._actionCreators);
 
       // Have factory point to all `actions` and `call` map.
       factory.actions = store.actions;
@@ -749,6 +771,10 @@ export default class ReduxFactory {
         }, 0);
       }
     });
+
+    // Set actions and callSoon on ReduxFactory for uniform access (???)
+    ReduxFactory.actions = store.actions;
+    ReduxFactory.callSoon = store.callSoon;
 
     // log initial store state
     ReduxFactory.debug("Initial store state: ", store.getState());

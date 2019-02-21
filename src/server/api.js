@@ -55,35 +55,35 @@ router.get("/test", (request, response) => {
 //////////////////////////////
 //  Examples support
 //////////////////////////////
-const examplesDir = nodePath.join(__dirname, "..", "examples");
+const packagesDir = nodePath.join(__dirname, "..", "packages");
 function getExamplePath(...suffix) {
-  return nodePath.join(examplesDir, ...suffix);
+  return nodePath.join(packagesDir, ...suffix);
 }
 
-// List all example folders.
-router.get("/examples", (request, response) => {
+// List all package folders.
+router.get("/packages", (request, response) => {
   const options = { includeDirs: true, includeFiles: false, namesOnly: true };
   const dirs = fileUtils.listContents(getExamplePath(), options);
   responseUtils.sendJSON(response, dirs);
 });
 
-// Return the index for an example folder.
-router.get("/examples/:folder", (request, response) => {
+// Return the index for an package folder.
+router.get("/packages/:folder", (request, response) => {
   const folder = request.params.folder;
   const path = getExamplePath(folder, "index.json5");
   responseUtils.sendJSONFile(response, path);
 });
 
-// Return a specific example file.
-router.get("/examples/:folder/:file", (request, response) => {
+// Return a specific package file.
+router.get("/packages/:folder/:file", (request, response) => {
   const folder = request.params.folder;
   const file = request.params.file;
   const path = getExamplePath(folder, file);
   responseUtils.sendTextFile(response, path);
 });
 
-// Save the index for an example folder.
-router.post("/examples/:folder", async (request, response) => {
+// Save the index for an package folder.
+router.post("/packages/:folder", async (request, response) => {
   const folder = request.params.folder;
   const path = getExamplePath(folder, "index.json5");
 
@@ -97,8 +97,8 @@ router.post("/examples/:folder", async (request, response) => {
   }
 });
 
-// Save a specific example file.
-router.post("/examples/:folder/:file", async (request, response) => {
+// Save a specific package file.
+router.post("/packages/:folder/:file", async (request, response) => {
   const folder = request.params.folder;
   const file = request.params.file;
   const path = getExamplePath(folder, file);

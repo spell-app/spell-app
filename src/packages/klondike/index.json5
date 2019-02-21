@@ -1,0 +1,12 @@
+{
+  title: "Klondike Solitaire",
+  authors: ["Owen Williams"],
+  inputType: "spell",
+  outputType: "js",
+  files: [
+    { name: "Card" },
+    { name: "Deck" },
+    { name: "Pile" },
+    { name: "Klondike" },
+  ],
+}
