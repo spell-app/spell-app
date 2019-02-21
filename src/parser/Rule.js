@@ -75,33 +75,36 @@ export default class Rule {
   //
   //  internal
   //
-//   test(scope, tokens, testLocation = this.testLocation) {
-//     if (!tokens.length) return false;
-//     if (testLocation === TestLocation.ANYWHERE) {
-//       for (let start = 0, length = tokens.length; start < length; start++) {
-//         const result = this.testAtStart(scope, tokens, start);
-//         if (typeof result === "boolean") return result;
-//       }
-//       return false;
-//     }
-//     return this.testAtStart(scope, tokens, 0);
-//   }
 
+  // Test to see if this rule is matched in `tokens`.
+  //
+  // You shouldn't override this, override `testAtStart()` instead,
+  // or just provide a `testRule`.
+  //
+  // By default, we respect our `testLocation` parameter to test
+  //  either at the beginning of the tokens or anywhere in the run.
+  // Sometimes rules want to override the `testLocation`, e.g.
+  //  so allow it to be passed in.
   test(scope, tokens, testLocation = this.testLocation) {
     if (!tokens.length) return false;
     if (this.testRule) return this.testRule.test(scope, tokens, testLocation);
 
-    if (testLocation === TestLocation.ANYWHERE) {
-      let undefinedFound = false;
-      for (let start = 0, length = tokens.length; start < length; start++) {
-        const result = this.testAtStart(scope, tokens, start);
-        if (result === true) return true;
-        if (result === undefined) undefinedFound = true;
-      }
-      if (undefinedFound) return undefined;
-      return false;
-    }
+    if (testLocation === TestLocation.ANYWHERE)
+      return this.testAnywhere(scope, tokens);
     return this.testAtStart(scope, tokens, 0);
+  }
+
+  // Test if this rule is matched anywhere in the tokens
+  //  by exhaustively testing at each start position.
+  testAnywhere(scope, tokens) {
+    let undefinedFound = false;
+    for (let start = 0, length = tokens.length; start < length; start++) {
+      const result = this.testAtStart(scope, tokens, start);
+      if (result === true) return true;
+      if (result === undefined) undefinedFound = true;
+    }
+    if (undefinedFound) return undefined;
+    return false;
   }
 }
 
@@ -112,7 +115,7 @@ Rule.TokenType = class tokenType extends Rule {
   }
 
   parse(scope, tokens) {
-    if (this.testAtStart(scope, tokens, 0) === false) return undefined;
+    if (!this.testAtStart(scope, tokens, 0)) return undefined;
     return new Match({
       rule: this,
       matched: [tokens[0]],
@@ -143,7 +146,7 @@ Rule.Literal = class literal extends Rule {
   }
 
   parse(scope, tokens) {
-    if (this.testAtStart(scope, tokens, 0) === false) return undefined;
+    if (!this.testAtStart(scope, tokens, 0)) return undefined;
     return new Match({
       rule: this,
       matched: [tokens[0]],
@@ -203,7 +206,7 @@ Rule.Literals = class literals extends Rule {
   }
 
   parse(scope, tokens) {
-    if (this.testAtStart(scope, tokens, 0) === false) return undefined;
+    if (!this.testAtStart(scope, tokens, 0)) return undefined;
     return new Match({
       rule: this,
       matched: tokens.slice(0, this.literals.length),
@@ -277,7 +280,7 @@ Rule.Pattern = class pattern extends Rule {
   }
 
   parse(scope, tokens) {
-    if (this.testAtStart(scope, tokens, 0) === false) return undefined;
+    if (!this.testAtStart(scope, tokens, 0)) return undefined;
     return new Match({
       rule: this,
       matched: [tokens[0]],
@@ -371,18 +374,6 @@ Rule.Choice = class choices extends Rule {
     if (undefinedFound) return undefined;
     return false;
   }
-
-//   test(scope, tokens, testLocation = this.testLocation) {
-//     if (!tokens.length) return false;
-//     let undefinedFound = false;
-//     for (let i = 0, rule; rule = this.rules[i]; i++) {
-//       const result = rule.test(scope, tokens, testLocation);
-//       if (result === true) return true;
-//       if (result === undefined) undefinedFound = true;
-//     }
-//     if (undefinedFound) return undefined;
-//     return false;
-//   }
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(scope, tokens) {
