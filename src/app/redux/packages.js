@@ -158,7 +158,7 @@ const factory = new ReduxFactory({
       name: "revertInput",
       handler(packages) {
         const { packageId, fileId } = packages;
-        const input = this.getInputFile(packages, packageId, fieldId);
+        const input = this.getInputFile(packages, packageId, fileId);
         return {
           ...packages,
           input,
@@ -222,7 +222,7 @@ const factory = new ReduxFactory({
     {
       name: "newFile",
       async promise(packages, { packageId = packages.packageId, fileId }) {
-        if (!fieldId) throw new TypeError("packages.newFile(): You must specify 'fieldId'");
+        if (!fileId) throw new TypeError("packages.newFile(): You must specify 'fileId'");
 
         // if there's already a file with that id, just return a resolved promise
         //  and we'll select it in the onSuccess handler
