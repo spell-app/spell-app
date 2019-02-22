@@ -1,3 +1,4 @@
+import bodyParser from "body-parser";
 import Bundler from "parcel-bundler";
 import chalk from "chalk";
 import express from "express";
@@ -22,11 +23,23 @@ const parcelOptions = {
 const bundler = new Bundler(startFile, parcelOptions);
 
 const app = express();
+
+// Add JSON5 support
 app.use(express_json5());
+
+// Set up body parsers for text, json and form-urlencoded
+app.use(bodyParser.text({ limit: "10mb" }));
+app.use(bodyParser.json({ limit: "10mb" }));
+app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }));
+
+// Use our api routines under `/api/...`
 app.use("/api", api);
+
 // Use parcel to serve static files.
 // This MUST come after `use()` of any other middlewares.
 app.use(bundler.middleware());
+
+// Go go go!
 app.listen(port);
 
 

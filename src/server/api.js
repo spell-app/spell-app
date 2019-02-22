@@ -2,9 +2,9 @@
 //  Create a router for all api calls.
 //////////////////////////////
 
-import JSON5 from "json5";
 import express from "express";
 import chalk from "chalk";
+import JSON5 from "json5";
 import nodePath from "path";
 
 // Express utility functions
@@ -82,15 +82,13 @@ router.post("/packages/:folder/:file", async (request, response) => {
   const path = getPackagePath(folder, file);
 
   const contents = request.body;
-console.warn(path);
-console.warn(contents);
-//   try {
-//     await fileUtils.saveFile(path, contents);
+  try {
+    await fileUtils.saveFile(path, contents);
     responseUtils.sendText(response, "OK");
-//   }
-//   catch (e) {
-//     return responseUtils.sendError(response, 500, e);
-//   }
+  }
+  catch (e) {
+    return responseUtils.sendError(response, 500, e);
+  }
 });
 
 

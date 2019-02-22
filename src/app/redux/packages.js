@@ -8,18 +8,23 @@ import JSON5 from "json5";
 import { connect } from "react-redux";
 
 import ReduxFactory from "./ReduxFactory";
-import { getJSON5, getText, post } from "./api.js";
+import { getJSON5, getText, postText } from "./api.js";
 
 import parser from "../../languages/spell/spell.js";
+
+export const Formats = {
+  TEXT: "TEXT",
+  JSON5: "JSON5"
+};
+
 
 const factory = new ReduxFactory({
   domain: "packages",
 
   initialState: {
-    packageIds: undefined,    // Array of all known package names.
-    indices: {},              // Map of `{ <packageId> => <json5 index> }` for each loaded package.
-    files: {},                // Map of `{ <examplePath> => <file contents> }` for all loaded example files.
+    files: {},                // Map of `{ <examplePath> => <file contents> }` for all loaded files.
 
+    // Selection
     packageId: undefined,     // Package currently selected.
     fileId: undefined,        // Package file currently selected.
     input: undefined,         // Current example input.  May be different than what's in `files`!
@@ -28,8 +33,8 @@ const factory = new ReduxFactory({
   },
 
   // Return server path to package file.
-  getPackagePath(packageId, fileId = "", extension = "") {
-    return `${packageId}/${fileId}${extension}`;
+  getPath(packageId, fileId = "", extension = "") {
+    return `packages/${packageId}/${fileId}${extension}`;
   },
 
   getIndexFileName(packageId) {
@@ -49,26 +54,43 @@ const factory = new ReduxFactory({
   // NOTE: If you're calling these from an `onSuccess` or `onError` handler
   //       you MUST pass the `packages` passed in, or redux will complain.
 
-  getPackageIndex(packageId, packages = this.getState()) {
-    return packages.indices[packageId];
+  getPackageIds(packages) {
+    return packages.files.packages;
   },
 
-  getPackageFileContents(packageId, fileName, packages = this.getState()) {
-    const path = this.getPackagePath(packageId, fileName);
+  getPackageIndex(packages, packageId) {
+    const fileName = this.getIndexFileName(packageId);
+    const path = this.getPath(packageId, fileName);
     return packages.files[path];
   },
 
+  getInputFile(packages, packageId, fileId) {
+    const fileName = this.getInputFileName(packageId, fileId);
+    const path = this.getPath(packageId, fileName);
+    return packages.files[path];
+  },
+
+  // Update file contents immutably
+  updateFileContents(packages, path, contents) {
+    return {
+      ...packages,
+      files: {
+        ...packages.files,
+        [path]: contents
+      }
+    }
+  },
 
   // actions
   actions: [
     {
       name: "startup",
-      async promise(packages, [ packageId, fileId ]) {
+      async promise(packages, { packageId, fileId } = {}) {
         // Default to the first package
         const packageIds = await factory.call.loadPackageIds();
         if (!packageId) packageId = packageIds[0];
 
-        return factory.call.selectFile(packageId, fileId);
+        return factory.call.selectFile({ packageId, fileId });
       },
       onSuccess(packages) {
         return packages;
@@ -83,7 +105,7 @@ const factory = new ReduxFactory({
     // Update the current example input, e.g. when typing
     {
       name: "updateInput",
-      handler(packages, [ input ]) {
+      handler(packages, input) {
         return {
           ...packages,
           input,
@@ -117,22 +139,26 @@ const factory = new ReduxFactory({
     // Save the input.
     {
       name: "saveInput",
-      promise(packages) {
-        const { packageId, fileId, input } = packages;
+      promise({ packageId, fileId, input }) {
         const fileName = this.getInputFileName(packageId, fileId);
-        return factory.call.savePackageFile(packageId, fileName, input);
+        return factory.call.saveFile({ packageId, fileName, input });
       },
-      onSuccess(packages) { return packages },
+      onSuccess(packages) {
+        return {
+          ...packages,
+          dirty: false
+        }
+      },
       onError(packages) { return packages },
     },
 
     //////////////////////
-    // Revert the input to the saved value
+    // Revert the input to the value when we loaded it last.
     {
       name: "revertInput",
       handler(packages) {
         const { packageId, fileId } = packages;
-        const input = this.getPackageFileContents(packageId, fileId, packages);
+        const input = this.getInputFile(packages, packageId, fieldId);
         return {
           ...packages,
           input,
@@ -152,29 +178,30 @@ const factory = new ReduxFactory({
       // Select a package and example file.
       // If you don't specify an fileId, we'll return the first one in the package.
       name: "selectFile",
-      async promise(packages, [ packageId, fileId, reload ]) {
-        // First load the package index
-        const index = await factory.call.loadPackageIndex(packageId, reload);
+      async promise(packages, { packageId, fileId, reload }) {
+        // Make sure the package index is loaded
+        const index = await factory.call.loadPackageIndex({ packageId, reload });
         // if no fileId specified, use the first file in the package
         if (!fileId) fileId = index.files[0].id;
-        const inputFileName = this.getInputFileName(packageId, fileId);
-        return await factory.call.loadPackageFile(packageId, inputFileName, reload);
+
+        const fileName = this.getInputFileName(packageId, fileId);
+        return factory.call.loadFile({ packageId, fileName, reload });
       },
-      onSuccess(packages, fileContents, [ packageId, fileId ]) {
+      onSuccess(packages, contents, { packageId, fileId }) {
         if (!fileId) {
-          const index = this.getPackageIndex(packageId, packages);
+          const index = this.getPackageIndex(packages, packageId);
           fileId = index.files[0].id;
         }
         return {
           ...packages,
           packageId,
           fileId,
-          input: fileContents,
-          output: undefined,
+          input: contents,
+          output: "",
           dirty: false
         }
       },
-      onError(packages, error, [ packageId, fileId ]) {
+      onError(packages, error, { packageId, fileId }) {
         console.error("Error in selectFile():", error);
         return packages;
       }
@@ -186,9 +213,43 @@ const factory = new ReduxFactory({
       name: "reloadSelected",
       handler(packages) {
         const { packageId, fileId } = packages;
-        return factory.call.selectFile(packageId, fileId, "RELOAD");
+        return factory.call.selectFile({ packageId, fileId, reload: true });
       }
     },
+
+    //////////////////////
+    // Create a new file in the current package.
+    {
+      name: "newFile",
+      async promise(packages, { packageId = packages.packageId, fileId }) {
+        if (!fieldId) throw new TypeError("packages.newFile(): You must specify 'fieldId'");
+
+        // if there's already a file with that id, just return a resolved promise
+        //  and we'll select it in the onSuccess handler
+        const index = await factory.call.loadPackageIndex({ packageId });
+        const existing = index.find(file => file.id === fileId);
+        if (existing) return Promise.resolve("");
+
+        // add an entry to the index and save it
+        index = {
+          ...index,
+          files: [
+            ...index.files,
+            { id: fileId }
+          ]
+        }
+        await this.call.savePackageIndex({ packageId, index });
+        await this.call.saveInputFile({ packageId, fileId, contents: "" });
+        return this.call.selectFile({ packageId, fileId });
+      },
+      onSuccess(packages) {
+        return packages;
+      },
+      onError(packages) {
+        return packages;
+      }
+    },
+
 
 
     //
@@ -200,86 +261,98 @@ const factory = new ReduxFactory({
     //  `packageIds` is a list of folder names.
     {
       name: "loadPackageIds",
-      promise(packages, reload = false) {
-        // Quick exit if already loaded and we're not explicitly to `reload`.
-        if (!reload && packages.packageIds) {
-          return packages.packageIds;
-        }
-
-        return getJSON5({ url: "api/packages", apiMethod: "loadPackageIds" })
-      },
-      onSuccess(packages, packageIds) {
-        return {
-          ...packages,
-          packageIds
-        }
-      },
-      onError(packages, error) {
-        console.error("Unable to load list of packages!");
-        return packages;
+      ACTION: "LOAD_FILE",
+      async: true,
+      getParams({ reload } = {}) {
+        return { path: "packages", reload, format: Formats.JSON5 };
       }
     },
 
     //////////////////////
-    // Load the index for a single example package.
+    // Load the index for a single package.
     //  `index` is a JSON5 index for the package.
     {
       name: "loadPackageIndex",
-      async promise(packages, [ packageId, reload ]) {
-        // Quick exit if already loaded and we're not to `reload`.
-        if (!reload) {
-          const index = this.getPackageIndex(packageId, packages);
-          if (index) return Promise.resolve(index);
-        }
-
+      ACTION: "LOAD_FILE",
+      async: true,
+      getParams({ packageId, reload }) {
         const fileName = this.getIndexFileName(packageId);
-        const url = `api/packages/${packageId}/${fileName}`;
-        return getJSON5({ url, apiMethod: "loadPackageIndex" });
+        return { packageId, fileName, reload, format: Formats.JSON5 }
       },
-      onSuccess(packages, index, [ packageId ]) {
-        return {
-          ...packages,
-          indices: {
-            ...packages.indices,
-            [packageId]: index
-          }
-        }
+    },
+
+    //////////////////////
+    // Save the index for a single package.
+    //  `index` is a JSON5 index for the package.
+    {
+      name: "savePackageIndex",
+      ACTION: "SAVE_FILE",
+      async: true,
+      getParams({ packageId, index }) {
+        const fileName = this.getIndexFileName(packageId);
+        const contents = JSON5.stringify(index, null, "  ");
+        return { packageId, fileName, contents }
+      }
+    },
+
+    //////////////////////
+    // Load a single input file.
+    {
+      name: "loadInputFile",
+      ACTION: "LOAD_FILE",
+      async: true,
+      getParams({ packageId, fileId, reload }) {
+        const fileName = this.getInputFileName(packageId, fileId);
+        return { packageId, fileName, reload, format: Formats.TEXT }
       },
-      onError(packages, error, [ packageId ]) {
-        console.error(`Unable to load index of package '${packageId}'!`, error);
-        return packages;
+    },
+
+    //////////////////////
+    // Save an input file.
+    {
+      name: "saveInputFile",
+      ACTION: "SAVE_FILE",
+      async: true,
+      getParams({ packageId, fileId, contents }) {
+        const fileName = this.getInputFileName(packageId, fileId);
+        return { packageId, fileName, contents }
       }
     },
 
 
+    //
+    //  Generic load/save
+    //
+
     //////////////////////
     // Load a package file.
-    //  `fileContents` is the contents of the file.
+    //  `packageId`
+    //  `fileName` (including extension)
+    //  `reload` we'll reload the file if true, otherwise we'll return the cached contents
+    //  `format`: one of Formats (defaults to Format.TEXT)
     {
-      name: "loadPackageFile",
-      getParams(packageId, fileName, reload) {
-        const path = this.getPackagePath(packageId, fileName);
-        return { packageId, fileName, path, reload };
-      },
-      promise(packages, { packageId, fileName, path, reload }) {
+      name: "loadFile",
+      promise(packages, { path, packageId, fileName, reload, format = Formats.TEXT }) {
+        if (!path) path = this.getPath(packageId, fileName);
+
         // Quick exit if we're not to `reload`
         if (!reload) {
-          const contents = this.getPackageFileContents(packageId, fileName, packages);
+          const contents = packages.files[path];
           if (contents != null) return Promise.resolve(contents);
         }
-        const url = `api/packages/${path}`;
-        return getText({ url, apiMethod: "loadPackageFile" })
+
+        const url = `api/${path}`;
+        if (format === Formats.TEXT)
+          return getText({ url, apiMethod: "loadFile" })
+        else
+          return getJSON5({ url, apiMethod: "loadFile" });
       },
-      onSuccess(packages, fileContents, { path }) {
-        return {
-          ...packages,
-          files: {
-            ...packages.files,
-            [path]: fileContents
-          }
-        }
+      onSuccess(packages, contents, { path, packageId, fileName }) {
+        if (!path) path = this.getPath(packageId, fileName);
+        return this.updateFileContents(packages, path, contents);
       },
-      onError(packages, error, { path }) {
+      onError(packages, error, { packageId, fileName }) {
+        const path = this.getPath(packageId, fileName);
         console.error(`Unable to load file '${path}'!`, error);
         return packages;
       }
@@ -290,17 +363,15 @@ const factory = new ReduxFactory({
     // Save a package file, including the package index.
     //  `contents` is the contents of the file.
     {
-      name: "savePackageFile",
-      getParams(packageId, fileName, contents) {
-        const path = this.getPackagePath(packageId, fileName);
-        return { packageId, fileName, contents, path };
+      name: "saveFile",
+      promise(packages, { path, packageId, fileName, contents }) {
+        if (!path) path = this.getPath(packageId, fileName);
+        const url = `api/${path}`;
+        return postText({ url, body: contents, apiMethod: "saveFile" })
       },
-      promise(packages, { path, contents }) {
-        const url = `api/packages/${path}`;
-        return post({ url, contents, apiMethod: "savePackageFile" })
-      },
-      onSuccess(packages, contents, { path }) {
-        return packages;
+      onSuccess(packages, _, { path, packageId, fileName, contents }) {
+        if (!path) path = this.getPath(packageId, fileName);
+        return this.updateFileContents(packages, path, contents);
       },
       onError(packages, error, { path }) {
         console.error(`Unable to save file '${path}'!`, error);

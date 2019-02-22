@@ -16,7 +16,7 @@
 //      name: "myAction",
 //      getParams(...inputParams) {
 //        // munge `inputParams` into a single `actionParams` value passed to `handler()`
-//        // OPTIONAL: if not provided, actionParams will be the argument to action creator as an array.
+//        // OPTIONAL: if not provided, actionParams will be the first argument to the function.
 //      },
 //      handler(state, actionParams) {
 //        // munge `state` according to `actionParams` and return a new copy of `state`
@@ -31,7 +31,7 @@
 //      name: "myAsyncAction",
 //      getParams(...params) {
 //        // munge `inputParams` into a single `actionParams` value passed to `promise()`
-//        // OPTIONAL: if not provided, actionParams will be the argument to action creator as an array.
+//        // OPTIONAL: if not provided, actionParams will be the first argument to the function.
 //      },
 //      async promise(state, actionParams) {
 //        // Do whatever async stuff you like, using `await somethingThatReturnsAPromise()`
@@ -181,10 +181,9 @@ export default class ReduxFactory {
       getParams,        // (OPTIONAL) Function whose purpose is to transform
                         //  argments passed in to a single `params` object
                         //  provided to the action to be dispatched.
-                        //  If you don't provide one, we'll use
-                        //  the `arguments` to the actionCreator as an array.
+                        //  If you don't provide one, we'll use the first argument to the function.
                         //
-                        //  NOTE: do NOT pass `{ type: <ACTION> }`,
+                        //  NOTE: in the params, do NOT pass `{ type: <ACTION> }`,
                         //  it will be added automatically, outside of this returned params.
 
       actionCreator,    // (OPTIONAL) Function which returns full action.
@@ -208,6 +207,10 @@ export default class ReduxFactory {
       init,             // (OPTIONAL) Function to call ONCE, WHEN THE ACTION IS BEING SET UP.
                         // Use this to, e.g. initialize global event handlers.
                         // It will be called as `init(factory, actionParams)`.
+
+      async,            // (OPTIONAL) You can re-use another action with different parameters
+                        // by passing `ACTION` and `getParams` only.  By default, these will
+                        // be non-async.  Pass `async:true` to ensure they are asyn.
     } = actionParams;
 
     // Make sure we have required parameters
@@ -220,7 +223,7 @@ export default class ReduxFactory {
 
     // Create/register the actionCreator.
     if (!actionCreator)
-      actionCreator = this.getActionCreator(actionName, ACTION, getParams, once);
+      actionCreator = this.getActionCreator(actionName, ACTION, getParams, once, async && "ADD_PROMISE");
 
     this._actionCreators[actionName] = actionCreator;
 
@@ -286,7 +289,6 @@ export default class ReduxFactory {
                                 // Signature:  `onError(state, error, params)`
                                 // Result will be the new redux state.
 
-
       ACTION = actionName,      // Name for events.  We'll snake/uppercase below.
                                 // If you don't specify them, we'll derive from `actionName`.
       DONE_ACTION = `${ACTION}_DONE`,
@@ -315,7 +317,7 @@ export default class ReduxFactory {
 
     // Create/register the actionCreator.
     const actionCreator = this.getActionCreator(actionName, ACTION, getParams, once, "ADD_PROMISE");
-
+if (actionName === "loadPackageIds") console.warn("YO");
     // Create action handler function.
     const actionHandler = (state, action) => {
       this.info(`Calling asyncAction ${actionName}, params:`, action.params, action);
@@ -548,7 +550,7 @@ export default class ReduxFactory {
   //    which will be used to ensure the function is only called once.
   getActionCreator(actionName, ACTION, getParams, once, addPromise) {
     // Default `getParams` to just return first arg passed in as params.
-    if (!getParams) getParams = (...args) => args;
+    if (!getParams) getParams = (arg) => arg;
 
     // Convert `once = true` to return `undefined` as the key.
     if (once === true) once = () => undefined;

@@ -64,6 +64,7 @@
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
     "assert": "^1.4.1",
+    "body-parser": "^1.18.3",
     "browser-or-node": "^1.1.0",
     "fs-extra": "^7.0.1",
     "global": "^4.3.2",

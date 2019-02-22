@@ -27,7 +27,11 @@ export class _SpellEditor extends React.Component {
 
 //TODO
   @keydown("ctrl+n")
-  create() { packageFactory.call.newFile(); }
+  create() {
+    const fileId = prompt("Name for the new file?", "Untitled");
+    if (!fileId) return;
+    packageFactory.call.newFile({ fileId });
+  }
 
 //TODO
   @keydown("ctrl+d")
@@ -56,8 +60,10 @@ export class _SpellEditor extends React.Component {
 
   render() {
     const { packages } = this.props;
-    const { packageIds, packageId, fileId, input, output, dirty } = packages;
-    const index = packages.indices[packageId];
+console.warn(packages);
+    const { packageId, fileId, input, output, dirty } = packages;
+    const packageIds = packageFactory.getPackageIds(packages);
+    const index = packageFactory.getPackageIndex(packages, packageId);
     // Don't do anything if our data isn't yet loaded
     if (!packageIds || !index) return null;
 
@@ -68,18 +74,19 @@ export class _SpellEditor extends React.Component {
         title: packageId,
         text: packageId,
         content: packageId,
-        onClick: () => packageFactory.call.selectFile(packageId)
+        onClick: () => packageFactory.call.selectFile({ packageId })
       }
     });
 
     // Create menuitems for the files menu
     const fileOptions = index.files.map( file => {
+      const fileId = file.id;
       return {
-        value: file.id,
-        title: file.id,
-        text: file.id,
-        content: file.id,
-        onClick: () => packageFactory.call.selectFile(packageId, file.id)
+        value: fileId,
+        title: fileId,
+        text: fileId,
+        content: fileId,
+        onClick: () => packageFactory.call.selectFile({ packageId, fileId })
       }
     });
 
