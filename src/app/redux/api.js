@@ -206,7 +206,7 @@ export function downloadFile({ url, filename }) {
 //
 // Use `postJSON` to post as JSON and return results as parsed JSON.
 //
-export function post({ url, body, params = {}, apiMethod, responseType = "text" }) {
+export function POST({ url, body, params = {}, apiMethod, responseType = "text" }) {
   if (!params.method) params.method = "POST";
   if (body != null) {
     if (typeof body === "string") params.body = body;
@@ -235,7 +235,7 @@ export function post({ url, body, params = {}, apiMethod, responseType = "text" 
 // Throws and logs to console if if `JSON.stringify()` fails.
 export function postText({ url, body, params = {}, apiMethod }) {
   setTextHeader(params);
-  return post({ url, body, params, apiMethod, responseType: "text" });
+  return POST({ url, body, params, apiMethod, responseType: "text" });
 }
 
 // Post json `body` to the server at `url` (stringifying if necessary).
@@ -244,7 +244,7 @@ export function postText({ url, body, params = {}, apiMethod }) {
 export function postJSON({ url, body, params = {}, apiMethod }) {
   // Set JSON content-type header
   setJSONHeader(params);
-  return post({ url, body, params, apiMethod, responseType: "json" });
+  return POST({ url, body, params, apiMethod, responseType: "json" });
 }
 
 // Post json5 `body` to the server at `url` (stringifying if necessary).
@@ -253,8 +253,19 @@ export function postJSON({ url, body, params = {}, apiMethod }) {
 export function postJSON5({ url, body, params = {}, apiMethod }) {
   // Set JSON5 content-type header
   setJSON5Header(params);
-  return post({ url, body, params, apiMethod, responseType: "json5" });
+  return POST({ url, body, params, apiMethod, responseType: "json5" });
 }
+
+
+//////////////////////////////
+// HTTP "DELETE" methods
+//////////////////////////////
+
+export function DELETE({ url, params = {}, apiMethod, responseType = "text" }) {
+  if (!params.method) params.method = "DELETE";
+  return makeAPICall({ url, params, apiMethod, responseType });
+}
+
 
 
 

@@ -8,7 +8,7 @@ import JSON5 from "json5";
 import { connect } from "react-redux";
 
 import ReduxFactory from "./ReduxFactory";
-import { getJSON5, getText, postText } from "./api.js";
+import { getJSON5, getText, postText, DELETE } from "./api.js";
 
 import parser from "../../languages/spell/spell.js";
 
@@ -17,6 +17,7 @@ export const Formats = {
   JSON5: "JSON5"
 };
 
+export const INPUT = "INPUT";
 
 const factory = new ReduxFactory({
   domain: "packages",
@@ -72,13 +73,16 @@ const factory = new ReduxFactory({
 
   // Update file contents immutably
   updateFileContents(packages, path, contents) {
-    return {
+    packages = {
       ...packages,
-      files: {
-        ...packages.files,
-        [path]: contents
-      }
+      files: { ...packages.files }
     }
+    if (contents != null)
+      packages.files[path] = contents;
+    else
+      delete packages.files[path];
+
+    return packages;
   },
 
   // actions
@@ -93,11 +97,11 @@ const factory = new ReduxFactory({
         return factory.call.selectFile({ packageId, fileId });
       },
       onSuccess(packages) {
-        return packages;
+        return { ...packages };
       },
       onError(packages, error) {
         console.error("Error during startup", error);
-        return packages;
+        return { ...packages };
       }
     },
 
@@ -149,7 +153,9 @@ const factory = new ReduxFactory({
           dirty: false
         }
       },
-      onError(packages) { return packages },
+      onError(packages) {
+        return { ...packages };
+      },
     },
 
     //////////////////////
@@ -165,6 +171,17 @@ const factory = new ReduxFactory({
           output: "",
           dirty: false
         }
+      }
+    },
+
+    //////////////////////
+    // Duplicate the input under a nw `fileId`
+    {
+      name: "duplicateInputFile",
+      ACTION: "NEW_INPUT_FILE",
+      async: true,
+      getParams({ fileId }) {
+        return { fileId, contents: INPUT };
       }
     },
 
@@ -203,7 +220,7 @@ const factory = new ReduxFactory({
       },
       onError(packages, error, { packageId, fileId }) {
         console.error("Error in selectFile():", error);
-        return packages;
+        return { ...packages };
       }
     },
 
@@ -218,16 +235,18 @@ const factory = new ReduxFactory({
     },
 
     //////////////////////
-    // Create a new file in the current package.
+    // Create a new input file in the current package.
     {
-      name: "newFile",
-      async promise(packages, { packageId = packages.packageId, fileId }) {
+      name: "newInputFile",
+      async promise(packages, { packageId = packages.packageId, fileId, contents = "" }) {
         if (!fileId) throw new TypeError("packages.newFile(): You must specify 'fileId'");
+        if (contents === INPUT) contents = packages.input;
 
         // if there's already a file with that id, just return a resolved promise
         //  and we'll select it in the onSuccess handler
-        const index = await factory.call.loadPackageIndex({ packageId });
-        const existing = index.find(file => file.id === fileId);
+        let index = await factory.call.loadPackageIndex({ packageId });
+        if (!index)  throw new TypeError(`packages.newFile(): Can't load package index for ${packageId}`);
+        const existing = index.files.find(file => file.id === fileId);
         if (existing) return Promise.resolve("");
 
         // add an entry to the index and save it
@@ -239,21 +258,52 @@ const factory = new ReduxFactory({
           ]
         }
         await this.call.savePackageIndex({ packageId, index });
-        await this.call.saveInputFile({ packageId, fileId, contents: "" });
+        await this.call.saveInputFile({ packageId, fileId, contents });
         return this.call.selectFile({ packageId, fileId });
       },
       onSuccess(packages) {
-        return packages;
+        return {...packages};
       },
       onError(packages) {
-        return packages;
+        return {...packages};
       }
     },
 
 
+    //////////////////////
+    // Delete an input file from the specified package.
+    {
+      name: "deleteInputFile",
+      async promise(packages, { packageId = packages.packageId, fileId }) {
+        if (!fileId) throw new TypeError("packages.deleteFile(): You must specify 'fileId'");
+
+        // if there's already a file with that id, just return a resolved promise
+        //  and we'll select it in the onSuccess handler
+        let index = await factory.call.loadPackageIndex({ packageId });
+        if (!index)  throw new TypeError(`packages.newFile(): Can't load package index for ${packageId}`);
+
+        // add an entry to the index and save it
+        index = {
+          ...index,
+          files: index.files.filter( file => file.id !== fileId )
+        }
+        const fileName = this.getInputFileName(packageId, fileId);
+        await this.call.savePackageIndex({ packageId, index });
+        await this.call.deleteFile({ packageId, fileName });
+        // select the first item in the package
+        return this.call.selectFile({ packageId });
+      },
+      onSuccess(packages) {
+        return {...packages};
+      },
+      onError(packages) {
+        return {...packages};
+      }
+    },
+
 
     //
-    //  Raw loading/saving -- you'll generally call one of the methods above
+    //  Specific loaders/etc
     //
 
     //////////////////////
@@ -290,8 +340,7 @@ const factory = new ReduxFactory({
       async: true,
       getParams({ packageId, index }) {
         const fileName = this.getIndexFileName(packageId);
-        const contents = JSON5.stringify(index, null, "  ");
-        return { packageId, fileName, contents }
+        return { packageId, fileName, contents: index}
       }
     },
 
@@ -321,7 +370,7 @@ const factory = new ReduxFactory({
 
 
     //
-    //  Generic load/save
+    //  Generic load/save/delete -- you'll generally use one of the methods above
     //
 
     //////////////////////
@@ -354,7 +403,7 @@ const factory = new ReduxFactory({
       onError(packages, error, { packageId, fileName }) {
         const path = this.getPath(packageId, fileName);
         console.error(`Unable to load file '${path}'!`, error);
-        return packages;
+        return { ...packages };
       }
     },
 
@@ -375,7 +424,27 @@ const factory = new ReduxFactory({
       },
       onError(packages, error, { path }) {
         console.error(`Unable to save file '${path}'!`, error);
-        return packages;
+        return { ...packages };
+      }
+    },
+
+
+    //////////////////////
+    // Delete a package file.
+    {
+      name: "deleteFile",
+      promise(packages, { path, packageId, fileName }) {
+        if (!path) path = this.getPath(packageId, fileName);
+        const url = `api/${path}`;
+        return DELETE({ url, apiMethod: "deleteFile" })
+      },
+      onSuccess(packages, _, { path, packageId, fileName, contents }) {
+        if (!path) path = this.getPath(packageId, fileName);
+        return this.updateFileContents(packages, path, null);
+      },
+      onError(packages, error, { path }) {
+        console.error(`Unable to delete file '${path}'!`, error);
+        return { ...packages };
       }
     }
 

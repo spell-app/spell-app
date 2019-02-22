@@ -21,26 +21,33 @@ export class _SpellEditor extends React.Component {
 
   reload() { packageFactory.call.reloadSelected(); }
 
-//TODO
   @keydown("ctrl+s")
   save() { packageFactory.call.saveInput(); }
 
-//TODO
   @keydown("ctrl+n")
   create() {
     const fileId = prompt("Name for the new file?", "Untitled");
     if (!fileId) return;
-    packageFactory.call.newFile({ fileId });
+    const contents = `# Module ${fileId}`;
+    packageFactory.call.newInputFile({ fileId, contents });
+  }
+
+  duplicate() {
+    const { fileId } = this.props.packages;
+    const newFileId = prompt("Name for the new file?", fileId);
+    if (!newFileId || newFileId === fileId) return;
+    packageFactory.call.duplicateInputFile({ fileId: newFileId });
+  }
+
+  @keydown("ctrl+d")
+  delete() {
+    const { fileId } = this.props.packages;
+    if (!confirm(`Really delete '${fileId}'?`)) return;
+    packageFactory.call.deleteInputFile({ fileId });
   }
 
 //TODO
-  @keydown("ctrl+d")
-  delete() { packageFactory.call.deleteSelected(); }
-
-//TODO
   rename() { packageFactory.call.renameSelected(); }
-//TODO
-  duplicate() { packageFactory.call.duplicateSelected(); }
 
 
   dirtyButtons = (
@@ -60,7 +67,7 @@ export class _SpellEditor extends React.Component {
 
   render() {
     const { packages } = this.props;
-console.warn(packages);
+//console.info("SpellEditor.render(): packages:", packages);
     const { packageId, fileId, input, output, dirty } = packages;
     const packageIds = packageFactory.getPackageIds(packages);
     const index = packageFactory.getPackageIndex(packages, packageId);

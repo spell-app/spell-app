@@ -91,6 +91,22 @@ router.post("/packages/:folder/:file", async (request, response) => {
   }
 });
 
+// Delete a specific package file, including the index.
+router.delete("/packages/:folder/:file", async (request, response) => {
+  const folder = request.params.folder;
+  const file = request.params.file;
+  const path = getPackagePath(folder, file);
+
+  const contents = request.body;
+  try {
+    await fileUtils.removeFile(path, true);
+    responseUtils.sendText(response, "OK");
+  }
+  catch (e) {
+    return responseUtils.sendError(response, 500, e);
+  }
+});
+
 
 //////////////////////////////
 // Log an error to the console for an unknown API path.
