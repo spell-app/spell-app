@@ -27,27 +27,23 @@ const factory = new ReduxFactory({
 
     // Selection
     packageId: undefined,     // Package currently selected.
-    fileId: undefined,        // Package file currently selected.
+    moduleId: undefined,      // Module currently selected.
     input: undefined,         // Current example input.  May be different than what's in `files`!
     output: undefined,        // Current example compiled output.
     dirty: false,             // Is the example input different than what's been saved?
   },
 
   // Return server path to package file.
-  getPath(packageId, fileId = "", extension = "") {
-    return `packages/${packageId}/${fileId}${extension}`;
+  getPath(packageId, moduleId = "", extension = "") {
+    return `packages/${packageId}/${moduleId}${extension}`;
   },
 
-  getIndexFileName(packageId) {
+  getIndexName(packageId) {
     return "index.json5";
   },
 
-  getInputFileName(packageId, fileId) {
-    return `${fileId}.spell`;
-  },
-
-  getOutputFileName(packageId, fileId) {
-    return `${fileId}.jsx`;
+  getModuleFileName(packageId, moduleId) {
+    return `${moduleId}.spell`;
   },
 
   // Syntactic sugar to get the bits of the data from the state.
@@ -60,18 +56,18 @@ const factory = new ReduxFactory({
   },
 
   getPackageIndex(packages, packageId) {
-    const fileName = this.getIndexFileName(packageId);
+    const fileName = this.getIndexName(packageId);
     const path = this.getPath(packageId, fileName);
     return packages.files[path];
   },
 
-  getInputFile(packages, packageId, fileId) {
-    const fileName = this.getInputFileName(packageId, fileId);
+  getModule(packages, packageId, moduleId) {
+    const fileName = this.getModuleFileName(packageId, moduleId);
     const path = this.getPath(packageId, fileName);
     return packages.files[path];
   },
 
-  // Update file contents immutably
+  // Update file contents immutably.
   updateFileContents(packages, path, contents) {
     packages = {
       ...packages,
@@ -89,12 +85,12 @@ const factory = new ReduxFactory({
   actions: [
     {
       name: "startup",
-      async promise(packages, { packageId, fileId } = {}) {
+      async promise(packages, { packageId, moduleId } = {}) {
         // Default to the first package
         const packageIds = await factory.call.loadPackageIds();
         if (!packageId) packageId = packageIds[0];
 
-        return factory.call.selectFile({ packageId, fileId });
+        return factory.call.selectModule({ packageId, moduleId });
       },
       onSuccess(packages) {
         return { ...packages };
@@ -143,8 +139,8 @@ const factory = new ReduxFactory({
     // Save the input.
     {
       name: "saveInput",
-      promise({ packageId, fileId, input }) {
-        const fileName = this.getInputFileName(packageId, fileId);
+      promise({ packageId, moduleId, input }) {
+        const fileName = this.getModuleFileName(packageId, moduleId);
         return factory.call.saveFile({ packageId, fileName, contents: input });
       },
       onSuccess(packages) {
@@ -163,8 +159,8 @@ const factory = new ReduxFactory({
     {
       name: "revertInput",
       handler(packages) {
-        const { packageId, fileId } = packages;
-        const input = this.getInputFile(packages, packageId, fileId);
+        const { packageId, moduleId } = packages;
+        const input = this.getModule(packages, packageId, moduleId);
         return {
           ...packages,
           input,
@@ -174,16 +170,6 @@ const factory = new ReduxFactory({
       }
     },
 
-    //////////////////////
-    // Duplicate the input under a nw `fileId`
-    {
-      name: "duplicateInputFile",
-      ACTION: "NEW_INPUT_FILE",
-      async: true,
-      getParams({ fileId }) {
-        return { fileId, contents: INPUT };
-      }
-    },
 
 
     //
@@ -192,74 +178,149 @@ const factory = new ReduxFactory({
 
     {
       //////////////////////
-      // Select a package and example file.
-      // If you don't specify an fileId, we'll return the first one in the package.
-      name: "selectFile",
-      async promise(packages, { packageId, fileId, reload }) {
+      // Select a package and example module.
+      // If you don't specify a moduleId, we'll return the first one in the package.
+      name: "selectModule",
+      async promise(packages, { packageId = packages.packageId, moduleId, reload }) {
         // Make sure the package index is loaded
         const index = await factory.call.loadPackageIndex({ packageId, reload });
-        // if no fileId specified, use the first file in the package
-        if (!fileId) fileId = index.files[0].id;
+        // if no moduleId specified, use the first module in the package
+        if (!moduleId) moduleId = index.modules[0].id;
 
-        const fileName = this.getInputFileName(packageId, fileId);
+        const fileName = this.getModuleFileName(packageId, moduleId);
         return factory.call.loadFile({ packageId, fileName, reload });
       },
-      onSuccess(packages, contents, { packageId, fileId }) {
-        if (!fileId) {
+      onSuccess(packages, contents, { packageId = packages.packageId, moduleId }) {
+        if (!moduleId) {
           const index = this.getPackageIndex(packages, packageId);
-          fileId = index.files[0].id;
+          moduleId = index.modules[0].id;
         }
         return {
           ...packages,
           packageId,
-          fileId,
+          moduleId,
           input: contents,
           output: "",
           dirty: false
         }
       },
-      onError(packages, error, { packageId, fileId }) {
-        console.error("Error in selectFile():", error);
+      onError(packages, error, { packageId, moduleId }) {
+        console.error("Error in selectModule():", error);
         return { ...packages };
       }
     },
 
     //////////////////////
-    // Reload the selected file (and the indices as well).
+    // Reload the selected module (and the indices as well).
     {
       name: "reloadSelected",
       handler(packages) {
-        const { packageId, fileId } = packages;
-        return factory.call.selectFile({ packageId, fileId, reload: true });
+        const { packageId, moduleId } = packages;
+        return factory.call.selectModule({ packageId, moduleId, reload: true });
       }
     },
 
     //////////////////////
-    // Create a new input file in the current package.
+    // Create a new module in the current package.
     {
-      name: "newInputFile",
-      async promise(packages, { packageId = packages.packageId, fileId, contents = "" }) {
-        if (!fileId) throw new TypeError("packages.newFile(): You must specify 'fileId'");
+      name: "newModule",
+      async promise(packages, { packageId = packages.packageId, moduleId, contents = "" }) {
+        if (!moduleId) throw new TypeError("packages.newModule(): You must specify 'moduleId'");
         if (contents === INPUT) contents = packages.input;
 
-        // if there's already a file with that id, just return a resolved promise
+        // if there's already a module with that id, just return a resolved promise
         //  and we'll select it in the onSuccess handler
         let index = await factory.call.loadPackageIndex({ packageId });
-        if (!index)  throw new TypeError(`packages.newFile(): Can't load package index for ${packageId}`);
-        const existing = index.files.find(file => file.id === fileId);
+        if (!index)  throw new TypeError(`packages.newModule(): Can't load package index for ${packageId}`);
+        const existing = index.modules.find(module => module.id === moduleId);
         if (existing) return Promise.resolve("");
 
         // add an entry to the index and save it
         index = {
           ...index,
-          files: [
-            ...index.files,
-            { id: fileId }
+          modules: [
+            ...index.modules,
+            { id: moduleId }
           ]
         }
         await this.call.savePackageIndex({ packageId, index });
-        await this.call.saveInputFile({ packageId, fileId, contents });
-        return this.call.selectFile({ packageId, fileId });
+        await this.call.saveModule({ packageId, moduleId, contents });
+        return this.call.selectModule({ packageId, moduleId });
+      },
+      onSuccess(packages) {
+        return {...packages};
+      },
+      onError(packages) {
+        return {...packages};
+      }
+    },
+
+    //////////////////////
+    // Duplicate the input under a new `moduleId`
+    {
+      name: "duplicateModule",
+      async promise(packages, params) {
+        let {
+          packageId = packages.packageId,
+          moduleId = packages.moduleId,
+          newModuleId,
+          contents
+        } = params;
+        if (!newModuleId) throw new TypeError("packages.duplicateModule(): You must specify 'newModuleId'");
+
+        if (contents == null) {
+          contents = await factory.call.loadModule({ packageId, moduleId });
+          if (!contents)  throw new TypeError(`packages.duplicateModule(): Couldn't load contents for ${moduleId}`);
+        }
+        else if (contents === INPUT) {
+          contents = packages.input;
+        }
+
+        return await factory.call.newModule({ packageId, moduleId: newModuleId, contents });
+      },
+      onSuccess(packages) {
+        return {...packages};
+      },
+      onError(packages) {
+        return {...packages};
+      }
+    },
+
+    //////////////////////
+    // Rename a module from the specified package.
+    {
+      name: "renameModule",
+      async promise(packages, params) {
+        let {
+          packageId = packages.packageId,
+          moduleId = packages.moduleId,
+          newModuleId,
+          contents
+        } = params;
+        if (!newModuleId) throw new TypeError("packages.duplicateModule(): You must specify 'newModuleId'");
+
+        if (contents == null) {
+          contents = await factory.call.loadModule({ packageId, moduleId });
+          if (!contents)  throw new TypeError(`packages.duplicateModule(): Couldn't load contents for ${moduleId}`);
+        }
+        else if (contents === INPUT) {
+          contents = packages.input;
+        }
+
+        // Load the index so we can muck with it
+        let index = await factory.call.loadPackageIndex({ packageId });
+        if (!index)  throw new TypeError(`packages.newModule(): Can't load package index for ${packageId}`);
+
+        // Update the index entry in-place so the item does't move
+        index = {
+          ...index,
+          modules: index.modules.map( module => {
+            if (module.id === moduleId) return { ...module, id: newModuleId };
+            return module;
+          })
+        }
+        await factory.call.saveModule({ packageId, moduleId: newModuleId, contents });
+        return factory.call.deleteModule({ packageId, moduleId, index });
       },
       onSuccess(packages) {
         return {...packages};
@@ -271,27 +332,28 @@ const factory = new ReduxFactory({
 
 
     //////////////////////
-    // Delete an input file from the specified package.
+    // Delete a module from the specified package.
     {
-      name: "deleteInputFile",
-      async promise(packages, { packageId = packages.packageId, fileId }) {
-        if (!fileId) throw new TypeError("packages.deleteFile(): You must specify 'fileId'");
+      name: "deleteModule",
+      async promise(packages, { packageId = packages.packageId, moduleId, index }) {
+        if (!moduleId) throw new TypeError("packages.deleteModule(): You must specify 'moduleId'");
 
-        // if there's already a file with that id, just return a resolved promise
-        //  and we'll select it in the onSuccess handler
-        let index = await factory.call.loadPackageIndex({ packageId });
-        if (!index)  throw new TypeError(`packages.newFile(): Can't load package index for ${packageId}`);
+        // If not provided, load the index so we can muck with it
+        if (!index) {
+          index = await factory.call.loadPackageIndex({ packageId });
+          if (!index)  throw new TypeError(`packages.newModule(): Can't load package index for ${packageId}`);
+        }
 
-        // add an entry to the index and save it
+        // Remove entry from the index.
         index = {
           ...index,
-          files: index.files.filter( file => file.id !== fileId )
+          modules: index.modules.filter( module => module.id !== moduleId )
         }
-        const fileName = this.getInputFileName(packageId, fileId);
         await this.call.savePackageIndex({ packageId, index });
+        const fileName = this.getModuleFileName(packageId, moduleId);
         await this.call.deleteFile({ packageId, fileName });
         // select the first item in the package
-        return this.call.selectFile({ packageId });
+        return this.call.selectModule({ packageId });
       },
       onSuccess(packages) {
         return {...packages};
@@ -326,7 +388,7 @@ const factory = new ReduxFactory({
       ACTION: "LOAD_FILE",
       async: true,
       getParams({ packageId, reload }) {
-        const fileName = this.getIndexFileName(packageId);
+        const fileName = this.getIndexName(packageId);
         return { packageId, fileName, reload, format: Formats.JSON5 }
       },
     },
@@ -339,31 +401,31 @@ const factory = new ReduxFactory({
       ACTION: "SAVE_FILE",
       async: true,
       getParams({ packageId, index }) {
-        const fileName = this.getIndexFileName(packageId);
+        const fileName = this.getIndexName(packageId);
         return { packageId, fileName, contents: index}
       }
     },
 
     //////////////////////
-    // Load a single input file.
+    // Load a single module.
     {
-      name: "loadInputFile",
+      name: "loadModule",
       ACTION: "LOAD_FILE",
       async: true,
-      getParams({ packageId, fileId, reload }) {
-        const fileName = this.getInputFileName(packageId, fileId);
+      getParams({ packageId, moduleId, reload }) {
+        const fileName = this.getModuleFileName(packageId, moduleId);
         return { packageId, fileName, reload, format: Formats.TEXT }
       },
     },
 
     //////////////////////
-    // Save an input file.
+    // Save a module.
     {
-      name: "saveInputFile",
+      name: "saveModule",
       ACTION: "SAVE_FILE",
       async: true,
-      getParams({ packageId, fileId, contents }) {
-        const fileName = this.getInputFileName(packageId, fileId);
+      getParams({ packageId, moduleId, contents }) {
+        const fileName = this.getModuleFileName(packageId, moduleId);
         return { packageId, fileName, contents }
       }
     },

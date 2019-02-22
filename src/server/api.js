@@ -92,6 +92,7 @@ router.post("/packages/:folder/:file", async (request, response) => {
 });
 
 // Delete a specific package file, including the index.
+// NOTE: delete swallows the error if the file can't be found.
 router.delete("/packages/:folder/:file", async (request, response) => {
   const folder = request.params.folder;
   const file = request.params.file;

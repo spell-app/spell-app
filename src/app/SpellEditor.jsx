@@ -2,7 +2,7 @@ import React from "react";
 import keydown from "react-keydown";
 import { Button, Dropdown, Grid, Menu, Segment, TextArea } from "semantic-ui-react"
 
-import packageFactory, { withPackages } from "./redux/packages";
+import packageFactory, { withPackages, INPUT } from "./redux/packages";
 import Spacer from "./Spacer.jsx";
 import "./styles.less";
 import TabbableTextArea from "./TabbableTextArea.jsx";
@@ -26,28 +26,32 @@ export class _SpellEditor extends React.Component {
 
   @keydown("ctrl+n")
   create() {
-    const fileId = prompt("Name for the new file?", "Untitled");
-    if (!fileId) return;
-    const contents = `# Module ${fileId}`;
-    packageFactory.call.newInputFile({ fileId, contents });
+    const moduleId = prompt("Name for the new module?", "Untitled");
+    if (!moduleId) return;
+    const contents = `# Module ${moduleId}`;
+    packageFactory.call.newModule({ moduleId, contents });
   }
 
   duplicate() {
-    const { fileId } = this.props.packages;
-    const newFileId = prompt("Name for the new file?", fileId);
-    if (!newFileId || newFileId === fileId) return;
-    packageFactory.call.duplicateInputFile({ fileId: newFileId });
+    const { moduleId } = this.props.packages;
+    const newModuleId = prompt("Name for the new module?", moduleId);
+    if (!newModuleId || newModuleId === moduleId) return;
+    packageFactory.call.duplicateModule({ moduleId, newModuleId, contents: INPUT });
   }
 
   @keydown("ctrl+d")
   delete() {
-    const { fileId } = this.props.packages;
-    if (!confirm(`Really delete '${fileId}'?`)) return;
-    packageFactory.call.deleteInputFile({ fileId });
+    const { moduleId } = this.props.packages;
+    if (!confirm(`Really delete '${moduleId}'?`)) return;
+    packageFactory.call.deleteModule({ moduleId });
   }
 
-//TODO
-  rename() { packageFactory.call.renameSelected(); }
+  rename() {
+    const { moduleId } = this.props.packages;
+    const newModuleId = prompt("New name?", moduleId);
+    if (!newModuleId || newModuleId === moduleId) return;
+    packageFactory.call.renameModule({ moduleId, newModuleId, contents: INPUT });
+  }
 
 
   dirtyButtons = (
@@ -68,7 +72,7 @@ export class _SpellEditor extends React.Component {
   render() {
     const { packages } = this.props;
 //console.info("SpellEditor.render(): packages:", packages);
-    const { packageId, fileId, input, output, dirty } = packages;
+    const { packageId, moduleId, input, output, dirty } = packages;
     const packageIds = packageFactory.getPackageIds(packages);
     const index = packageFactory.getPackageIndex(packages, packageId);
     // Don't do anything if our data isn't yet loaded
@@ -81,19 +85,19 @@ export class _SpellEditor extends React.Component {
         title: packageId,
         text: packageId,
         content: packageId,
-        onClick: () => packageFactory.call.selectFile({ packageId })
+        onClick: () => packageFactory.call.selectModule({ packageId })
       }
     });
 
-    // Create menuitems for the files menu
-    const fileOptions = index.files.map( file => {
-      const fileId = file.id;
+    // Create menuitems for the modules menu
+    const moduleOptions = index.modules.map( module => {
+      const moduleId = module.id;
       return {
-        value: fileId,
-        title: fileId,
-        text: fileId,
-        content: fileId,
-        onClick: () => packageFactory.call.selectFile({ packageId, fileId })
+        value: moduleId,
+        title: moduleId,
+        text: moduleId,
+        content: moduleId,
+        onClick: () => packageFactory.call.selectModule({ packageId, moduleId })
       }
     });
 
@@ -103,7 +107,7 @@ export class _SpellEditor extends React.Component {
         <Grid.Column width={12}>
           <Menu inverted attached fluid>
             <Dropdown item selection options={packageOptions} value={packageId} style={{ width: "10em" }}/>
-            <Dropdown item selection options={fileOptions} value={fileId} style={{ width: "10em" }}/>
+            <Dropdown item selection options={moduleOptions} value={moduleId} style={{ width: "10em" }}/>
             <Menu.Item onClick={() => this.create()}><u>N</u>ew</Menu.Item>
             <Menu.Item onClick={() => this.duplicate()}>Duplicate</Menu.Item>
             <Spacer/>
