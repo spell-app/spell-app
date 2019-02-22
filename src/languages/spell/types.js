@@ -553,7 +553,7 @@ parser.defineRule({
       const _keywords = match.matched[1].matched;
       if (_keywords.length === 1) {
         const keyword = keywords[0];
-        if (_keywords[0].rule instanceof Rule.Type) {
+        if (_keywords[0].rule.name === "type") {
           console.error(`parse('declare_action'): one-word actions may not be types: ${keyword}`);
         }
         // TODO...
@@ -570,7 +570,7 @@ parser.defineRule({
 
       // if any of the words are types (capital letter) make that an argument of the same name.
       _keywords.map((item, index) => {
-        if (item.rule instanceof Rule.Type) {
+        if (item.rule.name === "type") {
           let Type = keywords[index];
           let type = Type.toLowerCase();
 

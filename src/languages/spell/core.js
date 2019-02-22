@@ -151,7 +151,6 @@ parser.defineRule({
 // NOTE: We blacklist a lot of words as identifiers.
 parser.defineRule({
   name: "identifier",
-  canonical: "Idenfifier",
   pattern: /^[a-z][\w\-]*$/,
   constructor: class identifier extends Rule.Pattern {
     valueMap(value) {
@@ -442,7 +441,6 @@ parser.defineRule({
 parser.defineRule({
   name: "type",
   alias: "expression",
-  canonical: "Type",
   pattern: /^([A-Z][\w\-]*|list|text|number|integer|decimal|character|boolean|object)$/,
   blacklist: ["I"],
   constructor: class type extends Rule.Pattern {

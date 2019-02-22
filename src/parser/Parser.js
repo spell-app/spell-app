@@ -183,7 +183,6 @@ export default class Parser {
   //  `skip` (boolean, optional) Set to true to skip this rule.
   //  `name` (identifier, required)  Base name of the rule.
   //  `alias` (string or [string], optinal) Other names to define rule under.
-  //  `canonical` (string, optional) Canonical name for the rule, available on `Rule` for debugging.
   //  `constructor` (class, required) Class which will be used to instantiate the rule.
   //  `syntax` (string, required) RuleSyntax string for this rule.
   //  `pattern` (RegExp, optional) Regular expression for `Pattern` rules
@@ -213,15 +212,11 @@ export default class Parser {
 
     // throw if required params not provided
     if (!props.name) {
-      throw new ParseError(`parser.define(): You must pass 'constructor' and 'name'`);
+      throw new ParseError(`parser.define(): You must pass the rule 'name'`);
     }
 
     // Note the module that the rule was defined in
     if (this.module) props.module = this.module;
-
-    // If we're a "canonical" rule, set on Rule.
-    // Use this if you want to check the type of a rule in a test or something.
-    if (props.canonical) Rule[props.canonical] = constructor;
 
     // Convert blacklist from list of strings to a map
     if (props.blacklist && Array.isArray(props.blacklist)) {
