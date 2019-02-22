@@ -97,6 +97,8 @@ export default class ReduxFactory {
                             // Use this to invoke an action, returning a promise which will:
                             //    - resolve when the actions completes with the action promise result, or
                             //    - reject with the action promise error on failure.
+                            // You can safely do this in another action handler
+                            //  or during the promise setup to another async action.
                             //
                             //  e.g.   `myFactory.call.someMethod(with, params).then(...)`
 

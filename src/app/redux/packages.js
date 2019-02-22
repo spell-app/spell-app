@@ -141,7 +141,7 @@ const factory = new ReduxFactory({
       name: "saveInput",
       promise({ packageId, fileId, input }) {
         const fileName = this.getInputFileName(packageId, fileId);
-        return factory.call.saveFile({ packageId, fileName, input });
+        return factory.call.saveFile({ packageId, fileName, contents: input });
       },
       onSuccess(packages) {
         return {
