@@ -128,6 +128,15 @@ Rule.TokenType = class tokenType extends Rule {
   }
 }
 
+// Match a single Symbol or Word value
+Rule.Symbol = class symbol extends Rule.TokenType {}
+Rule.Symbol.prototype.name = "symbol";
+Rule.Symbol.prototype.tokenType = Token.Symbol;
+
+Rule.Word = class word extends Rule.TokenType {}
+Rule.Word.prototype.name = "word";
+Rule.Word.prototype.tokenType = Token.Word;
+
 
 // Abstract rule to match a single literal value.
 // `rule.literal` is either:

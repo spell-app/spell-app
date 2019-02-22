@@ -14,7 +14,8 @@ import ReduxFactory from "./redux/ReduxFactory.js";
 import { getPref, setPref, clearAllPrefs } from "./redux/utils/prefs.js";
 
 // Spell parser
-import parser from "../languages/spell/spell.js";
+import spell from "../languages/spell/spell.js";
+import rulex from "../languages/rulex/rulex.js";
 
 
 // Set Parser / Tokenizer debug flags
@@ -39,11 +40,13 @@ Object.assign(global, {
   Token,
   tokenize: Tokenizer.tokenizeWithoutWhitespace,  // HACK
 
-  parser,
-  rules: parser.rules,
-  parse: parser.parse.bind(parser),
-  compile: parser.compile.bind(parser),
-  exp: parser.parse.bind(parser, "expression"),
+  spell,
+  rules: spell.rules,
+  parse: spell.parse.bind(spell),
+  compile: spell.compile.bind(spell),
+  exp: spell.parse.bind(spell, "expression"),
+
+  rulex,
 
   getPref,
   setPref,

@@ -114,7 +114,8 @@ export default class Parser {
     if (!this.__rules) {
       const output = (this.__rules = {});
       // Get all imported parsers, with us FIRST
-      const imports = [this].concat(this.imports.map(Parser.forModule));
+      const forModule = this.constructor.forModule.bind(this.constructor);
+      const imports = [this].concat(this.imports.map(forModule));
       // For each parser
       imports.forEach(parser => {
         for (const ruleName in parser._rules) {
@@ -210,8 +211,9 @@ export default class Parser {
     // set to null in this case
     if (constructor === Object) constructor = null;
 
-    // throw if required params not provided
-    if (!props.name) {
+    // throw if name was not provided
+    const name = props.name || (constructor && constructor.prototype.name);
+    if (!name) {
       throw new ParseError(`parser.define(): You must pass the rule 'name'`);
     }
 
@@ -266,9 +268,9 @@ export default class Parser {
   // Get a parser for a given `contextName`.
   // Will re-use existing parser, or create a new one if not already defined.
   static forModule(module) {
-    if (!Parser.REGISTRY[module]) {
-      Parser.REGISTRY[module] = new Parser({ module });
+    if (!this.REGISTRY[module]) {
+      this.REGISTRY[module] = new this({ module });
     }
-    return Parser.REGISTRY[module];
+    return this.REGISTRY[module];
   }
 }
