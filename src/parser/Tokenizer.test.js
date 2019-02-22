@@ -230,7 +230,7 @@ test("matchSymbol():  Doesn't match empty string.", () => {
 
 test("matchSymbol():  Match a single character.", () => {
   let token = Tokenizer.matchSymbol(":");
-  expect(token).toBeInstanceOf(Token.Literal);
+  expect(token).toBeInstanceOf(Token.Symbol);
   expect(token.value).toBe(":");
   expect(token.end).toBe(1);
 });
@@ -257,7 +257,7 @@ test("matchSymbol():  Doesn't match if start is > end", () => {
 
 test("matchSymbol():  Matches if end is out of range", () => {
   let token = Tokenizer.matchSymbol(":", 0, 100);
-  expect(token).toBeInstanceOf(Token.Literal);
+  expect(token).toBeInstanceOf(Token.Symbol);
   expect(token.value).toBe(":");
   expect(token.end).toBe(1);
 });
@@ -277,21 +277,21 @@ test("matchWord():  If no match, returns undefined", () => {
 
 test("matchWord():  Matches single letter at beginning of string", () => {
   let token = Tokenizer.matchWord("x ");
-  expect(token).toBeInstanceOf(Token.Literal);
+  expect(token).toBeInstanceOf(Token.Word);
   expect(token.value).toBe("x");
   expect(token.end).toBe(1);
 });
 
 test("matchWord():  Matches multiple letters at beginning of string", () => {
   let token = Tokenizer.matchWord("xxxx ");
-  expect(token).toBeInstanceOf(Token.Literal);
+  expect(token).toBeInstanceOf(Token.Word);
   expect(token.value).toBe("xxxx");
   expect(token.end).toBe(4);
 });
 
 test("matchWord():  Matches multiple letters, numbers, underscores at beginning of string", () => {
   let token = Tokenizer.matchWord("xxxx-XXX_y ");
-  expect(token).toBeInstanceOf(Token.Literal);
+  expect(token).toBeInstanceOf(Token.Word);
   expect(token.value).toBe("xxxx-XXX_y");
   expect(token.end).toBe(10);
 });
@@ -313,7 +313,7 @@ test("matchWord():  Does not match leading dash", () => {
 
 test("matchWord():  Respects start parameter before match", () => {
   let token = Tokenizer.matchWord("  xxx  ", 2);
-  expect(token).toBeInstanceOf(Token.Literal);
+  expect(token).toBeInstanceOf(Token.Word);
   expect(token.value).toBe("xxx");
   expect(token.end).toBe(5);
 });
@@ -325,7 +325,7 @@ test("matchWord():  Respects start parameter after match", () => {
 
 test("matchWord():  Doesn't go beyond the end", () => {
   let token = Tokenizer.matchWord("   xxx", 3, 4);
-  expect(token).toBeInstanceOf(Token.Literal);
+  expect(token).toBeInstanceOf(Token.Word);
   expect(token.value).toBe("x");
   expect(token.end).toBe(4);
 });
@@ -342,7 +342,7 @@ test("matchWord():  Doesn't match if start is out of range", () => {
 
 test("matchWord():  Matches if end is out of range", () => {
   let token = Tokenizer.matchWord("xxx", 0, 100);
-  expect(token).toBeInstanceOf(Token.Literal);
+  expect(token).toBeInstanceOf(Token.Word);
   expect(token.value).toBe("xxx");
   expect(token.end).toBe(3);
 });

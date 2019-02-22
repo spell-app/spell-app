@@ -59,9 +59,13 @@ Object.defineProperty(Token.Newline.prototype, "value", { value: "\n" });
 Object.defineProperty(Token.Newline.prototype, "isNormalWhitespace", { value: false });
 
 
-// Literal string class
+// Literal string class which refers to a alphanumeric word
 //  - `literal.value` is the actual text matched.
-Token.Literal = class literal extends Token {}
+Token.Word = class word extends Token {}
+
+// Literal string class which refers to a single non-alphanumeric symbol
+//  - `literal.value` is the actual text matched.
+Token.Symbol = class symbol extends Token {}
 
 // Numeric token class
 //  - `number.value` is the actual number matched.

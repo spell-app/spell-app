@@ -79,23 +79,6 @@ const Tokenizer = {
   },
 
   //
-  //  ### Symbol character
-  //
-
-  // Match the single "symbol" character at `text[start]`.
-  // NOTE: This does not do any checking, it just blindly uses the character in question.
-  //     You should make sure all other possible rules have been exhausted first.
-  matchSymbol(text, start = 0, end) {
-    if (typeof end !== "number" || end > text.length) end = text.length;
-    if (start >= end) return undefined;
-    return new Token.Literal({
-      value: text[start],
-      start,
-      end: start + 1
-    });
-  },
-
-  //
   //  ### Whitespace
   //
 
@@ -159,7 +142,7 @@ const Tokenizer = {
     if (wordEnd === start) return undefined;
 
     const value = text.slice(start, wordEnd);
-    return new Token.Literal({ value, start, end: wordEnd });
+    return new Token.Word({ value, start, end: wordEnd });
   },
 
   //
@@ -186,6 +169,23 @@ const Tokenizer = {
       input,
       start,
       end: start + input.length
+    });
+  },
+
+  //
+  //  ### Symbol character
+  //
+
+  // Match the single "symbol" character at `text[start]`.
+  // NOTE: This does not do any checking, it just blindly uses the character in question.
+  //     You should make sure all other possible rules have been exhausted first.
+  matchSymbol(text, start = 0, end) {
+    if (typeof end !== "number" || end > text.length) end = text.length;
+    if (start >= end) return undefined;
+    return new Token.Symbol({
+      value: text[start],
+      start,
+      end: start + 1
     });
   },
 
