@@ -1,20 +1,20 @@
+// Create master parser for the spell language, importing other rule sets.
 import Parser from "../../parser/Parser.js";
 import Tokenizer from "../../parser/Tokenizer.js";
 
 import { proto } from "../../utils/decorators";
 
-// Load all standard rules files.
-import "./core.js";
-import "./if.js";
-import "./JSX.js";
-import "./lists.js";
-import "./operators.js";
-import "./statements.js";
-import "./types.js";
-import "./UI.js";
+import core from "./core.js";
+import _if_ from "./if.js";
+import JSX from "./JSX.js";
+import lists from "./lists.js";
+import operators from "./operators.js";
+import statements from "./statements.js";
+import types from "./types.js";
+import UI from "./UI.js";
 
 
-export class SpellParser extends Parser {
+class SpellParser extends Parser {
   // Name of our default rule to parse if calling `parser.parse(text)`.
   @proto defaultRule = "statements";
 
@@ -24,7 +24,7 @@ export class SpellParser extends Parser {
 
 // Create parser which combines all of the above...
 const parser = new SpellParser({ module: "spell" });
-// ...which depends on rules loaded above...
-parser.import("core", "operators", "types", "lists", "if", "statements", "JSX", "UI");
-// ...as the default export
 export default parser;
+
+// Import the other rules defined above.
+parser.import(core, operators, types, lists, _if_, statements, JSX, UI);

@@ -3,16 +3,12 @@
 //
 // NOTE: many of the below are created as custom Pattern subclasses for debugging.
 //
-import Parser from "../../parser/Parser";
-import Match from "../../parser/Match";
+import Parser from "../../parser/Parser.js";
 import Rule from "../../parser/Rule";
 import Token from "../../parser/Token";
-import Tokenizer from "../../parser/Tokenizer";
 
-// Create `core` parser.
-const parser = Parser.forModule("core");
+const parser = new Parser({ module: "core" });
 export default parser;
-
 
 parser.defineRule({
   name: "statement",

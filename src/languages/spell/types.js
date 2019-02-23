@@ -7,12 +7,12 @@
 
 import flattenDeep from "lodash/flattenDeep.js";
 
-import Parser from "../../parser/Parser";
+import Parser from "../../parser/Parser.js";
 import Rule from "../../parser/Rule";
 
 import { pluralize } from "../../utils/string";
 
-const parser = Parser.forModule("types");
+const parser = new Parser({ module: "types" });
 export default parser;
 
 //

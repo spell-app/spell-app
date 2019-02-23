@@ -2,11 +2,10 @@
 //  # Rules for if statements.
 //
 
-import Parser from "../../parser/Parser";
+import Parser from "../../parser/Parser.js";
 import Rule from "../../parser/Rule";
 
-// Create "if" parser.
-const parser = Parser.forModule("if");
+const parser = new Parser({ module: "if" });
 export default parser;
 
 // Given a condiiton expression string, wrap it in parens iff it is not already parenthesized properly.

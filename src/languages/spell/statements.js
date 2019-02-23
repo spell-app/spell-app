@@ -2,11 +2,10 @@
 //  # Rules for creating variables, property access, etc
 //
 
-import Parser from "../../parser/Parser";
+import Parser from "../../parser/Parser.js";
 import Rule from "../../parser/Rule";
 
-// Create "statements" parser.
-const parser = Parser.forModule("statements");
+const parser = new Parser({ module: "statements" });
 export default parser;
 
 //

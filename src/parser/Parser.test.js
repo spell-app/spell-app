@@ -136,37 +136,17 @@ describe("parser debug flags", () => {
   });
 });
 
-describe("Parser.forModule()", () => {
-  test("returns a new parser when called for the first time", () => {
-    const parser = Parser.forModule("foo");
-    expect(parser).toBeInstanceOf(Parser);
-    expect(parser.module).toBe("foo");
-  });
-
-  test("returns the same parser when called more than once", () => {
-    const parser1 = Parser.forModule("foo");
-    const parser2 = Parser.forModule("foo");
-    expect(parser1).toBe(parser2);
-  });
-});
-
 
 describe("Parser.import()", () => {
-  test("adds named modules to `imports`", () => {
-    const parser = new Parser();
-    parser.import("foo", "bar");
-    expect(parser.imports).toEqual(["foo", "bar"]);
-  });
-
   test("merges rules as expected", () => {
-    const foo = Parser.forModule("foo");
+    const foo = new Parser({ module: "foo" });
     const [ foo1, foo2, foo4 ] = foo.defineRules(
       { name: "rule1", syntax: "rule1" },
       { name: "rule2", syntax: "rule2" },
       { name: "rule4", constructor: Rule.Group },
     );
 
-    const bar = Parser.forModule("bar");
+    const bar = new Parser({ module: "bar" });
     const [ bar1, bar3, bar4, bar4a ] = bar.defineRules(
       { name: "rule1", syntax: "rule1a" },
       { name: "rule3", syntax: "rule3" },
@@ -174,7 +154,7 @@ describe("Parser.import()", () => {
       { name: "rule4", syntax: "rule4" }
     );
 
-    foo.import("bar");
+    foo.import(bar);
     const rules = foo.rules;
 
     expect(rules.rule1).toBeInstanceOf(Rule.Group);

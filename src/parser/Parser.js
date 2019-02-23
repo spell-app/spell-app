@@ -94,8 +94,7 @@ export default class Parser {
   //    We assume the top-level parser for a language will include all necessary imports automatically.
   //
 
-  // Add one or more named imports to this parser.
-  // Imports increase in priority the later they are in the list.
+  // Add rules from other parsers to this parser.
   imports = [];
   import(...imports) {
     // clear concatenated list of rules so we'll recaculate in `parser.rules`
@@ -117,9 +116,7 @@ export default class Parser {
   get rules() {
     if (!this.__rules) {
       const output = (this.__rules = {});
-      // Get all imported parsers, with us FIRST
-      const forModule = this.constructor.forModule.bind(this.constructor);
-      const imports = [this].concat(this.imports.map(forModule));
+      const imports = [this].concat(this.imports);
       // For each parser
       imports.forEach(parser => {
         for (const ruleName in parser._rules) {
@@ -263,19 +260,5 @@ export default class Parser {
     }
 
     return rules;
-  }
-
-  //
-  // ### Parser registry.
-  //
-  static REGISTRY = {};
-
-  // Get a parser for a given `contextName`.
-  // Will re-use existing parser, or create a new one if not already defined.
-  static forModule(module) {
-    if (!this.REGISTRY[module]) {
-      this.REGISTRY[module] = new this({ module });
-    }
-    return this.REGISTRY[module];
   }
 }

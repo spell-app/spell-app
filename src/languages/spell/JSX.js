@@ -1,14 +1,11 @@
 //
-//  # Rules parsing jsx
+//  # Rules for parsing jsx
 //
-import Parser from "../../parser/Parser";
-import Match from "../../parser/Match";
+import Parser from "../../parser/Parser.js";
 import Token from "../../parser/Token";
-import Tokenizer from "../../parser/Tokenizer";
 import Rule from "../../parser/Rule";
 
-// Create "JSX" parser.
-const parser = Parser.forModule("JSX");
+const parser = new Parser({ module: "JSX" });
 export default parser;
 
 parser.defineRule({

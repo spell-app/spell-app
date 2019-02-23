@@ -5,8 +5,7 @@
 import Parser from "../../parser/Parser";
 import Rule from "../../parser/Rule";
 
-// Create "UI" parser.
-const parser = Parser.forModule("UI");
+const parser = new Parser({ module: "UI" });
 export default parser;
 
 // Alert a message.
