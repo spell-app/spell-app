@@ -94,45 +94,21 @@ export default class Parser {
   //    We assume the top-level parser for a language will include all necessary imports automatically.
   //
 
+  // Start with an empty map of rules
+  rules = {};
+
   // Add rules from other parsers to this parser.
-  imports = [];
   import(...imports) {
-    // clear concatenated list of rules so we'll recaculate in `parser.rules`
-    delete this.__rules;
-    this.imports = this.imports.concat(imports);
-  }
-
-  //
-  // ### Rules
-  //    List of all known rules for this parser.
-  //    You can access named rules as `parser.rules["ruleName"]`
-  //
-
-  // Start with an empty map of rules.
-  _rules = {};
-
-  // Return map of all known rules by rule name, including rules defined in our imports.
-  // NOTE: We memoize this, so make sure to clear `__rules` if you're manipulating rules or imports!
-  get rules() {
-    if (!this.__rules) {
-      const output = (this.__rules = {});
-      const imports = [this].concat(this.imports);
-      // For each parser
-      imports.forEach(parser => {
-        for (const ruleName in parser._rules) {
-          this.mergeRule(output, ruleName, parser._rules[ruleName]);
-        }
-      });
-    }
-    return this.__rules;
+    imports.forEach(parser => {
+      for (const ruleName in parser.rules) {
+        this.mergeRule(this.rules, ruleName, parser.rules[ruleName]);
+      }
+    });
   }
 
   // Add a `rule` to our list of rules!
   // Converts to `Rule.Group` on re-defining the same rule.
   addRule(rule, ruleName) {
-    // Clear memoized `__rules` so we'll recalculate `parser.rules` as necessary
-    delete this.__rules;
-
     // If rule is a Rule subclass, instantiate it
     if (rule.prototype instanceof Rule) rule = new rule();
 
@@ -146,9 +122,9 @@ export default class Parser {
     if (Array.isArray(ruleName)) {
       ruleName.forEach(ruleName => this.addRule(rule, ruleName));
     }
-    // Add to our list of _rules
+    // Add to our list of rules
     else {
-      this.mergeRule(this._rules, ruleName, rule);
+      this.mergeRule(this.rules, ruleName, rule);
     }
     return rule;
   }
