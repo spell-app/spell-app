@@ -14,7 +14,7 @@ import { proto } from "../../utils/decorators";
 
 export class RulexParser extends Parser {
   @proto defaultRule = "statement";
-  @proto removeWhitespacePolicy = Tokenizer.RemoveWhitespacePolicy.INLINE;
+  @proto removeWhitespacePolicy = Tokenizer.WhitespacePolicy.INLINE;
 }
 
 // Create core `rulex` rulex.

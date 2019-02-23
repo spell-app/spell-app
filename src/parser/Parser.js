@@ -27,12 +27,25 @@ export default class Parser {
   // Name of our default rule to parse if calling `parser.parse(text)`.
   @proto defaultRule = "statements";
 
-  // Remove "normal" whitespace (leaving newlines and indents) when parsing
-  @proto removeWhitespacePolicy = Tokenizer.RemoveWhitespacePolicy.INLINE;
+  // Default tokenizer.  You may want to create one in your parser subclasses,
+  //  e.g. to change the whitespacePolicy.
+  @proto tokenizer = new Tokenizer({
+    whitespacePolicy: Tokenizer.WhitespacePolicy.LEADING
+  });
+
+  // Map of all of our rules, including imports.
+  rules = {};
 
   // Constructor.
   constructor(properties) {
     Object.assign(this, properties);
+  }
+
+  //
+  //### Tokenizing
+  //
+  tokenize(text) {
+    return this.tokenizer.tokenize(text);
   }
 
   //
@@ -50,18 +63,11 @@ export default class Parser {
       ruleName = this.defaultRule;
     }
 
-    if (Parser.TIME) console.time("tokenize");
-    // Convert to tokens.
-    let tokens = Tokenizer.tokenize(text);
-    // Remove whitespace as directed
-    tokens = Tokenizer.removeWhitespace(tokens, this.removeWhitespacePolicy);
-    if (Parser.TIME) console.timeEnd("tokenize");
-
     // Bail if we didn't get any tokens back.
+    const tokens = this.tokenize(text);
     if (!tokens || tokens.length === 0) return undefined;
 
     if (Parser.TIME) console.time("parse");
-
     // Parse the rule or throw an exception if rule not found.
     const scope = new Scope(this);
     const rule = scope.getRuleOrDie(ruleName);
@@ -86,16 +92,6 @@ export default class Parser {
     }
     return match.compile();
   }
-
-  //
-  // ###   Imports
-  //    Parsers can depend on other parsers for additional `rules`.
-  //    Imports are lazy-bound into `parser.rules` as necessary.
-  //    We assume the top-level parser for a language will include all necessary imports automatically.
-  //
-
-  // Start with an empty map of rules
-  rules = {};
 
   // Add rules from other parsers to this parser.
   import(...imports) {

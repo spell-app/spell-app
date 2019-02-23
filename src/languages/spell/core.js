@@ -89,7 +89,19 @@ parser.defineRule({
     compile(match) {
       return "//" + `${match.matched[0].whitespace}${match.matched[0].comment}`;
     }
-  }
+  },
+  tests: [
+    {
+      compileAs: "comment",
+      tests: [
+        ["//", "//"],
+        ["// foo", "// foo"],
+        ["-- foo", "// foo"],
+        ["## foo", "// foo"],
+        ["//    foo bar baz", "//    foo bar baz"],
+      ]
+    }
+  ]
 });
 
 // `undefined` as an expression... ???

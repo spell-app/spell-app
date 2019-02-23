@@ -699,7 +699,7 @@ Rule.Statements = class statements extends Rule {
   // Split statements up into blocks and parse 'em.
   parse(scope, tokens) {
     if (!tokens.length) return;
-    var block = Tokenizer.breakIntoBlocks(tokens);
+    var block = scope.parser.tokenizer.breakIntoBlocks(tokens);
     return this.parseBlock(scope, tokens, block);
   }
 

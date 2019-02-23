@@ -38,13 +38,14 @@ Object.assign(global, {
   Rule,
   Tokenizer,
   Token,
-  tokenize: Tokenizer.tokenizeWithoutWhitespace,  // HACK
 
   spell,
   rules: spell.rules,
   parse: spell.parse.bind(spell),
   compile: spell.compile.bind(spell),
   exp: spell.parse.bind(spell, "expression"),
+  tokenizer: spell.tokenizer,
+  tokenize: spell.tokenize.bind(spell),
 
   rulex,
 
