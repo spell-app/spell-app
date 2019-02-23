@@ -13,18 +13,18 @@ export class _SpellEditor extends React.Component {
     packageFactory.call.startup();
   }
 
-  @keydown("ctrl+c")
+  // @keydown("ctrl+c")
   compile() { packageFactory.call.compileInput(); }
 
-  @keydown("ctrl+r")
+  // @keydown("ctrl+r")
   revert() { packageFactory.call.revertInput(); }
 
   reload() { packageFactory.call.reloadSelected(); }
 
-  @keydown("ctrl+s")
+  // @keydown("ctrl+s")
   save() { packageFactory.call.saveInput(); }
 
-  @keydown("ctrl+n")
+  // @keydown("ctrl+n")
   create() {
     const moduleId = prompt("Name for the new module?", "Untitled");
     if (!moduleId) return;
@@ -39,7 +39,7 @@ export class _SpellEditor extends React.Component {
     packageFactory.call.duplicateModule({ moduleId, newModuleId, contents: INPUT });
   }
 
-  @keydown("ctrl+d")
+  // @keydown("ctrl+d")
   delete() {
     const { moduleId } = this.props.packages;
     if (!confirm(`Really delete '${moduleId}'?`)) return;
