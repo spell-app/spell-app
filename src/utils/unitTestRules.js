@@ -9,6 +9,7 @@
 //  TODO: output as a function?
 
 import groupBy from "lodash/groupBy";
+import isEqual from "lodash/isEqual";
 
 import ParseError from "../parser/ParseError.js";
 import Rule from "../parser/Rule.js";
@@ -29,9 +30,7 @@ export default function unitTestModuleRules(parser, moduleName) {
 
   function getTestableRulesForModule(moduleName) {
     const testableRules =
-      !!parser.rules._testable_ &&
-      parser.rules._testable_ instanceof Rule.Choice &&
-      Array.isArray(parser.rules._testable_.rules) &&
+      parser.rules._testable_ instanceof Rule.Group &&
       parser.rules._testable_.rules;
 
     if (!testableRules) return undefined;
@@ -41,6 +40,7 @@ export default function unitTestModuleRules(parser, moduleName) {
   }
 
   function executeRuleTests({ name, tests }) {
+    // Handle simple block of e
     describe(`rule '${name}'`, () => {
       tests.forEach(test => {
         if (test.skip) return;
@@ -87,12 +87,16 @@ export default function unitTestModuleRules(parser, moduleName) {
 
   function executeTest({ input, output, title }, ruleName, showAll) {
     const result = executeCompileTest(ruleName, input, output);
-    // only output the test if the test worked as expected or `showAll` is true
-    if (result !== output || showAll) {
-      // Show returns and tabs in the output display
-      test(title, () => expect(showWhitespace(result)).toBe(showWhitespace(output)));
+    const success = isEqual(result, output);
+    // only output the test if the test failed as expected or `showAll` is true
+    if (!success || showAll) {
+      if (typeof result === "string" && typeof output === "string")
+        // Show returns and tabs in the output display
+        test(title, () => expect(showWhitespace(result)).toBe(showWhitespace(output)));
+      else
+        test(title, () => expect(result).toEqual(output));
     }
-    return result === output;
+    return success;
   }
 
   function executeCompileTest(ruleName, input, output) {

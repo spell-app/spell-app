@@ -39,6 +39,9 @@ export default class Rule {
     Object.assign(this, props);
   }
 
+  // Add type for convenience
+  static TestLocation = TestLocation;
+
   //
   //  Parsing methods -- you MUST implement these in your subclasses!
   //
@@ -131,12 +134,6 @@ Rule.TokenType = class tokenType extends Rule {
   }
 }
 
-// Match a single Symbol
-Rule.Symbol = class symbol extends Rule.TokenType {
-  @proto name = "symbol";
-  @proto tokenType = Token.Symbol;
-}
-
 // Match a single Word
 Rule.Word = class word extends Rule.TokenType {
   @proto name = "word";
@@ -184,9 +181,17 @@ Rule.Literal = class literal extends Rule {
       return `${testLocation}(${promote}${argument}${literal})${optional}`;
     return `${testLocation}${literal}${optional}`;
   }
+
+  // We attempt to merge literals together if possible when creating rules.
+  // We can only do that for ruls that are not "adorned" with promote, argument, etc.
+  get isAdorned() {
+    return !(this.promote || this.argument || this.testLocation || this.esscaped);
+  }
 };
 
-
+// Syntactic sugar for composing rules.
+Rule.Keyword = class keyword extends Rule.Literal {}
+Rule.Symbol = class symbol extends Rule.Literal {}
 
 // Abstract rule for one or more sequential literal values to match.
 // `rule.literals`:
@@ -283,6 +288,7 @@ Rule.Keywords = class keywords extends Rule.Literals {
 //    - a `function(value) => newValue` used to transform the matched value.
 Rule.Pattern = class pattern extends Rule {
   constructor(props) {
+    if (props instanceof RegExp) props = { pattern: props };
     super(props);
     // convert blacklist to a map if necessary
     if (Array.isArray(this.blacklist)) {

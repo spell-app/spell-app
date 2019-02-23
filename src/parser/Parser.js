@@ -16,7 +16,7 @@ import "../utils/polyfill.js";
 
 export default class Parser {
   // Set to `true` to output debug info while adding rules
-  static DEBUG = false;
+  @proto DEBUG = false;
 
   // Should we warn about anomalous conditions?
   static WARN = false;
@@ -122,6 +122,7 @@ export default class Parser {
     else {
       this.mergeRule(this.rules, ruleName, rule);
     }
+
     return rule;
   }
 
@@ -226,6 +227,7 @@ export default class Parser {
 
     // if tests were defined, mark as `_testable_`
     if (props.tests) {
+      if (!this.rules._testable_) this.addRule(new Rule.Group({ name: "_testable_" }));
       // only use the first rule if we got more than one
       // so we don't run the same tests more than once.
       this.addRule(rules[0], "_testable_");

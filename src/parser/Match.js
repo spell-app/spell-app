@@ -1,4 +1,6 @@
-// Result of a successful parser `rule.parse()`.
+import { memoize } from "../utils/decorators";
+
+// Result of a successful `rule.parse()`.
 // - `match.rule` (Rule, required) is the rule that was matched.
 // - `match.matched` (string or [Match], optional) actual value matched,
 //    either as a string or as an array of Matches
@@ -8,6 +10,7 @@ export default class match {
   }
 
   // Syntactic sugar to easily get `results` of the match for sequences, etc.
+  @memoize
   get results() { return this.rule.getResults?.(this) }
 
   // Syntatic sugar to compile the output of the match.

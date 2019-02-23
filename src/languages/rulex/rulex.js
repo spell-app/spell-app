@@ -11,10 +11,23 @@ import Tokenizer from "../../parser/Tokenizer";
 
 import { proto } from "../../utils/decorators";
 
+const { ANYWHERE, AT_START } = Rule.TestLocation;
 
 export class RulexParser extends Parser {
+  @proto module = "rulex";
   @proto defaultRule = "statement";
   @proto removeWhitespacePolicy = Tokenizer.WhitespacePolicy.INLINE;
+
+  static applyFlags(rule) {
+    const { repeatFlag } = rule;
+    if (repeatFlag) {
+      delete rule.repeatFlag;
+      if (repeatFlag === "?") rule.optional = true;
+      else if (repeatFlag === "+") return new Rule.Repeat({ rule });
+      else if (repeatFlag === "*") return new Rule.Repeat({ rule, optional: true });
+    }
+    return rule;
+  }
 }
 
 // Create core `rulex` rulex.
@@ -35,70 +48,102 @@ rulex.defineRule(
 
 
 // A test location signifier, which is always optional.
-const testFlag = rulex.defineRule(
-  class testFlag extends Rule.Literal {
-    name = "testFlag";
-    literal = ["…", "^"];
-    optional = true;
-    compile(match, rule) {
-      rule.testLocation = match.matched[0].value === "…"
-        ? TestLocation.ANYWHERE    // TODO: flags
-        : TestLocation.AT_START;
-      return rule;
+const testLocation = rulex.defineRule({
+  constructor: class testLocation extends Rule.Literal {
+    @proto name = "testLocation";
+    @proto literal = ["…", "^"];
+    @proto optional = true;
+    compile(match) {
+      return (match.matched[0].value === "…")
+        ? ANYWHERE
+        : AT_START;
     }
-  }
-);
+  },
+  tests: [
+    {
+      title: "matches testLocation",
+      tests: [
+        ["", undefined],
+        ["…", ANYWHERE],
+        ["^", AT_START],
+      ]
+    }
+  ]
+})[0]
 
 
 // A promote flag, which is always optional
-const promoteFlag = rulex.defineRule(
-  class promoteFlag extends Rule.Symbols {
-    name = "promoteFlag";
-    literals = ["?", ":"];
-    optional = true;
-    compile(match, rule) {
-      rule.promote = true;    // TODO: flags
-      return rule;
+const promote = rulex.defineRule({
+  constructor: class promote extends Rule.Symbols {
+    @proto name = "promote";
+    @proto literals = ["?", ":"];
+    @proto optional = true;
+    compile(match) {
+      return true;
     }
-  }
-);
+  },
+  tests: [
+    {
+      title: "matches promote",
+      tests: [
+        ["", undefined ],
+        ["?:", true],
+        ["arg:", undefined],
+      ]
+    }
+  ]
+})[0]
 
 // A argument signifier, which is always optional.
-const argument = rulex.defineRule(
-  class argument extends Rule.Sequence {
-    name = "argument";
-    rules = [
-      new Rule.Word({ promote: true }),
+const argument = rulex.defineRule({
+  constructor: class argument extends Rule.Sequence {
+    @proto name = "argument";
+    @proto rules = [
+      new Rule.Word({ argument: "argument" }),
       new Rule.Literal(":")
     ];
-    optional = true;
-    compile(match, rule) {
-      rule.argument = match.matched[0].value;    // TODO: flags
-      return rule;
+    @proto optional = true;
+    compile(match) {
+      return match.results.argument;
     }
-  }
-)
+  },
+  tests: [
+    {
+      title: "matches argument",
+      tests: [
+        ["", undefined],
+        ["arg:", "arg"],
+        ["?:", undefined ],
+      ]
+    }
+  ]
+})[0]
 
 
 // A repeat signifier, which is always optional.
-const repeatFlag = rulex.defineRule(
-  class repeatFlag extends Rule.Literal {
-    name = "repeatFlag";
-    literal = ["?", "*", "+"];
-    optional = true;
-    compile(match, rule) {
-      const literal = match.matched[0].value;
-      if (literal === "?")
-        rule.optional = true; // TODO: flags
-      else if (literal === "*")
-        rule = new Rule.Repeat({ rule, optional: true });
-      else
-        rule = new Rule.Repeat({ rule });
-
-      return rule;
+const repeatFlag = rulex.defineRule({
+  constructor: class repeatFlag extends Rule.Literal {
+    @proto name = "repeatFlag";
+    @proto literal = ["?", "*", "+"];
+    @proto optional = true;
+    compile(match) {
+      return match.matched[0].value;
     }
-  }
-)
+  },
+  tests: [
+    {
+      title: "matches repeatFlag",
+      tests: [
+        ["", undefined],
+        ["?", "?"],
+        ["*", "*"],
+        ["+", "+"],
+      ]
+    }
+  ]
+})[0]
+
+
 
 
 
@@ -106,87 +151,266 @@ const repeatFlag = rulex.defineRule(
 //  Combo rules
 //
 
-// Multiple symbols with an optional repeat signifier at the end.
-rulex.defineRule(
-  class symbols extends Rule.Sequence {
-    name = "symbols";
-    alias = "rule";
-    rules = [
-      testFlag,
-      new Rule.Repeat({ repeat: new Rule.Symbol() }),
+// A single symbol, or `\<symbol>` so we can escape special symbols like "?" and "*".
+// Symbols are combined in `Sequence` if possible.
+// NOTE: you can't have a repeat flag at the end, if you want this,
+//       wrap the symbol in parens, e.g. `(:)?`
+rulex.defineRule({
+  constructor: class symbol extends Rule.Sequence {
+    @proto name = "symbol";
+    @proto rules = [
+      testLocation,
+      new Rule.Pattern({ argument: "escaped", pattern: /^\\$/, optional: true, compile(){ return true } }),
+      new Rule.TokenType({ tokenType: Token.Symbol, argument: "literal" })
+    ];
+    compile(match) {
+      const rule = new Rule.Symbol(match.results);
+      return RulexParser.applyFlags(rule);
+    }
+  },
+  alias: "rule",
+  tests: [
+    {
+      title: "matches symbol",
+      tests: [
+        ["", undefined],
+        [":", new Rule.Symbol({ literal:  ":"  })],
+        ["::", new Rule.Symbol({ literal:  ":"  })],
+
+        ["…:", new Rule.Symbol({ literal:  ":" , testLocation: ANYWHERE })],
+        ["^:", new Rule.Symbol({ literal:  ":" , testLocation: AT_START })],
+
+        ["\\:", new Rule.Symbol({ literal:  ":" , escaped: true })],
+        ["\\?", new Rule.Symbol({ literal:  "?" , escaped: true })]
+
+      ]
+    }
+  ]
+})
+
+// Match  keywords with an optional repeat signifier at the end.
+rulex.defineRule({
+  constructor: class keyword extends Rule.Sequence {
+    @proto name = "keyword";
+    @proto rules = [
+      testLocation,
+      new Rule.Word({ argument: "literal" }),
       repeatFlag
     ];
     compile(match) {
-
+      const rule = new Rule.Keyword(match.results);
+      return RulexParser.applyFlags(rule);
     }
-  }
-)
+  },
+  alias: "rule",
+  tests: [
+    {
+      title: "matches single keyword",
+      tests: [
+        ["", undefined],
+        ["11", undefined],
+        [":", undefined],
 
-// Multiple keywords with an optional repeat signifier at the end.
-rulex.defineRule(
-  class keywords extends Rule.Sequence {
-    name = "keywords";
-    alias = "rule";
-    rules = [
-      testFlag,
-      new Rule.Repeat({ repeat: new Rule.Word() }),
-      repeatFlag
-    ];
-  }
-)
+        ["word", new Rule.Keyword({ literal:  "word"  })],
+
+        ["…word", new Rule.Keyword({ literal:  "word" , testLocation: ANYWHERE })],
+        ["^word", new Rule.Keyword({ literal:  "word" , testLocation: AT_START })],
+
+        ["word?", new Rule.Keyword({ literal:  "word" , optional: true })],
+        ["word+", new Rule.Repeat({ rule: new Rule.Keyword({ literal:  "word"  }) })],
+        ["word*", new Rule.Repeat({ optional: true, rule: new Rule.Keyword({ literal:  "word"  }) })],
+
+      ]
+    }
+  ]
+})
 
 // Subrule
-rulex.defineRule(
-  class subrule extends Rule.Sequence {
-    name = "subrule";
-    alias = "rule";
-    rules = [
-      testFlag,
+rulex.defineRule({
+  constructor: class subrule extends Rule.Sequence {
+    @proto name = "subrule";
+    @proto rules = [
+      testLocation,
       new Rule.Literal("{"),
-      promoteFlag,
+      promote,
       argument,
       new Rule.Word({ argument: "subrule" }),
       new Rule.Literal("}"),
       repeatFlag
     ];
-  }
-);
+    compile(match) {
+      const rule = new Rule.Subrule(match.results);
+      return RulexParser.applyFlags(rule);
+    }
+  },
+  alias: "rule",
+  tests: [
+    {
+      title: "matches subrule",
+      compileAs: "rule",
+      tests: [
+        ["", undefined],
+        ["{}", new Rule.Symbol("{")],
+
+        ["{sub}", new Rule.Subrule({ subrule: "sub" }) ],
+        ["{?:sub}", new Rule.Subrule({ subrule: "sub", promote: true }) ],
+        ["{arg:sub}", new Rule.Subrule({ subrule: "sub", argument: "arg" }) ],
+        ["{?:arg:sub}", new Rule.Subrule({ subrule: "sub", promote: true, argument: "arg" }) ],
+
+        ["{sub}?", new Rule.Subrule({ subrule: "sub", optional: true }) ],
+        ["{sub}+", new Rule.Repeat({ rule: new Rule.Subrule({ subrule: "sub" }) }) ],
+        ["{sub}*", new Rule.Repeat({ optional: true, rule: new Rule.Subrule({ subrule: "sub" }) }) ],
+      ]
+    }
+  ]
+})
 
 
-rulex.defineRule(
-  class Choice extends Rule.Sequence {
-    name = "choice";
-    alias = "rule";
-    rules = [
-      testFlag,
-      new Rule.Literal("("),
-      promoteFlag,
-      argument,
-      new Rule.List({
-        argument: "choices",
-        item: new Rule.Subrule("rule"),
-        delimiter: new Rule.Literal("|")
-      }),
-      new Rule.Literal(")"),
-      repeatFlag
-    ];
-  }
-);
-
-
-rulex.defineRule(
-  class List extends Rule.Sequence {
-    name = "list";
-    alias = "rule";
-    rules = [
-      testFlag,
+rulex.defineRule({
+  constructor: class list extends Rule.Sequence {
+    @proto name = "list";
+    @proto rules = [
+      testLocation,
       new Rule.Literal("["),
-      promoteFlag,
+      promote,
       argument,
       new Rule.Subrule({ argument: "item", subrule: "rule" }),
       new Rule.Subrule({ argument: "delimiter", subrule: "rule" }),
       new Rule.Literal("]"),
       repeatFlag
     ];
-  }
-);
+    compile(match) {
+      const rule = new Rule.List(match.results);
+      return RulexParser.applyFlags(rule);
+    }
+  },
+  alias: "rule",
+  tests: [
+    {
+      title: "matches list",
+      compileAs: "rule",
+      tests: [
+        ["", undefined],
+        ["[]", new Rule.Symbol("[")],         // TODO: error for this?
+        ["[{sub}]", new Rule.Symbol("[")],    // TODO: error for this?
+
+        ["[{sub},]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
+        ["[{sub}or]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Keyword("or") }) ],
+
+        ["…[{sub},]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), testLocation: ANYWHERE }) ],
+        ["^[{sub},]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), testLocation: AT_START }) ],
+
+        ["[?:{sub},]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), promote: true }) ],
+        ["[arg:{sub},]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), argument: "arg" }) ],
+        ["[?:arg:{sub},]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), promote: true, argument: "arg" }) ],
+
+        ["[{sub},]?", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), optional: true }) ],
+        ["[{sub},]+", new Rule.Repeat({ rule: new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) }) ],
+        ["[{sub},]*", new Rule.Repeat({ optional: true, rule: new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) }) ],
+      ]
+    }
+  ]
+})
+
+
+rulex.defineRule({
+  constructor: class choice extends Rule.Sequence {
+    @proto name = "choice";
+    @proto rules = [
+      testLocation,
+      new Rule.Literal("("),
+      promote,
+      argument,
+      new Rule.List({
+        argument: "rules",
+        item: new Rule.Subrule("rule"),
+        delimiter: new Rule.Literal("|")
+      }),
+      new Rule.Literal(")"),
+      repeatFlag
+    ];
+    compile(match) {
+      // If we got exactly one choice, copy the flags onto it and return that.
+      // Note that the choice flags will "beat" the rule flags.
+      if (match.results.rules.length === 1) {
+        const { rules, ...results } = match.results;
+        Object.assign(rules[0], results);
+        return RulexParser.applyFlags(rules[0]);
+      }
+
+      const rule = new Rule.Choice(match.results);
+      return RulexParser.applyFlags(rule);
+    }
+  },
+  alias: "rule",
+  tests: [
+    {
+      title: "single rule in a choice block",
+      compileAs: "rule",
+      tests: [
+        ["", undefined],
+        ["()", new Rule.Symbol("(")],
+
+        // If only one rule matched, return that rule
+        ["(>)", new Rule.Symbol(">")],
+        ["(word)", new Rule.Keyword("word")],
+        ["({sub})", new Rule.Subrule("sub")],
+        ["([{sub},])", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
+
+        // Pass flags whether they were set on the choices or the single rule (a bit confusing)
+        ["(?:{sub})", new Rule.Subrule({ subrule: "sub", promote: true })],
+        ["({?:sub})", new Rule.Subrule({ subrule: "sub", promote: true })],
+        ["(arg:{sub})", new Rule.Subrule({ subrule: "sub", argument: "arg" })],
+        ["({arg:sub})", new Rule.Subrule({ subrule: "sub", argument: "arg" })],
+        ["({sub}?)", new Rule.Subrule({ subrule: "sub", optional: true })],
+        ["({sub})?", new Rule.Subrule({ subrule: "sub", optional: true })],
+        ["({sub}+)", new Rule.Repeat({ rule: new Rule.Subrule({ subrule: "sub" }) })],
+        ["({sub}*)", new Rule.Repeat({ optional: true, rule: new Rule.Subrule({ subrule: "sub" }) })],
+      ]
+    },
+    {
+      title: "multiple rules",
+      compileAs: "rule",
+      showAll: true,
+      tests: [
+        ["(>|a)", new Rule.Choice({ rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+        ["(?:>|a)", new Rule.Choice({ promote: true, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+
+        ["…(>|a)", new Rule.Choice({ testLocation: ANYWHERE, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+        ["^(?:>|a)", new Rule.Choice({ testLocation: AT_START, promote: true, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+
+        ["(arg:>|a)", new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+        ["(?:arg:>|a)", new Rule.Choice({ promote: true, argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+
+        ["(arg:>|a)?", new Rule.Choice({ optional: true, argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+        ["(arg:>|a)*", new Rule.Repeat({ optional: true, rule: new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
+        ["(arg:>|a)+", new Rule.Repeat({ rule: new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
+      ]
+    }
+  ]
+})
+
+
+/*
+rulex.defineRule({
+  constructor: class sequence extends Rule.Repeat {
+    @proto name = "sequence";
+    @proto testRule = new Rule.Pattern(/^[^…\^\(\{\[]$/);
+    @proto repeat = new Rule.Subrule({ subrule: "rule", excludes: "sequence" });
+    compile(match) {
+
+    }
+  },
+  alias: "rule",
+  tests: [
+    {
+      title: "single rule in a choice block",
+      compileAs: "rule",
+      showAll: true,
+      tests: [
+
+      ]
+    }
+  ]
+});
+*/
