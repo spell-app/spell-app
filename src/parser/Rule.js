@@ -19,6 +19,8 @@ import Match from "./Match.js";
 import ParseError from "./ParseError.js";
 import Token from "./Token.js";
 import Tokenizer from "./Tokenizer.js";
+
+import { proto } from "../utils/decorators";
 import { isWhitespace } from "../utils/string";
 
 // Show debug messages on browser only.
@@ -44,7 +46,7 @@ export default class Rule {
   // Test to see if there is ANY WAY that we can be found
   // starting at `start` position of `tokens`.
   //
-  // This used to exit quickly if there is no chance of success,
+  // This is used to exit quickly if there is no chance of success,
   //  and is especially useful for rules which call themselves recursively.
   //
   // Returns:
@@ -66,9 +68,10 @@ export default class Rule {
   compile(match) {}
 
   // Return the precedence for this rule as matched.
-  // Override to do something funky (e.g. `infix_operator_expression`)
+  // Override to do something funky.
+  @proto precedence = 0;
   getPrecedence(match) {
-    return this.precedence || 0;
+    return this.precedence;
   }
 
 

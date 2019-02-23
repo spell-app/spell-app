@@ -11,10 +11,14 @@ import Tokenizer from "../../parser/Tokenizer";
 
 import { proto } from "../../utils/decorators";
 
-// Create core `rulex` rulex.
-const rulex = Parser.forModule("rulex");
-export default rulex;
 
+export class RulexParser extends Parser {
+  static REGISTRY = {};
+}
+
+// Create core `rulex` rulex.
+const rulex = new RulexParser();
+export default rulex;
 
 // Top level entity
 rulex.defineRule(
@@ -36,11 +40,9 @@ const testFlag = rulex.defineRule(
     literal = ["…", "^"];
     optional = true;
     compile(match, rule) {
-      const literal = match.matched[0].value;
-      if (literal === "…")
-        rule.testLocation = TestLocation.ANYWHERE;    // TODO: flags
-      else
-        rule.testLocation = TestLocation.AT_START;
+      rule.testLocation = match.matched[0].value === "…"
+        ? TestLocation.ANYWHERE    // TODO: flags
+        : TestLocation.AT_START;
       return rule;
     }
   }

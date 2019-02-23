@@ -33,6 +33,25 @@ const Tokenizer = {
     return tokens;
   },
 
+  // Flags for removing whitespace after tokenizing via `removeWhitespace()`
+  WhitespacePolicy: {
+    NO: "NO",               // Do NOT eat whitespace at all
+    NORMAL: "NORMAL",       // Eat "normal" whitespace (not newlines or indents)
+    ALL: "ALL"              // Eat all whitespace.
+  },
+
+  // Remove whitespace from tokens.
+  removeWhitespace(tokens, policy = Tokenizer.WhitespacePolicy.ALL) {
+    if (policy === Tokenizer.WhitespacePolicy.NO)
+      return [...tokens];
+
+    if (policy === Tokenizer.WhitespacePolicy.NORMAL)
+      return tokens.filter(token => !token.isNormalWhitespace);
+
+    // Remove ALL whitespace
+    return tokens.filter(token => !token instanceof Token.Whitespace);
+  },
+
   // Tokenize string and return tokens WITHOUT whitespace
   tokenizeWithoutWhitespace(text, start, end) {
     return Tokenizer.tokenize(text, start, end)

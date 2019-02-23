@@ -11,6 +11,7 @@ import Token from "./Token.js";
 import Tokenizer from "./Tokenizer.js";
 
 import { cloneClass } from "../utils/class.js";
+import { proto } from "../utils/decorators";
 import "../utils/polyfill.js";
 
 export default class Parser {
@@ -22,6 +23,12 @@ export default class Parser {
 
   // Set to `true` to output timing info.
   static TIME = false;
+
+  // Name of our default rule to parse if calling `parser.parse(text)`.
+  @proto defaultRule = "statements";
+
+  // Remove "normal" whitespace (leaving newlines and indents) when parsing
+  @proto whitespacePolicy = Tokenizer.WhitespacePolicy.NORMAL;
 
   // Constructor.
   constructor(properties) {
@@ -40,23 +47,20 @@ export default class Parser {
     // If only one argument, assume that's the text and parse `statements`
     if (arguments.length === 1) {
       text = ruleName;
-      ruleName = "statements";
+      ruleName = this.defaultRule;
     }
 
-    // Convert to tokens.
     if (Parser.TIME) console.time("tokenize");
-    // Get tokens WITHOUT NON-INDENTED WHITESPACE since we ignore them anyway
-    let tokens = Tokenizer.tokenizeWithoutWhitespace(text);
+    // Convert to tokens.
+    let tokens = Tokenizer.tokenize(text);
+    // Remove whitespace as directed
+    tokens = Tokenizer.removeWhitespace(tokens, this.whitespacePolicy);
     if (Parser.TIME) console.timeEnd("tokenize");
 
     // Bail if we didn't get any tokens back.
     if (!tokens || tokens.length === 0) return undefined;
 
     if (Parser.TIME) console.time("parse");
-    // If we're not parsing `statements`, eat whitespace at the beginning of the line.
-    if (ruleName !== "statements") {
-      tokens = Tokenizer.removeLeadingWhitespace(tokens);
-    }
 
     // Parse the rule or throw an exception if rule not found.
     const scope = new Scope(this);
@@ -74,7 +78,7 @@ export default class Parser {
     // If only one argument, assume that's the text and parse `statements`
     if (arguments.length === 1) {
       text = ruleName;
-      ruleName = "statements";
+      ruleName = this.defaultRule;
     }
     let match = this.parse(ruleName, text);
     if (!match) {
