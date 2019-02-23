@@ -128,13 +128,22 @@ export default class Parser {
 
   // Add a `rule` to our list of rules!
   // Converts to `Rule.Group` on re-defining the same rule.
-  addRule(ruleName, rule) {
+  addRule(rule, ruleName) {
     // Clear memoized `__rules` so we'll recalculate `parser.rules` as necessary
     delete this.__rules;
 
+    // If rule is a Rule subclass, instantiate it
+    if (rule.prototype instanceof Rule) rule = new rule();
+
+    // If we didn't get a ruleName, try `rule.name`
+    if (!ruleName) {
+      if (!rule.name) throw new ParseError("addRule(): you must set 'rule.name' or pass an explicit ruleName");
+      ruleName = rule.name;
+    }
+
     // If we got an array of `ruleName`s, recursively add under each name with the same `rule`.
     if (Array.isArray(ruleName)) {
-      ruleName.forEach(ruleName => this.addRule(ruleName, rule));
+      ruleName.forEach(ruleName => this.addRule(rule, ruleName));
     }
     // Add to our list of _rules
     else {
@@ -191,18 +200,10 @@ export default class Parser {
   //  `blacklist` ([string], optional) Array of strings as blacklist for pattern rules.
   //  `testRule` (Rule or string, optional) Rule or keywords string to use as a test rule.
   //    Specifying this can let us jump out quickly if there is no possible match.
-  //
-  // Note that we munge the `constructor` passed in for efficiency while parsing.
   defineRule(ruleProps) {
-    // If passed in a `rule` instance, just add it
-    if (ruleProps instanceof Rule) {
-      if (!ruleProps.name) {
-        const message = `parser.defineRule(): you must set rule.name when passing a rule object`;
-//        console.error(message, ruleProps);
-        throw new ParseError(message);
-      }
-      return this.addRule(ruleProps.name, ruleProps);
-    }
+    // If passed in a Rule instance or rule instance, just call addRule
+    if (ruleProps instanceof Rule || ruleProps.prototype instanceof Rule)
+      return this.addRule(ruleProps);
 
     let { skip, constructor, ...props } = ruleProps;
     if (skip) return;
@@ -248,13 +249,13 @@ export default class Parser {
     if (!rules || rules.length === 0)
       throw new ParseError(`defineRule(${props.syntax}): didnt get rules back`);
 
-    rules.forEach(rule => this.addRule(names, rule));
+    rules.forEach(rule => this.addRule(rule, names));
 
     // if tests were defined, mark as `_testable_`
     if (props.tests) {
       // only use the first rule if we got more than one
       // so we don't run the same tests more than once.
-      this.addRule("_testable_", rules[0]);
+      this.addRule(rules[0], "_testable_");
     }
 
     return rules;
