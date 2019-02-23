@@ -20,11 +20,13 @@ import { isNode } from "browser-or-node";
 //  Debug states
 //
 //////////////////////////////
-export const OFF = 0;
-export const ERROR = 1;
-export const WARN = 2;
-export const INFO = 3;
-export const DEBUG = 4;
+export const DebugLevel = {
+  OFF: 0,
+  ERROR: 1,
+  WARN: 2,
+  INFO: 3,
+  DEBUG: 4,
+}
 
 
 // Colors
@@ -35,7 +37,7 @@ const DEBUG_STYLE = `color: #999;`;
 
 
 // Add debug methods to `object`
-export default function addDebugMethods(prefix, object = {}, debugLevel = INFO) {
+export default function addDebugMethods(prefix, object = {}, debugLevel = DebugLevel.INFO) {
     if (!prefix)
         throw new TypeError("addDebugMethods(): you must pass a 'prefix'");
 
@@ -50,10 +52,10 @@ export default function addDebugMethods(prefix, object = {}, debugLevel = INFO) 
     }
 
     // Add normal debuggers
-    object.debug = makeLogger(DEBUG, prefix, DEBUG_STYLE, "log");
-    object.info = makeLogger(INFO, prefix, INFO_STYLE, "info");
-    object.warn = makeLogger(WARN, prefix, WARN_STYLE, "warn");
-    object.error = makeLogger(ERROR, prefix, ERROR_STYLE, "error");
+    object.debug = makeLogger(DebugLevel.DEBUG, prefix, DEBUG_STYLE, "log");
+    object.info = makeLogger(DebugLevel.INFO, prefix, INFO_STYLE, "info");
+    object.warn = makeLogger(DebugLevel.WARN, prefix, WARN_STYLE, "warn");
+    object.error = makeLogger(DebugLevel.ERROR, prefix, ERROR_STYLE, "error");
 
     // Add assert
     object.assert = function(condition, ...messages) {
@@ -73,7 +75,7 @@ window.addDebugMethods = addDebugMethods;
 // Create a logging function.
 export function makeLogger(debugLevel, prefix, style, consoleMethodName = "log") {
     return function(...messageBits) {
-        if (this.DEBUG < debugLevel)
+        if (debugLevel > this.DEBUG)
             return;
         // Ignore coloring on node since it doesn't work that way... :-(
         const coloredBits
@@ -129,11 +131,11 @@ window.colorLogMessages = colorLogMessages;
 export function normalizeDebugLevel(debugFlag) {
     if (typeof debugFlag === "string") {
         switch (debugFlag) {
-            case "OFF":     return OFF;
-            case "ERROR":   return ERROR;
-            case "WARN":    return WARN;
-            case "INFO":    return INFO;
-            case "DEBUG":   return DEBUG;
+            case "OFF":     return DebugLevel.OFF;
+            case "ERROR":   return DebugLevel.ERROR;
+            case "WARN":    return DebugLevel.WARN;
+            case "INFO":    return DebugLevel.INFO;
+            case "DEBUG":   return DebugLevel.DEBUG;
             default:
                 throw new TypeError(`normalizeDebugLevel(): dont understand debugFlag ${JSON.stringify(debugFlag)}`);
         }

@@ -81,7 +81,7 @@ import _snakeCase from "lodash/snakeCase";
 import { isNode } from "browser-or-node";
 import { applyMiddleware, bindActionCreators, combineReducers, compose, createStore } from "redux";
 
-import addDebugMethods from "./utils/addDebugMethods.js";
+import addDebugMethods, { DebugLevel } from "./utils/addDebugMethods.js";
 import makeDeferred from "./utils/makeDeferred.js";
 import { getPref, setPref } from './utils/prefs.js';
 
@@ -118,7 +118,7 @@ export default class ReduxFactory {
       throw new TypeError("new ReduxFactory(): you must pass 'domain' prop on construction.");
 
     // Make this instance debuggable with its domain as debug message prefix.
-    addDebugMethods(this.domain, this);
+    addDebugMethods(this.domain, this, ReduxFactory.DEBUG);
 
     // If we were passed a list of `actions`, set them up using `addAction` and `addAsyncAction`
     const { actions } = this;
@@ -889,5 +889,5 @@ if (actionName === "loadPackageIds") console.warn("YO");
 
 // Make class debuggable
 // We'll make isntances debuggable automatically on construction
-addDebugMethods("ReduxFactory", ReduxFactory)
+addDebugMethods("ReduxFactory", ReduxFactory, DebugLevel.WARN)
 
