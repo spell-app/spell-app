@@ -1,3 +1,5 @@
+import { proto } from "../utils/decorators";
+
 // Base, abstract token class.
 // This is also the root of various token types.
 //
@@ -35,7 +37,8 @@ export default class Token {
   }
 }
 
-// `whitespace` class for normal (non-indent, non-newline) whitespace.
+// Base `whitespace` class for all whitespace variants.
+// You'll generally create one of `Token.InlineWhitespace`, `Token.Indent` or `Token.Indent` instead.
 //  `whitespace.value` is the actual whitespace string.
 Token.Whitespace = class whitespace extends Token {
   // Return the "length" of this whitespace, eg for an indent.
@@ -47,16 +50,17 @@ Token.Whitespace = class whitespace extends Token {
     return this.value;
   }
 }
-Object.defineProperty(Token.Whitespace.prototype, "isNormalWhitespace", { value: true });
+
+// Inline whitespace class.
+Token.InlineWhitespace = class inlineWhitespace extends Token.Whitespace {}
 
 // `indent` class.
 Token.Indent = class indent extends Token.Whitespace {}
-Object.defineProperty(Token.Indent.prototype, "isNormalWhitespace", { value: false });
 
-// `newline` class.
-Token.Newline = class newline extends Token.Whitespace {}
-Object.defineProperty(Token.Newline.prototype, "value", { value: "\n" });
-Object.defineProperty(Token.Newline.prototype, "isNormalWhitespace", { value: false });
+// `newline` class, value is always a single return.
+Token.Newline = class newline extends Token.Whitespace {
+  @proto value = "\n";
+}
 
 
 // Literal string class which refers to a alphanumeric word

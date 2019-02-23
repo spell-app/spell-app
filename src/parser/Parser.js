@@ -28,7 +28,7 @@ export default class Parser {
   @proto defaultRule = "statements";
 
   // Remove "normal" whitespace (leaving newlines and indents) when parsing
-  @proto whitespacePolicy = Tokenizer.WhitespacePolicy.NORMAL;
+  @proto removeWhitespacePolicy = Tokenizer.RemoveWhitespacePolicy.INLINE;
 
   // Constructor.
   constructor(properties) {
@@ -54,7 +54,7 @@ export default class Parser {
     // Convert to tokens.
     let tokens = Tokenizer.tokenize(text);
     // Remove whitespace as directed
-    tokens = Tokenizer.removeWhitespace(tokens, this.whitespacePolicy);
+    tokens = Tokenizer.removeWhitespace(tokens, this.removeWhitespacePolicy);
     if (Parser.TIME) console.timeEnd("tokenize");
 
     // Bail if we didn't get any tokens back.

@@ -131,14 +131,17 @@ Rule.TokenType = class tokenType extends Rule {
   }
 }
 
-// Match a single Symbol or Word value
-Rule.Symbol = class symbol extends Rule.TokenType {}
-Rule.Symbol.prototype.name = "symbol";
-Rule.Symbol.prototype.tokenType = Token.Symbol;
+// Match a single Symbol
+Rule.Symbol = class symbol extends Rule.TokenType {
+  @proto name = "symbol";
+  @proto tokenType = Token.Symbol;
+}
 
-Rule.Word = class word extends Rule.TokenType {}
-Rule.Word.prototype.name = "word";
-Rule.Word.prototype.tokenType = Token.Word;
+// Match a single Word
+Rule.Word = class word extends Rule.TokenType {
+  @proto name = "word";
+  @proto tokenType = Token.Word;
+}
 
 
 // Abstract rule to match a single literal value.
@@ -191,6 +194,9 @@ Rule.Literal = class literal extends Rule {
 // `rule.literalSeparator`
 //    the string to put between multiple literals when joining multiple literals together.
 Rule.Literals = class literals extends Rule {
+  // By default, join literals with no space between
+  @proto literalSeparator = "";
+
   constructor(props) {
     // If passed a string, use that as our `literals`
     if (typeof props === "string") props = { literals: props };
@@ -244,7 +250,6 @@ Rule.Literals = class literals extends Rule {
     return `${testLocation}${literals}${optional}`;
   }
 };
-Object.defineProperty(Rule.Literals.prototype, "literalSeparator", { value: "" });
 
 // One or more literal symbols: `<`, `%` etc.
 // Symbols join WITHOUT spaces.
@@ -253,6 +258,9 @@ Rule.Symbols = class symbols extends Rule.Literals {};
 // One or more literal keywords.
 // Keywords join WITH spaces.
 Rule.Keywords = class keywords extends Rule.Literals {
+  // Join literals with a space in-between.
+  @proto literalSeparator = " ";
+
   constructor(props) {
     super(props);
     // If we got exactly one literal, return a Rule.Literal instead which should be faster
@@ -264,7 +272,6 @@ Rule.Keywords = class keywords extends Rule.Literals {
     }
   }
 };
-Object.defineProperty(Rule.Keywords.prototype, "literalSeparator", { value: " " });
 
 // Regex pattern to match a SINGLE token.
 // `rule.pattern` is the regular expression to match.
@@ -660,6 +667,7 @@ Rule.Sequence = class sequence extends Rule {
 // `statements` automatically parse comments at the end of their line
 //  (available as `match.comment`)
 Rule.Statement = class statement extends Rule.Group {
+  @proto argument = "statement";
   parse(scope, tokens) {
     if (!tokens.length) return;
 
@@ -681,7 +689,6 @@ Rule.Statement = class statement extends Rule.Group {
     return match;
   }
 }
-Rule.Statement.prototype.argument = "statement";
 
 
 // `Statements` are a special case for a block of `Statement` rules

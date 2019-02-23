@@ -35,7 +35,7 @@ export default class scope {
     clone.rules = { ...this.rules };
 
     const rule = clone.getRuleOrDie(ruleName);
-    if (!rule instanceof Rule.Group)
+    if (!(rule instanceof Rule.Group))
         throw new ParseError(`cloneExcludingRules(): expected ${ruleName} to be a Group!`);
 
     // Clone the rule and remove the excluded rules

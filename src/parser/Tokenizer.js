@@ -34,28 +34,28 @@ const Tokenizer = {
   },
 
   // Flags for removing whitespace after tokenizing via `removeWhitespace()`
-  WhitespacePolicy: {
+  RemoveWhitespacePolicy: {
     NO: "NO",               // Do NOT eat whitespace at all
-    NORMAL: "NORMAL",       // Eat "normal" whitespace (not newlines or indents)
+    INLINE: "INLINE",       // Eat "inline" whitespace (not newlines or indents)
     ALL: "ALL"              // Eat all whitespace.
   },
 
   // Remove whitespace from tokens.
-  removeWhitespace(tokens, policy = Tokenizer.WhitespacePolicy.ALL) {
-    if (policy === Tokenizer.WhitespacePolicy.NO)
+  removeWhitespace(tokens, policy = Tokenizer.RemoveWhitespacePolicy.ALL) {
+    if (policy === Tokenizer.RemoveWhitespacePolicy.NO)
       return [...tokens];
 
-    if (policy === Tokenizer.WhitespacePolicy.NORMAL)
-      return tokens.filter(token => !token.isNormalWhitespace);
+    if (policy === Tokenizer.RemoveWhitespacePolicy.INLINE)
+      return tokens.filter(token => !(token instanceof Token.InlineWhitespace));
 
     // Remove ALL whitespace
-    return tokens.filter(token => !token instanceof Token.Whitespace);
+    return tokens.filter(token => !(token instanceof Token.Whitespace));
   },
 
   // Tokenize string and return tokens WITHOUT whitespace
   tokenizeWithoutWhitespace(text, start, end) {
     return Tokenizer.tokenize(text, start, end)
-      .filter(token => !token.isNormalWhitespace);
+      .filter(token => !(token instanceof Token.InlineWhitespace));
   },
 
   // Repeatedly execute a `method` (bound to `this) which returns a `[result, nextStart]` or `undefined`.
@@ -107,7 +107,7 @@ const Tokenizer = {
   //      is considered an "indent" and will have `.isIndent === true`.
   //
 
-  // Convert a run of spaces and/or tabs into a `Token.Whitespace`.
+  // Convert a run of spaces and/or tabs into a `Token.Indent` or `Token.InlineWhitespace`.
   matchWhitespace(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
@@ -123,7 +123,7 @@ const Tokenizer = {
     }
     if (start === 0 || text[start - 1] === "\n")
       return new Token.Indent(props);
-    return new Token.Whitespace(props);
+    return new Token.InlineWhitespace(props);
   },
 
   //
