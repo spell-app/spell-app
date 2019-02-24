@@ -25,7 +25,7 @@ import {
 } from "../utils/all.js";
 
 // Show debug messages on browser only.
-const DEBUG = !isNode;
+const DEBUG = false;//!isNode;
 
 // Should we test at the start of the tokens, or anywhere in the range?
 export const TestLocation = {
@@ -113,6 +113,12 @@ export class Rule {
     if (undefinedFound) return undefined;
     return false;
   }
+
+  // We attempt to merge literals together if possible when creating rules.
+  // We can only do that for ruls that are not "adorned" with promote, argument, etc.
+  get isAdorned() {
+    return !!(this.optional || this.promote || this.argument || this.testLocation || this.isEscaped);
+  }
 }
 
 // Abstract rule for matching tokens of a particular type (Token constructor)
@@ -172,21 +178,18 @@ Rule.Literal = class literal extends Rule {
   }
 
   toSyntax() {
+    const isChoice = Array.isArray(this.literal);
+    const literal = isChoice
+      ? this.literal.join("|")
+      : (this.isEscaped ? `\\${this.literal}` : this.literal);
+
     const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` :"";
-    const isChoice = Array.isArray(this.literal);
-    const literal = isChoice ? this.literal.join("|") : this.literal;
     const optional = this.optional ? "?" : "";
-    if (isChoice || promote || argument)
+    if (isChoice || promote || argument || (this.isEscaped && optional))
       return `${testLocation}(${promote}${argument}${literal})${optional}`;
     return `${testLocation}${literal}${optional}`;
-  }
-
-  // We attempt to merge literals together if possible when creating rules.
-  // We can only do that for ruls that are not "adorned" with promote, argument, etc.
-  get isAdorned() {
-    return !!(this.optional || this.promote || this.argument || this.testLocation || this.escaped);
   }
 };
 
@@ -246,11 +249,14 @@ Rule.Literals = class literals extends Rule {
   }
 
   toSyntax() {
+    const literals = this.literals.map(literal => {
+      if (typeof literal === "string") return literal;
+      return `(${literal.join("|")})`;
+    }).join(this.literalSeparator);
+
     const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` :"";
-    const isChoice = this.isChoice;
-    const literals = this.literals.join(this.literalSeparator);
     const optional = this.optional ? "?" : "";
     if (promote || argument)
       return `${testLocation}(${promote}${argument}${literals})${optional}`;
@@ -330,6 +336,7 @@ Rule.Subrule = class subrule extends Rule {
   constructor(props) {
     if (typeof props === "string") props = { subrule: props };
     super(props);
+    if (this.excludes && typeof this.excludes === "string") this.excludes = [this.excludes];
   }
 
   // Ask the subrule to figure out if a match is possible.
@@ -358,10 +365,10 @@ Rule.Subrule = class subrule extends Rule {
     const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` : "";
-    const excludes = this.excludes ? `!${this.exludes.join("!")}:` : "";
+    const excludes = this.excludes ? `!${this.excludes.join("!")}:` : "";
     const optional = this.optional ? "?" : "";
     return (
-      `${testLocation}{${argument}${this.subrule}${excludes}}${optional}`
+      `${testLocation}{${promote}${argument}${this.subrule}${excludes}}${optional}`
     );
   }
 };
@@ -398,7 +405,7 @@ Rule.Choice = class choices extends Rule {
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(scope, tokens) {
-    if (DEBUG) console.group(`matching choices ${this.argument || this.name || this.toSyntax()}`, tokens);
+    if (DEBUG) console.group(`matching '${this.argument || this.name || this.toSyntax()}'`, tokens);
     const matches = [];
     for (let i = 0, rule; rule = this.rules[i++];) {
       const match = rule.parse(scope, tokens);
@@ -576,7 +583,7 @@ Rule.List = class list extends Rule {
     const item = this.item.toSyntax();
     const delimiter = this.delimiter.toSyntax();
     const optional = this.optional ? "?" : "";
-    return `${testLocation}[${promote}${argument}${item} ${delimiter}]${optional}`;
+    return `${testLocation}[${promote}${argument}${item}${delimiter}]${optional}`;
   }
 };
 
@@ -626,7 +633,7 @@ Rule.Nested = class nesting extends Rule {
 // If nested start/end blocks are found, WHAT WILL HAPPEN???
 Rule.NestedSplit = class nesting extends Rule.Nested {
   parse(scope, tokens) {
-//    scope = scope.resetRules();
+    scope = scope.resetRules();
     const end = this.findNestedEnd(scope, tokens);
     if (end === undefined) return;
 
@@ -783,9 +790,14 @@ Rule.Sequence = class sequence extends Rule {
 
   // Echo this rule back out.
   toSyntax() {
-    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
     const rules = this.rules.map(rule => rule.toSyntax()).join(" ");
+
+    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
+    const promote = this.promote ? "?:" : "";
+    const argument = this.argument ? `${this.argument}:` : "";
     const optional = this.optional ? "?" : "";
+    if (promote || optional || argument)
+      return `(${promote}${argument}${rules})${optional}`;
     return `${testLocation}${rules}${optional}`;
   }
 };

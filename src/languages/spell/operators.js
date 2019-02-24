@@ -27,7 +27,11 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
-      tests: [["a and b", "(a && b)"]]
+      tests: [
+        ["a and b", "(a && b)"],
+        ["a and b and c", "(a && (b && c))"],
+        ["a is 1 and b is 2", "((a == 1) && (b == 2))"]
+      ],
     }
   ]
 });

@@ -150,7 +150,7 @@ parser.defineRule({
 //TOOD: multiple lines if > 2 props?
 parser.defineRule({
   name: "object_literal_properties",
-  syntax: "[({key:identifier}(?:= {value:expression})?) ,]",
+  syntax: "[({key:identifier}(?:= {value:expression})?),]",
   constructor: class object_literal_properties extends Rule.List {
     compile(match) {
       let props = match.matched.map(function(prop) {
@@ -333,7 +333,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "inline_list",
-  syntax: "((?:[{items:expression},])|{expression})",
+  syntax: "([?:{items:expression},]|{expression})",
   constructor: class inline_list extends Rule.Sequence {
     compile(match) {
       const { expression, items } = match.results;
@@ -390,7 +390,7 @@ parser.defineRule({
 parser.defineRule({
   name: "getter",
   alias: ["statement", "mutatesScope"],
-  syntax: "get {name:identifier}\\: return? {expression}?",
+  syntax: "get {name:identifier} \\: return? {expression}?",
   testRule: "get",
   constructor: class getter extends Rule.BlockStatement {
     compile(match) {

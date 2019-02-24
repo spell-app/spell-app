@@ -129,7 +129,7 @@ rulex.defineRule({
   name: "symbol",
   rules: [
     testLocation,
-    new Rule.Pattern({ argument: "escaped", pattern: /^\\$/, optional: true, compile(){ return true } }),
+    new Rule.Pattern({ argument: "isEscaped", pattern: /^\\$/, optional: true, compile(){ return true } }),
     new Rule.TokenType({ tokenType: Token.Symbol, argument: "literal" })
   ],
   constructor: class rulex_symbol extends Rule.Sequence {
@@ -150,8 +150,8 @@ rulex.defineRule({
         ["…:", new Rule.Symbol({ literal:  ":" , testLocation: ANYWHERE })],
         ["^:", new Rule.Symbol({ literal:  ":" , testLocation: AT_START })],
 
-        ["\\:", new Rule.Symbol({ literal:  ":" , escaped: true })],
-        ["\\?", new Rule.Symbol({ literal:  "?" , escaped: true })]
+        ["\\:", new Rule.Symbol({ literal:  ":" , isEscaped: true })],
+        ["\\?", new Rule.Symbol({ literal:  "?" , isEscaped: true })]
 
       ]
     }
@@ -187,8 +187,8 @@ rulex.defineRule({
         ["^word", new Rule.Keyword({ literal:  "word" , testLocation: AT_START })],
 
         ["word?", new Rule.Keyword({ literal:  "word" , optional: true })],
-        ["word+", new Rule.Repeat({ rule: new Rule.Keyword({ literal:  "word"  }) })],
-        ["word*", new Rule.Repeat({ optional: true, rule: new Rule.Keyword({ literal:  "word"  }) })],
+        ["word+", new Rule.Repeat({ repeat: new Rule.Keyword({ literal:  "word"  }) })],
+        ["word*", new Rule.Repeat({ optional: true, repeat: new Rule.Keyword({ literal:  "word"  }) })],
 
       ]
     }
@@ -209,6 +209,8 @@ rulex.defineRule({
           promote,
           argument,
           new Rule.Word({ argument: "subrule" }),
+          new Rule.Symbol({ literal: "!", optional: true }),
+          new Rule.Word({ argument: "excludes", optional: true })
         ],
         compile(match) {
           return new Rule.Subrule(match.results);
@@ -240,8 +242,8 @@ rulex.defineRule({
         ["{^?:arg:sub}", new Rule.Subrule({ subrule: "sub", promote: true, argument: "arg", testLocation: AT_START }) ],
 
         ["{sub}?", new Rule.Subrule({ subrule: "sub", optional: true }) ],
-        ["{sub}+", new Rule.Repeat({ rule: new Rule.Subrule({ subrule: "sub" }) }) ],
-        ["{sub}*", new Rule.Repeat({ optional: true, rule: new Rule.Subrule({ subrule: "sub" }) }) ],
+        ["{sub}+", new Rule.Repeat({ repeat: new Rule.Subrule({ subrule: "sub" }) }) ],
+        ["{sub}*", new Rule.Repeat({ optional: true, repeat: new Rule.Subrule({ subrule: "sub" }) }) ],
       ]
     }
   ]
@@ -294,8 +296,8 @@ rulex.defineRule({
         ["[?:arg:{sub},]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), promote: true, argument: "arg" }) ],
 
         ["[{sub},]?", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), optional: true }) ],
-        ["[{sub},]+", new Rule.Repeat({ rule: new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) }) ],
-        ["[{sub},]*", new Rule.Repeat({ optional: true, rule: new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) }) ],
+        ["[{sub},]+", new Rule.Repeat({ repeat: new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) }) ],
+        ["[{sub},]*", new Rule.Repeat({ optional: true, repeat: new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) }) ],
       ]
     }
   ]
@@ -324,7 +326,7 @@ rulex.defineRule({
 
         // If we got exactly one choice, copy the flags onto it and return that.
         // Note that the choice's flags will "beat" the rule's flags.
-        if (rules.length === 1) {
+        if (rules.length === 1 && !(rules[0] instanceof rulex_sequence)) {
           delete match.results.rules;
           Object.assign(rules[0], match.results);
           return applyFlags(rules[0]);
@@ -364,8 +366,8 @@ rulex.defineRule({
         ["({arg:sub})", new Rule.Subrule({ subrule: "sub", argument: "arg" })],
         ["({sub}?)", new Rule.Subrule({ subrule: "sub", optional: true })],
         ["({sub})?", new Rule.Subrule({ subrule: "sub", optional: true })],
-        ["({sub}+)", new Rule.Repeat({ rule: new Rule.Subrule({ subrule: "sub" }) })],
-        ["({sub}*)", new Rule.Repeat({ optional: true, rule: new Rule.Subrule({ subrule: "sub" }) })],
+        ["({sub}+)", new Rule.Repeat({ repeat: new Rule.Subrule({ subrule: "sub" }) })],
+        ["({sub}*)", new Rule.Repeat({ optional: true, repeat: new Rule.Subrule({ subrule: "sub" }) })],
 
         // consolidate multiple keywords
         ["(a|b|c)?", new Rule.Keyword({ literal:["a","b","c"], optional: true })],
@@ -391,8 +393,8 @@ rulex.defineRule({
         ["(?:arg:>|a)", new Rule.Choice({ promote: true, argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
 
         ["(arg:>|a)?", new Rule.Choice({ optional: true, argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
-        ["(arg:>|a)*", new Rule.Repeat({ optional: true, rule: new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
-        ["(arg:>|a)+", new Rule.Repeat({ rule: new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
+        ["(arg:>|a)*", new Rule.Repeat({ optional: true, repeat: new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
+        ["(arg:>|a)+", new Rule.Repeat({ repeat: new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
       ]
     },
     {
@@ -412,42 +414,65 @@ rulex.defineRule({
 
 
 
+class rulex_sequence extends Rule.Repeat {
+  compile(match) {
+//console.group(this);
+    const matched = match.matched.map(match => match.compile());
+    let rules = [];
+    for (let start = 0, rule; rule = matched[start]; start++) {
+//console.info(start, match.matched[start], rule);
+      // Consolidate sequences
+      if (rule instanceof Rule.Sequence && !rule.isAdorned) {
+//console.warn("consolidating", rule);
+        rules.push(...rule.rules);
+        continue;
+      }
+      // Consolidate runs of literals:
+      // Ignore anything that's not a Literal or literals that are "adorned"
+      if (rule instanceof Rule.Literal && !rule.isAdorned) {
+        let end = start;
+        // figure out how long the run of the same type is
+        for (let next; next = matched[end + 1]; end++) {
+          if (!(next instanceof rule.constructor) || next.isAdorned) break;
+        }
+        if (end > start) {
+          const literals = matched.slice(start, end + 1).map(rule => rule.literal);
+          rule = rule instanceof Rule.Keyword
+            ? new Rule.Keywords({ literals })
+            : new Rule.Symbols({ literals });
+          start = end;
+        }
+      }
+      rules.push(rule);
+    }
 
+//console.groupEnd();
+    // If we're down to just one rule, just return that.
+    if (rules.length === 1) return rules[0];
+
+    return new Rule.Sequence(rules);
+  }
+}
+
+// Sequence as a statement -- our top-level rule.
+// NO test rule, otherwise we can't start a statement with a special character.
+// Match a long list of rules.
+// TODO: `consume all tokens`...
+rulex.defineRule({
+  name: "statement",
+  repeat: new Rule.Subrule("rule"),
+  constructor: rulex_sequence
+});
+
+// Sequence as a rule -- doesn't match itself and requires more than one match.
 rulex.defineRule({
   name: "sequence",
   alias: "rule",
-  testRule: new Rule.Pattern(/^[^…\^\(\{\[]/), // NOT special symbols, more than one char is OK
   minCount: 2,
   repeat: new Rule.Subrule({ subrule: "rule", excludes: "sequence" }),
-  constructor: class rulex_sequence extends Rule.Repeat {
-    compile(match) {
-      const matched = match.matched.map(match => match.compile());
-      let rules = [];
-      for (let start = 0, rule; rule = matched[start]; start++) {
-        // ignore anything that's not a Literal or literals that are "adorned"
-        if (rule instanceof Rule.Literal && !rule.isAdorned) {
-          let end = start;
-          // figure out how long the run of the same type is
-          for (let next; next = matched[end + 1]; end++) {
-            if (!(next instanceof rule.constructor) || next.isAdorned) break;
-          }
-          if (end > start) {
-            const literals = matched.slice(start, end + 1).map(rule => rule.literal);
-            rule = rule instanceof Rule.Keyword
-              ? new Rule.Keywords({ literals })
-              : new Rule.Symbols({ literals });
-            start = end;
-          }
-        }
-        rules.push(rule);
-      }
-
-      // If we're down to just one rule, just return that.
-      if (rules.length === 1) return rules[0];
-
-      return new Rule.Sequence(rules);
-    }
-  },
+  // NOT special symbols, more than one char is OK
+  testRule: new Rule.Pattern(/^[^…\^\(\{\[]/),
+  constructor: rulex_sequence,
   tests: [
     {
       title: "sequences",
@@ -524,8 +549,8 @@ function applyFlags(rule) {
   if (repeatFlag) {
     delete rule.repeatFlag;
     if (repeatFlag === "?") rule.optional = true;
-    else if (repeatFlag === "+") return new Rule.Repeat({ rule });
-    else if (repeatFlag === "*") return new Rule.Repeat({ rule, optional: true });
+    else if (repeatFlag === "+") return new Rule.Repeat({ repeat: rule });
+    else if (repeatFlag === "*") return new Rule.Repeat({ repeat: rule, optional: true });
   }
   return rule;
 }

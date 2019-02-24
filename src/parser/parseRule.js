@@ -163,18 +163,18 @@ function parseSymbol(syntaxStream, rules, start = 0) {
     let symbol = syntaxStream[i];
 
     // eat "\\" as escape character, work with next item in stream
-    const escaped = symbol === "\\";
-    if (escaped) symbol = syntaxStream[++i];
+    const isEscaped = symbol === "\\";
+    if (isEscaped) symbol = syntaxStream[++i];
 
     // forget it if we got a keyword
     if (!symbol || symbol.match(KEYWORD_PATTERN)) break;
     // forget it if not escaped and it's one of our special characters
-    if (!escaped && ESCAPED_SYMBOLS.includes(symbol)) break;
+    if (!isEscaped && ESCAPED_SYMBOLS.includes(symbol)) break;
     // Don't mush together if next rule is optional
     if (literals.length > 0 && syntaxStream[i+1] === "?") break;
 
     literals.push(symbol);
-    echo.push(escaped ? `\\${symbol}` : symbol);
+    echo.push(isEscaped ? `\\${symbol}` : symbol);
     end = i;
   }
 
