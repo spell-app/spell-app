@@ -56,7 +56,7 @@ export default class Rule {
   //  - `true` if the rule MIGHT be matched.
   //  - `false` if there is NO WAY the rule can be matched.
   //  - `undefined` if not determinstic (eg: no way to tell quickly).
-  testAtStart(scope, tokens, start) {
+  testAtStart(scope, tokens, start = 0) {
     if (start >= tokens.length) return false;
     if (this.testRule) return this.testRule.testAtStart(scope, tokens, start);
   }
@@ -185,7 +185,7 @@ Rule.Literal = class literal extends Rule {
   // We attempt to merge literals together if possible when creating rules.
   // We can only do that for ruls that are not "adorned" with promote, argument, etc.
   get isAdorned() {
-    return !(this.promote || this.argument || this.testLocation || this.esscaped);
+    return !!(this.optional || this.promote || this.argument || this.testLocation || this.escaped);
   }
 };
 
@@ -203,8 +203,9 @@ Rule.Literals = class literals extends Rule {
   @proto literalSeparator = "";
 
   constructor(props) {
-    // If passed a string, use that as our `literals`
+    // If passed a string or array, use that as our `literals`
     if (typeof props === "string") props = { literals: props };
+    if (Array.isArray(props)) props = { literals: props };
     super(props);
 
     // coerce `literals` to an array
@@ -497,10 +498,6 @@ Rule.Repeat = class repeat extends Rule {
     while (tokens.length) {
       let match = this.repeat.parse(scope, tokens);
       if (!match) break;
-      // TODO... don't think this could happen...
-      if (match.matchLength === 0) {
-        throw new TypeError(`repeat rule ${this.name}: got unproductive match`);
-      }
       matched.push(match);
       matchLength += match.matchLength;
       tokens = tokens.slice(match.matchLength);
@@ -535,8 +532,8 @@ Rule.Repeat = class repeat extends Rule {
 };
 
 // List match rule:   `[<item><delimiter>]`. eg" `[{number},]` to match `1,2,3`
-//  `rule.item` is the rule for each item,
-//  `rule.delimiter` is the delimiter between each item, which is optional at the end.
+//  `rule.item` (required) is the rule for each item,
+//  `rule.delimiter` (required) is the delimiter between each item, which is optional at the end.
 Rule.List = class list extends Rule {
   parse(scope, tokens) {
     if (this.testAtStart(scope, tokens, 0) === false) return undefined;
@@ -592,10 +589,10 @@ Rule.List = class list extends Rule {
 // `start` (required) is the start token string
 // `end` (required) is the end token string
 // `rule` (required) is the middle bit, which is probably a sequence
-// `split` (optional) if provided, we'll split on this string and apply `rule` to each inside
+// Returns the match of the rule, with `matchLength` adjusted for the delimiters
 Rule.Nested = class nesting extends Rule {
   parse(scope, tokens) {
-    const end = this.findNestedEnd(tokens);
+    const end = this.findNestedEnd(scope, tokens);
     if (end === undefined) return;
     const match = this.rule.parse(scope, tokens.slice(1, end));
     if (!match) return;
@@ -609,15 +606,14 @@ Rule.Nested = class nesting extends Rule {
   // If tokens starts with our `start` literal,
   //  find the index of the token which matches our `end` literal.
   // Returns `undefined` if not found or not balanced.
-  findNestedEnd(tokens) {
-    if (!tokens.length) return undefined;
-    if (!tokens[0].matchesLiteral(this.start)) return undefined;
+  findNestedEnd(scope, tokens, start = 0) {
+    if (!this.start.testAtStart(scope, tokens, start)) return undefined;
     let nesting = 0;
-    for (let end = 1, token; token = tokens[end]; end++) {
-      if (token.matchesLiteral(this.start)) {
+    for (let end = start + 1, token; token = tokens[end]; end++) {
+      if (this.start.testAtStart(scope, tokens, end)) {
         nesting++;
       }
-      if (token.matchesLiteral(this.end)) {
+      if (this.end.testAtStart(scope, tokens, end)) {
         if (nesting === 0) return end;
         nesting--;
       }
@@ -625,6 +621,89 @@ Rule.Nested = class nesting extends Rule {
     return undefined;
   }
 }
+
+// `start` (required) is the start token string
+// `end` (required) is the end token string
+// `rule` (required) is the middle bit, which is probably a sequence
+// `delimiter` (optional) if provided, we'll split on this string and apply `rule` to each item inside
+// `prefix` (optional) optional array of rules to match inside the FIRST item
+//
+// If nested start/end blocks are found, WHAT WILL HAPPEN???
+Rule.NestedSplit = class nesting extends Rule.Nested {
+  parse(scope, tokens) {
+    const end = this.findNestedEnd(scope, tokens);
+    if (end === undefined) return;
+
+    const tokenGroups = this.splitTokens(scope, tokens.slice(1, end));
+    if (tokenGroups === undefined) return;
+
+    let prefix;
+    const groups = [];
+    for (let i = 0, tokenGroup; tokenGroup = tokenGroups[i]; i++) {
+      // For the first item only, match the `prefix` rules if supplied
+      if (i === 0 && this.prefix) {
+        prefix = this.prefix.parse(scope, tokenGroup);
+        if (!prefix && !prefix.optional) return undefined;
+        if (prefix) tokenGroup = tokenGroup.slice(prefix.matchLength);
+      }
+      const match = this.rule.parse(scope, tokenGroup);
+      if (!match) return undefined;
+      if (match.matchLength !== tokenGroup.length) return undefined;
+      groups.push(match);
+    }
+    return new Match({
+      rule: this,
+      prefix,
+      groups,
+      matchLength: end + 1
+    });
+  }
+
+  getResults({ rule, prefix, groups }) {
+    const results = prefix && prefix.compile() || {};
+    const name = rule.rule.argument || rule.rule.name;
+    results[name] = groups.map(group => group.compile());
+    return results;
+  }
+
+  // If no explcit compile method, return our `results` for someone else to consume.
+  compile(match) {
+    return this.getResults(match);
+  }
+
+  // If tokens starts with our `start` literal,
+  //  find the index of the token which matches our `end` literal.
+  // Returns `undefined` if not found or not balanced.
+  splitTokens(scope, tokens) {
+    const groups = [];
+    let current = [];
+    for (let i = 0, token; token = tokens[i]; i++) {
+      // handle alternate marker
+      if (this.delimiter.testAtStart(scope, tokens, i)) {
+        groups.push(current);
+        current = [];
+        continue;
+      }
+      // handle nested start/emd
+      if (this.start.testAtStart(scope, tokens, i)) {
+        const end = this.findNestedEnd(scope, tokens, i);
+        if (end) {
+          current = current.concat(tokens.slice(i, end + 1));
+          i = end;
+          continue;
+        }
+      }
+      current.push(token);
+    }
+    // Pick up the last list ONLY if it's not empty
+    // This ensures we don't pick up an empty list for a delimiter at the end.
+    if (current.length) groups.push(current);
+
+    if (!groups.length) return undefined;
+    return groups;
+  }
+}
+
 
 // Sequence of rules to match.
 //  `rule.rules` is the array of rules to match.
@@ -661,9 +740,9 @@ Rule.Sequence = class sequence extends Rule {
     })
   }
 
-  // You MUST override `compile` in your sequence rule if it is ever going to be called directly.
+  // If no explcit compile method, return our `results` for someone else to consume.
   compile(match) {
-    throw new ParseError(`Sequence ${this.name} MUST provide a compile() method`)
+    return this.getResults(match);
   }
 
   //TODOC
