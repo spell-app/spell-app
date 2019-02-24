@@ -147,7 +147,7 @@ Rule.Word = class word extends Rule.TokenType {
 //    - array of strings, any of which will work.
 Rule.Literal = class literal extends Rule {
   constructor(props) {
-    // If passed a string, use that as our `literals`
+    if (Array.isArray(props)) props = { literal: props };
     if (typeof props === "string") props = { literal: props };
     super(props);
   }
@@ -203,12 +203,12 @@ Rule.Literals = class literals extends Rule {
   @proto literalSeparator = "";
 
   constructor(props) {
-    // If passed a string or array, use that as our `literals`
-    if (typeof props === "string") props = { literals: props };
+    if (arguments.length > 1) props = [...arguments];
     if (Array.isArray(props)) props = { literals: props };
+    if (typeof props === "string") props = { literals: props };
     super(props);
 
-    // coerce `literals` to an array
+    // coerce `literals` string to an array
     if (typeof this.literals === "string") {
       this.literals = this.literals.split(this.literalSeparator);
     }
@@ -266,17 +266,6 @@ Rule.Symbols = class symbols extends Rule.Literals {};
 Rule.Keywords = class keywords extends Rule.Literals {
   // Join literals with a space in-between.
   @proto literalSeparator = " ";
-
-  constructor(props) {
-    super(props);
-    // If we got exactly one literal, return a Rule.Literal instead which should be faster
-    if (this.literals && this.literals.length === 1) {
-      const props = {...this};
-      props.literal = props.literals[0];
-      delete props.literals;
-      return new Rule.Literal(props);
-    }
-  }
 };
 
 // Regex pattern to match a SINGLE token.
@@ -381,8 +370,10 @@ Rule.Subrule = class subrule extends Rule {
 // After parsing
 //  we'll return the rule which is the "best match" (rather than cloning this rule).
 Rule.Choice = class choices extends Rule {
-  constructor() {
-    super(...arguments);
+  constructor(props) {
+    if (arguments.length > 1) props = [...arguments];
+    if (Array.isArray(props)) props = { rules: props };
+    super(props);
     if (!this.rules) this.rules = [];
   }
 
@@ -631,6 +622,7 @@ Rule.Nested = class nesting extends Rule {
 // If nested start/end blocks are found, WHAT WILL HAPPEN???
 Rule.NestedSplit = class nesting extends Rule.Nested {
   parse(scope, tokens) {
+//    scope = scope.resetRules();
     const end = this.findNestedEnd(scope, tokens);
     if (end === undefined) return;
 
@@ -709,6 +701,11 @@ Rule.NestedSplit = class nesting extends Rule.Nested {
 //  `rule.rules` is the array of rules to match.
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
 Rule.Sequence = class sequence extends Rule {
+  constructor(props) {
+    if (arguments.length > 1) props = [...arguments];
+    if (Array.isArray(props)) props = { rules: props };
+    super(props);
+  }
   parse(scope, tokens) {
     if (this.test(scope, tokens) === false) return undefined;
 

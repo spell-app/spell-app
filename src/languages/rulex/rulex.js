@@ -15,37 +15,13 @@ const { ANYWHERE, AT_START } = Rule.TestLocation;
 
 export class RulexParser extends Parser {
   @proto module = "rulex";
-  @proto defaultRule = "statement";
+  @proto defaultRule = "sequence";
   @proto removeWhitespacePolicy = Tokenizer.WhitespacePolicy.INLINE;
-
-  static applyFlags(rule) {
-    const { repeatFlag } = rule;
-    if (repeatFlag) {
-      delete rule.repeatFlag;
-      if (repeatFlag === "?") rule.optional = true;
-      else if (repeatFlag === "+") return new Rule.Repeat({ rule });
-      else if (repeatFlag === "*") return new Rule.Repeat({ rule, optional: true });
-    }
-    return rule;
-  }
 }
 
 // Create core `rulex` rulex.
 const rulex = new RulexParser();
 export default rulex;
-
-// Top level entity
-rulex.defineRule(
-  class rulex_statement extends Rule.Repeat {
-    name = "statement";
-    repeat = new Rule.Subrule("rule");
-    compile(match) {
-      const rules = match.matched.map(match => match.compile());
-      return rules;
-    }
-  }
-);
-
 
 // A test location signifier, which is always optional.
 const testLocation = rulex.defineRule({
@@ -165,7 +141,7 @@ rulex.defineRule({
   constructor: class rulex_symbol extends Rule.Sequence {
     compile(match) {
       const rule = new Rule.Symbol(match.results);
-      return RulexParser.applyFlags(rule);
+      return applyFlags(rule);
     }
   },
   alias: "rule",
@@ -199,7 +175,7 @@ rulex.defineRule({
   constructor: class rulex_keyword extends Rule.Sequence {
     compile(match) {
       const rule = new Rule.Keyword(match.results);
-      return RulexParser.applyFlags(rule);
+      return applyFlags(rule);
     }
   },
   alias: "rule",
@@ -229,13 +205,13 @@ rulex.defineRule({
 rulex.defineRule({
   name: "subrule",
   rules: [
-    testLocation,
     new Rule.Nested({
       start: new Rule.Symbol("{"),
       end: new Rule.Symbol("}"),
       rule: new Rule.Sequence({
         argument: "rule",
         rules: [
+          testLocation,
           promote,
           argument,
           new Rule.Word({ argument: "subrule" }),
@@ -252,7 +228,7 @@ rulex.defineRule({
     compile(match) {
       const { rule, ...results } = match.results;
       Object.assign(rule, results);
-      return RulexParser.applyFlags(rule);
+      return applyFlags(rule);
     }
   },
   tests: [
@@ -264,9 +240,10 @@ rulex.defineRule({
         ["{}", new Rule.Symbol("{")],
 
         ["{sub}", new Rule.Subrule({ subrule: "sub" }) ],
+        ["{…sub}", new Rule.Subrule({ subrule: "sub", testLocation: ANYWHERE }) ],
         ["{?:sub}", new Rule.Subrule({ subrule: "sub", promote: true }) ],
         ["{arg:sub}", new Rule.Subrule({ subrule: "sub", argument: "arg" }) ],
-        ["{?:arg:sub}", new Rule.Subrule({ subrule: "sub", promote: true, argument: "arg" }) ],
+        ["{^?:arg:sub}", new Rule.Subrule({ subrule: "sub", promote: true, argument: "arg", testLocation: AT_START }) ],
 
         ["{sub}?", new Rule.Subrule({ subrule: "sub", optional: true }) ],
         ["{sub}+", new Rule.Repeat({ rule: new Rule.Subrule({ subrule: "sub" }) }) ],
@@ -281,7 +258,6 @@ rulex.defineRule({
   name: "list",
   alias: "rule",
   rules: [
-    testLocation,
     new Rule.Nested({
       start: new Rule.Symbol("["),
       end: new Rule.Symbol("]"),
@@ -304,7 +280,7 @@ rulex.defineRule({
     compile(match) {
       const { rule, ...results } = match.results;
       Object.assign(rule, results);
-      return RulexParser.applyFlags(rule);
+      return applyFlags(rule);
     }
   },
   tests: [
@@ -318,9 +294,6 @@ rulex.defineRule({
 
         ["[{sub},]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
         ["[{sub}or]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Keyword("or") }) ],
-
-        ["…[{sub},]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), testLocation: ANYWHERE }) ],
-        ["^[{sub},]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), testLocation: AT_START }) ],
 
         ["[?:{sub},]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), promote: true }) ],
         ["[arg:{sub},]", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), argument: "arg" }) ],
@@ -340,21 +313,27 @@ rulex.defineRule({
   name: "choices",
   alias: "rule",
   rules: [
-    testLocation,
     new Rule.NestedSplit({
       argument: "rule",
       start: new Rule.Symbol("("),
       end: new Rule.Symbol(")"),
       delimiter: new Rule.Symbol("|"),
-      prefix: new Rule.Sequence({ rules: [ promote, argument ], optional: true }),
+      prefix: new Rule.Sequence({ rules: [ testLocation, promote, argument ], optional: true }),
       rule: new Rule.Subrule({ subrule: "rule", argument: "rules" }),
       compile(match) {
+        let { rules } = match.results;
+        // If all rules are single keywords, combine
+        if (rules.length > 1 && rules.every(rule => rule instanceof Rule.Keyword && !rule.isAdorned)) {
+          const literals = rules.map(rule => rule.literal);
+          rules = [ new Rule.Keyword(literals) ];
+        }
+
         // If we got exactly one choice, copy the flags onto it and return that.
-        // Note that the choice flags will "beat" the rule flags.
-        if (match.results.rules.length === 1) {
-          const { rules, ...results } = match.results;
-          Object.assign(rules[0], results);
-          return RulexParser.applyFlags(rules[0]);
+        // Note that the choice's flags will "beat" the rule's flags.
+        if (rules.length === 1) {
+          delete match.results.rules;
+          Object.assign(rules[0], match.results);
+          return applyFlags(rules[0]);
         }
         return new Rule.Choice(match.results);
       }
@@ -365,7 +344,7 @@ rulex.defineRule({
     compile(match) {
       const { rule, ...results } = match.results;
       Object.assign(rule, results);
-      return RulexParser.applyFlags(rule);
+      return applyFlags(rule);
     }
   },
   tests: [
@@ -384,6 +363,7 @@ rulex.defineRule({
         ["([{sub},])", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
 
         // Pass flags whether they were set on the choices or the single rule (a bit confusing)
+        ["(…{sub})", new Rule.Subrule({ subrule: "sub", testLocation: ANYWHERE })],
         ["(?:{sub})", new Rule.Subrule({ subrule: "sub", promote: true })],
         ["({?:sub})", new Rule.Subrule({ subrule: "sub", promote: true })],
         ["(arg:{sub})", new Rule.Subrule({ subrule: "sub", argument: "arg" })],
@@ -392,17 +372,26 @@ rulex.defineRule({
         ["({sub})?", new Rule.Subrule({ subrule: "sub", optional: true })],
         ["({sub}+)", new Rule.Repeat({ rule: new Rule.Subrule({ subrule: "sub" }) })],
         ["({sub}*)", new Rule.Repeat({ optional: true, rule: new Rule.Subrule({ subrule: "sub" }) })],
+
+        // consolidate multiple keywords
+        ["(a|b|c)?", new Rule.Keyword({ literal:["a","b","c"], optional: true })],
+        ["(a|b|c?)",
+          new Rule.Choice(
+            new Rule.Keyword("a"),
+            new Rule.Keyword("b"),
+            new Rule.Keyword({ literal: "c", optional: true })
+          )],
       ]
     },
     {
       title: "multiple choices",
       compileAs: "rule",
       tests: [
-        ["(>|a)", new Rule.Choice({ rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+        ["(>|a)", new Rule.Choice(new Rule.Symbol(">"), new Rule.Keyword("a"))],
         ["(?:>|a)", new Rule.Choice({ promote: true, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
 
-        ["…(>|a)", new Rule.Choice({ testLocation: ANYWHERE, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
-        ["^(?:>|a)", new Rule.Choice({ testLocation: AT_START, promote: true, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+        ["(…>|a)", new Rule.Choice({ testLocation: ANYWHERE, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+        ["(^?:>|a)", new Rule.Choice({ testLocation: AT_START, promote: true, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
 
         ["(arg:>|a)", new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
         ["(?:arg:>|a)", new Rule.Choice({ promote: true, argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
@@ -410,6 +399,18 @@ rulex.defineRule({
         ["(arg:>|a)?", new Rule.Choice({ optional: true, argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
         ["(arg:>|a)*", new Rule.Repeat({ optional: true, rule: new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
         ["(arg:>|a)+", new Rule.Repeat({ rule: new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
+      ]
+    },
+    {
+      title: "nested choices",
+      compileAs: "rule",
+      tests: [
+        ["(>|(b|c|d))", new Rule.Choice(new Rule.Symbol(">"), new Rule.Keyword(["b","c","d"])) ],
+        ["(>|({sub}|ab))",
+          new Rule.Choice(
+            new Rule.Symbol(">"),
+            new Rule.Choice(new Rule.Subrule("sub"), new Rule.Keyword("ab"))
+          )],
       ]
     }
   ]
@@ -421,7 +422,7 @@ rulex.defineRule({
 rulex.defineRule({
   name: "sequence",
   alias: "rule",
-  testRule: new Rule.Pattern(/^[^…\^\(\{\[]$/),
+  testRule: new Rule.Pattern(/^[^…\^\(\{\[]$/), // NOT special symbols
   minCount: 2,
   repeat: new Rule.Subrule({ subrule: "rule", excludes: "sequence" }),
   constructor: class rulex_sequence extends Rule.Repeat {
@@ -450,27 +451,35 @@ rulex.defineRule({
       // If we're down to just one rule, just return that.
       if (rules.length === 1) return rules[0];
 
-      return new Rule.Sequence({ rules });
+      return new Rule.Sequence(rules);
     }
   },
   tests: [
     {
-      title: "consolidate multiple keywords and symbols",
+      title: "sequences",
       compileAs: "rule",
       showAll: true,
       tests: [
+        ["a b c", new Rule.Keywords("a", "b", "c") ],
+        ["a {b} c",
+          new Rule.Sequence(
+            new Rule.Keyword("a"),
+            new Rule.Subrule("b"),
+            new Rule.Keyword("c"),
+          )
+        ],
         ["a? {?:sub} bb",
-          new Rule.Sequence({ rules: [
+          new Rule.Sequence(
             new Rule.Keyword({ literal: "a", optional: true }),
             new Rule.Subrule({ subrule: "sub", promote: true }),
             new Rule.Keyword("bb"),
-          ]})
+          )
         ],
         ["a? (a|>)",
-          new Rule.Sequence({ rules: [
+          new Rule.Sequence(
             new Rule.Keyword({ literal: "a", optional: true }),
             new Rule.Choice({ rules:[ new Rule.Keyword("a"), new Rule.Symbol(">") ]})
-          ]})
+          )
         ],
       ]
     },
@@ -480,27 +489,49 @@ rulex.defineRule({
       showAll: true,
       tests: [
         [">=", new Rule.Symbols([">", "="])],
+        [">(=)?",
+          new Rule.Sequence(
+            new Rule.Symbol({ literal: ">" }),
+            new Rule.Symbol({ literal: "=", optional: true})
+          )
+        ],
+
         ["a b c", new Rule.Keywords(["a", "b", "c"])],
         ["a? b c",
-          new Rule.Sequence({ rules: [
+          new Rule.Sequence(
             new Rule.Keyword({ literal: "a", optional: true }),
             new Rule.Keywords(["b", "c"])
-          ]})
+          )
         ],
         ["a b? c",
-          new Rule.Sequence({ rules: [
+          new Rule.Sequence(
             new Rule.Keyword("a"),
             new Rule.Keyword({ literal: "b", optional: true }),
             new Rule.Keyword("c")
-          ]})
+          )
         ],
         ["a b c?",
-          new Rule.Sequence({ rules: [
+          new Rule.Sequence(
             new Rule.Keywords(["a", "b"]),
             new Rule.Keyword({ literal: "c", optional: true }),
-          ]})
+          )
         ],
       ]
     }
   ]
 });
+
+
+//
+//  Utility
+//
+function applyFlags(rule) {
+  const { repeatFlag } = rule;
+  if (repeatFlag) {
+    delete rule.repeatFlag;
+    if (repeatFlag === "?") rule.optional = true;
+    else if (repeatFlag === "+") return new Rule.Repeat({ rule });
+    else if (repeatFlag === "*") return new Rule.Repeat({ rule, optional: true });
+  }
+  return rule;
+}
