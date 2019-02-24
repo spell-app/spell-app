@@ -483,6 +483,8 @@ Rule.Group = class group extends Rule.Choice {};
 //  `this.repeat` is the rule that repeats.
 //  `this.optional` is true if the prodution is optional.
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
+//  `rule.minCount` is the minimum number we need to match successfully.
+//  `rule.maxCount` is the maximum number we need to match successfully.
 //
 //  Note: Returns `undefined` if we don't match at least once.
 Rule.Repeat = class repeat extends Rule {
@@ -506,6 +508,8 @@ Rule.Repeat = class repeat extends Rule {
 
     // Forget it if nothing matched at all
     if (matched.length === 0) return undefined;
+    if (typeof this.minCount === "number" && matched.length < this.minCount) return undefined;
+    if (typeof this.maxCount === "number" && matched.length > this.maxCount) return undefined;
 
     return new Match({
       rule: this,
@@ -584,6 +588,43 @@ Rule.List = class list extends Rule {
   }
 };
 
+
+// `start` (required) is the start token string
+// `end` (required) is the end token string
+// `rule` (required) is the middle bit, which is probably a sequence
+// `split` (optional) if provided, we'll split on this string and apply `rule` to each inside
+Rule.Nested = class nesting extends Rule {
+  parse(scope, tokens) {
+    const end = this.findNestedEnd(tokens);
+    if (end === undefined) return;
+    const match = this.rule.parse(scope, tokens.slice(1, end));
+    if (!match) return;
+    // if we didn't get everything, forget it
+    if (match.matchLength + 1 !== end) return undefined;
+    // account for the start and end delimiters
+    match.matchLength += 2;
+    return match;
+  }
+
+  // If tokens starts with our `start` literal,
+  //  find the index of the token which matches our `end` literal.
+  // Returns `undefined` if not found or not balanced.
+  findNestedEnd(tokens) {
+    if (!tokens.length) return undefined;
+    if (!tokens[0].matchesLiteral(this.start)) return undefined;
+    let nesting = 0;
+    for (let end = 1, token; token = tokens[end]; end++) {
+      if (token.matchesLiteral(this.start)) {
+        nesting++;
+      }
+      if (token.matchesLiteral(this.end)) {
+        if (nesting === 0) return end;
+        nesting--;
+      }
+    }
+    return undefined;
+  }
+}
 
 // Sequence of rules to match.
 //  `rule.rules` is the array of rules to match.

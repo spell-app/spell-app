@@ -231,15 +231,26 @@ rulex.defineRule({
     @proto name = "subrule";
     @proto rules = [
       testLocation,
-      new Rule.Literal("{"),
-      promote,
-      argument,
-      new Rule.Word({ argument: "subrule" }),
-      new Rule.Literal("}"),
+      new Rule.Nested({
+        start: "{",
+        end: "}",
+        rule: new Rule.Sequence({
+          argument: "rule",
+          rules: [
+            promote,
+            argument,
+            new Rule.Word({ argument: "subrule" }),
+          ],
+          compile(match) {
+            return new Rule.Subrule(match.results);
+          }
+        })
+      }),
       repeatFlag
     ];
     compile(match) {
-      const rule = new Rule.Subrule(match.results);
+      const { rule, ...results } = match.results;
+      Object.assign(rule, results);
       return RulexParser.applyFlags(rule);
     }
   },
@@ -271,16 +282,27 @@ rulex.defineRule({
     @proto name = "list";
     @proto rules = [
       testLocation,
-      new Rule.Literal("["),
-      promote,
-      argument,
-      new Rule.Subrule({ argument: "item", subrule: "rule" }),
-      new Rule.Subrule({ argument: "delimiter", subrule: "rule" }),
-      new Rule.Literal("]"),
+      new Rule.Nested({
+        start: "[",
+        end: "]",
+        rule: new Rule.Sequence({
+          argument: "rule",
+          rules: [
+            promote,
+            argument,
+            new Rule.Subrule({ argument: "item", subrule: "rule" }),
+            new Rule.Subrule({ argument: "delimiter", subrule: "rule" }),
+          ],
+          compile(match) {
+            return new Rule.List(match.results);
+          }
+        })
+      }),
       repeatFlag
     ];
     compile(match) {
-      const rule = new Rule.List(match.results);
+      const { rule, ...results } = match.results;
+      Object.assign(rule, results);
       return RulexParser.applyFlags(rule);
     }
   },
@@ -313,32 +335,52 @@ rulex.defineRule({
 })
 
 
+
+// Compile the inner part of a choices list `(...this bit...)` to a Rule.Choice.
+// We'll handle the nesting outside of this.
+class choiceList extends Rule.Sequence {
+  name = "choiceList";
+  argument = "rule";
+  rules = [
+    promote,
+    argument,
+    new Rule.List({
+      argument: "rules",
+      item: new Rule.Subrule({ subrule: "rule", precedence: 1}),
+      delimiter: new Rule.Literal("|")
+    }),
+  ]
+  compile(match) {
+    // If we got exactly one choice, copy the flags onto it and return that.
+    // Note that the choice flags will "beat" the rule flags.
+    if (match.results.rules.length === 1) {
+      const { rules, ...results } = match.results;
+      Object.assign(rules[0], results);
+      return RulexParser.applyFlags(rules[0]);
+    }
+
+    const rule = new Rule.Choice(match.results);
+    return RulexParser.applyFlags(rule);
+  }
+}
+
+
 rulex.defineRule({
-  constructor: class choice extends Rule.Sequence {
-    @proto name = "choice";
+  constructor: class choices extends Rule.Sequence {
+    @proto name = "choices";
     @proto rules = [
       testLocation,
-      new Rule.Literal("("),
-      promote,
-      argument,
-      new Rule.List({
-        argument: "rules",
-        item: new Rule.Subrule("rule"),
-        delimiter: new Rule.Literal("|")
+      new Rule.Nested({
+        argument: "rule",
+        start: "(",
+        end: ")",
+        rule: new choiceList()
       }),
-      new Rule.Literal(")"),
       repeatFlag
     ];
     compile(match) {
-      // If we got exactly one choice, copy the flags onto it and return that.
-      // Note that the choice flags will "beat" the rule flags.
-      if (match.results.rules.length === 1) {
-        const { rules, ...results } = match.results;
-        Object.assign(rules[0], results);
-        return RulexParser.applyFlags(rules[0]);
-      }
-
-      const rule = new Rule.Choice(match.results);
+      const { rule, ...results } = match.results;
+      Object.assign(rule, results);
       return RulexParser.applyFlags(rule);
     }
   },
@@ -369,36 +411,37 @@ rulex.defineRule({
       ]
     },
     {
-      title: "multiple rules",
+      title: "multiple choices",
       compileAs: "rule",
-      showAll: true,
       tests: [
         ["(>|a)", new Rule.Choice({ rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
-        ["(?:>|a)", new Rule.Choice({ promote: true, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
-
-        ["…(>|a)", new Rule.Choice({ testLocation: ANYWHERE, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
-        ["^(?:>|a)", new Rule.Choice({ testLocation: AT_START, promote: true, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
-
-        ["(arg:>|a)", new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
-        ["(?:arg:>|a)", new Rule.Choice({ promote: true, argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
-
-        ["(arg:>|a)?", new Rule.Choice({ optional: true, argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
-        ["(arg:>|a)*", new Rule.Repeat({ optional: true, rule: new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
-        ["(arg:>|a)+", new Rule.Repeat({ rule: new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
+//         ["(?:>|a)", new Rule.Choice({ promote: true, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+//
+//         ["…(>|a)", new Rule.Choice({ testLocation: ANYWHERE, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+//         ["^(?:>|a)", new Rule.Choice({ testLocation: AT_START, promote: true, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+//
+//         ["(arg:>|a)", new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+//         ["(?:arg:>|a)", new Rule.Choice({ promote: true, argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+//
+//         ["(arg:>|a)?", new Rule.Choice({ optional: true, argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
+//         ["(arg:>|a)*", new Rule.Repeat({ optional: true, rule: new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
+//         ["(arg:>|a)+", new Rule.Repeat({ rule: new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
       ]
     }
   ]
 })
 
 
-/*
+
 rulex.defineRule({
   constructor: class sequence extends Rule.Repeat {
     @proto name = "sequence";
     @proto testRule = new Rule.Pattern(/^[^…\^\(\{\[]$/);
+    @proto minCount = 2;
+//    @proto precedence = -1;   // defer to more specific rules
     @proto repeat = new Rule.Subrule({ subrule: "rule", excludes: "sequence" });
     compile(match) {
-
+return "NO";
     }
   },
   alias: "rule",
@@ -413,4 +456,4 @@ rulex.defineRule({
     }
   ]
 });
-*/
+
