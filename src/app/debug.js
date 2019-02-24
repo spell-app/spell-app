@@ -1,25 +1,21 @@
 // HACK: expose a bunch of stuff on `global` for browser debugging
-import global from "global";
-import _ from "lodash";
 
 import {
-  Parser,
+  _,
+  global,
+  packages,
   ParseError,
+  Parser,
   parseRule,
   parseSyntax,
+  ReduxFactory,
   Rule,
+  rulex,
   Scope,
+  spell,
+  Token,
   Tokenizer,
-  Token
-} from "../parser/all.js";
-
-import ReduxFactory from "./redux/ReduxFactory.js";
-import { getPref, setPref, clearAllPrefs } from "./redux/utils/prefs.js";
-
-// Spell parser
-import spell from "../languages/spell/all.js";
-import rulex from "../languages/rulex/rulex.js";
-
+} from "./all.js";
 
 // Set Parser / Tokenizer debug flags
 Parser.WARN = true;
@@ -27,20 +23,19 @@ Parser.DEBUG = true;
 Parser.TIME = true;
 Tokenizer.WARN = true;
 
-
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
   _,
-  Scope,
-  Parser,
   ParseError,
+  Parser,
   parseRule,
   parseSyntax,
-
   Rule,
-  Tokenizer,
+  Scope,
   Token,
+  Tokenizer,
 
+  // spell language stuff
   spell,
   rules: spell.rules,
   parse: spell.parse.bind(spell),
@@ -49,11 +44,10 @@ Object.assign(global, {
   tokenizer: spell.tokenizer,
   tokenize: spell.tokenize.bind(spell),
 
+  // rulex language stuff
   rulex,
 
-  getPref,
-  setPref,
-  clearAllPrefs,
-
-  ReduxFactory
+  // Redux/app stuff
+  ReduxFactory,
+  packages,
 });

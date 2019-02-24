@@ -4,8 +4,10 @@
 //
 ////////////////////
 
-import ReduxFactory from "./ReduxFactory";
-import packages from "./packages.js";
+import {
+  ReduxFactory,
+  packages,
+} from "./all.js";
 
 export default ReduxFactory.createStore({
     // Factories to initialize as `{ domain: factory }`

@@ -7,19 +7,21 @@
 import JSON5 from "json5";
 import { connect } from "react-redux";
 
-import ReduxFactory from "./ReduxFactory";
-import { getJSON5, getText, postText, DELETE } from "./api.js";
+import {
+  api,
+  ReduxFactory,
+  spell,
+} from "./all.js";
 
-import parser from "../../languages/spell/all.js";
-
-export const Formats = {
+const Formats = {
   TEXT: "TEXT",
   JSON5: "JSON5"
 };
 
+// FIXME: this is lame...
 export const INPUT = "INPUT";
 
-const factory = new ReduxFactory({
+export const factory = new ReduxFactory({
   domain: "packages",
 
   initialState: {
@@ -123,7 +125,7 @@ const factory = new ReduxFactory({
         const { input } = packages;
         let output;
         try {
-          output = parser.compile(input);
+          output = spell.compile(input);
         } catch (e) {
           output = e.message;
         }
@@ -454,9 +456,9 @@ const factory = new ReduxFactory({
 
         const url = `api/${path}`;
         if (format === Formats.TEXT)
-          return getText({ url, apiMethod: "loadFile" })
+          return api.getText({ url, apiMethod: "loadFile" })
         else
-          return getJSON5({ url, apiMethod: "loadFile" });
+          return api.getJSON5({ url, apiMethod: "loadFile" });
       },
       onSuccess(packages, contents, { path, packageId, fileName }) {
         if (!path) path = this.getPath(packageId, fileName);
@@ -478,7 +480,7 @@ const factory = new ReduxFactory({
       promise(packages, { path, packageId, fileName, contents }) {
         if (!path) path = this.getPath(packageId, fileName);
         const url = `api/${path}`;
-        return postText({ url, body: contents, apiMethod: "saveFile" })
+        return api.postText({ url, body: contents, apiMethod: "saveFile" })
       },
       onSuccess(packages, _, { path, packageId, fileName, contents }) {
         if (!path) path = this.getPath(packageId, fileName);
@@ -498,7 +500,7 @@ const factory = new ReduxFactory({
       promise(packages, { path, packageId, fileName }) {
         if (!path) path = this.getPath(packageId, fileName);
         const url = `api/${path}`;
-        return DELETE({ url, apiMethod: "deleteFile" })
+        return api.delete({ url, apiMethod: "deleteFile" })
       },
       onSuccess(packages, _, { path, packageId, fileName, contents }) {
         if (!path) path = this.getPath(packageId, fileName);
@@ -512,10 +514,7 @@ const factory = new ReduxFactory({
 
   ]
 });
-export default factory;
-
-// DEBUG
-window.packages = factory;
+export { factory as packages };
 
 
 ////////////////////

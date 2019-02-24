@@ -57,8 +57,6 @@ const _router = new ReduxFactory({
   push
 });
 export default _router;
-//DEBUG
-//window._router = _router;
 
 // Wrap our `normal` reducer with the `routerReducer` from `react-router-redux`
 // The ensures that `reducer.location` will be set to the current location.

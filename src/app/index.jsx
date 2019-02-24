@@ -1,13 +1,14 @@
 // Common imports
-import "@babel/polyfill";
 import React from "react";
 import ReactDOM from 'react-dom';
 import { Provider } from "react-redux";
 
-import "./debug.js";
-import store from "./redux/store.js";
-import { setPrefKey } from "./redux/utils/prefs.js";
+import {
+  store,
+  setPrefKey
+} from "./all.js";
 
+import "./debug.js";
 import "./semantic/semantic.css";
 
 setPrefKey("spell_editor");

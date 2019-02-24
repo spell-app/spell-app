@@ -16,9 +16,11 @@ import {
   Rule,
 } from "../parser/all.js";
 
-import { showWhitespace } from "./string.js";
+import {
+  showWhitespace
+} from "../utils/all.js";
 
-export default function unitTestModuleRules(parser, moduleName) {
+export function unitTestModuleRules(parser, moduleName) {
   describe(`rule unit tests`, () => {
     const rules = getTestableRulesForModule(moduleName);
     if (!rules || rules.lenth === 0) {

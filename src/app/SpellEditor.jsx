@@ -2,7 +2,7 @@ import React from "react";
 import keydown from "react-keydown";
 import { Button, Dropdown, Grid, Menu, Segment, TextArea } from "semantic-ui-react"
 
-import packageFactory, { withPackages, INPUT } from "./redux/packages";
+import { packages as packageFactory, withPackages, INPUT } from "./redux/packages";
 import Spacer from "./Spacer.jsx";
 import "./styles.less";
 import TabbableTextArea from "./TabbableTextArea.jsx";

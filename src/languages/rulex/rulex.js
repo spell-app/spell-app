@@ -5,26 +5,17 @@
 //
 import {
   Parser,
+  proto,
   Rule,
-  Token,
-  Tokenizer,
+  RulexParser,
   TestLocation,
-  WhitespacePolicy
-} from "../../parser/all.js";
-
-import { proto } from "../../utils/all.js";
+  Token,
+} from "./all.js";
 
 const { ANYWHERE, AT_START } = TestLocation;
 
-export class RulexParser extends Parser {
-  @proto module = "rulex";
-  @proto defaultRule = "sequence";
-  @proto removeWhitespacePolicy = WhitespacePolicy.INLINE;
-}
-
 // Create core `rulex` rulex.
-const rulex = new RulexParser();
-export default rulex;
+export const rulex = new RulexParser();
 
 // A test location signifier, which is always optional.
 const testLocation = rulex.defineRule({

@@ -1,5 +1,4 @@
-import unitTestModuleRules from "../../utils/unitTestRules.js";
-import parser from "./rulex.js";
+import parser, { unitTestModuleRules } from "./all.js";
 
 describe("testing langauge rulex", () => {
   unitTestModuleRules(parser, "rulex");

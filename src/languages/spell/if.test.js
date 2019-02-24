@@ -1,6 +1,4 @@
-import unitTestModuleRules from "../../utils/unitTestRules.js";
-
-import parser from "./all.js";
+import parser, { unitTestModuleRules } from "./all.js";
 import { parenthesizeCondition } from "./if.js";
 
 describe("testing spell module if", () => {
