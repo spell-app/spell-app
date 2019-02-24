@@ -7,7 +7,11 @@ function testRule(rule) {
   if (!rule.syntax || alreadyTested[rule.syntax]) return;
   alreadyTested[rule.syntax] = true;
 
-  test(`${rule.name}:  '${rule.syntax}'`, () => {
+//   test(`RULE:  ${rule.name}:  '${rule.syntax}'`, () => {
+//     expect(rule.toSyntax()).toBe(rule.syntax);
+//   });
+//
+  test(`RULEX: ${rule.name}:  '${rule.syntax}'`, () => {
     const rulexRule = rulex.parse(rule.syntax).compile();
     expect(rulexRule.toSyntax()).toBe(rule.syntax);
   });
