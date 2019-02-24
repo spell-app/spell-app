@@ -6,11 +6,11 @@ import {
   Rule,
   TestLocation,
   Tokenizer
-} from "./index.js";
+} from "./all.js";
 
 import {
   cloneClass
-} from "../utils/index.js";
+} from "../utils/all.js";
 
 //import rulex from "../languages/rulex/rulex.js";
 

@@ -17,12 +17,12 @@ import { isNode } from "browser-or-node";
 import {
   Match,
   Token,
-} from "./index.js";
+} from "./all.js";
 
 import {
   isWhitespace,
   proto
-} from "../utils/index.js";
+} from "../utils/all.js";
 
 // Show debug messages on browser only.
 const DEBUG = !isNode;

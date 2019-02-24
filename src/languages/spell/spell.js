@@ -1,12 +1,4 @@
-// Create master parser for the spell language, importing other rule sets.
-import {
-  Parser,
-  Rule,
-  Tokenizer,
-  WhitespacePolicy
-} from "../../parser/index.js";
-
-import { proto } from "../../utils/index.js";
+import { SpellParser } from "./all.js";
 
 import core from "./core.js";
 import _if_ from "./if.js";
@@ -17,20 +9,7 @@ import statements from "./statements.js";
 import types from "./types.js";
 import UI from "./UI.js";
 
-
-class SpellParser extends Parser {
-  // Name of our default rule to parse if calling `parser.parse(text)`.
-  @proto defaultRule = "statements";
-
-  @proto tokenizer = new Tokenizer({
-    // Remove "normal" whitespace (leaving newlines and indents) when parsing
-    whitespacePolicy: WhitespacePolicy.LEADING
-  });
-}
-
 // Create parser which combines all of the above...
-const parser = new SpellParser({ module: "spell" });
-export default parser;
-
+export const spell = new SpellParser({ module: "spell" });
 // Import the other rules defined above.
-parser.import(core, operators, types, lists, _if_, statements, JSX, UI);
+spell.import(core, operators, types, lists, _if_, statements, JSX, UI);

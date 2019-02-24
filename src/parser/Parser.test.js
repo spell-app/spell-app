@@ -8,7 +8,7 @@ import {
   ParseError,
   Rule,
   Tokenizer
-} from "./index.js";
+} from "./all.js";
 
 // Import this specially so we can spy on it.
 import * as _parseRule_ from "./parseRule.js";

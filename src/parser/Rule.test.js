@@ -8,7 +8,7 @@ import {
   Token,
   Tokenizer,
   WhitespacePolicy
-} from "./index.js";
+} from "./all.js";
 
 
 const tokenizer = new Tokenizer({

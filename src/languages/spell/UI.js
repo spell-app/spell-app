@@ -3,11 +3,12 @@
 //
 
 import {
-  Parser,
   Rule,
-} from "../../parser/index.js";
+  SpellParser,
+  Token,
+} from "./all.js";
 
-const parser = new Parser({ module: "UI" });
+const parser = new SpellParser({ module: "UI" });
 export default parser;
 
 // Alert a message.

@@ -10,7 +10,7 @@ import { connect } from "react-redux";
 import ReduxFactory from "./ReduxFactory";
 import { getJSON5, getText, postText, DELETE } from "./api.js";
 
-import parser from "../../languages/spell/spell.js";
+import parser from "../../languages/spell/all.js";
 
 export const Formats = {
   TEXT: "TEXT",

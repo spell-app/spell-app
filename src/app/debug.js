@@ -11,13 +11,13 @@ import {
   Scope,
   Tokenizer,
   Token
-} from "../parser/index.js";
+} from "../parser/all.js";
 
 import ReduxFactory from "./redux/ReduxFactory.js";
 import { getPref, setPref, clearAllPrefs } from "./redux/utils/prefs.js";
 
 // Spell parser
-import spell from "../languages/spell/spell.js";
+import spell from "../languages/spell/all.js";
 import rulex from "../languages/rulex/rulex.js";
 
 

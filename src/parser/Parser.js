@@ -11,12 +11,12 @@ import {
   Token,
   Tokenizer,
   WhitespacePolicy
-} from "./index.js";
+} from "./all.js";
 
 import {
   cloneClass,
   proto
-} from "../utils/index.js";
+} from "../utils/all.js";
 
 export class Parser {
   // Set to `true` to output debug info while adding rules

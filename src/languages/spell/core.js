@@ -1,15 +1,13 @@
 //
 //  # Core `rules` -- simple datatypes, etc.
 //
-// NOTE: many of the below are created as custom Pattern subclasses for debugging.
-//
 import {
-  Parser,
   Rule,
-  Token
-} from "../../parser/index.js";
+  SpellParser,
+  Token,
+} from "./all.js";
 
-const parser = new Parser({ module: "core" });
+const parser = new SpellParser({ module: "core" });
 export default parser;
 
 parser.defineRule({

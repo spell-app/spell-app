@@ -1,6 +1,6 @@
 import {
   Parser
-} from "../../parser/index.js";
+} from "../../parser/all.js";
 
 export class RulexParser extends Parser {
   @proto

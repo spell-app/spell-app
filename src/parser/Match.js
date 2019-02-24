@@ -1,4 +1,4 @@
-import { memoize } from "../utils/index.js";
+import { memoize } from "../utils/all.js";
 
 // Result of a successful `rule.parse()`.
 // - `match.rule` (Rule, required) is the rule that was matched.

@@ -3,11 +3,11 @@
 //
 
 import {
-  Parser,
   Rule,
-} from "../../parser/index.js";
+  SpellParser,
+} from "./all.js";
 
-const parser = new Parser({ module: "operators" });
+const parser = new SpellParser({ module: "operators" });
 export default parser;
 
 

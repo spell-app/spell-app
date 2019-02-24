@@ -10,9 +10,9 @@ import {
   Tokenizer,
   TestLocation,
   WhitespacePolicy
-} from "../../parser/index.js";
+} from "../../parser/all.js";
 
-import { proto } from "../../utils/index.js";
+import { proto } from "../../utils/all.js";
 
 const { ANYWHERE, AT_START } = TestLocation;
 

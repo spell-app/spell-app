@@ -3,7 +3,7 @@ import {
   Rule,
   parseRule,
   parseSyntax
-} from "./index.js";
+} from "./all.js";
 
 
 describe("parseSyntax()", () => {

@@ -1,11 +1,11 @@
 import {
   ParseError,
   Token
-} from "./index.js";
+} from "./all.js";
 
 import {
   proto
-} from "../utils/index.js";
+} from "../utils/all.js";
 
 // Policy for automatically removing whitespace from the token stream.
 export const WhitespacePolicy = {

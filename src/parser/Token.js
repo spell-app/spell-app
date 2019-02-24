@@ -1,4 +1,4 @@
-import { proto } from "../utils/index.js";
+import { proto } from "../utils/all.js";
 
 // Base, abstract token class.
 // This is also the root of various token types.

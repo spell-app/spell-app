@@ -3,11 +3,11 @@
 //
 
 import {
-  Parser,
   Rule,
-} from "../../parser/index.js";
+  SpellParser,
+} from "./all.js";
 
-const parser = new Parser({ module: "if" });
+const parser = new SpellParser({ module: "if" });
 export default parser;
 
 // Given a condiiton expression string, wrap it in parens iff it is not already parenthesized properly.

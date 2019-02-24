@@ -5,16 +5,15 @@
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
 
-import flattenDeep from "lodash/flattenDeep.js";
-
 import {
-  Parser,
   Rule,
-} from "../../parser/index.js";
+  SpellParser,
+  Token,
+} from "./all.js";
 
-import { pluralize } from "../../utils/index.js";
+import { pluralize } from "../../utils/all.js";
 
-const parser = new Parser({ module: "types" });
+const parser = new SpellParser({ module: "types" });
 export default parser;
 
 //

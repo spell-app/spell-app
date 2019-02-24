@@ -1,7 +1,7 @@
 import {
   Token,
   Tokenizer
-} from "./index.js";
+} from "./all.js";
 
 
 // FIXME:  this is only working with our default tokenizer...

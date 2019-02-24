@@ -2,7 +2,7 @@ import {
   Rule,
   Parser,
   ParseError
-} from "./index.js";
+} from "./all.js";
 
 // Parsing scope.
 export class Scope {

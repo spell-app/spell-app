@@ -5,13 +5,13 @@
 // TODO: confirm identifiers are plural in some of the below?
 
 import {
-  Parser,
   Rule,
-} from "../../parser/index.js";
+  SpellParser,
+} from "./all.js";
 
-import { singularize } from "../../utils/index.js";
+import { singularize } from "../../utils/all.js";
 
-const parser = new Parser({ module: "lists" });
+const parser = new SpellParser({ module: "lists" });
 export default parser;
 
 // WORKING FROM OTHER RULES (testme)

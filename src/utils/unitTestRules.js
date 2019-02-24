@@ -14,7 +14,7 @@ import isEqual from "lodash/isEqual";
 import {
   ParseError,
   Rule,
-} from "../parser/index.js";
+} from "../parser/all.js";
 
 import { showWhitespace } from "./string.js";
 
