@@ -69,7 +69,7 @@ parser.defineRule({
   name: "confirm",
   alias: "statement",
   syntax:
-    "confirm {message:expression} (?:with {okButton:text} (?: (and|or) {cancelButton:text})? )?",
+    "confirm {message:expression} (?:with {okButton:text} (?:(and|or) {cancelButton:text})?)?",
   testRule: "confirm",
   constructor: class confirm extends Rule.Sequence {
     compile(match) {

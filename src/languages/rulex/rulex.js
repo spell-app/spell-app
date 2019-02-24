@@ -315,7 +315,7 @@ rulex.defineRule({
       end: new Rule.Symbol(")"),
       delimiter: new Rule.Symbol("|"),
       prefix: new Rule.Sequence({ rules: [ testLocation, promote, argument ], optional: true }),
-      rule: new Rule.Subrule({ subrule: "rule", argument: "rules" }),
+      rule: new Rule.Subrule({ subrule: "statement", argument: "rules" }),
       compile(match) {
         let { rules } = match.results;
         // If all rules are single keywords, combine

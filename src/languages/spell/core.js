@@ -524,7 +524,7 @@ parser.defineRule({
 parser.defineRule({
   name: "literal_list",
   alias: "expression",
-  syntax: "\\[[list:{expression},]?\\]",
+  syntax: "\\[ [list:{expression},]? \\]",
   testRule: "\\[",
   constructor: class literal_list extends Rule.Sequence {
     parse(scope, tokens, start, end) {
@@ -563,7 +563,7 @@ parser.defineRule({
 parser.defineRule({
   name: "parenthesized_expression",
   alias: "expression",
-  syntax: "\\({expression}\\)",
+  syntax: "\\( {expression} \\)",
   testRule: "\\(",
   constructor: class parenthesized_expression extends Rule.Sequence {
     parse(scope, tokens, start, end) {

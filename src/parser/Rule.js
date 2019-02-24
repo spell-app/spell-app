@@ -365,7 +365,7 @@ Rule.Subrule = class subrule extends Rule {
     const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` : "";
-    const excludes = this.excludes ? `!${this.excludes.join("!")}:` : "";
+    const excludes = this.excludes ? `!${this.excludes.join("!")}` : "";
     const optional = this.optional ? "?" : "";
     return (
       `${testLocation}{${promote}${argument}${this.subrule}${excludes}}${optional}`
@@ -580,9 +580,13 @@ Rule.List = class list extends Rule {
     const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` : "";
-    const item = this.item.toSyntax();
     const delimiter = this.delimiter.toSyntax();
     const optional = this.optional ? "?" : "";
+
+    const item = this.item instanceof Rule.Sequence
+      ? `(${this.item.toSyntax()})`
+      : this.item.toSyntax();
+
     return `${testLocation}[${promote}${argument}${item}${delimiter}]${optional}`;
   }
 };
@@ -640,6 +644,8 @@ Rule.NestedSplit = class nesting extends Rule.Nested {
     const tokenGroups = this.splitTokens(scope, tokens.slice(1, end));
     if (tokenGroups === undefined) return;
 
+//console.warn(tokenGroups);
+
     let prefix;
     const groups = [];
     for (let i = 0, tokenGroup; tokenGroup = tokenGroups[i]; i++) {
@@ -651,7 +657,13 @@ Rule.NestedSplit = class nesting extends Rule.Nested {
       }
       const match = this.rule.parse(scope, tokenGroup);
       if (!match) return undefined;
-      if (match.matchLength !== tokenGroup.length) return undefined;
+
+      if (match.matchLength !== tokenGroup.length) {
+// console.warn(match.compile());
+// console.warn("didn't consume enough:", tokenGroup.splice(match.matchLength).map(token => token.value));
+// console.warn(scope.rules.rule);
+        return undefined;
+      }
       groups.push(match);
     }
     return new Match({
