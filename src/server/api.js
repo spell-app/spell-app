@@ -55,7 +55,7 @@ router.get("/test", (request, response) => {
 //////////////////////////////
 //  Examples support
 //////////////////////////////
-const packagesDir = nodePath.join(__dirname, "..", "packages");
+const packagesDir = nodePath.join(__dirname, "..", "languages", "spell", "packages");
 function getPackagePath(...suffix) {
   return nodePath.join(packagesDir, ...suffix);
 }
