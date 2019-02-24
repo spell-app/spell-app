@@ -422,7 +422,7 @@ rulex.defineRule({
 rulex.defineRule({
   name: "sequence",
   alias: "rule",
-  testRule: new Rule.Pattern(/^[^…\^\(\{\[]$/), // NOT special symbols
+  testRule: new Rule.Pattern(/^[^…\^\(\{\[]/), // NOT special symbols, more than one char is OK
   minCount: 2,
   repeat: new Rule.Subrule({ subrule: "rule", excludes: "sequence" }),
   constructor: class rulex_sequence extends Rule.Repeat {
@@ -460,25 +460,25 @@ rulex.defineRule({
       compileAs: "rule",
       showAll: true,
       tests: [
-        ["a b c", new Rule.Keywords("a", "b", "c") ],
-        ["a {b} c",
+        ["aa bb cc", new Rule.Keywords("aa", "bb", "cc") ],
+        ["aa {bb} cc",
           new Rule.Sequence(
-            new Rule.Keyword("a"),
-            new Rule.Subrule("b"),
-            new Rule.Keyword("c"),
+            new Rule.Keyword("aa"),
+            new Rule.Subrule("bb"),
+            new Rule.Keyword("cc"),
           )
         ],
-        ["a? {?:sub} bb",
+        ["aa? {?:bb} cc",
           new Rule.Sequence(
-            new Rule.Keyword({ literal: "a", optional: true }),
-            new Rule.Subrule({ subrule: "sub", promote: true }),
-            new Rule.Keyword("bb"),
+            new Rule.Keyword({ literal: "aa", optional: true }),
+            new Rule.Subrule({ subrule: "bb", promote: true }),
+            new Rule.Keyword("cc"),
           )
         ],
-        ["a? (a|>)",
+        ["aa? (bb|>)",
           new Rule.Sequence(
-            new Rule.Keyword({ literal: "a", optional: true }),
-            new Rule.Choice({ rules:[ new Rule.Keyword("a"), new Rule.Symbol(">") ]})
+            new Rule.Keyword({ literal: "aa", optional: true }),
+            new Rule.Choice({ rules:[ new Rule.Keyword("bb"), new Rule.Symbol(">") ]})
           )
         ],
       ]
