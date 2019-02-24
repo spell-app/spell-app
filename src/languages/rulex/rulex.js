@@ -3,20 +3,23 @@
 //
 // NOTE: many of the below are created as custom Pattern subclasses for debugging.
 //
-import Parser from "../../parser/Parser";
-import Match from "../../parser/Match";
-import Rule from "../../parser/Rule";
-import Token from "../../parser/Token";
-import Tokenizer from "../../parser/Tokenizer";
+import {
+  Parser,
+  Rule,
+  Token,
+  Tokenizer,
+  TestLocation,
+  WhitespacePolicy
+} from "../../parser/index.js";
 
-import { proto } from "../../utils/decorators";
+import { proto } from "../../utils/index.js";
 
-const { ANYWHERE, AT_START } = Rule.TestLocation;
+const { ANYWHERE, AT_START } = TestLocation;
 
 export class RulexParser extends Parser {
   @proto module = "rulex";
   @proto defaultRule = "sequence";
-  @proto removeWhitespacePolicy = Tokenizer.WhitespacePolicy.INLINE;
+  @proto removeWhitespacePolicy = WhitespacePolicy.INLINE;
 }
 
 // Create core `rulex` rulex.

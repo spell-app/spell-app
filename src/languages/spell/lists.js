@@ -4,10 +4,12 @@
 
 // TODO: confirm identifiers are plural in some of the below?
 
-import Parser from "../../parser/Parser.js";
-import Rule from "../../parser/Rule";
+import {
+  Parser,
+  Rule,
+} from "../../parser/index.js";
 
-import { singularize } from "../../utils/string";
+import { singularize } from "../../utils/index.js";
 
 const parser = new Parser({ module: "lists" });
 export default parser;

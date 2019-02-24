@@ -1,6 +1,9 @@
-import ParseError from "./ParseError.js";
-import Rule from "./Rule.js";
-import parseRule, { parseSyntax } from "./parseRule.js";
+import {
+  ParseError,
+  Rule,
+  parseRule,
+  parseSyntax
+} from "./index.js";
 
 
 describe("parseSyntax()", () => {

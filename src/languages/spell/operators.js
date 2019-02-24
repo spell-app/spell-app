@@ -2,8 +2,10 @@
 //  # Rules for infix and prefix operators.
 //
 
-import Parser from "../../parser/Parser.js";
-import Rule from "../../parser/Rule";
+import {
+  Parser,
+  Rule,
+} from "../../parser/index.js";
 
 const parser = new Parser({ module: "operators" });
 export default parser;

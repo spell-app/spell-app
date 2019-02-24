@@ -1,10 +1,10 @@
-import { memoize } from "../utils/decorators";
+import { memoize } from "../utils/index.js";
 
 // Result of a successful `rule.parse()`.
 // - `match.rule` (Rule, required) is the rule that was matched.
 // - `match.matched` (string or [Match], optional) actual value matched,
 //    either as a string or as an array of Matches
-export default class match {
+export class Match {
   constructor(props) {
     Object.assign(this, props);
   }

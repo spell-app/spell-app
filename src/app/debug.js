@@ -2,13 +2,16 @@
 import global from "global";
 import _ from "lodash";
 
-import Parser from "../parser/Parser.js";
-import ParseError from "../parser/ParseError.js";
-import Rule from "../parser/Rule.js";
-import parseRule, { parseSyntax, tokeniseRuleSyntax } from "../parser/parseRule.js";
-import Scope from "../parser/Scope.js";
-import Tokenizer from "../parser/Tokenizer.js";
-import Token from "../parser/Token.js";
+import {
+  Parser,
+  ParseError,
+  parseRule,
+  parseSyntax,
+  Rule,
+  Scope,
+  Tokenizer,
+  Token
+} from "../parser/index.js";
 
 import ReduxFactory from "./redux/ReduxFactory.js";
 import { getPref, setPref, clearAllPrefs } from "./redux/utils/prefs.js";
@@ -33,7 +36,6 @@ Object.assign(global, {
   ParseError,
   parseRule,
   parseSyntax,
-  tokeniseRuleSyntax,
 
   Rule,
   Tokenizer,

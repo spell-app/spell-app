@@ -3,9 +3,11 @@
 //
 // NOTE: many of the below are created as custom Pattern subclasses for debugging.
 //
-import Parser from "../../parser/Parser.js";
-import Rule from "../../parser/Rule";
-import Token from "../../parser/Token";
+import {
+  Parser,
+  Rule,
+  Token
+} from "../../parser/index.js";
 
 const parser = new Parser({ module: "core" });
 export default parser;

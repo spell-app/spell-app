@@ -1,9 +1,11 @@
 //
 //  # Rules for parsing jsx
 //
-import Parser from "../../parser/Parser.js";
-import Token from "../../parser/Token";
-import Rule from "../../parser/Rule";
+import {
+  Parser,
+  Rule,
+  Token
+} from "../../parser/index.js";
 
 const parser = new Parser({ module: "JSX" });
 export default parser;

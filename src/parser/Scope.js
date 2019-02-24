@@ -1,9 +1,11 @@
-import Rule from "./Rule.js";
-import Parser from "./Parser.js";
-import ParseError from "./ParseError.js";
+import {
+  Rule,
+  Parser,
+  ParseError
+} from "./index.js";
 
 // Parsing scope.
-export default class scope {
+export class Scope {
   constructor(props) {
     if (props instanceof Parser)
       this.parser = props;
@@ -22,7 +24,7 @@ export default class scope {
 
   // Return a clone of this scope with its rules reset.
   resetRules() {
-    const clone = new scope(this);
+    const clone = new Scope(this);
     clone.rules = this.parser.rules;
     return clone;
   }
@@ -30,7 +32,7 @@ export default class scope {
   // Return a clone of this scope, where `rules[ruleName]` without rule names in the `excludes` list.
   // Throws if rule can't be found or it's not a Group.
   cloneExcludingRules(ruleName, excludes) {
-    const clone = new scope(this);
+    const clone = new Scope(this);
     // clone the rules object so we can muck with it
     clone.rules = { ...this.rules };
 

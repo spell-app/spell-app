@@ -1,5 +1,7 @@
-import Token from "./Token.js";
-import Tokenizer from "./Tokenizer.js";
+import {
+  Token,
+  Tokenizer
+} from "./index.js";
 
 
 // FIXME:  this is only working with our default tokenizer...

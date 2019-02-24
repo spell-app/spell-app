@@ -1,4 +1,4 @@
-import { proto } from "../utils/decorators";
+import { proto } from "../utils/index.js";
 
 // Base, abstract token class.
 // This is also the root of various token types.
@@ -8,15 +8,10 @@ import { proto } from "../utils/decorators";
 //  - `token.value` type-specific value in a way that's convenient for parsing to deal with.
 //  - `token.start` start character index in the source string.
 //  - `token.end`   non-inclusive end character instance in the source stream.
-export default class Token {
+export class Token {
   constructor(props) {
     Object.assign(this, props);
   }
-
-
-  //
-  //  Methods for matching strings and/or numbers.
-  //
 
   // Do we match a `literal` value?
   // If `literal` is an array, we'll return true if our `value` is included in the array.

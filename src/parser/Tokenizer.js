@@ -1,8 +1,11 @@
-import ParseError from "./ParseError.js";
-import Token from "./Token.js";
-import { proto } from "../utils/decorators";
-// polyfill for old versions of node
-import "../utils/polyfill.js";
+import {
+  ParseError,
+  Token
+} from "./index.js";
+
+import {
+  proto
+} from "../utils/index.js";
 
 // Policy for automatically removing whitespace from the token stream.
 export const WhitespacePolicy = {
@@ -17,7 +20,7 @@ export const WhitespacePolicy = {
 //
 // TODO: error checking / reporting, especially in JSX expressions.
 // TODO: have normal `tokenize` stick whitespace elements in the stream, then `tokenizeLines()` takes them out?
-export default class Tokenizer {
+export class Tokenizer {
   // Should we warn about anomalous conditions?
   @proto WARN = false;
 

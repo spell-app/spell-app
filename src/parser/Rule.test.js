@@ -1,13 +1,18 @@
-import Parser, { ParserError } from "./Parser.js";
-import parseRule from "./parseRule.js";
-import Rule, { TestLocation } from "./Rule.js";
-import Scope from "./Scope.js";
-import Token from "./Token.js";
-import Tokenizer from "./Tokenizer.js";
+import {
+  Parser,
+  ParseError,
+  parseRule,
+  Rule,
+  Scope,
+  TestLocation,
+  Token,
+  Tokenizer,
+  WhitespacePolicy
+} from "./index.js";
 
 
 const tokenizer = new Tokenizer({
-  whitespacePolicy: Tokenizer.WhitespacePolicy.NONE
+  whitespacePolicy: WhitespacePolicy.NONE
 });
 const tokenize = tokenizer.tokenize;
 
@@ -751,9 +756,9 @@ describe("Rule.Sequence", () => {
 
   describe("sequences without a compile method", () => {
     const rule = parser.rules.noCompile;
-    it("throw on compile", () => {
+    it("return 'match.results' on compile", () => {
       const match = rule.parse(new Scope(parser), tokenize("this that the other"));
-      expect(() => match.compile()).toThrow(ParserError);
+      expect(match.compile()).toEqual({ that: "that", other: "other" });
     });
   }),
 

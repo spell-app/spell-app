@@ -2,8 +2,10 @@
 //  # Rules for creating variables, property access, etc
 //
 
-import Parser from "../../parser/Parser";
-import Rule from "../../parser/Rule";
+import {
+  Parser,
+  Rule,
+} from "../../parser/index.js";
 
 const parser = new Parser({ module: "UI" });
 export default parser;

@@ -2,8 +2,10 @@
 //  # Rules for if statements.
 //
 
-import Parser from "../../parser/Parser.js";
-import Rule from "../../parser/Rule";
+import {
+  Parser,
+  Rule,
+} from "../../parser/index.js";
 
 const parser = new Parser({ module: "if" });
 export default parser;

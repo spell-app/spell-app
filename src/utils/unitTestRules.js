@@ -11,8 +11,11 @@
 import groupBy from "lodash/groupBy";
 import isEqual from "lodash/isEqual";
 
-import ParseError from "../parser/ParseError.js";
-import Rule from "../parser/Rule.js";
+import {
+  ParseError,
+  Rule,
+} from "../parser/index.js";
+
 import { showWhitespace } from "./string.js";
 
 export default function unitTestModuleRules(parser, moduleName) {

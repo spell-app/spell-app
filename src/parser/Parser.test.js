@@ -3,14 +3,15 @@
 // Note that lots of parser functionality is tested via other files in this package. ???
 //
 
-import Parser from "./Parser.js";
-import ParseError from "./ParseError.js";
-import Rule from "./Rule.js";
-import Tokenizer from "./Tokenizer.js";
+import {
+  Parser,
+  ParseError,
+  Rule,
+  Tokenizer
+} from "./index.js";
 
-import * as __parseRule__ from "./parseRule.js"; // for mocking only
-
-const { tokenize } = Tokenizer;
+// Import this specially so we can spy on it.
+import * as _parseRule_ from "./parseRule.js";
 
 // Set up parser used in the below
 const parser = new Parser();
@@ -92,14 +93,14 @@ describe("defineRule()", () => {
   });
 
   test("throws if parseRule() doesn't return anything", () => {
-    const spy = jest.spyOn(__parseRule__, "default").mockImplementation(() => undefined);
+    const spy = jest.spyOn(_parseRule_, "parseRule").mockImplementation(() => undefined);
     expect(() => parser.defineRule({ constructor: Rule, name: "test", syntax:"a" }))
       .toThrow(ParseError);
     spy.mockRestore();
   });
 
   test("throws if parseRule() returns an empty array", () => {
-    const spy = jest.spyOn(__parseRule__, "default").mockImplementation(() => []);
+    const spy = jest.spyOn(_parseRule_, "parseRule").mockImplementation(() => []);
     expect(() => parser.defineRule({ constructor: Rule, name: "test", syntax:"a" }))
       .toThrow(ParseError);
     spy.mockRestore();

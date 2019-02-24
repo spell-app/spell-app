@@ -2,19 +2,23 @@
 //
 import flatten from "lodash/flatten";
 
-// TODO: dependency-inject tokenizer?
-import ParseError from "./ParseError.js";
-import parseRule, { parseSyntax } from "./parseRule.js";
-import Rule from "./Rule.js";
-import Scope from "./Scope.js";
-import Token from "./Token.js";
-import Tokenizer from "./Tokenizer.js";
+import {
+  ParseError,
+  parseRule,
+  parseSyntax,
+  Rule,
+  Scope,
+  Token,
+  Tokenizer,
+  WhitespacePolicy
+} from "./index.js";
 
-import { cloneClass } from "../utils/class.js";
-import { proto } from "../utils/decorators";
-import "../utils/polyfill.js";
+import {
+  cloneClass,
+  proto
+} from "../utils/index.js";
 
-export default class Parser {
+export class Parser {
   // Set to `true` to output debug info while adding rules
   @proto DEBUG = false;
 
@@ -30,7 +34,7 @@ export default class Parser {
   // Default tokenizer.  You may want to create one in your parser subclasses,
   //  e.g. to change the whitespacePolicy.
   @proto tokenizer = new Tokenizer({
-    whitespacePolicy: Tokenizer.WhitespacePolicy.LEADING
+    whitespacePolicy: WhitespacePolicy.LEADING
   });
 
   // Map of all of our rules, including imports.

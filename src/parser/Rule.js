@@ -14,14 +14,15 @@
 //
 import { isNode } from "browser-or-node";
 
-import Parser from "./Parser.js";
-import Match from "./Match.js";
-import ParseError from "./ParseError.js";
-import Token from "./Token.js";
-import Tokenizer from "./Tokenizer.js";
+import {
+  Match,
+  Token,
+} from "./index.js";
 
-import { proto } from "../utils/decorators";
-import { isWhitespace } from "../utils/string";
+import {
+  isWhitespace,
+  proto
+} from "../utils/index.js";
 
 // Show debug messages on browser only.
 const DEBUG = !isNode;
@@ -34,7 +35,7 @@ export const TestLocation = {
 
 // Abstract Rule class.
 // TODOC
-export default class Rule {
+export class Rule {
   constructor(props) {
     Object.assign(this, props);
   }
@@ -266,6 +267,15 @@ Rule.Symbols = class symbols extends Rule.Literals {};
 Rule.Keywords = class keywords extends Rule.Literals {
   // Join literals with a space in-between.
   @proto literalSeparator = " ";
+
+  // If we ended up with only one literal, return a Keyword
+  constructor() {
+    super(...arguments);
+    if (this.literals && this.literals.length === 1) {
+      const { literals, ...props } = this;
+      return new Rule.Keyword({ ...props, literal: literals[0] });
+    }
+  }
 };
 
 // Regex pattern to match a SINGLE token.
@@ -318,14 +328,8 @@ Rule.Pattern = class pattern extends Rule {
 //  we'll return the actual rule that was matched (rather than a clone of this rule)
 Rule.Subrule = class subrule extends Rule {
   constructor(props) {
-    // If passed a string, use that as our `subrule`
-    if (typeof props === "string") {
-      super();
-      this.subrule = props;
-    }
-    else {
-      super(props);
-    }
+    if (typeof props === "string") props = { subrule: props };
+    super(props);
   }
 
   // Ask the subrule to figure out if a match is possible.
@@ -985,11 +989,6 @@ Rule.BlankLine = class blank_line extends Rule {
 
 // Parser error representation in parser output.
 Rule.StatementParseError = class parse_error extends Rule {
-  constructor(props) {
-    super(props);
-    if (Parser.WARN) console.warn(this.message);
-  }
-
   get message() {
     if (this.parsed) {
       return (

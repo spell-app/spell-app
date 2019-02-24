@@ -1,8 +1,12 @@
 // Create master parser for the spell language, importing other rule sets.
-import Parser from "../../parser/Parser.js";
-import Tokenizer from "../../parser/Tokenizer.js";
+import {
+  Parser,
+  Rule,
+  Tokenizer,
+  WhitespacePolicy
+} from "../../parser/index.js";
 
-import { proto } from "../../utils/decorators";
+import { proto } from "../../utils/index.js";
 
 import core from "./core.js";
 import _if_ from "./if.js";
@@ -20,7 +24,7 @@ class SpellParser extends Parser {
 
   @proto tokenizer = new Tokenizer({
     // Remove "normal" whitespace (leaving newlines and indents) when parsing
-    whitespacePolicy: Tokenizer.WhitespacePolicy.LEADING
+    whitespacePolicy: WhitespacePolicy.LEADING
   });
 }
 
