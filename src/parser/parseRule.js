@@ -156,15 +156,17 @@ const ESCAPED_SYMBOLS = ["{", "(", "[", "|", "*", "+", "?", "]", ")", "}"];
 // Returns `[ rule, end ]`
 function parseSymbol(syntaxStream, rules, start = 0) {
   const literals = [];
-  const echo = [];
+  let isEscaped = false;
   let end;
   // eat keywords while they last
   for (var i = start; i < syntaxStream.length; i++) {
     let symbol = syntaxStream[i];
 
     // eat "\\" as escape character, work with next item in stream
-    const isEscaped = symbol === "\\";
-    if (isEscaped) symbol = syntaxStream[++i];
+    isEscaped = symbol === "\\";
+    if (isEscaped) {
+      symbol = syntaxStream[++i];
+    }
 
     // forget it if we got a keyword
     if (!symbol || symbol.match(KEYWORD_PATTERN)) break;
@@ -174,17 +176,15 @@ function parseSymbol(syntaxStream, rules, start = 0) {
     if (literals.length > 0 && syntaxStream[i+1] === "?") break;
 
     literals.push(symbol);
-    echo.push(isEscaped ? `\\${symbol}` : symbol);
     end = i;
-  }
-
-  function toSyntax() {
-    return `${echo.join("")}${this.optional ? "?" : ""}`;
+    if (isEscaped) break;
   }
 
   const rule = (literals.length === 1)
-    ? new Rule.Literal({ literal: literals[0], toSyntax })
-    : new Rule.Symbols({ literals, toSyntax });
+    ? new Rule.Symbol({ literal: literals[0] })
+    : new Rule.Symbols({ literals });
+
+  if (isEscaped) rule.isEscaped = true;
 
   return [rule, end];
 }
