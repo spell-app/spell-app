@@ -264,7 +264,13 @@ Rule.Literals = class literals extends Rule {
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` :"";
     const optional = this.optional ? "?" : "";
-    if (promote || argument || (testLocation && this.literals.length > 1))
+
+    const wrapInParens =
+      promote ||
+      argument ||
+      ((testLocation || optional) && this.literals.length > 1)
+    ;
+    if (wrapInParens)
       return `${testLocation}(${promote}${argument}${literals})${optional}`;
     return `${testLocation}${literals}${optional}`;
   }
@@ -828,6 +834,7 @@ Rule.Sequence = class sequence extends Rule {
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` : "";
     const optional = this.optional ? "?" : "";
+
     if (promote || optional || argument)
       return `(${promote}${argument}${rules})${optional}`;
     return `${testLocation}${rules}${optional}`;
