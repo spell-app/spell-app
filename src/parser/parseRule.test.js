@@ -212,7 +212,7 @@ describe("parseSyntax()", () => {
       expect(rules[0]).toBeInstanceOf(Rule.List);
       expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
       expect(rules[0].delimiter).toBeInstanceOf(Rule.Literal);
-      expect(rules[0].toSyntax()).toBe("[{number} ,]");
+      expect(rules[0].toSyntax()).toBe("[{number},]");
     });
 
     test("parse list with named argument", () => {
@@ -222,7 +222,7 @@ describe("parseSyntax()", () => {
       expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
       expect(rules[0].delimiter).toBeInstanceOf(Rule.Literal);
       expect(rules[0].argument).toBe("my-list");
-      expect(rules[0].toSyntax()).toBe("[my-list:{number} ,]");
+      expect(rules[0].toSyntax()).toBe("[my-list:{number},]");
     });
 
     test("parse list with keyword delimiter", () => {
@@ -232,7 +232,7 @@ describe("parseSyntax()", () => {
       expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
       expect(rules[0].delimiter).toBeInstanceOf(Rule.Literal);
       expect(rules[0].delimiter.literal).toEqual("and");
-      expect(rules[0].toSyntax()).toBe("[{number} and]");
+      expect(rules[0].toSyntax()).toBe("[{number}and]");
     });
   });
 
@@ -293,7 +293,7 @@ describe("parseSyntax()", () => {
         expect(rules[0].rules[2]).toBeInstanceOf(Rule.List);
         expect(rules[0].rules[3]).toBeInstanceOf(Rule.Literal);
 
-        expect(rules[0].toSyntax()).toBe("(is a test|{named:subrule}|[{number} ,]|(a|b))");
+        expect(rules[0].toSyntax()).toBe("(is a test|{named:subrule}|[{number},]|(a|b))");
       });
 
       test("sets promote flag", () => {
@@ -374,7 +374,7 @@ describe("parseSyntax()", () => {
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.List);
       expect(rules[0].optional).toBe(true);
-      expect(rules[0].toSyntax()).toBe("[{number} ,]?");
+      expect(rules[0].toSyntax()).toBe("[{number},]?");
     });
   });
 
@@ -415,7 +415,7 @@ describe("parseSyntax()", () => {
       expect(rules[0]).toBeInstanceOf(Rule.Repeat);
       expect(rules[0].optional).toBeUndefined();
       expect(rules[0].repeat).toBeInstanceOf(Rule.List);
-      expect(rules[0].toSyntax()).toBe("[{number} ,]+");
+      expect(rules[0].toSyntax()).toBe("[{number},]+");
     });
   });
 });

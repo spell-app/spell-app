@@ -326,7 +326,7 @@ rulex.defineRule({
 
         // If we got exactly one choice, copy the flags onto it and return that.
         // Note that the choice's flags will "beat" the rule's flags.
-        if (rules.length === 1 && !(rules[0] instanceof rulex_sequence)) {
+        if (rules.length === 1 && !(rules[0] instanceof rulex.statement)) {
           delete match.results.rules;
           Object.assign(rules[0], match.results);
           return applyFlags(rules[0]);
@@ -413,8 +413,8 @@ rulex.defineRule({
 })
 
 
-
-class rulex_sequence extends Rule.Repeat {
+// Statement constructor -- separate because it's referenced in `choices.compile()`
+rulex.statement = class rulex_statement extends Rule.Repeat {
   compile(match) {
 //console.group(this);
     const matched = match.matched.map(match => match.compile());
@@ -461,22 +461,10 @@ class rulex_sequence extends Rule.Repeat {
 rulex.defineRule({
   name: "statement",
   repeat: new Rule.Subrule("rule"),
-  constructor: rulex_sequence
-});
-
-// Sequence as a rule -- doesn't match itself and requires more than one match.
-rulex.defineRule({
-  name: "sequence",
-  alias: "rule",
-  minCount: 2,
-  repeat: new Rule.Subrule({ subrule: "rule", excludes: "sequence" }),
-  // NOT special symbols, more than one char is OK
-  testRule: new Rule.Pattern(/^[^…\^\(\{\[]/),
-  constructor: rulex_sequence,
+  constructor: rulex.statement,
   tests: [
     {
       title: "sequences",
-      compileAs: "rule",
       showAll: true,
       tests: [
         ["aa bb cc", new Rule.Keywords("aa", "bb", "cc") ],
@@ -504,7 +492,6 @@ rulex.defineRule({
     },
     {
       title: "consolidate multiple keywords and symbols",
-      compileAs: "rule",
       showAll: true,
       tests: [
         [">=", new Rule.Symbols([">", "="])],

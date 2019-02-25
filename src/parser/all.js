@@ -10,3 +10,5 @@ export * from "./Scope.js"
 export * from "./parseRule.js"
 export * from "./Parser.js"
 export * from "./unitTestModuleRules.js";
+
+export rulex from "../languages/rulex/all.js";

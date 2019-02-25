@@ -11,10 +11,17 @@ function testRule(rule) {
 //     expect(rule.toSyntax()).toBe(rule.syntax);
 //   });
 //
-  test(`RULEX: ${rule.name}:  '${rule.syntax}'`, () => {
+  test(`RULEX rule: ${rule.name}:  '${rule.syntax}'`, () => {
     const rulexRule = rulex.parse(rule.syntax).compile();
     expect(rulexRule.toSyntax()).toBe(rule.syntax);
   });
+
+  if (rule.testRule && rule.testRule.syntax) {
+    test(`RULEX test: ${rule.name}:  '${rule.testRule.syntax}'`, () => {
+      const rulexRule = rulex.parse(rule.testRule.syntax).compile();
+      expect(rulexRule.toSyntax()).toBe(rule.testRule.syntax);
+    });
+  }
 }
 
 //describe("testing rulex parsing vs old parseRule()", () => {

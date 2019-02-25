@@ -333,6 +333,13 @@ function parseSubrule(syntaxStream, rules, start = 0) {
 function parseList(syntaxStream, rules, start = 0, constructor = Rule.List) {
   let { end, slice } = Tokenizer.findNestedTokens(syntaxStream, "[", "]", start);
 
+  // get promote if supplied
+  let promote;
+  if (slice[0] === "?" && slice[1] === ":") {
+    promote = slice[0];
+    slice = slice.slice(2);
+  }
+
   // get argument if supplied
   let argument;
   if (slice.length > 2 && slice[1] === ":") {
@@ -347,6 +354,7 @@ function parseList(syntaxStream, rules, start = 0, constructor = Rule.List) {
   let [item, delimiter] = results;
 
   let rule = new constructor({ item, delimiter });
+  if (promote) rule.promote = promote;
   if (argument) rule.argument = argument;
   return [rule, end];
 }
