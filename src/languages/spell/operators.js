@@ -758,7 +758,7 @@ parser.defineRule({
   alias: "expression",
   //FIXME: make `the` optional
   syntax: "the? absolute value of {expression}",
-  testRule: "…absolute value",
+  testRule: "…absolute",
   constructor: class absolute_value extends Rule.Sequence {
     compile(match) {
       const { expression } = match.results;

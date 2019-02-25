@@ -258,7 +258,7 @@ Rule.Literals = class literals extends Rule {
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` :"";
     const optional = this.optional ? "?" : "";
-    if (promote || argument)
+    if (promote || argument || (testLocation && this.literals.length > 1))
       return `${testLocation}(${promote}${argument}${literals})${optional}`;
     return `${testLocation}${literals}${optional}`;
   }

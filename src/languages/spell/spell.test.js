@@ -7,21 +7,28 @@ function testRule(rule) {
   if (!rule.syntax || alreadyTested[rule.syntax]) return;
   alreadyTested[rule.syntax] = true;
 
-//   test(`RULE:  ${rule.name}:  '${rule.syntax}'`, () => {
-//     expect(rule.toSyntax()).toBe(rule.syntax);
-//   });
-//
-  test(`RULEX rule: ${rule.name}:  '${rule.syntax}'`, () => {
-    const rulexRule = rulex.parse(rule.syntax).compile();
-    expect(rulexRule.toSyntax()).toBe(rule.syntax);
-  });
-
-  if (rule.testRule && rule.testRule.syntax) {
-    test(`RULEX test: ${rule.name}:  '${rule.testRule.syntax}'`, () => {
-      const rulexRule = rulex.parse(rule.testRule.syntax).compile();
-      expect(rulexRule.toSyntax()).toBe(rule.testRule.syntax);
+  describe(rule.name, () => {
+    test(`rule   '${rule.syntax}'`, () => {
+      expect(rule.toSyntax()).toBe(rule.syntax);
     });
-  }
+
+    test(`RULEX  '${rule.syntax}'`, () => {
+      const rulexRule = rulex.parse(rule.syntax).compile();
+      expect(rulexRule.toSyntax()).toBe(rule.syntax);
+//      expect(rulexRule).toEqual(rule);
+    });
+
+    const testSyntax = rule.testRule?.syntax;
+    if (testSyntax) {
+      test(`test   '${testSyntax}'`, () => {
+        const rulexRule = rulex.parse(testSyntax).compile();
+        rulexRule.syntax = testSyntax;
+
+        expect(rulexRule.toSyntax()).toBe(testSyntax);
+        expect(rulexRule).toEqual(rule.testRule);
+      });
+    }
+  });
 }
 
 //describe("testing rulex parsing vs old parseRule()", () => {

@@ -199,6 +199,7 @@ rulex.defineRule({
 rulex.defineRule({
   name: "subrule",
   rules: [
+    testLocation,
     new Rule.Nested({
       start: new Rule.Symbol("{"),
       end: new Rule.Symbol("}"),
@@ -309,6 +310,7 @@ rulex.defineRule({
   name: "choices",
   alias: "rule",
   rules: [
+    testLocation,
     new Rule.NestedSplit({
       argument: "rule",
       start: new Rule.Symbol("("),
@@ -415,6 +417,8 @@ rulex.defineRule({
 
 // Statement constructor -- separate because it's referenced in `choices.compile()`
 rulex.statement = class rulex_statement extends Rule.Repeat {
+  @proto name = "statement";
+  @proto repeat = new Rule.Subrule("rule");
   compile(match) {
 //console.group(this);
     const matched = match.matched.map(match => match.compile());
@@ -459,8 +463,6 @@ rulex.statement = class rulex_statement extends Rule.Repeat {
 // Match a long list of rules.
 // TODO: `consume all tokens`...
 rulex.defineRule({
-  name: "statement",
-  repeat: new Rule.Subrule("rule"),
   constructor: rulex.statement,
   tests: [
     {

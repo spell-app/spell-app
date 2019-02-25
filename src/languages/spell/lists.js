@@ -35,7 +35,7 @@ parser.defineRule({
   name: "list_length",
   alias: "expression",
   syntax: "the? number of {identifier} in {list:expression}",
-  testRule: "…number of",
+  testRule: "…(number of)",
   precedence: 3,
   constructor: class list_length extends Rule.Sequence {
     compile(match) {
@@ -64,7 +64,7 @@ parser.defineRule({
   name: "list_position",
   alias: "expression",
   syntax: "the? position of {thing:expression} in {list:expression}",
-  testRule: "…position of",
+  testRule: "…(position of)",
   precedence: 3,
   constructor: class list_position extends Rule.Sequence {
     compile(match) {
@@ -332,7 +332,7 @@ parser.defineRule({
   name: "range_expression_starting_with",
   alias: "expression",
   syntax: "{identifier} (in|of) {list:expression} starting with {thing:expression}",
-  testRule: "…starting with",
+  testRule: "…(starting with)",
   constructor: class range_expression_starting_with extends Rule.Sequence {
     compile(match) {
       const { thing, list, identifier } = match.results;

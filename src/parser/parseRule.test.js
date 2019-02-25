@@ -91,10 +91,13 @@ describe("parseSyntax()", () => {
 
     test("parse multiple escaped symbols", () => {
       const rules = parseSyntax("\\(\\?");
-      expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(Rule.Symbols);
-      expect(rules[0].literals).toEqual(["(", "?"]);
-      expect(rules[0].toSyntax()).toBe("\\(\\?");
+      expect(rules.length).toBe(2);
+      expect(rules[0]).toBeInstanceOf(Rule.Symbol);
+      expect(rules[0].literal).toBe("(");
+      expect(rules[0].toSyntax()).toBe("\\(");
+      expect(rules[1]).toBeInstanceOf(Rule.Symbol);
+      expect(rules[1].literal).toBe("?");
+      expect(rules[1].toSyntax()).toBe("\\?");
     });
   });
 
