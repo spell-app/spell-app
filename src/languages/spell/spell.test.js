@@ -1,4 +1,8 @@
-import spell, { Rule } from "./all.js";
+import {
+  parseRule,
+  Rule,
+  spell
+} from "./all.js";
 import rulex from "../rulex/all.js";
 
 const alreadyTested = {};
@@ -7,15 +11,23 @@ function testRule(rule) {
   if (!rule.syntax || alreadyTested[rule.syntax]) return;
   alreadyTested[rule.syntax] = true;
 
-  describe(rule.name, () => {
-    test(`rule   '${rule.syntax}'`, () => {
+  describe(`${rule.name}:  '${rule.syntax}'`, () => {
+    test(`rule.toSyntax() matched`, () => {
       expect(rule.toSyntax()).toBe(rule.syntax);
     });
 
-    test(`RULEX  '${rule.syntax}'`, () => {
-      const rulexRule = rulex.parse(rule.syntax).compile();
+    let rulexRule;
+    test("RULEX compiles", () => {
+      expect(()=> rulexRule = rulex.parse(rule.syntax).compile()).not.toThrow();
+    });
+
+    test("RULEX.toSyntax() matches", () => {
       expect(rulexRule.toSyntax()).toBe(rule.syntax);
-//      expect(rulexRule).toEqual(rule);
+    });
+
+    test("RULEX.compile matches", () => {
+      const minimalParsedRule = parseRule(rule.syntax)[0];
+      expect(rulexRule).toEqual(minimalParsedRule);
     });
 
     const testSyntax = rule.testRule?.syntax;
