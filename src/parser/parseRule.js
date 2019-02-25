@@ -81,10 +81,22 @@ export function parseSyntax(syntax, rules = [], start = 0) {
   let lastIndex = syntaxStream.length;
   while (start < lastIndex) {
     let [rule, end] = parseToken(syntaxStream, rules, start);
-    if (rule) {
-      rules.push(rule);
-    }
     start = end + 1;
+    // NOTE: we sometimes don't get a rule back, e.g. when matching a repeat symbol
+    if (!rule) continue;
+    // Attempt to merge Keyword rules
+    if (rule instanceof Rule.Keyword && !rule.isAdorned) {
+      const last = rules[rules.length - 1];
+      if (last instanceof Rule.Keyword && !last.isAdorned) {
+        rules[rules.length - 1] = new Rule.Keywords([ last.literal, rule.literal ]);
+        continue;
+      }
+      else if (last instanceof Rule.Keywords && !last.isAdorned) {
+        last.literals = [...last.literals, rule.literal];
+        continue;
+      }
+    }
+    rules.push(rule);
   }
   return rules;
 }
@@ -119,9 +131,9 @@ function parseToken(syntaxStream, rules = [], start = 0) {
 
     default:
       if (token.match(KEYWORD_PATTERN)) {
-        return parseKeyword(syntaxStream, rules, start);
+        return parseKeywords(syntaxStream, rules, start);
       } else {
-        return parseSymbol(syntaxStream, rules, start);
+        return parseSymbols(syntaxStream, rules, start);
       }
   }
 }
@@ -130,9 +142,9 @@ function parseToken(syntaxStream, rules = [], start = 0) {
 // If more than one keyword appears in a row, combines them into a single `Keyword` object.
 // Put a question mark after the keyword to make it optional, eg, "the? thing"
 // Returns `[ rule, end ]`
-function parseKeyword(syntaxStream, rules, start = 0) {
+function parseKeywords(syntaxStream, rules, start = 0) {
   let literals = [];
-  let end;
+  let end = start;
   // eat keywords while they last
   for (var i = start; i < syntaxStream.length; i++) {
     let keyword = syntaxStream[i];
@@ -144,8 +156,14 @@ function parseKeyword(syntaxStream, rules, start = 0) {
   }
 
   const rule = (literals.length === 1)
-    ? new Rule.Literal({ literal: literals[0] })
+    ? new Rule.Keyword({ literal: literals[0] })
     : new Rule.Keywords({ literals });
+
+  // Add optional flag
+  if (syntaxStream[end+1] === "?") {
+    rule.optional = true;
+    end++;
+  }
 
   return [rule, end];
 }
@@ -154,7 +172,7 @@ const ESCAPED_SYMBOLS = ["{", "(", "[", "|", "*", "+", "?", "]", ")", "}"];
 
 // Match one or more `symbol`s in syntax rules.
 // Returns `[ rule, end ]`
-function parseSymbol(syntaxStream, rules, start = 0) {
+function parseSymbols(syntaxStream, rules, start = 0) {
   const literals = [];
   let isEscaped = false;
   let end;
@@ -226,17 +244,22 @@ function parseGroup(syntaxStream, rules, start = 0) {
   }
   else {
     const allAreSingles = choices.every( rule => {
-      if (!(rule instanceof Rule.Literal)) return false;
-      if (rule.optional || rule.argument) return false;
+      if (!(rule instanceof Rule.Keyword)) return false;
+      if (rule.isAdorned) return false;
       return true;
     });
     if (allAreSingles) {
       const keywords = flatten(choices.map(rule => rule.literal));
-      rule = new Rule.Literal({ literal: keywords });
+      rule = new Rule.Keyword({ literal: keywords });
     }
     else {
       rule = new Rule.Choice({ rules: choices });
     }
+  }
+
+  if (syntaxStream[end+1] === "?") {
+    rule.optional = true;
+    end++;
   }
 
   if (argument) rule.argument = argument;
