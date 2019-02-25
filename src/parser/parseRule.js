@@ -290,7 +290,7 @@ function groupChoices(tokens) {
   return choices;
 }
 
-// Match repeat indicator `?`, `+` or `*` by attaching it to the previous rule.
+// Match repeat indicator `?`, `+` or `*` by modifying the previous rule.
 function parseRepeat(syntaxStream, rules, start = 0) {
   let symbol = syntaxStream[start];
   let rule = rules[rules.length - 1];
@@ -299,10 +299,17 @@ function parseRepeat(syntaxStream, rules, start = 0) {
 
   // Transform last rule into a repeat for `*` and `+`.
   if (symbol === "*" || symbol === "+") {
-    let argument = rule.argument;
-    rule = new Rule.Repeat({ repeat: rule });
-    if (argument) rule.argument = argument;
-    // push into rule stack in place of old rule
+    const repeat = new Rule.Repeat(rule);
+    if (rule.argument) {
+      repeat.argument = rule.argument;
+      delete rule.argument;
+    }
+    if (rule.promote) {
+      repeat.promote = rule.promote;
+      delete rule.promote;
+    }
+    // replace the old rule in the stack
+    rule = repeat;
     rules[rules.length - 1] = rule;
   }
 
@@ -359,7 +366,7 @@ function parseList(syntaxStream, rules, start = 0, constructor = Rule.List) {
   // get promote if supplied
   let promote;
   if (slice[0] === "?" && slice[1] === ":") {
-    promote = slice[0];
+    promote = true;
     slice = slice.slice(2);
   }
 

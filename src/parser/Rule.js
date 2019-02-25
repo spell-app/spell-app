@@ -187,7 +187,13 @@ Rule.Literal = class literal extends Rule {
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` :"";
     const optional = this.optional ? "?" : "";
-    if (isChoice || promote || argument || (this.isEscaped && optional))
+    const wrapInParens =
+      isChoice ||
+      promote ||
+      argument ||
+      (this.isEscaped && optional)
+    ;
+    if (wrapInParens)
       return `${testLocation}(${promote}${argument}${literal})${optional}`;
     return `${testLocation}${literal}${optional}`;
   }
@@ -335,8 +341,8 @@ Rule.Pattern = class pattern extends Rule {
 Rule.Subrule = class subrule extends Rule {
   constructor(props) {
     if (typeof props === "string") props = { subrule: props };
+//    if (props.excludes && typeof props.excludes === "string") props.excludes = [props.excludes];
     super(props);
-    if (this.excludes && typeof this.excludes === "string") this.excludes = [this.excludes];
   }
 
   // Ask the subrule to figure out if a match is possible.
@@ -491,6 +497,11 @@ Rule.Group = class group extends Rule.Choice {};
 //
 //  Note: Returns `undefined` if we don't match at least once.
 Rule.Repeat = class repeat extends Rule {
+  constructor(props) {
+    if (props instanceof Rule) props = { repeat: props };
+    super(props);
+  }
+
   parse(scope, tokens) {
     if (this.testAtStart(scope, tokens, 0) === false) return undefined;
 
@@ -522,14 +533,24 @@ Rule.Repeat = class repeat extends Rule {
   }
 
   toSyntax() {
-    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
-    const isCompoundRule =
+    const promote = this.promote ? "?:" : "";
+    const argument = this.argument ? `${this.argument}:` : "";
+    const optional = this.optional ? "*" : "+";
+    const wrapInParens =
+      promote ||
+      argument ||
       this.repeat instanceof Rule.Sequence ||
       (this.repeat instanceof Rule.Literals && this.repeat.literals.length > 1);
-    const repeat = this.repeat.toSyntax();
-    const rule = isCompoundRule ? `(${repeat})` : `${repeat}`;
-    const optional = this.optional ? "*" : "+";
-    return `${testLocation}${rule}${optional}`;
+
+    // don't double-up on parens
+    let repeat = this.repeat.toSyntax();
+    if (wrapInParens && repeat.startsWith("(") && repeat.endsWith(")"))
+      repeat = repeat.slice(1, -1);
+
+    const rule = wrapInParens
+      ? `(${promote}${argument}${repeat})`
+      : `${repeat}`;
+    return `${rule}${optional}`;
   }
 };
 
@@ -586,7 +607,6 @@ Rule.List = class list extends Rule {
     const item = this.item instanceof Rule.Sequence
       ? `(${this.item.toSyntax()})`
       : this.item.toSyntax();
-
     return `${testLocation}[${promote}${argument}${item}${delimiter}]${optional}`;
   }
 };

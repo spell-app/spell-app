@@ -53,7 +53,6 @@ describe("parseSyntax()", () => {
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.Symbol);
       expect(rules[0].literal).toEqual(">");
-      expect(rules[0].optional).toBe(true);
       expect(rules[0].toSyntax()).toBe(">?");
     });
 
