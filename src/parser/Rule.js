@@ -780,7 +780,7 @@ Rule.Sequence = class sequence extends Rule {
       for (let i = 0, match; match = matched[i]; i++) {
         const { promote, name } = match;
         if (promote) {
-          return addResults(results, match.matched);
+          addResults(results, match.matched);
         } else {
           if (name == null) continue;
 
