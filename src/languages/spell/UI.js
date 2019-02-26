@@ -18,11 +18,10 @@ parser.defineRule({
   syntax: "alert {message:expression} (?:with {okButton:text})?",
   testRule: "alert",
   // TODO: need some fancy promise juju to make parent funtion async?
-  constructor: class alert extends Rule.Sequence {
-    compile(match) {
-      let { message, okButton = '"OK"' } = match.results;
-      return `await spell.alert(${message}, ${okButton})`;
-    }
+  constructor: class alert extends Rule.Sequence {},
+  compile(match) {
+    let { message, okButton = '"OK"' } = match.results;
+    return `await spell.alert(${message}, ${okButton})`;
   },
   tests: [
     {
@@ -44,11 +43,10 @@ parser.defineRule({
   alias: "statement",
   syntax: "warn {message:expression} (?:with {okButton:text})?",
   testRule: "warn",
-  constructor: class warn extends Rule.Sequence {
-    compile(match) {
-      let { message, okButton = '"OK"' } = match.results;
-      return `await spell.warn(${message}, ${okButton})`;
-    }
+  constructor: class warn extends Rule.Sequence {},
+  compile(match) {
+    let { message, okButton = '"OK"' } = match.results;
+    return `await spell.warn(${message}, ${okButton})`;
   },
   tests: [
     {
@@ -68,14 +66,12 @@ parser.defineRule({
 parser.defineRule({
   name: "confirm",
   alias: "statement",
-  syntax:
-    "confirm {message:expression} (?:with {okButton:text} (?:(and|or) {cancelButton:text})?)?",
+  syntax: "confirm {message:expression} (?:with {okButton:text} (?:(and|or) {cancelButton:text})?)?",
   testRule: "confirm",
-  constructor: class confirm extends Rule.Sequence {
-    compile(match) {
-      let { message, okButton = '"OK"', cancelButton = '"Cancel"' } = match.results;
-      return `await spell.confirm(${message}, ${okButton}, ${cancelButton})`;
-    }
+  constructor: class confirm extends Rule.Sequence {},
+  compile(match) {
+    let { message, okButton = '"OK"', cancelButton = '"Cancel"' } = match.results;
+    return `await spell.confirm(${message}, ${okButton}, ${cancelButton})`;
   },
   tests: [
     {

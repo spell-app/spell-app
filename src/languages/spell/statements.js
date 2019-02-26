@@ -20,11 +20,10 @@ parser.defineRule({
   alias: "statement",
   syntax: "return {expression}",
   testRule: "return",
-  constructor: class return_statement extends Rule.Sequence {
-    compile(match) {
-      let { expression } = match.results;
-      return `return ${expression}`;
-    }
+  constructor: class return_statement extends Rule.Sequence {},
+  compile(match) {
+    let { expression } = match.results;
+    return `return ${expression}`;
   },
   tests: [
     {
@@ -39,10 +38,9 @@ parser.defineRule({
   name: "exit",
   alias: "statement",
   literal: "exit",
-  constructor: class return_statement extends Rule.Literal {
-    compile(match) {
-      return "return undefined";
-    }
+  constructor: class return_statement extends Rule.Literal {},
+  compile(match) {
+    return "return undefined";
   },
   tests: [
     {
@@ -63,12 +61,11 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax: "{thing:expression} = {value:expression}",
   testRule: "…=",
-  constructor: class assignment extends Rule.Sequence {
-    compile(match) {
-      let { thing, value } = match.results;
-      // TODO: declare identifier if not in scope, etc
-      return `${thing} = ${value}`;
-    }
+  constructor: class assignment extends Rule.Sequence {},
+  compile(match) {
+    let { thing, value } = match.results;
+    // TODO: declare identifier if not in scope, etc
+    return `${thing} = ${value}`;
   },
   tests: [
     {
@@ -85,11 +82,10 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax: "let {thing:expression} = {value:expression}",
   testRule: "let",
-  constructor: class assignment extends Rule.Sequence {
-    compile(match) {
-      let { thing, value } = match.results;
-      return `${thing} = ${value}`;
-    }
+  constructor: class assignment extends Rule.Sequence {},
+  compile(match) {
+    let { thing, value } = match.results;
+    return `${thing} = ${value}`;
   },
   tests: [
     {
@@ -106,11 +102,10 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax: "set {thing:expression} to {value:expression}",
   testRule: "set",
-  constructor: class assignment extends Rule.Sequence {
-    compile(match) {
-      let { thing, value } = match.results;
-      return `${thing} = ${value}`;
-    }
+  constructor: class assignment extends Rule.Sequence {},
+  compile(match) {
+    let { thing, value } = match.results;
+    return `${thing} = ${value}`;
   },
   tests: [
     {
@@ -127,12 +122,11 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax: "put {value:expression} into {thing:expression}",
   testRule: "put",
-  constructor: class assignment extends Rule.Sequence {
-    compile(match) {
-      let { thing, value } = match.results;
-      // TODO: declare identifier if not in scope, etc
-      return `${thing} = ${value}`;
-    }
+  constructor: class assignment extends Rule.Sequence {},
+  compile(match) {
+    let { thing, value } = match.results;
+    // TODO: declare identifier if not in scope, etc
+    return `${thing} = ${value}`;
   },
   tests: [
     {
@@ -150,11 +144,10 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax: "get {value:expression}",
   testRule: "get",
-  constructor: class get_value extends Rule.Sequence {
-    compile(match) {
-      let { value } = match.results;
-      return `var it = ${value}`;
-    }
+  constructor: class get_value extends Rule.Sequence {},
+  compile(match) {
+    let { value } = match.results;
+    return `var it = ${value}`;
   },
   tests: [
     {

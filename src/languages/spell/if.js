@@ -23,11 +23,10 @@ parser.defineRule({
   alias: "statement",
   syntax: "if {condition:expression} (then|:)? {statement}?",
   testRule: "if",
-  constructor: class if_ extends Rule.BlockStatement {
-    compile(match) {
-      const { condition, statements } = match.results;
-      return `if ${parenthesizeCondition(condition)} ${statements}`;
-    }
+  constructor: class if_ extends Rule.BlockStatement {},
+  compile(match) {
+    const { condition, statements } = match.results;
+    return `if ${parenthesizeCondition(condition)} ${statements}`;
   },
   tests: [
     {
@@ -89,11 +88,10 @@ parser.defineRule({
   syntax: "(else|otherwise) if {condition:expression} (then|:)? {statement}?",
   testRule: "(else|otherwise)",
   precedence: 1,
-  constructor: class else_if extends Rule.BlockStatement {
-    compile(match) {
-      const { condition, statements } = match.results;
-      return `else if ${parenthesizeCondition(condition)} ${statements}`;
-    }
+  constructor: class else_if extends Rule.BlockStatement {},
+  compile(match) {
+    const { condition, statements } = match.results;
+    return `else if ${parenthesizeCondition(condition)} ${statements}`;
   },
   tests: [
     {
@@ -152,11 +150,10 @@ parser.defineRule({
   alias: "statement",
   syntax: "(else|otherwise) :? {statement}?",
   testRule: "(else|otherwise)",
-  constructor: class else_ extends Rule.BlockStatement {
-    compile(match) {
-      const { statements } = match.results;
-      return `else ${statements}`;
-    }
+  constructor: class else_ extends Rule.BlockStatement {},
+  compile(match) {
+    const { statements } = match.results;
+    return `else ${statements}`;
   },
   tests: [
     {
@@ -206,14 +203,13 @@ parser.defineRule({
   alias: "statement",
   syntax: "{statement:statement!backwards_if} if {condition:expression} (?:(else|otherwise) {elseStatement:statement})?",
   testRule: "…if",
-  constructor: class backwards_if extends Rule.Sequence {
-    compile(match) {
-      const { condition, statement, elseStatement } = match.results;
-      //TODO: smarter wrapping?
-      let output = `if (${condition}) { ${statement} }`;
-      if (elseStatement) output += `\nelse { ${elseStatement} }`;
-      return output;
-    }
+  constructor: class backwards_if extends Rule.Sequence {},
+  compile(match) {
+    const { condition, statement, elseStatement } = match.results;
+    //TODO: smarter wrapping?
+    let output = `if (${condition}) { ${statement} }`;
+    if (elseStatement) output += `\nelse { ${elseStatement} }`;
+    return output;
   },
   tests: [
     {
