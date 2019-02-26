@@ -34,20 +34,17 @@ export function parseRule(syntax, constructor, props) {
 
   let rules = parseSyntax(syntax);
   if (rules.length === 0) {
-    throw new ParseError(`parser.defineRule(${syntax}): no rule produced`);
+    throw new ParseError(`parser.parseRule(${syntax}): no rule produced`);
   }
 
   // If no constructor, just return the rule(s) from parseSyntax()
   if (!constructor) {
-    // If we only got one rule
-    if (rules.length === 1) {
-      // add props passed in to it
-      Object.assign(rules[0], props);
-      return rules;
-    }
+    // If we only got one rule, add props passed in to it and return
+    if (rules.length === 1)
+      return Object.assign(rules[0], props);
 
     // Otherwise return a sequence with the specified rules
-    return [new Rule.Sequence({ ...props, rules })];
+    return new Rule.Sequence({ ...props, rules });
   }
 
   // Use the constructor to create the rule
@@ -56,13 +53,11 @@ export function parseRule(syntax, constructor, props) {
   if ( constructor.prototype instanceof Rule.Sequence
     || constructor.prototype.constructor === Rule.Sequence
   ) {
-    rule = new constructor({ ...props, rules });
+    return new constructor({ ...props, rules });
   }
-  else {
-    if (rules.length > 1) throw new ParseError("parseRule(): expected a single rule back");
-    rule = new constructor({ ...props, ...rules[0] });
-  }
-  return [rule];
+
+  if (rules.length > 1) throw new ParseError("parseRule(): expected a single rule back");
+  return new constructor({ ...props, ...rules[0] });
 }
 
 export function tokeniseRuleSyntax(syntax) {

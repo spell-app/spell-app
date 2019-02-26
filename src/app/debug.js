@@ -54,6 +54,6 @@ Object.assign(global, {
   // Compare rulex parsing to parseRule()
   compare(ruleString) {
     console.info("RULEX:     ", rulex.compile(ruleString));
-    console.info("parseRule: ", parseRule(ruleString)[0]);
+    console.info("parseRule: ", parseRule(ruleString));
   }
 });

@@ -76,8 +76,8 @@ describe("parser.compile()", () => {
 
 describe("defineRule()", () => {
   test("skips if not passed a 'skip' property", () => {
-    const rules = parser.defineRule({ skip: true });
-    expect(rules).toBe(undefined);
+    const rule = parser.defineRule({ skip: true });
+    expect(rule).toBe(undefined);
   });
 
   test("throws if passed a Rule instance without a 'name' property", () => {
@@ -100,7 +100,7 @@ describe("defineRule()", () => {
   });
 
   test("throws if parseRule() returns an empty array", () => {
-    const spy = jest.spyOn(_parseRule_, "parseRule").mockImplementation(() => []);
+    const spy = jest.spyOn(_parseRule_, "parseRule").mockImplementation(() => undefined);
     expect(() => parser.defineRule({ constructor: Rule, name: "test", syntax:"a" }))
       .toThrow(ParseError);
     spy.mockRestore();

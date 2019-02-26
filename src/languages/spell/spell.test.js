@@ -26,7 +26,7 @@ function testRule(rule) {
     });
 
     test("RULEX.compile matches", () => {
-      const minimalParsedRule = parseRule(rule.syntax)[0];
+      const minimalParsedRule = parseRule(rule.syntax);
       expect(rulexRule).toEqual(minimalParsedRule);
     });
 

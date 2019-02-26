@@ -451,71 +451,64 @@ describe("parseRule()", () => {
   //
   describe("without a constructor", () => {
     test("works for simple keywords", () => {
-      const rules = parseRule("a b c");
-      expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(Rule.Keywords);
-      expect(rules[0].literals).toEqual(["a", "b", "c"]);
+      const rule = parseRule("a b c");
+      expect(rule).toBeInstanceOf(Rule.Keywords);
+      expect(rule.literals).toEqual(["a", "b", "c"]);
     });
 
     test("works with optional keywords", () => {
-      const rules = parseRule("a b c?");
-      expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(Rule.Sequence);
+      const rule = parseRule("a b c?");
+      expect(rule).toBeInstanceOf(Rule.Sequence);
 
-      expect(rules[0].rules[0]).toBeInstanceOf(Rule.Keywords);
-      expect(rules[0].rules[0].literals).toEqual(["a", "b"]);
-      expect(rules[0].rules[0].optional).toBe(undefined);
+      expect(rule.rules[0]).toBeInstanceOf(Rule.Keywords);
+      expect(rule.rules[0].literals).toEqual(["a", "b"]);
+      expect(rule.rules[0].optional).toBe(undefined);
 
-      expect(rules[0].rules[1]).toBeInstanceOf(Rule.Keyword);
-      expect(rules[0].rules[1].literal).toEqual("c");
-      expect(rules[0].rules[1].optional).toBe(true);
+      expect(rule.rules[1]).toBeInstanceOf(Rule.Keyword);
+      expect(rule.rules[1].literal).toEqual("c");
+      expect(rule.rules[1].optional).toBe(true);
     });
 
     test("works for simple symbols", () => {
-      const rules = parseRule(">=");
-      expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(Rule.Symbols);
-      expect(rules[0].literals).toEqual([">", "="]);
+      const rule = parseRule(">=");
+      expect(rule).toBeInstanceOf(Rule.Symbols);
+      expect(rule.literals).toEqual([">", "="]);
     });
 
     test("works with optional symbols", () => {
-      const rules = parseRule(">=?");
-      expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(Rule.Sequence);
+      const rule = parseRule(">=?");
+      expect(rule).toBeInstanceOf(Rule.Sequence);
 
-      expect(rules[0].rules[1]).toBeInstanceOf(Rule.Symbol);
-      expect(rules[0].rules[0].literal).toEqual(">");
-      expect(rules[0].rules[0].optional).toBe(undefined);
+      expect(rule.rules[0]).toBeInstanceOf(Rule.Symbol);
+      expect(rule.rules[0].literal).toEqual(">");
+      expect(rule.rules[0].optional).toBe(undefined);
 
-      expect(rules[0].rules[1]).toBeInstanceOf(Rule.Symbol);
-      expect(rules[0].rules[1].literal).toEqual("=");
-      expect(rules[0].rules[1].optional).toBe(true);
+      expect(rule.rules[1]).toBeInstanceOf(Rule.Symbol);
+      expect(rule.rules[1].literal).toEqual("=");
+      expect(rule.rules[1].optional).toBe(true);
     });
 
     test("works for choices", () => {
-      const rules = parseRule("(a|>|{c})");
-      expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(Rule.Choice);
-      expect(rules[0].rules[0]).toBeInstanceOf(Rule.Keyword);
-      expect(rules[0].rules[1]).toBeInstanceOf(Rule.Symbol);
-      expect(rules[0].rules[2]).toBeInstanceOf(Rule.Subrule);
+      const rule = parseRule("(a|>|{c})");
+      expect(rule).toBeInstanceOf(Rule.Choice);
+      expect(rule.rules[0]).toBeInstanceOf(Rule.Keyword);
+      expect(rule.rules[1]).toBeInstanceOf(Rule.Symbol);
+      expect(rule.rules[2]).toBeInstanceOf(Rule.Subrule);
     });
 
     test("works for lists", () => {
-      const rules = parseRule("[{foo}:]");
-      expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(Rule.List);
-      expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
-      expect(rules[0].delimiter).toBeInstanceOf(Rule.Symbol);
+      const rule = parseRule("[{foo}:]");
+      expect(rule).toBeInstanceOf(Rule.List);
+      expect(rule.item).toBeInstanceOf(Rule.Subrule);
+      expect(rule.delimiter).toBeInstanceOf(Rule.Symbol);
     });
 
     test("works for seqeuences", () => {
-      const rules = parseRule("a {foo}");
-      expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(Rule.Sequence);
-      expect(rules[0].rules.length).toBe(2);
-      expect(rules[0].rules[0]).toBeInstanceOf(Rule.Keyword);
-      expect(rules[0].rules[1]).toBeInstanceOf(Rule.Subrule);
+      const rule = parseRule("a {foo}");
+      expect(rule).toBeInstanceOf(Rule.Sequence);
+      expect(rule.rules.length).toBe(2);
+      expect(rule.rules[0]).toBeInstanceOf(Rule.Keyword);
+      expect(rule.rules[1]).toBeInstanceOf(Rule.Subrule);
     });
   });
 
@@ -525,37 +518,32 @@ describe("parseRule()", () => {
   describe("with a constructor", () => {
     test("works for keywords", () => {
       class wordz extends Rule.Keywords {}
-      const rules = parseRule("a b c", wordz);
-      expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(wordz);
+      const rule = parseRule("a b c", wordz);
+      expect(rule).toBeInstanceOf(wordz);
     });
 
     test("works for symbols", () => {
       class symbolz extends Rule.Keywords {}
-      const rules = parseRule(">=", symbolz);
-      expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(symbolz);
+      const rule = parseRule(">=", symbolz);
+      expect(rule).toBeInstanceOf(symbolz);
     });
 
     test("works for choices", () => {
       class altz extends Rule.Choice {}
-      const rules = parseRule("(a|>|{c})", altz);
-      expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(altz);
+      const rule = parseRule("(a|>|{c})", altz);
+      expect(rule).toBeInstanceOf(altz);
     });
 
     test("works for lists", () => {
       class lizt extends Rule.List {}
-      const rules = parseRule("[{foo}:]", lizt);
-      expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(lizt);
+      const rule = parseRule("[{foo}:]", lizt);
+      expect(rule).toBeInstanceOf(lizt);
     });
 
     test("works for seqeuences", () => {
       class zequence extends Rule.Sequence {}
-      const rules = parseRule("a {foo}", zequence);
-      expect(rules.length).toBe(1);
-      expect(rules[0]).toBeInstanceOf(zequence);
+      const rule = parseRule("a {foo}", zequence);
+      expect(rule).toBeInstanceOf(zequence);
     });
   });
 

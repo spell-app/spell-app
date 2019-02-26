@@ -7,6 +7,7 @@ import {
   parseRule,
   parseSyntax,
   Rule,
+  rulex,
   Scope,
   Token,
   Tokenizer,
@@ -212,7 +213,9 @@ export class Parser {
     if (testRule) {
       // Convert string using rule syntax
       if (typeof testRule === "string") {
-        props.testRule = parseRule(testRule)[0];
+//        props.testRule = rulex.compile(testRule);
+        props.testRule = parseRule(testRule);
+        props.testRule.syntax = testRule;
       }
     }
 
@@ -220,23 +223,20 @@ export class Parser {
     const names = [props.name].concat(props.alias || []);
 
     // Instantiate or parse to create rules to work with
-    const rules = props.syntax
+    const rule = props.syntax
       ? parseRule(props.syntax, constructor, props)
-      : [new constructor(props)]
+      : new constructor(props)
     ;
-    if (!rules || rules.length === 0)
-      throw new ParseError(`defineRule(${props.syntax}): didnt get rules back`);
+    if (!rule) throw new ParseError(`defineRule(${props.syntax}): didnt get a rule back`);
 
-    rules.forEach(rule => this.addRule(rule, names));
+    this.addRule(rule, names);
 
     // if tests were defined, mark as `_testable_`
     if (props.tests) {
       if (!this.rules._testable_) this.addRule(new Rule.Group({ name: "_testable_" }));
-      // only use the first rule if we got more than one
-      // so we don't run the same tests more than once.
-      this.addRule(rules[0], "_testable_");
+      this.addRule(rule, "_testable_");
     }
 
-    return rules;
+    return rule;
   }
 }

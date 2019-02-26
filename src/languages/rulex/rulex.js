@@ -65,7 +65,7 @@ const testLocation = rulex.defineRule({
       ]
     }
   ]
-})[0]
+})
 
 
 // A promote flag, which is always optional
@@ -88,7 +88,7 @@ const promote = rulex.defineRule({
       ]
     }
   ]
-})[0]
+})
 
 // A argument signifier, which is always optional.
 const argument = rulex.defineRule({
@@ -113,7 +113,7 @@ const argument = rulex.defineRule({
       ]
     }
   ]
-})[0]
+})
 
 
 // A repeat signifier, which is always optional.
@@ -137,7 +137,7 @@ const repeatFlag = rulex.defineRule({
       ]
     }
   ]
-})[0]
+})
 
 
 
