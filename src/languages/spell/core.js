@@ -122,6 +122,7 @@ parser.defineRule({
 parser.defineRule({
   name: "word",
   pattern: /^[a-z][\w\-]*$/,
+  // convert dashes to underscores when compiling
   valueMap(value) {
     return (""+value).replace(/\-/g, "_")
   },
@@ -153,6 +154,7 @@ parser.defineRule({
 parser.defineRule({
   name: "identifier",
   pattern: /^[a-z][\w\-]*$/,
+  // convert dashes to underscores when compiling
   valueMap(value) {
     return (""+value).replace(/\-/g, "_")
   },
@@ -163,7 +165,6 @@ parser.defineRule({
     //  "Prepositions...are a class of words that
     //  express spatial or temporal relations  (in, under, towards, before)
     //  or mark various semantic roles (of, for).
-    // TESTME
     about: 1,
     above: 1,
     after: 1,
@@ -261,7 +262,6 @@ parser.defineRule({
     failure: 1,
 
     // Add number words to identifier blacklist.
-    // TESTME
     one: 1,
     two: 1,
     three: 1,
@@ -339,6 +339,7 @@ parser.defineRule({
       compileAs: "expression",
       tests: [
         ["", undefined],
+        ["$asda", undefined],
         ["the", undefined],
         ["the $asda", undefined],
         ["the (asda)", undefined],
@@ -348,6 +349,8 @@ parser.defineRule({
     {
       title: "skips items in identifier blacklist with or without the",
       tests: [
+        ["true", undefined],
+        ["yes", undefined],
         ["the the", undefined],
         ["the yes", undefined],
       ],

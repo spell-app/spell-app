@@ -192,12 +192,12 @@ Rule.Literal = class literal extends Rule {
 
   toSyntax() {
     const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
-    const isChoice = Array.isArray(this.literal);
-    const literal = isChoice
+    const isVariable = Array.isArray(this.literal);
+    const literal = isVariable
       ? this.literal.join("|")
       : (this.isEscaped ? `\\${this.literal}` : this.literal);
 
-    const wrapInParens = isChoice || promote || argument || (this.isEscaped && optional);
+    const wrapInParens = isVariable || promote || argument || (this.isEscaped && optional);
     if (wrapInParens)
       return `${testLocation}(${promote}${argument}${literal})${optional}`;
     return `${testLocation}${literal}${optional}`;
