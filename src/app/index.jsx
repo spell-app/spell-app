@@ -3,20 +3,16 @@ import React from "react";
 import ReactDOM from 'react-dom';
 import { Provider } from "react-redux";
 
-import {
-  store,
-  setPrefKey
-} from "./all.js";
-
-import "./debug.js";
-
-setPrefKey("spell_editor");
-
 function renderApp() {
-  const { App } = require("./App.jsx");
+  const { store, setPrefKey } = require("./all.js");
+  require("./debug.js");
+
+  setPrefKey("spell_editor");
+
+  const { SpellEditor } = require("./SpellEditor.jsx");
   ReactDOM.render(
     <Provider store={store}>
-      <App />
+      <SpellEditor />
     </Provider>,
     document.getElementById('react-root')
   );
@@ -24,4 +20,4 @@ function renderApp() {
 
 renderApp();
 
-//module.hot.accept(renderApp);
+module.hot.accept(renderApp);
