@@ -213,8 +213,7 @@ export class Parser {
     if (testRule) {
       // Convert string using rule syntax
       if (typeof testRule === "string") {
-//        props.testRule = rulex.compile(testRule);
-        props.testRule = parseRule(testRule);
+        props.testRule = rulex.compile(testRule);
         props.testRule.syntax = testRule;
       }
     }
