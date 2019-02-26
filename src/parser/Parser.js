@@ -190,8 +190,8 @@ export class Parser {
       let { skip, constructor, ...props } = ruleProps;
       if (skip) return;
 
-      // if `constructor` was not specified, it will be Object
-      // set to null in this case
+      // if `constructor` was not specified, it will be Object,
+      // we're expecting it to be a Rule, so clear it.
       if (constructor === Object) constructor = null;
 
       // throw if name was not provided
@@ -216,16 +216,23 @@ export class Parser {
         }
       }
 
-
       // Instantiate or parse to create rules to work with
       let rule;
       if (props.syntax) {
-         rule = rulex.compile(props.syntax);
-         if (!rule) throw new ParseError(`defineRule('${props.syntax}'): didnt get a rule back`);
-         if (constructor) {
-           rule = new constructor(rule);
-         }
-         Object.assign(rule, props);
+        rule = rulex.compile(props.syntax);
+        if (!rule) throw new ParseError(`defineRule('${props.syntax}'): didnt get a rule back`);
+
+        // if we didn't get an explicit constructor,
+        // try to use `cloneClass()` to make a new one with the rule `name` for ease in debugging
+        if (!constructor) {
+          try {
+            constructor = cloneClass(rule.constructor, name);
+          } catch (e) { /* swallow errors */ }
+        }
+        if (constructor)
+          rule = new constructor(rule);
+
+        Object.assign(rule, props);
       }
       else {
         rule = new constructor(props);
