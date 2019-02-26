@@ -26,7 +26,6 @@ parser.defineRule({
   name: "number",
   alias: "expression",
   tokenType: Token.Number,
-  constructor: class number extends Rule.TokenType {},
   tests: [
     {
       title: "correctly matches numbers",
@@ -65,7 +64,6 @@ parser.defineRule({
   name: "text",
   alias: "expression",
   tokenType: Token.Text,
-  constructor: class text extends Rule.TokenType {},
   tests: [
     {
       title: "correctly matches text",
@@ -85,7 +83,6 @@ parser.defineRule({
 parser.defineRule({
   name: "comment",
   tokenType: Token.Comment,
-  constructor: class comment extends Rule.TokenType {},
   compile(match) {
     return "//" + `${match.matched[0].whitespace}${match.matched[0].comment}`;
   },
@@ -107,8 +104,7 @@ parser.defineRule({
 parser.defineRule({
   name: "undefined",
   alias: "expression",
-  literal: "undefined",
-  constructor: class _undefined extends Rule.Literal {},
+  syntax: "undefined",
   compile(match) {
     return "undefined";
   },
@@ -126,7 +122,6 @@ parser.defineRule({
 parser.defineRule({
   name: "word",
   pattern: /^[a-z][\w\-]*$/,
-  constructor: class word extends Rule.Pattern {},
   valueMap(value) {
     return (""+value).replace(/\-/g, "_")
   },
@@ -158,7 +153,6 @@ parser.defineRule({
 parser.defineRule({
   name: "identifier",
   pattern: /^[a-z][\w\-]*$/,
-  constructor: class identifier extends Rule.Pattern {},
   valueMap(value) {
     return (""+value).replace(/\-/g, "_")
   },
@@ -314,7 +308,6 @@ parser.defineRule({
   name: "identifier_expression",
   alias: "expression",
   syntax: "the? {identifier}",
-  constructor: class identifier_expression extends Rule.Sequence {},
   compile(match) {
     return match.results.identifier;
   },
@@ -376,7 +369,6 @@ parser.defineRule({
     ok: true,
     cancel: false,
   },
-  constructor: class boolean extends Rule.Pattern {},
   tests: [
     {
       title: "correctly matches booleans",
@@ -418,7 +410,6 @@ parser.defineRule({
     nine: 9,
     ten: 10
   },
-  constructor: class number_string extends Rule.Pattern {},
   tests: [
     {
       title: "correctly matches number strings",
@@ -449,7 +440,6 @@ parser.defineRule({
   blacklist: {
     I: true
   },
-  constructor: class type extends Rule.Pattern {},
   valueMap(type) {
     switch (type) {
       // Alias `List` to `Array`
@@ -524,7 +514,6 @@ parser.defineRule({
   syntax: "\\[ [list:{expression},]? \\]",
   testRule: "\\[",
   resetRules: true,
-  constructor: class literal_list extends Rule.Sequence {},
   compile(match) {
     let { list } = match.results;
     return `[${list ? list.join(", ") : ""}]`;
@@ -556,7 +545,6 @@ parser.defineRule({
   syntax: "\\( {expression} \\)",
   testRule: "\\(",
   resetRules: true,
-  constructor: class parenthesized_expression extends Rule.Sequence {},
   compile(match) {
     let { expression } = match.results;
     // don't double parens if not necessary

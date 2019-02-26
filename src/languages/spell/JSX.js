@@ -15,7 +15,6 @@ parser.defineRule({
   name: "jsx",
   alias: "expression", // TODO: statement ???
   tokenType: Token.JSXElement,
-  constructor: class jsxElement extends Rule.TokenType {},
   compile(match) {
     return this.jsxElementToSource(match.matched[0]);
   },

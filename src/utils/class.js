@@ -2,14 +2,14 @@
 //  # Class utilities
 //
 
-import global from "global";
-
 // Clone a class, re-using the original name.
-// TODO: move to utility?
-export function cloneClass(constructor, name = constructor.name) {
-  // Clone the constructor, keeping the same name
-  global.__cloneClass__ = constructor;
-  const clone = new Function("name", `return class ${name} extends __cloneClass__ {}`)();
-  delete global.__cloneClass__;
-  return clone;
+// If it didn't work, returns the original constructor.
+export function cloneClass(constructor, name) {
+  try {
+    return new Function("constructor", `return class ${name} extends constructor {}`)(constructor);
+  }
+  catch (e) {
+    console.warn(`cloneClass(): can't make clone with name ${name}: please rename`);
+    return constructor;
+  }
 }

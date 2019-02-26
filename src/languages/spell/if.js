@@ -19,7 +19,7 @@ export function parenthesizeCondition(condition) {
 
 
 parser.defineRule({
-  name: "if",
+  name: "_if",
   alias: "statement",
   syntax: "if {condition:expression} (then|:)? {statement}?",
   testRule: "if",
@@ -148,7 +148,7 @@ parser.defineRule({
 });
 
 parser.defineRule({
-  name: "else",
+  name: "_else",
   alias: "statement",
   syntax: "(else|otherwise) :? {statement}?",
   testRule: "(else|otherwise)",
@@ -206,7 +206,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "{statement:statement!backwards_if} if {condition:expression} (?:(else|otherwise) {elseStatement:statement})?",
   testRule: "…if",
-  constructor: class backwards_if extends Rule.Sequence {},
   compile(match) {
     const { condition, statement, elseStatement } = match.results;
     //TODO: smarter wrapping?

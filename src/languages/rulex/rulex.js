@@ -55,7 +55,7 @@ rulex.applyFlags = function applyFlags(rule, flags) {
 //  `…` = test anywhere in the stream (option-semicolon on mac)
 //  `^` = test at start only.
 const testLocation = rulex.defineRule({
-  constructor: class rulex_testLocation extends Rule.Literal {},
+  constructor: Rule.Literal,
   name: "testLocation",
   literal: ["…", "^"],
   optional: true,
@@ -79,7 +79,7 @@ const testLocation = rulex.defineRule({
 
 // A promote flag, which is always optional
 const promote = rulex.defineRule({
-  constructor: class rulex_promote extends Rule.Symbols {},
+  constructor: Rule.Symbols,
   name: "promote",
   literals: ["?", ":"],
   optional: true,
@@ -100,7 +100,7 @@ const promote = rulex.defineRule({
 
 // A argument signifier, which is always optional.
 const argument = rulex.defineRule({
-  constructor: class rulex_argument extends Rule.Sequence {},
+  constructor: Rule.Sequence,
   name: "argument",
   rules: [
     new Rule.Word({ argument: "argument" }),
@@ -125,7 +125,7 @@ const argument = rulex.defineRule({
 
 // A repeat signifier, which is always optional.
 const repeatFlag = rulex.defineRule({
-  constructor: class rulex_repeatFlag extends Rule.Literal {},
+  constructor: Rule.Literal,
   name: "repeatFlag",
   literal: ["?", "*", "+"],
   optional: true,
@@ -158,7 +158,7 @@ const repeatFlag = rulex.defineRule({
 // A single symbol, or `\<symbol>` so we can escape special symbols like "?" and "*".
 // Symbols are combined in `Sequence` if possible.
 rulex.defineRule({
-  constructor: class rulex_symbol extends Rule.Sequence {},
+  constructor: Rule.Sequence,
   name: "symbol",
   alias: "rule",
   rules: [
@@ -212,7 +212,7 @@ rulex.defineRule({
 
 // Match  keywords with an optional repeat signifier at the end.
 rulex.defineRule({
-  constructor: class rulex_keyword extends Rule.Sequence {},
+  constructor: Rule.Sequence,
   name: "keyword",
   alias: "rule",
   rules: [
@@ -248,7 +248,7 @@ rulex.defineRule({
 
 // Subrule
 rulex.defineRule({
-  constructor: class rulex_subrule extends Rule.Sequence {},
+  constructor: Rule.Sequence,
   name: "subrule",
   alias: "rule",
   rules: [
@@ -306,7 +306,7 @@ rulex.defineRule({
 
 
 rulex.defineRule({
-  constructor: class rulex_list extends Rule.Sequence {},
+  constructor: Rule.Sequence,
   name: "list",
   alias: "rule",
   rules: [
@@ -359,7 +359,7 @@ rulex.defineRule({
 
 
 rulex.defineRule({
-  constructor: class rulex_choices extends Rule.Sequence {},
+  constructor: Rule.Sequence,
   name: "choices",
   alias: "rule",
   resetRules: true,
@@ -474,7 +474,7 @@ rulex.defineRule({
 // Match a long list of rules.
 // TODO: `consume all tokens`...
 rulex.defineRule({
-  constructor: class rulex_statement extends Rule.Repeat {},
+  constructor: Rule.Repeat,
   name: "statement",
   repeat: new Rule.Subrule("rule"),
   compile(match) {

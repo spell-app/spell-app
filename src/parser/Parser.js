@@ -21,6 +21,13 @@ import {
   proto
 } from "../utils/all.js";
 
+// In the web browser, by default, we'll use `cloneClass()` to make debugging easier
+// by creating named subclasses which you can see in the browser console
+// when inspecting rules, matches, etc.
+// This is a bit slower (4% for the object allocation, not sure about inheritance chain).
+
+const CLONE_CLASSES = !isNode;
+
 export class Parser {
   // Set to `true` to output debug info while adding rules
   @proto DEBUG = false;
@@ -147,7 +154,10 @@ export class Parser {
     //  create a `Group` and add the existing rule to that.
     if (!(existing instanceof Rule.Group)) {
       // use `cloneClass()` to get a uniquely named constructor for debugging
-      const Group = cloneClass(Rule.Group, ruleName + "_group");
+      const Group = CLONE_CLASSES
+        ? cloneClass(Rule.Group, ruleName + "_group")
+        : Rule.Group
+      ;
       map[ruleName] = new Group({
         argument: ruleName,
         rules: [existing]
@@ -197,11 +207,17 @@ export class Parser {
       // throw if name was not provided
       const name = props.name || (constructor && constructor.prototype.name);
       if (!name)
-        throw new ParseError(`parser.defineRule(): You must pass the rule 'name'`);
+        throw new ParseError("You must pass the rule 'name'");
 
-      // Throw if we don't have either `constructor` or `syntax`
-      if (!constructor && !ruleProps.syntax)
-        throw new ParseError(`parser.defineRule(${name}): You must pass the rule 'constructor' or 'syntax'`);
+      // Try to infer the constructor if we didn't get one
+      if (!constructor) {
+        if (props.tokenType)
+          constructor = Rule.TokenType;
+        else if (props.pattern)
+          constructor = Rule.Pattern;
+        else if (!ruleProps.syntax)
+          throw new ParseError("You must pass 'constructor' or 'syntax'");
+      }
 
       // Note the module that the rule was defined in
       if (this.module) props.module = this.module;
@@ -219,26 +235,28 @@ export class Parser {
       // Instantiate or parse to create rules to work with
       let rule;
       if (props.syntax) {
+        // Use the `rulex` compiler to generate a rule
         rule = rulex.compile(props.syntax);
-        if (!rule) throw new ParseError(`defineRule('${props.syntax}'): didnt get a rule back`);
+        if (!rule) throw new ParseError(`Didn't get a rule from rulex.compile('${props.syntax}')`);
 
-        // if we didn't get an explicit constructor,
-        // try to use `cloneClass()` to make a new one with the rule `name` for ease in debugging
-        if (!constructor) {
-          try {
-            constructor = cloneClass(rule.constructor, name);
-          } catch (e) { /* swallow errors */ }
-        }
-        if (constructor)
-          rule = new constructor(rule);
-
-        Object.assign(rule, props);
+        // We want to use a named constructor below, so copy properties from the rule
+        props = {...rule, ...props};
+        if (CLONE_CLASSES && !constructor) constructor = rule.constructor;
       }
-      else {
+
+      // use `cloneClass()` to make a new constructor with the rule `name` for ease in debugging
+      if (constructor && CLONE_CLASSES && constructor.name !== name)
+        constructor = cloneClass(constructor, name);
+
+      if (constructor)
         rule = new constructor(props);
-      }
+      else if (rule)
+        Object.assign(rule, props);
+      else
+        throw new ParseError("no rule... ???");
 
-      // Combine aliases with the main name
+
+      // Combine aliases with the main name and add rule under all the names
       const names = [props.name].concat(props.alias || []);
       if (props.tests) names.push("_testable_");
       this.addRule(rule, names);

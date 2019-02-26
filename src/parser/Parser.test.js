@@ -19,16 +19,16 @@ parser.defineRules(
   { name: "statement", constructor: Rule.Statement },
   { name: "statements", constructor: Rule.Statements },
 
-  { name: "this", syntax: "this" },
-  { name: "that", syntax: "that" },
+  { name: "dog", syntax: "dog" },
+  { name: "cat", syntax: "cat" },
   {
-    name: "this_and_that",
+    name: "dog_and_cat",
     alias: "statement",
-    syntax: "{this} and {that}",
-    testRule: "{this}",
-    constructor: class this_and_that extends Rule.Sequence {},
+    syntax: "{dog} and {cat}",
+    testRule: "{dog}",
+    constructor: class dog_and_cat extends Rule.Sequence {},
     compile(match) {
-      return "this && that";
+      return "dog && cat";
     }
   }
 );
@@ -36,12 +36,12 @@ parser.defineRules(
 
 describe("parser.parse()", () => {
   test("takes an explicit start rule", () => {
-    const match = parser.parse("statements", "this and that");
+    const match = parser.parse("statements", "dog and cat");
     expect(match.rule).toBeInstanceOf(Rule.Statements);
   });
 
   test("defaults to 'statements' if not passed a start rule", () => {
-    const match = parser.parse("this and that");
+    const match = parser.parse("dog and cat");
     expect(match.rule).toBeInstanceOf(Rule.Statements);
   });
 
@@ -58,13 +58,13 @@ describe("parser.parse()", () => {
 
 describe("parser.compile()", () => {
   test("takes an explicit start rule", () => {
-    const result = parser.compile("statements", "this and that");
-    expect(result).toBe("this && that");
+    const result = parser.compile("statements", "dog and cat");
+    expect(result).toBe("dog && cat");
   });
 
   test("defaults to 'statements' if not passed a start rule", () => {
-    const result = parser.compile("this and that");
-    expect(result).toBe("this && that");
+    const result = parser.compile("dog and cat");
+    expect(result).toBe("dog && cat");
   });
 
   test("throws if text can't be parsed", () => {
@@ -98,7 +98,7 @@ describe("parser debug flags", () => {
     const timeEndSpy = jest.spyOn(console, "time").mockImplementation(()=>undefined);
 
     Parser.TIME = true;
-    const match = parser.parse("statements", "this and that");
+    const match = parser.parse("statements", "dog and cat");
     expect(match.rule).toBeInstanceOf(Rule.Statements);
     Parser.TIME = false;
 
@@ -108,14 +108,14 @@ describe("parser debug flags", () => {
 
   test("DEBUG flag doesn't affect parsing", () => {
     Parser.DEBUG = true;
-    const match = parser.parse("statements", "this and that");
+    const match = parser.parse("statements", "dog and cat");
     expect(match.rule).toBeInstanceOf(Rule.Statements);
     Parser.DEBUG = false;
   });
 
   test("WARN flag doesn't affect parsing", () => {
     Parser.WARN = true;
-    const match = parser.parse("statements", "this and that");
+    const match = parser.parse("statements", "dog and cat");
     expect(match.rule).toBeInstanceOf(Rule.Statements);
     Parser.WARN = false;
   });
