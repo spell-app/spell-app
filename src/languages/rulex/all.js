@@ -4,10 +4,12 @@
 //  or risk circular import problems.
 //
 
+// Pull in everything from `parser`
 export * from "../../parser/all.js";
-export * from "./RulexParser.js"
 
-// Export the entire language as `rulex` and as the `default` export.
+// Pull in parser/constructor
+export { rulex, RulexParser } from "./rulex.js";
+
+// export rulex parser as the default
 import { rulex } from "./rulex.js";
-export { rulex }
 export default rulex;

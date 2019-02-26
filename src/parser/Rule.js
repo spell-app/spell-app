@@ -359,6 +359,7 @@ Rule.Subrule = class subrule extends Rule {
 
   parse(scope, tokens) {
     if (!tokens.length) return;
+    if (this.resetRules) scope = scope.resetRules();
 
     // if we have any excludes, get a clone of the scope without those rules
     if (this.excludes) {
@@ -418,6 +419,11 @@ Rule.Choice = class choices extends Rule {
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(scope, tokens) {
     if (DEBUG) console.group(`matching '${this.argument || this.name || this.toSyntax()}'`, tokens);
+    if (this.resetRules) scope = scope.resetRules();
+
+    // Try to match each rule in turn.
+    // For efficiency, complicated rules (e.g. sequences or recursive rules)
+    //  should exit quickly via a `testRule` or similar mechanism.
     const matches = [];
     for (let i = 0, rule; rule = this.rules[i++];) {
       const match = rule.parse(scope, tokens);
@@ -509,6 +515,7 @@ Rule.Repeat = class repeat extends Rule {
   }
 
   parse(scope, tokens) {
+    if (this.resetRules) scope = scope.resetRules();
     if (this.testAtStart(scope, tokens, 0) === false) return undefined;
 
     const matched = [];
@@ -565,6 +572,7 @@ Rule.Repeat = class repeat extends Rule {
 //  `rule.delimiter` (required) is the delimiter between each item, which is optional at the end.
 Rule.List = class list extends Rule {
   parse(scope, tokens) {
+    if (this.resetRules) scope = scope.resetRules();
     if (this.testAtStart(scope, tokens, 0) === false) return undefined;
 
     let matched = [];
@@ -624,6 +632,8 @@ Rule.List = class list extends Rule {
 // Returns the match of the rule, with `matchLength` adjusted for the delimiters
 Rule.Nested = class nesting extends Rule {
   parse(scope, tokens) {
+    if (this.resetRules) scope = scope.resetRules();
+
     const end = this.findNestedEnd(scope, tokens);
     if (end === undefined) return;
     const match = this.rule.parse(scope, tokens.slice(1, end));
@@ -663,7 +673,8 @@ Rule.Nested = class nesting extends Rule {
 // If nested start/end blocks are found, WHAT WILL HAPPEN???
 Rule.NestedSplit = class nesting extends Rule.Nested {
   parse(scope, tokens) {
-    scope = scope.resetRules();
+    if (this.resetRules) scope = scope.resetRules();
+
     const end = this.findNestedEnd(scope, tokens);
     if (end === undefined) return;
 
@@ -756,6 +767,7 @@ Rule.Sequence = class sequence extends Rule {
     super(props);
   }
   parse(scope, tokens) {
+    if (this.resetRules) scope = scope.resetRules();
     if (this.test(scope, tokens) === false) return undefined;
 
     const matched = [];
@@ -848,6 +860,7 @@ Rule.Statement = class statement extends Rule.Group {
   @proto argument = "statement";
   parse(scope, tokens) {
     if (!tokens.length) return;
+    if (this.resetRules) scope = scope.resetRules();
 
     // eat comment at end of the line
     let comment;

@@ -7,12 +7,22 @@ import {
   Parser,
   proto,
   Rule,
-  RulexParser,
   TestLocation,
   Token,
+  Tokenizer,
+  WhitespacePolicy
 } from "./all.js";
 
 const { ANYWHERE, AT_START } = TestLocation;
+
+export class RulexParser extends Parser {
+  @proto module = "rulex";
+  @proto defaultRule = "statement";
+  // Remove "normal" whitespace (leaving newlines and indents) when parsing
+  @proto tokenizer = new Tokenizer({
+    whitespacePolicy: WhitespacePolicy.LEADING
+  });
+}
 
 // Create core `rulex` rulex.
 export const rulex = new RulexParser();
@@ -352,6 +362,7 @@ rulex.defineRule({
   constructor: class rulex_choices extends Rule.Sequence {},
   name: "choices",
   alias: "rule",
+  resetRules: true,
   rules: [
     testLocation,
     new Rule.NestedSplit({
@@ -374,9 +385,9 @@ rulex.defineRule({
     if (choices.length > 1 && choices.every(rule => rule instanceof Rule.Keyword && !rule.isAdorned)) {
       rule = new Rule.Keyword(choices.map(rule => rule.literal));
     }
-    // If we got exactly one choice which is not a sequence, use that.
+    // If we got exactly one choice which is not a `statement`, use that.
     // Note that the choice's flags will "beat" the rule's flags if they conflict.
-    else if (choices.length === 1 && !(choices[0] instanceof rulex.rules.statement.constructor)) {
+    else if (choices.length === 1 && (choices[0].name !== "statement")) {
       rule = choices[0];
     }
     else {

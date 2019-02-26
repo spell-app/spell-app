@@ -85,10 +85,9 @@ parser.defineRule({
 parser.defineRule({
   name: "comment",
   tokenType: Token.Comment,
-  constructor: class comment extends Rule.TokenType {
-    compile(match) {
-      return "//" + `${match.matched[0].whitespace}${match.matched[0].comment}`;
-    }
+  constructor: class comment extends Rule.TokenType {},
+  compile(match) {
+    return "//" + `${match.matched[0].whitespace}${match.matched[0].comment}`;
   },
   tests: [
     {
@@ -109,10 +108,9 @@ parser.defineRule({
   name: "undefined",
   alias: "expression",
   literal: "undefined",
-  constructor: class _undefined extends Rule.Literal {
-    compile(match) {
-      return "undefined";
-    }
+  constructor: class _undefined extends Rule.Literal {},
+  compile(match) {
+    return "undefined";
   },
   tests: [
     {
@@ -128,10 +126,9 @@ parser.defineRule({
 parser.defineRule({
   name: "word",
   pattern: /^[a-z][\w\-]*$/,
-  constructor: class word extends Rule.Pattern {
-    valueMap(value) {
-      return (""+value).replace(/\-/g, "_")
-    }
+  constructor: class word extends Rule.Pattern {},
+  valueMap(value) {
+    return (""+value).replace(/\-/g, "_")
   },
   tests: [
     {
@@ -161,10 +158,9 @@ parser.defineRule({
 parser.defineRule({
   name: "identifier",
   pattern: /^[a-z][\w\-]*$/,
-  constructor: class identifier extends Rule.Pattern {
-    valueMap(value) {
-      return (""+value).replace(/\-/g, "_")
-    }
+  constructor: class identifier extends Rule.Pattern {},
+  valueMap(value) {
+    return (""+value).replace(/\-/g, "_")
   },
   blacklist: {
     // Add English prepositions to identifier blacklist.
@@ -318,10 +314,9 @@ parser.defineRule({
   name: "identifier_expression",
   alias: "expression",
   syntax: "the? {identifier}",
-  constructor: class identifier_expression extends Rule.Sequence {
-    compile(match) {
-      return match.results.identifier;
-    }
+  constructor: class identifier_expression extends Rule.Sequence {},
+  compile(match) {
+    return match.results.identifier;
   },
   tests: [
     {
@@ -454,33 +449,32 @@ parser.defineRule({
   blacklist: {
     I: true
   },
-  constructor: class type extends Rule.Pattern {
-    valueMap(type) {
-      switch (type) {
-        // Alias `List` to `Array`
-        case "List":
-          return "Array";
+  constructor: class type extends Rule.Pattern {},
+  valueMap(type) {
+    switch (type) {
+      // Alias `List` to `Array`
+      case "List":
+        return "Array";
 
-        // special case to take the following as lowercase
-        case "list":
-          return "Array";
-        case "text":
-          return "String";
-        case "character":
-          return "Character";
-        case "number":
-          return "Number";
-        case "integer":
-          return "Integer";
-        case "decimal":
-          return "Decimal";
-        case "boolean":
-          return "Boolean";
-        case "object":
-          return "Object";
-        default:
-          return type.replace(/\-/g, "_");
-      }
+      // special case to take the following as lowercase
+      case "list":
+        return "Array";
+      case "text":
+        return "String";
+      case "character":
+        return "Character";
+      case "number":
+        return "Number";
+      case "integer":
+        return "Integer";
+      case "decimal":
+        return "Decimal";
+      case "boolean":
+        return "Boolean";
+      case "object":
+        return "Object";
+      default:
+        return type.replace(/\-/g, "_");
     }
   },
   tests: [
@@ -529,18 +523,11 @@ parser.defineRule({
   alias: "expression",
   syntax: "\\[ [list:{expression},]? \\]",
   testRule: "\\[",
-  constructor: class literal_list extends Rule.Sequence {
-    parse(scope, tokens, start, end) {
-      // When parsing, reset the `rules` to the entire set of parser rules.
-      // Otherwise we can't parse things like `[ [a, b] ]`
-      scope = scope.resetRules();
-      return super.parse(scope, tokens, start, end);
-    }
-
-    compile(match) {
-      let { list } = match.results;
-      return `[${list ? list.join(", ") : ""}]`;
-    }
+  resetRules: true,
+  constructor: class literal_list extends Rule.Sequence {},
+  compile(match) {
+    let { list } = match.results;
+    return `[${list ? list.join(", ") : ""}]`;
   },
   tests: [
     {
@@ -568,25 +555,18 @@ parser.defineRule({
   alias: "expression",
   syntax: "\\( {expression} \\)",
   testRule: "\\(",
-  constructor: class parenthesized_expression extends Rule.Sequence {
-    parse(scope, tokens, start, end) {
-      // When parsing, reset the `rules` to the entire set of parser rules.
-      // Otherwise we can't parse things like `(a+b) * (c+d)`
-      scope = scope.resetRules();
-      return super.parse(scope, tokens, start, end);
-    }
-
-    compile(match) {
-      let { expression } = match.results;
-      // don't double parens if not necessary
-      if (
-        typeof expression === "string" &&
-        expression.startsWith("(") &&
-        expression.endsWith(")")
-      )
-        return expression;
-      return "(" + expression + ")";
-    }
+  resetRules: true,
+  constructor: class parenthesized_expression extends Rule.Sequence {},
+  compile(match) {
+    let { expression } = match.results;
+    // don't double parens if not necessary
+    if (
+      typeof expression === "string" &&
+      expression.startsWith("(") &&
+      expression.endsWith(")")
+    )
+      return expression;
+    return "(" + expression + ")";
   },
   tests: [
     {
