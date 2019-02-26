@@ -144,7 +144,7 @@ export class _SpellEditor extends React.Component {
             <TabbableTextArea value={input} onChange={this.updateInput}/>
           </Col>
           <Col xs={6} className="pl-2">
-            <TabbableTextArea defaultValue={output} disabled/>
+            <TabbableTextArea value={output} disabled onChange={Function.prototype}/>
           </Col>
           {output ? null : this.compileButton}
         </Row>
