@@ -3,7 +3,7 @@
 import {
   _,
   global,
-  packages,
+  projects,
   ParseError,
   Parser,
   ReduxFactory,
@@ -45,5 +45,5 @@ Object.assign(global, {
 
   // Redux/app stuff
   ReduxFactory,
-  packages,
+  projects,
 });

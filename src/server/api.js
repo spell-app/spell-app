@@ -55,31 +55,31 @@ router.get("/test", (request, response) => {
 //////////////////////////////
 //  Examples support
 //////////////////////////////
-const packagesDir = nodePath.join(__dirname, "..", "languages", "spell", "packages");
-function getPackagePath(...suffix) {
-  return nodePath.join(packagesDir, ...suffix);
+const projectsDir = nodePath.join(__dirname, "..", "projects");
+function getProjectPath(...suffix) {
+  return nodePath.join(projectsDir, ...suffix);
 }
 
-// List all package folders.
-router.get("/packages", (request, response) => {
+// List all project folders.
+router.get("/projects", (request, response) => {
   const options = { includeDirs: true, includeFiles: false, namesOnly: true };
-  const dirs = fileUtils.listContents(getPackagePath(), options);
+  const dirs = fileUtils.listContents(getProjectPath(), options);
   responseUtils.sendJSON(response, dirs);
 });
 
-// Return a specific package file, including the index.
-router.get("/packages/:folder/:file", (request, response) => {
+// Return a specific project file, including the index.
+router.get("/projects/:folder/:file", (request, response) => {
   const folder = request.params.folder;
   const file = request.params.file;
-  const path = getPackagePath(folder, file);
+  const path = getProjectPath(folder, file);
   responseUtils.sendTextFile(response, path);
 });
 
-// Save a specific package file, including the index.
-router.post("/packages/:folder/:file", async (request, response) => {
+// Save a specific project file, including the index.
+router.post("/projects/:folder/:file", async (request, response) => {
   const folder = request.params.folder;
   const file = request.params.file;
-  const path = getPackagePath(folder, file);
+  const path = getProjectPath(folder, file);
 
   const contents = request.body;
   try {
@@ -91,12 +91,12 @@ router.post("/packages/:folder/:file", async (request, response) => {
   }
 });
 
-// Delete a specific package file, including the index.
+// Delete a specific project file, including the index.
 // NOTE: delete swallows the error if the file can't be found.
-router.delete("/packages/:folder/:file", async (request, response) => {
+router.delete("/projects/:folder/:file", async (request, response) => {
   const folder = request.params.folder;
   const file = request.params.file;
-  const path = getPackagePath(folder, file);
+  const path = getProjectPath(folder, file);
 
   const contents = request.body;
   try {

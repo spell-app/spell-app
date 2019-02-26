@@ -319,7 +319,6 @@ export default class ReduxFactory {
 
     // Create/register the actionCreator.
     const actionCreator = this.getActionCreator(actionName, ACTION, getParams, once, "ADD_PROMISE");
-if (actionName === "loadPackageIds") console.warn("YO");
     // Create action handler function.
     const actionHandler = (state, action) => {
       this.info(`Calling asyncAction ${actionName}, params:`, action.params, action);

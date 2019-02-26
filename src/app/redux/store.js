@@ -6,13 +6,13 @@
 
 import {
   ReduxFactory,
-  packages,
+  projects,
 } from "./all.js";
 
 export default ReduxFactory.createStore({
     // Factories to initialize as `{ domain: factory }`
     factories: {
-      packages,
+      projects,
     },
 
     // Any other reducers as `{ domain: reducer }`

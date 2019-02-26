@@ -2,7 +2,7 @@
 -- Automatically moves cards to foundation piles (aces).
 -- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for naming conventions.
 
--- Package setup
+-- Project setup
 use Card, Deck, Pile
 
 

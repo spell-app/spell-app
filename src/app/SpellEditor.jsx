@@ -12,57 +12,57 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 
 import Octicon, {ChevronRight} from '@githubprimer/octicons-react'
 
-import { packages as packageFactory, withPackages, INPUT } from "./redux/packages";
+import { projects as projectFactory, withProjects, INPUT } from "./redux/projects";
 import TabbableTextArea from "./TabbableTextArea.jsx";
 
 export class _SpellEditor extends React.Component {
   constructor(props) {
     super(props);
-    packageFactory.call.startup();
+    projectFactory.call.startup();
   }
 
   // @keydown("ctrl+c")
-  compile = () => packageFactory.call.compileInput();
+  compile = () => projectFactory.call.compileInput();
 
   // @keydown("ctrl+r")
-  revert = () => packageFactory.call.revertInput();
+  revert = () => projectFactory.call.revertInput();
 
-  reload = () => packageFactory.call.reloadSelected();
+  reload = () => projectFactory.call.reloadSelected();
 
   // @keydown("ctrl+s")
-  save = () => packageFactory.call.saveInput();
+  save = () => projectFactory.call.saveInput();
 
   // @keydown("ctrl+n")
   create = () => {
     const moduleId = prompt("Name for the new module?", "Untitled");
     if (!moduleId) return;
     const contents = `# Module ${moduleId}`;
-    packageFactory.call.newModule({ moduleId, contents });
+    projectFactory.call.newModule({ moduleId, contents });
   }
 
   duplicate = () => {
-    const { moduleId } = this.props.packages;
+    const { moduleId } = this.props.projects;
     const newModuleId = prompt("Name for the new module?", moduleId);
     if (!newModuleId || newModuleId === moduleId) return;
-    packageFactory.call.duplicateModule({ moduleId, newModuleId, contents: INPUT });
+    projectFactory.call.duplicateModule({ moduleId, newModuleId, contents: INPUT });
   }
 
   // @keydown("ctrl+d")
   _delete = () => {
-    const { moduleId } = this.props.packages;
+    const { moduleId } = this.props.projects;
     if (!confirm(`Really delete '${moduleId}'?`)) return;
-    packageFactory.call.deleteModule({ moduleId });
+    projectFactory.call.deleteModule({ moduleId });
   }
 
   rename = () => {
-    const { moduleId } = this.props.packages;
+    const { moduleId } = this.props.projects;
     const newModuleId = prompt("New name?", moduleId);
     if (!newModuleId || newModuleId === moduleId) return;
-    packageFactory.call.renameModule({ moduleId, newModuleId, contents: INPUT });
+    projectFactory.call.renameModule({ moduleId, newModuleId, contents: INPUT });
   }
 
   updateInput = (event) => {
-    packageFactory.actions.updateInput(event.target.value);
+    projectFactory.actions.updateInput(event.target.value);
   }
 
   // Buttons to show when the input field is dirty.
@@ -92,24 +92,24 @@ export class _SpellEditor extends React.Component {
   );
 
   render() {
-    const { packages } = this.props;
-//console.info("SpellEditor.render(): packages:", packages);
-    const { packageId, moduleId, input, output, dirty } = packages;
-    const packageIds = packageFactory.getPackageIds(packages);
-    const index = packageFactory.getPackageIndex(packages, packageId);
+    const { projects } = this.props;
+//console.info("SpellEditor.render(): projects:", projects);
+    const { projectId, moduleId, input, output, dirty } = projects;
+    const projectIds = projectFactory.getProjectIds(projects);
+    const index = projectFactory.getProjectIndex(projects, projectId);
     // Don't do anything if our data isn't yet loaded
-    if (!packageIds || !index) return null;
+    if (!projectIds || !index) return null;
 
-    // Create menuItems for the packages menu
-    const packageItems = packageIds.map( packageId => {
-      const onSelect = () => packageFactory.call.selectModule({ packageId })
-      return <NavDropdown.Item key={packageId} eventKey={packageId} onSelect={onSelect}>{packageId}</NavDropdown.Item>
+    // Create menuItems for the projects menu
+    const projectItems = projectIds.map( projectId => {
+      const onSelect = () => projectFactory.call.selectModule({ projectId })
+      return <NavDropdown.Item key={projectId} eventKey={projectId} onSelect={onSelect}>{projectId}</NavDropdown.Item>
     });
 
     // Create menuitems for the modules menu
     const moduleItems = index.modules.map( module => {
       const moduleId = module.id;
-      const onSelect = () => packageFactory.call.selectModule({ packageId, moduleId })
+      const onSelect = () => projectFactory.call.selectModule({ projectId, moduleId })
       return <NavDropdown.Item key={moduleId} onSelect={onSelect}>{module.id}</NavDropdown.Item>
     });
 
@@ -119,8 +119,8 @@ export class _SpellEditor extends React.Component {
           <Col xs={12}>
             <Navbar bg="dark" variant="dark" className="py-0">
               <Nav>
-                <NavDropdown title={packageId} id="package-dropdown" style={{width: "12em"}}>
-                  {packageItems}
+                <NavDropdown title={projectId} id="project-dropdown" style={{width: "12em"}}>
+                  {projectItems}
                 </NavDropdown>
                 <NavDropdown title={moduleId} id="module-dropdown" style={{width: "12em"}}>
                   {moduleItems}
@@ -152,5 +152,5 @@ export class _SpellEditor extends React.Component {
   }
 }
 
-// Pass packages from redux
-export default withPackages(_SpellEditor);
+// Pass projects from redux
+export default withProjects(_SpellEditor);
