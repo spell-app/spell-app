@@ -336,7 +336,7 @@ function parseSubrule(syntaxStream, rules, start = 0) {
   }
 
   // get rule
-  props.subrule = slice[0];
+  props.rule = slice[0];
   slice = slice.slice(1);
 
   // handle any `!` exclude rules

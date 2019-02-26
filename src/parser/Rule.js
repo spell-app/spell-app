@@ -340,20 +340,20 @@ Rule.Pattern = class pattern extends Rule {
 };
 
 // Subrule -- name of another rule to be called.
-// `rule.subrule` is the name of the rule in `scope.rules`.
+// `rule.rule` is the name of the rule in `scope.rules`.
+// `rule.excludes` is an array of rule names we'll ignore when parsing this rule.
 //
 // After parsing
 //  we'll return the actual rule that was matched (rather than a clone of this rule)
 Rule.Subrule = class subrule extends Rule {
   constructor(props) {
-    if (typeof props === "string") props = { subrule: props };
-//    if (props.excludes && typeof props.excludes === "string") props.excludes = [props.excludes];
+    if (typeof props === "string") props = { rule: props };
     super(props);
   }
 
   // Ask the subrule to figure out if a match is possible.
   test(scope, tokens, testLocation = this.testLocation) {
-    const rule = scope.getRuleOrDie(this.subrule);
+    const rule = scope.getRuleOrDie(this.rule);
     return rule.test(scope, tokens, testLocation);
   }
 
@@ -363,9 +363,9 @@ Rule.Subrule = class subrule extends Rule {
 
     // if we have any excludes, get a clone of the scope without those rules
     if (this.excludes) {
-      scope = scope.cloneExcludingRules(this.subrule, this.excludes);
+      scope = scope.cloneExcludingRules(this.rule, this.excludes);
     }
-    let rule = scope.getRuleOrDie(this.subrule);
+    let rule = scope.getRuleOrDie(this.rule);
 
     const match = rule.parse(scope, tokens);
     if (!match) return undefined;
@@ -381,7 +381,7 @@ Rule.Subrule = class subrule extends Rule {
     const excludes = this.excludes ? `!${this.excludes.join("!")}` : "";
     const optional = this.optional ? "?" : "";
     return (
-      `${testLocation}{${promote}${argument}${this.subrule}${excludes}}${optional}`
+      `${testLocation}{${promote}${argument}${this.rule}${excludes}}${optional}`
     );
   }
 };

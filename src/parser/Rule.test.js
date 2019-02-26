@@ -354,7 +354,7 @@ describe("Rule.Subrule", () => {
   describe("simple rules", () => {
     describe("test() method", () => {
       describe("TEST_AT_START", () => {
-        const rule = new Rule.Subrule({ subrule: "this" });
+        const rule = new Rule.Subrule({ rule: "this" });
         it("returns true if present at the start of tokens", () => {
           const test = rule.test(new Scope(parser), tokenize("this that other"));
           expect(test).toBe(true);
@@ -372,7 +372,7 @@ describe("Rule.Subrule", () => {
       });
 
       describe("TEST_ANYWHERE", () => {
-        const rule = new Rule.Subrule({ subrule: "this", testLocation: TestLocation.ANYWHERE });
+        const rule = new Rule.Subrule({ rule: "this", testLocation: TestLocation.ANYWHERE });
         it("returns true if present at the start of tokens", () => {
           const test = rule.test(new Scope(parser), tokenize("this that other"));
           expect(test).toBe(true);
@@ -390,7 +390,7 @@ describe("Rule.Subrule", () => {
       });
     });
     describe("parse() method", () => {
-      const rule = new Rule.Subrule({ subrule: "this" });
+      const rule = new Rule.Subrule({ rule: "this" });
       it("parses at the start of tokens", () => {
         const match = rule.parse(new Scope(parser), tokenize("this that other"));
         expect(match.matchLength).toBe(1);
@@ -407,7 +407,7 @@ describe("Rule.Subrule", () => {
   describe("sequence rules", () => {
     describe("test() method", () => {
       describe("TEST_AT_START", () => {
-        const rule = new Rule.Subrule({ subrule: "this" });
+        const rule = new Rule.Subrule({ rule: "this" });
         it("returns true if present at the start of tokens", () => {
           const test = rule.test(new Scope(parser), tokenize("this that"));
           expect(test).toBe(true);
@@ -425,7 +425,7 @@ describe("Rule.Subrule", () => {
       });
 
       describe("TEST_AT_START", () => {
-        const rule = new Rule.Subrule({ subrule: "this", testLocation: TestLocation.ANYWHERE });
+        const rule = new Rule.Subrule({ rule: "this", testLocation: TestLocation.ANYWHERE });
         it("returns true if present at the start of tokens", () => {
           const test = rule.test(new Scope(parser), tokenize("this that"));
           expect(test).toBe(true);
@@ -443,7 +443,7 @@ describe("Rule.Subrule", () => {
       });
     });
     describe("parse() method", () => {
-      const rule = new Rule.Subrule({ subrule: "sequence" });
+      const rule = new Rule.Subrule({ rule: "sequence" });
       it("parses at the start of tokens", () => {
         const match = rule.parse(new Scope(parser), tokenize("this that"));
         expect(match.matchLength).toBe(2);

@@ -176,7 +176,7 @@ describe("parseSyntax()", () => {
       const rules = parseSyntax("{subrule}");
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.Subrule);
-      expect(rules[0].subrule).toBe("subrule");
+      expect(rules[0].rule).toBe("subrule");
     });
 
     test("sets promote flag", () => {
@@ -190,7 +190,7 @@ describe("parseSyntax()", () => {
       const rules = parseSyntax("{arg:subrule}");
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.Subrule);
-      expect(rules[0].subrule).toBe("subrule");
+      expect(rules[0].rule).toBe("subrule");
       expect(rules[0].argument).toBe("arg");
       expect(rules[0].toSyntax()).toBe("{arg:subrule}");
     });

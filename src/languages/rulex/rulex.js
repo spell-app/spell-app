@@ -262,7 +262,7 @@ rulex.defineRule({
           testLocation,
           promote,
           argument,
-          new Rule.Word({ argument: "subrule" }),
+          new Rule.Word({ argument: "rule" }),
           new Rule.Symbol({ literal: "!", optional: true }),
           new Rule.Word({ argument: "excludes", optional: true })
         ]
@@ -271,7 +271,7 @@ rulex.defineRule({
     repeatFlag
   ],
   compile({ results }) {
-    const rule = new Rule.Subrule(results.subrule);
+    const rule = new Rule.Subrule(results.rule);
     if (results.excludes) rule.excludes = [ results.excludes ];
     return rulex.applyFlags(rule, results);
   },
@@ -283,22 +283,22 @@ rulex.defineRule({
         ["", undefined],
         ["{}", new Rule.Symbol("{")],
 
-        ["{sub}", new Rule.Subrule({ subrule: "sub" }) ],
-        ["{sub!excluded}", new Rule.Subrule({ subrule: "sub", excludes: [ "excluded" ] }) ],
+        ["{sub}", new Rule.Subrule({ rule: "sub" }) ],
+        ["{sub!excluded}", new Rule.Subrule({ rule: "sub", excludes: [ "excluded" ] }) ],
 
-        ["…{sub}", new Rule.Subrule({ subrule: "sub", testLocation: ANYWHERE }) ],
-        ["{…sub}", new Rule.Subrule({ subrule: "sub", testLocation: ANYWHERE }) ],
-        ["{?:sub}", new Rule.Subrule({ subrule: "sub", promote: true }) ],
-        ["{arg:sub}", new Rule.Subrule({ subrule: "sub", argument: "arg" }) ],
-        ["{^?:arg:sub}", new Rule.Subrule({ subrule: "sub", promote: true, argument: "arg", testLocation: AT_START }) ],
+        ["…{sub}", new Rule.Subrule({ rule: "sub", testLocation: ANYWHERE }) ],
+        ["{…sub}", new Rule.Subrule({ rule: "sub", testLocation: ANYWHERE }) ],
+        ["{?:sub}", new Rule.Subrule({ rule: "sub", promote: true }) ],
+        ["{arg:sub}", new Rule.Subrule({ rule: "sub", argument: "arg" }) ],
+        ["{^?:arg:sub}", new Rule.Subrule({ rule: "sub", promote: true, argument: "arg", testLocation: AT_START }) ],
 
-        ["{sub}?", new Rule.Subrule({ subrule: "sub", optional: true }) ],
-        ["{sub}+", new Rule.Repeat({ repeat: new Rule.Subrule({ subrule: "sub" }) }) ],
-        ["{sub}*", new Rule.Repeat({ optional: true, repeat: new Rule.Subrule({ subrule: "sub" }) }) ],
+        ["{sub}?", new Rule.Subrule({ rule: "sub", optional: true }) ],
+        ["{sub}+", new Rule.Repeat({ repeat: new Rule.Subrule({ rule: "sub" }) }) ],
+        ["{sub}*", new Rule.Repeat({ optional: true, repeat: new Rule.Subrule({ rule: "sub" }) }) ],
 
         // arg/promote/testRule need to get promoted to the repeat
-        ["{…?:arg:sub!excluded}?", new Rule.Subrule({ testLocation: ANYWHERE, subrule: "sub", excludes: [ "excluded" ], promote: true, argument: "arg", optional: true}) ],
-        ["{…?:arg:sub!excluded}*", new Rule.Repeat({ testLocation: ANYWHERE, promote: true, argument: "arg", optional: true, repeat: new Rule.Subrule({ subrule: "sub", excludes: ["excluded"] }) }) ],
+        ["{…?:arg:sub!excluded}?", new Rule.Subrule({ testLocation: ANYWHERE, rule: "sub", excludes: [ "excluded" ], promote: true, argument: "arg", optional: true}) ],
+        ["{…?:arg:sub!excluded}*", new Rule.Repeat({ testLocation: ANYWHERE, promote: true, argument: "arg", optional: true, repeat: new Rule.Subrule({ rule: "sub", excludes: ["excluded"] }) }) ],
       ]
     }
   ]
@@ -318,8 +318,8 @@ rulex.defineRule({
         rules: [
           promote,
           argument,
-          new Rule.Subrule({ argument: "item", subrule: "rule" }),
-          new Rule.Subrule({ argument: "delimiter", subrule: "rule" }),
+          new Rule.Subrule({ argument: "item", rule: "rule" }),
+          new Rule.Subrule({ argument: "delimiter", rule: "rule" }),
         ]
       })
     }),
@@ -371,7 +371,7 @@ rulex.defineRule({
       end: new Rule.Symbol(")"),
       delimiter: new Rule.Symbol("|"),
       prefix: new Rule.Sequence({ rules: [ testLocation, promote, argument ], optional: true }),
-      rule: new Rule.Subrule({ subrule: "statement", argument: "choices" }),
+      rule: new Rule.Subrule({ rule: "statement", argument: "choices" }),
     }),
     repeatFlag
   ],
@@ -411,15 +411,15 @@ rulex.defineRule({
         ["([{sub},])", new Rule.List({ item: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
 
         // Pass flags whether they were set on the choices or the single rule (a bit confusing)
-        ["(…{sub})", new Rule.Subrule({ subrule: "sub", testLocation: ANYWHERE })],
-        ["(?:{sub})", new Rule.Subrule({ subrule: "sub", promote: true })],
-        ["({?:sub})", new Rule.Subrule({ subrule: "sub", promote: true })],
-        ["(arg:{sub})", new Rule.Subrule({ subrule: "sub", argument: "arg" })],
-        ["({arg:sub})", new Rule.Subrule({ subrule: "sub", argument: "arg" })],
-        ["({sub}?)", new Rule.Subrule({ subrule: "sub", optional: true })],
-        ["({sub})?", new Rule.Subrule({ subrule: "sub", optional: true })],
-        ["({sub}+)", new Rule.Repeat({ repeat: new Rule.Subrule({ subrule: "sub" }) })],
-        ["({sub}*)", new Rule.Repeat({ optional: true, repeat: new Rule.Subrule({ subrule: "sub" }) })],
+        ["(…{sub})", new Rule.Subrule({ rule: "sub", testLocation: ANYWHERE })],
+        ["(?:{sub})", new Rule.Subrule({ rule: "sub", promote: true })],
+        ["({?:sub})", new Rule.Subrule({ rule: "sub", promote: true })],
+        ["(arg:{sub})", new Rule.Subrule({ rule: "sub", argument: "arg" })],
+        ["({arg:sub})", new Rule.Subrule({ rule: "sub", argument: "arg" })],
+        ["({sub}?)", new Rule.Subrule({ rule: "sub", optional: true })],
+        ["({sub})?", new Rule.Subrule({ rule: "sub", optional: true })],
+        ["({sub}+)", new Rule.Repeat({ repeat: new Rule.Subrule({ rule: "sub" }) })],
+        ["({sub}*)", new Rule.Repeat({ optional: true, repeat: new Rule.Subrule({ rule: "sub" }) })],
 
         // consolidate multiple keywords
         ["(a|b|c)?", new Rule.Keyword({ literal:["a","b","c"], optional: true })],
@@ -526,7 +526,7 @@ rulex.defineRule({
         ["aa? {?:bb} cc",
           new Rule.Sequence(
             new Rule.Keyword({ literal: "aa", optional: true }),
-            new Rule.Subrule({ subrule: "bb", promote: true }),
+            new Rule.Subrule({ rule: "bb", promote: true }),
             new Rule.Keyword("cc"),
           )
         ],
