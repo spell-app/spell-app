@@ -345,10 +345,9 @@ describe("Rule.Subrule", () => {
       name: "sequence",
       syntax: "{this} {that}",
       testRule: new Rule.Keywords("this that"),
-      constructor: class Sequence extends Rule.Sequence {
-        compile(results) {
-          return "COMPILED";
-        }
+      constructor: class Sequence extends Rule.Sequence {},
+      compile(results) {
+        return "COMPILED";
       }
     }
   );
@@ -734,10 +733,9 @@ describe("Rule.Sequence", () => {
       name: "atStart",
       syntax: "this {that} the {other}",
       testRule: new Rule.Keywords("this"),
-      constructor: class atStart extends Rule.Sequence{
-        compile() {
-          return "COMPILED";
-        }
+      constructor: class atStart extends Rule.Sequence{},
+      compile() {
+        return "COMPILED";
       }
     },
     {

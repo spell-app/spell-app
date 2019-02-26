@@ -26,10 +26,9 @@ parser.defineRules(
     alias: "statement",
     syntax: "{this} and {that}",
     testRule: "{this}",
-    constructor: class this_and_that extends Rule.Sequence {
-      compile(match) {
-        return "this && that";
-      }
+    constructor: class this_and_that extends Rule.Sequence {},
+    compile(match) {
+      return "this && that";
     }
   }
 );

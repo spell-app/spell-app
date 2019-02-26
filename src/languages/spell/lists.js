@@ -778,7 +778,8 @@ parser.defineRule({
   alias: "statement",
   syntax: "for each? {item:identifier} (?:(and|,) {position:identifier})? in {list:expression} :? {statement}?",
   testRule: "for",
-  constructor: class list_iteration extends Rule.BlockStatement {},
+  constructor: Rule.BlockStatement,
+//  constructor: class list_iteration extends Rule.BlockStatement {},
   compile(match) {
     const { item, position, list, statements } = match.results;
     const itemVar = singularize(item);

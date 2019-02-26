@@ -124,7 +124,8 @@ parser.defineRule({
 parser.defineRule({
   name: "args",
   syntax: "with [args:{identifier},]",
-  constructor: class define_type extends Rule.BlockStatement {},
+  constructor: Rule.BlockStatement,
+//  constructor: class define_type extends Rule.BlockStatement {},
   // Returns an array of argument values
   compile(match) {
     const { args } = match.results;
@@ -172,7 +173,8 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax: "define type {name:type} (?:as (a|an) {superType:type})?",
   testRule: "define type",
-  constructor: class define_type extends Rule.BlockStatement {},
+  constructor: Rule.BlockStatement,
+//  constructor: class define_type extends Rule.BlockStatement {},
   compile(match) {
     let { name, superType, statements } = match.results;
     let output = `class ${name}`;
@@ -322,16 +324,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "inline_list",
-  syntax: "([?:{items:expression},]|{expression})",
-  constructor: class inline_list extends Rule.Sequence {},
-  compile(match) {
-    const { expression, items } = match.results;
-    if (items) {
-      if (Array.isArray(items)) return `[${items.join(", ")}]`;
-      return items;
-    }
-    return expression;
-  }
+  syntax: "[{items:expression},]"
 });
 
 // TODO: `@typed` decorator which takes array to make logic cleaner
@@ -346,7 +339,7 @@ parser.defineRule({
   constructor: class declare_property_as_one_of extends Rule.Sequence {},
   compile(match) {
     let { name, list, value = "undefined" } = match.results;
-    return `@typed(${list}) ${name} = ${value}`;
+    return `@typed(${list.join(", ")}) ${name} = ${value}`;
   },
   tests: [
     {
@@ -356,14 +349,14 @@ parser.defineRule({
         ["property foo as one of [1, 2, 3]", "@typed([1, 2, 3]) foo = undefined"],
         [
           "property foo as one of yes, no, undefined",
-          "@typed([true, false, undefined]) foo = undefined"
+          "@typed(true, false, undefined) foo = undefined"
         ],
 
         ["property foo as one of my-list with value 'a'", "@typed(my_list) foo = 'a'"],
         ["property foo as one of [1, 2, 3] with value 1", "@typed([1, 2, 3]) foo = 1"],
         [
           "property foo as one of yes, no, undefined with value yes",
-          "@typed([true, false, undefined]) foo = true"
+          "@typed(true, false, undefined) foo = true"
         ]
       ]
     }
@@ -379,7 +372,8 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax: "get {name:identifier} \\: return? {expression}?",
   testRule: "get",
-  constructor: class getter extends Rule.BlockStatement {},
+  constructor: Rule.BlockStatement,
+//  constructor: class getter extends Rule.BlockStatement {},
   compile(match) {
     // NOTE: we need to parse `expression` and `block` manually (unlike other BlockStatements)
     let { name, expression, statements } = match.results;
@@ -423,7 +417,8 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax: "set {name:identifier} {args}? (\\:)? {statement}?",
   testRule: "set",
-  constructor: class setter extends Rule.BlockStatement {},
+  constructor: Rule.BlockStatement,
+//  constructor: class setter extends Rule.BlockStatement {},
   compile(match) {
     // default args to the setter name
     let { name, args = name, statements } = match.results;
@@ -489,7 +484,8 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax: "(operator:to|on) {name:identifier} {args}? (\\:)? {statement}?",
   testRule: "(to|on)",
-  constructor: class declare_method extends Rule.BlockStatement {},
+  constructor: Rule.BlockStatement,
+//  constructor: class declare_method extends Rule.BlockStatement {},
   compile(match) {
     let { name, args = "", statements } = match.results;
     return `${name}(${args}) ${statements}`;
@@ -528,7 +524,8 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax: "action (keywords:{word}|{type})+ (\\:)? {statement}?",
   testRule: "action",
-  constructor: class declare_action extends Rule.BlockStatement {},
+  constructor: Rule.BlockStatement,
+//  constructor: class declare_action extends Rule.BlockStatement {},
   compile(match) {
     const { results } = match;
 
