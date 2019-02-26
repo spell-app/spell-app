@@ -24,7 +24,7 @@ const Formats = {
 // FIXME: this is lame...
 export const INPUT = "INPUT";
 
-export const factory = new ReduxFactory({
+const factory = new ReduxFactory({
   domain: "projects",
 
   initialState: {
@@ -47,10 +47,6 @@ export const factory = new ReduxFactory({
     return "index.json5";
   },
 
-  getModuleFileName(projectId, moduleId) {
-    return `${moduleId}.spell`;
-  },
-
   // Syntactic sugar to get the bits of the data from the state.
   // NOTE: These assume the relevant data is already loaded!
   // NOTE: If you're calling these from an `onSuccess` or `onError` handler
@@ -67,8 +63,7 @@ export const factory = new ReduxFactory({
   },
 
   getModule(projects, projectId, moduleId) {
-    const fileName = this.getModuleFileName(projectId, moduleId);
-    const path = this.getPath(projectId, fileName);
+    const path = this.getPath(projectId, moduleId);
     return projects.files[path];
   },
 
@@ -145,8 +140,7 @@ export const factory = new ReduxFactory({
     {
       name: "saveInput",
       promise({ projectId, moduleId, input }) {
-        const fileName = this.getModuleFileName(projectId, moduleId);
-        return factory.call.saveFile({ projectId, fileName, contents: input });
+        return factory.call.saveFile({ projectId, fileName: moduleId, contents: input });
       },
       onSuccess(projects) {
         return {
@@ -192,8 +186,7 @@ export const factory = new ReduxFactory({
         // if no moduleId specified, use the first module in the project
         if (!moduleId) moduleId = index.modules[0].id;
 
-        const fileName = this.getModuleFileName(projectId, moduleId);
-        return factory.call.loadFile({ projectId, fileName, reload });
+        return factory.call.loadFile({ projectId, fileName: moduleId, reload });
       },
       onSuccess(projects, contents, { projectId = projects.projectId, moduleId }) {
         if (!moduleId) {
@@ -355,8 +348,7 @@ export const factory = new ReduxFactory({
           modules: index.modules.filter( module => module.id !== moduleId )
         }
         await this.call.saveProjectIndex({ projectId, index });
-        const fileName = this.getModuleFileName(projectId, moduleId);
-        await this.call.deleteFile({ projectId, fileName });
+        await this.call.deleteFile({ projectId, fileName: moduleId });
         // select the first item in the project
         return this.call.selectModule({ projectId });
       },
@@ -418,8 +410,7 @@ export const factory = new ReduxFactory({
       ACTION: "LOAD_FILE",
       async: true,
       getParams({ projectId, moduleId, reload }) {
-        const fileName = this.getModuleFileName(projectId, moduleId);
-        return { projectId, fileName, reload, format: Formats.TEXT }
+        return { projectId, fileName: moduleId, reload, format: Formats.TEXT }
       },
     },
 
@@ -430,8 +421,7 @@ export const factory = new ReduxFactory({
       ACTION: "SAVE_FILE",
       async: true,
       getParams({ projectId, moduleId, contents }) {
-        const fileName = this.getModuleFileName(projectId, moduleId);
-        return { projectId, fileName, contents }
+        return { projectId, fileName: moduleId, contents }
       }
     },
 

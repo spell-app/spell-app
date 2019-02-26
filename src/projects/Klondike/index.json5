@@ -7,16 +7,16 @@
   "outputType": "js",
   "modules": [
     {
-      "id": "Deck"
+      "id": "Deck.spell"
     },
     {
-      "id": "Pile"
+      "id": "Pile.spell"
     },
     {
-      "id": "Klondike"
+      "id": "Klondike.spell"
     },
     {
-      "id": "Card"
+      "id": "Card.spell"
     }
   ]
 }
