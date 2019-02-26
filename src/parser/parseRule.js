@@ -352,7 +352,7 @@ function parseSubrule(syntaxStream, rules, start = 0) {
   return [rule, end];
 }
 
-// Match list expression `[<item><delimiter>]` or `[<argument>:<item><delimiter>]` in syntax rules.
+// Match list expression `[<rule><delimiter>]` or `[<argument>:<rule><delimiter>]` in syntax rules.
 // Returns `[ rule, end ]`
 // Throws if invalid.
 function parseList(syntaxStream, rules, start = 0, constructor = Rule.List) {
@@ -376,10 +376,10 @@ function parseList(syntaxStream, rules, start = 0, constructor = Rule.List) {
   if (results.length !== 2) {
     throw new ParseError(`Unexpected stuff at end of list: [${slice.join(" ")}]`);
   }
-  let [item, delimiter] = results;
+  let [rule, delimiter] = results;
 
-  let rule = new constructor({ item, delimiter });
-  if (promote) rule.promote = promote;
-  if (argument) rule.argument = argument;
-  return [rule, end];
+  let repeat = new constructor({ rule, delimiter });
+  if (promote) repeat.promote = promote;
+  if (argument) repeat.argument = argument;
+  return [repeat, end];
 }

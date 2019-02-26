@@ -631,13 +631,13 @@ describe("Rule.Repeat", () => {
 
 describe("Rule.List", () => {
   const parser = new Parser();
-  const item = new Rule.Keywords("word");
+  const rule = new Rule.Keywords("word");
   const delimiter = new Rule.Symbols(",");
   const testRule = new Rule.Keywords("word");
 
-  const ruleNoTest = new Rule.List({ item, delimiter });
-  const ruleStart = new Rule.List({ testRule, item, delimiter });
-  const ruleAnywhere = new Rule.List({ testRule, item, delimiter, testLocation: TestLocation.ANYWHERE });
+  const ruleNoTest = new Rule.List({ rule, delimiter });
+  const ruleStart = new Rule.List({ testRule, rule, delimiter });
+  const ruleAnywhere = new Rule.List({ testRule, rule, delimiter, testLocation: TestLocation.ANYWHERE });
 
   describe("test() method", () => {
     describe("without a testRule", () => {

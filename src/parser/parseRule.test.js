@@ -212,7 +212,7 @@ describe("parseSyntax()", () => {
       const rules = parseSyntax("[{number},]");
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.List);
-      expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
+      expect(rules[0].rule).toBeInstanceOf(Rule.Subrule);
       expect(rules[0].delimiter).toBeInstanceOf(Rule.Symbol);
       expect(rules[0].toSyntax()).toBe("[{number},]");
     });
@@ -221,7 +221,7 @@ describe("parseSyntax()", () => {
       const rules = parseSyntax("[my-list:{number},]");
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.List);
-      expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
+      expect(rules[0].rule).toBeInstanceOf(Rule.Subrule);
       expect(rules[0].delimiter).toBeInstanceOf(Rule.Symbol);
       expect(rules[0].argument).toBe("my-list");
       expect(rules[0].toSyntax()).toBe("[my-list:{number},]");
@@ -231,7 +231,7 @@ describe("parseSyntax()", () => {
       const rules = parseSyntax("[{number}and]");
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.List);
-      expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
+      expect(rules[0].rule).toBeInstanceOf(Rule.Subrule);
       expect(rules[0].delimiter).toBeInstanceOf(Rule.Keyword);
       expect(rules[0].delimiter.literal).toEqual("and");
       expect(rules[0].toSyntax()).toBe("[{number}and]");
@@ -241,7 +241,7 @@ describe("parseSyntax()", () => {
       const rules = parseSyntax("[{number}(,|or)]");
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.List);
-      expect(rules[0].item).toBeInstanceOf(Rule.Subrule);
+      expect(rules[0].rule).toBeInstanceOf(Rule.Subrule);
       expect(rules[0].delimiter).toBeInstanceOf(Rule.Choice);
       expect(rules[0].delimiter.rules.length).toBe(2);
       expect(rules[0].delimiter.rules[0]).toBeInstanceOf(Rule.Symbol);
@@ -499,7 +499,7 @@ describe("parseRule()", () => {
     test("works for lists", () => {
       const rule = parseRule("[{foo}:]");
       expect(rule).toBeInstanceOf(Rule.List);
-      expect(rule.item).toBeInstanceOf(Rule.Subrule);
+      expect(rule.rule).toBeInstanceOf(Rule.Subrule);
       expect(rule.delimiter).toBeInstanceOf(Rule.Symbol);
     });
 

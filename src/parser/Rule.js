@@ -566,8 +566,8 @@ Rule.Repeat = class repeat extends Rule {
   }
 };
 
-// List match rule:   `[<item><delimiter>]`. eg" `[{number},]` to match `1,2,3`
-//  `rule.item` (required) is the rule for each item,
+// List match rule:   `[<rule><delimiter>]`. eg" `[{number},]` to match `1,2,3`
+//  `rule.rule` (required) is the rule for each item,
 //  `rule.delimiter` (required) is the delimiter between each item, which is optional at the end.
 Rule.List = class list extends Rule {
   parse(scope, tokens) {
@@ -578,7 +578,7 @@ Rule.List = class list extends Rule {
     let matchLength = 0;
     while (tokens.length) {
       // get next item, exiting if not found
-      let item = this.item.parse(scope, tokens);
+      let item = this.rule.parse(scope, tokens);
       if (!item) break;
 
       matched.push(item);
@@ -617,10 +617,10 @@ Rule.List = class list extends Rule {
     const delimiter = this.delimiter.toSyntax();
     const optional = this.optional ? "?" : "";
 
-    const item = this.item instanceof Rule.Sequence
-      ? `(${this.item.toSyntax()})`
-      : this.item.toSyntax();
-    return `${testLocation}[${promote}${argument}${item}${delimiter}]${optional}`;
+    const rule = this.rule instanceof Rule.Sequence
+      ? `(${this.rule.toSyntax()})`
+      : this.rule.toSyntax();
+    return `${testLocation}[${promote}${argument}${rule}${delimiter}]${optional}`;
   }
 };
 
