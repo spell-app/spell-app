@@ -1,5 +1,7 @@
 // Spell "parser" class.
 //
+import { isNode } from "browser-or-node";
+import isEqual from "lodash/isEqual";
 import flatten from "lodash/flatten";
 
 import {
@@ -169,7 +171,7 @@ export class Parser {
   }
 
   // Define a rule using (rule)`syntax` or `patterns` to create the rule instances.
-  //  `skip` (boolean, optional) Set to true to skip this rule.
+  //  `skip` (boolean, optional) Set to true to skip this rule if it's not working.
   //  `name` (identifier, required)  Base name of the rule.
   //  `alias` (string or [string], optinal) Other names to define rule under.
   //  `constructor` (class, required) Class which will be used to instantiate the rule.
@@ -180,62 +182,66 @@ export class Parser {
   //  `testRule` (Rule or string, optional) Rule or keywords string to use as a test rule.
   //    Specifying this can let us jump out quickly if there is no possible match.
   defineRule(ruleProps) {
-    // If passed in a Rule instance or rule instance, just call addRule
-    if (ruleProps instanceof Rule || ruleProps.prototype instanceof Rule)
-      return this.addRule(ruleProps);
+    try {
+      // If passed in a Rule instance or rule instance, just call addRule
+      if (ruleProps instanceof Rule || ruleProps.prototype instanceof Rule)
+        return this.addRule(ruleProps);
 
-    let { skip, constructor, ...props } = ruleProps;
-    if (skip) return;
+      let { skip, constructor, ...props } = ruleProps;
+      if (skip) return;
 
-    // if `constructor` was not specified, it will be Object
-    // set to null in this case
-    if (constructor === Object) constructor = null;
+      // if `constructor` was not specified, it will be Object
+      // set to null in this case
+      if (constructor === Object) constructor = null;
 
-    // throw if name was not provided
-    const name = props.name || (constructor && constructor.prototype.name);
-    if (!name) {
-      throw new ParseError(`parser.define(): You must pass the rule 'name'`);
-    }
-
-    // Note the module that the rule was defined in
-    if (this.module) props.module = this.module;
-
-    // Convert blacklist from list of strings to a map
-    if (props.blacklist && Array.isArray(props.blacklist)) {
-      props.blacklist = props.blacklist.reduce((map, key) => {
-        map[key] = true;
-        return map;
-      }, {});
-    }
-
-    // Convert `testRule` to proper thing if necessary
-    const { testRule } = props;
-    if (testRule) {
-      // Convert string using rule syntax
-      if (typeof testRule === "string") {
-        props.testRule = rulex.compile(testRule);
-        props.testRule.syntax = testRule;
+      // throw if name was not provided
+      const name = props.name || (constructor && constructor.prototype.name);
+      if (!name) {
+        throw new ParseError(`parser.define(): You must pass the rule 'name'`);
       }
+
+      // Note the module that the rule was defined in
+      if (this.module) props.module = this.module;
+
+      // Convert `testRule` to proper thing if necessary
+      const { testRule } = props;
+      if (testRule) {
+        // Convert string using rule syntax
+        if (typeof testRule === "string") {
+          props.testRule = rulex.compile(testRule);
+          props.testRule.syntax = testRule;
+        }
+      }
+
+
+      // Instantiate or parse to create rules to work with
+      let rule;
+      if (props.syntax) {
+        rule = parseRule(props.syntax, constructor, props);
+  //      rule = rulex.compile(props.syntax);
+        if (!rule) throw new ParseError(`defineRule('${props.syntax}'): didnt get a rule back`);
+  //      Object.assign(rule, props);
+
+  //       const parserRule = parseRule(props.syntax, null, props);
+  // console.info(props.syntax);
+  // if (!isEqual(rule, parserRule)) {
+  //   console.info(rule);
+  //   console.info(parserRule);
+  // }
+      }
+      else {
+        rule = new constructor(props);
+      }
+
+      // Combine aliases with the main name
+      const names = [props.name].concat(props.alias || []);
+      if (props.tests) names.push("_testable_");
+      this.addRule(rule, names);
+
+      return rule;
     }
-
-    // Combine aliases with the main name
-    const names = [props.name].concat(props.alias || []);
-
-    // Instantiate or parse to create rules to work with
-    const rule = props.syntax
-      ? parseRule(props.syntax, constructor, props)
-      : new constructor(props)
-    ;
-    if (!rule) throw new ParseError(`defineRule(${props.syntax}): didnt get a rule back`);
-
-    this.addRule(rule, names);
-
-    // if tests were defined, mark as `_testable_`
-    if (props.tests) {
-      if (!this.rules._testable_) this.addRule(new Rule.Group({ name: "_testable_" }));
-      this.addRule(rule, "_testable_");
+    catch (error) {
+      if (!isNode) console.warn("Error in defineRule():", error, "\nprops:", ruleProps);
     }
-
-    return rule;
   }
 }

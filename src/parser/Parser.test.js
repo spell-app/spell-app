@@ -80,32 +80,17 @@ describe("defineRule()", () => {
     expect(rule).toBe(undefined);
   });
 
-  test("throws if passed a Rule instance without a 'name' property", () => {
-    expect(() => parser.defineRule(new Rule.Symbols())).toThrow(ParseError);
+  test("returns undefined if passed a Rule instance without a 'name' property", () => {
+    expect(parser.defineRule(new Rule.Symbols())).toBe(undefined);
   });
 
-  test("throws if not passed a 'constructor' property", () => {
-    expect(() => parser.defineRule({ constructor: undefined })).toThrow(ParseError);
+  test("returns undefined if not passed a 'constructor' property", () => {
+    expect(parser.defineRule({ constructor: undefined })).toBe(undefined);
   });
 
-  test("throws if not passed a 'name' property", () => {
-    expect(() => parser.defineRule({ constructor: undefined })).toThrow(ParseError);
+  test("returns undefined if not passed a 'name' property", () => {
+    expect(parser.defineRule({ constructor: undefined })).toBe(undefined);
   });
-
-  test("throws if parseRule() doesn't return anything", () => {
-    const spy = jest.spyOn(_parseRule_, "parseRule").mockImplementation(() => undefined);
-    expect(() => parser.defineRule({ constructor: Rule, name: "test", syntax:"a" }))
-      .toThrow(ParseError);
-    spy.mockRestore();
-  });
-
-  test("throws if parseRule() returns an empty array", () => {
-    const spy = jest.spyOn(_parseRule_, "parseRule").mockImplementation(() => undefined);
-    expect(() => parser.defineRule({ constructor: Rule, name: "test", syntax:"a" }))
-      .toThrow(ParseError);
-    spy.mockRestore();
-  });
-
 });
 
 describe("parser debug flags", () => {
