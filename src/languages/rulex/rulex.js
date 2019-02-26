@@ -45,15 +45,14 @@ rulex.applyFlags = function applyFlags(rule, flags) {
 //  `…` = test anywhere in the stream (option-semicolon on mac)
 //  `^` = test at start only.
 const testLocation = rulex.defineRule({
+  constructor: class rulex_testLocation extends Rule.Literal {},
   name: "testLocation",
   literal: ["…", "^"],
   optional: true,
-  constructor: class rulex_testLocation extends Rule.Literal {
-    compile(match) {
-      return (match.matched[0].value === "…")
-        ? ANYWHERE
-        : AT_START;
-    }
+  compile(match) {
+    return (match.matched[0].value === "…")
+      ? ANYWHERE
+      : AT_START;
   },
   tests: [
     {
@@ -70,13 +69,12 @@ const testLocation = rulex.defineRule({
 
 // A promote flag, which is always optional
 const promote = rulex.defineRule({
+  constructor: class rulex_promote extends Rule.Symbols {},
   name: "promote",
   literals: ["?", ":"],
   optional: true,
-  constructor: class rulex_promote extends Rule.Symbols {
-    compile(match) {
-      return true;
-    }
+  compile(match) {
+    return true;
   },
   tests: [
     {
@@ -92,16 +90,15 @@ const promote = rulex.defineRule({
 
 // A argument signifier, which is always optional.
 const argument = rulex.defineRule({
+  constructor: class rulex_argument extends Rule.Sequence {},
   name: "argument",
   rules: [
     new Rule.Word({ argument: "argument" }),
     new Rule.Literal(":")
   ],
   optional: true,
-  constructor: class rulex_argument extends Rule.Sequence {
-    compile(match) {
-      return match.results.argument;
-    }
+  compile(match) {
+    return match.results.argument;
   },
   tests: [
     {
@@ -118,13 +115,12 @@ const argument = rulex.defineRule({
 
 // A repeat signifier, which is always optional.
 const repeatFlag = rulex.defineRule({
+  constructor: class rulex_repeatFlag extends Rule.Literal {},
   name: "repeatFlag",
   literal: ["?", "*", "+"],
   optional: true,
-  constructor: class rulex_repeatFlag extends Rule.Literal {
-    compile(match) {
-      return match.matched[0].value;
-    }
+  compile(match) {
+    return match.matched[0].value;
   },
   tests: [
     {
@@ -152,6 +148,7 @@ const repeatFlag = rulex.defineRule({
 // A single symbol, or `\<symbol>` so we can escape special symbols like "?" and "*".
 // Symbols are combined in `Sequence` if possible.
 rulex.defineRule({
+  constructor: class rulex_symbol extends Rule.Sequence {},
   name: "symbol",
   alias: "rule",
   rules: [
@@ -160,12 +157,10 @@ rulex.defineRule({
     new Rule.TokenType({ tokenType: Token.Symbol, argument: "literal" }),
     repeatFlag
   ],
-  constructor: class rulex_symbol extends Rule.Sequence {
-    compile({ results }) {
-      const rule = new Rule.Symbol(results.literal);
-      if (results.isEscaped) rule.isEscaped = true;
-      return rulex.applyFlags(rule, results);
-    }
+  compile({ results }) {
+    const rule = new Rule.Symbol(results.literal);
+    if (results.isEscaped) rule.isEscaped = true;
+    return rulex.applyFlags(rule, results);
   },
   tests: [
     {
@@ -207,19 +202,18 @@ rulex.defineRule({
 
 // Match  keywords with an optional repeat signifier at the end.
 rulex.defineRule({
+  constructor: class rulex_keyword extends Rule.Sequence {},
   name: "keyword",
+  alias: "rule",
   rules: [
     testLocation,
     new Rule.Word({ argument: "literal" }),
     repeatFlag
   ],
-  constructor: class rulex_keyword extends Rule.Sequence {
-    compile({ results }) {
-      const rule = new Rule.Keyword(results.literal);
-      return rulex.applyFlags(rule, results);
-    }
+  compile({ results }) {
+    const rule = new Rule.Keyword(results.literal);
+    return rulex.applyFlags(rule, results);
   },
-  alias: "rule",
   tests: [
     {
       title: "matches single keyword",
@@ -244,7 +238,9 @@ rulex.defineRule({
 
 // Subrule
 rulex.defineRule({
+  constructor: class rulex_subrule extends Rule.Sequence {},
   name: "subrule",
+  alias: "rule",
   rules: [
     testLocation,
     new Rule.Nested({
@@ -264,13 +260,10 @@ rulex.defineRule({
     }),
     repeatFlag
   ],
-  alias: "rule",
-  constructor: class rulex_subrule extends Rule.Sequence {
-    compile({ results }) {
-      const rule = new Rule.Subrule(results.subrule);
-      if (results.excludes) rule.excludes = [ results.excludes ];
-      return rulex.applyFlags(rule, results);
-    }
+  compile({ results }) {
+    const rule = new Rule.Subrule(results.subrule);
+    if (results.excludes) rule.excludes = [ results.excludes ];
+    return rulex.applyFlags(rule, results);
   },
   tests: [
     {
@@ -303,6 +296,7 @@ rulex.defineRule({
 
 
 rulex.defineRule({
+  constructor: class rulex_list extends Rule.Sequence {},
   name: "list",
   alias: "rule",
   rules: [
@@ -321,11 +315,9 @@ rulex.defineRule({
     }),
     repeatFlag
   ],
-  constructor: class rulex_list extends Rule.Sequence {
-    compile({ results }) {
-      const rule = new Rule.List({ item: results.item, delimiter: results.delimiter });
-      return rulex.applyFlags(rule, results);
-    }
+  compile({ results }) {
+    const rule = new Rule.List({ item: results.item, delimiter: results.delimiter });
+    return rulex.applyFlags(rule, results);
   },
   tests: [
     {
@@ -357,6 +349,7 @@ rulex.defineRule({
 
 
 rulex.defineRule({
+  constructor: class rulex_choices extends Rule.Sequence {},
   name: "choices",
   alias: "rule",
   rules: [
@@ -371,27 +364,25 @@ rulex.defineRule({
     }),
     repeatFlag
   ],
-  constructor: class rulex_choices extends Rule.Sequence {
-    compile(match) {
-      // combine main results from nested split
-      const results = { ...match.results, ...match.results.split };
-      let { choices } = results;
-      let rule;
+  compile(match) {
+    // combine main results from nested split
+    const results = { ...match.results, ...match.results.split };
+    let { choices } = results;
+    let rule;
 
-      // If all choices are single keywords, combine
-      if (choices.length > 1 && choices.every(rule => rule instanceof Rule.Keyword && !rule.isAdorned)) {
-        rule = new Rule.Keyword(choices.map(rule => rule.literal));
-      }
-      // If we got exactly one choice which is not a sequence, use that.
-      // Note that the choice's flags will "beat" the rule's flags if they conflict.
-      else if (choices.length === 1 && !(choices[0] instanceof rulex.statement)) {
-        rule = choices[0];
-      }
-      else {
-        rule = new Rule.Choice({ rules: choices });
-      }
-      return rulex.applyFlags(rule, results);
+    // If all choices are single keywords, combine
+    if (choices.length > 1 && choices.every(rule => rule instanceof Rule.Keyword && !rule.isAdorned)) {
+      rule = new Rule.Keyword(choices.map(rule => rule.literal));
     }
+    // If we got exactly one choice which is not a sequence, use that.
+    // Note that the choice's flags will "beat" the rule's flags if they conflict.
+    else if (choices.length === 1 && !(choices[0] instanceof rulex.rules.statement.constructor)) {
+      rule = choices[0];
+    }
+    else {
+      rule = new Rule.Choice({ rules: choices });
+    }
+    return rulex.applyFlags(rule, results);
   },
   tests: [
     {
@@ -467,10 +458,14 @@ rulex.defineRule({
 })
 
 
-// Statement constructor -- separate because it's referenced in `choices.compile()`
-rulex.statement = class rulex_statement extends Rule.Repeat {
-  @proto name = "statement";
-  @proto repeat = new Rule.Subrule("rule");
+// Sequence as a statement -- our top-level rule.
+// NO test rule, otherwise we can't start a statement with a special character.
+// Match a long list of rules.
+// TODO: `consume all tokens`...
+rulex.defineRule({
+  constructor: class rulex_statement extends Rule.Repeat {},
+  name: "statement",
+  repeat: new Rule.Subrule("rule"),
   compile(match) {
     const matched = match.matched.map(match => match.compile());
     let rules = [];
@@ -503,15 +498,7 @@ rulex.statement = class rulex_statement extends Rule.Repeat {
     if (rules.length === 1) return rules[0];
 
     return new Rule.Sequence(rules);
-  }
-}
-
-// Sequence as a statement -- our top-level rule.
-// NO test rule, otherwise we can't start a statement with a special character.
-// Match a long list of rules.
-// TODO: `consume all tokens`...
-rulex.defineRule({
-  constructor: rulex.statement,
+  },
   tests: [
     {
       title: "sequences",
