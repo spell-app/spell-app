@@ -13,10 +13,10 @@ import "./debug.js";
 setPrefKey("spell_editor");
 
 function renderApp() {
-  const SpellEditor = require("./SpellEditor.jsx").default;
+  const { App } = require("./App.jsx");
   ReactDOM.render(
     <Provider store={store}>
-      <SpellEditor />
+      <App />
     </Provider>,
     document.getElementById('react-root')
   );

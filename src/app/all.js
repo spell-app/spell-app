@@ -10,3 +10,6 @@ export * from "./redux/all.js";
 export * from "../parser/all.js";
 export spell from "../languages/spell/all.js";
 export rulex from "../languages/rulex/all.js";
+
+export { SpellEditor } from "./SpellEditor.jsx";
+export { App } from "./App.jsx";

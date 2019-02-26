@@ -96,11 +96,12 @@ export class _SpellEditor extends React.Component {
   );
 
   render() {
+//console.info("SpellEditor.render(): projects:", this.props.projects);
     const { projects } = this.props;
-//console.info("SpellEditor.render(): projects:", projects);
     const { projectId, moduleId, input, output, dirty } = projects;
     const projectIds = _projects.getProjectIds(projects);
     const index = _projects.getProjectIndex(projects, projectId);
+
     // Don't do anything if our data isn't yet loaded
     if (!projectIds || !index) return null;
 
@@ -154,4 +155,5 @@ export class _SpellEditor extends React.Component {
 }
 
 // Pass projects from redux
-export default withProjects(_SpellEditor);
+const SpellEditor = withProjects(_SpellEditor);
+export { SpellEditor }
