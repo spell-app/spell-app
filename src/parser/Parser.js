@@ -196,9 +196,12 @@ export class Parser {
 
       // throw if name was not provided
       const name = props.name || (constructor && constructor.prototype.name);
-      if (!name) {
-        throw new ParseError(`parser.define(): You must pass the rule 'name'`);
-      }
+      if (!name)
+        throw new ParseError(`parser.defineRule(): You must pass the rule 'name'`);
+
+      // Throw if we don't have either `constructor` or `syntax`
+      if (!constructor && !ruleProps.syntax)
+        throw new ParseError(`parser.defineRule(${name}): You must pass the rule 'constructor' or 'syntax'`);
 
       // Note the module that the rule was defined in
       if (this.module) props.module = this.module;
@@ -217,17 +220,12 @@ export class Parser {
       // Instantiate or parse to create rules to work with
       let rule;
       if (props.syntax) {
-        rule = parseRule(props.syntax, constructor, props);
-  //      rule = rulex.compile(props.syntax);
-        if (!rule) throw new ParseError(`defineRule('${props.syntax}'): didnt get a rule back`);
-  //      Object.assign(rule, props);
-
-  //       const parserRule = parseRule(props.syntax, null, props);
-  // console.info(props.syntax);
-  // if (!isEqual(rule, parserRule)) {
-  //   console.info(rule);
-  //   console.info(parserRule);
-  // }
+         rule = rulex.compile(props.syntax);
+         if (!rule) throw new ParseError(`defineRule('${props.syntax}'): didnt get a rule back`);
+         if (constructor) {
+           rule = new constructor(rule);
+         }
+         Object.assign(rule, props);
       }
       else {
         rule = new constructor(props);
