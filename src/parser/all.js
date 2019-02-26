@@ -7,7 +7,6 @@ export * from "./Match.js"
 export * from "./Tokenizer.js"
 export * from "./Rule.js"
 export * from "./Scope.js"
-export * from "./parseRule.js"
 export * from "./Parser.js"
 export * from "./unitTestModuleRules.js";
 

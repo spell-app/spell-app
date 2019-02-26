@@ -7,11 +7,9 @@ import {
   Parser,
   ParseError,
   Rule,
+  ruleEx,
   Tokenizer
 } from "./all.js";
-
-// Import this specially so we can spy on it.
-import * as _parseRule_ from "./parseRule.js";
 
 // Set up parser used in the below
 const parser = new Parser();

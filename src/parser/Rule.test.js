@@ -1,7 +1,6 @@
 import {
   Parser,
   ParseError,
-  parseRule,
   Rule,
   Scope,
   TestLocation,

@@ -6,8 +6,6 @@ import flatten from "lodash/flatten";
 
 import {
   ParseError,
-  parseRule,
-  parseSyntax,
   Rule,
   rulex,
   Scope,
@@ -175,8 +173,9 @@ export class Parser {
     }
   }
 
-  // Define multiple rules at once using ruleSyntax.
-  // See `parseRule.js`
+  // Define multiple rules at once.
+  // NOTE: it's better to do this using individual `defineRule()` calls
+  //       as error stack traces will get you to the right line if there's a problem.
   defineRules(...ruleProps) {
     const rules = ruleProps.map(ruleProps => this.defineRule(ruleProps));
     return flatten(rules).filter(Boolean);

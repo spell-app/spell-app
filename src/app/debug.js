@@ -6,8 +6,6 @@ import {
   packages,
   ParseError,
   Parser,
-  parseRule,
-  parseSyntax,
   ReduxFactory,
   Rule,
   rulex,
@@ -28,8 +26,6 @@ Object.assign(global, {
   _,
   ParseError,
   Parser,
-  parseRule,
-  parseSyntax,
   Rule,
   Scope,
   Token,
@@ -50,10 +46,4 @@ Object.assign(global, {
   // Redux/app stuff
   ReduxFactory,
   packages,
-
-  // Compare rulex parsing to parseRule()
-  compare(ruleString) {
-    console.info("RULEX:     ", rulex.compile(ruleString));
-    console.info("parseRule: ", parseRule(ruleString));
-  }
 });
