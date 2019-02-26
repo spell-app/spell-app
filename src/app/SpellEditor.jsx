@@ -1,10 +1,18 @@
 import React from "react";
 import keydown from "react-keydown";
-import { Button, Dropdown, Grid, Menu, Segment, TextArea } from "semantic-ui-react"
+
+import Card from "react-bootstrap/Card";
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
+import Button from "react-bootstrap/Button";
+import Nav from "react-bootstrap/Nav";
+import Navbar from "react-bootstrap/Navbar";
+import NavDropdown from "react-bootstrap/NavDropdown";
+
+import Octicon, {ChevronRight} from '@githubprimer/octicons-react'
 
 import { packages as packageFactory, withPackages, INPUT } from "./redux/packages";
-import Spacer from "./Spacer.jsx";
-import "./styles.less";
 import TabbableTextArea from "./TabbableTextArea.jsx";
 
 export class _SpellEditor extends React.Component {
@@ -14,25 +22,25 @@ export class _SpellEditor extends React.Component {
   }
 
   // @keydown("ctrl+c")
-  compile() { packageFactory.call.compileInput(); }
+  compile = () => packageFactory.call.compileInput();
 
   // @keydown("ctrl+r")
-  revert() { packageFactory.call.revertInput(); }
+  revert = () => packageFactory.call.revertInput();
 
-  reload() { packageFactory.call.reloadSelected(); }
+  reload = () => packageFactory.call.reloadSelected();
 
   // @keydown("ctrl+s")
-  save() { packageFactory.call.saveInput(); }
+  save = () => packageFactory.call.saveInput();
 
   // @keydown("ctrl+n")
-  create() {
+  create = () => {
     const moduleId = prompt("Name for the new module?", "Untitled");
     if (!moduleId) return;
     const contents = `# Module ${moduleId}`;
     packageFactory.call.newModule({ moduleId, contents });
   }
 
-  duplicate() {
+  duplicate = () => {
     const { moduleId } = this.props.packages;
     const newModuleId = prompt("Name for the new module?", moduleId);
     if (!newModuleId || newModuleId === moduleId) return;
@@ -40,33 +48,47 @@ export class _SpellEditor extends React.Component {
   }
 
   // @keydown("ctrl+d")
-  delete() {
+  _delete = () => {
     const { moduleId } = this.props.packages;
     if (!confirm(`Really delete '${moduleId}'?`)) return;
     packageFactory.call.deleteModule({ moduleId });
   }
 
-  rename() {
+  rename = () => {
     const { moduleId } = this.props.packages;
     const newModuleId = prompt("New name?", moduleId);
     if (!newModuleId || newModuleId === moduleId) return;
     packageFactory.call.renameModule({ moduleId, newModuleId, contents: INPUT });
   }
 
+  updateInput = (event) => {
+    packageFactory.actions.updateInput(event.target.value);
+  }
 
+  // Buttons to show when the input field is dirty.
   dirtyButtons = (
-    <Menu secondary style={{ position: "absolute", right: "1rem", top: "3px", margin: 0 }}>
-      <Button negative onClick={() => this.revert()}><u>R</u>evert</Button>
-      <Button positive onClick={() => this.save()}><u>S</u>ave</Button>
-    </Menu>
-  );
+    <div style={{ position: "absolute", right: "3px", top: "3px" }}>
+      <Button variant="danger" onClick={this.revert} style={{ width: "5em" }}><u>R</u>evert</Button>
+      {" "}
+      <Button variant="success" onClick={this.save} style={{ width: "5em" }}><u>S</u>ave</Button>
+    </div>
+   );
 
+  // Buttons to show when the input can be compiled.
   compileButton = (
     <Button
-      style={{ position: "absolute",  width: "4em", left: "calc(50% - 2em)", top: "50%" }}
-      onClick={() => this.compile()}
-      icon="right chevron"
-    />
+      className="border shadow-sm p-0 pt-1 text-secondary"
+      style={{
+        background: "#eee",
+        position: "absolute",
+        width: "4em",
+        left: "calc(50% - 2em)",
+        top: "50%"
+      }}
+      onClick={this.compile}
+    >
+      <Octicon icon={ChevronRight} size="medium"/>
+    </Button>
   );
 
   render() {
@@ -79,59 +101,55 @@ export class _SpellEditor extends React.Component {
     if (!packageIds || !index) return null;
 
     // Create menuItems for the packages menu
-    const packageOptions = packageIds.map( packageId => {
-      return {
-        value: packageId,
-        title: packageId,
-        text: packageId,
-        content: packageId,
-        onClick: () => packageFactory.call.selectModule({ packageId })
-      }
+    const packageItems = packageIds.map( packageId => {
+      const onSelect = () => packageFactory.call.selectModule({ packageId })
+      return <NavDropdown.Item key={packageId} eventKey={packageId} onSelect={onSelect}>{packageId}</NavDropdown.Item>
     });
 
     // Create menuitems for the modules menu
-    const moduleOptions = index.modules.map( module => {
+    const moduleItems = index.modules.map( module => {
       const moduleId = module.id;
-      return {
-        value: moduleId,
-        title: moduleId,
-        text: moduleId,
-        content: moduleId,
-        onClick: () => packageFactory.call.selectModule({ packageId, moduleId })
-      }
+      const onSelect = () => packageFactory.call.selectModule({ packageId, moduleId })
+      return <NavDropdown.Item key={moduleId} onSelect={onSelect}>{module.id}</NavDropdown.Item>
     });
 
     return (
-    <Grid stretched padded className="fullHeight">
-      <Grid.Row style={{ height: "2rem", paddingTop: "0rem" }} className="ui inverted attached menu">
-        <Grid.Column width={12}>
-          <Menu inverted attached fluid>
-            <Dropdown item selection options={packageOptions} value={packageId} style={{ width: "10em" }}/>
-            <Dropdown item selection options={moduleOptions} value={moduleId} style={{ width: "10em" }}/>
-            <Menu.Item onClick={() => this.create()}><u>N</u>ew</Menu.Item>
-            <Menu.Item onClick={() => this.duplicate()}>Duplicate</Menu.Item>
-            <Spacer/>
-            <Menu.Item onClick={() => this.rename()}>Rename</Menu.Item>
-            <Menu.Item onClick={() => this.delete()}><u>D</u>elete</Menu.Item>
-          </Menu>
-        </Grid.Column>
-      </Grid.Row>
-      <Grid.Row style={{ height: "calc(100% - 3rem)" }}>
-        <Grid.Column width={8}>
-          <TabbableTextArea
-            className="ui segment"
-            value={input}
-            onChange={(event) => packageFactory.actions.updateInput(event.target.value)}
-          />
-          {dirty ? this.dirtyButtons : null}
-        </Grid.Column>
-        <Grid.Column width={8}>
-          <TextArea className="ui segment" value={output}/>
-        </Grid.Column>
-        {output ? null : this.compileButton}
-      </Grid.Row>
-    </Grid>
-  );}
+      <Container fluid className="d-flex flex-column h-100 px-0">
+        <Row>
+          <Col xs={12}>
+            <Navbar bg="dark" variant="dark" className="py-0">
+              <Nav>
+                <NavDropdown title={packageId} id="package-dropdown" style={{width: "12em"}}>
+                  {packageItems}
+                </NavDropdown>
+                <NavDropdown title={moduleId} id="module-dropdown" style={{width: "12em"}}>
+                  {moduleItems}
+                </NavDropdown>
+                <Navbar.Collapse id="navbar-buttons" className="ml-2">
+                  <Nav>
+                    <Nav.Link onSelect={this.create}><u>N</u>ew</Nav.Link>
+                    <Nav.Link onSelect={this.duplicate}>Duplicate</Nav.Link>
+                    <Nav.Link onSelect={this.rename}>Rename</Nav.Link>
+                    <Nav.Link onSelect={this._delete}><u>D</u>elete</Nav.Link>
+                  </Nav>
+                </Navbar.Collapse>
+              </Nav>
+            </Navbar>
+          </Col>
+        </Row>
+        <Row noGutters className="p-2 h-100">
+          <Col xs={6} className="h-100">
+            {this.dirtyButtons}
+            <TabbableTextArea value={input} onChange={this.updateInput}/>
+          </Col>
+          <Col xs={6} className="pl-2">
+            <TabbableTextArea defaultValue={output} disabled/>
+          </Col>
+          {output ? null : this.compileButton}
+        </Row>
+      </Container>
+    );
+  }
 }
 
 // Pass packages from redux

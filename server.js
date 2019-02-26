@@ -11,14 +11,15 @@ import api from "./src/server/api.js";
 
 
 const buildFolder = path.join(__dirname, "build");
+const staticFolder = path.join(__dirname, "static");
 const port = process.env.PORT || 5000;
 
 // Create the parcel bundler
 const startFile = path.join(__dirname, "src/index.html");
 const parcelOptions = {
-  outDir: "./build",
+  outDir: buildFolder,
   watch: true,
-  hmr: false
+//  hmr: false
 }
 const bundler = new Bundler(startFile, parcelOptions);
 
@@ -39,6 +40,9 @@ app.use("/api", api);
 // This MUST come after `use()` of any other middlewares.
 app.use(bundler.middleware());
 
+app.use("/static", express.static('static'))
+
+
 // Go go go!
 app.listen(port);
 
@@ -51,6 +55,7 @@ console.warn(
     + "////    A P P    R E S T A R T E D    S U C C E S S F U L L Y    ////\n"
     + "/////////////////////////////////////////////////////////////////////\n"
   ),
- ` - port:     ${port} \n`,
- ` - buildDir: ${buildFolder} \n`
+ ` - port:          ${port} \n`,
+ ` - buildFolder:   ${buildFolder} \n`,
+ ` - staticFolder:  ${staticFolder} \n`,
 );

@@ -1,6 +1,4 @@
 import React from "react";
-import propTypes from "prop-types";
-import { TextArea } from "semantic-ui-react"
 
 //
 //  # <TabbableTextArea> -- <SUI.TextArea> in which you can type a tab character:
@@ -11,9 +9,16 @@ import { TextArea } from "semantic-ui-react"
 //  ### Properties
 //  - `save` (required) -- function used to save the results on keypress
 //
-export default class TabbableTextArea extends TextArea {
+export default class TabbableTextArea extends React.Component {
   render() {
-    return <TextArea {...this.props} onKeyDown={this.onKeyDown} />;
+    return (
+      <textarea
+        className="h-100 w-100 p-2 rounded shadow-sm border"
+        style={{ borderColor: "#ddd", whiteSpace: "nowrap" }}
+        onKeyDown={this.onKeyDown}
+        {...this.props}
+      />
+    );
   }
 
   // Do NOT exit on tab -- insert or remove tab(s) value instead.

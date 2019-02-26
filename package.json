@@ -64,6 +64,7 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
+    "@githubprimer/octicons-react": "^8.4.2",
     "assert": "^1.4.1",
     "body-parser": "^1.18.3",
     "browser-or-node": "^1.1.0",
@@ -76,14 +77,14 @@
     "prop-types": "^15.5.8",
     "proper-lockfile": "^3.2.0",
     "react": ">=15",
+    "react-bootstrap": "^1.0.0-beta.5",
     "react-dom": "^16.8.1",
     "react-hot-loader": "^4.6.5",
     "react-keydown": "^1.7.2",
     "react-redux": "^6.0.0",
     "react-router-dom": "^4.3.1",
     "react-router-redux": "^4.0.8",
-    "redux": "^4.0.1",
-    "semantic-ui-react": "^0.85.0"
+    "redux": "^4.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",

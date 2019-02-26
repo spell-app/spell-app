@@ -9,7 +9,6 @@ import {
 } from "./all.js";
 
 import "./debug.js";
-import "./semantic/semantic.css";
 
 setPrefKey("spell_editor");
 

@@ -443,31 +443,21 @@ parser.defineRule({
   blacklist: {
     I: true
   },
-  valueMap(type) {
-    switch (type) {
-      // Alias `List` to `Array`
-      case "List":
-        return "Array";
-
-      // special case to take the following as lowercase
-      case "list":
-        return "Array";
-      case "text":
-        return "String";
-      case "character":
-        return "Character";
-      case "number":
-        return "Number";
-      case "integer":
-        return "Integer";
-      case "decimal":
-        return "Decimal";
-      case "boolean":
-        return "Boolean";
-      case "object":
-        return "Object";
-      default:
-        return type.replace(/\-/g, "_");
+  valueMap: {
+    // Alias `List` to `Array`
+    "List": "Array",
+    // special case to take the following as lowercase
+    "list": "Array",
+    "text": "String",
+    "character": "Character",
+    "number": "Number",
+    "integer": "Integer",
+    "decimal": "Decimal",
+    "boolean": "Boolean",
+    "object": "Object",
+    // otherwise just turn dashes into underscores
+    default(type) {
+      return type.replace(/\-/g, "_");
     }
   },
   tests: [

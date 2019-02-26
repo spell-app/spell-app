@@ -8,9 +8,12 @@ import JSON5 from "json5";
 import { connect } from "react-redux";
 
 import {
+  spell
+} from "../all.js";
+
+import {
   api,
   ReduxFactory,
-  spell,
 } from "./all.js";
 
 const Formats = {

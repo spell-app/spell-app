@@ -335,9 +335,15 @@ Rule.Pattern = class pattern extends Rule {
 
   compile(match) {
     const value = match.matched[0].value;
-    if (!this.valueMap) return value;
-    if (typeof this.valueMap === "function") return this.valueMap(value);
-    return this.valueMap[value];
+    // just return value if no valuemap
+    let { valueMap } = this;
+    if (!valueMap) return value;
+    if (typeof valueMap !== "function") {
+      if (valueMap.hasOwnProperty(value)) return valueMap[value];
+      if (typeof valueMap.default === "function") valueMap = valueMap.default;
+    }
+    if (typeof valueMap === "function") return valueMap(value);
+    return value;
   }
 };
 
