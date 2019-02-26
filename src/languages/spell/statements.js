@@ -36,7 +36,7 @@ parser.defineRule({
 parser.defineRule({
   name: "exit",
   alias: "statement",
-  literal: "exit",
+  syntax: "exit",
   compile(match) {
     return "return undefined";
   },

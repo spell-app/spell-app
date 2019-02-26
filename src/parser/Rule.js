@@ -119,6 +119,19 @@ export class Rule {
   get isAdorned() {
     return !!(this.optional || this.promote || this.argument || this.testLocation || this.isEscaped);
   }
+
+  // Return syntax string for this rule (doesn't apply to all rule types).
+  // The base implementation takes care of the "adornments" and returns an object with:
+  //  `{ testLocation, promote, argument, optional }`
+  getSyntaxFlags() {
+    let { testLocation = "", promote = "", argument = "", optional = "" } = this;
+    if (testLocation === TestLocation.ANYWHERE) testLocation = "…";
+    else if (testLocation === TestLocation.ANYWHERE) testLocation = "^";
+    if (promote) promote = "?:";
+    if (argument) argument += ":";
+    if (optional) optional = "?";
+    return { testLocation, promote, argument, optional };
+  }
 }
 
 // Abstract rule for matching tokens of a particular type (Token constructor)
@@ -178,21 +191,13 @@ Rule.Literal = class literal extends Rule {
   }
 
   toSyntax() {
+    const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
     const isChoice = Array.isArray(this.literal);
     const literal = isChoice
       ? this.literal.join("|")
       : (this.isEscaped ? `\\${this.literal}` : this.literal);
 
-    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
-    const promote = this.promote ? "?:" : "";
-    const argument = this.argument ? `${this.argument}:` :"";
-    const optional = this.optional ? "?" : "";
-    const wrapInParens =
-      isChoice ||
-      promote ||
-      argument ||
-      (this.isEscaped && optional)
-    ;
+    const wrapInParens = isChoice || promote || argument || (this.isEscaped && optional);
     if (wrapInParens)
       return `${testLocation}(${promote}${argument}${literal})${optional}`;
     return `${testLocation}${literal}${optional}`;
@@ -255,15 +260,12 @@ Rule.Literals = class literals extends Rule {
   }
 
   toSyntax() {
+    const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
+
     const literals = this.literals.map(literal => {
       if (typeof literal === "string") return literal;
       return `(${literal.join("|")})`;
     }).join(this.literalSeparator);
-
-    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
-    const promote = this.promote ? "?:" : "";
-    const argument = this.argument ? `${this.argument}:` :"";
-    const optional = this.optional ? "?" : "";
 
     const wrapInParens =
       promote ||
@@ -375,11 +377,8 @@ Rule.Subrule = class subrule extends Rule {
   }
 
   toSyntax() {
-    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
-    const promote = this.promote ? "?:" : "";
-    const argument = this.argument ? `${this.argument}:` : "";
+    const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
     const excludes = this.excludes ? `!${this.excludes.join("!")}` : "";
-    const optional = this.optional ? "?" : "";
     return (
       `${testLocation}{${promote}${argument}${this.rule}${excludes}}${optional}`
     );
@@ -482,11 +481,8 @@ Rule.Choice = class choices extends Rule {
   }
 
   toSyntax() {
-    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
-    const promote = this.promote ? "?:" : "";
-    const argument = this.argument ? `${this.argument}:` : "";
+    const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
     const rules = this.rules.map(rule => rule.toSyntax()).join("|");
-    const optional = this.optional ? "?" : "";
     return `${testLocation}(${promote}${argument}${rules})${optional}`;
   }
 };
@@ -546,8 +542,7 @@ Rule.Repeat = class repeat extends Rule {
   }
 
   toSyntax() {
-    const promote = this.promote ? "?:" : "";
-    const argument = this.argument ? `${this.argument}:` : "";
+    let { testLocation, promote, argument, optional } = this.getSyntaxFlags();
     const repeatSymbol = this.optional ? "*" : "+";
     const wrapInParens =
       promote ||
@@ -611,15 +606,11 @@ Rule.List = class list extends Rule {
   }
 
   toSyntax() {
-    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
-    const promote = this.promote ? "?:" : "";
-    const argument = this.argument ? `${this.argument}:` : "";
-    const delimiter = this.delimiter.toSyntax();
-    const optional = this.optional ? "?" : "";
-
+    const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
     const rule = this.rule instanceof Rule.Sequence
       ? `(${this.rule.toSyntax()})`
       : this.rule.toSyntax();
+    const delimiter = this.delimiter.toSyntax();
     return `${testLocation}[${promote}${argument}${rule}${delimiter}]${optional}`;
   }
 };
@@ -839,16 +830,11 @@ Rule.Sequence = class sequence extends Rule {
 
   // Echo this rule back out.
   toSyntax() {
+    const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
     const rules = this.rules.map(rule => rule.toSyntax()).join(" ");
-
-    const testLocation = this.testLocation === TestLocation.ANYWHERE ? "…" : "";
-    const promote = this.promote ? "?:" : "";
-    const argument = this.argument ? `${this.argument}:` : "";
-    const optional = this.optional ? "?" : "";
-
     if (promote || optional || argument)
       return `(${promote}${argument}${rules})${optional}`;
-    return `${testLocation}${rules}${optional}`;
+    return `${rules}${optional}`;
   }
 };
 

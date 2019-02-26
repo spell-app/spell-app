@@ -24,7 +24,7 @@ export default parser;
 parser.defineRule({
   name: "me",
   alias: "expression",
-  literal: "me",
+  syntax: "me",
   compile(match) {
     return "this";
   },
@@ -40,7 +40,7 @@ parser.defineRule({
 parser.defineRule({
   name: "I",
   alias: "expression",
-  literal: "I",
+  syntax: "I",
   compile(match) {
     return "this";
   },
