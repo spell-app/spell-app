@@ -11,4 +11,3 @@ export * from "../parser/all.js";
 export spell from "../languages/spell/all.js";
 export rulex from "../languages/rulex/all.js";
 
-

@@ -13,6 +13,9 @@ import {
 
 import {
   api,
+  getPref,
+  setPref,
+  setPrefKey,
   ReduxFactory,
 } from "./all.js";
 
@@ -24,6 +27,17 @@ const Formats = {
 // FIXME: this is lame...
 export const INPUT = "INPUT";
 
+const PROJECT_INDEX_FILE_NAME = "index.json5";
+
+function getDefaultProject() { return getPref("projectId") }
+function setDefaultProject(projectId) { setPref("projectId", projectId) }
+function getDefaultModule(projectId) { return projectId && getPref(`module4_${projectId}`) }
+function setDefaultModule(projectId, moduleId) { setPref(`module4_${projectId}`, moduleId) }
+
+// Try to figure out the projectId/moduleId we used last time
+const projectId = getDefaultProject();
+const moduleId = getDefaultModule(projectId);
+
 const factory = new ReduxFactory({
   domain: "projects",
 
@@ -31,8 +45,8 @@ const factory = new ReduxFactory({
     files: {},                // Map of `{ <examplePath> => <file contents> }` for all loaded files.
 
     // Selection
-    projectId: undefined,     // Project currently selected.
-    moduleId: undefined,      // Module currently selected.
+    projectId,                // Project currently selected, defaults to pref value.
+    moduleId,                 // Module currently selected, defaults to pref value.
     input: undefined,         // Current example input.  May be different than what's in `files`!
     output: undefined,        // Current example compiled output.
     dirty: false,             // Is the example input different than what's been saved?
@@ -43,26 +57,29 @@ const factory = new ReduxFactory({
     return `projects/${projectId}/${moduleId}${extension}`;
   },
 
-  getIndexName(projectId) {
-    return "index.json5";
-  },
-
   // Syntactic sugar to get the bits of the data from the state.
   // NOTE: These assume the relevant data is already loaded!
   // NOTE: If you're calling these from an `onSuccess` or `onError` handler
   //       you MUST pass the `projects` passed in, or redux will complain.
 
+  // Return loaded list of projectIds given the full `products` state.
   getProjectIds(projects) {
     return projects.files.projects;
   },
 
+  // Return loaded project index given the full `products` state.
   getProjectIndex(projects, projectId) {
-    const fileName = this.getIndexName(projectId);
-    const path = this.getPath(projectId, fileName);
+    const path = this.getPath(projectId, PROJECT_INDEX_FILE_NAME);
     return projects.files[path];
   },
 
-  getModule(projects, projectId, moduleId) {
+  // Return module index data given the `index` for its project.
+  getModuleData(index, moduleId) {
+    return index?.modules.find(module => module.id === moduleId);
+  },
+
+  // Return loaded module source file given the full `products` state.
+  getModuleSource(projects, projectId, moduleId) {
     const path = this.getPath(projectId, moduleId);
     return projects.files[path];
   },
@@ -85,10 +102,11 @@ const factory = new ReduxFactory({
   actions: [
     {
       name: "startup",
-      async promise(projects, { projectId, moduleId } = {}) {
+      async promise(projects, { projectId = projects.projectId, moduleId = projects.moduleId } = {}) {
         // Default to the first project
         const projectIds = await factory.call.loadProjectIds();
-        if (!projectId) projectId = projectIds[0];
+        if (!projectId || !projectIds.includes(projectId))
+          projectId = projectIds[0];
 
         return factory.call.selectModule({ projectId, moduleId });
       },
@@ -159,7 +177,7 @@ const factory = new ReduxFactory({
       name: "revertInput",
       handler(projects) {
         const { projectId, moduleId } = projects;
-        const input = this.getModule(projects, projectId, moduleId);
+        const input = this.getModuleSource(projects, projectId, moduleId);
         return {
           ...projects,
           input,
@@ -181,18 +199,24 @@ const factory = new ReduxFactory({
       // If you don't specify a moduleId, we'll return the first one in the project.
       name: "selectModule",
       async promise(projects, { projectId = projects.projectId, moduleId, reload }) {
-        // Make sure the project index is loaded
+        // Load the project index.
         const index = await factory.call.loadProjectIndex({ projectId, reload });
-        // if no moduleId specified, use the first module in the project
-        if (!moduleId) moduleId = index.modules[0].id;
 
-        return factory.call.loadFile({ projectId, fileName: moduleId, reload });
-      },
-      onSuccess(projects, contents, { projectId = projects.projectId, moduleId }) {
-        if (!moduleId) {
-          const index = this.getProjectIndex(projects, projectId);
+        // If no moduleId specified or we can't find it in the index,
+        // use the first module in the project
+        if (!moduleId || !this.getModuleData(index, moduleId))
           moduleId = index.modules[0].id;
+
+        const contents = await factory.call.loadModule({ projectId, moduleId, reload });
+        return {
+          projectId,
+          moduleId,
+          contents
         }
+      },
+      onSuccess(projects, { projectId, moduleId, contents, reload }) {
+        setDefaultProject(projectId);
+        setDefaultModule(projectId, moduleId);
         return {
           ...projects,
           projectId,
@@ -385,8 +409,7 @@ const factory = new ReduxFactory({
       ACTION: "LOAD_FILE",
       async: true,
       getParams({ projectId, reload }) {
-        const fileName = this.getIndexName(projectId);
-        return { projectId, fileName, reload, format: Formats.JSON5 }
+        return { projectId, fileName: PROJECT_INDEX_FILE_NAME, reload, format: Formats.JSON5 }
       },
     },
 

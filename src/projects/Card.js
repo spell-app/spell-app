@@ -86,7 +86,7 @@ Card.get_color(card) {
   return Card.Colors.red
 }
 
-// -- a card is {color} if its color is {color}
+// -- a card is {color} if its color is the color
 // (...continue as for `card_is_a_suit`.  Automatically does `card is not a {color}`)
 
 //
