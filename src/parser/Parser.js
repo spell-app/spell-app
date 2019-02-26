@@ -24,7 +24,9 @@ import {
 // In the web browser, by default, we'll use `cloneClass()` to make debugging easier
 // by creating named subclasses which you can see in the browser console
 // when inspecting rules, matches, etc.
-// This is a bit slower (4% for the object allocation, not sure about inheritance chain).
+//
+// This is a bit slower (4-5% for the object allocation, not sure about inheritance chain),
+// see:   https://jsperf.com/create-named-class-with-function
 
 const CLONE_CLASSES = !isNode;
 

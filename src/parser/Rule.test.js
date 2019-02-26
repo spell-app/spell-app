@@ -345,7 +345,6 @@ describe("Rule.Subrule", () => {
       name: "sequence",
       syntax: "{this} {that}",
       testRule: new Rule.Keywords("this that"),
-      constructor: class Sequence extends Rule.Sequence {},
       compile(results) {
         return "COMPILED";
       }
@@ -727,13 +726,11 @@ describe("Rule.Sequence", () => {
     {
       name: "noTest",
       syntax: "this {that} the {other}",
-      constructor: class noTest extends Rule.Sequence{}
     },
     {
       name: "atStart",
       syntax: "this {that} the {other}",
       testRule: new Rule.Keywords("this"),
-      constructor: class atStart extends Rule.Sequence{},
       compile() {
         return "COMPILED";
       }
@@ -743,12 +740,10 @@ describe("Rule.Sequence", () => {
       syntax: "this {that} the {other}",
       testRule: new Rule.Keywords("this"),
       testLocation: TestLocation.ANYWHERE,
-      constructor: class anywhere extends Rule.Sequence{}
     },
     {
       name: "noCompile",
       syntax: "this {that} the {other}",
-      constructor: Rule.Sequence
     },
   );
 

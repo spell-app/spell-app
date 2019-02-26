@@ -26,7 +26,6 @@ parser.defineRules(
     alias: "statement",
     syntax: "{dog} and {cat}",
     testRule: "{dog}",
-    constructor: class dog_and_cat extends Rule.Sequence {},
     compile(match) {
       return "dog && cat";
     }

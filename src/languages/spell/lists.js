@@ -37,7 +37,6 @@ parser.defineRule({
   syntax: "the? number of {identifier} in {list:expression}",
   testRule: "…(number of)",
   precedence: 3,
-  constructor: class list_length extends Rule.Sequence {},
   compile(match) {
     const { list } = match.results;
     return `spell.lengthOf(${list})`;
@@ -64,7 +63,6 @@ parser.defineRule({
   syntax: "the? position of {thing:expression} in {list:expression}",
   testRule: "…(position of)",
   precedence: 3,
-  constructor: class list_position extends Rule.Sequence {},
   compile(match) {
     const { thing, list } = match.results;
     return `spell.positionOf(${thing}, ${list})`;
@@ -86,7 +84,6 @@ parser.defineRule({
   name: "starts_with",
   alias: "infix_operator",
   syntax: "starts with",
-  constructor: class starts_with extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `spell.startsWith(${lhs}, ${rhs})`;
@@ -107,7 +104,6 @@ parser.defineRule({
   name: "ends_with",
   alias: "infix_operator",
   syntax: "ends with",
-  constructor: class ends_with extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `spell.endsWith(${lhs}, ${rhs})`;
@@ -148,7 +144,6 @@ parser.defineRule({
     top: 1,
     bottom: -1
   },
-  constructor: class ordinal extends Rule.Pattern {},
   tests: [
     {
       tests: [
@@ -189,7 +184,6 @@ parser.defineRule({
   alias: "expression",
   syntax: "{identifier} {position:expression} of {expression}",
   testRule: "…of",
-  constructor: class position_expression extends Rule.Sequence {},
   compile(match) {
     const { identifier, position, expression } = match.results;
     return `spell.getItem(${expression}, ${position})`;
@@ -211,7 +205,6 @@ parser.defineRule({
   alias: "expression",
   syntax: "the {ordinal} {identifier} (in|of) {expression}",
   testRule: "…(in|of)",
-  constructor: class position_expression extends Rule.Sequence {},
   compile(match) {
     const { identifier, ordinal, expression } = match.results;
     return `spell.getItem(${expression}, ${ordinal})`;
@@ -235,7 +228,6 @@ parser.defineRule({
   alias: "expression",
   syntax: "a random {identifier} (of|from|in) {list:expression}",
   testRule: "a random",
-  constructor: class random_position_expression extends Rule.Sequence {},
   compile(match) {
     const { list, identifier } = match.results;
     return `spell.getRandomItemOf(${list})`;
@@ -260,7 +252,6 @@ parser.defineRule({
   alias: "expression",
   syntax: "{number} random {identifier} (of|from|in) {list:expression}",
   testRule: "…random",
-  constructor: class random_positions_expression extends Rule.Sequence {},
   compile(match) {
     const { number, list, identifier } = match.results;
     return `spell.getRandomItemsOf(${list}, ${number})`;
@@ -289,7 +280,6 @@ parser.defineRule({
   alias: "expression",
   syntax: "{identifier} {start:expression} to {end:expression} (of|in|from) {list:expression}",
   testRule: "…(of|in|from)",
-  constructor: class range_expression extends Rule.Sequence {},
   compile(match) {
     const { list, start, end, identifier } = match.results;
     return `spell.getRange(${list}, ${start}, ${end})`;
@@ -313,7 +303,6 @@ parser.defineRule({
   alias: "expression",
   syntax: "{ordinal} {number} {identifier} (of|in|from) {list:expression}",
   testRule: "…(of|in|from)",
-  constructor: class ordinal_range_expression extends Rule.Sequence {},
   compile(match) {
     const { ordinal, number, list, identifier } = match.results;
     return `spell.slice(${list}, ${ordinal}, ${number})`;
@@ -338,7 +327,6 @@ parser.defineRule({
   alias: "expression",
   syntax: "{identifier} (in|of) {list:expression} starting with {thing:expression}",
   testRule: "…(starting with)",
-  constructor: class range_expression_starting_with extends Rule.Sequence {},
   compile(match) {
     const { thing, list, identifier } = match.results;
     return `spell.getRange(${list}, spell.positionOf(${thing}, ${list}))`;
@@ -368,7 +356,6 @@ parser.defineRule({
   syntax: "{identifier} (in|of) {list:expression} where {condition:expression}",
   testRule: "…where",
   precedence: 2,
-  constructor: class list_filter extends Rule.Sequence {},
   compile(match) {
     const { identifier, condition, list } = match.results;
     // use singular of identifier for method argument
@@ -402,7 +389,6 @@ parser.defineRule({
     "{list:expression!list_membership_test} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
   testRule: "…(has|has no|doesnt have|does not have)",
   precedence: 2,
-  constructor: class list_membership_test extends Rule.Sequence {},
   compile(match) {
     const { identifier, operator, filter, list } = match.results;
     const bang = operator === "has" ? "" : "!";
@@ -444,7 +430,6 @@ parser.defineRule({
 parser.defineRule({
   name: "list_front_or_back",
   syntax: "the (start|front|top|end|back|bottom) of",
-  constructor: class list_front_or_back extends Rule.Keywords {},
   compile(match) {
     const where = match.matched[1].value;
     if (where === "start" || where == "front" || where === "top") return "prepend";
@@ -458,7 +443,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "add {thing:expression} to {method:list_front_or_back}? {list:expression}",
   testRule: "add",
-  constructor: class list_add extends Rule.Sequence {},
   compile(match) {
     const { thing, list, method = "append"} = match.results;
     return `spell.${method}(${list}, ${thing})`;
@@ -485,7 +469,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "prepend {thing:expression} to {list:expression}",
   testRule: "prepend",
-  constructor: class list_prepend extends Rule.Sequence {},
   compile(match) {
     const { thing, list } = match.results;
     return `spell.prepend(${list}, ${thing})`;
@@ -506,7 +489,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "append {thing:expression} to {list:expression}",
   testRule: "append",
-  constructor: class list_append extends Rule.Sequence {},
   compile(match) {
     const { thing, list } = match.results;
     return `spell.append(${list}, ${thing})`;
@@ -535,7 +517,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
   testRule: "add",
-  constructor: class list_add_relative extends Rule.Sequence {},
   compile(match) {
     const { thing, item, list, operator } = match.results;
     const position =
@@ -572,7 +553,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "(empty|clear) {list:expression}",
   testRule: "(empty|clear)",
-  constructor: class list_empty extends Rule.Sequence {},
   compile(match) {
     const { list } = match.results;
     return `spell.clear(${list})`;
@@ -594,7 +574,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {ordinal} {identifier} of {list:expression}",
   testRule: "remove",
-  constructor: class list_remove_ordinal extends Rule.Sequence {},
   compile(match) {
     const { ordinal, list } = match.results;
     return `spell.removeItem(${list}, ${ordinal})`;
@@ -615,7 +594,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {identifier} {number:expression} of {list:expression}",
   testRule: "remove",
-  constructor: class list_remove_position extends Rule.Sequence {},
   compile(match) {
     const { number, list, identifier } = match.results;
     return `spell.removeItem(${list}, ${number})`;
@@ -640,7 +618,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {identifier} {start:expression} to {end:expression} of {list:expression}",
   testRule: "remove",
-  constructor: class list_remove_range extends Rule.Sequence {},
   compile(match) {
     const { start, end, list, identifier } = match.results;
     return `spell.removeRange(${list}, ${start}, ${end})`;
@@ -660,7 +637,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {start:ordinal} to {end:ordinal} {identifier} of {list:expression}",
   testRule: "remove",
-  constructor: class list_remove_range_ordinal extends Rule.Sequence {},
   compile(match) {
     const { start, end, list, identifier } = match.results;
     return `spell.removeRange(${list}, ${start}, ${end})`;
@@ -681,7 +657,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {thing:expression} from {list:expression}",
   testRule: "remove",
-  constructor: class list_remove extends Rule.Sequence {},
   compile(match) {
     const { thing, list } = match.results;
     return `spell.remove(${list}, ${thing})`;
@@ -701,7 +676,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {identifier} (in|of|from) {list:expression} where {condition:expression}",
   testRule: "remove",
-  constructor: class list_remove_where extends Rule.Sequence {},
   compile(match) {
     const { identifier, condition, list } = match.results;
     // use singular of identifier for method argument
@@ -735,7 +709,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "reverse {list:expression}",
   testRule: "reverse",
-  constructor: class list_reverse extends Rule.Sequence {},
   compile(match) {
     const { list } = match.results;
     return `spell.reverse(${list})`;
@@ -754,7 +727,6 @@ parser.defineRule({
   alias: "statement",
   syntax: "(randomize|shuffle) ({identifier} (in|of))? {list:expression}",
   testRule: "(randomize|shuffle)",
-  constructor: class list_shuffle extends Rule.Sequence {},
   compile(match) {
     const { list } = match.results;
     return `spell.shuffle(${list})`;
@@ -779,7 +751,6 @@ parser.defineRule({
   syntax: "for each? {item:identifier} (?:(and|,) {position:identifier})? in {list:expression} :? {statement}?",
   testRule: "for",
   constructor: Rule.BlockStatement,
-//  constructor: class list_iteration extends Rule.BlockStatement {},
   compile(match) {
     const { item, position, list, statements } = match.results;
     const itemVar = singularize(item);

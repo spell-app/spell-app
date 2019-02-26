@@ -24,7 +24,6 @@ parser.defineRule({
   syntax: "if {condition:expression} (then|:)? {statement}?",
   testRule: "if",
   constructor: Rule.BlockStatement,
-//  constructor: class if_ extends Rule.BlockStatement {},
   compile(match) {
     const { condition, statements } = match.results;
     return `if ${parenthesizeCondition(condition)} ${statements}`;
@@ -90,7 +89,6 @@ parser.defineRule({
   testRule: "(else|otherwise)",
   precedence: 1,
   constructor: Rule.BlockStatement,
-//  constructor: class else_if extends Rule.BlockStatement {},
   compile(match) {
     const { condition, statements } = match.results;
     return `else if ${parenthesizeCondition(condition)} ${statements}`;
@@ -153,7 +151,6 @@ parser.defineRule({
   syntax: "(else|otherwise) :? {statement}?",
   testRule: "(else|otherwise)",
   constructor: Rule.BlockStatement,
-//  constructor: class else_ extends Rule.BlockStatement {},
   compile(match) {
     const { statements } = match.results;
     return `else ${statements}`;

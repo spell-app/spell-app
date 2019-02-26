@@ -17,7 +17,6 @@ parser.defineRule({
   syntax: "{lhs:expression!and_expression} and {rhs:expression}",
   testRule: "…and",
   precedence: 2,
-  constructor: class and_expression extends Rule.Sequence {},
   // Delegate compilation down to the operator which was actually matched.
   compile(match) {
     const { lhs, rhs } = match.results;
@@ -41,7 +40,6 @@ parser.defineRule({
   syntax: "{lhs:expression!or_expression} or {rhs:expression}",
   testRule: "…or",
   precedence: 3,
-  constructor: class and_expression extends Rule.Sequence {},
   // Delegate compilation down to the operator which was actually matched.
   compile(match) {
     const { lhs, rhs } = match.results;
@@ -61,7 +59,6 @@ parser.defineRule({
   syntax: "{lhs:expression!infix_operator_expression} {infix_operator} {rhs:expression}",
   testRule: "…{infix_operator}",
   precedence: 1,
-  constructor: class infix_operator_expression extends Rule.Sequence {},
   // Special `getResults` to ignore the operator.
   getResults(match) {
     return {
@@ -100,8 +97,7 @@ parser.defineRule({
   name: "is",
   alias: "infix_operator",
   precedence: 10,
-  literal: "is",
-  constructor: class is extends Rule.Literal {},
+  syntax: "is",
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} == ${rhs})`;
@@ -119,7 +115,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 10,
   syntax: "is not",
-  constructor: class is_not extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} != ${rhs})`;
@@ -137,7 +132,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 10,
   syntax: "is exactly",
-  constructor: class is_exactly extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} === ${rhs})`;
@@ -154,7 +148,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 10,
   syntax: "is not exactly",
-  constructor: class is_not_exactly extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} !== ${rhs})`;
@@ -172,7 +165,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "is (a|an)",
-  constructor: class is_a extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `spell.isOfType(${lhs}, '${rhs}')`;
@@ -190,7 +182,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "is not (a|an)",
-  constructor: class is_not_a extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `!spell.isOfType(${lhs}, '${rhs}')`;
@@ -211,7 +202,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "is same type as",
-  constructor: class is_same_type_as extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(spell.typeOf(${lhs}) === spell.typeOf(${rhs}))`;
@@ -232,7 +222,6 @@ parser.defineRule({
   precedence: 11,
   syntax: "is (in|one of)",
   testRule: "is",
-  constructor: class is_in extends Rule.Sequence {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `spell.includes(${rhs}, ${lhs})`;
@@ -254,7 +243,6 @@ parser.defineRule({
   precedence: 11,
   syntax: "is not (in|one of)",
   testRule: "is not",
-  constructor: class is_not_in extends Rule.Sequence {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `!spell.includes(${rhs}, ${lhs})`;
@@ -275,7 +263,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "(includes|contains)",
-  constructor: class includes extends Rule.Keyword {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `spell.includes(${lhs}, ${rhs})`;
@@ -296,7 +283,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "does not (include|contain)",
-  constructor: class does_not_include extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `!spell.includes(${lhs}, ${rhs})`;
@@ -316,8 +302,7 @@ parser.defineRule({
   name: "gt",
   alias: "infix_operator",
   precedence: 11,
-  literal: ">",
-  constructor: class gt extends Rule.Literal {},
+  syntax: ">",
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} > ${rhs})`;
@@ -337,7 +322,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "is greater than",
-  constructor: class is_gt extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} > ${rhs})`;
@@ -355,7 +339,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: ">=",
-  constructor: class gte extends Rule.Symbols {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} >= ${rhs})`;
@@ -375,7 +358,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "is greater than or equal to",
-  constructor: class is_gte extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} >= ${rhs})`;
@@ -392,8 +374,7 @@ parser.defineRule({
   name: "lt",
   alias: "infix_operator",
   precedence: 11,
-  literal: "<",
-  constructor: class lt extends Rule.Literal {},
+  syntax: "<",
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} < ${rhs})`;
@@ -413,7 +394,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "is less than",
-  constructor: class is_lt extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} < ${rhs})`;
@@ -431,7 +411,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "<=",
-  constructor: class lte extends Rule.Symbols {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} <= ${rhs})`;
@@ -452,7 +431,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "is less than or equal to",
-  constructor: class is_lte extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} <= ${rhs})`;
@@ -469,8 +447,7 @@ parser.defineRule({
   name: "plus_symbol",
   alias: "infix_operator",
   precedence: 13,
-  literal: "+",
-  constructor: class plus_symbol extends Rule.Literal {},
+  syntax: "\\+",
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} + ${rhs})`;
@@ -486,8 +463,7 @@ parser.defineRule({
   name: "plus",
   alias: "infix_operator",
   precedence: 13,
-  literal: "plus",
-  constructor: class plus extends Rule.Literal {},
+  syntax: "plus",
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} + ${rhs})`;
@@ -504,8 +480,7 @@ parser.defineRule({
   name: "minus_symbol",
   alias: "infix_operator",
   precedence: 13,
-  literal: "-",
-  constructor: class minus_symbol extends Rule.Literal {},
+  syntax: "-",
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} - ${rhs})`;
@@ -529,8 +504,7 @@ parser.defineRule({
   name: "minus",
   alias: "infix_operator",
   precedence: 13,
-  literal: "minus",
-  constructor: class minus extends Rule.Literal {},
+  syntax: "minus",
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} - ${rhs})`;
@@ -547,8 +521,7 @@ parser.defineRule({
   name: "times_sumbol",
   alias: "infix_operator",
   precedence: 14,
-  literal: "*",
-  constructor: class times extends Rule.Literal {},
+  syntax: "\\*",
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} * ${rhs})`;
@@ -567,8 +540,7 @@ parser.defineRule({
   name: "times",
   alias: "infix_operator",
   precedence: 14,
-  literal: "times",
-  constructor: class times extends Rule.Literal {},
+  syntax: "times",
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} * ${rhs})`;
@@ -585,8 +557,7 @@ parser.defineRule({
   name: "division_symbol",
   alias: "infix_operator",
   precedence: 14,
-  literal: "/",
-  constructor: class divided_by extends Rule.Literal {},
+  syntax: "/",
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} / ${rhs})`;
@@ -606,7 +577,6 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 14,
   syntax: "divided by",
-  constructor: class divided_by extends Rule.Keywords {},
   compile(match) {
     const { lhs, rhs } = match.results;
     return `(${lhs} / ${rhs})`;
@@ -629,7 +599,6 @@ parser.defineRule({
   syntax: "{expression!postfix_operator_expression} {operator:postfix_operator}",
   precedence: 1,
   testRule: "…{postfix_operator}",
-  constructor: class postfix_operator_expresion extends Rule.Sequence {},
   // Special `getResults` to ignore the operator.
   getResults(match) {
     return {
@@ -647,7 +616,6 @@ parser.defineRule({
   name: "is_defined",
   alias: "postfix_operator",
   syntax: "is defined",
-  constructor: class is_defined extends Rule.Keywords {},
   compile(match) {
     const { expression } = match.results;
     return `(typeof ${expression} !== 'undefined')`;
@@ -664,7 +632,6 @@ parser.defineRule({
   alias: "postfix_operator",
   syntax: "is (undefined|not defined)",
   testRule: "is",
-  constructor: class is_undefined extends Rule.Sequence {},
   compile(match) {
     const { expression } = match.results;
     return `(typeof ${expression} === 'undefined')`;
@@ -684,7 +651,6 @@ parser.defineRule({
   name: "is_empty",
   alias: "postfix_operator",
   syntax: "is empty",
-  constructor: class is_empty extends Rule.Keywords {},
   compile(match) {
     const { expression } = match.results;
     return `spell.isEmpty(${expression})`;
@@ -700,7 +666,6 @@ parser.defineRule({
   name: "is_not_empty",
   alias: "postfix_operator",
   syntax: "is not empty",
-  constructor: class is_not_empty extends Rule.Keywords {},
   compile(match) {
     const { expression } = match.results;
     return `!spell.isEmpty(${expression})`;
@@ -722,7 +687,6 @@ parser.defineRule({
   alias: "expression",
   syntax: "the? absolute value of {expression}",
   testRule: "…absolute",
-  constructor: class absolute_value extends Rule.Sequence {},
   compile(match) {
     const { expression } = match.results;
     return `Math.abs(${expression})`;
@@ -741,7 +705,6 @@ parser.defineRule({
   precedence: 2,
   syntax: "the? (biggest|largest) {identifier}? (of|in) {expression}",
   testRule: "…(biggest|largest)",
-  constructor: class max extends Rule.Sequence {},
   compile(match) {
     const { expression } = match.results;
     return `spell.max(${expression})`;
@@ -764,7 +727,6 @@ parser.defineRule({
   precedence: 2,
   syntax: "the? smallest {identifier}? (of|in) {expression}",
   testRule: "…smallest",
-  constructor: class min extends Rule.Sequence {},
   compile(match) {
     const { expression } = match.results;
     return `spell.min(${expression})`;
@@ -787,7 +749,6 @@ parser.defineRule({
   syntax: "round {thing:expression} (direction:off|up|down)?",
   testRule: "round",
   precedence: 1,
-  constructor: class round_number extends Rule.Sequence {},
   compile(match) {
     const { thing, direction } = match.results;
     if (direction === "up") return `Math.ceil(${thing})`;
