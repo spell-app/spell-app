@@ -553,16 +553,14 @@ describe("Rule.Choice", () => {
 
 describe("Rule.Repeat", () => {
   const parser = new Parser();
-  const ruleNoTest = new Rule.Repeat({
-    repeat: new Rule.Keywords("word")
-  });
+  const ruleNoTest = new Rule.Repeat(new Rule.Keywords("word"));
   const ruleStart = new Rule.Repeat({
     testRule: new Rule.Keywords("word"),
-    repeat: new Rule.Keywords("word")
+    rule: new Rule.Keywords("word")
   });
   const ruleAnywhere = new Rule.Repeat({
     testRule: new Rule.Keywords("word"),
-    repeat: new Rule.Keywords("word"),
+    rule: new Rule.Keywords("word"),
     testLocation: TestLocation.ANYWHERE
   });
 

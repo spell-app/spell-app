@@ -501,7 +501,7 @@ Rule.Group = class group extends Rule.Choice {};
 
 
 // Repeating rule.
-//  `this.repeat` is the rule that repeats.
+//  `this.rule` is the rule that repeats.
 //  `this.optional` is true if the prodution is optional.
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
 //  `rule.minCount` is the minimum number we need to match successfully.
@@ -510,7 +510,7 @@ Rule.Group = class group extends Rule.Choice {};
 //  Note: Returns `undefined` if we don't match at least once.
 Rule.Repeat = class repeat extends Rule {
   constructor(props) {
-    if (props instanceof Rule) props = { repeat: props };
+    if (props instanceof Rule) props = { rule: props };
     super(props);
   }
 
@@ -522,7 +522,7 @@ Rule.Repeat = class repeat extends Rule {
     let matchLength = 0;
 
     while (tokens.length) {
-      let match = this.repeat.parse(scope, tokens);
+      let match = this.rule.parse(scope, tokens);
       if (!match) break;
       matched.push(match);
       matchLength += match.matchLength;
@@ -548,22 +548,21 @@ Rule.Repeat = class repeat extends Rule {
   toSyntax() {
     const promote = this.promote ? "?:" : "";
     const argument = this.argument ? `${this.argument}:` : "";
-    const optional = this.optional ? "*" : "+";
+    const repeatSymbol = this.optional ? "*" : "+";
     const wrapInParens =
       promote ||
       argument ||
-      this.repeat instanceof Rule.Sequence ||
-      (this.repeat instanceof Rule.Literals && this.repeat.literals.length > 1);
+      this.rule instanceof Rule.Sequence ||
+      (this.rule instanceof Rule.Literals && this.rule.literals.length > 1);
 
     // don't double-up on parens
-    let repeat = this.repeat.toSyntax();
-    if (wrapInParens && repeat.startsWith("(") && repeat.endsWith(")"))
-      repeat = repeat.slice(1, -1);
+    let rule = this.rule.toSyntax();
+    if (wrapInParens && rule.startsWith("(") && rule.endsWith(")"))
+      rule = rule.slice(1, -1);
 
-    const rule = wrapInParens
-      ? `(${promote}${argument}${repeat})`
-      : `${repeat}`;
-    return `${rule}${optional}`;
+    if (wrapInParens)
+      return `(${promote}${argument}${rule})${repeatSymbol}`;
+    return `${rule}${repeatSymbol}`;
   }
 };
 

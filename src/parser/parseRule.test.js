@@ -403,7 +403,7 @@ describe("parseSyntax()", () => {
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.Repeat);
       expect(rules[0].optional).toBe(true);
-      expect(rules[0].repeat).toBeInstanceOf(Rule.Subrule);
+      expect(rules[0].rule).toBeInstanceOf(Rule.Subrule);
       expect(rules[0].toSyntax()).toBe("{number}*");
     });
 
@@ -412,7 +412,7 @@ describe("parseSyntax()", () => {
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.Repeat);
       expect(rules[0].optional).toBeUndefined();
-      expect(rules[0].repeat).toBeInstanceOf(Rule.Subrule);
+      expect(rules[0].rule).toBeInstanceOf(Rule.Subrule);
       expect(rules[0].toSyntax()).toBe("{number}+");
     });
 
@@ -421,7 +421,7 @@ describe("parseSyntax()", () => {
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.Repeat);
       expect(rules[0].optional).toBeUndefined();
-      expect(rules[0].repeat).toBeInstanceOf(Rule.Keywords);
+      expect(rules[0].rule).toBeInstanceOf(Rule.Keywords);
       expect(rules[0].toSyntax()).toBe("(one or more)+");
     });
 
@@ -430,7 +430,7 @@ describe("parseSyntax()", () => {
       expect(rules.length).toBe(1);
       expect(rules[0]).toBeInstanceOf(Rule.Repeat);
       expect(rules[0].optional).toBeUndefined();
-      expect(rules[0].repeat).toBeInstanceOf(Rule.List);
+      expect(rules[0].rule).toBeInstanceOf(Rule.List);
       expect(rules[0].toSyntax()).toBe("[{number},]+");
     });
   });
