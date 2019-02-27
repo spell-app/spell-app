@@ -29,6 +29,9 @@ export const INPUT = "INPUT";
 
 const PROJECT_INDEX_FILE_NAME = "index.json5";
 
+//HACK: we should do this in the app somewhere rather than here...
+setPrefKey("spell_editor_");
+
 function getDefaultProject() { return getPref("projectId") }
 function setDefaultProject(projectId) { setPref("projectId", projectId) }
 function getDefaultModule(projectId) { return projectId && getPref(`module4_${projectId}`) }
