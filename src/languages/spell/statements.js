@@ -87,7 +87,7 @@ parser.defineRule({
     {
       compileAs: "statement",
       tests: [
-        ["let the foo of the bar = yes", "bar.foo = true"],
+        ["let the foo of the bar = yes", "bar?.foo = true"],
       ]
     }
   ]

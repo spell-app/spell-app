@@ -13,6 +13,9 @@ export class Match {
   @memoize
   get results() { return this.rule.getResults?.(this) }
 
+  // Syntactic sugar for getting the matches as a map
+  get matches() { return this.rule.getMatches?.(this) }
+
   // Syntatic sugar to compile the output of the match.
   compile() { return this.rule.compile(this) }
 

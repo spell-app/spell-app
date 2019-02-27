@@ -7,6 +7,9 @@
   "outputType": "js",
   "modules": [
     {
+      "id": "Card.spell"
+    },
+    {
       "id": "Deck.spell"
     },
     {
@@ -15,8 +18,5 @@
     {
       "id": "Klondike.spell"
     },
-    {
-      "id": "Card.spell"
-    }
   ]
 }

@@ -46,7 +46,7 @@ parser.defineRule({
       compileAs: "expression",
       tests: [
         ["number of items in my-list", "spell.lengthOf(my_list)"],
-        ["the number of foos in the foo of the bar", "spell.lengthOf(bar.foo)"],
+        ["the number of foos in the foo of the bar", "spell.lengthOf(bar?.foo)"],
         ["the number of items in [1,2,3]", "spell.lengthOf([1, 2, 3])"]
       ]
     }
@@ -72,7 +72,7 @@ parser.defineRule({
       compileAs: "expression",
       tests: [
         ["position of thing in my-list", "spell.positionOf(thing, my_list)"],
-        ["the position of thing in the foo of the bar", "spell.positionOf(thing, bar.foo)"],
+        ["the position of thing in the foo of the bar", "spell.positionOf(thing, bar?.foo)"],
         ["the position of 'a' in ['a', 'b', 'c']", "spell.positionOf('a', ['a', 'b', 'c'])"]
       ]
     }
@@ -194,7 +194,7 @@ parser.defineRule({
       tests: [
         ["item 1 of my-list", "spell.getItem(my_list, 1)"],
         ["card 10 of deck", "spell.getItem(deck, 10)"],
-        ["card n of the cards of the deck", "spell.getItem(deck.cards, n)"],
+        ["card n of the cards of the deck", "spell.getItem(deck?.cards, n)"],
       ]
     }
   ]
@@ -373,7 +373,7 @@ parser.defineRule({
         ],
         [
           "items in my-list where the id of the item > 1",
-          "spell.filter(my_list, item => (item.id > 1))"
+          "spell.filter(my_list, item => (item?.id > 1))"
         ]
       ]
     }
@@ -415,7 +415,7 @@ parser.defineRule({
         ],
         [
           "the foo of the bar does not have items where item is 1",
-          "!spell.any(bar.foo, item => (item == 1))"
+          "!spell.any(bar?.foo, item => (item == 1))"
         ]
       ]
     }
@@ -562,7 +562,7 @@ parser.defineRule({
       compileAs: "statement",
       tests: [
         ["empty my-list", "spell.clear(my_list)"],
-        ["clear the cards of deck", "spell.clear(deck.cards)"]
+        ["clear the cards of deck", "spell.clear(deck?.cards)"]
       ]
     }
   ]
@@ -692,7 +692,7 @@ parser.defineRule({
         ],
         [
           "remove cards in deck where the suit of the card is ace",
-          "spell.removeWhere(deck, card => (card.suit == ace))"
+          "spell.removeWhere(deck, card => (card?.suit == ace))"
         ]
       ]
     }
@@ -770,7 +770,7 @@ parser.defineRule({
 
         [
           "for each card in deck: set the direction of the card to 'down'",
-          "for (const card of deck) { card.direction = 'down' }"
+          "for (const card of deck) { card?.direction = 'down' }"
         ],
         [
           "for message, index in messages: add message + index to messages",
@@ -779,7 +779,7 @@ parser.defineRule({
 
         [
           "for each card in deck:\n\tset the direction of the card to 'down'",
-          "for (const card of deck) {\n\tcard.direction = 'down'\n}"
+          "for (const card of deck) {\n\tcard?.direction = 'down'\n}"
         ],
         [
           "for message and index in messages:\n\tif index is greater than 2 add message to messages",

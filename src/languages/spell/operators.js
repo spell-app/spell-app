@@ -86,7 +86,7 @@ parser.defineRule({
       title: "complex property/etc expressions",
       compileAs: "expression",
       tests: [
-        ["the suit of the card is 'ace'", "(card.suit == 'ace')"],
+        ["the suit of the card is 'ace'", "(card?.suit == 'ace')"],
       ]
     }
   ]

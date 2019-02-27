@@ -3,12 +3,12 @@ import React from "react";
 import ReactDOM from 'react-dom';
 import { Provider } from "react-redux";
 
-
-const { store } = require("./all.js");
 require("./debug.js");
 
+const { store } = require("./all.js");
+const { SpellEditor } = require("./SpellEditor.jsx");
+
 function renderApp() {
-  const { SpellEditor } = require("./SpellEditor.jsx");
   ReactDOM.render(
     <Provider store={store}>
       <SpellEditor />
@@ -19,4 +19,4 @@ function renderApp() {
 
 renderApp();
 
-module.hot.accept(renderApp);
+//module.hot.accept(renderApp);

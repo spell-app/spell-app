@@ -65,16 +65,16 @@ parser.defineRule({
   compile(match) {
     let { expression, property_accessor } = match.results;
     // TODO: `[xxx]` for non-identifiers
-    return `${expression}.${property_accessor}`;
+    return `${expression}?.${property_accessor}`;
   },
   tests: [
     {
       compileAs: "expression",
       tests: [
-        ["the foo of bar", "bar.foo"],
-        ["the foo of the bar", "bar.foo"],
-        ["the foo of the bar of the baz", "baz.bar.foo"],
-        ["the foo-bar of the baz", "baz.foo_bar"]
+        ["the foo of bar", "bar?.foo"],
+        ["the foo of the bar", "bar?.foo"],
+        ["the foo of the bar of the baz", "baz?.bar?.foo"],
+        ["the foo-bar of the baz", "baz?.foo_bar"]
       ]
     }
   ]
@@ -86,7 +86,7 @@ parser.defineRule({
   testRule: "the",
   compile(match) {
     return match.results.identifier;
-  }
+  },
 });
 
 parser.defineRule({
@@ -103,8 +103,29 @@ parser.defineRule({
       compileAs: "expression",
       tests: [
         ["my foo", "this.foo"],
-        ["the foo of my bar", "this.bar.foo"],
-        ["the foo of my bar is 'fooo'", "(this.bar.foo == 'fooo')"],
+        ["the foo of my bar", "this.bar?.foo"],
+        ["the foo of my bar is 'fooo'", "(this.bar?.foo == 'fooo')"],
+      ]
+    }
+  ]
+});
+
+parser.defineRule({
+  name: "its_property_accessor",
+  alias: ["expression", "property_accessor"],
+  syntax: "its {identifier}",
+  testRule: "its",
+  compile(match) {
+    return {
+      type: "its",
+      identifier: match.results.identifier
+    }
+  },
+  tests: [
+    {
+      compileAs: "expression",
+      tests: [
+        ["its foo", { type: "its", identifier: "foo" }],
       ]
     }
   ]
@@ -155,7 +176,7 @@ parser.defineRule({
         [`a = 1`, `{ "a": 1 }`],
         [`a = 1,`, `{ "a": 1 }`],
         [`a = 1, b = yes, c = "quoted"`, `{ "a": 1, "b": true, "c": "quoted" }`],
-        [`a = 1, b = the foo of the bar`, `{ "a": 1, "b": bar.foo }`]
+        [`a = 1, b = the foo of the bar`, `{ "a": 1, "b": bar?.foo }`]
       ]
     }
   ]
@@ -239,6 +260,7 @@ parser.defineRule({
   ]
 });
 
+/*
 //
 //  declare properties
 //
@@ -279,7 +301,7 @@ parser.defineRule({
         //FIXME          ["constant foo", "const foo"],
         ["shared property foo", "@proto foo"],
 
-        ["property foo = the foo of the bar", "foo = bar.foo"],
+        ["property foo = the foo of the bar", "foo = bar?.foo"],
         ["constant foo = 'some text'", "const foo = 'some text'"],
         ["shared property foo = create an object with a = 1", '@proto foo = { "a": 1 }']
       ]
@@ -465,35 +487,35 @@ parser.defineRule({
 
 // Declare instance method or normal function.
 // TODO: static/etc
-parser.defineRule({
-  name: "declare_method",
-  alias: ["statement", "mutatesScope"],
-  syntax: "(operator:to|on) {name:identifier} {args}? (\\:)? {statement}?",
-  testRule: "(to|on)",
-  constructor: Rule.BlockStatement,
-  compile(match) {
-    let { name, args = "", statements } = match.results;
-    return `${name}(${args}) ${statements}`;
-  },
-  tests: [
-    {
-      compileAs: "statements",
-      tests: [
-        ["on foo", "foo() {}"],
-        ["to foo", "foo() {}"],
-        ["to foo:", "foo() {}"],
-        ["to foo with a", "foo(a) {}"],
-        ["to foo with a, b", "foo(a, b) {}"],
-        ["to foo with a,b,c", "foo(a, b, c) {}"],
-        ["to foo a = yes", "foo() { a = true }"],
-        ["to foo: a = yes", "foo() { a = true }"],
-        ["to foo with a: a = yes", "foo(a) { a = true }"],
-        ["to foo\n\ta = yes", "foo() {\n\ta = true\n}"],
-        ["to foo with a, b\n\ta = yes\n\tb = no", "foo(a, b) {\n\ta = true\n\tb = false\n}"]
-      ]
-    }
-  ]
-});
+// parser.defineRule({
+//   name: "declare_method",
+//   alias: ["statement", "mutatesScope"],
+//   syntax: "(operator:to|on) {name:identifier} {args}? (\\:)? {statement}?",
+//   testRule: "(to|on)",
+//   constructor: Rule.BlockStatement,
+//   compile(match) {
+//     let { name, args = "", statements } = match.results;
+//     return `${name}(${args}) ${statements}`;
+//   },
+//   tests: [
+//     {
+//       compileAs: "statements",
+//       tests: [
+//         ["on foo", "foo() {}"],
+//         ["to foo", "foo() {}"],
+//         ["to foo:", "foo() {}"],
+//         ["to foo with a", "foo(a) {}"],
+//         ["to foo with a, b", "foo(a, b) {}"],
+//         ["to foo with a,b,c", "foo(a, b, c) {}"],
+//         ["to foo a = yes", "foo() { a = true }"],
+//         ["to foo: a = yes", "foo() { a = true }"],
+//         ["to foo with a: a = yes", "foo(a) { a = true }"],
+//         ["to foo\n\ta = yes", "foo() {\n\ta = true\n}"],
+//         ["to foo with a, b\n\ta = yes\n\tb = no", "foo(a, b) {\n\ta = true\n\tb = false\n}"]
+//       ]
+//     }
+//   ]
+// });
 
 // Declare "action", which can be called globally and affects the parser.
 // TODO: `turn a card over`
@@ -570,3 +592,4 @@ parser.defineRule({
     }
   ]
 });
+*/
