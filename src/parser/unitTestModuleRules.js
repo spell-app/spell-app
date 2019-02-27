@@ -10,6 +10,7 @@
 
 import groupBy from "lodash/groupBy";
 import isEqual from "lodash/isEqual";
+import omit from "lodash/omit";
 
 import {
   ParseError,
@@ -97,7 +98,12 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
     const success = isEqual(result, output);
     // If it didn't work, log the match for debugging purposes
     if (!success) {
-      console.warn(`ERROR PARSING: "${input}"\n   match: `, match);
+      if (match instanceof Error) {
+        console.warn(`ERROR PARSING: "${input}": ${match.message}`);
+      }
+      else {
+        console.warn(`ERROR PARSING: "${input}"\n   match: `, omit(match, ["tokens", "rule"]));
+      }
     }
     if (typeof result === "string" && typeof output === "string") {
       // Show returns and tabs in the output display

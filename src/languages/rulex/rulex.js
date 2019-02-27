@@ -156,7 +156,6 @@ const repeatFlag = rulex.defineRule({
 
 
 // A single symbol, or `\<symbol>` so we can escape special symbols like "?" and "*".
-// Symbols are combined in `Sequence` if possible.
 rulex.defineRule({
   constructor: Rule.Sequence,
   name: "symbol",
@@ -167,6 +166,7 @@ rulex.defineRule({
     new Rule.TokenType({ tokenType: Token.Symbol, argument: "literal" }),
     repeatFlag
   ],
+
   compile({ results }) {
     const rule = new Rule.Symbol(results.literal);
     if (results.isEscaped) rule.isEscaped = true;
@@ -182,6 +182,10 @@ rulex.defineRule({
         ["^", undefined],
 
         [":", new Rule.Symbol({ literal:  ":"  })],
+
+        // matches special chars by themselves if not escaped
+        ["(", new Rule.Symbol({ literal:  "("  })],
+        ["[", new Rule.Symbol({ literal:  "["  })],
         ["?", new Rule.Symbol({ literal:  "?"  })],
         ["*", new Rule.Symbol({ literal:  "*"  })],
         ["+", new Rule.Symbol({ literal:  "+"  })],
@@ -192,6 +196,8 @@ rulex.defineRule({
         // escaped
         ["\\:", new Rule.Symbol({ literal:  ":" , isEscaped: true })],
         ["\\?", new Rule.Symbol({ literal:  "?" , isEscaped: true })],
+        ["\\(", new Rule.Symbol({ literal:  "(" , isEscaped: true })],
+        ["\\[", new Rule.Symbol({ literal:  "[" , isEscaped: true })],
 
         // testLocation
         ["…:", new Rule.Symbol({ literal:  ":" , testLocation: ANYWHERE })],
