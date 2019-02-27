@@ -116,16 +116,14 @@ parser.defineRule({
   syntax: "its {identifier}",
   testRule: "its",
   compile(match) {
-    return {
-      type: "its",
-      identifier: match.results.identifier
-    }
+    const { identifier } = match.results;
+    return `this.${identifier}`
   },
   tests: [
     {
       compileAs: "expression",
       tests: [
-        ["its foo", { type: "its", identifier: "foo" }],
+        ["its foo", "this.foo"],
       ]
     }
   ]

@@ -109,27 +109,23 @@ parser.defineRule({
 
     if (initializer.enum) {
       return [
-        `${Type}.${Properties} = ${JSON5.stringify(initializer.enum)}`,
-        `${Type}.get_${property} = function(${type}) { return ${type}?.${property} }`,
-        `${Type}.set_${property} = function(${type}, ${property}) {`,
-        `  if ($.isType(${property}, ${Type}.${Properties})) ${type}?.${property} = ${property}`,
-        `}`,
+        `defineProp(${Type}.prototype, '${Properties}', { value: ${JSON5.stringify(initializer.enum)} })`,
         `defineProp(${Type}.prototype, '${property}', {`,
-        `  get() { return ${Type}.get_${property}(this) }`,
-        `  set(${property}) { return ${Type}.set_${property}(this, ${property}) }`,
+        `  get() { return this.${property} }`,
+        `  set(${property}) {`,
+        `    if ($.isOneOf(${property}, this.${Properties})) this.${property} = ${property}`,
+        `  }`,
         `})`
       ].join("\n");
     }
     else if (initializer.datatype) {
       const datatype = initializer.datatype;
       return [
-        `${Type}.get_${property} = function(${type}) { return ${type}?.${property} }`,
-        `${Type}.set_${property} = function(${type}, ${property}) {`,
-        `  if ($.isType(${property}, '${datatype}')) ${type}?.${property} = ${property}`,
-        `}`,
         `defineProp(${Type}.prototype, '${property}', {`,
-        `  get() { return ${Type}.get_${property}(this) }`,
-        `  set(${property}) { return ${Type}.set_${property}(this, ${property}) }`,
+        `  get() { return this.${property} }`,
+        `  set(${property}) {`,
+        `    if ($.isType(${property}, '${datatype}')) this.${property} = ${property}`,
+        `  }`,
         `})`
       ].join("\n");
     }
@@ -138,28 +134,24 @@ parser.defineRule({
     {
       compileAs: "statement",
       tests: [
-        ["cards have a face as either up or down",
+        ["cards have a direction as either up or down",
           [
-            "Card.Faces = {up:'up',down:'down'}",
-            "Card.get_face = function(card) { return card?.face }",
-            "Card.set_face = function(card, face) {",
-            "  if ($.isType(face, Card.Faces)) card?.face = face",
-            "}",
-            "defineProp(Card.prototype, 'face', {",
-            "  get() { return Card.get_face(this) }",
-            "  set(face) { return Card.set_face(this, face) }",
+            "defineProp(Card.prototype, 'Directions', { value: {up:'up',down:'down'} })",
+            "defineProp(Card.prototype, 'direction', {",
+            "  get() { return this.direction }",
+            "  set(direction) {",
+            "    if ($.isOneOf(direction, this.Directions)) this.direction = direction",
+            "  }",
             "})"
           ].join("\n")
         ],
         ["a player has a name as text",
           [
-            "Player.get_name = function(player) { return player?.name }",
-            "Player.set_name = function(player, name) {",
-            "  if ($.isType(name, 'text')) player?.name = name",
-            "}",
             "defineProp(Player.prototype, 'name', {",
-            "  get() { return Player.get_name(this) }",
-            "  set(name) { return Player.set_name(this, name) }",
+            "  get() { return this.name }",
+            "  set(name) {",
+            "    if ($.isType(name, 'text')) this.name = name",
+            "  }",
             "})"
           ].join("\n")
         ],
@@ -181,9 +173,8 @@ parser.defineRule({
     const Type = startCase(type);
     const methodName = `is_${property}`;
     return [
-      `${Type}.get_${methodName} = function(${type}) { return ${expression} }`,
       `defineProp(${Type}.prototype, '${methodName}', {`,
-      `  get() { return ${Type}.get_${methodName}(this) }`,
+      `  get() { return ${expression} }`,
       `})`
     ].join("\n")
   },
@@ -191,11 +182,10 @@ parser.defineRule({
     {
       compileAs: "statement",
       tests: [
-        ["a card is face-up if the face of the card is up",     // todo:  shouldn't need "face-up"...
+        ["a card is face-up if its direction is up",
           [
-            "Card.get_is_face_up = function(card) { return (card?.face == up) }",
             "defineProp(Card.prototype, 'is_face_up', {",
-            "  get() { return Card.get_is_face_up(this) }",
+            "  get() { return (this.direction == up) }",
             "})"
           ].join("\n")
         ],
@@ -251,9 +241,8 @@ parser.defineRule({
     const { statements } = match.results;
     const { types, Types, method, args, instanceMethod, instanceArgs } = parseKeywordsToMethod(match);
     return [
-      `${Types[0]}.${method} = function(${args}) ${statements}`,
       `defineProp(${Types[0]}.prototype, '${instanceMethod}', {`,
-      `  value: function(${instanceArgs}){ return ${Types[0]}.${method}(this${instanceArgs}) }`,
+      `  value: function(${instanceArgs})${statements}`,
       `})`
     ].join("\n")
   },
@@ -263,25 +252,61 @@ parser.defineRule({
       tests: [
         ["to turn a card face up:",
           [
-            "Card.turn_card_face_up = function(card) {}",
             "defineProp(Card.prototype, 'turn_face_up', {",
-            "  value: function(){ return Card.turn_card_face_up(this) }",
+            "  value: function(){}",
             "})"
           ].join("\n")
         ],
         [
           [
             "to flip Cards over:",
-            "\tif the card is face-up: set the face of the card to down",  // "set its face to down"
-            "\totherwise set the face of the card to up"                  // "set its face to up"
+            "\tif the card is face-up: set its face to down",
+            "\totherwise set its face to up"
           ].join("\n"),
           [
-            "Card.flip_card_over = function(card) {",
-            "\tif (card == face_up) { card?.face = down }",      // if (Card.is_face_up(card))..."
-            "\telse { card?.face = up }",
-            "}",
             "defineProp(Card.prototype, 'flip_over', {",
-            "  value: function(){ return Card.flip_card_over(this) }",
+            "  value: function(){",
+            "\tif (card == face_up) { this.face = down }",      // if (this.is_face_up)..."
+            "\telse { this.face = up }",
+            "}",
+            "})"
+          ].join("\n")
+        ],
+      ]
+    }
+  ]
+});
+
+
+
+parser.defineRule({
+  name: "type_is_a",
+  alias: ["statement", "mutatesScope"],
+  syntax: "(article:a|an) {type:word} is (a|an) \{{property:identifier}\} if {expression}",
+//  constructor: Rule.BlockStatement,
+  compile(match) {
+    const { article, type, property, expression } = match.results;
+    const Type = startCase(singularize(type));
+    return [
+      `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
+      `  value: function(${property}){ return ${expression} }`,
+      `})`,
+      `defineProp(${Type}.prototype, 'is_not_${article}_${property}', {`,
+      `  value: function(${property}){ return !this.is_${article}_${property} }`,
+      `})`
+    ].join("\n")
+  },
+  tests: [
+    {
+      compileAs: "statements",
+      tests: [
+        ["a card is a {suit} if its suit is suit",
+          [
+            "defineProp(Card.prototype, 'is_a_suit', {",
+            "  value: function(suit){ return (this.suit == suit) }",
+            "})",
+            "defineProp(Card.prototype, 'is_not_a_suit', {",
+            "  value: function(suit){ return !this.is_a_suit }",
             "})"
           ].join("\n")
         ],

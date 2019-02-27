@@ -1,0 +1,9 @@
+## definition of a Card with nice english aliases for working with it
+a card is a thing
+cards have a direction as direction as either up or down
+a card is face-up if its direction is up
+to turn a card face up: set its direction to up
+to turn a card face down: set its direction to down
+to flip a card over:
+  if its direction is up then turn the card face down
+  otherwise turn the card face up
