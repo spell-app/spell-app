@@ -9,9 +9,9 @@ import {
 
 // Policy for automatically removing whitespace from the token stream.
 export const WhitespacePolicy = {
-  ALL: "ALL",             // Leave ALL whitespace
-  NONE: "NONE",           // Remove ALL whitespace
-  LEADING: "LEADING",     // Remove inline whitespace only (leaving indents and newlines)
+  ALL: "ALL",                     // Leave ALL whitespace
+  NONE: "NONE",                   // Remove ALL whitespace
+  LEADING_ONLY: "LEADING_ONLY",   // Remove inline whitespace only (leaving indents and newlines)
 }
 
 
@@ -23,8 +23,6 @@ export const WhitespacePolicy = {
 export class Tokenizer {
   // Should we warn about anomalous conditions?
   @proto WARN = false;
-
-  static WhitespacePolicy = WhitespacePolicy;
 
   // Leave all whitespace by default.
   @proto whitespacePolicy = WhitespacePolicy.ALL;
@@ -49,18 +47,30 @@ export class Tokenizer {
     }
 
     // Filter according to our whitespace policy
-    switch (this.whitespacePolicy) {
-      case WhitespacePolicy.NONE:
-        return tokens.filter(token => !(token instanceof Token.Whitespace));
+    if (this.whitespacePolicy === WhitespacePolicy.NONE)
+      return this.filterWhitespace(tokens, Token.Whitespace);
 
-      case WhitespacePolicy.LEADING:
-        return tokens.filter(token => !(token instanceof Token.InlineWhitespace));
-
-      default:
-        return tokens;
-    }
+    if (this.whitespacePolicy === WhitespacePolicy.LEADING_ONLY)
+      return this.filterWhitespace(tokens, Token.InlineWhitespace);
 
     return tokens;
+  }
+
+  // Filter out whitespace of the specified type.
+  // Note that we add whitespace filters to `token.whitespace` of the PREVIOUS token.
+  // This allows us to reconstruct the stream exactly by just looking at the filtered tokens.
+  filterWhitespace(tokens, whitespaceType) {
+    const results = [];
+    for (let i = 0, token; token = tokens[i]; i++) {
+      if (token instanceof whitespaceType) {
+        const previous = tokens[i-1];
+        if (previous) previous.whitespace = (previous.whitespace || "") + token.value;
+      }
+      else {
+        results.push(token);
+      }
+    }
+    return results;
   }
 
   // Repeatedly execute a `method` (bound to `this) which returns a `[result, nextStart]` or `undefined`.
@@ -822,6 +832,18 @@ export class Tokenizer {
 
     return block;
   }
+
+  //
+  //  # Utility
+  //
+
+  // Join a bunch of tokens between `start` and `end` together as a single string,
+  //  including whitespace.
+  static joinTokens(tokens) {
+    return tokens.map(token => token.value + (token.whitespace || ""))
+      .join("");
+  }
+
 
   // Find the matching instance of (possibly nested) `endToken` to balance `startToken`
   //  in array of `tokens` (strings).

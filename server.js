@@ -19,7 +19,7 @@ const startFile = path.join(__dirname, "src/index.html");
 const parcelOptions = {
   outDir: buildFolder,
   watch: true,
-//  hmr: false
+  hmr: false
 }
 const bundler = new Bundler(startFile, parcelOptions);
 

@@ -44,7 +44,7 @@ export class Parser {
   // Default tokenizer.  You may want to create one in your parser subclasses,
   //  e.g. to change the whitespacePolicy.
   @proto tokenizer = new Tokenizer({
-    whitespacePolicy: WhitespacePolicy.LEADING
+    whitespacePolicy: WhitespacePolicy.LEADING_ONLY
   });
 
   // Map of all of our rules, including imports.

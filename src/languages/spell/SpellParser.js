@@ -14,7 +14,7 @@ export class SpellParser extends Parser {
 
   @proto tokenizer = new Tokenizer({
     // Remove "normal" whitespace (leaving newlines and indents) when parsing
-    whitespacePolicy: WhitespacePolicy.LEADING
+    whitespacePolicy: WhitespacePolicy.LEADING_ONLY
   });
 }
 

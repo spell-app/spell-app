@@ -145,6 +145,7 @@ Rule.TokenType = class tokenType extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[0]],
+      tokens,
       matchLength: 1
     });
   }
@@ -182,6 +183,7 @@ Rule.Literal = class literal extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[0]],
+      tokens,
       matchLength: 1
     });
   }
@@ -246,10 +248,12 @@ Rule.Literals = class literals extends Rule {
 
   parse(scope, tokens) {
     if (!this.testAtStart(scope, tokens, 0)) return undefined;
+    const matchLength = this.literals.length;
     return new Match({
       rule: this,
-      matched: tokens.slice(0, this.literals.length),
-      matchLength: this.literals.length
+      matched: tokens.slice(0, matchLength),
+      tokens,
+      matchLength
     });
   }
 
@@ -257,6 +261,10 @@ Rule.Literals = class literals extends Rule {
     return match.matched
       .map(match => match.value)
       .join(this.literalSeparator);
+  }
+
+  getInputText(match) {
+    return this.compile(match);
   }
 
   toSyntax() {
@@ -329,6 +337,7 @@ Rule.Pattern = class pattern extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[0]],
+      tokens,
       matchLength: 1
     });
   }
@@ -523,12 +532,13 @@ Rule.Repeat = class repeat extends Rule {
     const matched = [];
     let matchLength = 0;
 
-    while (tokens.length) {
-      let match = this.rule.parse(scope, tokens);
+    let remainingTokens = tokens;
+    while (remainingTokens.length) {
+      let match = this.rule.parse(scope, remainingTokens);
       if (!match) break;
       matched.push(match);
       matchLength += match.matchLength;
-      tokens = tokens.slice(match.matchLength);
+      remainingTokens = remainingTokens.slice(match.matchLength);
     }
 
     // Forget it if nothing matched at all
@@ -539,6 +549,7 @@ Rule.Repeat = class repeat extends Rule {
     return new Match({
       rule: this,
       matched,
+      tokens,
       matchLength
     });
   }
@@ -577,21 +588,22 @@ Rule.List = class list extends Rule {
 
     let matched = [];
     let matchLength = 0;
-    while (tokens.length) {
+    let remainingTokens = tokens;
+    while (remainingTokens.length) {
       // get next item, exiting if not found
-      let item = this.rule.parse(scope, tokens);
+      let item = this.rule.parse(scope, remainingTokens);
       if (!item) break;
 
       matched.push(item);
       matchLength += item.matchLength;
-      tokens = tokens.slice(item.matchLength);
+      remainingTokens = remainingTokens.slice(item.matchLength);
 
       // get delimiter, exiting if not found
-      let delimiter = this.delimiter.parse(scope, tokens);
+      let delimiter = this.delimiter.parse(scope, remainingTokens);
       if (!delimiter) break;
       // NOTE: we do not push the delimiter into matched, but we do count it's length.
       matchLength += delimiter.matchLength;
-      tokens = tokens.slice(delimiter.matchLength);
+      remainingTokens = remainingTokens.slice(delimiter.matchLength);
     }
 
     // If we didn't get any matches, forget it.
@@ -600,15 +612,18 @@ Rule.List = class list extends Rule {
     return new Match({
       rule: this,
       matched,
+      tokens,
       matchLength
     });
   }
 
   // Returns JS Array of matched items as source.
-  //TODO: `JSDelimiter` to return as a single string?
   compile(match) {
-    if (!match.matched) return [];
     return match.matched.map(match => match.compile());
+  }
+
+  getInputText(match) {
+    return match.matched.map(match => match.inputText);
   }
 
   toSyntax() {
@@ -637,6 +652,7 @@ Rule.Nested = class nesting extends Rule {
     // if we didn't get everything, forget it
     if (match.matchLength + 1 !== end) return undefined;
     // account for the start and end delimiters
+    match.tokens = tokens;
     match.matchLength += 2;
     return match;
   }
@@ -703,6 +719,7 @@ Rule.NestedSplit = class nesting extends Rule.Nested {
       rule: this,
       prefix,
       groups,
+      tokens,
       matchLength: end + 1
     });
   }
@@ -717,6 +734,10 @@ Rule.NestedSplit = class nesting extends Rule.Nested {
   // If no explcit compile method, return our `results` for someone else to consume.
   compile(match) {
     return this.getResults(match);
+  }
+
+  getInputText(match) {
+    return match.matched.map(match => match.inputText);
   }
 
   // If tokens starts with our `start` literal,
@@ -769,13 +790,14 @@ Rule.Sequence = class sequence extends Rule {
     const matched = [];
     let matchLength = 0;
 
+    let remainingTokens = tokens;
     for (let i = 0, rule; rule = this.rules[i++];) {
       // If we're out of tokens, bail if rule is not optional
-      if (tokens.length === 0) {
+      if (remainingTokens.length === 0) {
         if (rule.optional) continue;
         return undefined;
       }
-      let match = rule.parse(scope, tokens);
+      let match = rule.parse(scope, remainingTokens);
       if (!match) {
         if (rule.optional) continue;
         return undefined;
@@ -783,13 +805,14 @@ Rule.Sequence = class sequence extends Rule {
 
       matched.push(match);
       matchLength += match.matchLength;
-      tokens = tokens.slice(match.matchLength);
+      remainingTokens = remainingTokens.slice(match.matchLength);
     }
 
     // if we get here, we matched all the rules!
     return new Match({
       rule: this,
       matched,
+      tokens,
       matchLength
     })
   }
@@ -973,6 +996,7 @@ Rule.Statements = class statements extends Rule {
     return new Match({
       rule: new Rule.Statements(),
       matched,
+      tokens,
       matchLength,
       indent: block.indent
     })

@@ -384,8 +384,7 @@ parser.defineRule({
 parser.defineRule({
   name: "type_is_a_enum_for",
   alias: ["statement", "mutatesScope"],
-  syntax: "for each {type:word} {property:identifier}: the {type2:identifier} is (article:a|an) \{ {property2:identifier} \} if {expression}",
-//  constructor: Rule.BlockStatement,
+  syntax: "for each {type:word} {property:identifier} : the {type2:identifier} is (article:a|an) \{ {property2:identifier} \} if {expression}",
   updateScope(match, scope) {
     // TODO: somehow we have to get ahold of the enum!!!
     for (suit of Card.Suits) {

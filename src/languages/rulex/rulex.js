@@ -20,7 +20,7 @@ export class RulexParser extends Parser {
   @proto defaultRule = "statement";
   // Remove "normal" whitespace (leaving newlines and indents) when parsing
   @proto tokenizer = new Tokenizer({
-    whitespacePolicy: WhitespacePolicy.LEADING
+    whitespacePolicy: WhitespacePolicy.LEADING_ONLY
   });
 }
 

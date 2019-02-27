@@ -1,0 +1,90 @@
+using card game, player, card, deck of cards and pile from "Card Games"
+
+
+Solitaire, aka "the game", is a card game which has:
+  - one player                  <== do as JSX?
+  - a deck of cards
+  - 4 foundation piles
+  - 7 tableau piles
+  - a stock pile
+  - a waste pile
+  - a score
+
+to start the game
+  turn all of the cards face down
+  gather all of the cards to the center of the screen
+  play sound "shuffle"
+  shuffle the deck for 2 seconds
+  move all of the cards to the stock pile
+  deal the cards
+
+to deal the cards
+  for each row from 1 to 7
+    turn the first card of the stock pile face up
+    repeat with column from (row) to 7
+      move the top card of the stock pile to tableau number (column)
+  tap the stock pile
+
+when the stock pile is tapped
+  if the stock pile is not empty
+    repeat 3 times
+      flip over the top card of the stock pile
+      move the top card of the stock pile to the waste pile
+    auto-play cards
+  otherwise
+    flip the waste pile over
+    move the cards in the waste pile to the stock pile
+
+to auto-play cards
+  for each pile in the tableaus
+    with the top card of the pile
+      if it is face down then turn it face up
+      if it can move to its foundation
+        move it to its foundation
+
+  with the top card of the waste pile
+    if it can move to its foundation, move it to its foundation
+    for each tableau
+      if it can move to the tableau, move it to the tableau
+
+a cards foundation is the foundation pile with the same suit
+
+a card can move to a foundation if
+  it is face up and
+  its suit is the suit of the foundation and
+  its value is one greater than the value of the top card of the foundation
+
+a card can move to a tableau if
+  it is face up and
+  the top card of the tableau is face up and
+  its color is not the color of the top card of the tableau and
+  its value is one greater than the value of the top card of the tableau
+
+a card can never move to the stock pile
+
+to move a card to a pile
+  forget it if the card can't move to the pile
+
+  put the current pile into the start pile
+  if the start pile is the waste pile
+    if the pile is a tableau
+      add 5 to the score
+    otherwise if the pile is a foundation
+      add 10 to the score
+  if the start pile is a tablaeau
+    if the pile is a foundation
+      add 5 to the score
+  if the start pile is a foundation
+    if the pile is a tablau
+      subtract 10 from the score
+
+  remove the card from the start pile
+  add the card to the top of the pile
+  check to see if we won
+
+to check to see if we won
+  if all of the tableaus are empty then
+    play sound "celebration"
+    show the scoreboard
+
+
