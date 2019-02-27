@@ -200,8 +200,8 @@ export class Tokenizer {
     const input = numberMatch[0];
     const value = parseFloat(input, 10);
     return new Token.Number({
+      text: input,
       value,
-      input,
       start,
       end: start + input.length
     });
@@ -265,8 +265,8 @@ export class Tokenizer {
 
   // Eat a single line comment (comment symbol until the end of the line).
   // Comments can start with:
-  //    `##`
-  //    `--`
+  //    `##`, `###`, etc
+  //    `--`, `---`, etc
   //    `//`
   // Returns a `Token.Comment` if matched.
   @proto COMMENT = /^(##+|--+|\/\/+)(\s*)(.*)/;
@@ -277,15 +277,16 @@ export class Tokenizer {
     const commentStart = text.slice(start, start + 2);
     if (commentStart !== "--" && commentStart !== "//" && commentStart !== "##") return undefined;
 
-    // comment eats until the end of the line
+    // comments eat until the end of the line
     const line = this.getLineAtHead(text, start, end);
     const commentMatch = line.match(this.COMMENT);
     if (!commentMatch) return undefined;
 
-    const [_match, commentSymbol, whitespace, comment] = commentMatch;
+    const [fullText, commentSymbol, initialWhitespace, comment] = commentMatch;
     return new Token.Comment({
+      text: fullText,
       commentSymbol,
-      whitespace,
+      initialWhitespace,
       comment,
       start,
       end: start + line.length
@@ -382,6 +383,7 @@ export class Tokenizer {
       }
       jsxElement.error = "No end >";
     }
+    jsxElement.text = text.slice(start, nextStart);
     jsxElement.end = nextStart;
     return jsxElement;
   }
@@ -450,10 +452,13 @@ export class Tokenizer {
     const nextStart = this.eatWhitespace(text, start, end);
     const endTag = `</${tagName}>`;
     if (!this.matchStringAtHead(endTag, text, nextStart, end)) return undefined;
+
+    end = nextStart + endTag.length;
     return new Token.JSXEndTag({
+      text: text.slice(start, end),
       tagName,
       start,
-      end: nextStart + endTag.length
+      end
     });
   }
 
@@ -489,6 +494,7 @@ export class Tokenizer {
     }
     // eat whitespace before the next attribute / tag end
     nextStart = this.eatWhitespace(text, nextStart, end);
+    attribute.text = text.slice(start, nextStart);
     attribute.end = nextStart;
     return attribute;
   }
@@ -705,11 +711,6 @@ export class Tokenizer {
     return tokens.slice(start);
   }
 
-  // Given a set of tokens, remove ALL "normal" whitespace tokens (NOT indent or newline).
-  removeNormalWhitespace(tokens) {
-    return tokens.filter(token => !token.isNormalWhitespace);
-  }
-
   //
   // ### Block / indent processing
   //
@@ -725,7 +726,7 @@ export class Tokenizer {
       // add new array for each newline
       if (token instanceof Token.Newline) {
         // create a new line and push it in
-        currentLine = [];
+        currentLine = [token];
         return lines.push(currentLine);
       }
 
@@ -776,7 +777,9 @@ export class Tokenizer {
   // Returns `undefined` if a blank line.
   getLineIndent(line) {
     if (!line || line.length === 0) return undefined;
-    if (line[0] instanceof Token.Indent) return line[0].length;
+    // skip newline at the start of the line
+    const indentIndex = (line[0] instanceof Token.Newline ? 1 : 0);
+    if (line[indentIndex] instanceof Token.Indent) return line[indentIndex].length;
     return 0;
   }
 
@@ -785,9 +788,6 @@ export class Tokenizer {
   breakIntoBlocks(tokens, start = 0, end = tokens.length) {
     // restrict to tokens of interest
     tokens = tokens.slice(start, end);
-    // remove "normal" whitespace
-    //TODO: better to leave this to consumers???
-    tokens = this.removeNormalWhitespace(tokens);
 
     // break into lines & return early if no lines
     const lines = this.breakIntoLines(tokens);
@@ -804,9 +804,6 @@ export class Tokenizer {
     const stack = [block];
 
     lines.forEach((line, index) => {
-      // Remove leading whitespace (eg: indents)
-      line = this.removeLeadingWhitespace(line);
-
       const lineIndent = indents[index];
       let top = stack[stack.length - 1];
       // If indenting, push new block(s)
@@ -831,40 +828,5 @@ export class Tokenizer {
     });
 
     return block;
-  }
-
-  //
-  //  # Utility
-  //
-
-  // Join a bunch of tokens between `start` and `end` together as a single string,
-  //  including whitespace.
-  static joinTokens(tokens) {
-    return tokens.map(token => token.value + (token.whitespace || ""))
-      .join("");
-  }
-
-
-  // Find the matching instance of (possibly nested) `endToken` to balance `startToken`
-  //  in array of `tokens` (strings).
-  // If successful, returns `{ start, end, slice }`
-  // Throws if unsucessful.
-  static findNestedTokens(tokens, startToken, endToken, start = 0) {
-    if (tokens[start] !== startToken)
-      throw new ParseError(`Expected '${startToken}' at index ${start} of tokens`);
-    let nesting = 0;
-    let nested = false;
-    for (let end = start + 1, lastIndex = tokens.length; end < lastIndex; end++) {
-      const token = tokens[end];
-      if (token === startToken) {
-        nesting++;
-        nested = true;
-      }
-      if (token === endToken) {
-        if (nesting === 0) return { start, end, slice: tokens.slice(start + 1, end), nested };
-        nesting--;
-      }
-    }
-    throw new ParseError(`Couldn't find matching '${endToken}'s starting at item ${start}`);
   }
 }

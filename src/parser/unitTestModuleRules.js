@@ -92,25 +92,47 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
   }
 
   function executeTest({ input, output, title }, ruleName, showAll) {
-    const result = executeCompileTest(ruleName, input, output);
+    const [match, result] = executeCompileTest(ruleName, input, output);
+
     const success = isEqual(result, output);
-    // only output the test if the test failed as expected or `showAll` is true
-    if (!success || showAll) {
-      if (typeof result === "string" && typeof output === "string")
-        // Show returns and tabs in the output display
-        test(title, () => expect(showWhitespace(result)).toBe(showWhitespace(output)));
-      else
-        test(title, () => expect(result).toEqual(output));
+    // If it didn't work, log the match for debugging purposes
+    if (!success) {
+      console.warn(`ERROR PARSING: "${input}"\n   match: `, match);
     }
+    if (typeof result === "string" && typeof output === "string") {
+      // Show returns and tabs in the output display
+      test(title, () => expect(showWhitespace(result)).toBe(showWhitespace(output)));
+    } else {
+      test(title, () => expect(result).toEqual(output));
+    }
+
+    // if we were successful, see if match.inputText is the same as the output
+//     if (match) {
+//       const matchInput = match.inputText;
+//       if (input !== matchInput) {
+//         test(`input text for: '${title}'`, () => expect(showWhitespace(matchInput)).toBe(showWhitespace(input)));
+//       }
+//     }
     return success;
   }
 
   function executeCompileTest(ruleName, input, output) {
+    let match, result;
     try {
-      return parser.compile(ruleName, input);
+      match = parser.parse(ruleName, input);
+      if (match) {
+        try {
+          result = match.compile();
+        }
+        catch (e) {
+          if (e instanceof ParseError && output === undefined) return [undefined, undefined];
+          result = e;
+        }
+      }
     } catch (e) {
-      if (e instanceof ParseError && output === undefined) return undefined;
-      return e;
+      if (e instanceof ParseError && output === undefined) return [undefined, undefined];
+      match = e;
     }
+    return [match, result];
   }
 }

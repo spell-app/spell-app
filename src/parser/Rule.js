@@ -955,6 +955,7 @@ Rule.Statements = class statements extends Rule {
     block.contents.forEach(item => {
       if (item.length === 0) {
         matched.push(new Rule.BlankLine());
+        matchLength += 1;
       }
       // got a nested block
       else if (item instanceof Token.Block) {
@@ -973,19 +974,24 @@ Rule.Statements = class statements extends Rule {
           lastStatement.block = nested;
           lastStatement.matchLength += nested.matchLength;
         }
-        // otherwise just aadd it to the stream
+        // otherwise just add it to the matched items
         else {
           console.warn("got a nested block when we weren't expecting one");
           matched.push(nested);
-          matchLength += nested.matchLength;
         }
-      } else {
-        // Got a single statement, parse the entire thing.
+        matchLength += nested.matchLength;
+      }
+      // Got a single statement, parse the entire thing as a `statement`
+      else {
+        // skip whitespace at the front
+        let whitespaceCount = 0;
+        while (item[whitespaceCount] instanceof Token.Whitespace) whitespaceCount++;
+
+        const match = statementRule.parse(scope, whitespaceCount ? item.slice(whitespaceCount) : item);
 //TODO: bail if not the entire line???
-        const match = statementRule.parse(scope, item);
         if (match) {
           matched = matched.concat(match);
-          matchLength += match.matchLength;
+          matchLength += whitespaceCount + match.matchLength;
         }
 //        else console.warn("parseBlock expected statement, got", match);
       }

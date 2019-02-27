@@ -84,7 +84,9 @@ parser.defineRule({
   name: "comment",
   tokenType: Token.Comment,
   compile(match) {
-    return "//" + `${match.matched[0].whitespace}${match.matched[0].comment}`;
+    let { commentSymbol, initialWhitespace, comment } = match.matched[0];
+    if (commentSymbol !== "//") commentSymbol = "//" + commentSymbol;
+    return `${commentSymbol}${initialWhitespace}${comment}`;
   },
   tests: [
     {
@@ -92,8 +94,8 @@ parser.defineRule({
       tests: [
         ["//", "//"],
         ["// foo", "// foo"],
-        ["-- foo", "// foo"],
-        ["## foo", "// foo"],
+        ["-- foo", "//-- foo"],
+        ["## foo", "//## foo"],
         ["//    foo bar baz", "//    foo bar baz"],
       ]
     }

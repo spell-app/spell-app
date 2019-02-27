@@ -29,7 +29,7 @@ export class Match {
   // Return the full text that was matched
   get inputText() {
     const { tokens, matchLength } = this;
-    return Tokenizer.joinTokens(tokens.slice(0, matchLength));
+    return tokens.slice(0, matchLength).join("");
   }
 
   // Syntatic sugar to compile the output of the match.

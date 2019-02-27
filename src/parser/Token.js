@@ -30,6 +30,10 @@ export class Token {
     if (blacklist && blacklist[this.value]) return false;
     return true;
   }
+
+  toString() {
+    return (typeof this.text === "string" ? this.text : this.value) + (this.whitespace || "");
+  }
 }
 
 // Base `whitespace` class for all whitespace variants.
@@ -39,10 +43,6 @@ Token.Whitespace = class whitespace extends Token {
   // Return the "length" of this whitespace, eg for an indent.
   get length() {
     return this.value.length;
-  }
-
-  toString() {
-    return this.value;
   }
 }
 
@@ -84,21 +84,13 @@ Token.Text = class text extends Token {
     if (string[end - 1] === '"' || string[end - 1] === "'") end = -1;
     return string.slice(start, end);
   }
-  toString() {
-    // TODO: this is not symmetrical with escaped quotes (e.g. "\\'") in the input string.
-    return this.value;
-  }
 }
 
 // Comment class for single-line comments.
 //  - `comment.commentSymbol` is the initial comment symbol, one of:  "--", "//", "##"
-//  - `comment.whitespace` is whitespace BETWEEN the comment symbol and the comment text.
+//  - `comment.initialWhitespace` is whitespace BETWEEN the comment symbol and the comment text.
 //  - `comment.comment` is the comment text (until the end of the line).
-Token.Comment = class comment extends Token {
-  toString() {
-    return `${this.commentSymbol}${this.whitespace}${this.comment}`;
-  }
-}
+Token.Comment = class comment extends Token {}
 
 
 
@@ -151,10 +143,10 @@ Token.JSXElement =  class jsxElement extends Token{
 
   //TESTME
   toString() {
-    let attrs = this.attrsAsString;
+    let attrs = this.attributes ? ` ${this.attributes.join("")}` : "";
     let children = this.childrenAsString;
     if (this.isUnaryTag) return `<${this.tagName}${attrs}/>`;
-    return `<${this.tagName}${attrs}>${children}</${this.tagName}>`;
+    return `<${this.tagName}${attrs}>${children}`;
   }
 }
 
@@ -166,15 +158,7 @@ Token.JSXEndTag = class jsxEndTag extends Token {}
 // JSX attribute class
 // `attr.name` is the name of the attribute.
 // `attr.value` is one of... TODOC
-Token.JSXAttribute = class jsxAttribute extends Token{
-  constructor(props) {
-    super(props);
-  }
-  toString() {
-    if (this.value === undefined) return this.name;
-    return `${this.name}={${this.value}}`;
-  }
-}
+Token.JSXAttribute = class jsxAttribute extends Token{}
 
 // Loose text in the middle of a JSX block
 // `text.value` is the actual text matched (including whitespace).
@@ -199,7 +183,7 @@ Token.JSXExpression = class jsxExpression extends Token {
 Token.Block = class block extends Token {
   constructor(props) {
     super(props);
-    if (!this.contents) this.contents = [];   // TODO: get rid of `contents`???
+    if (!this.contents) this.contents = [];
   }
 
   toString() {

@@ -561,7 +561,7 @@ test("matchComment():  Matches `//` comment at beginning of string", () => {
   let token = tokenizer.matchComment("//comment here");
   expect(token).toBeInstanceOf(Token.Comment);
   expect(token.comment).toBe("comment here");
-  expect(token.whitespace).toBe("");
+  expect(token.initialWhitespace).toBe("");
   expect(token.commentSymbol).toBe("//");
   expect(token.end).toBe(14);
 });
@@ -570,7 +570,7 @@ test("matchComment():  Matches `--` comment at beginning of string", () => {
   let token = tokenizer.matchComment("-- comment here");
   expect(token).toBeInstanceOf(Token.Comment);
   expect(token.comment).toBe("comment here");
-  expect(token.whitespace).toBe(" ");
+  expect(token.initialWhitespace).toBe(" ");
   expect(token.commentSymbol).toBe("--");
   expect(token.end).toBe(15);
 });
@@ -579,7 +579,7 @@ test("matchComment():  Matches `##` comment at beginning of string", () => {
   let token = tokenizer.matchComment("##\tcomment here");
   expect(token).toBeInstanceOf(Token.Comment);
   expect(token.comment).toBe("comment here");
-  expect(token.whitespace).toBe("\t");
+  expect(token.initialWhitespace).toBe("\t");
   expect(token.commentSymbol).toBe("##");
   expect(token.end).toBe(15);
 });
@@ -588,7 +588,7 @@ test("matchComment():  Matches empty `//` comment", () => {
   let token = tokenizer.matchComment("//");
   expect(token).toBeInstanceOf(Token.Comment);
   expect(token.comment).toBe("");
-  expect(token.whitespace).toBe("");
+  expect(token.initialWhitespace).toBe("");
   expect(token.commentSymbol).toBe("//");
   expect(token.end).toBe(2);
 });
@@ -597,7 +597,7 @@ test("matchComment():  Matches empty `--` comment", () => {
   let token = tokenizer.matchComment("--");
   expect(token).toBeInstanceOf(Token.Comment);
   expect(token.comment).toBe("");
-  expect(token.whitespace).toBe("");
+  expect(token.initialWhitespace).toBe("");
   expect(token.commentSymbol).toBe("--");
   expect(token.end).toBe(2);
 });
@@ -606,7 +606,7 @@ test("matchComment():  Matches empty `##` comment", () => {
   let token = tokenizer.matchComment("##");
   expect(token).toBeInstanceOf(Token.Comment);
   expect(token.comment).toBe("");
-  expect(token.whitespace).toBe("");
+  expect(token.initialWhitespace).toBe("");
   expect(token.commentSymbol).toBe("##");
   expect(token.end).toBe(2);
 });
@@ -615,7 +615,7 @@ test("matchComment():  Matches in the middle of the string", () => {
   let token = tokenizer.matchComment("xxx//comment", 3);
   expect(token).toBeInstanceOf(Token.Comment);
   expect(token.comment).toBe("comment");
-  expect(token.whitespace).toBe("");
+  expect(token.initialWhitespace).toBe("");
   expect(token.commentSymbol).toBe("//");
   expect(token.end).toBe(12);
 });
@@ -629,7 +629,7 @@ test("matchComment():  Stops at newline", () => {
   let token = tokenizer.matchComment("//\tcomment here\n");
   expect(token).toBeInstanceOf(Token.Comment);
   expect(token.comment).toBe("comment here");
-  expect(token.whitespace).toBe("\t");
+  expect(token.initialWhitespace).toBe("\t");
   expect(token.commentSymbol).toBe("//");
   expect(token.end).toBe(15);
 });
@@ -638,7 +638,7 @@ test("matchComment():  Doesn't go beyond the end", () => {
   let token = tokenizer.matchComment("//\tcomment here\n", 0, 10);
   expect(token).toBeInstanceOf(Token.Comment);
   expect(token.comment).toBe("comment");
-  expect(token.whitespace).toBe("\t");
+  expect(token.initialWhitespace).toBe("\t");
   expect(token.commentSymbol).toBe("//");
   expect(token.end).toBe(10);
 });
@@ -657,7 +657,7 @@ test("matchComment():  Matches if end is out of range", () => {
   let token = tokenizer.matchComment("//\tcomment here\n", 0, 100);
   expect(token).toBeInstanceOf(Token.Comment);
   expect(token.comment).toBe("comment here");
-  expect(token.whitespace).toBe("\t");
+  expect(token.initialWhitespace).toBe("\t");
   expect(token.commentSymbol).toBe("//");
   expect(token.end).toBe(15);
 });
