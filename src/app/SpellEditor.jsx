@@ -141,7 +141,7 @@ export class _SpellEditor extends React.Component {
         </Row>
         <Row noGutters className="p-2 h-100">
           <Col xs={6} className="h-100">
-            {this.dirtyButtons}
+            {dirty ? this.dirtyButtons : null}
             <TabbableTextArea value={input} onChange={this.updateInput}/>
           </Col>
           <Col xs={6} className="pl-2">

@@ -14,7 +14,7 @@ export default class TabbableTextArea extends React.Component {
     return (
       <textarea
         className="h-100 w-100 p-2 rounded shadow-sm border"
-        style={{ borderColor: "#ddd", whiteSpace: "pre", fontFamily: "monospace" }}
+        style={{ borderColor: "#ddd", whiteSpace: "pre", fontSize: "12px" }}
         onKeyDown={this.onKeyDown}
         {...this.props}
       />
