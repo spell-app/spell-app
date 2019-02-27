@@ -17,21 +17,25 @@ import {
 const parser = new SpellParser({ module: "classes" });
 export default parser;
 
-
 parser.defineRule({
   name: "define_type",
   alias: ["statement", "mutatesScope"],
-  syntax: "(a|an) {type:identifier} is (a|an) {superType:identifier}",
+  syntax: "create type {type:identifier} (?:as (a|an) {superType:identifier})?",
   compile(match) {
     let { type, superType } = match.results;
-    return `export class ${startCase(type)} extends ${startCase(superType)} {}`;
+    const Type = startCase(type);
+    if (superType) {
+      const SuperType = startCase(superType);
+      return `export class ${Type} extends ${SuperType} {}`;
+    }
+    return `export class ${Type} {}`;
   },
   tests: [
     {
       compileAs: "statement",
       tests: [
-        ["a card is a thing", "export class Card extends Thing {}"],
-        ["a car is an automobile", "export class Car extends Automobile {}"],
+        ["create type card", "export class Card {}"],
+        ["create type car as a vehicle", "export class Car extends Vehicle {}"],
       ]
     }
   ]
@@ -39,34 +43,66 @@ parser.defineRule({
 
 parser.defineRule({
   name: "identifier_list",
-  syntax: "[{word}(,|or|and)]",
+  syntax: "[({word}|{number})(,|or|and)]",
   tests: [
     {
       tests: [
         ["up or down", ["up", "down"]],
         ["red and black", ["red", "black"]],
         ["clubs, diamonds, hearts, spades", ["clubs", "diamonds", "hearts", "spades" ] ],
+        ["ace, 2, 3, 4, jack, queen, king", ["ace", 2, 3, 4, "jack", "queen", "king" ] ],
       ]
     }
   ]
 });
 
+// parser.defineRule({
+//   name: "define_type",
+//   alias: ["statement", "mutatesScope"],
+//   syntax: "(a|an) {type:identifier} is (a|an) {superType:identifier}",
+//   compile(match) {
+//     let { type, superType } = match.results;
+//     return `export class ${startCase(type)} extends ${startCase(superType)} {}`;
+//   },
+//   tests: [
+//     {
+//       compileAs: "statement",
+//       tests: [
+//         ["a card is a thing", "export class Card extends Thing {}"],
+//         ["a car is an automobile", "export class Car extends Automobile {}"],
+//       ]
+//     }
+//   ]
+// });
+//
+// parser.defineRule({
+//   name: "identifier_list",
+//   syntax: "[({word}|{number})(,|or|and)]",
+//   tests: [
+//     {
+//       tests: [
+//         ["up or down", ["up", "down"]],
+//         ["red and black", ["red", "black"]],
+//         ["clubs, diamonds, hearts, spades", ["clubs", "diamonds", "hearts", "spades" ] ],
+//         ["ace, 2, 3, 4, jack, queen, king", ["ace", 2, 3, 4, "jack", "queen", "king" ] ],
+//       ]
+//     }
+//   ]
+// });
+
 
 parser.defineRule({
   name: "type_initializer_enum",
   alias: "type_initializer",
-  syntax: "as (either|one of) {enums:identifier_list}",
+  syntax: "as (either|one of) {enum:identifier_list}",
   compile(match) {
-    const { enums } = match.results;
-    const map = {};
-    enums.forEach(value => map[value] = value);
-    return { enum: map };
+    return { enum: match.results.enum };
   },
   tests: [
     {
       tests: [
-        ["as either red or black", { enum: { red: "red", black: "black"} }],
-        ["as one of clubs, diamonds, hearts, spades", { enum: { clubs: "clubs", diamonds: "diamonds", hearts: "hearts", spades: "spades" } }],
+        ["as either red or black", { enum: ["red", "black"] }],
+        ["as one of clubs, diamonds, hearts, spades", { enum: ["clubs", "diamonds", "hearts", "spades" ] }],
       ]
     }
   ]
@@ -97,6 +133,7 @@ parser.defineRule({
     scope.addConstantIdentifier("down");
   },
   compile(match) {
+//console.warn(match.results);
     let { type, property, initializer } = match.results;
     type = singularize(type).toLowerCase();
     const Type = startCase(type);
@@ -112,9 +149,7 @@ parser.defineRule({
         `defineProp(${Type}.prototype, '${Properties}', { value: ${JSON5.stringify(initializer.enum)} })`,
         `defineProp(${Type}.prototype, '${property}', {`,
         `  get() { return this.${property} }`,
-        `  set(${property}) {`,
-        `    if ($.isOneOf(${property}, this.${Properties})) this.${property} = ${property}`,
-        `  }`,
+        `  set(${property}) { if ($.isOneOf(${property}, this.${Properties})) this.${property} = ${property} }`,
         `})`
       ].join("\n");
     }
@@ -123,9 +158,7 @@ parser.defineRule({
       return [
         `defineProp(${Type}.prototype, '${property}', {`,
         `  get() { return this.${property} }`,
-        `  set(${property}) {`,
-        `    if ($.isType(${property}, '${datatype}')) this.${property} = ${property}`,
-        `  }`,
+        `  set(${property}) { if ($.isType(${property}, '${datatype}')) this.${property} = ${property} }`,
         `})`
       ].join("\n");
     }
@@ -136,12 +169,10 @@ parser.defineRule({
       tests: [
         ["cards have a direction as either up or down",
           [
-            "defineProp(Card.prototype, 'Directions', { value: {up:'up',down:'down'} })",
+            "defineProp(Card.prototype, 'Directions', { value: ['up','down'] })",
             "defineProp(Card.prototype, 'direction', {",
             "  get() { return this.direction }",
-            "  set(direction) {",
-            "    if ($.isOneOf(direction, this.Directions)) this.direction = direction",
-            "  }",
+            "  set(direction) { if ($.isOneOf(direction, this.Directions)) this.direction = direction }",
             "})"
           ].join("\n")
         ],
@@ -149,9 +180,7 @@ parser.defineRule({
           [
             "defineProp(Player.prototype, 'name', {",
             "  get() { return this.name }",
-            "  set(name) {",
-            "    if ($.isType(name, 'text')) this.name = name",
-            "  }",
+            "  set(name) { if ($.isType(name, 'text')) this.name = name }",
             "})"
           ].join("\n")
         ],
@@ -282,8 +311,50 @@ parser.defineRule({
 parser.defineRule({
   name: "type_is_a",
   alias: ["statement", "mutatesScope"],
-  syntax: "(article:a|an) {type:word} is (a|an) \{{property:identifier}\} if {expression}",
+  syntax: "(article:a|an) {type:word} is (a|an) {property:identifier} if {expression}",
 //  constructor: Rule.BlockStatement,
+  updateScope(match, scope) {
+    // TODO: somehow we have to get ahold of the enum!!!
+    for (suit of Card.Suits) {
+      addIsIdentifier(`a_${suit}`, `${thing}?.is_a_suit?.(${suit})`);
+    }
+  },
+  compile(match) {
+    const { article, type, property, expression } = match.results;
+    const Type = startCase(singularize(type));
+    return [
+      `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
+      `  get(){ return ${expression} }`,
+      `})`,
+    ].join("\n")
+  },
+  tests: [
+    {
+      compileAs: "statements",
+      tests: [
+        ["a card is a face-card if its rank is one of [jack, queen, king]",
+          [
+            "defineProp(Card.prototype, 'is_a_face_card', {",
+            "  get(){ return spell.includes([jack, queen, king], this.rank) }",
+            "})",
+          ].join("\n")
+        ],
+      ]
+    }
+  ]
+});
+
+parser.defineRule({
+  name: "type_is_a_enum",
+  alias: ["statement", "mutatesScope"],
+  syntax: "(article:a|an) {type:word} is (a|an) \{ {property:identifier} \} if {expression}",
+//  constructor: Rule.BlockStatement,
+  updateScope(match, scope) {
+    // TODO: somehow we have to get ahold of the enum!!!
+    for (suit of Card.Suits) {
+      addIsIdentifier(`a_${suit}`, `${thing}?.is_a_suit?.(${suit})`);
+    }
+  },
   compile(match) {
     const { article, type, property, expression } = match.results;
     const Type = startCase(singularize(type));
@@ -291,22 +362,139 @@ parser.defineRule({
       `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
       `  value: function(${property}){ return ${expression} }`,
       `})`,
-      `defineProp(${Type}.prototype, 'is_not_${article}_${property}', {`,
-      `  value: function(${property}){ return !this.is_${article}_${property} }`,
-      `})`
     ].join("\n")
   },
   tests: [
     {
       compileAs: "statements",
       tests: [
-        ["a card is a {suit} if its suit is suit",
+        ["a card is a {suit} if its suit is the suit",
           [
             "defineProp(Card.prototype, 'is_a_suit', {",
             "  value: function(suit){ return (this.suit == suit) }",
             "})",
-            "defineProp(Card.prototype, 'is_not_a_suit', {",
-            "  value: function(suit){ return !this.is_a_suit }",
+          ].join("\n")
+        ],
+      ]
+    }
+  ]
+});
+
+
+parser.defineRule({
+  name: "type_is_a_enum_for",
+  alias: ["statement", "mutatesScope"],
+  syntax: "for each {type:word} {property:identifier}: the {type2:identifier} is (article:a|an) \{ {property2:identifier} \} if {expression}",
+//  constructor: Rule.BlockStatement,
+  updateScope(match, scope) {
+    // TODO: somehow we have to get ahold of the enum!!!
+    for (suit of Card.Suits) {
+      addIsIdentifier(`a_${suit}`, `${thing}?.is_a_suit?.(${suit})`);
+    }
+  },
+  compile(match) {
+// console.warn(match.results);
+    const { article, type, property, expression } = match.results;
+    const Type = startCase(singularize(type));
+    return [
+      `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
+      `  value: function(${property}){ return ${expression} }`,
+      `})`,
+    ].join("\n")
+  },
+  tests: [
+    {
+      compileAs: "statements",
+      tests: [
+        ["for each card suit: the card is a {suit} if its suit is the suit",
+          [
+            "defineProp(Card.prototype, 'is_a_suit', {",
+            "  value: function(suit){ return (this.suit == suit) }",
+            "})",
+          ].join("\n")
+        ],
+      ]
+    }
+  ]
+});
+
+
+parser.defineRule({
+  name: "property_of_a_type",
+  syntax: "the {property:identifier} of (a|an) {type:identifier}",
+});
+parser.defineRule({
+  name: "property_of_a_type",
+  syntax: "(a|an) {type:identifier} {property:identifier}",
+});
+
+parser.defineRule({
+  name: "property_value_either",
+  alias: ["statement", "mutatesScope"],
+  syntax: "{?:property_of_a_type} is {value:identifier} if {expression} (?:otherwise it is {otherValue:identifier})?",
+  compile(match) {
+//    console.warn(match.results);
+    let { type, property, value, otherValue, expression } = match.results;
+    type = singularize(type).toLowerCase();
+    const Type = startCase(type);
+
+    const statement = !otherValue
+      ? `if (${expression}) return ${value}`
+      : `return !!${expression} ? ${value} : ${otherValue}`;
+
+    return [
+      `defineProp(${Type}.prototype, '${property}', {`,
+      `  get() { ${statement} }`,
+      `})`
+    ].join("\n")
+  },
+  tests: [
+    {
+      compileAs: "statement",
+      tests: [      // is one of diamonds or hearts => is_one_of_list
+        ["the color of a card is red if its suit is one of [diamonds, hearts]",
+          [
+            "defineProp(Card.prototype, 'color', {",
+            "  get() { if (spell.includes([diamonds, hearts], this.suit)) return red }",
+            "})"
+          ].join("\n")
+        ],
+        ["a cards color is black if its suit is one of [clubs, spades] otherwise it is red",
+          [
+            "defineProp(Card.prototype, 'color', {",
+            "  get() { return !!spell.includes([clubs, spades], this.suit) ? black : red }",
+            "})"
+          ].join("\n")
+        ],
+      ]
+    }
+  ]
+});
+
+parser.defineRule({
+  name: "property_value_expression",
+  alias: ["statement", "mutatesScope"],
+  syntax: "{?:property_of_a_type} is {expression}",
+  compile(match) {
+//    console.warn(match.results);
+    let { type, property, expression } = match.results;
+    type = singularize(type).toLowerCase();
+    const Type = startCase(type);
+
+    return [
+      `defineProp(${Type}.prototype, '${property}', {`,
+      `  get() { return ${expression} }`,
+      `})`
+    ].join("\n")
+  },
+  tests: [
+    {
+      compileAs: "statement",
+      tests: [
+        ["the value of a card is the position of its rank in its ranks",
+          [
+            "defineProp(Card.prototype, 'value', {",
+            "  get() { return spell.positionOf(this.rank, this.ranks) }",
             "})"
           ].join("\n")
         ],
