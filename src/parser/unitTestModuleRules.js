@@ -20,7 +20,7 @@ import {
   showWhitespace
 } from "../utils/all.js";
 
-export function unitTestModuleRules(parser, moduleName) {
+export function unitTestModuleRules(parser, moduleName, showAll) {
   describe(`rule unit tests`, () => {
     const rules = getTestableRulesForModule(moduleName);
     if (!rules || rules.lenth === 0) {
@@ -30,7 +30,7 @@ export function unitTestModuleRules(parser, moduleName) {
       return;
     }
 
-    rules.forEach(executeRuleTests);
+    rules.forEach(rule => executeRuleTests(rule, showAll));
   });
 
   function getTestableRulesForModule(moduleName) {
@@ -44,11 +44,12 @@ export function unitTestModuleRules(parser, moduleName) {
     return modules[moduleName];
   }
 
-  function executeRuleTests({ name, tests }) {
+  function executeRuleTests({ name, tests }, showAll) {
     // Handle simple block of e
     describe(`rule '${name}'`, () => {
       tests.forEach(test => {
         if (test.skip) return;
+        if (showAll) test.showAll = true;
         if (test.title) {
           describe(test.title, () => executeTestBlock(name, test));
         } else executeTestBlock(name, test);
