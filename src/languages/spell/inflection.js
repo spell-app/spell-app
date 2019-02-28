@@ -57,21 +57,28 @@ export function parseMethodKeywords(results) {
   const { keywords } = results;
 
   const methodName = [];
-  let types = [];
+  const types = [];
+  const rules = [];
+
   for (var i = 0; i < keywords.length; i++) {
     let word = keywords[i];
     // if starts with a capital, assume it's a Type
-    let isType = word[0].toUpperCase() === word[0];
+    let isType = (word[0].toUpperCase() === word[0]);
 
-    word = word.toLowerCase();
     // if the word before it is `a` or `an`, assume it's a type
     if ((word === "a" || word === "an") && keywords[i+1]) {
       isType = true;
-      word = keywords[++i].toLowerCase();   // skip the article, add the next word
+      word = keywords[++i];
     }
+
+    word = word.toLowerCase();
     if (isType) {
       word = singularize(word);
       types.push(word);
+      rules.push(`{arg:expression}`);
+    }
+    else {
+      rules.push(word);
     }
     methodName.push(word);
   }
@@ -86,7 +93,9 @@ export function parseMethodKeywords(results) {
       // skip the first type (assuming it will be `this`)
       instanceMethod: methodName.filter(word => word != types[0]).join("_"),
       // skip the first type
-      instanceArgs: types.slice(1)
+      instanceArgs: types.slice(1),
+      // rules
+      rules
     }
   };
 }

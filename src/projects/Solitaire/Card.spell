@@ -2,7 +2,7 @@
 create type card
 
 ## card direction:  up or down
-cards have a direction as either up or down
+a card has a direction as either up or down
 
 a card is face-up if its direction is up
 a card is face-down if its direction is down
@@ -27,7 +27,7 @@ cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
 the value of a card is the position of its rank in its ranks
 
 ## add language to match `card is a face card`
-a card is a face-card if its rank is one of [jack, queen, king]
+a card "is a face card" if its rank is one of [jack, queen, king]
 
 ## add language to match `the card is a spade`, etc
 for each card suit: the card "is a {suit}" if its suit is the suit
