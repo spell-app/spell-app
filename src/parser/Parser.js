@@ -137,6 +137,11 @@ export class Parser {
       ruleName = rule.name;
     }
 
+    if (!(rule instanceof Rule)) {
+      console.error("addRule() called with a non-rule.  Did you mean to call defineRule()?\n", rule);
+      return;
+    }
+
     // If we got an array of `ruleName`s, recursively add under each name with the same `rule`.
     if (Array.isArray(ruleName)) {
       ruleName.forEach(ruleName => this.addRule(rule, ruleName));

@@ -171,7 +171,7 @@ parser.defineRule({
           `defineProp(${Type}.prototype, '${Properties}', { value: ${Type}.${Properties} })`,
           `defineProp(${Type}.prototype, '${property}', {`,
           `  get() { return this.#${property} }`,
-          `  set(${property}) { if ($.isOneOf(${property}, this.${Properties})) this.#${property} = ${property} }`,
+          `  set(${property}) { if ($.isOneOf(${property}, ${Type}.${Properties})) this.#${property} = ${property} }`,
           `})`
         ].join("\n");
       }
@@ -229,7 +229,7 @@ parser.defineRule({
             "defineProp(Card.prototype, 'Directions', { value: Card.Directions })",
             "defineProp(Card.prototype, 'direction', {",
             "  get() { return this.#direction }",
-            "  set(direction) { if ($.isOneOf(direction, this.Directions)) this.#direction = direction }",
+            "  set(direction) { if ($.isOneOf(direction, Card.Directions)) this.#direction = direction }",
             "})"
           ].join("\n")
         ],
@@ -254,7 +254,7 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   // TODO: arguments
   syntax: "to (keywords:{word}|{type})+ :? {statement}?",
-  constructor: class define_type extends Rule.BlockStatement {
+  constructor: class define_type extends SpellParser.BlockStatement {
     getResults(match) {
       const results = super.getResults(match);
       return parseMethodKeywords(results);

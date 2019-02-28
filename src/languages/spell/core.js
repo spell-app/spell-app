@@ -10,14 +10,29 @@ import {
 const parser = new SpellParser({ module: "core" });
 export default parser;
 
+// Any whitespace.
 parser.defineRule({
-  name: "statement",
-  constructor: Rule.Statement
+  name: "whitespace",
+  tokenType: Token.Whitespace
 });
 
+// Indent whitespace specifically.
 parser.defineRule({
-  name: "statements",
-  constructor: Rule.Statements
+  name: "indent",
+  tokenType: Token.Indent
+});
+
+// Newlines only.
+parser.defineRule({
+  name: "newline",
+  tokenType: Token.Newline
+});
+
+// Inline whitespace only.
+// Note that we normally filter this out when tokenizing.
+parser.defineRule({
+  name: "inline_whitespace",
+  tokenType: Token.InlineWhitespace
 });
 
 // `number` as a float or integer token.
@@ -75,28 +90,6 @@ parser.defineRule({
         ['"abcd"', '"abcd"'],
         ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
         ['"...Can\'t touch this"', '"...Can\'t touch this"'],
-      ]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "comment",
-  tokenType: Token.Comment,
-  compile(match) {
-    let { commentSymbol, initialWhitespace, comment } = match.matched[0];
-    if (commentSymbol !== "//") commentSymbol = "//" + commentSymbol;
-    return `${commentSymbol}${initialWhitespace}${comment}`;
-  },
-  tests: [
-    {
-      compileAs: "comment",
-      tests: [
-        ["//", "//"],
-        ["// foo", "// foo"],
-        ["-- foo", "//-- foo"],
-        ["## foo", "//## foo"],
-        ["//    foo bar baz", "//    foo bar baz"],
       ]
     }
   ]

@@ -138,7 +138,7 @@ parser.defineRule({
 parser.defineRule({
   name: "args",
   syntax: "with [args:{identifier},]",
-  constructor: Rule.BlockStatement,
+  constructor: SpellParser.BlockStatement,
   // Returns an array of argument values
   compile(match) {
     const { args } = match.results;
@@ -303,7 +303,7 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax: "get {name:identifier} \\: return? {expression}?",
   testRule: "get",
-  constructor: Rule.BlockStatement,
+  constructor: SpellParser.BlockStatement,
   compile(match) {
     // NOTE: we need to parse `expression` and `block` manually (unlike other BlockStatements)
     let { name, expression, statements } = match.results;
@@ -347,7 +347,7 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax: "set {name:identifier} {args}? (\\:)? {statement}?",
   testRule: "set",
-  constructor: Rule.BlockStatement,
+  constructor: SpellParser.BlockStatement,
   compile(match) {
     // default args to the setter name
     let { name, args = name, statements } = match.results;
@@ -413,7 +413,7 @@ parser.defineRule({
 //   alias: ["statement", "mutatesScope"],
 //   syntax: "(operator:to|on) {name:identifier} {args}? (\\:)? {statement}?",
 //   testRule: "(to|on)",
-//   constructor: Rule.BlockStatement,
+//   constructor: SpellParser.BlockStatement,
 //   compile(match) {
 //     let { name, args = "", statements } = match.results;
 //     return `${name}(${args}) ${statements}`;
@@ -452,7 +452,7 @@ parser.defineRule({
   alias: ["statement", "mutatesScope"],
   syntax: "action (keywords:{word}|{type})+ (\\:)? {statement}?",
   testRule: "action",
-  constructor: Rule.BlockStatement,
+  constructor: SpellParser.BlockStatement,
   compile(match) {
     const { results } = match;
 

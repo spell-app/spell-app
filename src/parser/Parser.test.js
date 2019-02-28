@@ -126,9 +126,11 @@ describe("Parser.import()", () => {
 
 // Set up parser used in the below
 const parser = new Parser();
+const statement = new Rule.Group({ name: "statement", argument: "statement" });
+const statements = new Rule.Repeat({ name: "statements", rule: new Rule.Subrule("statement") });
 parser.defineRules(
-  { name: "statement", constructor: Rule.Statement },
-  { name: "statements", constructor: Rule.Statements },
+  statement,
+  statements,
 
   { name: "dog", syntax: "dog" },
   { name: "cat", syntax: "cat" },
@@ -147,12 +149,12 @@ parser.defineRules(
 describe("parser.parse()", () => {
   test("takes an explicit start rule", () => {
     const match = parser.parse("statements", "dog and cat");
-    expect(match.rule).toBeInstanceOf(Rule.Statements);
+    expect(match.rule).toBe(statements);
   });
 
   test("defaults to 'statements' if not passed a start rule", () => {
     const match = parser.parse("dog and cat");
-    expect(match.rule).toBeInstanceOf(Rule.Statements);
+    expect(match.rule).toBe(statements);
   });
 
   test("returns undefined if no text passes", () => {
@@ -168,13 +170,13 @@ describe("parser.parse()", () => {
 
 describe("parser.compile()", () => {
   test("takes an explicit start rule", () => {
-    const result = parser.compile("statements", "dog and cat");
-    expect(result).toBe("dog && cat");
+    const result = parser.compile("statement", "dog and cat");
+    expect(result).toEqual("dog && cat");
   });
 
   test("defaults to 'statements' if not passed a start rule", () => {
     const result = parser.compile("dog and cat");
-    expect(result).toBe("dog && cat");
+    expect(result).toEqual(["dog && cat"]);
   });
 
   test("throws if text can't be parsed", () => {
@@ -190,7 +192,7 @@ describe("parser debug flags", () => {
 
     Parser.TIME = true;
     const match = parser.parse("statements", "dog and cat");
-    expect(match.rule).toBeInstanceOf(Rule.Statements);
+    expect(match.rule).toBe(statements);
     Parser.TIME = false;
 
     timeSpy.mockRestore();
@@ -200,14 +202,14 @@ describe("parser debug flags", () => {
   test("DEBUG flag doesn't affect parsing", () => {
     Parser.DEBUG = true;
     const match = parser.parse("statements", "dog and cat");
-    expect(match.rule).toBeInstanceOf(Rule.Statements);
+    expect(match.rule).toBe(statements);
     Parser.DEBUG = false;
   });
 
   test("WARN flag doesn't affect parsing", () => {
     Parser.WARN = true;
     const match = parser.parse("statements", "dog and cat");
-    expect(match.rule).toBeInstanceOf(Rule.Statements);
+    expect(match.rule).toBe(statements);
     Parser.WARN = false;
   });
 });

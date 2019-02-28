@@ -4,8 +4,8 @@ create type card
 ## card direction:  up or down
 a card has a direction as either up or down
 
-a card is face-up if its direction is up
-a card is face-down if its direction is down
+a card "is face up" if its direction is up
+a card "is face down" if its direction is down
 
 to turn a card face up: set its direction to up
 to turn a card face down: set its direction to down
@@ -17,11 +17,11 @@ to flip a card over:
 ## card suits
 cards have a suit as one of clubs, diamonds, hearts or spades
 
-## color as derivation of suit
-the color of a card is red if its suit is one of [diamonds, hearts] otherwise it is black
-
 ## card ranks
 cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
+
+## color as derivation of suit
+the color of a card is red if its suit is one of [diamonds, hearts] otherwise it is black
 
 ## value as a derivation of rank
 the value of a card is the position of its rank in its ranks
@@ -29,16 +29,8 @@ the value of a card is the position of its rank in its ranks
 ## add language to match `card is a face card`
 a card "is a face card" if its rank is one of [jack, queen, king]
 
-## add language to match `the card is a spade`, etc
-for each card suit: the card "is a {suit}" if its suit is the suit
-
-## add language to match `the card is a jack`, etc
-a card "is a {rank}" for its ranks
-for each card rank: the card "is a {rank}" if its rank is the rank
-
-## add language to match `the card is a red jack`, etc
-a card "is a {color} {rank}" if its color is the color and its rank is the rank
-
-## add language to match `the card is an ace of clubs`, etc
-a card "is a (rank) of (suits)" for its ranks and its suits
+-- TODO: add language to match `the card is a spade`, etc
+-- TODO: add language to match `the card is a jack`, etc
+-- TODO: add language to match `the card is a red jack`, etc
+-- TODO: add language to match `the card is an ace of clubs`, etc
 

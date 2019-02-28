@@ -1,5 +1,5 @@
 //
-//  # Rules for creating variables, property access, etc
+//  # Rules for assignment and returning values.
 //
 
 import {
@@ -7,46 +7,8 @@ import {
   SpellParser,
 } from "./all.js";
 
-const parser = new SpellParser({ module: "statements" });
+const parser = new SpellParser({ module: "assignment" });
 export default parser;
-
-//
-//  ## Returns
-//
-
-// Return a value
-parser.defineRule({
-  name: "return_statement",
-  alias: "statement",
-  syntax: "return {expression}",
-  testRule: "return",
-  compile(match) {
-    let { expression } = match.results;
-    return `return ${expression}`;
-  },
-  tests: [
-    {
-      compileAs: "statement",
-      tests: [["return thing", "return thing"]]
-    }
-  ]
-});
-
-// Exit from current context, returning `undefined`.
-parser.defineRule({
-  name: "exit",
-  alias: "statement",
-  syntax: "exit",
-  compile(match) {
-    return "return undefined";
-  },
-  tests: [
-    {
-      compileAs: "statement",
-      tests: [["exit", "return undefined"]]
-    }
-  ]
-});
 
 
 //
@@ -150,3 +112,43 @@ parser.defineRule({
     }
   ]
 });
+
+
+//
+//  ## Returns
+//
+
+// Return a value
+parser.defineRule({
+  name: "return_statement",
+  alias: "statement",
+  syntax: "return {expression}",
+  testRule: "return",
+  compile(match) {
+    let { expression } = match.results;
+    return `return ${expression}`;
+  },
+  tests: [
+    {
+      compileAs: "statement",
+      tests: [["return thing", "return thing"]]
+    }
+  ]
+});
+
+// Exit from current context, returning `undefined`.
+parser.defineRule({
+  name: "exit",
+  alias: "statement",
+  syntax: "exit",
+  compile(match) {
+    return "return undefined";
+  },
+  tests: [
+    {
+      compileAs: "statement",
+      tests: [["exit", "return undefined"]]
+    }
+  ]
+});
+
