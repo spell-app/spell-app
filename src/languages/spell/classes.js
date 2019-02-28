@@ -243,23 +243,21 @@ parser.defineRule({
       return parseMethodKeywords(results);
     }
     compile(match) {
-      const { Types, instanceMethod, instanceArgs, statements } = match.results;
+      const { Types, method, args, instanceMethod, instanceArgs, statements } = match.results;
       return [
-        `defineProp(${Types[0]}.prototype, '${instanceMethod}', {`,
-        `  value: function(${instanceArgs.join(", ")})${statements}`,
-        `})`
+//TODO: want to add to scope ???
+        `export function ${method}(${args.join(", ")}) ${statements}`,
       ].join("\n")
     }
     updateScope(match, scope) {
-      const { type, instanceMethod, rules } = match.results;
-      // add the instance method
-      scope.addInstanceMethod({ type, instanceMethod });
+      const { method, rules } = match.results;
+      scope.addMethod({ method });
       // add a rule to match the new syntax!
       scope.addStatementRule({
         rulex: rules.join(" "),
         compile(match) {
           const { args } = match.results;
-          return `(${args[0]})?.${instanceMethod}?.(${args.slice(1).join(", ")})`;
+          return `${method}(${args.join(", ")})`;
         }
       })
       return scope;
@@ -269,26 +267,18 @@ parser.defineRule({
     {
       compileAs: "statements",
       tests: [
-        ["to turn a card face up:",
-          [
-            "defineProp(Card.prototype, 'turn_face_up', {",
-            "  value: function(){}",
-            "})"
-          ].join("\n")
-        ],
+        ["to turn a card face up:", "export function turn_card_face_up(card) {}" ],
         [
           [
-            "to flip Cards over:",
-            "\tif the card is face-up: set its face to down",
-            "\totherwise set its face to up"
+            "to add a card to a pile:",
+            "\tremove the card from the pile of the card",      // its pile
+            "\tadd the card to the pile"
           ].join("\n"),
           [
-            "defineProp(Card.prototype, 'flip_over', {",
-            "  value: function(){",
-            "\tif (card == face_up) { this.face = down }",      // if (this.is_face_up)..."
-            "\telse { this.face = up }",
-            "}",  // ugly...
-            "})"
+            "export function add_card_to_pile(card, pile) {",
+            "\tspell.remove(card?.pile, card)",
+            "\tspell.append(pile, card)",
+            "}",
           ].join("\n")
         ],
       ]
