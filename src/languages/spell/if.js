@@ -10,7 +10,7 @@ import {
 const parser = new SpellParser({ module: "if" });
 export default parser;
 
-// Given a condiiton expression string, wrap it in parens iff it is not already parenthesized properly.
+// Given a condition expression string, wrap it in parens iff it is not already parenthesized properly.
 // TESTME
 export function parenthesizeCondition(condition) {
   if (condition.startsWith("(") && condition.endsWith(")")) return condition;

@@ -11,6 +11,7 @@ import {
   rulex,
   Scope,
   spell,
+  SpellParser,
   Token,
   Tokenizer,
 } from "./all.js";
@@ -28,6 +29,7 @@ Object.assign(global, {
   Parser,
   Rule,
   Scope,
+  SpellParser,
   Token,
   Tokenizer,
 

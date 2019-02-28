@@ -26,7 +26,7 @@ SpellParser.Comment = class comment extends Rule.TokenType {
   }
 }
 
-parser.defineRule({
+const commentRule = parser.defineRule({
   constructor: SpellParser.Comment,
   tests: [
     {
@@ -42,8 +42,7 @@ parser.defineRule({
   ]
 });
 
-
-parser.defineRule({
+const statementLine = parser.defineRule({
   name: "statementLine",
   syntax: "{whitespace}* {statement}",
   constructor: class statementLine extends Rule.Sequence {
@@ -52,7 +51,7 @@ parser.defineRule({
       let comment;
       const last = tokens[tokens.length - 1];
       if (last instanceof Token.Comment) {
-        comment = SpellParser.Comment.parse(scope, [last]);
+        comment = commentRule.parse(scope, [last]);
       }
 
       const remainingTokens = comment ? tokens.slice(0, -1) : tokens;
@@ -76,188 +75,130 @@ parser.defineRule({
     }
     compile(match) {
       const { whitespace = "", statement, comment = ""} = match.results;
-      if (whitespace) whitespace = whitespace.join("");
       if (comment) comment = `  ${comment}`;
-      return `${whitespace}${statement}${comment}`
+//      if (whitespace) whitespace = whitespace.join("");
+//      return `${whitespace}${statement}${comment}`
+      return `${statement}${comment}`
     }
   }
 });
-
-// A `statement` generally represents a single line of output.
-// `statements` automatically parse comments at the end of their line
-//  (available as `match.comment`)
-SpellParser.Statement = class statement extends Rule.Group {
-  @proto argument = "statement";
-  parse(scope, tokens) {
-    if (!tokens.length) return;
-    if (this.resetRules) {
-      scope = scope.resetRules();
-    }
-
-    // eat comment at end of the line
-    let comment;
-    let last = tokens[tokens.length - 1];
-    if (last instanceof Token.Comment) {
-      comment = scope.getRuleOrDie("comment").parse(scope, [last]);
-    }
-
-    const match = super.parse(scope, tokens);
-    if (!match && !comment) return;
-    if (!match) return comment;
-
-    if (comment) {
-      match.comment = comment;
-      match.matchLength += comment.matchLength;
-    }
-    return match;
-  }
-}
-
-parser.defineRule({
-  name: "statement",
-  constructor: SpellParser.Statement
-});
-
-
 
 // `Statements` are a special case for a block of `Statement` rules
 //  that understand nesting and comments.
 //
 // This is a top-level construct, e.g. used to parse an entire file.
-SpellParser.Statements = class statements extends Rule {
-  // Split statements up into blocks and parse 'em.
-  parse(scope, tokens) {
-    if (!tokens.length) return;
-    var block = scope.parser.tokenizer.breakIntoBlocks(tokens);
-    return this.parseBlock(scope, tokens, block);
-  }
-
-  // Parse an entire `block`, returning array of matched elements (NOT as a match).
-  // NOTE: we assume we should reset `scope.rules` because we're entering a new parsing context
-  parseBlock(scope, tokens, block) {
-    scope = scope.resetRules();
-    const statementRule = scope.getRuleOrDie("statement");
-
-    let matched = [];
-    let matchLength = 0;
-
-    block.contents.forEach(item => {
-      if (item.length === 0) {
-        matched.push(new Rule.BlankLine());
-        matchLength += 1;
-      }
-      // got a nested block
-      else if (item instanceof Token.Block) {
-        const nested = this.parseBlock(scope, tokens, item);
-        if (!nested) {
-          console.info("expected nested result, didn't get anything");
-          return;
-        }
-        nested.indent = item.indent;
-        nested.enclose = true;
-
-        // If the last statement is a `BlockStatement`,
-        //  give it the block
-        const lastStatement = matched[matched.length - 1];
-        if (lastStatement.rule instanceof SpellParser.BlockStatement) {
-          lastStatement.block = nested;
-          lastStatement.matchLength += nested.matchLength;
-        }
-        // otherwise just add it to the matched items
-        else {
-          console.warn("got a nested block when we weren't expecting one");
-          matched.push(nested);
-        }
-        matchLength += nested.matchLength;
-      }
-      // Got a single statement, parse the entire thing as a `statement`
-      else {
-        // skip whitespace at the front
-        let whitespaceCount = 0;
-        while (item[whitespaceCount] instanceof Token.Whitespace) whitespaceCount++;
-
-        const match = statementRule.parse(scope, whitespaceCount ? item.slice(whitespaceCount) : item);
-//TODO: bail if not the entire line???
-        if (match) {
-          matched = matched.concat(match);
-          matchLength += whitespaceCount + match.matchLength;
-        }
-//        else console.warn("parseBlock expected statement, got", match);
-      }
-    });
-
-    if (matched.length === 0) return undefined;
-
-    return new Match({
-      rule: new SpellParser.Statements(),
-      matched,
-      tokens,
-      matchLength,
-      indent: block.indent
-    })
-  }
-
-  // Output statements match parsed with `parseBlock`
-  // Set `match.enclose` to enclose in curly braces
-  // Set `match.indent` to add a tab to the start of each line.
-  compile(match) {
-    let results = [],
-      statement;
-
-    for (var i = 0, next; next = match.matched[i]; i++) {
-      try {
-        statement = next.compile() || "";
-      } catch (e) {
-        console.error(e);
-        console.warn("Error compiling statements: ", match, "statement:", next);
-      }
-
-      // Add comment to end of statement if provided
-      // NOTE: this loses any whitespace before the comment...
-      if (next.comment) {
-        statement += " " + next.comment.compile();
-      }
-
-      if (isWhitespace(statement)) {
-        results.push("");
-      } else if (Array.isArray(statement)) {
-        results = results.concat(statement);
-      } else if (typeof statement === "string") {
-        statement = statement.split("\n");
-        results = results.concat(statement);
-      } else {
-        console.warn(
-          "blockToSource(): DON'T KNOW HOW TO WORK WITH\n\t",
-          statement,
-          "\n\tfrom match",
-          next
-        );
-      }
-    }
-    let lines = (match.indent || match.enclose)
-      ? "\t" + results.join("\n\t")
-      : results.join("\n");
-
-    if (match.enclose) return `{\n${lines}\n}`;
-    return lines;
-  }
-
-  // Enclose a single statement.
-  static encloseStatement(statement, forceWrap) {
-    if (!statement) return "{}";
-    if (!forceWrap && !statement.includes("\n") && statement.length < 40) {
-      return `{ ${statement.trim()} }`;
-    }
-    if (statement[0] !== "\t") statement = `\t${statement}`;
-    return `{\n${statement}\n}`;
-  }
-};
-
 parser.defineRule({
   name: "statements",
-  constructor: SpellParser.Statements
-});
+  constructor: class statements extends Rule {
+    // Split statements up into blocks and parse 'em.
+    parse(scope, tokens) {
+      if (!tokens.length) return;
+      var block = scope.parser.tokenizer.breakIntoBlocks(tokens);
+      return this.parseBlock(scope, tokens, block);
+    }
 
+    // Parse an entire `block`, returning array of matched elements (NOT as a match).
+    // NOTE: we assume we should reset `scope.rules` because we're entering a new parsing context
+    parseBlock(scope, tokens, block) {
+      scope = scope.resetRules();
+      const statementRule = scope.getRuleOrDie("statement");
+
+      let matched = [];
+      let matchLength = 0;
+
+      block.contents.forEach(item => {
+        if (item.length === 0) {
+          matched.push(new Rule.BlankLine());
+          matchLength += 1;
+        }
+        // got a nested block
+        else if (item instanceof Token.Block) {
+          const nested = this.parseBlock(scope, tokens, item);
+          if (!nested) {
+            console.info("expected nested result, didn't get anything");
+            return;
+          }
+          nested.indent = item.indent;
+          nested.enclose = true;
+
+          // If the last statement is a `BlockStatement`,
+          //  give it the block
+          const lastMatch = matched[matched.length - 1]?.matches.statement;
+          if (lastMatch.rule instanceof SpellParser.BlockStatement) {
+            lastMatch.block = nested;
+            lastMatch.matchLength += nested.matchLength;
+          }
+          // otherwise just add it to the matched items
+          else {
+            console.warn("got a nested block when we weren't expecting one");
+            matched.push(nested);
+          }
+          matchLength += nested.matchLength;
+        }
+        // Got a single statement, parse the entire thing as a `statementLine`
+        else {
+          const match = statementLine.parse(scope, item);
+          if (match) {
+            matched = matched.concat(match);
+            matchLength += match.matchLength;
+          }
+  //        else console.warn("parseBlock expected statement, got", match);
+        }
+      });
+
+      if (matched.length === 0) return undefined;
+
+      return new Match({
+        rule: this,
+        matched,
+        tokens,
+        matchLength,
+        indent: block.indent
+      })
+    }
+
+    // Output statements match parsed with `parseBlock`
+    // Set `match.enclose` to enclose in curly braces
+    // Set `match.indent` to add a tab to the start of each line.
+    compile(match) {
+      let results = [],
+        statement;
+
+      for (var i = 0, next; next = match.matched[i]; i++) {
+        try {
+          statement = next.compile() || "";
+        } catch (e) {
+          console.error(e);
+          console.warn("Error compiling statements: ", match, "statement:", next);
+        }
+
+//console.info(next, "\n", statement);
+
+        if (isWhitespace(statement)) {
+          results.push("");
+        } else if (Array.isArray(statement)) {
+          results = results.concat(statement);
+        } else if (typeof statement === "string") {
+          statement = statement.split("\n");
+          results = results.concat(statement);
+        } else {
+          console.warn(
+            "blockToSource(): DON'T KNOW HOW TO WORK WITH\n\t",
+            statement,
+            "\n\tfrom match",
+            next
+          );
+        }
+      }
+      let lines = (match.indent || match.enclose)
+        ? "\t" + results.join("\n\t")
+        : results.join("\n");
+
+      if (match.enclose) return `{\n${lines}\n}`;
+      return lines;
+    }
+  }
+});
 
 
 // A `BlockStatement` (e.g. an `if` or `repeat`):
@@ -289,9 +230,18 @@ SpellParser.BlockStatement = class block_statement extends Rule.Sequence {
     }
     // otherwise use the `statement`, if it's empty this will return the empty string.
     else {
-      results.statements = SpellParser.Statements.encloseStatement(results.statement);
+      results.statements = this.encloseStatement(results.statement);
     }
     return results;
+  }
+
+  encloseStatement(statement, forceWrap) {
+    if (!statement) return "{}";
+    if (!forceWrap && !statement.includes("\n") && statement.length < 40) {
+      return `{ ${statement.trim()} }`;
+    }
+    if (statement[0] !== "\t") statement = `\t${statement}`;
+    return `{\n${statement}\n}`;
   }
 };
 
