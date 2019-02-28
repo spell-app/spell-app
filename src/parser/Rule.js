@@ -40,8 +40,10 @@ export class Rule {
     Object.assign(this, props);
   }
 
-  // Add type for convenience
-  static TestLocation = TestLocation;
+  // Return a clone of this rule (same constructor, all public properties)
+  clone() {
+    return new (this.constructor)(this);
+  }
 
   //
   //  Parsing methods -- you MUST implement these in your subclasses!
@@ -490,9 +492,10 @@ Rule.Choice = class choices extends Rule {
     return longest;
   }
 
-  addRule(...rule) {
-    if (!this.rules) this.rules = [];
-    this.rules.push(...rule);
+  // Add a rule to the list of choices.
+  // Note that we always create a new array when adding!
+  addRule(...rules) {
+    this.rules = [...this.rules, ...rules];
   }
 
   toSyntax() {

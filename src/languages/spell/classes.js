@@ -253,8 +253,9 @@ parser.defineRule({
       const { method, rules } = match.results;
       scope.addMethod({ method });
       // add a rule to match the new syntax!
-      scope.addStatementRule({
-        rulex: rules.join(" "),
+      scope.addStatement({
+        name: method,
+        syntax: rules.join(" "),
         compile(match) {
           const { args } = match.results;
           return `${method}(${args.join(", ")})`;

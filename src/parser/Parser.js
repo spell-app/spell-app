@@ -11,13 +11,15 @@ import {
   Scope,
   Token,
   Tokenizer,
-  WhitespacePolicy
+  WhitespacePolicy,
+
+  cloneClass,
+  proto,
+  memoize,
+  clearMemoized,
+  nonEnumerable
 } from "./all.js";
 
-import {
-  cloneClass,
-  proto
-} from "../utils/all.js";
 
 // In the web browser, by default, we'll use `cloneClass()` to make debugging easier
 // by creating named subclasses which you can see in the browser console
@@ -46,9 +48,6 @@ export class Parser {
   @proto tokenizer = new Tokenizer({
     whitespacePolicy: WhitespacePolicy.LEADING_ONLY
   });
-
-  // Map of all of our rules, including imports.
-  rules = {};
 
   // Constructor.
   constructor(properties) {
@@ -107,17 +106,27 @@ export class Parser {
     return match.compile();
   }
 
-  // Add rules from other parsers to this parser.
-  import(...imports) {
-    imports.forEach(parser => {
-      for (const ruleName in parser.rules) {
-        this.mergeRule(this.rules, ruleName, parser.rules[ruleName]);
-      }
-    });
+  //
+  //  Rules
+  //
+
+  // Private map of all of our rules, NOT including rules from imports.
+  // NOTE: optimally this would be `#rules` to mark it private,
+  //  but private fields and decorators don't work together in babel 7.
+  //
+  // Use `parser.rules` to get ALL rules, including those from imports.
+  @nonEnumerable
+  _rules = {};
+
+  @memoize
+  get rules() {
+    if (!this.imports) return {...this._rules};
+    return this.mergeRuleSets(this._rules, ...this.imports.map(parser => parser.rules));
   }
 
   // Add a `rule` to our list of rules!
   // Converts to `Rule.Group` on re-defining the same rule.
+  @clearMemoized("rules")
   addRule(rule, ruleName) {
     // If rule is a Rule subclass, instantiate it
     if (rule.prototype instanceof Rule) rule = new rule();
@@ -134,44 +143,58 @@ export class Parser {
     }
     // Add to our list of rules
     else {
-      this.mergeRule(this.rules, ruleName, rule);
+      this.mergeRule(this._rules, ruleName, rule);
     }
 
     return rule;
   }
 
-  // Merge `rule` into `map` of rules by `ruleName`.
-  // If we already have a rule with that name, we'll add it as an alternative.
-  //TESTME
+  // Add rules from other parsers to this parser.
+  @clearMemoized("rules")
+  import(...imports) {
+    this.imports = [].concat(this.imports || [], imports);
+  }
+
+  // Merge all rule `sources` together into a new rules map.
+  mergeRuleSets(...sources) {
+    const rules = { ...sources[0] };
+    for (var i = 1, source; source = sources[i]; i++) {
+      for (const ruleName in source) {
+        this.mergeRule(rules, ruleName, source[ruleName]);
+      }
+    }
+    return rules;
+  }
+
+  // Merge a single `rule` into map of `rules` by `ruleName`.
+  // If `rules` already has a rule with that name:
+  //  - if `rules[ruleName]` is a Rule.Group, we'll just add the new rule to the group,
+  //  - or we'll convert `rules[ruleName]` to a group with the original + new rules.
   mergeRule(map, ruleName, rule) {
     let existing = map[ruleName];
     if (!existing) {
+      // Always clone groups when adding.
+      if (rule instanceof Rule.Group) rule = rule.clone();
       map[ruleName] = rule;
       return;
     }
 
-    // If merging with anything other than a `Group`,
-    //  create a `Group` and add the existing rule to that.
-    if (!(existing instanceof Rule.Group)) {
-      // use `cloneClass()` to get a uniquely named constructor for debugging
-      const Group = CLONE_CLASSES
-        ? cloneClass(Rule.Group, ruleName + "_group")
-        : Rule.Group
-      ;
-      map[ruleName] = new Group({
-        argument: ruleName,
-        rules: [existing]
-      });
-      existing = map[ruleName];
-    }
+    // Merge existing rule and rule passed in as a new Group
+    if (existing instanceof Rule.Group)
+      map[ruleName] = existing.clone();
+    else
+      map[ruleName] = new Rule.Group({ rules: [existing], argument: ruleName });
 
-    // If BOTH are groups, we can safely mush them together
-    if (rule instanceof Rule.Group) {
-      existing.addRule(...rule.rules);
-    } else {
-      existing.addRule(rule);
-    }
+    if (rule instanceof Rule.Group)
+      map[ruleName].addRule(...rule.rules)
+    else
+      map[ruleName].addRule(rule);
   }
+
+
+  //
+  //  Defining rules using the "rulex" syntax
+  //
 
   // Define multiple rules at once.
   // NOTE: it's better to do this using individual `defineRule()` calls

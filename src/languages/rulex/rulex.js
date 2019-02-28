@@ -54,7 +54,7 @@ rulex.applyFlags = function applyFlags(rule, flags) {
 // A test location signifier, which is always optional:
 //  `…` = test anywhere in the stream (option-semicolon on mac)
 //  `^` = test at start only.
-const testLocation = rulex.defineRule({
+rulex.defineRule({
   constructor: Rule.Literal,
   name: "testLocation",
   literal: ["…", "^"],
@@ -75,10 +75,11 @@ const testLocation = rulex.defineRule({
     }
   ]
 })
+const testLocation = rulex.rules.testLocation;
 
 
 // A promote flag, which is always optional
-const promote = rulex.defineRule({
+rulex.defineRule({
   constructor: Rule.Symbols,
   name: "promote",
   literals: ["?", ":"],
@@ -97,9 +98,10 @@ const promote = rulex.defineRule({
     }
   ]
 })
+const promote = rulex.rules.promote;
 
 // A argument signifier, which is always optional.
-const argument = rulex.defineRule({
+rulex.defineRule({
   constructor: Rule.Sequence,
   name: "argument",
   rules: [
@@ -121,10 +123,11 @@ const argument = rulex.defineRule({
     }
   ]
 })
+const argument = rulex.rules.argument;
 
 
 // A repeat signifier, which is always optional.
-const repeatFlag = rulex.defineRule({
+rulex.defineRule({
   constructor: Rule.Literal,
   name: "repeatFlag",
   literal: ["?", "*", "+"],
@@ -144,6 +147,7 @@ const repeatFlag = rulex.defineRule({
     }
   ]
 })
+const repeatFlag = rulex.rules.repeatFlag;
 
 
 

@@ -11,6 +11,90 @@ import {
   Tokenizer
 } from "./all.js";
 
+
+describe("defineRule()", () => {
+  test("doesn't add rule if passed a 'skip' property", () => {
+    const parser = new Parser();
+    parser.defineRule({ name: "foo", skip: true });
+    expect(parser.rules).toEqual({});
+  });
+
+  test("doesn't add rule if passed a Rule instance without a 'name' property", () => {
+    const parser = new Parser();
+    parser.defineRule(new Rule.Symbols());
+    expect(parser.rules).toEqual({});
+  });
+
+  test("doesn't add rule if passed empty object (where constructor === Object)", () => {
+    const parser = new Parser();
+    parser.defineRule({});
+    expect(parser.rules).toEqual({});
+  });
+
+  test("doesn't add rule if passed constructor as undefined", () => {
+    const parser = new Parser();
+    parser.defineRule({ constructor: undefined });
+    expect(parser.rules).toEqual({});
+  });
+
+  test("returns undefined if not passed a 'name' property", () => {
+    const parser = new Parser();
+    parser.defineRule({ constructor: Rule });
+    expect(parser.rules).toEqual({});
+  });
+});
+
+describe("Parser.import()", () => {
+  test("adds new rules directly in either direction", () => {
+    const foo = new Parser({ module: "foo" });
+    foo.defineRule({ name: "rule1", syntax: "foo1" });
+
+    const bar = new Parser({ module: "bar" });
+    bar.defineRule({ name: "rule2", syntax: "bar2" });
+
+    foo.import(bar);
+    expect(foo.rules.rule1).toBe(foo.rules.rule1);
+    expect(foo.rules.rule2).toBe(bar.rules.rule2);
+  });
+
+  test("merges individual rules into a new group", () => {
+    const foo = new Parser({ module: "foo" });
+    foo.defineRule({ name: "rule1", syntax: "foo1" });
+    const foo1 = foo.rules.rule1;
+
+    const bar = new Parser({ module: "bar" });
+    bar.defineRule({ name: "rule1", syntax: "bar1" });
+    const bar1 = bar.rules.rule1;
+
+    foo.import(bar);
+    expect(foo.rules.rule1).toBeInstanceOf(Rule.Group);
+    expect(foo.rules.rule1.argument).toBe("rule1");
+    expect(foo.rules.rule1.rules.length).toBe(2);
+    expect(foo.rules.rule1.rules).toEqual([foo1, bar1]);
+  });
+
+  test("merges individual rules with existing groups", () => {
+    const foo = new Parser({ module: "foo" });
+    foo.defineRule({ name: "rule1", syntax: "foo1" });
+    foo.defineRule({ name: "rule1", syntax: "foo1a" });
+    const foo1OriginalGroup = foo.rules.rule1;
+
+    const bar = new Parser({ module: "bar" });
+    bar.defineRule({ name: "rule1", syntax: "bar1" });
+
+    foo.import(bar);
+    expect(foo.rules.rule1).toBeInstanceOf(Rule.Group);
+    expect(foo.rules.rule1.argument).toBe("rule1");
+    expect(foo.rules.rule1).not.toBe(foo1OriginalGroup);
+    expect(foo.rules.rule1.rules.length).toBe(3);
+
+    const allRules = foo1OriginalGroup.rules.concat(bar.rules.rule1);
+    expect(foo.rules.rule1.rules).toEqual(allRules);
+  });
+
+});
+
+
 // Set up parser used in the below
 const parser = new Parser();
 parser.defineRules(
@@ -70,25 +154,6 @@ describe("parser.compile()", () => {
 });
 
 
-describe("defineRule()", () => {
-  test("skips if not passed a 'skip' property", () => {
-    const rule = parser.defineRule({ skip: true });
-    expect(rule).toBe(undefined);
-  });
-
-  test("returns undefined if passed a Rule instance without a 'name' property", () => {
-    expect(parser.defineRule(new Rule.Symbols())).toBe(undefined);
-  });
-
-  test("returns undefined if not passed a 'constructor' property", () => {
-    expect(parser.defineRule({ constructor: undefined })).toBe(undefined);
-  });
-
-  test("returns undefined if not passed a 'name' property", () => {
-    expect(parser.defineRule({ constructor: undefined })).toBe(undefined);
-  });
-});
-
 describe("parser debug flags", () => {
   test("TIME flag doesn't affect parsing", () => {
     const timeSpy = jest.spyOn(console, "time").mockImplementation(()=>undefined);
@@ -115,41 +180,5 @@ describe("parser debug flags", () => {
     const match = parser.parse("statements", "dog and cat");
     expect(match.rule).toBeInstanceOf(Rule.Statements);
     Parser.WARN = false;
-  });
-});
-
-
-describe("Parser.import()", () => {
-  test("merges rules as expected", () => {
-    const foo = new Parser({ module: "foo" });
-    const [ foo1, foo2, foo4 ] = foo.defineRules(
-      { name: "rule1", syntax: "rule1" },
-      { name: "rule2", syntax: "rule2" },
-      { name: "rule4", constructor: Rule.Group },
-    );
-
-    const bar = new Parser({ module: "bar" });
-    const [ bar1, bar3, bar4, bar4a ] = bar.defineRules(
-      { name: "rule1", syntax: "rule1a" },
-      { name: "rule3", syntax: "rule3" },
-      { name: "rule4", constructor: Rule.Group },
-      { name: "rule4", syntax: "rule4" }
-    );
-
-    foo.import(bar);
-    const rules = foo.rules;
-
-    expect(rules.rule1).toBeInstanceOf(Rule.Group);
-    expect(rules.rule1.argument).toBe("rule1");
-    expect(rules.rule1.rules[0]).toBe(foo1);
-    expect(rules.rule1.rules[1]).toBe(bar1);
-
-    expect(rules.rule2).toBe(foo2);
-
-    expect(rules.rule3).toBe(bar3);
-
-    expect(rules.rule4).toBe(foo4);
-    expect(rules.rule4.rules.length).toBe(1);
-    expect(rules.rule4.rules[0]).toBe(bar4a);
   });
 });
