@@ -1,39 +1,31 @@
+import inflection from "lodash-inflection";
+
+export lowerFirst from "lodash/lowerFirst";
+export upperFirst from "lodash/upperFirst";
+
 // Return true if text is all whitespace, including empty string.
 let ALL_WHITESPACE = /^\s*$/;
 export function isWhitespace(text) {
   return ALL_WHITESPACE.test(text);
 }
 
+// Show whitespace in a string by converting newlines to `¬` and tabs to `∆`.
 export function showWhitespace(string) {
   if (typeof string !== "string") return string;
   return string.replace(/\n/g, "¬").replace(/\t/g, "∆");
 }
 
-// Return the plural of `word`.
-// NOTE: this is not very good at all!!!
-// TODO: exceptions, etc.
-export function pluralize(word) {
-  return word + "s";
-}
+// Return the singular form of `word`.
+// Uses lodash-inflection, which should be pretty good.
+// If you need to add a new rule, see: https://github.com/danhper/lodash-inflection
+export const singularize = inflection.singularize.bind(inflection);
+window.singularize = singularize;
 
-// Return true if word is a plural.
-// NOTE: for words which are BOTH singular and plural, this will return true.
-export function isPlural(word) {
-  return word === pluralize(word);
-}
+// Return the plural form of `word`.
+// Uses lodash-inflection, which should be pretty good.
+// If you need to add a new rule, see: https://github.com/danhper/lodash-inflection
+export const pluralize = inflection.pluralize.bind(inflection);
 
-// Return the singular of `word`.
-// NOTE: this is not very good at all!!!
-// TODO: exceptions, etc.
-export function singularize(word) {
-  return word.replace(/e?s$/, "");
-}
-
-// Return true if word is a singular.
-// NOTE: for words which are BOTH singular and plural, this will return true.
-export function isSingular(word) {
-  return word === singularize(word);
-}
 
 // Return a certain `number` of tab characters.
 const TABS = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";

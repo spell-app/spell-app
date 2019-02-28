@@ -1,18 +1,17 @@
-import startCase from "lodash/startCase";
 import JSON5 from "JSON5";
 
 import {
   Rule,
   SpellParser,
   Token,
-} from "./all.js";
-
-import {
+  lowerFirst,
+  upperFirst,
   pluralize,
-  isPlural,
   singularize,
-  isSingular
-} from "../../utils/all.js";
+  inflectResults,
+  inflectResultsArray,
+  parseMethodKeywords
+} from "./all.js";
 
 const parser = new SpellParser({ module: "classes" });
 export default parser;
@@ -21,14 +20,17 @@ parser.defineRule({
   name: "define_type",
   alias: ["statement", "mutatesScope"],
   syntax: "create type {type:identifier} (?:as (a|an) {superType:identifier})?",
-  compile(match) {
-    let { type, superType } = match.results;
-    const Type = startCase(type);
-    if (superType) {
-      const SuperType = startCase(superType);
+  constructor: class define_type extends Rule.Sequence {
+    getResults(match) {
+      const results = super.getResults(match);
+      return inflectResults(results, "type", "superType");
+    }
+    compile(match) {
+      let { Type, SuperType } = match.results;
+      if (!SuperType)
+        return `export class ${Type} {}`;
       return `export class ${Type} extends ${SuperType} {}`;
     }
-    return `export class ${Type} {}`;
   },
   tests: [
     {
@@ -56,45 +58,11 @@ parser.defineRule({
   ]
 });
 
-// parser.defineRule({
-//   name: "define_type",
-//   alias: ["statement", "mutatesScope"],
-//   syntax: "(a|an) {type:identifier} is (a|an) {superType:identifier}",
-//   compile(match) {
-//     let { type, superType } = match.results;
-//     return `export class ${startCase(type)} extends ${startCase(superType)} {}`;
-//   },
-//   tests: [
-//     {
-//       compileAs: "statement",
-//       tests: [
-//         ["a card is a thing", "export class Card extends Thing {}"],
-//         ["a car is an automobile", "export class Car extends Automobile {}"],
-//       ]
-//     }
-//   ]
-// });
-//
-// parser.defineRule({
-//   name: "identifier_list",
-//   syntax: "[({word}|{number})(,|or|and)]",
-//   tests: [
-//     {
-//       tests: [
-//         ["up or down", ["up", "down"]],
-//         ["red and black", ["red", "black"]],
-//         ["clubs, diamonds, hearts, spades", ["clubs", "diamonds", "hearts", "spades" ] ],
-//         ["ace, 2, 3, 4, jack, queen, king", ["ace", 2, 3, 4, "jack", "queen", "king" ] ],
-//       ]
-//     }
-//   ]
-// });
-
-
 parser.defineRule({
   name: "type_initializer_enum",
   alias: "type_initializer",
   syntax: "as (either|one of) {enum:identifier_list}",
+  // Return the enum for someone else to consume
   compile(match) {
     return { enum: match.results.enum };
   },
@@ -132,35 +100,31 @@ parser.defineRule({
     scope.addConstantIdentifier("up");
     scope.addConstantIdentifier("down");
   },
-  compile(match) {
-//console.warn(match.results);
-    let { type, property, initializer } = match.results;
-    type = singularize(type).toLowerCase();
-    const Type = startCase(type);
-
-    property = singularize(property).toLowerCase();
-    const properties = pluralize(property);
-
-    const Property = startCase(property);
-    const Properties = startCase(properties);
-
-    if (initializer.enum) {
-      return [
-        `defineProp(${Type}.prototype, '${Properties}', { value: ${JSON5.stringify(initializer.enum)} })`,
-        `defineProp(${Type}.prototype, '${property}', {`,
-        `  get() { return this.${property} }`,
-        `  set(${property}) { if ($.isOneOf(${property}, this.${Properties})) this.${property} = ${property} }`,
-        `})`
-      ].join("\n");
+  constructor: class define_type extends Rule.Sequence {
+    getResults(match) {
+      const results = super.getResults(match);
+      return inflectResults(results, "type", "property");
     }
-    else if (initializer.datatype) {
-      const datatype = initializer.datatype;
-      return [
-        `defineProp(${Type}.prototype, '${property}', {`,
-        `  get() { return this.${property} }`,
-        `  set(${property}) { if ($.isType(${property}, '${datatype}')) this.${property} = ${property} }`,
-        `})`
-      ].join("\n");
+    compile(match) {
+      const { Type, Properties, property, initializer } = match.results;
+      if (initializer.enum) {
+        return [
+          `defineProp(${Type}.prototype, '${Properties}', { value: ${JSON5.stringify(initializer.enum)} })`,
+          `defineProp(${Type}.prototype, '${property}', {`,
+          `  get() { return this.${property} }`,
+          `  set(${property}) { if ($.isOneOf(${property}, this.${Properties})) this.${property} = ${property} }`,
+          `})`
+        ].join("\n");
+      }
+      else if (initializer.datatype) {
+        const datatype = initializer.datatype;
+        return [
+          `defineProp(${Type}.prototype, '${property}', {`,
+          `  get() { return this.${property} }`,
+          `  set(${property}) { if ($.isType(${property}, '${datatype}')) this.${property} = ${property} }`,
+          `})`
+        ].join("\n");
+      }
     }
   },
   tests: [
@@ -195,17 +159,21 @@ parser.defineRule({
   name: "getter_if",
   alias: ["statement", "mutatesScope"],
   syntax: "(?:a {type:identifier} is|{type:identifier} are) {property:identifier} if {expression}",
-  compile(match) {
-//    console.warn(match.results);
-    let { type, property, expression } = match.results;
-    type = singularize(type).toLowerCase();
-    const Type = startCase(type);
-    const methodName = `is_${property}`;
-    return [
-      `defineProp(${Type}.prototype, '${methodName}', {`,
-      `  get() { return ${expression} }`,
-      `})`
-    ].join("\n")
+  constructor: class getter_if extends Rule.Sequence {
+    getResults(match) {
+      const results = super.getResults(match);
+      return inflectResults(results, "type");
+    }
+    compile(match) {
+  //    console.warn(match.results);
+      let { type, Type, property, expression } = match.results;
+      const methodName = `is_${property}`;
+      return [
+        `defineProp(${Type}.prototype, '${methodName}', {`,
+        `  get() { return ${expression} }`,
+        `})`
+      ].join("\n")
+    }
   },
   tests: [
     {
@@ -224,56 +192,23 @@ parser.defineRule({
 });
 
 
-
-function parseKeywordsToMethod(match) {
-  // console.warn(match.results);
-  // console.warn(match.matches);
-  const { keywords } = match.results;
-  const keywordMatches = match.matches.keywords.matched;
-
-  const methodName = [];
-  let types = [];
-  for (var i = 0; i < keywords.length; i++) {
-    let word = keywords[i].toLowerCase();
-    let isType = false;
-    if ((word === "a" || word === "an") && keywords[i+1]) {
-      isType = true;
-      word = keywords[++i];   // skip the article
-    } else if (keywordMatches[i].rule.name === "type") {
-      isType = true;
-    }
-    if (isType) {
-      word = singularize(word);
-      types.push(word);
-    }
-    methodName.push(word);
-  }
-
-  const Types = types.map(type => startCase(type));
-  return {
-    types,
-    Types,
-    method: methodName.join("_"),
-    args: types.join(", "),
-    instanceMethod: methodName.filter(word => word != types[0]).join("_"),
-    instanceArgs: types.length > 1 ? `, ${types.splice(1).join(", ")}` : ""
-  };
-}
-
-
 parser.defineRule({
   name: "to_do_something",
   alias: ["statement", "mutatesScope"],
   syntax: "to (keywords:{word}|{type})+ :? {statement}?",
-  constructor: Rule.BlockStatement,
-  compile(match) {
-    const { statements } = match.results;
-    const { types, Types, method, args, instanceMethod, instanceArgs } = parseKeywordsToMethod(match);
-    return [
-      `defineProp(${Types[0]}.prototype, '${instanceMethod}', {`,
-      `  value: function(${instanceArgs})${statements}`,
-      `})`
-    ].join("\n")
+  constructor: class define_type extends Rule.BlockStatement {
+    getResults(match) {
+      const results = super.getResults(match);
+      return parseMethodKeywords(results);
+    }
+    compile(match) {
+      const { Types, instanceMethod, instanceArgs, statements } = match.results;
+      return [
+        `defineProp(${Types[0]}.prototype, '${instanceMethod}', {`,
+        `  value: function(${instanceArgs.join(", ")})${statements}`,
+        `})`
+      ].join("\n")
+    }
   },
   tests: [
     {
@@ -297,7 +232,7 @@ parser.defineRule({
             "  value: function(){",
             "\tif (card == face_up) { this.face = down }",      // if (this.is_face_up)..."
             "\telse { this.face = up }",
-            "}",
+            "}",  // ugly...
             "})"
           ].join("\n")
         ],
@@ -321,7 +256,7 @@ parser.defineRule({
   },
   compile(match) {
     const { article, type, property, expression } = match.results;
-    const Type = startCase(singularize(type));
+    const Type = upperFirst(singularize(type));
     return [
       `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
       `  get(){ return ${expression} }`,
@@ -348,21 +283,26 @@ parser.defineRule({
   name: "type_is_a_enum",
   alias: ["statement", "mutatesScope"],
   syntax: "(article:a|an) {type:word} is (a|an) \{ {property:identifier} \} if {expression}",
-//  constructor: Rule.BlockStatement,
   updateScope(match, scope) {
     // TODO: somehow we have to get ahold of the enum!!!
     for (suit of Card.Suits) {
       addIsIdentifier(`a_${suit}`, `${thing}?.is_a_suit?.(${suit})`);
     }
   },
-  compile(match) {
-    const { article, type, property, expression } = match.results;
-    const Type = startCase(singularize(type));
-    return [
-      `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
-      `  value: function(${property}){ return ${expression} }`,
-      `})`,
-    ].join("\n")
+//  constructor: Rule.BlockStatement ??
+  constructor: class type_is_a_enum extends Rule.Sequence {
+    getResults(match) {
+      const results = super.getResults(match);
+      return inflectResults(results, "type");
+    }
+    compile(match) {
+      const { article, Type, property, expression } = match.results;
+      return [
+        `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
+        `  value: function(${property}){ return ${expression} }`,
+        `})`,
+      ].join("\n")
+    }
   },
   tests: [
     {
@@ -391,15 +331,20 @@ parser.defineRule({
       addIsIdentifier(`a_${suit}`, `${thing}?.is_a_suit?.(${suit})`);
     }
   },
-  compile(match) {
-// console.warn(match.results);
-    const { article, type, property, expression } = match.results;
-    const Type = startCase(singularize(type));
-    return [
-      `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
-      `  value: function(${property}){ return ${expression} }`,
-      `})`,
-    ].join("\n")
+  constructor: class type_is_a_enum extends Rule.Sequence {
+    getResults(match) {
+      const results = super.getResults(match);
+      return inflectResults(results, "type");
+    }
+    compile(match) {
+  // console.warn(match.results);
+      const { article, Type, property, expression } = match.results;
+      return [
+        `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
+        `  value: function(${property}){ return ${expression} }`,
+        `})`,
+      ].join("\n")
+    }
   },
   tests: [
     {
@@ -431,21 +376,24 @@ parser.defineRule({
   name: "property_value_either",
   alias: ["statement", "mutatesScope"],
   syntax: "{?:property_of_a_type} is {value:identifier} if {expression} (?:otherwise it is {otherValue:identifier})?",
-  compile(match) {
-//    console.warn(match.results);
-    let { type, property, value, otherValue, expression } = match.results;
-    type = singularize(type).toLowerCase();
-    const Type = startCase(type);
+  constructor: class type_is_a_enum extends Rule.Sequence {
+    getResults(match) {
+      const results = super.getResults(match);
+      return inflectResults(results, "type");
+    }
+    compile(match) {
+  //    console.warn(match.results);
+      let { Type, property, value, otherValue, expression } = match.results;
+      const statement = !otherValue
+        ? `if (${expression}) return ${value}`
+        : `return !!${expression} ? ${value} : ${otherValue}`;
 
-    const statement = !otherValue
-      ? `if (${expression}) return ${value}`
-      : `return !!${expression} ? ${value} : ${otherValue}`;
-
-    return [
-      `defineProp(${Type}.prototype, '${property}', {`,
-      `  get() { ${statement} }`,
-      `})`
-    ].join("\n")
+      return [
+        `defineProp(${Type}.prototype, '${property}', {`,
+        `  get() { ${statement} }`,
+        `})`
+      ].join("\n")
+    }
   },
   tests: [
     {
@@ -474,17 +422,20 @@ parser.defineRule({
   name: "property_value_expression",
   alias: ["statement", "mutatesScope"],
   syntax: "{?:property_of_a_type} is {expression}",
-  compile(match) {
-//    console.warn(match.results);
-    let { type, property, expression } = match.results;
-    type = singularize(type).toLowerCase();
-    const Type = startCase(type);
-
-    return [
-      `defineProp(${Type}.prototype, '${property}', {`,
-      `  get() { return ${expression} }`,
-      `})`
-    ].join("\n")
+  constructor: class type_is_a_enum extends Rule.Sequence {
+    getResults(match) {
+      const results = super.getResults(match);
+      return inflectResults(results, "type");
+    }
+    compile(match) {
+  //    console.warn(match.results);
+      let { Type, property, expression } = match.results;
+      return [
+        `defineProp(${Type}.prototype, '${property}', {`,
+        `  get() { return ${expression} }`,
+        `})`
+      ].join("\n")
+    }
   },
   tests: [
     {
