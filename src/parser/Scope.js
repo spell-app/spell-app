@@ -41,7 +41,7 @@ export class Scope {
         throw new ParseError(`cloneExcludingRules(): expected ${ruleName} to be a Group!`);
 
     // Clone the rule and remove the excluded rules
-    clone.rules[ruleName] = new Rule.Group(rule);
+    clone.rules[ruleName] = rule.clone();
     clone.rules[ruleName].rules = rule.rules.filter(rule => !excludes.includes(rule.name));
 
     return clone;

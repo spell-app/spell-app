@@ -12,6 +12,35 @@ import {
 } from "./all.js";
 
 
+describe("addRule() and rules", () => {
+  test("parser.rules works when no rules are defined", () => {
+    const parser = new Parser();
+    expect(parser.rules).toEqual({});
+  });
+
+  test("parser.rules is memoized properly when rules don't change", () => {
+    const parser = new Parser();
+    expect(parser.rules).toBe(parser.rules);
+  });
+
+  test("parser.rules changes when addRule() is called", () => {
+    const parser = new Parser();
+    const startRules = parser.rules;
+    parser.addRule(new Rule(), "foo");
+
+    expect(parser.rules).not.toBe(startRules);
+  });
+
+  test("parser.rules changes when import() is called", () => {
+    const parser = new Parser();
+    const startRules = parser.rules;
+    parser.import(new Parser());
+    expect(parser.rules).not.toBe(startRules);
+  });
+});
+
+
+
 describe("defineRule()", () => {
   test("doesn't add rule if passed a 'skip' property", () => {
     const parser = new Parser();
