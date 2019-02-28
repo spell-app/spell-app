@@ -35,7 +35,6 @@ parser.defineRule({
       const { type, superType } = match.results;
       scope.addType({ type, superType })
       if (superType) scope.addType({ type: superType });
-      return scope;
     }
   },
   tests: [
@@ -149,11 +148,15 @@ parser.defineRule({
   ]
 });
 
+parser.defineRule({
+  name: "type_has_prefix",
+  syntax: "(?:(a|an) {type:identifier} has|{type:identifier} have)"
+});
 
 parser.defineRule({
   name: "define_property_has",
   alias: ["statement", "mutatesScope"],
-  syntax: "(?:(a|an) {type:identifier} has|{type:identifier} have) (a|an) {property:identifier} {initializer:type_initializer}",
+  syntax: "{?:type_has_prefix} (a|an) {property:identifier} {initializer:type_initializer}?",
   testRule: "…(has|have)",
   constructor: class define_type extends Rule.Sequence {
     getResults(match) {
@@ -167,8 +170,8 @@ parser.defineRule({
           `defineProp(${Type}, '${Properties}', { value: ${JSON5.stringify(initializer.enum)} })`,
           `defineProp(${Type}.prototype, '${Properties}', { value: ${Type}.${Properties} })`,
           `defineProp(${Type}.prototype, '${property}', {`,
-          `  get() { return this.${property} }`,
-          `  set(${property}) { if ($.isOneOf(${property}, this.${Properties})) this.${property} = ${property} }`,
+          `  get() { return this.#${property} }`,
+          `  set(${property}) { if ($.isOneOf(${property}, this.${Properties})) this.#${property} = ${property} }`,
           `})`
         ].join("\n");
       }
@@ -176,51 +179,65 @@ parser.defineRule({
         const datatype = initializer.datatype;
         return [
           `defineProp(${Type}.prototype, '${property}', {`,
-          `  get() { return this.${property} }`,
-          `  set(${property}) { if ($.isType(${property}, '${datatype}')) this.${property} = ${property} }`,
+          `  get() { return this.#${property} }`,
+          `  set(${property}) { if ($.isType(${property}, '${datatype}')) this.#${property} = ${property} }`,
           `})`
         ].join("\n");
       }
     }
     updateScope(match, scope) {
       const { type, property, properties, Properties, initializer } = match.results;
-      const datatype = initializer.datatype || initializer.enum;
-      // Add normal instance property
-      scope.addInstanceProperty({ type, property, datatype });
-      if (initializer.enum) {
-        // Add enum as a property to the class
-        scope.addProperty({ type, property: Properties, datatype: "enum", value: initializer.enum });
-        // Add enum to the instance as well.
-        scope.addInstanceProperty({ type, property: Properties, datatype: "enum", value: initializer.enum });
-        // Add `<type> <properties>` as an identifier which points back to the class property.
-        scope = scope.addIdentifier({ identifier: [ type, properties ], value: `${Type}.${Propeties}` });
+
+      if (initializer?.enum) {
+        const enumProps = {
+          type,
+          datatype: "enum",
+          enum: initializer.enum,
+          compile: () => `${Type}.${Properties}`
+        };
+        // Add normal instance property, e.g. javascript `card.suit`
+        scope.addInstanceProperty({ key: property }, enumProps);
+
+        // Add enum as a property to the class and instance, e.g javascript `Card.suits` and `card.suits`
+        scope.addProperty({ key: properties }, enumProps);
+        scope.addInstanceProperty({ key: properties}, enumProps);
+
+        // Add identifier which points back to the class enum, e.g. spell `Card suits` or `card suits`
+        scope = scope.addIdentifier({
+          key: [ [Type,type], properties ],
+          compile: enumProps.compile
+        });
+
         // Add any string enums as constants
         initialzer.enum.forEach(value => {
-          if (typeof value === "string") scope.addConstant({ name: value, value });
+          if (typeof value === "string") scope.addConstant({ key: value, value });
         });
       }
-      return scope;
+      else {
+        // Add normal instance property with datatype if provided, e.g. javascript `player.name`
+        scope.addInstanceProperty({ type, key: property, datatype: initializer?.datatype });
+      }
     }
   },
   tests: [
     {
       compileAs: "statement",
       tests: [
-        ["cards have a direction as either up or down",
+        [ "cards have a direction as either up or down",
           [
             "defineProp(Card, 'Directions', { value: ['up','down'] })",
             "defineProp(Card.prototype, 'Directions', { value: Card.Directions })",
             "defineProp(Card.prototype, 'direction', {",
-            "  get() { return this.direction }",
-            "  set(direction) { if ($.isOneOf(direction, this.Directions)) this.direction = direction }",
+            "  get() { return this.#direction }",
+            "  set(direction) { if ($.isOneOf(direction, this.Directions)) this.#direction = direction }",
             "})"
           ].join("\n")
         ],
-        ["a player has a name as text",
+        [ "a player has a name as text",
           [
             "defineProp(Player.prototype, 'name', {",
-            "  get() { return this.name }",
-            "  set(name) { if ($.isType(name, 'text')) this.name = name }",
+            "  get() { return this.#name }",
+            "  set(name) { if ($.isType(name, 'text')) this.#name = name }",
             "})"
           ].join("\n")
         ],
@@ -250,9 +267,10 @@ parser.defineRule({
       ].join("\n")
     }
     updateScope(match, scope) {
-      const { method, rules } = match.results;
-      scope.addMethod({ method });
-      // add a rule to match the new syntax!
+      const { method, args, rules } = match.results;
+      scope.addMethod({ key: method, args });
+
+      // add a rule to match the new syntax, e.g. spell `add {card} to {pile}`
       scope.addStatement({
         name: method,
         syntax: rules.join(" "),
@@ -261,7 +279,6 @@ parser.defineRule({
           return `${method}(${args.join(", ")})`;
         }
       })
-      return scope;
     }
   },
   tests: [
@@ -272,7 +289,7 @@ parser.defineRule({
         [
           [
             "to add a card to a pile:",
-            "\tremove the card from the pile of the card",      // its pile
+            "\tremove the card from the pile of the card",      // TODO: `its pile`
             "\tadd the card to the pile"
           ].join("\n"),
           [
@@ -299,6 +316,7 @@ parser.defineRule({
   constructor: class quoted_property_name extends Rule.Sequence {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
+      // forget it if first word is not "is"
       if (match && match.results.words[0] !== "is") return undefined;
       return match;
     }
@@ -318,14 +336,14 @@ parser.defineRule({
     }
     updateScope(match, scope) {
       const { type, words, getter } = match.results;
-      // Note the new instance property
-      scope.addInstanceProperty({ type, getter, datatype: "boolean" });
-      // Add is expression so we can say `thing is foo` or `thing is not foo bar`
+      // Note the new instance property, e.g. javascript `card.is_a_face_card`
+      scope.addInstanceProperty({ type, key:getter, datatype: "boolean" });
+
+      // Add is expression for spell, e.g. `card is a face card` or `card is not a face card`
       scope.addIsExpression({
-        properties: words.slice(1),   // remove "is"
+        key: words,
         compile(value) { return `${value}?.${getter}` }
       });
-      return scope;
     }
   },
   tests: [
@@ -350,89 +368,6 @@ parser.defineRule({
     }
   ]
 });
-
-parser.defineRule({
-  name: "type_is_a_enum",
-  alias: ["statement", "mutatesScope"],
-  syntax: "(article:a|an) {type:word} is (a|an) \{ {property:identifier} \} if {expression}",
-  updateScope(match, scope) {
-    // TODO: somehow we have to get ahold of the enum!!!
-    for (suit of Card.Suits) {
-      addIsIdentifier(`a_${suit}`, `${thing}?.is_a_suit?.(${suit})`);
-    }
-  },
-//  constructor: Rule.BlockStatement ??
-  constructor: class type_is_a_enum extends Rule.Sequence {
-    getResults(match) {
-      const results = super.getResults(match);
-      return inflectResults(results, "type");
-    }
-    compile(match) {
-      const { article, Type, property, expression } = match.results;
-      return [
-        `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
-        `  value: function(${property}){ return ${expression} }`,
-        `})`,
-      ].join("\n")
-    }
-  },
-  tests: [
-    {
-      compileAs: "statements",
-      tests: [
-        ["a card is a {suit} if its suit is the suit",
-          [
-            "defineProp(Card.prototype, 'is_a_suit', {",
-            "  value: function(suit){ return (this.suit == suit) }",
-            "})",
-          ].join("\n")
-        ],
-      ]
-    }
-  ]
-});
-
-
-parser.defineRule({
-  name: "type_is_a_enum_for",
-  alias: ["statement", "mutatesScope"],
-  syntax: "for each {type:word} {property:identifier} : the {type2:identifier} is (article:a|an) \{ {property2:identifier} \} if {expression}",
-  updateScope(match, scope) {
-    // TODO: somehow we have to get ahold of the enum!!!
-    for (suit of Card.Suits) {
-      addIsIdentifier(`a_${suit}`, `${thing}?.is_a_suit?.(${suit})`);
-    }
-  },
-  constructor: class type_is_a_enum extends Rule.Sequence {
-    getResults(match) {
-      const results = super.getResults(match);
-      return inflectResults(results, "type");
-    }
-    compile(match) {
-      const { article, Type, property, expression } = match.results;
-      return [
-        `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
-        `  value: function(${property}){ return ${expression} }`,
-        `})`,
-      ].join("\n")
-    }
-  },
-  tests: [
-    {
-      compileAs: "statements",
-      tests: [
-        ["for each card suit: the card is a {suit} if its suit is the suit",
-          [
-            "defineProp(Card.prototype, 'is_a_suit', {",
-            "  value: function(suit){ return (this.suit == suit) }",
-            "})",
-          ].join("\n")
-        ],
-      ]
-    }
-  ]
-});
-
 
 parser.defineRule({
   name: "property_of_a_type",
@@ -463,6 +398,10 @@ parser.defineRule({
         `  get() { ${statement} }`,
         `})`
       ].join("\n")
+    }
+    updateScope(match, scope) {
+      const { type, property, } = match.results;
+      scope.addInstanceProperty({ type, key: property, datatype: "boolean" });
     }
   },
   tests: [
@@ -505,6 +444,10 @@ parser.defineRule({
         `})`
       ].join("\n")
     }
+    updateScope(match, scope) {
+      const { type, property } = match.results;
+      scope.addInstanceProperty({ type, key: property });
+    }
   },
   tests: [
     {
@@ -517,8 +460,108 @@ parser.defineRule({
             "})"
           ].join("\n")
         ],
+        ["a cards score is its value",
+          [
+            "defineProp(Card.prototype, 'score', {",
+            "  get() { return this.value }",
+            "})"
+          ].join("\n")
+        ],
       ]
     }
   ]
 });
 
+
+
+
+/*
+
+// "card is a queen" or "card is a queen of clubs"
+// Possibilities:
+//   a card "is a (rank)" for its ranks
+//   a card "is a (rank) of (suits)" for card ranks and card suits
+//
+//   say "card is a (rank)" for each card rank
+//   say "card is a (rank) of (suits)" for each card rank and card suit
+//
+//   for card ranks: card "is a (rank)"
+//   for card ranks and suits: card "is a (rank) of (suit)"
+
+parser.defineRule({
+  name: "type_is_a_enum",
+  alias: ["statement", "mutatesScope"],
+  syntax: "(article:a|an) {type:word} is (a|an) \{ {property:identifier} \} if {expression}",
+  constructor: class type_is_a_enum extends Rule.Sequence {
+    getResults(match) {
+      const results = super.getResults(match);
+      return inflectResults(results, "type");
+    }
+    compile(match) {
+      const { article, Type, property, expression } = match.results;
+      return [
+        `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
+        `  value: function(${property}){ return ${expression} }`,
+        `})`,
+      ].join("\n")
+    }
+    updateScope(match, scope) {
+
+    }
+  },
+  tests: [
+    {
+      compileAs: "statements",
+      tests: [
+        ["a card is a {suit} if its suit is the suit",
+          [
+            "defineProp(Card.prototype, 'is_a_suit', {",
+            "  value: function(suit){ return (this.suit == suit) }",
+            "})",
+          ].join("\n")
+        ],
+      ]
+    }
+  ]
+});
+
+parser.defineRule({
+  name: "type_is_a_enum_for",
+  alias: ["statement", "mutatesScope"],
+  syntax: "for each {type:word} {property:identifier} : the {type2:identifier} is (article:a|an) \{ {property2:identifier} \} if {expression}",
+  updateScope(match, scope) {
+    // TODO: somehow we have to get ahold of the enum!!!
+    for (suit of Card.Suits) {
+      addIsIdentifier(`a_${suit}`, `${thing}?.is_a_suit?.(${suit})`);
+    }
+  },
+  constructor: class type_is_a_enum extends Rule.Sequence {
+    getResults(match) {
+      const results = super.getResults(match);
+      return inflectResults(results, "type");
+    }
+    compile(match) {
+      const { article, Type, property, expression } = match.results;
+      return [
+        `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
+        `  value: function(${property}){ return ${expression} }`,
+        `})`,
+      ].join("\n")
+    }
+  },
+  tests: [
+    {
+      compileAs: "statements",
+      tests: [
+        ["for each card suit: the card is a {suit} if its suit is the suit",
+          [
+            "defineProp(Card.prototype, 'is_a_suit', {",
+            "  value: function(suit){ return (this.suit == suit) }",
+            "})",
+          ].join("\n")
+        ],
+      ]
+    }
+  ]
+});
+*/
