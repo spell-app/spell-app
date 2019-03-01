@@ -30,8 +30,8 @@ export class Match {
 
   // Return the full text that was matched
   get inputText() {
-    const { tokens, matchLength } = this;
-    return tokens.slice(0, matchLength).join("");
+    const { tokens, length } = this;
+    return tokens.slice(0, length).join("");
   }
 
   // Syntatic sugar to compile the output of the match.

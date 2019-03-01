@@ -6,7 +6,7 @@
 //  If SUCCESSFUL,   it will return a new `Match()` object which is guaranteed to have:
 //    - `match.rule`        : pointer back to the rule.
 //    - `match.matched`     : array of *significant* tokens that were actually matched.
-//    - `match.matchLength` : number of tokens actually consumed (`matched` may not contain them all)
+//    - `match.length` : number of tokens actually consumed (`matched` may not contain them all)
 //    ... and other rule-specific values.
 //
 //  The match returned can be manipulated with:
@@ -146,7 +146,7 @@ Rule.TokenType = class tokenType extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[0]],
-      matchLength: 1,
+      length: 1,
       scope
     });
   }
@@ -184,7 +184,7 @@ Rule.Literal = class literal extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[0]],
-      matchLength: 1,
+      length: 1,
       scope
     });
   }
@@ -249,11 +249,11 @@ Rule.Literals = class literals extends Rule {
 
   parse(scope, tokens) {
     if (!this.testAtStart(scope, tokens, 0)) return undefined;
-    const matchLength = this.literals.length;
+    const length = this.literals.length;
     return new Match({
       rule: this,
-      matched: tokens.slice(0, matchLength),
-      matchLength,
+      matched: tokens.slice(0, length),
+      length,
       scope
     });
   }
@@ -338,7 +338,7 @@ Rule.Pattern = class pattern extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[0]],
-      matchLength: 1,
+      length: 1,
       scope
     });
   }
@@ -486,7 +486,7 @@ Rule.Choice = class choices extends Rule {
     // Return the longest rule (???)
     let longest;
     for (let i = highPriority.length; match = highPriority[--i];) {
-      if (!longest || match.matchLength >= longest.matchLength) longest = match;
+      if (!longest || match.length >= longest.length) longest = match;
     }
     return longest;
   }
@@ -532,15 +532,15 @@ Rule.Repeat = class repeat extends Rule {
     if (this.testAtStart(scope, tokens, 0) === false) return undefined;
 
     const matched = [];
-    let matchLength = 0;
+    let length = 0;
 
     let remainingTokens = tokens;
     while (remainingTokens.length) {
       let match = this.rule.parse(scope, remainingTokens);
       if (!match) break;
       matched.push(match);
-      matchLength += match.matchLength;
-      remainingTokens = remainingTokens.slice(match.matchLength);
+      length += match.length;
+      remainingTokens = remainingTokens.slice(match.length);
     }
 
     // Forget it if nothing matched at all
@@ -551,7 +551,7 @@ Rule.Repeat = class repeat extends Rule {
     return new Match({
       rule: this,
       matched,
-      matchLength,
+      length,
       scope
     });
   }
@@ -589,7 +589,7 @@ Rule.List = class list extends Rule {
     if (this.testAtStart(scope, tokens, 0) === false) return undefined;
 
     let matched = [];
-    let matchLength = 0;
+    let length = 0;
     let remainingTokens = tokens;
     while (remainingTokens.length) {
       // get next item, exiting if not found
@@ -597,15 +597,15 @@ Rule.List = class list extends Rule {
       if (!item) break;
 
       matched.push(item);
-      matchLength += item.matchLength;
-      remainingTokens = remainingTokens.slice(item.matchLength);
+      length += item.length;
+      remainingTokens = remainingTokens.slice(item.length);
 
       // get delimiter, exiting if not found
       let delimiter = this.delimiter.parse(scope, remainingTokens);
       if (!delimiter) break;
       // NOTE: we do not push the delimiter into matched, but we do count it's length.
-      matchLength += delimiter.matchLength;
-      remainingTokens = remainingTokens.slice(delimiter.matchLength);
+      length += delimiter.length;
+      remainingTokens = remainingTokens.slice(delimiter.length);
     }
 
     // If we didn't get any matches, forget it.
@@ -614,7 +614,7 @@ Rule.List = class list extends Rule {
     return new Match({
       rule: this,
       matched,
-      matchLength,
+      length,
       scope
     });
   }
@@ -642,7 +642,7 @@ Rule.List = class list extends Rule {
 // `start` (required) is the start token string
 // `end` (required) is the end token string
 // `rule` (required) is the middle bit, which is probably a sequence
-// Returns the match of the rule, with `matchLength` adjusted for the delimiters
+// Returns the match of the rule, with `length` adjusted for the delimiters
 Rule.Nested = class nesting extends Rule {
   parse(scope, tokens) {
     if (this.resetRules) scope = scope.resetRules();
@@ -652,10 +652,10 @@ Rule.Nested = class nesting extends Rule {
     const match = this.rule.parse(scope, tokens.slice(1, end));
     if (!match) return;
     // if we didn't get everything, forget it
-    if (match.matchLength + 1 !== end) return undefined;
+    if (match.length + 1 !== end) return undefined;
     // account for the start and end delimiters
     match.tokens = tokens;
-    match.matchLength += 2;
+    match.length += 2;
     return match;
   }
 
@@ -704,14 +704,14 @@ Rule.NestedSplit = class nesting extends Rule.Nested {
       if (i === 0 && this.prefix) {
         prefix = this.prefix.parse(scope, tokenGroup);
         if (!prefix && !prefix.optional) return undefined;
-        if (prefix) tokenGroup = tokenGroup.slice(prefix.matchLength);
+        if (prefix) tokenGroup = tokenGroup.slice(prefix.length);
       }
       const match = this.rule.parse(scope, tokenGroup);
       if (!match) return undefined;
 
-      if (match.matchLength !== tokenGroup.length) {
+      if (match.length !== tokenGroup.length) {
 // console.warn(match.compile());
-// console.warn("didn't consume enough:", tokenGroup.splice(match.matchLength).map(token => token.value));
+// console.warn("didn't consume enough:", tokenGroup.splice(match.length).map(token => token.value));
 // console.warn(scope.rules.rule);
         return undefined;
       }
@@ -721,7 +721,7 @@ Rule.NestedSplit = class nesting extends Rule.Nested {
       rule: this,
       prefix,
       groups,
-      matchLength: end + 1,
+      length: end + 1,
       scope
     });
   }
@@ -790,7 +790,7 @@ Rule.Sequence = class sequence extends Rule {
     if (this.test(scope, tokens) === false) return undefined;
 
     const matched = [];
-    let matchLength = 0;
+    let length = 0;
 
     let remainingTokens = tokens;
     for (let i = 0, rule; rule = this.rules[i++];) {
@@ -806,15 +806,15 @@ Rule.Sequence = class sequence extends Rule {
       }
 
       matched.push(match);
-      matchLength += match.matchLength;
-      remainingTokens = remainingTokens.slice(match.matchLength);
+      length += match.length;
+      remainingTokens = remainingTokens.slice(match.length);
     }
 
     // if we get here, we matched all the rules!
     return new Match({
       rule: this,
       matched,
-      matchLength,
+      length,
       scope
     })
   }

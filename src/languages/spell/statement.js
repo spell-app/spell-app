@@ -58,7 +58,7 @@ const block_line = parser.defineRule({
 
       // eat whitespace at front if found
       const whitespace = scope.parser.rules.eat_whitespace.parse(scope, tokens);
-      if (whitespace) start = whitespace.matchLength;
+      if (whitespace) start = whitespace.length;
 
       // pop comment off of the end if found
       const last = tokens[tokens.length - 1];
@@ -72,13 +72,13 @@ const block_line = parser.defineRule({
       // If no match and no comment, forget it (ignoring whitespace).
       if (!match && !comment) return;
 
-      if (match && match.matchLength !== remainingTokens.length) {
-        console.warn("statement didn't match", remainingTokens.slice(match.matchLength));
+      if (match && match.length !== remainingTokens.length) {
+        console.warn("statement didn't match", remainingTokens.slice(match.length));
       }
 
       // If only comment, return that.
       if (!match) {
-        comment.matchLength = tokens.length;
+        comment.length = tokens.length;
         return comment;
       }
 
@@ -88,11 +88,11 @@ const block_line = parser.defineRule({
 
       // If the parser wants to output source, grab tokens now.
       if (scope.parser.outputSource) {
-        match.source = remainingTokens.slice(0, match.matchLength).join("").trim();
+        match.source = remainingTokens.slice(0, match.length).join("").trim();
       }
 
       // Assume we ate the entire line
-      match.matchLength = tokens.length;
+      match.length = tokens.length;
       return match;
     }
   }
@@ -118,12 +118,12 @@ parser.defineRule({
       const statementRule = scope.getRuleOrDie("statement");
 
       let matched = [];
-      let matchLength = 0;
+      let length = 0;
 
       block.contents.forEach(item => {
         if (item.length === 0) {
           matched.push(new Rule.BlankLine());
-          matchLength += 1;
+          length += 1;
         }
         // got a nested block
         else if (item instanceof Token.Block) {
@@ -140,21 +140,21 @@ parser.defineRule({
           const lastMatch = matched[matched.length - 1];
           if (lastMatch && lastMatch.rule instanceof SpellParser.BlockStatement) {
             lastMatch.block = nested;
-            lastMatch.matchLength += nested.matchLength;
+            lastMatch.length += nested.length;
           }
           // otherwise just add it to the matched items
           else {
             console.warn("got a nested block when we weren't expecting one");
             matched.push(nested);
           }
-          matchLength += nested.matchLength;
+          length += nested.length;
         }
         // Got a single statement, parse the entire thing as a `block_line`
         else {
           const match = block_line.parse(scope, item);
           if (!match) return;
           matched = matched.concat(match);
-          matchLength += match.matchLength;
+          length += match.length;
 
           // if statement has an updateScope() rule, call it!
           match.updateScope();
@@ -167,7 +167,7 @@ parser.defineRule({
         rule: this,
         matched,
         tokens: block.tokens,
-        matchLength,
+        length,
         indent: block.indent,
         scope,
       })
