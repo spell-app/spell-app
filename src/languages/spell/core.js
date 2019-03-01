@@ -10,6 +10,15 @@ import {
 const parser = new SpellParser({ module: "core" });
 export default parser;
 
+// Eat all whitespace at token start
+parser.defineRule({
+  name: "eat_whitespace",
+  syntax: "{whitespace}*",
+  compile(match) {
+    return match.matched.map(whitespace => whitespace.compile()).join(" ");
+  }
+});
+
 // Any whitespace.
 parser.defineRule({
   name: "whitespace",
