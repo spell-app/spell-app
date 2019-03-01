@@ -33,7 +33,7 @@ export class Match {
   }
 
   // Syntatic sugar to compile the output of the match.
-  compile() { return this.rule.compile(this) }
+  compile() { return this.rule.compile(this, this.scope) }
 
   // "name" for this match
   // TODO: this is too much, figure out what we're actually using here...

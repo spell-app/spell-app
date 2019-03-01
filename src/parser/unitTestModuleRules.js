@@ -102,7 +102,7 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
         console.warn(`ERROR PARSING: "${input}": ${match.message}`);
       }
       else {
-        console.warn(`ERROR PARSING: "${input}"\n   match: `, omit(match, ["tokens", "rule"]));
+        console.warn(`ERROR PARSING: "${input}"\n   match: `, omit(match, ["tokens", "rule", "scope"]));
       }
     }
     if (typeof result === "string" && typeof output === "string") {

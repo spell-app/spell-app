@@ -16,6 +16,10 @@ import {
   Tokenizer,
 } from "./all.js";
 
+
+// Output source when rendering statements
+SpellParser.prototype.outputSource = true;
+
 // Set Parser / Tokenizer debug flags
 Parser.WARN = true;
 Parser.DEBUG = true;

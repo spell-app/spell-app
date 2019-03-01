@@ -147,7 +147,8 @@ Rule.TokenType = class tokenType extends Rule {
       rule: this,
       matched: [tokens[0]],
       tokens,
-      matchLength: 1
+      matchLength: 1,
+      scope
     });
   }
 
@@ -185,7 +186,8 @@ Rule.Literal = class literal extends Rule {
       rule: this,
       matched: [tokens[0]],
       tokens,
-      matchLength: 1
+      matchLength: 1,
+      scope
     });
   }
 
@@ -254,7 +256,8 @@ Rule.Literals = class literals extends Rule {
       rule: this,
       matched: tokens.slice(0, matchLength),
       tokens,
-      matchLength
+      matchLength,
+      scope
     });
   }
 
@@ -339,7 +342,8 @@ Rule.Pattern = class pattern extends Rule {
       rule: this,
       matched: [tokens[0]],
       tokens,
-      matchLength: 1
+      matchLength: 1,
+      scope
     });
   }
 
@@ -552,7 +556,8 @@ Rule.Repeat = class repeat extends Rule {
       rule: this,
       matched,
       tokens,
-      matchLength
+      matchLength,
+      scope
     });
   }
 
@@ -615,7 +620,8 @@ Rule.List = class list extends Rule {
       rule: this,
       matched,
       tokens,
-      matchLength
+      matchLength,
+      scope
     });
   }
 
@@ -722,7 +728,8 @@ Rule.NestedSplit = class nesting extends Rule.Nested {
       prefix,
       groups,
       tokens,
-      matchLength: end + 1
+      matchLength: end + 1,
+      scope
     });
   }
 
@@ -815,7 +822,8 @@ Rule.Sequence = class sequence extends Rule {
       rule: this,
       matched,
       tokens,
-      matchLength
+      matchLength,
+      scope
     })
   }
 

@@ -8,6 +8,7 @@ import {
   SpellParser,
   Token,
 
+  getTabs,
   isWhitespace,
   proto
 } from "./all.js";
@@ -42,10 +43,14 @@ const commentRule = parser.defineRule({
   ]
 });
 
-const statementLine = parser.defineRule({
-  name: "statementLine",
+
+// Parse a single statement line.
+// NOTE: we pop any comment off the end manually in `parse()`
+//       and then add it to the `matched` array if we found one.
+const blockLine = parser.defineRule({
+  name: "blockLine",
   syntax: "{whitespace}* {statement}",
-  constructor: class statementLine extends Rule.Sequence {
+  constructor: class blockLine extends Rule.Sequence {
     parse(scope, tokens) {
       // pop comment off of the end if found
       let comment;
@@ -73,12 +78,20 @@ const statementLine = parser.defineRule({
       }
       return match;
     }
-    compile(match) {
-      const { whitespace = "", statement, comment = ""} = match.results;
-      if (comment) comment = `  ${comment}`;
-//      if (whitespace) whitespace = whitespace.join("");
-//      return `${whitespace}${statement}${comment}`
-      return `${statement}${comment}`
+    compile(match, scope) {
+      let { whitespace = "", statement, comment} = match.results;
+      const output = [];
+      // Output text that was actually matched
+      if (scope.parser.outputSource) {
+        const matchedText = match.tokens.slice(0, match.matchLength).join("").trim();
+        output.push("// SPELL: '" + matchedText + "'");
+      }
+      // Put comment FIRST, before translation
+      else if (comment) {
+       output.push(comment);
+      }
+      output.push(`${whitespace}${statement}`);
+      return output;
     }
   }
 });
@@ -135,14 +148,13 @@ parser.defineRule({
           }
           matchLength += nested.matchLength;
         }
-        // Got a single statement, parse the entire thing as a `statementLine`
+        // Got a single statement, parse the entire thing as a `blockLine`
         else {
-          const match = statementLine.parse(scope, item);
+          const match = blockLine.parse(scope, item);
           if (match) {
             matched = matched.concat(match);
             matchLength += match.matchLength;
           }
-  //        else console.warn("parseBlock expected statement, got", match);
         }
       });
 
@@ -153,7 +165,8 @@ parser.defineRule({
         matched,
         tokens,
         matchLength,
-        indent: block.indent
+        indent: block.indent,
+        scope,
       })
     }
 
@@ -190,11 +203,9 @@ parser.defineRule({
           );
         }
       }
-      let lines = (match.indent || match.enclose)
-        ? "\t" + results.join("\n\t")
-        : results.join("\n");
-
-      if (match.enclose) return `{\n${lines}\n}`;
+      const tabs = getTabs(match.indent || 0);
+      let lines = `${tabs}${results.join("\n"+tabs)}`
+      if (match.enclose) return `{\n${lines}\n${tabs.slice(1)}}`;
       return lines;
     }
   }
