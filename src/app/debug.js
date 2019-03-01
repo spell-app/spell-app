@@ -19,6 +19,7 @@ import {
 
 // Output source when rendering statements
 SpellParser.prototype.outputSource = true;
+SpellParser.prototype.outputScope = true;
 
 // Set Parser / Tokenizer debug flags
 Parser.WARN = true;
