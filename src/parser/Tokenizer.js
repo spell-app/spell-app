@@ -33,6 +33,10 @@ export class Tokenizer {
 
   // Tokenize text between `start` and `end` into an array of `token` `results`.
   tokenize = (text, start = 0, end) => {
+    // Replace `¬` with `\n` and `∆` with `\t`.
+    // We use these to see tabs and returns in debugging output more easily.
+    text = text.replace(/¬/g, "\n").replace(/∆/g, "\t");
+
     if (typeof end !== "number" || end > text.length) end = text.length;
     // quick return out of range or only whitespace
     if (start >= end || !text.trim()) return [];
