@@ -150,10 +150,12 @@ parser.defineRule({
         // Got a single statement, parse the entire thing as a `blockLine`
         else {
           const match = blockLine.parse(scope, item);
-          if (match) {
-            matched = matched.concat(match);
-            matchLength += match.matchLength;
-          }
+          if (!match) return;
+          matched = matched.concat(match);
+          matchLength += match.matchLength;
+
+          // if statement has an updateScope() rule, call it!
+          match.matches?.statement.updateScope();
         }
       });
 
@@ -181,7 +183,7 @@ parser.defineRule({
           statement = next.compile() || "";
         } catch (e) {
           console.error(e);
-          console.warn("Error compiling statements: ", match, "statement:", next);
+          console.warn("Error compiling statements: match\n", match.toPrint(), "\nstatement:", next);
         }
 
 //console.info(next, "\n", statement);

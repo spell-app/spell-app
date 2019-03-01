@@ -249,10 +249,10 @@ parser.defineRule({
 
 
 
+// TODO: arguments
 parser.defineRule({
   name: "to_do_something",
   alias: ["statement", "mutatesScope"],
-  // TODO: arguments
   syntax: "to (keywords:{word}|{type})+ :? {statement}?",
   constructor: class define_type extends SpellParser.BlockStatement {
     getResults(match) {
@@ -261,31 +261,60 @@ parser.defineRule({
     }
     compile(match) {
       const { Types, method, args, instanceMethod, instanceArgs, statements } = match.results;
-      return [
-//TODO: want to add to scope ???
-        `export function ${method}(${args.join(", ")}) ${statements}`,
-      ].join("\n")
+      // If this is associated with a type, add it to the type
+      if (Types.length) {
+        const Type = Types[0];
+        return [
+          // class method calls the instance method
+          `defineProp(${Type}, '${method}', {`,
+          `  value: function(${args}) ${statements}`,
+          `})`
+        ].join("\n");
+      }
+      else {
+        // otherwise add it as a global method
+        return [
+  //TODO: want to add to scope ???
+          `export function ${method}(${args.join(", ")}) ${statements}`,
+        ].join("\n")
+      }
     }
     updateScope(match, scope) {
-      const { method, args, rules } = match.results;
-      scope.addMethod({ key: method, args });
-
-      // add a rule to match the new syntax, e.g. spell `add {card} to {pile}`
-      scope.addStatement({
-        name: method,
-        syntax: rules.join(" "),
-        compile(match) {
-          const { args } = match.results;
-          return `${method}(${args.join(", ")})`;
-        }
-      })
+      const { types, Types, method, args, instanceMethod, instanceArgs, statements, rules } = match.results;
+      if (types.length) {
+        const type = types[0];
+        scope.addInstanceMethod({ type, key:instanceMethod, args: instanceArgs });
+        scope.addMethod({ type, key:method, args });
+        scope.addStatement({
+          name: method,
+          syntax: rules,
+          compile({ results: { callArgs } }) {
+            return `${Types[0]}.${method}(${callArgs.join(", ")})`;
+          }
+        });
+      }
+      else {
+        scope.addMethod({ key: method, args });
+        // add a rule to match the new syntax, e.g. spell `add {callArgs:card} to {callArgs:pile}`
+        scope.addStatement({
+          name: method,
+          syntax: rules,
+          compile(match) {
+            const { callArgs } = match.results;
+            return `${method}(${callArgs.join(", ")})`;
+          }
+        });
+      }
     }
   },
   tests: [
     {
       compileAs: "statements",
       tests: [
-        ["to turn a card face up:", "export function turn_card_face_up(card) {}" ],
+        [
+          "to start the game",
+          "export function start_the_game() {}"
+        ],
         [
           [
             "to add a card to a pile:",
@@ -293,10 +322,11 @@ parser.defineRule({
             "\tadd the card to the pile"
           ].join("\n"),
           [
-            "export function add_card_to_pile(card, pile) {",
+            "defineProp(Card, 'add_card_to_pile', {",
+            "  value: function(card, pile) {",
             "\tspell.remove(card?.pile, card)",
             "\tspell.append(pile, card)",
-            "}",
+            "})",
           ].join("\n")
         ],
       ]
@@ -480,18 +510,12 @@ parser.defineRule({
 // "card is a queen" or "card is a queen of clubs"
 // Possibilities:
 //   a card "is a (rank)" for its ranks
-//   a card "is a (rank) of (suits)" for card ranks and card suits
-//
-//   say "card is a (rank)" for each card rank
-//   say "card is a (rank) of (suits)" for each card rank and card suit
-//
-//   for card ranks: card "is a (rank)"
-//   for card ranks and suits: card "is a (rank) of (suit)"
+//   a card "is a (rank) of (suits)" for its ranks and its suits
 
 parser.defineRule({
   name: "type_is_a_enum",
   alias: ["statement", "mutatesScope"],
-  syntax: "(article:a|an) {type:word} is (a|an) \{ {property:identifier} \} if {expression}",
+  syntax: "(article:a|an) {type:word} is (a|an) \\( {property:identifier} \\) if {expression}",
   constructor: class type_is_a_enum extends Rule.Sequence {
     getResults(match) {
       const results = super.getResults(match);

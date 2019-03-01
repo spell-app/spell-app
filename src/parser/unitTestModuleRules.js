@@ -10,7 +10,6 @@
 
 import groupBy from "lodash/groupBy";
 import isEqual from "lodash/isEqual";
-import omit from "lodash/omit";
 
 import {
   ParseError,
@@ -102,7 +101,7 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
         console.warn(`ERROR PARSING: "${input}": ${match.message}`);
       }
       else {
-        console.warn(`ERROR PARSING: "${input}"\n   match: `, omit(match, ["tokens", "rule", "scope"]));
+        console.warn(`ERROR PARSING: "${input}"\n   match: `, match.toPrint());
       }
     }
     if (typeof result === "string" && typeof output === "string") {

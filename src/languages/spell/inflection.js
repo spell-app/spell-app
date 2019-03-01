@@ -50,7 +50,8 @@ export function inflectResultsArray(results, key) {
 //    method: "add_card_to_pile",
 //    args: ["card, pile"],
 //    instanceMethod: "add_to_pile",
-//    instanceArgs: ", pile"
+//    instanceArgs: ["pile"],
+//    rules: "add ${callArgs:expression} to ${callArgs:expression}"
 //  }
 //
 export function parseMethodKeywords(results) {
@@ -75,7 +76,7 @@ export function parseMethodKeywords(results) {
     if (isType) {
       word = singularize(word);
       types.push(word);
-      rules.push(`{arg:expression}`);
+      rules.push(`{callArgs:expression}`);
     }
     else {
       rules.push(word);
@@ -95,7 +96,7 @@ export function parseMethodKeywords(results) {
       // skip the first type
       instanceArgs: types.slice(1),
       // rules
-      rules
+      rules: rules.join(" ")
     }
   };
 }

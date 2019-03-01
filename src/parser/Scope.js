@@ -55,21 +55,21 @@ export class Scope {
 
   // Add a new type to this scope.
   addType(props) {
-console.warn("TODO: scope.addType()", props);
+console.debug("TODO: scope.addType()", props);
     const { type, superType } = props;
   }
 
   // Add a property to some object
   // `key` may be a string or an array (will be used as `literals` for a rule)
   addProperty(props) {
-console.warn("TODO: scope.addProperty()", props);
+console.debug("TODO: scope.addProperty()", props);
     const { type, key, datatype, value } = props;
   }
 
   // Add an instance property to some object.
   // `key` may be a string or an array (will be used as `literals` for a rule)
   addInstanceProperty(props) {
-console.warn("TODO: scope.addInstanceProperty()");
+console.debug("TODO: scope.addInstanceProperty()", props);
     const { type, key, datatype, value } = props;
   }
 
@@ -79,7 +79,7 @@ console.warn("TODO: scope.addInstanceProperty()");
   // `key` may be a string or an array (will be used as `literals` for a rule)
   // `returns` is the return datatype.
   addMethod(props) {
-console.warn("TODO: scope.addMethod()", props);
+console.debug("TODO: scope.addMethod()", props);
     const { type, key, args, returns } = props;
   }
 
@@ -88,27 +88,27 @@ console.warn("TODO: scope.addMethod()", props);
   // `key` may be a string or an array (will be used as `literals` for a rule)
   // `returns` is the return datatype.
   addInstanceMethod(props) {
-console.warn("TODO: scope.addInstanceMethod()");
+console.debug("TODO: scope.addInstanceMethod()", props);
     const { type, key, args, datatype, value } = props;
   }
 
   // Add an identifier, which may be composed of more than one word!
   // `key` may be a string or an array (will be used as `literals` for a rule)
   addIdentifier(props) {
-console.warn("TODO: scope.addIdentifier()", props);
+console.debug("TODO: scope.addIdentifier()", props);
     const { key, value } = props;
   }
 
   // Add a constant identifier.
   // `key` may be a string or an array (will be used as `literals` for a rule)
   addConstant(props) {
-console.warn("TODO: scope.addConstant()", props);
+console.debug("TODO: scope.addConstant()", props);
     const { key, value } = props;
   }
 
   // Add syntax for a new statement rule.
   addStatement(props) {
-console.warn("TODO: scope.addStatement()", props);
+console.debug("TODO: scope.addStatement()", props);
     const { name, syntax, compile } = props;
   }
 
@@ -116,7 +116,7 @@ console.warn("TODO: scope.addStatement()", props);
   //  `syntax` may or may not start "is"
   // TODO: auto-add "are xxx" to refer to a group?
   addIsExpression(props) {
-console.warn("TODO: scope.addStatement()", props);
+console.debug("TODO: scope.addStatement()", props);
     const { syntax, compile } = props;
   }
 

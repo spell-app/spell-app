@@ -1,3 +1,5 @@
+import omit from "lodash/omit";
+
 import { Tokenizer } from "./all.js";
 import { memoize } from "../utils/all.js";
 
@@ -35,6 +37,13 @@ export class Match {
   // Syntatic sugar to compile the output of the match.
   compile() { return this.rule.compile(this, this.scope) }
 
+  // Call the updateScope() rule of our rule, if defined.
+  // NOTE: THIS MODIFIES THE SCOPE!!
+  //  You should only call this when you're sure you got a good match!!
+  updateScope() {
+    if (this.rule.updateScope) this.rule.updateScope(this, this.scope);
+  }
+
   // "name" for this match
   // TODO: this is too much, figure out what we're actually using here...
   get name() {
@@ -50,5 +59,13 @@ export class Match {
   // Precedence of the match
   get precedence() {
     return this.rule.getPrecedence(this);
+  }
+
+  // Call this when printing to the console to eliminate the big bits.
+  toPrint() {
+    return {
+      rule: this.rule.name,
+      ...omit(this, ["tokens", "rule"])
+    };
   }
 }
