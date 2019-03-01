@@ -14,7 +14,7 @@ export default parser;
 // Alert a message.
 parser.defineRule({
   name: "alert",
-  alias: ["statement", "mutatesScope", "async"],
+  alias: ["statement", "updatesScope", "async"],
   syntax: "alert {message:expression} (?:with {okButton:text})?",
   testRule: "alert",
   // TODO: need some fancy promise juju to make parent funtion async?

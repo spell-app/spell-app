@@ -20,19 +20,16 @@ export class Match {
 
   // Syntactic sugar to easily get `results` of the match for sequences, etc.
   // Only works for some rule types.
+  // NOTE: memoizing this is a bit dodgy
+  //   -- if BlockStatements stop working, it may be that results is getting called too early.
   @memoize
-  get results() { return this.rule.getResults?.(this) }
+  get results() { return this.rule.getResults?.(this, this.scope) }
 
-  @memoize
   // Syntactic sugar for getting the matches as a map.
   // Only works for some rule types.
-  get matches() { return this.rule.getMatches?.(this) }
-
-  // Return the full text that was matched
-  get inputText() {
-    const { tokens, length } = this;
-    return tokens.slice(0, length).join("");
-  }
+// NOTE: not currently used...
+//   @memoize
+//   get matches() { return this.rule.getMatches?.(this, this.scope) }
 
   // Syntatic sugar to compile the output of the match.
   compile() { return this.rule.compile(this, this.scope) }
@@ -65,7 +62,7 @@ export class Match {
   toPrint() {
     return {
       rule: this.rule.name,
-      ...omit(this, ["tokens", "rule"])
+      ...omit(this, ["rule", "scope"])
     };
   }
 }

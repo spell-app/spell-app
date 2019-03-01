@@ -18,7 +18,7 @@ export default parser;
 
 parser.defineRule({
   name: "create_type",
-  alias: ["statement", "mutatesScope"],
+  alias: ["statement", "updatesScope"],
   syntax: "create type {type:identifier} (?:as (a|an) {superType:identifier})?",
   constructor: class create_type extends Rule.Sequence {
     getResults(match) {
@@ -155,7 +155,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "define_property_has",
-  alias: ["statement", "mutatesScope"],
+  alias: ["statement", "updatesScope"],
   syntax: "{?:type_has_prefix} (a|an) {property:identifier} {initializer:type_initializer}?",
   testRule: "…(has|have)",
   constructor: class define_type extends Rule.Sequence {
@@ -165,7 +165,7 @@ parser.defineRule({
     }
     compile(match) {
       const { Type, Properties, property, initializer } = match.results;
-      if (initializer.enum) {
+      if (initializer?.enum) {
         return [
           `defineProp(${Type}, '${Properties}', { value: ${JSON5.stringify(initializer.enum)} })`,
           `defineProp(${Type}.prototype, '${Properties}', { value: ${Type}.${Properties} })`,
@@ -175,18 +175,20 @@ parser.defineRule({
           `})`
         ].join("\n");
       }
-      else if (initializer.datatype) {
-        const datatype = initializer.datatype;
-        return [
-          `defineProp(${Type}.prototype, '${property}', {`,
-          `  get() { return this.#${property} }`,
-          `  set(${property}) { if ($.isType(${property}, '${datatype}')) this.#${property} = ${property} }`,
-          `})`
-        ].join("\n");
+      else {
+        const datatype = initializer?.datatype;
+        if (datatype) {
+          return [
+            `defineProp(${Type}.prototype, '${property}', {`,
+            `  get() { return this.#${property} }`,
+            `  set(${property}) { if ($.isType(${property}, '${datatype}')) this.#${property} = ${property} }`,
+            `})`
+          ].join("\n");
+        }
       }
     }
     updateScope(match, scope) {
-      const { type, property, properties, Properties, initializer } = match.results;
+      const { Type, type, property, properties, Properties, initializer } = match.results;
 
       if (initializer?.enum) {
         const enumProps = {
@@ -203,13 +205,13 @@ parser.defineRule({
         scope.addInstanceProperty({ key: properties}, enumProps);
 
         // Add identifier which points back to the class enum, e.g. spell `Card suits` or `card suits`
-        scope = scope.addIdentifier({
+        scope.addIdentifier({
           key: [ [Type,type], properties ],
           compile: enumProps.compile
         });
 
         // Add any string enums as constants
-        initialzer.enum.forEach(value => {
+        initializer.enum.forEach(value => {
           if (typeof value === "string") scope.addConstant({ key: value, value });
         });
       }
@@ -252,7 +254,7 @@ parser.defineRule({
 // TODO: arguments
 parser.defineRule({
   name: "to_do_something",
-  alias: ["statement", "mutatesScope"],
+  alias: ["statement", "updatesScope"],
   syntax: "to (keywords:{word}|{type})+ :? {statement}?",
   constructor: class define_type extends SpellParser.BlockStatement {
     getResults(match) {
@@ -316,16 +318,18 @@ parser.defineRule({
           "export function start_the_game() {}"
         ],
         [
-          [
+          [ // TODO: this rule is recursive!!!
+            // although it might work here since we're defining the rule AFTER parsing the contents... ???
             "to add a card to a pile:",
             "\tremove the card from the pile of the card",      // TODO: `its pile`
             "\tadd the card to the pile"
           ].join("\n"),
           [
             "defineProp(Card, 'add_card_to_pile', {",
-            "  value: function(card, pile) {",
+            "  value: function(card,pile) {",
             "\tspell.remove(card?.pile, card)",
             "\tspell.append(pile, card)",
+            "}",
             "})",
           ].join("\n")
         ],
@@ -339,7 +343,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "quoted_property_name",
-  alias: ["statement", "mutatesScope"],
+  alias: ["statement", "updatesScope"],
   //  e.g. `a card "is face up" if ...`
   //  NOTE: the first word in quotes must be "is" !!
   syntax: '(a|an) {type:identifier} {text} if {expression}',
@@ -410,7 +414,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "property_value_either",
-  alias: ["statement", "mutatesScope"],
+  alias: ["statement", "updatesScope"],
   syntax: "{?:property_of_a_type} is {value:identifier} if {expression} (?:otherwise it is {otherValue:identifier})?",
   constructor: class type_is_a_enum extends Rule.Sequence {
     getResults(match) {
@@ -459,7 +463,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "property_value_expression",
-  alias: ["statement", "mutatesScope"],
+  alias: ["statement", "updatesScope"],
   syntax: "{?:property_of_a_type} is {expression}",
   constructor: class type_is_a_enum extends Rule.Sequence {
     getResults(match) {
@@ -514,7 +518,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "type_is_a_enum",
-  alias: ["statement", "mutatesScope"],
+  alias: ["statement", "updatesScope"],
   syntax: "(article:a|an) {type:word} is (a|an) \\( {property:identifier} \\) if {expression}",
   constructor: class type_is_a_enum extends Rule.Sequence {
     getResults(match) {
@@ -551,7 +555,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "type_is_a_enum_for",
-  alias: ["statement", "mutatesScope"],
+  alias: ["statement", "updatesScope"],
   syntax: "for each {type:word} {property:identifier} : the {type2:identifier} is (article:a|an) \{ {property2:identifier} \} if {expression}",
   updateScope(match, scope) {
     // TODO: somehow we have to get ahold of the enum!!!

@@ -115,12 +115,9 @@ parser.defineRule({
     // NOTE: we assume we should reset `scope.rules` because we're entering a new parsing context
     parseBlock(scope, block) {
       scope = scope.resetRules();
-      const statementRule = scope.getRuleOrDie("statement");
 
       let matched = [];
-      let length = 0;
-
-      block.contents.forEach(item => {
+      for (var i = 0, item; item = block.contents[i]; i++) {
         if (item.length === 0) {
           matched.push(new Rule.BlankLine());
           length += 1;
@@ -130,44 +127,44 @@ parser.defineRule({
           const nested = this.parseBlock(scope, item);
           if (!nested) {
             console.info("expected nested result, didn't get anything");
-            return;
+            continue;
           }
-          nested.indent = item.indent;
-          nested.enclose = true;
-
-          // If the last statement is a `BlockStatement`,
-          //  give it the block
-          const lastMatch = matched[matched.length - 1];
-          if (lastMatch && lastMatch.rule instanceof SpellParser.BlockStatement) {
-            lastMatch.block = nested;
-            lastMatch.length += nested.length;
-          }
-          // otherwise just add it to the matched items
           else {
             console.warn("got a nested block when we weren't expecting one");
             matched.push(nested);
           }
-          length += nested.length;
         }
         // Got a single statement, parse the entire thing as a `block_line`
         else {
-          const match = block_line.parse(scope, item);
-          if (!match) return;
-          matched = matched.concat(match);
-          length += match.length;
+          const statement = block_line.parse(scope, item);
+          if (!statement) return;
+          matched = matched.concat(statement);
 
-          // if statement has an updateScope() rule, call it!
-          match.updateScope();
+          // the statement is a BlockStatement and the next item is a Block
+          // parse it and give it to the statement.
+          if (statement.rule instanceof SpellParser.BlockStatement) {
+            const next = block.contents[i+1];
+            if (next instanceof Token.Block) {
+              const nestedBlock = this.parseBlock(scope, next);
+              if (nestedBlock) {
+                nestedBlock.enclose = true;
+                statement.block = nestedBlock;
+                i++;
+              }
+            }
+          }
+
+          // Tell the statement to update the scope if it cares to.
+          // NOTE: this is safe because we know we're going to accept the statement.
+          statement.updateScope();
         }
-      });
+      };
 
       if (matched.length === 0) return undefined;
 
       return new Match({
         rule: this,
         matched,
-        tokens: block.tokens,
-        length,
         indent: block.indent,
         scope,
       })
