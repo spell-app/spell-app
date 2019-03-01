@@ -715,8 +715,8 @@ export class Tokenizer {
   // ### Block / indent processing
   //
 
-  // Break tokens into an array of arrays by `NEWLINE`s.
-  // Returns an array of lines WITHOUT the `NEWLINE`s.
+  // Break tokens into an array of arrays by `Token.Newline`s.
+  // Returns an array of lines WITHOUT the `Newline`s but WITH any leading `Token.Indent`s.
   // Lines which are composed solely of whitespace are treated as blank.
   breakIntoLines(tokens) {
     // Convert to lines.
@@ -726,7 +726,7 @@ export class Tokenizer {
       // add new array for each newline
       if (token instanceof Token.Newline) {
         // create a new line and push it in
-        currentLine = [token];
+        currentLine = [];
         return lines.push(currentLine);
       }
 
@@ -735,9 +735,9 @@ export class Tokenizer {
     });
 
     // Clear any lines that are only whitespace
-    lines.forEach((line, index) => {
+    for (var index = 0, line; line = lines[index]; index++) {
       if (line.length === 1 && line[0] instanceof Token.Whitespace) lines[index] = [];
-    });
+    }
 
     return lines;
   }
@@ -783,12 +783,9 @@ export class Tokenizer {
     return 0;
   }
 
-  // Break `tokens` between `start` and `end` into a `Token.Block` with nested `contents`.
-  // Skips "normal" whitespace and indents in the results.
-  breakIntoBlocks(tokens, start = 0, end = tokens.length) {
-    // restrict to tokens of interest
-    tokens = tokens.slice(start, end);
-
+  // Break `tokens` into a `Token.Block` with nested `contents`.
+  // Each `block` is a series of lines, with newline/indent at the start.
+  breakIntoBlocks(tokens) {
     // break into lines & return early if no lines
     const lines = this.breakIntoLines(tokens);
     if (lines.length === 0) return [];
@@ -797,8 +794,8 @@ export class Tokenizer {
     const indents = this.getLineIndents(lines);
 
     // First block is at the MINIMUM indent of all lines!
-    const maxIndent = Math.min.apply(Math, indents);
-    const block = new Token.Block({ indent: maxIndent });
+    const minIndent = Math.min.apply(Math, indents);
+    const block = new Token.Block({ indent: minIndent, tokens });
 
     // stack of blocks
     const stack = [block];
@@ -827,6 +824,6 @@ export class Tokenizer {
       top.contents.push(line);
     });
 
-    return block;
+    return [block];
   }
 }

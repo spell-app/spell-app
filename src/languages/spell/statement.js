@@ -106,13 +106,12 @@ parser.defineRule({
     // Split statements up into blocks and parse 'em.
     parse(scope, tokens) {
       if (!tokens.length) return;
-      var block = scope.parser.tokenizer.breakIntoBlocks(tokens);
-      return this.parseBlock(scope, tokens, block);
+      return this.parseBlock(scope, tokens[0]);
     }
 
     // Parse an entire `block`, returning array of matched elements (NOT as a match).
     // NOTE: we assume we should reset `scope.rules` because we're entering a new parsing context
-    parseBlock(scope, tokens, block) {
+    parseBlock(scope, block) {
       scope = scope.resetRules();
       const statementRule = scope.getRuleOrDie("statement");
 
@@ -126,7 +125,7 @@ parser.defineRule({
         }
         // got a nested block
         else if (item instanceof Token.Block) {
-          const nested = this.parseBlock(scope, tokens, item);
+          const nested = this.parseBlock(scope, item);
           if (!nested) {
             console.info("expected nested result, didn't get anything");
             return;
@@ -163,7 +162,7 @@ parser.defineRule({
       return new Match({
         rule: this,
         matched,
-        tokens,
+        tokens: block.tokens,
         matchLength,
         indent: block.indent,
         scope,

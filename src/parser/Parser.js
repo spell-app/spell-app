@@ -43,12 +43,6 @@ export class Parser {
   // Name of our default rule to parse if calling `parser.parse(text)`.
   @proto defaultRule = "statements";
 
-  // Default tokenizer.  You may want to create one in your parser subclasses,
-  //  e.g. to change the whitespacePolicy.
-  @proto tokenizer = new Tokenizer({
-    whitespacePolicy: WhitespacePolicy.LEADING_ONLY
-  });
-
   // Constructor.
   constructor(properties) {
     Object.assign(this, properties);
@@ -57,13 +51,28 @@ export class Parser {
   //
   //### Tokenizing
   //
-  tokenize(text) {
+
+  // Default tokenizer.  You may want to create one in your parser subclasses,
+  //  e.g. to change the whitespacePolicy.
+  @proto tokenizer = new Tokenizer({
+    whitespacePolicy: WhitespacePolicy.LEADING_ONLY
+  });
+
+  // Tokenize input `text`.
+  // `ruleName` is there in case you want to tokenize differently for different top-level rules.
+  tokenize(text, ruleName) {
     return this.tokenizer.tokenize(text);
   }
 
   //
   //### Parsing
   //
+
+  // Return a scope object we'll use for parsing.
+  getParsingScope() {
+    return new Scope(this);
+  }
+
   // Parse `ruleName` rule at head of `text`.
   // If you pass only one argument, we'll assume that's `text` and you want to match `statements`.
   // Handles optional and repeating rules as well as eating whitespace.
@@ -77,12 +86,12 @@ export class Parser {
     }
 
     // Bail if we didn't get any tokens back.
-    const tokens = this.tokenize(text);
+    const tokens = this.tokenize(text, ruleName);
     if (!tokens || tokens.length === 0) return undefined;
 
     if (Parser.TIME) console.time("parse");
     // Parse the rule or throw an exception if rule not found.
-    const scope = new Scope(this);
+    const scope = this.getParsingScope();
     const rule = scope.getRuleOrDie(ruleName);
     const result = rule.parse(scope, tokens, 0, tokens.length);
     if (Parser.TIME) console.timeEnd("parse");

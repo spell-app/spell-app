@@ -16,5 +16,12 @@ export class SpellParser extends Parser {
     // Remove "normal" whitespace (leaving newlines and indents) when parsing
     whitespacePolicy: WhitespacePolicy.LEADING_ONLY
   });
+
+  // If we're tokenizing "statements", parse them into blocks.
+  tokenize(text, ruleName) {
+    const tokens = super.tokenize(text);
+    if (ruleName === "statements") return this.tokenizer.breakIntoBlocks(tokens);
+    return tokens;
+  }
 }
 
