@@ -65,12 +65,12 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
       return;
     }
 
-    // Normalize tests as `[input, output]` to `{ title: input, input, output }`
+    // Normalize tests as `[input, output]` to `{ input, output }`
     tests = tests
       .map(test => {
         if (Array.isArray(test)) {
           const [input, output] = test;
-          test = { title: showWhitespace(input), input, output };
+          test = { input, output };
         }
         // skip blank tests or where `skip` is true
         if (test.skip || test.input === "") return undefined;
@@ -104,11 +104,13 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
         console.warn(`ERROR PARSING: "${input}"\n   match: `, match.toPrint());
       }
     }
+
+    let testTitle = (title ? `${title}: '` : "'") + showWhitespace(input) + "'";
     if (typeof result === "string" && typeof output === "string") {
       // Show returns and tabs in the output display
-      test(title, () => expect(showWhitespace(result)).toBe(showWhitespace(output)));
+      test(testTitle, () => expect(showWhitespace(result)).toBe(showWhitespace(output)));
     } else {
-      test(title, () => expect(result).toEqual(output));
+      test(testTitle, () => expect(result).toEqual(output));
     }
 
     // if we were successful, see if match.inputText is the same as the output

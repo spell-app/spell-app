@@ -10,7 +10,7 @@ import {
 const parser = new SpellParser({ module: "core" });
 export default parser;
 
-// Eat all whitespace at token start
+// Eat all whitespace at start of tokens.
 parser.defineRule({
   name: "eat_whitespace",
   syntax: "{whitespace}*",

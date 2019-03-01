@@ -146,7 +146,6 @@ Rule.TokenType = class tokenType extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[0]],
-      tokens,
       matchLength: 1,
       scope
     });
@@ -185,7 +184,6 @@ Rule.Literal = class literal extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[0]],
-      tokens,
       matchLength: 1,
       scope
     });
@@ -255,7 +253,6 @@ Rule.Literals = class literals extends Rule {
     return new Match({
       rule: this,
       matched: tokens.slice(0, matchLength),
-      tokens,
       matchLength,
       scope
     });
@@ -341,7 +338,6 @@ Rule.Pattern = class pattern extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[0]],
-      tokens,
       matchLength: 1,
       scope
     });
@@ -555,7 +551,6 @@ Rule.Repeat = class repeat extends Rule {
     return new Match({
       rule: this,
       matched,
-      tokens,
       matchLength,
       scope
     });
@@ -619,7 +614,6 @@ Rule.List = class list extends Rule {
     return new Match({
       rule: this,
       matched,
-      tokens,
       matchLength,
       scope
     });
@@ -727,7 +721,6 @@ Rule.NestedSplit = class nesting extends Rule.Nested {
       rule: this,
       prefix,
       groups,
-      tokens,
       matchLength: end + 1,
       scope
     });
@@ -821,7 +814,6 @@ Rule.Sequence = class sequence extends Rule {
     return new Match({
       rule: this,
       matched,
-      tokens,
       matchLength,
       scope
     })
