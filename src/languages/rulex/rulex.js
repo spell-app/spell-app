@@ -46,6 +46,45 @@ rulex.applyFlags = function applyFlags(rule, flags) {
   return rule;
 }
 
+// Consolidate runs of literals in `rules` of type `constructor` together.
+rulex.consolidateLiterals = function(rules, constructor, literalKey, groupConstructor = constructor) {
+  if (rules.length === 1) return rules;
+
+  const results = [];
+  for (let start = 0, rule; rule = rules[start]; start++) {
+    if (rule instanceof constructor && (!rule.isAdorned || rule.optional)) {
+      // find the end of the run
+      let end = start;
+      for (let next; next = rules[end+1]; end++) {
+        if (!(next instanceof constructor && (!next.isAdorned || next.optional))) break;
+      }
+      if (end > start) {
+        // combine literals into a single map
+        const literals = rules.slice(start, end + 1)
+          .map(rule => {
+            const literal = rule[literalKey];
+            if (!rule.optional) return literal;
+
+            // make sure optionals are arrays and add the optional flag to the array
+            return rulex.makeOptionalArray(literal);
+          });
+        rule = new groupConstructor(literals);
+        start = end;
+      }
+    }
+    results.push(rule);
+  }
+  return results;
+}
+
+// Given a value as an array or a single value, turn it into an `optional` array.
+rulex.makeOptionalArray = function(value) {
+  const array = Array.isArray(value) ? value.concat() : [value];
+  array.optional = true;
+  return array;
+}
+
+
 
 //
 //  Rules for flags in rulex syntax
@@ -367,7 +406,6 @@ rulex.defineRule({
 })
 
 
-
 rulex.defineRule({
   constructor: Rule.Sequence,
   name: "choices",
@@ -391,13 +429,13 @@ rulex.defineRule({
     let { choices } = results;
     let rule;
 
-    // If all choices are single keywords, combine
-    if (choices.length > 1 && choices.every(rule => rule instanceof Rule.Keyword && !rule.isAdorned)) {
-      rule = new Rule.Keyword(choices.map(rule => rule.literal));
-    }
+    // Combine single keyword, keywords, symbol, symbols
+    choices = rulex.consolidateLiterals(choices, Rule.Keyword, "literal");
+    choices = rulex.consolidateLiterals(choices, Rule.Symbol, "literal");
+
     // If we got exactly one choice which is not a `statement`, use that.
     // Note that the choice's flags will "beat" the rule's flags if they conflict.
-    else if (choices.length === 1 && (choices[0].name !== "statement")) {
+    if (choices.length === 1 && (choices[0].name !== "statement")) {
       rule = choices[0];
     }
     else {
@@ -488,29 +526,18 @@ rulex.defineRule({
   name: "statement",
   rule: new Rule.Subrule("rule"),
   compile(match, scope) {
-    const matched = match.matched.map(match => match.compile());
+    let matched = match.matched.map(match => match.compile());
+
+    // Consolidate keywords and symbols
+    matched = rulex.consolidateLiterals(matched, Rule.Keyword, "literal", Rule.Keywords);
+    matched = rulex.consolidateLiterals(matched, Rule.Symbol, "literal", Rule.Symbols);
+
     let rules = [];
     for (let start = 0, rule; rule = matched[start]; start++) {
       // Consolidate sequences
       if (rule instanceof Rule.Sequence && !rule.isAdorned) {
         rules.push(...rule.rules);
         continue;
-      }
-      // Consolidate runs of literals:
-      // Ignore anything that's not a Literal or literals that are "adorned"
-      if (rule instanceof Rule.Literal && !rule.isAdorned) {
-        let end = start;
-        // figure out how long the run of the same type is
-        for (let next; next = matched[end + 1]; end++) {
-          if (!(next instanceof rule.constructor) || next.isAdorned) break;
-        }
-        if (end > start) {
-          const literals = matched.slice(start, end + 1).map(rule => rule.literal);
-          rule = rule instanceof Rule.Keyword
-            ? new Rule.Keywords({ literals })
-            : new Rule.Symbols({ literals });
-          start = end;
-        }
       }
       rules.push(rule);
     }
@@ -553,33 +580,15 @@ rulex.defineRule({
       showAll: true,
       tests: [
         [">=", new Rule.Symbols([">", "="])],
-        [">(=)?",
-          new Rule.Sequence(
-            new Rule.Symbol({ literal: ">" }),
-            new Rule.Symbol({ literal: "=", optional: true})
-          )
-        ],
+        [">(=)?", new Rule.Symbols([">", rulex.makeOptionalArray("=")])],
+        ["(>|<) (=)?", new Rule.Symbols([[">","<"], rulex.makeOptionalArray("=")])],
 
         ["a b c", new Rule.Keywords(["a", "b", "c"])],
-        ["a? b c",
-          new Rule.Sequence(
-            new Rule.Keyword({ literal: "a", optional: true }),
-            new Rule.Keywords(["b", "c"])
-          )
-        ],
-        ["a b? c",
-          new Rule.Sequence(
-            new Rule.Keyword("a"),
-            new Rule.Keyword({ literal: "b", optional: true }),
-            new Rule.Keyword("c")
-          )
-        ],
-        ["a b c?",
-          new Rule.Sequence(
-            new Rule.Keywords(["a", "b"]),
-            new Rule.Keyword({ literal: "c", optional: true }),
-          )
-        ],
+        ["a? b c", new Rule.Keywords([ rulex.makeOptionalArray("a"), "b", "c" ])],
+        ["a b? c", new Rule.Keywords([ "a", rulex.makeOptionalArray("b"), "c" ])],
+        ["a b c?", new Rule.Keywords([ "a", "b", rulex.makeOptionalArray("c") ])],
+
+        ["(a|b) c? d (e|f)?", new Rule.Keywords([ ["a","b"], rulex.makeOptionalArray("c"), "d", rulex.makeOptionalArray(["e", "f"]) ])],
       ]
     }
   ]

@@ -41,9 +41,9 @@ describe("Rule.Symbols", () => {
     describe("test() method", () => {
       describe("TEST_AT_START", () => {
         const rule = new Rule.Symbols(">");
-        it("returns true if present at the start of tokens", () => {
+        it("returns a non-zero number if present at the start of tokens", () => {
           const test = rule.test(new Scope(parser), tokenize(">"));
-          expect(test).toBe(true);
+          expect(test).toBe(1);
         });
 
         it("returns false if not present at the start of tokens", () => {
@@ -90,9 +90,9 @@ describe("Rule.Symbols", () => {
     describe("test() method", () => {
       describe("TEST_AT_START", () => {
         const rule = new Rule.Symbols(">=");
-        it("returns true if present at the start of tokens", () => {
+        it("returns a non-zero number if present at the start of tokens", () => {
           const test = rule.test(new Scope(parser), tokenize(">= b"));
-          expect(test).toBe(true);
+          expect(test).toBe(2);
         });
 
         it("returns false if not present at the start of tokens", () => {
@@ -228,9 +228,9 @@ describe("Rule.Keywords", () => {
 
       describe("TEST_AT_START", () => {
         const rule = new Rule.Keywords("this that");
-        it("returns true if present at the start of tokens", () => {
+        it("returns a non-zero number if present at the start of tokens", () => {
           const test = rule.test(new Scope(parser), tokenize("this that"));
-          expect(test).toBe(true);
+          expect(test).toBe(2);
         });
 
         it("returns false if not present at start of tokens", () => {

@@ -105,7 +105,7 @@ export class Rule {
     let undefinedFound = false;
     for (let start = 0, length = tokens.length; start < length; start++) {
       const result = this.testAtStart(scope, tokens, start);
-      if (result === true) return true;
+      if (result) return true;
       if (result === undefined) undefinedFound = true;
     }
     if (undefinedFound) return undefined;
@@ -230,27 +230,24 @@ Rule.Literals = class literals extends Rule {
   }
 
   testAtStart(scope, tokens, start = 0) {
-    const literals = this.literals;
-    const length = literals.length;
-    if (start + length > tokens.length) return false;
-
-    // Quick return if only one.
-    if (length === 1) return tokens[start].matchesLiteral(literals[0]);
-
-    // if more than one, make sure all the rest match
-    for (let i = 0; i < length; i++) {
-      if (!tokens[start + i].matchesLiteral(literals[i])) return false;
+    for (let i = 0, literal; literal = this.literals[i]; i++) {
+//console.info(i, literal, start, tokens[start]);
+      const matched = tokens[start]?.matchesLiteral(literal);
+      if (matched)
+        start++;
+      else if (!literal.optional)
+        return false;
     }
-    return true;
+    return start;
   }
 
   parse(scope, tokens) {
-    if (!this.testAtStart(scope, tokens, 0)) return undefined;
-    const length = this.literals.length;
+    const tokensMatched = this.testAtStart(scope, tokens, 0);
+    if (!tokensMatched) return undefined;
     return new Match({
       rule: this,
-      matched: tokens.slice(0, length),
-      length,
+      matched: tokens.slice(0, tokensMatched),
+      length: tokensMatched,
       scope
     });
   }
@@ -417,7 +414,7 @@ Rule.Choice = class choices extends Rule {
     let undefinedFound = false;
     for (let i = 0, rule; rule = this.rules[i]; i++) {
       const result = rule.testAtStart(scope, tokens, start);
-      if (result === true) return true;
+      if (result) return true;
       if (result === undefined) undefinedFound = true;
     }
     if (undefinedFound) return undefined;

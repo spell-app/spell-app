@@ -17,16 +17,16 @@ function testRule(rule) {
   alreadyTested[rule.syntax] = true;
 
   describe(`${rule.name}:  '${rule.syntax}'`, () => {
-    test(`rule.toSyntax() matches start rule`, () => {
-      expect(rule.toSyntax()).toBe(rule.syntax);
-    });
-
-    const testSyntax = rule.testRule?.syntax;
-    if (testSyntax) {
-      test(`test   '${testSyntax}'  test.toSyntax() matches start syntax`, () => {
-        expect(rule.testRule.toSyntax()).toBe(testSyntax);
-      });
-    }
+//     test(`rule.toSyntax() matches start rule`, () => {
+//       expect(rule.toSyntax()).toBe(rule.syntax);
+//     });
+//
+//     const testSyntax = rule.testRule?.syntax;
+//     if (testSyntax) {
+//       test(`test   '${testSyntax}'  test.toSyntax() matches start syntax`, () => {
+//         expect(rule.testRule.toSyntax()).toBe(testSyntax);
+//       });
+//     }
   });
 }
 

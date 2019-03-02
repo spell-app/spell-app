@@ -387,7 +387,7 @@ parser.defineRule({
   alias: "expression",
   syntax:
     "{list:expression!list_membership_test} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
-  testRule: "…(has|has no|doesnt have|does not have)",
+  testRule: "…(has|have)",
   precedence: 2,
   compile(match, scope) {
     const { identifier, operator, filter, list } = match.results;
