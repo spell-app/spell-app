@@ -424,8 +424,7 @@ const factory = new ReduxFactory({
       ACTION: "SAVE_FILE",
       async: true,
       getParams({ projectId, index }) {
-        const fileName = this.getIndexName(projectId);
-        return { projectId, fileName, contents: index}
+        return { projectId, fileName: PROJECT_INDEX_FILE_NAME, contents: index}
       }
     },
 

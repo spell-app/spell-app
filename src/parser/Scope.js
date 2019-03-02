@@ -57,21 +57,21 @@ export class Scope {
 
   // Add a new type to this scope.
   addType(props) {
-    this.parser.info("TODO: scope.addType()", props);
+    this.parser.debug("TODO: scope.addType()", props);
     const { type, superType } = props;
   }
 
   // Add a property to some object
   // `key` may be a string or an array (will be used as `literals` for a rule)
   addProperty(props) {
-    this.parser.info("TODO: scope.addProperty()", props);
+    this.parser.debug("TODO: scope.addProperty()", props);
     const { type, key, datatype, value } = props;
   }
 
   // Add an instance property to some object.
   // `key` may be a string or an array (will be used as `literals` for a rule)
   addInstanceProperty(props) {
-    this.parser.info("TODO: scope.addInstanceProperty()", props);
+    this.parser.debug("TODO: scope.addInstanceProperty()", props);
     const { type, key, datatype, value } = props;
   }
 
@@ -81,7 +81,7 @@ export class Scope {
   // `key` may be a string or an array (will be used as `literals` for a rule)
   // `returns` is the return datatype.
   addMethod(props) {
-    this.parser.info("TODO: scope.addMethod()", props);
+    this.parser.debug("TODO: scope.addMethod()", props);
     const { type, key, args, returns } = props;
   }
 
@@ -90,30 +90,30 @@ export class Scope {
   // `key` may be a string or an array (will be used as `literals` for a rule)
   // `returns` is the return datatype.
   addInstanceMethod(props) {
-    this.parser.info("TODO: scope.addInstanceMethod()", props);
+    this.parser.debug("TODO: scope.addInstanceMethod()", props);
     const { type, key, args, datatype, value } = props;
   }
 
   // Add an identifier, which may be composed of more than one word!
   // `key` may be a string or an array (will be used as `literals` for a rule)
   addIdentifier(props) {
-    this.parser.info("TODO: scope.addIdentifier()", props);
+    this.parser.debug("TODO: scope.addIdentifier()", props);
     const { key, value } = props;
   }
 
   // Add a constant identifier.
   // `key` may be a string or an array (will be used as `literals` for a rule)
   addConstant(props) {
-    this.parser.info("TODO: scope.addConstant()", props);
+    this.parser.debug("TODO: scope.addConstant()", props);
     const { key, value } = props;
   }
 
   // Add syntax for a new statement rule.
   addStatement(props) {
-    this.parser.info("TODO: scope.addStatement()", props);
+    this.parser.debug("TODO: scope.addStatement()", props);
     const { name, syntax, compile } = props;
     try {
-      const rule = this.parser.defineRule({ name, syntax, compile });
+      const rule = this.parser.defineRule({ name, syntax, compile, alias: "statement" });
       this.parser.info("defined rule: ", rule);
     }
     catch(e) { console.error(e); }
@@ -123,7 +123,7 @@ export class Scope {
   //  `syntax` may or may not start "is"
   // TODO: auto-add "are xxx" to refer to a group?
   addIsExpression(props) {
-    this.parser.info("TODO: scope.addIsExpression()", props);
+    this.parser.debug("TODO: scope.addIsExpression()", props);
     const { syntax, compile } = props;
   }
 

@@ -128,10 +128,10 @@ export class _SpellEditor extends React.Component {
                 </NavDropdown>
                 <Navbar.Collapse id="navbar-buttons" className="ml-2">
                   <Nav>
-                    <Nav.Link onSelect={this.create}><u>N</u>ew</Nav.Link>
-                    <Nav.Link onSelect={this.duplicate}>Duplicate</Nav.Link>
-                    <Nav.Link onSelect={this.rename}>Rename</Nav.Link>
-                    <Nav.Link onSelect={this._delete}><u>D</u>elete</Nav.Link>
+                    <Nav.Link onClick={this.create}><u>N</u>ew</Nav.Link>
+                    <Nav.Link onClick={this.duplicate}>Duplicate</Nav.Link>
+                    <Nav.Link onClick={this.rename}>Rename</Nav.Link>
+                    <Nav.Link onClick={this._delete}><u>D</u>elete</Nav.Link>
                   </Nav>
                 </Navbar.Collapse>
               </Nav>
