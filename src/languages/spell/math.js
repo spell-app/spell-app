@@ -16,12 +16,10 @@ parser.defineRule({
   name: "gt_lt",
   alias: "infix_operator",
 //  precedence: 11,
-  literal: ["<",">"],
-  constructor: class gt_lt extends Rule.Symbol {
-    applyOperator(match, scope) {
-      const { lhs, operator, rhs } = match.results;
-      return `(${lhs} ${operator} ${rhs})`;
-    }
+  syntax: "(<|>) =?",
+  applyOperator(match, scope) {
+    const { lhs, operator, rhs } = match.results;
+    return `(${lhs} ${operator} ${rhs})`;
   },
   tests: [
     {
@@ -29,30 +27,13 @@ parser.defineRule({
       tests: [
         { title: "> with spaces", input: "a > b", output: "(a > b)" },
         { title: "> without spaces", input: "a>b", output: "(a > b)" },
-        { title: "< with spaces", input: "a < b", output: "(a < b)" },
-        { title: "< without spaces", input: "a<b", output: "(a < b)" }
-      ]
-    }
-  ]
-});
 
-parser.defineRule({
-  name: "gte_lte",
-  alias: "infix_operator",
-//  precedence: 11,
-  literals: [["<",">"], "="],
-  constructor: class gt_lt extends Rule.Symbols {
-    applyOperator(match, scope) {
-      const { lhs, operator, rhs } = match.results;
-      return `(${lhs} ${operator} ${rhs})`;
-    }
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
+        { title: "< with spaces", input: "a < b", output: "(a < b)" },
+        { title: "< without spaces", input: "a<b", output: "(a < b)" },
+
         { title: ">= with spaces", input: "a >= b", output: "(a >= b)" },
         { title: ">= without spaces", input: "a>=b", output: "(a >= b)" },
+
         { title: "<= with spaces", input: "a <= b", output: "(a <= b)" },
         { title: "<= without spaces", input: "a<=b", output: "(a <= b)" }
       ]
@@ -65,10 +46,11 @@ parser.defineRule({
   name: "is_gt_lt",
   alias: "infix_operator",
   precedence: 11,
-  syntax: "is (direction:greater|less) than (equal_to:or equal to)?",
+  syntax: "(direction:is (greater|less) than) (equal_to:or equal to)?",
+  testRule: "is (greater|less)",
   applyOperator(match, scope) {
     const { lhs, operator, rhs } = match.results;
-    let symbol = (operator.direction === "greater" ? ">" : "<");
+    let symbol = (operator.direction.includes("greater") ? ">" : "<");
     if (operator.equal_to) symbol += "=";
     return `(${lhs} ${symbol} ${rhs})`;
   },
@@ -87,7 +69,7 @@ parser.defineRule({
 
 
 parser.defineRule({
-  name: "plus_symbol",
+  name: "arithmetic_symbols",
   alias: "infix_operator",
   precedence: 13,
   pattern: /^(\+|-|\*|\/)$/,
@@ -116,60 +98,36 @@ parser.defineRule({
 });
 
 parser.defineRule({
-  name: "plus",
+  name: "arithmetic_names",
   alias: "infix_operator",
   precedence: 13,
-  syntax: "plus",
+  syntax: "(plus|minus|times)",
+  valueMap: {
+    plus: "+",
+    minus: "-",
+    times: "*",
+    "divided by": "/"
+  },
   applyOperator(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} + ${rhs})`;
+    const { lhs, operator, rhs } = match.results;
+    return `(${lhs} ${this.valueMap[operator]} ${rhs})`;
   },
   tests: [
     {
       compileAs: "expression",
-      tests: [["a plus b", "(a + b)"]]
+      tests: [
+        ["a plus b", "(a + b)"],
+        ["a minus b", "(a - b)"],
+        ["a times b", "(a * b)"],
+      ]
     }
   ]
 });
 
 parser.defineRule({
-  name: "minus",
+  name: "arithmetic_names",
   alias: "infix_operator",
   precedence: 13,
-  syntax: "minus",
-  applyOperator(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} - ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["a minus b", "(a - b)"]]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "times",
-  alias: "infix_operator",
-  precedence: 14,
-  syntax: "times",
-  applyOperator(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} * ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["a times b", "(a * b)"]]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "divided_by",
-  alias: "infix_operator",
-  precedence: 14,
   syntax: "divided by",
   applyOperator(match, scope) {
     const { lhs, rhs } = match.results;
@@ -178,7 +136,9 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
-      tests: [["a divided by b", "(a / b)"]]
+      tests: [
+        ["a divided by b", "(a / b)"],
+      ]
     }
   ]
 });
