@@ -7,44 +7,46 @@ import {
 // Parsing scope.
 export class Scope {
   constructor(props) {
-    if (props instanceof Parser)
-      this.parser = props;
-    else
-      Object.assign(this, props);
-
+    if (props instanceof Parser) props = { parser: props };
+    Object.assign(this, props);
     if (!this.parser) throw new ParseError("Scope created without parser!");
-    if (!this.rules) this.rules = this.parser.rules;
   }
 
   getRuleOrDie(ruleName) {
-    const rule = this.rules[ruleName];
+    let rule = this.parser.rules[ruleName];
     if (!rule) throw new ParseError(`getRuleOrDie('${ruleName}'): rule not found`);
+
+    if (this.excludes && this.excludes[ruleName]) {
+      const excludes = this.excludes[ruleName];
+      rule = rule.clone();
+      rule.rules = rule.rules.filter(rule => !excludes.includes(rule.name));
+    }
     return rule;
   }
 
-  // Return a clone of this scope with its rules reset.
+  // Return a clone of this scope with all `excludes` reset
   resetRules() {
     const clone = new Scope(this);
-    clone.rules = this.parser.rules;
+    delete clone.excludes;
     return clone;
   }
 
   // Return a clone of this scope, removing rules in `rules[ruleName]`
-  //  that have names in the `excludes` list.
+  //  that `exclude` another named rule.
+  //
   // Throws if rule can't be found or it's not a Group.
-  cloneExcludingRules(ruleName, excludes) {
-    const clone = new Scope(this);
-    // clone the rules object so we can muck with it
-    clone.rules = { ...this.rules };
-
-    const rule = clone.getRuleOrDie(ruleName);
+  cloneExcludingRules(ruleName, exclude) {
+    // throw if rule is not a Group
+    const rule = this.getRuleOrDie(ruleName);
     if (!(rule instanceof Rule.Group))
         throw new ParseError(`cloneExcludingRules(): expected ${ruleName} to be a Group!`);
 
-    // Clone the rule and remove the excluded rules
-    clone.rules[ruleName] = rule.clone();
-    clone.rules[ruleName].rules = rule.rules.filter(rule => !excludes.includes(rule.name));
-
+    const clone = new Scope(this);
+    // clone the `excludes` map if we have one
+    clone.excludes = {...clone.excludes};
+    clone.excludes[ruleName] = clone.excludes[ruleName]
+      ? clone.excludes[ruleName].concat(exclude)
+      : [exclude];
     return clone;
   }
 
@@ -55,21 +57,21 @@ export class Scope {
 
   // Add a new type to this scope.
   addType(props) {
-console.debug("TODO: scope.addType()", props);
+    this.parser.info("TODO: scope.addType()", props);
     const { type, superType } = props;
   }
 
   // Add a property to some object
   // `key` may be a string or an array (will be used as `literals` for a rule)
   addProperty(props) {
-console.debug("TODO: scope.addProperty()", props);
+    this.parser.info("TODO: scope.addProperty()", props);
     const { type, key, datatype, value } = props;
   }
 
   // Add an instance property to some object.
   // `key` may be a string or an array (will be used as `literals` for a rule)
   addInstanceProperty(props) {
-console.debug("TODO: scope.addInstanceProperty()", props);
+    this.parser.info("TODO: scope.addInstanceProperty()", props);
     const { type, key, datatype, value } = props;
   }
 
@@ -79,7 +81,7 @@ console.debug("TODO: scope.addInstanceProperty()", props);
   // `key` may be a string or an array (will be used as `literals` for a rule)
   // `returns` is the return datatype.
   addMethod(props) {
-console.debug("TODO: scope.addMethod()", props);
+    this.parser.info("TODO: scope.addMethod()", props);
     const { type, key, args, returns } = props;
   }
 
@@ -88,35 +90,40 @@ console.debug("TODO: scope.addMethod()", props);
   // `key` may be a string or an array (will be used as `literals` for a rule)
   // `returns` is the return datatype.
   addInstanceMethod(props) {
-console.debug("TODO: scope.addInstanceMethod()", props);
+    this.parser.info("TODO: scope.addInstanceMethod()", props);
     const { type, key, args, datatype, value } = props;
   }
 
   // Add an identifier, which may be composed of more than one word!
   // `key` may be a string or an array (will be used as `literals` for a rule)
   addIdentifier(props) {
-console.debug("TODO: scope.addIdentifier()", props);
+    this.parser.info("TODO: scope.addIdentifier()", props);
     const { key, value } = props;
   }
 
   // Add a constant identifier.
   // `key` may be a string or an array (will be used as `literals` for a rule)
   addConstant(props) {
-console.debug("TODO: scope.addConstant()", props);
+    this.parser.info("TODO: scope.addConstant()", props);
     const { key, value } = props;
   }
 
   // Add syntax for a new statement rule.
   addStatement(props) {
-console.debug("TODO: scope.addStatement()", props);
+    this.parser.info("TODO: scope.addStatement()", props);
     const { name, syntax, compile } = props;
+    try {
+      const rule = this.parser.defineRule({ name, syntax, compile });
+      this.parser.info("defined rule: ", rule);
+    }
+    catch(e) { console.error(e); }
   }
 
   // Add a new "is expression"
   //  `syntax` may or may not start "is"
   // TODO: auto-add "are xxx" to refer to a group?
   addIsExpression(props) {
-console.debug("TODO: scope.addStatement()", props);
+    this.parser.info("TODO: scope.addIsExpression()", props);
     const { syntax, compile } = props;
   }
 

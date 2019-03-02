@@ -81,7 +81,7 @@ import _snakeCase from "lodash/snakeCase";
 import { isNode } from "browser-or-node";
 import { applyMiddleware, bindActionCreators, combineReducers, compose, createStore } from "redux";
 
-import addDebugMethods, { DebugLevel } from "./utils/addDebugMethods.js";
+import { addDebugMethods, DebugLevel } from "../../utils/addDebugMethods.js";
 import makeDeferred from "./utils/makeDeferred.js";
 import { getPref, setPref } from './utils/prefs.js';
 
@@ -118,7 +118,7 @@ export default class ReduxFactory {
       throw new TypeError("new ReduxFactory(): you must pass 'domain' prop on construction.");
 
     // Make this instance debuggable with its domain as debug message prefix.
-    addDebugMethods(this.domain, this, ReduxFactory.DEBUG);
+    addDebugMethods(this, this.domain, ReduxFactory.DEBUG_LEVEL);
 
     // If we were passed a list of `actions`, set them up using `addAction` and `addAsyncAction`
     const { actions } = this;
@@ -603,7 +603,7 @@ export default class ReduxFactory {
           action = actionCreator.apply(this, args);
         }
         catch (e) {
-          // console.warn("actionCreator returned ", e);
+          // this.warn("actionCreator returned ", e);
           reject(e)
         }
         // If we got `IGNORE_ACTION` back, `once` has cancelled the action.
@@ -613,19 +613,8 @@ export default class ReduxFactory {
         }
 
         if (action.deferred) {
-          // action.deferred.then(
-          //   function(value){
-          //     console.warn("Resolved", value);
-          //     resolve(value)
-          //   },
-          //   function (error) {
-          //     console.warn("REjected", error);
-          //     reject(error);
-          //   }
-          // );
           action.deferred.then(resolve, reject);
         } else {
-          // console.warn("no deferred, resolving");
           resolve();
         }
 
@@ -888,5 +877,5 @@ export default class ReduxFactory {
 
 // Make class debuggable
 // We'll make isntances debuggable automatically on construction
-addDebugMethods("ReduxFactory", ReduxFactory, DebugLevel.WARN)
+addDebugMethods(ReduxFactory, "ReduxFactory", DebugLevel.WARN)
 

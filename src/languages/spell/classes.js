@@ -277,7 +277,7 @@ parser.defineRule({
         // otherwise add it as a global method
         return [
   //TODO: want to add to scope ???
-          `export function ${method}(${args.join(", ")}) ${statements}`,
+          `export function ${method}(${args}) ${statements}`,
         ].join("\n")
       }
     }
@@ -291,7 +291,7 @@ parser.defineRule({
           name: method,
           syntax: rules,
           compile({ results: { callArgs } }) {
-            return `${Types[0]}.${method}(${callArgs.join(", ")})`;
+            return `${Types[0]}.${method}(${callArgs})`;
           }
         });
       }
@@ -303,7 +303,7 @@ parser.defineRule({
           syntax: rules,
           compile(match) {
             const { callArgs } = match.results;
-            return `${method}(${callArgs.join(", ")})`;
+            return `${method}(${callArgs})`;
           }
         });
       }
@@ -320,15 +320,17 @@ parser.defineRule({
         [
           [ // TODO: this rule is recursive!!!
             // although it might work here since we're defining the rule AFTER parsing the contents... ???
-            "to add a card to a pile:",
+            "to move a card to a pile:",
             "\tremove the card from the pile of the card",      // TODO: `its pile`
-            "\tadd the card to the pile"
+            "\tadd the card to the pile",
+            "\tset the pile of the card to the pile"
           ].join("\n"),
           [
-            "defineProp(Card, 'add_card_to_pile', {",
+            "defineProp(Card, 'move_card_to_pile', {",
             "  value: function(card,pile) {",
             "\tspell.remove(card?.pile, card)",
             "\tspell.append(pile, card)",
+            "\tcard?.pile = pile",
             "}",
             "})",
           ].join("\n")

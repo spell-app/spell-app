@@ -73,7 +73,7 @@ const block_line = parser.defineRule({
       if (!match && !comment) return;
 
       if (match && match.length !== remainingTokens.length) {
-        console.warn("statement didn't match", remainingTokens.slice(match.length));
+        scope.parser.warn("statement didn't match", remainingTokens.slice(match.length));
       }
 
       // If only comment, return that.
@@ -126,11 +126,11 @@ parser.defineRule({
         else if (item instanceof Token.Block) {
           const nested = this.parseBlock(scope, item);
           if (!nested) {
-            console.info("expected nested result, didn't get anything");
+            scope.parser.info("expected nested result, didn't get anything");
             continue;
           }
           else {
-            console.warn("got a nested block when we weren't expecting one");
+            scope.parser.warn("got a nested block when we weren't expecting one");
             matched.push(nested);
           }
         }
@@ -194,11 +194,9 @@ parser.defineRule({
             statement = output.join("\n");
           }
         } catch (e) {
-          console.error(e);
-          console.warn("Error compiling statements: match\n", line.toPrint(), "\nstatement:", next);
+          scope.parser.error(e);
+          scope.parser.warn("Error compiling statements: match\n", line.toPrint(), "\nstatement:", next);
         }
-
-//console.info(next, "\n", statement);
 
         if (isWhitespace(statement)) {
           results.push("");

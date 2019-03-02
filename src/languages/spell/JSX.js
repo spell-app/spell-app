@@ -85,7 +85,7 @@ parser.defineRule({
   // Convert JSX expression ( `{...}` ) to JS source.
   jsxExpressionToSource(jsxExpression) {
     const tokens = jsxExpression.tokens;
-    //    console.info(jsxExpression, tokens);
+    //    this.info(jsxExpression, tokens);
     return "/" + `*TODO: ${tokens.join(" ")}*` + "/";
   },
 

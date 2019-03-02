@@ -23,9 +23,6 @@ import {
 } from "./all.js";
 
 
-// Show debug messages on browser only.
-const DEBUG = false;//!isNode;
-
 // Should we test at the start of the tokens, or anywhere in the range?
 export const TestLocation = {
   AT_START: "AT_START",
@@ -359,7 +356,7 @@ Rule.Pattern = class pattern extends Rule {
 
 // Subrule -- name of another rule to be called.
 // `rule.rule` is the name of the rule in `scope.rules`.
-// `rule.excludes` is an array of rule names we'll ignore when parsing this rule.
+// `rule.exclude` is the name of a rule we'll ignore when parsing this rule.
 //
 // After parsing
 //  we'll return the actual rule that was matched (rather than a clone of this rule)
@@ -379,9 +376,9 @@ Rule.Subrule = class subrule extends Rule {
     if (!tokens.length) return;
     if (this.resetRules) scope = scope.resetRules();
 
-    // if we have any excludes, get a clone of the scope without those rules
-    if (this.excludes) {
-      scope = scope.cloneExcludingRules(this.rule, this.excludes);
+    // if we have any exclude, get a clone of the scope without those rules
+    if (this.exclude) {
+      scope = scope.cloneExcludingRules(this.rule, this.exclude);
     }
     let rule = scope.getRuleOrDie(this.rule);
 
@@ -394,9 +391,9 @@ Rule.Subrule = class subrule extends Rule {
 
   toSyntax() {
     const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
-    const excludes = this.excludes ? `!${this.excludes.join("!")}` : "";
+    const exclude = this.exclude ? `!${this.exclude}` : "";
     return (
-      `${testLocation}{${promote}${argument}${this.rule}${excludes}}${optional}`
+      `${testLocation}{${promote}${argument}${this.rule}${exclude}}${optional}`
     );
   }
 };
@@ -433,7 +430,6 @@ Rule.Choice = class choices extends Rule {
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(scope, tokens) {
-    if (DEBUG) console.group(`matching '${this.argument || this.name || this.toSyntax()}'`, tokens);
     if (this.resetRules) scope = scope.resetRules();
 
     // Try to match each rule in turn.
@@ -446,11 +442,6 @@ Rule.Choice = class choices extends Rule {
     }
 
     let match = matches.length > 1 ? this.getBestMatch(matches) : matches[0];
-
-    if (DEBUG && matches.length > 1) matches.forEach((match, index) => console.log(index, match.name, match));
-    if (DEBUG && matches.length > 1) console.log("best match:", match);
-    if (DEBUG) console.groupEnd();
-
     if (!match) return;
 
     // assign special properties to the result
@@ -695,8 +686,6 @@ Rule.NestedSplit = class nesting extends Rule.Nested {
     const tokenGroups = this.splitTokens(scope, tokens.slice(1, end));
     if (tokenGroups === undefined) return;
 
-//console.warn(tokenGroups);
-
     let prefix;
     const groups = [];
     for (let i = 0, tokenGroup; tokenGroup = tokenGroups[i]; i++) {
@@ -710,9 +699,9 @@ Rule.NestedSplit = class nesting extends Rule.Nested {
       if (!match) return undefined;
 
       if (match.length !== tokenGroup.length) {
-// console.warn(match.compile());
-// console.warn("didn't consume enough:", tokenGroup.splice(match.length).map(token => token.value));
-// console.warn(scope.rules.rule);
+// scope.parser.warn(match.compile());
+// scope.parser.warn("didn't consume enough:", tokenGroup.splice(match.length).map(token => token.value));
+// scope.parser.warn(scope.rules.rule);
         return undefined;
       }
       groups.push(match);
@@ -826,11 +815,12 @@ Rule.Sequence = class sequence extends Rule {
 
   //TODOC
   // "gather" matched values into a map in preparation to call `compile(match)`
-  getResults({ rule, matched, comment }) {
+  getResults(match, scope) {
+    const { rule, matched, comment } = match;
     if (!matched) return undefined;
     let results = addResults({}, matched);
     if (comment) {
-      console.warn(`statement ${rule.name} got comment`, comment);
+      scope.parser.warn(`statement ${rule.name} got comment`, comment);
       results.comment = matched.comment;
     }
     return results;
@@ -861,11 +851,12 @@ Rule.Sequence = class sequence extends Rule {
 
   //TODOC
   // "gather" matched values into a map in preparation to call `compile(match)`
-  getMatches({ rule, matched, comment }) {
+  getMatches(match, scope) {
+    const { rule, matched, comment } = match;
     if (!matched) return undefined;
     let results = addResults({}, matched);
     if (comment) {
-      console.warn(`statement ${rule.name} got comment`, comment);
+      scope.parser.warn(`statement ${rule.name} got comment`, comment);
       results.comment = matched.comment;
     }
     return results;

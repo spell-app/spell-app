@@ -9,7 +9,7 @@ import parser from "./all.js";
 describe("broken rules:", () => {
 
   it.skip("doubly nested quotes", () => {
-    const match = parser.parse("text", "'\"Gadzooks! I can\\'t believe it!\" he said'");
+    const match = parser.parse("'\"Gadzooks! I can\\'t believe it!\" he said'", "text");
     expect(match.compile()).toBe("'\"Gadzooks! I can\'t believe it!\" he said'");
   });
 

@@ -13,6 +13,8 @@ import {
   Tokenizer,
   WhitespacePolicy,
 
+  addDebugMethods,
+  DebugLevel,
   cloneClass,
   proto,
   memoize,
@@ -31,14 +33,8 @@ import {
 const CLONE_CLASSES = !isNode;
 
 export class Parser {
-  // Set to `true` to output debug info while adding rules
-  @proto DEBUG = false;
-
-  // Should we warn about anomalous conditions?
-  static WARN = false;
-
-  // Set to `true` to output timing info.
-  static TIME = false;
+  // Set to `true` to output timing info for this parser.
+  @proto TIME = false;
 
   // Name of our default rule to parse if calling `parser.parse(text)`.
   @proto defaultRule = "statements";
@@ -46,6 +42,9 @@ export class Parser {
   // Constructor.
   constructor(properties) {
     Object.assign(this, properties);
+
+    // If we have a module specified, add debug methods under that module name
+    if (this.module) addDebugMethods(this, this.module);
   }
 
   //
@@ -77,23 +76,15 @@ export class Parser {
   // If you pass only one argument, we'll assume that's `text` and you want to match `statements`.
   // Handles optional and repeating rules as well as eating whitespace.
   // Returns result of parse.
-  //TESTME
-  parse(ruleName, text) {
-    // If only one argument, assume that's the text and parse `statements`
-    if (arguments.length === 1) {
-      text = ruleName;
-      ruleName = this.defaultRule;
-    }
-
+  parse(text, ruleName = this.defaultRule, scope = this.getParsingScope()) {
     // Bail if we didn't get any tokens back.
     const tokens = this.tokenize(text, ruleName);
     if (!tokens || tokens.length === 0) return undefined;
 
     if (Parser.TIME) console.time("parse");
     // Parse the rule or throw an exception if rule not found.
-    const scope = this.getParsingScope();
     const rule = scope.getRuleOrDie(ruleName);
-    const result = rule.parse(scope, tokens, 0, tokens.length);
+    const result = rule.parse(scope, tokens);
     if (Parser.TIME) console.timeEnd("parse");
     return result;
   }
@@ -101,14 +92,8 @@ export class Parser {
   // Parse `text` and return the resulting source code.
   //  - if one string argument, compiles as "statements"
   // Throws if not parseable.
-  //TESTME
-  compile(ruleName, text) {
-    // If only one argument, assume that's the text and parse `statements`
-    if (arguments.length === 1) {
-      text = ruleName;
-      ruleName = this.defaultRule;
-    }
-    let match = this.parse(ruleName, text);
+  compile(text, ruleName = this.defaultRule, scope = this.getParsingScope()) {
+    let match = this.parse(text, ruleName, scope);
     if (!match) {
       throw new ParseError(`parser.parse('${ruleName}', '${text}'): can't parse text`);
     }
@@ -147,7 +132,7 @@ export class Parser {
     }
 
     if (!(rule instanceof Rule)) {
-      console.error("addRule() called with a non-rule.  Did you mean to call defineRule()?\n", rule);
+      this.error("addRule() called with a non-rule.  Did you mean to call defineRule()?\n", rule);
       return;
     }
 
@@ -302,7 +287,10 @@ export class Parser {
       return rule;
     }
     catch (error) {
-      if (!isNode) console.warn("Error in defineRule():", error, "\nprops:", ruleProps);
+      if (!isNode) this.warn("Error in defineRule():", error, "\nprops:", ruleProps);
     }
   }
 }
+
+// Add debug methods to all parser instances.
+addDebugMethods(Parser.prototype, "parser", DebugLevel.WARN);

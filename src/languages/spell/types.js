@@ -192,7 +192,7 @@ parser.defineRule({
   alias: ["statement", "updatesScope"],
   syntax: "(scope:property|constant|shared property) {name:identifier} (?:= {value:expression})?",
   testRule: "(property|constant|shared)",
-  compile(match) {
+  compile(match, scope) {
     let { scope, name, value = "" } = match.results;
     if (value) value = ` = ${value}`;
 
@@ -200,7 +200,7 @@ parser.defineRule({
     switch (scope) {
       case "constant":
         if (!value)
-          console.warn(
+          scope.parser.warn(
             "parse('declare_property'): constant properties must declare a value:  ",
             this.matchedText
           );
@@ -348,12 +348,12 @@ parser.defineRule({
   syntax: "set {name:identifier} {args}? (\\:)? {statement}?",
   testRule: "set",
   constructor: SpellParser.BlockStatement,
-  compile(match) {
+  compile(match, scope) {
     // default args to the setter name
     let { name, args = name, statements } = match.results;
     // Complain if more than one argument
     if (args && args.includes(",")) {
-      console.warn("parse('setter'): only one argument allowed in setter:  ", args);
+      scope.parser.warn("parse('setter'): only one argument allowed in setter:  ", args);
       args = args.trim().split(",")[0];
     }
     return `set ${name}(${args}) ${statements}`;
@@ -462,13 +462,13 @@ parser.defineRule({
     if (_keywords.length === 1) {
       const keyword = keywords[0];
       if (_keywords[0].rule.name === "type") {
-        console.error(`parse('declare_action'): one-word actions may not be types: ${keyword}`);
+        scope.parser.error(`parse('declare_action'): one-word actions may not be types: ${keyword}`);
       }
       // TODO...
       //   let parser = (context && context.parser) || global.parser;
       //   let blacklist = parser.getBlacklist("identifier");
       //   if (blacklist[keyword]) {
-      //     console.error(`parse('declare_action'): one-word actions may not be blacklisted identifiers": ${keyword}`);
+      //     scope.parser.error(`parse('declare_action'): one-word actions may not be blacklisted identifiers": ${keyword}`);
       //   }
     }
 

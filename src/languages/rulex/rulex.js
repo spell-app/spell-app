@@ -274,7 +274,7 @@ rulex.defineRule({
           argument,
           new Rule.Word({ argument: "rule" }),
           new Rule.Symbol({ literal: "!", optional: true }),
-          new Rule.Word({ argument: "excludes", optional: true })
+          new Rule.Word({ argument: "exclude", optional: true })
         ]
       })
     }),
@@ -282,7 +282,7 @@ rulex.defineRule({
   ],
   compile({ results }) {
     const rule = new Rule.Subrule(results.rule);
-    if (results.excludes) rule.excludes = [ results.excludes ];
+    if (results.exclude) rule.exclude = results.exclude;
     return rulex.applyFlags(rule, results);
   },
   tests: [
@@ -294,7 +294,7 @@ rulex.defineRule({
         ["{}", new Rule.Symbol("{")],
 
         ["{sub}", new Rule.Subrule({ rule: "sub" }) ],
-        ["{sub!excluded}", new Rule.Subrule({ rule: "sub", excludes: [ "excluded" ] }) ],
+        ["{sub!excluded}", new Rule.Subrule({ rule: "sub", exclude: "excluded" }) ],
 
         ["…{sub}", new Rule.Subrule({ rule: "sub", testLocation: ANYWHERE }) ],
         ["{…sub}", new Rule.Subrule({ rule: "sub", testLocation: ANYWHERE }) ],
@@ -307,8 +307,8 @@ rulex.defineRule({
         ["{sub}*", new Rule.Repeat({ optional: true, rule: new Rule.Subrule({ rule: "sub" }) }) ],
 
         // arg/promote/testRule need to get promoted to the repeat
-        ["{…?:arg:sub!excluded}?", new Rule.Subrule({ testLocation: ANYWHERE, rule: "sub", excludes: [ "excluded" ], promote: true, argument: "arg", optional: true}) ],
-        ["{…?:arg:sub!excluded}*", new Rule.Repeat({ testLocation: ANYWHERE, promote: true, argument: "arg", optional: true, rule: new Rule.Subrule({ rule: "sub", excludes: ["excluded"] }) }) ],
+        ["{…?:arg:sub!excluded}?", new Rule.Subrule({ testLocation: ANYWHERE, rule: "sub", exclude: "excluded", promote: true, argument: "arg", optional: true}) ],
+        ["{…?:arg:sub!excluded}*", new Rule.Repeat({ testLocation: ANYWHERE, promote: true, argument: "arg", optional: true, rule: new Rule.Subrule({ rule: "sub", exclude: "excluded" }) }) ],
       ]
     }
   ]

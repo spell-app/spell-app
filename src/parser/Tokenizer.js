@@ -1,11 +1,12 @@
 import {
   ParseError,
-  Token
-} from "./all.js";
+  Token,
 
-import {
+
+  addDebugMethods,
+  DebugLevel,
   proto
-} from "../utils/all.js";
+} from "./all.js";
 
 // Policy for automatically removing whitespace from the token stream.
 export const WhitespacePolicy = {
@@ -21,9 +22,6 @@ export const WhitespacePolicy = {
 // TODO: error checking / reporting, especially in JSX expressions.
 // TODO: have normal `tokenize` stick whitespace elements in the stream, then `tokenizeLines()` takes them out?
 export class Tokenizer {
-  // Should we warn about anomalous conditions?
-  @proto WARN = false;
-
   // Leave all whitespace by default.
   @proto whitespacePolicy = WhitespacePolicy.ALL;
 
@@ -46,8 +44,8 @@ export class Tokenizer {
     if (!tokens || tokens.length === 0) return [];
 
     const lastEnd = tokens[tokens.length - 1].end;
-    if (lastEnd !== end && this.WARN) {
-      console.warn("tokenize(): didn't consume: `", text.slice(start, end) + "`");
+    if (lastEnd !== end) {
+      this.warn("tokenize(): didn't consume: `", text.slice(start, end) + "`");
     }
 
     // Filter according to our whitespace policy
@@ -93,7 +91,7 @@ export class Tokenizer {
       results.push(token);
 
       if (token.end === nextStart) {
-        console.warn("error: got token but didn't advance in stream");
+        this.warn("error: got token but didn't advance in stream");
         break;
       }
       nextStart = token.end;
@@ -378,13 +376,11 @@ export class Tokenizer {
       jsxElement.isUnaryTag = true;
     }
     else if (endBit !== ">") {
-      if (this.WARN) {
-        console.warn(
-          "Missing expected end `>` for jsxElement",
-          jsxElement,
-          "`" + text.slice(start, nextStart) + "`"
-        );
-      }
+      this.warn(
+        "Missing expected end `>` for jsxElement",
+        jsxElement,
+        "`" + text.slice(start, nextStart) + "`"
+      );
       jsxElement.error = "No end >";
     }
     jsxElement.text = text.slice(start, nextStart);
@@ -422,13 +418,9 @@ export class Tokenizer {
       }
     }
     // TODO: how to surface this error???
-    if (nesting !== 0) {
-      if (this.WARN) {
-        console.warn(
-          `matchJSXChildren(${text.slice(start, nextStart + 10)}: didn't match end child!`
-        );
-      }
-    }
+    if (nesting !== 0)
+      this.warn(`matchJSXChildren(${text.slice(start, nextStart + 10)}: didn't match end child!`);
+
     return children;
   }
 
@@ -569,11 +561,7 @@ export class Tokenizer {
 
     // if no match, we've got some sort of error
     if (endIndex === undefined) {
-      if (this.WARN) {
-        console.warn(
-          "matchJSXText(" + text.slice(start, start + 50) + "): JSX seems to be unbalanced."
-        );
-      }
+      this.warn("matchJSXText(" + text.slice(start, start + 50) + "): JSX seems to be unbalanced.");
       return undefined;
     }
 
@@ -831,3 +819,5 @@ export class Tokenizer {
     return [block];
   }
 }
+
+addDebugMethods(Tokenizer.prototype, "tokenizer", DebugLevel.WARN);

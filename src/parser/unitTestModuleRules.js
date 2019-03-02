@@ -126,7 +126,7 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
   function executeCompileTest(ruleName, input, output) {
     let match, result;
     try {
-      match = parser.parse(ruleName, input);
+      match = parser.parse(input, ruleName);
       if (match) {
         try {
           result = match.compile();

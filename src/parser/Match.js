@@ -1,3 +1,4 @@
+import { isNode } from "browser-or-node";
 import omit from "lodash/omit";
 
 import { Tokenizer } from "./all.js";
@@ -58,8 +59,9 @@ export class Match {
     return this.rule.getPrecedence(this);
   }
 
-  // Call this when printing to the console to eliminate the big bits.
+  // Call this when printing to the console to eliminate the big bits in node.
   toPrint() {
+    if (!isNode) return this;
     return {
       rule: this.rule.name,
       ...omit(this, ["rule", "scope"])

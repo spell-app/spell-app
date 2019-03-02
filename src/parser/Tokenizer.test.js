@@ -3,6 +3,8 @@ import {
   Tokenizer
 } from "./all.js";
 
+// Turn off tokenizer warnings in the console
+Tokenizer.prototype.setDebugLevel("ERROR");
 
 // FIXME:  this is only working with our default tokenizer...
 const tokenizer = new Tokenizer();

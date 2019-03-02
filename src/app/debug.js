@@ -20,12 +20,10 @@ import {
 // Output source when rendering statements
 SpellParser.prototype.outputSource = true;
 SpellParser.prototype.outputScope = true;
+SpellParser.prototype.setDebugLevel("INFO");
 
 // Set Parser / Tokenizer debug flags
-Parser.WARN = true;
-Parser.DEBUG = true;
-Parser.TIME = true;
-Tokenizer.WARN = true;
+spell.TIME = true;
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
@@ -43,7 +41,7 @@ Object.assign(global, {
   rules: spell.rules,
   parse: spell.parse.bind(spell),
   compile: spell.compile.bind(spell),
-  exp: spell.parse.bind(spell, "expression"),
+  exp: (expression, scope) => spell.parse(expression, "expression", scope),
   tokenizer: spell.tokenizer,
   tokenize: spell.tokenize.bind(spell),
 

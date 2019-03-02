@@ -96,7 +96,6 @@ export class _SpellEditor extends React.Component {
   );
 
   render() {
-//console.info("SpellEditor.render(): projects:", this.props.projects);
     const { projects } = this.props;
     const { projectId, moduleId, input, output, dirty } = projects;
     const projectIds = _projects.getProjectIds(projects);

@@ -10,6 +10,9 @@
 
 import JSON5 from "json5";
 import { parseJSON, parseJSON5 } from "./utils/json.js";
+import { addDebugMethods, DebugLevel } from "../../utils/addDebugMethods.js";
+
+const logger = addDebugMethods({}, "api", DebugLevel.WARN);
 
 export class APIError extends Error {
   constructor(_props) {
@@ -61,7 +64,7 @@ export function makeAPICall({ url, params = {}, apiMethod, credentials = "includ
     throw new TypeError(`apiUtils.makeAPICall('${url}'): don't understand responseType '${responseType}'`);
 
   // If debugging, log calls
-  console.debug(`CALLING: '${url}' with params:`, params);
+  logger.debug(`CALLING: '${url}' with params:`, params);
 
   return fetch(url, params)
     // Catch CORS, server-not-found or other network error.
@@ -75,7 +78,7 @@ export function makeAPICall({ url, params = {}, apiMethod, credentials = "includ
         params,
         apiMethod,
       });
-      console.warn(error.message, error);
+      logger.warn(error.message, error);
       return Promise.reject(error.message, error);
     })
     // Catch normal response, regardless of status code
@@ -94,7 +97,7 @@ export function makeAPICall({ url, params = {}, apiMethod, credentials = "includ
           params,
           response
         });
-        console.warn(error.message, error);
+        logger.warn(error.message, error);
         return Promise.reject(error);
       }
 
@@ -128,7 +131,7 @@ export function makeAPICall({ url, params = {}, apiMethod, credentials = "includ
           response,
           error: exception
         });
-        console.warn(error.message, error);
+        logger.warn(error.message, error);
         return Promise.reject(error);
       });
     });
@@ -223,7 +226,7 @@ export function post({ url, body, params = {}, apiMethod, responseType = "text" 
           body,
           error: exception
         });
-        console.warn(error.message, error);
+        logger.warn(error.message, error);
         return Promise.reject(error);
       }
     }

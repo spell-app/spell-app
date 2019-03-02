@@ -48,11 +48,9 @@ export default class TabbableTextArea extends React.Component {
     // otherwise indent/de-indent all of the lines
     else {
     // use start and end of line(s)
-//console.info(`start: ${start} :${text[start]}:   end: ${end} : ${text[end]}:`);
       if (text[start] !== "\n") start = text.lastIndexOf("\n", start) + 1;
       if (text[end-1] === "\n") end--;
       else if (text[end+1] !== "\n") end = text.indexOf("\n", end) - 1;
-//console.info(`start: ${start} :${text[start]}:   end: ${end} : ${text[end]}:`);
 
       let lines = text.slice(start, end).split("\n");
       // if shift key is down, REMOVE a tab from each line

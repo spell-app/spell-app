@@ -11,7 +11,7 @@ to turn a card face up: set its direction to up
 to turn a card face down: set its direction to down
 
 to flip a card over:
-	if its direction is up then set its direction to down
+	if its direction is up then turn it face down
 	otherwise set its direction to up
 
 ## card suits
@@ -28,6 +28,11 @@ the value of a card is the position of its rank in its ranks
 
 ## add language to match `card is a face card`
 a card "is a face card" if its rank is one of [jack, queen, king]
+
+to move a card to a pile
+	remove the card from its pile
+	add the card to the pile
+	set the pile of the card to the pile
 
 -- TODO: add language to match `the card is a spade`, etc
 -- TODO: add language to match `the card is a jack`, etc

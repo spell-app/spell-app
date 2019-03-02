@@ -148,7 +148,7 @@ parser.defineRules(
 
 describe("parser.parse()", () => {
   test("takes an explicit start rule", () => {
-    const match = parser.parse("statements", "dog and cat");
+    const match = parser.parse("dog and cat", "statements", );
     expect(match.rule).toBe(statements);
   });
 
@@ -157,20 +157,20 @@ describe("parser.parse()", () => {
     expect(match.rule).toBe(statements);
   });
 
-  test("returns undefined if no text passes", () => {
-    const match = parser.parse("statements", "");
+  test("returns undefined if no text parses", () => {
+    const match = parser.parse("", "statements");
     expect(match).toBe(undefined);
   });
 
   test("throws if named rule is not found", () => {
-    expect(() => parser.parse("missing_rule", "text")).toThrow(ParseError);
+    expect(() => parser.parse("text", "missing_rule")).toThrow(ParseError);
   });
 });
 
 
 describe("parser.compile()", () => {
   test("takes an explicit start rule", () => {
-    const result = parser.compile("statement", "dog and cat");
+    const result = parser.compile("dog and cat", "statement");
     expect(result).toEqual("dog && cat");
   });
 
@@ -184,32 +184,3 @@ describe("parser.compile()", () => {
   });
 });
 
-
-describe("parser debug flags", () => {
-  test("TIME flag doesn't affect parsing", () => {
-    const timeSpy = jest.spyOn(console, "time").mockImplementation(()=>undefined);
-    const timeEndSpy = jest.spyOn(console, "time").mockImplementation(()=>undefined);
-
-    Parser.TIME = true;
-    const match = parser.parse("statements", "dog and cat");
-    expect(match.rule).toBe(statements);
-    Parser.TIME = false;
-
-    timeSpy.mockRestore();
-    timeEndSpy.mockRestore();
-  });
-
-  test("DEBUG flag doesn't affect parsing", () => {
-    Parser.DEBUG = true;
-    const match = parser.parse("statements", "dog and cat");
-    expect(match.rule).toBe(statements);
-    Parser.DEBUG = false;
-  });
-
-  test("WARN flag doesn't affect parsing", () => {
-    Parser.WARN = true;
-    const match = parser.parse("statements", "dog and cat");
-    expect(match.rule).toBe(statements);
-    Parser.WARN = false;
-  });
-});
