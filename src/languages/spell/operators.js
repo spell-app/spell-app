@@ -56,20 +56,20 @@ parser.defineRule({
 parser.defineRule({
   name: "infix_operator_expression",
   alias: "expression",
-  syntax: "{lhs:expression!infix_operator_expression} {infix_operator} {rhs:expression}",
+  syntax: "{lhs:expression!infix_operator_expression} {operator:infix_operator} {rhs:expression}",
   testRule: "…{infix_operator}",
   precedence: 1,
-  // Special `getResults` to ignore the operator.
-  getResults(match, scope) {
-    return {
-      lhs: match.matched[0].compile(),
-      rhs: match.matched[2].compile()
+  constructor: class infix_operator_expression extends Rule.Sequence {
+    getResults(match, scope) {
+      const results = super.getResults(match, scope);
+      results.operatorRule = match.matched[1].rule;
+      return results;
     }
-  },
-  // Delegate compilation down to the operator which was actually matched.
-  compile(match, scope) {
-    const operatorRule = match.matched[1].rule;
-    return operatorRule.compile(match, scope);
+    // Delegate compilation down to the operator which was actually matched.
+    compile(match, scope) {
+      const { operatorRule } = match.results;
+      return operatorRule.applyOperator(match, scope);
+    }
   },
   // test multiple infix expressions in a row
   tests: [
@@ -98,7 +98,7 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 10,
   syntax: "is",
-  compile(match, scope) {
+  applyOperator(match, scope) {
     const { lhs, rhs } = match.results;
     return `(${lhs} == ${rhs})`;
   },
@@ -115,7 +115,7 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 10,
   syntax: "is not",
-  compile(match, scope) {
+  applyOperator(match, scope) {
     const { lhs, rhs } = match.results;
     return `(${lhs} != ${rhs})`;
   },
@@ -132,7 +132,7 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 10,
   syntax: "is exactly",
-  compile(match, scope) {
+  applyOperator(match, scope) {
     const { lhs, rhs } = match.results;
     return `(${lhs} === ${rhs})`;
   },
@@ -148,7 +148,7 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 10,
   syntax: "is not exactly",
-  compile(match, scope) {
+  applyOperator(match, scope) {
     const { lhs, rhs } = match.results;
     return `(${lhs} !== ${rhs})`;
   },
@@ -165,7 +165,7 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "is (a|an)",
-  compile(match, scope) {
+  applyOperator(match, scope) {
     const { lhs, rhs } = match.results;
     return `spell.isOfType(${lhs}, '${rhs}')`;
   },
@@ -182,7 +182,7 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "is not (a|an)",
-  compile(match, scope) {
+  applyOperator(match, scope) {
     const { lhs, rhs } = match.results;
     return `!spell.isOfType(${lhs}, '${rhs}')`;
   },
@@ -201,8 +201,8 @@ parser.defineRule({
   name: "is_same_type_as",
   alias: "infix_operator",
   precedence: 11,
-  syntax: "is same type as",
-  compile(match, scope) {
+  syntax: "is the same type as",
+  applyOperator(match, scope) {
     const { lhs, rhs } = match.results;
     return `(spell.typeOf(${lhs}) === spell.typeOf(${rhs}))`;
   },
@@ -210,7 +210,7 @@ parser.defineRule({
     {
       compileAs: "expression",
       tests: [
-        ["a is same type as b", "(spell.typeOf(a) === spell.typeOf(b))"]
+        ["a is the same type as b", "(spell.typeOf(a) === spell.typeOf(b))"]
       ]
     }
   ]
@@ -222,7 +222,7 @@ parser.defineRule({
   precedence: 11,
   syntax: "is (in|one of)",
   testRule: "is",
-  compile(match, scope) {
+  applyOperator(match, scope) {
     const { lhs, rhs } = match.results;
     return `spell.includes(${rhs}, ${lhs})`;
   },
@@ -243,7 +243,7 @@ parser.defineRule({
   precedence: 11,
   syntax: "is not (in|one of)",
   testRule: "is not",
-  compile(match, scope) {
+  applyOperator(match, scope) {
     const { lhs, rhs } = match.results;
     return `!spell.includes(${rhs}, ${lhs})`;
   },
@@ -263,7 +263,7 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "(includes|contains)",
-  compile(match, scope) {
+  applyOperator(match, scope) {
     const { lhs, rhs } = match.results;
     return `spell.includes(${lhs}, ${rhs})`;
   },
@@ -283,7 +283,7 @@ parser.defineRule({
   alias: "infix_operator",
   precedence: 11,
   syntax: "does not (include|contain)",
-  compile(match, scope) {
+  applyOperator(match, scope) {
     const { lhs, rhs } = match.results;
     return `!spell.includes(${lhs}, ${rhs})`;
   },
@@ -298,296 +298,6 @@ parser.defineRule({
   ]
 });
 
-parser.defineRule({
-  name: "gt",
-  alias: "infix_operator",
-  precedence: 11,
-  syntax: ">",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} > ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
-        { title: "with spaces", input: "a > b", output: "(a > b)" },
-        { title: "without spaces", input: "a>b", output: "(a > b)" }
-      ]
-    }
-  ]
-});
-parser.defineRule({
-  name: "is_gt",
-  alias: "infix_operator",
-  precedence: 11,
-  syntax: "is greater than",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} > ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["a is greater than b", "(a > b)"]]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "gte",
-  alias: "infix_operator",
-  precedence: 11,
-  syntax: ">=",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} >= ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
-        { title: "with spaces", input: "a >= b", output: "(a >= b)" },
-        { title: "without spaces", input: "a>=b", output: "(a >= b)" }
-      ]
-    }
-  ]
-});
-parser.defineRule({
-  name: "is_gte",
-  alias: "infix_operator",
-  precedence: 11,
-  syntax: "is greater than or equal to",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} >= ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["a is greater than or equal to b", "(a >= b)"]]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "lt",
-  alias: "infix_operator",
-  precedence: 11,
-  syntax: "<",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} < ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
-        { title: "with spaces", input: "a > b", output: "(a > b)" },
-        { title: "without spaces", input: "a>b", output: "(a > b)" }
-      ]
-    }
-  ]
-});
-parser.defineRule({
-  name: "is_lt",
-  alias: "infix_operator",
-  precedence: 11,
-  syntax: "is less than",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} < ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["a is less than b", "(a < b)"]]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "lte",
-  alias: "infix_operator",
-  precedence: 11,
-  syntax: "<=",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} <= ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
-        { title: "with spaces", input: "a <= b", output: "(a <= b)" },
-        { title: "without spaces", input: "a<=b", output: "(a <= b)" }
-      ]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "is_lte",
-  alias: "infix_operator",
-  precedence: 11,
-  syntax: "is less than or equal to",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} <= ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["a is less than or equal to b", "(a <= b)"]]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "plus_symbol",
-  alias: "infix_operator",
-  precedence: 13,
-  syntax: "\\+",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} + ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["a+b", "(a + b)"], ["a + b", "(a + b)"]]
-    }
-  ]
-});
-parser.defineRule({
-  name: "plus",
-  alias: "infix_operator",
-  precedence: 13,
-  syntax: "plus",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} + ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["a plus b", "(a + b)"]]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "minus_symbol",
-  alias: "infix_operator",
-  precedence: 13,
-  syntax: "-",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} - ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
-        {
-          skip: "minus requires space",
-          title: "without spaces",
-          input: "a-b",
-          output: "(a - b)"
-        },
-        { title: "with spaces", input: "a - b", output: "(a - b)" }
-      ]
-    }
-  ]
-});
-parser.defineRule({
-  name: "minus",
-  alias: "infix_operator",
-  precedence: 13,
-  syntax: "minus",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} - ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["a minus b", "(a - b)"]]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "times_sumbol",
-  alias: "infix_operator",
-  precedence: 14,
-  syntax: "\\*",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} * ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
-        { title: "without spaces", input: "a*b", output: "(a * b)" },
-        { title: "with spaces", input: "a * b", output: "(a * b)" }
-      ]
-    }
-  ]
-});
-parser.defineRule({
-  name: "times",
-  alias: "infix_operator",
-  precedence: 14,
-  syntax: "times",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} * ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["a times b", "(a * b)"]]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "division_symbol",
-  alias: "infix_operator",
-  precedence: 14,
-  syntax: "/",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} / ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
-        { title: "without spaces", input: "a/b", output: "(a / b)" },
-        { title: "with spaces", input: "a / b", output: "(a / b)" }
-      ]
-    }
-  ]
-});
-parser.defineRule({
-  name: "divided_by",
-  alias: "infix_operator",
-  precedence: 14,
-  syntax: "divided by",
-  compile(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} / ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["a divided by b", "(a / b)"]]
-    }
-  ]
-});
 
 //
 //## Postifx operators:   `{lhs} <operator>`, e.g. `a is defined`
@@ -599,24 +309,27 @@ parser.defineRule({
   syntax: "{expression!postfix_operator_expression} {operator:postfix_operator}",
   precedence: 1,
   testRule: "…{postfix_operator}",
-  // Special `getResults` to ignore the operator.
-  getResults(match, scope) {
-    return {
-      expression: match.matched[0].compile()
+  constructor: class postfix_operator_expression extends Rule.Sequence {
+    // Special `getResults` to ignore the operator.
+    getResults(match, scope) {
+      const results = super.getResults(match, scope);
+      results.operator = match.matched[1];
+      return results;
     }
-  },
-  // Delegate the compilation to the operator which was matched
-  compile(match, scope) {
-    const operatorRule = match.matched[1].rule;
-    return operatorRule.compile(match, scope);
+    // Delegate the compilation to the operator which was matched
+    compile(match, scope) {
+      const { operator } = match.results;
+      return operator.rule.applyOperator(match, scope);
+    }
   }
 });
 
 parser.defineRule({
   name: "is_defined",
   alias: "postfix_operator",
-  syntax: "is defined",
-  compile(match, scope) {
+  syntax: "is (operator:defined|undefined|not defined)",
+  testRule: "is",
+  applyOperator(match, scope) {
     const { expression } = match.results;
     return `(typeof ${expression} !== 'undefined')`;
   },
@@ -627,12 +340,14 @@ parser.defineRule({
     }
   ]
 });
+
+/*
 parser.defineRule({
   name: "is_undefined",
   alias: "postfix_operator",
   syntax: "is (undefined|not defined)",
   testRule: "is",
-  compile(match, scope) {
+  applyOperator(match, scope) {
     const { expression } = match.results;
     return `(typeof ${expression} === 'undefined')`;
   },
@@ -646,12 +361,13 @@ parser.defineRule({
     }
   ]
 });
+*/
 
 parser.defineRule({
   name: "is_empty",
   alias: "postfix_operator",
   syntax: "is empty",
-  compile(match, scope) {
+  applyOperator(match, scope) {
     const { expression } = match.results;
     return `spell.isEmpty(${expression})`;
   },
@@ -666,7 +382,7 @@ parser.defineRule({
   name: "is_not_empty",
   alias: "postfix_operator",
   syntax: "is not empty",
-  compile(match, scope) {
+  applyOperator(match, scope) {
     const { expression } = match.results;
     return `!spell.isEmpty(${expression})`;
   },
@@ -674,96 +390,6 @@ parser.defineRule({
     {
       compileAs: "expression",
       tests: [["thing is not empty", "!spell.isEmpty(thing)"]]
-    }
-  ]
-});
-
-//
-//## Prefix operators:   `<operator> {lhs}`, e.g. `round theList`
-// NOTE: `operator.applyOperator` MUST return a function which transforms argument (`lhs`) into JS output.
-
-parser.defineRule({
-  name: "absolute_value",
-  alias: "expression",
-  syntax: "the? absolute value of {expression}",
-  testRule: "…absolute",
-  compile(match, scope) {
-    const { expression } = match.results;
-    return `Math.abs(${expression})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["the absolute value of thing", "Math.abs(thing)"]]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "max",
-  alias: "expression",
-  precedence: 2,
-  syntax: "the? (biggest|largest) {identifier}? (of|in) {expression}",
-  testRule: "…(biggest|largest)",
-  compile(match, scope) {
-    const { expression } = match.results;
-    return `spell.max(${expression})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
-        ["largest of the numbers", "spell.max(numbers)"],
-        ["biggest in my-list", "spell.max(my_list)"],
-        ["biggest item in thing", "spell.max(thing)"]
-      ]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "min",
-  alias: "expression",
-  precedence: 2,
-  syntax: "the? smallest {identifier}? (of|in) {expression}",
-  testRule: "…smallest",
-  compile(match, scope) {
-    const { expression } = match.results;
-    return `spell.min(${expression})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
-        ["smallest of thing", "spell.min(thing)"],
-        ["smallest item in thing", "spell.min(thing)"]
-      ]
-    }
-  ]
-});
-
-parser.defineRule({
-//TODO: precision:  to the nearest tenth ?
-  name: "round_number",
-  alias: "expression",
-  syntax: "round {thing:expression} (direction:off|up|down)?",
-  testRule: "round",
-  precedence: 1,
-  compile(match, scope) {
-    const { thing, direction } = match.results;
-    if (direction === "up") return `Math.ceil(${thing})`;
-    else if (direction === "down") return `Math.floor(${thing})`;
-    else return `Math.round(${thing})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
-        ["round thing", "Math.round(thing)"],
-        ["round thing off", "Math.round(thing)"],
-        ["round thing up", "Math.ceil(thing)"],
-        ["round thing down", "Math.floor(thing)"]
-      ]
     }
   ]
 });
