@@ -85,8 +85,8 @@ parser.defineRule({
   alias: "infix_operator",
   syntax: "starts with",
   applyOperator(match, scope) {
-    const { expression, rhs } = match.results;
-    return `spell.startsWith(${expression}, ${rhs})`;
+    const { lhs, rhs } = match.results;
+    return `spell.startsWith(${lhs}, ${rhs})`;
   },
   tests: [
     {
@@ -105,8 +105,8 @@ parser.defineRule({
   alias: "infix_operator",
   syntax: "ends with",
   applyOperator(match, scope) {
-    const { expression, rhs } = match.results;
-    return `spell.endsWith(${expression}, ${rhs})`;
+    const { lhs, rhs } = match.results;
+    return `spell.endsWith(${lhs}, ${rhs})`;
   },
   tests: [
     {
