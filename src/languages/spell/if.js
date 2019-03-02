@@ -24,7 +24,7 @@ parser.defineRule({
   syntax: "if {condition:expression} (then|:)? {statement}?",
   testRule: "if",
   constructor: SpellParser.BlockStatement,
-  compile(match) {
+  compile(match, scope) {
     const { condition, statements } = match.results;
     return `if ${parenthesizeCondition(condition)} ${statements}`;
   },
@@ -89,7 +89,7 @@ parser.defineRule({
   testRule: "(else|otherwise)",
   precedence: 1,
   constructor: SpellParser.BlockStatement,
-  compile(match) {
+  compile(match, scope) {
     const { condition, statements } = match.results;
     return `else if ${parenthesizeCondition(condition)} ${statements}`;
   },
@@ -151,7 +151,7 @@ parser.defineRule({
   syntax: "(else|otherwise) :? {statement}?",
   testRule: "(else|otherwise)",
   constructor: SpellParser.BlockStatement,
-  compile(match) {
+  compile(match, scope) {
     const { statements } = match.results;
     return `else ${statements}`;
   },
@@ -203,7 +203,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "{statement:statement!backwards_if} if {condition:expression} (?:(else|otherwise) {elseStatement:statement})?",
   testRule: "…if",
-  compile(match) {
+  compile(match, scope) {
     const { condition, statement, elseStatement } = match.results;
     //TODO: smarter wrapping?
     let output = `if (${condition}) { ${statement} }`;

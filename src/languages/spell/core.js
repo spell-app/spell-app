@@ -14,7 +14,7 @@ export default parser;
 parser.defineRule({
   name: "eat_whitespace",
   syntax: "{whitespace}*",
-  compile(match) {
+  compile(match, scope) {
     return match.matched.map(whitespace => whitespace.compile()).join(" ");
   }
 });
@@ -109,7 +109,7 @@ parser.defineRule({
   name: "undefined",
   alias: "expression",
   syntax: "undefined",
-  compile(match) {
+  compile(match, scope) {
     return "undefined";
   },
   tests: [
@@ -312,7 +312,7 @@ parser.defineRule({
   name: "identifier_expression",
   alias: "expression",
   syntax: "the? {identifier}",
-  compile(match) {
+  compile(match, scope) {
     return match.results.identifier;
   },
   tests: [
@@ -511,7 +511,7 @@ parser.defineRule({
   syntax: "\\[ [list:{expression},]? \\]",
   testRule: "\\[",
   resetRules: true,
-  compile(match) {
+  compile(match, scope) {
     let { list } = match.results;
     return `[${list ? list.join(", ") : ""}]`;
   },
@@ -542,7 +542,7 @@ parser.defineRule({
   syntax: "\\( {expression} \\)",
   testRule: "\\(",
   resetRules: true,
-  compile(match) {
+  compile(match, scope) {
     let { expression } = match.results;
     // don't double parens if not necessary
     if (

@@ -173,7 +173,7 @@ parser.defineRule({
     // Output statements match parsed with `parseBlock`
     // Set `match.enclose` to enclose in curly braces
     // Set `match.indent` to add a tab to the start of each line.
-    compile(match) {
+    compile(match, scope) {
       let results = [],
         statement;
 
@@ -241,8 +241,8 @@ parser.defineRule({
 //
 SpellParser.BlockStatement = class block_statement extends Rule.Sequence {
   // Add `statements` to the results.
-  getResults(match) {
-    const results = super.getResults(match);
+  getResults(match, scope) {
+    const results = super.getResults(match, scope);
     if (!results) return undefined; // TODO???
 
     // If we got a block, use that for our `statements`
@@ -284,7 +284,7 @@ SpellParser.StatementParseError = class parse_error extends Rule {
     return "CAN'T PARSE STATEMENT: `" + this.unparsed + "`";
   }
 
-  compile(match) {
+  compile(match, scope) {
     return "// " + match.message.split("\n").join("\n// ");
   }
 };

@@ -146,6 +146,7 @@ const factory = new ReduxFactory({
         try {
           output = spell.compile(input);
         } catch (e) {
+          console.error(e);
           output = e.message;
         }
 

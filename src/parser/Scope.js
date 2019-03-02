@@ -113,7 +113,7 @@ export class Scope {
     this.parser.debug("TODO: scope.addStatement()", props);
     const { name, syntax, compile } = props;
     try {
-      const rule = this.parser.defineRule({ name, syntax, compile, alias: "statement" });
+      const rule = this.parser.defineRule({ name, alias: "statement", compile, syntax });
       this.parser.info("defined rule: ", rule);
     }
     catch(e) { console.error(e); }

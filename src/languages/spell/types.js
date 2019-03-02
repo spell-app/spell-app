@@ -25,7 +25,7 @@ parser.defineRule({
   name: "me",
   alias: "expression",
   syntax: "me",
-  compile(match) {
+  compile(match, scope) {
     return "this";
   },
   tests: [
@@ -41,7 +41,7 @@ parser.defineRule({
   name: "I",
   alias: "expression",
   syntax: "I",
-  compile(match) {
+  compile(match, scope) {
     return "this";
   },
   tests: [
@@ -62,7 +62,7 @@ parser.defineRule({
   alias: "expression",
   syntax: "{property_accessor} {expression}",
   testRule: "{property_accessor}",    // ???
-  compile(match) {
+  compile(match, scope) {
     let { expression, property_accessor } = match.results;
     // TODO: `[xxx]` for non-identifiers
     return `${expression}?.${property_accessor}`;
@@ -84,7 +84,7 @@ parser.defineRule({
   name: "property_accessor",
   syntax: "the {identifier} of",
   testRule: "the",
-  compile(match) {
+  compile(match, scope) {
     return match.results.identifier;
   },
 });
@@ -94,7 +94,7 @@ parser.defineRule({
   alias: ["expression", "property_accessor"],
   syntax: "my {identifier}",
   testRule: "my",
-  compile(match) {
+  compile(match, scope) {
     let { identifier } = match.results;
     return `this.${identifier}`;
   },
@@ -115,7 +115,7 @@ parser.defineRule({
   alias: ["expression", "property_accessor"],
   syntax: "its {identifier}",
   testRule: "its",
-  compile(match) {
+  compile(match, scope) {
     const { identifier } = match.results;
     return `this.${identifier}`
   },
@@ -140,7 +140,7 @@ parser.defineRule({
   syntax: "with [args:{identifier},]",
   constructor: SpellParser.BlockStatement,
   // Returns an array of argument values
-  compile(match) {
+  compile(match, scope) {
     const { args } = match.results;
     return args.join(", ");
   },
@@ -159,7 +159,7 @@ parser.defineRule({
 parser.defineRule({
   name: "object_literal_properties",
   syntax: "[({key:identifier} (?:= {value:expression})?),]",
-  compile(match) {
+  compile(match, scope) {
     let props = match.matched.map(function(prop) {
       let { key, value } = prop.results;
       if (value) return `"${key}": ${value}`;
@@ -238,7 +238,7 @@ parser.defineRule({
   alias: ["statement", "updatesScope"],
   syntax: "property {name:identifier} as (a|an)? {type} (?:= {value:expression})?",
   testRule: "property",
-  compile(match) {
+  compile(match, scope) {
     let { name, type, value = "undefined" } = match.results;
     return `@typed(${type}) ${name} = ${value}`;
   },
@@ -268,7 +268,7 @@ parser.defineRule({
   syntax:
     "property {name:identifier} as one of {list:inline_list} (?:with value {value:expression})?",
   testRule: "property",
-  compile(match) {
+  compile(match, scope) {
     let { name, list, value = "undefined" } = match.results;
     return `@typed(${list.join(", ")}) ${name} = ${value}`;
   },
@@ -304,7 +304,7 @@ parser.defineRule({
   syntax: "get {name:identifier} \\: return? {expression}?",
   testRule: "get",
   constructor: SpellParser.BlockStatement,
-  compile(match) {
+  compile(match, scope) {
     // NOTE: we need to parse `expression` and `block` manually (unlike other BlockStatements)
     let { name, expression, statements } = match.results;
 
@@ -414,7 +414,7 @@ parser.defineRule({
 //   syntax: "(operator:to|on) {name:identifier} {args}? (\\:)? {statement}?",
 //   testRule: "(to|on)",
 //   constructor: SpellParser.BlockStatement,
-//   compile(match) {
+//   compile(match, scope) {
 //     let { name, args = "", statements } = match.results;
 //     return `${name}(${args}) ${statements}`;
 //   },
@@ -453,7 +453,7 @@ parser.defineRule({
   syntax: "action (keywords:{word}|{type})+ (\\:)? {statement}?",
   testRule: "action",
   constructor: SpellParser.BlockStatement,
-  compile(match) {
+  compile(match, scope) {
     const { results } = match;
 
     // if there's only one keyword, it can't be a type or a blacklisted identifier

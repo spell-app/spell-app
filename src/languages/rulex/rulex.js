@@ -59,7 +59,7 @@ rulex.defineRule({
   name: "testLocation",
   literal: ["…", "^"],
   optional: true,
-  compile(match) {
+  compile(match, scope) {
     return (match.matched[0].value === "…")
       ? ANYWHERE
       : AT_START;
@@ -84,7 +84,7 @@ rulex.defineRule({
   name: "promote",
   literals: ["?", ":"],
   optional: true,
-  compile(match) {
+  compile(match, scope) {
     return true;
   },
   tests: [
@@ -109,7 +109,7 @@ rulex.defineRule({
     new Rule.Literal(":")
   ],
   optional: true,
-  compile(match) {
+  compile(match, scope) {
     return match.results.argument;
   },
   tests: [
@@ -132,7 +132,7 @@ rulex.defineRule({
   name: "repeatFlag",
   literal: ["?", "*", "+"],
   optional: true,
-  compile(match) {
+  compile(match, scope) {
     return match.matched[0].value;
   },
   tests: [
@@ -385,7 +385,7 @@ rulex.defineRule({
     }),
     repeatFlag
   ],
-  compile(match) {
+  compile(match, scope) {
     // combine main results from nested split
     const results = { ...match.results, ...match.results.split };
     let { choices } = results;
@@ -487,7 +487,7 @@ rulex.defineRule({
   constructor: Rule.Repeat,
   name: "statement",
   rule: new Rule.Subrule("rule"),
-  compile(match) {
+  compile(match, scope) {
     const matched = match.matched.map(match => match.compile());
     let rules = [];
     for (let start = 0, rule; rule = matched[start]; start++) {
