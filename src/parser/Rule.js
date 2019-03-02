@@ -221,12 +221,8 @@ Rule.Literals = class literals extends Rule {
     if (arguments.length > 1) props = [...arguments];
     if (Array.isArray(props)) props = { literals: props };
     if (typeof props === "string") props = { literals: props };
+    if (typeof props.literals === "string") props.literals = [props.literals];
     super(props);
-
-    // coerce `literals` string to an array
-    if (typeof this.literals === "string") {
-      this.literals = this.literals.split(this.literalSeparator);
-    }
   }
 
   testAtStart(scope, tokens, start = 0) {
@@ -263,7 +259,9 @@ Rule.Literals = class literals extends Rule {
 
     const literals = this.literals.map(literal => {
       if (typeof literal === "string") return literal;
-      return `(${literal.join("|")})`;
+      const optional = literal.optional ? "?" : "";
+      if (literal.length === 1) return `${literal}${optional}`;
+      return `(${literal.join("|")})${optional}`;
     }).join(this.literalSeparator);
 
     const wrapInParens =

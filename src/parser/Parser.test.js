@@ -50,7 +50,7 @@ describe("defineRule()", () => {
 
   test("doesn't add rule if passed a Rule instance without a 'name' property", () => {
     const parser = new Parser();
-    parser.defineRule(new Rule.Symbols());
+    parser.defineRule(new Rule.Symbols({}));
     expect(parser.rules).toEqual({});
   });
 

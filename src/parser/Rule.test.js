@@ -30,7 +30,7 @@ describe("Rule.Symbols", () => {
     });
 
     it("creates proper rule when passed multiple symbols as a string", () => {
-      const rule = new Rule.Symbols(">=");
+      const rule = new Rule.Symbols([">","="]);
       expect(rule).toBeInstanceOf(Rule.Symbols);
       expect(rule.literals).toEqual([">", "="]);
     });
@@ -89,7 +89,7 @@ describe("Rule.Symbols", () => {
   describe("with multiple symbols", () => {
     describe("test() method", () => {
       describe("TEST_AT_START", () => {
-        const rule = new Rule.Symbols(">=");
+        const rule = new Rule.Symbols([">","="]);
         it("returns a non-zero number if present at the start of tokens", () => {
           const test = rule.test(new Scope(parser), tokenize(">= b"));
           expect(test).toBe(2);
@@ -102,7 +102,7 @@ describe("Rule.Symbols", () => {
       });
 
       describe("TEST_ANYWHERE", () => {
-        const rule = new Rule.Symbols({ literals: ">=", testLocation: TestLocation.ANYWHERE });
+        const rule = new Rule.Symbols({ literals: [">","="], testLocation: TestLocation.ANYWHERE });
         it("returns true if present at the start of tokens", () => {
           const test = rule.test(new Scope(parser), tokenize(">="));
           expect(test).toBe(true);
@@ -120,7 +120,7 @@ describe("Rule.Symbols", () => {
       });
     });
     describe("parse() method", () => {
-      const rule = new Rule.Symbols(">=");
+      const rule = new Rule.Symbols([">","="]);
       it("parses at the start of tokens", () => {
         const match = rule.parse(new Scope(parser), tokenize(">="));
         expect(match.length).toBe(2);
@@ -151,7 +151,7 @@ describe("Rule.Keywords", () => {
     });
 
     it("creates proper rule when passed multiple keywords as a string", () => {
-      const rule = new Rule.Keywords("this that");
+      const rule = new Rule.Keywords(["this", "that"]);
       expect(rule).toBeInstanceOf(Rule.Keywords);
       expect(rule.literals).toEqual(["this", "that"]);
     });
@@ -209,7 +209,7 @@ describe("Rule.Keywords", () => {
   describe("with multiple keywords", () => {
     describe("test() method", () => {
       describe("TEST_ANYWHERE", () => {
-        const rule = new Rule.Keywords({ literals: "this that", testLocation: TestLocation.ANYWHERE });
+        const rule = new Rule.Keywords({ literals: ["this", "that"], testLocation: TestLocation.ANYWHERE });
         it("returns true if present at the start of tokens", () => {
           const test = rule.test(new Scope(parser), tokenize("this that"));
           expect(test).toBe(true);
@@ -227,7 +227,7 @@ describe("Rule.Keywords", () => {
       });
 
       describe("TEST_AT_START", () => {
-        const rule = new Rule.Keywords("this that");
+        const rule = new Rule.Keywords(["this", "that"]);
         it("returns a non-zero number if present at the start of tokens", () => {
           const test = rule.test(new Scope(parser), tokenize("this that"));
           expect(test).toBe(2);
@@ -245,7 +245,7 @@ describe("Rule.Keywords", () => {
       });
     });
     describe("parse() method", () => {
-      const rule = new Rule.Keywords("this that");
+      const rule = new Rule.Keywords(["this", "that"]);
       it("parses at the start of tokens", () => {
         const match = rule.parse(new Scope(parser), tokenize("this that other"));
         expect(match.length).toBe(2);
@@ -343,7 +343,7 @@ describe("Rule.Subrule", () => {
     {
       name: "sequence",
       syntax: "{this} {that}",
-      testRule: new Rule.Keywords("this that"),
+      testRule: new Rule.Keywords(["this", "that"]),
       compile(results) {
         return "COMPILED";
       }
