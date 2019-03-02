@@ -74,7 +74,7 @@ parser.defineRule({
   syntax: "create (a|an) {type} (?:with {props:object_literal_properties})?",
   testRule: "create",
   compile(match, scope) {
-    let { type, props = "" } = match.results;
+    let { type, props = "" } = match.results; // `props` is the object literal text
     // Special case for object, which we'll create with an object literal.
     if (type === "Object") {
       if (!props) return "{}";
@@ -122,13 +122,13 @@ parser.defineRule({
   syntax: "as (either|one of) {enum:identifier_list}",
   // Return the enum for someone else to consume
   compile(match, scope) {
-    return { enum: match.results.enum };
+    return { datatype: "enum", enum: match.results.enum };
   },
   tests: [
     {
       tests: [
-        ["as either red or black", { enum: ["red", "black"] }],
-        ["as one of clubs, diamonds, hearts, spades", { enum: ["clubs", "diamonds", "hearts", "spades" ] }],
+        ["as either red or black", { datatype: "enum", enum: ["red", "black"] }],
+        ["as one of clubs, diamonds, hearts, spades", { datatype: "enum", enum: ["clubs", "diamonds", "hearts", "spades" ] }],
       ]
     }
   ]
@@ -193,8 +193,7 @@ parser.defineRule({
       if (initializer?.enum) {
         const enumProps = {
           type,
-          datatype: "enum",
-          enum: initializer.enum,
+          ...initializer,
           compile: () => `${Type}.${Properties}`
         };
         // Add normal instance property, e.g. javascript `card.suit`
@@ -217,7 +216,7 @@ parser.defineRule({
       }
       else {
         // Add normal instance property with datatype if provided, e.g. javascript `player.name`
-        scope.addInstanceProperty({ type, key: property, datatype: initializer?.datatype });
+        scope.addInstanceProperty({ type, key: property, ...initializer });
       }
     }
   },
@@ -288,7 +287,7 @@ parser.defineRule({
         const type = types[0];
         scope.addInstanceMethod({ type, key:instanceMethod, args: instanceArgs });
         scope.addMethod({ type, key:method, args });
-        scope.addStatement({
+        scope.addStatementRule({
           name: method,
           syntax: rules,
           compile({ results: { callArgs } }) {
@@ -299,7 +298,7 @@ parser.defineRule({
       else {
         scope.addMethod({ key: method, args });
         // add a rule to match the new syntax, e.g. spell `add {callArgs:card} to {callArgs:pile}`
-        scope.addStatement({
+        scope.addStatementRule({
           name: method,
           syntax: rules,
           compile(match, scope) {
@@ -377,7 +376,7 @@ parser.defineRule({
       scope.addInstanceProperty({ type, key:getter, datatype: "boolean" });
 
       // Add is expression for spell, e.g. `card is a face card` or `card is not a face card`
-      scope.addIsExpression({
+      scope.addIsExpressionRule({
         key: words,
         compile(value) { return `${value}?.${getter}` }
       });

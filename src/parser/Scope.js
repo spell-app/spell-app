@@ -109,8 +109,8 @@ export class Scope {
   }
 
   // Add syntax for a new statement rule.
-  addStatement(props) {
-    this.parser.debug("TODO: scope.addStatement()", props);
+  addStatementRule(props) {
+    this.parser.debug("TODO: scope.addStatementRule()", props);
     const { name, syntax, compile } = props;
     try {
       const rule = this.parser.defineRule({ name, alias: "statement", compile, syntax });
@@ -122,8 +122,8 @@ export class Scope {
   // Add a new "is expression"
   //  `syntax` may or may not start "is"
   // TODO: auto-add "are xxx" to refer to a group?
-  addIsExpression(props) {
-    this.parser.debug("TODO: scope.addIsExpression()", props);
+  addIsExpressionRule(props) {
+    this.parser.debug("TODO: scope.addIsExpressionRule()", props);
     const { syntax, compile } = props;
   }
 
