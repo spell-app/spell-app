@@ -58,6 +58,14 @@ export class Tokenizer {
     return tokens;
   }
 
+  // Join tokens back into their source form.
+  // Pass `start` and `end` to restrict to a `slice()`.
+  // NOTE: `trim()` the result, which is generally what we want.
+  static join(tokens, start = 0, end = tokens.length) {
+    if (start !== 0 || end !== tokens.length) tokens = tokens.slice(start, end);
+    return tokens.join("").trim();
+  }
+
   // Filter out whitespace of the specified type.
   // Note that we add whitespace filters to `token.whitespace` of the PREVIOUS token.
   // This allows us to reconstruct the stream exactly by just looking at the filtered tokens.

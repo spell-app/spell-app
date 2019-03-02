@@ -7,22 +7,20 @@ import {
   Rule,
   Tokenizer,
   Token
-} from "./all.js";
+} from "../../parser/all.js";
 
 
 const parser = new Parser({
   module: "precedence",
   defaultRule: "expression",
-  throwIfIncompleteParse: true
 });
 export default parser;
 
-// simple expression bits
-parser.defineRule({
-  name: "number",
-  alias: "expression",
-  tokenType: Token.Number,
-});
+
+/////////////////////
+//
+//  Non-expressiony words
+//
 
 parser.defineRule({
   name: "identifier",
@@ -36,9 +34,21 @@ parser.defineRule({
   }
 });
 
+
+/////////////////////
+//
+// Normal, productive expression
+//
+
+parser.defineRule({
+  name: "number",
+  alias: ["expression", "non_recursive_expression"],
+  tokenType: Token.Number,
+});
+
 parser.defineRule({
   name: "identifier_expression",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   syntax: "the? {identifier}",
   compile(match, scope) {
     return match.results.identifier;
@@ -47,7 +57,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "property_expression",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   syntax: "the {identifier} of {expression}",
   compile(match, scope) {
     const { identifier, expression } = match.results;
@@ -56,22 +66,49 @@ parser.defineRule({
 });
 
 parser.defineRule({
-  name: "recursive_expression",
-  alias: "expression",
-  syntax: "{lhs:expression!recursive_expression} {rhs:recursive_expression_rhs}",
-  testRule: "…{recursive_expression_test}",
+  name: "parenthesized_expression",
+  alias: ["expression", "non_recursive_expression"],
+  syntax: "\\( {expression} \\)",
+  resetRules: true,
   compile(match, scope) {
-    return match.matched[1].rule.applyOperator(match, scope);
+    let { expression } = match.results;
+    // Don't double-up parens
+    if (expression.startsWith?.("(") && expression.endsWith(")"))
+      return expression;
+    return `(${expression})`;
   }
 });
 
 
 /////////////////////
 //
+// Generic recursive expression
+//
+
+parser.defineRule({
+  name: "recursive_expression",
+  precedence: 1,
+  alias: "expression",
+  syntax: "{lhs:non_recursive_expression} {rhs:recursive_expression_rhs}",
+//  testRule: "…{recursive_expression_test}",
+  compile(match, scope) {
+    return match.matched[1].rule.applyOperator(match, scope);
+  }
+});
+
+parser.defineRule({ name: "recursive_expression_test", literal: "and" });
+parser.defineRule({ name: "recursive_expression_test", literal: "or" });
+parser.defineRule({ name: "recursive_expression_test", literal: "is" });
+
+
+/////////////////////
+//
 // Infix operators
 //
+
 parser.defineRule({
   name: "and",
+  precedence: 2,                                // <== precedence above `and`
   alias: "recursive_expression_rhs",
   syntax: "and {expression}",                   // <== results.rhs = { expression }
   applyOperator(match, scope) {
@@ -79,10 +116,10 @@ parser.defineRule({
     return `(${lhs} && ${rhs.expression})`;
   }
 });
-parser.defineRule({ name: "recursive_expression_test", literal: "and" });
 
 parser.defineRule({
   name: "or",
+  precedence: 3,                                // <== precedence above `and`
   alias: "recursive_expression_rhs",
   syntax: "(operator:or) {expression}",         // <== results.rhs = { operator: "or", expression }
   applyOperator(match, scope) {
@@ -90,7 +127,6 @@ parser.defineRule({
     return `(${lhs} || ${rhs.expression})`;
   }
 });
-parser.defineRule({ name: "recursive_expression_test", literal: "or" });
 
 
 parser.defineRule({
@@ -103,7 +139,6 @@ parser.defineRule({
     return `(${lhs} ${op} ${rhs.expression})`;
   }
 });
-parser.defineRule({ name: "recursive_expression_test", literal: "is" });
 
 /////////////////////
 //
@@ -111,7 +146,7 @@ parser.defineRule({ name: "recursive_expression_test", literal: "is" });
 //
 parser.defineRule({
   name: "is_empty",
-  precedence: 1,                                  // <== precedence pushes this above `is_expression`
+  precedence: 1,                                  // <== precedence above `is_expression`
   alias: "recursive_expression_rhs",
   syntax: "is not? empty",                        // <== single Keywords, results.rhs = "is empty"
   applyOperator(match, scope) {
@@ -124,7 +159,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "is_defined",
-  precedence: 1,                                  // <== precedence pushes this above `is_expression`
+  precedence: 1,                                  // <== precedence above `is_expression`
   alias: "recursive_expression_rhs",
   syntax: "is (defined|undefined|not defined)",
   constructor: Rule.LiteralSequence,              // <== LiteralSequence: result.rhs = "is defined"

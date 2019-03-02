@@ -16,7 +16,8 @@ import {
   Tokenizer,
 } from "./all.js";
 
-import precedence from "../parser/precedence.js";
+import precedence from "../languages/precedence/precedence.js";
+SpellParser.prototype.setDebugLevel("DEBUG");
 
 // Output source when rendering statements
 SpellParser.prototype.outputSource = true;

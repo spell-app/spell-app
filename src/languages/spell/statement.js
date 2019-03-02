@@ -7,6 +7,7 @@ import {
   Rule,
   SpellParser,
   Token,
+  Tokenizer,
 
   getTabs,
   isWhitespace,
@@ -88,7 +89,7 @@ const block_line = parser.defineRule({
 
       // If the parser wants to output source, grab tokens now.
       if (scope.parser.outputSource) {
-        match.source = remainingTokens.slice(0, match.length).join("").trim();
+        match.source = Tokenizer.join(remainingTokens, 0, match.length);
       }
 
       // Assume we ate the entire line

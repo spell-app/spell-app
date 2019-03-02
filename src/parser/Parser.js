@@ -39,11 +39,6 @@ export class Parser {
   // Name of our default rule to parse if calling `parser.parse(text)`.
   @proto defaultRule = "statements";
 
-  // Should we throw if we can't match the entire iniitial statement
-  //  on `parser.parse()` or `parser.compile()` ?
-//TESTME
-  @proto throwIfIncompleteParse = false;
-
   // Constructor.
   constructor(properties) {
     Object.assign(this, properties);
@@ -92,9 +87,14 @@ export class Parser {
     const result = rule.parse(scope, tokens);
     if (Parser.TIME) console.timeEnd("parse");
 
-    //TESTME
-    if (this.throwIfIncompleteParse && result.length !== tokens.length)
-      throw new ParseError("parse() didn't parse the entire line");
+    // If we didn't get anything, not that the parse was incomplete.
+    // TESTME
+    if (result && result.length !== tokens.length) {
+      result.incomplete = {
+        parsed: Tokenizer.join(tokens, 0, result.length),
+        missed: Tokenizer.join(tokens, result.length),
+      }
+    }
 
     return result;
   }
