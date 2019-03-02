@@ -16,6 +16,7 @@ import {
   Tokenizer,
 } from "./all.js";
 
+import precedence from "../parser/precedence.js";
 
 // Output source when rendering statements
 SpellParser.prototype.outputSource = true;
@@ -50,5 +51,8 @@ Object.assign(global, {
 
   // Redux/app stuff
   ReduxFactory,
-  projects,
+  projects,    // package/file manipulation reduxFactory
+
+  // test language
+  prec: precedence
 });

@@ -802,6 +802,7 @@ Rule.Sequence = class sequence extends Rule {
   getResults(match, scope) {
     const { rule, matched, comment } = match;
     if (!matched) return undefined;
+//    if (match.rule.name === "recursive_expression") debugger;
     let results = addResults({}, matched);
     if (comment) {
       scope.parser.warn(`statement ${rule.name} got comment`, comment);
@@ -878,6 +879,15 @@ Rule.Sequence = class sequence extends Rule {
     return `${rules}${optional}`;
   }
 };
+
+
+// Sequence that is known to be only `Literal(s)` or `Pattern`.
+// Use this to get the entire literal string back.
+Rule.LiteralSequence = class literalSequence extends Rule.Sequence {
+  compile(match, scope) {
+    return match.matched.map(match => match.compile()).join(" ");
+  }
+}
 
 // Blank line representation in parser output.
 Rule.BlankLine = class blank_line extends Rule {
