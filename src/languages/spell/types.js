@@ -20,37 +20,6 @@ export default parser;
 //  Self-reference
 //
 
-// TODO: confusing???
-parser.defineRule({
-  name: "me",
-  alias: "expression",
-  syntax: "me",
-  compile(match, scope) {
-    return "this";
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["me", "this"]]
-    }
-  ]
-});
-
-// TODO: this really makes me want to make `I am empty` etc work...
-parser.defineRule({
-  name: "I",
-  alias: "expression",
-  syntax: "I",
-  compile(match, scope) {
-    return "this";
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["I", "this"]]
-    }
-  ]
-});
 
 //
 //  Property access
@@ -59,7 +28,7 @@ parser.defineRule({
 parser.defineRule({
   // TODO: multiple identifiers would be cool...
   name: "property_expression",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   syntax: "{property_accessor} {expression}",
   testRule: "{property_accessor}",    // ???
   compile(match, scope) {
@@ -444,8 +413,8 @@ parser.defineRule({
 // TODO: `with` clause (will conflict with `word`)
 // TODO: install the action as a special in the parser somehow
 // TODO: create instance function?  or maybe we don't need it:
-//      `action turn Card over` for an instance is just `turn me over`
-//      `action add card to deck` => `add me to deck`
+//      `action turn Card over` for an instance is just `turn it over`
+//      `action add card to deck` => `add it to deck`
 //TESTME
 parser.defineRule({
   name: "declare_action",

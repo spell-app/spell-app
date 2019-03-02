@@ -36,7 +36,7 @@ export class SpellParser extends Parser {
 
   parse(...args) {
     const result = super.parse(...args);
-    if (result && this.outputScope) this.warn(result.scope);
+//    if (result && this.outputScope) this.info(result.scope);
     return result;
   }
 }

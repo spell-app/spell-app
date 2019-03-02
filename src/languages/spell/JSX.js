@@ -13,7 +13,7 @@ export default parser;
 
 parser.defineRule({
   name: "jsx",
-  alias: "expression", // TODO: statement ???
+  alias: ["expression", "non_recursive_expression"],
   tokenType: Token.JSXElement,
   compile(match, scope) {
     return this.jsxElementToSource(match.matched[0]);

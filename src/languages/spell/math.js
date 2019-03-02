@@ -151,7 +151,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "absolute_value",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   syntax: "the? absolute value of {expression}",
   testRule: "…absolute",
   compile(match, scope) {
@@ -168,7 +168,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "max",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   precedence: 2,
   syntax: "the? (biggest|largest) {identifier}? (of|in) {expression}",
   testRule: "…(biggest|largest)",
@@ -190,7 +190,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "min",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   precedence: 2,
   syntax: "the? smallest {identifier}? (of|in) {expression}",
   testRule: "…smallest",
@@ -212,7 +212,7 @@ parser.defineRule({
 parser.defineRule({
 //TODO: precision:  to the nearest tenth ?
   name: "round_number",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   syntax: "round {thing:expression} (direction:off|up|down)?",
   testRule: "round",
   precedence: 1,

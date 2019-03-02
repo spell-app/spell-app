@@ -48,7 +48,7 @@ parser.defineRule({
 // TODO:  `integer` and `decimal`?  too techy?
 parser.defineRule({
   name: "number",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   tokenType: Token.Number,
   tests: [
     {
@@ -86,7 +86,7 @@ parser.defineRule({
 // Returned value has enclosing quotes.
 parser.defineRule({
   name: "text",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   tokenType: Token.Text,
   tests: [
     {
@@ -107,7 +107,7 @@ parser.defineRule({
 // `undefined` as an expression... ???
 parser.defineRule({
   name: "undefined",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   syntax: "undefined",
   compile(match, scope) {
     return "undefined";
@@ -310,7 +310,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "identifier_expression",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   syntax: "the? {identifier}",
   compile(match, scope) {
     return match.results.identifier;
@@ -366,7 +366,7 @@ parser.defineRule({
 // TODO: better name for this???
 parser.defineRule({
   name: "boolean",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   pattern: /^(true|false|yes|no|ok|cancel)$/,
   valueMap: {
     "true": true,
@@ -402,7 +402,7 @@ parser.defineRule({
 // `number` as a string `zero` to `ten`
 parser.defineRule({
   name: "number",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   pattern: /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
   valueMap: {
     zero: 0,
@@ -442,7 +442,7 @@ parser.defineRule({
 // MUST start with an upper-case letter (?)
 parser.defineRule({
   name: "type",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   pattern: /^([A-Z][\w\-]*|list|text|number|integer|decimal|character|boolean|object)$/,
   blacklist: {
     I: true
@@ -507,7 +507,7 @@ parser.defineRule({
 // Literal list (array), eg:  `[1,2 , true,false ]`
 parser.defineRule({
   name: "literal_list",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   syntax: "\\[ [list:{expression},]? \\]",
   testRule: "\\[",
   resetRules: true,
@@ -538,7 +538,7 @@ parser.defineRule({
 // Parenthesized expression
 parser.defineRule({
   name: "parenthesized_expression",
-  alias: "expression",
+  alias: ["expression", "non_recursive_expression"],
   syntax: "\\( {expression} \\)",
   testRule: "\\(",
   resetRules: true,
