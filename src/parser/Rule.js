@@ -17,6 +17,7 @@ import { isNode } from "browser-or-node";
 import {
   Match,
   Token,
+  Tokenizer,
 
   isWhitespace,
   proto
@@ -421,6 +422,8 @@ Rule.Choice = class choices extends Rule {
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(scope, tokens) {
+    const CHOICE = `choice '${this.name||this.argument}:'`;
+    scope.parser.group(`${CHOICE} start matching '${Tokenizer.join(tokens)}'`, this);
     if (this.resetRules) scope = scope.resetRules();
 
     // Try to match each rule in turn.
@@ -428,16 +431,33 @@ Rule.Choice = class choices extends Rule {
     //  should exit quickly via a `testRule` or similar mechanism.
     const matches = [];
     for (let i = 0, rule; rule = this.rules[i++];) {
+      scope.parser.group('parsing rule', rule.name);
       const match = rule.parse(scope, tokens);
       if (match) matches.push(match);
+      scope.parser.groupEnd();
     }
 
-    let match = matches.length > 1 ? this.getBestMatch(matches) : matches[0];
-    if (!match) return;
-
-    // assign special properties to the result
-    if (this.argument) match.argument = this.argument;
-    if (this.promote) match.promote = this.promote;
+    let match = matches[0];
+    if (matches.length === 0) {
+      scope.parser.debug(`${CHOICE} nothing matched`);
+    }
+    else if (matches.length === 1) {
+      scope.parser.debug(`${CHOICE} got 1 match`, match);
+    }
+    else {
+      scope.parser.debug(`${CHOICE} matched:`);
+      matches.forEach((match, index) => {
+        scope.parser.debug(`   #${index}: (len: ${match.length}, prec: ${match.precedence}): `, match);
+      });
+      match = matches.length > 1 ? this.getBestMatch(matches) : matches[0];
+      scope.parser.debug(`${CHOICE} returning:`, match);
+    }
+    if (match) {
+      // assign special properties to the result
+      if (this.argument) match.argument = this.argument;
+      if (this.promote) match.promote = this.promote;
+    }
+    scope.parser.groupEnd();
     return match;
   }
 
@@ -802,7 +822,6 @@ Rule.Sequence = class sequence extends Rule {
   getResults(match, scope) {
     const { rule, matched, comment } = match;
     if (!matched) return undefined;
-//    if (match.rule.name === "recursive_expression") debugger;
     let results = addResults({}, matched);
     if (comment) {
       scope.parser.warn(`statement ${rule.name} got comment`, comment);
