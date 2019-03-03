@@ -50,48 +50,48 @@ describe("basic rules check out individually", () => {
   });
 
   test("and", () => {
-    expect(prec.parse("a and b").results).toEqual({ lhs: "a", rhs: { expression: "b" }});
     expect(prec.compile("a and b")).toBe("(a && b)");
+    expect(prec.parse("a and b").results).toEqual({ lhs: "a", rhs: [{ expression: "b" }]});
   });
 
   test("or", () => {
-    expect(prec.parse("a or b").results).toEqual({ lhs: "a", rhs: { operator: "or", expression: "b" }});
     expect(prec.compile("a or b")).toBe("(a || b)");
+    expect(prec.parse("a or b").results).toEqual({ lhs: "a", rhs: [{ operator: "or", expression: "b" }]});
   });
 
   test("is", () => {
-    expect(prec.parse("a is b").results).toEqual({ lhs: "a", rhs: { operator: "is", expression: "b" }});
     expect(prec.compile("a is b")).toBe("(a == b)");
+    expect(prec.parse("a is b").results).toEqual({ lhs: "a", rhs: [{ operator: "is", expression: "b" }]});
   });
 
   test("is not", () => {
-    expect(prec.parse("a is not b").results).toEqual({ lhs: "a", rhs: { operator: "is not", expression: "b" }});
     expect(prec.compile("a is not b")).toBe("(a != b)");
+    expect(prec.parse("a is not b").results).toEqual({ lhs: "a", rhs: [{ operator: "is not", expression: "b" }]});
   });
 
   test("is empty", () => {
-    expect(prec.parse("a is empty").results).toEqual({ lhs: "a", rhs: "is empty" });
     expect(prec.compile("a is empty")).toBe("spell.isEmpty(a)");
+    expect(prec.parse("a is empty").results).toEqual({ lhs: "a", rhs: ["is empty"] });
   });
 
   test("is not empty", () => {
-    expect(prec.parse("a is not empty").results).toEqual({ lhs: "a", rhs: "is not empty" });
     expect(prec.compile("a is not empty")).toBe("!spell.isEmpty(a)");
+    expect(prec.parse("a is not empty").results).toEqual({ lhs: "a", rhs: ["is not empty"] });
   });
 
   test("is defined", () => {
-    expect(prec.parse("a is defined").results).toEqual({ lhs: "a", rhs: "is defined" });
     expect(prec.compile("a is defined")).toBe("(typeof a !== 'undefined')");
+    expect(prec.parse("a is defined").results).toEqual({ lhs: "a", rhs: ["is defined"] });
   });
 
   test("is not defined", () => {
-    expect(prec.parse("a is not defined").results).toEqual({ lhs: "a", rhs: "is not defined" });
     expect(prec.compile("a is not defined")).toBe("(typeof a === 'undefined')");
+    expect(prec.parse("a is not defined").results).toEqual({ lhs: "a", rhs: ["is not defined"] });
   });
 
   test("is undefined", () => {
-    expect(prec.parse("a is undefined").results).toEqual({ lhs: "a", rhs: "is undefined" });
     expect(prec.compile("a is undefined")).toBe("(typeof a === 'undefined')");
+    expect(prec.parse("a is undefined").results).toEqual({ lhs: "a", rhs: ["is undefined"] });
   });
 });
 
@@ -127,13 +127,35 @@ describe("parens", () => {
 
 
 describe("and / or combinations without parens", () => {
-  test("1 and 2 or 3", () => {
+  test("a and b or c", () => {
     // this is how JS does it
-    expect(prec.compile("1 and 2 or 3")).toBe("((1 && 2) || 3)");
+    expect(prec.compile("a and b or c")).toBe("((a && b) || c)");
   });
-  test("1 and 2 or 3 and 4", () => {
+
+  test("a and b or c and d", () => {
     // this is how JS does it
-    expect(prec.compile("1 and 2 or 3 and 4")).toBe("((1 && 2) || (3 && 4))");
+    expect(prec.compile("a and b or c and d")).toBe("((a && b) || (c && d))");
+  });
+
+});
+
+
+describe("mixing property expressions and operators", () => {
+  test("the foo of the bar is a", () => {
+    expect(prec.compile("the foo of the bar is a")).toBe("(bar.foo == a)");
+  });
+
+  test("the foo of the bar is empty", () => {
+    expect(prec.compile("the foo of the bar is empty")).toBe("spell.isEmpty(bar.foo)");
+  });
+
+  test("the foo of the bar is the bar of the foo", () => {
+    expect(prec.compile("the foo of the bar is the bar of the foo")).toBe("(bar.foo == foo.bar)");
+  });
+
+  // Nonsensical, but proves that parens work as expected
+  test("the foo of (the bar is empty)", () => {
+    expect(prec.compile("the foo of (the bar is empty)")).toBe("(spell.isEmpty(bar)).foo");
   });
 
 });

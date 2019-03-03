@@ -17,7 +17,7 @@ import {
 } from "./all.js";
 
 import precedence from "../languages/precedence/precedence.js";
-SpellParser.prototype.setDebugLevel("DEBUG");
+precedence.setDebugLevel("INFO");
 
 // Output source when rendering statements
 SpellParser.prototype.outputSource = true;
