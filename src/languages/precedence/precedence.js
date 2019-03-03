@@ -2,10 +2,32 @@
 // # Super simple language for understanding precedence and recursion with expressions.
 //
 //  Secret seems to be:
-//  - Any recursive expression is ONLY looking for a non-recursive expression, e.g.
-//      e.g. `the {identifier} of {non-recursive-expression}`
-//  - We only have
+//  - Any recursive expression is ONLY looking for a non-recursive expression,
+//      e.g. `the {identifier} of {non_recursive_expression}`
 //
+//  - UNLESS it is deliberately "resetting the rules",
+//      e.g. `\\( {expression} \\)`
+//
+//  - Only have ONE recursive_expression (for efficiency) as:
+//      e.g.  `{rhs:non_recursive_expression} {lhs:recursive_expression_rhs}+`
+//
+//  - Infix operators: `<expression> is <expression>`
+//    or Postfix ops:  `<expression> is empty`
+//    are `recursive_expression_rhs` entities
+//    and will get a `applyOperator({ lhs, operator?, rhs})` call to combine the bits.
+//
+//    Note that they should be structured like:
+//        `(operator:and) {expression:non_recursive_expression}`    (infix operators)
+//    or
+//        `is not? empty`  (postfix operators)
+//    or, for literal sequences of varying length, use
+//        `syntax: `is (undefined|not defined)`, constructor Rule,LiteralSequence`
+//
+
+// TODO: shunting-yard algorithm.  May be cleaner to do `infix_operator` vs `and_expression`?
+// TODO: is it really `non_operator_expression` ???
+// TODO: test repeating lists, `\\[ [{expression},] \\]`
+// TODO: test `the number of {identifer} in {non_recursive_expression}
 
 import sortBy from "lodash/sortBy";
 
