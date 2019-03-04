@@ -117,6 +117,10 @@ parser.defineRule({
 // Generic recursive expression
 //
 
+function peek(array) {
+  return array[array.length - 1];
+}
+
 parser.defineRule({
   name: "recursive_expression",
   alias: "expression",
@@ -125,14 +129,80 @@ parser.defineRule({
 //  testRule: "…{recursive_expression_test}",
   compile(match, scope) {
     const { results, matched } = match;
-    // iterate through the rhs expressions, mucking with the `results` above as we go
-    const rhs_expressions = matched[1].matched;
-    // TODO: use railyard algorithm to do precedence
-    rhs_expressions.forEach(rhsMatch => {
-      results.rhs = rhsMatch.compile();
-      results.lhs = rhsMatch.rule.applyOperator(match, scope);
+    scope.parser.debug("compiling recursive expression: ", results);
+
+    // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
+    //  to deal with operator precedence.  Note that we assume:
+    //  - all infix operators are `left-to-right` associative, and
+    //  - all postfix operators are postfix operators.
+    // See: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
+    // See: https://www.chris-j.co.uk/parsing.php
+    const output = [ results.lhs ];
+    const opStack = [];
+    const rhsExpressions = matched[1].matched;
+    rhsExpressions.forEach(rhsMatch => {
+      const rhs = rhsMatch.compile();
+      const rule = rhsMatch.rule;
+      scope.parser.group("processing rhs: ", rhs, "for rule: ", rule.name);
+
+      // For a unary postfix operator, `rhs` will be the operator text that was matched
+      if (typeof rhs === "string") {
+        const args = {
+          operator: rhs,
+          lhs: output.pop()
+        }
+        const result = this.applyOperator(rule, args, scope);
+        output.push(result);
+      }
+      // If it's a binary operator, `rhs` will be an object: `{ operator?, expression }`
+      else {
+        const { operator, expression } = rhs;
+        // While top operator on stack is higher precedence than this one
+        while (peek(opStack)?.rule.precedence >= rule.precedence) {
+          // pop the top operator and compile it with top 2 things on the output stack
+          const { operator, rule: topRule } = opStack.pop();
+          const args = {
+            operator,
+            rhs: output.pop(),
+            lhs: output.pop()
+          }
+          const result = this.applyOperator(topRule, args, scope);
+          // push the result into the output stream
+          output.push(result);
+        }
+
+        // Push the current operator and expression
+        opStack.push({ rule, operator });
+        output.push(expression);
+
+        scope.parser.debug("output: ", [...output], "opStack: ", [...opStack]);
+        scope.parser.groupEnd();
+      }
     });
-    return results.lhs;
+
+    // At this point, we have only binary operators in the stack.
+    // Run through them
+    let topOp;
+    while ((topOp = opStack.pop())) {
+      const args = {
+        operator: topOp.operator,
+        rhs: output.pop(),
+        lhs: output.pop(),
+      }
+      const result = this.applyOperator(topOp.rule, args, scope);
+      output.push(result);
+    }
+    if (output.length > 1) {
+      scope.parser.warn(`recursive_expression() ended up with more than one output:`, output);
+    }
+    return output[0];
+  },
+
+  applyOperator(rule, args, scope) {
+    const { lhs, rhs, operator } = args;
+    const result = rule.applyOperator(args);
+    scope.parser.debug("compiled ", args, "got result ", result);
+    return result;
   }
 });
 
@@ -149,33 +219,27 @@ parser.defineRule({ name: "recursive_expression_test", literal: "is" });
 parser.defineRule({
   name: "and_rhs",
   alias: "recursive_expression_rhs",
-  precedence: 2,                                // <== precedence above `and`
+  precedence: 6,
   syntax: "and {expression:non_recursive_expression}",                   // <== results.rhs = { expression }
-  applyOperator(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} && ${rhs.expression})`;
-  }
+  applyOperator: ({ lhs, rhs }) => `(${lhs} && ${rhs})`
 });
 
 parser.defineRule({
   name: "or_rhs",
   alias: "recursive_expression_rhs",
-  precedence: 3,                                // <== precedence above `and`
+  precedence: 5,
   syntax: "(operator:or) {expression:non_recursive_expression}",         // <== results.rhs = { operator: "or", expression }
-  applyOperator(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} || ${rhs.expression})`;
-  }
+  applyOperator: ({ lhs, rhs }) => `(${lhs} || ${rhs})`
 });
 
 parser.defineRule({
   name: "is_expression",
   alias: "recursive_expression_rhs",
+  precedence: 3,    // ????
   syntax: "(operator:is not?) {expression:non_recursive_expression}",    // <== results.rhs = { operator: "is", expression }
-  applyOperator(match, scope) {
-    const { lhs, rhs } = match.results;
-    const op = rhs.operator === "is not" ? "!=" : "==";
-    return `(${lhs} ${op} ${rhs.expression})`;
+  applyOperator({ lhs, operator, rhs }) {
+    const op = operator === "is not" ? "!=" : "==";
+    return `(${lhs} ${op} ${rhs})`;
   }
 });
 
@@ -186,12 +250,11 @@ parser.defineRule({
 
 parser.defineRule({
   name: "is_empty",
-  precedence: 1,                                  // <== precedence above `is_expression`
+  precedence: 4,                                  // <== precedence above `is_expression`
   alias: "recursive_expression_rhs",
   syntax: "is not? empty",                        // <== single Keywords, results.rhs = "is empty"
-  applyOperator(match, scope) {
-    const { lhs, rhs } = match.results;
-    const bang = rhs === "is not empty" ? "!" : "";
+  applyOperator({ lhs, operator }) {
+    const bang = (operator === "is not empty" ? "!" : "");
     return `${bang}spell.isEmpty(${lhs})`;
   }
 });
@@ -199,13 +262,12 @@ parser.defineRule({
 
 parser.defineRule({
   name: "is_defined",
-  precedence: 1,                                  // <== precedence above `is_expression`
+  precedence: 4,                                  // <== precedence above `is_expression`
   alias: "recursive_expression_rhs",
   syntax: "is (defined|undefined|not defined)",
   constructor: Rule.LiteralSequence,              // <== LiteralSequence: result.rhs = "is defined"
-  applyOperator(match, scope) {
-    const { lhs, rhs } = match.results;
-    const op = rhs === "is defined" ? "!==" : "===";
+  applyOperator({ lhs, operator }) {
+    const op = (operator === "is defined" ? "!==" : "===");
     return `(typeof ${lhs} ${op} 'undefined')`;
   }
 });

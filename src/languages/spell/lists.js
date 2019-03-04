@@ -382,6 +382,7 @@ parser.defineRule({
 
 // Set membership (left recursive).
 // NOTE: we will singularize `identifier` and use that as the argument to `expression`.
+// TODO: this is a postfix_operator expression
 parser.defineRule({
   name: "list_membership_test",
   alias: ["expression", "non_recursive_expression"],
