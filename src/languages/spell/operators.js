@@ -90,7 +90,6 @@ parser.defineRule({
   },
 
   applyOperator(rule, args, scope) {
-    const { lhs, rhs, operator } = args;
     const result = rule.applyOperator(args);
     scope.parser.debug("compiled ", args, "got result ", result);
     return result;

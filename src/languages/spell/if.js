@@ -197,27 +197,26 @@ parser.defineRule({
   ]
 });
 
-// NOTE: this is NOT a blockStatement!
 parser.defineRule({
   name: "backwards_if",
-  alias: "statement",
-  syntax: "{statement:statement!backwards_if} if {condition:expression} (?:(else|otherwise) {elseStatement:statement})?",
-  testRule: "…if",
+  alias: "recursive_expression_operator",
+  syntax: "if (?:{condition:expression} (else|otherwise) {expression:expression})",
+  argument: "expression",
   compile(match, scope) {
-    const { condition, statement, elseStatement } = match.results;
-    //TODO: smarter wrapping?
-    let output = `if (${condition}) { ${statement} }`;
-    if (elseStatement) output += `\nelse { ${elseStatement} }`;
-    return output;
+    return { expression: match.results };
+  },
+  applyOperator({ lhs, rhs }) {
+    const { condition, expression } = rhs;
+    return `(${rhs.condition} ? ${lhs} : ${rhs.expression})`;
   },
   tests: [
     {
       title: "correctly matches single-line backwards_if statements",
       compileAs: "statement",
       tests: [
-        ["b = 1 if a", "if (a) { b = 1 }"],
-        ["b = 1 if a else b = 2", "if (a) { b = 1 }\nelse { b = 2 }"],
-        ["b = 1 if a otherwise b = 2", "if (a) { b = 1 }\nelse { b = 2 }"]
+        ["b = 1 if a else 2", "b = (a ? 1 : 2)"],
+        ["b = the foo of the bar if a is 1 otherwise the bar of the foo",
+         "b = ((a == 1) ? bar?.foo : foo?.bar)"]
       ]
     }
   ]
