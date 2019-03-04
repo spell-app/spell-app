@@ -2,7 +2,7 @@ a card "is face up" if its direction is up
 a card "is face down" if its direction is down
 
 to turn a card face up: set the direction of the card to up
-to turn a card face down: set the card direction to down
+to turn a card face down: set the direction of the card to down
 
 to flip a card over:
 	if its direction is up then turn it face down

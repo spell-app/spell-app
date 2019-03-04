@@ -74,7 +74,7 @@ const block_line = parser.defineRule({
       if (!match && !comment) return;
 
       if (match && match.length !== remainingTokens.length) {
-        scope.parser.warn("statement didn't match", remainingTokens.slice(match.length));
+        scope.parser.warn(`statement didn't match '${Tokenizer.join(remainingTokens,match.length)}'`);
       }
 
       // If only comment, return that.

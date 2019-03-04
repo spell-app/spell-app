@@ -504,9 +504,28 @@ parser.defineRule({
   ]
 });
 
-// Literal list (array), eg:  `[1,2 , true,false ]`
+
+// List of identifiers and/or numbers, e.g. "clubs or hearts", "jack, queen, king"
+// Note that this is not a generic "expression" -- it's too generic.
 parser.defineRule({
-  name: "literal_list",
+  name: "identifier_list",
+  syntax: "[({word}|{number})(,|or|and)]",
+  tests: [
+    {
+      tests: [
+        ["up or down", ["up", "down"]],
+        ["red and black", ["red", "black"]],
+        ["clubs, diamonds, hearts, spades", ["clubs", "diamonds", "hearts", "spades" ] ],
+        ["ace, 2, 3, 4, jack, queen, king", ["ace", 2, 3, 4, "jack", "queen", "king" ] ],
+      ]
+    }
+  ]
+});
+
+
+// Bracketed list (array), eg:  `[1,2 , true,false ]`
+parser.defineRule({
+  name: "bracketed_list",
   alias: ["expression", "non_recursive_expression"],
   syntax: "\\[ [list:{expression},]? \\]",
   testRule: "\\[",

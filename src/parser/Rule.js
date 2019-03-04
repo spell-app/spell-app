@@ -536,7 +536,10 @@ Rule.Repeat = class repeat extends Rule {
   parse(scope, tokens) {
     if (this.testAtStart(scope, tokens, 0) === false) return undefined;
 
+    // everything that was matched
     const matched = [];
+    // items only
+    const items = [];
     let length = 0;
 
     let remainingTokens = tokens;
@@ -544,6 +547,7 @@ Rule.Repeat = class repeat extends Rule {
       let match = this.rule.parse(scope, remainingTokens);
       if (!match) break;
       matched.push(match);
+      items.push(match);
       length += match.length;
       remainingTokens = remainingTokens.slice(match.length);
 
@@ -551,7 +555,8 @@ Rule.Repeat = class repeat extends Rule {
         // get delimiter, exiting if not found
         let delimiter = this.delimiter.parse(scope, remainingTokens);
         if (!delimiter) break;
-        // NOTE: we do not push the delimiter into matched, but we do count it's length.
+        // NOTE: we do not push delimiter into matched!
+        matched.push(delimiter);
         length += delimiter.length;
         remainingTokens = remainingTokens.slice(delimiter.length);
       }
@@ -562,16 +567,20 @@ Rule.Repeat = class repeat extends Rule {
     if (typeof this.minCount === "number" && matched.length < this.minCount) return undefined;
     if (typeof this.maxCount === "number" && matched.length > this.maxCount) return undefined;
 
-    return new Match({
+    const match = new Match({
       rule: this,
       matched,
+      items,
       length,
       scope
     });
+    if (this.promote) match.promote = this.promote;
+    if (this.argument) match.argument = this.argument;
+    return match;
   }
 
   compile(match, scope) {
-    return match.matched.map(match => match.compile());
+    return match.items.map(match => match.compile());
   }
 
   getTokens(match) {

@@ -50,22 +50,23 @@ parser.defineRule({
 });
 
 parser.defineRule({
-  name: "property_accessor",
-  syntax: "the {identifier} of",
+  name: "the_property_of",
+  alias: "property_accessor",
+  syntax: "the {property:identifier} of",
   testRule: "the",
   compile(match, scope) {
-    return match.results.identifier;
+    return match.results.property;
   },
 });
 
 parser.defineRule({
-  name: "its_property_accessor",
+  name: "its_property",
   alias: ["expression", "property_accessor", "non_recursive_expression"],
-  syntax: "its {identifier}",
+  syntax: "its {property:identifier}",
   testRule: "its",
   compile(match, scope) {
-    const { identifier } = match.results;
-    return `this.${identifier}`
+    const { property } = match.results;
+    return `this.${property}`
   },
   tests: [
     {
@@ -109,7 +110,7 @@ parser.defineRule({
   name: "object_literal_properties",
   syntax: "[({key:identifier} (?:= {value:expression})?),]",
   compile(match, scope) {
-    let props = match.matched.map(function(prop) {
+    let props = match.items.map(function(prop) {
       let { key, value } = prop.results;
       if (value) return `"${key}": ${value}`;
       return key;

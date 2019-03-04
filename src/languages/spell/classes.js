@@ -48,21 +48,6 @@ parser.defineRule({
   ]
 });
 
-parser.defineRule({
-  name: "identifier_list",
-  syntax: "[({word}|{number})(,|or|and)]",
-  tests: [
-    {
-      tests: [
-        ["up or down", ["up", "down"]],
-        ["red and black", ["red", "black"]],
-        ["clubs, diamonds, hearts, spades", ["clubs", "diamonds", "hearts", "spades" ] ],
-        ["ace, 2, 3, 4, jack, queen, king", ["ace", 2, 3, 4, "jack", "queen", "king" ] ],
-      ]
-    }
-  ]
-});
-
 
 // `new` or `create`
 // This works as an expression OR a statement.
@@ -417,17 +402,17 @@ parser.defineRule({
 parser.defineRule({
   name: "property_value_either",
   alias: ["statement", "updatesScope"],
-  syntax: "{?:property_of_a_type} is {value:identifier} if {expression} (?:otherwise it is {otherValue:identifier})?",
+  syntax: "{?:property_of_a_type} is {value:identifier} if {condition:expression} (?:otherwise it is {otherValue:identifier})?",
   constructor: class type_is_a_enum extends Rule.Sequence {
     getResults(match, scope) {
       const results = super.getResults(match, scope);
       return inflectResults(results, "type");
     }
     compile(match, scope) {
-      let { Type, property, value, otherValue, expression } = match.results;
+      let { Type, property, value, otherValue, condition } = match.results;
       const statement = !otherValue
-        ? `if (${expression}) return ${value}`
-        : `return !!${expression} ? ${value} : ${otherValue}`;
+        ? `if (${condition}) return ${value}`
+        : `return !!${condition} ? ${value} : ${otherValue}`;
 
       return [
         `defineProp(${Type}.prototype, '${property}', {`,
