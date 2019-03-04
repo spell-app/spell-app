@@ -516,6 +516,9 @@ Rule.Group = class group extends Rule.Choice {};
 
 // Repeating rule.
 //  `this.rule` is the rule that repeats.
+//  `rule.delimiter` (optional) if provided, we'll look for one of these
+//      between each instance of `rule`. The delimiter at the end is optional.
+//      Note that the delimiters are NOT added to the `matched` array.
 //  `this.optional` is true if the prodution is optional.
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
 //  `rule.minCount` is the minimum number we need to match successfully.
@@ -541,6 +544,15 @@ Rule.Repeat = class repeat extends Rule {
       matched.push(match);
       length += match.length;
       remainingTokens = remainingTokens.slice(match.length);
+
+      if (this.delimiter) {
+        // get delimiter, exiting if not found
+        let delimiter = this.delimiter.parse(scope, remainingTokens);
+        if (!delimiter) break;
+        // NOTE: we do not push the delimiter into matched, but we do count it's length.
+        length += delimiter.length;
+        remainingTokens = remainingTokens.slice(delimiter.length);
+      }
     }
 
     // Forget it if nothing matched at all
@@ -565,79 +577,29 @@ Rule.Repeat = class repeat extends Rule {
   }
 
   toSyntax() {
-    let { testLocation, promote, argument, optional } = this.getSyntaxFlags();
+    let { promote, argument, optional } = this.getSyntaxFlags();
     const repeatSymbol = this.optional ? "*" : "+";
-    const wrapInParens =
-      promote ||
-      argument ||
-      this.rule instanceof Rule.Sequence ||
-      (this.rule instanceof Rule.Literals && this.rule.literals.length > 1);
 
     // don't double-up on parens
     let rule = this.rule.toSyntax();
-    if (wrapInParens && rule.startsWith("(") && rule.endsWith(")"))
-      rule = rule.slice(1, -1);
-
-    if (wrapInParens)
-      return `(${promote}${argument}${rule})${repeatSymbol}`;
-    return `${rule}${repeatSymbol}`;
-  }
-};
-
-// List match rule:   `[<rule><delimiter>]`. eg" `[{number},]` to match `1,2,3`
-//  `rule.rule` (required) is the rule for each item,
-//  `rule.delimiter` (required) is the delimiter between each item, which is optional at the end.
-Rule.List = class list extends Rule {
-  parse(scope, tokens) {
-    if (this.testAtStart(scope, tokens, 0) === false) return undefined;
-
-    let matched = [];
-    let length = 0;
-    let remainingTokens = tokens;
-    while (remainingTokens.length) {
-      // get next item, exiting if not found
-      let item = this.rule.parse(scope, remainingTokens);
-      if (!item) break;
-
-      matched.push(item);
-      length += item.length;
-      remainingTokens = remainingTokens.slice(item.length);
-
-      // get delimiter, exiting if not found
-      let delimiter = this.delimiter.parse(scope, remainingTokens);
-      if (!delimiter) break;
-      // NOTE: we do not push the delimiter into matched, but we do count it's length.
-      length += delimiter.length;
-      remainingTokens = remainingTokens.slice(delimiter.length);
+    if (this.delimiter) {
+      const delimiter = this.delimiter.toSyntax();
+      return `[${promote}${argument}${rule}${delimiter}]${optional}`
     }
+    else {
+      const wrapInParens =
+        promote ||
+        argument ||
+        this.rule instanceof Rule.Sequence ||
+        (this.rule instanceof Rule.Literals && this.rule.literals.length > 1);
 
-    // If we didn't get any matches, forget it.
-    if (matched.length === 0) return undefined;
+      if (wrapInParens && rule.startsWith("(") && rule.endsWith(")"))
+        rule = rule.slice(1, -1);
 
-    return new Match({
-      rule: this,
-      matched,
-      length,
-      scope
-    });
-  }
-
-  // Returns JS Array of matched items as source.
-  compile(match, scope) {
-    return match.matched.map(match => match.compile());
-  }
-
-  getTokens(match) {
-    return flattenDeep(match.matched.map(match => match.getTokens(match)));
-  }
-
-  toSyntax() {
-    const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
-    const rule = this.rule instanceof Rule.Sequence
-      ? `(${this.rule.toSyntax()})`
-      : this.rule.toSyntax();
-    const delimiter = this.delimiter.toSyntax();
-    return `${testLocation}[${promote}${argument}${rule}${delimiter}]${optional}`;
+      if (wrapInParens)
+        return `(${promote}${argument}${rule})${repeatSymbol}`;
+      return `${rule}${repeatSymbol}`;
+    }
   }
 };
 

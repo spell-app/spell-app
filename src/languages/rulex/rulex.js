@@ -349,20 +349,15 @@ rulex.defineRule({
   alias: "rule",
   rules: [
     new Rule.Symbol("["),
-    new Rule.Sequence({
-      promote: true,
-      rules: [
-        promote,
-        argument,
-        new Rule.Subrule({ argument: "rule", rule: "rule" }),
-        new Rule.Subrule({ argument: "delimiter", rule: "rule" }),
-      ]
-    }),
+    promote,
+    argument,
+    new Rule.Subrule({ argument: "rule", rule: "rule" }),
+    new Rule.Subrule({ argument: "delimiter", rule: "rule" }),
     new Rule.Symbol("]"),
-    repeatFlag
+    new Rule.Symbol({ argument: "repeatFlag", literal: "?", optional: true })
   ],
   compile({ results }) {
-    const rule = new Rule.List({ rule: results.rule, delimiter: results.delimiter });
+    const rule = new Rule.Repeat({ rule: results.rule, delimiter: results.delimiter });
     return rulex.applyFlags(rule, results);
   },
   tests: [
@@ -374,19 +369,15 @@ rulex.defineRule({
         ["[]", new Rule.Symbol("[")],         // TODO: error for this?
         ["[{sub}]", new Rule.Symbol("[")],    // TODO: error for this?
 
-        ["[{sub},]", new Rule.List({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
-        ["[{sub}or]", new Rule.List({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Keyword("or") }) ],
+        ["[{sub},]", new Rule.Repeat({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
+        ["[{sub}or]", new Rule.Repeat({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Keyword("or") }) ],
 
-        ["[?:{sub},]", new Rule.List({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), promote: true }) ],
-        ["[arg:{sub},]", new Rule.List({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), argument: "arg" }) ],
-        ["[?:arg:{sub},]", new Rule.List({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), promote: true, argument: "arg" }) ],
+        ["[?:{sub},]", new Rule.Repeat({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), promote: true }) ],
+        ["[arg:{sub},]", new Rule.Repeat({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), argument: "arg" }) ],
+        ["[?:arg:{sub},]", new Rule.Repeat({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), promote: true, argument: "arg" }) ],
 
-        ["[{sub},]?", new Rule.List({ optional: true, rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
-        ["[{sub},]+", new Rule.Repeat({ rule: new Rule.List({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) }) ],
-        ["[{sub},]*", new Rule.Repeat({ optional: true, rule: new Rule.List({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) }) ],
-
-        ["[?:arg:{sub},]?", new Rule.List({ promote: true, argument: "arg", optional: true, rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
-        ["[?:arg:{sub},]*", new Rule.Repeat({ promote: true, argument: "arg", optional: true, rule: new Rule.List({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) }) ],
+        ["[{sub},]?", new Rule.Repeat({ optional: true, rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
+        ["[?:arg:{sub},]?", new Rule.Repeat({ promote: true, argument: "arg", optional: true, rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
       ]
     }
   ]
@@ -442,7 +433,7 @@ rulex.defineRule({
         ["(>)", new Rule.Symbol(">")],
         ["(word)", new Rule.Keyword("word")],
         ["({sub})", new Rule.Subrule("sub")],
-        ["([{sub},])", new Rule.List({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
+        ["([{sub},])", new Rule.Repeat({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
 
         // Pass flags whether they were set on the choices or the single rule (a bit confusing)
         ["(…{sub})", new Rule.Subrule({ rule: "sub", testLocation: ANYWHERE })],

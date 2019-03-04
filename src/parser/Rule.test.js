@@ -562,6 +562,10 @@ describe("Rule.Repeat", () => {
     rule: new Rule.Keywords("word"),
     testLocation: TestLocation.ANYWHERE
   });
+  const ruleDelimiter = new Rule.Repeat({
+    rule: new Rule.Keywords("word"),
+    delimiter: new Rule.Symbol(",")
+  });
 
   describe("test() method", () => {
     describe("without a testRule", () => {
@@ -602,7 +606,7 @@ describe("Rule.Repeat", () => {
 
   });
 
-  describe("parse() method", () => {
+  describe("parse() method without a delimiter", () => {
     it("returns an array when compiled", () => {
       const match = ruleStart.parse(new Scope(parser), tokenize("word nope nope"));
       expect(match.compile()).toBeInstanceOf(Array);
@@ -625,93 +629,46 @@ describe("Rule.Repeat", () => {
       expect(match).toBeUndefined();
     });
   });
-});
 
-
-describe("Rule.List", () => {
-  const parser = new Parser();
-  const rule = new Rule.Keywords("word");
-  const delimiter = new Rule.Symbols(",");
-  const testRule = new Rule.Keywords("word");
-
-  const ruleNoTest = new Rule.List({ rule, delimiter });
-  const ruleStart = new Rule.List({ testRule, rule, delimiter });
-  const ruleAnywhere = new Rule.List({ testRule, rule, delimiter, testLocation: TestLocation.ANYWHERE });
-
-  describe("test() method", () => {
-    describe("without a testRule", () => {
-      it("returns undefined", () => {
-        const test = ruleNoTest.test(new Scope(parser), tokenize("word"));
-        expect(test).toBe(undefined);
-      });
-    });
-
-    describe("TEST_AT_START", () => {
-      it("returns true if present at the start of tokens", () => {
-        const test = ruleStart.test(new Scope(parser), tokenize("word"));
-        expect(test).toBe(true);
-      });
-
-      it("returns false if NOT present at start in tokens", () => {
-        const test = ruleStart.test(new Scope(parser), tokenize("nope word nope"));
-        expect(test).toBe(false);
-      });
-    });
-
-    describe("TEST_ANYWHERE", () => {
-      it("returns true if present at the start of tokens", () => {
-        const test = ruleAnywhere.test(new Scope(parser), tokenize("word"));
-        expect(test).toBe(true);
-      });
-
-      it("returns true if present anywhere in tokens", () => {
-        const test = ruleAnywhere.test(new Scope(parser), tokenize("nope word nope"));
-        expect(test).toBe(true);
-      });
-
-      it("returns false if NOT present anywhere in tokens", () => {
-        const test = ruleAnywhere.test(new Scope(parser), tokenize("nope nope nope"));
-        expect(test).toBe(false);
-      });
-    });
-
-  });
-
-  describe("parse() method", () => {
+  describe("parse() method WITH a delimiter", () => {
     it("returns an array when compiled", () => {
-      const match = ruleStart.parse(new Scope(parser), tokenize("word nope nope"));
-      expect(match.compile()).toBeInstanceOf(Array);
+      const match = ruleDelimiter.parse(new Scope(parser), tokenize("word nope nope"));
+      expect(match.compile()).toEqual(["word"]);
+    });
+
+    it("works for a single instance of <rule> without <delimiter>", () => {
+      const match = ruleDelimiter.parse(new Scope(parser), tokenize("word nope nope"));
+      expect(match.compile()).toEqual(["word"]);
+    });
+
+    it("works for a single instance of <rule><delimiter>", () => {
+      const match = ruleDelimiter.parse(new Scope(parser), tokenize("word, nope nope"));
+      expect(match.compile()).toEqual(["word"]);
+    });
+
+    it("works for a multiple instances of <rule><delimiter>", () => {
+      const match = ruleDelimiter.parse(new Scope(parser), tokenize("word, word,word nope nope"));
+      expect(match.compile()).toEqual(["word", "word", "word"]);
     });
 
     it("parses once at the start of tokens", () => {
-      const match = ruleStart.parse(new Scope(parser), tokenize("word nope nope"));
+      const match = ruleDelimiter.parse(new Scope(parser), tokenize("word nope nope"));
       expect(match.length).toBe(1);
       expect(match.compile()).toEqual(["word"]);
     });
 
-    it("parses multiple times at the start of tokens WITH spaces", () => {
-      const match = ruleStart.parse(new Scope(parser), tokenize("word, word nope nope"));
-      expect(match.length).toBe(3);
-      expect(match.compile()).toEqual(["word", "word"]);
-    });
-
-    it("parses multiple times at the start of tokens WITHOUT spaces", () => {
-      const match = ruleStart.parse(new Scope(parser), tokenize("word,word nope nope"));
-      expect(match.length).toBe(3);
-      expect(match.compile()).toEqual(["word", "word"]);
-    });
-
-    it("eats but trailing delimiter", () => {
-      const match = ruleStart.parse(new Scope(parser), tokenize("word, word, nope"));
-      expect(match.length).toBe(4);
+    it("parses multiple times at the start of tokens", () => {
+      const match = ruleDelimiter.parse(new Scope(parser), tokenize("word,word nope nope"));
+      expect(match.length).toBe(3);   // length includes delimiter
       expect(match.compile()).toEqual(["word", "word"]);
     });
 
     it("does not parse in the middle of tokens", () => {
-      const match = ruleStart.parse(new Scope(parser), tokenize("nope word,word nope"));
+      const match = ruleDelimiter.parse(new Scope(parser), tokenize("nope word nope"));
       expect(match).toBeUndefined();
     });
   });
+
 });
 
 
