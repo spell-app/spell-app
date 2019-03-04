@@ -1,9 +1,6 @@
 // Guarantee async/await works in all environments.
 import "@babel/polyfill";
 
-export _ from "lodash";
-export global from "global";
-
 export * from "./redux/all.js";
 
 // Parser bits

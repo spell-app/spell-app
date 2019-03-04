@@ -1,8 +1,9 @@
 // HACK: expose a bunch of stuff on `global` for browser debugging
+export global from "global";
+import _ from "lodash";
+import JSON5 from "JSON5";
 
 import {
-  _,
-  global,
   projects,
   ParseError,
   Parser,
@@ -30,6 +31,8 @@ spell.TIME = true;
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
   _,
+  JSON5,
+
   ParseError,
   Parser,
   Rule,
