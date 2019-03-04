@@ -125,8 +125,10 @@ export class Rule {
 
   // We attempt to merge literals together if possible when creating rules.
   // We can only do that for ruls that are not "adorned" with promote, argument, etc.
+  // Note that `optional` doesn't matter in this case, because we can merge
+  //  optional and non-optional literals.
   get isAdorned() {
-    return !!(this.optional || this.promote || this.argument || this.testLocation || this.isEscaped);
+    return !!(this.promote || this.argument || this.testLocation || this.isEscaped);
   }
 
   // Return syntax string for this rule (doesn't apply to all rule types).
@@ -719,7 +721,7 @@ Rule.NestedSplit = class nesting extends Rule {
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
 Rule.Sequence = class sequence extends Rule {
   constructor(props) {
-    if (arguments.length > 1) props = [...arguments];
+    if (arguments.length > 1) props = { rules: [...arguments] };
     if (Array.isArray(props)) props = { rules: props };
     super(props);
   }

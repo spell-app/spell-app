@@ -225,7 +225,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       tests: [
-        ["a is the same type as b", "(spell.typeOf(a) === spell.typeOf(b))"]
+        ["a is the same type as b", "(spell.typeOf(a) === spell.typeOf(b))"],
+        ["a is not the same type as b", "(spell.typeOf(a) !== spell.typeOf(b))"]
       ]
     }
   ]
@@ -235,13 +236,7 @@ parser.defineRule({
   name: "is_in",
   alias: "recursive_expression_operator",
   precedence: 11,
-  syntax: "(operator:is not? (in|one of)) {expression:non_recursive_expression}",
-  compile(match, scope) {
-    return {
-      ...match.results,
-      operator: match.matched[0].getTokens().join(" ")
-    };
-  },
+  syntax: "(operator:is not?) (in|one of) {expression:non_recursive_expression}",
   applyOperator({ lhs, operator, rhs }) {
     const bang = (operator.includes("not") ? "!" : "");
     return `${bang}spell.includes(${rhs}, ${lhs})`;

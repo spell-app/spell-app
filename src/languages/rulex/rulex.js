@@ -52,11 +52,11 @@ rulex.consolidateLiterals = function(rules, constructor, literalKey, groupConstr
 
   const results = [];
   for (let start = 0, rule; rule = rules[start]; start++) {
-    if (rule instanceof constructor && (!rule.isAdorned || rule.optional)) {
+    if (rule instanceof constructor && !rule.isAdorned) {
       // find the end of the run
       let end = start;
       for (let next; next = rules[end+1]; end++) {
-        if (!(next instanceof constructor && (!next.isAdorned || next.optional))) break;
+        if (!(next instanceof constructor && !next.isAdorned)) break;
       }
       if (end > start) {
         // combine literals into a single map
@@ -512,7 +512,7 @@ rulex.defineRule({
     let rules = [];
     for (let start = 0, rule; rule = matched[start]; start++) {
       // Consolidate sequences
-      if (rule instanceof Rule.Sequence && !rule.isAdorned) {
+      if (rule instanceof Rule.Sequence && (!rule.isAdorned && !rule.optional)) {
         rules.push(...rule.rules);
         continue;
       }
@@ -564,6 +564,13 @@ rulex.defineRule({
         ["a? b c", new Rule.Keywords([ rulex.makeOptionalArray("a"), "b", "c" ])],
         ["a b? c", new Rule.Keywords([ "a", rulex.makeOptionalArray("b"), "c" ])],
         ["a b c?", new Rule.Keywords([ "a", "b", rulex.makeOptionalArray("c") ])],
+
+        ["a (arg:b) c", new Rule.Sequence([
+                        new Rule.Keyword("a"),
+                        new Rule.Keyword({ literal: "b", argument:"arg" }),
+                        new Rule.Keyword("c")
+                      ]),
+        ],
 
         ["(a|b) c? d (e|f)?", new Rule.Keywords([ ["a","b"], rulex.makeOptionalArray("c"), "d", rulex.makeOptionalArray(["e", "f"]) ])],
       ]
