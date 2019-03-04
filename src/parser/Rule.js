@@ -643,50 +643,11 @@ Rule.List = class list extends Rule {
 // `start` (required) is the start token string
 // `end` (required) is the end token string
 // `rule` (required) is the middle bit, which is probably a sequence
-// Returns the match of the rule, with `length` adjusted for the delimiters
-Rule.Nested = class nesting extends Rule {
-  parse(scope, tokens) {
-    if (this.resetRules) scope = scope.resetRules();
-
-    const end = this.findNestedEnd(scope, tokens);
-    if (end === undefined) return;
-    const match = this.rule.parse(scope, tokens.slice(1, end));
-    if (!match) return;
-    // if we didn't get everything, forget it
-    if (match.length + 1 !== end) return undefined;
-    // account for the start and end delimiters
-    match.tokens = tokens;
-    match.length += 2;
-    return match;
-  }
-
-  // If tokens starts with our `start` literal,
-  //  find the index of the token which matches our `end` literal.
-  // Returns `undefined` if not found or not balanced.
-  findNestedEnd(scope, tokens, start = 0) {
-    if (!this.start.testAtStart(scope, tokens, start)) return undefined;
-    let nesting = 0;
-    for (let end = start + 1, token; token = tokens[end]; end++) {
-      if (this.start.testAtStart(scope, tokens, end)) {
-        nesting++;
-      }
-      if (this.end.testAtStart(scope, tokens, end)) {
-        if (nesting === 0) return end;
-        nesting--;
-      }
-    }
-    return undefined;
-  }
-}
-
-// `start` (required) is the start token string
-// `end` (required) is the end token string
-// `rule` (required) is the middle bit, which is probably a sequence
 // `delimiter` (optional) if provided, we'll split on this string and apply `rule` to each item inside
 // `prefix` (optional) optional array of rules to match inside the FIRST item
 //
 // If nested start/end blocks are found, WHAT WILL HAPPEN???
-Rule.NestedSplit = class nesting extends Rule.Nested {
+Rule.NestedSplit = class nesting extends Rule {
   parse(scope, tokens) {
     if (this.resetRules) scope = scope.resetRules();
 
@@ -736,6 +697,24 @@ Rule.NestedSplit = class nesting extends Rule.Nested {
   // If no explcit compile method, return our `results` for someone else to consume.
   compile(match, scope) {
     return this.getResults(match, scope);
+  }
+
+  // If tokens starts with our `start` literal,
+  //  find the index of the token which matches our `end` literal.
+  // Returns `undefined` if not found or not balanced.
+  findNestedEnd(scope, tokens, start = 0) {
+    if (!this.start.testAtStart(scope, tokens, start)) return undefined;
+    let nesting = 0;
+    for (let end = start + 1, token; token = tokens[end]; end++) {
+      if (this.start.testAtStart(scope, tokens, end)) {
+        nesting++;
+      }
+      if (this.end.testAtStart(scope, tokens, end)) {
+        if (nesting === 0) return end;
+        nesting--;
+      }
+    }
+    return undefined;
   }
 
   // If tokens starts with our `start` literal,

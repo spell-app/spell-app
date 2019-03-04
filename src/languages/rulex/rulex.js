@@ -302,21 +302,14 @@ rulex.defineRule({
   alias: "rule",
   rules: [
     testLocation,
-    new Rule.Nested({
-      start: new Rule.Symbol("{"),
-      end: new Rule.Symbol("}"),
-      rule: new Rule.Sequence({
-        promote: true,
-        rules: [
-          testLocation,
-          promote,
-          argument,
-          new Rule.Word({ argument: "rule" }),
-          new Rule.Symbol({ literal: "!", optional: true }),
-          new Rule.Word({ argument: "exclude", optional: true })
-        ]
-      })
-    }),
+    new Rule.Symbol("{"),
+    testLocation,
+    promote,
+    argument,
+    new Rule.Word({ argument: "rule" }),
+    new Rule.Symbol({ literal: "!", optional: true }),
+    new Rule.Word({ argument: "exclude", optional: true }),
+    new Rule.Symbol("}"),
     repeatFlag
   ],
   compile({ results }) {
@@ -359,19 +352,17 @@ rulex.defineRule({
   name: "list",
   alias: "rule",
   rules: [
-    new Rule.Nested({
-      start: new Rule.Symbol("["),
-      end: new Rule.Symbol("]"),
-      rule: new Rule.Sequence({
-        promote: true,
-        rules: [
-          promote,
-          argument,
-          new Rule.Subrule({ argument: "rule", rule: "rule" }),
-          new Rule.Subrule({ argument: "delimiter", rule: "rule" }),
-        ]
-      })
+    new Rule.Symbol("["),
+    new Rule.Sequence({
+      promote: true,
+      rules: [
+        promote,
+        argument,
+        new Rule.Subrule({ argument: "rule", rule: "rule" }),
+        new Rule.Subrule({ argument: "delimiter", rule: "rule" }),
+      ]
     }),
+    new Rule.Symbol("]"),
     repeatFlag
   ],
   compile({ results }) {
