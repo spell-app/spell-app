@@ -356,7 +356,6 @@ Rule.Pattern = class pattern extends Rule {
 
 // Subrule -- name of another rule to be called.
 // `rule.rule` is the name of the rule in `scope.rules`.
-// `rule.exclude` is the name of a rule we'll ignore when parsing this rule.
 //
 // After parsing
 //  we'll return the actual rule that was matched (rather than a clone of this rule)
@@ -374,12 +373,6 @@ Rule.Subrule = class subrule extends Rule {
 
   parse(scope, tokens) {
     if (!tokens.length) return;
-    if (this.resetRules) scope = scope.resetRules();
-
-    // if we have any exclude, get a clone of the scope without those rules
-    if (this.exclude) {
-      scope = scope.cloneExcludingRules(this.rule, this.exclude);
-    }
     let rule = scope.getRuleOrDie(this.rule);
 
     const match = rule.parse(scope, tokens);
@@ -391,9 +384,8 @@ Rule.Subrule = class subrule extends Rule {
 
   toSyntax() {
     const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
-    const exclude = this.exclude ? `!${this.exclude}` : "";
     return (
-      `${testLocation}{${promote}${argument}${this.rule}${exclude}}${optional}`
+      `${testLocation}{${promote}${argument}${this.rule}}${optional}`
     );
   }
 };
@@ -432,7 +424,6 @@ Rule.Choice = class choices extends Rule {
   parse(scope, tokens) {
     const CHOICE = `choice '${this.name||this.argument}:'`;
     if (DEBUG_CHOICES) scope.parser.group(`${CHOICE} start matching '${Tokenizer.join(tokens)}'`, this);
-    if (this.resetRules) scope = scope.resetRules();
 
     // Try to match each rule in turn.
     // For efficiency, complicated rules (e.g. sequences or recursive rules)
@@ -538,7 +529,6 @@ Rule.Repeat = class repeat extends Rule {
   }
 
   parse(scope, tokens) {
-    if (this.resetRules) scope = scope.resetRules();
     if (this.testAtStart(scope, tokens, 0) === false) return undefined;
 
     const matched = [];
@@ -599,7 +589,6 @@ Rule.Repeat = class repeat extends Rule {
 //  `rule.delimiter` (required) is the delimiter between each item, which is optional at the end.
 Rule.List = class list extends Rule {
   parse(scope, tokens) {
-    if (this.resetRules) scope = scope.resetRules();
     if (this.testAtStart(scope, tokens, 0) === false) return undefined;
 
     let matched = [];
@@ -662,7 +651,6 @@ Rule.List = class list extends Rule {
 // If nested start/end blocks are found, WHAT WILL HAPPEN???
 Rule.NestedSplit = class nesting extends Rule {
   parse(scope, tokens) {
-    if (this.resetRules) scope = scope.resetRules();
 
     const end = this.findNestedEnd(scope, tokens);
     if (end === undefined) return;
@@ -774,7 +762,6 @@ Rule.Sequence = class sequence extends Rule {
     super(props);
   }
   parse(scope, tokens) {
-    if (this.resetRules) scope = scope.resetRules();
     if (this.test(scope, tokens) === false) return undefined;
 
     const matched = [];

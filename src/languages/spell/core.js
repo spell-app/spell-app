@@ -510,7 +510,6 @@ parser.defineRule({
   alias: ["expression", "non_recursive_expression"],
   syntax: "\\[ [list:{expression},]? \\]",
   testRule: "\\[",
-  resetRules: true,
   compile(match, scope) {
     let { list } = match.results;
     return `[${list ? list.join(", ") : ""}]`;
@@ -541,7 +540,6 @@ parser.defineRule({
   alias: ["expression", "non_recursive_expression"],
   syntax: "\\( {expression} \\)",
   testRule: "\\(",
-  resetRules: true,
   compile(match, scope) {
     let { expression } = match.results;
     // don't double parens if not necessary

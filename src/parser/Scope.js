@@ -15,39 +15,7 @@ export class Scope {
   getRuleOrDie(ruleName) {
     let rule = this.parser.rules[ruleName];
     if (!rule) throw new ParseError(`getRuleOrDie('${ruleName}'): rule not found`);
-
-    if (this.excludes && this.excludes[ruleName]) {
-      const excludes = this.excludes[ruleName];
-      rule = rule.clone();
-      rule.rules = rule.rules.filter(rule => !excludes.includes(rule.name));
-    }
     return rule;
-  }
-
-  // Return a clone of this scope with all `excludes` reset
-  resetRules() {
-    const clone = new Scope(this);
-    delete clone.excludes;
-    return clone;
-  }
-
-  // Return a clone of this scope, removing rules in `rules[ruleName]`
-  //  that `exclude` another named rule.
-  //
-  // Throws if rule can't be found or it's not a Group.
-  cloneExcludingRules(ruleName, exclude) {
-    // throw if rule is not a Group
-    const rule = this.getRuleOrDie(ruleName);
-    if (!(rule instanceof Rule.Group))
-        throw new ParseError(`cloneExcludingRules(): expected ${ruleName} to be a Group!`);
-
-    const clone = new Scope(this);
-    // clone the `excludes` map if we have one
-    clone.excludes = {...clone.excludes};
-    clone.excludes[ruleName] = clone.excludes[ruleName]
-      ? clone.excludes[ruleName].concat(exclude)
-      : [exclude];
-    return clone;
   }
 
   //

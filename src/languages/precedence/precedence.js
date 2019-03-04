@@ -75,7 +75,6 @@ parser.defineRule({
   name: "parenthesized_expression",
   alias: ["expression", "non_recursive_expression"],
   syntax: "\\( {expression} \\)",
-  resetRules: true,
   compile(match, scope) {
     let { expression } = match.results;
     // Don't double-up parens
