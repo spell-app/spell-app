@@ -29,7 +29,7 @@ parser.defineRule({
   // TODO: multiple identifiers would be cool...
   name: "property_expression",
   alias: ["expression", "non_recursive_expression"],
-  syntax: "{property_accessor} {expression}",
+  syntax: "{property_accessor} {expression:non_recursive_expression}",
   testRule: "{property_accessor}",    // ???
   compile(match, scope) {
     let { expression, property_accessor } = match.results;
@@ -59,29 +59,8 @@ parser.defineRule({
 });
 
 parser.defineRule({
-  name: "my_property_accessor",
-  alias: ["expression", "property_accessor"],
-  syntax: "my {identifier}",
-  testRule: "my",
-  compile(match, scope) {
-    let { identifier } = match.results;
-    return `this.${identifier}`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
-        ["my foo", "this.foo"],
-        ["the foo of my bar", "this.bar?.foo"],
-        ["the foo of my bar is 'fooo'", "(this.bar?.foo == 'fooo')"],
-      ]
-    }
-  ]
-});
-
-parser.defineRule({
   name: "its_property_accessor",
-  alias: ["expression", "property_accessor"],
+  alias: ["expression", "property_accessor", "non_recursive_expression"],
   syntax: "its {identifier}",
   testRule: "its",
   compile(match, scope) {
@@ -93,6 +72,7 @@ parser.defineRule({
       compileAs: "expression",
       tests: [
         ["its foo", "this.foo"],
+        ["the foo of its bar", "this.bar?.foo"],
       ]
     }
   ]

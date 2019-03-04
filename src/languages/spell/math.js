@@ -14,13 +14,10 @@ export default parser;
 
 parser.defineRule({
   name: "gt_lt",
-  alias: "infix_operator",
-//  precedence: 11,
-  syntax: "(<|>) =?",
-  applyOperator(match, scope) {
-    const { lhs, operator, rhs } = match.results;
-    return `(${lhs} ${operator} ${rhs})`;
-  },
+  alias: "recursive_expression_operator",
+  precedence: 11,
+  syntax: "(operator:(<|>) =?) {expression:non_recursive_expression}",
+  applyOperator: ({ lhs, operator, rhs }) => `(${lhs} ${operator} ${rhs})`,
   tests: [
     {
       compileAs: "expression",
@@ -44,15 +41,19 @@ parser.defineRule({
 
 parser.defineRule({
   name: "is_gt_lt",
-  alias: "infix_operator",
+  alias: "recursive_expression_operator",
   precedence: 11,
-  syntax: "(direction:is (greater|less) than) (equal_to:or equal to)?",
-  testRule: "is (greater|less)",
-  applyOperator(match, scope) {
-    const { lhs, operator, rhs } = match.results;
-    let symbol = (operator.direction.includes("greater") ? ">" : "<");
-    if (operator.equal_to) symbol += "=";
-    return `(${lhs} ${symbol} ${rhs})`;
+  syntax: "(operator:is (greater|less) than (or equal to)?) {expression:non_recursive_expression}",
+  compile(match, scope) {
+    return {
+      ...match.results,
+      operator: match.matched[0].getTokens().join(" ")
+    };
+  },
+  applyOperator({ lhs, operator, rhs }) {
+    const op = (operator.includes("greater") ? ">" : "<")
+             + (operator.includes("equal") ? "=" : "");
+    return `(${lhs} ${op} ${rhs})`;
   },
   tests: [
     {
@@ -67,15 +68,14 @@ parser.defineRule({
   ]
 });
 
-
 parser.defineRule({
-  name: "arithmetic_symbols",
-  alias: "infix_operator",
+  name: "plus_minus",
+  alias: "recursive_expression_operator",
   precedence: 13,
-  pattern: /^(\+|-|\*|\/)$/,
-  applyOperator(match, scope) {
-    const { lhs, operator, rhs } = match.results;
-    return `(${lhs} ${operator} ${rhs})`;
+  syntax: "(operator:plus|minus|\+|-) {expression:non_recursive_expression}",
+  applyOperator({ lhs, operator, rhs }) {
+    const op = (operator.includes("plus") || operator.includes("+") ? "+" : "-");
+    return `(${lhs} ${op} ${rhs})`;
   },
   tests: [
     {
@@ -83,65 +83,39 @@ parser.defineRule({
       tests: [
         ["a+b", "(a + b)"],
         ["a + b", "(a + b)"],
-
 //        ["a-b", "(a - b)"],     // NOTE: `-` requires spaces...
         ["a - b", "(a - b)"],
-
-        ["a*b", "(a * b)"],
-        ["a * b", "(a * b)"],
-
-        ["a/b", "(a / b)"],
-        ["a / b", "(a / b)"],
-      ]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "arithmetic_names",
-  alias: "infix_operator",
-  precedence: 13,
-  syntax: "(plus|minus|times)",
-  valueMap: {
-    plus: "+",
-    minus: "-",
-    times: "*",
-    "divided by": "/"
-  },
-  applyOperator(match, scope) {
-    const { lhs, operator, rhs } = match.results;
-    return `(${lhs} ${this.valueMap[operator]} ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
         ["a plus b", "(a + b)"],
         ["a minus b", "(a - b)"],
-        ["a times b", "(a * b)"],
       ]
     }
   ]
 });
 
 parser.defineRule({
-  name: "arithmetic_names",
-  alias: "infix_operator",
-  precedence: 13,
-  syntax: "divided by",
-  applyOperator(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `(${lhs} / ${rhs})`;
+  name: "times_divided_by",
+  alias: "recursive_expression_operator",
+  precedence: 14,
+  syntax: "(operator:\*|/|times|divided by) {expression:non_recursive_expression}",
+  applyOperator({ lhs, operator, rhs }) {
+    const op = (operator.includes("times") || operator.includes("*") ? "*" : "/");
+    return `(${lhs} ${op} ${rhs})`;
   },
   tests: [
     {
       compileAs: "expression",
       tests: [
+        ["a*b", "(a * b)"],
+        ["a * b", "(a * b)"],
+        ["a/b", "(a / b)"],
+        ["a / b", "(a / b)"],
+        ["a times b", "(a * b)"],
         ["a divided by b", "(a / b)"],
       ]
     }
   ]
 });
+
 
 
 //

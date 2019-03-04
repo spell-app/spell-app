@@ -82,42 +82,25 @@ parser.defineRule({
 // Does list start with some value?.
 parser.defineRule({
   name: "starts_with",
-  alias: "infix_operator",
-  syntax: "starts with",
-  applyOperator(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `spell.startsWith(${lhs}, ${rhs})`;
+  alias: "recursive_expression_operator",
+  syntax: "(operator:(starts|ends) with) {expression:non_recursive_expression}",
+  applyOperator({ lhs, operator, rhs }) {
+    const method = (operator === "starts with" ? "startsWith" : "endsWith");
+    return `spell.${method}(${lhs}, ${rhs})`;
   },
   tests: [
     {
       compileAs: "expression",
       tests: [
         ["my-list starts with thing", "spell.startsWith(my_list, thing)"],
-        ["[1,2,3] starts with 1", "spell.startsWith([1, 2, 3], 1)"]
-      ]
-    }
-  ]
-});
-
-// Does list end with some value?.
-parser.defineRule({
-  name: "ends_with",
-  alias: "infix_operator",
-  syntax: "ends with",
-  applyOperator(match, scope) {
-    const { lhs, rhs } = match.results;
-    return `spell.endsWith(${lhs}, ${rhs})`;
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
+        ["[1,2,3] starts with 1", "spell.startsWith([1, 2, 3], 1)"],
         ["my-list ends with thing", "spell.endsWith(my_list, thing)"],
         ["[1,2,3] ends with 1", "spell.endsWith([1, 2, 3], 1)"]
       ]
     }
   ]
 });
+
 
 //
 //  Ordinal numbers (first, second, last, etc).
@@ -385,9 +368,9 @@ parser.defineRule({
 // TODO: this is a postfix_operator expression
 parser.defineRule({
   name: "list_membership_test",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression"],
   syntax:
-    "{list:expression!list_membership_test} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
+    "{list:non_recursive_expression} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
   testRule: "…(has|have)",
   precedence: 2,
   compile(match, scope) {

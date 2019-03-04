@@ -1,5 +1,6 @@
 import { isNode } from "browser-or-node";
 import omit from "lodash/omit";
+import flatten from "lodash/flatten";
 
 import { Tokenizer } from "./all.js";
 import { memoize } from "../utils/all.js";
@@ -25,6 +26,12 @@ export class Match {
   //   -- if BlockStatements stop working, it may be that results is getting called too early.
   @memoize
   get results() { return this.rule.getResults?.(this, this.scope) }
+
+  // Return the "interesting" tokens which were actually matched matched.
+  // NOTE: this is not guaranteed to be everything,
+  //       for example, List rules don't put the delimiters in the output stream.
+  getTokens() { return flatten(this.rule.getTokens(this)) }
+
 
   // Syntactic sugar for getting the matches as a map.
   // Only works for some rule types.
