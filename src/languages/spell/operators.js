@@ -13,10 +13,10 @@ export default parser;
 
 
 parser.defineRule({
-  name: "recursive_expression",
+  name: "compound_expression",
   alias: "expression",
   precedence: 12,
-  syntax: "{lhs:non_recursive_expression} {?:rhs:recursive_expression_operator}+",
+  syntax: "{lhs:single_expression} {?:rhs:expression_suffix}+",
 //  testRule: "…{recursive_expression_test}",
   compile(match, scope) {
     const { results, matched } = match;
@@ -84,7 +84,7 @@ parser.defineRule({
       output.push(result);
     }
     if (output.length > 1) {
-      scope.parser.warn(`recursive_expression() ended up with more than one output:`, output);
+      scope.parser.warn(`compound_expression() ended up with more than one output:`, output);
     }
     return output[0];
   },
@@ -117,8 +117,8 @@ parser.defineRule({
 
 parser.defineRule({
   name: "and",
-  alias: "recursive_expression_operator",
-  syntax: "(operator:and) {expression:non_recursive_expression}",
+  alias: "expression_suffix",
+  syntax: "(operator:and) {expression:single_expression}",
   precedence: 6,
   applyOperator: ({ lhs, rhs }) => `(${lhs} && ${rhs})`,
   tests: [
@@ -135,8 +135,8 @@ parser.defineRule({
 
 parser.defineRule({
   name: "or",
-  alias: "recursive_expression_operator",
-  syntax: "(operator:or) {expression:non_recursive_expression}",
+  alias: "expression_suffix",
+  syntax: "(operator:or) {expression:single_expression}",
   precedence: 5,
   applyOperator: ({ lhs, rhs }) => `(${lhs} || ${rhs})`,
   tests: [
@@ -150,9 +150,9 @@ parser.defineRule({
 
 parser.defineRule({
   name: "is",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   precedence: 10,
-  syntax: "(operator:is not?) {expression:non_recursive_expression}",
+  syntax: "(operator:is not?) {expression:single_expression}",
   applyOperator({ lhs, operator, rhs }) {
     const op = (operator === "is not" ? "!=" : "==");
     return `(${lhs} ${op} ${rhs})`;
@@ -171,9 +171,9 @@ parser.defineRule({
 
 parser.defineRule({
   name: "is_exactly",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   precedence: 10,
-  syntax: "(operator:is not? exactly) {expression:non_recursive_expression}",
+  syntax: "(operator:is not? exactly) {expression:single_expression}",
   applyOperator({ lhs, operator, rhs }) {
     const op = (operator === "is not exactly" ? "!==" : "===");
     return `(${lhs} ${op} ${rhs})`;
@@ -192,9 +192,9 @@ parser.defineRule({
 
 parser.defineRule({
   name: "is_a",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   precedence: 11,
-  syntax: "(operator:is not? (a|an)) {expression:non_recursive_expression}",
+  syntax: "(operator:is not? (a|an)) {expression:single_expression}",
   applyOperator({ lhs, operator, rhs }) {
     const bang = (operator.includes("not") ? "!" : "");
     return `${bang}spell.isOfType(${lhs}, '${rhs}')`;
@@ -214,9 +214,9 @@ parser.defineRule({
 
 parser.defineRule({
   name: "is_same_type_as",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   precedence: 11,
-  syntax: "(operator:is not? the same type as) {expression:non_recursive_expression}",
+  syntax: "(operator:is not? the same type as) {expression:single_expression}",
   applyOperator({ lhs, operator, rhs }) {
     const op = (operator.includes("not") ? "!==" : "===");
     return `(spell.typeOf(${lhs}) ${op} spell.typeOf(${rhs}))`;
@@ -240,9 +240,9 @@ parser.defineRule({
 
 parser.defineRule({
   name: "is_in",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   precedence: 11,
-  syntax: "{operator:is_in_operator} (expression:{non_recursive_expression}|{identifier_list})",
+  syntax: "{operator:is_in_operator} (expression:{single_expression}|{identifier_list})",
   applyOperator({ lhs, operator, rhs }) {
     if (Array.isArray(rhs)) rhs = `[${rhs.join(", ")}]`;
     const bang = (operator.includes("not") || operator.includes("neither") ? "!" : "");
@@ -267,9 +267,9 @@ parser.defineRule({
 
 parser.defineRule({
   name: "includes",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   precedence: 11,
-  syntax: "(operator:includes|contains) {expression:non_recursive_expression}",
+  syntax: "(operator:includes|contains) {expression:single_expression}",
   applyOperator({ lhs, rhs }) {
     if (Array.isArray(lhs)) lhs = `[${lhs.join(", ")}]`;
     return `spell.includes(${lhs}, ${rhs})`
@@ -287,9 +287,9 @@ parser.defineRule({
 
 parser.defineRule({
   name: "does_not_include",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   precedence: 11,
-  syntax: "(operator:does not (include|contain)) {expression:non_recursive_expression}",
+  syntax: "(operator:does not (include|contain)) {expression:single_expression}",
   applyOperator({ lhs, rhs }) {
     if (Array.isArray(lhs)) lhs = `[${lhs.join(", ")}]`;
     return `!spell.includes(${lhs}, ${rhs})`
@@ -308,7 +308,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "is_defined",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   precedence: 11,
   syntax: "is (defined|undefined|not defined)",
   constructor: Rule.LiteralSequence,
@@ -331,7 +331,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "is_empty",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   precedence: 11,
   syntax: "is not? empty",
   applyOperator({ lhs, operator }) {

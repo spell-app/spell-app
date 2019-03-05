@@ -55,7 +55,7 @@ parser.defineRule({
 //FIXME: `list`, `text`, etc don't follow these semantics???
 parser.defineRule({
   name: "new_thing",
-  alias: ["expression", "non_recursive_expression", "statement"],
+  alias: ["expression", "single_expression", "statement"],
   syntax: "create (a|an) {type} (?:with {props:object_literal_properties})?",
   testRule: "create",
   compile(match, scope) {

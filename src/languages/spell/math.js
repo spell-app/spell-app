@@ -14,9 +14,9 @@ export default parser;
 
 parser.defineRule({
   name: "gt_lt",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   precedence: 11,
-  syntax: "(operator:(<|>) =?) {expression:non_recursive_expression}",
+  syntax: "(operator:(<|>) =?) {expression:single_expression}",
   applyOperator: ({ lhs, operator, rhs }) => `(${lhs} ${operator} ${rhs})`,
   tests: [
     {
@@ -41,9 +41,9 @@ parser.defineRule({
 
 parser.defineRule({
   name: "is_gt_lt",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   precedence: 11,
-  syntax: "(operator:is (greater|less) than (or equal to)?) {expression:non_recursive_expression}",
+  syntax: "(operator:is (greater|less) than (or equal to)?) {expression:single_expression}",
   compile(match, scope) {
     return {
       ...match.results,
@@ -70,9 +70,9 @@ parser.defineRule({
 
 parser.defineRule({
   name: "plus_minus",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   precedence: 13,
-  syntax: "(operator:plus|minus|\+|-) {expression:non_recursive_expression}",
+  syntax: "(operator:plus|minus|\+|-) {expression:single_expression}",
   applyOperator({ lhs, operator, rhs }) {
     const op = (operator.includes("plus") || operator.includes("+") ? "+" : "-");
     return `(${lhs} ${op} ${rhs})`;
@@ -94,9 +94,9 @@ parser.defineRule({
 
 parser.defineRule({
   name: "times_divided_by",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   precedence: 14,
-  syntax: "(operator:\*|/|times|divided by) {expression:non_recursive_expression}",
+  syntax: "(operator:\*|/|times|divided by) {expression:single_expression}",
   applyOperator({ lhs, operator, rhs }) {
     const op = (operator.includes("times") || operator.includes("*") ? "*" : "/");
     return `(${lhs} ${op} ${rhs})`;
@@ -125,7 +125,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "absolute_value",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   syntax: "the? absolute value of {expression}",
   testRule: "…absolute",
   compile(match, scope) {
@@ -142,7 +142,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "max",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   precedence: 2,
   syntax: "the? (biggest|largest) {identifier}? (of|in) {expression}",
   testRule: "…(biggest|largest)",
@@ -164,7 +164,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "min",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   precedence: 2,
   syntax: "the? smallest {identifier}? (of|in) {expression}",
   testRule: "…smallest",
@@ -186,7 +186,7 @@ parser.defineRule({
 parser.defineRule({
 //TODO: precision:  to the nearest tenth ?
   name: "round_number",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   syntax: "round {thing:expression} (direction:off|up|down)?",
   testRule: "round",
   precedence: 1,

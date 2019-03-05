@@ -28,8 +28,8 @@ export default parser;
 parser.defineRule({
   // TODO: multiple identifiers would be cool...
   name: "property_expression",
-  alias: ["expression", "non_recursive_expression"],
-  syntax: "{property_accessor} {expression:non_recursive_expression}",
+  alias: ["expression", "single_expression"],
+  syntax: "{property_accessor} {expression:single_expression}",
   testRule: "{property_accessor}",    // ???
   compile(match, scope) {
     let { expression, property_accessor } = match.results;
@@ -61,7 +61,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "its_property",
-  alias: ["expression", "property_accessor", "non_recursive_expression"],
+  alias: ["expression", "property_accessor", "single_expression"],
   syntax: "its {property:identifier}",
   testRule: "its",
   compile(match, scope) {

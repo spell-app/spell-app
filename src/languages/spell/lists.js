@@ -33,7 +33,7 @@ export default parser;
 // Return the length of a list.
 parser.defineRule({
   name: "list_length",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   syntax: "the? number of {identifier} in {list:expression}",
   testRule: "…(number of)",
   precedence: 3,
@@ -59,7 +59,7 @@ parser.defineRule({
 // TODO: `positions`, `last position`, `after...`
 parser.defineRule({
   name: "list_position",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   syntax: "the? position of {thing:expression} in {list:expression}",
   testRule: "…(position of)",
   precedence: 3,
@@ -82,8 +82,8 @@ parser.defineRule({
 // Does list start with some value?.
 parser.defineRule({
   name: "starts_with",
-  alias: "recursive_expression_operator",
-  syntax: "(operator:(starts|ends) with) {expression:non_recursive_expression}",
+  alias: "expression_suffix",
+  syntax: "(operator:(starts|ends) with) {expression:single_expression}",
   applyOperator({ lhs, operator, rhs }) {
     const method = (operator === "starts with" ? "startsWith" : "endsWith");
     return `spell.${method}(${lhs}, ${rhs})`;
@@ -164,7 +164,7 @@ parser.defineRule({
 //     e.g. `item 1 of the array`  = `array[0]`
 parser.defineRule({
   name: "position_expression",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   syntax: "{identifier} {position:expression} of {expression}",
   testRule: "…of",
   compile(match, scope) {
@@ -185,7 +185,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "ordinal_position_expression",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   syntax: "the {ordinal} {identifier} (in|of) {expression}",
   testRule: "…(in|of)",
   compile(match, scope) {
@@ -208,7 +208,7 @@ parser.defineRule({
 // TODO: confirm identifier is plural?
 parser.defineRule({
   name: "random_position_expression",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   syntax: "a random {identifier} (of|from|in) {list:expression}",
   testRule: "a random",
   compile(match, scope) {
@@ -232,7 +232,7 @@ parser.defineRule({
 // TODO: confirm identifier is plural?
 parser.defineRule({
   name: "random_positions_expression",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   syntax: "{number} random {identifier} (of|from|in) {list:expression}",
   testRule: "…random",
   compile(match, scope) {
@@ -260,7 +260,7 @@ parser.defineRule({
 // NOTE: `end` is inclusive!
 parser.defineRule({
   name: "range_expression",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   syntax: "{identifier} {start:expression} to {end:expression} (of|in|from) {list:expression}",
   testRule: "…(of|in|from)",
   compile(match, scope) {
@@ -283,7 +283,7 @@ parser.defineRule({
 // Returns a new list.
 parser.defineRule({
   name: "ordinal_range_expression",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   syntax: "{ordinal} {number} {identifier} (of|in|from) {list:expression}",
   testRule: "…(of|in|from)",
   compile(match, scope) {
@@ -307,7 +307,7 @@ parser.defineRule({
 // If item is not found, returns an empty list. (???)
 parser.defineRule({
   name: "range_expression_starting_with",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   syntax: "{identifier} (in|of) {list:expression} starting with {thing:expression}",
   testRule: "…(starting with)",
   compile(match, scope) {
@@ -335,7 +335,7 @@ parser.defineRule({
 // NOTE: we will singularize `identifier` and use that as the argument to `expression`.
 parser.defineRule({
   name: "list_filter",
-  alias: ["expression", "non_recursive_expression"],
+  alias: ["expression", "single_expression"],
   syntax: "{identifier} (in|of) {list:expression} where {condition:expression}",
   testRule: "…where",
   precedence: 2,
@@ -370,7 +370,7 @@ parser.defineRule({
   name: "list_membership_test",
   alias: ["expression"],
   syntax:
-    "{list:non_recursive_expression} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
+    "{list:single_expression} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
   testRule: "…(has|have)",
   precedence: 2,
   compile(match, scope) {

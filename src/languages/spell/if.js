@@ -199,7 +199,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "backwards_if",
-  alias: "recursive_expression_operator",
+  alias: "expression_suffix",
   syntax: "if (?:{condition:expression} (else|otherwise) {expression:expression})",
   argument: "expression",
   compile(match, scope) {
