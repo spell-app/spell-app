@@ -20,6 +20,17 @@ export class Match {
     Object.assign(this, props);
   }
 
+  // "name" for this match.
+  get name() {
+    return this.argument || this.rule.argument || this.rule.name;
+  }
+
+  // Should we promote the match?
+  get promote() {
+    return this._promote || this.rule.promote;
+  }
+  set promote(value) { if (value) this._promote = value }
+
   // Syntactic sugar to easily get `results` of the match for sequences, etc.
   // Only works for some rule types.
   // NOTE: memoizing this is a bit dodgy
@@ -32,13 +43,6 @@ export class Match {
   //       for example, List rules don't put the delimiters in the output stream.
   getTokens() { return flatten(this.rule.getTokens(this)) }
 
-
-  // Syntactic sugar for getting the matches as a map.
-  // Only works for some rule types.
-// NOTE: not currently used...
-//   @memoize
-//   get matches() { return this.rule.getMatches?.(this, this.scope) }
-
   // Syntatic sugar to compile the output of the match.
   get js() { return this.compile() }
   compile() { return this.rule.compile(this, this.scope) }
@@ -50,7 +54,8 @@ export class Match {
     if (this.rule.updateScope) this.rule.updateScope(this, this.scope);
   }
 
-  // Visualize a match by outputting its `structure` in a clever way
+  // Visualize a match by outputting its `structure`.
+  // This version outputs to the console and is not quite working right.
   get viz() { return "\n"+this.visualize() }
   visualize(structure = this.structure, indent = "") {
     if (Array.isArray(structure)) {
@@ -92,18 +97,6 @@ export class Match {
     }
     return value;
   }
-
-  // "name" for this match
-  // TODO: this is too much, figure out what we're actually using here...
-  get name() {
-    return this.argument || this.rule.argument || this.rule.name;
-  }
-
-  // Should we promote the match?
-  get promote() {
-    return this._promote || this.rule.promote;
-  }
-  set promote(value) { if (value) this._promote = value }
 
   // Call this when printing to the console to eliminate the big bits in node.
   toPrint() {
