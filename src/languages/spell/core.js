@@ -509,14 +509,15 @@ parser.defineRule({
 // Note that this is not a generic "expression" -- it's too generic.
 parser.defineRule({
   name: "identifier_list",
-  syntax: "[({word}|{number})(,|or|and)]",
+  syntax: "[({constant:word}|{number})(,|or|and|nor)]",
   tests: [
     {
       tests: [
         ["up or down", ["up", "down"]],
         ["red and black", ["red", "black"]],
+        ["back nor forth", ["back", "forth"]],
         ["clubs, diamonds, hearts, spades", ["clubs", "diamonds", "hearts", "spades" ] ],
-        ["ace, 2, 3, 4, jack, queen, king", ["ace", 2, 3, 4, "jack", "queen", "king" ] ],
+        ["ace, 2, 3, 4, jack, queen or king", ["ace", 2, 3, 4, "jack", "queen", "king" ] ],
       ]
     }
   ]

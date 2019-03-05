@@ -49,6 +49,19 @@ export class Match {
     if (this.rule.updateScope) this.rule.updateScope(this, this.scope);
   }
 
+  // Return structure used to visualize this map (rule-dependent).
+  visualize() {
+    let value = this.rule.visualize(this, this.scope);
+    if (this.choiceRule && this.choiceRule !== this.name) {
+      if (this.rule.name) value = { name: this.rule.name, value };
+      value = { name: this.choiceRule, value };
+    }
+    else {
+      if (this.name) value = { name: this.name, value };
+    }
+    return value;
+  }
+
   // "name" for this match
   // TODO: this is too much, figure out what we're actually using here...
   get name() {

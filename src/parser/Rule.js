@@ -80,6 +80,11 @@ export class Rule {
     return match.matched.map(match => match.value);
   }
 
+  // Return a simple data structure we'll use to visualize a match.
+  visualize(match, scope) {
+    return this.compile(match, scope);
+  }
+
   // Return the precedence for this rule as matched.
   // Override to do something funky.
   @proto precedence = 0;
@@ -354,6 +359,10 @@ Rule.Pattern = class pattern extends Rule {
     if (typeof valueMap === "function") return valueMap(value);
     return value;
   }
+
+  visualize(match, scope) {
+    return this.getTokens(match)[0];
+  }
 };
 
 // Subrule -- name of another rule to be called.
@@ -407,6 +416,12 @@ Rule.Choice = class choices extends Rule {
     if (!this.rules) this.rules = [];
   }
 
+  // Add a rule to the list of choices.
+  // Note that we always create a new array when adding!
+  addRule(...rules) {
+    this.rules = [...this.rules, ...rules];
+  }
+
   // Return (`true` or index) if ANY of our rules is found.
   // If ANY rules return `undefined`, this will return `undefined`.
   // If ALL rules return `false`, this will return `false`.
@@ -453,12 +468,13 @@ Rule.Choice = class choices extends Rule {
       match = matches.length > 1 ? this.getBestMatch(matches) : matches[0];
       if (DEBUG_CHOICES) scope.parser.debug(`${CHOICE} returning:`, match);
     }
-    if (match) {
-      // assign special properties to the result
-      if (this.argument) match.argument = this.argument;
-      if (this.promote) match.promote = this.promote;
-    }
     if (DEBUG_CHOICES) scope.parser.groupEnd();
+    if (!match) return;
+
+    // assign special properties to the result
+    match.choiceRule = this.argument || this.name;
+    if (this.argument) match.argument = this.argument;
+    if (this.promote) match.promote = this.promote;
     return match;
   }
 
@@ -492,12 +508,6 @@ Rule.Choice = class choices extends Rule {
       if (!longest || match.length >= longest.length) longest = match;
     }
     return longest;
-  }
-
-  // Add a rule to the list of choices.
-  // Note that we always create a new array when adding!
-  addRule(...rules) {
-    this.rules = [...this.rules, ...rules];
   }
 
   toSyntax() {
@@ -587,6 +597,10 @@ Rule.Repeat = class repeat extends Rule {
     return flattenDeep(match.matched.map(match => match.getTokens(match)));
   }
 
+  visualize(match, scope) {
+    return match.matched.map(match => match.visualize());
+  }
+
   toSyntax() {
     let { promote, argument, optional } = this.getSyntaxFlags();
     const repeatSymbol = this.optional ? "*" : "+";
@@ -615,6 +629,165 @@ Rule.Repeat = class repeat extends Rule {
 };
 
 
+
+// Sequence of rules to match.
+//  `rule.rules` is the array of rules to match.
+//  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
+Rule.Sequence = class sequence extends Rule {
+  constructor(props) {
+    if (arguments.length > 1) props = { rules: [...arguments] };
+    if (Array.isArray(props)) props = { rules: props };
+    super(props);
+  }
+  parse(scope, tokens) {
+    if (this.test(scope, tokens) === false) return undefined;
+
+    const matched = [];
+    let length = 0;
+
+    let remainingTokens = tokens;
+    for (let i = 0, rule; rule = this.rules[i++];) {
+      // If we're out of tokens, bail if rule is not optional
+      if (remainingTokens.length === 0) {
+        if (rule.optional) continue;
+        return undefined;
+      }
+      let match = rule.parse(scope, remainingTokens);
+      if (!match) {
+        if (rule.optional) continue;
+        return undefined;
+      }
+
+      matched.push(match);
+      length += match.length;
+      remainingTokens = remainingTokens.slice(match.length);
+    }
+
+    // if we get here, we matched all the rules!
+    return new Match({
+      rule: this,
+      matched,
+      length,
+      scope
+    })
+  }
+
+  // If no explcit compile method, return our `results` for someone else to consume.
+  compile(match, scope) {
+    return this.getResults(match, scope);
+  }
+
+  getTokens(match) {
+    return flattenDeep(match.matched.map(match => match.getTokens(match)));
+  }
+
+  visualize(match, scope) {
+    return match.matched.map(match => match.visualize());
+  }
+
+  //TODOC
+  // "gather" matched values into a map in preparation to call `compile(match, scope)`
+  getResults(match, scope) {
+    const { rule, matched, comment } = match;
+    if (!matched) return undefined;
+    let results = addResults({}, matched);
+    if (comment) {
+      scope.parser.debug(`statement ${rule.name} got comment`, comment);
+      results.comment = matched.comment;
+    }
+    return results;
+
+    function addResults(results, matched) {
+      for (let i = 0, match; match = matched[i]; i++) {
+        const { promote, name } = match;
+        if (promote) {
+          addResults(results, match.matched);
+        } else {
+          if (name == null) continue;
+
+          const source = match.compile();
+          // If arg already exists, convert to an array
+          if (name in results) {
+            if (!Array.isArray(results[name])) {
+              results[name] = [results[name]];
+            }
+            results[name].push(source);
+          } else {
+            results[name] = source;
+          }
+        }
+      }
+      return results;
+    }
+  }
+
+  //TODOC
+  // "gather" matched values into a map in preparation to call `compile(match, scope)`
+  getMatches(match, scope) {
+    const { rule, matched, comment } = match;
+    if (!matched) return undefined;
+    let results = addResults({}, matched);
+    if (comment) {
+      scope.parser.warn(`statement ${rule.name} got comment`, comment);
+      results.comment = matched.comment;
+    }
+    return results;
+
+    function addResults(results, matched) {
+      for (let i = 0, match; match = matched[i]; i++) {
+        const { promote, name } = match;
+        if (promote) {
+          addResults(results, match.matched);
+        } else {
+          if (name == null) continue;
+
+          // If arg already exists, convert to an array
+          if (name in results) {
+            if (!Array.isArray(results[name])) {
+              results[name] = [results[name]];
+            }
+            results[name].push(match);
+          } else {
+            results[name] = match;
+          }
+        }
+      }
+      return results;
+    }
+  }
+
+
+  // Echo this rule back out.
+  toSyntax() {
+    const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
+    const rules = this.rules.map(rule => rule.toSyntax()).join(" ");
+    if (promote || optional || argument)
+      return `(${promote}${argument}${rules})${optional}`;
+    return `${rules}${optional}`;
+  }
+};
+
+
+// Sequence that is known to be only `Literal(s)` or `Pattern`.
+// Use this to get the entire literal string back.
+Rule.LiteralSequence = class literalSequence extends Rule.Sequence {
+  compile(match, scope) {
+    return match.matched.map(match => match.compile()).join(" ");
+  }
+}
+
+// Blank line representation in parser output.
+Rule.BlankLine = class blank_line extends Rule {
+  compile(match, scope) {
+    return "\n";
+  }
+};
+
+
+// Recursively find balanced instances of `start` and `end`,
+// then split by `delimiter` and apply `rule` to each, returning an array of matches.
+// If you provide a `prefix`, we'll look for that after `start`.
+//
 // `start` (required) is the start token string
 // `end` (required) is the end token string
 // `rule` (required) is the middle bit, which is probably a sequence
@@ -723,153 +896,3 @@ Rule.NestedSplit = class nesting extends Rule {
     return groups;
   }
 }
-
-
-// Sequence of rules to match.
-//  `rule.rules` is the array of rules to match.
-//  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
-Rule.Sequence = class sequence extends Rule {
-  constructor(props) {
-    if (arguments.length > 1) props = { rules: [...arguments] };
-    if (Array.isArray(props)) props = { rules: props };
-    super(props);
-  }
-  parse(scope, tokens) {
-    if (this.test(scope, tokens) === false) return undefined;
-
-    const matched = [];
-    let length = 0;
-
-    let remainingTokens = tokens;
-    for (let i = 0, rule; rule = this.rules[i++];) {
-      // If we're out of tokens, bail if rule is not optional
-      if (remainingTokens.length === 0) {
-        if (rule.optional) continue;
-        return undefined;
-      }
-      let match = rule.parse(scope, remainingTokens);
-      if (!match) {
-        if (rule.optional) continue;
-        return undefined;
-      }
-
-      matched.push(match);
-      length += match.length;
-      remainingTokens = remainingTokens.slice(match.length);
-    }
-
-    // if we get here, we matched all the rules!
-    return new Match({
-      rule: this,
-      matched,
-      length,
-      scope
-    })
-  }
-
-  // If no explcit compile method, return our `results` for someone else to consume.
-  compile(match, scope) {
-    return this.getResults(match, scope);
-  }
-
-  getTokens(match) {
-    return flattenDeep(match.matched.map(match => match.getTokens(match)));
-  }
-
-  //TODOC
-  // "gather" matched values into a map in preparation to call `compile(match, scope)`
-  getResults(match, scope) {
-    const { rule, matched, comment } = match;
-    if (!matched) return undefined;
-    let results = addResults({}, matched);
-    if (comment) {
-      scope.parser.debug(`statement ${rule.name} got comment`, comment);
-      results.comment = matched.comment;
-    }
-    return results;
-
-    function addResults(results, matched) {
-      for (let i = 0, match; match = matched[i]; i++) {
-        const { promote, name } = match;
-        if (promote) {
-          addResults(results, match.matched);
-        } else {
-          if (name == null) continue;
-
-          const source = match.compile();
-          // If arg already exists, convert to an array
-          if (name in results) {
-            if (!Array.isArray(results[name])) {
-              results[name] = [results[name]];
-            }
-            results[name].push(source);
-          } else {
-            results[name] = source;
-          }
-        }
-      }
-      return results;
-    }
-  }
-
-  //TODOC
-  // "gather" matched values into a map in preparation to call `compile(match, scope)`
-  getMatches(match, scope) {
-    const { rule, matched, comment } = match;
-    if (!matched) return undefined;
-    let results = addResults({}, matched);
-    if (comment) {
-      scope.parser.warn(`statement ${rule.name} got comment`, comment);
-      results.comment = matched.comment;
-    }
-    return results;
-
-    function addResults(results, matched) {
-      for (let i = 0, match; match = matched[i]; i++) {
-        const { promote, name } = match;
-        if (promote) {
-          addResults(results, match.matched);
-        } else {
-          if (name == null) continue;
-
-          // If arg already exists, convert to an array
-          if (name in results) {
-            if (!Array.isArray(results[name])) {
-              results[name] = [results[name]];
-            }
-            results[name].push(match);
-          } else {
-            results[name] = match;
-          }
-        }
-      }
-      return results;
-    }
-  }
-
-
-  // Echo this rule back out.
-  toSyntax() {
-    const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
-    const rules = this.rules.map(rule => rule.toSyntax()).join(" ");
-    if (promote || optional || argument)
-      return `(${promote}${argument}${rules})${optional}`;
-    return `${rules}${optional}`;
-  }
-};
-
-
-// Sequence that is known to be only `Literal(s)` or `Pattern`.
-// Use this to get the entire literal string back.
-Rule.LiteralSequence = class literalSequence extends Rule.Sequence {
-  compile(match, scope) {
-    return match.matched.map(match => match.compile()).join(" ");
-  }
-}
-
-// Blank line representation in parser output.
-Rule.BlankLine = class blank_line extends Rule {
-  compile(match, scope) {
-    return "\n";
-  }
-};

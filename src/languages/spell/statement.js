@@ -218,6 +218,10 @@ parser.defineRule({
       if (match.enclose) return `{\n${lines}\n${tab.slice(1)}}`;
       return lines;
     }
+    // Return a simple data structure we'll use to visualize a match.
+    visualize(match, scope) {
+      return match.matched.map(match => match.visualize());
+    }
   }
 });
 

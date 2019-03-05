@@ -42,7 +42,7 @@ parser.defineRule({
           operator: rhs,
           lhs: output.pop()
         }
-        const result = this.applyOperator(rule, args, scope);
+        const result = this.applyOperatorToRule(rule, args, scope);
         output.push(result);
       }
       // If it's a binary operator, `rhs` will be an object: `{ operator?, expression }`
@@ -57,7 +57,7 @@ parser.defineRule({
             rhs: output.pop(),
             lhs: output.pop()
           }
-          const result = this.applyOperator(topRule, args, scope);
+          const result = this.applyOperatorToRule(topRule, args, scope);
           // push the result into the output stream
           output.push(result);
         }
@@ -80,7 +80,7 @@ parser.defineRule({
         rhs: output.pop(),
         lhs: output.pop(),
       }
-      const result = this.applyOperator(topOp.rule, args, scope);
+      const result = this.applyOperatorToRule(topOp.rule, args, scope);
       output.push(result);
     }
     if (output.length > 1) {
@@ -89,7 +89,7 @@ parser.defineRule({
     return output[0];
   },
 
-  applyOperator(rule, args, scope) {
+  applyOperatorToRule(rule, args, scope) {
     const result = rule.applyOperator(args);
     scope.parser.debug("compiled ", args, "got result ", result);
     return result;
@@ -233,13 +233,19 @@ parser.defineRule({
 });
 
 parser.defineRule({
+  name: "is_in_operator",
+  syntax: "is (not? in|not? one of|either|not either of?|neither)",
+  constructor: Rule.LiteralSequence
+});
+
+parser.defineRule({
   name: "is_in",
   alias: "recursive_expression_operator",
   precedence: 11,
-  syntax: "(operator:is not?) (in|one of) (expression:{non_recursive_expression}|{identifier_list})",
+  syntax: "{operator:is_in_operator} (expression:{non_recursive_expression}|{identifier_list})",
   applyOperator({ lhs, operator, rhs }) {
     if (Array.isArray(rhs)) rhs = `[${rhs.join(", ")}]`;
-    const bang = (operator.includes("not") ? "!" : "");
+    const bang = (operator.includes("not") || operator.includes("neither") ? "!" : "");
     return `${bang}spell.includes(${rhs}, ${lhs})`;
   },
   tests: [
@@ -249,7 +255,11 @@ parser.defineRule({
         ["a is in theList", "spell.includes(theList, a)"],
         ["a is one of theList", "spell.includes(theList, a)"],
         ["a is not in theList", "!spell.includes(theList, a)"],
-        ["a is not one of theList", "!spell.includes(theList, a)"]
+        ["a is not one of theList", "!spell.includes(theList, a)"],
+        ["a is either a or b", "spell.includes([a, b], a)"],
+        ["a is not either a or b", "!spell.includes([a, b], a)"],
+        ["a is not either of a or b", "!spell.includes([a, b], a)"],
+        ["a is neither a nor b", "!spell.includes([a, b], a)"],
       ]
     }
   ]
