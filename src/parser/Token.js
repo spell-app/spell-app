@@ -32,7 +32,7 @@ export class Token {
   }
 
   toString() {
-    return (typeof this.text === "string" ? this.text : this.value) + (this.whitespace || "");
+    return (typeof this.raw === "string" ? this.raw : this.value) + (this.whitespace || "");
   }
 }
 
@@ -55,6 +55,7 @@ Token.Indent = class indent extends Token.Whitespace {}
 // `newline` class, value is always a single return.
 Token.Newline = class newline extends Token.Whitespace {
   @proto value = "\n";
+  @proto raw = "\n";
 }
 
 
@@ -89,7 +90,7 @@ Token.Text = class text extends Token {
 // Comment class for single-line comments.
 //  - `comment.commentSymbol` is the initial comment symbol, one of:  "--", "//", "##"
 //  - `comment.initialWhitespace` is whitespace BETWEEN the comment symbol and the comment text.
-//  - `comment.comment` is the comment text (until the end of the line).
+//  - `comment.value` is the comment text (until the end of the line).
 Token.Comment = class comment extends Token {}
 
 
@@ -175,7 +176,7 @@ Token.JSXText = class jsxText extends Token {
 Token.JSXExpression = class jsxExpression extends Token {
   constructor(props) {
     super(props);
-    if (!this.contents) this.contents = "";
+    if (!this.value) this.value = "";
   }
 }
 

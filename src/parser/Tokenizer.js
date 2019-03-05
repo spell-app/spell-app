@@ -141,8 +141,10 @@ export class Tokenizer {
     // forget it if no forward motion
     if (whitespaceEnd === start) return undefined;
 
+    const value = text.slice(start, whitespaceEnd);
     const props = {
-      value: text.slice(start, whitespaceEnd),
+      value,
+      raw: value,
       start,
       end: whitespaceEnd
     }
@@ -187,7 +189,13 @@ export class Tokenizer {
     if (wordEnd === start) return undefined;
 
     const value = text.slice(start, wordEnd);
-    return new Token.Word({ value, start, end: wordEnd });
+    return new Token.Word({
+      value,
+      raw: value,
+      start,
+      end:
+      wordEnd
+    });
   }
 
   //
@@ -210,8 +218,8 @@ export class Tokenizer {
     const input = numberMatch[0];
     const value = parseFloat(input, 10);
     return new Token.Number({
-      text: input,
       value,
+      raw: input,
       start,
       end: start + input.length
     });
@@ -227,8 +235,10 @@ export class Tokenizer {
   matchSymbol(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length;
     if (start >= end) return undefined;
+    const value = text[start];
     return new Token.Symbol({
-      value: text[start],
+      value,
+      raw: value,
       start,
       end: start + 1
     });
@@ -264,6 +274,7 @@ export class Tokenizer {
     const value = text.slice(start, textEnd);
     return new Token.Text({
       value,
+      raw: text.slice(start, textEnd),
       start,
       end: textEnd
     });
@@ -292,12 +303,12 @@ export class Tokenizer {
     const commentMatch = line.match(this.COMMENT);
     if (!commentMatch) return undefined;
 
-    const [fullText, commentSymbol, initialWhitespace, comment] = commentMatch;
+    const [raw, commentSymbol, initialWhitespace, value] = commentMatch;
     return new Token.Comment({
-      text: fullText,
-      commentSymbol,
-      initialWhitespace,
-      comment,
+      value,              // actual comment text
+      commentSymbol,      // actual comment symbol
+      initialWhitespace,  // whitespace between commentSymbol and comment value
+      raw,
       start,
       end: start + line.length
     });
@@ -391,7 +402,7 @@ export class Tokenizer {
       );
       jsxElement.error = "No end >";
     }
-    jsxElement.text = text.slice(start, nextStart);
+    jsxElement.raw = text.slice(start, nextStart);
     jsxElement.end = nextStart;
     return jsxElement;
   }
@@ -459,7 +470,7 @@ export class Tokenizer {
 
     end = nextStart + endTag.length;
     return new Token.JSXEndTag({
-      text: text.slice(start, end),
+      raw: text.slice(start, end),
       tagName,
       start,
       end
@@ -498,7 +509,7 @@ export class Tokenizer {
     }
     // eat whitespace before the next attribute / tag end
     nextStart = this.eatWhitespace(text, nextStart, end);
-    attribute.text = text.slice(start, nextStart);
+    attribute.raw = text.slice(start, nextStart);
     attribute.end = nextStart;
     return attribute;
   }
@@ -522,6 +533,7 @@ export class Tokenizer {
     if (!contents) return;
     return new Token.JSXExpression({
       contents,
+      raw: contents.value,
       start,
       end: contents.end
     });
@@ -548,6 +560,7 @@ export class Tokenizer {
     // return a new JSXExpression, advancing beyond the ending `}`.
     return new Token.JSXExpression({
       contents,
+      raw: text.slice(start, endIndex + 1),
       start,
       end: endIndex + 1
     });
@@ -574,8 +587,10 @@ export class Tokenizer {
     }
 
     // include leading whitespace in the output.
+    const value = text.slice(start, endIndex);
     return new Token.JSXText({
-      value: text.slice(start, endIndex),
+      value,
+      raw: value,
       start,
       end: endIndex
     });
@@ -795,7 +810,10 @@ export class Tokenizer {
 
     // First block is at the MINIMUM indent of all lines!
     const minIndent = Math.min.apply(Math, indents);
-    const block = new Token.Block({ indent: minIndent, tokens });
+    const block = new Token.Block({
+      indent: minIndent,
+      tokens
+    });
 
     // stack of blocks
     const stack = [block];
@@ -806,7 +824,9 @@ export class Tokenizer {
       // If indenting, push new block(s)
       if (lineIndent > top.indent) {
         while (lineIndent > top.indent) {
-          var newBlock = new Token.Block({ indent: top.indent + 1 });
+          var newBlock = new Token.Block({
+            indent: top.indent + 1
+          });
           top.contents.push(newBlock);
           stack.push(newBlock);
 

@@ -13,8 +13,6 @@ import { memoize } from "../utils/all.js";
 // - `match.matched` `([Match or Token]`, required) Array of tokens matched
 //     or other `Match`es for sequences, etc.
 //
-// - `match.tokens` is the array of actual tokens that were matched.
-//
 export class Match {
   constructor(props) {
     Object.assign(this, props);

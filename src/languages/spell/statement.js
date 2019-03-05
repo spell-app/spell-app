@@ -22,9 +22,9 @@ SpellParser.Comment = class comment extends Rule.TokenType {
   @proto name = "comment";
   @proto tokenType = Token.Comment;
   compile(match) {
-    let { commentSymbol, initialWhitespace, comment } = match.matched[0];
+    let { commentSymbol, initialWhitespace, value } = match.matched[0];
     if (commentSymbol !== "//") commentSymbol = "//" + commentSymbol;
-    return `${commentSymbol}${initialWhitespace}${comment}`;
+    return `${commentSymbol}${initialWhitespace}${value}`;
   }
 }
 
