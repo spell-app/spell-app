@@ -195,3 +195,10 @@ export class Type extends Scope {
     this._classMethods = {...this._classMethods, ...keyBy(methods, "name") };
   }
 }
+
+
+// Add classes on Scope for ease of use in other files
+Scope.Module = Module;
+Scope.Variable = Variable;
+Scope.Method = Method;
+Scope.Type = Type;

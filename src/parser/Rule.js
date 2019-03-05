@@ -438,35 +438,35 @@ Rule.Choice = class choices extends Rule {
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(scope, tokens) {
     const CHOICE = `choice '${this.name||this.argument}:'`;
-    if (DEBUG_CHOICES) scope.parser.group(`${CHOICE} start matching '${Tokenizer.join(tokens)}'`, this);
+    if (DEBUG_CHOICES) scope.group(`${CHOICE} start matching '${Tokenizer.join(tokens)}'`, this);
 
     // Try to match each rule in turn.
     // For efficiency, complicated rules (e.g. sequences or recursive rules)
     //  should exit quickly via a `testRule` or similar mechanism.
     const matches = [];
     for (let i = 0, rule; rule = this.rules[i++];) {
-      if (DEBUG_CHOICES) scope.parser.group('parsing rule', rule.name);
+      if (DEBUG_CHOICES) scope.group('parsing rule', rule.name);
       const match = rule.parse(scope, tokens);
       if (match) matches.push(match);
-      if (DEBUG_CHOICES) scope.parser.groupEnd();
+      if (DEBUG_CHOICES) scope.groupEnd();
     }
 
     let match = matches[0];
     if (matches.length === 0) {
-      if (DEBUG_CHOICES) scope.parser.debug(`${CHOICE} nothing matched`);
+      if (DEBUG_CHOICES) scope.debug(`${CHOICE} nothing matched`);
     }
     else if (matches.length === 1) {
-      if (DEBUG_CHOICES) scope.parser.debug(`${CHOICE} got 1 match`, match);
+      if (DEBUG_CHOICES) scope.debug(`${CHOICE} got 1 match`, match);
     }
     else {
-      if (DEBUG_CHOICES) scope.parser.debug(`${CHOICE} matched:`);
+      if (DEBUG_CHOICES) scope.debug(`${CHOICE} matched:`);
       matches.forEach((match, index) => {
-        if (DEBUG_CHOICES) scope.parser.debug(`   #${index}: (len: ${match.length}, prec: ${match.rule.precedence}): `, match);
+        if (DEBUG_CHOICES) scope.debug(`   #${index}: (len: ${match.length}, prec: ${match.rule.precedence}): `, match);
       });
       match = matches.length > 1 ? this.getBestMatch(matches) : matches[0];
-      if (DEBUG_CHOICES) scope.parser.debug(`${CHOICE} returning:`, match);
+      if (DEBUG_CHOICES) scope.debug(`${CHOICE} returning:`, match);
     }
-    if (DEBUG_CHOICES) scope.parser.groupEnd();
+    if (DEBUG_CHOICES) scope.groupEnd();
     if (!match) return;
 
     // assign special properties to the result
@@ -690,7 +690,7 @@ Rule.Sequence = class sequence extends Rule {
     if (!matched) return undefined;
     let results = addResults({}, matched);
     if (comment) {
-      scope.parser.debug(`statement ${rule.name} got comment`, comment);
+      scope.debug(`statement ${rule.name} got comment`, comment);
       results.comment = matched.comment;
     }
     return results;
@@ -779,9 +779,9 @@ Rule.NestedSplit = class nesting extends Rule {
       if (!match) return undefined;
 
       if (match.length !== tokenGroup.length) {
-// scope.parser.warn(match.compile());
-// scope.parser.warn("didn't consume enough:", tokenGroup.splice(match.length).map(token => token.value));
-// scope.parser.warn(scope.rules.rule);
+// scope.warn(match.compile());
+// scope.warn("didn't consume enough:", tokenGroup.splice(match.length).map(token => token.value));
+// scope.warn(scope.rules.rule);
         return undefined;
       }
       groups.push(match);

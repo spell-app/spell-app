@@ -150,7 +150,7 @@ parser.defineRule({
     switch (scope) {
       case "constant":
         if (!value)
-          scope.parser.warn(
+          scope.warn(
             "parse('declare_property'): constant properties must declare a value:  ",
             this.matchedText
           );
@@ -303,7 +303,7 @@ parser.defineRule({
     let { name, args = name, statements } = match.results;
     // Complain if more than one argument
     if (args && args.includes(",")) {
-      scope.parser.warn("parse('setter'): only one argument allowed in setter:  ", args);
+      scope.warn("parse('setter'): only one argument allowed in setter:  ", args);
       args = args.trim().split(",")[0];
     }
     return `set ${name}(${args}) ${statements}`;
@@ -412,13 +412,13 @@ parser.defineRule({
     if (_keywords.length === 1) {
       const keyword = keywords[0];
       if (_keywords[0].rule.name === "type") {
-        scope.parser.error(`parse('declare_action'): one-word actions may not be types: ${keyword}`);
+        scope.error(`parse('declare_action'): one-word actions may not be types: ${keyword}`);
       }
       // TODO...
       //   let parser = (context && context.parser) || global.parser;
       //   let blacklist = parser.getBlacklist("identifier");
       //   if (blacklist[keyword]) {
-      //     scope.parser.error(`parse('declare_action'): one-word actions may not be blacklisted identifiers": ${keyword}`);
+      //     scope.error(`parse('declare_action'): one-word actions may not be blacklisted identifiers": ${keyword}`);
       //   }
     }
 

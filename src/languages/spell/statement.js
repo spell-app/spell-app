@@ -58,7 +58,7 @@ const block_line = parser.defineRule({
       let end = tokens.length;
 
       // eat whitespace at front if found
-      const whitespace = scope.parser.rules.eat_whitespace.parse(scope, tokens);
+      const whitespace = scope.getRuleOrDie("eat_whitespace").parse(scope, tokens);
       if (whitespace) start = whitespace.length;
 
       // pop comment off of the end if found
@@ -74,7 +74,7 @@ const block_line = parser.defineRule({
       if (!match && !comment) return;
 
       if (match && match.length !== remainingTokens.length) {
-        scope.parser.warn(`statement didn't match '${Tokenizer.join(remainingTokens,match.length)}'`);
+        scope.warn(`statement didn't match '${Tokenizer.join(remainingTokens,match.length)}'`);
       }
 
       // If only comment, return that.
@@ -125,11 +125,11 @@ parser.defineRule({
         else if (item instanceof Token.Block) {
           const nested = this.parseBlock(scope, item);
           if (!nested) {
-            scope.parser.info("expected nested result, didn't get anything");
+            scope.info("expected nested result, didn't get anything");
             continue;
           }
           else {
-            scope.parser.warn("got a nested block when we weren't expecting one");
+            scope.warn("got a nested block when we weren't expecting one");
             matched.push(nested);
           }
         }
@@ -193,8 +193,8 @@ parser.defineRule({
             statement = output.join("\n");
           }
         } catch (e) {
-          scope.parser.error(e);
-          scope.parser.warn("Error compiling statements: match\n", line.toPrint(), "\nstatement:", next);
+          scope.error(e);
+          scope.warn("Error compiling statements: match\n", line.toPrint(), "\nstatement:", next);
         }
 
         if (isWhitespace(statement)) {
