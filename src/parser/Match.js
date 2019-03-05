@@ -40,6 +40,7 @@ export class Match {
 //   get matches() { return this.rule.getMatches?.(this, this.scope) }
 
   // Syntatic sugar to compile the output of the match.
+  get js() { return this.compile() }
   compile() { return this.rule.compile(this, this.scope) }
 
   // Call the updateScope() rule of our rule, if defined.
@@ -50,9 +51,28 @@ export class Match {
   }
 
   // Visualize a match by outputting its `structure` in a clever way
-  visualize() {
-    const structure = this.structure;
-    const output = [];
+  get viz() { return "\n"+this.visualize() }
+  visualize(structure = this.structure, indent = "") {
+    if (Array.isArray(structure)) {
+      if (structure.length > 1)
+        return structure.map(item => this.visualize(item, "  "));
+      structure = structure[0];
+    }
+
+    if (typeof structure === "string")
+      return `${structure}`;
+
+    let { name, value } = structure;
+    if (Array.isArray(value) && value.length === 1)
+      value = value[0];
+
+    if (typeof value === "string")
+      return `${name}:${value}`;
+
+    let output = this.visualize(value, "  ");
+    if (!Array.isArray(output)) output = output.split("\n");
+    output = (output.join("\n"+indent))
+    return `${name}:\n${indent}${output}`;
   }
 
   // Return structure used to visualize this map (rule-dependent).
