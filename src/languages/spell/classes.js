@@ -31,7 +31,7 @@ parser.defineRule({
         return `export class ${Type} {}`;
       return `export class ${Type} extends ${SuperType} {}`;
     }
-    updateScope(match, scope) {
+    XupdateScope(match, scope) {
       const { type, superType } = match.results;
       scope.addType({ type, superType })
       if (superType) scope.addType({ type: superType });
@@ -172,7 +172,7 @@ parser.defineRule({
         }
       }
     }
-    updateScope(match, scope) {
+    XupdateScope(match, scope) {
       const { Type, type, property, properties, Properties, initializer } = match.results;
 
       if (initializer?.enum) {
@@ -266,7 +266,7 @@ parser.defineRule({
         ].join("\n")
       }
     }
-    updateScope(match, scope) {
+    XupdateScope(match, scope) {
       const { types, Types, method, args, instanceMethod, instanceArgs, statements, rules } = match.results;
       if (types.length) {
         const type = types[0];
@@ -355,7 +355,7 @@ parser.defineRule({
         `})`
       ].join("\n")
     }
-    updateScope(match, scope) {
+    XupdateScope(match, scope) {
       const { type, words, getter } = match.results;
       // Note the new instance property, e.g. javascript `card.is_a_face_card`
       scope.addInstanceProperty({ type, key:getter, datatype: "boolean" });
@@ -429,7 +429,7 @@ parser.defineRule({
         `})`
       ].join("\n")
     }
-    updateScope(match, scope) {
+    XupdateScope(match, scope) {
       const { type, property, } = match.results;
       scope.addInstanceProperty({ type, key: property, datatype: "boolean" });
     }
@@ -474,7 +474,7 @@ parser.defineRule({
         `})`
       ].join("\n")
     }
-    updateScope(match, scope) {
+    XupdateScope(match, scope) {
       const { type, property } = match.results;
       scope.addInstanceProperty({ type, key: property });
     }
@@ -529,7 +529,7 @@ parser.defineRule({
         `})`,
       ].join("\n")
     }
-    updateScope(match, scope) {
+    XupdateScope(match, scope) {
 
     }
   },
@@ -553,7 +553,7 @@ parser.defineRule({
   name: "type_is_a_enum_for",
   alias: ["statement", "updatesScope"],
   syntax: "for each {type:word} {property:identifier} : the {type2:identifier} is (article:a|an) \{ {property2:identifier} \} if {expression}",
-  updateScope(match, scope) {
+  XupdateScope(match, scope) {
     // TODO: somehow we have to get ahold of the enum!!!
     for (suit of Card.Suits) {
       addIsIdentifier(`a_${suit}`, `${thing}?.is_a_suit?.(${suit})`);

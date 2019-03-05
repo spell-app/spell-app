@@ -1,83 +1,110 @@
+//
+//  Intermediate types -- simplified AST
+//
+import keyBy from "lodash/keyBy";
+
 import {
-  Rule,
   Parser,
   ParseError
 } from "./all.js";
 
-// Parsing scope.
+
 export class Scope {
   constructor(props) {
+    // You can initialize with just a `Parser` instance if desired.
     if (props instanceof Parser) props = { parser: props };
-    Object.assign(this, props);
-    if (!this.parser) throw new ParseError("Scope created without parser!");
+
+    const { parser, module, parentScope, vars, methods, statements } = props;
+    this.parser = parser;
+    this.module = module;
+    this.parentScope = parentScope;
+
+    this.vars = [];
+    this._vars = {};
+    if (vars) this.addVar(...vars);
+
+    this.methods = [];
+    this._methods = {};
+    if (methods) this.addMethod(...methods);
+
+    this.statements = statements || [];
   }
 
+  /////////////////
+  // Vars
+  //
+  // Return definition of `var` in this block.
+  getLocalVar(name) {
+    return this._vars[name];
+  }
+
+  // Return true if this block already has a local var defined
+  hasLocalVar(name) {
+    return !!this.getLocalVar(name);
+  }
+
+  // Return definition of `var` anywhere in our parent chain.
+  getVar(name) {
+    return this.getLocalVar(name) || this.parentScope?.getVar(name);
+  }
+
+  // Add a var to the block
+  addVar(...variables) {
+    variables.forEach(variable => variable.parentScope = this);
+    this.vars = [...this.vars, ...variables];
+    this._vars = {...this._vars, ...keyBy(variables, "name") };
+  }
+
+  /////////////////
+  // Methods
+  //
+  // Return definition of `method` in this block.
+  getLocalMethod(name) {
+    return this._methods[name];
+  }
+
+  // Return true if this block already has a local method defined
+  hasLocalMethod(name) {
+    return !!this.getLocalMethod(name);
+  }
+
+  // Return definition of `method` anywhere in our parent chain.
+  getMethod(name) {
+    return this.getLocalMethod(name) || this.parentScope?.getMethod(name);
+  }
+
+  // Add a method to the block
+  addMethod(...methods) {
+    methods.forEach(method => method.parentScope = this);
+    this.methods = [...this.methods, ...methods];
+    this._methods = {...this._methods, ...keyBy(methods, "name") };
+  }
+
+  /////////////////
+  //  Statements
+  //
+  addStatement(...statements) {
+    this.statements = [...this.statements, ...statements];
+  }
+
+
+  /////////////////
+  // Parser
+
+  // Return a named rule from our parser.
+  // Throws if not found.
   getRuleOrDie(ruleName) {
-    let rule = this.parser.rules[ruleName];
+    let rule = this.parser?.rules[ruleName];
     if (!rule) throw new ParseError(`getRuleOrDie('${ruleName}'): rule not found`);
     return rule;
   }
 
-  //
-  //  Scope manipulation
-  //  Not that these routines modify the parser passed in!
-  //
-
-  // Add a new type to this scope.
-  addType(props) {
-    this.parser.debug("TODO: scope.addType()", props);
-    const { type, superType } = props;
-  }
-
-  // Add a property to some object
-  // `key` may be a string or an array (will be used as `literals` for a rule)
-  addProperty(props) {
-    this.parser.debug("TODO: scope.addProperty()", props);
-    const { type, key, datatype, value } = props;
-  }
-
-  // Add an instance property to some object.
-  // `key` may be a string or an array (will be used as `literals` for a rule)
-  addInstanceProperty(props) {
-    this.parser.debug("TODO: scope.addInstanceProperty()", props);
-    const { type, key, datatype, value } = props;
-  }
-
-  // Add a method to some object
-  // `type` is the type to associate it with.
-  //  If not provided, it will be global to the current module.
-  // `key` may be a string or an array (will be used as `literals` for a rule)
-  // `returns` is the return datatype.
-  addMethod(props) {
-    this.parser.debug("TODO: scope.addMethod()", props);
-    const { type, key, args, returns } = props;
-  }
-
-  // Add an instance method to some object
-  // `type` (required) is the type to associate the method with.
-  // `key` may be a string or an array (will be used as `literals` for a rule)
-  // `returns` is the return datatype.
-  addInstanceMethod(props) {
-    this.parser.debug("TODO: scope.addInstanceMethod()", props);
-    const { type, key, args, datatype, value } = props;
-  }
-
-  // Add an identifier, which may be composed of more than one word!
-  // `key` may be a string or an array (will be used as `literals` for a rule)
   addIdentifier(props) {
     this.parser.debug("TODO: scope.addIdentifier()", props);
     const { key, value } = props;
   }
 
-  // Add a constant identifier.
-  // `key` may be a string or an array (will be used as `literals` for a rule)
-  addConstant(props) {
-    this.parser.debug("TODO: scope.addConstant()", props);
-    const { key, value } = props;
-  }
-
-  // Add syntax for a new statement rule.
-  addStatementRule(props) {
+  addStatement(props) {
     this.parser.debug("TODO: scope.addStatementRule()", props);
     const { name, syntax, compile } = props;
     try {
@@ -87,12 +114,84 @@ export class Scope {
     catch(e) { console.error(e); }
   }
 
-  // Add a new "is expression"
-  //  `syntax` may or may not start "is"
-  // TODO: auto-add "are xxx" to refer to a group?
-  addIsExpressionRule(props) {
-    this.parser.debug("TODO: scope.addIsExpressionRule()", props);
-    const { syntax, compile } = props;
+
+  // Console shims for `addDebugMethods`
+  get debug() { return this.parser?.debug || Function.prototype }
+  get info() { return this.parser?.info || Function.prototype }
+  get warn() { return this.parser?.warn || Function.prototype }
+  get error() { return this.parser?.error || Function.prototype }
+  get group() { return this.parser?.group || Function.prototype }
+  get groupEnd() { return this.parser?.groupEnd || Function.prototype }
+}
+
+// Module
+export class Module extends Scope {}
+
+
+// Variable definition, including:
+//      - global variable
+//      - block-local variable
+//      - class property
+//      - instance property
+export class Variable {
+  constructor({ module, parentScope, name, datatype, initializer }) {
+    this.module = module;
+    this.parentScope = parentScope;
+    this.name = name;
+    this.datatype = datatype;
+    this.initializer = initializer;
+  }
+}
+
+
+// Method
+export class Method extends Scope {
+  constructor({ name, args, returns, ...superProps }) {
+    super(superProps);
+    this.name = name;
+    this.args = args || [];
+    this._args = keyBy(args, "name");  // convert to map
+    this.returns = returns;  // string or array ???
   }
 
+  // When looking up local vars in the top-level method scope, include our args.
+  // TODO: special case for `it` and `its`!!!
+  getLocalVar(name) {
+    return super.getLocalVar(name) || this._args[name];
+  }
+}
+
+
+// Type, which extends block.  Specifically:
+//  - `supers` is array of superclass(es).
+//  - `methods` (from block) are instance methods, including `constructor` if provided.
+//  - `vars` (from block) are instance vars
+//  - `classMethods` and `classVars` are static to the class.
+//  - `statements` are random bits of logic to initialize the type.
+export class Type extends Scope {
+  constructor({ supers, classMethods, classVars, ...superProps }) {
+    this.super(superProps);
+
+    this.supers = supers;
+
+    this.classVars = [];
+    this._classVars = {}
+    if (classVars) this.addClassVars(...classVars);
+
+    this.classMethods = [];
+    this._classMethods = {}
+    if (classMethods) this.addClassMethods(...classMethods);
+  }
+
+  addClassVar(variable) {
+    variables.forEach(variable => variable.parentScope = this);
+    this.vars = [...this.classVars, ...variables];
+    this._vars = {...this._classVars, ...keyBy(variables, "name") };
+  }
+
+  addClassMethod(...methods) {
+    methods.forEach(method => method.parentScope = this);
+    this.classMethods = [...this.classMethods, ...methods];
+    this._classMethods = {...this._classMethods, ...keyBy(methods, "name") };
+  }
 }

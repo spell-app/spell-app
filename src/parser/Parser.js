@@ -10,7 +10,7 @@ import {
   ParseError,
   Rule,
   rulex,
-  Scope,
+  Module,
   Token,
   Tokenizer,
   WhitespacePolicy,
@@ -70,16 +70,19 @@ export class Parser {
   //### Parsing
   //
 
-  // Return a scope object we'll use for parsing.
-  getParsingScope() {
-    return new Scope(this);
+  // Return a scope with a new parser which depends on this parser.
+  // This lets us update rules/etc as desired without affecting the original parser.
+  getScope(module = "ad_hoc") {
+    const parser = new this.constructor({ module });
+    parser.import(this);
+    return new Module({ name: module, parser });
   }
 
   // Parse `ruleName` rule at head of `text`.
   // If you pass only one argument, we'll assume that's `text` and you want to match `statements`.
   // Handles optional and repeating rules as well as eating whitespace.
   // Returns result of parse.
-  parse(text, ruleName = this.defaultRule, scope = this.getParsingScope()) {
+  parse(text, ruleName = this.defaultRule, scope = this.getScope()) {
     // Bail if we didn't get any tokens back.
     const tokens = this.tokenize(text, ruleName);
     if (!tokens || tokens.length === 0) return undefined;
@@ -105,7 +108,7 @@ export class Parser {
   // Parse `text` and return the resulting source code.
   //  - if one string argument, compiles as "statements"
   // Throws if not parseable.
-  compile(text, ruleName = this.defaultRule, scope = this.getParsingScope()) {
+  compile(text, ruleName = this.defaultRule, scope = this.getScope()) {
     let match = this.parse(text, ruleName, scope);
     if (!match) {
       throw new ParseError(`parser.parse('${ruleName}', '${text}'): can't parse text`);
