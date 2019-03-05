@@ -47,12 +47,13 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
   function executeRuleTests({ name, tests }, showAll) {
     // Handle simple block of e
     describe(`rule '${name}'`, () => {
-      tests.forEach(test => {
-        if (test.skip) return;
-        if (showAll) test.showAll = true;
-        if (test.title) {
-          describe(test.title, () => executeTestBlock(name, test));
-        } else executeTestBlock(name, test);
+      tests.forEach(testBlock => {
+        if (testBlock.skip) return;
+        if (showAll) testBlock.showAll = true;
+        if (testBlock.title)
+          describe(testBlock.title, () => executeTestBlock(name, testBlock));
+        else
+          executeTestBlock(name, testBlock);
       });
     });
   }

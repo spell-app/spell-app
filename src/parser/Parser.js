@@ -3,6 +3,8 @@
 import { isNode } from "browser-or-node";
 import isEqual from "lodash/isEqual";
 import flatten from "lodash/flatten";
+import groupBy from "lodash/groupBy";
+import sum from "lodash/sum";
 
 import {
   ParseError,
@@ -14,12 +16,13 @@ import {
   WhitespacePolicy,
 
   addDebugMethods,
-  DebugLevel,
-  cloneClass,
-  proto,
-  memoize,
   clearMemoized,
-  nonEnumerable
+  cloneClass,
+  DebugLevel,
+  memoize,
+  nonEnumerable,
+  proto,
+  showWhitespace
 } from "./all.js";
 
 
@@ -303,6 +306,124 @@ export class Parser {
     catch (error) {
       if (!isNode) this.warn("Error in defineRule():", error, "\nprops:", ruleProps);
     }
+  }
+
+  //
+  // Testing
+  //
+
+  // Do a timing test for all of the `testable` rules of this partner.
+  // Pass `moduleName` to restrict to just those defined by a module.
+  // Runs the full test once to warm up the rules
+  //  then runs 10 more times to get an average time once we're warmed up.
+  speedTest(moduleName) {
+    console.group(`Speed test for module ${moduleName}`);
+    // Run the test once first to warm up the rules.
+    const results = this.testRules(moduleName, false);
+    console.debug(`Initial run`);
+    console.debug(`     time: ${results.time} msec`);
+    console.debug(`   passed: ${results.pass} test(s)`);
+    console.debug(`   failed: ${results.fail} test(s)`);
+
+    // Run 10 separate times to average time after warmup.
+    const runs = [
+      this.testRules(moduleName, false),
+      this.testRules(moduleName, false),
+      this.testRules(moduleName, false),
+      this.testRules(moduleName, false),
+      this.testRules(moduleName, false),
+      this.testRules(moduleName, false),
+      this.testRules(moduleName, false),
+      this.testRules(moduleName, false),
+      this.testRules(moduleName, false),
+      this.testRules(moduleName, false),
+    ];
+    console.debug(`Subsequent runs:`);
+    runs.forEach((run, index) => console.debug(`   run #${index}: ${run.time} msec`));
+    const times = runs.map(run => run.time);
+    const min = Math.min(...times);
+    const average = sum(times) / runs.length;
+    const max = Math.max(...times);
+    console.debug(`      min: ${min} msec`);
+    console.debug(`      max: ${max} msec`);
+    console.debug(`  average: ${average} msec`);
+    console.groupEnd();
+
+    return results;
+  }
+
+  // Test `testable` rules for this parser.
+  // Pass `moduleName` to restrict to just those defined by a module.
+  // By default we output debug info about the run.
+  // Pass false to `debug` to skip debug output.
+  testRules(moduleName, debug = true) {
+    const t0 = Date.now();
+
+    // temporarily clear outputSource flag
+    const outputSource = this.outputSource;
+    this.outputSource = false;
+
+    const results = {
+      pass: 0,      // number of tests that passed
+      fail: 0,      // number of tests that failed
+      failed: []    // input tests that failed as `{ ruleName, input }`
+    }
+    if (moduleName)
+      if (debug) console.group("Testing rules for module", moduleName);
+    else
+      if (debug) console.group("Testing all parser rules");
+
+    // Get all of the testable rules in this parser.
+    let rules = this.rules._testable_?.rules;
+    if (moduleName && rules) rules = groupBy(rules, "module")[moduleName];
+    if (!rules) {
+      if (debug) console.debug("no testable rules found");
+    }
+    else {
+      rules.forEach(({ name: ruleName, tests }) => {
+        if (debug) console.group("testing rule", ruleName);
+        tests.forEach(({ compileAs = ruleName, tests }) => {
+          if (debug && compileAs !== ruleName) console.group(`testing as ${compileAs}`);
+          tests.forEach(test => {
+            if (Array.isArray(test)) test = { input: test[0], output: test[1] };
+            if (test.skip || test.input === "") return;
+
+            let { input, output, title = input } = test;
+            let result;
+            try {
+              result = this.compile(input, compileAs);
+            }
+            catch (e) {
+              result = e;
+            }
+            if (isEqual(result, output) || (result instanceof Error && output === undefined)) {
+              if (debug) console.debug("PASS:  ", showWhitespace(input));
+              results.pass++;
+            }
+            else {
+              if (debug) {
+                console.debug(
+                  "FAIL:  ", showWhitespace(input),
+                  "\n  EXPECTED: ", showWhitespace(input),
+                  "\n       GOT: ", showWhitespace(result),
+                );
+              }
+              results.fail++;
+              results.failed.push({ ruleName, input });
+            }
+          });
+          if (debug && compileAs !== ruleName) console.groupEnd();
+        });
+        if (debug) console.groupEnd();
+      });
+    }
+    if (debug) console.groupEnd();
+
+    // reset outputSource flag
+    this.outputSource = outputSource;
+
+    results.time = Date.now() - t0;
+    return results;
   }
 }
 

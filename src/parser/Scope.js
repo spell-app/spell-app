@@ -82,7 +82,7 @@ export class Scope {
     const { name, syntax, compile } = props;
     try {
       const rule = this.parser.defineRule({ name, alias: "statement", compile, syntax });
-      this.parser.info("defined rule: ", rule);
+      this.parser.debug("defined rule: ", rule);
     }
     catch(e) { console.error(e); }
   }
