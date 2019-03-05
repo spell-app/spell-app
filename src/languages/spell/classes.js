@@ -385,17 +385,26 @@ parser.defineRule({
             "})",
           ].join("\n")
         ],
+        ['a card "is a face card" if its rank is one of jack, queen or king',
+          [
+            "defineProp(Card.prototype, 'is_a_face_card', {",
+            "  get() { return spell.includes([jack, queen, king], this.rank) }",
+            "})",
+          ].join("\n")
+        ],
       ]
     }
   ]
 });
 
 parser.defineRule({
-  name: "property_of_a_type",
+  name: "the_property_of_a_thing",
+  alias: "property_of_a_type",
   syntax: "the {property:identifier} of (a|an) {type:identifier}",
 });
 parser.defineRule({
-  name: "property_of_a_type",
+  name: "a_things_property",
+  alias: "property_of_a_type",
   syntax: "(a|an) {type:identifier} {property:identifier}",
 });
 
@@ -429,14 +438,14 @@ parser.defineRule({
     {
       compileAs: "statement",
       tests: [      // is one of diamonds or hearts => is_one_of_list
-        ["the color of a card is red if its suit is one of [diamonds, hearts]",
+        ["the color of a card is red if its suit is one of diamonds or hearts",
           [
             "defineProp(Card.prototype, 'color', {",
             "  get() { if (spell.includes([diamonds, hearts], this.suit)) return red }",
             "})"
           ].join("\n")
         ],
-        ["a cards color is black if its suit is one of [clubs, spades] otherwise it is red",
+        ["a cards color is black if its suit is one of clubs or spades otherwise it is red",
           [
             "defineProp(Card.prototype, 'color', {",
             "  get() { return !!spell.includes([clubs, spades], this.suit) ? black : red }",

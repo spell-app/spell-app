@@ -49,9 +49,20 @@ export class Match {
     if (this.rule.updateScope) this.rule.updateScope(this, this.scope);
   }
 
-  // Return structure used to visualize this map (rule-dependent).
+  // Visualize a match by outputting its `structure` in a clever way
   visualize() {
-    let value = this.rule.visualize(this, this.scope);
+    const structure = this.structure;
+    const output = [];
+  }
+
+  // Return structure used to visualize this map (rule-dependent).
+  // Format will be:    `{ name, value }` or simply `value`
+  //   where `value` is:
+  //    - a recursive `structure`,
+  //    - a literal string (for matched keywords/symbols/patterns), or
+  //    - an array of `value`s.
+  get structure() {
+    let value = this.rule.getStructure(this, this.scope);
     if (this.choiceRule && this.choiceRule !== this.name) {
       if (this.rule.name) value = { name: this.rule.name, value };
       value = { name: this.choiceRule, value };

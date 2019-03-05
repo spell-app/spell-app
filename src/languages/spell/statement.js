@@ -219,8 +219,8 @@ parser.defineRule({
       return lines;
     }
     // Return a simple data structure we'll use to visualize a match.
-    visualize(match, scope) {
-      return match.matched.map(match => match.visualize());
+    getStructure(match, scope) {
+      return match.matched.map(match => match.structure);
     }
   }
 });
