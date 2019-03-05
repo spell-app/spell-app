@@ -6,11 +6,18 @@ import { proto } from "../utils/all.js";
 // All subtypes are initialized with a map of `props`
 //  and should at least have:
 //  - `token.value` type-specific value in a way that's convenient for parsing to deal with.
-//  - `token.start` start character index in the source string.
-//  - `token.end`   non-inclusive end character instance in the source stream.
+//  - `token.raw`   raw text string that was matched
+//  - `token.offset` start character index in the source string.
 export class Token {
   constructor(props) {
     Object.assign(this, props);
+  }
+
+  get start() {
+    return this.offset;
+  }
+  get end() {
+    return this.offset + this.raw.length;
   }
 
   // Do we match a `literal` value?

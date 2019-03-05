@@ -240,6 +240,7 @@ test("matchSymbol():  Match a single character.", () => {
   let token = tokenizer.matchSymbol(":");
   expect(token).toBeInstanceOf(Token.Symbol);
   expect(token.value).toBe(":");
+  expect(token.raw).toBe(":");
   expect(token.end).toBe(1);
 });
 
@@ -287,6 +288,7 @@ test("matchWord():  Matches single letter at beginning of string", () => {
   let token = tokenizer.matchWord("x ");
   expect(token).toBeInstanceOf(Token.Word);
   expect(token.value).toBe("x");
+  expect(token.raw).toBe("x");
   expect(token.end).toBe(1);
 });
 
@@ -372,6 +374,7 @@ test("matchNumber():  Matches integer at beginning of string", () => {
   let token = tokenizer.matchNumber("999 ");
   expect(token).toBeInstanceOf(Token.Number);
   expect(token.value).toBe(999);
+  expect(token.raw).toBe("999");
   expect(token.end).toBe(3);
 });
 
@@ -379,6 +382,7 @@ test("matchNumber():  Matches proper decimal at beginning of string", () => {
   let token = tokenizer.matchNumber("1.888 ");
   expect(token).toBeInstanceOf(Token.Number);
   expect(token.value).toBe(1.888);
+  expect(token.raw).toBe("1.888");
   expect(token.end).toBe(5);
 });
 
@@ -386,6 +390,7 @@ test("matchNumber():  Matches no-leading-zero decimal at beginning of string", (
   let token = tokenizer.matchNumber(".888 ");
   expect(token).toBeInstanceOf(Token.Number);
   expect(token.value).toBe(0.888);
+  expect(token.raw).toBe(".888");
   expect(token.end).toBe(4);
 });
 
@@ -393,6 +398,7 @@ test("matchNumber():  Ignores leading zeros at beginning of string", () => {
   let token = tokenizer.matchNumber("00888 ");
   expect(token).toBeInstanceOf(Token.Number);
   expect(token.value).toBe(888);
+  expect(token.raw).toBe("00888");
   expect(token.end).toBe(5);
 });
 
@@ -400,6 +406,7 @@ test("matchNumber():  Matches negative integer at beginning of string", () => {
   let token = tokenizer.matchNumber("-999 ");
   expect(token).toBeInstanceOf(Token.Number);
   expect(token.value).toBe(-999);
+  expect(token.raw).toBe("-999");
   expect(token.end).toBe(4);
 });
 
@@ -407,6 +414,7 @@ test("matchNumber():  Matches negative proper decimal at beginning of string", (
   let token = tokenizer.matchNumber("-1.888 ");
   expect(token).toBeInstanceOf(Token.Number);
   expect(token.value).toBe(-1.888);
+  expect(token.raw).toBe("-1.888");
   expect(token.end).toBe(6);
 });
 
@@ -414,6 +422,7 @@ test("matchNumber():  Matches no-leading-zero decimal at beginning of string", (
   let token = tokenizer.matchNumber("-.888 ");
   expect(token).toBeInstanceOf(Token.Number);
   expect(token.value).toBe(-0.888);
+  expect(token.raw).toBe("-.888");
   expect(token.end).toBe(5);
 });
 
@@ -421,6 +430,7 @@ test("matchNumber():  Ignores negative with leading zeros at beginning of string
   let token = tokenizer.matchNumber("-00888 ");
   expect(token).toBeInstanceOf(Token.Number);
   expect(token.value).toBe(-888);
+  expect(token.raw).toBe("-00888");
   expect(token.end).toBe(6);
 });
 
@@ -490,6 +500,7 @@ test("matchText():  Matches double quotes at beginning of string", () => {
   let token = tokenizer.matchText('"aaaa"');
   expect(token).toBeInstanceOf(Token.Text);
   expect(token.value).toBe('"aaaa"');
+  expect(token.raw).toBe('"aaaa"');
   expect(token.innerText).toBe("aaaa");
   expect(token.end).toBe(6);
 });
@@ -498,6 +509,7 @@ test("matchText():  Matches single quotes with escape at beginning of string", (
   let token = tokenizer.matchText("'a\\'a'");
   expect(token).toBeInstanceOf(Token.Text);
   expect(token.value).toBe("'a\\'a'");
+  expect(token.raw).toBe("'a\\'a'");
   expect(token.innerText).toBe("a\\'a");
   expect(token.end).toBe(6);
 });
@@ -506,6 +518,7 @@ test("matchText():  Matches double quotes with escape at beginning of string", (
   let token = tokenizer.matchText('"a\\"a"');
   expect(token).toBeInstanceOf(Token.Text);
   expect(token.value).toBe('"a\\"a"');
+  expect(token.raw).toBe('"a\\"a"');
   expect(token.innerText).toBe('a\\"a');
   expect(token.end).toBe(6);
 });
