@@ -37,6 +37,11 @@ export const TestLocation = {
 // Abstract Rule class.
 // TODOC
 export class Rule {
+  // Precedence for this rule.
+  // Rules with higher precedence are preferred in `Choice`s.
+  // Precedence is also used as "operator precedence" in recursive expressions.
+  @proto precedence = 0;
+
   constructor(props) {
     Object.assign(this, props);
   }
@@ -83,13 +88,6 @@ export class Rule {
   // Return a simple data structure we'll use to visualize a match.
   getStructure(match, scope) {
     return this.compile(match, scope);
-  }
-
-  // Return the precedence for this rule as matched.
-  // Override to do something funky.
-  @proto precedence = 0;
-  getPrecedence(match) {
-    return this.precedence;
   }
 
 
@@ -463,7 +461,7 @@ Rule.Choice = class choices extends Rule {
     else {
       if (DEBUG_CHOICES) scope.parser.debug(`${CHOICE} matched:`);
       matches.forEach((match, index) => {
-        if (DEBUG_CHOICES) scope.parser.debug(`   #${index}: (len: ${match.length}, prec: ${match.precedence}): `, match);
+        if (DEBUG_CHOICES) scope.parser.debug(`   #${index}: (len: ${match.length}, prec: ${match.rule.precedence}): `, match);
       });
       match = matches.length > 1 ? this.getBestMatch(matches) : matches[0];
       if (DEBUG_CHOICES) scope.parser.debug(`${CHOICE} returning:`, match);
@@ -490,7 +488,7 @@ Rule.Choice = class choices extends Rule {
     let match;
     let highPriority = [];
     for (let max = -Infinity, i = 0; match = matches[i++];) {
-      const { precedence } = match;
+      const { precedence } = match.rule;
       if (precedence > max) {
         max = precedence;
         highPriority = [match];

@@ -85,11 +85,6 @@ export class Match {
   }
   set promote(value) { if (value) this._promote = value }
 
-  // Precedence of the match
-  get precedence() {
-    return this.rule.getPrecedence(this);
-  }
-
   // Call this when printing to the console to eliminate the big bits in node.
   toPrint() {
     if (!isNode) return this;
