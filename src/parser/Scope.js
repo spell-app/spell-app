@@ -30,9 +30,9 @@ export class Scope {
   @memoize
   get _vars() { return keyBy(this.vars, "name") }
 
-  // Add a variable or array of variables to this scope.
+  // Add a variable to this scope.
   @clearMemoized("_vars")
-  addVar(variable) { return this.addItem(variable, "vars") }
+  addVar(variable) { return this.addItem(variable, "vars", Variable) }
 
   // Return definition of `var` in this block.
   getLocalVar(name) {
@@ -58,9 +58,9 @@ export class Scope {
   @memoize
   get _methods() { return keyBy(this.methods, "name") }
 
-  // Add a method or array of methods to this scope.
+  // Add a method to this scope.
   @clearMemoized("_methods")
-  addMethod(method) { return this.addItem(method, "methods") }
+  addMethod(method) { return this.addItem(method, "methods", Method) }
 
   // Return definition of `method` anywhere in our parent chain.
   getMethod(name) {
@@ -75,9 +75,9 @@ export class Scope {
   @memoize
   get _types() { return keyBy(this.types, "name") }
 
-  // Add a type or array of types to this scope.
+  // Add a type to this scope.
   @clearMemoized("_types")
-  addType(type) { return this.addItem(type, "types") }
+  addType(type) { return this.addItem(type, "types", Type) }
 
   // Return definition of `type` anywhere in our parent chain.
   getType(name) {
@@ -144,27 +144,28 @@ export class Scope {
   get groupEnd() { return this.parser?.groupEnd || Function.prototype }
 
   // Parse using this scope in various flavors.
-  parse(...args) { return this.parser.parse(tokens, undefined, this) }
-  statement(tokens) { return this.parser.parse(tokens, "statement", this) }
-  exp(tokens) { return this.parser.parse(tokens, "expression", this) }
+  parse = (...args) => { return this.parser.parse(tokens, undefined, this) };
+  statement = (tokens) => { return this.parser.parse(tokens, "statement", this) };
+  exp = (tokens) => { return this.parser.parse(tokens, "expression", this) };
 
   /////////////////
   // Utility
 
   // Add `item` to one of our lists:  vars, methods, types, etc.
-  // You can pass a single item or an array.
-  // If you pass a single item, you'll get a single item back.
-  // If you pass an array you'll get an array back.
-  addItem(item, listProp, customizer) {
-    if (!this[listProp]) this[listProp] = [];
-
-    if (Array.isArray(item))
-      return item.map(item => this.addItem(item, listProps, mapProp, customizer));
+  // If you pass a vanilla Object, we'll do use `new Constructor(item)`.
+  // You'll receive the item back.
+  // NOTE: this modifies the item!  Create a clone before calling this if you care!
+  addItem(item, listProp, constructor, customizer) {
+    // Coerce to an instance of constructor
+    if (constructor && item.constructor === Object) item = new constructor(item);
 
     // add to list and array
+    if (!this[listProp]) this[listProp] = [];
     this[listProp].push(item);
-    // add to scope
+
+    // set item scope.
     item.scope = this;
+
     // call customizer if provided
     if (customizer) customizer(item);
 
@@ -231,8 +232,11 @@ export class Method extends Scope {
       if (this.kind === "static") {
         return `${this.scope.name}.${this.name} = function(${args}) ${statements}`;
       }
-      // Add instance props to the prototype using `defineProperty()`
-      return `defineProp(${this.scope.name}.prototype, '${this.name}', { get() ${statements} })`;
+      if (this.kind === "getter") {
+        // Add instance props to the prototype using `defineProperty()`
+        return `defineProp(${this.scope.name}.prototype, '${this.name}', { get() ${statements} })`;
+      }
+      return `defineProp(${this.scope.name}.prototype, '${this.name}', { value: function(${args}) ${statements} })`;
     }
 
     // Return as a normal function
@@ -268,19 +272,19 @@ export class Type extends Scope {
   @memoize
   get _classVars() { return keyBy(this.classVars, "name") }
 
-  // Add a classVar or array of classVars to this scope.
+  // Add a classVar to this scope.
   @clearMemoized("_classVars")
   addClassVar(variable) {
-    return this.addItem(variable, "classVars", (variable) => variable.kind = "static")
+    return this.addItem(variable, "classVars", Variable, (variable) => variable.kind = "static")
   }
 
   @memoize
   get _classMethods() { return keyBy(this.classMethods, "name") }
 
-  // Add a classMethod or array of classMethods to this scope.
+  // Add a classMethod to this scope.
   @clearMemoized("_classMethods")
   addClassMethod(method) {
-    return this.addItem(method, "classMethods", (method) => method.kind = "static")
+    return this.addItem(method, "classMethods", Method, (method) => method.kind = "static")
   }
 }
 

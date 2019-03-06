@@ -29,9 +29,12 @@ parser.defineRule({
     }
     compile(match, scope) {
       const { results: { Type, SuperType } } = match;
-      return scope.addType(
-        new Scope.Type({ name: Type, superType: SuperType })
-      ).compile();
+      return scope
+        .addType({
+          name: Type,
+          superType: SuperType
+        })
+        .compile();
     }
   },
   tests: [
@@ -140,7 +143,7 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "{?:type_has_prefix} (a|an) {property:identifier} {initializer:type_initializer}?",
   testRule: "…(has|have)",
-  constructor: class define_type extends Rule.Sequence {
+  constructor: class define_property_has extends Rule.Sequence {
     getResults(match, scope) {
       const results = super.getResults(match, scope);
       return inflectResults(results, "type", "property");
@@ -347,44 +350,38 @@ parser.defineRule({
     compile(match, scope) {
       const { TypeName, typeName, methodName, expression, words } = match.results;
 
-      const method = new Scope.Method({
-        name: methodName,
-        statements: [`return ${expression}`],
-        args: [
-         { name: typeName, datatype: TypeName }
-        ]
-      });
-//      scope.debug(rule);
-
-      // add method to the Type
-      scope.getOrAddType(TypeName)
-           .addClassMethod(method);
-
       // Create an expression suffix to match the quoted statement.
-      const rule = scope.addRule({
+      scope.addRule({
         name: methodName,
         alias: "expression_suffix",
         precedence: 10,
         literals: words,
-        applyOperator: ({ lhs }) => `${TypeName}.${methodName}(${lhs})`
+        applyOperator: ({ lhs }) => `${lhs}?.${methodName}?.(${lhs})`
       });
-//      scope.debug(rule);
 
-      return method.compile();
+      // Create the class method
+      return scope
+        .getOrAddType(TypeName)
+        .addMethod({
+          name: methodName,
+          kind: "getter",
+          statements: [`return ${expression}`]
+        })
+        .compile();
     }
   },
   tests: [
     {
       compileAs: "statement",
       tests: [
-        ['a card "is face up" if the direction of the card is up',
-         "Card.is_face_up = function(card) { return (card?.direction == up) }"
+        ['a card "is face up" if its direction is up',
+         "defineProp(Card.prototype, 'is_face_up', { get() { return (this.direction == up) } })"
         ],
-        ['a card "is a face card" if the rank of the card is one of [jack, queen, king]',
-         "Card.is_a_face_card = function(card) { return spell.includes([jack, queen, king], card?.rank) }"
+        ['a card "is a face card" if its rank is one of [jack, queen, king]',
+         "defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes([jack, queen, king], this.rank) } })"
         ],
-        ['a card "is a face card" if the rank of the card is one of jack, queen or king',
-         "Card.is_a_face_card = function(card) { return spell.includes([jack, queen, king], card?.rank) }"
+        ['a card "is a face card" if its rank is one of jack, queen or king',
+         "defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes([jack, queen, king], this.rank) } })"
         ],
       ]
     }
@@ -414,20 +411,17 @@ parser.defineRule({
     compile(match, scope) {
       let { TypeName, typeName, property, value, otherValue, condition } = match.results;
 
-      const statements = !otherValue
-        ? [`if (${condition}) return ${value}`]
-        : [`return !!${condition} ? ${value} : ${otherValue}`];
-
-      // Create this as an instance getter
-      const method = new Scope.Method({
-        name: property,
-        statements
-      });
-      scope.info(method);
-      scope.getOrAddType(TypeName)
-           .addMethod(method);
-
-      return method.compile();
+      // Create as an instance getter
+      return scope
+        .getOrAddType(TypeName)
+        .addMethod({
+          name: property,
+          kind: "getter",
+          statements: otherValue
+            ? [`return !!${condition} ? ${value} : ${otherValue}`]
+            : [`if (${condition}) return ${value}`]
+        })
+        .compile();
     }
   },
   tests: [
@@ -456,15 +450,14 @@ parser.defineRule({
     }
     compile(match, scope) {
       let { Type, property, expression } = match.results;
-      return [
-        `defineProp(${Type}.prototype, '${property}', {`,
-        `  get() { return ${expression} }`,
-        `})`
-      ].join("\n")
-    }
-    XupdateScope(match, scope) {
-      const { type, property } = match.results;
-      scope.addInstanceProperty({ type, key: property });
+      return scope
+        .getOrAddType(Type)
+        .addMethod({
+          kind: "getter",
+          name: property,
+          statements: [`return ${expression}`],
+        })
+        .compile();
     }
   },
   tests: [
@@ -472,18 +465,10 @@ parser.defineRule({
       compileAs: "statement",
       tests: [
         ["the value of a card is the position of its rank in its ranks",
-          [
-            "defineProp(Card.prototype, 'value', {",
-            "  get() { return spell.positionOf(this.rank, this.ranks) }",
-            "})"
-          ].join("\n")
+         "defineProp(Card.prototype, 'value', { get() { return spell.positionOf(this.rank, this.ranks) } })"
         ],
         ["a cards score is its value",
-          [
-            "defineProp(Card.prototype, 'score', {",
-            "  get() { return this.value }",
-            "})"
-          ].join("\n")
+         "defineProp(Card.prototype, 'score', { get() { return this.value } })"
         ],
       ]
     }

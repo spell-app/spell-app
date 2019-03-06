@@ -147,8 +147,14 @@ const factory = new ReduxFactory({
         let output;
         try {
           const scope = spell.getScope(moduleId);
-          console.info("scope: ", scope);
+          scope.info("scope: ", scope);
+
+          // assign scope and parsing shorthand functions to the window
           global.scope = scope;
+          global.parse = scope.parse;
+          global.statement = scope.statement;
+          global.exp = scope.exp;
+
           output = spell.compile(input, undefined, scope);
         } catch (e) {
           console.error(e);

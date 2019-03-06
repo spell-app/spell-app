@@ -1,3 +1,4 @@
 a card "is face up" if the direction of the card is up
 the color of a card is red if its suit is either diamonds or hearts
 a cards color is black if its suit is either clubs or spades otherwise it is red
+the value of a card is the position of its rank in its ranks
