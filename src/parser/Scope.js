@@ -2,10 +2,14 @@
 //  Intermediate types -- simplified AST
 //
 import keyBy from "lodash/keyBy";
+import flatten from "lodash/flatten";
 
 import {
   Parser,
-  ParseError
+  ParseError,
+
+  memoize,
+  clearMemoized
 } from "./all.js";
 
 
@@ -14,30 +18,22 @@ export class Scope {
     // You can initialize with just a `Parser` instance if desired.
     if (props instanceof Parser) props = { parser: props };
 
-    const { name, parser, module, scope, vars, methods, types, statements } = props;
-    if (name) this.name = name;
-    if (parser) this.parser = parser;
-    if (module) this.module = module;
-    if (scope) this.scope = scope;
-
-    this.vars = [];
-    this._vars = {};
-    if (vars) this.addVar(vars);
-
-    this.methods = [];
-    this._methods = {};
-    if (methods) this.addMethod(methods);
-
-    this.types = [];
-    this._types = {};
-    if (types) this.addType(types);
-
-    this.statements = statements || [];
+    // Assign all properties in the order they were passed
+    Object.assign(this, props);
   }
 
   /////////////////
   // Vars
   //
+
+  // Local variables as a map.
+  @memoize
+  get _vars() { return keyBy(this.vars, "name") }
+
+  // Add a variable or array of variables to this scope.
+  @clearMemoized("_vars")
+  addVar(variable) { return this.addItem(variable, "vars") }
+
   // Return definition of `var` in this block.
   getLocalVar(name) {
     return this._vars[name];
@@ -53,58 +49,64 @@ export class Scope {
     return this.getLocalVar(name) || this.scope?.getVar(name);
   }
 
-  // Add a variable or array of variables to this scope.
-  addVar(variable) { return this.addItem(variable, "vars", "_vars") }
 
   /////////////////
   // Methods
   //
-  // Return definition of `method` in this block.
-  getLocalMethod(name) {
-    return this._methods[name];
-  }
 
-  // Return true if this block already has a local method defined
-  hasLocalMethod(name) {
-    return !!this.getLocalMethod(name);
-  }
+  // Local variables as a map.
+  @memoize
+  get _methods() { return keyBy(this.methods, "name") }
+
+  // Add a method or array of methods to this scope.
+  @clearMemoized("_methods")
+  addMethod(method) { return this.addItem(method, "methods") }
 
   // Return definition of `method` anywhere in our parent chain.
   getMethod(name) {
-    return this.getLocalMethod(name) || this.scope?.getMethod(name);
+    return this._methods[name] || this.scope?.getMethod(name);
   }
-
-  // Add a method or array of methods to this scope.
-  addMethod(method) { return this.addItem(method, "methods", "_methods") }
 
 
   /////////////////
   // Types
   //
-  // Return definition of `type` in this block.
-  getLocalType(name) {
-    return this._types[name];
-  }
 
-  // Return true if this block already has a local type defined
-  hasLocalType(name) {
-    return !!this.getLocalType(name);
-  }
+  @memoize
+  get _types() { return keyBy(this.types, "name") }
+
+  // Add a type or array of types to this scope.
+  @clearMemoized("_types")
+  addType(type) { return this.addItem(type, "types") }
 
   // Return definition of `type` anywhere in our parent chain.
   getType(name) {
-    return this.getLocalType(name) || this.scope?.getType(name);
+    return this._types[name] || this.scope?.getType(name);
   }
 
-  // Add a type or array of types to this scope.
-  addType(type) { return this.addItem(type, "types", "_types") }
+  // Return the named type, creating and adding one if necessary.
+  getOrAddType(name) {
+    let type = this.getType(name);
+    if (!type) {
+      type = new Type(name);
+      this.addType(type);
+    }
+    return type;
+  }
 
 
   /////////////////
   //  Statements
   //
   addStatement(...statements) {
-    this.statements = [...this.statements, ...statements];
+    this.statements = [...this.statements, ...flatten(statements)];
+  }
+
+  compileStatements() {
+    let { statements } = this;
+    if (!statements || statements.length === 0) return "{}";
+    if (statements.length === 1) return `{ ${statements} }`;
+    return `{\n  ${this.statements.join("\n  ")}\n}`;
   }
 
 
@@ -119,12 +121,11 @@ export class Scope {
     return rule;
   }
 
-  addIdentifier(props) {
-    this.parser.debug("TODO: scope.addIdentifier()", props);
-    const { key, value } = props;
+  addRule(ruleProps) {
+    return this.parser.defineRule(ruleProps);
   }
 
-  addStatement(props) {
+  addStatementRule(props) {
     this.parser.debug("TODO: scope.addStatementRule()", props);
     const { name, syntax, compile } = props;
     try {
@@ -142,6 +143,10 @@ export class Scope {
   get group() { return this.parser?.group || Function.prototype }
   get groupEnd() { return this.parser?.groupEnd || Function.prototype }
 
+  // Parse using this scope in various flavors.
+  parse(...args) { return this.parser.parse(tokens, undefined, this) }
+  statement(tokens) { return this.parser.parse(tokens, "statement", this) }
+  exp(tokens) { return this.parser.parse(tokens, "expression", this) }
 
   /////////////////
   // Utility
@@ -150,13 +155,18 @@ export class Scope {
   // You can pass a single item or an array.
   // If you pass a single item, you'll get a single item back.
   // If you pass an array you'll get an array back.
-  addItem(item, listProp, mapProp) {
-    if (Array.isArray(item))
-      return item.map(item => this.addItem(item, listProps, mapProp));
+  addItem(item, listProp, customizer) {
+    if (!this[listProp]) this[listProp] = [];
 
+    if (Array.isArray(item))
+      return item.map(item => this.addItem(item, listProps, mapProp, customizer));
+
+    // add to list and array
     this[listProp].push(item);
-    if (item.name) this[mapProp][name] = item;
+    // add to scope
     item.scope = this;
+    // call customizer if provided
+    if (customizer) customizer(item);
 
     return item;
   }
@@ -171,32 +181,63 @@ export class Module extends Scope {}
 //      - block-local variable
 //      - class property
 //      - instance property
+//
+// Expected properties:
+//  - module
+//  - scope
+//  - name
+//  - datatype
+//  - initializer
 export class Variable {
-  constructor({ module, scope, name, datatype, initializer }) {
-    this.assert(name, "Variables must be created with a 'name'");
-    if (module) this.module = module;
-    if (scope) this.scope = scope;
-    this.name = name;
-    if (datatype) this.datatype = datatype;
-    if (initializer) this.initializer = initializer;
+  constructor(props) {
+    this.assert(props.name, "Variables must be created with a 'name'");
+    // Assign all properties in the order provided.
+    Object.assign(this, props);
   }
 }
 
 
 // Method
+// Expected properties:
+//  - name
+//  - args
+//  - returns
 export class Method extends Scope {
-  constructor({ name, args, returns, ...superProps }) {
-    super(superProps);
-    if (name) this.name = name;
-    this.args = args || [];
-    this._args = keyBy(args, "name");  // convert to map
-    if (returns) this.returns = returns;  // string or array ???
+  constructor(props) {
+    super(props);
+    // If we have args, convert to a map
+    if (this.args)
+      this._args = keyBy(this.args, "name");  // convert to map
   }
 
   // When looking up local vars in the top-level method scope, include our args.
   // TODO: special case for `it` and `its`!!!
   getLocalVar(name) {
-    return super.getLocalVar(name) || this._args[name];
+    return super.getLocalVar(name) || this._args?.[name];
+  }
+
+  compileArgs() {
+    if (!this.args) return "";
+    return this.args.map(arg => arg.name).join(", ");
+  }
+
+  compile() {
+    const statements = this.compileStatements();
+    const args = this.compileArgs();
+    const fn = `function${this.name ? " "+this.name : ""}(${args}) ${statements}`;
+
+    // If we're attached to a Type,
+    if (this.scope instanceof Type) {
+      // Add class props directly
+      if (this.kind === "static") {
+        return `${this.scope.name}.${this.name} = ${fn}`;
+      }
+      // Add instance props to the prototype using `defineProperty()`
+      return `Object.defineProperty(${this.scope.name}.prototype, '${this.name}', { value: ${fn} })`;
+    }
+
+    // Return as a normal function
+    return fn;
   }
 }
 
@@ -210,18 +251,11 @@ export class Method extends Scope {
 //  - `statements` are random bits of logic to initialize the type.
 export class Type extends Scope {
   constructor(props) {
-    const { superType, classMethods, classVars, ...superProps } = props;
-    super(superProps);
+    // If you just pass a string we'll assume it's the type name.
+    if (typeof props === "string") props = { name: props };
 
-    if (superType) this.superType = superType;
-
-    this.classVars = [];
-    this._classVars = {}
-    if (classVars) this.addClassVars(...classVars);
-
-    this.classMethods = [];
-    this._classMethods = {}
-    if (classMethods) this.addClassMethods(...classMethods);
+    // Assign properties in the order specified.
+    super(props);
   }
 
   // Compile the type.
@@ -231,11 +265,23 @@ export class Type extends Scope {
     return `export class ${this.name} {}`;
   }
 
-  // Add a class variable or array of class variables to this scope.
-  addClassVar(variable) { return this.addItem(variable, "classVars", "_classVars") }
+  @memoize
+  get _classVars() { return keyBy(this.classVars, "name") }
 
-  // Add a class method or array of class methods to this scope.
-  addClassMethod(method) { return this.addItem(method, "classMethods", "_classMethods") }
+  // Add a classVar or array of classVars to this scope.
+  @clearMemoized("_classVars")
+  addClassVar(variable) {
+    return this.addItem(variable, "classVars", (variable) => variable.kind = "static")
+  }
+
+  @memoize
+  get _classMethods() { return keyBy(this.classMethods, "name") }
+
+  // Add a classMethod or array of classMethods to this scope.
+  @clearMemoized("_classMethods")
+  addClassMethod(method) {
+    return this.addItem(method, "classMethods", (method) => method.kind = "static")
+  }
 }
 
 

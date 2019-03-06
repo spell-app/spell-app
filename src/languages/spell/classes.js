@@ -28,9 +28,9 @@ parser.defineRule({
       return inflectResults(results, "type", "superType");
     }
     compile(match, scope) {
-      const { results: { TypeName, SuperTypeName } } = match;
+      const { results: { Type, SuperType } } = match;
       return scope.addType(
-        new Scope.Type({ name: TypeName, superType: SuperTypeName })
+        new Scope.Type({ name: Type, superType: SuperType })
       ).compile();
     }
   },
@@ -341,28 +341,35 @@ parser.defineRule({
     getResults(match, scope) {
       const results = super.getResults(match, scope);
       results.words = (""+JSON.parse(results.text)).split(" ");
-      results.getter = results.words.join("_");
+      results.methodName = results.words.join("_");
       return inflectResults(results, "type");
     }
     compile(match, scope) {
-      let { type, Type, getter, property, expression } = match.results;
-      return [
-        `${Type}.${getter} = function(${type}) {`,
-        `  return ${expression}`,
-        `}`
-      ].join("\n")
-    }
-    XupdateScope(match, scope) {
-      const { Type, words, getter } = match.results;
+      const { TypeName, typeName, methodName, expression, words } = match.results;
 
-      // Note the new instance property, e.g. javascript `card.is_a_face_card`
-      scope.addInstanceProperty({ type, key:getter, datatype: "boolean" });
+      const method = new Scope.Method({
+        name: methodName,
+        statements: [`return ${expression}`],
+        args: [
+         { name: typeName, datatype: TypeName }
+        ]
+      });
 
-      // Add is expression for spell, e.g. `card is a face card` or `card is not a face card`
-//       scope.addIsExpressionRule({
-//         key: words,
-//         compile(value) { return `${value}?.${getter}` }
-//       });
+      // add method to the Type
+      scope.getOrAddType(TypeName)
+           .addClassMethod(method);
+
+      // Create an expression suffix to match the quoted statement.
+      const rule = scope.addRule({
+        name: methodName,
+        alias: "expression_suffix",
+        precedence: 10,
+        literals: words,
+        applyOperator: ({ lhs }) => `${TypeName}.${methodName}(${lhs})`
+      });
+      scope.debug(rule);
+
+      return method.compile();
     }
   },
   tests: [
@@ -370,25 +377,13 @@ parser.defineRule({
       compileAs: "statement",
       tests: [
         ['a card "is face up" if the direction of the card is up',
-          [
-            "Card.is_face_up = function(card) {",
-            "  return (card?.direction == up)",
-            "}"
-          ].join("\n")
+         "Card.is_face_up = function is_face_up(card) { return (card?.direction == up) }"
         ],
         ['a card "is a face card" if the rank of the card is one of [jack, queen, king]',
-          [
-            "Card.is_a_face_card = function(card) {",
-            "  return spell.includes([jack, queen, king], card?.rank)",
-            "}",
-          ].join("\n")
+         "Card.is_a_face_card = function is_a_face_card(card) { return spell.includes([jack, queen, king], card?.rank) }"
         ],
         ['a card "is a face card" if the rank of the card is one of jack, queen or king',
-          [
-            "Card.is_a_face_card = function(card) {",
-            "  return spell.includes([jack, queen, king], card?.rank)",
-            "}",
-          ].join("\n")
+         "Card.is_a_face_card = function is_a_face_card(card) { return spell.includes([jack, queen, king], card?.rank) }"
         ],
       ]
     }

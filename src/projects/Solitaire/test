@@ -1,2 +1,1 @@
-create type foo as a bar
-create a foo with a = 1, b = yes
+a card "is face up" if the direction of the card is up

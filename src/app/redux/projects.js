@@ -4,11 +4,13 @@
 //
 ////////////////////
 
+import global from "global";
 import JSON5 from "json5";
 import { connect } from "react-redux";
 
 import {
-  spell
+  spell,
+  Scope
 } from "../all.js";
 
 import {
@@ -141,10 +143,13 @@ const factory = new ReduxFactory({
     {
       name: "compileInput",
       handler(projects) {
-        const { input } = projects;
+        const { input, moduleId } = projects;
         let output;
         try {
-          output = spell.compile(input);
+          const scope = spell.getScope(moduleId);
+          console.info("scope: ", scope);
+          global.scope = scope;
+          output = spell.compile(input, undefined, scope);
         } catch (e) {
           console.error(e);
           output = e.message;
