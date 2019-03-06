@@ -7,6 +7,8 @@ import {
   Token,
 } from "./all.js";
 
+import identifierBlacklist from "./identifier-blacklist.js";
+
 const parser = new SpellParser({ module: "core" });
 export default parser;
 
@@ -14,6 +16,7 @@ export default parser;
 parser.defineRule({
   name: "eat_whitespace",
   syntax: "{whitespace}*",
+  datatype: "string",
   compile(match, scope) {
     return match.matched.map(whitespace => whitespace.compile()).join(" ");
   }
@@ -22,18 +25,21 @@ parser.defineRule({
 // Any whitespace.
 parser.defineRule({
   name: "whitespace",
+  datatype: "string",
   tokenType: Token.Whitespace
 });
 
 // Indent whitespace specifically.
 parser.defineRule({
   name: "indent",
+  datatype: "string",
   tokenType: Token.Indent
 });
 
 // Newlines only.
 parser.defineRule({
   name: "newline",
+  datatype: "string",
   tokenType: Token.Newline
 });
 
@@ -41,6 +47,7 @@ parser.defineRule({
 // Note that we normally filter this out when tokenizing.
 parser.defineRule({
   name: "inline_whitespace",
+  datatype: "string",
   tokenType: Token.InlineWhitespace
 });
 
@@ -49,6 +56,7 @@ parser.defineRule({
 parser.defineRule({
   name: "number",
   alias: ["expression", "single_expression"],
+  datatype: "number",
   tokenType: Token.Number,
   tests: [
     {
@@ -81,12 +89,88 @@ parser.defineRule({
   ]
 });
 
-// Literal `text` string, created with custom constructor for debugging.
+// `number` as a string `zero` to `ten`
+parser.defineRule({
+  name: "number",
+  alias: ["expression", "single_expression"],
+  datatype: "number",
+  pattern: /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
+  valueMap: {
+    zero: 0,
+    one: 1,
+    two: 2,
+    three: 3,
+    four: 4,
+    five: 5,
+    six: 6,
+    seven: 7,
+    eight: 8,
+    nine: 9,
+    ten: 10
+  },
+  tests: [
+    {
+      title: "correctly matches number strings",
+      tests: [
+        ["zero", 0],
+        ["one", 1],
+        ["two", 2],
+        ["three", 3],
+        ["four", 4],
+        ["five", 5],
+        ["six", 6],
+        ["seven", 7],
+        ["eight", 8],
+        ["nine", 9],
+        ["ten", 10]
+      ]
+    },
+  ]
+});
+
+// Boolean literal.
+// TODO: better name for this?  "flag"?  "truism"?
+parser.defineRule({
+  name: "boolean",
+  alias: ["expression", "single_expression"],
+  datatype: "boolean",
+  pattern: /^(true|false|yes|no|ok|cancel)$/,
+  valueMap: {
+    "true": true,
+    "false": false,
+    yes: true,
+    no: false,
+    ok: true,
+    cancel: false,
+  },
+  tests: [
+    {
+      title: "correctly matches booleans",
+      tests: [
+        ["", undefined],
+        ["true", true],
+        ["yes", true],
+        ["ok", true],
+        ["false", false],
+        ["no", false],
+        ["cancel", false],
+      ]
+    },
+    {
+      title: "doesn't match in the middle of a longer keyword",
+      tests: [["yessir", undefined], ["yes-sir", undefined], ["yes_sir", undefined]]
+    }
+  ]
+});
+
+
+// Literal `text` string.
 // You can use either single or double quotes on the outside (although double quotes are preferred).
-// Returned value has enclosing quotes.
+// Returned value has the original enclosing quotes.
 parser.defineRule({
   name: "text",
   alias: ["expression", "single_expression"],
+  datatype: "string",
   tokenType: Token.Text,
   tests: [
     {
@@ -108,6 +192,7 @@ parser.defineRule({
 parser.defineRule({
   name: "undefined",
   alias: ["expression", "single_expression"],
+  datatype: "undefined",
   syntax: "undefined",
   compile(match, scope) {
     return "undefined";
@@ -154,7 +239,7 @@ parser.defineRule({
 
 // `identifier` = variables or property name.
 // MUST start with a lower-case letter (?)
-// NOTE: We blacklist a lot of words as identifiers.
+// NOTE: We blacklist a lot of words as identifiers, see `identifier-blacklist.js`
 parser.defineRule({
   name: "identifier",
   pattern: /^[a-z][\w\-]*$/,
@@ -162,121 +247,7 @@ parser.defineRule({
   valueMap(value) {
     return (""+value).replace(/\-/g, "_")
   },
-  blacklist: {
-    // Add English prepositions to identifier blacklist.
-    //
-    // Wikipedia "Preposition":
-    //  "Prepositions...are a class of words that
-    //  express spatial or temporal relations  (in, under, towards, before)
-    //  or mark various semantic roles (of, for).
-    about: 1,
-    above: 1,
-    after: 1,
-    and: 1,
-    as: 1,
-    at: 1,
-    before: 1,
-    behind: 1,
-    below: 1,
-    beneath: 1,
-    beside: 1,
-    between: 1,
-    beyond: 1,
-    by: 1,
-    defined: 1,
-//    down: 1,
-    during: 1,
-    each: 1,
-    empty: 1,
-    exactly: 1,
-    except: 1,
-    for: 1,
-    from: 1,
-    greater: 1,
-    I: 1,
-    in: 1,
-    into: 1,
-    less: 1,
-    long: 1,
-    me: 1,
-    minus: 1,
-    more: 1,
-    near: 1,
-    not: 1,
-    of: 1,
-    off: 1,
-    on: 1,
-    onto: 1,
-    opposite: 1,
-    or: 1,
-    out: 1,
-    outside: 1,
-    over: 1,
-    short: 1,
-    since: 1,
-    than: 1,
-    the: 1,
-    then: 1,
-    through: 1,
-    thru: 1,
-    to: 1,
-    toward: 1,
-    towards: 1,
-    undefined: 1,
-    under: 1,
-    underneath: 1,
-    unique: 1,
-    until: 1,
-//    up: 1,
-    upon: 1,
-    upside: 1,
-    versus: 1,
-    vs: 1,
-    where: 1,
-    with: 1,
-    within: 1,
-    without: 1,
-
-    // Add common english verbs to identifier blacklist.
-    are: 1,
-    do: 1,
-    does: 1,
-    contains: 1,
-    has: 1,
-    have: 1,
-    is: 1,
-    repeat: 1,
-    was: 1,
-    were: 1,
-
-    // Add special control keywords to identifier blacklist.
-    else: 1,
-    if: 1,
-    otherwise: 1,
-    while: 1,
-
-    // Add boolean tokens to identifier blacklist.
-    true: 1,
-    false: 1,
-    yes: 1,
-    no: 1,
-    ok: 1,
-    cancel: 1,
-    success: 1,
-    failure: 1,
-
-    // Add number words to identifier blacklist.
-    one: 1,
-    two: 1,
-    three: 1,
-    four: 1,
-    five: 1,
-    six: 1,
-    seven: 1,
-    eight: 1,
-    nine: 1,
-    ten: 1
-  },
+  blacklist: identifierBlacklist,
   tests: [
     {
       title: "correctly matches identifiers",
@@ -362,79 +333,21 @@ parser.defineRule({
   ]
 });
 
-// Boolean literal, created with custom constructor for debugging.
-// TODO: better name for this???
+//
+//  Constants:
+//  - set up group for constants and an expression which returns constants from that group.
+//
 parser.defineRule({
-  name: "boolean",
-  alias: ["expression", "single_expression"],
-  pattern: /^(true|false|yes|no|ok|cancel)$/,
-  valueMap: {
-    "true": true,
-    "false": false,
-    yes: true,
-    no: false,
-    ok: true,
-    cancel: false,
-  },
-  tests: [
-    {
-      title: "correctly matches booleans",
-      tests: [
-        ["", undefined],
-        ["true", true],
-        ["yes", true],
-        ["ok", true],
-        ["false", false],
-        ["no", false],
-        ["cancel", false],
-      ]
-    },
-    {
-      title: "doesn't match in the middle of a longer keyword",
-      tests: [["yessir", undefined], ["yes-sir", undefined], ["yes_sir", undefined]]
-    }
-  ]
+  name: "constant",
+  argument: "constant",
+  constructor: Rule.Group,
 });
 
-
-
-
-// `number` as a string `zero` to `ten`
 parser.defineRule({
-  name: "number",
+  name: "constant_identifier",
   alias: ["expression", "single_expression"],
-  pattern: /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
-  valueMap: {
-    zero: 0,
-    one: 1,
-    two: 2,
-    three: 3,
-    four: 4,
-    five: 5,
-    six: 6,
-    seven: 7,
-    eight: 8,
-    nine: 9,
-    ten: 10
-  },
-  tests: [
-    {
-      title: "correctly matches number strings",
-      tests: [
-        ["zero", 0],
-        ["one", 1],
-        ["two", 2],
-        ["three", 3],
-        ["four", 4],
-        ["five", 5],
-        ["six", 6],
-        ["seven", 7],
-        ["eight", 8],
-        ["nine", 9],
-        ["ten", 10]
-      ]
-    },
-  ]
+  rule: "constant",
+  constructor: Rule.Subrule
 });
 
 

@@ -62,6 +62,8 @@ parser.defineRule({
     and: 1,
     or: 1,
     is: 1,
+    up: 1,        // NOTE: defined as a `constant` below
+    down: 1       // NOTE: defined as a `constant` below
   }
 });
 
@@ -269,3 +271,28 @@ parser.defineRule({
   }
 });
 
+
+/////////////////////
+//
+// Constants
+//
+
+// Add a rule to match constants as expressions.
+parser.defineRule({
+  name: "constant_identifier",
+  alias: ["expression", "single_expression"],
+  rule: "constant",
+  constructor: Rule.Subrule
+});
+
+// Add some actual constants
+parser.defineRule({
+  name: "constant",
+  literal: "up",
+  compile: () => "'up'"
+});
+parser.defineRule({
+  name: "constant",
+  literal: "down",
+  compile: () => "'down'"
+});

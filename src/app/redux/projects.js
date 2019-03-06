@@ -149,11 +149,12 @@ const factory = new ReduxFactory({
           const scope = spell.getScope(moduleId);
           scope.info("scope: ", scope);
 
-          // assign scope and parsing shorthand functions to the window
+          // assign scope and parsing shorthand functions globally
+          // for ad-hoc testing of what was just parsed.
           global.scope = scope;
-          global.parse = scope.parse;
-          global.statement = scope.statement;
-          global.exp = scope.exp;
+          global.parse = scope.parse.bind(scope);
+          global.statement = scope.statement.bind(scope);
+          global.exp = scope.exp.bind(scope);
 
           output = spell.compile(input, undefined, scope);
         } catch (e) {

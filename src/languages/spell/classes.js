@@ -1,5 +1,3 @@
-import JSON5 from "JSON5";
-
 import {
   Rule,
   Scope,
@@ -104,16 +102,16 @@ parser.defineRule({
 parser.defineRule({
   name: "type_initializer_enum",
   alias: "type_initializer",
-  syntax: "as (either|one of) {enum:identifier_list}",
-  // Return the enum for someone else to consume
+  syntax: "as (either|one of) {enumeration:identifier_list}",
+  // Return the enumeration for someone else to consume
   compile(match, scope) {
-    return { datatype: "enum", enum: match.results.enum };
+    return { datatype: "enum", enumeration: match.results.enumeration };
   },
   tests: [
     {
       tests: [
-        ["as either red or black", { datatype: "enum", enum: ["red", "black"] }],
-        ["as one of clubs, diamonds, hearts, spades", { datatype: "enum", enum: ["clubs", "diamonds", "hearts", "spades" ] }],
+        ["as either red or black", { datatype: "enum", enumeration: ["red", "black"] }],
+        ["as one of clubs, diamonds, hearts, spades", { datatype: "enum", enumeration: ["clubs", "diamonds", "hearts", "spades" ] }],
       ]
     }
   ]
@@ -149,59 +147,39 @@ parser.defineRule({
       return inflectResults(results, "type", "property");
     }
     compile(match, scope) {
-      const { Type, type, Properties, properties, property, initializer = {}} = match.results;
+      const { Type, type, Properties, property, initializer = {}} = match.results;
       const typeScope = scope.getOrAddType(Type);
-
-      let { datatype } = initializer;
+      let { datatype, enumeration } = initializer;
       const getter = [ `return this.#${property}` ];
       let setter;
 
-      const results = [];
-      if (initializer.enum) {
-        // TODO: register the enum as a type somehow?
-
-        // Class var for value of the enum
-        results.push(
-          typeScope.addClassVar({
-            name: Properties,
-            datatype: "enum",
-            initializer: JSON5.stringify(initializer.enum)
-          }).compile()
-        );
-
-        // Multi-word identifier which points to the constant,
-        //  e.g. `Card suits` or `card suits`     TODO: `its suits` ???
-        scope.addRule({
-          name: `${type}_${properties}`,
-          literals: [ [ Type, type ], [ Properties, properties ] ],
-          key: [ [Type,type], properties ],
-          compile: () => `${Type}.${Properties}`
-        });
-
-        // TODO: register enum string values as constants
-//         initializer.enum.forEach(value => {
-//           if (typeof value === "string") scope.addConstant({ key: value, value });
-//         });
-
-        setter = [ `if ($.isOneOf(${property}, ${Type}.${Properties})) this.#${property} = ${property}` ];
-        datatype = "enum";
+      const results = {
+        type: typeScope,
+        statements: [],
+        rules: []
+      };
+      if (enumeration) {
+        // Register the enumeration which will register all sorts of juicy rules and statements.
+        typeScope.addEnumeration({ name: Properties, enumeration }, results);
+        setter = [ `if ($.isOneOf(${property}, ${results.canonicalRef})) this.#${property} = ${property}` ];
+        datatype = results.datatype;
+      }
+      else if (datatype) {
+        setter = [ `if ($.isType(${property}, '${datatype}')) this.#${property} = ${property}` ];
       }
       else {
-        setter = datatype
-          ? [ `if ($.isType(${property}, '${datatype}')) this.#${property} = ${property}` ]
-          : [ `this.#${property} = ${property}` ];
-
-        if (!datatype) datatype = "undefined";
+        setter = [ `this.#${property} = ${property}` ];
+        datatype = "undefined";
       }
 
-      results.push(
+      results.statements.push(
         // Instance getter
         typeScope.addMethod({
           name: property,
           kind: "getter",
           statements: getter,
           returns: datatype,
-        }).compile(),
+        }),
         // Instance setter
         typeScope.addMethod({
           name: property,
@@ -211,10 +189,10 @@ parser.defineRule({
           ],
           statements: setter,
           returns: "undefined",     // setters don't actually return a value... :-(
-        }).compile()
+        })
       );
-
-      return results.join("\n");
+scope.info("define_property_has: ", results);
+      return results.statements.join("\n");
     }
   },
   tests: [
@@ -224,6 +202,7 @@ parser.defineRule({
         [ "cards have a direction as either up or down",
           [
             "Card.Directions = ['up','down']",
+            "defineProp(Card.prototype, 'Directions', { value: Card.Directions })",
             "defineProp(Card.prototype, 'direction', { get() { return this.#direction } })",
             "defineProp(Card.prototype, 'direction', { set(direction) { if ($.isOneOf(direction, Card.Directions)) this.#direction = direction } })",
           ].join("\n")
@@ -344,34 +323,39 @@ parser.defineRule({
   constructor: class quoted_property_name extends Rule.Sequence {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
-      // forget it if first word is not "is"
-      if (match && match.results.words[0] !== "is") return undefined;
+      // Check the results -- if first word of `text` is not `is`, results will be undefined
+      // Meaning no match.
+      if (match && !match.results) return undefined;
       return match;
     }
     getResults(match, scope) {
       const results = super.getResults(match, scope);
-      results.words = (""+JSON.parse(results.text)).split(" ");
-      results.methodName = results.words.join("_");
+      // split the text string up into words
+      const words = (""+JSON.parse(results.text)).split(" ");
+      // if the first word is not "is" then forget it
+      if (words[0] !== "is") return;
+      results.property = words.join("_");
+      results.expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ");
       return inflectResults(results, "type");
     }
     compile(match, scope) {
-      const { TypeName, typeName, methodName, expression, words } = match.results;
+      const { TypeName, typeName, property, expression, expressionSuffix } = match.results;
 
-      // Create an expression suffix to match the quoted statement.
-      scope.addRule({
-        name: methodName,
-        alias: "expression_suffix",
-        precedence: 10,
-        literals: words,
-//TODO: `is not? a...`
-        applyOperator: ({ lhs }) => `${lhs}?.${methodName}?.(${lhs})`
+      // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
+      scope.addExpressionSuffixRule({
+        name: property,
+        syntax: expressionSuffix,
+        applyOperator({ lhs, operator }) {
+          const bang = (operator.includes("not") ? "!" : "");
+          return `${bang}${lhs}?.${property}`
+        }
       });
 
       // Create an instance getter
       return scope
         .getOrAddType(TypeName)
         .addMethod({
-          name: methodName,
+          name: property,
           kind: "getter",
           datatype: "boolean",
           statements: [`return ${expression}`]

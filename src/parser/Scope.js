@@ -4,10 +4,16 @@
 import assert from "assert";
 import keyBy from "lodash/keyBy";
 import flatten from "lodash/flatten";
+import lowerFirst from "lodash/lowerFirst"
+import upperFirst from "lodash/upperFirst"
+import uniq from "lodash/uniq"
+import JSON5 from "JSON5";
+
 
 import {
   Parser,
   ParseError,
+  Rule,
 
   memoize,
   clearMemoized
@@ -33,7 +39,7 @@ export class Scope {
 
   // Add a variable to this scope.
   @clearMemoized("_vars")
-  addVar(variable) { return this.addItem(variable, "vars", Variable) }
+  addVar(variable) { return this._addItem(variable, "vars", Variable) }
 
   // Return definition of `var` in this block.
   getLocalVar(name) {
@@ -61,7 +67,7 @@ export class Scope {
 
   // Add a method to this scope.
   @clearMemoized("_methods")
-  addMethod(method) { return this.addItem(method, "methods", Method) }
+  addMethod(method) { return this._addItem(method, "methods", Method) }
 
   // Return definition of `method` anywhere in our parent chain.
   getMethod(name) {
@@ -78,7 +84,7 @@ export class Scope {
 
   // Add a type to this scope.
   @clearMemoized("_types")
-  addType(type) { return this.addItem(type, "types", Type) }
+  addType(type) { return this._addItem(type, "types", Type) }
 
   // Return definition of `type` anywhere in our parent chain.
   getType(name) {
@@ -89,7 +95,7 @@ export class Scope {
   getOrAddType(name) {
     let type = this.getType(name);
     if (!type) {
-      type = new Type(name);
+      type = new Type({ name, scope: this });
       this.addType(type);
     }
     return type;
@@ -113,6 +119,18 @@ export class Scope {
   /////////////////
   // Parser
 
+  // Default to our parent `scope`'s `parser` if one was not explicitly set up.
+  get parser() { return this._parser || this.scope?.parser }
+  set parser(parser) { this._parser = parser }
+
+  // Syntactic sugar
+  get rules() { return this.parser?.rules }
+
+  // Parse using this scope in various flavors.
+  parse(text) { return this.parser.parse(text, undefined, this) };
+  statement(text) { return this.parser.parse(text, "statement", this) };
+  exp(text) { return this.parser.parse(text, "expression", this) };
+
   // Return a named rule from our parser.
   // Throws if not found.
   getRuleOrDie(ruleName) {
@@ -121,33 +139,122 @@ export class Scope {
     return rule;
   }
 
+  // Add a generic rule.
+  // `ruleProps` can be properties or an actual rule instance.
+  // Consider using (or making) a more-specific setter like those below
+  //  to set up `alias`, `precedence`, etc.
   addRule(ruleProps) {
     return this.parser.defineRule(ruleProps);
   }
 
+  // Add a multi-word identifier.
+  // Single word identifiers dont' need special treatment. (???)
+  addIdentifierRule(props) {
+    this._addRuleAlias(props, "identifier");
+    props.precedence = 10;       // TODO
+    return this.addRule(props);
+  }
+
+  // Add an expression suffix rule, e.g. "<thing> is not? a face card".
+  addExpressionSuffixRule(props) {
+    this._addRuleAlias(props, "expression_suffix");
+    props.precedence = 10;       // TODO
+    return this.addRule(props);
+  }
+
+  // Add a statement rule.
   addStatementRule(props) {
-    this.parser.debug("TODO: scope.addStatementRule()", props);
-    const { name, syntax, compile } = props;
-    try {
-      const rule = this.parser.defineRule({ name, alias: "statement", compile, syntax });
-      this.parser.debug("defined rule: ", rule);
+    this._addRuleAlias(props, "statement");
+    return this.addRule(props);
+  }
+
+  // Add an enumerated type rule.
+  // `props.name` is the name of the enumeration, and must be upper-case.
+  // `props.enumeration` is the array of enumerated values.
+  // Automatically adds all strings in the enumeration as "constants".
+  // Returns `{ datatype, statements }` for working with the enumeration.
+  addEnumeration(props, results = { statements: [], rules: [] }) {
+    this.assert(Array.isArray(props.enumeration), "addEnumeration() must be called with an 'enumeration'");
+    this.assert(props.name && props.name === upperFirst(props.name),
+      "addEnumeration() must be called with an upper-case 'name'");
+
+    const { enumeration, name } = props;
+    results.name = name;
+    results.canonicalRef = `${this.name}.${name}`;
+    results.enumeration = enumeration;
+
+    // Figure out enumeration datatype(s) and add constants for all string values
+    results.datatype = uniq(enumeration.map(
+      value => {
+        if (typeof value === "string")
+          results.rules.push(this.addConstantRule(value));
+        return typeof value;
+      })
+    );
+    if (results.datatype.length === 1) results.datatype = results.datatype[0];
+    results.enumType = { type: "enum", datatype: results.datatype, enumeration };
+
+    // Add statements to declare the value
+    const initializer = JSON5.stringify(enumeration);
+    let literals;
+    if (this instanceof Type) {
+      literals = [ [ this.name, this.instanceName], [name, lowerFirst(name) ] ];
+      results.statements.push(
+        // Add the full list as a class var.
+        this.addClassVar({...props, initializer, datatype: results.enumType }),
+        // Add instance var which points to the class var.
+        this.addVar({...props, initializer: results.canonicalRef, datatype: results.enumType })
+      );
     }
-    catch(e) { console.error(e); }
+    else {
+      literals = [ this.name, [name, lowerFirst(name) ] ];
+      results.statements.push(
+        this.addVar({...props, initializer, datatype: results.enumType })
+      );
+    }
+
+    // Add multi-word identifier rule to get the enumeration back, e.g. `card suits` or `Card Suits`.
+    results.rules.push(
+      this.addIdentifierRule({
+        name: `${this.name}_${name}`,
+        literals,
+        datatype: results.enumType,
+        compile: () => results.canonicalRef
+      })
+    );
+    return results;
+  }
+
+  // Add a single-word constant identifier, passing just the constant name.
+  // We assume that the constant value is the quoted name.
+  addConstantRule(name) {
+    return this.addRule({
+      name: "constant",
+      datatype: "string",
+      literal: name,
+      precedence: 1,
+      compile: () => `'${name}'`
+    });
+  }
+
+  // Add an alias to rule `props`.
+  // NOTE: modifies the props!
+  _addRuleAlias(props, alias) {
+    if (props.name === alias) return props;
+    if (!props.alias) props.alias = [];
+    else if (typeof props.alias === "string") props.alias = [props.alias];
+    if (!props.alias.includes(alias)) props.alias.push(alias);
+    return props;
   }
 
   // Console shims for `addDebugMethods`
-  get debug() { return this.parser?.debug || Function.prototype }
-  get info() { return this.parser?.info || Function.prototype }
-  get warn() { return this.parser?.warn || Function.prototype }
-  get error() { return this.parser?.error || Function.prototype }
-  get assert() { return this.parser?.assert || Function.prototype }
-  get group() { return this.parser?.group || Function.prototype }
-  get groupEnd() { return this.parser?.groupEnd || Function.prototype }
-
-  // Parse using this scope in various flavors.
-  parse = (...args) => { return this.parser.parse(tokens, undefined, this) };
-  statement = (tokens) => { return this.parser.parse(tokens, "statement", this) };
-  exp = (tokens) => { return this.parser.parse(tokens, "expression", this) };
+  get debug() { return this.parser?.debug || function noop(){} }
+  get info() { return this.parser?.info || function noop(){} }
+  get warn() { return this.parser?.warn || function noop(){} }
+  get error() { return this.parser?.error || function noop(){} }
+  get assert() { return this.parser?.assert || function noop(){} }
+  get group() { return this.parser?.group || function noop(){} }
+  get groupEnd() { return this.parser?.groupEnd || function noop(){} }
 
   /////////////////
   // Utility
@@ -156,7 +263,7 @@ export class Scope {
   // If you pass a vanilla Object, we'll do use `new Constructor(item)`.
   // You'll receive the item back.
   // NOTE: this modifies the item!  Create a clone before calling this if you care!
-  addItem(item, listProp, constructor, customizer) {
+  _addItem(item, listProp, constructor, customizer) {
     // Coerce to an instance of constructor
     if (constructor && item.constructor === Object) item = new constructor(item);
 
@@ -204,12 +311,16 @@ export class Variable {
       if (this.kind === "static")
         return `${this.scope.name}.${this.name} = ${this.initializer}`;
       // Add instance props with defineProp
-      return `defineProp(${this.scope.name}.prototype, '${this.name}', { value: ${initializer} })`;
+      return `defineProp(${this.scope.name}.prototype, '${this.name}', { value: ${this.initializer} })`;
     }
 
     // Return as a normal var declaration
     // TODO: note if var has been used before, etc.
     return `var ${name} = ${initializer}`
+  }
+
+  toString() {
+    return this.compile();
   }
 }
 
@@ -224,7 +335,7 @@ export class Method extends Scope {
     super(props);
     // If we have args, convert to a map
     if (this.args)
-      this._args = keyBy(this.args, "name");  // convert to map
+      Object.defineProperty(this, "_args", { value: keyBy(this.args, "name") });
   }
 
   // When looking up local vars in the top-level method scope, include our args.
@@ -261,6 +372,10 @@ export class Method extends Scope {
     const name = this.name ? ` ${this.name}`: "";
     return `function${name}(${args}) ${statements}`;
   }
+
+  toString() {
+    return this.compile();
+  }
 }
 
 
@@ -275,10 +390,24 @@ export class Type extends Scope {
   constructor(props) {
     // If you just pass a string we'll assume it's the type name.
     if (typeof props === "string") props = { name: props };
-
-    // Assign properties in the order specified.
     super(props);
+
+    this.assert(props.name && props.name === upperFirst(props.name),
+      `Types must be initialized with an upper-case name, e.g. 'Card'.  Received '${props.name}'`);
   }
+
+  // Syntactic sugar for the type name.
+  // e.g. if the type name is `Card`, the instanceName would be `card`.
+  get instanceName() {
+    return lowerFirst(this.name);
+  }
+
+  // Return the generic name for an instance of this type.
+  // e.g. if the type name is `Card`, the instanceName would be `card`.
+  get instanceName() {
+    return lowerFirst(this.name);
+  }
+
 
   // Compile the type.
   // NOTE: this currently ignores methods/properties, we'll want to fix that...
@@ -293,7 +422,7 @@ export class Type extends Scope {
   // Add a classVar to this scope.
   @clearMemoized("_classVars")
   addClassVar(variable) {
-    return this.addItem(variable, "classVars", Variable, (variable) => variable.kind = "static")
+    return this._addItem(variable, "classVars", Variable, (variable) => variable.kind = "static")
   }
 
   @memoize
@@ -302,7 +431,7 @@ export class Type extends Scope {
   // Add a classMethod to this scope.
   @clearMemoized("_classMethods")
   addClassMethod(method) {
-    return this.addItem(method, "classMethods", Method, (method) => method.kind = "static")
+    return this._addItem(method, "classMethods", Method, (method) => method.kind = "static")
   }
 }
 
