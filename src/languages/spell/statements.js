@@ -3,6 +3,7 @@
 //
 
 import {
+  BlockStatement,
   Match,
   Rule,
   SpellParser,
@@ -141,7 +142,7 @@ parser.defineRule({
 
           // the statement is a BlockStatement and the next item is a Block
           // parse it and give it to the statement.
-          if (statement.rule instanceof SpellParser.BlockStatement) {
+          if (statement.rule instanceof BlockStatement) {
             const next = block.contents[i+1];
             if (next instanceof Token.Block) {
               const nestedBlock = this.parseBlock(scope, next);
@@ -221,69 +222,3 @@ parser.defineRule({
   }
 });
 
-
-// A `BlockStatement` (e.g. an `if` or `repeat`):
-//  - is assumed to have an initial partial `statement`
-//  - MAY have an inline `statement` (on the same line, possibly after a `:`)
-//  - MAY have contents as an embedded `block`
-// Note that it's considered an error to have BOTH an inline statement AND a nested block.
-//
-//  e.g. a `BlockStatement` with syntax `if {expression} then {statement}?` will attemt to:
-//  - match the optional `statement` as an inline-statement (as `results.statement`)
-//  - match an INDENTED block starting on the next line (as `result.block`)
-//
-//  For your convenience in `compile()`, you can just look at `results.statements`
-//  which will be one of the following (whichever comes first):
-//    - the block and its statements, enclosed in curly braces and indented, or
-//    - the formatted `statement`, enclosed in curly brackets,
-//    - `{}` if neither statement or block was matched.
-//
-SpellParser.BlockStatement = class block_statement extends Rule.Sequence {
-  // Add `statements` to the results.
-  getResults(match, scope) {
-    const results = super.getResults(match, scope);
-    if (!results) return undefined; // TODO???
-
-    // If we got a block, use that for our `statements`
-    const { block } = match;
-    if (block) {
-      results.statements = block.compile(block);
-    }
-    // otherwise use the `statement`, if it's empty this will return the empty string.
-    else {
-      results.statements = this.encloseStatement(results.statement);
-    }
-    return results;
-  }
-
-  encloseStatement(statement, forceWrap) {
-    if (!statement) return "{}";
-    if (!forceWrap && !statement.includes("\n") && statement.length < 40) {
-      return `{ ${statement.trim()} }`;
-    }
-    if (statement[0] !== "\t") statement = `\t${statement}`;
-    return `{\n${statement}\n}`;
-  }
-};
-
-// Parser error representation in parser output.
-SpellParser.StatementParseError = class parse_error extends Rule {
-  get message() {
-    if (this.parsed) {
-      return (
-        "CANT PARSE ENTIRE STATEMENT\n" +
-        "PARSED      : `" +
-        this.parsed +
-        "`\n" +
-        "CAN'T PARSE : `" +
-        this.unparsed +
-        "`"
-      );
-    }
-    return "CAN'T PARSE STATEMENT: `" + this.unparsed + "`";
-  }
-
-  compile(match, scope) {
-    return "// " + match.message.split("\n").join("\n// ");
-  }
-};

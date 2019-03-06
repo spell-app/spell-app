@@ -5,6 +5,7 @@
 // TODO: confirm identifiers are plural in some of the below?
 
 import {
+  BlockStatement,
   Rule,
   SpellParser,
 } from "./all.js";
@@ -734,7 +735,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "for each? {item:identifier} (?:(and|,) {position:identifier})? in {list:expression} :? {statement}?",
   testRule: "for",
-  constructor: SpellParser.BlockStatement,
+  constructor: BlockStatement,
   compile(match, scope) {
     const { item, position, list, statements } = match.results;
     const itemVar = singularize(item);

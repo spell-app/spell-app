@@ -3,6 +3,7 @@
 //
 
 import {
+  BlockStatement,
   Rule,
   SpellParser,
 } from "./all.js";
@@ -23,7 +24,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "if {condition:expression} (then|:)? {statement}?",
   testRule: "if",
-  constructor: SpellParser.BlockStatement,
+  constructor: BlockStatement,
   compile(match, scope) {
     const { condition, statements } = match.results;
     return `if ${parenthesizeCondition(condition)} ${statements}`;
@@ -88,7 +89,7 @@ parser.defineRule({
   syntax: "(else|otherwise) if {condition:expression} (then|:)? {statement}?",
   testRule: "(else|otherwise)",
   precedence: 1,
-  constructor: SpellParser.BlockStatement,
+  constructor: BlockStatement,
   compile(match, scope) {
     const { condition, statements } = match.results;
     return `else if ${parenthesizeCondition(condition)} ${statements}`;
@@ -150,7 +151,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "(else|otherwise) :? {statement}?",
   testRule: "(else|otherwise)",
-  constructor: SpellParser.BlockStatement,
+  constructor: BlockStatement,
   compile(match, scope) {
     const { statements } = match.results;
     return `else ${statements}`;

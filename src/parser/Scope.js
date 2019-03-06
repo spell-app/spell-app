@@ -127,7 +127,7 @@ export class Scope {
   get rules() { return this.parser?.rules }
 
   // Parse using this scope in various flavors.
-  parse(text) { return this.parser.parse(text, undefined, this) };
+  parse(text, ruleName) { return this.parser.parse(text, ruleName, this) };
   statement(text) { return this.parser.parse(text, "statement", this) };
   exp(text) { return this.parser.parse(text, "expression", this) };
 

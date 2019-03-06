@@ -6,6 +6,7 @@
 // TODO: mixins / traits / composed classes / annotations
 
 import {
+  BlockStatement,
   Rule,
   SpellParser,
   Token,
@@ -88,7 +89,7 @@ parser.defineRule({
 parser.defineRule({
   name: "args",
   syntax: "with [args:{identifier},]",
-  constructor: SpellParser.BlockStatement,
+  constructor: BlockStatement,
   // Returns an array of argument values
   compile(match, scope) {
     const { args } = match.results;
@@ -253,7 +254,7 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "get {name:identifier} \\: return? {expression}?",
   testRule: "get",
-  constructor: SpellParser.BlockStatement,
+  constructor: BlockStatement,
   compile(match, scope) {
     // NOTE: we need to parse `expression` and `block` manually (unlike other BlockStatements)
     let { name, expression, statements } = match.results;
@@ -297,7 +298,7 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "set {name:identifier} {args}? (\\:)? {statement}?",
   testRule: "set",
-  constructor: SpellParser.BlockStatement,
+  constructor: BlockStatement,
   compile(match, scope) {
     // default args to the setter name
     let { name, args = name, statements } = match.results;
@@ -363,7 +364,7 @@ parser.defineRule({
 //   alias: ["statement"],
 //   syntax: "(operator:to|on) {name:identifier} {args}? (\\:)? {statement}?",
 //   testRule: "(to|on)",
-//   constructor: SpellParser.BlockStatement,
+//   constructor: BlockStatement,
 //   compile(match, scope) {
 //     let { name, args = "", statements } = match.results;
 //     return `${name}(${args}) ${statements}`;
@@ -402,7 +403,7 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "action (keywords:{word}|{type})+ (\\:)? {statement}?",
   testRule: "action",
-  constructor: SpellParser.BlockStatement,
+  constructor: BlockStatement,
   compile(match, scope) {
     const { results } = match;
 

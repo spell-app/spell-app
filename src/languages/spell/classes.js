@@ -1,4 +1,5 @@
 import {
+  BlockStatement,
   Rule,
   Scope,
   SpellParser,
@@ -226,7 +227,7 @@ parser.defineRule({
   name: "to_do_something",
   alias: ["statement"],
   syntax: "to (keywords:{word}|{type})+ :? {statement}?",
-  constructor: class define_type extends SpellParser.BlockStatement {
+  constructor: class define_type extends BlockStatement {
     getResults(match, scope) {
       const results = super.getResults(match, scope);
       return parseMethodKeywords(results);
