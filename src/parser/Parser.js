@@ -111,7 +111,7 @@ export class Parser {
   compile(text, ruleName = this.defaultRule, scope = this.getScope()) {
     let match = this.parse(text, ruleName, scope);
     if (!match) {
-      throw new ParseError(`parser.parse('${ruleName}', '${text}'): can't parse text`);
+      throw new ParseError(`parser.compile('${text}'): can't parse text`);
     }
     return match.compile();
   }
@@ -319,8 +319,8 @@ export class Parser {
   // Pass `moduleName` to restrict to just those defined by a module.
   // Runs the full test once to warm up the rules
   //  then runs 10 more times to get an average time once we're warmed up.
-  speedTest(moduleName) {
-    console.group(`Speed test for module ${moduleName}`);
+  speedTest(moduleName = "") {
+    console.group(`Speed test for ${moduleName ? "module "+moduleName : "all modules"}`);
     // Run the test once first to warm up the rules.
     const results = this.testRules(moduleName, false);
     console.debug(`Initial run`);
@@ -329,27 +329,24 @@ export class Parser {
     console.debug(`   failed: ${results.fail} test(s)`);
 
     // Run 10 separate times to average time after warmup.
-    const runs = [
-      this.testRules(moduleName, false),
-      this.testRules(moduleName, false),
-      this.testRules(moduleName, false),
-      this.testRules(moduleName, false),
-      this.testRules(moduleName, false),
-      this.testRules(moduleName, false),
-      this.testRules(moduleName, false),
-      this.testRules(moduleName, false),
-      this.testRules(moduleName, false),
-      this.testRules(moduleName, false),
-    ];
     console.debug(`Subsequent runs:`);
-    runs.forEach((run, index) => console.debug(`   run #${index}: ${run.time} msec`));
-    const times = runs.map(run => run.time);
-    const min = Math.min(...times);
-    const average = sum(times) / runs.length;
-    const max = Math.max(...times);
-    console.debug(`      min: ${min} msec`);
-    console.debug(`      max: ${max} msec`);
-    console.debug(`  average: ${average} msec`);
+    const runCount = 20;
+    const times = [];
+    for (var index = 1; index <= runCount; index++) {
+      const runTime = this.testRules(moduleName, false).time;
+      console.debug(`   run #${index}: ${runTime} msec`);
+      times.push(runTime);
+    }
+
+    results.average = sum(times) / runCount;
+    results.min = Math.min(...times);
+    results.max = Math.max(...times);
+    results.initialTime = results.time;
+    delete results.time;
+
+    console.debug(`      min: ${results.min} msec`);
+    console.debug(`      max: ${results.max} msec`);
+    console.debug(`  average: ${results.average} msec`);
     console.groupEnd();
 
     return results;
@@ -362,9 +359,12 @@ export class Parser {
   testRules(moduleName, debug = true) {
     const t0 = Date.now();
 
-    // temporarily clear outputSource flag
-    const outputSource = this.outputSource;
-    this.outputSource = false;
+    // Create a new scope for the run, so we don't muck with the main parser.
+    // Note that we should really create a new one for each `compile()` below,
+    //  but that would slow down the test significantly.
+    const scope = this.getScope("test");
+    // Clear outputSource flag so we don't get source output comments in the test results.
+    scope.parser.outputSource = false;
 
     const results = {
       pass: 0,      // number of tests that passed
@@ -394,7 +394,7 @@ export class Parser {
             let { input, output, title = input } = test;
             let result;
             try {
-              result = this.compile(input, compileAs);
+              result = this.compile(input, compileAs, scope);
             }
             catch (e) {
               result = e;
@@ -412,7 +412,7 @@ export class Parser {
                 );
               }
               results.fail++;
-              results.failed.push({ ruleName, input });
+              results.failed.push({ ruleName, input, expected: output, result });
             }
           });
           if (debug && compileAs !== ruleName) console.groupEnd();
@@ -421,9 +421,6 @@ export class Parser {
       });
     }
     if (debug) console.groupEnd();
-
-    // reset outputSource flag
-    this.outputSource = outputSource;
 
     results.time = Date.now() - t0;
     return results;
