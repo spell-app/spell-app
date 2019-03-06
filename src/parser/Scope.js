@@ -1,6 +1,7 @@
 //
 //  Intermediate types -- simplified AST
 //
+import assert from "assert";
 import keyBy from "lodash/keyBy";
 import flatten from "lodash/flatten";
 
@@ -102,8 +103,7 @@ export class Scope {
     this.statements = [...this.statements, ...flatten(statements)];
   }
 
-  compileStatements() {
-    let { statements } = this;
+  compileStatements(statements = this.statements) {
     if (!statements || statements.length === 0) return "{}";
     if (statements.length === 1) return `{ ${statements} }`;
     return `{\n  ${this.statements.join("\n  ")}\n}`;
@@ -140,6 +140,7 @@ export class Scope {
   get info() { return this.parser?.info || Function.prototype }
   get warn() { return this.parser?.warn || Function.prototype }
   get error() { return this.parser?.error || Function.prototype }
+  get assert() { return this.parser?.assert || Function.prototype }
   get group() { return this.parser?.group || Function.prototype }
   get groupEnd() { return this.parser?.groupEnd || Function.prototype }
 
@@ -191,9 +192,24 @@ export class Module extends Scope {}
 //  - initializer
 export class Variable {
   constructor(props) {
-    this.assert(props.name, "Variables must be created with a 'name'");
+    assert(props.name, "Variables must be created with a 'name'");
     // Assign all properties in the order provided.
     Object.assign(this, props);
+  }
+
+  compile() {
+    // If we're attached to a Type,
+    if (this.scope instanceof Type) {
+      // Add class props directly
+      if (this.kind === "static")
+        return `${this.scope.name}.${this.name} = ${this.initializer}`;
+      // Add instance props with defineProp
+      return `defineProp(${this.scope.name}.prototype, '${this.name}', { value: ${initializer} })`;
+    }
+
+    // Return as a normal var declaration
+    // TODO: note if var has been used before, etc.
+    return `var ${name} = ${initializer}`
   }
 }
 
@@ -229,14 +245,16 @@ export class Method extends Scope {
     // If we're attached to a Type,
     if (this.scope instanceof Type) {
       // Add class props directly
-      if (this.kind === "static") {
+      if (this.kind === "static")
         return `${this.scope.name}.${this.name} = function(${args}) ${statements}`;
-      }
-      if (this.kind === "getter") {
-        // Add instance props to the prototype using `defineProperty()`
+
+      if (this.kind === "getter")
         return `defineProp(${this.scope.name}.prototype, '${this.name}', { get() ${statements} })`;
-      }
-      return `defineProp(${this.scope.name}.prototype, '${this.name}', { value: function(${args}) ${statements} })`;
+
+      if (this.kind === "setter")
+        return `defineProp(${this.scope.name}.prototype, '${this.name}', { set(${args}) ${statements} })`;
+
+      return `defineProp(${this.scope.name}.prototype, '${this.name}', { value(${args}) ${statements} })`;
     }
 
     // Return as a normal function

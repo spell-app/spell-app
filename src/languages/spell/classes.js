@@ -149,60 +149,72 @@ parser.defineRule({
       return inflectResults(results, "type", "property");
     }
     compile(match, scope) {
-      const { Type, Properties, property, initializer } = match.results;
-      if (initializer?.enum) {
-        return [
-          `defineProp(${Type}, '${Properties}', { value: ${JSON5.stringify(initializer.enum)} })`,
-          `defineProp(${Type}.prototype, '${Properties}', { value: ${Type}.${Properties} })`,
-          `defineProp(${Type}.prototype, '${property}', {`,
-          `  get() { return this.#${property} }`,
-          `  set(${property}) { if ($.isOneOf(${property}, ${Type}.${Properties})) this.#${property} = ${property} }`,
-          `})`
-        ].join("\n");
-      }
-      else {
-        const datatype = initializer?.datatype;
-        if (datatype) {
-          return [
-            `defineProp(${Type}.prototype, '${property}', {`,
-            `  get() { return this.#${property} }`,
-            `  set(${property}) { if ($.isType(${property}, '${datatype}')) this.#${property} = ${property} }`,
-            `})`
-          ].join("\n");
-        }
-      }
-    }
-    XupdateScope(match, scope) {
-      const { Type, type, property, properties, Properties, initializer } = match.results;
+      const { Type, type, Properties, properties, property, initializer = {}} = match.results;
+      const typeScope = scope.getOrAddType(Type);
 
-      if (initializer?.enum) {
-        const enumProps = {
-          type,
-          ...initializer,
-          compile: () => `${Type}.${Properties}`
-        };
-        // Add normal instance property, e.g. javascript `card.suit`
-        scope.addInstanceProperty({ key: property }, enumProps);
+      let { datatype } = initializer;
+      const getter = [ `return this.#${property}` ];
+      let setter;
 
-        // Add enum as a property to the class and instance, e.g javascript `Card.suits` and `card.suits`
-        scope.addProperty({ key: properties }, enumProps);
-        scope.addInstanceProperty({ key: properties}, enumProps);
+      const results = [];
+      if (initializer.enum) {
+        // TODO: register the enum as a type somehow?
 
-        // Add identifier which points back to the class enum, e.g. spell `Card suits` or `card suits`
-        scope.addIdentifier({
+        // Class var for value of the enum
+        results.push(
+          typeScope.addClassVar({
+            name: Properties,
+            datatype: "enum",
+            initializer: JSON5.stringify(initializer.enum)
+          }).compile()
+        );
+
+        // Multi-word identifier which points to the constant,
+        //  e.g. `Card suits` or `card suits`     TODO: `its suits` ???
+        scope.addRule({
+          name: `${type}_${properties}`,
+          literals: [ [ Type, type ], [ Properties, properties ] ],
           key: [ [Type,type], properties ],
-          compile: enumProps.compile
+          compile: () => `${Type}.${Properties}`
         });
 
-        // Add any string enums as constants
-        initializer.enum.forEach(value => {
-          if (typeof value === "string") scope.addConstant({ key: value, value });
-        });
+        // TODO: register enum string values as constants
+//         initializer.enum.forEach(value => {
+//           if (typeof value === "string") scope.addConstant({ key: value, value });
+//         });
+
+        setter = [ `if ($.isOneOf(${property}, ${Type}.${Properties})) this.#${property} = ${property}` ];
+        datatype = "enum";
       }
       else {
-        // Add normal instance property with datatype if provided, e.g. javascript `player.name`
-        scope.addInstanceProperty({ type, key: property, ...initializer });
+        setter = datatype
+          ? [ `if ($.isType(${property}, '${datatype}')) this.#${property} = ${property}` ]
+          : [ `this.#${property} = ${property}` ];
+
+        if (!datatype) datatype = "undefined";
       }
+
+      results.push(
+        // Instance getter
+        typeScope.addMethod({
+          name: property,
+          kind: "getter",
+          statements: getter,
+          returns: datatype,
+        }).compile(),
+        // Instance setter
+        typeScope.addMethod({
+          name: property,
+          kind: "setter",
+          args: [
+            new Scope.Variable({ name: property, datatype })
+          ],
+          statements: setter,
+          returns: "undefined",     // setters don't actually return a value... :-(
+        }).compile()
+      );
+
+      return results.join("\n");
     }
   },
   tests: [
@@ -211,20 +223,15 @@ parser.defineRule({
       tests: [
         [ "cards have a direction as either up or down",
           [
-            "defineProp(Card, 'Directions', { value: ['up','down'] })",
-            "defineProp(Card.prototype, 'Directions', { value: Card.Directions })",
-            "defineProp(Card.prototype, 'direction', {",
-            "  get() { return this.#direction }",
-            "  set(direction) { if ($.isOneOf(direction, Card.Directions)) this.#direction = direction }",
-            "})"
+            "Card.Directions = ['up','down']",
+            "defineProp(Card.prototype, 'direction', { get() { return this.#direction } })",
+            "defineProp(Card.prototype, 'direction', { set(direction) { if ($.isOneOf(direction, Card.Directions)) this.#direction = direction } })",
           ].join("\n")
         ],
         [ "a player has a name as text",
           [
-            "defineProp(Player.prototype, 'name', {",
-            "  get() { return this.#name }",
-            "  set(name) { if ($.isType(name, 'text')) this.#name = name }",
-            "})"
+            "defineProp(Player.prototype, 'name', { get() { return this.#name } })",
+            "defineProp(Player.prototype, 'name', { set(name) { if ($.isType(name, 'text')) this.#name = name } })",
           ].join("\n")
         ],
       ]
@@ -253,7 +260,7 @@ parser.defineRule({
         return [
           // class method calls the instance method
           `defineProp(${Type}, '${method}', {`,
-          `  value: function(${args.join(", ")}) ${statements}`,
+          `  value(${args.join(", ")}) ${statements}`,
           `})`
         ].join("\n")
          .replace(/\bit\b/g, args[0]);    // HACK: replace "it" with the first argument... :-(
@@ -312,7 +319,7 @@ parser.defineRule({
           ].join("\n"),
           [
             "defineProp(Card, 'move_card_to_pile', {",
-            "  value: function(card, pile) {",
+            "  value(card, pile) {",
             "\tspell.remove(card?.pile, card)",
             "\tspell.append(pile, card)",
             "\tcard?.pile = pile",
@@ -356,15 +363,17 @@ parser.defineRule({
         alias: "expression_suffix",
         precedence: 10,
         literals: words,
+//TODO: `is not? a...`
         applyOperator: ({ lhs }) => `${lhs}?.${methodName}?.(${lhs})`
       });
 
-      // Create the class method
+      // Create an instance getter
       return scope
         .getOrAddType(TypeName)
         .addMethod({
           name: methodName,
           kind: "getter",
+          datatype: "boolean",
           statements: [`return ${expression}`]
         })
         .compile();
@@ -417,6 +426,7 @@ parser.defineRule({
         .addMethod({
           name: property,
           kind: "getter",
+//TODO:   datatype: "...",
           statements: otherValue
             ? [`return !!${condition} ? ${value} : ${otherValue}`]
             : [`if (${condition}) return ${value}`]
@@ -498,7 +508,7 @@ parser.defineRule({
       const { article, Type, property, expression } = match.results;
       return [
         `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
-        `  value: function(${property}){ return ${expression} }`,
+        `  value(${property}){ return ${expression} }`,
         `})`,
       ].join("\n")
     }
@@ -513,7 +523,7 @@ parser.defineRule({
         ["a card is a {suit} if its suit is the suit",
           [
             "defineProp(Card.prototype, 'is_a_suit', {",
-            "  value: function(suit){ return (this.suit == suit) }",
+            "  value(suit){ return (this.suit == suit) }",
             "})",
           ].join("\n")
         ],
@@ -541,7 +551,7 @@ parser.defineRule({
       const { article, Type, property, expression } = match.results;
       return [
         `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
-        `  value: function(${property}){ return ${expression} }`,
+        `  value(${property}){ return ${expression} }`,
         `})`,
       ].join("\n")
     }
@@ -553,7 +563,7 @@ parser.defineRule({
         ["for each card suit: the card is a {suit} if its suit is the suit",
           [
             "defineProp(Card.prototype, 'is_a_suit', {",
-            "  value: function(suit){ return (this.suit == suit) }",
+            "  value(suit){ return (this.suit == suit) }",
             "})",
           ].join("\n")
         ],
