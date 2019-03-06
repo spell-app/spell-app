@@ -1,14 +1,2 @@
-a card "is face up" if its direction is up
-a card "is face down" if its direction is down
-
-to turn a card face up: set the direction of the card to up
-to turn a card face down: set the direction of the card to down
-
-to flip a card over:
-	if its direction is up then turn it face down
-	otherwise turn it face up
-
-to move a card to a pile
-	remove the card from its pile
-	add the card to the pile
-	set the pile of the card to the pile
+create type foo as a bar
+create a foo with a = 1, b = yes

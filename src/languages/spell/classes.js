@@ -2,8 +2,10 @@ import JSON5 from "JSON5";
 
 import {
   Rule,
+  Scope,
   SpellParser,
   Token,
+
   lowerFirst,
   upperFirst,
   pluralize,
@@ -18,7 +20,7 @@ export default parser;
 
 parser.defineRule({
   name: "create_type",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "create type {type:identifier} (?:as (a|an) {superType:identifier})?",
   constructor: class create_type extends Rule.Sequence {
     getResults(match, scope) {
@@ -26,15 +28,10 @@ parser.defineRule({
       return inflectResults(results, "type", "superType");
     }
     compile(match, scope) {
-      let { Type, SuperType } = match.results;
-      if (!SuperType)
-        return `export class ${Type} {}`;
-      return `export class ${Type} extends ${SuperType} {}`;
-    }
-    XupdateScope(match, scope) {
-      const { type, superType } = match.results;
-      scope.addType({ type, superType })
-      if (superType) scope.addType({ type: superType });
+      const { results: { TypeName, SuperTypeName } } = match;
+      return scope.addType(
+        new Scope.Type({ name: TypeName, superType: SuperTypeName })
+      ).compile();
     }
   },
   tests: [
@@ -140,7 +137,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "define_property_has",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "{?:type_has_prefix} (a|an) {property:identifier} {initializer:type_initializer}?",
   testRule: "…(has|have)",
   constructor: class define_type extends Rule.Sequence {
@@ -238,7 +235,7 @@ parser.defineRule({
 // TODO: arguments
 parser.defineRule({
   name: "to_do_something",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "to (keywords:{word}|{type})+ :? {statement}?",
   constructor: class define_type extends SpellParser.BlockStatement {
     getResults(match, scope) {
@@ -330,7 +327,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "quoted_property_name",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   //  e.g. `a card "is face up" if ...`
   //  NOTE: the first word in quotes must be "is" !!
   syntax: '(a|an) {type:identifier} {text} if {expression}',
@@ -350,46 +347,47 @@ parser.defineRule({
     compile(match, scope) {
       let { type, Type, getter, property, expression } = match.results;
       return [
-        `defineProp(${Type}.prototype, '${getter}', {`,
-        `  get() { return ${expression} }`,
-        `})`
+        `${Type}.${getter} = function(${type}) {`,
+        `  return ${expression}`,
+        `}`
       ].join("\n")
     }
     XupdateScope(match, scope) {
-      const { type, words, getter } = match.results;
+      const { Type, words, getter } = match.results;
+
       // Note the new instance property, e.g. javascript `card.is_a_face_card`
       scope.addInstanceProperty({ type, key:getter, datatype: "boolean" });
 
       // Add is expression for spell, e.g. `card is a face card` or `card is not a face card`
-      scope.addIsExpressionRule({
-        key: words,
-        compile(value) { return `${value}?.${getter}` }
-      });
+//       scope.addIsExpressionRule({
+//         key: words,
+//         compile(value) { return `${value}?.${getter}` }
+//       });
     }
   },
   tests: [
     {
       compileAs: "statement",
       tests: [
-        ['a card "is face up" if its direction is up',
+        ['a card "is face up" if the direction of the card is up',
           [
-            "defineProp(Card.prototype, 'is_face_up', {",
-            "  get() { return (this.direction == up) }",
-            "})"
+            "Card.is_face_up = function(card) {",
+            "  return (card?.direction == up)",
+            "}"
           ].join("\n")
         ],
-        ['a card "is a face card" if its rank is one of [jack, queen, king]',
+        ['a card "is a face card" if the rank of the card is one of [jack, queen, king]',
           [
-            "defineProp(Card.prototype, 'is_a_face_card', {",
-            "  get() { return spell.includes([jack, queen, king], this.rank) }",
-            "})",
+            "Card.is_a_face_card = function(card) {",
+            "  return spell.includes([jack, queen, king], card?.rank)",
+            "}",
           ].join("\n")
         ],
-        ['a card "is a face card" if its rank is one of jack, queen or king',
+        ['a card "is a face card" if the rank of the card is one of jack, queen or king',
           [
-            "defineProp(Card.prototype, 'is_a_face_card', {",
-            "  get() { return spell.includes([jack, queen, king], this.rank) }",
-            "})",
+            "Card.is_a_face_card = function(card) {",
+            "  return spell.includes([jack, queen, king], card?.rank)",
+            "}",
           ].join("\n")
         ],
       ]
@@ -410,7 +408,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "property_value_either",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "{?:property_of_a_type} is {value:identifier} if {condition:expression} (?:otherwise it is {otherValue:identifier})?",
   constructor: class type_is_a_enum extends Rule.Sequence {
     getResults(match, scope) {
@@ -459,7 +457,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "property_value_expression",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "{?:property_of_a_type} is {expression}",
   constructor: class type_is_a_enum extends Rule.Sequence {
     getResults(match, scope) {
@@ -514,7 +512,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "type_is_a_enum",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "(article:a|an) {type:word} is (a|an) \\( {property:identifier} \\) if {expression}",
   constructor: class type_is_a_enum extends Rule.Sequence {
     getResults(match, scope) {
@@ -551,7 +549,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "type_is_a_enum_for",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "for each {type:word} {property:identifier} : the {type2:identifier} is (article:a|an) \{ {property2:identifier} \} if {expression}",
   XupdateScope(match, scope) {
     // TODO: somehow we have to get ahold of the enum!!!

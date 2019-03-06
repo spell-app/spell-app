@@ -1,5 +1,5 @@
 ## definition of a Card with nice english aliases for working with it
-create type card
+create type card as a drawable
 
 ## card direction:  up or down
 a card has a direction as either up or down

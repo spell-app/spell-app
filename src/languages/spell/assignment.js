@@ -18,7 +18,7 @@ export default parser;
 
 parser.defineRule({
   name: "assignment",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "{thing:expression} = {value:expression}",
   testRule: "…=",
   compile(match, scope) {
@@ -38,7 +38,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "assignment",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "let {thing:expression} = {value:expression}",
   testRule: "let",
   compile(match, scope) {
@@ -57,7 +57,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "assignment",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "set {thing:expression} to {value:expression}",
   testRule: "set",
   compile(match, scope) {
@@ -76,7 +76,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "assignment",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "put {value:expression} into {thing:expression}",
   testRule: "put",
   compile(match, scope) {
@@ -97,7 +97,7 @@ parser.defineRule({
 
 parser.defineRule({
   name: "get_value",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "get {value:expression}",
   testRule: "get",
   compile(match, scope) {

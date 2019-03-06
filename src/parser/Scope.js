@@ -14,18 +14,23 @@ export class Scope {
     // You can initialize with just a `Parser` instance if desired.
     if (props instanceof Parser) props = { parser: props };
 
-    const { parser, module, parentScope, vars, methods, statements } = props;
-    this.parser = parser;
-    this.module = module;
-    this.parentScope = parentScope;
+    const { name, parser, module, scope, vars, methods, types, statements } = props;
+    if (name) this.name = name;
+    if (parser) this.parser = parser;
+    if (module) this.module = module;
+    if (scope) this.scope = scope;
 
     this.vars = [];
     this._vars = {};
-    if (vars) this.addVar(...vars);
+    if (vars) this.addVar(vars);
 
     this.methods = [];
     this._methods = {};
-    if (methods) this.addMethod(...methods);
+    if (methods) this.addMethod(methods);
+
+    this.types = [];
+    this._types = {};
+    if (types) this.addType(types);
 
     this.statements = statements || [];
   }
@@ -45,15 +50,11 @@ export class Scope {
 
   // Return definition of `var` anywhere in our parent chain.
   getVar(name) {
-    return this.getLocalVar(name) || this.parentScope?.getVar(name);
+    return this.getLocalVar(name) || this.scope?.getVar(name);
   }
 
-  // Add a var to the block
-  addVar(...variables) {
-    variables.forEach(variable => variable.parentScope = this);
-    this.vars = [...this.vars, ...variables];
-    this._vars = {...this._vars, ...keyBy(variables, "name") };
-  }
+  // Add a variable or array of variables to this scope.
+  addVar(variable) { return this.addItem(variable, "vars", "_vars") }
 
   /////////////////
   // Methods
@@ -70,15 +71,34 @@ export class Scope {
 
   // Return definition of `method` anywhere in our parent chain.
   getMethod(name) {
-    return this.getLocalMethod(name) || this.parentScope?.getMethod(name);
+    return this.getLocalMethod(name) || this.scope?.getMethod(name);
   }
 
-  // Add a method to the block
-  addMethod(...methods) {
-    methods.forEach(method => method.parentScope = this);
-    this.methods = [...this.methods, ...methods];
-    this._methods = {...this._methods, ...keyBy(methods, "name") };
+  // Add a method or array of methods to this scope.
+  addMethod(method) { return this.addItem(method, "methods", "_methods") }
+
+
+  /////////////////
+  // Types
+  //
+  // Return definition of `type` in this block.
+  getLocalType(name) {
+    return this._types[name];
   }
+
+  // Return true if this block already has a local type defined
+  hasLocalType(name) {
+    return !!this.getLocalType(name);
+  }
+
+  // Return definition of `type` anywhere in our parent chain.
+  getType(name) {
+    return this.getLocalType(name) || this.scope?.getType(name);
+  }
+
+  // Add a type or array of types to this scope.
+  addType(type) { return this.addItem(type, "types", "_types") }
+
 
   /////////////////
   //  Statements
@@ -114,7 +134,6 @@ export class Scope {
     catch(e) { console.error(e); }
   }
 
-
   // Console shims for `addDebugMethods`
   get debug() { return this.parser?.debug || Function.prototype }
   get info() { return this.parser?.info || Function.prototype }
@@ -122,6 +141,25 @@ export class Scope {
   get error() { return this.parser?.error || Function.prototype }
   get group() { return this.parser?.group || Function.prototype }
   get groupEnd() { return this.parser?.groupEnd || Function.prototype }
+
+
+  /////////////////
+  // Utility
+
+  // Add `item` to one of our lists:  vars, methods, types, etc.
+  // You can pass a single item or an array.
+  // If you pass a single item, you'll get a single item back.
+  // If you pass an array you'll get an array back.
+  addItem(item, listProp, mapProp) {
+    if (Array.isArray(item))
+      return item.map(item => this.addItem(item, listProps, mapProp));
+
+    this[listProp].push(item);
+    if (item.name) this[mapProp][name] = item;
+    item.scope = this;
+
+    return item;
+  }
 }
 
 // Module
@@ -134,12 +172,13 @@ export class Module extends Scope {}
 //      - class property
 //      - instance property
 export class Variable {
-  constructor({ module, parentScope, name, datatype, initializer }) {
-    this.module = module;
-    this.parentScope = parentScope;
+  constructor({ module, scope, name, datatype, initializer }) {
+    this.assert(name, "Variables must be created with a 'name'");
+    if (module) this.module = module;
+    if (scope) this.scope = scope;
     this.name = name;
-    this.datatype = datatype;
-    this.initializer = initializer;
+    if (datatype) this.datatype = datatype;
+    if (initializer) this.initializer = initializer;
   }
 }
 
@@ -148,10 +187,10 @@ export class Variable {
 export class Method extends Scope {
   constructor({ name, args, returns, ...superProps }) {
     super(superProps);
-    this.name = name;
+    if (name) this.name = name;
     this.args = args || [];
     this._args = keyBy(args, "name");  // convert to map
-    this.returns = returns;  // string or array ???
+    if (returns) this.returns = returns;  // string or array ???
   }
 
   // When looking up local vars in the top-level method scope, include our args.
@@ -163,16 +202,18 @@ export class Method extends Scope {
 
 
 // Type, which extends block.  Specifically:
-//  - `supers` is array of superclass(es).
+//  - `name` is the name of the type, and should be InitialCase.
+//  - `superClass` is name of superclass, if provided, and should be InitialCase.
 //  - `methods` (from block) are instance methods, including `constructor` if provided.
 //  - `vars` (from block) are instance vars
 //  - `classMethods` and `classVars` are static to the class.
 //  - `statements` are random bits of logic to initialize the type.
 export class Type extends Scope {
-  constructor({ supers, classMethods, classVars, ...superProps }) {
-    this.super(superProps);
+  constructor(props) {
+    const { superType, classMethods, classVars, ...superProps } = props;
+    super(superProps);
 
-    this.supers = supers;
+    if (superType) this.superType = superType;
 
     this.classVars = [];
     this._classVars = {}
@@ -183,17 +224,18 @@ export class Type extends Scope {
     if (classMethods) this.addClassMethods(...classMethods);
   }
 
-  addClassVar(variable) {
-    variables.forEach(variable => variable.parentScope = this);
-    this.vars = [...this.classVars, ...variables];
-    this._vars = {...this._classVars, ...keyBy(variables, "name") };
+  // Compile the type.
+  // NOTE: this currently ignores methods/properties, we'll want to fix that...
+  compile() {
+    if (this.superType) return `export class ${this.name} extends ${this.superType} {}`;
+    return `export class ${this.name} {}`;
   }
 
-  addClassMethod(...methods) {
-    methods.forEach(method => method.parentScope = this);
-    this.classMethods = [...this.classMethods, ...methods];
-    this._classMethods = {...this._classMethods, ...keyBy(methods, "name") };
-  }
+  // Add a class variable or array of class variables to this scope.
+  addClassVar(variable) { return this.addItem(variable, "classVars", "_classVars") }
+
+  // Add a class method or array of class methods to this scope.
+  addClassMethod(method) { return this.addItem(method, "classMethods", "_classMethods") }
 }
 
 

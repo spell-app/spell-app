@@ -17,11 +17,18 @@ import {
 export function inflectResults(results, ...keys) {
   for (var i = 0, key; key = keys[i]; i++) {
     if (typeof results[key] === "string") {
-      results[key] = lowerFirst(singularize(results[key]));
-      results[upperFirst(key)] = upperFirst(results[key]);
+      const Key = upperFirst(key);
       const pluralKey = pluralize(key)
+      const PluralKey = upperFirst(pluralKey);
+
+      results[key] = lowerFirst(singularize(results[key]));
+      results[Key] = upperFirst(results[key]);
       results[pluralKey] = pluralize(results[key]);
-      results[upperFirst(pluralKey)] = upperFirst(results[pluralKey]);
+      results[PluralKey] = upperFirst(results[pluralKey]);
+
+      // put in under `<key>Name` etc as well
+      results[key+"Name"] = results[key];
+      results[Key+"Name"] = results[Key];
     }
   }
   return results;

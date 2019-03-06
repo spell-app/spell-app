@@ -139,7 +139,7 @@ parser.defineRule({
 parser.defineRule({
   //TODO: another name for `constant` ?
   name: "declare_property",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "(scope:property|constant|shared property) {name:identifier} (?:= {value:expression})?",
   testRule: "(property|constant|shared)",
   compile(match, scope) {
@@ -185,7 +185,7 @@ parser.defineRule({
 // TODO: `@typed` decorator to make substitution cleaner
 parser.defineRule({
   name: "declare_property_of_type",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "property {name:identifier} as (a|an)? {type} (?:= {value:expression})?",
   testRule: "property",
   compile(match, scope) {
@@ -214,7 +214,7 @@ parser.defineRule({
 // TODO: allow list to be an expression?
 parser.defineRule({
   name: "declare_property_as_one_of",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax:
     "property {name:identifier} as one of {list:inline_list} (?:with value {value:expression})?",
   testRule: "property",
@@ -250,7 +250,7 @@ parser.defineRule({
 // TODO: implicit return in block form
 parser.defineRule({
   name: "getter",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "get {name:identifier} \\: return? {expression}?",
   testRule: "get",
   constructor: SpellParser.BlockStatement,
@@ -294,7 +294,7 @@ parser.defineRule({
 // TODO: `to set...` ?
 parser.defineRule({
   name: "setter",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "set {name:identifier} {args}? (\\:)? {statement}?",
   testRule: "set",
   constructor: SpellParser.BlockStatement,
@@ -360,7 +360,7 @@ parser.defineRule({
 // TODO: static/etc
 // parser.defineRule({
 //   name: "declare_method",
-//   alias: ["statement", "updatesScope"],
+//   alias: ["statement"],
 //   syntax: "(operator:to|on) {name:identifier} {args}? (\\:)? {statement}?",
 //   testRule: "(to|on)",
 //   constructor: SpellParser.BlockStatement,
@@ -399,7 +399,7 @@ parser.defineRule({
 //TESTME
 parser.defineRule({
   name: "declare_action",
-  alias: ["statement", "updatesScope"],
+  alias: ["statement"],
   syntax: "action (keywords:{word}|{type})+ (\\:)? {statement}?",
   testRule: "action",
   constructor: SpellParser.BlockStatement,
