@@ -30,4 +30,3 @@ export class SpellParser extends Parser {
     return result;
   }
 }
-

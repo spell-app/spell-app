@@ -1,7 +1,17 @@
-import inflection from "lodash-inflection";
-
+// Export lodash and lodash-inflection string methods.
 export lowerFirst from "lodash/lowerFirst";
 export upperFirst from "lodash/upperFirst";
+import inflection from "lodash-inflection";
+
+// Return the singular form of `word`.
+// Uses lodash-inflection, which should be pretty good.
+// If you need to add a new rule, see: https://github.com/danhper/lodash-inflection
+export const singularize = inflection.singularize.bind(inflection);
+
+// Return the plural form of `word`.
+// Uses lodash-inflection, which should be pretty good.
+// If you need to add a new rule, see: https://github.com/danhper/lodash-inflection
+export const pluralize = inflection.pluralize.bind(inflection);
 
 // Return true if text is all whitespace, including empty string.
 let ALL_WHITESPACE = /^\s*$/;
@@ -14,18 +24,6 @@ export function showWhitespace(string) {
   if (typeof string !== "string") return string;
   return string.replace(/\n/g, "¬").replace(/\t/g, "∆");
 }
-
-// Return the singular form of `word`.
-// Uses lodash-inflection, which should be pretty good.
-// If you need to add a new rule, see: https://github.com/danhper/lodash-inflection
-export const singularize = inflection.singularize.bind(inflection);
-window.singularize = singularize;
-
-// Return the plural form of `word`.
-// Uses lodash-inflection, which should be pretty good.
-// If you need to add a new rule, see: https://github.com/danhper/lodash-inflection
-export const pluralize = inflection.pluralize.bind(inflection);
-
 
 // Return a certain `number` of tab characters.
 const TABS = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t";

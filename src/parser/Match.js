@@ -45,13 +45,6 @@ export class Match {
   get js() { return this.compile() }
   compile() { return this.rule.compile(this, this.scope) }
 
-  // Call the updateScope() rule of our rule, if defined.
-  // NOTE: THIS MODIFIES THE SCOPE!!
-  //  You should only call this when you're sure you got a good match!!
-  updateScope() {
-    if (this.rule.updateScope) this.rule.updateScope(this, this.scope);
-  }
-
   // Visualize a match by outputting its `structure`.
   // This version outputs to the console and is not quite working right.
   get viz() { return "\n"+this.visualize() }

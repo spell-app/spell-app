@@ -356,6 +356,7 @@ parser.defineRule({
 parser.defineRule({
   name: "type",
   alias: ["expression", "single_expression"],
+  datatype: "string",   // TODO???
   pattern: /^([A-Z][\w\-]*|list|text|number|integer|decimal|character|boolean|object)$/,
   blacklist: {
     I: true
@@ -423,6 +424,7 @@ parser.defineRule({
 parser.defineRule({
   name: "identifier_list",
   syntax: "[({constant:word}|{number})(,|or|and|nor)]",
+  datatype: "array",    // TODO: array of what?
   tests: [
     {
       tests: [
@@ -441,6 +443,7 @@ parser.defineRule({
 parser.defineRule({
   name: "bracketed_list",
   alias: ["expression", "single_expression"],
+  datatype: "array",    // TODO: array of what?
   syntax: "\\[ [list:{expression},]? \\]",
   testRule: "\\[",
   compile(match, scope) {

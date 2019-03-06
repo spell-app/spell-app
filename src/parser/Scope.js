@@ -232,7 +232,7 @@ export class Scope {
       name: "constant",
       datatype: "string",
       literal: name,
-      precedence: 1,
+      precedence: 1,    // must be above "identifier"
       compile: () => `'${name}'`
     });
   }

@@ -367,8 +367,8 @@ parser.defineRule({
     {
       compileAs: "statement",
       tests: [
-        ['a card "is face up" if its direction is up',
-         "defineProp(Card.prototype, 'is_face_up', { get() { return (this.direction == up) } })"
+        ['a card "is face up" if its direction is \'up\'',
+         "defineProp(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
         ],
         ['a card "is a face card" if its rank is one of [jack, queen, king]',
          "defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes([jack, queen, king], this.rank) } })"

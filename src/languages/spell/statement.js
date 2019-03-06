@@ -152,10 +152,6 @@ parser.defineRule({
               }
             }
           }
-
-          // Tell the statement to update the scope if it cares to.
-          // NOTE: this is safe because we know we're going to accept the statement.
-          statement.updateScope();
         }
       };
 
