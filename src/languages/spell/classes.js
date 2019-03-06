@@ -354,6 +354,7 @@ parser.defineRule({
          { name: typeName, datatype: TypeName }
         ]
       });
+//      scope.debug(rule);
 
       // add method to the Type
       scope.getOrAddType(TypeName)
@@ -367,7 +368,7 @@ parser.defineRule({
         literals: words,
         applyOperator: ({ lhs }) => `${TypeName}.${methodName}(${lhs})`
       });
-      scope.debug(rule);
+//      scope.debug(rule);
 
       return method.compile();
     }
@@ -377,13 +378,13 @@ parser.defineRule({
       compileAs: "statement",
       tests: [
         ['a card "is face up" if the direction of the card is up',
-         "Card.is_face_up = function is_face_up(card) { return (card?.direction == up) }"
+         "Card.is_face_up = function(card) { return (card?.direction == up) }"
         ],
         ['a card "is a face card" if the rank of the card is one of [jack, queen, king]',
-         "Card.is_a_face_card = function is_a_face_card(card) { return spell.includes([jack, queen, king], card?.rank) }"
+         "Card.is_a_face_card = function(card) { return spell.includes([jack, queen, king], card?.rank) }"
         ],
         ['a card "is a face card" if the rank of the card is one of jack, queen or king',
-         "Card.is_a_face_card = function is_a_face_card(card) { return spell.includes([jack, queen, king], card?.rank) }"
+         "Card.is_a_face_card = function(card) { return spell.includes([jack, queen, king], card?.rank) }"
         ],
       ]
     }
@@ -411,39 +412,33 @@ parser.defineRule({
       return inflectResults(results, "type");
     }
     compile(match, scope) {
-      let { Type, property, value, otherValue, condition } = match.results;
-      const statement = !otherValue
-        ? `if (${condition}) return ${value}`
-        : `return !!${condition} ? ${value} : ${otherValue}`;
+      let { TypeName, typeName, property, value, otherValue, condition } = match.results;
 
-      return [
-        `defineProp(${Type}.prototype, '${property}', {`,
-        `  get() { ${statement} }`,
-        `})`
-      ].join("\n")
-    }
-    XupdateScope(match, scope) {
-      const { type, property, } = match.results;
-      scope.addInstanceProperty({ type, key: property, datatype: "boolean" });
+      const statements = !otherValue
+        ? [`if (${condition}) return ${value}`]
+        : [`return !!${condition} ? ${value} : ${otherValue}`];
+
+      // Create this as an instance getter
+      const method = new Scope.Method({
+        name: property,
+        statements
+      });
+      scope.info(method);
+      scope.getOrAddType(TypeName)
+           .addMethod(method);
+
+      return method.compile();
     }
   },
   tests: [
     {
       compileAs: "statement",
       tests: [      // is one of diamonds or hearts => is_one_of_list
-        ["the color of a card is red if its suit is one of diamonds or hearts",
-          [
-            "defineProp(Card.prototype, 'color', {",
-            "  get() { if (spell.includes([diamonds, hearts], this.suit)) return red }",
-            "})"
-          ].join("\n")
+        ["the color of a card is red if its suit is either diamonds or hearts",
+         "defineProp(Card.prototype, 'color', { get() { if (spell.includes([diamonds, hearts], this.suit)) return red } })",
         ],
-        ["a cards color is black if its suit is one of clubs or spades otherwise it is red",
-          [
-            "defineProp(Card.prototype, 'color', {",
-            "  get() { return !!spell.includes([clubs, spades], this.suit) ? black : red }",
-            "})"
-          ].join("\n")
+        ["a cards color is black if its suit is either clubs or spades otherwise it is red",
+         "defineProp(Card.prototype, 'color', { get() { return !!spell.includes([clubs, spades], this.suit) ? black : red } })"
         ],
       ]
     }

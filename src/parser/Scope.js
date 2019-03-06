@@ -224,20 +224,20 @@ export class Method extends Scope {
   compile() {
     const statements = this.compileStatements();
     const args = this.compileArgs();
-    const fn = `function${this.name ? " "+this.name : ""}(${args}) ${statements}`;
 
     // If we're attached to a Type,
     if (this.scope instanceof Type) {
       // Add class props directly
       if (this.kind === "static") {
-        return `${this.scope.name}.${this.name} = ${fn}`;
+        return `${this.scope.name}.${this.name} = function(${args}) ${statements}`;
       }
       // Add instance props to the prototype using `defineProperty()`
-      return `Object.defineProperty(${this.scope.name}.prototype, '${this.name}', { value: ${fn} })`;
+      return `defineProp(${this.scope.name}.prototype, '${this.name}', { get() ${statements} })`;
     }
 
     // Return as a normal function
-    return fn;
+    const name = this.name ? ` ${this.name}`: "";
+    return `function${name}(${args}) ${statements}`;
   }
 }
 
