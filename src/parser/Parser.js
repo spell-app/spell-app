@@ -359,6 +359,7 @@ export class Parser {
     const scope = this.getScope("test");
     // Clear outputSource flag so we don't get source output comments in the test results.
     scope.parser.outputSource = false;
+    scope.parser.setDebugLevel("OFF");
 
     const results = {
       pass: 0,      // number of tests that passed

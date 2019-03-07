@@ -21,7 +21,7 @@ export default parser;
 parser.defineRule({
   name: "create_type",
   alias: ["statement"],
-  syntax: "create type {type:identifier} (?:as (a|an) {superType:identifier})?",
+  syntax: "create type {type:word} (?:as (a|an) {superType:identifier})?",
   constructor: class create_type extends Statement {
     getResults(match, scope) {
       const results = super.getResults(match, scope);
