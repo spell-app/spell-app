@@ -139,7 +139,7 @@ parser.defineRules(
     alias: "statement",
     syntax: "{dog} and {cat}",
     testRule: "{dog}",
-    compile(match) {
+    compile(parser, match) {
       return "dog && cat";
     }
   }

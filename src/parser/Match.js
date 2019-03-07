@@ -41,7 +41,7 @@ export class Match {
 
   // Syntatic sugar to compile the output of the match.
   get js() { return this.compile() }
-  compile() { return this.rule.compile(this, this.scope) }
+  compile() { return this.rule.compile(this.scope, this) }
 
   // Have the match call updateScope if it can.
   // NOTE: we memoize this so calling it subsequent times is a no-op.

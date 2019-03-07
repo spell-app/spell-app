@@ -30,7 +30,7 @@ parser.defineRule({
     // create a child $scope to add statements to below
     results.$scope = new Scope({ scope, statement: results.statement });
   },
-  compile(match, scope) {
+  compile(scope, match) {
     match.updateScope();
     const { condition, $scope } = match.results;
     return `if ${parenthesizeCondition(condition)} ${$scope.compile()}`;
@@ -110,7 +110,7 @@ parser.defineRule({
     // create a child $scope to add statements to below
     results.$scope = new Scope({ scope, statement: results.statement });
   },
-  compile(match, scope) {
+  compile(scope, match) {
     match.updateScope();
     const { condition, $scope } = match.results;
     return `else if ${parenthesizeCondition(condition)} ${$scope.compile()}`;
@@ -177,7 +177,7 @@ parser.defineRule({
     // create a child $scope to add statements to below
     results.$scope = new Scope({ scope, statement: results.statement });
   },
-  compile(match, scope) {
+  compile(scope, match) {
     match.updateScope();
     const { $scope } = match.results;
     return `else ${$scope.compile()}`;
@@ -228,7 +228,7 @@ parser.defineRule({
   name: "backwards_if",
   alias: "expression_suffix",
   syntax: "if (?:{condition:expression} (else|otherwise) {expression:expression})",
-  compile(match, scope) {
+  compile(scope, match) {
     return { expression: match.results };
   },
   applyOperator({ lhs, rhs }) {

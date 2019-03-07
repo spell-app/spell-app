@@ -21,7 +21,7 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "{thing:expression} = {value:expression}",
   testRule: "…=",
-  compile(match, scope) {
+  compile(scope, match) {
     let { thing, value } = match.results;
     // TODO: declare identifier if not in scope, etc
     return `${thing} = ${value}`;
@@ -41,7 +41,7 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "let {thing:expression} = {value:expression}",
   testRule: "let",
-  compile(match, scope) {
+  compile(scope, match) {
     let { thing, value } = match.results;
     return `${thing} = ${value}`;
   },
@@ -60,7 +60,7 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "set {thing:expression} to {value:expression}",
   testRule: "set",
-  compile(match, scope) {
+  compile(scope, match) {
     let { thing, value } = match.results;
     return `${thing} = ${value}`;
   },
@@ -79,7 +79,7 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "put {value:expression} into {thing:expression}",
   testRule: "put",
-  compile(match, scope) {
+  compile(scope, match) {
     let { thing, value } = match.results;
     // TODO: declare identifier if not in scope, etc
     return `${thing} = ${value}`;
@@ -100,7 +100,7 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "get {value:expression}",
   testRule: "get",
-  compile(match, scope) {
+  compile(scope, match) {
     let { value } = match.results;
     return `var it = ${value}`;
   },
@@ -124,7 +124,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "return {expression}",
   testRule: "return",
-  compile(match, scope) {
+  compile(scope, match) {
     let { expression } = match.results;
     return `return ${expression}`;
   },
@@ -141,7 +141,7 @@ parser.defineRule({
   name: "exit",
   alias: "statement",
   syntax: "exit",
-  compile(match, scope) {
+  compile(scope, match) {
     return "return undefined";
   },
   tests: [

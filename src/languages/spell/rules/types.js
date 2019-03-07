@@ -31,7 +31,7 @@ parser.defineRule({
   alias: ["expression", "single_expression"],
   syntax: "{property_accessor} {expression:single_expression}",
   testRule: "{property_accessor}",    // ???
-  compile(match, scope) {
+  compile(scope, match) {
     let { expression, property_accessor } = match.results;
     // TODO: `[xxx]` for non-identifiers
     return `${expression}?.${property_accessor}`;
@@ -54,7 +54,7 @@ parser.defineRule({
   alias: "property_accessor",
   syntax: "the {property:identifier} of",
   testRule: "the",
-  compile(match, scope) {
+  compile(scope, match) {
     return match.results.property;
   },
 });
@@ -64,7 +64,7 @@ parser.defineRule({
   alias: ["expression", "property_accessor", "single_expression"],
   syntax: "its {property:identifier}",
   testRule: "its",
-  compile(match, scope) {
+  compile(scope, match) {
     const { property } = match.results;
     return `this.${property}`
   },
@@ -89,7 +89,7 @@ parser.defineRule({
   name: "args",
   syntax: "with [args:{identifier},]",
   // Returns an array of argument values
-  compile(match, scope) {
+  compile(scope, match) {
     const { args } = match.results;
     return args.join(", ");
   },
@@ -112,7 +112,7 @@ parser.defineRule({
 parser.defineRule({
   name: "object_literal_properties",
   syntax: "[({key:identifier} (?:= {value:expression})?),]",
-  compile(match, scope) {
+  compile(scope, match) {
     let props = match.items.map(function(prop) {
       let { key, value } = prop.results;
       if (value) return `"${key}": ${value}`;

@@ -18,7 +18,7 @@ parser.defineRule({
   alias: ["expression", "single_expression"],
   syntax: "\\( {expression} \\)",
   testRule: "\\(",
-  compile(match, scope) {
+  compile(scope, match) {
     let { expression } = match.results;
     // don't double parens if not necessary
     if (
@@ -61,7 +61,7 @@ parser.defineRule({
   precedence: 12,
   syntax: "{lhs:single_expression} {?:rhs:expression_suffix}+",
 //  testRule: "…{recursive_expression_test}",
-  compile(match, scope) {
+  compile(scope, match) {
     const { results, matched } = match;
 //    scope.debug("compiling recursive expression: ", results);
 

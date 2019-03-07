@@ -81,7 +81,7 @@ parser.defineRule({
   name: "parenthesized_expression",
   alias: ["expression", "single_expression"],
   syntax: "\\( {expression} \\)",
-  compile(match, scope) {
+  compile(scope, match) {
     let { expression } = match.results;
     // Don't double-up parens
     if (expression.startsWith?.("(") && expression.endsWith(")"))
@@ -102,7 +102,7 @@ parser.defineRule({
   name: "identifier_expression",
   alias: ["expression", "single_expression"],
   syntax: "the? {identifier}",
-  compile(match, scope) {
+  compile(scope, match) {
     return match.results.identifier;
   }
 })
@@ -112,7 +112,7 @@ parser.defineRule({
   alias: ["expression", "single_expression"],
   precedence: 11,
   syntax: "the {identifier} of {expression:single_expression}",
-  compile(match, scope) {
+  compile(scope, match) {
     const { identifier, expression } = match.results;
     return `${expression}.${identifier}`;
   }
@@ -130,7 +130,7 @@ parser.defineRule({
   precedence: 12,
   syntax: "{lhs:single_expression} {rhs:expression_suffix}+",
 //  testRule: "…{recursive_expression_test}",
-  compile(match, scope) {
+  compile(scope, match) {
     const { results, matched } = match;
 //    scope.debug("compiling recursive expression: ", results);
 

@@ -17,7 +17,7 @@ parser.defineRule({
   name: "eat_whitespace",
   syntax: "{whitespace}*",
   datatype: "string",
-  compile(match, scope) {
+  compile(scope, match) {
     return match.matched.map(whitespace => whitespace.compile()).join(" ");
   }
 });
@@ -191,7 +191,7 @@ parser.defineRule({
 parser.defineRule({
   name: "comment",
   tokenType: Token.Comment,
-  compile(match) {
+  compile(scope, match) {
     let { commentSymbol, initialWhitespace, value } = match.matched[0];
     if (commentSymbol !== "//") commentSymbol = "//" + commentSymbol;
     return `${commentSymbol}${initialWhitespace}${value}`;
@@ -235,7 +235,7 @@ parser.defineRule({
   alias: ["expression", "single_expression"],
   datatype: "undefined",
   syntax: "undefined",
-  compile(match, scope) {
+  compile(scope, match) {
     return "undefined";
   },
   tests: [
@@ -324,7 +324,7 @@ parser.defineRule({
   name: "identifier_expression",
   alias: ["expression", "single_expression"],
   syntax: "the? {identifier}",
-  compile(match, scope) {
+  compile(scope, match) {
     return match.results.identifier;
   },
   tests: [

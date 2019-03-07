@@ -98,7 +98,7 @@ rulex.defineRule({
   name: "testLocation",
   literal: ["…", "^"],
   optional: true,
-  compile(match, scope) {
+  compile(scope, match) {
     return (match.matched[0].value === "…")
       ? ANYWHERE
       : AT_START;
@@ -123,7 +123,7 @@ rulex.defineRule({
   name: "promote",
   literals: ["?", ":"],
   optional: true,
-  compile(match, scope) {
+  compile(scope, match) {
     return true;
   },
   tests: [
@@ -148,7 +148,7 @@ rulex.defineRule({
     new Rule.Literal(":")
   ],
   optional: true,
-  compile(match, scope) {
+  compile(scope, match) {
     return match.results.argument;
   },
   tests: [
@@ -171,7 +171,7 @@ rulex.defineRule({
   name: "repeatFlag",
   literal: ["?", "*", "+"],
   optional: true,
-  compile(match, scope) {
+  compile(scope, match) {
     return match.matched[0].value;
   },
   tests: [
@@ -210,7 +210,7 @@ rulex.defineRule({
     repeatFlag
   ],
 
-  compile({ results }) {
+  compile(scope, { results }) {
     const rule = new Rule.Symbol(results.literal);
     if (results.isEscaped) rule.isEscaped = true;
     return rulex.applyFlags(rule, results);
@@ -269,7 +269,7 @@ rulex.defineRule({
     new Rule.Word({ argument: "literal" }),
     repeatFlag
   ],
-  compile({ results }) {
+  compile(scope, { results }) {
     const rule = new Rule.Keyword(results.literal);
     return rulex.applyFlags(rule, results);
   },
@@ -310,7 +310,7 @@ rulex.defineRule({
     new Rule.Symbol("}"),
     repeatFlag
   ],
-  compile({ results }) {
+  compile(scope, { results }) {
     const rule = new Rule.Subrule(results.rule);
     return rulex.applyFlags(rule, results);
   },
@@ -356,7 +356,7 @@ rulex.defineRule({
     new Rule.Symbol("]"),
     new Rule.Symbol({ argument: "repeatFlag", literal: "?", optional: true })
   ],
-  compile({ results }) {
+  compile(scope, { results }) {
     const rule = new Rule.Repeat({ rule: results.rule, delimiter: results.delimiter });
     return rulex.applyFlags(rule, results);
   },
@@ -400,7 +400,7 @@ rulex.defineRule({
     }),
     repeatFlag
   ],
-  compile(match, scope) {
+  compile(scope, match) {
     // combine main results from nested split
     const results = { ...match.results, ...match.results.split };
     let { choices } = results;
@@ -502,7 +502,7 @@ rulex.defineRule({
   constructor: Rule.Repeat,
   name: "statement",
   rule: new Rule.Subrule("rule"),
-  compile(match, scope) {
+  compile(scope, match) {
     let matched = match.matched.map(match => match.compile());
 
     // Consolidate keywords and symbols

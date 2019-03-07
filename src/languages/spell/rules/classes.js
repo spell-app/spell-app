@@ -455,7 +455,7 @@ parser.defineRule({
       const results = super.getResults(match, scope);
       return inflectResults(results, "type");
     }
-    compile(match, scope) {
+    compile(scope, match) {
       const { article, Type, property, expression } = match.results;
       return [
         `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,
@@ -498,7 +498,7 @@ parser.defineRule({
       const results = super.getResults(match, scope);
       return inflectResults(results, "type");
     }
-    compile(match, scope) {
+    compile(scope, match) {
       const { article, Type, property, expression } = match.results;
       return [
         `defineProp(${Type}.prototype, 'is_${article}_${property}', {`,

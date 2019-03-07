@@ -15,7 +15,7 @@ parser.defineRule({
   name: "jsx",
   alias: ["expression", "single_expression"],
   tokenType: Token.JSXElement,
-  compile(match, scope) {
+  compile(scope, match) {
     return this.jsxElementToSource(match.matched[0]);
   },
 

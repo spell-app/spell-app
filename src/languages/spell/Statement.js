@@ -21,7 +21,7 @@ class statement extends Rule.Sequence {
   updateScope(results, match, scope) {}
 
   // To compile, we just output our statements.
-  compile(match, scope) {
+  compile(scope, match) {
     // Call `updateScope()` on the match to make sure we've fully compiled.
     // This is a no-op if it's been called before.
     match.updateScope();

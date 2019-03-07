@@ -47,7 +47,7 @@ parser.defineRule({
   datatype: "array",    // TODO: array of what?
   syntax: "\\[ [list:{expression},]? \\]",
   testRule: "\\[",
-  compile(match, scope) {
+  compile(scope, match) {
     let { list } = match.results;
     return `[${list ? list.join(", ") : ""}]`;
   },
@@ -95,7 +95,7 @@ parser.defineRule({
   syntax: "the? number of {identifier} in {list:expression}",
   testRule: "…(number of)",
   precedence: 3,
-  compile(match, scope) {
+  compile(scope, match) {
     const { list } = match.results;
     return `spell.lengthOf(${list})`;
   },
@@ -121,7 +121,7 @@ parser.defineRule({
   syntax: "the? position of {thing:expression} in {list:expression}",
   testRule: "…(position of)",
   precedence: 3,
-  compile(match, scope) {
+  compile(scope, match) {
     const { thing, list } = match.results;
     return `spell.positionOf(${thing}, ${list})`;
   },
@@ -225,7 +225,7 @@ parser.defineRule({
   alias: ["expression", "single_expression"],
   syntax: "{identifier} {position:expression} of {expression}",
   testRule: "…of",
-  compile(match, scope) {
+  compile(scope, match) {
     const { identifier, position, expression } = match.results;
     return `spell.getItem(${expression}, ${position})`;
   },
@@ -246,7 +246,7 @@ parser.defineRule({
   alias: ["expression", "single_expression"],
   syntax: "the {ordinal} {identifier} (in|of) {expression}",
   testRule: "…(in|of)",
-  compile(match, scope) {
+  compile(scope, match) {
     const { identifier, ordinal, expression } = match.results;
     return `spell.getItem(${expression}, ${ordinal})`;
   },
@@ -269,7 +269,7 @@ parser.defineRule({
   alias: ["expression", "single_expression"],
   syntax: "a random {identifier} (of|from|in) {list:expression}",
   testRule: "a random",
-  compile(match, scope) {
+  compile(scope, match) {
     const { list, identifier } = match.results;
     return `spell.getRandomItemOf(${list})`;
   },
@@ -293,7 +293,7 @@ parser.defineRule({
   alias: ["expression", "single_expression"],
   syntax: "{number} random {identifier} (of|from|in) {list:expression}",
   testRule: "…random",
-  compile(match, scope) {
+  compile(scope, match) {
     const { number, list, identifier } = match.results;
     return `spell.getRandomItemsOf(${list}, ${number})`;
   },
@@ -321,7 +321,7 @@ parser.defineRule({
   alias: ["expression", "single_expression"],
   syntax: "{identifier} {start:expression} to {end:expression} (of|in|from) {list:expression}",
   testRule: "…(of|in|from)",
-  compile(match, scope) {
+  compile(scope, match) {
     const { list, start, end, identifier } = match.results;
     return `spell.getRange(${list}, ${start}, ${end})`;
   },
@@ -344,7 +344,7 @@ parser.defineRule({
   alias: ["expression", "single_expression"],
   syntax: "{ordinal} {number} {identifier} (of|in|from) {list:expression}",
   testRule: "…(of|in|from)",
-  compile(match, scope) {
+  compile(scope, match) {
     const { ordinal, number, list, identifier } = match.results;
     return `spell.slice(${list}, ${ordinal}, ${number})`;
   },
@@ -368,7 +368,7 @@ parser.defineRule({
   alias: ["expression", "single_expression"],
   syntax: "{identifier} (in|of) {list:expression} starting with {thing:expression}",
   testRule: "…(starting with)",
-  compile(match, scope) {
+  compile(scope, match) {
     const { thing, list, identifier } = match.results;
     return `spell.getRange(${list}, spell.positionOf(${thing}, ${list}))`;
   },
@@ -397,7 +397,7 @@ parser.defineRule({
   syntax: "{identifier} (in|of) {list:expression} where {condition:expression}",
   testRule: "…where",
   precedence: 2,
-  compile(match, scope) {
+  compile(scope, match) {
     const { identifier, condition, list } = match.results;
     // use singular of identifier for method argument
     const argument = singularize(identifier);
@@ -431,7 +431,7 @@ parser.defineRule({
     "{list:single_expression} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
   testRule: "…(has|have)",
   precedence: 2,
-  compile(match, scope) {
+  compile(scope, match) {
     const { identifier, operator, filter, list } = match.results;
     const bang = operator === "has" ? "" : "!";
     // use singular of identifier for method argument
@@ -472,7 +472,7 @@ parser.defineRule({
 parser.defineRule({
   name: "list_front_or_back",
   syntax: "the (start|front|top|end|back|bottom) of",
-  compile(match, scope) {
+  compile(scope, match) {
     const where = match.matched[1].value;
     if (where === "start" || where == "front" || where === "top") return "prepend";
     return "append";
@@ -485,7 +485,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "add {thing:expression} to {method:list_front_or_back}? {list:expression}",
   testRule: "add",
-  compile(match, scope) {
+  compile(scope, match) {
     const { thing, list, method = "append"} = match.results;
     return `spell.${method}(${list}, ${thing})`;
   },
@@ -511,7 +511,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "prepend {thing:expression} to {list:expression}",
   testRule: "prepend",
-  compile(match, scope) {
+  compile(scope, match) {
     const { thing, list } = match.results;
     return `spell.prepend(${list}, ${thing})`;
   },
@@ -531,7 +531,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "append {thing:expression} to {list:expression}",
   testRule: "append",
-  compile(match, scope) {
+  compile(scope, match) {
     const { thing, list } = match.results;
     return `spell.append(${list}, ${thing})`;
   },
@@ -559,7 +559,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
   testRule: "add",
-  compile(match, scope) {
+  compile(scope, match) {
     const { thing, item, list, operator } = match.results;
     const position =
       operator === "before"
@@ -595,7 +595,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "(empty|clear) {list:expression}",
   testRule: "(empty|clear)",
-  compile(match, scope) {
+  compile(scope, match) {
     const { list } = match.results;
     return `spell.clear(${list})`;
   },
@@ -616,7 +616,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {ordinal} {identifier} of {list:expression}",
   testRule: "remove",
-  compile(match, scope) {
+  compile(scope, match) {
     const { ordinal, list } = match.results;
     return `spell.removeItem(${list}, ${ordinal})`;
   },
@@ -636,7 +636,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {identifier} {number:expression} of {list:expression}",
   testRule: "remove",
-  compile(match, scope) {
+  compile(scope, match) {
     const { number, list, identifier } = match.results;
     return `spell.removeItem(${list}, ${number})`;
   },
@@ -660,7 +660,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {identifier} {start:expression} to {end:expression} of {list:expression}",
   testRule: "remove",
-  compile(match, scope) {
+  compile(scope, match) {
     const { start, end, list, identifier } = match.results;
     return `spell.removeRange(${list}, ${start}, ${end})`;
   },
@@ -679,7 +679,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {start:ordinal} to {end:ordinal} {identifier} of {list:expression}",
   testRule: "remove",
-  compile(match, scope) {
+  compile(scope, match) {
     const { start, end, list, identifier } = match.results;
     return `spell.removeRange(${list}, ${start}, ${end})`;
   },
@@ -699,7 +699,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {thing:expression} from {list:expression}",
   testRule: "remove",
-  compile(match, scope) {
+  compile(scope, match) {
     const { thing, list } = match.results;
     return `spell.remove(${list}, ${thing})`;
   },
@@ -718,7 +718,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {identifier} (in|of|from) {list:expression} where {condition:expression}",
   testRule: "remove",
-  compile(match, scope) {
+  compile(scope, match) {
     const { identifier, condition, list } = match.results;
     // use singular of identifier for method argument
     const argument = singularize(identifier);
@@ -751,7 +751,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "reverse {list:expression}",
   testRule: "reverse",
-  compile(match, scope) {
+  compile(scope, match) {
     const { list } = match.results;
     return `spell.reverse(${list})`;
   },
@@ -769,7 +769,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "(randomize|shuffle) ({identifier} (in|of))? {list:expression}",
   testRule: "(randomize|shuffle)",
-  compile(match, scope) {
+  compile(scope, match) {
     const { list } = match.results;
     return `spell.shuffle(${list})`;
   },
@@ -799,7 +799,7 @@ parser.defineRule({
     results.$scope = new Method({ scope, args: [{ name: item }], statement });
     if (position) results.$scope.addArg({ name: position, type: "number" });
   },
-  compile(match, scope) {
+  compile(scope, match) {
     const { list, $scope } = match.results;
     return `spell.forEach(${list}, ${$scope.compile()})`;
   },

@@ -44,7 +44,7 @@ parser.defineRule({
   alias: "expression_suffix",
   precedence: 11,
   syntax: "(operator:is (greater|less) than (or equal to)?) {expression:single_expression}",
-  compile(match, scope) {
+  compile(scope, match) {
     return {
       ...match.results,
       operator: match.matched[0].getTokens().join(" ")
@@ -128,7 +128,7 @@ parser.defineRule({
   alias: ["expression", "single_expression"],
   syntax: "the? absolute value of {expression}",
   testRule: "…absolute",
-  compile(match, scope) {
+  compile(scope, match) {
     const { expression } = match.results;
     return `Math.abs(${expression})`;
   },
@@ -146,7 +146,7 @@ parser.defineRule({
   precedence: 2,
   syntax: "the? (biggest|largest) {identifier}? (of|in) {expression}",
   testRule: "…(biggest|largest)",
-  compile(match, scope) {
+  compile(scope, match) {
     const { expression } = match.results;
     return `spell.max(${expression})`;
   },
@@ -168,7 +168,7 @@ parser.defineRule({
   precedence: 2,
   syntax: "the? smallest {identifier}? (of|in) {expression}",
   testRule: "…smallest",
-  compile(match, scope) {
+  compile(scope, match) {
     const { expression } = match.results;
     return `spell.min(${expression})`;
   },
@@ -190,7 +190,7 @@ parser.defineRule({
   syntax: "round {thing:expression} (direction:off|up|down)?",
   testRule: "round",
   precedence: 1,
-  compile(match, scope) {
+  compile(scope, match) {
     const { thing, direction } = match.results;
     if (direction === "up") return `Math.ceil(${thing})`;
     else if (direction === "down") return `Math.floor(${thing})`;

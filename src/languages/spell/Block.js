@@ -80,7 +80,7 @@ export class Block extends Rule {
   // Output statements match parsed with `parseBlock`
   // Set `match.enclose` to enclose in curly braces
   // Set `match.indent` to add a tab to the start of each line.
-  compile(match, scope) {
+  compile(scope, match) {
     let results = [],
       statement;
 

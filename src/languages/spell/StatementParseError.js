@@ -19,7 +19,7 @@ export class StatementParseError extends Rule {
     return "CAN'T PARSE STATEMENT: `" + this.unparsed + "`";
   }
 
-  compile(match, scope) {
+  compile(scope, match) {
     return "// " + match.message.split("\n").join("\n// ");
   }
 };
