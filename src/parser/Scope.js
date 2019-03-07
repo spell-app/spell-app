@@ -48,7 +48,7 @@ export class Scope {
 
   // Add a variable to this scope.
   @clearMemoized("_vars")
-  addVar(variable) { return this._addItem(variable, "vars", Variable) }
+  addVar(variable, results) { return this._addItem(variable, "vars", results, Variable) }
 
   // Return definition of `var` in this block.
   getLocalVar(name) {
@@ -76,7 +76,7 @@ export class Scope {
 
   // Add a method to this scope.
   @clearMemoized("_methods")
-  addMethod(method) { return this._addItem(method, "methods", Method) }
+  addMethod(method, results) { return this._addItem(method, "methods", results, Method) }
 
   // Return definition of `method` anywhere in our parent chain.
   getMethod(name) {
@@ -93,7 +93,7 @@ export class Scope {
 
   // Add a type to this scope.
   @clearMemoized("_types")
-  addType(type) { return this._addItem(type, "types", Type) }
+  addType(type, results) { return this._addItem(type, "types", results, Type) }
 
   // Return definition of `type` anywhere in our parent chain.
   getType(name) {
@@ -101,24 +101,16 @@ export class Scope {
   }
 
   // Return the named type, creating and adding one if necessary.
-  getOrAddType(name) {
-    let type = this.getType(name);
-    if (!type) {
-      type = new Type({ name, scope: this });
-      this.addType(type);
-    }
-    return type;
+  getOrAddType(name, results) {
+    return this.getType(name) || this.addType({ name }, results);
   }
 
 
   /////////////////
   //  Statements
   //
-  addStatement(...statements) {
-    statements = flatten(statements);
-    this.statements = this.statements
-      ? [...this.statements, ...statements]
-      : statements;
+  addStatement(statement, results) {
+    return this._addItem(statement, "statements", results);
   }
 
   compileStatements(statements = this.statements) {
@@ -275,19 +267,21 @@ export class Scope {
   // If you pass a vanilla Object, we'll do use `new Constructor(item)`.
   // You'll receive the item back.
   // NOTE: this modifies the item!  Create a clone before calling this if you care!
-  _addItem(item, listProp, constructor, customizer) {
+  _addItem(item, listProp, results, constructor) {
+    if (!item) return;
+
     // Coerce to an instance of constructor
     if (constructor && item.constructor === Object) item = new constructor(item);
 
-    // add to list and array
+    // add to list
     if (!this[listProp]) this[listProp] = [];
     this[listProp].push(item);
 
-    // set item scope.
-    item.scope = this;
+    // Have the item point back to this scope (if it's not a string)
+    if (typeof item !== "string") item.scope = this;
 
-    // call customizer if provided
-    if (customizer) customizer(item);
+    // Add to results if provided.
+    if (results && results.statements) results.statements.push(item);
 
     return item;
   }
@@ -295,46 +289,6 @@ export class Scope {
 
 // Module
 export class Module extends Scope {}
-
-
-// Variable definition, including:
-//      - global variable
-//      - block-local variable
-//      - class property
-//      - instance property
-//
-// Expected properties:
-//  - module
-//  - scope
-//  - name
-//  - datatype
-//  - initializer
-export class Variable {
-  constructor(props) {
-    assert(props.name, "Variables must be created with a 'name'");
-    // Assign all properties in the order provided.
-    Object.assign(this, props);
-  }
-
-  compile() {
-    // If we're attached to a Type,
-    if (this.scope instanceof Type) {
-      // Add class props directly
-      if (this.kind === "static")
-        return `${this.scope.name}.${this.name} = ${this.initializer}`;
-      // Add instance props with defineProp
-      return `defineProp(${this.scope.name}.prototype, '${this.name}', { value: ${this.initializer} })`;
-    }
-
-    // Return as a normal var declaration
-    // TODO: note if var has been used before, etc.
-    return `var ${name} = ${initializer}`
-  }
-
-  toString() {
-    return this.compile();
-  }
-}
 
 
 // Method
@@ -429,8 +383,9 @@ export class Type extends Scope {
 
   // Add a classVar to this scope.
   @clearMemoized("_classVars")
-  addClassVar(variable) {
-    return this._addItem(variable, "classVars", Variable, (variable) => variable.kind = "static")
+  addClassVar(variable, results) {
+    variable.kind = "static";
+    return this._addItem(variable, "classVars", results, Variable)
   }
 
   @memoize
@@ -438,8 +393,50 @@ export class Type extends Scope {
 
   // Add a classMethod to this scope.
   @clearMemoized("_classMethods")
-  addClassMethod(method) {
-    return this._addItem(method, "classMethods", Method, (method) => method.kind = "static")
+  addClassMethod(method, results) {
+    method.kind = "static";
+    return this._addItem(method, "classMethods", results, Method)
+  }
+}
+
+
+
+// Variable definition, including:
+//      - global variable
+//      - block-local variable
+//      - class property
+//      - instance property
+//
+// Expected properties:
+//  - module
+//  - scope
+//  - name
+//  - datatype
+//  - initializer
+export class Variable {
+  constructor(props) {
+    assert(props.name, "Variables must be created with a 'name'");
+    // Assign all properties in the order provided.
+    Object.assign(this, props);
+  }
+
+  compile() {
+    // If we're attached to a Type,
+    if (this.scope instanceof Type) {
+      // Add class props directly
+      if (this.kind === "static")
+        return `${this.scope.name}.${this.name} = ${this.initializer}`;
+      // Add instance props with defineProp
+      return `defineProp(${this.scope.name}.prototype, '${this.name}', { value: ${this.initializer} })`;
+    }
+
+    // Return as a normal var declaration
+    // TODO: note if var has been used before, etc.
+    return `var ${name} = ${initializer}`
+  }
+
+  toString() {
+    return this.compile();
   }
 }
 

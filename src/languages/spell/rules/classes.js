@@ -33,8 +33,7 @@ parser.defineRule({
         name: Type,
         superType: SuperType
       });
-      scope.addStatement(declareType);
-      results.statements.push(declareType);
+      scope.addStatement(declareType, results);
       return results;
     }
   },
@@ -64,8 +63,7 @@ parser.defineRule({
     const { type, props = "" } = results; // `props` is the object literal text
     const Type = upperFirst(type);
     const statement = `new ${Type}(${props})`;
-    scope.addStatement(statement);
-    results.statements.push(statement);
+    scope.addStatement(statement, results);
     return results;
   },
   tests: [
@@ -189,7 +187,6 @@ parser.defineRule({
           returns: "undefined",     // setters don't actually return a value... :-(
         })
       );
-scope.info("define_property_has: ", results);
       return results;
     }
   },
@@ -321,8 +318,8 @@ parser.defineRule({
   constructor: class quoted_property_name extends Statement {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
-      // Check the results -- if first word of `text` is not `is`, results will be undefined
-      // Meaning no match.
+      // Check the results -- if first word of `text` is not `is`,
+      // results will be undefined, meaning no match.
       if (match && !match.results) return undefined;
       return match;
     }
@@ -336,8 +333,8 @@ parser.defineRule({
       results.expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ");
       return inflectResults(results, "type");
     }
-    compile(match, scope) {
-      const { TypeName, typeName, property, expression, expressionSuffix } = match.results;
+    updateScope(scope, results) {
+      const { TypeName, typeName, property, expression, expressionSuffix } = results;
 
       // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
       scope.addExpressionSuffixRule({
@@ -350,15 +347,16 @@ parser.defineRule({
       });
 
       // Create an instance getter
-      return scope
+      const getter = scope
         .getOrAddType(TypeName)
         .addMethod({
           name: property,
           kind: "getter",
           datatype: "boolean",
           statements: [`return ${expression}`]
-        })
-        .compile();
+        });
+      results.statements.push(getter);
+      return results;
     }
   },
   tests: [
@@ -399,12 +397,11 @@ parser.defineRule({
       const results = super.getResults(match, scope);
       return inflectResults(results, "type");
     }
-    compile(match, scope) {
-      let { TypeName, typeName, property, value, otherValue, condition } = match.results;
+    updateScope(scope, results) {
+      let { TypeName, typeName, property, value, otherValue, condition } = results;
 
-      // Create as an instance getter
-      return scope
-        .getOrAddType(TypeName)
+      scope.getOrAddType(TypeName)
+        // Create as an instance getter
         .addMethod({
           name: property,
           kind: "getter",
@@ -412,8 +409,7 @@ parser.defineRule({
           statements: otherValue
             ? [`return !!${condition} ? ${value} : ${otherValue}`]
             : [`if (${condition}) return ${value}`]
-        })
-        .compile();
+        }, results)
     }
   },
   tests: [
@@ -440,16 +436,15 @@ parser.defineRule({
       const results = super.getResults(match, scope);
       return inflectResults(results, "type");
     }
-    compile(match, scope) {
-      let { Type, property, expression } = match.results;
-      return scope
+    updateScope(scope, results) {
+      let { Type, property, expression } = results;
+      scope
         .getOrAddType(Type)
         .addMethod({
           kind: "getter",
           name: property,
           statements: [`return ${expression}`],
-        })
-        .compile();
+        }, results)
     }
   },
   tests: [

@@ -50,12 +50,12 @@ export class Block extends Rule {
         if (!statement) return;
         matched = matched.concat(statement);
 
-        if (statement.updateScope) {
-          statement.updateScope();
-        }
+        // We've locked in this statement -- have it update it's scope.
+        // This may create other rules/vars/etc that later statements will use.
+        statement.updateScope();
 
-        // the statement is a BlockStatement and the next item is a Block
-        // parse it and give it to the statement.
+        // If the `statement` is a `BlockStatement` and the next item is a `Block`
+        // parse the block and hand it to the `statement`.
         if (statement.rule instanceof BlockStatement) {
           const next = block.contents[i+1];
           if (next instanceof Token.Block) {
