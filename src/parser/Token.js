@@ -195,8 +195,7 @@ Token.Block = class block extends Token {
   }
 
   toString() {
-//TODO: this returns a JSON structure rather than a nested string
-//      and we can't get the full output anyway since we don't have whitespace
-    return JSON.stringify(this, null, "\t");
+    return this.contents.map(item => item instanceof Token.Block ? ""+item : item.join(""))
+      .join("\n");
   }
 }

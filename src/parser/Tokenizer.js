@@ -785,8 +785,8 @@ export class Tokenizer {
     return 0;
   }
 
-  // Break `tokens` into a `Token.Block` with nested `contents`.
-  // Each `block` is a series of lines, with newline/indent at the start.
+  // Break `tokens` into a `Token.Block` via leading `Token.Indent`s at the beginning of lines.
+  // `block.contents` are the lines/nested blocks found.
   breakIntoBlocks(tokens) {
     // break into lines & return early if no lines
     const lines = this.breakIntoLines(tokens);
