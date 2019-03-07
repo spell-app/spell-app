@@ -12,7 +12,7 @@ import {
   inflectResults,
   inflectResultsArray,
   parseMethodKeywords
-} from "./all.js";
+} from "../all.js";
 
 const parser = new SpellParser({ module: "classes" });
 export default parser;

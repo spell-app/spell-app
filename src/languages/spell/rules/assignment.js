@@ -5,7 +5,7 @@
 import {
   Rule,
   SpellParser,
-} from "./all.js";
+} from "../all.js";
 
 const parser = new SpellParser({ module: "assignment" });
 export default parser;

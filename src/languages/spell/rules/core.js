@@ -5,7 +5,7 @@ import {
   Rule,
   SpellParser,
   Token,
-} from "./all.js";
+} from "../all.js";
 
 import identifierBlacklist from "./identifier-blacklist.js";
 

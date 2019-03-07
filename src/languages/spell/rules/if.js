@@ -6,7 +6,7 @@ import {
   BlockStatement,
   Rule,
   SpellParser,
-} from "./all.js";
+} from "../all.js";
 
 const parser = new SpellParser({ module: "if" });
 export default parser;

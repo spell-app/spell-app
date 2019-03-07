@@ -6,7 +6,7 @@
 import {
   Rule,
   SpellParser,
-} from "./all.js";
+} from "../all.js";
 
 const parser = new SpellParser({ module: "math" });
 export default parser;

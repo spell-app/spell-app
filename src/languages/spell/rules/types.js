@@ -10,9 +10,9 @@ import {
   Rule,
   SpellParser,
   Token,
-} from "./all.js";
 
-import { pluralize } from "../../utils/all.js";
+  pluralize
+} from "../all.js";
 
 const parser = new SpellParser({ module: "types" });
 export default parser;

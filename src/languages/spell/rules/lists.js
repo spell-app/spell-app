@@ -8,9 +8,9 @@ import {
   BlockStatement,
   Rule,
   SpellParser,
-} from "./all.js";
 
-import { singularize } from "../../utils/all.js";
+  singularize
+} from "../all.js";
 
 const parser = new SpellParser({ module: "lists" });
 export default parser;

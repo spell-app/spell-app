@@ -6,7 +6,7 @@ import {
   Rule,
   SpellParser,
   peek
-} from "./all.js";
+} from "../all.js";
 
 const parser = new SpellParser({ module: "operators" });
 export default parser;

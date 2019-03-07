@@ -3,16 +3,16 @@ import { SpellParser } from "./SpellParser.js";
 import { Block } from "./Block.js";
 import { BlockLine } from "./BlockLine.js";
 
-import core from "./core.js";
-import assignment from "./assignment.js";
-import _if_ from "./if.js";
-import JSX from "./JSX.js";
-import lists from "./lists.js";
-import expressions from "./expressions.js";
-import math from "./math.js";
-import types from "./types.js";
-import UI from "./UI.js";
-import classes from "./classes.js";
+import core from "./rules/core.js";
+import assignment from "./rules/assignment.js";
+import _if_ from "./rules/if.js";
+import JSX from "./rules/JSX.js";
+import lists from "./rules/lists.js";
+import expressions from "./rules/expressions.js";
+import math from "./rules/math.js";
+import types from "./rules/types.js";
+import UI from "./rules/UI.js";
+import classes from "./rules/classes.js";
 
 // Create parser which combines all of the above...
 export const spell = new SpellParser({ module: "spell" });

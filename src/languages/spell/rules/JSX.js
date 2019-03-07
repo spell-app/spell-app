@@ -6,7 +6,7 @@ import {
   Rule,
   SpellParser,
   Token,
-} from "./all.js";
+} from "../all.js";
 
 const parser = new SpellParser({ module: "JSX" });
 export default parser;
