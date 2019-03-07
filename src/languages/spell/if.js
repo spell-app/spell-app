@@ -44,7 +44,7 @@ parser.defineRule({
     },
     {
       title: "correctly matches multi-line if blocks",
-      compileAs: "statements",
+      compileAs: "block",
       tests: [
         {
           title: "Separate blocks if no indentation on second line.",
@@ -109,7 +109,7 @@ parser.defineRule({
     },
     {
       title: "correctly matches multi-line else_if blocks",
-      compileAs: "statements",
+      compileAs: "block",
       tests: [
         {
           title: "Separate blocks if no indentation on second line.",
@@ -171,7 +171,7 @@ parser.defineRule({
     },
     {
       title: "correctly matches multi-line else blocks",
-      compileAs: "statements",
+      compileAs: "block",
       tests: [
         {
           title: "Separate blocks if no indentation on second line.",

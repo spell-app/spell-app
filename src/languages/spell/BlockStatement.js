@@ -18,7 +18,7 @@ import {
 //    - the formatted `statement`, enclosed in curly brackets,
 //    - `{}` if neither statement or block was matched.
 //
-class block_statement extends Rule.Sequence {
+export class BlockStatement extends Rule.Sequence {
   // Add `statements` to the results.
   getResults(match, scope) {
     const results = super.getResults(match, scope);
@@ -45,5 +45,3 @@ class block_statement extends Rule.Sequence {
     return `{\n${statement}\n}`;
   }
 };
-
-export { block_statement as BlockStatement };

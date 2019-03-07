@@ -188,6 +188,47 @@ parser.defineRule({
   ]
 });
 
+parser.defineRule({
+  name: "comment",
+  tokenType: Token.Comment,
+  compile(match) {
+    let { commentSymbol, initialWhitespace, value } = match.matched[0];
+    if (commentSymbol !== "//") commentSymbol = "//" + commentSymbol;
+    return `${commentSymbol}${initialWhitespace}${value}`;
+  },
+  tests: [
+    {
+      compileAs: "comment",
+      tests: [
+        ["//", "//"],
+        ["// foo", "// foo"],
+        ["-- foo", "//-- foo"],
+        ["## foo", "//## foo"],
+        ["//    foo bar baz", "//    foo bar baz"],
+      ]
+    }
+  ]
+});
+
+
+//
+//  Constants:
+//  - set up group for constants and an expression which returns constants from that group.
+//
+parser.defineRule({
+  name: "constant",
+  argument: "constant",
+  constructor: Rule.Group,
+});
+
+parser.defineRule({
+  name: "constant_identifier",
+  alias: ["expression", "single_expression"],
+  rule: "constant",
+  constructor: Rule.Subrule
+});
+
+
 // `undefined` as an expression... ???
 parser.defineRule({
   name: "undefined",
@@ -333,23 +374,6 @@ parser.defineRule({
   ]
 });
 
-//
-//  Constants:
-//  - set up group for constants and an expression which returns constants from that group.
-//
-parser.defineRule({
-  name: "constant",
-  argument: "constant",
-  constructor: Rule.Group,
-});
-
-parser.defineRule({
-  name: "constant_identifier",
-  alias: ["expression", "single_expression"],
-  rule: "constant",
-  constructor: Rule.Subrule
-});
-
 
 // `Type` = type name.
 // MUST start with an upper-case letter (?)
@@ -418,96 +442,3 @@ parser.defineRule({
   ]
 });
 
-
-// List of identifiers and/or numbers, e.g. "clubs or hearts", "jack, queen, king"
-// Note that this is not a generic "expression" -- it's too generic.
-parser.defineRule({
-  name: "identifier_list",
-  syntax: "[({constant:word}|{number})(,|or|and|nor)]",
-  datatype: "array",    // TODO: array of what?
-  tests: [
-    {
-      tests: [
-        ["up or down", ["up", "down"]],
-        ["red and black", ["red", "black"]],
-        ["back nor forth", ["back", "forth"]],
-        ["clubs, diamonds, hearts, spades", ["clubs", "diamonds", "hearts", "spades" ] ],
-        ["ace, 2, 3, 4, jack, queen or king", ["ace", 2, 3, 4, "jack", "queen", "king" ] ],
-      ]
-    }
-  ]
-});
-
-
-// Bracketed list (array), eg:  `[1,2 , true,false ]`
-parser.defineRule({
-  name: "bracketed_list",
-  alias: ["expression", "single_expression"],
-  datatype: "array",    // TODO: array of what?
-  syntax: "\\[ [list:{expression},]? \\]",
-  testRule: "\\[",
-  compile(match, scope) {
-    let { list } = match.results;
-    return `[${list ? list.join(", ") : ""}]`;
-  },
-  tests: [
-    {
-      title: "correctly matches literal lists",
-      tests: [
-        ["[]", "[]"],
-        ["[1]", "[1]"],
-        ["[1,]", "[1]"],
-        ["[1,2,3]", "[1, 2, 3]"],
-        ["[1, 2, 3]", "[1, 2, 3]"],
-        ["[1,2,3,]", "[1, 2, 3]"],
-        ["[yes,no,'a',1]", "[true, false, 'a', 1]"]
-      ]
-    },
-    {
-      title: "doesn't match malformed lists ",
-      tests: [["", undefined], ["[,1]", undefined]]
-    }
-  ]
-});
-
-// Parenthesized expression
-parser.defineRule({
-  name: "parenthesized_expression",
-  alias: ["expression", "single_expression"],
-  syntax: "\\( {expression} \\)",
-  testRule: "\\(",
-  compile(match, scope) {
-    let { expression } = match.results;
-    // don't double parens if not necessary
-    if (
-      typeof expression === "string" &&
-      expression.startsWith("(") &&
-      expression.endsWith(")")
-    )
-      return expression;
-    return "(" + expression + ")";
-  },
-  tests: [
-    {
-      title: "correctly matches parenthesized expressions",
-      tests: [
-        ["(someVar)", "(someVar)"],
-        ["((someVar))", "(someVar)"],
-        ["(1 and yes)", "(1 && true)"]
-      ]
-    },
-    {
-      title: "correctly matches multiple parenthesis",
-      compileAs: "expression",
-      tests: [
-        ["(1) and (yes)", "((1) && (true))"],
-        ["((1) and (yes))", "((1) && (true))"],
-        ["((1) and ((yes)))", "((1) && (true))"]
-      ]
-    },
-    {
-      title: "doesn't match malformed parenthesized expressions",
-      tests: [["(foo", undefined], ["(foo(bar)baz", undefined]]
-    }
-  ]
-});

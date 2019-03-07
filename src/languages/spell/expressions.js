@@ -12,6 +12,49 @@ const parser = new SpellParser({ module: "operators" });
 export default parser;
 
 
+// Parenthesized expression
+parser.defineRule({
+  name: "parenthesized_expression",
+  alias: ["expression", "single_expression"],
+  syntax: "\\( {expression} \\)",
+  testRule: "\\(",
+  compile(match, scope) {
+    let { expression } = match.results;
+    // don't double parens if not necessary
+    if (
+      typeof expression === "string" &&
+      expression.startsWith("(") &&
+      expression.endsWith(")")
+    )
+      return expression;
+    return "(" + expression + ")";
+  },
+  tests: [
+    {
+      title: "correctly matches parenthesized expressions",
+      tests: [
+        ["(someVar)", "(someVar)"],
+        ["((someVar))", "(someVar)"],
+        ["(1 and yes)", "(1 && true)"]
+      ]
+    },
+    {
+      title: "correctly matches multiple parenthesis",
+      compileAs: "expression",
+      tests: [
+        ["(1) and (yes)", "((1) && (true))"],
+        ["((1) and (yes))", "((1) && (true))"],
+        ["((1) and ((yes)))", "((1) && (true))"]
+      ]
+    },
+    {
+      title: "doesn't match malformed parenthesized expressions",
+      tests: [["(foo", undefined], ["(foo(bar)baz", undefined]]
+    }
+  ]
+});
+
+
 parser.defineRule({
   name: "compound_expression",
   alias: "expression",

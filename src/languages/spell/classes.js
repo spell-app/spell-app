@@ -283,7 +283,7 @@ parser.defineRule({
   },
   tests: [
     {
-      compileAs: "statements",
+      compileAs: "block",
       tests: [
         [
           "to start the game",
@@ -503,7 +503,7 @@ parser.defineRule({
   },
   tests: [
     {
-      compileAs: "statements",
+      compileAs: "block",
       tests: [
         ["a card is a {suit} if its suit is the suit",
           [
@@ -543,7 +543,7 @@ parser.defineRule({
   },
   tests: [
     {
-      compileAs: "statements",
+      compileAs: "block",
       tests: [
         ["for each card suit: the card is a {suit} if its suit is the suit",
           [

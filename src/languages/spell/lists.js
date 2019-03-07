@@ -15,6 +15,61 @@ import { singularize } from "../../utils/all.js";
 const parser = new SpellParser({ module: "lists" });
 export default parser;
 
+
+
+
+// List of identifiers and/or numbers, e.g. "clubs or hearts", "jack, queen, king"
+// Note that this is not a generic "expression" -- it's too generic.
+parser.defineRule({
+  name: "identifier_list",
+  syntax: "[({constant:word}|{number})(,|or|and|nor)]",
+  datatype: "array",    // TODO: array of what?
+  tests: [
+    {
+      tests: [
+        ["up or down", ["up", "down"]],
+        ["red and black", ["red", "black"]],
+        ["back nor forth", ["back", "forth"]],
+        ["clubs, diamonds, hearts, spades", ["clubs", "diamonds", "hearts", "spades" ] ],
+        ["ace, 2, 3, 4, jack, queen or king", ["ace", 2, 3, 4, "jack", "queen", "king" ] ],
+      ]
+    }
+  ]
+});
+
+
+// Bracketed list (array), eg:  `[1,2 , true,false ]`
+parser.defineRule({
+  name: "bracketed_list",
+  alias: ["expression", "single_expression"],
+  datatype: "array",    // TODO: array of what?
+  syntax: "\\[ [list:{expression},]? \\]",
+  testRule: "\\[",
+  compile(match, scope) {
+    let { list } = match.results;
+    return `[${list ? list.join(", ") : ""}]`;
+  },
+  tests: [
+    {
+      title: "correctly matches literal lists",
+      tests: [
+        ["[]", "[]"],
+        ["[1]", "[1]"],
+        ["[1,]", "[1]"],
+        ["[1,2,3]", "[1, 2, 3]"],
+        ["[1, 2, 3]", "[1, 2, 3]"],
+        ["[1,2,3,]", "[1, 2, 3]"],
+        ["[yes,no,'a',1]", "[true, false, 'a', 1]"]
+      ]
+    },
+    {
+      title: "doesn't match malformed lists ",
+      tests: [["", undefined], ["[,1]", undefined]]
+    }
+  ]
+});
+
+
 // WORKING FROM OTHER RULES (testme)
 //  `the length of <list>`
 //  `<thing> is not? in <list>`
@@ -748,7 +803,7 @@ parser.defineRule({
   },
   tests: [
     {
-      compileAs: "statements",
+      compileAs: "block",
       tests: [
         ["for each card in deck:", "for (const card of deck) {}"],
         ["for item, index in my-list:", "for (const [index, item] of spell.entries(my_list) {}"],

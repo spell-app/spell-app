@@ -3,7 +3,7 @@ import {
 } from "./all.js";
 
 // Parser error representation in parser output.
-SpellParser.StatementParseError = class parse_error extends Rule {
+export class StatementParseError extends Rule {
   get message() {
     if (this.parsed) {
       return (

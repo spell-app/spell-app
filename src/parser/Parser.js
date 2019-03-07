@@ -40,7 +40,7 @@ export class Parser {
   @proto TIME = false;
 
   // Name of our default rule to parse if calling `parser.parse(text)`.
-  @proto defaultRule = "statements";
+  @proto defaultRule = "block";
 
   // Constructor.
   constructor(properties) {
@@ -79,12 +79,11 @@ export class Parser {
   }
 
   // Parse `ruleName` rule at head of `text`.
-  // If you pass only one argument, we'll assume that's `text` and you want to match `statements`.
-  // Handles optional and repeating rules as well as eating whitespace.
+  // `text` can be a string to tokenize or an Array of tokens.
   // Returns result of parse.
   parse(text, ruleName = this.defaultRule, scope = this.getScope()) {
     // Bail if we didn't get any tokens back.
-    const tokens = this.tokenize(text, ruleName);
+    const tokens = Array.isArray(text) ? text : this.tokenize(text, ruleName);
     if (!tokens || tokens.length === 0) return undefined;
 
     if (Parser.TIME) console.time("parse");
@@ -106,7 +105,7 @@ export class Parser {
   }
 
   // Parse `text` and return the resulting source code.
-  //  - if one string argument, compiles as "statements"
+  //  - if one string argument, compiles as "block"
   // Throws if not parseable.
   compile(text, ruleName = this.defaultRule, scope = this.getScope()) {
     let match = this.parse(text, ruleName, scope);

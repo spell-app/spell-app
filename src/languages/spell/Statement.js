@@ -7,7 +7,7 @@ class statement extends Rule.Sequence {
   getResults(match, scope) {
     const results = super.getResults(match, scope);
     // Placeholder for statements (including var declarations etc) created during our `updateScope()`.
-//    results.statements = [];
+    results.statements = [];
     // Placeholder for parser `rules` created during our `updateScope()`
     results.rules = [];
     return results;

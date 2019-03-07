@@ -127,7 +127,7 @@ describe("Parser.import()", () => {
 // Set up parser used in the below
 const parser = new Parser();
 const statement = new Rule.Group({ name: "statement", argument: "statement" });
-const statements = new Rule.Repeat({ name: "statements", rule: new Rule.Subrule("statement") });
+const statements = new Rule.Repeat({ name: "block", rule: new Rule.Subrule("statement") });
 parser.defineRules(
   statement,
   statements,
@@ -148,7 +148,7 @@ parser.defineRules(
 
 describe("parser.parse()", () => {
   test("takes an explicit start rule", () => {
-    const match = parser.parse("dog and cat", "statements", );
+    const match = parser.parse("dog and cat", "block", );
     expect(match.rule).toBe(statements);
   });
 
@@ -158,7 +158,7 @@ describe("parser.parse()", () => {
   });
 
   test("returns undefined if no text parses", () => {
-    const match = parser.parse("", "statements");
+    const match = parser.parse("", "block");
     expect(match).toBe(undefined);
   });
 

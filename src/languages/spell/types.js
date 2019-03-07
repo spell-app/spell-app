@@ -269,7 +269,7 @@ parser.defineRule({
   },
   tests: [
     {
-      compileAs: "statements",
+      compileAs: "block",
       tests: [
         ["get foo:", "get foo() {}"],
         ["get foo: a", "get foo() { return a }"],
@@ -311,7 +311,7 @@ parser.defineRule({
   },
   tests: [
     {
-      compileAs: "statements",
+      compileAs: "block",
       tests: [
         // no body
         ["set color", "set color(color) {}"],
@@ -371,7 +371,7 @@ parser.defineRule({
 //   },
 //   tests: [
 //     {
-//       compileAs: "statements",
+//       compileAs: "block",
 //       tests: [
 //         ["on foo", "foo() {}"],
 //         ["to foo", "foo() {}"],
@@ -446,7 +446,7 @@ parser.defineRule({
   },
   tests: [
     {
-      compileAs: "statements",
+      compileAs: "block",
       showAll: true,
       tests: [
         ["action turn Card over:", "static turn_card_over(card) {}"],

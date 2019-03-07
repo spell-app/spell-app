@@ -8,7 +8,7 @@ import {
 
 export class SpellParser extends Parser {
   // Name of our default rule to parse if calling `parser.parse(text)`.
-  @proto defaultRule = "statements";
+  @proto defaultRule = "block";
 
   @proto tokenizer = new Tokenizer({
     // Remove "normal" whitespace (leaving newlines and indents) when parsing
@@ -17,10 +17,10 @@ export class SpellParser extends Parser {
 
   @proto outputScope = false;
 
-  // If we're tokenizing "statements", parse them into blocks.
+  // If we're tokenizing "block", parse them into blocks.
   tokenize(text, ruleName) {
     const tokens = super.tokenize(text);
-    if (ruleName === "statements") return this.tokenizer.breakIntoBlocks(tokens);
+    if (ruleName === "block") return this.tokenizer.breakIntoBlocks(tokens);
     return tokens;
   }
 
