@@ -10,7 +10,6 @@ export * from "./SpellParser.js"
 export * from "./Block.js"
 export * from "./BlockLine.js"
 export * from "./Statement.js"
-export * from "./BlockStatement.js"
 export * from "./StatementParseError.js"
 export * from "./inflection.js";
 

@@ -1,5 +1,4 @@
 import {
-  BlockStatement,
   Match,
   Rule,
   SpellParser,
@@ -53,26 +52,18 @@ export class Block extends Rule {
         // This may create other rules/vars/etc that later statements will use.
         statement.updateScope();
 
-        // If the `statement` is a `BlockStatement` and the next item is a `Block`
-        // parse the block and hand it to the `statement`.
+        // If `statement.results.$scope` exists and the next item is a block,
+        // parse the block and add it to the `statement`.
         const next = block.contents[i+1];
         if (!(next instanceof Token.Block)) continue;
-        if (!statement.rule.addBlock && !(statement.rule instanceof BlockStatement)) continue;
+        if (!statement.results.$scope) continue;
 
-// TODO: create nested scope!!!
-// TODO: how do we know what type?  (method, etc)???
         const blockMatch = this.parseBlock(scope, next);
         if (!blockMatch) continue;
-        i++;
 
-        if (statement.rule.addBlock) {
-          statement.rule.addBlock(scope, statement.results, blockMatch);
-        }
-        // OLD SCHOOL: deprecate this
-        else {
-          blockMatch.enclose = true;
-          statement.block = blockMatch;
-        }
+        statement.results.$scope.addBlock(blockMatch);
+        // We've already processed this item
+        i++;
       }
     }
 

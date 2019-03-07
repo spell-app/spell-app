@@ -1,5 +1,4 @@
 import {
-  BlockStatement,
   Rule,
   Scope,
   SpellParser,
@@ -221,7 +220,7 @@ parser.defineRule({
   name: "to_do_something",
   alias: "statement",
   syntax: "to (keywords:{word}|{type})+ :? {statement}?",
-  constructor: class define_type extends Statement {    // TODO: BlockStatement
+  constructor: class define_type extends Statement {
     getResults(match, scope) {
       const results = super.getResults(match, scope);
       return parseMethodKeywords(results);
@@ -231,13 +230,13 @@ parser.defineRule({
       const methodProps = { name: method, args };
       if (results.Type) {
         const typeScope = scope.getOrAddType(Type);
-        results.$method = typeScope.addClassMethod({ name: method, args }, results);
+        results.$scope = typeScope.addClassMethod({ name: method, args }, results);
         // compile method for statementRule
         results.compile = function({ callArgs = "" }) { return `${Type}.${method}(${callArgs})` }
       }
       // Create as a top-level rule...???
       else {
-        results.$method = scope.addMethod({ name: method, args }, results);
+        results.$scope = scope.addMethod({ name: method, args }, results);
         // compile method for statementRule
         // TODO: need to work module scope in there?
         results.compile = function({ callArgs = "" }) { return `${method}(${callArgs})` }
@@ -250,9 +249,6 @@ parser.defineRule({
         compile: results.compile,
         statement
       }, results);
-    }
-    addBlock(scope, results, block) {
-      results.$method.addBlock(block, results);
     }
   },
   tests: [

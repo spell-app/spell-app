@@ -27,11 +27,20 @@ export class Scope {
 
     // Assign all properties in the order they were passed
     Object.assign(this, props);
+
+    // If we were passed a single `statement`, put it in our `statements`.
+    if (this.hasOwnProperty("statement")) {
+      this.addStatement(this.statement);
+      delete this.statement;
+    }
   }
 
+  //
+  //  Compiling
+  //
+
   compile() {
-    // TODO
-    return "Don't know how to compile a base Scope";
+    return this.compileStatements();
   }
 
   toString() {
@@ -113,7 +122,7 @@ export class Scope {
     return this._addItem(statement, "statements", results);
   }
 
-  // Add a Match for a Block (e.g. from parsing a nested block in a BlockStatement)
+  // Add a Match for a Block, e.g. from an `if` or `forEach` which has nested statements.
   addBlock(block, results) {
     block.matched.forEach(match => {
       this.addStatement(match.compile());   // TODO: not clear if we should add to `results`... ???
@@ -122,6 +131,8 @@ export class Scope {
 
   compileStatements(statements = this.statements) {
     if (!statements || statements.length === 0) return "{}";
+    // Hack whitespace off of the end of lines as necessary
+    statements = statements.map(statement => (""+statement).trimEnd());
     if (statements.length === 1) return `{ ${statements} }`;
     return `{\n  ${this.statements.join("\n  ")}\n}`;
   }
@@ -295,10 +306,9 @@ export class Module extends Scope {}
 //  - args        // NOTE: we DO NOT expect args to change after Method is created!
 //  - returns
 export class Method extends Scope {
-  constructor({ args, statement, ...props}) {
+  constructor({ args, ...props}) {
     super(props);
     if (args) args.forEach(arg => this.addArg(arg));
-    if (statement) this.addStatement(statement);
   }
 
   @memoize

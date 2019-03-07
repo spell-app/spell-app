@@ -5,7 +5,6 @@
 // TODO: confirm identifiers are plural in some of the below?
 
 import {
-  BlockStatement,
   Method,
   Rule,
   Scope,
@@ -793,19 +792,16 @@ parser.defineRule({
   alias: "statement",
   syntax: "for each? {item:identifier} (?:(and|,) {position:identifier})? in {list:expression} :? {statement}?",
   testRule: "for",
-  constructor: Statement,   // TODO: BlockStatement
+  constructor: Statement,
   updateScope(scope, results) {
     const { item, position, list, statement } = results;
     // Set up the method we'll call in the `forEach`
-    results.$method = new Method({ scope, args: [{ name: item }], statement });
-    if (position) results.$method.addArg({ name: position, type: "number" });
-  },
-  addBlock(scope, results, block) {
-    results.$method.addBlock(block, results);
+    results.$scope = new Method({ scope, args: [{ name: item }], statement });
+    if (position) results.$scope.addArg({ name: position, type: "number" });
   },
   compile(match, scope) {
-    const { list, $method } = match.results;
-    return `spell.forEach(${list}, ${$method.compile()})`;
+    const { list, $scope } = match.results;
+    return `spell.forEach(${list}, ${$scope.compile()})`;
   },
   tests: [
     {

@@ -6,7 +6,6 @@
 // TODO: mixins / traits / composed classes / annotations
 
 import {
-  BlockStatement,
   Rule,
   SpellParser,
   Token,

@@ -1,4 +1,15 @@
-for each foo in bar: set the baz of foo to 1
-for each foo and index in bar:
-	set the baz of foo to index
-	set the bang of foo to 3
+to foo the bar
+	a = 1
+
+	b = 2
+
+if a
+
+if a
+	b = 1
+	if c
+		c = 2
+		d = 3
+
+if a
+b = 1

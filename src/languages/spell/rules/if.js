@@ -3,9 +3,10 @@
 //
 
 import {
-  BlockStatement,
   Rule,
+  Scope,
   SpellParser,
+  Statement,
 } from "../all.js";
 
 const parser = new SpellParser({ module: "if" });
@@ -24,10 +25,15 @@ parser.defineRule({
   alias: "statement",
   syntax: "if {condition:expression} (then|:)? {statement}?",
   testRule: "if",
-  constructor: BlockStatement,
+  constructor: Statement,
+  updateScope(scope, results) {
+    // create a child $scope to add statements to below
+    results.$scope = new Scope({ scope, statement: results.statement });
+  },
   compile(match, scope) {
-    const { condition, statements } = match.results;
-    return `if ${parenthesizeCondition(condition)} ${statements}`;
+    match.updateScope();
+    const { condition, $scope } = match.results;
+    return `if ${parenthesizeCondition(condition)} ${$scope.compile()}`;
   },
   tests: [
     {
@@ -49,32 +55,42 @@ parser.defineRule({
         {
           title: "Separate blocks if no indentation on second line.",
           input: "if a:\nb = 1",
-          output: "if (a) {}\nb = 1"
+          output: "if (a) {}\nb = 1"    // NOTE: this is correct!
         },
         {
-          title: "Indent with tab",
+          title: "Single tabbed statement appears inline",
           input: "if a:\n\tb = 1",
-          output: "if (a) {\n\tb = 1\n}"
+          output: "if (a) { b = 1 }"
         },
         {
           title: "ANY number of spaces should count as indentation",
           input: "if a:\n b = 1",
-          output: "if (a) {\n\tb = 1\n}"
+          output: "if (a) { b = 1 }"
+        },
+        {
+          title: "Indent with tab, output has 2 spaces",
+          input: "if a:\n\tb = 1\n\tc=1",
+          output: "if (a) {\n  b = 1\n  c = 1\n}"
         },
         {
           title: "Multiple lines in the nested block",
           input: "if a:\n\tb = 1\n\tc = 2",
-          output: "if (a) {\n\tb = 1\n\tc = 2\n}"
+          output: "if (a) {\n  b = 1\n  c = 2\n}"
         },
+//         {
+//           title: "Blank lines in the nested block are carried over",
+//           input: "if a:\n\tb = 1\n\n\n\tc = 2",
+//           output: "if (a) {\n  b = 1\n  \n  \n  c = 2\n}"
+//         },
         {
           title: "Nested ifs work fine",
           input: "if a\n\tif b\n\t\tc=2",
-          output: "if (a) {\n\tif (b) {\n\t\tc = 2\n\t}\n}"
+          output: "if (a) { if (b) { c = 2 } }"
         },
         {
-          title: "Prefer nested block to inlined statement",
+          title: "Both nested block and inline statements are used",
           input: "if a b = 1\n\tc = 2",
-          output: "if (a) {\n\tc = 2\n}"
+          output: "if (a) {\n  b = 1\n  c = 2\n}"
         }
       ]
     }
@@ -89,10 +105,15 @@ parser.defineRule({
   syntax: "(else|otherwise) if {condition:expression} (then|:)? {statement}?",
   testRule: "(else|otherwise)",
   precedence: 1,
-  constructor: BlockStatement,
+  constructor: Statement,
+  updateScope(scope, results) {
+    // create a child $scope to add statements to below
+    results.$scope = new Scope({ scope, statement: results.statement });
+  },
   compile(match, scope) {
-    const { condition, statements } = match.results;
-    return `else if ${parenthesizeCondition(condition)} ${statements}`;
+    match.updateScope();
+    const { condition, $scope } = match.results;
+    return `else if ${parenthesizeCondition(condition)} ${$scope.compile()}`;
   },
   tests: [
     {
@@ -119,27 +140,27 @@ parser.defineRule({
         {
           title: "Indent with tab",
           input: "else if a:\n\tb = 1",
-          output: "else if (a) {\n\tb = 1\n}"
+          output: "else if (a) { b = 1 }"
         },
         {
           title: "ANY number of spaces should count as indentation",
           input: "else if a:\n b = 1",
-          output: "else if (a) {\n\tb = 1\n}"
+          output: "else if (a) { b = 1 }"
         },
         {
           title: "Multiple lines in the nested block",
           input: "else if a:\n\tb = 1\n\tc = 2",
-          output: "else if (a) {\n\tb = 1\n\tc = 2\n}"
+          output: "else if (a) {\n  b = 1\n  c = 2\n}"
         },
         {
           title: "Nested ifs work fine",
           input: "else if a\n\tif b\n\t\tc=2",
-          output: "else if (a) {\n\tif (b) {\n\t\tc = 2\n\t}\n}"
+          output: "else if (a) { if (b) { c = 2 } }"
         },
         {
-          title: "Prefer nested block to inlined statement",
+          title: "Both inline statement and nested block are used",
           input: "else if a b = 1\n\tc = 2",
-          output: "else if (a) {\n\tc = 2\n}"
+          output: "else if (a) {\n  b = 1\n  c = 2\n}"
         }
       ]
     }
@@ -151,10 +172,15 @@ parser.defineRule({
   alias: "statement",
   syntax: "(else|otherwise) :? {statement}?",
   testRule: "(else|otherwise)",
-  constructor: BlockStatement,
+  constructor: Statement,
+  updateScope(scope, results) {
+    // create a child $scope to add statements to below
+    results.$scope = new Scope({ scope, statement: results.statement });
+  },
   compile(match, scope) {
-    const { statements } = match.results;
-    return `else ${statements}`;
+    match.updateScope();
+    const { $scope } = match.results;
+    return `else ${$scope.compile()}`;
   },
   tests: [
     {
@@ -181,17 +207,17 @@ parser.defineRule({
         {
           title: "Indent with tab",
           input: "else\n\tb = 1",
-          output: "else {\n\tb = 1\n}"
+          output: "else { b = 1 }"
         },
         {
           title: "ANY number of spaces should count as indentation",
           input: "else\n b = 1",
-          output: "else {\n\tb = 1\n}"
+          output: "else { b = 1 }"
         },
         {
           title: "Multiple lines in the nested block",
           input: "else\n\tb = 1\n\tc = 2",
-          output: "else {\n\tb = 1\n\tc = 2\n}"
+          output: "else {\n  b = 1\n  c = 2\n}"
         }
       ]
     }
