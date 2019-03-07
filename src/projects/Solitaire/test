@@ -2,5 +2,6 @@ to play a card on a pile
 	set the pile of the card to the pile
 	add the card to the pile
 
-to start the game
-	alert 1
+to start the game: alert 1
+
+start the game

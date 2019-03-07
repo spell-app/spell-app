@@ -219,7 +219,7 @@ parser.defineRule({
 // TODO: arguments
 parser.defineRule({
   name: "to_do_something",
-  alias: ["statement"],
+  alias: "statement",
   syntax: "to (keywords:{word}|{type})+ :? {statement}?",
   constructor: class define_type extends Statement {    // TODO: BlockStatement
     getResults(match, scope) {
@@ -227,46 +227,28 @@ parser.defineRule({
       return parseMethodKeywords(results);
     }
     updateScope(scope, results) {
-      const { Type, method, args, instanceMethod, instanceArgs, syntax } = results;
+      const { Type, method, args, instanceMethod, instanceArgs, statement, syntax } = results;
+      const methodProps = { name: method, args };
       if (results.Type) {
         const typeScope = scope.getOrAddType(Type);
-        // add as an class method and remember as $method for `addBlock()` below.
-        results.$method = typeScope
-          .addClassMethod({
-            name: method,
-            args: args
-          }, results);
-
-        // add a rule to match the new syntax,
-        //  e.g. spell `add {callArgs:expression} to {callArgs:expression}`
-        scope.addStatementRule({
-          name: method,
-          syntax,
-          compile(match, scope) {
-            const { callArgs } = match.results;
-            const args = Array.isArray(callArgs) ? callArgs.join(",") : callArgs;
-            return `${Type}.${method}(${args})`;
-          }
-        }, results);
+        results.$method = typeScope.addClassMethod({ name: method, args }, results);
+        // compile method for statementRule
+        results.compile = function({ callArgs = "" }) { return `${Type}.${method}(${callArgs})` }
       }
+      // Create as a top-level rule...???
       else {
-        const { method, args, syntax } = results;
-        results.$method = scope.addMethod({
-          name: method,
-          args
-        }, results);
-        // Add a rule to call the method
-        scope.addStatementRule({
-          name: method,
-          syntax,
-          compile(match, scope) {
-            // TODO: need to reference scope in the method declaration...
-            const { callArgs } = match.results;
-            const args = Array.isArray(callArgs) ? callArgs.join(",") : callArgs;
-            return `${method}(${args})`;
-          }
-        }, results);
+        results.$method = scope.addMethod({ name: method, args }, results);
+        // compile method for statementRule
+        // TODO: need to work module scope in there?
+        results.compile = function({ callArgs = "" }) { return `${method}(${callArgs})` }
       }
+
+      // Add a rule to match the new syntax,
+      scope.addStatementRule({ name: method, syntax, compile: results.compile }, results);
+
+      // If they provided an inline statement, add it now
+      if (statement)
+        results.$method.addStatement(statement, results);
     }
     addBlock(scope, results, block) {
       block.matched.forEach(match =>
