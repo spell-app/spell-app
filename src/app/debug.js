@@ -22,7 +22,6 @@ precedence.setDebugLevel("INFO");
 
 // Output source when rendering statements
 SpellParser.prototype.outputSource = true;
-SpellParser.prototype.outputScope = true;
 SpellParser.prototype.setDebugLevel("INFO");
 
 // Set Parser / Tokenizer debug flags

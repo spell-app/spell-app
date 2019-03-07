@@ -15,8 +15,6 @@ export class SpellParser extends Parser {
     whitespacePolicy: WhitespacePolicy.LEADING_ONLY
   });
 
-  @proto outputScope = false;
-
   // If we're tokenizing "block", parse them into blocks.
   tokenize(text, ruleName) {
     const tokens = super.tokenize(text);
@@ -26,7 +24,6 @@ export class SpellParser extends Parser {
 
   parse(...args) {
     const result = super.parse(...args);
-//    if (result && this.outputScope) this.info(result.scope);
     return result;
   }
 }
