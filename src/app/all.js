@@ -5,6 +5,6 @@ export * from "./redux/all.js";
 
 // Parser bits
 export * from "../parser/all.js";
-export spell, { SpellParser } from "../languages/spell/all.js";
+export spell, { SpellParser, Scope } from "../languages/spell/all.js";
 export rulex from "../languages/rulex/all.js";
 

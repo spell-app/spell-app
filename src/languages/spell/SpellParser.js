@@ -5,7 +5,7 @@ import {
   WhitespacePolicy,
 
   proto
-} from "../../parser/all.js";
+} from "./all.js";
 
 export class SpellParser extends Parser {
   // Name of our default rule to parse if calling `parser.parse(text)`.
