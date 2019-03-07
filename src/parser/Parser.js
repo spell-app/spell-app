@@ -67,12 +67,16 @@ export class Parser {
   //### Parsing
   //
 
-  // Return a scope with a new parser which depends on this parser.
-  // This lets us update rules/etc as desired without affecting the original parser.
-  getScope(module = "ad_hoc") {
-    const parser = new this.constructor({ module });
-    parser.import(this);
-    return new Module({ name: module, parser });
+  // Return a `scope` for top-level `parse()` or `compile()` if one was not provided.
+  //
+  // The default is just to return this parser, but some languages (e.g. spell) manage
+  // much more complete scopes which proxy methods from the parser.
+  //
+  // The only hard requirement for a scope is that you must define:
+  //  - `scope.getRuleOrDie(ruleName)` to return a named rile.
+  //
+  getScope() {
+    return this;
   }
 
   // Parse `ruleName` rule at head of `text`.
@@ -126,6 +130,14 @@ export class Parser {
   get rules() {
     if (!this.imports) return {...this._rules};
     return this.mergeRuleSets(this._rules, ...this.imports.map(parser => parser.rules));
+  }
+
+  // Return a named rule from our parser.
+  // Throws if not found.
+  getRuleOrDie(ruleName) {
+    const rule = this.rules[ruleName];
+    if (!rule) throw new ParseError(`getRuleOrDie('${ruleName}'): rule not found`);
+    return rule;
   }
 
   // Add a `rule` to our list of rules!

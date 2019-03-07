@@ -1,4 +1,5 @@
 import {
+  Module,
   Parser,
   Tokenizer,
   WhitespacePolicy,
@@ -14,6 +15,14 @@ export class SpellParser extends Parser {
     // Remove "normal" whitespace (leaving newlines and indents) when parsing
     whitespacePolicy: WhitespacePolicy.LEADING_ONLY
   });
+
+  // Return a scope with a new parser which depends on this parser.
+  // This lets us update rules/etc as desired without affecting the original parser.
+  getScope(module = "ad_hoc") {
+    const parser = new this.constructor({ module });
+    parser.import(this);
+    return new Module({ name: module, parser });
+  }
 
   // If we're tokenizing "block", parse them into blocks.
   tokenize(text, ruleName) {

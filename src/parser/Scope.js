@@ -137,11 +137,7 @@ export class Scope {
 
   // Return a named rule from our parser.
   // Throws if not found.
-  getRuleOrDie(ruleName) {
-    let rule = this.parser?.rules[ruleName];
-    if (!rule) throw new ParseError(`getRuleOrDie('${ruleName}'): rule not found`);
-    return rule;
-  }
+  getRuleOrDie(ruleName) { return this.parser?.getRuleOrDie(ruleName) }
 
   // Add a generic rule.
   // `ruleProps` can be properties or an actual rule instance.

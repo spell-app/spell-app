@@ -24,7 +24,6 @@ export class Block extends Rule {
   }
 
   // Parse an entire `block`, returning array of matched elements (NOT as a match).
-  // NOTE: we assume we should reset `scope.rules` because we're entering a new parsing context
   parseBlock(scope, block) {
     let matched = [];
     for (var i = 0, item; item = block.contents[i]; i++) {
