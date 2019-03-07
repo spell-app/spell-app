@@ -74,6 +74,7 @@ export class Block extends Rule {
       matched,
       indent: block.indent,
       scope,
+      length: 1   // matched one block...
     })
   }
 
