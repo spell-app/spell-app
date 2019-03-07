@@ -9,6 +9,28 @@ Tokenizer.prototype.setDebugLevel("ERROR");
 // FIXME:  this is only working with our default tokenizer...
 const tokenizer = new Tokenizer();
 
+
+//
+//  Join tokens
+//
+describe("Tokenizer.join()", () => {
+  test("works as expected with no start/end", () => {
+    const tokens = tokenizer.tokenize("if (a) then b = 'some string' + 1");
+    expect(Tokenizer.join(tokens)).toBe("if (a) then b = 'some string' + 1");
+  });
+  test("works as expected with start and no end", () => {
+    const tokens = tokenizer.tokenize("if (a) then b = 'some string' + 1");
+    expect(Tokenizer.join(tokens, 1)).toBe("(a) then b = 'some string' + 1");
+  });
+  test("works as expected with start and end", () => {
+    const tokens = tokenizer.tokenize("if (a) then b = 'some string' + 1");
+    expect(Tokenizer.join(tokens, 1, -1)).toBe("(a) then b = 'some string' +");
+  });
+});
+
+
+//TODO: describe() blocks for the below...
+
 //
 // eatWhitespace()
 //
