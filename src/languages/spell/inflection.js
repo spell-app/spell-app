@@ -52,19 +52,21 @@ export function inflectResultsArray(results, key) {
 // Parse the `keywords` for a dynamic method.
 //  e.g.  `add a card to the pile` will yield:
 //  {
-//    types: ["card", "pile"],
+//    Type: "Card",
 //    Types: ["Card", "Pile"],
+//    types: ["card", "pile"],
 //    method: "add_card_to_pile",
 //    args: ["card, pile"],
 //    instanceMethod: "add_to_pile",
 //    instanceArgs: ["pile"],
-//    rules: "add ${callArgs:expression} to ${callArgs:expression}"
+//    syntax: "add ${callArgs:expression} to ${callArgs:expression}"
 //  }
 //
 export function parseMethodKeywords(results) {
   const { keywords } = results;
 
   const methodName = [];
+  const instanceMethodName = [];
   const types = [];
   const rules = [];
 
@@ -79,31 +81,35 @@ export function parseMethodKeywords(results) {
       word = keywords[++i];
     }
 
-    word = word.toLowerCase();
+    word = lowerFirst(word);
     if (isType) {
       word = singularize(word);
       types.push(word);
       rules.push(`{callArgs:expression}`);
+      if (types.length > 1) {
+        instanceMethodName.push(word);
+      }
     }
     else {
       rules.push(word);
+      instanceMethodName.push(word);
     }
     methodName.push(word);
   }
 
+  const Types = types.map(type => upperFirst(type));
+  const args = types.map((type, index) => { return { name: type, type: Types[index] } });
   return {
     ...results,
     ...{
-      types,    // all types, singular, lower case
-      Types: types.map(type => upperFirst(type)),
+      Type: Types[0],   // main type
+      Types,            // all types, singular, upper case
+      types,            // all types, singular, lower case
       method: methodName.join("_"),
-      args: [...types],
-      // skip the first type (assuming it will be `this`)
-      instanceMethod: methodName.filter(word => word != types[0]).join("_"),
-      // skip the first type
-      instanceArgs: types.slice(1),
-      // rules
-      rules: rules.join(" ")
+      args,
+      instanceMethod: instanceMethodName.join("_"),
+      instanceArgs: args.slice(1),
+      syntax: rules.join(" ")
     }
   };
 }

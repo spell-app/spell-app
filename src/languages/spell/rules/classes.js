@@ -29,12 +29,10 @@ parser.defineRule({
     }
     updateScope(scope, results) {
       const { Type, SuperType } = results;
-      const declareType = scope.addType({
+      scope.addType({
         name: Type,
         superType: SuperType
-      });
-      scope.addStatement(declareType, results);
-      return results;
+      }, results);
     }
   },
   tests: [
@@ -103,9 +101,11 @@ parser.defineRule({
   name: "type_initializer_enum",
   alias: "type_initializer",
   syntax: "as (either|one of) {enumeration:identifier_list}",
-  // Return the enumeration for someone else to consume
-  compile(match, scope) {
-    return { datatype: "enum", enumeration: match.results.enumeration };
+  constructor: class type_initializer_enum extends Rule.Sequence {
+    getResults(match, scope) {
+      const results = super.getResults(match, scope);
+      return { datatype: "enum", enumeration: results.enumeration };
+    }
   },
   tests: [
     {
@@ -221,58 +221,57 @@ parser.defineRule({
   name: "to_do_something",
   alias: ["statement"],
   syntax: "to (keywords:{word}|{type})+ :? {statement}?",
-  constructor: class define_type extends BlockStatement {
+  constructor: class define_type extends Statement {    // TODO: BlockStatement
     getResults(match, scope) {
       const results = super.getResults(match, scope);
       return parseMethodKeywords(results);
     }
-    compile(match, scope) {
-      const { Types, method, args, instanceMethod, instanceArgs, statements } = match.results;
-      // If this is associated with a type, add it to the type
-      if (Types.length) {
-        const Type = Types[0];
-        return [
-          // class method calls the instance method
-          `defineProp(${Type}, '${method}', {`,
-          `  value(${args.join(", ")}) ${statements}`,
-          `})`
-        ].join("\n")
-         .replace(/\bit\b/g, args[0]);    // HACK: replace "it" with the first argument... :-(
-      }
-      else {
-        // otherwise add it as a global method
-        return [
-  //TODO: want to add to scope ???
-          `export function ${method}(${args.join(", ")}) ${statements}`,
-        ].join("\n")
-      }
-    }
-    XupdateScope(match, scope) {
-      const { types, Types, method, args, instanceMethod, instanceArgs, statements, rules } = match.results;
-      if (types.length) {
-        const type = types[0];
-        scope.addInstanceMethod({ type, key:instanceMethod, args: instanceArgs });
-        scope.addMethod({ type, key:method, args });
+    updateScope(scope, results) {
+      const { Type, method, args, instanceMethod, instanceArgs, syntax } = results;
+      if (results.Type) {
+        const typeScope = scope.getOrAddType(Type);
+        // add as an class method and remember as $method for `addBlock()` below.
+        results.$method = typeScope
+          .addClassMethod({
+            name: method,
+            args: args
+          }, results);
+
+        // add a rule to match the new syntax,
+        //  e.g. spell `add {callArgs:expression} to {callArgs:expression}`
         scope.addStatementRule({
           name: method,
-          syntax: rules,
-          compile({ results: { callArgs } }) {
-            return `${Types[0]}.${method}(${callArgs})`;
-          }
-        });
-      }
-      else {
-        scope.addMethod({ key: method, args });
-        // add a rule to match the new syntax, e.g. spell `add {callArgs:card} to {callArgs:pile}`
-        scope.addStatementRule({
-          name: method,
-          syntax: rules,
+          syntax,
           compile(match, scope) {
             const { callArgs } = match.results;
-            return `${method}(${callArgs.join(", ")})`;
+            const args = Array.isArray(callArgs) ? callArgs.join(",") : callArgs;
+            return `${Type}.${method}(${args})`;
           }
-        });
+        }, results);
       }
+      else {
+        const { method, args, syntax } = results;
+        results.$method = scope.addMethod({
+          name: method,
+          args
+        }, results);
+        // Add a rule to call the method
+        scope.addStatementRule({
+          name: method,
+          syntax,
+          compile(match, scope) {
+            // TODO: need to reference scope in the method declaration...
+            const { callArgs } = match.results;
+            const args = Array.isArray(callArgs) ? callArgs.join(",") : callArgs;
+            return `${method}(${args})`;
+          }
+        }, results);
+      }
+    }
+    addBlock(scope, results, block) {
+      block.matched.forEach(match =>
+        results.$method.addStatement(match.compile())
+      );
     }
   },
   tests: [
@@ -281,7 +280,7 @@ parser.defineRule({
       tests: [
         [
           "to start the game",
-          "export function start_the_game() {}"
+          "function start_the_game() {}"
         ],
         [
           [ // TODO: this rule is recursive!!!
@@ -292,13 +291,11 @@ parser.defineRule({
             "\tset the pile of the card to the pile"
           ].join("\n"),
           [
-            "defineProp(Card, 'move_card_to_pile', {",
-            "  value(card, pile) {",
-            "\tspell.remove(card?.pile, card)",
-            "\tspell.append(pile, card)",
-            "\tcard?.pile = pile",
+            "Card.move_card_to_pile = function(card, pile) {",
+            "  spell.remove(card?.pile, card)",
+            "  spell.append(pile, card)",
+            "  card?.pile = pile",
             "}",
-            "})",
           ].join("\n")
         ],
       ]

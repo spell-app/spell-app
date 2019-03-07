@@ -56,21 +56,26 @@ export class Block extends Rule {
 
         // If the `statement` is a `BlockStatement` and the next item is a `Block`
         // parse the block and hand it to the `statement`.
-        if (statement.rule instanceof BlockStatement) {
-          const next = block.contents[i+1];
-          if (next instanceof Token.Block) {
+        const next = block.contents[i+1];
+        if (!(next instanceof Token.Block)) continue;
+        if (!statement.rule.addBlock && !(statement.rule instanceof BlockStatement)) continue;
+
 // TODO: create nested scope!!!
 // TODO: how do we know what type?  (method, etc)???
-            const nestedBlock = this.parseBlock(scope, next);
-            if (nestedBlock) {
-              nestedBlock.enclose = true;
-              statement.block = nestedBlock;
-              i++;
-            }
-          }
+        const blockMatch = this.parseBlock(scope, next);
+        if (!blockMatch) continue;
+        i++;
+
+        if (statement.rule.addBlock) {
+          statement.rule.addBlock(scope, statement.results, blockMatch);
+        }
+        // OLD SCHOOL: deprecate this
+        else {
+          blockMatch.enclose = true;
+          statement.block = blockMatch;
         }
       }
-    };
+    }
 
     if (matched.length === 0) return undefined;
 

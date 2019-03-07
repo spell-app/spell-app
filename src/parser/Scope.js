@@ -1,7 +1,6 @@
 //
 //  Intermediate types -- simplified AST
 //
-import assert from "assert";
 import keyBy from "lodash/keyBy";
 import flatten from "lodash/flatten";
 import lowerFirst from "lodash/lowerFirst"
@@ -19,7 +18,8 @@ import {
   clearMemoized
 } from "./all.js";
 
-
+// NOTE: this is the only export from this file.
+// Consumers of this file should use `scope.addMethod(...)` or `new `Scope.Method(...)`
 export class Scope {
   constructor(props) {
     // You can initialize with just a `Parser` instance if desired.
@@ -147,29 +147,31 @@ export class Scope {
   // `ruleProps` can be properties or an actual rule instance.
   // Consider using (or making) a more-specific setter like those below
   //  to set up `alias`, `precedence`, etc.
-  addRule(ruleProps) {
-    return this.parser.defineRule(ruleProps);
+  addRule(ruleProps, results) {
+    const rule = this.parser.defineRule(ruleProps, results);
+    results?.rules?.push(rule);
+    return rule;
   }
 
   // Add a multi-word identifier.
   // Single word identifiers dont' need special treatment. (???)
-  addIdentifierRule(props) {
+  addIdentifierRule(props, results) {
     this._addRuleAlias(props, "identifier");
     props.precedence = 10;       // TODO
-    return this.addRule(props);
+    return this.addRule(props, results);
   }
 
   // Add an expression suffix rule, e.g. "<thing> is not? a face card".
-  addExpressionSuffixRule(props) {
+  addExpressionSuffixRule(props, results) {
     this._addRuleAlias(props, "expression_suffix");
     props.precedence = 10;       // TODO
-    return this.addRule(props);
+    return this.addRule(props, results);
   }
 
   // Add a statement rule.
-  addStatementRule(props) {
+  addStatementRule(props, results) {
     this._addRuleAlias(props, "statement");
-    return this.addRule(props);
+    return this.addRule(props, results);
   }
 
   // Add an enumerated type rule.
@@ -177,7 +179,7 @@ export class Scope {
   // `props.enumeration` is the array of enumerated values.
   // Automatically adds all strings in the enumeration as "constants".
   // Returns `{ datatype, statements }` for working with the enumeration.
-  addEnumeration(props, results = { statements: [], rules: [] }) {
+  addEnumeration(props, results) {
     this.assert(Array.isArray(props.enumeration), "addEnumeration() must be called with an 'enumeration'");
     this.assert(props.name && props.name === upperFirst(props.name),
       "addEnumeration() must be called with an upper-case 'name'");
@@ -191,7 +193,7 @@ export class Scope {
     results.datatype = uniq(enumeration.map(
       value => {
         if (typeof value === "string")
-          results.rules.push(this.addConstantRule(value));
+          this.addConstantRule(value, results);
         return typeof value;
       })
     );
@@ -203,42 +205,35 @@ export class Scope {
     let literals;
     if (this instanceof Type) {
       literals = [ [ this.name, this.instanceName], [name, lowerFirst(name) ] ];
-      results.statements.push(
-        // Add the full list as a class var.
-        this.addClassVar({...props, initializer, datatype: results.enumType }),
-        // Add instance var which points to the class var.
-        this.addVar({...props, initializer: results.canonicalRef, datatype: results.enumType })
-      );
+      // Add the full list as a class var.
+      this.addClassVar({...props, initializer, datatype: results.enumType }, results),
+      // Add instance var which points to the class var.
+      this.addVar({...props, initializer: results.canonicalRef, datatype: results.enumType }, results)
     }
     else {
       literals = [ this.name, [name, lowerFirst(name) ] ];
-      results.statements.push(
-        this.addVar({...props, initializer, datatype: results.enumType })
-      );
+      this.addVar({...props, initializer, datatype: results.enumType }, results)
     }
 
     // Add multi-word identifier rule to get the enumeration back, e.g. `card suits` or `Card Suits`.
-    results.rules.push(
-      this.addIdentifierRule({
-        name: `${this.name}_${name}`,
-        literals,
-        datatype: results.enumType,
-        compile: () => results.canonicalRef
-      })
-    );
-    return results;
+    this.addIdentifierRule({
+      name: `${this.name}_${name}`,
+      literals,
+      datatype: results.enumType,
+      compile: () => results.canonicalRef
+    }, results);
   }
 
   // Add a single-word constant identifier, passing just the constant name.
   // We assume that the constant value is the quoted name.
-  addConstantRule(name) {
+  addConstantRule(name, results) {
     return this.addRule({
       name: "constant",
       datatype: "string",
       literal: name,
       precedence: 1,    // must be above "identifier"
       compile: () => `'${name}'`
-    });
+    }, results);
   }
 
   // Add an alias to rule `props`.
@@ -294,14 +289,17 @@ export class Module extends Scope {}
 // Method
 // Expected properties:
 //  - name
-//  - args
+//  - args        // NOTE: we DO NOT expect args to change after Method is created!
 //  - returns
 export class Method extends Scope {
-  constructor(props) {
+  constructor({ args, ...props}) {
     super(props);
-    // If we have args, convert to a map
-    if (this.args)
+    // If we have args, initialize them and make a map of `_args`
+    if (args) {
+      // Convert to Variables
+      args.forEach(arg => this._addItem(arg, "args", null, Variable));
       Object.defineProperty(this, "_args", { value: keyBy(this.args, "name") });
+    }
   }
 
   // When looking up local vars in the top-level method scope, include our args.
@@ -415,7 +413,8 @@ export class Type extends Scope {
 //  - initializer
 export class Variable {
   constructor(props) {
-    assert(props.name, "Variables must be created with a 'name'");
+    if (!props.name)
+      throw new TypeError("Variables must be created with a 'name'");
     // Assign all properties in the order provided.
     Object.assign(this, props);
   }
