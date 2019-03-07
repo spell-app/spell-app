@@ -36,6 +36,7 @@ import {
   Rule,
   Tokenizer,
   Token,
+  WhitespacePolicy,
 
   peek
 } from "../../parser/all.js";
@@ -44,6 +45,9 @@ import {
 const parser = new Parser({
   module: "precedence",
   defaultRule: "expression",
+  tokenizer: new Tokenizer({
+    whitespacePolicy: WhitespacePolicy.LEADING_ONLY
+  })
 });
 export default parser;
 

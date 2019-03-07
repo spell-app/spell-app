@@ -24,9 +24,6 @@ precedence.setDebugLevel("INFO");
 SpellParser.prototype.outputSource = true;
 SpellParser.prototype.setDebugLevel("INFO");
 
-// Set Parser / Tokenizer debug flags
-spell.TIME = true;
-
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
   _,

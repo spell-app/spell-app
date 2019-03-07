@@ -36,9 +36,6 @@ import {
 const CLONE_CLASSES = !isNode;
 
 export class Parser {
-  // Set to `true` to output timing info for this parser.
-  @proto TIME = false;
-
   // Name of our default rule to parse if calling `parser.parse(text)`.
   @proto defaultRule = "block";
 
@@ -51,7 +48,7 @@ export class Parser {
   }
 
   //
-  //### Tokenizing
+  //### Tokenizing (a.k.a. "lexical analysis")
   //
 
   // Default tokenizer.  You may want to create one in your parser subclasses,
@@ -86,11 +83,9 @@ export class Parser {
     const tokens = Array.isArray(text) ? text : this.tokenize(text, ruleName);
     if (!tokens || tokens.length === 0) return undefined;
 
-    if (Parser.TIME) console.time("parse");
     // Parse the rule or throw an exception if rule not found.
     const rule = scope.getRuleOrDie(ruleName);
     const result = rule.parse(scope, tokens);
-    if (Parser.TIME) console.timeEnd("parse");
 
     // If we didn't get anything, not that the parse was incomplete.
     // TESTME
