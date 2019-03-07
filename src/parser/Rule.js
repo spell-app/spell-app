@@ -674,7 +674,7 @@ Rule.Sequence = class sequence extends Rule {
 
   // If no explcit compile method, return our `results` for someone else to consume.
   compile(scope, match) {
-    return this.getResults(match, scope);
+    return this.getResults(scope, match);
   }
 
   getTokens(match) {
@@ -687,7 +687,7 @@ Rule.Sequence = class sequence extends Rule {
 
   //TODOC
   // "gather" matched values into a map in preparation to call `compile(scope, match)`
-  getResults(match, scope) {
+  getResults(scope, match) {
     const { rule, matched, comment } = match;
     if (!matched) return undefined;
     let results = addResults({}, matched);
@@ -792,7 +792,7 @@ Rule.NestedSplit = class nesting extends Rule {
     });
   }
 
-  getResults(match, scope) {
+  getResults(scope, match) {
     const { rule, prefix, groups } = match;
     const results = prefix && prefix.compile() || {};
     const name = rule.rule.argument || rule.rule.name;
@@ -802,7 +802,7 @@ Rule.NestedSplit = class nesting extends Rule {
 
   // If no explcit compile method, return our `results` for someone else to consume.
   compile(scope, match) {
-    return this.getResults(match, scope);
+    return this.getResults(scope, match);
   }
 
   // If tokens starts with our `start` literal,

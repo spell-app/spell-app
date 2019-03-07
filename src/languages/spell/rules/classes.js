@@ -22,8 +22,8 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "create type {type:word} (?:as (a|an) {superType:identifier})?",
   constructor: class create_type extends Statement {
-    getResults(match, scope) {
-      const results = super.getResults(match, scope);
+    getResults(scope, match) {
+      const results = super.getResults(scope, match);
       return inflectResults(results, "type", "superType");
     }
     updateScope(scope, results) {
@@ -101,8 +101,8 @@ parser.defineRule({
   alias: "type_initializer",
   syntax: "as (either|one of) {enumeration:identifier_list}",
   constructor: class type_initializer_enum extends Rule.Sequence {
-    getResults(match, scope) {
-      const results = super.getResults(match, scope);
+    getResults(scope, match) {
+      const results = super.getResults(scope, match);
       return { datatype: "enum", enumeration: results.enumeration };
     }
   },
@@ -141,8 +141,8 @@ parser.defineRule({
   syntax: "{?:type_has_prefix} (a|an) {property:identifier} {initializer:type_initializer}?",
   testRule: "…(has|have)",
   constructor: class define_property_has extends Statement {
-    getResults(match, scope) {
-      const results = super.getResults(match, scope);
+    getResults(scope, match) {
+      const results = super.getResults(scope, match);
       return inflectResults(results, "type", "property");
     }
     updateScope(scope, results) {
@@ -221,8 +221,8 @@ parser.defineRule({
   alias: "statement",
   syntax: "to (keywords:{word}|{type})+ :? {statement}?",
   constructor: class define_type extends Statement {
-    getResults(match, scope) {
-      const results = super.getResults(match, scope);
+    getResults(scope, match) {
+      const results = super.getResults(scope, match);
       return parseMethodKeywords(results);
     }
     updateScope(scope, results) {
@@ -297,8 +297,8 @@ parser.defineRule({
       if (match && !match.results) return undefined;
       return match;
     }
-    getResults(match, scope) {
-      const results = super.getResults(match, scope);
+    getResults(scope, match) {
+      const results = super.getResults(scope, match);
       // split the text string up into words
       const words = (""+JSON.parse(results.text)).split(" ");
       // if the first word is not "is" then forget it
@@ -367,8 +367,8 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "{?:property_of_a_type} is {value:identifier} if {condition:expression} (?:otherwise it is {otherValue:identifier})?",
   constructor: class type_is_a_enum extends Statement {
-    getResults(match, scope) {
-      const results = super.getResults(match, scope);
+    getResults(scope, match) {
+      const results = super.getResults(scope, match);
       return inflectResults(results, "type");
     }
     updateScope(scope, results) {
@@ -406,8 +406,8 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "{?:property_of_a_type} is {expression}",
   constructor: class type_is_a_enum extends Statement {
-    getResults(match, scope) {
-      const results = super.getResults(match, scope);
+    getResults(scope, match) {
+      const results = super.getResults(scope, match);
       return inflectResults(results, "type");
     }
     updateScope(scope, results) {
@@ -451,8 +451,8 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "(article:a|an) {type:word} is (a|an) \\( {property:identifier} \\) if {expression}",
   constructor: class type_is_a_enum extends Statement {
-    getResults(match, scope) {
-      const results = super.getResults(match, scope);
+    getResults(scope, match) {
+      const results = super.getResults(scope, match);
       return inflectResults(results, "type");
     }
     compile(scope, match) {
@@ -494,8 +494,8 @@ parser.defineRule({
     }
   },
   constructor: class type_is_a_enum extends Statement {
-    getResults(match, scope) {
-      const results = super.getResults(match, scope);
+    getResults(scope, match) {
+      const results = super.getResults(scope, match);
       return inflectResults(results, "type");
     }
     compile(scope, match) {

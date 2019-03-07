@@ -4,8 +4,8 @@ import {
 
 // Create a subclass of `Sequence` which manages a statement
 class statement extends Rule.Sequence {
-  getResults(match, scope) {
-    const results = super.getResults(match, scope);
+  getResults(scope, match) {
+    const results = super.getResults(scope, match);
     // Placeholder for statements (including var declarations etc) created during our `updateScope()`.
     results.statements = [];
     // Placeholder for parser `rules` created during our `updateScope()`

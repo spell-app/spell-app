@@ -32,7 +32,7 @@ export class Match {
   // Syntactic sugar to easily get `results` of the match for sequences, etc.
   // Only works for some rule types.
   @memoize
-  get results() { return this.rule.getResults?.(this, this.scope) }
+  get results() { return this.rule.getResults?.(this.scope, this) }
 
   // Return the "interesting" tokens which were actually matched matched.
   // NOTE: this is not guaranteed to be everything,
@@ -43,8 +43,11 @@ export class Match {
   get js() { return this.compile() }
   compile() { return this.rule.compile(this.scope, this) }
 
-  // Have the match call updateScope if it can.
+  // Have the match call `updateScope()` if it can.
+  // This is called for `Statement`s BEFORE they're actually compiled,
+  // and is a chance for the statement to declare new rules, add variables to the scope, etc.
   // NOTE: we memoize this so calling it subsequent times is a no-op.
+  // NOTE: ONLY CALL THIS FROM THE MATCH!!!
   @memoize
   updateScope() {
     return this.rule.updateScope?.(this.scope, this.results, this);
