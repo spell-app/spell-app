@@ -4,6 +4,7 @@ import {
   Rule,
   SpellParser,
   Token,
+  Tokenizer,
 
   isWhitespace,
   proto
@@ -49,11 +50,17 @@ export class Block extends Rule {
         if (!statement) return;
         matched = matched.concat(statement);
 
+        if (statement.updateScope) {
+          statement.updateScope();
+        }
+
         // the statement is a BlockStatement and the next item is a Block
         // parse it and give it to the statement.
         if (statement.rule instanceof BlockStatement) {
           const next = block.contents[i+1];
           if (next instanceof Token.Block) {
+// TODO: create nested scope!!!
+// TODO: how do we know what type?  (method, etc)???
             const nestedBlock = this.parseBlock(scope, next);
             if (nestedBlock) {
               nestedBlock.enclose = true;

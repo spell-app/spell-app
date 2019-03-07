@@ -17,13 +17,17 @@ class statement extends Rule.Sequence {
   // Update the `scope` with rules and/or statements as necessary.
   // NOTE: For BlockStatements (a subclass),
   //       the block contents will NOT have been parsed when this is called!
-  updateScope(results, match, scope) {
-    throw new TypeError(`You must override the update scope method of rule ${this.name}!`);
-  }
+  //
+  // NOTE: DO NOT CALL THIS DIRECTLY -- ALWAYS CALL IT FROM THE MATCH!
+  //       Otherwise we may call the method twice.
+  updateScope(results, match, scope) {}
 
   // To compile, we just output our statements.
   compile(match, scope) {
-    return results.statements.join("\n");
+    // Call `updateScope()` on the match to make sure we've fully compiled.
+    // This is a no-op if it's been called before.
+    match.updateScope();
+    return match.results?.statements?.join("\n") || "";
   }
 }
 

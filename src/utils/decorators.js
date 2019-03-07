@@ -86,7 +86,17 @@ export function nonEnumerable(descriptor) {
 }
 
 
-// Memoize a calculated value for a getter, without a setter.
+// Return a key we'll use to memoize a value.
+// Note that we want this to be consistent so we can use it
+// for both `memoize()` and `clearMemoized()` below.
+//
+// Currenly using "#property" for the key -- consider using a Symbol?
+function getMemoizeKey(key) {
+  return `#${key}`
+}
+
+// Memoize a calculated value.
+// Works for a getter wihtout a setter or for a method.
 // You can clear the value with `@clearMemoized(propName)`
 // TODO: allow setter, which clears the memoized value?  Where would the setter place the value?
 // TODO: allow use with method, using a WeakMap to save results according to specific args?
@@ -95,14 +105,20 @@ export function memoize(descriptor) {
   // Currently only works for getters without setters.
   const getter = getDescriptorProp(descriptor, "get");
   const setter = getDescriptorProp(descriptor, "set");
-  assert(getter);
-  assert(!setter);
+  if (getter) return _memoizeGetter(descriptor, getter, setter);
 
-  // Currenly using "#property" for the key -- consider using a Symbol?
-  // Note that we want to be able to re-create this for `clearMemoized` below.
-  const privateKey = `#${descriptor.key}`;
-  function wrapped() {
-    if (!this[privateKey]) {
+  const method = getDescriptorProp(descriptor, "value");
+  if (typeof method === "function")
+    return _memoizeMethod(descriptor, method);
+
+  throw new TypeError("Don't know how to memoize something without a getter or method");
+}
+
+// Memoize a getter with an optional setter.
+function _memoizeGetter(descriptor, getter, setter) {
+  const privateKey = getMemoizeKey(descriptor.key);
+  function wrappedGetter() {
+    if (!this.hasOwnProperty(privateKey)) {
       // Add the property non-enumerably, but configurably
       //  so we can clear it with `@clearMemoized(key)`.
       Object.defineProperty(this, privateKey, {
@@ -112,10 +128,37 @@ export function memoize(descriptor) {
     }
     return this[privateKey];
   }
-  return setDescriptorProp(descriptor, "get", wrapped);
+  descriptor = setDescriptorProp(descriptor, "get", wrappedGetter);
+
+  if (setter) {
+    function wrappedSetter() {
+      delete this[privateKey];
+      return setter.apply(this, arguments);
+    }
+    descriptor = setDescriptorProp(descriptor, "set", wrappedSetter);
+  }
+  return descriptor;
 }
 
-// Clear memoized values for some property when invoking a normal function.
+// Memoize a method.
+function _memoizeMethod(descriptor, method) {
+  const privateKey = getMemoizeKey(descriptor.key);
+  function wrappedMethod(...args) {
+    if (!this.hasOwnProperty(privateKey)) {
+      // Add the property non-enumerably, but configurably
+      //  so we can clear it with `@clearMemoized(key)`.
+      Object.defineProperty(this, privateKey, {
+        configurable: true,
+        value: method.apply(this, args)
+      });
+    }
+    return this[privateKey];
+  }
+  return setDescriptorProp(descriptor, "value", wrappedMethod);
+}
+
+
+// Clear memoized values for some `property` when invoking a normal function.
 export function clearMemoized(property) {
   return function(descriptor) {
 //console.info("clearMemoized", property, descriptor);
@@ -126,9 +169,9 @@ export function clearMemoized(property) {
     assert(typeof method === "function");
 
     // Use same key pattern as `memoized` above.
-    const privateKey = `#${property}`;
+    const privateKey = getMemoizeKey(property);
     function wrapped() {
-      if (this[privateKey]) delete this[privateKey];
+      delete this[privateKey];
       return method.apply(this, arguments);
     }
     return setDescriptorProp(descriptor, "value", wrapped);

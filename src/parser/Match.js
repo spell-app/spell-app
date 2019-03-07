@@ -45,6 +45,13 @@ export class Match {
   get js() { return this.compile() }
   compile() { return this.rule.compile(this, this.scope) }
 
+  // Have the match call updateScope if it can.
+  // NOTE: we memoize this so calling it subsequent times is a no-op.
+  @memoize
+  updateScope() {
+    return this.rule.updateScope?.(this.scope, this.results, this);
+  }
+
   // Visualize a match by outputting its `structure`.
   // This version outputs to the console and is not quite working right.
   get viz() { return "\n"+this.visualize() }

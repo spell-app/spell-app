@@ -3,6 +3,7 @@ import {
   Rule,
   Scope,
   SpellParser,
+  Statement,
   Token,
 
   lowerFirst,
@@ -21,19 +22,20 @@ parser.defineRule({
   name: "create_type",
   alias: ["statement"],
   syntax: "create type {type:identifier} (?:as (a|an) {superType:identifier})?",
-  constructor: class create_type extends Rule.Sequence {
+  constructor: class create_type extends Statement {
     getResults(match, scope) {
       const results = super.getResults(match, scope);
       return inflectResults(results, "type", "superType");
     }
-    compile(match, scope) {
-      const { results: { Type, SuperType } } = match;
-      return scope
-        .addType({
-          name: Type,
-          superType: SuperType
-        })
-        .compile();
+    updateScope(scope, results) {
+      const { Type, SuperType } = results;
+      const declareType = scope.addType({
+        name: Type,
+        superType: SuperType
+      });
+      scope.addStatement(declareType);
+      results.statements.push(declareType);
+      return results;
     }
   },
   tests: [
@@ -55,25 +57,24 @@ parser.defineRule({
 parser.defineRule({
   name: "new_thing",
   alias: ["expression", "single_expression", "statement"],
-  syntax: "create (a|an) {type} (?:with {props:object_literal_properties})?",
+  syntax: "create (a|an) {type:word} (?:with {props:object_literal_properties})?",
   testRule: "create",
-  compile(match, scope) {
-    let { type, props = "" } = match.results; // `props` is the object literal text
-    // Special case for object, which we'll create with an object literal.
-    if (type === "Object") {
-      if (!props) return "{}";
-      return props;
-    }
-
-    return `new ${type}(${props})`;
+  constructor: Statement,
+  updateScope(scope, results) {
+    const { type, props = "" } = results; // `props` is the object literal text
+    const Type = upperFirst(type);
+    const statement = `new ${Type}(${props})`;
+    scope.addStatement(statement);
+    results.statements.push(statement);
+    return results;
   },
   tests: [
     {
       title: "creates normal objects properly",
       compileAs: "statement",
       tests: [
-        [`create an Object`, `{}`],
-        [`create an Object with a = 1, b = yes`, `{ "a": 1, "b": true }`],
+        [`create an Object`, `new Object()`],
+        [`create an Object with a = 1, b = yes`, `new Object({ "a": 1, "b": true })`],
         [`create a Foo`, `new Foo()`],
         [`create a Foo with a = 1, b = yes`, `new Foo({ "a": 1, "b": true })`]
       ]
@@ -82,10 +83,10 @@ parser.defineRule({
       title: "creates special types",
       compileAs: "expression",
       tests: [
-        ["create an object", "{}"],
+        ["create an object", "new Object()"],
         //FIXME: the following don't make sense if they have arguments...
-        ["create a List", "new Array()"],
-        ["create a list", "new Array()"]
+        ["create a List", "new List()"],
+        ["create a list", "new List()"]
         //FIXME: the following don't make sense in JS but are legal parse-wise
 
         //           ["create text", "new String()"],
@@ -142,23 +143,19 @@ parser.defineRule({
   alias: ["statement"],
   syntax: "{?:type_has_prefix} (a|an) {property:identifier} {initializer:type_initializer}?",
   testRule: "…(has|have)",
-  constructor: class define_property_has extends Rule.Sequence {
+  constructor: class define_property_has extends Statement {
     getResults(match, scope) {
       const results = super.getResults(match, scope);
       return inflectResults(results, "type", "property");
     }
-    compile(match, scope) {
-      const { Type, type, Properties, property, initializer = {}} = match.results;
+    updateScope(scope, results) {
+      const { Type, type, Properties, property, initializer = {}} = results;
       const typeScope = scope.getOrAddType(Type);
       let { datatype, enumeration } = initializer;
       const getter = [ `return this.#${property}` ];
       let setter;
 
-      const results = {
-        type: typeScope,
-        statements: [],
-        rules: []
-      };
+      results.typeScope = typeScope;
       if (enumeration) {
         // Register the enumeration which will register all sorts of juicy rules and statements.
         typeScope.addEnumeration({ name: Properties, enumeration }, results);
@@ -193,7 +190,7 @@ parser.defineRule({
         })
       );
 scope.info("define_property_has: ", results);
-      return results.statements.join("\n");
+      return results;
     }
   },
   tests: [
@@ -321,7 +318,7 @@ parser.defineRule({
   //  e.g. `a card "is face up" if ...`
   //  NOTE: the first word in quotes must be "is" !!
   syntax: '(a|an) {type:identifier} {text} if {expression}',
-  constructor: class quoted_property_name extends Rule.Sequence {
+  constructor: class quoted_property_name extends Statement {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
       // Check the results -- if first word of `text` is not `is`, results will be undefined
@@ -397,7 +394,7 @@ parser.defineRule({
   name: "property_value_either",
   alias: ["statement"],
   syntax: "{?:property_of_a_type} is {value:identifier} if {condition:expression} (?:otherwise it is {otherValue:identifier})?",
-  constructor: class type_is_a_enum extends Rule.Sequence {
+  constructor: class type_is_a_enum extends Statement {
     getResults(match, scope) {
       const results = super.getResults(match, scope);
       return inflectResults(results, "type");
@@ -438,7 +435,7 @@ parser.defineRule({
   name: "property_value_expression",
   alias: ["statement"],
   syntax: "{?:property_of_a_type} is {expression}",
-  constructor: class type_is_a_enum extends Rule.Sequence {
+  constructor: class type_is_a_enum extends Statement {
     getResults(match, scope) {
       const results = super.getResults(match, scope);
       return inflectResults(results, "type");
@@ -484,7 +481,7 @@ parser.defineRule({
   name: "type_is_a_enum",
   alias: ["statement"],
   syntax: "(article:a|an) {type:word} is (a|an) \\( {property:identifier} \\) if {expression}",
-  constructor: class type_is_a_enum extends Rule.Sequence {
+  constructor: class type_is_a_enum extends Statement {
     getResults(match, scope) {
       const results = super.getResults(match, scope);
       return inflectResults(results, "type");
@@ -527,7 +524,7 @@ parser.defineRule({
       addIsIdentifier(`a_${suit}`, `${thing}?.is_a_suit?.(${suit})`);
     }
   },
-  constructor: class type_is_a_enum extends Rule.Sequence {
+  constructor: class type_is_a_enum extends Statement {
     getResults(match, scope) {
       const results = super.getResults(match, scope);
       return inflectResults(results, "type");

@@ -248,10 +248,10 @@ parser.defineRule({
 
 
 // `word` = is a single alphanumeric word.
-// MUST start with a lower-case letter (?)
+// Case is not a factor, but it must start with a letter.
 parser.defineRule({
   name: "word",
-  pattern: /^[a-z][\w\-]*$/,
+  pattern: /^[a-zA-Z][\w\-]*$/,
   // convert dashes to underscores when compiling
   valueMap(value) {
     return (""+value).replace(/\-/g, "_")

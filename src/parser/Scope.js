@@ -29,6 +29,15 @@ export class Scope {
     Object.assign(this, props);
   }
 
+  compile() {
+    // TODO
+    return "Don't know how to compile a base Scope";
+  }
+
+  toString() {
+    return this.compile();
+  }
+
   /////////////////
   // Vars
   //
@@ -106,7 +115,10 @@ export class Scope {
   //  Statements
   //
   addStatement(...statements) {
-    this.statements = [...this.statements, ...flatten(statements)];
+    statements = flatten(statements);
+    this.statements = this.statements
+      ? [...this.statements, ...statements]
+      : statements;
   }
 
   compileStatements(statements = this.statements) {
@@ -372,10 +384,6 @@ export class Method extends Scope {
     const name = this.name ? ` ${this.name}`: "";
     return `function${name}(${args}) ${statements}`;
   }
-
-  toString() {
-    return this.compile();
-  }
 }
 
 
@@ -436,7 +444,7 @@ export class Type extends Scope {
 }
 
 
-// Add classes on Scope for ease of use in other files
+// Add classes on Scope for ease of use in other files.
 Scope.Module = Module;
 Scope.Variable = Variable;
 Scope.Method = Method;
