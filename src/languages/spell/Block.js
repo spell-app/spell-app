@@ -127,7 +127,7 @@ export class Block extends Rule {
     return lines;
   }
   // Return a simple data structure we'll use to visualize a match.
-  getStructure(match, scope) {
+  getStructure(scope, match) {
     return match.matched.map(match => match.structure);
   }
 }

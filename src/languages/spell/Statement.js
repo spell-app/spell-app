@@ -18,7 +18,7 @@ class statement extends Rule.Sequence {
   //
   // NOTE: DO NOT CALL THIS DIRECTLY -- ALWAYS CALL IT FROM THE MATCH!
   //       Otherwise we may call the method twice, duplicating its effects.
-  updateScope(results, match, scope) {}
+  updateScope(scope, results, match) {}
 
   // To compile, we just output our statements.
   compile(scope, match) {

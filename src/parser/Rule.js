@@ -86,7 +86,7 @@ export class Rule {
   }
 
   // Return a simple data structure we'll use to visualize a match.
-  getStructure(match, scope) {
+  getStructure(scope, match) {
     return this.compile(scope, match);
   }
 
@@ -358,7 +358,7 @@ Rule.Pattern = class pattern extends Rule {
     return value;
   }
 
-  getStructure(match, scope) {
+  getStructure(scope, match) {
     return this.getTokens(match)[0];
   }
 };
@@ -597,7 +597,7 @@ Rule.Repeat = class repeat extends Rule {
     return flattenDeep(match.matched.map(match => match.getTokens(match)));
   }
 
-  getStructure(match, scope) {
+  getStructure(scope, match) {
     return match.matched.map(match => match.structure);
   }
 
@@ -681,7 +681,7 @@ Rule.Sequence = class sequence extends Rule {
     return flattenDeep(match.matched.map(match => match.getTokens(match)));
   }
 
-  getStructure(match, scope) {
+  getStructure(scope, match) {
     return match.matched.map(match => match.structure);
   }
 
