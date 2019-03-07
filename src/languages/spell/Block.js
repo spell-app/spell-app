@@ -111,7 +111,7 @@ export class Block extends Rule {
         }
       } catch (e) {
         scope.error(e);
-        scope.warn("Error compiling statements: match\n", line.toPrint(), "\nstatement:", next);
+        scope.warn("Error compiling statements: match\n", line.toPrint());
       }
 
       if (isWhitespace(statement)) {

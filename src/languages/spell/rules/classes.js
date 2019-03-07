@@ -244,16 +244,15 @@ parser.defineRule({
       }
 
       // Add a rule to match the new syntax,
-      scope.addStatementRule({ name: method, syntax, compile: results.compile }, results);
-
-      // If they provided an inline statement, add it now
-      if (statement)
-        results.$method.addStatement(statement, results);
+      scope.addStatementRule({
+        name: method,
+        syntax,
+        compile: results.compile,
+        statement
+      }, results);
     }
     addBlock(scope, results, block) {
-      block.matched.forEach(match =>
-        results.$method.addStatement(match.compile())
-      );
+      results.$method.addBlock(block, results);
     }
   },
   tests: [

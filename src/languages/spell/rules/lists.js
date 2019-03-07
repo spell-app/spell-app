@@ -6,8 +6,11 @@
 
 import {
   BlockStatement,
+  Method,
   Rule,
+  Scope,
   SpellParser,
+  Statement,
 
   singularize
 } from "../all.js";
@@ -790,40 +793,46 @@ parser.defineRule({
   alias: "statement",
   syntax: "for each? {item:identifier} (?:(and|,) {position:identifier})? in {list:expression} :? {statement}?",
   testRule: "for",
-  constructor: BlockStatement,
+  constructor: Statement,   // TODO: BlockStatement
+  updateScope(scope, results) {
+    const { item, position, list, statement } = results;
+    // Set up the method we'll call in the `forEach`
+    results.$method = new Method({ scope, args: [{ name: item }], statement });
+    if (position) results.$method.addArg({ name: position, type: "number" });
+  },
+  addBlock(scope, results, block) {
+    results.$method.addBlock(block, results);
+  },
   compile(match, scope) {
-    const { item, position, list, statements } = match.results;
-    const itemVar = singularize(item);
-    if (!position) {
-      return `for (const ${itemVar} of ${list}) ${statements}`;
-    }
-    const positionVar = singularize(position);
-    // NOTE: `spell.entries()` must return **1-based** indexes ???
-    return `for (const [${positionVar}, ${itemVar}] of spell.entries(${list}) ${statements}`;
+    const { list, $method } = match.results;
+    return `spell.forEach(${list}, ${$method.compile()})`;
   },
   tests: [
     {
       compileAs: "block",
       tests: [
-        ["for each card in deck:", "for (const card of deck) {}"],
-        ["for item, index in my-list:", "for (const [index, item] of spell.entries(my_list) {}"],
-
+        ["for each card in deck:",
+         "spell.forEach(deck, function(card) {})"
+        ],
+        ["for item, index in my-list:",
+         "spell.forEach(my_list, function(item, index) {})"
+        ],
         [
           "for each card in deck: set the direction of the card to 'down'",
-          "for (const card of deck) { card?.direction = 'down' }"
+          "spell.forEach(deck, function(card) { card?.direction = 'down' })"
         ],
         [
           "for message, index in messages: add message + index to messages",
-          "for (const [index, message] of spell.entries(messages) {\n\tspell.append(messages, (message + index))\n}"
+          "spell.forEach(messages, function(message, index) { spell.append(messages, (message + index)) })"
         ],
 
         [
           "for each card in deck:\n\tset the direction of the card to 'down'",
-          "for (const card of deck) {\n\tcard?.direction = 'down'\n}"
+          "spell.forEach(deck, function(card) { card?.direction = 'down' })"
         ],
         [
           "for message and index in messages:\n\tif index is greater than 2 add message to messages",
-          "for (const [index, message] of spell.entries(messages) {\n\tif (index > 2) { spell.append(messages, message) }\n}"
+          "spell.forEach(messages, function(message, index) { if (index > 2) { spell.append(messages, message) } })"
         ]
       ]
     }

@@ -31,8 +31,6 @@ export class Match {
 
   // Syntactic sugar to easily get `results` of the match for sequences, etc.
   // Only works for some rule types.
-  // NOTE: memoizing this is a bit dodgy
-  //   -- if BlockStatements stop working, it may be that results is getting called too early.
   @memoize
   get results() { return this.rule.getResults?.(this, this.scope) }
 

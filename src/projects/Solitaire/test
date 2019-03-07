@@ -1,7 +1,4 @@
-to play a card on a pile
-	set the pile of the card to the pile
-	add the card to the pile
-
-to start the game: alert 1
-
-start the game
+for each foo in bar: set the baz of foo to 1
+for each foo and index in bar:
+	set the baz of foo to index
+	set the bang of foo to 3

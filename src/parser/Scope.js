@@ -113,6 +113,13 @@ export class Scope {
     return this._addItem(statement, "statements", results);
   }
 
+  // Add a Match for a Block (e.g. from parsing a nested block in a BlockStatement)
+  addBlock(block, results) {
+    block.matched.forEach(match => {
+      this.addStatement(match.compile());   // TODO: not clear if we should add to `results`... ???
+    });
+  }
+
   compileStatements(statements = this.statements) {
     if (!statements || statements.length === 0) return "{}";
     if (statements.length === 1) return `{ ${statements} }`;
@@ -288,30 +295,29 @@ export class Module extends Scope {}
 //  - args        // NOTE: we DO NOT expect args to change after Method is created!
 //  - returns
 export class Method extends Scope {
-  constructor({ args, ...props}) {
+  constructor({ args, statement, ...props}) {
     super(props);
-    // If we have args, initialize them and make a map of `_args`
-    if (args) {
-      // Convert to Variables
-      args.forEach(arg => this._addItem(arg, "args", null, Variable));
-      Object.defineProperty(this, "_args", { value: keyBy(this.args, "name") });
-    }
+    if (args) args.forEach(arg => this.addArg(arg));
+    if (statement) this.addStatement(statement);
   }
+
+  @memoize
+  get _args() { return keyBy(this.args, "name") }
+
+  // Add an arg to this scope.
+  // NOTE: we do not add args to someone else's `results`.
+  @clearMemoized("_args")
+  addArg(arg) { return this._addItem(arg, "args", Variable) }
 
   // When looking up local vars in the top-level method scope, include our args.
   // TODO: special case for `it` and `its`!!!
   getLocalVar(name) {
-    return super.getLocalVar(name) || this._args?.[name];
-  }
-
-  compileArgs() {
-    if (!this.args) return "";
-    return this.args.map(arg => arg.name).join(", ");
+    return super.getLocalVar(name) || this._args[name];
   }
 
   compile() {
     const statements = this.compileStatements();
-    const args = this.compileArgs();
+    const args = this.args?.map(arg => arg.name).join(", ") || "";
 
     // If we're attached to a Type,
     if (this.scope instanceof Type) {

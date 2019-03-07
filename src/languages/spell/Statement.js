@@ -15,8 +15,9 @@ class statement extends Rule.Sequence {
 
   // We have definitively been parsed correctly.
   // Update the `scope` with rules and/or statements as necessary.
-  // NOTE: For BlockStatements (a subclass),
+  // NOTE: For BlockStatement (a subclass),
   //       the block contents will NOT have been parsed when this is called!
+  //       They will be added via an `addBlock()` call AFTER the statement updates the scope.
   //
   // NOTE: DO NOT CALL THIS DIRECTLY -- ALWAYS CALL IT FROM THE MATCH!
   //       Otherwise we may call the method twice.
