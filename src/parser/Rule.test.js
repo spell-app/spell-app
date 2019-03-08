@@ -14,12 +14,34 @@ const tokenizer = new Tokenizer({
 });
 const tokenize = tokenizer.tokenize;
 
+describe("Rule.Symbol", () => {
+  describe("on construction", () => {
+    it("creates proper rule when passed literal as an object", () => {
+      const rule = new Rule.Symbol({ literal: ">" });
+      expect(rule).toBeInstanceOf(Rule.Symbol);
+      expect(rule.literal).toEqual(">");
+    });
+
+    it("creates proper rule when passed single symbol as a string", () => {
+      const rule = new Rule.Symbol(">");
+      expect(rule).toBeInstanceOf(Rule.Symbol);
+      expect(rule.literal).toEqual(">");
+    });
+
+    it("creates proper rule when passed multiple symbols as an array", () => {
+      const rule = new Rule.Symbol([">","="]);
+      expect(rule).toBeInstanceOf(Rule.Symbol);
+      expect(rule.literal).toEqual([">", "="]);
+    });
+  });
+});
+
 describe("Rule.Symbols", () => {
   describe("on construction", () => {
-    it("creates proper rule when passed literals as a string", () => {
-      const rule = new Rule.Keywords({ literals: ">" });
-      expect(rule).toBeInstanceOf(Rule.Literal);
-      expect(rule.literal).toEqual(">");
+    it("creates proper rule when passed literals as an object", () => {
+      const rule = new Rule.Symbols({ literals: [">"] });
+      expect(rule).toBeInstanceOf(Rule.Symbols);
+      expect(rule.literals).toEqual([">"]);
     });
 
     it("creates proper rule when passed single symbol as a string", () => {
@@ -135,21 +157,55 @@ describe("Rule.Symbols", () => {
 });
 
 
+describe("Rule.Keyword", () => {
+  describe("on construction", () => {
+    it("creates proper rule when passed literal string as an object", () => {
+      const rule = new Rule.Keyword({ literal: "this" });
+      expect(rule).toBeInstanceOf(Rule.Keyword);
+      expect(rule.literal).toEqual("this");
+    });
+
+    it("creates proper rule when passed literal string as an array", () => {
+      const rule = new Rule.Keyword({ literal: ["this"] });
+      expect(rule).toBeInstanceOf(Rule.Keyword);
+      expect(rule.literal).toEqual(["this"]);
+    });
+
+    it("creates proper rule when passed single keyword as a string", () => {
+      const rule = new Rule.Keyword("this");
+      expect(rule).toBeInstanceOf(Rule.Keyword);
+      expect(rule.literal).toEqual("this");
+    });
+
+    it("creates proper rule when passed multiple keywords as an array", () => {
+      const rule = new Rule.Keyword(["this", "that"]);
+      expect(rule).toBeInstanceOf(Rule.Keyword);
+      expect(rule.literal).toEqual(["this", "that"]);
+    });
+  });
+});
+
 describe("Rule.Keywords", () => {
   describe("on construction", () => {
-    it("creates proper rule when passed literals as a string", () => {
+    it("creates proper rule when passed literals string as an object", () => {
       const rule = new Rule.Keywords({ literals: "this" });
-      expect(rule).toBeInstanceOf(Rule.Literal);
-      expect(rule.literal).toEqual("this");
+      expect(rule).toBeInstanceOf(Rule.Keywords);
+      expect(rule.literals).toEqual(["this"]);
+    });
+
+    it("creates proper rule when passed literals array as an object", () => {
+      const rule = new Rule.Keywords({ literals: ["this", "that"] });
+      expect(rule).toBeInstanceOf(Rule.Keywords);
+      expect(rule.literals).toEqual(["this", "that"]);
     });
 
     it("creates proper rule when passed single keyword as a string", () => {
       const rule = new Rule.Keywords("this");
-      expect(rule).toBeInstanceOf(Rule.Literal);
-      expect(rule.literal).toEqual("this");
+      expect(rule).toBeInstanceOf(Rule.Keywords);
+      expect(rule.literals).toEqual(["this"]);
     });
 
-    it("creates proper rule when passed multiple keywords as a string", () => {
+    it("creates proper rule when passed multiple keywords as an array", () => {
       const rule = new Rule.Keywords(["this", "that"]);
       expect(rule).toBeInstanceOf(Rule.Keywords);
       expect(rule.literals).toEqual(["this", "that"]);
@@ -179,9 +235,9 @@ describe("Rule.Keywords", () => {
 
       describe("TEST_AT_START", () => {
         const rule = new Rule.Keywords("this");
-        it("returns true if present at the start of tokens", () => {
+        it("returns 1 if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this"));
-          expect(test).toBe(true);
+          expect(test).toBe(1);
         });
 
         it("returns false if not present at the start of tokens", () => {
@@ -353,9 +409,9 @@ describe("Rule.Subrule", () => {
     describe("test() method", () => {
       describe("TEST_AT_START", () => {
         const rule = new Rule.Subrule({ rule: "this" });
-        it("returns true if present at the start of tokens", () => {
+        it("returns 1 if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this that other"));
-          expect(test).toBe(true);
+          expect(test).toBe(1);
         });
 
         it("returns false if not present at start of tokens", () => {
@@ -406,9 +462,9 @@ describe("Rule.Subrule", () => {
     describe("test() method", () => {
       describe("TEST_AT_START", () => {
         const rule = new Rule.Subrule({ rule: "this" });
-        it("returns true if present at the start of tokens", () => {
+        it("returns 1 if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this that"));
-          expect(test).toBe(true);
+          expect(test).toBe(1);
         });
 
         it("returns false if not present at start of tokens", () => {
@@ -575,9 +631,9 @@ describe("Rule.Repeat", () => {
     });
 
     describe("TEST_AT_START", () => {
-      it("returns true if present at the start of tokens", () => {
+      it("returns 1 if present at the start of tokens", () => {
         const test = ruleStart.test(parser, tokenize("word"));
-        expect(test).toBe(true);
+        expect(test).toBe(1);
       });
 
       it("returns false if NOT present at start of tokens", () => {
@@ -720,9 +776,9 @@ describe("Rule.Sequence", () => {
 
       describe("TEST_AT_START", () => {
         const rule = parser.rules.atStart;
-        it("returns true if present at the start of tokens", () => {
+        it("returns 1 if present at the start of tokens", () => {
           const test = rule.test(parser, tokenize("this that other"));
-          expect(test).toBe(true);
+          expect(test).toBe(1);
         });
 
         it("returns false if NOT present anywhere at start of tokens", () => {

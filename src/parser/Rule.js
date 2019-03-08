@@ -241,6 +241,7 @@ Rule.Literals = class literals extends Rule {
     super(props);
   }
 
+  // Return the NUMBER OF TOKENS MATCHED.  `0` = no match.
   testAtStart(scope, tokens, start = 0) {
     for (let i = 0, literal; literal = this.literals[i]; i++) {
 //console.info(i, literal, start, tokens[start]);
@@ -298,15 +299,6 @@ Rule.Symbols = class symbols extends Rule.Literals {};
 Rule.Keywords = class keywords extends Rule.Literals {
   // Join literals with a space in-between.
   @proto literalSeparator = " ";
-
-  // If we ended up with only one literal, return a Keyword
-  constructor() {
-    super(...arguments);
-    if (this.literals && this.literals.length === 1) {
-      const { literals, ...props } = this;
-      return new Rule.Keyword({ ...props, literal: literals[0] });
-    }
-  }
 };
 
 // Regex pattern to match a SINGLE token.
