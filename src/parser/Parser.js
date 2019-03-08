@@ -245,7 +245,11 @@ export class Parser {
       let { skip, constructor, ...props } = ruleProps;
       if (skip) return;
 
-// TODO: if multiple syntaxes, recurse here...
+      // If we received multiple syntax strings,
+      // recursively add under each string.
+      if (Array.isArray(props.syntax)) {
+        return props.syntax.map(syntax => this.defineRule({ ...props, syntax, constructor }));
+      }
 
       // if `constructor` was not specified, it will be Object,
       // we're expecting it to be a Rule, so clear it.
