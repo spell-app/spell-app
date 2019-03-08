@@ -13,6 +13,7 @@ import {
   Parser,
   ParseError,
   Rule,
+  SpellParser,
 
   memoize,
   clearMemoized
@@ -206,7 +207,7 @@ export class Scope {
     results.datatype = uniq(enumeration.map(
       value => {
         if (typeof value === "string")
-          this.addConstantRule(value, results);
+          this.addRule({ constructor: SpellParser.Rule.Constant, literal: value });
         return typeof value;
       })
     );
@@ -234,18 +235,6 @@ export class Scope {
       literals,
       datatype: results.enumType,
       compile: () => results.canonicalRef
-    }, results);
-  }
-
-  // Add a single-word constant identifier, passing just the constant name.
-  // We assume that the constant value is the quoted name.
-  addConstantRule(name, results) {
-    return this.addRule({
-      name: "constant",
-      datatype: "string",
-      literal: name,
-      precedence: 1,    // must be above "identifier"
-      compile: () => `'${name}'`
     }, results);
   }
 

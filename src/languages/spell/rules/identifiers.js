@@ -27,26 +27,50 @@ SpellParser.Rule.Constant = class constant extends Rule.Keyword {
   }
 }
 
-SpellParser.Rule.MultiWordConstant = class constant extends Rule.Keywords {
-  @proto name = "constant";
-  @proto datatype = "string";
-  @proto precedence = 1;    // must be above "identifier expression"
-  compile(scope, match) {
-    return `'${super.compile(scope, match)}'`;
-  }
-}
+// SpellParser.Rule.MultiWordConstant = class constant extends Rule.Keywords {
+//   @proto name = "constant";
+//   @proto datatype = "string";
+//   @proto precedence = 1;    // must be above "identifier expression"
+//   compile(scope, match) {
+//     return `'${super.compile(scope, match)}'`;
+//   }
+// }
 
+// Make sure that "constants" group is defined.
 parser.defineRule({
   name: "constant",
   argument: "constant",
   constructor: Rule.Group,
 });
 
+// Identifier to match a constant.
+// NOTE: precedence of this doesn't matter...
 parser.defineRule({
-  name: "constant_identifier",
+  name: "constant_expression",
   alias: ["expression", "single_expression"],
   rule: "constant",
   constructor: Rule.Subrule
+});
+
+
+parser.defineRule({
+  name: "its_property",
+  alias: ["expression", "property_accessor", "single_expression"],
+  syntax: "its {property:identifier}",
+  testRule: "its",
+  compile(scope, match) {
+    const { property } = match.results;
+    return `this.${property}`
+  },
+  tests: [
+    {
+      compileAs: "expression",
+      tests: [
+        ["its foo", "this.foo"],
+        ["the foo of its bar", "this.bar?.foo"],
+      ]
+    }
+  ]
 });
 
 

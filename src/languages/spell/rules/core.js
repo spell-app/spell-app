@@ -7,8 +7,6 @@ import {
   Token,
 } from "../all.js";
 
-import identifierBlacklist from "./identifier-blacklist.js";
-
 const parser = new SpellParser({ module: "core" });
 export default parser;
 

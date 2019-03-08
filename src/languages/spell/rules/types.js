@@ -59,26 +59,6 @@ parser.defineRule({
   },
 });
 
-parser.defineRule({
-  name: "its_property",
-  alias: ["expression", "property_accessor", "single_expression"],
-  syntax: "its {property:identifier}",
-  testRule: "its",
-  compile(scope, match) {
-    const { property } = match.results;
-    return `this.${property}`
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
-        ["its foo", "this.foo"],
-        ["the foo of its bar", "this.bar?.foo"],
-      ]
-    }
-  ]
-});
-
 //MOVE TO `functions`?
 // Arguments clause for methods
 //  `with foo` or `with foo and bar and baz`

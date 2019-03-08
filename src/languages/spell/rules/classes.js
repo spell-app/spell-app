@@ -275,11 +275,11 @@ parser.defineRule({
 
 
 parser.defineRule({
-  name: "quoted_property_name",
+  name: "quoted_property_alias",
   alias: "statement",
   //  e.g. `a card "is face up" if ...`
   //  NOTE: the first word in quotes must be "is" !!
-  syntax: '(a|an) {type:identifier} {text} if {expression}',
+  syntax: '(a|an) {type:identifier} {alias:text} if {expression}',
   constructor: class quoted_property_name extends SpellParser.Rule.Statement {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
@@ -291,11 +291,11 @@ parser.defineRule({
     gatherResults(scope, match) {
       const results = gatherResults(scope, match);
       // split the text string up into words
-      const words = (""+JSON.parse(results.text)).split(" ");
+      const alias = (""+JSON.parse(results.alias)).split(" ");
       // if the first word is not "is" then forget it
-      if (words[0] !== "is") return;
-      results.property = words.join("_");
-      results.expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ");
+      if (alias[0] !== "is") return;
+      results.property = alias.join("_");
+      results.expressionSuffix = [alias[0], "not?", ...alias.slice(1)].join(" ");
       return inflectResults(results, "type");
     }
     updateScope(scope, results) {
