@@ -303,6 +303,7 @@ export class Module extends Scope {}
 //  - name
 //  - args        // NOTE: we DO NOT expect args to change after Method is created!
 //  - returns
+//  - async       // if `true`, this is an async function
 export class Method extends Scope {
   constructor({ args, ...props}) {
     super(props);

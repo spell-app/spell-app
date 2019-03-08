@@ -17,10 +17,11 @@ parser.defineRule({
   alias: ["statement", "async"],
   syntax: "alert {message:expression} (?:with {okButton:text})?",
   testRule: "alert",
-  // TODO: need some fancy promise juju to make parent funtion async?
-  compile(scope, match) {
-    let { message, okButton = '"OK"' } = match.results;
-    return `await spell.alert(${message}, ${okButton})`;
+  constructor: SpellParser.Rule.Statement,
+  updateScope(scope, results) {
+    const { message, okButton = '"OK"' } = results;
+    scope.async = true;
+    return scope.addStatement(`await spell.alert(${message}, ${okButton})`, results);
   },
   tests: [
     {
@@ -42,9 +43,11 @@ parser.defineRule({
   alias: "statement",
   syntax: "warn {message:expression} (?:with {okButton:text})?",
   testRule: "warn",
-  compile(scope, match) {
-    let { message, okButton = '"OK"' } = match.results;
-    return `await spell.warn(${message}, ${okButton})`;
+  constructor: SpellParser.Rule.Statement,
+  updateScope(scope, results) {
+    const { message, okButton = '"OK"' } = results;
+    scope.async = true;
+    return scope.addStatement(`await spell.warn(${message}, ${okButton})`, results);
   },
   tests: [
     {
@@ -66,9 +69,11 @@ parser.defineRule({
   alias: "statement",
   syntax: "confirm {message:expression} (?:with {okButton:text} (?:(and|or) {cancelButton:text})?)?",
   testRule: "confirm",
-  compile(scope, match) {
-    let { message, okButton = '"OK"', cancelButton = '"Cancel"' } = match.results;
-    return `await spell.confirm(${message}, ${okButton}, ${cancelButton})`;
+  constructor: SpellParser.Rule.Statement,
+  updateScope(scope, results) {
+    const { message, okButton = '"OK"', cancelButton = '"Cancel"' } = results;
+    scope.async = true;
+    return scope.addStatement(`await spell.confirm(${message}, ${okButton}, ${cancelButton})`, results);
   },
   tests: [
     {
