@@ -17,12 +17,11 @@ parser.defineRule({
   name: "assignment",
   alias: "statement",
   syntax: [
-    "{thing:expression} = {value:expression}",
-    "let {thing:expression} = {value:expression}",
-    "set {thing:expression} to {value:expression}",
-    "get {value:expression}"
+    { syntax: "{thing:expression} = {value:expression}", testRule: "…=" },
+    { syntax: "let {thing:expression} = {value:expression}", testRule: "let" },
+    { syntax: "set {thing:expression} to {value:expression}", testRule: "set" },
+    { syntax: "get {value:expression}", testRule: "get" }
   ],
-  testRule:"…(=|let|set|get)",
   constructor: SpellParser.Rule.Statement,
   gatherResults(scope, match) {
     const results = gatherResults(scope, match);

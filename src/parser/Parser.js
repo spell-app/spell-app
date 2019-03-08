@@ -248,7 +248,13 @@ export class Parser {
       // If we received multiple syntax strings,
       // recursively add under each string.
       if (Array.isArray(props.syntax)) {
-        return props.syntax.map(syntax => this.defineRule({ ...props, syntax, constructor }));
+        return props.syntax.map(syntax => {
+          // handle syntax as a string
+          if (typeof syntax === "string")
+            return this.defineRule({ ...props, syntax, constructor })
+          // or as an object (e.g. so you can specify separate testRules)
+          return this.defineRule({ ...props, ...syntax, constructor })
+        });
       }
 
       // if `constructor` was not specified, it will be Object,
