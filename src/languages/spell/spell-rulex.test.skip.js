@@ -1,7 +1,9 @@
 //
 //  Test to make sure all rules created from rulex syntax
 //  output the same syntax when compiled.
-//  This is a poor-mans test to make sure things are working somewhat correctly.
+//
+//  This is a quick check to make sure rule parsing is working as expected.
+//  Note that there is some variation in how the rules come out so we often "skip" the test.
 //
 
 import {

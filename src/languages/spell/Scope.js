@@ -20,6 +20,10 @@ import {
 
 // NOTE: this is the only export from this file.
 // Consumers of this file should use `scope.addMethod(...)` or `new `Scope.Method(...)`
+//
+//  Expected properties:
+//
+//  - async       // if `true`, something in the scope is being called asynchronously
 export class Scope {
   constructor(props) {
     // You can initialize with just a `Parser` instance if desired.
@@ -303,7 +307,6 @@ export class Module extends Scope {}
 //  - name
 //  - args        // NOTE: we DO NOT expect args to change after Method is created!
 //  - returns
-//  - async       // if `true`, this is an async function
 export class Method extends Scope {
   constructor({ args, ...props}) {
     super(props);

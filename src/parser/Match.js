@@ -24,6 +24,7 @@ export class Match {
   }
 
   // Should we promote the match?
+  // Generally we look this up in our rule, but sometimes it's set directly (e.g. with choices)
   get promote() {
     return this._promote || this.rule.promote;
   }

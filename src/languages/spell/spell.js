@@ -1,6 +1,7 @@
 import { SpellParser } from "./all.js";
 
 import core from "./rules/core.js";
+import identifiers from "./rules/identifiers.js";
 import assignment from "./rules/assignment.js";
 import _if_ from "./rules/if.js";
 import JSX from "./rules/JSX.js";
@@ -18,4 +19,4 @@ spell.defineRule({ name: "block", constructor: SpellParser.Rule.Block });
 spell.defineRule({ name: "block_line", constructor: SpellParser.Rule.BlockLine });
 
 // Import the other rules defined above.
-spell.import(core, assignment, expressions, math, types, lists, _if_, JSX, UI, classes);
+spell.import(core, identifiers, assignment, expressions, math, types, lists, _if_, JSX, UI, classes);
