@@ -1,9 +1,10 @@
 import {
   Rule,
+  SpellParser
 } from "./all.js";
 
 // Parser error representation in parser output.
-export class StatementParseError extends Rule {
+SpellParser.Rule.StatementParseError = class parse_error extends Rule {
   get message() {
     if (this.parsed) {
       return (

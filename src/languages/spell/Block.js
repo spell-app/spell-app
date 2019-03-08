@@ -15,7 +15,8 @@ import {
 //  They are composed of `blockLines` and nested `blocks`,
 //  and correspond roughly to a `Scope` (see `parser/Scope.js`).
 //
-export class Block extends Rule {
+// Note: Access this as `SpellParser.Rule.Block`.
+SpellParser.Rule.Block = class block extends Rule {
   // Split statements up into blocks and parse 'em.
   parse(scope, tokens) {
     if (!tokens.length) return;
@@ -25,22 +26,31 @@ export class Block extends Rule {
   // Parse an entire `block`, returning array of matched elements (NOT as a match).
   parseBlock(scope, block) {
     let matched = [];
+    let lastStatement;
     for (var i = 0, item; item = block.contents[i]; i++) {
+      // Just add a blank link to the stream
       if (item.length === 0) {
         matched.push(new Rule.BlankLine());
         length += 1;
       }
-      // got a nested block
+      // If we got a nested block
       else if (item instanceof Token.Block) {
-        const nested = this.parseBlock(scope, item);
-        if (!nested) {
-          scope.info("expected nested result, didn't get anything");
-          continue;
+        // If the lastStatement has a $scope, have it parse the block
+        if (lastStatement?.rule?.wantsNestedBlock) {
+          this.parseBlock(lastStatement.getNestedScope(), item);
         }
         else {
-          scope.warn("got a nested block when we weren't expecting one");
-          matched.push(nested);
+          const nestedBlock = this.parseBlock(scope, item);
+          if (nestedBlock) {
+            scope.info("got a nested block when we weren't expecting one");
+            // Just push it into the stream
+            matched.push(nestedBlock);
+          }
+          else {
+            scope.info("expected nested result, didn't get anything");
+          }
         }
+        delete this.lastStatement;
       }
       // Got a single statement, parse the entire thing as a `block_line`
       else {
@@ -52,18 +62,7 @@ export class Block extends Rule {
         // This may create other rules/vars/etc that later statements will use.
         statement.updateScope();
 
-        // If `statement.results.$scope` exists and the next item is a block,
-        // parse the block and add it to the `statement`.
-        const next = block.contents[i+1];
-        if (!(next instanceof Token.Block)) continue;
-        if (!statement.results.$scope) continue;
-
-        const blockMatch = this.parseBlock(scope, next);
-        if (!blockMatch) continue;
-
-        statement.results.$scope.addBlock(blockMatch);
-        // We've already processed this item
-        i++;
+        lastStatement = statement;
       }
     }
 

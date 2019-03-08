@@ -1,7 +1,4 @@
-import { SpellParser } from "./SpellParser.js";
-
-import { Block } from "./Block.js";
-import { BlockLine } from "./BlockLine.js";
+import { SpellParser } from "./all.js";
 
 import core from "./rules/core.js";
 import assignment from "./rules/assignment.js";
@@ -17,8 +14,8 @@ import classes from "./rules/classes.js";
 // Create parser which combines all of the above...
 export const spell = new SpellParser({ module: "spell" });
 
-spell.defineRule({ name: "block", constructor: Block });
-spell.defineRule({ name: "block_line", constructor: BlockLine });
+spell.defineRule({ name: "block", constructor: SpellParser.Rule.Block });
+spell.defineRule({ name: "block_line", constructor: SpellParser.Rule.BlockLine });
 
 // Import the other rules defined above.
 spell.import(core, assignment, expressions, math, types, lists, _if_, JSX, UI, classes);

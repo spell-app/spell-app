@@ -8,6 +8,10 @@ import {
 } from "./all.js";
 
 export class SpellParser extends Parser {
+  // Special Rule sub-classes get attached here rather than exported directly.
+  // e.g. `SpellParser.Rule.Block`
+  static Rule = {};
+
   // Name of our default rule to parse if calling `parser.parse(text)`.
   @proto defaultRule = "block";
 

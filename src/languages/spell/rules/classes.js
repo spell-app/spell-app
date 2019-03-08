@@ -2,9 +2,9 @@ import {
   Rule,
   Scope,
   SpellParser,
-  Statement,
   Token,
 
+  gatherResults,
   lowerFirst,
   upperFirst,
   pluralize,
@@ -19,20 +19,19 @@ export default parser;
 
 parser.defineRule({
   name: "create_type",
-  alias: ["statement"],
+  alias: "statement",
   syntax: "create type {type:word} (?:as (a|an) {superType:identifier})?",
-  constructor: class create_type extends Statement {
-    getResults(scope, match) {
-      const results = super.getResults(scope, match);
-      return inflectResults(results, "type", "superType");
-    }
-    updateScope(scope, results) {
-      const { Type, SuperType } = results;
-      scope.addType({
-        name: Type,
-        superType: SuperType
-      }, results);
-    }
+  constructor: SpellParser.Rule.Statement,
+  gatherResults(scope, match) {
+    const results = gatherResults(scope, match);
+    return inflectResults(results, "type", "superType");
+  },
+  updateScope(scope, results) {
+    const { Type, SuperType } = results;
+    scope.addType({
+      name: Type,
+      superType: SuperType
+    }, results);
   },
   tests: [
     {
@@ -55,13 +54,11 @@ parser.defineRule({
   alias: ["expression", "single_expression", "statement"],
   syntax: "create (a|an) {type:word} (?:with {props:object_literal_properties})?",
   testRule: "create",
-  constructor: Statement,
+  constructor: SpellParser.Rule.Statement,
   updateScope(scope, results) {
     const { type, props = "" } = results; // `props` is the object literal text
     const Type = upperFirst(type);
-    const statement = `new ${Type}(${props})`;
-    scope.addStatement(statement, results);
-    return results;
+    scope.addStatement(`new ${Type}(${props})`, results);
   },
   tests: [
     {
@@ -100,11 +97,9 @@ parser.defineRule({
   name: "type_initializer_enum",
   alias: "type_initializer",
   syntax: "as (either|one of) {enumeration:identifier_list}",
-  constructor: class type_initializer_enum extends Rule.Sequence {
-    getResults(scope, match) {
-      const results = super.getResults(scope, match);
-      return { datatype: "enum", enumeration: results.enumeration };
-    }
+  gatherResults(scope, match) {
+    const results = gatherResults(scope, match);
+    return { datatype: "enum", enumeration: results.enumeration };
   },
   tests: [
     {
@@ -137,57 +132,51 @@ parser.defineRule({
 
 parser.defineRule({
   name: "define_property_has",
-  alias: ["statement"],
+  alias: "statement",
   syntax: "{?:type_has_prefix} (a|an) {property:identifier} {initializer:type_initializer}?",
   testRule: "…(has|have)",
-  constructor: class define_property_has extends Statement {
-    getResults(scope, match) {
-      const results = super.getResults(scope, match);
-      return inflectResults(results, "type", "property");
-    }
-    updateScope(scope, results) {
-      const { Type, type, Properties, property, initializer = {}} = results;
-      const typeScope = scope.getOrAddType(Type);
-      let { datatype, enumeration } = initializer;
-      const getter = [ `return this.#${property}` ];
-      let setter;
+  constructor: SpellParser.Rule.Statement,
+  gatherResults(scope, match) {
+    const results = gatherResults(scope, match);
+    return inflectResults(results, "type", "property");
+  },
+  updateScope(scope, results) {
+    const { Type, type, Properties, property, initializer = {}} = results;
+    const typeScope = scope.getOrAddType(Type);
+    let { datatype, enumeration } = initializer;
+    const getter = [ `return this.#${property}` ];
+    let setter;
 
-      results.typeScope = typeScope;
-      if (enumeration) {
-        // Register the enumeration which will register all sorts of juicy rules and statements.
-        typeScope.addEnumeration({ name: Properties, enumeration }, results);
-        setter = [ `if ($.isOneOf(${property}, ${results.canonicalRef})) this.#${property} = ${property}` ];
-        datatype = results.datatype;
-      }
-      else if (datatype) {
-        setter = [ `if ($.isType(${property}, '${datatype}')) this.#${property} = ${property}` ];
-      }
-      else {
-        setter = [ `this.#${property} = ${property}` ];
-        datatype = "undefined";
-      }
-
-      results.statements.push(
-        // Instance getter
-        typeScope.addMethod({
-          name: property,
-          kind: "getter",
-          statements: getter,
-          returns: datatype,
-        }),
-        // Instance setter
-        typeScope.addMethod({
-          name: property,
-          kind: "setter",
-          args: [
-            new Scope.Variable({ name: property, datatype })
-          ],
-          statements: setter,
-          returns: "undefined",     // setters don't actually return a value... :-(
-        })
-      );
-      return results;
+    if (enumeration) {
+      // Register the enumeration which will register all sorts of juicy rules and statements.
+      typeScope.addEnumeration({ name: Properties, enumeration }, results);
+      setter = [ `if ($.isOneOf(${property}, ${results.canonicalRef})) this.#${property} = ${property}` ];
+      datatype = results.datatype;
     }
+    else if (datatype) {
+      setter = [ `if ($.isType(${property}, '${datatype}')) this.#${property} = ${property}` ];
+    }
+    else {
+      setter = [ `this.#${property} = ${property}` ];
+      datatype = "undefined";
+    }
+
+    // Instance getter
+    typeScope.addMethod({
+      name: property,
+      kind: "getter",
+      statements: getter,
+      returns: datatype,
+    }, results);
+
+    // Instance setter
+    typeScope.addMethod({
+      name: property,
+      kind: "setter",
+      args: [ { name: property, datatype } ],
+      statements: setter,
+      returns: "undefined",     // setters don't actually return a value... :-(
+    }, results);
   },
   tests: [
     {
@@ -219,37 +208,35 @@ parser.defineRule({
 parser.defineRule({
   name: "to_do_something",
   alias: "statement",
-  syntax: "to (keywords:{word}|{type})+ :? {statement}?",
-  constructor: class define_type extends Statement {
-    getResults(scope, match) {
-      const results = super.getResults(scope, match);
-      return parseMethodKeywords(results);
-    }
-    updateScope(scope, results) {
-      const { Type, method, args, instanceMethod, instanceArgs, statement, syntax } = results;
-      const methodProps = { name: method, args };
-      if (results.Type) {
-        const typeScope = scope.getOrAddType(Type);
-        results.$scope = typeScope.addClassMethod({ name: method, args }, results);
-        // compile method for statementRule
-        results.compile = function({ callArgs = "" }) { return `${Type}.${method}(${callArgs})` }
-      }
-      // Create as a top-level rule...???
-      else {
-        results.$scope = scope.addMethod({ name: method, args }, results);
-        // compile method for statementRule
-        // TODO: need to work module scope in there?
-        results.compile = function({ callArgs = "" }) { return `${method}(${callArgs})` }
-      }
+  syntax: "to (keywords:{word}|{type})+ :?",
+  constructor: SpellParser.Rule.Statement,
+  wantsInlineStatement: true,
+  wantsNestedBlock: true,
+  gatherResults(scope, match) {
+    const results = gatherResults(scope, match);
+    return parseMethodKeywords(results);
+  },
+  getNestedScope(scope, results) {
+    const { method, args } = results;
+    return results.$method = new Scope.Method({ scope, name: method, args });
+  },
+  updateScope(scope, results) {
+    const { Type, $method, method, syntax } = results;
+    if (Type)
+      scope.getOrAddType(Type).addClassMethod($method, results);
+    else
+      scope.addMethod($method, results);
 
-      // Add a rule to match the new syntax,
-      scope.addStatementRule({
-        name: method,
-        syntax,
-        compile: results.compile,
-        statement
-      }, results);
-    }
+    // TODO: need to work module scope in if no type???
+    let compile = results.Type
+      ? function({ callArgs = "" }) { return `${Type}.${method}(${callArgs})` }
+      : function({ callArgs = "" }) { return `${method}(${callArgs})` }
+
+    scope.addStatementRule({
+      name: method,
+      syntax,
+      compile,
+    }, results);
   },
   tests: [
     {
@@ -258,6 +245,10 @@ parser.defineRule({
         [
           "to start the game",
           "function start_the_game() {}"
+        ],
+        [
+          "to start the game: set the state of the game to 'started'",
+          "function start_the_game() { game?.state = 'started' }"
         ],
         [
           [ // TODO: this rule is recursive!!!
@@ -285,11 +276,11 @@ parser.defineRule({
 
 parser.defineRule({
   name: "quoted_property_name",
-  alias: ["statement"],
+  alias: "statement",
   //  e.g. `a card "is face up" if ...`
   //  NOTE: the first word in quotes must be "is" !!
   syntax: '(a|an) {type:identifier} {text} if {expression}',
-  constructor: class quoted_property_name extends Statement {
+  constructor: class quoted_property_name extends SpellParser.Rule.Statement {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
       // Check the results -- if first word of `text` is not `is`,
@@ -297,8 +288,8 @@ parser.defineRule({
       if (match && !match.results) return undefined;
       return match;
     }
-    getResults(scope, match) {
-      const results = super.getResults(scope, match);
+    gatherResults(scope, match) {
+      const results = gatherResults(scope, match);
       // split the text string up into words
       const words = (""+JSON.parse(results.text)).split(" ");
       // if the first word is not "is" then forget it
@@ -321,16 +312,13 @@ parser.defineRule({
       });
 
       // Create an instance getter
-      const getter = scope
-        .getOrAddType(TypeName)
+      scope.getOrAddType(TypeName)
         .addMethod({
           name: property,
           kind: "getter",
           datatype: "boolean",
           statements: [`return ${expression}`]
-        });
-      results.statements.push(getter);
-      return results;
+        }, results);
     }
   },
   tests: [
@@ -364,27 +352,26 @@ parser.defineRule({
 
 parser.defineRule({
   name: "property_value_either",
-  alias: ["statement"],
+  alias: "statement",
   syntax: "{?:property_of_a_type} is {value:identifier} if {condition:expression} (?:otherwise it is {otherValue:identifier})?",
-  constructor: class type_is_a_enum extends Statement {
-    getResults(scope, match) {
-      const results = super.getResults(scope, match);
-      return inflectResults(results, "type");
-    }
-    updateScope(scope, results) {
-      let { TypeName, typeName, property, value, otherValue, condition } = results;
+  constructor: SpellParser.Rule.Statement,
+  gatherResults(scope, match) {
+    const results = gatherResults(scope, match);
+    return inflectResults(results, "type");
+  },
+  updateScope(scope, results) {
+    let { TypeName, typeName, property, value, otherValue, condition } = results;
 
-      scope.getOrAddType(TypeName)
-        // Create as an instance getter
-        .addMethod({
-          name: property,
-          kind: "getter",
+    scope.getOrAddType(TypeName)
+      // Create as an instance getter
+      .addMethod({
+        name: property,
+        kind: "getter",
 //TODO:   datatype: "...",
-          statements: otherValue
-            ? [`return !!${condition} ? ${value} : ${otherValue}`]
-            : [`if (${condition}) return ${value}`]
-        }, results)
-    }
+        statements: otherValue
+          ? [`return !!${condition} ? ${value} : ${otherValue}`]
+          : [`if (${condition}) return ${value}`]
+      }, results)
   },
   tests: [
     {
@@ -403,23 +390,22 @@ parser.defineRule({
 
 parser.defineRule({
   name: "property_value_expression",
-  alias: ["statement"],
+  alias: "statement",
   syntax: "{?:property_of_a_type} is {expression}",
-  constructor: class type_is_a_enum extends Statement {
-    getResults(scope, match) {
-      const results = super.getResults(scope, match);
-      return inflectResults(results, "type");
-    }
-    updateScope(scope, results) {
-      let { Type, property, expression } = results;
-      scope
-        .getOrAddType(Type)
-        .addMethod({
-          kind: "getter",
-          name: property,
-          statements: [`return ${expression}`],
-        }, results)
-    }
+  constructor: SpellParser.Rule.Statement,
+  gatherResults(scope, match) {
+    const results = gatherResults(scope, match);
+    return inflectResults(results, "type");
+  },
+  updateScope(scope, results) {
+    let { Type, property, expression } = results;
+    scope
+      .getOrAddType(Type)
+      .addMethod({
+        kind: "getter",
+        name: property,
+        statements: [`return ${expression}`],
+      }, results)
   },
   tests: [
     {

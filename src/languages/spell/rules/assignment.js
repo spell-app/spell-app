@@ -3,7 +3,9 @@
 //
 
 import {
+  gatherResults,
   Rule,
+  Scope,
   SpellParser,
 } from "../all.js";
 
@@ -16,16 +18,30 @@ export default parser;
 //TODO: distinguish between `new_identifier` and `scoped_identifier`?
 //
 
+// Generic Rule to cover assignment of various flavors.
+SpellParser.Rule.Assignment = class assignment extends SpellParser.Rule.Statement {
+  updateScope(scope, results) {
+    let { thing, value } = results;
+    // If we got a variable
+    if (thing instanceof Scope.Variable) {
+      // Make sure scope has such a variable declared.
+// TODO: this is not checking nested scopes... will likely be a problem
+      if (!scope.hasLocalVar(thing.name))
+        scope.addVar(thing);
+      // Use the variable name in the expression.
+      thing = thing.name;
+    }
+    scope.addStatement(`${thing} = ${value}`, results);
+  }
+}
+
+
 parser.defineRule({
   name: "assignment",
-  alias: ["statement"],
+  alias: "statement",
   syntax: "{thing:expression} = {value:expression}",
   testRule: "…=",
-  compile(scope, match) {
-    let { thing, value } = match.results;
-    // TODO: declare identifier if not in scope, etc
-    return `${thing} = ${value}`;
-  },
+  constructor: SpellParser.Rule.Assignment,
   tests: [
     {
       compileAs: "statement",
@@ -38,13 +54,10 @@ parser.defineRule({
 
 parser.defineRule({
   name: "assignment",
-  alias: ["statement"],
+  alias: "statement",
   syntax: "let {thing:expression} = {value:expression}",
   testRule: "let",
-  compile(scope, match) {
-    let { thing, value } = match.results;
-    return `${thing} = ${value}`;
-  },
+  constructor: SpellParser.Rule.Assignment,
   tests: [
     {
       compileAs: "statement",
@@ -57,13 +70,10 @@ parser.defineRule({
 
 parser.defineRule({
   name: "assignment",
-  alias: ["statement"],
+  alias: "statement",
   syntax: "set {thing:expression} to {value:expression}",
   testRule: "set",
-  compile(scope, match) {
-    let { thing, value } = match.results;
-    return `${thing} = ${value}`;
-  },
+  constructor: SpellParser.Rule.Assignment,
   tests: [
     {
       compileAs: "statement",
@@ -75,43 +85,26 @@ parser.defineRule({
 });
 
 parser.defineRule({
-  name: "assignment",
-  alias: ["statement"],
-  syntax: "put {value:expression} into {thing:expression}",
-  testRule: "put",
-  compile(scope, match) {
-    let { thing, value } = match.results;
-    // TODO: declare identifier if not in scope, etc
-    return `${thing} = ${value}`;
+  name: "get_value",
+  alias: "statement",
+  syntax: "get {value:expression}",
+  testRule: "get",
+  constructor: SpellParser.Rule.Assignment,
+  gatherResults(scope, match) {
+    const results = gatherResults(scope, match);
+    results.thing = new Scope.Variable({ name: "it" });   // TODO: `typeof value`
+    return results;
   },
   tests: [
     {
       compileAs: "statement",
       tests: [
-        ["put yes into thing", "thing = true"]
+        ["get thing", "it = thing"]
       ]
     }
   ]
 });
 
-
-parser.defineRule({
-  name: "get_value",
-  alias: ["statement"],
-  syntax: "get {value:expression}",
-  testRule: "get",
-  compile(scope, match) {
-    let { value } = match.results;
-    return `var it = ${value}`;
-  },
-  tests: [
-    {
-      title: "correctly matches ",
-      compileAs: "statement",
-      tests: [["get thing", "var it = thing"]]
-    }
-  ]
-});
 
 
 //
@@ -124,14 +117,17 @@ parser.defineRule({
   alias: "statement",
   syntax: "return {expression}",
   testRule: "return",
-  compile(scope, match) {
-    let { expression } = match.results;
-    return `return ${expression}`;
+  constructor: SpellParser.Rule.Statement,
+  updateScope(scope, results) {
+    let { expression } = results;
+    scope.addStatement(`return ${expression}`, results);
   },
   tests: [
     {
       compileAs: "statement",
-      tests: [["return thing", "return thing"]]
+      tests: [
+        ["return thing", "return thing"]
+      ]
     }
   ]
 });
@@ -141,13 +137,16 @@ parser.defineRule({
   name: "exit",
   alias: "statement",
   syntax: "exit",
-  compile(scope, match) {
-    return "return undefined";
+  constructor: SpellParser.Rule.Statement,
+  updateScope(scope, results) {
+    scope.addStatement(`return undefined`, results);
   },
   tests: [
     {
       compileAs: "statement",
-      tests: [["exit", "return undefined"]]
+      tests: [
+        ["exit", "return undefined"]
+      ]
     }
   ]
 });

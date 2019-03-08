@@ -8,10 +8,10 @@ export * from "../../parser/all.js";
 
 export * from "./SpellParser.js"
 export * from "./Scope.js"
-export * from "./Block.js"
-export * from "./BlockLine.js"
-export * from "./Statement.js"
-export * from "./StatementParseError.js"
+import "./Block.js"
+import "./BlockLine.js"
+import "./Statement.js"
+import "./StatementParseError.js"
 export * from "./inflection.js";
 
 // Export the entire language as `spell` and as the `default` export.

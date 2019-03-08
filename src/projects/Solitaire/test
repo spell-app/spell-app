@@ -1,15 +1,4 @@
-to foo the bar
+to do something
 	a = 1
 
-	b = 2
-
-if a
-
-if a
-	b = 1
-	if c
-		c = 2
-		d = 3
-
-if a
-b = 1
+do something

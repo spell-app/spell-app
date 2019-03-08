@@ -245,6 +245,8 @@ export class Parser {
       let { skip, constructor, ...props } = ruleProps;
       if (skip) return;
 
+// TODO: if multiple syntaxes, recurse here...
+
       // if `constructor` was not specified, it will be Object,
       // we're expecting it to be a Rule, so clear it.
       if (constructor === Object) constructor = null;

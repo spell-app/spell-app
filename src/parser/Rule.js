@@ -637,6 +637,15 @@ Rule.Sequence = class sequence extends Rule {
   constructor(props) {
     if (arguments.length > 1) props = { rules: [...arguments] };
     if (Array.isArray(props)) props = { rules: props };
+    // Sometimes we'll use Sequence or subclass as a constructor for a simple value
+    //  to get other sequence methods (like `gatherResults()`, etc).
+    if (!props.rules) {
+      if (props.literal)
+        props.rules = new Rule.Keyword(props.literal);
+      else if (props.literals)
+        props.rules = new Rule.Keywords(props.literals);
+    }
+    if (!props.rules) throw new TypeError(`Sequence '${props.name}' created without specifying 'rules'!`);
     super(props);
   }
   parse(scope, tokens) {
@@ -674,7 +683,7 @@ Rule.Sequence = class sequence extends Rule {
 
   // If no explcit compile method, return our `results` for someone else to consume.
   compile(scope, match) {
-    return this.getResults(scope, match);
+    return this.gatherResults(scope, match);
   }
 
   getTokens(match) {
@@ -687,7 +696,7 @@ Rule.Sequence = class sequence extends Rule {
 
   //TODOC
   // "gather" matched values into a map in preparation to call `compile(scope, match)`
-  getResults(scope, match) {
+  gatherResults(scope, match) {
     const { rule, matched, comment } = match;
     if (!matched) return undefined;
     let results = addResults({}, matched);
@@ -792,7 +801,7 @@ Rule.NestedSplit = class nesting extends Rule {
     });
   }
 
-  getResults(scope, match) {
+  gatherResults(scope, match) {
     const { rule, prefix, groups } = match;
     const results = prefix && prefix.compile() || {};
     const name = rule.rule.argument || rule.rule.name;
@@ -802,7 +811,7 @@ Rule.NestedSplit = class nesting extends Rule {
 
   // If no explcit compile method, return our `results` for someone else to consume.
   compile(scope, match) {
-    return this.getResults(scope, match);
+    return this.gatherResults(scope, match);
   }
 
   // If tokens starts with our `start` literal,
@@ -855,3 +864,7 @@ Rule.NestedSplit = class nesting extends Rule {
     return groups;
   }
 }
+
+// Export the `gatherResults` method by itself so we can call it elsewhere without `super`.
+const gatherResults = Rule.Sequence.prototype.gatherResults;
+export { gatherResults }

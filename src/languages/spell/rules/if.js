@@ -6,7 +6,6 @@ import {
   Rule,
   Scope,
   SpellParser,
-  Statement,
 } from "../all.js";
 
 const parser = new SpellParser({ module: "if" });
@@ -23,17 +22,23 @@ export function parenthesizeCondition(condition) {
 parser.defineRule({
   name: "_if",
   alias: "statement",
-  syntax: "if {condition:expression} (then|:)? {statement}?",
+  syntax: "if {condition:expression} (then|:)?",
   testRule: "if",
-  constructor: Statement,
-  updateScope(scope, results) {
-    // create a child $scope to add statements to below
-    results.$scope = new Scope({ scope, statement: results.statement });
+  constructor: SpellParser.Rule.Statement,
+  wantsInlineStatement: true,
+  wantsNestedBlock: true,
+  getNestedScope(scope, results) {
+    const condition = parenthesizeCondition(results.condition);
+    return results.$scope = new Scope.Method({
+      name: "if",
+      scope,
+      compile() {
+        return `if ${condition} ${this.compileStatements()}`;
+      }
+    });
   },
-  compile(scope, match) {
-    match.updateScope();
-    const { condition, $scope } = match.results;
-    return `if ${parenthesizeCondition(condition)} ${$scope.compile()}`;
+  updateScope(scope, results) {
+    scope.addStatement(results.$scope, results);
   },
   tests: [
     {
@@ -102,18 +107,24 @@ parser.defineRule({
   // NOTE: this MUST be before `else` or that will eat `else if` statements... :-(
   name: "else_if",
   alias: "statement",
-  syntax: "(else|otherwise) if {condition:expression} (then|:)? {statement}?",
+  syntax: "(else|otherwise) if {condition:expression} (then|:)?",
   testRule: "(else|otherwise)",
   precedence: 1,
-  constructor: Statement,
-  updateScope(scope, results) {
-    // create a child $scope to add statements to below
-    results.$scope = new Scope({ scope, statement: results.statement });
+  constructor: SpellParser.Rule.Statement,
+  wantsInlineStatement: true,
+  wantsNestedBlock: true,
+  getNestedScope(scope, results) {
+    const condition = parenthesizeCondition(results.condition);
+    return results.$scope = new Scope.Method({
+      name: "else_if",
+      scope,
+      compile() {
+        return `else if ${condition} ${this.compileStatements()}`;
+      }
+    });
   },
-  compile(scope, match) {
-    match.updateScope();
-    const { condition, $scope } = match.results;
-    return `else if ${parenthesizeCondition(condition)} ${$scope.compile()}`;
+  updateScope(scope, results) {
+    scope.addStatement(results.$scope, results);
   },
   tests: [
     {
@@ -170,17 +181,22 @@ parser.defineRule({
 parser.defineRule({
   name: "_else",
   alias: "statement",
-  syntax: "(else|otherwise) :? {statement}?",
+  syntax: "(else|otherwise) :?",
   testRule: "(else|otherwise)",
-  constructor: Statement,
-  updateScope(scope, results) {
-    // create a child $scope to add statements to below
-    results.$scope = new Scope({ scope, statement: results.statement });
+  constructor: SpellParser.Rule.Statement,
+  wantsInlineStatement: true,
+  wantsNestedBlock: true,
+  getNestedScope(scope, results) {
+    return results.$scope = new Scope.Method({
+      name: "else",
+      scope,
+      compile() {
+        return `else ${this.compileStatements()}`;
+      }
+    });
   },
-  compile(scope, match) {
-    match.updateScope();
-    const { $scope } = match.results;
-    return `else ${$scope.compile()}`;
+  updateScope(scope, results) {
+    scope.addStatement(results.$scope, results);
   },
   tests: [
     {

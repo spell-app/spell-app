@@ -25,14 +25,9 @@ export class Scope {
     // You can initialize with just a `Parser` instance if desired.
     if (props instanceof Parser) props = { parser: props };
 
-    // Assign all properties in the order they were passed
-    Object.assign(this, props);
-
-    // If we were passed a single `statement`, put it in our `statements`.
-    if (this.hasOwnProperty("statement")) {
-      this.addStatement(this.statement);
-      delete this.statement;
-    }
+    const { statement, ...otherProps } = props;
+    Object.assign(this, otherProps);
+    if (statement) this.addStatement(statement);
   }
 
   //
@@ -289,8 +284,11 @@ export class Scope {
     // Have the item point back to this scope (if it's not a string)
     if (typeof item !== "string") item.scope = this;
 
-    // Add to results if provided.
-    if (results && results.statements) results.statements.push(item);
+    // Add to `results.statements` if provided.
+    if (results) {
+      if (!results.statements) results.statements = [];
+      results.statements.push(item);
+    }
 
     return item;
   }
@@ -432,13 +430,14 @@ export class Variable {
   }
 
   compile() {
+    const initializer = this.initializer || "undefined";
     // If we're attached to a Type,
     if (this.scope instanceof Type) {
       // Add class props directly
       if (this.kind === "static")
-        return `${this.scope.name}.${this.name} = ${this.initializer}`;
+        return `${this.scope.name}.${this.name} = ${initializer}`;
       // Add instance props with defineProp
-      return `defineProp(${this.scope.name}.prototype, '${this.name}', { value: ${this.initializer} })`;
+      return `defineProp(${this.scope.name}.prototype, '${this.name}', { value: ${initializer} })`;
     }
 
     // Return as a normal var declaration

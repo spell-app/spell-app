@@ -1,24 +1,85 @@
 import {
   Rule,
+  SpellParser,
+  Tokenizer,
+
+  gatherResults,
+  proto,
 } from "./all.js";
 
-// Create a subclass of `Sequence` which manages a statement
-class statement extends Rule.Sequence {
-  getResults(scope, match) {
-    const results = super.getResults(scope, match);
-    // Placeholder for statements (including var declarations etc) created during our `updateScope()`.
-    results.statements = [];
-    // Placeholder for parser `rules` created during our `updateScope()`
-    results.rules = [];
-    return results;
-  }
+// In Spell, we generally match `statements` across the entire line.
+//
+// An exception is `inline block` statements (like `if` or `forEach`),
+//  where the statement MIGHT have an inline statement at the end
+//  or might have a nested block of statements.
+//
+// Note: Access this as `SpellParser.Rule.Statement`.
+SpellParser.Rule.Statement = class statement extends Rule.Sequence {
+  // Set to true if this statement wants to attempt to read an inline statement on the same line.
+  @proto wantsInlineStatement = false;
+  // Rule to parse inline statement as -- see `parseInlineStatement()`
+  @proto parseInlineStatementAs = "statement";
+  // Set to true if this statement wants to attempt to read an nested block starting on the next line.
+  @proto wantsNestedBlock = false;
 
+  // YOU MUST IMPLEMENT THIS:
+  //
   // We have definitively been parsed correctly.
   // Update the `scope` with rules and/or statements as necessary.
   //
   // NOTE: DO NOT CALL THIS DIRECTLY -- ALWAYS CALL IT FROM THE MATCH!
   //       Otherwise we may call the method twice, duplicating its effects.
   updateScope(scope, results, match) {}
+
+
+  // Return the nested scope that we should use to parse an inline statement or nested block.
+  // Recommended is to remember it as `match.results.$scope` for things to work out correctly.
+  // See `./rules/if.js` for an example.
+  //
+  // NOTE: DO NOT CALL THIS DIRECTLY -- ALWAYS CALL IT FROM THE MATCH!
+  //       Otherwise we may call the method twice, duplicating its effects.
+  getNestedScope(scope, results, match) {}
+
+  // Special parse to note any stuff we didn't catch
+  // and handle block statements.
+  parse(scope, tokens) {
+    const match = super.parse(scope, tokens);
+    if (!match) return;
+
+    // If we didn't parse everything on the line
+    if (match.length !== tokens.length) {
+      // If we want to parse an inline statement, do that now.
+      if (this.wantsInlineStatement) {
+        const inlineMatch = this.parseInlineStatement(scope, match, tokens.slice(match.length));
+        if (inlineMatch)
+          match.length += inlineMatch.length;
+      }
+      // If there are still tokens left, remember them for later.
+      if (match.length !== tokens.length) {
+        match.results.incomplete = {
+          parsed: Tokenizer.join(tokens, 0, match.length),
+          missed: Tokenizer.join(tokens, match.length),
+        }
+      }
+    }
+
+    return match;
+  }
+
+  // Parse an inline statement.
+  parseInlineStatement(scope, match, tokens) {
+    const nestedScope = match.getNestedScope();
+    if (!nestedScope)
+      throw new ParseError(`${this.name}.parseInlineStatement(): no nested scope provided`);
+
+    const inlineStatement = nestedScope.parse(tokens, this.parseInlineStatementAs);
+
+    // If we got one, tell it to `updateScope()`, which should add it to the nested scope.
+    if (inlineStatement)
+      inlineStatement.updateScope();
+
+    return inlineStatement;
+  }
 
   // To compile, we just output our statements.
   compile(scope, match) {
@@ -28,5 +89,3 @@ class statement extends Rule.Sequence {
     return match.results?.statements?.join("\n") || "";
   }
 }
-
-export { statement as Statement };

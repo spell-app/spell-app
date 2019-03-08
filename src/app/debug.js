@@ -21,8 +21,8 @@ import precedence from "../languages/precedence/precedence.js";
 precedence.setDebugLevel("INFO");
 
 // Output source when rendering statements
-SpellParser.prototype.outputSource = true;
-SpellParser.prototype.setDebugLevel("INFO");
+SpellParser.prototype.outputSource = false;       // TODO: add a control for this to the UI
+SpellParser.prototype.setDebugLevel("INFO");      // TODO: add a control for this to the UI
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
