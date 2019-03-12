@@ -346,7 +346,7 @@ Rule.Pattern = class pattern extends Rule {
       if (valueMap.hasOwnProperty(value)) return valueMap[value];
       if (typeof valueMap.default === "function") valueMap = valueMap.default;
     }
-    if (typeof valueMap === "function") return valueMap(value);
+    if (typeof valueMap === "function") return valueMap(value, scope);
     return value;
   }
 
