@@ -47,6 +47,17 @@ export class Parser {
     if (this.module) addDebugMethods(this, this.module);
   }
 
+  // Return a clone of this parser with additional properties passed in.
+  clone(properties) {
+    const allProps = {...this, ...properties};
+    // clear imports...
+    delete allProps.imports;
+    const clone = new this.constructor(allProps);
+    // ...so we can import this parser (and all of ITS imports)
+    clone.import(this);
+    return clone;
+  }
+
   //
   //### Tokenizing (a.k.a. "lexical analysis")
   //
@@ -206,7 +217,8 @@ export class Parser {
     else
       map[ruleName] = new Rule.Group({ rules: [existing], argument: ruleName });
 
-    if (rule instanceof Rule.Group)
+    // If rule is ALSO a group with the same argument, merge the groups.
+    if (rule instanceof Rule.Group && rule.argument === existing?.argument)
       map[ruleName].addRule(...rule.rules)
     else
       map[ruleName].addRule(rule);
@@ -248,7 +260,9 @@ export class Parser {
       // If we received multiple syntax strings,
       // recursively add under each string.
       if (Array.isArray(props.syntax)) {
-        return props.syntax.map(syntax => {
+        return props.syntax.map((syntax, index) => {
+          // only add tests to the first one so we don't run the same tests repeatedly.
+          if (index > 0) delete props.tests;
           // handle syntax as a string
           if (typeof syntax === "string")
             return this.defineRule({ ...props, syntax, constructor })
