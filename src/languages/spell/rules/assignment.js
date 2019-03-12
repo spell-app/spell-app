@@ -35,8 +35,8 @@ parser.defineRule({
     if (thing instanceof Scope.Variable) {
       // Make sure scope has such a variable declared.
       // TODO: this is not checking nested scopes... will likely be a problem
-      if (!scope.hasLocalVar(thing.name))
-        scope.addVar(thing);
+      if (!scope.hasLocalVariable(thing.name))
+        scope.addVariable(thing);
       // Use the variable name in the expression.
       thing = thing.name;
     }
