@@ -391,14 +391,6 @@ export class Parser {
   testRules(moduleName, debug = true) {
     const t0 = Date.now();
 
-    // Create a new scope for the run, so we don't muck with the main parser.
-    // Note that we should really create a new one for each `compile()` below,
-    //  but that would slow down the test significantly.
-    const scope = this.getScope("test");
-    // Clear outputSource flag so we don't get source output comments in the test results.
-    scope.parser.outputSource = false;
-    scope.parser.setDebugLevel("OFF");
-
     const results = {
       pass: 0,      // number of tests that passed
       fail: 0,      // number of tests that failed
@@ -416,10 +408,22 @@ export class Parser {
       if (debug) console.debug("no testable rules found");
     }
     else {
-      rules.forEach(({ name: ruleName, tests }) => {
+      rules.forEach(({ name: ruleName, tests: testBlocks }) => {
         if (debug) console.group("testing rule", ruleName);
-        tests.forEach(({ compileAs = ruleName, tests }) => {
+
+        testBlocks.forEach(({ compileAs = ruleName, tests, beforeEach }) => {
           if (debug && compileAs !== ruleName) console.group(`testing as ${compileAs}`);
+
+          // Create a new scope for the run, so we don't muck with the main parser.
+          const scope = this.getScope("test");
+          const parser = scope.parser || scope;
+          // Clear outputSource flag so we don't get source output comments in the test results.
+          parser.outputSource = false;
+          parser.setDebugLevel("OFF");
+
+          // Run `beforeEach` code if provided to seed variables, etc/
+          if (beforeEach) beforeEach(scope);
+
           tests.forEach(test => {
             if (Array.isArray(test)) test = { input: test[0], output: test[1] };
             if (test.skip || test.input === "") return;
@@ -427,7 +431,8 @@ export class Parser {
             let { input, output, title = input } = test;
             let result;
             try {
-              result = this.compile(input, compileAs, scope);
+              const match = scope.parse(input, compileAs, scope);
+              if (match) result = match.compile();
             }
             catch (e) {
               result = e;
