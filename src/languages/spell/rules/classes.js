@@ -20,7 +20,7 @@ export default parser;
 parser.defineRule({
   name: "create_type",
   alias: "statement",
-  syntax: "create type {type:word} (?:as (a|an) {superType:identifier})?",
+  syntax: "create type {type} (?:as (a|an) {superType:type})?",
   constructor: SpellParser.Rule.Statement,
   gatherResults(scope, match) {
     const results = gatherResults(scope, match);
@@ -52,7 +52,7 @@ parser.defineRule({
 parser.defineRule({
   name: "new_thing",
   alias: ["expression", "single_expression", "statement"],
-  syntax: "create (a|an) {type:word} (?:with {props:object_literal_properties})?",
+  syntax: "create (a|an) {type} (?:with {props:object_literal_properties})?",
   testRule: "create",
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, results) {
@@ -127,13 +127,13 @@ parser.defineRule({
 
 parser.defineRule({
   name: "type_has_prefix",
-  syntax: "(?:(a|an) {type:identifier} has|{type:identifier} have)"
+  syntax: "(?:(a|an) {type} has|{type:plural_type} have)"
 });
 
 parser.defineRule({
   name: "define_property_has",
   alias: "statement",
-  syntax: "{?:type_has_prefix} (a|an) {property:identifier} {initializer:type_initializer}?",
+  syntax: "{?:type_has_prefix} (a|an) {property} {initializer:type_initializer}?",
   testRule: "…(has|have)",
   constructor: SpellParser.Rule.Statement,
   gatherResults(scope, match) {
@@ -158,7 +158,7 @@ parser.defineRule({
     }
     else {
       setter = [ `this.#${property} = ${property}` ];
-      datatype = "undefined";
+      datatype = "undefined";     // :-(
     }
 
     // Instance getter
@@ -279,7 +279,7 @@ parser.defineRule({
   alias: "statement",
   //  e.g. `a card "is face up" if ...`
   //  NOTE: the first word in quotes must be "is" !!
-  syntax: '(a|an) {type:identifier} {alias:text} if {expression}',
+  syntax: '(a|an) {type} {alias:text} if {expression}',
   constructor: class quoted_property_name extends SpellParser.Rule.Statement {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
@@ -342,12 +342,12 @@ parser.defineRule({
 parser.defineRule({
   name: "the_property_of_a_thing",
   alias: "property_of_a_type",
-  syntax: "the {property:identifier} of (a|an) {type:identifier}",
+  syntax: "the {property} of (a|an) {type}",
 });
 parser.defineRule({
   name: "a_things_property",
   alias: "property_of_a_type",
-  syntax: "(a|an) {type:identifier} {property:identifier}",
+  syntax: "(a|an) {type:plural_type} {property}",
 });
 
 parser.defineRule({

@@ -35,8 +35,8 @@ export class SpellParser extends Parser {
     return tokens;
   }
 
-  parse(...args) {
-    const result = super.parse(...args);
-    return result;
-  }
+//   parse(...args) {
+//     const result = super.parse(...args);
+//     return result;
+//   }
 }

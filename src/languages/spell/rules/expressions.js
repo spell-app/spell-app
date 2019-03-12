@@ -1,5 +1,5 @@
 //
-//  # Rules for infix and prefix operators.
+//  # Rules for expressions.
 //
 
 import {
@@ -8,7 +8,7 @@ import {
   peek
 } from "../all.js";
 
-const parser = new SpellParser({ module: "operators" });
+const parser = new SpellParser({ module: "expressions" });
 export default parser;
 
 
@@ -68,7 +68,7 @@ parser.defineRule({
     // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
     //  to deal with operator precedence.  Note that we assume:
     //  - all infix operators are `left-to-right` associative, and
-    //  - all postfix operators are postfix operators.
+    //  - all postfix operators are left to right associative.
     // See: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
     // See: https://www.chris-j.co.uk/parsing.php
     const output = [ results.lhs ];
@@ -237,7 +237,7 @@ parser.defineRule({
   name: "is_a",
   alias: "expression_suffix",
   precedence: 11,
-  syntax: "(operator:is not? (a|an)) {expression:single_expression}",
+  syntax: "(operator:is not? (a|an)) {expression:type}",
   applyOperator({ lhs, operator, rhs }) {
     const bang = (operator.includes("not") ? "!" : "");
     return `${bang}spell.isOfType(${lhs}, '${rhs}')`;
@@ -246,10 +246,10 @@ parser.defineRule({
     {
       compileAs: "expression",
       tests: [
-        ["a is a B", "spell.isOfType(a, 'B')"],
-        ["a is an A", "spell.isOfType(a, 'A')"],
-        ["a is not a B", "!spell.isOfType(a, 'B')"],
-        ["a is not an A", "!spell.isOfType(a, 'A')"]
+        ["a is a Bee", "spell.isOfType(a, 'Bee')"],
+        ["a is an Animal", "spell.isOfType(a, 'Animal')"],
+        ["a is not a Bee", "!spell.isOfType(a, 'Bee')"],
+        ["a is not an Animal", "!spell.isOfType(a, 'Animal')"]
       ]
     }
   ]
