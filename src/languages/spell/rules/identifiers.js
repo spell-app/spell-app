@@ -146,42 +146,6 @@ parser.defineRule({
 
 
 //
-//  Property names / expressions
-//
-
-// Generic property name -- single word, initial-lower case, not in identifier blacklist.
-// You can register multi-word property identifiers manually.
-parser.defineRule({
-  name: "property",
-  pattern: LOWER_INITIAL_WORD,
-  blacklist: identifierBlacklist,
-});
-
-// "its" as a synonym for "this"
-// TODO: If not in an instance scope, maybe "its" is the first argument?
-//       The previous thing in the line?  "set the position of the card to its rank"
-parser.defineRule({
-  name: "its_property",
-  alias: ["expression", "property_accessor", "single_expression"],
-  syntax: "its {property}",
-  testRule: "its",
-  compile(scope, match) {
-    const { property } = match.results;
-    return `this.${property}`
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [
-        ["its foo", "this.foo"],
-        ["the foo of its bar", "this.bar?.foo"],
-      ]
-    }
-  ]
-});
-
-
-//
 //  Variables
 //
 

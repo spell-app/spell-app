@@ -26,6 +26,11 @@ const blacklist = {
   ok: 1,
   cancel: 1,
 
+  // articles
+//   a: 1,      // TODO... ???
+//   an: 1,
+  the: 1,
+
   // English prepositions (from Wikipeda "Preposition"):
   about: 1,
   above: 1,
@@ -73,7 +78,6 @@ const blacklist = {
   short: 1,
   since: 1,
   than: 1,
-  the: 1,
   then: 1,
   through: 1,
   thru: 1,
