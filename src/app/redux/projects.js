@@ -113,7 +113,8 @@ const factory = new ReduxFactory({
         if (!projectId || !projectIds.includes(projectId))
           projectId = projectIds[0];
 
-        return factory.call.selectModule({ projectId, moduleId });
+        return factory.call.selectModule({ projectId, moduleId })
+          .then(() => factory.call.compileInput());
       },
       onSuccess(projects) {
         return { ...projects };
