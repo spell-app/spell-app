@@ -23,8 +23,7 @@ export class SpellParser extends Parser {
   // Return a scope with a new parser which depends on this parser.
   // This lets us update rules/etc as desired without affecting the original parser.
   getScope(module = "ad_hoc") {
-    const parser = new this.constructor({ module });
-    parser.import(this);
+    const parser = this.clone({ module });
     return new Module({ name: module, parser });
   }
 
