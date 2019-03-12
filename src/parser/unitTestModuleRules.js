@@ -58,7 +58,7 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
     });
   }
 
-  function executeTestBlock(name, { compileAs = name, showAll, tests }) {
+  function executeTestBlock(name, { compileAs = name, showAll, tests, beforeEach }) {
     if (!compileAs) {
       test("compileAs property of test is defined", () => {
         expect(compileAs).toBeTruthy();
@@ -83,7 +83,7 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
     if (tests.length === 0) return;
 
     // Excute each test
-    const results = tests.map(test => executeTest(test, compileAs, showAll));
+    const results = tests.map(test => executeTest(test, compileAs, showAll, beforeEach));
 
     // If they all passed, output number of elided tests
     if (!showAll && results.every(Boolean)) {
@@ -92,8 +92,13 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
     }
   }
 
-  function executeTest({ input, output, title }, ruleName, showAll) {
-    const [match, result] = executeCompileTest(ruleName, input, output);
+  function executeTest({ input, output, title }, ruleName, showAll, beforeEach) {
+    // Get a test scope to parse with.
+    const scope = parser.getScope(`test_${moduleName}`);
+    // If a `beforeEach` method was defined, run that before parsing to seed variables/etc.
+    if (beforeEach) beforeEach(scope);
+
+    const [match, result] = executeCompileTest(scope, ruleName, input, output);
 
     const success = isEqual(result, output);
     // If it didn't work, log the match for debugging purposes
@@ -102,7 +107,7 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
         console.warn(`ERROR PARSING: "${input}": ${match.message}`);
       }
       else {
-        console.warn(`ERROR PARSING: "${input}"\n   match: `, match.toPrint());
+        console.warn(`ERROR PARSING: "${input}"\n   match: `, match?.toPrint());
       }
     }
 
@@ -124,10 +129,10 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
     return success;
   }
 
-  function executeCompileTest(ruleName, input, output) {
+  function executeCompileTest(scope, ruleName, input, output) {
     let match, result;
     try {
-      match = parser.parse(input, ruleName);
+      match = scope.parse(input, ruleName);
       if (match) {
         try {
           result = match.compile();
