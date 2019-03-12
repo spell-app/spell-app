@@ -108,30 +108,33 @@ export function addDebugMethods(object = {}, prefix, level = "WARN", color = "#9
     object.DEBUG_LEVEL = normalizeDebugLevel(level);
 
   // Set `setDebugLevel` method
-  object.setDebugLevel = function(level) {
-    level = normalizeDebugLevel(level);
-    // Don't override if we're already at the same level
-    // This lets prototype/instance semantics work cleanly.
-    if (level === this.DEBUG_LEVEL && this.debug) return;
+  Object.defineProperty(object, "setDebugLevel", {
+    configurable: true,
+    value: function(level) {
+      level = normalizeDebugLevel(level);
+      // Don't override if we're already at the same level
+      // This lets prototype/instance semantics work cleanly.
+      if (level === this.DEBUG_LEVEL && this.debug) return;
 
-    this.DEBUG_LEVEL = level;
-    // Add normal debuggers.
-    // NOTE: we do this every time debug level is set to preserve stack trace.
-    this.debug = makeLogMethod(level, DebugLevel.DEBUG, prefix, "log", color);
-    this.info = makeLogMethod(level, DebugLevel.INFO, prefix, "info", color);
-    this.warn = makeLogMethod(level, DebugLevel.WARN, prefix, "warn", color);
-    this.error = makeLogMethod(level, DebugLevel.ERROR, prefix, "error", color);
-    this.group = makeLogMethod(level, DebugLevel.DEBUG, prefix, "group", color);
-    this.groupEnd = makeLogMethod(level, DebugLevel.DEBUG, prefix, "groupEnd", color);
+      this.DEBUG_LEVEL = level;
+      // Add normal debuggers.
+      // NOTE: we do this every time debug level is set to preserve stack trace.
+      this.debug = makeLogMethod(level, DebugLevel.DEBUG, prefix, "log", color);
+      this.info = makeLogMethod(level, DebugLevel.INFO, prefix, "info", color);
+      this.warn = makeLogMethod(level, DebugLevel.WARN, prefix, "warn", color);
+      this.error = makeLogMethod(level, DebugLevel.ERROR, prefix, "error", color);
+      this.group = makeLogMethod(level, DebugLevel.DEBUG, prefix, "group", color);
+      this.groupEnd = makeLogMethod(level, DebugLevel.DEBUG, prefix, "groupEnd", color);
 
-    // Add assert handler
-    // Unfortunately, this won't preserve line numbers in anything other than Chrome.
-    this.assert = function(condition, ...messages) {
-      if (!!condition) return;
-      this.error.apply(object, messages);
-      throw new TypeError(messages.join(" "));
+      // Add assert handler
+      // Unfortunately, this won't preserve line numbers in anything other than Chrome.
+      this.assert = function(condition, ...messages) {
+        if (!!condition) return;
+        this.error.apply(object, messages);
+        throw new TypeError(messages.join(" "));
+      }
     }
-  }
+  });
 
   // Set up methods according to the debug level.
   object.setDebugLevel(object.DEBUG_LEVEL);
