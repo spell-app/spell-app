@@ -39,12 +39,8 @@ export class Scope {
   //  Compiling
   //
 
-  compile() {
-    return this.compileStatements();
-  }
-
   toString() {
-    return this.compile();
+    return this.compileStatements();
   }
 
 
@@ -257,7 +253,7 @@ export class Scope {
       name: `${this.name}_${name}`,
       literals,
       datatype: results.enumType,
-      compile: () => results.canonicalRef
+      toString: () => results.canonicalRef
     }, results);
   }
 
@@ -339,7 +335,7 @@ export class Method extends Scope {
     return super.getLocalVariable(name) || this._args[name];
   }
 
-  compile() {
+  toString() {
     const statements = this.compileStatements();
     const args = this.args?.map(arg => arg.name).join(", ") || "";
 
@@ -397,7 +393,7 @@ export class Type extends Scope {
 
   // Compile the type.
   // NOTE: this currently ignores methods/properties, we'll want to fix that...
-  compile() {
+  toString() {
     if (this.superType) return `export class ${this.name} extends ${this.superType} {}`;
     return `export class ${this.name} {}`;
   }
@@ -445,7 +441,7 @@ export class Variable {
     Object.assign(this, props);
   }
 
-  compile() {
+  toString() {
     const initializer = this.initializer || "undefined";
     // If we're attached to a Type,
     if (this.scope instanceof Type) {
@@ -459,10 +455,6 @@ export class Variable {
     // Return as a normal var declaration
     // TODO: note if var has been used before, etc.
     return `var ${name} = ${initializer}`
-  }
-
-  toString() {
-    return this.compile();
   }
 }
 
@@ -487,12 +479,8 @@ export class Constant {
     if (!this.value) this.value = `'${this.name}'`;1
   }
 
-  compile() {
-    return this.value;
-  }
-
   toString() {
-    return this.compile();
+    return this.value;
   }
 }
 

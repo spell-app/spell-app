@@ -32,7 +32,7 @@ parser.defineRule({
     return results.$scope = new Scope.Method({
       name: "if",
       scope,
-      compile() {
+      toString() {
         return `if ${condition} ${this.compileStatements()}`;
       }
     });
@@ -118,7 +118,7 @@ parser.defineRule({
     return results.$scope = new Scope.Method({
       name: "else_if",
       scope,
-      compile() {
+      toString() {
         return `else if ${condition} ${this.compileStatements()}`;
       }
     });
@@ -190,7 +190,7 @@ parser.defineRule({
     return results.$scope = new Scope.Method({
       name: "else",
       scope,
-      compile() {
+      toString() {
         return `else ${this.compileStatements()}`;
       }
     });

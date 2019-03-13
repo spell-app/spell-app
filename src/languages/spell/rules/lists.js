@@ -817,12 +817,12 @@ parser.defineRule({
     });
   },
   updateScope(scope, results) {
-    // Add a Method for the `forEach` wrapper with a custom compile()
+    // Add a Method for the `forEach` wrapper with a custom toString()
     scope.addStatement(
       new Scope.Method({
         name: "for_each",
-        compile() {
-          return `spell.forEach(${results.list}, ${results.$scope.compile()})`;
+        toString() {
+          return `spell.forEach(${results.list}, ${results.$scope.toString()})`;
         }
       }), results);
   },
