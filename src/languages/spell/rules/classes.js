@@ -9,8 +9,6 @@ import {
   upperFirst,
   pluralize,
   singularize,
-  inflectResults,
-  inflectResultsArray,
   parseMethodKeywords
 } from "../all.js";
 
@@ -22,15 +20,11 @@ parser.defineRule({
   alias: "statement",
   syntax: "create type {type} (?:as (a|an) {superType:type})?",
   constructor: SpellParser.Rule.Statement,
-  gatherResults(scope, match) {
-    const results = gatherResults(scope, match);
-    return inflectResults(results, "type", "superType");
-  },
   updateScope(scope, results) {
-    const { Type, SuperType } = results;
+    const { type, superType } = results;
     scope.addType({
-      name: Type,
-      superType: SuperType
+      name: type,
+      superType: superType
     }, results);
   },
   tests: [
@@ -136,13 +130,11 @@ parser.defineRule({
   syntax: "{?:type_has_prefix} (a|an) {property} {initializer:type_initializer}?",
   testRule: "…(has|have)",
   constructor: SpellParser.Rule.Statement,
-  gatherResults(scope, match) {
-    const results = gatherResults(scope, match);
-    return inflectResults(results, "type", "property");
-  },
   updateScope(scope, results) {
-    const { Type, type, Properties, property, initializer = {}} = results;
-    const typeScope = scope.getOrAddType(Type);
+    const { type, property, initializer = {}} = results;
+    const typeScope = scope.getOrAddType(type);
+    const Properties = pluralize(upperFirst(property));
+
     let { datatype, enumeration } = initializer;
     const getter = [ `return this.#${property}` ];
     let setter;
@@ -296,10 +288,10 @@ parser.defineRule({
       if (alias[0] !== "is") return;
       results.property = alias.join("_");
       results.expressionSuffix = [alias[0], "not?", ...alias.slice(1)].join(" ");
-      return inflectResults(results, "type");
+      return results;
     }
     updateScope(scope, results) {
-      const { TypeName, typeName, property, expression, expressionSuffix } = results;
+      const { type, property, expression, expressionSuffix } = results;
 
       // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
       scope.addExpressionSuffixRule({
@@ -312,7 +304,7 @@ parser.defineRule({
       });
 
       // Create an instance getter
-      scope.getOrAddType(TypeName)
+      scope.getOrAddType(type)
         .addMethod({
           name: property,
           kind: "getter",
@@ -355,14 +347,10 @@ parser.defineRule({
   alias: "statement",
   syntax: "{?:property_of_a_type} is {value:identifier} if {condition:expression} (?:otherwise it is {otherValue:identifier})?",
   constructor: SpellParser.Rule.Statement,
-  gatherResults(scope, match) {
-    const results = gatherResults(scope, match);
-    return inflectResults(results, "type");
-  },
   updateScope(scope, results) {
-    let { TypeName, typeName, property, value, otherValue, condition } = results;
+    let { type, property, value, otherValue, condition } = results;
 
-    scope.getOrAddType(TypeName)
+    scope.getOrAddType(type)
       // Create as an instance getter
       .addMethod({
         name: property,
@@ -393,14 +381,10 @@ parser.defineRule({
   alias: "statement",
   syntax: "{?:property_of_a_type} is {expression}",
   constructor: SpellParser.Rule.Statement,
-  gatherResults(scope, match) {
-    const results = gatherResults(scope, match);
-    return inflectResults(results, "type");
-  },
   updateScope(scope, results) {
-    let { Type, property, expression } = results;
+    let { type, property, expression } = results;
     scope
-      .getOrAddType(Type)
+      .getOrAddType(type)
       .addMethod({
         kind: "getter",
         name: property,
