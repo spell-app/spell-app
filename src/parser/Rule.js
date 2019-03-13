@@ -629,14 +629,6 @@ Rule.Sequence = class sequence extends Rule {
   constructor(props) {
     if (arguments.length > 1) props = { rules: [...arguments] };
     if (Array.isArray(props)) props = { rules: props };
-    // Sometimes we'll use Sequence or subclass as a constructor for a simple value
-    //  to get other sequence methods (like `gatherResults()`, etc).
-    if (!props.rules) {
-      if (props.literal)
-        props.rules = new Rule.Keyword(props.literal);
-      else if (props.literals)
-        props.rules = new Rule.Keywords(props.literals);
-    }
     if (!props.rules) throw new TypeError(`Sequence '${props.name}' created without specifying 'rules'!`);
     super(props);
   }
