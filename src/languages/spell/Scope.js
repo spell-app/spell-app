@@ -287,7 +287,7 @@ export class Scope {
     if (!item) return;
 
     // Coerce to an instance of constructor
-    if (constructor && item.constructor === Object) item = new constructor(item);
+    if (constructor && item.constructor !== constructor) item = new constructor(item);
 
     // add to list
     if (!this[listProp]) this[listProp] = [];
@@ -338,7 +338,6 @@ export class Method extends Scope {
   toString() {
     const statements = this.compileStatements();
     const args = this.args?.map(arg => arg.name).join(", ") || "";
-
     // If we're attached to a Type,
     if (this.scope instanceof Type) {
       // Add class props directly
@@ -476,7 +475,7 @@ export class Constant {
       throw new TypeError("Constants must be created with a 'name'");
     // Assign all properties in the order provided.
     Object.assign(this, props);
-    if (!this.value) this.value = `'${this.name}'`;1
+    if (this.value === undefined) this.value = `'${this.name}'`;1
   }
 
   toString() {

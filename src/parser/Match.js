@@ -42,6 +42,7 @@ export class Match {
 
   // Syntatic sugar to compile the output of the match.
   get js() { return this.compile() }
+  toString() { return this.compile() }
   compile() { return this.rule.compile(this.scope, this) }
 
   // Have the match call `updateScope()` if it can.

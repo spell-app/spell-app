@@ -1,8 +1,10 @@
 //
-//  # Rules for constants, identifiers, type names, etc
+//  # Rules for constants, variables, type names, etc
 //
 import {
+  Match,
   Rule,
+  Scope,
   SpellParser,
   Token,
 
@@ -18,46 +20,80 @@ const parser = new SpellParser({ module: "identifiers" });
 export default parser;
 
 const WORD = /^[a-zA-Z][\w\-]*$/;
-const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/;
-const UPPER_INITIAL_WORD = /^[A-Z][\w\-]*$/;
 
-//
-//  Constants:
-//  - set up group for constants and an expression which returns constants from that group.
-//
-SpellParser.Rule.Constant = class constant extends Rule.Keyword {
-  @proto name = "constant";
-  @proto datatype = "string";
-  @proto precedence = 1;    // must be above "identifier expression"
-  compile(scope, match) {
-    return `'${super.compile(scope, match)}'`;
-  }
-}
 
-SpellParser.Rule.MultiWordConstant = class constant extends Rule.Keywords {
-  @proto name = "constant";
-  @proto datatype = "string";
-  @proto precedence = 1;    // must be above "identifier expression"
-  compile(scope, match) {
-    return `'${super.compile(scope, match)}'`;
-  }
-}
 
-// Make sure that "constants" group is defined.
+// A known single-word constant.
 parser.defineRule({
   name: "constant",
-  argument: "constant",
-  constructor: Rule.Group,
+  alias: ["expression", "single_expression"],
+  constructor: class constant extends Rule {
+    parse(scope, tokens) {
+      const constant = scope.getConstant(tokens[0].value);
+      if (!constant) return;
+      return new Match({
+        rule: this,
+        constant,
+        isKnown: true,
+        matched: [tokens[0]],
+        length: 1,
+        scope
+      });
+    }
+    compile(scope, match) {
+      return match.constant.toString()
+    }
+  },
+  tests: [
+    {
+      compileAs: "expression",
+      beforeEach(scope) {
+        scope.addConstant("red");
+      },
+      tests: [
+        { title: "known constant", input: "red", output: "'red'" },
+//TODO: enable this when we get rid of 'identifier' etc
+//        { title: "unknown constant", input: "nothing", output: undefined }
+      ]
+    }
+  ]
 });
 
-// Identifier to match a constant.
-// NOTE: precedence of this doesn't matter...
+
+// A possibly-unknown constant.
 parser.defineRule({
-  name: "constant_expression",
-  alias: ["expression", "single_expression"],
-  rule: "constant",
-  constructor: Rule.Subrule
+  name: "unknown_constant",
+  pattern: WORD,
+  blacklist: identifierBlacklist,     // ????
+  constructor: class unknown_constant extends Rule.Pattern {
+    parse(scope, tokens) {
+      const match = super.parse(scope, tokens);
+      if (!match) return;
+      const name = match.getTokens()[0];
+      const existing = scope.getConstant(name);
+      if (existing) {
+        match.constant = existng;
+        match.isKnown = true;
+      }
+      else {
+        match.constant = new Scope.Constant({ name, scope });
+        match.isKnown = false;
+      }
+      return match;
+    }
+    compile(scope, match) {
+      return match.constant.toString();
+    }
+  },
+  tests: [
+    {
+      tests: [
+        [ "red", "'red'" ]
+      ]
+    }
+  ]
 });
+
 
 
 //
@@ -98,7 +134,7 @@ SpellParser.Rule.Type = class type_ extends Rule.Pattern {  // if name is `type`
     }
     else {
       // It is a known type if the scope already knows about it.
-      match.isKnownType = !!scope.getType?.(type);
+      match.isKnown = !!scope.getType?.(type);
       match.$type = type;
     }
 
@@ -131,13 +167,15 @@ parser.defineRule({
 });
 
 // Type identifier which MUST be a known type (or a built-in?)
+// TODO: is this an "expression"?
+// TODO: built-in type?
 // TESTME
 parser.defineRule({
   name: "known_type",
   constructor: class known_type extends SpellParser.Rule.Type {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
-      if (match && (!match.isKnownType || match.isBaseType)) return;
+      if (match && (!match.isKnown || match.isBaseType)) return;
       return match;
     }
   }
@@ -148,6 +186,90 @@ parser.defineRule({
 //
 //  Variables
 //
+
+// Single word variable name, known or unknown.
+// TODO: type based on scope variable type?
+// TODO: higher precedence if type is known?
+SpellParser.Rule.Variable = class variable extends Rule.Pattern {
+  @proto pattern = WORD;
+  @proto blacklist = identifierBlacklist;
+  valueMap(value) {
+    return (""+value).replace(/-/g, "_");
+  }
+}
+
+// Variable match with no adornments.
+parser.defineRule({
+  name: "variable",
+  constructor: SpellParser.Rule.Variable
+});
+
+// Variable which MUST be singular, WITHOUT `the`.
+parser.defineRule({
+  name: "singular_variable",
+  constructor: class singular_variable extends SpellParser.Rule.Variable {
+    parse(scope, tokens) {
+      const match = super.parse(scope, tokens);
+      const varName = match?.compile();
+      if (varName && varName === singularize(varName)) return match;
+    }
+  }
+});
+
+// Variable which MUST be plural, WITHOUT `the`.
+parser.defineRule({
+  name: "plural_variable",
+  constructor: class plural_variable extends SpellParser.Rule.Variable {
+    parse(scope, tokens) {
+      const match = super.parse(scope, tokens);
+      const varName = match?.compile();
+      if (varName && varName === pluralize(varName)) return match;
+    }
+  }
+});
+
+
+// Single word variable which is NOT known by our scope.
+// NOTE: `match` returned is the `{variable}`, not this sequence.
+parser.defineRule({
+  name: "unknown_variable",
+  syntax: "the? {variable}",
+  constructor: class known_variable extends Rule.Sequence {
+    parse(scope, tokens) {
+      const match = super.parse(scope, tokens);
+      if (!match) return;
+      const varMatch = match.matched[match.matched.length - 1];
+      const varName = varMatch.compile();
+      if (!scope.getLocalVariable(varName)) return varMatch;
+    }
+  }
+});
+
+
+// Single word variable which is already known by our scope.
+// Note that we match this as an "expression".
+// NOTE: `match` returned is the `{variable}`, not this sequence.
+parser.defineRule({
+  name: "known_variable",
+  alias: ["expression", "single_expression"],
+  syntax: "the? {variable}",
+  constructor: class known_variable extends Rule.Sequence {
+    parse(scope, tokens) {
+      const match = super.parse(scope, tokens);
+      if (!match) return;
+      const varMatch = match.matched[match.matched.length - 1];
+      const varName = varMatch.compile();
+      if (scope.getLocalVariable(varName)) return varMatch;
+    }
+  }
+});
+
+
+
+
+
+
+
 
 // `identifier` = variables or property name.
 // MUST start with a lower-case letter (?)
@@ -245,73 +367,3 @@ parser.defineRule({
   ]
 });
 
-
-/*
-// `Type` = type name.
-// MUST start with an upper-case letter (?)
-parser.defineRule({
-  name: "type",
-  alias: ["expression", "single_expression"],
-  datatype: "string",   // TODO???
-  pattern: /^([A-Z][\w\-]*|list|text|number|integer|decimal|character|boolean|object)$/,
-  blacklist: {
-    I: true
-  },
-  valueMap: {
-    // Alias `List` to `Array`
-    "List": "Array",
-    // special case to take the following as lowercase
-    "list": "Array",
-    "text": "String",
-    "character": "Character",
-    "number": "Number",
-    "integer": "Integer",
-    "decimal": "Decimal",
-    "boolean": "Boolean",
-    "object": "Object",
-    // otherwise just turn dashes into underscores
-    default(type) {
-      return type.replace(/\-/g, "_");
-    }
-  },
-  tests: [
-    {
-      title: "correctly matches types",
-      tests: [
-        ["Abc", "Abc"],
-        ["Abc-def", "Abc_def"],
-        ["Abc_Def", "Abc_Def"],
-        ["Abc01", "Abc01"],
-        ["Abc-def_01", "Abc_def_01"]
-      ]
-    },
-    {
-      title: "doesn't match things that aren't types",
-      tests: [
-        ["", undefined],
-        ["$Asda", undefined], // TODO... ???
-        ["(Asda)", undefined] // TODO... ???
-      ]
-    },
-    {
-      title: "converts special types",
-      tests: [
-        ["List", "Array"],
-        ["list", "Array"],
-        ["text", "String"],
-        ["character", "Character"],
-        ["number", "Number"],
-        ["integer", "Integer"],
-        ["decimal", "Decimal"],
-        ["boolean", "Boolean"],
-        ["object", "Object"]
-      ]
-    },
-    {
-      title: "skips items in its blacklist",
-      tests: [["I", undefined]]
-    }
-  ]
-});
-
-*/

@@ -3,7 +3,6 @@ import {
   SpellParser,
   Tokenizer,
 
-  gatherResults,
   proto,
 } from "./all.js";
 
