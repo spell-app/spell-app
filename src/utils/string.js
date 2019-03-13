@@ -6,12 +6,22 @@ import inflection from "lodash-inflection";
 // Return the singular form of `word`.
 // Uses lodash-inflection, which should be pretty good.
 // If you need to add a new rule, see: https://github.com/danhper/lodash-inflection
-export const singularize = inflection.singularize.bind(inflection);
+const SINGULARS = {};
+export function singularize(text) {
+  const existing = SINGULARS[text];
+  if (existing) return existing;
+  return (SINGULARS[text] = inflection.singularize(text));
+}
 
 // Return the plural form of `word`.
 // Uses lodash-inflection, which should be pretty good.
 // If you need to add a new rule, see: https://github.com/danhper/lodash-inflection
-export const pluralize = inflection.pluralize.bind(inflection);
+const PLURALS = {};
+export function pluralize(text) {
+  const existing = PLURALS[text];
+  if (existing) return existing;
+  return (PLURALS[text] = inflection.pluralize(text));
+}
 
 // Return true if text is all whitespace, including empty string.
 let ALL_WHITESPACE = /^\s*$/;
