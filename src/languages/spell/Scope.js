@@ -434,6 +434,8 @@ export class Type extends Scope {
 //  - initializer
 export class Variable {
   constructor(props) {
+    // Convert string to 'name'
+    if (typeof props === "string") props = { name: props };
     if (!props.name)
       throw new TypeError("Variables must be created with a 'name'");
     // Assign all properties in the order provided.
