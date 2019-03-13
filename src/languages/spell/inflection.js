@@ -62,13 +62,13 @@ export function parseMethodKeywords(results) {
   return {
     ...results,
     ...{
-      Type: Types[0],   // main type
-      Types,            // all types, singular, upper case
-      types,            // all types, singular, lower case
+      type: Types[0],   // main type
+//      Types,            // all types, singular, upper case
+//      types,            // all types, singular, lower case
       method: methodName.join("_"),
       args,
-      instanceMethod: instanceMethodName.join("_"),
-      instanceArgs: args.slice(1),
+//       instanceMethod: instanceMethodName.join("_"),
+//       instanceArgs: args.slice(1),
       syntax: rules.join(" ")
     }
   };

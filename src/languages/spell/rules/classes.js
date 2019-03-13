@@ -4,7 +4,6 @@ import {
   SpellParser,
   Token,
 
-  gatherResults,
   lowerFirst,
   upperFirst,
   pluralize,
@@ -91,9 +90,9 @@ parser.defineRule({
   name: "type_initializer_enum",
   alias: "type_initializer",
   syntax: "as (either|one of) {enumeration:identifier_list}",
-  gatherResults(scope, match) {
-    const results = gatherResults(scope, match);
-    return { datatype: "enum", enumeration: results.enumeration };
+  compile(scope, match) {
+    const { enumeration } = match.results;
+    return { datatype: "enum", enumeration };
   },
   tests: [
     {
@@ -204,24 +203,24 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   wantsInlineStatement: true,
   wantsNestedBlock: true,
-  gatherResults(scope, match) {
-    const results = gatherResults(scope, match);
-    return parseMethodKeywords(results);
-  },
   getNestedScope(scope, results) {
-    const { method, args } = results;
+    const { type, method, args, syntax } = parseMethodKeywords(results);
+    results.type = type;
+    results.method = method;
+    results.args = args;
+    results.syntax = syntax;
     return results.$method = new Scope.Method({ scope, name: method, args });
   },
   updateScope(scope, results) {
-    const { Type, $method, method, syntax } = results;
-    if (Type)
-      scope.getOrAddType(Type).addClassMethod($method, results);
+    const { type, $method, method, syntax } = results;
+    if (type)
+      scope.getOrAddType(type).addClassMethod($method, results);
     else
       scope.addMethod($method, results);
 
     // TODO: need to work module scope in if no type???
-    let compile = results.Type
-      ? function({ callArgs = "" }) { return `${Type}.${method}(${callArgs})` }
+    let compile = type
+      ? function({ callArgs = "" }) { return `${type}.${method}(${callArgs})` }
       : function({ callArgs = "" }) { return `${method}(${callArgs})` }
 
     scope.addStatementRule({
@@ -275,23 +274,18 @@ parser.defineRule({
   constructor: class quoted_property_name extends SpellParser.Rule.Statement {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
-      // Check the results -- if first word of `text` is not `is`,
-      // results will be undefined, meaning no match.
-      if (match && !match.results) return undefined;
+      if (!match) return;
+      // If first word of `alias` is not `is`, forget it
+      const alias = JSON.parse(match.results.alias).split(" ");
+      if (alias[0] !== "is") return;
+
       return match;
     }
-    gatherResults(scope, match) {
-      const results = gatherResults(scope, match);
-      // split the text string up into words
-      const alias = (""+JSON.parse(results.alias)).split(" ");
-      // if the first word is not "is" then forget it
-      if (alias[0] !== "is") return;
-      results.property = alias.join("_");
-      results.expressionSuffix = [alias[0], "not?", ...alias.slice(1)].join(" ");
-      return results;
-    }
     updateScope(scope, results) {
-      const { type, property, expression, expressionSuffix } = results;
+      const { type, alias, expression } = results;
+      const words = JSON.parse(alias).split(" ");
+      const property = words.join("_");
+      const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ");
 
       // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
       scope.addExpressionSuffixRule({
