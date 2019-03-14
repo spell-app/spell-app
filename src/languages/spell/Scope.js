@@ -15,8 +15,10 @@ import {
   Rule,
   SpellParser,
 
+  clearMemoized,
   memoize,
-  clearMemoized
+  typeCase,
+  toLower,
 } from "./all.js";
 
 // NOTE: this is the only export from this file.
@@ -50,25 +52,20 @@ export class Scope {
 
   // Local variables as a map.
   @memoize
-  get _variables() { return keyBy(this.variables, "name") }
+  get _variables() { return this._getItemMap("variables") }
 
   // Add a variable to this scope.
   @clearMemoized("_variables")
   addVariable(variable, results) { return this._addItem(variable, "variables", results, Variable) }
 
-  // Return definition of `var` in this block.
-  getLocalVariable(name) {
-    return this._variables[name];
-  }
-
-  // Return true if this block already has a local var defined
-  hasLocalVariable(name) {
-    return !!this.getLocalVariable(name);
-  }
-
   // Return definition of `var` anywhere in our parent chain.
   getVariable(name) {
     return this.getLocalVariable(name) || this.scope?.getVariable(name);
+  }
+
+  // Return definition of `var` DEFINED IN THIS SCOPE ONLY.
+  getLocalVariable(name) {
+    return this._getItem("_variables", name);
   }
 
 
@@ -78,7 +75,7 @@ export class Scope {
 
   // Local constants as a map.
   @memoize
-  get _constants() { return keyBy(this.constants, "name") }
+  get _constants() { return this._getItemMap("constants") }
 
   // Add a constant to this scope.
   @clearMemoized("_constants")
@@ -86,7 +83,7 @@ export class Scope {
 
   // Return definition of `constant` anywhere in our parent chain.
   getConstant(name) {
-    return this._constants[name] || this.scope?.getConstant(name);
+    return this._getItem("_constants", name) || this.scope?.getConstant(name);
   }
 
 
@@ -96,7 +93,7 @@ export class Scope {
 
   // Local variables as a map.
   @memoize
-  get _methods() { return keyBy(this.methods, "name") }
+  get _methods() { return this._getItemMap("methods") }
 
   // Add a method to this scope.
   @clearMemoized("_methods")
@@ -104,7 +101,7 @@ export class Scope {
 
   // Return definition of `method` anywhere in our parent chain.
   getMethod(name) {
-    return this._methods[name] || this.scope?.getMethod(name);
+    return this._getItem("_methods", name) || this.scope?.getMethod(name);
   }
 
 
@@ -113,25 +110,22 @@ export class Scope {
   //
 
   @memoize
-  get _types() { return keyBy(this.types, "name") }
+  get _types() { return this._getItemMap("types", typeCase) }
 
   // Add a type to this scope.
   @clearMemoized("_types")
   addType(type, results) {
-    type.name = upperFirst(type.name);
     return this._addItem(type, "types", results, Type);
   }
 
   // Return definition of `type` anywhere in our parent chain.
   getType(name) {
-    name = upperFirst(name);
-    return this._types[name] || this.scope?.getType(name);
+    return this._getItem("_types", name, typeCase) || this.scope?.getType(name);
   }
 
   // Return the named type, creating and adding one if necessary.
   getOrAddType(name, results) {
-    name = upperFirst(name);
-    return this.getType(name) || this.addType({ name }, results);
+    return this.getType(name) || this.addType(name, results);
   }
 
 
@@ -304,6 +298,22 @@ export class Scope {
 
     return item;
   }
+
+  // Given an array of "items" (e.g. with `_addItem()` above),
+  //  return a map of `{ item.name => item }`.
+  // Case INsensitive.
+  _getItemMap(listProp, caseConversion = toLower) {
+    return keyBy(this[listProp], item => caseConversion(item.name));
+  }
+
+  // Given the name of an `itemMap` (e.g. from `_getItemMap()` above)
+  // return the item found under that name.
+  // If not found in us our map, ask our `scope` if set.
+  // Case INsensitive.
+  _getItem(mapProp, key, caseConversion = toLower) {
+    return this[mapProp][caseConversion(key)];
+  }
+
 }
 
 // Module
@@ -322,7 +332,7 @@ export class Method extends Scope {
   }
 
   @memoize
-  get _args() { return keyBy(this.args, "name") }
+  get _args() { return this._getItemMap("args") }
 
   // Add an arg to this scope.
   // NOTE: we do not add args to someone else's `results`.
@@ -332,7 +342,7 @@ export class Method extends Scope {
   // When looking up local variables in the top-level method scope, include our args.
   // TODO: special case for `it` and `its`!!!
   getLocalVariable(name) {
-    return super.getLocalVariable(name) || this._args[name];
+    return super.getLocalVariable(name) || this._getItem("_args", name);
   }
 
   toString() {
@@ -367,14 +377,18 @@ export class Method extends Scope {
 //  - `variables` (from block) are instance variables
 //  - `classMethods` and `classVariables` are static to the class.
 //  - `statements` are random bits of logic to initialize the type.
+//
+// NOTE: `name` should be upperFirst and singular
 export class Type extends Scope {
   constructor(props) {
     // If you just pass a string we'll assume it's the type name.
     if (typeof props === "string") props = { name: props };
     super(props);
-
-    this.assert(props.name && props.name === upperFirst(props.name),
-      `Types must be initialized with an upper-case name, e.g. 'Card'.  Received '${props.name}'`);
+    // Make sure we have a `name`
+    if (!this.name) throw new TypeError("Types must be initialized with a 'name'");
+    // Make sure type `name` and `superType` are in `Type_Case`
+    this.name = typeCase(this.name);
+    if (this.superType) this.superType = typeCase(this.superType);
   }
 
   // Syntactic sugar for the type name.
@@ -398,7 +412,7 @@ export class Type extends Scope {
   }
 
   @memoize
-  get _classVariables() { return keyBy(this.classVariables, "name") }
+  get _classVariables() { return this._getItemMap("classVariables") }
 
   // Add a classVariable to this scope.
   @clearMemoized("_classVariables")
@@ -408,7 +422,7 @@ export class Type extends Scope {
   }
 
   @memoize
-  get _classMethods() { return keyBy(this.classMethods, "name") }
+  get _classMethods() { return this._getItemMap("classMethods") }
 
   // Add a classMethod to this scope.
   @clearMemoized("_classMethods")
@@ -468,7 +482,8 @@ export class Variable {
 //  - module
 //  - scope
 //  - name
-//  - value (defaults to `'name'`
+//  - value (defaults to `'name'`)
+//  - datatype (defaults to `string`)
 export class Constant {
   constructor(props) {
     // Use string as constant 'name'
