@@ -46,14 +46,15 @@ parser.defineRule({
   },
   tests: [
     {
-      compileAs: "expression",
+      compileAs: "constant",    // TODO: to "expression"
       beforeEach(scope) {
         scope.addConstant("red");
+        scope.addConstant({ name: "green", value: "#00FF00" });
       },
       tests: [
         { title: "known constant", input: "red", output: "'red'" },
-//TODO: enable this when we get rid of 'identifier' etc
-//        { title: "unknown constant", input: "nothing", output: undefined }
+        { title: "known constant w/specific value", input: "green", output: "#00FF00" },
+        { title: "unknown constant", input: "nothing", output: undefined }
       ]
     }
   ]
@@ -76,7 +77,7 @@ parser.defineRule({
         match.isKnown = true;
       }
       else {
-        match.constant = new Scope.Constant({ name, scope });
+        match.constant = new Scope.Constant({ name });
         match.isKnown = false;
       }
       return match;
@@ -88,7 +89,8 @@ parser.defineRule({
   tests: [
     {
       tests: [
-        [ "red", "'red'" ]
+        { title:"normal constant", input: "red", output: "'red'" },
+        { title:"blacklisted word", input: "if", output: undefined },
       ]
     }
   ]
@@ -150,7 +152,8 @@ SpellParser.Rule.Type = class type_ extends Rule.Pattern {  // if name is `type`
 // TESTME
 parser.defineRule({
   name: "type",
-  constructor: SpellParser.Rule.Type
+  constructor: SpellParser.Rule.Type,
+
 });
 
 // Type identifier which MUST be plural
@@ -210,7 +213,8 @@ parser.defineRule({
   constructor: class singular_variable extends SpellParser.Rule.Variable {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
-      const varName = match?.compile();
+      if (!match) return;
+      const varName = match.compile();
       if (varName && varName === singularize(varName)) return match;
     }
   }
@@ -222,7 +226,8 @@ parser.defineRule({
   constructor: class plural_variable extends SpellParser.Rule.Variable {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
-      const varName = match?.compile();
+      if (!match) return;
+      const varName = match.compile();
       if (varName && varName === pluralize(varName)) return match;
     }
   }
