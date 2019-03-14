@@ -848,7 +848,3 @@ Rule.NestedSplit = class nesting extends Rule {
     return groups;
   }
 }
-
-// Export the `gatherResults` method by itself so we can call it elsewhere without `super`.
-const gatherResults = Rule.Sequence.prototype.gatherResults;
-export { gatherResults }
