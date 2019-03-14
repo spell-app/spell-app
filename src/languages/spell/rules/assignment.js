@@ -27,7 +27,7 @@ parser.defineRule({
     if (thing instanceof Scope.Variable) {
       // Make sure scope has such a variable declared.
       // TODO: this is not checking nested scopes... will likely be a problem
-      if (!scope.hasLocalVariable(thing.name))
+      if (!scope.getLocalVariable(thing.name))
         scope.addVariable(thing);
       // Use the variable name in the expression.
       thing = thing.name;
@@ -56,7 +56,7 @@ parser.defineRule({
   updateScope(scope, results) {
     let { value } = results;
     // make sure 'it' is declared
-    if (!scope.hasLocalVariable("it")) scope.addVariable("it");
+    if (!scope.getLocalVariable("it")) scope.addVariable("it");
     scope.addStatement(`it = ${value}`, results);
   },
   tests: [

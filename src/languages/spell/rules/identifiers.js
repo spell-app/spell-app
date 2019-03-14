@@ -10,6 +10,8 @@ import {
 
   proto,
   upperFirst,
+  snakeCase,
+  typeCase,
   singularize,
   pluralize
 } from "../all.js";
@@ -19,34 +21,56 @@ import identifierBlacklist from "./identifier-blacklist.js";
 const parser = new SpellParser({ module: "identifiers" });
 export default parser;
 
+// Alpha-numeric word, including dashes or underscores.
 const WORD = /^[a-zA-Z][\w\-]*$/;
 
+SpellParser.Rule.Constant = class unknown_constant extends Rule.Pattern {
+  @proto pattern = WORD;
+  @proto blacklist = identifierBlacklist;
+  parse(scope, tokens) {
+    const match = super.parse(scope, tokens);
+    if (!match) return;
+    // Pick up existing constant if defined.
+    match.constant = scope.getConstant(match.raw);
+    return match;
+  }
+  compile(scope, match) {
+    const constant = match.constant || new Scope.Constant(match.raw);
+    return constant.toString();
+  }
+}
+
+// A possibly-unknown constant.
+// `match.constant` will be the existing Scope.Constant if one already exists.
+parser.defineRule({
+  name: "constant",
+  constructor: SpellParser.Rule.Constant,
+  tests: [
+    {
+      tests: [
+        { title:"single word", input: "red", output: "'red'" },
+        { title:"multi-word", input: "orangish-red", output: "'orangish-red'" },
+        { title:"blacklisted word", input: "if", output: undefined },
+      ]
+    }
+  ]
+});
 
 
 // A known single-word constant.
+// Note that this is defined as an "expression".
 parser.defineRule({
-  name: "constant",
+  name: "known_constant",
   alias: ["expression", "single_expression"],
-  constructor: class constant extends Rule {
+  constructor: class known_constant extends SpellParser.Rule.Constant {
     parse(scope, tokens) {
-      const constant = scope.getConstant(tokens[0].value);
-      if (!constant) return;
-      return new Match({
-        rule: this,
-        constant,
-        isKnown: true,
-        matched: [tokens[0]],
-        length: 1,
-        scope
-      });
-    }
-    compile(scope, match) {
-      return match.constant.toString()
+      const match = super.parse(scope, tokens);
+      if (match && match.constant) return match;
     }
   },
   tests: [
     {
-      compileAs: "constant",    // TODO: to "expression"
+      compileAs: "known_constant",    // TODO: to "expression"
       beforeEach(scope) {
         scope.addConstant("red");
         scope.addConstant({ name: "green", value: "#00FF00" });
@@ -61,35 +85,57 @@ parser.defineRule({
 });
 
 
-// A possibly-unknown constant.
+
+
+
+//
+//  Types
+//
+SpellParser.Rule.Type = class type extends Rule.Pattern {
+  @proto pattern = WORD;
+  @proto datatype = "type";
+  @proto blacklist = identifierBlacklist;
+  @proto valueMap = {
+    object: "Object",
+    Object: "Object",
+    list: "List",
+    List: "List",
+    number: "number",
+    Number: "number",
+    integer: "number",
+    Integer: "number",
+    decimal: "number",
+    Decimal: "number",
+    text: "text",
+    Text: "text",
+    character: "character",
+    Character: "character",
+    boolean: "boolean",
+    Boolean: "boolean",
+    default: typeCase
+  };
+  parse(scope, tokens) {
+    const match = super.parse(scope, tokens);
+    if (!match) return;
+    // Pick up existing type if defined.
+    match.type = scope.getType(match.compile());
+    return match;
+  }
+}
+
+// A possibly-unknown type identifier, singular or plural.
+// `match.type` will be the existing `Scope.Type` if one already exists.
 parser.defineRule({
-  name: "unknown_constant",
-  pattern: WORD,
-  blacklist: identifierBlacklist,     // ????
-  constructor: class unknown_constant extends Rule.Pattern {
-    parse(scope, tokens) {
-      const match = super.parse(scope, tokens);
-      if (!match) return;
-      const name = match.getTokens()[0];
-      const existing = scope.getConstant(name);
-      if (existing) {
-        match.constant = existng;
-        match.isKnown = true;
-      }
-      else {
-        match.constant = new Scope.Constant({ name });
-        match.isKnown = false;
-      }
-      return match;
-    }
-    compile(scope, match) {
-      return match.constant.toString();
-    }
-  },
+  name: "type",
+  constructor: SpellParser.Rule.Type,
   tests: [
     {
       tests: [
-        { title:"normal constant", input: "red", output: "'red'" },
+        { title:"lower case", input: "thing", output: "Thing" },
+        { title:"upper case", input: "Thing", output: "Thing" },
+        { title:"multi-word, lower case", input: "bank-account", output: "Bank_Account" },
+        { title:"multi-word, mixed case", input: "Bank-account", output: "Bank_Account" },
+        { title:"multi-word, upper case", input: "Bank-Account", output: "Bank_Account" },
         { title:"blacklisted word", input: "if", output: undefined },
       ]
     }
@@ -97,93 +143,88 @@ parser.defineRule({
 });
 
 
-
-//
-//  Types
-//
-SpellParser.Rule.Type = class type_ extends Rule.Pattern {  // if name is `type`, `super.parse()` doesn't work
-  @proto pattern = WORD;
-  @proto datatype = "type";
-  @proto blacklist = identifierBlacklist;
-  @proto baseTypes = {
-    Object: "Object",
-    List: "List",
-    Number: "number",
-    Integer: "number",
-    Decimal: "number",
-    Text: "text",
-    Character: "character",
-    Boolean: "boolean"
-  };
-
-  // TODO: precedence goes up radically if type is known, is built in, etc.
-
-  parse(scope, tokens) {
-    // TODO: ????
-    const match = super.parse(scope, tokens);
-    if (!match) return;
-    // Figure out characteristics of what was matched, which will affect precedence, etc.
-    let type = this.getTokens(match)[0];
-    match.raw = type;
-    match.isIntialCase = type[0] === type[0].toUpperCase();
-    match.isPlural = type === pluralize(type);
-
-    // Canonical name is Upperfirst unless specifically overrdden below
-    type = upperFirst(singularize(type)).replace(/-/g, "_");
-    if (this.baseTypes[type]) {
-      match.isBaseType = true;
-      match.$type = this.baseTypes[type];
-    }
-    else {
-      // It is a known type if the scope already knows about it.
-      match.isKnown = !!scope.getType?.(type);
-      match.$type = type;
-    }
-
-    return match;
-  }
-
-  compile(scope, match) {
-    return match.$type;
-  }
-}
-
-// Normal type identifier.
-// TESTME
+// Possibly unknown type which MUST be singular.
 parser.defineRule({
-  name: "type",
-  constructor: SpellParser.Rule.Type,
+  name: "singular_type",
+  constructor: class singular_type extends SpellParser.Rule.Type {
+    parse(scope, tokens) {
+      const match = super.parse(scope, tokens);
+      if (match && match.raw === singularize(match.raw)) return match;
+    }
+  },
+  tests: [
+    {
+      tests: [
+        { title:"singular, lower case", input: "thing", output: "Thing" },
+        { title:"singular, upper case", input: "Thing", output: "Thing" },
+        { title:"singular, multi-word, lower case", input: "bank-account", output: "Bank_Account" },
+        { title:"singular, multi-word, mixed case", input: "Bank-account", output: "Bank_Account" },
 
+        { title:"plural, lower case", input: "things", output: undefined },
+        { title:"plural, upper case", input: "Things", output: undefined },
+        { title:"plural, multi-word, lower case", input: "bank-accounts", output: undefined },
+        { title:"plural, multi-word, mixed case", input: "Bank-accounts", output: undefined },
+      ]
+    }
+  ]
 });
 
-// Type identifier which MUST be plural
-// TESTME
+// Possibly unknown type which MUST be plural.
+// NOTE: the output type name will be SINGULAR!
 parser.defineRule({
   name: "plural_type",
   constructor: class plural_type extends SpellParser.Rule.Type {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
-      if (match && !match.isPlural) return;
-      return match;
+      if (match && match.raw === pluralize(match.raw)) return match;
     }
-  }
+  },
+  tests: [
+    {
+      tests: [
+        { title:"plural, lower case", input: "things", output: "Thing" },
+        { title:"plural, upper case", input: "Things", output: "Thing" },
+        { title:"plural, multi-word, lower case", input: "bank-accounts", output: "Bank_Account" },
+        { title:"plural, multi-word, mixed case", input: "Bank-accounts", output: "Bank_Account" },
+
+        { title:"singular, lower case", input: "thing", output: undefined },
+        { title:"singular, upper case", input: "Thing", output: undefined },
+        { title:"singular, multi-word, lower case", input: "bank-account", output: undefined },
+        { title:"singular, multi-word, mixed case", input: "Bank-account", output: undefined },
+      ]
+    }
+  ]
 });
 
-// Type identifier which MUST be a known type (or a built-in?)
-// TODO: is this an "expression"?
-// TODO: built-in type?
-// TESTME
+
+// A known type identifier, NOT including built-in types like 'Object'.
 parser.defineRule({
   name: "known_type",
+  alias: ["expression", "single_expression"],
   constructor: class known_type extends SpellParser.Rule.Type {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
-      if (match && (!match.isKnown || match.isBaseType)) return;
-      return match;
+      if (match && match.type) return match;
     }
-  }
+  },
+  tests: [
+    {
+      beforeEach(scope) {
+        scope.addType({ name: "Thing" });
+        scope.addType({ name: "Bank-Account" });
+      },
+      tests: [
+        { title:"known type, lower case", input: "thing", output: "Thing" },
+        { title:"known type, upper case", input: "Thing", output: "Thing" },
+        { title:"known, multi-word, lower case", input: "bank-account", output: "Bank_Account" },
+        { title:"known, multi-word, mixed case", input: "Bank-account", output: "Bank_Account" },
+        { title:"known, multi-word, upper case", input: "Bank-Account", output: "Bank_Account" },
+        { title:"unknown", input: "nothing", output: undefined },
+        { title:"unknown. multi-word", input: "other-thing", output: undefined },
+      ]
+    }
+  ]
 });
-
 
 
 //
@@ -192,7 +233,7 @@ parser.defineRule({
 
 // Single word variable name, known or unknown.
 // TODO: type based on scope variable type?
-// TODO: higher precedence if type is known?
+// TODO: higher precedence if variable is known?
 SpellParser.Rule.Variable = class variable extends Rule.Pattern {
   @proto pattern = WORD;
   @proto blacklist = identifierBlacklist;
@@ -201,13 +242,79 @@ SpellParser.Rule.Variable = class variable extends Rule.Pattern {
   }
 }
 
-// Variable match with no adornments.
+// Variable identifier with no adornments.
+// You won't generally use this, use `variable` or `unknown_variable` instead.
 parser.defineRule({
-  name: "variable",
+  name: "variable_identifier",
   constructor: SpellParser.Rule.Variable
 });
 
-// Variable which MUST be singular, WITHOUT `the`.
+
+// Single word variable which may or may not be known by our scope, with optional `the` prefix.
+// `match.localVariable` is LOCAL variable with the specified name.
+// `match.variable` is any scoped variable with the specified name.
+// NOTE: `match` returned is the `{variable}`, not this sequence.
+class the_variable extends Rule.Sequence {
+  @proto syntax = "the? {variable_identifier}";
+  parse(scope, tokens) {
+    const match = super.parse(scope, tokens);
+    if (!match) return;
+    // Return just the `variable_identifier` bit, adjusting `length` to account for `the` as necessary.
+    const varMatch = match.matched[match.matched.length - 1];
+    if (match.matched.length === 2) varMatch.length += 1;
+    // figure out if we have an existing variable in scope already
+    const varName = varMatch.compile();
+    varMatch.localVariable = scope.getLocalVariable(varName);
+    varMatch.variable = match.localVariable || scope.getVariable(varName);
+    return varMatch;
+  }
+}
+
+// Variable which may or may not be known, with optional `the` prefix.
+parser.defineRule({
+  name: "unknown_variable",
+  constructor: the_variable,
+  tests: [
+    {
+      tests: [
+        { title:"single word", input: "thing", output: "thing" },
+        { title:"multi-word", input: "bank-account", output: "bank_account" },
+        { title:"blacklisted word", input: "if", output: undefined },
+      ]
+    }
+  ]
+});
+
+
+// Single word variable which is already known by our scope, with optional `the` prefix
+// Note that we match this as an "expression".
+// NOTE: `match` returned is the `{variable}`, not this sequence.
+parser.defineRule({
+  name: "known_variable",
+  alias: ["expression", "single_expression"],
+  constructor: class known_variable extends the_variable {
+    parse(scope, tokens) {
+      const match = super.parse(scope, tokens);
+      if (match?.variable) return match;
+    }
+  },
+  tests: [
+    {
+      compileAs: "variable",    // TODO: "expression"
+      beforeEach(scope) {
+        scope.addVariable("thing");
+        scope.addVariable("bank-account");
+      },
+      tests: [
+        { title:"single word", input: "thing", output: "thing" },
+        { title:"multi-word", input: "bank-account", output: "bank_account" },
+        { title:"not defined", input: "nothing", output: undefined },
+      ]
+    }
+  ]
+});
+
+// Possibly unknown variable identifier which MUST be singular, WITHOUT `the`.
 parser.defineRule({
   name: "singular_variable",
   constructor: class singular_variable extends SpellParser.Rule.Variable {
@@ -217,10 +324,20 @@ parser.defineRule({
       const varName = match.compile();
       if (varName && varName === singularize(varName)) return match;
     }
-  }
+  },
+  tests: [
+    {
+      tests: [
+        { title:"singular, single word", input: "thing", output: "thing" },
+        { title:"singular, multi-word", input: "bank-account", output: "bank_account" },
+        { title:"plural, single word", input: "things", output: undefined },
+        { title:"plural, multi-word", input: "bank-accounts", output: undefined },
+      ]
+    }
+  ]
 });
 
-// Variable which MUST be plural, WITHOUT `the`.
+// Possibly unknown variable identifier which MUST be plural, WITHOUT `the`.
 parser.defineRule({
   name: "plural_variable",
   constructor: class plural_variable extends SpellParser.Rule.Variable {
@@ -230,43 +347,17 @@ parser.defineRule({
       const varName = match.compile();
       if (varName && varName === pluralize(varName)) return match;
     }
-  }
-});
-
-
-// Single word variable which is NOT known by our scope.
-// NOTE: `match` returned is the `{variable}`, not this sequence.
-parser.defineRule({
-  name: "unknown_variable",
-  syntax: "the? {variable}",
-  constructor: class known_variable extends Rule.Sequence {
-    parse(scope, tokens) {
-      const match = super.parse(scope, tokens);
-      if (!match) return;
-      const varMatch = match.matched[match.matched.length - 1];
-      const varName = varMatch.compile();
-      if (!scope.getLocalVariable(varName)) return varMatch;
+  },
+  tests: [
+    {
+      tests: [
+        { title:"plural, single word", input: "things", output: "things" },
+        { title:"plural, multi-word", input: "bank-accounts", output: "bank_accounts" },
+        { title:"singular, single word", input: "thing", output: undefined },
+        { title:"singular, multi-word", input: "bank-account", output: undefined },
+      ]
     }
-  }
-});
-
-
-// Single word variable which is already known by our scope.
-// Note that we match this as an "expression".
-// NOTE: `match` returned is the `{variable}`, not this sequence.
-parser.defineRule({
-  name: "known_variable",
-  alias: ["expression", "single_expression"],
-  syntax: "the? {variable}",
-  constructor: class known_variable extends Rule.Sequence {
-    parse(scope, tokens) {
-      const match = super.parse(scope, tokens);
-      if (!match) return;
-      const varMatch = match.matched[match.matched.length - 1];
-      const varName = varMatch.compile();
-      if (scope.getLocalVariable(varName)) return varMatch;
-    }
-  }
+  ]
 });
 
 

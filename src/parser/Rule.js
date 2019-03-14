@@ -332,6 +332,7 @@ Rule.Pattern = class pattern extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[0]],
+      raw: tokens[0].value,     // raw value, used by subclasses
       length: 1,
       scope
     });
