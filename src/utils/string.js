@@ -1,7 +1,26 @@
 // Export lodash and lodash-inflection string methods.
 export lowerFirst from "lodash/lowerFirst";
-export upperFirst from "lodash/upperFirst";
 import inflection from "lodash-inflection";
+export snakeCase from "lodash/snakeCase";
+export toLower from "lodash/toLower";
+import upperFirst from "lodash/upperFirst";
+export { upperFirst }
+
+// Convert a string to `Type-Name-Case", including singularizing.
+export function typeCase(string) {
+  return singularize(""+string)
+    .split(/[-_]/)
+    .map(bit => upperFirst(bit))
+    .join("_");
+}
+
+// Convert a string to `Type-Name-Case", including singularizing.
+export function typeNameCase(string) {
+  return singularize(""+string)
+    .split(/[-_]/)
+    .map(bit => upperFirst(bit))
+    .join("-");
+}
 
 // Return the singular form of `word`.
 // Uses lodash-inflection, which should be pretty good.
