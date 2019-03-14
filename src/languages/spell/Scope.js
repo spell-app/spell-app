@@ -124,8 +124,8 @@ export class Scope {
   }
 
   // Return the named type, creating and adding one if necessary.
-  getOrAddType(name, results) {
-    return this.getType(name) || this.addType(name, results);
+  getOrStubType(name, results) {
+    return this.getType(name) || this.addType({ name, stub: true }, results);
   }
 
 
@@ -373,6 +373,7 @@ export class Method extends Scope {
 // Type, which extends block.  Specifically:
 //  - `name` is the name of the type, and should be InitialCase.
 //  - `superClass` is name of superclass, if provided, and should be InitialCase.
+//  - `stub` is `true` if the type was created as a stub.
 //  - `methods` (from block) are instance methods, including `constructor` if provided.
 //  - `variables` (from block) are instance variables
 //  - `classMethods` and `classVariables` are static to the class.

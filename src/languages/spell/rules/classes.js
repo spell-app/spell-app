@@ -50,8 +50,7 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, results) {
     const { type, props = "" } = results; // `props` is the object literal text
-    const Type = upperFirst(type);
-    scope.addStatement(`new ${Type}(${props})`, results);
+    scope.addStatement(`new ${type}(${props})`, results);
   },
   tests: [
     {
@@ -131,7 +130,7 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, results) {
     const { type, property, initializer = {}} = results;
-    const typeScope = scope.getOrAddType(type);
+    const typeScope = scope.getOrStubType(type);
     const Properties = pluralize(upperFirst(property));
 
     let { datatype, enumeration } = initializer;
@@ -214,7 +213,7 @@ parser.defineRule({
   updateScope(scope, results) {
     const { type, $method, method, syntax } = results;
     if (type)
-      scope.getOrAddType(type).addClassMethod($method, results);
+      scope.getOrStubType(type).addClassMethod($method, results);
     else
       scope.addMethod($method, results);
 
@@ -298,7 +297,7 @@ parser.defineRule({
       });
 
       // Create an instance getter
-      scope.getOrAddType(type)
+      scope.getOrStubType(type)
         .addMethod({
           name: property,
           kind: "getter",
@@ -344,7 +343,7 @@ parser.defineRule({
   updateScope(scope, results) {
     let { type, property, value, otherValue, condition } = results;
 
-    scope.getOrAddType(type)
+    scope.getOrStubType(type)
       // Create as an instance getter
       .addMethod({
         name: property,
@@ -378,7 +377,7 @@ parser.defineRule({
   updateScope(scope, results) {
     let { type, property, expression } = results;
     scope
-      .getOrAddType(type)
+      .getOrStubType(type)
       .addMethod({
         kind: "getter",
         name: property,
