@@ -3,7 +3,6 @@
 //  To make a rule testable, add a `tests` block to parser rules with `defineRules()`.
 //  Call `unitTestModuleRules(<moduleName>)` to test all rules in that module.
 //
-//  TODO: `showAll` as global flag?
 //  TODO: add `only` to test block to skip everything else in the file
 //  TODO: rules w/specific titles to `{ title, input, output }`
 //  TODO: output as a function?
@@ -20,7 +19,7 @@ import {
   showWhitespace
 } from "../utils/all.js";
 
-export function unitTestModuleRules(parser, moduleName, showAll) {
+export function unitTestModuleRules(parser, moduleName) {
   describe(`rule unit tests`, () => {
     const rules = getTestableRulesForModule(moduleName);
     if (!rules || rules.lenth === 0) {
@@ -30,7 +29,7 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
       return;
     }
 
-    rules.forEach(rule => executeRuleTests(rule, showAll));
+    rules.forEach(rule => executeRuleTests(rule));
   });
 
   function getTestableRulesForModule(moduleName) {
@@ -44,12 +43,11 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
     return modules[moduleName];
   }
 
-  function executeRuleTests({ name, tests }, showAll) {
+  function executeRuleTests({ name, tests }) {
     // Handle simple block of e
     describe(`rule '${name}'`, () => {
       tests.forEach(testBlock => {
         if (testBlock.skip) return;
-        if (showAll) testBlock.showAll = true;
         if (testBlock.title)
           describe(testBlock.title, () => executeTestBlock(name, testBlock));
         else
@@ -58,7 +56,7 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
     });
   }
 
-  function executeTestBlock(name, { compileAs = name, showAll, tests, beforeEach }) {
+  function executeTestBlock(name, { compileAs = name, tests, beforeEach }) {
     if (!compileAs) {
       test("compileAs property of test is defined", () => {
         expect(compileAs).toBeTruthy();
@@ -83,16 +81,10 @@ export function unitTestModuleRules(parser, moduleName, showAll) {
     if (tests.length === 0) return;
 
     // Excute each test
-    const results = tests.map(test => executeTest(test, compileAs, showAll, beforeEach));
-
-    // If they all passed, output number of elided tests
-    if (!showAll && results.every(Boolean)) {
-      test(`(${results.length} successful test${results.length !== 1 ? "s" : ""})`, () =>
-        expect(true).toBe(true));
-    }
+    const results = tests.map(test => executeTest(test, compileAs, beforeEach));
   }
 
-  function executeTest({ input, output, title }, ruleName, showAll, beforeEach) {
+  function executeTest({ input, output, title }, ruleName, beforeEach) {
     // Get a test scope to parse with.
     const scope = parser.getScope(`test_${moduleName}`);
     // If a `beforeEach` method was defined, run that before parsing to seed variables/etc.
