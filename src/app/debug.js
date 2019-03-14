@@ -15,6 +15,8 @@ import {
   SpellParser,
   Token,
   Tokenizer,
+  singularize,
+  pluralize,
 } from "./all.js";
 
 import precedence from "../languages/precedence/precedence.js";
@@ -54,5 +56,9 @@ Object.assign(global, {
   projects,    // package/file manipulation reduxFactory
 
   // test language
-  prec: precedence
+  prec: precedence,
+
+  // string utils
+  singularize,
+  pluralize,
 });
