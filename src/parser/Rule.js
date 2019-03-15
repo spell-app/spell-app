@@ -682,35 +682,34 @@ Rule.Sequence = class sequence extends Rule {
   //TODOC
   // "gather" matched values into a map in preparation to call `compile(scope, match)`
   gatherResults(scope, match) {
-    const { rule, matched, comment } = match;
-    if (!matched) return undefined;
-    let results = addResults({}, matched);
-    if (comment)
-      results.comment = matched.comment;
-    return results;
+    return this._addResults({}, match.matched, match => match.compile());
+  }
 
-    function addResults(results, matched) {
-      for (let i = 0, match; match = matched[i]; i++) {
-        const { promote, name } = match;
-        if (promote) {
-          addResults(results, match.matched);
-        } else {
-          if (name == null) continue;
+  gatherMatches(scope, match) {
+    return this._addResults({}, match.matched);
+  }
 
-          const source = match.compile();
-          // If arg already exists, convert to an array
-          if (name in results) {
-            if (!Array.isArray(results[name])) {
-              results[name] = [results[name]];
-            }
-            results[name].push(source);
-          } else {
-            results[name] = source;
+  _addResults(results, matched, callback) {
+    for (let i = 0, match; match = matched[i]; i++) {
+      const { promote, name } = match;
+      if (promote) {
+        this._addResults(results, match.matched, callback);
+      } else {
+        if (name == null) continue;
+
+        const value = callback ? callback(match) : match;
+        // If arg already exists, convert to an array
+        if (name in results) {
+          if (!Array.isArray(results[name])) {
+            results[name] = [results[name]];
           }
+          results[name].push(value);
+        } else {
+          results[name] = value;
         }
       }
-      return results;
     }
+    return results;
   }
 
   // Echo this rule back out.

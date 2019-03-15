@@ -255,13 +255,13 @@ parser.defineRule({
 // `match.variable` is any scoped variable with the specified name.
 // NOTE: `match` returned is the `{variable}`, not this sequence.
 class the_variable extends Rule.Sequence {
-  @proto syntax = "the? {variable_identifier}";
   parse(scope, tokens) {
     const match = super.parse(scope, tokens);
     if (!match) return;
     // Return just the `variable_identifier` bit, adjusting `length` to account for `the` as necessary.
     const varMatch = match.matched[match.matched.length - 1];
-    if (match.matched.length === 2) varMatch.length += 1;
+    varMatch.length = match.length;
+
     // figure out if we have an existing variable in scope already
     const varName = varMatch.compile();
     varMatch.localVariable = scope.getLocalVariable(varName);
@@ -273,6 +273,7 @@ class the_variable extends Rule.Sequence {
 // Variable which may or may not be known, with optional `the` prefix.
 parser.defineRule({
   name: "unknown_variable",
+  syntax: "the? {variable_identifier}",
   constructor: the_variable,
   tests: [
     {
@@ -292,6 +293,7 @@ parser.defineRule({
 parser.defineRule({
   name: "known_variable",
   alias: ["expression", "single_expression"],
+  syntax: "the? {variable_identifier}",
   constructor: class known_variable extends the_variable {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
@@ -300,7 +302,7 @@ parser.defineRule({
   },
   tests: [
     {
-      compileAs: "variable",    // TODO: "expression"
+      compileAs: "known_variable",    // TODO: "expression"
       beforeEach(scope) {
         scope.addVariable("thing");
         scope.addVariable("bank-account");

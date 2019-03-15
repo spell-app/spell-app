@@ -35,6 +35,11 @@ export class Match {
   @memoize
   get results() { return this.rule.gatherResults?.(this.scope, this) }
 
+  // Syntactic sugar to easily get `matches` of the match for sequences, etc.
+  // Only works for some rule types.
+  @memoize
+  get matches() { return this.rule.gatherMatches?.(this.scope, this) }
+
   // Return the "interesting" tokens which were actually matched matched.
   // NOTE: this is not guaranteed to be everything,
   //       for example, List rules don't put the delimiters in the output stream.
@@ -42,7 +47,6 @@ export class Match {
 
   // Syntatic sugar to compile the output of the match.
   get js() { return this.compile() }
-  toString() { return this.compile() }
   compile() { return this.rule.compile(this.scope, this) }
 
   // Have the match call `updateScope()` if it can.
