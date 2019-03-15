@@ -37,14 +37,14 @@ const ES5_DESCRIPTOR_PROPS = {
 // Return a descriptor property,
 // whether the descriptor is set up according to spec or in Babel's different format.
 // See "Problems with Babel" above.
-function getDescriptorProp(descriptor, key) {
+export function getDescriptorProp(descriptor, key) {
   return descriptor.descriptor?.[key] || descriptor[key];
 }
 
 // Clone the `descriptor` and set some prop,
 // whether the descriptor is set up according to spec or in Babel's different format.
 // See "Problems with Babel" above.
-function setDescriptorProp(descriptor, key, value) {
+export function setDescriptorProp(descriptor, key, value) {
   // Babel-style, or new descriptor prop which is always set directly.
   const doubleDescriptor = ES5_DESCRIPTOR_PROPS[key] && descriptor.descriptor;
   if (doubleDescriptor) {
