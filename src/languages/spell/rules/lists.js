@@ -2,8 +2,6 @@
 //  # Rules for dealing with lists
 //
 
-// TODO: confirm identifiers are plural in some of the below?
-
 import {
   Rule,
   Scope,
@@ -90,7 +88,7 @@ parser.defineRule({
 parser.defineRule({
   name: "list_length",
   alias: ["expression", "single_expression"],
-  syntax: "the? number of {identifier} in {list:expression}",
+  syntax: "the? number of {argument:plural_variable} in {list:expression}",
   testRule: "…(number of)",
   precedence: 3,
   compile(scope, match) {
@@ -221,10 +219,10 @@ parser.defineRule({
 parser.defineRule({
   name: "position_expression",
   alias: ["expression", "single_expression"],
-  syntax: "{identifier} {position:expression} of {expression}",
+  syntax: "{argument:singular_variable} {position:expression} of {expression}",
   testRule: "…of",
   compile(scope, match) {
-    const { identifier, position, expression } = match.results;
+    const { argument, position, expression } = match.results;
     return `spell.getItem(${expression}, ${position})`;
   },
   tests: [
@@ -242,10 +240,10 @@ parser.defineRule({
 parser.defineRule({
   name: "ordinal_position_expression",
   alias: ["expression", "single_expression"],
-  syntax: "the {ordinal} {identifier} (in|of) {expression}",
+  syntax: "the {ordinal} {argument:singular_variable} (in|of) {expression}",
   testRule: "…(in|of)",
   compile(scope, match) {
-    const { identifier, ordinal, expression } = match.results;
+    const { argument, ordinal, expression } = match.results;
     return `spell.getItem(${expression}, ${ordinal})`;
   },
   tests: [
@@ -261,14 +259,13 @@ parser.defineRule({
 });
 
 // Pick a SINGLE random item from the list.
-// TODO: confirm identifier is plural?
 parser.defineRule({
   name: "random_position_expression",
   alias: ["expression", "single_expression"],
-  syntax: "a random {identifier} (of|from|in) {list:expression}",
+  syntax: "a random {argument:singular_variable} (of|from|in) {list:expression}",
   testRule: "a random",
   compile(scope, match) {
-    const { list, identifier } = match.results;
+    const { list, argument } = match.results;
     return `spell.getRandomItemOf(${list})`;
   },
   tests: [
@@ -277,7 +274,7 @@ parser.defineRule({
       tests: [
         ["a random item of my-list", "spell.getRandomItemOf(my_list)"],
         ["a random word in 'some words'", "spell.getRandomItemOf('some words')"],
-        ["a random card from deck", "spell.getRandomItemOf(deck)"]
+        ["a random card from the deck", "spell.getRandomItemOf(deck)"]
       ]
     }
   ]
@@ -285,14 +282,13 @@ parser.defineRule({
 
 // Pick a unique set of random items from the list, returning an array.
 // TODO: `two random items...`
-// TODO: confirm identifier is plural?
 parser.defineRule({
   name: "random_positions_expression",
   alias: ["expression", "single_expression"],
-  syntax: "{number} random {identifier} (of|from|in) {list:expression}",
+  syntax: "{number} random {argument:plural_variable} (of|from|in) {list:expression}",
   testRule: "…random",
   compile(scope, match) {
-    const { number, list, identifier } = match.results;
+    const { number, list } = match.results;
     return `spell.getRandomItemsOf(${list}, ${number})`;
   },
   tests: [
@@ -317,10 +313,10 @@ parser.defineRule({
 parser.defineRule({
   name: "range_expression",
   alias: ["expression", "single_expression"],
-  syntax: "{identifier} {start:expression} to {end:expression} (of|in|from) {list:expression}",
+  syntax: "{argument:variable} {start:expression} to {end:expression} (of|in|from) {list:expression}",
   testRule: "…(of|in|from)",
   compile(scope, match) {
-    const { list, start, end, identifier } = match.results;
+    const { list, start, end } = match.results;
     return `spell.getRange(${list}, ${start}, ${end})`;
   },
   tests: [
@@ -340,10 +336,10 @@ parser.defineRule({
 parser.defineRule({
   name: "ordinal_range_expression",
   alias: ["expression", "single_expression"],
-  syntax: "{ordinal} {number} {identifier} (of|in|from) {list:expression}",
+  syntax: "{ordinal} {number} {argument:plural_variable} (of|in|from) {list:expression}",
   testRule: "…(of|in|from)",
   compile(scope, match) {
-    const { ordinal, number, list, identifier } = match.results;
+    const { ordinal, number, list } = match.results;
     return `spell.slice(${list}, ${ordinal}, ${number})`;
   },
   tests: [
@@ -364,10 +360,10 @@ parser.defineRule({
 parser.defineRule({
   name: "range_expression_starting_with",
   alias: ["expression", "single_expression"],
-  syntax: "{identifier} (in|of) {list:expression} starting with {thing:expression}",
+  syntax: "{argument:plural_variable} (in|of) {list:expression} starting with {thing:expression}",
   testRule: "…(starting with)",
   compile(scope, match) {
-    const { thing, list, identifier } = match.results;
+    const { thing, list } = match.results;
     return `spell.getRange(${list}, spell.positionOf(${thing}, ${list}))`;
   },
   tests: [
@@ -388,18 +384,16 @@ parser.defineRule({
 });
 
 // List filter.
-// NOTE: we will singularize `identifier` and use that as the argument to `expression`.
 parser.defineRule({
   name: "list_filter",
   alias: ["expression", "single_expression"],
-  syntax: "{identifier} (in|of) {list:expression} where {condition:expression}",
+  syntax: "{argument:plural_variable} (in|of) {list:expression} where {condition:expression}",
   testRule: "…where",
   precedence: 2,
   compile(scope, match) {
-    const { identifier, condition, list } = match.results;
-    // use singular of identifier for method argument
-    const argument = singularize(identifier);
-    return `spell.filter(${list}, ${argument} => ${condition})`;
+    const { argument, condition, list } = match.results;
+    // singularize argument for method
+    return `spell.filter(${list}, ${singularize(argument)} => ${condition})`;
   },
   tests: [
     {
@@ -420,21 +414,19 @@ parser.defineRule({
 });
 
 // Set membership (left recursive).
-// NOTE: we will singularize `identifier` and use that as the argument to `expression`.
 // TODO: this is a postfix_operator expression
 parser.defineRule({
   name: "list_membership_test",
   alias: ["expression"],
   syntax:
-    "{list:single_expression} (operator:has|has no|doesnt have|does not have) {identifier} where {filter:expression}",
+    "{list:single_expression} (operator:has|has no|doesnt have|does not have) {argument:plural_variable} where {filter:expression}",
   testRule: "…(has|have)",
   precedence: 2,
   compile(scope, match) {
-    const { identifier, operator, filter, list } = match.results;
+    const { argument, operator, filter, list } = match.results;
     const bang = operator === "has" ? "" : "!";
-    // use singular of identifier for method argument
-    const argument = singularize(identifier);
-    return `${bang}spell.any(${list}, ${argument} => ${filter})`;
+    // singularize method argument
+    return `${bang}spell.any(${list}, ${singularize(argument)} => ${filter})`;
   },
   tests: [
     {
@@ -616,7 +608,7 @@ parser.defineRule({
 parser.defineRule({
   name: "list_remove_ordinal",
   alias: "statement",
-  syntax: "remove {ordinal} {identifier} of {list:expression}",
+  syntax: "remove {ordinal} {argument:singular_variable} of {list:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
@@ -637,11 +629,11 @@ parser.defineRule({
 parser.defineRule({
   name: "list_remove_position",
   alias: "statement",
-  syntax: "remove {identifier} {number:expression} of {list:expression}",
+  syntax: "remove {argument:singular_variable} {number:expression} of {list:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
-    const { number, list, identifier } = results;
+    const { number, list } = results;
     scope.addStatement(`spell.removeItem(${list}, ${number})`, results);
   },
   tests: [
@@ -662,11 +654,11 @@ parser.defineRule({
 parser.defineRule({
   name: "list_remove_range",
   alias: "statement",
-  syntax: "remove {identifier} {start:expression} to {end:expression} of {list:expression}",
+  syntax: "remove {argument:plural_variable} {start:expression} to {end:expression} of {list:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
-    const { start, end, list, identifier } = results;
+    const { start, end, list } = results;
     scope.addStatement(`spell.removeRange(${list}, ${start}, ${end})`, results);
   },
   tests: [
@@ -682,11 +674,11 @@ parser.defineRule({
 parser.defineRule({
   name: "list_remove_range_ordinal",
   alias: "statement",
-  syntax: "remove {start:ordinal} to {end:ordinal} {identifier} of {list:expression}",
+  syntax: "remove {start:ordinal} to {end:ordinal} {argument:plural_variable} of {list:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
-    const { start, end, list, identifier } = results;
+    const { start, end, list } = results;
     scope.addStatement(`spell.removeRange(${list}, ${start}, ${end})`, results);
   },
   tests: [
@@ -719,18 +711,16 @@ parser.defineRule({
 });
 
 // Remove all items from list where condition is true.
-// NOTE: we will singularize `identifier` and use that as the argument to `expression`.
 parser.defineRule({
   name: "list_remove_where",
   alias: "statement",
-  syntax: "remove {identifier} (in|of|from) {list:expression} where {condition:expression}",
+  syntax: "remove {argument:plural_variable} (in|of|from) {list:expression} where {condition:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
-    const { identifier, condition, list } = results;
-    // use singular of identifier for method argument
-    const argument = singularize(identifier);
-    scope.addStatement(`spell.removeWhere(${list}, ${argument} => ${condition})`, results);
+    const { argument, condition, list } = results;
+    // singularize method argument
+    scope.addStatement(`spell.removeWhere(${list}, ${singularize(argument)} => ${condition})`, results);
   },
   tests: [
     {
@@ -776,7 +766,7 @@ parser.defineRule({
 parser.defineRule({
   name: "list_shuffle",
   alias: "statement",
-  syntax: "(randomize|shuffle) ({identifier} (in|of))? {list:expression}",
+  syntax: "(randomize|shuffle) ({argument:plural_variable} (in|of))? {list:expression}",
   testRule: "(randomize|shuffle)",
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
@@ -800,7 +790,7 @@ parser.defineRule({
 parser.defineRule({
   name: "list_iteration",
   alias: "statement",
-  syntax: "for each? {item:identifier} (?:(and|,) {position:identifier})? in {list:expression} :?",
+  syntax: "for each? {item:singular_variable} (?:(and|,) {position:singular_variable})? in {list:expression} :?",
   testRule: "for",
   constructor: SpellParser.Rule.Statement,
   wantsInlineStatement: true,

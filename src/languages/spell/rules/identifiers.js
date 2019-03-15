@@ -272,7 +272,7 @@ class the_variable extends Rule.Sequence {
 
 // Variable which may or may not be known, with optional `the` prefix.
 parser.defineRule({
-  name: "unknown_variable",
+  name: "variable",
   syntax: "the? {variable_identifier}",
   constructor: the_variable,
   tests: [
