@@ -5,6 +5,7 @@ import keyBy from "lodash/keyBy";
 import flatten from "lodash/flatten";
 import lowerFirst from "lodash/lowerFirst"
 import upperFirst from "lodash/upperFirst"
+import snakeCase from "lodash/snakeCase"
 import uniq from "lodash/uniq"
 import JSON5 from "JSON5";
 
@@ -302,7 +303,7 @@ export class Scope {
   // Given an array of "items" (e.g. with `_addItem()` above),
   //  return a map of `{ item.name => item }`.
   // Case INsensitive.
-  _getItemMap(listProp, caseConversion = toLower) {
+  _getItemMap(listProp, caseConversion = snakeCase) {
     return keyBy(this[listProp], item => caseConversion(item.name));
   }
 
@@ -310,7 +311,7 @@ export class Scope {
   // return the item found under that name.
   // If not found in us our map, ask our `scope` if set.
   // Case INsensitive.
-  _getItem(mapProp, key, caseConversion = toLower) {
+  _getItem(mapProp, key, caseConversion = snakeCase) {
     return this[mapProp][caseConversion(key)];
   }
 
