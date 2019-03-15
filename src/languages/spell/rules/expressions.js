@@ -294,6 +294,9 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("theList");
+      },
       tests: [
         ["a is in theList", "spell.includes(theList, a)"],
         ["a is one of theList", "spell.includes(theList, a)"],

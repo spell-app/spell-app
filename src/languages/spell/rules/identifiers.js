@@ -375,6 +375,7 @@ parser.defineRule({
 parser.defineRule({
   name: "identifier",
   pattern: /^[a-z][\w\-]*$/,
+  precedence: -1,
   // convert dashes to underscores when compiling
   valueMap(value) {
     return (""+value).replace(/\-/g, "_")
@@ -415,6 +416,7 @@ parser.defineRule({
   name: "identifier_expression",
   alias: ["expression", "single_expression"],
   syntax: "the? {identifier}",
+  precedence: -1,
   compile(scope, match) {
     return match.results.identifier;
   },
