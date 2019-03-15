@@ -28,7 +28,7 @@ SpellParser.Rule.Statement = class statement extends Rule.Sequence {
   //
   // NOTE: DO NOT CALL THIS DIRECTLY -- ALWAYS CALL IT FROM THE MATCH!
   //       Otherwise we may call the method twice, duplicating its effects.
-  updateScope(scope, results, match) {}
+  updateScope(scope, match) {}
 
 
   // Return the nested scope that we should use to parse an inline statement or nested block.
@@ -37,7 +37,7 @@ SpellParser.Rule.Statement = class statement extends Rule.Sequence {
   //
   // NOTE: DO NOT CALL THIS DIRECTLY -- ALWAYS CALL IT FROM THE MATCH!
   //       Otherwise we may call the method twice, duplicating its effects.
-  getNestedScope(scope, results, match) {}
+  getNestedScope(scope, match) {}
 
   // Special parse to note any stuff we didn't catch
   // and handle block statements.

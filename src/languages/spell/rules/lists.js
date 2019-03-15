@@ -484,7 +484,7 @@ parser.defineRule({
   syntax: "add {thing:expression} to {method:list_front_or_back}? {list:expression}",
   testRule: "add",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { thing, list, method = "append"} = results;
     scope.addStatement(`spell.${method}(${list}, ${thing})`, results);
   },
@@ -511,7 +511,7 @@ parser.defineRule({
   syntax: "prepend {thing:expression} to {list:expression}",
   testRule: "prepend",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { thing, list } = results;
     scope.addStatement(`spell.prepend(${list}, ${thing})`, results);
   },
@@ -532,7 +532,7 @@ parser.defineRule({
   syntax: "append {thing:expression} to {list:expression}",
   testRule: "append",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { thing, list } = results;
     scope.addStatement(`spell.append(${list}, ${thing})`, results);
   },
@@ -561,7 +561,7 @@ parser.defineRule({
   syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
   testRule: "add",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { thing, item, list, operator } = results;
     const position = operator === "before"
       ? `spell.positionOf(${list}, ${item})`
@@ -597,7 +597,7 @@ parser.defineRule({
   syntax: "(empty|clear) {list:expression}",
   testRule: "(empty|clear)",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { list } = results;
     scope.addStatement(`spell.clear(${list})`, results);
   },
@@ -619,7 +619,7 @@ parser.defineRule({
   syntax: "remove {ordinal} {identifier} of {list:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { ordinal, list } = results;
     scope.addStatement(`spell.removeItem(${list}, ${ordinal})`, results);
   },
@@ -640,7 +640,7 @@ parser.defineRule({
   syntax: "remove {identifier} {number:expression} of {list:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { number, list, identifier } = results;
     scope.addStatement(`spell.removeItem(${list}, ${number})`, results);
   },
@@ -665,7 +665,7 @@ parser.defineRule({
   syntax: "remove {identifier} {start:expression} to {end:expression} of {list:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { start, end, list, identifier } = results;
     scope.addStatement(`spell.removeRange(${list}, ${start}, ${end})`, results);
   },
@@ -685,7 +685,7 @@ parser.defineRule({
   syntax: "remove {start:ordinal} to {end:ordinal} {identifier} of {list:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { start, end, list, identifier } = results;
     scope.addStatement(`spell.removeRange(${list}, ${start}, ${end})`, results);
   },
@@ -706,7 +706,7 @@ parser.defineRule({
   syntax: "remove {thing:expression} from {list:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { thing, list } = results;
     scope.addStatement(`spell.remove(${list}, ${thing})`, results);
   },
@@ -726,7 +726,7 @@ parser.defineRule({
   syntax: "remove {identifier} (in|of|from) {list:expression} where {condition:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { identifier, condition, list } = results;
     // use singular of identifier for method argument
     const argument = singularize(identifier);
@@ -760,7 +760,7 @@ parser.defineRule({
   syntax: "reverse {list:expression}",
   testRule: "reverse",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { list } = results;
     scope.addStatement(`spell.reverse(${list})`, results);
   },
@@ -779,7 +779,7 @@ parser.defineRule({
   syntax: "(randomize|shuffle) ({identifier} (in|of))? {list:expression}",
   testRule: "(randomize|shuffle)",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { list } = results;
     scope.addStatement(`spell.shuffle(${list})`, results);
   },
@@ -805,7 +805,7 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   wantsInlineStatement: true,
   wantsNestedBlock: true,
-  getNestedScope(scope, results) {
+  getNestedScope(scope, { results }) {
     const { item, position } = results;
     // Create a method to be used in the `forEach` to add inline and block statements to.
     const args = [ { name: item } ];
@@ -816,7 +816,7 @@ parser.defineRule({
       args
     });
   },
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     // Add a Method for the `forEach` wrapper with a custom toString()
     scope.addStatement(
       new Scope.Method({

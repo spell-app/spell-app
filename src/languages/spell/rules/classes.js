@@ -19,7 +19,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "create type {type} (?:as (a|an) {superType:type})?",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { type, superType } = results;
     scope.addType({
       name: type,
@@ -48,7 +48,7 @@ parser.defineRule({
   syntax: "create (a|an) {type} (?:with {props:object_literal_properties})?",
   testRule: "create",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { type, props = "" } = results; // `props` is the object literal text
     scope.addStatement(`new ${type}(${props})`, results);
   },
@@ -128,7 +128,7 @@ parser.defineRule({
   syntax: "{?:type_has_prefix} (a|an) {property} {initializer:type_initializer}?",
   testRule: "…(has|have)",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { type, property, initializer = {}} = results;
     const typeScope = scope.getOrStubType(type);
     const Properties = pluralize(upperFirst(property));
@@ -202,7 +202,7 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   wantsInlineStatement: true,
   wantsNestedBlock: true,
-  getNestedScope(scope, results) {
+  getNestedScope(scope, { results }) {
     const { type, method, args, syntax } = parseMethodKeywords(results);
     results.type = type;
     results.method = method;
@@ -210,7 +210,7 @@ parser.defineRule({
     results.syntax = syntax;
     return results.$method = new Scope.Method({ scope, name: method, args });
   },
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { type, $method, method, syntax } = results;
     if (type)
       scope.getOrStubType(type).addClassMethod($method, results);
@@ -280,7 +280,7 @@ parser.defineRule({
 
       return match;
     }
-    updateScope(scope, results) {
+    updateScope(scope, { results }) {
       const { type, alias, expression } = results;
       const words = JSON.parse(alias).split(" ");
       const property = words.join("_");
@@ -340,7 +340,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "{?:property_of_a_type} is {value:identifier} if {condition:expression} (?:otherwise it is {otherValue:identifier})?",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     let { type, property, value, otherValue, condition } = results;
 
     scope.getOrStubType(type)
@@ -374,7 +374,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "{?:property_of_a_type} is {expression}",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     let { type, property, expression } = results;
     scope
       .getOrStubType(type)

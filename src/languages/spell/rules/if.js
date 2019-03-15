@@ -27,7 +27,7 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   wantsInlineStatement: true,
   wantsNestedBlock: true,
-  getNestedScope(scope, results) {
+  getNestedScope(scope, { results }) {
     const condition = parenthesizeCondition(results.condition);
     return results.$scope = new Scope.Method({
       name: "if",
@@ -37,7 +37,7 @@ parser.defineRule({
       }
     });
   },
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     scope.addStatement(results.$scope, results);
   },
   tests: [
@@ -113,7 +113,7 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   wantsInlineStatement: true,
   wantsNestedBlock: true,
-  getNestedScope(scope, results) {
+  getNestedScope(scope, { results }) {
     const condition = parenthesizeCondition(results.condition);
     return results.$scope = new Scope.Method({
       name: "else_if",
@@ -123,7 +123,7 @@ parser.defineRule({
       }
     });
   },
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     scope.addStatement(results.$scope, results);
   },
   tests: [
@@ -186,7 +186,7 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   wantsInlineStatement: true,
   wantsNestedBlock: true,
-  getNestedScope(scope, results) {
+  getNestedScope(scope, { results }) {
     return results.$scope = new Scope.Method({
       name: "else",
       scope,
@@ -195,7 +195,7 @@ parser.defineRule({
       }
     });
   },
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     scope.addStatement(results.$scope, results);
   },
   tests: [

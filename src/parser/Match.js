@@ -56,10 +56,9 @@ export class Match {
   // NOTE: ONLY CALL THIS FROM THE MATCH!!!
   @memoize
   updateScope() {
-    // NOTE: we ALWAYS call getNestedScope first because many rules so it's set up
-    //       before updateScope is called.
+    // NOTE: we ALWAYS call getNestedScope first so it's set up before updateScope is called.
     this.getNestedScope();
-    return this.rule.updateScope?.(this.scope, this.results, this);
+    return this.rule.updateScope?.(this.scope, this);
   }
 
   // Return nested scope for nested block statements.
@@ -67,7 +66,7 @@ export class Match {
   // NOTE: ONLY CALL THIS FROM THE MATCH!!!
   @memoize
   getNestedScope() {
-    return this.rule.getNestedScope?.(this.scope, this.results, this);
+    return this.rule.getNestedScope?.(this.scope, this);
   }
 
   // Visualize a match by outputting its `structure`.

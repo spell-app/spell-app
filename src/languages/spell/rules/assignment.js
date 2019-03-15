@@ -21,7 +21,7 @@ parser.defineRule({
     { syntax: "set {thing:expression} to {value:expression}", testRule: "set" },
   ],
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     let { thing, value } = results;
     // If we got a variable
     if (thing instanceof Scope.Variable) {
@@ -53,7 +53,7 @@ parser.defineRule({
   syntax: "get {value:expression}",
   testRule: "get",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     let { value } = results;
     // make sure 'it' is declared
     if (!scope.getLocalVariable("it")) scope.addVariable("it");
@@ -84,7 +84,7 @@ parser.defineRule({
   syntax: "(return|exit with?) {expression}?",
   testRule: "(return|exit)",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { expression = "undefined" } = results;
     scope.addStatement(`return ${expression}`, results);
   },

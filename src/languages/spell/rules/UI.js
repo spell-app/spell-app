@@ -18,7 +18,7 @@ parser.defineRule({
   syntax: "alert {message:expression} (?:with {okButton:text})?",
   testRule: "alert",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { message, okButton = '"OK"' } = results;
     scope.async = true;
     return scope.addStatement(`await spell.alert(${message}, ${okButton})`, results);
@@ -44,7 +44,7 @@ parser.defineRule({
   syntax: "warn {message:expression} (?:with {okButton:text})?",
   testRule: "warn",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { message, okButton = '"OK"' } = results;
     scope.async = true;
     return scope.addStatement(`await spell.warn(${message}, ${okButton})`, results);
@@ -70,7 +70,7 @@ parser.defineRule({
   syntax: "confirm {message:expression} (?:with {okButton:text} (?:(and|or) {cancelButton:text})?)?",
   testRule: "confirm",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, results) {
+  updateScope(scope, { results }) {
     const { message, okButton = '"OK"', cancelButton = '"Cancel"' } = results;
     scope.async = true;
     return scope.addStatement(`await spell.confirm(${message}, ${okButton}, ${cancelButton})`, results);
