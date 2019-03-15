@@ -30,7 +30,7 @@ const ES5_DESCRIPTOR_PROPS = {
 //      `{ key: "someProp", descriptor: { value: "foo" } }`
 //  or  `{ key: "someProp", descriptor: { get() { return "foo" } } }`
 //
-// Use `getDescriptorProp` and `wrapDescriptorProp` to work around this.
+// Use `getDescriptorProp`, `setDescriptorProp` and `clearDescriptorProp` to work around this.
 //
 // [1] https://github.com/tc39/proposal-decorators/blob/master/METAPROGRAMMING.md
 
@@ -62,6 +62,24 @@ export function setDescriptorProp(descriptor, key, value) {
     [key]: value
   }
 }
+
+// Clone the `descriptor` and clear some prop,
+// whether the descriptor is set up according to spec or in Babel's different format.
+// See "Problems with Babel" above.
+export function clearDescriptorProp(descriptor, key) {
+  const clone = {...descriptor};
+  // Babel-style, or new descriptor prop which is always set directly.
+  const doubleDescriptor = ES5_DESCRIPTOR_PROPS[key] && descriptor.descriptor;
+  if (doubleDescriptor) {
+    clone.descriptor = {...clone.descriptor};
+    delete clone.descriptor[key];
+  }
+  else {
+    delete clone[key];
+  }
+  return clone;
+}
+
 
 
 // Define field or method on the prototype rather than during object construction.
