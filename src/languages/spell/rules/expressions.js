@@ -32,9 +32,12 @@ parser.defineRule({
   tests: [
     {
       title: "correctly matches parenthesized expressions",
+      beforeEach(scope) {
+        scope.addVariable("thing");
+      },
       tests: [
-        ["(someVar)", "(someVar)"],
-        ["((someVar))", "(someVar)"],
+        ["(thing)", "(thing)"],
+        ["((thing))", "(thing)"],
         ["(1 and yes)", "(1 && true)"]
       ]
     },
@@ -151,6 +154,9 @@ parser.defineRule({
     {
       title: "complex property/etc expressions",
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("card");
+      },
       tests: [
         ["the suit of the card is 'ace'", "(card?.suit == 'ace')"],
       ]
@@ -167,10 +173,15 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("thing");
+        scope.addVariable("other");
+        scope.addVariable("yet-another");
+      },
       tests: [
-        ["a and b", "(a && b)"],
-        ["a and b and c", "((a && b) && c)"],
-        ["a is 1 and b is 2", "((a == 1) && (b == 2))"]
+        ["thing and other", "(thing && other)"],
+        ["thing and other and yet-another", "((thing && other) && yet_another)"],
+        ["thing is 1 and other is 2", "((thing == 1) && (other == 2))"]
       ],
     }
   ]
@@ -185,7 +196,13 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
-      tests: [["a or b", "(a || b)"]]
+      beforeEach(scope) {
+        scope.addVariable("thing");
+        scope.addVariable("other");
+      },
+      tests: [
+        ["thing or other", "(thing || other)"]
+      ]
     }
   ]
 });
@@ -203,9 +220,13 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("thing");
+        scope.addVariable("other");
+      },
       tests: [
-        ["a is b", "(a == b)"],
-        ["a is not b", "(a != b)"]
+        ["thing is other", "(thing == other)"],
+        ["thing is not other", "(thing != other)"]
       ]
     }
   ]
@@ -224,9 +245,13 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("thing");
+        scope.addVariable("other");
+      },
       tests: [
-        ["a is exactly b", "(a === b)"],
-        ["a is not exactly b", "(a !== b)"]
+        ["thing is exactly other", "(thing === other)"],
+        ["thing is not exactly other", "(thing !== other)"]
       ]
     }
   ]
@@ -245,11 +270,14 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("thing");
+      },
       tests: [
-        ["a is a Bee", "spell.isOfType(a, 'Bee')"],
-        ["a is an Animal", "spell.isOfType(a, 'Animal')"],
-        ["a is not a Bee", "!spell.isOfType(a, 'Bee')"],
-        ["a is not an Animal", "!spell.isOfType(a, 'Animal')"]
+        ["thing is a Bee", "spell.isOfType(thing, 'Bee')"],
+        ["thing is an Animal", "spell.isOfType(thing, 'Animal')"],
+        ["thing is not a Bee", "!spell.isOfType(thing, 'Bee')"],
+        ["thing is not an Animal", "!spell.isOfType(thing, 'Animal')"]
       ]
     }
   ]
@@ -267,9 +295,13 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("thing");
+        scope.addVariable("other");
+      },
       tests: [
-        ["a is the same type as b", "(spell.typeOf(a) === spell.typeOf(b))"],
-        ["a is not the same type as b", "(spell.typeOf(a) !== spell.typeOf(b))"]
+        ["thing is the same type as other", "(spell.typeOf(thing) === spell.typeOf(other))"],
+        ["thing is not the same type as other", "(spell.typeOf(thing) !== spell.typeOf(other))"]
       ]
     }
   ]
@@ -295,17 +327,19 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
+        scope.addVariable("thing");
+        scope.addVariable("other-thing");
         scope.addVariable("theList");
       },
       tests: [
-        ["a is in theList", "spell.includes(theList, a)"],
-        ["a is one of theList", "spell.includes(theList, a)"],
-        ["a is not in theList", "!spell.includes(theList, a)"],
-        ["a is not one of theList", "!spell.includes(theList, a)"],
-        ["a is either a or b", "spell.includes([a, b], a)"],
-        ["a is not either a or b", "!spell.includes([a, b], a)"],
-        ["a is not either of a or b", "!spell.includes([a, b], a)"],
-        ["a is neither a nor b", "!spell.includes([a, b], a)"],
+        ["thing is in theList", "spell.includes(theList, thing)"],
+        ["thing is one of theList", "spell.includes(theList, thing)"],
+        ["thing is not in theList", "!spell.includes(theList, thing)"],
+        ["thing is not one of theList", "!spell.includes(theList, thing)"],
+        ["thing is either thing or other-thing", "spell.includes([thing, other_thing], thing)"],
+        ["thing is not either thing or other-thing", "!spell.includes([thing, other_thing], thing)"],
+        ["thing is not either of thing or other-thing", "!spell.includes([thing, other_thing], thing)"],
+        ["thing is neither thing nor other-thing", "!spell.includes([thing, other_thing], thing)"],
       ]
     }
   ]
@@ -323,9 +357,13 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("theList");
+        scope.addVariable("thing");
+      },
       tests: [
-        ["theList includes a", "spell.includes(theList, a)"],
-        ["theList contains a", "spell.includes(theList, a)"]
+        ["theList includes thing", "spell.includes(theList, thing)"],
+        ["theList contains thing", "spell.includes(theList, thing)"]
       ]
     }
   ]
@@ -343,9 +381,13 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("theList");
+        scope.addVariable("thing");
+      },
       tests: [
-        ["theList does not include a", "!spell.includes(theList, a)"],
-        ["theList does not contain a", "!spell.includes(theList, a)"]
+        ["theList does not include thing", "!spell.includes(theList, thing)"],
+        ["theList does not contain thing", "!spell.includes(theList, thing)"]
       ]
     }
   ]
@@ -365,10 +407,13 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("thing");
+      },
       tests: [
-        ["a is defined", "(typeof a !== 'undefined')"],
-        ["a is undefined", "(typeof a === 'undefined')"],
-        ["a is not defined", "(typeof a === 'undefined')"]
+        ["thing is defined", "(typeof thing !== 'undefined')"],
+        ["thing is undefined", "(typeof thing === 'undefined')"],
+        ["thing is not defined", "(typeof thing === 'undefined')"]
       ]
     }
   ]
@@ -387,6 +432,9 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("thing");
+      },
       tests: [
         ["thing is empty", "spell.isEmpty(thing)"],
         ["thing is not empty", "!spell.isEmpty(thing)"]

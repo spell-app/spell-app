@@ -16,32 +16,33 @@ parser.defineRule({
   name: "assignment",
   alias: "statement",
   syntax: [
-    { syntax: "{thing:expression} = {value:expression}", testRule: "…=" },
-    { syntax: "let {thing:expression} = {value:expression}", testRule: "let" },
-    { syntax: "set {thing:expression} to {value:expression}", testRule: "set" },
+    { syntax: "(thing:{expression}|{variable}) = {value:expression}", testRule: "…=" },
+    { syntax: "let (thing:{expression}|{variable}) = {value:expression}", testRule: "let" },
+    { syntax: "set (thing:{expression}|{variable}) to {value:expression}", testRule: "set" },
   ],
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, { results }) {
-    let { thing, value } = results;
-    // If we got a variable
-    if (thing instanceof Scope.Variable) {
-      // Make sure scope has such a variable declared.
-      // TODO: this is not checking nested scopes... will likely be a problem
-      if (!scope.getLocalVariable(thing.name))
-        scope.addVariable(thing);
-      // Use the variable name in the expression.
-      thing = thing.name;
-    }
-    scope.addStatement(`${thing} = ${value}`, results);
+  updateScope(scope, { results, matches }) {
+    const { thing, value } = results;
+    const thingMatch = matches.thing;
+    // Add `thing` as a variable if not already in scope.
+    const isNewVar = (thingMatch.rule instanceof SpellParser.Rule.Variable && !thingMatch.variable);
+    if (isNewVar) scope.addVariable(thing);
+    scope.addStatement(`${isNewVar ? 'let ':''}${thing} = ${value}`, results);
   },
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("thing");
+      },
       tests: [
-        ["thing = yes", "thing = true"],
-        ["let the foo of the bar = yes", "bar?.foo = true"],
-        ["set thing to yes", "thing = true"],
-        ["get thing", "it = thing"],
+        { title: "existing var equals", input: "thing = yes", output: "thing = true" },
+        { title: "existing var set", input: "set thing to yes", output: "thing = true" },
+        { title: "existing var property set", input: "let the name of the thing = 'bob'", output: "thing?.name = 'bob'" },
+
+        { title: "non-existing var equals", input: "nothing = yes", output: "let nothing = true" },
+        { title: "non-existing var set", input: "set nothing to yes", output: "let nothing = true" },
+        { title: "non-existing var property set (won't work)", input: "let the name of nothing = 'bob'", output: undefined },
       ]
     }
   ]
@@ -55,18 +56,20 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     let { value } = results;
-    // make sure 'it' is declared
-    if (!scope.getLocalVariable("it")) scope.addVariable("it");
-    scope.addStatement(`it = ${value}`, results);
+    // make sure 'it' is declared LOCALLY
+    const isNewVar = !scope.getLocalVariable("it");
+    if (isNewVar) scope.addVariable("it");
+    scope.addStatement(`${isNewVar ? 'let ':''}it = ${value}`, results);
   },
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("thing");
+      },
       tests: [
-        ["thing = yes", "thing = true"],
-        ["let the foo of the bar = yes", "bar?.foo = true"],
-        ["set thing to yes", "thing = true"],
-        ["get thing", "it = thing"],
+        ["get thing", "let it = thing"],
+        ["get the foo of the thing", "let it = thing?.foo"],
       ]
     }
   ]
@@ -91,11 +94,14 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("thing");
+      },
       tests: [
         ["return", "return undefined"],
         ["return thing", "return thing"],
         ["exit", "return undefined"],
-        ["exit with foo", "return foo"],
+        ["exit with false", "return false"],
       ]
     }
   ]

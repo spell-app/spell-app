@@ -62,6 +62,10 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("bar");
+        scope.addVariable("baz");
+      },
       tests: [
         ["the foo of bar", "bar?.foo"],
         ["the foo of the bar", "bar?.foo"],
@@ -115,6 +119,9 @@ parser.defineRule({
   },
   tests: [
     {
+      beforeEach(scope) {
+        scope.addVariable("bar");
+      },
       tests: [
         [``, undefined],
         [`a = 1`, `{ "a": 1 }`],

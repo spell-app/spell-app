@@ -21,18 +21,22 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("salary");
+        scope.addVariable("expenses");
+      },
       tests: [
-        { title: "> with spaces", input: "a > b", output: "(a > b)" },
-        { title: "> without spaces", input: "a>b", output: "(a > b)" },
+        { title: "> with spaces", input: "salary > expenses", output: "(salary > expenses)" },
+        { title: "> without spaces", input: "salary>expenses", output: "(salary > expenses)" },
 
-        { title: "< with spaces", input: "a < b", output: "(a < b)" },
-        { title: "< without spaces", input: "a<b", output: "(a < b)" },
+        { title: "< with spaces", input: "salary < expenses", output: "(salary < expenses)" },
+        { title: "< without spaces", input: "salary<expenses", output: "(salary < expenses)" },
 
-        { title: ">= with spaces", input: "a >= b", output: "(a >= b)" },
-        { title: ">= without spaces", input: "a>=b", output: "(a >= b)" },
+        { title: ">= with spaces", input: "salary >= expenses", output: "(salary >= expenses)" },
+        { title: ">= without spaces", input: "salary>=expenses", output: "(salary >= expenses)" },
 
-        { title: "<= with spaces", input: "a <= b", output: "(a <= b)" },
-        { title: "<= without spaces", input: "a<=b", output: "(a <= b)" }
+        { title: "<= with spaces", input: "salary <= expenses", output: "(salary <= expenses)" },
+        { title: "<= without spaces", input: "salary<=expenses", output: "(salary <= expenses)" }
       ]
     }
   ]
@@ -58,11 +62,15 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("salary");
+        scope.addVariable("expenses");
+      },
       tests: [
-        ["a is greater than b", "(a > b)"],
-        ["a is greater than or equal to b", "(a >= b)"],
-        ["a is less than b", "(a < b)"],
-        ["a is less than or equal to b", "(a <= b)"],
+        ["salary is greater than expenses", "(salary > expenses)"],
+        ["salary is greater than or equal to expenses", "(salary >= expenses)"],
+        ["salary is less than expenses", "(salary < expenses)"],
+        ["salary is less than or equal to expenses", "(salary <= expenses)"],
       ]
     }
   ]
@@ -80,13 +88,17 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("price");
+        scope.addVariable("tax");
+      },
       tests: [
-        ["a+b", "(a + b)"],
-        ["a + b", "(a + b)"],
-//        ["a-b", "(a - b)"],     // NOTE: `-` requires spaces...
-        ["a - b", "(a - b)"],
-        ["a plus b", "(a + b)"],
-        ["a minus b", "(a - b)"],
+        ["price + tax", "(price + tax)"],
+        ["price+tax", "(price + tax)"],
+//        ["price-tax", "(price - tax)"],     // NOTE: `-` requires spaces...
+        ["price - tax", "(price - tax)"],
+        ["price plus tax", "(price + tax)"],
+        ["price minus tax", "(price - tax)"],
       ]
     }
   ]
@@ -104,13 +116,17 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("price");
+        scope.addVariable("taxRate");
+      },
       tests: [
-        ["a*b", "(a * b)"],
-        ["a * b", "(a * b)"],
-        ["a/b", "(a / b)"],
-        ["a / b", "(a / b)"],
-        ["a times b", "(a * b)"],
-        ["a divided by b", "(a / b)"],
+        ["price*taxRate", "(price * taxRate)"],
+        ["price * taxRate", "(price * taxRate)"],
+        ["price/taxRate", "(price / taxRate)"],
+        ["price / taxRate", "(price / taxRate)"],
+        ["price times taxRate", "(price * taxRate)"],
+        ["price divided by taxRate", "(price / taxRate)"],
       ]
     }
   ]
@@ -135,7 +151,12 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
-      tests: [["the absolute value of thing", "Math.abs(thing)"]]
+      beforeEach(scope) {
+        scope.addVariable("difference");
+      },
+      tests: [
+        ["the absolute value of the difference", "Math.abs(difference)"]
+      ]
     }
   ]
 });
@@ -153,10 +174,14 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("prices");
+        scope.addVariable("price");
+      },
       tests: [
-        ["largest of the numbers", "spell.max(numbers)"],
-        ["biggest in my-list", "spell.max(my_list)"],
-        ["biggest item in thing", "spell.max(thing)"]
+        ["largest of the prices", "spell.max(prices)"],
+        ["biggest in prices", "spell.max(prices)"],
+        ["biggest number in prices", "spell.max(prices)"]
       ]
     }
   ]
@@ -175,9 +200,12 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("prices");
+      },
       tests: [
-        ["smallest of thing", "spell.min(thing)"],
-        ["smallest item in thing", "spell.min(thing)"]
+        ["smallest of prices", "spell.min(prices)"],
+        ["smallest value in prices", "spell.min(prices)"]
       ]
     }
   ]
@@ -199,11 +227,14 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("price");
+      },
       tests: [
-        ["round thing", "Math.round(thing)"],
-        ["round thing off", "Math.round(thing)"],
-        ["round thing up", "Math.ceil(thing)"],
-        ["round thing down", "Math.floor(thing)"]
+        ["round price", "Math.round(price)"],
+        ["round price off", "Math.round(price)"],
+        ["round price up", "Math.ceil(price)"],
+        ["round price down", "Math.floor(price)"]
       ]
     }
   ]

@@ -231,19 +231,20 @@ parser.defineRule({
   tests: [
     {
       compileAs: "block",
+      beforeEach(scope) {
+        scope.addVariable("deck");
+      },
       tests: [
         [
           "to start the game",
           "function start_the_game() {}"
         ],
         [
-          "to start the game: set the state of the game to 'started'",
-          "function start_the_game() { game?.state = 'started' }"
+          "to start the game: shuffle the deck",
+          "function start_the_game() { spell.shuffle(deck) }"
         ],
         [
-          [ // TODO: this rule is recursive!!!
-            // although it might work here since we're defining the rule AFTER parsing the contents... ???
-            "to move a card to a pile:",
+          [ "to move a card to a pile:",
             "\tremove the card from the pile of the card",      // TODO: `its pile`
             "\tadd the card to the pile",
             "\tset the pile of the card to the pile"
@@ -309,12 +310,19 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addType("card");
+        scope.addConstant("up");
+        scope.addConstant("jack");
+        scope.addConstant("queen");
+        scope.addConstant("king");
+      },
       tests: [
-        ['a card "is face up" if its direction is \'up\'',
+        ['a card "is face up" if its direction is up',
          "defineProp(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
         ],
         ['a card "is a face card" if its rank is one of [jack, queen, king]',
-         "defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes([jack, queen, king], this.rank) } })"
+         "defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes(['jack', 'queen', 'king'], this.rank) } })"
         ],
         ['a card "is a face card" if its rank is one of jack, queen or king',
          "defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes([jack, queen, king], this.rank) } })"
@@ -338,11 +346,16 @@ parser.defineRule({
 parser.defineRule({
   name: "property_value_either",
   alias: "statement",
-  syntax: "{?:property_of_a_type} is {value:identifier} if {condition:expression} (?:otherwise it is {otherValue:identifier})?",
+  syntax: "{?:property_of_a_type} is (value:{constant}|{expression}) if {condition:expression} (?:otherwise it is (otherValue:{constant}|{expression}))?",
   constructor: SpellParser.Rule.Statement,
-  updateScope(scope, { results }) {
-    let { type, property, value, otherValue, condition } = results;
+  updateScope(scope, { results, matches }) {
+    const { value: valueMatch, otherValue: otherValueMatch } = matches;
+    if (valueMatch.rule instanceof SpellParser.Rule.Constant && !valueMatch.constant)
+      scope.addConstant(valueMatch.raw);
+    if (otherValueMatch?.rule instanceof SpellParser.Rule.Constant && !otherValueMatch.constant)
+      scope.addConstant(otherValueMatch.raw);
 
+    const { type, value, otherValue, property, condition } = results;
     scope.getOrStubType(type)
       // Create as an instance getter
       .addMethod({
@@ -357,12 +370,19 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addType("card");
+        scope.addConstant("diamonds");
+        scope.addConstant("hearts");
+        scope.addConstant("clubs");
+        scope.addConstant("spades");
+      },
       tests: [      // is one of diamonds or hearts => is_one_of_list
         ["the color of a card is red if its suit is either diamonds or hearts",
-         "defineProp(Card.prototype, 'color', { get() { if (spell.includes([diamonds, hearts], this.suit)) return red } })",
+         "defineProp(Card.prototype, 'color', { get() { if (spell.includes([diamonds, hearts], this.suit)) return 'red' } })",
         ],
         ["a cards color is black if its suit is either clubs or spades otherwise it is red",
-         "defineProp(Card.prototype, 'color', { get() { return !!spell.includes([clubs, spades], this.suit) ? black : red } })"
+         "defineProp(Card.prototype, 'color', { get() { return !!spell.includes([clubs, spades], this.suit) ? 'black' : 'red' } })"
         ],
       ]
     }
@@ -387,6 +407,9 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addType("card");
+      },
       tests: [
         ["the value of a card is the position of its rank in its ranks",
          "defineProp(Card.prototype, 'value', { get() { return spell.positionOf(this.rank, this.ranks) } })"

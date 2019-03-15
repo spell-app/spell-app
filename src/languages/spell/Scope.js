@@ -338,7 +338,11 @@ export class Method extends Scope {
   // Add an arg to this scope.
   // NOTE: we do not add args to someone else's `results`.
   @clearMemoized("_args")
-  addArg(arg) { return this._addItem(arg, "args", Variable) }
+  addArg(arg) {
+    arg = this._addItem(arg, "args", null, Variable);
+    arg.kind = "arg";
+    return arg;
+  }
 
   // When looking up local variables in the top-level method scope, include our args.
   // TODO: special case for `it` and `its`!!!
@@ -347,8 +351,17 @@ export class Method extends Scope {
   }
 
   toString() {
-    const statements = this.compileStatements();
     const args = this.args?.map(arg => arg.name).join(", ") || "";
+    // Return as an inline expression?
+    if (this.asExpression) {
+      const statements = this.statements || [];
+      if (statements.length > 1)
+        console.warn(`Method.toString(): 'asExpression' specified but method has ${statements.length} statements.`, statements);
+      const expression = ""+(statements[0]).trim();
+      return `(${args}) => ${expression}`;
+    }
+
+    const statements = this.compileStatements();
     // If we're attached to a Type,
     if (this.scope instanceof Type) {
       // Add class props directly
@@ -363,6 +376,7 @@ export class Method extends Scope {
 
       return `defineProp(${this.scope.name}.prototype, '${this.name}', { value(${args}) ${statements} })`;
     }
+
 
     // Return as a normal function
     const name = this.name ? ` ${this.name}`: "";
@@ -459,7 +473,7 @@ export class Variable {
   }
 
   toString() {
-    const initializer = this.initializer || "undefined";
+    const { name, initializer } = this;
     // If we're attached to a Type,
     if (this.scope instanceof Type) {
       // Add class props directly
@@ -469,9 +483,18 @@ export class Variable {
       return `defineProp(${this.scope.name}.prototype, '${this.name}', { value: ${initializer} })`;
     }
 
-    // Return as a normal var declaration
-    // TODO: note if var has been used before, etc.
-    return `var ${name} = ${initializer}`
+    if (this.kind === "arg") {
+      if (initializer) return `${name} = ${initializer}`;
+      return name;
+    }
+
+    // HMM... this is a bit conflatey... may need `var` without explicit initializer?
+    if (initializer) {
+      const allocator = this.allocator || 'let';
+      return `${allocator} ${name} = ${initializer}`;
+    }
+
+    return name;
   }
 }
 

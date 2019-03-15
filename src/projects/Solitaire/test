@@ -1,1 +1,2 @@
-a = 1
+define constant up
+a card "is face up" if its direction is up

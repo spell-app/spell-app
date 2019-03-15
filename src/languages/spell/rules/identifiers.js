@@ -85,8 +85,30 @@ parser.defineRule({
 });
 
 
-
-
+// Define a constant.
+// Mostly here for testing. ???
+// TODO: warn if already defined?
+parser.defineRule({
+  name: "define_constant",
+  alias: "statement",
+  syntax: "define constant {constant} (?:as {value:expression})?",
+  constructor: SpellParser.Rule.Statement,
+  updateScope(scope, { results, matches }) {
+    const name = matches.constant.raw;
+    const { value } = results;
+    const constant = scope.addConstant({ name, value });
+    // TODO: could be defining this more than once...
+    scope.addStatement(`const ${name} = ${constant.toString()}`, results);
+  },
+  tests: [
+    {
+      tests: [
+        [ "define constant red", "const red = 'red'" ],
+        [ "define constant black as 6", "const black = 6" ],
+      ]
+    }
+  ]
+});
 
 //
 //  Types
@@ -358,111 +380,6 @@ parser.defineRule({
         { title:"singular, single word", input: "thing", output: undefined },
         { title:"singular, multi-word", input: "bank-account", output: undefined },
       ]
-    }
-  ]
-});
-
-
-
-
-
-
-
-
-// `identifier` = variables or property name.
-// MUST start with a lower-case letter (?)
-// NOTE: We blacklist a lot of words as identifiers, see `identifier-blacklist.js`
-parser.defineRule({
-  name: "identifier",
-  pattern: /^[a-z][\w\-]*$/,
-  precedence: -1,
-  // convert dashes to underscores when compiling
-  valueMap(value) {
-    return (""+value).replace(/\-/g, "_")
-  },
-  blacklist: identifierBlacklist,
-  tests: [
-    {
-      title: "correctly matches identifiers",
-      tests: [
-        ["", undefined],
-        ["abc", "abc"],
-        ["abc-def", "abc_def"],
-        ["abc_def", "abc_def"],
-        ["abc01", "abc01"],
-        ["abc-def_01", "abc_def_01"]
-      ]
-    },
-    {
-      title: "doesn't match things that aren't identifiers",
-      tests: [
-        ["", undefined],
-        ["$asda", undefined],
-        ["(asda)", undefined],
-        ["Abc", undefined],
-      ]
-    },
-    {
-      title: "skips items in its blacklist",
-      tests: [
-        ["yes", undefined],
-        ["the", undefined],
-      ],
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "identifier_expression",
-  alias: ["expression", "single_expression"],
-  syntax: "the? {identifier}",
-  precedence: -1,
-  compile(scope, match) {
-    return match.results.identifier;
-  },
-  tests: [
-    {
-      title: "correctly matches identifiers with the",
-      compileAs: "expression",
-      tests: [
-        ["the abc", "abc"],
-        ["the abc-def", "abc_def"],
-        ["the abc_def", "abc_def"],
-        ["the abc01", "abc01"],
-        ["the abc-def_01", "abc_def_01"]
-      ]
-    },
-    {
-      title: "correctly matches identifiers without the",
-      compileAs: "expression",
-      tests: [
-        ["abc", "abc"],
-        ["abc-def", "abc_def"],
-        ["abc_def", "abc_def"],
-        ["abc01", "abc01"],
-        ["abc-def_01", "abc_def_01"]
-      ]
-    },
-    {
-      title: "doesn't match things that aren't identifiers with or without 'the'",
-      compileAs: "expression",
-      tests: [
-        ["", undefined],
-        ["$asda", undefined],
-        ["the", undefined],
-        ["the $asda", undefined],
-        ["the (asda)", undefined],
-        ["the Abc", undefined],
-      ]
-    },
-    {
-      title: "skips items in identifier blacklist with or without the",
-      tests: [
-        ["true", undefined],
-        ["yes", undefined],
-        ["the the", undefined],
-        ["the yes", undefined],
-      ],
     }
   ]
 });

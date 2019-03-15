@@ -72,10 +72,13 @@ SpellParser.Rule.Statement = class statement extends Rule.Sequence {
       throw new ParseError(`${this.name}.parseInlineStatement(): no nested scope provided`);
 
     const inlineStatement = nestedScope.parse(tokens, this.parseInlineStatementAs);
-
     // If we got one, tell it to `updateScope()`, which should add it to the nested scope.
-    if (inlineStatement)
-      inlineStatement.updateScope();
+    if (inlineStatement) {
+      if (this.parseInlineStatementAs === "statement")
+        inlineStatement.updateScope();
+      else
+        nestedScope.addStatement(inlineStatement.compile());
+    }
 
     return inlineStatement;
   }

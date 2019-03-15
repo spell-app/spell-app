@@ -88,7 +88,7 @@ parser.defineRule({
 parser.defineRule({
   name: "list_length",
   alias: ["expression", "single_expression"],
-  syntax: "the? number of {argument:plural_variable} in {list:expression}",
+  syntax: "the? number of {arg:plural_variable} in {list:expression}",
   testRule: "…(number of)",
   precedence: 3,
   compile(scope, match) {
@@ -98,6 +98,10 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("bar");
+      },
       tests: [
         ["number of items in my-list", "spell.lengthOf(my_list)"],
         ["the number of foos in the foo of the bar", "spell.lengthOf(bar?.foo)"],
@@ -124,6 +128,11 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("thing");
+        scope.addVariable("bar");
+      },
       tests: [
         ["position of thing in my-list", "spell.positionOf(thing, my_list)"],
         ["the position of thing in the foo of the bar", "spell.positionOf(thing, bar?.foo)"],
@@ -145,6 +154,10 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("thing");
+      },
       tests: [
         ["my-list starts with thing", "spell.startsWith(my_list, thing)"],
         ["[1,2,3] starts with 1", "spell.startsWith([1, 2, 3], 1)"],
@@ -219,15 +232,20 @@ parser.defineRule({
 parser.defineRule({
   name: "position_expression",
   alias: ["expression", "single_expression"],
-  syntax: "{argument:singular_variable} {position:expression} of {expression}",
+  syntax: "{arg:singular_variable} {position:expression} of {expression}",
   testRule: "…of",
   compile(scope, match) {
-    const { argument, position, expression } = match.results;
+    const { position, expression } = match.results;
     return `spell.getItem(${expression}, ${position})`;
   },
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("deck");
+        scope.addVariable("n");
+      },
       tests: [
         ["item 1 of my-list", "spell.getItem(my_list, 1)"],
         ["card 10 of deck", "spell.getItem(deck, 10)"],
@@ -240,15 +258,20 @@ parser.defineRule({
 parser.defineRule({
   name: "ordinal_position_expression",
   alias: ["expression", "single_expression"],
-  syntax: "the {ordinal} {argument:singular_variable} (in|of) {expression}",
+  syntax: "the {ordinal} {arg:singular_variable} (in|of) {expression}",
   testRule: "…(in|of)",
   compile(scope, match) {
-    const { argument, ordinal, expression } = match.results;
+    const { ordinal, expression } = match.results;
     return `spell.getItem(${expression}, ${ordinal})`;
   },
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("deck");
+        scope.addVariable("words");
+      },
       tests: [
         ["the first item of my-list", "spell.getItem(my_list, 1)"],
         ["the tenth card of deck", "spell.getItem(deck, 10)"],
@@ -262,15 +285,19 @@ parser.defineRule({
 parser.defineRule({
   name: "random_position_expression",
   alias: ["expression", "single_expression"],
-  syntax: "a random {argument:singular_variable} (of|from|in) {list:expression}",
+  syntax: "a random {arg:singular_variable} (of|from|in) {list:expression}",
   testRule: "a random",
   compile(scope, match) {
-    const { list, argument } = match.results;
+    const { list } = match.results;
     return `spell.getRandomItemOf(${list})`;
   },
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("deck");
+      },
       tests: [
         ["a random item of my-list", "spell.getRandomItemOf(my_list)"],
         ["a random word in 'some words'", "spell.getRandomItemOf('some words')"],
@@ -285,7 +312,7 @@ parser.defineRule({
 parser.defineRule({
   name: "random_positions_expression",
   alias: ["expression", "single_expression"],
-  syntax: "{number} random {argument:plural_variable} (of|from|in) {list:expression}",
+  syntax: "{number} random {arg:plural_variable} (of|from|in) {list:expression}",
   testRule: "…random",
   compile(scope, match) {
     const { number, list } = match.results;
@@ -294,6 +321,10 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("deck");
+      },
       tests: [
         ["2 random items of my-list", "spell.getRandomItemsOf(my_list, 2)"],
         [
@@ -313,7 +344,7 @@ parser.defineRule({
 parser.defineRule({
   name: "range_expression",
   alias: ["expression", "single_expression"],
-  syntax: "{argument:variable} {start:expression} to {end:expression} (of|in|from) {list:expression}",
+  syntax: "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:expression}",
   testRule: "…(of|in|from)",
   compile(scope, match) {
     const { list, start, end } = match.results;
@@ -322,6 +353,10 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("deck");
+      },
       tests: [
         ["item 1 to 2 of my-list", "spell.getRange(my_list, 1, 2)"],
         ["word 2 to 3 in 'some other words'", "spell.getRange('some other words', 2, 3)"],
@@ -336,7 +371,7 @@ parser.defineRule({
 parser.defineRule({
   name: "ordinal_range_expression",
   alias: ["expression", "single_expression"],
-  syntax: "{ordinal} {number} {argument:plural_variable} (of|in|from) {list:expression}",
+  syntax: "{ordinal} {number} {arg:plural_variable} (of|in|from) {list:expression}",
   testRule: "…(of|in|from)",
   compile(scope, match) {
     const { ordinal, number, list } = match.results;
@@ -345,6 +380,10 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("deck");
+      },
       tests: [
         ["top 2 items of my-list", "spell.slice(my_list, 1, 2)"],
         ["first 2 words in 'some other words'", "spell.slice('some other words', 1, 2)"],
@@ -354,13 +393,13 @@ parser.defineRule({
   ]
 });
 
-// Range expression starting at some item in the list.
+// Range expression starting at some item in the list, inclusive.
 // Returns a new list.
 // If item is not found, returns an empty list. (???)
 parser.defineRule({
   name: "range_expression_starting_with",
   alias: ["expression", "single_expression"],
-  syntax: "{argument:plural_variable} (in|of) {list:expression} starting with {thing:expression}",
+  syntax: "{arg:plural_variable} (in|of) {list:expression} starting with {thing:expression}",
   testRule: "…(starting with)",
   compile(scope, match) {
     const { thing, list } = match.results;
@@ -369,10 +408,14 @@ parser.defineRule({
   tests: [
     {
       compileAs: "expression",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("thing");
+      },
       tests: [
         [
-          "items in my-list starting with it",
-          "spell.getRange(my_list, spell.positionOf(it, my_list))"
+          "items in my-list starting with thing",
+          "spell.getRange(my_list, spell.positionOf(thing, my_list))"
         ],
         [
           "words in 'some words' starting with 'some'",
@@ -387,26 +430,36 @@ parser.defineRule({
 parser.defineRule({
   name: "list_filter",
   alias: ["expression", "single_expression"],
-  syntax: "{argument:plural_variable} (in|of) {list:expression} where {condition:expression}",
+  syntax: "{arg:plural_variable} (in|of) {list:expression} where",
   testRule: "…where",
   precedence: 2,
+  constructor: SpellParser.Rule.Statement,
+  wantsInlineStatement: true,
+  parseInlineStatementAs: "expression",
+  getNestedScope(scope, match) {
+    const { arg } = match.results;
+    return match.results.expression
+      = new Scope.Method({ scope, args: [singularize(arg)], asExpression: true });
+  },
   compile(scope, match) {
-    const { argument, condition, list } = match.results;
-    // singularize argument for method
-    return `spell.filter(${list}, ${singularize(argument)} => ${condition})`;
+    const { list, expression } = match.results;
+    return `spell.filter(${list}, ${expression})`;
   },
   tests: [
     {
       compileAs: "expression",
       showAll: true,
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+      },
       tests: [
         [
           "words in 'a word list' where word starts with 'a'",
-          "spell.filter('a word list', word => spell.startsWith(word, 'a'))"
+          "spell.filter('a word list', (word) => spell.startsWith(word, 'a'))"
         ],
         [
           "items in my-list where the id of the item > 1",
-          "spell.filter(my_list, item => (item?.id > 1))"
+          "spell.filter(my_list, (item) => (item?.id > 1))"
         ]
       ]
     }
@@ -419,35 +472,47 @@ parser.defineRule({
   name: "list_membership_test",
   alias: ["expression"],
   syntax:
-    "{list:single_expression} (operator:has|has no|doesnt have|does not have) {argument:plural_variable} where {filter:expression}",
+    "{list:single_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_variable} where",
   testRule: "…(has|have)",
   precedence: 2,
+  constructor: SpellParser.Rule.Statement,
+  wantsInlineStatement: true,
+  parseInlineStatementAs: "expression",
+  getNestedScope(scope, match) {
+    const { arg } = match.results;
+    return match.results.filter
+      = new Scope.Method({ scope, args: [singularize(arg)], asExpression: true });
+  },
   compile(scope, match) {
-    const { argument, operator, filter, list } = match.results;
+    const { operator, filter, list } = match.results;
     const bang = operator === "has" ? "" : "!";
     // singularize method argument
-    return `${bang}spell.any(${list}, ${singularize(argument)} => ${filter})`;
+    return `${bang}spell.any(${list}, ${filter})`;
   },
   tests: [
     {
       compileAs: "expression",
       showAll: true,
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("bar");
+      },
       tests: [
         [
           "my-list has items where item is 1",
-          "spell.any(my_list, item => (item == 1))"
+          "spell.any(my_list, (item) => (item == 1))"
         ],
         [
           "my-list has no items where item is 1",
-          "!spell.any(my_list, item => (item == 1))"
+          "!spell.any(my_list, (item) => (item == 1))"
         ],
         [
           "my-list doesnt have items where item is 1",
-          "!spell.any(my_list, item => (item == 1))"
+          "!spell.any(my_list, (item) => (item == 1))"
         ],
         [
           "the foo of the bar does not have items where item is 1",
-          "!spell.any(bar?.foo, item => (item == 1))"
+          "!spell.any(bar?.foo, (item) => (item == 1))"
         ]
       ]
     }
@@ -483,6 +548,10 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("thing");
+      },
       tests: [
         ["add thing to the start of my-list", "spell.prepend(my_list, thing)"],
         ["add thing to the front of my-list", "spell.prepend(my_list, thing)"],
@@ -510,6 +579,10 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("thing");
+      },
       tests: [
         ["prepend thing to my-list", "spell.prepend(my_list, thing)"],
       ]
@@ -531,6 +604,10 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("thing");
+      },
       tests: [
         ["append thing to my-list", "spell.append(my_list, thing)"],
       ]
@@ -563,6 +640,11 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("thing");
+        scope.addVariable("other-thing");
+      },
       tests: [
         [
           "add thing to my-list before other-thing",
@@ -596,9 +678,13 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+        scope.addVariable("deck");
+      },
       tests: [
         ["empty my-list", "spell.clear(my_list)"],
-        ["clear the cards of deck", "spell.clear(deck?.cards)"]
+        ["clear the cards of the deck", "spell.clear(deck?.cards)"]
       ]
     }
   ]
@@ -608,7 +694,7 @@ parser.defineRule({
 parser.defineRule({
   name: "list_remove_ordinal",
   alias: "statement",
-  syntax: "remove {ordinal} {argument:singular_variable} of {list:expression}",
+  syntax: "remove the? {ordinal} {arg:singular_variable} of {list:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
@@ -618,8 +704,12 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("deck");
+      },
       tests: [
-        ["remove second card of deck", "spell.removeItem(deck, 2)"],
+        ["remove last card of deck", "spell.removeItem(deck, -1)"],
+        ["remove the first card of the deck", "spell.removeItem(deck, 1)"],
       ]
     }
   ]
@@ -629,7 +719,7 @@ parser.defineRule({
 parser.defineRule({
   name: "list_remove_position",
   alias: "statement",
-  syntax: "remove {argument:singular_variable} {number:expression} of {list:expression}",
+  syntax: "remove {arg:singular_variable} {number:expression} of {list:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
@@ -639,6 +729,9 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+      },
       tests: [
         ["remove item 4 of my-list", "spell.removeItem(my_list, 4)"]
       ]
@@ -654,7 +747,7 @@ parser.defineRule({
 parser.defineRule({
   name: "list_remove_range",
   alias: "statement",
-  syntax: "remove {argument:plural_variable} {start:expression} to {end:expression} of {list:expression}",
+  syntax: "remove {arg:plural_variable} {start:expression} to {end:expression} of {list:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
@@ -664,6 +757,9 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("my-list");
+      },
       tests: [
         ["remove items 2 to 4 of my-list", "spell.removeRange(my_list, 2, 4)"]
       ]
@@ -674,7 +770,7 @@ parser.defineRule({
 parser.defineRule({
   name: "list_remove_range_ordinal",
   alias: "statement",
-  syntax: "remove {start:ordinal} to {end:ordinal} {argument:plural_variable} of {list:expression}",
+  syntax: "remove {start:ordinal} to {end:ordinal} {arg:plural_variable} of {list:expression}",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
@@ -684,8 +780,11 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("deck");
+      },
       tests: [
-        ["remove first to third cards of deck", "spell.removeRange(deck, 1, 3)"],
+        ["remove first to third cards of the deck", "spell.removeRange(deck, 1, 3)"],
       ]
     }
   ]
@@ -705,7 +804,13 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
-      tests: [["remove thing from my-list", "spell.remove(my_list, thing)"]]
+      beforeEach(scope) {
+        scope.addVariable("thing");
+        scope.addVariable("my-list");
+      },
+      tests: [
+        ["remove thing from my-list", "spell.remove(my_list, thing)"]
+      ]
     }
   ]
 });
@@ -714,25 +819,37 @@ parser.defineRule({
 parser.defineRule({
   name: "list_remove_where",
   alias: "statement",
-  syntax: "remove {argument:plural_variable} (in|of|from) {list:expression} where {condition:expression}",
+  syntax: "remove {arg:plural_variable} (in|of|from) {list:expression} where",
   testRule: "remove",
   constructor: SpellParser.Rule.Statement,
+  wantsInlineStatement: true,
+  parseInlineStatementAs: "expression",
+  getNestedScope(scope, match) {
+    const { arg } = match.results;
+    return match.results.condition
+      = new Scope.Method({ scope, args: [singularize(arg)], asExpression: true });
+  },
   updateScope(scope, { results }) {
-    const { argument, condition, list } = results;
+    const { condition, list } = results;
     // singularize method argument
-    scope.addStatement(`spell.removeWhere(${list}, ${singularize(argument)} => ${condition})`, results);
+    scope.addStatement(`spell.removeWhere(${list}, ${condition})`, results);
   },
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("deck");
+        scope.addVariable("my-list");
+        scope.addConstant("clubs");
+      },
       tests: [
         [
-          "remove items from list where item is not 'ace'",
-          "spell.removeWhere(list, item => (item != 'ace'))"
+          "remove items from my-list where item is not 'ace'",
+          "spell.removeWhere(my_list, (item) => (item != 'ace'))"
         ],
         [
-          "remove cards in deck where the suit of the card is ace",
-          "spell.removeWhere(deck, card => (card?.suit == ace))"
+          "remove cards in deck where the suit of the card is clubs",
+          "spell.removeWhere(deck, (card) => (card?.suit == 'clubs'))"
         ]
       ]
     }
@@ -747,7 +864,7 @@ parser.defineRule({
 parser.defineRule({
   name: "list_reverse",
   alias: "statement",
-  syntax: "reverse {list:expression}",
+  syntax: "reverse ((the? {arg:plural_variable}) (in|of))? {list:expression}",
   testRule: "reverse",
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
@@ -757,7 +874,14 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
-      tests: [["reverse my-list", "spell.reverse(my_list)"]]
+      beforeEach(scope) {
+        scope.addVariable("deck");
+        scope.addVariable("my-list");
+      },
+      tests: [
+        ["reverse the cards of the deck", "spell.reverse(deck)"],
+        ["reverse my-list", "spell.reverse(my_list)"],
+      ]
     }
   ]
 });
@@ -766,7 +890,7 @@ parser.defineRule({
 parser.defineRule({
   name: "list_shuffle",
   alias: "statement",
-  syntax: "(randomize|shuffle) ({argument:plural_variable} (in|of))? {list:expression}",
+  syntax: "(randomize|shuffle) ((the? {arg:plural_variable}) (in|of))? {list:expression}",
   testRule: "(randomize|shuffle)",
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
@@ -776,9 +900,14 @@ parser.defineRule({
   tests: [
     {
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("deck");
+        scope.addVariable("my-list");
+      },
       tests: [
+        ["shuffle cards of deck", "spell.shuffle(deck)"],
+        ["shuffle the cards of the deck", "spell.shuffle(deck)"],
         ["randomize my-list", "spell.shuffle(my_list)"],
-        ["shuffle cards of deck", "spell.shuffle(deck)"]
       ]
     }
   ]
@@ -819,6 +948,11 @@ parser.defineRule({
   tests: [
     {
       compileAs: "block",
+      beforeEach(scope) {
+        scope.addVariable("deck");
+        scope.addVariable("my-list");
+        scope.addVariable("messages");
+      },
       tests: [
         ["for each card in deck:",
          "spell.forEach(deck, function(card) {})"

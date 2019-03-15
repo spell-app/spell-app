@@ -44,58 +44,64 @@ parser.defineRule({
     {
       title: "correctly matches single-line if statements",
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("a");
+      },
       tests: [
         ["if a", "if (a) {}"],
         ["if a then", "if (a) {}"],
         ["if a:", "if (a) {}"],
-        ["if a then b = 1", "if (a) { b = 1 }"],
-        ["if a: b = 1", "if (a) { b = 1 }"],
-        ["if a : b = 1", "if (a) { b = 1 }"]
+        ["if a then b = 1", "if (a) { let b = 1 }"],
+        ["if a: b = 1", "if (a) { let b = 1 }"],
+        ["if a : b = 1", "if (a) { let b = 1 }"]
       ]
     },
     {
       title: "correctly matches multi-line if blocks",
       compileAs: "block",
+      beforeEach(scope) {
+        scope.addVariable("a");
+      },
       tests: [
         {
           title: "Separate blocks if no indentation on second line.",
           input: "if a:\nb = 1",
-          output: "if (a) {}\nb = 1"    // NOTE: this is correct!
+          output: "if (a) {}\nlet b = 1"    // NOTE: this is correct!
         },
         {
           title: "Single tabbed statement appears inline",
           input: "if a:\n\tb = 1",
-          output: "if (a) { b = 1 }"
+          output: "if (a) { let b = 1 }"
         },
         {
           title: "ANY number of spaces should count as indentation",
           input: "if a:\n b = 1",
-          output: "if (a) { b = 1 }"
+          output: "if (a) { let b = 1 }"
         },
         {
           title: "Indent with tab, output has 2 spaces",
           input: "if a:\n\tb = 1\n\tc=1",
-          output: "if (a) {\n  b = 1\n  c = 1\n}"
+          output: "if (a) {\n  let b = 1\n  let c = 1\n}"
         },
         {
           title: "Multiple lines in the nested block",
           input: "if a:\n\tb = 1\n\tc = 2",
-          output: "if (a) {\n  b = 1\n  c = 2\n}"
+          output: "if (a) {\n  let b = 1\n  let c = 2\n}"
         },
 //         {
 //           title: "Blank lines in the nested block are carried over",
 //           input: "if a:\n\tb = 1\n\n\n\tc = 2",
-//           output: "if (a) {\n  b = 1\n  \n  \n  c = 2\n}"
+//           output: "if (a) {\n  let b = 1\n  \n  \n  let c = 2\n}"
 //         },
         {
           title: "Nested ifs work fine",
-          input: "if a\n\tif b\n\t\tc=2",
-          output: "if (a) { if (b) { c = 2 } }"
+          input: "if a\n\tb = 1\n\tif b\n\t\tc = 2",
+          output: "if (a) {\n  let b = 1\n  if (b) { let c = 2 }\n}"
         },
         {
           title: "Both nested block and inline statements are used",
           input: "if a b = 1\n\tc = 2",
-          output: "if (a) {\n  b = 1\n  c = 2\n}"
+          output: "if (a) {\n  let b = 1\n  let c = 2\n}"
         }
       ]
     }
@@ -130,48 +136,54 @@ parser.defineRule({
     {
       title: "correctly matches single-line else_if statements",
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("a");
+      },
       tests: [
         ["else if a", "else if (a) {}"],
         ["else if a:", "else if (a) {}"],
         ["else if a then", "else if (a) {}"],
-        ["else if a b = 1", "else if (a) { b = 1 }"],
-        ["else if a: b = 1", "else if (a) { b = 1 }"],
-        ["else if a then b = 1", "else if (a) { b = 1 }"],
+        ["else if a b = 1", "else if (a) { let b = 1 }"],
+        ["else if a: b = 1", "else if (a) { let b = 1 }"],
+        ["else if a then b = 1", "else if (a) { let b = 1 }"],
       ]
     },
     {
       title: "correctly matches multi-line else_if blocks",
       compileAs: "block",
+      beforeEach(scope) {
+        scope.addVariable("a");
+      },
       tests: [
         {
           title: "Separate blocks if no indentation on second line.",
           input: "else if a:\nb = 1",
-          output: "else if (a) {}\nb = 1"
+          output: "else if (a) {}\nlet b = 1"
         },
         {
           title: "Indent with tab",
           input: "else if a:\n\tb = 1",
-          output: "else if (a) { b = 1 }"
+          output: "else if (a) { let b = 1 }"
         },
         {
           title: "ANY number of spaces should count as indentation",
           input: "else if a:\n b = 1",
-          output: "else if (a) { b = 1 }"
+          output: "else if (a) { let b = 1 }"
         },
         {
           title: "Multiple lines in the nested block",
           input: "else if a:\n\tb = 1\n\tc = 2",
-          output: "else if (a) {\n  b = 1\n  c = 2\n}"
+          output: "else if (a) {\n  let b = 1\n  let c = 2\n}"
         },
         {
-          title: "Nested ifs work fine",
-          input: "else if a\n\tif b\n\t\tc=2",
-          output: "else if (a) { if (b) { c = 2 } }"
+          title: "Nested else ifs work fine",
+          input: "else if a\n\tif a\n\t\tc=2",
+          output: "else if (a) { if (a) { let c = 2 } }"
         },
         {
           title: "Both inline statement and nested block are used",
-          input: "else if a b = 1\n\tc = 2",
-          output: "else if (a) {\n  b = 1\n  c = 2\n}"
+          input: "else if a b = 1\n\tb = 2\n\tc = 2",
+          output: "else if (a) {\n  let b = 1\n  b = 2\n  let c = 2\n}"
         }
       ]
     }
@@ -188,7 +200,6 @@ parser.defineRule({
   wantsNestedBlock: true,
   getNestedScope(scope, { results }) {
     return results.$scope = new Scope.Method({
-      name: "else",
       scope,
       toString() {
         return `else ${this.compileStatements()}`;
@@ -205,10 +216,10 @@ parser.defineRule({
       tests: [
         ["else", "else {}"],
         ["otherwise", "else {}"],
-        ["else: b = 1", "else { b = 1 }"],
-        ["otherwise: b = 1", "else { b = 1 }"],
-        ["else b = 1", "else { b = 1 }"],
-        ["otherwise b = 1", "else { b = 1 }"]
+        ["else: b = 1", "else { let b = 1 }"],
+        ["otherwise: b = 1", "else { let b = 1 }"],
+        ["else b = 1", "else { let b = 1 }"],
+        ["otherwise b = 1", "else { let b = 1 }"]
       ]
     },
     {
@@ -218,22 +229,22 @@ parser.defineRule({
         {
           title: "Separate blocks if no indentation on second line.",
           input: "else\nb = 1",
-          output: "else {}\nb = 1"
+          output: "else {}\nlet b = 1"
         },
         {
           title: "Indent with tab",
           input: "else\n\tb = 1",
-          output: "else { b = 1 }"
+          output: "else { let b = 1 }"
         },
         {
           title: "ANY number of spaces should count as indentation",
           input: "else\n b = 1",
-          output: "else { b = 1 }"
+          output: "else { let b = 1 }"
         },
         {
           title: "Multiple lines in the nested block",
-          input: "else\n\tb = 1\n\tc = 2",
-          output: "else {\n  b = 1\n  c = 2\n}"
+          input: "else\n\tb = 1\n\tlet c = 2",
+          output: "else {\n  let b = 1\n  let c = 2\n}"
         }
       ]
     }
@@ -255,10 +266,14 @@ parser.defineRule({
     {
       title: "correctly matches single-line backwards_if statements",
       compileAs: "statement",
+      beforeEach(scope) {
+        scope.addVariable("bar");
+        scope.addVariable("foo");
+      },
       tests: [
-        ["b = 1 if a else 2", "b = (a ? 1 : 2)"],
-        ["b = the foo of the bar if a is 1 otherwise the bar of the foo",
-         "b = ((a == 1) ? bar?.foo : foo?.bar)"]
+        ["get 1 if bar else 2", "let it = (bar ? 1 : 2)"],
+        ["get the foo of the bar if bar is defined otherwise the bar of the foo",
+         "let it = ((typeof bar !== 'undefined') ? bar?.foo : foo?.bar)"]
       ]
     }
   ]
