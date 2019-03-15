@@ -136,7 +136,7 @@ parser.defineRule({
 //TODO:  `with foo...` for splat?
 parser.defineRule({
   name: "args",
-  syntax: "with [args:{identifier},]",
+  syntax: "with [args:{variable},]",
   // Returns an array of argument values
   compile(scope, match) {
     const { args } = match.results;

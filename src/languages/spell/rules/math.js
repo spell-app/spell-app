@@ -144,7 +144,7 @@ parser.defineRule({
   name: "max",
   alias: ["expression", "single_expression"],
   precedence: 2,
-  syntax: "the? (biggest|largest) {identifier}? (of|in) {expression}",
+  syntax: "the? (biggest|largest) {argument:singular_variable}? (of|in) {expression}",
   testRule: "…(biggest|largest)",
   compile(scope, match) {
     const { expression } = match.results;
@@ -166,7 +166,7 @@ parser.defineRule({
   name: "min",
   alias: ["expression", "single_expression"],
   precedence: 2,
-  syntax: "the? smallest {identifier}? (of|in) {expression}",
+  syntax: "the? smallest {argument:singular_variable}? (of|in) {expression}",
   testRule: "…smallest",
   compile(scope, match) {
     const { expression } = match.results;
