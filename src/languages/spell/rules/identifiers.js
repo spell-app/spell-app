@@ -9,7 +9,6 @@ import {
   Token,
 
   proto,
-  upperFirst,
   snakeCase,
   typeCase,
   singularize,
@@ -27,15 +26,11 @@ const WORD = /^[a-zA-Z][\w\-]*$/;
 SpellParser.Rule.Constant = class unknown_constant extends Rule.Pattern {
   @proto pattern = WORD;
   @proto blacklist = identifierBlacklist;
-  parse(scope, tokens) {
-    const match = super.parse(scope, tokens);
-    if (!match) return;
-    // Pick up existing constant if defined.
-    match.constant = scope.getConstant(match.raw);
-    return match;
-  }
   compile(scope, match) {
-    const constant = match.constant || new Scope.Constant(match.raw);
+    const constant
+      = match.constant
+      || scope.getConstant(match.raw)
+      || new Scope.Constant(match.raw);
     return constant.toString();
   }
 }
@@ -65,7 +60,9 @@ parser.defineRule({
   constructor: class known_constant extends SpellParser.Rule.Constant {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
-      if (match && match.constant) return match;
+      if (!match) return;
+      match.constant = scope.getConstant(match.raw);
+      if (match.constant) return match;
     }
   },
   tests: [
@@ -136,17 +133,9 @@ SpellParser.Rule.Type = class type extends Rule.Pattern {
     Boolean: "boolean",
     default: typeCase
   };
-  parse(scope, tokens) {
-    const match = super.parse(scope, tokens);
-    if (!match) return;
-    // Pick up existing type if defined.
-    match.type = scope.getType(match.compile());
-    return match;
-  }
 }
 
 // A possibly-unknown type identifier, singular or plural.
-// `match.type` will be the existing `Scope.Type` if one already exists.
 parser.defineRule({
   name: "type",
   constructor: SpellParser.Rule.Type,
@@ -220,13 +209,17 @@ parser.defineRule({
 
 
 // A known type identifier, NOT including built-in types like 'Object'.
+// `match.type` will be the existing `Scope.Type`.
 parser.defineRule({
   name: "known_type",
   alias: ["expression", "single_expression"],
   constructor: class known_type extends SpellParser.Rule.Type {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
-      if (match && match.type) return match;
+      if (!match) return;
+      // Pick up existing type if defined.
+      match.type = scope.getType(match.raw);
+      if (match.type) return match;
     }
   },
   tests: [
@@ -273,8 +266,6 @@ parser.defineRule({
 
 
 // Single word variable which may or may not be known by our scope, with optional `the` prefix.
-// `match.localVariable` is LOCAL variable with the specified name.
-// `match.variable` is any scoped variable with the specified name.
 // NOTE: `match` returned is the `{variable}`, not this sequence.
 class the_variable extends Rule.Sequence {
   parse(scope, tokens) {
@@ -283,11 +274,6 @@ class the_variable extends Rule.Sequence {
     // Return just the `variable_identifier` bit, adjusting `length` to account for `the` as necessary.
     const varMatch = match.matched[match.matched.length - 1];
     varMatch.length = match.length;
-
-    // figure out if we have an existing variable in scope already
-    const varName = varMatch.compile();
-    varMatch.localVariable = scope.getLocalVariable(varName);
-    varMatch.variable = match.localVariable || scope.getVariable(varName);
     return varMatch;
   }
 }
@@ -319,7 +305,10 @@ parser.defineRule({
   constructor: class known_variable extends the_variable {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
-      if (match?.variable) return match;
+      if (!match) return;
+      // figure out if we have an existing variable in scope already
+      match.variable = scope.getVariable(match.raw);
+      if (match.variable) return match;
     }
   },
   tests: [
@@ -345,8 +334,7 @@ parser.defineRule({
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
       if (!match) return;
-      const varName = match.compile();
-      if (varName && varName === singularize(varName)) return match;
+      if (match.raw === singularize(match.raw)) return match;
     }
   },
   tests: [
@@ -368,8 +356,7 @@ parser.defineRule({
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
       if (!match) return;
-      const varName = match.compile();
-      if (varName && varName === pluralize(varName)) return match;
+      if (match.raw === pluralize(match.raw)) return match;
     }
   },
   tests: [

@@ -350,10 +350,14 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results, matches }) {
     const { value: valueMatch, otherValue: otherValueMatch } = matches;
-    if (valueMatch.rule instanceof SpellParser.Rule.Constant && !valueMatch.constant)
-      scope.addConstant(valueMatch.raw);
-    if (otherValueMatch?.rule instanceof SpellParser.Rule.Constant && !otherValueMatch.constant)
-      scope.addConstant(otherValueMatch.raw);
+    if (valueMatch.rule instanceof SpellParser.Rule.Constant) {
+      const constant = valueMatch.constant || scope.getConstant(valueMatch.raw);
+      if (!constant) scope.addConstant(valueMatch.raw);
+    }
+    if (otherValueMatch?.rule instanceof SpellParser.Rule.Constant) {
+      const constant = otherValueMatch.constant || scope.getConstant(otherValueMatch.raw);
+      if (!constant) scope.addConstant(otherValueMatch.raw);
+    }
 
     const { type, value, otherValue, property, condition } = results;
     scope.getOrStubType(type)
