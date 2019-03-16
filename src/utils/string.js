@@ -1,17 +1,22 @@
 // Export lodash and lodash-inflection string methods.
 export lowerFirst from "lodash/lowerFirst";
 import inflection from "lodash-inflection";
-export snakeCase from "lodash/snakeCase";
+import _snakeCase from "lodash/snakeCase";
 export toLower from "lodash/toLower";
 import upperFirst from "lodash/upperFirst";
 export { upperFirst }
 
 // Convert a string to `Type-Name-Case", including singularizing.
-export function typeCase(string) {
-  return singularize(""+string)
-    .split(/[-_]/)
-    .map(bit => upperFirst(bit))
-    .join("_");
+const TYPE_CASE = {};
+export function typeCase(text) {
+  const existing = TYPE_CASE[text];
+  if (existing !== undefined) return existing;
+  return (TYPE_CASE[text]
+    = singularize(""+text)
+      .split(/[-_]/)
+      .map(bit => upperFirst(bit))
+      .join("_")
+  );
 }
 
 // Convert a string to `Type-Name-Case", including singularizing.
@@ -22,13 +27,22 @@ export function typeNameCase(string) {
     .join("-");
 }
 
+// Lodash snakeCase with memoization.
+const SNAKE_CASE = {};
+export function snakeCase(text) {
+  const existing = SNAKE_CASE[text];
+  if (existing !== undefined) return existing;
+  return (SNAKE_CASE[text] = _snakeCase(text));
+}
+
+
 // Return the singular form of `word`.
 // Uses lodash-inflection, which should be pretty good.
 // If you need to add a new rule, see: https://github.com/danhper/lodash-inflection
 const SINGULARS = {};
 export function singularize(text) {
   const existing = SINGULARS[text];
-  if (existing) return existing;
+  if (existing !== undefined) return existing;
   return (SINGULARS[text] = inflection.singularize(text));
 }
 
@@ -38,7 +52,7 @@ export function singularize(text) {
 const PLURALS = {};
 export function pluralize(text) {
   const existing = PLURALS[text];
-  if (existing) return existing;
+  if (existing !== undefined) return existing;
   return (PLURALS[text] = inflection.pluralize(text));
 }
 

@@ -5,7 +5,6 @@ import keyBy from "lodash/keyBy";
 import flatten from "lodash/flatten";
 import lowerFirst from "lodash/lowerFirst"
 import upperFirst from "lodash/upperFirst"
-import snakeCase from "lodash/snakeCase"
 import uniq from "lodash/uniq"
 import JSON5 from "JSON5";
 
@@ -19,6 +18,7 @@ import {
   clearMemoized,
   memoize,
   typeCase,
+  snakeCase,
   toLower,
 } from "./all.js";
 
@@ -210,9 +210,6 @@ export class Scope {
   // Returns `{ datatype, statements }` for working with the enumeration.
   addEnumeration(props, results) {
     this.assert(Array.isArray(props.enumeration), "addEnumeration() must be called with an 'enumeration'");
-    this.assert(props.name && props.name === upperFirst(props.name),
-      "addEnumeration() must be called with an upper-case 'name'");
-
     const { enumeration, name } = props;
     results.name = name;
     results.canonicalRef = `${this.name}.${name}`;
