@@ -389,8 +389,11 @@ export class Parser {
   // By default we output debug info about the run.
   // Pass false to `debug` to skip debug output.
   testRules(moduleName, debug = true) {
-    const t0 = Date.now();
+    // Clear outputSource flag so we don't get source output comments in the test results.
+    this.outputSource = false;
+    this.setDebugLevel("OFF");
 
+    const t0 = Date.now();
     const results = {
       pass: 0,      // number of tests that passed
       fail: 0,      // number of tests that failed
@@ -414,19 +417,14 @@ export class Parser {
         testBlocks.forEach(({ compileAs = ruleName, tests, beforeEach }) => {
           if (debug && compileAs !== ruleName) console.group(`testing as ${compileAs}`);
 
-          // Create a new scope for the run, so we don't muck with the main parser.
-          const scope = this.getScope("test");
-          const parser = scope.parser || scope;
-          // Clear outputSource flag so we don't get source output comments in the test results.
-          parser.outputSource = false;
-          parser.setDebugLevel("OFF");
-
-          // Run `beforeEach` code if provided to seed variables, etc/
-          if (beforeEach) beforeEach(scope);
-
           tests.forEach(test => {
             if (Array.isArray(test)) test = { input: test[0], output: test[1] };
             if (test.skip || test.input === "") return;
+
+            // Create a new scope for the run, so we don't muck with the main parser.
+            // Run `beforeEach` code if provided to seed variables, etc.
+            const scope = this.getScope("test");
+            if (beforeEach) beforeEach(scope);
 
             let { input, output, title = input } = test;
             let result;
