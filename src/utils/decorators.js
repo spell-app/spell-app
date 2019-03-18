@@ -1,6 +1,13 @@
 //
 //  # ESNext Stage 2 decorators
 //
+//  UGH:  The decorator proposal has changed AGAIN
+//        and this is all non-viable with the new scheme.
+//
+//  This is working according to babel-proposal-decorators `^7.0.0` as of 3/18/218
+//  For explanation of how that works, see:
+//    https://github.com/tc39/proposal-decorators/blob/master/previous/METAPROGRAMMING.md
+//
 
 import assert from "assert";
 
