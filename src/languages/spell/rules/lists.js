@@ -5,6 +5,7 @@
 import {
   Rule,
   Scope,
+  Spell,
   SpellParser,
 
   singularize
@@ -433,7 +434,7 @@ parser.defineRule({
   syntax: "{arg:plural_variable} (in|of) {list:expression} where",
   testRule: "…where",
   precedence: 2,
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   wantsInlineStatement: true,
   parseInlineStatementAs: "expression",
   getNestedScope(scope, match) {
@@ -475,7 +476,7 @@ parser.defineRule({
     "{list:single_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_variable} where",
   testRule: "…(has|have)",
   precedence: 2,
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   wantsInlineStatement: true,
   parseInlineStatementAs: "expression",
   getNestedScope(scope, match) {
@@ -540,7 +541,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "add {thing:expression} to {method:list_front_or_back}? {list:expression}",
   testRule: "add",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { thing, list, method = "append"} = results;
     const statement = scope.addStatement(`spell.${method}(${list}, ${thing})`);
@@ -572,7 +573,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "prepend {thing:expression} to {list:expression}",
   testRule: "prepend",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { thing, list } = results;
     const statement = scope.addStatement(`spell.prepend(${list}, ${thing})`);
@@ -598,7 +599,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "append {thing:expression} to {list:expression}",
   testRule: "append",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { thing, list } = results;
     const statement = scope.addStatement(`spell.append(${list}, ${thing})`);
@@ -632,7 +633,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
   testRule: "add",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { thing, item, list, operator } = results;
     const position = operator === "before"
@@ -674,7 +675,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "(empty|clear) {list:expression}",
   testRule: "(empty|clear)",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { list } = results;
     const statement = scope.addStatement(`spell.clear(${list})`);
@@ -701,7 +702,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove the? {ordinal} {arg:singular_variable} of {list:expression}",
   testRule: "remove",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { ordinal, list } = results;
     const statement = scope.addStatement(`spell.removeItem(${list}, ${ordinal})`);
@@ -727,7 +728,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {arg:singular_variable} {number:expression} of {list:expression}",
   testRule: "remove",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { number, list } = results;
     const statement = scope.addStatement(`spell.removeItem(${list}, ${number})`);
@@ -756,7 +757,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {arg:plural_variable} {start:expression} to {end:expression} of {list:expression}",
   testRule: "remove",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { start, end, list } = results;
     const statement = scope.addStatement(`spell.removeRange(${list}, ${start}, ${end})`);
@@ -780,7 +781,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {start:ordinal} to {end:ordinal} {arg:plural_variable} of {list:expression}",
   testRule: "remove",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { start, end, list } = results;
     const statement = scope.addStatement(`spell.removeRange(${list}, ${start}, ${end})`);
@@ -805,7 +806,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {thing:expression} from {list:expression}",
   testRule: "remove",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { thing, list } = results;
     const statement = scope.addStatement(`spell.remove(${list}, ${thing})`);
@@ -831,7 +832,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "remove {arg:plural_variable} (in|of|from) {list:expression} where",
   testRule: "remove",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   wantsInlineStatement: true,
   parseInlineStatementAs: "expression",
   getNestedScope(scope, match) {
@@ -877,7 +878,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "reverse ((the? {arg:plural_variable}) (in|of))? {list:expression}",
   testRule: "reverse",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { list } = results;
     const statement = scope.addStatement(`spell.reverse(${list})`);
@@ -904,7 +905,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "(randomize|shuffle) ((the? {arg:plural_variable}) (in|of))? {list:expression}",
   testRule: "(randomize|shuffle)",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { list } = results;
     const statement = scope.addStatement(`spell.shuffle(${list})`);
@@ -934,7 +935,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "for each? {item:singular_variable} (?:(and|,) {position:singular_variable})? in {list:expression} :?",
   testRule: "for",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   wantsInlineStatement: true,
   wantsNestedBlock: true,
   getNestedScope(scope, { results }) {

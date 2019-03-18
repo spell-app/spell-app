@@ -4,6 +4,7 @@
 
 import {
   Rule,
+  Spell,
   SpellParser,
   Token,
 } from "../all.js";
@@ -17,7 +18,7 @@ parser.defineRule({
   alias: ["statement", "async"],
   syntax: "alert {message:expression} (?:with {okButton:text})?",
   testRule: "alert",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { message, okButton = '"OK"' } = results;
     scope.async = true;
@@ -44,7 +45,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "warn {message:expression} (?:with {okButton:text})?",
   testRule: "warn",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { message, okButton = '"OK"' } = results;
     scope.async = true;
@@ -71,7 +72,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "confirm {message:expression} (?:with {okButton:text} (?:(and|or) {cancelButton:text})?)?",
   testRule: "confirm",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { message, okButton = '"OK"', cancelButton = '"Cancel"' } = results;
     scope.async = true;

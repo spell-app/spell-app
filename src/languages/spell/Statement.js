@@ -1,6 +1,6 @@
 import {
   Rule,
-  SpellParser,
+  Spell,
   Tokenizer,
 
   proto,
@@ -12,8 +12,8 @@ import {
 //  where the statement MIGHT have an inline statement at the end
 //  or might have a nested block of statements.
 //
-// Note: Access this as `SpellParser.Rule.Statement`.
-SpellParser.Rule.Statement = class statement extends Rule.Sequence {
+// Note: Access this as `Spell.Rule.Statement`.
+Spell.Rule.Statement = class statement extends Rule.Sequence {
   // Set to true if this statement wants to attempt to read an inline statement on the same line.
   @proto wantsInlineStatement = false;
   // Rule to parse inline statement as -- see `parseInlineStatement()`

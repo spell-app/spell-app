@@ -5,6 +5,7 @@
 import {
   Rule,
   Scope,
+  Spell,
   SpellParser,
 } from "../all.js";
 
@@ -20,12 +21,12 @@ parser.defineRule({
     { syntax: "let (thing:{expression}|{variable}) = {value:expression}", testRule: "let" },
     { syntax: "set (thing:{expression}|{variable}) to {value:expression}", testRule: "set" },
   ],
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results, matches }) {
     const { thing, value } = results;
     const thingMatch = matches.thing;
     // Add `thing` as a variable if not already in scope.
-    const isNewVar = (thingMatch.rule instanceof SpellParser.Rule.Variable && !thingMatch.variable);
+    const isNewVar = (thingMatch.rule instanceof Spell.Rule.Variable && !thingMatch.variable);
     if (isNewVar) scope.variables.add(thing);
     const statement = scope.addStatement(`${isNewVar ? 'let ':''}${thing} = ${value}`);
     results.statements.push(statement);
@@ -54,7 +55,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "get {value:expression}",
   testRule: "get",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     let { value } = results;
     // make sure 'it' is declared LOCALLY
@@ -88,7 +89,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "(return|exit with?) {expression}?",
   testRule: "(return|exit)",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { expression = "undefined" } = results;
     const statement = scope.addStatement(`return ${expression}`);

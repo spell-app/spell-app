@@ -5,6 +5,7 @@
 import {
   Rule,
   Scope,
+  Spell,
   SpellParser,
 } from "../all.js";
 
@@ -24,7 +25,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "if {condition:expression} (then|:)?",
   testRule: "if",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   wantsInlineStatement: true,
   wantsNestedBlock: true,
   getNestedScope(scope, { results }) {
@@ -117,7 +118,7 @@ parser.defineRule({
   syntax: "(else|otherwise) if {condition:expression} (then|:)?",
   testRule: "(else|otherwise)",
   precedence: 1,
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   wantsInlineStatement: true,
   wantsNestedBlock: true,
   getNestedScope(scope, { results }) {
@@ -197,7 +198,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "(else|otherwise) :?",
   testRule: "(else|otherwise)",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   wantsInlineStatement: true,
   wantsNestedBlock: true,
   getNestedScope(scope, { results }) {

@@ -1,6 +1,6 @@
 import {
   Rule,
-  SpellParser,
+  Spell,
 } from "./all.js";
 
 // Parse a single line in a block.
@@ -9,8 +9,8 @@ import {
 //       if ONLY comment was found, that will be the match.
 // NOTE: if the parser wants to `outputSource`, match.source will be the input text.
 //
-// Note: Access this as `SpellParser.Rule.BlockLine`.
-SpellParser.Rule.BlockLine = class block_line extends Rule {
+// Note: Access this as `Spell.Rule.BlockLine`.
+Spell.Rule.BlockLine = class block_line extends Rule {
   parse(scope, tokens) {
     let start = 0;
     let end = tokens.length;

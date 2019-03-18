@@ -1,7 +1,7 @@
 import {
   Match,
   Rule,
-  SpellParser,
+  Spell,
   Token,
   Tokenizer,
 
@@ -15,8 +15,8 @@ import {
 //  They are composed of `blockLines` and nested `blocks`,
 //  and correspond roughly to a `Scope` (see `parser/Scope.js`).
 //
-// Note: Access this as `SpellParser.Rule.Block`.
-SpellParser.Rule.Block = class block extends Rule {
+// Note: Access this as `Spell.Rule.Block`.
+Spell.Rule.Block = class block extends Rule {
   // Split statements up into blocks and parse 'em.
   parse(scope, tokens) {
     if (!tokens.length) return;

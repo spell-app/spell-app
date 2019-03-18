@@ -5,6 +5,7 @@ import {
   Match,
   Rule,
   Scope,
+  Spell,
   SpellParser,
   Token,
 
@@ -23,7 +24,7 @@ export default parser;
 // Alpha-numeric word, including dashes or underscores.
 const WORD = /^[a-zA-Z][\w\-]*$/;
 
-SpellParser.Rule.Constant = class unknown_constant extends Rule.Pattern {
+Spell.Rule.Constant = class unknown_constant extends Rule.Pattern {
   @proto pattern = WORD;
   @proto blacklist = identifierBlacklist;
   compile(scope, match) {
@@ -39,7 +40,7 @@ SpellParser.Rule.Constant = class unknown_constant extends Rule.Pattern {
 // `match.constant` will be the existing Scope.Constant if one already exists.
 parser.defineRule({
   name: "constant",
-  constructor: SpellParser.Rule.Constant,
+  constructor: Spell.Rule.Constant,
   tests: [
     {
       tests: [
@@ -57,7 +58,7 @@ parser.defineRule({
 parser.defineRule({
   name: "known_constant",
   alias: ["expression", "single_expression"],
-  constructor: class known_constant extends SpellParser.Rule.Constant {
+  constructor: class known_constant extends Spell.Rule.Constant {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
       if (!match) return;
@@ -89,7 +90,7 @@ parser.defineRule({
   name: "define_constant",
   alias: "statement",
   syntax: "define constant {constant} (?:as {value:expression})?",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results, matches }) {
     const name = matches.constant.raw;
     const { value } = results;
@@ -111,7 +112,7 @@ parser.defineRule({
 //
 //  Types
 //
-SpellParser.Rule.Type = class type extends Rule.Pattern {
+Spell.Rule.Type = class type extends Rule.Pattern {
   @proto pattern = WORD;
   @proto datatype = "type";
   @proto blacklist = identifierBlacklist;
@@ -139,7 +140,7 @@ SpellParser.Rule.Type = class type extends Rule.Pattern {
 // A possibly-unknown type identifier, singular or plural.
 parser.defineRule({
   name: "type",
-  constructor: SpellParser.Rule.Type,
+  constructor: Spell.Rule.Type,
   tests: [
     {
       tests: [
@@ -158,7 +159,7 @@ parser.defineRule({
 // Possibly unknown type which MUST be singular.
 parser.defineRule({
   name: "singular_type",
-  constructor: class singular_type extends SpellParser.Rule.Type {
+  constructor: class singular_type extends Spell.Rule.Type {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
       if (match && match.raw === singularize(match.raw)) return match;
@@ -185,7 +186,7 @@ parser.defineRule({
 // NOTE: the output type name will be SINGULAR!
 parser.defineRule({
   name: "plural_type",
-  constructor: class plural_type extends SpellParser.Rule.Type {
+  constructor: class plural_type extends Spell.Rule.Type {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
       if (match && match.raw === pluralize(match.raw)) return match;
@@ -214,7 +215,7 @@ parser.defineRule({
 parser.defineRule({
   name: "known_type",
   alias: ["expression", "single_expression"],
-  constructor: class known_type extends SpellParser.Rule.Type {
+  constructor: class known_type extends Spell.Rule.Type {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
       if (!match) return;
@@ -250,7 +251,7 @@ parser.defineRule({
 // Single word variable name, known or unknown.
 // TODO: type based on scope variable type?
 // TODO: higher precedence if variable is known?
-SpellParser.Rule.Variable = class variable extends Rule.Pattern {
+Spell.Rule.Variable = class variable extends Rule.Pattern {
   @proto pattern = WORD;
   @proto blacklist = identifierBlacklist;
   valueMap(value) {
@@ -262,7 +263,7 @@ SpellParser.Rule.Variable = class variable extends Rule.Pattern {
 // You won't generally use this, use `variable` or `unknown_variable` instead.
 parser.defineRule({
   name: "variable_identifier",
-  constructor: SpellParser.Rule.Variable
+  constructor: Spell.Rule.Variable
 });
 
 
@@ -331,7 +332,7 @@ parser.defineRule({
 // Possibly unknown variable identifier which MUST be singular, WITHOUT `the`.
 parser.defineRule({
   name: "singular_variable",
-  constructor: class singular_variable extends SpellParser.Rule.Variable {
+  constructor: class singular_variable extends Spell.Rule.Variable {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
       if (!match) return;
@@ -353,7 +354,7 @@ parser.defineRule({
 // Possibly unknown variable identifier which MUST be plural, WITHOUT `the`.
 parser.defineRule({
   name: "plural_variable",
-  constructor: class plural_variable extends SpellParser.Rule.Variable {
+  constructor: class plural_variable extends Spell.Rule.Variable {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
       if (!match) return;

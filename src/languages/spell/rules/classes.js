@@ -1,6 +1,7 @@
 import {
   Rule,
   Scope,
+  Spell,
   SpellParser,
   Token,
 
@@ -21,7 +22,7 @@ parser.defineRule({
     "create type {type} (?:as (a|an) {superType:type})?",
     "a {type} is (a|an) {superType:type}"
   ],
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { type, superType } = results;
     const statement = scope.types.add({
@@ -52,7 +53,7 @@ parser.defineRule({
   alias: ["expression", "single_expression", "statement"],
   syntax: "create (a|an) {type} (?:with {props:object_literal_properties})?",
   testRule: "create",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { type, props = "" } = results; // `props` is the object literal text
     const statement = scope.addStatement(`new ${type}(${props})`);
@@ -133,7 +134,7 @@ parser.defineRule({
   alias: "statement",
   syntax: "{?:type_has_prefix} (a|an) {property} {initializer:type_initializer}?",
   testRule: "…(has|have)",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     const { type, property, initializer = {}} = results;
     const typeScope = scope.getOrStubType(type);
@@ -207,7 +208,7 @@ parser.defineRule({
   name: "to_do_something",
   alias: "statement",
   syntax: "to (keywords:{word}|{type})+ :?",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   wantsInlineStatement: true,
   wantsNestedBlock: true,
   getNestedScope(scope, { results }) {
@@ -281,7 +282,7 @@ parser.defineRule({
   //  e.g. `a card "is face up" if ...`
   //  NOTE: the first word in quotes must be "is" !!
   syntax: '(a|an) {type} {alias:text} if {expression}',
-  constructor: class quoted_property_name extends SpellParser.Rule.Statement {
+  constructor: class quoted_property_name extends Spell.Rule.Statement {
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
       if (!match) return;
@@ -355,14 +356,14 @@ parser.defineRule({
   name: "property_value_either",
   alias: "statement",
   syntax: "{?:property_of_a_type} is (value:{constant}|{expression}) if {condition:expression} (?:otherwise it is (otherValue:{constant}|{expression}))?",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results, matches }) {
     const { value: valueMatch, otherValue: otherValueMatch } = matches;
-    if (valueMatch.rule instanceof SpellParser.Rule.Constant) {
+    if (valueMatch.rule instanceof Spell.Rule.Constant) {
       const constant = valueMatch.constant || scope.constants(valueMatch.raw);
       if (!constant) scope.constants.add(valueMatch.raw);
     }
-    if (otherValueMatch?.rule instanceof SpellParser.Rule.Constant) {
+    if (otherValueMatch?.rule instanceof Spell.Rule.Constant) {
       const constant = otherValueMatch.constant || scope.constants(otherValueMatch.raw);
       if (!constant) scope.constants.add(otherValueMatch.raw);
     }
@@ -403,7 +404,7 @@ parser.defineRule({
   name: "property_value_expression",
   alias: "statement",
   syntax: "{?:property_of_a_type} is {expression}",
-  constructor: SpellParser.Rule.Statement,
+  constructor: Spell.Rule.Statement,
   updateScope(scope, { results }) {
     let { type, property, expression } = results;
     const statement = scope
