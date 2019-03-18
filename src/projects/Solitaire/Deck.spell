@@ -8,8 +8,8 @@ define type Deck as Pile
 	suits = ("clubs", "diamonds", "hearts", "spades")
 
 	### Joker setup
-	include jokers = no
 	joker ranks = ("joker")
+	including jokers = no
 	joker suits = ("red", "black")
 
 
@@ -21,9 +21,9 @@ define type Deck as Pile
 		if ace high then move "ace" to end of ranks
 		for each suit in suits
 			for each rank in ranks
-				make card for deck with suit and rank
+				create a card with the suit and the rank
 
-		if include jokers
+		if including jokers
 			add joker ranks to ranks
 			add joker suits to suits
 

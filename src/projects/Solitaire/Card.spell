@@ -1,5 +1,5 @@
 ## definition of a Card with nice english aliases for working with it
-create type card as a drawable
+a card is a drawable-thing
 
 ## card direction:  up or down
 a card has a direction as either up or down
@@ -21,7 +21,7 @@ cards have a suit as one of clubs, diamonds, hearts or spades
 cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
 
 ## color as derivation of suit
-the color of a card is red if its suit is one of diamonds or hearts otherwise it is black
+the color of a card is red if its suit is either diamonds or hearts otherwise it is black
 
 ## value as a derivation of rank
 the value of a card is the position of its rank in its ranks
@@ -29,13 +29,20 @@ the value of a card is the position of its rank in its ranks
 ## add language to match `card is a face card`
 a card "is a face card" if its rank is one of jack, queen or king
 
+## a card "is a spade"
+a card "is a (suit)" for its suits
+
+## "is a queen"
+a card "is a (rank)" for its ranks
+
+## "is a black queen"
+a card "is a (color) (rank)" for its ranks
+
+## "is the ace of clubs"
+a card "is the (rank) of (suit)" for its ranks and its suits
+
+
 to move a card to a pile
-	remove the card from its pile
+	remove the card from the pile of the card --TODO: its pile
 	add the card to the pile
 	set the pile of the card to the pile
-
--- TODO: add language to match `the card is a spade`, etc
--- TODO: add language to match `the card is a jack`, etc
--- TODO: add language to match `the card is a red jack`, etc
--- TODO: add language to match `the card is an ace of clubs`, etc
-

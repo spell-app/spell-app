@@ -17,7 +17,10 @@ export default parser;
 parser.defineRule({
   name: "create_type",
   alias: "statement",
-  syntax: "create type {type} (?:as (a|an) {superType:type})?",
+  syntax: [
+    "create type {type} (?:as (a|an) {superType:type})?",
+    "a {type} is (a|an) {superType:type}"
+  ],
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { type, superType } = results;
@@ -32,6 +35,7 @@ parser.defineRule({
       tests: [
         ["create type card", "export class Card {}"],
         ["create type car as a vehicle", "export class Car extends Vehicle {}"],
+        ["a card is a thing", "export class Card extends Thing {}"],
       ]
     }
   ]
