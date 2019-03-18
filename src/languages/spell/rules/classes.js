@@ -24,10 +24,11 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { type, superType } = results;
-    scope.addType({
+    const statement = scope.types.add({
       name: type,
       superType: superType
-    }, results);
+    });
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -54,7 +55,8 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { type, props = "" } = results; // `props` is the object literal text
-    scope.addStatement(`new ${type}(${props})`, results);
+    const statement = scope.addStatement(`new ${type}(${props})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -156,21 +158,23 @@ parser.defineRule({
     }
 
     // Instance getter
-    typeScope.addMethod({
+    let statement = typeScope.methods.add({
       name: property,
       kind: "getter",
       statements: getter,
       returns: datatype,
-    }, results);
+    });
+    results.statements.push(statement);
 
     // Instance setter
-    typeScope.addMethod({
+    statement = typeScope.methods.add({
       name: property,
       kind: "setter",
       args: [ { name: property, datatype } ],
       statements: setter,
       returns: "undefined",     // setters don't actually return a value... :-(
-    }, results);
+    });
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -216,11 +220,13 @@ parser.defineRule({
   },
   updateScope(scope, { results }) {
     const { type, $method, method, syntax } = results;
+    let statement;
     if (type)
-      scope.getOrStubType(type).addClassMethod($method, results);
+      statement = scope.getOrStubType(type).classMethods.add($method);
     else
-      scope.addMethod($method, results);
+      statement = scope.methods.add($method);
 
+    results.statements.push(statement);
     // TODO: need to work module scope in if no type???
     let compile = type
       ? function({ callArgs = "" }) { return `${type}.${method}(${callArgs})` }
@@ -230,7 +236,7 @@ parser.defineRule({
       name: method,
       syntax,
       compile,
-    }, results);
+    });
   },
   tests: [
     {
@@ -302,20 +308,21 @@ parser.defineRule({
       });
 
       // Create an instance getter
-      scope.getOrStubType(type)
-        .addMethod({
+      const statement = scope.getOrStubType(type)
+        .methods.add({
           name: property,
           kind: "getter",
           datatype: "boolean",
           statements: [`return ${expression}`]
-        }, results);
+        });
+      results.statements.push(statement);
     }
   },
   tests: [
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addType("card");
+        scope.types.add("card");
         scope.constants.add("up", "jack", "queen", "king");
       },
       tests: [
@@ -361,22 +368,23 @@ parser.defineRule({
     }
 
     const { type, value, otherValue, property, condition } = results;
-    scope.getOrStubType(type)
+    const statement = scope.getOrStubType(type)
       // Create as an instance getter
-      .addMethod({
+      .methods.add({
         name: property,
         kind: "getter",
 //TODO:   datatype: "...",
         statements: otherValue
           ? [`return !!${condition} ? ${value} : ${otherValue}`]
           : [`if (${condition}) return ${value}`]
-      }, results)
+      });
+    results.statements.push(statement);
   },
   tests: [
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addType("card");
+        scope.types.add("card");
         scope.constants.add("diamonds", "hearts", "clubs", "spades");
       },
       tests: [      // is one of diamonds or hearts => is_one_of_list
@@ -398,19 +406,20 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     let { type, property, expression } = results;
-    scope
+    const statement = scope
       .getOrStubType(type)
-      .addMethod({
+      .methods.add({
         kind: "getter",
         name: property,
         statements: [`return ${expression}`],
-      }, results)
+      })
+    results.statements.push(statement);
   },
   tests: [
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addType("card");
+        scope.types.add("card");
       },
       tests: [
         ["the value of a card is the position of its rank in its ranks",

@@ -38,7 +38,8 @@ parser.defineRule({
     });
   },
   updateScope(scope, { results }) {
-    scope.addStatement(results.$scope, results);
+    const statement = scope.addStatement(results.$scope);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -130,7 +131,8 @@ parser.defineRule({
     });
   },
   updateScope(scope, { results }) {
-    scope.addStatement(results.$scope, results);
+    const statement = scope.addStatement(results.$scope);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -207,7 +209,8 @@ parser.defineRule({
     });
   },
   updateScope(scope, { results }) {
-    scope.addStatement(results.$scope, results);
+    const statement = scope.addStatement(results.$scope);
+    results.statements.push(statement);
   },
   tests: [
     {

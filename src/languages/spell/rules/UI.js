@@ -21,7 +21,8 @@ parser.defineRule({
   updateScope(scope, { results }) {
     const { message, okButton = '"OK"' } = results;
     scope.async = true;
-    return scope.addStatement(`await spell.alert(${message}, ${okButton})`, results);
+    const statement = scope.addStatement(`await spell.alert(${message}, ${okButton})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -47,7 +48,8 @@ parser.defineRule({
   updateScope(scope, { results }) {
     const { message, okButton = '"OK"' } = results;
     scope.async = true;
-    return scope.addStatement(`await spell.warn(${message}, ${okButton})`, results);
+    const statement = scope.addStatement(`await spell.warn(${message}, ${okButton})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -73,7 +75,8 @@ parser.defineRule({
   updateScope(scope, { results }) {
     const { message, okButton = '"OK"', cancelButton = '"Cancel"' } = results;
     scope.async = true;
-    return scope.addStatement(`await spell.confirm(${message}, ${okButton}, ${cancelButton})`, results);
+    const statement = scope.addStatement(`await spell.confirm(${message}, ${okButton}, ${cancelButton})`);
+    results.statements.push(statement);
   },
   tests: [
     {

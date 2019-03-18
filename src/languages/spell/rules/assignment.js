@@ -27,7 +27,8 @@ parser.defineRule({
     // Add `thing` as a variable if not already in scope.
     const isNewVar = (thingMatch.rule instanceof SpellParser.Rule.Variable && !thingMatch.variable);
     if (isNewVar) scope.variables.add(thing);
-    scope.addStatement(`${isNewVar ? 'let ':''}${thing} = ${value}`, results);
+    const statement = scope.addStatement(`${isNewVar ? 'let ':''}${thing} = ${value}`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -59,7 +60,8 @@ parser.defineRule({
     // make sure 'it' is declared LOCALLY
     const isNewVar = !scope.variables("it", "LOCAL");
     if (isNewVar) scope.variables.add("it");
-    scope.addStatement(`${isNewVar ? 'let ':''}it = ${value}`, results);
+    const statement = scope.addStatement(`${isNewVar ? 'let ':''}it = ${value}`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -89,7 +91,8 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { expression = "undefined" } = results;
-    scope.addStatement(`return ${expression}`, results);
+    const statement = scope.addStatement(`return ${expression}`);
+    results.statements.push(statement);
   },
   tests: [
     {

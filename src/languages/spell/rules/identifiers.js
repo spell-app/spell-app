@@ -95,7 +95,8 @@ parser.defineRule({
     const { value } = results;
     const constant = scope.constants.add({ name, value });
     // TODO: could be defining this more than once...
-    scope.addStatement(`const ${name} = ${constant.toString()}`, results);
+    const statement = scope.addStatement(`const ${name} = ${constant.toString()}`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -218,15 +219,15 @@ parser.defineRule({
       const match = super.parse(scope, tokens);
       if (!match) return;
       // Pick up existing type if defined.
-      match.type = scope.getType(match.raw);
+      match.type = scope.types(match.raw);
       if (match.type) return match;
     }
   },
   tests: [
     {
       beforeEach(scope) {
-        scope.addType({ name: "Thing" });
-        scope.addType({ name: "Bank-Account" });
+        scope.types.add({ name: "Thing" });
+        scope.types.add({ name: "Bank-Account" });
       },
       tests: [
         { title:"known type, lower case", input: "thing", output: "Thing" },

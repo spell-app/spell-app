@@ -543,7 +543,8 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { thing, list, method = "append"} = results;
-    scope.addStatement(`spell.${method}(${list}, ${thing})`, results);
+    const statement = scope.addStatement(`spell.${method}(${list}, ${thing})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -574,7 +575,8 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { thing, list } = results;
-    scope.addStatement(`spell.prepend(${list}, ${thing})`, results);
+    const statement = scope.addStatement(`spell.prepend(${list}, ${thing})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -599,7 +601,8 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { thing, list } = results;
-    scope.addStatement(`spell.append(${list}, ${thing})`, results);
+    const statement = scope.addStatement(`spell.append(${list}, ${thing})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -635,7 +638,8 @@ parser.defineRule({
     const position = operator === "before"
       ? `spell.positionOf(${list}, ${item})`
       : `spell.positionOf(${list}, ${item}) + 1`;
-    scope.addStatement(`spell.splice(${list}, ${position}, ${thing})`, results);
+    const statement = scope.addStatement(`spell.splice(${list}, ${position}, ${thing})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -673,7 +677,8 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { list } = results;
-    scope.addStatement(`spell.clear(${list})`, results);
+    const statement = scope.addStatement(`spell.clear(${list})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -699,7 +704,8 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { ordinal, list } = results;
-    scope.addStatement(`spell.removeItem(${list}, ${ordinal})`, results);
+    const statement = scope.addStatement(`spell.removeItem(${list}, ${ordinal})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -724,7 +730,8 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { number, list } = results;
-    scope.addStatement(`spell.removeItem(${list}, ${number})`, results);
+    const statement = scope.addStatement(`spell.removeItem(${list}, ${number})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -752,7 +759,8 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { start, end, list } = results;
-    scope.addStatement(`spell.removeRange(${list}, ${start}, ${end})`, results);
+    const statement = scope.addStatement(`spell.removeRange(${list}, ${start}, ${end})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -775,7 +783,8 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { start, end, list } = results;
-    scope.addStatement(`spell.removeRange(${list}, ${start}, ${end})`, results);
+    const statement = scope.addStatement(`spell.removeRange(${list}, ${start}, ${end})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -799,7 +808,8 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { thing, list } = results;
-    scope.addStatement(`spell.remove(${list}, ${thing})`, results);
+    const statement = scope.addStatement(`spell.remove(${list}, ${thing})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -832,7 +842,8 @@ parser.defineRule({
   updateScope(scope, { results }) {
     const { condition, list } = results;
     // singularize method argument
-    scope.addStatement(`spell.removeWhere(${list}, ${condition})`, results);
+    const statement = scope.addStatement(`spell.removeWhere(${list}, ${condition})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -869,7 +880,8 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { list } = results;
-    scope.addStatement(`spell.reverse(${list})`, results);
+    const statement = scope.addStatement(`spell.reverse(${list})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -895,7 +907,8 @@ parser.defineRule({
   constructor: SpellParser.Rule.Statement,
   updateScope(scope, { results }) {
     const { list } = results;
-    scope.addStatement(`spell.shuffle(${list})`, results);
+    const statement = scope.addStatement(`spell.shuffle(${list})`);
+    results.statements.push(statement);
   },
   tests: [
     {
@@ -937,13 +950,14 @@ parser.defineRule({
   },
   updateScope(scope, { results }) {
     // Add a Method for the `forEach` wrapper with a custom toString()
-    scope.addStatement(
+    const statement = scope.addStatement(
       new Scope.Method({
         name: "for_each",
         toString() {
           return `spell.forEach(${results.list}, ${results.$scope.toString()})`;
         }
-      }), results);
+      }));
+    results.statements.push(statement);
   },
   tests: [
     {

@@ -53,92 +53,81 @@ export class Scope {
   }
 
 
-  // Local and scope variables
+  /////////////////
+  // Local and scope Variables
+  //
   @indexedList({
     keyProp: "name",
     parentProp: "scope",
-    transformer(item) { return (item instanceof Variable) ? item : new Variable(item) }
+    transformer(item) {
+      if (!(item instanceof Variable)) item = new Variable(item);
+      item.scope = this;
+      return item;
+    }
   })
   variables
 
-//   @memoize
-//   get _variables() { return this._getItemMap("variables") }
-//
-//   // Add a variable to this scope.
-//   @clearMemoized("_variables")
-//   addVariable(variable, results) { return this._addItem(variable, "variables", results, Variable) }
-//
-//   // Return definition of `var` anywhere in our parent chain.
-//   getVariable(name) {
-//     return this.getLocalVariable(name) || this.scope?.getVariable(name);
-//   }
-//
-//   // Return definition of `var` DEFINED IN THIS SCOPE ONLY.
-//   getLocalVariable(name) {
-//     return this._getItem("_variables", name);
-//   }
-
 
   /////////////////
-  // Constants
+  // Local and scope Constants
   //
-
-  // Local constants as a map.
   @indexedList({
     keyProp: "name",
     parentProp: "scope",
-    transformer(item) { return (item instanceof Constant) ? item : new Constant(item) }
+    transformer(item) {
+      if (!(item instanceof Constant)) item = new Constant(item);
+      item.scope = this;
+      return item;
+    }
   })
   constants
 
 
   /////////////////
-  // Methods
+  // Local and scope Methods
   //
-
-  // Local variables as a map.
-  @memoize
-  get _methods() { return this._getItemMap("methods") }
-
-  // Add a method to this scope.
-  @clearMemoized("_methods")
-  addMethod(method, results) { return this._addItem(method, "methods", results, Method) }
-
-  // Return definition of `method` anywhere in our parent chain.
-  getMethod(name) {
-    return this._getItem("_methods", name) || this.scope?.getMethod(name);
-  }
+  @indexedList({
+    keyProp: "name",
+    parentProp: "scope",
+    transformer(item) {
+      if (!(item instanceof Method)) item = new Method(item);
+      item.scope = this;
+      return item;
+    }
+  })
+  methods
 
 
   /////////////////
-  // Types
+  // Local and scope Types
   //
+  @indexedList({
+    keyProp: "name",
+    parentProp: "scope",
+    transformer(item) {
+      if (!(item instanceof Type)) item = new Type(item);
+      item.scope = this;
+      return item;
+    }
+  })
+  types
 
-  @memoize
-  get _types() { return this._getItemMap("types", typeCase) }
-
-  // Add a type to this scope.
-  @clearMemoized("_types")
-  addType(type, results) {
-    return this._addItem(type, "types", results, Type);
+  // Return the named type.  If not found, create a stub type.
+  getOrStubType(name) {
+    const type = this.types(name);
+    if (type) return type;
+    return this.types.add({ name, stub: true });
   }
 
-  // Return definition of `type` anywhere in our parent chain.
-  getType(name) {
-    return this._getItem("_types", name, typeCase) || this.scope?.getType(name);
-  }
-
-  // Return the named type, creating and adding one if necessary.
-  getOrStubType(name, results) {
-    return this.getType(name) || this.addType({ name, stub: true }, results);
-  }
 
 
   /////////////////
   //  Statements
   //
   addStatement(statement, results) {
-    return this._addItem(statement, "statements", results);
+    if (!this.statements) this.statements = [];
+    this.statements.push(statement);
+    return statement;
   }
 
   // Add a Match for a Block, e.g. from an `if` or `forEach` which has nested statements.
@@ -236,7 +225,7 @@ export class Scope {
     if (this instanceof Type) {
       literals = [ [ this.name, this.instanceName], [name, lowerFirst(name) ] ];
       // Add the full list as a class var.
-      statement = this.addClassVariable({...props, initializer, datatype: results.enumType });
+      statement = this.classVariables.add({...props, initializer, datatype: results.enumType });
       results.statements.push(statement);
       // Add instance var which points to the class var.
       statement = this.variables.add({...props, initializer: results.canonicalRef, datatype: results.enumType });
@@ -276,53 +265,10 @@ export class Scope {
   get group() { return this.parser?.group || function noop(){} }
   get groupEnd() { return this.parser?.groupEnd || function noop(){} }
 
-  /////////////////
-  // Utility
-
-  // Add `item` to one of our lists:  variables, methods, types, etc.
-  // If you pass a vanilla Object, we'll do use `new Constructor(item)`.
-  // You'll receive the item back.
-  // NOTE: this modifies the item!  Create a clone before calling this if you care!
-  _addItem(item, listProp, results, constructor) {
-    if (!item) return;
-
-    // Coerce to an instance of constructor
-    if (constructor && item.constructor !== constructor) item = new constructor(item);
-
-    // add to list
-    if (!this[listProp]) this[listProp] = [];
-    this[listProp].push(item);
-
-    // Have the item point back to this scope (if it's not a string)
-    if (typeof item !== "string") item.scope = this;
-
-    // Add to `results.statements` if provided.
-    if (results) {
-      if (!results.statements) results.statements = [];
-      results.statements.push(item);
-    }
-
-    return item;
-  }
-
-  // Given an array of "items" (e.g. with `_addItem()` above),
-  //  return a map of `{ item.name => item }`.
-  // Case INsensitive.
-  _getItemMap(listProp, caseConversion = snakeCase) {
-    return keyBy(this[listProp], item => caseConversion(item.name));
-  }
-
-  // Given the name of an `itemMap` (e.g. from `_getItemMap()` above)
-  // return the item found under that name.
-  // If not found in us our map, ask our `scope` if set.
-  // Case INsensitive.
-  _getItem(mapProp, key, caseConversion = snakeCase) {
-    return this[mapProp][caseConversion(key)];
-  }
-
 }
 
-// Module
+
+// Module:  Scope for parsing a "file".
 export class Module extends Scope {}
 
 
@@ -416,27 +362,33 @@ export class Type extends Scope {
     return `export class ${this.name} {}`;
   }
 
-  @memoize
-  get _classVariables() { return this._getItemMap("classVariables") }
 
-  // Add a classVariable to this scope.
-  @clearMemoized("_classVariables")
-  addClassVariable(variable, results) {
-    variable.kind = "static";
-    return this._addItem(variable, "classVariables", results, Variable)
-  }
+  /////////////////
+  // Class Variables and Methods (statics)
+  //
+  @indexedList({
+    keyProp: "name",
+    transformer(item) {
+      if (!(item instanceof Variable)) item = new Variable(item);
+      item.scope = this;
+      item.kind = "static";
+      return item;
+    }
+  })
+  classVariables
 
-  @memoize
-  get _classMethods() { return this._getItemMap("classMethods") }
+  @indexedList({
+    keyProp: "name",
+    transformer(item) {
+      if (!(item instanceof Method)) item = new Method(item);
+      item.scope = this;
+      item.kind = "static";
+      return item;
+    }
+  })
+  classMethods
 
-  // Add a classMethod to this scope.
-  @clearMemoized("_classMethods")
-  addClassMethod(method, results) {
-    method.kind = "static";
-    return this._addItem(method, "classMethods", results, Method)
-  }
 }
-
 
 
 // Constant definition

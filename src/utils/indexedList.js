@@ -51,7 +51,7 @@ export function indexedList(props) {
     const results = [];
     for (var i = 0; i < arguments.length; i++) {
       // call the `transformer` on each item (default is to just return the item passed in)
-      const item = transformer(arguments[i]);
+      const item = transformer.call(this.thing, arguments[i]);
       const key = normalizeKey(item[keyProp]);
       if (key != null) {
         if (unique && storage.map[key]) this.remove(item[keyProp]);
@@ -146,6 +146,7 @@ export function indexedList(props) {
         }
 
         accessor = accessor.bind(thing);
+        accessor.thing = thing;
         // Hook up the add/remove methods, no need to bind them!
         accessor.add = addItems;
         accessor.remove = removeItems;
