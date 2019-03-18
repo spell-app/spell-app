@@ -5,11 +5,10 @@
 import {
   Rule,
   Spell,
-  SpellParser,
   Token,
 } from "../all.js";
 
-const parser = new SpellParser({ module: "UI" });
+const parser = new Spell.Parser({ module: "UI" });
 export default parser;
 
 // Alert a message.

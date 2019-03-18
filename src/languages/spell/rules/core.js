@@ -3,11 +3,11 @@
 //
 import {
   Rule,
-  SpellParser,
+  Spell,
   Token,
 } from "../all.js";
 
-const parser = new SpellParser({ module: "core" });
+const parser = new Spell.Parser({ module: "core" });
 export default parser;
 
 //

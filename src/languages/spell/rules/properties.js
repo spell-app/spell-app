@@ -7,7 +7,7 @@
 
 import {
   Rule,
-  SpellParser,
+  Spell,
   Token,
 
   pluralize
@@ -15,7 +15,7 @@ import {
 
 import identifierBlacklist from "./identifier-blacklist.js";
 
-const parser = new SpellParser({ module: "properties" });
+const parser = new Spell.Parser({ module: "properties" });
 export default parser;
 
 const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/;

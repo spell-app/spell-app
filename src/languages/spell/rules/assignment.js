@@ -6,10 +6,9 @@ import {
   Rule,
   Scope,
   Spell,
-  SpellParser,
 } from "../all.js";
 
-const parser = new SpellParser({ module: "assignment" });
+const parser = new Spell.Parser({ module: "assignment" });
 export default parser;
 
 

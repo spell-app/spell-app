@@ -13,7 +13,6 @@ import {
   Parser,
   ParseError,
   Rule,
-  SpellParser,
 
   clearMemoized,
   indexedList,

@@ -7,7 +7,6 @@
 export * from "../../parser/all.js";
 
 export * from "./Spell.js"
-export * from "./SpellParser.js"
 export * from "./Scope.js"
 import "./Block.js"
 import "./BlockLine.js"

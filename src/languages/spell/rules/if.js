@@ -6,10 +6,9 @@ import {
   Rule,
   Scope,
   Spell,
-  SpellParser,
 } from "../all.js";
 
-const parser = new SpellParser({ module: "if" });
+const parser = new Spell.Parser({ module: "if" });
 export default parser;
 
 // Given a condition expression string, wrap it in parens iff it is not already parenthesized properly.

@@ -1,4 +1,4 @@
-import { Spell, SpellParser } from "../all.js";
+import { Spell } from "../all.js";
 
 import core from "./core.js";
 import identifiers from "./identifiers.js";
@@ -13,7 +13,7 @@ import UI from "./UI.js";
 import classes from "./classes.js";
 
 // Create parser which combines all of the above...
-export const spell = new SpellParser({ module: "spell" });
+export const spell = new Spell.Parser({ module: "spell" });
 
 spell.defineRule({ name: "block", constructor: Spell.Rule.Block });
 spell.defineRule({ name: "block_line", constructor: Spell.Rule.BlockLine });

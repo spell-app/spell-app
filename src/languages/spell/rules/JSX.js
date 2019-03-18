@@ -4,11 +4,11 @@
 
 import {
   Rule,
-  SpellParser,
+  Spell,
   Token,
 } from "../all.js";
 
-const parser = new SpellParser({ module: "JSX" });
+const parser = new Spell.Parser({ module: "JSX" });
 export default parser;
 
 parser.defineRule({

@@ -4,11 +4,11 @@
 
 import {
   Rule,
-  SpellParser,
+  Spell,
   peek
 } from "../all.js";
 
-const parser = new SpellParser({ module: "expressions" });
+const parser = new Spell.Parser({ module: "expressions" });
 export default parser;
 
 

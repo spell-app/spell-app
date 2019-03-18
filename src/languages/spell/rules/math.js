@@ -5,10 +5,10 @@
 
 import {
   Rule,
-  SpellParser,
+  Spell,
 } from "../all.js";
 
-const parser = new SpellParser({ module: "math" });
+const parser = new Spell.Parser({ module: "math" });
 export default parser;
 
 

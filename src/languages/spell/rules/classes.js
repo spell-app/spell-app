@@ -2,7 +2,6 @@ import {
   Rule,
   Scope,
   Spell,
-  SpellParser,
   Token,
 
   lowerFirst,
@@ -12,7 +11,7 @@ import {
   parseMethodKeywords
 } from "../all.js";
 
-const parser = new SpellParser({ module: "classes" });
+const parser = new Spell.Parser({ module: "classes" });
 export default parser;
 
 parser.defineRule({

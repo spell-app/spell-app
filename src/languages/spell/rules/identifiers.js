@@ -6,7 +6,6 @@ import {
   Rule,
   Scope,
   Spell,
-  SpellParser,
   Token,
 
   proto,
@@ -18,7 +17,7 @@ import {
 
 import identifierBlacklist from "./identifier-blacklist.js";
 
-const parser = new SpellParser({ module: "identifiers" });
+const parser = new Spell.Parser({ module: "identifiers" });
 export default parser;
 
 // Alpha-numeric word, including dashes or underscores.
