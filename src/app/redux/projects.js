@@ -148,7 +148,7 @@ const factory = new ReduxFactory({
         let output;
         try {
           const scope = spell.getScope(moduleId);
-          scope.info("scope: ", scope);
+          console.info("scope: ", scope);
 
           // assign scope and parsing shorthand functions globally
           // for ad-hoc testing of what was just parsed.

@@ -32,7 +32,7 @@ Spell.Rule.BlockLine = class block_line extends Rule {
     if (!statement && !comment) return;
 
     if (statement && statement.length !== remainingTokens.length) {
-      scope.warn(`statement didn't match '${Tokenizer.join(remainingTokens,statement.length)}'`);
+      Spell.logger.warn(`statement didn't match '${Tokenizer.join(remainingTokens,statement.length)}'`);
     }
 
     // If only comment, return that.

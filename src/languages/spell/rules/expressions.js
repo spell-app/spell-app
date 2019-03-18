@@ -65,8 +65,6 @@ export default new Spell.Parser({
     //  testRule: "…{recursive_expression_test}",
       compile(scope, match) {
         const { results, matched } = match;
-    //    scope.debug("compiling recursive expression: ", results);
-
         // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
         //  to deal with operator precedence.  Note that we assume:
         //  - all infix operators are `left-to-right` associative, and
@@ -79,8 +77,6 @@ export default new Spell.Parser({
         rhsExpressions.forEach(rhsMatch => {
           const rhs = rhsMatch.compile();
           const rule = rhsMatch.rule;
-    //      scope.group("processing rhs: ", rhs, "for rule: ", rule.name);
-
           // For a unary postfix operator, `rhs` will be the operator text that was matched
           if (typeof rhs === "string") {
             const args = {
@@ -110,9 +106,6 @@ export default new Spell.Parser({
             // Push the current operator and expression
             opStack.push({ rule, operator });
             output.push(expression);
-
-    //        scope.debug("output: ", [...output], "opStack: ", [...opStack]);
-    //        scope.groupEnd();
           }
         });
 
@@ -128,15 +121,11 @@ export default new Spell.Parser({
           const result = this.applyOperatorToRule(topOp.rule, args, scope);
           output.push(result);
         }
-    //     if (output.length > 1) {
-    //       scope.warn(`compound_expression() ended up with more than one output:`, output);
-    //     }
         return output[0];
       },
 
       applyOperatorToRule(rule, args, scope) {
         const result = rule.applyOperator(args);
-    //    scope.debug("compiled ", args, "got result ", result);
         return result;
       },
       // test multiple infix expressions in a row

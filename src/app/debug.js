@@ -20,11 +20,9 @@ import {
 } from "./all.js";
 
 import precedence from "../languages/precedence/precedence.js";
-precedence.setDebugLevel("INFO");
 
 // Output source when rendering statements
 Spell.Parser.prototype.outputSource = false;       // TODO: add a control for this to the UI
-Spell.Parser.prototype.setDebugLevel("INFO");      // TODO: add a control for this to the UI
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {

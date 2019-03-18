@@ -42,12 +42,12 @@ Spell.Rule.Block = class block extends Rule {
         else {
           const nestedBlock = this.parseBlock(scope, item);
           if (nestedBlock) {
-            scope.info("got a nested block when we weren't expecting one");
+            Spell.logger.info("got a nested block when we weren't expecting one");
             // Just push it into the stream
             matched.push(nestedBlock);
           }
           else {
-            scope.info("expected nested result, didn't get anything");
+            Spell.logger.info("expected nested result, didn't get anything");
           }
         }
         delete this.lastStatement;
@@ -101,8 +101,8 @@ Spell.Rule.Block = class block extends Rule {
           statement = output.join("\n");
         }
       } catch (e) {
-        scope.error(e);
-        scope.warn("Error compiling statements: match\n", line.toPrint());
+        Spell.logger.error(e);
+        Spell.logger.warn("Error compiling statements: match\n", line.toPrint());
       }
 
       if (isWhitespace(statement)) {

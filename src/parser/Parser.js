@@ -15,7 +15,6 @@ import {
   Tokenizer,
   WhitespacePolicy,
 
-  addDebugMethods,
   clearMemoized,
   cloneClass,
   DebugLevel,
@@ -42,9 +41,6 @@ export class Parser {
   // Constructor.
   constructor(properties) {
     Object.assign(this, properties);
-
-    // If we have a module specified, add debug methods under that module name
-    if (this.module) addDebugMethods(this, this.module);
   }
 
   // Return a clone of this parser with additional properties passed in.
@@ -410,7 +406,6 @@ export class Parser {
   testRules(moduleName, debug = true) {
     // Clear outputSource flag so we don't get source output comments in the test results.
     this.outputSource = false;
-    this.setDebugLevel("OFF");
 
     const t0 = Date.now();
     const results = {
@@ -481,6 +476,3 @@ export class Parser {
     return results;
   }
 }
-
-// Add debug methods to all parser instances.
-addDebugMethods(Parser.prototype, "parser", DebugLevel.WARN);

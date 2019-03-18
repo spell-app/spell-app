@@ -2,7 +2,6 @@ import {
   ParseError,
   Token,
 
-
   addDebugMethods,
   DebugLevel,
   proto
@@ -15,7 +14,6 @@ export const WhitespacePolicy = {
   LEADING_ONLY: "LEADING_ONLY",   // Remove inline whitespace only (leaving indents and newlines)
 }
 
-
 //
 //  # Tokenizer class
 //
@@ -24,6 +22,9 @@ export const WhitespacePolicy = {
 export class Tokenizer {
   // Leave all whitespace by default.
   @proto whitespacePolicy = WhitespacePolicy.ALL;
+
+  // Debug logger.
+  @proto logger = addDebugMethods({}, "tokenizer", DebugLevel.WARN);
 
   constructor(props) {
     Object.assign(this, props);
@@ -45,7 +46,7 @@ export class Tokenizer {
 
     const lastEnd = tokens[tokens.length - 1].end;
     if (lastEnd !== end) {
-      this.warn("tokenize(): didn't consume: `", text.slice(start, end) + "`");
+      this.logger.warn("tokenize(): didn't consume: `", text.slice(start, end) + "`");
     }
 
     // Filter according to our whitespace policy
@@ -99,7 +100,7 @@ export class Tokenizer {
       results.push(token);
 
       if (token.end === nextStart) {
-        this.warn("error: got token but didn't advance in stream");
+        this.logger.warn("error: got token but didn't advance in stream");
         break;
       }
       nextStart = token.end;
@@ -388,7 +389,7 @@ export class Tokenizer {
       jsxElement.isUnaryTag = true;
     }
     else if (endBit !== ">") {
-      this.warn(
+      this.logger.warn(
         "Missing expected end `>` for jsxElement",
         jsxElement,
         "`" + text.slice(start, nextStart) + "`"
@@ -430,7 +431,7 @@ export class Tokenizer {
     }
     // TODO: how to surface this error???
     if (nesting !== 0)
-      this.warn(`matchJSXChildren(${text.slice(start, nextStart + 10)}: didn't match end child!`);
+      this.logger.warn(`matchJSXChildren(${text.slice(start, nextStart + 10)}: didn't match end child!`);
 
     return children;
   }
@@ -570,7 +571,7 @@ export class Tokenizer {
 
     // if no match, we've got some sort of error
     if (endIndex === undefined) {
-      this.warn("matchJSXText(" + text.slice(start, start + 50) + "): JSX seems to be unbalanced.");
+      this.logger.warn("matchJSXText(" + text.slice(start, start + 50) + "): JSX seems to be unbalanced.");
       return undefined;
     }
 

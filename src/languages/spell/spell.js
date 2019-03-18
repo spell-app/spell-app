@@ -2,15 +2,20 @@
 //  ## Spell langugage Module root.
 //
 import {
+  DebugLevel,
   Module,
   Parser,
   Tokenizer,
   WhitespacePolicy,
-  proto
+  addDebugMethods,
+  proto,
 } from "./all.js";
 
 
 export const Spell = {
+  // Create a logger set to `warn`
+  logger: addDebugMethods({}, "spell", DebugLevel.WARN),
+
   // Add language-specific rules here, e.g. `Spell.Rule.Statement`
   Rule: {},
 

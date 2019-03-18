@@ -116,7 +116,6 @@ export function indexedList(props) {
     function getStoredFor(thing, key) {
       let accessor = STORAGE.get(thing);
       if (!accessor) {
-//  console.warn(`creating ${key} for `, thing);
         if (parentProp) {
           accessor = function(key, localOnly) {
             // `this` is the instance

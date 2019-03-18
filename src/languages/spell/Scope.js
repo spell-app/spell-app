@@ -1,6 +1,7 @@
 //
 //  Intermediate types -- simplified AST
 //
+import assert from "assert";
 import keyBy from "lodash/keyBy";
 import flatten from "lodash/flatten";
 import lowerFirst from "lodash/lowerFirst"
@@ -206,7 +207,7 @@ export class Scope {
   // Returns `{ datatype, statements }` for working with the enumeration.
   addEnumeration(props, results) {
     props.scope = this;
-    this.assert(Array.isArray(props.enumeration), "addEnumeration() must be called with an 'enumeration'");
+    assert(Array.isArray(props.enumeration), "scope.addEnumeration() must be called with an 'enumeration'");
     const { enumeration, name } = props;
     results.name = name;
     results.canonicalRef = `${this.name}.${name}`;
@@ -258,16 +259,6 @@ export class Scope {
     if (!props.alias.includes(alias)) props.alias.push(alias);
     return props;
   }
-
-  // Console shims for `addDebugMethods`
-  get debug() { return this.parser?.debug || function noop(){} }
-  get info() { return this.parser?.info || function noop(){} }
-  get warn() { return this.parser?.warn || function noop(){} }
-  get error() { return this.parser?.error || function noop(){} }
-  get assert() { return this.parser?.assert || function noop(){} }
-  get group() { return this.parser?.group || function noop(){} }
-  get groupEnd() { return this.parser?.groupEnd || function noop(){} }
-
 }
 
 
@@ -301,7 +292,7 @@ export class Method extends Scope {
     if (this.asExpression) {
       const statements = this.statements || [];
       if (statements.length > 1)
-        console.warn(`Method.toString(): 'asExpression' specified but method has ${statements.length} statements.`, statements);
+        Spell.logger.warn(`Method.toString(): 'asExpression' specified but method has ${statements.length} statements.`, statements);
       const expression = ""+(statements[0]).trim();
       return `(${args}) => ${expression}`;
     }
