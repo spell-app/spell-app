@@ -143,6 +143,14 @@ export class Parser {
     return this.mergeRuleSets(this._rules, ...this.imports.map(parser => parser.rules));
   }
 
+  // Setting rules through assignment calls `defineRules()`, adding to our existing rules.
+  // You'll typically set default rules when initializing a parser:
+  //  `const myParser = new Parser({  module: "xxx", rules: [...] });`
+  // TESTME!!!
+  set rules(rules) {
+    this.defineRules(...rules);
+  }
+
   // Return a named rule from our parser.
   // Throws if not found.
   getRuleOrDie(ruleName) {
@@ -233,6 +241,7 @@ export class Parser {
   // NOTE: it's better to do this using individual `defineRule()` calls
   //       as error stack traces will get you to the right line if there's a problem.
   defineRules(...ruleProps) {
+    ruleProps = flatten(ruleProps);
     const rules = ruleProps.map(ruleProps => this.defineRule(ruleProps));
     return flatten(rules).filter(Boolean);
   }
@@ -254,7 +263,7 @@ export class Parser {
       if (ruleProps instanceof Rule || ruleProps.prototype instanceof Rule)
         return this.addRule(ruleProps);
 
-      let { skip, constructor, ...props } = ruleProps;
+      let { skip, constructor, canonical, ...props } = ruleProps;
       if (skip) return;
 
       // If we received multiple syntax strings,
@@ -323,6 +332,9 @@ export class Parser {
       if (constructor && CLONE_CLASSES && constructor.name !== name)
         constructor = cloneClass(constructor, name);
 
+      if (canonical && constructor)
+        this.setCanonical(props.canonical, constructor);
+
       if (constructor)
         rule = new constructor(props);
       else if (rule)
@@ -341,6 +353,13 @@ export class Parser {
     catch (error) {
       if (!isNode) this.warn("Error in defineRule():", error, "\nprops:", ruleProps);
     }
+  }
+
+  // Set `Canonical` rule constructor
+  // Used when you want to test an `match.rule instanceof someRule`
+  setCanonical(name, constructor) {
+    if (!this.constructor.Rule) this.constructor.Rule = {};
+    this.constructor.Rule[name] = constructor;
   }
 
   //

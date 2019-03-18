@@ -38,265 +38,238 @@ import {
   Token,
   WhitespacePolicy,
 
-  peek
+  peek,
+  proto
 } from "../../parser/all.js";
-
 
 const parser = new Parser({
   module: "precedence",
   defaultRule: "expression",
   tokenizer: new Tokenizer({
     whitespacePolicy: WhitespacePolicy.LEADING_ONLY
-  })
-});
-export default parser;
-
-
-/////////////////////
-//
-//  Non-expressiony words
-//
-
-parser.defineRule({
-  name: "identifier",
-  pattern: /^[a-z][\w\-]*$/,
-  blacklist: {
-    the: 1,
-    of: 1,
-    and: 1,
-    or: 1,
-    is: 1,
-    up: 1,        // NOTE: defined as a `constant` below
-    down: 1       // NOTE: defined as a `constant` below
-  }
-});
-
-
-/////////////////////
-//
-// Normal, productive expression
-//
-
-parser.defineRule({
-  name: "parenthesized_expression",
-  alias: ["expression", "single_expression"],
-  syntax: "\\( {expression} \\)",
-  compile(scope, match) {
-    let { expression } = match.results;
-    // Don't double-up parens
-    if (expression.startsWith?.("(") && expression.endsWith(")"))
-      return expression;
-    return `(${expression})`;
-  }
-});
-
-
-
-parser.defineRule({
-  name: "number",
-  alias: ["expression", "single_expression"],
-  tokenType: Token.Number,
-});
-
-parser.defineRule({
-  name: "identifier_expression",
-  alias: ["expression", "single_expression"],
-  syntax: "the? {identifier}",
-  compile(scope, match) {
-    return match.results.identifier;
-  }
-})
-
-parser.defineRule({
-  name: "property_expression",
-  alias: ["expression", "single_expression"],
-  precedence: 11,
-  syntax: "the {identifier} of {expression:single_expression}",
-  compile(scope, match) {
-    const { identifier, expression } = match.results;
-    return `${expression}.${identifier}`;
-  }
-});
-
-
-/////////////////////
-//
-// Generic recursive expression
-//
-
-parser.defineRule({
-  name: "compound_expression",
-  alias: "expression",
-  precedence: 12,
-  syntax: "{lhs:single_expression} {rhs:expression_suffix}+",
-//  testRule: "…{recursive_expression_test}",
-  compile(scope, match) {
-    const { results, matched } = match;
-//    scope.debug("compiling recursive expression: ", results);
-
-    // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
-    //  to deal with operator precedence.  Note that we assume:
-    //  - all infix operators are `left-to-right` associative, and
-    //  - all postfix operators are postfix operators.
-    // See: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
-    // See: https://www.chris-j.co.uk/parsing.php
-    const output = [ results.lhs ];
-    const opStack = [];
-    const rhsExpressions = matched[1].matched;
-    rhsExpressions.forEach(rhsMatch => {
-      const rhs = rhsMatch.compile();
-      const rule = rhsMatch.rule;
-//      scope.group("processing rhs: ", rhs, "for rule: ", rule.name);
-
-      // For a unary postfix operator, `rhs` will be the operator text that was matched
-      if (typeof rhs === "string") {
-        const args = {
-          operator: rhs,
-          lhs: output.pop()
-        }
-        const result = this.applyOperator(rule, args, scope);
-        output.push(result);
+  }),
+  rules: [
+    /////////////////////
+    //  Non-expressiony words
+    {
+      name: "identifier",
+      pattern: /^[a-z][\w\-]*$/,
+      blacklist: {
+        the: 1,
+        of: 1,
+        and: 1,
+        or: 1,
+        is: 1,
+        up: 1,        // NOTE: defined as a `constant` below
+        down: 1       // NOTE: defined as a `constant` below
       }
-      // If it's a binary operator, `rhs` will be an object: `{ operator?, expression }`
-      else {
-        const { operator, expression } = rhs;
-        // While top operator on stack is higher precedence than this one
-        while (peek(opStack)?.rule.precedence >= rule.precedence) {
-          // pop the top operator and compile it with top 2 things on the output stack
-          const { operator, rule: topRule } = opStack.pop();
-          const args = {
-            operator,
-            rhs: output.pop(),
-            lhs: output.pop()
+    },
+
+    /////////////////////
+    // Normal, productive expressions
+    {
+      name: "parenthesized_expression",
+      alias: ["expression", "single_expression"],
+      syntax: "\\( {expression} \\)",
+      compile(scope, match) {
+        let { expression } = match.results;
+        // Don't double-up parens
+        if (expression.startsWith?.("(") && expression.endsWith(")"))
+          return expression;
+        return `(${expression})`;
+      }
+    },
+
+    {
+      name: "number",
+      alias: ["expression", "single_expression"],
+      tokenType: Token.Number,
+    },
+
+    {
+      name: "identifier_expression",
+      alias: ["expression", "single_expression"],
+      syntax: "the? {identifier}",
+      compile(scope, match) {
+        return match.results.identifier;
+      }
+    },
+
+    {
+      name: "property_expression",
+      alias: ["expression", "single_expression"],
+      precedence: 11,
+      syntax: "the {identifier} of {expression:single_expression}",
+      compile(scope, match) {
+        const { identifier, expression } = match.results;
+        return `${expression}.${identifier}`;
+      }
+    },
+
+
+    /////////////////////
+    // Generic compound expression
+    // Note that it's "lhs" (left-hand side) is a `single_expression`
+    {
+      name: "compound_expression",
+      alias: "expression",
+      precedence: 12,
+      syntax: "{lhs:single_expression} {rhs:expression_suffix}+",
+      compile(scope, match) {
+        const { results, matched } = match;
+    //    scope.debug("compiling recursive expression: ", results);
+
+        // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
+        //  to deal with operator precedence.  Note that we assume:
+        //  - all infix operators are `left-to-right` associative, and
+        //  - all postfix operators are postfix operators.
+        // See: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
+        // See: https://www.chris-j.co.uk/parsing.php
+        const output = [ results.lhs ];
+        const opStack = [];
+        const rhsExpressions = matched[1].matched;
+        rhsExpressions.forEach(rhsMatch => {
+          const rhs = rhsMatch.compile();
+          const rule = rhsMatch.rule;
+    //      scope.group("processing rhs: ", rhs, "for rule: ", rule.name);
+
+          // For a unary postfix operator, `rhs` will be the operator text that was matched
+          if (typeof rhs === "string") {
+            const args = {
+              operator: rhs,
+              lhs: output.pop()
+            }
+            const result = this.applyOperator(rule, args, scope);
+            output.push(result);
           }
-          const result = this.applyOperator(topRule, args, scope);
-          // push the result into the output stream
+          // If it's a binary operator, `rhs` will be an object: `{ operator?, expression }`
+          else {
+            const { operator, expression } = rhs;
+            // While top operator on stack is higher precedence than this one
+            while (peek(opStack)?.rule.precedence >= rule.precedence) {
+              // pop the top operator and compile it with top 2 things on the output stack
+              const { operator, rule: topRule } = opStack.pop();
+              const args = {
+                operator,
+                rhs: output.pop(),
+                lhs: output.pop()
+              }
+              const result = this.applyOperator(topRule, args, scope);
+              // push the result into the output stream
+              output.push(result);
+            }
+
+            // Push the current operator and expression
+            opStack.push({ rule, operator });
+            output.push(expression);
+
+    //        scope.debug("output: ", [...output], "opStack: ", [...opStack]);
+    //        scope.groupEnd();
+          }
+        });
+
+        // At this point, we have only binary operators in the stack.
+        // Run through them
+        let topOp;
+        while ((topOp = opStack.pop())) {
+          const args = {
+            operator: topOp.operator,
+            rhs: output.pop(),
+            lhs: output.pop(),
+          }
+          const result = this.applyOperator(topOp.rule, args, scope);
           output.push(result);
         }
+    //     if (output.length > 1) {
+    //       scope.warn(`compound_expression() ended up with more than one output:`, output);
+    //     }
+        return output[0];
+      },
 
-        // Push the current operator and expression
-        opStack.push({ rule, operator });
-        output.push(expression);
-
-//        scope.debug("output: ", [...output], "opStack: ", [...opStack]);
-//        scope.groupEnd();
+      applyOperator(rule, args, scope) {
+        const { lhs, rhs, operator } = args;
+        const result = rule.applyOperator(args);
+    //    scope.debug("compiled ", args, "got result ", result);
+        return result;
       }
-    });
+    },
 
-    // At this point, we have only binary operators in the stack.
-    // Run through them
-    let topOp;
-    while ((topOp = opStack.pop())) {
-      const args = {
-        operator: topOp.operator,
-        rhs: output.pop(),
-        lhs: output.pop(),
+    /////////////////////
+    // Infix operators
+    {
+      name: "and_rhs",
+      alias: "expression_suffix",
+      precedence: 6,
+      syntax: "and {expression:single_expression}",                   // <== results.rhs = { expression }
+      applyOperator: ({ lhs, rhs }) => `(${lhs} && ${rhs})`
+    },
+
+    {
+      name: "or_rhs",
+      alias: "expression_suffix",
+      precedence: 5,
+      syntax: "(operator:or) {expression:single_expression}",         // <== results.rhs = { operator: "or", expression }
+      applyOperator: ({ lhs, rhs }) => `(${lhs} || ${rhs})`
+    },
+
+    {
+      name: "is_expression",
+      alias: "expression_suffix",
+      precedence: 3,    // ????
+      syntax: "(operator:is not?) {expression:single_expression}",    // <== results.rhs = { operator: "is", expression }
+      applyOperator({ lhs, operator, rhs }) {
+        const op = operator === "is not" ? "!=" : "==";
+        return `(${lhs} ${op} ${rhs})`;
       }
-      const result = this.applyOperator(topOp.rule, args, scope);
-      output.push(result);
-    }
-//     if (output.length > 1) {
-//       scope.warn(`compound_expression() ended up with more than one output:`, output);
-//     }
-    return output[0];
-  },
+    },
 
-  applyOperator(rule, args, scope) {
-    const { lhs, rhs, operator } = args;
-    const result = rule.applyOperator(args);
-//    scope.debug("compiled ", args, "got result ", result);
-    return result;
-  }
+    /////////////////////
+    // Postfix operators
+    {
+      name: "is_empty",
+      precedence: 4,                                  // <== precedence above `is_expression`
+      alias: "expression_suffix",
+      syntax: "is not? empty",                        // <== single Keywords, results.rhs = "is empty"
+      applyOperator({ lhs, operator }) {
+        const bang = (operator === "is not empty" ? "!" : "");
+        return `${bang}spell.isEmpty(${lhs})`;
+      }
+    },
+
+    {
+      name: "is_defined",
+      precedence: 4,                                  // <== precedence above `is_expression`
+      alias: "expression_suffix",
+      syntax: "is (defined|undefined|not defined)",
+      constructor: Rule.LiteralSequence,              // <== LiteralSequence: result.rhs = "is defined"
+      applyOperator({ lhs, operator }) {
+        const op = (operator === "is defined" ? "!==" : "===");
+        return `(typeof ${lhs} ${op} 'undefined')`;
+      }
+    },
+
+
+    /////////////////////
+    // Constants
+    // Add a rule to match constants as expressions.
+    {
+      name: "constant_identifier",
+      alias: ["expression", "single_expression"],
+      rule: "constant",
+      constructor: Rule.Subrule
+    },
+
+    // Add some actual constants
+    {
+      name: "constant",
+      literal: "up",
+      compile: () => "'up'"
+    },
+    {
+      name: "constant",
+      literal: "down",
+      compile: () => "'down'"
+    },
+  ]
 });
-
-parser.defineRule({ name: "recursive_expression_test", literal: "and" });
-parser.defineRule({ name: "recursive_expression_test", literal: "or" });
-parser.defineRule({ name: "recursive_expression_test", literal: "is" });
-
-
-/////////////////////
-//
-// Infix operators
-//
-
-parser.defineRule({
-  name: "and_rhs",
-  alias: "expression_suffix",
-  precedence: 6,
-  syntax: "and {expression:single_expression}",                   // <== results.rhs = { expression }
-  applyOperator: ({ lhs, rhs }) => `(${lhs} && ${rhs})`
-});
-
-parser.defineRule({
-  name: "or_rhs",
-  alias: "expression_suffix",
-  precedence: 5,
-  syntax: "(operator:or) {expression:single_expression}",         // <== results.rhs = { operator: "or", expression }
-  applyOperator: ({ lhs, rhs }) => `(${lhs} || ${rhs})`
-});
-
-parser.defineRule({
-  name: "is_expression",
-  alias: "expression_suffix",
-  precedence: 3,    // ????
-  syntax: "(operator:is not?) {expression:single_expression}",    // <== results.rhs = { operator: "is", expression }
-  applyOperator({ lhs, operator, rhs }) {
-    const op = operator === "is not" ? "!=" : "==";
-    return `(${lhs} ${op} ${rhs})`;
-  }
-});
-
-/////////////////////
-//
-// Postfix operators
-//
-
-parser.defineRule({
-  name: "is_empty",
-  precedence: 4,                                  // <== precedence above `is_expression`
-  alias: "expression_suffix",
-  syntax: "is not? empty",                        // <== single Keywords, results.rhs = "is empty"
-  applyOperator({ lhs, operator }) {
-    const bang = (operator === "is not empty" ? "!" : "");
-    return `${bang}spell.isEmpty(${lhs})`;
-  }
-});
-
-
-parser.defineRule({
-  name: "is_defined",
-  precedence: 4,                                  // <== precedence above `is_expression`
-  alias: "expression_suffix",
-  syntax: "is (defined|undefined|not defined)",
-  constructor: Rule.LiteralSequence,              // <== LiteralSequence: result.rhs = "is defined"
-  applyOperator({ lhs, operator }) {
-    const op = (operator === "is defined" ? "!==" : "===");
-    return `(typeof ${lhs} ${op} 'undefined')`;
-  }
-});
-
-
-/////////////////////
-//
-// Constants
-//
-
-// Add a rule to match constants as expressions.
-parser.defineRule({
-  name: "constant_identifier",
-  alias: ["expression", "single_expression"],
-  rule: "constant",
-  constructor: Rule.Subrule
-});
-
-// Add some actual constants
-parser.defineRule({
-  name: "constant",
-  literal: "up",
-  compile: () => "'up'"
-});
-parser.defineRule({
-  name: "constant",
-  literal: "down",
-  compile: () => "'down'"
-});
+export default parser;

@@ -183,20 +183,20 @@ export class Scope {
   addIdentifierRule(props, results) {
     this._addRuleAlias(props, "identifier");
     props.precedence = 10;       // TODO
-    return this.addRule(props, results);
+    return this.addRule(props);
   }
 
   // Add an expression suffix rule, e.g. "<thing> is not? a face card".
   addExpressionSuffixRule(props, results) {
     this._addRuleAlias(props, "expression_suffix");
     props.precedence = 10;       // TODO
-    return this.addRule(props, results);
+    return this.addRule(props);
   }
 
   // Add a statement rule.
   addStatementRule(props, results) {
     this._addRuleAlias(props, "statement");
-    return this.addRule(props, results);
+    return this.addRule(props);
   }
 
   // Add an enumerated type rule.

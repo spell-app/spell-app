@@ -7,260 +7,261 @@ import {
   Token,
 } from "../all.js";
 
-const parser = new Spell.Parser({ module: "core" });
-export default parser;
-
-//
-//  Various flavors of whitespace.
-//
-
-// Eat all whitespace at start of tokens.
-parser.defineRule({
-  name: "eat_whitespace",
-  syntax: "{whitespace}*",
-  datatype: "string",
-  compile(scope, match) {
-    return match.matched.map(whitespace => whitespace.compile()).join(" ");
-  }
-});
-
-// Any whitespace.
-parser.defineRule({
-  name: "whitespace",
-  datatype: "string",
-  tokenType: Token.Whitespace
-});
-
-// Indent whitespace specifically.
-parser.defineRule({
-  name: "indent",
-  datatype: "string",
-  tokenType: Token.Indent
-});
-
-// Newlines only.
-parser.defineRule({
-  name: "newline",
-  datatype: "string",
-  tokenType: Token.Newline
-});
-
-// Inline whitespace only.
-// Note that we normally filter this out when tokenizing.
-parser.defineRule({
-  name: "inline_whitespace",
-  datatype: "string",
-  tokenType: Token.InlineWhitespace
-});
-
-
-//
-//  Simple types:  number, boolean, text (string), etc.
-//
-
-// `number` as a float or integer token.
-// TODO:  `integer` and `decimal`?  too techy?
-parser.defineRule({
-  name: "number",
-  alias: ["expression", "single_expression"],
-  datatype: "number",
-  tokenType: Token.Number,
-  tests: [
+export default new Spell.Parser({
+  module: "core",
+  rules: [
+    /////////////////////////
+    //  Various flavors of whitespace.
+    //
+    // Eat all whitespace at start of tokens.
     {
-      title: "correctly matches numbers",
+      name: "eat_whitespace",
+      syntax: "{whitespace}*",
+      datatype: "string",
+      compile(scope, match) {
+        return match.matched.map(whitespace => whitespace.compile()).join(" ");
+      }
+    },
+
+    // Any whitespace.
+    {
+      name: "whitespace",
+      datatype: "string",
+      tokenType: Token.Whitespace
+    },
+
+    // Indent whitespace specifically.
+    {
+      name: "indent",
+      datatype: "string",
+      tokenType: Token.Indent
+    },
+
+    // Newlines only.
+    {
+      name: "newline",
+      datatype: "string",
+      tokenType: Token.Newline
+    },
+
+    // Inline whitespace only.
+    // Note that we normally filter this out when tokenizing.
+    {
+      name: "inline_whitespace",
+      datatype: "string",
+      tokenType: Token.InlineWhitespace
+    },
+
+
+    /////////////////////////
+    //  Simple types:  number, boolean, text (string), etc.
+    //
+
+    // `number` as a float or integer token.
+    // TODO:  `integer` and `decimal`?  too techy?
+    {
+      name: "number",
+      alias: ["expression", "single_expression"],
+      datatype: "number",
+      tokenType: Token.Number,
       tests: [
-        ["1", 1],
-        ["1000", 1000],
-        ["-1", -1],
-        ["1.1", 1.1],
-        ["000.1", 0.1],
-        ["1.", 1],
-        [".1", 0.1],
-        ["-111.111", -111.111]
+        {
+          title: "correctly matches numbers",
+          tests: [
+            ["1", 1],
+            ["1000", 1000],
+            ["-1", -1],
+            ["1.1", 1.1],
+            ["000.1", 0.1],
+            ["1.", 1],
+            [".1", 0.1],
+            ["-111.111", -111.111]
+          ]
+        },
+        {
+          title: "doesn't match things that aren't numbers",
+          tests: [
+            ["", undefined],
+            ["-", undefined],
+            [".", undefined]
+          ]
+        },
+        {
+          title: "requires negative sign to touching the number",
+          tests: [
+            ["- 1", undefined]
+          ]
+        }
       ]
     },
+
+    // `number` as a string `zero` to `ten`
     {
-      title: "doesn't match things that aren't numbers",
+      name: "number",
+      alias: ["expression", "single_expression"],
+      datatype: "number",
+      pattern: /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
+      valueMap: {
+        zero: 0,
+        one: 1,
+        two: 2,
+        three: 3,
+        four: 4,
+        five: 5,
+        six: 6,
+        seven: 7,
+        eight: 8,
+        nine: 9,
+        ten: 10
+      },
       tests: [
-        ["", undefined],
-        ["-", undefined],
-        [".", undefined]
+        {
+          title: "correctly matches number strings",
+          tests: [
+            ["zero", 0],
+            ["one", 1],
+            ["two", 2],
+            ["three", 3],
+            ["four", 4],
+            ["five", 5],
+            ["six", 6],
+            ["seven", 7],
+            ["eight", 8],
+            ["nine", 9],
+            ["ten", 10]
+          ]
+        },
       ]
     },
-    {
-      title: "requires negative sign to touching the number",
-      tests: [
-        ["- 1", undefined]
-      ]
-    }
-  ]
-});
 
-// `number` as a string `zero` to `ten`
-parser.defineRule({
-  name: "number",
-  alias: ["expression", "single_expression"],
-  datatype: "number",
-  pattern: /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
-  valueMap: {
-    zero: 0,
-    one: 1,
-    two: 2,
-    three: 3,
-    four: 4,
-    five: 5,
-    six: 6,
-    seven: 7,
-    eight: 8,
-    nine: 9,
-    ten: 10
-  },
-  tests: [
+    // Boolean literal.
+    // TODO: better name for this?  "flag"?  "truism"?
     {
-      title: "correctly matches number strings",
+      name: "boolean",
+      alias: ["expression", "single_expression"],
+      datatype: "boolean",
+      pattern: /^(true|false|yes|no|ok|cancel)$/,
+      valueMap: {
+        "true": true,
+        "false": false,
+        yes: true,
+        no: false,
+        ok: true,
+        cancel: false,
+      },
       tests: [
-        ["zero", 0],
-        ["one", 1],
-        ["two", 2],
-        ["three", 3],
-        ["four", 4],
-        ["five", 5],
-        ["six", 6],
-        ["seven", 7],
-        ["eight", 8],
-        ["nine", 9],
-        ["ten", 10]
+        {
+          title: "correctly matches booleans",
+          tests: [
+            ["", undefined],
+            ["true", true],
+            ["yes", true],
+            ["ok", true],
+            ["false", false],
+            ["no", false],
+            ["cancel", false],
+          ]
+        },
+        {
+          title: "doesn't match in the middle of a longer keyword",
+          tests: [["yessir", undefined], ["yes-sir", undefined], ["yes_sir", undefined]]
+        }
       ]
     },
-  ]
-});
 
-// Boolean literal.
-// TODO: better name for this?  "flag"?  "truism"?
-parser.defineRule({
-  name: "boolean",
-  alias: ["expression", "single_expression"],
-  datatype: "boolean",
-  pattern: /^(true|false|yes|no|ok|cancel)$/,
-  valueMap: {
-    "true": true,
-    "false": false,
-    yes: true,
-    no: false,
-    ok: true,
-    cancel: false,
-  },
-  tests: [
+
+    // Literal `text` string.
+    // You can use either single or double quotes on the outside (although double quotes are preferred).
+    // Returned value has the original enclosing quotes.
     {
-      title: "correctly matches booleans",
+      name: "text",
+      alias: ["expression", "single_expression"],
+      datatype: "string",
+      tokenType: Token.Text,
       tests: [
-        ["", undefined],
-        ["true", true],
-        ["yes", true],
-        ["ok", true],
-        ["false", false],
-        ["no", false],
-        ["cancel", false],
+        {
+          title: "correctly matches text",
+          tests: [
+            ['""', '""'],
+            ["''", "''"],
+            ['"a"', '"a"'],
+            ["'a'", "'a'"],
+            ['"abcd"', '"abcd"'],
+            ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
+            ['"...Can\'t touch this"', '"...Can\'t touch this"'],
+          ]
+        }
       ]
     },
-    {
-      title: "doesn't match in the middle of a longer keyword",
-      tests: [["yessir", undefined], ["yes-sir", undefined], ["yes_sir", undefined]]
-    }
-  ]
-});
 
-
-// Literal `text` string.
-// You can use either single or double quotes on the outside (although double quotes are preferred).
-// Returned value has the original enclosing quotes.
-parser.defineRule({
-  name: "text",
-  alias: ["expression", "single_expression"],
-  datatype: "string",
-  tokenType: Token.Text,
-  tests: [
     {
-      title: "correctly matches text",
+      name: "comment",
+      tokenType: Token.Comment,
+      compile(scope, match) {
+        let { commentSymbol, initialWhitespace, value } = match.matched[0];
+        if (commentSymbol !== "//") commentSymbol = "//" + commentSymbol;
+        return `${commentSymbol}${initialWhitespace}${value}`;
+      },
       tests: [
-        ['""', '""'],
-        ["''", "''"],
-        ['"a"', '"a"'],
-        ["'a'", "'a'"],
-        ['"abcd"', '"abcd"'],
-        ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
-        ['"...Can\'t touch this"', '"...Can\'t touch this"'],
-      ]
-    }
-  ]
-});
-
-parser.defineRule({
-  name: "comment",
-  tokenType: Token.Comment,
-  compile(scope, match) {
-    let { commentSymbol, initialWhitespace, value } = match.matched[0];
-    if (commentSymbol !== "//") commentSymbol = "//" + commentSymbol;
-    return `${commentSymbol}${initialWhitespace}${value}`;
-  },
-  tests: [
-    {
-      compileAs: "comment",
-      tests: [
-        ["//", "//"],
-        ["// foo", "// foo"],
-        ["-- foo", "//-- foo"],
-        ["## foo", "//## foo"],
-        ["//    foo bar baz", "//    foo bar baz"],
-      ]
-    }
-  ]
-});
-
-// `undefined` as an expression... ???
-parser.defineRule({
-  name: "undefined",
-  alias: ["expression", "single_expression"],
-  datatype: "undefined",
-  syntax: "undefined",
-  compile(scope, match) {
-    return "undefined";
-  },
-  tests: [
-    {
-      compileAs: "expression",
-      tests: [["undefined", "undefined"]]
-    }
-  ]
-});
-
-
-// `word` = is a single alphanumeric word.
-// Case is not a factor, but it must start with a letter.
-parser.defineRule({
-  name: "word",
-  pattern: /^[a-zA-Z][\w\-]*$/,
-  // convert dashes to underscores when compiling
-  valueMap(value) {
-    return (""+value).replace(/\-/g, "_")
-  },
-  tests: [
-    {
-      title: "correctly matches words",
-      tests: [
-        ["abc", "abc"],
-        ["abc-def", "abc_def"],
-        ["abc_def", "abc_def"],
-        ["abc01", "abc01"],
-        ["abc-def_01", "abc_def_01"]
+        {
+          compileAs: "comment",
+          tests: [
+            ["//", "//"],
+            ["// foo", "// foo"],
+            ["-- foo", "//-- foo"],
+            ["## foo", "//## foo"],
+            ["//    foo bar baz", "//    foo bar baz"],
+          ]
+        }
       ]
     },
+
+    // `undefined` as an expression... ???
     {
-      title: "doesn't match things that aren't words",
+      name: "undefined",
+      alias: ["expression", "single_expression"],
+      datatype: "undefined",
+      syntax: "undefined",
+      compile(scope, match) {
+        return "undefined";
+      },
       tests: [
-        ["$asda", undefined],
-        ["(asda)", undefined] // TODO... ???
+        {
+          compileAs: "expression",
+          tests: [["undefined", "undefined"]]
+        }
       ]
-    }
+    },
+
+
+    // `word` = is a single alphanumeric word.
+    // Case is not a factor, but it must start with a letter.
+    {
+      name: "word",
+      pattern: /^[a-zA-Z][\w\-]*$/,
+      // convert dashes to underscores when compiling
+      valueMap(value) {
+        return (""+value).replace(/\-/g, "_")
+      },
+      tests: [
+        {
+          title: "correctly matches words",
+          tests: [
+            ["abc", "abc"],
+            ["abc-def", "abc_def"],
+            ["abc_def", "abc_def"],
+            ["abc01", "abc01"],
+            ["abc-def_01", "abc_def_01"]
+          ]
+        },
+        {
+          title: "doesn't match things that aren't words",
+          tests: [
+            ["$asda", undefined],
+            ["(asda)", undefined] // TODO... ???
+          ]
+        }
+      ]
+    },
   ]
 });
