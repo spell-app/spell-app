@@ -63,8 +63,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("bar");
-        scope.addVariable("baz");
+        scope.variables.add("bar");
+        scope.variables.add("baz");
       },
       tests: [
         ["the foo of bar", "bar?.foo"],
@@ -120,7 +120,7 @@ parser.defineRule({
   tests: [
     {
       beforeEach(scope) {
-        scope.addVariable("bar");
+        scope.variables.add("bar");
       },
       tests: [
         [``, undefined],

@@ -65,6 +65,12 @@ SpellParser.Rule.Statement = class statement extends Rule.Sequence {
     return match;
   }
 
+  gatherResults(scope, match) {
+    const results = super.gatherResults(scope, match);
+    results.statements = [];
+    return results;
+  }
+
   // Parse an inline statement.
   parseInlineStatement(scope, match, tokens) {
     const nestedScope = match.getNestedScope();

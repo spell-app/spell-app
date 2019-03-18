@@ -7,13 +7,13 @@
 //      - `parentProp`   (optional) If provided name of key which yields instance "parent".
 //                                  If parent is found, lookup by key will check parent's indexedList if not on instance.
 //      - `normalizeKey` (optional) If provided, method to use to normalize key. e.g. `_.snakeCase`.
-//      - `constructor`  (optional) If provided, `add()` will create with constructor if `!(item instanceof constructor)`
+//      - `transformer`  (optional) If provided, `add(item)` will run through this function, to transform raw input as necessary.
 //      - `unique`       (optional) If `true`, we'll remove any item with same key when adding new ones.
 //
 //  - main `variable` is a FUNCTION with an associated list / map
 //  - `variables()`                   => returns all as a NEW array (in original order)
 //  - `variables(foo)`                => returns item with key = 'foo'
-//  - `variables.add(item)`           => add single item (using constructor if necessary), returns item.
+//  - `variables.add(item)`           => add single item (using transformer if necessary), returns item.
 //  - `variables.add(item...)`        => Add multiple items at once, returns array.
 //  - `variables = item`              => Same as a call to `variables.add(item)` (e.g. adds to existing items).
 //                                       Return value should not be used (may not be what was actually addeed),
@@ -35,11 +35,13 @@ import { getDescriptorProp, setDescriptorProp, clearDescriptorProp } from "./dec
 export function indexedList(props) {
   if (!props) throw new TypeError("@indexedList() must be passed at least `{ keyProp }`");
 
-  const { keyProp, parentProp, normalizeKey = identity, unique = false } = props;
-  const constructor = props.hasOwnProperty("constructor")
-    ? props.constructor
-    : undefined
-  ;
+  const {
+    keyProp,
+    parentProp,
+    transformer = identity,
+    normalizeKey = identity,
+    unique = false
+  } = props;
 
   // Add one or more items to the list.
   function addItems() {
@@ -48,16 +50,15 @@ export function indexedList(props) {
     const storage = this["#storage"] || (this["#storage"] = { list: [], map: {} });
     const results = [];
     for (var i = 0; i < arguments.length; i++) {
-      const item = arguments[i];
-      // Normalize `item` if a constructor was specified
-      if (constructor && !(item instanceof constructor)) item = new constructor(item);
-      results.push(item);
+      // call the `transformer` on each item (default is to just return the item passed in)
+      const item = transformer(arguments[i]);
       const key = normalizeKey(item[keyProp]);
       if (key != null) {
         if (unique && storage.map[key]) this.remove(item[keyProp]);
         storage.map[key] = item;
       }
       storage.list.push(item);
+      results.push(item);
     }
     // If passed one thing, return one thing
     if (results.length === 1) return results[0];
@@ -66,7 +67,9 @@ export function indexedList(props) {
   }
 
   // Remove one or more items to the list specified by `key.
-  // TODO: if key is a function, use it as a reverse filter
+  // TODOC:  pass:
+  //  - a (list of) key
+  //  - a function as a reverse filter
   function removeItems(...keys) {
     // `this` is the bound `getItem` method.
     const storage = this["#storage"];
@@ -107,14 +110,16 @@ export function indexedList(props) {
 
   const STORAGE = new WeakMap();
 // ====> Works:  getter/setter on proto, storage on proto as well.
+// TODO: can we add directly to instance on first get and avoid the STORAGE bit?
   return function(descriptor) {
 
+    // TODOC:  get single key, get local
     function getStoredFor(thing, key) {
       let accessor = STORAGE.get(thing);
       if (!accessor) {
 //  console.warn(`creating ${key} for `, thing);
         if (parentProp) {
-          accessor = function(key) {
+          accessor = function(key, localOnly) {
             // `this` is the instance
             const storage = accessor["#storage"];
             if (key === undefined)
@@ -124,7 +129,7 @@ export function indexedList(props) {
             if (storage && storage.map[key])
               return storage.map[key];
 
-            if (this[parentProp])
+            if (!localOnly && this[parentProp])
               return this[parentProp][descriptor.key](...arguments);
           }
         }
@@ -167,25 +172,4 @@ export function indexedList(props) {
    return descriptor;
   }
 }
-
-
-window._Method = class Method {
-  constructor(props) {
-    if (typeof props === "string") props = { name: props };
-    Object.assign(this, props);
-  }
-}
-window.IndexTest = class IndexTest {
-  constructor(props) {
-    Object.assign(this, props);
-  }
-
-  @indexedList({ keyProp: "name" })
-  variables;
-
-  @indexedList({ keyProp: "name", unique: true, normalizeKey: snakeCase, constructor: _Method })
-  methods;
-}
-
-window.it = new IndexTest();
 

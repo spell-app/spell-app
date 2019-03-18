@@ -45,7 +45,7 @@ parser.defineRule({
       title: "correctly matches single-line if statements",
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("a");
+        scope.variables.add("a");
       },
       tests: [
         ["if a", "if (a) {}"],
@@ -60,7 +60,7 @@ parser.defineRule({
       title: "correctly matches multi-line if blocks",
       compileAs: "block",
       beforeEach(scope) {
-        scope.addVariable("a");
+        scope.variables.add("a");
       },
       tests: [
         {
@@ -137,7 +137,7 @@ parser.defineRule({
       title: "correctly matches single-line else_if statements",
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("a");
+        scope.variables.add("a");
       },
       tests: [
         ["else if a", "else if (a) {}"],
@@ -152,7 +152,7 @@ parser.defineRule({
       title: "correctly matches multi-line else_if blocks",
       compileAs: "block",
       beforeEach(scope) {
-        scope.addVariable("a");
+        scope.variables.add("a");
       },
       tests: [
         {
@@ -267,8 +267,8 @@ parser.defineRule({
       title: "correctly matches single-line backwards_if statements",
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("bar");
-        scope.addVariable("foo");
+        scope.variables.add("bar");
+        scope.variables.add("foo");
       },
       tests: [
         ["get 1 if bar else 2", "let it = (bar ? 1 : 2)"],

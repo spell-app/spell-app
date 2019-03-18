@@ -30,16 +30,16 @@ the value of a card is the position of its rank in its ranks
 a card "is a face card" if its rank is one of jack, queen or king
 
 ## a card "is a spade"
-a card "is a (suit)" for its suits
+-- a card "is a (suit)" for its suits
 
 ## "is a queen"
-a card "is a (rank)" for its ranks
+-- a card "is a (rank)" for its ranks
 
 ## "is a black queen"
-a card "is a (color) (rank)" for its ranks
+-- a card "is a (color) (rank)" for its ranks
 
 ## "is the ace of clubs"
-a card "is the (rank) of (suit)" for its ranks and its suits
+-- a card "is the (rank) of (suit)" for its ranks and its suits
 
 
 to move a card to a pile

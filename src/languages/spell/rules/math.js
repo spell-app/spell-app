@@ -22,8 +22,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("salary");
-        scope.addVariable("expenses");
+        scope.variables.add("salary");
+        scope.variables.add("expenses");
       },
       tests: [
         { title: "> with spaces", input: "salary > expenses", output: "(salary > expenses)" },
@@ -63,8 +63,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("salary");
-        scope.addVariable("expenses");
+        scope.variables.add("salary");
+        scope.variables.add("expenses");
       },
       tests: [
         ["salary is greater than expenses", "(salary > expenses)"],
@@ -89,8 +89,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("price");
-        scope.addVariable("tax");
+        scope.variables.add("price");
+        scope.variables.add("tax");
       },
       tests: [
         ["price + tax", "(price + tax)"],
@@ -117,8 +117,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("price");
-        scope.addVariable("taxRate");
+        scope.variables.add("price");
+        scope.variables.add("taxRate");
       },
       tests: [
         ["price*taxRate", "(price * taxRate)"],
@@ -152,7 +152,7 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("difference");
+        scope.variables.add("difference");
       },
       tests: [
         ["the absolute value of the difference", "Math.abs(difference)"]
@@ -175,8 +175,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("prices");
-        scope.addVariable("price");
+        scope.variables.add("prices");
+        scope.variables.add("price");
       },
       tests: [
         ["largest of the prices", "spell.max(prices)"],
@@ -201,7 +201,7 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("prices");
+        scope.variables.add("prices");
       },
       tests: [
         ["smallest of prices", "spell.min(prices)"],
@@ -228,7 +228,7 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("price");
+        scope.variables.add("price");
       },
       tests: [
         ["round price", "Math.round(price)"],

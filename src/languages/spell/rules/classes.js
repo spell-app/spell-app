@@ -236,7 +236,7 @@ parser.defineRule({
     {
       compileAs: "block",
       beforeEach(scope) {
-        scope.addVariable("deck");
+        scope.variables.add("deck");
       },
       tests: [
         [
@@ -316,10 +316,7 @@ parser.defineRule({
       compileAs: "statement",
       beforeEach(scope) {
         scope.addType("card");
-        scope.addConstant("up");
-        scope.addConstant("jack");
-        scope.addConstant("queen");
-        scope.addConstant("king");
+        scope.constants.add("up", "jack", "queen", "king");
       },
       tests: [
         ['a card "is face up" if its direction is up',
@@ -355,12 +352,12 @@ parser.defineRule({
   updateScope(scope, { results, matches }) {
     const { value: valueMatch, otherValue: otherValueMatch } = matches;
     if (valueMatch.rule instanceof SpellParser.Rule.Constant) {
-      const constant = valueMatch.constant || scope.getConstant(valueMatch.raw);
-      if (!constant) scope.addConstant(valueMatch.raw);
+      const constant = valueMatch.constant || scope.constants(valueMatch.raw);
+      if (!constant) scope.constants.add(valueMatch.raw);
     }
     if (otherValueMatch?.rule instanceof SpellParser.Rule.Constant) {
-      const constant = otherValueMatch.constant || scope.getConstant(otherValueMatch.raw);
-      if (!constant) scope.addConstant(otherValueMatch.raw);
+      const constant = otherValueMatch.constant || scope.constants(otherValueMatch.raw);
+      if (!constant) scope.constants.add(otherValueMatch.raw);
     }
 
     const { type, value, otherValue, property, condition } = results;
@@ -380,10 +377,7 @@ parser.defineRule({
       compileAs: "statement",
       beforeEach(scope) {
         scope.addType("card");
-        scope.addConstant("diamonds");
-        scope.addConstant("hearts");
-        scope.addConstant("clubs");
-        scope.addConstant("spades");
+        scope.constants.add("diamonds", "hearts", "clubs", "spades");
       },
       tests: [      // is one of diamonds or hearts => is_one_of_list
         ["the color of a card is red if its suit is either diamonds or hearts",

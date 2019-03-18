@@ -17,7 +17,12 @@ class Thing {
   @indexedList({ keyProp: "name" })
   variables;
 
-  @indexedList({ keyProp: "name", normalizeKey: snakeCase, constructor: Method, unique: true })
+  @indexedList({
+    keyProp: "name",
+    normalizeKey: snakeCase,
+    unique: true,
+    transformer(item) { return (item instanceof Method) ? item : new Method(item) },
+  })
   methods;
 }
 

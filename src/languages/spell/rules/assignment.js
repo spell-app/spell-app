@@ -26,14 +26,14 @@ parser.defineRule({
     const thingMatch = matches.thing;
     // Add `thing` as a variable if not already in scope.
     const isNewVar = (thingMatch.rule instanceof SpellParser.Rule.Variable && !thingMatch.variable);
-    if (isNewVar) scope.addVariable(thing);
+    if (isNewVar) scope.variables.add(thing);
     scope.addStatement(`${isNewVar ? 'let ':''}${thing} = ${value}`, results);
   },
   tests: [
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("thing");
+        scope.variables.add("thing");
       },
       tests: [
         { title: "existing var equals", input: "thing = yes", output: "thing = true" },
@@ -57,15 +57,15 @@ parser.defineRule({
   updateScope(scope, { results }) {
     let { value } = results;
     // make sure 'it' is declared LOCALLY
-    const isNewVar = !scope.getLocalVariable("it");
-    if (isNewVar) scope.addVariable("it");
+    const isNewVar = !scope.variables("it", "LOCAL");
+    if (isNewVar) scope.variables.add("it");
     scope.addStatement(`${isNewVar ? 'let ':''}it = ${value}`, results);
   },
   tests: [
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("thing");
+        scope.variables.add("thing");
       },
       tests: [
         ["get thing", "let it = thing"],
@@ -95,7 +95,7 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("thing");
+        scope.variables.add("thing");
       },
       tests: [
         ["return", "return undefined"],

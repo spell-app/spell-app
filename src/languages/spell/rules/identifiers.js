@@ -29,7 +29,7 @@ SpellParser.Rule.Constant = class unknown_constant extends Rule.Pattern {
   compile(scope, match) {
     const constant
       = match.constant
-      || scope.getConstant(match.raw)
+      || scope.constants(match.raw)
       || new Scope.Constant(match.raw);
     return constant.toString();
   }
@@ -61,7 +61,7 @@ parser.defineRule({
     parse(scope, tokens) {
       const match = super.parse(scope, tokens);
       if (!match) return;
-      match.constant = scope.getConstant(match.raw);
+      match.constant = scope.constants(match.raw);
       if (match.constant) return match;
     }
   },
@@ -69,8 +69,8 @@ parser.defineRule({
     {
       compileAs: "known_constant",    // TODO: to "expression"
       beforeEach(scope) {
-        scope.addConstant("red");
-        scope.addConstant({ name: "green", value: "#00FF00" });
+        scope.constants.add("red");
+        scope.constants.add({ name: "green", value: "#00FF00" });
       },
       tests: [
         { title: "known constant", input: "red", output: "'red'" },
@@ -93,7 +93,7 @@ parser.defineRule({
   updateScope(scope, { results, matches }) {
     const name = matches.constant.raw;
     const { value } = results;
-    const constant = scope.addConstant({ name, value });
+    const constant = scope.constants.add({ name, value });
     // TODO: could be defining this more than once...
     scope.addStatement(`const ${name} = ${constant.toString()}`, results);
   },
@@ -307,7 +307,7 @@ parser.defineRule({
       const match = super.parse(scope, tokens);
       if (!match) return;
       // figure out if we have an existing variable in scope already
-      match.variable = scope.getVariable(match.raw);
+      match.variable = scope.variables(match.raw);
       if (match.variable) return match;
     }
   },
@@ -315,8 +315,8 @@ parser.defineRule({
     {
       compileAs: "known_variable",    // TODO: "expression"
       beforeEach(scope) {
-        scope.addVariable("thing");
-        scope.addVariable("bank-account");
+        scope.variables.add("thing");
+        scope.variables.add("bank-account");
       },
       tests: [
         { title:"single word", input: "thing", output: "thing" },

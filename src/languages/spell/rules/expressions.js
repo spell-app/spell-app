@@ -33,7 +33,7 @@ parser.defineRule({
     {
       title: "correctly matches parenthesized expressions",
       beforeEach(scope) {
-        scope.addVariable("thing");
+        scope.variables.add("thing");
       },
       tests: [
         ["(thing)", "(thing)"],
@@ -155,7 +155,7 @@ parser.defineRule({
       title: "complex property/etc expressions",
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("card");
+        scope.variables.add("card");
       },
       tests: [
         ["the suit of the card is 'ace'", "(card?.suit == 'ace')"],
@@ -174,9 +174,9 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("thing");
-        scope.addVariable("other");
-        scope.addVariable("yet-another");
+        scope.variables.add("thing");
+        scope.variables.add("other");
+        scope.variables.add("yet-another");
       },
       tests: [
         ["thing and other", "(thing && other)"],
@@ -197,8 +197,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("thing");
-        scope.addVariable("other");
+        scope.variables.add("thing");
+        scope.variables.add("other");
       },
       tests: [
         ["thing or other", "(thing || other)"]
@@ -221,8 +221,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("thing");
-        scope.addVariable("other");
+        scope.variables.add("thing");
+        scope.variables.add("other");
       },
       tests: [
         ["thing is other", "(thing == other)"],
@@ -246,8 +246,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("thing");
-        scope.addVariable("other");
+        scope.variables.add("thing");
+        scope.variables.add("other");
       },
       tests: [
         ["thing is exactly other", "(thing === other)"],
@@ -271,7 +271,7 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("thing");
+        scope.variables.add("thing");
       },
       tests: [
         ["thing is a Bee", "spell.isOfType(thing, 'Bee')"],
@@ -296,8 +296,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("thing");
-        scope.addVariable("other");
+        scope.variables.add("thing");
+        scope.variables.add("other");
       },
       tests: [
         ["thing is the same type as other", "(spell.typeOf(thing) === spell.typeOf(other))"],
@@ -327,9 +327,9 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("thing");
-        scope.addVariable("other-thing");
-        scope.addVariable("theList");
+        scope.variables.add("thing");
+        scope.variables.add("other-thing");
+        scope.variables.add("theList");
       },
       tests: [
         ["thing is in theList", "spell.includes(theList, thing)"],
@@ -358,8 +358,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("theList");
-        scope.addVariable("thing");
+        scope.variables.add("theList");
+        scope.variables.add("thing");
       },
       tests: [
         ["theList includes thing", "spell.includes(theList, thing)"],
@@ -382,8 +382,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("theList");
-        scope.addVariable("thing");
+        scope.variables.add("theList");
+        scope.variables.add("thing");
       },
       tests: [
         ["theList does not include thing", "!spell.includes(theList, thing)"],
@@ -408,7 +408,7 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("thing");
+        scope.variables.add("thing");
       },
       tests: [
         ["thing is defined", "(typeof thing !== 'undefined')"],
@@ -433,7 +433,7 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("thing");
+        scope.variables.add("thing");
       },
       tests: [
         ["thing is empty", "spell.isEmpty(thing)"],

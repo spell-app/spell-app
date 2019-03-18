@@ -16,11 +16,17 @@ import {
   SpellParser,
 
   clearMemoized,
+  indexedList,
   memoize,
+  proto,
   typeCase,
   snakeCase,
   toLower,
 } from "./all.js";
+
+
+
+
 
 // NOTE: this is the only export from this file.
 // Consumers of this file should use `scope.addMethod(...)` or `new `Scope.Method(...)`
@@ -47,27 +53,30 @@ export class Scope {
   }
 
 
-  /////////////////
-  // Vars
-  //
+  // Local and scope variables
+  @indexedList({
+    keyProp: "name",
+    parentProp: "scope",
+    transformer(item) { return (item instanceof Variable) ? item : new Variable(item) }
+  })
+  variables
 
-  // Local variables as a map.
-  @memoize
-  get _variables() { return this._getItemMap("variables") }
-
-  // Add a variable to this scope.
-  @clearMemoized("_variables")
-  addVariable(variable, results) { return this._addItem(variable, "variables", results, Variable) }
-
-  // Return definition of `var` anywhere in our parent chain.
-  getVariable(name) {
-    return this.getLocalVariable(name) || this.scope?.getVariable(name);
-  }
-
-  // Return definition of `var` DEFINED IN THIS SCOPE ONLY.
-  getLocalVariable(name) {
-    return this._getItem("_variables", name);
-  }
+//   @memoize
+//   get _variables() { return this._getItemMap("variables") }
+//
+//   // Add a variable to this scope.
+//   @clearMemoized("_variables")
+//   addVariable(variable, results) { return this._addItem(variable, "variables", results, Variable) }
+//
+//   // Return definition of `var` anywhere in our parent chain.
+//   getVariable(name) {
+//     return this.getLocalVariable(name) || this.scope?.getVariable(name);
+//   }
+//
+//   // Return definition of `var` DEFINED IN THIS SCOPE ONLY.
+//   getLocalVariable(name) {
+//     return this._getItem("_variables", name);
+//   }
 
 
   /////////////////
@@ -75,17 +84,12 @@ export class Scope {
   //
 
   // Local constants as a map.
-  @memoize
-  get _constants() { return this._getItemMap("constants") }
-
-  // Add a constant to this scope.
-  @clearMemoized("_constants")
-  addConstant(constant, results) { return this._addItem(constant, "constants", results, Constant) }
-
-  // Return definition of `constant` anywhere in our parent chain.
-  getConstant(name) {
-    return this._getItem("_constants", name) || this.scope?.getConstant(name);
-  }
+  @indexedList({
+    keyProp: "name",
+    parentProp: "scope",
+    transformer(item) { return (item instanceof Constant) ? item : new Constant(item) }
+  })
+  constants
 
 
   /////////////////
@@ -209,6 +213,7 @@ export class Scope {
   // Automatically adds all strings in the enumeration as "constants".
   // Returns `{ datatype, statements }` for working with the enumeration.
   addEnumeration(props, results) {
+    props.scope = this;
     this.assert(Array.isArray(props.enumeration), "addEnumeration() must be called with an 'enumeration'");
     const { enumeration, name } = props;
     results.name = name;
@@ -218,7 +223,7 @@ export class Scope {
     // Figure out enumeration datatype(s) and add constants for all string values
     results.datatype = uniq(enumeration.map(
       value => {
-        if (typeof value === "string") this.addConstant(value);
+        if (typeof value === "string") this.constants.add(value);
         return typeof value;
       })
     );
@@ -227,17 +232,20 @@ export class Scope {
 
     // Add statements to declare the value
     const initializer = JSON5.stringify(enumeration);
-    let literals;
+    let literals, statement;
     if (this instanceof Type) {
       literals = [ [ this.name, this.instanceName], [name, lowerFirst(name) ] ];
       // Add the full list as a class var.
-      this.addClassVariable({...props, initializer, datatype: results.enumType }, results),
+      statement = this.addClassVariable({...props, initializer, datatype: results.enumType });
+      results.statements.push(statement);
       // Add instance var which points to the class var.
-      this.addVariable({...props, initializer: results.canonicalRef, datatype: results.enumType }, results)
+      statement = this.variables.add({...props, initializer: results.canonicalRef, datatype: results.enumType });
+      results.statements.push(statement);
     }
     else {
       literals = [ this.name, [name, lowerFirst(name) ] ];
-      this.addVariable({...props, initializer, datatype: results.enumType }, results)
+      statement = this.variables.add({...props, initializer, datatype: results.enumType })
+      results.statements.push(statement);
     }
 
     // Add multi-word identifier rule to get the enumeration back, e.g. `card suits` or `Card Suits`.
@@ -326,29 +334,20 @@ export class Module extends Scope {}
 export class Method extends Scope {
   constructor({ args, ...props}) {
     super(props);
+    // Add `args` to our variables list
     if (args) args.forEach(arg => this.addArg(arg));
   }
 
-  @memoize
-  get _args() { return this._getItemMap("args") }
-
-  // Add an arg to this scope.
-  // NOTE: we do not add args to someone else's `results`.
-  @clearMemoized("_args")
   addArg(arg) {
-    arg = this._addItem(arg, "args", null, Variable);
-    arg.kind = "arg";
-    return arg;
-  }
-
-  // When looking up local variables in the top-level method scope, include our args.
-  // TODO: special case for `it` and `its`!!!
-  getLocalVariable(name) {
-    return super.getLocalVariable(name) || this._getItem("_args", name);
+    if (!(arg instanceof Argument)) arg = new Argument(arg);
+    return this.variables.add(arg);
   }
 
   toString() {
-    const args = this.args?.map(arg => arg.name).join(", ") || "";
+    // TODO: needs to include arg initializers below...
+    const args = this.variables().filter(variable => variable.kind === "arg")
+      .map(arg => arg.name).join(", ") || "";
+
     // Return as an inline expression?
     if (this.asExpression) {
       const statements = this.statements || [];
@@ -410,13 +409,6 @@ export class Type extends Scope {
     return lowerFirst(this.name);
   }
 
-  // Return the generic name for an instance of this type.
-  // e.g. if the type name is `Card`, the instanceName would be `card`.
-  get instanceName() {
-    return lowerFirst(this.name);
-  }
-
-
   // Compile the type.
   // NOTE: this currently ignores methods/properties, we'll want to fix that...
   toString() {
@@ -442,6 +434,32 @@ export class Type extends Scope {
   addClassMethod(method, results) {
     method.kind = "static";
     return this._addItem(method, "classMethods", results, Method)
+  }
+}
+
+
+
+// Constant definition
+//
+// Expected properties:
+//  - module
+//  - scope
+//  - name
+//  - value (defaults to `'name'`)
+//  - datatype (defaults to `string`)
+export class Constant {
+  constructor(props) {
+    // Use string as constant 'name'
+    if (typeof props === "string") props = { name: props };
+    if (!props.name)
+      throw new TypeError("Constants must be created with a 'name'");
+    // Assign all properties in the order provided.
+    Object.assign(this, props);
+    if (this.value === undefined) this.value = `'${this.name}'`;1
+  }
+
+  toString() {
+    return this.value;
   }
 }
 
@@ -495,31 +513,9 @@ export class Variable {
   }
 }
 
-
-
-
-// Constant definition
-//
-// Expected properties:
-//  - module
-//  - scope
-//  - name
-//  - value (defaults to `'name'`)
-//  - datatype (defaults to `string`)
-export class Constant {
-  constructor(props) {
-    // Use string as constant 'name'
-    if (typeof props === "string") props = { name: props };
-    if (!props.name)
-      throw new TypeError("Constants must be created with a 'name'");
-    // Assign all properties in the order provided.
-    Object.assign(this, props);
-    if (this.value === undefined) this.value = `'${this.name}'`;1
-  }
-
-  toString() {
-    return this.value;
-  }
+// Subclass of variable specifically used for method ards.
+export class Argument extends Variable {
+  @proto kind = "arg";
 }
 
 

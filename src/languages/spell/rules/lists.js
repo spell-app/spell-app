@@ -99,8 +99,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("bar");
+        scope.variables.add("my-list");
+        scope.variables.add("bar");
       },
       tests: [
         ["number of items in my-list", "spell.lengthOf(my_list)"],
@@ -129,9 +129,9 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("thing");
-        scope.addVariable("bar");
+        scope.variables.add("my-list");
+        scope.variables.add("thing");
+        scope.variables.add("bar");
       },
       tests: [
         ["position of thing in my-list", "spell.positionOf(thing, my_list)"],
@@ -155,8 +155,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("thing");
+        scope.variables.add("my-list");
+        scope.variables.add("thing");
       },
       tests: [
         ["my-list starts with thing", "spell.startsWith(my_list, thing)"],
@@ -242,9 +242,9 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("deck");
-        scope.addVariable("n");
+        scope.variables.add("my-list");
+        scope.variables.add("deck");
+        scope.variables.add("n");
       },
       tests: [
         ["item 1 of my-list", "spell.getItem(my_list, 1)"],
@@ -268,9 +268,9 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("deck");
-        scope.addVariable("words");
+        scope.variables.add("my-list");
+        scope.variables.add("deck");
+        scope.variables.add("words");
       },
       tests: [
         ["the first item of my-list", "spell.getItem(my_list, 1)"],
@@ -295,8 +295,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("deck");
+        scope.variables.add("my-list");
+        scope.variables.add("deck");
       },
       tests: [
         ["a random item of my-list", "spell.getRandomItemOf(my_list)"],
@@ -322,8 +322,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("deck");
+        scope.variables.add("my-list");
+        scope.variables.add("deck");
       },
       tests: [
         ["2 random items of my-list", "spell.getRandomItemsOf(my_list, 2)"],
@@ -354,8 +354,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("deck");
+        scope.variables.add("my-list");
+        scope.variables.add("deck");
       },
       tests: [
         ["item 1 to 2 of my-list", "spell.getRange(my_list, 1, 2)"],
@@ -381,8 +381,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("deck");
+        scope.variables.add("my-list");
+        scope.variables.add("deck");
       },
       tests: [
         ["top 2 items of my-list", "spell.slice(my_list, 1, 2)"],
@@ -409,8 +409,8 @@ parser.defineRule({
     {
       compileAs: "expression",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("thing");
+        scope.variables.add("my-list");
+        scope.variables.add("thing");
       },
       tests: [
         [
@@ -450,7 +450,7 @@ parser.defineRule({
       compileAs: "expression",
       showAll: true,
       beforeEach(scope) {
-        scope.addVariable("my-list");
+        scope.variables.add("my-list");
       },
       tests: [
         [
@@ -494,8 +494,8 @@ parser.defineRule({
       compileAs: "expression",
       showAll: true,
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("bar");
+        scope.variables.add("my-list");
+        scope.variables.add("bar");
       },
       tests: [
         [
@@ -549,8 +549,8 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("thing");
+        scope.variables.add("my-list");
+        scope.variables.add("thing");
       },
       tests: [
         ["add thing to the start of my-list", "spell.prepend(my_list, thing)"],
@@ -580,8 +580,8 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("thing");
+        scope.variables.add("my-list");
+        scope.variables.add("thing");
       },
       tests: [
         ["prepend thing to my-list", "spell.prepend(my_list, thing)"],
@@ -605,8 +605,8 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("thing");
+        scope.variables.add("my-list");
+        scope.variables.add("thing");
       },
       tests: [
         ["append thing to my-list", "spell.append(my_list, thing)"],
@@ -641,9 +641,9 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("thing");
-        scope.addVariable("other-thing");
+        scope.variables.add("my-list");
+        scope.variables.add("thing");
+        scope.variables.add("other-thing");
       },
       tests: [
         [
@@ -679,8 +679,8 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("my-list");
-        scope.addVariable("deck");
+        scope.variables.add("my-list");
+        scope.variables.add("deck");
       },
       tests: [
         ["empty my-list", "spell.clear(my_list)"],
@@ -705,7 +705,7 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("deck");
+        scope.variables.add("deck");
       },
       tests: [
         ["remove last card of deck", "spell.removeItem(deck, -1)"],
@@ -730,7 +730,7 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("my-list");
+        scope.variables.add("my-list");
       },
       tests: [
         ["remove item 4 of my-list", "spell.removeItem(my_list, 4)"]
@@ -758,7 +758,7 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("my-list");
+        scope.variables.add("my-list");
       },
       tests: [
         ["remove items 2 to 4 of my-list", "spell.removeRange(my_list, 2, 4)"]
@@ -781,7 +781,7 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("deck");
+        scope.variables.add("deck");
       },
       tests: [
         ["remove first to third cards of the deck", "spell.removeRange(deck, 1, 3)"],
@@ -805,8 +805,8 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("thing");
-        scope.addVariable("my-list");
+        scope.variables.add("thing");
+        scope.variables.add("my-list");
       },
       tests: [
         ["remove thing from my-list", "spell.remove(my_list, thing)"]
@@ -838,9 +838,9 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("deck");
-        scope.addVariable("my-list");
-        scope.addConstant("clubs");
+        scope.variables.add("deck");
+        scope.variables.add("my-list");
+        scope.constants.add("clubs");
       },
       tests: [
         [
@@ -875,8 +875,8 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("deck");
-        scope.addVariable("my-list");
+        scope.variables.add("deck");
+        scope.variables.add("my-list");
       },
       tests: [
         ["reverse the cards of the deck", "spell.reverse(deck)"],
@@ -901,8 +901,8 @@ parser.defineRule({
     {
       compileAs: "statement",
       beforeEach(scope) {
-        scope.addVariable("deck");
-        scope.addVariable("my-list");
+        scope.variables.add("deck");
+        scope.variables.add("my-list");
       },
       tests: [
         ["shuffle cards of deck", "spell.shuffle(deck)"],
@@ -949,9 +949,9 @@ parser.defineRule({
     {
       compileAs: "block",
       beforeEach(scope) {
-        scope.addVariable("deck");
-        scope.addVariable("my-list");
-        scope.addVariable("messages");
+        scope.variables.add("deck");
+        scope.variables.add("my-list");
+        scope.variables.add("messages");
       },
       tests: [
         ["for each card in deck:",
