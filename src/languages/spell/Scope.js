@@ -59,6 +59,7 @@ export class Scope {
   @indexedList({
     keyProp: "name",
     parentProp: "scope",
+    normalizeKey: snakeCase,
     transformer(item) {
       if (!(item instanceof Variable)) item = new Variable(item);
       item.scope = this;
@@ -74,6 +75,7 @@ export class Scope {
   @indexedList({
     keyProp: "name",
     parentProp: "scope",
+    normalizeKey: snakeCase,
     transformer(item) {
       if (!(item instanceof Constant)) item = new Constant(item);
       item.scope = this;
@@ -89,6 +91,7 @@ export class Scope {
   @indexedList({
     keyProp: "name",
     parentProp: "scope",
+    normalizeKey: snakeCase,
     transformer(item) {
       if (!(item instanceof Method)) item = new Method(item);
       item.scope = this;
@@ -104,6 +107,7 @@ export class Scope {
   @indexedList({
     keyProp: "name",
     parentProp: "scope",
+    normalizeKey: typeCase,
     transformer(item) {
       if (!(item instanceof Type)) item = new Type(item);
       item.scope = this;
@@ -368,6 +372,7 @@ export class Type extends Scope {
   //
   @indexedList({
     keyProp: "name",
+    normalizeKey: snakeCase,
     transformer(item) {
       if (!(item instanceof Variable)) item = new Variable(item);
       item.scope = this;
@@ -379,6 +384,7 @@ export class Type extends Scope {
 
   @indexedList({
     keyProp: "name",
+    normalizeKey: snakeCase,
     transformer(item) {
       if (!(item instanceof Method)) item = new Method(item);
       item.scope = this;

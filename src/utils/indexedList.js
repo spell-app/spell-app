@@ -28,7 +28,6 @@
 // TODO: way to get all including parents?
 
 import identity from "lodash/identity";
-import snakeCase from "lodash/snakeCase";
 
 import { getDescriptorProp, setDescriptorProp, clearDescriptorProp } from "./decorators.js";
 
