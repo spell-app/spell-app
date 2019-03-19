@@ -1,7 +1,7 @@
 import {
   Rule,
   Spell,
-} from "./all.js";
+} from "../all.js";
 
 // Parse a single line in a block.
 // NOTE: we eat whitespace at the start and stick it on `match.whitespace` if found.

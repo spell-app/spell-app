@@ -4,7 +4,7 @@ import {
   Tokenizer,
 
   proto,
-} from "./all.js";
+} from "../all.js";
 
 // In Spell, we generally match `statements` across the entire line.
 //

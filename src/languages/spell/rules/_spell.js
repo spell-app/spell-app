@@ -1,5 +1,12 @@
 import { Spell } from "../all.js";
 
+// These following add new Rule constructors to `Spell.Rule`
+import "./Block.js"
+import "./BlockLine.js"
+import "./Statement.js"
+import "./ParseError.js"
+
+// The following define "modules" of rule sets, which will be combined below.
 import core from "./core.js";
 import types from "./types.js";
 import variables from "./variables.js";

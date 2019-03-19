@@ -2,7 +2,7 @@ import {
   Match,
   Rule,
   Spell
-} from "./all.js";
+} from "../all.js";
 
 // Parser error representation in parser output.
 Spell.Rule.ParseError = class parse_error extends Rule {

@@ -8,8 +8,9 @@ import {
   upperFirst,
   pluralize,
   singularize,
-  parseMethodKeywords
 } from "../all.js";
+
+import { parseMethodKeywords } from "./inflection.js";
 
 export default new Spell.Parser({
   module: "classes",

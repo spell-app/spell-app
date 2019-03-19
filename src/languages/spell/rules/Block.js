@@ -7,7 +7,7 @@ import {
 
   isWhitespace,
   proto
-} from "./all.js";
+} from "../all.js";
 
 // `Blocks` are generally the root entity that we parse in spell.
 //  This is a top-level construct, e.g. used to parse an entire file.

@@ -3,7 +3,7 @@ import {
   upperFirst,
   pluralize,
   singularize
-} from "../../utils/all.js";
+} from "../all.js";
 
 //
 // Results manipulation for casing and such
