@@ -15,13 +15,10 @@ import {
   ParseError,
   Rule,
 
-  clearMemoized,
   indexedList,
-  memoize,
   proto,
   typeCase,
   snakeCase,
-  toLower,
 } from "./all.js";
 
 
@@ -61,7 +58,7 @@ export class Scope {
     parentProp: "scope",
     normalizeKey: snakeCase,
     transformer(item) {
-      if (!(item instanceof Variable)) item = new Variable(item);
+      if (!(item instanceof Scope.Variable)) item = new Scope.Variable(item);
       item.scope = this;
       return item;
     }
@@ -77,7 +74,7 @@ export class Scope {
     parentProp: "scope",
     normalizeKey: snakeCase,
     transformer(item) {
-      if (!(item instanceof Constant)) item = new Constant(item);
+      if (!(item instanceof Scope.Constant)) item = new Scope.Constant(item);
       item.scope = this;
       return item;
     }
@@ -93,7 +90,7 @@ export class Scope {
     parentProp: "scope",
     normalizeKey: snakeCase,
     transformer(item) {
-      if (!(item instanceof Method)) item = new Method(item);
+      if (!(item instanceof Scope.Method)) item = new Scope.Method(item);
       item.scope = this;
       return item;
     }
@@ -109,7 +106,7 @@ export class Scope {
     parentProp: "scope",
     normalizeKey: typeCase,
     transformer(item) {
-      if (!(item instanceof Type)) item = new Type(item);
+      if (!(item instanceof Scope.Type)) item = new Scope.Type(item);
       item.scope = this;
       return item;
     }
@@ -226,7 +223,7 @@ export class Scope {
     // Add statements to declare the value
     const initializer = JSON5.stringify(enumeration);
     let literals, statement;
-    if (this instanceof Type) {
+    if (this instanceof Scope.Type) {
       literals = [ [ this.name, this.instanceName], [name, lowerFirst(name) ] ];
       // Add the full list as a class var.
       statement = this.classVariables.add({...props, initializer, datatype: results.enumType });
@@ -279,7 +276,7 @@ export class Method extends Scope {
   }
 
   addArg(arg) {
-    if (!(arg instanceof Argument)) arg = new Argument(arg);
+    if (!(arg instanceof Scope.Argument)) arg = new Scope.Argument(arg);
     return this.variables.add(arg);
   }
 
@@ -299,7 +296,7 @@ export class Method extends Scope {
 
     const statements = this.compileStatements();
     // If we're attached to a Type,
-    if (this.scope instanceof Type) {
+    if (this.scope instanceof Scope.Type) {
       // Add class props directly
       if (this.kind === "static")
         return `${this.scope.name}.${this.name} = function(${args}) ${statements}`;
@@ -337,7 +334,7 @@ export class Type extends Scope {
     if (typeof props === "string") props = { name: props };
     super(props);
     // Make sure we have a `name`
-    if (!this.name) throw new TypeError("Types must be initialized with a 'name'");
+    if (!this.name) throw new ParseError("Types must be initialized with a 'name'");
     // Make sure type `name` and `superType` are in `Type_Case`
     this.name = typeCase(this.name);
     if (this.superType) this.superType = typeCase(this.superType);
@@ -364,7 +361,7 @@ export class Type extends Scope {
     keyProp: "name",
     normalizeKey: snakeCase,
     transformer(item) {
-      if (!(item instanceof Variable)) item = new Variable(item);
+      if (!(item instanceof Scope.Variable)) item = new Scope.Variable(item);
       item.scope = this;
       item.kind = "static";
       return item;
@@ -376,7 +373,7 @@ export class Type extends Scope {
     keyProp: "name",
     normalizeKey: snakeCase,
     transformer(item) {
-      if (!(item instanceof Method)) item = new Method(item);
+      if (!(item instanceof Scope.Method)) item = new Scope.Method(item);
       item.scope = this;
       item.kind = "static";
       return item;
@@ -400,7 +397,7 @@ export class Constant {
     // Use string as constant 'name'
     if (typeof props === "string") props = { name: props };
     if (!props.name)
-      throw new TypeError("Constants must be created with a 'name'");
+      throw new ParseError("Constants must be created with a 'name'");
     // Assign all properties in the order provided.
     Object.assign(this, props);
     if (this.value === undefined) this.value = `'${this.name}'`;1
@@ -430,7 +427,7 @@ export class Variable {
     // Convert string to 'name'
     if (typeof props === "string") props = { name: props };
     if (!props.name)
-      throw new TypeError("Variables must be created with a 'name'");
+      throw new ParseError("Variables must be created with a 'name'");
     // Assign all properties in the order provided.
     Object.assign(this, props);
   }
@@ -438,7 +435,7 @@ export class Variable {
   toString() {
     const { name, initializer } = this;
     // If we're attached to a Type,
-    if (this.scope instanceof Type) {
+    if (this.scope instanceof Scope.Type) {
       // Add class props directly
       if (this.kind === "static")
         return `${this.scope.name}.${this.name} = ${initializer}`;
@@ -468,6 +465,7 @@ export class Argument extends Variable {
 
 
 // Add classes on Scope for ease of use in other files.
+Scope.Argument = Argument;
 Scope.Constant = Constant;
 Scope.Method = Method;
 Scope.Module = Module;
