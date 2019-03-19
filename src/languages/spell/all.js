@@ -11,7 +11,6 @@ export * from "./Scope.js"
 import "./Block.js"
 import "./BlockLine.js"
 import "./Statement.js"
-import "./StatementParseError.js"
 export * from "./inflection.js";
 
 // Export the entire language as `spell` and as the `default` export.

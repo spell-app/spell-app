@@ -31,8 +31,12 @@ Spell.Rule.BlockLine = class block_line extends Rule {
     // If no statement and no comment, forget it (ignoring whitespace).
     if (!statement && !comment) return;
 
+    // If we got a statement but didn't reach the end of the line
+    //  continue but note the `unparsed` stuff.
+    // `Block` will output the unparsed bit as a comment in the output.
     if (statement && statement.length !== remainingTokens.length) {
-      Spell.logger.warn(`statement didn't match '${Tokenizer.join(remainingTokens,statement.length)}'`);
+      statement.unparsed = Tokenizer.join(remainingTokens,statement.length);
+      Spell.logger.warn(`statement didn't match '${statement.unparsed}'`);
     }
 
     // If only comment, return that.

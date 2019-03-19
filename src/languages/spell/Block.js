@@ -120,6 +120,9 @@ Spell.Rule.Block = class block extends Rule {
           line
         );
       }
+      if (line.unparsed) {
+        results.push("// WARNING: couldn't parse: `" + line.unparsed + "`");
+      }
     }
     const tab = match.indent ? "\t" : "";
     let lines = `${tab}${results.join("\n"+tab)}`
