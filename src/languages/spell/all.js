@@ -7,7 +7,7 @@
 export * from "../../parser/all.js";
 
 export * from "./Spell.js"
-export * from "./Scope.js"
+export * from "./scope/all.js"
 
 // Export the entire language as `spell` and as the `default` export.
 import { spell } from "./rules/_spell.js";
