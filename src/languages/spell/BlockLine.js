@@ -35,8 +35,9 @@ Spell.Rule.BlockLine = class block_line extends Rule {
     //  continue but note the `unparsed` stuff.
     // `Block` will output the unparsed bit as a comment in the output.
     if (statement && statement.length !== remainingTokens.length) {
-      statement.unparsed = Tokenizer.join(remainingTokens,statement.length);
-      Spell.logger.warn(`statement didn't match '${statement.unparsed}'`);
+      const unparsed = remainingTokens.slice(statement.length);
+      Spell.logger.warn(`statement didn't match '${Tokenizer.join(unparsed)}'`);
+      statement.error = scope.parse(unparsed, "parse_error");
     }
 
     // If only comment, return that.

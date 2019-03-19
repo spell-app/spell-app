@@ -19,6 +19,7 @@ export const spell = new Spell.Parser({ module: "spell" });
 
 spell.defineRule({ name: "block", constructor: Spell.Rule.Block });
 spell.defineRule({ name: "block_line", constructor: Spell.Rule.BlockLine });
+spell.defineRule({ name: "parse_error", constructor: Spell.Rule.ParseError });
 
 // Import the other rules defined above.
 spell.import(core, types, variables, constants, assignment, expressions, math, properties, lists, _if_, JSX, UI, classes);

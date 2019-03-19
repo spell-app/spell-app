@@ -1,5 +1,6 @@
 ## definition of a Card with nice english aliases for working with it
 a card is a drawable-thing
+foo
 
 ## card direction:  up or down
 a card has a direction as either up or down

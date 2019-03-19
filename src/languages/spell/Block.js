@@ -55,14 +55,20 @@ Spell.Rule.Block = class block extends Rule {
       // Got a single statement, parse the entire thing as a `block_line`
       else {
         const statement = scope.parse(item, "block_line");
-        if (!statement) return;
-        matched = matched.concat(statement);
+        if (statement) {
+          matched = matched.concat(statement);
 
-        // We've locked in this statement -- have it update it's scope.
-        // This may create other rules/vars/etc that later statements will use.
-        statement.updateScope();
+          // We've locked in this statement -- have it update it's scope.
+          // This may create other rules/vars/etc that later statements will use.
+          statement.updateScope();
 
-        lastStatement = statement;
+          lastStatement = statement;
+        }
+        // Output a parse error for the line but continue
+        else {
+          const error = scope.parse(item, "parse_error");
+          matched.push(error);
+        }
       }
     }
 
@@ -120,8 +126,11 @@ Spell.Rule.Block = class block extends Rule {
           line
         );
       }
-      if (line.unparsed) {
-        results.push("// WARNING: couldn't parse: `" + line.unparsed + "`");
+
+      // If we got an error (e.g. if we couldn't parse the entire line),
+      //  write that at the end.
+      if (line.error) {
+        results.push(line.error.compile());
       }
     }
     const tab = match.indent ? "\t" : "";
