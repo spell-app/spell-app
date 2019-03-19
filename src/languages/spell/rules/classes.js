@@ -149,6 +149,8 @@ export default new Spell.Parser({
           typeScope.addEnumeration({ name: Properties, enumeration }, results);
           setter = [ `if ($.isOneOf(${property}, ${results.canonicalRef})) this.#${property} = ${property}` ];
           datatype = results.datatype;
+          // Add enumeration constants to the main scope, so they can be used outside the type
+          enumeration.forEach(value => (typeof value === "string") && scope.constants.add(value));
         }
         else if (datatype) {
           setter = [ `if ($.isType(${property}, '${datatype}')) this.#${property} = ${property}` ];
