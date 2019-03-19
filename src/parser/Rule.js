@@ -12,16 +12,13 @@
 //  The match returned can be manipulated with:
 //    - `match.compile()`    Return javascript source to interpret the rule.
 //
-import { isNode } from "browser-or-node";
 import flattenDeep from "lodash/flattenDeep";
 
 import {
   Match,
+  proto,
   Token,
   Tokenizer,
-
-  isWhitespace,
-  proto
 } from "./all.js";
 
 
@@ -750,7 +747,7 @@ Rule.BlankLine = class blank_line extends Rule {
 // `prefix` (optional) optional array of rules to match inside the FIRST item
 //
 // If nested start/end blocks are found, WHAT WILL HAPPEN???
-Rule.NestedSplit = class nesting extends Rule {
+Rule.NestedSplit = class nested_split extends Rule {
   parse(scope, tokens) {
 
     const end = this.findNestedEnd(scope, tokens);

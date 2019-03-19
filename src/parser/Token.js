@@ -166,7 +166,7 @@ Token.JSXEndTag = class jsxEndTag extends Token {}
 // JSX attribute class
 // `attr.name` is the name of the attribute.
 // `attr.value` is one of... TODOC
-Token.JSXAttribute = class jsxAttribute extends Token{}
+Token.JSXAttribute = class jsxAttribute extends Token {}
 
 // Loose text in the middle of a JSX block
 // `text.value` is the actual text matched (including whitespace).

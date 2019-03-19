@@ -347,7 +347,7 @@ export class Parser {
       return rule;
     }
     catch (error) {
-      if (!isNode) this.warn("Error in defineRule():", error, "\nprops:", ruleProps);
+      if (!isNode) console.warn("Error in defineRule():", error, "\nprops:", ruleProps);
     }
   }
 

@@ -835,5 +835,3 @@ export class Tokenizer {
     return [block];
   }
 }
-
-addDebugMethods(Tokenizer.prototype, "tokenizer", DebugLevel.WARN);
