@@ -1,2 +1,3 @@
-define constant up
-a card "is face up" if its direction is up
+to turn a card face up
+	if its direction is 'up' then turn it face up
+	else turn it face down

@@ -35,7 +35,7 @@ Spell.Rule.Block = class block extends Rule {
       }
       // If we got a nested block
       else if (item instanceof Token.Block) {
-        // If the lastStatement has a $scope, have it parse the block
+        // If the lastStatement wants a nested block, have it parse the block
         if (lastStatement?.rule?.wantsNestedBlock) {
           this.parseBlock(lastStatement.getNestedScope(), item);
         }
@@ -61,8 +61,16 @@ Spell.Rule.Block = class block extends Rule {
           // We've locked in this statement -- have it update it's scope.
           // This may create other rules/vars/etc that later statements will use.
           statement.updateScope();
-
           lastStatement = statement;
+
+          if (statement.error) {
+            if (lastStatement.rule?.wantsNestedBlock) {
+              lastStatement.getNestedScope().addStatement(statement.error.compile())
+            }
+            else {
+              matched.push(statement.error);
+            }
+          }
         }
         // Output a parse error for the line but continue
         else {
@@ -103,7 +111,7 @@ Spell.Rule.Block = class block extends Rule {
           // Put comment FIRST, before translation
           if (line.comment) output.push(line.comment.compile());
           // Then the actual statement results
-          output.push(`${line.compile()}`);
+          output.push(line.compile());
           statement = output.join("\n");
         }
       } catch (e) {
