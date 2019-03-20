@@ -295,6 +295,39 @@ rulex.defineRule({
   ]
 })
 
+// Match a SPECIFIC number.
+// Note that we create a `Keyword` rule for this, so it can be combined with alpha-numeric keywords.
+rulex.defineRule({
+  constructor: Rule.Sequence,
+  name: "number",
+  alias: "rule",
+  rules: [
+    testLocation,
+    new Rule.TokenType({ tokenType: Token.Number, argument: "number" }),
+    repeatFlag
+  ],
+  compile(scope, { results }) {
+    const rule = new Rule.Keyword({ literal: results.number });
+    return rulex.applyFlags(rule, results);
+  },
+  tests: [
+    {
+      title: "matches single keyword",
+      tests: [
+        ["1", new Rule.Keyword({ literal:  1  })],
+
+        ["…1", new Rule.Keyword({ literal:  1 , testLocation: ANYWHERE })],
+        ["^1", new Rule.Keyword({ literal:  1 , testLocation: AT_START })],
+
+        ["1?", new Rule.Keyword({ literal:  1 , optional: true })],
+        ["1+", new Rule.Repeat({ rule: new Rule.Keyword({ literal:  1  }) })],
+        ["1*", new Rule.Repeat({ optional: true, rule: new Rule.Keyword({ literal:  1  }) })],
+
+      ]
+    }
+  ]
+})
+
 // Subrule
 rulex.defineRule({
   constructor: Rule.Sequence,
