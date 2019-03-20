@@ -97,7 +97,7 @@ export default new Spell.Parser({
       alias: "type_initializer",
       syntax: "as (either|one of) {enumeration:identifier_list}",
       compile(scope, match) {
-        const { enumeration } = match.results;
+        const { enumeration, enumration } = match.results;
         return { datatype: "enum", enumeration };
       },
       tests: [
@@ -274,75 +274,6 @@ export default new Spell.Parser({
         }
       ]
     },
-
-
-
-
-    {
-      name: "quoted_property_alias",
-      alias: "statement",
-      //  e.g. `a card "is face up" if ...`
-      //  NOTE: the first word in quotes must be "is" !!
-      syntax: '(a|an) {type} {alias:text} if {expression}',
-      constructor: class quoted_property_name extends Spell.Rule.Statement {
-        parse(scope, tokens) {
-          const match = super.parse(scope, tokens);
-          if (!match) return;
-          // If first word of `alias` is not `is`, forget it
-          const alias = JSON.parse(match.results.alias).split(" ");
-          if (alias[0] !== "is") return;
-
-          return match;
-        }
-        updateScope(scope, { results }) {
-          const { type, alias, expression } = results;
-          const words = JSON.parse(alias).split(" ");
-          const property = words.join("_");
-          const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ");
-
-          // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
-          scope.addExpressionSuffixRule({
-            name: property,
-            syntax: expressionSuffix,
-            applyOperator({ lhs, operator }) {
-              const bang = (operator.includes("not") ? "!" : "");
-              return `${bang}${lhs}?.${property}`
-            }
-          });
-
-          // Create an instance getter
-          const statement = scope.getOrStubType(type)
-            .methods.add({
-              name: property,
-              kind: "getter",
-              datatype: "boolean",
-              statements: [`return ${expression}`]
-            });
-          results.statements.push(statement);
-        }
-      },
-      tests: [
-        {
-          compileAs: "statement",
-          beforeEach(scope) {
-            scope.types.add("card");
-            scope.constants.add("up", "jack", "queen", "king");
-          },
-          tests: [
-            ['a card "is face up" if its direction is up',
-             "defineProp(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
-            ],
-            ['a card "is a face card" if its rank is one of [jack, queen, king]',
-             "defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes(['jack', 'queen', 'king'], this.rank) } })"
-            ],
-            ['a card "is a face card" if its rank is one of jack, queen or king',
-             "defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes([jack, queen, king], this.rank) } })"
-            ],
-          ]
-        }
-      ]
-    },
-
     {
       name: "the_property_of_a_thing",
       alias: "property_of_a_type",
@@ -431,6 +362,200 @@ export default new Spell.Parser({
             ["a cards score is its value",
              "defineProp(Card.prototype, 'score', { get() { return this.value } })"
             ],
+          ]
+        }
+      ]
+    },
+
+
+    {
+      name: "quoted_property_alias",
+      alias: "statement",
+      //  e.g. `a card "is face up" if ...`
+      //  NOTE: the first word in quotes must be "is" !!
+      syntax: "(a|an) {type} {alias:text} if {expression}",
+      constructor: class quoted_property_alias extends Spell.Rule.Statement {
+        parse(scope, tokens) {
+          const match = super.parse(scope, tokens);
+          if (!match) return;
+          // If first word of `alias` is not `is`, forget it
+          const alias = JSON.parse(match.results.alias).split(" ");
+          if (alias[0] !== "is") return;
+
+          return match;
+        }
+        updateScope(scope, { results }) {
+          const { type, alias, expression } = results;
+          const words = JSON.parse(alias).split(" ");
+          const property = words.join("_");
+          const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ");
+
+          // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
+          scope.addExpressionSuffixRule({
+            name: property,
+            syntax: expressionSuffix,
+            applyOperator({ lhs, operator }) {
+              const bang = (operator.includes("not") ? "!" : "");
+              return `${bang}${lhs}?.${property}`
+            }
+          });
+
+          // Create an instance getter
+          const statement = scope.getOrStubType(type)
+            .methods.add({
+              name: property,
+              kind: "getter",
+              datatype: "boolean",
+              statements: [`return ${expression}`]
+            });
+          results.statements.push(statement);
+        }
+      },
+      tests: [
+        {
+          compileAs: "statement",
+          beforeEach(scope) {
+            scope.types.add("card");
+            scope.constants.add("up", "jack", "queen", "king");
+          },
+          tests: [
+            ['a card "is face up" if its direction is up',
+             "defineProp(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
+            ],
+            ['a card "is a face card" if its rank is one of [jack, queen, king]',
+             "defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes(['jack', 'queen', 'king'], this.rank) } })"
+            ],
+            ['a card "is a face card" if its rank is one of jack, queen or king',
+             "defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes([jack, queen, king], this.rank) } })"
+            ],
+          ]
+        }
+      ]
+    },
+
+
+    {
+      name: "quoted_property_formula",
+      alias: "statement",
+      //  e.g. `a card "is the queen of spades" for...`
+      //  NOTE: the first word in quotes must be "is" !!
+      syntax: "(a|an) {type} {alias:text} for [sources:(its {property}) and]",
+      constructor: class quoted_property_formula extends Spell.Rule.Statement {
+        parse(scope, tokens) {
+          const match = super.parse(scope, tokens);
+          if (!match) return;
+          // If first word of `alias` is not `is`, forget it
+          const alias = JSON.parse(match.results.alias).split(" ");
+          if (alias[0] !== "is") return;
+          return match;
+        }
+        updateScope(scope, { results, matches }) {
+          const { type, alias } = results;
+          const instanceType = lowerFirst(type);
+          const sources = matches.sources.items;
+          const words = JSON.parse(alias).split(" ");
+          let syntax = [];
+          let method = [];
+          let ruleData = [];
+          let vars = [];
+          let sourceNum = 0;
+          const property = words.map(word => {
+            // output keywords directly into words/keywords immediately
+            if (!word.startsWith("(")) {
+              // transform `a` to `(a|an)` for flexbility
+              if (word === "a" || word === "an")
+                syntax.push("(a|an)");
+              else
+                syntax.push(word);
+              return word;
+            }
+            const instanceVar = word.slice(1, -1);
+            vars.push(instanceVar);
+
+            method.push(`(this.${instanceVar} === ${instanceVar})`);
+
+            const propertyName = sources[sourceNum]?.results?.property;
+            const variable = scope.types(type)?.variables(propertyName);
+            if (variable && variable.enumeration) {
+              ruleData.push({
+                instanceVar,
+                enumeration: variable.enumeration,
+                values: variable.enumerationValues || variable.enumeration
+              });
+              syntax.push(`(expression:${variable.enumeration.join("|")})`);
+            }
+            else {
+              // TODO: parse error
+              console.error("couldn't figure out enumeration for ", type, propertyName);
+            }
+            sourceNum++;
+            return `$${instanceVar}`;
+          }).join("_");;
+          // transform `is` to `(operator:is not?)`
+          syntax.splice(0, 1, "(operator:is not?)");
+          syntax = syntax.join(" ");
+          // console.warn(property, syntax, ruleData );
+
+          // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
+          scope.addExpressionSuffixRule({
+            name: property,
+            syntax,
+            applyOperator(stuff) {
+              const { lhs, operator, rhs } = stuff;
+              const bang = (operator.includes("not") ? "!" : "");
+              const args = rhs.map((value, index) => {
+                const data = ruleData[index];
+                const valueIndex = data.enumeration.indexOf(value);
+                return data.values[valueIndex];
+              });
+              return `${bang}${lhs}?.${property}(${args.join(", ")})`
+            }
+          });
+
+          // Create an instance method
+          const statement = scope.getOrStubType(type)
+            .methods.add({
+              args: vars,
+              name: property,
+              datatype: "boolean",
+              statements: [`return ${method.join(" && ")}`]
+            });
+          results.statements.push(statement);
+        }
+      },
+      tests: [
+        {
+          compileAs: "statement",
+          beforeEach(scope) {
+            scope.types.add("card");
+            scope.compile("a card has a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen, king", "statement");
+            scope.compile("a card has a suit as one of clubs, diamonds, hearts, spades", "statement");
+          },
+          tests: [
+            ['a card "is a (rank)" for its ranks',
+             "defineProp(Card.prototype, 'is_a_$rank', { value(rank) { return (this.rank === rank) } })"
+            ],
+            ['a card "is the (rank) of (suit)" for its ranks and its suits',
+             "defineProp(Card.prototype, 'is_the_$rank_of_$suit', { value(rank, suit) { return (this.rank === rank) && (this.suit === suit) } })"
+            ],
+          ]
+        },
+        {
+          compileAs: "statement",
+          beforeEach(scope) {
+            scope.types.add("card");
+            scope.compile("a card has a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen, king", "statement");
+            scope.compile("a card has a suit as one of clubs, diamonds, hearts, spades", "statement");
+            scope.compile('a card "is the (rank) of (suit)" for its ranks and its suits');
+            scope.compile('the card = create a card');
+          },
+          tests: [
+            ['if the card is the queen of spades',
+             "if (card?.is_the_$rank_of_$suit('queen', 'spades')) {}"
+            ],
+            ['if the card is the 2 of hearts',
+             "if (card?.is_the_$rank_of_$suit(2, 'hearts')) {}"
+            ]
           ]
         }
       ]

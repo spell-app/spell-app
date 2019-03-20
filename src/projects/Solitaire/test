@@ -1,3 +1,9 @@
-to turn a card face up
-	if its direction is 'up' then turn it face up
-	else turn it face down
+a card is a thing
+a card has a suit as one of clubs, diamonds, hearts, spades
+a card has a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen, king
+a card "is the (rank) of (suit)" for its ranks and its suits
+
+the card = create a card with rank = queen --and suit = spades
+if card suits
+if the card is the queen of spades
+if the card is not the queen of spades
