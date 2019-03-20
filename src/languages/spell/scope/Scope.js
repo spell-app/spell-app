@@ -157,6 +157,7 @@ export class Scope {
 
   // Parse using this scope in various flavors.
   parse(text, ruleName) { return this.parser.parse(text, ruleName, this) };
+  compile(text, ruleName) { return this.parser.compile(text, ruleName, this) };
   statement(text) { return this.parser.parse(text, "statement", this) };
   exp(text) { return this.parser.parse(text, "expression", this) };
 
@@ -176,8 +177,8 @@ export class Scope {
 
   // Add a multi-word identifier.
   // Single word identifiers dont' need special treatment. (???)
-  addIdentifierRule(props, results) {
-    this._addRuleAlias(props, "identifier");
+  addExpressionRule(props, results) {
+    this._addRuleAlias(props, "expression", "single_expression");
     props.precedence = 10;       // TODO
     return this.addRule(props);
   }
@@ -207,11 +208,15 @@ export class Scope {
     results.name = name;
     results.canonicalRef = `${this.name}.${name}`;
     results.enumeration = enumeration;
+    props.enumerationValues = [];
 
     // Figure out enumeration datatype(s) and add constants for all string values
     results.datatype = uniq(enumeration.map(
       value => {
-        if (typeof value === "string") this.constants.add(value);
+        const enumerationValue = typeof value === "string"
+          ? this.constants.add(value).value
+          : value;
+        props.enumerationValues.push(enumerationValue);
         return typeof value;
       })
     );
@@ -237,7 +242,7 @@ export class Scope {
     }
 
     // Add multi-word identifier rule to get the enumeration back, e.g. `card suits` or `Card Suits`.
-    this.addIdentifierRule({
+    this.addExpressionRule({
       name: `${this.name}_${name}`,
       literals,
       datatype: results.enumType,
@@ -247,11 +252,10 @@ export class Scope {
 
   // Add an alias to rule `props`.
   // NOTE: modifies the props!
-  _addRuleAlias(props, alias) {
-    if (props.name === alias) return props;
+  _addRuleAlias(props, ...aliai) {
     if (!props.alias) props.alias = [];
     else if (typeof props.alias === "string") props.alias = [props.alias];
-    if (!props.alias.includes(alias)) props.alias.push(alias);
+    aliai.forEach(alias => { if (!props.alias.includes(alias)) props.alias.push(alias) });
     return props;
   }
 }
