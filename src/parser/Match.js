@@ -35,10 +35,10 @@ export class Match {
   @memoize
   get results() { return this.rule.gatherResults?.(this.scope, this) }
 
-  // Syntactic sugar to easily get `matches` of the match for sequences, etc.
+  // Syntactic sugar to easily get `groups` of the match for sequences, etc.
   // Only works for some rule types.
   @memoize
-  get matches() { return this.rule.gatherMatches?.(this.scope, this) }
+  get groups() { return this.rule.gatherGroups?.(this.scope, this) }
 
   // Return the "interesting" tokens which were actually matched matched.
   // NOTE: this is not guaranteed to be everything,

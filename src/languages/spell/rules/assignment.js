@@ -20,9 +20,9 @@ export default new Spell.Parser({
         { syntax: "set (thing:{expression}|{variable}) to {value:expression}", testRule: "set" },
       ],
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results, matches }) {
+      updateScope(scope, { results, groups }) {
         const { thing, value } = results;
-        const thingMatch = matches.thing;
+        const thingMatch = groups.thing;
         // Add `thing` as a variable if not already in scope.
         const isNewVar = (thingMatch.rule instanceof Spell.Rule.Variable && !thingMatch.variable);
         if (isNewVar) scope.variables.add(thing);

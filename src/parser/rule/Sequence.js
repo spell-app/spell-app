@@ -78,7 +78,7 @@ Rule.Sequence = class sequence extends Rule {
     return this._addResults({}, match.matched, match => match.compile());
   }
 
-  gatherMatches(scope, match) {
+  gatherGroups(scope, match) {
     return this._addResults({}, match.matched);
   }
 

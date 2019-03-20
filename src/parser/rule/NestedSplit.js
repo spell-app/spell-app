@@ -17,40 +17,40 @@ Rule.NestedSplit = class nesting extends Rule {
     const end = this.findNestedEnd(scope, tokens);
     if (end === undefined) return;
 
-    const tokenGroups = this.splitTokens(scope, tokens.slice(1, end));
-    if (tokenGroups === undefined) return;
+    const tokenSets = this.splitTokens(scope, tokens.slice(1, end));
+    if (tokenSets === undefined) return;
 
     let prefix;
-    const groups = [];
-    for (let i = 0, tokenGroup; tokenGroup = tokenGroups[i]; i++) {
+    const items = [];
+    for (let i = 0, tokenSet; tokenSet = tokenSets[i]; i++) {
       // For the first item only, match the `prefix` rules if supplied
       if (i === 0 && this.prefix) {
-        prefix = this.prefix.parse(scope, tokenGroup);
+        prefix = this.prefix.parse(scope, tokenSet);
         if (!prefix && !prefix.optional) return undefined;
-        if (prefix) tokenGroup = tokenGroup.slice(prefix.length);
+        if (prefix) tokenSet = tokenSet.slice(prefix.length);
       }
-      const match = this.rule.parse(scope, tokenGroup);
+      const match = this.rule.parse(scope, tokenSet);
       if (!match) return undefined;
 
-      if (match.length !== tokenGroup.length) {
+      if (match.length !== tokenSet.length) {
         return undefined;
       }
-      groups.push(match);
+      items.push(match);
     }
     return new Match({
       rule: this,
       prefix,
-      groups,
+      items,
       length: end + 1,
       scope
     });
   }
 
   gatherResults(scope, match) {
-    const { rule, prefix, groups } = match;
+    const { rule, prefix, items } = match;
     const results = prefix && prefix.compile() || {};
     const name = rule.rule.argument || rule.rule.name;
-    results[name] = groups.map(group => group.compile());
+    results[name] = items.map(item => item.compile());
     return results;
   }
 
@@ -81,12 +81,12 @@ Rule.NestedSplit = class nesting extends Rule {
   //  find the index of the token which matches our `end` literal.
   // Returns `undefined` if not found or not balanced.
   splitTokens(scope, tokens) {
-    const groups = [];
+    const items = [];
     let current = [];
     for (let i = 0, token; token = tokens[i]; i++) {
       // handle alternate marker
       if (this.delimiter.testAtStart(scope, tokens, i)) {
-        groups.push(current);
+        items.push(current);
         current = [];
         continue;
       }
@@ -103,9 +103,9 @@ Rule.NestedSplit = class nesting extends Rule {
     }
     // Pick up the last list ONLY if it's not empty
     // This ensures we don't pick up an empty list for a delimiter at the end.
-    if (current.length) groups.push(current);
+    if (current.length) items.push(current);
 
-    if (!groups.length) return undefined;
-    return groups;
+    if (!items.length) return undefined;
+    return items;
   }
 }

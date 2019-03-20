@@ -290,8 +290,8 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "{?:property_of_a_type} is (value:{constant}|{expression}) if {condition:expression} (?:otherwise it is (otherValue:{constant}|{expression}))?",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results, matches }) {
-        const { value: valueMatch, otherValue: otherValueMatch } = matches;
+      updateScope(scope, { results, groups }) {
+        const { value: valueMatch, otherValue: otherValueMatch } = groups;
         if (valueMatch.rule instanceof Spell.Rule.Constant) {
           const constant = valueMatch.constant || scope.constants(valueMatch.raw);
           if (!constant) scope.constants.add(valueMatch.raw);
@@ -449,10 +449,10 @@ export default new Spell.Parser({
           if (alias[0] !== "is") return;
           return match;
         }
-        updateScope(scope, { results, matches }) {
+        updateScope(scope, { results, groups }) {
           const { type, alias } = results;
           const instanceType = lowerFirst(type);
-          const sources = matches.sources.items;
+          const sources = groups.sources.items;
           const words = JSON.parse(alias).split(" ");
           let syntax = [];
           let method = [];

@@ -90,8 +90,8 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "define constant {constant} (?:as {value:expression})?",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results, matches }) {
-        const name = matches.constant.raw;
+      updateScope(scope, { results, groups }) {
+        const name = groups.constant.raw;
         const { value } = results;
         const constant = scope.constants.add({ name, value });
         // TODO: could be defining this more than once...
