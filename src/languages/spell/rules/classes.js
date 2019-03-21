@@ -19,7 +19,7 @@ export default new Spell.Parser({
       name: "create_type",
       alias: "statement",
       syntax: [
-        "create type {type} (?:as (a|an) {superType:type})?",
+        "create a type (named|called) {type} (?:as (a|an) {superType:type})?",
         "a {type} is (a|an) {superType:type}"
       ],
       constructor: Spell.Rule.Statement,
@@ -35,8 +35,8 @@ export default new Spell.Parser({
         {
           compileAs: "statement",
           tests: [
-            ["create type card", "export class Card {}"],
-            ["create type car as a vehicle", "export class Car extends Vehicle {}"],
+            ["create a type named card", "export class Card {}"],
+            ["create a type called car as a vehicle", "export class Car extends Vehicle {}"],
             ["a card is a thing", "export class Card extends Thing {}"],
           ]
         }
@@ -44,14 +44,58 @@ export default new Spell.Parser({
     },
 
 
+    // `a new object`
+    // NOTE: we assume that all types take an object of properties????
+    {
+      name: "new_thing",
+      alias: ["expression", "single_expression"],
+      syntax: "a new {type:known_type} (?:with {props:object_literal_properties})?",
+      testRule: "…new",
+      constructor: Spell.Rule.Statement,
+      updateScope(scope, { results }) {
+        const { type, props = "" } = results; // `props` is the object literal text
+        const statement = scope.addStatement(`new ${type}(${props})`);
+        results.statements.push(statement);
+      },
+      tests: [
+        {
+          title: "creates normal types",
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.types.add("Thing");
+          },
+          tests: [
+            [`a new Thing`, `new Thing()`],
+            [`a new Thing with a = 1, b = yes`, `new Thing({ a: 1, b: true })`]
+          ]
+        },
+        {
+          title: "creates base types",
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.types.add("Object");      // TODO: shouldn't be necessary!
+            scope.types.add("List");        // TODO: shouldn't be necessary!
+          },
+          tests: [
+            ["a new Object", "new Object()"],
+            ["a new object with a = 1, b = yes", "new Object({ a: 1, b: true })"],
+            //FIXME: the following don't make sense if they have arguments...
+            ["create a List", "new List()"],
+            ["create a list", "new List()"]
+          ]
+        }
+      ]
+    },
+
     // `new` or `create`
     // This works as an expression OR a statement.
     // NOTE: we assume that all types take an object of properties????
+    // TODO: in `statement` form, put into `it`???
     //FIXME: `list`, `text`, etc don't follow these semantics???
     {
-      name: "new_thing",
+      name: "create_thing",
       alias: ["expression", "single_expression", "statement"],
-      syntax: "create (a|an) {type} (?:with {props:object_literal_properties})?",
+      syntax: "create (a|an) {type:known_type} (?:with {props:object_literal_properties})?",
       testRule: "create",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
@@ -63,18 +107,24 @@ export default new Spell.Parser({
         {
           title: "creates normal objects properly",
           compileAs: "statement",
+          beforeEach(scope) {
+            scope.types.add("Thing");
+          },
           tests: [
-            [`create an Object`, `new Object()`],
-            [`create an Object with a = 1, b = yes`, `new Object({ "a": 1, "b": true })`],
-            [`create a Foo`, `new Foo()`],
-            [`create a Foo with a = 1, b = yes`, `new Foo({ "a": 1, "b": true })`]
+            [`create a Thing`, `new Thing()`],
+            [`create a Thing with a = 1, b = yes`, `new Thing({ a: 1, b: true })`]
           ]
         },
         {
-          title: "creates special types",
+          title: "creates base types",
           compileAs: "expression",
+          beforeEach(scope) {
+            scope.types.add("Object");
+            scope.types.add("List");
+          },
           tests: [
             ["create an object", "new Object()"],
+            ["create an object with a = 1, b = yes", "new Object({ a: 1, b: true })"],
             //FIXME: the following don't make sense if they have arguments...
             ["create a List", "new List()"],
             ["create a list", "new List()"]
@@ -197,6 +247,20 @@ export default new Spell.Parser({
                 "defineProp(Player.prototype, 'name', { set(name) { if ($.isType(name, 'text')) this.#name = name } })",
               ].join("\n")
             ],
+          ]
+        },
+        {
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.compile("a card is a thing", "statement");
+            scope.compile("a card has a suit as one of clubs, diamonds, hearts or spades", "statement");
+            scope.compile("card = create a card", "statement");
+          },
+          tests: [
+            [ "Card suits", "Card.Suits" ],
+            [ "card suits", "Card.Suits" ],
+            [ "the suit of the card", "card?.suit" ],
+            [ "the suits of the card", "card?.suits" ],
           ]
         }
       ]
@@ -394,6 +458,7 @@ export default new Spell.Parser({
           scope.addExpressionSuffixRule({
             name: property,
             syntax: expressionSuffix,
+            precedence: 20,
             applyOperator({ lhs, operator }) {
               const bang = (operator.includes("not") ? "!" : "");
               return `${bang}${lhs}?.${property}`
@@ -470,19 +535,30 @@ export default new Spell.Parser({
               return word;
             }
             const instanceVar = word.slice(1, -1);
-            vars.push(instanceVar);
+            const singularVar = singularize(instanceVar);
+            const isSingular = singularVar === instanceVar;
 
-            method.push(`(this.${instanceVar} === ${instanceVar})`);
+            vars.push(singularVar);
+            method.push(`(this.${singularVar} === ${singularVar})`);
 
+            // Try to find the enumeration
+            // NOTE: currently this only works for an enumeration defined on the type!!!
             const propertyName = sources[sourceNum]?.results?.property;
             const variable = scope.types(type)?.variables(propertyName);
-            if (variable && variable.enumeration) {
+            let enumeration = variable?.enumeration;
+            // set up enumeration matcher
+            if (variable && enumeration) {
+              // make sure inflection of variables matches `isSingular`
+              const inflector = isSingular ? singularize : pluralize;
+              const inflectedEnumeration = enumeration.map(value => {
+                return (typeof value === "string" ? inflector(value) : value);
+              });
               ruleData.push({
                 instanceVar,
-                enumeration: variable.enumeration,
-                values: variable.enumerationValues || variable.enumeration
+                enumeration: inflectedEnumeration,
+                values: variable.enumerationValues || enumeration
               });
-              syntax.push(`(expression:${variable.enumeration.join("|")})`);
+              syntax.push(`(expression:${inflectedEnumeration.join("|")})`);
             }
             else {
               // TODO: parse error
@@ -500,9 +576,11 @@ export default new Spell.Parser({
           scope.addExpressionSuffixRule({
             name: property,
             syntax,
+            precedence: 20,
             applyOperator(stuff) {
-              const { lhs, operator, rhs } = stuff;
+              let { lhs, operator, rhs } = stuff;
               const bang = (operator.includes("not") ? "!" : "");
+              if (!Array.isArray(rhs)) rhs = [rhs];
               const args = rhs.map((value, index) => {
                 const data = ruleData[index];
                 const valueIndex = data.enumeration.indexOf(value);
@@ -535,8 +613,8 @@ export default new Spell.Parser({
             ['a card "is a (rank)" for its ranks',
              "defineProp(Card.prototype, 'is_a_$rank', { value(rank) { return (this.rank === rank) } })"
             ],
-            ['a card "is the (rank) of (suit)" for its ranks and its suits',
-             "defineProp(Card.prototype, 'is_the_$rank_of_$suit', { value(rank, suit) { return (this.rank === rank) && (this.suit === suit) } })"
+            ['a card "is the (rank) of (suits)" for its ranks and its suits',
+             "defineProp(Card.prototype, 'is_the_$rank_of_$suits', { value(rank, suit) { return (this.rank === rank) && (this.suit === suit) } })"
             ],
           ]
         },
@@ -546,26 +624,19 @@ export default new Spell.Parser({
             scope.types.add("card");
             scope.compile("a card has a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen, king", "statement");
             scope.compile("a card has a suit as one of clubs, diamonds, hearts, spades", "statement");
-            scope.compile('a card "is the (rank) of (suit)" for its ranks and its suits');
+            scope.compile('a card "is the (rank) of (suits)" for its ranks and its suits');
             scope.compile('the card = create a card');
           },
           tests: [
             ['if the card is the queen of spades',
-             "if (card?.is_the_$rank_of_$suit('queen', 'spades')) {}"
+             "if (card?.is_the_$rank_of_$suits('queen', 'spades')) {}"
             ],
             ['if the card is the 2 of hearts',
-             "if (card?.is_the_$rank_of_$suit(2, 'hearts')) {}"
+             "if (card?.is_the_$rank_of_$suits(2, 'hearts')) {}"
             ]
           ]
         }
       ]
     },
-
-
-
-    // TODO:
-    // "card is a queen" or "card is a queen of clubs"
-    //   a card "is a (rank)" for its ranks
-    //   a card "is a (rank) of (suits)" for its ranks and its suits
   ]
 });

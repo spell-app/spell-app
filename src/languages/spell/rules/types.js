@@ -125,7 +125,7 @@ export default new Spell.Parser({
     // `match.type` will be the existing `Scope.Type`.
     {
       name: "known_type",
-      alias: ["expression", "single_expression"],
+//      alias: ["expression", "single_expression"],
       constructor: class known_type extends Spell.Rule.Type {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens);

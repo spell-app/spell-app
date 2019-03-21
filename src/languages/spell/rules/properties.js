@@ -5,6 +5,7 @@
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
 
+
 import {
   Rule,
   Spell,
@@ -14,6 +15,10 @@ import {
 import identifierBlacklist from "./identifier-blacklist.js";
 
 const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/;
+
+// quick-and-dirty check for a property identifier we don't have to quote
+//  when creating a new object as `{ key: value }`.
+const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w\$]*$/;
 
 export default new Spell.Parser({
   module: "properties",
@@ -104,10 +109,12 @@ export default new Spell.Parser({
       name: "object_literal_properties",
       syntax: "[({key:property} (?:= {value:expression})?),]",
       compile(scope, match) {
-        let props = match.items.map(function(prop) {
+        const props = match.items.map(function(prop) {
           let { key, value } = prop.results;
-          if (value) return `"${key}": ${value}`;
-          return key;
+          if (value === undefined) return key;
+          if (!LEGAL_PROPERTY_IDENTIFIER.test(key))
+            return `"${key}": ${value}`;
+          return `${key}: ${value}`;
         });
         return `{ ${props.join(", ")} }`;
       },
@@ -118,10 +125,13 @@ export default new Spell.Parser({
           },
           tests: [
             [``, undefined],
-            [`a = 1`, `{ "a": 1 }`],
-            [`a = 1,`, `{ "a": 1 }`],
-            [`a = 1, b = yes, c = "quoted"`, `{ "a": 1, "b": true, "c": "quoted" }`],
-            [`a = 1, b = the foo of the bar`, `{ "a": 1, "b": bar?.foo }`]
+            [`a = 1`, `{ a: 1 }`],
+            [`a = 1,`, `{ a: 1 }`],
+            [`a = 1, b = yes, c = "quoted"`, `{ a: 1, b: true, c: "quoted" }`],
+            [`a = 1, b = the foo of the bar`, `{ a: 1, b: bar?.foo }`],
+
+            // TODO: `{property}` converts to `foo_bar` before we get here
+            [`foo-bar = 1`, `{ foo_bar: 1 }` ],
           ]
         }
       ]
