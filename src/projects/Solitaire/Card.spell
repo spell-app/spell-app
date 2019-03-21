@@ -18,40 +18,39 @@ the value of a card is the position of its rank in its ranks
 a card has a direction as either up or down
 
 ## create a card instance with default properties
-the card = create a card with rank = queen, suit = spades, direction = up
-expect the rank of the card to be queen
-expect the suit of the card to be spades
-expect the color of the card to be black
-expect the value of the card to be 12
+my-card = create a card with rank = queen, suit = spades, direction = up
+expect the rank of my-card to be queen
+expect the suit of my-card to be spades
+expect the color of my-card to be black
+expect the value of my-card to be 12
 
 ## aliases
-// "face up/face down"
+// "card is face up/down"
 a card "is face up" if its direction is up
 a card "is face down" if its direction is down
-expect the card is face up to be yes
-expect the card is face down to be no
-
+expect my-card is face up to be yes
+expect my-card is face down to be no
 
 // `card is a face card`
 a card "is a face card" if its rank is one of jack, queen or king
-expect the card is a face card to be yes
-expect the card is not a face card to be false
+expect my-card is a face card to be yes
+expect my-card is not a face card to be false
 
 // "card is a spade", "...is a club" etc
 a card "is a (suit)" for its suits
-expect the card is a spade to be true
-expect the card is a club to be false
+expect my-card is a spade to be true
+expect my-card is a club to be false
 
 ## "is a queen"
 a card "is a (rank)" for its ranks
-expect the card is a queen to be true
-expect the card is a king to be false
+expect my-card is a queen to be true
+expect my-card is a 2 to be false
 
 ## "is the queen of spades"
 a card "is the (rank) of (suits)" for its ranks and its suits
-expect the card is the queen of spades to be true
-expect the card is the queen of clubs to be false
-expect the card is not the 2 of diamonds to be true
+expect my-card is the queen of spades to be true
+expect my-card is the queen of clubs to be false
+expect my-card is not the 2 of diamonds to be true
 
 ## "is a black queen"
 -- TODO: a card "is a (color) (rank)" for its ranks
@@ -59,13 +58,17 @@ expect the card is not the 2 of diamonds to be true
 ## actions
 to turn a card face up: set its direction to up
 to turn a card face down: set its direction to down
+turn my-card face down
+expect the direction of my-card to be down
 
 to flip a card over:
-	if its direction is up then turn the card face down
-	otherwise set its direction to up
+	if its direction is up then 
+		set its direction to down
+	otherwise 
+		turn it face up		// TODO
 
 
 to move a card to a pile
-	remove the card from the pile of the card --TODO: its pile
-	add the card to the pile
-	set the pile of the card to the pile
+	remove it from its pile
+	add it to the pile
+	set its pile to the pile

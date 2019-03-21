@@ -4,13 +4,13 @@ import {
   Spell,
   Token,
 
+  instanceCase,
   lowerFirst,
   upperFirst,
   pluralize,
   singularize,
+  typeCase,
 } from "../all.js";
-
-import { parseMethodKeywords } from "./inflection.js";
 
 export default new Spell.Parser({
   module: "classes",
@@ -266,78 +266,6 @@ export default new Spell.Parser({
       ]
     },
 
-
-
-
-    // TODO: arguments
-    {
-      name: "to_do_something",
-      alias: "statement",
-      syntax: "to (keywords:{word}|{type})+ :?",
-      constructor: Spell.Rule.Statement,
-      wantsInlineStatement: true,
-      wantsNestedBlock: true,
-      getNestedScope(scope, { results }) {
-        const { type, method, args, syntax } = parseMethodKeywords(results);
-        results.type = type;
-        results.method = method;
-        results.args = args;
-        results.syntax = syntax;
-        return results.$method = new Scope.Method({ scope, name: method, args });
-      },
-      updateScope(scope, { results }) {
-        const { type, $method, method, syntax } = results;
-        let statement;
-        if (type)
-          statement = scope.getOrStubType(type).classMethods.add($method);
-        else
-          statement = scope.methods.add($method);
-
-        results.statements.push(statement);
-        // TODO: need to work module scope in if no type???
-        let compile = type
-          ? function({ callArgs = "" }) { return `${type}.${method}(${callArgs})` }
-          : function({ callArgs = "" }) { return `${method}(${callArgs})` }
-
-        scope.addStatementRule({
-          name: method,
-          syntax,
-          compile,
-        });
-      },
-      tests: [
-        {
-          compileAs: "block",
-          beforeEach(scope) {
-            scope.variables.add("deck");
-          },
-          tests: [
-            [
-              "to start the game",
-              "function start_the_game() {}"
-            ],
-            [
-              "to start the game: shuffle the deck",
-              "function start_the_game() { spell.shuffle(deck) }"
-            ],
-            [
-              [ "to move a card to a pile:",
-                "\tremove the card from the pile of the card",      // TODO: `its pile`
-                "\tadd the card to the pile",
-                "\tset the pile of the card to the pile"
-              ].join("\n"),
-              [
-                "Card.move_card_to_pile = function(card, pile) {",
-                "  spell.remove(card?.pile, card)",
-                "  spell.append(pile, card)",
-                "  card?.pile = pile",
-                "}",
-              ].join("\n")
-            ],
-          ]
-        }
-      ]
-    },
     {
       name: "the_property_of_a_thing",
       alias: "property_of_a_type",
@@ -634,6 +562,142 @@ export default new Spell.Parser({
             ['if the card is the 2 of hearts',
              "if (card?.is_the_$rank_of_$suits(2, 'hearts')) {}"
             ]
+          ]
+        }
+      ]
+    },
+
+
+
+
+    // TODO: arbitrary inline arguments with `(foo)`
+    // TODO: known types only?  forget capital-letter-type business?
+    {
+      name: "to_do_something",
+      alias: "statement",
+      syntax: "to (keywords:{word}|{type})+ :?",
+      constructor: Spell.Rule.Statement,
+      wantsInlineStatement: true,
+      wantsNestedBlock: true,
+      getNestedScope(scope, { results }) {
+        const { keywords } = results;
+        // parse the keywords to get name of the method
+        // - `a foo` or `Foo` indicates that we want a variable of type 'Foo' in this spot
+        // - TODO: `(foo)` indicates that we want a variable named `foo` here
+        let method = [], instanceMethod = [], types = [], rules = [];
+        for (var i = 0, word; word = keywords[i]; i++) {
+          // assume it's a class if it's in TitleCase...
+          let isType = (word === typeCase(word));
+          // ...or if the word before it is "a" or "an"
+          if ((word === "a" || word === "an") && keywords[i+1]) {
+            isType = true;
+            word = keywords[++i];   // skip the article in the output
+          }
+          if (isType) {
+            word = instanceCase(word);
+            types.push(word);
+            rules.push(`{callArgs:expression}`);
+            // don't add the first type to the instanceMethod -- it'll be defined on that type
+            if (types.length > 1) {
+              instanceMethod.push("$" + word);
+            }
+          }
+          // TODO: check for parens...
+          else {
+            rules.push(word);
+            instanceMethod.push(word);
+          }
+          method.push(word);
+        }
+
+        // If we got any types, create as an instance method with the first type specified
+        if (types.length) {
+          results.type = typeCase(types[0]);
+          results.instanceType = types[0];
+          const methodName = results.methodName = instanceMethod.join("_");
+          results.args = types.slice(1);
+          results.compile = function(scope, { results }) {
+            let { callArgs = [] } = results;
+            if (!Array.isArray(callArgs)) callArgs = [callArgs];
+            return `${callArgs[0]}?.${methodName}?.(${callArgs.slice(1).join(", ")})`
+          }
+        }
+        // Otherwise create as a normal method
+        else {
+          const methodName = results.methodName = method.join("_");
+          results.compile = function(scope, { results }) {
+            let { callArgs = [] } = results;
+            if (!Array.isArray(callArgs)) callArgs = [callArgs];
+            return `${methodName}(${callArgs.join(", ")})`
+          }
+        }
+
+        // Set up the nested scope and rule syntax
+        results.syntax = rules.join(" ");
+        results.$method = new Scope.Method({
+          scope,
+          name: results.methodName,
+          args: results.args
+        });
+
+        // If we're creating an instance method
+        if (results.type) {
+          // Add variables `${type}` and `it` which maps to `this`
+          //  e.g. `the card` === `this` and `it` === `this
+          // Note that `it` may be overwritten in the method with `get XXX`
+          // TODO: ensure that there's not an argument with `type`???
+          results.$method.variables.add({ name: results.instanceType, output: "this" });
+          results.$method.variables.add({ name: "it", output: "this" });
+        }
+        return results.$method;
+      },
+      updateScope(scope, { results }) {
+        const { type, $method } = results;
+        const statement = type
+          ? scope.getOrStubType(type).methods.add($method)
+          : scope.methods.add($method)
+        ;
+        results.statements.push(statement);
+
+        scope.addStatementRule({
+          name: results.methodName,
+          syntax: results.syntax,
+          compile: results.compile
+        });
+      },
+      tests: [
+        {
+          compileAs: "block",
+          beforeEach(scope) {
+            scope.variables.add("deck");
+            scope.variables.add("my-pile");
+            scope.variables.add("my-card");
+          },
+          tests: [
+            [
+              "to start the game",
+              "function start_the_game() {}"
+            ],
+            [
+              "to start the game: shuffle the deck",
+              "function start_the_game() { spell.shuffle(deck) }"
+            ],
+            [
+              [ "to move a card to a pile:",
+                "\tremove it from its pile",
+                "\tadd it to the pile",
+                "\tset its pile to the pile",
+                "move my-card to my-pile",
+              ].join("\n"),
+              [
+                "defineProp(Card.prototype, 'move_to_$pile', { value(pile) {",
+                "  spell.remove(this.pile, this)",
+                "  spell.append(pile, this)",
+                "  this.pile = pile",
+                "} })",
+                "my_card?.move_to_$pile?.(my_pile)"
+              ].join("\n")
+            ],
           ]
         }
       ]

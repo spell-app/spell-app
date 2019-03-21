@@ -21,13 +21,21 @@ import identifierBlacklist from "./identifier-blacklist.js";
 const WORD = /^[a-zA-Z][\w\-]*$/;
 
 // Single word variable name, known or unknown.
+// NOTE: when compiling, we'll look for `scope.variables(varName)`:
+//        - if we find one, you can override what's output with `variable.ouput`.
 // TODO: type based on scope variable type?
 // TODO: higher precedence if variable is known?
-Spell.Rule.Variable = class variable extends Rule.Pattern {
+Spell.Rule.Variable = class _variable extends Rule.Pattern {
   @proto pattern = WORD;
   @proto blacklist = identifierBlacklist;
   valueMap(value) {
     return (""+value).replace(/-/g, "_");
+  }
+  compile(scope, match) {
+    const varName = super.compile(scope, match);
+    const variable = scope.variables(varName);
+    if (variable && variable.output) return variable.output;
+    return varName;
   }
 }
 
@@ -79,12 +87,14 @@ export default new Spell.Parser({
         parse(scope, tokens) {
           const match = super.parse(scope, tokens);
           if (!match) return;
-          // Return just the `variable_identifier` bit, adjusting `length` to account for `the` as necessary.
+          // Return just the `variable_identifier` bit
           const varMatch = match.matched[match.matched.length - 1];
-          varMatch.length = match.length;
-
           varMatch.variable = scope.variables(varMatch.raw);
-          if (varMatch.variable) return varMatch;
+          // ...but only if we can find an appropriate scope variable
+          if (varMatch.variable) {
+            varMatch.length = match.length;
+            return varMatch;
+          }
         }
       },
       tests: [

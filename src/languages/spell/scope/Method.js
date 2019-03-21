@@ -15,7 +15,7 @@ export class Method extends Scope {
   constructor({ args, ...props}) {
     super(props);
     // Add `args` to our variables list
-    if (args) args.forEach(arg => this.addArg(arg));
+    if (args && args.length) args.forEach(arg => this.addArg(arg));
   }
 
   // Method arguments ("args")

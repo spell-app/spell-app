@@ -1,12 +1,12 @@
 // Export lodash and lodash-inflection string methods.
-export lowerFirst from "lodash/lowerFirst";
+import lowerFirst from "lodash/lowerFirst";
 import inflection from "lodash-inflection";
 import _snakeCase from "lodash/snakeCase";
 export toLower from "lodash/toLower";
 import upperFirst from "lodash/upperFirst";
-export { upperFirst }
+export { lowerFirst, upperFirst }
 
-// Convert a string to `Type-Name-Case", including singularizing.
+// Convert a string to `Type_Name_Case", including singularizing.
 const TYPE_CASE = {};
 export function typeCase(text) {
   const existing = TYPE_CASE[text];
@@ -19,12 +19,17 @@ export function typeCase(text) {
   );
 }
 
-// Convert a string to `Type-Name-Case", including singularizing.
-export function typeNameCase(string) {
-  return singularize(""+string)
-    .split(/[-_]/)
-    .map(bit => upperFirst(bit))
-    .join("-");
+// Convert a string into `instance_case`
+const INSTANCE_CASE = {};
+export function instanceCase(text) {
+  const existing = INSTANCE_CASE[text];
+  if (existing !== undefined) return existing;
+  return (INSTANCE_CASE[text]
+    = singularize(""+text)
+      .split(/[-_]/)
+      .map(bit => lowerFirst(bit))
+      .join("_")
+  );
 }
 
 // Lodash snakeCase with memoization.
