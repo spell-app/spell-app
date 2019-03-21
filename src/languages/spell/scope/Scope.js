@@ -179,14 +179,14 @@ export class Scope {
   // Single word identifiers dont' need special treatment. (???)
   addExpressionRule(props, results) {
     this._addRuleAlias(props, "expression", "single_expression");
-    props.precedence = 10;       // TODO
+    if (!props.precedence) props.precedence = 20;       // TODO
     return this.addRule(props);
   }
 
   // Add an expression suffix rule, e.g. "<thing> is not? a face card".
   addExpressionSuffixRule(props, results) {
     this._addRuleAlias(props, "expression_suffix");
-    props.precedence = 10;       // TODO
+    if (!props.precedence) props.precedence = 20;       // TODO
     return this.addRule(props);
   }
 
@@ -246,7 +246,7 @@ export class Scope {
       name: `${this.name}_${name}`,
       literals,
       datatype: results.enumType,
-      toString: () => results.canonicalRef
+      compile() { return results.canonicalRef }
     }, results);
   }
 
