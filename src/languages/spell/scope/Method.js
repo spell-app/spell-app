@@ -18,16 +18,26 @@ export class Method extends Scope {
     if (args) args.forEach(arg => this.addArg(arg));
   }
 
+  // Method arguments ("args")
+  // Note that we add the arguments to the method `variables` with `kind = "argument"`
+  // Use `args()` or `arg(name)` to get args back.
   addArg(arg) {
     if (!(arg instanceof Variable)) arg = new Variable(arg);
     arg.kind = "argument";
     return this.variables.add(arg);
   }
 
+  // Call without arguments: returns all argument Variables.
+  // Call with string `name`, returns named argument or `undefined`.
+  args(name) {
+    const args = this.variables().filter(variable => variable.kind === "argument");
+    if (arguments.length === 0) return args;
+    return args.find(arg => arg.name === name);
+  }
+
   toString() {
     // TODO: needs to include arg initializers below...
-    const args = this.variables().filter(variable => variable.kind === "argument")
-      .map(arg => arg.name).join(", ") || "";
+    const args = this.args().map(arg => arg.name).join(", ") || "";
 
     // Return as an inline expression?
     if (this.asExpression) {
