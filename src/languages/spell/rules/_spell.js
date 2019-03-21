@@ -20,6 +20,7 @@ import math from "./math.js";
 import properties from "./properties.js";
 import UI from "./UI.js";
 import classes from "./classes.js";
+import tests from "./tests.js";
 
 // Create parser which combines all of the above...
 export const spell = new Spell.Parser({ module: "spell" });
@@ -29,4 +30,19 @@ spell.defineRule({ name: "block_line", constructor: Spell.Rule.BlockLine });
 spell.defineRule({ name: "parse_error", constructor: Spell.Rule.ParseError });
 
 // Import the other rules defined above.
-spell.import(core, types, variables, constants, assignment, expressions, math, properties, lists, _if_, JSX, UI, classes);
+spell.import(
+  core,
+  types,
+  variables,
+  constants,
+  assignment,
+  expressions,
+  math,
+  properties,
+  lists,
+  _if_,
+  JSX,
+  UI,
+  classes,
+  tests
+);
