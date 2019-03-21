@@ -1,7 +1,8 @@
 import {
   Match,
   Rule,
-  Spell
+  Spell,
+  Tokenizer
 } from "../all.js";
 
 // Parser error representation in parser output.
