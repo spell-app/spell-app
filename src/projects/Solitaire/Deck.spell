@@ -1,67 +1,17 @@
 ## Deck
--- US standard card deck with optional jokers.
+-- US standard card deck (without jokers currently)
 
-define type Deck as Pile
-	### Ranks and suits
-	ace high = no
-	ranks = ("ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "jack", "queen", "king")
-	suits = ("clubs", "diamonds", "hearts", "spades")
-
-	### Joker setup
-	joker ranks = ("joker")
-	including jokers = no
-	joker suits = ("red", "black")
+// TODO:  using card.spell
+a card is a drawable-thing
+cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
+cards have a suit as one of clubs, diamonds, hearts or spades
 
 
-	### When creating deck, create all cards
-	after creation
-		make cards
+a deck is a list //TODO: of cards
+to create a deck
 
-	to make cards
-		if ace high then move "ace" to end of ranks
-		for each suit in suits
-			for each rank in ranks
-				create a card with the suit and the rank
+for each rank in card ranks
+	for each suit in card suits
+		get a new card with rank = the rank, suit = the suit
+		add it to the deck
 
-		if including jokers
-			add joker ranks to ranks
-			add joker suits to suits
-
-			for each suit in joker suits
-				for each rank in joker ranks
-					make card for deck with suit and rank
-
-	to make card for Deck with suit and rank
-		card = new Card with properties (deck, suit, rank)
-		add card to deck
-
-
-	### Syntactic sugar for identifying cards
-	- eg:  `card is a club` or `top card of pile is not a face card`
-	expression Card is a club: suit of card is "clubs"
-	expression Card is a diamond: suit of card is "diamonds"
-	expression Card is a heart: suit of card is "hearts"
-	expression Card is a spade: suit of card is "spades"
-
-	expression Card is an ace: rank of card is "ace"
-	expression Card is a jack: rank of card is "jack"
-	expression Card is a queen: rank of card is "queen"
-	expression Card is a king: rank of card is "king"
-	expression Card is a joker: rank of card is "joker"
-
-	expression Card is a face card: rank of card is in ("jack", "queen", "king")
-	expression Card is a number card: card is not a face card
-
-	expression color of Card
-		return "black" if suit of card is in ("clubs", "spades", "black")
-		return "red"
-
-	expression value of Card
-		ranks = ranks of deck of card
-		return position of rank of card in ranks
-
-	expression name of Card
-		suit = capitalize suit of card
-		rank = capitalize rank of card
-		if rank is "Joker" return "{suit} {rank}"
-		return "{rank} of {suit}"
