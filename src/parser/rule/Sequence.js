@@ -65,7 +65,7 @@ Rule.Sequence = class sequence extends Rule {
   }
 
   getTokens(match) {
-    return flattenDeep(match.matched.map(match => match.getTokens(match)));
+    return flattenDeep(match.matched.map(match => match.tokens));
   }
 
   //TODOC

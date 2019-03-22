@@ -43,7 +43,7 @@ export class Match {
   // Return the "interesting" tokens which were actually matched matched.
   // NOTE: this is not guaranteed to be everything,
   //       for example, List rules don't put the delimiters in the output stream.
-  getTokens() { return flatten(this.rule.getTokens(this)) }
+  get tokens() { return flatten(this.rule.getTokens(this)) }
 
   // Syntatic sugar to compile the output of the match.
   compile() { return this.rule.compile(this.scope, this) }

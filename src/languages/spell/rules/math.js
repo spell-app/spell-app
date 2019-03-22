@@ -49,7 +49,7 @@ export default new Spell.Parser({
       compile(scope, match) {
         return {
           ...match.results,
-          operator: match.matched[0].getTokens().join(" ")
+          operator: match.matched[0].tokens.join(" ")
         };
       },
       applyOperator({ lhs, operator, rhs }) {

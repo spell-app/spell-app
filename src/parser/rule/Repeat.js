@@ -83,7 +83,7 @@ Rule.Repeat = class repeat extends Rule {
   }
 
   getTokens(match) {
-    return flattenDeep(match.matched.map(match => match.getTokens(match)));
+    return flattenDeep(match.matched.map(match => match.tokens));
   }
 
   toSyntax() {

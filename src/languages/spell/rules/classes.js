@@ -694,7 +694,6 @@ export default new Spell.Parser({
                 "\tremove it from its pile",
                 "\tadd it to the pile",
                 "\tset its pile to the pile",
-                "move my-card to my-pile",
               ].join("\n"),
               [
                 "defineProp(Card.prototype, 'move_to_$pile', { value(pile) {",
@@ -702,7 +701,6 @@ export default new Spell.Parser({
                 "  spell.append(pile, this)",
                 "  this.pile = pile",
                 "} })",
-                "my_card?.move_to_$pile?.(my_pile)"
               ].join("\n")
             ],
           ]

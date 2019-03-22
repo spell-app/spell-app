@@ -30,7 +30,7 @@ Rule.Literal = class literal extends Rule {
   }
 
   compile(scope, match) {
-    return this.getTokens(match)[0];
+    return match.tokens[0];
   }
 
   toSyntax() {
