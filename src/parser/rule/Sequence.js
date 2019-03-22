@@ -68,10 +68,6 @@ Rule.Sequence = class sequence extends Rule {
     return flattenDeep(match.matched.map(match => match.getTokens(match)));
   }
 
-  getStructure(scope, match) {
-    return match.matched.map(match => match.structure);
-  }
-
   //TODOC
   // "gather" matched values into a map in preparation to call `compile(scope, match)`
   gatherResults(scope, match) {

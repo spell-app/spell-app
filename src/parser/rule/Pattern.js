@@ -49,8 +49,4 @@ Rule.Pattern = class pattern extends Rule {
     if (typeof valueMap === "function") return valueMap(value, scope);
     return value;
   }
-
-  getStructure(scope, match) {
-    return this.getTokens(match)[0];
-  }
 }

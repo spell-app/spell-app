@@ -46,8 +46,8 @@ export class Match {
   getTokens() { return flatten(this.rule.getTokens(this)) }
 
   // Syntatic sugar to compile the output of the match.
-  get js() { return this.compile() }
   compile() { return this.rule.compile(this.scope, this) }
+  get js() { return this.compile() }
 
   // Have the match call `updateScope()` if it can.
   // This is called for `statement`s BEFORE they're actually compiled,
@@ -69,51 +69,7 @@ export class Match {
     return this.rule.getNestedScope?.(this.scope, this);
   }
 
-  // Visualize a match by outputting its `structure`.
-  // This version outputs to the console and is not quite working right.
-  get viz() { return "\n"+this.visualize() }
-  visualize(structure = this.structure, indent = "") {
-    if (Array.isArray(structure)) {
-      if (structure.length > 1)
-        return structure.map(item => this.visualize(item, "  "));
-      structure = structure[0];
-    }
-
-    if (typeof structure === "string")
-      return `${structure}`;
-
-    let { name, value } = structure;
-    if (Array.isArray(value) && value.length === 1)
-      value = value[0];
-
-    if (typeof value === "string")
-      return `${name}:${value}`;
-
-    let output = this.visualize(value, "  ");
-    if (!Array.isArray(output)) output = output.split("\n");
-    output = (output.join("\n"+indent))
-    return `${name}:\n${indent}${output}`;
-  }
-
-  // Return structure used to visualize this map (rule-dependent).
-  // Format will be:    `{ name, value }` or simply `value`
-  //   where `value` is:
-  //    - a recursive `structure`,
-  //    - a literal string (for matched keywords/symbols/patterns), or
-  //    - an array of `value`s.
-  get structure() {
-    let value = this.rule.getStructure(this, this.scope);
-    if (this.choiceRule && this.choiceRule !== this.name) {
-      if (this.rule.name) value = { name: this.rule.name, value };
-      value = { name: this.choiceRule, value };
-    }
-    else {
-      if (this.name) value = { name: this.name, value };
-    }
-    return value;
-  }
-
-  // Call this when printing to the console to eliminate the big bits in node.
+  // DEBUG: Call this when printing to the console to eliminate the big bits in node.
   toPrint() {
     if (!isNode) return this;
     return {

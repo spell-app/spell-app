@@ -66,11 +66,6 @@ export class Rule {
     return match.matched.map(match => match.value);
   }
 
-  // Return a simple data structure we'll use to visualize a match.
-  getStructure(scope, match) {
-    return this.compile(scope, match);
-  }
-
 
   //
   //  internal

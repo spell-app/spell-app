@@ -146,8 +146,4 @@ Spell.Rule.Block = class block extends Rule {
     if (match.enclose) return `{\n${lines}\n${tab.slice(1)}}`;
     return lines;
   }
-  // Return a simple data structure we'll use to visualize a match.
-  getStructure(scope, match) {
-    return match.matched.map(match => match.structure);
-  }
 }

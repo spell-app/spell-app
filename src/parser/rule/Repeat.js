@@ -86,10 +86,6 @@ Rule.Repeat = class repeat extends Rule {
     return flattenDeep(match.matched.map(match => match.getTokens(match)));
   }
 
-  getStructure(scope, match) {
-    return match.matched.map(match => match.structure);
-  }
-
   toSyntax() {
     let { promote, argument, optional } = this.getSyntaxFlags();
     const repeatSymbol = this.optional ? "*" : "+";
