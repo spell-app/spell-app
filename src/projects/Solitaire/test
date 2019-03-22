@@ -14,15 +14,5 @@ expect the direction of my-card to be up
 get my-card
 turn it face up
 
-to start the game
-start the game
-
-to flip a card over
-	start the game
-
 to turn a card over: 
-	start the game
-	if the direction of the card is up
-		set the direction of it to down
-	otherwise
-		turn it face up		// TODO: why doesn't this work?
+	turn the card face up

@@ -18,7 +18,7 @@ the value of a card is the position of its rank in its ranks
 a card has a direction as either up or down
 
 ## create a card instance with default properties
-my-card = create a card with rank = queen, suit = spades, direction = up
+my-card = a new card with rank = queen, suit = spades, direction = up
 expect the rank of my-card to be queen
 expect the suit of my-card to be spades
 expect the color of my-card to be black
@@ -41,9 +41,10 @@ a card "is a (suit)" for its suits
 expect my-card is a spade to be true
 expect my-card is a club to be false
 
-## "is a queen"
+// "card is a queen", "...is an ace" etc
 a card "is a (rank)" for its ranks
 expect my-card is a queen to be true
+expect my-card is an ace to be false
 expect my-card is a 2 to be false
 
 ## "is the queen of spades"
@@ -52,23 +53,22 @@ expect my-card is the queen of spades to be true
 expect my-card is the queen of clubs to be false
 expect my-card is not the 2 of diamonds to be true
 
-## "is a black queen"
--- TODO: a card "is a (color) (rank)" for its ranks
-
 ## actions
-to turn a card face up: set its direction to up
+to turn a card face up: 
+	set its direction to up
+
 to turn a card face down: set its direction to down
 turn my-card face down
 expect the direction of my-card to be down
 
 to flip a card over:
 	if its direction is up then 
-		set its direction to down
+		turn it face down
 	otherwise 
-		turn it face up		// TODO
+		turn it face up
 
 
 to move a card to a pile
-	remove it from its pile
+	remove it from its current-pile
 	add it to the pile
-	set its pile to the pile
+	set its current-pile to the pile

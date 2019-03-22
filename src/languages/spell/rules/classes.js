@@ -616,19 +616,21 @@ export default new Spell.Parser({
           results.instanceType = types[0];
           const methodName = results.methodName = instanceMethod.join("_");
           results.args = types.slice(1);
-          results.compile = function(scope, { results }) {
+          results.updateScope = function(scope, { results }) {
             let { callArgs = [] } = results;
             if (!Array.isArray(callArgs)) callArgs = [callArgs];
-            return `${callArgs[0]}?.${methodName}?.(${callArgs.slice(1).join(", ")})`
+            const statement = `${callArgs[0]}?.${methodName}?.(${callArgs.slice(1).join(", ")})`;
+            scope.addStatement(statement);
           }
         }
         // Otherwise create as a normal method
         else {
           const methodName = results.methodName = method.join("_");
-          results.compile = function(scope, { results }) {
+          results.updateScope = function(scope, { results }) {
             let { callArgs = [] } = results;
             if (!Array.isArray(callArgs)) callArgs = [callArgs];
-            return `${methodName}(${callArgs.join(", ")})`
+            const statement = `${methodName}(${callArgs.join(", ")})`
+            scope.addStatement(statement);
           }
         }
 
@@ -662,7 +664,8 @@ export default new Spell.Parser({
         scope.addStatementRule({
           name: results.methodName,
           syntax: results.syntax,
-          compile: results.compile
+          constructor: Spell.Rule.Statement,
+          updateScope: results.updateScope
         });
       },
       tests: [
