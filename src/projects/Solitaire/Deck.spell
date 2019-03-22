@@ -7,11 +7,9 @@ cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
 cards have a suit as one of clubs, diamonds, hearts or spades
 
 
-a deck is a list //TODO: of cards
+a deck is a list of cards
 to create a deck
-
-for each rank in card ranks
-	for each suit in card suits
-		get a new card with rank = the rank, suit = the suit
-		add it to the deck
+	for each rank in card ranks
+		for each suit in card suits
+			add a new card with rank = the rank, suit = the suit to the deck
 

@@ -1,18 +1,2 @@
-a card is a thing
-a card has a direction as either up or down
-
-my-card = a new card with direction = down
-
-to turn a card face up
-	set its direction to up
-to turn a card face down
-	set its direction to down
-
-turn my-card face up
-expect the direction of my-card to be up
-
-get my-card
-turn it face up
-
-to turn a card over: 
-	turn the card face up
+a deck is a list of cards
+a pile is a list

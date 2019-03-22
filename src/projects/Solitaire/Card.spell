@@ -62,13 +62,7 @@ turn my-card face down
 expect the direction of my-card to be down
 
 to flip a card over:
-	if its direction is up then 
+	if it is face up then 
 		turn it face down
 	otherwise 
 		turn it face up
-
-
-to move a card to a pile
-	remove it from its current-pile
-	add it to the pile
-	set its current-pile to the pile
