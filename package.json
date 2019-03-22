@@ -73,6 +73,7 @@
     "global": "^4.3.2",
     "history": "^4.7.2",
     "json5": "^2.1.0",
+    "lodash": "^4.17.11",
     "lodash-inflection": "^1.5.0",
     "path": "^0.12.7",
     "prop-types": "^15.5.8",
