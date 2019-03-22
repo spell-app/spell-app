@@ -19,17 +19,23 @@ export default new Spell.Parser({
       name: "create_type",
       alias: "statement",
       syntax: [
-        "create a type (named|called) {type} (?:as (a|an) {superType:type})?",
-        "a {type} is (a|an) {superType:type}"
+        "create a type (named|called) {type} (?:as (a|an) (isList:list of)? {superType:type})?",
+        "a {type} is (a|an) (isList:list of)? {superType:type}"
       ],
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
-        const { type, superType } = results;
+        const { type, superType, isList } = results;
         const statement = scope.types.add({
           name: type,
-          superType: superType
+          superType: (isList ? "List" : superType)
         });
         results.statements.push(statement);
+        // If we're a list of something, set `list.instanceType` property
+        //  which spell `List` objects will presumably understand.
+        if (isList) {
+          statement.variables.add({ name: "instance_type", value: superType });
+          results.statements.push(`defineProp(${type}.prototype, "instance_type", { value: "${superType}" })`);
+        }
       },
       tests: [
         {
@@ -43,7 +49,6 @@ export default new Spell.Parser({
       ]
     },
 
-
     // `a new object`
     // NOTE: we assume that all types take an object of properties????
     {
@@ -54,8 +59,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { type, props = "" } = results; // `props` is the object literal text
-        const statement = scope.addStatement(`new ${type}(${props})`);
-        results.statements.push(statement);
+        results.statements.push(`new ${type}(${props})`);
       },
       tests: [
         {
