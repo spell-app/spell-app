@@ -319,8 +319,17 @@ export class Parser {
         rule = rulex.compile(props.syntax);
         if (!rule) throw new ParseError(`Didn't get a rule from rulex.compile('${props.syntax}')`);
 
+        // If we're constructing a sequence, make sure we've got `rules`...
+        if (constructor
+          && constructor.prototype instanceof Rule.Sequence
+          && !(rule instanceof Rule.Sequence))
+        {
+          props.rules = [rule];
+        }
         // We want to use a named constructor below, so copy properties from the rule
-        props = {...rule, ...props};
+        else {
+          props = {...rule, ...props};
+        }
         if (CLONE_CLASSES && !constructor) constructor = rule.constructor;
       }
 
