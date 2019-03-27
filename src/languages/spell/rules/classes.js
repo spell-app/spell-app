@@ -384,10 +384,11 @@ export default new Spell.Parser({
           const { type, alias, expression } = results;
           const words = JSON.parse(alias).split(" ");
           const property = words.join("_");
+          // add optional `not` to the rule
           const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ");
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
-          scope.addExpressionSuffixRule({
+          const rule = scope.addExpressionSuffixRule({
             name: property,
             syntax: expressionSuffix,
             precedence: 20,
@@ -396,6 +397,7 @@ export default new Spell.Parser({
               return `${bang}${lhs}?.${property}`
             }
           });
+          results.statements.push("// SPELL: added rule: " + rule.toSyntax());
 
           // Create an instance getter
           const statement = scope.getOrStubType(type)
@@ -417,13 +419,16 @@ export default new Spell.Parser({
           },
           tests: [
             ['a card "is face up" if its direction is up',
-             "defineProp(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
+              "// SPELL: added rule: is not? face up\n"
+             +"defineProp(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
             ],
             ['a card "is a face card" if its rank is one of [jack, queen, king]',
-             "defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes(['jack', 'queen', 'king'], this.rank) } })"
+              "// SPELL: added rule: is not? a face card\n"
+             +"defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes(['jack', 'queen', 'king'], this.rank) } })"
             ],
             ['a card "is a face card" if its rank is one of jack, queen or king',
-             "defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes([jack, queen, king], this.rank) } })"
+              "// SPELL: added rule: is not? a face card\n"
+             +"defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes([jack, queen, king], this.rank) } })"
             ],
           ]
         }
@@ -505,7 +510,7 @@ export default new Spell.Parser({
           // console.warn(property, syntax, ruleData );
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
-          scope.addExpressionSuffixRule({
+          const rule = scope.addExpressionSuffixRule({
             name: property,
             syntax,
             precedence: 20,
@@ -521,6 +526,7 @@ export default new Spell.Parser({
               return `${bang}${lhs}?.${property}(${args.join(", ")})`
             }
           });
+          results.statements.push("// SPELL: added rule: " + rule.toSyntax());
 
           // Create an instance method
           const statement = scope.getOrStubType(type)
@@ -543,10 +549,12 @@ export default new Spell.Parser({
           },
           tests: [
             ['a card "is a (rank)" for its ranks',
-             "defineProp(Card.prototype, 'is_a_$rank', { value(rank) { return (this.rank === rank) } })"
+             "// SPELL: added rule: (operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)\n"
+             +"defineProp(Card.prototype, 'is_a_$rank', { value(rank) { return (this.rank === rank) } })"
             ],
             ['a card "is the (rank) of (suits)" for its ranks and its suits',
-             "defineProp(Card.prototype, 'is_the_$rank_of_$suits', { value(rank, suit) { return (this.rank === rank) && (this.suit === suit) } })"
+             "// SPELL: added rule: (operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)\n"
+             +"defineProp(Card.prototype, 'is_the_$rank_of_$suits', { value(rank, suit) { return (this.rank === rank) && (this.suit === suit) } })"
             ],
           ]
         },
