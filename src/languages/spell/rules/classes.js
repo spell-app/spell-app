@@ -241,6 +241,7 @@ export default new Spell.Parser({
               [
                 "Card.Directions = ['up','down']",
                 "defineProp(Card.prototype, 'Directions', { value: Card.Directions })",
+                "// SPELL added rule: `(Card|card) (Directions|directions)`",
                 "defineProp(Card.prototype, 'direction', { get() { return this.#direction } })",
                 "defineProp(Card.prototype, 'direction', { set(direction) { if ($.isOneOf(direction, Card.Directions)) this.#direction = direction } })",
               ].join("\n")
@@ -396,8 +397,7 @@ export default new Spell.Parser({
               const bang = (operator.includes("not") ? "!" : "");
               return `${bang}${lhs}?.${property}`
             }
-          });
-          results.statements.push("// SPELL: added rule: " + rule.toSyntax());
+          }, results);
 
           // Create an instance getter
           const statement = scope.getOrStubType(type)
@@ -419,15 +419,15 @@ export default new Spell.Parser({
           },
           tests: [
             ['a card "is face up" if its direction is up',
-              "// SPELL: added rule: is not? face up\n"
+              "// SPELL added rule: `is not? face up`\n"
              +"defineProp(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
             ],
             ['a card "is a face card" if its rank is one of [jack, queen, king]',
-              "// SPELL: added rule: is not? a face card\n"
+              "// SPELL added rule: `is not? a face card`\n"
              +"defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes(['jack', 'queen', 'king'], this.rank) } })"
             ],
             ['a card "is a face card" if its rank is one of jack, queen or king',
-              "// SPELL: added rule: is not? a face card\n"
+              "// SPELL added rule: `is not? a face card`\n"
              +"defineProp(Card.prototype, 'is_a_face_card', { get() { return spell.includes([jack, queen, king], this.rank) } })"
             ],
           ]
@@ -525,8 +525,7 @@ export default new Spell.Parser({
               });
               return `${bang}${lhs}?.${property}(${args.join(", ")})`
             }
-          });
-          results.statements.push("// SPELL: added rule: " + rule.toSyntax());
+          }, results);
 
           // Create an instance method
           const statement = scope.getOrStubType(type)
@@ -549,11 +548,11 @@ export default new Spell.Parser({
           },
           tests: [
             ['a card "is a (rank)" for its ranks',
-             "// SPELL: added rule: (operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)\n"
+             "// SPELL added rule: `(operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)`\n"
              +"defineProp(Card.prototype, 'is_a_$rank', { value(rank) { return (this.rank === rank) } })"
             ],
             ['a card "is the (rank) of (suits)" for its ranks and its suits',
-             "// SPELL: added rule: (operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)\n"
+             "// SPELL added rule: `(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)`\n"
              +"defineProp(Card.prototype, 'is_the_$rank_of_$suits', { value(rank, suit) { return (this.rank === rank) && (this.suit === suit) } })"
             ],
           ]
@@ -667,18 +666,20 @@ export default new Spell.Parser({
       },
       updateScope(scope, { results }) {
         const { type, $method } = results;
-        const statement = type
-          ? scope.getOrStubType(type).methods.add($method)
-          : scope.methods.add($method)
-        ;
-        results.statements.push(statement);
 
+        // Add rule to match statement
         scope.addStatementRule({
           name: results.methodName,
           syntax: results.syntax,
           constructor: Spell.Rule.Statement,
           updateScope: results.updateScope
-        });
+        }, results);
+
+        const statement = type
+          ? scope.getOrStubType(type).methods.add($method)
+          : scope.methods.add($method)
+        ;
+        results.statements.push(statement);
       },
       tests: [
         {
@@ -691,11 +692,13 @@ export default new Spell.Parser({
           tests: [
             [
               "to start the game",
-              "function start_the_game() {}"
+              "// SPELL added rule: `start the game`\n"
+              +"function start_the_game() {}"
             ],
             [
               "to start the game: shuffle the deck",
-              "function start_the_game() { spell.shuffle(deck) }"
+              "// SPELL added rule: `start the game`\n"
+              +"function start_the_game() { spell.shuffle(deck) }"
             ],
             [
               [ "to move a card to a pile:",
@@ -704,6 +707,7 @@ export default new Spell.Parser({
                 "\tset its pile to the pile",
               ].join("\n"),
               [
+                "// SPELL added rule: `move {callArgs:expression} to {callArgs:expression}`",
                 "defineProp(Card.prototype, 'move_to_$pile', { value(pile) {",
                 "  spell.remove(this.pile, this)",
                 "  spell.append(pile, this)",

@@ -172,6 +172,7 @@ export class Scope {
   addRule(ruleProps, results) {
     const rule = this.parser.defineRule(ruleProps, results);
     results?.rules?.push(rule);
+    if (results) results.statements.push("// SPELL added rule: `" + rule.toSyntax() + "`");
     return rule;
   }
 
@@ -180,20 +181,20 @@ export class Scope {
   addExpressionRule(props, results) {
     this._addRuleAlias(props, "expression", "single_expression");
     if (!props.precedence) props.precedence = 20;       // TODO
-    return this.addRule(props);
+    return this.addRule(props, results);
   }
 
   // Add an expression suffix rule, e.g. "<thing> is not? a face card".
   addExpressionSuffixRule(props, results) {
     this._addRuleAlias(props, "expression_suffix");
     if (!props.precedence) props.precedence = 20;       // TODO
-    return this.addRule(props);
+    return this.addRule(props, results);
   }
 
   // Add a statement rule.
   addStatementRule(props, results) {
     this._addRuleAlias(props, "statement");
-    return this.addRule(props);
+    return this.addRule(props, results);
   }
 
   // Add an enumerated type rule.
