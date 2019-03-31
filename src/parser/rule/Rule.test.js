@@ -597,11 +597,6 @@ describe("Rule.Choice", () => {
       const match = ruleStart.parse(parser, tokenize("this"));
       expect(match.argument).toBe("arg");
     });
-
-    test("sets 'promote' on the result", () => {
-      const match = ruleStart.parse(parser, tokenize("this"));
-      expect(match.promote).toBe(true);
-    });
   });
 });
 

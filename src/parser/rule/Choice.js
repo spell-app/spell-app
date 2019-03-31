@@ -78,7 +78,6 @@ Rule.Choice = class choices extends Rule {
     // assign special properties to the result
     match.choiceRule = this.argument || this.name;
     if (this.argument) match.argument = this.argument;
-    if (this.promote) match.promote = this.promote;
     return match;
   }
 
