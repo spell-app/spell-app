@@ -81,16 +81,8 @@ Rule.Sequence = class sequence extends Rule {
   _addResults(results, matched, callback) {
     for (let i = 0, match; match = matched[i]; i++) {
       const { name, rule } = match;
-      // add anonymous sequences to the main result map
-      if (!name && rule instanceof Rule.Sequence) {
-        this._addResults(results, match.matched, callback);
-      }
-      // ignore other anonymous bits
-      else if (!name) {
-        continue;
-      }
-      // if it has a name, add it to the map
-      else {
+      // if the match has a name:
+      if (name) {
         const value = callback ? callback(match) : match;
         // If arg already exists, convert to an array
         if (name in results) {
@@ -102,6 +94,12 @@ Rule.Sequence = class sequence extends Rule {
           results[name] = value;
         }
       }
+      // if it's an anonymous sequence, promote it to the main map
+      if (!name && rule instanceof Rule.Sequence) {
+        this._addResults(results, match.matched, callback);
+      }
+      // ignore other anonymous bits
+      // else {}
     }
     return results;
   }
