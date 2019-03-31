@@ -443,9 +443,9 @@ rulex.defineRule({
     choices = rulex.consolidateLiterals(choices, Rule.Keyword, "literal");
     choices = rulex.consolidateLiterals(choices, Rule.Symbol, "literal");
 
-    // If we got exactly one choice which is not a `statement`, use that.
+    // If we got exactly one choice, use that.
     // Note that the choice's flags will "beat" the rule's flags if they conflict.
-    if (choices.length === 1 && (choices[0].name !== "statement")) {
+    if (choices.length === 1) {
       rule = choices[0];
     }
     else {
