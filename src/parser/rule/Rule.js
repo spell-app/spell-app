@@ -107,7 +107,7 @@ export class Rule {
   // Note that `optional` doesn't matter in this case, because we can merge
   //  optional and non-optional literals.
   get isAdorned() {
-    return !!(this.promote || this.argument || this.testLocation || this.isEscaped);
+    return !!(this.argument || this.testLocation || this.isEscaped);
   }
 
   // Return syntax string for this rule (doesn't apply to all rule types).

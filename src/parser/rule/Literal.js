@@ -34,15 +34,15 @@ Rule.Literal = class literal extends Rule {
   }
 
   toSyntax() {
-    const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
+    const { testLocation, argument, optional } = this.getSyntaxFlags();
     const isVariable = Array.isArray(this.literal);
     const literal = isVariable
       ? this.literal.join("|")
       : (this.isEscaped ? `\\${this.literal}` : this.literal);
 
-    const wrapInParens = isVariable || promote || argument || (this.isEscaped && optional);
+    const wrapInParens = isVariable || argument || (this.isEscaped && optional);
     if (wrapInParens)
-      return `${testLocation}(${promote}${argument}${literal})${optional}`;
+      return `${testLocation}(${argument}${literal})${optional}`;
     return `${testLocation}${literal}${optional}`;
   }
 };

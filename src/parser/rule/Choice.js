@@ -114,9 +114,9 @@ Rule.Choice = class choices extends Rule {
   }
 
   toSyntax() {
-    const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
+    const { testLocation, argument, optional } = this.getSyntaxFlags();
     const rules = this.rules.map(rule => rule.toSyntax()).join("|");
-    return `${testLocation}(${promote}${argument}${rules})${optional}`;
+    return `${testLocation}(${argument}${rules})${optional}`;
   }
 }
 

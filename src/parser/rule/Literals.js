@@ -46,7 +46,7 @@ Rule.Literals = class literals extends Rule {
   }
 
   toSyntax() {
-    const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
+    const { testLocation, argument, optional } = this.getSyntaxFlags();
 
     const literals = this.literals.map(literal => {
       if (typeof literal === "string") return literal;
@@ -56,12 +56,11 @@ Rule.Literals = class literals extends Rule {
     }).join(this.literalSeparator);
 
     const wrapInParens =
-      promote ||
       argument ||
       ((testLocation || optional) && this.literals.length > 1)
     ;
     if (wrapInParens)
-      return `${testLocation}(${promote}${argument}${literals})${optional}`;
+      return `${testLocation}(${argument}${literals})${optional}`;
     return `${testLocation}${literals}${optional}`;
   }
 };

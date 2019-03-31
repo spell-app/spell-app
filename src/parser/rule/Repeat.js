@@ -73,7 +73,6 @@ Rule.Repeat = class repeat extends Rule {
       length,
       scope
     });
-    if (this.promote) match.promote = this.promote;
     if (this.argument) match.argument = this.argument;
     return match;
   }
@@ -87,18 +86,17 @@ Rule.Repeat = class repeat extends Rule {
   }
 
   toSyntax() {
-    let { promote, argument, optional } = this.getSyntaxFlags();
+    let { argument, optional } = this.getSyntaxFlags();
     const repeatSymbol = this.optional ? "*" : "+";
 
     // don't double-up on parens
     let rule = this.rule.toSyntax();
     if (this.delimiter) {
       const delimiter = this.delimiter.toSyntax();
-      return `[${promote}${argument}${rule}${delimiter}]${optional}`
+      return `[${argument}${rule}${delimiter}]${optional}`
     }
     else {
       const wrapInParens =
-        promote ||
         argument ||
         this.rule instanceof Rule.Sequence ||
         (this.rule instanceof Rule.Literals && this.rule.literals.length > 1);
@@ -107,7 +105,7 @@ Rule.Repeat = class repeat extends Rule {
         rule = rule.slice(1, -1);
 
       if (wrapInParens)
-        return `(${promote}${argument}${rule})${repeatSymbol}`;
+        return `(${argument}${rule})${repeatSymbol}`;
       return `${rule}${repeatSymbol}`;
     }
   }
