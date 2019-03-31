@@ -39,7 +39,6 @@ rulex.applyFlags = function applyFlags(rule, flags) {
   else if (flags.repeatFlag === "*")
     rule = new Rule.Repeat({ rule, optional: true });
 
-  if (flags.promote) rule.promote = true;
   if (flags.argument) rule.argument = flags.argument;
   if (flags.testLocation) rule.testLocation = flags.testLocation;
 
@@ -117,27 +116,6 @@ rulex.defineRule({
 const testLocation = rulex.rules.testLocation;
 
 
-// A promote flag, which is always optional
-rulex.defineRule({
-  constructor: Rule.Symbols,
-  name: "promote",
-  literals: ["?", ":"],
-  optional: true,
-  compile(scope, match) {
-    return true;
-  },
-  tests: [
-    {
-      title: "matches promote",
-      tests: [
-        ["", undefined ],
-        ["?:", true],
-        ["arg:", undefined],
-      ]
-    }
-  ]
-})
-const promote = rulex.rules.promote;
 
 // A argument signifier, which is always optional.
 rulex.defineRule({
@@ -157,7 +135,6 @@ rulex.defineRule({
       tests: [
         ["", undefined],
         ["arg:", "arg"],
-        ["?:", undefined ],
       ]
     }
   ]
@@ -337,7 +314,6 @@ rulex.defineRule({
     testLocation,
     new Rule.Symbol("{"),
     testLocation,
-    promote,
     argument,
     new Rule.Word({ argument: "rule" }),
     new Rule.Symbol("}"),
@@ -359,17 +335,11 @@ rulex.defineRule({
 
         ["…{sub}", new Rule.Subrule({ rule: "sub", testLocation: ANYWHERE }) ],
         ["{…sub}", new Rule.Subrule({ rule: "sub", testLocation: ANYWHERE }) ],
-        ["{?:sub}", new Rule.Subrule({ rule: "sub", promote: true }) ],
         ["{arg:sub}", new Rule.Subrule({ rule: "sub", argument: "arg" }) ],
-        ["{^?:arg:sub}", new Rule.Subrule({ rule: "sub", promote: true, argument: "arg", testLocation: AT_START }) ],
 
         ["{sub}?", new Rule.Subrule({ rule: "sub", optional: true }) ],
         ["{sub}+", new Rule.Repeat({ rule: new Rule.Subrule({ rule: "sub" }) }) ],
         ["{sub}*", new Rule.Repeat({ optional: true, rule: new Rule.Subrule({ rule: "sub" }) }) ],
-
-        // arg/promote/testRule need to get promoted to the repeat
-        ["…{?:arg:sub}?", new Rule.Subrule({ testLocation: ANYWHERE, rule: "sub", promote: true, argument: "arg", optional: true}) ],
-        ["…{?:arg:sub}*", new Rule.Repeat({ testLocation: ANYWHERE, promote: true, argument: "arg", optional: true, rule: new Rule.Subrule("sub") }) ],
       ]
     }
   ]
@@ -382,7 +352,6 @@ rulex.defineRule({
   alias: "rule",
   rules: [
     new Rule.Symbol("["),
-    promote,
     argument,
     new Rule.Subrule({ argument: "rule", rule: "rule" }),
     new Rule.Subrule({ argument: "delimiter", rule: "rule" }),
@@ -405,12 +374,9 @@ rulex.defineRule({
         ["[{sub},]", new Rule.Repeat({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
         ["[{sub}or]", new Rule.Repeat({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Keyword("or") }) ],
 
-        ["[?:{sub},]", new Rule.Repeat({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), promote: true }) ],
         ["[arg:{sub},]", new Rule.Repeat({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), argument: "arg" }) ],
-        ["[?:arg:{sub},]", new Rule.Repeat({ rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(","), promote: true, argument: "arg" }) ],
 
         ["[{sub},]?", new Rule.Repeat({ optional: true, rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
-        ["[?:arg:{sub},]?", new Rule.Repeat({ promote: true, argument: "arg", optional: true, rule: new Rule.Subrule("sub"), delimiter: new Rule.Symbol(",") }) ],
       ]
     }
   ]
@@ -428,7 +394,7 @@ rulex.defineRule({
       start: new Rule.Symbol("("),
       end: new Rule.Symbol(")"),
       delimiter: new Rule.Symbol("|"),
-      prefix: new Rule.Sequence({ rules: [ promote, argument ], optional: true }),
+      prefix: new Rule.Sequence({ rules: [ argument ], optional: true }),
       rule: new Rule.Subrule({ rule: "statement", argument: "choices" }),
     }),
     repeatFlag
@@ -473,8 +439,6 @@ rulex.defineRule({
 
         // Pass flags whether they were set on the choices or the single rule (a bit confusing)
         ["(…{sub})", new Rule.Subrule({ rule: "sub", testLocation: ANYWHERE })],
-        ["(?:{sub})", new Rule.Subrule({ rule: "sub", promote: true })],
-        ["({?:sub})", new Rule.Subrule({ rule: "sub", promote: true })],
         ["(arg:{sub})", new Rule.Subrule({ rule: "sub", argument: "arg" })],
         ["({arg:sub})", new Rule.Subrule({ rule: "sub", argument: "arg" })],
         ["({sub}?)", new Rule.Subrule({ rule: "sub", optional: true })],
@@ -497,21 +461,14 @@ rulex.defineRule({
       compileAs: "rule",
       tests: [
         ["(>|a)", new Rule.Choice(new Rule.Symbol(">"), new Rule.Keyword("a"))],
-        ["(?:>|a)", new Rule.Choice({ promote: true, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
 
         ["…(>|a)", new Rule.Choice({ testLocation: ANYWHERE, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
-        ["^(?:>|a)", new Rule.Choice({ testLocation: AT_START, promote: true, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
 
         ["(arg:>|a)", new Rule.Choice({ argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
-        ["(?:arg:>|a)", new Rule.Choice({ promote: true, argument: "arg", rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
 
         ["(>|a)?", new Rule.Choice({ optional: true, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
         ["(>|a)*", new Rule.Repeat({ optional: true, rule: new Rule.Choice({ rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
         ["(>|a)+", new Rule.Repeat({ rule: new Rule.Choice({ rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
-
-        // flags get promoted to the repeat
-        ["…(?:arg:>|a)?", new Rule.Choice({ testLocation: ANYWHERE, promote: true, argument: "arg", optional: true, rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] })],
-        ["…(?:arg:>|a)*", new Rule.Repeat({ testLocation: ANYWHERE, promote: true, argument: "arg", optional: true, rule: new Rule.Choice({ rules:[ new Rule.Symbol(">"), new Rule.Keyword("a") ] }) })],
       ]
     },
     {
@@ -573,10 +530,10 @@ rulex.defineRule({
             new Rule.Keyword("cc"),
           )
         ],
-        ["aa? {?:bb} cc",
+        ["aa? {bb} cc",
           new Rule.Sequence(
             new Rule.Keyword({ literal: "aa", optional: true }),
-            new Rule.Subrule({ rule: "bb", promote: true }),
+            new Rule.Subrule({ rule: "bb" }),
             new Rule.Keyword("cc"),
           )
         ],

@@ -117,7 +117,6 @@ export class Rule {
     let { testLocation = "", promote = "", argument = "", optional = "" } = this;
     if (testLocation === TestLocation.ANYWHERE) testLocation = "…";
     else if (testLocation === TestLocation.ANYWHERE) testLocation = "^";
-    if (promote) promote = "?:";
     if (argument) argument += ":";
     if (optional) optional = "?";
     return { testLocation, promote, argument, optional };
