@@ -61,7 +61,7 @@ export default new Spell.Parser({
       name: "compound_expression",
       alias: "expression",
       precedence: 12,
-      syntax: "{lhs:single_expression} {?:rhs:expression_suffix}+",
+      syntax: "{lhs:single_expression} {rhs:expression_suffix}+",
     //  testRule: "…{recursive_expression_test}",
       compile(scope, match) {
         const { results, matched } = match;
