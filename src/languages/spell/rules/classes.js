@@ -19,7 +19,7 @@ export default new Spell.Parser({
       name: "create_type",
       alias: "statement",
       syntax: [
-        "create a type (named|called) {type} (?:as (a|an) (isList:list of)? {superType:type})?",
+        "create a type (named|called) {type} (as (a|an) (isList:list of)? {superType:type})?",
         "a {type} is (a|an) (isList:list of)? {superType:type}"
       ],
       constructor: Spell.Rule.Statement,
@@ -54,7 +54,7 @@ export default new Spell.Parser({
     {
       name: "new_thing",
       alias: ["expression", "single_expression"],
-      syntax: "a new {type:known_type} (?:with {props:object_literal_properties})?",
+      syntax: "a new {type:known_type} (with {props:object_literal_properties})?",
       testRule: "…new",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
@@ -99,7 +99,7 @@ export default new Spell.Parser({
     {
       name: "create_thing",
       alias: ["expression", "single_expression", "statement"],
-      syntax: "create (a|an) {type:known_type} (?:with {props:object_literal_properties})?",
+      syntax: "create (a|an) {type:known_type} (with {props:object_literal_properties})?",
       testRule: "create",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
@@ -285,7 +285,7 @@ export default new Spell.Parser({
     {
       name: "property_value_either",
       alias: "statement",
-      syntax: "{?:property_of_a_type} is (value:{constant}|{expression}) if {condition:expression} (?:otherwise it is (otherValue:{constant}|{expression}))?",
+      syntax: "{?:property_of_a_type} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results, groups }) {
         const { value: valueMatch, otherValue: otherValueMatch } = groups;

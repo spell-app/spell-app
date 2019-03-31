@@ -107,7 +107,7 @@ export default new Spell.Parser({
     //TOOD: multiple lines if > 2 props?
     {
       name: "object_literal_properties",
-      syntax: "[({key:property} (?:= {value:expression})?),]",
+      syntax: "[({key:property} (= {value:expression})?),]",
       compile(scope, match) {
         const props = match.items.map(function(prop) {
           let { key, value } = prop.results;

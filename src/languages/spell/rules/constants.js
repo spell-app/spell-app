@@ -88,7 +88,7 @@ export default new Spell.Parser({
     {
       name: "define_constant",
       alias: "statement",
-      syntax: "define constant {constant} (?:as {value:expression})?",
+      syntax: "define constant {constant} (as {value:expression})?",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results, groups }) {
         const name = groups.constant.raw;

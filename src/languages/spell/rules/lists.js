@@ -929,7 +929,7 @@ export default new Spell.Parser({
     {
       name: "list_iteration",
       alias: "statement",
-      syntax: "for each? {item:singular_variable} (?:(and|,) {position:singular_variable})? in {list:expression} :?",
+      syntax: "for each? {item:singular_variable} ((and|,) {position:singular_variable})? in {list:expression} :?",
       testRule: "for",
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,

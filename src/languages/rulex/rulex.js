@@ -447,6 +447,9 @@ rulex.defineRule({
     // Note that the choice's flags will "beat" the rule's flags if they conflict.
     if (choices.length === 1) {
       rule = choices[0];
+      // if there's only one choice, it's most likely an optional sequence
+      // promote the results.
+      if (rule instanceof Rule.Sequence) rule.promote = true;
     }
     else {
       rule = new Rule.Choice({ rules: choices });

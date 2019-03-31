@@ -15,7 +15,7 @@ export default new Spell.Parser({
     {
       name: "alert",
       alias: ["statement", "async"],
-      syntax: "alert {message:expression} (?:with {okButton:text})?",
+      syntax: "alert {message:expression} (with {okButton:text})?",
       testRule: "alert",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
@@ -42,7 +42,7 @@ export default new Spell.Parser({
     {
       name: "warn",
       alias: "statement",
-      syntax: "warn {message:expression} (?:with {okButton:text})?",
+      syntax: "warn {message:expression} (with {okButton:text})?",
       testRule: "warn",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
@@ -69,7 +69,7 @@ export default new Spell.Parser({
     {
       name: "confirm",
       alias: "statement",
-      syntax: "confirm {message:expression} (?:with {okButton:text} (?:(and|or) {cancelButton:text})?)?",
+      syntax: "confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})?)?",
       testRule: "confirm",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
