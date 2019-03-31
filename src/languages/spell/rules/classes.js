@@ -186,7 +186,10 @@ export default new Spell.Parser({
     {
       name: "define_property_has",
       alias: "statement",
-      syntax: "{?:type_has_prefix} (a|an) {property} {initializer:type_initializer}?",
+      syntax: [
+        "(a|an) {type} has (a|an) {property} {initializer:type_initializer}?",
+        "{type:plural_type} have (a|an) {property} {initializer:type_initializer}?"
+      ],
       testRule: "…(has|have)",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
@@ -273,19 +276,19 @@ export default new Spell.Parser({
 
     {
       name: "the_property_of_a_thing",
-      alias: "property_of_a_type",
+      alias: "type_property",
       syntax: "the {property} of (a|an) {type}",
     },
     {
       name: "a_things_property",
-      alias: "property_of_a_type",
+      alias: "type_property",
       syntax: "(a|an) {type:plural_type} {property}",
     },
 
     {
       name: "property_value_either",
       alias: "statement",
-      syntax: "{?:property_of_a_type} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
+      syntax: "{type_property} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results, groups }) {
         const { value: valueMatch, otherValue: otherValueMatch } = groups;
@@ -298,7 +301,8 @@ export default new Spell.Parser({
           if (!constant) scope.constants.add(otherValueMatch.raw);
         }
 
-        const { type, value, otherValue, property, condition } = results;
+        const { type_property, value, otherValue, condition } = results;
+        const { type, property } = type_property;
         const statement = scope.getOrStubType(type)
           // Create as an instance getter
           .methods.add({
@@ -333,10 +337,11 @@ export default new Spell.Parser({
     {
       name: "property_value_expression",
       alias: "statement",
-      syntax: "{?:property_of_a_type} is {expression}",
+      syntax: "{type_property} is {expression}",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
-        let { type, property, expression } = results;
+        let { type_property, expression } = results;
+        const { type, property } = type_property;
         const statement = scope
           .getOrStubType(type)
           .methods.add({
