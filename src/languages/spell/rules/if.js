@@ -256,7 +256,7 @@ export default new Spell.Parser({
     {
       name: "backwards_if",
       alias: "expression_suffix",
-      syntax: "if (?:{condition:expression} (else|otherwise) {expression:expression})",
+      syntax: "if {condition:expression} (else|otherwise) {expression:expression}",
       compile(scope, match) {
         return { expression: match.results };
       },

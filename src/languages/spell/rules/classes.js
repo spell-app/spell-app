@@ -180,7 +180,7 @@ export default new Spell.Parser({
 
     {
       name: "type_has_prefix",
-      syntax: "(?:(a|an) {type} has|{type:plural_type} have)"
+      syntax: "((a|an) {type} has|{type:plural_type} have)"
     },
 
     {
