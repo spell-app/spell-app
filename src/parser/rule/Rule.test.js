@@ -521,7 +521,6 @@ describe("Rule.Choice", () => {
       new Rule.Keywords("that"),
       new Rule.Keywords("other"),
     ],
-    promote: true,
     argument: "arg"
   });
 
@@ -531,7 +530,6 @@ describe("Rule.Choice", () => {
       new Rule.Keywords("that"),
       new Rule.Keywords("other"),
     ],
-    promote: true,
     argument: "arg",
     testLocation: TestLocation.ANYWHERE
   });

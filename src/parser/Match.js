@@ -23,13 +23,6 @@ export class Match {
     return this.argument || this.rule.argument || this.rule.name;
   }
 
-  // Should we promote the match?
-  // Generally we look this up in our rule, but sometimes it's set directly (e.g. with choices)
-  get promote() {
-    return this._promote || this.rule.promote;
-  }
-  set promote(value) { if (value) this._promote = value }
-
   // Syntactic sugar to easily get `results` of the match for sequences, etc.
   // Only works for some rule types.
   @memoize

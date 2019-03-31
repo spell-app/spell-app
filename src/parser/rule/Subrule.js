@@ -24,14 +24,13 @@ Rule.Subrule = class subrule extends Rule {
     const match = rule.parse(scope, tokens);
     if (!match) return undefined;
     if (this.argument) match.argument = this.argument;
-    if (this.promote) match.promote = this.promote;
     return match;
   }
 
   toSyntax() {
-    const { testLocation, promote, argument, optional } = this.getSyntaxFlags();
+    const { testLocation, argument, optional } = this.getSyntaxFlags();
     return (
-      `${testLocation}{${promote}${argument}${this.rule}}${optional}`
+      `${testLocation}{${argument}${this.rule}}${optional}`
     );
   }
 };

@@ -103,7 +103,7 @@ export class Rule {
   }
 
   // We attempt to merge literals together if possible when creating rules.
-  // We can only do that for ruls that are not "adorned" with promote, argument, etc.
+  // We can only do that for ruls that are not "adorned" with argument, etc.
   // Note that `optional` doesn't matter in this case, because we can merge
   //  optional and non-optional literals.
   get isAdorned() {
@@ -112,13 +112,13 @@ export class Rule {
 
   // Return syntax string for this rule (doesn't apply to all rule types).
   // The base implementation takes care of the "adornments" and returns an object with:
-  //  `{ testLocation, promote, argument, optional }`
+  //  `{ testLocation, argument, optional }`
   getSyntaxFlags() {
-    let { testLocation = "", promote = "", argument = "", optional = "" } = this;
+    let { testLocation = "", argument = "", optional = "" } = this;
     if (testLocation === TestLocation.ANYWHERE) testLocation = "…";
     else if (testLocation === TestLocation.ANYWHERE) testLocation = "^";
     if (argument) argument += ":";
     if (optional) optional = "?";
-    return { testLocation, promote, argument, optional };
+    return { testLocation, argument, optional };
   }
 }
