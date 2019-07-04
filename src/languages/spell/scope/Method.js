@@ -56,12 +56,12 @@ export class Method extends Scope {
         return `${this.scope.name}.${this.name} = function(${args}) ${statements}`;
 
       if (this.kind === "getter")
-        return `defineProp(${this.scope.name}.prototype, '${this.name}', { get() ${statements} })`;
+        return `spell.define(${this.scope.name}.prototype, '${this.name}', { get() ${statements} })`;
 
       if (this.kind === "setter")
-        return `defineProp(${this.scope.name}.prototype, '${this.name}', { set(${args}) ${statements} })`;
+        return `spell.define(${this.scope.name}.prototype, '${this.name}', { set(${args}) ${statements} })`;
 
-      return `defineProp(${this.scope.name}.prototype, '${this.name}', { value(${args}) ${statements} })`;
+      return `spell.define(${this.scope.name}.prototype, '${this.name}', { value(${args}) ${statements} })`;
     }
 
 

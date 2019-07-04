@@ -90,7 +90,7 @@ export default new Spell.Parser({
       precedence: 3,
       compile(scope, match) {
         const { list } = match.results;
-        return `spell.lengthOf(${list})`;
+        return `spell.itemCountOf(${list})`;
       },
       tests: [
         {
@@ -100,9 +100,9 @@ export default new Spell.Parser({
             scope.variables.add("bar");
           },
           tests: [
-            ["number of items in my-list", "spell.lengthOf(my_list)"],
-            ["the number of foos in the foo of the bar", "spell.lengthOf(bar?.foo)"],
-            ["the number of items in [1,2,3]", "spell.lengthOf([1, 2, 3])"]
+            ["number of items in my-list", "spell.itemCountOf(my_list)"],
+            ["the number of foos in the foo of the bar", "spell.itemCountOf(bar?.foo)"],
+            ["the number of items in [1,2,3]", "spell.itemCountOf([1, 2, 3])"]
           ]
         }
       ]
@@ -120,7 +120,7 @@ export default new Spell.Parser({
       precedence: 3,
       compile(scope, match) {
         const { thing, list } = match.results;
-        return `spell.positionOf(${thing}, ${list})`;
+        return `spell.itemOf(${thing}, ${list})`;
       },
       tests: [
         {
@@ -131,9 +131,9 @@ export default new Spell.Parser({
             scope.variables.add("bar");
           },
           tests: [
-            ["position of thing in my-list", "spell.positionOf(thing, my_list)"],
-            ["the position of thing in the foo of the bar", "spell.positionOf(thing, bar?.foo)"],
-            ["the position of 'a' in ['a', 'b', 'c']", "spell.positionOf('a', ['a', 'b', 'c'])"]
+            ["position of thing in my-list", "spell.itemOf(thing, my_list)"],
+            ["the position of thing in the foo of the bar", "spell.itemOf(thing, bar?.foo)"],
+            ["the position of 'a' in ['a', 'b', 'c']", "spell.itemOf('a', ['a', 'b', 'c'])"]
           ]
         }
       ]
@@ -286,7 +286,7 @@ export default new Spell.Parser({
       testRule: "a random",
       compile(scope, match) {
         const { list } = match.results;
-        return `spell.getRandomItemOf(${list})`;
+        return `spell.randomItemOf(${list})`;
       },
       tests: [
         {
@@ -296,9 +296,9 @@ export default new Spell.Parser({
             scope.variables.add("deck");
           },
           tests: [
-            ["a random item of my-list", "spell.getRandomItemOf(my_list)"],
-            ["a random word in 'some words'", "spell.getRandomItemOf('some words')"],
-            ["a random card from the deck", "spell.getRandomItemOf(deck)"]
+            ["a random item of my-list", "spell.randomItemOf(my_list)"],
+            ["a random word in 'some words'", "spell.randomItemOf('some words')"],
+            ["a random card from the deck", "spell.randomItemOf(deck)"]
           ]
         }
       ]
@@ -313,7 +313,7 @@ export default new Spell.Parser({
       testRule: "…random",
       compile(scope, match) {
         const { number, list } = match.results;
-        return `spell.getRandomItemsOf(${list}, ${number})`;
+        return `spell.randomItemsOf(${list}, ${number})`;
       },
       tests: [
         {
@@ -323,12 +323,12 @@ export default new Spell.Parser({
             scope.variables.add("deck");
           },
           tests: [
-            ["2 random items of my-list", "spell.getRandomItemsOf(my_list, 2)"],
+            ["2 random items of my-list", "spell.randomItemsOf(my_list, 2)"],
             [
               "2 random words in 'some other words'",
-              "spell.getRandomItemsOf('some other words', 2)"
+              "spell.randomItemsOf('some other words', 2)"
             ],
-            ["3 random cards from deck", "spell.getRandomItemsOf(deck, 3)"]
+            ["3 random cards from deck", "spell.randomItemsOf(deck, 3)"]
           ]
         }
       ]
@@ -345,7 +345,7 @@ export default new Spell.Parser({
       testRule: "…(of|in|from)",
       compile(scope, match) {
         const { list, start, end } = match.results;
-        return `spell.getRange(${list}, ${start}, ${end})`;
+        return `spell.rangeFrom(${list}, ${start}, ${end})`;
       },
       tests: [
         {
@@ -355,9 +355,9 @@ export default new Spell.Parser({
             scope.variables.add("deck");
           },
           tests: [
-            ["item 1 to 2 of my-list", "spell.getRange(my_list, 1, 2)"],
-            ["word 2 to 3 in 'some other words'", "spell.getRange('some other words', 2, 3)"],
-            ["card 1 to 3 from deck", "spell.getRange(deck, 1, 3)"]
+            ["item 1 to 2 of my-list", "spell.rangeFrom(my_list, 1, 2)"],
+            ["word 2 to 3 in 'some other words'", "spell.rangeFrom('some other words', 2, 3)"],
+            ["card 1 to 3 from deck", "spell.rangeFrom(deck, 1, 3)"]
           ]
         }
       ]
@@ -372,7 +372,7 @@ export default new Spell.Parser({
       testRule: "…(of|in|from)",
       compile(scope, match) {
         const { ordinal, number, list } = match.results;
-        return `spell.slice(${list}, ${ordinal}, ${number})`;
+        return `spell.rangeFrom(${list}, ${ordinal}, ${number})`;
       },
       tests: [
         {
@@ -382,9 +382,9 @@ export default new Spell.Parser({
             scope.variables.add("deck");
           },
           tests: [
-            ["top 2 items of my-list", "spell.slice(my_list, 1, 2)"],
-            ["first 2 words in 'some other words'", "spell.slice('some other words', 1, 2)"],
-            ["last two cards from deck", "spell.slice(deck, -1, 2)"]
+            ["top 2 items of my-list", "spell.rangeFrom(my_list, 1, 2)"],
+            ["first 2 words in 'some other words'", "spell.rangeFrom('some other words', 1, 2)"],
+            ["last two cards from deck", "spell.rangeFrom(deck, -1, 2)"]
           ]
         }
       ]
@@ -400,7 +400,7 @@ export default new Spell.Parser({
       testRule: "…(starting with)",
       compile(scope, match) {
         const { thing, list } = match.results;
-        return `spell.getRange(${list}, spell.positionOf(${thing}, ${list}))`;
+        return `spell.rangeFrom(${list}, spell.itemOf(${thing}, ${list}))`;
       },
       tests: [
         {
@@ -412,11 +412,11 @@ export default new Spell.Parser({
           tests: [
             [
               "items in my-list starting with thing",
-              "spell.getRange(my_list, spell.positionOf(thing, my_list))"
+              "spell.rangeFrom(my_list, spell.itemOf(thing, my_list))"
             ],
             [
               "words in 'some words' starting with 'some'",
-              "spell.getRange('some words', spell.positionOf('some', 'some words'))"
+              "spell.rangeFrom('some words', spell.itemOf('some', 'some words'))"
             ]
           ]
         }
@@ -633,9 +633,9 @@ export default new Spell.Parser({
       updateScope(scope, { results }) {
         const { thing, item, list, operator } = results;
         const position = operator === "before"
-          ? `spell.positionOf(${list}, ${item})`
-          : `spell.positionOf(${list}, ${item}) + 1`;
-        const statement = scope.addStatement(`spell.splice(${list}, ${position}, ${thing})`);
+          ? `spell.itemOf(${list}, ${item})`
+          : `spell.itemOf(${list}, ${item}) + 1`;
+        const statement = scope.addStatement(`spell.addAtPosition(${list}, ${position}, ${thing})`);
         results.statements.push(statement);
       },
       tests: [
@@ -649,11 +649,11 @@ export default new Spell.Parser({
           tests: [
             [
               "add thing to my-list before other-thing",
-              "spell.splice(my_list, spell.positionOf(my_list, other_thing), thing)"
+              "spell.addAtPosition(my_list, spell.itemOf(my_list, other_thing), thing)"
             ],
             [
               "add thing to my-list after other-thing",
-              "spell.splice(my_list, spell.positionOf(my_list, other_thing) + 1, thing)"
+              "spell.addAtPosition(my_list, spell.itemOf(my_list, other_thing) + 1, thing)"
             ]
           ]
         }
@@ -696,12 +696,12 @@ export default new Spell.Parser({
     {
       name: "list_remove_ordinal",
       alias: "statement",
-      syntax: "remove the? {ordinal} {arg:singular_variable} of {list:expression}",
+      syntax: "remove the? {position:ordinal} {arg:singular_variable} of {list:expression}",
       testRule: "remove",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
-        const { ordinal, list } = results;
-        const statement = scope.addStatement(`spell.removeItem(${list}, ${ordinal})`);
+        const { position, list } = results;
+        const statement = scope.addStatement(`spell.removeItem(${list}, ${position})`);
         results.statements.push(statement);
       },
       tests: [
@@ -904,7 +904,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { list } = results;
-        const statement = scope.addStatement(`spell.shuffle(${list})`);
+        const statement = scope.addStatement(`spell.randomize(${list})`);
         results.statements.push(statement);
       },
       tests: [
@@ -915,9 +915,9 @@ export default new Spell.Parser({
             scope.variables.add("my-list");
           },
           tests: [
-            ["shuffle cards of deck", "spell.shuffle(deck)"],
-            ["shuffle the cards of the deck", "spell.shuffle(deck)"],
-            ["randomize my-list", "spell.shuffle(my_list)"],
+            ["shuffle cards of deck", "spell.randomize(deck)"],
+            ["shuffle the cards of the deck", "spell.randomize(deck)"],
+            ["randomize my-list", "spell.randomize(my_list)"],
           ]
         }
       ]

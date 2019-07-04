@@ -22,7 +22,7 @@ export default new Spell.Parser({
           results.value,
           // TODO: output expression spell for error messages in output
         ]
-        return `spell.assert_equals(${args.join(", ")})`;
+        return `spell.assertEquals(${args.join(", ")})`;
       },
       tests: [
         {
@@ -32,7 +32,7 @@ export default new Spell.Parser({
           },
           tests: [
             ["expect the foo of the thing to be 'bar'",
-             "spell.assert_equals(thing?.foo, 'bar')"],
+             "spell.assertEquals(thing?.foo, 'bar')"],
           ]
         },
       ]

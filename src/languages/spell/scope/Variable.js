@@ -33,8 +33,8 @@ export class Variable {
       // Add class props directly
       if (this.kind === "static")
         return `${this.scope.name}.${this.name} = ${initializer}`;
-      // Add instance props with defineProp
-      return `defineProp(${this.scope.name}.prototype, '${this.name}', { value: ${initializer} })`;
+      // Add instance props with spell.define
+      return `spell.define(${this.scope.name}.prototype, '${this.name}', { value: ${initializer} })`;
     }
 
     if (this.kind === "argument") {
