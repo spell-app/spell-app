@@ -9,6 +9,7 @@ import Button from "react-bootstrap/Button";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
+import NavLink from "react-bootstrap/NavLink";
 
 import Octicon, {ChevronRight} from '@githubprimer/octicons-react'
 
@@ -120,15 +121,17 @@ export class _SpellEditor extends React.Component {
           <Col xs={12}>
             <Navbar bg="dark" variant="dark" className="py-0">
               <Nav>
+                <NavLink disabled>Project:</NavLink>
                 <NavDropdown title={projectId} id="project-dropdown" style={{width: "12em"}}>
                   {projectItems}
                 </NavDropdown>
+                <NavLink disabled>File:</NavLink>
                 <NavDropdown title={moduleId} id="module-dropdown" style={{width: "12em"}}>
                   {moduleItems}
                 </NavDropdown>
                 <Navbar.Collapse id="navbar-buttons" className="ml-2">
                   <Nav>
-                    <Nav.Link onClick={this.create}><u>N</u>ew</Nav.Link>
+                    <Nav.Link onClick={this.create}><u>N</u>ew File</Nav.Link>
                     <Nav.Link onClick={this.duplicate}>Duplicate</Nav.Link>
                     <Nav.Link onClick={this.rename}>Rename</Nav.Link>
                     <Nav.Link onClick={this._delete}><u>D</u>elete</Nav.Link>
