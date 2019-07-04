@@ -4,20 +4,13 @@ Creating an algorithmic parser for experiments in converting "natural language" 
 
 At the root of this is a "Rule Syntax" which resembles regular expressions on steroids -- allowing the language developer to express **any** language rules (not just "spell") in a way that feels natural to anyone familiar with regular expressions.  The parser itself is dead simple (src/Parser.js), and it's the formulation of the rules (src/rules/) which provides the power.  In contrast to other rule-based parsers, it's easy for the language developer to add additional rules to the system by simply importing them dynamically, even at runtime.  The parser core could easily be re-written in other languages (e.g. python) and other "compilation targets" are easily possible.
 
-To get started
+To get started (including auto-compiling code changes)
 ----------------
 - Clone this repo
 - `cd <repo location>`
 - `npm install`
-- Open file `<repo location>/index.html` in your web browser.
-
-
-To auto-compile code
-----------------
-- `cd <repo location>`
-- `npm run watch`
-
-- NOTE: initial compile time can take quite a while due to the inclusion of the "React-SemanticUI" library in the demo app -- the parser itself is quite small.
+- `yarn start`
+- Open `http://localhost:5000` in your web browser.
 
 
 To test
