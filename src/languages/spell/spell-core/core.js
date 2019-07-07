@@ -15,13 +15,13 @@ const spell = {
   },
 
   // Create an new, "empty" instance of `thing.constructor`.
-  newThingLike(thing, ...args) {
+  newThingLike(thing) {
     if (!assert.isDefined(thing, "spell.newThingLike()")) return undefined
+    if (spell.isArrayLike(thing)) return []
     try {
-      return new (collection.constructor)(...args)
+      return new (thing.constructor)()
     } catch (e) {
-      if (spell.isArrayLike(thing)) return [...args]
-      return {...args}
+      return {}
     }
   },
 
@@ -31,12 +31,14 @@ const spell = {
   //--------
 
   // Return string "type" of `thing`.
-  // TODO... ???
+  // TODO:  string => text ?
+  // TODO:  boolean => choice ?
+  // TODO:  array => list ?  array-like?
+  // TODO:  function => ????
   typeOf(thing) {
     if (thing == null) return "unknown"
     const objectType = typeof thing
     if (objectType !== "object") {
-      if (objectType === "number" && isNaN(thing)) return "unknown"
       return objectType
     }
     if (thing.constructor && thing.constructor.name) return thing.constructor.name.toLowerCase()
@@ -48,7 +50,7 @@ const spell = {
   // `null`/`undefined` only match themselves.
   isOfType(thing, ...types) {
     const thingType = spell.typeOf(thing)
-    return spell.any(types, (type => type === thingType))
+    return types.some(type => type === thingType)
   },
 
   // Is `thing` a valid number (doesn't include NaN)
@@ -90,7 +92,13 @@ const spell = {
   //--------
 
   // Random integer between `start` and `end` inclusive.
+  // If you pass just one number, we'll do `1..start`
   randomNumber(start, end) {
+    if (arguments.length === 1) {
+      end = start
+      start = 1
+    }
+    if (!assert(spell.isANumber(start) && spell.isANumber(end), "spell.randomNumber(): you must pass two numbers, got", start, end)) return 0
     return Math.floor(Math.random() * (max - min + 1)) + min
   },
 

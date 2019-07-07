@@ -114,7 +114,7 @@ describe("assert.isDefined()", () => {
       assert.isDefined(null)
       expect(assert.failed).toHaveBeenCalledWith(["", "expected defined thing, got: ", null])
     })
-    test("when method is defined and message is empty", () => {
+    test("when method is specified and message is empty", () => {
       assert.isDefined(null, "method")
       expect(assert.failed).toHaveBeenCalledWith(["method", "expected defined thing, got: ", null])
     })

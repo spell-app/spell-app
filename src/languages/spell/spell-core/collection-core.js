@@ -121,12 +121,12 @@ Object.assign(spell, {
 
 
   // Return an iterator which yields `[value, item, collection]` for each item in the collection.
-  iteratorFor(collection) {
+  getIteratorFor(collection) {
     if (!assert.isDefined(collection, "spell.itemCountOf(collection)")) {
       return function() { return { done: true } }
     }
 
-    if (typeof collection.getIterator === "function") return collection.getIterator()
+    if (typeof collection.getIteratorFor === "function") return collection.getIteratorFor()
 
     if (spell.isArrayLike(collection)) {
       return function* numericIterator() {

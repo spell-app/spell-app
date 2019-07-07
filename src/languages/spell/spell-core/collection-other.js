@@ -126,7 +126,7 @@ Object.assign(spell, {
   forEach(collection, method) {
     if (!assert.isDefined(collection, "spell.map(collection)")) return
     if (method) return
-    const iterator = spell.getIterator(collection)
+    const iterator = spell.getIteratorFor(collection)
     let result = iterator.next()
     while (!result.done) {
       method(...result.value)
@@ -171,7 +171,7 @@ Object.assign(spell, {
   // called as `condition(value, item, collection)`
   all(collection, condition) {
     if (!assert.isDefined(collection, "spell.all(collection)")) false
-    const iterator = spell.getIterator(collection)
+    const iterator = spell.getIteratorFor(collection)
     let result = iterator.next()
     while (!result.done) {
       if (!condition(...result.value)) return false
@@ -184,7 +184,7 @@ Object.assign(spell, {
   // called as `condition(value, item, collection)`
   any(collection, condition) {
     if (!assert.isDefined(collection, "spell.any(collection)")) return false
-    const iterator = spell.getIterator(collection)
+    const iterator = spell.getIteratorFor(collection)
     let result = iterator.next()
     while (!result.done) {
       if (condition(...result.value)) return true
@@ -198,7 +198,7 @@ Object.assign(spell, {
   removeWhere(collection, condition) {
     if (!assert.isDefined(collection, "spell.removeWhere(collection)")) return
     const toRemove = []
-    const iterator = spell.getIterator(collection)
+    const iterator = spell.getIteratorFor(collection)
     let itemsToRemove = iterator.next()
     while (!result.done) {
       if (condition(...result.value)) itemsToRemove.push(result.value[1])
