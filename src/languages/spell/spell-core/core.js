@@ -1,6 +1,7 @@
 //////////
 //  `spell` base runtime library for use with classes created with spell
 //////////
+import _ from "lodash"
 import { assert } from "."
 const spell = {
 
@@ -13,14 +14,14 @@ const spell = {
     return Object.defineProperty(thing, propertyName, descriptor)
   },
 
-  // Create an new instance of `thing.constructor` with constructor `args`.
+  // Create an new, "empty" instance of `thing.constructor`.
   newThingLike(thing, ...args) {
-    if (!assert.defined(thing, "spell.newThingLike()")) return undefined
+    if (!assert.isDefined(thing, "spell.newThingLike()")) return undefined
     try {
       return new (collection.constructor)(...args)
     } catch (e) {
-      if (spell.isArrayLike(thing)) return []
-      return {}
+      if (spell.isArrayLike(thing)) return [...args]
+      return {...args}
     }
   },
 
@@ -55,6 +56,8 @@ const spell = {
     return (typeof thing === "number" && !isNaN(thing))
   },
 
+  // TODO: isText, etc
+
   // Is `thing` an array-like thing?
   isArrayLike(thing) {
     return _.isArrayLike(thing)
@@ -74,10 +77,6 @@ const spell = {
   // operators
   //--------
 
-  // empty array / object / ???
-  // TODO: algorithm?
-  isEmpty(thing) {},
-
   // Does `thing` conceptually equal `otherThing`?
   // Uses lodash `isEqual` semantics.
   equals(thing, otherThing) {
@@ -95,21 +94,14 @@ const spell = {
     return Math.floor(Math.random() * (max - min + 1)) + min
   },
 
-  // Return smallest item of `thing`
-  // TODO: what can `thing` be???
-  smallestOf(thing) {},
-
-  // Return largest item of `thing`
-  // TODO: what can `thing` be???
-  largestOf(thing) {},
-
-
   //////////
   // components
   //--------
 
   // Create an element (ala `React.createElement()`)
-  createElement(tagName, properties, ...children) {},
+  createElement(tagName, properties, ...children) {
+    throw new RuntimeError("TODO: spell.createElement()")
+  },
 
 }
 

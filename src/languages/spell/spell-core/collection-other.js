@@ -19,7 +19,7 @@ Object.assign(spell, {
   // For array: `items` are 1-based positions, returns compacted collection.
   // For object: `items` are string keys, returns just specified keys.
   getItemsOf(collection, ...items) {
-    if (!assert.defined(collection, "spell.getItemsOf(collection)")) return undefined
+    if (!assert.isDefined(collection, "spell.getItemsOf(collection)")) return undefined
     if (typeof collection.items === "function") return collection.items(...items)
     const results = spell.newThingLike(collection)
     if (spell.isArrayLike(collection)) {
@@ -95,7 +95,7 @@ Object.assign(spell, {
   // Reverse list in-place.
   // Array only.
   reverse(collection) {
-    if (!assert.defined(collection, "spell.reverse(collection)")) return
+    if (!assert.isDefined(collection, "spell.reverse(collection)")) return
     const reversed = spell.valuesOf(collection).reverse();
     spell.setItemsOf(collection, 1, ...reversed)
   },
@@ -124,10 +124,10 @@ Object.assign(spell, {
 
   // Execute `method` for each item in `collection`, ignoring results.
   forEach(collection, method) {
-    if (!assert.defined(collection, "spell.map(collection)")) return
+    if (!assert.isDefined(collection, "spell.map(collection)")) return
     if (method) return
-    const generator = spell.getGenerator(collection)
-    let result = generator.next()
+    const iterator = spell.getIterator(collection)
+    let result = iterator.next()
     while (!result.done) {
       method(...result.value)
       result = result.next()
@@ -138,7 +138,7 @@ Object.assign(spell, {
   // Pass `results` as thing to put results into, defults to new thing like `collection`.
   // TODO: rename???
   map(collection, method) {
-    if (!assert.defined(collection, "spell.map(collection)")) return undefined
+    if (!assert.isDefined(collection, "spell.map(collection)")) return undefined
     const results = spell.newThingLike(collection)
     spell.forEach(collection, (value, item) => {
       spell.setItem(results, item, method(value, item, collection))
@@ -150,7 +150,7 @@ Object.assign(spell, {
   // For array: returns a compacted collection of same type.
   // For object: returns new type of collection with just specified keys.
   filter(collection, condition) {
-    if (!assert.defined(collection, "spell.all(collection)")) return undefined
+    if (!assert.isDefined(collection, "spell.all(collection)")) return undefined
     const results = spell.newThingLike(collection)
     let filter
     if (spell.isArrayLike(collection)) {
@@ -170,12 +170,12 @@ Object.assign(spell, {
   // Return `true` if all items in collection match `condition`,
   // called as `condition(value, item, collection)`
   all(collection, condition) {
-    if (!assert.defined(collection, "spell.all(collection)")) false
-    const generator = spell.getGenerator(collection)
-    let result = generator.next()
+    if (!assert.isDefined(collection, "spell.all(collection)")) false
+    const iterator = spell.getIterator(collection)
+    let result = iterator.next()
     while (!result.done) {
       if (!condition(...result.value)) return false
-      result = generator.next()
+      result = iterator.next()
     }
     return true
   },
@@ -183,12 +183,12 @@ Object.assign(spell, {
   // Return `true` if at least one item in collection matches `condition`
   // called as `condition(value, item, collection)`
   any(collection, condition) {
-    if (!assert.defined(collection, "spell.any(collection)")) return false
-    const generator = spell.getGenerator(collection)
-    let result = generator.next()
+    if (!assert.isDefined(collection, "spell.any(collection)")) return false
+    const iterator = spell.getIterator(collection)
+    let result = iterator.next()
     while (!result.done) {
       if (condition(...result.value)) return true
-      result = generator.next()
+      result = iterator.next()
     }
     return false
   },
@@ -196,13 +196,13 @@ Object.assign(spell, {
   // Remove items from `collection` which match `condition`.
   // called as `condition(value, item, collection)`
   removeWhere(collection, condition) {
-    if (!assert.defined(collection, "spell.removeWhere(collection)")) return
+    if (!assert.isDefined(collection, "spell.removeWhere(collection)")) return
     const toRemove = []
-    const generator = spell.getGenerator(collection)
-    let itemsToRemove = generator.next()
+    const iterator = spell.getIterator(collection)
+    let itemsToRemove = iterator.next()
     while (!result.done) {
       if (condition(...result.value)) itemsToRemove.push(result.value[1])
-      result = generator.next()
+      result = iterator.next()
     }
     spell.removeItemsOf(collection, ...itemsToRemove)
   },
@@ -211,14 +211,14 @@ Object.assign(spell, {
   // For array: `items` are 1-based positions.
   // For object: `items` are string keys.
   removeItemsOf(collection, ...items) {
-    if (!assert.defined(collection, "spell.removeItemsOf(collection)")) return
+    if (!assert.isDefined(collection, "spell.removeItemsOf(collection)")) return
     items.forEach(item => spell.removeItemOf(collection, item))
   },
 
   // Remove all occurance of `things` from collection, in-place.
   // For object: removes `values`
   remove(collection, ...things) {
-    if (!assert.defined(collection, "spell.remove(collection)")) return
+    if (!assert.isDefined(collection, "spell.remove(collection)")) return
     things.forEach(thing => {
       let item = spell.indexOf(collection, thing)
       while (item !== undefined) {
@@ -234,24 +234,24 @@ Object.assign(spell, {
 
   // Return a random key of `collection`
   randomKeyOf(collection) {
-    if (!assert.defined(collection, "spell.randomKeyOf(collection)")) return undefined
+    if (!assert.isDefined(collection, "spell.randomKeyOf(collection)")) return undefined
     if (spell.isArrayLike(collection)) return spell.randomNumber(1, spell.itemCountOf(collection))
     return spell.randomKeyOf(spell.keysOf(collection))
   },
 
   // Return a single item from `collection`, picked randomly.
   randomItemOf(collection) {
-    if (!assert.defined(collection, "spell.randomItemOf(collection)")) return undefined
+    if (!assert.isDefined(collection, "spell.randomItemOf(collection)")) return undefined
     if (typeof collection.randomItem === "function") return collection.randomItem()
     const key = spell.randomKeyOf(collection);
     return spell.getItemOf(collection, key)
   },
 
-  // Return set of up to `count` items from `collection`, picked randomly,
+  // Return list of up to `count` items from `collection`, picked randomly,
   // where each item can be returned only once.
   // Returns same type as was passed in.
   randomItemsOf(collection, count) {
-    if (!assert.defined(collection, "spell.randomItemsOf(collection)")) return undefined
+    if (!assert.isDefined(collection, "spell.randomItemsOf(collection)")) return undefined
     const items = spell.keysOf(collection)
     const shuffledItems = _.shuffle(items).slice(0, count)
     const results = spell.newThingLike(collection)
@@ -264,9 +264,29 @@ Object.assign(spell, {
   // Randomize `collection` in-place.
   // Array-only?
   randomize(collection) {
-    if (!assert.defined(collection, "spell.randomize(collection)")) return undefined
+    if (!assert.isDefined(collection, "spell.randomize(collection)")) return undefined
     const randomized = spell.randomItemsOf(collection)
-    spell.forEach(randomized, (value, item) => { collection[item] = value })
+    spell.setItemsOf(collection, 0, ...randomized)
+  },
+
+  // Return smallest item of `collection` according to `<` comparison.
+  smallestOf(collection) {
+    if (!assert.isDefined(collection, "spell.smallestOf(collection)")) return undefined
+    const values = spell.valuesOf(collection)
+    return values.reduce(
+      (smallest, next) => next < smallest ? next : smallest,
+      values[0]
+    )
+  },
+
+  // Return largest item of `collection` according to `>` comparison
+  largestOf(collection) {
+    if (!assert.isDefined(collection, "spell.largestOf(collection)")) return undefined
+    const values = spell.valuesOf(collection)
+    return values.reduce(
+      (largest, next) => next > largest ? next : largest,
+      values[0]
+    )
   },
 
 
