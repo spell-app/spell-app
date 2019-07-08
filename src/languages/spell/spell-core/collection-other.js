@@ -14,33 +14,18 @@ Object.assign(spell, {
   // composite accessors
   //----------
 
-  // TODO: add spell syntax for this
-  // Return `items` from collection, returns new collection of same type.
-  // For array: `items` are 1-based positions, returns compacted collection.
-  // For object: `items` are string keys, returns just specified keys.
-  getItemsOf(collection, ...items) {
-    if (!assert.isDefined(collection, "spell.getItemsOf(collection)")) return undefined
-    if (typeof collection.items === "function") return collection.items(...items)
-    const results = spell.newThingLike(collection)
-    if (spell.isArrayLike(collection)) {
-      items.forEach(position => spell.append(results, spell.getItemOf(collection, position)))
-    } else {
-      items.forEach(key => spell.setItemOf(results, key, spell.getItemOf(collection, key)))
-    }
-    return results
-  },
-
-  // Does `collection` include `values`?
+  // Does `collection` include ALL of the specified `values`?
   // If more than one value specified, all must be included.
-  // For object: iterates through `Object.values()`
   includes(collection, ...values) {
+    if (!assert.isDefined(collection, "spell.includes(collection)")) return false
+    if (!values.length) return false
     return spell.all(values, (value) => spell.itemOf(collection, value) !== undefined)
   },
 
-  // Does `collection` include any `values`?
-  // If more than one value specified, all must be included.
-  // For object: iterates through `Object.values()`
+  // Does `collection` include any of the specified `values`?
+  // If more than one value specified, only one must be included.
   includesAny(collection, ...values) {
+    if (!assert.isDefined(collection, "spell.includesAny(collection)")) return false
     return spell.any(values, (value) => spell.itemOf(collection, value) !== undefined)
   },
 
@@ -52,14 +37,16 @@ Object.assign(spell, {
   // Array only.
   startsWith(collection, thing) {
     if (!assert.isArrayLike(collection, "spell.startsWith(collection)")) return false
-    return spell.itemOf(collection, thing) === 1
+    if (thing == null) return false
+    return spell.getItemOf(collection, 1) === thing
   },
 
   // Is `thing` the last thing in `collection`?
   // Array only.
   endsWith(collection, thing) {
     if (!assert.isArrayLike(collection, "spell.endsWith(collection)")) return false
-    return spell.itemOf(collection, thing) === spell.itemCountOf(collection)
+    if (thing == null) return false
+    return spell.getItemOf(collection, spell.itemCountOf(collection)) === thing
   },
 
   // Add `things` in the middle of the `collection` starting with 1-based position `start`,
@@ -68,7 +55,10 @@ Object.assign(spell, {
   addAtPosition(collection, start, ...things) {
     if (!assert.isArrayLike(collection, "spell.addAtPosition(collection)")) return
     if (typeof collection.prepend === "function") return collection.append(...things)
-    Array.splice.prototype.call(collection, start - 1, 0, ...things)
+    if (start > 0)
+      Array.prototype.splice.call(collection, start - 1, 0, ...things)
+    else
+      Array.prototype.splice.call(collection, start, 0, ...things)
   },
 
   // Add `things` to front of `collection`, pushing everything else down.
@@ -80,7 +70,7 @@ Object.assign(spell, {
   // Add `things` to end of `collection`.
   // Array only.
   append(collection, ...things) {
-    spell.addAtPosition(collection, spell.itemCountOf(collection), ...things)
+    spell.addAtPosition(collection, spell.itemCountOf(collection) + 1, ...things)
   },
 
   // Set values of item starting with `start` as 1-based position.

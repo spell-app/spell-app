@@ -64,23 +64,6 @@ Object.assign(spell, {
     return collection[item]
   },
 
-  // `item` key of first instance of `thing` in `collection`.
-  // For array: returns 1-based position or `undefined`
-  // For object: returns string key or `undefined`
-  // TODO: `positionOf` ???
-  itemOf(collection, thing) {
-    if (!assert.isDefined(collection, "spell.itemOf(collection)")) return undefined
-    if (typeof collection.itemOf === "function") return collection.itemOf(thing)
-    const iterator = spell.getIteratorFor(collection)
-    let result = iterator.next()
-    while (!result.done) {
-      const [ value, item ] = result.value
-      if (value === thing) return item
-      result = iterator.next()
-    }
-    return undefined
-  },
-
   // Set `item` of `collection` to `value`.
   // For array: `item` is 1-based position.
   // For object: `item` is string key.
@@ -103,6 +86,23 @@ Object.assign(spell, {
       Array.prototype.splice.call(collection, item-1, 1)
     else
       delete collection[item]
+  },
+
+  // `item` key of first instance of `thing` in `collection`.
+  // For array: returns 1-based position or `undefined`
+  // For object: returns string key or `undefined`
+  // TODO: `positionOf` ???
+  itemOf(collection, thing) {
+    if (!assert.isDefined(collection, "spell.itemOf(collection)")) return undefined
+    if (typeof collection.itemOf === "function") return collection.itemOf(thing)
+    const iterator = spell.getIteratorFor(collection)
+    let result = iterator.next()
+    while (!result.done) {
+      const [ value, item ] = result.value
+      if (value === thing) return item
+      result = iterator.next()
+    }
+    return undefined
   },
 
   // Remove all things from the `collection`, in-place.

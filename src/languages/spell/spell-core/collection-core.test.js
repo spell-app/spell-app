@@ -5,7 +5,7 @@ beforeEach(() => {
   assert.failed = jest.fn()
 })
 
-// Custom collection class
+// Custom collection class simulating our custom api
 class CustomCollection {
   itemCount = jest.fn( () => 2 )
   getKeys = jest.fn( () => ["key1", "key2"] )
