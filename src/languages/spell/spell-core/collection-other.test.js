@@ -290,3 +290,195 @@ describe("spell.reverse()", () => {
   })
 })
 
+describe("spell._validateRangeBetween()", () => {
+  describe("when start is missing", () => {
+    test("returns 1...end if start not provided", () => {
+      expect(spell._validateRangeBetween(null, 3, 5)).toEqual({ start: 1, end: 3 })
+    })
+    test("returns start...count if start and end not provided", () => {
+      expect(spell._validateRangeBetween(null,null,5)).toEqual({ start: 1, end: 5 })
+    })
+  })
+  describe("for positive starts", () => {
+    test("returns start...count if end not provided", () => {
+      expect(spell._validateRangeBetween(2, null, 5)).toEqual({ start: 2, end: 5 })
+    })
+    test("returns undefined if end < start", () => {
+      expect(spell._validateRangeBetween(5,1,5)).toEqual(undefined)
+    })
+    test("returns undefined if start > count", () => {
+      expect(spell._validateRangeBetween(10,1,5)).toEqual(undefined)
+    })
+    test("returns proper range for valid start", () => {
+      expect(spell._validateRangeBetween(2,3,5)).toEqual({ start: 2, end: 3 })
+    })
+  })
+  describe("for negative starts", () => {
+    test("returns (count+start)...count if end not provided", () => {
+      expect(spell._validateRangeBetween(-2, null, 5)).toEqual({ start: 4, end: 5 })
+    })
+    test("returns undefined if end < -start", () => {
+      expect(spell._validateRangeBetween(-2,1,5)).toEqual(undefined)
+    })
+    test("returns undefined if -start > count", () => {
+      expect(spell._validateRangeBetween(-10,1,5)).toEqual(undefined)
+    })
+    test("returns proper range for valid start", () => {
+      expect(spell._validateRangeBetween(-2,5,5)).toEqual({ start: 4, end: 5 })
+    })
+    test("returns proper range for valid start and end too large", () => {
+      expect(spell._validateRangeBetween(-2,10,5)).toEqual({ start: 4, end: 5 })
+    })
+  })
+})
+
+describe("spell.rangeBetween()", () => {
+  test("fails assertion and returns empty array if not defined", () => {
+    expect(spell.rangeBetween()).toEqual([])
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  test("fails assertion and returns empty array if passed an object", () => {
+    expect(spell.rangeBetween({})).toEqual([])
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  test("returns empty array if start > count", () => {
+    expect(spell.rangeBetween([1,2,3], 5)).toEqual([])
+  })
+  test("returns empty array if end < start", () => {
+    expect(spell.rangeBetween([1,2,3], 2, 1)).toEqual([])
+  })
+  test("defaults end to collection length if not specified", () => {
+    expect(spell.rangeBetween([1,2,3], 1)).toEqual([1,2,3])
+  })
+  test("defaults end to collection length if > collection length", () => {
+    expect(spell.rangeBetween([1,2,3], 1, 5)).toEqual([1,2,3])
+  })
+  test("defaults start to 1 if not specified", () => {
+    expect(spell.rangeBetween([1,2,3])).toEqual([1,2,3])
+  })
+  test("subsets properly with internal range", () => {
+    expect(spell.rangeBetween([1,2,3,4,5], 2, 4)).toEqual([2,3,4])
+  })
+})
+
+describe("spell.removeRangeBetween()", () => {
+  test("fails assertion if not defined", () => {
+    spell.removeRangeBetween()
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  test("fails assertion for object", () => {
+    spell.removeRangeBetween({})
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  test("returns same values if start > count", () => {
+    const collection = [1,2]
+    spell.removeRangeBetween(collection, 3)
+    expect(collection).toEqual([1,2])
+  })
+  test("returns same values if end < start", () => {
+    const collection = [1,2]
+    spell.removeRangeBetween(collection, 2, 1)
+    expect(collection).toEqual([1,2])
+  })
+  test("defaults end to collection length if not specified", () => {
+    const collection = [1,2,3]
+    spell.removeRangeBetween(collection, 2)
+    expect(collection).toEqual([1])
+  })
+  test("defaults end to collection length if > collection length", () => {
+    const collection = [1,2,3]
+    spell.removeRangeBetween(collection, 2, 5)
+    expect(collection).toEqual([1])
+  })
+  test("defaults start to 1 if not specified", () => {
+    const collection = [1,2,3]
+    spell.removeRangeBetween(collection)
+    expect(collection).toEqual([])
+  })
+  test("subsets properly with internal range", () => {
+    const collection = [1,2,3]
+    spell.removeRangeBetween(collection, 2, 2)
+    expect(collection).toEqual([1,3])
+  })
+})
+
+describe("spell._validateRangeStartingAt()", () => {
+  describe("when start is missing", () => {
+    test("returns start...itemCount if start and count not provided", () => {
+      expect(spell._validateRangeStartingAt(null,null,5)).toEqual({ start: 1, end: 5 })
+    })
+    test("returns 1...count if start not provided", () => {
+      expect(spell._validateRangeStartingAt(null, 3, 5)).toEqual({ start: 1, end: 3 })
+    })
+  })
+  describe("for positive starts", () => {
+    test("returns undefined if count is 0", () => {
+      expect(spell._validateRangeStartingAt(2, 0, 5)).toEqual(undefined)
+    })
+    test("returns start...itemCount if count not provided", () => {
+      expect(spell._validateRangeStartingAt(2, null, 5)).toEqual({ start: 2, end: 5 })
+    })
+    test("returns undefined if count < start", () => {
+      expect(spell._validateRangeStartingAt(5,1,5)).toEqual({ start: 5, end: 5 })
+    })
+    test("returns undefined if start > itemCount", () => {
+      expect(spell._validateRangeStartingAt(10,1,5)).toEqual(undefined)
+    })
+    test("returns proper range for valid start", () => {
+      expect(spell._validateRangeStartingAt(2,3,5)).toEqual({ start: 2, end: 4 })
+    })
+  })
+  describe("for negative starts", () => {
+    test("returns undefined if count is 0", () => {
+      expect(spell._validateRangeStartingAt(2, 0, 5)).toEqual(undefined)
+    })
+    test("returns (itemCount+start)...itemCount if count not provided", () => {
+      expect(spell._validateRangeStartingAt(-2, null, 5)).toEqual({ start: 4, end: 5 })
+    })
+    test("returns undefined if -start > itemCount", () => {
+      expect(spell._validateRangeStartingAt(-10,1,5)).toEqual(undefined)
+    })
+    test("returns proper range for valid start", () => {
+      expect(spell._validateRangeStartingAt(-2,5,5)).toEqual({ start: 4, end: 5 })
+    })
+    test("returns proper range for valid start and count too large", () => {
+      expect(spell._validateRangeStartingAt(-2,10,5)).toEqual({ start: 4, end: 5 })
+    })
+  })
+})
+
+describe("spell.rangeStartingAt()", () => {
+  test("fails assertion and returns empty array if not defined", () => {
+    expect(spell.rangeStartingAt()).toEqual([])
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  test("fails assertion and returns empty array if passed an object", () => {
+    expect(spell.rangeStartingAt({})).toEqual([])
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  test("returns empty array if start > itemCount", () => {
+    expect(spell.rangeStartingAt([1,2,3], 5, 1)).toEqual([])
+  })
+  test("returns empty array if -start > itemCount", () => {
+    expect(spell.rangeStartingAt([1,2,3], -5, 1)).toEqual([])
+  })
+  test("returns empty array if count 0", () => {
+    expect(spell.rangeStartingAt([1,2,3], 2, 0)).toEqual([])
+  })
+  test("returns empty array if count < 0", () => {
+    expect(spell.rangeStartingAt([1,2,3], 2, -1)).toEqual([])
+  })
+  test("subsets properly for normal positive range", () => {
+    expect(spell.rangeStartingAt([1,2,3], 2, 2)).toEqual([2,3])
+  })
+  test("subsets properly for positive start with count > itemCount", () => {
+    expect(spell.rangeStartingAt([1,2,3], 2, 10)).toEqual([2,3])
+  })
+  test("subsets properly for normal negative range", () => {
+    expect(spell.rangeStartingAt([1,2,3], -2, 2)).toEqual([2,3])
+  })
+  test("subsets properly for negative start with count > itemCount", () => {
+    expect(spell.rangeStartingAt([1,2,3], -2, 10)).toEqual([2,3])
+  })
+})
+

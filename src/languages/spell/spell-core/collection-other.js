@@ -90,22 +90,70 @@ Object.assign(spell, {
     spell.setItemsOf(collection, 1, ...reversed)
   },
 
+  // Given possible `start` and `end` 1-based position in collection,
+  //  as well as `itemCount` items in the collection, return:
+  //  `{ start, end }` for a valid range, or
+  //  `undefined` if an invalid range was specfified.
+  // If `start` is negative, we'll take from the end of the list, but in normal list order.
+  _validateRangeBetween(start, end, itemCount) {
+    if (itemCount === 0) return undefined
+    if (!spell.isANumber(start) || start === 0) start = 1   // TODO === 0 ???
+    else if (Math.abs(start) > itemCount) return undefined
+    else if (start < 0) start = Math.max(itemCount + start + 1, 1)
+    if (!spell.isANumber(end) || end > itemCount) end = itemCount
+    if (end < start) return undefined
+    return { start, end }
+  },
+
   // Return subset of list from `start` to `end` as 1-based positions, inclusive.
-// TODO: if start is negative, go back from the end!!!
+  // Note: this is positive numbers only, `rangeStartingAt()` deals with negatives. (???)
   // Array only.
-  rangeFrom(collection, start, end) {
-    if (!assert.isArrayLike(collection, "spell.rangeFrom(collection)")) return []
-    if (!spell.isANumber(start) || start < 1) start = 1
-    if (!spell.isANumber(end) || end > spell.itemCountOf(collection)) end = spell.itemCountOf(collection)
+  rangeBetween(collection, start, end) {
+    if (!assert.isArrayLike(collection, "spell.rangeBetween(collection)")) return []
+    const range = spell._validateRangeBetween(start, end, spell.itemCountOf(collection))
+    if (!range) return []
     const results = spell.newThingLike(collection)
-    for (var i = start; i <= end; i++) {
+    for (let i = range.start; i <= range.end; i++) {
       spell.append(results, spell.getItemOf(collection, i))
     }
     return results
   },
 
   // Remove items from `collection` between 1-based positions `start` to `end`, inclusive.
-  removeRange(collection, start, end) {},
+  // Note: this is positive numbers only. (???)
+  // Slides other items into the gaps.
+  // Array only
+  removeRangeBetween(collection, start, end) {
+    if (!assert.isArrayLike(collection, "spell.rangeStartingAt(collection)")) return
+    const range = spell._validateRangeBetween(start, end, spell.itemCountOf(collection))
+    if (!range) return
+    const count = (range.end - range.start) + 1
+    Array.prototype.splice.call(collection, range.start - 1, count)
+  },
+
+  // Given possible `start` as 1-based position in collection,
+  // `count` as number of items (inclusive) and `itemCount` in collection:
+  //  `{ start, end }` for a valid range, or
+  //  `undefined` if an invalid range was specfified.
+  // If `start` is negative, we'll take from the end of the list, but in normal list order.
+  _validateRangeStartingAt(start, count, itemCount) {
+    if (Math.abs(start) > itemCount) return undefined
+    if (!spell.isANumber(start) || start === 0) start = 1   // TODO === 0 ???
+    else if (start < 0) start = Math.max(itemCount + start + 1, 1)
+    const end = spell.isANumber(count) ? start + count - 1 : itemCount
+    return spell._validateRangeBetween(start, end, itemCount)
+  },
+
+
+  // Return `count` items from list starting with `start` as 1-based position.
+  // Negative `start` takes from the end of the list (but returns in list order)
+  // Array only.
+  rangeStartingAt(collection, start, count) {
+    if (!assert.isArrayLike(collection, "spell.rangeStartingAt(collection)")) return []
+    const range = spell._validateRangeStartingAt(start, count, spell.itemCountOf(collection))
+    if (!range) return []
+    return spell.rangeBetween(collection, range.start, range.end)
+  },
 
 
   ////////////

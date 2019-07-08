@@ -339,13 +339,13 @@ export default new Spell.Parser({
     // NOTE: `start` is **1-based**.
     // NOTE: `end` is inclusive!
     {
-      name: "range_expression",
+      name: "range_from_expression",
       alias: ["expression", "single_expression"],
       syntax: "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:expression}",
       testRule: "…(of|in|from)",
       compile(scope, match) {
         const { list, start, end } = match.results;
-        return `spell.rangeFrom(${list}, ${start}, ${end})`;
+        return `spell.rangeBetween(${list}, ${start}, ${end})`;
       },
       tests: [
         {
@@ -355,36 +355,9 @@ export default new Spell.Parser({
             scope.variables.add("deck");
           },
           tests: [
-            ["item 1 to 2 of my-list", "spell.rangeFrom(my_list, 1, 2)"],
-            ["word 2 to 3 in 'some other words'", "spell.rangeFrom('some other words', 2, 3)"],
-            ["card 1 to 3 from deck", "spell.rangeFrom(deck, 1, 3)"]
-          ]
-        }
-      ]
-    },
-
-    // Alternative form of range expression.
-    // Returns a new list.
-    {
-      name: "ordinal_range_expression",
-      alias: ["expression", "single_expression"],
-      syntax: "{ordinal} {number} {arg:plural_variable} (of|in|from) {list:expression}",
-      testRule: "…(of|in|from)",
-      compile(scope, match) {
-        const { ordinal, number, list } = match.results;
-        return `spell.rangeFrom(${list}, ${ordinal}, ${number})`;
-      },
-      tests: [
-        {
-          compileAs: "expression",
-          beforeEach(scope) {
-            scope.variables.add("my-list");
-            scope.variables.add("deck");
-          },
-          tests: [
-            ["top 2 items of my-list", "spell.rangeFrom(my_list, 1, 2)"],
-            ["first 2 words in 'some other words'", "spell.rangeFrom('some other words', 1, 2)"],
-            ["last two cards from deck", "spell.rangeFrom(deck, -1, 2)"]
+            ["item 1 to 2 of my-list", "spell.rangeBetween(my_list, 1, 2)"],
+            ["word 2 to 3 in 'some other words'", "spell.rangeBetween('some other words', 2, 3)"],
+            ["card 1 to 3 from deck", "spell.rangeBetween(deck, 1, 3)"]
           ]
         }
       ]
@@ -394,13 +367,13 @@ export default new Spell.Parser({
     // Returns a new list.
     // If item is not found, returns an empty list. (???)
     {
-      name: "range_expression_starting_with",
+      name: "range_from_expression_starting_with",
       alias: ["expression", "single_expression"],
       syntax: "{arg:plural_variable} (in|of) {list:expression} starting with {thing:expression}",
       testRule: "…(starting with)",
       compile(scope, match) {
         const { thing, list } = match.results;
-        return `spell.rangeFrom(${list}, spell.itemOf(${thing}, ${list}))`;
+        return `spell.rangeBetween(${list}, spell.itemOf(${thing}, ${list}))`;
       },
       tests: [
         {
@@ -412,12 +385,39 @@ export default new Spell.Parser({
           tests: [
             [
               "items in my-list starting with thing",
-              "spell.rangeFrom(my_list, spell.itemOf(thing, my_list))"
+              "spell.rangeBetween(my_list, spell.itemOf(thing, my_list))"
             ],
             [
               "words in 'some words' starting with 'some'",
-              "spell.rangeFrom('some words', spell.itemOf('some', 'some words'))"
+              "spell.rangeBetween('some words', spell.itemOf('some', 'some words'))"
             ]
+          ]
+        }
+      ]
+    },
+
+    // Alternative form of range expression.
+    // Returns a new list.
+    {
+      name: "range_count_expression",
+      alias: ["expression", "single_expression"],
+      syntax: "{ordinal} {number} {arg:plural_variable} (of|in|from) {list:expression}",
+      testRule: "…(of|in|from)",
+      compile(scope, match) {
+        const { ordinal, number, list } = match.results;
+        return `spell.rangeStartingAt(${list}, ${ordinal}, ${number})`;
+      },
+      tests: [
+        {
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.variables.add("my-list");
+            scope.variables.add("deck");
+          },
+          tests: [
+            ["top 2 items of my-list", "spell.rangeStartingAt(my_list, 1, 2)"],
+            ["first 2 words in 'some other words'", "spell.rangeStartingAt('some other words', 1, 2)"],
+            ["last two cards from deck", "spell.rangeStartingAt(deck, -1, 2)"]
           ]
         }
       ]
@@ -756,7 +756,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { start, end, list } = results;
-        const statement = scope.addStatement(`spell.removeRange(${list}, ${start}, ${end})`);
+        const statement = scope.addStatement(`spell.removeRangeBetween(${list}, ${start}, ${end})`);
         results.statements.push(statement);
       },
       tests: [
@@ -766,7 +766,7 @@ export default new Spell.Parser({
             scope.variables.add("my-list");
           },
           tests: [
-            ["remove items 2 to 4 of my-list", "spell.removeRange(my_list, 2, 4)"]
+            ["remove items 2 to 4 of my-list", "spell.removeRangeBetween(my_list, 2, 4)"]
           ]
         }
       ]
@@ -780,7 +780,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { start, end, list } = results;
-        const statement = scope.addStatement(`spell.removeRange(${list}, ${start}, ${end})`);
+        const statement = scope.addStatement(`spell.removeRangeBetween(${list}, ${start}, ${end})`);
         results.statements.push(statement);
       },
       tests: [
@@ -790,11 +790,14 @@ export default new Spell.Parser({
             scope.variables.add("deck");
           },
           tests: [
-            ["remove first to third cards of the deck", "spell.removeRange(deck, 1, 3)"],
+            ["remove first to third cards of the deck", "spell.removeRangeBetween(deck, 1, 3)"],
           ]
         }
       ]
     },
+
+    // TODO: `remove last card from the deck`
+    // TODO: `remove last two cards from the deck`
 
     // Remove all instances of something from a list.
     {
