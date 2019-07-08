@@ -1,5 +1,6 @@
 import { spell, assert } from "."
 
+// Wrap `assert.failed` for each test
 beforeEach(() => {
   assert.failed = jest.fn()
 })
