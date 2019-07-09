@@ -20,6 +20,15 @@ describe("spell.define()", () => {
 })
 
 describe("spell.newThingLike()", () => {
+  describe("when passed a non-defined thing", () => {
+    test("fails its assertion", () => {
+      spell.newThingLike(null)
+      expect(assert.failed).toHaveBeenCalled()
+    })
+    test("returns undefined", () => {
+      expect(spell.newThingLike(null)).toBe(undefined)
+    })
+  })
   test("returns an empty array when passed an array", () => {
     expect(spell.newThingLike([1,2,3])).toEqual([])
   })
@@ -31,15 +40,6 @@ describe("spell.newThingLike()", () => {
   })
   test("returns a new Date when passed a Date", function() {
     expect(spell.newThingLike(new Date())).toBeInstanceOf(Date)
-  })
-  describe("when passed a non-defined thing", () => {
-    test("fails its assertion", () => {
-      spell.newThingLike(null)
-      expect(assert.failed).toHaveBeenCalled()
-    })
-    test("returns undefined", () => {
-      expect(spell.newThingLike(null)).toBe(undefined)
-    })
   })
 })
 
@@ -139,16 +139,26 @@ describe("spell.isTruthy()", () => {
 
 
 describe("spell.randomNumber()", () => {
-  test("asserts and returns 0 if start is not a number", () => {
-    expect(spell.randomNumber()).toBe(0)
+  test("asserts and returns undefined if min is not a number", () => {
+    expect(spell.randomNumber()).toBe(undefined)
     expect(assert.failed).toHaveBeenCalled()
   })
-  test("asserts and returns 0 if end is not a number", () => {
-    expect(spell.randomNumber(1, "foo")).toBe(0)
+  test("asserts and returns undefined if max is not a number", () => {
+    expect(spell.randomNumber(1, "foo")).toBe(undefined)
     expect(assert.failed).toHaveBeenCalled()
   })
-  test("returns an integer", () => {
-    const random = spell.randomNumber()
+  test("returns undefined if max < min", () => {
+    expect(spell.randomNumber(1, 0)).toBe(undefined)
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  test("returns min if min === max", () => {
+    expect(spell.randomNumber(1,1)).toBe(1)
+  })
+  test("defaults min to 1 if only one argument", () => {
+    expect(spell.randomNumber(1)).toBe(1)
+  })
+  test("returns an integer with normal params", () => {
+    const random = spell.randomNumber(1,5)
     expect(Number.parseInt(random)).toBe(random)
   })
 })

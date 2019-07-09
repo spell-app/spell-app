@@ -54,6 +54,23 @@ Object.assign(spell, {
     return Object.values(collection)
   },
 
+  // `item` key of first instance of `thing` in `collection`.
+  // For array: returns 1-based position or `undefined`
+  // For object: returns string key or `undefined`
+  // TODO: `positionOf` ???
+  itemOf(collection, thing) {
+    if (!assert.isDefined(collection, "spell.itemOf(collection)")) return undefined
+    if (typeof collection.itemOf === "function") return collection.itemOf(thing)
+    const iterator = spell.getIteratorFor(collection)
+    let result = iterator.next()
+    while (!result.done) {
+      const [ value, item ] = result.value
+      if (value === thing) return item
+      result = iterator.next()
+    }
+    return undefined
+  },
+
   // Return `item` from collection.
   // For array: `item` is 1-based position.
   // For object: `item` is string key.
@@ -76,6 +93,18 @@ Object.assign(spell, {
       collection[item] = value
   },
 
+  // Add `things` in the middle of the `collection` starting with 1-based position `start`,
+  // moving things after `start` down.
+  // Array only.
+  addAtPosition(collection, start, ...things) {
+    if (!assert.isArrayLike(collection, "spell.addAtPosition(collection)")) return
+    if (typeof collection.addAtPosition === "function") return collection.addAtPosition(start, ...things)
+    if (start > 0)
+      Array.prototype.splice.call(collection, start - 1, 0, ...things)
+    else
+      Array.prototype.splice.call(collection, start, 0, ...things)
+  },
+
   // Remove `item` from `collection`.
   // For array: `item` is 1-based position, items after item removed are slid back into place.
   // For object: `item` is string key, which will be deleted
@@ -86,23 +115,6 @@ Object.assign(spell, {
       Array.prototype.splice.call(collection, item-1, 1)
     else
       delete collection[item]
-  },
-
-  // `item` key of first instance of `thing` in `collection`.
-  // For array: returns 1-based position or `undefined`
-  // For object: returns string key or `undefined`
-  // TODO: `positionOf` ???
-  itemOf(collection, thing) {
-    if (!assert.isDefined(collection, "spell.itemOf(collection)")) return undefined
-    if (typeof collection.itemOf === "function") return collection.itemOf(thing)
-    const iterator = spell.getIteratorFor(collection)
-    let result = iterator.next()
-    while (!result.done) {
-      const [ value, item ] = result.value
-      if (value === thing) return item
-      result = iterator.next()
-    }
-    return undefined
   },
 
   // Remove all things from the `collection`, in-place.

@@ -15,6 +15,7 @@ const spell = {
   },
 
   // Create an new, "empty" instance of `thing.constructor`.
+  // TODO: number? string?  non-constructable thing???
   newThingLike(thing) {
     if (!assert.isDefined(thing, "spell.newThingLike()")) return undefined
     if (spell.isArrayLike(thing)) return []
@@ -91,14 +92,15 @@ const spell = {
   // math
   //--------
 
-  // Random integer between `start` and `end` inclusive.
-  // If you pass just one number, we'll do `1..start`
-  randomNumber(start, end) {
+  // Random integer between `min` and `max` inclusive.
+  // If you pass just one number, we'll do `1..min`
+  randomNumber(min, max) {
     if (arguments.length === 1) {
-      end = start
-      start = 1
+      max = min
+      min = 1
     }
-    if (!assert(spell.isANumber(start) && spell.isANumber(end), "spell.randomNumber(): you must pass two numbers, got", start, end)) return 0
+    if (!assert(spell.isANumber(min) && spell.isANumber(max), "spell.randomNumber(): you must pass two numbers, got", min, max)) return undefined
+    if (!assert(min <= max, "spell.randomNumber(): min (", min, ") must be less than max (", max, ")")) return undefined
     return Math.floor(Math.random() * (max - min + 1)) + min
   },
 

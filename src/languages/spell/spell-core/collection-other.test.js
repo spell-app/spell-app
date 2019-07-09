@@ -1,25 +1,19 @@
+import _ from "lodash"
 import { spell, assert } from "."
 
 // Wrap `assert.failed` for each test
 beforeEach(() => {
-  assert.failed = jest.fn()
+  jest.spyOn(assert, "failed").mockImplementation(Function.prototype)
 })
 
-// Custom collection class simulating our custom api
-class CustomCollection {
-  itemCount = jest.fn( () => 2 )
-  getKeys = jest.fn( () => ["key1", "key2"] )
-  getValues = jest.fn( () => ["value1", "value2"] )
-  getItem = jest.fn( () => "value" )
-  setItem = jest.fn( (item, value) => value )
-  removeItem = jest.fn()
-  itemOf = jest.fn( () => "item" )
-  clear = jest.fn()
-  getIterator = jest.fn()
-}
+// Clear ALL mocks after each test
+afterEach(() => {
+  jest.restoreAllMocks()
+})
+
 
 describe("spell.includes()", () => {
-  test("fails assertion and returns false if not defined", () => {
+  test("assertion fails and returns false if not defined", () => {
     expect(spell.includes()).toBe(false)
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -54,7 +48,7 @@ describe("spell.includes()", () => {
 })
 
 describe("spell.includesAny()", () => {
-  test("fails assertion and returns false if not defined", () => {
+  test("assertion fails and returns false if not defined", () => {
     expect(spell.includesAny()).toBe(false)
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -89,11 +83,11 @@ describe("spell.includesAny()", () => {
 })
 
 describe("spell.startsWith()", () => {
-  test("fails assertion and returns false if not defined", () => {
+  test("assertion fails and returns false if not defined", () => {
     expect(spell.startsWith()).toBe(false)
     expect(assert.failed).toHaveBeenCalled()
   })
-  test("fails assertion and returns false for object", () => {
+  test("assertion fails and returns false for object", () => {
     expect(spell.startsWith({})).toBe(false)
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -109,11 +103,11 @@ describe("spell.startsWith()", () => {
 })
 
 describe("spell.endsWith()", () => {
-  test("fails assertion and returns false if not defined", () => {
+  test("assertion fails and returns false if not defined", () => {
     expect(spell.endsWith()).toBe(false)
     expect(assert.failed).toHaveBeenCalled()
   })
-  test("fails assertion and returns false for object", () => {
+  test("assertion fails and returns false for object", () => {
     expect(spell.endsWith({})).toBe(false)
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -131,67 +125,13 @@ describe("spell.endsWith()", () => {
   })
 })
 
-describe("spell.addAtPosition()", () => {
-  test("fails assertion if not defined", () => {
-    spell.addAtPosition()
-    expect(assert.failed).toHaveBeenCalled()
-  })
-  test("fails assertion for object", () => {
-    spell.addAtPosition({})
-    expect(assert.failed).toHaveBeenCalled()
-  })
-  describe("with positive start", () => {
-    test("adds correctly to empty list at position 1", () => {
-      const collection = []
-      spell.addAtPosition(collection, 1, "a")
-      expect(collection).toEqual(["a"])
-    })
-    test("adds correctly to non-empty list at position 1", () => {
-      const collection = ["a"]
-      spell.addAtPosition(collection, 1, "b")
-      expect(collection).toEqual(["b", "a"])
-    })
-    test("will not introduce gap if after end of list", () => {
-      const collection = ["a"]
-      spell.addAtPosition(collection, 3, "b")
-      expect(collection).toEqual(["a", "b"])
-    })
-    test("adds multiple items if passed", () => {
-      const collection = ["a"]
-      spell.addAtPosition(collection, 3, "b", "c", "d")
-      expect(collection).toEqual(["a", "b", "c", "d"])
-    })
-  })
-  describe("with negative start", () => {
-    test("adds correctly to empty list at position -1", () => {
-      const collection = []
-      spell.addAtPosition(collection, -1, "a")
-      expect(collection).toEqual(["a"])
-    })
-    test("adds correctly to non-empty list at position -1", () => {
-      const collection = ["a", "b"]
-      spell.addAtPosition(collection, -1, "c")
-      expect(collection).toEqual(["a", "c", "b"])
-    })
-    test("will not introduce gap if before start of list", () => {
-      const collection = ["a"]
-      spell.addAtPosition(collection, -3, "b")
-      expect(collection).toEqual(["b", "a"])
-    })
-    test("adds multiple items if passed", () => {
-      const collection = ["a"]
-      spell.addAtPosition(collection, -1, "b", "c", "d")
-      expect(collection).toEqual(["b", "c", "d", "a"])
-    })
-  })
-})
 
 describe("spell.prepend()", () => {
-  test("fails assertion if not defined", () => {
+  test("assertion fails if not defined", () => {
     spell.prepend()
     expect(assert.failed).toHaveBeenCalled()
   })
-  test("fails assertion for object", () => {
+  test("assertion fails for object", () => {
     spell.prepend({})
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -213,11 +153,11 @@ describe("spell.prepend()", () => {
 })
 
 describe("spell.append()", () => {
-  test("fails assertion if not defined", () => {
+  test("assertion fails if not defined", () => {
     spell.append()
     expect(assert.failed).toHaveBeenCalled()
   })
-  test("fails assertion for object", () => {
+  test("assertion fails for object", () => {
     spell.append({})
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -239,11 +179,11 @@ describe("spell.append()", () => {
 })
 
 describe("spell.setItemsOf()", () => {
-  test("fails assertion if not defined", () => {
+  test("assertion fails if not defined", () => {
     spell.setItemsOf()
     expect(assert.failed).toHaveBeenCalled()
   })
-  test("fails assertion for object", () => {
+  test("assertion fails for object", () => {
     spell.setItemsOf({})
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -270,11 +210,11 @@ describe("spell.setItemsOf()", () => {
 })
 
 describe("spell.reverse()", () => {
-  test("fails assertion if not defined", () => {
+  test("assertion fails if not defined", () => {
     spell.reverse()
     expect(assert.failed).toHaveBeenCalled()
   })
-  test("fails assertion for object", () => {
+  test("assertion fails for object", () => {
     spell.reverse({})
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -298,6 +238,9 @@ describe("spell._validateRangeBetween()", () => {
     test("returns start...count if start and end not provided", () => {
       expect(spell._validateRangeBetween(null,null,5)).toEqual({ start: 1, end: 5 })
     })
+  })
+  test("returns undefined if itemCount is 0", () => {
+    expect(spell._validateRangeBetween(1, 1, 0)).toEqual(undefined)
   })
   describe("for positive starts", () => {
     test("returns start...count if end not provided", () => {
@@ -333,11 +276,11 @@ describe("spell._validateRangeBetween()", () => {
 })
 
 describe("spell.rangeBetween()", () => {
-  test("fails assertion and returns empty array if not defined", () => {
+  test("assertion fails and returns empty array if not defined", () => {
     expect(spell.rangeBetween()).toEqual([])
     expect(assert.failed).toHaveBeenCalled()
   })
-  test("fails assertion and returns empty array if passed an object", () => {
+  test("assertion fails and returns empty array if passed an object", () => {
     expect(spell.rangeBetween({})).toEqual([])
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -362,11 +305,11 @@ describe("spell.rangeBetween()", () => {
 })
 
 describe("spell.removeRangeBetween()", () => {
-  test("fails assertion if not defined", () => {
+  test("assertion fails if not defined", () => {
     spell.removeRangeBetween()
     expect(assert.failed).toHaveBeenCalled()
   })
-  test("fails assertion for object", () => {
+  test("assertion fails for object", () => {
     spell.removeRangeBetween({})
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -448,11 +391,11 @@ describe("spell._validateRangeStartingAt()", () => {
 })
 
 describe("spell.rangeStartingAt()", () => {
-  test("fails assertion and returns empty array if not defined", () => {
+  test("assertion fails and returns empty array if not defined", () => {
     expect(spell.rangeStartingAt()).toEqual([])
     expect(assert.failed).toHaveBeenCalled()
   })
-  test("fails assertion and returns empty array if passed an object", () => {
+  test("assertion fails and returns empty array if passed an object", () => {
     expect(spell.rangeStartingAt({})).toEqual([])
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -482,3 +425,517 @@ describe("spell.rangeStartingAt()", () => {
   })
 })
 
+describe("spell.forEach()", () => {
+  test("assertion fails if not defined", () => {
+    spell.forEach()
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  test("no-op if method undefined", () => {
+    expect(() => spell.forEach([])).not.toThrow()
+  })
+  describe("for arrays", () => {
+    test("doesn't call method for empty array", () => {
+      const method = jest.fn()
+      spell.forEach([], method)
+      expect(method).not.toHaveBeenCalled()
+    })
+    test("calls method properly for non-empty array", () => {
+      const method = jest.fn()
+      const collection = ["a", "b"]
+      spell.forEach(collection, method)
+      expect(method.mock.calls.length).toBe(2)
+      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
+      expect(method.mock.calls[1]).toEqual(["b", 2, collection])
+    })
+  })
+  describe("for objects", () => {
+    test("doesn't call method for empty object", () => {
+      const method = jest.fn()
+      spell.forEach({}, method)
+      expect(method).not.toHaveBeenCalled()
+    })
+    test("calls method properly for non-empty object", () => {
+      const method = jest.fn()
+      const collection = { a: 1, b: 2 }
+      spell.forEach(collection, method)
+      expect(method.mock.calls.length).toBe(2)
+      expect(method.mock.calls[0]).toEqual([1, "a", collection])
+      expect(method.mock.calls[1]).toEqual([2, "b", collection])
+    })
+  })
+})
+
+describe("spell.map()", () => {
+  test("assertion fails if not defined", () => {
+    expect(spell.map()).toEqual(undefined)
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  describe("for arrays", () => {
+    test("returns empty array if method undefined", () => {
+      expect(spell.map([])).toEqual([])
+    })
+    test("doesn't call method for empty array", () => {
+      const method = jest.fn()
+      expect(spell.map([], method)).toEqual([])
+      expect(method).not.toHaveBeenCalled()
+    })
+    test("calls method properly for non-empty array", () => {
+      const method = jest.fn(str => str.toUpperCase())
+      const collection = ["a", "b"]
+      expect(spell.map(collection, method)).toEqual(["A","B"])
+      expect(method.mock.calls.length).toEqual(2)
+      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
+      expect(method.mock.calls[1]).toEqual(["b", 2, collection])
+    })
+  })
+  describe("for objects", () => {
+    test("returns empty object if method undefined", () => {
+      expect(spell.map({})).toEqual({})
+    })
+    test("doesn't call method for empty object", () => {
+      const method = jest.fn()
+      expect(spell.map({}, method)).toEqual({})
+      expect(method).not.toHaveBeenCalled()
+    })
+    test("calls method properly for non-empty object", () => {
+      const method = jest.fn(num => num + 1)
+      const collection = { a: 1, b: 2 }
+      expect(spell.map(collection, method)).toEqual({ a: 2, b: 3})
+      expect(method.mock.calls.length).toEqual(2)
+      expect(method.mock.calls[0]).toEqual([1, "a", collection])
+      expect(method.mock.calls[1]).toEqual([2, "b", collection])
+    })
+  })
+})
+
+describe("spell.filter()", () => {
+  test("assertion fails if not defined", () => {
+    expect(spell.filter()).toEqual(undefined)
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  describe("for arrays", () => {
+    test("returns truthy values if method undefined", () => {
+      expect(spell.filter(["a", false, 0])).toEqual(["a"])
+    })
+    test("doesn't call method for empty array", () => {
+      const method = jest.fn()
+      expect(spell.filter([], method)).toEqual([])
+      expect(method).not.toHaveBeenCalled()
+    })
+    test("calls method properly for non-empty array", () => {
+      const method = jest.fn(str => str > "a")
+      const collection = ["a", "b"]
+      expect(spell.filter(collection, method)).toEqual(["b"])
+      expect(method.mock.calls.length).toEqual(2)
+      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
+      expect(method.mock.calls[1]).toEqual(["b", 2, collection])
+    })
+  })
+  describe("for objects", () => {
+    test("returns truthy values if method undefined", () => {
+      expect(spell.filter({ a: "a", b: false, c: 0 })).toEqual({ a: "a" })
+    })
+    test("doesn't call method for empty object", () => {
+      const method = jest.fn()
+      expect(spell.filter({}, method)).toEqual({})
+      expect(method).not.toHaveBeenCalled()
+    })
+    test("calls method properly for non-empty object", () => {
+      const method = jest.fn(num => num > 1)
+      const collection = { a: 1, b: 2 }
+      expect(spell.filter(collection, method)).toEqual({ b: 2 })
+      expect(method.mock.calls.length).toEqual(2)
+      expect(method.mock.calls[0]).toEqual([1, "a", collection])
+      expect(method.mock.calls[1]).toEqual([2, "b", collection])
+    })
+  })
+})
+
+describe("spell.all()", () => {
+  test("assertion fails if not defined", () => {
+    expect(spell.all()).toEqual(false)
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  describe("for arrays", () => {
+    test("uses identity function if method undefined", () => {
+      expect(spell.all(["a", false, 0])).toEqual(false)
+    })
+    test("doesn't call method for empty array", () => {
+      const method = jest.fn()
+      expect(spell.all([], method)).toBe(false)
+      expect(method).not.toHaveBeenCalled()
+    })
+    test("calls method properly for non-empty array", () => {
+      const method = jest.fn(str => str > "a")
+      const collection = ["a", "b"]
+      expect(spell.all(collection, method)).toEqual(false)
+      expect(method.mock.calls.length).toEqual(1)
+      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
+    })
+  })
+  describe("for objects", () => {
+    test("uses identity function if method undefined", () => {
+      expect(spell.all({ a: "a", b: false, c: 0 })).toEqual(false)
+    })
+    test("doesn't call method for empty object", () => {
+      const method = jest.fn()
+      spell.all({}, method)
+      expect(method).not.toHaveBeenCalled()
+    })
+    test("calls method properly for non-empty object", () => {
+      const method = jest.fn(num => num > 1)
+      const collection = { a: 1, b: 2 }
+      expect(spell.all(collection, method)).toEqual(false)
+      expect(method.mock.calls.length).toEqual(1)
+      expect(method.mock.calls[0]).toEqual([1, "a", collection])
+    })
+  })
+})
+
+describe("spell.any()", () => {
+  test("assertion fails if not defined", () => {
+    expect(spell.any()).toEqual(false)
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  describe("for arrays", () => {
+    test("uses identity function if method undefined", () => {
+      expect(spell.any(["a", false, 0])).toEqual(true)
+    })
+    test("doesn't call method for empty array", () => {
+      const method = jest.fn()
+      expect(spell.any([], method)).toBe(false)
+      expect(method).not.toHaveBeenCalled()
+    })
+    test("calls method properly for non-empty array", () => {
+      const method = jest.fn(str => str > "a")
+      const collection = ["a", "b"]
+      expect(spell.any(collection, method)).toEqual(true)
+      expect(method.mock.calls.length).toEqual(2)
+      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
+      expect(method.mock.calls[1]).toEqual(["b", 2, collection])
+    })
+    test("falls through to false if nothing matches", () => {
+      const method = jest.fn(str => str > "b")
+      const collection = ["a", "b"]
+      expect(spell.any(collection, method)).toEqual(false)
+      expect(method.mock.calls.length).toEqual(2)
+      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
+      expect(method.mock.calls[1]).toEqual(["b", 2, collection])
+    })
+  })
+  describe("for objects", () => {
+    test("uses identity function if method undefined", () => {
+      expect(spell.any({ a: "a", b: false, c: 0 })).toEqual(true)
+    })
+    test("doesn't call method for empty object", () => {
+      const method = jest.fn()
+      spell.any({}, method)
+      expect(method).not.toHaveBeenCalled()
+    })
+    test("calls method properly for non-empty object", () => {
+      const method = jest.fn(num => num > 1)
+      const collection = { a: 1, b: 2 }
+      expect(spell.any(collection, method)).toEqual(true)
+      expect(method.mock.calls.length).toEqual(2)
+      expect(method.mock.calls[0]).toEqual([1, "a", collection])
+      expect(method.mock.calls[1]).toEqual([2, "b", collection])
+    })
+  })
+})
+
+describe("spell.removeItemsOf()", () => {
+  test("assertion fails if not defined", () => {
+    spell.removeItemsOf()
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  describe("for arrays", () => {
+    test("no change for empty array", () => {
+      const collection = []
+      spell.removeItemsOf(collection, 1)
+      expect(collection).toEqual([])
+    })
+    test("removes properly for non-empty array, regardless of order", () => {
+      const collection = ["a","b","c","d","e"]
+      spell.removeItemsOf(collection, 1, 3, 5)
+      expect(collection).toEqual(["b","d"])
+    })
+  })
+  describe("for objects", () => {
+    test("no change for empty array", () => {
+      const collection = {}
+      spell.removeItemsOf(collection, "a")
+      expect(collection).toEqual({})
+    })
+    test("removes properly for non-empty array, regardless of order", () => {
+      const collection = {a: 1, b: 2, c: 3, d: 4, e: 5}
+      spell.removeItemsOf(collection, "a", "c", "e")
+      expect(collection).toEqual({b: 2, d: 4})
+    })
+  })
+})
+
+describe("spell.remove()", () => {
+  test("assertion fails if not defined", () => {
+    spell.remove()
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  describe("for arrays", () => {
+    test("no change for empty array", () => {
+      const collection = []
+      spell.remove(collection, 1)
+      expect(collection).toEqual([])
+    })
+    test("removes properly for non-empty array, regardless of order or recurrance", () => {
+      const collection = ["a","b","c","d","e","a"]
+      spell.remove(collection, "a", "c", "e")
+      expect(collection).toEqual(["b","d"])
+    })
+  })
+  describe("for objects", () => {
+    test("no change for empty array", () => {
+      const collection = {}
+      spell.remove(collection, "a")
+      expect(collection).toEqual({})
+    })
+    test("removes properly for non-empty array, regardless of order", () => {
+      const collection = {a: 1, b: 2, c: 3, d: 4, e: 5, f: 1 }
+      spell.remove(collection, 1, 3, 5)
+      expect(collection).toEqual({b: 2, d: 4})
+    })
+  })
+})
+
+describe("spell.removeWhere()", () => {
+  test("assertion fails if not defined", () => {
+    expect(spell.removeWhere()).toEqual(undefined)
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  describe("for arrays", () => {
+    test("removes truthy values if method undefined", () => {
+      const collection = ["a", false, 0]
+      spell.removeWhere(collection)
+      expect(collection).toEqual([false, 0])
+    })
+    test("doesn't call method for empty array", () => {
+      const collection = []
+      const method = jest.fn()
+      spell.removeWhere(collection, method)
+      expect(collection).toEqual([])
+      expect(method).not.toHaveBeenCalled()
+    })
+    test("calls method properly for non-empty array", () => {
+      const method = jest.fn(str => str > "a")
+      const collection = ["a", "b"]
+      spell.removeWhere(collection, method)
+      expect(collection).toEqual(["a"])
+      expect(method.mock.calls.length).toEqual(2)
+      expect(method.mock.calls[0]).toEqual(["a", 1, collection])
+      expect(method.mock.calls[1]).toEqual(["b", 2, collection])
+    })
+  })
+  describe("for objects", () => {
+    test("removes truthy values if method undefined", () => {
+      const collection = { a: "a", b: false, c: 0 }
+      spell.removeWhere(collection)
+      expect(collection).toEqual({ b: false, c: 0 })
+    })
+    test("doesn't call method for empty object", () => {
+      const method = jest.fn()
+      const collection = {}
+      spell.removeWhere({}, method)
+      expect(collection).toEqual({})
+      expect(method).not.toHaveBeenCalled()
+    })
+    test("calls method properly for non-empty object", () => {
+      const method = jest.fn(num => num > 1)
+      const collection = { a: 1, b: 2 }
+      spell.removeWhere(collection, method)
+      expect(collection).toEqual({ a: 1 })
+      expect(method.mock.calls.length).toEqual(2)
+      expect(method.mock.calls[0]).toEqual([1, "a", collection])
+      expect(method.mock.calls[1]).toEqual([2, "b", collection])
+    })
+  })
+})
+
+describe("spell._randomKeyOf()", () => {
+  test("assertion fails if not defined", () => {
+    expect(spell._randomKeyOf()).toEqual(undefined)
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  describe("for arrays", () => {
+    test("returns undefined for empty array", () => {
+      expect(spell._randomKeyOf([])).toBe(undefined)
+    })
+    test("returns key for single-value array", () => {
+      expect(spell._randomKeyOf(["a"])).toBe(1)
+    })
+    test("returns value in range for multi-item array", () => {
+      jest.spyOn(spell, "randomNumber").mockImplementation(() => 2)
+      expect(spell._randomKeyOf(["a", "b", "c"])).toBe(2)
+    })
+  })
+  describe("for objects", () => {
+    test("returns undefined for empty object", () => {
+      expect(spell._randomKeyOf({})).toBe(undefined)
+    })
+    test("returns key for single-key object", () => {
+      expect(spell._randomKeyOf({ a: 1 })).toBe("a")
+    })
+    test("returns key in range for multi-item object", () => {
+      jest.spyOn(spell, "randomNumber").mockImplementation(() => 2)
+      expect(spell._randomKeyOf({ a: 1, b: 2, c: 3 })).toBe("b")
+    })
+  })
+})
+
+describe("spell.randomItemOf()", () => {
+  test("assertion fails if not defined", () => {
+    expect(spell.randomItemOf()).toEqual(undefined)
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  describe("for arrays", () => {
+    test("returns undefined for empty array", () => {
+      expect(spell.randomItemOf([])).toBe(undefined)
+    })
+    test("returns only value for single-value array", () => {
+      expect(spell.randomItemOf(["a"])).toBe("a")
+    })
+    test("returns value in range for multi-item array", () => {
+      jest.spyOn(spell, "randomNumber").mockImplementation(() => 2)
+      expect(spell.randomItemOf(["a", "b", "c"])).toBe("b")
+    })
+  })
+  describe("for objects", () => {
+    test("returns undefined for empty object", () => {
+      expect(spell.randomItemOf({})).toBe(undefined)
+    })
+    test("returns key for single-key object", () => {
+      expect(spell.randomItemOf({ a: 1 })).toBe(1)
+    })
+    test("returns key in range for multi-item object", () => {
+      jest.spyOn(spell, "randomNumber").mockImplementation(() => 2)
+      expect(spell.randomItemOf({ a: 1, b: 2, c: 3 })).toBe(2)
+    })
+  })
+})
+
+
+describe("spell.randomItemsOf()", () => {
+  test("assertion fails if not defined", () => {
+    expect(spell.randomItemsOf()).toEqual(undefined)
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  describe("for arrays", () => {
+    test("returns empty array if count === 0", () => {
+      expect(spell.randomItemsOf(["a"], 0)).toEqual([])
+    })
+    test("returns empty array for empty array", () => {
+      expect(spell.randomItemsOf([],1)).toEqual([])
+    })
+    test("returns only value for single-value array", () => {
+      expect(spell.randomItemsOf(["a"])).toEqual(["a"])
+    })
+    test("returns all values if count not specified", () => {
+      jest.spyOn(_, "shuffle").mockImplementation(() => [2,3,1])
+      expect(spell.randomItemsOf(["a", "b", "c"])).toEqual(["b", "c", "a"])
+    })
+    test("returns value in range for multi-item array", () => {
+      jest.spyOn(_, "shuffle").mockImplementation(() => [2,3,1])
+      expect(spell.randomItemsOf(["a", "b", "c"], 2)).toEqual(["b", "c"])
+    })
+  })
+  describe("for objects", () => {
+    test("returns empty object if count === 0", () => {
+      expect(spell.randomItemsOf({ a: 1 }, 0)).toEqual({})
+    })
+    test("returns empty object for empty object", () => {
+      expect(spell.randomItemsOf({},1)).toEqual({})
+    })
+    test("returns key for single-key object", () => {
+      expect(spell.randomItemsOf({ a: 1 })).toEqual({ a: 1 })
+    })
+    test("returns all keys if count not specified", () => {
+      jest.spyOn(_, "shuffle").mockImplementation(() => ["b", "c", "a"])
+      expect(spell.randomItemsOf({ a: 1, b: 2, c: 3 })).toEqual({ b: 2, c: 3, a: 1 })
+    })
+    test("returns key in range for multi-item object", () => {
+      jest.spyOn(_, "shuffle").mockImplementation(() => ["b", "c", "a"])
+      expect(spell.randomItemsOf({ a: 1, b: 2, c: 3 }, 2)).toEqual({ b: 2, c: 3 })
+    })
+  })
+})
+
+describe("spell.randomize()", () => {
+  test("assertion fails if not defined", () => {
+    spell.randomize()
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  describe("for arrays", () => {
+    test("returns empty array for empty array", () => {
+      const collection = []
+      spell.randomize(collection)
+      expect(collection).toEqual([])
+    })
+    test("returns all values for multi-item array", () => {
+      jest.spyOn(_, "shuffle").mockImplementation(() => [2,3,1])
+      const collection = ["a", "b", "c"]
+      spell.randomize(collection)
+      expect(collection).toEqual(["b", "c", "a"])
+    })
+  })
+  describe("for objects", () => {
+    test("no effect for object", () => {
+      const collection = { a: 1, b: 2 }
+      const clone = {...collection}
+      spell.randomize(collection)
+      expect(collection).toEqual(clone)
+    })
+  })
+})
+
+describe("spell.smallestOf()", () => {
+  test("assertion fails if not defined", () => {
+    expect(spell.smallestOf()).toBe(undefined)
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  describe("for arrays", () => {
+    test("returns undefined for empty array", () => {
+      expect(spell.smallestOf([])).toBe(undefined)
+    })
+    test("returns smallest value for multi-item array", () => {
+      expect(spell.smallestOf([1,2,3])).toBe(1)
+    })
+  })
+  describe("for objects", () => {
+    test("returns undefined for empty object", () => {
+      expect(spell.smallestOf({})).toBe(undefined)
+    })
+    test("returns smallest value for multi-item object", () => {
+      expect(spell.smallestOf({ a: 1, b: 2, c: 3 })).toBe(1)
+    })
+  })
+})
+
+describe("spell.largestOf()", () => {
+  test("assertion fails if not defined", () => {
+    expect(spell.largestOf()).toBe(undefined)
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  describe("for arrays", () => {
+    test("returns undefined for empty array", () => {
+      expect(spell.largestOf([])).toBe(undefined)
+    })
+    test("returns smallest value for multi-item array", () => {
+      expect(spell.largestOf([1,2,3])).toBe(3)
+    })
+  })
+  describe("for objects", () => {
+    test("returns undefined for empty object", () => {
+      expect(spell.largestOf({})).toBe(undefined)
+    })
+    test("returns smallest value for multi-item object", () => {
+      expect(spell.largestOf({ a: 1, b: 2, c: 3 })).toBe(3)
+    })
+  })
+})

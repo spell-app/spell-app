@@ -49,18 +49,6 @@ Object.assign(spell, {
     return spell.getItemOf(collection, spell.itemCountOf(collection)) === thing
   },
 
-  // Add `things` in the middle of the `collection` starting with 1-based position `start`,
-  // moving things after `start` down.
-  // Array only.
-  addAtPosition(collection, start, ...things) {
-    if (!assert.isArrayLike(collection, "spell.addAtPosition(collection)")) return
-    if (typeof collection.prepend === "function") return collection.append(...things)
-    if (start > 0)
-      Array.prototype.splice.call(collection, start - 1, 0, ...things)
-    else
-      Array.prototype.splice.call(collection, start, 0, ...things)
-  },
-
   // Add `things` to front of `collection`, pushing everything else down.
   // Array only.
   prepend(collection, ...things) {
@@ -163,12 +151,12 @@ Object.assign(spell, {
   // Execute `method` for each item in `collection`, ignoring results.
   forEach(collection, method) {
     if (!assert.isDefined(collection, "spell.map(collection)")) return
-    if (method) return
+    if (!method) return
     const iterator = spell.getIteratorFor(collection)
     let result = iterator.next()
     while (!result.done) {
       method(...result.value)
-      result = result.next()
+      result = iterator.next()
     }
   },
 
@@ -178,8 +166,9 @@ Object.assign(spell, {
   map(collection, method) {
     if (!assert.isDefined(collection, "spell.map(collection)")) return undefined
     const results = spell.newThingLike(collection)
+    if (!method) return results
     spell.forEach(collection, (value, item) => {
-      spell.setItem(results, item, method(value, item, collection))
+      spell.setItemOf(results, item, method(value, item, collection))
     })
     return results
   },
@@ -189,6 +178,7 @@ Object.assign(spell, {
   // For object: returns new type of collection with just specified keys.
   filter(collection, condition) {
     if (!assert.isDefined(collection, "spell.all(collection)")) return undefined
+    if (!condition) condition = (it) => it;
     const results = spell.newThingLike(collection)
     let filter
     if (spell.isArrayLike(collection)) {
@@ -198,7 +188,7 @@ Object.assign(spell, {
     }
     else {
       filter = (value, item, collection) => {
-        if (condition(value, item, collection)) spell.setItem(results, item, value)
+        if (condition(value, item, collection)) spell.setItemOf(results, item, value)
       }
     }
     spell.forEach(collection, filter)
@@ -209,8 +199,10 @@ Object.assign(spell, {
   // called as `condition(value, item, collection)`
   all(collection, condition) {
     if (!assert.isDefined(collection, "spell.all(collection)")) false
+    if (!condition) condition = (it) => it;
     const iterator = spell.getIteratorFor(collection)
     let result = iterator.next()
+    if (result.done) return false
     while (!result.done) {
       if (!condition(...result.value)) return false
       result = iterator.next()
@@ -222,8 +214,10 @@ Object.assign(spell, {
   // called as `condition(value, item, collection)`
   any(collection, condition) {
     if (!assert.isDefined(collection, "spell.any(collection)")) return false
+    if (!condition) condition = (it) => it;
     const iterator = spell.getIteratorFor(collection)
     let result = iterator.next()
+    if (result.done) return false
     while (!result.done) {
       if (condition(...result.value)) return true
       result = iterator.next()
@@ -231,25 +225,13 @@ Object.assign(spell, {
     return false
   },
 
-  // Remove items from `collection` which match `condition`.
-  // called as `condition(value, item, collection)`
-  removeWhere(collection, condition) {
-    if (!assert.isDefined(collection, "spell.removeWhere(collection)")) return
-    const toRemove = []
-    const iterator = spell.getIteratorFor(collection)
-    let itemsToRemove = iterator.next()
-    while (!result.done) {
-      if (condition(...result.value)) itemsToRemove.push(result.value[1])
-      result = iterator.next()
-    }
-    spell.removeItemsOf(collection, ...itemsToRemove)
-  },
-
   // Remove `items` from `collection`.
   // For array: `items` are 1-based positions.
   // For object: `items` are string keys.
   removeItemsOf(collection, ...items) {
     if (!assert.isDefined(collection, "spell.removeItemsOf(collection)")) return
+    // reverse numeric keys so we don't have to worry about renumbering as we go
+    if (spell.isArrayLike(collection)) items = items.sort().reverse()
     items.forEach(item => spell.removeItemOf(collection, item))
   },
 
@@ -258,12 +240,21 @@ Object.assign(spell, {
   remove(collection, ...things) {
     if (!assert.isDefined(collection, "spell.remove(collection)")) return
     things.forEach(thing => {
-      let item = spell.indexOf(collection, thing)
+      let item = spell.itemOf(collection, thing)
       while (item !== undefined) {
         spell.removeItemOf(collection, item)
-        item = spell.indexOf(collection, thing)
+        item = spell.itemOf(collection, thing)
       }
     })
+  },
+
+  // Remove items from `collection` which match `condition`.
+  // called as `condition(value, item, collection)`
+  removeWhere(collection, condition) {
+    if (!assert.isDefined(collection, "spell.removeWhere(collection)")) return
+    const itemsToRemove = spell.filter(collection, condition)
+    if (spell.isArrayLike(collection)) spell.remove(collection, ...itemsToRemove)
+    else spell.removeItemsOf(collection, Object.keys(itemsToRemove))
   },
 
   ////////////
@@ -271,17 +262,18 @@ Object.assign(spell, {
   //----------
 
   // Return a random key of `collection`
-  randomKeyOf(collection) {
-    if (!assert.isDefined(collection, "spell.randomKeyOf(collection)")) return undefined
-    if (spell.isArrayLike(collection)) return spell.randomNumber(1, spell.itemCountOf(collection))
-    return spell.randomKeyOf(spell.keysOf(collection))
+  _randomKeyOf(collection) {
+    if (!assert.isDefined(collection, "spell._randomKeyOf(collection)")) return undefined
+    const item = spell.randomNumber(1, spell.itemCountOf(collection))
+    if (spell.isArrayLike(collection)) return item
+    return spell.keysOf(collection)[item - 1]
   },
 
   // Return a single item from `collection`, picked randomly.
   randomItemOf(collection) {
     if (!assert.isDefined(collection, "spell.randomItemOf(collection)")) return undefined
-    if (typeof collection.randomItem === "function") return collection.randomItem()
-    const key = spell.randomKeyOf(collection);
+    const key = spell._randomKeyOf(collection)
+    if (key === undefined) return undefined
     return spell.getItemOf(collection, key)
   },
 
@@ -290,26 +282,37 @@ Object.assign(spell, {
   // Returns same type as was passed in.
   randomItemsOf(collection, count) {
     if (!assert.isDefined(collection, "spell.randomItemsOf(collection)")) return undefined
-    const items = spell.keysOf(collection)
-    const shuffledItems = _.shuffle(items).slice(0, count)
+    if (!spell.isANumber(count)) count = spell.itemCountOf(collection)
     const results = spell.newThingLike(collection)
-    shuffled.forEach((item, index) => {
-      spell.setItemOf(results, item, spell.getItemOf(collection, index))
-    })
+    if (count === 0) return results
+    const keys = spell.keysOf(collection)
+    const shuffledKeys = _.shuffle(keys).slice(0, count)
+    if (spell.isArrayLike(collection)) {
+      shuffledKeys.forEach((key) => {
+        spell.append(results, spell.getItemOf(collection, key))
+      })
+    }
+    else {
+      shuffledKeys.forEach((key) => {
+        spell.setItemOf(results, key, spell.getItemOf(collection, key))
+      })
+    }
     return results
   },
 
   // Randomize `collection` in-place.
-  // Array-only?
+  // No-op for collection
   randomize(collection) {
     if (!assert.isDefined(collection, "spell.randomize(collection)")) return undefined
+    if (!spell.isArrayLike(collection)) return
     const randomized = spell.randomItemsOf(collection)
-    spell.setItemsOf(collection, 0, ...randomized)
+    spell.setItemsOf(collection, 1, ...randomized)
   },
 
   // Return smallest item of `collection` according to `<` comparison.
   smallestOf(collection) {
     if (!assert.isDefined(collection, "spell.smallestOf(collection)")) return undefined
+    if (spell.itemCountOf(collection) === 0) return undefined
     const values = spell.valuesOf(collection)
     return values.reduce(
       (smallest, next) => next < smallest ? next : smallest,
@@ -320,29 +323,12 @@ Object.assign(spell, {
   // Return largest item of `collection` according to `>` comparison
   largestOf(collection) {
     if (!assert.isDefined(collection, "spell.largestOf(collection)")) return undefined
+    if (spell.itemCountOf(collection) === 0) return undefined
     const values = spell.valuesOf(collection)
     return values.reduce(
       (largest, next) => next > largest ? next : largest,
       values[0]
     )
-  },
-
-
-  ////////////
-  // Sorting
-  //----------
-
-  // Sort `collection` in-place, `ascending` or descending.
-  // If an array: `itemGetter` is one of:
-  //    - string name of property to sort by
-  //    - array of names to sort by
-  //    - method which takes in `value` and returns sort key
-  // TODO: If an object, sorts keys???
-  sort(collection, itemGetter, ascending = true) {
-    if (!assert.isArrayLike(collection, "spell.addAtPosition(collection)")) return
-    const sorted = _.sortBy(collection, itemGetter)
-    if (!ascending) sorted.reverse()
-    spell.setItemsOf(collection, 0, ...sorted)
   },
 
 })

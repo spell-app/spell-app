@@ -7,11 +7,13 @@ beforeEach(() => {
 
 // Custom collection class simulating our custom api
 class CustomCollection {
+  length = 2
   itemCount = jest.fn( () => 2 )
   getKeys = jest.fn( () => ["key1", "key2"] )
   getValues = jest.fn( () => ["value1", "value2"] )
   getItem = jest.fn( () => "value" )
   setItem = jest.fn( (item, value) => value )
+  addAtPosition = jest.fn()
   removeItem = jest.fn()
   itemOf = jest.fn( () => "item" )
   clear = jest.fn()
@@ -19,7 +21,7 @@ class CustomCollection {
 }
 
 describe("spell.itemCountOf()", () => {
-  test("fails assertion and returns 0 if not defined", () => {
+  test("assertion fails and returns 0 if not defined", () => {
     expect(spell.itemCountOf()).toBe(0)
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -43,7 +45,7 @@ describe("spell.itemCountOf()", () => {
 })
 
 describe("spell.isEmpty()", () => {
-  test("fails assertion and returns true if not defined", () => {
+  test("assertion fails and returns true if not defined", () => {
     expect(spell.isEmpty()).toBe(true)
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -67,7 +69,7 @@ describe("spell.isEmpty()", () => {
 })
 
 describe("spell.keysOf()", () => {
-  test("fails assertion and returns empty array if not defined", () => {
+  test("assertion fails and returns empty array if not defined", () => {
     expect(spell.keysOf()).toEqual([])
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -91,7 +93,7 @@ describe("spell.keysOf()", () => {
 })
 
 describe("spell.valuesOf()", () => {
-  test("fails assertion and returns empty array if not defined", () => {
+  test("assertion fails and returns empty array if not defined", () => {
     expect(spell.valuesOf()).toEqual([])
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -114,32 +116,8 @@ describe("spell.valuesOf()", () => {
   })
 })
 
-describe("spell.getItemOf()", () => {
-  test("fails assertion and returns undefined if not defined", () => {
-    expect(spell.getItemOf()).toEqual(undefined)
-    expect(assert.failed).toHaveBeenCalled()
-  })
-  test("calls `getItem` function if defined", () => {
-    const custom = new CustomCollection()
-    expect(spell.getItemOf(custom)).toEqual("value")
-    expect(custom.getItem).toHaveBeenCalled()
-  })
-  test("returns undefined for an empty array", () => {
-    expect(spell.getItemOf([], 1)).toEqual(undefined)
-  })
-  test("returns correct value for a non-empty array", () => {
-    expect(spell.getItemOf(["a","b"], 1)).toEqual("a")
-  })
-  test("returns undefined for an empty object", () => {
-    expect(spell.getItemOf({}, 1)).toEqual(undefined)
-  })
-  test("returns correct value for a non-empty object", () => {
-    expect(spell.getItemOf({ a: 1, b: true }, "a")).toEqual(1)
-  })
-})
-
 describe("spell.itemOf()", () => {
-  test("fails assertion and returns undefined if not defined", () => {
+  test("assertion fails and returns undefined if not defined", () => {
     expect(spell.itemOf()).toEqual(undefined)
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -162,8 +140,32 @@ describe("spell.itemOf()", () => {
   })
 })
 
+describe("spell.getItemOf()", () => {
+  test("assertion fails and returns undefined if not defined", () => {
+    expect(spell.getItemOf()).toEqual(undefined)
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  test("calls `getItem` function if defined", () => {
+    const custom = new CustomCollection()
+    expect(spell.getItemOf(custom)).toEqual("value")
+    expect(custom.getItem).toHaveBeenCalled()
+  })
+  test("returns undefined for an empty array", () => {
+    expect(spell.getItemOf([], 1)).toEqual(undefined)
+  })
+  test("returns correct value for a non-empty array", () => {
+    expect(spell.getItemOf(["a","b"], 1)).toEqual("a")
+  })
+  test("returns undefined for an empty object", () => {
+    expect(spell.getItemOf({}, 1)).toEqual(undefined)
+  })
+  test("returns correct value for a non-empty object", () => {
+    expect(spell.getItemOf({ a: 1, b: true }, "a")).toEqual(1)
+  })
+})
+
 describe("spell.setItemOf()", () => {
-  test("fails assertion if not defined", () => {
+  test("assertion fails if not defined", () => {
     spell.setItemOf()
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -194,8 +196,68 @@ describe("spell.setItemOf()", () => {
   })
 })
 
+describe("spell.addAtPosition()", () => {
+  test("assertion fails if not defined", () => {
+    spell.addAtPosition()
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  test("assertion fails for object", () => {
+    spell.addAtPosition({})
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  test("calls `addAtPosition` function if defined", () => {
+    const custom = new CustomCollection()
+    spell.addAtPosition(custom, 1, "foo")
+    expect(custom.addAtPosition).toHaveBeenCalled()
+  })
+  describe("with positive start", () => {
+    test("adds correctly to empty list at position 1", () => {
+      const collection = []
+      spell.addAtPosition(collection, 1, "a")
+      expect(collection).toEqual(["a"])
+    })
+    test("adds correctly to non-empty list at position 1", () => {
+      const collection = ["a"]
+      spell.addAtPosition(collection, 1, "b")
+      expect(collection).toEqual(["b", "a"])
+    })
+    test("will not introduce gap if after end of list", () => {
+      const collection = ["a"]
+      spell.addAtPosition(collection, 3, "b")
+      expect(collection).toEqual(["a", "b"])
+    })
+    test("adds multiple items if passed", () => {
+      const collection = ["a"]
+      spell.addAtPosition(collection, 3, "b", "c", "d")
+      expect(collection).toEqual(["a", "b", "c", "d"])
+    })
+  })
+  describe("with negative start", () => {
+    test("adds correctly to empty list at position -1", () => {
+      const collection = []
+      spell.addAtPosition(collection, -1, "a")
+      expect(collection).toEqual(["a"])
+    })
+    test("adds correctly to non-empty list at position -1", () => {
+      const collection = ["a", "b"]
+      spell.addAtPosition(collection, -1, "c")
+      expect(collection).toEqual(["a", "c", "b"])
+    })
+    test("will not introduce gap if before start of list", () => {
+      const collection = ["a"]
+      spell.addAtPosition(collection, -3, "b")
+      expect(collection).toEqual(["b", "a"])
+    })
+    test("adds multiple items if passed", () => {
+      const collection = ["a"]
+      spell.addAtPosition(collection, -1, "b", "c", "d")
+      expect(collection).toEqual(["b", "c", "d", "a"])
+    })
+  })
+})
+
 describe("spell.removeItemOf()", () => {
-  test("fails assertion if not defined", () => {
+  test("assertion fails if not defined", () => {
     spell.removeItemOf()
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -227,7 +289,7 @@ describe("spell.removeItemOf()", () => {
 })
 
 describe("spell.clear()", () => {
-  test("fails assertion if not defined", () => {
+  test("assertion fails if not defined", () => {
     spell.clear()
     expect(assert.failed).toHaveBeenCalled()
   })
@@ -250,7 +312,7 @@ describe("spell.clear()", () => {
 })
 
 describe("spell.getIteratorFor()", () => {
-  test("fails assertion and returns `done` iterator if not defined", () => {
+  test("assertion fails and returns `done` iterator if not defined", () => {
     const iterator = spell.getIteratorFor()
     expect(iterator.next()).toEqual({ done: true })
     expect(assert.failed).toHaveBeenCalled()

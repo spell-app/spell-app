@@ -1,5 +1,6 @@
 //
 //  # Rules for dealing with lists
+//  TODO: sort
 //
 
 import {
