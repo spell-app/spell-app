@@ -60,6 +60,8 @@ export default new Spell.Parser({
           if (!match) return;
           // Return just the `variable_identifier` bit, adjusting `length` to account for `the` as necessary.
           const varMatch = match.matched[match.matched.length - 1];
+          // set `varMatch.variable` to scope variable, if defined
+          varMatch.variable = scope.variables(varMatch.raw);
           varMatch.length = match.length;
           return varMatch;
         }
@@ -87,7 +89,7 @@ export default new Spell.Parser({
         parse(scope, tokens) {
           const match = super.parse(scope, tokens);
           if (!match) return;
-          // Return just the `variable_identifier` bit
+          // Return just the `variable_identifier` bit...
           const varMatch = match.matched[match.matched.length - 1];
           varMatch.variable = scope.variables(varMatch.raw);
           // ...but only if we can find an appropriate scope variable

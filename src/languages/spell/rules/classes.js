@@ -54,7 +54,7 @@ export default new Spell.Parser({
     {
       name: "new_thing",
       alias: ["expression", "single_expression"],
-      syntax: "a new {type:known_type} (with {props:object_literal_properties})?",
+      syntax: "a new {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       testRule: "…new",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
@@ -99,7 +99,7 @@ export default new Spell.Parser({
     {
       name: "create_thing",
       alias: ["expression", "single_expression", "statement"],
-      syntax: "create (a|an) {type:known_type} (with {props:object_literal_properties})?",
+      syntax: "create (a|an) {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       testRule: "create",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {

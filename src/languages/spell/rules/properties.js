@@ -107,7 +107,7 @@ export default new Spell.Parser({
     //TOOD: multiple lines if > 2 props?
     {
       name: "object_literal_properties",
-      syntax: "[({key:property} (= {value:expression})?),]",
+      syntax: "[({key:property} ((=|is|of|is? set to) {value:expression})?)(,|and)]",
       compile(scope, match) {
         const props = match.items.map(function(prop) {
           let { key, value } = prop.results;
@@ -129,6 +129,8 @@ export default new Spell.Parser({
             [`a = 1,`, `{ a: 1 }`],
             [`a = 1, b = yes, c = "quoted"`, `{ a: 1, b: true, c: "quoted" }`],
             [`a = 1, b = the foo of the bar`, `{ a: 1, b: bar?.foo }`],
+
+            [`length is 1, rank of "queen"`, `{ length: 1, rank: "queen" }`],
 
             // TODO: `{property}` converts to `foo_bar` before we get here
             [`foo-bar = 1`, `{ foo_bar: 1 }` ],
