@@ -219,12 +219,15 @@ const factory = new ReduxFactory({
         // Load the project index.
         const index = await factory.call.loadProjectIndex({ projectId, reload });
 
-        // If no moduleId specified or we can't find it in the index,
-        // use the first module in the project
-        if (!moduleId || !this.getModuleData(index, moduleId))
-          moduleId = index.modules[0].id;
+        // If no moduleId specified, use the first module in the project if there is one
+        if (!moduleId && index.modules.length) moduleId = index.modules[0].id;
 
-        const contents = await factory.call.loadModule({ projectId, moduleId, reload });
+        // If module is found, load its contents
+        let contents = ""
+        if (this.getModuleData(index, moduleId)) {
+          contents = await factory.call.loadModule({ projectId, moduleId, reload });
+        }
+
         return {
           projectId,
           moduleId,
