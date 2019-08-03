@@ -108,6 +108,16 @@ const spell = {
     return _.isEqual(thing, otherThing)
   },
 
+  // Does `thing` conceptually equal `otherThing`?
+  // Uses lodash `isEqual` semantics.
+  assertEquals(thing, otherThing, thingSource, otherThingSource) {
+    if (_.isEqual(thing, otherThing)) {
+      console.info(`YES: Expected "${thingSource}" to be "${otherThingSource}"`)
+    }
+    else {
+      console.warn(`NO: Expected "${thingSource}" to be "${otherThingSource}", got: "${thing}"`)
+    }
+  },
 
 
   //////////
