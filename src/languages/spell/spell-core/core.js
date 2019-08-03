@@ -10,7 +10,9 @@ const spell = {
   //--------
 
   // Object.defineProperty alias.
+  // NOTE: `get`ters and `set`ters are defined configurably.
   define(thing, propertyName, descriptor) {
+    if (descriptor.get || descriptor.set) descriptor.configurable = true
     return Object.defineProperty(thing, propertyName, descriptor)
   },
 
