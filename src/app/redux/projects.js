@@ -29,7 +29,7 @@ const Formats = {
 // FIXME: this is lame...
 export const INPUT = "INPUT";
 
-const PROJECT_INDEX_FILE_NAME = "index.json5";
+const PROJECT_INDEX_FILE_NAME = "index";
 
 //HACK: we should do this in the app somewhere rather than here...
 setPrefKey("spell_editor_");
@@ -435,8 +435,7 @@ const factory = new ReduxFactory({
     //  `index` is a JSON5 index for the project.
     {
       name: "saveProjectIndex",
-      ACTION: "SAVE_FILE",
-      async: true,
+      ACTION: "UPDATE_CONTENTS",
       getParams({ projectId, index }) {
         return { projectId, fileName: PROJECT_INDEX_FILE_NAME, contents: index}
       }
@@ -468,6 +467,18 @@ const factory = new ReduxFactory({
     //
     //  Generic load/save/delete -- you'll generally use one of the methods above
     //
+
+    //////////////////////
+    // Update a project file in memory, including an index.
+    // NOTE: doesn't update the disk at all!
+    //  `contents` is the contents of the file.
+    {
+      name: "updateContents",
+      handler(projects, { path, projectId, fileName, contents }) {
+        if (!path) path = this.getPath(projectId, fileName);
+        return this.updateFileContents(projects, path, contents);
+      }
+    },
 
     //////////////////////
     // Load a project file.
@@ -502,7 +513,6 @@ const factory = new ReduxFactory({
         return { ...projects };
       }
     },
-
 
     //////////////////////
     // Save a project file, including the project index.

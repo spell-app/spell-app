@@ -264,6 +264,7 @@ export function listContents(directory, options = {}) {
     includeDirs = false,
     includeFiles = true,
     namesOnly = false,
+    ignoreHidden = false,
     pattern
   } = options;
   let paths = fse.readdirSync(directory)
@@ -280,6 +281,11 @@ export function listContents(directory, options = {}) {
   // If a RegExp `pattern` was provided, remove things which don't match
   if (pattern)
     paths = paths.filter(file => pattern.test(file));
+
+  // if `ignoreHidden` was specified, remove file names starting with "."
+  if (ignoreHidden) {
+    paths = paths.filter(_path => !path.basename(_path).startsWith("."))
+  }
 
   // If `namesOnly` was specified, remove path bits.
   if (namesOnly)

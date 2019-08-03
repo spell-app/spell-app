@@ -41,7 +41,7 @@ export class _SpellEditor extends React.Component {
   create = () => {
     const moduleId = prompt("Name for the new module?", "Untitled");
     if (!moduleId) return;
-    const contents = `# Module ${moduleId}`;
+    const contents = `## Module ${moduleId}`;
     _projects.call.newModule({ moduleId, contents });
   }
 

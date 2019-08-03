@@ -67,6 +67,17 @@ router.get("/projects", (request, response) => {
   responseUtils.sendJSON(response, dirs);
 });
 
+// Return index for a project: all "unhidden" files in the project folder.
+router.get("/projects/:folder/index", (request, response) => {
+  const folder = request.params.folder;
+  const options = { ignoreHidden: true, namesOnly: true };
+  const files = fileUtils.listContents(getProjectPath(folder), options)
+  const index = {
+    modules: files.map(fileName => ({ id: fileName }))
+  }
+  responseUtils.sendJSON(response, index);
+});
+
 // Return a specific project file, including the index.
 router.get("/projects/:folder/:file", (request, response) => {
   const folder = request.params.folder;
