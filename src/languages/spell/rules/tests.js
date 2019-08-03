@@ -16,13 +16,16 @@ export default new Spell.Parser({
       alias: ["statement"],
       syntax: "expect {expression} to be {value:expression}",
       testRule: "expect",
-      compile(scope, { results, groups }) {
+      constructor: Spell.Rule.Statement,
+      updateScope(scope, match) {
+        const { results, groups } = match
         const args = [
           results.expression,
           results.value,
           // TODO: output expression spell for error messages in output
         ]
-        return `spell.assertEquals(${args.join(", ")})`;
+        const statement = scope.addStatement(`spell.assertEquals(${args.join(", ")})`);
+        results.statements.push(statement)
       },
       tests: [
         {
