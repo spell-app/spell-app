@@ -122,15 +122,13 @@ export default new Spell.Parser({
       // Convert JSX expression ( `{...}` ) to JS source.
       jsxExpressionToSource(scope, jsxExpression) {
         const { expression } = jsxExpression
-console.warn(jsxExpression)
-        if (!expression.incomplete) return expression.js
+        if (jsxExpression.expression && !jsxExpression.expression.incomplete) return expression.js
         return "/" + `*INCOMPLETE: ${jsxExpression.contents}*` + "/";
       },
 
       tests: [
         {
           compileAs: "expression",
-          showAll: true,
           tests: [
             [`<a/>`, `spell.createElement('a')`],
             [`<a b=1 c="ccc"/>`, `spell.createElement('a', { b: 1, c: "ccc" })`],
@@ -142,8 +140,14 @@ console.warn(jsxExpression)
               `<a A=1><b c=1>foo</b></a>`,
               `spell.createElement('a', { A: 1 },\n\tspell.createElement('b', { c: 1 },\n\t\t"foo"\n\t)\n)`
             ],
-
-            // card examples
+          ]
+        },
+        {
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.variables.add("card");
+          },
+          tests: [
             [
               `<div rank={the rank of the card} suit={the suit of the card}/>`,
               `spell.createElement('div', { rank: card?.rank, suit: card?.suit })`
