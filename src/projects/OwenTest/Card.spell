@@ -1,0 +1,68 @@
+## definition of a Card with nice english aliases for working with it
+a card is a drawable-thing
+
+## properties of cards
+// card ranks
+cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
+
+// card suits
+cards have a suit as one of clubs, diamonds, hearts or spades
+
+// color as derivation of suit
+the color of a card is red if its suit is either diamonds or hearts otherwise it is black
+
+// value as a derivation of rank
+the value of a card is the position of its rank in its ranks
+
+// card direction:  up or down
+a card has a direction as either up or down
+
+## create a card instance with default properties
+the card is a new card whose rank is queen, suit is spades and direction is up
+expect the rank of the card to be queen
+expect the suit of the card to be spades
+expect the color of the card to be black
+expect the value of the card to be 12
+
+## aliases
+// "card is face up/down"
+a card "is face up" if its direction is up
+a card "is face down" if its direction is down
+expect the card is face up to be yes
+expect the card is face down to be no
+
+// `card is a face card`
+a card "is a face card" if its rank is one of jack, queen or king
+expect the card is a face card to be yes
+expect the card is not a face card to be false
+
+// "card is a spade", "...is a club" etc
+a card "is a (suit)" for its suits
+expect the card is a spade to be true
+expect the card is a club to be false
+
+// "card is a queen", "...is an ace" etc
+a card "is a (rank)" for its ranks
+expect the card is a queen to be true
+expect the card is an ace to be false
+expect the card is a 2 to be false
+
+## "is the queen of spades"
+a card "is the (rank) of (suits)" for its ranks and its suits
+expect the card is the queen of spades to be true
+expect the card is the queen of clubs to be false
+expect the card is not the 2 of diamonds to be true
+
+## actions
+to turn a card face up: 
+	set its direction to up
+
+to turn a card face down: set its direction to down
+turn the card face down
+expect the direction of the card to be down
+
+to flip a card over:
+	if it is face up then 
+		turn it face down
+	otherwise 
+		turn it face up

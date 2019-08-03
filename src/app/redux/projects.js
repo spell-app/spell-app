@@ -9,7 +9,7 @@ import JSON5 from "json5";
 import { connect } from "react-redux";
 
 import {
-  spell,
+  spellParser,
   Scope
 } from "../all.js";
 
@@ -147,7 +147,7 @@ const factory = new ReduxFactory({
         const { input, moduleId } = projects;
         let output;
         try {
-          const scope = spell.getScope(moduleId);
+          const scope = spellParser.getScope(moduleId);
           console.info("scope: ", scope);
 
           // assign scope and parsing shorthand functions globally
@@ -157,7 +157,19 @@ const factory = new ReduxFactory({
           global.statement = scope.statement.bind(scope);
           global.exp = scope.exp.bind(scope);
 
-          output = spell.compile(input, undefined, scope);
+          output = spellParser.compile(input, undefined, scope);
+          global.output = output
+console.info("output:\n", output)
+
+          const scriptEl = document.createElement("script")
+          scriptEl.setAttribute("id", "compileOutput")
+          scriptEl.setAttribute("type", "module")
+          scriptEl.innerHTML = output
+global.scriptEl = scriptEl
+
+          const existingEl = document.getElementById("compileOutput")
+          if (existingEl) existing.replaceWidth(scriptEl)
+          else document.body.append(scriptEl)
         } catch (e) {
           console.error(e);
           output = e.message;
