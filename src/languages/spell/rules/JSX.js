@@ -15,22 +15,59 @@ export default new Spell.Parser({
       name: "jsx",
       alias: ["expression", "single_expression"],
       tokenType: Token.JSXElement,
+      constructor: class SpellJSX extends Rule.TokenType {
+        parse(scope, tokens) {
+          const match = super.parse(scope, tokens)
+          if (!match) return
+          // recursively parse jsxExpressions in attributes and children
+          match.matched.forEach(element => this.parseElementExpressions(scope, element))
+          return match
+        }
+      },
+
+      parseElementExpressions(scope, element) {
+        if (element.attributes) {
+          element.attributes.forEach(attribute => {
+            if (attribute.value instanceof Token.JSXExpression)
+              attribute.value.expression = scope.parse(attribute.value.contents, "expression")
+          })
+        }
+        if (element.children) {
+          element.children.forEach(child => this.parseElementExpressions(scope, child))
+        }
+      },
+
       compile(scope, match) {
-        return this.jsxElementToSource(match.matched[0]);
+        return this.jsxElementToSource(scope, match.matched[0]);
+      },
+
+      jsxElementToSource(scope, jsxElement) {
+        // get the bits of the output
+        const tagName = `'${jsxElement.tagName}'`;
+        const children = this.childrenToSource(scope, jsxElement);
+        const attrs = this.attrsToSource(scope, jsxElement) || (children ? "null" : "");
+
+        let output = "spell.createElement(" + tagName;
+        if (attrs) output += `, ${attrs}`;
+        if (children) {
+          output += ",\n\t" + children.join(",\n\t") + "\n";
+        }
+        output += ")";
+        return output;
       },
 
       // Convert our attributes to source.
       // Returns `undefined` if no attributes.
-      attrsToSource(jsxElement) {
+      attrsToSource(scope, jsxElement) {
         let attributes = jsxElement.attributes;
         if (!attributes || !attributes.length) return undefined;
 
         let attrs = attributes.map(({ name, value }) => {
           // if NO value, assume it's a variable of the same name
           if (value === undefined) value = "true";
-          // if it's an array, it's a spell expression, possibly with nested JSX elements...
+          // if it's a jsx expression, possibly with nested JSX elements...
           else if (value instanceof Token.JSXExpression) {
-            value = this.jsxExpressionToSource(value);
+            value = this.jsxExpressionToSource(scope, value);
           }
           // else if a JSX element, recurse
           //TODO: indent...
@@ -52,7 +89,7 @@ export default new Spell.Parser({
 
       // Return an array with source for each of our children.
       // Returns `undefined` if we don't have any children.
-      childrenToSource(jsxElement) {
+      childrenToSource(scope, jsxElement) {
         // ignore end tags!
         const children = jsxElement.children
           && jsxElement.children.filter(child => !(child instanceof Token.JSXEndTag));
@@ -68,11 +105,11 @@ export default new Spell.Parser({
                 return child.quotedText;
               }
               if (child instanceof Token.JSXElement) {
-                const childSource = this.jsxElementToSource(child);
+                const childSource = this.jsxElementToSource(scope, child);
                 return childSource.split("\n").join("\n\t");
               }
               if (child instanceof Token.JSXExpression) {
-                return this.jsxExpressionToSource(child);
+                return this.jsxExpressionToSource(scope, child);
               }
 
               throw new SyntaxError("childrenToSource(): don't understand child" + child);
@@ -83,26 +120,13 @@ export default new Spell.Parser({
       },
 
       // Convert JSX expression ( `{...}` ) to JS source.
-      jsxExpressionToSource(jsxExpression) {
-        const tokens = jsxExpression.tokens;
-        //    this.info(jsxExpression, tokens);
-        return "/" + `*TODO: ${tokens.join(" ")}*` + "/";
+      jsxExpressionToSource(scope, jsxExpression) {
+        const { expression } = jsxExpression
+console.warn(jsxExpression)
+        if (!expression.incomplete) return expression.js
+        return "/" + `*INCOMPLETE: ${jsxExpression.contents}*` + "/";
       },
 
-      jsxElementToSource(jsxElement) {
-        // get the bits of the output
-        const tagName = `'${jsxElement.tagName}'`;
-        const children = this.childrenToSource(jsxElement);
-        const attrs = this.attrsToSource(jsxElement) || (children ? "null" : "");
-
-        let output = "spell.createElement(" + tagName;
-        if (attrs) output += `, ${attrs}`;
-        if (children) {
-          output += ",\n\t" + children.join(",\n\t") + "\n";
-        }
-        output += ")";
-        return output;
-      },
       tests: [
         {
           compileAs: "expression",
@@ -117,6 +141,12 @@ export default new Spell.Parser({
             [
               `<a A=1><b c=1>foo</b></a>`,
               `spell.createElement('a', { A: 1 },\n\tspell.createElement('b', { c: 1 },\n\t\t"foo"\n\t)\n)`
+            ],
+
+            // card examples
+            [
+              `<div rank={the rank of the card} suit={the suit of the card}/>`,
+              `spell.createElement('div', { rank: card?.rank, suit: card?.suit })`
             ]
           ]
         }

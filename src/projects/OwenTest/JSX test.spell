@@ -1,0 +1,15 @@
+## Module JSX test.spell
+
+a card is a drawable-thing
+a card has a direction as either up or down
+to draw a card
+	return <div>
+		<div class="card"/>
+		<div sum={1 + 2 + 3}/>
+		<div rank={the rank of the card}/>
+		<div suit={its suit}/>
+		<div direction={the card direction} />
+	</div>
+
+the card is a new card
+get the rank of the card
