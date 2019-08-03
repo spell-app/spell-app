@@ -98,7 +98,7 @@ export class Parser {
     const rule = scope.getRuleOrDie(ruleName);
     const result = rule.parse(scope, tokens);
 
-    // If we didn't get anything, not that the parse was incomplete.
+    // If we didn't get anything, note that the parse was incomplete.
     // TESTME
     if (result && result.length !== tokens.length) {
       result.incomplete = {

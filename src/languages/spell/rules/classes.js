@@ -76,16 +76,15 @@ export default new Spell.Parser({
         {
           title: "creates base types",
           compileAs: "expression",
-          beforeEach(scope) {
-            scope.types.add("Object");      // TODO: shouldn't be necessary!
-            scope.types.add("List");        // TODO: shouldn't be necessary!
-          },
           tests: [
             ["a new Object", "new Object()"],
             ["a new object with a = 1, b = yes", "new Object({ a: 1, b: true })"],
+            // thing
+            ["create a Thing", "new Thing()"],
+            ["create a thing with a = 1", "new Thing({ a: 1 })"],
             //FIXME: the following don't make sense if they have arguments...
             ["create a List", "new List()"],
-            ["create a list", "new List()"]
+            ["create a list", "new List()"],
           ]
         }
       ]

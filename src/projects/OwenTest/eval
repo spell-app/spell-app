@@ -1,4 +1,6 @@
-a card is an object
+a card is a Thing
 cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
+
+the card is a new card with rank of queen
 
 a deck is a list of cards

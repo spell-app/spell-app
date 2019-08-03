@@ -1,6 +1,6 @@
 import { Spell } from "../all.js";
 
-// These following add new Rule constructors to `Spell.Rule`
+// The following add new Rule constructors to `Spell.Rule`
 import "./Block.js"
 import "./BlockLine.js"
 import "./Statement.js"

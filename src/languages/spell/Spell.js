@@ -31,9 +31,13 @@ export const Spell = {
 
     // Return a scope with a new parser which depends on this parser.
     // This lets us update rules/etc as desired without affecting the original parser.
-    getScope(module = "ad_hoc") {
+    getScope(moduleName = this.module || "ad_hoc") {
       const parser = this.clone({ module });
-      return new Module({ name: module, parser });
+      const module = new Module({ name: moduleName, parser });
+      // Add base types
+      // TODO: should be done elsewhere!!!!
+      module.types.add("Object", "Thing", "List")
+      return module
     }
 
     // If we're tokenizing "block", parse them into blocks.

@@ -9,6 +9,7 @@ import spell from "./core"
 import "./collection-core"
 import "./collection-other"
 import "./ui"
+import { Thing, List } from "./classes"
 
 export default spell
-export { spell, assert }
+export { spell, assert, Thing, List }
