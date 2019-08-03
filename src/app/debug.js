@@ -27,7 +27,11 @@ Spell.Parser.prototype.outputSource = false;       // TODO: add a control for th
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
+  // global.global / window.global
+  global,
+  // all of lodash
   _,
+  // JSON5 for parsing
   JSON5,
 
 //   ParseError,
