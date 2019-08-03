@@ -158,13 +158,18 @@ const factory = new ReduxFactory({
           global.exp = scope.exp.bind(scope);
 
           output = spellParser.compile(input, undefined, scope);
+        } catch (e) {
+          console.error(e);
+          output = e.message;
+        }
 
-          // add all types to `global` for local hacking
-          let hackOutput = output
-          scope.types().forEach(type => {
-            hackOutput += `\nglobal.${type.name} = ${type.name}`
-          })
+        // add all types to `global` for local hacking
+        let hackOutput = output
+        scope.types().forEach(type => {
+          hackOutput += `\nglobal.${type.name} = ${type.name}`
+        })
 
+        try {
           global.output = hackOutput
 console.info("output:\n", hackOutput)
 
@@ -177,10 +182,8 @@ global.scriptEl = scriptEl
           const existingEl = document.getElementById("compileOutput")
           if (existingEl) existingEl.replaceWith(scriptEl)
           else document.body.append(scriptEl)
-
         } catch (e) {
-          console.error(e);
-          output = e.message;
+          console.error("error evaling output:", e)
         }
 
         return {
