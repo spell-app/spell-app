@@ -1,3 +1,4 @@
 a card is an object
 cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
 
+a deck is a list of cards

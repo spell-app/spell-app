@@ -27,7 +27,7 @@ export default new Spell.Parser({
         const { type, superType, isList } = results;
         const statement = scope.types.add({
           name: type,
-          superType: (isList ? "List" : superType)
+          superType: (isList ? "Array" : superType)
         });
         results.statements.push(statement);
         // If we're a list of something, set `list.instanceType` property
@@ -41,9 +41,9 @@ export default new Spell.Parser({
         {
           compileAs: "statement",
           tests: [
-            ["create a type named card", "export class Card {}"],
-            ["create a type called car as a vehicle", "export class Car extends Vehicle {}"],
-            ["a card is a thing", "export class Card extends Thing {}"],
+            ["create a type named card", `export class Card {}\nspell.addExport("Card", Card)`],
+            ["create a type called car as a vehicle", `export class Car extends Vehicle {}\nspell.addExport("Car", Car)`],
+            ["a card is a thing", `export class Card extends Thing {}\nspell.addExport("Card", Card)`],
           ]
         }
       ]
@@ -204,13 +204,13 @@ export default new Spell.Parser({
         if (enumeration) {
           // Register the enumeration which will register all sorts of juicy rules and statements.
           typeScope.addEnumeration({ name: Properties, enumeration }, results);
-          setter = [ `if ($.isOneOf(${property}, ${results.canonicalRef})) this["#${property}"] = ${property}` ];
+          setter = [ `if (${results.canonicalRef}.includes(${property})) this["#${property}"] = ${property}` ];
           datatype = results.datatype;
           // Add enumeration constants to the main scope, so they can be used outside the type
           enumeration.forEach(value => (typeof value === "string") && scope.constants.add(value));
         }
         else if (datatype) {
-          setter = [ `if ($.isType(${property}, '${datatype}')) this["#${property}"] = ${property}` ];
+          setter = [ `if (spell.isOfType(${property}, '${datatype}')) this["#${property}"] = ${property}` ];
         }
         else {
           setter = [ `this["#${property}"] = ${property}` ];
@@ -246,13 +246,13 @@ export default new Spell.Parser({
                 "spell.define(Card.prototype, 'Directions', { value: Card.Directions })",
                 "// SPELL added rule: `(Card|card) (Directions|directions)`",
                 `spell.define(Card.prototype, 'direction', { get() { return this["#direction"] } })`,
-                `spell.define(Card.prototype, 'direction', { set(direction) { if ($.isOneOf(direction, Card.Directions)) this["#direction"] = direction } })`,
+                `spell.define(Card.prototype, 'direction', { set(direction) { if (Card.Directions.includes(direction)) this["#direction"] = direction } })`,
               ].join("\n")
             ],
             [ "a player has a name as text",
               [
                 `spell.define(Player.prototype, 'name', { get() { return this["#name"] } })`,
-                `spell.define(Player.prototype, 'name', { set(name) { if ($.isType(name, 'text')) this["#name"] = name } })`,
+                `spell.define(Player.prototype, 'name', { set(name) { if (spell.isOfType(name, 'text')) this["#name"] = name } })`,
               ].join("\n")
             ],
           ]

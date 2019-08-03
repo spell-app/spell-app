@@ -28,6 +28,26 @@ const spell = {
     }
   },
 
+  //////////
+  // exports
+  //--------
+
+  // list of named exports
+  EXPORTS: {},
+
+  // Add a named export (which may replace existing export).
+  // SIDE EFFECT: globalizes exports!
+  addExport(name, thing) {
+    this.EXPORTS[name] = thing
+    this.globalizeExports()
+  },
+
+  // globalize all exports
+  globalizeExports() {
+    _.forEach(this.EXPORTS, (thing, name) => {
+      global[name] = thing
+    })
+  },
 
   //////////
   // types
