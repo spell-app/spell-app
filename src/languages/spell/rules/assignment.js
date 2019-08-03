@@ -47,7 +47,7 @@ export default new Spell.Parser({
             { title: "existing var: equals", input: "thing = yes", output: "thing = true" },
             { title: "existing var: set", input: "set thing to yes", output: "thing = true" },
             { title: "existing var: variable is", input: "thing is a new person", output: "thing = new Person()" },
-            { title: "existing var: property set", input: "let the name of thing = 'bob'", output: "thing?.name = 'bob'" },
+            { title: "existing var: property set", input: "let the name of thing = 'bob'", output: "thing.name = 'bob'" },
           ]
         }
       ]
@@ -75,7 +75,7 @@ export default new Spell.Parser({
           },
           tests: [
             ["get thing", "let it = thing"],
-            ["get the foo of the thing", "let it = thing?.foo"],
+            ["get the foo of the thing", "let it = thing.foo"],
           ]
         }
       ]

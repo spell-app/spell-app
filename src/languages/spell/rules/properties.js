@@ -56,7 +56,8 @@ export default new Spell.Parser({
       compile(scope, match) {
         let { expression, property_accessor } = match.results;
         // TODO: `[xxx]` for non-identifiers
-        return `${expression}?.${property_accessor}`;
+        // TODO: optional accessor:  `a?.b` ???
+        return `${expression}.${property_accessor}`;
       },
       tests: [
         {
@@ -66,10 +67,10 @@ export default new Spell.Parser({
             scope.variables.add("baz");
           },
           tests: [
-            ["the foo of bar", "bar?.foo"],
-            ["the foo of the bar", "bar?.foo"],
-            ["the foo of the bar of the baz", "baz?.bar?.foo"],
-            ["the foo-bar of the baz", "baz?.foo_bar"]
+            ["the foo of bar", "bar.foo"],
+            ["the foo of the bar", "bar.foo"],
+            ["the foo of the bar of the baz", "baz.bar.foo"],
+            ["the foo-bar of the baz", "baz.foo_bar"]
           ]
         }
       ]
@@ -93,7 +94,7 @@ export default new Spell.Parser({
           compileAs: "expression",
           tests: [
             ["its foo", "this.foo"],
-            ["the foo of its bar", "this.bar?.foo"],
+            ["the foo of its bar", "this.bar.foo"],
           ]
         }
       ]
@@ -128,7 +129,7 @@ export default new Spell.Parser({
             [`a = 1`, `{ a: 1 }`],
             [`a = 1,`, `{ a: 1 }`],
             [`a = 1, b = yes, c = "quoted"`, `{ a: 1, b: true, c: "quoted" }`],
-            [`a = 1, b = the foo of the bar`, `{ a: 1, b: bar?.foo }`],
+            [`a = 1, b = the foo of the bar`, `{ a: 1, b: bar.foo }`],
 
             [`length is 1, rank of "queen"`, `{ length: 1, rank: "queen" }`],
 

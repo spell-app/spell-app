@@ -150,7 +150,7 @@ export default new Spell.Parser({
           tests: [
             [
               `<div rank={the rank of the card} suit={the suit of the card}/>`,
-              `spell.createElement('div', { rank: card?.rank, suit: card?.suit })`
+              `spell.createElement('div', { rank: card.rank, suit: card.suit })`
             ]
           ]
         }

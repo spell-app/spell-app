@@ -266,8 +266,8 @@ export default new Spell.Parser({
           tests: [
             [ "Card suits", "Card.Suits" ],
             [ "card suits", "Card.Suits" ],
-            [ "the suit of the card", "card?.suit" ],
-            [ "the suits of the card", "card?.suits" ],
+            [ "the suit of the card", "card.suit" ],
+            [ "the suits of the card", "card.suits" ],
           ]
         }
       ]
@@ -527,7 +527,7 @@ export default new Spell.Parser({
                 const valueIndex = data.enumeration.indexOf(value);
                 return data.values[valueIndex];
               });
-              return `${bang}${lhs}?.${property}(${args.join(", ")})`
+              return `${bang}${lhs}.${property}(${args.join(", ")})`
             }
           }, results);
 
@@ -572,10 +572,10 @@ export default new Spell.Parser({
           },
           tests: [
             ['if the card is the queen of spades',
-             "if (card?.is_the_$rank_of_$suits('queen', 'spades')) {}"
+             "if (card.is_the_$rank_of_$suits('queen', 'spades')) {}"
             ],
             ['if the card is the 2 of hearts',
-             "if (card?.is_the_$rank_of_$suits(2, 'hearts')) {}"
+             "if (card.is_the_$rank_of_$suits(2, 'hearts')) {}"
             ]
           ]
         }
@@ -634,7 +634,7 @@ export default new Spell.Parser({
           results.updateScope = function(scope, { results }) {
             let { callArgs = [] } = results;
             if (!Array.isArray(callArgs)) callArgs = [callArgs];
-            const statement = `${callArgs[0]}?.${methodName}?.(${callArgs.slice(1).join(", ")})`;
+            const statement = `${callArgs[0]}.${methodName}.(${callArgs.slice(1).join(", ")})`;
             scope.addStatement(statement);
           }
         }

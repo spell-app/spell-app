@@ -275,7 +275,7 @@ export default new Spell.Parser({
           tests: [
             ["get 1 if bar else 2", "let it = (bar ? 1 : 2)"],
             ["get the foo of the bar if bar is defined otherwise the bar of the foo",
-             "let it = ((typeof bar !== 'undefined') ? bar?.foo : foo?.bar)"]
+             "let it = ((typeof bar !== 'undefined') ? bar.foo : foo.bar)"]
           ]
         }
       ]

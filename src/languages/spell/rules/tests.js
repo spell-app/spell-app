@@ -35,7 +35,7 @@ export default new Spell.Parser({
           },
           tests: [
             ["expect the foo of the thing to be 'bar'",
-             "spell.assertEquals(thing?.foo, 'bar')"],
+             "spell.assertEquals(thing.foo, 'bar')"],
           ]
         },
       ]

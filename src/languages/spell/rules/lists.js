@@ -102,7 +102,7 @@ export default new Spell.Parser({
           },
           tests: [
             ["number of items in my-list", "spell.itemCountOf(my_list)"],
-            ["the number of foos in the foo of the bar", "spell.itemCountOf(bar?.foo)"],
+            ["the number of foos in the foo of the bar", "spell.itemCountOf(bar.foo)"],
             ["the number of items in [1,2,3]", "spell.itemCountOf([1, 2, 3])"]
           ]
         }
@@ -133,7 +133,7 @@ export default new Spell.Parser({
           },
           tests: [
             ["position of thing in my-list", "spell.itemOf(thing, my_list)"],
-            ["the position of thing in the foo of the bar", "spell.itemOf(thing, bar?.foo)"],
+            ["the position of thing in the foo of the bar", "spell.itemOf(thing, bar.foo)"],
             ["the position of 'a' in ['a', 'b', 'c']", "spell.itemOf('a', ['a', 'b', 'c'])"]
           ]
         }
@@ -247,7 +247,7 @@ export default new Spell.Parser({
           tests: [
             ["item 1 of my-list", "spell.getItem(my_list, 1)"],
             ["card 10 of deck", "spell.getItem(deck, 10)"],
-            ["card n of the cards of the deck", "spell.getItem(deck?.cards, n)"],
+            ["card n of the cards of the deck", "spell.getItem(deck.cards, n)"],
           ]
         }
       ]
@@ -457,7 +457,7 @@ export default new Spell.Parser({
             ],
             [
               "items in my-list where the id of the item > 1",
-              "spell.filter(my_list, (item) => (item?.id > 1))"
+              "spell.filter(my_list, (item) => (item.id > 1))"
             ]
           ]
         }
@@ -510,7 +510,7 @@ export default new Spell.Parser({
             ],
             [
               "the foo of the bar does not have items where item is 1",
-              "!spell.any(bar?.foo, (item) => (item == 1))"
+              "!spell.any(bar.foo, (item) => (item == 1))"
             ]
           ]
         }
@@ -687,7 +687,7 @@ export default new Spell.Parser({
           },
           tests: [
             ["empty my-list", "spell.clear(my_list)"],
-            ["clear the cards of the deck", "spell.clear(deck?.cards)"]
+            ["clear the cards of the deck", "spell.clear(deck.cards)"]
           ]
         }
       ]
@@ -861,7 +861,7 @@ export default new Spell.Parser({
             ],
             [
               "remove cards in deck where the suit of the card is clubs",
-              "spell.removeWhere(deck, (card) => (card?.suit == 'clubs'))"
+              "spell.removeWhere(deck, (card) => (card.suit == 'clubs'))"
             ]
           ]
         }
@@ -977,7 +977,7 @@ export default new Spell.Parser({
             ],
             [
               "for each card in deck: set the direction of the card to 'down'",
-              "spell.forEach(deck, function(card) { card?.direction = 'down' })"
+              "spell.forEach(deck, function(card) { card.direction = 'down' })"
             ],
             [
               "for message, index in messages: add message + index to messages",
@@ -986,7 +986,7 @@ export default new Spell.Parser({
 
             [
               "for each card in deck:\n\tset the direction of the card to 'down'",
-              "spell.forEach(deck, function(card) { card?.direction = 'down' })"
+              "spell.forEach(deck, function(card) { card.direction = 'down' })"
             ],
             [
               "for message and index in messages:\n\tif index is greater than 2 add message to messages",

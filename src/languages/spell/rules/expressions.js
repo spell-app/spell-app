@@ -146,7 +146,7 @@ export default new Spell.Parser({
             scope.variables.add("card");
           },
           tests: [
-            ["the suit of the card is 'ace'", "(card?.suit == 'ace')"],
+            ["the suit of the card is 'ace'", "(card.suit == 'ace')"],
           ]
         }
       ]
