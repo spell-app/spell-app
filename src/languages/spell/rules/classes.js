@@ -197,22 +197,22 @@ export default new Spell.Parser({
         const Properties = pluralize(upperFirst(property));
 
         let { datatype, enumeration } = initializer;
-        const getter = [ `return this["#${property}"]` ];
+        const getter = [ `return this['#${property}']` ];
         let setter;
 
         if (enumeration) {
           // Register the enumeration which will register all sorts of juicy rules and statements.
           typeScope.addEnumeration({ name: Properties, enumeration }, results);
-          setter = [ `if (${results.canonicalRef}.includes(${property})) this["#${property}"] = ${property}` ];
+          setter = [ `if (${results.canonicalRef}.includes(${property})) this['#${property}'] = ${property}` ];
           datatype = results.datatype;
           // Add enumeration constants to the main scope, so they can be used outside the type
           enumeration.forEach(value => (typeof value === "string") && scope.constants.add(value));
         }
         else if (datatype) {
-          setter = [ `if (spell.isOfType(${property}, '${datatype}')) this["#${property}"] = ${property}` ];
+          setter = [ `if (spell.isOfType(${property}, '${datatype}')) this['#${property}'] = ${property}` ];
         }
         else {
-          setter = [ `this["#${property}"] = ${property}` ];
+          setter = [ `this['#${property}'] = ${property}` ];
           datatype = "undefined";     // :-(
         }
 
@@ -244,14 +244,14 @@ export default new Spell.Parser({
                 "Card.Directions = ['up','down']",
                 "spell.define(Card.prototype, 'Directions', { value: Card.Directions })",
                 "// SPELL added rule: `(Card|card) (Directions|directions)`",
-                `spell.define(Card.prototype, 'direction', { get() { return this["#direction"] } })`,
-                `spell.define(Card.prototype, 'direction', { set(direction) { if (Card.Directions.includes(direction)) this["#direction"] = direction } })`,
+                `spell.define(Card.prototype, 'direction', { get() { return this['#direction'] } })`,
+                `spell.define(Card.prototype, 'direction', { set(direction) { if (Card.Directions.includes(direction)) this['#direction'] = direction } })`,
               ].join("\n")
             ],
             [ "a player has a name as text",
               [
-                `spell.define(Player.prototype, 'name', { get() { return this["#name"] } })`,
-                `spell.define(Player.prototype, 'name', { set(name) { if (spell.isOfType(name, 'text')) this["#name"] = name } })`,
+                `spell.define(Player.prototype, 'name', { get() { return this['#name'] } })`,
+                `spell.define(Player.prototype, 'name', { set(name) { if (spell.isOfType(name, 'text')) this['#name'] = name } })`,
               ].join("\n")
             ],
           ]
