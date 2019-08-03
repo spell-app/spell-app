@@ -23,14 +23,14 @@ import classes from "./classes.js";
 import tests from "./tests.js";
 
 // Create parser which combines all of the above...
-export const spell = new Spell.Parser({ module: "spell" });
+export const spellParser = new Spell.Parser({ module: "spell" });
 
-spell.defineRule({ name: "block", constructor: Spell.Rule.Block });
-spell.defineRule({ name: "block_line", constructor: Spell.Rule.BlockLine });
-spell.defineRule({ name: "parse_error", constructor: Spell.Rule.ParseError });
+spellParser.defineRule({ name: "block", constructor: Spell.Rule.Block });
+spellParser.defineRule({ name: "block_line", constructor: Spell.Rule.BlockLine });
+spellParser.defineRule({ name: "parse_error", constructor: Spell.Rule.ParseError });
 
 // Import the other rules defined above.
-spell.import(
+spellParser.import(
   core,
   types,
   variables,

@@ -12,6 +12,7 @@ import {
   rulex,
   Scope,
   spell,
+  spellParser,
   Spell,
   Token,
   Tokenizer,
@@ -29,34 +30,38 @@ Object.assign(global, {
   _,
   JSON5,
 
-  ParseError,
-  Parser,
-  Rule,
-  Scope,
-  SpellParser: Spell.Parser,
-  Token,
-  Tokenizer,
+//   ParseError,
+//   Parser,
+//   Rule,
+//   Scope,
+//   Spell,
+//   SpellParser: Spell.Parser,
+//   Token,
+//   Tokenizer,
 
   // spell language stuff
+  spellParser,
+  rules: spellParser.rules,
+  parse: spellParser.parse.bind(spellParser),
+  compile: spellParser.compile.bind(spellParser),
+  exp: (expression, scope) => spellParser.parse(expression, "expression", scope),
+  tokenizer: spellParser.tokenizer,
+  tokenize: spellParser.tokenize.bind(spellParser),
+
+  // spell core library
   spell,
-  rules: spell.rules,
-  parse: spell.parse.bind(spell),
-  compile: spell.compile.bind(spell),
-  exp: (expression, scope) => spell.parse(expression, "expression", scope),
-  tokenizer: spell.tokenizer,
-  tokenize: spell.tokenize.bind(spell),
 
   // rulex language stuff
-  rulex,
+//  rulex,
 
   // Redux/app stuff
-  ReduxFactory,
+//  ReduxFactory,
   projects,    // package/file manipulation reduxFactory
 
   // test language
-  prec: precedence,
+//   prec: precedence,
 
   // string utils
-  singularize,
-  pluralize,
+//   singularize,
+//   pluralize,
 });
