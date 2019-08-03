@@ -158,18 +158,26 @@ const factory = new ReduxFactory({
           global.exp = scope.exp.bind(scope);
 
           output = spellParser.compile(input, undefined, scope);
-          global.output = output
-console.info("output:\n", output)
+
+          // add all types to `global` for local hacking
+          let hackOutput = output
+          scope.types().forEach(type => {
+            hackOutput += `\nglobal.${type.name} = ${type.name}`
+          })
+
+          global.output = hackOutput
+console.info("output:\n", hackOutput)
 
           const scriptEl = document.createElement("script")
           scriptEl.setAttribute("id", "compileOutput")
           scriptEl.setAttribute("type", "module")
-          scriptEl.innerHTML = output
+          scriptEl.innerHTML = hackOutput
 global.scriptEl = scriptEl
 
           const existingEl = document.getElementById("compileOutput")
-          if (existingEl) existing.replaceWidth(scriptEl)
+          if (existingEl) existingEl.replaceWith(scriptEl)
           else document.body.append(scriptEl)
+
         } catch (e) {
           console.error(e);
           output = e.message;
