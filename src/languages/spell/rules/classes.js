@@ -399,7 +399,7 @@ export default new Spell.Parser({
             precedence: 20,
             applyOperator({ lhs, operator }) {
               const bang = (operator.includes("not") ? "!" : "");
-              return `${bang}${lhs}?.${property}`
+              return `${bang}${lhs}.${property}`
             }
           }, results);
 
