@@ -31,13 +31,16 @@ export const Spell = {
 
     // Return a scope with a new parser which depends on this parser.
     // This lets us update rules/etc as desired without affecting the original parser.
+    // DOCME
     getScope(moduleName = this.module || "ad_hoc") {
+      // Make sure `Object`, `Thing` and `List` types are defined for all modules
+      // TODO: this is hacky, better way to do it???
+      if (!Spell.rootScope) {
+        Spell.rootScope = new Module({ name: "spellRoot", types: ["Object", "Thing", "List"] })
+      }
+
       const parser = this.clone({ module });
-      const module = new Module({ name: moduleName, parser });
-      // Add base types
-      // TODO: should be done elsewhere!!!!
-      module.types.add("Object", "Thing", "List")
-      return module
+      return new Module({ name: moduleName, parser, scope: Spell.rootScope });
     }
 
     // If we're tokenizing "block", parse them into blocks.
@@ -50,5 +53,6 @@ export const Spell = {
     setCanonical(name, constructor) {
       Spell.Rule[name] = constructor;
     }
-  }
+  },
+
 }

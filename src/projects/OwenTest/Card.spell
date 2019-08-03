@@ -7,7 +7,7 @@ a card has a direction as either up or down
 
 ## create a card instance with default properties
 set the card to a new card whose rank is queen, suit is spades and direction is up
-expect the rank of the card to be queen
+//expect the rank of the card to be queen
 //expect the suit of the card to be spades
 //expect the color of the card to be black
 //expect the value of the card to be 12
