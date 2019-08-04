@@ -14,17 +14,17 @@ export default new Spell.Parser({
     {
       name: "expect_test",
       alias: ["statement"],
-      syntax: "expect {expression} to be {value:expression}",
+      syntax: "expect {expression} (to be {value:expression})?",
       testRule: "expect",
       constructor: Spell.Rule.Statement,
       updateScope(scope, match) {
         const { results, groups } = match
         const args = [
           results.expression,
-          results.value,
+          'value' in results ? results.value : true,
           // TODO: output expression spell for error messages in output
           JSON.stringify(groups.expression.tokens.join(" ")),
-          JSON.stringify(groups.value.tokens.join(" "))
+          groups.value ? JSON.stringify(groups.value.tokens.join(" ")) : "true"
         ]
         const statement = scope.addStatement(`spell.assertEquals(${args.join(", ")})`);
         results.statements.push(statement)
@@ -36,8 +36,14 @@ export default new Spell.Parser({
             scope.compile("the thing = a new thing with foo = 'bar'")
           },
           tests: [
-            ["expect the foo of the thing to be 'bar'",
-             "spell.assertEquals(thing.foo, 'bar', \"the foo of thing\", \"'bar'\")"],
+            [
+              "expect the foo of the thing to be 'bar'",
+              "spell.assertEquals(thing.foo, 'bar', \"the foo of thing\", \"'bar'\")"
+            ],
+            [
+              "expect the foo of the thing is 'bar'",
+              "spell.assertEquals((thing.foo == 'bar'), true, \"the foo of thing is 'bar'\", true)"
+            ],
           ]
         },
       ]

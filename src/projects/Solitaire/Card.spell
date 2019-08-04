@@ -74,4 +74,4 @@ to flip a card over:
 	otherwise 
 		turn it face up
 flip the card over
-expect the card is face down to be true
+expect the card is face down
