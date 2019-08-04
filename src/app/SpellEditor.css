@@ -6,7 +6,8 @@
 
 .CodeMirror {
   height: 100%;
-  padding-right: 10px;
+  padding-left: 10px;
+  font-family: Lato, Arial, sans-serif;
 }
 
 .CodeMirror.cm-s-solarized {
