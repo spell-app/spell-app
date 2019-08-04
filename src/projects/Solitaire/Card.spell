@@ -12,7 +12,7 @@ cards have a suit as one of clubs, diamonds, hearts or spades
 the color of a card is red if its suit is either diamonds or hearts otherwise it is black
 
 // value as a derivation of rank
-the value of a card is the position of its rank in its ranks
+the value of a card is the position of its rank in card ranks
 
 // card direction:  up or down
 a card has a direction as either up or down
@@ -60,8 +60,18 @@ to turn a card face down: set its direction to down
 turn the card face down
 expect the direction of the card to be down
 
+to turn a card over:
+	if its direction is up
+		set its direction to down
+	otherwise 
+		set its direction to up
+turn the card over
+expect the card is face up to be true
+
 to flip a card over:
 	if it is face up then 
 		turn it face down
 	otherwise 
 		turn it face up
+flip the card over
+expect the card is face down to be true

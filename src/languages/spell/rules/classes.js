@@ -637,8 +637,9 @@ export default new Spell.Parser({
           results.updateScope = function(scope, { results }) {
             let { callArgs = [] } = results;
             if (!Array.isArray(callArgs)) callArgs = [callArgs];
-            const statement = `${callArgs[0]}.${methodName}.(${callArgs.slice(1).join(", ")})`;
+            const statement = `${callArgs[0]}.${methodName}(${callArgs.slice(1).join(", ")})`;
             scope.addStatement(statement);
+            results.statements.push(statement)
           }
         }
         // Otherwise create as a normal method
@@ -649,6 +650,7 @@ export default new Spell.Parser({
             if (!Array.isArray(callArgs)) callArgs = [callArgs];
             const statement = `${methodName}(${callArgs.join(", ")})`
             scope.addStatement(statement);
+            results.statements.push(statement)
           }
         }
 
@@ -692,9 +694,10 @@ export default new Spell.Parser({
         {
           compileAs: "block",
           beforeEach(scope) {
+            scope.types.add("card")
             scope.variables.add("deck");
-            scope.variables.add("my-pile");
-            scope.variables.add("my-card");
+            scope.constants.add("up")
+            scope.constants.add("down")
           },
           tests: [
             [
@@ -720,6 +723,45 @@ export default new Spell.Parser({
                 "  spell.append(pile, this)",
                 "  this.pile = pile",
                 "} })",
+              ].join("\n")
+            ],
+            [
+              [ "to turn a card over:",
+                "\tif its direction is up",
+                "\t\tset its direction to down",
+                "\totherwise",
+                "\t\tset its direction to up"
+              ].join("\n"),
+              [
+                "// SPELL added rule: `turn {callArgs:expression} over`",
+                "spell.define(Card.prototype, 'turn_over', { value() {",
+                "  if (this.direction == 'up') { this.direction = 'down' }",
+                "  else { this.direction = 'up' }",
+                "} })"
+              ].join("\n")
+            ],
+            [
+              [ "a card \"is face up\" if its direction is up",
+                "to turn a card face up: set its direction to up",
+                "to turn a card face down: set its direction to down",
+                "to flip a card over:",
+                "\tif it is face up",
+                "\t\tturn it face down",
+                "\totherwise",
+                "\t\tturn it face up"
+              ].join("\n"),
+              [
+                "// SPELL added rule: `is not? face up`",
+                "spell.define(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })",
+                "// SPELL added rule: `turn {callArgs:expression} face up`",
+                "spell.define(Card.prototype, 'turn_face_up', { value() { this.direction = 'up' } })",
+                "// SPELL added rule: `turn {callArgs:expression} face down`",
+                "spell.define(Card.prototype, 'turn_face_down', { value() { this.direction = 'down' } })",
+                "// SPELL added rule: `flip {callArgs:expression} over`",
+                "spell.define(Card.prototype, 'flip_over', { value() {",
+                "  if (this.is_face_up) { this.turn_face_down() }",
+                "  else { this.turn_face_up() }",
+                "} })"
               ].join("\n")
             ],
           ]
