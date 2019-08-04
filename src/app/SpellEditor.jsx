@@ -22,6 +22,7 @@ import 'codemirror/theme/neat.css';
 import 'codemirror/theme/solarized.css';
 import 'codemirror/mode/javascript/javascript';
 import 'codemirror/mode/markdown/markdown';
+import './spell.codemirror.js'
 import './SpellEditor.css';
 
 export class _SpellEditor extends React.Component {
@@ -116,7 +117,7 @@ export class _SpellEditor extends React.Component {
 
     const theme = "neat"; // Owen favors: "solarized", "neo" and "neat"
     const inputOptions = {
-      mode: "markdown",
+      mode: "spell",
       theme,
       indentUnit: 2,
       tabSize: 2,
@@ -146,10 +147,12 @@ export class _SpellEditor extends React.Component {
                 </NavDropdown>
                 <Navbar.Collapse id="navbar-buttons" className="ml-2">
                   <Nav>
-                    <Nav.Link onClick={this.create}><u>N</u>ew File</Nav.Link>
+                    <Button variant={dirty ? "success" : "dark"} onClick={this.save}>Save</Button>
+                    <Button variant={dirty ? "danger" : "dark"} onClick={this.revert}>Revert</Button>
+                    <Nav.Link onClick={this.create}>New File</Nav.Link>
                     <Nav.Link onClick={this.duplicate}>Duplicate</Nav.Link>
                     <Nav.Link onClick={this.rename}>Rename</Nav.Link>
-                    <Nav.Link onClick={this._delete}><u>D</u>elete</Nav.Link>
+                    <Nav.Link onClick={this._delete}>Delete</Nav.Link>
                   </Nav>
                 </Navbar.Collapse>
               </Nav>
@@ -158,7 +161,6 @@ export class _SpellEditor extends React.Component {
         </Row>
         <Row noGutters className="p-2 h-100">
           <Col xs={6} className="h-100">
-            {dirty ? this.dirtyButtons : null}
             <CodeMirror
               value={input}
               className="h-100 w-100 rounded shadow-sm border"

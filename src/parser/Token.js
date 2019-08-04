@@ -16,9 +16,16 @@ export class Token {
   get start() {
     return this.offset;
   }
+
   get end() {
     return this.offset + this.raw.length;
   }
+
+  // return length consumed, including whitespace if any
+  get charsConsumed() {
+    return this.raw.length + (this.whitespace ? this.whitespace.length : 0)
+  }
+
 
   // Do we match a `literal` value?
   // If `literal` is an array, we'll return true if our `value` is included in the array.
