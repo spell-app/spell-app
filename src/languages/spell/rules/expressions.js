@@ -316,7 +316,8 @@ export default new Spell.Parser({
           compileAs: "expression",
           beforeEach(scope) {
             scope.variables.add("thing");
-            scope.variables.add("other-thing");
+            scope.variables.add("red");
+            scope.constants.add("green");
             scope.variables.add("theList");
           },
           tests: [
@@ -324,10 +325,10 @@ export default new Spell.Parser({
             ["thing is one of theList", "spell.includes(theList, thing)"],
             ["thing is not in theList", "!spell.includes(theList, thing)"],
             ["thing is not one of theList", "!spell.includes(theList, thing)"],
-            ["thing is either thing or other-thing", "spell.includes([thing, other_thing], thing)"],
-            ["thing is not either thing or other-thing", "!spell.includes([thing, other_thing], thing)"],
-            ["thing is not either of thing or other-thing", "!spell.includes([thing, other_thing], thing)"],
-            ["thing is neither thing nor other-thing", "!spell.includes([thing, other_thing], thing)"],
+            ["thing is either red or green", "spell.includes([red, 'green'], thing)"],
+            ["thing is not either red or green", "!spell.includes([red, 'green'], thing)"],
+            ["thing is not either of red or green", "!spell.includes([red, 'green'], thing)"],
+            ["thing is neither red nor green", "!spell.includes([red, 'green'], thing)"],
           ]
         }
       ]

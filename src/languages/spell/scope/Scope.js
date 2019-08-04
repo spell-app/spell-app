@@ -225,7 +225,8 @@ export class Scope {
     results.enumType = { type: "enum", datatype: results.datatype, enumeration };
 
     // Add statements to declare the value
-    const initializer = JSON5.stringify(enumeration);
+    // WAS:    const initializer = JSON5.stringify(enumeration);
+    const initializer = `[${enumeration.join(", ")}]`
     let literals, statement;
     if (this instanceof Type) {
       literals = [ [ this.name, this.instanceName], [name, lowerFirst(name) ] ];

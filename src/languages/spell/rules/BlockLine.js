@@ -1,6 +1,7 @@
 import {
   Rule,
   Spell,
+  Tokenizer,
 } from "../all.js";
 
 // Parse a single line in a block.

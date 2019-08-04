@@ -23,6 +23,8 @@ export default new Spell.Parser({
           results.expression,
           results.value,
           // TODO: output expression spell for error messages in output
+          JSON.stringify(groups.expression.tokens.join(" ")),
+          JSON.stringify(groups.value.tokens.join(" "))
         ]
         const statement = scope.addStatement(`spell.assertEquals(${args.join(", ")})`);
         results.statements.push(statement)
@@ -35,7 +37,7 @@ export default new Spell.Parser({
           },
           tests: [
             ["expect the foo of the thing to be 'bar'",
-             "spell.assertEquals(thing.foo, 'bar')"],
+             "spell.assertEquals(thing.foo, 'bar', \"the foo of thing\", \"'bar'\")"],
           ]
         },
       ]

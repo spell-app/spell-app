@@ -1,4 +1,8 @@
-bar = a new thing
-set the foo of bar to "foo"
-set the baz of the bar to a new object
-set the foo of the baz of bar to "foo"
+a card is a thing
+cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
+////////////////
+a card "is a (rank)" for its ranks
+
+//cards have a direction as either up or down
+//cards have a suit as one of clubs, diamonds, hearts or spades
+//the color of a card is red if its suit is either diamonds or hearts otherwise it is black

@@ -18,16 +18,16 @@ export default new Spell.Parser({
     // Note that this is not a generic "expression" -- it's too generic.
     {
       name: "identifier_list",
-      syntax: "[({constant:word}|{number})(,|or|and|nor)]",
+      syntax: "[({known_variable}|{constant}|{number})(,|or|and|nor)]",
       datatype: "array",    // TODO: array of what?
       tests: [
         {
           tests: [
-            ["up or down", ["up", "down"]],
-            ["red and black", ["red", "black"]],
-            ["back nor forth", ["back", "forth"]],
-            ["clubs, diamonds, hearts, spades", ["clubs", "diamonds", "hearts", "spades" ] ],
-            ["ace, 2, 3, 4, jack, queen or king", ["ace", 2, 3, 4, "jack", "queen", "king" ] ],
+            ["up or down", ["'up'", "'down'"]],
+            ["red and black", ["'red'", "'black'"]],
+            ["back nor forth", ["'back'", "'forth'"]],
+            ["clubs, diamonds, hearts, spades", ["'clubs'", "'diamonds'", "'hearts'", "'spades'" ] ],
+            ["ace, 2, 3, 4, jack, queen or king", ["'ace'", 2, 3, 4, "'jack'", "'queen'", "'king'" ] ],
           ]
         }
       ]
@@ -121,7 +121,7 @@ export default new Spell.Parser({
       precedence: 3,
       compile(scope, match) {
         const { thing, list } = match.results;
-        return `spell.itemOf(${thing}, ${list})`;
+        return `spell.itemOf(${list}, ${thing})`;
       },
       tests: [
         {
@@ -132,9 +132,9 @@ export default new Spell.Parser({
             scope.variables.add("bar");
           },
           tests: [
-            ["position of thing in my-list", "spell.itemOf(thing, my_list)"],
-            ["the position of thing in the foo of the bar", "spell.itemOf(thing, bar.foo)"],
-            ["the position of 'a' in ['a', 'b', 'c']", "spell.itemOf('a', ['a', 'b', 'c'])"]
+            ["position of thing in my-list", "spell.itemOf(my_list, thing)"],
+            ["the position of thing in the foo of the bar", "spell.itemOf(bar.foo, thing)"],
+            ["the position of 'a' in ['a', 'b', 'c']", "spell.itemOf(['a', 'b', 'c'], 'a')"]
           ]
         }
       ]

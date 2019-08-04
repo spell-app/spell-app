@@ -75,7 +75,7 @@ export default new Spell.Parser({
           tests: [
             { title: "known constant", input: "red", output: "'red'" },
             { title: "known constant w/specific value", input: "green", output: "#00FF00" },
-            { title: "unknown constant", input: "nothing", output: undefined }
+            { title: "unknown constant", input: "missing", output: undefined }
           ]
         }
       ]
@@ -88,7 +88,7 @@ export default new Spell.Parser({
     {
       name: "define_constant",
       alias: "statement",
-      syntax: "define constant {constant} (as {value:expression})?",
+      syntax: "constant {constant} (is {value:expression})?",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results, groups }) {
         const name = groups.constant.raw;
@@ -101,8 +101,8 @@ export default new Spell.Parser({
       tests: [
         {
           tests: [
-            [ "define constant red", "const red = 'red'" ],
-            [ "define constant black as 6", "const black = 6" ],
+            [ "constant red", "const red = 'red'" ],
+            [ "constant black is 6", "const black = 6" ],
           ]
         }
       ]

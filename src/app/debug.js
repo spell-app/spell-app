@@ -38,7 +38,7 @@ Object.assign(global, {
 //   Parser,
 //   Rule,
 //   Scope,
-//   Spell,
+     Spell,
 //   SpellParser: Spell.Parser,
 //   Token,
 //   Tokenizer,

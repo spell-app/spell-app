@@ -156,8 +156,8 @@ export default new Spell.Parser({
       tests: [
         {
           tests: [
-            ["as either red or black", { datatype: "enum", enumeration: ["red", "black"] }],
-            ["as one of clubs, diamonds, hearts, spades", { datatype: "enum", enumeration: ["clubs", "diamonds", "hearts", "spades" ] }],
+            ["as either red or black", { datatype: "enum", enumeration: ["'red'", "'black'"] }],
+            ["as one of clubs, diamonds, hearts, spades", { datatype: "enum", enumeration: ["'clubs'", "'diamonds'", "'hearts'", "'spades'" ] }],
           ]
         }
       ]
@@ -241,7 +241,7 @@ export default new Spell.Parser({
           tests: [
             [ "cards have a direction as either up or down",
               [
-                "Card.Directions = ['up','down']",
+                "Card.Directions = ['up', 'down']",
                 "spell.define(Card.prototype, 'Directions', { value: Card.Directions })",
                 "// SPELL added rule: `(Card|card) (Directions|directions)`",
                 `spell.define(Card.prototype, 'direction', { get() { return this['#direction'] } })`,
@@ -323,10 +323,10 @@ export default new Spell.Parser({
           },
           tests: [      // is one of diamonds or hearts => is_one_of_list
             ["the color of a card is red if its suit is either diamonds or hearts",
-             "spell.define(Card.prototype, 'color', { get() { if (spell.includes([diamonds, hearts], this.suit)) return 'red' } })",
+             "spell.define(Card.prototype, 'color', { get() { if (spell.includes(['diamonds', 'hearts'], this.suit)) return 'red' } })",
             ],
             ["a cards color is black if its suit is either clubs or spades otherwise it is red",
-             "spell.define(Card.prototype, 'color', { get() { return !!spell.includes([clubs, spades], this.suit) ? 'black' : 'red' } })"
+             "spell.define(Card.prototype, 'color', { get() { return !!spell.includes(['clubs', 'spades'], this.suit) ? 'black' : 'red' } })"
             ],
           ]
         }
@@ -355,10 +355,11 @@ export default new Spell.Parser({
           compileAs: "statement",
           beforeEach(scope) {
             scope.types.add("card");
+            scope.compile("cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king", "statement")
           },
           tests: [
-            ["the value of a card is the position of its rank in its ranks",
-             "spell.define(Card.prototype, 'value', { get() { return spell.itemOf(this.rank, this.ranks) } })"
+            ["the value of a card is the position of its rank in card ranks",
+             "spell.define(Card.prototype, 'value', { get() { return spell.itemOf(Card.Ranks, this.rank) } })"
             ],
             ["a cards score is its value",
              "spell.define(Card.prototype, 'score', { get() { return this.value } })"
@@ -432,7 +433,7 @@ export default new Spell.Parser({
             ],
             ['a card "is a face card" if its rank is one of jack, queen or king',
               "// SPELL added rule: `is not? a face card`\n"
-             +"spell.define(Card.prototype, 'is_a_face_card', { get() { return spell.includes([jack, queen, king], this.rank) } })"
+             +"spell.define(Card.prototype, 'is_a_face_card', { get() { return spell.includes(['jack', 'queen', 'king'], this.rank) } })"
             ],
           ]
         }
@@ -492,7 +493,9 @@ export default new Spell.Parser({
               // make sure inflection of variables matches `isSingular`
               const inflector = isSingular ? singularize : pluralize;
               const inflectedEnumeration = enumeration.map(value => {
-                return (typeof value === "string" ? inflector(value) : value);
+                if (typeof value !== "string") return value
+                if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1,-1)
+                return inflector(value);
               });
               ruleData.push({
                 instanceVar,
@@ -511,7 +514,7 @@ export default new Spell.Parser({
           // transform `is` to `(operator:is not?)`
           syntax.splice(0, 1, "(operator:is not?)");
           syntax = syntax.join(" ");
-          // console.warn(property, syntax, ruleData );
+          //console.warn(property, syntax, ruleData );
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
           const rule = scope.addExpressionSuffixRule({
