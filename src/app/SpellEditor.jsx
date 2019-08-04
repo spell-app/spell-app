@@ -1,5 +1,4 @@
 import React from "react";
-import keydown from "react-keydown";
 
 import Card from "react-bootstrap/Card";
 import Container from "react-bootstrap/Container";
@@ -14,7 +13,16 @@ import NavLink from "react-bootstrap/NavLink";
 import Octicon, {ChevronRight} from '@githubprimer/octicons-react'
 
 import { projects as _projects, withProjects, INPUT } from "./redux/projects";
-import TabbableTextArea from "./TabbableTextArea.jsx";
+
+// Codemirror
+import { Controlled as CodeMirror } from 'react-codemirror2'
+import 'codemirror/lib/codemirror.css';
+import 'codemirror/theme/neo.css';
+import 'codemirror/theme/neat.css';
+import 'codemirror/theme/solarized.css';
+import 'codemirror/mode/javascript/javascript';
+import 'codemirror/mode/markdown/markdown';
+import './SpellEditor.css';
 
 export class _SpellEditor extends React.Component {
   constructor(props) {
@@ -22,22 +30,13 @@ export class _SpellEditor extends React.Component {
     _projects.call.startup();
   }
 
-  // @keydown("ctrl+c")
   compile = () => _projects.call.compileInput();
-
-  // @keydown("ctrl+r")
   revert = () => _projects.call.revertInput();
-
   reload = () => _projects.call.reloadSelected();
-
-  // @keydown("ctrl+s")
   save = () => _projects.call.saveInput();
-
   selectProject = (projectId) => _projects.call.selectModule({ projectId });
-
   selectModule = (moduleId) => _projects.call.selectModule({ projectId: this.props.projectId, moduleId });
 
-  // @keydown("ctrl+n")
   create = () => {
     const moduleId = prompt("Name for the new module?", "Untitled");
     if (!moduleId) return;
@@ -52,7 +51,6 @@ export class _SpellEditor extends React.Component {
     _projects.call.duplicateModule({ moduleId, newModuleId, contents: INPUT });
   }
 
-  // @keydown("ctrl+d")
   _delete = () => {
     const { moduleId } = this.props.projects;
     if (!confirm(`Really delete '${moduleId}'?`)) return;
@@ -66,8 +64,9 @@ export class _SpellEditor extends React.Component {
     _projects.call.renameModule({ moduleId, newModuleId, contents: INPUT });
   }
 
-  updateInput = (event) => {
-    _projects.actions.updateInput(event.target.value);
+  onInputChange = (codeMirror, change, value) => {
+    //console.info(codeMirror, "\n", change)//, "\n", value)
+    _projects.actions.updateInput(value);
   }
 
   // Buttons to show when the input field is dirty.
@@ -115,6 +114,22 @@ export class _SpellEditor extends React.Component {
       <NavDropdown.Item key={module.id} eventKey={module.id} onSelect={this.selectModule}>{module.id}</NavDropdown.Item>
     );
 
+    const theme = "neat"; // Owen favors: "solarized", "neo" and "neat"
+    const inputOptions = {
+      mode: "markdown",
+      theme,
+      indentUnit: 2,
+      tabSize: 2,
+    }
+
+    const outputOptions = {
+      mode: "javascript",
+      theme,
+      readOnly: true,
+      indentUnit: 2,
+      tabSize: 2,
+    }
+
     return (
       <Container fluid className="d-flex flex-column h-100 px-0">
         <Row>
@@ -144,10 +159,20 @@ export class _SpellEditor extends React.Component {
         <Row noGutters className="p-2 h-100">
           <Col xs={6} className="h-100">
             {dirty ? this.dirtyButtons : null}
-            <TabbableTextArea value={input} onChange={this.updateInput}/>
+            <CodeMirror
+              value={input}
+              className="h-100 w-100 rounded shadow-sm border"
+              options={inputOptions}
+              onBeforeChange={this.onInputChange}
+            />
           </Col>
-          <Col xs={6} className="pl-2">
-            <TabbableTextArea value={output} disabled onChange={Function.prototype}/>
+          <Col xs={6} className="pl-2 CodeMirrorContainer">
+            <CodeMirror
+              value={output || ""}
+              className="h-100 w-100 rounded shadow-sm border"
+              options={outputOptions}
+              onChange={Function.prototype}
+            />
           </Col>
           {output ? null : this.compileButton}
         </Row>

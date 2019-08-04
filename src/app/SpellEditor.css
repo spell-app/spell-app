@@ -1,0 +1,14 @@
+.CodeMirrorContainer {
+  position: relative;
+  overflow: hidden;
+  height: 100%;
+}
+
+.CodeMirror {
+  height: 100%;
+  padding-right: 10px;
+}
+
+.CodeMirror.cm-s-solarized {
+  box-shadow: none;
+}
