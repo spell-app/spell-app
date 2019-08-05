@@ -144,11 +144,12 @@ const factory = new ReduxFactory({
     {
       name: "compileInput",
       handler(projects) {
-        const { input, moduleId } = projects;
+        const { input = "", moduleId } = projects;
         let output;
+        console.group(`Parsing ${input.length} chars (${input.split("\n").length} lines)`)
         try {
           const scope = spellParser.getScope(moduleId);
-          console.info("scope: ", scope);
+          console.info("scope: ", scope)
 
           // assign scope and parsing shorthand functions globally
           // for ad-hoc testing of what was just parsed.
@@ -157,34 +158,37 @@ const factory = new ReduxFactory({
           global.statement = scope.statement.bind(scope);
           global.exp = scope.exp.bind(scope);
 
-          output = spellParser.compile(input, undefined, scope);
+          // Break parse/compile into 2 steps so we can time it
+          const start = Date.now()
+          const match = spellParser.parse(input, undefined, scope);
+          const afterParse = Date.now()
+          output = match.compile()
+          const afterCompile = Date.now()
+
+          console.info(`Parsed ${input.length} chars in ${afterParse-start} msec, compiled in ${afterCompile - afterParse} msec`)
         } catch (e) {
           console.error(e);
           output = e.message;
         }
 
         // add all types to `global` for local hacking
-        let hackOutput = output
-        scope.types().forEach(type => {
-          hackOutput += `\nglobal.${type.name} = ${type.name}`
-        })
-
         try {
-          global.output = hackOutput
-console.info("output:\n", hackOutput)
-
           const scriptEl = document.createElement("script")
           scriptEl.setAttribute("id", "compileOutput")
           scriptEl.setAttribute("type", "module")
-          scriptEl.innerHTML = hackOutput
-global.scriptEl = scriptEl
+          scriptEl.innerHTML = output
+          //global.scriptEl = scriptEl
 
           const existingEl = document.getElementById("compileOutput")
+          console.group("attempting to execute contents:")
           if (existingEl) existingEl.replaceWith(scriptEl)
           else document.body.append(scriptEl)
         } catch (e) {
           console.error("error evaling output:", e)
         }
+
+        setTimeout(() => console.groupEnd(), 100)
+        console.groupEnd()
 
         return {
           ...projects,

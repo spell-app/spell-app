@@ -588,8 +588,7 @@ export default new Spell.Parser({
 
 
 
-    // TODO: arbitrary inline arguments with `(foo)`
-    // TODO: known types only?  forget capital-letter-type business?
+    // TODO: arbitrary inline arguments with `(foo)` or `(foo: a number)
     {
       name: "to_do_something",
       alias: "statement",
@@ -601,7 +600,6 @@ export default new Spell.Parser({
         const { keywords } = results;
         // parse the keywords to get name of the method
         // - `a foo` or `Foo` indicates that we want a variable of type 'Foo' in this spot
-        // - TODO: `(foo)` indicates that we want a variable named `foo` here
         let method = [], instanceMethod = [], types = [], rules = [];
         for (var i = 0, word; word = keywords[i]; i++) {
           // assume it's a class if it's in TitleCase...
