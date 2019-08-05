@@ -24,6 +24,23 @@ import 'codemirror/mode/javascript/javascript';
 import 'codemirror/mode/markdown/markdown';
 import './spell.codemirror.js'
 import './SpellEditor.css';
+// load and configure JSHINT global variable (ugh, this is nasty)
+import { JSHINT } from 'jshint'
+window.JSHINT = function(source) {
+  const hintOptions = {
+    esversion: 8,
+    asi: true, // ignore semicolons
+    globals: {
+      spell: true
+    }
+  }
+  return JSHINT(source, hintOptions)
+}
+Object.keys(JSHINT).forEach(key => window.JSHINT[key] = JSHINT[key])
+import 'codemirror/addon/lint/lint.js'
+import 'codemirror/addon/lint/lint.css'
+import 'codemirror/addon/lint/javascript-lint.js'
+
 
 export class _SpellEditor extends React.Component {
   constructor(props) {
@@ -116,19 +133,23 @@ export class _SpellEditor extends React.Component {
     );
 
     const theme = "neat"; // Owen favors: "solarized", "neo" and "neat"
+    const codeMirrorOptions = {
+      theme: "neat", // Owen favors: "solarized", "neo" and "neat"
+      indentUnit: 3,
+      tabSize: 3,
+    }
     const inputOptions = {
+      ...codeMirrorOptions,
       mode: "spell",
-      theme,
-      indentUnit: 2,
-      tabSize: 2,
     }
 
     const outputOptions = {
+      ...codeMirrorOptions,
       mode: "javascript",
-      theme,
       readOnly: true,
-      indentUnit: 2,
-      tabSize: 2,
+      // eslint
+      gutters: ["CodeMirror-lint-markers"],
+      lint: true
     }
 
     return (
