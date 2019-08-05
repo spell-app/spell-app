@@ -27,6 +27,7 @@ import './SpellEditor.css';
 // load and configure JSHINT global variable (ugh, this is nasty)
 import { JSHINT } from 'jshint'
 window.JSHINT = function(source) {
+  // see: https://jshint.com/docs/options
   const hintOptions = {
     esversion: 8,
     asi: true, // ignore semicolons
