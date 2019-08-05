@@ -14,7 +14,7 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
   }
 
   function advanceStreamPastToken(stream, token) {
-    const length = token.charsConsumed
+    const length = token.raw.length
     for (let i = 0; i < length; i++) stream.next()
   }
 
@@ -46,14 +46,18 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
 //     },
 
     token(stream, state) {
-      const { string, pos } = stream
       // update state tokens if string changes
-      if (string !== state.string) {
-        state.string = string
+      if (stream.string !== state.string) {
+        state.string = stream.string
         state.tokens = spellParser.tokenize(stream.string)
       // console.warn(stream, state.tokens)
       }
-      const token = getToken(state.tokens, pos)
+      // eat whitespace outside of tokens
+      const startPosition = stream.pos
+      stream.eatSpace()
+      if (stream.pos !== startPosition) return null
+
+      const token = getToken(state.tokens, stream.pos)
       if (token) {
         // console.info("matched ", token, length)
         advanceStreamPastToken(stream, token)

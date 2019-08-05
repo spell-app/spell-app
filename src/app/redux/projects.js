@@ -165,7 +165,7 @@ const factory = new ReduxFactory({
           output = match.compile()
           const afterCompile = Date.now()
 
-          console.info(`Parsed ${input.length} chars in ${afterParse-start} msec, compiled in ${afterCompile - afterParse} msec`)
+          console.info(`parsed in ${afterParse-start} msec, compiled in ${afterCompile - afterParse} msec`)
         } catch (e) {
           console.error(e);
           output = e.message;
