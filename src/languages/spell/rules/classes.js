@@ -662,18 +662,17 @@ export default new Spell.Parser({
 
         // If we're creating an instance method
         if (results.type) {
-          const setupVarForThis = `const ${results.instanceType} = this`
           // Add implicit variable mapping instanceType to `this`
           // This lets us use the type argument within the function
           // without worrying about `this` scope
+          const setupVarForThis = `const ${results.instanceType} = this`
           results.$method.addStatement(setupVarForThis)
-
-          // Add variables `${type}` and `it` which maps to `this`
-          //  e.g. `the card` === `this` and `it` === `this
-          // Note that `it` may be overwritten in the method with `get XXX`
-          // TODO: ensure that there's not an argument with `type`???
           results.$method.variables.add({ name: results.instanceType, output: results.instanceType });
+
+          // Add implicit variables `it` and `its` which maps to the instance type.
+          // Note that `it` may be overwritten in the method with `get XXX`
           results.$method.variables.add({ name: "it", output: results.instanceType });
+          results.$method.variables.add({ name: "its", output: results.instanceType });
         }
         return results.$method;
       },

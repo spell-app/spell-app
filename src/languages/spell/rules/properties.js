@@ -77,9 +77,9 @@ export default new Spell.Parser({
     },
 
 
-    // "its" as a synonym for "this"
-    // TODO: If not in an instance scope, maybe "its" is the first argument?
-    //       The previous thing in the line?  "set the position of the card to its rank"
+    // "its" as:
+    //  - a local variable, if one is defined (e.g. in an instance method), or
+    //  - a synonym for "this"
     {
       name: "its_property",
       alias: ["expression", "property_accessor", "single_expression"],
@@ -87,9 +87,12 @@ export default new Spell.Parser({
       testRule: "its",
       compile(scope, match) {
         const { property } = match.results;
-        return `this.${property}`
+        const itsVar = scope.variables("its")
+        const its = (itsVar ? itsVar.output : 'this')
+        return `${its}.${property}`
       },
       tests: [
+//TESTME: `its` inside an instance method
         {
           compileAs: "expression",
           tests: [
