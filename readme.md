@@ -8,7 +8,7 @@ To get started (including auto-compiling code changes)
 ----------------
 - Clone this repo
 - `cd <repo location>`
-- `npm install`
+- `yarn install`
 - `yarn start`
 - Open `http://localhost:5000` in your web browser.
 
@@ -16,15 +16,11 @@ To get started (including auto-compiling code changes)
 To test
 ----------------
 - `cd <repo location>`
-- `npm test`
-
-to run one test:
-
-- `jest src/RuleSyntax.test.js`
+- `yarn test`
 
 for test coverage:
 
-- `jest --coverage`
+- `yarn coverage`
 
 
 
@@ -33,18 +29,19 @@ Parser operation
 
 To parse English text
 
-- `parser.parse("a = 1")`
+- `spellParser.parse("a = 1")`
 	- returns the syntax tree, easiest for now to inspect it in the console
+	- parses as a "statement"
 
 or
 
-- `parser.parse("expression", "a = 1")`
+- `spellParser.parse("expression", "a = 1")`
 	- parse "text" as a specific rule type
 
 
 To "compile" text into javascript:
 
-- `parser.compile("a = 1")`
+- `spellParser.compile("a = 1")`
 
 
 Rules
@@ -98,4 +95,4 @@ License
 -------
 [MIT License](https://opensource.org/licenses/MIT)
 
-Copyright &copy; 2017-2018 Matthew Owen Williams
+Copyright &copy; 2017-2019 Matthew Owen Williams
