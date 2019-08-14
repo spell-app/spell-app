@@ -173,26 +173,38 @@ const factory = new ReduxFactory({
           output = e.message;
         }
 
-        // add all types to `global` for local hacking
+        // Attempt to format the javascript, then excute it if formatting goes ok
+        let pretty = output
         try {
-          const scriptEl = document.createElement("script")
-          scriptEl.setAttribute("id", "compileOutput")
-          scriptEl.setAttribute("type", "module")
-          scriptEl.innerHTML = output
-          //global.scriptEl = scriptEl
+          // Use prettier to format the output,
+          // This will throw if the code is bad.
+          pretty = prettier.format(output, { parser: "babel", plugins: [babylon] } )
 
-          const existingEl = document.getElementById("compileOutput")
-          console.group("attempting to execute contents:")
-          if (existingEl) existingEl.replaceWith(scriptEl)
-          else document.body.append(scriptEl)
+          // add all types to `global` for local hacking
+          try {
+            const scriptEl = document.createElement("script")
+            scriptEl.setAttribute("id", "compileOutput")
+            scriptEl.setAttribute("type", "module")
+            scriptEl.innerHTML = output
+
+            const existingEl = document.getElementById("compileOutput")
+            console.group("attempting to execute contents:")
+            setTimeout(() => console.groupEnd(), 100)   // groupEnd after compile finishes asynchronously
+
+            if (existingEl) {
+              existingEl.replaceWith(scriptEl)
+            }
+            else {
+              document.body.append(scriptEl)
+            }
+          } catch (e) {
+            console.error("error evaling output:", e)
+          }
         } catch (e) {
-          console.error("error evaling output:", e)
+          console.warn("Prettier error:", e)
         }
 
-        setTimeout(() => console.groupEnd(), 100)
         console.groupEnd()
-
-        const pretty = prettier.format(output, { parser: "babel", plugins: [babylon] } )
 
         return {
           ...projects,
