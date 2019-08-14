@@ -155,7 +155,7 @@ Object.assign(spell, {
     const iterator = spell.getIteratorFor(collection)
     let result = iterator.next()
     while (!result.done) {
-      method(...result.value)
+      const output = method(...result.value)
       result = iterator.next()
     }
   },

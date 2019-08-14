@@ -7,6 +7,8 @@
 import global from "global";
 import JSON5 from "json5";
 import { connect } from "react-redux";
+import prettier from "prettier/standalone"
+import babylon from "prettier/parser-babylon"
 
 import {
   spellParser,
@@ -190,9 +192,11 @@ const factory = new ReduxFactory({
         setTimeout(() => console.groupEnd(), 100)
         console.groupEnd()
 
+        const pretty = prettier.format(output, { parser: "babel", plugins: [babylon] } )
+
         return {
           ...projects,
-          output
+          output: pretty
         }
       }
     },

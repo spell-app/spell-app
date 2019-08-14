@@ -27,7 +27,7 @@ export default new Spell.Parser({
         const { type, superType, isList } = results;
         const statement = scope.types.add({
           name: type,
-          superType: (isList ? "Array" : superType)
+          superType: (isList ? "List" : superType)
         });
         results.statements.push(statement);
         // If we're a list of something, set `list.instanceType` property
@@ -662,12 +662,18 @@ export default new Spell.Parser({
 
         // If we're creating an instance method
         if (results.type) {
+          const setupVarForThis = `const ${results.instanceType} = this`
+          // Add implicit variable mapping instanceType to `this`
+          // This lets us use the type argument within the function
+          // without worrying about `this` scope
+          results.$method.addStatement(setupVarForThis)
+
           // Add variables `${type}` and `it` which maps to `this`
           //  e.g. `the card` === `this` and `it` === `this
           // Note that `it` may be overwritten in the method with `get XXX`
           // TODO: ensure that there's not an argument with `type`???
-          results.$method.variables.add({ name: results.instanceType, output: "this" });
-          results.$method.variables.add({ name: "it", output: "this" });
+          results.$method.variables.add({ name: results.instanceType, output: results.instanceType });
+          results.$method.variables.add({ name: "it", output: results.instanceType });
         }
         return results.$method;
       },

@@ -58,10 +58,10 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
         state.string = stream.string
         state.tokens = spellParser.tokenize(stream.string)
         state.results = spellParser.parse(stream.string, "statement")
-       console.warn(stream, "\n", state.results)
+//       console.warn(stream, "\n", state.results)
       }
       else {
-        console.info(stream)
+//        console.info(stream)
       }
       // eat whitespace outside of tokens
       const startPosition = stream.pos

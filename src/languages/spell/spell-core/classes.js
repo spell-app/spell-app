@@ -11,7 +11,11 @@ import { spell, assert } from "."
 export class Thing {
   constructor(props) {
     Object.assign(this, props)
+    this.create()
   }
+
+  // Called automatially at end of `thing` constructor.
+  create() {}
 }
 spell.addExport("Thing", Thing)
 
@@ -21,7 +25,12 @@ spell.addExport("Thing", Thing)
 //--------
 export class List extends Array {
   constructor(...values) {
-    if (values.length) this.splice(0, 0, ...values)
+    super(...values)
+    if (values.length) this.push(...values)
+    this.create()
   }
+
+  // Called automatially at end of `List` constructor.
+  create() {}
 }
 spell.addExport("List", List)

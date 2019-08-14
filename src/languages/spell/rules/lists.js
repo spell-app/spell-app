@@ -428,7 +428,7 @@ export default new Spell.Parser({
     {
       name: "list_filter",
       alias: ["expression", "single_expression"],
-      syntax: "{arg:plural_variable} (in|of) {list:expression} where",
+      syntax: "the? {arg:plural_variable} (in|of) {list:expression} where",
       testRule: "…where",
       precedence: 2,
       constructor: Spell.Rule.Statement,
@@ -456,7 +456,7 @@ export default new Spell.Parser({
               "spell.filter('a word list', (word) => spell.startsWith(word, 'a'))"
             ],
             [
-              "items in my-list where the id of the item > 1",
+              "the items in my-list where the id of the item > 1",
               "spell.filter(my_list, (item) => (item.id > 1))"
             ]
           ]

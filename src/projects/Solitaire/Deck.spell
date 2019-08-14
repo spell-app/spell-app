@@ -2,14 +2,24 @@
 -- US standard card deck (without jokers currently)
 
 // TODO:  using card.spell
-a card is a drawable-thing
+a card is a thing
 cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
 cards have a suit as one of clubs, diamonds, hearts or spades
-
+cards have a direction as either up or down
+to turn a card face up
+	set the direction of the card to up
+to turn a card face down
+	set the direction of the card to down
 
 a deck is a list of cards
-to create a deck
+to set up a deck
 	for each rank in card ranks
 		for each suit in card suits
-			add a new card with rank = the rank, suit = the suit to the deck
+      	add a new card with rank and suit to the deck
 
+the deck is a new deck
+set up the deck
+expect the number of cards in the deck to be 52
+
+set the queens to the cards in the deck where the rank of the card is queen 
+expect the number of cards in the queens to be 4
