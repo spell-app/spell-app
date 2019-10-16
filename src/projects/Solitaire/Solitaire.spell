@@ -28,13 +28,12 @@ a card-game has a deck
 a card-game has a score as a number
 
 to set up a card-game
-	the deck is a new deck
-   set up the deck
-   set the deck of the card game to the deck
+	set its deck to a new deck
+   set up its deck
    
 to start a card-game
-	shuffle the deck
    set its score to 0
+	shuffle its deck
    
 
 // define type Klondike
