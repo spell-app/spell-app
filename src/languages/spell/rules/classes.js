@@ -722,9 +722,10 @@ export default new Spell.Parser({
               [
                 "// SPELL added rule: `move {callArgs:expression} to {callArgs:expression}`",
                 "spell.define(Card.prototype, 'move_to_$pile', { value(pile) {",
-                "  spell.remove(this.pile, this)",
-                "  spell.append(pile, this)",
-                "  this.pile = pile",
+                "  const card = this",
+                "  spell.remove(card.pile, card)",
+                "  spell.append(pile, card)",
+                "  card.pile = pile",
                 "} })",
               ].join("\n")
             ],
@@ -738,8 +739,9 @@ export default new Spell.Parser({
               [
                 "// SPELL added rule: `turn {callArgs:expression} over`",
                 "spell.define(Card.prototype, 'turn_over', { value() {",
-                "  if (this.direction == 'up') { this.direction = 'down' }",
-                "  else { this.direction = 'up' }",
+                "  const card = this",
+                "  if (card.direction == 'up') { card.direction = 'down' }",
+                "  else { card.direction = 'up' }",
                 "} })"
               ].join("\n")
             ],
@@ -757,13 +759,14 @@ export default new Spell.Parser({
                 "// SPELL added rule: `is not? face up`",
                 "spell.define(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })",
                 "// SPELL added rule: `turn {callArgs:expression} face up`",
-                "spell.define(Card.prototype, 'turn_face_up', { value() { this.direction = 'up' } })",
+                "spell.define(Card.prototype, 'turn_face_up', { value() {\n  const card = this\n  card.direction = 'up'\n} })",
                 "// SPELL added rule: `turn {callArgs:expression} face down`",
-                "spell.define(Card.prototype, 'turn_face_down', { value() { this.direction = 'down' } })",
+                "spell.define(Card.prototype, 'turn_face_down', { value() {\n  const card = this\n  card.direction = 'down'\n} })",
                 "// SPELL added rule: `flip {callArgs:expression} over`",
                 "spell.define(Card.prototype, 'flip_over', { value() {",
-                "  if (this.is_face_up) { this.turn_face_down() }",
-                "  else { this.turn_face_up() }",
+                "  const card = this",
+                "  if (card.is_face_up) { card.turn_face_down() }",
+                "  else { card.turn_face_up() }",
                 "} })"
               ].join("\n")
             ],
