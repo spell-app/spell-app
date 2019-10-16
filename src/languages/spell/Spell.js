@@ -49,10 +49,6 @@ export const Spell = {
       if (ruleName === "block") return this.tokenizer.breakIntoBlocks(tokens);
       return tokens;
     }
-
-    setCanonical(name, constructor) {
-      Spell.Rule[name] = constructor;
-    }
   },
 
 }

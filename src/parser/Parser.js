@@ -259,7 +259,7 @@ export class Parser {
       if (ruleProps instanceof Rule || ruleProps.prototype instanceof Rule)
         return this.addRule(ruleProps);
 
-      let { skip, constructor, canonical, ...props } = ruleProps;
+      let { skip, constructor, ...props } = ruleProps;
       if (skip) return;
 
       // If we received multiple syntax strings,
@@ -337,9 +337,6 @@ export class Parser {
       if (constructor && CLONE_CLASSES && constructor.name !== name)
         constructor = cloneClass(constructor, name);
 
-      if (canonical && constructor)
-        this.setCanonical(props.canonical, constructor);
-
       if (constructor)
         rule = new constructor(props);
       else if (rule)
@@ -358,13 +355,6 @@ export class Parser {
     catch (error) {
       if (!isNode) console.warn("Error in defineRule():", error, "\nprops:", ruleProps);
     }
-  }
-
-  // Set `Canonical` rule constructor
-  // Used when you want to test an `match.rule instanceof someRule`
-  setCanonical(name, constructor) {
-    if (!this.constructor.Rule) this.constructor.Rule = {};
-    this.constructor.Rule[name] = constructor;
   }
 
   //
