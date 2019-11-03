@@ -6,6 +6,7 @@
     "watch": "parcel watch src/index.html --out-dir build",
     "build": "parcel build src/index.html --out-dir dist --experimental-scope-hoisting",
     "pserve": "parcel serve src/index.html --out-dir build --no-hmr",
+    "prettier": "prettier --write \"src/**/*.js*\"",
     "test": "jest --watch",
     "coverage": "jest --coverage"
   },
