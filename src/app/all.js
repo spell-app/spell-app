@@ -5,8 +5,7 @@ export * from "./redux/all"
 
 // Parser bits
 export * from "../parser/all"
-export spellParser, { Spell, Scope } from "../languages/spell/all"
-export rulex from "../languages/rulex/all"
+export { spellParser, Spell, Scope } from "../languages/spell/all"
 
 // Spell "core" library
-export spell from "../languages/spell/spell-core"
+export { default as spell } from "../languages/spell/spell-core"
