@@ -8,6 +8,6 @@ export { default as Match } from "./Match"
 export * from "./Tokenizer"
 export { Rule } from "./rule/all"
 export { default as Parser } from "./Parser"
-export * from "./unitTestModuleRules"
+export { default as unitTestModuleRules } from "./unitTestModuleRules"
 
 export { rulex } from "../languages/rulex/all"

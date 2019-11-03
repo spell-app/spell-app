@@ -32,7 +32,7 @@ export const folderName = path.dirname
 export const filename = path.basename
 
 // Does file at `path` exist?
-export const pathExists = fse.pathExists
+export const { pathExists } = fse
 
 // Return extension name for a path
 export const extension = path.extname
@@ -42,13 +42,13 @@ export const extension = path.extname
 // ////////////////////////////
 
 // Given a `filename`, guess the mimetype
-export function getMimeType(filename) {
-  return mime.lookup(filename)
+export function getMimeType(name) {
+  return mime.lookup(name)
 }
 
 // Given a `filename`, return the Content-Type header string for it.
-export function getContentType(filename) {
-  return mime.contentType(filename)
+export function getContentType(name) {
+  return mime.contentType(name)
 }
 
 // ////////////////////////////
@@ -57,9 +57,9 @@ export function getContentType(filename) {
 
 // Load file at `path`, returns a promise which fields file results.
 // If `optional` is `true`, we'll return `null` for any file that can't be found.
-export async function loadFile(path, options = "utf8", optional = false) {
+export async function loadFile(filePath, options = "utf8", optional = false) {
   try {
-    return await fse.readFile(path, options)
+    return await fse.readFile(filePath, options)
   } catch (error) {
     if (optional && error.code === "ENOENT") return null
     throw error
@@ -70,16 +70,16 @@ export async function loadFile(path, options = "utf8", optional = false) {
 // If `optional` is truthy, we will return `null` for any file which can't be found.
 // Otherwise the promise will reject if if ANY of the files can't be found or on other error.
 export function loadFiles(paths, options, optional = false) {
-  const promises = paths.map(path => loadFile(path, options, optional))
+  const promises = paths.map(filePath => loadFile(filePath, options, optional))
   return Promise.all(promises)
 }
 
-// Promise which loads a JSON file at `path` and parses contents into JSON object.
+// Promise which loads a JSON file at `filePath` and parses contents into JSON object.
 // If file is empty, we'll return `null`.
 // If `optional` is truthy, we will return `null` if the file can't be found.
 // Otherwise we'll throw the error.
-export async function loadJSONFile(path, optional = false) {
-  const contents = await loadFile(path, "utf-8", optional)
+export async function loadJSONFile(filePath, optional = false) {
+  const contents = await loadFile(filePath, "utf-8", optional)
   return JSON5.parse(contents)
 }
 
@@ -88,16 +88,16 @@ export async function loadJSONFile(path, optional = false) {
 // ////////////////////////////
 
 // Use this function to write files, making sure directories are created as necessary.
-export async function saveFile(path, fileData, format) {
-  const dir = folderName(path)
+export async function saveFile(filePath, fileData, format) {
+  const dir = folderName(filePath)
   await fse.mkdirp(dir)
-  return fse.writeFile(path, fileData, format)
+  return fse.writeFile(filePath, fileData, format)
 }
 
-// Save `json` data to file at `path`.
+// Save `json` data to file at `filePath`.
 // Returns a promise which will be fullfilled or rejected.
 // Converts `json` to string if necessary.
-export function saveJSONFile(path, json) {
+export function saveJSONFile(filePath, json) {
   if (typeof json !== "string") {
     try {
       json = JSON5.stringify(json, null, "  ")
@@ -105,10 +105,10 @@ export function saveJSONFile(path, json) {
       return Promise.reject(e)
     }
   }
-  return saveFile(path, json, TEXT)
+  return saveFile(filePath, json, TEXT)
 }
 
-// Save base64-encoded file `base64Data` to disk at `path`.
+// Save base64-encoded file `base64Data` to disk at `filePath`.
 // ASSUMES contents has a file description header like:
 //  `data:<mimeType>;base64,`
 // If `format` is TEXT we'll save as text (assuming UTF8)
@@ -118,8 +118,8 @@ export function saveJSONFile(path, json) {
 //  - if that starts with `text`, we'll save as text
 //  - otherwise we'll save as binary.
 //
-export function saveBase64File(path, base64Data, format) {
-  //  console.warn("saveBase64File: path: ", path, " file start: ", base64Data.substr(0, 200));
+export function saveBase64File(filePath, base64Data, format) {
+  //  console.warn("saveBase64File: filePath: ", filePath, " file start: ", base64Data.substr(0, 200));
 
   // Parse base64 header in file data.
   const [match, mimeType] = base64Data.match(/^data:(.*?);base64,/) || []
@@ -137,13 +137,13 @@ export function saveBase64File(path, base64Data, format) {
     else format = BINARY
   }
 
-  //  console.warn(`Saving base64 file to ${path} as '${format}'`);
+  //  console.warn(`Saving base64 file to ${filePath} as '${format}'`);
 
   // Convert from base64 to normal format
-  const fileData = new Buffer(contents, "base64").toString(format)
+  const fileData = Buffer.from(contents, "base64").toString(format)
 
   // Save it!
-  return saveFile(path, fileData, format)
+  return saveFile(filePath, fileData, format)
 }
 
 // ////////////////////////////
@@ -154,8 +154,8 @@ export function saveBase64File(path, base64Data, format) {
 // Returns a promise
 // If `optional` is `true`, we'll swallow the error if the file can't be found.
 // NOTE: consider moving to a `trash` folder so we can undelete.
-export function removeFile(path, optional = false) {
-  const promise = fse.unlink(path)
+export function removeFile(filePath, optional = false) {
+  const promise = fse.unlink(filePath)
 
   // Swallow error if optional
   if (optional) return promise.catch(e => null)
@@ -167,19 +167,19 @@ export function removeFile(path, optional = false) {
 //  Locking / Unlocking files
 // ////////////////////////////
 
-// Given a `path`, return the path for the lock file (dir).
-export function getLockPath(path) {
-  return `${path}.lock`
+// Given a `filePath`, return the path for the lock file (dir).
+export function getLockPath(filePath) {
+  return `${filePath}.lock`
 }
 
-// Return a promise which yields `true/false` for whether file at `path` is locked.
+// Return a promise which yields `true/false` for whether file at `filePath` is locked.
 // Returns `false` if error thrown.
-export function checkLock(path) {
-  return lockfile.check(path).catch(error => false)
+export function checkLock(filePath) {
+  return lockfile.check(filePath).catch(error => false)
 }
 
-//  Create a lock file for file at `path`.
-//  If `defaultValue` is undefined and no file was found at `path`,
+//  Create a lock file for file at `filePath`.
+//  If `defaultValue` is undefined and no file was found at `filePath`,
 //   we'll create the file with `defaultValue`, THEN create the lock.
 //  Ensures file (and parent directories) exist.
 //  Returns a promise which yields a `release()` callback.
@@ -193,28 +193,28 @@ export const DEFAULT_LOCK_OPTIONS = {
     console.error("file-utils.lockFile(): lock was compromised!", error)
   }
 }
-export async function lockFile(path, defaultValue, options = DEFAULT_LOCK_OPTIONS) {
+export async function lockFile(filePath, defaultValue, options = DEFAULT_LOCK_OPTIONS) {
   // Make sure the directory to the file is present
-  const dir = folderName(path)
+  const dir = folderName(filePath)
   await fse.mkdirp(dir)
 
   // Lock it!
   try {
-    return await lockfile.lock(path, options)
+    return await lockfile.lock(filePath, options)
   } catch (e) {
     // If file not found, create file and then lock
     if (e.code === "ENOENT") {
-      await saveFile(path, defaultValue)
-      return await lockfile.lock(path, options)
+      await saveFile(filePath, defaultValue)
+      return lockfile.lock(filePath, options)
     }
     throw e
   }
 }
 
-//  Unlock file at `path`.
+//  Unlock file at `filePath`.
 //  No-op if file does not exist or is unlocked.
-export function unlockFile(path) {
-  return lockfile.unlock(path)
+export function unlockFile(filePath) {
+  return lockfile.unlock(filePath)
 }
 
 // ////////////////////////////
@@ -240,8 +240,8 @@ export function listContents(directory, options = {}) {
   let paths = fse.readdirSync(directory).map(fileName => path.join(directory, fileName))
 
   if (!includeDirs || !includeFiles)
-    paths = paths.filter(path => {
-      const isDir = fse.statSync(path).isDirectory()
+    paths = paths.filter(filePath => {
+      const isDir = fse.statSync(filePath).isDirectory()
       if (includeDirs && isDir) return true
       if (includeFiles && !isDir) return true
       return false
@@ -273,7 +273,7 @@ export function logJSON(message, jsonData = null) {
   if (typeof jsonData !== "string") jsonData = JSON5.stringify(jsonData, null, "  ")
 
   // Indent string before warning
-  jsonData = "  " + jsonData.split("\n").join("  \n") + "\n"
+  jsonData = `  ${jsonData.split("\n").join("  \n")}\n`
   console.warn(jsonData)
 }
 

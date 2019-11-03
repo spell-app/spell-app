@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 //  Helper scripts to test rules defined for a parser "module"
 //
 //  To make a rule testable, add a `tests` block to parser rules with `defineRules()`.
@@ -10,11 +11,11 @@
 import groupBy from "lodash/groupBy"
 import isEqual from "lodash/isEqual"
 
-import { ParseError, Rule } from "../parser/all"
+import { ParseError, Rule } from "./all"
 
 import { showWhitespace } from "../utils/all"
 
-export function unitTestModuleRules(parser, moduleName) {
+export default function unitTestModuleRules(parser, moduleName) {
   describe(`rule unit tests`, () => {
     const rules = getTestableRulesForModule(moduleName)
     if (!rules || rules.lenth === 0) {
@@ -27,13 +28,11 @@ export function unitTestModuleRules(parser, moduleName) {
     rules.forEach(rule => executeRuleTests(rule))
   })
 
-  function getTestableRulesForModule(moduleName) {
+  function getTestableRulesForModule(module) {
     const testableRules = parser.rules._testable_ instanceof Rule.Group && parser.rules._testable_.rules
-
     if (!testableRules) return undefined
-
     const modules = groupBy(testableRules, "module")
-    return modules[moduleName]
+    return modules[module]
   }
 
   function executeRuleTests({ name, tests }) {
@@ -72,7 +71,7 @@ export function unitTestModuleRules(parser, moduleName) {
     if (tests.length === 0) return
 
     // Excute each test
-    const results = tests.map(test => executeTest(test, compileAs, beforeEach))
+    tests.map(test => executeTest(test, compileAs, beforeEach))
   }
 
   function executeTest({ input, output, title }, ruleName, beforeEach) {
@@ -93,7 +92,7 @@ export function unitTestModuleRules(parser, moduleName) {
       }
     }
 
-    let testTitle = (title ? `${title}: '` : "'") + showWhitespace(input) + "'"
+    const testTitle = `${(title ? `${title}: '` : "'") + showWhitespace(input)}'`
     if (typeof result === "string" && typeof output === "string") {
       // Show returns and tabs in the output display
       test(testTitle, () => expect(showWhitespace(result)).toBe(showWhitespace(output)))
@@ -112,7 +111,8 @@ export function unitTestModuleRules(parser, moduleName) {
   }
 
   function executeCompileTest(scope, ruleName, input, output) {
-    let match, result
+    let match
+    let result
     try {
       match = scope.parse(input, ruleName)
       if (match) {
