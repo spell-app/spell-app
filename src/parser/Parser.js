@@ -10,13 +10,10 @@ import {
   ParseError,
   Rule,
   rulex,
-  Module,
-  Token,
   Tokenizer,
   WhitespacePolicy,
   clearMemoized,
   cloneClass,
-  DebugLevel,
   memoize,
   nonEnumerable,
   proto,
@@ -32,7 +29,7 @@ import {
 
 const CLONE_CLASSES = !isNode
 
-export class Parser {
+export default class Parser {
   // Name of our default rule to parse if calling `parser.parse(text)`.
   @proto defaultRule = "block"
 

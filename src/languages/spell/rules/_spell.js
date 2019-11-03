@@ -23,6 +23,7 @@ import classes from "./classes"
 import tests from "./tests"
 
 // Create parser which combines all of the above...
+// NOTE: THIS INSTANCE is used by other parsers, to pick up the rules defined below.
 export const spellParser = new Spell.Parser({ module: "spell" })
 
 spellParser.defineRule({ name: "block", constructor: Spell.Rule.Block })

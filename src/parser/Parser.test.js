@@ -3,7 +3,7 @@
 // Note that lots of parser functionality is tested via other files in this package. ???
 //
 
-import { Parser, ParseError, Rule, ruleEx, Tokenizer } from "./all"
+import { Parser, ParseError, Rule } from "./all"
 
 describe("addRule() and rules", () => {
   test("parser.rules works when no rules are defined", () => {
@@ -128,7 +128,7 @@ parser.defineRules(
     alias: "statement",
     syntax: "{dog} and {cat}",
     testRule: "{dog}",
-    compile(parser, match) {
+    compile() {
       return "dog && cat"
     }
   }

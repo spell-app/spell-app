@@ -2,7 +2,6 @@ import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
 import flatten from "lodash/flatten"
 
-import { Tokenizer } from "./all"
 import { memoize } from "../utils/all"
 
 // Result of a successful `rule.parse()`.
@@ -13,7 +12,7 @@ import { memoize } from "../utils/all"
 // - `match.matched` `([Match or Token]`, required) Array of tokens matched
 //     or other `Match`es for sequences, etc.
 //
-export class Match {
+export default class Match {
   constructor(props) {
     Object.assign(this, props)
   }
@@ -48,6 +47,7 @@ export class Match {
   compile() {
     return this.rule.compile(this.scope, this)
   }
+
   get js() {
     return this.compile()
   }

@@ -1,7 +1,7 @@
 // Error we'll throw for problems when parsing.
 // Uses a specific type so we can check for it in tests.
 
-export class ParseError extends Error {
+export default class ParseError extends Error {
   constructor(...props) {
     super(...props)
     // Fix up stack trace to refer to throwing line

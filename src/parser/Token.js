@@ -8,7 +8,7 @@ import { proto } from "../utils/all"
 //  - `token.value` type-specific value in a way that's convenient for parsing to deal with.
 //  - `token.raw`   raw text string that was matched
 //  - `token.offset` start character index in the source string.
-export class Token {
+export default class Token {
   constructor(props) {
     Object.assign(this, props)
   }
