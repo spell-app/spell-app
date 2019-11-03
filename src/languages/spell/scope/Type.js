@@ -1,9 +1,9 @@
 import assert from "assert"
 import lowerFirst from "lodash/lowerFirst"
 
-import { indexedList, typeCase } from "../all.js"
+import { indexedList, typeCase } from "../all"
 
-import { Scope, Variable, Method } from "./all.js"
+import { Scope, Variable, Method } from "./all"
 
 // Type, which extends Scope.  Specifically:
 //  - `name` is the name of the type, and should be TypeCase and singular.

@@ -2,7 +2,7 @@
 //  # Rules for expressions.
 //
 
-import { Rule, Spell, peek } from "../all.js"
+import { Rule, Spell, peek } from "../all"
 
 export default new Spell.Parser({
   module: "expressions",

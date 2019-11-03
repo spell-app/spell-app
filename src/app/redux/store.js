@@ -4,7 +4,7 @@
 //
 ////////////////////
 
-import { ReduxFactory, projects } from "./all.js"
+import { ReduxFactory, projects } from "./all"
 
 export default ReduxFactory.createStore({
   // Factories to initialize as `{ domain: factory }`

@@ -18,9 +18,9 @@ import {
   Tokenizer,
   singularize,
   pluralize
-} from "./all.js"
+} from "./all"
 
-import precedence from "../languages/precedence/precedence.js"
+import precedence from "../languages/precedence/precedence"
 
 // Output source when rendering statements
 Spell.Parser.prototype.outputSource = false // TODO: add a control for this to the UI

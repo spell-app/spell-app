@@ -1,4 +1,4 @@
-import { Match, Rule } from "./all.js"
+import { Match, Rule } from "./all"
 
 // Abstract rule for matching tokens of a particular type (Token constructor)
 Rule.TokenType = class tokenType extends Rule {

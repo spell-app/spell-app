@@ -1,7 +1,7 @@
 //
 //  ## Spell langugage Module root.
 //
-import { DebugLevel, Module, Parser, Tokenizer, WhitespacePolicy, addDebugMethods, proto } from "./all.js"
+import { DebugLevel, Module, Parser, Tokenizer, WhitespacePolicy, addDebugMethods, proto } from "./all"
 
 export const Spell = {
   // Create a logger set to `warn`

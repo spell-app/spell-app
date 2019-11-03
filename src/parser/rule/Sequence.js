@@ -14,7 +14,7 @@
 //
 import flattenDeep from "lodash/flattenDeep"
 
-import { Match, Rule } from "./all.js"
+import { Match, Rule } from "./all"
 
 // Sequence of rules to match.
 //  `rule.rules` is the array of rules to match.

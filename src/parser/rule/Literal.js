@@ -1,4 +1,4 @@
-import { Match, Rule } from "./all.js"
+import { Match, Rule } from "./all"
 
 // Abstract rule to match a single literal value.
 // `rule.literal` is either:

@@ -5,10 +5,10 @@
 //
 
 // Re-export a few things from `/parser` for convenience in this package.
-export { Match, proto, TestLocation, Token, Tokenizer, TokenType } from "../all.js"
+export { Match, proto, TestLocation, Token, Tokenizer, TokenType } from "../all"
 
 // Load the main Rule abstract class.
-export { Rule } from "./Rule.js"
+export { Rule } from "./Rule"
 
 // The following subclasses of rule are ALWAYS accessed as `Rule.XXX`
 import "./TokenType.js"

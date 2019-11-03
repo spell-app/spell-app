@@ -2,7 +2,7 @@
 //  # Rules for creating variables, property access, etc
 //
 
-import { Rule, Spell, Token } from "../all.js"
+import { Rule, Spell, Token } from "../all"
 
 export default new Spell.Parser({
   module: "UI",

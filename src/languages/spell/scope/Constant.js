@@ -1,6 +1,6 @@
-import { ParseError } from "../all.js"
+import { ParseError } from "../all"
 
-import { Scope, Variable } from "./all.js"
+import { Scope, Variable } from "./all"
 
 //
 // Constant definition.

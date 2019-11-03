@@ -13,7 +13,7 @@
 //    - `match.compile()`    Return javascript source to interpret the rule.
 //
 
-import { proto, TestLocation } from "./all.js"
+import { proto, TestLocation } from "./all"
 
 // Abstract Rule class.
 // TODOC

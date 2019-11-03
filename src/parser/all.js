@@ -1,13 +1,13 @@
 // Include utils for ease of import.
-export * from "../utils/all.js"
+export * from "../utils/all"
 
-export * from "./constants.js"
-export * from "./ParseError.js"
-export * from "./Token.js"
-export * from "./Match.js"
-export * from "./Tokenizer.js"
-export { Rule } from "./rule/all.js"
-export * from "./Parser.js"
-export * from "./unitTestModuleRules.js"
+export * from "./constants"
+export * from "./ParseError"
+export * from "./Token"
+export * from "./Match"
+export * from "./Tokenizer"
+export { Rule } from "./rule/all"
+export * from "./Parser"
+export * from "./unitTestModuleRules"
 
-export rulex from "../languages/rulex/all.js"
+export rulex from "../languages/rulex/all"

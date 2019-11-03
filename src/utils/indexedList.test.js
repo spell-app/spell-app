@@ -1,5 +1,5 @@
 import snakeCase from "lodash/snakeCase"
-import { indexedList } from "./indexedList.js"
+import { indexedList } from "./indexedList"
 
 class Method {
   constructor(props) {

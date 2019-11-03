@@ -1,4 +1,4 @@
-import { proto, Rule, Token } from "./all.js"
+import { proto, Rule, Token } from "./all"
 
 // Match a single `Token.Word`
 Rule.Word = class word extends Rule.TokenType {

@@ -1,9 +1,9 @@
 //
 //  # Rules for constants, variables, type names, etc
 //
-import { Match, Rule, Scope, Spell, Token, proto, snakeCase, typeCase, singularize, pluralize } from "../all.js"
+import { Match, Rule, Scope, Spell, Token, proto, snakeCase, typeCase, singularize, pluralize } from "../all"
 
-import identifierBlacklist from "./identifier-blacklist.js"
+import identifierBlacklist from "./identifier-blacklist"
 
 // Alpha-numeric word, including dashes or underscores.
 const WORD = /^[a-zA-Z][\w\-]*$/

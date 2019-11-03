@@ -5,9 +5,9 @@
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
 
-import { Rule, Spell, Token } from "../all.js"
+import { Rule, Spell, Token } from "../all"
 
-import identifierBlacklist from "./identifier-blacklist.js"
+import identifierBlacklist from "./identifier-blacklist"
 
 const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/
 

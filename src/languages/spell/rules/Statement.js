@@ -1,4 +1,4 @@
-import { Rule, Spell, Tokenizer, proto } from "../all.js"
+import { Rule, Spell, Tokenizer, proto } from "../all"
 
 // In Spell, we generally match `statements` across the entire line.
 //

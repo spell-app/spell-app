@@ -2,8 +2,8 @@ import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
 import flatten from "lodash/flatten"
 
-import { Tokenizer } from "./all.js"
-import { memoize } from "../utils/all.js"
+import { Tokenizer } from "./all"
+import { memoize } from "../utils/all"
 
 // Result of a successful `rule.parse()`.
 // This is a flyweight object which links a rule with the tokens that it successfully matched.

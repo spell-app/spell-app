@@ -1,4 +1,4 @@
-import { Rule, Tokenizer } from "./all.js"
+import { Rule, Tokenizer } from "./all"
 
 // Turn on debugging of choice / precedence semantics
 const DEBUG_CHOICES = false

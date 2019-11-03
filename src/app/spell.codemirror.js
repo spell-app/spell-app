@@ -1,8 +1,8 @@
 import _ from "lodash"
 import CodeMirror from "codemirror"
 
-import { Token, spellParser } from "./all.js"
-//import blacklist from "../languages/spell/rules/identifier-blacklist.js"
+import { Token, spellParser } from "./all"
+//import blacklist from "../languages/spell/rules/identifier-blacklist"
 
 CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
   // Return the token that starts at numeric offset

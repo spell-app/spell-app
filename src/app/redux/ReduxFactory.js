@@ -80,9 +80,9 @@ import _snakeCase from "lodash/snakeCase"
 import { isNode } from "browser-or-node"
 import { applyMiddleware, bindActionCreators, combineReducers, compose, createStore } from "redux"
 
-import { addDebugMethods, DebugLevel } from "../../utils/addDebugMethods.js"
-import makeDeferred from "./utils/makeDeferred.js"
-import { getPref, setPref } from "./utils/prefs.js"
+import { addDebugMethods, DebugLevel } from "../../utils/addDebugMethods"
+import makeDeferred from "./utils/makeDeferred"
+import { getPref, setPref } from "./utils/prefs"
 
 // Special action stub to pass back to ignore an action.
 export const IGNORE_ACTION = { type: "__IGNORE_ACTION__", promise: Promise.resolve() }

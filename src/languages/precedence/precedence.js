@@ -31,7 +31,7 @@
 
 import sortBy from "lodash/sortBy"
 
-import { Parser, Rule, Tokenizer, Token, WhitespacePolicy, peek, proto } from "../../parser/all.js"
+import { Parser, Rule, Tokenizer, Token, WhitespacePolicy, peek, proto } from "../../parser/all"
 
 const parser = new Parser({
   module: "precedence",

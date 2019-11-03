@@ -1,5 +1,5 @@
 import assert from "assert"
-import { Scope, Type } from "./all.js"
+import { Scope, Type } from "./all"
 
 // Variable definition, including:
 //      - global variable

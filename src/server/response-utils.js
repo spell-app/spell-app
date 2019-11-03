@@ -9,10 +9,10 @@
 import chalk from "chalk"
 
 // File manipulation utilities and path config
-import * as fileUtils from "./file-utils.js"
+import * as fileUtils from "./file-utils"
 
 // Generate id unique to this server.
-//import { getUniqueId } from "./SequenceFile.js";
+//import { getUniqueId } from "./SequenceFile";
 
 //////////////////////////////
 //  Id utilities

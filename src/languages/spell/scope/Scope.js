@@ -6,9 +6,9 @@ import lowerFirst from "lodash/lowerFirst"
 import uniq from "lodash/uniq"
 import JSON5 from "JSON5"
 
-import { Parser, indexedList, typeCase, snakeCase } from "../all.js"
+import { Parser, indexedList, typeCase, snakeCase } from "../all"
 
-import { Variable, Constant, Method, Type } from "./all.js"
+import { Variable, Constant, Method, Type } from "./all"
 
 // NOTE: this is the only export from this file.
 // Consumers of this file should use `scope.addMethod(...)` or `new `Scope.Method(...)`

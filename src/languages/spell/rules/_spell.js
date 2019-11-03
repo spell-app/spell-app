@@ -1,4 +1,4 @@
-import { Spell } from "../all.js"
+import { Spell } from "../all"
 
 // The following add new Rule constructors to `Spell.Rule`
 import "./Block.js"
@@ -7,20 +7,20 @@ import "./Statement.js"
 import "./ParseError.js"
 
 // The following define "modules" of rule sets, which will be combined below.
-import core from "./core.js"
-import types from "./types.js"
-import variables from "./variables.js"
-import constants from "./constants.js"
-import assignment from "./assignment.js"
-import _if_ from "./if.js"
-import JSX from "./JSX.js"
-import lists from "./lists.js"
-import expressions from "./expressions.js"
-import math from "./math.js"
-import properties from "./properties.js"
-import UI from "./UI.js"
-import classes from "./classes.js"
-import tests from "./tests.js"
+import core from "./core"
+import types from "./types"
+import variables from "./variables"
+import constants from "./constants"
+import assignment from "./assignment"
+import _if_ from "./if"
+import JSX from "./JSX"
+import lists from "./lists"
+import expressions from "./expressions"
+import math from "./math"
+import properties from "./properties"
+import UI from "./UI"
+import classes from "./classes"
+import tests from "./tests"
 
 // Create parser which combines all of the above...
 export const spellParser = new Spell.Parser({ module: "spell" })

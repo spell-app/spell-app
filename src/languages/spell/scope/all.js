@@ -3,9 +3,9 @@
 //     Other files MUST ONLY import from this files.
 //
 
-export { Scope } from "./Scope.js"
-export { Module } from "./Module.js"
-export { Type } from "./Type.js"
-export { Constant } from "./Constant.js"
-export { Method } from "./Method.js"
-export { Variable } from "./Variable.js"
+export { Scope } from "./Scope"
+export { Module } from "./Module"
+export { Type } from "./Type"
+export { Constant } from "./Constant"
+export { Method } from "./Method"
+export { Variable } from "./Variable"

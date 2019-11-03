@@ -21,7 +21,7 @@ import {
   nonEnumerable,
   proto,
   showWhitespace
-} from "./all.js"
+} from "./all"
 
 // In the web browser, by default, we'll use `cloneClass()` to make debugging easier
 // by creating named subclasses which you can see in the browser console

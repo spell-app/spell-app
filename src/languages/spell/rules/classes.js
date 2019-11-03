@@ -9,7 +9,7 @@ import {
   pluralize,
   singularize,
   typeCase
-} from "../all.js"
+} from "../all"
 
 export default new Spell.Parser({
   module: "classes",

@@ -1,4 +1,4 @@
-import { Match, Rule } from "./all.js"
+import { Match, Rule } from "./all"
 
 // Recursively find balanced instances of `start` and `end`,
 // then split by `delimiter` and apply `rule` to each, returning an array of matches.

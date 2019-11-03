@@ -1,4 +1,4 @@
-import { Rule } from "./all.js"
+import { Rule } from "./all"
 
 // Blank line representation in parser output.
 Rule.BlankLine = class blank_line extends Rule {

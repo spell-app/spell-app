@@ -8,8 +8,8 @@ import JSON5 from "json5"
 import nodePath from "path"
 
 // Express utility functions
-import * as fileUtils from "./file-utils.js"
-import * as responseUtils from "./response-utils.js"
+import * as fileUtils from "./file-utils"
+import * as responseUtils from "./response-utils"
 
 // Create the router.
 const router = express.Router()

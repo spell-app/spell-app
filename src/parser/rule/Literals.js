@@ -1,4 +1,4 @@
-import { Match, proto, Rule } from "./all.js"
+import { Match, proto, Rule } from "./all"
 
 // Abstract rule for one or more sequential literal values to match.
 // `rule.literals`:

@@ -1,5 +1,5 @@
-import parser, { unitTestModuleRules } from "../all.js"
-import { parenthesizeCondition } from "./if.js"
+import parser, { unitTestModuleRules } from "../all"
+import { parenthesizeCondition } from "./if"
 
 describe("testing spell module if", () => {
   unitTestModuleRules(parser, "if")

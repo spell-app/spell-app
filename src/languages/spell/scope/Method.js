@@ -1,6 +1,6 @@
 import assert from "assert"
 
-import { Scope, Variable } from "./all.js"
+import { Scope, Variable } from "./all"
 
 // Method
 // Expected properties:

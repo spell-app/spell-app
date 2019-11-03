@@ -2,10 +2,10 @@
 // # Tests for understanding recursion and precedence.
 //
 
-import { Parser, Rule, Tokenizer, Token } from "../../parser/all.js"
+import { Parser, Rule, Tokenizer, Token } from "../../parser/all"
 
 // Streamlined precedence rules tests parser.
-import prec from "./precedence.js"
+import prec from "./precedence"
 
 describe("basic rules check out individually", () => {
   test("sets `incomplete` if entire thing not matched", () => {

@@ -29,7 +29,7 @@
 
 import identity from "lodash/identity"
 
-import { getDescriptorProp, setDescriptorProp, clearDescriptorProp } from "./decorators.js"
+import { getDescriptorProp, setDescriptorProp, clearDescriptorProp } from "./decorators"
 
 export function indexedList(props) {
   if (!props) throw new TypeError("@indexedList() must be passed at least `{ keyProp }`")

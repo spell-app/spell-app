@@ -1,4 +1,4 @@
-import { Token, Tokenizer } from "./all.js"
+import { Token, Tokenizer } from "./all"
 
 // Turn off tokenizer warnings in the console
 Tokenizer.prototype.logger.setDebugLevel("ERROR")

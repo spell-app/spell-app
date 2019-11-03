@@ -9,8 +9,8 @@
 //////////////////////////////
 
 import JSON5 from "json5"
-import { parseJSON, parseJSON5 } from "./utils/json.js"
-import { addDebugMethods, DebugLevel } from "../../utils/addDebugMethods.js"
+import { parseJSON, parseJSON5 } from "./utils/json"
+import { addDebugMethods, DebugLevel } from "../../utils/addDebugMethods"
 
 const logger = addDebugMethods({}, "api", DebugLevel.WARN)
 

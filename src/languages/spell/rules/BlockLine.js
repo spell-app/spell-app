@@ -1,4 +1,4 @@
-import { Rule, Spell, Tokenizer } from "../all.js"
+import { Rule, Spell, Tokenizer } from "../all"
 
 // Parse a single line in a block.
 // NOTE: we eat whitespace at the start and stick it on `match.whitespace` if found.

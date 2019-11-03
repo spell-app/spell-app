@@ -1,4 +1,4 @@
-import { Rule } from "./all.js"
+import { Rule } from "./all"
 
 // Sequence that is known to be only `Literal(s)` or `Pattern`.
 // Use this to get the entire literal string back on `compile()`.

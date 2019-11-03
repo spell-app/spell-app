@@ -1,4 +1,4 @@
-import { Match, Rule, Spell, Token, Tokenizer, isWhitespace, proto } from "../all.js"
+import { Match, Rule, Spell, Token, Tokenizer, isWhitespace, proto } from "../all"
 
 // `Blocks` are generally the root entity that we parse in spell.
 //  This is a top-level construct, e.g. used to parse an entire file.

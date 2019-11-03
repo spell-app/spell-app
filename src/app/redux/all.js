@@ -1,9 +1,9 @@
-export * as api from "./api.js"
-export ReduxFactory from "./ReduxFactory.js"
-export { getPref, setPref, clearAllPrefs, setPrefKey } from "./utils/prefs.js"
+export * as api from "./api"
+export ReduxFactory from "./ReduxFactory"
+export { getPref, setPref, clearAllPrefs, setPrefKey } from "./utils/prefs"
 
 // App-specific
-export * from "./projects.js"
+export * from "./projects"
 
 // must be last
-export store from "./store.js"
+export store from "./store"
