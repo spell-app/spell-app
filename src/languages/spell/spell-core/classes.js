@@ -4,7 +4,6 @@
 import _ from "lodash"
 import { spell, assert } from "."
 
-
 //////////
 // `Thing`: base for all object-like things
 //--------
@@ -18,7 +17,6 @@ export class Thing {
   create() {}
 }
 spell.addExport("Thing", Thing)
-
 
 //////////
 // `List`: our array concept (1-based)

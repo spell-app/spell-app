@@ -39,4 +39,3 @@ assert.isArrayLike = function(thing, method = "", ...message) {
   if (message.length === 0) message.push("expected an array-like thing, got: ", thing)
   return assert(_.isArrayLike(thing), method, ...message)
 }
-

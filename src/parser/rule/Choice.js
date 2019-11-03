@@ -1,7 +1,7 @@
-import { Rule, Tokenizer } from "./all.js";
+import { Rule, Tokenizer } from "./all.js"
 
 // Turn on debugging of choice / precedence semantics
-const DEBUG_CHOICES = false;
+const DEBUG_CHOICES = false
 
 // Alternative syntax, matching one of a number of different rules.
 // The result of a parse is the longest rule that actually matched.
@@ -12,73 +12,71 @@ const DEBUG_CHOICES = false;
 //  we'll return the rule which is the "best match" (rather than cloning this rule).
 Rule.Choice = class choices extends Rule {
   constructor(props) {
-    if (arguments.length > 1) props = [...arguments];
-    if (Array.isArray(props)) props = { rules: props };
-    super(props);
-    if (!this.rules) this.rules = [];
+    if (arguments.length > 1) props = [...arguments]
+    if (Array.isArray(props)) props = { rules: props }
+    super(props)
+    if (!this.rules) this.rules = []
   }
 
   // Add a rule to the list of choices.
   // Note that we always create a new array when adding!
   addRule(...rules) {
-    this.rules = [...this.rules, ...rules];
+    this.rules = [...this.rules, ...rules]
   }
 
   // Return (`true` or index) if ANY of our rules is found.
   // If ANY rules return `undefined`, this will return `undefined`.
   // If ALL rules return `false`, this will return `false`.
   testAtStart(scope, tokens, start = 0) {
-    if (start >= tokens.length) return false;
-    let undefinedFound = false;
-    for (let i = 0, rule; rule = this.rules[i]; i++) {
-      const result = rule.testAtStart(scope, tokens, start);
-      if (result) return true;
-      if (result === undefined) undefinedFound = true;
+    if (start >= tokens.length) return false
+    let undefinedFound = false
+    for (let i = 0, rule; (rule = this.rules[i]); i++) {
+      const result = rule.testAtStart(scope, tokens, start)
+      if (result) return true
+      if (result === undefined) undefinedFound = true
     }
-    if (undefinedFound) return undefined;
-    return false;
+    if (undefinedFound) return undefined
+    return false
   }
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(scope, tokens) {
-    const CHOICE = `choice '${this.name||this.argument}:'`;
-    if (DEBUG_CHOICES) console.group(`${CHOICE} start matching '${Tokenizer.join(tokens)}'`, this);
+    const CHOICE = `choice '${this.name || this.argument}:'`
+    if (DEBUG_CHOICES) console.group(`${CHOICE} start matching '${Tokenizer.join(tokens)}'`, this)
 
     // Try to match each rule in turn.
     // For efficiency, complicated rules (e.g. sequences or recursive rules)
     //  should exit quickly via a `testRule` or similar mechanism.
-    const matches = [];
-    for (let i = 0, rule; rule = this.rules[i++];) {
-      if (DEBUG_CHOICES) console.group('parsing rule', rule.name);
-      const match = rule.parse(scope, tokens);
-      if (match) matches.push(match);
-      if (DEBUG_CHOICES) console.groupEnd();
+    const matches = []
+    for (let i = 0, rule; (rule = this.rules[i++]); ) {
+      if (DEBUG_CHOICES) console.group("parsing rule", rule.name)
+      const match = rule.parse(scope, tokens)
+      if (match) matches.push(match)
+      if (DEBUG_CHOICES) console.groupEnd()
     }
 
-    let match = matches[0];
+    let match = matches[0]
     if (DEBUG_CHOICES) {
       if (matches.length === 0) {
-        console.debug(`${CHOICE} nothing matched`);
-      }
-      else if (matches.length === 1) {
-        console.debug(`${CHOICE} got 1 match`, match);
-      }
-      else {
-        console.debug(`${CHOICE} matched:`);
+        console.debug(`${CHOICE} nothing matched`)
+      } else if (matches.length === 1) {
+        console.debug(`${CHOICE} got 1 match`, match)
+      } else {
+        console.debug(`${CHOICE} matched:`)
         matches.forEach((match, index) => {
-          console.debug(`   #${index}: (len: ${match.length}, prec: ${match.rule.precedence}): `, match);
-        });
+          console.debug(`   #${index}: (len: ${match.length}, prec: ${match.rule.precedence}): `, match)
+        })
       }
     }
-    match = matches.length > 1 ? this.getBestMatch(matches) : matches[0];
-    if (DEBUG_CHOICES) console.debug(`${CHOICE} returning:`, match);
-    if (DEBUG_CHOICES) console.groupEnd();
-    if (!match) return;
+    match = matches.length > 1 ? this.getBestMatch(matches) : matches[0]
+    if (DEBUG_CHOICES) console.debug(`${CHOICE} returning:`, match)
+    if (DEBUG_CHOICES) console.groupEnd()
+    if (!match) return
 
     // assign special properties to the result
-    match.choiceRule = this.argument || this.name;
-    if (this.argument) match.argument = this.argument;
-    return match;
+    match.choiceRule = this.argument || this.name
+    if (this.argument) match.argument = this.argument
+    return match
   }
 
   // Return the "best" match given more than one matches at the head of the tokens.
@@ -86,37 +84,36 @@ Rule.Choice = class choices extends Rule {
   // Then we take the one with the longest matched string.
   // If more than one rule with same length, takes LATEST one.
   getBestMatch(matches) {
-    if (matches.length === 1) return matches[0];
+    if (matches.length === 1) return matches[0]
 
     // Filter to rules with highest precedence.
     // NOTE: we run this BACKWARDS to put later-defined rules first
-    let match;
-    let highPriority = [];
-    for (let max = -Infinity, i = 0; match = matches[i++];) {
-      const { precedence } = match.rule;
+    let match
+    let highPriority = []
+    for (let max = -Infinity, i = 0; (match = matches[i++]); ) {
+      const { precedence } = match.rule
       if (precedence > max) {
-        max = precedence;
-        highPriority = [match];
-      }
-      else if (precedence === max) {
-        highPriority.push(match);
+        max = precedence
+        highPriority = [match]
+      } else if (precedence === max) {
+        highPriority.push(match)
       }
     }
 
-    if (highPriority.length === 1) return highPriority[0];
+    if (highPriority.length === 1) return highPriority[0]
 
     // Return the longest rule (???)
-    let longest;
-    for (let i = highPriority.length; match = highPriority[--i];) {
-      if (!longest || match.length >= longest.length) longest = match;
+    let longest
+    for (let i = highPriority.length; (match = highPriority[--i]); ) {
+      if (!longest || match.length >= longest.length) longest = match
     }
-    return longest;
+    return longest
   }
 
   toSyntax() {
-    const { testLocation, argument, optional } = this.getSyntaxFlags();
-    const rules = this.rules.map(rule => rule.toSyntax()).join("|");
-    return `${testLocation}(${argument}${rules})${optional}`;
+    const { testLocation, argument, optional } = this.getSyntaxFlags()
+    const rules = this.rules.map(rule => rule.toSyntax()).join("|")
+    return `${testLocation}(${argument}${rules})${optional}`
   }
 }
 

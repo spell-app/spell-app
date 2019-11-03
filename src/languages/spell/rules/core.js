@@ -1,11 +1,7 @@
 //
 //  # Core `rules` -- simple datatypes, etc.
 //
-import {
-  Rule,
-  Spell,
-  Token,
-} from "../all.js";
+import { Rule, Spell, Token } from "../all.js"
 
 export default new Spell.Parser({
   module: "core",
@@ -19,7 +15,7 @@ export default new Spell.Parser({
       syntax: "{whitespace}*",
       datatype: "string",
       compile(scope, match) {
-        return match.matched.map(whitespace => whitespace.compile()).join(" ");
+        return match.matched.map(whitespace => whitespace.compile()).join(" ")
       }
     },
 
@@ -52,7 +48,6 @@ export default new Spell.Parser({
       tokenType: Token.InlineWhitespace
     },
 
-
     /////////////////////////
     //  Simple types:  number, boolean, text (string), etc.
     //
@@ -80,17 +75,11 @@ export default new Spell.Parser({
         },
         {
           title: "doesn't match things that aren't numbers",
-          tests: [
-            ["", undefined],
-            ["-", undefined],
-            [".", undefined]
-          ]
+          tests: [["", undefined], ["-", undefined], [".", undefined]]
         },
         {
           title: "requires negative sign to touching the number",
-          tests: [
-            ["- 1", undefined]
-          ]
+          tests: [["- 1", undefined]]
         }
       ]
     },
@@ -130,7 +119,7 @@ export default new Spell.Parser({
             ["nine", 9],
             ["ten", 10]
           ]
-        },
+        }
       ]
     },
 
@@ -142,12 +131,12 @@ export default new Spell.Parser({
       datatype: "boolean",
       pattern: /^(true|false|yes|no|ok|cancel)$/,
       valueMap: {
-        "true": true,
-        "false": false,
+        true: true,
+        false: false,
         yes: true,
         no: false,
         ok: true,
-        cancel: false,
+        cancel: false
       },
       tests: [
         {
@@ -159,7 +148,7 @@ export default new Spell.Parser({
             ["ok", true],
             ["false", false],
             ["no", false],
-            ["cancel", false],
+            ["cancel", false]
           ]
         },
         {
@@ -168,7 +157,6 @@ export default new Spell.Parser({
         }
       ]
     },
-
 
     // Literal `text` string.
     // You can use either single or double quotes on the outside (although double quotes are preferred).
@@ -188,7 +176,7 @@ export default new Spell.Parser({
             ["'a'", "'a'"],
             ['"abcd"', '"abcd"'],
             ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
-            ['"...Can\'t touch this"', '"...Can\'t touch this"'],
+            ['"...Can\'t touch this"', '"...Can\'t touch this"']
           ]
         }
       ]
@@ -198,9 +186,9 @@ export default new Spell.Parser({
       name: "comment",
       tokenType: Token.Comment,
       compile(scope, match) {
-        let { commentSymbol, initialWhitespace, value } = match.matched[0];
-        if (commentSymbol !== "//") commentSymbol = "//" + commentSymbol;
-        return `${commentSymbol}${initialWhitespace}${value}`;
+        let { commentSymbol, initialWhitespace, value } = match.matched[0]
+        if (commentSymbol !== "//") commentSymbol = "//" + commentSymbol
+        return `${commentSymbol}${initialWhitespace}${value}`
       },
       tests: [
         {
@@ -210,7 +198,7 @@ export default new Spell.Parser({
             ["// foo", "// foo"],
             ["-- foo", "//-- foo"],
             ["## foo", "//## foo"],
-            ["//    foo bar baz", "//    foo bar baz"],
+            ["//    foo bar baz", "//    foo bar baz"]
           ]
         }
       ]
@@ -223,7 +211,7 @@ export default new Spell.Parser({
       datatype: "undefined",
       syntax: "undefined",
       compile(scope, match) {
-        return "undefined";
+        return "undefined"
       },
       tests: [
         {
@@ -233,7 +221,6 @@ export default new Spell.Parser({
       ]
     },
 
-
     // `word` = is a single alphanumeric word.
     // Case is not a factor, but it must start with a letter.
     {
@@ -241,7 +228,7 @@ export default new Spell.Parser({
       pattern: /^[a-zA-Z][\w\-]*$/,
       // convert dashes to underscores when compiling
       valueMap(value) {
-        return (""+value).replace(/\-/g, "_")
+        return ("" + value).replace(/\-/g, "_")
       },
       tests: [
         {
@@ -262,6 +249,6 @@ export default new Spell.Parser({
           ]
         }
       ]
-    },
+    }
   ]
-});
+})

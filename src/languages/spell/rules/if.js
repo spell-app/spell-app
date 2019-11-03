@@ -2,17 +2,13 @@
 //  # Rules for if statements.
 //
 
-import {
-  Rule,
-  Scope,
-  Spell,
-} from "../all.js";
+import { Rule, Scope, Spell } from "../all.js"
 
 // Given a condition expression string, wrap it in parens iff it is not already parenthesized properly.
 // TESTME
 export function parenthesizeCondition(condition) {
-  if (condition.startsWith("(") && condition.endsWith(")")) return condition;
-  return `(${condition})`;
+  if (condition.startsWith("(") && condition.endsWith(")")) return condition
+  return `(${condition})`
 }
 
 export default new Spell.Parser({
@@ -27,25 +23,25 @@ export default new Spell.Parser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(scope, { results }) {
-        const condition = parenthesizeCondition(results.condition);
-        return results.$scope = new Scope.Method({
+        const condition = parenthesizeCondition(results.condition)
+        return (results.$scope = new Scope.Method({
           name: "if",
           scope,
           toString() {
-            return `if ${condition} ${this.compileStatements()}`;
+            return `if ${condition} ${this.compileStatements()}`
           }
-        });
+        }))
       },
       updateScope(scope, { results }) {
-        const statement = scope.addStatement(results.$scope);
-        results.statements.push(statement);
+        const statement = scope.addStatement(results.$scope)
+        results.statements.push(statement)
       },
       tests: [
         {
           title: "correctly matches single-line if statements",
           compileAs: "statement",
           beforeEach(scope) {
-            scope.variables.add("a");
+            scope.variables.add("a")
           },
           tests: [
             ["if a", "if (a) {}"],
@@ -60,13 +56,13 @@ export default new Spell.Parser({
           title: "correctly matches multi-line if blocks",
           compileAs: "block",
           beforeEach(scope) {
-            scope.variables.add("a");
+            scope.variables.add("a")
           },
           tests: [
             {
               title: "Separate blocks if no indentation on second line.",
               input: "if a:\nb = 1",
-              output: "if (a) {}\nlet b = 1"    // NOTE: this is correct!
+              output: "if (a) {}\nlet b = 1" // NOTE: this is correct!
             },
             {
               title: "Single tabbed statement appears inline",
@@ -88,11 +84,11 @@ export default new Spell.Parser({
               input: "if a:\n\tb = 1\n\tc = 2",
               output: "if (a) {\n  let b = 1\n  let c = 2\n}"
             },
-    //         {
-    //           title: "Blank lines in the nested block are carried over",
-    //           input: "if a:\n\tb = 1\n\n\n\tc = 2",
-    //           output: "if (a) {\n  let b = 1\n  \n  \n  let c = 2\n}"
-    //         },
+            //         {
+            //           title: "Blank lines in the nested block are carried over",
+            //           input: "if a:\n\tb = 1\n\n\n\tc = 2",
+            //           output: "if (a) {\n  let b = 1\n  \n  \n  let c = 2\n}"
+            //         },
             {
               title: "Nested ifs work fine",
               input: "if a\n\tb = 1\n\tif b\n\t\tc = 2",
@@ -120,25 +116,25 @@ export default new Spell.Parser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(scope, { results }) {
-        const condition = parenthesizeCondition(results.condition);
-        return results.$scope = new Scope.Method({
+        const condition = parenthesizeCondition(results.condition)
+        return (results.$scope = new Scope.Method({
           name: "else_if",
           scope,
           toString() {
-            return `else if ${condition} ${this.compileStatements()}`;
+            return `else if ${condition} ${this.compileStatements()}`
           }
-        });
+        }))
       },
       updateScope(scope, { results }) {
-        const statement = scope.addStatement(results.$scope);
-        results.statements.push(statement);
+        const statement = scope.addStatement(results.$scope)
+        results.statements.push(statement)
       },
       tests: [
         {
           title: "correctly matches single-line else_if statements",
           compileAs: "statement",
           beforeEach(scope) {
-            scope.variables.add("a");
+            scope.variables.add("a")
           },
           tests: [
             ["else if a", "else if (a) {}"],
@@ -146,14 +142,14 @@ export default new Spell.Parser({
             ["else if a then", "else if (a) {}"],
             ["else if a b = 1", "else if (a) { let b = 1 }"],
             ["else if a: b = 1", "else if (a) { let b = 1 }"],
-            ["else if a then b = 1", "else if (a) { let b = 1 }"],
+            ["else if a then b = 1", "else if (a) { let b = 1 }"]
           ]
         },
         {
           title: "correctly matches multi-line else_if blocks",
           compileAs: "block",
           beforeEach(scope) {
-            scope.variables.add("a");
+            scope.variables.add("a")
           },
           tests: [
             {
@@ -200,16 +196,16 @@ export default new Spell.Parser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(scope, { results }) {
-        return results.$scope = new Scope.Method({
+        return (results.$scope = new Scope.Method({
           scope,
           toString() {
-            return `else ${this.compileStatements()}`;
+            return `else ${this.compileStatements()}`
           }
-        });
+        }))
       },
       updateScope(scope, { results }) {
-        const statement = scope.addStatement(results.$scope);
-        results.statements.push(statement);
+        const statement = scope.addStatement(results.$scope)
+        results.statements.push(statement)
       },
       tests: [
         {
@@ -258,27 +254,29 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       syntax: "if {condition:expression} (else|otherwise) {expression:expression}",
       compile(scope, match) {
-        return { expression: match.results };
+        return { expression: match.results }
       },
       applyOperator({ lhs, rhs }) {
-        const { condition, expression } = rhs;
-        return `(${rhs.condition} ? ${lhs} : ${rhs.expression})`;
+        const { condition, expression } = rhs
+        return `(${rhs.condition} ? ${lhs} : ${rhs.expression})`
       },
       tests: [
         {
           title: "correctly matches single-line backwards_if statements",
           compileAs: "statement",
           beforeEach(scope) {
-            scope.variables.add("bar");
-            scope.variables.add("foo");
+            scope.variables.add("bar")
+            scope.variables.add("foo")
           },
           tests: [
             ["get 1 if bar else 2", "let it = (bar ? 1 : 2)"],
-            ["get the foo of the bar if bar is defined otherwise the bar of the foo",
-             "let it = ((typeof bar !== 'undefined') ? bar.foo : foo.bar)"]
+            [
+              "get the foo of the bar if bar is defined otherwise the bar of the foo",
+              "let it = ((typeof bar !== 'undefined') ? bar.foo : foo.bar)"
+            ]
           ]
         }
       ]
-    },
+    }
   ]
-});
+})

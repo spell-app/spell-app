@@ -9,7 +9,6 @@ import _ from "lodash"
 import { spell, assert } from "."
 
 Object.assign(spell, {
-
   ////////////
   // composite accessors
   //----------
@@ -19,14 +18,14 @@ Object.assign(spell, {
   includes(collection, ...values) {
     if (!assert.isDefined(collection, "spell.includes(collection)")) return false
     if (!values.length) return false
-    return spell.all(values, (value) => spell.itemOf(collection, value) !== undefined)
+    return spell.all(values, value => spell.itemOf(collection, value) !== undefined)
   },
 
   // Does `collection` include any of the specified `values`?
   // If more than one value specified, only one must be included.
   includesAny(collection, ...values) {
     if (!assert.isDefined(collection, "spell.includesAny(collection)")) return false
-    return spell.any(values, (value) => spell.itemOf(collection, value) !== undefined)
+    return spell.any(values, value => spell.itemOf(collection, value) !== undefined)
   },
 
   ////////////
@@ -65,7 +64,7 @@ Object.assign(spell, {
   // Replaces existing values.
   setItemsOf(collection, start, ...values) {
     if (!assert.isArrayLike(collection, "spell.setItemsOf(collection)")) return
-    values.forEach( (value, index) => {
+    values.forEach((value, index) => {
       spell.setItemOf(collection, start + index, value)
     })
   },
@@ -74,7 +73,7 @@ Object.assign(spell, {
   // Array only.
   reverse(collection) {
     if (!assert.isDefined(collection, "spell.reverse(collection)")) return
-    const reversed = spell.valuesOf(collection).reverse();
+    const reversed = spell.valuesOf(collection).reverse()
     spell.setItemsOf(collection, 1, ...reversed)
   },
 
@@ -85,7 +84,8 @@ Object.assign(spell, {
   // If `start` is negative, we'll take from the end of the list, but in normal list order.
   _validateRangeBetween(start, end, itemCount) {
     if (itemCount === 0) return undefined
-    if (!spell.isANumber(start) || start === 0) start = 1   // TODO === 0 ???
+    if (!spell.isANumber(start) || start === 0) start = 1
+    // TODO === 0 ???
     else if (Math.abs(start) > itemCount) return undefined
     else if (start < 0) start = Math.max(itemCount + start + 1, 1)
     if (!spell.isANumber(end) || end > itemCount) end = itemCount
@@ -115,7 +115,7 @@ Object.assign(spell, {
     if (!assert.isArrayLike(collection, "spell.rangeStartingAt(collection)")) return
     const range = spell._validateRangeBetween(start, end, spell.itemCountOf(collection))
     if (!range) return
-    const count = (range.end - range.start) + 1
+    const count = range.end - range.start + 1
     Array.prototype.splice.call(collection, range.start - 1, count)
   },
 
@@ -126,12 +126,12 @@ Object.assign(spell, {
   // If `start` is negative, we'll take from the end of the list, but in normal list order.
   _validateRangeStartingAt(start, count, itemCount) {
     if (Math.abs(start) > itemCount) return undefined
-    if (!spell.isANumber(start) || start === 0) start = 1   // TODO === 0 ???
+    if (!spell.isANumber(start) || start === 0) start = 1
+    // TODO === 0 ???
     else if (start < 0) start = Math.max(itemCount + start + 1, 1)
     const end = spell.isANumber(count) ? start + count - 1 : itemCount
     return spell._validateRangeBetween(start, end, itemCount)
   },
-
 
   // Return `count` items from list starting with `start` as 1-based position.
   // Negative `start` takes from the end of the list (but returns in list order)
@@ -142,7 +142,6 @@ Object.assign(spell, {
     if (!range) return []
     return spell.rangeBetween(collection, range.start, range.end)
   },
-
 
   ////////////
   // iteration
@@ -178,15 +177,14 @@ Object.assign(spell, {
   // For object: returns new type of collection with just specified keys.
   filter(collection, condition) {
     if (!assert.isDefined(collection, "spell.all(collection)")) return undefined
-    if (!condition) condition = (it) => it;
+    if (!condition) condition = it => it
     const results = spell.newThingLike(collection)
     let filter
     if (spell.isArrayLike(collection)) {
       filter = (value, item, collection) => {
         if (condition(value, item, collection)) spell.append(results, value)
       }
-    }
-    else {
+    } else {
       filter = (value, item, collection) => {
         if (condition(value, item, collection)) spell.setItemOf(results, item, value)
       }
@@ -199,7 +197,7 @@ Object.assign(spell, {
   // called as `condition(value, item, collection)`
   all(collection, condition) {
     if (!assert.isDefined(collection, "spell.all(collection)")) false
-    if (!condition) condition = (it) => it;
+    if (!condition) condition = it => it
     const iterator = spell.getIteratorFor(collection)
     let result = iterator.next()
     if (result.done) return false
@@ -214,7 +212,7 @@ Object.assign(spell, {
   // called as `condition(value, item, collection)`
   any(collection, condition) {
     if (!assert.isDefined(collection, "spell.any(collection)")) return false
-    if (!condition) condition = (it) => it;
+    if (!condition) condition = it => it
     const iterator = spell.getIteratorFor(collection)
     let result = iterator.next()
     if (result.done) return false
@@ -288,12 +286,11 @@ Object.assign(spell, {
     const keys = spell.keysOf(collection)
     const shuffledKeys = _.shuffle(keys).slice(0, count)
     if (spell.isArrayLike(collection)) {
-      shuffledKeys.forEach((key) => {
+      shuffledKeys.forEach(key => {
         spell.append(results, spell.getItemOf(collection, key))
       })
-    }
-    else {
-      shuffledKeys.forEach((key) => {
+    } else {
+      shuffledKeys.forEach(key => {
         spell.setItemOf(results, key, spell.getItemOf(collection, key))
       })
     }
@@ -314,10 +311,7 @@ Object.assign(spell, {
     if (!assert.isDefined(collection, "spell.smallestOf(collection)")) return undefined
     if (spell.itemCountOf(collection) === 0) return undefined
     const values = spell.valuesOf(collection)
-    return values.reduce(
-      (smallest, next) => next < smallest ? next : smallest,
-      values[0]
-    )
+    return values.reduce((smallest, next) => (next < smallest ? next : smallest), values[0])
   },
 
   // Return largest item of `collection` according to `>` comparison
@@ -325,10 +319,6 @@ Object.assign(spell, {
     if (!assert.isDefined(collection, "spell.largestOf(collection)")) return undefined
     if (spell.itemCountOf(collection) === 0) return undefined
     const values = spell.valuesOf(collection)
-    return values.reduce(
-      (largest, next) => next > largest ? next : largest,
-      values[0]
-    )
-  },
-
+    return values.reduce((largest, next) => (next > largest ? next : largest), values[0])
+  }
 })

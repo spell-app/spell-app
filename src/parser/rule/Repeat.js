@@ -12,9 +12,9 @@
 //  The match returned can be manipulated with:
 //    - `match.compile()`    Return javascript source to interpret the rule.
 //
-import flattenDeep from "lodash/flattenDeep";
+import flattenDeep from "lodash/flattenDeep"
 
-import { Match, Rule } from "./all.js";
+import { Match, Rule } from "./all.js"
 // Repeating rule.
 //  `this.rule` is the rule that repeats.
 //  `rule.delimiter` (optional) if provided, we'll look for one of these
@@ -28,43 +28,43 @@ import { Match, Rule } from "./all.js";
 //  Note: Returns `undefined` if we don't match at least once.
 Rule.Repeat = class repeat extends Rule {
   constructor(props) {
-    if (props instanceof Rule) props = { rule: props };
-    super(props);
+    if (props instanceof Rule) props = { rule: props }
+    super(props)
   }
 
   parse(scope, tokens) {
-    if (this.testAtStart(scope, tokens, 0) === false) return undefined;
+    if (this.testAtStart(scope, tokens, 0) === false) return undefined
 
     // everything that was matched
-    const matched = [];
+    const matched = []
     // items only
-    const items = [];
-    let length = 0;
+    const items = []
+    let length = 0
 
-    let remainingTokens = tokens;
+    let remainingTokens = tokens
     while (remainingTokens.length) {
-      let match = this.rule.parse(scope, remainingTokens);
-      if (!match) break;
-      matched.push(match);
-      items.push(match);
-      length += match.length;
-      remainingTokens = remainingTokens.slice(match.length);
+      let match = this.rule.parse(scope, remainingTokens)
+      if (!match) break
+      matched.push(match)
+      items.push(match)
+      length += match.length
+      remainingTokens = remainingTokens.slice(match.length)
 
       if (this.delimiter) {
         // get delimiter, exiting if not found
-        let delimiter = this.delimiter.parse(scope, remainingTokens);
-        if (!delimiter) break;
+        let delimiter = this.delimiter.parse(scope, remainingTokens)
+        if (!delimiter) break
         // NOTE: we do not push delimiter into matched!
-        matched.push(delimiter);
-        length += delimiter.length;
-        remainingTokens = remainingTokens.slice(delimiter.length);
+        matched.push(delimiter)
+        length += delimiter.length
+        remainingTokens = remainingTokens.slice(delimiter.length)
       }
     }
 
     // Forget it if nothing matched at all
-    if (matched.length === 0) return undefined;
-    if (typeof this.minCount === "number" && matched.length < this.minCount) return undefined;
-    if (typeof this.maxCount === "number" && matched.length > this.maxCount) return undefined;
+    if (matched.length === 0) return undefined
+    if (typeof this.minCount === "number" && matched.length < this.minCount) return undefined
+    if (typeof this.maxCount === "number" && matched.length > this.maxCount) return undefined
 
     const match = new Match({
       rule: this,
@@ -72,41 +72,38 @@ Rule.Repeat = class repeat extends Rule {
       items,
       length,
       scope
-    });
-    if (this.argument) match.argument = this.argument;
-    return match;
+    })
+    if (this.argument) match.argument = this.argument
+    return match
   }
 
   compile(scope, match) {
-    return match.items.map(match => match.compile());
+    return match.items.map(match => match.compile())
   }
 
   getTokens(match) {
-    return flattenDeep(match.matched.map(match => match.tokens));
+    return flattenDeep(match.matched.map(match => match.tokens))
   }
 
   toSyntax() {
-    let { argument, optional } = this.getSyntaxFlags();
-    const repeatSymbol = this.optional ? "*" : "+";
+    let { argument, optional } = this.getSyntaxFlags()
+    const repeatSymbol = this.optional ? "*" : "+"
 
     // don't double-up on parens
-    let rule = this.rule.toSyntax();
+    let rule = this.rule.toSyntax()
     if (this.delimiter) {
-      const delimiter = this.delimiter.toSyntax();
+      const delimiter = this.delimiter.toSyntax()
       return `[${argument}${rule}${delimiter}]${optional}`
-    }
-    else {
+    } else {
       const wrapInParens =
         argument ||
         this.rule instanceof Rule.Sequence ||
-        (this.rule instanceof Rule.Literals && this.rule.literals.length > 1);
+        (this.rule instanceof Rule.Literals && this.rule.literals.length > 1)
 
-      if (wrapInParens && rule.startsWith("(") && rule.endsWith(")"))
-        rule = rule.slice(1, -1);
+      if (wrapInParens && rule.startsWith("(") && rule.endsWith(")")) rule = rule.slice(1, -1)
 
-      if (wrapInParens)
-        return `(${argument}${rule})${repeatSymbol}`;
-      return `${rule}${repeatSymbol}`;
+      if (wrapInParens) return `(${argument}${rule})${repeatSymbol}`
+      return `${rule}${repeatSymbol}`
     }
   }
-};
+}

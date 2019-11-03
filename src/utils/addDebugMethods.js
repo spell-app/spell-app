@@ -85,7 +85,7 @@
 //
 /////////////////////////////////////
 
-import { isNode } from "browser-or-node";
+import { isNode } from "browser-or-node"
 
 //////////////////////////////
 //
@@ -97,49 +97,48 @@ export const DebugLevel = {
   ERROR: 1,
   WARN: 2,
   INFO: 3,
-  DEBUG: 4,
+  DEBUG: 4
 }
 
 // Add debug methods to `object`
 export function addDebugMethods(object = {}, prefix, level = "WARN", color = "#999") {
   // Set initial `DEBUG_LEVEL` level
   // NOTE: if already set on the object, don't override.
-  if (!("DEBUG_LEVEL" in object))
-    object.DEBUG_LEVEL = normalizeDebugLevel(level);
+  if (!("DEBUG_LEVEL" in object)) object.DEBUG_LEVEL = normalizeDebugLevel(level)
 
   // Set `setDebugLevel` method
   Object.defineProperty(object, "setDebugLevel", {
     configurable: true,
     value: function(level) {
-      level = normalizeDebugLevel(level);
+      level = normalizeDebugLevel(level)
       // Don't override if we're already at the same level
       // This lets prototype/instance semantics work cleanly.
-      if (level === this.DEBUG_LEVEL && this.debug) return;
+      if (level === this.DEBUG_LEVEL && this.debug) return
 
-      this.DEBUG_LEVEL = level;
+      this.DEBUG_LEVEL = level
       // Add normal debuggers.
       // NOTE: we do this every time debug level is set to preserve stack trace.
-      this.debug = makeLogMethod(level, DebugLevel.DEBUG, prefix, "log", color);
-      this.info = makeLogMethod(level, DebugLevel.INFO, prefix, "info", color);
-      this.warn = makeLogMethod(level, DebugLevel.WARN, prefix, "warn", color);
-      this.error = makeLogMethod(level, DebugLevel.ERROR, prefix, "error", color);
-      this.group = makeLogMethod(level, DebugLevel.DEBUG, prefix, "group", color);
-      this.groupEnd = makeLogMethod(level, DebugLevel.DEBUG, prefix, "groupEnd", color);
+      this.debug = makeLogMethod(level, DebugLevel.DEBUG, prefix, "log", color)
+      this.info = makeLogMethod(level, DebugLevel.INFO, prefix, "info", color)
+      this.warn = makeLogMethod(level, DebugLevel.WARN, prefix, "warn", color)
+      this.error = makeLogMethod(level, DebugLevel.ERROR, prefix, "error", color)
+      this.group = makeLogMethod(level, DebugLevel.DEBUG, prefix, "group", color)
+      this.groupEnd = makeLogMethod(level, DebugLevel.DEBUG, prefix, "groupEnd", color)
 
       // Add assert handler
       // Unfortunately, this won't preserve line numbers in anything other than Chrome.
       this.assert = function(condition, ...messages) {
-        if (!!condition) return;
-        this.error.apply(object, messages);
-        throw new TypeError(messages.join(" "));
+        if (!!condition) return
+        this.error.apply(object, messages)
+        throw new TypeError(messages.join(" "))
       }
     }
-  });
+  })
 
   // Set up methods according to the debug level.
-  object.setDebugLevel(object.DEBUG_LEVEL);
+  object.setDebugLevel(object.DEBUG_LEVEL)
 
-  return object;
+  return object
 }
 
 //
@@ -151,78 +150,73 @@ export function addDebugMethods(object = {}, prefix, level = "WARN", color = "#9
 // Create a logging function.
 export function makeLogMethod(objectLevel, methodLevel, prefix, consoleMethod, color) {
   // If object has that level turned off, return no-op.
-  if (methodLevel > objectLevel) return Function.prototype;
+  if (methodLevel > objectLevel) return Function.prototype
 
   // If no prefix, just return bound console method.
-  if (!prefix) return console[consoleMethod].bind(console);
+  if (!prefix) return console[consoleMethod].bind(console)
 
   // For node, just output the prefix without colors
   // TODO: use colors ala https://coderwall.com/p/yphywg/printing-colorful-text-in-terminal-when-run-node-js-script
   if (isNode) {
-    return console[consoleMethod].bind(console, `${prefix}: `);
+    return console[consoleMethod].bind(console, `${prefix}: `)
   }
 
   // With prefix: use currying to apply prefix automatically.
   const style = `color:white;background-color:${color};border-radius:3px;border:1px solid ${color};`
-  return console[consoleMethod].bind(console, `%c ${prefix} `, style);
+  return console[consoleMethod].bind(console, `%c ${prefix} `, style)
 }
-
 
 export function colorLogMessages(prefix, style = ";", messageBits = []) {
-  const results = ["%c"];
+  const results = ["%c"]
   if (prefix) {
-    results[0] += `${prefix}: %c`;
-    results.push(style + "; font-weight: bold");
+    results[0] += `${prefix}: %c`
+    results.push(style + "; font-weight: bold")
   }
 
-  let objectified = false;
-  messageBits.forEach( bit => {
+  let objectified = false
+  messageBits.forEach(bit => {
     // If we already found an object, just output into the results
-    if (objectified)
-      return results.push(bit);
+    if (objectified) return results.push(bit)
 
-    const type = typeof bit;
-    const isStringish
-      =  bit == null
-      || type === "string"
-      || type === "number"
-      || type === "boolean"
-    ;
-    if (isStringish)
-      results[0] += bit + " ";
+    const type = typeof bit
+    const isStringish = bit == null || type === "string" || type === "number" || type === "boolean"
+    if (isStringish) results[0] += bit + " "
     else {
-      objectified = true;
-      results.push(style);
-      results.push(bit);
+      objectified = true
+      results.push(style)
+      results.push(bit)
     }
-  });
+  })
 
   // Add style if we didn't already output it
-  if (!objectified)
-    results.push(style);
+  if (!objectified) results.push(style)
 
-  return results;
+  return results
 }
-window.colorLogMessages = colorLogMessages;
+window.colorLogMessages = colorLogMessages
 
 // Return a numeric debug level given `debugFlag` as:
 //  - a number (one of the `DEBUG` etc constants), or
 //  - a string ("DEBUG", "ERROR", etc)
 export function normalizeDebugLevel(debugFlag) {
   if (typeof debugFlag === "string") {
-    debugFlag = debugFlag.toUpperCase();
+    debugFlag = debugFlag.toUpperCase()
     switch (debugFlag) {
-      case "OFF":     return DebugLevel.OFF;
-      case "ERROR":   return DebugLevel.ERROR;
-      case "WARN":    return DebugLevel.WARN;
-      case "INFO":    return DebugLevel.INFO;
-      case "DEBUG":   return DebugLevel.DEBUG;
+      case "OFF":
+        return DebugLevel.OFF
+      case "ERROR":
+        return DebugLevel.ERROR
+      case "WARN":
+        return DebugLevel.WARN
+      case "INFO":
+        return DebugLevel.INFO
+      case "DEBUG":
+        return DebugLevel.DEBUG
       default:
-        throw new TypeError(`normalizeDebugLevel(): dont understand debugFlag ${JSON.stringify(debugFlag)}`);
+        throw new TypeError(`normalizeDebugLevel(): dont understand debugFlag ${JSON.stringify(debugFlag)}`)
     }
   }
-  if (typeof debugFlag === "number")
-    return debugFlag;
+  if (typeof debugFlag === "number") return debugFlag
 
-  throw new TypeError(`normalizeDebugLevel(): dont understand debugFlag ${JSON.stringify(debugFlag)}`);
+  throw new TypeError(`normalizeDebugLevel(): dont understand debugFlag ${JSON.stringify(debugFlag)}`)
 }

@@ -27,8 +27,8 @@ const blacklist = {
   cancel: 1,
 
   // articles
-//   a: 1,      // TODO... ???
-//   an: 1,
+  //   a: 1,      // TODO... ???
+  //   an: 1,
   the: 1,
 
   // English prepositions (from Wikipeda "Preposition"):
@@ -47,7 +47,7 @@ const blacklist = {
   beyond: 1,
   by: 1,
   defined: 1,
-//  down: 1,
+  //  down: 1,
   during: 1,
   each: 1,
   empty: 1,
@@ -89,7 +89,7 @@ const blacklist = {
   underneath: 1,
   unique: 1,
   until: 1,
-//  up: 1,
+  //  up: 1,
   upon: 1,
   upside: 1,
   versus: 1,
@@ -121,11 +121,11 @@ const blacklist = {
   seventh: 2,
   eighth: 1,
   ninth: 1,
-  tenth: 1,
-//     penultimate: 1,   // TODO... ???
-//     final: 1,         // TODO... ???
-//     last: 1,          // TODO... ???
-//     top: 1,           // TODO... ???
-//     bottom: 1,        // TODO... ???
+  tenth: 1
+  //     penultimate: 1,   // TODO... ???
+  //     final: 1,         // TODO... ???
+  //     last: 1,          // TODO... ???
+  //     top: 1,           // TODO... ???
+  //     bottom: 1,        // TODO... ???
 }
-export default blacklist;
+export default blacklist

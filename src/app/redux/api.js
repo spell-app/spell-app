@@ -8,19 +8,19 @@
 //
 //////////////////////////////
 
-import JSON5 from "json5";
-import { parseJSON, parseJSON5 } from "./utils/json.js";
-import { addDebugMethods, DebugLevel } from "../../utils/addDebugMethods.js";
+import JSON5 from "json5"
+import { parseJSON, parseJSON5 } from "./utils/json.js"
+import { addDebugMethods, DebugLevel } from "../../utils/addDebugMethods.js"
 
-const logger = addDebugMethods({}, "api", DebugLevel.WARN);
+const logger = addDebugMethods({}, "api", DebugLevel.WARN)
 
 export class APIError extends Error {
   constructor(_props) {
-  const { message, props } =_props;
-  super(message);
-  Object.assign(this, props);
-  // Fix up stack trace to refer to throwing line
-  if (Error.captureStackTrace) Error.captureStackTrace(this, this.constructor);
+    const { message, props } = _props
+    super(message)
+    Object.assign(this, props)
+    // Fix up stack trace to refer to throwing line
+    if (Error.captureStackTrace) Error.captureStackTrace(this, this.constructor)
   }
 }
 
@@ -53,90 +53,84 @@ export class APIError extends Error {
 //       This standardizes error handling
 //       and will allow us to eventually batch requests to the server if desired.
 //
-const RESPONSE_TYPES = [ "text", "json", "json5", "blob", "dataURL" ];
+const RESPONSE_TYPES = ["text", "json", "json5", "blob", "dataURL"]
 export function makeAPICall({ url, params = {}, apiMethod, credentials = "include", responseType = "text" }) {
   // Default credentials
-  if (params.credentials === undefined)
-    params.credentials = credentials;
+  if (params.credentials === undefined) params.credentials = credentials
 
   // Make sure we got a valid `responseType`
   if (!RESPONSE_TYPES.includes(responseType))
-    throw new TypeError(`apiUtils.makeAPICall('${url}'): don't understand responseType '${responseType}'`);
+    throw new TypeError(`apiUtils.makeAPICall('${url}'): don't understand responseType '${responseType}'`)
 
   // If debugging, log calls
-  logger.debug(`CALLING: '${url}' with params:`, params);
+  logger.debug(`CALLING: '${url}' with params:`, params)
 
-  return fetch(url, params)
-    // Catch CORS, server-not-found or other network error.
-    // Reject with an `APIError` with `isNetworkError` set to true.
-    .catch(exception => {
-      const error = new APIError({
-        message: "Network error:",
-        isNetworkError: true,
-        error: exception,
-        url,
-        params,
-        apiMethod,
-      });
-      logger.warn(error.message, error);
-      return Promise.reject(error.message, error);
-    })
-    // Catch normal response, regardless of status code
-    .then(response => {
-      // Convert a non `ok` response to an `APIError`
-      if (!response.ok) {
-        // Log authentication errors specially
-        // The promise handler will pick these up automatically.
-        const isAuthError = (response.status === 401 || response.status === 403);
-
+  return (
+    fetch(url, params)
+      // Catch CORS, server-not-found or other network error.
+      // Reject with an `APIError` with `isNetworkError` set to true.
+      .catch(exception => {
         const error = new APIError({
-          isAuthError,
-          message: (isAuthError ? "Authentication error:" : "Server returned error:"),
-          apiMethod,
+          message: "Network error:",
+          isNetworkError: true,
+          error: exception,
           url,
           params,
-          response
-        });
-        logger.warn(error.message, error);
-        return Promise.reject(error);
-      }
+          apiMethod
+        })
+        logger.warn(error.message, error)
+        return Promise.reject(error.message, error)
+      })
+      // Catch normal response, regardless of status code
+      .then(response => {
+        // Convert a non `ok` response to an `APIError`
+        if (!response.ok) {
+          // Log authentication errors specially
+          // The promise handler will pick these up automatically.
+          const isAuthError = response.status === 401 || response.status === 403
 
-      // Return result according to `responseType`
-      let responsePromise;
-      if (responseType === "json")
-        responsePromise = parseJSONResponse(response);
+          const error = new APIError({
+            isAuthError,
+            message: isAuthError ? "Authentication error:" : "Server returned error:",
+            apiMethod,
+            url,
+            params,
+            response
+          })
+          logger.warn(error.message, error)
+          return Promise.reject(error)
+        }
 
-      else if (responseType === "json5")
-        // NOTE: `parseJSONResponse()` logs meaningful error messages
-        responsePromise = parseJSON5Response(response);
+        // Return result according to `responseType`
+        let responsePromise
+        if (responseType === "json") responsePromise = parseJSONResponse(response)
+        else if (responseType === "json5")
+          // NOTE: `parseJSONResponse()` logs meaningful error messages
+          responsePromise = parseJSON5Response(response)
+        else if (responseType === "blob") responsePromise = response.blob()
+        else if (responseType === "text") responsePromise = response.text()
+        else if (responseType === "dataURL")
+          responsePromise = response
+            .blob()
+            //... and convert to a base64 blob we can use as an `<img src>`
+            .then(blob => toDataURL(blob, "Error parsing image"))
 
-      else if (responseType === "blob")
-        responsePromise = response.blob();
-
-      else if (responseType === "text")
-        responsePromise = response.text();
-
-      else if (responseType === "dataURL")
-        responsePromise = response.blob()
-          //... and convert to a base64 blob we can use as an `<img src>`
-          .then(blob => toDataURL(blob, "Error parsing image"));
-
-      // Convert an error in the above into an APIError
-      return responsePromise.catch(exception => {
-        const error = new APIError({
-          message: `Error parsing ${responseType}: ${exception.message}`,
-          apiMethod,
-          url,
-          params,
-          response,
-          error: exception
-        });
-        logger.warn(error.message, error);
-        return Promise.reject(error);
-      });
-    });
+        // Convert an error in the above into an APIError
+        return responsePromise.catch(exception => {
+          const error = new APIError({
+            message: `Error parsing ${responseType}: ${exception.message}`,
+            apiMethod,
+            url,
+            params,
+            response,
+            error: exception
+          })
+          logger.warn(error.message, error)
+          return Promise.reject(error)
+        })
+      })
+  )
 }
-
 
 //////////////////////////////
 // HTTP "GET" methods
@@ -145,44 +139,42 @@ export function makeAPICall({ url, params = {}, apiMethod, credentials = "includ
 // Get a text resource at `url`.
 // Returns a promise which yields the reponse as a text string.
 export function getText({ url, params, apiMethod }) {
-  return makeAPICall({ url, params, apiMethod });
+  return makeAPICall({ url, params, apiMethod })
 }
 
 // Get a JSON resource at `url`.
 // Returns a promise which yields the reponse as a json object.
 // Throws if the json is not valid.
 export function getJSON({ url, params, apiMethod }) {
-  return makeAPICall({ url, params, apiMethod, responseType: "json" });
+  return makeAPICall({ url, params, apiMethod, responseType: "json" })
 }
 
 // Get a JSON5 resource at `url`.
 // Returns a promise which yields the reponse as a json object.
 // Throws if the json is not valid.
 export function getJSON5({ url, params, apiMethod }) {
-  return makeAPICall({ url, params, apiMethod, responseType: "json5" });
+  return makeAPICall({ url, params, apiMethod, responseType: "json5" })
 }
-
 
 // Get a binary resource (e.g. an image) at `url`.
 // Returns a promise which yields the reponse as a blob.
 export function getBlob({ url, params = {}, apiMethod }) {
-  return makeAPICall({ url, params, apiMethod, responseType: "blob" });
+  return makeAPICall({ url, params, apiMethod, responseType: "blob" })
 }
 
 // Get a binary resource (e.g. an image) at `url`.
 // Returns a promise which yields the reponse as a data URL,
 // e.g. for using as an `<img src>`.
 export function getBlobAsDataURL({ url, params = {}, apiMethod }) {
-  return makeAPICall({ url, params, apiMethod, responseType: "dataURL" });
+  return makeAPICall({ url, params, apiMethod, responseType: "dataURL" })
 }
-
 
 // Load the file at `url` and present in a new window/tab.
 // Note that there is no return from this, and no error message if the file is not found.
 // NOTE: this uses a special `<a>` tag to force the browser to download.
 // See: https://developers.google.com/web/updates/2011/08/Downloading-resources-in-HTML5-a-download
 export function openFile({ url, filename }) {
-  window.open(url, "_blank");
+  window.open(url, "_blank")
 }
 
 // Download the file at `url` to user's disk as `filename`.
@@ -190,12 +182,11 @@ export function openFile({ url, filename }) {
 // NOTE: this uses a special `<a>` tag to force the browser to download.
 // See: https://developers.google.com/web/updates/2011/08/Downloading-resources-in-HTML5-a-download
 export function downloadFile({ url, filename }) {
-  const anchor = document.createElement("a");
-  anchor.setAttribute("href", url);
-  anchor.setAttribute("download", filename);
-  anchor.click();
+  const anchor = document.createElement("a")
+  anchor.setAttribute("href", url)
+  anchor.setAttribute("download", filename)
+  anchor.click()
 }
-
 
 //////////////////////////////
 // HTTP "POST" methods
@@ -210,14 +201,13 @@ export function downloadFile({ url, filename }) {
 // Use `postJSON` to post as JSON and return results as parsed JSON.
 //
 export function post({ url, body, params = {}, apiMethod, responseType = "text" }) {
-  if (!params.method) params.method = "POST";
+  if (!params.method) params.method = "POST"
   if (body != null) {
-    if (typeof body === "string") params.body = body;
+    if (typeof body === "string") params.body = body
     else {
       try {
-        params.body = JSON.stringify(body, null, "  ");
-      }
-      catch (exception) {
+        params.body = JSON.stringify(body, null, "  ")
+      } catch (exception) {
         const error = new APIError({
           message: "Error JSON.stringifying body",
           apiMethod,
@@ -225,20 +215,20 @@ export function post({ url, body, params = {}, apiMethod, responseType = "text" 
           params,
           body,
           error: exception
-        });
-        logger.warn(error.message, error);
-        return Promise.reject(error);
+        })
+        logger.warn(error.message, error)
+        return Promise.reject(error)
       }
     }
   }
-  return makeAPICall({ url, params, apiMethod, responseType });
+  return makeAPICall({ url, params, apiMethod, responseType })
 }
 
 // Post text `body` to the server at `url` (stringifying if necessary).
 // Throws and logs to console if if `JSON.stringify()` fails.
 export function postText({ url, body, params = {}, apiMethod }) {
-  setTextHeader(params);
-  return post({ url, body, params, apiMethod, responseType: "text" });
+  setTextHeader(params)
+  return post({ url, body, params, apiMethod, responseType: "text" })
 }
 
 // Post json `body` to the server at `url` (stringifying if necessary).
@@ -246,8 +236,8 @@ export function postText({ url, body, params = {}, apiMethod }) {
 // Throws and logs to console if if `JSON.stringify()` fails.
 export function postJSON({ url, body, params = {}, apiMethod }) {
   // Set JSON content-type header
-  setJSONHeader(params);
-  return post({ url, body, params, apiMethod, responseType: "json" });
+  setJSONHeader(params)
+  return post({ url, body, params, apiMethod, responseType: "json" })
 }
 
 // Post json5 `body` to the server at `url` (stringifying if necessary).
@@ -255,23 +245,19 @@ export function postJSON({ url, body, params = {}, apiMethod }) {
 // Throws and logs to console if if `JSON5.stringify()` fails.
 export function postJSON5({ url, body, params = {}, apiMethod }) {
   // Set JSON5 content-type header
-  setJSON5Header(params);
-  return post({ url, body, params, apiMethod, responseType: "json5" });
+  setJSON5Header(params)
+  return post({ url, body, params, apiMethod, responseType: "json5" })
 }
-
 
 //////////////////////////////
 // HTTP "DELETE" methods
 //////////////////////////////
 
 function _delete({ url, params = {}, apiMethod, responseType = "text" }) {
-  if (!params.method) params.method = "DELETE";
-  return makeAPICall({ url, params, apiMethod, responseType });
+  if (!params.method) params.method = "DELETE"
+  return makeAPICall({ url, params, apiMethod, responseType })
 }
-export { _delete as delete };
-
-
-
+export { _delete as delete }
 
 //////////////////////////////
 //  Utilities
@@ -280,9 +266,9 @@ export { _delete as delete };
 // Convert a simple (non-nested) object into a query parameter string
 export function getQueryParamsString(queryObject) {
   const params = Object.keys(queryObject).map(key => {
-    return `${key}=${queryObject[key]}`;
-  });
-  return "?" + params.join("&");
+    return `${key}=${queryObject[key]}`
+  })
+  return "?" + params.join("&")
 }
 
 // Parse JSON `response` from a `fetch`.
@@ -290,8 +276,7 @@ export function getQueryParamsString(queryObject) {
 // NOTE: This grabs the `text()` from the call, then parses that into JSON as a separate step.
 //     This allows us to log a better error message, including source url and line number.
 export function parseJSONResponse(response) {
-  return response.text()
-    .then(text => parseJSON(text, response.url));
+  return response.text().then(text => parseJSON(text, response.url))
 }
 
 // Parse JSON5 `response` from a `fetch`.
@@ -299,36 +284,32 @@ export function parseJSONResponse(response) {
 // NOTE: This grabs the `text()` from the call, then parses that into JSON5 as a separate step.
 //     This allows us to log a better error message, including source url and line number.
 export function parseJSON5Response(response) {
-  return response.text()
-    .then(text => parseJSON5(text, response.url));
+  return response.text().then(text => parseJSON5(text, response.url))
 }
 
 // Set a header in fetch `params`, creating `params` object if necessary.
 // Returns `params`.
 export function setFetchHeader(params, headerName, headerValue) {
-  if (!params.headers)
-    params.headers = new Headers();
-  params.headers.set(headerName, headerValue);
-  return params;
+  if (!params.headers) params.headers = new Headers()
+  params.headers.set(headerName, headerValue)
+  return params
 }
 
 // Add application/json content type header to fetch params.
 export function setTextHeader(params) {
-  return setFetchHeader(params, "Content-Type", "text/plain");
+  return setFetchHeader(params, "Content-Type", "text/plain")
 }
 
 // Add application/json content type header to fetch params.
 export function setJSONHeader(params) {
-  return setFetchHeader(params, "Content-Type", "application/json");
+  return setFetchHeader(params, "Content-Type", "application/json")
 }
 
 // Add application/json5 content type header to fetch params.
 export function setJSON5Header(params) {
-  return setFetchHeader(params, "Content-Type", "application/json5");
+  return setFetchHeader(params, "Content-Type", "application/json5")
 }
-
-
 
 // Export everything as a lump for easy import as a "module".
 // e.g.  `import apiUtils from "./api-utils"`
-export default {...exports};
+export default { ...exports }

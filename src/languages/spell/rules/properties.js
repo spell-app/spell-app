@@ -5,20 +5,15 @@
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
 
+import { Rule, Spell, Token } from "../all.js"
 
-import {
-  Rule,
-  Spell,
-  Token,
-} from "../all.js";
+import identifierBlacklist from "./identifier-blacklist.js"
 
-import identifierBlacklist from "./identifier-blacklist.js";
-
-const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/;
+const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/
 
 // quick-and-dirty check for a property identifier we don't have to quote
 //  when creating a new object as `{ key: value }`.
-const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w\$]*$/;
+const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w\$]*$/
 
 export default new Spell.Parser({
   module: "properties",
@@ -31,10 +26,9 @@ export default new Spell.Parser({
       blacklist: identifierBlacklist,
       // convert dashes to underscores
       valueMap(value) {
-        return (""+value).replace(/-/g, "_");
+        return ("" + value).replace(/-/g, "_")
       }
     },
-
 
     {
       name: "the_property_of",
@@ -42,29 +36,28 @@ export default new Spell.Parser({
       syntax: "the {property} of",
       testRule: "the",
       compile(scope, match) {
-        return match.results.property;
-      },
+        return match.results.property
+      }
     },
-
 
     {
       // TODO: multiple identifiers would be cool...
       name: "property_expression",
       alias: ["expression", "single_expression"],
       syntax: "{property_accessor} {expression:single_expression}",
-      testRule: "{property_accessor}",    // ???
+      testRule: "{property_accessor}", // ???
       compile(scope, match) {
-        let { expression, property_accessor } = match.results;
+        let { expression, property_accessor } = match.results
         // TODO: `[xxx]` for non-identifiers
         // TODO: optional accessor:  `a?.b` ???
-        return `${expression}.${property_accessor}`;
+        return `${expression}.${property_accessor}`
       },
       tests: [
         {
           compileAs: "expression",
           beforeEach(scope) {
-            scope.variables.add("bar");
-            scope.variables.add("baz");
+            scope.variables.add("bar")
+            scope.variables.add("baz")
           },
           tests: [
             ["the foo of bar", "bar.foo"],
@@ -76,7 +69,6 @@ export default new Spell.Parser({
       ]
     },
 
-
     // "its" as:
     //  - a local variable, if one is defined (e.g. in an instance method), or
     //  - a synonym for "this"
@@ -86,23 +78,19 @@ export default new Spell.Parser({
       syntax: "its {property}",
       testRule: "its",
       compile(scope, match) {
-        const { property } = match.results;
+        const { property } = match.results
         const itsVar = scope.variables("its")
-        const its = (itsVar ? itsVar.output : 'this')
+        const its = itsVar ? itsVar.output : "this"
         return `${its}.${property}`
       },
       tests: [
-//TESTME: `its` inside an instance method
+        //TESTME: `its` inside an instance method
         {
           compileAs: "expression",
-          tests: [
-            ["its foo", "this.foo"],
-            ["the foo of its bar", "this.bar.foo"],
-          ]
+          tests: [["its foo", "this.foo"], ["the foo of its bar", "this.bar.foo"]]
         }
       ]
     },
-
 
     // Properties clause: creates an object with one or more property values.
     //  `foo = 1, bar = 2`
@@ -114,18 +102,17 @@ export default new Spell.Parser({
       syntax: "[({key:property} ((=|is|of|is? set to) {value:expression})?)(,|and)]",
       compile(scope, match) {
         const props = match.items.map(function(prop) {
-          let { key, value } = prop.results;
-          if (value === undefined) return key;
-          if (!LEGAL_PROPERTY_IDENTIFIER.test(key))
-            return `"${key}": ${value}`;
-          return `${key}: ${value}`;
-        });
-        return `{ ${props.join(", ")} }`;
+          let { key, value } = prop.results
+          if (value === undefined) return key
+          if (!LEGAL_PROPERTY_IDENTIFIER.test(key)) return `"${key}": ${value}`
+          return `${key}: ${value}`
+        })
+        return `{ ${props.join(", ")} }`
       },
       tests: [
         {
           beforeEach(scope) {
-            scope.variables.add("bar");
+            scope.variables.add("bar")
           },
           tests: [
             [``, undefined],
@@ -137,13 +124,11 @@ export default new Spell.Parser({
             [`length is 1, rank of "queen"`, `{ length: 1, rank: "queen" }`],
 
             // TODO: `{property}` converts to `foo_bar` before we get here
-            [`foo-bar = 1`, `{ foo_bar: 1 }` ],
+            [`foo-bar = 1`, `{ foo_bar: 1 }`]
           ]
         }
       ]
     },
-
-
 
     //MOVE TO `functions`?
     // Arguments clause for methods
@@ -156,8 +141,8 @@ export default new Spell.Parser({
       syntax: "with [args:{variable},]",
       // Returns an array of argument values
       compile(scope, match) {
-        const { args } = match.results;
-        return args.join(", ");
+        const { args } = match.results
+        return args.join(", ")
       },
       tests: [
         {
@@ -168,7 +153,6 @@ export default new Spell.Parser({
           ]
         }
       ]
-    },
-
+    }
   ]
-});
+})

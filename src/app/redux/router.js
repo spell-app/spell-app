@@ -4,10 +4,10 @@
 //
 /////////////////////////////////////
 
-import React from 'react';
+import React from "react"
 
-import { BrowserRouter } from 'react-router-dom'
-import createBrowserHistory from 'history/createBrowserHistory'
+import { BrowserRouter } from "react-router-dom"
+import createBrowserHistory from "history/createBrowserHistory"
 
 import {
   ConnectedRouter as _ConnectedRouter,
@@ -17,22 +17,21 @@ import {
   replace,
   goBack,
   goForward
-} from 'react-router-redux';
+} from "react-router-redux"
 
-import ReduxFactory from "./ReduxFactory";
-import { clearAllPrefs } from "./utils/prefs";
-
+import ReduxFactory from "./ReduxFactory"
+import { clearAllPrefs } from "./utils/prefs"
 
 // Create `history` object we'll use to navigate.
 // NOTE: We're ALWAYS using HASH-based history now to minimize web server configuration.
 //     It is REQUIRED for cordova in any case.
-export const history = createBrowserHistory();
+export const history = createBrowserHistory()
 
 // Wrap `ConnectedRouter` to include history above.
 // Use to wrap your top-level RR <Switch> component.
 export function ConnectedRouter(props) {
-  const router = React.createElement(_ConnectedRouter, { history, ...props });
-  return React.createElement(BrowserRouter, null, router);
+  const router = React.createElement(_ConnectedRouter, { history, ...props })
+  return React.createElement(BrowserRouter, null, router)
 }
 
 // History factory
@@ -41,28 +40,27 @@ const _router = new ReduxFactory({
 
   initialState: {
     // Current url
-    url: undefined,       // Url as string
-    location: undefined,    // Current url as react-router `location`
+    url: undefined, // Url as string
+    location: undefined, // Current url as react-router `location`
 
     // Current overlay name / props
     overlayId: undefined,
-    overlayProps: undefined,
+    overlayProps: undefined
   },
 
   // Automatically attach `routerMiddleware`
-  middlewares: [ routerMiddleware(history) ],
+  middlewares: [routerMiddleware(history)],
 
   // debug
   history,
   push
-});
-export default _router;
+})
+export default _router
 
 // Wrap our `normal` reducer with the `routerReducer` from `react-router-redux`
 // The ensures that `reducer.location` will be set to the current location.
 // See:  https://github.com/ReactTraining/react-router/tree/master/packages/react-router-redux
-_router.wrapReducer(routerReducer);
-
+_router.wrapReducer(routerReducer)
 
 ////////////////////
 //
@@ -76,15 +74,14 @@ export const _restartApp = _router.addAction({
   name: "restartApp",
   handler(router) {
     // Clear ALL preferences.
-    clearAllPrefs();
+    clearAllPrefs()
     // Clear the `href` which stores where we are in the app
     // This will force the app to redraw on desktop + Cordova/Android.
-    window.location.href = "";
+    window.location.href = ""
     // Return router so redux doesn't have a fit.
-    return router;
+    return router
   }
-});
-
+})
 
 //  Reload the current page.
 //  This also forces us to reload all data from the server.
@@ -92,35 +89,27 @@ export const _restartApp = _router.addAction({
 export const _reloadPage = _router.addAction({
   name: "reloadPage",
   handler(router, url) {
-    const currentURL = urlForLocation(router.location);
-    this.info("reloadPage()",
-      "\n- url:", url,
-      "\n- currentURL:", currentURL,
-    );
+    const currentURL = urlForLocation(router.location)
+    this.info("reloadPage()", "\n- url:", url, "\n- currentURL:", currentURL)
 
     if (url && url !== currentURL) {
-      window.location.href = url;
-    }
-    else {
+      window.location.href = url
+    } else {
       // FORCE reload of the same page from the "server".
-      window.location.reload(true);
+      window.location.reload(true)
     }
     // Return router so redux doesn't have a fit.
-    return router;
+    return router
   }
-});
-
+})
 
 // Force a redraw of the app.
 export const _redrawApp = _router.addAction({
   name: "redrawApp",
   handler(router) {
-    return { ...router };
+    return { ...router }
   }
-});
-
-
-
+})
 
 // Go to some `url`.
 //  `pageProps` will be passed to the page (see `/pages/PageRouter.js`)
@@ -130,64 +119,58 @@ export const _redrawApp = _router.addAction({
 export const _goTo = _router.addAction({
   name: "goTo",
   getParams(url) {
-    return { url };
+    return { url }
   },
   handler(router, { url }) {
-    const currentURL = urlForLocation(router.location);
-    const isSameURL = (url === currentURL);
-    console.info("_goTo()",
-      "\n-url:", url,
-      "\n-currentURL:", currentURL,
-      "\n-isSameURL:", isSameURL
-    );
+    const currentURL = urlForLocation(router.location)
+    const isSameURL = url === currentURL
+    console.info("_goTo()", "\n-url:", url, "\n-currentURL:", currentURL, "\n-isSameURL:", isSameURL)
 
     // Navigate on a delay to avoid redux error message
     setTimeout(() => {
-      if (isSameURL)  history.replace(url)
-      else      history.push(url)
-    }, 0);
+      if (isSameURL) history.replace(url)
+      else history.push(url)
+    }, 0)
 
     // Remember url
-    setLastAppURL(url);
+    setLastAppURL(url)
 
-    return {...router};
+    return { ...router }
   }
-});
+})
 
 // `pushHistory` action
 export const _pushHistory = _router.addAction({
   name: "pushHistory",
   actionCreator: push
-});
+})
 
 // `replaceHistory` action
 export const _replaceHistory = _router.addAction({
   name: "replaceHistory",
   actionCreator: replace
-});
+})
 
 // `historyGoBack` action
 export const _goBack = _router.addAction({
   name: "goBack",
   actionCreator: goBack
-});
+})
 
 // `historyGoForward` action
 export const _goForward = _router.addAction({
   name: "goForward",
   actionCreator: goForward
-});
-
+})
 
 // Show the `upload JSON fixtures` page
 export const _showUploadJSONPage = _router.addAction({
   name: "showUploadJSONPage",
   ACTION: "GO_TO",
   getParams() {
-    return { url: getJSONUploadURL() };
+    return { url: getJSONUploadURL() }
   }
-});
-
+})
 
 ////////////////////
 //
@@ -201,34 +184,30 @@ export const _setServerURL = _router.addAction({
   name: "setServerURL",
   getParams(url) {
     // Pass through URL string if provided
-    if (typeof url === "string" && url)
-      return url;
+    if (typeof url === "string" && url) return url
 
     // Otherwise prompt for url.
-    url = _router.getPref("API_SERVER") || appConfig.API_SERVER || "";
+    url = _router.getPref("API_SERVER") || appConfig.API_SERVER || ""
 
     // Convert `{{}}` to native value
-    if (url.includes("{{"))
-      url = expandAppConfigURL(url);
+    if (url.includes("{{")) url = expandAppConfigURL(url)
 
-    url = prompt("URL to hit for data requests?", url);
+    url = prompt("URL to hit for data requests?", url)
 
-    if (url == null) url = undefined;
-    return url;
+    if (url == null) url = undefined
+    return url
   },
   handler(router, API_SERVER) {
     // Save in appConfig for non-reduxy things
-    appConfig.API_SERVER = API_SERVER;
+    appConfig.API_SERVER = API_SERVER
     // Save as preference
-    _router.setPref("API_SERVER", API_SERVER);
+    _router.setPref("API_SERVER", API_SERVER)
     // Re-start the app in a tick
-    _reloadPage();
+    _reloadPage()
     // Return router so redux doesn't have a fit.
-    return router;
+    return router
   }
-});
-
-
+})
 
 ////////////////////
 //
@@ -241,27 +220,25 @@ export const _setServerURL = _router.addAction({
 // Return the current location as a `url` string.
 // BREAKS ENCAPSULATION
 export function getCurrentAppURL() {
-  const { location } = _router.store.getState().router;
-  return urlForLocation(location);
+  const { location } = _router.store.getState().router
+  return urlForLocation(location)
 }
 
 // Get/set last `url` we were showing as a pref so it survives reload.
 export function getLastAppURL() {
-  return _router.getPref("lastAppURL");
+  return _router.getPref("lastAppURL")
 }
 export function setLastAppURL(url = getCurrentAppURL()) {
-  _router.setPref("lastAppURL", url);
+  _router.setPref("lastAppURL", url)
 }
 
 // Get/set last `overlay` we were showing as a pref so it survives reload.
 export function getLastOverlay() {
-  return _router.getPref("lastAppOverlay");
+  return _router.getPref("lastAppOverlay")
 }
 export function setLastOverlay(overlay) {
-  _router.setPref("lastAppOverlay", overlay);
+  _router.setPref("lastAppOverlay", overlay)
 }
-
-
 
 /////////////////////////////////////
 //
@@ -283,14 +260,14 @@ export const _showOverlay = _router.addAction({
     }
   },
   handler(router, { overlayId, overlayProps }) {
-    const { overlayId: currentOverlayId } = router;
+    const { overlayId: currentOverlayId } = router
 
     // Sanity check, there should be only one overlay visible at a time
     if (currentOverlayId && currentOverlayId !== overlayId)
-      _router.warn(`SHOW_OVERLAY: attempting to open '${overlayId}' when '${currentOverlayId}' is open.`);
+      _router.warn(`SHOW_OVERLAY: attempting to open '${overlayId}' when '${currentOverlayId}' is open.`)
 
     // Remember the overlay as a pref for `resumeAfterActivity` below
-    setLastOverlay({ overlayId, overlayProps });
+    setLastOverlay({ overlayId, overlayProps })
 
     return {
       ...router,
@@ -298,7 +275,7 @@ export const _showOverlay = _router.addAction({
       overlayProps
     }
   }
-});
+})
 
 //  Hide a particular overlay.
 //  If you want to hide WHATEVER overlay is visible, don't pass overlayId.
@@ -307,25 +284,23 @@ export const _hideOverlay = _router.addAction({
   handler(router, overlayId) {
     // If no overlay visible, forget it
     if (!router.overlayId) {
-      return router;
+      return router
     }
 
     // Otherwise if they specified a specific overlay, only close for that one.
     if (overlayId && router.overlayId !== overlayId) {
-      _router.warn(`HIDE_OVERLAY: attempting to close '${overlayId}' when current overlay is '${router.overlayId}'.`);
-      return { ...router };
+      _router.warn(`HIDE_OVERLAY: attempting to close '${overlayId}' when current overlay is '${router.overlayId}'.`)
+      return { ...router }
     }
 
     // Clear overlay pref
-    setLastOverlay(undefined);
+    setLastOverlay(undefined)
 
     // Return everything other than overlay props
-    const { overlayId: openOverlayId, overlayProps, ...newRouterState } = router;
-    return newRouterState;
+    const { overlayId: openOverlayId, overlayProps, ...newRouterState } = router
+    return newRouterState
   }
-});
-
-
+})
 
 ////////////////////
 //
@@ -338,16 +313,15 @@ export const _hideOverlay = _router.addAction({
 //    On cordova we do this with `resumeAfterActivity`
 //
 
-let _lastHiddenTime;
+let _lastHiddenTime
 export const _uiHidden = _router.addAction({
   name: "uiHidden",
   handler(appState) {
-    _lastHiddenTime = Date.now();
-    _router.info("app hidden at ", _lastHiddenTime);
-    return { ...appState };
+    _lastHiddenTime = Date.now()
+    _router.info("app hidden at ", _lastHiddenTime)
+    return { ...appState }
   }
-});
-
+})
 
 // UI has been shown on desktop (inactive tab was activated).
 // SIDE_EFFECT:  If more than `appConfig.autoRefreshFrequency` msec since hidden,
@@ -355,16 +329,15 @@ export const _uiHidden = _router.addAction({
 export const _uiShown = _router.addAction({
   name: "uiShown",
   handler(appState) {
-    const hiddenDuration = _lastHiddenTime ? Date.now() - _lastHiddenTime : 0;
-    _router.info("app shown again after ", (hiddenDuration/1000), " sec");
+    const hiddenDuration = _lastHiddenTime ? Date.now() - _lastHiddenTime : 0
+    _router.info("app shown again after ", hiddenDuration / 1000, " sec")
 
     // Reload the app if we've been hidden for a while
-    if (hiddenDuration > appConfig.autoRefreshFrequency)
-      setTimeout(_reloadPage, 500);
+    if (hiddenDuration > appConfig.autoRefreshFrequency) setTimeout(_reloadPage, 500)
 
-    return { ...appState };
+    return { ...appState }
   }
-});
+})
 
 // Set up event `visibilityChanged` event for different browsers, but NOT for cordova.
 //
@@ -372,37 +345,36 @@ export const _uiShown = _router.addAction({
 // when the browser window is shown/hidden.
 //
 // Figure out right props for this browser
-let _hiddenProp, _visibilityChangeEvent;
-if (typeof document.hidden !== "undefined") { // Opera 12.10 and Firefox 18 and later support
-  _hiddenProp = "hidden";
-  _visibilityChangeEvent = "visibilitychange";
+let _hiddenProp, _visibilityChangeEvent
+if (typeof document.hidden !== "undefined") {
+  // Opera 12.10 and Firefox 18 and later support
+  _hiddenProp = "hidden"
+  _visibilityChangeEvent = "visibilitychange"
 } else if (typeof document.webkitHidden !== "undefined") {
-  _hiddenProp = "webkitHidden";
-  _visibilityChangeEvent = "webkitvisibilitychange";
+  _hiddenProp = "webkitHidden"
+  _visibilityChangeEvent = "webkitvisibilitychange"
 }
 
 // Add event handler to invoke `uiHidden` or `uiShown` event
-document.addEventListener(_visibilityChangeEvent, function(event) {
-  const hidden = document[_hiddenProp];
-  if (hidden)
-    _uiHidden();
-  else
-    _uiShown();
-}, false);
-
-
+document.addEventListener(
+  _visibilityChangeEvent,
+  function(event) {
+    const hidden = document[_hiddenProp]
+    if (hidden) _uiHidden()
+    else _uiShown()
+  },
+  false
+)
 
 ////////////////////
 //
 //  Utility
 //
 
-
 // Given a router `location`, return a simplified `url` for it.
 export function urlForLocation(location) {
-  if (!location) return "";
+  if (!location) return ""
 
-  let { pathname = "", search = "", hash = "" } = location;
-  return `${pathname}${search}${hash}`;
+  let { pathname = "", search = "", hash = "" } = location
+  return `${pathname}${search}${hash}`
 }
-

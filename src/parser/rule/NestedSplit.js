@@ -1,4 +1,4 @@
-import { Match, Rule } from "./all.js";
+import { Match, Rule } from "./all.js"
 
 // Recursively find balanced instances of `start` and `end`,
 // then split by `delimiter` and apply `rule` to each, returning an array of matches.
@@ -13,29 +13,28 @@ import { Match, Rule } from "./all.js";
 // If nested start/end blocks are found, WHAT WILL HAPPEN???
 Rule.NestedSplit = class nesting extends Rule {
   parse(scope, tokens) {
+    const end = this.findNestedEnd(scope, tokens)
+    if (end === undefined) return
 
-    const end = this.findNestedEnd(scope, tokens);
-    if (end === undefined) return;
+    const tokenSets = this.splitTokens(scope, tokens.slice(1, end))
+    if (tokenSets === undefined) return
 
-    const tokenSets = this.splitTokens(scope, tokens.slice(1, end));
-    if (tokenSets === undefined) return;
-
-    let prefix;
-    const items = [];
-    for (let i = 0, tokenSet; tokenSet = tokenSets[i]; i++) {
+    let prefix
+    const items = []
+    for (let i = 0, tokenSet; (tokenSet = tokenSets[i]); i++) {
       // For the first item only, match the `prefix` rules if supplied
       if (i === 0 && this.prefix) {
-        prefix = this.prefix.parse(scope, tokenSet);
-        if (!prefix && !prefix.optional) return undefined;
-        if (prefix) tokenSet = tokenSet.slice(prefix.length);
+        prefix = this.prefix.parse(scope, tokenSet)
+        if (!prefix && !prefix.optional) return undefined
+        if (prefix) tokenSet = tokenSet.slice(prefix.length)
       }
-      const match = this.rule.parse(scope, tokenSet);
-      if (!match) return undefined;
+      const match = this.rule.parse(scope, tokenSet)
+      if (!match) return undefined
 
       if (match.length !== tokenSet.length) {
-        return undefined;
+        return undefined
       }
-      items.push(match);
+      items.push(match)
     }
     return new Match({
       rule: this,
@@ -43,69 +42,69 @@ Rule.NestedSplit = class nesting extends Rule {
       items,
       length: end + 1,
       scope
-    });
+    })
   }
 
   gatherResults(scope, match) {
-    const { rule, prefix, items } = match;
-    const results = prefix && prefix.compile() || {};
-    const name = rule.rule.argument || rule.rule.name;
-    results[name] = items.map(item => item.compile());
-    return results;
+    const { rule, prefix, items } = match
+    const results = (prefix && prefix.compile()) || {}
+    const name = rule.rule.argument || rule.rule.name
+    results[name] = items.map(item => item.compile())
+    return results
   }
 
   // If no explcit compile method, return our `results` for someone else to consume.
   compile(scope, match) {
-    return this.gatherResults(scope, match);
+    return this.gatherResults(scope, match)
   }
 
   // If tokens starts with our `start` literal,
   //  find the index of the token which matches our `end` literal.
   // Returns `undefined` if not found or not balanced.
   findNestedEnd(scope, tokens, start = 0) {
-    if (!this.start.testAtStart(scope, tokens, start)) return undefined;
-    let nesting = 0;
-    for (let end = start + 1, token; token = tokens[end]; end++) {
+    if (!this.start.testAtStart(scope, tokens, start)) return undefined
+    let nesting = 0
+    for (let end = start + 1, token; (token = tokens[end]); end++) {
       if (this.start.testAtStart(scope, tokens, end)) {
-        nesting++;
+        nesting++
       }
       if (this.end.testAtStart(scope, tokens, end)) {
-        if (nesting === 0) return end;
-        nesting--;
+        if (nesting === 0) return end
+        nesting--
       }
     }
-    return undefined;
+    return undefined
   }
 
   // If tokens starts with our `start` literal,
   //  find the index of the token which matches our `end` literal.
   // Returns `undefined` if not found or not balanced.
   splitTokens(scope, tokens) {
-    const items = [];
-    let current = [];
-    for (let i = 0, token; token = tokens[i]; i++) {
+    const items = []
+    let current = []
+    for (let i = 0, token; (token = tokens[i]); i++) {
       // handle alternate marker
       if (this.delimiter.testAtStart(scope, tokens, i)) {
-        items.push(current);
-        current = [];
-        continue;
+        items.push(current)
+        current = []
+        continue
       }
       // handle nested start/emd
       if (this.start.testAtStart(scope, tokens, i)) {
-        const end = this.findNestedEnd(scope, tokens, i);
+        const end = this.findNestedEnd(scope, tokens, i)
         if (end) {
-          current = current.concat(tokens.slice(i, end + 1));
-          i = end;
-          continue;
+          current = current.concat(tokens.slice(i, end + 1))
+          i = end
+          continue
         }
       }
-      current.push(token);
+      current.push(token)
     }
     // Pick up the last list ONLY if it's not empty
     // This ensures we don't pick up an empty list for a delimiter at the end.
-    if (current.length) items.push(current);
+    if (current.length) items.push(current)
 
-    if (!items.length) return undefined;
-    return items;
+    if (!items.length) return undefined
+    return items
   }
 }

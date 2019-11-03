@@ -5,11 +5,11 @@
 //
 
 // Pull in everything from `parser`
-export * from "../../parser/all.js";
+export * from "../../parser/all.js"
 
 // Pull in parser/constructor
-export { rulex, RulexParser } from "./rulex.js";
+export { rulex, RulexParser } from "./rulex.js"
 
 // export rulex parser as the default
-import { rulex } from "./rulex.js";
-export default rulex;
+import { rulex } from "./rulex.js"
+export default rulex

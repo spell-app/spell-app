@@ -13,7 +13,7 @@
 //    - `match.compile()`    Return javascript source to interpret the rule.
 //
 
-import { proto, TestLocation } from "./all.js";
+import { proto, TestLocation } from "./all.js"
 
 // Abstract Rule class.
 // TODOC
@@ -21,15 +21,15 @@ export class Rule {
   // Precedence for this rule.
   // Rules with higher precedence are preferred in `Choice`s.
   // Precedence is also used as "operator precedence" in recursive expressions.
-  @proto precedence = 0;
+  @proto precedence = 0
 
   constructor(props) {
-    Object.assign(this, props);
+    Object.assign(this, props)
   }
 
   // Return a clone of this rule (same constructor, all public properties)
   clone() {
-    return new (this.constructor)(this);
+    return new this.constructor(this)
   }
 
   //
@@ -47,8 +47,8 @@ export class Rule {
   //  - `false` if there is NO WAY the rule can be matched.
   //  - `undefined` if not determinstic (eg: no way to tell quickly).
   testAtStart(scope, tokens, start = 0) {
-    if (start >= tokens.length) return false;
-    if (this.testRule) return this.testRule.testAtStart(scope, tokens, start);
+    if (start >= tokens.length) return false
+    if (this.testRule) return this.testRule.testAtStart(scope, tokens, start)
   }
 
   // Attempt to match this rule at the start of `tokens`.
@@ -63,9 +63,8 @@ export class Rule {
   // Return array of tokens which were matched.
   // Non-terminal rules will override this.
   getTokens(match) {
-    return match.matched.map(match => match.value);
+    return match.matched.map(match => match.value)
   }
-
 
   //
   //  internal
@@ -81,25 +80,24 @@ export class Rule {
   // Sometimes rules want to override the `testLocation`, e.g.
   //  so allow it to be passed in.
   test(scope, tokens, testLocation = this.testLocation) {
-    if (!tokens.length) return false;
-    if (this.testRule) return this.testRule.test(scope, tokens, testLocation);
+    if (!tokens.length) return false
+    if (this.testRule) return this.testRule.test(scope, tokens, testLocation)
 
-    if (testLocation === TestLocation.ANYWHERE)
-      return this.testAnywhere(scope, tokens);
-    return this.testAtStart(scope, tokens, 0);
+    if (testLocation === TestLocation.ANYWHERE) return this.testAnywhere(scope, tokens)
+    return this.testAtStart(scope, tokens, 0)
   }
 
   // Test if this rule is matched anywhere in the tokens
   //  by exhaustively testing at each start position.
   testAnywhere(scope, tokens) {
-    let undefinedFound = false;
+    let undefinedFound = false
     for (let start = 0, length = tokens.length; start < length; start++) {
-      const result = this.testAtStart(scope, tokens, start);
-      if (result) return true;
-      if (result === undefined) undefinedFound = true;
+      const result = this.testAtStart(scope, tokens, start)
+      if (result) return true
+      if (result === undefined) undefinedFound = true
     }
-    if (undefinedFound) return undefined;
-    return false;
+    if (undefinedFound) return undefined
+    return false
   }
 
   // We attempt to merge literals together if possible when creating rules.
@@ -107,18 +105,18 @@ export class Rule {
   // Note that `optional` doesn't matter in this case, because we can merge
   //  optional and non-optional literals.
   get isAdorned() {
-    return !!(this.argument || this.testLocation || this.isEscaped);
+    return !!(this.argument || this.testLocation || this.isEscaped)
   }
 
   // Return syntax string for this rule (doesn't apply to all rule types).
   // The base implementation takes care of the "adornments" and returns an object with:
   //  `{ testLocation, argument, optional }`
   getSyntaxFlags() {
-    let { testLocation = "", argument = "", optional = "" } = this;
-    if (testLocation === TestLocation.ANYWHERE) testLocation = "…";
-    else if (testLocation === TestLocation.ANYWHERE) testLocation = "^";
-    if (argument) argument += ":";
-    if (optional) optional = "?";
-    return { testLocation, argument, optional };
+    let { testLocation = "", argument = "", optional = "" } = this
+    if (testLocation === TestLocation.ANYWHERE) testLocation = "…"
+    else if (testLocation === TestLocation.ANYWHERE) testLocation = "^"
+    if (argument) argument += ":"
+    if (optional) optional = "?"
+    return { testLocation, argument, optional }
   }
 }

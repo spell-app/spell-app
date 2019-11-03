@@ -1,11 +1,6 @@
-import {
-  ParseError,
-} from "../all.js";
+import { ParseError } from "../all.js"
 
-import {
-  Scope,
-  Variable,
-} from "./all.js";
+import { Scope, Variable } from "./all.js"
 
 //
 // Constant definition.
@@ -23,17 +18,16 @@ export class Constant {
     if (typeof props === "string") {
       // remove surrounding single quotes
       if (typeof props === "string" && props.startsWith("'") && props.endsWith("'")) props = props.slice(1, -1)
-      props = { name: props };
+      props = { name: props }
     }
-    if (!props.name)
-      throw new ParseError("Constants must be created with a 'name'");
+    if (!props.name) throw new ParseError("Constants must be created with a 'name'")
     // Assign all properties in the order provided.
-    Object.assign(this, props);
-    if (this.value === undefined) this.value = `'${this.name}'`;
+    Object.assign(this, props)
+    if (this.value === undefined) this.value = `'${this.name}'`
   }
 
   toString() {
-    return this.value;
+    return this.value
   }
 }
-Scope.Constant = Constant;
+Scope.Constant = Constant

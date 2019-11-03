@@ -9,7 +9,6 @@ import _ from "lodash"
 import { spell, assert } from "."
 
 Object.assign(spell, {
-
   ////////////
   // primitive accessors/setters
   //----------
@@ -29,7 +28,6 @@ Object.assign(spell, {
     if (!assert.isDefined(collection, "spell.isEmpty(collection)")) return true
     return spell.itemCountOf(collection) === 0
   },
-
 
   // Return proper `Array` of "keys" of `collection`
   // For array: returns array of 1-based positions.
@@ -64,7 +62,7 @@ Object.assign(spell, {
     const iterator = spell.getIteratorFor(collection)
     let result = iterator.next()
     while (!result.done) {
-      const [ value, item ] = result.value
+      const [value, item] = result.value
       if (value === thing) return item
       result = iterator.next()
     }
@@ -77,7 +75,7 @@ Object.assign(spell, {
   getItemOf(collection, item) {
     if (!assert.isDefined(collection, "spell.getItemOf(collection)")) return undefined
     if (typeof collection.getItem === "function") return collection.getItem(item)
-    if (spell.isArrayLike(collection)) return collection[item-1]
+    if (spell.isArrayLike(collection)) return collection[item - 1]
     return collection[item]
   },
 
@@ -87,10 +85,8 @@ Object.assign(spell, {
   setItemOf(collection, item, value) {
     if (!assert.isDefined(collection, "spell.setItemOf(collection)")) return
     if (typeof collection.setItem === "function") return collection.setItem(item, value)
-    if (spell.isArrayLike(collection))
-      collection[item-1] = value
-    else
-      collection[item] = value
+    if (spell.isArrayLike(collection)) collection[item - 1] = value
+    else collection[item] = value
   },
 
   // Add `things` in the middle of the `collection` starting with 1-based position `start`,
@@ -99,10 +95,8 @@ Object.assign(spell, {
   addAtPosition(collection, start, ...things) {
     if (!assert.isArrayLike(collection, "spell.addAtPosition(collection)")) return
     if (typeof collection.addAtPosition === "function") return collection.addAtPosition(start, ...things)
-    if (start > 0)
-      Array.prototype.splice.call(collection, start - 1, 0, ...things)
-    else
-      Array.prototype.splice.call(collection, start, 0, ...things)
+    if (start > 0) Array.prototype.splice.call(collection, start - 1, 0, ...things)
+    else Array.prototype.splice.call(collection, start, 0, ...things)
   },
 
   // Remove `item` from `collection`.
@@ -111,10 +105,8 @@ Object.assign(spell, {
   removeItemOf(collection, item) {
     if (!assert.isDefined(collection, "spell.removeItemOf(collection)")) return
     if (collection.removeItem) return collection.removeItem(item)
-    if (spell.isArrayLike(collection))
-      Array.prototype.splice.call(collection, item-1, 1)
-    else
-      delete collection[item]
+    if (spell.isArrayLike(collection)) Array.prototype.splice.call(collection, item - 1, 1)
+    else delete collection[item]
   },
 
   // Remove all things from the `collection`, in-place.
@@ -129,11 +121,9 @@ Object.assign(spell, {
     if (typeof collection.length === "number") {
       try {
         collection.length = 0
-      }
-      catch (e) {}
+      } catch (e) {}
     }
   },
-
 
   // Return an invoked iterator which yields `[value, item, collection]` for each item in the collection.
   // e.g.
@@ -153,16 +143,15 @@ Object.assign(spell, {
       return (function* numericIterator() {
         const count = spell.itemCountOf(collection)
         for (var position = 1; position <= count; position++) {
-          yield [ spell.getItemOf(collection, position), position, collection ]
+          yield [spell.getItemOf(collection, position), position, collection]
         }
       })()
     }
     const keys = spell.keysOf(collection)
     return (function* keyedIterator() {
       for (var i = 0; i < keys.length; i++) {
-        yield [ spell.getItemOf(collection, keys[i]), keys[i], collection ]
+        yield [spell.getItemOf(collection, keys[i]), keys[i], collection]
       }
     })()
-  },
-
+  }
 })

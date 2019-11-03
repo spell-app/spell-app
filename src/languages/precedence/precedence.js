@@ -29,18 +29,9 @@
 // TODO: test repeating lists, `\\[ [{expression},] \\]`
 // TODO: test `the number of {identifer} in {single_expression}
 
-import sortBy from "lodash/sortBy";
+import sortBy from "lodash/sortBy"
 
-import {
-  Parser,
-  Rule,
-  Tokenizer,
-  Token,
-  WhitespacePolicy,
-
-  peek,
-  proto
-} from "../../parser/all.js";
+import { Parser, Rule, Tokenizer, Token, WhitespacePolicy, peek, proto } from "../../parser/all.js"
 
 const parser = new Parser({
   module: "precedence",
@@ -60,8 +51,8 @@ const parser = new Parser({
         and: 1,
         or: 1,
         is: 1,
-        up: 1,        // NOTE: defined as a `constant` below
-        down: 1       // NOTE: defined as a `constant` below
+        up: 1, // NOTE: defined as a `constant` below
+        down: 1 // NOTE: defined as a `constant` below
       }
     },
 
@@ -72,18 +63,17 @@ const parser = new Parser({
       alias: ["expression", "single_expression"],
       syntax: "\\( {expression} \\)",
       compile(scope, match) {
-        let { expression } = match.results;
+        let { expression } = match.results
         // Don't double-up parens
-        if (expression.startsWith?.("(") && expression.endsWith(")"))
-          return expression;
-        return `(${expression})`;
+        if (expression.startsWith?.("(") && expression.endsWith(")")) return expression
+        return `(${expression})`
       }
     },
 
     {
       name: "number",
       alias: ["expression", "single_expression"],
-      tokenType: Token.Number,
+      tokenType: Token.Number
     },
 
     {
@@ -91,7 +81,7 @@ const parser = new Parser({
       alias: ["expression", "single_expression"],
       syntax: "the? {identifier}",
       compile(scope, match) {
-        return match.results.identifier;
+        return match.results.identifier
       }
     },
 
@@ -101,11 +91,10 @@ const parser = new Parser({
       precedence: 11,
       syntax: "the {identifier} of {expression:single_expression}",
       compile(scope, match) {
-        const { identifier, expression } = match.results;
-        return `${expression}.${identifier}`;
+        const { identifier, expression } = match.results
+        return `${expression}.${identifier}`
       }
     },
-
 
     /////////////////////
     // Generic compound expression
@@ -116,19 +105,19 @@ const parser = new Parser({
       precedence: 12,
       syntax: "{lhs:single_expression} {rhs:expression_suffix}+",
       compile(scope, match) {
-        const { results, matched } = match;
+        const { results, matched } = match
         // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
         //  to deal with operator precedence.  Note that we assume:
         //  - all infix operators are `left-to-right` associative, and
         //  - all postfix operators are postfix operators.
         // See: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
         // See: https://www.chris-j.co.uk/parsing.php
-        const output = [ results.lhs ];
-        const opStack = [];
-        const rhsExpressions = matched[1].matched;
+        const output = [results.lhs]
+        const opStack = []
+        const rhsExpressions = matched[1].matched
         rhsExpressions.forEach(rhsMatch => {
-          const rhs = rhsMatch.compile();
-          const rule = rhsMatch.rule;
+          const rhs = rhsMatch.compile()
+          const rule = rhsMatch.rule
 
           // For a unary postfix operator, `rhs` will be the operator text that was matched
           if (typeof rhs === "string") {
@@ -136,51 +125,51 @@ const parser = new Parser({
               operator: rhs,
               lhs: output.pop()
             }
-            const result = this.applyOperator(rule, args, scope);
-            output.push(result);
+            const result = this.applyOperator(rule, args, scope)
+            output.push(result)
           }
           // If it's a binary operator, `rhs` will be an object: `{ operator?, expression }`
           else {
-            const { operator, expression } = rhs;
+            const { operator, expression } = rhs
             // While top operator on stack is higher precedence than this one
             while (peek(opStack)?.rule.precedence >= rule.precedence) {
               // pop the top operator and compile it with top 2 things on the output stack
-              const { operator, rule: topRule } = opStack.pop();
+              const { operator, rule: topRule } = opStack.pop()
               const args = {
                 operator,
                 rhs: output.pop(),
                 lhs: output.pop()
               }
-              const result = this.applyOperator(topRule, args, scope);
+              const result = this.applyOperator(topRule, args, scope)
               // push the result into the output stream
-              output.push(result);
+              output.push(result)
             }
 
             // Push the current operator and expression
-            opStack.push({ rule, operator });
-            output.push(expression);
+            opStack.push({ rule, operator })
+            output.push(expression)
           }
-        });
+        })
 
         // At this point, we have only binary operators in the stack.
         // Run through them
-        let topOp;
+        let topOp
         while ((topOp = opStack.pop())) {
           const args = {
             operator: topOp.operator,
             rhs: output.pop(),
-            lhs: output.pop(),
+            lhs: output.pop()
           }
-          const result = this.applyOperator(topOp.rule, args, scope);
-          output.push(result);
+          const result = this.applyOperator(topOp.rule, args, scope)
+          output.push(result)
         }
-        return output[0];
+        return output[0]
       },
 
       applyOperator(rule, args, scope) {
-        const { lhs, rhs, operator } = args;
-        const result = rule.applyOperator(args);
-        return result;
+        const { lhs, rhs, operator } = args
+        const result = rule.applyOperator(args)
+        return result
       }
     },
 
@@ -190,7 +179,7 @@ const parser = new Parser({
       name: "and_rhs",
       alias: "expression_suffix",
       precedence: 6,
-      syntax: "and {expression:single_expression}",                   // <== results.rhs = { expression }
+      syntax: "and {expression:single_expression}", // <== results.rhs = { expression }
       applyOperator: ({ lhs, rhs }) => `(${lhs} && ${rhs})`
     },
 
@@ -198,18 +187,18 @@ const parser = new Parser({
       name: "or_rhs",
       alias: "expression_suffix",
       precedence: 5,
-      syntax: "(operator:or) {expression:single_expression}",         // <== results.rhs = { operator: "or", expression }
+      syntax: "(operator:or) {expression:single_expression}", // <== results.rhs = { operator: "or", expression }
       applyOperator: ({ lhs, rhs }) => `(${lhs} || ${rhs})`
     },
 
     {
       name: "is_expression",
       alias: "expression_suffix",
-      precedence: 3,    // ????
-      syntax: "(operator:is not?) {expression:single_expression}",    // <== results.rhs = { operator: "is", expression }
+      precedence: 3, // ????
+      syntax: "(operator:is not?) {expression:single_expression}", // <== results.rhs = { operator: "is", expression }
       applyOperator({ lhs, operator, rhs }) {
-        const op = operator === "is not" ? "!=" : "==";
-        return `(${lhs} ${op} ${rhs})`;
+        const op = operator === "is not" ? "!=" : "=="
+        return `(${lhs} ${op} ${rhs})`
       }
     },
 
@@ -217,27 +206,26 @@ const parser = new Parser({
     // Postfix operators
     {
       name: "is_empty",
-      precedence: 4,                                  // <== precedence above `is_expression`
+      precedence: 4, // <== precedence above `is_expression`
       alias: "expression_suffix",
-      syntax: "is not? empty",                        // <== single Keywords, results.rhs = "is empty"
+      syntax: "is not? empty", // <== single Keywords, results.rhs = "is empty"
       applyOperator({ lhs, operator }) {
-        const bang = (operator === "is not empty" ? "!" : "");
-        return `${bang}spell.isEmpty(${lhs})`;
+        const bang = operator === "is not empty" ? "!" : ""
+        return `${bang}spell.isEmpty(${lhs})`
       }
     },
 
     {
       name: "is_defined",
-      precedence: 4,                                  // <== precedence above `is_expression`
+      precedence: 4, // <== precedence above `is_expression`
       alias: "expression_suffix",
       syntax: "is (defined|undefined|not defined)",
-      constructor: Rule.LiteralSequence,              // <== LiteralSequence: result.rhs = "is defined"
+      constructor: Rule.LiteralSequence, // <== LiteralSequence: result.rhs = "is defined"
       applyOperator({ lhs, operator }) {
-        const op = (operator === "is defined" ? "!==" : "===");
-        return `(typeof ${lhs} ${op} 'undefined')`;
+        const op = operator === "is defined" ? "!==" : "==="
+        return `(typeof ${lhs} ${op} 'undefined')`
       }
     },
-
 
     /////////////////////
     // Constants
@@ -259,7 +247,7 @@ const parser = new Parser({
       name: "constant",
       literal: "down",
       compile: () => "'down'"
-    },
+    }
   ]
-});
-export default parser;
+})
+export default parser

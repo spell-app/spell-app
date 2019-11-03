@@ -27,42 +27,36 @@
 //
 // TODO: way to get all including parents?
 
-import identity from "lodash/identity";
+import identity from "lodash/identity"
 
-import { getDescriptorProp, setDescriptorProp, clearDescriptorProp } from "./decorators.js";
+import { getDescriptorProp, setDescriptorProp, clearDescriptorProp } from "./decorators.js"
 
 export function indexedList(props) {
-  if (!props) throw new TypeError("@indexedList() must be passed at least `{ keyProp }`");
+  if (!props) throw new TypeError("@indexedList() must be passed at least `{ keyProp }`")
 
-  const {
-    keyProp,
-    parentProp,
-    transformer = identity,
-    normalizeKey = identity,
-    unique = false
-  } = props;
+  const { keyProp, parentProp, transformer = identity, normalizeKey = identity, unique = false } = props
 
   // Add one or more items to the list.
   function addItems() {
     // `this` is the bound `getItem` method.
     // Actually create the stored list + map when adding.
-    const storage = this["#storage"] || (this["#storage"] = { list: [], map: {} });
-    const results = [];
+    const storage = this["#storage"] || (this["#storage"] = { list: [], map: {} })
+    const results = []
     for (var i = 0; i < arguments.length; i++) {
       // call the `transformer` on each item (default is to just return the item passed in)
-      const item = transformer.call(this.thing, arguments[i]);
-      const key = normalizeKey(item[keyProp]);
+      const item = transformer.call(this.thing, arguments[i])
+      const key = normalizeKey(item[keyProp])
       if (key != null) {
-        if (unique && storage.map[key]) this.remove(item[keyProp]);
-        storage.map[key] = item;
+        if (unique && storage.map[key]) this.remove(item[keyProp])
+        storage.map[key] = item
       }
-      storage.list.push(item);
-      results.push(item);
+      storage.list.push(item)
+      results.push(item)
     }
     // If passed one thing, return one thing
-    if (results.length === 1) return results[0];
+    if (results.length === 1) return results[0]
     // Otherwise return the array
-    return results;
+    return results
   }
 
   // Remove one or more items to the list specified by `key.
@@ -71,104 +65,92 @@ export function indexedList(props) {
   //  - a function as a reverse filter
   function removeItems(...keys) {
     // `this` is the bound `getItem` method.
-    const storage = this["#storage"];
-    if (!storage) return [];
-    const removed = [];
+    const storage = this["#storage"]
+    if (!storage) return []
+    const removed = []
     if (keys.length === 1 && keys[0] === "*") {
-      removed.push(...storage.list);
-      storage.list = [];
-      storage.map = {};
-    }
-    else if (keys.length === 1 && typeof keys[0] === "function") {
-      const method = keys[0];
+      removed.push(...storage.list)
+      storage.list = []
+      storage.map = {}
+    } else if (keys.length === 1 && typeof keys[0] === "function") {
+      const method = keys[0]
       storage.list = storage.list.filter((item, index) => {
         if (method(item, index)) {
-          removed.push(item);
-          const itemKey = normalizeKey(item[keyProp]);
-          delete storage.map[itemKey];
-          return false;
+          removed.push(item)
+          const itemKey = normalizeKey(item[keyProp])
+          delete storage.map[itemKey]
+          return false
         }
-        return true;
-      });
-      return removed;
-    }
-    else {
-      const normalizedKeys = keys.map(normalizeKey);
+        return true
+      })
+      return removed
+    } else {
+      const normalizedKeys = keys.map(normalizeKey)
       storage.list = storage.list.filter(item => {
-        const itemKey = normalizeKey(item[keyProp]);
+        const itemKey = normalizeKey(item[keyProp])
         if (normalizedKeys.includes(itemKey)) {
-          removed.push(item);
-          delete storage.map[itemKey];
-          return false;
+          removed.push(item)
+          delete storage.map[itemKey]
+          return false
         }
-        return true;
-      });
+        return true
+      })
     }
-    return removed;
+    return removed
   }
 
-  const STORAGE = new WeakMap();
-// ====> Works:  getter/setter on proto, storage on proto as well.
-// TODO: can we add directly to instance on first get and avoid the STORAGE bit?
+  const STORAGE = new WeakMap()
+  // ====> Works:  getter/setter on proto, storage on proto as well.
+  // TODO: can we add directly to instance on first get and avoid the STORAGE bit?
   return function(descriptor) {
-
     // TODOC:  get single key, get local
     function getStoredFor(thing, key) {
-      let accessor = STORAGE.get(thing);
+      let accessor = STORAGE.get(thing)
       if (!accessor) {
         if (parentProp) {
           accessor = function(key, localOnly) {
             // `this` is the instance
-            const storage = accessor["#storage"];
-            if (key === undefined)
-              return storage ? [...storage.list] : [];
+            const storage = accessor["#storage"]
+            if (key === undefined) return storage ? [...storage.list] : []
 
-            key = normalizeKey(key);
-            if (storage && storage.map[key])
-              return storage.map[key];
+            key = normalizeKey(key)
+            if (storage && storage.map[key]) return storage.map[key]
 
-            if (!localOnly && this[parentProp])
-              return this[parentProp][descriptor.key](...arguments);
+            if (!localOnly && this[parentProp]) return this[parentProp][descriptor.key](...arguments)
           }
-        }
-        else {
+        } else {
           accessor = function(key) {
             // `this` is the instance
-            const storage = accessor["#storage"];
-            if (key === undefined)
-              return storage ? [...storage.list] : [];
+            const storage = accessor["#storage"]
+            if (key === undefined) return storage ? [...storage.list] : []
 
-            key = normalizeKey(key);
-            return storage && storage.map[key];
+            key = normalizeKey(key)
+            return storage && storage.map[key]
           }
         }
 
-        accessor = accessor.bind(thing);
-        accessor.thing = thing;
+        accessor = accessor.bind(thing)
+        accessor.thing = thing
         // Hook up the add/remove methods, no need to bind them!
-        accessor.add = addItems;
-        accessor.remove = removeItems;
-        STORAGE.set(thing, accessor);
+        accessor.add = addItems
+        accessor.remove = removeItems
+        STORAGE.set(thing, accessor)
       }
       return accessor
     }
 
-
-    descriptor = setDescriptorProp(descriptor, "kind", "method");
-    descriptor = setDescriptorProp(descriptor, "placement", "prototype");
-    descriptor = clearDescriptorProp(descriptor, "writable");
-    descriptor = setDescriptorProp(descriptor, "enumerable", false);
+    descriptor = setDescriptorProp(descriptor, "kind", "method")
+    descriptor = setDescriptorProp(descriptor, "placement", "prototype")
+    descriptor = clearDescriptorProp(descriptor, "writable")
+    descriptor = setDescriptorProp(descriptor, "enumerable", false)
     descriptor = setDescriptorProp(descriptor, "get", function() {
       return getStoredFor(this, descriptor.key)
-    });
+    })
     descriptor = setDescriptorProp(descriptor, "set", function(value) {
-      const accessor = getStoredFor(this, descriptor.key);
-      if (Array.isArray(value))
-        accessor.add(...value);
-      else
-        accessor.add(value);
-    });
-   return descriptor;
+      const accessor = getStoredFor(this, descriptor.key)
+      if (Array.isArray(value)) accessor.add(...value)
+      else accessor.add(value)
+    })
+    return descriptor
   }
 }
-

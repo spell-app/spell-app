@@ -1,7 +1,7 @@
-import parser, { unitTestModuleRules } from "../all.js";
+import parser, { unitTestModuleRules } from "../all.js"
 
 describe("testing spell module types", () => {
-  unitTestModuleRules(parser, "types");
+  unitTestModuleRules(parser, "types")
 
-  describe("integration tests", () => {});
-});
+  describe("integration tests", () => {})
+})

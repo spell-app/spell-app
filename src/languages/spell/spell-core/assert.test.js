@@ -44,7 +44,7 @@ describe("assert.equals()", () => {
       expect(result).toBe(true)
     })
     test("nested objects", () => {
-      const result = assert.equals({ a:1, b: { c: true }}, { a:1, b: { c: true }})
+      const result = assert.equals({ a: 1, b: { c: true } }, { a: 1, b: { c: true } })
       expect(result).toBe(true)
     })
     test("empty arrays", () => {
@@ -52,7 +52,7 @@ describe("assert.equals()", () => {
       expect(result).toBe(true)
     })
     test("non-empty arrays", () => {
-      const result = assert.equals([1,2,3], [1,2,3])
+      const result = assert.equals([1, 2, 3], [1, 2, 3])
       expect(result).toBe(true)
     })
   })
@@ -67,11 +67,11 @@ describe("assert.equals()", () => {
       expect(result).toBe(false)
     })
     test("mismatched objects", () => {
-      const result = assert.equals({ a:1, b: { c: true }}, { a:1, b: { c: false }})
+      const result = assert.equals({ a: 1, b: { c: true } }, { a: 1, b: { c: false } })
       expect(result).toBe(false)
     })
     test("mismatched arrays", () => {
-      const result = assert.equals([1,2,3], [1,2,4])
+      const result = assert.equals([1, 2, 3], [1, 2, 4])
       expect(result).toBe(false)
     })
   })
@@ -100,7 +100,7 @@ describe("assert.isDefined()", () => {
       expect(assert.isDefined(1)).toBe(true)
     })
     test("a string", () => {
-      expect(assert.isDefined('foo')).toBe(true)
+      expect(assert.isDefined("foo")).toBe(true)
     })
     test("en empty object", () => {
       expect(assert.isDefined({})).toBe(true)
@@ -125,14 +125,13 @@ describe("assert.isDefined()", () => {
   })
 })
 
-
 describe("assert.isArrayLike()", () => {
   describe("returns true for", () => {
     test("an empty array", () => {
       expect(assert.isArrayLike([])).toBe(true)
     })
     test("a non-empty array", () => {
-      expect(assert.isArrayLike([1,2,3])).toBe(true)
+      expect(assert.isArrayLike([1, 2, 3])).toBe(true)
     })
     test("function arguments", function() {
       expect(assert.isArrayLike(arguments)).toBe(true)

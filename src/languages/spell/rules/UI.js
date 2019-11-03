@@ -2,11 +2,7 @@
 //  # Rules for creating variables, property access, etc
 //
 
-import {
-  Rule,
-  Spell,
-  Token,
-} from "../all.js";
+import { Rule, Spell, Token } from "../all.js"
 
 export default new Spell.Parser({
   module: "UI",
@@ -16,14 +12,14 @@ export default new Spell.Parser({
     {
       name: "notify",
       alias: ["statement", "async"],
-      syntax: "notify {message:expression} (with {okButton:text})?",  // TODO: "with close" ?
+      syntax: "notify {message:expression} (with {okButton:text})?", // TODO: "with close" ?
       testRule: "notify",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
-        const { message, okButton = `"OK"` } = results;
-        scope.async = true;
-        const statement = scope.addStatement(`await spell.notify(${message}, ${okButton})`);
-        results.statements.push(statement);
+        const { message, okButton = `"OK"` } = results
+        scope.async = true
+        const statement = scope.addStatement(`await spell.notify(${message}, ${okButton})`)
+        results.statements.push(statement)
       },
       tests: [
         {
@@ -31,7 +27,7 @@ export default new Spell.Parser({
           tests: [
             [`notify "Yo!"`, `await spell.notify("Yo!", "OK")`],
             [`notify "Yo!"`, `await spell.notify("Yo!", "OK")`],
-            [`notify "Yo!" with "gotcha"`, `await spell.notify("Yo!", "gotcha")`],
+            [`notify "Yo!" with "gotcha"`, `await spell.notify("Yo!", "gotcha")`]
           ]
         }
       ]
@@ -46,10 +42,10 @@ export default new Spell.Parser({
       testRule: "alert",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
-        const { message, okButton = `"OK"` } = results;
-        scope.async = true;
-        const statement = scope.addStatement(`await spell.alert(${message}, ${okButton})`);
-        results.statements.push(statement);
+        const { message, okButton = `"OK"` } = results
+        scope.async = true
+        const statement = scope.addStatement(`await spell.alert(${message}, ${okButton})`)
+        results.statements.push(statement)
       },
       tests: [
         {
@@ -57,7 +53,7 @@ export default new Spell.Parser({
           tests: [
             [`alert "Yo!"`, `await spell.alert("Yo!", "OK")`],
             [`alert "Yo!"`, `await spell.alert("Yo!", "OK")`],
-            [`alert "Yo!" with "yep"`, `await spell.alert("Yo!", "yep")`],
+            [`alert "Yo!" with "yep"`, `await spell.alert("Yo!", "yep")`]
           ]
         }
       ]
@@ -72,10 +68,10 @@ export default new Spell.Parser({
       testRule: "warn",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
-        const { message, okButton = `"OK"` } = results;
-        scope.async = true;
-        const statement = scope.addStatement(`await spell.warn(${message}, ${okButton})`);
-        results.statements.push(statement);
+        const { message, okButton = `"OK"` } = results
+        scope.async = true
+        const statement = scope.addStatement(`await spell.warn(${message}, ${okButton})`)
+        results.statements.push(statement)
       },
       tests: [
         {
@@ -99,10 +95,10 @@ export default new Spell.Parser({
       testRule: "confirm",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
-        const { message, okButton = `"OK"`, cancelButton = `"Cancel"` } = results;
-        scope.async = true;
-        const statement = scope.addStatement(`await spell.confirm(${message}, ${okButton}, ${cancelButton})`);
-        results.statements.push(statement);
+        const { message, okButton = `"OK"`, cancelButton = `"Cancel"` } = results
+        scope.async = true
+        const statement = scope.addStatement(`await spell.confirm(${message}, ${okButton}, ${cancelButton})`)
+        results.statements.push(statement)
       },
       tests: [
         {
@@ -110,7 +106,7 @@ export default new Spell.Parser({
           tests: [
             [`confirm "Yo!"`, `await spell.confirm("Yo!", "OK", "Cancel")`],
             [`confirm "Yo!" with "yep"`, `await spell.confirm("Yo!", "yep", "Cancel")`],
-            [`confirm "Yo!" with "yep" and "nope"`, `await spell.confirm("Yo!", "yep", "nope")`],
+            [`confirm "Yo!" with "yep" and "nope"`, `await spell.confirm("Yo!", "yep", "nope")`]
           ]
         }
       ]
@@ -126,10 +122,10 @@ export default new Spell.Parser({
       testRule: "prompt",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
-        const { message, defaultValue = "undefined" } = results;
-        scope.async = true;
-        const statement = scope.addStatement(`await spell.prompt(${message}, ${defaultValue})`);
-        results.statements.push(statement);
+        const { message, defaultValue = "undefined" } = results
+        scope.async = true
+        const statement = scope.addStatement(`await spell.prompt(${message}, ${defaultValue})`)
+        results.statements.push(statement)
       },
       tests: [
         {
@@ -140,27 +136,26 @@ export default new Spell.Parser({
           ]
         }
       ]
-    },
+    }
 
     // Chose one or more items from `collection` (of strings???)
     // Returns a promise which `resolve()`s if they "OK" with a value, `reject()`s if they "cancel".
-//TODO
-//     {
-//       name: "choose_one",
-//       alias: "statement",
-//       syntax: "choose ((a|an)? {singular_variable} (from|of)|one of) {collection:expression} with (prompt|message)? {message:expression}",
-//          => `await spell.chooseOne(message, list, defaultValue)`
-//     },
+    //TODO
+    //     {
+    //       name: "choose_one",
+    //       alias: "statement",
+    //       syntax: "choose ((a|an)? {singular_variable} (from|of)|one of) {collection:expression} with (prompt|message)? {message:expression}",
+    //          => `await spell.chooseOne(message, list, defaultValue)`
+    //     },
 
     // Chose one or more items from `collection` (of strings???)
     // Returns a promise which `resolve()`s if they "OK" with a value, `reject()`s if they "cancel".
-//TODO
-//     {
-//       name: "choose_multiple",
-//       alias: "statement",
-//       syntax: "choose multiple {plural_variable} (of|from) {collection:expression} with (prompt|message)? {message:expression}",
-//          => `await spell.chooseMultiple(message, list, defaultValues)`
-//     }
-
+    //TODO
+    //     {
+    //       name: "choose_multiple",
+    //       alias: "statement",
+    //       syntax: "choose multiple {plural_variable} (of|from) {collection:expression} with (prompt|message)? {message:expression}",
+    //          => `await spell.chooseMultiple(message, list, defaultValues)`
+    //     }
   ]
-});
+})

@@ -8,14 +8,14 @@ beforeEach(() => {
 // Custom collection class simulating our custom api
 class CustomCollection {
   length = 2
-  itemCount = jest.fn( () => 2 )
-  getKeys = jest.fn( () => ["key1", "key2"] )
-  getValues = jest.fn( () => ["value1", "value2"] )
-  getItem = jest.fn( () => "value" )
-  setItem = jest.fn( (item, value) => value )
+  itemCount = jest.fn(() => 2)
+  getKeys = jest.fn(() => ["key1", "key2"])
+  getValues = jest.fn(() => ["value1", "value2"])
+  getItem = jest.fn(() => "value")
+  setItem = jest.fn((item, value) => value)
   addAtPosition = jest.fn()
   removeItem = jest.fn()
-  itemOf = jest.fn( () => "item" )
+  itemOf = jest.fn(() => "item")
   clear = jest.fn()
   getIterator = jest.fn()
 }
@@ -31,7 +31,7 @@ describe("spell.itemCountOf()", () => {
     expect(custom.itemCount).toHaveBeenCalled()
   })
   test("returns correct number for an array", () => {
-    expect(spell.itemCountOf([1,2])).toBe(2)
+    expect(spell.itemCountOf([1, 2])).toBe(2)
   })
   test("returns correct number for arguments", function() {
     expect(spell.itemCountOf(arguments)).toBe(0)
@@ -82,7 +82,7 @@ describe("spell.keysOf()", () => {
     expect(spell.keysOf([])).toEqual([])
   })
   test("returns array of numbers number for a non-empty array", () => {
-    expect(spell.keysOf(["a","b"])).toEqual([1,2])
+    expect(spell.keysOf(["a", "b"])).toEqual([1, 2])
   })
   test("returns empty array for an empty object", () => {
     expect(spell.keysOf({})).toEqual([])
@@ -99,14 +99,14 @@ describe("spell.valuesOf()", () => {
   })
   test("calls `getValues` function if defined", () => {
     const custom = new CustomCollection()
-    expect(spell.valuesOf(custom)).toEqual(["value1","value2"])
+    expect(spell.valuesOf(custom)).toEqual(["value1", "value2"])
     expect(custom.getValues).toHaveBeenCalled()
   })
   test("returns empty array for an empty array", () => {
     expect(spell.valuesOf([])).toEqual([])
   })
   test("returns array of numbers number for a non-empty array", () => {
-    expect(spell.valuesOf(["a","b"])).toEqual(["a","b"])
+    expect(spell.valuesOf(["a", "b"])).toEqual(["a", "b"])
   })
   test("returns true for an empty object", () => {
     expect(spell.valuesOf({})).toEqual([])
@@ -130,7 +130,7 @@ describe("spell.itemOf()", () => {
     expect(spell.itemOf([], 1)).toEqual(undefined)
   })
   test("returns position if found in array", () => {
-    expect(spell.itemOf(["a","b"], "a")).toEqual(1)
+    expect(spell.itemOf(["a", "b"], "a")).toEqual(1)
   })
   test("returns undefined if not found in object", () => {
     expect(spell.itemOf({}, 1)).toEqual(undefined)
@@ -154,7 +154,7 @@ describe("spell.getItemOf()", () => {
     expect(spell.getItemOf([], 1)).toEqual(undefined)
   })
   test("returns correct value for a non-empty array", () => {
-    expect(spell.getItemOf(["a","b"], 1)).toEqual("a")
+    expect(spell.getItemOf(["a", "b"], 1)).toEqual("a")
   })
   test("returns undefined for an empty object", () => {
     expect(spell.getItemOf({}, 1)).toEqual(undefined)
@@ -182,7 +182,7 @@ describe("spell.setItemOf()", () => {
   test("updates array properly if present", () => {
     const collection = ["a", "b"]
     spell.setItemOf(collection, 2, "B")
-    expect(collection).toEqual(["a","B"])
+    expect(collection).toEqual(["a", "B"])
   })
   test("updates object properly if not present", () => {
     const collection = { a: 1 }
@@ -190,7 +190,7 @@ describe("spell.setItemOf()", () => {
     expect(collection).toEqual({ a: 1, b: true })
   })
   test("updates object properly if present", () => {
-    const collection = { a: 1, b: false}
+    const collection = { a: 1, b: false }
     spell.setItemOf(collection, "b", true)
     expect(collection).toEqual({ a: 1, b: true })
   })
@@ -282,7 +282,7 @@ describe("spell.removeItemOf()", () => {
     expect(collection).toEqual({ a: 1 })
   })
   test("updates object properly if present", () => {
-    const collection = { a: 1, b: false}
+    const collection = { a: 1, b: false }
     spell.removeItemOf(collection, "b")
     expect(collection).toEqual({ a: 1 })
   })
@@ -305,7 +305,7 @@ describe("spell.clear()", () => {
     expect(collection.length).toEqual(0)
   })
   test("updates object properly if present", () => {
-    const collection = { a: 1, b: false}
+    const collection = { a: 1, b: false }
     spell.clear(collection)
     expect(collection).toEqual({})
   })

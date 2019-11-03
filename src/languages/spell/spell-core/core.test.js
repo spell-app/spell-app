@@ -7,7 +7,7 @@ beforeEach(() => {
 
 describe("spell.define()", () => {
   beforeEach(() => {
-    jest.spyOn(Object, "defineProperty");
+    jest.spyOn(Object, "defineProperty")
   })
   afterEach(() => {
     jest.restoreAllMocks()
@@ -30,7 +30,7 @@ describe("spell.newThingLike()", () => {
     })
   })
   test("returns an empty array when passed an array", () => {
-    expect(spell.newThingLike([1,2,3])).toEqual([])
+    expect(spell.newThingLike([1, 2, 3])).toEqual([])
   })
   test("returns an empty object when passed an object", () => {
     expect(spell.newThingLike({ a: 1 })).toEqual({})
@@ -45,53 +45,53 @@ describe("spell.newThingLike()", () => {
 
 describe("spell.typeOf()", () => {
   test("returns 'unknown' when passed `null`", () => {
-    expect(spell.typeOf(null)).toBe('unknown')
+    expect(spell.typeOf(null)).toBe("unknown")
   })
   test("returns 'unknown' when passed `undefined`", () => {
-    expect(spell.typeOf(undefined)).toBe('unknown')
+    expect(spell.typeOf(undefined)).toBe("unknown")
   })
   test("returns 'number' when passed a number", () => {
-    expect(spell.typeOf(0)).toBe('number')
+    expect(spell.typeOf(0)).toBe("number")
   })
   test("returns 'number' when passed NaN", () => {
-    expect(spell.typeOf(NaN)).toBe('number')
+    expect(spell.typeOf(NaN)).toBe("number")
   })
   test("returns 'string' when passed a string", () => {
-    expect(spell.typeOf("foo")).toBe('string')    // TODO: 'text'?
+    expect(spell.typeOf("foo")).toBe("string") // TODO: 'text'?
   })
   test("returns 'boolean' when passed a boolean", () => {
-    expect(spell.typeOf(false)).toBe('boolean')   //TODO: 'choice'?
+    expect(spell.typeOf(false)).toBe("boolean") //TODO: 'choice'?
   })
   test("returns 'object' when passed an Object", () => {
-    expect(spell.typeOf({})).toBe('object')
+    expect(spell.typeOf({})).toBe("object")
   })
   test("returns 'date' when passed a Date", () => {
-    expect(spell.typeOf(new Date())).toBe('date')
+    expect(spell.typeOf(new Date())).toBe("date")
   })
   test("returns 'array' when passed an Array", () => {
-    expect(spell.typeOf([])).toBe('array')    // TODO: `list`?
+    expect(spell.typeOf([])).toBe("array") // TODO: `list`?
   })
   test("returns 'function' when passed a Function", () => {
-    expect(spell.typeOf(()=>{})).toBe('function')    // TODO: ???
+    expect(spell.typeOf(() => {})).toBe("function") // TODO: ???
   })
   test("returns class name when passed a custom class", () => {
     class Foo {}
-    expect(spell.typeOf(new Foo())).toBe('foo')
+    expect(spell.typeOf(new Foo())).toBe("foo")
   })
 })
 
 describe("spell.isOfType()", () => {
   test("matches with single type name", () => {
-    expect(spell.isOfType({}, 'object')).toBe(true)
+    expect(spell.isOfType({}, "object")).toBe(true)
   })
   test("matches with multiple type names", () => {
-    expect(spell.isOfType({}, 'array', 'object')).toBe(true)
+    expect(spell.isOfType({}, "array", "object")).toBe(true)
   })
   test("matches 'unknown' for null", () => {
-    expect(spell.isOfType(null, 'unknown')).toBe(true)
+    expect(spell.isOfType(null, "unknown")).toBe(true)
   })
   test("doesn't match if type not specified", () => {
-    expect(spell.isOfType({}, 'date')).toBe(false)
+    expect(spell.isOfType({}, "date")).toBe(false)
   })
 })
 
@@ -137,7 +137,6 @@ describe("spell.isTruthy()", () => {
   })
 })
 
-
 describe("spell.randomNumber()", () => {
   test("asserts and returns undefined if min is not a number", () => {
     expect(spell.randomNumber()).toBe(undefined)
@@ -152,19 +151,19 @@ describe("spell.randomNumber()", () => {
     expect(assert.failed).toHaveBeenCalled()
   })
   test("returns min if min === max", () => {
-    expect(spell.randomNumber(1,1)).toBe(1)
+    expect(spell.randomNumber(1, 1)).toBe(1)
   })
   test("defaults min to 1 if only one argument", () => {
     expect(spell.randomNumber(1)).toBe(1)
   })
   test("returns an integer with normal params", () => {
-    const random = spell.randomNumber(1,5)
+    const random = spell.randomNumber(1, 5)
     expect(Number.parseInt(random)).toBe(random)
   })
 })
 
 describe("spell.createElement()", () => {
   test("is not yet implemented", () => {
-    expect(()=> spell.createElement()).toThrow()
+    expect(() => spell.createElement()).toThrow()
   })
 })

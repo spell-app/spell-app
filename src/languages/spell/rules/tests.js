@@ -2,11 +2,7 @@
 //  # Rules for inline spell tests.
 //
 
-import {
-  Rule,
-  Spell,
-  peek
-} from "../all.js";
+import { Rule, Spell, peek } from "../all.js"
 
 export default new Spell.Parser({
   module: "tests",
@@ -21,18 +17,18 @@ export default new Spell.Parser({
         const { results, groups } = match
         const args = [
           results.expression,
-          'value' in results ? results.value : true,
+          "value" in results ? results.value : true,
           // TODO: output expression spell for error messages in output
           JSON.stringify(groups.expression.tokens.join(" ")),
           groups.value ? JSON.stringify(groups.value.tokens.join(" ")) : "true"
         ]
-        const statement = scope.addStatement(`spell.assertEquals(${args.join(", ")})`);
+        const statement = scope.addStatement(`spell.assertEquals(${args.join(", ")})`)
         results.statements.push(statement)
       },
       tests: [
         {
           beforeEach(scope) {
-            scope.compile("create a type named thing");
+            scope.compile("create a type named thing")
             scope.compile("the thing = a new thing with foo = 'bar'")
           },
           tests: [
@@ -43,10 +39,10 @@ export default new Spell.Parser({
             [
               "expect the foo of the thing is 'bar'",
               "spell.assertEquals((thing.foo == 'bar'), true, \"the foo of thing is 'bar'\", true)"
-            ],
+            ]
           ]
-        },
+        }
       ]
-    },
+    }
   ]
-});
+})

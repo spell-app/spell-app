@@ -1,10 +1,4 @@
-import {
-  Rule,
-  Spell,
-  Tokenizer,
-
-  proto,
-} from "../all.js";
+import { Rule, Spell, Tokenizer, proto } from "../all.js"
 
 // In Spell, we generally match `statements` across the entire line.
 //
@@ -15,11 +9,11 @@ import {
 // Note: Access this as `Spell.Rule.Statement`.
 Spell.Rule.Statement = class statement extends Rule.Sequence {
   // Set to true if this statement wants to attempt to read an inline statement on the same line.
-  @proto wantsInlineStatement = false;
+  @proto wantsInlineStatement = false
   // Rule to parse inline statement as -- see `parseInlineStatement()`
-  @proto parseInlineStatementAs = "statement";
+  @proto parseInlineStatementAs = "statement"
   // Set to true if this statement wants to attempt to read an nested block starting on the next line.
-  @proto wantsNestedBlock = false;
+  @proto wantsNestedBlock = false
 
   // YOU MUST IMPLEMENT THIS:
   //
@@ -29,7 +23,6 @@ Spell.Rule.Statement = class statement extends Rule.Sequence {
   // NOTE: DO NOT CALL THIS DIRECTLY -- ALWAYS CALL IT FROM THE MATCH!
   //       Otherwise we may call the method twice, duplicating its effects.
   updateScope(scope, match) {}
-
 
   // Return the nested scope that we should use to parse an inline statement or nested block.
   // Recommended is to remember it as `match.results.$scope` for things to work out correctly.
@@ -42,58 +35,54 @@ Spell.Rule.Statement = class statement extends Rule.Sequence {
   // Special parse to note any stuff we didn't catch
   // and handle block statements.
   parse(scope, tokens) {
-    const match = super.parse(scope, tokens);
-    if (!match) return;
+    const match = super.parse(scope, tokens)
+    if (!match) return
 
     // If we didn't parse everything on the line
     if (match.length !== tokens.length) {
       // If we want to parse an inline statement, do that now.
       if (this.wantsInlineStatement) {
-        const inlineMatch = this.parseInlineStatement(scope, match, tokens.slice(match.length));
-        if (inlineMatch)
-          match.length += inlineMatch.length;
+        const inlineMatch = this.parseInlineStatement(scope, match, tokens.slice(match.length))
+        if (inlineMatch) match.length += inlineMatch.length
       }
       // If there are still tokens left, remember them for later.
       if (match.length !== tokens.length) {
         match.results.incomplete = {
           parsed: Tokenizer.join(tokens, 0, match.length),
-          missed: Tokenizer.join(tokens, match.length),
+          missed: Tokenizer.join(tokens, match.length)
         }
       }
     }
 
-    return match;
+    return match
   }
 
   gatherResults(scope, match) {
-    const results = super.gatherResults(scope, match);
-    results.statements = [];
-    return results;
+    const results = super.gatherResults(scope, match)
+    results.statements = []
+    return results
   }
 
   // Parse an inline statement.
   parseInlineStatement(scope, match, tokens) {
-    const nestedScope = match.getNestedScope();
-    if (!nestedScope)
-      throw new ParseError(`${this.name}.parseInlineStatement(): no nested scope provided`);
+    const nestedScope = match.getNestedScope()
+    if (!nestedScope) throw new ParseError(`${this.name}.parseInlineStatement(): no nested scope provided`)
 
-    const inlineStatement = nestedScope.parse(tokens, this.parseInlineStatementAs);
+    const inlineStatement = nestedScope.parse(tokens, this.parseInlineStatementAs)
     // If we got one, tell it to `updateScope()`, which should add it to the nested scope.
     if (inlineStatement) {
-      if (this.parseInlineStatementAs === "statement")
-        inlineStatement.updateScope();
-      else
-        nestedScope.addStatement(inlineStatement.compile());
+      if (this.parseInlineStatementAs === "statement") inlineStatement.updateScope()
+      else nestedScope.addStatement(inlineStatement.compile())
     }
 
-    return inlineStatement;
+    return inlineStatement
   }
 
   // To compile, we just output our statements.
   compile(scope, match) {
     // Call `updateScope()` on the match to make sure we've fully compiled.
     // This is a no-op if it's been called before.
-    match.updateScope();
-    return match.results?.statements?.join("\n") || "";
+    match.updateScope()
+    return match.results?.statements?.join("\n") || ""
   }
 }

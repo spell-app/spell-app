@@ -1,7 +1,7 @@
 // HACK: expose a bunch of stuff on `global` for browser debugging
-import global from "global";
-import _ from "lodash";
-import JSON5 from "JSON5";
+import global from "global"
+import _ from "lodash"
+import JSON5 from "JSON5"
 
 import {
   projects,
@@ -17,13 +17,13 @@ import {
   Token,
   Tokenizer,
   singularize,
-  pluralize,
-} from "./all.js";
+  pluralize
+} from "./all.js"
 
-import precedence from "../languages/precedence/precedence.js";
+import precedence from "../languages/precedence/precedence.js"
 
 // Output source when rendering statements
-Spell.Parser.prototype.outputSource = false;       // TODO: add a control for this to the UI
+Spell.Parser.prototype.outputSource = false // TODO: add a control for this to the UI
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
@@ -34,14 +34,14 @@ Object.assign(global, {
   // JSON5 for parsing
   JSON5,
 
-//   ParseError,
-//   Parser,
-//   Rule,
-//   Scope,
-     Spell,
-//   SpellParser: Spell.Parser,
-//   Token,
-//   Tokenizer,
+  //   ParseError,
+  //   Parser,
+  //   Rule,
+  //   Scope,
+  Spell,
+  //   SpellParser: Spell.Parser,
+  //   Token,
+  //   Tokenizer,
 
   // spell language stuff
   spellParser,
@@ -56,16 +56,16 @@ Object.assign(global, {
   spell,
 
   // rulex language stuff
-//  rulex,
+  //  rulex,
 
   // Redux/app stuff
-//  ReduxFactory,
-  projects,    // package/file manipulation reduxFactory
+  //  ReduxFactory,
+  projects // package/file manipulation reduxFactory
 
   // test language
-//   prec: precedence,
+  //   prec: precedence,
 
   // string utils
-//   singularize,
-//   pluralize,
-});
+  //   singularize,
+  //   pluralize,
+})

@@ -1,34 +1,19 @@
 //
 //  # Rules for constants, variables, type names, etc
 //
-import {
-  Match,
-  Rule,
-  Scope,
-  Spell,
-  Token,
+import { Match, Rule, Scope, Spell, Token, proto, snakeCase, typeCase, singularize, pluralize } from "../all.js"
 
-  proto,
-  snakeCase,
-  typeCase,
-  singularize,
-  pluralize
-} from "../all.js";
-
-import identifierBlacklist from "./identifier-blacklist.js";
+import identifierBlacklist from "./identifier-blacklist.js"
 
 // Alpha-numeric word, including dashes or underscores.
-const WORD = /^[a-zA-Z][\w\-]*$/;
+const WORD = /^[a-zA-Z][\w\-]*$/
 
 Spell.Rule.Constant = class constant extends Rule.Pattern {
-  @proto pattern = WORD;
-  @proto blacklist = identifierBlacklist;
+  @proto pattern = WORD
+  @proto blacklist = identifierBlacklist
   compile(scope, match) {
-    const constant
-      = match.constant
-      || scope.constants(match.raw)
-      || new Scope.Constant(match.raw);
-    return constant.toString();
+    const constant = match.constant || scope.constants(match.raw) || new Scope.Constant(match.raw)
+    return constant.toString()
   }
 }
 
@@ -43,14 +28,13 @@ export default new Spell.Parser({
       tests: [
         {
           tests: [
-            { title:"single word", input: "red", output: "'red'" },
-            { title:"multi-word", input: "orangish-red", output: "'orangish-red'" },
-            { title:"blacklisted word", input: "if", output: undefined },
+            { title: "single word", input: "red", output: "'red'" },
+            { title: "multi-word", input: "orangish-red", output: "'orangish-red'" },
+            { title: "blacklisted word", input: "if", output: undefined }
           ]
         }
       ]
     },
-
 
     // A known single-word constant.
     // Note that this is defined as an "expression".
@@ -59,18 +43,18 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       constructor: class known_constant extends Spell.Rule.Constant {
         parse(scope, tokens) {
-          const match = super.parse(scope, tokens);
-          if (!match) return;
-          match.constant = scope.constants(match.raw);
-          if (match.constant) return match;
+          const match = super.parse(scope, tokens)
+          if (!match) return
+          match.constant = scope.constants(match.raw)
+          if (match.constant) return match
         }
       },
       tests: [
         {
-          compileAs: "known_constant",    // TODO: to "expression"
+          compileAs: "known_constant", // TODO: to "expression"
           beforeEach(scope) {
-            scope.constants.add("red");
-            scope.constants.add({ name: "green", value: "#00FF00" });
+            scope.constants.add("red")
+            scope.constants.add({ name: "green", value: "#00FF00" })
           },
           tests: [
             { title: "known constant", input: "red", output: "'red'" },
@@ -81,7 +65,6 @@ export default new Spell.Parser({
       ]
     },
 
-
     // Define a constant.
     // Mostly here for testing. ???
     // TODO: warn if already defined?
@@ -91,21 +74,18 @@ export default new Spell.Parser({
       syntax: "constant {constant} (is {value:expression})?",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results, groups }) {
-        const name = groups.constant.raw;
-        const { value } = results;
-        const constant = scope.constants.add({ name, value });
+        const name = groups.constant.raw
+        const { value } = results
+        const constant = scope.constants.add({ name, value })
         // TODO: could be defining this more than once...
-        const statement = scope.addStatement(`const ${name} = ${constant.toString()}`);
-        results.statements.push(statement);
+        const statement = scope.addStatement(`const ${name} = ${constant.toString()}`)
+        results.statements.push(statement)
       },
       tests: [
         {
-          tests: [
-            [ "constant red", "const red = 'red'" ],
-            [ "constant black is 6", "const black = 6" ],
-          ]
+          tests: [["constant red", "const red = 'red'"], ["constant black is 6", "const black = 6"]]
         }
       ]
-    },
+    }
   ]
-});
+})

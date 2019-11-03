@@ -3,10 +3,7 @@
 //  NOTE: this must come after "operators"
 //
 
-import {
-  Rule,
-  Spell,
-} from "../all.js";
+import { Rule, Spell } from "../all.js"
 
 export default new Spell.Parser({
   module: "math",
@@ -21,8 +18,8 @@ export default new Spell.Parser({
         {
           compileAs: "expression",
           beforeEach(scope) {
-            scope.variables.add("salary");
-            scope.variables.add("expenses");
+            scope.variables.add("salary")
+            scope.variables.add("expenses")
           },
           tests: [
             { title: "> with spaces", input: "salary > expenses", output: "(salary > expenses)" },
@@ -50,25 +47,24 @@ export default new Spell.Parser({
         return {
           ...match.results,
           operator: match.matched[0].tokens.join(" ")
-        };
+        }
       },
       applyOperator({ lhs, operator, rhs }) {
-        const op = (operator.includes("greater") ? ">" : "<")
-                 + (operator.includes("equal") ? "=" : "");
-        return `(${lhs} ${op} ${rhs})`;
+        const op = (operator.includes("greater") ? ">" : "<") + (operator.includes("equal") ? "=" : "")
+        return `(${lhs} ${op} ${rhs})`
       },
       tests: [
         {
           compileAs: "expression",
           beforeEach(scope) {
-            scope.variables.add("salary");
-            scope.variables.add("expenses");
+            scope.variables.add("salary")
+            scope.variables.add("expenses")
           },
           tests: [
             ["salary is greater than expenses", "(salary > expenses)"],
             ["salary is greater than or equal to expenses", "(salary >= expenses)"],
             ["salary is less than expenses", "(salary < expenses)"],
-            ["salary is less than or equal to expenses", "(salary <= expenses)"],
+            ["salary is less than or equal to expenses", "(salary <= expenses)"]
           ]
         }
       ]
@@ -78,25 +74,25 @@ export default new Spell.Parser({
       name: "plus_minus",
       alias: "expression_suffix",
       precedence: 13,
-      syntax: "(operator:plus|minus|\+|-) {expression:single_expression}",
+      syntax: "(operator:plus|minus|+|-) {expression:single_expression}",
       applyOperator({ lhs, operator, rhs }) {
-        const op = (operator.includes("plus") || operator.includes("+") ? "+" : "-");
-        return `(${lhs} ${op} ${rhs})`;
+        const op = operator.includes("plus") || operator.includes("+") ? "+" : "-"
+        return `(${lhs} ${op} ${rhs})`
       },
       tests: [
         {
           compileAs: "expression",
           beforeEach(scope) {
-            scope.variables.add("price");
-            scope.variables.add("tax");
+            scope.variables.add("price")
+            scope.variables.add("tax")
           },
           tests: [
             ["price + tax", "(price + tax)"],
             ["price+tax", "(price + tax)"],
-    //        ["price-tax", "(price - tax)"],     // NOTE: `-` requires spaces...
+            //        ["price-tax", "(price - tax)"],     // NOTE: `-` requires spaces...
             ["price - tax", "(price - tax)"],
             ["price plus tax", "(price + tax)"],
-            ["price minus tax", "(price - tax)"],
+            ["price minus tax", "(price - tax)"]
           ]
         }
       ]
@@ -106,17 +102,17 @@ export default new Spell.Parser({
       name: "times_divided_by",
       alias: "expression_suffix",
       precedence: 14,
-      syntax: "(operator:\*|/|times|divided by) {expression:single_expression}",
+      syntax: "(operator:*|/|times|divided by) {expression:single_expression}",
       applyOperator({ lhs, operator, rhs }) {
-        const op = (operator.includes("times") || operator.includes("*") ? "*" : "/");
-        return `(${lhs} ${op} ${rhs})`;
+        const op = operator.includes("times") || operator.includes("*") ? "*" : "/"
+        return `(${lhs} ${op} ${rhs})`
       },
       tests: [
         {
           compileAs: "expression",
           beforeEach(scope) {
-            scope.variables.add("price");
-            scope.variables.add("taxRate");
+            scope.variables.add("price")
+            scope.variables.add("taxRate")
           },
           tests: [
             ["price*taxRate", "(price * taxRate)"],
@@ -124,18 +120,15 @@ export default new Spell.Parser({
             ["price/taxRate", "(price / taxRate)"],
             ["price / taxRate", "(price / taxRate)"],
             ["price times taxRate", "(price * taxRate)"],
-            ["price divided by taxRate", "(price / taxRate)"],
+            ["price divided by taxRate", "(price / taxRate)"]
           ]
         }
       ]
     },
 
-
-
     //
     //  Random math functions
     //
-
 
     {
       name: "absolute_value",
@@ -143,18 +136,16 @@ export default new Spell.Parser({
       syntax: "the? absolute value of {expression}",
       testRule: "…absolute",
       compile(scope, match) {
-        const { expression } = match.results;
-        return `Math.abs(${expression})`;
+        const { expression } = match.results
+        return `Math.abs(${expression})`
       },
       tests: [
         {
           compileAs: "expression",
           beforeEach(scope) {
-            scope.variables.add("difference");
+            scope.variables.add("difference")
           },
-          tests: [
-            ["the absolute value of the difference", "Math.abs(difference)"]
-          ]
+          tests: [["the absolute value of the difference", "Math.abs(difference)"]]
         }
       ]
     },
@@ -166,15 +157,15 @@ export default new Spell.Parser({
       syntax: "the? (biggest|largest) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…(biggest|largest)",
       compile(scope, match) {
-        const { expression } = match.results;
-        return `spell.largestOf(${expression})`;
+        const { expression } = match.results
+        return `spell.largestOf(${expression})`
       },
       tests: [
         {
           compileAs: "expression",
           beforeEach(scope) {
-            scope.variables.add("prices");
-            scope.variables.add("price");
+            scope.variables.add("prices")
+            scope.variables.add("price")
           },
           tests: [
             ["largest of the prices", "spell.largestOf(prices)"],
@@ -192,14 +183,14 @@ export default new Spell.Parser({
       syntax: "the? smallest {argument:singular_variable}? (of|in) {expression}",
       testRule: "…smallest",
       compile(scope, match) {
-        const { expression } = match.results;
-        return `spell.smallestOf(${expression})`;
+        const { expression } = match.results
+        return `spell.smallestOf(${expression})`
       },
       tests: [
         {
           compileAs: "expression",
           beforeEach(scope) {
-            scope.variables.add("prices");
+            scope.variables.add("prices")
           },
           tests: [
             ["smallest of prices", "spell.smallestOf(prices)"],
@@ -210,23 +201,23 @@ export default new Spell.Parser({
     },
 
     {
-    //TODO: precision:  to the nearest tenth ?
+      //TODO: precision:  to the nearest tenth ?
       name: "round_number",
       alias: ["expression", "single_expression"],
       syntax: "round {thing:expression} (direction:off|up|down)?",
       testRule: "round",
       precedence: 1,
       compile(scope, match) {
-        const { thing, direction } = match.results;
-        if (direction === "up") return `Math.ceil(${thing})`;
-        else if (direction === "down") return `Math.floor(${thing})`;
-        else return `Math.round(${thing})`;
+        const { thing, direction } = match.results
+        if (direction === "up") return `Math.ceil(${thing})`
+        else if (direction === "down") return `Math.floor(${thing})`
+        else return `Math.round(${thing})`
       },
       tests: [
         {
           compileAs: "expression",
           beforeEach(scope) {
-            scope.variables.add("price");
+            scope.variables.add("price")
           },
           tests: [
             ["round price", "Math.round(price)"],
@@ -236,7 +227,6 @@ export default new Spell.Parser({
           ]
         }
       ]
-    },
-
+    }
   ]
-});
+})

@@ -6,4 +6,4 @@
 export const TestLocation = {
   AT_START: "AT_START",
   ANYWHERE: "ANYWHERE"
-};
+}

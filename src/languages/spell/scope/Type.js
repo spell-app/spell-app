@@ -1,17 +1,9 @@
-import assert from "assert";
+import assert from "assert"
 import lowerFirst from "lodash/lowerFirst"
 
-import {
-  indexedList,
-  typeCase,
-} from "../all.js";
+import { indexedList, typeCase } from "../all.js"
 
-import {
-  Scope,
-  Variable,
-  Method,
-} from "./all.js";
-
+import { Scope, Variable, Method } from "./all.js"
 
 // Type, which extends Scope.  Specifically:
 //  - `name` is the name of the type, and should be TypeCase and singular.
@@ -24,13 +16,13 @@ import {
 export class Type extends Scope {
   constructor(props) {
     // If you just pass a string we'll assume it's the type name.
-    if (typeof props === "string") props = { name: props };
-    assert(props.name, "Types must be initialized with a 'name'");
+    if (typeof props === "string") props = { name: props }
+    assert(props.name, "Types must be initialized with a 'name'")
     // Make sure type `name` and `superType` are in `Type_Case`
-    props.name = typeCase(props.name);
-    if (props.superType) props.superType = typeCase(props.superType);
+    props.name = typeCase(props.name)
+    if (props.superType) props.superType = typeCase(props.superType)
 
-    super(props);
+    super(props)
   }
 
   /////////////////
@@ -40,10 +32,10 @@ export class Type extends Scope {
     keyProp: "name",
     normalizeKey: typeCase,
     transformer(item) {
-      if (!(item instanceof Variable)) item = new Variable(item);
-      item.scope = this;
-      item.kind = "static";
-      return item;
+      if (!(item instanceof Variable)) item = new Variable(item)
+      item.scope = this
+      item.kind = "static"
+      return item
     }
   })
   classVariables
@@ -52,10 +44,10 @@ export class Type extends Scope {
     keyProp: "name",
     normalizeKey: typeCase,
     transformer(item) {
-      if (!(item instanceof Method)) item = new Method(item);
-      item.scope = this;
-      item.kind = "static";
-      return item;
+      if (!(item instanceof Method)) item = new Method(item)
+      item.scope = this
+      item.kind = "static"
+      return item
     }
   })
   classMethods
@@ -63,19 +55,17 @@ export class Type extends Scope {
   // Syntactic sugar for the type name.
   // e.g. if the type name is `Card`, the instanceName would be `card`.
   get instanceName() {
-    return lowerFirst(this.name);
+    return lowerFirst(this.name)
   }
 
   // Compile the type.
   // NOTE: this currently ignores methods/properties, we'll want to fix that...
   toString() {
     let statements = []
-    if (this.superType)
-      statements.push(`export class ${this.name} extends ${this.superType} {}`);
-    else
-      statements.push(`export class ${this.name} {}`);
+    if (this.superType) statements.push(`export class ${this.name} extends ${this.superType} {}`)
+    else statements.push(`export class ${this.name} {}`)
     statements.push(`spell.addExport("${this.name}", ${this.name})`)
     return statements.join("\n")
   }
 }
-Scope.Type = Type;
+Scope.Type = Type

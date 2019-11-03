@@ -4,29 +4,26 @@
 //
 ////////////////////
 
-import {
-  ReduxFactory,
-  projects,
-} from "./all.js";
+import { ReduxFactory, projects } from "./all.js"
 
 export default ReduxFactory.createStore({
-    // Factories to initialize as `{ domain: factory }`
-    factories: {
-      projects,
-    },
+  // Factories to initialize as `{ domain: factory }`
+  factories: {
+    projects
+  },
 
-    // Any other reducers as `{ domain: reducer }`
-    reducers: {},
+  // Any other reducers as `{ domain: reducer }`
+  reducers: {},
 
-    // Rehydrated state from server
-    initialStoreState: undefined,
+  // Rehydrated state from server
+  initialStoreState: undefined,
 
-    // Array of middlewares
-    middlewares: [],
+  // Array of middlewares
+  middlewares: [],
 
-    // Set up redux devtools automatically.
-    useDevTools: true,
+  // Set up redux devtools automatically.
+  useDevTools: true,
 
-    // Random action creators, not associated with any factories
-    actionCreators: {}
-});
+  // Random action creators, not associated with any factories
+  actionCreators: {}
+})

@@ -4,7 +4,6 @@
 import _ from "lodash"
 import { assert } from "."
 const spell = {
-
   //////////
   // Meta-programming
   //--------
@@ -22,7 +21,7 @@ const spell = {
     if (!assert.isDefined(thing, "spell.newThingLike()")) return undefined
     if (spell.isArrayLike(thing)) return []
     try {
-      return new (thing.constructor)()
+      return new thing.constructor()
     } catch (e) {
       return {}
     }
@@ -78,7 +77,7 @@ const spell = {
 
   // Is `thing` a valid number (doesn't include NaN)
   isANumber(thing) {
-    return (typeof thing === "number" && !isNaN(thing))
+    return typeof thing === "number" && !isNaN(thing)
   },
 
   // TODO: isText, etc
@@ -97,7 +96,6 @@ const spell = {
     return value !== false && value !== null && value !== undefined
   },
 
-
   //////////
   // operators
   //--------
@@ -113,12 +111,10 @@ const spell = {
   assertEquals(thing, otherThing, thingSource, otherThingSource) {
     if (_.isEqual(thing, otherThing)) {
       console.info(`YES: Expected "${thingSource}" to be "${otherThingSource}"`)
-    }
-    else {
+    } else {
       console.warn(`NO: Expected "${thingSource}" to be "${otherThingSource}", got: "${thing}"`)
     }
   },
-
 
   //////////
   // math
@@ -131,7 +127,15 @@ const spell = {
       max = min
       min = 1
     }
-    if (!assert(spell.isANumber(min) && spell.isANumber(max), "spell.randomNumber(): you must pass two numbers, got", min, max)) return undefined
+    if (
+      !assert(
+        spell.isANumber(min) && spell.isANumber(max),
+        "spell.randomNumber(): you must pass two numbers, got",
+        min,
+        max
+      )
+    )
+      return undefined
     if (!assert(min <= max, "spell.randomNumber(): min (", min, ") must be less than max (", max, ")")) return undefined
     return Math.floor(Math.random() * (max - min + 1)) + min
   },
@@ -143,8 +147,7 @@ const spell = {
   // Create an element (ala `React.createElement()`)
   createElement(tagName, properties, ...children) {
     throw new RuntimeError("TODO: spell.createElement()")
-  },
-
+  }
 }
 
 export default spell

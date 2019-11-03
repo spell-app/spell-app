@@ -1,5 +1,5 @@
 import _ from "lodash"
-import CodeMirror from 'codemirror'
+import CodeMirror from "codemirror"
 
 import { Token, spellParser } from "./all.js"
 //import blacklist from "../languages/spell/rules/identifier-blacklist.js"
@@ -19,7 +19,7 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
 
   function getTokenType(token) {
     if (token instanceof Token.Word) {
-//      if (blacklist[token.raw]) return "keyword"
+      //      if (blacklist[token.raw]) return "keyword"
       return "unknown"
     }
     if (token instanceof Token.Symbol) return "operator"
@@ -44,7 +44,7 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
         // list of tokens for the current line
         tokens: undefined,
         // match tree for the current line
-        tokens: undefined,
+        tokens: undefined
       }
     },
 
@@ -58,10 +58,9 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
         state.string = stream.string
         state.tokens = spellParser.tokenize(stream.string)
         state.results = spellParser.parse(stream.string, "statement")
-//       console.warn(stream, "\n", state.results)
-      }
-      else {
-//        console.info(stream)
+        //       console.warn(stream, "\n", state.results)
+      } else {
+        //        console.info(stream)
       }
       // eat whitespace outside of tokens
       const startPosition = stream.pos
@@ -73,13 +72,11 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
         // console.info("matched ", token, length)
         advanceStreamPastToken(stream, token)
         return getTokenType(token)
-      }
-      else {
+      } else {
         stream.skipToEnd()
       }
     }
   }
 })
-CodeMirror.defineMIME("text/spell", "spell");
-CodeMirror.defineMIME("text/x-spell", "spell");
-
+CodeMirror.defineMIME("text/spell", "spell")
+CodeMirror.defineMIME("text/x-spell", "spell")
