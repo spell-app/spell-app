@@ -4,7 +4,6 @@
 import assert from "assert"
 import lowerFirst from "lodash/lowerFirst"
 import uniq from "lodash/uniq"
-import JSON5 from "JSON5"
 
 import { Parser, indexedList, typeCase, snakeCase } from "../all"
 
@@ -16,7 +15,7 @@ import { Variable, Constant, Method, Type } from "./all"
 //  Expected properties:
 //
 //  - async       // if `true`, something in the scope is being called asynchronously
-export class Scope {
+export default class Scope {
   constructor(props) {
     // You can initialize with just a `Parser` instance if desired.
     if (props instanceof Parser) props = { parser: props }

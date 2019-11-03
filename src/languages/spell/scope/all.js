@@ -3,9 +3,9 @@
 //     Other files MUST ONLY import from this files.
 //
 
-export { Scope } from "./Scope"
-export { Module } from "./Module"
-export { Type } from "./Type"
-export { Constant } from "./Constant"
-export { Method } from "./Method"
-export { Variable } from "./Variable"
+export { default as Scope } from "./Scope"
+export { default as Module } from "./Module"
+export { default as Type } from "./Type"
+export { default as Constant } from "./Constant"
+export { default as Method } from "./Method"
+export { default as Variable } from "./Variable"

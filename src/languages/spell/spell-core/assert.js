@@ -3,7 +3,7 @@
 // TODO: some way to control output
 // ////////
 
-import _ from "lodash"
+import isArrayLike from "lodash/isArrayLike"
 import spell from "."
 
 // Assert that some `condition` is truthy:
@@ -37,5 +37,5 @@ assert.isDefined = function(thing, method = "", ...message) {
 // Assert that `thing` is array-like in `method`, with optional `message` bits
 assert.isArrayLike = function(thing, method = "", ...message) {
   if (message.length === 0) message.push("expected an array-like thing, got: ", thing)
-  return assert(_.isArrayLike(thing), method, ...message)
+  return assert(isArrayLike(thing), method, ...message)
 }

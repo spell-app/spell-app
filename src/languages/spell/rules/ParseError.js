@@ -13,6 +13,6 @@ Spell.Rule.ParseError = class parse_error extends Rule {
 
   compile(scope, match) {
     const unparsed = Tokenizer.join(match.matched)
-    return "/" + "/ WARNING: Couldn't parse:  `" + unparsed + "`"
+    return `${"/"}/ WARNING: Couldnt parse:  '${unparsed}'`
   }
 }

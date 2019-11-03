@@ -1,5 +1,5 @@
 import assert from "assert"
-import { Scope, Type } from "./all"
+import { Type } from "./all"
 
 // Variable definition, including:
 //      - global variable
@@ -14,7 +14,7 @@ import { Scope, Type } from "./all"
 //  - datatype
 //  - initializer
 //  - kind:  "argument", "static"
-export class Variable {
+export default class Variable {
   constructor(props) {
     // Convert string to 'name'
     if (typeof props === "string") props = { name: props }

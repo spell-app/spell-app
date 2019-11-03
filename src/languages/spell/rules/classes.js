@@ -1,15 +1,4 @@
-import {
-  Rule,
-  Scope,
-  Spell,
-  Token,
-  instanceCase,
-  lowerFirst,
-  upperFirst,
-  pluralize,
-  singularize,
-  typeCase
-} from "../all"
+import { Scope, Spell, instanceCase, lowerFirst, upperFirst, pluralize, singularize, typeCase } from "../all"
 
 export default new Spell.Parser({
   module: "classes",

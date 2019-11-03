@@ -3,7 +3,7 @@
 //  NOTE: this must come after "operators"
 //
 
-import { Rule, Spell } from "../all"
+import { Spell } from "../all"
 
 export default new Spell.Parser({
   module: "math",

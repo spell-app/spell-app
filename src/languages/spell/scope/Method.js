@@ -1,5 +1,3 @@
-import assert from "assert"
-
 import { Scope, Variable } from "./all"
 
 // Method
@@ -7,7 +5,7 @@ import { Scope, Variable } from "./all"
 //  - name
 //  - args        // NOTE: we DO NOT expect args to change after Method is created!
 //  - returns
-export class Method extends Scope {
+export default class Method extends Scope {
   constructor({ args, ...props }) {
     super(props)
     // Add `args` to our variables list

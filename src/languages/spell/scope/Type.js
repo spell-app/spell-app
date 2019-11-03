@@ -13,7 +13,7 @@ import { Scope, Variable, Method } from "./all"
 //  - `variables` (from block) are instance variables
 //  - `classMethods` and `classVariables` are static to the class.
 //  - `statements` are random bits of logic to initialize the type.
-export class Type extends Scope {
+export default class Type extends Scope {
   constructor(props) {
     // If you just pass a string we'll assume it's the type name.
     if (typeof props === "string") props = { name: props }

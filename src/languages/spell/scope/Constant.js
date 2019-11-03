@@ -1,6 +1,6 @@
 import { ParseError } from "../all"
 
-import { Scope, Variable } from "./all"
+import { Scope } from "./all"
 
 //
 // Constant definition.
@@ -12,7 +12,7 @@ import { Scope, Variable } from "./all"
 //  - value (defaults to `'name'`)
 //  - datatype (defaults to `string`)
 //
-export class Constant {
+export default class Constant {
   constructor(props) {
     // Use string as constant `name`
     if (typeof props === "string") {

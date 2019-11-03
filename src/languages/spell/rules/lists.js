@@ -3,7 +3,7 @@
 //  TODO: sort
 //
 
-import { Rule, Scope, Spell, singularize } from "../all"
+import { Scope, Spell, singularize } from "../all"
 
 export default new Spell.Parser({
   module: "lists",

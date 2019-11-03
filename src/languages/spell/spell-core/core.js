@@ -1,8 +1,12 @@
 // ////////
 //  `spell` base runtime library for use with classes created with spell
 // ////////
-import _ from "lodash"
+import forEach from "lodash/forEach"
+import _isArrayLike from "lodash/isArrayLike"
+import isEqual from "lodash/isEqual"
+
 import { assert } from "."
+
 const spell = {
   // ////////
   // Meta-programming
@@ -43,7 +47,7 @@ const spell = {
 
   // globalize all exports
   globalizeExports() {
-    _.forEach(this.EXPORTS, (thing, name) => {
+    forEach(this.EXPORTS, (thing, name) => {
       global[name] = thing
     })
   },
@@ -84,7 +88,7 @@ const spell = {
 
   // Is `thing` an array-like thing?
   isArrayLike(thing) {
-    return _.isArrayLike(thing)
+    return _isArrayLike(thing)
   },
 
   // Assert that `value` is not:
@@ -103,13 +107,13 @@ const spell = {
   // Does `thing` conceptually equal `otherThing`?
   // Uses lodash `isEqual` semantics.
   equals(thing, otherThing) {
-    return _.isEqual(thing, otherThing)
+    return isEqual(thing, otherThing)
   },
 
   // Does `thing` conceptually equal `otherThing`?
   // Uses lodash `isEqual` semantics.
   assertEquals(thing, otherThing, thingSource, otherThingSource) {
-    if (_.isEqual(thing, otherThing)) {
+    if (isEqual(thing, otherThing)) {
       console.info(`YES: Expected "${thingSource}" to be "${otherThingSource}"`)
     } else {
       console.warn(`NO: Expected "${thingSource}" to be "${otherThingSource}", got: "${thing}"`)

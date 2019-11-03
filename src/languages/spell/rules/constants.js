@@ -1,7 +1,7 @@
 //
 //  # Rules for constants, variables, type names, etc
 //
-import { Match, Rule, Scope, Spell, Token, proto, snakeCase, typeCase, singularize, pluralize } from "../all"
+import { Rule, Scope, Spell, proto } from "../all"
 
 import identifierBlacklist from "./identifier-blacklist"
 

@@ -1,7 +1,7 @@
 //
 //  # Rules for variables
 //
-import { Match, Rule, Scope, Spell, Token, proto, snakeCase, typeCase, singularize, pluralize } from "../all"
+import { Rule, Spell, proto, singularize, pluralize } from "../all"
 
 import identifierBlacklist from "./identifier-blacklist"
 
@@ -15,10 +15,13 @@ const WORD = /^[a-zA-Z][\w\-]*$/
 // TODO: higher precedence if variable is known?
 Spell.Rule.Variable = class _variable extends Rule.Pattern {
   @proto pattern = WORD
+
   @proto blacklist = identifierBlacklist
+
   valueMap(value) {
-    return ("" + value).replace(/-/g, "_")
+    return `${value}`.replace(/-/g, "_")
   }
+
   compile(scope, match) {
     const varName = super.compile(scope, match)
     const variable = scope.variables(varName)

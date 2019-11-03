@@ -1,7 +1,7 @@
 //
 //  # Rules for constants, variables, type names, etc
 //
-import { Match, Rule, Scope, Spell, Token, proto, snakeCase, typeCase, singularize, pluralize } from "../all"
+import { Rule, Spell, proto, typeCase, singularize, pluralize } from "../all"
 
 import identifierBlacklist from "./identifier-blacklist"
 
@@ -10,8 +10,11 @@ const WORD = /^[a-zA-Z][\w\-]*$/
 
 Spell.Rule.Type = class type extends Rule.Pattern {
   @proto pattern = WORD
+
   @proto datatype = "type"
+
   @proto blacklist = identifierBlacklist
+
   @proto valueMap = {
     object: "Object",
     Object: "Object",
@@ -61,6 +64,7 @@ export default new Spell.Parser({
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === singularize(match.raw)) return match
+          return undefined
         }
       },
       tests: [
@@ -88,6 +92,7 @@ export default new Spell.Parser({
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === pluralize(match.raw)) return match
+          return undefined
         }
       },
       tests: [
@@ -115,10 +120,11 @@ export default new Spell.Parser({
       constructor: class known_type extends Spell.Rule.Type {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
-          if (!match) return
+          if (!match) return undefined
           // Pick up existing type if defined.
           match.type = scope.types(match.raw)
           if (match.type) return match
+          return undefined
         }
       },
       tests: [

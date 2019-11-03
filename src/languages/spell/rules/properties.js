@@ -5,7 +5,7 @@
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
 
-import { Rule, Spell, Token } from "../all"
+import { Spell } from "../all"
 
 import identifierBlacklist from "./identifier-blacklist"
 

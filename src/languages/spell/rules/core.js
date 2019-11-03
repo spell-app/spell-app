@@ -1,7 +1,7 @@
 //
 //  # Core `rules` -- simple datatypes, etc.
 //
-import { Rule, Spell, Token } from "../all"
+import { Spell, Token } from "../all"
 
 export default new Spell.Parser({
   module: "core",
