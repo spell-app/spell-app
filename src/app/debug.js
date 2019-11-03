@@ -1,5 +1,5 @@
 // HACK: expose a bunch of stuff on `global` for browser debugging
-export global from "global";
+import global from "global";
 import _ from "lodash";
 import JSON5 from "JSON5";
 

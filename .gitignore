@@ -5,3 +5,4 @@ build
 yarn-error.log
 .cache
 dist
+_parser.code-workspace

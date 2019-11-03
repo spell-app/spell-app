@@ -1,0 +1,16 @@
+{
+  "eslint.alwaysShowStatus": true,
+  "javascript.validate.enable": false,
+  "[javascript]": {
+    "editor.formatOnSave": true,
+  },
+  "[javascriptreact]": {
+    "editor.formatOnSave": true,
+  },
+
+  // requires only if you use vetur plugin
+  "vetur.validation.script": false,
+  "prettier.arrowParens": "always",
+  "prettier.printWidth": 120,
+  "prettier.semi": false
+}

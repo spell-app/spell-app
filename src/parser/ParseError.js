@@ -3,8 +3,8 @@
 
 export class ParseError extends Error {
   constructor(...props) {
-    super(...props);
+    super(...props)
     // Fix up stack trace to refer to throwing line
-    if (Error.captureStackTrace) Error.captureStackTrace(this, this.constructor);
+    if (Error.captureStackTrace) Error.captureStackTrace(this, this.constructor)
   }
 }

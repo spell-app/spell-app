@@ -15,60 +15,6 @@
       "src/server/"
     ]
   },
-  "babel": {
-    "env": {
-      "test": {
-        "plugins": [
-          "@babel/plugin-transform-runtime"
-        ]
-      }
-    },
-    "presets": [
-      "@babel/preset-env",
-      "@babel/preset-react"
-    ],
-    "plugins": [
-      "@babel/plugin-syntax-dynamic-import",
-      "@babel/plugin-syntax-import-meta",
-      "@babel/plugin-proposal-function-sent",
-      "@babel/plugin-proposal-export-namespace-from",
-      "@babel/plugin-proposal-numeric-separator",
-      "@babel/plugin-proposal-throw-expressions",
-      "@babel/plugin-proposal-export-default-from",
-      "@babel/plugin-proposal-logical-assignment-operators",
-      "@babel/plugin-proposal-optional-chaining",
-      "@babel/plugin-proposal-nullish-coalescing-operator",
-      "@babel/plugin-proposal-do-expressions",
-      [
-        "@babel/plugin-proposal-decorators",
-        {
-          "decoratorsBeforeExport": true,
-          "legacy": false
-        }
-      ],
-      [
-        "@babel/plugin-proposal-class-properties",
-        {
-          "loose": true
-        }
-      ],
-      [
-        "@babel/plugin-proposal-pipeline-operator",
-        {
-          "proposal": "minimal"
-        }
-      ],
-      [
-        "babel-plugin-transform-builtin-extend",
-        {
-          "globals": [
-            "Error",
-            "Array"
-          ]
-        }
-      ]
-    ]
-  },
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
     "@githubprimer/octicons-react": "^8.4.2",
@@ -132,17 +78,107 @@
     "parcel-bundler": "^1.11.0",
     "prettier": "1.16.4"
   },
+  "babel": {
+    "env": {
+      "test": {
+        "plugins": [
+          "@babel/plugin-transform-runtime"
+        ]
+      }
+    },
+    "presets": [
+      "@babel/preset-env",
+      "@babel/preset-react"
+    ],
+    "plugins": [
+      "@babel/plugin-syntax-dynamic-import",
+      "@babel/plugin-syntax-import-meta",
+      "@babel/plugin-proposal-function-sent",
+      "@babel/plugin-proposal-export-namespace-from",
+      "@babel/plugin-proposal-numeric-separator",
+      "@babel/plugin-proposal-throw-expressions",
+      "@babel/plugin-proposal-export-default-from",
+      "@babel/plugin-proposal-logical-assignment-operators",
+      "@babel/plugin-proposal-optional-chaining",
+      "@babel/plugin-proposal-nullish-coalescing-operator",
+      "@babel/plugin-proposal-do-expressions",
+      [
+        "@babel/plugin-proposal-decorators",
+        {
+          "decoratorsBeforeExport": true,
+          "legacy": false
+        }
+      ],
+      [
+        "@babel/plugin-proposal-class-properties",
+        {
+          "loose": true
+        }
+      ],
+      [
+        "@babel/plugin-proposal-pipeline-operator",
+        {
+          "proposal": "minimal"
+        }
+      ],
+      [
+        "babel-plugin-transform-builtin-extend",
+        {
+          "globals": [
+            "Error",
+            "Array"
+          ]
+        }
+      ]
+    ]
+  },
   "eslintConfig": {
     "env": {
+      "es6": true,
       "jest": true,
       "shared-node-browser": true
     },
-    "extends": "eslint:recommended",
-    "plugins": [
-      "prettier"
+    "extends": [
+      "airbnb-base",
+      "plugin:react/recommended",
+      "prettier",
+      "prettier/react"
     ],
     "parser": "babel-eslint",
+    "parserOptions": {
+      "ecmaFeatures": {
+        "classes": true,
+        "jsx": true
+      },
+      "ecmaVersion": 2018,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "prettier",
+      "react"
+    ],
     "rules": {
+      "camelcase": "off",
+      "class-methods-use-this": "off",
+      "import/no-unresolved": "off",
+      "indent": [
+        "error",
+        2,
+        {
+          "SwitchCase": 1
+        }
+      ],
+      "linebreak-style": [
+        "error",
+        "unix"
+      ],
+      "max-len": [
+        "off",
+        {
+          "code": 120,
+          "tabWidth": 2
+        }
+      ],
       "no-unused-vars": [
         "error",
         {
@@ -151,20 +187,27 @@
           "ignoreRestSiblings": false
         }
       ],
+      "no-underscore-dangle": "off",
       "no-useless-escape": "off",
-      "max-len": [
-        "off",
-        {
-          "code": 100,
-          "tabWidth": 2
-        }
-      ],
       "no-console": "off",
       "no-constant-condition": "off",
-      "prettier/prettier": "warn"
+      "prettier/prettier": "warn",
+      "quotes": [
+        "error",
+        "double"
+      ],
+      "semi": [
+        "error",
+        "never"
+      ],
+      "strict": 0
     }
   },
   "prettier": {
-    "printWidth": 100
+    "jsxSingleQuote": false,
+    "printWidth": 120,
+    "semi": false,
+    "singleQuote": false,
+    "tabWidth": 2
   }
 }

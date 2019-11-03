@@ -1,9 +1,9 @@
-import { isNode } from "browser-or-node";
-import omit from "lodash/omit";
-import flatten from "lodash/flatten";
+import { isNode } from "browser-or-node"
+import omit from "lodash/omit"
+import flatten from "lodash/flatten"
 
-import { Tokenizer } from "./all.js";
-import { memoize } from "../utils/all.js";
+import { Tokenizer } from "./all.js"
+import { memoize } from "../utils/all.js"
 
 // Result of a successful `rule.parse()`.
 // This is a flyweight object which links a rule with the tokens that it successfully matched.
@@ -15,32 +15,42 @@ import { memoize } from "../utils/all.js";
 //
 export class Match {
   constructor(props) {
-    Object.assign(this, props);
+    Object.assign(this, props)
   }
 
   // "name" for this match.
   get name() {
-    return this.argument || this.rule.argument || this.rule.name;
+    return this.argument || this.rule.argument || this.rule.name
   }
 
   // Syntactic sugar to easily get `results` of the match for sequences, etc.
   // Only works for some rule types.
   @memoize
-  get results() { return this.rule.gatherResults?.(this.scope, this) }
+  get results() {
+    return this.rule.gatherResults?.(this.scope, this)
+  }
 
   // Syntactic sugar to easily get `groups` of the match for sequences, etc.
   // Only works for some rule types.
   @memoize
-  get groups() { return this.rule.gatherGroups?.(this.scope, this) }
+  get groups() {
+    return this.rule.gatherGroups?.(this.scope, this)
+  }
 
   // Return the "interesting" tokens which were actually matched matched.
   // NOTE: this is not guaranteed to be everything,
   //       for example, List rules don't put the delimiters in the output stream.
-  get tokens() { return flatten(this.rule.getTokens(this)) }
+  get tokens() {
+    return flatten(this.rule.getTokens(this))
+  }
 
   // Syntatic sugar to compile the output of the match.
-  compile() { return this.rule.compile(this.scope, this) }
-  get js() { return this.compile() }
+  compile() {
+    return this.rule.compile(this.scope, this)
+  }
+  get js() {
+    return this.compile()
+  }
 
   // Have the match call `updateScope()` if it can.
   // This is called for `statement`s BEFORE they're actually compiled,
@@ -50,8 +60,8 @@ export class Match {
   @memoize
   updateScope() {
     // NOTE: we ALWAYS call getNestedScope first so it's set up before updateScope is called.
-    this.getNestedScope();
-    return this.rule.updateScope?.(this.scope, this);
+    this.getNestedScope()
+    return this.rule.updateScope?.(this.scope, this)
   }
 
   // Return nested scope for nested block statements.
@@ -59,15 +69,15 @@ export class Match {
   // NOTE: ONLY CALL THIS FROM THE MATCH!!!
   @memoize
   getNestedScope() {
-    return this.rule.getNestedScope?.(this.scope, this);
+    return this.rule.getNestedScope?.(this.scope, this)
   }
 
   // DEBUG: Call this when printing to the console to eliminate the big bits in node.
   toPrint() {
-    if (!isNode) return this;
+    if (!isNode) return this
     return {
       rule: this.rule.name,
       ...omit(this, ["rule", "scope"])
-    };
+    }
   }
 }
