@@ -1,10 +1,10 @@
 import { Spell } from "../all"
 
 // The following add new Rule constructors to `Spell.Rule`
-import "./Block.js"
-import "./BlockLine.js"
-import "./Statement.js"
-import "./ParseError.js"
+import "./Block"
+import "./BlockLine"
+import "./Statement"
+import "./ParseError"
 
 // The following define "modules" of rule sets, which will be combined below.
 import core from "./core"
