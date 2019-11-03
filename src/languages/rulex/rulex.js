@@ -3,21 +3,22 @@
 //
 // NOTE: many of the below are created as custom Pattern subclasses for debugging.
 //
-import { Parser, proto, Rule, TestLocation, Token, Tokenizer, WhitespacePolicy } from "../../parser/all"
+import { Parser, Rule, TestLocation, Token, Tokenizer, WhitespacePolicy } from "../../parser/all"
 
 const { ANYWHERE, AT_START } = TestLocation
 
-export class RulexParser extends Parser {
-  @proto module = "rulex"
-  @proto defaultRule = "statement"
-  // Remove "normal" whitespace (leaving newlines and indents) when parsing
-  @proto tokenizer = new Tokenizer({
-    whitespacePolicy: WhitespacePolicy.LEADING_ONLY
-  })
-}
+export class RulexParser extends Parser {}
+RulexParser.prototype.module = "rulex"
+RulexParser.prototype.defaultRule = "statement"
+// Remove "normal" whitespace (leaving newlines and indents) when parsing
+RulexParser.prototype.tokenizer = new Tokenizer({
+  whitespacePolicy: WhitespacePolicy.LEADING_ONLY
+})
 
-// Create core `rulex` rulex.
+// Create core `rulex` parser.
+// NOTE: THIS INSTANCE is used by other parsers, to pick up the rules defined below.
 export const rulex = new RulexParser()
+export default rulex
 
 // Construct a rule from results of running a Combo rule below.
 //  - `ruleProps` is just the props for `new constructor()`
@@ -35,7 +36,7 @@ rulex.applyFlags = function applyFlags(rule, flags) {
 }
 
 // Consolidate runs of literals in `rules` of type `constructor` together.
-rulex.consolidateLiterals = function(rules, constructor, literalKey, groupConstructor = constructor) {
+rulex.consolidateLiterals = function(rules, constructor, literalKey, GroupConstructor = constructor) {
   if (rules.length === 1) return rules
 
   const results = []
@@ -48,14 +49,14 @@ rulex.consolidateLiterals = function(rules, constructor, literalKey, groupConstr
       }
       if (end > start) {
         // combine literals into a single map
-        const literals = rules.slice(start, end + 1).map(rule => {
-          const literal = rule[literalKey]
-          if (!rule.optional) return literal
+        const literals = rules.slice(start, end + 1).map(nextRule => {
+          const literal = nextRule[literalKey]
+          if (!nextRule.optional) return literal
 
           // make sure optionals are arrays and add the optional flag to the array
           return rulex.makeOptionalArray(literal)
         })
-        rule = new groupConstructor(literals)
+        rule = new GroupConstructor(literals)
         start = end
       }
     }
@@ -93,7 +94,7 @@ rulex.defineRule({
     }
   ]
 })
-const testLocation = rulex.rules.testLocation
+const { testLocation } = rulex.rules
 
 // A argument signifier, which is always optional.
 rulex.defineRule({
@@ -111,7 +112,7 @@ rulex.defineRule({
     }
   ]
 })
-const argument = rulex.rules.argument
+const { argument } = rulex.rules
 
 // A repeat signifier, which is always optional.
 rulex.defineRule({
@@ -129,7 +130,7 @@ rulex.defineRule({
     }
   ]
 })
-const repeatFlag = rulex.rules.repeatFlag
+const { repeatFlag } = rulex.rules
 
 //
 //  Combo rules
@@ -366,7 +367,7 @@ rulex.defineRule({
     // If we got exactly one choice, use that.
     // Note that the choice's flags will "beat" the rule's flags if they conflict.
     if (choices.length === 1) {
-      rule = choices[0]
+      ;[rule] = choices
     } else {
       rule = new Rule.Choice({ rules: choices })
     }
@@ -452,20 +453,20 @@ rulex.defineRule({
   name: "statement",
   rule: new Rule.Subrule("rule"),
   compile(scope, match) {
-    let matched = match.matched.map(match => match.compile())
+    let matched = match.matched.map(nextMatch => nextMatch.compile())
 
     // Consolidate keywords and symbols
     matched = rulex.consolidateLiterals(matched, Rule.Keyword, "literal", Rule.Keywords)
     matched = rulex.consolidateLiterals(matched, Rule.Symbol, "literal", Rule.Symbols)
 
-    let rules = []
+    const rules = []
     for (let start = 0, rule; (rule = matched[start]); start++) {
       // Consolidate sequences
       if (rule instanceof Rule.Sequence && (!rule.isAdorned && !rule.optional)) {
         rules.push(...rule.rules)
-        continue
+      } else {
+        rules.push(rule)
       }
-      rules.push(rule)
     }
 
     // If we're down to just one rule, just return that.
