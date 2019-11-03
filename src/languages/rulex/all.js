@@ -4,12 +4,12 @@
 //  or risk circular import problems.
 //
 
-// Pull in everything from `parser`
-export * from "../../parser/all.js"
-
 // Pull in parser/constructor
-export { rulex, RulexParser } from "./rulex.js"
+import { rulex, RulexParser } from "./rulex"
+
+// Pull in everything from `parser`
+export * from "../../parser/all"
 
 // export rulex parser as the default
-import { rulex } from "./rulex.js"
+export { rulex, RulexParser }
 export default rulex
