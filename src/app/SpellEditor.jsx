@@ -1,6 +1,6 @@
 import React from "react"
+import PropTypes from "prop-types"
 
-import Card from "react-bootstrap/Card"
 import Container from "react-bootstrap/Container"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
@@ -12,7 +12,9 @@ import NavLink from "react-bootstrap/NavLink"
 
 import Octicon, { ChevronRight } from "@githubprimer/octicons-react"
 
-import { projects as _projects, withProjects, INPUT } from "./redux/projects"
+// load and configure JSHINT global variable (ugh, this is nasty)
+import global from "global"
+import { JSHINT } from "jshint"
 
 // Codemirror
 import { Controlled as CodeMirror } from "react-codemirror2"
@@ -22,11 +24,16 @@ import "codemirror/theme/neat.css"
 import "codemirror/theme/solarized.css"
 import "codemirror/mode/javascript/javascript"
 import "codemirror/mode/markdown/markdown"
-import "./spell.codemirror.js"
+
+import "codemirror/addon/lint/lint"
+import "codemirror/addon/lint/lint.css"
+import "codemirror/addon/lint/javascript-lint"
+
+import { projects as _projects, withProjects, INPUT } from "./redux/projects"
+import "./spell.codemirror"
 import "./SpellEditor.css"
-// load and configure JSHINT global variable (ugh, this is nasty)
-import { JSHINT } from "jshint"
-window.JSHINT = function(source) {
+
+global.JSHINT = function(source) {
   // see: https://jshint.com/docs/options
   const hintOptions = {
     esversion: 8,
@@ -37,22 +44,31 @@ window.JSHINT = function(source) {
   }
   return JSHINT(source, hintOptions)
 }
-Object.keys(JSHINT).forEach(key => (window.JSHINT[key] = JSHINT[key]))
-import "codemirror/addon/lint/lint.js"
-import "codemirror/addon/lint/lint.css"
-import "codemirror/addon/lint/javascript-lint.js"
+Object.keys(JSHINT).forEach(key => {
+  global.JSHINT[key] = JSHINT[key]
+})
 
 export class _SpellEditor extends React.Component {
+  static propTypes = {
+    projectId: PropTypes.string,
+    projects: PropTypes.object
+  }
+
   constructor(props) {
     super(props)
     _projects.call.startup()
   }
 
   compile = () => _projects.call.compileInput()
+
   revert = () => _projects.call.revertInput()
+
   reload = () => _projects.call.reloadSelected()
+
   save = () => _projects.call.saveInput()
+
   selectProject = projectId => _projects.call.selectModule({ projectId })
+
   selectModule = moduleId => _projects.call.selectModule({ projectId: this.props.projectId, moduleId })
 
   create = () => {
@@ -83,7 +99,7 @@ export class _SpellEditor extends React.Component {
   }
 
   onInputChange = (codeMirror, change, value) => {
-    //console.info(codeMirror, "\n", change)//, "\n", value)
+    // console.info(codeMirror, "\n", change)//, "\n", value)
     _projects.actions.updateInput(value)
   }
 
@@ -126,9 +142,9 @@ export class _SpellEditor extends React.Component {
     if (!projectIds || !index) return null
 
     // Create menuItems for the projects menu
-    const projectItems = projectIds.map(projectId => (
-      <NavDropdown.Item key={projectId} eventKey={projectId} onSelect={this.selectProject}>
-        {projectId}
+    const projectItems = projectIds.map(nextProjectId => (
+      <NavDropdown.Item key={nextProjectId} eventKey={nextProjectId} onSelect={this.selectProject}>
+        {nextProjectId}
       </NavDropdown.Item>
     ))
 
@@ -139,7 +155,6 @@ export class _SpellEditor extends React.Component {
       </NavDropdown.Item>
     ))
 
-    const theme = "neat" // Owen favors: "solarized", "neo" and "neat"
     const codeMirrorOptions = {
       theme: "neat", // Owen favors: "solarized", "neo" and "neat"
       indentUnit: 3,

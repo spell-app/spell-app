@@ -30,7 +30,7 @@
     "global": "^4.3.2",
     "history": "^4.7.2",
     "jshint": "^2.10.2",
-    "json5": "^2.1.0",
+    "json5": "^2.1.1",
     "lodash": "^4.17.11",
     "lodash-inflection": "^1.5.0",
     "path": "^0.12.7",
@@ -155,6 +155,11 @@
       "prettier",
       "prettier/react"
     ],
+    "globals": {
+      "alert": "readonly",
+      "confirm": "readonly",
+      "prompt": "readonly"
+    },
     "parser": "babel-eslint",
     "parserOptions": {
       "ecmaFeatures": {
@@ -192,8 +197,10 @@
           "tabWidth": 2
         }
       ],
+      "no-alert": "off",
       "no-cond-assign": "off",
       "no-plusplus": "off",
+      "no-restricted-globals": "off",
       "no-unused-vars": [
         "error",
         {

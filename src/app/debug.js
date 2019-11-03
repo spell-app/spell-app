@@ -1,26 +1,9 @@
 // HACK: expose a bunch of stuff on `global` for browser debugging
 import global from "global"
 import _ from "lodash"
-import JSON5 from "JSON5"
+import JSON5 from "json5"
 
-import {
-  projects,
-  ParseError,
-  Parser,
-  ReduxFactory,
-  Rule,
-  rulex,
-  Scope,
-  spell,
-  spellParser,
-  Spell,
-  Token,
-  Tokenizer,
-  singularize,
-  pluralize
-} from "./all"
-
-import precedence from "../languages/precedence/precedence"
+import { projects, spell, spellParser, Spell } from "./all"
 
 // Output source when rendering statements
 Spell.Parser.prototype.outputSource = false // TODO: add a control for this to the UI

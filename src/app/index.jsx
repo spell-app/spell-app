@@ -13,10 +13,11 @@ function renderApp() {
     <Provider store={store}>
       <SpellEditor />
     </Provider>,
+    // eslint-disable-next-line no-undef
     document.getElementById("react-root")
   )
 }
 
 renderApp()
 
-//module.hot.accept(renderApp);
+// module.hot.accept(renderApp);

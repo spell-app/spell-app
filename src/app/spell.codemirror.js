@@ -2,18 +2,16 @@ import _ from "lodash"
 import CodeMirror from "codemirror"
 
 import { Token, spellParser } from "./all"
-//import blacklist from "../languages/spell/rules/identifier-blacklist"
+// import blacklist from "../languages/spell/rules/identifier-blacklist"
 
 CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
   // Return the token that starts at numeric offset
   function getToken(tokens, offset) {
-    for (let token of tokens) {
-      if (token.offset >= offset) return token
-    }
+    return tokens.find(token => token.offset >= offset)
   }
 
   function advanceStreamPastToken(stream, token) {
-    const length = token.raw.length
+    const { length } = token.raw
     for (let i = 0; i < length; i++) stream.next()
   }
 
@@ -29,11 +27,12 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
       return "comment"
     }
     if (token instanceof Token.Text) return "string"
-    if (token instanceof Token.JSXElement) return null //""
-    if (token instanceof Token.JSXEndTag) return null //""
-    if (token instanceof Token.JSXAttribute) return null //""
-    if (token instanceof Token.JSXExpression) return null //""
-    if (token instanceof Token.Block) return null //""
+    // if (token instanceof Token.JSXElement) return null
+    // if (token instanceof Token.JSXEndTag) return null
+    // if (token instanceof Token.JSXAttribute) return null
+    // if (token instanceof Token.JSXExpression) return null
+    // if (token instanceof Token.Block) return null
+    return null
   }
 
   return {
@@ -42,8 +41,6 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
         // spell string for the current line
         string: undefined,
         // list of tokens for the current line
-        tokens: undefined,
-        // match tree for the current line
         tokens: undefined
       }
     },
@@ -72,9 +69,9 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
         // console.info("matched ", token, length)
         advanceStreamPastToken(stream, token)
         return getTokenType(token)
-      } else {
-        stream.skipToEnd()
       }
+      stream.skipToEnd()
+      return undefined
     }
   }
 })
