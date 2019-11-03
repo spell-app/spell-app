@@ -10,4 +10,4 @@ export { Rule } from "./rule/all"
 export * from "./Parser"
 export * from "./unitTestModuleRules"
 
-export rulex from "../languages/rulex/all"
+export { rulex } from "../languages/rulex/all"

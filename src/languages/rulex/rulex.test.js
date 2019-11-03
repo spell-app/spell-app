@@ -1,4 +1,5 @@
-import parser, { unitTestModuleRules } from "./all"
+import { unitTestModuleRules } from "../../parser/all"
+import { rulex as parser } from "./all"
 
 describe("testing langauge rulex", () => {
   unitTestModuleRules(parser, "rulex")
