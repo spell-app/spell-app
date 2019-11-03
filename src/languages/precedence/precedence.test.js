@@ -2,8 +2,6 @@
 // # Tests for understanding recursion and precedence.
 //
 
-import { Parser, Rule, Tokenizer, Token } from "../../parser/all"
-
 // Streamlined precedence rules tests parser.
 import prec from "./precedence"
 

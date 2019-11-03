@@ -1,4 +1,4 @@
-/////////////////////////////////////
+// ///////////////////////////////////
 //
 //  "Preferences" specific to this client
 //  Cover for localStorage so:
@@ -8,6 +8,7 @@
 //
 
 import global from "global"
+
 const localStorage = global.localStorage || {}
 
 let APP_PREF_PREFIX = "call_setPrefKey_to_set_up_prefs!!!"
@@ -54,6 +55,6 @@ export function clearAllPrefs() {
       if (key.startsWith(APP_PREF_PREFIX)) delete localStorage[key]
     })
   } catch (e) {
-    console.error(`clearAllPrefs(): Error clearing prefs:`, e)
+    console.error("clearAllPrefs(): Error clearing prefs:", e)
   }
 }

@@ -1,4 +1,4 @@
-/////////////////////////////////////
+// ///////////////////////////////////
 //
 //  JSON utilities
 //
@@ -27,6 +27,7 @@ export function parseJSON(json, context = "random text", swallowError) {
       )
     }
     if (!swallowError) throw error
+    return undefined
   }
 }
 
@@ -53,5 +54,6 @@ export function parseJSON5(json5, context = "random text", swallowError) {
       )
     }
     if (!swallowError) throw error
+    return undefined
   }
 }

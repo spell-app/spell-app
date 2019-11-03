@@ -1,8 +1,9 @@
 //  Return a `Promise` with its `resolve` and `reject` methods exposed on it.
 //  This allows the caller to resolve/reject the promise.
 export default function makeDeferred() {
-  let promise, _resolve, _reject
-  promise = new Promise(function(resolve, reject) {
+  let _resolve
+  let _reject
+  const promise = new Promise(function(resolve, reject) {
     _resolve = function(result) {
       //       if (promise.state !== "pending")
       //         console.error(`Attempting to resolve ${promise.state} promise with `,result);
