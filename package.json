@@ -171,6 +171,7 @@
     "rules": {
       "camelcase": "off",
       "class-methods-use-this": "off",
+      "func-names": "off",
       "import/no-unresolved": "off",
       "import/no-cycle": "off",
       "indent": [
@@ -191,6 +192,8 @@
           "tabWidth": 2
         }
       ],
+      "no-cond-assign": "off",
+      "no-plusplus": "off",
       "no-unused-vars": [
         "error",
         {
@@ -203,6 +206,7 @@
       "no-useless-escape": "off",
       "no-console": "off",
       "no-constant-condition": "off",
+      "no-param-reassign": "off",
       "prettier/prettier": "warn",
       "quotes": [
         "error",
