@@ -1,4 +1,4 @@
-//////////
+// ////////
 // collections methods for spell
 //  - all array iteration is 1-based
 //  - collection methods work with objects as well as arrays unless specified
@@ -9,7 +9,7 @@ import _ from "lodash"
 import { spell, assert } from "."
 
 Object.assign(spell, {
-  ////////////
+  // //////////
   // primitive accessors/setters
   //----------
 

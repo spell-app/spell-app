@@ -1,11 +1,11 @@
-//////////////////////////////
+// ////////////////////////////
 //
 //  Express API utility functions to `send` various responses conveniently/consistently.
 //
 //  This is mostly generic express/node stuff.
 //  See `APP SPECIFIC` below for app-specific stuff.
 //
-//////////////////////////////
+// ////////////////////////////
 import chalk from "chalk"
 
 // File manipulation utilities and path config
@@ -14,9 +14,9 @@ import * as fileUtils from "./file-utils"
 // Generate id unique to this server.
 //import { getUniqueId } from "./SequenceFile";
 
-//////////////////////////////
+// ////////////////////////////
 //  Id utilities
-//////////////////////////////
+// ////////////////////////////
 
 // If `id` passed in is a string which converts EXACTLY to a number, return the number.
 // Otherwise return the string.
@@ -39,9 +39,9 @@ export function getIdParams(request, ...idProperties) {
   return idProperties.map(property => convertNumericId(request.params[property]))
 }
 
-//////////////////////////////
+// ////////////////////////////
 //  Text responses
-//////////////////////////////
+// ////////////////////////////
 
 // Return `text` as `response` to `request`.
 export function sendText(response, text) {
@@ -75,9 +75,9 @@ export async function sendJSFile(response, path) {
   return sendError(response, 404, new Error(`File not found: '${path}'`))
 }
 
-//////////////////////////////
+// ////////////////////////////
 //  JSON responses
-//////////////////////////////
+// ////////////////////////////
 
 // Return a `changeMap` or `changeSet` (as an object or string) to the client.
 // Logs changes to `data/changes/` and the console.
@@ -181,9 +181,9 @@ export function sendOK(response, extraData) {
   return sendJSON(response, result)
 }
 
-//////////////////////////////
+// ////////////////////////////
 //  Error responses
-//////////////////////////////
+// ////////////////////////////
 
 // Return an error response.
 export function sendError(response, statusCode, error, errorMessage = error && error.message) {
@@ -201,9 +201,9 @@ export function sendError(response, statusCode, error, errorMessage = error && e
   })
 }
 
-//////////////////////////////
+// ////////////////////////////
 //  Request utilities
-//////////////////////////////
+// ////////////////////////////
 
 // Return a POJO with relevant details from the request:
 //  - url       Url called

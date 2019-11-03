@@ -1,10 +1,10 @@
-//////////
+// ////////
 //  `spell` base runtime library for use with classes created with spell
-//////////
+// ////////
 import _ from "lodash"
 import { assert } from "."
 const spell = {
-  //////////
+  // ////////
   // Meta-programming
   //--------
 
@@ -27,7 +27,7 @@ const spell = {
     }
   },
 
-  //////////
+  // ////////
   // exports
   //--------
 
@@ -48,7 +48,7 @@ const spell = {
     })
   },
 
-  //////////
+  // ////////
   // types
   //--------
 
@@ -96,7 +96,7 @@ const spell = {
     return value !== false && value !== null && value !== undefined
   },
 
-  //////////
+  // ////////
   // operators
   //--------
 
@@ -116,7 +116,7 @@ const spell = {
     }
   },
 
-  //////////
+  // ////////
   // math
   //--------
 
@@ -140,7 +140,7 @@ const spell = {
     return Math.floor(Math.random() * (max - min + 1)) + min
   },
 
-  //////////
+  // ////////
   // components
   //--------
 

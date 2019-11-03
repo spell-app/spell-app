@@ -1,4 +1,4 @@
-//////////
+// ////////
 // collections methods for spell
 //  - all array iteration is 1-based
 //  - collection methods work with objects as well as arrays unless specified
@@ -9,7 +9,7 @@ import _ from "lodash"
 import { spell, assert } from "."
 
 Object.assign(spell, {
-  ////////////
+  // //////////
   // composite accessors
   //----------
 
@@ -28,7 +28,7 @@ Object.assign(spell, {
     return spell.any(values, value => spell.itemOf(collection, value) !== undefined)
   },
 
-  ////////////
+  // //////////
   // numeric iteration -- arrays only
   //----------
 
@@ -143,7 +143,7 @@ Object.assign(spell, {
     return spell.rangeBetween(collection, range.start, range.end)
   },
 
-  ////////////
+  // //////////
   // iteration
   //----------
 
@@ -255,7 +255,7 @@ Object.assign(spell, {
     else spell.removeItemsOf(collection, Object.keys(itemsToRemove))
   },
 
-  ////////////
+  // //////////
   // Randomizing / random item selection
   //----------
 

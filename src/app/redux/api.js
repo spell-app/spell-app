@@ -1,4 +1,4 @@
-//////////////////////////////
+// ////////////////////////////
 //
 //  # `apiUtils`
 //  API utility functions, not specific to this app.
@@ -6,7 +6,7 @@
 //  These are a bunch of convenience routines for doing client/server communication
 //  in a rational, consistent manner.
 //
-//////////////////////////////
+// ////////////////////////////
 
 import JSON5 from "json5"
 import { parseJSON, parseJSON5 } from "./utils/json"
@@ -24,7 +24,7 @@ export class APIError extends Error {
   }
 }
 
-//////////////////////////////
+// ////////////////////////////
 //
 //  Make an API call to the server.
 //
@@ -132,9 +132,9 @@ export function makeAPICall({ url, params = {}, apiMethod, credentials = "includ
   )
 }
 
-//////////////////////////////
+// ////////////////////////////
 // HTTP "GET" methods
-//////////////////////////////
+// ////////////////////////////
 
 // Get a text resource at `url`.
 // Returns a promise which yields the reponse as a text string.
@@ -188,9 +188,9 @@ export function downloadFile({ url, filename }) {
   anchor.click()
 }
 
-//////////////////////////////
+// ////////////////////////////
 // HTTP "POST" methods
-//////////////////////////////
+// ////////////////////////////
 
 // Post `body` to the server at `url` as text.
 // Also used for `PUT`, specify `params: { method: "PUT" }`
@@ -249,9 +249,9 @@ export function postJSON5({ url, body, params = {}, apiMethod }) {
   return post({ url, body, params, apiMethod, responseType: "json5" })
 }
 
-//////////////////////////////
+// ////////////////////////////
 // HTTP "DELETE" methods
-//////////////////////////////
+// ////////////////////////////
 
 function _delete({ url, params = {}, apiMethod, responseType = "text" }) {
   if (!params.method) params.method = "DELETE"
@@ -259,9 +259,9 @@ function _delete({ url, params = {}, apiMethod, responseType = "text" }) {
 }
 export { _delete as delete }
 
-//////////////////////////////
+// ////////////////////////////
 //  Utilities
-//////////////////////////////
+// ////////////////////////////
 
 // Convert a simple (non-nested) object into a query parameter string
 export function getQueryParamsString(queryObject) {

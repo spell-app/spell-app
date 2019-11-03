@@ -1,8 +1,8 @@
-//////////////////////////////
+// ////////////////////////////
 //
 //  Generic file manipulation utilities.
 //
-//////////////////////////////
+// ////////////////////////////
 
 import JSON5 from "json5"
 import path from "path"
@@ -11,16 +11,16 @@ import lockfile from "proper-lockfile"
 import chalk from "chalk"
 import mime from "mime-types"
 
-//////////////////////////////
+// ////////////////////////////
 //  Contstants
-//////////////////////////////
+// ////////////////////////////
 
 const TEXT = "utf8"
 const BINARY = "binary"
 
-//////////////////////////////
+// ////////////////////////////
 //  Proxy `path` and `fs-extra` utilites so they're easy to mock
-//////////////////////////////
+// ////////////////////////////
 
 // Join paths.
 export const joinPath = path.join
@@ -37,9 +37,9 @@ export const pathExists = fse.pathExists
 // Return extension name for a path
 export const extension = path.extname
 
-//////////////////////////////
+// ////////////////////////////
 //  MimeTypes
-//////////////////////////////
+// ////////////////////////////
 
 // Given a `filename`, guess the mimetype
 export function getMimeType(filename) {
@@ -51,9 +51,9 @@ export function getContentType(filename) {
   return mime.contentType(filename)
 }
 
-//////////////////////////////
+// ////////////////////////////
 //  Loading files
-//////////////////////////////
+// ////////////////////////////
 
 // Load file at `path`, returns a promise which fields file results.
 // If `optional` is `true`, we'll return `null` for any file that can't be found.
@@ -83,9 +83,9 @@ export async function loadJSONFile(path, optional = false) {
   return JSON5.parse(contents)
 }
 
-//////////////////////////////
+// ////////////////////////////
 //  Saving files
-//////////////////////////////
+// ////////////////////////////
 
 // Use this function to write files, making sure directories are created as necessary.
 export async function saveFile(path, fileData, format) {
@@ -146,9 +146,9 @@ export function saveBase64File(path, base64Data, format) {
   return saveFile(path, fileData, format)
 }
 
-//////////////////////////////
+// ////////////////////////////
 //  Removing files
-//////////////////////////////
+// ////////////////////////////
 
 // Remove a server file via hard delete.
 // Returns a promise
@@ -163,9 +163,9 @@ export function removeFile(path, optional = false) {
   return promise
 }
 
-//////////////////////////////
+// ////////////////////////////
 //  Locking / Unlocking files
-//////////////////////////////
+// ////////////////////////////
 
 // Given a `path`, return the path for the lock file (dir).
 export function getLockPath(path) {
@@ -217,9 +217,9 @@ export function unlockFile(path) {
   return lockfile.unlock(path)
 }
 
-//////////////////////////////
+// ////////////////////////////
 //  LockError class
-//////////////////////////////
+// ////////////////////////////
 
 // Simple lock error.
 // Throw this if your subclasses have a lock exception.
@@ -232,9 +232,9 @@ export class LockError {
 }
 LockError.prototype = Object.create(Error.prototype)
 
-//////////////////////////////
+// ////////////////////////////
 //  List files in a dir
-//////////////////////////////
+// ////////////////////////////
 export function listContents(directory, options = {}) {
   const { includeDirs = false, includeFiles = true, namesOnly = false, ignoreHidden = false, pattern } = options
   let paths = fse.readdirSync(directory).map(fileName => path.join(directory, fileName))
@@ -261,9 +261,9 @@ export function listContents(directory, options = {}) {
   return paths
 }
 
-//////////////////////////////
+// ////////////////////////////
 //  DEBUG
-//////////////////////////////
+// ////////////////////////////
 
 // Log `jsonData` (object or string) to console with optional `message`
 export function logJSON(message, jsonData = null) {

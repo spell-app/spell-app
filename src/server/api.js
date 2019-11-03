@@ -1,6 +1,6 @@
-//////////////////////////////
+// ////////////////////////////
 //  Create a router for all api calls.
-//////////////////////////////
+// ////////////////////////////
 
 import express from "express"
 import chalk from "chalk"
@@ -37,17 +37,17 @@ router.use((request, response, next) => {
   next()
 })
 
-//////////////////////////////
+// ////////////////////////////
 //  Smoke test that router is working!
-//////////////////////////////
+// ////////////////////////////
 
 router.get("/test", (request, response) => {
   return responseUtils.sendText(response, "YO!")
 })
 
-//////////////////////////////
+// ////////////////////////////
 //  Examples support
-//////////////////////////////
+// ////////////////////////////
 const projectsDir = nodePath.join(__dirname, "..", "projects")
 function getProjectPath(...suffix) {
   return nodePath.join(projectsDir, ...suffix)
@@ -110,10 +110,10 @@ router.delete("/projects/:folder/:file", async (request, response) => {
   }
 })
 
-//////////////////////////////
+// ////////////////////////////
 // Log an error to the console for an unknown API path.
 // NOTE: this MUST be after the require()s above.
-//////////////////////////////
+// ////////////////////////////
 function _apiCallNotFound(request, response) {
   const error = new URIError(`API routine not defined on server:   '${request.url}'`)
   return responseUtils.sendError(response, 500, error)

@@ -1,7 +1,7 @@
-//////////
+// ////////
 // Assertion primitives
 // TODO: some way to control output
-//////////
+// ////////
 
 import _ from "lodash"
 import spell from "."
