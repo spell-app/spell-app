@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 // ///////////////////////////////////
 //
 //  Add console logging methods to an arbitrary object.
@@ -86,6 +87,7 @@
 // ///////////////////////////////////
 
 import { isNode } from "browser-or-node"
+import global from "global"
 
 // ////////////////////////////
 //
@@ -101,15 +103,15 @@ export const DebugLevel = {
 }
 
 // Add debug methods to `object`
-export function addDebugMethods(object = {}, prefix, level = "WARN", color = "#999") {
+export function addDebugMethods(object = {}, prefix, defaultLevel = "WARN", color = "#999") {
   // Set initial `DEBUG_LEVEL` level
   // NOTE: if already set on the object, don't override.
-  if (!("DEBUG_LEVEL" in object)) object.DEBUG_LEVEL = normalizeDebugLevel(level)
+  if (!("DEBUG_LEVEL" in object)) object.DEBUG_LEVEL = normalizeDebugLevel(defaultLevel)
 
   // Set `setDebugLevel` method
   Object.defineProperty(object, "setDebugLevel", {
     configurable: true,
-    value: function(level) {
+    value(level) {
       level = normalizeDebugLevel(level)
       // Don't override if we're already at the same level
       // This lets prototype/instance semantics work cleanly.
@@ -128,7 +130,7 @@ export function addDebugMethods(object = {}, prefix, level = "WARN", color = "#9
       // Add assert handler
       // Unfortunately, this won't preserve line numbers in anything other than Chrome.
       this.assert = function(condition, ...messages) {
-        if (!!condition) return
+        if (condition) return
         this.error.apply(object, messages)
         throw new TypeError(messages.join(" "))
       }
@@ -170,17 +172,20 @@ export function colorLogMessages(prefix, style = ";", messageBits = []) {
   const results = ["%c"]
   if (prefix) {
     results[0] += `${prefix}: %c`
-    results.push(style + "; font-weight: bold")
+    results.push(`${style}; font-weight: bold`)
   }
 
   let objectified = false
   messageBits.forEach(bit => {
     // If we already found an object, just output into the results
-    if (objectified) return results.push(bit)
+    if (objectified) {
+      results.push(bit)
+      return
+    }
 
     const type = typeof bit
     const isStringish = bit == null || type === "string" || type === "number" || type === "boolean"
-    if (isStringish) results[0] += bit + " "
+    if (isStringish) results[0] += `${bit} `
     else {
       objectified = true
       results.push(style)
@@ -193,7 +198,7 @@ export function colorLogMessages(prefix, style = ";", messageBits = []) {
 
   return results
 }
-window.colorLogMessages = colorLogMessages
+global.colorLogMessages = colorLogMessages
 
 // Return a numeric debug level given `debugFlag` as:
 //  - a number (one of the `DEBUG` etc constants), or

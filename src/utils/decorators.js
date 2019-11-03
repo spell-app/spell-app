@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 //
 //  # ESNext Stage 2 decorators
 //
@@ -97,13 +98,9 @@ export function proto(descriptor) {
 
 // Define field or method non-enumerably.
 export function nonEnumerable(descriptor) {
-  //console.info("nonEnumerable", descriptor);
+  // console.info("nonEnumerable", descriptor);
   assert(descriptor.kind === "field" || descriptor.kind === "method")
   return setDescriptorProp(descriptor, "enumerable", false)
-  return {
-    ...descriptor,
-    placement: "prototype"
-  }
 }
 
 // Return a key we'll use to memoize a value.
@@ -121,7 +118,7 @@ function getMemoizeKey(key) {
 // TODO: allow setter, which clears the memoized value?  Where would the setter place the value?
 // TODO: allow use with method, using a WeakMap to save results according to specific args?
 export function memoize(descriptor) {
-  //console.info("memoize", descriptor);
+  // console.info("memoize", descriptor);
   // Currently only works for getters without setters.
   const getter = getDescriptorProp(descriptor, "get")
   const setter = getDescriptorProp(descriptor, "set")
@@ -137,7 +134,7 @@ export function memoize(descriptor) {
 function _memoizeGetter(descriptor, getter, setter) {
   const privateKey = getMemoizeKey(descriptor.key)
   function wrappedGetter() {
-    if (!this.hasOwnProperty(privateKey)) {
+    if (!Object.prototype.hasOwnProperty.call(this, privateKey)) {
       // Add the property non-enumerably, but configurably
       //  so we can clear it with `@clearMemoized(key)`.
       Object.defineProperty(this, privateKey, {
@@ -150,20 +147,21 @@ function _memoizeGetter(descriptor, getter, setter) {
   descriptor = setDescriptorProp(descriptor, "get", wrappedGetter)
 
   if (setter) {
-    function wrappedSetter() {
-      delete this[privateKey]
-      return setter.apply(this, arguments)
-    }
     descriptor = setDescriptorProp(descriptor, "set", wrappedSetter)
   }
   return descriptor
+
+  function wrappedSetter(...args) {
+    delete this[privateKey]
+    return setter.apply(this, args)
+  }
 }
 
 // Memoize a method.
 function _memoizeMethod(descriptor, method) {
   const privateKey = getMemoizeKey(descriptor.key)
   function wrappedMethod(...args) {
-    if (!this.hasOwnProperty(privateKey)) {
+    if (!Object.prototype.hasOwnProperty.call(this, privateKey)) {
       // Add the property non-enumerably, but configurably
       //  so we can clear it with `@clearMemoized(key)`.
       Object.defineProperty(this, privateKey, {
@@ -179,7 +177,7 @@ function _memoizeMethod(descriptor, method) {
 // Clear memoized values for some `property` when invoking a normal function.
 export function clearMemoized(property) {
   return function(descriptor) {
-    //console.info("clearMemoized", property, descriptor);
+    // console.info("clearMemoized", property, descriptor);
     // Currently only works for a normal function
     // TODO: make this work for setters?
     assert(descriptor.kind === "method")
@@ -188,9 +186,9 @@ export function clearMemoized(property) {
 
     // Use same key pattern as `memoized` above.
     const privateKey = getMemoizeKey(property)
-    function wrapped() {
+    function wrapped(...args) {
       delete this[privateKey]
-      return method.apply(this, arguments)
+      return method.apply(this, args)
     }
     return setDescriptorProp(descriptor, "value", wrapped)
   }

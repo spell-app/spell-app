@@ -1,39 +1,51 @@
+/* eslint-disable no-use-before-define */
 // Export lodash and lodash-inflection string methods.
 import lowerFirst from "lodash/lowerFirst"
 import inflection from "lodash-inflection"
+import toLower from "lodash/toLower"
 import _snakeCase from "lodash/snakeCase"
-export toLower from "lodash/toLower"
 import upperFirst from "lodash/upperFirst"
-export { lowerFirst, upperFirst }
+
+export { toLower, lowerFirst, upperFirst }
 
 // Convert a string to `Type_Name_Case", including singularizing.
 const TYPE_CASE = {}
 export function typeCase(text) {
   const existing = TYPE_CASE[text]
-  if (existing !== undefined) return existing
-  return (TYPE_CASE[text] = singularize("" + text)
+  if (existing !== undefined) {
+    return existing
+  }
+
+  TYPE_CASE[text] = singularize(`${text}`)
     .split(/[-_]/)
     .map(bit => upperFirst(bit))
-    .join("_"))
+    .join("_")
+  return TYPE_CASE[text]
 }
 
 // Convert a string into `instance_case`
 const INSTANCE_CASE = {}
 export function instanceCase(text) {
   const existing = INSTANCE_CASE[text]
-  if (existing !== undefined) return existing
-  return (INSTANCE_CASE[text] = singularize("" + text)
+  if (existing !== undefined) {
+    return existing
+  }
+  INSTANCE_CASE[text] = singularize(`${text}`)
     .split(/[-_]/)
     .map(bit => lowerFirst(bit))
-    .join("_"))
+    .join("_")
+  return INSTANCE_CASE[text]
 }
 
 // Lodash snakeCase with memoization.
 const SNAKE_CASE = {}
 export function snakeCase(text) {
   const existing = SNAKE_CASE[text]
-  if (existing !== undefined) return existing
-  return (SNAKE_CASE[text] = _snakeCase(text))
+  if (existing !== undefined) {
+    return existing
+  }
+  SNAKE_CASE[text] = _snakeCase(text)
+  return SNAKE_CASE[text]
 }
 
 // Return the singular form of `word`.
@@ -42,8 +54,11 @@ export function snakeCase(text) {
 const SINGULARS = {}
 export function singularize(text) {
   const existing = SINGULARS[text]
-  if (existing !== undefined) return existing
-  return (SINGULARS[text] = inflection.singularize(text))
+  if (existing !== undefined) {
+    return existing
+  }
+  SINGULARS[text] = inflection.singularize(text)
+  return SINGULARS[text]
 }
 
 // Return the plural form of `word`.
@@ -52,12 +67,15 @@ export function singularize(text) {
 const PLURALS = {}
 export function pluralize(text) {
   const existing = PLURALS[text]
-  if (existing !== undefined) return existing
-  return (PLURALS[text] = inflection.pluralize(text))
+  if (existing !== undefined) {
+    return existing
+  }
+  PLURALS[text] = inflection.pluralize(text)
+  return PLURALS[text]
 }
 
 // Return true if text is all whitespace, including empty string.
-let ALL_WHITESPACE = /^\s*$/
+const ALL_WHITESPACE = /^\s*$/
 export function isWhitespace(text) {
   return ALL_WHITESPACE.test(text)
 }

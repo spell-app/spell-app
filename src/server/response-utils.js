@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 // ////////////////////////////
 //
 //  Express API utility functions to `send` various responses conveniently/consistently.
@@ -10,9 +11,6 @@ import chalk from "chalk"
 
 // File manipulation utilities and path config
 import * as fileUtils from "./file-utils"
-
-// Generate id unique to this server.
-//import { getUniqueId } from "./SequenceFile";
 
 // ////////////////////////////
 //  Id utilities
@@ -27,7 +25,7 @@ export function convertNumericId(id) {
   if (typeof id === "number") return id
   if (typeof id === "string") {
     const number = parseInt(id, 10)
-    if ("" + number === id) return number
+    if (`${number}` === id) return number
     return id
   }
   throw new TypeError(`convertNumericId(): don't know how to process id: ${id}`)
@@ -79,34 +77,6 @@ export async function sendJSFile(response, path) {
 //  JSON responses
 // ////////////////////////////
 
-// Return a `changeMap` or `changeSet` (as an object or string) to the client.
-// Logs changes to `data/changes/` and the console.
-export async function sendChanges(request, response, changes) {
-  // Generate a unique number for the changes
-  const changeId = await getUniqueId({ rootPath: fileUtils.changesPath })
-
-  // Write changes to console
-  console.warn(
-    chalk.grey(
-      "----------------------------------------------------------\n" +
-        `Returning changes #${changeId}: ` +
-        JSON.stringify(changes, null, "  ")
-    )
-  )
-
-  // Write changes into the changes folder
-  const changesPath = fileUtils.getChangesPath(`${changeId}.json`)
-  const changesFileContents = {
-    changeId,
-    time: Date.now(),
-    request: getRequestDetails(request),
-    changes
-  }
-  await fileUtils.saveJSONFile(changesPath, changesFileContents)
-
-  return sendJSON(response, changes)
-}
-
 // Return `json` as string or object to stringify as `response` to `request`.
 export function sendJSON(response, json) {
   response.set("Content-Type", "application/json")
@@ -118,7 +88,7 @@ export function sendJSON(response, json) {
 export function sendJSONFile(response, path) {
   response.set("Content-Type", "application/json")
 
-  console.warn("Sending JSON file:\n  " + path)
+  console.warn("Sending JSON file:\n  ", path)
   return response.sendFile(path)
 }
 
@@ -132,8 +102,8 @@ export function sendJSONFiles(response, paths, optional = false) {
     console.warn("Sending JSON files:")
     jsonBlocks.forEach((json, index) => {
       // Log missing / empty files in lighter color
-      if (json === null) console.warn(chalk.grey("  " + paths[index]))
-      else console.warn("  " + paths[index])
+      if (json === null) console.warn(chalk.grey(`  ${paths[index]}`))
+      else console.warn(`  ${paths[index]}`)
     })
 
     // remove any null blocks
@@ -159,11 +129,13 @@ export function sendJSONFileMap(response, paths, optional = false) {
       const message = `  ${fileName}: ${path}`
 
       // Log missing / empty files in lighter color
-      if (json === null) return console.warn(chalk.grey(message))
-
-      // Got a live one
-      console.warn(message)
-      fileMap[fileName] = json
+      if (json === null) {
+        console.warn(chalk.grey(message))
+      } else {
+        // Got a live one
+        console.warn(message)
+        fileMap[fileName] = json
+      }
     })
 
     // group them all in an array
@@ -217,15 +189,13 @@ export function getRequestDetails(request) {
     method: request.method
   }
   // Add URL query params if there are any
-  const query = request.query
+  const { query, params, body } = request
   if (Object.keys(query).length) result.query = { ...query }
 
   // Add URL params from router if there are any
-  const params = request.params
   if (Object.keys(params).length) result.params = { ...params }
 
   // Add request body if provided
-  const body = request.body
   if (body) {
     if (typeof body === "string") result.body = body
     else if (Object.keys(body).length) result.body = { ...body }

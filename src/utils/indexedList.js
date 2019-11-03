@@ -29,22 +29,22 @@
 
 import identity from "lodash/identity"
 
-import { getDescriptorProp, setDescriptorProp, clearDescriptorProp } from "./decorators"
+import { setDescriptorProp, clearDescriptorProp } from "./decorators"
 
-export function indexedList(props) {
+export default function indexedList(props) {
   if (!props) throw new TypeError("@indexedList() must be passed at least `{ keyProp }`")
 
   const { keyProp, parentProp, transformer = identity, normalizeKey = identity, unique = false } = props
 
   // Add one or more items to the list.
-  function addItems() {
+  function addItems(...args) {
     // `this` is the bound `getItem` method.
     // Actually create the stored list + map when adding.
     const storage = this["#storage"] || (this["#storage"] = { list: [], map: {} })
     const results = []
-    for (var i = 0; i < arguments.length; i++) {
+    for (let i = 0; i < args.length; i++) {
       // call the `transformer` on each item (default is to just return the item passed in)
-      const item = transformer.call(this.thing, arguments[i])
+      const item = transformer.call(this.thing, args[i])
       const key = normalizeKey(item[keyProp])
       if (key != null) {
         if (unique && storage.map[key]) this.remove(item[keyProp])
@@ -104,7 +104,7 @@ export function indexedList(props) {
   // TODO: can we add directly to instance on first get and avoid the STORAGE bit?
   return function(descriptor) {
     // TODOC:  get single key, get local
-    function getStoredFor(thing, key) {
+    function getStoredFor(thing) {
       let accessor = STORAGE.get(thing)
       if (!accessor) {
         if (parentProp) {
@@ -116,7 +116,8 @@ export function indexedList(props) {
             key = normalizeKey(key)
             if (storage && storage.map[key]) return storage.map[key]
 
-            if (!localOnly && this[parentProp]) return this[parentProp][descriptor.key](...arguments)
+            if (!localOnly && this[parentProp]) return this[parentProp][descriptor.key](key, localOnly)
+            return undefined
           }
         } else {
           accessor = function(key) {

@@ -1,5 +1,5 @@
 import snakeCase from "lodash/snakeCase"
-import { indexedList } from "./indexedList"
+import indexedList from "./indexedList"
 
 class Method {
   constructor(props) {
@@ -164,7 +164,7 @@ describe("basic test: just keyProp", () => {
     test("add()ing item without name works", () => {
       const that = new Thing()
       const me = { me: true }
-      const result = that.variables.add(me)
+      that.variables.add(me)
       expect(that.variables()).toEqual([me])
       expect(that.variables["#storage"].map).toEqual({})
     })
@@ -172,9 +172,8 @@ describe("basic test: just keyProp", () => {
 })
 
 describe("complex test: unique, normalizeKey, constructor ", () => {
-  const thing = new Thing()
-
   describe("initial setup", () => {
+    const thing = new Thing()
     test("'methods' becomes defined automatically", () => {
       expect(thing.methods).toBeInstanceOf(Function)
     })
