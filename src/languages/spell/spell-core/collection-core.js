@@ -83,10 +83,12 @@ Object.assign(spell, {
   // For array: `item` is 1-based position.
   // For object: `item` is string key.
   setItemOf(collection, item, value) {
-    if (!assert.isDefined(collection, "spell.setItemOf(collection)")) return
+    if (!assert.isDefined(collection, "spell.setItemOf(collection)")) return undefined
     if (typeof collection.setItem === "function") return collection.setItem(item, value)
+
     if (spell.isArrayLike(collection)) collection[item - 1] = value
     else collection[item] = value
+    return value
   },
 
   // Add `things` in the middle of the `collection` starting with 1-based position `start`,
@@ -94,7 +96,10 @@ Object.assign(spell, {
   // Array only.
   addAtPosition(collection, start, ...things) {
     if (!assert.isArrayLike(collection, "spell.addAtPosition(collection)")) return
-    if (typeof collection.addAtPosition === "function") return collection.addAtPosition(start, ...things)
+    if (typeof collection.addAtPosition === "function") {
+      collection.addAtPosition(start, ...things)
+      return
+    }
     if (start > 0) Array.prototype.splice.call(collection, start - 1, 0, ...things)
     else Array.prototype.splice.call(collection, start, 0, ...things)
   },
@@ -104,7 +109,10 @@ Object.assign(spell, {
   // For object: `item` is string key, which will be deleted
   removeItemOf(collection, item) {
     if (!assert.isDefined(collection, "spell.removeItemOf(collection)")) return
-    if (collection.removeItem) return collection.removeItem(item)
+    if (collection.removeItem) {
+      collection.removeItem(item)
+      return
+    }
     if (spell.isArrayLike(collection)) Array.prototype.splice.call(collection, item - 1, 1)
     else delete collection[item]
   },
@@ -112,7 +120,10 @@ Object.assign(spell, {
   // Remove all things from the `collection`, in-place.
   clear(collection) {
     if (!assert.isDefined(collection, "spell.clear(collection)")) return
-    if (typeof collection.clear === "function") return collection.clear()
+    if (typeof collection.clear === "function") {
+      collection.clear()
+      return
+    }
     const keys = spell.keysOf(collection).reverse()
     keys.forEach(key => spell.removeItemOf(collection, key))
 
@@ -121,7 +132,9 @@ Object.assign(spell, {
     if (typeof collection.length === "number") {
       try {
         collection.length = 0
-      } catch (e) {}
+      } catch (e) {
+        // TODO???
+      }
     }
   },
 
@@ -135,21 +148,23 @@ Object.assign(spell, {
   //    }
   getIteratorFor(collection) {
     if (!assert.isDefined(collection, "spell.getIteratorFor(collection)")) {
-      return (function* emptyIterator() {})()
+      return (function* emptyIterator() {
+        // THIS SPACE INTENTIONALLY LEFT BLANK
+      })()
     }
     if (typeof collection.getIterator === "function") return collection.getIterator()
 
     if (spell.isArrayLike(collection)) {
       return (function* numericIterator() {
         const count = spell.itemCountOf(collection)
-        for (var position = 1; position <= count; position++) {
+        for (let position = 1; position <= count; position++) {
           yield [spell.getItemOf(collection, position), position, collection]
         }
       })()
     }
     const keys = spell.keysOf(collection)
     return (function* keyedIterator() {
-      for (var i = 0; i < keys.length; i++) {
+      for (let i = 0; i < keys.length; i++) {
         yield [spell.getItemOf(collection, keys[i]), keys[i], collection]
       }
     })()

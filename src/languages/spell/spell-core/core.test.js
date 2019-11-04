@@ -35,8 +35,8 @@ describe("spell.newThingLike()", () => {
   test("returns an empty object when passed an object", () => {
     expect(spell.newThingLike({ a: 1 })).toEqual({})
   })
-  test("returns an empty array when passed arguments", function() {
-    expect(spell.newThingLike(arguments)).toEqual([])
+  test("returns an empty array when passed arguments", function(...args) {
+    expect(spell.newThingLike(args)).toEqual([])
   })
   test("returns a new Date when passed a Date", function() {
     expect(spell.newThingLike(new Date())).toBeInstanceOf(Date)
@@ -60,7 +60,7 @@ describe("spell.typeOf()", () => {
     expect(spell.typeOf("foo")).toBe("string") // TODO: 'text'?
   })
   test("returns 'boolean' when passed a boolean", () => {
-    expect(spell.typeOf(false)).toBe("boolean") //TODO: 'choice'?
+    expect(spell.typeOf(false)).toBe("boolean") // TODO: 'choice'?
   })
   test("returns 'object' when passed an Object", () => {
     expect(spell.typeOf({})).toBe("object")
@@ -103,7 +103,7 @@ describe("spell.isANumber()", () => {
     expect(spell.isANumber("1")).toBe(false)
   })
   test("returns false for NaN", () => {
-    expect(spell.isANumber(parseInt("foo"))).toBe(false)
+    expect(spell.isANumber(parseInt("foo", 10))).toBe(false)
   })
 })
 
@@ -111,8 +111,8 @@ describe("spell.isArrayLike()", () => {
   test("returns true for an array", () => {
     expect(spell.isArrayLike([])).toBe(true)
   })
-  test("returns true for function arguments", function() {
-    expect(spell.isArrayLike(arguments)).toBe(true)
+  test("returns true for function arguments", function(...args) {
+    expect(spell.isArrayLike(args)).toBe(true)
   })
   test("returns false for an object", () => {
     expect(spell.isArrayLike({})).toBe(false)
@@ -158,7 +158,7 @@ describe("spell.randomNumber()", () => {
   })
   test("returns an integer with normal params", () => {
     const random = spell.randomNumber(1, 5)
-    expect(Number.parseInt(random)).toBe(random)
+    expect(Number.parseInt(random, 10)).toBe(random)
   })
 })
 

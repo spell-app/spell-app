@@ -2,7 +2,7 @@
 // Base classes for spell
 //--------
 import _ from "lodash"
-import { spell, assert } from "."
+import { spell } from "."
 
 // ////////
 // `Thing`: base for all object-like things

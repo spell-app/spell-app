@@ -154,7 +154,7 @@ Object.assign(spell, {
     const iterator = spell.getIteratorFor(collection)
     let result = iterator.next()
     while (!result.done) {
-      const output = method(...result.value)
+      method(...result.value)
       result = iterator.next()
     }
   },
@@ -181,12 +181,12 @@ Object.assign(spell, {
     const results = spell.newThingLike(collection)
     let filter
     if (spell.isArrayLike(collection)) {
-      filter = (value, item, collection) => {
-        if (condition(value, item, collection)) spell.append(results, value)
+      filter = (value, item, _collection) => {
+        if (condition(value, item, _collection)) spell.append(results, value)
       }
     } else {
-      filter = (value, item, collection) => {
-        if (condition(value, item, collection)) spell.setItemOf(results, item, value)
+      filter = (value, item, _collection) => {
+        if (condition(value, item, _collection)) spell.setItemOf(results, item, value)
       }
     }
     spell.forEach(collection, filter)
@@ -196,7 +196,7 @@ Object.assign(spell, {
   // Return `true` if all items in collection match `condition`,
   // called as `condition(value, item, collection)`
   all(collection, condition) {
-    if (!assert.isDefined(collection, "spell.all(collection)")) false
+    if (!assert.isDefined(collection, "spell.all(collection)")) return false
     if (!condition) condition = it => it
     const iterator = spell.getIteratorFor(collection)
     let result = iterator.next()
@@ -300,7 +300,7 @@ Object.assign(spell, {
   // Randomize `collection` in-place.
   // No-op for collection
   randomize(collection) {
-    if (!assert.isDefined(collection, "spell.randomize(collection)")) return undefined
+    if (!assert.isDefined(collection, "spell.randomize(collection)")) return
     if (!spell.isArrayLike(collection)) return
     const randomized = spell.randomItemsOf(collection)
     spell.setItemsOf(collection, 1, ...randomized)

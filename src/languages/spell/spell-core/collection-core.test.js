@@ -1,3 +1,4 @@
+/* eslint-disable lines-between-class-members */
 import { spell, assert } from "."
 
 // Wrap `assert.failed` for each test
@@ -33,8 +34,8 @@ describe("spell.itemCountOf()", () => {
   test("returns correct number for an array", () => {
     expect(spell.itemCountOf([1, 2])).toBe(2)
   })
-  test("returns correct number for arguments", function() {
-    expect(spell.itemCountOf(arguments)).toBe(0)
+  test("returns correct number for arguments", function(...args) {
+    expect(spell.itemCountOf(args)).toBe(0)
   })
   test("returns correct number for empty object", function() {
     expect(spell.itemCountOf({})).toBe(0)
@@ -319,7 +320,7 @@ describe("spell.getIteratorFor()", () => {
   })
   test("calls `getIteratorFor` function if defined", () => {
     const custom = new CustomCollection()
-    const iterator = spell.getIteratorFor(custom)
+    spell.getIteratorFor(custom)
     expect(custom.getIterator).toHaveBeenCalled()
   })
   test("returns expected values for empty array", () => {

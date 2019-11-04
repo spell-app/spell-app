@@ -4,7 +4,7 @@
 // ////////
 
 import isArrayLike from "lodash/isArrayLike"
-import spell from "."
+import { spell } from "."
 
 // Assert that some `condition` is truthy:
 //  - if truthy, return `true`

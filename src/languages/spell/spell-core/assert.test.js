@@ -11,7 +11,7 @@ describe("assert()", () => {
       expect(result).toBe(true)
     })
     test("does not call assert.failed", () => {
-      const result = assert(true)
+      assert(true)
       expect(assert.failed).not.toHaveBeenCalled()
     })
   })
@@ -22,7 +22,7 @@ describe("assert()", () => {
       expect(result).toBe(false)
     })
     test("calls assert.failed with arguments", () => {
-      const result = assert(false, "foo", "bar", "baz")
+      assert(false, "foo", "bar", "baz")
       expect(assert.failed).toHaveBeenCalledTimes(1)
       expect(assert.failed).toHaveBeenCalledWith(["foo", "bar", "baz"])
     })
@@ -133,8 +133,8 @@ describe("assert.isArrayLike()", () => {
     test("a non-empty array", () => {
       expect(assert.isArrayLike([1, 2, 3])).toBe(true)
     })
-    test("function arguments", function() {
-      expect(assert.isArrayLike(arguments)).toBe(true)
+    test("function arguments", function(...args) {
+      expect(assert.isArrayLike(args)).toBe(true)
     })
     test("an object with a numeric `length` property", () => {
       expect(assert.isArrayLike({ length: 1 })).toBe(true)
