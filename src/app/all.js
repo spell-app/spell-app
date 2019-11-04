@@ -8,4 +8,4 @@ export * from "../parser/all"
 export { spellParser, Spell, Scope } from "../languages/spell/all"
 
 // Spell "core" library
-export { default as spell } from "../languages/spell/spell-core"
+export { default as spellCore } from "../languages/spell/spell-core"

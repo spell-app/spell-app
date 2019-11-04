@@ -3,7 +3,7 @@ import global from "global"
 import _ from "lodash"
 import JSON5 from "json5"
 
-import { projects, spell, spellParser, Spell } from "./all"
+import { projects, spellCore, spellParser, Spell } from "./all"
 
 // Output source when rendering statements
 Spell.Parser.prototype.outputSource = false // TODO: add a control for this to the UI
@@ -36,7 +36,7 @@ Object.assign(global, {
   tokenize: spellParser.tokenize.bind(spellParser),
 
   // spell core library
-  spell,
+  spellCore,
 
   // rulex language stuff
   //  rulex,
