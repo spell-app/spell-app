@@ -56,12 +56,12 @@ export default class Method extends Scope {
       if (this.kind === "static") return `${this.scope.name}.${this.name} = function(${args}) ${statements}`
 
       if (this.kind === "getter")
-        return `spell.define(${this.scope.name}.prototype, '${this.name}', { get() ${statements} })`
+        return `spellCore.define(${this.scope.name}.prototype, '${this.name}', { get() ${statements} })`
 
       if (this.kind === "setter")
-        return `spell.define(${this.scope.name}.prototype, '${this.name}', { set(${args}) ${statements} })`
+        return `spellCore.define(${this.scope.name}.prototype, '${this.name}', { set(${args}) ${statements} })`
 
-      return `spell.define(${this.scope.name}.prototype, '${this.name}', { value(${args}) ${statements} })`
+      return `spellCore.define(${this.scope.name}.prototype, '${this.name}', { value(${args}) ${statements} })`
     }
 
     // Return as a normal function

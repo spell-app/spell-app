@@ -22,7 +22,7 @@ export default new Spell.Parser({
           JSON.stringify(groups.expression.tokens.join(" ")),
           groups.value ? JSON.stringify(groups.value.tokens.join(" ")) : "true"
         ]
-        const statement = scope.addStatement(`spell.assertEquals(${args.join(", ")})`)
+        const statement = scope.addStatement(`spellCore.assertEquals(${args.join(", ")})`)
         results.statements.push(statement)
       },
       tests: [
@@ -34,11 +34,11 @@ export default new Spell.Parser({
           tests: [
             [
               "expect the foo of the thing to be 'bar'",
-              "spell.assertEquals(thing.foo, 'bar', \"the foo of thing\", \"'bar'\")"
+              "spellCore.assertEquals(thing.foo, 'bar', \"the foo of thing\", \"'bar'\")"
             ],
             [
               "expect the foo of the thing is 'bar'",
-              "spell.assertEquals((thing.foo == 'bar'), true, \"the foo of thing is 'bar'\", true)"
+              "spellCore.assertEquals((thing.foo == 'bar'), true, \"the foo of thing is 'bar'\", true)"
             ]
           ]
         }

@@ -207,7 +207,7 @@ const parser = new Parser({
       syntax: "is not? empty", // <== single Keywords, results.rhs = "is empty"
       applyOperator({ lhs, operator }) {
         const bang = operator === "is not empty" ? "!" : ""
-        return `${bang}spell.isEmpty(${lhs})`
+        return `${bang}spellCore.isEmpty(${lhs})`
       }
     },
 

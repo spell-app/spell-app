@@ -4,13 +4,13 @@
 //----------------------------
 
 import isArrayLike from "lodash/isArrayLike"
-import { spell } from "."
+import { spellCore } from "."
 
 // Assert that some `condition` is truthy:
 //  - if truthy, return `true`
 //  - if not truthy, calls `assert.failed(...message)` and return false
 export default function assert(condition, ...message) {
-  if (spell.isTruthy(condition)) return true
+  if (spellCore.isTruthy(condition)) return true
   assert.failed(message)
   return false
 }
@@ -21,9 +21,9 @@ assert.failed = function(...message) {
   console.warn(...message)
 }
 
-// Assert that `thing` is "equal to" `otherThing` according to `spell.equals()`
+// Assert that `thing` is "equal to" `otherThing` according to `spellCore.equals()`
 assert.equals = function(thing, otherThing, ...message) {
-  const condition = spell.equals(thing, otherThing)
+  const condition = spellCore.equals(thing, otherThing)
   return assert(condition, ...message)
 }
 

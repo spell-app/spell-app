@@ -6,9 +6,9 @@
 //  - TODO: collections for `words`, `lines`, etc?
 //--------
 import _ from "lodash"
-import { spell, assert } from "."
+import { spellCore, assert } from "."
 
-Object.assign(spell, {
+Object.assign(spellCore, {
   //----------------------------
   // primitive accessors/setters
   //----------
@@ -16,17 +16,17 @@ Object.assign(spell, {
   // Number of items in collection.
   // For object: number of "own" keys.
   itemCountOf(collection) {
-    if (!assert.isDefined(collection, "spell.itemCountOf(collection)")) return 0
+    if (!assert.isDefined(collection, "spellCore.itemCountOf(collection)")) return 0
     if (typeof collection.itemCount === "function") return collection.itemCount()
-    if (spell.isArrayLike(collection)) return collection.length
-    return spell.keysOf(collection).length
+    if (spellCore.isArrayLike(collection)) return collection.length
+    return spellCore.keysOf(collection).length
   },
 
   // Is collection empty?
   // TODO: `null` or `undefined`???
   isEmpty(collection) {
-    if (!assert.isDefined(collection, "spell.isEmpty(collection)")) return true
-    return spell.itemCountOf(collection) === 0
+    if (!assert.isDefined(collection, "spellCore.isEmpty(collection)")) return true
+    return spellCore.itemCountOf(collection) === 0
   },
 
   // Return proper `Array` of "keys" of `collection`
@@ -34,10 +34,10 @@ Object.assign(spell, {
   // For object: returns "own" keys in insertion order.
   // TODO: `itemsOf()` is not quite right either...
   keysOf(collection) {
-    if (!assert.isDefined(collection, "spell.keysOf(collection)")) return []
+    if (!assert.isDefined(collection, "spellCore.keysOf(collection)")) return []
     if (typeof collection.getKeys === "function") return collection.getKeys()
-    if (spell.isArrayLike(collection)) {
-      return _.range(1, spell.itemCountOf(collection) + 1)
+    if (spellCore.isArrayLike(collection)) {
+      return _.range(1, spellCore.itemCountOf(collection) + 1)
     }
     return Object.keys(collection)
   },
@@ -46,9 +46,9 @@ Object.assign(spell, {
   // For array: returns clone of the array.
   // For object: returns array of "own" values.
   valuesOf(collection) {
-    if (!assert.isDefined(collection, "spell.valuesOf(collection)")) return []
+    if (!assert.isDefined(collection, "spellCore.valuesOf(collection)")) return []
     if (typeof collection.getValues === "function") return collection.getValues()
-    if (spell.isArrayLike(collection)) return [...collection]
+    if (spellCore.isArrayLike(collection)) return [...collection]
     return Object.values(collection)
   },
 
@@ -57,9 +57,9 @@ Object.assign(spell, {
   // For object: returns string key or `undefined`
   // TODO: `positionOf` ???
   itemOf(collection, thing) {
-    if (!assert.isDefined(collection, "spell.itemOf(collection)")) return undefined
+    if (!assert.isDefined(collection, "spellCore.itemOf(collection)")) return undefined
     if (typeof collection.itemOf === "function") return collection.itemOf(thing)
-    const iterator = spell.getIteratorFor(collection)
+    const iterator = spellCore.getIteratorFor(collection)
     let result = iterator.next()
     while (!result.done) {
       const [value, item] = result.value
@@ -73,9 +73,9 @@ Object.assign(spell, {
   // For array: `item` is 1-based position.
   // For object: `item` is string key.
   getItemOf(collection, item) {
-    if (!assert.isDefined(collection, "spell.getItemOf(collection)")) return undefined
+    if (!assert.isDefined(collection, "spellCore.getItemOf(collection)")) return undefined
     if (typeof collection.getItem === "function") return collection.getItem(item)
-    if (spell.isArrayLike(collection)) return collection[item - 1]
+    if (spellCore.isArrayLike(collection)) return collection[item - 1]
     return collection[item]
   },
 
@@ -83,10 +83,10 @@ Object.assign(spell, {
   // For array: `item` is 1-based position.
   // For object: `item` is string key.
   setItemOf(collection, item, value) {
-    if (!assert.isDefined(collection, "spell.setItemOf(collection)")) return undefined
+    if (!assert.isDefined(collection, "spellCore.setItemOf(collection)")) return undefined
     if (typeof collection.setItem === "function") return collection.setItem(item, value)
 
-    if (spell.isArrayLike(collection)) collection[item - 1] = value
+    if (spellCore.isArrayLike(collection)) collection[item - 1] = value
     else collection[item] = value
     return value
   },
@@ -95,7 +95,7 @@ Object.assign(spell, {
   // moving things after `start` down.
   // Array only.
   addAtPosition(collection, start, ...things) {
-    if (!assert.isArrayLike(collection, "spell.addAtPosition(collection)")) return
+    if (!assert.isArrayLike(collection, "spellCore.addAtPosition(collection)")) return
     if (typeof collection.addAtPosition === "function") {
       collection.addAtPosition(start, ...things)
       return
@@ -108,24 +108,24 @@ Object.assign(spell, {
   // For array: `item` is 1-based position, items after item removed are slid back into place.
   // For object: `item` is string key, which will be deleted
   removeItemOf(collection, item) {
-    if (!assert.isDefined(collection, "spell.removeItemOf(collection)")) return
+    if (!assert.isDefined(collection, "spellCore.removeItemOf(collection)")) return
     if (collection.removeItem) {
       collection.removeItem(item)
       return
     }
-    if (spell.isArrayLike(collection)) Array.prototype.splice.call(collection, item - 1, 1)
+    if (spellCore.isArrayLike(collection)) Array.prototype.splice.call(collection, item - 1, 1)
     else delete collection[item]
   },
 
   // Remove all things from the `collection`, in-place.
   clear(collection) {
-    if (!assert.isDefined(collection, "spell.clear(collection)")) return
+    if (!assert.isDefined(collection, "spellCore.clear(collection)")) return
     if (typeof collection.clear === "function") {
       collection.clear()
       return
     }
-    const keys = spell.keysOf(collection).reverse()
-    keys.forEach(key => spell.removeItemOf(collection, key))
+    const keys = spellCore.keysOf(collection).reverse()
+    keys.forEach(key => spellCore.removeItemOf(collection, key))
 
     // For arrays, try to set the `length` to 0
     // Might fail on a read-only object.
@@ -140,32 +140,32 @@ Object.assign(spell, {
 
   // Return an invoked iterator which yields `[value, item, collection]` for each item in the collection.
   // e.g.
-  //    iterator = spell.getIteratorFor(collection)
+  //    iterator = spellCore.getIteratorFor(collection)
   //    let result = iterator.next()
   //    while (!result.done) {
   //      const [ value, item, collection ] = result.value
   //      result = iterator.next()
   //    }
   getIteratorFor(collection) {
-    if (!assert.isDefined(collection, "spell.getIteratorFor(collection)")) {
+    if (!assert.isDefined(collection, "spellCore.getIteratorFor(collection)")) {
       return (function* emptyIterator() {
         // THIS SPACE INTENTIONALLY LEFT BLANK
       })()
     }
     if (typeof collection.getIterator === "function") return collection.getIterator()
 
-    if (spell.isArrayLike(collection)) {
+    if (spellCore.isArrayLike(collection)) {
       return (function* numericIterator() {
-        const count = spell.itemCountOf(collection)
+        const count = spellCore.itemCountOf(collection)
         for (let position = 1; position <= count; position++) {
-          yield [spell.getItemOf(collection, position), position, collection]
+          yield [spellCore.getItemOf(collection, position), position, collection]
         }
       })()
     }
-    const keys = spell.keysOf(collection)
+    const keys = spellCore.keysOf(collection)
     return (function* keyedIterator() {
       for (let i = 0; i < keys.length; i++) {
-        yield [spell.getItemOf(collection, keys[i]), keys[i], collection]
+        yield [spellCore.getItemOf(collection, keys[i]), keys[i], collection]
       }
     })()
   }

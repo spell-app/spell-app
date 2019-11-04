@@ -8,7 +8,7 @@ import isEqual from "lodash/isEqual"
 
 import { assert } from "."
 
-const spell = {
+const spellCore = {
   //----------------------------
   // Meta-programming
   //--------
@@ -23,8 +23,8 @@ const spell = {
   // Create an new, "empty" instance of `thing.constructor`.
   // TODO: number? string?  non-constructable thing???
   newThingLike(thing) {
-    if (!assert.isDefined(thing, "spell.newThingLike()")) return undefined
-    if (spell.isArrayLike(thing)) return []
+    if (!assert.isDefined(thing, "spellCore.newThingLike()")) return undefined
+    if (spellCore.isArrayLike(thing)) return []
     try {
       return new thing.constructor()
     } catch (e) {
@@ -72,11 +72,11 @@ const spell = {
     return "unknown"
   },
 
-  // Is `thing` an instance of string `types` (as per `spell.typeOf()`)?
+  // Is `thing` an instance of string `types` (as per `spellCore.typeOf()`)?
   // If more than one `type`, returns `true` if any match.
   // `null`/`undefined` only match themselves.
   isOfType(thing, ...types) {
-    const thingType = spell.typeOf(thing)
+    const thingType = spellCore.typeOf(thing)
     return types.some(type => type === thingType)
   },
 
@@ -134,14 +134,15 @@ const spell = {
     }
     if (
       !assert(
-        spell.isANumber(min) && spell.isANumber(max),
-        "spell.randomNumber(): you must pass two numbers, got",
+        spellCore.isANumber(min) && spellCore.isANumber(max),
+        "spellCore.randomNumber(): you must pass two numbers, got",
         min,
         max
       )
     )
       return undefined
-    if (!assert(min <= max, "spell.randomNumber(): min (", min, ") must be less than max (", max, ")")) return undefined
+    if (!assert(min <= max, "spellCore.randomNumber(): min (", min, ") must be less than max (", max, ")"))
+      return undefined
     return Math.floor(Math.random() * (max - min + 1)) + min
   },
 
@@ -151,8 +152,8 @@ const spell = {
 
   // Create an element (ala `React.createElement()`)
   createElement(tagName, properties, ...children) {
-    throw new global.RuntimeError("TODO: spell.createElement()")
+    throw new global.RuntimeError("TODO: spellCore.createElement()")
   }
 }
 
-export default spell
+export default spellCore

@@ -64,7 +64,7 @@ export default class Type extends Scope {
     const statements = []
     if (this.superType) statements.push(`export class ${this.name} extends ${this.superType} {}`)
     else statements.push(`export class ${this.name} {}`)
-    statements.push(`spell.addExport("${this.name}", ${this.name})`)
+    statements.push(`spellCore.addExport("${this.name}", ${this.name})`)
     return statements.join("\n")
   }
 }

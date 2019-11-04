@@ -43,7 +43,7 @@ export default new Spell.Parser({
         const children = this.childrenToSource(scope, jsxElement)
         const attrs = this.attrsToSource(scope, jsxElement) || (children ? "null" : "")
 
-        let output = `spell.createElement(${tagName}`
+        let output = `spellCore.createElement(${tagName}`
         if (attrs) output += `, ${attrs}`
         if (children) {
           output += `,\n\t${children.join(",\n\t")}\n`
@@ -126,15 +126,15 @@ export default new Spell.Parser({
         {
           compileAs: "expression",
           tests: [
-            [`<a/>`, `spell.createElement('a')`],
-            [`<a b=1 c="ccc"/>`, `spell.createElement('a', { b: 1, c: "ccc" })`],
-            [`<a b=1 c="ccc" d></a>`, `spell.createElement('a', { b: 1, c: "ccc", d: true })`],
+            [`<a/>`, `spellCore.createElement('a')`],
+            [`<a b=1 c="ccc"/>`, `spellCore.createElement('a', { b: 1, c: "ccc" })`],
+            [`<a b=1 c="ccc" d></a>`, `spellCore.createElement('a', { b: 1, c: "ccc", d: true })`],
 
-            [`<a><b/></a>`, `spell.createElement('a', null,\n\tspell.createElement('b')\n)`],
-            [`<a><b></b></a>`, `spell.createElement('a', null,\n\tspell.createElement('b')\n)`],
+            [`<a><b/></a>`, `spellCore.createElement('a', null,\n\tspellCore.createElement('b')\n)`],
+            [`<a><b></b></a>`, `spellCore.createElement('a', null,\n\tspellCore.createElement('b')\n)`],
             [
               `<a A=1><b c=1>foo</b></a>`,
-              `spell.createElement('a', { A: 1 },\n\tspell.createElement('b', { c: 1 },\n\t\t"foo"\n\t)\n)`
+              `spellCore.createElement('a', { A: 1 },\n\tspellCore.createElement('b', { c: 1 },\n\t\t"foo"\n\t)\n)`
             ]
           ]
         },
@@ -146,7 +146,7 @@ export default new Spell.Parser({
           tests: [
             [
               `<div rank={the rank of the card} suit={the suit of the card}/>`,
-              `spell.createElement('div', { rank: card.rank, suit: card.suit })`
+              `spellCore.createElement('div', { rank: card.rank, suit: card.suit })`
             ]
           ]
         }

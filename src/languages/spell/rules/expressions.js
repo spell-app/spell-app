@@ -2,7 +2,8 @@
 //  # Rules for expressions.
 //
 
-import { Rule, Spell, peek } from "../all"
+import { Rule } from "../../../parser/all"
+import { Spell, peek } from "../all"
 
 export default new Spell.Parser({
   module: "expressions",
@@ -226,7 +227,7 @@ export default new Spell.Parser({
       syntax: "(operator:is not? (a|an)) {expression:type}",
       applyOperator({ lhs, operator, rhs }) {
         const bang = operator.includes("not") ? "!" : ""
-        return `${bang}spell.isOfType(${lhs}, '${rhs}')`
+        return `${bang}spellCore.isOfType(${lhs}, '${rhs}')`
       },
       tests: [
         {
@@ -235,10 +236,10 @@ export default new Spell.Parser({
             scope.variables.add("thing")
           },
           tests: [
-            ["thing is a Bee", "spell.isOfType(thing, 'Bee')"],
-            ["thing is an Animal", "spell.isOfType(thing, 'Animal')"],
-            ["thing is not a Bee", "!spell.isOfType(thing, 'Bee')"],
-            ["thing is not an Animal", "!spell.isOfType(thing, 'Animal')"]
+            ["thing is a Bee", "spellCore.isOfType(thing, 'Bee')"],
+            ["thing is an Animal", "spellCore.isOfType(thing, 'Animal')"],
+            ["thing is not a Bee", "!spellCore.isOfType(thing, 'Bee')"],
+            ["thing is not an Animal", "!spellCore.isOfType(thing, 'Animal')"]
           ]
         }
       ]
@@ -251,7 +252,7 @@ export default new Spell.Parser({
       syntax: "(operator:is not? the same type as) {expression:single_expression}",
       applyOperator({ lhs, operator, rhs }) {
         const op = operator.includes("not") ? "!==" : "==="
-        return `(spell.typeOf(${lhs}) ${op} spell.typeOf(${rhs}))`
+        return `(spellCore.typeOf(${lhs}) ${op} spellCore.typeOf(${rhs}))`
       },
       tests: [
         {
@@ -261,8 +262,8 @@ export default new Spell.Parser({
             scope.variables.add("other")
           },
           tests: [
-            ["thing is the same type as other", "(spell.typeOf(thing) === spell.typeOf(other))"],
-            ["thing is not the same type as other", "(spell.typeOf(thing) !== spell.typeOf(other))"]
+            ["thing is the same type as other", "(spellCore.typeOf(thing) === spellCore.typeOf(other))"],
+            ["thing is not the same type as other", "(spellCore.typeOf(thing) !== spellCore.typeOf(other))"]
           ]
         }
       ]
@@ -282,7 +283,7 @@ export default new Spell.Parser({
       applyOperator({ lhs, operator, rhs }) {
         if (Array.isArray(rhs)) rhs = `[${rhs.join(", ")}]`
         const bang = operator.includes("not") || operator.includes("neither") ? "!" : ""
-        return `${bang}spell.includes(${rhs}, ${lhs})`
+        return `${bang}spellCore.includes(${rhs}, ${lhs})`
       },
       tests: [
         {
@@ -294,14 +295,14 @@ export default new Spell.Parser({
             scope.variables.add("theList")
           },
           tests: [
-            ["thing is in theList", "spell.includes(theList, thing)"],
-            ["thing is one of theList", "spell.includes(theList, thing)"],
-            ["thing is not in theList", "!spell.includes(theList, thing)"],
-            ["thing is not one of theList", "!spell.includes(theList, thing)"],
-            ["thing is either red or green", "spell.includes([red, 'green'], thing)"],
-            ["thing is not either red or green", "!spell.includes([red, 'green'], thing)"],
-            ["thing is not either of red or green", "!spell.includes([red, 'green'], thing)"],
-            ["thing is neither red nor green", "!spell.includes([red, 'green'], thing)"]
+            ["thing is in theList", "spellCore.includes(theList, thing)"],
+            ["thing is one of theList", "spellCore.includes(theList, thing)"],
+            ["thing is not in theList", "!spellCore.includes(theList, thing)"],
+            ["thing is not one of theList", "!spellCore.includes(theList, thing)"],
+            ["thing is either red or green", "spellCore.includes([red, 'green'], thing)"],
+            ["thing is not either red or green", "!spellCore.includes([red, 'green'], thing)"],
+            ["thing is not either of red or green", "!spellCore.includes([red, 'green'], thing)"],
+            ["thing is neither red nor green", "!spellCore.includes([red, 'green'], thing)"]
           ]
         }
       ]
@@ -314,7 +315,7 @@ export default new Spell.Parser({
       syntax: "(operator:includes|contains) {expression:single_expression}",
       applyOperator({ lhs, rhs }) {
         if (Array.isArray(lhs)) lhs = `[${lhs.join(", ")}]`
-        return `spell.includes(${lhs}, ${rhs})`
+        return `spellCore.includes(${lhs}, ${rhs})`
       },
       tests: [
         {
@@ -324,8 +325,8 @@ export default new Spell.Parser({
             scope.variables.add("thing")
           },
           tests: [
-            ["theList includes thing", "spell.includes(theList, thing)"],
-            ["theList contains thing", "spell.includes(theList, thing)"]
+            ["theList includes thing", "spellCore.includes(theList, thing)"],
+            ["theList contains thing", "spellCore.includes(theList, thing)"]
           ]
         }
       ]
@@ -338,7 +339,7 @@ export default new Spell.Parser({
       syntax: "(operator:does not (include|contain)) {expression:single_expression}",
       applyOperator({ lhs, rhs }) {
         if (Array.isArray(lhs)) lhs = `[${lhs.join(", ")}]`
-        return `!spell.includes(${lhs}, ${rhs})`
+        return `!spellCore.includes(${lhs}, ${rhs})`
       },
       tests: [
         {
@@ -348,8 +349,8 @@ export default new Spell.Parser({
             scope.variables.add("thing")
           },
           tests: [
-            ["theList does not include thing", "!spell.includes(theList, thing)"],
-            ["theList does not contain thing", "!spell.includes(theList, thing)"]
+            ["theList does not include thing", "!spellCore.includes(theList, thing)"],
+            ["theList does not contain thing", "!spellCore.includes(theList, thing)"]
           ]
         }
       ]
@@ -387,7 +388,7 @@ export default new Spell.Parser({
       syntax: "is not? empty",
       applyOperator({ lhs, operator }) {
         const bang = operator.includes("not") ? "!" : ""
-        return `${bang}spell.isEmpty(${lhs})`
+        return `${bang}spellCore.isEmpty(${lhs})`
       },
       tests: [
         {
@@ -395,7 +396,7 @@ export default new Spell.Parser({
           beforeEach(scope) {
             scope.variables.add("thing")
           },
-          tests: [["thing is empty", "spell.isEmpty(thing)"], ["thing is not empty", "!spell.isEmpty(thing)"]]
+          tests: [["thing is empty", "spellCore.isEmpty(thing)"], ["thing is not empty", "!spellCore.isEmpty(thing)"]]
         }
       ]
     }

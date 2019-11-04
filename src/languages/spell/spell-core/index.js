@@ -5,11 +5,11 @@
 //
 //----------------------------
 import assert from "./assert"
-import spell from "./core"
+import spellCore from "./core"
 import "./collection-core"
 import "./collection-other"
 import "./ui"
 import { Thing, List } from "./classes"
 
-export default spell
-export { spell, assert, Thing, List }
+export default spellCore
+export { spellCore, assert, Thing, List }

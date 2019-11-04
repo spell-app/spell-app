@@ -83,7 +83,7 @@ export default new Spell.Parser({
       precedence: 3,
       compile(scope, match) {
         const { list } = match.results
-        return `spell.itemCountOf(${list})`
+        return `spellCore.itemCountOf(${list})`
       },
       tests: [
         {
@@ -93,9 +93,9 @@ export default new Spell.Parser({
             scope.variables.add("bar")
           },
           tests: [
-            ["number of items in my-list", "spell.itemCountOf(my_list)"],
-            ["the number of foos in the foo of the bar", "spell.itemCountOf(bar.foo)"],
-            ["the number of items in [1,2,3]", "spell.itemCountOf([1, 2, 3])"]
+            ["number of items in my-list", "spellCore.itemCountOf(my_list)"],
+            ["the number of foos in the foo of the bar", "spellCore.itemCountOf(bar.foo)"],
+            ["the number of items in [1,2,3]", "spellCore.itemCountOf([1, 2, 3])"]
           ]
         }
       ]
@@ -113,7 +113,7 @@ export default new Spell.Parser({
       precedence: 3,
       compile(scope, match) {
         const { thing, list } = match.results
-        return `spell.itemOf(${list}, ${thing})`
+        return `spellCore.itemOf(${list}, ${thing})`
       },
       tests: [
         {
@@ -124,9 +124,9 @@ export default new Spell.Parser({
             scope.variables.add("bar")
           },
           tests: [
-            ["position of thing in my-list", "spell.itemOf(my_list, thing)"],
-            ["the position of thing in the foo of the bar", "spell.itemOf(bar.foo, thing)"],
-            ["the position of 'a' in ['a', 'b', 'c']", "spell.itemOf(['a', 'b', 'c'], 'a')"]
+            ["position of thing in my-list", "spellCore.itemOf(my_list, thing)"],
+            ["the position of thing in the foo of the bar", "spellCore.itemOf(bar.foo, thing)"],
+            ["the position of 'a' in ['a', 'b', 'c']", "spellCore.itemOf(['a', 'b', 'c'], 'a')"]
           ]
         }
       ]
@@ -139,7 +139,7 @@ export default new Spell.Parser({
       syntax: "(operator:(starts|ends) with) {expression:single_expression}",
       applyOperator({ lhs, operator, rhs }) {
         const method = operator === "starts with" ? "startsWith" : "endsWith"
-        return `spell.${method}(${lhs}, ${rhs})`
+        return `spellCore.${method}(${lhs}, ${rhs})`
       },
       tests: [
         {
@@ -149,10 +149,10 @@ export default new Spell.Parser({
             scope.variables.add("thing")
           },
           tests: [
-            ["my-list starts with thing", "spell.startsWith(my_list, thing)"],
-            ["[1,2,3] starts with 1", "spell.startsWith([1, 2, 3], 1)"],
-            ["my-list ends with thing", "spell.endsWith(my_list, thing)"],
-            ["[1,2,3] ends with 1", "spell.endsWith([1, 2, 3], 1)"]
+            ["my-list starts with thing", "spellCore.startsWith(my_list, thing)"],
+            ["[1,2,3] starts with 1", "spellCore.startsWith([1, 2, 3], 1)"],
+            ["my-list ends with thing", "spellCore.endsWith(my_list, thing)"],
+            ["[1,2,3] ends with 1", "spellCore.endsWith([1, 2, 3], 1)"]
           ]
         }
       ]
@@ -225,7 +225,7 @@ export default new Spell.Parser({
       testRule: "…of",
       compile(scope, match) {
         const { position, expression } = match.results
-        return `spell.getItem(${expression}, ${position})`
+        return `spellCore.getItem(${expression}, ${position})`
       },
       tests: [
         {
@@ -236,9 +236,9 @@ export default new Spell.Parser({
             scope.variables.add("n")
           },
           tests: [
-            ["item 1 of my-list", "spell.getItem(my_list, 1)"],
-            ["card 10 of deck", "spell.getItem(deck, 10)"],
-            ["card n of the cards of the deck", "spell.getItem(deck.cards, n)"]
+            ["item 1 of my-list", "spellCore.getItem(my_list, 1)"],
+            ["card 10 of deck", "spellCore.getItem(deck, 10)"],
+            ["card n of the cards of the deck", "spellCore.getItem(deck.cards, n)"]
           ]
         }
       ]
@@ -251,7 +251,7 @@ export default new Spell.Parser({
       testRule: "…(in|of)",
       compile(scope, match) {
         const { ordinal, expression } = match.results
-        return `spell.getItem(${expression}, ${ordinal})`
+        return `spellCore.getItem(${expression}, ${ordinal})`
       },
       tests: [
         {
@@ -262,9 +262,9 @@ export default new Spell.Parser({
             scope.variables.add("words")
           },
           tests: [
-            ["the first item of my-list", "spell.getItem(my_list, 1)"],
-            ["the tenth card of deck", "spell.getItem(deck, 10)"],
-            ["the penultimate word in words", "spell.getItem(words, -2)"]
+            ["the first item of my-list", "spellCore.getItem(my_list, 1)"],
+            ["the tenth card of deck", "spellCore.getItem(deck, 10)"],
+            ["the penultimate word in words", "spellCore.getItem(words, -2)"]
           ]
         }
       ]
@@ -278,7 +278,7 @@ export default new Spell.Parser({
       testRule: "a random",
       compile(scope, match) {
         const { list } = match.results
-        return `spell.randomItemOf(${list})`
+        return `spellCore.randomItemOf(${list})`
       },
       tests: [
         {
@@ -288,9 +288,9 @@ export default new Spell.Parser({
             scope.variables.add("deck")
           },
           tests: [
-            ["a random item of my-list", "spell.randomItemOf(my_list)"],
-            ["a random word in 'some words'", "spell.randomItemOf('some words')"],
-            ["a random card from the deck", "spell.randomItemOf(deck)"]
+            ["a random item of my-list", "spellCore.randomItemOf(my_list)"],
+            ["a random word in 'some words'", "spellCore.randomItemOf('some words')"],
+            ["a random card from the deck", "spellCore.randomItemOf(deck)"]
           ]
         }
       ]
@@ -305,7 +305,7 @@ export default new Spell.Parser({
       testRule: "…random",
       compile(scope, match) {
         const { number, list } = match.results
-        return `spell.randomItemsOf(${list}, ${number})`
+        return `spellCore.randomItemsOf(${list}, ${number})`
       },
       tests: [
         {
@@ -315,9 +315,9 @@ export default new Spell.Parser({
             scope.variables.add("deck")
           },
           tests: [
-            ["2 random items of my-list", "spell.randomItemsOf(my_list, 2)"],
-            ["2 random words in 'some other words'", "spell.randomItemsOf('some other words', 2)"],
-            ["3 random cards from deck", "spell.randomItemsOf(deck, 3)"]
+            ["2 random items of my-list", "spellCore.randomItemsOf(my_list, 2)"],
+            ["2 random words in 'some other words'", "spellCore.randomItemsOf('some other words', 2)"],
+            ["3 random cards from deck", "spellCore.randomItemsOf(deck, 3)"]
           ]
         }
       ]
@@ -334,7 +334,7 @@ export default new Spell.Parser({
       testRule: "…(of|in|from)",
       compile(scope, match) {
         const { list, start, end } = match.results
-        return `spell.rangeBetween(${list}, ${start}, ${end})`
+        return `spellCore.rangeBetween(${list}, ${start}, ${end})`
       },
       tests: [
         {
@@ -344,9 +344,9 @@ export default new Spell.Parser({
             scope.variables.add("deck")
           },
           tests: [
-            ["item 1 to 2 of my-list", "spell.rangeBetween(my_list, 1, 2)"],
-            ["word 2 to 3 in 'some other words'", "spell.rangeBetween('some other words', 2, 3)"],
-            ["card 1 to 3 from deck", "spell.rangeBetween(deck, 1, 3)"]
+            ["item 1 to 2 of my-list", "spellCore.rangeBetween(my_list, 1, 2)"],
+            ["word 2 to 3 in 'some other words'", "spellCore.rangeBetween('some other words', 2, 3)"],
+            ["card 1 to 3 from deck", "spellCore.rangeBetween(deck, 1, 3)"]
           ]
         }
       ]
@@ -362,7 +362,7 @@ export default new Spell.Parser({
       testRule: "…(starting with)",
       compile(scope, match) {
         const { thing, list } = match.results
-        return `spell.rangeBetween(${list}, spell.itemOf(${thing}, ${list}))`
+        return `spellCore.rangeBetween(${list}, spellCore.itemOf(${thing}, ${list}))`
       },
       tests: [
         {
@@ -372,10 +372,13 @@ export default new Spell.Parser({
             scope.variables.add("thing")
           },
           tests: [
-            ["items in my-list starting with thing", "spell.rangeBetween(my_list, spell.itemOf(thing, my_list))"],
+            [
+              "items in my-list starting with thing",
+              "spellCore.rangeBetween(my_list, spellCore.itemOf(thing, my_list))"
+            ],
             [
               "words in 'some words' starting with 'some'",
-              "spell.rangeBetween('some words', spell.itemOf('some', 'some words'))"
+              "spellCore.rangeBetween('some words', spellCore.itemOf('some', 'some words'))"
             ]
           ]
         }
@@ -391,7 +394,7 @@ export default new Spell.Parser({
       testRule: "…(of|in|from)",
       compile(scope, match) {
         const { ordinal, number, list } = match.results
-        return `spell.rangeStartingAt(${list}, ${ordinal}, ${number})`
+        return `spellCore.rangeStartingAt(${list}, ${ordinal}, ${number})`
       },
       tests: [
         {
@@ -401,9 +404,9 @@ export default new Spell.Parser({
             scope.variables.add("deck")
           },
           tests: [
-            ["top 2 items of my-list", "spell.rangeStartingAt(my_list, 1, 2)"],
-            ["first 2 words in 'some other words'", "spell.rangeStartingAt('some other words', 1, 2)"],
-            ["last two cards from deck", "spell.rangeStartingAt(deck, -1, 2)"]
+            ["top 2 items of my-list", "spellCore.rangeStartingAt(my_list, 1, 2)"],
+            ["first 2 words in 'some other words'", "spellCore.rangeStartingAt('some other words', 1, 2)"],
+            ["last two cards from deck", "spellCore.rangeStartingAt(deck, -1, 2)"]
           ]
         }
       ]
@@ -426,7 +429,7 @@ export default new Spell.Parser({
       },
       compile(scope, match) {
         const { list, expression } = match.results
-        return `spell.filter(${list}, ${expression})`
+        return `spellCore.filter(${list}, ${expression})`
       },
       tests: [
         {
@@ -438,9 +441,9 @@ export default new Spell.Parser({
           tests: [
             [
               "words in 'a word list' where word starts with 'a'",
-              "spell.filter('a word list', (word) => spell.startsWith(word, 'a'))"
+              "spellCore.filter('a word list', (word) => spellCore.startsWith(word, 'a'))"
             ],
-            ["the items in my-list where the id of the item > 1", "spell.filter(my_list, (item) => (item.id > 1))"]
+            ["the items in my-list where the id of the item > 1", "spellCore.filter(my_list, (item) => (item.id > 1))"]
           ]
         }
       ]
@@ -466,7 +469,7 @@ export default new Spell.Parser({
         const { operator, filter, list } = match.results
         const bang = operator === "has" ? "" : "!"
         // singularize method argument
-        return `${bang}spell.any(${list}, ${filter})`
+        return `${bang}spellCore.any(${list}, ${filter})`
       },
       tests: [
         {
@@ -477,10 +480,10 @@ export default new Spell.Parser({
             scope.variables.add("bar")
           },
           tests: [
-            ["my-list has items where item is 1", "spell.any(my_list, (item) => (item == 1))"],
-            ["my-list has no items where item is 1", "!spell.any(my_list, (item) => (item == 1))"],
-            ["my-list doesnt have items where item is 1", "!spell.any(my_list, (item) => (item == 1))"],
-            ["the foo of the bar does not have items where item is 1", "!spell.any(bar.foo, (item) => (item == 1))"]
+            ["my-list has items where item is 1", "spellCore.any(my_list, (item) => (item == 1))"],
+            ["my-list has no items where item is 1", "!spellCore.any(my_list, (item) => (item == 1))"],
+            ["my-list doesnt have items where item is 1", "!spellCore.any(my_list, (item) => (item == 1))"],
+            ["the foo of the bar does not have items where item is 1", "!spellCore.any(bar.foo, (item) => (item == 1))"]
           ]
         }
       ]
@@ -510,7 +513,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { thing, list, method = "append" } = results
-        const statement = scope.addStatement(`spell.${method}(${list}, ${thing})`)
+        const statement = scope.addStatement(`spellCore.${method}(${list}, ${thing})`)
         results.statements.push(statement)
       },
       tests: [
@@ -521,13 +524,13 @@ export default new Spell.Parser({
             scope.variables.add("thing")
           },
           tests: [
-            ["add thing to the start of my-list", "spell.prepend(my_list, thing)"],
-            ["add thing to the front of my-list", "spell.prepend(my_list, thing)"],
-            ["add thing to the top of my-list", "spell.prepend(my_list, thing)"],
+            ["add thing to the start of my-list", "spellCore.prepend(my_list, thing)"],
+            ["add thing to the front of my-list", "spellCore.prepend(my_list, thing)"],
+            ["add thing to the top of my-list", "spellCore.prepend(my_list, thing)"],
 
-            ["add thing to the end of my-list", "spell.append(my_list, thing)"],
-            ["add thing to the back of my-list", "spell.append(my_list, thing)"],
-            ["add thing to the bottom of my-list", "spell.append(my_list, thing)"]
+            ["add thing to the end of my-list", "spellCore.append(my_list, thing)"],
+            ["add thing to the back of my-list", "spellCore.append(my_list, thing)"],
+            ["add thing to the bottom of my-list", "spellCore.append(my_list, thing)"]
           ]
         }
       ]
@@ -542,7 +545,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { thing, list } = results
-        const statement = scope.addStatement(`spell.prepend(${list}, ${thing})`)
+        const statement = scope.addStatement(`spellCore.prepend(${list}, ${thing})`)
         results.statements.push(statement)
       },
       tests: [
@@ -552,7 +555,7 @@ export default new Spell.Parser({
             scope.variables.add("my-list")
             scope.variables.add("thing")
           },
-          tests: [["prepend thing to my-list", "spell.prepend(my_list, thing)"]]
+          tests: [["prepend thing to my-list", "spellCore.prepend(my_list, thing)"]]
         }
       ]
     },
@@ -566,7 +569,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { thing, list } = results
-        const statement = scope.addStatement(`spell.append(${list}, ${thing})`)
+        const statement = scope.addStatement(`spellCore.append(${list}, ${thing})`)
         results.statements.push(statement)
       },
       tests: [
@@ -576,7 +579,7 @@ export default new Spell.Parser({
             scope.variables.add("my-list")
             scope.variables.add("thing")
           },
-          tests: [["append thing to my-list", "spell.append(my_list, thing)"]]
+          tests: [["append thing to my-list", "spellCore.append(my_list, thing)"]]
         }
       ]
     },
@@ -598,8 +601,9 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { thing, item, list, operator } = results
-        const position = operator === "before" ? `spell.itemOf(${list}, ${item})` : `spell.itemOf(${list}, ${item}) + 1`
-        const statement = scope.addStatement(`spell.addAtPosition(${list}, ${position}, ${thing})`)
+        const position =
+          operator === "before" ? `spellCore.itemOf(${list}, ${item})` : `spellCore.itemOf(${list}, ${item}) + 1`
+        const statement = scope.addStatement(`spellCore.addAtPosition(${list}, ${position}, ${thing})`)
         results.statements.push(statement)
       },
       tests: [
@@ -613,11 +617,11 @@ export default new Spell.Parser({
           tests: [
             [
               "add thing to my-list before other-thing",
-              "spell.addAtPosition(my_list, spell.itemOf(my_list, other_thing), thing)"
+              "spellCore.addAtPosition(my_list, spellCore.itemOf(my_list, other_thing), thing)"
             ],
             [
               "add thing to my-list after other-thing",
-              "spell.addAtPosition(my_list, spell.itemOf(my_list, other_thing) + 1, thing)"
+              "spellCore.addAtPosition(my_list, spellCore.itemOf(my_list, other_thing) + 1, thing)"
             ]
           ]
         }
@@ -638,7 +642,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { list } = results
-        const statement = scope.addStatement(`spell.clear(${list})`)
+        const statement = scope.addStatement(`spellCore.clear(${list})`)
         results.statements.push(statement)
       },
       tests: [
@@ -648,7 +652,10 @@ export default new Spell.Parser({
             scope.variables.add("my-list")
             scope.variables.add("deck")
           },
-          tests: [["empty my-list", "spell.clear(my_list)"], ["clear the cards of the deck", "spell.clear(deck.cards)"]]
+          tests: [
+            ["empty my-list", "spellCore.clear(my_list)"],
+            ["clear the cards of the deck", "spellCore.clear(deck.cards)"]
+          ]
         }
       ]
     },
@@ -662,7 +669,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { position, list } = results
-        const statement = scope.addStatement(`spell.removeItem(${list}, ${position})`)
+        const statement = scope.addStatement(`spellCore.removeItem(${list}, ${position})`)
         results.statements.push(statement)
       },
       tests: [
@@ -672,8 +679,8 @@ export default new Spell.Parser({
             scope.variables.add("deck")
           },
           tests: [
-            ["remove last card of deck", "spell.removeItem(deck, -1)"],
-            ["remove the first card of the deck", "spell.removeItem(deck, 1)"]
+            ["remove last card of deck", "spellCore.removeItem(deck, -1)"],
+            ["remove the first card of the deck", "spellCore.removeItem(deck, 1)"]
           ]
         }
       ]
@@ -688,7 +695,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { number, list } = results
-        const statement = scope.addStatement(`spell.removeItem(${list}, ${number})`)
+        const statement = scope.addStatement(`spellCore.removeItem(${list}, ${number})`)
         results.statements.push(statement)
       },
       tests: [
@@ -697,7 +704,7 @@ export default new Spell.Parser({
           beforeEach(scope) {
             scope.variables.add("my-list")
           },
-          tests: [["remove item 4 of my-list", "spell.removeItem(my_list, 4)"]]
+          tests: [["remove item 4 of my-list", "spellCore.removeItem(my_list, 4)"]]
         }
       ]
     },
@@ -713,7 +720,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { start, end, list } = results
-        const statement = scope.addStatement(`spell.removeRangeBetween(${list}, ${start}, ${end})`)
+        const statement = scope.addStatement(`spellCore.removeRangeBetween(${list}, ${start}, ${end})`)
         results.statements.push(statement)
       },
       tests: [
@@ -722,7 +729,7 @@ export default new Spell.Parser({
           beforeEach(scope) {
             scope.variables.add("my-list")
           },
-          tests: [["remove items 2 to 4 of my-list", "spell.removeRangeBetween(my_list, 2, 4)"]]
+          tests: [["remove items 2 to 4 of my-list", "spellCore.removeRangeBetween(my_list, 2, 4)"]]
         }
       ]
     },
@@ -735,7 +742,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { start, end, list } = results
-        const statement = scope.addStatement(`spell.removeRangeBetween(${list}, ${start}, ${end})`)
+        const statement = scope.addStatement(`spellCore.removeRangeBetween(${list}, ${start}, ${end})`)
         results.statements.push(statement)
       },
       tests: [
@@ -744,7 +751,7 @@ export default new Spell.Parser({
           beforeEach(scope) {
             scope.variables.add("deck")
           },
-          tests: [["remove first to third cards of the deck", "spell.removeRangeBetween(deck, 1, 3)"]]
+          tests: [["remove first to third cards of the deck", "spellCore.removeRangeBetween(deck, 1, 3)"]]
         }
       ]
     },
@@ -761,7 +768,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { thing, list } = results
-        const statement = scope.addStatement(`spell.remove(${list}, ${thing})`)
+        const statement = scope.addStatement(`spellCore.remove(${list}, ${thing})`)
         results.statements.push(statement)
       },
       tests: [
@@ -771,7 +778,7 @@ export default new Spell.Parser({
             scope.variables.add("thing")
             scope.variables.add("my-list")
           },
-          tests: [["remove thing from my-list", "spell.remove(my_list, thing)"]]
+          tests: [["remove thing from my-list", "spellCore.remove(my_list, thing)"]]
         }
       ]
     },
@@ -793,7 +800,7 @@ export default new Spell.Parser({
       updateScope(scope, { results }) {
         const { condition, list } = results
         // singularize method argument
-        const statement = scope.addStatement(`spell.removeWhere(${list}, ${condition})`)
+        const statement = scope.addStatement(`spellCore.removeWhere(${list}, ${condition})`)
         results.statements.push(statement)
       },
       tests: [
@@ -807,11 +814,11 @@ export default new Spell.Parser({
           tests: [
             [
               "remove items from my-list where item is not 'ace'",
-              "spell.removeWhere(my_list, (item) => (item != 'ace'))"
+              "spellCore.removeWhere(my_list, (item) => (item != 'ace'))"
             ],
             [
               "remove cards in deck where the suit of the card is clubs",
-              "spell.removeWhere(deck, (card) => (card.suit == 'clubs'))"
+              "spellCore.removeWhere(deck, (card) => (card.suit == 'clubs'))"
             ]
           ]
         }
@@ -831,7 +838,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { list } = results
-        const statement = scope.addStatement(`spell.reverse(${list})`)
+        const statement = scope.addStatement(`spellCore.reverse(${list})`)
         results.statements.push(statement)
       },
       tests: [
@@ -842,8 +849,8 @@ export default new Spell.Parser({
             scope.variables.add("my-list")
           },
           tests: [
-            ["reverse the cards of the deck", "spell.reverse(deck)"],
-            ["reverse my-list", "spell.reverse(my_list)"]
+            ["reverse the cards of the deck", "spellCore.reverse(deck)"],
+            ["reverse my-list", "spellCore.reverse(my_list)"]
           ]
         }
       ]
@@ -858,7 +865,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { list } = results
-        const statement = scope.addStatement(`spell.randomize(${list})`)
+        const statement = scope.addStatement(`spellCore.randomize(${list})`)
         results.statements.push(statement)
       },
       tests: [
@@ -869,9 +876,9 @@ export default new Spell.Parser({
             scope.variables.add("my-list")
           },
           tests: [
-            ["shuffle cards of deck", "spell.randomize(deck)"],
-            ["shuffle the cards of the deck", "spell.randomize(deck)"],
-            ["randomize my-list", "spell.randomize(my_list)"]
+            ["shuffle cards of deck", "spellCore.randomize(deck)"],
+            ["shuffle the cards of the deck", "spellCore.randomize(deck)"],
+            ["randomize my-list", "spellCore.randomize(my_list)"]
           ]
         }
       ]
@@ -905,7 +912,7 @@ export default new Spell.Parser({
           new Scope.Method({
             name: "for_each",
             toString() {
-              return `spell.forEach(${results.list}, ${results.$scope.toString()})`
+              return `spellCore.forEach(${results.list}, ${results.$scope.toString()})`
             }
           })
         )
@@ -920,24 +927,24 @@ export default new Spell.Parser({
             scope.variables.add("messages")
           },
           tests: [
-            ["for each card in deck:", "spell.forEach(deck, function(card) {})"],
-            ["for item, index in my-list:", "spell.forEach(my_list, function(item, index) {})"],
+            ["for each card in deck:", "spellCore.forEach(deck, function(card) {})"],
+            ["for item, index in my-list:", "spellCore.forEach(my_list, function(item, index) {})"],
             [
               "for each card in deck: set the direction of the card to 'down'",
-              "spell.forEach(deck, function(card) { card.direction = 'down' })"
+              "spellCore.forEach(deck, function(card) { card.direction = 'down' })"
             ],
             [
               "for message, index in messages: add message + index to messages",
-              "spell.forEach(messages, function(message, index) { spell.append(messages, (message + index)) })"
+              "spellCore.forEach(messages, function(message, index) { spellCore.append(messages, (message + index)) })"
             ],
 
             [
               "for each card in deck:\n\tset the direction of the card to 'down'",
-              "spell.forEach(deck, function(card) { card.direction = 'down' })"
+              "spellCore.forEach(deck, function(card) { card.direction = 'down' })"
             ],
             [
               "for message and index in messages:\n\tif index is greater than 2 add message to messages",
-              "spell.forEach(messages, function(message, index) { if (index > 2) { spell.append(messages, message) } })"
+              "spellCore.forEach(messages, function(message, index) { if (index > 2) { spellCore.append(messages, message) } })"
             ]
           ]
         }

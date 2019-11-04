@@ -63,12 +63,12 @@ describe("basic rules check out individually", () => {
   })
 
   test("is empty", () => {
-    expect(prec.compile("a is empty")).toBe("spell.isEmpty(a)")
+    expect(prec.compile("a is empty")).toBe("spellCore.isEmpty(a)")
     expect(prec.parse("a is empty").results).toEqual({ lhs: "a", rhs: ["is empty"] })
   })
 
   test("is not empty", () => {
-    expect(prec.compile("a is not empty")).toBe("!spell.isEmpty(a)")
+    expect(prec.compile("a is not empty")).toBe("!spellCore.isEmpty(a)")
     expect(prec.parse("a is not empty").results).toEqual({ lhs: "a", rhs: ["is not empty"] })
   })
 
@@ -137,7 +137,7 @@ describe("mixing property expressions and operators", () => {
   })
 
   test("the foo of the bar is empty", () => {
-    expect(prec.compile("the foo of the bar is empty")).toBe("spell.isEmpty(bar.foo)")
+    expect(prec.compile("the foo of the bar is empty")).toBe("spellCore.isEmpty(bar.foo)")
   })
 
   test("the foo of the bar is the bar of the foo", () => {
@@ -146,6 +146,6 @@ describe("mixing property expressions and operators", () => {
 
   // Nonsensical, but proves that parens work as expected
   test("the foo of (the bar is empty)", () => {
-    expect(prec.compile("the foo of (the bar is empty)")).toBe("(spell.isEmpty(bar)).foo")
+    expect(prec.compile("the foo of (the bar is empty)")).toBe("(spellCore.isEmpty(bar)).foo")
   })
 })

@@ -39,7 +39,7 @@
 	- Data model?  Eve?  Custom scoping rules?
 
 - Component Definition
-	- Parse XML => spell.createComponent()
+	- Parse XML => spellCore.createComponent()
 	- Props vs State?
 	- "preferences" = state
 

@@ -18,16 +18,16 @@ export default new Spell.Parser({
       updateScope(scope, { results }) {
         const { message, okButton = `"OK"` } = results
         scope.async = true
-        const statement = scope.addStatement(`await spell.notify(${message}, ${okButton})`)
+        const statement = scope.addStatement(`await spellCore.notify(${message}, ${okButton})`)
         results.statements.push(statement)
       },
       tests: [
         {
           compileAs: "statement",
           tests: [
-            [`notify "Yo!"`, `await spell.notify("Yo!", "OK")`],
-            [`notify "Yo!"`, `await spell.notify("Yo!", "OK")`],
-            [`notify "Yo!" with "gotcha"`, `await spell.notify("Yo!", "gotcha")`]
+            [`notify "Yo!"`, `await spellCore.notify("Yo!", "OK")`],
+            [`notify "Yo!"`, `await spellCore.notify("Yo!", "OK")`],
+            [`notify "Yo!" with "gotcha"`, `await spellCore.notify("Yo!", "gotcha")`]
           ]
         }
       ]
@@ -44,16 +44,16 @@ export default new Spell.Parser({
       updateScope(scope, { results }) {
         const { message, okButton = `"OK"` } = results
         scope.async = true
-        const statement = scope.addStatement(`await spell.alert(${message}, ${okButton})`)
+        const statement = scope.addStatement(`await spellCore.alert(${message}, ${okButton})`)
         results.statements.push(statement)
       },
       tests: [
         {
           compileAs: "statement",
           tests: [
-            [`alert "Yo!"`, `await spell.alert("Yo!", "OK")`],
-            [`alert "Yo!"`, `await spell.alert("Yo!", "OK")`],
-            [`alert "Yo!" with "yep"`, `await spell.alert("Yo!", "yep")`]
+            [`alert "Yo!"`, `await spellCore.alert("Yo!", "OK")`],
+            [`alert "Yo!"`, `await spellCore.alert("Yo!", "OK")`],
+            [`alert "Yo!" with "yep"`, `await spellCore.alert("Yo!", "yep")`]
           ]
         }
       ]
@@ -70,17 +70,17 @@ export default new Spell.Parser({
       updateScope(scope, { results }) {
         const { message, okButton = `"OK"` } = results
         scope.async = true
-        const statement = scope.addStatement(`await spell.warn(${message}, ${okButton})`)
+        const statement = scope.addStatement(`await spellCore.warn(${message}, ${okButton})`)
         results.statements.push(statement)
       },
       tests: [
         {
           compileAs: "statement",
           tests: [
-            [`warn "Yo!"`, `await spell.warn("Yo!", "OK")`],
-            [`warn "Yo!" with "yep"`, `await spell.warn("Yo!", "yep")`],
-            [`warn "Yo!"`, `await spell.warn("Yo!", "OK")`],
-            [`warn "Yo!" with "yep"`, `await spell.warn("Yo!", "yep")`]
+            [`warn "Yo!"`, `await spellCore.warn("Yo!", "OK")`],
+            [`warn "Yo!" with "yep"`, `await spellCore.warn("Yo!", "yep")`],
+            [`warn "Yo!"`, `await spellCore.warn("Yo!", "OK")`],
+            [`warn "Yo!" with "yep"`, `await spellCore.warn("Yo!", "yep")`]
           ]
         }
       ]
@@ -97,16 +97,16 @@ export default new Spell.Parser({
       updateScope(scope, { results }) {
         const { message, okButton = `"OK"`, cancelButton = `"Cancel"` } = results
         scope.async = true
-        const statement = scope.addStatement(`await spell.confirm(${message}, ${okButton}, ${cancelButton})`)
+        const statement = scope.addStatement(`await spellCore.confirm(${message}, ${okButton}, ${cancelButton})`)
         results.statements.push(statement)
       },
       tests: [
         {
           compileAs: "statement",
           tests: [
-            [`confirm "Yo!"`, `await spell.confirm("Yo!", "OK", "Cancel")`],
-            [`confirm "Yo!" with "yep"`, `await spell.confirm("Yo!", "yep", "Cancel")`],
-            [`confirm "Yo!" with "yep" and "nope"`, `await spell.confirm("Yo!", "yep", "nope")`]
+            [`confirm "Yo!"`, `await spellCore.confirm("Yo!", "OK", "Cancel")`],
+            [`confirm "Yo!" with "yep"`, `await spellCore.confirm("Yo!", "yep", "Cancel")`],
+            [`confirm "Yo!" with "yep" and "nope"`, `await spellCore.confirm("Yo!", "yep", "nope")`]
           ]
         }
       ]
@@ -124,15 +124,15 @@ export default new Spell.Parser({
       updateScope(scope, { results }) {
         const { message, defaultValue = "undefined" } = results
         scope.async = true
-        const statement = scope.addStatement(`await spell.prompt(${message}, ${defaultValue})`)
+        const statement = scope.addStatement(`await spellCore.prompt(${message}, ${defaultValue})`)
         results.statements.push(statement)
       },
       tests: [
         {
           compileAs: "statement",
           tests: [
-            [`prompt "Name for the new baby?"`, `await spell.prompt("Name for the new baby?", undefined)`],
-            [`prompt "File name:" with "Untitled"`, `await spell.prompt("File name:", "Untitled")`]
+            [`prompt "Name for the new baby?"`, `await spellCore.prompt("Name for the new baby?", undefined)`],
+            [`prompt "File name:" with "Untitled"`, `await spellCore.prompt("File name:", "Untitled")`]
           ]
         }
       ]
@@ -145,7 +145,7 @@ export default new Spell.Parser({
     //       name: "choose_one",
     //       alias: "statement",
     //       syntax: "choose ((a|an)? {singular_variable} (from|of)|one of) {collection:expression} with (prompt|message)? {message:expression}",
-    //          => `await spell.chooseOne(message, list, defaultValue)`
+    //          => `await spellCore.chooseOne(message, list, defaultValue)`
     //     },
 
     // Chose one or more items from `collection` (of strings???)
@@ -155,7 +155,7 @@ export default new Spell.Parser({
     //       name: "choose_multiple",
     //       alias: "statement",
     //       syntax: "choose multiple {plural_variable} (of|from) {collection:expression} with (prompt|message)? {message:expression}",
-    //          => `await spell.chooseMultiple(message, list, defaultValues)`
+    //          => `await spellCore.chooseMultiple(message, list, defaultValues)`
     //     }
   ]
 })

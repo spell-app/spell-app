@@ -1,11 +1,11 @@
-import { spell, assert } from "."
+import { spellCore, assert } from "."
 
 // Wrap `assert.failed` for each test
 beforeEach(() => {
   assert.failed = jest.fn()
 })
 
-describe("spell.define()", () => {
+describe("spellCore.define()", () => {
   beforeEach(() => {
     jest.spyOn(Object, "defineProperty")
   })
@@ -14,156 +14,156 @@ describe("spell.define()", () => {
   })
   test("calls Object.defineProperty", () => {
     const object = {}
-    spell.define(object, "foo", { value: "bar" })
+    spellCore.define(object, "foo", { value: "bar" })
     expect(Object.defineProperty).toHaveBeenCalledWith(object, "foo", { value: "bar" })
   })
 })
 
-describe("spell.newThingLike()", () => {
+describe("spellCore.newThingLike()", () => {
   describe("when passed a non-defined thing", () => {
     test("fails its assertion", () => {
-      spell.newThingLike(null)
+      spellCore.newThingLike(null)
       expect(assert.failed).toHaveBeenCalled()
     })
     test("returns undefined", () => {
-      expect(spell.newThingLike(null)).toBe(undefined)
+      expect(spellCore.newThingLike(null)).toBe(undefined)
     })
   })
   test("returns an empty array when passed an array", () => {
-    expect(spell.newThingLike([1, 2, 3])).toEqual([])
+    expect(spellCore.newThingLike([1, 2, 3])).toEqual([])
   })
   test("returns an empty object when passed an object", () => {
-    expect(spell.newThingLike({ a: 1 })).toEqual({})
+    expect(spellCore.newThingLike({ a: 1 })).toEqual({})
   })
   test("returns an empty array when passed arguments", function(...args) {
-    expect(spell.newThingLike(args)).toEqual([])
+    expect(spellCore.newThingLike(args)).toEqual([])
   })
   test("returns a new Date when passed a Date", function() {
-    expect(spell.newThingLike(new Date())).toBeInstanceOf(Date)
+    expect(spellCore.newThingLike(new Date())).toBeInstanceOf(Date)
   })
 })
 
-describe("spell.typeOf()", () => {
+describe("spellCore.typeOf()", () => {
   test("returns 'unknown' when passed `null`", () => {
-    expect(spell.typeOf(null)).toBe("unknown")
+    expect(spellCore.typeOf(null)).toBe("unknown")
   })
   test("returns 'unknown' when passed `undefined`", () => {
-    expect(spell.typeOf(undefined)).toBe("unknown")
+    expect(spellCore.typeOf(undefined)).toBe("unknown")
   })
   test("returns 'number' when passed a number", () => {
-    expect(spell.typeOf(0)).toBe("number")
+    expect(spellCore.typeOf(0)).toBe("number")
   })
   test("returns 'number' when passed NaN", () => {
-    expect(spell.typeOf(NaN)).toBe("number")
+    expect(spellCore.typeOf(NaN)).toBe("number")
   })
   test("returns 'string' when passed a string", () => {
-    expect(spell.typeOf("foo")).toBe("string") // TODO: 'text'?
+    expect(spellCore.typeOf("foo")).toBe("string") // TODO: 'text'?
   })
   test("returns 'boolean' when passed a boolean", () => {
-    expect(spell.typeOf(false)).toBe("boolean") // TODO: 'choice'?
+    expect(spellCore.typeOf(false)).toBe("boolean") // TODO: 'choice'?
   })
   test("returns 'object' when passed an Object", () => {
-    expect(spell.typeOf({})).toBe("object")
+    expect(spellCore.typeOf({})).toBe("object")
   })
   test("returns 'date' when passed a Date", () => {
-    expect(spell.typeOf(new Date())).toBe("date")
+    expect(spellCore.typeOf(new Date())).toBe("date")
   })
   test("returns 'array' when passed an Array", () => {
-    expect(spell.typeOf([])).toBe("array") // TODO: `list`?
+    expect(spellCore.typeOf([])).toBe("array") // TODO: `list`?
   })
   test("returns 'function' when passed a Function", () => {
-    expect(spell.typeOf(() => {})).toBe("function") // TODO: ???
+    expect(spellCore.typeOf(() => {})).toBe("function") // TODO: ???
   })
   test("returns class name when passed a custom class", () => {
     class Foo {}
-    expect(spell.typeOf(new Foo())).toBe("foo")
+    expect(spellCore.typeOf(new Foo())).toBe("foo")
   })
 })
 
-describe("spell.isOfType()", () => {
+describe("spellCore.isOfType()", () => {
   test("matches with single type name", () => {
-    expect(spell.isOfType({}, "object")).toBe(true)
+    expect(spellCore.isOfType({}, "object")).toBe(true)
   })
   test("matches with multiple type names", () => {
-    expect(spell.isOfType({}, "array", "object")).toBe(true)
+    expect(spellCore.isOfType({}, "array", "object")).toBe(true)
   })
   test("matches 'unknown' for null", () => {
-    expect(spell.isOfType(null, "unknown")).toBe(true)
+    expect(spellCore.isOfType(null, "unknown")).toBe(true)
   })
   test("doesn't match if type not specified", () => {
-    expect(spell.isOfType({}, "date")).toBe(false)
+    expect(spellCore.isOfType({}, "date")).toBe(false)
   })
 })
 
-describe("spell.isANumber()", () => {
+describe("spellCore.isANumber()", () => {
   test("returns true for a number", () => {
-    expect(spell.isANumber(1)).toBe(true)
+    expect(spellCore.isANumber(1)).toBe(true)
   })
   test("returns false for a numeric string", () => {
-    expect(spell.isANumber("1")).toBe(false)
+    expect(spellCore.isANumber("1")).toBe(false)
   })
   test("returns false for NaN", () => {
-    expect(spell.isANumber(parseInt("foo", 10))).toBe(false)
+    expect(spellCore.isANumber(parseInt("foo", 10))).toBe(false)
   })
 })
 
-describe("spell.isArrayLike()", () => {
+describe("spellCore.isArrayLike()", () => {
   test("returns true for an array", () => {
-    expect(spell.isArrayLike([])).toBe(true)
+    expect(spellCore.isArrayLike([])).toBe(true)
   })
   test("returns true for function arguments", function(...args) {
-    expect(spell.isArrayLike(args)).toBe(true)
+    expect(spellCore.isArrayLike(args)).toBe(true)
   })
   test("returns false for an object", () => {
-    expect(spell.isArrayLike({})).toBe(false)
+    expect(spellCore.isArrayLike({})).toBe(false)
   })
 })
 
-describe("spell.isTruthy()", () => {
+describe("spellCore.isTruthy()", () => {
   test("returns false for `false`", () => {
-    expect(spell.isTruthy(false)).toBe(false)
+    expect(spellCore.isTruthy(false)).toBe(false)
   })
   test("returns false for `undefined`", function() {
-    expect(spell.isTruthy(undefined)).toBe(false)
+    expect(spellCore.isTruthy(undefined)).toBe(false)
   })
   test("returns false for `null`", function() {
-    expect(spell.isTruthy(null)).toBe(false)
+    expect(spellCore.isTruthy(null)).toBe(false)
   })
   test("returns true for 0", () => {
-    expect(spell.isTruthy(0)).toBe(true)
+    expect(spellCore.isTruthy(0)).toBe(true)
   })
   test("returns true for an object", () => {
-    expect(spell.isTruthy({})).toBe(true)
+    expect(spellCore.isTruthy({})).toBe(true)
   })
 })
 
-describe("spell.randomNumber()", () => {
+describe("spellCore.randomNumber()", () => {
   test("asserts and returns undefined if min is not a number", () => {
-    expect(spell.randomNumber()).toBe(undefined)
+    expect(spellCore.randomNumber()).toBe(undefined)
     expect(assert.failed).toHaveBeenCalled()
   })
   test("asserts and returns undefined if max is not a number", () => {
-    expect(spell.randomNumber(1, "foo")).toBe(undefined)
+    expect(spellCore.randomNumber(1, "foo")).toBe(undefined)
     expect(assert.failed).toHaveBeenCalled()
   })
   test("returns undefined if max < min", () => {
-    expect(spell.randomNumber(1, 0)).toBe(undefined)
+    expect(spellCore.randomNumber(1, 0)).toBe(undefined)
     expect(assert.failed).toHaveBeenCalled()
   })
   test("returns min if min === max", () => {
-    expect(spell.randomNumber(1, 1)).toBe(1)
+    expect(spellCore.randomNumber(1, 1)).toBe(1)
   })
   test("defaults min to 1 if only one argument", () => {
-    expect(spell.randomNumber(1)).toBe(1)
+    expect(spellCore.randomNumber(1)).toBe(1)
   })
   test("returns an integer with normal params", () => {
-    const random = spell.randomNumber(1, 5)
+    const random = spellCore.randomNumber(1, 5)
     expect(Number.parseInt(random, 10)).toBe(random)
   })
 })
 
-describe("spell.createElement()", () => {
+describe("spellCore.createElement()", () => {
   test("is not yet implemented", () => {
-    expect(() => spell.createElement()).toThrow()
+    expect(() => spellCore.createElement()).toThrow()
   })
 })

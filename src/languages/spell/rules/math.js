@@ -158,7 +158,7 @@ export default new Spell.Parser({
       testRule: "…(biggest|largest)",
       compile(scope, match) {
         const { expression } = match.results
-        return `spell.largestOf(${expression})`
+        return `spellCore.largestOf(${expression})`
       },
       tests: [
         {
@@ -168,9 +168,9 @@ export default new Spell.Parser({
             scope.variables.add("price")
           },
           tests: [
-            ["largest of the prices", "spell.largestOf(prices)"],
-            ["biggest in prices", "spell.largestOf(prices)"],
-            ["biggest number in prices", "spell.largestOf(prices)"]
+            ["largest of the prices", "spellCore.largestOf(prices)"],
+            ["biggest in prices", "spellCore.largestOf(prices)"],
+            ["biggest number in prices", "spellCore.largestOf(prices)"]
           ]
         }
       ]
@@ -184,7 +184,7 @@ export default new Spell.Parser({
       testRule: "…smallest",
       compile(scope, match) {
         const { expression } = match.results
-        return `spell.smallestOf(${expression})`
+        return `spellCore.smallestOf(${expression})`
       },
       tests: [
         {
@@ -193,8 +193,8 @@ export default new Spell.Parser({
             scope.variables.add("prices")
           },
           tests: [
-            ["smallest of prices", "spell.smallestOf(prices)"],
-            ["smallest value in prices", "spell.smallestOf(prices)"]
+            ["smallest of prices", "spellCore.smallestOf(prices)"],
+            ["smallest value in prices", "spellCore.smallestOf(prices)"]
           ]
         }
       ]

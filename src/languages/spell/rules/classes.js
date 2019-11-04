@@ -22,19 +22,19 @@ export default new Spell.Parser({
         //  which spell `List` objects will presumably understand.
         if (isList) {
           statement.variables.add({ name: "instance_type", value: superType })
-          results.statements.push(`spell.define(${type}.prototype, "instance_type", { value: "${superType}" })`)
+          results.statements.push(`spellCore.define(${type}.prototype, "instance_type", { value: "${superType}" })`)
         }
       },
       tests: [
         {
           compileAs: "statement",
           tests: [
-            ["create a type named card", `export class Card {}\nspell.addExport("Card", Card)`],
+            ["create a type named card", `export class Card {}\nspellCore.addExport("Card", Card)`],
             [
               "create a type called car as a vehicle",
-              `export class Car extends Vehicle {}\nspell.addExport("Car", Car)`
+              `export class Car extends Vehicle {}\nspellCore.addExport("Car", Car)`
             ],
-            ["a card is a thing", `export class Card extends Thing {}\nspell.addExport("Card", Card)`]
+            ["a card is a thing", `export class Card extends Thing {}\nspellCore.addExport("Card", Card)`]
           ]
         }
       ]
@@ -197,7 +197,7 @@ export default new Spell.Parser({
           // Add enumeration constants to the main scope, so they can be used outside the type
           enumeration.forEach(value => typeof value === "string" && scope.constants.add(value))
         } else if (datatype) {
-          setter = [`if (spell.isOfType(${property}, '${datatype}')) this['#${property}'] = ${property}`]
+          setter = [`if (spellCore.isOfType(${property}, '${datatype}')) this['#${property}'] = ${property}`]
         } else {
           setter = [`this['#${property}'] = ${property}`]
           datatype = "undefined" // :-(
@@ -230,17 +230,17 @@ export default new Spell.Parser({
               "cards have a direction as either up or down",
               [
                 "Card.Directions = ['up', 'down']",
-                "spell.define(Card.prototype, 'Directions', { value: Card.Directions })",
+                "spellCore.define(Card.prototype, 'Directions', { value: Card.Directions })",
                 "// SPELL added rule: `(Card|card) (Directions|directions)`",
-                `spell.define(Card.prototype, 'direction', { get() { return this['#direction'] } })`,
-                `spell.define(Card.prototype, 'direction', { set(direction) { if (Card.Directions.includes(direction)) this['#direction'] = direction } })`
+                `spellCore.define(Card.prototype, 'direction', { get() { return this['#direction'] } })`,
+                `spellCore.define(Card.prototype, 'direction', { set(direction) { if (Card.Directions.includes(direction)) this['#direction'] = direction } })`
               ].join("\n")
             ],
             [
               "a player has a name as text",
               [
-                `spell.define(Player.prototype, 'name', { get() { return this['#name'] } })`,
-                `spell.define(Player.prototype, 'name', { set(name) { if (spell.isOfType(name, 'text')) this['#name'] = name } })`
+                `spellCore.define(Player.prototype, 'name', { get() { return this['#name'] } })`,
+                `spellCore.define(Player.prototype, 'name', { set(name) { if (spellCore.isOfType(name, 'text')) this['#name'] = name } })`
               ].join("\n")
             ]
           ]
@@ -316,11 +316,11 @@ export default new Spell.Parser({
             // is one of diamonds or hearts => is_one_of_list
             [
               "the color of a card is red if its suit is either diamonds or hearts",
-              "spell.define(Card.prototype, 'color', { get() { if (spell.includes(['diamonds', 'hearts'], this.suit)) return 'red' } })"
+              "spellCore.define(Card.prototype, 'color', { get() { if (spellCore.includes(['diamonds', 'hearts'], this.suit)) return 'red' } })"
             ],
             [
               "a cards color is black if its suit is either clubs or spades otherwise it is red",
-              "spell.define(Card.prototype, 'color', { get() { return !!spell.includes(['clubs', 'spades'], this.suit) ? 'black' : 'red' } })"
+              "spellCore.define(Card.prototype, 'color', { get() { return !!spellCore.includes(['clubs', 'spades'], this.suit) ? 'black' : 'red' } })"
             ]
           ]
         }
@@ -355,9 +355,9 @@ export default new Spell.Parser({
           tests: [
             [
               "the value of a card is the position of its rank in card ranks",
-              "spell.define(Card.prototype, 'value', { get() { return spell.itemOf(Card.Ranks, this.rank) } })"
+              "spellCore.define(Card.prototype, 'value', { get() { return spellCore.itemOf(Card.Ranks, this.rank) } })"
             ],
-            ["a cards score is its value", "spell.define(Card.prototype, 'score', { get() { return this.value } })"]
+            ["a cards score is its value", "spellCore.define(Card.prototype, 'score', { get() { return this.value } })"]
           ]
         }
       ]
@@ -422,17 +422,17 @@ export default new Spell.Parser({
             [
               'a card "is face up" if its direction is up',
               "// SPELL added rule: `is not? face up`\n" +
-                "spell.define(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
+                "spellCore.define(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
             ],
             [
               'a card "is a face card" if its rank is one of [jack, queen, king]',
               "// SPELL added rule: `is not? a face card`\n" +
-                "spell.define(Card.prototype, 'is_a_face_card', { get() { return spell.includes(['jack', 'queen', 'king'], this.rank) } })"
+                "spellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
             ],
             [
               'a card "is a face card" if its rank is one of jack, queen or king',
               "// SPELL added rule: `is not? a face card`\n" +
-                "spell.define(Card.prototype, 'is_a_face_card', { get() { return spell.includes(['jack', 'queen', 'king'], this.rank) } })"
+                "spellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
             ]
           ]
         }
@@ -557,12 +557,12 @@ export default new Spell.Parser({
             [
               'a card "is a (rank)" for its ranks',
               "// SPELL added rule: `(operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)`\n" +
-                "spell.define(Card.prototype, 'is_a_$rank', { value(rank) { return (this.rank === rank) } })"
+                "spellCore.define(Card.prototype, 'is_a_$rank', { value(rank) { return (this.rank === rank) } })"
             ],
             [
               'a card "is the (rank) of (suits)" for its ranks and its suits',
               "// SPELL added rule: `(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)`\n" +
-                "spell.define(Card.prototype, 'is_the_$rank_of_$suits', { value(rank, suit) { return (this.rank === rank) && (this.suit === suit) } })"
+                "spellCore.define(Card.prototype, 'is_the_$rank_of_$suits', { value(rank, suit) { return (this.rank === rank) && (this.suit === suit) } })"
             ]
           ]
         },
@@ -708,7 +708,7 @@ export default new Spell.Parser({
             ["to start the game", "// SPELL added rule: `start the game`\nfunction start_the_game() {}"],
             [
               "to start the game: shuffle the deck",
-              "// SPELL added rule: `start the game`\nfunction start_the_game() { spell.randomize(deck) }"
+              "// SPELL added rule: `start the game`\nfunction start_the_game() { spellCore.randomize(deck) }"
             ],
             [
               [
@@ -719,10 +719,10 @@ export default new Spell.Parser({
               ].join("\n"),
               [
                 "// SPELL added rule: `move {callArgs:expression} to {callArgs:expression}`",
-                "spell.define(Card.prototype, 'move_to_$pile', { value(pile) {",
+                "spellCore.define(Card.prototype, 'move_to_$pile', { value(pile) {",
                 "  const card = this",
-                "  spell.remove(card.pile, card)",
-                "  spell.append(pile, card)",
+                "  spellCore.remove(card.pile, card)",
+                "  spellCore.append(pile, card)",
                 "  card.pile = pile",
                 "} })"
               ].join("\n")
@@ -737,7 +737,7 @@ export default new Spell.Parser({
               ].join("\n"),
               [
                 "// SPELL added rule: `turn {callArgs:expression} over`",
-                "spell.define(Card.prototype, 'turn_over', { value() {",
+                "spellCore.define(Card.prototype, 'turn_over', { value() {",
                 "  const card = this",
                 "  if (card.direction == 'up') { card.direction = 'down' }",
                 "  else { card.direction = 'up' }",
@@ -757,13 +757,13 @@ export default new Spell.Parser({
               ].join("\n"),
               [
                 "// SPELL added rule: `is not? face up`",
-                "spell.define(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })",
+                "spellCore.define(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })",
                 "// SPELL added rule: `turn {callArgs:expression} face up`",
-                "spell.define(Card.prototype, 'turn_face_up', { value() {\n  const card = this\n  card.direction = 'up'\n} })",
+                "spellCore.define(Card.prototype, 'turn_face_up', { value() {\n  const card = this\n  card.direction = 'up'\n} })",
                 "// SPELL added rule: `turn {callArgs:expression} face down`",
-                "spell.define(Card.prototype, 'turn_face_down', { value() {\n  const card = this\n  card.direction = 'down'\n} })",
+                "spellCore.define(Card.prototype, 'turn_face_down', { value() {\n  const card = this\n  card.direction = 'down'\n} })",
                 "// SPELL added rule: `flip {callArgs:expression} over`",
-                "spell.define(Card.prototype, 'flip_over', { value() {",
+                "spellCore.define(Card.prototype, 'flip_over', { value() {",
                 "  const card = this",
                 "  if (card.is_face_up) { card.turn_face_down() }",
                 "  else { card.turn_face_up() }",

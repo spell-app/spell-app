@@ -2,7 +2,7 @@
 // Base classes for spell
 //--------
 import _ from "lodash"
-import { spell } from "."
+import { spellCore } from "."
 
 //----------------------------
 // `Thing`: base for all object-like things
@@ -16,7 +16,7 @@ export class Thing {
   // Called automatially at end of `thing` constructor.
   create() {}
 }
-spell.addExport("Thing", Thing)
+spellCore.addExport("Thing", Thing)
 
 //----------------------------
 // `List`: our array concept (1-based)
@@ -31,4 +31,4 @@ export class List extends Array {
   // Called automatially at end of `List` constructor.
   create() {}
 }
-spell.addExport("List", List)
+spellCore.addExport("List", List)
