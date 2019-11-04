@@ -1,7 +1,7 @@
-import parser, { unitTestModuleRules } from "../all"
+import { spellParser, unitTestModuleRules } from "../all"
 
 describe("testing spell module math", () => {
-  unitTestModuleRules(parser, "math")
+  unitTestModuleRules(spellParser, "math")
 
   describe("integration tests", () => {})
 })

@@ -24,7 +24,7 @@ import tests from "./tests"
 
 // Create parser which combines all of the above...
 // NOTE: THIS INSTANCE is used by other parsers, to pick up the rules defined below.
-export const spellParser = new Spell.Parser({ module: "spell" })
+const spellParser = new Spell.Parser({ module: "spell" })
 
 spellParser.defineRule({ name: "block", constructor: Spell.Rule.Block })
 spellParser.defineRule({ name: "block_line", constructor: Spell.Rule.BlockLine })
@@ -47,3 +47,5 @@ spellParser.import(
   classes,
   tests
 )
+
+export default spellParser
