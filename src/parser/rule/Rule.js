@@ -49,6 +49,7 @@ export class Rule {
   testAtStart(scope, tokens, start = 0) {
     if (start >= tokens.length) return false
     if (this.testRule) return this.testRule.testAtStart(scope, tokens, start)
+    return undefined
   }
 
   // Attempt to match this rule at the start of `tokens`.
@@ -63,7 +64,7 @@ export class Rule {
   // Return array of tokens which were matched.
   // Non-terminal rules will override this.
   getTokens(match) {
-    return match.matched.map(match => match.value)
+    return match.matched.map(nextMatch => nextMatch.value)
   }
 
   //
@@ -91,7 +92,7 @@ export class Rule {
   //  by exhaustively testing at each start position.
   testAnywhere(scope, tokens) {
     let undefinedFound = false
-    for (let start = 0, length = tokens.length; start < length; start++) {
+    for (let start = 0, last = tokens.length; start < last; start++) {
       const result = this.testAtStart(scope, tokens, start)
       if (result) return true
       if (result === undefined) undefinedFound = true

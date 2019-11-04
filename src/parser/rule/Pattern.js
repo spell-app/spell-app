@@ -38,12 +38,12 @@ Rule.Pattern = class pattern extends Rule {
   }
 
   compile(scope, match) {
-    const value = match.matched[0].value
+    const { value } = match.matched[0]
     // just return value if no valuemap
     let { valueMap } = this
     if (!valueMap) return value
     if (typeof valueMap !== "function") {
-      if (valueMap.hasOwnProperty(value)) return valueMap[value]
+      if (Object.prototype.hasOwnProperty.call(valueMap, value)) return valueMap[value]
       if (typeof valueMap.default === "function") valueMap = valueMap.default
     }
     if (typeof valueMap === "function") return valueMap(value, scope)

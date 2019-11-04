@@ -1,9 +1,9 @@
-import { Parser, ParseError, Rule, TestLocation, Token, Tokenizer, WhitespacePolicy } from "../all"
+import { Parser, Rule, TestLocation, Tokenizer, WhitespacePolicy } from "../all"
 
 const tokenizer = new Tokenizer({
   whitespacePolicy: WhitespacePolicy.NONE
 })
-const tokenize = tokenizer.tokenize
+const { tokenize } = tokenizer
 
 describe("Rule.Symbol", () => {
   describe("on construction", () => {
@@ -731,64 +731,65 @@ describe("Rule.Sequence", () => {
       const match = rule.parse(parser, tokenize("this that the other"))
       expect(match.compile()).toEqual({ that: "that", other: "other" })
     })
-  }),
-    describe("simple sequences", () => {
-      describe("test() method", () => {
-        describe("without a testRule", () => {
-          const rule = parser.rules.noTest
-          test("returns undefined", () => {
-            const test = rule.test(parser, tokenize("word"))
-            expect(test).toBe(undefined)
-          })
-        })
+  })
 
-        describe("TEST_AT_START", () => {
-          const rule = parser.rules.atStart
-          test("returns 1 if present at the start of tokens", () => {
-            const test = rule.test(parser, tokenize("this that other"))
-            expect(test).toBe(1)
-          })
-
-          test("returns false if NOT present anywhere at start of tokens", () => {
-            const test = rule.test(parser, tokenize("start this middle end"))
-            expect(test).toBe(false)
-          })
-        })
-
-        describe("TEST_ANYWHERE", () => {
-          const rule = parser.rules.anywhere
-          test("returns true if present at the start of tokens", () => {
-            const test = rule.test(parser, tokenize("this that other"))
-            expect(test).toBe(true)
-          })
-
-          test("returns true if present anywhere in tokens", () => {
-            const test = rule.test(parser, tokenize("other this that"))
-            expect(test).toBe(true)
-          })
-
-          test("returns false if NOT present anywhere in tokens", () => {
-            const test = rule.test(parser, tokenize("start middle end"))
-            expect(test).toBe(false)
-          })
+  describe("simple sequences", () => {
+    describe("test() method", () => {
+      describe("without a testRule", () => {
+        const rule = parser.rules.noTest
+        test("returns undefined", () => {
+          const test = rule.test(parser, tokenize("word"))
+          expect(test).toBe(undefined)
         })
       })
 
-      describe("parse() method", () => {
+      describe("TEST_AT_START", () => {
         const rule = parser.rules.atStart
-        test("parses at the start of tokens", () => {
-          const match = rule.parse(parser, tokenize("this that the other"))
-          expect(match.length).toBe(4)
-          expect(match.compile()).toBe("COMPILED")
-          const results = match.results
-          expect(results.that).toBe("that")
-          expect(results.other).toBe("other")
+        test("returns 1 if present at the start of tokens", () => {
+          const test = rule.test(parser, tokenize("this that other"))
+          expect(test).toBe(1)
         })
 
-        test("does not parse in the middle of tokens", () => {
-          const match = rule.parse(parser, tokenize("something this that the other"))
-          expect(match).toBeUndefined()
+        test("returns false if NOT present anywhere at start of tokens", () => {
+          const test = rule.test(parser, tokenize("start this middle end"))
+          expect(test).toBe(false)
+        })
+      })
+
+      describe("TEST_ANYWHERE", () => {
+        const rule = parser.rules.anywhere
+        test("returns true if present at the start of tokens", () => {
+          const test = rule.test(parser, tokenize("this that other"))
+          expect(test).toBe(true)
+        })
+
+        test("returns true if present anywhere in tokens", () => {
+          const test = rule.test(parser, tokenize("other this that"))
+          expect(test).toBe(true)
+        })
+
+        test("returns false if NOT present anywhere in tokens", () => {
+          const test = rule.test(parser, tokenize("start middle end"))
+          expect(test).toBe(false)
         })
       })
     })
+
+    describe("parse() method", () => {
+      const rule = parser.rules.atStart
+      test("parses at the start of tokens", () => {
+        const match = rule.parse(parser, tokenize("this that the other"))
+        expect(match.length).toBe(4)
+        expect(match.compile()).toBe("COMPILED")
+        const { results } = match
+        expect(results.that).toBe("that")
+        expect(results.other).toBe("other")
+      })
+
+      test("does not parse in the middle of tokens", () => {
+        const match = rule.parse(parser, tokenize("something this that the other"))
+        expect(match).toBeUndefined()
+      })
+    })
+  })
 })

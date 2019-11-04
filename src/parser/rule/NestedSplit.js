@@ -11,13 +11,13 @@ import { Match, Rule } from "./all"
 // `prefix` (optional) optional array of rules to match inside the FIRST item
 //
 // If nested start/end blocks are found, WHAT WILL HAPPEN???
-Rule.NestedSplit = class nesting extends Rule {
+Rule.NestedSplit = class nestedSplit extends Rule {
   parse(scope, tokens) {
     const end = this.findNestedEnd(scope, tokens)
-    if (end === undefined) return
+    if (end === undefined) return undefined
 
     const tokenSets = this.splitTokens(scope, tokens.slice(1, end))
-    if (tokenSets === undefined) return
+    if (tokenSets === undefined) return undefined
 
     let prefix
     const items = []
@@ -64,7 +64,7 @@ Rule.NestedSplit = class nesting extends Rule {
   findNestedEnd(scope, tokens, start = 0) {
     if (!this.start.testAtStart(scope, tokens, start)) return undefined
     let nesting = 0
-    for (let end = start + 1, token; (token = tokens[end]); end++) {
+    for (let end = start + 1, last = tokens.length; end < last; end++) {
       if (this.start.testAtStart(scope, tokens, end)) {
         nesting++
       }
@@ -87,6 +87,7 @@ Rule.NestedSplit = class nesting extends Rule {
       if (this.delimiter.testAtStart(scope, tokens, i)) {
         items.push(current)
         current = []
+        // eslint-disable-next-line no-continue
         continue
       }
       // handle nested start/emd
@@ -95,6 +96,7 @@ Rule.NestedSplit = class nesting extends Rule {
         if (end) {
           current = current.concat(tokens.slice(i, end + 1))
           i = end
+          // eslint-disable-next-line no-continue
           continue
         }
       }
