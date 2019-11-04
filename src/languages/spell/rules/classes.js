@@ -1,4 +1,4 @@
-import { Scope, Spell, instanceCase, lowerFirst, upperFirst, pluralize, singularize, typeCase } from "../all"
+import { Scope, Spell, instanceCase, upperFirst, pluralize, singularize, typeCase } from "../all"
 
 export default new Spell.Parser({
   module: "classes",
@@ -70,7 +70,7 @@ export default new Spell.Parser({
             // thing
             ["create a Thing", "new Thing()"],
             ["create a thing with a = 1", "new Thing({ a: 1 })"],
-            //FIXME: the following don't make sense if they have arguments...
+            // FIXME: the following don't make sense if they have arguments...
             ["create a List", "new List()"],
             ["create a list", "new List()"]
           ]
@@ -82,7 +82,7 @@ export default new Spell.Parser({
     // This works as an expression OR a statement.
     // NOTE: we assume that all types take an object of properties????
     // TODO: in `statement` form, put into `it`???
-    //FIXME: `list`, `text`, etc don't follow these semantics???
+    // FIXME: `list`, `text`, etc don't follow these semantics???
     {
       name: "create_thing",
       alias: ["expression", "single_expression", "statement"],
@@ -116,10 +116,10 @@ export default new Spell.Parser({
           tests: [
             ["create an object", "new Object()"],
             ["create an object with a = 1, b = yes", "new Object({ a: 1, b: true })"],
-            //FIXME: the following don't make sense if they have arguments...
+            // FIXME: the following don't make sense if they have arguments...
             ["create a List", "new List()"],
             ["create a list", "new List()"]
-            //FIXME: the following don't make sense in JS but are legal parse-wise
+            // FIXME: the following don't make sense in JS but are legal parse-wise
 
             //           ["create text", "new String()"],
             //           ["create character", "new Character()"],
@@ -137,7 +137,7 @@ export default new Spell.Parser({
       alias: "type_initializer",
       syntax: "as (either|one of) {enumeration:identifier_list}",
       compile(scope, match) {
-        const { enumeration, enumration } = match.results
+        const { enumeration } = match.results
         return { datatype: "enum", enumeration }
       },
       tests: [
@@ -183,7 +183,8 @@ export default new Spell.Parser({
         const typeScope = scope.getOrStubType(type)
         const Properties = pluralize(upperFirst(property))
 
-        let { datatype, enumeration } = initializer
+        const { enumeration } = initializer
+        let { datatype } = initializer
         const getter = [`return this['#${property}']`]
         let setter
 
@@ -191,6 +192,7 @@ export default new Spell.Parser({
           // Register the enumeration which will register all sorts of juicy rules and statements.
           typeScope.addEnumeration({ name: Properties, enumeration }, results)
           setter = [`if (${results.canonicalRef}.includes(${property})) this['#${property}'] = ${property}`]
+          // eslint-disable-next-line prefer-destructuring
           datatype = results.datatype
           // Add enumeration constants to the main scope, so they can be used outside the type
           enumeration.forEach(value => typeof value === "string" && scope.constants.add(value))
@@ -331,7 +333,7 @@ export default new Spell.Parser({
       syntax: "{type_property} is {expression}",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
-        let { type_property, expression } = results
+        const { type_property, expression } = results
         const { type, property } = type_property
         const statement = scope.getOrStubType(type).methods.add({
           kind: "getter",
@@ -370,13 +372,14 @@ export default new Spell.Parser({
       constructor: class quoted_property_alias extends Spell.Rule.Statement {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
-          if (!match) return
+          if (!match) return undefined
           // If first word of `alias` is not `is`, forget it
           const alias = JSON.parse(match.results.alias).split(" ")
-          if (alias[0] !== "is") return
+          if (alias[0] !== "is") return undefined
 
           return match
         }
+
         updateScope(scope, { results }) {
           const { type, alias, expression } = results
           const words = JSON.parse(alias).split(" ")
@@ -385,7 +388,7 @@ export default new Spell.Parser({
           const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ")
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
-          const rule = scope.addExpressionSuffixRule(
+          scope.addExpressionSuffixRule(
             {
               name: property,
               syntax: expressionSuffix,
@@ -445,21 +448,21 @@ export default new Spell.Parser({
       constructor: class quoted_property_formula extends Spell.Rule.Statement {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
-          if (!match) return
+          if (!match) return undefined
           // If first word of `alias` is not `is`, forget it
           const alias = JSON.parse(match.results.alias).split(" ")
-          if (alias[0] !== "is") return
+          if (alias[0] !== "is") return undefined
           return match
         }
+
         updateScope(scope, { results, groups }) {
           const { type, alias } = results
-          const instanceType = lowerFirst(type)
           const sources = groups.sources.items
           const words = JSON.parse(alias).split(" ")
           let syntax = []
-          let method = []
-          let ruleData = []
-          let vars = []
+          const method = []
+          const ruleData = []
+          const vars = []
           let sourceNum = 0
           const property = words
             .map(word => {
@@ -481,7 +484,7 @@ export default new Spell.Parser({
               // NOTE: currently this only works for an enumeration defined on the type!!!
               const propertyName = sources[sourceNum]?.results?.property
               const variable = scope.types(type)?.variables(propertyName)
-              let enumeration = variable?.enumeration
+              const enumeration = variable?.enumeration
               // set up enumeration matcher
               if (variable && enumeration) {
                 // make sure inflection of variables matches `isSingular`
@@ -508,16 +511,17 @@ export default new Spell.Parser({
           // transform `is` to `(operator:is not?)`
           syntax.splice(0, 1, "(operator:is not?)")
           syntax = syntax.join(" ")
-          //console.warn(property, syntax, ruleData );
+          // console.warn(property, syntax, ruleData );
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
-          const rule = scope.addExpressionSuffixRule(
+          scope.addExpressionSuffixRule(
             {
               name: property,
               syntax,
               precedence: 20,
               applyOperator(stuff) {
-                let { lhs, operator, rhs } = stuff
+                const { lhs, operator } = stuff
+                let { rhs } = stuff
                 const bang = operator.includes("not") ? "!" : ""
                 if (!Array.isArray(rhs)) rhs = [rhs]
                 const args = rhs.map((value, index) => {
@@ -591,11 +595,12 @@ export default new Spell.Parser({
         const { keywords } = results
         // parse the keywords to get name of the method
         // - `a foo` or `Foo` indicates that we want a variable of type 'Foo' in this spot
-        let method = [],
-          instanceMethod = [],
-          types = [],
-          rules = []
-        for (var i = 0, word; (word = keywords[i]); i++) {
+        const method = []
+        const instanceMethod = []
+        const types = []
+        const rules = []
+        for (let i = 0, last = keywords.length; i < last; i++) {
+          let word = keywords[i]
           // assume it's a class if it's in TitleCase...
           let isType = word === typeCase(word)
           // ...or if the word before it is "a" or "an"
@@ -609,7 +614,7 @@ export default new Spell.Parser({
             rules.push(`{callArgs:expression}`)
             // don't add the first type to the instanceMethod -- it'll be defined on that type
             if (types.length > 1) {
-              instanceMethod.push("$" + word)
+              instanceMethod.push(`$${word}`)
             }
           }
           // TODO: check for parens...
@@ -623,26 +628,29 @@ export default new Spell.Parser({
         // If we got any types, create as an instance method with the first type specified
         if (types.length) {
           results.type = typeCase(types[0])
+          // eslint-disable-next-line prefer-destructuring
           results.instanceType = types[0]
-          const methodName = (results.methodName = instanceMethod.join("_"))
+          const methodName = instanceMethod.join("_")
+          results.methodName = methodName
           results.args = types.slice(1)
-          results.updateScope = function(scope, { results }) {
-            let { callArgs = [] } = results
+          results.updateScope = function(updateScope, { results: updateResults }) {
+            let { callArgs = [] } = updateResults
             if (!Array.isArray(callArgs)) callArgs = [callArgs]
             const statement = `${callArgs[0]}.${methodName}(${callArgs.slice(1).join(", ")})`
-            scope.addStatement(statement)
-            results.statements.push(statement)
+            updateScope.addStatement(statement)
+            updateResults.statements.push(statement)
           }
         }
         // Otherwise create as a normal method
         else {
-          const methodName = (results.methodName = method.join("_"))
-          results.updateScope = function(scope, { results }) {
-            let { callArgs = [] } = results
+          const methodName = method.join("_")
+          results.methodName = methodName
+          results.updateScope = function(updateScope, { results: updateResults }) {
+            let { callArgs = [] } = updateResults
             if (!Array.isArray(callArgs)) callArgs = [callArgs]
             const statement = `${methodName}(${callArgs.join(", ")})`
-            scope.addStatement(statement)
-            results.statements.push(statement)
+            updateScope.addStatement(statement)
+            updateResults.statements.push(statement)
           }
         }
 
@@ -697,10 +705,10 @@ export default new Spell.Parser({
             scope.constants.add("down")
           },
           tests: [
-            ["to start the game", "// SPELL added rule: `start the game`\n" + "function start_the_game() {}"],
+            ["to start the game", "// SPELL added rule: `start the game`\nfunction start_the_game() {}"],
             [
               "to start the game: shuffle the deck",
-              "// SPELL added rule: `start the game`\n" + "function start_the_game() { spell.randomize(deck) }"
+              "// SPELL added rule: `start the game`\nfunction start_the_game() { spell.randomize(deck) }"
             ],
             [
               [

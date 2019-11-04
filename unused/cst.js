@@ -130,7 +130,7 @@ export class Literal extends Expression {
       typeof this.value === "boolean" ||
       typeof this.value === "number" ||
       this.value instanceof RegExp
-    , `literal.value must be one of: null, string, number, boolean or RegExp. Received ${this.value}`
+    , `literal.value must be one of: null, string, number, boolean or RegExp. Received ${this.value}`)
   }
 }
 Object.defineProperty(Literal.prototype, "type", { value: "Literal" });
@@ -552,7 +552,7 @@ export class Declaration extends Statement {}
 //  |-------------|--------------------------|-------------|
 //  | `type`      | `"FunctionDeclaration"`
 //  | `id`        | `Identifier`             | Function name
-//FIXME: extends Declaration: some sort of HOC thing???
+// FIXME: extends Declaration: some sort of HOC thing???
 export class FunctionDeclaration extends _Function {
   constructor() {
     super(...arguments);
@@ -680,7 +680,7 @@ Object.defineProperty(ThisExpression.prototype, "type", { value: "ThisExpression
 //  | Property        | Type                    | Description |
 //  |-----------------|-------------------------|-------------|
 //  | `type`          | `"FunctionExpression"`
-//FIXME: inherits from Expression
+// FIXME: inherits from Expression
 export class FunctionExpression extends Expression {}
 Object.defineProperty(FunctionExpression.prototype, "type", { value: "FunctionExpression" });
 

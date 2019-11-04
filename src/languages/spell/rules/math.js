@@ -210,8 +210,8 @@ export default new Spell.Parser({
       compile(scope, match) {
         const { thing, direction } = match.results
         if (direction === "up") return `Math.ceil(${thing})`
-        else if (direction === "down") return `Math.floor(${thing})`
-        else return `Math.round(${thing})`
+        if (direction === "down") return `Math.floor(${thing})`
+        return `Math.round(${thing})`
       },
       tests: [
         {

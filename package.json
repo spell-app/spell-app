@@ -144,7 +144,7 @@
       ]
     ]
   },
-  "eslintIgnore": ["node_modules/*","unused/*","thoughts/*"],
+  "eslintIgnore": ["node_modules/**/*.js","unused/**/*.js","thoughts/**/*.js"],
   "eslintConfig": {
     "env": {
       "es6": true,

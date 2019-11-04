@@ -35,7 +35,7 @@ export default new Spell.Parser({
       syntax: "\\[ [list:{expression},]? \\]",
       testRule: "\\[",
       compile(scope, match) {
-        let { list } = match.results
+        const { list } = match.results
         return `[${list ? list.join(", ") : ""}]`
       },
       tests: [
@@ -421,7 +421,8 @@ export default new Spell.Parser({
       parseInlineStatementAs: "expression",
       getNestedScope(scope, match) {
         const { arg } = match.results
-        return (match.results.expression = new Scope.Method({ scope, args: [singularize(arg)], asExpression: true }))
+        match.results.expression = new Scope.Method({ scope, args: [singularize(arg)], asExpression: true })
+        return match.results.expression
       },
       compile(scope, match) {
         const { list, expression } = match.results
@@ -458,7 +459,8 @@ export default new Spell.Parser({
       parseInlineStatementAs: "expression",
       getNestedScope(scope, match) {
         const { arg } = match.results
-        return (match.results.filter = new Scope.Method({ scope, args: [singularize(arg)], asExpression: true }))
+        match.results.filter = new Scope.Method({ scope, args: [singularize(arg)], asExpression: true })
+        return match.results.filter
       },
       compile(scope, match) {
         const { operator, filter, list } = match.results
@@ -494,7 +496,7 @@ export default new Spell.Parser({
       syntax: "the (start|front|top|end|back|bottom) of",
       compile(scope, match) {
         const where = match.matched[1].value
-        if (where === "start" || where == "front" || where === "top") return "prepend"
+        if (where === "start" || where === "front" || where === "top") return "prepend"
         return "append"
       }
     },
@@ -785,7 +787,8 @@ export default new Spell.Parser({
       parseInlineStatementAs: "expression",
       getNestedScope(scope, match) {
         const { arg } = match.results
-        return (match.results.condition = new Scope.Method({ scope, args: [singularize(arg)], asExpression: true }))
+        match.results.condition = new Scope.Method({ scope, args: [singularize(arg)], asExpression: true })
+        return match.results.condition
       },
       updateScope(scope, { results }) {
         const { condition, list } = results
@@ -890,11 +893,11 @@ export default new Spell.Parser({
         // Create a method to be used in the `forEach` to add inline and block statements to.
         const args = [{ name: item }]
         if (position) args.push({ name: position, type: "number" })
-
-        return (results.$scope = new Scope.Method({
+        results.$scope = new Scope.Method({
           scope,
           args
-        }))
+        })
+        return results.$scope
       },
       updateScope(scope, { results }) {
         // Add a Method for the `forEach` wrapper with a custom toString()
