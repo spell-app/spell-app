@@ -79,6 +79,7 @@ import _forEach from "lodash/forEach"
 import _snakeCase from "lodash/snakeCase"
 import { isNode } from "browser-or-node"
 import { applyMiddleware, bindActionCreators, combineReducers, compose, createStore } from "redux"
+import global from "global"
 
 import { addDebugMethods, DebugLevel } from "../../utils/addDebugMethods"
 import makeDeferred from "./utils/makeDeferred"
@@ -170,7 +171,7 @@ export default class ReduxFactory {
   // Returns a function which will invoke the actionCreator on a short delay.
   // See usage info at the top of this file.
   addAction(actionParams) {
-    let {
+    const {
       name: actionName, // (REQUIRED) Name of the method that kicks things off
 
       getParams, // (OPTIONAL) Function whose purpose is to transform
@@ -180,20 +181,6 @@ export default class ReduxFactory {
       //
       //  NOTE: in the params, do NOT pass `{ type: <ACTION> }`,
       //  it will be added automatically, outside of this returned params.
-
-      actionCreator, // (OPTIONAL) Function which returns full action.
-      //  NOTE: If using this, you MUST pass `ACTION` in the method result.
-      //  NOTE: If using this, `once` is ignored.
-
-      handler, // (OPTIONAL) Action handler called when the action is sent.
-      // Signature:  `handler(state, params)`
-      //
-      // You don't need to pass one if your event is delegating
-      //  to a different handler (e.g. if you're passing another `ACTION`).
-
-      ACTION, // (OPTIONAL) Name for the event created.
-      // If you don't specify one, we'll derive from `actionName`.
-
       once, // (OPTIONAL) `true` to execute the action only once.
       // `function` to execute action once per parameters
       //  using `this.once(params)` to return hash value
@@ -206,6 +193,21 @@ export default class ReduxFactory {
       async // (OPTIONAL) You can re-use another action with different parameters
       // by passing `ACTION` and `getParams` only.  By default, these will
       // be non-async.  Pass `async:true` to ensure they are asyn.
+    } = actionParams
+
+    let {
+      actionCreator, // (OPTIONAL) Function which returns full action.
+      //  NOTE: If using this, you MUST pass `ACTION` in the method result.
+      //  NOTE: If using this, `once` is ignored.
+
+      handler, // (OPTIONAL) Action handler called when the action is sent.
+      // Signature:  `handler(state, params)`
+      //
+      // You don't need to pass one if your event is delegating
+      //  to a different handler (e.g. if you're passing another `ACTION`).
+
+      ACTION // (OPTIONAL) Name for the event created.
+      // If you don't specify one, we'll derive from `actionName`.
     } = actionParams
 
     // Make sure we have required parameters
@@ -253,7 +255,7 @@ export default class ReduxFactory {
   //
   // TODOC
   addAsyncAction(actionParams) {
-    let {
+    const {
       name: actionName, // (REQUIRED) Name of the method that kicks things off
 
       getParams, // (OPTIONAL) Function whose purpose is to transform
@@ -263,6 +265,13 @@ export default class ReduxFactory {
       //  NOTE: do NOT pass `{ type: <ACTION> }`,
       //  it will be added automatically, outside of this returned params.
 
+      once // (OPTIONAL) `true` to execute the action only once.
+      // `function` to execute action once per parameters
+      //  using `this.once(params)` to return hash value
+      //  used to determine if these parameters have been used.
+    } = actionParams
+
+    let {
       promise: actionPromise, // (REQUIRED) Actual `async` function which does the asynchronous work.
       //
       // Signature `async function actionPromise(params)` where `params`
@@ -285,12 +294,7 @@ export default class ReduxFactory {
 
       ACTION = actionName, // Name for events.  We'll snake/uppercase below.
       // If you don't specify them, we'll derive from `actionName`.
-      DONE_ACTION = `${ACTION}_DONE`,
-
-      once // (OPTIONAL) `true` to execute the action only once.
-      // `function` to execute action once per parameters
-      //  using `this.once(params)` to return hash value
-      //  used to determine if these parameters have been used.
+      DONE_ACTION = `${ACTION}_DONE`
     } = actionParams
 
     // Make sure we have required parameters
@@ -317,7 +321,8 @@ export default class ReduxFactory {
       const { params } = action
 
       // Save current `dispatch` method in the action
-      const dispatch = (action.dispatch = this.dispatch)
+      const { dispatch } = this
+      action.dispatch = this.dispatch
 
       // Create a new promise with pointers to its own `resolve` and `reject` methods.
       // This allows us to resolve/reject later.
@@ -387,7 +392,8 @@ export default class ReduxFactory {
 
     const doneHandler = (state, action) => {
       this.debug(`${actionName}.doneHandler called with \n- state: `, state, "\n- action", action)
-      let { result, error, params, deferred, dispatch, phase } = action
+      const { result, params, deferred, dispatch } = action
+      let { error, phase } = action
       // If no error
       if (!error) {
         try {
@@ -453,80 +459,6 @@ export default class ReduxFactory {
 
     // Return the `invoker` function
     return invoker
-  }
-
-  // Helper for testing async actions.
-  // Returns promise which yields a `mock` object which you can use
-  // to test if promise action and it's `onLoading`, `onSuccess` and `onError` handlers
-  // worked as expected.
-  //
-  // Call with params:
-  //  - `actionName`  Action name
-  //  - `testParams`
-  //    - `state`   OPTIONAL: Initial state to pass to promise.  Defaults to `{}`.
-  //    - `args`  OPTIONAL: Array of arguments to action creator.  Defaults to `[]`.
-  //
-  // Returns `mock` object with:
-  //  - `action`    Action name
-  //  - `cancelled`   True if action was cancelled (e.g. via `once`)
-  //  - `dispatched`  Array of actions dispatched before action resolves().
-  //  - `result`    Result of action promise IFF promise resolves.
-  //  - `error`     Result of action promise IFF promise rejects.
-  //
-  // Throws if action can't be found.
-  async mockAsyncAction(actionName, testParams = {}) {
-    let { state = {}, args = [] } = testParams
-    const invoker = this.call[actionName]
-    this.assert(invoker, `mockAsyncAction(${actionName}): action invoker not not found`)
-
-    const mock = {
-      action: actionName,
-      dispatched: []
-    }
-    this.mockDispatch(actionName, state, mock)
-
-    // Call the invoker and wait for it to complete
-    try {
-      mock.result = await invoker(...args)
-    } catch (e) {
-      mock.error = e
-    }
-    mock.cancelled = mock.dispatched.length === 0
-
-    // Return the mock after the invoker completes
-    return mock
-  }
-
-  // Mock the `dispatch` method on this object:
-  //  - `initialState` starts with initialState
-  //  - `mock` is the mock object, we'll add all actions `dispatched` to it
-  //    as well as the state after each action (as `ACTION_NAME`)
-  // NOTE: this PERMANENTLY CHANGES this object.  Use `restoreDispatch` to undo.
-  mockDispatch(actionName, initialState, mock) {
-    let state = initialState
-    this.dispatch = action => {
-      // Record action that was dispatched (ignoring `promise` and `dispatch`)
-      const { dispatch, deferred, ...mockAction } = action
-      this.debug(`mockAsyncAction(${actionName}): got action `, mockAction)
-
-      mock.dispatched.push(mockAction)
-
-      // Dispatch any actions we know about
-      const handler = this._actionHandlers[action.type]
-      if (handler) {
-        //        mockAction.initialState = state;
-        state = handler(state, action)
-        //        mockAction.afterState = state;
-        mock[action.type] = state
-      }
-    }
-  }
-
-  // Restore dispatch method after `mockDispatch`.
-  restoreDispatch() {
-    this.assert(this.store, "restoreDispatch(): this.store is not defined")
-    this.assert(this.store.dispatch, "restoreDispatch(): this.store.dispatch is not defined")
-    this.dispatch = this.store.dispatch
   }
 
   //----------------------------
@@ -604,7 +536,8 @@ export default class ReduxFactory {
         // If we got `IGNORE_ACTION` back, `once` has cancelled the action.
         // Just return a resolved promise
         if (action === IGNORE_ACTION) {
-          return resolve()
+          resolve()
+          return
         }
 
         if (action.deferred) {
@@ -705,10 +638,10 @@ export default class ReduxFactory {
     let appliedMiddleware = applyMiddleware(...middlewares)
 
     // Add redux devtools middleware if appropriate
-    if (useDevtools && typeof window !== "undefined" && window.__REDUX_DEVTOOLS_EXTENSION__) {
+    if (useDevtools && typeof global !== "undefined" && global.__REDUX_DEVTOOLS_EXTENSION__) {
       appliedMiddleware = compose(
         appliedMiddleware,
-        window.__REDUX_DEVTOOLS_EXTENSION__()
+        global.__REDUX_DEVTOOLS_EXTENSION__()
       )
     }
 
@@ -756,11 +689,11 @@ export default class ReduxFactory {
     // log initial store state
     ReduxFactory.debug("Initial store state: ", store.getState())
 
-    // Add `store` and `actions` globals to window for debugging.
+    // Add `store` and `actions` globals to global for debugging.
     // NOTE: it is NOT SAFE to assume these will be available in your code!!!
-    if (typeof window !== "undefined") {
-      window.store = store
-      window.actions = store.actions
+    if (typeof global !== "undefined") {
+      global.store = store
+      global.actions = store.actions
     }
 
     return store
@@ -785,9 +718,11 @@ export default class ReduxFactory {
   //    `handler(dispatch, { storeState, error, params, sagaName })`
   //
   static ASYNC_ERROR_HANDLERS = []
+
   static addAsyncErrorHandler(handler) {
     ReduxFactory.ASYNC_ERROR_HANDLERS.push(handler)
   }
+
   // Generic async error middleware function.
   // Automatically added to store in `createStore()`.
   // Add error handlers with `ReduxFactory.addAsyncErrorHandler()`

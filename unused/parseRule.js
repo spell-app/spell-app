@@ -1,16 +1,8 @@
-import flatten from "lodash/flatten.js";
+import flatten from "lodash/flatten.js"
 
-import {
-  Parser,
-  ParseError,
-  Rule,
-  TestLocation,
-  Tokenizer
-} from "./all.js";
+import { Parser, ParseError, Rule, TestLocation, Tokenizer } from "./all.js"
 
-import {
-  cloneClass
-} from "../utils/all.js";
+import { cloneClass } from "../utils/all.js"
 
 //import rulex from "../languages/rulex/rulex.js";
 
@@ -29,106 +21,102 @@ export function parseRule(syntax, constructor, props) {
   // If we got an array of possible syntaxes...
   if (Array.isArray(syntax)) {
     // ...recursively parse each syntax, using a CLONE of the constructor.
-    return flatten(syntax.map(syntax => parseRule(syntax, constructor)));
+    return flatten(syntax.map(syntax => parseRule(syntax, constructor)))
   }
 
-  let rules = parseSyntax(syntax);
+  let rules = parseSyntax(syntax)
   if (rules.length === 0) {
-    throw new ParseError(`parser.parseRule(${syntax}): no rule produced`);
+    throw new ParseError(`parser.parseRule(${syntax}): no rule produced`)
   }
 
   // If no constructor, just return the rule(s) from parseSyntax()
   if (!constructor) {
     // If we only got one rule, add props passed in to it and return
-    if (rules.length === 1)
-      return Object.assign(rules[0], props);
+    if (rules.length === 1) return Object.assign(rules[0], props)
 
     // Otherwise return a sequence with the specified rules
-    return new Rule.Sequence({ ...props, rules });
+    return new Rule.Sequence({ ...props, rules })
   }
 
   // Use the constructor to create the rule
-  let rule;
+  let rule
   // If `constructor` is a Sequence or sequence subclass, just set `rules`
-  if ( constructor.prototype instanceof Rule.Sequence
-    || constructor.prototype.constructor === Rule.Sequence
-  ) {
-    return new constructor({ ...props, rules });
+  if (constructor.prototype instanceof Rule.Sequence || constructor.prototype.constructor === Rule.Sequence) {
+    return new constructor({ ...props, rules })
   }
 
-  if (rules.length > 1) throw new ParseError("parseRule(): expected a single rule back");
-  return new constructor({ ...props, ...rules[0] });
+  if (rules.length > 1) throw new ParseError("parseRule(): expected a single rule back")
+  return new constructor({ ...props, ...rules[0] })
 }
 
 export function tokeniseRuleSyntax(syntax) {
-//  const SYNTAX_EXPRESSION = /(?:[\w\-]+|[^\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
-  const SYNTAX_EXPRESSION = /(?:[\w\-]+|[\^\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
-  let syntaxStream = syntax.match(SYNTAX_EXPRESSION);
-//TESTME
-  if (!syntaxStream) throw new ParseError(`Can't tokenize parse rule syntax >>${syntax}<<`);
-  return syntaxStream;
+  //  const SYNTAX_EXPRESSION = /(?:[\w\-]+|[^\\\[\(\{\)\}\]]|[^\s\w]|\|)/g;
+  const SYNTAX_EXPRESSION = /(?:[\w\-]+|[\^\\\[\(\{\)\}\]]|[^\s\w]|\|)/g
+  let syntaxStream = syntax.match(SYNTAX_EXPRESSION)
+  // TESTME
+  if (!syntaxStream) throw new ParseError(`Can't tokenize parse rule syntax >>${syntax}<<`)
+  return syntaxStream
 }
 
 export function parseSyntax(syntax, rules = [], start = 0) {
-  const syntaxStream = typeof syntax === "string" ? tokeniseRuleSyntax(syntax) : syntax;
-  if (!syntax) throw new ParseError("parseSyntax(): `syntax` is required");
+  const syntaxStream = typeof syntax === "string" ? tokeniseRuleSyntax(syntax) : syntax
+  if (!syntax) throw new ParseError("parseSyntax(): `syntax` is required")
 
-  let lastIndex = syntaxStream.length;
+  let lastIndex = syntaxStream.length
   while (start < lastIndex) {
-    let [rule, end] = parseToken(syntaxStream, rules, start);
-    start = end + 1;
+    let [rule, end] = parseToken(syntaxStream, rules, start)
+    start = end + 1
     // NOTE: we sometimes don't get a rule back, e.g. when matching a repeat symbol
-    if (!rule) continue;
+    if (!rule) continue
     // Attempt to merge Keyword rules
     if (rule instanceof Rule.Keyword && !rule.isAdorned) {
-      const last = rules[rules.length - 1];
+      const last = rules[rules.length - 1]
       if (last instanceof Rule.Keyword && !last.isAdorned) {
-        rules[rules.length - 1] = new Rule.Keywords([ last.literal, rule.literal ]);
-        continue;
-      }
-      else if (last instanceof Rule.Keywords && !last.isAdorned) {
-        last.literals = [...last.literals, rule.literal];
-        continue;
+        rules[rules.length - 1] = new Rule.Keywords([last.literal, rule.literal])
+        continue
+      } else if (last instanceof Rule.Keywords && !last.isAdorned) {
+        last.literals = [...last.literals, rule.literal]
+        continue
       }
     }
-    rules.push(rule);
+    rules.push(rule)
   }
-  return rules;
+  return rules
 }
 
-const KEYWORD_PATTERN = /[A-Za-z][\w_-]*/;
+const KEYWORD_PATTERN = /[A-Za-z][\w_-]*/
 function parseToken(syntaxStream, rules = [], start = 0) {
-  let token = syntaxStream[start];
+  let token = syntaxStream[start]
   switch (token) {
-    case "…":   // TODOC: ellipsis (`alt-;` on mac) means "test anywhere in tokens"
-    case "^":   // TODOC: caret means "test at beginning only" (which is the default)
-      const result = parseToken(syntaxStream, rules, start+1);
-      if (result) result[0].testLocation = (token === "…" ? TestLocation.ANYWHERE : TestLocation.AT_START);
-      return result;
+    case "…": // TODOC: ellipsis (`alt-;` on mac) means "test anywhere in tokens"
+    case "^": // TODOC: caret means "test at beginning only" (which is the default)
+      const result = parseToken(syntaxStream, rules, start + 1)
+      if (result) result[0].testLocation = token === "…" ? TestLocation.ANYWHERE : TestLocation.AT_START
+      return result
 
     case "{":
-      return parseSubrule(syntaxStream, rules, start);
+      return parseSubrule(syntaxStream, rules, start)
     case "(":
-      return parseGroup(syntaxStream, rules, start);
+      return parseGroup(syntaxStream, rules, start)
     case "[":
-      return parseList(syntaxStream, rules, start);
+      return parseList(syntaxStream, rules, start)
     case "*":
     case "+":
     case "?":
-      return parseRepeat(syntaxStream, rules, start);
+      return parseRepeat(syntaxStream, rules, start)
 
     // the following should ALWAYS be consumed by the above
     case "}":
     case ")":
     case "]":
     case "|":
-      throw new ParseError(`Unexpected ${token} found as item ${start} of \`${syntaxStream.join("")}\``);
+      throw new ParseError(`Unexpected ${token} found as item ${start} of \`${syntaxStream.join("")}\``)
 
     default:
       if (token.match(KEYWORD_PATTERN)) {
-        return parseKeywords(syntaxStream, rules, start);
+        return parseKeywords(syntaxStream, rules, start)
       } else {
-        return parseSymbols(syntaxStream, rules, start);
+        return parseSymbols(syntaxStream, rules, start)
       }
   }
 }
@@ -138,68 +126,64 @@ function parseToken(syntaxStream, rules = [], start = 0) {
 // Put a question mark after the keyword to make it optional, eg, "the? thing"
 // Returns `[ rule, end ]`
 function parseKeywords(syntaxStream, rules, start = 0) {
-  let literals = [];
-  let end = start;
+  let literals = []
+  let end = start
   // eat keywords while they last
   for (var i = start; i < syntaxStream.length; i++) {
-    let keyword = syntaxStream[i];
-    if (!keyword.match(KEYWORD_PATTERN)) break;
+    let keyword = syntaxStream[i]
+    if (!keyword.match(KEYWORD_PATTERN)) break
 
-    if (literals.length > 0 && syntaxStream[i+1] === "?") break;
-    literals.push(keyword);
-    end = i;
+    if (literals.length > 0 && syntaxStream[i + 1] === "?") break
+    literals.push(keyword)
+    end = i
   }
 
-  const rule = (literals.length === 1)
-    ? new Rule.Keyword({ literal: literals[0] })
-    : new Rule.Keywords({ literals });
+  const rule = literals.length === 1 ? new Rule.Keyword({ literal: literals[0] }) : new Rule.Keywords({ literals })
 
   // Add optional flag
-  if (syntaxStream[end+1] === "?") {
-    rule.optional = true;
-    end++;
+  if (syntaxStream[end + 1] === "?") {
+    rule.optional = true
+    end++
   }
 
-  return [rule, end];
+  return [rule, end]
 }
 
-const ESCAPED_SYMBOLS = ["{", "(", "[", "|", "*", "+", "?", "]", ")", "}"];
+const ESCAPED_SYMBOLS = ["{", "(", "[", "|", "*", "+", "?", "]", ")", "}"]
 
 // Match one or more `symbol`s in syntax rules.
 // Returns `[ rule, end ]`
 function parseSymbols(syntaxStream, rules, start = 0) {
-  const literals = [];
-  let isEscaped = false;
-  let end;
+  const literals = []
+  let isEscaped = false
+  let end
   // eat keywords while they last
   for (var i = start; i < syntaxStream.length; i++) {
-    let symbol = syntaxStream[i];
+    let symbol = syntaxStream[i]
 
     // eat "\\" as escape character, work with next item in stream
-    isEscaped = symbol === "\\";
+    isEscaped = symbol === "\\"
     if (isEscaped) {
-      symbol = syntaxStream[++i];
+      symbol = syntaxStream[++i]
     }
 
     // forget it if we got a keyword
-    if (!symbol || symbol.match(KEYWORD_PATTERN)) break;
+    if (!symbol || symbol.match(KEYWORD_PATTERN)) break
     // forget it if not escaped and it's one of our special characters
-    if (!isEscaped && ESCAPED_SYMBOLS.includes(symbol)) break;
+    if (!isEscaped && ESCAPED_SYMBOLS.includes(symbol)) break
     // Don't mush together if next rule is optional
-    if (literals.length > 0 && syntaxStream[i+1] === "?") break;
+    if (literals.length > 0 && syntaxStream[i + 1] === "?") break
 
-    literals.push(symbol);
-    end = i;
-    if (isEscaped) break;
+    literals.push(symbol)
+    end = i
+    if (isEscaped) break
   }
 
-  const rule = (literals.length === 1)
-    ? new Rule.Symbol({ literal: literals[0] })
-    : new Rule.Symbols({ literals });
+  const rule = literals.length === 1 ? new Rule.Symbol({ literal: literals[0] }) : new Rule.Symbols({ literals })
 
-  if (isEscaped) rule.isEscaped = true;
+  if (isEscaped) rule.isEscaped = true
 
-  return [rule, end];
+  return [rule, end]
 }
 
 // Match grouping expression `(...|...)` in syntax rules.
@@ -208,178 +192,176 @@ function parseSymbols(syntaxStream, rules, start = 0) {
 //
 // Returns `[ rule, end ]`
 function parseGroup(syntaxStream, rules, start = 0) {
-  let { end, slice } = Tokenizer.findNestedTokens(syntaxStream, "(", ")", start);
+  let { end, slice } = Tokenizer.findNestedTokens(syntaxStream, "(", ")", start)
 
   // pull out explicit "promote" flag: `?:`
-  let promote = slice[0] === "?" && slice[1] === ":";
+  let promote = slice[0] === "?" && slice[1] === ":"
   if (promote) {
-    slice = slice.slice(2);
+    slice = slice.slice(2)
   }
 
   // pull out explicit argument name
-  let argument;
+  let argument
   if (slice.length > 2 && slice[1] === ":") {
-    argument = slice[0];
-    slice = slice.slice(2);
+    argument = slice[0]
+    slice = slice.slice(2)
   }
 
   // split into groups, including nested parens
   let choices = groupChoices(slice).map(function(alternative) {
-    let results = parseSyntax(alternative, []);
+    let results = parseSyntax(alternative, [])
     if (results.length === 1) {
-      return results[0];
+      return results[0]
     } else {
-      return new Rule.Sequence({ rules: results });
+      return new Rule.Sequence({ rules: results })
     }
-  });
+  })
 
-  let rule;
+  let rule
   if (choices.length === 1) {
-    rule = choices[0];
-  }
-  else {
-    const allAreSingles = choices.every( rule => {
-      if (!(rule instanceof Rule.Keyword)) return false;
-      if (rule.isAdorned) return false;
-      return true;
-    });
+    rule = choices[0]
+  } else {
+    const allAreSingles = choices.every(rule => {
+      if (!(rule instanceof Rule.Keyword)) return false
+      if (rule.isAdorned) return false
+      return true
+    })
     if (allAreSingles) {
-      const keywords = flatten(choices.map(rule => rule.literal));
-      rule = new Rule.Keyword({ literal: keywords });
-    }
-    else {
-      rule = new Rule.Choice({ rules: choices });
+      const keywords = flatten(choices.map(rule => rule.literal))
+      rule = new Rule.Keyword({ literal: keywords })
+    } else {
+      rule = new Rule.Choice({ rules: choices })
     }
   }
 
-  if (syntaxStream[end+1] === "?") {
-    rule.optional = true;
-    end++;
+  if (syntaxStream[end + 1] === "?") {
+    rule.optional = true
+    end++
   }
 
-  if (argument) rule.argument = argument;
-  if (promote) rule.promote = true;
-  return [rule, end];
+  if (argument) rule.argument = argument
+  if (promote) rule.promote = true
+  return [rule, end]
 }
-window.parseGroup = parseGroup;
+window.parseGroup = parseGroup
 
 function groupChoices(tokens) {
-  let choices = [];
-  let current = [];
+  let choices = []
+  let current = []
   for (let i = 0, token; (token = tokens[i]); i++) {
     // handle alternate marker
     if (token === "|") {
-      choices.push(current);
-      current = [];
+      choices.push(current)
+      current = []
     }
     // handle nested parens
     else if (token === "(") {
-      let { end } = Tokenizer.findNestedTokens(tokens, "(", ")", i);
-      current = current.concat(tokens.slice(i, end + 1));
-      i = end;
+      let { end } = Tokenizer.findNestedTokens(tokens, "(", ")", i)
+      current = current.concat(tokens.slice(i, end + 1))
+      i = end
     } else {
-      current.push(token);
+      current.push(token)
     }
   }
-  if (current.length) choices.push(current);
-  return choices;
+  if (current.length) choices.push(current)
+  return choices
 }
 
 // Match repeat indicator `?`, `+` or `*` by modifying the previous rule.
 function parseRepeat(syntaxStream, rules, start = 0) {
-  let symbol = syntaxStream[start];
-  let rule = rules[rules.length - 1];
-  //TESTME
-  if (!rule) throw new ParseError(`Can't attach repeat symbol ${symbol} to empty rule!`);
+  let symbol = syntaxStream[start]
+  let rule = rules[rules.length - 1]
+  // TESTME
+  if (!rule) throw new ParseError(`Can't attach repeat symbol ${symbol} to empty rule!`)
 
   // Transform last rule into a repeat for `*` and `+`.
   if (symbol === "*" || symbol === "+") {
-    const repeat = new Rule.Repeat(rule);
+    const repeat = new Rule.Repeat(rule)
     if (rule.argument) {
-      repeat.argument = rule.argument;
-      delete rule.argument;
+      repeat.argument = rule.argument
+      delete rule.argument
     }
     if (rule.promote) {
-      repeat.promote = rule.promote;
-      delete rule.promote;
+      repeat.promote = rule.promote
+      delete rule.promote
     }
     // replace the old rule in the stack
-    rule = repeat;
-    rules[rules.length - 1] = rule;
+    rule = repeat
+    rules[rules.length - 1] = rule
   }
 
   // Rule is optional for `?` and `*`.
   if (symbol === "?" || symbol === "*") {
-    rule.optional = true;
+    rule.optional = true
   }
 
-  return [undefined, start];
+  return [undefined, start]
 }
 
 // Match `{<subrule>}` in syntax rules.
 // Returns `[ rule, end ]`
 // Throws if invalid.
 function parseSubrule(syntaxStream, rules, start = 0) {
-  let { slice, end } = Tokenizer.findNestedTokens(syntaxStream, "{", "}", start);
-  const props = {};
+  let { slice, end } = Tokenizer.findNestedTokens(syntaxStream, "{", "}", start)
+  const props = {}
 
   // handle promote flag: "?:"
   if (slice[0] === "?" && slice[1] === ":") {
-    props.promote = true;
-    slice = slice.slice(2);
+    props.promote = true
+    slice = slice.slice(2)
   }
 
   // handle argument
   if (slice[1] === ":") {
-    props.argument = slice[0];
-    slice = slice.slice(2);
+    props.argument = slice[0]
+    slice = slice.slice(2)
   }
 
   // get rule
-  props.rule = slice[0];
-  slice = slice.slice(1);
+  props.rule = slice[0]
+  slice = slice.slice(1)
 
   // handle any `!` exclude rules
   while (slice[0] === "!") {
-    const exclude = slice[1];
-    if (!exclude) throw new ParseError(`parseSubrule got bang but no exclude rule: ${syntaxStream.slice(start)}`);
-    if (!props.excludes)  props.excludes = [exclude];
-    else                  props.excludes.push(exclude);
-    slice = slice.slice(2);
+    const exclude = slice[1]
+    if (!exclude) throw new ParseError(`parseSubrule got bang but no exclude rule: ${syntaxStream.slice(start)}`)
+    if (!props.excludes) props.excludes = [exclude]
+    else props.excludes.push(exclude)
+    slice = slice.slice(2)
   }
 
-  const rule = new Rule.Subrule(props);
-  return [rule, end];
+  const rule = new Rule.Subrule(props)
+  return [rule, end]
 }
 
 // Match list expression `[<rule><delimiter>]` or `[<argument>:<rule><delimiter>]` in syntax rules.
 // Returns `[ rule, end ]`
 // Throws if invalid.
 function parseList(syntaxStream, rules, start = 0, constructor = Rule.List) {
-  let { end, slice } = Tokenizer.findNestedTokens(syntaxStream, "[", "]", start);
+  let { end, slice } = Tokenizer.findNestedTokens(syntaxStream, "[", "]", start)
 
   // get promote if supplied
-  let promote;
+  let promote
   if (slice[0] === "?" && slice[1] === ":") {
-    promote = true;
-    slice = slice.slice(2);
+    promote = true
+    slice = slice.slice(2)
   }
 
   // get argument if supplied
-  let argument;
+  let argument
   if (slice.length > 2 && slice[1] === ":") {
-    argument = slice[0];
-    slice = slice.slice(2);
+    argument = slice[0]
+    slice = slice.slice(2)
   }
 
-  let results = parseSyntax(slice, []);
+  let results = parseSyntax(slice, [])
   if (results.length !== 2) {
-    throw new ParseError(`Unexpected stuff at end of list: [${slice.join(" ")}]`);
+    throw new ParseError(`Unexpected stuff at end of list: [${slice.join(" ")}]`)
   }
-  let [rule, delimiter] = results;
+  let [rule, delimiter] = results
 
-  let repeat = new constructor({ rule, delimiter });
-  if (promote) repeat.promote = promote;
-  if (argument) repeat.argument = argument;
-  return [repeat, end];
+  let repeat = new constructor({ rule, delimiter })
+  if (promote) repeat.promote = promote
+  if (argument) repeat.argument = argument
+  return [repeat, end]
 }

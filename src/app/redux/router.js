@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 //----------------------------
 //
 //  Router Reducer for ReduxFactory usage
@@ -5,6 +6,7 @@
 //----------------------------
 
 import React from "react"
+import global from "global"
 
 import { BrowserRouter } from "react-router-dom"
 import createBrowserHistory from "history/createBrowserHistory"
@@ -77,7 +79,7 @@ export const _restartApp = _router.addAction({
     clearAllPrefs()
     // Clear the `href` which stores where we are in the app
     // This will force the app to redraw on desktop + Cordova/Android.
-    window.location.href = ""
+    global.location.href = ""
     // Return router so redux doesn't have a fit.
     return router
   }
@@ -93,10 +95,10 @@ export const _reloadPage = _router.addAction({
     this.info("reloadPage()", "\n- url:", url, "\n- currentURL:", currentURL)
 
     if (url && url !== currentURL) {
-      window.location.href = url
+      global.location.href = url
     } else {
       // FORCE reload of the same page from the "server".
-      window.location.reload(true)
+      global.location.reload(true)
     }
     // Return router so redux doesn't have a fit.
     return router
@@ -163,52 +165,6 @@ export const _goForward = _router.addAction({
   actionCreator: goForward
 })
 
-// Show the `upload JSON fixtures` page
-export const _showUploadJSONPage = _router.addAction({
-  name: "showUploadJSONPage",
-  ACTION: "GO_TO",
-  getParams() {
-    return { url: getJSONUploadURL() }
-  }
-})
-
-//----------------------------
-//
-//  Server URL
-//  For flexibility in the Cordova app, we allow you to override
-//    `appConfig.API_SERVER` to point to a different machine.
-//  Note that this will only work on desktop if you have
-//   'Access-Control-Allow-Origin'  headers set up on the server.
-//
-export const _setServerURL = _router.addAction({
-  name: "setServerURL",
-  getParams(url) {
-    // Pass through URL string if provided
-    if (typeof url === "string" && url) return url
-
-    // Otherwise prompt for url.
-    url = _router.getPref("API_SERVER") || appConfig.API_SERVER || ""
-
-    // Convert `{{}}` to native value
-    if (url.includes("{{")) url = expandAppConfigURL(url)
-
-    url = prompt("URL to hit for data requests?", url)
-
-    if (url == null) url = undefined
-    return url
-  },
-  handler(router, API_SERVER) {
-    // Save in appConfig for non-reduxy things
-    appConfig.API_SERVER = API_SERVER
-    // Save as preference
-    _router.setPref("API_SERVER", API_SERVER)
-    // Re-start the app in a tick
-    _reloadPage()
-    // Return router so redux doesn't have a fit.
-    return router
-  }
-})
-
 //----------------------------
 //
 //  URLs and Overlay storage
@@ -242,132 +198,6 @@ export function setLastOverlay(overlay) {
 
 //----------------------------
 //
-//  Overlay actions
-//
-//  Overlays are displayed by the current top-level `Page` component so that:
-//  - they are rendered OUT of the DOM context of the button/whatever that invoked them
-//  - there is only one overlay displayed at a time.
-//
-
-//  Display an overlay specfied by `overlayId`.
-//  NOTE: it's preferred to use the overlay-specific constructors below.
-export const _showOverlay = _router.addAction({
-  name: "showOverlay",
-  getParams(overlayId, overlayProps) {
-    return {
-      overlayId,
-      overlayProps
-    }
-  },
-  handler(router, { overlayId, overlayProps }) {
-    const { overlayId: currentOverlayId } = router
-
-    // Sanity check, there should be only one overlay visible at a time
-    if (currentOverlayId && currentOverlayId !== overlayId)
-      _router.warn(`SHOW_OVERLAY: attempting to open '${overlayId}' when '${currentOverlayId}' is open.`)
-
-    // Remember the overlay as a pref for `resumeAfterActivity` below
-    setLastOverlay({ overlayId, overlayProps })
-
-    return {
-      ...router,
-      overlayId,
-      overlayProps
-    }
-  }
-})
-
-//  Hide a particular overlay.
-//  If you want to hide WHATEVER overlay is visible, don't pass overlayId.
-export const _hideOverlay = _router.addAction({
-  name: "hideOverlay",
-  handler(router, overlayId) {
-    // If no overlay visible, forget it
-    if (!router.overlayId) {
-      return router
-    }
-
-    // Otherwise if they specified a specific overlay, only close for that one.
-    if (overlayId && router.overlayId !== overlayId) {
-      _router.warn(`HIDE_OVERLAY: attempting to close '${overlayId}' when current overlay is '${router.overlayId}'.`)
-      return { ...router }
-    }
-
-    // Clear overlay pref
-    setLastOverlay(undefined)
-
-    // Return everything other than overlay props
-    const { overlayId: openOverlayId, overlayProps, ...newRouterState } = router
-    return newRouterState
-  }
-})
-
-//----------------------------
-//
-//  Page visibility
-//
-//  Watch for the `uiHidden` and `uiShown` events and trigger redux actions on change.
-//  see: https://developer.mozilla.org/en-US/docs/Web/API/Page_Visibility_API
-//
-//  NOTE: We only do this on desktop (NOT on Cordova).
-//    On cordova we do this with `resumeAfterActivity`
-//
-
-let _lastHiddenTime
-export const _uiHidden = _router.addAction({
-  name: "uiHidden",
-  handler(appState) {
-    _lastHiddenTime = Date.now()
-    _router.info("app hidden at ", _lastHiddenTime)
-    return { ...appState }
-  }
-})
-
-// UI has been shown on desktop (inactive tab was activated).
-// SIDE_EFFECT:  If more than `appConfig.autoRefreshFrequency` msec since hidden,
-//         we'll refesh the page to get fresh data.
-export const _uiShown = _router.addAction({
-  name: "uiShown",
-  handler(appState) {
-    const hiddenDuration = _lastHiddenTime ? Date.now() - _lastHiddenTime : 0
-    _router.info("app shown again after ", hiddenDuration / 1000, " sec")
-
-    // Reload the app if we've been hidden for a while
-    if (hiddenDuration > appConfig.autoRefreshFrequency) setTimeout(_reloadPage, 500)
-
-    return { ...appState }
-  }
-})
-
-// Set up event `visibilityChanged` event for different browsers, but NOT for cordova.
-//
-// We use this to generate `uiHidden` and `uiShown` events
-// when the browser window is shown/hidden.
-//
-// Figure out right props for this browser
-let _hiddenProp, _visibilityChangeEvent
-if (typeof document.hidden !== "undefined") {
-  // Opera 12.10 and Firefox 18 and later support
-  _hiddenProp = "hidden"
-  _visibilityChangeEvent = "visibilitychange"
-} else if (typeof document.webkitHidden !== "undefined") {
-  _hiddenProp = "webkitHidden"
-  _visibilityChangeEvent = "webkitvisibilitychange"
-}
-
-// Add event handler to invoke `uiHidden` or `uiShown` event
-document.addEventListener(
-  _visibilityChangeEvent,
-  function(event) {
-    const hidden = document[_hiddenProp]
-    if (hidden) _uiHidden()
-    else _uiShown()
-  },
-  false
-)
-
-//----------------------------
-//
 //  Utility
 //
 
@@ -375,6 +205,6 @@ document.addEventListener(
 export function urlForLocation(location) {
   if (!location) return ""
 
-  let { pathname = "", search = "", hash = "" } = location
+  const { pathname = "", search = "", hash = "" } = location
   return `${pathname}${search}${hash}`
 }

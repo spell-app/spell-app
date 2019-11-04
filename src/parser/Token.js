@@ -68,6 +68,7 @@ Token.Indent = class indent extends Token.Whitespace {}
 // `newline` class, value is always a single return.
 Token.Newline = class newline extends Token.Whitespace {
   @proto value = "\n"
+
   @proto raw = "\n"
 }
 
@@ -89,7 +90,7 @@ Token.Number = class number extends Token {}
 // Use `text.innerText` to get just the bit inside the quotes.
 Token.Text = class text extends Token {
   get innerText() {
-    let string = this.value
+    const string = this.value
     // calculate `text` as the bits between the quotes.
     let start = 0
     let end = string.length
@@ -111,9 +112,9 @@ Token.Comment = class comment extends Token {}
 //  `element.children` is an array of child `jsxElement` instances.
 Token.JSXElement = class jsxElement extends Token {
   // Return attributes as a map.
-  //TESTME
+  // TESTME
   get attrs() {
-    let attrs = {}
+    const attrs = {}
     if (this.attributes)
       this.attributes.forEach(attr => {
         // ignore unnamed attributes
@@ -123,39 +124,36 @@ Token.JSXElement = class jsxElement extends Token {
   }
 
   // Return our attributes as a string (used in toString only)
-  //TESTME
+  // TESTME
   get attrsAsString() {
     if (!this.attributes) return ""
-    return (
-      " " +
-      this.attributes
-        .map(({ value }) => {
-          if (value === undefined) return "true"
-          // convert value array (tokens) to string
-          // TODO: this will want to be smarter...
-          if (Array.isArray(value)) value = `{${value.join(" ")}}`
-          return `name=${value}`
-        })
-        .join(" ")
-    )
+    return this.attributes
+      .map(({ value }) => {
+        if (value === undefined) return "true"
+        // convert value array (tokens) to string
+        // TODO: this will want to be smarter...
+        if (Array.isArray(value)) value = `{${value.join(" ")}}`
+        return `name=${value}`
+      })
+      .join(" ")
   }
 
   // Return our children as a string  (used in toString only)
-  //TESTME
+  // TESTME
   get childrenAsString() {
     if (!this.children) return ""
     return this.children
       .map(child => {
         if (Array.isArray(child)) return `{${child.join(" ")}}`
-        return "" + child
+        return `${child}`
       })
       .join("")
   }
 
-  //TESTME
+  // TESTME
   toString() {
-    let attrs = this.attributes ? ` ${this.attributes.join("")}` : ""
-    let children = this.childrenAsString
+    const attrs = this.attributes ? ` ${this.attributes.join("")}` : ""
+    const children = this.childrenAsString
     if (this.isUnaryTag) return `<${this.tagName}${attrs}/>`
     return `<${this.tagName}${attrs}>${children}`
   }
@@ -173,7 +171,7 @@ Token.JSXAttribute = class jsxAttribute extends Token {}
 // Loose text in the middle of a JSX block
 // `text.value` is the actual text matched (including whitespace).
 Token.JSXText = class jsxText extends Token {
-  //TODO: escape quotes!
+  // TODO: escape quotes!
   get quotedText() {
     const trimmed = this.value.trim()
     if (!trimmed) return undefined
@@ -197,6 +195,6 @@ Token.Block = class block extends Token {
   }
 
   toString() {
-    return this.contents.map(item => (item instanceof Token.Block ? "" + item : item.join(""))).join("\n")
+    return this.contents.map(item => (item instanceof Token.Block ? `${item}` : item.join(""))).join("\n")
   }
 }

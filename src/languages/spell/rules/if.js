@@ -24,13 +24,14 @@ export default new Spell.Parser({
       wantsNestedBlock: true,
       getNestedScope(scope, { results }) {
         const condition = parenthesizeCondition(results.condition)
-        return (results.$scope = new Scope.Method({
+        results.$scope = new Scope.Method({
           name: "if",
           scope,
           toString() {
             return `if ${condition} ${this.compileStatements()}`
           }
-        }))
+        })
+        return results.$scope
       },
       updateScope(scope, { results }) {
         const statement = scope.addStatement(results.$scope)
@@ -101,7 +102,7 @@ export default new Spell.Parser({
             }
           ]
         }
-        //TESTME: test full if/else if/else blocks
+        // TESTME: test full if/else if/else blocks
       ]
     },
 

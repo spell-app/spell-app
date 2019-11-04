@@ -39,7 +39,7 @@ export default class Tokenizer {
 
     const lastEnd = tokens[tokens.length - 1].end
     if (lastEnd !== end) {
-      this.logger.warn("tokenize(): didn't consume: `", text.slice(start, end) + "`")
+      this.logger.warn("tokenize(): didn't consume: `", text.slice(start, end), "`")
     }
 
     // Filter according to our whitespace policy
@@ -78,7 +78,7 @@ export default class Tokenizer {
   // Repeatedly execute a `method` (bound to `this) which returns a `[result, nextStart]` or `undefined`.
   // Places matched results together in `results` array and returns `[results, nextStart]` for the entire set.
   // Stops if `method` doesn't return anything, or if calling `method` is unproductive.
-  //TESTME
+  // TESTME
   consume(method, text, start = 0, end, results = []) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -100,7 +100,7 @@ export default class Tokenizer {
   }
 
   // Match a single top-level token at `text[start]`.
-  //TESTME
+  // TESTME
   matchTopTokens(text, start, end) {
     return (
       this.matchWhitespace(text, start, end) ||
@@ -139,7 +139,6 @@ export default class Tokenizer {
       raw: value,
       offset: start
     }
-    let token
     if (start === 0 || text[start - 1] === "\n") return new Token.Indent(props)
     return new Token.InlineWhitespace(props)
   }
@@ -165,7 +164,9 @@ export default class Tokenizer {
   // Returns `[word, wordEnd]`.
   // Returns an empty array if couldn't match a word.
   @proto WORD_START = /[A-Za-z]/
+
   @proto WORD_CHAR = /^[\w_-]/
+
   matchWord(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -236,7 +237,7 @@ export default class Tokenizer {
 
   // Eat a text literal (starts/ends with `'` or `"`).
   // Returns a `Token.Text` if matched.
-  //TESTME:  not sure the escaping logic is really right...
+  // TESTME:  not sure the escaping logic is really right...
   matchText(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -303,7 +304,7 @@ export default class Tokenizer {
   //
 
   // Eat a (nested) JSX expression.
-  //TESTME
+  // TESTME
   matchJSXElement(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -391,7 +392,7 @@ export default class Tokenizer {
   // Match JSX element children of `<tagName>` at `text[start]`.
   // Matches nested children and stops after matching end tag: `</tagName>`.
   // Returns `[children, nextStart]`.
-  //TESTME
+  // TESTME
   matchJSXChildren(tagName, text, start, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -519,7 +520,7 @@ export default class Tokenizer {
   // Ignores leading whitespace.
   //TODO: newlines/indents???
   //TODO: {...xxx}
-  //TESTME
+  // TESTME
   matchJSXExpression(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -542,7 +543,7 @@ export default class Tokenizer {
   // Match JSXText until the one of `{`, `<`, `>` or `}`.
   // NOTE: INCLUDES leading / trailing whitespace.
   @proto JSX_TEXT_END_CHARS = ["{", "<", ">", "}"]
-  //TESTME
+  // TESTME
   matchJSXText(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -589,7 +590,7 @@ export default class Tokenizer {
   // Return characters up to, but not including, the next newline char after `start`.
   // If `start` is a newline char or start >= end, returns empty string.
   // If at the end of the string (eg: no more newlines), returns from start to end.
-  //TESTME
+  // TESTME
   getLineAtHead(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return ""
@@ -600,7 +601,7 @@ export default class Tokenizer {
   }
 
   // Match a multi-char string starting at `text[start]`.
-  //TESTME
+  // TESTME
   matchStringAtHead(string, text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -614,7 +615,7 @@ export default class Tokenizer {
   // Returns `null` if no match.
   //
   // NOTE: The expression MUST start with `/^.../`
-  //TESTME
+  // TESTME
   matchExpressionAtHead(expression, text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -632,7 +633,7 @@ export default class Tokenizer {
   //    we'll skip scanning until we find a matching quote.
   //
   //  eg:  `findMatchingAtHead("{", "}", "{aa{a}aa}")` => 8
-  //TESTME
+  // TESTME
   findMatchingAtHead(startDelimiter, endDelimiter, text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -671,7 +672,7 @@ export default class Tokenizer {
 
   // Return the index of the first NON-ESCAPED character in `chars` after `text[start]`.
   // Returns `undefined` if we didn't find a match.
-  //TESTME
+  // TESTME
   findFirstAtHead(chars, text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined

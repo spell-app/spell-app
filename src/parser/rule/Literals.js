@@ -10,8 +10,9 @@ Rule.Literals = class literals extends Rule {
   // By default, join literals with no space between
   @proto literalSeparator = ""
 
-  constructor(props) {
-    if (arguments.length > 1) props = [...arguments]
+  constructor(...args) {
+    let [props] = args
+    if (args.length > 1) props = args
     if (Array.isArray(props)) props = { literals: props }
     if (typeof props === "string") props = { literals: props }
     if (typeof props.literals === "string") props.literals = [props.literals]
@@ -21,7 +22,7 @@ Rule.Literals = class literals extends Rule {
   // Return the NUMBER OF TOKENS MATCHED.  `0` = no match.
   testAtStart(scope, tokens, start = 0) {
     for (let i = 0, literal; (literal = this.literals[i]); i++) {
-      //console.info(i, literal, start, tokens[start]);
+      // console.info(i, literal, start, tokens[start]);
       const matched = tokens[start]?.matchesLiteral(literal)
       if (matched) start++
       else if (!literal.optional) return false
@@ -47,18 +48,18 @@ Rule.Literals = class literals extends Rule {
   toSyntax() {
     const { testLocation, argument, optional } = this.getSyntaxFlags()
 
-    const literals = this.literals
+    const literalStrings = this.literals
       .map(literal => {
         if (typeof literal === "string") return literal
-        const optional = literal.optional ? "?" : ""
-        if (literal.length === 1) return `${literal}${optional}`
-        return `(${literal.join("|")})${optional}`
+        const optionalOperator = literal.optional ? "?" : ""
+        if (literal.length === 1) return `${literal}${optionalOperator}`
+        return `(${literal.join("|")})${optionalOperator}`
       })
       .join(this.literalSeparator)
 
     const wrapInParens = argument || ((testLocation || optional) && this.literals.length > 1)
-    if (wrapInParens) return `${testLocation}(${argument}${literals})${optional}`
-    return `${testLocation}${literals}${optional}`
+    if (wrapInParens) return `${testLocation}(${argument}${literalStrings})${optional}`
+    return `${testLocation}${literalStrings}${optional}`
   }
 }
 

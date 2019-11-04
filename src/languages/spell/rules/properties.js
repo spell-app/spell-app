@@ -84,7 +84,7 @@ export default new Spell.Parser({
         return `${its}.${property}`
       },
       tests: [
-        //TESTME: `its` inside an instance method
+        // TESTME: `its` inside an instance method
         {
           compileAs: "expression",
           tests: [["its foo", "this.foo"], ["the foo of its bar", "this.bar.foo"]]
