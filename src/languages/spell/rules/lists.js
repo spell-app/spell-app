@@ -627,7 +627,7 @@ export default new Spell.Parser({
     //
 
     // Empty list.
-    //TODO: make `empty` and/or `clear` a generic statement???
+    // TODO: make `empty` and/or `clear` a generic statement???
     {
       name: "list_empty",
       alias: "statement",

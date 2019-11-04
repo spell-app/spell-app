@@ -64,7 +64,7 @@
 - "ok"
 	- zoom back into pile
 
-///TODO
+/// TODO
 - "the front of each card..."
 	- flip over cards while spreading into grid
 - "...shows images from folder ..."

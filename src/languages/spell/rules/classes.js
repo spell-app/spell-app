@@ -296,7 +296,7 @@ export default new Spell.Parser({
           .methods.add({
             name: property,
             kind: "getter",
-            //TODO:   datatype: "...",
+            // TODO:   datatype: "...",
             statements: otherValue
               ? [`return !!${condition} ? ${value} : ${otherValue}`]
               : [`if (${condition}) return ${value}`]

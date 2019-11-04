@@ -1,3 +1,4 @@
+/* eslint-disable no-continue */
 import { Token, addDebugMethods, DebugLevel, proto } from "./all"
 
 // Policy for automatically removing whitespace from the token stream.
@@ -194,7 +195,9 @@ export default class Tokenizer {
   // Eat a single number.
   // Returns a `Number` if matched.
   @proto NUMBER_START = /[0-9-.]/
+
   @proto NUMBER = /^-?([0-9]*\.)?[0-9]+/
+
   matchNumber(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -277,6 +280,7 @@ export default class Tokenizer {
   //    `//`
   // Returns a `Token.Comment` if matched.
   @proto COMMENT = /^(##+|--+|\/\/+)(\s*)(.*)/
+
   matchComment(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -309,7 +313,7 @@ export default class Tokenizer {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
 
-    let jsxElement = this.matchJSXStartTag(text, start, end)
+    const jsxElement = this.matchJSXStartTag(text, start, end)
     if (!jsxElement) return undefined
 
     if (!jsxElement.isUnaryTag) {
@@ -328,6 +332,7 @@ export default class Tokenizer {
   // Use `matchJSXElement()` to match children, end tag, etc.
   // Ignores leading whitespace.
   @proto JSX_TAG_START = /^<([A-Za-z][\w-\.]*)(\s*\/>|\s*>|\s+)/
+
   // TODO: clean this stuff up, maybe with findFirstAtHead?
   matchJSXStartTag(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
@@ -340,8 +345,9 @@ export default class Tokenizer {
     const tagMatch = this.matchExpressionAtHead(this.JSX_TAG_START, text, nextStart, end)
     if (!tagMatch) return undefined
 
+    // eslint-disable-next-line prefer-const
     let [matchText, tagName, endBit] = tagMatch
-    nextStart = nextStart + matchText.length
+    nextStart += matchText.length
 
     const jsxElement = new Token.JSXElement({
       tagName,
@@ -378,7 +384,7 @@ export default class Tokenizer {
     if (endBit === "/>") {
       jsxElement.isUnaryTag = true
     } else if (endBit !== ">") {
-      this.logger.warn("Missing expected end `>` for jsxElement", jsxElement, "`" + text.slice(start, nextStart) + "`")
+      this.logger.warn("Missing expected end `>` for jsxElement", jsxElement, `\`${text.slice(start, nextStart)}\``)
       jsxElement.error = "No end >"
     }
     jsxElement.raw = text.slice(start, nextStart)
@@ -461,6 +467,7 @@ export default class Tokenizer {
   // Match a single JSX element attribute as `<attr>={<value>}`
   // TODO: {...xxx}
   @proto JSX_ATTRIBUTE_START = /^\s*([\w-]+\b)\s*(=?)\s*/
+
   matchJSXAttribute(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -506,7 +513,7 @@ export default class Tokenizer {
   // Returns as a `JSXExpression`.
   matchJSXAttributeValueIdentifier(text, start, end) {
     const contents = this.matchWord(text, start, end)
-    if (!contents) return
+    if (!contents) return undefined
     return new Token.JSXExpression({
       contents,
       raw: contents.value,
@@ -518,14 +525,14 @@ export default class Tokenizer {
   //  Handles nested curlies, quotes, etc.
   // Returns array of tokens of internal match.
   // Ignores leading whitespace.
-  //TODO: newlines/indents???
-  //TODO: {...xxx}
+  // TODO: newlines/indents???
+  // TODO: {...xxx}
   // TESTME
   matchJSXExpression(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
 
-    let nextStart = this.eatWhitespace(text, start, end)
+    const nextStart = this.eatWhitespace(text, start, end)
     const endIndex = this.findMatchingAtHead("{", "}", text, nextStart, end)
     if (endIndex === undefined) return undefined
 
@@ -543,6 +550,7 @@ export default class Tokenizer {
   // Match JSXText until the one of `{`, `<`, `>` or `}`.
   // NOTE: INCLUDES leading / trailing whitespace.
   @proto JSX_TEXT_END_CHARS = ["{", "<", ">", "}"]
+
   // TESTME
   matchJSXText(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
@@ -556,7 +564,7 @@ export default class Tokenizer {
 
     // if no match, we've got some sort of error
     if (endIndex === undefined) {
-      this.logger.warn("matchJSXText(" + text.slice(start, start + 50) + "): JSX seems to be unbalanced.")
+      this.logger.warn(`matchJSXText(${text.slice(start, start + 50)}): JSX seems to be unbalanced.`)
       return undefined
     }
 
@@ -643,7 +651,7 @@ export default class Tokenizer {
     let nesting = 0
     let current = start
     while (current < end) {
-      const char = text[current]
+      let char = text[current]
       // if startDelimiter, increase nesting
       if (char === startDelimiter) {
         nesting++
@@ -668,6 +676,7 @@ export default class Tokenizer {
       }
       current++
     }
+    return undefined
   }
 
   // Return the index of the first NON-ESCAPED character in `chars` after `text[start]`.
@@ -715,15 +724,16 @@ export default class Tokenizer {
       if (token instanceof Token.Newline) {
         // create a new line and push it in
         currentLine = []
-        return lines.push(currentLine)
+        lines.push(currentLine)
+      } else {
+        // otherwise just add to the current line
+        currentLine.push(token)
       }
-
-      // otherwise just add to the current line
-      currentLine.push(token)
     })
 
     // Clear any lines that are only whitespace
-    for (var index = 0, line; (line = lines[index]); index++) {
+    for (let index = 0, last = lines.length; index < last; index++) {
+      const line = lines[index]
       if (line.length === 1 && line[0] instanceof Token.Whitespace) lines[index] = []
     }
 
@@ -743,7 +753,7 @@ export default class Tokenizer {
     if (startIndent === undefined) startIndent = defaultIndent
 
     // indent blank lines to the indent AFTER them
-    for (var index = 0; index < end; index++) {
+    for (let index = 0; index < end; index++) {
       if (indents[index] === undefined) {
         indents[index] = getNextIndent(index + 1)
       }
@@ -782,7 +792,7 @@ export default class Tokenizer {
     const indents = this.getLineIndents(lines)
 
     // First block is at the MINIMUM indent of all lines!
-    const minIndent = Math.min.apply(Math, indents)
+    const minIndent = Math.min(...indents)
     const block = new Token.Block({
       indent: minIndent,
       tokens
@@ -797,7 +807,7 @@ export default class Tokenizer {
       // If indenting, push new block(s)
       if (lineIndent > top.indent) {
         while (lineIndent > top.indent) {
-          var newBlock = new Token.Block({
+          const newBlock = new Token.Block({
             indent: top.indent + 1
           })
           top.contents.push(newBlock)

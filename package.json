@@ -144,6 +144,7 @@
       ]
     ]
   },
+  "eslintIgnore": ["node_modules/*","unused/*","thoughts/*"],
   "eslintConfig": {
     "env": {
       "es6": true,
@@ -213,6 +214,7 @@
         }
       ],
       "no-underscore-dangle": "off",
+      "no-use-before-define": "off",
       "no-useless-escape": "off",
       "no-console": "off",
       "no-constant-condition": "off",

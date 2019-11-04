@@ -66,7 +66,7 @@ export default new Spell.Parser({
             value = this.jsxExpressionToSource(scope, value)
           }
           // else if a JSX element, recurse
-          //TODO: indent...
+          // TODO: indent...
           else if (value instanceof Token.JSXElement) {
             value = value.compile(jsxElement)
           } else {
@@ -75,7 +75,7 @@ export default new Spell.Parser({
 
           // special case `class` to `className` because React is effing persnickety.
           if (name === "class") name = "className"
-          //TODO: escape names which are invalid JS identifiers
+          // TODO: escape names which are invalid JS identifiers
           return `${name}: ${value}`
         })
 

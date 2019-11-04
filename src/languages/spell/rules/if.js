@@ -118,13 +118,14 @@ export default new Spell.Parser({
       wantsNestedBlock: true,
       getNestedScope(scope, { results }) {
         const condition = parenthesizeCondition(results.condition)
-        return (results.$scope = new Scope.Method({
+        results.$scope = new Scope.Method({
           name: "else_if",
           scope,
           toString() {
             return `else if ${condition} ${this.compileStatements()}`
           }
-        }))
+        })
+        return results.$scope
       },
       updateScope(scope, { results }) {
         const statement = scope.addStatement(results.$scope)
@@ -197,12 +198,13 @@ export default new Spell.Parser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(scope, { results }) {
-        return (results.$scope = new Scope.Method({
+        results.$scope = new Scope.Method({
           scope,
           toString() {
             return `else ${this.compileStatements()}`
           }
-        }))
+        })
+        return results.$scope
       },
       updateScope(scope, { results }) {
         const statement = scope.addStatement(results.$scope)
@@ -258,7 +260,6 @@ export default new Spell.Parser({
         return { expression: match.results }
       },
       applyOperator({ lhs, rhs }) {
-        const { condition, expression } = rhs
         return `(${rhs.condition} ? ${lhs} : ${rhs.expression})`
       },
       tests: [

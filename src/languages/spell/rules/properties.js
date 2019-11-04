@@ -26,7 +26,7 @@ export default new Spell.Parser({
       blacklist: identifierBlacklist,
       // convert dashes to underscores
       valueMap(value) {
-        return ("" + value).replace(/-/g, "_")
+        return `${value}`.replace(/-/g, "_")
       }
     },
 
@@ -47,7 +47,7 @@ export default new Spell.Parser({
       syntax: "{property_accessor} {expression:single_expression}",
       testRule: "{property_accessor}", // ???
       compile(scope, match) {
-        let { expression, property_accessor } = match.results
+        const { expression, property_accessor } = match.results
         // TODO: `[xxx]` for non-identifiers
         // TODO: optional accessor:  `a?.b` ???
         return `${expression}.${property_accessor}`
@@ -94,15 +94,15 @@ export default new Spell.Parser({
 
     // Properties clause: creates an object with one or more property values.
     //  `foo = 1, bar = 2`
-    //TODO: would like to use `and` but that conflicts with "and" operator
-    //TODO: don't quote if we don't have to? (ASCII and blacklist only)
-    //TOOD: multiple lines if > 2 props?
+    // TODO: would like to use `and` but that conflicts with "and" operator
+    // TODO: don't quote if we don't have to? (ASCII and blacklist only)
+    // TODO: multiple lines if > 2 props?
     {
       name: "object_literal_properties",
       syntax: "[({key:property} ((=|is|of|is? set to) {value:expression})?)(,|and)]",
       compile(scope, match) {
         const props = match.items.map(function(prop) {
-          let { key, value } = prop.results
+          const { key, value } = prop.results
           if (value === undefined) return key
           if (!LEGAL_PROPERTY_IDENTIFIER.test(key)) return `"${key}": ${value}`
           return `${key}: ${value}`
@@ -130,12 +130,12 @@ export default new Spell.Parser({
       ]
     },
 
-    //MOVE TO `functions`?
+    // MOVE TO `functions`?
     // Arguments clause for methods
     //  `with foo` or `with foo and bar and baz`
-    //TODO: {identifier} = {expression}  => requires `,` instead of `and`
-    //TODO: `with foo as Type`
-    //TODO:  `with foo...` for splat?
+    // TODO: {identifier} = {expression}  => requires `,` instead of `and`
+    // TODO: `with foo as Type`
+    // TODO:  `with foo...` for splat?
     {
       name: "args",
       syntax: "with [args:{variable},]",

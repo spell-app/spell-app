@@ -21,12 +21,14 @@ import { Match } from "../all"
 //  `rule.rules` is the array of rules to match.
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
 Rule.Sequence = class sequence extends Rule {
-  constructor(props) {
-    if (arguments.length > 1) props = { rules: [...arguments] }
+  constructor(...args) {
+    let [props] = args
+    if (arguments.length > 1) props = { rules: args }
     if (Array.isArray(props)) props = { rules: props }
     if (!props.rules) throw new TypeError(`Sequence '${props.name}' created without specifying 'rules'!`)
     super(props)
   }
+
   parse(scope, tokens) {
     if (this.test(scope, tokens) === false) return undefined
 
@@ -37,11 +39,13 @@ Rule.Sequence = class sequence extends Rule {
     for (let i = 0, rule; (rule = this.rules[i++]); ) {
       // If we're out of tokens, bail if rule is not optional
       if (remainingTokens.length === 0) {
+        // eslint-disable-next-line no-continue
         if (rule.optional) continue
         return undefined
       }
-      let match = rule.parse(scope, remainingTokens)
+      const match = rule.parse(scope, remainingTokens)
       if (!match) {
+        // eslint-disable-next-line no-continue
         if (rule.optional) continue
         return undefined
       }
@@ -66,13 +70,13 @@ Rule.Sequence = class sequence extends Rule {
   }
 
   getTokens(match) {
-    return flattenDeep(match.matched.map(match => match.tokens))
+    return flattenDeep(match.matched.map(nextMatch => nextMatch.tokens))
   }
 
-  //TODOC
+  // TODOC
   // "gather" matched values into a map in preparation to call `compile(scope, match)`
   gatherResults(scope, match) {
-    return this._addResults({}, match.matched, match => match.compile())
+    return this._addResults({}, match.matched, nextMatch => nextMatch.compile())
   }
 
   gatherGroups(scope, match) {
@@ -107,7 +111,7 @@ Rule.Sequence = class sequence extends Rule {
 
   // Echo this rule back out.
   toSyntax() {
-    const { testLocation, argument, optional } = this.getSyntaxFlags()
+    const { argument, optional } = this.getSyntaxFlags()
     const rules = this.rules.map(rule => rule.toSyntax()).join(" ")
     if (optional || argument) return `(${argument}${rules})${optional}`
     return `${rules}${optional}`

@@ -201,7 +201,7 @@ export default new Spell.Parser({
     },
 
     {
-      //TODO: precision:  to the nearest tenth ?
+      // TODO: precision:  to the nearest tenth ?
       name: "round_number",
       alias: ["expression", "single_expression"],
       syntax: "round {thing:expression} (direction:off|up|down)?",

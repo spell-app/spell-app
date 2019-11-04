@@ -2,7 +2,7 @@
 //  # Rules for creating variables, property access, etc
 //
 
-import { Rule, Spell, Token } from "../all"
+import { Spell } from "../all"
 
 export default new Spell.Parser({
   module: "UI",
@@ -140,7 +140,7 @@ export default new Spell.Parser({
 
     // Chose one or more items from `collection` (of strings???)
     // Returns a promise which `resolve()`s if they "OK" with a value, `reject()`s if they "cancel".
-    //TODO
+    // TODO
     //     {
     //       name: "choose_one",
     //       alias: "statement",
@@ -150,7 +150,7 @@ export default new Spell.Parser({
 
     // Chose one or more items from `collection` (of strings???)
     // Returns a promise which `resolve()`s if they "OK" with a value, `reject()`s if they "cancel".
-    //TODO
+    // TODO
     //     {
     //       name: "choose_multiple",
     //       alias: "statement",
