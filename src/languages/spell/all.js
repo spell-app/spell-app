@@ -6,10 +6,9 @@
 
 export * from "../../parser/all"
 
-export * from "./Spell"
+export { default as Spell } from "./Spell"
 export * from "./scope/all"
 
 // Export the entire language as `spell` and as the `default` export.
-import { spellParser } from "./rules/_spell"
-export { spellParser }
-export default spellParser
+export { spellParser } from "./rules/_spell"
+export { spellParser as default } from "./rules/_spell"
