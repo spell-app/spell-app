@@ -58,6 +58,7 @@ const spellCore = {
   //--------
 
   // Return string "type" of `thing`.
+  // TODO;  NaN => `NaN `? `unknown` ???
   // TODO:  string => text ?
   // TODO:  boolean => choice ?
   // TODO:  array => list ?  array-like?
