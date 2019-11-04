@@ -36,11 +36,13 @@ Rule.Literal = class literal extends Rule {
   toSyntax() {
     const { testLocation, argument, optional } = this.getSyntaxFlags()
     const isVariable = Array.isArray(this.literal)
-    const literal = isVariable ? this.literal.join("|") : this.isEscaped ? `\\${this.literal}` : this.literal
+    let literalString = this.literal
+    if (isVariable) literalString = this.literal.join("|")
+    else if (this.isEscaped) literalString = `\\${this.literal}`
 
     const wrapInParens = isVariable || argument || (this.isEscaped && optional)
-    if (wrapInParens) return `${testLocation}(${argument}${literal})${optional}`
-    return `${testLocation}${literal}${optional}`
+    if (wrapInParens) return `${testLocation}(${argument}${literalString})${optional}`
+    return `${testLocation}${literalString}${optional}`
   }
 }
 

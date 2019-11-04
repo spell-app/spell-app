@@ -26,7 +26,7 @@ Spell.Rule.BlockLine = class block_line extends Rule {
     const statement = scope.parse(remainingTokens, "statement")
 
     // If no statement and no comment, forget it (ignoring whitespace).
-    if (!statement && !comment) return
+    if (!statement && !comment) return undefined
 
     // If we got a statement but didn't reach the end of the line
     //  continue but note the `unparsed` stuff.

@@ -1,4 +1,4 @@
-import { Rule, Spell, Tokenizer, proto } from "../all"
+import { Rule, Spell, Tokenizer, ParseError, proto } from "../all"
 
 // In Spell, we generally match `statements` across the entire line.
 //
@@ -10,8 +10,10 @@ import { Rule, Spell, Tokenizer, proto } from "../all"
 Spell.Rule.Statement = class statement extends Rule.Sequence {
   // Set to true if this statement wants to attempt to read an inline statement on the same line.
   @proto wantsInlineStatement = false
+
   // Rule to parse inline statement as -- see `parseInlineStatement()`
   @proto parseInlineStatementAs = "statement"
+
   // Set to true if this statement wants to attempt to read an nested block starting on the next line.
   @proto wantsNestedBlock = false
 
@@ -36,7 +38,7 @@ Spell.Rule.Statement = class statement extends Rule.Sequence {
   // and handle block statements.
   parse(scope, tokens) {
     const match = super.parse(scope, tokens)
-    if (!match) return
+    if (!match) return undefined
 
     // If we didn't parse everything on the line
     if (match.length !== tokens.length) {

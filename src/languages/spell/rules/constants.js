@@ -10,8 +10,11 @@ const WORD = /^[a-zA-Z][\w\-]*$/
 
 Spell.Rule.Constant = class constant extends Rule.Pattern {
   @proto pattern = WORD
+
   @proto blacklist = identifierBlacklist
+
   compile(scope, match) {
+    // eslint-disable-next-line no-shadow
     const constant = match.constant || scope.constants(match.raw) || new Scope.Constant(match.raw)
     return constant.toString()
   }
@@ -44,9 +47,10 @@ export default new Spell.Parser({
       constructor: class known_constant extends Spell.Rule.Constant {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
-          if (!match) return
+          if (!match) return undefined
           match.constant = scope.constants(match.raw)
           if (match.constant) return match
+          return undefined
         }
       },
       tests: [

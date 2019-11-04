@@ -1,6 +1,7 @@
 //----------------------------
 //  `spell` base runtime library for use with classes created with spell
 //----------------------------
+import global from "global"
 import forEach from "lodash/forEach"
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
@@ -150,7 +151,7 @@ const spell = {
 
   // Create an element (ala `React.createElement()`)
   createElement(tagName, properties, ...children) {
-    throw new RuntimeError("TODO: spell.createElement()")
+    throw new global.RuntimeError("TODO: spell.createElement()")
   }
 }
 

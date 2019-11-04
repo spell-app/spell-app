@@ -329,7 +329,7 @@ export class List {
 		list.items = results
 	}
 
-	//### Restrict list on `add`
+	// ### Restrict list on `add`
 //>	unique = false
 	@prototype({ type: Boolean })
 	static unique = false

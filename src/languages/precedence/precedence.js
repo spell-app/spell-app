@@ -29,9 +29,7 @@
 // TODO: test repeating lists, `\\[ [{expression},] \\]`
 // TODO: test `the number of {identifer} in {single_expression}
 
-import sortBy from "lodash/sortBy"
-
-import { Parser, Rule, Tokenizer, Token, WhitespacePolicy, peek, proto } from "../../parser/all"
+import { Parser, Rule, Tokenizer, Token, WhitespacePolicy, peek } from "../../parser/all"
 
 const parser = new Parser({
   module: "precedence",
@@ -63,7 +61,7 @@ const parser = new Parser({
       alias: ["expression", "single_expression"],
       syntax: "\\( {expression} \\)",
       compile(scope, match) {
-        let { expression } = match.results
+        const { expression } = match.results
         // Don't double-up parens
         if (expression.startsWith?.("(") && expression.endsWith(")")) return expression
         return `(${expression})`
@@ -117,7 +115,7 @@ const parser = new Parser({
         const rhsExpressions = matched[1].matched
         rhsExpressions.forEach(rhsMatch => {
           const rhs = rhsMatch.compile()
-          const rule = rhsMatch.rule
+          const { rule } = rhsMatch
 
           // For a unary postfix operator, `rhs` will be the operator text that was matched
           if (typeof rhs === "string") {
@@ -134,9 +132,9 @@ const parser = new Parser({
             // While top operator on stack is higher precedence than this one
             while (peek(opStack)?.rule.precedence >= rule.precedence) {
               // pop the top operator and compile it with top 2 things on the output stack
-              const { operator, rule: topRule } = opStack.pop()
+              const { operator: topOperator, rule: topRule } = opStack.pop()
               const args = {
-                operator,
+                operator: topOperator,
                 rhs: output.pop(),
                 lhs: output.pop()
               }
@@ -167,9 +165,7 @@ const parser = new Parser({
       },
 
       applyOperator(rule, args, scope) {
-        const { lhs, rhs, operator } = args
-        const result = rule.applyOperator(args)
-        return result
+        return rule.applyOperator(args)
       }
     },
 

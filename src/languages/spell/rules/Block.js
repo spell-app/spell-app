@@ -10,19 +10,22 @@ import { Match, Rule, Spell, Token, isWhitespace } from "../all"
 Spell.Rule.Block = class block extends Rule {
   // Split statements up into blocks and parse 'em.
   parse(scope, tokens) {
-    if (!tokens.length) return
+    if (!tokens.length) return undefined
     return this.parseBlock(scope, tokens[0])
   }
 
   // Parse an entire `block`, returning array of matched elements (NOT as a match).
+  // eslint-disable-next-line no-shadow
   parseBlock(scope, block) {
     let matched = []
     let lastStatement
-    for (var i = 0, item; (item = block.contents[i]); i++) {
+    for (let i = 0, last = block.contents.length; i < last; i++) {
+      const item = block.contents[i]
       // Just add a blank link to the stream
       if (item.length === 0) {
         matched.push(new Rule.BlankLine())
-        length += 1
+        // TODO: ????
+        // length += 1
       }
       // If we got a nested block
       else if (item instanceof Token.Block) {
@@ -83,10 +86,11 @@ Spell.Rule.Block = class block extends Rule {
   // Set `match.enclose` to enclose in curly braces
   // Set `match.indent` to add a tab to the start of each line.
   compile(scope, match) {
-    let results = [],
-      statement
+    let results = []
+    let statement
 
-    for (var i = 0, line; (line = match.matched[i]); i++) {
+    for (let i = 0, last = match.matched.length; i < last; i++) {
+      const line = match.matched[i]
       try {
         // If we got a comment back, there was no statement.
         if (line.rule?.name === "comment") {
@@ -94,6 +98,7 @@ Spell.Rule.Block = class block extends Rule {
         } else {
           // Output text that was actually matched if provided
           const output = []
+          // eslint-disable-next-line no-useless-concat
           if (line.source) output.push("/" + `/ SPELL: '${line.source}'`)
           // Put comment FIRST, before translation
           if (line.comment) output.push(line.comment.compile())
@@ -124,7 +129,7 @@ Spell.Rule.Block = class block extends Rule {
       }
     }
     const tab = match.indent ? "\t" : ""
-    let lines = `${tab}${results.join("\n" + tab)}`
+    const lines = `${tab}${results.join(`\n${tab}`)}`
     if (match.enclose) return `{\n${lines}\n${tab.slice(1)}}`
     return lines
   }

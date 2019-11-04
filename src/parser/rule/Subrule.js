@@ -18,8 +18,8 @@ Rule.Subrule = class subrule extends Rule {
   }
 
   parse(scope, tokens) {
-    if (!tokens.length) return
-    let rule = scope.getRuleOrDie(this.rule)
+    if (!tokens.length) return undefined
+    const rule = scope.getRuleOrDie(this.rule)
 
     const match = rule.parse(scope, tokens)
     if (!match) return undefined

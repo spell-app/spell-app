@@ -61,7 +61,7 @@ export default class Type extends Scope {
   // Compile the type.
   // NOTE: this currently ignores methods/properties, we'll want to fix that...
   toString() {
-    let statements = []
+    const statements = []
     if (this.superType) statements.push(`export class ${this.name} extends ${this.superType} {}`)
     else statements.push(`export class ${this.name} {}`)
     statements.push(`spell.addExport("${this.name}", ${this.name})`)

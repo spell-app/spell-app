@@ -14,10 +14,10 @@ export default new Spell.Parser({
       syntax: "\\( {expression} \\)",
       testRule: "\\(",
       compile(scope, match) {
-        let { expression } = match.results
+        const { expression } = match.results
         // don't double parens if not necessary
         if (typeof expression === "string" && expression.startsWith("(") && expression.endsWith(")")) return expression
-        return "(" + expression + ")"
+        return `(${expression})`
       },
       tests: [
         {
@@ -62,7 +62,7 @@ export default new Spell.Parser({
         const rhsExpressions = matched[1].matched
         rhsExpressions.forEach(rhsMatch => {
           const rhs = rhsMatch.compile()
-          const rule = rhsMatch.rule
+          const { rule } = rhsMatch
           // For a unary postfix operator, `rhs` will be the operator text that was matched
           if (typeof rhs === "string") {
             const args = {
@@ -78,9 +78,9 @@ export default new Spell.Parser({
             // While top operator on stack is higher precedence than this one
             while (peek(opStack)?.rule.precedence >= rule.precedence) {
               // pop the top operator and compile it with top 2 things on the output stack
-              const { operator, rule: topRule } = opStack.pop()
+              const { operator: topOperator, rule: topRule } = opStack.pop()
               const args = {
-                operator,
+                operator: topOperator,
                 rhs: output.pop(),
                 lhs: output.pop()
               }

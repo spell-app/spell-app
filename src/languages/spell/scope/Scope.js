@@ -119,7 +119,7 @@ export default class Scope {
   compileStatements(statements = this.statements) {
     if (!statements || statements.length === 0) return "{}"
     // Hack whitespace off of the end of lines as necessary
-    statements = statements.map(statement => ("" + statement).trimEnd())
+    statements = statements.map(statement => `${statement}`.trimEnd())
     if (statements.length === 1) return `{ ${statements} }`
     return `{\n  ${this.statements.join("\n  ")}\n}`
   }
@@ -131,6 +131,7 @@ export default class Scope {
   get parser() {
     return this._parser || this.scope?.parser
   }
+
   set parser(parser) {
     this._parser = parser
   }
@@ -144,12 +145,15 @@ export default class Scope {
   parse(text, ruleName) {
     return this.parser.parse(text, ruleName, this)
   }
+
   compile(text, ruleName) {
     return this.parser.compile(text, ruleName, this)
   }
+
   statement(text) {
     return this.parser.parse(text, "statement", this)
   }
+
   exp(text) {
     return this.parser.parse(text, "expression", this)
   }
@@ -166,8 +170,8 @@ export default class Scope {
   //  to set up `alias`, `precedence`, etc.
   addRule(ruleProps, results) {
     const rule = this.parser.defineRule(ruleProps, results)
-    results?.rules?.push(rule)
-    if (results) results.statements.push("// SPELL added rule: `" + rule.toSyntax() + "`")
+    if (results && results.rules) results.rules.push(rule)
+    if (results) results.statements.push(`// SPELL added rule: \`${rule.toSyntax()}\``)
     return rule
   }
 
@@ -214,13 +218,15 @@ export default class Scope {
         return typeof value
       })
     )
+    // eslint-disable-next-line prefer-destructuring
     if (results.datatype.length === 1) results.datatype = results.datatype[0]
     results.enumType = { type: "enum", datatype: results.datatype, enumeration }
 
     // Add statements to declare the value
     // WAS:    const initializer = JSON5.stringify(enumeration);
     const initializer = `[${enumeration.join(", ")}]`
-    let literals, statement
+    let literals
+    let statement
     if (this instanceof Type) {
       literals = [[this.name, this.instanceName], [name, lowerFirst(name)]]
       // Add the full list as a class var.

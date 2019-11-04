@@ -48,7 +48,7 @@ export default new Spell.Parser({
       constructor: class variable extends Rule.Sequence {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
-          if (!match) return
+          if (!match) return undefined
           // Return just the `variable_identifier` bit, adjusting `length` to account for `the` as necessary.
           const varMatch = match.matched[match.matched.length - 1]
           // set `varMatch.variable` to scope variable, if defined
@@ -78,7 +78,7 @@ export default new Spell.Parser({
       constructor: class known_variable extends Rule.Sequence {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
-          if (!match) return
+          if (!match) return undefined
           // Return just the `variable_identifier` bit...
           const varMatch = match.matched[match.matched.length - 1]
           varMatch.variable = scope.variables(varMatch.raw)
@@ -87,6 +87,7 @@ export default new Spell.Parser({
             varMatch.length = match.length
             return varMatch
           }
+          return undefined
         }
       },
       tests: [
@@ -111,8 +112,8 @@ export default new Spell.Parser({
       constructor: class singular_variable extends Spell.Rule.Variable {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
-          if (!match) return
-          if (match.raw === singularize(match.raw)) return match
+          if (match && match.raw === singularize(match.raw)) return match
+          return undefined
         }
       },
       tests: [
@@ -133,8 +134,8 @@ export default new Spell.Parser({
       constructor: class plural_variable extends Spell.Rule.Variable {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
-          if (!match) return
-          if (match.raw === pluralize(match.raw)) return match
+          if (match && match.raw === pluralize(match.raw)) return match
+          return undefined
         }
       },
       tests: [

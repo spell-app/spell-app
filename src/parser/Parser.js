@@ -50,7 +50,7 @@ export default class Parser {
   }
 
   //
-  //### Tokenizing (a.k.a. "lexical analysis")
+  // ### Tokenizing (a.k.a. "lexical analysis")
   //
 
   // Default tokenizer.  You may want to create one in your parser subclasses,
@@ -66,7 +66,7 @@ export default class Parser {
   }
 
   //
-  //### Parsing
+  // ### Parsing
   //
 
   // Return a `scope` for top-level `parse()` or `compile()` if one was not provided.
@@ -109,7 +109,7 @@ export default class Parser {
   //  - if one string argument, compiles as "block"
   // Throws if not parseable.
   compile(text, ruleName = this.defaultRule, scope = this.getScope()) {
-    let match = this.parse(text, ruleName, scope)
+    const match = this.parse(text, ruleName, scope)
     if (!match) {
       throw new ParseError(`parser.compile('${text}'): can't parse text`)
     }
@@ -155,6 +155,7 @@ export default class Parser {
   @clearMemoized("rules")
   addRule(rule, ruleName) {
     // If rule is a Rule subclass, instantiate it
+    // eslint-disable-next-line new-cap
     if (rule.prototype instanceof Rule) rule = new rule()
 
     // If we didn't get a ruleName, try `rule.name`
@@ -165,12 +166,12 @@ export default class Parser {
 
     if (!(rule instanceof Rule)) {
       this.error("addRule() called with a non-rule.  Did you mean to call defineRule()?\n", rule)
-      return
+      return undefined
     }
 
     // If we got an array of `ruleName`s, recursively add under each name with the same `rule`.
     if (Array.isArray(ruleName)) {
-      ruleName.forEach(ruleName => this.addRule(rule, ruleName))
+      ruleName.forEach(name => this.addRule(rule, name))
     }
     // Add to our list of rules
     else {
@@ -189,10 +190,9 @@ export default class Parser {
   // Merge all rule `sources` together into a new rules map.
   mergeRuleSets(...sources) {
     const rules = { ...sources[0] }
-    for (var i = 1, source; (source = sources[i]); i++) {
-      for (const ruleName in source) {
-        this.mergeRule(rules, ruleName, source[ruleName])
-      }
+    for (let i = 1, last = sources.length; i < last; i++) {
+      const source = sources[i]
+      Object.keys(source).forEach(ruleName => this.mergeRule(rules, ruleName, source[ruleName]))
     }
     return rules
   }
@@ -202,7 +202,7 @@ export default class Parser {
   //  - if `rules[ruleName]` is a Rule.Group, we'll just add the new rule to the group,
   //  - or we'll convert `rules[ruleName]` to a group with the original + new rules.
   mergeRule(map, ruleName, rule) {
-    let existing = map[ruleName]
+    const existing = map[ruleName]
     if (!existing) {
       // Always clone groups when adding.
       if (rule instanceof Rule.Group) rule = rule.clone()
@@ -228,7 +228,7 @@ export default class Parser {
   //       as error stack traces will get you to the right line if there's a problem.
   defineRules(...ruleProps) {
     ruleProps = flatten(ruleProps)
-    const rules = ruleProps.map(ruleProps => this.defineRule(ruleProps))
+    const rules = ruleProps.map(props => this.defineRule(props))
     return flatten(rules).filter(Boolean)
   }
 
@@ -248,8 +248,9 @@ export default class Parser {
       // If passed in a Rule instance or rule instance, just call addRule
       if (ruleProps instanceof Rule || ruleProps.prototype instanceof Rule) return this.addRule(ruleProps)
 
+      // eslint-disable-next-line prefer-const
       let { skip, constructor, ...props } = ruleProps
-      if (skip) return
+      if (skip) return undefined
 
       // If we received multiple syntax strings,
       // recursively add under each string.
@@ -309,6 +310,7 @@ export default class Parser {
         else {
           props = { ...rule, ...props }
         }
+        // eslint-disable-next-line prefer-destructuring
         if (CLONE_CLASSES && !constructor) constructor = rule.constructor
       }
 
@@ -328,6 +330,7 @@ export default class Parser {
     } catch (error) {
       if (!isNode) console.warn("Error in defineRule():", error, "\nprops:", ruleProps)
     }
+    return undefined
   }
 
   //
@@ -339,7 +342,7 @@ export default class Parser {
   // Runs the full test once to warm up the rules
   //  then runs 10 more times to get an average time once we're warmed up.
   speedTest(moduleName = "") {
-    console.group(`Speed test for ${moduleName ? "module " + moduleName : "all modules"}`)
+    console.group(`Speed test for ${moduleName ? `module ${moduleName}` : "all modules"}`)
     // Run the test once first to warm up the rules.
     const results = this.testRules(moduleName, false)
     console.debug(`Initial run`)
@@ -351,7 +354,7 @@ export default class Parser {
     console.debug(`Subsequent runs:`)
     const runCount = 20
     const times = []
-    for (var index = 1; index <= runCount; index++) {
+    for (let index = 1; index <= runCount; index++) {
       const runTime = this.testRules(moduleName, false).time
       console.debug(`   run #${index}: ${runTime} msec`)
       times.push(runTime)
@@ -410,7 +413,7 @@ export default class Parser {
             const scope = this.getScope("test")
             if (beforeEach) beforeEach(scope)
 
-            let { input, output, title = input } = test
+            const { input, output } = test
             let result
             try {
               const match = scope.parse(input, compileAs, scope)

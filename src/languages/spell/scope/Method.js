@@ -1,3 +1,4 @@
+import { Spell } from "../all"
 import { Scope, Variable } from "./all"
 
 // Method
@@ -44,7 +45,7 @@ export default class Method extends Scope {
           `Method.toString(): 'asExpression' specified but method has ${statements.length} statements.`,
           statements
         )
-      const expression = "" + statements[0].trim()
+      const expression = `${statements[0].trim()}`
       return `(${args}) => ${expression}`
     }
 

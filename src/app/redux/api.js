@@ -8,7 +8,7 @@
 //
 //----------------------------
 
-import JSON5 from "json5"
+import global from "global"
 import { parseJSON, parseJSON5 } from "./utils/json"
 import { addDebugMethods, DebugLevel } from "../../utils/addDebugMethods"
 
@@ -109,12 +109,6 @@ export function makeAPICall({ url, params = {}, apiMethod, credentials = "includ
           responsePromise = parseJSON5Response(response)
         else if (responseType === "blob") responsePromise = response.blob()
         else if (responseType === "text") responsePromise = response.text()
-        else if (responseType === "dataURL")
-          responsePromise = response
-            .blob()
-            //... and convert to a base64 blob we can use as an `<img src>`
-            .then(blob => toDataURL(blob, "Error parsing image"))
-
         // Convert an error in the above into an APIError
         return responsePromise.catch(exception => {
           const error = new APIError({
@@ -174,7 +168,7 @@ export function getBlobAsDataURL({ url, params = {}, apiMethod }) {
 // NOTE: this uses a special `<a>` tag to force the browser to download.
 // See: https://developers.google.com/web/updates/2011/08/Downloading-resources-in-HTML5-a-download
 export function openFile({ url, filename }) {
-  window.open(url, "_blank")
+  global.open(url, "_blank")
 }
 
 // Download the file at `url` to user's disk as `filename`.
@@ -268,7 +262,7 @@ export function getQueryParamsString(queryObject) {
   const params = Object.keys(queryObject).map(key => {
     return `${key}=${queryObject[key]}`
   })
-  return "?" + params.join("&")
+  return `?${params.join("&")}`
 }
 
 // Parse JSON `response` from a `fetch`.
@@ -290,7 +284,7 @@ export function parseJSON5Response(response) {
 // Set a header in fetch `params`, creating `params` object if necessary.
 // Returns `params`.
 export function setFetchHeader(params, headerName, headerValue) {
-  if (!params.headers) params.headers = new Headers()
+  if (!params.headers) params.headers = new global.Headers()
   params.headers.set(headerName, headerValue)
   return params
 }

@@ -68,7 +68,7 @@ export default new Spell.Parser({
       testRule: "get",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
-        let { value } = results
+        const { value } = results
         // make sure 'it' is declared LOCALLY
         const isNewVar = !scope.variables("it", "LOCAL")
         if (isNewVar) scope.variables.add("it")

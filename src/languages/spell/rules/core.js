@@ -186,8 +186,9 @@ export default new Spell.Parser({
       name: "comment",
       tokenType: Token.Comment,
       compile(scope, match) {
-        let { commentSymbol, initialWhitespace, value } = match.matched[0]
-        if (commentSymbol !== "//") commentSymbol = "//" + commentSymbol
+        const { initialWhitespace, value } = match.matched[0]
+        let { commentSymbol } = match.matched[0]
+        if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
         return `${commentSymbol}${initialWhitespace}${value}`
       },
       tests: [
@@ -228,7 +229,7 @@ export default new Spell.Parser({
       pattern: /^[a-zA-Z][\w\-]*$/,
       // convert dashes to underscores when compiling
       valueMap(value) {
-        return ("" + value).replace(/\-/g, "_")
+        return `${value}`.replace(/\-/g, "_")
       },
       tests: [
         {

@@ -5,12 +5,11 @@
 //----------------------------
 
 import global from "global"
-import JSON5 from "json5"
 import { connect } from "react-redux"
 import prettier from "prettier/standalone"
 import babylon from "prettier/parser-babylon"
 
-import { spellParser, Scope } from "../all"
+import { spellParser } from "../all"
 
 import { api, getPref, setPref, setPrefKey, ReduxFactory } from "./all"
 
@@ -24,7 +23,7 @@ export const INPUT = "INPUT"
 
 const PROJECT_INDEX_FILE_NAME = "index"
 
-//HACK: we should do this in the app somewhere rather than here...
+// HACK: we should do this in the app somewhere rather than here...
 setPrefKey("spell_editor_")
 
 function getDefaultProject() {
@@ -41,8 +40,8 @@ function setDefaultModule(projectId, moduleId) {
 }
 
 // Try to figure out the projectId/moduleId we used last time
-const projectId = getDefaultProject()
-const moduleId = getDefaultModule(projectId)
+const defaultProjectId = getDefaultProject()
+const defaultModuleId = getDefaultModule(defaultProjectId)
 
 const factory = new ReduxFactory({
   domain: "projects",
@@ -51,8 +50,8 @@ const factory = new ReduxFactory({
     files: {}, // Map of `{ <examplePath> => <file contents> }` for all loaded files.
 
     // Selection
-    projectId, // Project currently selected, defaults to pref value.
-    moduleId, // Module currently selected, defaults to pref value.
+    projectId: defaultProjectId, // Project currently selected, defaults to pref value.
+    moduleId: defaultModuleId, // Module currently selected, defaults to pref value.
     input: undefined, // Current example input.  May be different than what's in `files`!
     output: undefined, // Current example compiled output.
     dirty: false // Is the example input different than what's been saved?
@@ -109,6 +108,7 @@ const factory = new ReduxFactory({
       async promise(projects, { projectId = projects.projectId, moduleId = projects.moduleId } = {}) {
         // Default to the first project
         const projectIds = await factory.call.loadProjectIds()
+        // eslint-disable-next-line prefer-destructuring
         if (!projectId || !projectIds.includes(projectId)) projectId = projectIds[0]
 
         return factory.call.selectModule({ projectId, moduleId }).then(() => factory.call.compileInput())
@@ -334,7 +334,8 @@ const factory = new ReduxFactory({
     {
       name: "duplicateModule",
       async promise(projects, params) {
-        let { projectId = projects.projectId, moduleId = projects.moduleId, newModuleId, contents } = params
+        const { projectId = projects.projectId, moduleId = projects.moduleId, newModuleId } = params
+        let { contents } = params
         if (!newModuleId) throw new TypeError("projects.duplicateModule(): You must specify 'newModuleId'")
 
         if (contents == null) {
@@ -344,7 +345,7 @@ const factory = new ReduxFactory({
           contents = projects.input
         }
 
-        return await factory.call.newModule({ projectId, moduleId: newModuleId, contents })
+        return factory.call.newModule({ projectId, moduleId: newModuleId, contents })
       },
       onSuccess(projects) {
         return { ...projects }
@@ -359,7 +360,8 @@ const factory = new ReduxFactory({
     {
       name: "renameModule",
       async promise(projects, params) {
-        let { projectId = projects.projectId, moduleId = projects.moduleId, newModuleId, contents } = params
+        const { projectId = projects.projectId, moduleId = projects.moduleId, newModuleId } = params
+        let { contents } = params
         if (!newModuleId) throw new TypeError("projects.duplicateModule(): You must specify 'newModuleId'")
 
         if (contents == null) {
@@ -519,7 +521,7 @@ const factory = new ReduxFactory({
 
         const url = `api/${path}`
         if (format === Formats.TEXT) return api.getText({ url, apiMethod: "loadFile" })
-        else return api.getJSON5({ url, apiMethod: "loadFile" })
+        return api.getJSON5({ url, apiMethod: "loadFile" })
       },
       onSuccess(projects, contents, { path, projectId, fileName }) {
         if (!path) path = this.getPath(projectId, fileName)

@@ -12,8 +12,9 @@ const DEBUG_CHOICES = false
 // After parsing
 //  we'll return the rule which is the "best match" (rather than cloning this rule).
 Rule.Choice = class choices extends Rule {
-  constructor(props) {
-    if (arguments.length > 1) props = [...arguments]
+  constructor(...args) {
+    let [props] = args
+    if (arguments.length > 1) props = args
     if (Array.isArray(props)) props = { rules: props }
     super(props)
     if (!this.rules) this.rules = []
@@ -64,15 +65,15 @@ Rule.Choice = class choices extends Rule {
         console.debug(`${CHOICE} got 1 match`, match)
       } else {
         console.debug(`${CHOICE} matched:`)
-        matches.forEach((match, index) => {
-          console.debug(`   #${index}: (len: ${match.length}, prec: ${match.rule.precedence}): `, match)
+        matches.forEach((nextMatch, index) => {
+          console.debug(`   #${index}: (len: ${nextMatch.length}, prec: ${nextMatch.rule.precedence}): `, match)
         })
       }
     }
     match = matches.length > 1 ? this.getBestMatch(matches) : matches[0]
     if (DEBUG_CHOICES) console.debug(`${CHOICE} returning:`, match)
     if (DEBUG_CHOICES) console.groupEnd()
-    if (!match) return
+    if (!match) return undefined
 
     // assign special properties to the result
     match.choiceRule = this.argument || this.name
