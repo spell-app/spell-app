@@ -15,7 +15,7 @@
 import flattenDeep from "lodash/flattenDeep"
 
 import Rule from "./Rule"
-import { Match } from "../all"
+import { Match, proto } from "../all"
 
 // Sequence of rules to match.
 //  `rule.rules` is the array of rules to match.
@@ -66,6 +66,7 @@ Rule.Sequence = class sequence extends Rule {
 
   // If no explcit compile method, return our `results` for someone else to consume.
   compile(scope, match) {
+    if (this.asLiterals) return match.matched.map(next => next.compile()).join(" ")
     return this.gatherResults(scope, match)
   }
 

@@ -272,7 +272,7 @@ export default new Spell.Parser({
     {
       name: "is_in_operator",
       syntax: "is (not? in|not? one of|either|not either of?|neither)",
-      constructor: Rule.LiteralSequence
+      asLiterals: true
     },
 
     {
@@ -361,7 +361,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "is (defined|undefined|not defined)",
-      constructor: Rule.LiteralSequence,
+      asLiterals: true,
       applyOperator({ lhs, operator }) {
         const op = operator === "is defined" ? "!==" : "==="
         return `(typeof ${lhs} ${op} 'undefined')`
