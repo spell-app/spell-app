@@ -40,7 +40,7 @@ const parser = new Parser({
     whitespacePolicy: WhitespacePolicy.LEADING_ONLY
   }),
   rules: [
-    // ///////////////////
+    //----------------------------
     //  Non-expressiony words
     {
       name: "identifier",
@@ -56,7 +56,7 @@ const parser = new Parser({
       }
     },
 
-    // ///////////////////
+    //----------------------------
     // Normal, productive expressions
     {
       name: "parenthesized_expression",
@@ -96,7 +96,7 @@ const parser = new Parser({
       }
     },
 
-    // ///////////////////
+    //----------------------------
     // Generic compound expression
     // Note that it's "lhs" (left-hand side) is a `single_expression`
     {
@@ -173,7 +173,7 @@ const parser = new Parser({
       }
     },
 
-    // ///////////////////
+    //----------------------------
     // Infix operators
     {
       name: "and_rhs",
@@ -202,7 +202,7 @@ const parser = new Parser({
       }
     },
 
-    // ///////////////////
+    //----------------------------
     // Postfix operators
     {
       name: "is_empty",
@@ -227,7 +227,7 @@ const parser = new Parser({
       }
     },
 
-    // ///////////////////
+    //----------------------------
     // Constants
     // Add a rule to match constants as expressions.
     {

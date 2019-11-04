@@ -1,6 +1,6 @@
-// ////////
+//----------------------------
 //  `spell` base runtime library for use with classes created with spell
-// ////////
+//----------------------------
 import forEach from "lodash/forEach"
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
@@ -8,7 +8,7 @@ import isEqual from "lodash/isEqual"
 import { assert } from "."
 
 const spell = {
-  // ////////
+  //----------------------------
   // Meta-programming
   //--------
 
@@ -31,7 +31,7 @@ const spell = {
     }
   },
 
-  // ////////
+  //----------------------------
   // exports
   //--------
 
@@ -52,7 +52,7 @@ const spell = {
     })
   },
 
-  // ////////
+  //----------------------------
   // types
   //--------
 
@@ -100,7 +100,7 @@ const spell = {
     return value !== false && value !== null && value !== undefined
   },
 
-  // ////////
+  //----------------------------
   // operators
   //--------
 
@@ -120,7 +120,7 @@ const spell = {
     }
   },
 
-  // ////////
+  //----------------------------
   // math
   //--------
 
@@ -144,7 +144,7 @@ const spell = {
     return Math.floor(Math.random() * (max - min + 1)) + min
   },
 
-  // ////////
+  //----------------------------
   // components
   //--------
 

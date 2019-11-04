@@ -1,8 +1,8 @@
-// //////////////////
+//----------------------------
 //
 //  Reducer and associated action creators/handlers for top-level app state data.
 //
-// //////////////////
+//----------------------------
 
 import global from "global"
 import JSON5 from "json5"
@@ -122,7 +122,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Update the current example input, e.g. when typing
     {
       name: "updateInput",
@@ -136,7 +136,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Compile the current example text
     {
       name: "compileInput",
@@ -207,7 +207,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Save the input.
     {
       name: "saveInput",
@@ -225,7 +225,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Revert the input to the value when we loaded it last.
     {
       name: "revertInput",
@@ -246,7 +246,7 @@ const factory = new ReduxFactory({
     //
 
     {
-      // ////////////////////
+      //----------------------------
       // Select a project and example module.
       // If you don't specify a moduleId, we'll return the first one in the project.
       name: "selectModule",
@@ -287,7 +287,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Reload the selected module (and the indices as well).
     {
       name: "reloadSelected",
@@ -297,7 +297,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Create a new module in the current project.
     {
       name: "newModule",
@@ -329,7 +329,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Duplicate the input under a new `moduleId`
     {
       name: "duplicateModule",
@@ -354,7 +354,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Rename a module from the specified project.
     {
       name: "renameModule",
@@ -392,7 +392,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Delete a module from the specified project.
     {
       name: "deleteModule",
@@ -427,7 +427,7 @@ const factory = new ReduxFactory({
     //  Specific loaders/etc
     //
 
-    // ////////////////////
+    //----------------------------
     // Load the list of projects.
     //  `projectIds` is a list of folder names.
     {
@@ -439,7 +439,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Load the index for a single project.
     //  `index` is a JSON5 index for the project.
     {
@@ -451,7 +451,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Save the index for a single project.
     //  `index` is a JSON5 index for the project.
     {
@@ -462,7 +462,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Load a single module.
     {
       name: "loadModule",
@@ -473,7 +473,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Save a module.
     {
       name: "saveModule",
@@ -488,7 +488,7 @@ const factory = new ReduxFactory({
     //  Generic load/save/delete -- you'll generally use one of the methods above
     //
 
-    // ////////////////////
+    //----------------------------
     // Update a project file in memory, including an index.
     // NOTE: doesn't update the disk at all!
     //  `contents` is the contents of the file.
@@ -500,7 +500,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Load a project file.
     //  `projectId`
     //  `fileName` (including extension)
@@ -532,7 +532,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Save a project file, including the project index.
     //  `contents` is the contents of the file.
     {
@@ -552,7 +552,7 @@ const factory = new ReduxFactory({
       }
     },
 
-    // ////////////////////
+    //----------------------------
     // Delete a project file.
     {
       name: "deleteFile",
@@ -574,7 +574,7 @@ const factory = new ReduxFactory({
 })
 export { factory as projects }
 
-// //////////////////
+//----------------------------
 //  `withProjects` HOC
 //  Wrap a component class with this to get access to `props.projects` as above.
 export function withProjects(Component) {

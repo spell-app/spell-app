@@ -25,7 +25,7 @@ export default class Type extends Scope {
     super(props)
   }
 
-  // ///////////////
+  //----------------------------
   // Class Variables and Methods (statics)
   //
   @indexedList({

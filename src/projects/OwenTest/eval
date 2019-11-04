@@ -1,6 +1,6 @@
 a card is a thing
 cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
-// //////////////
+//----------------------------
 a card "is a (rank)" for its ranks
 
 //cards have a direction as either up or down

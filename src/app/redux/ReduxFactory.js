@@ -1,4 +1,4 @@
-// ///////////////////////////////////
+//----------------------------
 //
 //  Generic utility class to make it easier to set up redux for a certain domain.
 //
@@ -73,7 +73,7 @@
 //    myDomain.setPref(prop, value)     // set value = `undefined` to clear
 //
 //
-// ///////////////////////////////////
+//----------------------------
 
 import _forEach from "lodash/forEach"
 import _snakeCase from "lodash/snakeCase"
@@ -127,11 +127,11 @@ export default class ReduxFactory {
     }
   }
 
-  // //////////////////
+  //----------------------------
   //
   //  Reducers, ActionCreators and ActionHandlers (`addAction()` and `addAsyncAction()`)
   //
-  // //////////////////
+  //----------------------------
 
   // Create reducer which dispatches according to our `_actionHandlers`.
   reducer = (state = this.initialState, action) => {
@@ -160,11 +160,11 @@ export default class ReduxFactory {
     this._actionHandlers[ACTION] = handler
   }
 
-  // //////////////////
+  //----------------------------
   //
   //  Actions (`addAction()`)
   //
-  // //////////////////
+  //----------------------------
 
   // Create a normal action creator/handler pair in a compact form.
   // Returns a function which will invoke the actionCreator on a short delay.
@@ -241,11 +241,11 @@ export default class ReduxFactory {
     return invoker
   }
 
-  // //////////////////
+  //----------------------------
   //
   //  Promise-based actions
   //
-  // //////////////////
+  //----------------------------
 
   // Create a promise-based action in a compact form.
   // Returns a function which invokes the actionCreator on a short delay,
@@ -529,11 +529,11 @@ export default class ReduxFactory {
     this.dispatch = this.store.dispatch
   }
 
-  // //////////////////
+  //----------------------------
   //
   //  Utility functions
   //
-  // //////////////////
+  //----------------------------
 
   // Return an action creator function.
   //  - `ACTION` is the action name
@@ -654,11 +654,11 @@ export default class ReduxFactory {
     this.CALL_REGISTRY = {}
   }
 
-  // //////////////////
+  //----------------------------
   //
   //  Store helpers
   //
-  // //////////////////
+  //----------------------------
 
   //  Create a store and set everything up.
   //  NOTE: Currently you MUST use this to set up your store if you want to use `ReduxFactory` at all!
@@ -804,13 +804,13 @@ export default class ReduxFactory {
     return next(action)
   }
 
-  // //////////////////
+  //----------------------------
   //
   //  Untracked state
   //  State which doesn't go through redux, because doing so would cause an app redraw
   //  which would be bad for some reason
   //
-  // //////////////////
+  //----------------------------
 
   // Return a piece of untracked state under `key`.
   getUntrackedState(key, defaultValue) {
@@ -830,7 +830,7 @@ export default class ReduxFactory {
     this.debug("setUntrackedState", this.UNTRACKED_STATE)
   }
 
-  // //////////////////
+  //----------------------------
   //
   //  Preferences
   //  Preferences are stored in localStorage to survive browser reloads.
@@ -838,7 +838,7 @@ export default class ReduxFactory {
   //  Getting/setting prefs DOES NOT update our redux state.
   //  If you ALSO want to update redux state, do that yourself.
   //
-  // //////////////////
+  //----------------------------
 
   // Return a stored `pref` value.
   getPref(pref, defaultValue) {

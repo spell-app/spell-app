@@ -1,5 +1,5 @@
 /* eslint-disable no-use-before-define */
-// ///////////////////////////////////
+//----------------------------
 //
 //  Add console logging methods to an arbitrary object.
 //
@@ -84,16 +84,16 @@
 //      foo.setDebugLevel("DEBUG");                         <== change level for this instance
 //      foo.someMethod() => "my-foo-instance: uh oh!"
 //
-// ///////////////////////////////////
+//----------------------------
 
 import { isNode } from "browser-or-node"
 import global from "global"
 
-// ////////////////////////////
+//----------------------------
 //
 //  Debug states
 //
-// ////////////////////////////
+//----------------------------
 export const DebugLevel = {
   OFF: 0,
   ERROR: 1,

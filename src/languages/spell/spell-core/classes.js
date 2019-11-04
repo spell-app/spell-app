@@ -1,10 +1,10 @@
-// ////////
+//----------------------------
 // Base classes for spell
 //--------
 import _ from "lodash"
 import { spell } from "."
 
-// ////////
+//----------------------------
 // `Thing`: base for all object-like things
 //--------
 export class Thing {
@@ -18,7 +18,7 @@ export class Thing {
 }
 spell.addExport("Thing", Thing)
 
-// ////////
+//----------------------------
 // `List`: our array concept (1-based)
 //--------
 export class List extends Array {

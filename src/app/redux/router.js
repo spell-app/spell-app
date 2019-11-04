@@ -1,8 +1,8 @@
-// ///////////////////////////////////
+//----------------------------
 //
 //  Router Reducer for ReduxFactory usage
 //
-// ///////////////////////////////////
+//----------------------------
 
 import React from "react"
 
@@ -62,7 +62,7 @@ export default _router
 // See:  https://github.com/ReactTraining/react-router/tree/master/packages/react-router-redux
 _router.wrapReducer(routerReducer)
 
-// //////////////////
+//----------------------------
 //
 //  Reload / redraw / restart
 //
@@ -172,7 +172,7 @@ export const _showUploadJSONPage = _router.addAction({
   }
 })
 
-// //////////////////
+//----------------------------
 //
 //  Server URL
 //  For flexibility in the Cordova app, we allow you to override
@@ -209,7 +209,7 @@ export const _setServerURL = _router.addAction({
   }
 })
 
-// //////////////////
+//----------------------------
 //
 //  URLs and Overlay storage
 //  - `getCurrentAppURL()`    -- url we're showing now
@@ -240,7 +240,7 @@ export function setLastOverlay(overlay) {
   _router.setPref("lastAppOverlay", overlay)
 }
 
-// ///////////////////////////////////
+//----------------------------
 //
 //  Overlay actions
 //
@@ -302,7 +302,7 @@ export const _hideOverlay = _router.addAction({
   }
 })
 
-// //////////////////
+//----------------------------
 //
 //  Page visibility
 //
@@ -366,7 +366,7 @@ document.addEventListener(
   false
 )
 
-// //////////////////
+//----------------------------
 //
 //  Utility
 //

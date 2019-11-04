@@ -1,4 +1,4 @@
-// ///////////////////////////////////
+//----------------------------
 //
 //  "Preferences" specific to this client
 //  Cover for localStorage so:

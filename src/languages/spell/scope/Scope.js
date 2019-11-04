@@ -33,7 +33,7 @@ export default class Scope {
     return this.compileStatements()
   }
 
-  // ///////////////
+  //----------------------------
   // Local and scope Variables
   //
   @indexedList({
@@ -48,7 +48,7 @@ export default class Scope {
   })
   variables
 
-  // ///////////////
+  //----------------------------
   // Local and scope Constants
   //
   @indexedList({
@@ -63,7 +63,7 @@ export default class Scope {
   })
   constants
 
-  // ///////////////
+  //----------------------------
   // Local and scope Methods
   //
   @indexedList({
@@ -78,7 +78,7 @@ export default class Scope {
   })
   methods
 
-  // ///////////////
+  //----------------------------
   // Local and scope Types
   //
   @indexedList({
@@ -100,7 +100,7 @@ export default class Scope {
     return this.types.add({ name, stub: true })
   }
 
-  // ///////////////
+  //----------------------------
   //  Statements
   //
   addStatement(statement, results) {
@@ -124,7 +124,7 @@ export default class Scope {
     return `{\n  ${this.statements.join("\n  ")}\n}`
   }
 
-  // ///////////////
+  //----------------------------
   // Parser
 
   // Default to our parent `scope`'s `parser` if one was not explicitly set up.

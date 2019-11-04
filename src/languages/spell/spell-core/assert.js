@@ -1,7 +1,7 @@
-// ////////
+//----------------------------
 // Assertion primitives
 // TODO: some way to control output
-// ////////
+//----------------------------
 
 import isArrayLike from "lodash/isArrayLike"
 import { spell } from "."

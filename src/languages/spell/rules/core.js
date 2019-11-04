@@ -6,7 +6,7 @@ import { Spell, Token } from "../all"
 export default new Spell.Parser({
   module: "core",
   rules: [
-    // ///////////////////////
+    //----------------------------
     //  Various flavors of whitespace.
     //
     // Eat all whitespace at start of tokens.
@@ -48,7 +48,7 @@ export default new Spell.Parser({
       tokenType: Token.InlineWhitespace
     },
 
-    // ///////////////////////
+    //----------------------------
     //  Simple types:  number, boolean, text (string), etc.
     //
 
