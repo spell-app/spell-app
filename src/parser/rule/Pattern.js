@@ -1,4 +1,5 @@
-import { Match, Rule } from "./all"
+import Rule from "./Rule"
+import { Match } from "../all"
 
 // Regex pattern to match a SINGLE token.
 // `rule.pattern` is the regular expression to match.

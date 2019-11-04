@@ -13,11 +13,12 @@
 //    - `match.compile()`    Return javascript source to interpret the rule.
 //
 
-import { proto, TestLocation } from "./all"
+import { TestLocation } from "../constants"
+import { proto } from "../../utils/decorators"
 
 // Abstract Rule class.
 // TODOC
-export class Rule {
+export default class Rule {
   // Precedence for this rule.
   // Rules with higher precedence are preferred in `Choice`s.
   // Precedence is also used as "operator precedence" in recursive expressions.

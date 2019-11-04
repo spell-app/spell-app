@@ -1,4 +1,5 @@
-import { Match, Rule } from "./all"
+import Rule from "./Rule"
+import { Match } from "../all"
 
 // Abstract rule for matching tokens of a particular type (Token constructor)
 Rule.TokenType = class tokenType extends Rule {

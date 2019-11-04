@@ -1,4 +1,5 @@
-import { Match, proto, Rule } from "./all"
+import Rule from "./Rule"
+import { Match, proto } from "../all"
 
 // Abstract rule for one or more sequential literal values to match.
 // `rule.literals`:

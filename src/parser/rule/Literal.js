@@ -1,4 +1,5 @@
-import { Match, Rule } from "./all"
+import Rule from "./Rule"
+import { Match } from "../all"
 
 // Abstract rule to match a single literal value.
 // `rule.literal` is either:
