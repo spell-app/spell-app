@@ -7,6 +7,24 @@ import { Spell } from "../all"
 export default new Spell.Parser({
   module: "UI",
   rules: [
+    // Print some value (to the console, I guess)
+    {
+      name: "print",
+      alias: "statement",
+      syntax: "print {expression}",
+      constructor: Spell.Rule.Statement,
+      updateScope(scope, { results }) {
+        const statement = scope.addStatement(`console.log(${results.expression})`)
+        results.statements.push(statement)
+      },
+      tests: [
+        {
+          compileAs: "statement",
+          tests: [[`print "Yo!"`, `console.log("Yo!")`]]
+        }
+      ]
+    },
+
     // Notify user about `message` in a non-modal (popup?) interface.
     // Returns a promise which `resolve()`s when notice is hidden (manually or otherwise).
     {

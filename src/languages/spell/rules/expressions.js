@@ -2,7 +2,6 @@
 //  # Rules for expressions.
 //
 
-import { Rule } from "../../../parser/all"
 import { Spell, peek } from "../all"
 
 export default new Spell.Parser({

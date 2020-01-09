@@ -262,6 +262,7 @@ Object.assign(spellCore, {
   // Return a random key of `collection`
   _randomKeyOf(collection) {
     if (!assert.isDefined(collection, "spellCore._randomKeyOf(collection)")) return undefined
+    if (spellCore.itemCountOf(collection) === 0) return undefined
     const item = spellCore.randomNumber(1, spellCore.itemCountOf(collection))
     if (spellCore.isArrayLike(collection)) return item
     return spellCore.keysOf(collection)[item - 1]

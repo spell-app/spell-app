@@ -884,7 +884,7 @@ export default new Spell.Parser({
       ]
     },
 
-    // Iteration
+    // Generic iteration
     // TODO: can work for object enumeration as well (maybe with 'of'?)
     // TODO: return values e.g. array.map() ???
     {
@@ -945,6 +945,58 @@ export default new Spell.Parser({
             [
               "for message and index in messages:\n\tif index is greater than 2 add message to messages",
               "spellCore.forEach(messages, function(message, index) { if (index > 2) { spellCore.append(messages, message) } })"
+            ]
+          ]
+        }
+      ]
+    },
+
+    // Number range-specific iteration
+    // TODO: this only works if you `from`, a more general solution which also supports `in` is better...
+    {
+      name: "list_iteration",
+      alias: "statement",
+      syntax: "for each? {item:singular_variable} from {start:expression} down? to {end:expression} :?",
+      testRule: "for",
+      constructor: Spell.Rule.Statement,
+      wantsInlineStatement: true,
+      wantsNestedBlock: true,
+      getNestedScope(scope, { results }) {
+        const { item, position } = results
+        // Create a method to be used in the `forEach` to add inline and block statements to.
+        const args = [{ name: item }]
+        if (position) args.push({ name: position, type: "number" })
+        results.$scope = new Scope.Method({
+          scope,
+          args
+        })
+        return results.$scope
+      },
+      updateScope(scope, { results }) {
+        // Add a Method for the `forEach` wrapper with a custom toString()
+        const { start, end, $scope } = results
+        const statement = scope.addStatement(
+          new Scope.Method({
+            name: "for_each",
+            toString() {
+              return `spellCore.forEach(spellCore.getRange(${start}, ${end}), ${$scope.toString()})`
+            }
+          })
+        )
+        results.statements.push(statement)
+      },
+      tests: [
+        {
+          compileAs: "block",
+          tests: [
+            ["for each number from 1 to 10:", "spellCore.forEach(spellCore.getRange(1, 10), function(number) {})"],
+            [
+              "for each number from 1 to 10: get the number",
+              "spellCore.forEach(spellCore.getRange(1, 10), function(number) { let it = number })"
+            ],
+            [
+              "for each number from 1 to 10: get the number",
+              "spellCore.forEach(spellCore.getRange(1, 10), function(number) { let it = number })"
             ]
           ]
         }

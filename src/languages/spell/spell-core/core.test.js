@@ -50,17 +50,17 @@ describe("spellCore.typeOf()", () => {
   test("returns 'unknown' when passed `undefined`", () => {
     expect(spellCore.typeOf(undefined)).toBe("unknown")
   })
+  test("returns 'unknown' when passed NaN", () => {
+    expect(spellCore.typeOf(NaN)).toBe("unknown")
+  })
   test("returns 'number' when passed a number", () => {
     expect(spellCore.typeOf(0)).toBe("number")
   })
-  test("returns 'number' when passed NaN", () => {
-    expect(spellCore.typeOf(NaN)).toBe("number")
+  test("returns 'text' when passed a string", () => {
+    expect(spellCore.typeOf("foo")).toBe("text")
   })
-  test("returns 'string' when passed a string", () => {
-    expect(spellCore.typeOf("foo")).toBe("string") // TODO: 'text'?
-  })
-  test("returns 'boolean' when passed a boolean", () => {
-    expect(spellCore.typeOf(false)).toBe("boolean") // TODO: 'choice'?
+  test("returns 'choice' when passed a boolean", () => {
+    expect(spellCore.typeOf(false)).toBe("choice")
   })
   test("returns 'object' when passed an Object", () => {
     expect(spellCore.typeOf({})).toBe("object")
@@ -68,8 +68,8 @@ describe("spellCore.typeOf()", () => {
   test("returns 'date' when passed a Date", () => {
     expect(spellCore.typeOf(new Date())).toBe("date")
   })
-  test("returns 'array' when passed an Array", () => {
-    expect(spellCore.typeOf([])).toBe("array") // TODO: `list`?
+  test("returns 'list' when passed an Array", () => {
+    expect(spellCore.typeOf([])).toBe("list")
   })
   test("returns 'function' when passed a Function", () => {
     expect(spellCore.typeOf(() => {})).toBe("function") // TODO: ???
@@ -81,17 +81,38 @@ describe("spellCore.typeOf()", () => {
 })
 
 describe("spellCore.isOfType()", () => {
-  test("matches with single type name", () => {
-    expect(spellCore.isOfType({}, "object")).toBe(true)
-  })
-  test("matches with multiple type names", () => {
-    expect(spellCore.isOfType({}, "array", "object")).toBe(true)
-  })
   test("matches 'unknown' for null", () => {
     expect(spellCore.isOfType(null, "unknown")).toBe(true)
   })
-  test("doesn't match if type not specified", () => {
+  test("doesn't match class if type is not correct", () => {
     expect(spellCore.isOfType({}, "date")).toBe(false)
+  })
+  test("matches with class name", () => {
+    expect(spellCore.isOfType({}, "object")).toBe(true)
+  })
+  test("matches base type 'number' correctly", () => {
+    expect(spellCore.isOfType(1, "number")).toBe(true)
+    expect(spellCore.isOfType(1.1, "number")).toBe(true)
+  })
+  test("matches 'integer' correctly", () => {
+    expect(spellCore.isOfType(1, "integer")).toBe(true)
+    expect(spellCore.isOfType(1.1, "integer")).toBe(false)
+  })
+  test("matches 'text' correctly", () => {
+    expect(spellCore.isOfType("", "text")).toBe(true)
+    expect(spellCore.isOfType("a", "text")).toBe(true)
+    expect(spellCore.isOfType("bar", "text")).toBe(true)
+  })
+  test("matches 'character' and 'char' correctly", () => {
+    expect(spellCore.isOfType("a", "character")).toBe(true)
+    expect(spellCore.isOfType("a", "char")).toBe(true)
+    expect(spellCore.isOfType("", "char")).toBe(false)
+    expect(spellCore.isOfType("abc", "char")).toBe(false)
+  })
+  test("matches 'choice' correctly for boolean", () => {
+    expect(spellCore.isOfType(true, "choice")).toBe(true)
+    expect(spellCore.isOfType(false, "choice")).toBe(true)
+    expect(spellCore.isOfType(0, "choice")).toBe(false)
   })
 })
 
@@ -104,6 +125,24 @@ describe("spellCore.isANumber()", () => {
   })
   test("returns false for NaN", () => {
     expect(spellCore.isANumber(parseInt("foo", 10))).toBe(false)
+  })
+})
+
+describe("spellCore.isAnInteger()", () => {
+  test("returns true for 0", () => {
+    expect(spellCore.isAnInteger(0)).toBe(true)
+  })
+  test("returns true for a whole number", () => {
+    expect(spellCore.isAnInteger(1)).toBe(true)
+  })
+  test("returns false for a decimal number", () => {
+    expect(spellCore.isAnInteger(1.1)).toBe(false)
+  })
+  test("returns false for a numeric string", () => {
+    expect(spellCore.isAnInteger("1")).toBe(false)
+  })
+  test("returns false for NaN", () => {
+    expect(spellCore.isAnInteger(parseInt("foo", 10))).toBe(false)
   })
 })
 
@@ -146,9 +185,8 @@ describe("spellCore.randomNumber()", () => {
     expect(spellCore.randomNumber(1, "foo")).toBe(undefined)
     expect(assert.failed).toHaveBeenCalled()
   })
-  test("returns undefined if max < min", () => {
-    expect(spellCore.randomNumber(1, 0)).toBe(undefined)
-    expect(assert.failed).toHaveBeenCalled()
+  test("returns a number if max < min", () => {
+    expect(typeof spellCore.randomNumber(1, 0)).toBe("number")
   })
   test("returns min if min === max", () => {
     expect(spellCore.randomNumber(1, 1)).toBe(1)
@@ -159,6 +197,18 @@ describe("spellCore.randomNumber()", () => {
   test("returns an integer with normal params", () => {
     const random = spellCore.randomNumber(1, 5)
     expect(Number.parseInt(random, 10)).toBe(random)
+  })
+})
+
+describe("spellCore.getRange()", () => {
+  test("works in positive direction", () => {
+    expect(spellCore.getRange(1, 10)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+  })
+  test("works in negative direction", () => {
+    expect(spellCore.getRange(10, 1)).toEqual([10, 9, 8, 7, 6, 5, 4, 3, 2, 1])
+  })
+  test("works for a ingle number", () => {
+    expect(spellCore.getRange(1, 1)).toEqual([1])
   })
 })
 

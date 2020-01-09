@@ -1,0 +1,10 @@
+## Module FizBuzz
+
+to play fizzbuzz
+	for each number from 1 to 100
+      if the number divided by 15 is an integer: print "fizzbuzz (" + the number + ")"
+		otherwise if the number divided by 3 is an integer: print "fizz (" + the number + ")"
+		otherwise if the number divided by 5 is an integer: print "buzz (" + the number + ")"
+		otherwise print the number
+      
+play fizzbuzz

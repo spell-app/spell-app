@@ -1,8 +1,8 @@
-//
-//----------------------------
-// // UI interaction thingers for spell
-// // TODO: these are maybe not core, since they're tied into particular UI???
-// //--------
+// ----------------------------
+// UI interaction thingers for spell
+// TODO: these are maybe not core, since they're tied into particular UI???
+// ----------------------------
+
 // import spell from "."
 // Object.assign(spell, {
 //   // Notify user about `message` in a non-modal (popup?) interface.

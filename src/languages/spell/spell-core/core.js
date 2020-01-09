@@ -57,33 +57,49 @@ const spellCore = {
   // types
   //--------
 
-  // Return string "type" of `thing`.
-  // TODO;  NaN => `NaN `? `unknown` ???
-  // TODO:  string => text ?
-  // TODO:  boolean => choice ?
-  // TODO:  array => list ?  array-like?
-  // TODO:  function => ????
-  typeOf(thing) {
-    if (thing == null) return "unknown"
-    const objectType = typeof thing
-    if (objectType !== "object") {
-      return objectType
-    }
-    if (thing.constructor && thing.constructor.name) return thing.constructor.name.toLowerCase()
-    return "unknown"
+  TYPE_NAME_CONVERSIONS: {
+    array: "list",
+    boolean: "choice",
+    string: "text"
   },
 
-  // Is `thing` an instance of string `types` (as per `spellCore.typeOf()`)?
-  // If more than one `type`, returns `true` if any match.
-  // `null`/`undefined` only match themselves.
-  isOfType(thing, ...types) {
+  // Return string "type" of `thing`.
+  // TODO:  Return type aliases, e.g. ["number", "integer"]
+  // TODO:  Return inherited class types ?
+  // TODO:  NaN => `unknown` ???
+  typeOf(thing) {
+    if (thing === null || thing === undefined) return "unknown"
+    if (typeof thing === "number" && isNaN(thing)) return "unknown"
+    const objectType = typeof thing
+    const constructor = thing.constructor.name.toLowerCase()
+    const type = objectType !== "object" || constructor === "object" ? objectType : constructor
+    return spellCore.TYPE_NAME_CONVERSIONS[type] || type
+  },
+
+  // Special methods for `isOfType()`
+  IS_OF_TYPE_SPECIALS: {
+    integer: thing => spellCore.isAnInteger(thing),
+    character: thing => spellCore.typeOf(thing) === "text" && thing.length === 1,
+    char: thing => spellCore.isOfType(thing, "character")
+  },
+
+  // Is `thing` an instance of string `type` (as per `spellCore.typeOf()`)?
+  // TODO: inherited types
+  isOfType(thing, type) {
+    if (spellCore.IS_OF_TYPE_SPECIALS[type]) return spellCore.IS_OF_TYPE_SPECIALS[type](thing)
     const thingType = spellCore.typeOf(thing)
-    return types.some(type => type === thingType)
+    return type === thingType
   },
 
   // Is `thing` a valid number (doesn't include NaN)
   isANumber(thing) {
     return typeof thing === "number" && !isNaN(thing)
+  },
+
+  // Is `thing` a valid integer (doesn't include NaN)
+  // NOTE: treats `0` as an integer as well. ???
+  isAnInteger(thing) {
+    return typeof thing === "number" && !isNaN(thing) && parseInt(thing, 10) === thing
   },
 
   // TODO: isText, etc
@@ -129,10 +145,7 @@ const spellCore = {
   // Random integer between `min` and `max` inclusive.
   // If you pass just one number, we'll do `1..min`
   randomNumber(min, max) {
-    if (arguments.length === 1) {
-      max = min
-      min = 1
-    }
+    if (arguments.length === 1) [max, min] = [min, 1]
     if (
       !assert(
         spellCore.isANumber(min) && spellCore.isANumber(max),
@@ -142,9 +155,28 @@ const spellCore = {
       )
     )
       return undefined
-    if (!assert(min <= max, "spellCore.randomNumber(): min (", min, ") must be less than max (", max, ")"))
-      return undefined
     return Math.floor(Math.random() * (max - min + 1)) + min
+  },
+
+  // Return a range of numbers from `start` to `end`, inclusive.
+  getRange(start, end) {
+    const range = []
+    if (
+      !assert(
+        spellCore.isANumber(start) && spellCore.isANumber(end),
+        "spellCore.getRange(): you must pass two numbers, got",
+        start,
+        end
+      )
+    )
+      return range
+
+    if (start < end) {
+      for (let next = start; next <= end; next++) range.push(next)
+    } else {
+      for (let next = start; next >= end; next--) range.push(next)
+    }
+    return range
   },
 
   //----------------------------

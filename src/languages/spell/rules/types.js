@@ -22,16 +22,18 @@ Spell.Rule.Type = class type extends Rule.Pattern {
     List: "List",
     number: "number",
     Number: "number",
-    integer: "number",
-    Integer: "number",
-    decimal: "number",
-    Decimal: "number",
+    integer: "integer",
+    Integer: "integer",
+    // decimal: "number",
+    // Decimal: "number",
     text: "text",
     Text: "text",
     character: "character",
     Character: "character",
     boolean: "boolean",
     Boolean: "boolean",
+    choice: "boolean",
+    Choice: "boolean",
     default: typeCase
   }
 }
