@@ -17,3 +17,12 @@
   background-color: white;
   border-right: 0px;
 }
+
+.CodeMirror .cm-tab {
+  position: relative;
+  top: 1em;
+  height: 3px;
+  border: 1px solid #AAA;
+  border-width: 0px 1px 1px 0px;
+  margin: 0 3px 0 0;
+}

@@ -124,7 +124,8 @@ export class _SpellEditor extends React.Component {
         position: "absolute",
         width: "4em",
         left: "calc(50% - 2em)",
-        top: "50%"
+        top: "50%",
+        zIndex: 3
       }}
       onClick={this.compile}
     >
@@ -157,6 +158,7 @@ export class _SpellEditor extends React.Component {
 
     const codeMirrorOptions = {
       theme: "neat", // Owen favors: "solarized", "neo" and "neat"
+      indentWithTabs: true,
       indentUnit: 3,
       tabSize: 3
     }
