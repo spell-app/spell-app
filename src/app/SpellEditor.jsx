@@ -122,14 +122,16 @@ export class _SpellEditor extends React.Component {
       style={{
         background: "#eee",
         position: "absolute",
-        width: "4em",
-        left: "calc(50% - 2em)",
+        width: "5em",
+        left: "calc(50% - 2.5em)",
         top: "50%",
         zIndex: 3
       }}
       onClick={this.compile}
     >
       <Octicon icon={ChevronRight} size="medium" />
+      <br />
+      Compile
     </Button>
   )
 
@@ -225,7 +227,7 @@ export class _SpellEditor extends React.Component {
               onChange={Function.prototype}
             />
           </Col>
-          {output ? null : this.compileButton}
+          {!output && this.compileButton}
         </Row>
       </Container>
     )
