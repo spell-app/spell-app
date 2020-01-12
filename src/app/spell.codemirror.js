@@ -1,3 +1,10 @@
+/**
+ * Rudimentary Spell "mode" for spell:
+ * - Basically just tokenizes text and colors certain token types.
+ * - CodeMirror has a weird re-entrant parsing thing where you might be given
+ *   only part of a file to parse, making it hard to use
+ *   the current parsing structure to really distinguish everything.
+ */
 import _ from "lodash"
 import CodeMirror from "codemirror"
 

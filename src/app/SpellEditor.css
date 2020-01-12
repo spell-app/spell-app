@@ -20,9 +20,9 @@
 
 .CodeMirror .cm-tab {
   position: relative;
-  top: 1em;
+  top: 15px;
   height: 3px;
-  border: 1px solid #AAA;
+  border: dotted lightblue;
   border-width: 0px 1px 1px 0px;
-  margin: 0 3px 0 0;
+  margin-right: 3px;
 }
