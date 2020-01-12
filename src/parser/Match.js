@@ -39,6 +39,8 @@ export default class Match {
   // Return the "interesting" tokens which were actually matched matched.
   // NOTE: this is not guaranteed to be everything,
   //       for example, List rules don't put the delimiters in the output stream.
+  // TODO: this should really be everything (including) whitespace
+  //       so joining token output === input.
   get tokens() {
     return flatten(this.rule.getTokens(this))
   }

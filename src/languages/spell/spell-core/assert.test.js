@@ -79,17 +79,20 @@ describe("assert.equals()", () => {
 
 describe("assert.isDefined()", () => {
   describe("returns false for", () => {
-    test("false", () => {
-      expect(assert.isDefined(false)).toBe(false)
-    })
     test("undefined", () => {
       expect(assert.isDefined(undefined)).toBe(false)
     })
     test("null", () => {
       expect(assert.isDefined(null)).toBe(false)
     })
+    test("NaN", () => {
+      expect(assert.isDefined(parseInt("foo", 10))).toBe(false)
+    })
   })
   describe("returns true for", () => {
+    test("false", () => {
+      expect(assert.isDefined(false)).toBe(true)
+    })
     test("true", () => {
       expect(assert.isDefined(true)).toBe(true)
     })
