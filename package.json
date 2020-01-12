@@ -195,6 +195,7 @@
         "error",
         "unix"
       ],
+      "lines-between-class-members": "off",
       "max-len": [
         "off",
         {
@@ -207,7 +208,7 @@
       "no-plusplus": "off",
       "no-restricted-globals": "off",
       "no-unused-vars": [
-        "error",
+        "warn",
         {
           "varsIgnorePattern": "^_",
           "args": "none",
@@ -219,6 +220,7 @@
       "no-useless-escape": "off",
       "no-console": "off",
       "no-constant-condition": "off",
+      "no-empty-function": "off",
       "no-param-reassign": "off",
       "prettier/prettier": "warn",
       "semi": [
