@@ -34,7 +34,7 @@ Spell.Rule.VariableIdentifier = class _variable extends Rule.Pattern {
 
   toAST(scope, match) {
     const { raw, value } = match
-    return new AST.VariableExpression({ raw, name: value })
+    return new AST.VariableExpression(scope, match, { raw, name: value })
   }
 }
 
@@ -52,7 +52,7 @@ export default new Spell.Parser({
     {
       name: "variable",
       // NOTE: `match` returned is the `{variable_identifier}`, not this sequence.
-      syntax: "the? {variable_identifier}",
+      syntax: "the? {identifier:variable_identifier}",
       constructor: class variable extends Rule.Sequence {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
@@ -69,7 +69,9 @@ export default new Spell.Parser({
         {
           tests: [
             { title: "single word", input: "thing", output: "thing" },
+            { title: "single word with the", input: "the thing", output: "thing" },
             { title: "multi-word", input: "bank-account", output: "bank_account" },
+            { title: "multi-word with the", input: "the bank-account", output: "bank_account" },
             { title: "blacklisted word", input: "if", output: undefined }
           ]
         }
@@ -82,20 +84,18 @@ export default new Spell.Parser({
       name: "known_variable",
       alias: ["expression", "single_expression"],
       // NOTE: `match` returned is the `{variable_identifier}`, not this sequence.
-      syntax: "the? {variable_identifier}",
+      syntax: "the? {identifier:variable_identifier}",
       constructor: class known_variable extends Rule.Sequence {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
-          // Return just the `variable_identifier` bit...
-          const varMatch = match.matched[match.matched.length - 1]
-          varMatch.variable = scope.variables(varMatch.raw)
-          // ...but only if we can find an appropriate scope variable
-          if (varMatch.variable) {
-            varMatch.length = match.length
-            return varMatch
-          }
-          return undefined
+          // Try to find the scope Variable associated with the identifier in canonical form
+          match.variable = scope.variables(match.groups.identifier.value)
+          if (!match.variable) return undefined
+          return match
+        }
+        compile(scope, match) {
+          return match.groups.identifier.compile()
         }
       },
       tests: [

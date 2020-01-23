@@ -34,11 +34,11 @@ export default new Spell.Parser({
           tests: [
             [
               "expect the foo of the thing to be 'bar'",
-              "spellCore.assertEquals(thing.foo, 'bar', \"the foo of thing\", \"'bar'\")"
+              "spellCore.assertEquals(thing.foo, 'bar', \"the foo of the thing\", \"'bar'\")"
             ],
             [
               "expect the foo of the thing is 'bar'",
-              "spellCore.assertEquals((thing.foo == 'bar'), true, \"the foo of thing is 'bar'\", true)"
+              "spellCore.assertEquals((thing.foo == 'bar'), true, \"the foo of the thing is 'bar'\", true)"
             ]
           ]
         }

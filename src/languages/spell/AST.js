@@ -289,3 +289,22 @@ export class TypeExpression extends Expression {
     return this.match.type
   }
 }
+
+/** VariableExpression -- pointer to a Variable object.
+ *  - `raw` is the original input string, unnormalized.
+ *  - `name` is the normalized type name: dashes and spaces converted to underscores.
+ *  - `plurality` (optional) is "singular", "plural" or `undefined`
+ */
+export class VariableExpression extends Expression {
+  @proto @readonly type = "VariableExpression"
+  constructor(...args) {
+    super(...args)
+    this.assertType("raw", "string")
+    this.assertType("name", "string")
+  }
+
+  /** Pointer to known scoped Variable for this type, if available. ??? */
+  get variable() {
+    return this.parentScope.variables(this.name)
+  }
+}
