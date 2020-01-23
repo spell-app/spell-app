@@ -15,7 +15,6 @@ const WORD = /^[a-zA-Z][\w\-]*$/
 // TODO: higher precedence if variable is known?
 Spell.Rule.VariableIdentifier = class _variable extends Rule.Pattern {
   @proto pattern = WORD
-
   @proto blacklist = identifierBlacklist
 
   /** Map value by converting dashes and whitespace to underscores. */
@@ -24,17 +23,18 @@ Spell.Rule.VariableIdentifier = class _variable extends Rule.Pattern {
   }
 
   compile(scope, match) {
-    const varName = super.compile(scope, match)
-    if (!varName) return undefined
+    // Look up variable name in scope Variables
+    const varName = match.value
     const variable = scope.variables(varName)
-    // allow
+    // If we found a Variable and it remaps its `output`, use that!
     if (variable && variable.output) return variable.output
     return varName
   }
 
   toAST(scope, match) {
-    const { raw, value } = match
-    return new AST.VariableExpression(scope, match, { raw, name: value })
+    const variable = scope.variables(match.value)
+    const name = variable && variable.output ? variable.output : match.value
+    return new AST.VariableExpression(scope, match, { raw: match.raw, name, variable })
   }
 }
 
