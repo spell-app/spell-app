@@ -27,8 +27,8 @@ export default new Spell.Parser({
       datatype: "string",
       tokenType: Token.Whitespace,
       toAST(scope, match) {
-        const { raw, value } = match
-        return new AST.StringLiteral(scope, match, { raw, value })
+        const { value, raw } = match
+        return new AST.StringLiteral(scope, match, { value, raw })
       }
     },
 
@@ -38,8 +38,8 @@ export default new Spell.Parser({
       datatype: "string",
       tokenType: Token.Indent,
       toAST(scope, match) {
-        const { raw, value } = match
-        return new AST.StringLiteral(scope, match, { raw, value })
+        const { value, raw } = match
+        return new AST.StringLiteral(scope, match, { value, raw })
       }
     },
 
@@ -49,8 +49,8 @@ export default new Spell.Parser({
       datatype: "string",
       tokenType: Token.Newline,
       toAST(scope, match) {
-        const { raw, value } = match
-        return new AST.StringLiteral(scope, match, { raw, value })
+        const { value, raw } = match
+        return new AST.StringLiteral(scope, match, { value, raw })
       }
     },
 
@@ -61,8 +61,8 @@ export default new Spell.Parser({
       datatype: "string",
       tokenType: Token.InlineWhitespace,
       toAST(scope, match) {
-        const { raw, value } = match
-        return new AST.StringLiteral(scope, match, { raw, value })
+        const { value, raw } = match
+        return new AST.StringLiteral(scope, match, { value, raw })
       }
     },
 
@@ -78,8 +78,8 @@ export default new Spell.Parser({
       datatype: "number",
       tokenType: Token.Number,
       toAST(scope, match) {
-        const { raw, value } = match
-        return new AST.NumericLiteral(scope, match, { raw, value })
+        const { value, raw } = match
+        return new AST.NumericLiteral(scope, match, { value, raw })
       },
       tests: [
         {
@@ -126,8 +126,8 @@ export default new Spell.Parser({
         ten: 10
       },
       toAST(scope, match) {
-        const { raw, value } = match
-        return new AST.NumericLiteral(scope, match, { raw, value })
+        const { value, raw } = match
+        return new AST.NumericLiteral(scope, match, { value, raw })
       },
       tests: [
         {
@@ -165,8 +165,8 @@ export default new Spell.Parser({
         cancel: false
       },
       toAST(scope, match) {
-        const { raw, value } = match
-        return new AST.BooleanLiteral(scope, match, { raw, value })
+        const { value, raw } = match
+        return new AST.BooleanLiteral(scope, match, { value, raw })
       },
       tests: [
         {
@@ -197,8 +197,8 @@ export default new Spell.Parser({
       datatype: "string",
       tokenType: Token.Text,
       toAST(scope, match) {
-        const { raw, value } = match
-        return new AST.StringLiteral(scope, match, { raw, value })
+        const { value, raw } = match
+        return new AST.StringLiteral(scope, match, { value, raw })
       },
       tests: [
         {
@@ -273,8 +273,8 @@ export default new Spell.Parser({
         return `${value}`.replace(/\-/g, "_")
       },
       toAST(scope, match) {
-        const { raw, value } = match
-        return new AST.KeywordLiteral(scope, match, { raw, value })
+        const { value, raw } = match
+        return new AST.KeywordLiteral(scope, match, { value, raw })
       },
       tests: [
         {

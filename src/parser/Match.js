@@ -54,6 +54,37 @@ export default class Match {
     return this.compile()
   }
 
+  // Syntatic sugar to return the AST for this match.
+  get AST() {
+    return this.rule.toAST(this.scope, this)
+  }
+
+  // Syntatic sugar to return the JS for the AST for this match.
+  get ASTJS() {
+    try {
+      return this.AST.toJS()
+    } catch (e) {
+      throw new TypeError(`Couldn't get AST for rule ${this.rule.name}`)
+    }
+  }
+
+  // Test to see if the AST => JS matches rule.compile() => JS
+  test() {
+    try {
+      const compileJS = this.compile()
+      const astJS = this.ASTJS
+      if (compileJS === astJS) console.info("AST output matches compile() output!")
+      else {
+        console.group("AST output didn't match compile() output:")
+        console.log("compile(): ", compileJS)
+        console.log("AST: ", astJS)
+        console.groupEnd()
+      }
+    } catch (e) {
+      console.error("Error compiling:", e)
+    }
+  }
+
   // Have the match call `updateScope()` if it can.
   // This is called for `statement`s BEFORE they're actually compiled,
   // and is a chance for the statement to declare new rules, add variables to the scope, etc.

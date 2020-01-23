@@ -12,6 +12,8 @@ Rule.TokenType = class tokenType extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[0]],
+      raw: tokens[0].raw,
+      value: tokens[0].value,
       length: 1,
       scope
     })

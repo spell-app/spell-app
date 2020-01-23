@@ -1,4 +1,5 @@
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
+import _get from "lodash/get"
 import { proto, readonly } from "../../utils/decorators"
 
 /** Abstract root of all AST node types.
@@ -15,9 +16,9 @@ export class ASTNode {
    *  Use `this.assert()` or `this.assertType()` to validate input as much as you can.
    */
   constructor(scope, match, props) {
-    this.scope = scope
-    this.match = match
     if (props) Object.assign(this, props)
+    this.parentScope = scope
+    this.match = match
   }
 
   /** Compile this AST into Javascript.  You MUST override in a subclass. */
@@ -27,24 +28,28 @@ export class ASTNode {
 
   /** Debug: assert that a condition is true, generally called on constructor as sanity check. */
   assert(expressionValue, ...message) {
-    if (!expressionValue) console.warn(`Error creating ${this.type} AST Node: `, ...message)
+    if (!expressionValue) console.warn(`Error creating AST ${this.type}: `, ...message)
   }
 
-  /** Debug: type assertions for properties. */
-  assertType(propName, type) {
-    const propValue = this[propName]
+  /** Debug: assert that type of `property` (path) matches `type`. */
+  assertType(property, type) {
+    const propValue = _get(this, property)
     if (typeof type === "string") {
       // eslint-disable-next-line valid-typeof
       const expression = typeof propValue === type
-      this.assert(expression, `expected '${propName}' to be a ${type}.  Actual value: `, propValue)
+      this.assert(expression, `expected property '${property}' to be a ${type}.  Actual value: `, propValue)
     } else if (type === null) {
-      this.assert(propValue === null, `expected '${propName}' to be null.  Actual value: `, propValue)
+      this.assert(propValue === null, `expected property '${property}' to be null.  Actual value: `, propValue)
     } else if (type === undefined) {
-      this.assert(propValue === undefined, `expected '${propName}' to be undefined.  Actual value: `, propValue)
+      this.assert(
+        propValue === undefined,
+        `expected property '${property}' to be undefined.  Actual value: `,
+        propValue
+      )
     } else {
       this.assert(
         propValue instanceof type,
-        `expected '${propName}' to be instanceof `,
+        `expected property '${property}' to be instanceof `,
         type,
         `.  Actual value: `,
         propValue
@@ -255,7 +260,7 @@ export class CoreMethodExpression extends Expression {
     super(...args)
     this.assertType("method", "string")
     this.assertType("arguments", Array)
-    this.arguments.forEach(arg => this.assertType(arg, Expression))
+    this.arguments.forEach((arg, index) => this.assertType(`arguments[${index}]`, Expression))
   }
   toJS() {
     const args = this.arguments.map(arg => arg.toJS()).join(", ")
@@ -267,7 +272,7 @@ export class CoreMethodExpression extends Expression {
  *  - `raw` is the original input string, unnormalized.
  *  - `name` is the normalized type name: Typecase, singular and dashes to underscores.
  *  - `plurality` (optional) is "singular", "plural" or `undefined`
- *  - `scope` (optional) is a pointer to the known type scope
+ *  - `scope` (optional) is a pointer to the known type scope, if any
  *  TODO: ^^^ ???
  */
 export class TypeExpression extends Expression {

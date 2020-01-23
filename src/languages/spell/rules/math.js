@@ -19,9 +19,9 @@ export default new Spell.Parser({
       toAST(scope, match) {
         return new AST.InfixExpression(scope, match, {
           datatype: "number",
-          lhs: match.lhs.toAST(),
+          lhs: match.lhs.AST,
           operator: match.operator,
-          rhs: match.rhs.toAST()
+          rhs: match.rhs.AST
         })
       },
       tests: [
@@ -69,9 +69,9 @@ export default new Spell.Parser({
         const equalOpereator = match.operator.includes("equal") ? "=" : ""
         return new AST.InfixExpression(scope, match, {
           datatype: "number",
-          lhs: match.lhs.toAST(),
+          lhs: match.lhs.AST,
           operator: `${baseOperator}${equalOpereator}`,
-          rhs: match.rhs.toAST()
+          rhs: match.rhs.AST
         })
       },
       tests: [
@@ -102,9 +102,9 @@ export default new Spell.Parser({
       toAST(scope, match) {
         return new AST.InfixExpression(scope, match, {
           datatype: "number", // TODO: handle string case, or mis-matched types???
-          lhs: match.lhs.toAST(),
+          lhs: match.lhs.AST,
           operator: "+",
-          rhs: match.rhs.toAST()
+          rhs: match.rhs.AST
         })
       },
       tests: [
@@ -129,9 +129,9 @@ export default new Spell.Parser({
       toAST(scope, match) {
         return new AST.InfixExpression(scope, match, {
           datatype: "number", // TODO: handle string case, or mis-matched types???
-          lhs: match.lhs.toAST(),
+          lhs: match.lhs.AST,
           operator: "-",
-          rhs: match.rhs.toAST()
+          rhs: match.rhs.AST
         })
       },
       tests: [
@@ -161,9 +161,9 @@ export default new Spell.Parser({
       toAST(scope, match) {
         return new AST.InfixExpression(scope, match, {
           datatype: "number",
-          lhs: match.lhs.toAST(),
+          lhs: match.lhs.AST,
           operator: "*",
-          rhs: match.rhs.toAST()
+          rhs: match.rhs.AST
         })
       },
       tests: [
@@ -192,9 +192,9 @@ export default new Spell.Parser({
       toAST(scope, match) {
         return new AST.InfixExpression(scope, match, {
           datatype: "number",
-          lhs: match.lhs.toAST(),
+          lhs: match.lhs.AST,
           operator: "/",
-          rhs: match.rhs.toAST()
+          rhs: match.rhs.AST
         })
       },
       tests: [
@@ -226,10 +226,11 @@ export default new Spell.Parser({
         return `Math.abs(${expression})`
       },
       toAST(scope, match) {
+        const { expression } = match.groups
         return new AST.CoreMethodExpression(scope, match, {
           datatype: "number",
           method: "absoluteValue", // TODO: implement in spellCore
-          arguments: [match.groups.expression.toAST()]
+          arguments: [expression.AST]
         })
       },
       tests: [
@@ -254,10 +255,11 @@ export default new Spell.Parser({
         return `spellCore.largestOf(${expression})`
       },
       toAST(scope, match) {
+        const { expression } = match.groups
         return new AST.CoreMethodExpression(scope, match, {
           datatype: "number",
           method: "largestOf",
-          arguments: [match.groups.expression.toAST()]
+          arguments: [expression.AST]
         })
       },
       tests: [
@@ -287,10 +289,11 @@ export default new Spell.Parser({
         return `spellCore.smallestOf(${expression})`
       },
       toAST(scope, match) {
+        const { expression } = match.groups
         return new AST.CoreMethodExpression(scope, match, {
           datatype: "number",
           method: "smallestOf",
-          arguments: [match.groups.expression.toAST()]
+          arguments: [expression.AST]
         })
       },
       tests: [
@@ -322,13 +325,14 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         const { direction } = match.results
+        const { thing } = match.groups
         let method = "round"
         if (direction === "up") method = "roundUp"
         else if (direction === "down") method = "roundDown"
         return new AST.CoreMethodExpression(scope, match, {
           datatype: "number",
           method, // TODO: implement in spellCore
-          arguments: [match.groups.thing.toAST()]
+          arguments: [thing.AST]
         })
       },
       tests: [

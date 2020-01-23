@@ -20,8 +20,9 @@ export default new Spell.Parser({
         return `(${expression})`
       },
       toAST(scope, match) {
+        const { expression } = match.groups
         return new AST.ParenthesizedExpression(scope, match, {
-          expression: match.groups.expression.toAST()
+          expression: expression.AST
         })
       },
       tests: [
@@ -153,9 +154,9 @@ export default new Spell.Parser({
       toAST(scope, match) {
         return new AST.InfixExpression(scope, match, {
           datatype: "boolean",
-          lhs: match.lhs.toAST(),
+          lhs: match.lhs.AST,
           operator: "&&",
-          rhs: match.rhs.toAST()
+          rhs: match.rhs.AST
         })
       },
       tests: [
@@ -184,9 +185,9 @@ export default new Spell.Parser({
       toAST(scope, match) {
         return new AST.InfixExpression(scope, match, {
           datatype: "boolean",
-          lhs: match.lhs.toAST(),
+          lhs: match.lhs.AST,
           operator: "||",
-          rhs: match.rhs.toAST()
+          rhs: match.rhs.AST
         })
       },
       tests: [
@@ -213,9 +214,9 @@ export default new Spell.Parser({
       toAST(scope, match) {
         return new AST.InfixExpression(scope, match, {
           datatype: "boolean",
-          lhs: match.lhs.toAST(),
+          lhs: match.lhs.AST,
           operator: match.operator === "is not" ? "!=" : "==",
-          rhs: match.rhs.toAST()
+          rhs: match.rhs.AST
         })
       },
       tests: [
@@ -242,9 +243,9 @@ export default new Spell.Parser({
       toAST(scope, match) {
         return new AST.InfixExpression(scope, match, {
           datatype: "boolean",
-          lhs: match.lhs.toAST(),
+          lhs: match.lhs.AST,
           operator: match.operator === "is not exactly" ? "!==" : "===",
-          rhs: match.rhs.toAST()
+          rhs: match.rhs.AST
         })
       },
       tests: [
@@ -272,7 +273,7 @@ export default new Spell.Parser({
         const expression = new AST.CoreMethodExpression(scope, match, {
           datatype: "boolean",
           method: "isOfType",
-          arguments: [match.lhs.toAST(), match.rhs.toAST()]
+          arguments: [match.lhs.AST, match.rhs.AST]
         })
         if (match.operator.includes("not")) return new AST.NotExpression(scope, match, { expression })
         return expression
@@ -306,7 +307,7 @@ export default new Spell.Parser({
         const expression = new AST.CoreMethodExpression(scope, match, {
           datatype: "boolean",
           method: "matchesType", // TODO:  implement this in spellCore
-          arguments: [match.lhs.toAST(), match.rhs.toAST()]
+          arguments: [match.lhs.AST, match.rhs.AST]
         })
         if (match.operator.includes("not")) return new AST.NotExpression(scope, match, { expression })
         return expression
@@ -346,7 +347,7 @@ export default new Spell.Parser({
         const expression = new AST.CoreMethodExpression(scope, match, {
           datatype: "boolean",
           method: "includes",
-          arguments: [match.rhs.toAST(), match.lhs.toAST()]
+          arguments: [match.rhs.AST, match.lhs.AST]
         })
         if (match.operator.includes("not") || match.operator.includes("neither"))
           return new AST.NotExpression(scope, match, { expression })
@@ -388,7 +389,7 @@ export default new Spell.Parser({
         return new AST.CoreMethodExpression(scope, match, {
           datatype: "boolean",
           method: "includes",
-          arguments: [match.lhs.toAST(), match.rhs.toAST()]
+          arguments: [match.lhs.AST, match.rhs.AST]
         })
       },
       tests: [
@@ -420,7 +421,7 @@ export default new Spell.Parser({
           expression: new AST.CoreMethodExpression(scope, match, {
             datatype: "boolean",
             method: "includes",
-            arguments: [match.lhs.toAST(), match.rhs.toAST()]
+            arguments: [match.lhs.AST, match.rhs.AST]
           })
         })
       },
@@ -453,7 +454,7 @@ export default new Spell.Parser({
         return new AST.CoreMethodExpression(scope, match, {
           datatype: "boolean",
           method: "isDefined", // TODO:  implement this in spellCore
-          arguments: [match.lhs.toAST()]
+          arguments: [match.lhs.AST]
         })
       },
       tests: [
@@ -480,7 +481,7 @@ export default new Spell.Parser({
         return new AST.CoreMethodExpression(scope, match, {
           datatype: "boolean",
           method: "isUndefined", // TODO:  implement this in spellCore
-          arguments: [match.lhs.toAST()]
+          arguments: [match.lhs.AST]
         })
       },
       tests: [
@@ -511,7 +512,7 @@ export default new Spell.Parser({
         const expression = new AST.CoreMethodExpression(scope, match, {
           datatype: "boolean",
           method: "isEmpty",
-          arguments: [match.lhs.toAST()]
+          arguments: [match.lhs.AST]
         })
         if (match.operator.includes("not")) return new AST.NotExpression(scope, match, { expression })
         return expression

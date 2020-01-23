@@ -49,10 +49,8 @@ Spell.Rule.Type = class type extends Rule.Pattern {
   }
 
   toAST(scope, match) {
-    return new AST.TypeExpression({
-      input: match.matched[0].value,
-      name: this.getTokenValue(scope, match)
-    })
+    const { value, raw } = match
+    return new AST.TypeExpression(scope, match, { raw, name: value })
   }
 }
 
