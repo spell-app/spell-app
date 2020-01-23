@@ -21,7 +21,7 @@ export default new Spell.Parser({
         const { thing, value } = results
         // Add `thing` as a variable if not already in scope.
         const thingMatch = groups.thing
-        const isNewVar = thingMatch.rule instanceof Spell.Rule.Variable && !thingMatch.variable
+        const isNewVar = thingMatch.rule instanceof Spell.Rule.VariableIdentifier && !thingMatch.variable
         if (isNewVar) scope.variables.add(thing)
 
         const statement = scope.addStatement(`${isNewVar ? "let " : ""}${thing} = ${value}`)

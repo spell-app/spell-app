@@ -2,7 +2,7 @@
 //  # Rules for variables
 //
 import { Rule, Spell, proto, singularize, pluralize } from "../all"
-
+import * as AST from "../AST"
 import identifierBlacklist from "./identifier-blacklist"
 
 // Alpha-numeric word, including dashes or underscores.
@@ -13,7 +13,7 @@ const WORD = /^[a-zA-Z][\w\-]*$/
 //        - if we find one, you can override what's output with `variable.ouput`.
 // TODO: type based on scope variable type?
 // TODO: higher precedence if variable is known?
-Spell.Rule.Variable = class _variable extends Rule.Pattern {
+Spell.Rule.VariableIdentifier = class _variable extends Rule.Pattern {
   @proto pattern = WORD
 
   @proto blacklist = identifierBlacklist
@@ -25,9 +25,16 @@ Spell.Rule.Variable = class _variable extends Rule.Pattern {
 
   compile(scope, match) {
     const varName = super.compile(scope, match)
+    if (!varName) return undefined
     const variable = scope.variables(varName)
+    // allow
     if (variable && variable.output) return variable.output
     return varName
+  }
+
+  toAST(scope, match) {
+    const { raw, value } = match
+    return new AST.VariableExpression({ raw, name: value })
   }
 }
 
@@ -38,10 +45,10 @@ export default new Spell.Parser({
     // You won't generally use this, use `variable` or `unknown_variable` instead.
     {
       name: "variable_identifier",
-      constructor: Spell.Rule.Variable
+      constructor: Spell.Rule.VariableIdentifier
     },
 
-    // Variable which may or may not be known, with optional `the` prefix.
+    // VariableIdentifier which may or may not be known, with optional `the` prefix.
     {
       name: "variable",
       // NOTE: `match` returned is the `{variable_identifier}`, not this sequence.
@@ -110,7 +117,7 @@ export default new Spell.Parser({
     // Possibly unknown variable identifier which MUST be singular, WITHOUT `the`.
     {
       name: "singular_variable",
-      constructor: class singular_variable extends Spell.Rule.Variable {
+      constructor: class singular_variable extends Spell.Rule.VariableIdentifier {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === singularize(match.raw)) return match
@@ -132,7 +139,7 @@ export default new Spell.Parser({
     // Possibly unknown variable identifier which MUST be plural, WITHOUT `the`.
     {
       name: "plural_variable",
-      constructor: class plural_variable extends Spell.Rule.Variable {
+      constructor: class plural_variable extends Spell.Rule.VariableIdentifier {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === pluralize(match.raw)) return match
