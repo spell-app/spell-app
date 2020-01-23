@@ -96,6 +96,15 @@ export function proto(descriptor) {
   }
 }
 
+// Define field or method as read-only.
+export function readonly(descriptor) {
+  assert(descriptor.kind === "field" || descriptor.kind === "method")
+  return {
+    ...descriptor,
+    writeable: false
+  }
+}
+
 // Define field or method non-enumerably.
 export function nonEnumerable(descriptor) {
   // console.info("nonEnumerable", descriptor);
