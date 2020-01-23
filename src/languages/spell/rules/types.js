@@ -33,10 +33,21 @@ Spell.Rule.Type = class type extends Rule.Pattern {
     choice: "boolean",
     Choice: "boolean"
   }
+
+  // Convert value to singular type case, e.g. `Thing` or `Bank_Account`
   mapValue(value) {
     if (value in this.VALUE_MAP) return this.VALUE_MAP[value]
     return typeCase(value)
   }
+
+  parse(scope, tokens) {
+    const match = super.parse(scope, tokens)
+    if (!match) return undefined
+    // Pick up `type` scope based on canonical, singular type name
+    match.type = scope.types(match.value)
+    return match
+  }
+
   toAST(scope, match) {
     return new AST.TypeExpression({
       input: match.matched[0].value,
@@ -139,10 +150,8 @@ export default new Spell.Parser({
       constructor: class known_type extends Spell.Rule.Type {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
-          if (!match) return undefined
-          // Pick up existing type if defined.
-          match.type = scope.types(match.raw)
-          if (match.type) return match
+          // Only return match if we picked up an existing `type` scope
+          if (match && match.type) return match
           return undefined
         }
       },
@@ -153,11 +162,16 @@ export default new Spell.Parser({
             scope.types.add({ name: "Bank-Account" })
           },
           tests: [
-            { title: "known type, lower case", input: "thing", output: "Thing" },
-            { title: "known type, upper case", input: "Thing", output: "Thing" },
-            { title: "known, multi-word, lower case", input: "bank-account", output: "Bank_Account" },
-            { title: "known, multi-word, mixed case", input: "Bank-account", output: "Bank_Account" },
-            { title: "known, multi-word, upper case", input: "Bank-Account", output: "Bank_Account" },
+            { title: "singular, known type, lower case", input: "thing", output: "Thing" },
+            { title: "singular, known type, upper case", input: "Thing", output: "Thing" },
+            { title: "singular, known, multi-word, lower case", input: "bank-account", output: "Bank_Account" },
+            { title: "singular, known, multi-word, mixed case", input: "Bank-account", output: "Bank_Account" },
+            { title: "singular, known, multi-word, upper case", input: "Bank-Account", output: "Bank_Account" },
+            { title: "plural, known type, lower case", input: "thing", output: "Thing" },
+            { title: "plural, known type, upper case", input: "Thing", output: "Thing" },
+            { title: "plural, known, multi-word, lower case", input: "bank-accounts", output: "Bank_Account" },
+            { title: "plural, known, multi-word, mixed case", input: "Bank-accounts", output: "Bank_Account" },
+            { title: "plural, known, multi-word, upper case", input: "Bank-Accounts", output: "Bank_Account" },
             { title: "unknown", input: "nothing", output: undefined },
             { title: "unknown. multi-word", input: "other-thing", output: undefined }
           ]
