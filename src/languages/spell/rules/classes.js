@@ -156,7 +156,7 @@ export default new Spell.Parser({
     {
       name: "type_initializer_datatype",
       alias: "type_initializer",
-      syntax: "as (a|an)? {datatype:word}",
+      syntax: "as (a|an)? {datatype:keyword}",
       tests: [
         {
           tests: [["as a number", { datatype: "number" }], ["as an automobile", { datatype: "automobile" }]]
@@ -587,7 +587,7 @@ export default new Spell.Parser({
     {
       name: "to_do_something",
       alias: "statement",
-      syntax: "to (keywords:{word}|{type})+ :?",
+      syntax: "to (keywords:{keyword}|{type})+ :?",
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,

@@ -1,7 +1,7 @@
 //
 //  # Rules for constants, variables, type names, etc
 //
-import { Rule, Spell, proto, typeCase, singularize, pluralize } from "../all"
+import { Rule, Spell, typeCase, singularize, pluralize } from "../all"
 
 import identifierBlacklist from "./identifier-blacklist"
 
@@ -9,13 +9,10 @@ import identifierBlacklist from "./identifier-blacklist"
 const WORD = /^[a-zA-Z][\w\-]*$/
 
 Spell.Rule.Type = class type extends Rule.Pattern {
-  @proto pattern = WORD
-
-  @proto datatype = "type"
-
-  @proto blacklist = identifierBlacklist
-
-  @proto valueMap = {
+  pattern = WORD
+  datatype = "type"
+  blacklist = identifierBlacklist
+  VALUE_MAP = {
     object: "Object",
     Object: "Object",
     list: "List",
@@ -33,8 +30,11 @@ Spell.Rule.Type = class type extends Rule.Pattern {
     boolean: "boolean",
     Boolean: "boolean",
     choice: "boolean",
-    Choice: "boolean",
-    default: typeCase
+    Choice: "boolean"
+  }
+  mapValue(value) {
+    if (value in this.VALUE_MAP) return this.VALUE_MAP[value]
+    return typeCase(value)
   }
 }
 

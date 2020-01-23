@@ -2,13 +2,11 @@ import Rule from "./Rule"
 import { Match } from "../all"
 
 // Regex pattern to match a SINGLE token.
-// `rule.pattern` is the regular expression to match.
-//    Note that you MUST start your pattern with `^` and end with `$` to make sure it matches the entire token.
-//    Note that this can only match a single token!
-// `rule.blacklist` is a map of `{ key: true }` for strings which will NOT be accepted.
-// `rule.valueMap` can be either:
-//    - a map of `{ <matchedValue>: <returnValue> }` to map result output, or
-//    - a `function(value) => newValue` used to transform the matched value.
+// - `pattern` is the regular expression to match.
+//    - Note that you MUST start your pattern with `^` and end with `$` to make sure it matches the entire token.
+//    - Note that this can only match a single token!
+// - (optional) `blacklist` is a map of `{ key: true }` for strings which will NOT be accepted.
+// - (optional) `mapValue` (optional) is a `function(value) => newValue` used to transform the matched value.
 Rule.Pattern = class pattern extends Rule {
   constructor(props) {
     if (props instanceof RegExp) props = { pattern: props }
@@ -39,15 +37,19 @@ Rule.Pattern = class pattern extends Rule {
   }
 
   compile(scope, match) {
+    return this.getTokenValue(scope, match)
+  }
+
+  getTokenValue(scope, match) {
     const { value } = match.matched[0]
-    // just return value if no valuemap
-    let { valueMap } = this
-    if (!valueMap) return value
-    if (typeof valueMap !== "function") {
-      if (Object.prototype.hasOwnProperty.call(valueMap, value)) return valueMap[value]
-      if (typeof valueMap.default === "function") valueMap = valueMap.default
+    return this.mapValue(value)
+  }
+
+  /** Map `value` from the matched expression to corresponding JS value. */
+  mapValue(value) {
+    if (this.VALUE_MAP && Object.prototype.hasOwnProperty.call(this.VALUE_MAP, value)) {
+      return this.VALUE_MAP[value]
     }
-    if (typeof valueMap === "function") return valueMap(value, scope)
     return value
   }
 }

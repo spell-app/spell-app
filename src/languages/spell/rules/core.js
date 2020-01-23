@@ -79,7 +79,7 @@ export default new Spell.Parser({
           tests: [["", undefined], ["-", undefined], [".", undefined]]
         },
         {
-          title: "requires negative sign to touching the number",
+          title: "requires negative sign to touch the number",
           tests: [["- 1", undefined]]
         }
       ]
@@ -91,7 +91,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       datatype: "number",
       pattern: /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
-      valueMap: {
+      VALUE_MAP: {
         zero: 0,
         one: 1,
         two: 2,
@@ -131,7 +131,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       datatype: "boolean",
       pattern: /^(true|false|yes|no|ok|cancel)$/,
-      valueMap: {
+      VALUE_MAP: {
         true: true,
         false: false,
         yes: true,
@@ -223,13 +223,13 @@ export default new Spell.Parser({
       ]
     },
 
-    // `word` = is a single alphanumeric word.
+    // `keyword` = is a single alphanumeric word used as a keyword in, e.g. a method definition.
     // Case is not a factor, but it must start with a letter.
     {
-      name: "word",
+      name: "keyword",
       pattern: /^[a-zA-Z][\w\-]*$/,
       // convert dashes to underscores when compiling
-      valueMap(value) {
+      mapValue(value) {
         return `${value}`.replace(/\-/g, "_")
       },
       tests: [

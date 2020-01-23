@@ -25,7 +25,7 @@ export default new Spell.Parser({
       pattern: LOWER_INITIAL_WORD,
       blacklist: identifierBlacklist,
       // convert dashes to underscores
-      valueMap(value) {
+      mapValue(value) {
         return `${value}`.replace(/-/g, "_")
       }
     },

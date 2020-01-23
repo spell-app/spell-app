@@ -166,7 +166,7 @@ export default new Spell.Parser({
       name: "ordinal",
       argument: "ordinal",
       pattern: /^(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|penultimate|final|last|top|bottom)$/,
-      valueMap: {
+      VALUE_MAP: {
         first: 1,
         second: 2,
         third: 3,

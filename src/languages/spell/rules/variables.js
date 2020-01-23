@@ -18,8 +18,9 @@ Spell.Rule.Variable = class _variable extends Rule.Pattern {
 
   @proto blacklist = identifierBlacklist
 
-  valueMap(value) {
-    return `${value}`.replace(/-/g, "_")
+  /** Map value by converting dashes and whitespace to underscores. */
+  mapValue(value) {
+    return `${value}`.replace(/-/g, "_").replace(/\s/g, "_")
   }
 
   compile(scope, match) {
