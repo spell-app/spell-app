@@ -51,18 +51,20 @@ export default new Spell.Parser({
     // VariableIdentifier which may or may not be known, with optional `the` prefix.
     {
       name: "variable",
-      // NOTE: `match` returned is the `{variable_identifier}`, not this sequence.
       syntax: "the? {identifier:variable_identifier}",
       constructor: class variable extends Rule.Sequence {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
-          // Return just the `variable_identifier` bit, adjusting `length` to account for `the` as necessary.
-          const varMatch = match.matched[match.matched.length - 1]
-          // set `varMatch.variable` to scope variable, if defined
-          varMatch.variable = scope.variables(varMatch.raw)
-          varMatch.length = match.length
-          return varMatch
+          // Note that this sequence refers to a variable.
+          // Used in assignment to distinguish unknown variables from expressions.
+          match.isAVariable = true
+          // Set `match.variable` to the scope variable, if there is one.
+          match.variable = scope.variables(match.groups.identifier.value) || null
+          return match
+        }
+        compile(scope, match) {
+          return match.groups.identifier.compile()
         }
       },
       tests: [
