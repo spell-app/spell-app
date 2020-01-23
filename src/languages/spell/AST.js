@@ -1,6 +1,7 @@
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 import _get from "lodash/get"
 import { proto, readonly } from "../../utils/decorators"
+import { Scope } from "./all"
 
 /** Abstract root of all AST node types.
  *  - `type` is
@@ -293,8 +294,8 @@ export class TypeExpression extends Expression {
 /** VariableExpression -- pointer to a Variable object.
  *  - `raw` is the original input string, unnormalized.
  *  - `name` is the normalized type name: dashes and spaces converted to underscores.
- *  - `plurality` (optional) is "singular", "plural" or `undefined`
  *  - `variable` (optional) is pointer to scope Variable, if there is one.
+ *  - `plurality` (optional) is "singular", "plural" or `undefined`  // TODO: derive?
  */
 export class VariableExpression extends Expression {
   @proto @readonly type = "VariableExpression"
@@ -302,5 +303,26 @@ export class VariableExpression extends Expression {
     super(...args)
     this.assertType("raw", "string")
     this.assertType("name", "string")
+  }
+  // TODO: datatype according to Variable ?
+  toJS() {
+    return this.name
+  }
+}
+
+/** ConstantExpression -- pointer to a Constant object.
+ *  - `name` is the normalized name: dashes and spaces converted to underscores.
+ *  - `constant` is pointer to scope Constant, if there is one.
+ */
+export class ConstantExpression extends Expression {
+  @proto @readonly type = "ConstantExpression"
+  @proto @readonly datatype = "string"
+  constructor(...args) {
+    super(...args)
+    this.assertType("name", "string")
+    this.assertType("constant", Scope.Constant)
+  }
+  toJS() {
+    return this.constant.toString()
   }
 }

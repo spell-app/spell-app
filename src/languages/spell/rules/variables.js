@@ -32,7 +32,9 @@ Spell.Rule.VariableIdentifier = class _variable extends Rule.Pattern {
   }
 
   toAST(scope, match) {
+    // Get scope Variable, if there is one
     const variable = scope.variables(match.value)
+    // Allow variable to override name if it wants to (e.g. "it")
     const name = variable && variable.output ? variable.output : match.value
     return new AST.VariableExpression(scope, match, { raw: match.raw, name, variable })
   }
@@ -65,6 +67,9 @@ export default new Spell.Parser({
         }
         compile(scope, match) {
           return match.groups.identifier.compile()
+        }
+        toAST(scope, match) {
+          return match.groups.identifier.AST
         }
       },
       tests: [
@@ -99,6 +104,9 @@ export default new Spell.Parser({
         compile(scope, match) {
           return match.groups.identifier.compile()
         }
+        toAST(scope, match) {
+          return match.groups.identifier.AST
+        }
       },
       tests: [
         {
@@ -125,6 +133,11 @@ export default new Spell.Parser({
           if (match && match.raw === singularize(match.raw)) return match
           return undefined
         }
+        toAST(scope, match) {
+          const variable = super.toAST(scope, match)
+          variable.plurality = "singular"
+          return variable
+        }
       },
       tests: [
         {
@@ -146,6 +159,11 @@ export default new Spell.Parser({
           const match = super.parse(scope, tokens)
           if (match && match.raw === pluralize(match.raw)) return match
           return undefined
+        }
+        toAST(scope, match) {
+          const variable = super.toAST(scope, match)
+          variable.plurality = "plural"
+          return variable
         }
       },
       tests: [

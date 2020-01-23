@@ -2,7 +2,7 @@
 //  # Rules for constants, variables, type names, etc
 //
 import { Rule, Scope, Spell, proto } from "../all"
-
+import * as AST from "../AST"
 import identifierBlacklist from "./identifier-blacklist"
 
 // Alpha-numeric word, including dashes or underscores.
@@ -13,10 +13,26 @@ Spell.Rule.Constant = class constant extends Rule.Pattern {
 
   @proto blacklist = identifierBlacklist
 
+  parse(scope, tokens) {
+    const match = super.parse(scope, tokens)
+    if (!match) return undefined
+    match.constant = scope.constants(match.value)
+    return match
+  }
+
   compile(scope, match) {
     // eslint-disable-next-line no-shadow
-    const constant = match.constant || scope.constants(match.raw) || new Scope.Constant(match.raw)
+    const constant = match.constant || new Scope.Constant(match.raw)
     return constant.toString()
+  }
+  toAST(scope, match) {
+    const name = match.constant ? match.constant.name : match.value
+    const scopeConst = match.constant || scope.constants(name)
+    return AST.ConstantExpression({
+      name,
+      value: (scopeConst || new Scope.Constant(name)).toString(),
+      constant: scopeConst
+    })
   }
 }
 
@@ -47,10 +63,8 @@ export default new Spell.Parser({
       constructor: class known_constant extends Spell.Rule.Constant {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
-          if (!match) return undefined
-          match.constant = scope.constants(match.raw)
-          if (match.constant) return match
-          return undefined
+          if (!match || !match.constant) return undefined
+          return match
         }
       },
       tests: [
@@ -65,29 +79,6 @@ export default new Spell.Parser({
             { title: "known constant w/specific value", input: "green", output: "#00FF00" },
             { title: "unknown constant", input: "missing", output: undefined }
           ]
-        }
-      ]
-    },
-
-    // Define a constant.
-    // Mostly here for testing. ???
-    // TODO: warn if already defined?
-    {
-      name: "define_constant",
-      alias: "statement",
-      syntax: "constant {constant} (is {value:expression})?",
-      constructor: Spell.Rule.Statement,
-      updateScope(scope, { results, groups }) {
-        const name = groups.constant.raw
-        const { value } = results
-        const constant = scope.constants.add({ name, value })
-        // TODO: could be defining this more than once...
-        const statement = scope.addStatement(`const ${name} = ${constant.toString()}`)
-        results.statements.push(statement)
-      },
-      tests: [
-        {
-          tests: [["constant red", "const red = 'red'"], ["constant black is 6", "const black = 6"]]
         }
       ]
     }
