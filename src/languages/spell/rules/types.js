@@ -2,7 +2,7 @@
 //  # Rules for constants, variables, type names, etc
 //
 import { Rule, Spell, typeCase, singularize, pluralize } from "../all"
-
+import * as AST from "../AST"
 import identifierBlacklist from "./identifier-blacklist"
 
 // Alpha-numeric word, including dashes or underscores.
@@ -12,6 +12,7 @@ Spell.Rule.Type = class type extends Rule.Pattern {
   pattern = WORD
   datatype = "type"
   blacklist = identifierBlacklist
+  // TODO: review this with Ken
   VALUE_MAP = {
     object: "Object",
     Object: "Object",
@@ -35,6 +36,12 @@ Spell.Rule.Type = class type extends Rule.Pattern {
   mapValue(value) {
     if (value in this.VALUE_MAP) return this.VALUE_MAP[value]
     return typeCase(value)
+  }
+  toAST(scope, match) {
+    return new AST.TypeExpression({
+      input: match.matched[0].value,
+      name: this.getTokenValue(scope, match)
+    })
   }
 }
 
@@ -68,6 +75,11 @@ export default new Spell.Parser({
           if (match && match.raw === singularize(match.raw)) return match
           return undefined
         }
+        toAST(scope, match) {
+          const type = super.toAST(scope, match)
+          type.plurality = "singular"
+          return type
+        }
       },
       tests: [
         {
@@ -95,6 +107,11 @@ export default new Spell.Parser({
           const match = super.parse(scope, tokens)
           if (match && match.raw === pluralize(match.raw)) return match
           return undefined
+        }
+        toAST(scope, match) {
+          const type = super.toAST(scope, match)
+          type.plurality = "plural"
+          return type
         }
       },
       tests: [

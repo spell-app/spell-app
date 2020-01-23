@@ -3,6 +3,7 @@
 //
 import { Token } from "../../../parser/all"
 import { Spell } from "../all"
+import * as AST from "../AST"
 
 export default new Spell.Parser({
   module: "core",
@@ -24,21 +25,33 @@ export default new Spell.Parser({
     {
       name: "whitespace",
       datatype: "string",
-      tokenType: Token.Whitespace
+      tokenType: Token.Whitespace,
+      toAST(scope, match) {
+        const { raw, value } = match
+        return new AST.StringLiteral(scope, match, { raw, value })
+      }
     },
 
     // Indent whitespace specifically.
     {
       name: "indent",
       datatype: "string",
-      tokenType: Token.Indent
+      tokenType: Token.Indent,
+      toAST(scope, match) {
+        const { raw, value } = match
+        return new AST.StringLiteral(scope, match, { raw, value })
+      }
     },
 
     // Newlines only.
     {
       name: "newline",
       datatype: "string",
-      tokenType: Token.Newline
+      tokenType: Token.Newline,
+      toAST(scope, match) {
+        const { raw, value } = match
+        return new AST.StringLiteral(scope, match, { raw, value })
+      }
     },
 
     // Inline whitespace only.
@@ -46,7 +59,11 @@ export default new Spell.Parser({
     {
       name: "inline_whitespace",
       datatype: "string",
-      tokenType: Token.InlineWhitespace
+      tokenType: Token.InlineWhitespace,
+      toAST(scope, match) {
+        const { raw, value } = match
+        return new AST.StringLiteral(scope, match, { raw, value })
+      }
     },
 
     //----------------------------
@@ -60,6 +77,10 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       datatype: "number",
       tokenType: Token.Number,
+      toAST(scope, match) {
+        const { raw, value } = match
+        return new AST.NumericLiteral(scope, match, { raw, value })
+      },
       tests: [
         {
           title: "correctly matches numbers",
@@ -104,6 +125,10 @@ export default new Spell.Parser({
         nine: 9,
         ten: 10
       },
+      toAST(scope, match) {
+        const { raw, value } = match
+        return new AST.NumericLiteral(scope, match, { raw, value })
+      },
       tests: [
         {
           title: "correctly matches number strings",
@@ -139,6 +164,10 @@ export default new Spell.Parser({
         ok: true,
         cancel: false
       },
+      toAST(scope, match) {
+        const { raw, value } = match
+        return new AST.BooleanLiteral(scope, match, { raw, value })
+      },
       tests: [
         {
           title: "correctly matches booleans",
@@ -167,6 +196,10 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       datatype: "string",
       tokenType: Token.Text,
+      toAST(scope, match) {
+        const { raw, value } = match
+        return new AST.StringLiteral(scope, match, { raw, value })
+      },
       tests: [
         {
           title: "correctly matches text",
@@ -192,6 +225,10 @@ export default new Spell.Parser({
         if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
         return `${commentSymbol}${initialWhitespace}${value}`
       },
+      toAST(scope, match) {
+        const { commentSymbol, initialWhitespace, value } = match.matched[0]
+        return new AST.LineComment(scope, match, { commentSymbol, initialWhitespace, value })
+      },
       tests: [
         {
           compileAs: "comment",
@@ -215,6 +252,9 @@ export default new Spell.Parser({
       compile(scope, match) {
         return "undefined"
       },
+      toAST(scope, match) {
+        return new AST.UndefinedLiteral(scope, match)
+      },
       tests: [
         {
           compileAs: "expression",
@@ -231,6 +271,10 @@ export default new Spell.Parser({
       // convert dashes to underscores when compiling
       mapValue(value) {
         return `${value}`.replace(/\-/g, "_")
+      },
+      toAST(scope, match) {
+        const { raw, value } = match
+        return new AST.KeywordLiteral(scope, match, { raw, value })
       },
       tests: [
         {

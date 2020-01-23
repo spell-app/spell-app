@@ -27,29 +27,25 @@ Rule.Pattern = class pattern extends Rule {
 
   parse(scope, tokens) {
     if (!this.testAtStart(scope, tokens, 0)) return undefined
+    const raw = tokens[0].value // raw value, used by subclasses
+    const value = this.mapValue(raw) // possibly normalized value, used by subclasses
     return new Match({
       rule: this,
       matched: [tokens[0]],
-      raw: tokens[0].value, // raw value, used by subclasses
+      raw,
+      value,
       length: 1,
       scope
     })
   }
 
-  compile(scope, match) {
-    return this.getTokenValue(scope, match)
-  }
-
-  getTokenValue(scope, match) {
-    const { value } = match.matched[0]
-    return this.mapValue(value)
-  }
-
   /** Map `value` from the matched expression to corresponding JS value. */
   mapValue(value) {
-    if (this.VALUE_MAP && Object.prototype.hasOwnProperty.call(this.VALUE_MAP, value)) {
-      return this.VALUE_MAP[value]
-    }
+    if (this.VALUE_MAP && value in this.VALUE_MAP) return this.VALUE_MAP[value]
     return value
+  }
+
+  compile(scope, match) {
+    return match.value
   }
 }
