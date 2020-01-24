@@ -3,6 +3,8 @@ import _get from "lodash/get"
 import { proto, readonly } from "../../utils/decorators"
 import { Scope, Match, AST } from "./all"
 
+const OPTIONAL = Symbol("OPTIONAL")
+
 /** Abstract root of all AST node types.
  *  - `type` is
  */
@@ -13,8 +15,9 @@ export class ASTNode {
    *  - `scope` passed to `toAST()` method.
    *  - `match` passed to `toAST()` method,
    *  - `props` as arbitrary properties to be assigned to the instance.
-   *
    *  Use `this.assert()` or `this.assertType()` to validate input as much as you can.
+   *
+   *  TODO: `datatype` as a function which turns into a getter?
    */
   constructor(scope, match, props) {
     if (props) Object.assign(this, props)
@@ -35,8 +38,10 @@ export class ASTNode {
   }
 
   /** Debug: assert that type of `property` (path) matches `type`. */
-  assertType(property, type) {
+  assertType(property, type, optional) {
     const propValue = _get(this, property)
+    if (optional === OPTIONAL && propValue === undefined) return
+
     if (typeof type === "string") {
       // eslint-disable-next-line valid-typeof
       const expression = typeof propValue === type
@@ -61,8 +66,8 @@ export class ASTNode {
   }
 
   /** Assert that `this[property]` is an array, and that each item is of `type` */
-  assertArrayType(property, type) {
-    this.assertType(property, Array)
+  assertArrayType(property, type, optional) {
+    this.assertType(property, Array, OPTIONAL)
     if (Array.isArray(this[property])) {
       this[property].forEach((arg, index) => this.assertType(`${property}[${index}]`, type))
     }
@@ -155,16 +160,16 @@ export class UndefinedLiteral extends Literal {
 }
 
 /** Keyword type.
- *  - `raw` is the raw input string
  *  - `value` is raw input converted into a JS-legal keyword.
+ *  - `raw` (optional) is the raw input string
  */
 export class KeywordLiteral extends Literal {
   @proto @readonly type = "KeywordLiteral"
   @proto @readonly datatype = "string" // TODO???
   constructor(...args) {
     super(...args)
-    this.assertType("raw", "string")
     this.assertType("value", "string")
+    this.assertType("raw", "string", OPTIONAL)
   }
 }
 
@@ -262,7 +267,7 @@ export class InfixExpression extends Expression {
 
 /** CoreMethodExpression:  calls a `spellCore` `method`.  Used for output languge independence.
  *  - `method` is spellcore method name.
- *  - `arguments` is a (possibly empty) list of Expressions.
+ *  - `arguments` (optional) is a possibly empty list of Expressions.
  *  - Try to set `datatype` as string or getter if you can.
  */
 export class CoreMethodExpression extends Expression {
@@ -270,7 +275,7 @@ export class CoreMethodExpression extends Expression {
   constructor(...args) {
     super(...args)
     this.assertType("method", "string")
-    this.assertArrayType("arguments", Expression)
+    this.assertArrayType("arguments", Expression, OPTIONAL)
   }
   toJS() {
     const args = this.arguments.map(arg => arg.toJS()).join(", ")
@@ -279,8 +284,8 @@ export class CoreMethodExpression extends Expression {
 }
 
 /** TypeExpression -- pointer to a Type object/scope.
- *  - `raw` is the original input string, unnormalized.
  *  - `name` is the normalized type name: Typecase, singular and dashes to underscores.
+ *  - `raw` (optional) is the original input string, unnormalized.
  *  - `plurality` (optional) is "singular", "plural" or `undefined`
  *  - `scope` (optional) is a pointer to the known type scope, if any
  *  TODO: ^^^ ???
@@ -290,8 +295,8 @@ export class TypeExpression extends Expression {
   @proto @readonly datatype = "Type"
   constructor(...args) {
     super(...args)
-    this.assertType("raw", "string")
     this.assertType("name", "string")
+    this.assertType("raw", "string", OPTIONAL)
   }
 
   /** Pointer to the known Scope for this type, if available. ??? */
@@ -385,7 +390,7 @@ export class ObjectLiteralProperty extends ASTNode {
   constructor(...args) {
     super(...args)
     this.assertType("property", PropertyLiteral)
-    if (this.value) this.assertType("value", Expression)
+    this.assertType("value", Expression, OPTIONAL)
   }
   toJS() {
     // If no value, assume it's available as a local variable.
@@ -402,10 +407,12 @@ export class ObjectLiteral extends Expression {
   @proto @readonly datatype = "object"
   constructor(...args) {
     super(...args)
-    this.assertArrayType("properties", ObjectLiteralProperty)
+    this.assertArrayType("properties", ObjectLiteralProperty, OPTIONAL)
   }
   // TODO: datatype???
   toJS() {
+    if (!this.properties) return "{}"
+    // TODO: single prop on one line, newlines + indent for multiple props
     return `{ ${this.properties.map(prop => prop.toJS()).join(", ")} }`
   }
 }
@@ -427,6 +434,7 @@ export class AssignmentStatement extends Statement {
     super(...args)
     this.assertType("thing", Expression)
     this.assertType("value", Expression)
+    this.assertType("isNewVariable", "boolean", OPTIONAL)
   }
   toJS() {
     const { thing, value, isNewVariable } = this
@@ -435,17 +443,41 @@ export class AssignmentStatement extends Statement {
   }
 }
 
-/** ReturnStatement -- return value.
- *  - `value` is an Expression
+/** ReturnStatement -- return a value.
+ *  - `value` (optional) is an Expression to be returned.
  */
 export class ReturnStatement extends Statement {
   @proto @readonly type = "Statement"
   constructor(...args) {
     super(...args)
-    this.assertType("value", Expression)
+    this.assertType("value", Expression, OPTIONAL)
   }
   toJS() {
-    if (this.value instanceof UndefinedLiteral) return "return"
+    if (this.value) return "return"
     return `return ${this.value.toJS()}`
+  }
+}
+
+/** NewClassStatement
+ * - `type` is a TypeExpression
+ * - `superType` (optional) is a TypeExpression
+ * - `instanceType` (optoinal) is a TypeExpression for lists of a certain type.
+ */
+export class NewClassStatement extends Statement {
+  @proto @readonly type = "NewClassStatement"
+  constructor(...args) {
+    super(...args)
+    this.assertType("type", TypeExpression)
+    this.assertType("superType", TypeExpression, OPTIONAL)
+    this.assertType("instanceType", TypeExpression, OPTIONAL)
+  }
+  toJS() {
+    const { type, superType, instanceType } = this
+    const superDeclarator = superType ? `extends ${superType.name}` : ""
+    const output = [`export class ${type.name} ${superDeclarator} {}`]
+    output.push(`spellCore.addExport("${type.name}"), ${type.name})`)
+    if (instanceType)
+      output.push(`spellCore.define(${type.name}.prototype, "instance_type", { value: ${instanceType.name} })`)
+    return output
   }
 }

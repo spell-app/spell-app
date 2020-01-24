@@ -64,7 +64,7 @@ export default class Match {
     try {
       return this.AST.toJS()
     } catch (e) {
-      throw new TypeError(`Couldn't get AST for rule ${this.rule.name}`)
+      throw new TypeError(`Couldn't get AST or JS for rule ${this.rule.name}`)
     }
   }
 

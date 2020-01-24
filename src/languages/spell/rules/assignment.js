@@ -92,19 +92,18 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         const { value } = match.groups
-        const variable = scope.variables("it", "LOCAL")
-        const props = {
+        // Look up variable in LOCAL scope only
+        let variable = scope.variables("it", "LOCAL")
+        // If not found, add to scope
+        // TODO: hook up type somehow?
+        const isNewVariable = !variable
+        if (isNewVariable) variable = scope.variables.add("it")
+
+        return new AST.AssignmentStatement(scope, match, {
           thing: new AST.VariableExpression({ raw: "it", name: "it", variable }),
           value: value.AST,
-          isNewVariable: !variable
-        }
-        // If we got a NEW variable (not defined in our scope)
-        if (props.isNewVariable) {
-          // Add the variable to our scope
-          scope.variables.add("ir")
-          // TODO: hook up type somehow???
-        }
-        return new AST.AssignmentStatement(scope, match, props)
+          isNewVariable
+        })
       },
       tests: [
         {
@@ -135,7 +134,7 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         return new AST.ReturnStatement(scope, match, {
-          value: match.groups.expression?.AST || new AST.UndefinedLiteral(scope, match)
+          value: match.groups.expression?.AST
         })
       },
       tests: [

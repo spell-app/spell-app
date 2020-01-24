@@ -1,4 +1,4 @@
-import { Scope, Spell, instanceCase, upperFirst, pluralize, singularize, typeCase } from "../all"
+import { Scope, Spell, instanceCase, upperFirst, pluralize, singularize, typeCase, AST } from "../all"
 
 export default new Spell.Parser({
   module: "classes",
@@ -8,14 +8,15 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: [
         "create a type (named|called) {type} (as (a|an) (isList:list of)? {superType:type})?",
-        "a {type} is (a|an) (isList:list of)? {superType:type}"
+        "(a|an) {type} is (a|an) (isList:list of)? {superType:type}"
+        // TODO: "{plural_type} are a list of ..."
       ],
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
         const { type, superType, isList } = results
         const statement = scope.types.add({
           name: type,
-          superType: isList ? "List" : superType
+          superType: isList || superType === "List" ? "Array" : superType
         })
         results.statements.push(statement)
         // If we're a list of something, set `list.instanceType` property
@@ -24,6 +25,28 @@ export default new Spell.Parser({
           statement.variables.add({ name: "instance_type", value: superType })
           results.statements.push(`spellCore.define(${type}.prototype, "instance_type", { value: "${superType}" })`)
         }
+      },
+      toAST(scope, match) {
+        const { type, superType, isList } = match.groups
+        const typeAST = type.AST
+        const superAST = isList ? new AST.TypeExpression(scope, match, { raw: "list", name: "Array" }) : superType?.AST
+        const instanceAST = isList && superType ? superType.AST : undefined
+
+        // Add to scope if necessary
+        // TODO: complain if already defined?  Add to existing type?
+        let scopeType = scope.types(typeAST.name)
+        if (!scopeType) {
+          scopeType = scope.types.add({
+            name: typeAST.name,
+            superType: superAST?.name,
+            instanceType: instanceAST?.name
+          })
+        }
+        return new AST.NewClassStatement(scope, match, {
+          type: typeAST,
+          superType: superAST,
+          instanceType: instanceAST
+        })
       },
       tests: [
         {
@@ -34,7 +57,12 @@ export default new Spell.Parser({
               "create a type called car as a vehicle",
               `export class Car extends Vehicle {}\nspellCore.addExport("Car", Car)`
             ],
-            ["a card is a thing", `export class Card extends Thing {}\nspellCore.addExport("Card", Card)`]
+            ["a card is a thing", `export class Card extends Thing {}\nspellCore.addExport("Card", Card)`],
+            ["a set is a list", `export class Set extends Array {}\nspellCore.addExport("Set", Set)`],
+            [
+              ("a deck is a list of cards",
+              'export class Deck extends Array {}\nspellCore.addExport("Deck", Deck)\nspellCore.define(Deck.prototype, "instance_type", { value: "Card" })')
+            ]
           ]
         }
       ]
