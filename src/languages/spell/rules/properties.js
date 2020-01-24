@@ -5,9 +5,9 @@
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
 
-import { Spell } from "../all"
-
+import { AST, Spell } from "../all"
 import identifierBlacklist from "./identifier-blacklist"
+import { PropertyLiteral } from "../AST"
 
 const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/
 
@@ -21,12 +21,17 @@ export default new Spell.Parser({
     // Generic property name -- single word, initial-lower case, not in identifier blacklist.
     // You can register multi-word property identifiers manually.
     {
+      // TODO: property_name
       name: "property",
       pattern: LOWER_INITIAL_WORD,
       blacklist: identifierBlacklist,
       // convert dashes to underscores
       mapValue(value) {
         return `${value}`.replace(/-/g, "_")
+      },
+      toAST(scope, match) {
+        const { value, raw } = match
+        return new AST.PropertyLiteral(scope, match, { value, raw })
       }
     },
 
@@ -37,6 +42,10 @@ export default new Spell.Parser({
       testRule: "the",
       compile(scope, match) {
         return match.results.property
+      },
+      toAST(scope, match) {
+        const { value, raw } = match.groups.property
+        return new PropertyLiteral(scope, match, { value, raw })
       }
     },
 
@@ -51,6 +60,13 @@ export default new Spell.Parser({
         // TODO: `[xxx]` for non-identifiers
         // TODO: optional accessor:  `a?.b` ???
         return `${expression}.${property_accessor}`
+      },
+      toAST(scope, match) {
+        const { property_accessor, expression } = match.groups
+        return new AST.PropertyExpression(scope, match, {
+          object: expression.AST,
+          property: property_accessor.AST
+        })
       },
       tests: [
         {
@@ -83,6 +99,14 @@ export default new Spell.Parser({
         const its = itsVar ? itsVar.output : "this"
         return `${its}.${property}`
       },
+      toAST(scope, match) {
+        const property = match.groups.property.AST
+        const itsVar = scope.variables("its")
+        const object = itsVar
+          ? new AST.VariableExpression(scope, match, { raw: "its", name: itsVar.output, variable: itsVar })
+          : new AST.ThisLiteral(scope, match)
+        return new AST.PropertyExpression(scope, match, { object, property })
+      },
       tests: [
         // TESTME: `its` inside an instance method
         {
@@ -94,20 +118,26 @@ export default new Spell.Parser({
 
     // Properties clause: creates an object with one or more property values.
     //  `foo = 1, bar = 2`
-    // TODO: would like to use `and` but that conflicts with "and" operator
     // TODO: don't quote if we don't have to? (ASCII and blacklist only)
     // TODO: multiple lines if > 2 props?
     {
       name: "object_literal_properties",
-      syntax: "[({key:property} ((=|is|of|is? set to) {value:expression})?)(,|and)]",
+      syntax: "[({property} ((=|is|of|is? set to) {value:expression})?)(,|and)]",
       compile(scope, match) {
         const props = match.items.map(function(prop) {
-          const { key, value } = prop.results
-          if (value === undefined) return key
-          if (!LEGAL_PROPERTY_IDENTIFIER.test(key)) return `"${key}": ${value}`
-          return `${key}: ${value}`
+          const { property, value } = prop.results
+          if (value === undefined) return property
+          if (!LEGAL_PROPERTY_IDENTIFIER.test(property)) return `"${property}": ${value}`
+          return `${property}: ${value}`
         })
         return `{ ${props.join(", ")} }`
+      },
+      toAST(scope, match) {
+        const properties = match.items.map(propMatch => {
+          const { property, value } = propMatch.groups
+          return new AST.ObjectLiteralProperty(scope, propMatch, { property: property.AST, value: value.AST })
+        })
+        return new AST.ObjectLiteral(scope, match, { properties })
       },
       tests: [
         {
@@ -133,9 +163,9 @@ export default new Spell.Parser({
     // MOVE TO `functions`?
     // Arguments clause for methods
     //  `with foo` or `with foo and bar and baz`
+    // TODO: how would we use this???
     // TODO: {identifier} = {expression}  => requires `,` instead of `and`
-    // TODO: `with foo as Type`
-    // TODO:  `with foo...` for splat?
+    // TODO: `with foo as a Type`
     {
       name: "args",
       syntax: "with [args:{variable},]",
@@ -143,6 +173,9 @@ export default new Spell.Parser({
       compile(scope, match) {
         const { args } = match.results
         return args.join(", ")
+      },
+      toAST(scope, match) {
+        throw new TypeError("not implemented")
       },
       tests: [
         {

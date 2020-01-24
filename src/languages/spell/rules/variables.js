@@ -1,8 +1,7 @@
 //
 //  # Rules for variables
 //
-import { Rule, Spell, proto, singularize, pluralize } from "../all"
-import * as AST from "../AST"
+import { AST, Rule, Spell, proto, singularize, pluralize } from "../all"
 import identifierBlacklist from "./identifier-blacklist"
 
 // Alpha-numeric word, including dashes or underscores.

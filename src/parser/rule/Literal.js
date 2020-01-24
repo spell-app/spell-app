@@ -24,6 +24,7 @@ Rule.Literal = class literal extends Rule {
     return new Match({
       rule: this,
       matched: [tokens[0]],
+      value: tokens[0].value,
       length: 1,
       scope
     })

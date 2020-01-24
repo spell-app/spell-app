@@ -2,8 +2,7 @@
 //  # Rules for expressions.
 //
 
-import { Spell, peek } from "../all"
-import * as AST from "../AST"
+import { AST, Spell, peek } from "../all"
 
 export default new Spell.Parser({
   module: "expressions",

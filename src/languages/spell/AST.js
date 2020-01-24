@@ -1,7 +1,7 @@
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 import _get from "lodash/get"
 import { proto, readonly } from "../../utils/decorators"
-import { Scope } from "./all"
+import { Scope, Match, AST } from "./all"
 
 /** Abstract root of all AST node types.
  *  - `type` is
@@ -20,11 +20,13 @@ export class ASTNode {
     if (props) Object.assign(this, props)
     this.parentScope = scope
     this.match = match
+    this.assertType("parentScope", Scope)
+    this.assertType("match", Match)
   }
 
   /** Compile this AST into Javascript.  You MUST override in a subclass. */
   toJS(scope) {
-    throw new TypeError(`AST Node ${this.type} must implement toJS()`)
+    throw new TypeError(`AST ${this.type} must implement toJS()`)
   }
 
   /** Debug: assert that a condition is true, generally called on constructor as sanity check. */
@@ -55,6 +57,14 @@ export class ASTNode {
         `.  Actual value: `,
         propValue
       )
+    }
+  }
+
+  /** Assert that `this[property]` is an array, and that each item is of `type` */
+  assertArrayType(property, type) {
+    this.assertType(property, Array)
+    if (Array.isArray(this[property])) {
+      this[property].forEach((arg, index) => this.assertType(`${property}[${index}]`, type))
     }
   }
 }
@@ -260,8 +270,7 @@ export class CoreMethodExpression extends Expression {
   constructor(...args) {
     super(...args)
     this.assertType("method", "string")
-    this.assertType("arguments", Array)
-    this.arguments.forEach((arg, index) => this.assertType(`arguments[${index}]`, Expression))
+    this.assertArrayType("arguments", Expression)
   }
   toJS() {
     const args = this.arguments.map(arg => arg.toJS()).join(", ")
@@ -311,7 +320,8 @@ export class VariableExpression extends Expression {
 }
 
 /** ConstantExpression -- pointer to a Constant object.
- *  - `name` is the normalized name: dashes and spaces converted to underscores.
+ *  - `name` is the constant name (not normalized ???)
+ *  - `value` is the constant string to output.
  *  - `constant` is pointer to scope Constant, if there is one.
  */
 export class ConstantExpression extends Expression {
@@ -320,9 +330,122 @@ export class ConstantExpression extends Expression {
   constructor(...args) {
     super(...args)
     this.assertType("name", "string")
-    this.assertType("constant", Scope.Constant)
+    this.assertType("value", "string")
   }
   toJS() {
-    return this.constant.toString()
+    return this.value
+  }
+}
+
+/** ThisLiteral type. */
+export class ThisLiteral extends Literal {
+  @proto @readonly type = "ThisLiteral"
+  toJS() {
+    return "this"
+  }
+}
+
+/** PropertyLiteral -- identifier which refers to some property of an object.
+ *  - `raw` is the input property name
+ *  - `value` is the normalized property name.
+ */
+export class PropertyLiteral extends Literal {
+  @proto @readonly type = "PropertyLiteral"
+  @proto @readonly datatype = "string"
+  constructor(...args) {
+    super(...args)
+    this.assertType("raw", "string")
+    this.assertType("value", "string")
+  }
+}
+
+/** PropertyExpression -- named property of some object.
+ *  - `object` is the thing to get the property from, as an Expression.
+ *  - `property` is the normalized property name.
+ */
+export class PropertyExpression extends Expression {
+  @proto @readonly type = "PropertyExpression"
+  constructor(...args) {
+    super(...args)
+    this.assertType("object", Expression)
+    this.assertType("property", PropertyLiteral)
+  }
+  // TODO: datatype???
+  toJS() {
+    return `(${this.object.toJS()}).${this.property.toJS()}`
+  }
+}
+
+/** ObjectLiteralProperty type
+ *  - `property` is the normalized property name.
+ *  - `value` (optional) is the property value.
+ */
+export class ObjectLiteralProperty extends ASTNode {
+  @proto @readonly type = "ObjectLiteralProperty"
+  constructor(...args) {
+    super(...args)
+    this.assertType("property", PropertyLiteral)
+    if (this.value) this.assertType("value", Expression)
+  }
+  toJS() {
+    // If no value, assume it's available as a local variable.
+    if (!this.value) return this.property.toJS()
+    return `${this.property.toJS()}: ${this.value.toJS()}`
+  }
+}
+
+/** ObjectLiteral -- bag of properties.
+ *  - `properties` is an array of PropertyValues
+ */
+export class ObjectLiteral extends Expression {
+  @proto @readonly type = "PropertyExpression"
+  @proto @readonly datatype = "object"
+  constructor(...args) {
+    super(...args)
+    this.assertArrayType("properties", ObjectLiteralProperty)
+  }
+  // TODO: datatype???
+  toJS() {
+    return `{ ${this.properties.map(prop => prop.toJS()).join(", ")} }`
+  }
+}
+
+/** Statement type.
+ */
+export class Statement extends ASTNode {
+  @proto @readonly type = "Statement"
+}
+
+/** AssignmentStatement -- assign value to thing.
+ *  - `thing` is an Expression.
+ *  - `value` is an Expression
+ *  - `isNewVariable` (optional) if true and `thing` is an Expression, we'll declare the var.
+ */
+export class AssignmentStatement extends Statement {
+  @proto @readonly type = "Statement"
+  constructor(...args) {
+    super(...args)
+    this.assertType("thing", Expression)
+    this.assertType("value", Expression)
+  }
+  toJS() {
+    const { thing, value, isNewVariable } = this
+    const declarator = isNewVariable ? "let " : ""
+    return `${declarator}${thing.toJS()} = ${value.toJS()}`
+  }
+}
+
+/** ReturnStatement -- return value.
+ *  - `value` is an Expression
+ */
+export class ReturnStatement extends Statement {
+  @proto @readonly type = "Statement"
+  constructor(...args) {
+    super(...args)
+    this.assertType("value", Expression)
+  }
+  toJS() {
+    if (this.value instanceof UndefinedLiteral) return "return"
+    return `return ${this.value.toJS()}`
   }
 }

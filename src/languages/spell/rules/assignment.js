@@ -2,7 +2,7 @@
 //  # Rules for assignment and returning values.
 //
 
-import { Spell } from "../all"
+import { Spell, AST } from "../all"
 
 export default new Spell.Parser({
   module: "assignment",
@@ -26,6 +26,21 @@ export default new Spell.Parser({
 
         const statement = scope.addStatement(`${isNewVar ? "let " : ""}${thing} = ${value}`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { thing, value } = match.groups
+        const props = {
+          thing: thing.AST,
+          value: value.AST,
+          isNewVariable: thing.isAVariable && !thing.variable
+        }
+        // If we got a NEW variable (not defined in our scope)
+        if (props.isNewVariable) {
+          // Add the variable to our scope
+          scope.variables.add(props.thing.name)
+          // TODO: hook up type somehow???
+        }
+        return new AST.AssignmentStatement(scope, match, props)
       },
       tests: [
         {
@@ -75,6 +90,22 @@ export default new Spell.Parser({
         const statement = scope.addStatement(`${isNewVar ? "let " : ""}it = ${value}`)
         results.statements.push(statement)
       },
+      toAST(scope, match) {
+        const { value } = match.groups
+        const variable = scope.variables("it", "LOCAL")
+        const props = {
+          thing: new AST.VariableExpression({ raw: "it", name: "it", variable }),
+          value: value.AST,
+          isNewVariable: !variable
+        }
+        // If we got a NEW variable (not defined in our scope)
+        if (props.isNewVariable) {
+          // Add the variable to our scope
+          scope.variables.add("ir")
+          // TODO: hook up type somehow???
+        }
+        return new AST.AssignmentStatement(scope, match, props)
+      },
       tests: [
         {
           compileAs: "statement",
@@ -101,6 +132,11 @@ export default new Spell.Parser({
         const { expression = "undefined" } = results
         const statement = scope.addStatement(`return ${expression}`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        return new AST.ReturnStatement(scope, match, {
+          value: match.groups.expression?.AST || new AST.UndefinedLiteral(scope, match)
+        })
       },
       tests: [
         {

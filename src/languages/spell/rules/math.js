@@ -3,8 +3,7 @@
 //  NOTE: this must come after "operators"
 //
 
-import { Spell } from "../all"
-import * as AST from "../AST"
+import { AST, Spell } from "../all"
 
 export default new Spell.Parser({
   module: "math",
@@ -324,11 +323,10 @@ export default new Spell.Parser({
         return `Math.round(${thing})`
       },
       toAST(scope, match) {
-        const { direction } = match.results
-        const { thing } = match.groups
+        const { thing, direction } = match.groups
         let method = "round"
-        if (direction === "up") method = "roundUp"
-        else if (direction === "down") method = "roundDown"
+        if (direction.value === "up") method = "roundUp"
+        else if (direction.value === "down") method = "roundDown"
         return new AST.CoreMethodExpression(scope, match, {
           datatype: "number",
           method, // TODO: implement in spellCore
