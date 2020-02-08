@@ -1,4 +1,4 @@
-import { Match, Rule, Spell, Token, isWhitespace } from "../all"
+import { Match, Rule, Spell, Token, isWhitespace, AST } from "../all"
 
 // `Blocks` are generally the root entity that we parse in spell.
 //  This is a top-level construct, e.g. used to parse an entire file.
@@ -31,7 +31,7 @@ Spell.Rule.Block = class block extends Rule {
       else if (item instanceof Token.Block) {
         // If the lastStatement wants a nested block, have it parse the block
         if (lastStatement?.rule?.wantsNestedBlock) {
-          this.parseBlock(lastStatement.getNestedScope(), item)
+          lastStatement.block = this.parseBlock(lastStatement.getNestedScope(), item)
         } else {
           const nestedBlock = this.parseBlock(scope, item)
           if (nestedBlock) {
@@ -132,5 +132,11 @@ Spell.Rule.Block = class block extends Rule {
     const lines = `${tab}${results.join(`\n${tab}`)}`
     if (match.enclose) return `{\n${lines}\n${tab.slice(1)}}`
     return lines
+  }
+
+  toAST(scope, match) {
+    return new AST.StatementBlock(scope, match, {
+      statements: match.matched.map(statement => statement.AST)
+    })
   }
 }

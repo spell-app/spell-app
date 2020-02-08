@@ -1,9 +1,18 @@
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 import _get from "lodash/get"
 import { proto, readonly } from "../../utils/decorators"
-import { Scope, Match, AST } from "./all"
+import { Scope, Match } from "./all"
 
 const OPTIONAL = Symbol("OPTIONAL")
+
+function checkType(value, type) {
+  if (Array.isArray(type)) return type.some(nextType => checkType(value, nextType))
+  // eslint-disable-next-line valid-typeof
+  if (typeof type === "string") return typeof value === type
+  if (type === null) return value === null
+  if (type === undefined) return value === undefined
+  return value instanceof type
+}
 
 /** Abstract root of all AST node types.
  *  - `type` is
@@ -28,7 +37,7 @@ export class ASTNode {
   }
 
   /** Compile this AST into Javascript.  You MUST override in a subclass. */
-  toJS(scope) {
+  toJS() {
     throw new TypeError(`AST ${this.type} must implement toJS()`)
   }
 
@@ -41,28 +50,13 @@ export class ASTNode {
   assertType(property, type, optional) {
     const propValue = _get(this, property)
     if (optional === OPTIONAL && propValue === undefined) return
-
-    if (typeof type === "string") {
-      // eslint-disable-next-line valid-typeof
-      const expression = typeof propValue === type
-      this.assert(expression, `expected property '${property}' to be a ${type}.  Actual value: `, propValue)
-    } else if (type === null) {
-      this.assert(propValue === null, `expected property '${property}' to be null.  Actual value: `, propValue)
-    } else if (type === undefined) {
-      this.assert(
-        propValue === undefined,
-        `expected property '${property}' to be undefined.  Actual value: `,
-        propValue
-      )
-    } else {
-      this.assert(
-        propValue instanceof type,
-        `expected property '${property}' to be instanceof `,
-        type,
-        `.  Actual value: `,
-        propValue
-      )
-    }
+    this.assert(
+      checkType(propValue, type),
+      `\nexpected property '${property}' to be \n\t`,
+      type,
+      `\nActual value: \n\t`,
+      propValue
+    )
   }
 
   /** Assert that `this[property]` is an array, and that each item is of `type` */
@@ -271,11 +265,12 @@ export class InfixExpression extends Expression {
  *  - Try to set `datatype` as string or getter if you can.
  */
 export class CoreMethodExpression extends Expression {
-  @proto @readonly type = "InfixExpression"
+  @proto @readonly type = "CoreMethodExpression"
   constructor(...args) {
     super(...args)
     this.assertType("method", "string")
     this.assertArrayType("arguments", Expression, OPTIONAL)
+    this.assertType("datatype", "string", OPTIONAL)
   }
   toJS() {
     const args = this.arguments.map(arg => arg.toJS()).join(", ")
@@ -306,7 +301,7 @@ export class TypeExpression extends Expression {
 }
 
 /** VariableExpression -- pointer to a Variable object.
- *  - `raw` is the original input string, unnormalized.
+ *  - `raw` (optional) is the original input string, unnormalized.
  *  - `name` is the normalized type name: dashes and spaces converted to underscores.
  *  - `variable` (optional) is pointer to scope Variable, if there is one.
  *  - `plurality` (optional) is "singular", "plural" or `undefined`  // TODO: derive?
@@ -315,7 +310,7 @@ export class VariableExpression extends Expression {
   @proto @readonly type = "VariableExpression"
   constructor(...args) {
     super(...args)
-    this.assertType("raw", "string")
+    this.assertType("raw", "string", OPTIONAL)
     this.assertType("name", "string")
   }
   // TODO: datatype according to Variable ?
@@ -417,10 +412,25 @@ export class ObjectLiteral extends Expression {
   }
 }
 
-/** Statement type.
- */
+/** Statement abstract type. */
 export class Statement extends ASTNode {
   @proto @readonly type = "Statement"
+}
+
+/** StatementBlock type.
+ *  - `statements` is a list of Statements.
+ */
+export class StatementBlock extends ASTNode {
+  @proto @readonly type = "StatementBlock"
+  constructor(...args) {
+    super(...args)
+    this.assertArrayType("statements", [Statement, Expression], OPTIONAL)
+  }
+  toJS() {
+    const { statements } = this
+    if (!statements) return "{}"
+    return `{\n${statements.map(statement => statement.toJS()).join("\n")}\n}`
+  }
 }
 
 /** AssignmentStatement -- assign value to thing.
@@ -461,7 +471,7 @@ export class ReturnStatement extends Statement {
 /** NewClassStatement
  * - `type` is a TypeExpression
  * - `superType` (optional) is a TypeExpression
- * - `instanceType` (optoinal) is a TypeExpression for lists of a certain type.
+ * - `instanceType` (optional) is a TypeExpression for lists of a certain type.
  */
 export class NewClassStatement extends Statement {
   @proto @readonly type = "NewClassStatement"
@@ -479,5 +489,60 @@ export class NewClassStatement extends Statement {
     if (instanceType)
       output.push(`spellCore.define(${type.name}.prototype, "instance_type", { value: ${instanceType.name} })`)
     return output
+  }
+}
+
+/** NewInstanceStatement
+ * - `type` is a TypeExpression
+ * - `props` (optional) is an ObjectLiteral
+ */
+export class NewInstanceStatement extends Statement {
+  @proto @readonly type = "NewInstanceStatement"
+  constructor(...args) {
+    super(...args)
+    this.assertType("type", TypeExpression)
+    this.assertType("props", ObjectLiteral, OPTIONAL)
+  }
+  toJS() {
+    const { type, props } = this
+    return `new ${type.name}(${props ? props.toJS() : ""})`
+  }
+}
+
+/** ListExpression
+ * - `items` (optional) is a list of Expressions
+ */
+export class ListExpression extends Expression {
+  @proto @readonly type = "ListExpression"
+  constructor(...args) {
+    super(...args)
+    this.assertArrayType("items", Expression, OPTIONAL)
+  }
+  toJS() {
+    const { items } = this
+    if (!items) return "[]"
+    return `[${items.map(item => item.toJS()).join(", ")}]`
+  }
+}
+
+/** InlineMethodExpression
+ * - `args` (optional) is a list of VariableExpressions
+ * - `statements` (optional) is a Statement or a StatementBlock
+ * - `expression` (optional) is a Expression
+ * TODO: create a scope for variables inside???
+ * TODO: rename?
+ */
+export class InlineMethodExpression extends Expression {
+  @proto @readonly type = "InlineMethodExpression"
+  constructor(...args) {
+    super(...args)
+    this.assertArrayType("args", VariableExpression, OPTIONAL)
+    this.assertType("statements", [Statement, StatementBlock, Expression], OPTIONAL)
+    this.assertType("expression", Expression, OPTIONAL)
+  }
+  toJS() {
+    const args = this.args ? `(${this.args.map(arg => arg.toJS()).join(", ")})` : "()"
+    const body = (this.expression || this.statements)?.toJS() || "{}"
+    return `${args} => ${body}`
   }
 }

@@ -61,11 +61,11 @@ export default class Match {
 
   // Syntatic sugar to return the JS for the AST for this match.
   get ASTJS() {
-    try {
-      return this.AST.toJS()
-    } catch (e) {
-      throw new TypeError(`Couldn't get AST or JS for rule ${this.rule.name}`)
-    }
+    // try {
+    return this.AST.toJS()
+    // } catch (e) {
+    //   throw new TypeError(`Couldn't get AST or JS for rule ${this.rule.name}`)
+    // }
   }
 
   // Test to see if the AST => JS matches rule.compile() => JS

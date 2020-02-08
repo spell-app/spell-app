@@ -15,7 +15,7 @@
 import flattenDeep from "lodash/flattenDeep"
 
 import Rule from "./Rule"
-import { Match, proto } from "../all"
+import { Match } from "../all"
 
 // Sequence of rules to match.
 //  `rule.rules` is the array of rules to match.

@@ -29,8 +29,12 @@ export default new Spell.Parser({
       toAST(scope, match) {
         const { type, superType, isList } = match.groups
         const typeAST = type.AST
-        const superAST = isList ? new AST.TypeExpression(scope, match, { raw: "list", name: "Array" }) : superType?.AST
-        const instanceAST = isList && superType ? superType.AST : undefined
+        let superAST
+        let listInstanceAST
+        if (isList) {
+          superAST = new AST.TypeExpression(scope, match, { raw: "list", name: "Array" })
+          listInstanceAST = superType?.AST
+        } else if (superType) superAST = superType?.AST
 
         // Add to scope if necessary
         // TODO: complain if already defined?  Add to existing type?
@@ -39,13 +43,13 @@ export default new Spell.Parser({
           scopeType = scope.types.add({
             name: typeAST.name,
             superType: superAST?.name,
-            instanceType: instanceAST?.name
+            instanceType: listInstanceAST?.name
           })
         }
         return new AST.NewClassStatement(scope, match, {
           type: typeAST,
           superType: superAST,
-          instanceType: instanceAST
+          instanceType: listInstanceAST
         })
       },
       tests: [
@@ -80,6 +84,10 @@ export default new Spell.Parser({
         const { type, props = "" } = results // `props` is the object literal text
         results.statements.push(`new ${type}(${props})`)
       },
+      toAST(scope, match) {
+        const { type, props } = match.groups
+        return new AST.NewInstanceStatement(scope, match, { type: type.AST, props: props && props.AST })
+      },
       tests: [
         {
           title: "creates normal types",
@@ -94,13 +102,7 @@ export default new Spell.Parser({
           compileAs: "expression",
           tests: [
             ["a new Object", "new Object()"],
-            ["a new object with a = 1, b = yes", "new Object({ a: 1, b: true })"],
-            // thing
-            ["create a Thing", "new Thing()"],
-            ["create a thing with a = 1", "new Thing({ a: 1 })"],
-            // FIXME: the following don't make sense if they have arguments...
-            ["create a List", "new List()"],
-            ["create a list", "new List()"]
+            ["a new object with a = 1, b = yes", "new Object({ a: 1, b: true })"]
           ]
         }
       ]
@@ -121,6 +123,10 @@ export default new Spell.Parser({
         const { type, props = "" } = results // `props` is the object literal text
         const statement = scope.addStatement(`new ${type}(${props})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { type, props } = match.groups
+        return new AST.NewInstanceStatement(scope, match, { type: type.AST, props: props && props.AST })
       },
       tests: [
         {
@@ -168,6 +174,7 @@ export default new Spell.Parser({
         const { enumeration } = match.results
         return { datatype: "enum", enumeration }
       },
+      toAST(scope, match) {},
       tests: [
         {
           tests: [

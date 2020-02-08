@@ -3,7 +3,8 @@
 //  TODO: sort
 //
 
-import { Scope, Spell, singularize } from "../all"
+import { AST, Scope, Spell, singularize } from "../all"
+import { StatementBlock } from "../AST"
 
 export default new Spell.Parser({
   module: "lists",
@@ -14,6 +15,10 @@ export default new Spell.Parser({
       name: "identifier_list",
       syntax: "[({known_variable}|{constant}|{number})(,|or|and|nor)]",
       datatype: "array", // TODO: array of what?
+      toAST(scope, match) {
+        const { items } = match
+        return new AST.ListExpression(scope, match, { items: items.map(item => item.AST) })
+      },
       tests: [
         {
           tests: [
@@ -37,6 +42,11 @@ export default new Spell.Parser({
       compile(scope, match) {
         const { list } = match.results
         return `[${list ? list.join(", ") : ""}]`
+      },
+      toAST(scope, match) {
+        const { list } = match.groups
+        const items = list ? list.items.map(item => item.AST) : undefined
+        return new AST.ListExpression(scope, match, { items })
       },
       tests: [
         {
@@ -85,6 +95,13 @@ export default new Spell.Parser({
         const { list } = match.results
         return `spellCore.itemCountOf(${list})`
       },
+      toAST(scope, match) {
+        const { list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "itemCountOf",
+          arguments: [list.AST]
+        })
+      },
       tests: [
         {
           compileAs: "expression",
@@ -115,6 +132,13 @@ export default new Spell.Parser({
         const { thing, list } = match.results
         return `spellCore.itemOf(${list}, ${thing})`
       },
+      toAST(scope, match) {
+        const { thing, list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "itemOf",
+          arguments: [list.AST, thing.AST]
+        })
+      },
       tests: [
         {
           compileAs: "expression",
@@ -136,10 +160,15 @@ export default new Spell.Parser({
     {
       name: "starts_with",
       alias: "expression_suffix",
-      syntax: "(operator:(starts|ends) with) {expression:single_expression}",
+      syntax: "starts with {expression:single_expression}",
       applyOperator({ lhs, operator, rhs }) {
-        const method = operator === "starts with" ? "startsWith" : "endsWith"
-        return `spellCore.${method}(${lhs}, ${rhs})`
+        return `spellCore.startsWith(${lhs}, ${rhs})`
+      },
+      toAST(scope, match) {
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "startsWith",
+          arguments: [match.lhs.AST, match.rhs.AST]
+        })
       },
       tests: [
         {
@@ -150,7 +179,34 @@ export default new Spell.Parser({
           },
           tests: [
             ["my-list starts with thing", "spellCore.startsWith(my_list, thing)"],
-            ["[1,2,3] starts with 1", "spellCore.startsWith([1, 2, 3], 1)"],
+            ["[1,2,3] starts with 1", "spellCore.startsWith([1, 2, 3], 1)"]
+          ]
+        }
+      ]
+    },
+
+    // Does list start with some value?.
+    {
+      name: "ends_with",
+      alias: "expression_suffix",
+      syntax: "ends with {expression:single_expression}",
+      applyOperator({ lhs, operator, rhs }) {
+        return `spellCore.endsWith(${lhs}, ${rhs})`
+      },
+      toAST(scope, match) {
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "endsWith",
+          arguments: [match.lhs.AST, match.rhs.AST]
+        })
+      },
+      tests: [
+        {
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.variables.add("my-list")
+            scope.variables.add("thing")
+          },
+          tests: [
             ["my-list ends with thing", "spellCore.endsWith(my_list, thing)"],
             ["[1,2,3] ends with 1", "spellCore.endsWith([1, 2, 3], 1)"]
           ]
@@ -159,7 +215,7 @@ export default new Spell.Parser({
     },
 
     //
-    //  Ordinal numbers (first, second, last, etc).
+    // Ordinal numbers (first, second, last, etc).
     // TODO: sixty-fifth, two hundred forty ninth... with custom parser?
     //
     {
@@ -182,6 +238,10 @@ export default new Spell.Parser({
         last: -1,
         top: 1,
         bottom: -1
+      },
+      toAST(scope, match) {
+        const { value, raw } = match
+        return new AST.NumericLiteral(scope, match, { value, raw })
       },
       tests: [
         {
@@ -227,6 +287,13 @@ export default new Spell.Parser({
         const { position, expression } = match.results
         return `spellCore.getItem(${expression}, ${position})`
       },
+      toAST(scope, match) {
+        const { position, expression } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "getItem",
+          arguments: [expression.AST, position.AST]
+        })
+      },
       tests: [
         {
           compileAs: "expression",
@@ -253,6 +320,13 @@ export default new Spell.Parser({
         const { ordinal, expression } = match.results
         return `spellCore.getItem(${expression}, ${ordinal})`
       },
+      toAST(scope, match) {
+        const { ordinal, expression } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "getItem",
+          arguments: [expression.AST, ordinal.AST]
+        })
+      },
       tests: [
         {
           compileAs: "expression",
@@ -272,13 +346,20 @@ export default new Spell.Parser({
 
     // Pick a SINGLE random item from the list.
     {
-      name: "random_position_expression",
+      name: "random_item_expression",
       alias: ["expression", "single_expression"],
       syntax: "a random {arg:singular_variable} (of|from|in) {list:expression}",
       testRule: "a random",
       compile(scope, match) {
         const { list } = match.results
         return `spellCore.randomItemOf(${list})`
+      },
+      toAST(scope, match) {
+        const { list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "randomItemOf",
+          arguments: [list.AST]
+        })
       },
       tests: [
         {
@@ -299,13 +380,20 @@ export default new Spell.Parser({
     // Pick a unique set of random items from the list, returning an array.
     // TODO: `two random items...`
     {
-      name: "random_positions_expression",
+      name: "random_items_expression",
       alias: ["expression", "single_expression"],
       syntax: "{number} random {arg:plural_variable} (of|from|in) {list:expression}",
       testRule: "…random",
       compile(scope, match) {
         const { number, list } = match.results
         return `spellCore.randomItemsOf(${list}, ${number})`
+      },
+      toAST(scope, match) {
+        const { number, list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "randomItemsOf",
+          arguments: [list.AST, number.AST]
+        })
       },
       tests: [
         {
@@ -328,13 +416,20 @@ export default new Spell.Parser({
     // NOTE: `start` is **1-based**.
     // NOTE: `end` is inclusive!
     {
-      name: "range_from_expression",
+      name: "range_between_expression",
       alias: ["expression", "single_expression"],
       syntax: "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:expression}",
       testRule: "…(of|in|from)",
       compile(scope, match) {
         const { list, start, end } = match.results
         return `spellCore.rangeBetween(${list}, ${start}, ${end})`
+      },
+      toAST(scope, match) {
+        const { list, start, end } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "rangeBetween",
+          arguments: [list.AST, start.AST, end.AST]
+        })
       },
       tests: [
         {
@@ -356,13 +451,24 @@ export default new Spell.Parser({
     // Returns a new list.
     // If item is not found, returns an empty list. (???)
     {
-      name: "range_from_expression_starting_with",
+      name: "range_starting_with_expression",
       alias: ["expression", "single_expression"],
       syntax: "{arg:plural_variable} (in|of) {list:expression} starting with {thing:expression}",
       testRule: "…(starting with)",
       compile(scope, match) {
         const { thing, list } = match.results
-        return `spellCore.rangeBetween(${list}, spellCore.itemOf(${thing}, ${list}))`
+        return `spellCore.rangeStartingAt(${list}, spellCore.itemOf(${list}, ${thing}))`
+      },
+      toAST(scope, match) {
+        const { thing, list } = match.groups
+        const itemExpression = new AST.CoreMethodExpression(scope, match, {
+          method: "itemOf",
+          arguments: [list.AST, thing.AST]
+        })
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "rangeStartingAt",
+          arguments: [list.AST, itemExpression]
+        })
       },
       tests: [
         {
@@ -374,11 +480,11 @@ export default new Spell.Parser({
           tests: [
             [
               "items in my-list starting with thing",
-              "spellCore.rangeBetween(my_list, spellCore.itemOf(thing, my_list))"
+              "spellCore.rangeStartingAt(my_list, spellCore.itemOf(my_list, thing))"
             ],
             [
               "words in 'some words' starting with 'some'",
-              "spellCore.rangeBetween('some words', spellCore.itemOf('some', 'some words'))"
+              "spellCore.rangeStartingAt('some words', spellCore.itemOf('some words', 'some'))"
             ]
           ]
         }
@@ -387,6 +493,7 @@ export default new Spell.Parser({
 
     // Alternative form of range expression.
     // Returns a new list.
+    // TODO: restrict ordinals to `first`, `last`, `final`, `top`, etc
     {
       name: "range_count_expression",
       alias: ["expression", "single_expression"],
@@ -395,6 +502,13 @@ export default new Spell.Parser({
       compile(scope, match) {
         const { ordinal, number, list } = match.results
         return `spellCore.rangeStartingAt(${list}, ${ordinal}, ${number})`
+      },
+      toAST(scope, match) {
+        const { list, ordinal, number } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "rangeStartingAt",
+          arguments: [list.AST, ordinal.AST, number.AST]
+        })
       },
       tests: [
         {
@@ -430,6 +544,17 @@ export default new Spell.Parser({
       compile(scope, match) {
         const { list, expression } = match.results
         return `spellCore.filter(${list}, ${expression})`
+      },
+      toAST(scope, match) {
+        const { arg, list, inlineStatement } = match.groups
+        const filter = new AST.InlineMethodExpression(scope, inlineStatement, {
+          args: [new AST.VariableExpression(scope, arg, { name: singularize(arg.value) })],
+          expression: inlineStatement.AST
+        })
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "filter",
+          arguments: [list.AST, filter]
+        })
       },
       tests: [
         {
@@ -471,6 +596,21 @@ export default new Spell.Parser({
         // singularize method argument
         return `${bang}spellCore.any(${list}, ${filter})`
       },
+      toAST(scope, match) {
+        const { list, operator, arg, inlineStatement } = match.groups
+        const filter = new AST.InlineMethodExpression(scope, inlineStatement, {
+          args: [new AST.VariableExpression(scope, arg, { name: singularize(arg.value) })],
+          expression: inlineStatement.AST
+        })
+        const expression = new AST.CoreMethodExpression(scope, match, {
+          method: "any",
+          arguments: [list.AST, filter],
+          datatype: "boolean"
+        })
+        // Wrap in NotExpression for some operators
+        if (operator.value === "has") return expression
+        return new AST.NotExpression(scope, match, { expression })
+      },
       tests: [
         {
           compileAs: "expression",
@@ -493,28 +633,26 @@ export default new Spell.Parser({
     //  Adding to list (in-place)
     //
 
-    // Aliases for front/back/etc
-    {
-      name: "list_front_or_back",
-      syntax: "the (start|front|top|end|back|bottom) of",
-      compile(scope, match) {
-        const where = match.matched[1].value
-        if (where === "start" || where === "front" || where === "top") return "prepend"
-        return "append"
-      }
-    },
-
     // Add to list.
     {
       name: "list_add",
       alias: "statement",
-      syntax: "add {thing:expression} to {method:list_front_or_back}? {list:expression}",
+      syntax: "add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {list:expression}",
       testRule: "add",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
-        const { thing, list, method = "append" } = results
-        const statement = scope.addStatement(`spellCore.${method}(${list}, ${thing})`)
+        const { thing, list, method } = results
+        const spellMethod = ["start", "front", "top"].includes(method) ? "prepend" : "append"
+        const statement = scope.addStatement(`spellCore.${spellMethod}(${list}, ${thing})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { thing, list, method } = match.groups
+        const spellMethod = method && ["start", "front", "top"].includes(method) ? "prepend" : "append"
+        return new AST.CoreMethodExpression(scope, match, {
+          method: spellMethod,
+          arguments: [list.AST, thing.AST]
+        })
       },
       tests: [
         {
@@ -548,6 +686,13 @@ export default new Spell.Parser({
         const statement = scope.addStatement(`spellCore.prepend(${list}, ${thing})`)
         results.statements.push(statement)
       },
+      toAST(scope, match) {
+        const { thing, list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "prepend",
+          arguments: [list.AST, thing.AST]
+        })
+      },
       tests: [
         {
           compileAs: "statement",
@@ -571,6 +716,13 @@ export default new Spell.Parser({
         const { thing, list } = results
         const statement = scope.addStatement(`spellCore.append(${list}, ${thing})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { thing, list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "append",
+          arguments: [list.AST, thing.AST]
+        })
       },
       tests: [
         {
@@ -605,6 +757,24 @@ export default new Spell.Parser({
           operator === "before" ? `spellCore.itemOf(${list}, ${item})` : `spellCore.itemOf(${list}, ${item}) + 1`
         const statement = scope.addStatement(`spellCore.addAtPosition(${list}, ${position}, ${thing})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { thing, list, operator, item } = match.groups
+        let position = new AST.CoreMethodExpression(scope, match, {
+          method: "itemOf",
+          arguments: [list.AST, item.AST]
+        })
+        if (operator.value === "after") {
+          position = new AST.InfixExpression(scope, match, {
+            lhs: position,
+            operator: "+",
+            rhs: new AST.NumericLiteral(scope, match, { value: 1 })
+          })
+        }
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "addAtPosition",
+          arguments: [list.AST, position, thing.AST]
+        })
       },
       tests: [
         {
@@ -645,6 +815,13 @@ export default new Spell.Parser({
         const statement = scope.addStatement(`spellCore.clear(${list})`)
         results.statements.push(statement)
       },
+      toAST(scope, match) {
+        const { list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "clear",
+          arguments: [list.AST]
+        })
+      },
       tests: [
         {
           compileAs: "statement",
@@ -672,6 +849,13 @@ export default new Spell.Parser({
         const statement = scope.addStatement(`spellCore.removeItem(${list}, ${position})`)
         results.statements.push(statement)
       },
+      toAST(scope, match) {
+        const { position, list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "removeItem",
+          arguments: [list.AST, position.AST]
+        })
+      },
       tests: [
         {
           compileAs: "statement",
@@ -698,6 +882,13 @@ export default new Spell.Parser({
         const statement = scope.addStatement(`spellCore.removeItem(${list}, ${number})`)
         results.statements.push(statement)
       },
+      toAST(scope, match) {
+        const { number, list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "removeItem",
+          arguments: [list.AST, number.AST]
+        })
+      },
       tests: [
         {
           compileAs: "statement",
@@ -723,6 +914,13 @@ export default new Spell.Parser({
         const statement = scope.addStatement(`spellCore.removeRangeBetween(${list}, ${start}, ${end})`)
         results.statements.push(statement)
       },
+      toAST(scope, match) {
+        const { start, end, list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "removeRangeBetween",
+          arguments: [list.AST, start.AST, end.AST]
+        })
+      },
       tests: [
         {
           compileAs: "statement",
@@ -744,6 +942,13 @@ export default new Spell.Parser({
         const { start, end, list } = results
         const statement = scope.addStatement(`spellCore.removeRangeBetween(${list}, ${start}, ${end})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { start, end, list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "removeRangeBetween",
+          arguments: [list.AST, start.AST, end.AST]
+        })
       },
       tests: [
         {
@@ -770,6 +975,13 @@ export default new Spell.Parser({
         const { thing, list } = results
         const statement = scope.addStatement(`spellCore.remove(${list}, ${thing})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { thing, list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "remove",
+          arguments: [list.AST, thing.AST]
+        })
       },
       tests: [
         {
@@ -802,6 +1014,17 @@ export default new Spell.Parser({
         // singularize method argument
         const statement = scope.addStatement(`spellCore.removeWhere(${list}, ${condition})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { arg, list, inlineStatement } = match.groups
+        const filter = new AST.InlineMethodExpression(scope, inlineStatement, {
+          args: [new AST.VariableExpression(scope, arg, { name: singularize(arg.value) })],
+          expression: inlineStatement.AST
+        })
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "removeWhere",
+          arguments: [list.AST, filter]
+        })
       },
       tests: [
         {
@@ -841,6 +1064,13 @@ export default new Spell.Parser({
         const statement = scope.addStatement(`spellCore.reverse(${list})`)
         results.statements.push(statement)
       },
+      toAST(scope, match) {
+        const { list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "reverse",
+          arguments: [list.AST]
+        })
+      },
       tests: [
         {
           compileAs: "statement",
@@ -867,6 +1097,13 @@ export default new Spell.Parser({
         const { list } = results
         const statement = scope.addStatement(`spellCore.randomize(${list})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { list } = match.groups
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "randomize",
+          arguments: [list.AST]
+        })
       },
       tests: [
         {
@@ -918,6 +1155,20 @@ export default new Spell.Parser({
         )
         results.statements.push(statement)
       },
+      toAST(scope, match) {
+        const { list, item, position, inlineStatement, block } = match.groups
+        const args = []
+        if (item) args.push(new AST.VariableExpression(scope, item, { name: item.value }))
+        if (position) args.push(new AST.VariableExpression(scope, position, { name: position.value }))
+        const method = new AST.InlineMethodExpression(scope, match, {
+          args,
+          statements: (block || inlineStatement)?.AST
+        })
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "forEach",
+          arguments: [list.AST, method]
+        })
+      },
       tests: [
         {
           compileAs: "block",
@@ -954,7 +1205,7 @@ export default new Spell.Parser({
     // Number range-specific iteration
     // TODO: this only works if you `from`, a more general solution which also supports `in` is better...
     {
-      name: "list_iteration",
+      name: "list_range_iteration",
       alias: "statement",
       syntax: "for each? {item:singular_variable} from {start:expression} down? to {end:expression} :?",
       testRule: "for",
@@ -984,6 +1235,21 @@ export default new Spell.Parser({
           })
         )
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { item, start, end, inlineStatement, block } = match.groups
+        const getRange = new AST.CoreMethodExpression(scope, match, {
+          method: "getRange",
+          arguments: [start.AST, end.AST]
+        })
+        const method = new AST.InlineMethodExpression(scope, match, {
+          args: [new AST.VariableExpression(scope, item, { name: item.value })],
+          statements: (block || inlineStatement)?.AST
+        })
+        return new AST.CoreMethodExpression(scope, match, {
+          method: "forEach",
+          arguments: [getRange, method]
+        })
       },
       tests: [
         {

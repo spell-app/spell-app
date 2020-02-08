@@ -33,9 +33,11 @@ Rule.Literals = class literals extends Rule {
   parse(scope, tokens) {
     const tokensMatched = this.testAtStart(scope, tokens, 0)
     if (!tokensMatched) return undefined
+    const matched = tokens.slice(0, tokensMatched)
     return new Match({
       rule: this,
-      matched: tokens.slice(0, tokensMatched),
+      matched,
+      value: matched.join("").trim(),
       length: tokensMatched,
       scope
     })
