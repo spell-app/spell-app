@@ -118,6 +118,16 @@ const spellCore = {
     return value !== false && value !== null && value !== undefined
   },
 
+  // Return `true` if value is defined (e.g. not undefined).
+  isDefined(value) {
+    return typeof value !== "undefined"
+  },
+
+  // Return `true` if value is defined (e.g. not undefined).
+  isUndefined(value) {
+    return typeof value === "undefined"
+  },
+
   //----------------------------
   // operators
   //--------

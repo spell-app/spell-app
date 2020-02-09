@@ -256,6 +256,7 @@ export default new Spell.Parser({
       name: "backwards_if",
       alias: "expression_suffix",
       syntax: "if {condition:expression} (else|otherwise) {expression:expression}",
+      constructor: Spell.Rule.InfixOperatorSuffix,
       compile(scope, match) {
         return { expression: match.results }
       },
@@ -274,7 +275,7 @@ export default new Spell.Parser({
             ["get 1 if bar else 2", "let it = (bar ? 1 : 2)"],
             [
               "get the foo of the bar if bar is defined otherwise the bar of the foo",
-              "let it = ((typeof bar !== 'undefined') ? bar.foo : foo.bar)"
+              "let it = (spellCore.isDefined(bar) ? bar.foo : foo.bar)"
             ]
           ]
         }

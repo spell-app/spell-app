@@ -2,7 +2,83 @@
 //  # Rules for expressions.
 //
 
-import { AST, Spell, peek } from "../all"
+import { AST, Rule, Spell, peek, proto } from "../all"
+
+/** TODOC!!! */
+Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
+  // set `outputDatatype` to specify explicit datatype in standard `toAST()`
+
+  /** If `true`, we'll wrap output expression in parenthesis. */
+  @proto parenthesize = false
+
+  /** Return output operator string given `operator`. Override for more complex logic. */
+  getOutputOperator(operator) {
+    return operator
+  }
+
+  /** Return `true` if we should "negate" the output expression based on `operator`. */
+  shouldNegateOutput(operator) {
+    return false
+  }
+
+  /** Return compiled operator expression, excluding parenthesis or negation. */
+  compileOperatorExpression({ lhs, operator, rhs }) {
+    const op = this.getOutputOperator(operator)
+    return `${lhs} ${op} ${rhs}`
+  }
+
+  /** Return compiled expression, INCLUDING possible parenthesis and negation. */
+  applyOperator({ lhs, operator, rhs }) {
+    let expression = this.compileOperatorExpression({ lhs, operator, rhs })
+    if (this.parenthesize) expression = `(${expression})`
+    if (this.shouldNegateOutput(operator)) expression = `!${expression}`
+    return expression
+  }
+
+  /**
+   * - `lhs` is left-hand side match
+   * - `operator` is raw full input operator string
+   * - `rhs` is right-hand-side match
+   * By default does an InfixExpression, override to e.g. do a CoreMethodExpression()
+   */
+  getASTExpression(scope, match, { lhs, operator, rhs }) {
+    return new AST.InfixExpression(scope, match, {
+      lhs: lhs.AST,
+      operator: this.getOutputOperator(operator),
+      rhs: rhs.AST
+    })
+  }
+
+  /**
+   * `match.lhs` is the left-hand-side match.  <=== NON STANDARD!
+   * `match.groups.expressions` is the right-hand-side match.
+   * `match.groups.operator` is the operator match.
+   */
+  toAST(scope, match) {
+    const { lhs } = match
+    const { operator, expression: rhs } = match.groups
+    let expression = this.getASTExpression(scope, match, { lhs, operator, rhs })
+    if (this.parenthesize) expression = new AST.ParenthesizedExpression(scope, match, { expression })
+    if (this.shouldNegateOutput(operator.value)) expression = new AST.NotExpression(scope, match, { expression })
+    return expression
+  }
+}
+
+/** TODOC!!! */
+Spell.Rule.PostfixOperatorSuffix = class postfix_operator extends Spell.Rule.InfixOperatorSuffix {
+  /** Return compiled operator expression, excluding parenthesis or negation. */
+  compileOperatorExpression({ lhs, operator }) {
+    throw new TypeError("Must implement compileOperatorExpression()")
+  }
+
+  /**
+   * - `lhs` is left-hand side match
+   * - `operator` is raw full input operator string
+   */
+  getASTExpression(scope, match, { lhs, operator }) {
+    throw new TypeError("Must implement getASTExpression()")
+  }
+}
 
 export default new Spell.Parser({
   module: "expressions",
@@ -149,15 +225,9 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       syntax: "(operator:and) {expression:single_expression}",
       precedence: 6,
-      applyOperator: ({ lhs, rhs }) => `(${lhs} && ${rhs})`,
-      toAST(scope, match) {
-        return new AST.InfixExpression(scope, match, {
-          datatype: "boolean",
-          lhs: match.lhs.AST,
-          operator: "&&",
-          rhs: match.rhs.AST
-        })
-      },
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      getOutputOperator: () => "&&",
+      parenthesize: true,
       tests: [
         {
           compileAs: "expression",
@@ -180,15 +250,9 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       syntax: "(operator:or) {expression:single_expression}",
       precedence: 5,
-      applyOperator: ({ lhs, rhs }) => `(${lhs} || ${rhs})`,
-      toAST(scope, match) {
-        return new AST.InfixExpression(scope, match, {
-          datatype: "boolean",
-          lhs: match.lhs.AST,
-          operator: "||",
-          rhs: match.rhs.AST
-        })
-      },
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      getOutputOperator: () => "||",
+      parenthesize: true,
       tests: [
         {
           compileAs: "expression",
@@ -206,18 +270,9 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 10,
       syntax: "(operator:is not?) {expression:single_expression}",
-      applyOperator({ lhs, operator, rhs }) {
-        const op = operator === "is not" ? "!=" : "=="
-        return `(${lhs} ${op} ${rhs})`
-      },
-      toAST(scope, match) {
-        return new AST.InfixExpression(scope, match, {
-          datatype: "boolean",
-          lhs: match.lhs.AST,
-          operator: match.operator === "is not" ? "!=" : "==",
-          rhs: match.rhs.AST
-        })
-      },
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      parenthesize: true,
+      getOutputOperator: operator => (operator === "is not" ? "!=" : "=="),
       tests: [
         {
           compileAs: "expression",
@@ -235,18 +290,9 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 10,
       syntax: "(operator:is not? exactly) {expression:single_expression}",
-      applyOperator({ lhs, operator, rhs }) {
-        const op = operator === "is not exactly" ? "!==" : "==="
-        return `(${lhs} ${op} ${rhs})`
-      },
-      toAST(scope, match) {
-        return new AST.InfixExpression(scope, match, {
-          datatype: "boolean",
-          lhs: match.lhs.AST,
-          operator: match.operator === "is not exactly" ? "!==" : "===",
-          rhs: match.rhs.AST
-        })
-      },
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      parenthesize: true,
+      getOutputOperator: operator => (operator === "is not exactly" ? "!==" : "==="),
       tests: [
         {
           compileAs: "expression",
@@ -264,18 +310,16 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:is not? (a|an)) {expression:type}",
-      applyOperator({ lhs, operator, rhs }) {
-        const bang = operator.includes("not") ? "!" : ""
-        return `${bang}spellCore.isOfType(${lhs}, '${rhs}')`
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      shouldNegateOutput: operator => operator.includes("not"),
+      compileOperatorExpression({ lhs, operator, rhs }) {
+        return `spellCore.isOfType(${lhs}, '${rhs}')`
       },
-      toAST(scope, match) {
-        const expression = new AST.CoreMethodExpression(scope, match, {
-          datatype: "boolean",
+      getASTExpression(scope, match, { lhs, rhs }) {
+        return new AST.CoreMethodExpression(scope, match, {
           method: "isOfType",
-          arguments: [match.lhs.AST, match.rhs.AST]
+          arguments: [lhs.AST, rhs.AST]
         })
-        if (match.operator.includes("not")) return new AST.NotExpression(scope, match, { expression })
-        return expression
       },
       tests: [
         {
@@ -298,18 +342,18 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:is not? the same type as) {expression:single_expression}",
-      applyOperator({ lhs, operator, rhs }) {
-        const op = operator.includes("not") ? "!==" : "==="
-        return `(spellCore.typeOf(${lhs}) ${op} spellCore.typeOf(${rhs}))`
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      parenthesize: true,
+      getOutputOperator: operator => (operator.includes("not") ? "!==" : "==="),
+      compileOperatorExpression({ lhs, operator, rhs }) {
+        const op = this.getOutputOperator(operator)
+        return `spellCore.typeOf(${lhs}) ${op} spellCore.typeOf(${rhs})`
       },
-      toAST(scope, match) {
-        const expression = new AST.CoreMethodExpression(scope, match, {
-          datatype: "boolean",
+      getASTExpression(scope, match, { lhs, operator, rhs }) {
+        return new AST.CoreMethodExpression(scope, match, {
           method: "matchesType", // TODO:  implement this in spellCore
-          arguments: [match.lhs.AST, match.rhs.AST]
+          arguments: [lhs.AST, rhs.AST]
         })
-        if (match.operator.includes("not")) return new AST.NotExpression(scope, match, { expression })
-        return expression
       },
       tests: [
         {
@@ -337,20 +381,17 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "{operator:is_in_operator} (expression:{single_expression}|{identifier_list})",
-      applyOperator({ lhs, operator, rhs }) {
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      shouldNegateOutput: operator => operator.includes("not") || operator.includes("neither"),
+      compileOperatorExpression({ lhs, operator, rhs }) {
         if (Array.isArray(rhs)) rhs = `[${rhs.join(", ")}]`
-        const bang = operator.includes("not") || operator.includes("neither") ? "!" : ""
-        return `${bang}spellCore.includes(${rhs}, ${lhs})`
+        return `spellCore.includes(${rhs}, ${lhs})`
       },
-      toAST(scope, match) {
-        const expression = new AST.CoreMethodExpression(scope, match, {
-          datatype: "boolean",
+      getASTExpression(scope, match, { lhs, rhs }) {
+        return new AST.CoreMethodExpression(scope, match, {
           method: "includes",
-          arguments: [match.rhs.AST, match.lhs.AST]
+          arguments: [rhs.AST, lhs.AST]
         })
-        if (match.operator.includes("not") || match.operator.includes("neither"))
-          return new AST.NotExpression(scope, match, { expression })
-        return expression
       },
       tests: [
         {
@@ -380,15 +421,15 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:includes|contains) {expression:single_expression}",
-      applyOperator({ lhs, rhs }) {
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      compileOperatorExpression({ lhs, rhs }) {
         if (Array.isArray(lhs)) lhs = `[${lhs.join(", ")}]`
         return `spellCore.includes(${lhs}, ${rhs})`
       },
-      toAST(scope, match) {
+      getASTExpression(scope, match, { lhs, rhs }) {
         return new AST.CoreMethodExpression(scope, match, {
-          datatype: "boolean",
           method: "includes",
-          arguments: [match.lhs.AST, match.rhs.AST]
+          arguments: [lhs.AST, rhs.AST]
         })
       },
       tests: [
@@ -411,16 +452,17 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:does not (include|contain)) {expression:single_expression}",
-      applyOperator({ lhs, rhs }) {
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      shouldNegateOutput: () => true,
+      compileOperatorExpression({ lhs, rhs }) {
         if (Array.isArray(lhs)) lhs = `[${lhs.join(", ")}]`
-        return `!spellCore.includes(${lhs}, ${rhs})`
+        return `spellCore.includes(${lhs}, ${rhs})`
       },
-      toAST(scope, match) {
+      getASTExpression(scope, match, { lhs, rhs }) {
         return new AST.NotExpression(scope, match, {
           expression: new AST.CoreMethodExpression(scope, match, {
-            datatype: "boolean",
             method: "includes",
-            arguments: [match.lhs.AST, match.rhs.AST]
+            arguments: [lhs.AST, rhs.AST]
           })
         })
       },
@@ -443,44 +485,17 @@ export default new Spell.Parser({
       name: "is_defined",
       alias: "expression_suffix",
       precedence: 11,
-      syntax: "is defined",
-      asLiterals: true,
-      applyOperator({ lhs, operator }) {
-        const op = operator === "is defined" ? "!==" : "==="
-        return `(typeof ${lhs} ${op} 'undefined')`
+      syntax: "is (defined|undefined|not defined)",
+      asLiterals: true, // TODO:  :-(
+      constructor: Spell.Rule.PostfixOperatorSuffix,
+      shouldNegateOutput: operator => operator !== "is defined",
+      compileOperatorExpression({ lhs }) {
+        return `spellCore.isDefined(${lhs})`
       },
-      toAST(scope, match) {
+      getASTExpression(scope, match, { lhs, operator }) {
         return new AST.CoreMethodExpression(scope, match, {
-          datatype: "boolean",
-          method: "isDefined", // TODO:  implement this in spellCore
-          arguments: [match.lhs.AST]
-        })
-      },
-      tests: [
-        {
-          compileAs: "expression",
-          beforeEach(scope) {
-            scope.variables.add("thing")
-          },
-          tests: [["thing is defined", "(typeof thing !== 'undefined')"]]
-        }
-      ]
-    },
-    {
-      name: "is_not_defined",
-      alias: "expression_suffix",
-      precedence: 11,
-      syntax: "is (undefined|not defined)",
-      asLiterals: true,
-      applyOperator({ lhs, operator }) {
-        const op = operator === "is defined" ? "!==" : "==="
-        return `(typeof ${lhs} ${op} 'undefined')`
-      },
-      toAST(scope, match) {
-        return new AST.CoreMethodExpression(scope, match, {
-          datatype: "boolean",
-          method: "isUndefined", // TODO:  implement this in spellCore
-          arguments: [match.lhs.AST]
+          method: "isDefined",
+          arguments: [lhs.AST]
         })
       },
       tests: [
@@ -490,8 +505,9 @@ export default new Spell.Parser({
             scope.variables.add("thing")
           },
           tests: [
-            ["thing is undefined", "(typeof thing === 'undefined')"],
-            ["thing is not defined", "(typeof thing === 'undefined')"]
+            ["thing is defined", "spellCore.isDefined(thing)"],
+            ["thing is undefined", "!spellCore.isDefined(thing)"],
+            ["thing is not defined", "!spellCore.isDefined(thing)"]
           ]
         }
       ]
@@ -503,18 +519,17 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "is not? empty",
-      applyOperator({ lhs, operator }) {
-        const bang = operator.includes("not") ? "!" : ""
-        return `${bang}spellCore.isEmpty(${lhs})`
+      asLiterals: true, // TODO: :-(
+      constructor: Spell.Rule.PostfixOperatorSuffix,
+      shouldNegateOutput: operator => operator.includes("not"),
+      compileOperatorExpression({ lhs }) {
+        return `spellCore.isEmpty(${lhs})`
       },
-      toAST(scope, match) {
-        const expression = new AST.CoreMethodExpression(scope, match, {
-          datatype: "boolean",
+      getASTExpression(scope, match, { lhs }) {
+        return new AST.CoreMethodExpression(scope, match, {
           method: "isEmpty",
-          arguments: [match.lhs.AST]
+          arguments: [lhs.AST]
         })
-        if (match.operator.includes("not")) return new AST.NotExpression(scope, match, { expression })
-        return expression
       },
       tests: [
         {

@@ -462,6 +462,45 @@ export default new Spell.Parser({
           })
         results.statements.push(statement)
       },
+      toAST(scope, match) {
+        // TESTME!!!
+        const { value, otherValue, type_property, condition } = match.groups
+        const { type, property } = type_property.groups
+        // make sure type is defined
+        scope.getOrStubType(type.name)
+        // register constants if specified
+        if (value.rule instanceof Spell.Rule.Constant) {
+          // TODO: scope.constants.addMissing(value.raw)
+          const constant = value.constant || scope.constants(value.raw)
+          if (!constant) scope.constants.add(value.raw)
+        }
+        if (otherValue?.rule instanceof Spell.Rule.Constant) {
+          const constant = otherValue.constant || scope.constants(otherValue.raw)
+          if (!constant) scope.constants.add(otherValue.raw)
+        }
+        const ifAST = new AST.IfStatement(scope, match, {
+          condition: condition.AST,
+          statements: new AST.ReturnStatement(scope, match, { value: value.AST })
+        })
+        let getterBody
+        if (!otherValue) {
+          getterBody = ifAST
+        } else {
+          getterBody = new AST.StatementGroup(scope, match, {
+            statements: [
+              ifAST,
+              new AST.ElseStatement(scope, match, {
+                statements: new AST.ReturnStatement(scope, match, { value: otherValue.AST })
+              })
+            ]
+          })
+        }
+        return new AST.ObjectGetter(scope, match, {
+          type: type.AST,
+          property: property.AST,
+          statements: getterBody
+        })
+      },
       tests: [
         {
           compileAs: "statement",
