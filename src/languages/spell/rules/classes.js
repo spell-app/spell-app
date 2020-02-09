@@ -1,4 +1,4 @@
-import { Scope, Spell, instanceCase, upperFirst, pluralize, singularize, typeCase, AST } from "../all"
+import { Scope, Spell, instanceCase, lowerFirst, upperFirst, pluralize, singularize, typeCase, AST } from "../all"
 
 export default new Spell.Parser({
   module: "classes",
@@ -28,7 +28,6 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         const { type, superType, isList } = match.groups
-        const typeAST = type.AST
         let superAST
         let listInstanceAST
         if (isList) {
@@ -38,16 +37,16 @@ export default new Spell.Parser({
 
         // Add to scope if necessary
         // TODO: complain if already defined?  Add to existing type?
-        let scopeType = scope.types(typeAST.name)
+        let scopeType = scope.types(type.AST.name)
         if (!scopeType) {
           scopeType = scope.types.add({
-            name: typeAST.name,
+            name: type.AST.name,
             superType: superAST?.name,
             instanceType: listInstanceAST?.name
           })
         }
         return new AST.NewClassStatement(scope, match, {
-          type: typeAST,
+          type: type.AST,
           superType: superAST,
           instanceType: listInstanceAST
         })
@@ -167,14 +166,18 @@ export default new Spell.Parser({
     },
 
     {
-      name: "type_initializer_enum",
-      alias: "type_initializer",
+      name: "type_specifier_enum",
+      alias: "type_specifier",
       syntax: "as (either|one of) {enumeration:identifier_list}",
       compile(scope, match) {
         const { enumeration } = match.results
         return { datatype: "enum", enumeration }
       },
-      toAST(scope, match) {},
+      toAST(scope, match) {
+        return new AST.ArrayLiteral(scope, match, {
+          items: match.groups.enumeration.items.map(item => item.AST)
+        })
+      },
       tests: [
         {
           tests: [
@@ -189,37 +192,34 @@ export default new Spell.Parser({
     },
 
     {
-      name: "type_initializer_datatype",
-      alias: "type_initializer",
-      syntax: "as (a|an)? {datatype:keyword}",
+      name: "type_specifier_datatype",
+      alias: "type_specifier",
+      syntax: "as (a|an)? {datatype:singular_type}",
+      toAST(scope, match) {
+        return match.groups.datatype.AST
+      },
       tests: [
         {
-          tests: [["as a number", { datatype: "number" }], ["as an automobile", { datatype: "automobile" }]]
+          tests: [["as a number", { datatype: "number" }], ["as an automobile", { datatype: "Automobile" }]]
         }
       ]
     },
-
-    {
-      name: "type_has_prefix",
-      syntax: "((a|an) {type} has|{type:plural_type} have)"
-    },
-
     {
       name: "define_property_has",
       alias: "statement",
       syntax: [
-        "(a|an) {type} has (a|an) {property} {initializer:type_initializer}?",
-        "{type:plural_type} have (a|an) {property} {initializer:type_initializer}?"
+        "(a|an) {type} has (a|an) {property} {specifier:type_specifier}?",
+        "{type:plural_type} have (a|an) {property} {specifier:type_specifier}?"
       ],
       testRule: "…(has|have)",
       constructor: Spell.Rule.Statement,
       updateScope(scope, { results }) {
-        const { type, property, initializer = {} } = results
+        const { type, property, specifier = {} } = results
         const typeScope = scope.getOrStubType(type)
         const Properties = pluralize(upperFirst(property))
 
-        const { enumeration } = initializer
-        let { datatype } = initializer
+        const { enumeration } = specifier
+        let { datatype } = specifier
         const getter = [`return this['#${property}']`]
         let setter
 
@@ -256,6 +256,128 @@ export default new Spell.Parser({
           returns: "undefined" // setters don't actually return a value... :-(
         })
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { type, property } = match.groups
+
+        // output statements
+        const statements = []
+
+        const internalProp = new AST.PropertyLiteral(scope, property, {
+          raw: property.raw,
+          value: `#${property.value}`
+        })
+        const internalExpression = new AST.PropertyExpression(scope, match, {
+          object: new AST.ThisLiteral(scope, match),
+          property: internalProp
+        })
+
+        // assignment for the setter
+        let assignment = new AST.AssignmentStatement(scope, match, {
+          thing: internalExpression,
+          value: property.AST
+        })
+        // If there is a specifier, add as a condition to the assignment
+        const specifier = match.groups.specifier?.AST
+        if (specifier) {
+          let condition
+          // Enumerated values as strings/numbers/etc
+          if (specifier instanceof AST.ArrayLiteral) {
+            // TODO: datatype ???
+            const groupName = pluralize(upperFirst(property.value))
+            // Set up enumeration variable on the class!
+            const enumerationPropName = new AST.PropertyLiteral(scope, property, { value: groupName })
+            const enumerationExpression = new AST.PropertyExpression(scope, match, {
+              object: type.AST,
+              property: enumerationPropName
+            })
+            const enumerationProp = new AST.PropertyExpression(scope, match, {
+              object: type.AST,
+              property: enumerationPropName
+            })
+            statements.push(
+              new AST.AssignmentStatement(scope, match, {
+                thing: enumerationProp,
+                value: specifier
+              })
+            )
+
+            // Add enumeration pointer to the prototype as well
+            statements.push(
+              new AST.AssignmentStatement(scope, match, {
+                thing: new AST.PropertyExpression(scope, match, {
+                  object: new AST.PropertyExpression(scope, match, {
+                    object: type.AST,
+                    property: new AST.PropertyLiteral(scope, match, { value: "prototype" })
+                  }),
+                  property: enumerationPropName
+                }),
+                value: enumerationProp
+              })
+            )
+
+            // Add enumeration string values to scope as constants.
+            specifier.items.forEach(({ value }) => {
+              if (typeof value === "string") scope.constants.add(value)
+            })
+
+            // Add multi-word identifier rule which returns enumeration, e.g. `card suits` or `Card Suits`
+            const literals = [[type.value, lowerFirst(type.value)], [groupName, lowerFirst(groupName)]]
+            scope.addExpressionRule({
+              name: `${type.value}_${property.value}`,
+              literals,
+              compile() {
+                return `${type.value}.${groupName}`
+              },
+              toAST(scope2, match2) {
+                return new AST.PropertyExpression(scope2, match2, {
+                  object: type.AST,
+                  property: enumerationPropName
+                })
+              }
+            })
+            statements.push(
+              new AST.LineComment(scope, match, {
+                value: `SPELL added rule: '${literals.map(group => `(${group.join("|")})`).join(" ")}'`
+              })
+            )
+
+            // condition for assignment below
+            condition = new AST.CoreMethodExpression(scope, match, {
+              method: "includes",
+              arguments: [enumerationExpression, property.AST]
+            })
+          }
+          // datatype
+          else {
+            condition = new AST.CoreMethodExpression(scope, match, {
+              method: "isOfType",
+              arguments: [property.AST, specifier]
+            })
+          }
+          assignment = new AST.IfStatement(scope, match, { condition, statements: assignment })
+        }
+        // setter
+        statements.push(
+          new AST.ObjectSetter(scope, match, {
+            type: type.AST,
+            property: property.AST,
+            statements: assignment
+          })
+        )
+
+        // getter
+        statements.push(
+          new AST.ObjectGetter(scope, match, {
+            type: type.AST,
+            property: property.AST,
+            statements: new AST.ReturnStatement(scope, match, {
+              value: internalExpression
+            })
+          })
+        )
+
+        return new AST.StatementGroup(scope, match, { statements })
       },
       tests: [
         {
