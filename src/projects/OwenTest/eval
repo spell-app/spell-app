@@ -1,0 +1,5 @@
+a card is a thing
+a card has a direction as either up or down
+a card "is face up" if its direction is up
+c is a new card
+expect c is face up to be false

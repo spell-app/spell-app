@@ -27,7 +27,9 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
     return `${lhs} ${op} ${rhs}`
   }
 
-  /** Return compiled expression, INCLUDING possible parenthesis and negation. */
+  /** Return compiled expression, INCLUDING possible parenthesis and negation.
+   * Delegates to `compileOperatorExpression()` to do the work.
+   */
   applyOperator({ lhs, operator, rhs }) {
     let expression = this.compileOperatorExpression({ lhs, operator, rhs })
     if (this.parenthesize) expression = `(${expression})`
@@ -145,7 +147,7 @@ export default new Spell.Parser({
           const rhs = rhsMatch.compile()
           const { rule } = rhsMatch
           // For a unary postfix operator, `rhs` will be the operator text that was matched
-          if (typeof rhs === "string") {
+          if (rhsMatch.rule instanceof Spell.Rule.PostfixOperatorSuffix) {
             const args = {
               operator: rhs,
               lhs: output.pop()
@@ -154,7 +156,7 @@ export default new Spell.Parser({
             output.push(result)
           }
           // If it's a binary operator, `rhs` will be an object: `{ operator?, expression }`
-          else {
+          else if (rhsMatch.rule instanceof Spell.Rule.InfixOperatorSuffix) {
             const { operator, expression } = rhs
             // While top operator on stack is higher precedence than this one
             while (peek(opStack)?.rule.precedence >= rule.precedence) {
@@ -173,6 +175,8 @@ export default new Spell.Parser({
             // Push the current operator and expression
             opStack.push({ rule, operator })
             output.push(expression)
+          } else {
+            console.warn("Unexpected rule type", rhsMatch.rule.name)
           }
         })
 

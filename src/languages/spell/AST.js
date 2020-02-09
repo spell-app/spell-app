@@ -567,11 +567,11 @@ export class ListExpression extends Expression {
 }
 
 /** InlineMethodExpression
+ * TODO: rename?
  * - `args` (optional) is a list of VariableExpressions
  * - `statements` (optional) is a Statement or Expression
  * - `expression` (optional) is a Expression
  * TODO: create a scope for variables inside???
- * TODO: rename?
  */
 export class InlineMethodExpression extends Expression {
   @proto @readonly type = "InlineMethodExpression"

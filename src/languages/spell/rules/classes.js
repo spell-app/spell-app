@@ -582,16 +582,17 @@ export default new Spell.Parser({
           const property = words.join("_")
           // add optional `not` to the rule
           const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ")
-
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
           scope.addExpressionSuffixRule(
             {
               name: property,
               syntax: expressionSuffix,
+              asLiterals: true,
               precedence: 20,
-              applyOperator({ lhs, operator }) {
-                const bang = operator.includes("not") ? "!" : ""
-                return `${bang}${lhs}.${property}`
+              constructor: Spell.Rule.PostfixOperatorSuffix,
+              shouldNegateOutput: operator => operator.includes("not"),
+              compileOperatorExpression({ lhs }) {
+                return `${lhs}.${property}`
               }
             },
             results
@@ -715,17 +716,16 @@ export default new Spell.Parser({
               name: property,
               syntax,
               precedence: 20,
-              applyOperator(stuff) {
-                const { lhs, operator } = stuff
-                let { rhs } = stuff
-                const bang = operator.includes("not") ? "!" : ""
+              constructor: Spell.Rule.InfixOperatorSuffix,
+              shouldNegateOutput: operator => operator.includes("not"),
+              compileOperatorExpression({ lhs, rhs }) {
                 if (!Array.isArray(rhs)) rhs = [rhs]
                 const args = rhs.map((value, index) => {
                   const data = ruleData[index]
                   const valueIndex = data.enumeration.indexOf(value)
                   return data.values[valueIndex]
                 })
-                return `${bang}${lhs}.${property}(${args.join(", ")})`
+                return `${lhs}.${property}(${args.join(", ")})`
               }
             },
             results
