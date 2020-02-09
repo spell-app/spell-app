@@ -2,7 +2,7 @@
 //  # Rules for if statements.
 //
 
-import { Scope, Spell } from "../all"
+import { Scope, Spell, AST } from "../all"
 
 // Given a condition expression string, wrap it in parens iff it is not already parenthesized properly.
 // TESTME
@@ -255,13 +255,17 @@ export default new Spell.Parser({
     {
       name: "backwards_if",
       alias: "expression_suffix",
-      syntax: "if {condition:expression} (else|otherwise) {expression:expression}",
+      syntax: "if {operator:expression} (else|otherwise) {expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
-      compile(scope, match) {
-        return { expression: match.results }
+      compileOperatorExpression({ lhs, operator, rhs }) {
+        return `(${operator} ? ${lhs} : ${rhs})`
       },
-      applyOperator({ lhs, rhs }) {
-        return `(${rhs.condition} ? ${lhs} : ${rhs.expression})`
+      getASTExpression(scope, match, { lhs, operator, rhs }) {
+        return new AST.TernaryExpression(scope, match, {
+          condition: operator.AST,
+          lhs: lhs.AST,
+          rhs: rhs.AST
+        })
       },
       tests: [
         {

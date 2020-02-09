@@ -14,15 +14,8 @@ export default new Spell.Parser({
       precedence: 11,
       // NOTE: output of `operator` will NOT have space between `>=`
       syntax: "(operator:(<|>) =?) {expression:single_expression}",
-      applyOperator: ({ lhs, operator, rhs }) => `(${lhs} ${operator} ${rhs})`,
-      toAST(scope, match) {
-        return new AST.InfixExpression(scope, match, {
-          datatype: "number",
-          lhs: match.lhs.AST,
-          operator: match.operator,
-          rhs: match.rhs.AST
-        })
-      },
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      parenthesize: true,
       tests: [
         {
           compileAs: "expression",
@@ -48,31 +41,21 @@ export default new Spell.Parser({
     },
 
     {
+      name: "gt_or_lt_operator",
+      syntax: "is (greater|less) than (or equal to)?",
+      asLiterals: true
+    },
+
+    {
       name: "is_gt_lt",
       alias: "expression_suffix",
       precedence: 11,
       // TODO: is *not* greater than???
-      syntax: "(operator:is (greater|less) than (or equal to)?) {expression:single_expression}",
-      compile(scope, match) {
-        return {
-          ...match.results,
-          operator: match.matched[0].tokens.join(" ")
-        }
-      },
-      applyOperator({ lhs, operator, rhs }) {
-        const op = (operator.includes("greater") ? ">" : "<") + (operator.includes("equal") ? "=" : "")
-        return `(${lhs} ${op} ${rhs})`
-      },
-      toAST(scope, match) {
-        const baseOperator = match.operator.includes("greater") ? ">" : "<"
-        const equalOpereator = match.operator.includes("equal") ? "=" : ""
-        return new AST.InfixExpression(scope, match, {
-          datatype: "number",
-          lhs: match.lhs.AST,
-          operator: `${baseOperator}${equalOpereator}`,
-          rhs: match.rhs.AST
-        })
-      },
+      syntax: "{operator:gt_or_lt_operator} {expression:single_expression}",
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      getOutputOperator: operator =>
+        (operator.includes("greater") ? ">" : "<") + (operator.includes("equal") ? "=" : ""),
+      parenthesize: true,
       tests: [
         {
           compileAs: "expression",
@@ -95,17 +78,9 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 13,
       syntax: "(operator:plus|+) {expression:single_expression}",
-      applyOperator({ lhs, operator, rhs }) {
-        return `(${lhs} + ${rhs})`
-      },
-      toAST(scope, match) {
-        return new AST.InfixExpression(scope, match, {
-          datatype: "number", // TODO: handle string case, or mis-matched types???
-          lhs: match.lhs.AST,
-          operator: "+",
-          rhs: match.rhs.AST
-        })
-      },
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      getOutputOperator: () => "+",
+      parenthesize: true,
       tests: [
         {
           compileAs: "expression",
@@ -122,17 +97,9 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 13,
       syntax: "(operator:minus|-) {expression:single_expression}",
-      applyOperator({ lhs, operator, rhs }) {
-        return `(${lhs} - ${rhs})`
-      },
-      toAST(scope, match) {
-        return new AST.InfixExpression(scope, match, {
-          datatype: "number", // TODO: handle string case, or mis-matched types???
-          lhs: match.lhs.AST,
-          operator: "-",
-          rhs: match.rhs.AST
-        })
-      },
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      getOutputOperator: () => "-",
+      parenthesize: true,
       tests: [
         {
           compileAs: "expression",
@@ -154,17 +121,9 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 14,
       syntax: "(operator:*|times) {expression:single_expression}",
-      applyOperator({ lhs, operator, rhs }) {
-        return `(${lhs} * ${rhs})`
-      },
-      toAST(scope, match) {
-        return new AST.InfixExpression(scope, match, {
-          datatype: "number",
-          lhs: match.lhs.AST,
-          operator: "*",
-          rhs: match.rhs.AST
-        })
-      },
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      getOutputOperator: () => "*",
+      parenthesize: true,
       tests: [
         {
           compileAs: "expression",
@@ -185,17 +144,9 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 14,
       syntax: "(operator:/|divided by) {expression:single_expression}",
-      applyOperator({ lhs, operator, rhs }) {
-        return `(${lhs} / ${rhs})`
-      },
-      toAST(scope, match) {
-        return new AST.InfixExpression(scope, match, {
-          datatype: "number",
-          lhs: match.lhs.AST,
-          operator: "/",
-          rhs: match.rhs.AST
-        })
-      },
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      getOutputOperator: () => "/",
+      parenthesize: true,
       tests: [
         {
           compileAs: "expression",
@@ -220,6 +171,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "the? absolute value of {expression}",
       testRule: "…absolute",
+      constructor: Spell.Rule.InfixOperatorSuffix,
       compile(scope, match) {
         const { expression } = match.results
         return `Math.abs(${expression})`

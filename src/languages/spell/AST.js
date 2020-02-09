@@ -636,7 +636,7 @@ export class ObjectGetter extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class IfStatement extends Statement {
-  @proto @readonly type = "ObjectGetter"
+  @proto @readonly type = "IfStatement"
   constructor(...args) {
     super(...args)
     this.assertType("condition", Expression)
@@ -653,7 +653,7 @@ export class IfStatement extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class ElseIfStatement extends Statement {
-  @proto @readonly type = "ObjectGetter"
+  @proto @readonly type = "ElseIfStatement"
   constructor(...args) {
     super(...args)
     this.assertType("condition", Expression)
@@ -669,7 +669,7 @@ export class ElseIfStatement extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class ElseStatement extends Statement {
-  @proto @readonly type = "ObjectGetter"
+  @proto @readonly type = "ElseStatement"
   constructor(...args) {
     super(...args)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
@@ -677,5 +677,28 @@ export class ElseStatement extends Statement {
   toJS() {
     const { statements } = this
     return `else ${statements.toJS()}`
+  }
+}
+
+/** TernaryExpression
+ * - `condition` is an Expression
+ * - `trueValue` is an Expression
+ * - `falseValue` is an Expression
+ * - `parenthesize` (optional) is a boolean
+ */
+export class TernaryExpression extends Statement {
+  @proto @readonly type = "TernaryExpression"
+  constructor(...args) {
+    super(...args)
+    this.assertType("condition", Expression)
+    this.assertType("trueValue", Expression)
+    this.assertType("falseValue", Expression)
+    this.assertType("parenthesize", "boolean", OPTIONAL)
+  }
+  toJS() {
+    const { condition, trueValue, falseValue, parenthesize } = this
+    const expression = `${condition.toJS()} ? ${trueValue} : ${falseValue}`
+    if (parenthesize) return `(${expression})`
+    return expression
   }
 }

@@ -159,14 +159,16 @@ export default new Spell.Parser({
     {
       name: "starts_with",
       alias: "expression_suffix",
+      // TODO: `does not start with`?
       syntax: "starts with {expression:single_expression}",
-      applyOperator({ lhs, operator, rhs }) {
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      compileOperatorExpression({ lhs, rhs }) {
         return `spellCore.startsWith(${lhs}, ${rhs})`
       },
-      toAST(scope, match) {
+      getASTExpression(scope, match, { lhs, rhs }) {
         return new AST.CoreMethodExpression(scope, match, {
           method: "startsWith",
-          arguments: [match.lhs.AST, match.rhs.AST]
+          arguments: [lhs.AST, rhs.AST]
         })
       },
       tests: [
@@ -188,14 +190,16 @@ export default new Spell.Parser({
     {
       name: "ends_with",
       alias: "expression_suffix",
+      // TODO: `does not end with`?
       syntax: "ends with {expression:single_expression}",
-      applyOperator({ lhs, operator, rhs }) {
+      constructor: Spell.Rule.InfixOperatorSuffix,
+      compileOperatorExpression({ lhs, rhs }) {
         return `spellCore.endsWith(${lhs}, ${rhs})`
       },
-      toAST(scope, match) {
+      getASTExpression(scope, match, { lhs, rhs }) {
         return new AST.CoreMethodExpression(scope, match, {
           method: "endsWith",
-          arguments: [match.lhs.AST, match.rhs.AST]
+          arguments: [lhs.AST, rhs.AST]
         })
       },
       tests: [

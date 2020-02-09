@@ -119,13 +119,9 @@ const spellCore = {
   },
 
   // Return `true` if value is defined (e.g. not undefined).
+  // TESTME
   isDefined(value) {
     return typeof value !== "undefined"
-  },
-
-  // Return `true` if value is defined (e.g. not undefined).
-  isUndefined(value) {
-    return typeof value === "undefined"
   },
 
   //----------------------------
