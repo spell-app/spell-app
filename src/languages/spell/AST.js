@@ -3,7 +3,10 @@ import _get from "lodash/get"
 import { proto, readonly } from "../../utils/decorators"
 import { Scope, Match } from "./all"
 
+// TODO: define this in `constants` or some such?
 const OPTIONAL = Symbol("OPTIONAL")
+// TODO: define this in `constants` or some such?
+const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w\$]*$/
 
 function checkType(value, type) {
   if (Array.isArray(type)) return type.some(nextType => checkType(value, nextType))
@@ -153,7 +156,7 @@ export class UndefinedLiteral extends Literal {
   }
 }
 
-/** Keyword type.
+/** KeywordLiteral type.
  *  - `value` is raw input converted into a JS-legal keyword.
  *  - `raw` (optional) is the raw input string
  */
@@ -164,6 +167,21 @@ export class KeywordLiteral extends Literal {
     super(...args)
     this.assertType("value", "string")
     this.assertType("raw", "string", OPTIONAL)
+  }
+}
+
+/** ArrayLiteral
+ *  - `items` (optional) is an array of Expressions
+ */
+export class ArrayLiteral extends Literal {
+  @proto @readonly type = "ArrayLiteral"
+  constructor(...args) {
+    super(...args)
+    this.assertArrayType("items", Expression, OPTIONAL)
+  }
+  toJS() {
+    if (!this.items) return "[]"
+    return `[${this.items.map(item => item.toJS()).join(", ")}]`
   }
 }
 
@@ -180,13 +198,14 @@ export class LineComment extends Comment {
   constructor(...args) {
     super(...args)
     this.assertType("value", "string")
-    this.assertType("commentSymbol", "string")
-    this.assertType("initialWhitespace", "string")
+    this.assertType("commentSymbol", "string", OPTIONAL)
+    this.assertType("initialWhitespace", "string", OPTIONAL)
   }
   toJS() {
-    let { commentSymbol } = this
+    const { initialWhitespace = " ", value } = this
+    let { commentSymbol = "" } = this
     if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
-    return `${commentSymbol}${this.initialWhitespace}${this.value}`
+    return `${commentSymbol}${initialWhitespace}${value}`
   }
 }
 
@@ -293,6 +312,9 @@ export class TypeExpression extends Expression {
     this.assertType("name", "string")
     this.assertType("raw", "string", OPTIONAL)
   }
+  toJS() {
+    return this.name
+  }
 
   /** Pointer to the known Scope for this type, if available. ??? */
   get scope() {
@@ -346,7 +368,7 @@ export class ThisLiteral extends Literal {
 }
 
 /** PropertyLiteral -- identifier which refers to some property of an object.
- *  - `raw` is the input property name
+ *  - `raw` (optional) is the input property name
  *  - `value` is the normalized property name.
  */
 export class PropertyLiteral extends Literal {
@@ -354,14 +376,15 @@ export class PropertyLiteral extends Literal {
   @proto @readonly datatype = "string"
   constructor(...args) {
     super(...args)
-    this.assertType("raw", "string")
     this.assertType("value", "string")
+    this.assertType("raw", "string", OPTIONAL)
   }
 }
 
 /** PropertyExpression -- named property of some object.
  *  - `object` is the thing to get the property from, as an Expression.
  *  - `property` is the normalized property name.
+ *  TODO: datatype???
  */
 export class PropertyExpression extends Expression {
   @proto @readonly type = "PropertyExpression"
@@ -370,9 +393,10 @@ export class PropertyExpression extends Expression {
     this.assertType("object", Expression)
     this.assertType("property", PropertyLiteral)
   }
-  // TODO: datatype???
   toJS() {
-    return `(${this.object.toJS()}).${this.property.toJS()}`
+    const prop = this.property.toJS()
+    if (LEGAL_PROPERTY_IDENTIFIER.test(prop)) return `${this.object.toJS()}.${prop}`
+    return `${this.object.toJS()}["${prop}"]`
   }
 }
 
@@ -417,14 +441,30 @@ export class Statement extends ASTNode {
   @proto @readonly type = "Statement"
 }
 
-/** StatementBlock type.
+/** StatementGroup -- set of random statements which does NOT get wrapped with curly braces!
  *  - `statements` is a list of Statements.
  */
-export class StatementBlock extends ASTNode {
+export class StatementGroup extends Statement {
   @proto @readonly type = "StatementBlock"
   constructor(...args) {
     super(...args)
-    this.assertArrayType("statements", [Statement, Expression], OPTIONAL)
+    this.assertArrayType("statements", [Statement, Expression, Comment], OPTIONAL)
+  }
+  toJS() {
+    const { statements } = this
+    if (!statements) return ""
+    return `${statements.map(statement => statement.toJS()).join("\n")}`
+  }
+}
+
+/** StatementBlock -- set of statements which outputs with curly braces around.
+ *  - `statements` is a list of Statements.
+ */
+export class StatementBlock extends Statement {
+  @proto @readonly type = "StatementBlock"
+  constructor(...args) {
+    super(...args)
+    this.assertArrayType("statements", [Statement, Expression, Comment], OPTIONAL)
   }
   toJS() {
     const { statements } = this
@@ -463,7 +503,7 @@ export class ReturnStatement extends Statement {
     this.assertType("value", Expression, OPTIONAL)
   }
   toJS() {
-    if (this.value) return "return"
+    if (!this.value) return "return"
     return `return ${this.value.toJS()}`
   }
 }
@@ -527,7 +567,7 @@ export class ListExpression extends Expression {
 
 /** InlineMethodExpression
  * - `args` (optional) is a list of VariableExpressions
- * - `statements` (optional) is a Statement or a StatementBlock
+ * - `statements` (optional) is a Statement or Expression
  * - `expression` (optional) is a Expression
  * TODO: create a scope for variables inside???
  * TODO: rename?
@@ -537,12 +577,104 @@ export class InlineMethodExpression extends Expression {
   constructor(...args) {
     super(...args)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
-    this.assertType("statements", [Statement, StatementBlock, Expression], OPTIONAL)
+    this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.assertType("expression", Expression, OPTIONAL)
   }
   toJS() {
     const args = this.args ? `(${this.args.map(arg => arg.toJS()).join(", ")})` : "()"
     const body = (this.expression || this.statements)?.toJS() || "{}"
     return `${args} => ${body}`
+  }
+}
+
+/** ObjectSetter: creates a setter for type instances
+ * - `type` is a TypeEexpression
+ * - `property` is PropertyLiteral
+ * - `statements` is a Statement or Expression
+ */
+export class ObjectSetter extends Statement {
+  @proto @readonly type = "ObjectSetter"
+  constructor(...args) {
+    super(...args)
+    this.assertType("type", TypeExpression)
+    this.assertType("property", PropertyLiteral)
+    this.assertType("statements", [Statement, Expression], OPTIONAL)
+    this.assertType("datatype", "string", OPTIONAL)
+  }
+  toJS() {
+    const { type, property, statements } = this
+    return (
+      `spellCore.define(${type.toJS()}.prototype, "${property.toJS()}", ` +
+      `{ set(${property.toJS()}) { ${statements?.toJS() || ""} } })`
+    )
+  }
+}
+
+/** ObjectGetter: creates a setter for type instances
+ * - `type` is a TypeEexpression
+ * - `property` is the PropertyLiteral
+ * - `statements` is a Statement or Expression
+ */
+export class ObjectGetter extends Statement {
+  @proto @readonly type = "ObjectGetter"
+  constructor(...args) {
+    super(...args)
+    this.assertType("type", TypeExpression)
+    this.assertType("property", PropertyLiteral)
+    this.assertType("statements", [Statement, Expression], OPTIONAL)
+    this.assertType("datatype", "string", OPTIONAL)
+  }
+  toJS() {
+    const { type, property, statements } = this
+    return `spellCore.define(${type.toJS()}.prototype, "${property.toJS()}", { get() { ${statements?.toJS() || ""} } })`
+  }
+}
+
+/** IfStatement
+ * - `condition` is an Expression
+ * - `statements` is a Statement or Expression
+ */
+export class IfStatement extends Statement {
+  @proto @readonly type = "ObjectGetter"
+  constructor(...args) {
+    super(...args)
+    this.assertType("condition", Expression)
+    this.assertType("statements", [Statement, Expression], OPTIONAL)
+  }
+  toJS() {
+    const { condition, statements } = this
+    return `if (${condition.toJS()}) ${statements.toJS()}`
+  }
+}
+
+/** ElseIfStatement
+ * - `condition` is an Expression
+ * - `statements` is a Statement or Expression
+ */
+export class ElseIfStatement extends Statement {
+  @proto @readonly type = "ObjectGetter"
+  constructor(...args) {
+    super(...args)
+    this.assertType("condition", Expression)
+    this.assertType("statements", [Statement, Expression], OPTIONAL)
+  }
+  toJS() {
+    const { condition, statements } = this
+    return `else if (${condition.toJS()}) ${statements.toJS()}`
+  }
+}
+
+/** ElseStatement
+ * - `statements` is a Statement or Expression
+ */
+export class ElseStatement extends Statement {
+  @proto @readonly type = "ObjectGetter"
+  constructor(...args) {
+    super(...args)
+    this.assertType("statements", [Statement, Expression], OPTIONAL)
+  }
+  toJS() {
+    const { statements } = this
+    return `else ${statements.toJS()}`
   }
 }
