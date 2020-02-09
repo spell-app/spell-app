@@ -4,7 +4,6 @@
 //
 
 import { AST, Scope, Spell, singularize } from "../all"
-import { StatementBlock } from "../AST"
 
 export default new Spell.Parser({
   module: "lists",
