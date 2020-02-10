@@ -56,7 +56,7 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
    * `match.groups.expressions` is the right-hand-side match.
    * `match.groups.operator` is the operator match.
    */
-  toAST(scope, match) {
+  getAST(scope, match) {
     const { lhs } = match
     const { operator, expression: rhs } = match.groups
     let expression = this.getASTExpression(scope, match, { lhs, operator, rhs })
@@ -140,42 +140,37 @@ export default new Spell.Parser({
         // See: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
         // See: https://www.chris-j.co.uk/parsing.php
         const { lhs, rhsChain } = match.groups
-        const output = [lhs.compile()]
+        const output = [lhs]
         const opStack = []
         rhsChain.matched.forEach(rhs => {
           // Unary postfix operator, e.g. "<lhs> is empty"
           if (rhs.rule instanceof Spell.Rule.PostfixOperatorSuffix) {
             const args = {
+              match: rhs,
               lhs: output.pop(),
-              operator: rhs.compile()
+              operator: rhs
             }
-            const result = this.applyOperatorToRule(rhs.rule, args)
-            output.push(result)
+            this.applyOperatorToRule(output, args)
           }
           // Infix binary operator, e.g. "<lhs> is a <rhs>"
           else if (rhs.rule instanceof Spell.Rule.InfixOperatorSuffix) {
             const { operator, expression } = rhs.groups
 
             // While top operator on stack is higher precedence than this one
-            while (peek(opStack)?.rule.precedence >= rhs.rule.precedence) {
+            while (peek(opStack)?.match.rule.precedence >= rhs.rule.precedence) {
               // pop the top operator and compile it with top 2 things on the output stack
-              const { operator: topOperator, rule: topRule } = opStack.pop()
+              const topOp = opStack.pop()
               const args = {
-                operator: topOperator,
+                ...topOp,
                 rhs: output.pop(), // NOTE: order is vital here!
                 lhs: output.pop()
               }
-              const result = this.applyOperatorToRule(topRule, args)
-              // push the result into the output stream
-              output.push(result)
+              this.applyOperatorToRule(output, args)
             }
 
             // Push the current operator and expression
-            opStack.push({ rule: rhs.rule, operator: operator?.compile() })
-
-            // Handle the (one) case where `expression` is an array of matches rather than a simple match.
-            if (Array.isArray(expression)) output.push(expression.map(ex => ex.compile()))
-            else output.push(expression?.compile())
+            opStack.push({ match: rhs, operator })
+            output.push(expression)
           } else {
             console.warn("Unexpected rule type", rhs.rule.name)
           }
@@ -186,21 +181,37 @@ export default new Spell.Parser({
         let topOp
         while ((topOp = opStack.pop())) {
           const args = {
-            operator: topOp.operator,
-            rhs: output.pop(),
+            ...topOp,
+            rhs: output.pop(), // NOTE: order is vital here!
             lhs: output.pop()
           }
-          const result = this.applyOperatorToRule(topOp.rule, args)
-          output.push(result)
+          this.applyOperatorToRule(output, args)
+        }
+        if (output.length !== 1) {
+          console.warn("Shunting yard ended up with too much output:", output)
         }
         return output[0]
       },
 
-      applyOperatorToRule(rule, args) {
-        const result = rule.applyOperator(args)
-        return result
+      applyOperatorToRule(output, { match, operator, rhs, lhs }) {
+        function compile(thing) {
+          if (!thing) return undefined
+          // TODO: we have one case ("is the queen of spades") where `thing` match is an array... :-(
+          if (Array.isArray(thing)) return thing.map(item => item.compile())
+          if (thing.compile) return thing.compile()
+          return thing
+        }
+
+        const result = match.rule.applyOperator({
+          operator: compile(operator),
+          rhs: compile(rhs),
+          lhs: compile(lhs)
+        })
+        output.push(result)
       },
+
       toAST(scope, match) {},
+
       // test multiple infix expressions in a row
       tests: [
         {
@@ -521,7 +532,7 @@ export default new Spell.Parser({
       name: "is_empty",
       alias: "expression_suffix",
       precedence: 11,
-      syntax: "is not? empty",
+      syntax: "(operator:is not? empty)",
       asLiterals: true, // TODO: :-(
       constructor: Spell.Rule.PostfixOperatorSuffix,
       shouldNegateOutput: operator => operator.includes("not"),

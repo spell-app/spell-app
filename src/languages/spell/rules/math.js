@@ -169,7 +169,7 @@ export default new Spell.Parser({
     {
       name: "absolute_value",
       alias: ["expression", "single_expression"],
-      syntax: "the? absolute value of {expression}",
+      syntax: "(operator:the? absolute value of) {expression}",
       testRule: "…absolute",
       constructor: Spell.Rule.InfixOperatorSuffix,
       compile(scope, match) {
@@ -199,7 +199,7 @@ export default new Spell.Parser({
       name: "max",
       alias: ["expression", "single_expression"],
       precedence: 2,
-      syntax: "the? (biggest|largest) {argument:singular_variable}? (of|in) {expression}",
+      syntax: "(operator:the? (biggest|largest)) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…(biggest|largest)",
       compile(scope, match) {
         const { expression } = match.results
@@ -233,7 +233,7 @@ export default new Spell.Parser({
       name: "min",
       alias: ["expression", "single_expression"],
       precedence: 2,
-      syntax: "the? smallest {argument:singular_variable}? (of|in) {expression}",
+      syntax: "(operator:the? smallest) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…smallest",
       compile(scope, match) {
         const { expression } = match.results
@@ -265,24 +265,24 @@ export default new Spell.Parser({
       // TODO: precision:  to the nearest tenth ?
       name: "round_number",
       alias: ["expression", "single_expression"],
-      syntax: "round {thing:expression} (direction:off|up|down)?",
+      syntax: "round {expression} (operator:off|up|down)?",
       testRule: "round",
       precedence: 1,
       compile(scope, match) {
-        const { thing, direction } = match.results
-        if (direction === "up") return `Math.ceil(${thing})`
-        if (direction === "down") return `Math.floor(${thing})`
-        return `Math.round(${thing})`
+        const { expression, operator } = match.results
+        if (operator === "up") return `Math.ceil(${expression})`
+        if (operator === "down") return `Math.floor(${expression})`
+        return `Math.round(${expression})`
       },
       toAST(scope, match) {
-        const { thing, direction } = match.groups
+        const { expression, operator } = match.groups
         let method = "round"
-        if (direction.value === "up") method = "roundUp"
-        else if (direction.value === "down") method = "roundDown"
+        if (operator.value === "up") method = "roundUp"
+        else if (operator.value === "down") method = "roundDown"
         return new AST.CoreMethodExpression(scope, match, {
           datatype: "number",
           method, // TODO: implement in spellCore
-          arguments: [thing.AST]
+          arguments: [expression.AST]
         })
       },
       tests: [

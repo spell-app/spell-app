@@ -160,7 +160,7 @@ export default new Spell.Parser({
       name: "starts_with",
       alias: "expression_suffix",
       // TODO: `does not start with`?
-      syntax: "starts with {expression:single_expression}",
+      syntax: "(operator:starts with) {expression:single_expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
       compileOperatorExpression({ lhs, rhs }) {
         return `spellCore.startsWith(${lhs}, ${rhs})`
@@ -191,7 +191,7 @@ export default new Spell.Parser({
       name: "ends_with",
       alias: "expression_suffix",
       // TODO: `does not end with`?
-      syntax: "ends with {expression:single_expression}",
+      syntax: "(operator:ends with) {expression:single_expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
       compileOperatorExpression({ lhs, rhs }) {
         return `spellCore.endsWith(${lhs}, ${rhs})`
