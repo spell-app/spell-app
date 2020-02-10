@@ -70,7 +70,7 @@ export default class Match {
   }
 
   // Test to see if the AST => JS matches rule.compile() => JS
-  test() {
+  testAST() {
     try {
       const compileJS = this.compile()
       const astJS = this.ASTJS

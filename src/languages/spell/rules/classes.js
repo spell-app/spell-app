@@ -590,7 +590,7 @@ export default new Spell.Parser({
               asLiterals: true,
               precedence: 20,
               constructor: Spell.Rule.PostfixOperatorSuffix,
-              shouldNegateOutput: operator => operator.includes("not"),
+              shouldNegateOutput: operator => operator.value.includes("not"),
               compileOperatorExpression({ lhs }) {
                 return `${lhs}.${property}`
               }
@@ -717,7 +717,7 @@ export default new Spell.Parser({
               syntax,
               precedence: 20,
               constructor: Spell.Rule.InfixOperatorSuffix,
-              shouldNegateOutput: operator => operator.includes("not"),
+              shouldNegateOutput: operator => operator.value.includes("not"),
               compileOperatorExpression({ lhs, rhs }) {
                 if (!Array.isArray(rhs)) rhs = [rhs]
                 const args = rhs.map((value, index) => {

@@ -258,7 +258,7 @@ export default new Spell.Parser({
       syntax: "if {operator:expression} (else|otherwise) {expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
       compileOperatorExpression({ lhs, operator, rhs }) {
-        return `(${operator} ? ${lhs} : ${rhs})`
+        return `(${operator.compile()} ? ${lhs} : ${rhs})`
       },
       getASTExpression(scope, match, { lhs, operator, rhs }) {
         return new AST.TernaryExpression(scope, match, {

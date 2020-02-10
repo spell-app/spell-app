@@ -53,8 +53,7 @@ export default new Spell.Parser({
       // TODO: is *not* greater than???
       syntax: "{operator:gt_or_lt_operator} {expression:single_expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
-      getOutputOperator: operator =>
-        (operator.includes("greater") ? ">" : "<") + (operator.includes("equal") ? "=" : ""),
+      getOutputOperator: ({ value }) => (value.includes("greater") ? ">" : "<") + (value.includes("equal") ? "=" : ""),
       parenthesize: true,
       tests: [
         {

@@ -11,9 +11,10 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
   /** If `true`, we'll wrap output expression in parenthesis. */
   @proto parenthesize = false
 
-  /** Return output operator string given `operator`. Override for more complex logic. */
+  /** Return output operator from `operator` match. Override for more complex logic. */
   getOutputOperator(operator) {
-    return operator
+    // Default to just use input string
+    return operator.value
   }
 
   /** Return `true` if we should "negate" the output expression based on `operator`. */
@@ -148,7 +149,8 @@ export default new Spell.Parser({
             const args = {
               match: rhs,
               lhs: output.pop(),
-              operator: rhs
+              // use explicit operator if there is one, default to entire match
+              operator: rhs.groups.operator || rhs
             }
             this.applyOperatorToRule(output, args)
           }
@@ -203,7 +205,7 @@ export default new Spell.Parser({
         }
 
         const result = match.rule.applyOperator({
-          operator: compile(operator),
+          operator,
           rhs: compile(rhs),
           lhs: compile(lhs)
         })
@@ -286,7 +288,7 @@ export default new Spell.Parser({
       syntax: "(operator:is not?) {expression:single_expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
       parenthesize: true,
-      getOutputOperator: operator => (operator === "is not" ? "!=" : "=="),
+      getOutputOperator: operator => (operator.value === "is not" ? "!=" : "=="),
       tests: [
         {
           compileAs: "expression",
@@ -306,7 +308,7 @@ export default new Spell.Parser({
       syntax: "(operator:is not? exactly) {expression:single_expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
       parenthesize: true,
-      getOutputOperator: operator => (operator === "is not exactly" ? "!==" : "==="),
+      getOutputOperator: operator => (operator.value === "is not exactly" ? "!==" : "==="),
       tests: [
         {
           compileAs: "expression",
@@ -325,8 +327,8 @@ export default new Spell.Parser({
       precedence: 11,
       syntax: "(operator:is not? (a|an)) {expression:type}",
       constructor: Spell.Rule.InfixOperatorSuffix,
-      shouldNegateOutput: operator => operator.includes("not"),
-      compileOperatorExpression({ lhs, operator, rhs }) {
+      shouldNegateOutput: operator => operator.value.includes("not"),
+      compileOperatorExpression({ lhs, rhs }) {
         return `spellCore.isOfType(${lhs}, '${rhs}')`
       },
       getASTExpression(scope, match, { lhs, rhs }) {
@@ -358,7 +360,7 @@ export default new Spell.Parser({
       syntax: "(operator:is not? the same type as) {expression:single_expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
       parenthesize: true,
-      getOutputOperator: operator => (operator.includes("not") ? "!==" : "==="),
+      getOutputOperator: operator => (operator.value.includes("not") ? "!==" : "==="),
       compileOperatorExpression({ lhs, operator, rhs }) {
         const op = this.getOutputOperator(operator)
         return `spellCore.typeOf(${lhs}) ${op} spellCore.typeOf(${rhs})`
@@ -394,10 +396,11 @@ export default new Spell.Parser({
       name: "is_in",
       alias: "expression_suffix",
       precedence: 11,
-      syntax: "{operator:is_in_operator} (expression:{single_expression}|{identifier_list})",
+      syntax:
+        "(operator:is (not? in|not? one of|either|not either of?|neither)) (expression:{single_expression}|{identifier_list})",
       constructor: Spell.Rule.InfixOperatorSuffix,
-      shouldNegateOutput: operator => operator.includes("not") || operator.includes("neither"),
-      compileOperatorExpression({ lhs, operator, rhs }) {
+      shouldNegateOutput: ({ value }) => value.includes("not") || value.includes("neither"),
+      compileOperatorExpression({ lhs, rhs }) {
         if (Array.isArray(rhs)) rhs = `[${rhs.join(", ")}]`
         return `spellCore.includes(${rhs}, ${lhs})`
       },
@@ -500,9 +503,8 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "is (defined|undefined|not defined)",
-      asLiterals: true, // TODO:  :-(
       constructor: Spell.Rule.PostfixOperatorSuffix,
-      shouldNegateOutput: operator => operator !== "is defined",
+      shouldNegateOutput: operator => operator.value !== "is defined",
       compileOperatorExpression({ lhs }) {
         return `spellCore.isDefined(${lhs})`
       },
@@ -533,9 +535,8 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:is not? empty)",
-      asLiterals: true, // TODO: :-(
       constructor: Spell.Rule.PostfixOperatorSuffix,
-      shouldNegateOutput: operator => operator.includes("not"),
+      shouldNegateOutput: operator => operator.value.includes("not"),
       compileOperatorExpression({ lhs }) {
         return `spellCore.isEmpty(${lhs})`
       },
