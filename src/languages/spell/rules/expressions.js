@@ -130,41 +130,39 @@ export default new Spell.Parser({
       name: "compound_expression",
       alias: "expression",
       precedence: 12,
-      syntax: "{lhs:single_expression} {rhs:expression_suffix}+",
+      syntax: "{lhs:single_expression} {rhsChain:expression_suffix}+",
       //  testRule: "…{recursive_expression_test}",
       compile(scope, match) {
-        const { results, matched } = match
         // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
         //  to deal with operator precedence.  Note that we assume:
         //  - all infix operators are `left-to-right` associative, and
         //  - all postfix operators are left to right associative.
         // See: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
         // See: https://www.chris-j.co.uk/parsing.php
-        const output = [results.lhs]
+        const { lhs, rhsChain } = match.groups
+        const output = [lhs.compile()]
         const opStack = []
-        const rhsExpressions = matched[1].matched
-        rhsExpressions.forEach(rhsMatch => {
-          const rhs = rhsMatch.compile()
-          const { rule } = rhsMatch
-          // For a unary postfix operator, `rhs` will be the operator text that was matched
-          if (rhsMatch.rule instanceof Spell.Rule.PostfixOperatorSuffix) {
+        rhsChain.matched.forEach(rhs => {
+          // Unary postfix operator, e.g. "<lhs> is empty"
+          if (rhs.rule instanceof Spell.Rule.PostfixOperatorSuffix) {
             const args = {
-              operator: rhs,
-              lhs: output.pop()
+              lhs: output.pop(),
+              operator: rhs.compile()
             }
-            const result = this.applyOperatorToRule(rule, args, scope)
+            const result = this.applyOperatorToRule(rhs.rule, args, scope)
             output.push(result)
           }
-          // If it's a binary operator, `rhs` will be an object: `{ operator?, expression }`
-          else if (rhsMatch.rule instanceof Spell.Rule.InfixOperatorSuffix) {
-            const { operator, expression } = rhs
+          // Infix binary operator, e.g. "<lhs> is a <rhs>"
+          else if (rhs.rule instanceof Spell.Rule.InfixOperatorSuffix) {
+            const { operator, expression } = rhs.groups
+
             // While top operator on stack is higher precedence than this one
-            while (peek(opStack)?.rule.precedence >= rule.precedence) {
+            while (peek(opStack)?.rule.precedence >= rhs.rule.precedence) {
               // pop the top operator and compile it with top 2 things on the output stack
               const { operator: topOperator, rule: topRule } = opStack.pop()
               const args = {
                 operator: topOperator,
-                rhs: output.pop(),
+                rhs: output.pop(), // NOTE: order is vital here!
                 lhs: output.pop()
               }
               const result = this.applyOperatorToRule(topRule, args, scope)
@@ -173,10 +171,11 @@ export default new Spell.Parser({
             }
 
             // Push the current operator and expression
-            opStack.push({ rule, operator })
-            output.push(expression)
+            opStack.push({ rule: rhs.rule, operator: operator?.compile() })
+            if (Array.isArray(expression)) output.push(expression.map(ex => ex.compile()))
+            else output.push(expression?.compile())
           } else {
-            console.warn("Unexpected rule type", rhsMatch.rule.name)
+            console.warn("Unexpected rule type", rhs.rule.name)
           }
         })
 
@@ -199,9 +198,7 @@ export default new Spell.Parser({
         const result = rule.applyOperator(args)
         return result
       },
-      toAST(scope, match) {
-        throw new TypeError("TODO: implement shunting yard algoritm for compound_expression.toAST()")
-      },
+      toAST(scope, match) {},
       // test multiple infix expressions in a row
       tests: [
         {

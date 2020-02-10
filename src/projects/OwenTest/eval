@@ -1,5 +1,4 @@
 a card is a thing
-a card has a direction as either up or down
-a card "is face up" if its direction is up
-c is a new card
-expect c is face up to be false
+a card has a rank as one of ace, 2, 3
+a card has a suit as one of clubs, diamonds
+a card "is the (rank) of (suits)" for its ranks and its suits
