@@ -149,7 +149,7 @@ export default new Spell.Parser({
               lhs: output.pop(),
               operator: rhs.compile()
             }
-            const result = this.applyOperatorToRule(rhs.rule, args, scope)
+            const result = this.applyOperatorToRule(rhs.rule, args)
             output.push(result)
           }
           // Infix binary operator, e.g. "<lhs> is a <rhs>"
@@ -165,13 +165,15 @@ export default new Spell.Parser({
                 rhs: output.pop(), // NOTE: order is vital here!
                 lhs: output.pop()
               }
-              const result = this.applyOperatorToRule(topRule, args, scope)
+              const result = this.applyOperatorToRule(topRule, args)
               // push the result into the output stream
               output.push(result)
             }
 
             // Push the current operator and expression
             opStack.push({ rule: rhs.rule, operator: operator?.compile() })
+
+            // Handle the (one) case where `expression` is an array of matches rather than a simple match.
             if (Array.isArray(expression)) output.push(expression.map(ex => ex.compile()))
             else output.push(expression?.compile())
           } else {
@@ -188,13 +190,13 @@ export default new Spell.Parser({
             rhs: output.pop(),
             lhs: output.pop()
           }
-          const result = this.applyOperatorToRule(topOp.rule, args, scope)
+          const result = this.applyOperatorToRule(topOp.rule, args)
           output.push(result)
         }
         return output[0]
       },
 
-      applyOperatorToRule(rule, args, scope) {
+      applyOperatorToRule(rule, args) {
         const result = rule.applyOperator(args)
         return result
       },
