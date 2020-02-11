@@ -14,7 +14,7 @@
 //  - Infix operators: `<expression> is <expression>`
 //    or Postfix ops:  `<expression> is empty`
 //    are `expression_suffix` entities
-//    and will get a `applyOperator({ lhs, operator?, rhs})` call to combine the bits.
+//    and will get a `compileOperator({ lhs, operator?, rhs})` call to combine the bits.
 //
 //    Note that they should be structured like:
 //        `(operator:and) {expression:single_expression}`    (infix operators)
@@ -123,7 +123,7 @@ const parser = new Parser({
               operator: rhs,
               lhs: output.pop()
             }
-            const result = this.applyOperator(rule, args, scope)
+            const result = this.compileOperator(rule, args, scope)
             output.push(result)
           }
           // If it's a binary operator, `rhs` will be an object: `{ operator?, expression }`
@@ -138,7 +138,7 @@ const parser = new Parser({
                 rhs: output.pop(),
                 lhs: output.pop()
               }
-              const result = this.applyOperator(topRule, args, scope)
+              const result = this.compileOperator(topRule, args, scope)
               // push the result into the output stream
               output.push(result)
             }
@@ -158,14 +158,14 @@ const parser = new Parser({
             rhs: output.pop(),
             lhs: output.pop()
           }
-          const result = this.applyOperator(topOp.rule, args, scope)
+          const result = this.compileOperator(topOp.rule, args, scope)
           output.push(result)
         }
         return output[0]
       },
 
-      applyOperator(rule, args, scope) {
-        return rule.applyOperator(args)
+      compileOperator(rule, args, scope) {
+        return rule.compileOperator(args)
       }
     },
 
@@ -176,7 +176,7 @@ const parser = new Parser({
       alias: "expression_suffix",
       precedence: 6,
       syntax: "and {expression:single_expression}", // <== results.rhs = { expression }
-      applyOperator: ({ lhs, rhs }) => `(${lhs} && ${rhs})`
+      compileOperator: ({ lhs, rhs }) => `(${lhs} && ${rhs})`
     },
 
     {
@@ -184,7 +184,7 @@ const parser = new Parser({
       alias: "expression_suffix",
       precedence: 5,
       syntax: "(operator:or) {expression:single_expression}", // <== results.rhs = { operator: "or", expression }
-      applyOperator: ({ lhs, rhs }) => `(${lhs} || ${rhs})`
+      compileOperator: ({ lhs, rhs }) => `(${lhs} || ${rhs})`
     },
 
     {
@@ -192,7 +192,7 @@ const parser = new Parser({
       alias: "expression_suffix",
       precedence: 3, // ????
       syntax: "(operator:is not?) {expression:single_expression}", // <== results.rhs = { operator: "is", expression }
-      applyOperator({ lhs, operator, rhs }) {
+      compileOperator({ lhs, operator, rhs }) {
         const op = operator === "is not" ? "!=" : "=="
         return `(${lhs} ${op} ${rhs})`
       }
@@ -205,7 +205,7 @@ const parser = new Parser({
       precedence: 4, // <== precedence above `is_expression`
       alias: "expression_suffix",
       syntax: "is not? empty", // <== single Keywords, results.rhs = "is empty"
-      applyOperator({ lhs, operator }) {
+      compileOperator({ lhs, operator }) {
         const bang = operator === "is not empty" ? "!" : ""
         return `${bang}spellCore.isEmpty(${lhs})`
       }
@@ -217,7 +217,7 @@ const parser = new Parser({
       alias: "expression_suffix",
       syntax: "is (defined|undefined|not defined)",
       asLiterals: true,
-      applyOperator({ lhs, operator }) {
+      compileOperator({ lhs, operator }) {
         const op = operator === "is defined" ? "!==" : "==="
         return `(typeof ${lhs} ${op} 'undefined')`
       }

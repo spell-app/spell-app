@@ -269,8 +269,7 @@ export class InfixExpression extends Expression {
   @proto @readonly type = "InfixExpression"
   constructor(...args) {
     super(...args)
-    // `lhs` is optional because it may get assigned later
-    this.assertType("lhs", Expression, OPTIONAL)
+    this.assertType("lhs", Expression)
     this.assertType("operator", "string")
     this.assertType("rhs", Expression)
   }

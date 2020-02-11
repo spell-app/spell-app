@@ -165,7 +165,7 @@ export default new Spell.Parser({
       compileOperatorExpression({ lhs, rhs }) {
         return `spellCore.startsWith(${lhs}, ${rhs})`
       },
-      getASTExpression(scope, match, { lhs, rhs }) {
+      compileASTExpression(scope, match, { lhs, rhs }) {
         return new AST.CoreMethodExpression(scope, match, {
           method: "startsWith",
           arguments: [lhs.AST, rhs.AST]
@@ -196,7 +196,7 @@ export default new Spell.Parser({
       compileOperatorExpression({ lhs, rhs }) {
         return `spellCore.endsWith(${lhs}, ${rhs})`
       },
-      getASTExpression(scope, match, { lhs, rhs }) {
+      compileASTExpression(scope, match, { lhs, rhs }) {
         return new AST.CoreMethodExpression(scope, match, {
           method: "endsWith",
           arguments: [lhs.AST, rhs.AST]

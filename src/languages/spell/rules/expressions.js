@@ -11,13 +11,17 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
   /** If `true`, we'll wrap output expression in parenthesis. */
   @proto parenthesize = false
 
-  /** Return output operator from `operator` match. Override for more complex logic. */
+  /** Return output operator from `operator` match. Override for more complex logic.
+   * TODO: this is language-dependent!
+   */
   getOutputOperator(operator) {
     // Default to just use input string
     return operator.value
   }
 
-  /** Return `true` if we should "negate" the output expression based on `operator`. */
+  /** Return `true` if we should "negate" the output expression based on `operator`.
+   * TODO: this is language-dependent!
+   */
   shouldNegateOutput(operator) {
     return false
   }
@@ -31,7 +35,7 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
   /** Return compiled expression, INCLUDING possible parenthesis and negation.
    * Delegates to `compileOperatorExpression()` to do the work.
    */
-  applyOperator({ lhs, operator, rhs }) {
+  compileOperator({ lhs, operator, rhs }) {
     let expression = this.compileOperatorExpression({ lhs, operator, rhs })
     if (this.parenthesize) expression = `(${expression})`
     if (this.shouldNegateOutput(operator)) expression = `!${expression}`
@@ -44,7 +48,7 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
    * - `rhs` is right-hand-side AST
    * By default does an InfixExpression, override to e.g. do a CoreMethodExpression()
    */
-  getASTExpression(scope, match, { lhs, operator, rhs }) {
+  compileASTExpression(scope, match, { lhs, operator, rhs }) {
     return new AST.InfixExpression(scope, match, {
       lhs,
       operator: this.getOutputOperator(operator),
@@ -53,12 +57,19 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
   }
 
   /**
-   * `match.lhs` is the left-hand-side match.  <=== NON STANDARD!
-   * `match.groups.expressions` is the right-hand-side match.
-   * `match.groups.operator` is the operator match.
+   * While running the "shunting yard algorithm" in toAST(), we'll match
+   * `Infix-` and `PostfixOperatorSuffix` instances with args on left/right side.
+   * This routine delegates to rule-specific `compileASTExpression()` to actually output
+   * the particular AST for the rule.
+   *
+   * This routine also handles adding parenthesis and negating the output for you automatically.
+   *
+   * `lhs` is the left-hand-side match AST (NOTE: already AST calculated!)
+   * `operator` is the operator Match
+   * `rhs` is the right-hand-side match AST, for InfixOperatorSuffixes only.
    */
-  getAST(scope, match, { operator, rhs, lhs }) {
-    let expression = this.getASTExpression(scope, match, { lhs, operator, rhs })
+  compileAST(scope, match, { operator, rhs, lhs }) {
+    let expression = this.compileASTExpression(scope, match, { lhs, operator, rhs })
     if (this.parenthesize) expression = new AST.ParenthesizedExpression(scope, match, { expression })
     if (this.shouldNegateOutput(operator.value)) expression = new AST.NotExpression(scope, match, { expression })
     return expression
@@ -76,8 +87,8 @@ Spell.Rule.PostfixOperatorSuffix = class postfix_operator extends Spell.Rule.Inf
    * - `lhs` is left-hand side match
    * - `operator` is raw full input operator string
    */
-  getASTExpression(scope, match, { lhs, operator }) {
-    throw new TypeError("Must implement getASTExpression()")
+  compileASTExpression(scope, match, { lhs, operator }) {
+    throw new TypeError("Must implement compileASTExpression()")
   }
 }
 
@@ -141,7 +152,7 @@ export default new Spell.Parser({
             return thing
           }
 
-          const result = ruleMatch.rule.applyOperator({
+          const result = ruleMatch.rule.compileOperator({
             operator,
             rhs: compile(rhs),
             lhs: compile(lhs)
@@ -220,7 +231,7 @@ export default new Spell.Parser({
             return thing
           }
 
-          const result = ruleMatch.rule.getAST(ruleMatch.scope, ruleMatch, {
+          const result = ruleMatch.rule.compileAST(ruleMatch.scope, ruleMatch, {
             operator,
             rhs: compile(rhs),
             lhs: compile(lhs)
@@ -406,7 +417,7 @@ export default new Spell.Parser({
       compileOperatorExpression({ lhs, rhs }) {
         return `spellCore.isOfType(${lhs}, '${rhs}')`
       },
-      getASTExpression(scope, match, { lhs, rhs }) {
+      compileASTExpression(scope, match, { lhs, rhs }) {
         return new AST.CoreMethodExpression(scope, match, {
           method: "isOfType",
           arguments: [lhs.AST, rhs.AST]
@@ -440,7 +451,7 @@ export default new Spell.Parser({
         const op = this.getOutputOperator(operator)
         return `spellCore.typeOf(${lhs}) ${op} spellCore.typeOf(${rhs})`
       },
-      getASTExpression(scope, match, { lhs, operator, rhs }) {
+      compileASTExpression(scope, match, { lhs, operator, rhs }) {
         return new AST.CoreMethodExpression(scope, match, {
           method: "matchesType", // TODO:  implement this in spellCore
           arguments: [lhs.AST, rhs.AST]
@@ -479,7 +490,7 @@ export default new Spell.Parser({
         if (Array.isArray(rhs)) rhs = `[${rhs.join(", ")}]`
         return `spellCore.includes(${rhs}, ${lhs})`
       },
-      getASTExpression(scope, match, { lhs, rhs }) {
+      compileASTExpression(scope, match, { lhs, rhs }) {
         return new AST.CoreMethodExpression(scope, match, {
           method: "includes",
           arguments: [rhs.AST, lhs.AST]
@@ -518,7 +529,7 @@ export default new Spell.Parser({
         if (Array.isArray(lhs)) lhs = `[${lhs.join(", ")}]`
         return `spellCore.includes(${lhs}, ${rhs})`
       },
-      getASTExpression(scope, match, { lhs, rhs }) {
+      compileASTExpression(scope, match, { lhs, rhs }) {
         return new AST.CoreMethodExpression(scope, match, {
           method: "includes",
           arguments: [lhs.AST, rhs.AST]
@@ -550,7 +561,7 @@ export default new Spell.Parser({
         if (Array.isArray(lhs)) lhs = `[${lhs.join(", ")}]`
         return `spellCore.includes(${lhs}, ${rhs})`
       },
-      getASTExpression(scope, match, { lhs, rhs }) {
+      compileASTExpression(scope, match, { lhs, rhs }) {
         return new AST.NotExpression(scope, match, {
           expression: new AST.CoreMethodExpression(scope, match, {
             method: "includes",
@@ -583,7 +594,7 @@ export default new Spell.Parser({
       compileOperatorExpression({ lhs }) {
         return `spellCore.isDefined(${lhs})`
       },
-      getASTExpression(scope, match, { lhs, operator }) {
+      compileASTExpression(scope, match, { lhs, operator }) {
         return new AST.CoreMethodExpression(scope, match, {
           method: "isDefined",
           arguments: [lhs.AST]
@@ -615,7 +626,7 @@ export default new Spell.Parser({
       compileOperatorExpression({ lhs }) {
         return `spellCore.isEmpty(${lhs})`
       },
-      getASTExpression(scope, match, { lhs }) {
+      compileASTExpression(scope, match, { lhs }) {
         return new AST.CoreMethodExpression(scope, match, {
           method: "isEmpty",
           arguments: [lhs.AST]

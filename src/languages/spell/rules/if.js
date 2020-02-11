@@ -260,7 +260,7 @@ export default new Spell.Parser({
       compileOperatorExpression({ lhs, operator, rhs }) {
         return `(${operator.compile()} ? ${lhs} : ${rhs})`
       },
-      getASTExpression(scope, match, { lhs, operator, rhs }) {
+      compileASTExpression(scope, match, { lhs, operator, rhs }) {
         return new AST.TernaryExpression(scope, match, {
           condition: operator.AST,
           lhs: lhs.AST,
