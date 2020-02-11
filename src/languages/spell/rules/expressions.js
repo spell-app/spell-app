@@ -134,6 +134,23 @@ export default new Spell.Parser({
       syntax: "{lhs:single_expression} {rhsChain:expression_suffix}+",
       //  testRule: "…{recursive_expression_test}",
       compile(scope, match) {
+        function applyOperatorToRule(output, { match: ruleMatch, operator, rhs, lhs }) {
+          function compile(thing) {
+            if (!thing) return undefined
+            // TODO: we have one case ("is the queen of spades") where `thing` match is an array... :-(
+            if (Array.isArray(thing)) return thing.map(item => item.compile())
+            if (thing.compile) return thing.compile()
+            return thing
+          }
+
+          const result = ruleMatch.rule.applyOperator({
+            operator,
+            rhs: compile(rhs),
+            lhs: compile(lhs)
+          })
+          output.push(result)
+        }
+
         // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
         //  to deal with operator precedence.  Note that we assume:
         //  - all infix operators are `left-to-right` associative, and
@@ -152,7 +169,7 @@ export default new Spell.Parser({
               // use explicit operator if there is one, default to entire match
               operator: rhs.groups.operator || rhs
             }
-            this.applyOperatorToRule(output, args)
+            applyOperatorToRule(output, args)
           }
           // Infix binary operator, e.g. "<lhs> is a <rhs>"
           else if (rhs.rule instanceof Spell.Rule.InfixOperatorSuffix) {
@@ -167,7 +184,7 @@ export default new Spell.Parser({
                 rhs: output.pop(), // NOTE: order is vital here!
                 lhs: output.pop()
               }
-              this.applyOperatorToRule(output, args)
+              applyOperatorToRule(output, args)
             }
 
             // Push the current operator and expression
@@ -187,29 +204,12 @@ export default new Spell.Parser({
             rhs: output.pop(), // NOTE: order is vital here!
             lhs: output.pop()
           }
-          this.applyOperatorToRule(output, args)
+          applyOperatorToRule(output, args)
         }
         if (output.length !== 1) {
           console.warn("Shunting yard ended up with too much output:", output)
         }
         return output[0]
-      },
-
-      applyOperatorToRule(output, { match, operator, rhs, lhs }) {
-        function compile(thing) {
-          if (!thing) return undefined
-          // TODO: we have one case ("is the queen of spades") where `thing` match is an array... :-(
-          if (Array.isArray(thing)) return thing.map(item => item.compile())
-          if (thing.compile) return thing.compile()
-          return thing
-        }
-
-        const result = match.rule.applyOperator({
-          operator,
-          rhs: compile(rhs),
-          lhs: compile(lhs)
-        })
-        output.push(result)
       },
 
       toAST(scope, match) {},
