@@ -275,7 +275,7 @@ export class InfixExpression extends Expression {
     this.assertType("rhs", Expression)
   }
   toJS() {
-    return `${this.lhs.toJS()} ${this.operator.toJS()} ${this.rhs.toJS()}}`
+    return `${this.lhs.toJS()} ${this.operator} ${this.rhs.toJS()}`
   }
 }
 
@@ -533,12 +533,12 @@ export class NewClassStatement extends Statement {
   }
 }
 
-/** NewInstanceStatement
+/** NewInstanceExpression
  * - `type` is a TypeExpression
  * - `props` (optional) is an ObjectLiteral
  */
-export class NewInstanceStatement extends Statement {
-  @proto @readonly type = "NewInstanceStatement"
+export class NewInstanceExpression extends Expression {
+  @proto @readonly type = "NewInstanceExpression"
   constructor(...args) {
     super(...args)
     this.assertType("type", TypeExpression)

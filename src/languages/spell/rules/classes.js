@@ -85,7 +85,7 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         const { type, props } = match.groups
-        return new AST.NewInstanceStatement(scope, match, { type: type.AST, props: props && props.AST })
+        return new AST.NewInstanceExpression(scope, match, { type: type.AST, props: props && props.AST })
       },
       tests: [
         {
@@ -125,7 +125,7 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         const { type, props } = match.groups
-        return new AST.NewInstanceStatement(scope, match, { type: type.AST, props: props && props.AST })
+        return new AST.NewInstanceExpression(scope, match, { type: type.AST, props: props && props.AST })
       },
       tests: [
         {

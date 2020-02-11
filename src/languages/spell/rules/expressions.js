@@ -39,16 +39,16 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
   }
 
   /**
-   * - `lhs` is left-hand side match
+   * - `lhs` is left-hand side AST
    * - `operator` is raw full input operator string
-   * - `rhs` is right-hand-side match
+   * - `rhs` is right-hand-side AST
    * By default does an InfixExpression, override to e.g. do a CoreMethodExpression()
    */
   getASTExpression(scope, match, { lhs, operator, rhs }) {
     return new AST.InfixExpression(scope, match, {
-      lhs: lhs.AST,
+      lhs,
       operator: this.getOutputOperator(operator),
-      rhs: rhs.AST
+      rhs
     })
   }
 
@@ -57,9 +57,7 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
    * `match.groups.expressions` is the right-hand-side match.
    * `match.groups.operator` is the operator match.
    */
-  getAST(scope, match) {
-    const { lhs } = match
-    const { operator, expression: rhs } = match.groups
+  getAST(scope, match, { operator, rhs, lhs }) {
     let expression = this.getASTExpression(scope, match, { lhs, operator, rhs })
     if (this.parenthesize) expression = new AST.ParenthesizedExpression(scope, match, { expression })
     if (this.shouldNegateOutput(operator.value)) expression = new AST.NotExpression(scope, match, { expression })
@@ -212,7 +210,84 @@ export default new Spell.Parser({
         return output[0]
       },
 
-      toAST(scope, match) {},
+      toAST(scope, match) {
+        function applyOperatorToRule(output, { match: ruleMatch, operator, rhs, lhs }) {
+          function compile(thing) {
+            if (!thing) return undefined
+            // TODO: we have one case ("is the queen of spades") where `thing` match is an array... :-(
+            if (Array.isArray(thing)) return thing.map(item => item.AST)
+            if (thing.compile) return thing.AST
+            return thing
+          }
+
+          const result = ruleMatch.rule.getAST(ruleMatch.scope, ruleMatch, {
+            operator,
+            rhs: compile(rhs),
+            lhs: compile(lhs)
+          })
+          output.push(result)
+        }
+
+        // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
+        //  to deal with operator precedence.  Note that we assume:
+        //  - all infix operators are `left-to-right` associative, and
+        //  - all postfix operators are left to right associative.
+        // See: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
+        // See: https://www.chris-j.co.uk/parsing.php
+        const { lhs, rhsChain } = match.groups
+        const output = [lhs]
+        const opStack = []
+        rhsChain.matched.forEach(rhs => {
+          // Unary postfix operator, e.g. "<lhs> is empty"
+          if (rhs.rule instanceof Spell.Rule.PostfixOperatorSuffix) {
+            const args = {
+              match: rhs,
+              lhs: output.pop(),
+              // use explicit operator if there is one, default to entire match
+              operator: rhs.groups.operator || rhs
+            }
+            applyOperatorToRule(output, args)
+          }
+          // Infix binary operator, e.g. "<lhs> is a <rhs>"
+          else if (rhs.rule instanceof Spell.Rule.InfixOperatorSuffix) {
+            const { operator, expression } = rhs.groups
+
+            // While top operator on stack is higher precedence than this one
+            while (peek(opStack)?.match.rule.precedence >= rhs.rule.precedence) {
+              // pop the top operator and compile it with top 2 things on the output stack
+              const topOp = opStack.pop()
+              const args = {
+                ...topOp,
+                rhs: output.pop(), // NOTE: order is vital here!
+                lhs: output.pop()
+              }
+              applyOperatorToRule(output, args)
+            }
+
+            // Push the current operator and expression
+            opStack.push({ match: rhs, operator })
+            output.push(expression)
+          } else {
+            console.warn("Unexpected rule type", rhs.rule.name)
+          }
+        })
+
+        // At this point, we have only binary operators in the stack.
+        // Run through them
+        let topOp
+        while ((topOp = opStack.pop())) {
+          const args = {
+            ...topOp,
+            rhs: output.pop(), // NOTE: order is vital here!
+            lhs: output.pop()
+          }
+          applyOperatorToRule(output, args)
+        }
+        if (output.length !== 1) {
+          console.warn("Shunting yard ended up with too much output:", output)
+        }
+        return output[0]
+      },
 
       // test multiple infix expressions in a row
       tests: [
