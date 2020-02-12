@@ -100,7 +100,7 @@ export default new Spell.Parser({
         if (isNewVariable) variable = scope.variables.add("it")
 
         return new AST.AssignmentStatement(scope, match, {
-          thing: new AST.VariableExpression({ raw: "it", name: "it", variable }),
+          thing: new AST.VariableExpression(scope, match, { raw: "it", name: "it", variable }),
           value: value.AST,
           isNewVariable
         })

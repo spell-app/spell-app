@@ -1,7 +1,7 @@
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 import _get from "lodash/get"
 import { proto, readonly } from "../../utils/decorators"
-import { Scope, Match } from "./all"
+import { Scope, Match, AST } from "./all"
 
 // TODO: define this in `constants` or some such?
 const OPTIONAL = Symbol("OPTIONAL")
@@ -76,6 +76,21 @@ export class ASTNode {
  */
 export class Expression extends ASTNode {
   @proto @readonly type = "Expression"
+}
+
+/** QuotedExpression -- use to wrap resulting AST in quotes.
+ *  TODO: is this a good idea?  Don't use too much!
+ */
+export class QuotedExpression extends Expression {
+  @proto @readonly type = "QuotedExpression"
+  @proto @readonly datatype = "string"
+  constructor(...args) {
+    super(...args)
+    this.assertType("expression", Expression)
+  }
+  toJS() {
+    return `'${this.expression.toJS()}'`
+  }
 }
 
 /** Generic Literal type.  Useful for `instanceof`.
@@ -188,6 +203,20 @@ export class ArrayLiteral extends Literal {
 /** Abstract comment type. Useful for `instanceof`. */
 export class Comment extends ASTNode {}
 
+/** ParseError type.
+ *  - `message` is text of the error
+ */
+export class ParseError extends Comment {
+  @proto @readonly type = "ParseError"
+  constructor(...args) {
+    super(...args)
+    this.assertType("message", "string")
+  }
+  toJS() {
+    return `// PARSE ERROR: ${this.message}`
+  }
+}
+
 /** LineComment type.
  *  - `value` is text of the comment (may be empty string).
  *  - `commentSymbol` is the comment symbol used
@@ -245,6 +274,8 @@ export class ParenthesizedExpression extends Expression {
     return this.expression.datatype
   }
   toJS() {
+    // don't double up on parens
+    if (this.expression instanceof AST.ParenthesizedExpression) return this.expression.toJS()
     return `(${this.expression.toJS()})`
   }
 }
@@ -278,13 +309,25 @@ export class InfixExpression extends Expression {
   }
 }
 
-/** CoreMethodExpression:  calls a `spellCore` `method`.  Used for output languge independence.
+/** Given an array of Expressions, join them all together with the same `operator`. */
+export function multiInfixExpression(scope, match, { expressions, operator }) {
+  if (expressions.length < 2) return expressions[0]
+  const remaining = [...expressions]
+  let rhs = remaining.pop()
+  while (remaining.length) {
+    const lhs = remaining.pop()
+    rhs = new AST.InfixExpression(scope, match, { lhs, operator, rhs })
+  }
+  return rhs
+}
+
+/** CoreMethodInvocation:  calls a `spellCore` `method`.  Used for output languge independence.
  *  - `method` is spellcore method name.
  *  - `arguments` (optional) is a possibly empty list of Expressions.
  *  - Try to set `datatype` as string or getter if you can.
  */
-export class CoreMethodExpression extends Expression {
-  @proto @readonly type = "CoreMethodExpression"
+export class CoreMethodInvocation extends Expression {
+  @proto @readonly type = "CoreMethodInvocation"
   constructor(...args) {
     super(...args)
     this.assertType("method", "string")
@@ -292,8 +335,29 @@ export class CoreMethodExpression extends Expression {
     this.assertType("datatype", "string", OPTIONAL)
   }
   toJS() {
-    const args = this.arguments.map(arg => arg.toJS()).join(", ")
+    const args = this.arguments?.map(arg => arg.toJS()).join(", ") || ""
     return `spellCore.${this.method}(${args})`
+  }
+}
+
+/** Call a `method` on some `object` with `arguments`.
+ *  - `thing` is what we'll call the method on.
+ *  - `method` is spellcore method name.
+ *  - `arguments` (optional) is a possibly empty list of Expressions.
+ *  - Try to set `datatype` as string or getter if you can.
+ */
+export class ScopedMethodInvocation extends Expression {
+  @proto @readonly type = "MethodExpression"
+  constructor(...args) {
+    super(...args)
+    this.assertType("thing", Expression)
+    this.assertType("method", "string")
+    this.assertArrayType("arguments", Expression, OPTIONAL)
+    this.assertType("datatype", "string", OPTIONAL)
+  }
+  toJS() {
+    const args = this.arguments?.map(arg => arg.toJS()).join(", ") || ""
+    return `${this.thing.toJS()}.${this.method}(${args})`
   }
 }
 
@@ -369,7 +433,7 @@ export class ThisLiteral extends Literal {
 
 /** PropertyLiteral -- identifier which refers to some property of an object.
  *  - `raw` (optional) is the input property name
- *  - `value` is the normalized property name.
+ *  - `value` is the normalized property name.    // TODO: "property"???
  */
 export class PropertyLiteral extends Literal {
   @proto @readonly type = "PropertyLiteral"
@@ -630,6 +694,31 @@ export class ObjectGetter extends Statement {
   }
 }
 
+/** ObjectMethod: creates an method for type instances
+ * - `type` is a TypeEexpression
+ * - `method` is the method name
+ * - `args` ia array of VariableExpressions
+ * - `statements` is a Statement or Expression
+ */
+export class ObjectMethod extends Statement {
+  @proto @readonly type = "ObjectMethod"
+  constructor(...args) {
+    super(...args)
+    this.assertType("type", TypeExpression)
+    this.assertType("method", "string")
+    this.assertArrayType("args", VariableExpression, OPTIONAL)
+    this.assertType("statements", [Statement, Expression], OPTIONAL)
+    this.assertType("datatype", "string", OPTIONAL)
+  }
+  toJS() {
+    const { type, method, args, statements } = this
+    return (
+      `spellCore.define(${type.toJS()}.prototype, "${method}", {` +
+      ` value(${args?.map(arg => arg.toJS()) || ""}) { ${statements?.toJS() || ""} } })`
+    )
+  }
+}
+
 /** IfStatement
  * - `condition` is an Expression
  * - `statements` is a Statement or Expression
@@ -683,21 +772,18 @@ export class ElseStatement extends Statement {
  * - `condition` is an Expression
  * - `trueValue` is an Expression
  * - `falseValue` is an Expression
- * - `parenthesize` (optional) is a boolean
  */
-export class TernaryExpression extends Statement {
+export class TernaryExpression extends Expression {
   @proto @readonly type = "TernaryExpression"
   constructor(...args) {
     super(...args)
     this.assertType("condition", Expression)
     this.assertType("trueValue", Expression)
     this.assertType("falseValue", Expression)
-    this.assertType("parenthesize", "boolean", OPTIONAL)
   }
   toJS() {
-    const { condition, trueValue, falseValue, parenthesize } = this
-    const expression = `${condition.toJS()} ? ${trueValue} : ${falseValue}`
-    if (parenthesize) return `(${expression})`
+    const { condition, trueValue, falseValue } = this
+    const expression = `(${condition.toJS()} ? ${trueValue.toJS()} : ${falseValue.toJS()})`
     return expression
   }
 }

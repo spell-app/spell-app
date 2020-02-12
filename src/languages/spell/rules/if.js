@@ -263,8 +263,8 @@ export default new Spell.Parser({
       compileASTExpression(scope, match, { lhs, operator, rhs }) {
         return new AST.TernaryExpression(scope, match, {
           condition: operator.AST,
-          lhs: lhs.AST,
-          rhs: rhs.AST
+          trueValue: lhs,
+          falseValue: rhs
         })
       },
       tests: [

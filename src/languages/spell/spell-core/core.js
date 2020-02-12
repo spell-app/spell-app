@@ -63,10 +63,11 @@ const spellCore = {
     string: "text"
   },
 
-  // Return string "type" of `thing`.
-  // TODO:  Return type aliases, e.g. ["number", "integer"]
-  // TODO:  Return inherited class types ?
-  // TODO:  NaN => `unknown` ???
+  /** Return string "type" of `thing`.
+   * TODO:  Return type aliases, e.g. ["number", "integer"]
+   * TODO:  Return inherited class types ?
+   * TODO:  NaN => `unknown` ???
+   */
   typeOf(thing) {
     if (thing === null || thing === undefined) return "unknown"
     if (typeof thing === "number" && isNaN(thing)) return "unknown"
@@ -76,28 +77,34 @@ const spellCore = {
     return spellCore.TYPE_NAME_CONVERSIONS[type] || type
   },
 
-  // Special methods for `isOfType()`
+  /** Special methods for `isOfType()` */
   IS_OF_TYPE_SPECIALS: {
     integer: thing => spellCore.isAnInteger(thing),
     character: thing => spellCore.typeOf(thing) === "text" && thing.length === 1,
     char: thing => spellCore.isOfType(thing, "character")
   },
 
-  // Is `thing` an instance of string `type` (as per `spellCore.typeOf()`)?
-  // TODO: inherited types
+  /** Is `thing` an instance of string `type` (as per `spellCore.typeOf()`)? */
   isOfType(thing, type) {
+    // TODO: check for inherited types
     if (spellCore.IS_OF_TYPE_SPECIALS[type]) return spellCore.IS_OF_TYPE_SPECIALS[type](thing)
     const thingType = spellCore.typeOf(thing)
     return type === thingType
   },
 
-  // Is `thing` a valid number (doesn't include NaN)
+  /** Does the type of `thing` match the type of `otherThing`? */
+  matchesType(thing, otherThing) {
+    // TODO: check for inherited types
+    return spellCore.typeOf(thing) === spellCore.typeOf(otherThing)
+  },
+
+  /** Is `thing` a valid number (doesn't include NaN). */
   isANumber(thing) {
     return typeof thing === "number" && !isNaN(thing)
   },
 
-  // Is `thing` a valid integer (doesn't include NaN)
-  // NOTE: treats `0` as an integer as well. ???
+  /** Is `thing` a valid integer (doesn't include NaN)
+   * NOTE: treats `0` as an integer as well. ??? */
   isAnInteger(thing) {
     return typeof thing === "number" && !isNaN(thing) && parseInt(thing, 10) === thing
   },

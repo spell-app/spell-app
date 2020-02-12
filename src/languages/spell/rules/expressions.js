@@ -2,7 +2,7 @@
 //  # Rules for expressions.
 //
 
-import { AST, Rule, Spell, peek, proto } from "../all"
+import { AST, Match, Rule, Spell, peek, proto } from "../all"
 
 /** TODOC!!! */
 Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
@@ -44,9 +44,9 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
 
   /**
    * - `lhs` is left-hand side AST
-   * - `operator` is raw full input operator string
+   * - `operator` is operator Match
    * - `rhs` is right-hand-side AST
-   * By default does an InfixExpression, override to e.g. do a CoreMethodExpression()
+   * By default does an InfixExpression, override to e.g. do a CoreMethodInvocation()
    */
   compileASTExpression(scope, match, { lhs, operator, rhs }) {
     return new AST.InfixExpression(scope, match, {
@@ -64,14 +64,16 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
    *
    * This routine also handles adding parenthesis and negating the output for you automatically.
    *
-   * `lhs` is the left-hand-side match AST (NOTE: already AST calculated!)
+   * `lhs` is the left-hand-side Match AST (NOTE: already AST calculated!)
    * `operator` is the operator Match
-   * `rhs` is the right-hand-side match AST, for InfixOperatorSuffixes only.
+   * `rhs` is the right-hand-side Match AST, for InfixOperatorSuffixes only.
    */
   compileAST(scope, match, { operator, rhs, lhs }) {
     let expression = this.compileASTExpression(scope, match, { lhs, operator, rhs })
-    if (this.parenthesize) expression = new AST.ParenthesizedExpression(scope, match, { expression })
-    if (this.shouldNegateOutput(operator.value)) expression = new AST.NotExpression(scope, match, { expression })
+    if (this.parenthesize && !(expression instanceof AST.ParenthesizedExpression)) {
+      expression = new AST.ParenthesizedExpression(scope, match, { expression })
+    }
+    if (this.shouldNegateOutput(operator)) expression = new AST.NotExpression(scope, match, { expression })
     return expression
   }
 }
@@ -103,6 +105,7 @@ export default new Spell.Parser({
       compile(scope, match) {
         const { expression } = match.results
         // don't double parens if not necessary
+        // TODO: this isn't actually safe...
         if (typeof expression === "string" && expression.startsWith("(") && expression.endsWith(")")) return expression
         return `(${expression})`
       },
@@ -118,7 +121,12 @@ export default new Spell.Parser({
           beforeEach(scope) {
             scope.variables.add("thing")
           },
-          tests: [["(thing)", "(thing)"], ["((thing))", "(thing)"], ["(1 and yes)", "(1 && true)"]]
+          tests: [
+            ["(thing)", "(thing)"],
+            ["((thing))", "(thing)"],
+            ["(((thing)))", "(thing)"],
+            ["(1 and yes)", "(1 && true)"]
+          ]
         },
         {
           title: "correctly matches multiple parenthesis",
@@ -143,100 +151,102 @@ export default new Spell.Parser({
       syntax: "{lhs:single_expression} {rhsChain:expression_suffix}+",
       //  testRule: "…{recursive_expression_test}",
       compile(scope, match) {
-        function applyOperatorToRule(output, { match: ruleMatch, operator, rhs, lhs }) {
-          function compile(thing) {
-            if (!thing) return undefined
-            // TODO: we have one case ("is the queen of spades") where `thing` match is an array... :-(
-            if (Array.isArray(thing)) return thing.map(item => item.compile())
-            if (thing.compile) return thing.compile()
-            return thing
-          }
+        return this.toAST(scope, match).toJS()
+        // function applyOperatorToRule({ match: ruleMatch, operator, rhs, lhs }) {
+        //   function compile(thing) {
+        //     if (!thing) return undefined
+        //     // TODO: we have one case ("is the queen of spades") where `thing` match is an array... :-(
+        //     if (Array.isArray(thing)) return thing.map(item => item.compile())
+        //     if (thing.compile) return thing.compile()
+        //     return thing
+        //   }
 
-          const result = ruleMatch.rule.compileOperator({
-            operator,
-            rhs: compile(rhs),
-            lhs: compile(lhs)
-          })
-          output.push(result)
-        }
+        //   const result = ruleMatch.rule.compileOperator({
+        //     operator,
+        //     rhs: compile(rhs),
+        //     lhs: compile(lhs)
+        //   })
+        //   return result
+        // }
 
-        // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
-        //  to deal with operator precedence.  Note that we assume:
-        //  - all infix operators are `left-to-right` associative, and
-        //  - all postfix operators are left to right associative.
-        // See: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
-        // See: https://www.chris-j.co.uk/parsing.php
-        const { lhs, rhsChain } = match.groups
-        const output = [lhs]
-        const opStack = []
-        rhsChain.matched.forEach(rhs => {
-          // Unary postfix operator, e.g. "<lhs> is empty"
-          if (rhs.rule instanceof Spell.Rule.PostfixOperatorSuffix) {
-            const args = {
-              match: rhs,
-              lhs: output.pop(),
-              // use explicit operator if there is one, default to entire match
-              operator: rhs.groups.operator || rhs
-            }
-            applyOperatorToRule(output, args)
-          }
-          // Infix binary operator, e.g. "<lhs> is a <rhs>"
-          else if (rhs.rule instanceof Spell.Rule.InfixOperatorSuffix) {
-            const { operator, expression } = rhs.groups
+        // // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
+        // //  to deal with operator precedence.  Note that we assume:
+        // //  - all infix operators are `left-to-right` associative, and
+        // //  - all postfix operators are left to right associative.
+        // // See: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
+        // // See: https://www.chris-j.co.uk/parsing.php
+        // const { lhs, rhsChain } = match.groups
+        // const output = [lhs]
+        // const opStack = []
+        // rhsChain.matched.forEach(rhs => {
+        //   // Unary postfix operator, e.g. "<lhs> is empty"
+        //   if (rhs.rule instanceof Spell.Rule.PostfixOperatorSuffix) {
+        //     const args = {
+        //       match: rhs,
+        //       lhs: output.pop(),
+        //       // use explicit operator if there is one, default to entire match
+        //       operator: rhs.groups.operator || rhs
+        //     }
+        //     output.push(applyOperatorToRule(args))
+        //   }
+        //   // Infix binary operator, e.g. "<lhs> is a <rhs>"
+        //   else if (rhs.rule instanceof Spell.Rule.InfixOperatorSuffix) {
+        //     const { operator, expression } = rhs.groups
 
-            // While top operator on stack is higher precedence than this one
-            while (peek(opStack)?.match.rule.precedence >= rhs.rule.precedence) {
-              // pop the top operator and compile it with top 2 things on the output stack
-              const topOp = opStack.pop()
-              const args = {
-                ...topOp,
-                rhs: output.pop(), // NOTE: order is vital here!
-                lhs: output.pop()
-              }
-              applyOperatorToRule(output, args)
-            }
+        //     // While top operator on stack is higher precedence than this one
+        //     while (peek(opStack)?.match.rule.precedence >= rhs.rule.precedence) {
+        //       // pop the top operator and compile it with top 2 things on the output stack
+        //       const topOp = opStack.pop()
+        //       const args = {
+        //         ...topOp,
+        //         rhs: output.pop(), // NOTE: order is vital here!
+        //         lhs: output.pop()
+        //       }
+        //       output.push(applyOperatorToRule(args))
+        //     }
 
-            // Push the current operator and expression
-            opStack.push({ match: rhs, operator })
-            output.push(expression)
-          } else {
-            console.warn("Unexpected rule type", rhs.rule.name)
-          }
-        })
+        //     // Push the current operator and expression
+        //     opStack.push({ match: rhs, operator })
+        //     output.push(expression)
+        //   } else {
+        //     console.warn("Unexpected rule type", rhs.rule.name)
+        //   }
+        // })
 
-        // At this point, we have only binary operators in the stack.
-        // Run through them
-        let topOp
-        while ((topOp = opStack.pop())) {
-          const args = {
-            ...topOp,
-            rhs: output.pop(), // NOTE: order is vital here!
-            lhs: output.pop()
-          }
-          applyOperatorToRule(output, args)
-        }
-        if (output.length !== 1) {
-          console.warn("Shunting yard ended up with too much output:", output)
-        }
-        return output[0]
+        // // At this point, we have only binary operators in the stack.
+        // // Run through them
+        // let topOp
+        // while ((topOp = opStack.pop())) {
+        //   const args = {
+        //     ...topOp,
+        //     rhs: output.pop(), // NOTE: order is vital here!
+        //     lhs: output.pop()
+        //   }
+        //   output.push(applyOperatorToRule(args))
+        // }
+        // if (output.length !== 1) {
+        //   console.warn("Shunting yard ended up with too much output:", output)
+        // }
+        // return output[0]
       },
 
       toAST(scope, match) {
-        function applyOperatorToRule(output, { match: ruleMatch, operator, rhs, lhs }) {
+        function applyOperatorToRule({ match: ruleMatch, operator, rhs, lhs }) {
           function compile(thing) {
             if (!thing) return undefined
             // TODO: we have one case ("is the queen of spades") where `thing` match is an array... :-(
-            if (Array.isArray(thing)) return thing.map(item => item.AST)
-            if (thing.compile) return thing.AST
+            if (Array.isArray(thing)) return thing.map(compile)
+            if (thing instanceof Match && thing.rule.toAST) return thing.AST
             return thing
           }
 
-          const result = ruleMatch.rule.compileAST(ruleMatch.scope, ruleMatch, {
+          const args = {
             operator,
             rhs: compile(rhs),
             lhs: compile(lhs)
-          })
-          output.push(result)
+          }
+          const result = ruleMatch.rule.compileAST(ruleMatch.scope, ruleMatch, args)
+          return result
         }
 
         // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
@@ -257,7 +267,7 @@ export default new Spell.Parser({
               // use explicit operator if there is one, default to entire match
               operator: rhs.groups.operator || rhs
             }
-            applyOperatorToRule(output, args)
+            output.push(applyOperatorToRule(args))
           }
           // Infix binary operator, e.g. "<lhs> is a <rhs>"
           else if (rhs.rule instanceof Spell.Rule.InfixOperatorSuffix) {
@@ -272,7 +282,7 @@ export default new Spell.Parser({
                 rhs: output.pop(), // NOTE: order is vital here!
                 lhs: output.pop()
               }
-              applyOperatorToRule(output, args)
+              output.push(applyOperatorToRule(args))
             }
 
             // Push the current operator and expression
@@ -283,8 +293,8 @@ export default new Spell.Parser({
           }
         })
 
-        // At this point, we have only binary operators in the stack.
-        // Run through them
+        // At this point, we have only binary operators in the output stack.
+        // Run through them and apply the operator to them in pairs.
         let topOp
         while ((topOp = opStack.pop())) {
           const args = {
@@ -292,7 +302,7 @@ export default new Spell.Parser({
             rhs: output.pop(), // NOTE: order is vital here!
             lhs: output.pop()
           }
-          applyOperatorToRule(output, args)
+          output.push(applyOperatorToRule(args))
         }
         if (output.length !== 1) {
           console.warn("Shunting yard ended up with too much output:", output)
@@ -418,9 +428,10 @@ export default new Spell.Parser({
         return `spellCore.isOfType(${lhs}, '${rhs}')`
       },
       compileASTExpression(scope, match, { lhs, rhs }) {
-        return new AST.CoreMethodExpression(scope, match, {
+        // TODO: QuotedExpression feels wrong here...
+        return new AST.CoreMethodInvocation(scope, match, {
           method: "isOfType",
-          arguments: [lhs.AST, rhs.AST]
+          arguments: [lhs, new AST.QuotedExpression(scope, match, { expression: rhs })]
         })
       },
       tests: [
@@ -445,16 +456,14 @@ export default new Spell.Parser({
       precedence: 11,
       syntax: "(operator:is not? the same type as) {expression:single_expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
-      parenthesize: true,
       getOutputOperator: operator => (operator.value.includes("not") ? "!==" : "==="),
-      compileOperatorExpression({ lhs, operator, rhs }) {
-        const op = this.getOutputOperator(operator)
-        return `spellCore.typeOf(${lhs}) ${op} spellCore.typeOf(${rhs})`
+      compileOperatorExpression({ lhs, rhs }) {
+        return `spellCore.matchesType(${lhs}, ${rhs})`
       },
-      compileASTExpression(scope, match, { lhs, operator, rhs }) {
-        return new AST.CoreMethodExpression(scope, match, {
-          method: "matchesType", // TODO:  implement this in spellCore
-          arguments: [lhs.AST, rhs.AST]
+      compileASTExpression(scope, match, { lhs, rhs }) {
+        return new AST.CoreMethodInvocation(scope, match, {
+          method: "matchesType",
+          arguments: [lhs, rhs]
         })
       },
       tests: [
@@ -465,8 +474,8 @@ export default new Spell.Parser({
             scope.variables.add("other")
           },
           tests: [
-            ["thing is the same type as other", "(spellCore.typeOf(thing) === spellCore.typeOf(other))"],
-            ["thing is not the same type as other", "(spellCore.typeOf(thing) !== spellCore.typeOf(other))"]
+            ["thing is the same type as other", "spellCore.matchesType(thing, other)"],
+            ["thing is not the same type as other", "spellCore.matchesType(thing, other)"]
           ]
         }
       ]
@@ -491,9 +500,9 @@ export default new Spell.Parser({
         return `spellCore.includes(${rhs}, ${lhs})`
       },
       compileASTExpression(scope, match, { lhs, rhs }) {
-        return new AST.CoreMethodExpression(scope, match, {
+        return new AST.CoreMethodInvocation(scope, match, {
           method: "includes",
-          arguments: [rhs.AST, lhs.AST]
+          arguments: [rhs, lhs]
         })
       },
       tests: [
@@ -530,9 +539,9 @@ export default new Spell.Parser({
         return `spellCore.includes(${lhs}, ${rhs})`
       },
       compileASTExpression(scope, match, { lhs, rhs }) {
-        return new AST.CoreMethodExpression(scope, match, {
+        return new AST.CoreMethodInvocation(scope, match, {
           method: "includes",
-          arguments: [lhs.AST, rhs.AST]
+          arguments: [lhs, rhs]
         })
       },
       tests: [
@@ -562,11 +571,9 @@ export default new Spell.Parser({
         return `spellCore.includes(${lhs}, ${rhs})`
       },
       compileASTExpression(scope, match, { lhs, rhs }) {
-        return new AST.NotExpression(scope, match, {
-          expression: new AST.CoreMethodExpression(scope, match, {
-            method: "includes",
-            arguments: [lhs.AST, rhs.AST]
-          })
+        return new AST.CoreMethodInvocation(scope, match, {
+          method: "includes",
+          arguments: [lhs, rhs]
         })
       },
       tests: [
@@ -595,9 +602,9 @@ export default new Spell.Parser({
         return `spellCore.isDefined(${lhs})`
       },
       compileASTExpression(scope, match, { lhs, operator }) {
-        return new AST.CoreMethodExpression(scope, match, {
+        return new AST.CoreMethodInvocation(scope, match, {
           method: "isDefined",
-          arguments: [lhs.AST]
+          arguments: [lhs]
         })
       },
       tests: [
@@ -627,9 +634,9 @@ export default new Spell.Parser({
         return `spellCore.isEmpty(${lhs})`
       },
       compileASTExpression(scope, match, { lhs }) {
-        return new AST.CoreMethodExpression(scope, match, {
+        return new AST.CoreMethodInvocation(scope, match, {
           method: "isEmpty",
-          arguments: [lhs.AST]
+          arguments: [lhs]
         })
       },
       tests: [

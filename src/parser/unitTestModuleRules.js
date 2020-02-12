@@ -88,7 +88,7 @@ export default function unitTestModuleRules(parser, moduleName) {
       if (match instanceof Error) {
         console.warn(`ERROR PARSING: "${input}": ${match.message}`)
       } else {
-        console.warn(`ERROR PARSING: "${input}"\n   match: `, match?.toPrint())
+        console.warn(`ERROR PARSING: "${input}": match: \n`, match?.toPrint())
       }
     }
 

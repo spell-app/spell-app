@@ -343,14 +343,14 @@ export default new Spell.Parser({
             )
 
             // condition for assignment below
-            condition = new AST.CoreMethodExpression(scope, match, {
+            condition = new AST.CoreMethodInvocation(scope, match, {
               method: "includes",
               arguments: [enumerationExpression, property.AST]
             })
           }
           // datatype
           else {
-            condition = new AST.CoreMethodExpression(scope, match, {
+            condition = new AST.CoreMethodInvocation(scope, match, {
               method: "isOfType",
               arguments: [property.AST, specifier]
             })
@@ -652,7 +652,8 @@ export default new Spell.Parser({
           return match
         }
 
-        updateScope(scope, { results, groups }) {
+        parseMatchBits(scope, match) {
+          const { results, groups } = match
           const { type, alias } = results
           const sources = groups.sources.items
           const words = JSON.parse(alias).split(" ")
@@ -708,7 +709,68 @@ export default new Spell.Parser({
           // transform `is` to `(operator:is not?)`
           syntax.splice(0, 1, "(operator:is not?)")
           syntax = syntax.join(" ")
-          // console.warn(property, syntax, ruleData );
+
+          return { syntax, method, ruleData, vars, property }
+        }
+
+        updateScope(scope, match) {
+          const { syntax, method, ruleData, vars, property } = this.parseMatchBits(scope, match)
+          const { type } = match.results
+          // console.warn({ syntax, method, ruleData, vars, property })
+          // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
+          scope.addExpressionSuffixRule(
+            {
+              name: property,
+              syntax,
+              precedence: 20,
+              constructor: Spell.Rule.InfixOperatorSuffix,
+              shouldNegateOutput: operator => operator.value.includes("not"),
+              compileOperatorExpression({ lhs, rhs }) {
+                if (!Array.isArray(rhs)) rhs = [rhs]
+                const args = rhs.map((value, index) => {
+                  const data = ruleData[index]
+                  const valueIndex = data.enumeration.indexOf(value)
+                  return data.values[valueIndex]
+                })
+                return `${lhs}.${property}(${args.join(", ")})`
+              },
+              compileASTExpression(_scope, _match, { lhs, rhs }) {
+                console.warn("YOOOOOO")
+                console.warn({ lhs, rhs })
+                if (!Array.isArray(rhs)) rhs = [rhs]
+                const args = rhs.map(arg => {
+                  // TODO: assumes arg is a `keyword`
+                  return new AST.ConstantExpression(arg.scope, arg, {
+                    name: arg.value,
+                    value: typeof arg.value === "string" ? `'${arg.value}'` : arg.value
+                  })
+                })
+                const result = new AST.ScopedMethodInvocation(_scope, _match, {
+                  thing: lhs,
+                  method: property,
+                  arguments: args
+                })
+                console.info(result)
+                return result
+              }
+            },
+            match.results
+          )
+
+          // Create an instance method
+          const statement = scope.getOrStubType(type).methods.add({
+            args: vars,
+            name: property,
+            datatype: "boolean",
+            statements: [`return ${method.join(" && ")}`]
+          })
+          match.results.statements.push(statement)
+        }
+
+        toAST(scope, match) {
+          const { syntax, method, ruleData, vars, property } = this.parseMatchBits(scope, match)
+          const { type } = match.results
+          console.warn({ syntax, method, ruleData, vars, property })
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
           scope.addExpressionSuffixRule(
@@ -726,19 +788,44 @@ export default new Spell.Parser({
                   return data.values[valueIndex]
                 })
                 return `${lhs}.${property}(${args.join(", ")})`
+              },
+              compileASTExpression(_scope, _match, { lhs, rhs }) {
+                console.warn("YOOOOOO")
+                console.warn({ lhs, rhs })
+                if (!Array.isArray(rhs)) rhs = [rhs]
+                return new AST.ScopedMethodExpression(_scope, _match, {
+                  thing: lhs,
+                  method: property,
+                  arguments: rhs
+                })
               }
             },
-            results
+            match.results
           )
 
-          // Create an instance method
-          const statement = scope.getOrStubType(type).methods.add({
-            args: vars,
-            name: property,
-            datatype: "boolean",
-            statements: [`return ${method.join(" && ")}`]
+          // Return AST for the instance method
+          const args = vars.map(varName => new AST.VariableExpression(scope, match, { name: varName }))
+          const properties = vars.map(varName => new AST.PropertyLiteral(scope, match, { value: varName }))
+          const expressions = args.map(
+            (variable, index) =>
+              new AST.InfixExpression(scope, match, {
+                lhs: new AST.PropertyExpression(scope, match, {
+                  object: new AST.ThisLiteral(scope, match),
+                  property: properties[index]
+                }),
+                operator: "===",
+                rhs: variable
+              })
+          )
+          const result = new AST.ObjectMethod(scope, match, {
+            type: new AST.TypeExpression(scope, match, { name: type }),
+            method: property,
+            args,
+            statements: AST.multiInfixExpression(scope, match, { expressions, operator: "&&" }),
+            datatype: "boolean"
           })
-          results.statements.push(statement)
+          console.warn(result)
+          return result
         }
       },
       tests: [

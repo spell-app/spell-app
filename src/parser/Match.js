@@ -57,6 +57,7 @@ export default class Match {
   // Syntatic sugar to return the AST for this match.
   @memoize
   get AST() {
+    if (!this.rule.toAST) console.warn("NO AST FOR", this.rule)
     return this.rule.toAST(this.scope, this)
   }
 

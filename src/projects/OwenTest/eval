@@ -1,4 +1,5 @@
 a card is a thing
 a card has a rank as one of ace, 2, 3
-a card has a suit as one of clubs, diamonds
-a card "is the (rank) of (suits)" for its ranks and its suits
+a card "is a (rank)" for its ranks
+it is a new card
+get it is an ace

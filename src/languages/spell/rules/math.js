@@ -177,7 +177,7 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         const { expression } = match.groups
-        return new AST.CoreMethodExpression(scope, match, {
+        return new AST.CoreMethodInvocation(scope, match, {
           datatype: "number",
           method: "absoluteValue", // TODO: implement in spellCore
           arguments: [expression.AST]
@@ -206,7 +206,7 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         const { expression } = match.groups
-        return new AST.CoreMethodExpression(scope, match, {
+        return new AST.CoreMethodInvocation(scope, match, {
           datatype: "number",
           method: "largestOf",
           arguments: [expression.AST]
@@ -240,7 +240,7 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         const { expression } = match.groups
-        return new AST.CoreMethodExpression(scope, match, {
+        return new AST.CoreMethodInvocation(scope, match, {
           datatype: "number",
           method: "smallestOf",
           arguments: [expression.AST]
@@ -278,7 +278,7 @@ export default new Spell.Parser({
         let method = "round"
         if (operator.value === "up") method = "roundUp"
         else if (operator.value === "down") method = "roundDown"
-        return new AST.CoreMethodExpression(scope, match, {
+        return new AST.CoreMethodInvocation(scope, match, {
           datatype: "number",
           method, // TODO: implement in spellCore
           arguments: [expression.AST]
