@@ -37,6 +37,13 @@ export default new Spell.Parser({
         const statement = scope.addStatement(results.$scope)
         results.statements.push(statement)
       },
+      toAST(scope, match) {
+        const { condition, nestedBlock } = match.groups
+        return new AST.IfStatement(scope, match, {
+          condition: condition.AST,
+          statements: nestedBlock?.AST
+        })
+      },
       tests: [
         {
           title: "correctly matches single-line if statements",
@@ -131,6 +138,13 @@ export default new Spell.Parser({
         const statement = scope.addStatement(results.$scope)
         results.statements.push(statement)
       },
+      toAST(scope, match) {
+        const { condition, nestedBlock } = match.groups
+        return new AST.ElseIfStatement(scope, match, {
+          condition: condition.AST,
+          statements: nestedBlock?.AST
+        })
+      },
       tests: [
         {
           title: "correctly matches single-line else_if statements",
@@ -209,6 +223,12 @@ export default new Spell.Parser({
       updateScope(scope, { results }) {
         const statement = scope.addStatement(results.$scope)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { nestedBlock } = match.groups
+        return new AST.ElseStatement(scope, match, {
+          statements: nestedBlock?.AST
+        })
       },
       tests: [
         {

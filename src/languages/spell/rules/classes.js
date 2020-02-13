@@ -607,6 +607,42 @@ export default new Spell.Parser({
           })
           results.statements.push(statement)
         }
+
+        toAST(scope, match) {
+          const { type, alias, expression } = match.groups
+          const words = JSON.parse(alias.value).split(" ")
+          const property = words.join("_")
+          // add optional `not` to the rule
+          const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ")
+          // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
+          scope.addExpressionSuffixRule({
+            name: property,
+            syntax: expressionSuffix,
+            precedence: 20,
+            constructor: Spell.Rule.PostfixOperatorSuffix,
+            shouldNegateOutput: operator => operator.value.includes("not"),
+            compileOperatorExpression({ lhs }) {
+              return `${lhs}.${property}`
+            },
+            toAST(_scope, _match, { lhs }) {
+              console.warn(lhs)
+              return new AST.PropertyExpression(_scope, _match, {
+                object: lhs,
+                property: new AST.PropertyLiteral(_scope, _match, { value: property })
+              })
+            }
+          })
+
+          // Create an instance getter
+          scope.getOrStubType(type.value)
+          return new AST.ObjectGetter(scope, match, {
+            type: new AST.TypeExpression(scope, type, { name: type.value }),
+            property: new AST.PropertyLiteral(scope, match, { value: property }),
+            statements: new AST.ReturnStatement(scope, match, {
+              value: expression.AST
+            })
+          })
+        }
       },
       tests: [
         {
@@ -735,8 +771,6 @@ export default new Spell.Parser({
                 return `${lhs}.${property}(${args.join(", ")})`
               },
               compileASTExpression(_scope, _match, { lhs, rhs }) {
-                console.warn("YOOOOOO")
-                console.warn({ lhs, rhs })
                 if (!Array.isArray(rhs)) rhs = [rhs]
                 const args = rhs.map(arg => {
                   // TODO: assumes arg is a `keyword`
@@ -750,7 +784,6 @@ export default new Spell.Parser({
                   method: property,
                   arguments: args
                 })
-                console.info(result)
                 return result
               }
             },
@@ -790,8 +823,6 @@ export default new Spell.Parser({
                 return `${lhs}.${property}(${args.join(", ")})`
               },
               compileASTExpression(_scope, _match, { lhs, rhs }) {
-                console.warn("YOOOOOO")
-                console.warn({ lhs, rhs })
                 if (!Array.isArray(rhs)) rhs = [rhs]
                 return new AST.ScopedMethodExpression(_scope, _match, {
                   thing: lhs,

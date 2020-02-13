@@ -41,17 +41,11 @@ export default new Spell.Parser({
     },
 
     {
-      name: "gt_or_lt_operator",
-      syntax: "is (greater|less) than (or equal to)?",
-      asLiterals: true
-    },
-
-    {
       name: "is_gt_lt",
       alias: "expression_suffix",
       precedence: 11,
       // TODO: is *not* greater than???
-      syntax: "{operator:gt_or_lt_operator} {expression:single_expression}",
+      syntax: "(operator:is (greater|less) than (or equal to)?) {expression:single_expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
       getOutputOperator: ({ value }) => (value.includes("greater") ? ">" : "<") + (value.includes("equal") ? "=" : ""),
       parenthesize: true,

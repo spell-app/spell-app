@@ -2,7 +2,7 @@
 //  # Rules for creating variables, property access, etc
 //
 
-import { Spell } from "../all"
+import { Spell, AST } from "../all"
 
 export default new Spell.Parser({
   module: "UI",
@@ -17,6 +17,12 @@ export default new Spell.Parser({
         const statement = scope.addStatement(`console.log(${results.expression})`)
         results.statements.push(statement)
       },
+      toAST(scope, match) {
+        const { expression } = match.groups
+        return new AST.ConsoleMethodInvocation(scope, match, {
+          arguments: [expression.AST]
+        })
+      },
       tests: [
         {
           compileAs: "statement",
@@ -27,6 +33,7 @@ export default new Spell.Parser({
 
     // Notify user about `message` in a non-modal (popup?) interface.
     // Returns a promise which `resolve()`s when notice is hidden (manually or otherwise).
+    // NOTE: we DO NOT actually `await` the promise! ???
     {
       name: "notify",
       alias: ["statement", "async"],
@@ -36,16 +43,25 @@ export default new Spell.Parser({
       updateScope(scope, { results }) {
         const { message, okButton = `"OK"` } = results
         scope.async = true
-        const statement = scope.addStatement(`await spellCore.notify(${message}, ${okButton})`)
+        const statement = scope.addStatement(`spellCore.notify(${message}, ${okButton})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { message, okButton } = match.groups
+        const args = [message.AST]
+        if (okButton) args.push(okButton.AST)
+        return new AST.CoreMethodInvocation(scope, match, {
+          method: "notify",
+          arguments: args
+        })
       },
       tests: [
         {
           compileAs: "statement",
           tests: [
-            [`notify "Yo!"`, `await spellCore.notify("Yo!", "OK")`],
-            [`notify "Yo!"`, `await spellCore.notify("Yo!", "OK")`],
-            [`notify "Yo!" with "gotcha"`, `await spellCore.notify("Yo!", "gotcha")`]
+            [`notify "Yo!"`, `spellCore.notify("Yo!", "OK")`],
+            [`notify "Yo!"`, `spellCore.notify("Yo!", "OK")`],
+            [`notify "Yo!" with "gotcha"`, `spellCore.notify("Yo!", "gotcha")`]
           ]
         }
       ]
@@ -53,6 +69,8 @@ export default new Spell.Parser({
 
     // Show user a `message` in a modal alert.
     // Returns a promise which resolves when they click `ok`.
+    // NOTE: we'll `await` the promise!
+    // TODO: `the result = await ...` ?
     {
       name: "alert",
       alias: ["statement", "async"],
@@ -64,6 +82,18 @@ export default new Spell.Parser({
         scope.async = true
         const statement = scope.addStatement(`await spellCore.alert(${message}, ${okButton})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        scope.async = true // TODO!!!
+        const { message, okButton } = match.groups
+        const args = [message.AST]
+        if (okButton) args.push(okButton.AST)
+        return new AST.AwaitMethodInvocation(scope, match, {
+          method: new AST.CoreMethodInvocation(scope, match, {
+            method: "alert",
+            arguments: args
+          })
+        })
       },
       tests: [
         {
@@ -79,6 +109,8 @@ export default new Spell.Parser({
 
     // Warning message -- like alert but more dire.
     // Returns a promise which resolves when they click `ok`.
+    // NOTE: we'll `await` the promise!
+    // TODO: `the result = await ...` ?
     {
       name: "warn",
       alias: "statement",
@@ -90,6 +122,18 @@ export default new Spell.Parser({
         scope.async = true
         const statement = scope.addStatement(`await spellCore.warn(${message}, ${okButton})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        scope.async = true // TODO!!!
+        const { message, okButton } = match.groups
+        const args = [message.AST]
+        if (okButton) args.push(okButton.AST)
+        return new AST.AwaitMethodInvocation(scope, match, {
+          method: new AST.CoreMethodInvocation(scope, match, {
+            method: "warn",
+            arguments: args
+          })
+        })
       },
       tests: [
         {
@@ -106,6 +150,8 @@ export default new Spell.Parser({
 
     // Confirm message -- present a question with two answers.
     // Returns a promise which `resolve()`s when they `ok`, `reject()`s if they `cancel`.
+    // NOTE: we'll `await` the promise!
+    // TODO: `the result = await ...` ?
     {
       name: "confirm",
       alias: "statement",
@@ -117,6 +163,19 @@ export default new Spell.Parser({
         scope.async = true
         const statement = scope.addStatement(`await spellCore.confirm(${message}, ${okButton}, ${cancelButton})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        scope.async = true // TODO!!!
+        const { message, okButton, cancelButton } = match.groups
+        const args = [message.AST]
+        if (okButton) args.push(okButton.AST)
+        if (cancelButton) args.push(cancelButton.AST)
+        return new AST.AwaitMethodInvocation(scope, match, {
+          method: new AST.CoreMethodInvocation(scope, match, {
+            method: "confirm",
+            arguments: args
+          })
+        })
       },
       tests: [
         {
@@ -133,6 +192,8 @@ export default new Spell.Parser({
     // Prompt user to specify a value in response to `message` with `defaultValue`.
     // Returns a promise which `resolve()`s if they "OK", `reject()`s if they "cancel".
     // TODO: `as number`, `as date`, etc?
+    // NOTE: we'll `await` the promise!
+    // TODO: `the result = await ...` ?
     {
       name: "prompt",
       alias: "statement",
@@ -144,6 +205,18 @@ export default new Spell.Parser({
         scope.async = true
         const statement = scope.addStatement(`await spellCore.prompt(${message}, ${defaultValue})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        scope.async = true // TODO!!!
+        const { message, defaultValue } = match.groups
+        const args = [message.AST]
+        if (defaultValue) args.push(defaultValue.AST)
+        return new AST.AwaitMethodInvocation(scope, match, {
+          method: new AST.CoreMethodInvocation(scope, match, {
+            method: "prompt",
+            arguments: args
+          })
+        })
       },
       tests: [
         {

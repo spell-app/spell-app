@@ -1159,13 +1159,13 @@ export default new Spell.Parser({
         results.statements.push(statement)
       },
       toAST(scope, match) {
-        const { list, item, position, inlineStatement, block } = match.groups
+        const { list, item, position, nestedBlock } = match.groups
         const args = []
         if (item) args.push(new AST.VariableExpression(scope, item, { name: item.value }))
         if (position) args.push(new AST.VariableExpression(scope, position, { name: position.value }))
         const method = new AST.InlineMethodExpression(scope, match, {
           args,
-          statements: (block || inlineStatement)?.AST
+          statements: nestedBlock?.AST
         })
         return new AST.CoreMethodInvocation(scope, match, {
           method: "forEach",
@@ -1240,14 +1240,14 @@ export default new Spell.Parser({
         results.statements.push(statement)
       },
       toAST(scope, match) {
-        const { item, start, end, inlineStatement, block } = match.groups
+        const { item, start, end, nestedBlock } = match.groups
         const getRange = new AST.CoreMethodInvocation(scope, match, {
           method: "getRange",
           arguments: [start.AST, end.AST]
         })
         const method = new AST.InlineMethodExpression(scope, match, {
           args: [new AST.VariableExpression(scope, item, { name: item.value })],
-          statements: (block || inlineStatement)?.AST
+          statements: nestedBlock?.AST
         })
         return new AST.CoreMethodInvocation(scope, match, {
           method: "forEach",

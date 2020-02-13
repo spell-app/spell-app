@@ -76,6 +76,10 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
     if (this.shouldNegateOutput(operator)) expression = new AST.NotExpression(scope, match, { expression })
     return expression
   }
+
+  toAST() {
+    throw new TypeError("This should never be called")
+  }
 }
 
 /** TODOC!!! */
@@ -479,12 +483,6 @@ export default new Spell.Parser({
           ]
         }
       ]
-    },
-
-    {
-      name: "is_in_operator",
-      syntax: "is (not? in|not? one of|either|not either of?|neither)",
-      asLiterals: true
     },
 
     {

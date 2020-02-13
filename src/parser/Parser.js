@@ -325,7 +325,6 @@ export default class Parser {
       const names = [props.name].concat(props.alias || [])
       if (props.tests) names.push("_testable_")
       this.addRule(rule, names)
-
       return rule
     } catch (error) {
       if (!isNode) console.warn("Error in defineRule():", error, "\nprops:", ruleProps)

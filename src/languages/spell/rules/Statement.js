@@ -67,8 +67,14 @@ Spell.Rule.Statement = class statement extends Rule.Sequence {
 
   gatherGroups(scope, match) {
     const groups = super.gatherGroups(scope, match)
-    if (match.inlineStatement) groups.inlineStatement = match.inlineStatement
-    if (match.block) groups.block = match.block
+    const { inlineStatement, block } = match
+    if (inlineStatement && block) {
+      console.warn(`Rule ${this.name} matched both inlineStatement and block!  match:`, match)
+    }
+    if (inlineStatement) groups.inlineStatement = inlineStatement
+    if (block) groups.block = block
+    // You can just use `nestedBlock` to match either block or inlineStatement
+    groups.nestedBlock = block || inlineStatement
     return groups
   }
 

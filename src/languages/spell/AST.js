@@ -321,12 +321,26 @@ export function multiInfixExpression(scope, match, { expressions, operator }) {
   return rhs
 }
 
+/** MethodInvocation:  abstract method invocation class.
+ *  - `datatype` (optional) is return datatype as string, try to set if you can.
+ */
+export class MethodInvocation extends Expression {
+  @proto @readonly type = "MethodInvocation"
+  constructor(...args) {
+    super(...args)
+    this.assertType("datatype", "string", OPTIONAL)
+  }
+  toJS() {
+    throw new TypeError("You must override toJS in your subclass")
+  }
+}
+
 /** CoreMethodInvocation:  calls a `spellCore` `method`.  Used for output languge independence.
  *  - `method` is spellcore method name.
  *  - `arguments` (optional) is a possibly empty list of Expressions.
- *  - Try to set `datatype` as string or getter if you can.
+ *  - `datatype` (optional) is return datatype as string, try to set if you can.
  */
-export class CoreMethodInvocation extends Expression {
+export class CoreMethodInvocation extends MethodInvocation {
   @proto @readonly type = "CoreMethodInvocation"
   constructor(...args) {
     super(...args)
@@ -346,7 +360,7 @@ export class CoreMethodInvocation extends Expression {
  *  - `arguments` (optional) is a possibly empty list of Expressions.
  *  - Try to set `datatype` as string or getter if you can.
  */
-export class ScopedMethodInvocation extends Expression {
+export class ScopedMethodInvocation extends MethodInvocation {
   @proto @readonly type = "MethodExpression"
   constructor(...args) {
     super(...args)
@@ -358,6 +372,22 @@ export class ScopedMethodInvocation extends Expression {
   toJS() {
     const args = this.arguments?.map(arg => arg.toJS()).join(", ") || ""
     return `${this.thing.toJS()}.${this.method}(${args})`
+  }
+}
+
+/** AwaitMethodInvocation:  wrap another method invocation to `await` it.
+ *  - `method` is spellcore MethodInvocation to call.
+ */
+export class AwaitMethodInvocation extends MethodInvocation {
+  @proto @readonly type = "AwaitMethodInvocation"
+  constructor(...args) {
+    super(...args)
+    this.assertType("method", MethodInvocation)
+    // TODO: Mark the parentScope as asynchronous
+    this.parentScope.async = true
+  }
+  toJS() {
+    return `await ${this.method.toJS()}`
   }
 }
 
