@@ -463,7 +463,6 @@ export default new Spell.Parser({
         results.statements.push(statement)
       },
       toAST(scope, match) {
-        // TESTME!!!
         const { value, otherValue, type_property, condition } = match.groups
         const { type, property } = type_property.groups
         // make sure type is defined
@@ -537,6 +536,21 @@ export default new Spell.Parser({
           statements: [`return ${expression}`]
         })
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { type_property, expression } = match.groups
+        const { type, property } = type_property.groups
+        // make sure type is defined
+        scope.getOrStubType(type.name)
+        return new AST.ObjectGetter(scope, match, {
+          type: type.AST,
+          property: property.AST,
+          statements: [
+            new AST.ReturnStatement(scope, match, {
+              value: expression.AST
+            })
+          ]
+        })
       },
       tests: [
         {

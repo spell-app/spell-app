@@ -2,7 +2,7 @@
 //  # Rules for inline spell tests.
 //
 
-import { Spell } from "../all"
+import { Spell, AST } from "../all"
 
 export default new Spell.Parser({
   module: "tests",
@@ -24,6 +24,19 @@ export default new Spell.Parser({
         ]
         const statement = scope.addStatement(`spellCore.assertEquals(${args.join(", ")})`)
         results.statements.push(statement)
+      },
+      toAST(scope, match) {
+        const { expression, value } = match.groups
+        const args = [
+          expression.AST,
+          value?.AST || new AST.BooleanLiteral(scope, match, { value: true }),
+          new AST.StringLiteral(scope, match, { value: expression.value }),
+          value?.value || "true"
+        ]
+        return new AST.CoreMethodInvocation(scope, match, {
+          method: "assertEquals",
+          arguments: args
+        })
       },
       tests: [
         {
