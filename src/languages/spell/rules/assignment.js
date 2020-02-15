@@ -17,30 +17,37 @@ export default new Spell.Parser({
         { syntax: "(thing:{variable}) is {value: expression}", testRule: "…is" }
       ],
       constructor: Spell.Rule.Statement,
+      mutatesScope: true,
       updateScope(scope, { results, groups }) {
         const { thing, value } = results
         // Add `thing` as a variable if not already in scope.
         const thingMatch = groups.thing
-        const isNewVar = thingMatch.isAVariable && !thingMatch.variable
-        if (isNewVar) scope.variables.add(thing)
+        const isNewVarable = thingMatch.rule.name === "variable" && !thingMatch.variable
+        if (isNewVarable) scope.variables.add(thing)
 
-        const statement = scope.addStatement(`${isNewVar ? "let " : ""}${thing} = ${value}`)
+        const statement = scope.addStatement(`${isNewVarable ? "let " : ""}${thing} = ${value}`)
         results.statements.push(statement)
+      },
+      updateASTScope(scope, match) {
+        // If `thing` is a variable...
+        const { thing } = match.groups
+        if (thing.rule.name === "variable") {
+          const varName = thing.value
+          // ...define it in scope if necessary...
+          if (!scope.variables(varName)) {
+            scope.variables.add(varName) // TODO: type???
+            // ...setting a flag that this is the first instance of the var
+            match.isNewVariable = true
+          }
+        }
       },
       toAST(scope, match) {
         const { thing, value } = match.groups
-        const props = {
+        return new AST.AssignmentStatement(scope, match, {
           thing: thing.AST,
           value: value.AST,
-          isNewVariable: thing.isAVariable && !thing.variable
-        }
-        // If we got a NEW variable (not defined in our scope)
-        if (props.isNewVariable) {
-          // Add the variable to our scope
-          scope.variables.add(props.thing.name)
-          // TODO: hook up type somehow???
-        }
-        return new AST.AssignmentStatement(scope, match, props)
+          isNewVariable: match.isNewVariable
+        })
       },
       tests: [
         {
@@ -82,27 +89,27 @@ export default new Spell.Parser({
       syntax: "get {value:expression}",
       testRule: "get",
       constructor: Spell.Rule.Statement,
+      mutatesScope: true,
       updateScope(scope, { results }) {
         const { value } = results
         // make sure 'it' is declared LOCALLY
-        const isNewVar = !scope.variables("it", "LOCAL")
-        if (isNewVar) scope.variables.add("it")
-        const statement = scope.addStatement(`${isNewVar ? "let " : ""}it = ${value}`)
+        const isNewVarable = !scope.variables("it", "LOCAL")
+        if (isNewVarable) scope.variables.add("it")
+        const statement = scope.addStatement(`${isNewVarable ? "let " : ""}it = ${value}`)
         results.statements.push(statement)
       },
+      updateASTScope(scope, match) {
+        // make sure 'it' is declared LOCALLY
+        const isNewVarable = !scope.variables("it", "LOCAL")
+        if (isNewVarable) scope.variables.add("it")
+      },
       toAST(scope, match) {
+        this.updateASTScope(scope, match)
         const { value } = match.groups
-        // Look up variable in LOCAL scope only
-        let variable = scope.variables("it", "LOCAL")
-        // If not found, add to scope
-        // TODO: hook up type somehow?
-        const isNewVariable = !variable
-        if (isNewVariable) variable = scope.variables.add("it")
-
         return new AST.AssignmentStatement(scope, match, {
-          thing: new AST.VariableExpression(scope, match, { raw: "it", name: "it", variable }),
+          thing: new AST.VariableExpression(scope, match, { raw: "it", name: "it" }),
           value: value.AST,
-          isNewVariable
+          isNewVariable: match.isNewVarable
         })
       },
       tests: [

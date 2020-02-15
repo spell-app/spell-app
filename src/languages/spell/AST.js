@@ -602,13 +602,13 @@ export class ReturnStatement extends Statement {
   }
 }
 
-/** NewClassStatement
+/** ClassDeclaration
  * - `type` is a TypeExpression
  * - `superType` (optional) is a TypeExpression
  * - `instanceType` (optional) is a TypeExpression for lists of a certain type.
  */
-export class NewClassStatement extends Statement {
-  @proto @readonly type = "NewClassStatement"
+export class ClassDeclaration extends Statement {
+  @proto @readonly type = "ClassDeclaration"
   constructor(...args) {
     super(...args)
     this.assertType("type", TypeExpression)

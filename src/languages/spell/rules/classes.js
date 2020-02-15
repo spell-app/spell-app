@@ -1,4 +1,15 @@
-import { Scope, Spell, instanceCase, lowerFirst, upperFirst, pluralize, singularize, typeCase, AST } from "../all"
+import {
+  Scope,
+  Spell,
+  instanceCase,
+  lowerFirst,
+  upperFirst,
+  pluralize,
+  singularize,
+  typeCase,
+  AST,
+  proto
+} from "../all"
 
 export default new Spell.Parser({
   module: "classes",
@@ -12,6 +23,7 @@ export default new Spell.Parser({
         // TODO: "{plural_type} are a list of ..."
       ],
       constructor: Spell.Rule.Statement,
+      mutatesScope: true,
       updateScope(scope, { results }) {
         const { type, superType, isList } = results
         const statement = scope.types.add({
@@ -26,26 +38,41 @@ export default new Spell.Parser({
           results.statements.push(`spellCore.define(${type}.prototype, "instance_type", { value: "${superType}" })`)
         }
       },
-      toAST(scope, match) {
-        const { type, superType, isList } = match.groups
-        let superAST
-        let listInstanceAST
-        if (isList) {
-          superAST = new AST.TypeExpression(scope, match, { raw: "list", name: "Array" })
-          listInstanceAST = superType?.AST
-        } else if (superType) superAST = superType?.AST
+      updateASTScope(scope, match) {
+        // Forget it if type is already defined.
+        // TODO: complain if existing type is set up differently!
+        if (scope.types(type)) return
 
-        // Add to scope if necessary
-        // TODO: complain if already defined?  Add to existing type?
-        let scopeType = scope.types(type.AST.name)
-        if (!scopeType) {
-          scopeType = scope.types.add({
-            name: type.AST.name,
-            superType: superAST?.name,
-            instanceType: listInstanceAST?.name
+        const { type, superType, instanceType } = match.groups
+        if (instanceType) {
+          scope.types.add({ name: type.value, superType: "list", instanceType: superType?.value })
+        } else {
+          scope.types.add({ name: type.value, superType: superType?.value })
+        }
+      },
+      toAST(scope, match) {
+        const { type, superType, instanceType } = match.groups
+        if (instanceType) {
+          return new AST.StatementGroup(scope, match, {
+            statements: [
+              // Declare the class
+              new AST.ClassDeclaration(scope, match, {
+                type: type.AST,
+                superType: new AST.TypeExpression(scope, match, { raw: "list", name: "Array" }),
+                instanceType: superType?.AST
+              }),
+              // Set `<ListType>.instanceType` property in case `List`s care...
+              new AST.AssignmentStatement(scope, match, {
+                thing: new AST.PropertyExpression(scope, match, {
+                  object: type.AST,
+                  property: new AST.PropertyLiteral(scope, match, { value: "instanceType" })
+                }),
+                value: new AST.StringLiteral(scope, match, { value: instanceType.value })
+              })
+            ]
           })
         }
-        return new AST.NewClassStatement(scope, match, {
+        return new AST.ClassDeclaration(scope, match, {
           type: type.AST,
           superType: superAST,
           instanceType: listInstanceAST
@@ -85,7 +112,10 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         const { type, props } = match.groups
-        return new AST.NewInstanceExpression(scope, match, { type: type.AST, props: props && props.AST })
+        return new AST.NewInstanceExpression(scope, match, {
+          type: type.AST,
+          props: props?.AST
+        })
       },
       tests: [
         {
@@ -125,7 +155,10 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         const { type, props } = match.groups
-        return new AST.NewInstanceExpression(scope, match, { type: type.AST, props: props && props.AST })
+        return new AST.NewInstanceExpression(scope, match, {
+          type: type.AST,
+          props: props?.AST
+        })
       },
       tests: [
         {
@@ -213,6 +246,7 @@ export default new Spell.Parser({
       ],
       testRule: "…(has|have)",
       constructor: Spell.Rule.Statement,
+      mutatesScope: true,
       updateScope(scope, { results }) {
         const { type, property, specifier = {} } = results
         const typeScope = scope.getOrStubType(type)
@@ -436,6 +470,7 @@ export default new Spell.Parser({
       syntax:
         "{type_property} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
       constructor: Spell.Rule.Statement,
+      mutatesScope: true,
       updateScope(scope, { results, groups }) {
         const { value: valueMatch, otherValue: otherValueMatch } = groups
         if (valueMatch.rule instanceof Spell.Rule.Constant) {
@@ -527,6 +562,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "{type_property} is {expression}",
       constructor: Spell.Rule.Statement,
+      mutatesScope: true,
       updateScope(scope, { results }) {
         const { type_property, expression } = results
         const { type, property } = type_property
@@ -590,6 +626,7 @@ export default new Spell.Parser({
           return match
         }
 
+        @proto mutatesScope = true
         updateScope(scope, { results }) {
           const { type, alias, expression } = results
           const words = JSON.parse(alias).split(" ")
@@ -763,6 +800,7 @@ export default new Spell.Parser({
           return { syntax, method, ruleData, vars, property }
         }
 
+        @proto mutatesScope = true
         updateScope(scope, match) {
           const { syntax, method, ruleData, vars, property } = this.parseMatchBits(scope, match)
           const { type } = match.results
@@ -1006,6 +1044,7 @@ export default new Spell.Parser({
         }
         return results.$method
       },
+      mutatesScope: true,
       updateScope(scope, { results }) {
         const { type, $method } = results
 

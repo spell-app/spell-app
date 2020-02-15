@@ -57,9 +57,6 @@ export default new Spell.Parser({
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
-          // Note that this sequence refers to a variable.
-          // Used in assignment to distinguish unknown variables from expressions.
-          match.isAVariable = true
           // Set `match.variable` to the scope variable, if there is one.
           match.variable = scope.variables(match.groups.identifier.value) || null
           return match

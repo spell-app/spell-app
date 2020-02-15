@@ -9,7 +9,6 @@ const WORD = /^[a-zA-Z][\w\-]*$/
 
 Spell.Rule.Constant = class constant extends Rule.Pattern {
   @proto pattern = WORD
-
   @proto blacklist = identifierBlacklist
 
   parse(scope, tokens) {
