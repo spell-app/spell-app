@@ -60,8 +60,7 @@ export default new Spell.Parser({
         {
           compileAs: "statement",
           tests: [
-            [`notify "Yo!"`, `spellCore.notify("Yo!", "OK")`],
-            [`notify "Yo!"`, `spellCore.notify("Yo!", "OK")`],
+            [`notify "Yo!"`, `spellCore.notify("Yo!")`],
             [`notify "Yo!" with "gotcha"`, `spellCore.notify("Yo!", "gotcha")`]
           ]
         }
@@ -100,8 +99,7 @@ export default new Spell.Parser({
         {
           compileAs: "statement",
           tests: [
-            [`alert "Yo!"`, `await spellCore.alert("Yo!", "OK")`],
-            [`alert "Yo!"`, `await spellCore.alert("Yo!", "OK")`],
+            [`alert "Yo!"`, `await spellCore.alert("Yo!")`],
             [`alert "Yo!" with "yep"`, `await spellCore.alert("Yo!", "yep")`]
           ]
         }
@@ -140,9 +138,7 @@ export default new Spell.Parser({
         {
           compileAs: "statement",
           tests: [
-            [`warn "Yo!"`, `await spellCore.warn("Yo!", "OK")`],
-            [`warn "Yo!" with "yep"`, `await spellCore.warn("Yo!", "yep")`],
-            [`warn "Yo!"`, `await spellCore.warn("Yo!", "OK")`],
+            [`warn "Yo!"`, `await spellCore.warn("Yo!")`],
             [`warn "Yo!" with "yep"`, `await spellCore.warn("Yo!", "yep")`]
           ]
         }
@@ -182,8 +178,8 @@ export default new Spell.Parser({
         {
           compileAs: "statement",
           tests: [
-            [`confirm "Yo!"`, `await spellCore.confirm("Yo!", "OK", "Cancel")`],
-            [`confirm "Yo!" with "yep"`, `await spellCore.confirm("Yo!", "yep", "Cancel")`],
+            [`confirm "Yo!"`, `await spellCore.confirm("Yo!")`],
+            [`confirm "Yo!" with "yep"`, `await spellCore.confirm("Yo!", "yep")`],
             [`confirm "Yo!" with "yep" and "nope"`, `await spellCore.confirm("Yo!", "yep", "nope")`]
           ]
         }
@@ -223,7 +219,7 @@ export default new Spell.Parser({
         {
           compileAs: "statement",
           tests: [
-            [`prompt "Name for the new baby?"`, `await spellCore.prompt("Name for the new baby?", undefined)`],
+            [`prompt "Name for the new baby?"`, `await spellCore.prompt("Name for the new baby?")`],
             [`prompt "File name:" with "Untitled"`, `await spellCore.prompt("File name:", "Untitled")`]
           ]
         }

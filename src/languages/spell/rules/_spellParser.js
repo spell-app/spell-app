@@ -42,10 +42,10 @@ spellParser.import(
   properties,
   _if_,
   lists,
-  JSX,
   UI,
   classes,
-  tests
+  tests,
+  JSX
 )
 
 export default spellParser
