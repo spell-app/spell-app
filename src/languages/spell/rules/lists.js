@@ -669,6 +669,7 @@ export default new Spell.Parser({
             ["add thing to the front of my-list", "spellCore.prepend(my_list, thing)"],
             ["add thing to the top of my-list", "spellCore.prepend(my_list, thing)"],
 
+            ["add thing to my-list", "spellCore.append(my_list, thing)"],
             ["add thing to the end of my-list", "spellCore.append(my_list, thing)"],
             ["add thing to the back of my-list", "spellCore.append(my_list, thing)"],
             ["add thing to the bottom of my-list", "spellCore.append(my_list, thing)"]
@@ -1206,7 +1207,8 @@ export default new Spell.Parser({
     },
 
     // Number range-specific iteration
-    // TODO: this only works if you `from`, a more general solution which also supports `in` is better...
+    // TODO: this only works if you `from 1 to 10`, a more general solution which also supports `in {list}` is needed.
+    // TODO: `down` is not accounted for in the output
     {
       name: "list_range_iteration",
       alias: "statement",
