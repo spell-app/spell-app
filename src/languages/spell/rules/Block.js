@@ -1,5 +1,5 @@
+import _ from "lodash"
 import { Match, Rule, Spell, Token, isWhitespace, AST } from "../all"
-
 // `Blocks` are generally the root entity that we parse in spell.
 //  This is a top-level construct, e.g. used to parse an entire file.
 //
@@ -141,9 +141,12 @@ Spell.Rule.Block = class block extends Rule {
   }
 
   toAST(scope, match) {
-    // TODO: not outputting comments!
-    // TODO: not outputting errors!
-    const statements = match.matched.map(statement => statement.AST)
+    const statements = _.flatten(
+      match.matched.map(statement => {
+        // Output comments and errors, then the statement itself
+        return [statement.comment?.AST, statement.error?.AST, statement.AST].filter(Boolean)
+      })
+    )
     if (match.enclose) return new AST.StatementBlock(scope, match, { statements })
     return new AST.StatementGroup(scope, match, { statements })
   }
