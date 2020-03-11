@@ -31,7 +31,7 @@ export default class Match {
 
   // Syntactic sugar to easily get `groups` of the match for sequences, etc.
   // Only works for some rule types.
-  @memoize
+  // @memoize
   get groups() {
     return this.rule.gatherGroups?.(this.scope, this)
   }

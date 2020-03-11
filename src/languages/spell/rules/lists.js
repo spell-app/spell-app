@@ -21,11 +21,11 @@ export default new Spell.Parser({
       tests: [
         {
           tests: [
-            ["up or down", ["'up'", "'down'"]],
-            ["red and black", ["'red'", "'black'"]],
-            ["back nor forth", ["'back'", "'forth'"]],
-            ["clubs, diamonds, hearts, spades", ["'clubs'", "'diamonds'", "'hearts'", "'spades'"]],
-            ["ace, 2, 3, 4, jack, queen or king", ["'ace'", 2, 3, 4, "'jack'", "'queen'", "'king'"]]
+            ["up or down", "['up', 'down']"],
+            ["red and black", "['red', 'black']"],
+            ["back nor forth", "['back', 'forth']"],
+            ["clubs, diamonds, hearts, spades", "['clubs', 'diamonds', 'hearts', 'spades']"],
+            ["ace, 2, 3, 4, jack, queen or king", "['ace', 2, 3, 4, 'jack', 'queen', 'king']"]
           ]
         }
       ]
@@ -548,11 +548,15 @@ export default new Spell.Parser({
         const { list, expression } = match.results
         return `spellCore.filter(${list}, ${expression})`
       },
+      getASTScope(scope, match) {
+        const arg = singularize(match.groups.arg.value)
+        return new Scope.Method({ scope, args: [arg], asExpression: true })
+      },
       toAST(scope, match) {
         const { arg, list, inlineStatement } = match.groups
         const filter = new AST.InlineMethodExpression(scope, inlineStatement, {
           args: [new AST.VariableExpression(scope, arg, { name: singularize(arg.value) })],
-          expression: inlineStatement.AST
+          expression: inlineStatement?.AST
         })
         return new AST.CoreMethodInvocation(scope, match, {
           method: "filter",
@@ -598,6 +602,10 @@ export default new Spell.Parser({
         const bang = operator === "has" ? "" : "!"
         // singularize method argument
         return `${bang}spellCore.any(${list}, ${filter})`
+      },
+      getASTScope(scope, match) {
+        const arg = singularize(match.groups.arg.value)
+        return new Scope.Method({ scope, args: [arg], asExpression: true })
       },
       toAST(scope, match) {
         const { list, operator, arg, inlineStatement } = match.groups
@@ -651,7 +659,7 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         const { thing, list, method } = match.groups
-        const spellMethod = method && ["start", "front", "top"].includes(method) ? "prepend" : "append"
+        const spellMethod = method && ["start", "front", "top"].includes(method.value) ? "prepend" : "append"
         return new AST.CoreMethodInvocation(scope, match, {
           method: spellMethod,
           arguments: [list.AST, thing.AST]
@@ -1019,6 +1027,10 @@ export default new Spell.Parser({
         const statement = scope.addStatement(`spellCore.removeWhere(${list}, ${condition})`)
         results.statements.push(statement)
       },
+      getASTScope(scope, match) {
+        const arg = singularize(match.groups.arg.value)
+        return new Scope.Method({ scope, args: [arg], asExpression: true })
+      },
       toAST(scope, match) {
         const { arg, list, inlineStatement } = match.groups
         const filter = new AST.InlineMethodExpression(scope, inlineStatement, {
@@ -1160,6 +1172,13 @@ export default new Spell.Parser({
         )
         results.statements.push(statement)
       },
+      getASTScope(scope, match) {
+        const { item, position } = match.groups
+        const args = [{ name: item.value }]
+        if (position) args.push({ name: position.value, type: "number" })
+        console.info(args)
+        return new Scope.Method({ scope, args })
+      },
       toAST(scope, match) {
         const { list, item, position, nestedBlock } = match.groups
         const args = [new AST.VariableExpression(scope, item, { name: item.value })]
@@ -1182,24 +1201,28 @@ export default new Spell.Parser({
             scope.variables.add("messages")
           },
           tests: [
-            ["for each card in deck:", "spellCore.forEach(deck, function(card) {})"],
-            ["for item, index in my-list:", "spellCore.forEach(my_list, function(item, index) {})"],
+            ["for each card in deck:", "spellCore.forEach(deck, (card) => {})"],
+            ["for item, index in my-list:", "spellCore.forEach(my_list, (item, index) => {})"],
             [
               "for each card in deck: set the direction of the card to 'down'",
-              "spellCore.forEach(deck, function(card) { card.direction = 'down' })"
+              "spellCore.forEach(deck, (card) => card.direction = 'down')"
             ],
             [
               "for message, index in messages: add message + index to messages",
-              "spellCore.forEach(messages, function(message, index) { spellCore.append(messages, (message + index)) })"
+              "spellCore.forEach(messages, (message, index) => spellCore.append(messages, (message + index)))"
             ],
 
             [
               "for each card in deck:\n\tset the direction of the card to 'down'",
-              "spellCore.forEach(deck, function(card) { card.direction = 'down' })"
+              "spellCore.forEach(deck, (card) => { card.direction = 'down' })"
+            ],
+            [
+              "for each card in deck:\n\tset the direction of the card to 'down'\n\tset the value of the card to 10",
+              "spellCore.forEach(deck, (card) => {\ncard.direction = 'down'\ncard.value = 10\n})"
             ],
             [
               "for message and index in messages:\n\tif index is greater than 2 add message to messages",
-              "spellCore.forEach(messages, function(message, index) { if (index > 2) { spellCore.append(messages, message) } })"
+              "spellCore.forEach(messages, (message, index) => { if (index > 2) { spellCore.append(messages, message) } })"
             ]
           ]
         }
@@ -1243,6 +1266,10 @@ export default new Spell.Parser({
         )
         match.results.statements.push(statement)
       },
+      getASTScope(scope, match) {
+        const arg = singularize(match.groups.item.value)
+        return new Scope.Method({ scope, args: [arg], asExpression: true })
+      },
       toAST(scope, match) {
         const { item, start, end, nestedBlock } = match.groups
         const getRange = new AST.CoreMethodInvocation(scope, match, {
@@ -1262,14 +1289,14 @@ export default new Spell.Parser({
         {
           compileAs: "block",
           tests: [
-            ["for each number from 1 to 10:", "spellCore.forEach(spellCore.getRange(1, 10), function(number) {})"],
+            ["for each number from 1 to 10:", "spellCore.forEach(spellCore.getRange(1, 10), (number) => {})"],
             [
-              "for each number from 1 to 10: get the number",
-              "spellCore.forEach(spellCore.getRange(1, 10), function(number) { let it = number })"
+              "for each number from 1 to 10: print the number",
+              "spellCore.forEach(spellCore.getRange(1, 10), (number) => console.log(number))"
             ],
             [
-              "for each number from 1 to 10: get the number",
-              "spellCore.forEach(spellCore.getRange(1, 10), function(number) { let it = number })"
+              "for each number from 1 to 10:\n\tget the number",
+              "spellCore.forEach(spellCore.getRange(1, 10), (number) => { let it = number })"
             ]
           ]
         }

@@ -24,6 +24,12 @@ function encloseInParens(value) {
   return `(${value})`
 }
 
+function convertStatementsToBlock(scope, match, statements) {
+  if (!statements) return new StatementBlock(scope, match)
+  if (statements instanceof StatementBlock) return statements
+  return new StatementBlock(scope, match, { statements: [statements] })
+}
+
 /** Abstract root of all AST node types.
  *  - `type` is
  */
@@ -684,8 +690,9 @@ export class InlineMethodExpression extends Expression {
   }
   toJS() {
     const args = this.args ? `(${this.args.map(arg => arg.toJS()).join(", ")})` : "()"
-    const body = (this.expression || this.statements)?.toJS() || "{}"
-    return `${args} => ${body}`
+    if (this.expression) return `${args} => ${this.expression.toJS()}`
+    if (this.statements) return `${args} => ${this.statements.toJS()}`
+    return `${args} => {}`
   }
 }
 
@@ -757,12 +764,6 @@ export class ObjectMethod extends Statement {
   }
 }
 
-function convertStatementsToBlock(scope, match, statements) {
-  if (!statements) return new StatementBlock(scope, match)
-  if (statements instanceof StatementBlock) return statements
-  return new StatementBlock(scope, match, { statements: [statements] })
-}
-
 /** IfStatement
  * - `condition` is an Expression
  * - `statements` is a Statement or Expression
@@ -776,7 +777,7 @@ export class IfStatement extends Statement {
   }
   toJS() {
     const { condition, statements } = this
-    return `if (${condition.toJS()}) ${statements.toJS()}`
+    return `if ${encloseInParens(condition.toJS())} ${statements.toJS()}`
   }
 }
 
@@ -793,7 +794,7 @@ export class ElseIfStatement extends Statement {
   }
   toJS() {
     const { condition, statements } = this
-    return `else if (${condition.toJS()}) ${statements.toJS()}`
+    return `else if ${encloseInParens(condition.toJS())} ${statements.toJS()}`
   }
 }
 
