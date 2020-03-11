@@ -378,9 +378,6 @@ export default class Parser {
   // By default we output debug info about the run.
   // Pass false to `debug` to skip debug output.
   testRules(moduleName, debug = true) {
-    // Clear outputSource flag so we don't get source output comments in the test results.
-    this.outputSource = false
-
     const t0 = Date.now()
     const results = {
       pass: 0, // number of tests that passed

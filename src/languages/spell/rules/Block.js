@@ -141,6 +141,8 @@ Spell.Rule.Block = class block extends Rule {
   }
 
   toAST(scope, match) {
+    // TODO: not outputting comments!
+    // TODO: not outputting errors!
     const statements = match.matched.map(statement => statement.AST)
     if (match.enclose) return new AST.StatementBlock(scope, match, { statements })
     return new AST.StatementGroup(scope, match, { statements })

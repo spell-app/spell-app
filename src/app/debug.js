@@ -5,9 +5,6 @@ import JSON5 from "json5"
 
 import { projects, spellCore, spellParser, Spell } from "./all"
 
-// Output source when rendering statements
-Spell.Parser.prototype.outputSource = false // TODO: add a control for this to the UI
-
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
   // global.global / window.global

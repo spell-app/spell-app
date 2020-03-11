@@ -4,7 +4,6 @@ import { Rule, Spell, Tokenizer } from "../all"
 // NOTE: we eat whitespace at the start and stick it on `match.whitespace` if found.
 // NOTE: we eat a comment at the end and stick it on `match.comment` if found.
 //       if ONLY comment was found, that will be the match.
-// NOTE: if the parser wants to `outputSource`, match.source will be the input text.
 //
 // Note: Access this as `Spell.Rule.BlockLine`.
 Spell.Rule.BlockLine = class block_line extends Rule {
@@ -46,11 +45,6 @@ Spell.Rule.BlockLine = class block_line extends Rule {
     // If we got whitespace or comment, add it to the statement;
     if (whitespace) statement.whitespace = whitespace
     if (comment) statement.comment = comment
-
-    // If the parser wants to output source, grab tokens now.
-    if (scope.parser.outputSource) {
-      statement.source = Tokenizer.join(remainingTokens, 0, statement.length)
-    }
 
     // Assume we ate the entire line
     statement.length = tokens.length
