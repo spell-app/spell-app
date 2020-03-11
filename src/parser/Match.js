@@ -47,6 +47,10 @@ export default class Match {
 
   // Syntatic sugar to compile the output of the match.
   compile() {
+    if (this.rule.toAST) {
+      return this.ASTJS
+    }
+    // NOTE: this should NOT be used for spell, but will be used for other languages
     return this.rule.compile(this.scope, this)
   }
 
@@ -68,6 +72,20 @@ export default class Match {
     // } catch (e) {
     //   throw new TypeError(`Couldn't get AST or JS for rule ${this.rule.name}`)
     // }
+  }
+
+  // Return AST nested scope for nested block statements.
+  // NOTE: we memoize this so calling it subsequent times is a no-op.
+  // NOTE: ONLY CALL THIS FROM THE MATCH!!!
+  @memoize
+  getASTScope() {
+    return this.rule.getASTScope?.(this.scope, this)
+  }
+
+  // Have the match call `updateASTScope()` if it can.
+  // NOTE: ONLY CALL THIS FROM THE MATCH!!!
+  updateASTScope() {
+    return this.rule.updateASTScope?.(this.scope, this)
   }
 
   // Test to see if the AST => JS matches rule.compile() => JS

@@ -1145,6 +1145,7 @@ export default new Spell.Parser({
           scope,
           args
         })
+        console.warn(results.$scope)
         return results.$scope
       },
       updateScope(scope, { results }) {
@@ -1161,8 +1162,7 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         const { list, item, position, nestedBlock } = match.groups
-        const args = []
-        if (item) args.push(new AST.VariableExpression(scope, item, { name: item.value }))
+        const args = [new AST.VariableExpression(scope, item, { name: item.value })]
         if (position) args.push(new AST.VariableExpression(scope, position, { name: position.value }))
         const method = new AST.InlineMethodExpression(scope, match, {
           args,
@@ -1217,20 +1217,22 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getNestedScope(scope, { results }) {
-        const { item, position } = results
+      getNestedScope(scope, match) {
         // Create a method to be used in the `forEach` to add inline and block statements to.
-        const args = [{ name: item }]
-        if (position) args.push({ name: position, type: "number" })
-        results.$scope = new Scope.Method({
+        const args = [{ name: match.groups.item.value }]
+        match.$scope = new Scope.Method({
           scope,
           args
         })
-        return results.$scope
+        console.warn(match)
+        return match.$scope
       },
-      updateScope(scope, { results }) {
+      updateScope(scope, match) {
         // Add a Method for the `forEach` wrapper with a custom toString()
-        const { start, end, $scope } = results
+        const {
+          $scope,
+          results: { start, end }
+        } = match
         const statement = scope.addStatement(
           new Scope.Method({
             name: "for_each",
@@ -1239,7 +1241,7 @@ export default new Spell.Parser({
             }
           })
         )
-        results.statements.push(statement)
+        match.results.statements.push(statement)
       },
       toAST(scope, match) {
         const { item, start, end, nestedBlock } = match.groups

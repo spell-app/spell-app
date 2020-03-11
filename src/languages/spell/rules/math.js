@@ -167,7 +167,7 @@ export default new Spell.Parser({
       constructor: Spell.Rule.InfixOperatorSuffix,
       compile(scope, match) {
         const { expression } = match.results
-        return `Math.abs(${expression})`
+        return `spellCore.absoluteValue(${expression})`
       },
       toAST(scope, match) {
         const { expression } = match.groups
@@ -183,7 +183,7 @@ export default new Spell.Parser({
           beforeEach(scope) {
             scope.variables.add("difference")
           },
-          tests: [["the absolute value of the difference", "Math.abs(difference)"]]
+          tests: [["the absolute value of the difference", "spellCore.absoluteValue(difference)"]]
         }
       ]
     },
@@ -263,15 +263,15 @@ export default new Spell.Parser({
       precedence: 1,
       compile(scope, match) {
         const { expression, operator } = match.results
-        if (operator === "up") return `Math.ceil(${expression})`
-        if (operator === "down") return `Math.floor(${expression})`
-        return `Math.round(${expression})`
+        if (operator === "up") return `spellCore.roundUp(${expression})`
+        if (operator === "down") return `spellCore.roundDown(${expression})`
+        return `spellCore.round(${expression})`
       },
       toAST(scope, match) {
         const { expression, operator } = match.groups
         let method = "round"
-        if (operator.value === "up") method = "roundUp"
-        else if (operator.value === "down") method = "roundDown"
+        if (operator?.value === "up") method = "roundUp"
+        else if (operator?.value === "down") method = "roundDown"
         return new AST.CoreMethodInvocation(scope, match, {
           datatype: "number",
           method, // TODO: implement in spellCore
@@ -285,10 +285,10 @@ export default new Spell.Parser({
             scope.variables.add("price")
           },
           tests: [
-            ["round price", "Math.round(price)"],
-            ["round price off", "Math.round(price)"],
-            ["round price up", "Math.ceil(price)"],
-            ["round price down", "Math.floor(price)"]
+            ["round price", "spellCore.round(price)"],
+            ["round price off", "spellCore.round(price)"],
+            ["round price up", "spellCore.roundUp(price)"],
+            ["round price down", "spellCore.roundDown(price)"]
           ]
         }
       ]

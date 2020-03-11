@@ -69,6 +69,7 @@ Spell.Rule.Statement = class statement extends Rule.Sequence {
     const groups = super.gatherGroups(scope, match)
     const { inlineStatement, block } = match
     if (inlineStatement && block) {
+      // TODO: add a parse error?
       console.warn(`Rule ${this.name} matched both inlineStatement and block!  match:`, match)
     }
     if (inlineStatement) groups.inlineStatement = inlineStatement
@@ -80,18 +81,13 @@ Spell.Rule.Statement = class statement extends Rule.Sequence {
 
   // Parse an inline statement.
   parseInlineStatement(scope, match, tokens) {
-    const nestedScope = match.getNestedScope()
+    const nestedScope = match.getASTScope()
     if (!nestedScope) throw new ParseError(`${this.name}.parseInlineStatement(): no nested scope provided`)
 
-    const inlineStatement = nestedScope.parse(tokens, this.parseInlineStatementAs)
-    // If we got one, tell it to `updateScope()`, which should add it to the nested scope.
-    if (inlineStatement) {
-      match.inlineStatement = inlineStatement
-      if (this.parseInlineStatementAs === "statement") inlineStatement.updateScope()
-      else nestedScope.addStatement(inlineStatement.compile())
-    }
-
-    return inlineStatement
+    match.inlineStatement = nestedScope.parse(tokens, this.parseInlineStatementAs)
+    // call `updateASTScope()` to initialize any variables/etc
+    if (match.inlineStatement) match.inlineStatement.updateASTScope()
+    return match.inlineStatement
   }
 
   // To compile, we just output our statements.

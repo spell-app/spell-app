@@ -17,6 +17,13 @@ function checkType(value, type) {
   return value instanceof type
 }
 
+/** Enclose `value` in parens, unless it is already a propertly parenthesized string. */
+function encloseInParens(value) {
+  // TODO: this is not a sufficient check!!!
+  if (typeof value === "string" && value.startsWith("(") && value.endsWith(")")) return value
+  return `(${value})`
+}
+
 /** Abstract root of all AST node types.
  *  - `type` is
  */
@@ -376,7 +383,7 @@ export class ScopedMethodInvocation extends MethodInvocation {
 }
 
 /** AwaitMethodInvocation:  wrap another method invocation to `await` it.
- *  - `method` is spellcore MethodInvocation to call.
+ *  - `method` is MethodInvocation to call.
  */
 export class AwaitMethodInvocation extends MethodInvocation {
   @proto @readonly type = "AwaitMethodInvocation"
@@ -562,8 +569,9 @@ export class StatementBlock extends Statement {
   }
   toJS() {
     const { statements } = this
-    if (!statements) return "{}"
-    return `{\n${statements.map(statement => statement.toJS()).join("\n")}\n}`
+    if (!statements || !statements.length) return "{}"
+    const curlyDelimiter = statements.length === 1 ? " " : "\n"
+    return `{${curlyDelimiter}${statements.map(statement => statement.toJS()).join("\n")}${curlyDelimiter}}`
   }
 }
 
@@ -749,6 +757,12 @@ export class ObjectMethod extends Statement {
   }
 }
 
+function convertStatementsToBlock(scope, match, statements) {
+  if (!statements) return new StatementBlock(scope, match)
+  if (statements instanceof StatementBlock) return statements
+  return new StatementBlock(scope, match, { statements: [statements] })
+}
+
 /** IfStatement
  * - `condition` is an Expression
  * - `statements` is a Statement or Expression
@@ -758,7 +772,7 @@ export class IfStatement extends Statement {
   constructor(...args) {
     super(...args)
     this.assertType("condition", Expression)
-    this.assertType("statements", [Statement, Expression], OPTIONAL)
+    this.statements = convertStatementsToBlock(this.parentScope, this.match, this.statements)
   }
   toJS() {
     const { condition, statements } = this
@@ -775,7 +789,7 @@ export class ElseIfStatement extends Statement {
   constructor(...args) {
     super(...args)
     this.assertType("condition", Expression)
-    this.assertType("statements", [Statement, Expression], OPTIONAL)
+    this.statements = convertStatementsToBlock(this.parentScope, this.match, this.statements)
   }
   toJS() {
     const { condition, statements } = this
@@ -790,7 +804,7 @@ export class ElseStatement extends Statement {
   @proto @readonly type = "ElseStatement"
   constructor(...args) {
     super(...args)
-    this.assertType("statements", [Statement, Expression], OPTIONAL)
+    this.statements = convertStatementsToBlock(this.parentScope, this.match, this.statements)
   }
   toJS() {
     const { statements } = this
@@ -832,6 +846,6 @@ export class ConsoleMethodInvocation extends Statement {
   }
   toJS() {
     const { method, args } = this
-    return `console.${method}(${args.map(arg => arg.toJS()).join(", ")})`
+    return `console.${method}${encloseInParens(args.map(arg => arg.toJS()).join(", "))}`
   }
 }

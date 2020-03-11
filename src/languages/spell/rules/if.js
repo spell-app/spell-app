@@ -7,7 +7,7 @@ import { Scope, Spell, AST } from "../all"
 // Given a condition expression string, wrap it in parens iff it is not already parenthesized properly.
 // TESTME
 export function parenthesizeCondition(condition) {
-  if (condition.startsWith("(") && condition.endsWith(")")) return condition
+  if (typeof condition === "string" && condition.startsWith("(") && condition.endsWith(")")) return condition
   return `(${condition})`
 }
 
@@ -36,6 +36,9 @@ export default new Spell.Parser({
       updateScope(scope, { results }) {
         const statement = scope.addStatement(results.$scope)
         results.statements.push(statement)
+      },
+      getASTScope(scope, match) {
+        return new Scope({ name: "if", scope })
       },
       toAST(scope, match) {
         const { condition, nestedBlock } = match.groups
@@ -85,27 +88,27 @@ export default new Spell.Parser({
             {
               title: "Indent with tab, output has 2 spaces",
               input: "if a:\n\tb = 1\n\tc=1",
-              output: "if (a) {\n  let b = 1\n  let c = 1\n}"
+              output: "if (a) {\nlet b = 1\nlet c = 1\n}"
             },
             {
               title: "Multiple lines in the nested block",
               input: "if a:\n\tb = 1\n\tc = 2",
-              output: "if (a) {\n  let b = 1\n  let c = 2\n}"
+              output: "if (a) {\nlet b = 1\nlet c = 2\n}"
             },
             //         {
             //           title: "Blank lines in the nested block are carried over",
             //           input: "if a:\n\tb = 1\n\n\n\tc = 2",
-            //           output: "if (a) {\n  let b = 1\n  \n  \n  let c = 2\n}"
+            //           output: "if (a) {\nlet b = 1\n\n\nlet c = 2\n}"
             //         },
             {
               title: "Nested ifs work fine",
               input: "if a\n\tb = 1\n\tif b\n\t\tc = 2",
-              output: "if (a) {\n  let b = 1\n  if (b) { let c = 2 }\n}"
+              output: "if (a) {\nlet b = 1\nif (b) { let c = 2 }\n}"
             },
             {
-              title: "Both nested block and inline statements are used",
+              title: "Nested blocks are preferred to inline statements",
               input: "if a b = 1\n\tc = 2",
-              output: "if (a) {\n  let b = 1\n  let c = 2\n}"
+              output: "if (a) { let c = 2 }"
             }
           ]
         }
@@ -137,6 +140,9 @@ export default new Spell.Parser({
       updateScope(scope, { results }) {
         const statement = scope.addStatement(results.$scope)
         results.statements.push(statement)
+      },
+      getASTScope(scope, match) {
+        return new Scope({ name: "elseif", scope })
       },
       toAST(scope, match) {
         const { condition, nestedBlock } = match.groups
@@ -186,7 +192,7 @@ export default new Spell.Parser({
             {
               title: "Multiple lines in the nested block",
               input: "else if a:\n\tb = 1\n\tc = 2",
-              output: "else if (a) {\n  let b = 1\n  let c = 2\n}"
+              output: "else if (a) {\nlet b = 1\nlet c = 2\n}"
             },
             {
               title: "Nested else ifs work fine",
@@ -194,9 +200,9 @@ export default new Spell.Parser({
               output: "else if (a) { if (a) { let c = 2 } }"
             },
             {
-              title: "Both inline statement and nested block are used",
-              input: "else if a b = 1\n\tb = 2\n\tc = 2",
-              output: "else if (a) {\n  let b = 1\n  b = 2\n  let c = 2\n}"
+              title: "Nested blocks are preferred to inline statements",
+              input: "else if a b = 1\n\tc = 2",
+              output: "else if (a) { let c = 2 }"
             }
           ]
         }
@@ -223,6 +229,9 @@ export default new Spell.Parser({
       updateScope(scope, { results }) {
         const statement = scope.addStatement(results.$scope)
         results.statements.push(statement)
+      },
+      getASTScope(scope, match) {
+        return new Scope({ name: "else", scope })
       },
       toAST(scope, match) {
         const { nestedBlock } = match.groups
@@ -265,7 +274,7 @@ export default new Spell.Parser({
             {
               title: "Multiple lines in the nested block",
               input: "else\n\tb = 1\n\tlet c = 2",
-              output: "else {\n  let b = 1\n  let c = 2\n}"
+              output: "else {\nlet b = 1\nlet c = 2\n}"
             }
           ]
         }
@@ -290,13 +299,13 @@ export default new Spell.Parser({
       tests: [
         {
           title: "correctly matches single-line backwards_if statements",
-          compileAs: "statement",
+          compileAs: "block",
           beforeEach(scope) {
             scope.variables.add("bar")
             scope.variables.add("foo")
           },
           tests: [
-            ["get 1 if bar else 2", "let it = (bar ? 1 : 2)"],
+            ["print 1 if bar else 2", "console.log(bar ? 1 : 2)"],
             [
               "get the foo of the bar if bar is defined otherwise the bar of the foo",
               "let it = (spellCore.isDefined(bar) ? bar.foo : foo.bar)"

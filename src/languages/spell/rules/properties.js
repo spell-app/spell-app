@@ -158,34 +158,36 @@ export default new Spell.Parser({
           ]
         }
       ]
-    },
-
-    // MOVE TO `functions`?
-    // Arguments clause for methods
-    //  `with foo` or `with foo and bar and baz`
-    // TODO: how would we use this???
-    // TODO: {identifier} = {expression}  => requires `,` instead of `and`
-    // TODO: `with foo as a Type`
-    {
-      name: "args",
-      syntax: "with [args:{variable},]",
-      // Returns an array of argument values
-      compile(scope, match) {
-        const { args } = match.results
-        return args.join(", ")
-      },
-      toAST(scope, match) {
-        throw new TypeError("not implemented")
-      },
-      tests: [
-        {
-          tests: [
-            ["with animal", "animal"],
-            ["with animal, vegetable, mineral", "animal, vegetable, mineral"],
-            ["with animal, vegetable, mineral,", "animal, vegetable, mineral"]
-          ]
-        }
-      ]
     }
+
+    // // MOVE TO `functions`?
+    // // Arguments clause for methods
+    // //  `with foo` or `with foo and bar and baz`
+    // // TODO: how would we use this???
+    // // TODO: {identifier} = {expression}  => requires `,` instead of `and`
+    // // TODO: `with foo as a Type`
+    // {
+    //   name: "args",
+    //   syntax: "with [args:{variable},]",
+    //   // Returns an array of argument values
+    //   compile(scope, match) {
+    //     const { args } = match.results
+    //     return args.join(", ")
+    //   },
+    //   toAST(scope, match) {
+    //     const { args } = match.groups
+    //     console.warn(args)
+    //     throw new TypeError("not implemented")
+    //   },
+    //   tests: [
+    //     {
+    //       tests: [
+    //         ["with animal", "animal"],
+    //         ["with animal, vegetable, mineral", "animal, vegetable, mineral"],
+    //         ["with animal, vegetable, mineral,", "animal, vegetable, mineral"]
+    //       ]
+    //     }
+    //   ]
+    // }
   ]
 })

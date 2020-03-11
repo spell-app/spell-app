@@ -1,5 +1,1 @@
-a card is a thing
-a card has a rank as one of ace, 2, 3
-a card "is a (rank)" for its ranks
-it is a new card
-get it is an ace
+print 1

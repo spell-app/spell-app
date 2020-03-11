@@ -31,7 +31,8 @@ Spell.Rule.Block = class block extends Rule {
       else if (item instanceof Token.Block) {
         // If the lastStatement wants a nested block, have it parse the block
         if (lastStatement?.rule?.wantsNestedBlock) {
-          lastStatement.block = this.parseBlock(lastStatement.getNestedScope(), item)
+          lastStatement.block = this.parseBlock(lastStatement.getASTScope(), item)
+          if (lastStatement.block) lastStatement.block.enclose = true
         } else {
           const nestedBlock = this.parseBlock(scope, item)
           if (nestedBlock) {
@@ -39,29 +40,32 @@ Spell.Rule.Block = class block extends Rule {
             // Just push it into the stream
             matched.push(nestedBlock)
           } else {
-            Spell.logger.info("expected nested result, didn't get anything")
+            Spell.logger.info("saw unexpected nested block, parsing it didn't return anything")
           }
         }
-        delete this.lastStatement
       }
       // Got a single statement, parse the entire thing as a `block_line`
       else {
         const statement = scope.parse(item, "block_line")
+        if (Array.isArray(statement)) {
+          console.warn("GOT ARRAY OF STATEMENTS FROM block_line.parse()", statement)
+        }
         if (statement) {
+          // Use `concat` in case we got an array of statements back
           matched = matched.concat(statement)
-
-          // We've locked in this statement -- have it update it's scope.
-          // This may create other rules/vars/etc that later statements will use.
-          statement.updateScope()
-          lastStatement = statement
+          // We've locked in this statement -- have it update scope if necessary.
+          // This is used, e.g. by assignment to add new variables to the scope, etc.
+          statement.updateASTScope()
+          // statement.updateScope()
 
           if (statement.error) {
-            if (lastStatement.rule?.wantsNestedBlock) {
-              lastStatement.getNestedScope().addStatement(statement.error.compile())
-            } else {
-              matched.push(statement.error)
-            }
+            // if (lastStatement.rule?.wantsNestedBlock) {
+            //   lastStatement.getNestedScope().addStatement(statement.error.compile())
+            // } else {
+            matched.push(statement.error)
+            // }
           }
+          lastStatement = statement
         }
         // Output a parse error for the line but continue
         else {
@@ -86,6 +90,8 @@ Spell.Rule.Block = class block extends Rule {
   // Set `match.enclose` to enclose in curly braces
   // Set `match.indent` to add a tab to the start of each line.
   compile(scope, match) {
+    console.warn("Block.compile().  match:", match)
+
     let results = []
     let statement
 
@@ -135,8 +141,8 @@ Spell.Rule.Block = class block extends Rule {
   }
 
   toAST(scope, match) {
-    return new AST.StatementBlock(scope, match, {
-      statements: match.matched.map(statement => statement.AST)
-    })
+    const statements = match.matched.map(statement => statement.AST)
+    if (match.enclose) return new AST.StatementBlock(scope, match, { statements })
+    return new AST.StatementGroup(scope, match, { statements })
   }
 }

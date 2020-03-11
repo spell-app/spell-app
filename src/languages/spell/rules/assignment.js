@@ -29,16 +29,13 @@ export default new Spell.Parser({
         results.statements.push(statement)
       },
       updateASTScope(scope, match) {
-        // If `thing` is a variable...
         const { thing } = match.groups
+        // If `thing` is a variable...
         if (thing.rule.name === "variable") {
           const varName = thing.value
-          // ...define it in scope if necessary...
-          if (!scope.variables(varName)) {
-            scope.variables.add(varName) // TODO: type???
-            // ...setting a flag that this is the first instance of the var
-            match.isNewVariable = true
-          }
+          match.isNewVariable = !scope.variables(varName)
+          // define it a a new variable in `scope` if not already defined
+          if (match.isNewVariable) scope.variables.add(varName) // TODO: type???
         }
       },
       toAST(scope, match) {
@@ -100,11 +97,10 @@ export default new Spell.Parser({
       },
       updateASTScope(scope, match) {
         // make sure 'it' is declared LOCALLY
-        const isNewVarable = !scope.variables("it", "LOCAL")
-        if (isNewVarable) scope.variables.add("it")
+        match.isNewVarable = !scope.variables("it", "LOCAL")
+        if (!match.isNewVarable) scope.variables.add("it")
       },
       toAST(scope, match) {
-        this.updateASTScope(scope, match)
         const { value } = match.groups
         return new AST.AssignmentStatement(scope, match, {
           thing: new AST.VariableExpression(scope, match, { raw: "it", name: "it" }),
@@ -141,7 +137,7 @@ export default new Spell.Parser({
       },
       toAST(scope, match) {
         return new AST.ReturnStatement(scope, match, {
-          value: match.groups.expression?.AST
+          value: match.groups.expression?.AST || new AST.UndefinedLiteral(scope, match)
         })
       },
       tests: [
