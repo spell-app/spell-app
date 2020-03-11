@@ -20,7 +20,8 @@ export default new Spell.Parser({
       toAST(scope, match) {
         const { expression } = match.groups
         return new AST.ConsoleMethodInvocation(scope, match, {
-          arguments: [expression.AST]
+          method: "log",
+          args: [expression.AST]
         })
       },
       tests: [

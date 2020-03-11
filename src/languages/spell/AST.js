@@ -817,3 +817,21 @@ export class TernaryExpression extends Expression {
     return expression
   }
 }
+
+/** ConsoleMethodInvocation
+ * - `method` is method name, e.g. `log` or `warn`
+ * - `args` is an array of expressions
+ */
+export class ConsoleMethodInvocation extends Statement {
+  @proto @readonly type = "ConsoleMethodInvocation"
+  @proto method = "log"
+  constructor(...args) {
+    super(...args)
+    this.assertArrayType("args", Expression, OPTIONAL)
+    this.assertType("method", "string")
+  }
+  toJS() {
+    const { method, args } = this
+    return `console.${method}(${args.map(arg => arg.toJS()).join(", ")})`
+  }
+}
