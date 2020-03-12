@@ -213,6 +213,23 @@ export class ArrayLiteral extends Literal {
   }
 }
 
+/** Enumeration
+ *  - `enumeration` is an array of Expressions
+ *  - `values` is an strings or numbers
+ */
+export class Enumeration extends Literal {
+  @proto @readonly type = "Enumeration"
+  constructor(...args) {
+    super(...args)
+    this.assertArrayType("enumeration", Expression)
+    this.assertArrayType("values", ["string", "number"])
+  }
+  toJS() {
+    if (!this.enumeration) return "[]"
+    return `[${this.enumeration.map(item => item.toJS()).join(", ")}]`
+  }
+}
+
 /** Abstract comment type. Useful for `instanceof`. */
 export class Comment extends ASTNode {}
 
@@ -323,7 +340,7 @@ export class InfixExpression extends Expression {
 }
 
 /** Given an array of Expressions, join them all together with the same `operator`. */
-export function multiInfixExpression(scope, match, { expressions, operator }) {
+export function MultiInfixExpression(scope, match, { expressions, operator }) {
   if (expressions.length < 2) return expressions[0]
   const remaining = [...expressions]
   let rhs = remaining.pop()
@@ -374,7 +391,7 @@ export class CoreMethodInvocation extends MethodInvocation {
  *  - Try to set `datatype` as string or getter if you can.
  */
 export class ScopedMethodInvocation extends MethodInvocation {
-  @proto @readonly type = "MethodExpression"
+  @proto @readonly type = "ScopedMethodInvocation"
   constructor(...args) {
     super(...args)
     this.assertType("thing", Expression)
@@ -450,7 +467,7 @@ export class VariableExpression extends Expression {
 
 /** ConstantExpression -- pointer to a Constant object.
  *  - `name` is the constant name (not normalized ???)
- *  - `value` is the constant string to output.
+ *  - `value` is the constant string to output, including quotes.
  *  - `constant` is pointer to scope Constant, if there is one.
  */
 export class ConstantExpression extends Expression {
@@ -503,7 +520,7 @@ export class PropertyExpression extends Expression {
   toJS() {
     const prop = this.property.toJS()
     if (LEGAL_PROPERTY_IDENTIFIER.test(prop)) return `${this.object.toJS()}.${prop}`
-    return `${this.object.toJS()}["${prop}"]`
+    return `${this.object.toJS()}['${prop}']`
   }
 }
 
@@ -631,12 +648,14 @@ export class ClassDeclaration extends Statement {
   }
   toJS() {
     const { type, superType, instanceType } = this
-    const superDeclarator = superType ? `extends ${superType.name}` : ""
-    const output = [`export class ${type.name} ${superDeclarator} {}`]
-    output.push(`spellCore.addExport("${type.name}"), ${type.name})`)
-    if (instanceType)
-      output.push(`spellCore.define(${type.name}.prototype, "instance_type", { value: ${instanceType.name} })`)
-    return output
+    const superDeclarator = superType ? `extends ${superType.name} ` : ""
+    const output = [`export class ${type.name} ${superDeclarator}{}`]
+    output.push(`spellCore.addExport("${type.name}", ${type.name})`)
+    if (instanceType) {
+      output.push(`spellCore.define(${type.name}.prototype, "instanceType", { value: ${instanceType.name} })`)
+      output.push(`${type.name}.instanceType = ${instanceType.name}`)
+    }
+    return output.join("\n")
   }
 }
 
@@ -696,69 +715,103 @@ export class InlineMethodExpression extends Expression {
   }
 }
 
-/** ObjectSetter: creates a setter for type instances
- * - `type` is a TypeEexpression
- * - `property` is PropertyLiteral
- * - `statements` is a Statement or Expression
+/** PrototypeExpression:  type.prototype
+ *  * - `type` is a TypeExpression
  */
-export class ObjectSetter extends Statement {
-  @proto @readonly type = "ObjectSetter"
+export class PrototypeExpression extends Expression {
+  @proto @readonly type = "PrototypeExpression"
   constructor(...args) {
     super(...args)
     this.assertType("type", TypeExpression)
+  }
+  toJS() {
+    const { type } = this
+    return `${type.toJS()}.prototype`
+  }
+}
+
+/** ValueDefinition: assigns named value to prototype
+ * - `thing` is an Expression
+ * - `property` is PropertyLiteral
+ * - `value` is an Expression
+ */
+export class ValueDefinition extends Statement {
+  @proto @readonly type = "ValueDefinition"
+  constructor(...args) {
+    super(...args)
+    this.assertType("thing", Expression)
+    this.assertType("property", PropertyLiteral)
+    this.assertType("value", Expression)
+  }
+  toJS() {
+    const { thing, property, value } = this
+    return `spellCore.define(${thing.toJS()}, '${property.toJS()}', { value: ${value.toJS()} })`
+  }
+}
+
+/** SetterDefinition: creates a setter for type instances
+ * - `thing` is an Expression
+ * - `property` is PropertyLiteral
+ * - `statements` is a Statement or Expression
+ */
+export class SetterDefinition extends Statement {
+  @proto @readonly type = "SetterDefinition"
+  constructor(...args) {
+    super(...args)
+    this.assertType("thing", Expression)
     this.assertType("property", PropertyLiteral)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
   toJS() {
-    const { type, property, statements } = this
+    const { thing, property, statements } = this
     return (
-      `spellCore.define(${type.toJS()}.prototype, "${property.toJS()}", ` +
+      `spellCore.define(${thing.toJS()}, '${property.toJS()}', ` +
       `{ set(${property.toJS()}) { ${statements?.toJS() || ""} } })`
     )
   }
 }
 
-/** ObjectGetter: creates a setter for type instances
- * - `type` is a TypeEexpression
+/** GetterDefinition: creates a setter for type instances
+ * - `thing` is an Expression
  * - `property` is the PropertyLiteral
  * - `statements` is a Statement or Expression
  */
-export class ObjectGetter extends Statement {
-  @proto @readonly type = "ObjectGetter"
+export class GetterDefinition extends Statement {
+  @proto @readonly type = "GetterDefinition"
   constructor(...args) {
     super(...args)
-    this.assertType("type", TypeExpression)
+    this.assertType("thing", Expression)
     this.assertType("property", PropertyLiteral)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
   toJS() {
-    const { type, property, statements } = this
-    return `spellCore.define(${type.toJS()}.prototype, "${property.toJS()}", { get() { ${statements?.toJS() || ""} } })`
+    const { thing, property, statements } = this
+    return `spellCore.define(${thing.toJS()}, '${property.toJS()}', { get() { ${statements?.toJS() || ""} } })`
   }
 }
 
-/** ObjectMethod: creates an method for type instances
- * - `type` is a TypeEexpression
+/** MethodDefinition: creates an method for type instances
+ * - `thing` is an Expression
  * - `method` is the method name
  * - `args` ia array of VariableExpressions
  * - `statements` is a Statement or Expression
  */
-export class ObjectMethod extends Statement {
-  @proto @readonly type = "ObjectMethod"
+export class MethodDefinition extends Statement {
+  @proto @readonly type = "MethodDefinition"
   constructor(...args) {
     super(...args)
-    this.assertType("type", TypeExpression)
+    this.assertType("thing", Expression)
     this.assertType("method", "string")
     this.assertArrayType("args", VariableExpression, OPTIONAL)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
   toJS() {
-    const { type, method, args, statements } = this
+    const { thing, method, args, statements } = this
     return (
-      `spellCore.define(${type.toJS()}.prototype, "${method}", {` +
+      `spellCore.define(${thing.toJS()}, '${method}', {` +
       ` value(${args?.map(arg => arg.toJS()) || ""}) { ${statements?.toJS() || ""} } })`
     )
   }

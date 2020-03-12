@@ -18,8 +18,62 @@ export default new Spell.Parser({
       name: "create_type",
       alias: "statement",
       syntax: [
-        "create a type (named|called) {type} (as (a|an) (isList:list of)? {superType:type})?",
-        "(a|an) {type} is (a|an) (isList:list of)? {superType:type}"
+        "create a type (named|called) {type} (as (a|an) {superType:type})?",
+        "(a|an) {type} is (a|an) {superType:type}"
+      ],
+      constructor: Spell.Rule.Statement,
+      mutatesScope: true,
+      updateScope(scope, { results }) {
+        const { type, superType, isList } = results
+        const statement = scope.types.add({
+          name: type,
+          superType: isList || superType === "List" ? "Array" : superType
+        })
+        results.statements.push(statement)
+        // If we're a list of something, set `list.instanceType` property
+        //  which spell `List` objects will presumably understand.
+        if (isList) {
+          statement.variables.add({ name: "instance_type", value: superType })
+          results.statements.push(`spellCore.define(${type}.prototype, "instance_type", { value: "${superType}" })`)
+        }
+      },
+      updateASTScope(scope, match) {
+        const { type, superType } = match.groups
+        // Forget it if type is already defined.
+        // TODO: complain if existing type is set up differently!
+        // TODO: set up superType if necessary?
+        if (scope.types(type.value)) return
+        scope.types.add({ name: type.value, superType: superType?.value })
+      },
+      toAST(scope, match) {
+        const { type, superType } = match.groups
+        return new AST.ClassDeclaration(scope, match, {
+          type: type.AST,
+          superType: superType?.AST
+        })
+      },
+      tests: [
+        {
+          compileAs: "statement",
+          tests: [
+            ["create a type named card", `export class Card {}\nspellCore.addExport("Card", Card)`],
+            [
+              "create a type called car as a vehicle",
+              `export class Car extends Vehicle {}\nspellCore.addExport("Car", Car)`
+            ],
+            ["a card is a thing", `export class Card extends Thing {}\nspellCore.addExport("Card", Card)`],
+            ["a set is a list", `export class Set extends List {}\nspellCore.addExport("Set", Set)`]
+          ]
+        }
+      ]
+    },
+
+    {
+      name: "create_list_type",
+      alias: "statement",
+      syntax: [
+        "create a type (named|called) {type} as a list of {instanceType:type}",
+        "(a|an) {type} is a list of {instanceType:type}"
         // TODO: "{plural_type} are a list of ..."
       ],
       constructor: Spell.Rule.Statement,
@@ -39,59 +93,33 @@ export default new Spell.Parser({
         }
       },
       updateASTScope(scope, match) {
+        const { type, instanceType } = match.groups
         // Forget it if type is already defined.
         // TODO: complain if existing type is set up differently!
-        if (scope.types(type)) return
+        if (scope.types(type.value)) return
 
-        const { type, superType, instanceType } = match.groups
-        if (instanceType) {
-          scope.types.add({ name: type.value, superType: "list", instanceType: superType?.value })
-        } else {
-          scope.types.add({ name: type.value, superType: superType?.value })
-        }
+        scope.types.add({ name: type.value, superType: "list", instanceType: instanceType?.value })
       },
       toAST(scope, match) {
-        const { type, superType, instanceType } = match.groups
-        if (instanceType) {
-          return new AST.StatementGroup(scope, match, {
-            statements: [
-              // Declare the class
-              new AST.ClassDeclaration(scope, match, {
-                type: type.AST,
-                superType: new AST.TypeExpression(scope, match, { raw: "list", name: "Array" }),
-                instanceType: superType?.AST
-              }),
-              // Set `<ListType>.instanceType` property in case `List`s care...
-              new AST.AssignmentStatement(scope, match, {
-                thing: new AST.PropertyExpression(scope, match, {
-                  object: type.AST,
-                  property: new AST.PropertyLiteral(scope, match, { value: "instanceType" })
-                }),
-                value: new AST.StringLiteral(scope, match, { value: instanceType.value })
-              })
-            ]
-          })
-        }
-        return new AST.ClassDeclaration(scope, match, {
-          type: type.AST,
-          superType: superAST,
-          instanceType: listInstanceAST
+        const { type, instanceType } = match.groups
+        return new AST.StatementGroup(scope, match, {
+          statements: [
+            // Declare the class
+            new AST.ClassDeclaration(scope, match, {
+              type: type.AST,
+              superType: new AST.TypeExpression(scope, match, { raw: "list", name: "Array" }),
+              instanceType: instanceType.AST
+            })
+          ]
         })
       },
       tests: [
         {
           compileAs: "statement",
           tests: [
-            ["create a type named card", `export class Card {}\nspellCore.addExport("Card", Card)`],
             [
-              "create a type called car as a vehicle",
-              `export class Car extends Vehicle {}\nspellCore.addExport("Car", Car)`
-            ],
-            ["a card is a thing", `export class Card extends Thing {}\nspellCore.addExport("Card", Card)`],
-            ["a set is a list", `export class Set extends Array {}\nspellCore.addExport("Set", Set)`],
-            [
-              ("a deck is a list of cards",
-              'export class Deck extends Array {}\nspellCore.addExport("Deck", Deck)\nspellCore.define(Deck.prototype, "instance_type", { value: "Card" })')
+              "a deck is a list of cards",
+              'export class Deck extends Array {}\nspellCore.addExport("Deck", Deck)\nspellCore.define(Deck.prototype, "instanceType", { value: Card })\nDeck.instanceType = Card'
             ]
           ]
         }
@@ -111,6 +139,7 @@ export default new Spell.Parser({
         results.statements.push(`new ${type}(${props})`)
       },
       toAST(scope, match) {
+        console.warn(match)
         const { type, props } = match.groups
         return new AST.NewInstanceExpression(scope, match, {
           type: type.AST,
@@ -207,18 +236,17 @@ export default new Spell.Parser({
         return { datatype: "enum", enumeration }
       },
       toAST(scope, match) {
-        return new AST.ArrayLiteral(scope, match, {
-          items: match.groups.enumeration.items.map(item => item.AST)
+        const enumeration = match.groups.enumeration.items.map(item => item.AST)
+        return new AST.Enumeration(scope, match, {
+          enumeration,
+          values: enumeration.map(literal => literal.toJS())
         })
       },
       tests: [
         {
           tests: [
-            ["as either red or black", { datatype: "enum", enumeration: ["'red'", "'black'"] }],
-            [
-              "as one of clubs, diamonds, hearts, spades",
-              { datatype: "enum", enumeration: ["'clubs'", "'diamonds'", "'hearts'", "'spades'"] }
-            ]
+            ["as either red or black", "['red', 'black']"],
+            ["as one of clubs, diamonds, hearts, spades", "['clubs', 'diamonds', 'hearts', 'spades']"]
           ]
         }
       ]
@@ -233,7 +261,7 @@ export default new Spell.Parser({
       },
       tests: [
         {
-          tests: [["as a number", { datatype: "number" }], ["as an automobile", { datatype: "Automobile" }]]
+          tests: [["as a number", "number"], ["as an automobile", "Automobile"]]
         }
       ]
     },
@@ -291,6 +319,54 @@ export default new Spell.Parser({
         })
         results.statements.push(statement)
       },
+      updateASTScope(scope, match) {
+        const { type, property, specifier } = match.groups
+        const specifierAST = specifier?.AST
+
+        const typeName = type.value
+        const typeScope = scope.getOrStubType(typeName)
+
+        // If there is a specifier as enumerated values, add rules to match it
+        if (specifierAST instanceof AST.Enumeration) {
+          const groupName = pluralize(upperFirst(property.value))
+
+          const { values } = specifierAST
+          const varProps = {
+            name: groupName,
+            enumeration: values,
+            initializer: `[${values.join(", ")}]`
+          }
+          // Add variables to scope for lookup elsewhere
+          typeScope.classVariables.add({ ...varProps })
+          typeScope.variables.add({ ...varProps })
+
+          // Add enumeration string values to scope as constants.
+          values.forEach(({ value }) => {
+            if (typeof value === "string") scope.constants.add(value)
+          })
+
+          // Add multi-word identifier rule which returns enumeration, e.g. `card suits` or `Card Suits`
+          const literals = [[typeName, lowerFirst(typeName)], [groupName, lowerFirst(groupName)]]
+          scope.addExpressionRule({
+            name: `${typeName}_${groupName}`,
+            literals,
+            compile() {
+              return `${typeName}.${groupName}`
+            },
+            toAST(scope2, match2) {
+              return new AST.PropertyExpression(scope2, match2, {
+                object: type.AST,
+                property: new AST.PropertyLiteral(scope, property, { value: groupName })
+              })
+            }
+          })
+
+          // Add comment string which we'll output below
+          match.ruleComment = new AST.LineComment(scope, match, {
+            value: `SPELL added rule: '${literals.map(group => `(${group.join("|")})`).join(" ")}'`
+          })
+        }
+      },
       toAST(scope, match) {
         const { type, property } = match.groups
 
@@ -305,6 +381,7 @@ export default new Spell.Parser({
           object: new AST.ThisLiteral(scope, match),
           property: internalProp
         })
+        const prototype = new AST.PrototypeExpression(type.scope, type, { type: type.AST })
 
         // assignment for the setter
         let assignment = new AST.AssignmentStatement(scope, match, {
@@ -316,8 +393,11 @@ export default new Spell.Parser({
         if (specifier) {
           let condition
           // Enumerated values as strings/numbers/etc
-          if (specifier instanceof AST.ArrayLiteral) {
+          if (specifier instanceof AST.Enumeration) {
             // TODO: datatype ???
+            // Add comment that we created a rule previously
+            statements.push(match.ruleComment)
+
             const groupName = pluralize(upperFirst(property.value))
             // Set up enumeration variable on the class!
             const enumerationPropName = new AST.PropertyLiteral(scope, property, { value: groupName })
@@ -338,41 +418,10 @@ export default new Spell.Parser({
 
             // Add enumeration pointer to the prototype as well
             statements.push(
-              new AST.AssignmentStatement(scope, match, {
-                thing: new AST.PropertyExpression(scope, match, {
-                  object: new AST.PropertyExpression(scope, match, {
-                    object: type.AST,
-                    property: new AST.PropertyLiteral(scope, match, { value: "prototype" })
-                  }),
-                  property: enumerationPropName
-                }),
+              new AST.ValueDefinition(scope, match, {
+                thing: prototype,
+                property: enumerationPropName,
                 value: enumerationProp
-              })
-            )
-
-            // Add enumeration string values to scope as constants.
-            specifier.items.forEach(({ value }) => {
-              if (typeof value === "string") scope.constants.add(value)
-            })
-
-            // Add multi-word identifier rule which returns enumeration, e.g. `card suits` or `Card Suits`
-            const literals = [[type.value, lowerFirst(type.value)], [groupName, lowerFirst(groupName)]]
-            scope.addExpressionRule({
-              name: `${type.value}_${property.value}`,
-              literals,
-              compile() {
-                return `${type.value}.${groupName}`
-              },
-              toAST(scope2, match2) {
-                return new AST.PropertyExpression(scope2, match2, {
-                  object: type.AST,
-                  property: enumerationPropName
-                })
-              }
-            })
-            statements.push(
-              new AST.LineComment(scope, match, {
-                value: `SPELL added rule: '${literals.map(group => `(${group.join("|")})`).join(" ")}'`
               })
             )
 
@@ -384,26 +433,22 @@ export default new Spell.Parser({
           }
           // datatype
           else {
+            const specifierConstant = new AST.ConstantExpression(specifier.match.scope, specifier.match, {
+              name: specifier.name,
+              value: `'${specifier.name}'`
+            })
             condition = new AST.CoreMethodInvocation(scope, match, {
               method: "isOfType",
-              arguments: [property.AST, specifier]
+              arguments: [property.AST, specifierConstant]
             })
           }
           assignment = new AST.IfStatement(scope, match, { condition, statements: assignment })
         }
-        // setter
-        statements.push(
-          new AST.ObjectSetter(scope, match, {
-            type: type.AST,
-            property: property.AST,
-            statements: assignment
-          })
-        )
 
         // getter
         statements.push(
-          new AST.ObjectGetter(scope, match, {
-            type: type.AST,
+          new AST.GetterDefinition(scope, match, {
+            thing: prototype,
             property: property.AST,
             statements: new AST.ReturnStatement(scope, match, {
               value: internalExpression
@@ -411,43 +456,57 @@ export default new Spell.Parser({
           })
         )
 
+        // setter
+        statements.push(
+          new AST.SetterDefinition(scope, match, {
+            thing: prototype,
+            property: property.AST,
+            statements: assignment
+          })
+        )
+
         return new AST.StatementGroup(scope, match, { statements })
       },
       tests: [
         {
-          compileAs: "statement",
+          compileAs: "block",
           tests: [
             [
               "cards have a direction as either up or down",
               [
+                "// SPELL added rule: '(Card|card) (Directions|directions)'",
                 "Card.Directions = ['up', 'down']",
                 "spellCore.define(Card.prototype, 'Directions', { value: Card.Directions })",
-                "// SPELL added rule: `(Card|card) (Directions|directions)`",
-                `spellCore.define(Card.prototype, 'direction', { get() { return this['#direction'] } })`,
-                `spellCore.define(Card.prototype, 'direction', { set(direction) { if (Card.Directions.includes(direction)) this['#direction'] = direction } })`
+                "spellCore.define(Card.prototype, 'direction', { get() { return this['#direction'] } })",
+                "spellCore.define(Card.prototype, 'direction', { set(direction) { if (spellCore.includes(Card.Directions, direction)) { this['#direction'] = direction } } })"
               ].join("\n")
             ],
             [
               "a player has a name as text",
               [
                 `spellCore.define(Player.prototype, 'name', { get() { return this['#name'] } })`,
-                `spellCore.define(Player.prototype, 'name', { set(name) { if (spellCore.isOfType(name, 'text')) this['#name'] = name } })`
+                `spellCore.define(Player.prototype, 'name', { set(name) { if (spellCore.isOfType(name, 'text')) { this['#name'] = name } } })`
               ].join("\n")
             ]
           ]
         },
         {
-          compileAs: "expression",
           beforeEach(scope) {
-            scope.compile("a card is a thing", "statement")
-            scope.compile("a card has a suit as one of clubs, diamonds, hearts or spades", "statement")
-            scope.compile("card = create a card", "statement")
+            scope.compile(
+              [
+                "a card is a thing",
+                "a card has a suit as one of clubs, diamonds, hearts or spades",
+                "card = a new card"
+              ].join("\n"),
+              "block"
+            )
           },
+          compileAs: "statement",
           tests: [
-            ["Card suits", "Card.Suits"],
-            ["card suits", "Card.Suits"],
-            ["the suit of the card", "card.suit"],
-            ["the suits of the card", "card.suits"]
+            ["print Card suits", "console.log(Card.Suits)"],
+            ["print card suits", "console.log(Card.Suits)"],
+            ["print the suit of the card", "console.log(card.suit)"],
+            ["print the suits of the card", "console.log(card.suits)"]
           ]
         }
       ]
@@ -500,6 +559,7 @@ export default new Spell.Parser({
       toAST(scope, match) {
         const { value, otherValue, type_property, condition } = match.groups
         const { type, property } = type_property.groups
+        const prototype = new AST.PrototypeExpression(type.scope, type, { type: type.AST })
         // make sure type is defined
         scope.getOrStubType(type.name)
         // register constants if specified
@@ -521,16 +581,11 @@ export default new Spell.Parser({
           getterBody = ifAST
         } else {
           getterBody = new AST.StatementGroup(scope, match, {
-            statements: [
-              ifAST,
-              new AST.ElseStatement(scope, match, {
-                statements: new AST.ReturnStatement(scope, match, { value: otherValue.AST })
-              })
-            ]
+            statements: [ifAST, new AST.ReturnStatement(scope, match, { value: otherValue.AST })]
           })
         }
-        return new AST.ObjectGetter(scope, match, {
-          type: type.AST,
+        return new AST.GetterDefinition(scope, match, {
+          thing: prototype,
           property: property.AST,
           statements: getterBody
         })
@@ -546,11 +601,11 @@ export default new Spell.Parser({
             // is one of diamonds or hearts => is_one_of_list
             [
               "the color of a card is red if its suit is either diamonds or hearts",
-              "spellCore.define(Card.prototype, 'color', { get() { if (spellCore.includes(['diamonds', 'hearts'], this.suit)) return 'red' } })"
+              "spellCore.define(Card.prototype, 'color', { get() { if (spellCore.includes(['diamonds', 'hearts'], this.suit)) { return 'red' } } })"
             ],
             [
               "a cards color is black if its suit is either clubs or spades otherwise it is red",
-              "spellCore.define(Card.prototype, 'color', { get() { return !!spellCore.includes(['clubs', 'spades'], this.suit) ? 'black' : 'red' } })"
+              "spellCore.define(Card.prototype, 'color', { get() { if (spellCore.includes(['clubs', 'spades'], this.suit)) { return 'black' }\nreturn 'red' } })"
             ]
           ]
         }
@@ -578,24 +633,24 @@ export default new Spell.Parser({
         const { type, property } = type_property.groups
         // make sure type is defined
         scope.getOrStubType(type.name)
-        return new AST.ObjectGetter(scope, match, {
-          type: type.AST,
+        return new AST.GetterDefinition(scope, match, {
+          thing: new AST.PrototypeExpression(type.scope, type, { type: type.AST }),
           property: property.AST,
-          statements: [
-            new AST.ReturnStatement(scope, match, {
-              value: expression.AST
-            })
-          ]
+          statements: new AST.ReturnStatement(scope, match, {
+            value: expression.AST
+          })
         })
       },
       tests: [
         {
           compileAs: "statement",
           beforeEach(scope) {
-            scope.types.add("card")
             scope.compile(
-              "cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king",
-              "statement"
+              [
+                "a card is a thing",
+                "cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king"
+              ].join("\n"),
+              "block"
             )
           },
           tests: [
@@ -659,64 +714,77 @@ export default new Spell.Parser({
           results.statements.push(statement)
         }
 
-        toAST(scope, match) {
-          const { type, alias, expression } = match.groups
+        updateASTScope(scope, match) {
+          const { type, alias } = match.groups
+          // Make sure type is defined
+          scope.getOrStubType(type.value)
+
           const words = JSON.parse(alias.value).split(" ")
-          const property = words.join("_")
+          // set `property` which we'll use in `toAST()` below
+          match.property = words.join("_")
           // add optional `not` to the rule
           const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ")
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
           scope.addExpressionSuffixRule({
-            name: property,
+            name: match.property,
             syntax: expressionSuffix,
             precedence: 20,
             constructor: Spell.Rule.PostfixOperatorSuffix,
             shouldNegateOutput: operator => operator.value.includes("not"),
-            compileOperatorExpression({ lhs }) {
-              return `${lhs}.${property}`
-            },
             toAST(_scope, _match, { lhs }) {
-              console.warn(lhs)
               return new AST.PropertyExpression(_scope, _match, {
                 object: lhs,
-                property: new AST.PropertyLiteral(_scope, _match, { value: property })
+                property: new AST.PropertyLiteral(_scope, _match, { value: match.property })
               })
             }
           })
 
-          // Create an instance getter
-          scope.getOrStubType(type.value)
-          return new AST.ObjectGetter(scope, match, {
-            type: new AST.TypeExpression(scope, type, { name: type.value }),
-            property: new AST.PropertyLiteral(scope, match, { value: property }),
-            statements: new AST.ReturnStatement(scope, match, {
-              value: expression.AST
-            })
+          // Add comment string which we'll output below
+          match.ruleComment = new AST.LineComment(scope, match, {
+            value: `SPELL added rule: '${expressionSuffix}'`
           })
+        }
+
+        toAST(scope, match) {
+          const { type, expression } = match.groups
+          const statements = [
+            match.ruleComment,
+            new AST.GetterDefinition(scope, match, {
+              thing: new AST.PrototypeExpression(scope, type, { type: type.AST }),
+              property: new AST.PropertyLiteral(scope, match, { value: match.property }),
+              statements: new AST.ReturnStatement(scope, match, {
+                value: expression.AST
+              })
+            })
+          ]
+          return new AST.StatementGroup(scope, match, { statements })
         }
       },
       tests: [
         {
-          compileAs: "statement",
           beforeEach(scope) {
-            scope.types.add("card")
-            scope.constants.add("up", "jack", "queen", "king")
+            scope.parse(
+              [
+                "a card is a thing",
+                "cards have a direction as either up or down",
+                "cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king"
+              ].join("\n"),
+              "block"
+            )
           },
+          compileAs: "block",
           tests: [
             [
               'a card "is face up" if its direction is up',
-              "// SPELL added rule: `is not? face up`\n" +
-                "spellCore.define(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
+              "// SPELL added rule: 'is not? face up'\nspellCore.define(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
             ],
             [
               'a card "is a face card" if its rank is one of [jack, queen, king]',
-              "// SPELL added rule: `is not? a face card`\n" +
-                "spellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
+              "// SPELL added rule: 'is not? a face card'\nspellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
             ],
             [
               'a card "is a face card" if its rank is one of jack, queen or king',
-              "// SPELL added rule: `is not? a face card`\n" +
-                "spellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
+              "// SPELL added rule: 'is not? a face card'¬spellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
             ]
           ]
         }
@@ -740,9 +808,11 @@ export default new Spell.Parser({
         }
 
         parseMatchBits(scope, match) {
-          const { results, groups } = match
-          const { type, alias } = results
+          const { groups } = match
+          const alias = groups.alias.value
+          const type = groups.type.value
           const sources = groups.sources.items
+
           const words = JSON.parse(alias).split(" ")
           let syntax = []
           const method = []
@@ -767,9 +837,10 @@ export default new Spell.Parser({
 
               // Try to find the enumeration
               // NOTE: currently this only works for an enumeration defined on the type!!!
-              const propertyName = sources[sourceNum]?.results?.property
+              const propertyName = sources[sourceNum]?.groups?.property?.value
               const variable = scope.types(type)?.variables(propertyName)
               const enumeration = variable?.enumeration
+              // console.warn({ type, Type: scope.types(type), propertyName, variable, enumeration })
               // set up enumeration matcher
               if (variable && enumeration) {
                 // make sure inflection of variables matches `isSingular`
@@ -797,7 +868,7 @@ export default new Spell.Parser({
           syntax.splice(0, 1, "(operator:is not?)")
           syntax = syntax.join(" ")
 
-          return { syntax, method, ruleData, vars, property }
+          return { type, syntax, method, ruleData, vars, property }
         }
 
         @proto mutatesScope = true
@@ -851,41 +922,51 @@ export default new Spell.Parser({
           })
           match.results.statements.push(statement)
         }
-
-        toAST(scope, match) {
-          const { syntax, method, ruleData, vars, property } = this.parseMatchBits(scope, match)
-          const { type } = match.results
-          console.warn({ syntax, method, ruleData, vars, property })
+        updateASTScope(scope, match) {
+          const { type, syntax, method, ruleData, vars, property } = this.parseMatchBits(scope, match)
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
-          scope.addExpressionSuffixRule(
-            {
-              name: property,
-              syntax,
-              precedence: 20,
-              constructor: Spell.Rule.InfixOperatorSuffix,
-              shouldNegateOutput: operator => operator.value.includes("not"),
-              compileOperatorExpression({ lhs, rhs }) {
-                if (!Array.isArray(rhs)) rhs = [rhs]
-                const args = rhs.map((value, index) => {
-                  const data = ruleData[index]
-                  const valueIndex = data.enumeration.indexOf(value)
-                  return data.values[valueIndex]
-                })
-                return `${lhs}.${property}(${args.join(", ")})`
-              },
-              compileASTExpression(_scope, _match, { lhs, rhs }) {
-                if (!Array.isArray(rhs)) rhs = [rhs]
-                return new AST.ScopedMethodExpression(_scope, _match, {
-                  thing: lhs,
-                  method: property,
-                  arguments: rhs
-                })
-              }
+          const rule = scope.addExpressionSuffixRule({
+            name: property,
+            syntax,
+            precedence: 20,
+            constructor: Spell.Rule.InfixOperatorSuffix,
+            shouldNegateOutput: operator => operator.value.includes("not"),
+            compileOperatorExpression({ lhs, rhs }) {
+              if (!Array.isArray(rhs)) rhs = [rhs]
+              const args = rhs.map((value, index) => {
+                const data = ruleData[index]
+                const valueIndex = data.enumeration.indexOf(value)
+                return data.values[valueIndex]
+              })
+              return `${lhs}.${property}(${args.join(", ")})`
             },
-            match.results
-          )
+            compileASTExpression(_scope, _match, { lhs, rhs }) {
+              if (!Array.isArray(rhs)) rhs = [rhs]
+              const args = rhs.map(arg => {
+                // TODO: assumes arg is a `keyword`
+                return new AST.ConstantExpression(arg.scope, arg, {
+                  name: arg.value,
+                  value: typeof arg.value === "string" ? `'${arg.value}'` : arg.value
+                })
+              })
+              return new AST.ScopedMethodInvocation(_scope, _match, {
+                thing: lhs,
+                method: property,
+                arguments: args
+              })
+            }
+          })
 
+          // Add comment string which we'll output below
+          match.ruleComment = new AST.LineComment(scope, match, {
+            value: `SPELL added rule: '${syntax}'`
+          })
+        }
+
+        toAST(scope, match) {
+          const { type } = match.groups
+          const { vars, property } = this.parseMatchBits(scope, match)
           // Return AST for the instance method
           const args = vars.map(varName => new AST.VariableExpression(scope, match, { name: varName }))
           const properties = vars.map(varName => new AST.PropertyLiteral(scope, match, { value: varName }))
@@ -900,50 +981,63 @@ export default new Spell.Parser({
                 rhs: variable
               })
           )
-          const result = new AST.ObjectMethod(scope, match, {
-            type: new AST.TypeExpression(scope, match, { name: type }),
-            method: property,
-            args,
-            statements: AST.multiInfixExpression(scope, match, { expressions, operator: "&&" }),
-            datatype: "boolean"
-          })
-          console.warn(result)
-          return result
+          const statements = [
+            match.ruleComment,
+            new AST.MethodDefinition(scope, match, {
+              thing: new AST.PrototypeExpression(type.scope, type, { type: type.AST }),
+              method: property,
+              args,
+              statements: new AST.ReturnStatement(scope, match, {
+                value: AST.MultiInfixExpression(scope, match, { expressions, operator: "&&" })
+              }),
+              datatype: "boolean"
+            })
+          ]
+          return new AST.StatementGroup(scope, match, { statements })
         }
       },
       tests: [
         {
-          compileAs: "statement",
           beforeEach(scope) {
-            scope.types.add("card")
-            scope.compile("a card has a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen, king", "statement")
-            scope.compile("a card has a suit as one of clubs, diamonds, hearts, spades", "statement")
+            scope.parse(
+              [
+                "a card is a thing",
+                "a card has a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen, king",
+                "a card has a suit as one of clubs, diamonds, hearts, spades"
+              ].join("\n"),
+              "block"
+            )
           },
+          compileAs: "block",
           tests: [
             [
               'a card "is a (rank)" for its ranks',
-              "// SPELL added rule: `(operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)`\n" +
-                "spellCore.define(Card.prototype, 'is_a_$rank', { value(rank) { return (this.rank === rank) } })"
+              "// SPELL added rule: '(operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)'\nspellCore.define(Card.prototype, 'is_a_$rank', { value(rank) { return this.rank === rank } })"
             ],
             [
               'a card "is the (rank) of (suits)" for its ranks and its suits',
-              "// SPELL added rule: `(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)`\n" +
-                "spellCore.define(Card.prototype, 'is_the_$rank_of_$suits', { value(rank, suit) { return (this.rank === rank) && (this.suit === suit) } })"
+              "// SPELL added rule: '(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)'\nspellCore.define(Card.prototype, 'is_the_$rank_of_$suits', { value(rank,suit) { return this.rank === rank && this.suit === suit } })"
             ]
           ]
         },
         {
-          compileAs: "statement",
           beforeEach(scope) {
-            scope.types.add("card")
-            scope.compile("a card has a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen, king", "statement")
-            scope.compile("a card has a suit as one of clubs, diamonds, hearts, spades", "statement")
-            scope.compile('a card "is the (rank) of (suits)" for its ranks and its suits')
-            scope.compile("the card = create a card")
+            scope.parse(
+              [
+                "a card is a thing",
+                "a card has a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen, king",
+                "a card has a suit as one of clubs, diamonds, hearts, spades",
+                'a card "is a (rank)" for its ranks',
+                'a card "is the (rank) of (suits)" for its ranks and its suits',
+                "card = a new card"
+              ].join("\n"),
+              "block"
+            )
           },
+          compileAs: "statement",
           tests: [
-            ["if the card is the queen of spades", "if (card.is_the_$rank_of_$suits('queen', 'spades')) {}"],
-            ["if the card is the 2 of hearts", "if (card.is_the_$rank_of_$suits(2, 'hearts')) {}"]
+            ["print card is a queen", "console.log(card.is_a_$rank('queen'))"],
+            ["print card is the 2 of hearts", "console.log(card.is_the_$rank_of_$suits(2, 'hearts'))"]
           ]
         }
       ]
