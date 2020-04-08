@@ -339,7 +339,7 @@ export default new Spell.Parser({
           typeScope.variables.add({ ...varProps })
 
           // Add enumeration string values to scope as constants.
-          values.forEach(({ value }) => {
+          values.forEach(value => {
             if (typeof value === "string") scope.constants.add(value)
           })
 
