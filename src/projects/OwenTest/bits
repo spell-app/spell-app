@@ -4,3 +4,4 @@ the card is a new card with suit = "diamonds" and is-face-up = true
 print the card
 expect the suit of the card is "diamonds"
 expect the is-face-up of the card
+get a new card

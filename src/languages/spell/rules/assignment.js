@@ -49,7 +49,7 @@ export default new Spell.Parser({
       },
       tests: [
         {
-          compileAs: "statement",
+          compileAs: "block",
           beforeEach(scope) {
             scope.variables.add("thing")
             scope.types.add("Person")
@@ -65,7 +65,7 @@ export default new Spell.Parser({
             {
               title: "non-existing var: property set (won't work)",
               input: "let the name of nothing = 'bob'",
-              output: undefined
+              output: `// PARSE ERROR: UNABLE TO PARSE: "let the name of nothing = 'bob'"`
             },
 
             { title: "existing var: equals", input: "thing = yes", output: "thing = true" },
@@ -111,7 +111,7 @@ export default new Spell.Parser({
       },
       tests: [
         {
-          compileAs: "statement",
+          compileAs: "block",
           beforeEach(scope) {
             scope.variables.add("thing")
           },
