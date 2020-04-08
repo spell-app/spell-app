@@ -32,7 +32,8 @@ export default new Spell.Parser({
         const { thing } = match.groups
         // If `thing` is a variable...
         if (thing.rule.name === "variable") {
-          const varName = thing.value
+          // get just the `identifier` bit to ignore leading "the "
+          const varName = thing.groups.identifier.value
           match.isNewVariable = !scope.variables(varName)
           // define it a a new variable in `scope` if not already defined
           if (match.isNewVariable) scope.variables.add(varName) // TODO: type???

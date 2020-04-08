@@ -30,8 +30,8 @@ export default new Spell.Parser({
         const args = [
           expression.AST,
           value?.AST || new AST.BooleanLiteral(scope, match, { value: true }),
-          new AST.StringLiteral(scope, match, { value: expression.value }),
-          value?.value || "true"
+          new AST.StringLiteral(scope, match, { value: `\`${expression.value}\`` }),
+          new AST.StringLiteral(scope, match, { value: value?.value || '"true"' })
         ]
         return new AST.CoreMethodInvocation(scope, match, {
           method: "assertEquals",
@@ -41,17 +41,17 @@ export default new Spell.Parser({
       tests: [
         {
           beforeEach(scope) {
-            scope.compile("create a type named thing")
-            scope.compile("the thing = a new thing with foo = 'bar'")
+            scope.compile("a card is a thing")
+            scope.compile("it = a new card with rank = 'queen' and is-face-up = true")
           },
           tests: [
             [
-              "expect the foo of the thing to be 'bar'",
-              "spellCore.assertEquals(thing.foo, 'bar', \"the foo of the thing\", \"'bar'\")"
+              'expect the rank of it to be "queen"',
+              'spellCore.assertEquals(it.rank, "queen", `the rank of it`, "queen")'
             ],
             [
-              "expect the foo of the thing is 'bar'",
-              "spellCore.assertEquals((thing.foo == 'bar'), true, \"the foo of the thing is 'bar'\", true)"
+              "expect the is-face-up of it",
+              'spellCore.assertEquals(it.is_face_up, true, `the is-face-up of it`, "true")'
             ]
           ]
         }

@@ -575,6 +575,11 @@ export default new Spell.Parser({
               "words in 'a word list' where word starts with 'a'",
               "spellCore.filter('a word list', (word) => spellCore.startsWith(word, 'a'))"
             ],
+            // TODO: wantsInlineBlock:true could possibly make this work?
+            // [
+            //   "words in 'a word list' where\n\tword starts with 'a'",
+            //   "spellCore.filter('a word list', (word) => { spellCore.startsWith(word, 'a') })"
+            // ],
             ["the items in my-list where the id of the item > 1", "spellCore.filter(my_list, (item) => (item.id > 1))"]
           ]
         }

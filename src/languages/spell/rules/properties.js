@@ -122,7 +122,7 @@ export default new Spell.Parser({
     // TODO: multiple lines if > 2 props?
     {
       name: "object_literal_properties",
-      syntax: "[({property} ((=|is|of|is? set to) {value:expression})?)(,|and)]",
+      syntax: "[({property} (=|is|of|is? set to) {value:expression})(,|and)]",
       compile(scope, match) {
         const props = match.items.map(function(prop) {
           const { property, value } = prop.results

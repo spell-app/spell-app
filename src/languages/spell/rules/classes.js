@@ -41,7 +41,6 @@ export default new Spell.Parser({
         const { type, superType } = match.groups
         // Forget it if type is already defined.
         // TODO: complain if existing type is set up differently!
-        // TODO: set up superType if necessary?
         if (scope.types(type.value)) return
         scope.types.add({ name: type.value, superType: superType?.value })
       },
@@ -139,7 +138,6 @@ export default new Spell.Parser({
         results.statements.push(`new ${type}(${props})`)
       },
       toAST(scope, match) {
-        console.warn(match)
         const { type, props } = match.groups
         return new AST.NewInstanceExpression(scope, match, {
           type: type.AST,
@@ -269,7 +267,7 @@ export default new Spell.Parser({
       name: "define_property_has",
       alias: "statement",
       syntax: [
-        "(a|an) {type} has (a|an) {property} {specifier:type_specifier}?",
+        "(a|an) {type:singular_type} has (a|an) {property} {specifier:type_specifier}?",
         "{type:plural_type} have (a|an) {property} {specifier:type_specifier}?"
       ],
       testRule: "…(has|have)",
