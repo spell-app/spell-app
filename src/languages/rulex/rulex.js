@@ -20,17 +20,19 @@ RulexParser.prototype.tokenizer = new Tokenizer({
 export const rulex = new RulexParser()
 export default rulex
 
-// Construct a rule from results of running a Combo rule below.
-//  - `ruleProps` is just the props for `new constructor()`
-//  - `results` is all of the results
-rulex.applyFlags = function applyFlags(rule, flags) {
-  // handle repeat, which may nest the rule in a repeat
-  if (flags.repeatFlag === "?") rule.optional = true
-  else if (flags.repeatFlag === "+") rule = new Rule.Repeat({ rule })
-  else if (flags.repeatFlag === "*") rule = new Rule.Repeat({ rule, optional: true })
+// Apply flags from `match` to the `rule` passed in, possibly returning a new rule!
+rulex.applyFlags = function(rule, match) {
+  const repeatFlag = match.groups.repeatFlag?.compile()
+  const argument = match.groups.argument?.compile()
+  const testLocation = match.groups.testLocation?.compile()
 
-  if (flags.argument) rule.argument = flags.argument
-  if (flags.testLocation) rule.testLocation = flags.testLocation
+  // handle repeat, which may nest the rule in a repeat
+  if (repeatFlag === "?") rule.optional = true
+  else if (repeatFlag === "+") rule = new Rule.Repeat({ rule })
+  else if (repeatFlag === "*") rule = new Rule.Repeat({ rule, optional: true })
+
+  if (argument) rule.argument = argument
+  if (testLocation) rule.testLocation = testLocation
 
   return rule
 }
@@ -39,7 +41,7 @@ rulex.applyFlags = function applyFlags(rule, flags) {
 rulex.consolidateLiterals = function(rules, constructor, literalKey, GroupConstructor = constructor) {
   if (rules.length === 1) return rules
 
-  const results = []
+  const output = []
   for (let start = 0, rule; (rule = rules[start]); start++) {
     if (rule instanceof constructor && !rule.isAdorned) {
       // find the end of the run
@@ -60,9 +62,9 @@ rulex.consolidateLiterals = function(rules, constructor, literalKey, GroupConstr
         start = end
       }
     }
-    results.push(rule)
+    output.push(rule)
   }
-  return results
+  return output
 }
 
 // Given a value as an array or a single value, turn it into an `optional` array.
@@ -103,7 +105,7 @@ rulex.defineRule({
   rules: [new Rule.Word({ argument: "argument" }), new Rule.Literal(":")],
   optional: true,
   compile(scope, match) {
-    return match.results.argument
+    return match.groups.argument.value
   },
   tests: [
     {
@@ -148,10 +150,11 @@ rulex.defineRule({
     repeatFlag
   ],
 
-  compile(scope, { results }) {
-    const rule = new Rule.Symbol(results.literal)
-    if (results.isEscaped) rule.isEscaped = true
-    return rulex.applyFlags(rule, results)
+  compile(scope, match) {
+    const { literal, isEscaped } = match.groups
+    const rule = new Rule.Symbol(literal.value)
+    if (isEscaped) rule.isEscaped = true
+    return rulex.applyFlags(rule, match)
   },
   tests: [
     {
@@ -203,9 +206,10 @@ rulex.defineRule({
   name: "keyword",
   alias: "rule",
   rules: [testLocation, new Rule.Word({ argument: "literal" }), repeatFlag],
-  compile(scope, { results }) {
-    const rule = new Rule.Keyword(results.literal)
-    return rulex.applyFlags(rule, results)
+  compile(scope, match) {
+    const { literal } = match.groups
+    const rule = new Rule.Keyword(literal.value)
+    return rulex.applyFlags(rule, match)
   },
   tests: [
     {
@@ -235,9 +239,10 @@ rulex.defineRule({
   name: "number",
   alias: "rule",
   rules: [testLocation, new Rule.TokenType({ tokenType: Token.Number, argument: "number" }), repeatFlag],
-  compile(scope, { results }) {
-    const rule = new Rule.Keyword({ literal: results.number })
-    return rulex.applyFlags(rule, results)
+  compile(scope, match) {
+    const { number } = match.groups
+    const rule = new Rule.Keyword({ literal: number.value })
+    return rulex.applyFlags(rule, match)
   },
   tests: [
     {
@@ -270,9 +275,9 @@ rulex.defineRule({
     new Rule.Symbol("}"),
     repeatFlag
   ],
-  compile(scope, { results }) {
-    const rule = new Rule.Subrule(results.rule)
-    return rulex.applyFlags(rule, results)
+  compile(scope, match) {
+    const rule = new Rule.Subrule(match.groups.rule.compile())
+    return rulex.applyFlags(rule, match)
   },
   tests: [
     {
@@ -303,14 +308,15 @@ rulex.defineRule({
   rules: [
     new Rule.Symbol("["),
     argument,
-    new Rule.Subrule({ argument: "rule", rule: "rule" }),
+    new Rule.Subrule({ argument: "ruleName", rule: "rule" }),
     new Rule.Subrule({ argument: "delimiter", rule: "rule" }),
     new Rule.Symbol("]"),
     new Rule.Symbol({ argument: "repeatFlag", literal: "?", optional: true })
   ],
-  compile(scope, { results }) {
-    const rule = new Rule.Repeat({ rule: results.rule, delimiter: results.delimiter })
-    return rulex.applyFlags(rule, results)
+  compile(scope, match) {
+    const { ruleName, delimiter } = match.groups
+    const rule = new Rule.Repeat({ rule: ruleName.compile(), delimiter: delimiter.compile() })
+    return rulex.applyFlags(rule, match)
   },
   tests: [
     {
@@ -355,10 +361,8 @@ rulex.defineRule({
     repeatFlag
   ],
   compile(scope, match) {
-    // combine main results from nested split
-    const results = { ...match.results, ...match.results.split }
-    let { choices } = results
-    let rule
+    const split = match.groups.split.compile()
+    let { choices } = split
 
     // Combine single keyword, keywords, symbol, symbols
     choices = rulex.consolidateLiterals(choices, Rule.Keyword, "literal")
@@ -366,12 +370,17 @@ rulex.defineRule({
 
     // If we got exactly one choice, use that.
     // Note that the choice's flags will "beat" the rule's flags if they conflict.
+    let rule
     if (choices.length === 1) {
-      ;[rule] = choices
+      // eslint-disable-next-line prefer-destructuring
+      rule = choices[0]
     } else {
       rule = new Rule.Choice({ rules: choices })
     }
-    return rulex.applyFlags(rule, results)
+
+    rule = rulex.applyFlags(rule, match)
+    if (split.argument) rule.argument = split.argument
+    return rule
   },
   tests: [
     {
