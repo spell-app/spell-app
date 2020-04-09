@@ -18,16 +18,6 @@ export default new Spell.Parser({
       ],
       constructor: Spell.Rule.Statement,
       mutatesScope: true,
-      updateScope(scope, { results, groups }) {
-        const { thing, value } = results
-        // Add `thing` as a variable if not already in scope.
-        const thingMatch = groups.thing
-        const isNewVarable = thingMatch.rule.name === "variable" && !thingMatch.variable
-        if (isNewVarable) scope.variables.add(thing)
-
-        const statement = scope.addStatement(`${isNewVarable ? "let " : ""}${thing} = ${value}`)
-        results.statements.push(statement)
-      },
       updateASTScope(scope, match) {
         const { thing } = match.groups
         // If `thing` is a variable...
@@ -88,14 +78,6 @@ export default new Spell.Parser({
       testRule: "get",
       constructor: Spell.Rule.Statement,
       mutatesScope: true,
-      updateScope(scope, { results }) {
-        const { value } = results
-        // make sure 'it' is declared LOCALLY
-        const isNewVarable = !scope.variables("it", "LOCAL")
-        if (isNewVarable) scope.variables.add("it")
-        const statement = scope.addStatement(`${isNewVarable ? "let " : ""}it = ${value}`)
-        results.statements.push(statement)
-      },
       updateASTScope(scope, match) {
         // make sure 'it' is declared LOCALLY
         match.isNewVarable = !scope.variables("it", "LOCAL")
@@ -131,14 +113,9 @@ export default new Spell.Parser({
       syntax: "(return|exit with?) {expression}?",
       testRule: "(return|exit)",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { expression = "undefined" } = results
-        const statement = scope.addStatement(`return ${expression}`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         return new AST.ReturnStatement(scope, match, {
-          value: match.groups.expression?.AST || new AST.UndefinedLiteral(scope, match)
+          value: match.groups.expression?.AST
         })
       },
       tests: [
@@ -148,9 +125,9 @@ export default new Spell.Parser({
             scope.variables.add("thing")
           },
           tests: [
-            ["return", "return undefined"],
+            ["return", "return"],
             ["return thing", "return thing"],
-            ["exit", "return undefined"],
+            ["exit", "return"],
             ["exit with false", "return false"]
           ]
         }

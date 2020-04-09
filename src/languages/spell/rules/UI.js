@@ -13,10 +13,6 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "print {expression}",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const statement = scope.addStatement(`console.log(${results.expression})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { expression } = match.groups
         return new AST.ConsoleMethodInvocation(scope, match, {
@@ -41,12 +37,6 @@ export default new Spell.Parser({
       syntax: "notify {message:expression} (with {okButton:text})?", // TODO: "with close" ?
       testRule: "notify",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { message, okButton = `"OK"` } = results
-        scope.async = true
-        const statement = scope.addStatement(`spellCore.notify(${message}, ${okButton})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { message, okButton } = match.groups
         const args = [message.AST]
@@ -77,12 +67,6 @@ export default new Spell.Parser({
       syntax: "alert {message:expression} (with {okButton:text})?",
       testRule: "alert",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { message, okButton = `"OK"` } = results
-        scope.async = true
-        const statement = scope.addStatement(`await spellCore.alert(${message}, ${okButton})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         scope.async = true // TODO!!!
         const { message, okButton } = match.groups
@@ -116,12 +100,6 @@ export default new Spell.Parser({
       syntax: "warn {message:expression} (with {okButton:text})?",
       testRule: "warn",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { message, okButton = `"OK"` } = results
-        scope.async = true
-        const statement = scope.addStatement(`await spellCore.warn(${message}, ${okButton})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         scope.async = true // TODO!!!
         const { message, okButton } = match.groups
@@ -155,12 +133,6 @@ export default new Spell.Parser({
       syntax: "confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})?)?",
       testRule: "confirm",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { message, okButton = `"OK"`, cancelButton = `"Cancel"` } = results
-        scope.async = true
-        const statement = scope.addStatement(`await spellCore.confirm(${message}, ${okButton}, ${cancelButton})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         scope.async = true // TODO!!!
         const { message, okButton, cancelButton } = match.groups
@@ -197,12 +169,6 @@ export default new Spell.Parser({
       syntax: "prompt {message:expression} (with {defaultValue:expression})?",
       testRule: "prompt",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { message, defaultValue = "undefined" } = results
-        scope.async = true
-        const statement = scope.addStatement(`await spellCore.prompt(${message}, ${defaultValue})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         scope.async = true // TODO!!!
         const { message, defaultValue } = match.groups

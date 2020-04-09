@@ -17,23 +17,6 @@ Spell.Rule.Statement = class statement extends Rule.Sequence {
   // Set to true if this statement wants to attempt to read an nested block starting on the next line.
   @proto wantsNestedBlock = false
 
-  // YOU MUST IMPLEMENT THIS:
-  //
-  // We have definitively been parsed correctly.
-  // Update the `scope` with rules and/or statements as necessary.
-  //
-  // NOTE: DO NOT CALL THIS DIRECTLY -- ALWAYS CALL IT FROM THE MATCH!
-  //       Otherwise we may call the method twice, duplicating its effects.
-  updateScope(scope, match) {}
-
-  // Return the nested scope that we should use to parse an inline statement or nested block.
-  // Recommended is to remember it as `match.results.$scope` for things to work out correctly.
-  // See `./rules/if.js` for an example.
-  //
-  // NOTE: DO NOT CALL THIS DIRECTLY -- ALWAYS CALL IT FROM THE MATCH!
-  //       Otherwise we may call the method twice, duplicating its effects.
-  getNestedScope(scope, match) {}
-
   // Special parse to note any stuff we didn't catch
   // and handle block statements.
   parse(scope, tokens) {
@@ -70,7 +53,7 @@ Spell.Rule.Statement = class statement extends Rule.Sequence {
     const { inlineStatement, block } = match
     if (inlineStatement && block) {
       // TODO: add a parse error?
-      console.warn(`Rule ${this.name} matched both inlineStatement and block!  match:`, match)
+      Spell.logger.warn(`Rule ${this.name} matched both inlineStatement and block!  match:`, match)
     }
     if (inlineStatement) groups.inlineStatement = inlineStatement
     if (block) groups.block = block
@@ -91,10 +74,5 @@ Spell.Rule.Statement = class statement extends Rule.Sequence {
   }
 
   // To compile, we just output our statements.
-  compile(scope, match) {
-    // Call `updateScope()` on the match to make sure we've fully compiled.
-    // This is a no-op if it's been called before.
-    match.updateScope()
-    return match.results?.statements?.join("\n") || ""
-  }
+  compile(scope, match) {}
 }

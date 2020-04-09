@@ -105,26 +105,6 @@ export default class Match {
     }
   }
 
-  // Have the match call `updateScope()` if it can.
-  // This is called for `statement`s BEFORE they're actually compiled,
-  // and is a chance for the statement to declare new rules, add variables to the scope, etc.
-  // NOTE: we memoize this so calling it subsequent times is a no-op.
-  // NOTE: ONLY CALL THIS FROM THE MATCH!!!
-  @memoize
-  updateScope() {
-    // NOTE: we ALWAYS call getNestedScope first so it's set up before updateScope is called.
-    this.getNestedScope()
-    return this.rule.updateScope?.(this.scope, this)
-  }
-
-  // Return nested scope for nested block statements.
-  // NOTE: we memoize this so calling it subsequent times is a no-op.
-  // NOTE: ONLY CALL THIS FROM THE MATCH!!!
-  @memoize
-  getNestedScope() {
-    return this.rule.getNestedScope?.(this.scope, this)
-  }
-
   // DEBUG: Call this when printing to the console to eliminate the big bits in node.
   toPrint() {
     if (!isNode) return this

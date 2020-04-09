@@ -22,21 +22,6 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getNestedScope(scope, { results }) {
-        const condition = parenthesizeCondition(results.condition)
-        results.$scope = new Scope.Method({
-          name: "if",
-          scope,
-          toString() {
-            return `if ${condition} ${this.compileStatements()}`
-          }
-        })
-        return results.$scope
-      },
-      updateScope(scope, { results }) {
-        const statement = scope.addStatement(results.$scope)
-        results.statements.push(statement)
-      },
       getASTScope(scope, match) {
         return new Scope({ name: "if", scope })
       },
@@ -95,11 +80,6 @@ export default new Spell.Parser({
               input: "if a:\n\tb = 1\n\tc = 2",
               output: "if (a) {\nlet b = 1\nlet c = 2\n}"
             },
-            //         {
-            //           title: "Blank lines in the nested block are carried over",
-            //           input: "if a:\n\tb = 1\n\n\n\tc = 2",
-            //           output: "if (a) {\nlet b = 1\n\n\nlet c = 2\n}"
-            //         },
             {
               title: "Nested ifs work fine",
               input: "if a\n\tb = 1\n\tif b\n\t\tc = 2",
@@ -126,21 +106,6 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getNestedScope(scope, { results }) {
-        const condition = parenthesizeCondition(results.condition)
-        results.$scope = new Scope.Method({
-          name: "else_if",
-          scope,
-          toString() {
-            return `else if ${condition} ${this.compileStatements()}`
-          }
-        })
-        return results.$scope
-      },
-      updateScope(scope, { results }) {
-        const statement = scope.addStatement(results.$scope)
-        results.statements.push(statement)
-      },
       getASTScope(scope, match) {
         return new Scope({ name: "elseif", scope })
       },
@@ -217,19 +182,6 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getNestedScope(scope, { results }) {
-        results.$scope = new Scope.Method({
-          scope,
-          toString() {
-            return `else ${this.compileStatements()}`
-          }
-        })
-        return results.$scope
-      },
-      updateScope(scope, { results }) {
-        const statement = scope.addStatement(results.$scope)
-        results.statements.push(statement)
-      },
       getASTScope(scope, match) {
         return new Scope({ name: "else", scope })
       },

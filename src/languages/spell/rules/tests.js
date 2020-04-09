@@ -13,18 +13,6 @@ export default new Spell.Parser({
       syntax: "expect {expression} (to be {value:expression})?",
       testRule: "expect",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, match) {
-        const { results, groups } = match
-        const args = [
-          results.expression,
-          "value" in results ? results.value : true,
-          // TODO: output expression spell for error messages in output
-          JSON.stringify(groups.expression.tokens.join(" ")),
-          groups.value ? JSON.stringify(groups.value.tokens.join(" ")) : "true"
-        ]
-        const statement = scope.addStatement(`spellCore.assertEquals(${args.join(", ")})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { expression, value } = match.groups
         const args = [

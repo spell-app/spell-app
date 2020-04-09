@@ -56,14 +56,9 @@ Spell.Rule.Block = class block extends Rule {
           // We've locked in this statement -- have it update scope if necessary.
           // This is used, e.g. by assignment to add new variables to the scope, etc.
           statement.updateASTScope()
-          // statement.updateScope()
 
           if (statement.error) {
-            // if (lastStatement.rule?.wantsNestedBlock) {
-            //   lastStatement.getNestedScope().addStatement(statement.error.compile())
-            // } else {
             matched.push(statement.error)
-            // }
           }
           lastStatement = statement
         }

@@ -539,11 +539,6 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       parseInlineStatementAs: "expression",
-      getNestedScope(scope, match) {
-        const { arg } = match.results
-        match.results.expression = new Scope.Method({ scope, args: [singularize(arg)], asExpression: true })
-        return match.results.expression
-      },
       compile(scope, match) {
         const { list, expression } = match.results
         return `spellCore.filter(${list}, ${expression})`
@@ -597,11 +592,6 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       parseInlineStatementAs: "expression",
-      getNestedScope(scope, match) {
-        const { arg } = match.results
-        match.results.filter = new Scope.Method({ scope, args: [singularize(arg)], asExpression: true })
-        return match.results.filter
-      },
       compile(scope, match) {
         const { operator, filter, list } = match.results
         const bang = operator === "has" ? "" : "!"
@@ -656,12 +646,6 @@ export default new Spell.Parser({
       syntax: "add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {list:expression}",
       testRule: "add",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { thing, list, method } = results
-        const spellMethod = ["start", "front", "top"].includes(method) ? "prepend" : "append"
-        const statement = scope.addStatement(`spellCore.${spellMethod}(${list}, ${thing})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { thing, list, method } = match.groups
         const spellMethod = method && ["start", "front", "top"].includes(method.value) ? "prepend" : "append"
@@ -698,11 +682,6 @@ export default new Spell.Parser({
       syntax: "prepend {thing:expression} to {list:expression}",
       testRule: "prepend",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { thing, list } = results
-        const statement = scope.addStatement(`spellCore.prepend(${list}, ${thing})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(scope, match, {
@@ -729,11 +708,6 @@ export default new Spell.Parser({
       syntax: "append {thing:expression} to {list:expression}",
       testRule: "append",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { thing, list } = results
-        const statement = scope.addStatement(`spellCore.append(${list}, ${thing})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(scope, match, {
@@ -768,13 +742,6 @@ export default new Spell.Parser({
       syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
       testRule: "add",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { thing, item, list, operator } = results
-        const position =
-          operator === "before" ? `spellCore.itemOf(${list}, ${item})` : `spellCore.itemOf(${list}, ${item}) + 1`
-        const statement = scope.addStatement(`spellCore.addAtPosition(${list}, ${position}, ${thing})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { thing, list, operator, item } = match.groups
         let position = new AST.CoreMethodInvocation(scope, match, {
@@ -827,11 +794,6 @@ export default new Spell.Parser({
       syntax: "(empty|clear) {list:expression}",
       testRule: "(empty|clear)",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { list } = results
-        const statement = scope.addStatement(`spellCore.clear(${list})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(scope, match, {
@@ -861,11 +823,6 @@ export default new Spell.Parser({
       syntax: "remove the? {position:ordinal} {arg:singular_variable} of {list:expression}",
       testRule: "remove",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { position, list } = results
-        const statement = scope.addStatement(`spellCore.removeItem(${list}, ${position})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { position, list } = match.groups
         return new AST.CoreMethodInvocation(scope, match, {
@@ -894,11 +851,6 @@ export default new Spell.Parser({
       syntax: "remove {arg:singular_variable} {number:expression} of {list:expression}",
       testRule: "remove",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { number, list } = results
-        const statement = scope.addStatement(`spellCore.removeItem(${list}, ${number})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { number, list } = match.groups
         return new AST.CoreMethodInvocation(scope, match, {
@@ -926,11 +878,6 @@ export default new Spell.Parser({
       syntax: "remove {arg:plural_variable} {start:expression} to {end:expression} of {list:expression}",
       testRule: "remove",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { start, end, list } = results
-        const statement = scope.addStatement(`spellCore.removeRangeBetween(${list}, ${start}, ${end})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { start, end, list } = match.groups
         return new AST.CoreMethodInvocation(scope, match, {
@@ -955,11 +902,6 @@ export default new Spell.Parser({
       syntax: "remove {start:ordinal} to {end:ordinal} {arg:plural_variable} of {list:expression}",
       testRule: "remove",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { start, end, list } = results
-        const statement = scope.addStatement(`spellCore.removeRangeBetween(${list}, ${start}, ${end})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { start, end, list } = match.groups
         return new AST.CoreMethodInvocation(scope, match, {
@@ -988,11 +930,6 @@ export default new Spell.Parser({
       syntax: "remove {thing:expression} from {list:expression}",
       testRule: "remove",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { thing, list } = results
-        const statement = scope.addStatement(`spellCore.remove(${list}, ${thing})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(scope, match, {
@@ -1021,17 +958,6 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       parseInlineStatementAs: "expression",
-      getNestedScope(scope, match) {
-        const { arg } = match.results
-        match.results.condition = new Scope.Method({ scope, args: [singularize(arg)], asExpression: true })
-        return match.results.condition
-      },
-      updateScope(scope, { results }) {
-        const { condition, list } = results
-        // singularize method argument
-        const statement = scope.addStatement(`spellCore.removeWhere(${list}, ${condition})`)
-        results.statements.push(statement)
-      },
       getASTScope(scope, match) {
         const arg = singularize(match.groups.arg.value)
         return new Scope.Method({ scope, args: [arg], asExpression: true })
@@ -1080,11 +1006,6 @@ export default new Spell.Parser({
       syntax: "reverse ((the? {arg:plural_variable}) (in|of))? {list:expression}",
       testRule: "reverse",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { list } = results
-        const statement = scope.addStatement(`spellCore.reverse(${list})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(scope, match, {
@@ -1114,11 +1035,6 @@ export default new Spell.Parser({
       syntax: "(randomize|shuffle) ((the? {arg:plural_variable}) (in|of))? {list:expression}",
       testRule: "(randomize|shuffle)",
       constructor: Spell.Rule.Statement,
-      updateScope(scope, { results }) {
-        const { list } = results
-        const statement = scope.addStatement(`spellCore.randomize(${list})`)
-        results.statements.push(statement)
-      },
       toAST(scope, match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(scope, match, {
@@ -1153,35 +1069,10 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getNestedScope(scope, { results }) {
-        const { item, position } = results
-        // Create a method to be used in the `forEach` to add inline and block statements to.
-        const args = [{ name: item }]
-        if (position) args.push({ name: position, type: "number" })
-        results.$scope = new Scope.Method({
-          scope,
-          args
-        })
-        console.warn(results.$scope)
-        return results.$scope
-      },
-      updateScope(scope, { results }) {
-        // Add a Method for the `forEach` wrapper with a custom toString()
-        const statement = scope.addStatement(
-          new Scope.Method({
-            name: "for_each",
-            toString() {
-              return `spellCore.forEach(${results.list}, ${results.$scope.toString()})`
-            }
-          })
-        )
-        results.statements.push(statement)
-      },
       getASTScope(scope, match) {
         const { item, position } = match.groups
         const args = [{ name: item.value }]
         if (position) args.push({ name: position.value, type: "number" })
-        console.info(args)
         return new Scope.Method({ scope, args })
       },
       toAST(scope, match) {
@@ -1245,32 +1136,6 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getNestedScope(scope, match) {
-        // Create a method to be used in the `forEach` to add inline and block statements to.
-        const args = [{ name: match.groups.item.value }]
-        match.$scope = new Scope.Method({
-          scope,
-          args
-        })
-        console.warn(match)
-        return match.$scope
-      },
-      updateScope(scope, match) {
-        // Add a Method for the `forEach` wrapper with a custom toString()
-        const {
-          $scope,
-          results: { start, end }
-        } = match
-        const statement = scope.addStatement(
-          new Scope.Method({
-            name: "for_each",
-            toString() {
-              return `spellCore.forEach(spellCore.getRange(${start}, ${end}), ${$scope.toString()})`
-            }
-          })
-        )
-        match.results.statements.push(statement)
-      },
       getASTScope(scope, match) {
         const arg = singularize(match.groups.item.value)
         return new Scope.Method({ scope, args: [arg], asExpression: true })
