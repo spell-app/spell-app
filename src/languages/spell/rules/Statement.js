@@ -32,7 +32,7 @@ Spell.Rule.Statement = class statement extends Rule.Sequence {
       }
       // If there are still tokens left, remember them for later.
       if (match.length !== tokens.length) {
-        match.results.incomplete = {
+        match.groups.incomplete = {
           parsed: Tokenizer.join(tokens, 0, match.length),
           missed: Tokenizer.join(tokens, match.length)
         }

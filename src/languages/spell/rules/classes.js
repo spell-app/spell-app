@@ -553,7 +553,7 @@ export default new Spell.Parser({
           const match = super.parse(scope, tokens)
           if (!match) return undefined
           // If first word of `alias` is not `is`, forget it
-          const alias = JSON.parse(match.results.alias).split(" ")
+          const alias = JSON.parse(match.groups.alias.value).split(" ")
           if (alias[0] !== "is") return undefined
 
           return match
@@ -649,7 +649,7 @@ export default new Spell.Parser({
           const match = super.parse(scope, tokens)
           if (!match) return undefined
           // If first word of `alias` is not `is`, forget it
-          const alias = JSON.parse(match.results.alias).split(" ")
+          const alias = JSON.parse(match.groups.alias.value).split(" ")
           if (alias[0] !== "is") return undefined
           return match
         }

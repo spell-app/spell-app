@@ -22,13 +22,6 @@ export default class Match {
     return this.argument || this.rule.argument || this.rule.name
   }
 
-  // Syntactic sugar to easily get `results` of the match for sequences, etc.
-  // Only works for some rule types.
-  @memoize
-  get results() {
-    return this.rule.gatherResults?.(this.scope, this)
-  }
-
   // Syntactic sugar to easily get `groups` of the match for sequences, etc.
   // Only works for some rule types.
   // @memoize

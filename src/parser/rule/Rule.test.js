@@ -781,9 +781,9 @@ describe("Rule.Sequence", () => {
         const match = rule.parse(parser, tokenize("this that the other"))
         expect(match.length).toBe(4)
         expect(match.compile()).toBe("COMPILED")
-        const { results } = match
-        expect(results.that).toBe("that")
-        expect(results.other).toBe("other")
+        const { groups } = match
+        expect(groups.that.value).toBe("that")
+        expect(groups.other.value).toBe("other")
       })
 
       test("does not parse in the middle of tokens", () => {

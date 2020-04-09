@@ -165,10 +165,6 @@ export default new Spell.Parser({
       syntax: "(operator:the? absolute value of) {expression}",
       testRule: "…absolute",
       constructor: Spell.Rule.InfixOperatorSuffix,
-      compile(scope, match) {
-        const { expression } = match.results
-        return `spellCore.absoluteValue(${expression})`
-      },
       toAST(scope, match) {
         const { expression } = match.groups
         return new AST.CoreMethodInvocation(scope, match, {
@@ -194,10 +190,6 @@ export default new Spell.Parser({
       precedence: 2,
       syntax: "(operator:the? (biggest|largest)) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…(biggest|largest)",
-      compile(scope, match) {
-        const { expression } = match.results
-        return `spellCore.largestOf(${expression})`
-      },
       toAST(scope, match) {
         const { expression } = match.groups
         return new AST.CoreMethodInvocation(scope, match, {
@@ -228,10 +220,6 @@ export default new Spell.Parser({
       precedence: 2,
       syntax: "(operator:the? smallest) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…smallest",
-      compile(scope, match) {
-        const { expression } = match.results
-        return `spellCore.smallestOf(${expression})`
-      },
       toAST(scope, match) {
         const { expression } = match.groups
         return new AST.CoreMethodInvocation(scope, match, {
@@ -261,12 +249,6 @@ export default new Spell.Parser({
       syntax: "round {expression} (operator:off|up|down)?",
       testRule: "round",
       precedence: 1,
-      compile(scope, match) {
-        const { expression, operator } = match.results
-        if (operator === "up") return `spellCore.roundUp(${expression})`
-        if (operator === "down") return `spellCore.roundDown(${expression})`
-        return `spellCore.round(${expression})`
-      },
       toAST(scope, match) {
         const { expression, operator } = match.groups
         let method = "round"
