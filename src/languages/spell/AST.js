@@ -351,13 +351,22 @@ export function MultiInfixExpression(scope, match, { expressions, operator }) {
   return rhs
 }
 
+/** BaseMethodInvocation:  abstract class for method invocations.  DO NOT CREATE!
+ */
+export class AbstractMethodInvocation extends Expression {
+  @proto @readonly type = "AbstractMethodInvocation"
+  toJS() {
+    throw new TypeError("Override toJS() in your subclass!")
+  }
+}
+
 /** MethodInvocation:  generic named method invocation.
  *  - `method` is method name.
  *  - `arguments` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
  * NOTE: this does not ensure that the named method is actually defined in scope!!!!
  */
-export class MethodInvocation extends Expression {
+export class MethodInvocation extends AbstractMethodInvocation {
   @proto @readonly type = "MethodInvocation"
   constructor(...args) {
     super(...args)
@@ -376,7 +385,7 @@ export class MethodInvocation extends Expression {
  *  - `arguments` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
  */
-export class CoreMethodInvocation extends MethodInvocation {
+export class CoreMethodInvocation extends AbstractMethodInvocation {
   @proto @readonly type = "CoreMethodInvocation"
   constructor(...args) {
     super(...args)
@@ -396,7 +405,7 @@ export class CoreMethodInvocation extends MethodInvocation {
  *  - `arguments` (optional) is a possibly empty list of Expressions.
  *  - Try to set `datatype` as string or getter if you can.
  */
-export class ScopedMethodInvocation extends MethodInvocation {
+export class ScopedMethodInvocation extends AbstractMethodInvocation {
   @proto @readonly type = "ScopedMethodInvocation"
   constructor(...args) {
     super(...args)
@@ -414,11 +423,11 @@ export class ScopedMethodInvocation extends MethodInvocation {
 /** AwaitMethodInvocation:  wrap another method invocation to `await` it.
  *  - `method` is MethodInvocation to call.
  */
-export class AwaitMethodInvocation extends MethodInvocation {
+export class AwaitMethodInvocation extends AbstractMethodInvocation {
   @proto @readonly type = "AwaitMethodInvocation"
   constructor(...args) {
     super(...args)
-    this.assertType("method", MethodInvocation)
+    this.assertType("method", AbstractMethodInvocation)
     // TODO: Mark the parentScope as asynchronous
     this.parentScope.async = true
   }
