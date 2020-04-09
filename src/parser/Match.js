@@ -17,7 +17,7 @@ export default class Match {
     Object.assign(this, props)
   }
 
-  // "name" for this match.
+  // "name" for this match.  Explicit `argument` set on creation or rule name.
   get name() {
     return this.argument || this.rule.argument || this.rule.name
   }
@@ -38,39 +38,32 @@ export default class Match {
     return flatten(this.rule.getTokens(this))
   }
 
-  // Syntatic sugar to compile the output of the match.
+  // Compile the output of the match.
   compile() {
+    // Some languages (e.g. Spell) convert to an AST first, then compile().
     if (this.rule.toAST) {
-      return this.ASTJS
+      return this.AST.toJS()
     }
     // NOTE: this should NOT be used for spell, but will be used for other languages
     return this.rule.compile(this)
   }
 
+  // Syntactic sugar to compile the match w/o calling a function.
   get js() {
     return this.compile()
   }
 
-  // Syntatic sugar to return the AST for this match.
+  // Return the Abstract Syntax Tree for this match.
   @memoize
   get AST() {
-    if (!this.rule.toAST) console.warn("NO AST FOR", this.rule)
+    if (!this.rule.toAST) {
+      console.warn("No toAST() method defined for rule: ", this.rule)
+      return undefined
+    }
     return this.rule.toAST(this)
   }
 
-  // Syntatic sugar to return the JS for the AST for this match.
-  get ASTJS() {
-    // try {
-    return this.AST.toJS()
-    // } catch (e) {
-    //   throw new TypeError(`Couldn't get AST or JS for rule ${this.rule.name}`)
-    // }
-  }
-
   // Return AST nested scope for nested block statements.
-  // NOTE: we memoize this so calling it subsequent times is a no-op.
-  // NOTE: ONLY CALL THIS FROM THE MATCH!!!
-  @memoize
   getASTScope() {
     return this.rule.getASTScope?.(this)
   }
@@ -79,23 +72,6 @@ export default class Match {
   // NOTE: ONLY CALL THIS FROM THE MATCH!!!
   updateASTScope() {
     return this.rule.updateASTScope?.(this)
-  }
-
-  // Test to see if the AST => JS matches rule.compile() => JS
-  testAST() {
-    try {
-      const compileJS = this.compile()
-      const astJS = this.ASTJS
-      if (compileJS === astJS) console.info("AST output matches compile() output!")
-      else {
-        console.group("AST output didn't match compile() output:")
-        console.log("compile(): ", compileJS)
-        console.log("AST: ", astJS)
-        console.groupEnd()
-      }
-    } catch (e) {
-      console.error("Error compiling:", e)
-    }
   }
 
   // DEBUG: Call this when printing to the console to eliminate the big bits in node.
