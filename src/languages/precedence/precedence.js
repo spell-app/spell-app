@@ -20,8 +20,6 @@
 //        `(operator:and) {expression:single_expression}`    (infix operators)
 //    or
 //        `is not? empty`  (postfix operators)
-//    or, for literal sequences of varying length, use
-//        `syntax: `is (undefined|not defined)`, asLiterals: true
 //
 
 // TODO: shunting-yard algorithm.  May be cleaner to do `infix_operator` vs `and_expression`?
@@ -216,7 +214,6 @@ const parser = new Parser({
       precedence: 4, // <== precedence above `is_expression`
       alias: "expression_suffix",
       syntax: "is (defined|undefined|not defined)",
-      asLiterals: true,
       compileOperator({ lhs, operator }) {
         const op = operator === "is defined" ? "!==" : "==="
         return `(typeof ${lhs} ${op} 'undefined')`

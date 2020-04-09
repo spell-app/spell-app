@@ -729,15 +729,6 @@ export default new Spell.Parser({
             precedence: 20,
             constructor: Spell.Rule.InfixOperatorSuffix,
             shouldNegateOutput: operator => operator.value.includes("not"),
-            compileOperatorExpression({ lhs, rhs }) {
-              if (!Array.isArray(rhs)) rhs = [rhs]
-              const args = rhs.map((value, index) => {
-                const data = ruleData[index]
-                const valueIndex = data.enumeration.indexOf(value)
-                return data.values[valueIndex]
-              })
-              return `${lhs}.${property}(${args.join(", ")})`
-            },
             compileASTExpression(_scope, _match, { lhs, rhs }) {
               if (!Array.isArray(rhs)) rhs = [rhs]
               const args = rhs

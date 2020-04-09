@@ -26,22 +26,6 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
     return false
   }
 
-  /** Return compiled operator expression, excluding parenthesis or negation. */
-  compileOperatorExpression({ lhs, operator, rhs }) {
-    const op = this.getOutputOperator(operator)
-    return `${lhs} ${op} ${rhs}`
-  }
-
-  /** Return compiled expression, INCLUDING possible parenthesis and negation.
-   * Delegates to `compileOperatorExpression()` to do the work.
-   */
-  compileOperator({ lhs, operator, rhs }) {
-    let expression = this.compileOperatorExpression({ lhs, operator, rhs })
-    if (this.parenthesize) expression = `(${expression})`
-    if (this.shouldNegateOutput(operator)) expression = `!${expression}`
-    return expression
-  }
-
   /**
    * - `lhs` is left-hand side AST
    * - `operator` is operator Match
@@ -66,7 +50,7 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
    *
    * `lhs` is the left-hand-side Match AST (NOTE: already AST calculated!)
    * `operator` is the operator Match
-   * `rhs` is the right-hand-side Match AST, for InfixOperatorSuffixes only.
+   * `rhs` (for InfixOperatorSuffixes only) is the right-hand-side Match AST.
    */
   compileAST(scope, match, { operator, rhs, lhs }) {
     let expression = this.compileASTExpression(scope, match, { lhs, operator, rhs })
@@ -84,11 +68,6 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
 
 /** TODOC!!! */
 Spell.Rule.PostfixOperatorSuffix = class postfix_operator extends Spell.Rule.InfixOperatorSuffix {
-  /** Return compiled operator expression, excluding parenthesis or negation. */
-  compileOperatorExpression({ lhs, operator }) {
-    throw new TypeError("Must implement compileOperatorExpression()")
-  }
-
   /**
    * - `lhs` is left-hand side match
    * - `operator` is raw full input operator string
@@ -340,9 +319,6 @@ export default new Spell.Parser({
       syntax: "(operator:is not? (a|an)) {expression:type}",
       constructor: Spell.Rule.InfixOperatorSuffix,
       shouldNegateOutput: operator => operator.value.includes("not"),
-      compileOperatorExpression({ lhs, rhs }) {
-        return `spellCore.isOfType(${lhs}, '${rhs}')`
-      },
       compileASTExpression(scope, match, { lhs, rhs }) {
         // TODO: QuotedExpression feels wrong here...
         return new AST.CoreMethodInvocation(scope, match, {
@@ -373,9 +349,6 @@ export default new Spell.Parser({
       syntax: "(operator:is not? the same type as) {expression:single_expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
       getOutputOperator: operator => (operator.value.includes("not") ? "!==" : "==="),
-      compileOperatorExpression({ lhs, rhs }) {
-        return `spellCore.matchesType(${lhs}, ${rhs})`
-      },
       compileASTExpression(scope, match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(scope, match, {
           method: "matchesType",
@@ -405,10 +378,6 @@ export default new Spell.Parser({
         "(operator:is (not? in|not? one of|either|not either of?|neither)) (expression:{single_expression}|{identifier_list})",
       constructor: Spell.Rule.InfixOperatorSuffix,
       shouldNegateOutput: ({ value }) => value.includes("not") || value.includes("neither"),
-      compileOperatorExpression({ lhs, rhs }) {
-        if (Array.isArray(rhs)) rhs = `[${rhs.join(", ")}]`
-        return `spellCore.includes(${rhs}, ${lhs})`
-      },
       compileASTExpression(scope, match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(scope, match, {
           method: "includes",
@@ -444,10 +413,6 @@ export default new Spell.Parser({
       precedence: 11,
       syntax: "(operator:includes|contains) {expression:single_expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
-      compileOperatorExpression({ lhs, rhs }) {
-        if (Array.isArray(lhs)) lhs = `[${lhs.join(", ")}]`
-        return `spellCore.includes(${lhs}, ${rhs})`
-      },
       compileASTExpression(scope, match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(scope, match, {
           method: "includes",
@@ -476,10 +441,6 @@ export default new Spell.Parser({
       syntax: "(operator:does not (include|contain)) {expression:single_expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
       shouldNegateOutput: () => true,
-      compileOperatorExpression({ lhs, rhs }) {
-        if (Array.isArray(lhs)) lhs = `[${lhs.join(", ")}]`
-        return `spellCore.includes(${lhs}, ${rhs})`
-      },
       compileASTExpression(scope, match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(scope, match, {
           method: "includes",
@@ -508,9 +469,6 @@ export default new Spell.Parser({
       syntax: "is (defined|undefined|not defined)",
       constructor: Spell.Rule.PostfixOperatorSuffix,
       shouldNegateOutput: operator => operator.value !== "is defined",
-      compileOperatorExpression({ lhs }) {
-        return `spellCore.isDefined(${lhs})`
-      },
       compileASTExpression(scope, match, { lhs, operator }) {
         return new AST.CoreMethodInvocation(scope, match, {
           method: "isDefined",
@@ -540,9 +498,6 @@ export default new Spell.Parser({
       syntax: "(operator:is not? empty)",
       constructor: Spell.Rule.PostfixOperatorSuffix,
       shouldNegateOutput: operator => operator.value.includes("not"),
-      compileOperatorExpression({ lhs }) {
-        return `spellCore.isEmpty(${lhs})`
-      },
       compileASTExpression(scope, match, { lhs }) {
         return new AST.CoreMethodInvocation(scope, match, {
           method: "isEmpty",
