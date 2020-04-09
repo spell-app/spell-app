@@ -10,10 +10,6 @@ import identifierBlacklist from "./identifier-blacklist"
 
 const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/
 
-// quick-and-dirty check for a property identifier we don't have to quote
-//  when creating a new object as `{ key: value }`.
-const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w\$]*$/
-
 export default new Spell.Parser({
   module: "properties",
   rules: [
