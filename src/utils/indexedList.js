@@ -20,7 +20,7 @@
 //  - `variables = [item...]`         => Same as a call to `variables.add(item...)`.
 //                                       Return value should not be used (may not be what was actually addeed),
 //  - `variables.remove(key)`
-//  - `variables.remove(key...)`      => remove item with key(s) from list and map. Returns array of removed items.
+//  - `variables.remove(key, ...)`    => remove item with key(s) from list and map. Returns array of removed items.
 //  - `variables.remove("*")`         => Clear all.  Returns all items.
 //  - `variables.remove(function)`    => Remove all items where `function(item, index)` is truthy.
 //                                       This is like a reverse-filter

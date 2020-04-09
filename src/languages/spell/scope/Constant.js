@@ -1,6 +1,5 @@
 import { ParseError } from "../all"
-
-import { Scope } from "./all"
+import { Scope } from "."
 
 //
 // Constant definition.

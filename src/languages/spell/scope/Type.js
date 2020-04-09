@@ -3,16 +3,15 @@ import lowerFirst from "lodash/lowerFirst"
 
 import { indexedList, typeCase } from "../all"
 
-import { Scope, Variable, Method } from "./all"
+import { Scope, Variable, Method } from "."
 
 // Type, which extends Scope.  Specifically:
 //  - `name` is the name of the type, and should be TypeCase and singular.
 //  - `superClass` is name of superclass, if provided, and should be TypeCase and singular.
 //  - `stub` is `true` if the type was created as a stub.
-//  - `methods` (from block) are instance methods, including `constructor` if provided.
-//  - `variables` (from block) are instance variables
+//  - `methods` (from Scope) are instance methods, including `constructor` if provided.
+//  - `variables` (from Scope) are instance variables
 //  - `classMethods` and `classVariables` are static to the class.
-//  - `statements` are random bits of logic to initialize the type.
 export default class Type extends Scope {
   constructor(props) {
     // If you just pass a string we'll assume it's the type name.
@@ -56,16 +55,6 @@ export default class Type extends Scope {
   // e.g. if the type name is `Card`, the instanceName would be `card`.
   get instanceName() {
     return lowerFirst(this.name)
-  }
-
-  // Compile the type.
-  // NOTE: this currently ignores methods/properties, we'll want to fix that...
-  toString() {
-    const statements = []
-    if (this.superType) statements.push(`export class ${this.name} extends ${this.superType} {}`)
-    else statements.push(`export class ${this.name} {}`)
-    statements.push(`spellCore.addExport("${this.name}", ${this.name})`)
-    return statements.join("\n")
   }
 }
 Scope.Type = Type

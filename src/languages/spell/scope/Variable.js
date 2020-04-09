@@ -1,5 +1,4 @@
 import assert from "assert"
-import { Type } from "./all"
 
 // Variable definition, including:
 //      - global variable
@@ -21,29 +20,5 @@ export default class Variable {
     assert(props.name, "Variables must be created with a 'name'")
     // Assign all properties in the order provided.
     Object.assign(this, props)
-  }
-
-  toString() {
-    const { name, initializer } = this
-    // If we're attached to a Type,
-    if (this.scope instanceof Type) {
-      // Add class props directly
-      if (this.kind === "static") return `${this.scope.name}.${this.name} = ${initializer}`
-      // Add instance props with spellCore.define
-      return `spellCore.define(${this.scope.name}.prototype, '${this.name}', { value: ${initializer} })`
-    }
-
-    if (this.kind === "argument") {
-      if (initializer) return `${name} = ${initializer}`
-      return name
-    }
-
-    // HMM... this is a bit conflatey... may need `var` without explicit initializer?
-    if (initializer) {
-      const allocator = this.allocator || "let"
-      return `${allocator} ${name} = ${initializer}`
-    }
-
-    return name
   }
 }

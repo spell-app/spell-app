@@ -251,8 +251,10 @@ export default new Spell.Parser({
 
           // Add multi-word identifier rule which returns enumeration, e.g. `card suits` or `Card Suits`
           const literals = [[typeName, lowerFirst(typeName)], [groupName, lowerFirst(groupName)]]
-          scope.addExpressionRule({
+          scope.addRule({
             name: `${typeName}_${groupName}`,
+            alias: ["expression", "single_expression"],
+            precedence: 20,
             literals,
             compile() {
               return `${typeName}.${groupName}`
@@ -562,8 +564,9 @@ export default new Spell.Parser({
           // add optional `not` to the rule
           const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ")
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
-          match.scope.addExpressionSuffixRule({
+          match.scope.addRule({
             name: match.property,
+            alias: "expression_suffix",
             syntax: expressionSuffix,
             precedence: 20,
             constructor: Spell.Rule.PostfixOperatorSuffix,
@@ -714,8 +717,9 @@ export default new Spell.Parser({
           const { syntax, property } = this.parseMatchBits(match)
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
-          match.scope.addExpressionSuffixRule({
+          match.scope.addRule({
             name: property,
+            alias: "expression_suffix",
             syntax,
             precedence: 20,
             constructor: Spell.Rule.InfixOperatorSuffix,
@@ -917,6 +921,7 @@ export default new Spell.Parser({
         const bits = this.parseMatchBits(match)
         const rule = {
           name: bits.methodName,
+          alias: "statement",
           syntax: bits.ruleSyntax,
           constructor: Spell.Rule.Statement
         }
@@ -942,7 +947,7 @@ export default new Spell.Parser({
             })
           }
         }
-        match.scope.addStatementRule(rule)
+        match.scope.addRule(rule)
       },
       toAST(match) {
         const { nestedBlock } = match.groups

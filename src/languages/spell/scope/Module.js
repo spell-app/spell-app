@@ -1,4 +1,4 @@
-import { Scope } from "./all"
+import { Scope } from "."
 
 // Module:  Scope for parsing a "file".
 export default class Module extends Scope {}

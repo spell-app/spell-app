@@ -8,7 +8,7 @@ export * from "../../parser/all"
 
 export { default as Spell } from "./Spell"
 export * as AST from "./AST"
-export * from "./scope/all"
+export * from "./scope"
 
 // Export the entire language as `spell` and as the `default` export.
 export { default as spellParser } from "./rules/_spellParser"
