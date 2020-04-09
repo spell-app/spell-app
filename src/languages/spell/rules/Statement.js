@@ -66,7 +66,4 @@ Spell.Rule.Statement = class statement extends Rule.Sequence {
     if (match.inlineStatement) match.inlineStatement.updateASTScope()
     return match.inlineStatement
   }
-
-  // To compile, we just output our statements.
-  compile(scope, match) {}
 }

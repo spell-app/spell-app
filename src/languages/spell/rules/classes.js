@@ -193,10 +193,6 @@ export default new Spell.Parser({
       name: "type_specifier_enum",
       alias: "type_specifier",
       syntax: "as (either|one of) {enumeration:identifier_list}",
-      compile(scope, match) {
-        const { enumeration } = match.results
-        return { datatype: "enum", enumeration }
-      },
       toAST(scope, match) {
         const enumeration = match.groups.enumeration.items.map(item => item.AST)
         return new AST.Enumeration(scope, match, {

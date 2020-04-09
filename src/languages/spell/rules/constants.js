@@ -18,11 +18,6 @@ Spell.Rule.Constant = class constant extends Rule.Pattern {
     return match
   }
 
-  compile(scope, match) {
-    // eslint-disable-next-line no-shadow
-    const constant = match.constant || new Scope.Constant(match.raw)
-    return constant.toString()
-  }
   toAST(scope, match) {
     const name = match.constant ? match.constant.name : match.value
     const scopeConst = match.constant || scope.constants(name)

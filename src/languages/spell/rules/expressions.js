@@ -106,13 +106,6 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "\\( {expression} \\)",
       testRule: "\\(",
-      compile(scope, match) {
-        const { expression } = match.results
-        // don't double parens if not necessary
-        // TODO: this isn't actually safe...
-        if (typeof expression === "string" && expression.startsWith("(") && expression.endsWith(")")) return expression
-        return `(${expression})`
-      },
       toAST(scope, match) {
         const { expression } = match.groups
         return new AST.ParenthesizedExpression(scope, match, {
@@ -153,87 +146,6 @@ export default new Spell.Parser({
       alias: "expression",
       precedence: 12,
       syntax: "{lhs:single_expression} {rhsChain:expression_suffix}+",
-      //  testRule: "…{recursive_expression_test}",
-      compile(scope, match) {
-        return this.toAST(scope, match).toJS()
-        // function applyOperatorToRule({ match: ruleMatch, operator, rhs, lhs }) {
-        //   function compile(thing) {
-        //     if (!thing) return undefined
-        //     // TODO: we have one case ("is the queen of spades") where `thing` match is an array... :-(
-        //     if (Array.isArray(thing)) return thing.map(item => item.compile())
-        //     if (thing.compile) return thing.compile()
-        //     return thing
-        //   }
-
-        //   const result = ruleMatch.rule.compileOperator({
-        //     operator,
-        //     rhs: compile(rhs),
-        //     lhs: compile(lhs)
-        //   })
-        //   return result
-        // }
-
-        // // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
-        // //  to deal with operator precedence.  Note that we assume:
-        // //  - all infix operators are `left-to-right` associative, and
-        // //  - all postfix operators are left to right associative.
-        // // See: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
-        // // See: https://www.chris-j.co.uk/parsing.php
-        // const { lhs, rhsChain } = match.groups
-        // const output = [lhs]
-        // const opStack = []
-        // rhsChain.matched.forEach(rhs => {
-        //   // Unary postfix operator, e.g. "<lhs> is empty"
-        //   if (rhs.rule instanceof Spell.Rule.PostfixOperatorSuffix) {
-        //     const args = {
-        //       match: rhs,
-        //       lhs: output.pop(),
-        //       // use explicit operator if there is one, default to entire match
-        //       operator: rhs.groups.operator || rhs
-        //     }
-        //     output.push(applyOperatorToRule(args))
-        //   }
-        //   // Infix binary operator, e.g. "<lhs> is a <rhs>"
-        //   else if (rhs.rule instanceof Spell.Rule.InfixOperatorSuffix) {
-        //     const { operator, expression } = rhs.groups
-
-        //     // While top operator on stack is higher precedence than this one
-        //     while (peek(opStack)?.match.rule.precedence >= rhs.rule.precedence) {
-        //       // pop the top operator and compile it with top 2 things on the output stack
-        //       const topOp = opStack.pop()
-        //       const args = {
-        //         ...topOp,
-        //         rhs: output.pop(), // NOTE: order is vital here!
-        //         lhs: output.pop()
-        //       }
-        //       output.push(applyOperatorToRule(args))
-        //     }
-
-        //     // Push the current operator and expression
-        //     opStack.push({ match: rhs, operator })
-        //     output.push(expression)
-        //   } else {
-        //     console.warn("Unexpected rule type", rhs.rule.name)
-        //   }
-        // })
-
-        // // At this point, we have only binary operators in the stack.
-        // // Run through them
-        // let topOp
-        // while ((topOp = opStack.pop())) {
-        //   const args = {
-        //     ...topOp,
-        //     rhs: output.pop(), // NOTE: order is vital here!
-        //     lhs: output.pop()
-        //   }
-        //   output.push(applyOperatorToRule(args))
-        // }
-        // if (output.length !== 1) {
-        //   console.warn("Shunting yard ended up with too much output:", output)
-        // }
-        // return output[0]
-      },
-
       toAST(scope, match) {
         function applyOperatorToRule({ match: ruleMatch, operator, rhs, lhs }) {
           function compile(thing) {

@@ -14,10 +14,7 @@ export default new Spell.Parser({
     {
       name: "eat_whitespace",
       syntax: "{whitespace}*",
-      datatype: "string",
-      compile(scope, match) {
-        return match.matched.map(whitespace => whitespace.compile()).join(" ")
-      }
+      datatype: "string"
     },
 
     // Any whitespace.
@@ -218,12 +215,6 @@ export default new Spell.Parser({
     {
       name: "comment",
       tokenType: Token.Comment,
-      compile(scope, match) {
-        const { initialWhitespace, value } = match.matched[0]
-        let { commentSymbol } = match.matched[0]
-        if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
-        return `${commentSymbol}${initialWhitespace}${value}`
-      },
       toAST(scope, match) {
         const { commentSymbol, initialWhitespace, value } = match.matched[0]
         return new AST.LineComment(scope, match, { commentSymbol, initialWhitespace, value })
@@ -248,9 +239,6 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       datatype: "undefined",
       syntax: "undefined",
-      compile(scope, match) {
-        return "undefined"
-      },
       toAST(scope, match) {
         return new AST.UndefinedLiteral(scope, match)
       },

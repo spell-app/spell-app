@@ -12,11 +12,6 @@ Spell.Rule.ParseError = class parse_error extends Rule {
     })
   }
 
-  compile(scope, match) {
-    const unparsed = Tokenizer.join(match.matched)
-    return `${"/"}/ WARNING: Couldnt parse:  '${unparsed}'`
-  }
-
   toAST(scope, match) {
     return new AST.ParseError(scope, match, {
       message: `UNABLE TO PARSE: "${Tokenizer.join(match.matched)}"`

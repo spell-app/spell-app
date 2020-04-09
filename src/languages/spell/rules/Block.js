@@ -81,60 +81,6 @@ Spell.Rule.Block = class block extends Rule {
     })
   }
 
-  // Output statements match parsed with `parseBlock`
-  // Set `match.enclose` to enclose in curly braces
-  // Set `match.indent` to add a tab to the start of each line.
-  compile(scope, match) {
-    console.warn("Block.compile().  match:", match)
-
-    let results = []
-    let statement
-
-    for (let i = 0, last = match.matched.length; i < last; i++) {
-      const line = match.matched[i]
-      try {
-        // If we got a comment back, there was no statement.
-        if (line.rule?.name === "comment") {
-          statement = line.compile()
-        } else {
-          // Output text that was actually matched if provided
-          const output = []
-          // eslint-disable-next-line no-useless-concat
-          if (line.source) output.push("/" + `/ SPELL: '${line.source}'`)
-          // Put comment FIRST, before translation
-          if (line.comment) output.push(line.comment.compile())
-          // Then the actual statement results
-          output.push(line.compile())
-          statement = output.join("\n")
-        }
-      } catch (e) {
-        Spell.logger.error(e)
-        Spell.logger.warn("Error compiling statements: match\n", line.toPrint())
-      }
-
-      if (isWhitespace(statement)) {
-        results.push("")
-      } else if (Array.isArray(statement)) {
-        results = results.concat(statement)
-      } else if (typeof statement === "string") {
-        statement = statement.split("\n")
-        results = results.concat(statement)
-      } else {
-        console.warn("blockToSource(): DON'T KNOW HOW TO WORK WITH\n\t", statement, "\n\tfrom match", line)
-      }
-
-      // If we got an error (e.g. if we couldn't parse the entire line),
-      //  write that at the end.
-      if (line.error) {
-        results.push(line.error.compile())
-      }
-    }
-    const tab = match.indent ? "\t" : ""
-    const lines = `${tab}${results.join(`\n${tab}`)}`
-    if (match.enclose) return `{\n${lines}\n${tab.slice(1)}}`
-    return lines
-  }
-
   toAST(scope, match) {
     const statements = _.flatten(
       match.matched.map(statement => {

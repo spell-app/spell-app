@@ -40,9 +40,6 @@ export default new Spell.Parser({
       alias: "property_accessor",
       syntax: "the {property} of",
       testRule: "the",
-      compile(scope, match) {
-        return match.results.property
-      },
       toAST(scope, match) {
         const { value, raw } = match.groups.property
         return new PropertyLiteral(scope, match, { value, raw })
@@ -55,12 +52,6 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "{property_accessor} {expression:single_expression}",
       testRule: "{property_accessor}", // ???
-      compile(scope, match) {
-        const { expression, property_accessor } = match.results
-        // TODO: `[xxx]` for non-identifiers
-        // TODO: optional accessor:  `a?.b` ???
-        return `${expression}.${property_accessor}`
-      },
       toAST(scope, match) {
         const { property_accessor, expression } = match.groups
         return new AST.PropertyExpression(scope, match, {
@@ -93,12 +84,6 @@ export default new Spell.Parser({
       alias: ["expression", "property_accessor", "single_expression"],
       syntax: "its {property}",
       testRule: "its",
-      compile(scope, match) {
-        const { property } = match.results
-        const itsVar = scope.variables("its")
-        const its = itsVar ? itsVar.output : "this"
-        return `${its}.${property}`
-      },
       toAST(scope, match) {
         const property = match.groups.property.AST
         const itsVar = scope.variables("its")
@@ -123,15 +108,6 @@ export default new Spell.Parser({
     {
       name: "object_literal_properties",
       syntax: "[({property} (=|is|of|is? set to) {value:expression})(,|and)]",
-      compile(scope, match) {
-        const props = match.items.map(function(prop) {
-          const { property, value } = prop.results
-          if (value === undefined) return property
-          if (!LEGAL_PROPERTY_IDENTIFIER.test(property)) return `"${property}": ${value}`
-          return `${property}: ${value}`
-        })
-        return `{ ${props.join(", ")} }`
-      },
       toAST(scope, match) {
         const properties = match.items.map(propMatch => {
           const { property, value } = propMatch.groups
@@ -159,35 +135,5 @@ export default new Spell.Parser({
         }
       ]
     }
-
-    // // MOVE TO `functions`?
-    // // Arguments clause for methods
-    // //  `with foo` or `with foo and bar and baz`
-    // // TODO: how would we use this???
-    // // TODO: {identifier} = {expression}  => requires `,` instead of `and`
-    // // TODO: `with foo as a Type`
-    // {
-    //   name: "args",
-    //   syntax: "with [args:{variable},]",
-    //   // Returns an array of argument values
-    //   compile(scope, match) {
-    //     const { args } = match.results
-    //     return args.join(", ")
-    //   },
-    //   toAST(scope, match) {
-    //     const { args } = match.groups
-    //     console.warn(args)
-    //     throw new TypeError("not implemented")
-    //   },
-    //   tests: [
-    //     {
-    //       tests: [
-    //         ["with animal", "animal"],
-    //         ["with animal, vegetable, mineral", "animal, vegetable, mineral"],
-    //         ["with animal, vegetable, mineral,", "animal, vegetable, mineral"]
-    //       ]
-    //     }
-    //   ]
-    // }
   ]
 })

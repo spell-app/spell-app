@@ -21,15 +21,6 @@ Spell.Rule.VariableIdentifier = class _variable extends Rule.Pattern {
     return `${value}`.replace(/-/g, "_").replace(/\s/g, "_")
   }
 
-  compile(scope, match) {
-    // Look up variable name in scope Variables
-    const varName = match.value
-    const variable = scope.variables(varName)
-    // If we found a Variable and it remaps its `output`, use that!
-    if (variable && variable.output) return variable.output
-    return varName
-  }
-
   toAST(scope, match) {
     // Get scope Variable, if there is one
     const variable = scope.variables(match.value)
@@ -60,9 +51,6 @@ export default new Spell.Parser({
           // Set `match.variable` to the scope variable, if there is one.
           match.variable = scope.variables(match.groups.identifier.value) || null
           return match
-        }
-        compile(scope, match) {
-          return match.groups.identifier.compile()
         }
         toAST(scope, match) {
           return match.groups.identifier.AST
@@ -96,9 +84,6 @@ export default new Spell.Parser({
           match.variable = scope.variables(match.groups.identifier.value)
           if (!match.variable) return undefined
           return match
-        }
-        compile(scope, match) {
-          return match.groups.identifier.compile()
         }
         toAST(scope, match) {
           return match.groups.identifier.AST
