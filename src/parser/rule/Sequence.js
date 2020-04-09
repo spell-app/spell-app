@@ -67,27 +67,17 @@ Rule.Sequence = class sequence extends Rule {
     })
   }
 
-  // If no explcit compile method, return our `results` for someone else to consume.
+  // If no explcit compile method, gather our groups and return the compiled output of each.
+  // TODO: ... ??
   compile(scope, match) {
-    if (this.asLiterals) return match.matched.map(next => next.compile()).join(" ")
-    return this.gatherResults(scope, match)
+    return this.gatherGroups(scope, match, nextMatch => nextMatch.compile())
   }
 
-  getTokens(match) {
-    return flattenDeep(match.matched.map(nextMatch => nextMatch.tokens))
+  gatherGroups(scope, match, callback) {
+    return this._addGroups({}, match.matched, callback)
   }
 
-  // TODOC
-  // "gather" matched values into a map in preparation to call `compile(scope, match)`
-  gatherResults(scope, match) {
-    return this._addResults({}, match.matched, nextMatch => nextMatch.compile())
-  }
-
-  gatherGroups(scope, match) {
-    return this._addResults({}, match.matched)
-  }
-
-  _addResults(results, matched, callback) {
+  _addGroups(results, matched, callback) {
     for (let i = 0, match; (match = matched[i]); i++) {
       const { name, rule } = match
       // if the match has a name:
@@ -105,12 +95,16 @@ Rule.Sequence = class sequence extends Rule {
       }
       // if it's an anonymous sequence, promote it to the main map
       if (!name && rule instanceof Rule.Sequence) {
-        this._addResults(results, match.matched, callback)
+        this._addGroups(results, match.matched, callback)
       }
       // ignore other anonymous bits
       // else {}
     }
     return results
+  }
+
+  getTokens(match) {
+    return flattenDeep(match.matched.map(nextMatch => nextMatch.tokens))
   }
 
   // Echo this rule back out.
