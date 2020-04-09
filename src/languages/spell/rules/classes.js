@@ -743,13 +743,22 @@ export default new Spell.Parser({
             },
             compileASTExpression(_scope, _match, { lhs, rhs }) {
               if (!Array.isArray(rhs)) rhs = [rhs]
-              const args = rhs.map(arg => {
-                // TODO: assumes arg is a `keyword`
-                return new AST.ConstantExpression(arg.scope, arg, {
-                  name: arg.value,
-                  value: typeof arg.value === "string" ? `'${arg.value}'` : arg.value
+              const args = rhs
+                .map(arg => {
+                  if (typeof arg.value === "string") {
+                    return new AST.ConstantExpression(arg.scope, arg, {
+                      name: arg.value,
+                      value: `'${arg.value}'`
+                    })
+                  }
+                  if (typeof arg.value === "number") {
+                    return new AST.NumericLiteral(arg.scope, arg, {
+                      value: arg.value
+                    })
+                  }
+                  console.warn("quoted_property_formula: don't understand arg", arg)
                 })
-              })
+                .filter(Boolean)
               return new AST.ScopedMethodInvocation(_scope, _match, {
                 thing: lhs,
                 method: property,
