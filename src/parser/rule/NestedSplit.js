@@ -46,17 +46,13 @@ Rule.NestedSplit = class nestedSplit extends Rule {
     })
   }
 
-  gatherResults(scope, match) {
+  // Return `results` for someone else to consume.
+  compile(scope, match) {
     const { rule, prefix, items } = match
     const results = (prefix && prefix.compile()) || {}
     const name = rule.rule.argument || rule.rule.name
     results[name] = items.map(item => item.compile())
     return results
-  }
-
-  // If no explcit compile method, return our `results` for someone else to consume.
-  compile(scope, match) {
-    return this.gatherResults(scope, match)
   }
 
   // If tokens starts with our `start` literal,
