@@ -26,7 +26,7 @@ export default class Match {
   // Only works for some rule types.
   // @memoize
   get groups() {
-    return this.rule.gatherGroups?.(this.scope, this)
+    return this.rule.gatherGroups?.(this)
   }
 
   // Return the "interesting" tokens which were actually matched matched.
@@ -44,7 +44,7 @@ export default class Match {
       return this.ASTJS
     }
     // NOTE: this should NOT be used for spell, but will be used for other languages
-    return this.rule.compile(this.scope, this)
+    return this.rule.compile(this)
   }
 
   get js() {

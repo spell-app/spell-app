@@ -58,7 +58,7 @@ const parser = new Parser({
       name: "parenthesized_expression",
       alias: ["expression", "single_expression"],
       syntax: "\\( {expression} \\)",
-      compile(scope, match) {
+      compile(match) {
         const { expression } = match.results
         // Don't double-up parens
         if (expression.startsWith?.("(") && expression.endsWith(")")) return expression
@@ -76,7 +76,7 @@ const parser = new Parser({
       name: "identifier_expression",
       alias: ["expression", "single_expression"],
       syntax: "the? {identifier}",
-      compile(scope, match) {
+      compile(match) {
         return match.results.identifier
       }
     },
@@ -86,7 +86,7 @@ const parser = new Parser({
       alias: ["expression", "single_expression"],
       precedence: 11,
       syntax: "the {identifier} of {expression:single_expression}",
-      compile(scope, match) {
+      compile(match) {
         const { identifier, expression } = match.results
         return `${expression}.${identifier}`
       }
@@ -100,7 +100,7 @@ const parser = new Parser({
       alias: "expression",
       precedence: 12,
       syntax: "{lhs:single_expression} {rhs:expression_suffix}+",
-      compile(scope, match) {
+      compile(match) {
         const { results, matched } = match
         // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
         //  to deal with operator precedence.  Note that we assume:
@@ -121,7 +121,7 @@ const parser = new Parser({
               operator: rhs,
               lhs: output.pop()
             }
-            const result = this.compileOperator(rule, args, scope)
+            const result = this.compileOperator(rule, args)
             output.push(result)
           }
           // If it's a binary operator, `rhs` will be an object: `{ operator?, expression }`
@@ -136,7 +136,7 @@ const parser = new Parser({
                 rhs: output.pop(),
                 lhs: output.pop()
               }
-              const result = this.compileOperator(topRule, args, scope)
+              const result = this.compileOperator(topRule, args)
               // push the result into the output stream
               output.push(result)
             }
@@ -156,13 +156,13 @@ const parser = new Parser({
             rhs: output.pop(),
             lhs: output.pop()
           }
-          const result = this.compileOperator(topOp.rule, args, scope)
+          const result = this.compileOperator(topOp.rule, args)
           output.push(result)
         }
         return output[0]
       },
 
-      compileOperator(rule, args, scope) {
+      compileOperator(rule, args) {
         return rule.compileOperator(args)
       }
     },

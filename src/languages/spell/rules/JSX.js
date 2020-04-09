@@ -33,15 +33,15 @@ export default new Spell.Parser({
         }
       },
 
-      compile(scope, match) {
-        return this.jsxElementToSource(scope, match.matched[0])
+      compile(match) {
+        return this.jsxElementToSource(match.matched[0])
       },
 
-      jsxElementToSource(scope, jsxElement) {
+      jsxElementToSource(jsxElement) {
         // get the bits of the output
         const tagName = `'${jsxElement.tagName}'`
-        const children = this.childrenToSource(scope, jsxElement)
-        const attrs = this.attrsToSource(scope, jsxElement) || (children ? "null" : "")
+        const children = this.childrenToSource(jsxElement)
+        const attrs = this.attrsToSource(jsxElement) || (children ? "null" : "")
 
         let output = `spellCore.createElement(${tagName}`
         if (attrs) output += `, ${attrs}`
@@ -54,7 +54,7 @@ export default new Spell.Parser({
 
       // Convert our attributes to source.
       // Returns `undefined` if no attributes.
-      attrsToSource(scope, jsxElement) {
+      attrsToSource(jsxElement) {
         const { attributes } = jsxElement
         if (!attributes || !attributes.length) return undefined
 
@@ -63,7 +63,7 @@ export default new Spell.Parser({
           if (value === undefined) value = "true"
           // if it's a jsx expression, possibly with nested JSX elements...
           else if (value instanceof Token.JSXExpression) {
-            value = this.jsxExpressionToSource(scope, value)
+            value = this.jsxExpressionToSource(value)
           }
           // else if a JSX element, recurse
           // TODO: indent...
@@ -85,7 +85,7 @@ export default new Spell.Parser({
 
       // Return an array with source for each of our children.
       // Returns `undefined` if we don't have any children.
-      childrenToSource(scope, jsxElement) {
+      childrenToSource(jsxElement) {
         // ignore end tags!
         const children = jsxElement.children && jsxElement.children.filter(child => !(child instanceof Token.JSXEndTag))
         if (!children || children.length === 0) return undefined
@@ -100,11 +100,11 @@ export default new Spell.Parser({
                 return child.quotedText
               }
               if (child instanceof Token.JSXElement) {
-                const childSource = this.jsxElementToSource(scope, child)
+                const childSource = this.jsxElementToSource(child)
                 return childSource.split("\n").join("\n\t")
               }
               if (child instanceof Token.JSXExpression) {
-                return this.jsxExpressionToSource(scope, child)
+                return this.jsxExpressionToSource(child)
               }
 
               throw new SyntaxError(`childrenToSource(): don't understand child${child}`)
@@ -115,7 +115,7 @@ export default new Spell.Parser({
       },
 
       // Convert JSX expression ( `{...}` ) to JS source.
-      jsxExpressionToSource(scope, jsxExpression) {
+      jsxExpressionToSource(jsxExpression) {
         const { expression } = jsxExpression
         if (jsxExpression.expression && !jsxExpression.expression.incomplete) return expression.js
         // eslint-disable-next-line no-useless-concat

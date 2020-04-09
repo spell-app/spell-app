@@ -47,7 +47,7 @@ Rule.NestedSplit = class nestedSplit extends Rule {
   }
 
   // Return `results` for someone else to consume.
-  compile(scope, match) {
+  compile(match) {
     const { rule, prefix, items } = match
     const results = (prefix && prefix.compile()) || {}
     const name = rule.rule.argument || rule.rule.name

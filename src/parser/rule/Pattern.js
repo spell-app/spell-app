@@ -45,7 +45,7 @@ Rule.Pattern = class pattern extends Rule {
     return value
   }
 
-  compile(scope, match) {
+  compile(match) {
     return match.value
   }
 }

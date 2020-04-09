@@ -86,7 +86,7 @@ rulex.defineRule({
   name: "testLocation",
   literal: ["…", "^"],
   optional: true,
-  compile(scope, match) {
+  compile(match) {
     return match.matched[0].value === "…" ? ANYWHERE : AT_START
   },
   tests: [
@@ -104,7 +104,7 @@ rulex.defineRule({
   name: "argument",
   rules: [new Rule.Word({ argument: "argument" }), new Rule.Literal(":")],
   optional: true,
-  compile(scope, match) {
+  compile(match) {
     return match.groups.argument.value
   },
   tests: [
@@ -122,7 +122,7 @@ rulex.defineRule({
   name: "repeatFlag",
   literal: ["?", "*", "+"],
   optional: true,
-  compile(scope, match) {
+  compile(match) {
     return match.matched[0].value
   },
   tests: [
@@ -150,7 +150,7 @@ rulex.defineRule({
     repeatFlag
   ],
 
-  compile(scope, match) {
+  compile(match) {
     const { literal, isEscaped } = match.groups
     const rule = new Rule.Symbol(literal.value)
     if (isEscaped) rule.isEscaped = true
@@ -206,7 +206,7 @@ rulex.defineRule({
   name: "keyword",
   alias: "rule",
   rules: [testLocation, new Rule.Word({ argument: "literal" }), repeatFlag],
-  compile(scope, match) {
+  compile(match) {
     const { literal } = match.groups
     const rule = new Rule.Keyword(literal.value)
     return rulex.applyFlags(rule, match)
@@ -239,7 +239,7 @@ rulex.defineRule({
   name: "number",
   alias: "rule",
   rules: [testLocation, new Rule.TokenType({ tokenType: Token.Number, argument: "number" }), repeatFlag],
-  compile(scope, match) {
+  compile(match) {
     const { number } = match.groups
     const rule = new Rule.Keyword({ literal: number.value })
     return rulex.applyFlags(rule, match)
@@ -275,7 +275,7 @@ rulex.defineRule({
     new Rule.Symbol("}"),
     repeatFlag
   ],
-  compile(scope, match) {
+  compile(match) {
     const rule = new Rule.Subrule(match.groups.rule.compile())
     return rulex.applyFlags(rule, match)
   },
@@ -313,7 +313,7 @@ rulex.defineRule({
     new Rule.Symbol("]"),
     new Rule.Symbol({ argument: "repeatFlag", literal: "?", optional: true })
   ],
-  compile(scope, match) {
+  compile(match) {
     const { ruleName, delimiter } = match.groups
     const rule = new Rule.Repeat({ rule: ruleName.compile(), delimiter: delimiter.compile() })
     return rulex.applyFlags(rule, match)
@@ -360,7 +360,7 @@ rulex.defineRule({
     }),
     repeatFlag
   ],
-  compile(scope, match) {
+  compile(match) {
     const split = match.groups.split.compile()
     let { choices } = split
 
@@ -461,7 +461,7 @@ rulex.defineRule({
   constructor: Rule.Repeat,
   name: "statement",
   rule: new Rule.Subrule("rule"),
-  compile(scope, match) {
+  compile(match) {
     let matched = match.matched.map(nextMatch => nextMatch.compile())
 
     // Consolidate keywords and symbols

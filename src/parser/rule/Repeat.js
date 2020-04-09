@@ -79,7 +79,7 @@ Rule.Repeat = class repeat extends Rule {
     return match
   }
 
-  compile(scope, match) {
+  compile(match) {
     return match.items.map(next => next.compile())
   }
 

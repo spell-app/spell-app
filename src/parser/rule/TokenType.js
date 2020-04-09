@@ -19,7 +19,7 @@ Rule.TokenType = class tokenType extends Rule {
     })
   }
 
-  compile(scope, match) {
+  compile(match) {
     return match.tokens[0]
   }
 }

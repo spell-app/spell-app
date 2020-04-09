@@ -43,7 +43,7 @@ Rule.Literals = class literals extends Rule {
     })
   }
 
-  compile(scope, match) {
+  compile(match) {
     return match.tokens.join(this.literalSeparator)
   }
 
