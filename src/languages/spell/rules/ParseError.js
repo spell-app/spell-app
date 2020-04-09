@@ -5,6 +5,7 @@ Spell.Rule.ParseError = class parse_error extends Rule {
   // Eat all of the tokens.
   parse(scope, tokens) {
     return new Match({
+      scope,
       rule: this,
       matched: tokens,
       length: tokens.length

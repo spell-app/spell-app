@@ -351,17 +351,23 @@ export function MultiInfixExpression(scope, match, { expressions, operator }) {
   return rhs
 }
 
-/** MethodInvocation:  abstract method invocation class.
+/** MethodInvocation:  generic named method invocation.
+ *  - `method` is method name.
+ *  - `arguments` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
+ * NOTE: this does not ensure that the named method is actually defined in scope!!!!
  */
 export class MethodInvocation extends Expression {
   @proto @readonly type = "MethodInvocation"
   constructor(...args) {
     super(...args)
+    this.assertType("method", "string")
+    this.assertArrayType("arguments", Expression, OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
   toJS() {
-    throw new TypeError("You must override toJS in your subclass")
+    const args = this.arguments?.map(arg => arg.toJS()).join(", ") || ""
+    return `${this.method}(${args})`
   }
 }
 
@@ -384,9 +390,9 @@ export class CoreMethodInvocation extends MethodInvocation {
   }
 }
 
-/** Call a `method` on some `object` with `arguments`.
+/** Call a `method` on some `thing` with `arguments`.
  *  - `thing` is what we'll call the method on.
- *  - `method` is spellcore method name.
+ *  - `method` is the method name.
  *  - `arguments` (optional) is a possibly empty list of Expressions.
  *  - Try to set `datatype` as string or getter if you can.
  */
@@ -456,8 +462,8 @@ export class VariableExpression extends Expression {
   @proto @readonly type = "VariableExpression"
   constructor(...args) {
     super(...args)
-    this.assertType("raw", "string", OPTIONAL)
     this.assertType("name", "string")
+    this.assertType("raw", "string", OPTIONAL)
   }
   // TODO: datatype according to Variable ?
   toJS() {
@@ -792,8 +798,8 @@ export class GetterDefinition extends Statement {
   }
 }
 
-/** MethodDefinition: creates an method for type instances
- * - `thing` is an Expression
+/** MethodDefinition: creates a method for type instances
+ * - `thing` is an Expression (e.g. a ProtypeExpression)
  * - `method` is the method name
  * - `args` ia array of VariableExpressions
  * - `statements` is a Statement or Expression
@@ -807,13 +813,36 @@ export class MethodDefinition extends Statement {
     this.assertArrayType("args", VariableExpression, OPTIONAL)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
+    this.statements = convertStatementsToBlock(this.parentScope, this.match, this.statements)
   }
   toJS() {
-    const { thing, method, args, statements } = this
+    const { thing, method, args = [], statements } = this
     return (
       `spellCore.define(${thing.toJS()}, '${method}', {` +
-      ` value(${args?.map(arg => arg.toJS()) || ""}) { ${statements?.toJS() || ""} } })`
+      ` value(${args.map(arg => arg.toJS())}) ${statements?.toJS() || ""} })`
     )
+  }
+}
+
+/** FunctionDefinition: creates an method for type instances
+ * - `method` is the method name
+ * - `args` ia array of VariableExpressions
+ * - `statements` is a Statement or Expression
+ * TODO: export this???
+ */
+export class FunctionDefinition extends Statement {
+  @proto @readonly type = "FunctionDefinition"
+  constructor(...args) {
+    super(...args)
+    this.assertType("method", "string", OPTIONAL)
+    this.assertArrayType("args", VariableExpression, OPTIONAL)
+    this.assertType("statements", [Statement, Expression], OPTIONAL)
+    this.assertType("datatype", "string", OPTIONAL)
+    this.statements = convertStatementsToBlock(this.parentScope, this.match, this.statements)
+  }
+  toJS() {
+    const { method = "", args = [], statements } = this
+    return `function ${method}(${args.map(arg => arg.toJS())}) ${statements?.toJS() || ""}`
   }
 }
 

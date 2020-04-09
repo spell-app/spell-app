@@ -1,5 +1,2 @@
-## Module bits
-a card is a thing
-cards have a direction as either up or down
-a card "is face up" if its directon is "up"
-a card "is face down" if its direction is down
+to start the game: print 1
+start the game
