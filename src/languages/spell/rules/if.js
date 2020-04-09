@@ -22,12 +22,12 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getASTScope(scope, match) {
-        return new Scope({ name: "if", scope })
+      getASTScope(match) {
+        return new Scope({ name: "if", scope: match.scope })
       },
-      toAST(scope, match) {
+      toAST(match) {
         const { condition, nestedBlock } = match.groups
-        return new AST.IfStatement(scope, match, {
+        return new AST.IfStatement(match, {
           condition: condition.AST,
           statements: nestedBlock?.AST
         })
@@ -35,7 +35,7 @@ export default new Spell.Parser({
       tests: [
         {
           title: "correctly matches single-line if statements",
-          compileAs: "statement",
+          compileAs: "block",
           beforeEach(scope) {
             scope.variables.add("a")
           },
@@ -107,12 +107,12 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getASTScope(scope, match) {
-        return new Scope({ name: "elseif", scope })
+      getASTScope(match) {
+        return new Scope({ name: "elseif", scope: match.scope })
       },
-      toAST(scope, match) {
+      toAST(match) {
         const { condition, nestedBlock } = match.groups
-        return new AST.ElseIfStatement(scope, match, {
+        return new AST.ElseIfStatement(match, {
           condition: condition.AST,
           statements: nestedBlock?.AST
         })
@@ -184,12 +184,12 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getASTScope(scope, match) {
-        return new Scope({ name: "else", scope })
+      getASTScope(match) {
+        return new Scope({ name: "else", scope: match.scope })
       },
-      toAST(scope, match) {
+      toAST(match) {
         const { nestedBlock } = match.groups
-        return new AST.ElseStatement(scope, match, {
+        return new AST.ElseStatement(match, {
           statements: nestedBlock?.AST
         })
       },
@@ -240,8 +240,8 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       syntax: "if {operator:expression} (else|otherwise) {expression}",
       constructor: Spell.Rule.InfixOperatorSuffix,
-      compileASTExpression(scope, match, { lhs, operator, rhs }) {
-        return new AST.TernaryExpression(scope, match, {
+      compileASTExpression(match, { lhs, operator, rhs }) {
+        return new AST.TernaryExpression(match, {
           condition: operator.AST,
           trueValue: lhs,
           falseValue: rhs

@@ -18,10 +18,10 @@ Spell.Rule.Constant = class constant extends Rule.Pattern {
     return match
   }
 
-  toAST(scope, match) {
+  toAST(match) {
     const name = match.constant ? match.constant.name : match.value
-    const scopeConst = match.constant || scope.constants(name)
-    return new AST.ConstantExpression(scope, match, {
+    const scopeConst = match.constant || match.scope.constants(name)
+    return new AST.ConstantExpression(match, {
       name,
       value: (scopeConst || new Scope.Constant(name)).toString(),
       constant: scopeConst

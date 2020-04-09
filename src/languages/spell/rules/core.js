@@ -22,9 +22,9 @@ export default new Spell.Parser({
       name: "whitespace",
       datatype: "string",
       tokenType: Token.Whitespace,
-      toAST(scope, match) {
+      toAST(match) {
         const { value, raw } = match
-        return new AST.StringLiteral(scope, match, { value, raw })
+        return new AST.StringLiteral(match, { value, raw })
       }
     },
 
@@ -33,9 +33,9 @@ export default new Spell.Parser({
       name: "indent",
       datatype: "string",
       tokenType: Token.Indent,
-      toAST(scope, match) {
+      toAST(match) {
         const { value, raw } = match
-        return new AST.StringLiteral(scope, match, { value, raw })
+        return new AST.StringLiteral(match, { value, raw })
       }
     },
 
@@ -44,9 +44,9 @@ export default new Spell.Parser({
       name: "newline",
       datatype: "string",
       tokenType: Token.Newline,
-      toAST(scope, match) {
+      toAST(match) {
         const { value, raw } = match
-        return new AST.StringLiteral(scope, match, { value, raw })
+        return new AST.StringLiteral(match, { value, raw })
       }
     },
 
@@ -56,9 +56,9 @@ export default new Spell.Parser({
       name: "inline_whitespace",
       datatype: "string",
       tokenType: Token.InlineWhitespace,
-      toAST(scope, match) {
+      toAST(match) {
         const { value, raw } = match
-        return new AST.StringLiteral(scope, match, { value, raw })
+        return new AST.StringLiteral(match, { value, raw })
       }
     },
 
@@ -73,9 +73,9 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       datatype: "number",
       tokenType: Token.Number,
-      toAST(scope, match) {
+      toAST(match) {
         const { value, raw } = match
-        return new AST.NumericLiteral(scope, match, { value, raw })
+        return new AST.NumericLiteral(match, { value, raw })
       },
       tests: [
         {
@@ -121,9 +121,9 @@ export default new Spell.Parser({
         nine: 9,
         ten: 10
       },
-      toAST(scope, match) {
+      toAST(match) {
         const { value, raw } = match
-        return new AST.NumericLiteral(scope, match, { value, raw })
+        return new AST.NumericLiteral(match, { value, raw })
       },
       tests: [
         {
@@ -160,9 +160,9 @@ export default new Spell.Parser({
         ok: true,
         cancel: false
       },
-      toAST(scope, match) {
+      toAST(match) {
         const { value, raw } = match
-        return new AST.BooleanLiteral(scope, match, { value, raw })
+        return new AST.BooleanLiteral(match, { value, raw })
       },
       tests: [
         {
@@ -192,9 +192,9 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       datatype: "string",
       tokenType: Token.Text,
-      toAST(scope, match) {
+      toAST(match) {
         const { value, raw } = match
-        return new AST.StringLiteral(scope, match, { value, raw })
+        return new AST.StringLiteral(match, { value, raw })
       },
       tests: [
         {
@@ -215,9 +215,9 @@ export default new Spell.Parser({
     {
       name: "comment",
       tokenType: Token.Comment,
-      toAST(scope, match) {
+      toAST(match) {
         const { commentSymbol, initialWhitespace, value } = match.matched[0]
-        return new AST.LineComment(scope, match, { commentSymbol, initialWhitespace, value })
+        return new AST.LineComment(match, { commentSymbol, initialWhitespace, value })
       },
       tests: [
         {
@@ -239,8 +239,8 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       datatype: "undefined",
       syntax: "undefined",
-      toAST(scope, match) {
-        return new AST.UndefinedLiteral(scope, match)
+      toAST(match) {
+        return new AST.UndefinedLiteral(match)
       },
       tests: [
         {
@@ -259,9 +259,9 @@ export default new Spell.Parser({
       mapValue(value) {
         return `${value}`.replace(/\-/g, "_")
       },
-      toAST(scope, match) {
+      toAST(match) {
         const { value, raw } = match
-        return new AST.KeywordLiteral(scope, match, { value, raw })
+        return new AST.KeywordLiteral(match, { value, raw })
       },
       tests: [
         {

@@ -13,15 +13,15 @@ export default new Spell.Parser({
       syntax: "expect {expression} (to be {value:expression})?",
       testRule: "expect",
       constructor: Spell.Rule.Statement,
-      toAST(scope, match) {
+      toAST(match) {
         const { expression, value } = match.groups
         const args = [
           expression.AST,
-          value?.AST || new AST.BooleanLiteral(scope, match, { value: true }),
-          new AST.StringLiteral(scope, match, { value: `\`${expression.value}\`` }),
-          new AST.StringLiteral(scope, match, { value: value?.value || '"true"' })
+          value?.AST || new AST.BooleanLiteral(match, { value: true }),
+          new AST.StringLiteral(match, { value: `\`${expression.value}\`` }),
+          new AST.StringLiteral(match, { value: value?.value || '"true"' })
         ]
-        return new AST.CoreMethodInvocation(scope, match, {
+        return new AST.CoreMethodInvocation(match, {
           method: "assertEquals",
           arguments: args
         })

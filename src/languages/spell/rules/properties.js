@@ -7,7 +7,6 @@
 
 import { AST, Spell } from "../all"
 import identifierBlacklist from "./identifier-blacklist"
-import { PropertyLiteral } from "../AST"
 
 const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/
 
@@ -29,9 +28,9 @@ export default new Spell.Parser({
       mapValue(value) {
         return `${value}`.replace(/-/g, "_")
       },
-      toAST(scope, match) {
+      toAST(match) {
         const { value, raw } = match
-        return new AST.PropertyLiteral(scope, match, { value, raw })
+        return new AST.PropertyLiteral(match, { value, raw })
       }
     },
 
@@ -40,9 +39,9 @@ export default new Spell.Parser({
       alias: "property_accessor",
       syntax: "the {property} of",
       testRule: "the",
-      toAST(scope, match) {
+      toAST(match) {
         const { value, raw } = match.groups.property
-        return new PropertyLiteral(scope, match, { value, raw })
+        return new AST.PropertyLiteral(match, { value, raw })
       }
     },
 
@@ -52,9 +51,9 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "{property_accessor} {expression:single_expression}",
       testRule: "{property_accessor}", // ???
-      toAST(scope, match) {
+      toAST(match) {
         const { property_accessor, expression } = match.groups
-        return new AST.PropertyExpression(scope, match, {
+        return new AST.PropertyExpression(match, {
           object: expression.AST,
           property: property_accessor.AST
         })
@@ -84,13 +83,13 @@ export default new Spell.Parser({
       alias: ["expression", "property_accessor", "single_expression"],
       syntax: "its {property}",
       testRule: "its",
-      toAST(scope, match) {
+      toAST(match) {
         const property = match.groups.property.AST
-        const itsVar = scope.variables("its")
+        const itsVar = match.scope.variables("its")
         const object = itsVar
-          ? new AST.VariableExpression(scope, match, { raw: "its", name: itsVar.output, variable: itsVar })
-          : new AST.ThisLiteral(scope, match)
-        return new AST.PropertyExpression(scope, match, { object, property })
+          ? new AST.VariableExpression(match, { raw: "its", name: itsVar.output, variable: itsVar })
+          : new AST.ThisLiteral(match)
+        return new AST.PropertyExpression(match, { object, property })
       },
       tests: [
         // TESTME: `its` inside an instance method
@@ -108,12 +107,12 @@ export default new Spell.Parser({
     {
       name: "object_literal_properties",
       syntax: "[({property} (=|is|of|is? set to) {value:expression})(,|and)]",
-      toAST(scope, match) {
+      toAST(match) {
         const properties = match.items.map(propMatch => {
           const { property, value } = propMatch.groups
-          return new AST.ObjectLiteralProperty(scope, propMatch, { property: property.AST, value: value.AST })
+          return new AST.ObjectLiteralProperty(propMatch, { property: property.AST, value: value.AST })
         })
-        return new AST.ObjectLiteral(scope, match, { properties })
+        return new AST.ObjectLiteral(match, { properties })
       },
       tests: [
         {

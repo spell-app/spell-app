@@ -55,7 +55,7 @@ export default class Match {
   @memoize
   get AST() {
     if (!this.rule.toAST) console.warn("NO AST FOR", this.rule)
-    return this.rule.toAST(this.scope, this)
+    return this.rule.toAST(this)
   }
 
   // Syntatic sugar to return the JS for the AST for this match.
@@ -72,13 +72,13 @@ export default class Match {
   // NOTE: ONLY CALL THIS FROM THE MATCH!!!
   @memoize
   getASTScope() {
-    return this.rule.getASTScope?.(this.scope, this)
+    return this.rule.getASTScope?.(this)
   }
 
   // Have the match call `updateASTScope()` if it can.
   // NOTE: ONLY CALL THIS FROM THE MATCH!!!
   updateASTScope() {
-    return this.rule.updateASTScope?.(this.scope, this)
+    return this.rule.updateASTScope?.(this)
   }
 
   // Test to see if the AST => JS matches rule.compile() => JS

@@ -1,16 +1,5 @@
 import flatten from "lodash/flatten"
-import {
-  Scope,
-  Spell,
-  instanceCase,
-  lowerFirst,
-  upperFirst,
-  pluralize,
-  singularize,
-  typeCase,
-  AST,
-  proto
-} from "../all"
+import { Scope, Spell, instanceCase, lowerFirst, upperFirst, pluralize, singularize, typeCase, AST } from "../all"
 
 export default new Spell.Parser({
   module: "classes",
@@ -24,16 +13,16 @@ export default new Spell.Parser({
       ],
       constructor: Spell.Rule.Statement,
       mutatesScope: true,
-      updateASTScope(scope, match) {
+      updateASTScope(match) {
         const { type, superType } = match.groups
         // Forget it if type is already defined.
         // TODO: complain if existing type is set up differently!
-        if (scope.types(type.value)) return
-        scope.types.add({ name: type.value, superType: superType?.value })
+        if (match.scope.types(type.value)) return
+        match.scope.types.add({ name: type.value, superType: superType?.value })
       },
-      toAST(scope, match) {
+      toAST(match) {
         const { type, superType } = match.groups
-        return new AST.ClassDeclaration(scope, match, {
+        return new AST.ClassDeclaration(match, {
           type: type.AST,
           superType: superType?.AST
         })
@@ -64,22 +53,22 @@ export default new Spell.Parser({
       ],
       constructor: Spell.Rule.Statement,
       mutatesScope: true,
-      updateASTScope(scope, match) {
+      updateASTScope(match) {
         const { type, instanceType } = match.groups
         // Forget it if type is already defined.
         // TODO: complain if existing type is set up differently!
-        if (scope.types(type.value)) return
+        if (match.scope.types(type.value)) return
 
-        scope.types.add({ name: type.value, superType: "list", instanceType: instanceType?.value })
+        match.scope.types.add({ name: type.value, superType: "list", instanceType: instanceType?.value })
       },
-      toAST(scope, match) {
+      toAST(match) {
         const { type, instanceType } = match.groups
-        return new AST.StatementGroup(scope, match, {
+        return new AST.StatementGroup(match, {
           statements: [
             // Declare the class
-            new AST.ClassDeclaration(scope, match, {
+            new AST.ClassDeclaration(match, {
               type: type.AST,
-              superType: new AST.TypeExpression(scope, match, { raw: "list", name: "Array" }),
+              superType: new AST.TypeExpression(match, { raw: "list", name: "Array" }),
               instanceType: instanceType.AST
             })
           ]
@@ -106,9 +95,9 @@ export default new Spell.Parser({
       syntax: "a new {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       testRule: "…new",
       constructor: Spell.Rule.Statement,
-      toAST(scope, match) {
+      toAST(match) {
         const { type, props } = match.groups
-        return new AST.NewInstanceExpression(scope, match, {
+        return new AST.NewInstanceExpression(match, {
           type: type.AST,
           props: props?.AST
         })
@@ -144,9 +133,9 @@ export default new Spell.Parser({
       syntax: "create (a|an) {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       testRule: "create",
       constructor: Spell.Rule.Statement,
-      toAST(scope, match) {
+      toAST(match) {
         const { type, props } = match.groups
-        return new AST.NewInstanceExpression(scope, match, {
+        return new AST.NewInstanceExpression(match, {
           type: type.AST,
           props: props?.AST
         })
@@ -193,9 +182,9 @@ export default new Spell.Parser({
       name: "type_specifier_enum",
       alias: "type_specifier",
       syntax: "as (either|one of) {enumeration:identifier_list}",
-      toAST(scope, match) {
+      toAST(match) {
         const enumeration = match.groups.enumeration.items.map(item => item.AST)
-        return new AST.Enumeration(scope, match, {
+        return new AST.Enumeration(match, {
           enumeration,
           values: enumeration.map(literal => literal.toJS())
         })
@@ -214,7 +203,7 @@ export default new Spell.Parser({
       name: "type_specifier_datatype",
       alias: "type_specifier",
       syntax: "as (a|an)? {datatype:singular_type}",
-      toAST(scope, match) {
+      toAST(match) {
         return match.groups.datatype.AST
       },
       tests: [
@@ -233,7 +222,8 @@ export default new Spell.Parser({
       testRule: "…(has|have)",
       constructor: Spell.Rule.Statement,
       mutatesScope: true,
-      updateASTScope(scope, match) {
+      updateASTScope(match) {
+        const { scope } = match
         const { type, property, specifier } = match.groups
         const specifierAST = specifier?.AST
 
@@ -267,38 +257,38 @@ export default new Spell.Parser({
             compile() {
               return `${typeName}.${groupName}`
             },
-            toAST(scope2, match2) {
-              return new AST.PropertyExpression(scope2, match2, {
+            toAST(_match) {
+              return new AST.PropertyExpression(_match, {
                 object: type.AST,
-                property: new AST.PropertyLiteral(scope, property, { value: groupName })
+                property: new AST.PropertyLiteral(property, { value: groupName })
               })
             }
           })
 
           // Add comment string which we'll output below
-          match.ruleComment = new AST.LineComment(scope, match, {
+          match.ruleComment = new AST.LineComment(match, {
             value: `SPELL added rule: '${literals.map(group => `(${group.join("|")})`).join(" ")}'`
           })
         }
       },
-      toAST(scope, match) {
+      toAST(match) {
         const { type, property } = match.groups
 
         // output statements
         const statements = []
 
-        const internalProp = new AST.PropertyLiteral(scope, property, {
+        const internalProp = new AST.PropertyLiteral(property, {
           raw: property.raw,
           value: `#${property.value}`
         })
-        const internalExpression = new AST.PropertyExpression(scope, match, {
-          object: new AST.ThisLiteral(scope, match),
+        const internalExpression = new AST.PropertyExpression(match, {
+          object: new AST.ThisLiteral(match),
           property: internalProp
         })
-        const prototype = new AST.PrototypeExpression(type.scope, type, { type: type.AST })
+        const prototype = new AST.PrototypeExpression(type, { type: type.AST })
 
         // assignment for the setter
-        let assignment = new AST.AssignmentStatement(scope, match, {
+        let assignment = new AST.AssignmentStatement(match, {
           thing: internalExpression,
           value: property.AST
         })
@@ -314,17 +304,17 @@ export default new Spell.Parser({
 
             const groupName = pluralize(upperFirst(property.value))
             // Set up enumeration variable on the class!
-            const enumerationPropName = new AST.PropertyLiteral(scope, property, { value: groupName })
-            const enumerationExpression = new AST.PropertyExpression(scope, match, {
+            const enumerationPropName = new AST.PropertyLiteral(property, { value: groupName })
+            const enumerationExpression = new AST.PropertyExpression(match, {
               object: type.AST,
               property: enumerationPropName
             })
-            const enumerationProp = new AST.PropertyExpression(scope, match, {
+            const enumerationProp = new AST.PropertyExpression(match, {
               object: type.AST,
               property: enumerationPropName
             })
             statements.push(
-              new AST.AssignmentStatement(scope, match, {
+              new AST.AssignmentStatement(match, {
                 thing: enumerationProp,
                 value: specifier
               })
@@ -332,7 +322,7 @@ export default new Spell.Parser({
 
             // Add enumeration pointer to the prototype as well
             statements.push(
-              new AST.ValueDefinition(scope, match, {
+              new AST.ValueDefinition(match, {
                 thing: prototype,
                 property: enumerationPropName,
                 value: enumerationProp
@@ -340,31 +330,31 @@ export default new Spell.Parser({
             )
 
             // condition for assignment below
-            condition = new AST.CoreMethodInvocation(scope, match, {
+            condition = new AST.CoreMethodInvocation(match, {
               method: "includes",
               arguments: [enumerationExpression, property.AST]
             })
           }
           // datatype
           else {
-            const specifierConstant = new AST.ConstantExpression(specifier.match.scope, specifier.match, {
+            const specifierConstant = new AST.ConstantExpression(specifier.match, {
               name: specifier.name,
               value: `'${specifier.name}'`
             })
-            condition = new AST.CoreMethodInvocation(scope, match, {
+            condition = new AST.CoreMethodInvocation(match, {
               method: "isOfType",
               arguments: [property.AST, specifierConstant]
             })
           }
-          assignment = new AST.IfStatement(scope, match, { condition, statements: assignment })
+          assignment = new AST.IfStatement(match, { condition, statements: assignment })
         }
 
         // getter
         statements.push(
-          new AST.GetterDefinition(scope, match, {
+          new AST.GetterDefinition(match, {
             thing: prototype,
             property: property.AST,
-            statements: new AST.ReturnStatement(scope, match, {
+            statements: new AST.ReturnStatement(match, {
               value: internalExpression
             })
           })
@@ -372,14 +362,14 @@ export default new Spell.Parser({
 
         // setter
         statements.push(
-          new AST.SetterDefinition(scope, match, {
+          new AST.SetterDefinition(match, {
             thing: prototype,
             property: property.AST,
             statements: assignment
           })
         )
 
-        return new AST.StatementGroup(scope, match, { statements })
+        return new AST.StatementGroup(match, { statements })
       },
       tests: [
         {
@@ -444,10 +434,11 @@ export default new Spell.Parser({
         "{type_property} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
       constructor: Spell.Rule.Statement,
       mutatesScope: true,
-      toAST(scope, match) {
+      toAST(match) {
+        const { scope } = match
         const { value, otherValue, type_property, condition } = match.groups
         const { type, property } = type_property.groups
-        const prototype = new AST.PrototypeExpression(type.scope, type, { type: type.AST })
+        const prototype = new AST.PrototypeExpression(type, { type: type.AST })
         // make sure type is defined
         scope.getOrStubType(type.name)
         // register constants if specified
@@ -460,19 +451,19 @@ export default new Spell.Parser({
           const constant = otherValue.constant || scope.constants(otherValue.raw)
           if (!constant) scope.constants.add(otherValue.raw)
         }
-        const ifAST = new AST.IfStatement(scope, match, {
+        const ifAST = new AST.IfStatement(match, {
           condition: condition.AST,
-          statements: new AST.ReturnStatement(scope, match, { value: value.AST })
+          statements: new AST.ReturnStatement(match, { value: value.AST })
         })
         let getterBody
         if (!otherValue) {
           getterBody = ifAST
         } else {
-          getterBody = new AST.StatementGroup(scope, match, {
-            statements: [ifAST, new AST.ReturnStatement(scope, match, { value: otherValue.AST })]
+          getterBody = new AST.StatementGroup(match, {
+            statements: [ifAST, new AST.ReturnStatement(match, { value: otherValue.AST })]
           })
         }
-        return new AST.GetterDefinition(scope, match, {
+        return new AST.GetterDefinition(match, {
           thing: prototype,
           property: property.AST,
           statements: getterBody
@@ -506,15 +497,15 @@ export default new Spell.Parser({
       syntax: "{type_property} is {expression}",
       constructor: Spell.Rule.Statement,
       mutatesScope: true,
-      toAST(scope, match) {
+      toAST(match) {
         const { type_property, expression } = match.groups
         const { type, property } = type_property.groups
         // make sure type is defined
-        scope.getOrStubType(type.name)
-        return new AST.GetterDefinition(scope, match, {
-          thing: new AST.PrototypeExpression(type.scope, type, { type: type.AST }),
+        match.scope.getOrStubType(type.name)
+        return new AST.GetterDefinition(match, {
+          thing: new AST.PrototypeExpression(type, { type: type.AST }),
           property: property.AST,
-          statements: new AST.ReturnStatement(scope, match, {
+          statements: new AST.ReturnStatement(match, {
             value: expression.AST
           })
         })
@@ -560,10 +551,10 @@ export default new Spell.Parser({
         }
 
         mutatesScope = true
-        updateASTScope(scope, match) {
+        updateASTScope(match) {
           const { type, alias } = match.groups
           // Make sure type is defined
-          scope.getOrStubType(type.value)
+          match.scope.getOrStubType(type.value)
 
           const words = JSON.parse(alias.value).split(" ")
           // set `property` which we'll use in `compileASTExpression()` below
@@ -571,39 +562,39 @@ export default new Spell.Parser({
           // add optional `not` to the rule
           const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ")
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
-          scope.addExpressionSuffixRule({
+          match.scope.addExpressionSuffixRule({
             name: match.property,
             syntax: expressionSuffix,
             precedence: 20,
             constructor: Spell.Rule.PostfixOperatorSuffix,
             shouldNegateOutput: operator => operator.value.includes("not"),
-            compileASTExpression(_scope, _match, { lhs }) {
-              return new AST.PropertyExpression(_scope, _match, {
+            compileASTExpression(_match, { lhs }) {
+              return new AST.PropertyExpression(_match, {
                 object: lhs,
-                property: new AST.PropertyLiteral(_scope, _match, { value: match.property })
+                property: new AST.PropertyLiteral(_match, { value: match.property })
               })
             }
           })
 
           // Add comment string which we'll output below
-          match.ruleComment = new AST.LineComment(scope, match, {
+          match.ruleComment = new AST.LineComment(match, {
             value: `SPELL added rule: '${expressionSuffix}'`
           })
         }
 
-        toAST(scope, match) {
+        toAST(match) {
           const { type, expression } = match.groups
           const statements = [
             match.ruleComment,
-            new AST.GetterDefinition(scope, match, {
-              thing: new AST.PrototypeExpression(scope, type, { type: type.AST }),
-              property: new AST.PropertyLiteral(scope, match, { value: match.property }),
-              statements: new AST.ReturnStatement(scope, match, {
+            new AST.GetterDefinition(match, {
+              thing: new AST.PrototypeExpression(type, { type: type.AST }),
+              property: new AST.PropertyLiteral(match, { value: match.property }),
+              statements: new AST.ReturnStatement(match, {
                 value: expression.AST
               })
             })
           ]
-          return new AST.StatementGroup(scope, match, { statements })
+          return new AST.StatementGroup(match, { statements })
         }
       },
       tests: [
@@ -654,7 +645,7 @@ export default new Spell.Parser({
           return match
         }
 
-        parseMatchBits(scope, match) {
+        parseMatchBits(match) {
           const { groups } = match
           const alias = groups.alias.value
           const type = groups.type.value
@@ -685,7 +676,7 @@ export default new Spell.Parser({
               // Try to find the enumeration
               // NOTE: currently this only works for an enumeration defined on the type!!!
               const propertyName = sources[sourceNum]?.groups?.property?.value
-              const variable = scope.types(type)?.variables(propertyName)
+              const variable = match.scope.types(type)?.variables(propertyName)
               const enumeration = variable?.enumeration
               // console.warn({ type, Type: scope.types(type), propertyName, variable, enumeration })
               // set up enumeration matcher
@@ -719,35 +710,36 @@ export default new Spell.Parser({
         }
 
         mutatesScope = true
-        updateASTScope(scope, match) {
-          const { type, syntax, method, ruleData, vars, property } = this.parseMatchBits(scope, match)
+        updateASTScope(match) {
+          const { syntax, property } = this.parseMatchBits(match)
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
-          scope.addExpressionSuffixRule({
+          match.scope.addExpressionSuffixRule({
             name: property,
             syntax,
             precedence: 20,
             constructor: Spell.Rule.InfixOperatorSuffix,
             shouldNegateOutput: operator => operator.value.includes("not"),
-            compileASTExpression(_scope, _match, { lhs, rhs }) {
+            compileASTExpression(_match, { lhs, rhs }) {
               if (!Array.isArray(rhs)) rhs = [rhs]
               const args = rhs
                 .map(arg => {
                   if (typeof arg.value === "string") {
-                    return new AST.ConstantExpression(arg.scope, arg, {
+                    return new AST.ConstantExpression(arg, {
                       name: arg.value,
                       value: `'${arg.value}'`
                     })
                   }
                   if (typeof arg.value === "number") {
-                    return new AST.NumericLiteral(arg.scope, arg, {
+                    return new AST.NumericLiteral(arg, {
                       value: arg.value
                     })
                   }
                   console.warn("quoted_property_formula: don't understand arg", arg)
+                  return undefined
                 })
                 .filter(Boolean)
-              return new AST.ScopedMethodInvocation(_scope, _match, {
+              return new AST.ScopedMethodInvocation(_match, {
                 thing: lhs,
                 method: property,
                 arguments: args
@@ -756,22 +748,22 @@ export default new Spell.Parser({
           })
 
           // Add comment string which we'll output below
-          match.ruleComment = new AST.LineComment(scope, match, {
+          match.ruleComment = new AST.LineComment(match, {
             value: `SPELL added rule: '${syntax}'`
           })
         }
 
-        toAST(scope, match) {
+        toAST(match) {
           const { type } = match.groups
-          const { vars, property } = this.parseMatchBits(scope, match)
+          const { vars, property } = this.parseMatchBits(match)
           // Return AST for the instance method
-          const args = vars.map(varName => new AST.VariableExpression(scope, match, { name: varName }))
-          const properties = vars.map(varName => new AST.PropertyLiteral(scope, match, { value: varName }))
+          const args = vars.map(varName => new AST.VariableExpression(match, { name: varName }))
+          const properties = vars.map(varName => new AST.PropertyLiteral(match, { value: varName }))
           const expressions = args.map(
             (variable, index) =>
-              new AST.InfixExpression(scope, match, {
-                lhs: new AST.PropertyExpression(scope, match, {
-                  object: new AST.ThisLiteral(scope, match),
+              new AST.InfixExpression(match, {
+                lhs: new AST.PropertyExpression(match, {
+                  object: new AST.ThisLiteral(match),
                   property: properties[index]
                 }),
                 operator: "===",
@@ -780,17 +772,17 @@ export default new Spell.Parser({
           )
           const statements = [
             match.ruleComment,
-            new AST.MethodDefinition(scope, match, {
-              thing: new AST.PrototypeExpression(type.scope, type, { type: type.AST }),
+            new AST.MethodDefinition(match, {
+              thing: new AST.PrototypeExpression(type, { type: type.AST }),
               method: property,
               args,
-              statements: new AST.ReturnStatement(scope, match, {
-                value: AST.MultiInfixExpression(scope, match, { expressions, operator: "&&" })
+              statements: new AST.ReturnStatement(match, {
+                value: AST.MultiInfixExpression(match, { expressions, operator: "&&" })
               }),
               datatype: "boolean"
             })
           ]
-          return new AST.StatementGroup(scope, match, { statements })
+          return new AST.StatementGroup(match, { statements })
         }
       },
       tests: [
@@ -849,7 +841,7 @@ export default new Spell.Parser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       mutatesScope: true,
-      parseMatchBits(scope, match) {
+      parseMatchBits(match) {
         if (match.bits) return match.bits
         const keywords = match.groups.keywords.matched
         const bits = {
@@ -903,10 +895,10 @@ export default new Spell.Parser({
         match.bits = bits
         return bits
       },
-      getASTScope(scope, match) {
-        const bits = this.parseMatchBits(scope, match)
+      getASTScope(match) {
+        const bits = this.parseMatchBits(match)
         const method = new Scope.Method({
-          scope,
+          scope: match.scope,
           name: bits.methodName,
           args: bits.args
         })
@@ -921,54 +913,54 @@ export default new Spell.Parser({
         }
         return method
       },
-      updateASTScope(scope, match) {
-        const bits = this.parseMatchBits(scope, match)
+      updateASTScope(match) {
+        const bits = this.parseMatchBits(match)
         const rule = {
           name: bits.methodName,
           syntax: bits.ruleSyntax,
           constructor: Spell.Rule.Statement
         }
         if (bits.instanceType) {
-          rule.toAST = function(_scope, _match) {
+          rule.toAST = function(_match) {
             const args = flatten([_match.groups.callArgs])
               .filter(Boolean)
               .map(arg => arg.AST)
-            return new AST.ScopedMethodInvocation(_scope, _match, {
+            return new AST.ScopedMethodInvocation(_match, {
               thing: args.shift(),
               method: bits.methodName,
               arguments: args
             })
           }
         } else {
-          rule.toAST = function(_scope, _match) {
+          rule.toAST = function(_match) {
             const args = flatten([_match.groups.callArgs])
               .filter(Boolean)
               .map(arg => arg.AST)
-            return new AST.MethodInvocation(_scope, _match, {
+            return new AST.MethodInvocation(_match, {
               method: bits.methodName,
               arguments: args
             })
           }
         }
-        scope.addStatementRule(rule)
+        match.scope.addStatementRule(rule)
       },
-      toAST(scope, match) {
+      toAST(match) {
         const { nestedBlock } = match.groups
-        const bits = this.parseMatchBits(scope, match)
+        const bits = this.parseMatchBits(match)
         // console.warn(bits)
-        const args = bits.args.map(argName => new AST.VariableExpression(scope, match, { name: argName }))
+        const args = bits.args.map(argName => new AST.VariableExpression(match, { name: argName }))
 
         const statements = [
-          new AST.LineComment(scope, match, {
+          new AST.LineComment(match, {
             value: `SPELL added rule: '${bits.ruleSyntax}'`
           })
         ]
 
         if (bits.instanceType) {
           statements.push(
-            new AST.MethodDefinition(scope, match, {
-              thing: new AST.PrototypeExpression(scope, match, {
-                type: new AST.TypeExpression(scope, match, { name: typeCase(bits.instanceType) })
+            new AST.MethodDefinition(match, {
+              thing: new AST.PrototypeExpression(match, {
+                type: new AST.TypeExpression(match, { name: typeCase(bits.instanceType) })
               }),
               method: bits.methodName,
               args,
@@ -977,7 +969,7 @@ export default new Spell.Parser({
           )
         } else {
           statements.push(
-            new AST.FunctionDefinition(scope, match, {
+            new AST.FunctionDefinition(match, {
               method: bits.methodName,
               args,
               statements: nestedBlock?.AST
@@ -985,7 +977,7 @@ export default new Spell.Parser({
           )
         }
 
-        return new AST.StatementGroup(scope, match, { statements })
+        return new AST.StatementGroup(match, { statements })
       },
       tests: [
         {

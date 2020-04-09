@@ -13,9 +13,9 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "print {expression}",
       constructor: Spell.Rule.Statement,
-      toAST(scope, match) {
+      toAST(match) {
         const { expression } = match.groups
-        return new AST.ConsoleMethodInvocation(scope, match, {
+        return new AST.ConsoleMethodInvocation(match, {
           method: "log",
           args: [expression.AST]
         })
@@ -37,11 +37,11 @@ export default new Spell.Parser({
       syntax: "notify {message:expression} (with {okButton:text})?", // TODO: "with close" ?
       testRule: "notify",
       constructor: Spell.Rule.Statement,
-      toAST(scope, match) {
+      toAST(match) {
         const { message, okButton } = match.groups
         const args = [message.AST]
         if (okButton) args.push(okButton.AST)
-        return new AST.CoreMethodInvocation(scope, match, {
+        return new AST.CoreMethodInvocation(match, {
           method: "notify",
           arguments: args
         })
@@ -67,13 +67,13 @@ export default new Spell.Parser({
       syntax: "alert {message:expression} (with {okButton:text})?",
       testRule: "alert",
       constructor: Spell.Rule.Statement,
-      toAST(scope, match) {
-        scope.async = true // TODO!!!
+      toAST(match) {
+        match.scope.async = true // TODO!!!
         const { message, okButton } = match.groups
         const args = [message.AST]
         if (okButton) args.push(okButton.AST)
-        return new AST.AwaitMethodInvocation(scope, match, {
-          method: new AST.CoreMethodInvocation(scope, match, {
+        return new AST.AwaitMethodInvocation(match, {
+          method: new AST.CoreMethodInvocation(match, {
             method: "alert",
             arguments: args
           })
@@ -100,13 +100,13 @@ export default new Spell.Parser({
       syntax: "warn {message:expression} (with {okButton:text})?",
       testRule: "warn",
       constructor: Spell.Rule.Statement,
-      toAST(scope, match) {
-        scope.async = true // TODO!!!
+      toAST(match) {
+        match.scope.async = true // TODO!!!
         const { message, okButton } = match.groups
         const args = [message.AST]
         if (okButton) args.push(okButton.AST)
-        return new AST.AwaitMethodInvocation(scope, match, {
-          method: new AST.CoreMethodInvocation(scope, match, {
+        return new AST.AwaitMethodInvocation(match, {
+          method: new AST.CoreMethodInvocation(match, {
             method: "warn",
             arguments: args
           })
@@ -133,14 +133,14 @@ export default new Spell.Parser({
       syntax: "confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})?)?",
       testRule: "confirm",
       constructor: Spell.Rule.Statement,
-      toAST(scope, match) {
-        scope.async = true // TODO!!!
+      toAST(match) {
+        match.scope.async = true // TODO!!!
         const { message, okButton, cancelButton } = match.groups
         const args = [message.AST]
         if (okButton) args.push(okButton.AST)
         if (cancelButton) args.push(cancelButton.AST)
-        return new AST.AwaitMethodInvocation(scope, match, {
-          method: new AST.CoreMethodInvocation(scope, match, {
+        return new AST.AwaitMethodInvocation(match, {
+          method: new AST.CoreMethodInvocation(match, {
             method: "confirm",
             arguments: args
           })
@@ -169,13 +169,13 @@ export default new Spell.Parser({
       syntax: "prompt {message:expression} (with {defaultValue:expression})?",
       testRule: "prompt",
       constructor: Spell.Rule.Statement,
-      toAST(scope, match) {
-        scope.async = true // TODO!!!
+      toAST(match) {
+        match.scope.async = true // TODO!!!
         const { message, defaultValue } = match.groups
         const args = [message.AST]
         if (defaultValue) args.push(defaultValue.AST)
-        return new AST.AwaitMethodInvocation(scope, match, {
-          method: new AST.CoreMethodInvocation(scope, match, {
+        return new AST.AwaitMethodInvocation(match, {
+          method: new AST.CoreMethodInvocation(match, {
             method: "prompt",
             arguments: args
           })

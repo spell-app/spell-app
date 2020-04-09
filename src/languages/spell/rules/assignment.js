@@ -18,20 +18,20 @@ export default new Spell.Parser({
       ],
       constructor: Spell.Rule.Statement,
       mutatesScope: true,
-      updateASTScope(scope, match) {
+      updateASTScope(match) {
         const { thing } = match.groups
         // If `thing` is a variable...
         if (thing.rule.name === "variable") {
           // get just the `identifier` bit to ignore leading "the "
           const varName = thing.groups.identifier.value
-          match.isNewVariable = !scope.variables(varName)
+          match.isNewVariable = !match.scope.variables(varName)
           // define it a a new variable in `scope` if not already defined
-          if (match.isNewVariable) scope.variables.add(varName) // TODO: type???
+          if (match.isNewVariable) match.scope.variables.add(varName) // TODO: type???
         }
       },
-      toAST(scope, match) {
+      toAST(match) {
         const { thing, value } = match.groups
-        return new AST.AssignmentStatement(scope, match, {
+        return new AST.AssignmentStatement(match, {
           thing: thing.AST,
           value: value.AST,
           isNewVariable: match.isNewVariable
@@ -78,15 +78,15 @@ export default new Spell.Parser({
       testRule: "get",
       constructor: Spell.Rule.Statement,
       mutatesScope: true,
-      updateASTScope(scope, match) {
+      updateASTScope(match) {
         // make sure 'it' is declared LOCALLY
-        match.isNewVarable = !scope.variables("it", "LOCAL")
-        if (!match.isNewVarable) scope.variables.add("it")
+        match.isNewVarable = !match.scope.variables("it", "LOCAL")
+        if (!match.isNewVarable) match.scope.variables.add("it")
       },
-      toAST(scope, match) {
+      toAST(match) {
         const { value } = match.groups
-        return new AST.AssignmentStatement(scope, match, {
-          thing: new AST.VariableExpression(scope, match, { raw: "it", name: "it" }),
+        return new AST.AssignmentStatement(match, {
+          thing: new AST.VariableExpression(match, { raw: "it", name: "it" }),
           value: value.AST,
           isNewVariable: match.isNewVarable
         })
@@ -113,10 +113,8 @@ export default new Spell.Parser({
       syntax: "(return|exit with?) {expression}?",
       testRule: "(return|exit)",
       constructor: Spell.Rule.Statement,
-      toAST(scope, match) {
-        return new AST.ReturnStatement(scope, match, {
-          value: match.groups.expression?.AST
-        })
+      toAST(match) {
+        return new AST.ReturnStatement(match, { value: match.groups.expression?.AST })
       },
       tests: [
         {

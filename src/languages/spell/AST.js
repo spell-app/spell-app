@@ -1,7 +1,7 @@
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 import _get from "lodash/get"
 import { proto, readonly } from "../../utils/decorators"
-import { Scope, Match, AST } from "./all"
+import { Match, AST } from "./all"
 
 // TODO: define this in `constants` or some such?
 const OPTIONAL = Symbol("OPTIONAL")
@@ -24,10 +24,10 @@ function encloseInParens(value) {
   return `(${value})`
 }
 
-function convertStatementsToBlock(scope, match, statements) {
-  if (!statements) return new StatementBlock(scope, match)
+function convertStatementsToBlock(match, statements) {
+  if (!statements) return new StatementBlock(match)
   if (statements instanceof StatementBlock) return statements
-  return new StatementBlock(scope, match, { statements: [statements] })
+  return new StatementBlock(match, { statements: [statements] })
 }
 
 /** Abstract root of all AST node types.
@@ -37,19 +37,21 @@ export class ASTNode {
   @proto @readonly type = "ASTNode"
 
   /** On construction, pass:
-   *  - `scope` passed to `toAST()` method.
    *  - `match` passed to `toAST()` method,
    *  - `props` as arbitrary properties to be assigned to the instance.
    *  Use `this.assert()` or `this.assertType()` to validate input as much as you can.
    *
    *  TODO: `datatype` as a function which turns into a getter?
    */
-  constructor(scope, match, props) {
+  constructor(match, props) {
     if (props) Object.assign(this, props)
-    this.parentScope = scope
     this.match = match
-    this.assertType("parentScope", Scope)
     this.assertType("match", Match)
+  }
+
+  /** Scope of the top-level match. */
+  get parentScope() {
+    return this.match.scope
   }
 
   /** Compile this AST into Javascript.  You MUST override in a subclass. */
@@ -340,13 +342,13 @@ export class InfixExpression extends Expression {
 }
 
 /** Given an array of Expressions, join them all together with the same `operator`. */
-export function MultiInfixExpression(scope, match, { expressions, operator }) {
+export function MultiInfixExpression(match, { expressions, operator }) {
   if (expressions.length < 2) return expressions[0]
   const remaining = [...expressions]
   let rhs = remaining.pop()
   while (remaining.length) {
     const lhs = remaining.pop()
-    rhs = new AST.InfixExpression(scope, match, { lhs, operator, rhs })
+    rhs = new AST.InfixExpression(match, { lhs, operator, rhs })
   }
   return rhs
 }
@@ -822,7 +824,7 @@ export class MethodDefinition extends Statement {
     this.assertArrayType("args", VariableExpression, OPTIONAL)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
-    this.statements = convertStatementsToBlock(this.parentScope, this.match, this.statements)
+    this.statements = convertStatementsToBlock(this.match, this.statements)
   }
   toJS() {
     const { thing, method, args = [], statements } = this
@@ -847,7 +849,7 @@ export class FunctionDefinition extends Statement {
     this.assertArrayType("args", VariableExpression, OPTIONAL)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
-    this.statements = convertStatementsToBlock(this.parentScope, this.match, this.statements)
+    this.statements = convertStatementsToBlock(this.match, this.statements)
   }
   toJS() {
     const { method = "", args = [], statements } = this
@@ -864,7 +866,7 @@ export class IfStatement extends Statement {
   constructor(...args) {
     super(...args)
     this.assertType("condition", Expression)
-    this.statements = convertStatementsToBlock(this.parentScope, this.match, this.statements)
+    this.statements = convertStatementsToBlock(this.match, this.statements)
   }
   toJS() {
     const { condition, statements } = this
@@ -881,7 +883,7 @@ export class ElseIfStatement extends Statement {
   constructor(...args) {
     super(...args)
     this.assertType("condition", Expression)
-    this.statements = convertStatementsToBlock(this.parentScope, this.match, this.statements)
+    this.statements = convertStatementsToBlock(this.match, this.statements)
   }
   toJS() {
     const { condition, statements } = this
@@ -896,7 +898,7 @@ export class ElseStatement extends Statement {
   @proto @readonly type = "ElseStatement"
   constructor(...args) {
     super(...args)
-    this.statements = convertStatementsToBlock(this.parentScope, this.match, this.statements)
+    this.statements = convertStatementsToBlock(this.match, this.statements)
   }
   toJS() {
     const { statements } = this

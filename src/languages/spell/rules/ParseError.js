@@ -12,8 +12,8 @@ Spell.Rule.ParseError = class parse_error extends Rule {
     })
   }
 
-  toAST(scope, match) {
-    return new AST.ParseError(scope, match, {
+  toAST(match) {
+    return new AST.ParseError(match, {
       message: `UNABLE TO PARSE: "${Tokenizer.join(match.matched)}"`
     })
   }

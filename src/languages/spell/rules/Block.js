@@ -81,14 +81,14 @@ Spell.Rule.Block = class block extends Rule {
     })
   }
 
-  toAST(scope, match) {
+  toAST(match) {
     const statements = _.flatten(
       match.matched.map(statement => {
         // Output comments and errors, then the statement itself
         return [statement.comment?.AST, statement.error?.AST, statement.AST].filter(Boolean)
       })
     )
-    if (match.enclose) return new AST.StatementBlock(scope, match, { statements })
-    return new AST.StatementGroup(scope, match, { statements })
+    if (match.enclose) return new AST.StatementBlock(match, { statements })
+    return new AST.StatementGroup(match, { statements })
   }
 }

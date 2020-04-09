@@ -165,9 +165,9 @@ export default new Spell.Parser({
       syntax: "(operator:the? absolute value of) {expression}",
       testRule: "…absolute",
       constructor: Spell.Rule.InfixOperatorSuffix,
-      toAST(scope, match) {
+      toAST(match) {
         const { expression } = match.groups
-        return new AST.CoreMethodInvocation(scope, match, {
+        return new AST.CoreMethodInvocation(match, {
           datatype: "number",
           method: "absoluteValue", // TODO: implement in spellCore
           arguments: [expression.AST]
@@ -190,9 +190,9 @@ export default new Spell.Parser({
       precedence: 2,
       syntax: "(operator:the? (biggest|largest)) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…(biggest|largest)",
-      toAST(scope, match) {
+      toAST(match) {
         const { expression } = match.groups
-        return new AST.CoreMethodInvocation(scope, match, {
+        return new AST.CoreMethodInvocation(match, {
           datatype: "number",
           method: "largestOf",
           arguments: [expression.AST]
@@ -220,9 +220,9 @@ export default new Spell.Parser({
       precedence: 2,
       syntax: "(operator:the? smallest) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…smallest",
-      toAST(scope, match) {
+      toAST(match) {
         const { expression } = match.groups
-        return new AST.CoreMethodInvocation(scope, match, {
+        return new AST.CoreMethodInvocation(match, {
           datatype: "number",
           method: "smallestOf",
           arguments: [expression.AST]
@@ -249,12 +249,12 @@ export default new Spell.Parser({
       syntax: "round {expression} (operator:off|up|down)?",
       testRule: "round",
       precedence: 1,
-      toAST(scope, match) {
+      toAST(match) {
         const { expression, operator } = match.groups
         let method = "round"
         if (operator?.value === "up") method = "roundUp"
         else if (operator?.value === "down") method = "roundDown"
-        return new AST.CoreMethodInvocation(scope, match, {
+        return new AST.CoreMethodInvocation(match, {
           datatype: "number",
           method, // TODO: implement in spellCore
           arguments: [expression.AST]
