@@ -118,7 +118,7 @@ Spell.Rule.Block = class block extends Rule {
   // attempt to parse `unparsed` tokens from the end of the input line.
   // Returns `inlineStatement` match if successful.
   parseInlineStatement(statement, unparsed, parseAs = "statement") {
-    const inlineStatement = statement.getNestedScope()?.parse(unparsed, parseAs)
+    const inlineStatement = statement.nestedScope?.parse(unparsed, parseAs)
     if (inlineStatement) {
       statement.addMatch(inlineStatement, "inlineStatement")
       // TODO: ???  call `mutateScope()` to initialize any variables/rules/etc
@@ -132,8 +132,7 @@ Spell.Rule.Block = class block extends Rule {
   // Returns `nestedBlock` match if successful.
   parseNestedBlock(statement, nextItem) {
     // TODO: complain if we also have an inlineStatement???
-    const nestedScope = statement.getNestedScope()
-    const nestedBlock = nestedScope && this.parseBlock(nestedScope, nextItem)
+    const nestedBlock = statement.nestedScope && this.parseBlock(statement.nestedScope, nextItem)
     if (nestedBlock) {
       // wrap output in parens
       nestedBlock.enclose = true

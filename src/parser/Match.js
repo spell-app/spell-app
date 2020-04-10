@@ -24,7 +24,7 @@ export default class Match {
 
   // Syntactic sugar to easily get `groups` of the match for sequences, etc.
   // Only works for some rule types.
-  // @memoize
+  @memoize
   get groups() {
     return this.rule.gatherGroups?.(this)
   }
@@ -42,12 +42,27 @@ export default class Match {
   // e.g. You could use this to add a comment or error to an existing match.
   // Makes sure length and tokens are updated, groups are recalculated, etc.
   // `argument` is optional group name for the match.
-  // @clearMemoized("groups")
+  @clearMemoized("groups")
   addMatch(match, argument) {
     if (argument) match.argument = argument
     this.matched.push(match)
     this.length += match.length
     // TODO: update this.tokens to include match.tokens
+  }
+
+  // Return AST nested scope for nested block statements.
+  // NOTE: ONLY CALL THIS FROM THE MATCH!!!
+  // TODOC
+  @memoize
+  get nestedScope() {
+    return this.rule.getNestedScope?.(this)
+  }
+
+  // Have the match call `mutateScope()` if it can.
+  // TODOC
+  // NOTE: ONLY CALL THIS FROM THE MATCH!!!
+  mutateScope() {
+    return this.rule.mutateScope?.(this)
   }
 
   // Compile the output of the match.
@@ -73,17 +88,6 @@ export default class Match {
       return undefined
     }
     return this.rule.getAST(this)
-  }
-
-  // Return AST nested scope for nested block statements.
-  getNestedScope() {
-    return this.rule.getNestedScope?.(this)
-  }
-
-  // Have the match call `mutateScope()` if it can.
-  // NOTE: ONLY CALL THIS FROM THE MATCH!!!
-  mutateScope() {
-    return this.rule.mutateScope?.(this)
   }
 
   // DEBUG: Call this when printing to the console to eliminate the big bits in node.
