@@ -642,8 +642,9 @@ export default new Spell.Parser({
           return match
         }
 
-        parseMatchBits(match) {
-          const { groups } = match
+        // When gathering the match groups, figure out `bits` for making rules and AST nodes
+        gatherGroups(match, ...args) {
+          const groups = super.gatherGroups(match, ...args)
           const alias = groups.alias.value
           const type = groups.type.value
           const sources = groups.sources.items
@@ -703,11 +704,12 @@ export default new Spell.Parser({
           syntax.splice(0, 1, "(operator:is not?)")
           syntax = syntax.join(" ")
 
-          return { type, syntax, method, ruleData, vars, property }
+          groups.bits = { type, syntax, method, ruleData, vars, property }
+          return groups
         }
 
         mutateScope(match) {
-          const { syntax, property } = this.parseMatchBits(match)
+          const { syntax, property } = match.groups.bits
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
           match.scope.addRule({
@@ -752,7 +754,7 @@ export default new Spell.Parser({
 
         getAST(match) {
           const { type } = match.groups
-          const { vars, property } = this.parseMatchBits(match)
+          const { vars, property } = match.groups.bits
           // Return AST for the instance method
           const args = vars.map(varName => new AST.VariableExpression(match, { name: varName }))
           const properties = vars.map(varName => new AST.PropertyLiteral(match, { value: varName }))
@@ -834,147 +836,150 @@ export default new Spell.Parser({
       name: "to_do_something",
       alias: "statement",
       syntax: "to (keywords:{keyword}|{type})+ :?",
-      constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      parseMatchBits(match) {
-        if (match.bits) return match.bits
-        const keywords = match.groups.keywords.matched
-        const bits = {
-          // calculated as we run through the keywords
-          method: [], // method signature bits
-          types: [], // names of types we found
-          syntax: [], // rule syntax bits,
-          args: [], // arguments, if any
-          // calculated at the end
-          instanceType: undefined, // type to add instance method to, if any
-          methodName: undefined, // final name of the method
-          ruleSyntax: undefined // final rule syntax
-        }
-        // Process keywords, pulling out types
-        for (let i = 0, count = keywords.length; i < count; i++) {
-          let word = keywords[i].value
-          // assume it's a class if it's in TitleCase...
-          let isType = word === typeCase(word)
-          // if "a" or "an", the next word is a type
-          // TODO: "the" ???
-          if (word === "a" || word === "an") {
-            if (i + 1 === count) {
-              console.warn(`to_do_something.parseMatchBits(): got danglng article '${word}'`)
+      constructor: class to_do_something extends Spell.Rule.Statement {
+        // When gathering the match groups, figure out `bits` for making rules and AST nodes
+        gatherGroups(match, ...args) {
+          const groups = super.gatherGroups(match, ...args)
+          const bits = {
+            // calculated as we run through the keywords
+            method: [], // method signature bits
+            types: [], // names of types we found
+            syntax: [], // rule syntax bits,
+            args: [], // arguments, if any
+            // calculated at the end
+            instanceType: undefined, // type to add instance method to, if any
+            methodName: undefined, // final name of the method
+            ruleSyntax: undefined // final rule syntax
+          }
+          // Process keywords, pulling out types
+          const keywords = groups.keywords.matched
+          for (let i = 0, count = keywords.length; i < count; i++) {
+            let word = keywords[i].value
+            // assume it's a class if it's in TitleCase...
+            let isType = word === typeCase(word)
+            // if "a" or "an", the next word is a type
+            // TODO: "the" ???
+            if (word === "a" || word === "an") {
+              if (i + 1 === count) {
+                console.warn(`to_do_something.gatherGroups(): got danglng article '${word}'`)
+              } else {
+                isType = true
+                word = keywords[++i]?.value // skip article in output
+              }
+            }
+            if (isType) {
+              word = instanceCase(word)
+              bits.types.push(word)
+              bits.syntax.push("{callArgs:expression}")
+              // don't add the first type to the instanceMethod or args -- it'll be defined as a type method instead
+              if (bits.types.length > 1) {
+                bits.method.push(`$${word}`)
+                bits.args.push(word)
+              }
             } else {
-              isType = true
-              word = keywords[++i]?.value // skip article in output
+              // normal keyword
+              bits.syntax.push(word)
+              bits.method.push(word)
             }
           }
-          if (isType) {
-            word = instanceCase(word)
-            bits.types.push(word)
-            bits.syntax.push("{callArgs:expression}")
-            // don't add the first type to the instanceMethod or args -- it'll be defined as a type method instead
-            if (bits.types.length > 1) {
-              bits.method.push(`$${word}`)
-              bits.args.push(word)
+
+          // Did we get an instanceType?
+          // eslint-disable-next-line prefer-destructuring
+          bits.instanceType = bits.types[0]
+          bits.methodName = bits.method.join("_")
+          bits.ruleSyntax = bits.syntax.join(" ")
+
+          groups.bits = bits
+          return groups
+        }
+
+        getNestedScope(match) {
+          const { bits } = match.groups
+          const method = new Scope.Method({
+            scope: match.scope,
+            name: bits.methodName,
+            args: bits.args
+          })
+
+          if (bits.instanceType) {
+            // Add implicit variable mapping instanceType to `this`
+            method.variables.add({ name: bits.instanceType, output: "this" })
+            // Add implicit variables `it` and `its` which maps to the instance type.
+            // Note that `it` may be overwritten in the method with `get XXX`
+            method.variables.add({ name: "it", output: "this" })
+            method.variables.add({ name: "its", output: "this" })
+          }
+          return method
+        }
+
+        mutateScope(match) {
+          const { bits } = match.groups
+          const rule = {
+            name: bits.methodName,
+            alias: "statement",
+            syntax: bits.ruleSyntax,
+            constructor: Spell.Rule.Statement
+          }
+          if (bits.instanceType) {
+            rule.getAST = function(_match) {
+              const args = flatten([_match.groups.callArgs])
+                .filter(Boolean)
+                .map(arg => arg.AST)
+              return new AST.ScopedMethodInvocation(_match, {
+                thing: args.shift(),
+                method: bits.methodName,
+                arguments: args
+              })
             }
           } else {
-            // normal keyword
-            bits.syntax.push(word)
-            bits.method.push(word)
+            rule.getAST = function(_match) {
+              const args = flatten([_match.groups.callArgs])
+                .filter(Boolean)
+                .map(arg => arg.AST)
+              return new AST.MethodInvocation(_match, {
+                method: bits.methodName,
+                arguments: args
+              })
+            }
           }
+          match.scope.addRule(rule)
         }
 
-        // Did we get an instanceType?
-        // eslint-disable-next-line prefer-destructuring
-        bits.instanceType = bits.types[0]
-        bits.methodName = bits.method.join("_")
-        bits.ruleSyntax = bits.syntax.join(" ")
+        getAST(match) {
+          const { inlineStatement, nestedBlock, bits } = match.groups
+          const args = bits.args.map(argName => new AST.VariableExpression(match, { name: argName }))
 
-        match.bits = bits
-        return bits
-      },
-      getNestedScope(match) {
-        const bits = this.parseMatchBits(match)
-        const method = new Scope.Method({
-          scope: match.scope,
-          name: bits.methodName,
-          args: bits.args
-        })
-
-        if (bits.instanceType) {
-          // Add implicit variable mapping instanceType to `this`
-          method.variables.add({ name: bits.instanceType, output: "this" })
-          // Add implicit variables `it` and `its` which maps to the instance type.
-          // Note that `it` may be overwritten in the method with `get XXX`
-          method.variables.add({ name: "it", output: "this" })
-          method.variables.add({ name: "its", output: "this" })
-        }
-        return method
-      },
-      mutateScope(match) {
-        const bits = this.parseMatchBits(match)
-        const rule = {
-          name: bits.methodName,
-          alias: "statement",
-          syntax: bits.ruleSyntax,
-          constructor: Spell.Rule.Statement
-        }
-        if (bits.instanceType) {
-          rule.getAST = function(_match) {
-            const args = flatten([_match.groups.callArgs])
-              .filter(Boolean)
-              .map(arg => arg.AST)
-            return new AST.ScopedMethodInvocation(_match, {
-              thing: args.shift(),
-              method: bits.methodName,
-              arguments: args
+          const statements = [
+            new AST.LineComment(match, {
+              value: `SPELL added rule: '${bits.ruleSyntax}'`
             })
+          ]
+
+          if (bits.instanceType) {
+            statements.push(
+              new AST.MethodDefinition(match, {
+                thing: new AST.PrototypeExpression(match, {
+                  type: new AST.TypeExpression(match, { name: typeCase(bits.instanceType) })
+                }),
+                method: bits.methodName,
+                args,
+                statements: (inlineStatement || nestedBlock)?.AST
+              })
+            )
+          } else {
+            statements.push(
+              new AST.FunctionDefinition(match, {
+                method: bits.methodName,
+                args,
+                statements: (inlineStatement || nestedBlock)?.AST
+              })
+            )
           }
-        } else {
-          rule.getAST = function(_match) {
-            const args = flatten([_match.groups.callArgs])
-              .filter(Boolean)
-              .map(arg => arg.AST)
-            return new AST.MethodInvocation(_match, {
-              method: bits.methodName,
-              arguments: args
-            })
-          }
+
+          return new AST.StatementGroup(match, { statements })
         }
-        match.scope.addRule(rule)
-      },
-      getAST(match) {
-        const { inlineStatement, nestedBlock } = match.groups
-        const bits = this.parseMatchBits(match)
-        // console.warn(bits)
-        const args = bits.args.map(argName => new AST.VariableExpression(match, { name: argName }))
-
-        const statements = [
-          new AST.LineComment(match, {
-            value: `SPELL added rule: '${bits.ruleSyntax}'`
-          })
-        ]
-
-        if (bits.instanceType) {
-          statements.push(
-            new AST.MethodDefinition(match, {
-              thing: new AST.PrototypeExpression(match, {
-                type: new AST.TypeExpression(match, { name: typeCase(bits.instanceType) })
-              }),
-              method: bits.methodName,
-              args,
-              statements: (inlineStatement || nestedBlock)?.AST
-            })
-          )
-        } else {
-          statements.push(
-            new AST.FunctionDefinition(match, {
-              method: bits.methodName,
-              args,
-              statements: (inlineStatement || nestedBlock)?.AST
-            })
-          )
-        }
-
-        return new AST.StatementGroup(match, { statements })
       },
       tests: [
         {
