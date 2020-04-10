@@ -33,6 +33,7 @@ Spell.Rule.Block = class block extends Rule {
             rule: new Rule.BlankLine(),
             matched: item,
             length: 1,
+            input: [item],
             scope
           })
         )
@@ -86,6 +87,7 @@ Spell.Rule.Block = class block extends Rule {
       rule: this,
       matched,
       indent: block.indent,
+      input: [block],
       scope,
       length: 1 // matched one OUTER block...
     })

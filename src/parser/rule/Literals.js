@@ -38,6 +38,7 @@ Rule.Literals = class literals extends Rule {
       rule: this,
       matched,
       value: matched.join("").trim(),
+      input: [...matched],
       length: tokensMatched,
       scope
     })

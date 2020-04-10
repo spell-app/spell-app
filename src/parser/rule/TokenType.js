@@ -14,6 +14,7 @@ Rule.TokenType = class tokenType extends Rule {
       matched: [tokens[0]],
       raw: tokens[0].raw,
       value: tokens[0].value,
+      input: [tokens[0]],
       length: 1,
       scope
     })

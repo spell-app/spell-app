@@ -8,6 +8,7 @@ Spell.Rule.ParseError = class parse_error extends Rule {
       scope,
       rule: this,
       matched: tokens,
+      input: [...tokens],
       length: tokens.length
     })
   }

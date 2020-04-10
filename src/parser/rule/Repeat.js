@@ -72,6 +72,7 @@ Rule.Repeat = class repeat extends Rule {
       rule: this,
       matched,
       items,
+      input: [...matched],
       length,
       scope
     })

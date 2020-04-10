@@ -34,6 +34,7 @@ Rule.Pattern = class pattern extends Rule {
       matched: [tokens[0]],
       raw,
       value,
+      input: [tokens[0]],
       length: 1,
       scope
     })

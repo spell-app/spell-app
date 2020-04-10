@@ -41,6 +41,7 @@ Rule.NestedSplit = class nestedSplit extends Rule {
       rule: this,
       prefix,
       items,
+      input: tokens.slice(0, end + 1),
       length: end + 1,
       scope
     })

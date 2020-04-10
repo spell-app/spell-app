@@ -62,6 +62,7 @@ Rule.Sequence = class sequence extends Rule {
       // tokens: usedTokens,
       // TODOC: WHY??  FOR USE AS A LITERAL STRING??
       value: usedTokens.join("").trim(),
+      input: usedTokens,
       length,
       scope
     })
