@@ -12,15 +12,14 @@ export default new Spell.Parser({
         "(a|an) {type} is (a|an) {superType:type}"
       ],
       constructor: Spell.Rule.Statement,
-      mutatesScope: true,
-      updateASTScope(match) {
+      mutateScope(match) {
         const { type, superType } = match.groups
         // Forget it if type is already defined.
         // TODO: complain if existing type is set up differently!
         if (match.scope.types(type.value)) return
         match.scope.types.add({ name: type.value, superType: superType?.value })
       },
-      toAST(match) {
+      getAST(match) {
         const { type, superType } = match.groups
         return new AST.ClassDeclaration(match, {
           type: type.AST,
@@ -52,8 +51,7 @@ export default new Spell.Parser({
         // TODO: "{plural_type} are a list of ..."
       ],
       constructor: Spell.Rule.Statement,
-      mutatesScope: true,
-      updateASTScope(match) {
+      mutateScope(match) {
         const { type, instanceType } = match.groups
         // Forget it if type is already defined.
         // TODO: complain if existing type is set up differently!
@@ -61,7 +59,7 @@ export default new Spell.Parser({
 
         match.scope.types.add({ name: type.value, superType: "list", instanceType: instanceType?.value })
       },
-      toAST(match) {
+      getAST(match) {
         const { type, instanceType } = match.groups
         return new AST.StatementGroup(match, {
           statements: [
@@ -95,7 +93,7 @@ export default new Spell.Parser({
       syntax: "a new {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       testRule: "…new",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { type, props } = match.groups
         return new AST.NewInstanceExpression(match, {
           type: type.AST,
@@ -133,7 +131,7 @@ export default new Spell.Parser({
       syntax: "create (a|an) {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       testRule: "create",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { type, props } = match.groups
         return new AST.NewInstanceExpression(match, {
           type: type.AST,
@@ -182,7 +180,7 @@ export default new Spell.Parser({
       name: "type_specifier_enum",
       alias: "type_specifier",
       syntax: "as (either|one of) {enumeration:identifier_list}",
-      toAST(match) {
+      getAST(match) {
         const enumeration = match.groups.enumeration.items.map(item => item.AST)
         return new AST.Enumeration(match, {
           enumeration,
@@ -203,7 +201,7 @@ export default new Spell.Parser({
       name: "type_specifier_datatype",
       alias: "type_specifier",
       syntax: "as (a|an)? {datatype:singular_type}",
-      toAST(match) {
+      getAST(match) {
         return match.groups.datatype.AST
       },
       tests: [
@@ -221,8 +219,7 @@ export default new Spell.Parser({
       ],
       testRule: "…(has|have)",
       constructor: Spell.Rule.Statement,
-      mutatesScope: true,
-      updateASTScope(match) {
+      mutateScope(match) {
         const { scope } = match
         const { type, property, specifier } = match.groups
         const specifierAST = specifier?.AST
@@ -259,7 +256,7 @@ export default new Spell.Parser({
             compile() {
               return `${typeName}.${groupName}`
             },
-            toAST(_match) {
+            getAST(_match) {
               return new AST.PropertyExpression(_match, {
                 object: type.AST,
                 property: new AST.PropertyLiteral(property, { value: groupName })
@@ -273,7 +270,7 @@ export default new Spell.Parser({
           })
         }
       },
-      toAST(match) {
+      getAST(match) {
         const { type, property } = match.groups
 
         // output statements
@@ -435,8 +432,7 @@ export default new Spell.Parser({
       syntax:
         "{type_property} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
       constructor: Spell.Rule.Statement,
-      mutatesScope: true,
-      toAST(match) {
+      getAST(match) {
         const { scope } = match
         const { value, otherValue, type_property, condition } = match.groups
         const { type, property } = type_property.groups
@@ -498,8 +494,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "{type_property} is {expression}",
       constructor: Spell.Rule.Statement,
-      mutatesScope: true,
-      toAST(match) {
+      getAST(match) {
         const { type_property, expression } = match.groups
         const { type, property } = type_property.groups
         // make sure type is defined
@@ -552,8 +547,7 @@ export default new Spell.Parser({
           return match
         }
 
-        mutatesScope = true
-        updateASTScope(match) {
+        mutateScope(match) {
           const { type, alias } = match.groups
           // Make sure type is defined
           match.scope.getOrStubType(type.value)
@@ -585,7 +579,7 @@ export default new Spell.Parser({
           })
         }
 
-        toAST(match) {
+        getAST(match) {
           const { type, expression } = match.groups
           const statements = [
             match.ruleComment,
@@ -712,8 +706,7 @@ export default new Spell.Parser({
           return { type, syntax, method, ruleData, vars, property }
         }
 
-        mutatesScope = true
-        updateASTScope(match) {
+        mutateScope(match) {
           const { syntax, property } = this.parseMatchBits(match)
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
@@ -757,7 +750,7 @@ export default new Spell.Parser({
           })
         }
 
-        toAST(match) {
+        getAST(match) {
           const { type } = match.groups
           const { vars, property } = this.parseMatchBits(match)
           // Return AST for the instance method
@@ -844,7 +837,6 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      mutatesScope: true,
       parseMatchBits(match) {
         if (match.bits) return match.bits
         const keywords = match.groups.keywords.matched
@@ -899,7 +891,7 @@ export default new Spell.Parser({
         match.bits = bits
         return bits
       },
-      getASTScope(match) {
+      getNestedScope(match) {
         const bits = this.parseMatchBits(match)
         const method = new Scope.Method({
           scope: match.scope,
@@ -917,7 +909,7 @@ export default new Spell.Parser({
         }
         return method
       },
-      updateASTScope(match) {
+      mutateScope(match) {
         const bits = this.parseMatchBits(match)
         const rule = {
           name: bits.methodName,
@@ -926,7 +918,7 @@ export default new Spell.Parser({
           constructor: Spell.Rule.Statement
         }
         if (bits.instanceType) {
-          rule.toAST = function(_match) {
+          rule.getAST = function(_match) {
             const args = flatten([_match.groups.callArgs])
               .filter(Boolean)
               .map(arg => arg.AST)
@@ -937,7 +929,7 @@ export default new Spell.Parser({
             })
           }
         } else {
-          rule.toAST = function(_match) {
+          rule.getAST = function(_match) {
             const args = flatten([_match.groups.callArgs])
               .filter(Boolean)
               .map(arg => arg.AST)
@@ -949,8 +941,8 @@ export default new Spell.Parser({
         }
         match.scope.addRule(rule)
       },
-      toAST(match) {
-        const { nestedBlock } = match.groups
+      getAST(match) {
+        const { inlineStatement, nestedBlock } = match.groups
         const bits = this.parseMatchBits(match)
         // console.warn(bits)
         const args = bits.args.map(argName => new AST.VariableExpression(match, { name: argName }))
@@ -969,7 +961,7 @@ export default new Spell.Parser({
               }),
               method: bits.methodName,
               args,
-              statements: nestedBlock?.AST
+              statements: (inlineStatement || nestedBlock)?.AST
             })
           )
         } else {
@@ -977,7 +969,7 @@ export default new Spell.Parser({
             new AST.FunctionDefinition(match, {
               method: bits.methodName,
               args,
-              statements: nestedBlock?.AST
+              statements: (inlineStatement || nestedBlock)?.AST
             })
           )
         }

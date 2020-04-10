@@ -2,7 +2,7 @@ import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
 import flatten from "lodash/flatten"
 
-import { memoize } from "../utils/all"
+import { memoize, clearMemoized } from "../utils/all"
 
 // Result of a successful `rule.parse()`.
 // This is a flyweight object which links a rule with the tokens that it successfully matched.
@@ -38,10 +38,22 @@ export default class Match {
     return flatten(this.rule.getTokens(this))
   }
 
+  // Add an additional `match` to this match.
+  // e.g. You could use this to add a comment or error to an existing match.
+  // Makes sure length and tokens are updated, groups are recalculated, etc.
+  // `argument` is optional group name for the match.
+  // @clearMemoized("groups")
+  addMatch(match, argument) {
+    if (argument) match.argument = argument
+    this.matched.push(match)
+    this.length += match.length
+    // TODO: update this.tokens to include match.tokens
+  }
+
   // Compile the output of the match.
   compile() {
     // Some languages (e.g. Spell) convert to an AST first, then compile().
-    if (this.rule.toAST) {
+    if (this.rule.getAST) {
       return this.AST.toJS()
     }
     // NOTE: this should NOT be used for spell, but will be used for other languages
@@ -56,22 +68,22 @@ export default class Match {
   // Return the Abstract Syntax Tree for this match.
   @memoize
   get AST() {
-    if (!this.rule.toAST) {
-      console.warn("No toAST() method defined for rule: ", this.rule)
+    if (!this.rule.getAST) {
+      console.warn("No getAST() method defined for rule: ", this.rule)
       return undefined
     }
-    return this.rule.toAST(this)
+    return this.rule.getAST(this)
   }
 
   // Return AST nested scope for nested block statements.
-  getASTScope() {
-    return this.rule.getASTScope?.(this)
+  getNestedScope() {
+    return this.rule.getNestedScope?.(this)
   }
 
-  // Have the match call `updateASTScope()` if it can.
+  // Have the match call `mutateScope()` if it can.
   // NOTE: ONLY CALL THIS FROM THE MATCH!!!
-  updateASTScope() {
-    return this.rule.updateASTScope?.(this)
+  mutateScope() {
+    return this.rule.mutateScope?.(this)
   }
 
   // DEBUG: Call this when printing to the console to eliminate the big bits in node.

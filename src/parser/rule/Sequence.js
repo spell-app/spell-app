@@ -55,13 +55,13 @@ Rule.Sequence = class sequence extends Rule {
       remainingTokens = remainingTokens.slice(match.length)
     }
     // if we get here, we matched all the rules!
+    const usedTokens = tokens.slice(0, length)
     return new Match({
       rule: this,
       matched,
-      value: tokens
-        .slice(0, length)
-        .join("")
-        .trim(),
+      // tokens: usedTokens,
+      // TODOC: WHY??  FOR USE AS A LITERAL STRING??
+      value: usedTokens.join("").trim(),
       length,
       scope
     })

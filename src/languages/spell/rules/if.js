@@ -22,14 +22,14 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getASTScope(match) {
+      getNestedScope(match) {
         return new Scope({ name: "if", scope: match.scope })
       },
-      toAST(match) {
-        const { condition, nestedBlock } = match.groups
+      getAST(match) {
+        const { condition, inlineStatement, nestedBlock } = match.groups
         return new AST.IfStatement(match, {
           condition: condition.AST,
-          statements: nestedBlock?.AST
+          statements: (inlineStatement || nestedBlock)?.AST
         })
       },
       tests: [
@@ -107,20 +107,20 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getASTScope(match) {
+      getNestedScope(match) {
         return new Scope({ name: "elseif", scope: match.scope })
       },
-      toAST(match) {
-        const { condition, nestedBlock } = match.groups
+      getAST(match) {
+        const { condition, inlineStatement, nestedBlock } = match.groups
         return new AST.ElseIfStatement(match, {
           condition: condition.AST,
-          statements: nestedBlock?.AST
+          statements: (inlineStatement || nestedBlock)?.AST
         })
       },
       tests: [
         {
           title: "correctly matches single-line else_if statements",
-          compileAs: "statement",
+          compileAs: "block",
           beforeEach(scope) {
             scope.variables.add("a")
           },
@@ -184,19 +184,19 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getASTScope(match) {
+      getNestedScope(match) {
         return new Scope({ name: "else", scope: match.scope })
       },
-      toAST(match) {
-        const { nestedBlock } = match.groups
+      getAST(match) {
+        const { inlineStatement, nestedBlock } = match.groups
         return new AST.ElseStatement(match, {
-          statements: nestedBlock?.AST
+          statements: (inlineStatement || nestedBlock)?.AST
         })
       },
       tests: [
         {
           title: "correctly matches single-line else statements",
-          compileAs: "statement",
+          compileAs: "block",
           tests: [
             ["else", "else {}"],
             ["otherwise", "else {}"],

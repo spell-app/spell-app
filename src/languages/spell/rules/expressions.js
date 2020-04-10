@@ -6,7 +6,7 @@ import { AST, Match, Rule, Spell, peek, proto } from "../all"
 
 /** TODOC!!! */
 Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
-  // set `outputDatatype` to specify explicit datatype in standard `toAST()`
+  // set `outputDatatype` to specify explicit datatype in standard `getAST()`
 
   /** If `true`, we'll wrap output expression in parenthesis. */
   @proto parenthesize = false
@@ -41,7 +41,7 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
   }
 
   /**
-   * While running the "shunting yard algorithm" in toAST(), we'll match
+   * While running the "shunting yard algorithm" in getAST(), we'll match
    * `Infix-` and `PostfixOperatorSuffix` instances with args on left/right side.
    * This routine delegates to rule-specific `compileASTExpression()` to actually output
    * the particular AST for the rule.
@@ -61,7 +61,7 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
     return expression
   }
 
-  toAST(match) {
+  getAST(match) {
     throw new TypeError("This should never be called")
   }
 }
@@ -85,7 +85,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "\\( {expression} \\)",
       testRule: "\\(",
-      toAST(match) {
+      getAST(match) {
         const { expression } = match.groups
         return new AST.ParenthesizedExpression(match, {
           expression: expression.AST
@@ -125,13 +125,13 @@ export default new Spell.Parser({
       alias: "expression",
       precedence: 12,
       syntax: "{lhs:single_expression} {rhsChain:expression_suffix}+",
-      toAST(match) {
+      getAST(match) {
         function applyOperatorToRule({ match: ruleMatch, operator, rhs, lhs }) {
           function compile(thing) {
             if (!thing) return undefined
             // TODO: we have one case ("is the queen of spades") where `thing` match is an array... :-(
             if (Array.isArray(thing)) return thing.map(compile)
-            if (thing instanceof Match && thing.rule.toAST) return thing.AST
+            if (thing instanceof Match && thing.rule.getAST) return thing.AST
             return thing
           }
 

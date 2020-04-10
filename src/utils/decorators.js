@@ -184,6 +184,7 @@ function _memoizeMethod(descriptor, method) {
 }
 
 // Clear memoized values for some `property` when invoking a normal function.
+// TODO: take a list of properties???
 export function clearMemoized(property) {
   return function(descriptor) {
     // console.info("clearMemoized", property, descriptor);

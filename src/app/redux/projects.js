@@ -152,8 +152,8 @@ const factory = new ReduxFactory({
           // for ad-hoc testing of what was just parsed.
           global.scope = scope
           global.parse = scope.parse.bind(scope)
-          global.statement = scope.statement.bind(scope)
-          global.exp = scope.exp.bind(scope)
+          global.statement = text => scope.parse(text, "statement")
+          global.exp = text => scope.parse(text, "expression")
 
           // Break parse/compile into 2 steps so we can time it
           const start = Date.now()

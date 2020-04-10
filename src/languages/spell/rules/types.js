@@ -47,7 +47,7 @@ Spell.Rule.Type = class type extends Rule.Pattern {
     return match
   }
 
-  toAST(match) {
+  getAST(match) {
     const { value, raw } = match
     return new AST.TypeExpression(match, { raw, name: value })
   }
@@ -83,8 +83,8 @@ export default new Spell.Parser({
           if (match && match.raw === singularize(match.raw)) return match
           return undefined
         }
-        toAST(match) {
-          const type = super.toAST(match)
+        getAST(match) {
+          const type = super.getAST(match)
           type.plurality = "singular"
           return type
         }
@@ -116,8 +116,8 @@ export default new Spell.Parser({
           if (match && match.raw === pluralize(match.raw)) return match
           return undefined
         }
-        toAST(match) {
-          const type = super.toAST(match)
+        getAST(match) {
+          const type = super.getAST(match)
           type.plurality = "plural"
           return type
         }

@@ -37,7 +37,7 @@ export class ASTNode {
   @proto @readonly type = "ASTNode"
 
   /** On construction, pass:
-   *  - `match` passed to `toAST()` method,
+   *  - `match` passed to `getAST()` method,
    *  - `props` as arbitrary properties to be assigned to the instance.
    *  Use `this.assert()` or `this.assertType()` to validate input as much as you can.
    *
@@ -83,6 +83,14 @@ export class ASTNode {
     if (Array.isArray(this[property])) {
       this[property].forEach((arg, index) => this.assertType(`${property}[${index}]`, type))
     }
+  }
+}
+
+/** Blank line */
+export class BlankLine extends ASTNode {
+  @proto @readonly type = "BlankLine"
+  toJS() {
+    return "\n"
   }
 }
 
@@ -464,8 +472,9 @@ export class TypeExpression extends Expression {
 }
 
 /** VariableExpression -- pointer to a Variable object.
- *  - `raw` (optional) is the original input string, unnormalized.
  *  - `name` is the normalized type name: dashes and spaces converted to underscores.
+ *  CURRENTLY UNUSED
+ *  - `raw` (optional) is the original input string, unnormalized.
  *  - `variable` (optional) is pointer to scope Variable, if there is one.
  *  - `plurality` (optional) is "singular", "plural" or `undefined`  // TODO: derive?
  */
@@ -473,6 +482,7 @@ export class VariableExpression extends Expression {
   @proto @readonly type = "VariableExpression"
   constructor(...args) {
     super(...args)
+    if (!this.name && this.match) this.name = this.match.value
     this.assertType("name", "string")
     this.assertType("raw", "string", OPTIONAL)
   }
@@ -589,7 +599,7 @@ export class StatementGroup extends Statement {
   @proto @readonly type = "StatementBlock"
   constructor(...args) {
     super(...args)
-    this.assertArrayType("statements", [Statement, Expression, Comment], OPTIONAL)
+    this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
   }
   toJS() {
     const { statements } = this
@@ -605,7 +615,7 @@ export class StatementBlock extends Statement {
   @proto @readonly type = "StatementBlock"
   constructor(...args) {
     super(...args)
-    this.assertArrayType("statements", [Statement, Expression, Comment], OPTIONAL)
+    this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
   }
   toJS() {
     const { statements } = this

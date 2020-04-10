@@ -165,7 +165,7 @@ export default new Spell.Parser({
       syntax: "(operator:the? absolute value of) {expression}",
       testRule: "…absolute",
       constructor: Spell.Rule.InfixOperatorSuffix,
-      toAST(match) {
+      getAST(match) {
         const { expression } = match.groups
         return new AST.CoreMethodInvocation(match, {
           datatype: "number",
@@ -190,7 +190,7 @@ export default new Spell.Parser({
       precedence: 2,
       syntax: "(operator:the? (biggest|largest)) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…(biggest|largest)",
-      toAST(match) {
+      getAST(match) {
         const { expression } = match.groups
         return new AST.CoreMethodInvocation(match, {
           datatype: "number",
@@ -220,7 +220,7 @@ export default new Spell.Parser({
       precedence: 2,
       syntax: "(operator:the? smallest) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…smallest",
-      toAST(match) {
+      getAST(match) {
         const { expression } = match.groups
         return new AST.CoreMethodInvocation(match, {
           datatype: "number",
@@ -249,7 +249,7 @@ export default new Spell.Parser({
       syntax: "round {expression} (operator:off|up|down)?",
       testRule: "round",
       precedence: 1,
-      toAST(match) {
+      getAST(match) {
         const { expression, operator } = match.groups
         let method = "round"
         if (operator?.value === "up") method = "roundUp"

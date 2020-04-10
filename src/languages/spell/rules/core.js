@@ -22,7 +22,7 @@ export default new Spell.Parser({
       name: "whitespace",
       datatype: "string",
       tokenType: Token.Whitespace,
-      toAST(match) {
+      getAST(match) {
         const { value, raw } = match
         return new AST.StringLiteral(match, { value, raw })
       }
@@ -33,7 +33,7 @@ export default new Spell.Parser({
       name: "indent",
       datatype: "string",
       tokenType: Token.Indent,
-      toAST(match) {
+      getAST(match) {
         const { value, raw } = match
         return new AST.StringLiteral(match, { value, raw })
       }
@@ -44,7 +44,7 @@ export default new Spell.Parser({
       name: "newline",
       datatype: "string",
       tokenType: Token.Newline,
-      toAST(match) {
+      getAST(match) {
         const { value, raw } = match
         return new AST.StringLiteral(match, { value, raw })
       }
@@ -56,7 +56,7 @@ export default new Spell.Parser({
       name: "inline_whitespace",
       datatype: "string",
       tokenType: Token.InlineWhitespace,
-      toAST(match) {
+      getAST(match) {
         const { value, raw } = match
         return new AST.StringLiteral(match, { value, raw })
       }
@@ -73,7 +73,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       datatype: "number",
       tokenType: Token.Number,
-      toAST(match) {
+      getAST(match) {
         const { value, raw } = match
         return new AST.NumericLiteral(match, { value, raw })
       },
@@ -121,7 +121,7 @@ export default new Spell.Parser({
         nine: 9,
         ten: 10
       },
-      toAST(match) {
+      getAST(match) {
         const { value, raw } = match
         return new AST.NumericLiteral(match, { value, raw })
       },
@@ -160,7 +160,7 @@ export default new Spell.Parser({
         ok: true,
         cancel: false
       },
-      toAST(match) {
+      getAST(match) {
         const { value, raw } = match
         return new AST.BooleanLiteral(match, { value, raw })
       },
@@ -192,7 +192,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       datatype: "string",
       tokenType: Token.Text,
-      toAST(match) {
+      getAST(match) {
         const { value, raw } = match
         return new AST.StringLiteral(match, { value, raw })
       },
@@ -215,7 +215,7 @@ export default new Spell.Parser({
     {
       name: "comment",
       tokenType: Token.Comment,
-      toAST(match) {
+      getAST(match) {
         const { commentSymbol, initialWhitespace, value } = match.matched[0]
         return new AST.LineComment(match, { commentSymbol, initialWhitespace, value })
       },
@@ -239,7 +239,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       datatype: "undefined",
       syntax: "undefined",
-      toAST(match) {
+      getAST(match) {
         return new AST.UndefinedLiteral(match)
       },
       tests: [
@@ -259,7 +259,7 @@ export default new Spell.Parser({
       mapValue(value) {
         return `${value}`.replace(/\-/g, "_")
       },
-      toAST(match) {
+      getAST(match) {
         const { value, raw } = match
         return new AST.KeywordLiteral(match, { value, raw })
       },

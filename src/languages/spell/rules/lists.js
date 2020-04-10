@@ -14,7 +14,7 @@ export default new Spell.Parser({
       name: "identifier_list",
       syntax: "[({known_variable}|{constant}|{number})(,|or|and|nor)]",
       datatype: "array", // TODO: array of what?
-      toAST(match) {
+      getAST(match) {
         const { items } = match
         return new AST.ListExpression(match, { items: items.map(item => item.AST) })
       },
@@ -38,7 +38,7 @@ export default new Spell.Parser({
       datatype: "array", // TODO: array of what?
       syntax: "\\[ [list:{expression},]? \\]",
       testRule: "\\[",
-      toAST(match) {
+      getAST(match) {
         const { list } = match.groups
         const items = list ? list.items.map(item => item.AST) : undefined
         return new AST.ListExpression(match, { items })
@@ -86,7 +86,7 @@ export default new Spell.Parser({
       syntax: "the? number of {arg:plural_variable} in {list:expression}",
       testRule: "…(number of)",
       precedence: 3,
-      toAST(match) {
+      getAST(match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "itemCountOf",
@@ -119,7 +119,7 @@ export default new Spell.Parser({
       syntax: "the? position of {thing:expression} in {list:expression}",
       testRule: "…(position of)",
       precedence: 3,
-      toAST(match) {
+      getAST(match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "itemOf",
@@ -224,7 +224,7 @@ export default new Spell.Parser({
         top: 1,
         bottom: -1
       },
-      toAST(match) {
+      getAST(match) {
         const { value, raw } = match
         return new AST.NumericLiteral(match, { value, raw })
       },
@@ -268,7 +268,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "{arg:singular_variable} {position:expression} of {expression}",
       testRule: "…of",
-      toAST(match) {
+      getAST(match) {
         const { position, expression } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "getItem",
@@ -297,7 +297,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "the {ordinal} {arg:singular_variable} (in|of) {expression}",
       testRule: "…(in|of)",
-      toAST(match) {
+      getAST(match) {
         const { ordinal, expression } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "getItem",
@@ -327,7 +327,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "a random {arg:singular_variable} (of|from|in) {list:expression}",
       testRule: "a random",
-      toAST(match) {
+      getAST(match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "randomItemOf",
@@ -357,7 +357,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "{number} random {arg:plural_variable} (of|from|in) {list:expression}",
       testRule: "…random",
-      toAST(match) {
+      getAST(match) {
         const { number, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "randomItemsOf",
@@ -389,7 +389,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:expression}",
       testRule: "…(of|in|from)",
-      toAST(match) {
+      getAST(match) {
         const { list, start, end } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "rangeBetween",
@@ -420,7 +420,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "{arg:plural_variable} (in|of) {list:expression} starting with {thing:expression}",
       testRule: "…(starting with)",
-      toAST(match) {
+      getAST(match) {
         const { thing, list } = match.groups
         const itemExpression = new AST.CoreMethodInvocation(match, {
           method: "itemOf",
@@ -460,7 +460,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "{ordinal} {number} {arg:plural_variable} (of|in|from) {list:expression}",
       testRule: "…(of|in|from)",
-      toAST(match) {
+      getAST(match) {
         const { list, ordinal, number } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "rangeStartingAt",
@@ -493,13 +493,13 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       parseInlineStatementAs: "expression",
-      getASTScope(match) {
+      getNestedScope(match) {
         const arg = singularize(match.groups.arg.value)
         return new Scope.Method({ scope: match.scope, args: [arg], asExpression: true })
       },
-      toAST(match) {
+      getAST(match) {
         const { arg, list, inlineStatement } = match.groups
-        const filter = new AST.InlineMethodExpression(inlineStatement, {
+        const filter = new AST.InlineMethodExpression(inlineStatement || match, {
           args: [new AST.VariableExpression(arg, { name: singularize(arg.value) })],
           expression: inlineStatement?.AST
         })
@@ -516,16 +516,17 @@ export default new Spell.Parser({
             scope.variables.add("my-list")
           },
           tests: [
+            ["words in 'a word list' where", "spellCore.filter('a word list', (word) => {})"],
             [
               "words in 'a word list' where word starts with 'a'",
               "spellCore.filter('a word list', (word) => spellCore.startsWith(word, 'a'))"
             ],
+            ["the items in my-list where the id of the item > 1", "spellCore.filter(my_list, (item) => (item.id > 1))"]
             // TODO: wantsInlineBlock:true could possibly make this work?
             // [
             //   "words in 'a word list' where\n\tword starts with 'a'",
             //   "spellCore.filter('a word list', (word) => { spellCore.startsWith(word, 'a') })"
             // ],
-            ["the items in my-list where the id of the item > 1", "spellCore.filter(my_list, (item) => (item.id > 1))"]
           ]
         }
       ]
@@ -542,15 +543,15 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       parseInlineStatementAs: "expression",
-      getASTScope(match) {
+      getNestedScope(match) {
         const arg = singularize(match.groups.arg.value)
         return new Scope.Method({ scope: match.scope, args: [arg], asExpression: true })
       },
-      toAST(match) {
+      getAST(match) {
         const { list, operator, arg, inlineStatement } = match.groups
-        const filter = new AST.InlineMethodExpression(inlineStatement, {
+        const filter = new AST.InlineMethodExpression(inlineStatement || match, {
           args: [new AST.VariableExpression(arg, { name: singularize(arg.value) })],
-          expression: inlineStatement.AST
+          expression: inlineStatement?.AST
         })
         const expression = new AST.CoreMethodInvocation(match, {
           method: "any",
@@ -570,6 +571,7 @@ export default new Spell.Parser({
             scope.variables.add("bar")
           },
           tests: [
+            ["my-list has items where", "spellCore.any(my_list, (item) => {})"],
             ["my-list has items where item is 1", "spellCore.any(my_list, (item) => (item == 1))"],
             ["my-list has no items where item is 1", "!spellCore.any(my_list, (item) => (item == 1))"],
             ["my-list doesnt have items where item is 1", "!spellCore.any(my_list, (item) => (item == 1))"],
@@ -590,7 +592,7 @@ export default new Spell.Parser({
       syntax: "add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {list:expression}",
       testRule: "add",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { thing, list, method } = match.groups
         const spellMethod = method && ["start", "front", "top"].includes(method.value) ? "prepend" : "append"
         return new AST.CoreMethodInvocation(match, {
@@ -626,7 +628,7 @@ export default new Spell.Parser({
       syntax: "prepend {thing:expression} to {list:expression}",
       testRule: "prepend",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "prepend",
@@ -652,7 +654,7 @@ export default new Spell.Parser({
       syntax: "append {thing:expression} to {list:expression}",
       testRule: "append",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "append",
@@ -686,7 +688,7 @@ export default new Spell.Parser({
       syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
       testRule: "add",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { thing, list, operator, item } = match.groups
         let position = new AST.CoreMethodInvocation(match, {
           method: "itemOf",
@@ -738,7 +740,7 @@ export default new Spell.Parser({
       syntax: "(empty|clear) {list:expression}",
       testRule: "(empty|clear)",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "clear",
@@ -767,7 +769,7 @@ export default new Spell.Parser({
       syntax: "remove the? {position:ordinal} {arg:singular_variable} of {list:expression}",
       testRule: "remove",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { position, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "removeItem",
@@ -795,7 +797,7 @@ export default new Spell.Parser({
       syntax: "remove {arg:singular_variable} {number:expression} of {list:expression}",
       testRule: "remove",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { number, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "removeItem",
@@ -822,7 +824,7 @@ export default new Spell.Parser({
       syntax: "remove {arg:plural_variable} {start:expression} to {end:expression} of {list:expression}",
       testRule: "remove",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { start, end, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "removeRangeBetween",
@@ -846,7 +848,7 @@ export default new Spell.Parser({
       syntax: "remove {start:ordinal} to {end:ordinal} {arg:plural_variable} of {list:expression}",
       testRule: "remove",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { start, end, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "removeRangeBetween",
@@ -874,7 +876,7 @@ export default new Spell.Parser({
       syntax: "remove {thing:expression} from {list:expression}",
       testRule: "remove",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "remove",
@@ -902,15 +904,15 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       parseInlineStatementAs: "expression",
-      getASTScope(match) {
+      getNestedScope(match) {
         const arg = singularize(match.groups.arg.value)
         return new Scope.Method({ scope: match.scope, args: [arg], asExpression: true })
       },
-      toAST(match) {
+      getAST(match) {
         const { arg, list, inlineStatement } = match.groups
-        const filter = new AST.InlineMethodExpression(inlineStatement, {
+        const filter = new AST.InlineMethodExpression(inlineStatement || match, {
           args: [new AST.VariableExpression(arg, { name: singularize(arg.value) })],
-          expression: inlineStatement.AST
+          expression: inlineStatement?.AST
         })
         return new AST.CoreMethodInvocation(match, {
           method: "removeWhere",
@@ -926,6 +928,7 @@ export default new Spell.Parser({
             scope.constants.add("clubs")
           },
           tests: [
+            ["remove items from my-list where", "spellCore.removeWhere(my_list, (item) => {})"],
             [
               "remove items from my-list where item is not 'ace'",
               "spellCore.removeWhere(my_list, (item) => (item != 'ace'))"
@@ -950,7 +953,7 @@ export default new Spell.Parser({
       syntax: "reverse ((the? {arg:plural_variable}) (in|of))? {list:expression}",
       testRule: "reverse",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "reverse",
@@ -979,7 +982,7 @@ export default new Spell.Parser({
       syntax: "(randomize|shuffle) ((the? {arg:plural_variable}) (in|of))? {list:expression}",
       testRule: "(randomize|shuffle)",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(match, {
           method: "randomize",
@@ -1013,19 +1016,19 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getASTScope(match) {
+      getNestedScope(match) {
         const { item, position } = match.groups
         const args = [{ name: item.value }]
         if (position) args.push({ name: position.value, type: "number" })
         return new Scope.Method({ scope: match.scope, args })
       },
-      toAST(match) {
-        const { list, item, position, nestedBlock } = match.groups
+      getAST(match) {
+        const { list, item, position, inlineStatement, nestedBlock } = match.groups
         const args = [new AST.VariableExpression(item, { name: item.value })]
         if (position) args.push(new AST.VariableExpression(position, { name: position.value }))
-        const method = new AST.InlineMethodExpression(match, {
+        const method = new AST.InlineMethodExpression(inlineStatement || nestedBlock || match, {
           args,
-          statements: nestedBlock?.AST
+          statements: (inlineStatement || nestedBlock)?.AST
         })
         return new AST.CoreMethodInvocation(match, {
           method: "forEach",
@@ -1080,19 +1083,19 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getASTScope(match) {
+      getNestedScope(match) {
         const arg = singularize(match.groups.item.value)
         return new Scope.Method({ scope: match.scope, args: [arg], asExpression: true })
       },
-      toAST(match) {
-        const { item, start, end, nestedBlock } = match.groups
+      getAST(match) {
+        const { item, start, end, inlineStatement, nestedBlock } = match.groups
         const getRange = new AST.CoreMethodInvocation(match, {
           method: "getRange",
           arguments: [start.AST, end.AST]
         })
-        const method = new AST.InlineMethodExpression(match, {
+        const method = new AST.InlineMethodExpression(inlineStatement || nestedBlock || match, {
           args: [new AST.VariableExpression(item, { name: item.value })],
-          statements: nestedBlock?.AST
+          statements: inlineStatement?.AST || nestedBlock?.AST
         })
         return new AST.CoreMethodInvocation(match, {
           method: "forEach",

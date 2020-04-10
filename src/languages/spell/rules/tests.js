@@ -13,7 +13,7 @@ export default new Spell.Parser({
       syntax: "expect {expression} (to be {value:expression})?",
       testRule: "expect",
       constructor: Spell.Rule.Statement,
-      toAST(match) {
+      getAST(match) {
         const { expression, value } = match.groups
         const args = [
           expression.AST,

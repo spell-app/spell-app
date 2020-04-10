@@ -24,7 +24,7 @@ export default new Spell.Parser({
       mapValue(value) {
         return `${value}`.replace(/-/g, "_")
       },
-      toAST(match) {
+      getAST(match) {
         const { value, raw } = match
         return new AST.PropertyLiteral(match, { value, raw })
       }
@@ -35,7 +35,7 @@ export default new Spell.Parser({
       alias: "property_accessor",
       syntax: "the {property} of",
       testRule: "the",
-      toAST(match) {
+      getAST(match) {
         const { value, raw } = match.groups.property
         return new AST.PropertyLiteral(match, { value, raw })
       }
@@ -47,7 +47,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "{property_accessor} {expression:single_expression}",
       testRule: "{property_accessor}", // ???
-      toAST(match) {
+      getAST(match) {
         const { property_accessor, expression } = match.groups
         return new AST.PropertyExpression(match, {
           object: expression.AST,
@@ -79,7 +79,7 @@ export default new Spell.Parser({
       alias: ["expression", "property_accessor", "single_expression"],
       syntax: "its {property}",
       testRule: "its",
-      toAST(match) {
+      getAST(match) {
         const property = match.groups.property.AST
         const itsVar = match.scope.variables("its")
         const object = itsVar
@@ -103,7 +103,7 @@ export default new Spell.Parser({
     {
       name: "object_literal_properties",
       syntax: "[({property} (=|is|of|is? set to) {value:expression})(,|and)]",
-      toAST(match) {
+      getAST(match) {
         const properties = match.items.map(propMatch => {
           const { property, value } = propMatch.groups
           return new AST.ObjectLiteralProperty(propMatch, { property: property.AST, value: value.AST })

@@ -1,4 +1,4 @@
-import { Rule, Spell, Tokenizer, ParseError, proto } from "../all"
+import { Rule, Spell, proto } from "../all"
 
 // In Spell, we generally match `statements` across the entire line.
 //
@@ -7,7 +7,7 @@ import { Rule, Spell, Tokenizer, ParseError, proto } from "../all"
 //  or might have a nested block of statements.
 //
 // Note: Access this as `Spell.Rule.Statement`.
-Spell.Rule.Statement = class statement extends Rule.Sequence {
+Spell.Rule.Statement = class _statement extends Rule.Sequence {
   // Set to true if this statement wants to attempt to read an inline statement on the same line.
   @proto wantsInlineStatement = false
 
@@ -17,53 +17,25 @@ Spell.Rule.Statement = class statement extends Rule.Sequence {
   // Set to true if this statement wants to attempt to read an nested block starting on the next line.
   @proto wantsNestedBlock = false
 
-  // Special parse to note any stuff we didn't catch
-  // and handle block statements.
+  // Parse the staement itself -- assume comment was already popped off the end.
+  // If we `wantsInlineStatement`, attempt to parse that and push onto the match.
+  // `Block.parseStatement()` will worry about extra stuff at the end of the statement.
   parse(scope, tokens) {
-    const match = super.parse(scope, tokens)
-    if (!match) return undefined
+    const statement = super.parse(scope, tokens)
+    if (!statement) return undefined
 
-    // If we didn't parse everything on the line
-    if (match.length !== tokens.length) {
-      // If we want to parse an inline statement, do that now.
-      if (this.wantsInlineStatement) {
-        const inlineMatch = this.parseInlineStatement(scope, match, tokens.slice(match.length))
-        if (inlineMatch) match.length += inlineMatch.length
-      }
-      // If there are still tokens left, remember them for later.
-      if (match.length !== tokens.length) {
-        match.groups.incomplete = {
-          parsed: Tokenizer.join(tokens, 0, match.length),
-          missed: Tokenizer.join(tokens, match.length)
-        }
-      }
+    // Attempt to parse any remaining tokens as an inlineStatement if necessary
+    const unparsed = tokens.slice(statement.length)
+    if (this.wantsInlineStatement && unparsed.length) {
+      scope.getRuleOrDie("block").parseInlineStatement(statement, unparsed, this.parseInlineStatementAs)
     }
 
-    return match
+    return statement
   }
 
-  // Parse an inline statement.
-  parseInlineStatement(scope, match, tokens) {
-    const nestedScope = match.getASTScope()
-    if (!nestedScope) throw new ParseError(`${this.name}.parseInlineStatement(): no nested scope provided`)
-
-    match.inlineStatement = nestedScope.parse(tokens, this.parseInlineStatementAs)
-    // call `updateASTScope()` to initialize any variables/etc
-    if (match.inlineStatement) match.inlineStatement.updateASTScope()
-    return match.inlineStatement
-  }
-
-  gatherGroups(match) {
-    const groups = super.gatherGroups(match)
-    const { inlineStatement, block } = match
-    if (inlineStatement && block) {
-      // TODO: add a parse error?
-      Spell.logger.warn(`Rule ${this.name} matched both inlineStatement and block!  match:`, match)
-    }
-    if (inlineStatement) groups.inlineStatement = inlineStatement
-    if (block) groups.block = block
-    // You can just use `nestedBlock` to match either block or inlineStatement
-    groups.nestedBlock = block || inlineStatement
-    return groups
+  // Return nested scope to use when parsing an inlineStatement or nestedBlock.
+  // Override in your instance.
+  getNestedScope(match) {
+    throw new TypeError("You must override getNestedScope()")
   }
 }

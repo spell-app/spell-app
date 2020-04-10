@@ -2,7 +2,6 @@ import { Spell } from "../all"
 
 // The following add new Rule constructors to `Spell.Rule`
 import "./Block"
-import "./BlockLine"
 import "./Statement"
 import "./ParseError"
 
@@ -27,7 +26,6 @@ import tests from "./tests"
 const spellParser = new Spell.Parser({ module: "spell" })
 
 spellParser.defineRule({ name: "block", constructor: Spell.Rule.Block })
-spellParser.defineRule({ name: "block_line", constructor: Spell.Rule.BlockLine })
 spellParser.defineRule({ name: "parse_error", constructor: Spell.Rule.ParseError })
 
 // Import the other rules defined above.
