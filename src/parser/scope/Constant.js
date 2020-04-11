@@ -1,4 +1,4 @@
-import { ParseError } from ".."
+import { ParseError } from "../../languages/spell"
 import { Scope } from "."
 
 //

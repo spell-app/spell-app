@@ -1,4 +1,4 @@
-import { indexedList, typeCase, snakeCase } from ".."
+import { indexedList, typeCase, snakeCase } from "../../languages/spell"
 import { Variable, Constant, Method, Type } from "."
 
 //
