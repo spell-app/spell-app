@@ -16,4 +16,3 @@ export { default as Method } from "./Method"
 export { default as Variable } from "./Variable"
 
 export { rulex } from "../languages/rulex"
-export { default as unitTestModuleRules } from "../util/unitTestModuleRules"

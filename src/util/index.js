@@ -1,8 +1,10 @@
+import "./polyfill"
+
 export * from "./addDebugMethods"
 export * from "./array"
 export * from "./class"
 export * from "./decorators"
 export * from "./Assertable"
 export { default as indexedList } from "./indexedList"
-export * from "./polyfill"
 export * from "./string"
+export { default as unitTestModuleRules } from "./unitTestModuleRules"

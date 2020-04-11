@@ -1,3 +1,7 @@
+/**
+ * Cover lodash string utilites for manipulating case to memoize returned values.
+ * We tend to e.g. `singularize(<something>)` repeatedly and this saves us some time.
+ */
 /* eslint-disable no-use-before-define */
 // Export lodash and lodash-inflection string methods.
 import lowerFirst from "lodash/lowerFirst"
@@ -8,7 +12,7 @@ import upperFirst from "lodash/upperFirst"
 
 export { toLower, lowerFirst, upperFirst }
 
-// Convert a string to `Type_Name_Case", including singularizing.
+// Convert a string to `Type_Name_Case", including singularizing, with memoization.
 const TYPE_CASE = {}
 export function typeCase(text) {
   const existing = TYPE_CASE[text]
@@ -23,7 +27,7 @@ export function typeCase(text) {
   return TYPE_CASE[text]
 }
 
-// Convert a string into `instance_case`
+// Convert a string into `instance_case`, with memoization.
 const INSTANCE_CASE = {}
 export function instanceCase(text) {
   const existing = INSTANCE_CASE[text]
@@ -63,7 +67,7 @@ export function singularize(text) {
 
 // Return the plural form of `word`.
 // Uses lodash-inflection, which should be pretty good.
-// If you need to add a new rule, see: https://github.com/danhper/lodash-inflection
+// If you need to add specific singular <-> plural mapping, see: https://github.com/danhper/lodash-inflection
 const PLURALS = {}
 export function pluralize(text) {
   const existing = PLURALS[text]
