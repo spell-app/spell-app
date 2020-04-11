@@ -1025,7 +1025,7 @@ export default new Spell.Parser({
       getAST(match) {
         const { list, item, position, inlineStatement, nestedBlock } = match.groups
         const args = [new AST.VariableExpression(item, { name: item.value })]
-        if (position) args.push(new AST.VariableExpression(position, { name: position.value }))
+        if (position) args.push(new AST.VariableExpression(position))
         const method = new AST.InlineMethodExpression(inlineStatement || nestedBlock || match, {
           args,
           statements: (inlineStatement || nestedBlock)?.AST
@@ -1094,7 +1094,7 @@ export default new Spell.Parser({
           arguments: [start.AST, end.AST]
         })
         const method = new AST.InlineMethodExpression(inlineStatement || nestedBlock || match, {
-          args: [new AST.VariableExpression(item, { name: item.value })],
+          args: [new AST.VariableExpression(item)],
           statements: inlineStatement?.AST || nestedBlock?.AST
         })
         return new AST.CoreMethodInvocation(match, {

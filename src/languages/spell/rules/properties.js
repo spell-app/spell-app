@@ -25,8 +25,7 @@ export default new Spell.Parser({
         return `${value}`.replace(/-/g, "_")
       },
       getAST(match) {
-        const { value, raw } = match
-        return new AST.PropertyLiteral(match, { value, raw })
+        return new AST.PropertyLiteral(match)
       }
     },
 

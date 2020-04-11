@@ -446,7 +446,7 @@ export class VariableExpression extends Expression {
   @proto @readonly type = "VariableExpression"
   constructor(...args) {
     super(...args)
-    if (!this.name && this.match) this.name = this.match.value
+    if (!this.name) this.name = this.match.value
     this.assertType("name", "string")
     this.assertType("raw", "string", OPTIONAL)
   }
@@ -483,14 +483,15 @@ export class ThisLiteral extends Literal {
 }
 
 /** PropertyLiteral -- identifier which refers to some property of an object.
+ *  - `value` is the normalized property name.  It will be inferred from the `match`.
  *  - `raw` (optional) is the input property name
- *  - `value` is the normalized property name.    // TODO: "property"???
  */
 export class PropertyLiteral extends Literal {
   @proto @readonly type = "PropertyLiteral"
   @proto @readonly datatype = "string"
   constructor(...args) {
     super(...args)
+    if (!this.value) this.value = this.match.value
     this.assertType("value", "string")
     this.assertType("raw", "string", OPTIONAL)
   }
