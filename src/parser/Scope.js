@@ -1,5 +1,4 @@
-import { indexedList, typeCase, snakeCase } from "../../languages/spell"
-import { Variable, Constant, Method, Type } from "."
+import { indexedList, typeCase, snakeCase, Variable, Constant, Method, Type } from "."
 
 //
 //  Scope: execution context which maintain `IndexedList`s of:
@@ -17,7 +16,7 @@ import { Variable, Constant, Method, Type } from "."
 //    - `scope.variables.add(new Variable())  pass explicit pre-created variable, make sure to set `name`
 //    - `scope.variables.add('name')          creates a Variable for you implicitly
 //    - `scope.remove(name)`
-//  See `src/utils/indexedList.js` for more details.
+//  See `src/util/indexedList.js` for more details.
 //
 //  Scopes also point to a `parser` (possibly from a parent scope)
 //  which defines a set of spell `rules`.  You can add rules dynamically:

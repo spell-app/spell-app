@@ -14,7 +14,7 @@
 //
 
 import { TestLocation } from "../constants"
-import { proto } from "../../utils/decorators"
+import { proto } from "../../util/decorators"
 
 // Abstract Rule class.
 // TODOC

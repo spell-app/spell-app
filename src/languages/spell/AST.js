@@ -1,6 +1,6 @@
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 import _get from "lodash/get"
-import { proto, readonly, Assertable, OPTIONAL } from "../../utils"
+import { proto, readonly, Assertable, OPTIONAL } from "../../util"
 import { Match, AST } from "."
 
 // TODO: define this in `constants` or some such?

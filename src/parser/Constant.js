@@ -1,5 +1,4 @@
-import { ParseError } from "../../languages/spell"
-import { Scope } from "."
+import { Scope, ParseError } from "."
 
 //
 // Constant definition.

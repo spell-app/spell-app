@@ -9,8 +9,8 @@
 //----------------------------
 
 import global from "global"
-import { parseJSON, parseJSON5 } from "./utils/json"
-import { addDebugMethods, DebugLevel } from "../../utils/addDebugMethods"
+import { parseJSON, parseJSON5 } from "./util/json"
+import { addDebugMethods, DebugLevel } from "../../util/addDebugMethods"
 
 const logger = addDebugMethods({}, "api", DebugLevel.WARN)
 

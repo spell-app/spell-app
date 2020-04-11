@@ -2,7 +2,7 @@ import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
 
 import { Rule, Token } from "."
-import { Assertable, OPTIONAL, memoize, clearMemoized } from "../utils"
+import { Assertable, OPTIONAL, memoize, clearMemoized } from "../util"
 
 // Result of a successful `rule.parse()`.
 // This is a flyweight object which links a rule with the tokens that it successfully matched.

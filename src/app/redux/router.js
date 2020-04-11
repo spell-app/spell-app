@@ -22,7 +22,7 @@ import {
 } from "react-router-redux"
 
 import ReduxFactory from "./ReduxFactory"
-import { clearAllPrefs } from "./utils/prefs"
+import { clearAllPrefs } from "./util/prefs"
 
 // Create `history` object we'll use to navigate.
 // NOTE: We're ALWAYS using HASH-based history now to minimize web server configuration.
