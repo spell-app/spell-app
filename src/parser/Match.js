@@ -1,7 +1,7 @@
 import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
 
-import { Rule, Token } from "./all"
+import { Rule, Token } from "."
 import { Assertable, OPTIONAL, memoize, clearMemoized } from "../utils"
 
 // Result of a successful `rule.parse()`.

@@ -6,8 +6,8 @@
 //  Note that there is some variation in how the rules come out so we often "skip" the test.
 //
 
-import { Rule, spellParser } from "./all.js"
-import rulex from "../rulex/all.js"
+import { Rule, spellParser } from "."
+import rulex from "../rulex"
 
 const alreadyTested = {}
 

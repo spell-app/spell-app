@@ -70,7 +70,7 @@ RuleSyntax
 - **All rules are stored in the `src/rules` directory**.
 - Test files live next to the rule files they cover.
 - To include a rule file in the browser
-	- add it as an `import()` in `src/rules/all.js`
+	- add it as an `import()` in `src/rules`
 
 | Syntax		| Description |
 |---------------|-------------|

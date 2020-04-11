@@ -1,4 +1,4 @@
-import { Parser, Rule, TestLocation, Tokenizer, WhitespacePolicy } from "../all"
+import { Parser, Rule, TestLocation, Tokenizer, WhitespacePolicy } from ".."
 
 const tokenizer = new Tokenizer({
   whitespacePolicy: WhitespacePolicy.NONE

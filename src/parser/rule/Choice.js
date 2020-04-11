@@ -1,5 +1,5 @@
 import Rule from "./Rule"
-import { Tokenizer } from "../all"
+import { Tokenizer } from ".."
 
 // Turn on debugging of choice / precedence semantics
 const DEBUG_CHOICES = false

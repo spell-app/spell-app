@@ -9,9 +9,9 @@ import { connect } from "react-redux"
 import prettier from "prettier/standalone"
 import babylon from "prettier/parser-babylon"
 
-import { spellParser } from "../all"
+import { spellParser } from ".."
 
-import { api, getPref, setPref, setPrefKey, ReduxFactory } from "./all"
+import { api, getPref, setPref, setPrefKey, ReduxFactory } from "."
 
 const Formats = {
   TEXT: "TEXT",

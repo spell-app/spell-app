@@ -1,7 +1,7 @@
 //
 //  # Core `rules` -- simple datatypes, etc.
 //
-import { Token } from "../../../parser/all"
+import { Token } from "../../../parser"
 import { AST, Spell } from ".."
 
 export default new Spell.Parser({

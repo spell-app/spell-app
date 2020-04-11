@@ -3,7 +3,7 @@
 // Note that lots of parser functionality is tested via other files in this package. ???
 //
 
-import { Parser, ParseError, Rule } from "./all"
+import { Parser, ParseError, Rule } from "."
 
 describe("addRule() and rules", () => {
   test("parser.rules works when no rules are defined", () => {

@@ -1,5 +1,5 @@
 import Rule from "./Rule"
-import { Token, proto } from "../all"
+import { Token, proto } from ".."
 
 // Match a single `Token.Word`
 Rule.Word = class word extends Rule.TokenType {

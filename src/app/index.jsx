@@ -5,7 +5,7 @@ import { Provider } from "react-redux"
 
 require("./debug.js")
 
-const { store } = require("./all.js")
+const { store } = require("./index.js")
 const { SpellEditor } = require("./SpellEditor.jsx")
 
 function renderApp() {

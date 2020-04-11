@@ -11,7 +11,7 @@
 import groupBy from "lodash/groupBy"
 import isEqual from "lodash/isEqual"
 
-import { ParseError, Rule } from "./all"
+import { ParseError, Rule } from "."
 
 import { showWhitespace } from "../utils"
 

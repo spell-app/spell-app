@@ -3,7 +3,7 @@
 //
 // NOTE: many of the below are created as custom Pattern subclasses for debugging.
 //
-import { Parser, Rule, TestLocation, Token, Tokenizer, WhitespacePolicy } from "../../parser/all"
+import { Parser, Rule, TestLocation, Token, Tokenizer, WhitespacePolicy } from "../../parser"
 
 const { ANYWHERE, AT_START } = TestLocation
 

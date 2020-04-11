@@ -4,7 +4,7 @@
 //  or risk circular import problems.
 //
 
-export * from "../../parser/all"
+export * from "../../parser"
 
 export { default as Spell } from "./Spell"
 export * as AST from "./AST"

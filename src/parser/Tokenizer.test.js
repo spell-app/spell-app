@@ -1,4 +1,4 @@
-import { Token, Tokenizer } from "./all"
+import { Token, Tokenizer } from "."
 
 // Turn off tokenizer warnings in the console
 Tokenizer.prototype.logger.setDebugLevel("ERROR")

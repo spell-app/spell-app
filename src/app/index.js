@@ -1,10 +1,10 @@
 // Guarantee async/await works in all environments.
 import "@babel/polyfill"
 
-export * from "./redux/all"
+export * from "./redux"
 
 // Parser bits
-export * from "../parser/all"
+export * from "../parser"
 export { spellParser, Spell, Scope } from "../languages/spell"
 
 // Spell "core" library

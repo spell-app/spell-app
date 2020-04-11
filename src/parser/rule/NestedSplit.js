@@ -1,5 +1,5 @@
 import Rule from "./Rule"
-import { Match } from "../all"
+import { Match } from ".."
 
 // Recursively find balanced instances of `start` and `end`,
 // then split by `delimiter` and apply `rule` to each, returning an array of matches.

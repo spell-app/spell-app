@@ -1,6 +1,6 @@
 import flatten from "lodash/flatten.js"
 
-import { ParseError, Rule, TestLocation, Tokenizer } from "./all.js"
+import { ParseError, Rule, TestLocation, Tokenizer } from "."
 
 //import rulex from "../languages/rulex/rulex.js";
 

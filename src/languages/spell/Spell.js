@@ -1,7 +1,7 @@
 //
 //  ## Spell langugage Module root.
 //
-import { DebugLevel, Parser, Tokenizer, WhitespacePolicy, addDebugMethods, proto } from "../../parser/all"
+import { DebugLevel, Parser, Tokenizer, WhitespacePolicy, addDebugMethods, proto } from "../../parser"
 import { Module } from "."
 
 const Spell = {

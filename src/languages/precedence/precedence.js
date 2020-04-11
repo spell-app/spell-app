@@ -27,7 +27,7 @@
 // TODO: test repeating lists, `\\[ [{expression},] \\]`
 // TODO: test `the number of {identifer} in {single_expression}
 
-import { Parser, Rule, Tokenizer, Token, WhitespacePolicy, peek } from "../../parser/all"
+import { Parser, Rule, Tokenizer, Token, WhitespacePolicy, peek } from "../../parser"
 
 const parser = new Parser({
   module: "precedence",

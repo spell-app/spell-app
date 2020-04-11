@@ -8,7 +8,7 @@
 import _ from "lodash"
 import CodeMirror from "codemirror"
 
-import { Token, spellParser } from "./all"
+import { Token, spellParser } from "."
 // import blacklist from "../languages/spell/rules/identifier-blacklist"
 
 CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
