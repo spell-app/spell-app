@@ -1,7 +1,7 @@
 import assert from "assert"
 import lowerFirst from "lodash/lowerFirst"
 
-import { indexedList, typeCase } from "../all"
+import { indexedList, typeCase } from ".."
 
 import { Scope, Variable, Method } from "."
 

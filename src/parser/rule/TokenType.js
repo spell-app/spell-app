@@ -21,6 +21,6 @@ Rule.TokenType = class tokenType extends Rule {
   }
 
   compile(match) {
-    return match.tokens[0]
+    return match.value
   }
 }

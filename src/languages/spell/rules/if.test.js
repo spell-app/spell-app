@@ -1,4 +1,4 @@
-import { spellParser, unitTestModuleRules } from "../all"
+import { spellParser, unitTestModuleRules } from ".."
 import { parenthesizeCondition } from "./if"
 
 describe("testing spell module if", () => {

@@ -37,11 +37,13 @@ Rule.NestedSplit = class nestedSplit extends Rule {
       }
       items.push(match)
     }
+    const matched = tokens.slice(0, end + 1)
     return new Match({
       rule: this,
       prefix,
       items,
-      input: tokens.slice(0, end + 1),
+      matched,
+      input: matched,
       length: end + 1,
       scope
     })

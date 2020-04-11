@@ -5,7 +5,7 @@
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
 
-import { AST, Spell } from "../all"
+import { AST, Spell } from ".."
 import identifierBlacklist from "./identifier-blacklist"
 
 const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/

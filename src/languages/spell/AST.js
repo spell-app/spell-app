@@ -1,21 +1,10 @@
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 import _get from "lodash/get"
-import { proto, readonly } from "../../utils/decorators"
-import { Match, AST } from "./all"
+import { proto, readonly, Assertable, OPTIONAL } from "../../utils"
+import { Match, AST } from "."
 
-// TODO: define this in `constants` or some such?
-const OPTIONAL = Symbol("OPTIONAL")
 // TODO: define this in `constants` or some such?
 const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w\$]*$/
-
-function checkType(value, type) {
-  if (Array.isArray(type)) return type.some(nextType => checkType(value, nextType))
-  // eslint-disable-next-line valid-typeof
-  if (typeof type === "string") return typeof value === type
-  if (type === null) return value === null
-  if (type === undefined) return value === undefined
-  return value instanceof type
-}
 
 /** Enclose `value` in parens, unless it is already a propertly parenthesized string. */
 function encloseInParens(value) {
@@ -33,7 +22,7 @@ function convertStatementsToBlock(match, statements) {
 /** Abstract root of all AST node types.
  *  - `type` is
  */
-export class ASTNode {
+export class ASTNode extends Assertable {
   @proto @readonly type = "ASTNode"
 
   /** On construction, pass:
@@ -44,6 +33,7 @@ export class ASTNode {
    *  TODO: `datatype` as a function which turns into a getter?
    */
   constructor(match, props) {
+    super()
     if (props) Object.assign(this, props)
     this.match = match
     this.assertType("match", Match)
@@ -57,32 +47,6 @@ export class ASTNode {
   /** Compile this AST into Javascript.  You MUST override in a subclass. */
   toJS() {
     throw new TypeError(`AST ${this.type} must implement toJS()`)
-  }
-
-  /** Debug: assert that a condition is true, generally called on constructor as sanity check. */
-  assert(expressionValue, ...message) {
-    if (!expressionValue) console.warn(`Error creating AST ${this.type}: `, ...message)
-  }
-
-  /** Debug: assert that type of `property` (path) matches `type`. */
-  assertType(property, type, optional) {
-    const propValue = _get(this, property)
-    if (optional === OPTIONAL && propValue === undefined) return
-    this.assert(
-      checkType(propValue, type),
-      `\nexpected property '${property}' to be \n\t`,
-      type,
-      `\nActual value: \n\t`,
-      propValue
-    )
-  }
-
-  /** Assert that `this[property]` is an array, and that each item is of `type` */
-  assertArrayType(property, type, optional) {
-    this.assertType(property, Array, OPTIONAL)
-    if (Array.isArray(this[property])) {
-      this[property].forEach((arg, index) => this.assertType(`${property}[${index}]`, type))
-    }
   }
 }
 

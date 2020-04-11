@@ -32,7 +32,7 @@ Rule.Literal = class literal extends Rule {
   }
 
   compile(match) {
-    return match.tokens[0]
+    return match.value
   }
 
   toSyntax() {

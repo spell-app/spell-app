@@ -1,4 +1,4 @@
-import { Spell } from "../all"
+import { Spell } from ".."
 
 // The following add new Rule constructors to `Spell.Rule`
 import "./Block"

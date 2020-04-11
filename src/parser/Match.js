@@ -1,20 +1,30 @@
 import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
-import flatten from "lodash/flatten"
 
-import { memoize, clearMemoized } from "../utils/all"
+import { Rule, Token } from "./all"
+import { Assertable, OPTIONAL, memoize, clearMemoized } from "../utils"
 
 // Result of a successful `rule.parse()`.
 // This is a flyweight object which links a rule with the tokens that it successfully matched.
 //
-// - `match.rule` (Rule, required) is the rule that was matched.
+// - `match.rule`     - Rule (required)                 Immutable Rule instance that was matched.
+// - `match.input`    - [Token] (required)              Array of tokens that were matched
+// - `match.matched`  - [Match or Token] (required)     Array of Matches or Tokens matched.
 //
-// - `match.matched` `([Match or Token]`, required) Array of tokens matched
-//     or other `Match`es for sequences, etc.
-//
-export default class Match {
+export default class Match extends Assertable {
+  static DEBUG_MATCH_INITIALIZATION = true
   constructor(props) {
+    super()
     Object.assign(this, props)
+
+    // Only run tests if flag is set
+    if (Match.DEBUG_MATCH_INITIALIZATION) {
+      this.assertType("rule", Rule)
+      this.assertArrayType("input", Token)
+      this.assertType("length", "number")
+      this.assert(this.length === this.input.length, "length does not match input length")
+      // this.assertType("scope", Scope)
+    }
   }
 
   // "name" for this match.  Explicit `argument` set on creation or rule name.
@@ -29,15 +39,6 @@ export default class Match {
     return this.rule.gatherGroups?.(this)
   }
 
-  // Return the "interesting" tokens which were actually matched matched.
-  // NOTE: this is not guaranteed to be everything,
-  //       for example, List rules don't put the delimiters in the output stream.
-  // TODO: this should really be everything (including) whitespace
-  //       so joining token output === input.
-  get tokens() {
-    return flatten(this.rule.getTokens(this))
-  }
-
   // Add an additional `match` to this match.
   // e.g. You could use this to add a comment or error to an existing match.
   // Makes sure length and tokens are updated, groups are recalculated, etc.
@@ -46,8 +47,8 @@ export default class Match {
   addMatch(match, argument) {
     if (argument) match.argument = argument
     this.matched.push(match)
+    this.input.push(...match.input)
     this.length += match.length
-    // TODO: update this.tokens to include match.tokens
   }
 
   // Return AST nested scope for nested block statements.

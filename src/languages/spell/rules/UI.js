@@ -2,7 +2,7 @@
 //  # Rules for creating variables, property access, etc
 //
 
-import { Spell, AST } from "../all"
+import { Spell, AST } from ".."
 
 export default new Spell.Parser({
   module: "UI",

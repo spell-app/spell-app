@@ -1,4 +1,4 @@
-import { spellParser, unitTestModuleRules } from "../all"
+import { spellParser, unitTestModuleRules } from ".."
 
 describe("testing spell module tests", () => {
   unitTestModuleRules(spellParser, "tests")

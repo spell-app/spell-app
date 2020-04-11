@@ -62,12 +62,6 @@ export default class Rule {
   // You may want to look at `match.matched` or `match.results`, etc.
   compile(match) {}
 
-  // Return array of tokens which were matched.
-  // Non-terminal rules will override this.
-  getTokens(match) {
-    return match.matched.map(nextMatch => nextMatch.value)
-  }
-
   //
   //  internal
   //

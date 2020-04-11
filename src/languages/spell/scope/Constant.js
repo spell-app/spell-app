@@ -1,4 +1,4 @@
-import { ParseError } from "../all"
+import { ParseError } from ".."
 import { Scope } from "."
 
 //

@@ -2,7 +2,7 @@
 //  # Rules for inline spell tests.
 //
 
-import { Spell, AST } from "../all"
+import { Spell, AST } from ".."
 
 export default new Spell.Parser({
   module: "tests",

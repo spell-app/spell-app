@@ -13,7 +13,7 @@ import isEqual from "lodash/isEqual"
 
 import { ParseError, Rule } from "./all"
 
-import { showWhitespace } from "../utils/all"
+import { showWhitespace } from "../utils"
 
 export default function unitTestModuleRules(parser, moduleName) {
   describe(`rule unit tests`, () => {

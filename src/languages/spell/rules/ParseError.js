@@ -1,4 +1,4 @@
-import { Match, Rule, Spell, Tokenizer, AST } from "../all"
+import { Match, Rule, Spell, Tokenizer, AST } from ".."
 
 // Parser error representation in parser output.
 Spell.Rule.ParseError = class parse_error extends Rule {

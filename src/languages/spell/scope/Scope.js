@@ -1,4 +1,4 @@
-import { indexedList, typeCase, snakeCase } from "../all"
+import { indexedList, typeCase, snakeCase } from ".."
 import { Variable, Constant, Method, Type } from "."
 
 //

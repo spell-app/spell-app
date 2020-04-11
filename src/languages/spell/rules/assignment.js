@@ -2,7 +2,7 @@
 //  # Rules for assignment and returning values.
 //
 
-import { Spell, AST } from "../all"
+import { Spell, AST } from ".."
 
 export default new Spell.Parser({
   module: "assignment",

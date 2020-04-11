@@ -1,4 +1,4 @@
-import { Rule, Spell, proto } from "../all"
+import { Rule, Spell, proto } from ".."
 
 // In Spell, we generally match `statements` across the entire line.
 //

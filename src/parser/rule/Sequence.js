@@ -62,7 +62,7 @@ Rule.Sequence = class sequence extends Rule {
       // tokens: usedTokens,
       // TODOC: WHY??  FOR USE AS A LITERAL STRING??
       value: usedTokens.join("").trim(),
-      input: usedTokens,
+      input: flattenDeep(matched.map(next => next.input)),
       length,
       scope
     })
@@ -102,10 +102,6 @@ Rule.Sequence = class sequence extends Rule {
       // else {}
     }
     return results
-  }
-
-  getTokens(match) {
-    return flattenDeep(match.matched.map(nextMatch => nextMatch.tokens))
   }
 
   // Echo this rule back out.

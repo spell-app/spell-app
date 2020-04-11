@@ -45,7 +45,7 @@ Rule.Literals = class literals extends Rule {
   }
 
   compile(match) {
-    return match.tokens.join(this.literalSeparator)
+    return match.value
   }
 
   toSyntax() {

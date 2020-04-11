@@ -1,5 +1,5 @@
 import flatten from "lodash/flatten"
-import { Scope, Spell, instanceCase, lowerFirst, upperFirst, pluralize, singularize, typeCase, AST } from "../all"
+import { Scope, Spell, instanceCase, lowerFirst, upperFirst, pluralize, singularize, typeCase, AST } from ".."
 
 export default new Spell.Parser({
   module: "classes",

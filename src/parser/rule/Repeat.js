@@ -72,7 +72,7 @@ Rule.Repeat = class repeat extends Rule {
       rule: this,
       matched,
       items,
-      input: [...matched],
+      input: flattenDeep(matched.map(next => next.input)),
       length,
       scope
     })
@@ -82,10 +82,6 @@ Rule.Repeat = class repeat extends Rule {
 
   compile(match) {
     return match.items.map(next => next.compile())
-  }
-
-  getTokens(match) {
-    return flattenDeep(match.matched.map(next => next.tokens))
   }
 
   toSyntax() {

@@ -2,7 +2,7 @@
 //  # Rules for if statements.
 //
 
-import { Scope, Spell, AST } from "../all"
+import { Scope, Spell, AST } from ".."
 
 // Given a condition expression string, wrap it in parens iff it is not already parenthesized properly.
 // TESTME
