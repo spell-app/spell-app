@@ -141,6 +141,16 @@ const spellCore = {
     return isEqual(thing, otherThing)
   },
 
+  // Asserd `value` is truthy.
+  // Uses lodash `isEqual` semantics.
+  assert(value, thingSource) {
+    if (value) {
+      console.info(`YES: Expected "${thingSource}" to be truthy`)
+    } else {
+      console.warn(`NO: Expected "${thingSource}" to be truthy, got: "${value}"`)
+    }
+  },
+
   // Does `thing` conceptually equal `otherThing`?
   // Uses lodash `isEqual` semantics.
   assertEquals(thing, otherThing, thingSource, otherThingSource) {
