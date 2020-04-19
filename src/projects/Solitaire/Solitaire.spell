@@ -1,4 +1,4 @@
-# Klondike Solitaire Card Game
+// # Klondike Solitaire Card Game
 -- Automatically moves cards to foundation piles (aces).
 -- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for naming conventions.
 
@@ -20,7 +20,7 @@ a deck is a list of cards
 to set up a deck
 	for each rank in card ranks
 		for each suit in card suits
-      	add a new card with rank and suit to the deck
+      	add a new card with rank = the rank and suit = the suit to the deck
 
 ## Define card-game
 a card-game is a thing

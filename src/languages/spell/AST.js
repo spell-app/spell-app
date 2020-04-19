@@ -315,6 +315,7 @@ export class InfixExpression extends Expression {
 
 /** Given an array of Expressions, join them all together with the same `operator`. */
 export function MultiInfixExpression(match, { expressions, operator }) {
+  // TODO: convert to class?
   if (expressions.length < 2) return expressions[0]
   const remaining = [...expressions]
   let rhs = remaining.pop()

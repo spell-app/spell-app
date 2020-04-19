@@ -15,4 +15,6 @@ export { default as Constant } from "./Constant"
 export { default as Method } from "./Method"
 export { default as Variable } from "./Variable"
 
+// Export `rulex` languge which is used by Parser to define rules easily.
+// Exporting it here makes circular import problems work out.
 export { rulex } from "../languages/rulex"
