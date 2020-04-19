@@ -19,7 +19,7 @@ export default new Spell.Parser({
           expression.AST,
           value?.AST || new AST.BooleanLiteral(match, { value: true }),
           new AST.StringLiteral(match, { value: `\`${expression.value}\`` }),
-          new AST.StringLiteral(match, { value: value?.value || '"true"' })
+          new AST.StringLiteral(match, { value: value ? `\`${value.value}\`` : '"true"' })
         ]
         return new AST.CoreMethodInvocation(match, {
           method: "assertEquals",
