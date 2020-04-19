@@ -15,15 +15,21 @@ export default new Spell.Parser({
       constructor: Spell.Rule.Statement,
       getAST(match) {
         const { expression, value } = match.groups
-        const args = [
-          expression.AST,
-          value?.AST || new AST.BooleanLiteral(match, { value: true }),
-          new AST.StringLiteral(match, { value: `\`${expression.value}\`` }),
-          new AST.StringLiteral(match, { value: value ? `\`${value.value}\`` : '"true"' })
-        ]
+        const expressionLiteral = new AST.StringLiteral(match, { value: `\`${expression.value}\`` })
+        if (!value) {
+          return new AST.CoreMethodInvocation(match, {
+            method: "assert",
+            arguments: [expression.AST, expressionLiteral]
+          })
+        }
         return new AST.CoreMethodInvocation(match, {
           method: "assertEquals",
-          arguments: args
+          arguments: [
+            expression.AST,
+            value.AST,
+            expressionLiteral,
+            new AST.StringLiteral(match, { value: `\`${value.value}\`` })
+          ]
         })
       },
       tests: [
@@ -35,12 +41,9 @@ export default new Spell.Parser({
           tests: [
             [
               'expect the rank of it to be "queen"',
-              'spellCore.assertEquals(it.rank, "queen", `the rank of it`, "queen")'
+              'spellCore.assertEquals(it.rank, "queen", `the rank of it`, `"queen"`)'
             ],
-            [
-              "expect the is-face-up of it",
-              'spellCore.assertEquals(it.is_face_up, true, `the is-face-up of it`, "true")'
-            ]
+            ["expect the is-face-up of it", "spellCore.assert(it.is_face_up, `the is-face-up of it`)"]
           ]
         }
       ]
