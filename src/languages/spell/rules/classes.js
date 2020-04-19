@@ -432,14 +432,12 @@ export default new Spell.Parser({
       syntax:
         "{type_property} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
       constructor: Spell.Rule.Statement,
-      getAST(match) {
+      mutateScope(match) {
         const { scope } = match
-        const { value, otherValue, type_property, condition } = match.groups
-        const { type, property } = type_property.groups
-        const prototype = new AST.PrototypeExpression(type, { type: type.AST })
+        const { value, otherValue, type_property } = match.groups
+        const { type } = type_property.groups
         // make sure type is defined
         scope.getOrStubType(type.name)
-        // register constants if specified
         if (value.rule instanceof Spell.Rule.Constant) {
           // TODO: scope.constants.addMissing(value.raw)
           const constant = value.constant || scope.constants(value.raw)
@@ -449,6 +447,11 @@ export default new Spell.Parser({
           const constant = otherValue.constant || scope.constants(otherValue.raw)
           if (!constant) scope.constants.add(otherValue.raw)
         }
+      },
+      getAST(match) {
+        const { value, otherValue, type_property, condition } = match.groups
+        const { type, property } = type_property.groups
+        const prototype = new AST.PrototypeExpression(type, { type: type.AST })
         const ifAST = new AST.IfStatement(match, {
           condition: condition.AST,
           statements: new AST.ReturnStatement(match, { value: value.AST })
@@ -651,7 +654,6 @@ export default new Spell.Parser({
 
           const words = JSON.parse(alias).split(" ")
           let syntax = []
-          const method = []
           const ruleData = []
           const vars = []
           let sourceNum = 0
@@ -667,9 +669,7 @@ export default new Spell.Parser({
               const instanceVar = word.slice(1, -1)
               const singularVar = singularize(instanceVar)
               const isSingular = singularVar === instanceVar
-
               vars.push(singularVar)
-              method.push(`(this.${singularVar} === ${singularVar})`)
 
               // Try to find the enumeration
               // NOTE: currently this only works for an enumeration defined on the type!!!
@@ -703,15 +703,14 @@ export default new Spell.Parser({
           // transform `is` to `(operator:is not?)`
           syntax.splice(0, 1, "(operator:is not?)")
           syntax = syntax.join(" ")
-
-          groups.bits = { type, syntax, method, ruleData, vars, property }
+          groups.bits = { type, syntax, ruleData, vars, property }
           return groups
         }
 
         mutateScope(match) {
           const { syntax, property } = match.groups.bits
 
-          // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
+          // Create an expression suffix to match the quoted statement, e.g. `is not? a queen`
           match.scope.addRule({
             name: property,
             alias: "expression_suffix",
