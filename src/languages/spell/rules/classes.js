@@ -755,7 +755,7 @@ export default new Spell.Parser({
 
           // Add comment string which we'll output below
           match.ruleComment = new AST.LineComment(match, {
-            value: `SPELL added rule: '${syntax}'`
+            value: `SPELL added expression: '${syntax}'`
           })
         }
 
@@ -807,11 +807,11 @@ export default new Spell.Parser({
           tests: [
             [
               'a card "is a (rank)" for its ranks',
-              "// SPELL added rule: '(operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)'\nspellCore.define(Card.prototype, 'is_a_$rank', { value(rank) { return this.rank === rank } })"
+              "// SPELL added expression: '(operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)'\nspellCore.define(Card.prototype, 'is_a_$rank', { value(rank) { return this.rank === rank } })"
             ],
             [
               'a card "is the (rank) of (suits)" for its ranks and its suits',
-              "// SPELL added rule: '(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)'\nspellCore.define(Card.prototype, 'is_the_$rank_of_$suits', { value(rank,suit) { return this.rank === rank && this.suit === suit } })"
+              "// SPELL added expression: '(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)'\nspellCore.define(Card.prototype, 'is_the_$rank_of_$suits', { value(rank,suit) { return this.rank === rank && this.suit === suit } })"
             ]
           ]
         },
@@ -822,7 +822,7 @@ export default new Spell.Parser({
                 "a card is a thing",
                 "a card has a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen, king",
                 "a card has a suit as one of clubs, diamonds, hearts, spades",
-                'a card "is a (rank)" for its ranks',
+                'a card "is a (suit)" for its suits',
                 'a card "is the (rank) of (suits)" for its ranks and its suits',
                 "card = a new card"
               ].join("\n"),
@@ -831,7 +831,7 @@ export default new Spell.Parser({
           },
           compileAs: "statement",
           tests: [
-            ["print card is a queen", "console.log(card.is_a_$rank('queen'))"],
+            ["print card is a club", "console.log(card.is_a_$suit('clubs'))"],
             ["print card is the 2 of hearts", "console.log(card.is_the_$rank_of_$suits(2, 'hearts'))"]
           ]
         }
