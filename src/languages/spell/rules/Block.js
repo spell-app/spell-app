@@ -31,9 +31,9 @@ Spell.Rule.Block = class block extends Rule {
         matched.push(
           new Match({
             rule: new Rule.BlankLine(),
-            matched: item,
-            length: 1,
-            input: [item],
+            matched: [],
+            length: 0,
+            input: [],
             scope
           })
         )
