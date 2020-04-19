@@ -61,8 +61,6 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
       if (stream.string !== state.string) {
         state.string = stream.string
         state.tokens = spellParser.tokenize(stream.string)
-        state.results = spellParser.parse(stream.string, "statement")
-        //       console.warn(stream, "\n", state.results)
       } else {
         //        console.info(stream)
       }
