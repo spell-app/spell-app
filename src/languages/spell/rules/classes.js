@@ -647,8 +647,8 @@ export default new Spell.Parser({
         }
 
         // When gathering the match groups, figure out `bits` for making rules and AST nodes
-        gatherGroups(match, ...args) {
-          const groups = super.gatherGroups(match, ...args)
+        gatherGroups(match) {
+          const groups = super.gatherGroups(match)
           const alias = groups.alias.value
           const type = groups.type.value
           const sources = groups.sources.items
@@ -696,7 +696,7 @@ export default new Spell.Parser({
                 syntax.push(`(expression:${inflectedEnumeration.join("|")})`)
               } else {
                 // TODO: parse error
-                console.error("couldn't figure out enumeration for ", type, propertyName)
+                console.warn("couldn't figure out enumeration for ", type, propertyName)
               }
               sourceNum++
               return `$${instanceVar}`
@@ -847,8 +847,8 @@ export default new Spell.Parser({
       wantsNestedBlock: true,
       constructor: class to_do_something extends Spell.Rule.Statement {
         // When gathering the match groups, figure out `bits` for making rules and AST nodes
-        gatherGroups(match, ...args) {
-          const groups = super.gatherGroups(match, ...args)
+        gatherGroups(match) {
+          const groups = super.gatherGroups(match)
           const bits = {
             // calculated as we run through the keywords
             method: [], // method signature bits

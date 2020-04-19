@@ -71,11 +71,11 @@ Rule.Sequence = class sequence extends Rule {
   // If no explcit compile method, gather our groups and return the compiled output of each.
   // TODO: ... ??
   compile(match) {
-    return this.gatherGroups(match, nextMatch => nextMatch.compile())
+    return this._addGroups({}, match.matched, nextMatch => nextMatch.compile())
   }
 
-  gatherGroups(match, callback) {
-    return this._addGroups({}, match.matched, callback)
+  gatherGroups(match) {
+    return this._addGroups({}, match.matched)
   }
 
   _addGroups(results, matched, callback) {
