@@ -694,8 +694,10 @@ export default new Spell.Parser({
                   values: variable.enumerationValues || enumeration
                 })
                 syntax.push(`(expression:${inflectedEnumeration.join("|")})`)
-              } else {
-                // TODO: parse error
+              } else if (match.scope.types(type)) {
+                // FIXME: this routine is (somehow) geting called twice, once when type/variable IS NOT set up (???)
+                // and then once later, when it IS set up.  Figure out why!
+                // TODO: parse error instead?
                 console.warn("couldn't figure out enumeration for ", type, propertyName)
               }
               sourceNum++
