@@ -632,7 +632,8 @@ export default new Spell.Parser({
     {
       name: "quoted_property_formula",
       alias: "statement",
-      //  e.g. `a card "is the queen of spades" for...`
+      //  `a card "is a (rank) of (suits)" for its ranks and its suits`
+      //  e.g. `a card is the queen of spades`
       //  NOTE: the first word in quotes must be "is" !!
       syntax: "(a|an) {type} {alias:text} for [sources:(its {property}) and]",
       constructor: class quoted_property_formula extends Spell.Rule.Statement {
@@ -687,6 +688,7 @@ export default new Spell.Parser({
                   return inflector(value)
                 })
                 ruleData.push({
+                  isSingular,
                   instanceVar,
                   enumeration: inflectedEnumeration,
                   values: variable.enumerationValues || enumeration
@@ -708,7 +710,7 @@ export default new Spell.Parser({
         }
 
         mutateScope(match) {
-          const { syntax, property } = match.groups.bits
+          const { syntax, property, ruleData } = match.groups.bits
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? a queen`
           match.scope.addRule({
@@ -721,11 +723,17 @@ export default new Spell.Parser({
             compileASTExpression(_match, { lhs, rhs }) {
               if (!Array.isArray(rhs)) rhs = [rhs]
               const args = rhs
-                .map(arg => {
+                .map((arg, index) => {
                   if (typeof arg.value === "string") {
+                    // Handle singular input values mapping to plural internal values
+                    // `enumeration` will be: "club", "spade", etc
+                    // `values` will be: `"clubs"`, `"spades"`, etc
+                    const { enumeration, values } = ruleData[index]
+                    const valueIndex = enumeration.indexOf(arg.value)
+                    const value = valueIndex !== -1 ? values[valueIndex] : `'arg.value'`
                     return new AST.ConstantExpression(arg, {
                       name: arg.value,
-                      value: `'${arg.value}'`
+                      value
                     })
                   }
                   if (typeof arg.value === "number") {
