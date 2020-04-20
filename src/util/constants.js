@@ -16,7 +16,7 @@ export const SAVING = Symbol("SAVING")
 export const SAVED = Symbol("SAVED")
 export const SAVE_ERROR = Symbol("SAVE_ERROR")
 
-/** Well-known fileformats as mime-types. */
+/** Well-known file formats as mime-types. */
 export const KNOWN_FORMATS = {
   text: "text/plain",
   json: "application/json",

@@ -18,12 +18,12 @@ import {
  * Returned promise has a `cancel()` method (see `abortableFetch` for caveats).
  *
  * `callParams` consists of the following (all optional):
- * - `params`       Query Params, as string or object which will be serialized.
- * - `body`         Request body as string object which will be `JSON.stringified()`
- * - `method`       `GET`, `POST` etc.  If undefined, we'll assume `POST` if there's a `body`, otherwise `GET`.
- * - `headers`      HTTP headers.
+ * - `params`         Query Params, as string or object which will be serialized.
+ * - `body`           Request body as string object which will be `JSON.stringified()`
+ * - `method`         `GET`, `POST` etc.  If undefined, we'll assume `POST` if there's a `body`, otherwise `GET`.
+ * - `headers`        HTTP headers.
  * - `requestFormat`  Input format, used to set `Content-Type` header. See KNOWN_FORMATS.
- * - `format`       Output format, defaulting to `text`. See KNOWN_FORMATS.
+ * - `format`         Output format, used to format output.  Defaults to `text`. See KNOWN_FORMATS.
  */
 // eslint-disable-next-line import/prefer-default-export
 export function $fetch(url, callParams = {}) {
@@ -33,7 +33,7 @@ export function $fetch(url, callParams = {}) {
     method = body ? "POST" : "GET",
     headers = {},
     requestFormat,
-    format = "unknown",
+    format = "text",
     defaultContents
   } = callParams
 

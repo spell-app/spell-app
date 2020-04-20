@@ -1,6 +1,8 @@
+import { CustomError } from "./CustomError"
+
 /** Errors for use in LoadableFile */
-export class ResponseError extends Error {
-  constructor({ url, response, message, params, headers, body, error }) {
+export class ResponseError extends CustomError {
+  constructor({ url, response, message = "Unknown ResponseError", params, headers, body, error }) {
     super(message)
     // Restore prototype chain to make stack traces work out
     Object.setPrototypeOf(this, new.target.prototype)
