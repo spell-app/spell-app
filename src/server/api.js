@@ -46,6 +46,27 @@ router.get("/test", (request, response) => {
 })
 
 //----------------------------
+//  Return a 404 (resource-not-found) error to test client logic.
+//----------------------------
+router.get("/missing", (request, response) => {
+  return response.status(404).send("Nothing to see here")
+})
+
+//----------------------------
+//  Return a 403 (unauthorized) error to test client logic.
+//----------------------------
+router.get("/not-authorized", (request, response) => {
+  return response.status(403).send("No can do")
+})
+
+//----------------------------
+//  Return a 500 error to test client logic.
+//----------------------------
+router.get("/error", (request, response) => {
+  return response.status(500).send("No soup for you!")
+})
+
+//----------------------------
 //  Examples support
 //----------------------------
 const projectsDir = nodePath.join(__dirname, "..", "projects")

@@ -1,8 +1,7 @@
 /** Base class with assertion methods */
 import _get from "lodash/get"
 
-/** OPTIONAL symbol for `assert()` below */
-export const OPTIONAL = Symbol("OPTIONAL")
+import { OPTIONAL } from "./constants"
 
 /** Return `true` if `value` matches `type`(s).
  * DOCME
