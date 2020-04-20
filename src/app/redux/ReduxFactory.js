@@ -83,7 +83,7 @@ import global from "global"
 
 import { addDebugMethods, DebugLevel } from "../../util/addDebugMethods"
 import makeDeferred from "./util/makeDeferred"
-import { getPref, setPref } from "./util/prefs"
+import { getPref, setPref } from "../../util/prefs"
 
 // Special action stub to pass back to ignore an action.
 export const IGNORE_ACTION = { type: "__IGNORE_ACTION__", promise: Promise.resolve() }

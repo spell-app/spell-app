@@ -17,7 +17,7 @@ export function setPrefKey(key) {
   APP_PREF_PREFIX = key
 }
 
-// Preface all actual storage keys with 'dspui_' to avoid contention between apps.
+// Preface all actual storage keys with 'APP_PREF_PREFIX' to avoid contention between apps.
 export function getPrefKey(key) {
   return `${APP_PREF_PREFIX}${key}`
 }

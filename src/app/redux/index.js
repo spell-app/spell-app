@@ -1,6 +1,6 @@
 export { default as api } from "./api"
 export { default as ReduxFactory } from "./ReduxFactory"
-export { getPref, setPref, clearAllPrefs, setPrefKey } from "./util/prefs"
+export { getPref, setPref, clearAllPrefs, setPrefKey } from "../../util/prefs"
 
 // App-specific
 export * from "./projects"
