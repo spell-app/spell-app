@@ -20,6 +20,7 @@ export const SAVE_ERROR = Symbol("SAVE_ERROR")
 export const KNOWN_FORMATS = {
   text: "text/plain",
   json: "application/json",
+  json5: "application/json5",
   gif: "image/gif",
   png: "image/png",
   jpg: "image/jpeg",

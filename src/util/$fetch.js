@@ -1,5 +1,6 @@
 import queryString from "query-string"
 
+import { parseJSON, parseJSON5 } from "./json"
 import { abortableFetch, isAbortError } from "./abortableFetch"
 import { KNOWN_FORMATS, BINARY_FORMATS } from "./constants"
 import {
@@ -21,7 +22,7 @@ import {
  * - `body`         Request body as string object which will be `JSON.stringified()`
  * - `method`       `GET`, `POST` etc.  If undefined, we'll assume `POST` if there's a `body`, otherwise `GET`.
  * - `headers`      HTTP headers.
- * - `inputFormat`  Input format, used to set `Content-Type` header. See KNOWN_FORMATS.
+ * - `requestFormat`  Input format, used to set `Content-Type` header. See KNOWN_FORMATS.
  * - `format`       Output format, defaulting to `text`. See KNOWN_FORMATS.
  */
 // eslint-disable-next-line import/prefer-default-export
@@ -31,14 +32,14 @@ export function $fetch(url, callParams = {}) {
     body,
     method = body ? "POST" : "GET",
     headers = {},
-    inputFormat,
-    format = KNOWN_FORMATS.text,
+    requestFormat,
+    format = "unknown",
     defaultContents
   } = callParams
 
   const fetchParams = { method, headers }
   // Set Content-Type header if necessary
-  if (inputFormat) fetchParams.headers["Content-Type"] = inputFormat
+  if (requestFormat) fetchParams.headers["Content-Type"] = requestFormat
 
   // Set up body if provided
   if (body != null) {
@@ -70,8 +71,11 @@ export function $fetch(url, callParams = {}) {
     // Attempt to process the response according to our format
     try {
       if (BINARY_FORMATS.includes(format)) return await response.blob()
-      if (format === KNOWN_FORMATS.JSON || format.toUpperCase() === "JSON") return await response.json()
-      return await response.text()
+      // Pull text out to process json/json5 separately below.
+      const text = await response.text()
+      if (format === KNOWN_FORMATS.json || format.toUpperCase() === "JSON") return parseJSON(text)
+      if (format === KNOWN_FORMATS.json5 || format.toUpperCase() === "JSON5") return parseJSON5(text)
+      return text
     } catch (e) {
       throw new ResponseParseError({ url, response, e, ...fetchParams })
     }

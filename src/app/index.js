@@ -3,7 +3,17 @@ import global from "global"
 // Guarantee async/await works in all environments.
 import "@babel/polyfill"
 
-import { abortableFetch, $fetch, Loadable, Saveable, LoadableFile, TextFile, JSONFile, ImageFile } from "../util"
+import {
+  abortableFetch,
+  $fetch,
+  Loadable,
+  Saveable,
+  LoadableFile,
+  TextFile,
+  JSONFile,
+  JSON5File,
+  ImageFile
+} from "../util"
 
 export * from "./redux"
 
@@ -23,5 +33,6 @@ Object.assign(global, {
   LoadableFile,
   TextFile,
   JSONFile,
+  JSON5File,
   ImageFile
 })

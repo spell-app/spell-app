@@ -16,7 +16,7 @@ export class LoadableFile extends Saveable {
   /** If defined, a 404 load or aborted promise will return these contents as a successful result. */
   @proto defaultContents = undefined
   /** Request type.  Use one of the constants above or a string. */
-  @proto inputFormat = undefined
+  @proto requestFormat = undefined
   /** Result type for auto-processing of results.  Defaults implicitly to TEXT */
   @proto format = undefined
 
@@ -43,7 +43,7 @@ export class LoadableFile extends Saveable {
       params,
       body,
       method = this.requestMethod,
-      inputFormat = this.inputFormat,
+      requestFormat = this.requestFormat,
       format = this.format,
       defaultContents = this.defaultContents
     } = callParams
@@ -54,7 +54,7 @@ export class LoadableFile extends Saveable {
       method,
       headers: this.defaultHeaders || headers ? { ...this.defaultHeaders, ...headers } : undefined,
       format,
-      inputFormat,
+      requestFormat,
       defaultContents
     }
     return $fetch(url, $params)
@@ -70,8 +70,14 @@ export class TextFile extends LoadableFile {}
 
 /** Loadable JSON file. */
 export class JSONFile extends LoadableFile {
-  @proto inputFormat = JSON
-  @proto format = JSON
+  @proto requestFormat = KNOWN_FORMATS.json
+  @proto format = KNOWN_FORMATS.json
+}
+
+/** Loadable JSON5 file. */
+export class JSON5File extends LoadableFile {
+  @proto requestFormat = KNOWN_FORMATS.json5
+  @proto format = KNOWN_FORMATS.json5
 }
 
 /** Loadable image file:  GIF, PNG, JPG or SVG. */

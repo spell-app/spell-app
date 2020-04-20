@@ -9,7 +9,7 @@
 //----------------------------
 
 import global from "global"
-import { parseJSON, parseJSON5 } from "./util/json"
+import { parseJSON, parseJSON5 } from "../../util/json"
 import { addDebugMethods, DebugLevel } from "../../util/addDebugMethods"
 
 const logger = addDebugMethods({}, "api", DebugLevel.WARN)
