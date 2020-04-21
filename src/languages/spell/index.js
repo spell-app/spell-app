@@ -13,5 +13,4 @@ export * as AST from "./AST"
 export { default as spellParser } from "./rules/_spellParser"
 
 export * from "./SpellFile"
-export * from "./SpellProjectIndex"
 export * from "./SpellProject"

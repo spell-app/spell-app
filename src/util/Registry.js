@@ -1,15 +1,14 @@
 export class Registry {
-  constructor(props) {
-    Object.assign(this, props)
-    this.REGISTRY = {}
-  }
-  get(path) {
-    if (!this.REGISTRY[path]) {
-      this.REGISTRY[path] = this.makeInstanceForPath(path)
+  constructor(makeInstanceForPath) {
+    if (typeof makeInstanceForPath !== "function") {
+      throw new TypeError(`new Registry(): you must provide a 'makeInstanceForPath' function`)
     }
-    return this.REGISTRY[path]
-  }
-  makeInstanceForPath(path) {
-    throw new TypeError("You must override makeInstanceForPath")
+    const REGISTRY = {}
+    function getFromRegistry(path) {
+      if (!REGISTRY[path]) REGISTRY[path] = makeInstanceForPath(path)
+      return REGISTRY[path]
+    }
+    getFromRegistry.REGISTY = REGISTRY
+    return getFromRegistry
   }
 }

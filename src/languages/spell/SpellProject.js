@@ -1,60 +1,60 @@
 import global from "global"
+import keyBy from "lodash/keyBy"
 
-import { Loadable, Registry, proto } from "../../util"
-import { SpellProjectIndex } from "./SpellProjectIndex"
+import { JSON5File, proto, memoizeForProp, overrideableGetter, Registry } from "../../util"
+import { SpellFile } from "./SpellFile"
 
 /**
- * Loadable spell project.
+ * Loadable spell project index.
  */
-export class SpellProject extends Loadable {
+export class SpellProject extends JSON5File {
   /** Project name. */
   @proto project = undefined
+  /** Update file contents when you  do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
+  @proto autoUpdateContentsOnSave = true
 
   /**
-   * Construct with a `project` string to get a singleton back for that path.
-   * e.g.
-   *    a = new SpellProject("myProject")
-   *    b = new SpellProject("myProject")
-   *    a === b  <<<< true
+   * Constructor which expects ONLY `project` or `{ project }`.
+   * NOTE: Prefer `SpellProject.get("project")` to get a consistent singleton instance
+   *       rather than creating them individually via `new`.
    */
-  constructor(propsOrProject) {
-    if (typeof propsOrProject === "string") {
-      return SpellProject.registry.get(propsOrProject)
-    }
-    super(propsOrProject)
+  constructor(props) {
+    if (typeof props === "string") props = { project: props }
+    super(props)
   }
 
-  get index() {
-    return SpellProjectIndex.registry.get(this.project)
+  /**
+   * Return list of `SpellFiles` in the index.
+   * Returns `undefined` if we're not loaded.
+   */
+  @memoizeForProp("contents") get files() {
+    return this.contents?.modules?.map(({ id }) => this._getSpellFile(id))
+  }
+  _getSpellFile(filename) {
+    const path = SpellFile.joinPath({ project: this.project, filename })
+    return SpellFile.get(path)
   }
 
-  get files() {
-    return this.index.files
+  /**
+   * Return map of `SpellFiles` in the index.
+   * Returns `undefined` if we're not loaded.
+   */
+  @memoizeForProp("files") get fileMap() {
+    const { files } = this
+    return files && keyBy(files, "filename")
   }
 
-  get fileMap() {
-    return this.index.fileMap
-  }
-
-  /** LOADING */
-
-  /** Load index and all files when told do `load()` */
-  getLoader() {
-    return Promise.all([this.loadIndex(), this.loadFiles()])
-  }
-
-  /** Load just the index. Result is the index itself. */
-  async loadIndex() {
-    await this.index.load()
-    return this.index
+  /** Derive `url` from our project if not explicitly set. */
+  @overrideableGetter get url() {
+    return `/api/projects/${this.project}/index`
   }
 
   /**
    * Attempt to load all of the files, succeeding whether they all load or not.
    * Result is the array of files.
    */
-  async loadFiles() {
-    await this.loadIndex()
+  async loadAllFiles() {
+    await this.load()
     await Promise.allSettled(this.files.map(file => file.load()))
     return this.files
   }
@@ -67,25 +67,20 @@ export class SpellProject extends Loadable {
   /** Get file or throw an error if it's not found (or if index is not loaded). */
   getFileOrDie(filename) {
     const file = this.getFile(filename)
-    if (!file) throw new Error(`project '${this.project}': file '${filename}' not found.`)
+    if (!file) throw new Error(`SpellProject '${this.project}': file '${filename}' not found.`)
     return file
   }
 
   /** Asynchronously load file by name. Loads index if necessary. */
   async loadFile(filename) {
-    await this.loadIndex()
+    await this.load()
     return this.getFileOrDie(filename).load()
   }
 
   /**
-   * Use `SpellProject.registry.get("project")` to get a singleton SpellProject back for that path.
-   * Note that you can also just do `new SpellProject("project")` to do the same thing.
+   * Use `SpellProject.get("project")` to get a singleton SpellProject back for the project.
    */
-  static registry = new Registry({
-    makeInstanceForPath(project) {
-      return new SpellProject({ project })
-    }
-  })
+  static get = new Registry(project => new SpellProject({ project }))
 }
 
 global.SpellProject = SpellProject
