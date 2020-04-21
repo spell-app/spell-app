@@ -1,5 +1,5 @@
 import global from "global"
-import { TextFile, proto, Registry } from "../../util"
+import { TextFile, Registry, proto, overrideableGetter } from "../../util"
 
 /**
  * Loadable file of spell code.
@@ -26,11 +26,8 @@ export class SpellFile extends TextFile {
   }
 
   /** Derive `url` from our project / filename if not explicitly set. */
-  get url() {
-    return this._url || `/api/projects/${this.project}/${this.filename}`
-  }
-  set url(value) {
-    this._url = value
+  @overrideableGetter get url() {
+    return `/api/projects/${this.project}/${this.filename}`
   }
 
   /**

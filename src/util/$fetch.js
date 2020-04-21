@@ -36,7 +36,7 @@ export function mergeParms(...paramSets) {
  *
  * `callParams` consists of the following (all optional except for `url`):
  * - `url`            URL to load.
- * - `params`         Query Params, as string or object which will be serialized.
+ * - `params`         URL query params, as string or object which will be serialized.
  * - `contents`       Request body as string or object which will be `JSON.stringified()`
  * - `method`         HTTP method.  `POST` if `contents` provided, otherwise `GET`.
  * - `headers`        HTTP headers.

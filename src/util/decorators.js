@@ -22,6 +22,15 @@ const ES5_DESCRIPTOR_PROPS = {
   configurable: 1
 }
 
+// Return a key we'll use to for a private value, e.g. when we memoize something.
+// Note that we want this to be consistent so we can use it
+// for both `memoize()` and `clearMemoized()` below.
+//
+// Currenly using "#property" for the key -- consider using a Symbol?
+function getPrivateKey(key) {
+  return `#${key}`
+}
+
 //
 //  # Problems with Babel 7.1
 //
@@ -112,13 +121,23 @@ export function nonEnumerable(descriptor) {
   return setDescriptorProp(descriptor, "enumerable", false)
 }
 
-// Return a key we'll use to memoize a value.
-// Note that we want this to be consistent so we can use it
-// for both `memoize()` and `clearMemoized()` below.
-//
-// Currenly using "#property" for the key -- consider using a Symbol?
-function getMemoizeKey(key) {
-  return `#${key}`
+// Allow user to provide an explicit value for some property;
+// if they have not, use the provided function as a getter.
+export function overrideableGetter(descriptor) {
+  console.warn(descriptor)
+  assert(descriptor.kind === "method")
+  const getter = getDescriptorProp(descriptor, "get")
+  assert(getter)
+  const key = getPrivateKey(descriptor.key)
+  descriptor = setDescriptorProp(descriptor, "get", function() {
+    if (Object.prototype.hasOwnProperty.call(this, key)) return this[key]
+    return getter.apply(this)
+  })
+  descriptor = setDescriptorProp(descriptor, "set", function(value) {
+    // console.warn("setting ", key, "to", value)
+    this[key] = value
+  })
+  return descriptor
 }
 
 // Memoize a calculated value.
@@ -141,7 +160,7 @@ export function memoize(descriptor) {
 
 // Memoize a getter with an optional setter.
 function _memoizeGetter(descriptor, getter, setter) {
-  const privateKey = getMemoizeKey(descriptor.key)
+  const privateKey = getPrivateKey(descriptor.key)
   function wrappedGetter() {
     if (!Object.prototype.hasOwnProperty.call(this, privateKey)) {
       // Add the property non-enumerably, but configurably
@@ -168,7 +187,7 @@ function _memoizeGetter(descriptor, getter, setter) {
 
 // Memoize a method.
 function _memoizeMethod(descriptor, method) {
-  const privateKey = getMemoizeKey(descriptor.key)
+  const privateKey = getPrivateKey(descriptor.key)
   function wrappedMethod(...args) {
     if (!Object.prototype.hasOwnProperty.call(this, privateKey)) {
       // Add the property non-enumerably, but configurably
@@ -195,7 +214,7 @@ export function clearMemoized(property) {
     assert(typeof method === "function")
 
     // Use same key pattern as `memoized` above.
-    const privateKey = getMemoizeKey(property)
+    const privateKey = getPrivateKey(property)
     function wrapped(...args) {
       delete this[privateKey]
       return method.apply(this, args)

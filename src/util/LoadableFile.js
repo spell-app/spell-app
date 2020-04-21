@@ -1,8 +1,7 @@
 import { KNOWN_FORMATS } from "./constants"
-import { proto } from "./decorators"
+import { proto, overrideableGetter } from "./decorators"
 import { $fetch } from "./$fetch"
 import { Saveable } from "./Saveable"
-import { SaveError } from "./ResponseErrors"
 
 /** Load a single file from `url`, process according to `format` before returning. */
 export class LoadableFile extends Saveable {
@@ -61,20 +60,23 @@ export class LoadableFile extends Saveable {
    * DOCME!!!
    * Save file contents.  Default is to POST our `contents` back to `url` they came from.
    * `params` is same as arguments to `$fetch()`.
+   * By default it will save with our `defaultContents`
    * Note this promise returns `fetch()` results AFTER processing according to `format`
    */
   getSaver(params) {
-    if (!this.isLoaded) {
-      return Promise.reject(
-        new SaveError({
-          url: this.url,
-          message: "Attempting to save a file which is not loaded!",
-          params
-        })
-      )
-    }
-    const { url, contents, format, saveParams } = this
+    const { url, contents = this.defaultContents, format, saveParams } = this
     return $fetch({ url, contents, format }, saveParams, params)
+  }
+
+  /** Return url extension, if any. */
+  @overrideableGetter get extension() {
+    const url = this.url
+      .toLowerCase()
+      .split("?")[0]
+      .split("#")[0]
+    const index = url.lastIndexOf(".")
+    if (index === -1) return undefined
+    return url.slice(index + 1)
   }
 }
 
@@ -100,11 +102,7 @@ export class JSON5File extends LoadableFile {
 /** Loadable image file:  GIF, PNG, JPG or SVG. */
 export class ImageFile extends LoadableFile {
   /** Default format according to the file extension, defaulting to `binary`. */
-  set format(value) {
-    this._format = value
-  }
-  get format() {
-    if (this._format) return this._format
+  @overrideableGetter get format() {
     switch (this.extension) {
       case "jpg":
       case "jpeg":
@@ -118,16 +116,5 @@ export class ImageFile extends LoadableFile {
       default:
         return KNOWN_FORMATS.binary
     }
-  }
-
-  /** Return url extension, if any. */
-  get extension() {
-    const url = this.url
-      .toLowerCase()
-      .split("?")[0]
-      .split("#")[0]
-    const index = url.lastIndexOf(".")
-    if (index === -1) return undefined
-    return url.slice(index + 1)
   }
 }
