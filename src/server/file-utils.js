@@ -41,14 +41,14 @@ export const extension = path.extname
 //  MimeTypes
 //----------------------------
 
-// Given a `filename`, guess the mimetype
-export function getMimeType(filename) {
-  return mime.lookup(nafilenameme)
+// Given a file `name`, guess the mimetype
+export function getMimeType(name) {
+  return mime.lookup(name)
 }
 
-// Given a `filename`, return the Content-Type header string for it.
-export function getContentType(filename) {
-  return mime.contentType(filename)
+// Given a file `name`, return the Content-Type header string for it.
+export function getContentType(name) {
+  return mime.contentType(name)
 }
 
 //----------------------------
