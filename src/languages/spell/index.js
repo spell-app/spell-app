@@ -11,3 +11,5 @@ export * as AST from "./AST"
 
 // Export the entire language as `spell` and as the `default` export.
 export { default as spellParser } from "./rules/_spellParser"
+
+export * from "./SpellFile"

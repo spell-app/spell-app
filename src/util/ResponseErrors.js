@@ -1,13 +1,25 @@
 import { CustomError } from "./CustomError"
 
-/** Errors for use in LoadableFile */
+/**
+ * Errors for use in Loadable/Saveable.
+ * Expeced props:
+ *  - message       Error message string
+ *  - url           Request URL
+ *  - error         Original error encountered.
+ *  - response      `fetch()` response object.
+ *  - params        Request params
+ *  - headers       Request headers.
+ *  - body          Request body.
+ */
 export class ResponseError extends CustomError {
-  constructor({ url, response, message = "Unknown ResponseError", params, headers, body, error }) {
+  constructor({ message = "Unknown ResponseError", ...otherProps } = {}) {
     super(message)
-    // Restore prototype chain to make stack traces work out
-    Object.setPrototypeOf(this, new.target.prototype)
-    Object.assign(this, { url, error, response, params, headers, body })
-    if (response) this.status = response.status
+    Object.assign(this, otherProps)
+  }
+  /** Derive HTTP status from response, if set. */
+  get status() {
+    if (this.response) return this.response.status
+    return undefined
   }
 }
 
@@ -45,3 +57,6 @@ export class AbortedRequestError extends ResponseError {
     super({ message, ...props })
   }
 }
+
+/** Specific error we'll throw if there's a problem saving. */
+export class SaveError extends ResponseError {}

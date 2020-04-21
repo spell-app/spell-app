@@ -12,38 +12,56 @@ import {
   AbortedRequestError
 } from "./ResponseErrors"
 
+export function mergeParms(...paramSets) {
+  const output = {}
+  paramSets.forEach(params => {
+    if (!params) return
+    Object.keys(params).forEach(key => {
+      const value = params[key]
+      if (typeof value === "object") {
+        if (output[key]) Object.assign(output[key], value)
+        else output[key] = { ...value }
+      } else if (value !== undefined) {
+        output[key] = value
+      }
+    })
+  })
+  return output
+}
+
 /**
  * Fetch some file and return the decoded results.
  * Server errors (404 etc) will be `reject()`ed.
  * Returned promise has a `cancel()` method (see `abortableFetch` for caveats).
  *
- * `callParams` consists of the following (all optional):
+ * `callParams` consists of the following (all optional except for `url`):
+ * - `url`            URL to load.
  * - `params`         Query Params, as string or object which will be serialized.
- * - `body`           Request body as string object which will be `JSON.stringified()`
- * - `method`         `GET`, `POST` etc.  If undefined, we'll assume `POST` if there's a `body`, otherwise `GET`.
+ * - `contents`       Request body as string or object which will be `JSON.stringified()`
+ * - `method`         HTTP method.  `POST` if `contents` provided, otherwise `GET`.
  * - `headers`        HTTP headers.
  * - `requestFormat`  Input format, used to set `Content-Type` header. See KNOWN_FORMATS.
  * - `format`         Output format, used to format output.  Defaults to `text`. See KNOWN_FORMATS.
  */
-// eslint-disable-next-line import/prefer-default-export
-export function $fetch(url, callParams = {}) {
+export function $fetch(...allCallParams) {
   const {
+    url,
     params,
-    body,
-    method = body ? "POST" : "GET",
+    contents,
+    method = contents ? "POST" : "GET",
     headers = {},
     requestFormat,
     format = "text",
     defaultContents
-  } = callParams
+  } = mergeParms(...allCallParams)
 
   const fetchParams = { method, headers }
   // Set Content-Type header if necessary
   if (requestFormat) fetchParams.headers["Content-Type"] = requestFormat
 
   // Set up body if provided
-  if (body != null) {
-    fetchParams.body = typeof body === "string" ? body : JSON.stringify(body)
+  if (contents != null) {
+    fetchParams.body = typeof contents === "string" ? contents : JSON.stringify(contents)
   }
 
   const fullUrl = params ? `${url}?${queryString.stringify(params)}` : url

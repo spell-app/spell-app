@@ -6,7 +6,6 @@ import { UNSAVED, SAVING, SAVED, SAVE_ERROR, SKIP } from "./constants"
 import { Loadable } from "./Loadable"
 
 /** Abstract class for a saveable resource (which is implicitly also loadable). */
-// eslint-disable-next-line import/prefer-default-export
 export class Saveable extends Loadable {
   /** If true, we auto-update `#load.contents` with results of `_processSave()` on successful save. */
   @proto autoUpdateContentsOnSave = false

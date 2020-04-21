@@ -12,7 +12,6 @@ import { UNLOADED, LOADING, LOADED, LOAD_ERROR, SKIP } from "./constants"
  *
  * TODO: `cancelLoad()` ?
  */
-// eslint-disable-next-line import/prefer-default-export
 export class Loadable extends Assertable {
   /** Lifespan to maintain loaded contents, in seconds. */
   @proto loadLifespan = undefined
