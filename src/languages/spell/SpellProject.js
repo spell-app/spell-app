@@ -1,6 +1,6 @@
 import global from "global"
 
-import { Loadable, Registry, proto, memoizeForProp } from "../../util"
+import { Loadable, Registry, proto } from "../../util"
 import { SpellProjectIndex } from "./SpellProjectIndex"
 
 /**
@@ -9,8 +9,6 @@ import { SpellProjectIndex } from "./SpellProjectIndex"
 export class SpellProject extends Loadable {
   /** Project name. */
   @proto project = undefined
-  /** Update file contents when you  do `spellProjectIndex.save({ contents })`. */
-  @proto autoUpdateContentsOnSave = true
 
   /**
    * Construct with a `project` string to get a singleton back for that path.

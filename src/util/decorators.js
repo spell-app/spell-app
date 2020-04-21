@@ -222,7 +222,7 @@ export function clearMemoized(property) {
   }
 }
 
-/** Memoize getter return value as long as `prop` doesn't change. */
+/** Memoize getter return value as long as `property` doesn't change. */
 export function memoizeForProp(property) {
   const propCache = new WeakMap()
   const valueCache = new WeakMap()
@@ -230,9 +230,29 @@ export function memoizeForProp(property) {
     const getter = getDescriptorProp(descriptor, "get")
     assert(getter)
     function wrapped() {
-      const propCurrent = this[property]
-      if (!propCache.has(this) || propCache.get(this) !== propCurrent) {
-        propCache.set(this, propCurrent)
+      const currentProp = this[property]
+      if (!propCache.has(this) || propCache.get(this) !== currentProp) {
+        propCache.set(this, currentProp)
+        valueCache.set(this, getter.apply(this))
+      }
+      return valueCache.get(this)
+    }
+    return setDescriptorProp(descriptor, "get", wrapped)
+  }
+}
+
+/** Memoize getter return value as long as value of `properties` don't change. */
+export function memoizeForProps(...properties) {
+  const propCache = new WeakMap()
+  const valueCache = new WeakMap()
+  return function(descriptor) {
+    const getter = getDescriptorProp(descriptor, "get")
+    assert(getter)
+    function wrapped() {
+      const cachedProp = propCache.get(this)
+      const currentProp = properties.map(prop => this[prop])
+      if (!cachedProp || !cachedProp.all((value, index) => value === currentProp[index])) {
+        propCache.set(this, currentProp)
         valueCache.set(this, getter.apply(this))
       }
       return valueCache.get(this)

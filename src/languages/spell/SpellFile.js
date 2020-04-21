@@ -1,6 +1,6 @@
 import global from "global"
 import { TextFile, Registry, proto, overrideableGetter } from "../../util"
-
+import { spellParser } from "."
 /**
  * Loadable file of spell code.
  */
@@ -24,6 +24,17 @@ export class SpellFile extends TextFile {
       return SpellFile.registry.get(propsOrPath)
     }
     super(propsOrPath)
+  }
+
+  /** Load our content and attempt to parse it! */
+  async parse() {
+    await this.load()
+    return spellParser.parse(this.contents, "block")
+  }
+
+  /** Load, parse and compile our content. */
+  async compile() {
+    return (await this.parse()).compile()
   }
 
   /** Return our `path` */
