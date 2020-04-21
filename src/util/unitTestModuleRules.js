@@ -16,7 +16,7 @@ import { showWhitespace } from "."
 
 export default function unitTestModuleRules(parser, moduleName) {
   describe(`rule unit tests`, () => {
-    const rules = getTestableRulesForModule(moduleName)
+    const rules = getTestableRulesForFilePath(moduleName)
     if (!rules || rules.lenth === 0) {
       test("no testable rules found", () => {
         expect(false).toBe(true)
@@ -27,7 +27,7 @@ export default function unitTestModuleRules(parser, moduleName) {
     rules.forEach(rule => executeRuleTests(rule))
   })
 
-  function getTestableRulesForModule(module) {
+  function getTestableRulesForFilePath(module) {
     const testableRules = parser.rules._testable_ instanceof Rule.Group && parser.rules._testable_.rules
     if (!testableRules) return undefined
     const modules = groupBy(testableRules, "module")
