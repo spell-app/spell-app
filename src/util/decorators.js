@@ -221,3 +221,22 @@ export function clearMemoized(property) {
     return setDescriptorProp(descriptor, "value", wrapped)
   }
 }
+
+/** Memoize getter return value as long as `prop` doesn't change. */
+export function memoizeForProp(property) {
+  const propCache = new WeakMap()
+  const valueCache = new WeakMap()
+  return function(descriptor) {
+    const getter = getDescriptorProp(descriptor, "get")
+    assert(getter)
+    function wrapped() {
+      const propCurrent = this[property]
+      if (!propCache.has(this) || propCache.get(this) !== propCurrent) {
+        propCache.set(this, propCurrent)
+        valueCache.set(this, getter.apply(this))
+      }
+      return valueCache.get(this)
+    }
+    return setDescriptorProp(descriptor, "get", wrapped)
+  }
+}
