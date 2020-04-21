@@ -2,9 +2,8 @@ import global from "global"
 import isEqual from "lodash/isEqual"
 
 import { proto } from "./decorators"
-import { Assertable } from "./Assertable"
 
-import { UNLOADED, LOADING, LOADED, LOAD_ERROR, SKIP } from "./constants"
+import { UNLOADED, LOADING, LOADED } from "./constants"
 
 /**
  * Abstract class for a loadable resource.
@@ -12,28 +11,32 @@ import { UNLOADED, LOADING, LOADED, LOAD_ERROR, SKIP } from "./constants"
  *
  * TODO: `cancelLoad()` ?
  */
-export class Loadable extends Assertable {
-  /** Lifespan to maintain loaded contents, in seconds. */
-  @proto loadLifespan = undefined
+export class Loadable {
+  /**
+   * By default, we'll return cached `load()` results until you `reload()`.
+   * Set to number of seconds after which we'll ignore the cache.
+   * Set to `0` to never cache.
+   * Useful, e.g., to reload data when they come back to the browser window after a break.
+   */
+  @proto reloadAfter = undefined
 
   /** Private info about the last load. Immutable. */
   @proto _load = {
-    /** Current load state */
+    /** Current load state.  UNLOADED, LOADING or LOADED. */
     state: UNLOADED,
-    /** Last load params, set when actually loading. */
+    /** Params passed to last `load()`. */
     params: undefined,
     /** Last load promise, set if we're actually loading. */
-    promise: undefined,
-    /** Contents of the last load, set after successful load. */
+    loader: undefined,
+    /** Contents of the last successful `load()`. */
     contents: undefined,
-    /** Last load error, set on failed load. */
+    /** Error from last failed `load()`. */
     error: undefined,
     /** When last load finished/failed. */
     time: undefined
   }
 
   constructor(props) {
-    super()
     Object.assign(this, props)
   }
 
@@ -48,20 +51,22 @@ export class Loadable extends Assertable {
     return this._load.state === LOADED
   }
   get hasLoadError() {
-    return this._load.state === LOAD_ERROR
+    return !!this._load.error
   }
 
-  /** Contents of last load, only valid after successful load. */
+  /**
+   * Contents of last load, valid after successful load.
+   * You can also set this manually to load with data from the client.
+   */
   get contents() {
     return this._load.contents
   }
 
   /** Manually set load contents.  Updates state/etc as well. */
-  set contents(contents) {
+  set contents(value) {
     this._load = {
       state: LOADED,
-      contents,
-      params: this._load.params,
+      contents: value,
       time: Date.now()
     }
   }
@@ -71,66 +76,94 @@ export class Loadable extends Assertable {
     return this._load.error
   }
 
-  /** A loadable is considered `expired` if it's time for it to be reloaded. */
+  /** Manually set load error.  Updates state/etc as well. */
+  set loadError(error) {
+    this._load = {
+      state: UNLOADED,
+      error,
+      time: Date.now()
+    }
+  }
+
+  /** Time when we were last loaded, if any. */
+  get loadTime() {
+    return this._load.time
+  }
+
+  /** A loadable is considered `expired` if it's time for it to be reloaded.
+   * `undefined` means we don't know.
+   * `true` means we are explicitly out of cache
+   * `false` means we are explicitly within cache.
+   */
   get isExpired() {
-    const expiryTime = this._load.time + this.loadLifespan * 1000
-    if (isNaN(expiryTime)) return false
+    const expiryTime = this._load.time + this.reloadAfter * 1000
+    if (isNaN(expiryTime)) return undefined
     return Date.now() > expiryTime
   }
 
   /**
    * Public load method.
-   * NOTE: don't override this, override `getLoader()`, `_processLoad()` or `_processLoadError()` instead!
+   * NOTE: don't override this, override `getLoader()` instead!
    */
   load(params) {
+    // If params are the same as last time:
     if (isEqual(params, this._load.params)) {
-      if (this.isLoading) return this._load.promise
-      if (!this.isExpired) {
-        if (this.isLoaded) return Promise.resolve(this._load.contents)
-        if (this.hasLoadError) throw Promise.reject(this._load.error)
+      // If we're currently loading, return the current loading promise
+      if (this.isLoading) return this._load.loader
+      // If the cached version is still good
+      if (this.isExpired === false) {
+        // if loaded, resolve with last contents
+        if (this.isLoaded) return Promise.resolve(this.contents)
+        // if load error, reject with last error
+        if (this.hasLoadError) return Promise.reject(this.loadError)
       }
     }
+    // Cancel current load if any
+    if (this.isLoading) this.cancelLoad()
 
-    const success = (result, skipProcessing) => {
-      try {
-        this.contents = skipProcessing === SKIP ? result : this._processLoad(result)
-        return Promise.resolve(this._load.contents)
-      } catch (e) {
-        return failure(e, SKIP)
+    let loader
+    const onSuccess = async contents => {
+      // Only update if the same loader is active
+      if (this._load.loader === loader) {
+        this._load = {
+          state: LOADED,
+          contents,
+          params,
+          time: Date.now()
+        }
       }
+      return this.contents
     }
 
-    const failure = (rawError, skipProcessing) => {
-      const result = skipProcessing === SKIP ? rawError : this._processLoadError(rawError)
-      if (!(result instanceof Error)) return success(result, SKIP)
-
-      this._load = {
-        state: LOAD_ERROR,
-        error: result,
-        params,
-        time: Date.now()
+    const onError = async error => {
+      // Only update if the same loader is active
+      if (this._load.loader === loader) {
+        this._load = {
+          state: UNLOADED,
+          error,
+          params,
+          time: Date.now()
+        }
+        throw this.loadError
       }
-      return Promise.reject(this._load.error)
+      if (this.loadError) throw this.loadError
+      return this.contents
     }
 
     try {
-      this._load = {
-        state: LOADING,
-        params,
-        promise: this.getLoader(params).then(success, failure)
-      }
-      return this._load.promise
+      loader = this.getLoader(params)
+      if (!loader || !loader.then) throw new TypeError(`${this.constructor.name}.getLoader() didn't return a promise!`)
+      this._load = { state: LOADING, loader, params }
+      return loader.then(onSuccess, onError)
     } catch (e) {
-      return failure(e)
+      return onError(e)
     }
   }
 
-  /** Attempt to cancel the in-flight load. */
+  /** Attempt to cancel the current in-flight load. */
   cancelLoad() {
-    if (this._load.state === LOADING && this._load.promise?.cancel) {
-      this._load.promise.cancel()
-      this.unload()
-    }
+    if (this._load.loader?.cancel) this._load.loader.cancel()
+    this.unload()
   }
 
   /** Force reload of the resource, ignoring expiration logic. */
@@ -146,22 +179,12 @@ export class Loadable extends Assertable {
 
   /** Implementation-specific code! */
 
-  /** INTERNAL routine to load contents. Must return a promise. */
+  /**
+   * INTERNAL routine to load contents. Must return a promise.
+   * Do any transformation of the result in this method.
+   */
   async getLoader(params) {
     throw new TypeError("You must override loadable.getLoader()!")
-  }
-
-  /** Process `rawResult` from our loading promise, deriving a new value, etc. */
-  _processLoad(rawResult) {
-    return rawResult
-  }
-
-  /** Process `error` from our loading promise:
-   * - return an `Error` (the `error` passed in or a new one) to fail the load.
-   * - return any other value to make the load SUCCEED with that value as the (pre-processed) `contents`, e.g. with default contents.
-   */
-  _processLoadError(error) {
-    return error
   }
 }
 

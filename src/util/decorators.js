@@ -124,7 +124,6 @@ export function nonEnumerable(descriptor) {
 // Allow user to provide an explicit value for some property;
 // if they have not, use the provided function as a getter.
 export function overrideableGetter(descriptor) {
-  console.warn(descriptor)
   assert(descriptor.kind === "method")
   const getter = getDescriptorProp(descriptor, "get")
   assert(getter)

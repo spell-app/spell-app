@@ -9,6 +9,8 @@ export class SpellFile extends TextFile {
   @proto project = undefined
   /** File name. */
   @proto filename = undefined
+  /** Update file contents when you  do `spellFile.save(contents)` or `spellFile.save({contents})`. */
+  @proto autoUpdateContentsOnSave = true
 
   /**
    * Construct with a `project/path` string to get a singleton back for that path.

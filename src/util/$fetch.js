@@ -12,9 +12,10 @@ import {
   AbortedRequestError
 } from "./ResponseErrors"
 
-export function mergeParms(...paramSets) {
+/** Merge miltiple sets of `$fetch()` `params` and set up defaults. */
+export function merge$fetchParms(...allParams) {
   const output = {}
-  paramSets.forEach(params => {
+  allParams.forEach(params => {
     if (!params) return
     Object.keys(params).forEach(key => {
       const value = params[key]
@@ -34,26 +35,26 @@ export function mergeParms(...paramSets) {
  * Server errors (404 etc) will be `reject()`ed.
  * Returned promise has a `cancel()` method (see `abortableFetch` for caveats).
  *
- * `callParams` consists of the following (all optional except for `url`):
+ * `$params` consists of the following (all optional except for `url`):
  * - `url`            URL to load.
- * - `params`         URL query params, as string or object which will be serialized.
+ * - `query`          URL query params, as string or object which will be serialized.
  * - `contents`       Request body as string or object which will be `JSON.stringified()`
  * - `method`         HTTP method.  `POST` if `contents` provided, otherwise `GET`.
  * - `headers`        HTTP headers.
  * - `requestFormat`  Input format, used to set `Content-Type` header. See KNOWN_FORMATS.
  * - `format`         Output format, used to format output.  Defaults to `text`. See KNOWN_FORMATS.
  */
-export function $fetch(...allCallParams) {
+export function $fetch($params) {
   const {
     url,
-    params,
+    query,
     contents,
     method = contents ? "POST" : "GET",
     headers = {},
     requestFormat,
     format = "text",
     defaultContents
-  } = mergeParms(...allCallParams)
+  } = $params
 
   const fetchParams = { method, headers }
   // Set Content-Type header if necessary
@@ -64,7 +65,7 @@ export function $fetch(...allCallParams) {
     fetchParams.body = typeof contents === "string" ? contents : JSON.stringify(contents)
   }
 
-  const fullUrl = params ? `${url}?${queryString.stringify(params)}` : url
+  const fullUrl = query ? `${url}?${queryString.stringify(query)}` : url
   const request = abortableFetch(fullUrl, fetchParams)
 
   async function success(response) {

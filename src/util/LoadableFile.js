@@ -1,6 +1,6 @@
 import { KNOWN_FORMATS } from "./constants"
 import { proto, overrideableGetter } from "./decorators"
-import { $fetch } from "./$fetch"
+import { $fetch, merge$fetchParms } from "./$fetch"
 import { Saveable } from "./Saveable"
 
 /** Load a single file from `url`, process according to `format` before returning. */
@@ -9,8 +9,11 @@ export class LoadableFile extends Saveable {
   @proto url = undefined
   /** If defined, a 404 load or aborted promise will return these contents as a successful result. */
   @proto defaultContents = undefined
-  /** Result type for auto-processing of results.  Defaults implicitly to TEXT */
+  /** Result type for auto-processing of results.  Defaults implicitly in`$fetch()` to TEXT */
   @proto format = undefined
+  /** If true, on successful save, we auto-update `#load.contents` with specified `contents`. */
+  @proto autoUpdateContentsOnSave = false
+
   /**
    * Default load params to pass to `$fetch()`.
    * Default `getLoader()` method mixes these with params passed directly to `load()`.
@@ -20,23 +23,23 @@ export class LoadableFile extends Saveable {
     method: undefined,
     /** Object of default URL headers.  Mixed with headers specified during `load()`. */
     headers: undefined,
-    /** Object of default URL params.  Mixed with params specified during `load()`. */
-    params: undefined,
+    /** Object of default URL query params.  Mixed with query specified during `load()`. */
+    query: undefined,
     /** Request type.  Use one of the constants above or a string. */
     requestFormat: undefined
   }
 
   /**
    * Default save params to pass to `$fetch()`.
-   * Default `getSaver()` method mixes these with params passed directly to `load()`.
+   * Default `getSaver()` method mixes these with params passed directly to `save()`.
    */
   @proto saveParams = {
     /**  HTTP method to use.  If undefined, we'll use `GET` unless you specify `callParams.body`, in which case we'll use `POST` */
     method: undefined,
-    /** Object of default URL headers.  Mixed with headers specified during `load()`. */
+    /** Object of default URL headers.  Mixed with headers specified during `save()`. */
     headers: undefined,
-    /** Object of default URL params.  Mixed with params specified during `load()`. */
-    params: undefined,
+    /** Object of default URL query params.  Mixed with query specified during `save()`. */
+    query: undefined,
     /** Request type.  Use one of the constants above or a string. */
     requestFormat: undefined
   }
@@ -53,19 +56,25 @@ export class LoadableFile extends Saveable {
    */
   getLoader(params) {
     const { url, defaultContents, format, loadParams } = this
-    return $fetch({ url, defaultContents, format }, loadParams, params)
+    const $params = merge$fetchParms({ url, defaultContents, format }, loadParams, params)
+    return $fetch($params)
   }
 
   /**
    * DOCME!!!
    * Save file contents.  Default is to POST our `contents` back to `url` they came from.
-   * `params` is same as arguments to `$fetch()`.
-   * By default it will save with our `defaultContents`
+   * `params` is same format as `$fetch()` `params`.
+   * By default it will save our `defaultContents` if we've never been loaded.
    * Note this promise returns `fetch()` results AFTER processing according to `format`
    */
   getSaver(params) {
     const { url, contents = this.defaultContents, format, saveParams } = this
-    return $fetch({ url, contents, format }, saveParams, params)
+    const $params = merge$fetchParms({ url, contents, format }, saveParams, params)
+    return $fetch($params).then(result => {
+      if (this.autoUpdateContentsOnSave && this.contents !== $params.contents) {
+        this.contents = $params.contents
+      }
+    })
   }
 
   /** Return url extension, if any. */
@@ -85,16 +94,22 @@ export class LoadableFile extends Saveable {
  */
 
 /** Loadable text file. */
-export class TextFile extends LoadableFile {}
+export class TextFile extends LoadableFile {
+  /** If you call `save(<text>)` we'll use those as the `contents`. */
+  getSaver(params) {
+    if (typeof params === "string") params = { contents: params }
+    return super.getSaver(params)
+  }
+}
 
 /** Loadable JSON file. */
-export class JSONFile extends LoadableFile {
+export class JSONFile extends TextFile {
   @proto requestFormat = KNOWN_FORMATS.json
   @proto format = KNOWN_FORMATS.json
 }
 
 /** Loadable JSON5 file. */
-export class JSON5File extends LoadableFile {
+export class JSON5File extends TextFile {
   @proto requestFormat = KNOWN_FORMATS.json5
   @proto format = KNOWN_FORMATS.json5
 }

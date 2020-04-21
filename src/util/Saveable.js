@@ -1,144 +1,121 @@
 import { isEqual } from "lodash"
 
 import { proto } from "./decorators"
-import { UNSAVED, SAVING, SAVED, SAVE_ERROR, SKIP } from "./constants"
-
 import { Loadable } from "./Loadable"
 
-/** Abstract class for a saveable resource (which is implicitly also loadable). */
+/**
+ * Abstract class for a saveable resource (which is implicitly also `Loadable`).
+ */
 export class Saveable extends Loadable {
-  /** If true, we auto-update `#load.contents` with results of `_processSave()` on successful save. */
-  @proto autoUpdateContentsOnSave = false
-
   /** Private info about the last save. Immutable. */
   @proto _save = {
-    /** Are we dirty? */
-    dirty: false,
-    /** Current save state */
-    state: UNSAVED,
+    /** Do we need to save? */
+    isDirty: undefined,
     /** Last save params, set when actually saving. */
     params: undefined,
     /** Last save promise, set if we're actually saving. */
-    promise: undefined,
-    /** Contents of the last save, set after successful save. */
-    contents: undefined,
+    saver: undefined,
+    /** Result of the last successful save(). */
+    result: undefined,
     /** Last save error, set on failed save. */
     error: undefined,
     /** When last save finished/failed. */
     time: undefined
   }
 
-  /** Syntactic sugar for save state. */
-  get isUnsaved() {
-    return this._save.state === UNSAVED
-  }
-
-  get isSaving() {
-    return this._save.state === SAVING
-  }
-
-  get isSaved() {
-    return this._save.state === SAVED
-  }
-
-  get hasSaveError() {
-    return this._save.state === SAVE_ERROR
-  }
-
-  /** Dirty flag. Not managed automatically. */
+  /** Do we currently need to save?. */
   get isDirty() {
-    return !!this._save.isDirty
+    return this.isDirty
   }
 
+  /** Set `needsToSave = true` when it's time to save */
   set isDirty(value = true) {
-    const { isDirty: _ignored, ...rest } = this._save
-    return { isDirty: !!value, ...rest }
+    const { isDirty: _ignored, ...otherProps } = this._save
+    this._save = { isDirty: value, ...otherProps }
+  }
+
+  /** Are we currently saving? */
+  get isSaving() {
+    return !!this._save.saver
+  }
+
+  /** Result of last `save()`, if any. */
+  get saveResult() {
+    return this._save.result
+  }
+
+  /** Error from last `save()`, if any. */
+  get saveError() {
+    return this._save.error
+  }
+
+  /** Time when we were last saved, if any. */
+  get saveTime() {
+    return this._save.time
   }
 
   /**
-   * Public `save()` method.
-   * NOTE: don't override this, override `getSaver()`, `_processSave()` or `_processSaveError()` instead!
+   * Public `save()` method. `$params` are same as `$fetch()` params.
+   * NOTE: don't override this, override `getSaver()` instead!
    * */
   save(params) {
     if (this.isSaving) {
       // bail early if we're already saving with the same params (???)
-      if (isEqual(params, this._save.params)) return this._save.promise
+      if (isEqual(params, this._save.params)) return this._save.saver
       // Otherwise cancel the pending save (if possible) and we'll try again
       this.cancelSave()
     }
 
-    const success = (result, skipProcessing) => {
-      try {
-        this._save = {
-          isDirty: false,
-          state: SAVED,
-          contents: skipProcessing === SKIP ? result : this._processSave(result),
-          params,
-          time: Date.now()
-        }
-        if (this.autoUpdateContentsOnSave) this.contents = this.save.contents
-        return Promise.resolve(this._save.contents)
-      } catch (e) {
-        return failure(e, SKIP)
-      }
-    }
-
-    const failure = (rawError, skipProcessing) => {
-      const result = skipProcessing === SKIP ? rawError : this._processSaveError(rawError)
-      if (!(result instanceof Error)) return success(result, SKIP)
+    const onSuccess = async result => {
       this._save = {
-        isDirty: true,
-        state: SAVE_ERROR,
-        error: result,
+        isDirty: false,
+        result,
         params,
         time: Date.now()
       }
-      return Promise.reject(this._save.error)
+      return this.saveResult
+    }
+
+    const onError = async error => {
+      this._save = {
+        isDirty: true,
+        error,
+        params,
+        time: Date.now()
+      }
+      throw this.saveError
     }
 
     try {
+      const saver = this.getSaver(params)
+      if (!saver || !saver.then) throw new TypeError(`${this.constructor.name}.getSaver() didn't return a promise!`)
       this._save = {
         isDirty: true,
-        state: SAVING,
         params,
-        promise: this.getSaver(params).then(success, failure)
+        saver: saver.then(onSuccess, onError)
       }
-      return this._save.promise
+      return this._save.saver
     } catch (e) {
-      return failure(e)
+      return onError(e)
     }
   }
 
   /** Attempt to cancel an in-flight save. */
   cancelSave() {
-    if (this._save.promise?.cancel) {
-      this._save.promise.cancel()
-      this._save = {
-        isDirty: this._save.isDirty,
-        state: UNSAVED
-      }
+    if (this._save.saver?.cancel) {
+      const { saver, ...otherProps } = this._save
+      saver.cancel()
+      this._save = otherProps
     }
   }
 
   /** Implementation-specific code! */
 
-  /** Return promise actually used to save this file. */
+  /**
+   * Return promise actually used to save this file. Must return a promise.
+   * Do any transformation of the result in this method.
+   */
   getSaver(params) {
     throw new TypeError("You must override saveable.getSaver()!")
-  }
-
-  /**
-   * Process `rawResult` from successful completion of our loading promise, deriving a new value if desired.
-   * */
-  _processSave(rawResult) {
-    return rawResult
-  }
-
-  /** Process `error` from our saving promise:
-   * - return an `Error` (the `error` passed in or a new one) to fail the load.
-   * - return any other value to make the load SUCCEED with that value as the (pre-processed) `contents`, e.g. with default contents.
-   */
-  _processSaveError(error) {
-    return error
   }
 }
