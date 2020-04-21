@@ -8,13 +8,13 @@ export class SpellFile extends TextFile {
   /** Project name. Required. */
   @proto project = undefined
   /** File name. Required. */
-  @proto filename = undefined
+  @proto filePath = undefined
   /** Update file contents when you  do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
   @proto autoUpdateContentsOnSave = true
 
   /**
-   * Constructor which expects ONLY `project/filename` or `{ project, filename }`.
-   * NOTE: Prefer `SpellFile.get("project/filename")` to get a consistent singleton instance
+   * Constructor which expects ONLY `project/filePath` or `{ project, filePath }`.
+   * NOTE: Prefer `SpellFile.get("project/filePath")` to get a consistent singleton instance
    *       rather than creating them individually via `new`.
    */
   constructor(props) {
@@ -44,13 +44,13 @@ export class SpellFile extends TextFile {
     return SpellFile.joinPath(this)
   }
 
-  /** Derive `url` from our project / filename if not explicitly set. */
+  /** Derive `url` from our project / filePath if not explicitly set. */
   @overrideableGetter get url() {
     return `/api/projects/${this.path}`
   }
 
   /**
-   * Split string path into `{ project, filename }`.
+   * Split string path into `{ project, filePath }`.
    * Throws if path is not a string or is malformed!
    */
   static splitPath(path) {
@@ -58,23 +58,23 @@ export class SpellFile extends TextFile {
     if (!project || !filePath.length) {
       throw new TypeError(`SpellFile.splitPath('${path}'): invalid path`)
     }
-    return { project, filename: filePath.join("/") }
+    return { project, filePath: filePath.join("/") }
   }
 
   /**
-   * Join `{ project, filename }` into project path, ignoring other props.
-   * Throws if `project` or `filename` is not a valid string.
+   * Join `{ project, filePath }` into project path, ignoring other props.
+   * Throws if `project` or `filePath` is not a valid string.
    */
-  static joinPath({ project, filename } = {}) {
+  static joinPath({ project, filePath } = {}) {
     if (typeof project !== "string" || !project)
       throw new TypeError(`SpellFile.joinPath(): invalid project '${project}'`)
-    if (typeof filename !== "string" || !filename)
-      throw new TypeError(`SpellFile.joinPath(): invalid filename '${filename}'`)
-    return `${project}/${filename}`
+    if (typeof filePath !== "string" || !filePath)
+      throw new TypeError(`SpellFile.joinPath(): invalid filePath '${filePath}'`)
+    return `${project}/${filePath}`
   }
 
   /**
-   * Use `SpellFile.get("project/filename")` to get a singleton instance back for that path.
+   * Use `SpellFile.get("project/filePath")` to get a singleton instance back for that path.
    */
   static get = new Registry(path => new SpellFile(SpellFile.splitPath(path)))
 }

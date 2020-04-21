@@ -167,7 +167,7 @@ export function getBlobAsDataURL({ url, params = {}, apiMethod }) {
 // Note that there is no return from this, and no error message if the file is not found.
 // NOTE: this uses a special `<a>` tag to force the browser to download.
 // See: https://developers.google.com/web/updates/2011/08/Downloading-resources-in-HTML5-a-download
-export function openFile({ url, filename }) {
+export function openFile({ url }) {
   global.open(url, "_blank")
 }
 

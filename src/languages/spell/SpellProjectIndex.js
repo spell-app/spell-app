@@ -41,7 +41,7 @@ export class SpellProjectIndex extends JSON5File {
    */
   @memoizeForProp("files") get fileMap() {
     const { files } = this
-    return files && keyBy(files, "filename")
+    return files && keyBy(files, "filePath")
   }
 
   /** Derive `url` from our project if not explicitly set. */
