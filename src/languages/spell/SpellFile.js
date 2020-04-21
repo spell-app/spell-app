@@ -74,7 +74,7 @@ export class SpellFile extends TextFile {
   }
 
   /**
-   * Use `SpellFile.get("project/filename")` to get a singleton SpellFile back for that path.
+   * Use `SpellFile.get("project/filename")` to get a singleton instance back for that path.
    */
   static get = new Registry(path => new SpellFile(SpellFile.splitPath(path)))
 }

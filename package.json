@@ -231,6 +231,7 @@
       "no-empty-function": "off",
       "no-param-reassign": "off",
       "prettier/prettier": "warn",
+      "prefer-destructuring": "off",
       "semi": [
         "error",
         "never"
