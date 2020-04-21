@@ -11,6 +11,7 @@ export const LOADED = Symbol("LOADED")
 export const LOAD_ERROR = Symbol("LOAD_ERROR")
 
 /** Saving states. */
+export const DIRTY = Symbol("DIRTY")
 export const UNSAVED = Symbol("UNSAVED")
 export const SAVING = Symbol("SAVING")
 export const SAVED = Symbol("SAVED")

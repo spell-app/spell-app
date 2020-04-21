@@ -25,7 +25,7 @@ export class Saveable extends Loadable {
 
   /** Do we currently need to save?. */
   get isDirty() {
-    return this.isDirty
+    return this._save.isDirty
   }
 
   /** Set `needsToSave = true` when it's time to save */

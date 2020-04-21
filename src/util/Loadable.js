@@ -50,9 +50,6 @@ export class Loadable {
   get isLoaded() {
     return this._load.state === LOADED
   }
-  get hasLoadError() {
-    return !!this._load.error
-  }
 
   /**
    * Contents of last load, valid after successful load.
@@ -115,7 +112,7 @@ export class Loadable {
         // if loaded, resolve with last contents
         if (this.isLoaded) return Promise.resolve(this.contents)
         // if load error, reject with last error
-        if (this.hasLoadError) return Promise.reject(this.loadError)
+        if (this.loadError) return Promise.reject(this.loadError)
       }
     }
     // Cancel current load if any
