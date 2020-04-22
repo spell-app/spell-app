@@ -3,7 +3,8 @@ import global from "global"
 import keyBy from "lodash/keyBy"
 import { observable, computed } from "mobx"
 
-import { JSON5File, proto, memoizeForProp, overrideable, Registry } from "../../util"
+import { JSON5File, proto, forward, memoize, memoizeForProp, writeOnce, overrideable, Registry } from "../../util"
+import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellFile } from "./SpellFile"
 
 /**
@@ -17,7 +18,7 @@ export class SpellProject extends JSON5File {
    * Project path as `project/<projectId>` or `library/<projectId>`.
    * MUST be passed to constructor.
    */
-  @observable path = ""
+  @writeOnce path
 
   /**
    * Constructor which expects ONLY `project/<projectId>` or `library/</projectId>`.
@@ -25,27 +26,16 @@ export class SpellProject extends JSON5File {
    *       a consistent singleton instance rather than creating via `new`.
    */
   constructor(path) {
-    SpellProject.validateProjectPath(path)
-    super()
-    this.path = path
+    super({ path })
+    if (!this.location.isValidProjectPath)
+      throw new TypeError(`SpellProject initialized with invalid path '${this.path}'`)
   }
 
-  // ///////////////////////
-  //  Syntactic sugar
-  // ///////////////////////
-
-  /**
-   * Return our `type` based on our `path`
-   */
-  get type() {
-    return SpellProject.splitPath(this.path).type
-  }
-
-  /**
-   * Return our `projectId` based on our `path`
-   */
-  get projectId() {
-    return SpellProject.splitPath(this.path).projectId
+  /** `location` object which we can use to get various bits of the path. */
+  @forward("projectType", "projectPath", "isLibraryProject", "isUserProject", "projectName")
+  @memoize
+  get location() {
+    return new SpellFileLocation(this.path)
   }
 
   /**
@@ -98,46 +88,6 @@ export class SpellProject extends JSON5File {
   async loadFile(filename) {
     await this.load()
     return this.getFileOrDie(filename).load()
-  }
-
-  /**
-   * Split project `path` into `{ type, projectId, filename, extension }`
-   */
-  static splitPath(path) {
-    assert(typeof path === "string", `Invalid project path '${path}: must be a string`)
-    const [type, projectId, ...filePath] = path.split("/")
-    const filename = filePath.length ? filePath.join("/") : undefined
-    let extension = ""
-    if (filePath.length) {
-      extension = `.${filePath
-        .reverse()[0]
-        .split(".")
-        .slice(1)
-        .join(".")}`
-    }
-    return { type, projectId, filename, extension }
-  }
-
-  /** Validate path for a project. */
-  static validateProjectPath(path) {
-    const { type, projectId, filename } = SpellProject.splitPath(path)
-    assert(
-      type === "project" || type === "library",
-      `Invalid project path '${path}': must start with 'project' or 'library'.`
-    )
-    assert(projectId.length > 0, `Invalid project path '${path}': invalid projectId.`)
-    assert(filename === undefined, `Invalid project path '${path}': must not specify filename`)
-  }
-
-  /** Validate path for a project file. */
-  static validateProjectFilePath(path) {
-    const { type, projectId, filename } = SpellProject.splitPath(path)
-    assert(
-      type === "project" || type === "library",
-      `Invalid project path '${path}': must start with 'project' or 'library'.`
-    )
-    assert(projectId.length > 0, `Invalid project path '${path}': invalid projectId.`)
-    assert(typeof filename === "string" && filename, `Invalid project path '${path}': filename must be a string`)
   }
 
   /**

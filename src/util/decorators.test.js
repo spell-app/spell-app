@@ -1,6 +1,6 @@
 /** Test decorators */
 
-import { proto, readonly, nonEnumerable, overrideable, memoize, memoizeForProp } from "./decorators"
+import { proto, readonly, writeOnce, nonEnumerable, overrideable, memoize, memoizeForProp } from "./decorators"
 
 /** Safe "hasOwnProperty" you can apply to a random `thing`. */
 function hasOwnProp(thing, key) {
@@ -67,19 +67,88 @@ describe("@proto", () => {
 
 describe("@readonly", () => {
   class Thing {
-    @readonly string = "original value"
+    @readonly prop = "original value"
   }
   test("sets expected value on new instance", () => {
     const thing = new Thing()
-    expect(hasOwnProp(thing, "string")).toBe(true)
-    expect(thing.string).toBe("original value")
+    expect(hasOwnProp(thing, "prop")).toBe(true)
+    expect(thing.prop).toBe("original value")
   })
 
   test("is resistant to changes", () => {
     const thing = new Thing()
     expect(() => {
-      thing.string = "other value"
+      thing.prop = "other value"
     }).toThrow()
+  })
+
+  test("delete throws", () => {
+    const thing = new Thing()
+    expect(() => {
+      delete thing.prop
+    }).toThrow()
+  })
+})
+
+describe("@writeOnce", () => {
+  class Thing {
+    @writeOnce prop
+    constructor(value) {
+      if (arguments.length > 0) this.prop = value
+    }
+  }
+  describe("during construction", () => {
+    test("value can be set", () => {
+      const thing = new Thing("original value")
+      expect(hasOwnProp(thing, "prop")).toBe(true)
+      expect(thing.prop).toBe("original value")
+    })
+
+    test("value is resistant to changes", () => {
+      const thing = new Thing("original value")
+      expect(() => {
+        thing.prop = "other value"
+      }).toThrow()
+    })
+
+    test("delete has no effect if never set", () => {
+      const thing = new Thing()
+      delete thing.prop
+      expect(hasOwnProp(thing, "prop")).toBe(false)
+      expect(thing.prop).toBe(undefined)
+    })
+
+    test("delete throws after set", () => {
+      const thing = new Thing("original value")
+      expect(() => {
+        delete thing.prop
+      }).toThrow()
+    })
+  })
+
+  describe("after construction", () => {
+    test("value can be set", () => {
+      const thing = new Thing()
+      thing.prop = "original value"
+      expect(hasOwnProp(thing, "prop")).toBe(true)
+      expect(thing.prop).toBe("original value")
+    })
+
+    test("value is resistant to changes", () => {
+      const thing = new Thing()
+      thing.prop = "original value"
+      expect(() => {
+        thing.prop = "other value"
+      }).toThrow()
+    })
+
+    test("delete throws after set", () => {
+      const thing = new Thing()
+      thing.prop = "original value"
+      expect(() => {
+        delete thing.prop
+      }).toThrow()
+    })
   })
 })
 

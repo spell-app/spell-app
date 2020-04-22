@@ -41,9 +41,6 @@ export class Loadable {
   }
 
   /** Syntactic sugar for loadState */
-  get isUnloaded() {
-    return this._load.state === UNLOADED
-  }
   get isLoading() {
     return this._load.state === LOADING
   }

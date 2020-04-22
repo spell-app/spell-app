@@ -1,8 +1,9 @@
 import global from "global"
 import { observable, computed } from "mobx"
-import { TextFile, Registry, proto, overrideable } from "../../util"
+import { TextFile, Registry, proto, memoize, forward, writeOnce, overrideable } from "../../util"
 import { spellParser as coreSpellParser } from "."
 import { SpellProject } from "./SpellProject"
+import { SpellFileLocation } from "./SpellFileLocation"
 /**
  * Loadable file of spell code.
  */
@@ -14,7 +15,7 @@ export class SpellFile extends TextFile {
    * Project path as `project/<projectId>/<filename>` or `library/<projectId>/<filename>`.
    * MUST be passed to constructor.
    */
-  @observable path = ""
+  @writeOnce path
 
   /**
    * Constructor which expects ONLY `project/<projectId>/<filename>`.
@@ -22,42 +23,22 @@ export class SpellFile extends TextFile {
    *       rather than creating them individually via `new`.
    */
   constructor(path) {
-    // SpellProject.validateProjectFilePath(path)
-    super()
-    this.path = path
+    super({ path })
+    if (!this.location.isValidFilePath) throw new TypeError(`SpellFile initialized with invalid path '${this.path}'`)
   }
 
-  // ///////////////////////
-  //  Syntactic sugar
-  // ///////////////////////
-
-  /**
-   * Return our `projectId` based on our `path`.
-   */
-  @computed get projectId() {
-    return SpellProject.splitPath(this.path).projectId
-  }
-
-  /**
-   * Return our `filename` based on our `path`.
-   */
-  get filename() {
-    return SpellProject.splitPath(this.path).filename
-  }
-
-  /**
-   * Return our `extension` based on our `path`.
-   */
-  get extension() {
-    return SpellProject.splitPath(this.path).extension
+  /** `location` object which we can use to get various bits of the path. */
+  @forward("projectPath", "projectName", "filePath", "folder", "fileName", "name", "extension")
+  @memoize
+  get location() {
+    return new SpellFileLocation(this.path)
   }
 
   /**
    * Return our `project` as a `SpellProject` based on our `path`.
    */
   get project() {
-    const { type, projectId } = SpellProject.splitPath(this.path)
-    return SpellProject.get(`${type}/${projectId}`)
+    return SpellProject.get(this.projectPath)
   }
 
   // ///////////////////////
@@ -81,38 +62,9 @@ export class SpellFile extends TextFile {
     return (await this.parse(spellParser)).compile()
   }
 
-  /** Return our `path` */
-  get path() {
-    return SpellFile.joinPath(this)
-  }
-
   /** Derive `url` from our projectId / filename if not explicitly set. */
   @overrideable get url() {
     return `/api/${this.path}`
-  }
-
-  /**
-   * Split string path into `{ projectId, filename }`.
-   * Throws if path is not a string or is malformed!
-   */
-  static splitPath(path) {
-    const [projectId, ...filename] = typeof path === "string" ? path.split("/") : []
-    if (!projectId || !filename.length) {
-      throw new TypeError(`SpellFile.splitPath('${path}'): invalid path`)
-    }
-    return { projectId, filename: filename.join("/") }
-  }
-
-  /**
-   * Join `{ projectId, filename }` into project path, ignoring other props.
-   * Throws if `projectId` or `filename` is not a valid string.
-   */
-  static joinPath({ projectId, filename } = {}) {
-    if (typeof projectId !== "string" || !projectId)
-      throw new TypeError(`SpellFile.joinPath(): invalid project '${projectId}'`)
-    if (typeof filename !== "string" || !filename)
-      throw new TypeError(`SpellFile.joinPath(): invalid filename '${filename}'`)
-    return `${projectId}/${filename}`
   }
 
   /**
