@@ -82,27 +82,27 @@ router.get("/projects", (request, response) => {
 })
 
 // Return index for a project: all "unhidden" files in the project folder.
-router.get("/projects/:folder/index", (request, response) => {
-  const { folder } = request.params
+router.get("/projects/:projectId/index", (request, response) => {
+  const { projectId } = request.params
   const options = { ignoreHidden: true, namesOnly: true }
-  const files = fileUtils.listContents(getProjectPath(folder), options)
+  const files = fileUtils.listContents(getProjectPath(projectId), options)
   const index = {
-    modules: files.map(fileName => ({ id: fileName }))
+    files: files.map(name => ({ name, path: `${projectId}/${name}` }))
   }
   responseUtils.sendJSON(response, index)
 })
 
 // Return a specific project file, including the index.
-router.get("/projects/:folder/:file", (request, response) => {
-  const { folder, file } = request.params
-  const path = getProjectPath(folder, file)
+router.get("/projects/:projectId/:filename", (request, response) => {
+  const { projectId, filename } = request.params
+  const path = getProjectPath(projectId, filename)
   responseUtils.sendTextFile(response, path)
 })
 
 // Save a specific project file, including the index.
-router.post("/projects/:folder/:file", async (request, response) => {
-  const { folder, file } = request.params
-  const path = getProjectPath(folder, file)
+router.post("/projects/:projectId/:filename", async (request, response) => {
+  const { projectId, filename } = request.params
+  const path = getProjectPath(projectId, filename)
 
   const contents = request.body
   try {
@@ -115,9 +115,9 @@ router.post("/projects/:folder/:file", async (request, response) => {
 
 // Delete a specific project file, including the index.
 // NOTE: delete swallows the error if the file can't be found.
-router.delete("/projects/:folder/:file", async (request, response) => {
-  const { folder, file } = request.params
-  const path = getProjectPath(folder, file)
+router.delete("/projects/:projectId/:filename", async (request, response) => {
+  const { projectId, filename } = request.params
+  const path = getProjectPath(projectId, filename)
 
   try {
     await fileUtils.removeFile(path, true)

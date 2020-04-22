@@ -9,17 +9,17 @@ import { SpellFile } from "./SpellFile"
  */
 export class SpellProject extends JSON5File {
   /** Project name. */
-  @proto project = undefined
+  @proto projectId = undefined
   /** Update file contents when you  do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
   @proto autoUpdateContentsOnSave = true
 
   /**
-   * Constructor which expects ONLY `project` or `{ project }`.
-   * NOTE: Prefer `SpellProject.get("project")` to get a consistent singleton instance
+   * Constructor which expects ONLY `projectId` or `{ projectId }`.
+   * NOTE: Prefer `SpellProject.get("projectId")` to get a consistent singleton instance
    *       rather than creating them individually via `new`.
    */
   constructor(props) {
-    if (typeof props === "string") props = { project: props }
+    if (typeof props === "string") props = { projectId: props }
     super(props)
   }
 
@@ -28,11 +28,9 @@ export class SpellProject extends JSON5File {
    * Returns `undefined` if we're not loaded.
    */
   @memoizeForProp("contents") get files() {
-    return this.contents?.modules?.map(({ id }) => this._getSpellFile(id))
-  }
-  _getSpellFile(filePath) {
-    const path = SpellFile.joinPath({ project: this.project, filePath })
-    return SpellFile.get(path)
+    return this.contents?.files?.map(({ name }) =>
+      SpellFile.get(SpellFile.joinPath({ projectId: this.projectId, filePath: name }))
+    )
   }
 
   /**
@@ -44,9 +42,9 @@ export class SpellProject extends JSON5File {
     return files && keyBy(files, "filePath")
   }
 
-  /** Derive `url` from our project if not explicitly set. */
+  /** Derive `url` from our projectId if not explicitly set. */
   @overrideableGetter get url() {
-    return `/api/projects/${this.project}/index`
+    return `/api/projects/${this.projectId}/index`
   }
 
   /**
@@ -67,7 +65,7 @@ export class SpellProject extends JSON5File {
   /** Get file or throw an error if it's not found (or if index is not loaded). */
   getFileOrDie(filePath) {
     const file = this.getFile(filePath)
-    if (!file) throw new Error(`SpellProject '${this.project}': file '${filePath}' not found.`)
+    if (!file) throw new Error(`SpellProject '${this.projectId}': file '${filePath}' not found.`)
     return file
   }
 
@@ -78,9 +76,9 @@ export class SpellProject extends JSON5File {
   }
 
   /**
-   * Use `SpellProject.get("project")` to get a singleton SpellProject back for the project.
+   * Use `SpellProject.get("projectId")` to get a singleton SpellProject back for the project.
    */
-  static get = new Registry(project => new SpellProject({ project }))
+  static get = new Registry(projectId => new SpellProject({ projectId }))
 }
 
 global.SpellProject = SpellProject
