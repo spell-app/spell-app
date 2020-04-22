@@ -35,13 +35,13 @@ function setDefaultProject(projectId) {
 function getDefaultFileForProject(projectId) {
   return projectId && getPref(`selectedFileFor:${projectId}`)
 }
-function setDefaultFileForProject(projectId, filePath) {
-  setPref(`selectedFileFor:${projectId}`, filePath)
+function setDefaultFileForProject(projectId, filename) {
+  setPref(`selectedFileFor:${projectId}`, filename)
 }
 
-// Try to figure out the projectId/filePath we used last time
+// Try to figure out the projectId/filename we used last time
 const defaultProjectId = getDefaultProject()
-const defaultFilePath = getDefaultFileForProject(defaultProjectId)
+const defaultFilename = getDefaultFileForProject(defaultProjectId)
 
 const factory = new ReduxFactory({
   domain: "projects",
@@ -51,15 +51,15 @@ const factory = new ReduxFactory({
 
     // Selection
     projectId: defaultProjectId, // Project currently selected, defaults to pref value.
-    filePath: defaultFilePath, // Module currently selected, defaults to pref value.
+    filename: defaultFilename, // Module currently selected, defaults to pref value.
     input: undefined, // Current example input.  May be different than what's in `files`!
     output: undefined, // Current example compiled output.
     dirty: false // Is the example input different than what's been saved?
   },
 
   // Return server path to project file.
-  getPath(projectId, filePath = "", extension = "") {
-    return `projects/${projectId}/${filePath}${extension}`
+  getPath(projectId, filename = "") {
+    return `projects/${projectId}/${filename}`
   },
 
   // Syntactic sugar to get the bits of the data from the state.
@@ -79,13 +79,13 @@ const factory = new ReduxFactory({
   },
 
   // Return project file index data given the `index` for its project.
-  getModuleData(index, filePath) {
-    return index?.files.find(file => file.name === filePath)
+  getFileData(index, filename) {
+    return index?.files.find(file => file.name === filename)
   },
 
   // Return loaded file source file given the full `products` state.
-  getModuleSource(projects, projectId, filePath) {
-    const path = this.getPath(projectId, filePath)
+  getFileSource(projects, projectId, filename) {
+    const path = this.getPath(projectId, filename)
     return projects.files[path]
   },
 
@@ -105,13 +105,13 @@ const factory = new ReduxFactory({
   actions: [
     {
       name: "startup",
-      async promise(projects, { projectId = projects.projectId, filePath = projects.filePath } = {}) {
+      async promise(projects, { projectId = projects.projectId, filename = projects.filename } = {}) {
         // Default to the first project
         const projectIds = await factory.call.loadProjectIds()
         // eslint-disable-next-line prefer-destructuring
         if (!projectId || !projectIds.includes(projectId)) projectId = projectIds[0]
 
-        return factory.call.selectProjectFile({ projectId, filePath }).then(() => factory.call.compileInput())
+        return factory.call.selectProjectFile({ projectId, filename }).then(() => factory.call.compileInput())
       },
       onSuccess(projects) {
         return { ...projects }
@@ -141,11 +141,11 @@ const factory = new ReduxFactory({
     {
       name: "compileInput",
       handler(projects) {
-        const { input = "", filePath } = projects
+        const { input = "", filename } = projects
         let output
         console.group(`Parsing ${input.length} chars (${input.split("\n").length} lines)`)
         try {
-          const scope = spellParser.getScope(filePath)
+          const scope = spellParser.getScope(filename)
           console.info("scope: ", scope)
 
           // assign scope and parsing shorthand functions globally
@@ -211,8 +211,8 @@ const factory = new ReduxFactory({
     // Save the input.
     {
       name: "saveInput",
-      promise({ projectId, filePath, input }) {
-        return factory.call.saveFile({ projectId, fileName: filePath, contents: input })
+      promise({ projectId, filename, input }) {
+        return factory.call.saveFile({ projectId, filename, contents: input })
       },
       onSuccess(projects) {
         return {
@@ -230,8 +230,8 @@ const factory = new ReduxFactory({
     {
       name: "revertInput",
       handler(projects) {
-        const { projectId, filePath } = projects
-        const input = this.getModuleSource(projects, projectId, filePath)
+        const { projectId, filename } = projects
+        const input = this.getFileSource(projects, projectId, filename)
         return {
           ...projects,
           input,
@@ -248,40 +248,40 @@ const factory = new ReduxFactory({
     {
       //----------------------------
       // Select a project and example file.
-      // If you don't specify a filePath, we'll return the first one in the project.
+      // If you don't specify a filename, we'll return the first one in the project.
       name: "selectProjectFile",
-      async promise(projects, { projectId = projects.projectId, filePath, reload }) {
+      async promise(projects, { projectId = projects.projectId, filename, reload }) {
         // Load the project index.
         const index = await factory.call.loadProjectIndex({ projectId, reload })
 
-        // If no filePath specified, use the first file in the project if there is one
-        if (!filePath && index.files.length) filePath = index.files[0].name
+        // If no filename specified, use the first file in the project if there is one
+        if (!filename && index.files.length) filename = index.files[0].name
 
         // If file is found, load its contents
         let contents = ""
-        if (this.getModuleData(index, filePath)) {
-          contents = await factory.call.loadProjectFile({ projectId, filePath, reload })
+        if (this.getFileData(index, filename)) {
+          contents = await factory.call.loadProjectFile({ projectId, filename, reload })
         }
 
         return {
           projectId,
-          filePath,
+          filename,
           contents
         }
       },
-      onSuccess(projects, { projectId, filePath, contents, reload }) {
+      onSuccess(projects, { projectId, filename, contents, reload }) {
         setDefaultProject(projectId)
-        setDefaultFileForProject(projectId, filePath)
+        setDefaultFileForProject(projectId, filename)
         return {
           ...projects,
           projectId,
-          filePath,
+          filename,
           input: contents,
           output: "",
           dirty: false
         }
       },
-      onError(projects, error, { projectId, filePath }) {
+      onError(projects, error, { projectId, filename }) {
         console.error("Error in selectProjectFile():", error)
         return { ...projects }
       }
@@ -292,8 +292,8 @@ const factory = new ReduxFactory({
     {
       name: "reloadSelected",
       handler(projects) {
-        const { projectId, filePath } = projects
-        return factory.call.selectProjectFile({ projectId, filePath, reload: true })
+        const { projectId, filename } = projects
+        return factory.call.selectProjectFile({ projectId, filename, reload: true })
       }
     },
 
@@ -301,25 +301,25 @@ const factory = new ReduxFactory({
     // Create a new file in the current project.
     {
       name: "newProjectFile",
-      async promise(projects, { projectId = projects.projectId, filePath, contents = "" }) {
-        if (!filePath) throw new TypeError("projects.newProjectFile(): You must specify 'filePath'")
+      async promise(projects, { projectId = projects.projectId, filename, contents = "" }) {
+        if (!filename) throw new TypeError("projects.newProjectFile(): You must specify 'filename'")
         if (contents === INPUT) contents = projects.input
 
         // if there's already a file with that name, just return a resolved promise
         //  and we'll select it in the onSuccess handler
         let index = await factory.call.loadProjectIndex({ projectId })
         if (!index) throw new TypeError(`projects.newProjectFile(): Can't load project index for ${projectId}`)
-        const existing = index.files.find(file => file.name === filePath)
+        const existing = index.files.find(file => file.name === filename)
         if (existing) return Promise.resolve("")
 
         // add an entry to the index and save it
         index = {
           ...index,
-          files: [...index.files, { name: filePath, path: `${projectId}/${filePath}` }]
+          files: [...index.files, { name: filename, path: `${projectId}/${filename}` }]
         }
         await this.call.saveProjectIndex({ projectId, index })
-        await this.call.saveProjectFile({ projectId, filePath, contents })
-        return this.call.selectProjectFile({ projectId, filePath })
+        await this.call.saveProjectFile({ projectId, filename, contents })
+        return this.call.selectProjectFile({ projectId, filename })
       },
       onSuccess(projects) {
         return { ...projects }
@@ -330,22 +330,22 @@ const factory = new ReduxFactory({
     },
 
     //----------------------------
-    // Duplicate the input under a new `filePath`
+    // Duplicate the input under a new `filename`
     {
       name: "duplicateProjectFile",
       async promise(projects, params) {
-        const { projectId = projects.projectId, filePath = projects.filePath, newFilePath } = params
+        const { projectId = projects.projectId, filename = projects.filename, newFilename } = params
         let { contents } = params
-        if (!newFilePath) throw new TypeError("projects.duplicateProjectFile(): You must specify 'newFilePath'")
+        if (!newFilename) throw new TypeError("projects.duplicateProjectFile(): You must specify 'newFilename'")
 
         if (contents == null) {
-          contents = await factory.call.loadProjectFile({ projectId, filePath })
-          if (!contents) throw new TypeError(`projects.duplicateProjectFile(): Couldn't load contents for ${filePath}`)
+          contents = await factory.call.loadProjectFile({ projectId, filename })
+          if (!contents) throw new TypeError(`projects.duplicateProjectFile(): Couldn't load contents for ${filename}`)
         } else if (contents === INPUT) {
           contents = projects.input
         }
 
-        return factory.call.newProjectFile({ projectId, filePath: newFilePath, contents })
+        return factory.call.newProjectFile({ projectId, filename: newFilename, contents })
       },
       onSuccess(projects) {
         return { ...projects }
@@ -360,13 +360,13 @@ const factory = new ReduxFactory({
     {
       name: "renameProjectFile",
       async promise(projects, params) {
-        const { projectId = projects.projectId, filePath = projects.filePath, newFilePath } = params
+        const { projectId = projects.projectId, filename = projects.filename, newFilename } = params
         let { contents } = params
-        if (!newFilePath) throw new TypeError("projects.duplicateProjectFile(): You must specify 'newFilePath'")
+        if (!newFilename) throw new TypeError("projects.duplicateProjectFile(): You must specify 'newFilename'")
 
         if (contents == null) {
-          contents = await factory.call.loadProjectFile({ projectId, filePath })
-          if (!contents) throw new TypeError(`projects.duplicateProjectFile(): Couldn't load contents for ${filePath}`)
+          contents = await factory.call.loadProjectFile({ projectId, filename })
+          if (!contents) throw new TypeError(`projects.duplicateProjectFile(): Couldn't load contents for ${filename}`)
         } else if (contents === INPUT) {
           contents = projects.input
         }
@@ -379,12 +379,12 @@ const factory = new ReduxFactory({
         index = {
           ...index,
           files: index.files.map(file => {
-            if (file.name === filePath) return { ...file, name: newFilePath, path: `${projectId}/${newFilePath}` }
+            if (file.name === filename) return { ...file, name: newFilename, path: `${projectId}/${newFilename}` }
             return file
           })
         }
-        await factory.call.saveProjectFile({ projectId, filePath: newFilePath, contents })
-        return factory.call.deleteProjectFile({ projectId, filePath, index })
+        await factory.call.saveProjectFile({ projectId, filename: newFilename, contents })
+        return factory.call.deleteProjectFile({ projectId, filename, index })
       },
       onSuccess(projects) {
         return { ...projects }
@@ -398,8 +398,8 @@ const factory = new ReduxFactory({
     // Delete a file from the specified project.
     {
       name: "deleteProjectFile",
-      async promise(projects, { projectId = projects.projectId, filePath, index }) {
-        if (!filePath) throw new TypeError("projects.deleteProjectFile(): You must specify 'filePath'")
+      async promise(projects, { projectId = projects.projectId, filename, index }) {
+        if (!filename) throw new TypeError("projects.deleteProjectFile(): You must specify 'filename'")
 
         // If not provided, load the index so we can muck with it
         if (!index) {
@@ -410,10 +410,10 @@ const factory = new ReduxFactory({
         // Remove entry from the index.
         index = {
           ...index,
-          files: index.files.filter(file => file.name !== filePath)
+          files: index.files.filter(file => file.name !== filename)
         }
         await this.call.saveProjectIndex({ projectId, index })
-        await this.call.deleteFile({ projectId, fileName: filePath })
+        await this.call.deleteFile({ projectId, filename })
         // select the first item in the project
         return this.call.selectProjectFile({ projectId })
       },
@@ -449,7 +449,7 @@ const factory = new ReduxFactory({
       ACTION: "LOAD_FILE",
       async: true,
       getParams({ projectId, reload }) {
-        return { projectId, fileName: PROJECT_INDEX_FILE_NAME, reload, format: Formats.JSON5 }
+        return { projectId, filename: PROJECT_INDEX_FILE_NAME, reload, format: Formats.JSON5 }
       }
     },
 
@@ -460,7 +460,7 @@ const factory = new ReduxFactory({
       name: "saveProjectIndex",
       ACTION: "UPDATE_CONTENTS",
       getParams({ projectId, index }) {
-        return { projectId, fileName: PROJECT_INDEX_FILE_NAME, contents: index }
+        return { projectId, filename: PROJECT_INDEX_FILE_NAME, contents: index }
       }
     },
 
@@ -470,8 +470,8 @@ const factory = new ReduxFactory({
       name: "loadProjectFile",
       ACTION: "LOAD_FILE",
       async: true,
-      getParams({ projectId, filePath, reload }) {
-        return { projectId, fileName: filePath, reload, format: Formats.TEXT }
+      getParams({ projectId, filename, reload }) {
+        return { projectId, filename, reload, format: Formats.TEXT }
       }
     },
 
@@ -481,8 +481,8 @@ const factory = new ReduxFactory({
       name: "saveProjectFile",
       ACTION: "SAVE_FILE",
       async: true,
-      getParams({ projectId, filePath, contents }) {
-        return { projectId, fileName: filePath, contents }
+      getParams({ projectId, filename, contents }) {
+        return { projectId, filename, contents }
       }
     },
 
@@ -496,8 +496,8 @@ const factory = new ReduxFactory({
     //  `contents` is the contents of the file.
     {
       name: "updateContents",
-      handler(projects, { path, projectId, fileName, contents }) {
-        if (!path) path = this.getPath(projectId, fileName)
+      handler(projects, { path, projectId, filename, contents }) {
+        if (!path) path = this.getPath(projectId, filename)
         return this.updateFileContents(projects, path, contents)
       }
     },
@@ -505,13 +505,13 @@ const factory = new ReduxFactory({
     //----------------------------
     // Load a project file.
     //  `projectId`
-    //  `fileName` (including extension)
+    //  `filename` (including extension)
     //  `reload` we'll reload the file if true, otherwise we'll return the cached contents
     //  `format`: one of Formats (defaults to Format.TEXT)
     {
       name: "loadFile",
-      promise(projects, { path, projectId, fileName, reload, format = Formats.TEXT }) {
-        if (!path) path = this.getPath(projectId, fileName)
+      promise(projects, { path, projectId, filename, reload, format = Formats.TEXT }) {
+        if (!path) path = this.getPath(projectId, filename)
 
         // Quick exit if we're not to `reload`
         if (!reload) {
@@ -523,12 +523,12 @@ const factory = new ReduxFactory({
         if (format === Formats.TEXT) return api.getText({ url, apiMethod: "loadFile" })
         return api.getJSON5({ url, apiMethod: "loadFile" })
       },
-      onSuccess(projects, contents, { path, projectId, fileName }) {
-        if (!path) path = this.getPath(projectId, fileName)
+      onSuccess(projects, contents, { path, projectId, filename }) {
+        if (!path) path = this.getPath(projectId, filename)
         return this.updateFileContents(projects, path, contents)
       },
-      onError(projects, error, { projectId, fileName }) {
-        const path = this.getPath(projectId, fileName)
+      onError(projects, error, { projectId, filename }) {
+        const path = this.getPath(projectId, filename)
         console.error(`Unable to load file '${path}'!`, error)
         return { ...projects }
       }
@@ -539,13 +539,13 @@ const factory = new ReduxFactory({
     //  `contents` is the contents of the file.
     {
       name: "saveFile",
-      promise(projects, { path, projectId, fileName, contents }) {
-        if (!path) path = this.getPath(projectId, fileName)
+      promise(projects, { path, projectId, filename, contents }) {
+        if (!path) path = this.getPath(projectId, filename)
         const url = `api/${path}`
         return api.postText({ url, body: contents, apiMethod: "saveFile" })
       },
-      onSuccess(projects, _, { path, projectId, fileName, contents }) {
-        if (!path) path = this.getPath(projectId, fileName)
+      onSuccess(projects, _, { path, projectId, filename, contents }) {
+        if (!path) path = this.getPath(projectId, filename)
         return this.updateFileContents(projects, path, contents)
       },
       onError(projects, error, { path }) {
@@ -558,13 +558,13 @@ const factory = new ReduxFactory({
     // Delete a project file.
     {
       name: "deleteFile",
-      promise(projects, { path, projectId, fileName }) {
-        if (!path) path = this.getPath(projectId, fileName)
+      promise(projects, { path, projectId, filename }) {
+        if (!path) path = this.getPath(projectId, filename)
         const url = `api/${path}`
         return api.delete({ url, apiMethod: "deleteFile" })
       },
-      onSuccess(projects, _, { path, projectId, fileName, contents }) {
-        if (!path) path = this.getPath(projectId, fileName)
+      onSuccess(projects, _, { path, projectId, filename, contents }) {
+        if (!path) path = this.getPath(projectId, filename)
         return this.updateFileContents(projects, path, null)
       },
       onError(projects, error, { path }) {

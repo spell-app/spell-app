@@ -125,8 +125,8 @@ export function sendJSONFileMap(response, paths, optional = false) {
     console.warn("Sending JSON map with:")
     jsonBlocks.forEach((json, index) => {
       const path = paths[index]
-      const fileName = fileUtils.filename(path)
-      const message = `  ${fileName}: ${path}`
+      const filename = fileUtils.filename(path)
+      const message = `  ${filename}: ${path}`
 
       // Log missing / empty files in lighter color
       if (json === null) {
@@ -134,7 +134,7 @@ export function sendJSONFileMap(response, paths, optional = false) {
       } else {
         // Got a live one
         console.warn(message)
-        fileMap[fileName] = json
+        fileMap[filename] = json
       }
     })
 

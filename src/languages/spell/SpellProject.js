@@ -29,7 +29,7 @@ export class SpellProject extends JSON5File {
    */
   @memoizeForProp("contents") get files() {
     return this.contents?.files?.map(({ name }) =>
-      SpellFile.get(SpellFile.joinPath({ projectId: this.projectId, filePath: name }))
+      SpellFile.get(SpellFile.joinPath({ projectId: this.projectId, filename: name }))
     )
   }
 
@@ -39,7 +39,7 @@ export class SpellProject extends JSON5File {
    */
   @memoizeForProp("files") get fileMap() {
     const { files } = this
-    return files && keyBy(files, "filePath")
+    return files && keyBy(files, "filename")
   }
 
   /** Derive `url` from our projectId if not explicitly set. */
@@ -58,21 +58,21 @@ export class SpellProject extends JSON5File {
   }
 
   /** Synchronously get file by name. Assumes index is loaded. */
-  getFile(filePath) {
-    return this.fileMap?.[filePath]
+  getFile(filename) {
+    return this.fileMap?.[filename]
   }
 
   /** Get file or throw an error if it's not found (or if index is not loaded). */
-  getFileOrDie(filePath) {
-    const file = this.getFile(filePath)
-    if (!file) throw new Error(`SpellProject '${this.projectId}': file '${filePath}' not found.`)
+  getFileOrDie(filename) {
+    const file = this.getFile(filename)
+    if (!file) throw new Error(`SpellProject '${this.projectId}': file '${filename}' not found.`)
     return file
   }
 
   /** Asynchronously load file by name. Loads index if necessary. */
-  async loadFile(filePath) {
+  async loadFile(filename) {
     await this.load()
-    return this.getFileOrDie(filePath).load()
+    return this.getFileOrDie(filename).load()
   }
 
   /**

@@ -237,7 +237,7 @@ LockError.prototype = Object.create(Error.prototype)
 //----------------------------
 export function listContents(directory, options = {}) {
   const { includeDirs = false, includeFiles = true, namesOnly = false, ignoreHidden = false, pattern } = options
-  let paths = fse.readdirSync(directory).map(fileName => path.join(directory, fileName))
+  let paths = fse.readdirSync(directory).map(name => path.join(directory, name))
 
   if (!includeDirs || !includeFiles)
     paths = paths.filter(filePath => {
