@@ -1,14 +1,14 @@
 import global from "global"
 import { observable, computed } from "mobx"
 
-import { Loadable, proto, forward, memoize, writeOnce, Registry } from "../../util"
+import { LoadableManager, proto, forward, memoize, writeOnce, Registry } from "../../util"
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProjectManifest } from "./SpellProjectManifest"
 
 /**
  * Loadable spell project index.
  */
-export class SpellProject extends Loadable {
+export class SpellProject extends LoadableManager {
   /**
    * Use `SpellProject.for("path")` to get a singleton instance back for the project.
    */
@@ -41,18 +41,19 @@ export class SpellProject extends Loadable {
     return SpellFileLocation.for(this.path)
   }
 
+  /** Return the files we load automatically when we load.  */
+  get loadables() {
+    return [this.manifest]
+  }
+
   /**
    * Return our manifest file.
-   * Note that we `forward` lots of methods on the location object to this object,
+   * Note that we `forward` lots of methods on our `location` to this object,
    * so you can say `project.files` rather than `project.manifest.files`.
    */
   @forward("files", "fileMap", "getFile", "getFileOrDie", "loadFile", "loadAllFiles")
   get manifest() {
     return SpellProjectManifest.for(this.path)
-  }
-
-  getLoader() {
-    return this.manifest.load()
   }
 }
 
