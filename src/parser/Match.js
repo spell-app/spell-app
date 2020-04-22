@@ -2,7 +2,7 @@ import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
 
 import { Rule, Token } from "."
-import { Assertable, memoize, clearMemoized } from "../util"
+import { Assertable, memoize } from "../util"
 
 // Result of a successful `rule.parse()`.
 // This is a flyweight object which links a rule with the tokens that it successfully matched.
@@ -43,8 +43,9 @@ export default class Match extends Assertable {
   // e.g. You could use this to add a comment or error to an existing match.
   // Makes sure length and tokens are updated, groups are recalculated, etc.
   // `argument` is optional group name for the match.
-  @clearMemoized("groups")
   addMatch(match, argument) {
+    // clear memoized groups value if any
+    delete this.groups
     if (argument) match.argument = argument
     this.matched.push(match)
     this.input.push(...match.input)

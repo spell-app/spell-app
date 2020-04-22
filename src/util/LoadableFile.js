@@ -1,5 +1,5 @@
 import { KNOWN_FORMATS } from "./constants"
-import { proto, overrideableGetter } from "./decorators"
+import { proto, overrideable } from "./decorators"
 import { $fetch, merge$fetchParms } from "./$fetch"
 import { Saveable } from "./Saveable"
 
@@ -78,7 +78,7 @@ export class LoadableFile extends Saveable {
   }
 
   /** Return url extension, if any. */
-  @overrideableGetter get extension() {
+  @overrideable get extension() {
     const url = this.url
       .toLowerCase()
       .split("?")[0]
@@ -117,7 +117,7 @@ export class JSON5File extends TextFile {
 /** Loadable image file:  GIF, PNG, JPG or SVG. */
 export class ImageFile extends LoadableFile {
   /** Default format according to the file extension, defaulting to `binary`. */
-  @overrideableGetter get format() {
+  @overrideable get format() {
     switch (this.extension) {
       case "jpg":
       case "jpeg":

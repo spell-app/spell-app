@@ -1,6 +1,6 @@
 import global from "global"
 import { observable, computed } from "mobx"
-import { TextFile, Registry, proto, overrideableGetter } from "../../util"
+import { TextFile, Registry, proto, overrideable } from "../../util"
 import { spellParser as coreSpellParser } from "."
 import { SpellProject } from "./SpellProject"
 /**
@@ -87,7 +87,7 @@ export class SpellFile extends TextFile {
   }
 
   /** Derive `url` from our projectId / filename if not explicitly set. */
-  @overrideableGetter get url() {
+  @overrideable get url() {
     return `/api/${this.path}`
   }
 

@@ -12,17 +12,6 @@ function hasOwnProp(thing, key) {
 }
 
 /**
- * Return a key we'll use to for a private value, e.g. when we memoize something.
- * Note that we want this to be consistent so we can use it
- * for both `memoize()` and `clearMemoized()` below.
- *
- *  Currenly using "#key" for the key -- consider using a Symbol?
- */
-function getPrivateKey(key) {
-  return `#${key}`
-}
-
-/**
  * Define field or method on the prototype rather than during object construction.
  * Use with caution with objects or arrays, as the values will be shared with all instances!
  */
@@ -55,116 +44,92 @@ export function nonEnumerable(target, key, descriptor) {
 }
 
 /**
- * Allow user to provide an explicit value for some key;
- * if they have not, return the value from the provided getter.
+ * Provide a getter for some value, but allow user to provide an explicit value
+ * for an instance which overrides it.  Note: you MUST NOT provide a setter.
+ *
+ * NOTE: `delete thing.foo` WILL NOT WORK after a set -- instance will keep the new value.
+ *       `thing.foo = undefined` WILL WORK to clear the value though.
+ *
+ * Example:
+ *    class Thing {
+ *      @overrideable get prop() { return "original value" }
+ *    }
+ *    const it = new Thing()
+ *    it.prop                 <<<< "original value"
+ *    it.prop = "new value"   <<<< logs "set was called with new value"
+ *    it.prop                 <<<< "new value"
+ *    delete it.prop
+ *    it.prop                 <<<< "orignal value"
  */
-export function overrideableGetter(target, key, descriptor) {
-  const privateKey = getPrivateKey(key)
-  const { get, set } = descriptor
-  if (typeof get !== "function") throw new TypeError("@overrideableGetter: Only know how to apply to getter/setter.")
+export function overrideable(target, key, descriptor) {
+  const { get, set, ...descriptorProps } = descriptor
+  if (!get || set) throw new TypeError("@overrideable: Only know how to apply to getter without setter.")
   return {
-    ...descriptor,
-    get() {
-      if (hasOwnProp(this, privateKey)) return this[privateKey]
-      return get.apply(this)
-    },
+    ...descriptorProps,
+    get,
     set(value) {
-      this[privateKey] = value
-      if (set) set.apply(this, value)
+      Object.defineProperty(this, key, { ...descriptorProps, writable: true, value })
     }
   }
 }
 
 /**
  * Memoize value calculated by a getter the first time it's called.
- * You can clear the value when calling another method with `@clearMemoized(propName)`
+ * If you `delete` the prop, accessing again will re-calculate the value.
+ * If you provide a setter (e.g. to do some side effect),
+ * calling that will also clear the memoized value.
+ *
+ * TODO: consider allowing memoization of function return values
+ * TODO: consider switching to lodash-decorators ?
  */
 export function memoize(target, key, descriptor) {
-  const getter = descriptor.get
-  if (!getter) throw new TypeError("@memoize: Only know how to apply to getter/setter")
+  const { get, set, ...descriptorProps } = descriptor
+  if (!get) throw new TypeError("@memoize: Only know how to apply to getter/setter")
 
-  const privateKey = getPrivateKey(key)
+  const newSet =
+    set &&
+    function(value) {
+      if (hasOwnProp(this, key)) delete this[key]
+      set.apply(this, [value])
+    }
+
+  descriptorProps.configurable = true
   descriptor = {
-    ...descriptor,
+    ...descriptorProps,
     get() {
-      if (!hasOwnProp(this, privateKey)) {
-        // Add the property non-enumerably, but configurably
-        //  so we can clear it with `@clearMemoized(key)`.
-        Object.defineProperty(this, privateKey, {
-          configurable: true,
-          value: getter.apply(this)
-        })
-      }
-      return this[privateKey]
-    }
-  }
-
-  // Hook up setter to clear the private value.
-  const setter = descriptor.set
-  if (setter) {
-    descriptor = {
-      ...descriptor,
-      set(...args) {
-        delete this[privateKey]
-        return setter.apply(this, args)
-      }
-    }
+      const value = get.apply(this)
+      Object.defineProperty(this, key, {
+        ...descriptorProps,
+        get() {
+          return value
+        },
+        set: newSet
+      })
+      return value
+    },
+    set: newSet
   }
   return descriptor
 }
 
 /**
- * Clear previously memoized values for one or more `properties`
- * when invoking a normal function.
+ * Memoize getter return value as long as value of `this[property]` doesn't change.
+ * TODO: make this work for functins?
+ * TODO: allow setters? they should work in theory...
  */
-export function clearMemoized(...properties) {
-  const privateKeys = properties.map(property => getPrivateKey(property))
-
-  return function(target, key, descriptor) {
-    const { value: method, set } = descriptor
-    if (typeof method === "function") {
-      return {
-        ...descriptor,
-        value(...args) {
-          const thing = this
-          privateKeys.forEach(privateKey => delete thing[privateKey])
-          return method.apply(this, args)
-        }
-      }
-    }
-    if (typeof set === "function") {
-      return {
-        ...descriptor,
-        set(...args) {
-          const thing = this
-          privateKeys.forEach(privateKey => delete thing[privateKey])
-          return set.apply(this, args)
-        }
-      }
-    }
-    throw new TypeError(`@clearMemoized: Only know how to apply to getter or method`)
-  }
-}
-
-/** Memoize getter return value as long as value of `properties` don't change. */
-export function memoizeForProp(...properties) {
+export function memoizeForProp(property) {
   const propCache = new WeakMap()
   const valueCache = new WeakMap()
-  function valuesDiffer(cachedProps, currentProps) {
-    return cachedProps.any((value, index) => value !== currentProps[index])
-  }
   return function(target, key, descriptor) {
-    const { get } = descriptor
-    if (typeof get !== "function") throw new TypeError("@memoizeForProp: Only know how to apply to getter.")
+    const { get, set } = descriptor
+    if (!get || set) throw new TypeError("@memoizeForProp: Only know how to apply to getter without setter.")
     return {
       ...descriptor,
       get() {
-        const cachedProps = propCache.get(this)
-        const currentProps = properties.map(property => this[property])
-        if (!cachedProps || valuesDiffer(currentProps)) {
-          propCache.set(this, currentProps)
-          const value = get.apply(this)
-          valueCache.set(this, value)
+        const currentProp = this[property]
+        if (!propCache.has(this) || propCache.get(this) !== currentProp) {
+          propCache.set(this, currentProp)
+          valueCache.set(this, get.apply(this))
         }
         return valueCache.get(this)
       }

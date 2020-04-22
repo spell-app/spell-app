@@ -23,8 +23,6 @@ function convertStatementsToBlock(match, statements) {
  *  - `type` is
  */
 export class ASTNode extends Assertable {
-  @proto @readonly type = "ASTNode"
-
   /** On construction, pass:
    *  - `match` passed to `getAST()` method,
    *  - `props` as arbitrary properties to be assigned to the instance.
@@ -37,6 +35,11 @@ export class ASTNode extends Assertable {
     if (props) Object.assign(this, props)
     this.match = match
     this.assertType("match", Match)
+  }
+
+  /** Return our node type, which is the name of our constructor function. */
+  get nodeType() {
+    return this.constructor.displayName
   }
 
   /** Scope of the top-level match. */
@@ -52,7 +55,6 @@ export class ASTNode extends Assertable {
 
 /** Blank line */
 export class BlankLine extends ASTNode {
-  @proto @readonly type = "BlankLine"
   toJS() {
     return "\n"
   }
@@ -61,15 +63,12 @@ export class BlankLine extends ASTNode {
 /** Base of all Expression types.  Useful for `instanceof`.
  *  - Try to figure out `datatype` if you can, either as a value or as a getter.
  */
-export class Expression extends ASTNode {
-  @proto @readonly type = "Expression"
-}
+export class Expression extends ASTNode {}
 
 /** QuotedExpression -- use to wrap resulting AST in quotes.
  *  TODO: is this a good idea?  Don't use too much!
  */
 export class QuotedExpression extends Expression {
-  @proto @readonly type = "QuotedExpression"
   @proto @readonly datatype = "string"
   constructor(...args) {
     super(...args)
@@ -85,7 +84,6 @@ export class QuotedExpression extends Expression {
  *  - `raw` (optional) is the raw input value.
  */
 export class Literal extends Expression {
-  @proto @readonly type = "Literal"
   toJS() {
     return this.value
   }
@@ -93,7 +91,6 @@ export class Literal extends Expression {
 
 /** NumericLiteral type. */
 export class NumericLiteral extends Literal {
-  @proto @readonly type = "NumericLiteral"
   @proto @readonly datatype = "number"
   constructor(...args) {
     super(...args)
@@ -103,7 +100,6 @@ export class NumericLiteral extends Literal {
 
 /** StringLiteral type. */
 export class StringLiteral extends Literal {
-  @proto @readonly type = "StringLiteral"
   @proto @readonly datatype = "string"
   constructor(...args) {
     super(...args)
@@ -113,7 +109,6 @@ export class StringLiteral extends Literal {
 
 /** BooleanLiteral type. */
 export class BooleanLiteral extends Literal {
-  @proto @readonly type = "BooleanLiteral"
   @proto @readonly datatype = "boolean"
   constructor(...args) {
     super(...args)
@@ -123,7 +118,6 @@ export class BooleanLiteral extends Literal {
 
 /** RegExpLiteral type. */
 export class RegExpLiteral extends Literal {
-  @proto @readonly type = "RegExpLiteral"
   @proto @readonly datatype = RegExp
   constructor(...args) {
     super(...args)
@@ -133,7 +127,6 @@ export class RegExpLiteral extends Literal {
 
 /** NullLiteral type. TODO: ???? */
 export class NullLiteral extends Literal {
-  @proto @readonly type = "NullLiteral"
   // TODO: ???
   @proto @readonly datatype = "null"
   constructor(...args) {
@@ -147,7 +140,6 @@ export class NullLiteral extends Literal {
 
 /** UndefinedLiteral type. TODO: ???? */
 export class UndefinedLiteral extends Literal {
-  @proto @readonly type = "UndefinedLiteral"
   @proto @readonly datatype = "undefined"
   constructor(...args) {
     super(...args)
@@ -163,7 +155,6 @@ export class UndefinedLiteral extends Literal {
  *  - `raw` (optional) is the raw input string
  */
 export class KeywordLiteral extends Literal {
-  @proto @readonly type = "KeywordLiteral"
   @proto @readonly datatype = "string" // TODO???
   constructor(...args) {
     super(...args)
@@ -176,7 +167,6 @@ export class KeywordLiteral extends Literal {
  *  - `items` (optional) is an array of Expressions
  */
 export class ArrayLiteral extends Literal {
-  @proto @readonly type = "ArrayLiteral"
   constructor(...args) {
     super(...args)
     this.assertArrayType("items", Expression, OPTIONAL)
@@ -192,7 +182,6 @@ export class ArrayLiteral extends Literal {
  *  - `values` is an strings or numbers
  */
 export class Enumeration extends Literal {
-  @proto @readonly type = "Enumeration"
   constructor(...args) {
     super(...args)
     this.assertArrayType("enumeration", Expression)
@@ -211,7 +200,6 @@ export class Comment extends ASTNode {}
  *  - `message` is text of the error
  */
 export class ParseError extends Comment {
-  @proto @readonly type = "ParseError"
   constructor(...args) {
     super(...args)
     this.assertType("message", "string")
@@ -227,7 +215,6 @@ export class ParseError extends Comment {
  *  - `initialWhitespace` is whitespace between the commentSymbol and the `value`
  */
 export class LineComment extends Comment {
-  @proto @readonly type = "LineComment"
   constructor(...args) {
     super(...args)
     this.assertType("value", "string")
@@ -247,7 +234,6 @@ export class LineComment extends Comment {
  *  - `commentSymbol` is always `>>`
  */
 export class ParserAnnotation extends LineComment {
-  @proto @readonly type = "ParserAnnotation"
   @proto @readonly commentSymbol = ">>"
   @proto @readonly initialWhitespace = " "
 }
@@ -256,7 +242,6 @@ export class ParserAnnotation extends LineComment {
  *  - `value` is the entire contents of the original comment, including initial space and newlines.
  */
 export class BlockComment extends Comment {
-  @proto @readonly type = "BlockComment"
   constructor(...args) {
     super(...args)
     this.assertType("value", "string")
@@ -269,7 +254,6 @@ export class BlockComment extends Comment {
 /** Parenthesized expression.
  *  - `expression` is the contained AST Expression. */
 export class ParenthesizedExpression extends Expression {
-  @proto @readonly type = "ParenthesizedExpression"
   constructor(...args) {
     super(...args)
     this.assertType("expression", Expression)
@@ -288,7 +272,6 @@ export class ParenthesizedExpression extends Expression {
  *  - `expression` is the contained AST Expression.
  *  - `datatype` is ALWAYS boolean. */
 export class NotExpression extends Expression {
-  @proto @readonly type = "NotExpression"
   @proto @readonly datatype = "boolean"
   constructor(...args) {
     super(...args)
@@ -301,7 +284,6 @@ export class NotExpression extends Expression {
 
 /** InfixExpression:  <lhs> <operator> <rhs> */
 export class InfixExpression extends Expression {
-  @proto @readonly type = "InfixExpression"
   constructor(...args) {
     super(...args)
     this.assertType("lhs", Expression)
@@ -329,7 +311,6 @@ export function MultiInfixExpression(match, { expressions, operator }) {
 /** BaseMethodInvocation:  abstract class for method invocations.  DO NOT CREATE!
  */
 export class AbstractMethodInvocation extends Expression {
-  @proto @readonly type = "AbstractMethodInvocation"
   toJS() {
     throw new TypeError("Override toJS() in your subclass!")
   }
@@ -342,7 +323,6 @@ export class AbstractMethodInvocation extends Expression {
  * NOTE: this does not ensure that the named method is actually defined in scope!!!!
  */
 export class MethodInvocation extends AbstractMethodInvocation {
-  @proto @readonly type = "MethodInvocation"
   constructor(...args) {
     super(...args)
     this.assertType("method", "string")
@@ -361,7 +341,6 @@ export class MethodInvocation extends AbstractMethodInvocation {
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
  */
 export class CoreMethodInvocation extends AbstractMethodInvocation {
-  @proto @readonly type = "CoreMethodInvocation"
   constructor(...args) {
     super(...args)
     this.assertType("method", "string")
@@ -381,7 +360,6 @@ export class CoreMethodInvocation extends AbstractMethodInvocation {
  *  - Try to set `datatype` as string or getter if you can.
  */
 export class ScopedMethodInvocation extends AbstractMethodInvocation {
-  @proto @readonly type = "ScopedMethodInvocation"
   constructor(...args) {
     super(...args)
     this.assertType("thing", Expression)
@@ -399,7 +377,6 @@ export class ScopedMethodInvocation extends AbstractMethodInvocation {
  *  - `method` is MethodInvocation to call.
  */
 export class AwaitMethodInvocation extends AbstractMethodInvocation {
-  @proto @readonly type = "AwaitMethodInvocation"
   constructor(...args) {
     super(...args)
     this.assertType("method", AbstractMethodInvocation)
@@ -419,7 +396,6 @@ export class AwaitMethodInvocation extends AbstractMethodInvocation {
  *  TODO: ^^^ ???
  */
 export class TypeExpression extends Expression {
-  @proto @readonly type = "TypeExpression"
   @proto @readonly datatype = "Type"
   constructor(...args) {
     super(...args)
@@ -444,7 +420,6 @@ export class TypeExpression extends Expression {
  *  - `plurality` (optional) is "singular", "plural" or `undefined`  // TODO: derive?
  */
 export class VariableExpression extends Expression {
-  @proto @readonly type = "VariableExpression"
   constructor(...args) {
     super(...args)
     if (!this.name) this.name = this.match.value
@@ -463,7 +438,6 @@ export class VariableExpression extends Expression {
  *  - `constant` is pointer to scope Constant, if there is one.
  */
 export class ConstantExpression extends Expression {
-  @proto @readonly type = "ConstantExpression"
   @proto @readonly datatype = "string"
   constructor(...args) {
     super(...args)
@@ -477,7 +451,6 @@ export class ConstantExpression extends Expression {
 
 /** ThisLiteral type. */
 export class ThisLiteral extends Literal {
-  @proto @readonly type = "ThisLiteral"
   toJS() {
     return "this"
   }
@@ -488,7 +461,6 @@ export class ThisLiteral extends Literal {
  *  - `raw` (optional) is the input property name
  */
 export class PropertyLiteral extends Literal {
-  @proto @readonly type = "PropertyLiteral"
   @proto @readonly datatype = "string"
   constructor(...args) {
     super(...args)
@@ -504,7 +476,6 @@ export class PropertyLiteral extends Literal {
  *  TODO: datatype???
  */
 export class PropertyExpression extends Expression {
-  @proto @readonly type = "PropertyExpression"
   constructor(...args) {
     super(...args)
     this.assertType("object", Expression)
@@ -522,7 +493,6 @@ export class PropertyExpression extends Expression {
  *  - `value` (optional) is the property value.
  */
 export class ObjectLiteralProperty extends ASTNode {
-  @proto @readonly type = "ObjectLiteralProperty"
   constructor(...args) {
     super(...args)
     this.assertType("property", PropertyLiteral)
@@ -539,7 +509,6 @@ export class ObjectLiteralProperty extends ASTNode {
  *  - `properties` is an array of PropertyValues
  */
 export class ObjectLiteral extends Expression {
-  @proto @readonly type = "PropertyExpression"
   @proto @readonly datatype = "object"
   constructor(...args) {
     super(...args)
@@ -554,15 +523,12 @@ export class ObjectLiteral extends Expression {
 }
 
 /** Statement abstract type. */
-export class Statement extends ASTNode {
-  @proto @readonly type = "Statement"
-}
+export class Statement extends ASTNode {}
 
 /** StatementGroup -- set of random statements which does NOT get wrapped with curly braces!
  *  - `statements` is a list of Statements.
  */
 export class StatementGroup extends Statement {
-  @proto @readonly type = "StatementBlock"
   constructor(...args) {
     super(...args)
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
@@ -578,7 +544,6 @@ export class StatementGroup extends Statement {
  *  - `statements` is a list of Statements.
  */
 export class StatementBlock extends Statement {
-  @proto @readonly type = "StatementBlock"
   constructor(...args) {
     super(...args)
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
@@ -597,7 +562,6 @@ export class StatementBlock extends Statement {
  *  - `isNewVariable` (optional) if true and `thing` is an Expression, we'll declare the var.
  */
 export class AssignmentStatement extends Statement {
-  @proto @readonly type = "Statement"
   constructor(...args) {
     super(...args)
     this.assertType("thing", Expression)
@@ -615,7 +579,6 @@ export class AssignmentStatement extends Statement {
  *  - `value` (optional) is an Expression to be returned.
  */
 export class ReturnStatement extends Statement {
-  @proto @readonly type = "Statement"
   constructor(...args) {
     super(...args)
     this.assertType("value", Expression, OPTIONAL)
@@ -632,7 +595,6 @@ export class ReturnStatement extends Statement {
  * - `instanceType` (optional) is a TypeExpression for lists of a certain type.
  */
 export class ClassDeclaration extends Statement {
-  @proto @readonly type = "ClassDeclaration"
   constructor(...args) {
     super(...args)
     this.assertType("type", TypeExpression)
@@ -657,7 +619,6 @@ export class ClassDeclaration extends Statement {
  * - `props` (optional) is an ObjectLiteral
  */
 export class NewInstanceExpression extends Expression {
-  @proto @readonly type = "NewInstanceExpression"
   constructor(...args) {
     super(...args)
     this.assertType("type", TypeExpression)
@@ -673,7 +634,6 @@ export class NewInstanceExpression extends Expression {
  * - `items` (optional) is a list of Expressions
  */
 export class ListExpression extends Expression {
-  @proto @readonly type = "ListExpression"
   constructor(...args) {
     super(...args)
     this.assertArrayType("items", Expression, OPTIONAL)
@@ -693,7 +653,6 @@ export class ListExpression extends Expression {
  * TODO: create a scope for variables inside???
  */
 export class InlineMethodExpression extends Expression {
-  @proto @readonly type = "InlineMethodExpression"
   constructor(...args) {
     super(...args)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
@@ -712,7 +671,6 @@ export class InlineMethodExpression extends Expression {
  *  * - `type` is a TypeExpression
  */
 export class PrototypeExpression extends Expression {
-  @proto @readonly type = "PrototypeExpression"
   constructor(...args) {
     super(...args)
     this.assertType("type", TypeExpression)
@@ -729,7 +687,6 @@ export class PrototypeExpression extends Expression {
  * - `value` is an Expression
  */
 export class ValueDefinition extends Statement {
-  @proto @readonly type = "ValueDefinition"
   constructor(...args) {
     super(...args)
     this.assertType("thing", Expression)
@@ -748,7 +705,6 @@ export class ValueDefinition extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class SetterDefinition extends Statement {
-  @proto @readonly type = "SetterDefinition"
   constructor(...args) {
     super(...args)
     this.assertType("thing", Expression)
@@ -771,7 +727,6 @@ export class SetterDefinition extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class GetterDefinition extends Statement {
-  @proto @readonly type = "GetterDefinition"
   constructor(...args) {
     super(...args)
     this.assertType("thing", Expression)
@@ -792,7 +747,6 @@ export class GetterDefinition extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class MethodDefinition extends Statement {
-  @proto @readonly type = "MethodDefinition"
   constructor(...args) {
     super(...args)
     this.assertType("thing", Expression)
@@ -818,7 +772,6 @@ export class MethodDefinition extends Statement {
  * TODO: export this???
  */
 export class FunctionDefinition extends Statement {
-  @proto @readonly type = "FunctionDefinition"
   constructor(...args) {
     super(...args)
     this.assertType("method", "string", OPTIONAL)
@@ -838,7 +791,6 @@ export class FunctionDefinition extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class IfStatement extends Statement {
-  @proto @readonly type = "IfStatement"
   constructor(...args) {
     super(...args)
     this.assertType("condition", Expression)
@@ -855,7 +807,6 @@ export class IfStatement extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class ElseIfStatement extends Statement {
-  @proto @readonly type = "ElseIfStatement"
   constructor(...args) {
     super(...args)
     this.assertType("condition", Expression)
@@ -871,7 +822,6 @@ export class ElseIfStatement extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class ElseStatement extends Statement {
-  @proto @readonly type = "ElseStatement"
   constructor(...args) {
     super(...args)
     this.statements = convertStatementsToBlock(this.match, this.statements)
@@ -888,7 +838,6 @@ export class ElseStatement extends Statement {
  * - `falseValue` is an Expression
  */
 export class TernaryExpression extends Expression {
-  @proto @readonly type = "TernaryExpression"
   constructor(...args) {
     super(...args)
     this.assertType("condition", Expression)
@@ -907,7 +856,6 @@ export class TernaryExpression extends Expression {
  * - `args` is an array of expressions
  */
 export class ConsoleMethodInvocation extends Statement {
-  @proto @readonly type = "ConsoleMethodInvocation"
   @proto method = "log"
   constructor(...args) {
     super(...args)

@@ -3,7 +3,7 @@ import global from "global"
 import keyBy from "lodash/keyBy"
 import { observable, computed } from "mobx"
 
-import { JSON5File, proto, memoizeForProp, overrideableGetter, Registry } from "../../util"
+import { JSON5File, proto, memoizeForProp, overrideable, Registry } from "../../util"
 import { SpellFile } from "./SpellFile"
 
 /**
@@ -68,7 +68,7 @@ export class SpellProject extends JSON5File {
   /** LOADING AND SAVING */
 
   /** Derive `url` from our projectId if not explicitly set. */
-  @overrideableGetter get url() {
+  @overrideable get url() {
     return `/api/${this.path}/.manifest`
   }
 

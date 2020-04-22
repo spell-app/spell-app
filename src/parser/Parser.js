@@ -12,7 +12,6 @@ import {
   rulex,
   Tokenizer,
   WhitespacePolicy,
-  clearMemoized,
   cloneClass,
   memoize,
   nonEnumerable,
@@ -152,8 +151,10 @@ export default class Parser {
 
   // Add a `rule` to our list of rules!
   // Converts to `Rule.Group` on re-defining the same rule.
-  @clearMemoized("rules")
   addRule(rule, ruleName) {
+    // Clear memoized "rules" value if any
+    delete this.rules
+
     // If rule is a Rule subclass, instantiate it
     // eslint-disable-next-line new-cap
     if (rule.prototype instanceof Rule) rule = new rule()
@@ -182,9 +183,12 @@ export default class Parser {
   }
 
   // Add rules from other parsers to this parser.
-  @clearMemoized("rules")
   import(...imports) {
+    // Clear memoized "rules" value if any
+    delete this.rules
+
     this.imports = [].concat(this.imports || [], imports)
+    // TODO:     this.imports = (this.imports || []).concat(imports)
   }
 
   // Merge all rule `sources` together into a new rules map.
