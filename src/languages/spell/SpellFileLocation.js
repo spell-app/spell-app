@@ -1,33 +1,47 @@
 import global from "global"
-import { writeOnce, memoize } from "../../util/decorators"
+import { Registry, writeOnce, memoize } from "../../util"
 
 /**
  * Encapsulate a Spell File's `path` so we can get the various bits quickly and easily.
  * Immutable object.
- * NOTE: assumes that we have a flat heirarchy of project paths. ???
+ *
+ * NOTE: assumes that we have a single level of project paths. ???
  * TODO: add user concept here???
  */
 export class SpellFileLocation {
-  @writeOnce path
+  /**
+   * Use `SpellFileLocation.for("path")` to get a singleton instance back for the path.
+   */
+  static for = new Registry(path => new SpellFileLocation(path))
+
+  /**
+   * NOTE: don't create these directly!
+   * Use `SpellFileLocation.for("path")` to get a singleton instance back for the path.
+   */
   constructor(path) {
-    if (typeof path !== "string" || !path) throw new TypeError("Invalid path!")
+    if (typeof path !== "string" || !path.startsWith("/"))
+      throw new TypeError(`SpellFileLocation('${path}'): Path is invalid.`)
     this.path = path
   }
-  @memoize get _split_() {
-    const [projectType, projectName, ...filePath] = this.path.split("/")
-    const fileName = filePath.pop() || undefined
-    const folder = filePath.length ? `/${filePath.join("")}` : undefined
-    return {
-      projectType,
-      projectName,
-      folder,
-      fileName
-    }
+
+  // ///////////////////////
+  //  Deriving paths
+  // ///////////////////////
+  getPathFor(filePath) {
+    return this.projectPath + (filePath.startsWith("/") ? "" : "/") + (filePath || "")
   }
+
+  // ///////////////////////
+  //  Path and syntactic sugar for workign with it
+  // ///////////////////////
+
+  /** Full `path` to the resource. */
+  @writeOnce path
+
   /** Path to the project. */
   get projectPath() {
     const { projectType, projectName } = this._split_
-    return `${projectType}/${projectName}`
+    return `/${projectType}/${projectName}`
   }
   /** Type of the project, expected to be `project` or `library`. */
   get projectType() {
@@ -101,6 +115,19 @@ export class SpellFileLocation {
   @memoize get isValidFilePath() {
     const { projectType, projectName, filePath } = this
     return (projectType === "project" || projectType === "library") && !!projectName && !!filePath
+  }
+
+  /** Split path into rough bits -- further refinement in getters below. */
+  @memoize get _split_() {
+    const [_empty, projectType, projectName, ...filePath] = this.path.split("/")
+    const fileName = filePath.pop() || undefined
+    const folder = filePath.length ? `/${filePath.join("")}` : undefined
+    return {
+      projectType,
+      projectName,
+      folder,
+      fileName
+    }
   }
 }
 

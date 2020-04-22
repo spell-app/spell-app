@@ -1,8 +1,8 @@
 import global from "global"
 import isEqual from "lodash/isEqual"
-import { observable, computed } from "mobx"
+import { observable, computed, action } from "mobx"
 
-import { proto, forward } from "./decorators"
+import { proto } from "./decorators"
 
 import { UNLOADED, LOADING, LOADED } from "./constants"
 
@@ -19,22 +19,18 @@ export class Loadable {
    */
   @proto reloadAfter = undefined
 
-  /** Private info about the last load. Immutable. */
-  @observable
-  _load = {
-    /** Current load state.  UNLOADED, LOADING or LOADED. */
-    state: UNLOADED,
-    /** Params passed to last `load()`. */
-    params: undefined,
-    /** Last load promise, set if we're actually loading. */
-    loader: undefined,
-    /** Contents of the last successful `load()`. */
-    contents: undefined,
-    /** Error from last failed `load()`. */
-    loadError: undefined,
-    /** When last load finished/failed. */
-    lastLoaded: undefined
-  }
+  /** Current load state.  UNLOADED, LOADING or LOADED. */
+  @observable loadState = UNLOADED
+  /** Params passed to last `load()`. */
+  @observable loadParams = undefined
+  /** Last load promise, set while we're actually loading. */
+  @observable _loader = undefined
+  /** Contents of the last successful `load()`. */
+  @observable contents = undefined
+  /** Error from last failed `load()`. */
+  @observable loadError = undefined
+  /** When last load finished/failed. */
+  @observable lastLoaded = undefined
 
   constructor(props) {
     Object.assign(this, props)
@@ -42,50 +38,51 @@ export class Loadable {
 
   /** Are we currently loading? */
   @computed get isLoading() {
-    return this._load.state === LOADING
+    return this.loadState === LOADING
   }
   /** Have we been successfully loaded? */
   @computed get isLoaded() {
-    return this._load.state === LOADED
-  }
-
-  /** Current load contents.  Only valid if we have successfully loaded. */
-  @computed get contents() {
-    return this._load.contents
+    return this.loadState === LOADED
   }
 
   /**
    * Manually set load contents.
    * Cancels pending load. Updates state/etc as well.
    */
-  set contents(contents) {
+  setContents(contents) {
     this.stopInflightLoad()
-    Object.assign(this._load, {
-      state: LOADED,
-      params: undefined, // TODO: leave `params` alone???
-      loader: undefined,
+    Object.assign(this, {
+      loadState: LOADED,
+      loadParams: undefined, // TODO: leave `loadParams` alone???
+      _loader: undefined,
       contents,
       loadError: undefined,
       lastLoaded: Date.now()
     })
   }
 
-  /** Last load error.  Only valid if last load failed. */
-  @computed get loadError() {
-    return this._load.loadError
+  /** A loadable is considered `expired` if it's time for it to be reloaded.
+   * `undefined` means we don't know.
+   * `true` means we are explicitly out of cache
+   * `false` means we are explicitly within cache.
+   */
+  get isExpired() {
+    const expiryTime = this.lastLoaded + this.reloadAfter * 1000
+    if (isNaN(expiryTime)) return undefined
+    return Date.now() > expiryTime
   }
 
   /**
    * Public load method.
    * NOTE: don't override this, override `getLoader()` instead!
    */
-  load(params) {
-    // If params are the same as last time:
-    if (isEqual(params, this._load.params)) {
+  load(loadParams) {
+    // If loadParams are the same as last time:
+    if (isEqual(loadParams, this.loadParams)) {
       // If we're currently loading, return the current loading promise
-      if (this.isLoading) return this._load.loader
+      if (this._loader) return this._loader
       // If the cached version is still good
-      if (this.isExpired === false) {
+      if (!this.isExpired) {
         // if loaded, resolve with last contents
         if (this.isLoaded) return Promise.resolve(this.contents)
         // if load error, reject with last error
@@ -95,13 +92,13 @@ export class Loadable {
     // Cancel current load if any
     this.stopInflightLoad()
 
-    let loader
+    let _loader
     const onSuccess = async contents => {
-      // Only update if the same loader is active
-      if (this._load.loader === loader) {
-        Object.assign(this._load, {
-          state: LOADED,
-          loader: undefined,
+      // Only update if the same _loader is active
+      if (this._loader === _loader) {
+        Object.assign(this, {
+          loadState: LOADED,
+          _loader: undefined,
           contents,
           loadError: undefined,
           lastLoaded: Date.now()
@@ -111,11 +108,11 @@ export class Loadable {
     }
 
     const onError = async loadError => {
-      // Only update if the same loader is active
-      if (this._load.loader === loader) {
-        Object.assign(this._load, {
-          state: UNLOADED,
-          loader: undefined,
+      // Only update if the same _loader is active
+      if (this._loader === _loader) {
+        Object.assign(this, {
+          loadState: UNLOADED,
+          _loader: undefined,
           contents: undefined,
           loadError,
           lastLoaded: Date.now()
@@ -127,17 +124,18 @@ export class Loadable {
     }
 
     try {
-      loader = this.getLoader(params)
-      if (!loader || !loader.then) throw new TypeError(`${this.constructor.name}.getLoader() didn't return a promise!`)
-      Object.assign(this._load, {
-        state: LOADING,
-        loader,
-        params,
+      _loader = this.getLoader(loadParams)
+      if (!_loader || !_loader.then)
+        throw new TypeError(`${this.constructor.name}.getLoader() didn't return a promise!`)
+      Object.assign(this, {
+        loadState: LOADING,
+        _loader,
+        loadParams,
         contents: undefined,
         loadError: undefined,
         lastLoaded: undefined
       })
-      return loader.then(onSuccess, onError)
+      return _loader.then(onSuccess, onError)
     } catch (e) {
       return onError(e)
     }
@@ -145,30 +143,32 @@ export class Loadable {
 
   /**
    * Attempt to cancel the current in-flight load.
-   * No-op if not loading. Attempts to minimally clean up `_load`.
+   * No-op if not loading. Attempts to minimally clean up load variables.
    */
   stopInflightLoad() {
     if (this.isLoading) {
-      const { loader } = this._load
-      this._load.state = UNLOADED
-      this._load.loader = undefined
-      if (loader?.cancel) loader.cancel()
+      const { _loader } = this
+      Object.assign(this, {
+        loadState: UNLOADED,
+        _loader: undefined
+      })
+      if (_loader?.cancel) _loader.cancel()
     }
   }
 
   /** Force reload of the resource, ignoring expiration logic. */
-  reload(params) {
+  reload(loadParams) {
     this.unload()
-    return this.load(params)
+    return this.load(loadParams)
   }
 
   /** Manual unload. */
   unload() {
     this.stopInflightLoad()
-    Object.assign(this._load, {
-      state: UNLOADED,
-      loader: undefined,
-      params: undefined,
+    Object.assign(this, {
+      loadState: UNLOADED,
+      _loader: undefined,
+      loadParams: undefined,
       contents: undefined,
       loadError: undefined,
       lastLoaded: undefined
@@ -181,7 +181,7 @@ export class Loadable {
    * INTERNAL routine to load contents. Must return a promise.
    * Do any transformation of the result in this method.
    */
-  async getLoader(params) {
+  async getLoader(loadParams) {
     throw new TypeError("You must override loadable.getLoader()!")
   }
 }

@@ -1,11 +1,27 @@
 import { SpellFileLocation } from "./SpellFileLocation"
 
 describe("SpellFileLocation", () => {
+  describe("creation", () => {
+    test("Can create via `new`", () => {
+      const location = new SpellFileLocation("/project/PROJECT")
+      expect(location).toBeInstanceOf(SpellFileLocation)
+    })
+    test("Can create via `SpellFileLocation.for()`", () => {
+      const location = SpellFileLocation.for("/project/PROJECT")
+      expect(location).toBeInstanceOf(SpellFileLocation)
+    })
+    test("Creating via `SpellFileLocation.for()` always returns the same object", () => {
+      const location1 = SpellFileLocation.for("/project/PROJECT")
+      const location2 = SpellFileLocation.for("/project/PROJECT")
+      expect(location1).toBe(location2)
+    })
+  })
+
   describe("valid project paths", () => {
     test("valid project path", () => {
-      const path = new SpellFileLocation("project/PROJECT")
-      expect(path.path).toBe("project/PROJECT")
-      expect(path.projectPath).toBe("project/PROJECT")
+      const path = new SpellFileLocation("/project/PROJECT")
+      expect(path.path).toBe("/project/PROJECT")
+      expect(path.projectPath).toBe("/project/PROJECT")
       expect(path.projectType).toBe("project")
       expect(path.isLibraryProject).toBe(false)
       expect(path.isUserProject).toBe(true)
@@ -20,7 +36,7 @@ describe("SpellFileLocation", () => {
     })
 
     test("valid library path", () => {
-      const path = new SpellFileLocation("library/PROJECT")
+      const path = new SpellFileLocation("/library/PROJECT")
       expect(path.isLibraryProject).toBe(true)
       expect(path.isUserProject).toBe(false)
       expect(path.isValidProjectPath).toBe(true)
@@ -28,7 +44,7 @@ describe("SpellFileLocation", () => {
     })
 
     test("trailing slash is ignored", () => {
-      const path = new SpellFileLocation("library/PROJECT/")
+      const path = new SpellFileLocation("/library/PROJECT/")
       expect(path.filePath).toBe(undefined)
       expect(path.folder).toBe(undefined)
       expect(path.fileName).toBe(undefined)
@@ -39,13 +55,13 @@ describe("SpellFileLocation", () => {
 
   describe("invalid project paths", () => {
     test("invalid projectType", () => {
-      const path = new SpellFileLocation("boo/PROJECT")
+      const path = new SpellFileLocation("/boo/PROJECT")
       expect(path.isLibraryProject).toBe(false)
       expect(path.isUserProject).toBe(false)
       expect(path.isValidProjectPath).toBe(false)
     })
     test("no project name", () => {
-      const path = new SpellFileLocation("library")
+      const path = new SpellFileLocation("/library")
       expect(path.isLibraryProject).toBe(true)
       expect(path.isUserProject).toBe(false)
       expect(path.isValidProjectPath).toBe(false)
@@ -54,9 +70,9 @@ describe("SpellFileLocation", () => {
 
   describe("valid file paths", () => {
     test("valid file path with no folder and normal extension", () => {
-      const path = new SpellFileLocation("project/PROJECT/FILE.EXTENSION")
-      expect(path.path).toBe("project/PROJECT/FILE.EXTENSION")
-      expect(path.projectPath).toBe("project/PROJECT")
+      const path = new SpellFileLocation("/project/PROJECT/FILE.EXTENSION")
+      expect(path.path).toBe("/project/PROJECT/FILE.EXTENSION")
+      expect(path.projectPath).toBe("/project/PROJECT")
       expect(path.projectType).toBe("project")
       expect(path.isLibraryProject).toBe(false)
       expect(path.isUserProject).toBe(true)
@@ -71,8 +87,8 @@ describe("SpellFileLocation", () => {
     })
 
     test("valid file path with folder and normal extension", () => {
-      const path = new SpellFileLocation("project/PROJECT/FOLDER/FILE.EXTENSION")
-      expect(path.projectPath).toBe("project/PROJECT")
+      const path = new SpellFileLocation("/project/PROJECT/FOLDER/FILE.EXTENSION")
+      expect(path.projectPath).toBe("/project/PROJECT")
       expect(path.projectType).toBe("project")
       expect(path.isLibraryProject).toBe(false)
       expect(path.isUserProject).toBe(true)
@@ -87,7 +103,7 @@ describe("SpellFileLocation", () => {
     })
 
     test("valid file path with no extension", () => {
-      const path = new SpellFileLocation("project/PROJECT/FILE")
+      const path = new SpellFileLocation("/project/PROJECT/FILE")
       expect(path.filePath).toBe("/FILE")
       expect(path.folder).toBe(undefined)
       expect(path.fileName).toBe("FILE")
@@ -97,7 +113,7 @@ describe("SpellFileLocation", () => {
     })
 
     test("valid file path with multi-part extension", () => {
-      const path = new SpellFileLocation("project/PROJECT/FILE.EXT1.EXT2")
+      const path = new SpellFileLocation("/project/PROJECT/FILE.EXT1.EXT2")
       expect(path.filePath).toBe("/FILE.EXT1.EXT2")
       expect(path.fileName).toBe("FILE.EXT1.EXT2")
       expect(path.name).toBe("FILE")
@@ -106,7 +122,7 @@ describe("SpellFileLocation", () => {
     })
 
     test("valid file path with hidden name and no extension", () => {
-      const path = new SpellFileLocation("project/PROJECT/.FILE")
+      const path = new SpellFileLocation("/project/PROJECT/.FILE")
       expect(path.filePath).toBe("/.FILE")
       expect(path.fileName).toBe(".FILE")
       expect(path.name).toBe(".FILE")
@@ -115,7 +131,7 @@ describe("SpellFileLocation", () => {
     })
 
     test("valid file path with hidden name and multi-part extension", () => {
-      const path = new SpellFileLocation("project/PROJECT/.FILE.EXT1.EXT2")
+      const path = new SpellFileLocation("/project/PROJECT/.FILE.EXT1.EXT2")
       expect(path.filePath).toBe("/.FILE.EXT1.EXT2")
       expect(path.fileName).toBe(".FILE.EXT1.EXT2")
       expect(path.name).toBe(".FILE")
