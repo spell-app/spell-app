@@ -1,6 +1,5 @@
 import global from "global"
 import { observable, computed } from "mobx"
-
 import { TextFile, Registry, proto, overrideableGetter } from "../../util"
 import { spellParser as coreSpellParser } from "."
 import { SpellProject } from "./SpellProject"
@@ -23,7 +22,7 @@ export class SpellFile extends TextFile {
    *       rather than creating them individually via `new`.
    */
   constructor(path) {
-    SpellProject.validateProjectFilePath(path)
+    // SpellProject.validateProjectFilePath(path)
     super()
     this.path = path
   }
@@ -35,7 +34,7 @@ export class SpellFile extends TextFile {
   /**
    * Return our `projectId` based on our `path`.
    */
-  get projectId() {
+  @computed get projectId() {
     return SpellProject.splitPath(this.path).projectId
   }
 

@@ -66,11 +66,9 @@ Token.InlineWhitespace = class inlineWhitespace extends Token.Whitespace {}
 Token.Indent = class indent extends Token.Whitespace {}
 
 // `newline` class, value is always a single return.
-Token.Newline = class newline extends Token.Whitespace {
-  @proto value = "\n"
-
-  @proto raw = "\n"
-}
+Token.Newline = class newline extends Token.Whitespace {}
+Token.Newline.prototype.value = "\n"
+Token.Newline.prototype.raw = "\n"
 
 // Literal string class which refers to a alphanumeric word
 //  - `literal.value` is the actual text matched.

@@ -1,262 +1,174 @@
-/* eslint-disable no-use-before-define */
-//
-//  # ESNext Stage 2 decorators
-//
-//  UGH:  The decorator proposal has changed AGAIN
-//        and this is all non-viable with the new scheme.
-//
-//  This is working according to babel-proposal-decorators `^7.0.0` as of 3/18/218
-//  For explanation of how that works, see:
-//    https://github.com/tc39/proposal-decorators/blob/master/previous/METAPROGRAMMING.md
-//
+/**
+ * Legacy decorators.
+ * We were attempting to use ESNext Stage 2 decorators, but:
+ *  - they're not realiable
+ *  - they're not compatible with mobx
+ * See: https://github.com/loganfsmyth/babel-plugin-transform-decorators-legacy
+ */
 
-import assert from "assert"
-
-// ES5 "standard" descriptor properties.
-const ES5_DESCRIPTOR_PROPS = {
-  value: 1,
-  get: 1,
-  set: 1,
-  enumerable: 1,
-  writable: 1,
-  configurable: 1
+/** Safe "hasOwnProperty" you can apply to a random `thing`. */
+function hasOwnProp(thing, key) {
+  return Object.prototype.hasOwnProperty.call(thing, key)
 }
 
-// Return a key we'll use to for a private value, e.g. when we memoize something.
-// Note that we want this to be consistent so we can use it
-// for both `memoize()` and `clearMemoized()` below.
-//
-// Currenly using "#property" for the key -- consider using a Symbol?
+/**
+ * Return a key we'll use to for a private value, e.g. when we memoize something.
+ * Note that we want this to be consistent so we can use it
+ * for both `memoize()` and `clearMemoized()` below.
+ *
+ *  Currenly using "#key" for the key -- consider using a Symbol?
+ */
 function getPrivateKey(key) {
   return `#${key}`
 }
 
-//
-//  # Problems with Babel 7.1
-//
-//  The spec[1] says that "normal" property descriptor keys:
-//       `value`, `get, `set`, `enumerable, `writable`, `configurable`
-//  should be merged with the "new" properties:
-//      `key`, `kind`, `placement`, `initialize`
-//  so according to spec, you might have a descriptor
-//      `{ key: "someProp", value: "foo" }`
-//  or  `{ key: "someProp", get() { return "foo" } }`
-//
-//  In babel, the "normal descriptor" is a separate property, so you'd have:
-//      `{ key: "someProp", descriptor: { value: "foo" } }`
-//  or  `{ key: "someProp", descriptor: { get() { return "foo" } } }`
-//
-// Use `getDescriptorProp`, `setDescriptorProp` and `clearDescriptorProp` to work around this.
-//
-// [1] https://github.com/tc39/proposal-decorators/blob/master/METAPROGRAMMING.md
-
-// Return a descriptor property,
-// whether the descriptor is set up according to spec or in Babel's different format.
-// See "Problems with Babel" above.
-export function getDescriptorProp(descriptor, key) {
-  return descriptor.descriptor?.[key] || descriptor[key]
-}
-
-// Clone the `descriptor` and set some prop,
-// whether the descriptor is set up according to spec or in Babel's different format.
-// See "Problems with Babel" above.
-export function setDescriptorProp(descriptor, key, value) {
-  // Babel-style, or new descriptor prop which is always set directly.
-  const doubleDescriptor = ES5_DESCRIPTOR_PROPS[key] && descriptor.descriptor
-  if (doubleDescriptor) {
+/**
+ * Define field or method on the prototype rather than during object construction.
+ * Use with caution with objects or arrays, as the values will be shared with all instances!
+ */
+export function proto(target, key, descriptor) {
+  const { initializer, ...otherProps } = descriptor
+  if (initializer) {
     return {
-      ...descriptor,
-      descriptor: {
-        ...descriptor.descriptor,
-        [key]: value
-      }
+      ...otherProps,
+      value: initializer()
     }
   }
-  // Spec-style where all keys are on one object.
-  return {
-    ...descriptor,
-    [key]: value
-  }
+  console.warn(`@proto called w/o initializer`, { target, key, descriptor })
+  return descriptor
 }
 
-// Clone the `descriptor` and clear some prop,
-// whether the descriptor is set up according to spec or in Babel's different format.
-// See "Problems with Babel" above.
-export function clearDescriptorProp(descriptor, key) {
-  const clone = { ...descriptor }
-  // Babel-style, or new descriptor prop which is always set directly.
-  const doubleDescriptor = ES5_DESCRIPTOR_PROPS[key] && descriptor.descriptor
-  if (doubleDescriptor) {
-    clone.descriptor = { ...clone.descriptor }
-    delete clone.descriptor[key]
-  } else {
-    delete clone[key]
-  }
-  return clone
-}
-
-// Define field or method on the prototype rather than during object construction.
-// Use with caution with objects or arrays, as the values will be shared with all instances!
-export function proto(descriptor) {
-  assert(descriptor.kind === "field" || descriptor.kind === "method")
-  return {
-    ...descriptor,
-    placement: "prototype"
-  }
-}
-
-// Define field or method as read-only.
-export function readonly(descriptor) {
-  assert(descriptor.kind === "field" || descriptor.kind === "method")
+/** Define field or method as read-only. */
+export function readonly(target, key, descriptor) {
+  // assert(descriptor.kind === "field" || descriptor.kind === "method")
   return {
     ...descriptor,
     writeable: false
   }
 }
 
-// Define field or method non-enumerably.
-export function nonEnumerable(descriptor) {
-  // console.info("nonEnumerable", descriptor);
-  assert(descriptor.kind === "field" || descriptor.kind === "method")
-  return setDescriptorProp(descriptor, "enumerable", false)
+/** Define field or method non-enumerably. */
+export function nonEnumerable(target, key, descriptor) {
+  return {
+    ...descriptor,
+    enumerable: false
+  }
 }
 
-// Allow user to provide an explicit value for some property;
-// if they have not, use the provided function as a getter.
-export function overrideableGetter(descriptor) {
-  assert(descriptor.kind === "method")
-  const getter = getDescriptorProp(descriptor, "get")
-  assert(getter)
-  const key = getPrivateKey(descriptor.key)
-  descriptor = setDescriptorProp(descriptor, "get", function() {
-    if (Object.prototype.hasOwnProperty.call(this, key)) return this[key]
-    return getter.apply(this)
-  })
-  descriptor = setDescriptorProp(descriptor, "set", function(value) {
-    // console.warn("setting ", key, "to", value)
-    this[key] = value
-  })
-  return descriptor
-}
-
-// Memoize a calculated value.
-// Works for a getter wihtout a setter or for a method.
-// You can clear the value with `@clearMemoized(propName)`
-// TODO: allow setter, which clears the memoized value?  Where would the setter place the value?
-// TODO: allow use with method, using a WeakMap to save results according to specific args?
-export function memoize(descriptor) {
-  // console.info("memoize", descriptor);
-  // Currently only works for getters without setters.
-  const getter = getDescriptorProp(descriptor, "get")
-  const setter = getDescriptorProp(descriptor, "set")
-  if (getter) return _memoizeGetter(descriptor, getter, setter)
-
-  const method = getDescriptorProp(descriptor, "value")
-  if (typeof method === "function") return _memoizeMethod(descriptor, method)
-
-  throw new TypeError("Don't know how to memoize something without a getter or method")
-}
-
-// Memoize a getter with an optional setter.
-function _memoizeGetter(descriptor, getter, setter) {
-  const privateKey = getPrivateKey(descriptor.key)
-  function wrappedGetter() {
-    if (!Object.prototype.hasOwnProperty.call(this, privateKey)) {
-      // Add the property non-enumerably, but configurably
-      //  so we can clear it with `@clearMemoized(key)`.
-      Object.defineProperty(this, privateKey, {
-        configurable: true,
-        value: getter.apply(this)
-      })
+/**
+ * Allow user to provide an explicit value for some key;
+ * if they have not, return the value from the provided getter.
+ */
+export function overrideableGetter(target, key, descriptor) {
+  const privateKey = getPrivateKey(key)
+  const { get, set } = descriptor
+  if (typeof get !== "function") throw new TypeError("@overrideableGetter: Only know how to apply to getter/setter.")
+  return {
+    ...descriptor,
+    get() {
+      if (hasOwnProp(this, privateKey)) return this[privateKey]
+      return get.apply(this)
+    },
+    set(value) {
+      this[privateKey] = value
+      if (set) set.apply(this, value)
     }
-    return this[privateKey]
-  }
-  descriptor = setDescriptorProp(descriptor, "get", wrappedGetter)
-
-  if (setter) {
-    descriptor = setDescriptorProp(descriptor, "set", wrappedSetter)
-  }
-  return descriptor
-
-  function wrappedSetter(...args) {
-    delete this[privateKey]
-    return setter.apply(this, args)
   }
 }
 
-// Memoize a method.
-function _memoizeMethod(descriptor, method) {
-  const privateKey = getPrivateKey(descriptor.key)
-  function wrappedMethod(...args) {
-    if (!Object.prototype.hasOwnProperty.call(this, privateKey)) {
-      // Add the property non-enumerably, but configurably
-      //  so we can clear it with `@clearMemoized(key)`.
-      Object.defineProperty(this, privateKey, {
-        configurable: true,
-        value: method.apply(this, args)
-      })
-    }
-    return this[privateKey]
-  }
-  return setDescriptorProp(descriptor, "value", wrappedMethod)
-}
+/**
+ * Memoize value calculated by a getter the first time it's called.
+ * You can clear the value when calling another method with `@clearMemoized(propName)`
+ */
+export function memoize(target, key, descriptor) {
+  const getter = descriptor.get
+  if (!getter) throw new TypeError("@memoize: Only know how to apply to getter/setter")
 
-// Clear memoized values for some `property` when invoking a normal function.
-// TODO: take a list of properties???
-export function clearMemoized(property) {
-  return function(descriptor) {
-    // console.info("clearMemoized", property, descriptor);
-    // Currently only works for a normal function
-    // TODO: make this work for setters?
-    assert(descriptor.kind === "method")
-    const method = getDescriptorProp(descriptor, "value")
-    assert(typeof method === "function")
-
-    // Use same key pattern as `memoized` above.
-    const privateKey = getPrivateKey(property)
-    function wrapped(...args) {
-      delete this[privateKey]
-      return method.apply(this, args)
-    }
-    return setDescriptorProp(descriptor, "value", wrapped)
-  }
-}
-
-/** Memoize getter return value as long as `property` doesn't change. */
-export function memoizeForProp(property) {
-  const propCache = new WeakMap()
-  const valueCache = new WeakMap()
-  return function(descriptor) {
-    const getter = getDescriptorProp(descriptor, "get")
-    assert(getter)
-    function wrapped() {
-      const currentProp = this[property]
-      if (!propCache.has(this) || propCache.get(this) !== currentProp) {
-        propCache.set(this, currentProp)
-        valueCache.set(this, getter.apply(this))
+  const privateKey = getPrivateKey(key)
+  descriptor = {
+    ...descriptor,
+    get() {
+      if (!hasOwnProp(this, privateKey)) {
+        // Add the property non-enumerably, but configurably
+        //  so we can clear it with `@clearMemoized(key)`.
+        Object.defineProperty(this, privateKey, {
+          configurable: true,
+          value: getter.apply(this)
+        })
       }
-      return valueCache.get(this)
+      return this[privateKey]
     }
-    return setDescriptorProp(descriptor, "get", wrapped)
+  }
+
+  // Hook up setter to clear the private value.
+  const setter = descriptor.set
+  if (setter) {
+    descriptor = {
+      ...descriptor,
+      set(...args) {
+        delete this[privateKey]
+        return setter.apply(this, args)
+      }
+    }
+  }
+  return descriptor
+}
+
+/**
+ * Clear previously memoized values for one or more `properties`
+ * when invoking a normal function.
+ */
+export function clearMemoized(...properties) {
+  const privateKeys = properties.map(property => getPrivateKey(property))
+
+  return function(target, key, descriptor) {
+    const { value: method, set } = descriptor
+    if (typeof method === "function") {
+      return {
+        ...descriptor,
+        value(...args) {
+          const thing = this
+          privateKeys.forEach(privateKey => delete thing[privateKey])
+          return method.apply(this, args)
+        }
+      }
+    }
+    if (typeof set === "function") {
+      return {
+        ...descriptor,
+        set(...args) {
+          const thing = this
+          privateKeys.forEach(privateKey => delete thing[privateKey])
+          return set.apply(this, args)
+        }
+      }
+    }
+    throw new TypeError(`@clearMemoized: Only know how to apply to getter or method`)
   }
 }
 
 /** Memoize getter return value as long as value of `properties` don't change. */
-export function memoizeForProps(...properties) {
+export function memoizeForProp(...properties) {
   const propCache = new WeakMap()
   const valueCache = new WeakMap()
-  return function(descriptor) {
-    const getter = getDescriptorProp(descriptor, "get")
-    assert(getter)
-    function wrapped() {
-      const cachedProp = propCache.get(this)
-      const currentProp = properties.map(prop => this[prop])
-      if (!cachedProp || !cachedProp.all((value, index) => value === currentProp[index])) {
-        propCache.set(this, currentProp)
-        valueCache.set(this, getter.apply(this))
+  function valuesDiffer(cachedProps, currentProps) {
+    return cachedProps.any((value, index) => value !== currentProps[index])
+  }
+  return function(target, key, descriptor) {
+    const { get } = descriptor
+    if (typeof get !== "function") throw new TypeError("@memoizeForProp: Only know how to apply to getter.")
+    return {
+      ...descriptor,
+      get() {
+        const cachedProps = propCache.get(this)
+        const currentProps = properties.map(property => this[property])
+        if (!cachedProps || valuesDiffer(currentProps)) {
+          propCache.set(this, currentProps)
+          const value = get.apply(this)
+          valueCache.set(this, value)
+        }
+        return valueCache.get(this)
       }
-      return valueCache.get(this)
     }
-    return setDescriptorProp(descriptor, "get", wrapped)
   }
 }

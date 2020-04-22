@@ -111,8 +111,7 @@
       [
         "@babel/plugin-proposal-decorators",
         {
-          "decoratorsBeforeExport": true,
-          "legacy": false
+          "legacy": true
         }
       ],
       [

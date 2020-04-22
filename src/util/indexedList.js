@@ -29,8 +29,6 @@
 
 import identity from "lodash/identity"
 
-import { setDescriptorProp, clearDescriptorProp } from "./decorators"
-
 export default function indexedList(props) {
   if (!props) throw new TypeError("@indexedList() must be passed at least `{ keyProp }`")
 
@@ -102,31 +100,31 @@ export default function indexedList(props) {
   const STORAGE = new WeakMap()
   // ====> Works:  getter/setter on proto, storage on proto as well.
   // TODO: can we add directly to instance on first get and avoid the STORAGE bit?
-  return function(descriptor) {
+  return function(target, key, descriptor) {
     // TODOC:  get single key, get local
     function getStoredFor(thing) {
       let accessor = STORAGE.get(thing)
       if (!accessor) {
         if (parentProp) {
-          accessor = function(key, localOnly) {
+          accessor = function(itemKey, localOnly) {
             // `this` is the instance
             const storage = accessor["#storage"]
-            if (key === undefined) return storage ? [...storage.list] : []
+            if (itemKey === undefined) return storage ? [...storage.list] : []
 
-            key = normalizeKey(key)
-            if (storage && storage.map[key]) return storage.map[key]
+            itemKey = normalizeKey(itemKey)
+            if (storage && storage.map[itemKey]) return storage.map[itemKey]
 
-            if (!localOnly && this[parentProp]) return this[parentProp][descriptor.key](key, localOnly)
+            if (!localOnly && this[parentProp]) return this[parentProp][key](itemKey, localOnly)
             return undefined
           }
         } else {
-          accessor = function(key) {
+          accessor = function(itemKey) {
             // `this` is the instance
             const storage = accessor["#storage"]
-            if (key === undefined) return storage ? [...storage.list] : []
+            if (itemKey === undefined) return storage ? [...storage.list] : []
 
-            key = normalizeKey(key)
-            return storage && storage.map[key]
+            itemKey = normalizeKey(itemKey)
+            return storage && storage.map[itemKey]
           }
         }
 
@@ -139,19 +137,18 @@ export default function indexedList(props) {
       }
       return accessor
     }
-
-    descriptor = setDescriptorProp(descriptor, "kind", "method")
-    descriptor = setDescriptorProp(descriptor, "placement", "prototype")
-    descriptor = clearDescriptorProp(descriptor, "writable")
-    descriptor = setDescriptorProp(descriptor, "enumerable", false)
-    descriptor = setDescriptorProp(descriptor, "get", function() {
-      return getStoredFor(this, descriptor.key)
-    })
-    descriptor = setDescriptorProp(descriptor, "set", function(value) {
-      const accessor = getStoredFor(this, descriptor.key)
-      if (Array.isArray(value)) accessor.add(...value)
-      else accessor.add(value)
-    })
-    return descriptor
+    const { initializer, writable, ...otherProps } = descriptor
+    return {
+      ...otherProps,
+      enumerable: false,
+      get() {
+        return getStoredFor(this, key) // TODO: `key` not in `getStoredFor()!
+      },
+      set(value) {
+        const accessor = getStoredFor(this, key) // TODO: `key` not in `getStoredFor()!
+        if (Array.isArray(value)) accessor.add(...value)
+        else accessor.add(value)
+      }
+    }
   }
 }
