@@ -137,6 +137,7 @@ export default function indexedList(props) {
       }
       return accessor
     }
+    // eslint-disable-next-line no-unused-vars
     const { initializer, writable, ...otherProps } = descriptor
     return {
       ...otherProps,

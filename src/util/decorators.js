@@ -40,10 +40,9 @@ export function proto(target, key, descriptor) {
 
 /** Define field or method as read-only. */
 export function readonly(target, key, descriptor) {
-  // assert(descriptor.kind === "field" || descriptor.kind === "method")
   return {
     ...descriptor,
-    writeable: false
+    writable: false
   }
 }
 

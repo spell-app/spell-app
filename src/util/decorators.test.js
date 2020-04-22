@@ -54,6 +54,14 @@ describe("@proto", () => {
       expect(hasOwnProp(it, "object")).toBe(true)
       expect(it.object).toBe(otherObject)
     })
+
+    test("updating instance value updates original object", () => {
+      const it = new Thing()
+      it.object.foo = "bar"
+      expect(originalObject.foo).toBe("bar")
+      expect(Thing.prototype.object.foo).toBe("bar")
+      expect(it.object.foo).toBe("bar")
+    })
   })
 })
 
@@ -63,12 +71,30 @@ describe("@readonly", () => {
   }
   test("sets expected value on new instance", () => {
     const it = new Thing()
+    expect(hasOwnProp(it, "string"))
     expect(it.string).toBe("original value")
   })
 
   test("is resistant to changes", () => {
     const it = new Thing()
-    it.string = "other value"
-    expect(it.string).not.toBe("original value")
+    expect(() => {
+      it.string = "other value"
+    }).toThrow()
+  })
+})
+
+describe("@nonEnumerable", () => {
+  class Thing {
+    @nonEnumerable string = "original value"
+  }
+  test("can be accessed on instance", () => {
+    const it = new Thing()
+    expect(it.string).toBe("original value")
+  })
+
+  test("is not in Object.keys()", () => {
+    const it = new Thing()
+    const keys = Object.keys(it)
+    expect(keys.length).toBe(0)
   })
 })
