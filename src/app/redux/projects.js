@@ -21,7 +21,7 @@ const Formats = {
 // FIXME: this is lame...
 export const INPUT = "INPUT"
 
-const PROJECT_INDEX_FILE_NAME = "index"
+const PROJECT_MANIFEST_FILE_NAME = ".manifest"
 
 // HACK: we should do this in the app somewhere rather than here...
 setPrefKey("spellEditor:")
@@ -59,7 +59,7 @@ const factory = new ReduxFactory({
 
   // Return server path to project file.
   getPath(projectId, filename = "") {
-    return `projects/${projectId}/${filename}`
+    return `project/${projectId}/${filename}`
   },
 
   // Syntactic sugar to get the bits of the data from the state.
@@ -74,7 +74,7 @@ const factory = new ReduxFactory({
 
   // Return loaded project index given the full `products` state.
   getProjectIndex(projects, projectId) {
-    const path = this.getPath(projectId, PROJECT_INDEX_FILE_NAME)
+    const path = this.getPath(projectId, PROJECT_MANIFEST_FILE_NAME)
     return projects.files[path]
   },
 
@@ -449,7 +449,7 @@ const factory = new ReduxFactory({
       ACTION: "LOAD_FILE",
       async: true,
       getParams({ projectId, reload }) {
-        return { projectId, filename: PROJECT_INDEX_FILE_NAME, reload, format: Formats.JSON5 }
+        return { projectId, filename: PROJECT_MANIFEST_FILE_NAME, reload, format: Formats.JSON5 }
       }
     },
 
@@ -460,7 +460,7 @@ const factory = new ReduxFactory({
       name: "saveProjectIndex",
       ACTION: "UPDATE_CONTENTS",
       getParams({ projectId, index }) {
-        return { projectId, filename: PROJECT_INDEX_FILE_NAME, contents: index }
+        return { projectId, filename: PROJECT_MANIFEST_FILE_NAME, contents: index }
       }
     },
 

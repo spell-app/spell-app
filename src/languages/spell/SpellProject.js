@@ -1,5 +1,7 @@
+import assert from "assert"
 import global from "global"
 import keyBy from "lodash/keyBy"
+import { observable, computed } from "mobx"
 
 import { JSON5File, proto, memoizeForProp, overrideableGetter, Registry } from "../../util"
 import { SpellFile } from "./SpellFile"
@@ -8,19 +10,42 @@ import { SpellFile } from "./SpellFile"
  * Loadable spell project index.
  */
 export class SpellProject extends JSON5File {
-  /** Project name. */
-  @proto projectId = undefined
   /** Update file contents when you  do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
   @proto autoUpdateContentsOnSave = true
 
   /**
-   * Constructor which expects ONLY `projectId` or `{ projectId }`.
-   * NOTE: Prefer `SpellProject.get("projectId")` to get a consistent singleton instance
-   *       rather than creating them individually via `new`.
+   * Project path as `project/<projectId>` or `library/<projectId>`.
+   * MUST be passed to constructor.
    */
-  constructor(props) {
-    if (typeof props === "string") props = { projectId: props }
-    super(props)
+  @observable path = ""
+
+  /**
+   * Constructor which expects ONLY `project/<projectId>` or `library/</projectId>`.
+   * NOTE: Prefer `SpellProject.get("project/projectId")` to get
+   *       a consistent singleton instance rather than creating via `new`.
+   */
+  constructor(path) {
+    SpellProject.validateProjectPath(path)
+    super()
+    this.path = path
+  }
+
+  // ///////////////////////
+  //  Syntactic sugar
+  // ///////////////////////
+
+  /**
+   * Return our `type` based on our `path`
+   */
+  get type() {
+    return SpellProject.splitPath(this.path).type
+  }
+
+  /**
+   * Return our `projectId` based on our `path`
+   */
+  get projectId() {
+    return SpellProject.splitPath(this.path).projectId
   }
 
   /**
@@ -28,9 +53,7 @@ export class SpellProject extends JSON5File {
    * Returns `undefined` if we're not loaded.
    */
   @memoizeForProp("contents") get files() {
-    return this.contents?.files?.map(({ name }) =>
-      SpellFile.get(SpellFile.joinPath({ projectId: this.projectId, filename: name }))
-    )
+    return this.contents?.files?.map(({ path }) => SpellFile.get(path))
   }
 
   /**
@@ -42,9 +65,11 @@ export class SpellProject extends JSON5File {
     return files && keyBy(files, "filename")
   }
 
+  /** LOADING AND SAVING */
+
   /** Derive `url` from our projectId if not explicitly set. */
   @overrideableGetter get url() {
-    return `/api/projects/${this.projectId}/index`
+    return `/api/${this.path}/.manifest`
   }
 
   /**
@@ -76,9 +101,49 @@ export class SpellProject extends JSON5File {
   }
 
   /**
-   * Use `SpellProject.get("projectId")` to get a singleton SpellProject back for the project.
+   * Split project `path` into `{ type, projectId, filename, extension }`
    */
-  static get = new Registry(projectId => new SpellProject({ projectId }))
+  static splitPath(path) {
+    assert(typeof path === "string", `Invalid project path '${path}: must be a string`)
+    const [type, projectId, ...filePath] = path.split("/")
+    const filename = filePath.length ? filePath.join("/") : undefined
+    let extension = ""
+    if (filePath.length) {
+      extension = `.${filePath
+        .reverse()[0]
+        .split(".")
+        .slice(1)
+        .join(".")}`
+    }
+    return { type, projectId, filename, extension }
+  }
+
+  /** Validate path for a project. */
+  static validateProjectPath(path) {
+    const { type, projectId, filename } = SpellProject.splitPath(path)
+    assert(
+      type === "project" || type === "library",
+      `Invalid project path '${path}': must start with 'project' or 'library'.`
+    )
+    assert(projectId.length > 0, `Invalid project path '${path}': invalid projectId.`)
+    assert(filename === undefined, `Invalid project path '${path}': must not specify filename`)
+  }
+
+  /** Validate path for a project file. */
+  static validateProjectFilePath(path) {
+    const { type, projectId, filename } = SpellProject.splitPath(path)
+    assert(
+      type === "project" || type === "library",
+      `Invalid project path '${path}': must start with 'project' or 'library'.`
+    )
+    assert(projectId.length > 0, `Invalid project path '${path}': invalid projectId.`)
+    assert(typeof filename === "string" && filename, `Invalid project path '${path}': filename must be a string`)
+  }
+
+  /**
+   * Use `SpellProject.get("project/<projectId>")` to get a singleton instance back for the project.
+   */
+  static get = new Registry(path => new SpellProject(path))
 }
 
 global.SpellProject = SpellProject

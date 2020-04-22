@@ -82,25 +82,25 @@ router.get("/projects", (request, response) => {
 })
 
 // Return index for a project: all "unhidden" files in the project folder.
-router.get("/projects/:projectId/index", (request, response) => {
+router.get("/project/:projectId/.manifest", (request, response) => {
   const { projectId } = request.params
   const options = { ignoreHidden: true, namesOnly: true }
   const files = fileUtils.listContents(getProjectPath(projectId), options)
   const index = {
-    files: files.map(name => ({ name, path: `${projectId}/${name}` }))
+    files: files.map(name => ({ name, path: `project/${projectId}/${name}` }))
   }
   responseUtils.sendJSON(response, index)
 })
 
 // Return a specific project file, including the index.
-router.get("/projects/:projectId/:filename", (request, response) => {
+router.get("/project/:projectId/:filename", (request, response) => {
   const { projectId, filename } = request.params
   const path = getProjectPath(projectId, filename)
   responseUtils.sendTextFile(response, path)
 })
 
 // Save a specific project file, including the index.
-router.post("/projects/:projectId/:filename", async (request, response) => {
+router.post("/project/:projectId/:filename", async (request, response) => {
   const { projectId, filename } = request.params
   const path = getProjectPath(projectId, filename)
 
@@ -115,7 +115,7 @@ router.post("/projects/:projectId/:filename", async (request, response) => {
 
 // Delete a specific project file, including the index.
 // NOTE: delete swallows the error if the file can't be found.
-router.delete("/projects/:projectId/:filename", async (request, response) => {
+router.delete("/project/:projectId/:filename", async (request, response) => {
   const { projectId, filename } = request.params
   const path = getProjectPath(projectId, filename)
 

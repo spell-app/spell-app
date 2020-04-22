@@ -1,26 +1,69 @@
 import global from "global"
+import { observable, computed } from "mobx"
+
 import { TextFile, Registry, proto, overrideableGetter } from "../../util"
 import { spellParser as coreSpellParser } from "."
+import { SpellProject } from "./SpellProject"
 /**
  * Loadable file of spell code.
  */
 export class SpellFile extends TextFile {
-  /** Project name. Required. */
-  @proto projectId = undefined
-  /** File name. Required. */
-  @proto filename = undefined
   /** Update file contents when you  do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
   @proto autoUpdateContentsOnSave = true
 
   /**
-   * Constructor which expects ONLY `projectId/filename` or `{ projectId, filename }`.
-   * NOTE: Prefer `SpellFile.get("projectId/filename")` to get a consistent singleton instance
+   * Project path as `project/<projectId>/<filename>` or `library/<projectId>/<filename>`.
+   * MUST be passed to constructor.
+   */
+  @observable path = ""
+
+  /**
+   * Constructor which expects ONLY `project/<projectId>/<filename>`.
+   * NOTE: Prefer `SpellFile.get(<path>)` to get a consistent singleton instance
    *       rather than creating them individually via `new`.
    */
-  constructor(props) {
-    if (typeof props === "string") props = SpellFile.splitPath(props)
-    super(props)
+  constructor(path) {
+    SpellProject.validateProjectFilePath(path)
+    super()
+    this.path = path
   }
+
+  // ///////////////////////
+  //  Syntactic sugar
+  // ///////////////////////
+
+  /**
+   * Return our `projectId` based on our `path`.
+   */
+  get projectId() {
+    return SpellProject.splitPath(this.path).projectId
+  }
+
+  /**
+   * Return our `filename` based on our `path`.
+   */
+  get filename() {
+    return SpellProject.splitPath(this.path).filename
+  }
+
+  /**
+   * Return our `extension` based on our `path`.
+   */
+  get extension() {
+    return SpellProject.splitPath(this.path).extension
+  }
+
+  /**
+   * Return our `project` as a `SpellProject` based on our `path`.
+   */
+  get project() {
+    const { type, projectId } = SpellProject.splitPath(this.path)
+    return SpellProject.get(`${type}/${projectId}`)
+  }
+
+  // ///////////////////////
+  //  Parsing / Compiling
+  // ///////////////////////
 
   /**
    * Load our content and attempt to parse it!
@@ -46,7 +89,7 @@ export class SpellFile extends TextFile {
 
   /** Derive `url` from our projectId / filename if not explicitly set. */
   @overrideableGetter get url() {
-    return `/api/projects/${this.path}`
+    return `/api/${this.path}`
   }
 
   /**
@@ -74,7 +117,7 @@ export class SpellFile extends TextFile {
   }
 
   /**
-   * Use `SpellFile.get("projectId/filename")` to get a singleton instance back for that path.
+   * Use `SpellFile.get("project/<projectId>/<filename>")` to get a singleton instance back for that path.
    */
   static get = new Registry(path => new SpellFile(path))
 }
