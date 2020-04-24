@@ -58,7 +58,7 @@ export function $fetch($params) {
 
   const fetchParams = { method, headers }
   // Set Content-Type header if necessary
-  if (requestFormat) fetchParams.headers["Content-Type"] = requestFormat
+  if (requestFormat) fetchParams.headers["Content-Type"] = KNOWN_FORMATS[requestFormat] || requestFormat
 
   // Set up body if provided
   if (contents != null) {
