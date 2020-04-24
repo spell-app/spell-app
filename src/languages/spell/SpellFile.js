@@ -12,18 +12,17 @@ import { SpellFileLocation } from "./SpellFileLocation"
  * you'll always get the same object back for a given `path`.
  */
 export class SpellFile extends TextFile {
-  /**
-   * Use `SpellFile.for("path")` to get a singleton instance back for the path.
-   */
-  static for = new Registry(path => new SpellFile(path))
-
-  /**
-   * NOTE: don't create these directly!
-   * Use `SpellFile.for("path")` to get a singleton instance back for the path.
-   */
+  /** Registry of known instances. */
+  static registry = new Map()
   constructor(path) {
-    super({ path })
-    if (!this.location.isValidFilePath) throw new TypeError(`SpellFile initialized with invalid path '${this.path}'`)
+    // Create instance if not already present in registry
+    if (!SpellFile.registry.has(path)) {
+      const instance = super({ path })
+      if (!instance.location.isValidFilePath)
+        throw new TypeError(`SpellFile initialized with invalid path '${this.path}'`)
+      SpellFile.registry.set(path, instance)
+    }
+    return SpellFile.registry.get(path)
   }
 
   /**
@@ -35,14 +34,14 @@ export class SpellFile extends TextFile {
   /** `location` object which we can use to get various bits of the path. */
   @forward("projectPath", "projectName", "filePath", "folder", "fileName", "name", "extension")
   get location() {
-    return SpellFileLocation.for(this.path)
+    return new SpellFileLocation(this.path)
   }
 
   /**
    * Return our `project` as a `SpellProject` based on our `path`.
    */
   get project() {
-    return SpellProject.for(this.projectPath)
+    return new SpellProject(this.projectPath)
   }
 
   // ///////////////////////

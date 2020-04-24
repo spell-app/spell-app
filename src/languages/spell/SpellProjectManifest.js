@@ -1,8 +1,7 @@
 import global from "global"
-import keyBy from "lodash/keyBy"
 import { computed } from "mobx"
 
-import { JSON5File, forward, memoize, writeOnce, overrideable, Registry } from "../../util"
+import { JSON5File, forward, memoize, writeOnce, overrideable, OPTIONAL, REQUIRED } from "../../util"
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProject } from "./SpellProject"
 import { SpellFile } from "./SpellFile"
@@ -14,19 +13,17 @@ import { SpellFile } from "./SpellFile"
  * you'll always get the same object back for a given `path`.
  */
 export class SpellProjectManifest extends JSON5File {
-  /**
-   * Use `SpellProjectManifest.for("path")` to get a singleton instance back for the path.
-   */
-  static for = new Registry(path => new SpellProjectManifest(path))
-
-  /**
-   * NOTE: don't create these directly!
-   * Use `SpellProjectManifest.for("path")` to get a singleton instance back for the path.
-   */
+  /** Registry of known instances. */
+  static registry = new Map()
   constructor(path) {
-    super({ path })
-    if (!this.location.isValidProjectPath)
-      throw new TypeError(`SpellProjectManifest initialized with invalid path '${this.path}'`)
+    // Create instance if not already present in registry
+    if (!SpellProjectManifest.registry.has(path)) {
+      const instance = super({ path })
+      if (!instance.location.isValidProjectPath)
+        throw new TypeError(`SpellProjectManifest initialized with invalid path '${this.path}'`)
+      SpellProjectManifest.registry.set(path, instance)
+    }
+    return SpellProjectManifest.registry.get(path)
   }
 
   /**
@@ -43,12 +40,12 @@ export class SpellProjectManifest extends JSON5File {
    */
   @forward("projectType", "projectName", "projectPath", "isLibraryProject", "isUserProject")
   get location() {
-    return SpellFileLocation.for(this.path)
+    return new SpellFileLocation(this.path)
   }
 
   /** Pointer to our `SpellProject`. */
   get project() {
-    return SpellProject.for(this.projectPath)
+    return new SpellProject(this.projectPath)
   }
 
   /**
@@ -56,6 +53,7 @@ export class SpellProjectManifest extends JSON5File {
    * Returns `undefined` if we're not loaded or manifest is malformed.
    */
   @computed get files() {
+    if (!this.isLoaded) console.warn("SpellProjectManifest(): Attempting to get list of files before loading.")
     return this.contents?.files?.map(({ path }) => new SpellFile(path))
   }
 
@@ -78,24 +76,22 @@ export class SpellProjectManifest extends JSON5File {
   }
 
   /**
-   * Synchronously get one of our files by path.
+   * Synchronously get one of our files by `path`.
+   * If `path` doesn't start with a `/`, we'll assume it's a local file path.
    * Returns `undefined` if file not found or manifest is not loaded.
    */
-  getFile(path) {
-    return this.files?.find(file => file.path === path)
-  }
-
-  /** Get file or throw an error if it's not found (or if index is not loaded). */
-  getFileOrDie(path) {
-    const file = this.getFile(path)
-    if (!file) throw new Error(`SpellProjectManifest '${this.projectId}': file '${path}' not found.`)
+  getFile(path = "", isRequired = OPTIONAL) {
+    if (!path.startsWith("/")) path = `${this.projectPath}/${path}`
+    const file = this.files?.find(f => f.path === path)
+    if (!file && isRequired === REQUIRED)
+      throw new TypeError(`SpellProjectManifest.getFile("${path}"): file not found.`)
     return file
   }
 
   /** Asynchronously load file by `path` (or `filename` if path doesn't start with slash). */
   async loadFile(path) {
     await this.load()
-    return this.getFileOrDie(path).load()
+    return this.getFile(path, REQUIRED).load()
   }
 }
 

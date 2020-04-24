@@ -1,5 +1,5 @@
 import global from "global"
-import { Registry, writeOnce, memoize } from "../../util"
+import { writeOnce, memoize } from "../../util"
 
 /**
  * Encapsulate a Spell File's `path` so we can get the various bits quickly and easily.
@@ -9,19 +9,17 @@ import { Registry, writeOnce, memoize } from "../../util"
  * TODO: add user concept here???
  */
 export class SpellFileLocation {
-  /**
-   * Use `SpellFileLocation.for("path")` to get a singleton instance back for the path.
-   */
-  static for = new Registry(path => new SpellFileLocation(path))
-
-  /**
-   * NOTE: don't create these directly!
-   * Use `SpellFileLocation.for("path")` to get a singleton instance back for the path.
-   */
+  /** Registry of known instances. */
+  static registry = new Map()
   constructor(path) {
-    if (typeof path !== "string" || !path.startsWith("/"))
-      throw new TypeError(`SpellFileLocation('${path}'): Path is invalid.`)
-    this.path = path
+    // Create instance if not already present in registry
+    if (!SpellFileLocation.registry.has(path)) {
+      if (typeof path !== "string" || !path.startsWith("/"))
+        throw new TypeError(`SpellFileLocation('${path}'): Path is invalid.`)
+      this.path = path
+      SpellFileLocation.registry.set(path, this)
+    }
+    return SpellFileLocation.registry.get(path)
   }
 
   /** Full `path` to the resource. */

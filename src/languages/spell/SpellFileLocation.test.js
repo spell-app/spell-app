@@ -6,13 +6,9 @@ describe("SpellFileLocation", () => {
       const location = new SpellFileLocation("/project/PROJECT")
       expect(location).toBeInstanceOf(SpellFileLocation)
     })
-    test("Can create via `SpellFileLocation.for()`", () => {
-      const location = SpellFileLocation.for("/project/PROJECT")
-      expect(location).toBeInstanceOf(SpellFileLocation)
-    })
-    test("Creating via `SpellFileLocation.for()` always returns the same object", () => {
-      const location1 = SpellFileLocation.for("/project/PROJECT")
-      const location2 = SpellFileLocation.for("/project/PROJECT")
+    test("Creating via `new SpellFileLocation()` always returns the same object", () => {
+      const location1 = new SpellFileLocation("/project/PROJECT")
+      const location2 = new SpellFileLocation("/project/PROJECT")
       expect(location1).toBe(location2)
     })
   })

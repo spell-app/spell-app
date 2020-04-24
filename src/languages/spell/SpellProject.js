@@ -6,22 +6,23 @@ import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProjectManifest } from "./SpellProjectManifest"
 
 /**
- * Loadable spell project index.
+ * Controller for a `SpellProject`.
+ *
+ * Note that these are singleton instances --
+ * you'll always get the same object back for a given `path`.
  */
 export class SpellProject extends LoadableManager {
-  /**
-   * Use `SpellProject.for("path")` to get a singleton instance back for the project.
-   */
-  static for = new Registry(path => new SpellProject(path))
-
-  /**
-   * NOTE: don't create these directly!
-   * Use `SpellProject.for("path")` to get a singleton instance back for the path.
-   */
+  /** Registry of known instances. */
+  static registry = new Map()
   constructor(path) {
-    super({ path })
-    if (!this.location.isValidProjectPath)
-      throw new TypeError(`SpellProject initialized with invalid path '${this.path}'`)
+    // Create instance if not already present in registry
+    if (!SpellProject.registry.has(path)) {
+      const instance = super({ path })
+      if (!instance.location.isValidProjectPath)
+        throw new TypeError(`SpellProjectManifest initialized with invalid path '${this.path}'`)
+      SpellProject.registry.set(path, instance)
+    }
+    return SpellProject.registry.get(path)
   }
 
   /**
@@ -38,7 +39,7 @@ export class SpellProject extends LoadableManager {
    */
   @forward("projectType", "projectName", "projectPath", "isLibraryProject", "isUserProject")
   get location() {
-    return SpellFileLocation.for(this.path)
+    return new SpellFileLocation(this.path)
   }
 
   /** Return the files we load automatically when we load.  */
@@ -53,7 +54,7 @@ export class SpellProject extends LoadableManager {
    */
   @forward("files", "getFile", "getFileOrDie", "loadFile", "loadAllFiles")
   get manifest() {
-    return SpellProjectManifest.for(this.path)
+    return new SpellProjectManifest(this.path)
   }
 }
 
