@@ -66,6 +66,7 @@ export function $fetch($params) {
   }
 
   const fullUrl = query ? `${url}?${queryString.stringify(query)}` : url
+  // console.warn(fullUrl, fetchParams)
   const request = abortableFetch(fullUrl, fetchParams)
 
   async function success(response) {
@@ -88,12 +89,13 @@ export function $fetch($params) {
     }
 
     // Attempt to process the response according to our format
+    // TODO: attempt to determine format from `Content-Type` in response header
     try {
       if (BINARY_FORMATS.includes(format)) return await response.blob()
       // Pull text out to process json/json5 separately below.
       const text = await response.text()
-      if (format === KNOWN_FORMATS.json || format.toUpperCase() === "JSON") return parseJSON(text)
-      if (format === KNOWN_FORMATS.json5 || format.toUpperCase() === "JSON5") return parseJSON5(text)
+      if (format === KNOWN_FORMATS.json || format.toLowerCase() === "json") return parseJSON(text)
+      if (format === KNOWN_FORMATS.json5 || format.toLowerCase() === "json5") return parseJSON5(text)
       return text
     } catch (e) {
       throw new ResponseParseError({ url, response, e, ...fetchParams })

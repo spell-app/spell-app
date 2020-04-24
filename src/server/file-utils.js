@@ -147,23 +147,6 @@ export function saveBase64File(filePath, base64Data, format) {
 }
 
 //----------------------------
-//  Removing files
-//----------------------------
-
-// Remove a server file via hard delete.
-// Returns a promise
-// If `optional` is `true`, we'll swallow the error if the file can't be found.
-// NOTE: consider moving to a `trash` folder so we can undelete.
-export function removeFile(filePath, optional = false) {
-  const promise = fse.unlink(filePath)
-
-  // Swallow error if optional
-  if (optional) return promise.catch(e => null)
-
-  return promise
-}
-
-//----------------------------
 //  Locking / Unlocking files
 //----------------------------
 

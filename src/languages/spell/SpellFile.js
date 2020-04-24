@@ -1,6 +1,6 @@
 import global from "global"
 import { observable, computed } from "mobx"
-import { TextFile, Registry, proto, memoize, forward, writeOnce, overrideable } from "../../util"
+import { TextFile, proto, forward, writeOnce, overrideable } from "../../util"
 import { spellParser as coreSpellParser } from "."
 import { SpellProject } from "./SpellProject"
 import { SpellFileLocation } from "./SpellFileLocation"
@@ -25,6 +25,11 @@ export class SpellFile extends TextFile {
     return SpellFile.registry.get(path)
   }
 
+  /** We've been removed from the server -- clean up memory, etc.. */
+  cleanUpOnRemove() {
+    SpellFile.registry.clear(this.path)
+  }
+
   /**
    * Project path as `/project/<projectId>/<filename>` or `/library/<projectId>/<filename>`.
    * MUST be passed to constructor.
@@ -44,9 +49,9 @@ export class SpellFile extends TextFile {
     return new SpellProject(this.projectPath)
   }
 
-  // ///////////////////////
-  //  Parsing / Compiling
-  // ///////////////////////
+  //-----------------
+  // Parsing / Compiling
+  //-----------------
 
   /**
    * Load our content and attempt to parse it!
@@ -65,9 +70,9 @@ export class SpellFile extends TextFile {
     return (await this.parse(spellParser)).compile()
   }
 
-  // ///////////////////////
+  //-----------------
   //  Loading / Saving
-  // ///////////////////////
+  //-----------------
 
   /** Update file contents when you  do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
   @proto autoUpdateContentsOnSave = true

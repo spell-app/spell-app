@@ -104,14 +104,26 @@ export class TextFile extends LoadableFile {
 
 /** Loadable JSON file. */
 export class JSONFile extends TextFile {
-  @proto requestFormat = KNOWN_FORMATS.json
-  @proto format = KNOWN_FORMATS.json
+  @proto loadParams = {
+    requestFormat: KNOWN_FORMATS.json,
+    format: KNOWN_FORMATS.json
+  }
+  @proto saveParams = {
+    requestFormat: KNOWN_FORMATS.json,
+    format: KNOWN_FORMATS.json
+  }
 }
 
 /** Loadable JSON5 file. */
 export class JSON5File extends TextFile {
-  @proto requestFormat = KNOWN_FORMATS.json5
-  @proto format = KNOWN_FORMATS.json5
+  @proto loadParams = {
+    requestFormat: KNOWN_FORMATS.json5,
+    format: KNOWN_FORMATS.json5
+  }
+  @proto saveParams = {
+    requestFormat: KNOWN_FORMATS.json5,
+    format: KNOWN_FORMATS.json5
+  }
 }
 
 /** Loadable image file:  GIF, PNG, JPG or SVG. */

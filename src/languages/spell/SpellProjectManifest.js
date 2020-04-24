@@ -1,7 +1,7 @@
 import global from "global"
 import { computed } from "mobx"
 
-import { JSON5File, forward, memoize, writeOnce, overrideable, OPTIONAL, REQUIRED } from "../../util"
+import { JSON5File, forward, proto, writeOnce, overrideable } from "../../util"
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProject } from "./SpellProject"
 import { SpellFile } from "./SpellFile"
@@ -24,6 +24,12 @@ export class SpellProjectManifest extends JSON5File {
       SpellProjectManifest.registry.set(path, instance)
     }
     return SpellProjectManifest.registry.get(path)
+  }
+
+  /** We've been removed from the server -- clean up memory, etc.. */
+  cleanUpOnRemove() {
+    if (this.isLoaded) this.files.forEach(file => file.cleanUpOnRemove())
+    SpellProjectManifest.registry.clear(this.path)
   }
 
   /**
@@ -54,43 +60,28 @@ export class SpellProjectManifest extends JSON5File {
    */
   @computed get files() {
     if (!this.isLoaded) console.warn("SpellProjectManifest(): Attempting to get list of files before loading.")
+    console.warn("recalculating files", this.contents)
     return this.contents?.files?.map(({ path }) => new SpellFile(path))
   }
 
-  /** LOADING AND SAVING */
+  //----------------------------
+  // LOADING AND SAVING
+  //----------------------------
 
   /** Derive `url` from our path if not explicitly set. */
   @overrideable get url() {
-    return `/api/${this.path}/.manifest`
+    return `/api${this.path}/.manifest`
   }
 
   /**
    * Attempt to load all of the files, succeeding whether they all load or not.
    * Result is the array of files.
    */
-  async loadAllFiles() {
+  async loadAll() {
     await this.load()
     const { files } = this
     await Promise.allSettled(files.map(file => file.load()))
     return files
-  }
-
-  /**
-   * Synchronously get one of our files by `path`.
-   * If `path` doesn't start with a `/`, we'll assume it's a local file path.
-   * Returns `undefined` if file not found or manifest is not loaded.
-   */
-  getFile(path = "", required = OPTIONAL) {
-    if (!path.startsWith("/")) path = `${this.projectPath}/${path}`
-    const file = this.files?.find(f => f.path === path)
-    if (!file && required === REQUIRED) throw new TypeError(`SpellProjectManifest.getFile("${path}"): file not found.`)
-    return file
-  }
-
-  /** Asynchronously load file by `path` (or `filename` if path doesn't start with slash). */
-  async loadFile(path) {
-    await this.load()
-    return this.getFile(path, REQUIRED).load()
   }
 }
 

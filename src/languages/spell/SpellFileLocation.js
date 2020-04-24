@@ -25,18 +25,18 @@ export class SpellFileLocation {
   /** Full `path` to the resource. */
   @writeOnce path
 
-  // ///////////////////////
+  //-----------------
   //  Deriving paths
-  // ///////////////////////
+  //-----------------
 
   /** Return a file path relative to this project. */
   getFilePath(filePath) {
     return this.projectPath + (filePath.startsWith("/") ? "" : "/") + (filePath || "")
   }
 
-  // ///////////////////////
+  //-----------------
   //  Syntactic sugar for working with paths.
-  // ///////////////////////
+  //-----------------
 
   /** Path to the project. */
   get projectPath() {
