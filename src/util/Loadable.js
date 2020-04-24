@@ -20,9 +20,9 @@ export class Loadable {
   @proto reloadAfter = undefined
 
   /** Current load state.  UNLOADED, LOADING or LOADED. */
-  @observable loadState = UNLOADED
+  @observable _loadState = UNLOADED
   /** Params passed to last `load()`. */
-  @observable loadParams = undefined
+  @observable _loadParams = undefined
   /** Last load promise, set while we're actually loading. */
   @observable _loader = undefined
   /** Contents of the last successful `load()`. */
@@ -38,22 +38,22 @@ export class Loadable {
 
   /** Are we currently loading? */
   @computed get isLoading() {
-    return this.loadState === LOADING
+    return this._loadState === LOADING
   }
   /** Have we been successfully loaded? */
   @computed get isLoaded() {
-    return this.loadState === LOADED
+    return this._loadState === LOADED
   }
 
   /**
    * Manually set load contents.
    * Cancels pending load. Updates state/etc as well.
    */
-  setContents(contents) {
+  @action setContents(contents) {
     this.stopInflightLoad()
     Object.assign(this, {
-      loadState: LOADED,
-      loadParams: undefined, // TODO: leave `loadParams` alone???
+      _loadState: LOADED,
+      _loadParams: undefined, // TODO: leave `_loadParams` alone???
       _loader: undefined,
       contents,
       loadError: undefined,
@@ -66,7 +66,7 @@ export class Loadable {
    * `true` means we are explicitly out of cache
    * `false` means we are explicitly within cache.
    */
-  get isExpired() {
+  @computed get isExpired() {
     const expiryTime = this.lastLoaded + this.reloadAfter * 1000
     if (isNaN(expiryTime)) return undefined
     return Date.now() > expiryTime
@@ -76,9 +76,9 @@ export class Loadable {
    * Public load method.
    * NOTE: don't override this, override `getLoader()` instead!
    */
-  load(loadParams) {
-    // If loadParams are the same as last time:
-    if (isEqual(loadParams, this.loadParams)) {
+  @action load(_loadParams) {
+    // If _loadParams are the same as last time:
+    if (isEqual(_loadParams, this._loadParams)) {
       // If we're currently loading, return the current loading promise
       if (this._loader) return this._loader
       // If the cached version is still good
@@ -93,44 +93,45 @@ export class Loadable {
     this.stopInflightLoad()
 
     let _loader
-    const onSuccess = async contents => {
+    const onSuccess = action("onSuccess", async contents => {
       // Only update if the same _loader is active
       if (this._loader === _loader) {
         Object.assign(this, {
-          loadState: LOADED,
+          _loadState: LOADED,
           _loader: undefined,
+          _loadParams,
           contents,
           loadError: undefined,
           lastLoaded: Date.now()
         })
       }
       return this.contents
-    }
+    })
 
-    const onError = async loadError => {
+    const onError = action(async loadError => {
       // Only update if the same _loader is active
       if (this._loader === _loader) {
         Object.assign(this, {
-          loadState: UNLOADED,
+          _loadState: UNLOADED,
+          _loadParams,
           _loader: undefined,
           contents: undefined,
           loadError,
           lastLoaded: Date.now()
         })
-        throw this.loadError
       }
       if (this.loadError) throw this.loadError
       return this.contents
-    }
+    })
 
     try {
-      _loader = this.getLoader(loadParams)
+      _loader = this.getLoader(_loadParams)
       if (!_loader || !_loader.then)
         throw new TypeError(`${this.constructor.name}.getLoader() didn't return a promise!`)
       Object.assign(this, {
-        loadState: LOADING,
+        _loadState: LOADING,
         _loader,
-        loadParams,
+        _loadParams,
         contents: undefined,
         loadError: undefined,
         lastLoaded: undefined
@@ -145,11 +146,12 @@ export class Loadable {
    * Attempt to cancel the current in-flight load.
    * No-op if not loading. Attempts to minimally clean up load variables.
    */
+  @action
   stopInflightLoad() {
     if (this.isLoading) {
       const { _loader } = this
       Object.assign(this, {
-        loadState: UNLOADED,
+        _loadState: UNLOADED,
         _loader: undefined
       })
       if (_loader?.cancel) _loader.cancel()
@@ -157,18 +159,20 @@ export class Loadable {
   }
 
   /** Force reload of the resource, ignoring expiration logic. */
-  reload(loadParams) {
+  @action
+  reload(_loadParams) {
     this.unload()
-    return this.load(loadParams)
+    return this.load(_loadParams)
   }
 
   /** Manual unload. */
+  @action
   unload() {
     this.stopInflightLoad()
     Object.assign(this, {
-      loadState: UNLOADED,
+      _loadState: UNLOADED,
       _loader: undefined,
-      loadParams: undefined,
+      _loadParams: undefined,
       contents: undefined,
       loadError: undefined,
       lastLoaded: undefined
@@ -181,7 +185,7 @@ export class Loadable {
    * INTERNAL routine to load contents. Must return a promise.
    * Do any transformation of the result in this method.
    */
-  async getLoader(loadParams) {
+  async getLoader(_loadParams) {
     throw new TypeError("You must override loadable.getLoader()!")
   }
 }

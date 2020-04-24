@@ -205,6 +205,7 @@
       ],
       "no-alert": "off",
       "no-cond-assign": "off",
+      "no-multi-assign": "off",
       "no-plusplus": "off",
       "no-restricted-globals": "off",
       "no-unused-vars": [

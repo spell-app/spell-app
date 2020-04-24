@@ -24,19 +24,21 @@ export class SpellFileLocation {
     this.path = path
   }
 
+  /** Full `path` to the resource. */
+  @writeOnce path
+
   // ///////////////////////
   //  Deriving paths
   // ///////////////////////
-  getPathFor(filePath) {
+
+  /** Return a file path relative to this project. */
+  getFilePath(filePath) {
     return this.projectPath + (filePath.startsWith("/") ? "" : "/") + (filePath || "")
   }
 
   // ///////////////////////
-  //  Path and syntactic sugar for workign with it
+  //  Syntactic sugar for working with paths.
   // ///////////////////////
-
-  /** Full `path` to the resource. */
-  @writeOnce path
 
   /** Path to the project. */
   get projectPath() {

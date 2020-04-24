@@ -3,7 +3,7 @@ import global from "global"
 import _ from "lodash"
 import JSON5 from "json5"
 
-import { projects, spellCore, spellParser, Spell } from "."
+import { spellCore, spellParser, Spell } from "."
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
@@ -33,14 +33,14 @@ Object.assign(global, {
   tokenize: spellParser.tokenize.bind(spellParser),
 
   // spell core library
-  spellCore,
+  spellCore
 
   // rulex language stuff
   //  rulex,
 
   // Redux/app stuff
   //  ReduxFactory,
-  projects // package/file manipulation reduxFactory
+  // projects // package/file manipulation reduxFactory
 
   // test language
   //   prec: precedence,

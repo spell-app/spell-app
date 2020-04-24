@@ -1,21 +1,24 @@
-/** Operation is optional */
-export const OPTIONAL = Symbol("OPTIONAL")
+/** Operation or resource is optional */
+export const OPTIONAL = "OPTIONAL"
+
+/** Operation or resource is required -- we'll throw an error if it's not found. */
+export const REQUIRED = "REQUIRED"
 
 /** Skip some operation */
-export const SKIP = Symbol("SKIP")
+export const SKIP = "SKIP"
 
 /** Loading states. */
-export const UNLOADED = Symbol("UNLOADED")
-export const LOADING = Symbol("LOADING")
-export const LOADED = Symbol("LOADED")
-export const LOAD_ERROR = Symbol("LOAD_ERROR")
+export const UNLOADED = "UNLOADED"
+export const LOADING = "LOADING"
+export const LOADED = "LOADED"
+export const LOAD_ERROR = "LOAD_ERROR"
 
 /** Saving states. */
-export const DIRTY = Symbol("DIRTY")
-export const UNSAVED = Symbol("UNSAVED")
-export const SAVING = Symbol("SAVING")
-export const SAVED = Symbol("SAVED")
-export const SAVE_ERROR = Symbol("SAVE_ERROR")
+export const DIRTY = "DIRTY"
+export const UNSAVED = "UNSAVED"
+export const SAVING = "SAVING"
+export const SAVED = "SAVED"
+export const SAVE_ERROR = "SAVE_ERROR"
 
 /** Well-known file formats as mime-types. */
 export const KNOWN_FORMATS = {

@@ -8,7 +8,10 @@ import { SpellProject } from "./SpellProject"
 import { SpellFile } from "./SpellFile"
 
 /**
- * Loadable spell project index.
+ * Manifest of files for a given `SpellProject`.
+ *
+ * Note that these are singleton instances --
+ * you'll always get the same object back for a given `path`.
  */
 export class SpellProjectManifest extends JSON5File {
   /**
@@ -53,22 +56,12 @@ export class SpellProjectManifest extends JSON5File {
    * Returns `undefined` if we're not loaded or manifest is malformed.
    */
   @computed get files() {
-    console.warn("recomputing files")
-    return this.contents?.files?.map(({ path }) => SpellFile.get(path))
-  }
-
-  /**
-   * Return map of `SpellFiles` in the index.
-   * Returns `undefined` if we're not loaded.
-   */
-  @computed get fileMap() {
-    const { files } = this
-    return files && keyBy(files, "path")
+    return this.contents?.files?.map(({ path }) => new SpellFile(path))
   }
 
   /** LOADING AND SAVING */
 
-  /** Derive `url` from our projectId if not explicitly set. */
+  /** Derive `url` from our path if not explicitly set. */
   @overrideable get url() {
     return `/api/${this.path}/.manifest`
   }
@@ -84,9 +77,12 @@ export class SpellProjectManifest extends JSON5File {
     return files
   }
 
-  /** Synchronously get file by name. Assumes index is loaded. */
+  /**
+   * Synchronously get one of our files by path.
+   * Returns `undefined` if file not found or manifest is not loaded.
+   */
   getFile(path) {
-    return this.fileMap?.[path]
+    return this.files?.find(file => file.path === path)
   }
 
   /** Get file or throw an error if it's not found (or if index is not loaded). */

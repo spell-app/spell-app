@@ -48,10 +48,10 @@ export class SpellProject extends LoadableManager {
 
   /**
    * Return our manifest file.
-   * Note that we `forward` lots of methods on our `location` to this object,
+   * Note that we `forward` lots of methods on our `manifest` to this object,
    * so you can say `project.files` rather than `project.manifest.files`.
    */
-  @forward("files", "fileMap", "getFile", "getFileOrDie", "loadFile", "loadAllFiles")
+  @forward("files", "getFile", "getFileOrDie", "loadFile", "loadAllFiles")
   get manifest() {
     return SpellProjectManifest.for(this.path)
   }
