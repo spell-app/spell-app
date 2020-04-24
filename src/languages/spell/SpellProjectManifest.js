@@ -80,11 +80,10 @@ export class SpellProjectManifest extends JSON5File {
    * If `path` doesn't start with a `/`, we'll assume it's a local file path.
    * Returns `undefined` if file not found or manifest is not loaded.
    */
-  getFile(path = "", isRequired = OPTIONAL) {
+  getFile(path = "", required = OPTIONAL) {
     if (!path.startsWith("/")) path = `${this.projectPath}/${path}`
     const file = this.files?.find(f => f.path === path)
-    if (!file && isRequired === REQUIRED)
-      throw new TypeError(`SpellProjectManifest.getFile("${path}"): file not found.`)
+    if (!file && required === REQUIRED) throw new TypeError(`SpellProjectManifest.getFile("${path}"): file not found.`)
     return file
   }
 

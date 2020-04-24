@@ -29,11 +29,11 @@ export class SpellProjectList extends JSON5File {
 
   /**
    * Return a known `project` by path.
-   * Pass `isRequired = REQUIRED` to throw if not found.
+   * Pass `required = REQUIRED` to throw if not found.
    */
-  getProject(path, isRequired = OPTIONAL) {
+  getProject(path, required = OPTIONAL) {
     const project = this.projects?.find(p => p.path === path)
-    if (!project && isRequired === REQUIRED) throw new TypeError(`SpellProjectList.get("${path}"): project not found.`)
+    if (!project && required === REQUIRED) throw new TypeError(`SpellProjectList.get("${path}"): project not found.`)
     return project
   }
 
