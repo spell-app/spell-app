@@ -107,7 +107,7 @@ router.get("/project/:projectId/.index", async (request, response) => {
   const index = {
     imports: files.map(name => ({ path: `/project/${projectId}/${name}`, active: true }))
   }
-  responseUtils.sendJSON(response, index)
+  return responseUtils.sendJSON(response, index)
 })
 
 // Create a new project.

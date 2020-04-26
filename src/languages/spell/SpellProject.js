@@ -1,9 +1,8 @@
 import global from "global"
-import { observable, computed } from "mobx"
+// import { observable, computed } from "mobx"
 
-import { LoadableManager, proto, forward, memoize, writeOnce, $fetch, OPTIONAL, REQUIRED } from "../../util"
+import { LoadableManager, forward, memoize, writeOnce, $fetch, OPTIONAL, REQUIRED } from "../../util"
 import { SpellFileLocation } from "./SpellFileLocation"
-import { SpellFile } from "./SpellFile"
 import { SpellProjectManifest } from "./SpellProjectManifest"
 import { SpellProjectIndex } from "./SpellProjectIndex"
 
@@ -46,6 +45,7 @@ export class SpellProject extends LoadableManager {
    * so you can say `project.projectName` rather than `project.location.projectName`.
    */
   @forward("projectType", "projectName", "projectPath", "isLibraryProject", "isUserProject")
+  @memoize
   get location() {
     return new SpellFileLocation(this.path)
   }
@@ -56,27 +56,21 @@ export class SpellProject extends LoadableManager {
 
   /**
    * Return our manifest file.
+   * Also `spellProject.files` to return array of project files.
    */
+  @forward("files")
+  @memoize
   get manifest() {
     return new SpellProjectManifest(this.path)
-  }
-  /**
-   * Return all known (non-hidden) files in the folder.
-   */
-  get files() {
-    return this.manifest.files
   }
 
   /**
    * Return our index file.
+   * Also `spellProject.imports` to return array of import files.
    */
+  @memoize
   get index() {
     return new SpellProjectIndex(this.path)
-  }
-
-  /** Return our imports list. */
-  get imports() {
-    return this.index.imports
   }
 
   /** Return the files we load automatically when we load.  */

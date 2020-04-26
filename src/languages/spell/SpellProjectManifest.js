@@ -1,7 +1,7 @@
 import global from "global"
-import { computed } from "mobx"
+// import { computed } from "mobx"
 
-import { JSON5File, forward, proto, writeOnce, overrideable } from "../../util"
+import { JSON5File, forward, memoize, memoizeForProp, writeOnce } from "../../util"
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProject } from "./SpellProject"
 import { SpellFile } from "./SpellFile"
@@ -45,11 +45,13 @@ export class SpellProjectManifest extends JSON5File {
    * so you can say `manifest.projectName` rather than `manifest.location.projectName`.
    */
   @forward("projectType", "projectName", "projectPath", "isLibraryProject", "isUserProject")
+  @memoize
   get location() {
     return new SpellFileLocation(this.path)
   }
 
   /** Pointer to our `SpellProject`. */
+  @memoize
   get project() {
     return new SpellProject(this.projectPath)
   }
@@ -58,7 +60,9 @@ export class SpellProjectManifest extends JSON5File {
    * Return list of `SpellFiles` in the index.
    * Returns `undefined` if we're not loaded or manifest is malformed.
    */
-  @computed get files() {
+  // @computed
+  @memoizeForProp("contents")
+  get files() {
     if (!this.isLoaded) console.warn("SpellProjectManifest(): Attempting to get list of files before loading.")
     console.warn("recalculating files", this.contents)
     return this.contents?.files?.map(({ path }) => new SpellFile(path))
@@ -69,7 +73,7 @@ export class SpellProjectManifest extends JSON5File {
   //----------------------------
 
   /** Derive `url` from our path if not explicitly set. */
-  @overrideable get url() {
+  get url() {
     return `/api${this.path}/.manifest`
   }
 

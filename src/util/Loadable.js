@@ -1,6 +1,6 @@
 import global from "global"
 import isEqual from "lodash/isEqual"
-import { observable, computed, action } from "mobx"
+// import { observable, computed, action } from "mobx"
 
 import { proto } from "./decorators"
 
@@ -20,28 +20,36 @@ export class Loadable {
   @proto reloadAfter = undefined
 
   /** Current load state.  UNLOADED, LOADING or LOADED. */
-  @observable _loadState = UNLOADED
+  // @observable
+  @proto _loadState = UNLOADED
   /** Params passed to last `load()`. */
-  @observable _loadParams = undefined
+  // @observable
+  @proto _loadParams = undefined
   /** Last load promise, set while we're actually loading. */
-  @observable _loader = undefined
+  // @observable
+  @proto _loader = undefined
   /** Contents of the last successful `load()`. */
-  @observable contents = undefined
+  // @observable
+  @proto contents = undefined
   /** Error from last failed `load()`. */
-  @observable loadError = undefined
+  // @observable
+  @proto loadError = undefined
   /** When last load finished/failed. */
-  @observable lastLoaded = undefined
+  // @observable
+  @proto lastLoaded = undefined
 
   constructor(props) {
     Object.assign(this, props)
   }
 
   /** Are we currently loading? */
-  @computed get isLoading() {
+  // @computed
+  get isLoading() {
     return this._loadState === LOADING
   }
   /** Have we been successfully loaded? */
-  @computed get isLoaded() {
+  // @computed
+  get isLoaded() {
     return this._loadState === LOADED
   }
 
@@ -49,11 +57,12 @@ export class Loadable {
    * Manually set load contents.
    * Cancels pending load. Updates state/etc as well.
    */
-  @action setContents(contents) {
+  // @action
+  setContents(contents, _loadParams) {
     this.stopInflightLoad()
     Object.assign(this, {
       _loadState: LOADED,
-      _loadParams: undefined, // TODO: leave `_loadParams` alone???
+      _loadParams,
       _loader: undefined,
       contents,
       loadError: undefined,
@@ -66,7 +75,8 @@ export class Loadable {
    * `true` means we are explicitly out of cache
    * `false` means we are explicitly within cache.
    */
-  @computed get isExpired() {
+  // @computed
+  get isExpired() {
     const expiryTime = this.lastLoaded + this.reloadAfter * 1000
     if (isNaN(expiryTime)) return undefined
     return Date.now() > expiryTime
@@ -76,7 +86,8 @@ export class Loadable {
    * Public load method.
    * NOTE: don't override this, override `getLoader()` instead!
    */
-  @action load(_loadParams) {
+  // @action
+  load(_loadParams) {
     // If _loadParams are the same as last time:
     if (isEqual(_loadParams, this._loadParams)) {
       // If we're currently loading, return the current loading promise
@@ -93,7 +104,7 @@ export class Loadable {
     this.stopInflightLoad()
 
     let _loader
-    const onSuccess = action("onSuccess", async contents => {
+    const onSuccess = /* action( */ async contents => {
       // Only update if the same _loader is active
       if (this._loader === _loader) {
         Object.assign(this, {
@@ -106,9 +117,9 @@ export class Loadable {
         })
       }
       return this.contents
-    })
+    } /* ) */
 
-    const onError = action(async loadError => {
+    const onError = /* action( */ async loadError => {
       // Only update if the same _loader is active
       if (this._loader === _loader) {
         Object.assign(this, {
@@ -122,7 +133,7 @@ export class Loadable {
       }
       if (this.loadError) throw this.loadError
       return this.contents
-    })
+    } /* ) */
 
     try {
       _loader = this.getLoader(_loadParams)
@@ -146,7 +157,7 @@ export class Loadable {
    * Attempt to cancel the current in-flight load.
    * No-op if not loading. Attempts to minimally clean up load variables.
    */
-  @action
+  // @action
   stopInflightLoad() {
     if (this.isLoading) {
       const { _loader } = this
@@ -159,14 +170,14 @@ export class Loadable {
   }
 
   /** Force reload of the resource, ignoring expiration logic. */
-  @action
+  // @action
   reload(_loadParams) {
     this.unload()
     return this.load(_loadParams)
   }
 
   /** Manual unload. */
-  @action
+  // @action
   unload() {
     this.stopInflightLoad()
     Object.assign(this, {

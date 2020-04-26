@@ -1,7 +1,7 @@
 import global from "global"
-import { computed } from "mobx"
+// import { computed } from "mobx"
 
-import { JSON5File, OPTIONAL, REQUIRED, proto, $fetch } from "../../util"
+import { JSON5File, OPTIONAL, REQUIRED, proto, memoizeForProp, $fetch } from "../../util"
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProject } from "./SpellProject"
 
@@ -25,7 +25,9 @@ export class SpellProjectList extends JSON5File {
   /**
    * List of all available `SpellProject`s.
    */
-  @computed get projects() {
+  @memoizeForProp("contents")
+  // @computed
+  get projects() {
     if (!this.isLoaded) console.warn("SpellProjectList(): Attempting to get list of projects before loading.")
     return this.contents?.map(projectName => new SpellProject(`/project/${projectName}`))
   }

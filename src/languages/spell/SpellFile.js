@@ -1,6 +1,6 @@
 import global from "global"
-import { observable, computed } from "mobx"
-import { TextFile, proto, forward, writeOnce, overrideable } from "../../util"
+// import { observable, computed } from "mobx"
+import { TextFile, proto, memoize, forward, writeOnce, overrideable } from "../../util"
 import { spellParser as coreSpellParser } from "."
 import { SpellProject } from "./SpellProject"
 import { SpellFileLocation } from "./SpellFileLocation"
@@ -38,6 +38,7 @@ export class SpellFile extends TextFile {
 
   /** `location` object which we can use to get various bits of the path. */
   @forward("projectPath", "projectName", "filePath", "folder", "fileName", "name", "extension")
+  @memoize
   get location() {
     return new SpellFileLocation(this.path)
   }
@@ -45,7 +46,7 @@ export class SpellFile extends TextFile {
   /**
    * Return our `project` as a `SpellProject` based on our `path`.
    */
-  get project() {
+  @memoize get project() {
     return new SpellProject(this.projectPath)
   }
 
