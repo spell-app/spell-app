@@ -101,6 +101,18 @@ export class SpellProject extends LoadableManager {
     return file
   }
 
+  /**
+   * Return manifest `info` for a file specified by `path`.
+   * If `path` doesn't start with a `/`, we'll assume it's a local file path.
+   * Returns `undefined` if file not found or manifest is not loaded.
+   */
+  getFileInfo(path = "", required = OPTIONAL) {
+    path = this.getFilePath(path)
+    const fileInfo = this.manifest.contents.files?.find(f => f.path === path)
+    if (!fileInfo && required === REQUIRED) throw new TypeError(`spellProject.getFileInfo("${path}"): file not found.`)
+    return fileInfo
+  }
+
   /** Asynchronously load file by `path` (or `filename` if path doesn't start with slash). */
   async loadFile(path) {
     await this.load()

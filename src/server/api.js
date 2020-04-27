@@ -89,7 +89,10 @@ router.get("/project/:projectId/.manifest", (request, response) => {
   const options = { ignoreHidden: true, namesOnly: true }
   const files = fileUtils.listContents(getProjectPath(projectId), options)
   const index = {
-    files: files.map(name => ({ name, path: `/project/${projectId}/${name}` }))
+    files: files.map(name => {
+      const { created, modified } = fileUtils.getFileTimes(getProjectPath(projectId, name))
+      return { name, path: `/project/${projectId}/${name}`, created, modified }
+    })
   }
   responseUtils.sendJSON(response, index)
 })

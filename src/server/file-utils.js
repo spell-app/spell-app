@@ -5,7 +5,7 @@
 //----------------------------
 
 import JSON5 from "json5"
-import path from "path"
+import _path from "path"
 import fse from "fs-extra"
 import lockfile from "proper-lockfile"
 import chalk from "chalk"
@@ -19,23 +19,26 @@ const TEXT = "utf8"
 const BINARY = "binary"
 
 //----------------------------
-//  Proxy `path` and `fs-extra` utilites so they're easy to mock
+//  Proxy `_path` and `fs-extra` utilites so they're easy to mock
 //----------------------------
 
 // Join paths.
-export const joinPath = path.join
+export const joinPath = _path.join
 
 // Get folder name for a path.
-export const folderName = path.dirname
+export const folderName = _path.dirname
 
 // Get leaf file name for a path.
-export const filename = path.basename
+export const filename = _path.basename
 
 // Does file at `path` exist?
 export const { pathExists } = fse
 
+// Return basename name for a path
+export const basename = _path.basename
+
 // Return extension name for a path
-export const extension = path.extname
+export const extension = _path.extname
 
 //----------------------------
 //  MimeTypes
@@ -55,7 +58,7 @@ export function getContentType(name) {
 //  Loading files
 //----------------------------
 
-// Load file at `path`, returns a promise which fields file results.
+// Load file at `filePath`, returns a promise which fields file results.
 // If `optional` is `true`, we'll return `null` for any file that can't be found.
 export async function loadFile(filePath, options = "utf8", optional = false) {
   try {
@@ -220,7 +223,7 @@ LockError.prototype = Object.create(Error.prototype)
 //----------------------------
 export function listContents(directory, options = {}) {
   const { includeDirs = false, includeFiles = true, namesOnly = false, ignoreHidden = false, pattern } = options
-  let paths = fse.readdirSync(directory).map(name => path.join(directory, name))
+  let paths = fse.readdirSync(directory).map(name => joinPath(directory, name))
 
   if (!includeDirs || !includeFiles)
     paths = paths.filter(filePath => {
@@ -235,13 +238,23 @@ export function listContents(directory, options = {}) {
 
   // if `ignoreHidden` was specified, remove file names starting with "."
   if (ignoreHidden) {
-    paths = paths.filter(_path => !path.basename(_path).startsWith("."))
+    paths = paths.filter(path => !basename(path).startsWith("."))
   }
 
   // If `namesOnly` was specified, remove path bits.
-  if (namesOnly) paths = paths.map(_path => path.basename(_path))
+  if (namesOnly) paths = paths.map(path => basename(path))
 
   return paths
+}
+
+/**
+ * Get created/modified dates for a `path`.
+ * Returns `{ path, created, modified }`.
+ * NOTE: node returns these times as nanosecond floats -- we round them down to the millisecond.
+ */
+export function getFileTimes(path) {
+  const info = fse.statSync(path)
+  return { path, created: Math.floor(info.birthtimeMs), modified: Math.floor(info.mtimeMs) }
 }
 
 //----------------------------
