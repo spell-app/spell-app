@@ -13,7 +13,7 @@ import Navbar from "react-bootstrap/Navbar"
 import NavDropdown from "react-bootstrap/NavDropdown"
 import NavLink from "react-bootstrap/NavLink"
 
-import Octicon, { ChevronRight } from "@githubprimer/octicons-react"
+import Octicon, { ChevronRight } from "@primer/octicons-react"
 
 import "./JSHINT"
 import { CodeMirror, inputOptions, outputOptions } from "./CodeMirror"

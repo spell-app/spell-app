@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
-    "@githubprimer/octicons-react": "^8.4.2",
+    "@primer/octicons-react": "^9.6.0",
     "@risingstack/react-easy-state": "^6.3.0",
     "assert": "^2.0.0",
     "babel-eslint": "^10.0.3",
@@ -38,8 +38,7 @@
     "lodash": "^4.17.11",
     "lodash-inflection": "^1.5.0",
     "mime-types": "^2.1.24",
-    "mobx": "^5.15.4",
-    "parcel-bundler": "^1.11.0",
+    "parcel-bundler": "^1.12.4",
     "path": "^0.12.7",
     "prettier": "^1.16.4",
     "prettier-standalone": "^1.3.1-0",
@@ -52,9 +51,6 @@
     "react-dom": "^16.8.1",
     "react-hot-loader": "^4.6.5",
     "react-keydown": "^1.7.2",
-    "react-redux": "^6.0.0",
-    "react-router-dom": "^4.3.1",
-    "react-router-redux": "^4.0.8",
     "redux": "^4.0.1"
   },
   "devDependencies": {
@@ -85,7 +81,7 @@
     "eslint-plugin-prettier": "^3.0.1",
     "eslint-plugin-react": "7.16.0",
     "eslint-plugin-react-hooks": "^1.3.0",
-    "jest": "^24.1.0",
+    "jest": "^25.4.0",
     "less": "^3.9.0",
     "nodemon": "^1.18.10"
   },
