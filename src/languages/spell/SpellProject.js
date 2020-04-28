@@ -146,6 +146,9 @@ export class SpellProject extends LoadableManager {
 
   /** Duplicate an existing file. */
   async duplicateFile(path, newPath) {
+    // normalize paths
+    path = this.getFilePath(path)
+    newPath = this.getFilePath(newPath)
     // Make sure file exists and duplicate does not
     if (this.getFile(newPath)) throw new TypeError(`duplicateFile('${path}, '${newPath}'): new file already exists`)
     const file = this.getFile(path, REQUIRED, `duplicateFile('${path}, '${newPath}'): file not found`)
@@ -156,6 +159,7 @@ export class SpellProject extends LoadableManager {
 
   /** Remove an existing file from the project. */
   async removeFile(path) {
+    path = this.getFilePath(path)
     const file = this.getFile(path, REQUIRED, `.removeFile('${path}'): file not found`)
     // Tell the server to delete the file
     await $fetch({

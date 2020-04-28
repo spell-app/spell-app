@@ -14,7 +14,7 @@ import NavLink from "react-bootstrap/NavLink"
 import Octicon, { ChevronRight } from "@githubprimer/octicons-react"
 
 import "./JSHINT"
-import { CodeMirror, codeMirrorOptions, inputOptions, outputOptions } from "./CodeMirror"
+import { CodeMirror, inputOptions, outputOptions } from "./CodeMirror"
 import "./SpellEditor.css"
 
 import { SpellFileLocation } from "../languages/spell/SpellFileLocation"
@@ -46,6 +46,7 @@ const store = _store({
   file: undefined,
   /** Select a file from the `selectedProject`. */
   selectFile: async filePath => {
+    // TODO: switch project if filePath doesn't match selected project?
     // NOTE: assumes `store.project` is a valid, loaded project!
     const { project } = store
     const pref = `selectedFileFor:${project.path}`
@@ -57,10 +58,33 @@ const store = _store({
   },
   save() {},
   revert() {},
-  create() {},
-  duplicate() {},
-  rename() {},
-  remove() {},
+  async create() {
+    const fileName = prompt("Name for the new file?", "Untitled.spell")
+    if (!fileName) return
+    const contents = `## File ${fileName}`
+    const file = await store.project.createFile(fileName, contents)
+    store.selectFile(file.path)
+  },
+  async duplicate() {
+    const { fileName } = store.file
+    const newFileName = prompt("Name for the new file?", fileName)
+    if (!newFileName) return
+    const file = await store.project.duplicateFile(fileName, newFileName)
+    store.selectFile(file.path)
+  },
+  async rename() {
+    const { fileName } = store.file
+    const newFileName = prompt(`New name for '${fileName}'?`, fileName)
+    if (!newFileName || newFileName === fileName) return
+    const file = await store.project.renameFile(fileName, newFileName)
+    store.selectFile(file.path)
+  },
+  async remove() {
+    const { fileName } = store.file
+    if (!confirm(`Really delete '${fileName}'?`)) return
+    await store.project.removeFile(fileName)
+    store.selectFile()
+  },
   onInputChange() {},
   compile() {}
 })
