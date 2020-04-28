@@ -64,7 +64,7 @@ export class Loadable extends Observable {
     this.set({
       contents,
       _load: {
-        //        status: LOADED,
+        status: LOADED,
         params,
         time: Date.now()
       }

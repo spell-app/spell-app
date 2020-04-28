@@ -1,6 +1,8 @@
 import global from "global"
 import React from "react"
 import { store as _store, view, batch } from "@risingstack/react-easy-state"
+import prettier from "prettier/standalone"
+import babylon from "prettier/parser-babylon"
 
 import Container from "react-bootstrap/Container"
 import Row from "react-bootstrap/Row"
@@ -22,6 +24,7 @@ import { SpellProjectList } from "../languages/spell/SpellProjectList"
 import { SpellProject } from "../languages/spell/SpellProject"
 import { SpellFile } from "../languages/spell/SpellFile"
 import { setPrefKey, getPref, setPref } from "../util/prefs"
+import { spellParser } from "../languages/spell"
 
 setPrefKey("spellEditor:")
 
@@ -54,22 +57,31 @@ const store = _store({
     if (!project.filePaths.includes(filePath)) filePath = project.filePaths[0]
     setPref(pref, filePath)
     store.file = new SpellFile(filePath)
-    await store.file.load()
+    await store.reload()
   },
   async save() {
     await store.file.save()
-    store.file.isDirty = false
+    batch(() => {
+      store.file.isDirty = false
+      store.output = undefined
+    })
   },
-  async revert() {
-    await store.file?.reload()
-    store.file.isDirty = false
+  async reload() {
+    store.output = undefined
+    if (store.file) {
+      await store.file.reload()
+      store.file.isDirty = false
+      store.compile()
+    }
   },
   onInputChanged(codeMirror, change, value) {
     const { file } = store
-    file.setContents(value)
-    file.isDirty = true
+    batch(() => {
+      file.setContents(value)
+      file.isDirty = true
+      store.output = undefined
+    })
   },
-  compile() {},
   async create() {
     const fileName = prompt("Name for the new file?", "Untitled.spell")
     if (!fileName) return
@@ -96,6 +108,67 @@ const store = _store({
     if (!confirm(`Really delete '${fileName}'?`)) return
     await store.project.removeFile(fileName)
     store.selectFile()
+  },
+  compile() {
+    const { file } = store
+    const input = file?.contents
+    let output
+    console.group(`Parsing ${input.length} chars (${input.split("\n").length} lines)`)
+    try {
+      const scope = spellParser.getScope(file.fileName)
+      console.info("scope: ", scope)
+
+      // assign scope and parsing shorthand functions globally
+      // for ad-hoc testing of what was just parsed.
+      global.scope = scope
+      global.parse = scope.parse.bind(scope)
+      global.statement = text => scope.parse(text, "statement")
+      global.exp = text => scope.parse(text, "expression")
+
+      // Break parse/compile into 2 steps so we can time it
+      const start = Date.now()
+      const match = spellParser.parse(input, undefined, scope)
+      const afterParse = Date.now()
+      output = match.compile()
+      const afterCompile = Date.now()
+
+      console.info(`parsed in ${afterParse - start} msec, compiled in ${afterCompile - afterParse} msec`)
+    } catch (e) {
+      console.error(e)
+      output = e.message
+    }
+
+    // Attempt to format the javascript, then excute it if formatting goes ok
+    let pretty = output
+    try {
+      // Use prettier to format the output,
+      // This will throw if the code is bad.
+      pretty = prettier.format(output, { parser: "babel", plugins: [babylon] })
+
+      // add all types to `global` for local hacking
+      try {
+        const scriptEl = document.createElement("script")
+        scriptEl.setAttribute("id", "compileOutput")
+        scriptEl.setAttribute("type", "module")
+        scriptEl.innerHTML = output
+
+        const existingEl = document.getElementById("compileOutput")
+        console.group("attempting to execute contents:")
+        setTimeout(() => console.groupEnd(), 100) // groupEnd after compile finishes asynchronously
+
+        if (existingEl) {
+          existingEl.replaceWith(scriptEl)
+        } else {
+          document.body.append(scriptEl)
+        }
+      } catch (e) {
+        console.error("error evaling output:", e)
+      }
+    } catch (e) {
+      console.warn("Prettier error:", e)
+    }
+    store.output = pretty
+    console.groupEnd()
   }
 })
 global._store = store
@@ -150,12 +223,11 @@ const InputEditor = view(function InputEditor() {
 })
 
 const OutputEditor = view(function OutputEditor() {
-  const { file } = store
-  console.info("OutputEditor", file)
+  const { output = "" } = store
+  console.info("OutputEditor", output)
   return (
     <CodeMirror
-      key={file?.path || "loading"}
-      value={"output goes here" || "Loading..."}
+      value={output}
       disabled
       className="h-100 w-100 rounded shadow-sm border"
       options={outputOptions}
@@ -173,7 +245,7 @@ const EditorToolbar = view(function EditorToolbar() {
         <Button variant={isDirty ? "success" : "dark"} onClick={store.save}>
           Save
         </Button>
-        <Button variant={isDirty ? "danger" : "dark"} onClick={store.revert}>
+        <Button variant={isDirty ? "danger" : "dark"} onClick={store.reload}>
           Revert
         </Button>
         <Nav.Link onClick={store.create}>New File</Nav.Link>
@@ -186,27 +258,29 @@ const EditorToolbar = view(function EditorToolbar() {
 })
 
 const CompileButton = view(function CompileButton() {
-  const { isDirty } = store.file || {}
-  console.info("CompileButton", isDirty)
-  if (!isDirty) return null
-  return (
-    <Button
-      className="border shadow-sm p-0 pt-1 text-secondary"
-      style={{
-        background: "#eee",
-        position: "absolute",
-        width: "5em",
-        left: "calc(50% - 2.5em)",
-        top: "50%",
-        zIndex: 3
-      }}
-      onClick={store.compile}
-    >
-      <Octicon icon={ChevronRight} size="medium" />
-      <br />
-      Compile
-    </Button>
-  )
+  const { file, output } = store
+  console.info("CompileButton", file, output)
+  if (file && !output) {
+    return (
+      <Button
+        className="border shadow-sm p-0 pt-1 text-secondary"
+        style={{
+          background: "#eee",
+          position: "absolute",
+          width: "5em",
+          left: "calc(50% - 2.5em)",
+          top: "50%",
+          zIndex: 3
+        }}
+        onClick={store.compile}
+      >
+        <Octicon icon={ChevronRight} size="medium" />
+        <br />
+        Compile
+      </Button>
+    )
+  }
+  return null
 })
 
 export const SpellEditor = view(function SpellEditor() {

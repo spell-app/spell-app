@@ -39,33 +39,33 @@ export class _SpellEditor extends React.Component {
 
   selectProject = projectId => _projects.call.selectProjectFile({ projectId })
 
-  selectProjectFile = filename => _projects.call.selectProjectFile({ projectId: this.props.projectId, filename })
+  selectProjectFile = fileName => _projects.call.selectProjectFile({ projectId: this.props.projectId, fileName })
 
   create = () => {
-    const filename = prompt("Name for the new file?", "Untitled.spell")
-    if (!filename) return
-    const contents = `## File ${filename}`
-    _projects.call.newProjectFile({ filename, contents })
+    const fileName = prompt("Name for the new file?", "Untitled.spell")
+    if (!fileName) return
+    const contents = `## File ${fileName}`
+    _projects.call.newProjectFile({ fileName, contents })
   }
 
   duplicate = () => {
-    const { filename } = this.props.projects
-    const newFilename = prompt("Name for the new file?", filename)
-    if (!newFilename || newFilename === filename) return
-    _projects.call.duplicateProjectFile({ filename, newFilename, contents: INPUT })
+    const { fileName } = this.props.projects
+    const newFilename = prompt("Name for the new file?", fileName)
+    if (!newFilename || newFilename === fileName) return
+    _projects.call.duplicateProjectFile({ fileName, newFilename, contents: INPUT })
   }
 
   _delete = () => {
-    const { filename } = this.props.projects
-    if (!confirm(`Really delete '${filename}'?`)) return
-    _projects.call.deleteProjectFile({ filename })
+    const { fileName } = this.props.projects
+    if (!confirm(`Really delete '${fileName}'?`)) return
+    _projects.call.deleteProjectFile({ fileName })
   }
 
   rename = () => {
-    const { filename } = this.props.projects
-    const newFilename = prompt("New name?", filename)
-    if (!newFilename || newFilename === filename) return
-    _projects.call.renameProjectFile({ filename, newFilename, contents: INPUT })
+    const { fileName } = this.props.projects
+    const newFilename = prompt("New name?", fileName)
+    if (!newFilename || newFilename === fileName) return
+    _projects.call.renameProjectFile({ fileName, newFilename, contents: INPUT })
   }
 
   onInputChange = (codeMirror, change, value) => {
@@ -107,7 +107,7 @@ export class _SpellEditor extends React.Component {
 
   render() {
     const { projects } = this.props
-    const { projectId, filename, input, output, dirty } = projects
+    const { projectId, fileName, input, output, dirty } = projects
     const projectIds = _projects.getProjectIds(projects)
     const index = _projects.getProjectIndex(projects, projectId)
 
@@ -159,7 +159,7 @@ export class _SpellEditor extends React.Component {
                   {projectItems}
                 </NavDropdown>
                 <NavLink disabled>File:</NavLink>
-                <NavDropdown title={filename} id="file-dropdown" style={{ width: "12em" }}>
+                <NavDropdown title={fileName} id="file-dropdown" style={{ width: "12em" }}>
                   {fileItems}
                 </NavDropdown>
                 <Navbar.Collapse id="navbar-buttons" className="ml-2">

@@ -12,9 +12,9 @@ export * as AST from "./AST"
 // Export the entire language as `spell` and as the `default` export.
 export { default as spellParser } from "./rules/_spellParser"
 
-export * from "./SpellProjectList"
 export * from "./SpellFileLocation"
-export * from "./SpellFile"
+export * from "./SpellProjectList"
 export * from "./SpellProject"
 export * from "./SpellProjectManifest"
 export * from "./SpellProjectIndex"
+export * from "./SpellFile"
