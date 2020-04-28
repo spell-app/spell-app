@@ -115,6 +115,8 @@ export function forward(...properties) {
         enumerable: false,
         get() {
           const value = this[property][prop]
+          // NOTE: This will return a different function each time.
+          //       Could memoize them using a Map()
           if (typeof value === "function") return value.bind(this)
           return value
         },

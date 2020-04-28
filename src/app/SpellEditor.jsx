@@ -1,5 +1,6 @@
+import global from "global"
 import React from "react"
-import PropTypes from "prop-types"
+import { store as _store, view, batch } from "@risingstack/react-easy-state"
 
 import Container from "react-bootstrap/Container"
 import Row from "react-bootstrap/Row"
@@ -12,228 +13,184 @@ import NavLink from "react-bootstrap/NavLink"
 
 import Octicon, { ChevronRight } from "@githubprimer/octicons-react"
 
-// load and configure JSHINT global variable (ugh, this is nasty)
-import global from "global"
-import { JSHINT } from "jshint"
-
-// Codemirror
-import { Controlled as CodeMirror } from "react-codemirror2"
-import "codemirror/lib/codemirror.css"
-import "codemirror/theme/neo.css"
-import "codemirror/theme/neat.css"
-import "codemirror/theme/solarized.css"
-import "codemirror/mode/javascript/javascript"
-import "codemirror/mode/markdown/markdown"
-
-import "codemirror/addon/lint/lint"
-import "codemirror/addon/lint/lint.css"
-import "codemirror/addon/lint/javascript-lint"
-
-import { projects as _projects, withProjects, INPUT } from "./redux/projects"
-import "./spell.codemirror"
+import "./JSHINT"
+import { CodeMirror, inputOptions, outputOptions } from "./CodeMirror"
 import "./SpellEditor.css"
 
-global.JSHINT = function(source) {
-  // see: https://jshint.com/docs/options
-  const hintOptions = {
-    esversion: 8,
-    asi: true, // ignore semicolons
-    globals: {
-      spell: true
+import { SpellFileLocation } from "../languages/spell/SpellFileLocation"
+import { SpellProjectList } from "../languages/spell/SpellProjectList"
+import { SpellProject } from "../languages/spell/SpellProject"
+import { SpellFile } from "../languages/spell/SpellFile"
+import { setPrefKey, getPref, setPref } from "../util/prefs"
+
+const projectList = new SpellProjectList()
+setPrefKey("spellEditor:")
+
+const store = _store({
+  start: async () => {
+    await projectList.load()
+    store.selectProject()
+  },
+  get projectsLoaded() {
+    return projectList.isLoaded
+  },
+  get projects() {
+    return projectList.projectPaths
+  },
+  selectedProject: undefined,
+  get selectedProjectName() {
+    try {
+      const { projectName } = new SpellFileLocation(store.selectedProject)
+      return projectName
+    } catch (e) {
+      return "Loading..."
     }
-  }
-  return JSHINT(source, hintOptions)
-}
-Object.keys(JSHINT).forEach(key => {
-  global.JSHINT[key] = JSHINT[key]
+  },
+  /** Select a project. */
+  selectProject: async (projectPath = getPref("selectedProject")) => {
+    console.warn("selecting project", projectPath)
+    const projectPaths = await projectList.load()
+    if (!projectPaths.includes(projectPath)) projectPath = projectPaths[0]
+    store.selectedProject = setPref("selectedProject", projectPath)
+    store.selectFile()
+  },
+  selectedFile: undefined,
+  get selectedFileName() {
+    try {
+      const { fileName } = new SpellFileLocation(store.selectedFile)
+      return fileName
+    } catch (e) {
+      return "Loading..."
+    }
+  },
+  /** Select a file from the `selectedProject`. */
+  selectFile: async filePath => {
+    const pref = `selectedFileFor:${store.selectedProject}`
+    if (!filePath) filePath = getPref(pref)
+    // NOTE: assumes `store.selectedProject` is the name of a valid project!!!
+    const { selectedProject } = store
+    const project = new SpellProject(selectedProject)
+    await project.load()
+    const { filePaths } = project
+    if (!filePaths.includes(filePath)) filePath = filePaths[0]
+    store.selectedFile = setPref(pref, filePath)
+  },
+  /** Paths for all files in `selectedProject` */
+  get files() {
+    const { selectedProject } = store
+    if (!selectedProject) return undefined
+    const project = new SpellProject(selectedProject)
+    if (!project.isLoaded) {
+      project.load()
+      return undefined
+    }
+    return project.filePaths
+  },
+  save() {},
+  revert() {},
+  create() {},
+  duplicate() {},
+  rename() {},
+  remove() {},
+  onInputChange() {},
+  compile() {}
+})
+store.start()
+global._store = store
+
+/** Menu of all available projects. */
+const ProjectMenu = view(function() {
+  const { projectsLoaded, selectedProject, selectedProjectName, projects } = store
+  console.info("ProjectMenu", projectsLoaded, selectedProjectName, projects)
+  if (!projectsLoaded)
+    return <NavDropdown key="loading" title="Loading..." id="ProjectMenu" style={{ width: "12em" }} />
+  return (
+    <NavDropdown key={selectedProject} title={selectedProjectName} id="ProjectMenu" style={{ width: "12em" }}>
+      {projects.map(path => (
+        <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectProject}>
+          {new SpellFileLocation(path).projectName}
+        </NavDropdown.Item>
+      ))}
+    </NavDropdown>
+  )
 })
 
-export class _SpellEditor extends React.Component {
-  static propTypes = {
-    projectId: PropTypes.string,
-    projects: PropTypes.object
-  }
-
-  constructor(props) {
-    super(props)
-    _projects.call.startup()
-  }
-
-  compile = () => _projects.call.compileInput()
-
-  revert = () => _projects.call.revertInput()
-
-  reload = () => _projects.call.reloadSelected()
-
-  save = () => _projects.call.saveInput()
-
-  selectProject = projectId => _projects.call.selectProjectFile({ projectId })
-
-  selectProjectFile = filename => _projects.call.selectProjectFile({ projectId: this.props.projectId, filename })
-
-  create = () => {
-    const filename = prompt("Name for the new file?", "Untitled.spell")
-    if (!filename) return
-    const contents = `## File ${filename}`
-    _projects.call.newProjectFile({ filename, contents })
-  }
-
-  duplicate = () => {
-    const { filename } = this.props.projects
-    const newFilename = prompt("Name for the new file?", filename)
-    if (!newFilename || newFilename === filename) return
-    _projects.call.duplicateProjectFile({ filename, newFilename, contents: INPUT })
-  }
-
-  _delete = () => {
-    const { filename } = this.props.projects
-    if (!confirm(`Really delete '${filename}'?`)) return
-    _projects.call.deleteProjectFile({ filename })
-  }
-
-  rename = () => {
-    const { filename } = this.props.projects
-    const newFilename = prompt("New name?", filename)
-    if (!newFilename || newFilename === filename) return
-    _projects.call.renameProjectFile({ filename, newFilename, contents: INPUT })
-  }
-
-  onInputChange = (codeMirror, change, value) => {
-    // console.info(codeMirror, "\n", change)//, "\n", value)
-    _projects.actions.updateInput(value)
-  }
-
-  // Buttons to show when the input field is dirty.
-  dirtyButtons = (
-    <div style={{ position: "absolute", right: "3px", top: "3px" }}>
-      <Button variant="danger" onClick={this.revert} style={{ width: "5em" }}>
-        <u>R</u>evert
-      </Button>{" "}
-      <Button variant="success" onClick={this.save} style={{ width: "5em" }}>
-        <u>S</u>ave
-      </Button>
-    </div>
+/** Menu of all available files. */
+const FileMenu = view(function() {
+  const { selectedFile, selectedFileName, files } = store
+  console.info("FileMenu", selectedFile, selectedFileName, files)
+  if (!files) return <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
+  return (
+    <NavDropdown key={selectedFile} title={selectedFileName} id="FileMenu" style={{ width: "12em" }}>
+      {files.map(path => (
+        <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectFile}>
+          {new SpellFileLocation(path).fileName}
+        </NavDropdown.Item>
+      ))}
+    </NavDropdown>
   )
+})
 
-  // Buttons to show when the input can be compiled.
-  compileButton = (
-    <Button
-      className="border shadow-sm p-0 pt-1 text-secondary"
-      style={{
-        background: "#eee",
-        position: "absolute",
-        width: "5em",
-        left: "calc(50% - 2.5em)",
-        top: "50%",
-        zIndex: 3
-      }}
-      onClick={this.compile}
-    >
-      <Octicon icon={ChevronRight} size="medium" />
-      <br />
-      Compile
-    </Button>
+export function SpellEditor() {
+  const dirty = false
+  // const { selectedProject, selectedFile } = store
+  const input = input
+  const output = output
+
+  return (
+    <Container fluid className="d-flex flex-column h-100 px-0">
+      <Row>
+        <Col xs={12}>
+          <Navbar bg="dark" variant="dark" className="py-0">
+            <Nav>
+              <NavLink disabled>Project:</NavLink>
+              <ProjectMenu />
+              <NavLink disabled>File:</NavLink>
+              <FileMenu />
+              <Navbar.Collapse id="navbar-buttons" className="ml-2">
+                <Nav>
+                  <Button variant={dirty ? "success" : "dark"} onClick={store.save}>
+                    Save
+                  </Button>
+                  <Button variant={dirty ? "danger" : "dark"} onClick={store.revert}>
+                    Revert
+                  </Button>
+                  <Nav.Link onClick={store.create}>New File</Nav.Link>
+                  <Nav.Link onClick={store.duplicate}>Duplicate</Nav.Link>
+                  <Nav.Link onClick={store.rename}>Rename</Nav.Link>
+                  <Nav.Link onClick={store.remove}>Delete</Nav.Link>
+                </Nav>
+              </Navbar.Collapse>
+            </Nav>
+          </Navbar>
+        </Col>
+      </Row>
+      <Row noGutters className="p-2 h-100">
+        <Col xs={6} className="h-100">
+          input
+        </Col>
+        <Col xs={6} className="pl-2 CodeMirrorContainer">
+          output
+        </Col>
+        {/* !output && (
+          <Button
+            className="border shadow-sm p-0 pt-1 text-secondary"
+            style={{
+              background: "#eee",
+              position: "absolute",
+              width: "5em",
+              left: "calc(50% - 2.5em)",
+              top: "50%",
+              zIndex: 3
+            }}
+            onClick={store.compile}
+          >
+            <Octicon icon={ChevronRight} size="medium" />
+            <br />
+            Compile
+          </Button>
+          ) */}
+      </Row>
+    </Container>
   )
-
-  render() {
-    const { projects } = this.props
-    const { projectId, filename, input, output, dirty } = projects
-    const projectIds = _projects.getProjectIds(projects)
-    const index = _projects.getProjectIndex(projects, projectId)
-
-    // Don't do anything if our data isn't yet loaded
-    if (!projectIds || !index) return null
-
-    // Create menuItems for the projects menu
-    const projectItems = projectIds.map(nextProjectId => (
-      <NavDropdown.Item key={nextProjectId} eventKey={nextProjectId} onSelect={this.selectProject}>
-        {nextProjectId}
-      </NavDropdown.Item>
-    ))
-
-    // Create menuitems for the files menu
-    const fileItems = index.files.map(file => (
-      <NavDropdown.Item key={file.name} eventKey={file.name} onSelect={this.selectProjectFile}>
-        {file.name}
-      </NavDropdown.Item>
-    ))
-
-    const codeMirrorOptions = {
-      theme: "neat", // Owen favors: "solarized", "neo" and "neat"
-      indentWithTabs: true,
-      indentUnit: 3,
-      tabSize: 3
-    }
-    const inputOptions = {
-      ...codeMirrorOptions,
-      mode: "spell"
-    }
-
-    const outputOptions = {
-      ...codeMirrorOptions,
-      mode: "javascript",
-      readOnly: true,
-      // eslint
-      gutters: ["CodeMirror-lint-markers"],
-      lint: true
-    }
-
-    return (
-      <Container fluid className="d-flex flex-column h-100 px-0">
-        <Row>
-          <Col xs={12}>
-            <Navbar bg="dark" variant="dark" className="py-0">
-              <Nav>
-                <NavLink disabled>Project:</NavLink>
-                <NavDropdown title={projectId} id="project-dropdown" style={{ width: "12em" }}>
-                  {projectItems}
-                </NavDropdown>
-                <NavLink disabled>File:</NavLink>
-                <NavDropdown title={filename} id="file-dropdown" style={{ width: "12em" }}>
-                  {fileItems}
-                </NavDropdown>
-                <Navbar.Collapse id="navbar-buttons" className="ml-2">
-                  <Nav>
-                    <Button variant={dirty ? "success" : "dark"} onClick={this.save}>
-                      Save
-                    </Button>
-                    <Button variant={dirty ? "danger" : "dark"} onClick={this.revert}>
-                      Revert
-                    </Button>
-                    <Nav.Link onClick={this.create}>New File</Nav.Link>
-                    <Nav.Link onClick={this.duplicate}>Duplicate</Nav.Link>
-                    <Nav.Link onClick={this.rename}>Rename</Nav.Link>
-                    <Nav.Link onClick={this._delete}>Delete</Nav.Link>
-                  </Nav>
-                </Navbar.Collapse>
-              </Nav>
-            </Navbar>
-          </Col>
-        </Row>
-        <Row noGutters className="p-2 h-100">
-          <Col xs={6} className="h-100">
-            <CodeMirror
-              value={input}
-              className="h-100 w-100 rounded shadow-sm border"
-              options={inputOptions}
-              onBeforeChange={this.onInputChange}
-            />
-          </Col>
-          <Col xs={6} className="pl-2 CodeMirrorContainer">
-            <CodeMirror
-              value={output || ""}
-              className="h-100 w-100 rounded shadow-sm border"
-              options={outputOptions}
-              onChange={Function.prototype}
-            />
-          </Col>
-          {!output && this.compileButton}
-        </Row>
-      </Container>
-    )
-  }
 }
-
-// Pass projects from redux
-const SpellEditor = withProjects(_SpellEditor)
-export { SpellEditor }

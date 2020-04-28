@@ -1,5 +1,4 @@
 import global from "global"
-// import { computed } from "mobx"
 
 import { JSON5File, OPTIONAL, REQUIRED, proto, memoizeForProp, $fetch } from "../../util"
 import { SpellFileLocation } from "./SpellFileLocation"
@@ -23,13 +22,23 @@ export class SpellProjectList extends JSON5File {
   }
 
   /**
-   * List of all available `SpellProject`s.
+   * List of paths for all available `SpellProject`s.
    */
   @memoizeForProp("contents")
-  // @computed
+  get projectPaths() {
+    console.warn("setting projectPaths")
+    // if (!this.isLoaded) console.warn("SpellProjectList(): Attempting to get list of projects before loading.")
+    return this.contents || []
+  }
+
+  /**
+   * Pointers to all available `SpellProject`s.
+   * NOTE: it's tricky to use this in a component!
+   */
+  @memoizeForProp("projectPaths")
   get projects() {
-    if (!this.isLoaded) console.warn("SpellProjectList(): Attempting to get list of projects before loading.")
-    return this.contents?.map(projectName => new SpellProject(`/project/${projectName}`))
+    console.warn("setting projects")
+    return this.projectPaths.map(path => new SpellProject(path))
   }
 
   /**

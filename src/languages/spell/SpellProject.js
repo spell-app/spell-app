@@ -1,7 +1,7 @@
 import global from "global"
 // import { observable, computed } from "mobx"
 
-import { LoadableManager, forward, memoize, writeOnce, $fetch, OPTIONAL, REQUIRED } from "../../util"
+import { LoadableManager, forward, memoize, memoizeForProp, writeOnce, $fetch, OPTIONAL, REQUIRED } from "../../util"
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProjectManifest } from "./SpellProjectManifest"
 import { SpellProjectIndex } from "./SpellProjectIndex"
@@ -29,6 +29,7 @@ export class SpellProject extends LoadableManager {
   /** We've been removed from the server -- clean up memory, etc.. */
   cleanUpOnRemove() {
     this.manifest.cleanUpOnRemove()
+    this.index.cleanUpOnRemove()
     SpellProject.registry.clear(this.path)
   }
 
@@ -56,9 +57,9 @@ export class SpellProject extends LoadableManager {
 
   /**
    * Return our manifest file.
-   * Also `spellProject.files` to return array of project files.
+   * Also `spellProject.filePaths` and `spellProject.files`.
    */
-  @forward("files")
+  @forward("filePaths", "files")
   @memoize
   get manifest() {
     return new SpellProjectManifest(this.path)

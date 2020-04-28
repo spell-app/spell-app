@@ -28,7 +28,7 @@ export class SpellProjectManifest extends JSON5File {
 
   /** We've been removed from the server -- clean up memory, etc.. */
   cleanUpOnRemove() {
-    if (this.isLoaded) this.files.forEach(file => file.cleanUpOnRemove())
+    this.files.forEach(file => file.cleanUpOnRemove())
     SpellProjectManifest.registry.clear(this.path)
   }
 
@@ -57,15 +57,21 @@ export class SpellProjectManifest extends JSON5File {
   }
 
   /**
-   * Return list of `SpellFiles` in the index.
-   * Returns `undefined` if we're not loaded or manifest is malformed.
+   * Return paths of `SpellFiles` in our mainfest.
+   * Returns `[]` if we're not loaded or manifest is malformed.
    */
-  // @computed
   @memoizeForProp("contents")
+  get filePaths() {
+    return this.contents?.files.map(file => file.path) || []
+  }
+
+  /**
+   * Return pointers to all `SpellFiles` in our mainfest.
+   * Returns `[]` if we're not loaded.
+   */
+  @memoizeForProp("filePaths")
   get files() {
-    if (!this.isLoaded) console.warn("SpellProjectManifest(): Attempting to get list of files before loading.")
-    console.warn("recalculating files", this.contents)
-    return this.contents?.files?.map(({ path }) => new SpellFile(path))
+    return this.files.map(path => new SpellFile(path))
   }
 
   //----------------------------

@@ -80,7 +80,8 @@ router.get("/error", (request, response) => {
 router.get("/projects", (request, response) => {
   const options = { includeDirs: true, includeFiles: false, namesOnly: true }
   const dirs = fileUtils.listContents(getProjectPath(), options)
-  responseUtils.sendJSON(response, dirs)
+  const paths = dirs.map(dir => `/project/${dir}`)
+  responseUtils.sendJSON(response, paths)
 })
 
 /** Return manifest for a project: all "unhidden" files in the project folder.  */

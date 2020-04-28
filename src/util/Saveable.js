@@ -1,25 +1,28 @@
 import { isEqual } from "lodash"
 
-import { proto } from "./decorators"
 import { Loadable } from "./Loadable"
+import { prop } from "./Observable"
 
 /**
  * Abstract class for a saveable resource (which is implicitly also `Loadable`).
  */
 export class Saveable extends Loadable {
+  /**
+   * Current save state (protected):
+   * - `isDirty`:   Do we need to save?
+   * - `params`:    Params passed to last save().
+   * - `promise`:   Promise used for the current in-flight save.
+   * - `results`:   Result returned during last save if it succeeded.
+   * - `error`:     Error returned during last save if it failed.
+   * - `time`:      Last save time (only set after save() completes).
+   */
   /** Private info about the last save. Immutable. */
-  @proto _save = {
-    /** Do we need to save? */
+  @prop _save = {
     isDirty: undefined,
-    /** Last save params, set when actually saving. */
     params: undefined,
-    /** Last save promise, set if we're actually saving. */
-    saver: undefined,
-    /** Result of the last successful save(). */
+    promise: undefined,
     result: undefined,
-    /** Last save error, set on failed save. */
     error: undefined,
-    /** When last save finished/failed. */
     time: undefined
   }
 
@@ -31,27 +34,12 @@ export class Saveable extends Loadable {
   /** Set `needsToSave = true` when it's time to save */
   set isDirty(value = true) {
     const { isDirty: _ignored, ...otherProps } = this._save
-    this._save = { isDirty: value, ...otherProps }
+    this.set("_save", { isDirty: value, ...otherProps })
   }
 
   /** Are we currently saving? */
   get isSaving() {
-    return !!this._save.saver
-  }
-
-  /** Result of last `save()`, if any. */
-  get saveResult() {
-    return this._save.result
-  }
-
-  /** Error from last `save()`, if any. */
-  get saveError() {
-    return this._save.error
-  }
-
-  /** Time when we were last saved, if any. */
-  get saveTime() {
-    return this._save.time
+    return !!this._save.promise
   }
 
   /**
@@ -61,7 +49,7 @@ export class Saveable extends Loadable {
   save(params) {
     if (this.isSaving) {
       // bail early if we're already saving with the same params (???)
-      if (isEqual(params, this._save.params)) return this._save.saver
+      if (isEqual(params, this._save.params)) return this._save.promise
       // Otherwise cancel the pending save (if possible) and we'll try again
       this.cancelSave()
     }
@@ -73,7 +61,7 @@ export class Saveable extends Loadable {
         params,
         time: Date.now()
       }
-      return this.saveResult
+      return this._save.result
     }
 
     const onError = async error => {
@@ -83,18 +71,18 @@ export class Saveable extends Loadable {
         params,
         time: Date.now()
       }
-      throw this.saveError
+      throw this._save.error
     }
 
     try {
-      const saver = this.getSaver(params)
-      if (!saver || !saver.then) throw new TypeError(`${this.constructor.name}.getSaver() didn't return a promise!`)
+      const promise = this.getSaver(params)
+      if (!promise || !promise.then) throw new TypeError(`${this.constructor.name}.getSaver() didn't return a promise!`)
       this._save = {
         isDirty: true,
         params,
-        saver: saver.then(onSuccess, onError)
+        promise: promise.then(onSuccess, onError)
       }
-      return this._save.saver
+      return this._save.promise
     } catch (e) {
       return onError(e)
     }
@@ -102,9 +90,9 @@ export class Saveable extends Loadable {
 
   /** Attempt to cancel an in-flight save. */
   cancelSave() {
-    if (this._save.saver?.cancel) {
-      const { saver, ...otherProps } = this._save
-      saver.cancel()
+    if (this._save.promise?.cancel) {
+      const { promise, ...otherProps } = this._save
+      promise.cancel()
       this._save = otherProps
     }
   }

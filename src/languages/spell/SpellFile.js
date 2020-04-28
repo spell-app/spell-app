@@ -52,9 +52,8 @@ export class SpellFile extends TextFile {
 
   /**
    * Return our `created` time according to the server as a timestamp.
-   * NOTE: this may be out of sync if we've been modified on the client.
    */
-  @memoize get created() {
+  get created() {
     return this.project.getFileInfo(this.path).created
   }
 
@@ -62,7 +61,7 @@ export class SpellFile extends TextFile {
    * Return our `modified` time according to the server as a timestamp.
    * NOTE: this may be out of sync if we've been modified on the client.
    */
-  @memoize get modified() {
+  get modified() {
     return this.project.getFileInfo(this.path).modified
   }
 

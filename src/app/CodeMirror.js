@@ -8,8 +8,43 @@
 import _ from "lodash"
 import CodeMirror from "codemirror"
 
+// Import codemirror setup
+import "codemirror/lib/codemirror.css"
+import "codemirror/theme/neo.css"
+import "codemirror/theme/neat.css"
+import "codemirror/theme/solarized.css"
+import "codemirror/mode/javascript/javascript"
+import "codemirror/mode/markdown/markdown"
+
+import "codemirror/addon/lint/lint"
+import "codemirror/addon/lint/lint.css"
+import "codemirror/addon/lint/javascript-lint"
+
 import { Token, spellParser } from "."
 // import blacklist from "../languages/spell/rules/identifier-blacklist"
+
+// Export `<CodeMirror>` component
+export { Controlled as CodeMirror } from "react-codemirror2"
+
+const codeMirrorOptions = {
+  theme: "neat", // Owen favors: "solarized", "neo" and "neat"
+  indentWithTabs: true,
+  indentUnit: 3,
+  tabSize: 3
+}
+export const inputOptions = {
+  ...codeMirrorOptions,
+  mode: "spell"
+}
+
+export const outputOptions = {
+  ...codeMirrorOptions,
+  mode: "javascript",
+  readOnly: true,
+  // eslint
+  gutters: ["CodeMirror-lint-markers"],
+  lint: true
+}
 
 CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
   // Return the token that starts at numeric offset
