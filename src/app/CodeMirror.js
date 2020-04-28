@@ -20,6 +20,11 @@ import "codemirror/addon/lint/lint"
 import "codemirror/addon/lint/lint.css"
 import "codemirror/addon/lint/javascript-lint"
 
+import "./CodeMirror.css"
+
+// Set up JSHINT for displaying compiled JS properly
+import "./JSHINT"
+
 import { Token, spellParser } from "."
 // import blacklist from "../languages/spell/rules/identifier-blacklist"
 

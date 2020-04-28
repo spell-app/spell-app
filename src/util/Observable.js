@@ -1,14 +1,15 @@
 import global from "global"
 import _set from "lodash/set"
 import _unset from "lodash/unset"
-import { store, batch, autoEffect, clearEffect } from "@risingstack/react-easy-state"
+import { store as createStore, view, batch, autoEffect, clearEffect } from "@risingstack/react-easy-state"
 
 import { readonly } from "./decorators"
 
 // re-export react-easy-state props for convenience
-export { store, batch, autoEffect, clearEffect }
+export { createStore, view, batch, autoEffect, clearEffect }
 
 // DEBUG
+global.createStore = createStore
 global.autoEffect = autoEffect
 global.clearEffect = clearEffect
 
@@ -48,7 +49,7 @@ function _setOrUnsetProp(thing, key, value) {
 
 export class Observable {
   constructor(props) {
-    Object.defineProperty(this, "_props", { value: store() })
+    Object.defineProperty(this, "_props", { value: createStore() })
     this.set(props)
   }
   /**
