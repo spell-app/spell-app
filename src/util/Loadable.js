@@ -5,8 +5,6 @@ import { batch } from "@risingstack/react-easy-state"
 import { proto } from "./decorators"
 import { Observable, prop } from "./Observable"
 
-global.batch = batch
-
 /**
  * Abstract class for a loadable / possibly saveable resource.
  * Create subclasses and implement:
@@ -139,7 +137,7 @@ export class Loadable extends Observable {
     const onSuccess = async contents => {
       // Only update if the same `loader` is active
       if (this._loadable.loader === loader) {
-        this.setContents(contents, { loadTime: Date.now() })
+        this.setContents(contents, { loadParams })
       }
       return this.contents
     }
@@ -147,7 +145,7 @@ export class Loadable extends Observable {
     const onError = async loadError => {
       // Only update if the same `loader` is active
       if (loader === this._loadable.loader) {
-        this.setContents(undefined, { isLoaded: false, loadError })
+        this.setContents(undefined, { isLoaded: false, loadParams, loadError })
       }
       if (this._loadable.loadError) throw this._loadable.loadError
       return this.contents
@@ -276,6 +274,8 @@ export class Loadable extends Observable {
           ...this._loadable,
           isLoaded: true,
           isDirty: false,
+          loadError: undefined,
+          loadTime: Date.now(),
           ...loadableProps
         }
       })

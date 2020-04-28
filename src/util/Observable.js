@@ -1,12 +1,14 @@
 import global from "global"
 import _set from "lodash/set"
 import _unset from "lodash/unset"
-import { store as _store, batch, autoEffect, clearEffect } from "@risingstack/react-easy-state"
+import { store, batch, autoEffect, clearEffect } from "@risingstack/react-easy-state"
 
 import { readonly } from "./decorators"
 
+// re-export react-easy-state props for convenience
+export { store, batch, autoEffect, clearEffect }
+
 // DEBUG
-global._store = _store
 global.autoEffect = autoEffect
 global.clearEffect = clearEffect
 
@@ -32,13 +34,13 @@ function _setOrUnsetProp(thing, key, value) {
  * - inherit from Observable
  * - all observable properties must be defined as `@prop`
  *    - props are non-enumerable by default?
- * - use getters/setters as normal
  * - use `@memoProp` for memoized reactive property
  * - use `@protoProp` to sets default value on prototype, instance can override reactively
  * - you can `@prop @readonly` if you want
- * - use `set(props)` to set multiple values and/or delete props
+ * - use `set(props)` or `set(prop, value)` to set multiple values and/or delete props
+ * - use getters/setters as normal
  * BAD:
- *  - we don't get `delete`!  have to use `.set({ prop, undefined })`
+ *  - we can't trap `delete`!  have to use `.set({ prop, undefined })`
  *  - may have problems with arrow functions?
  * HMMM:
  *  - `@sharedProp` set on prototype, reactive on instances when it changes?
@@ -46,7 +48,7 @@ function _setOrUnsetProp(thing, key, value) {
 
 export class Observable {
   constructor(props) {
-    Object.defineProperty(this, "_props", { value: _store() })
+    Object.defineProperty(this, "_props", { value: store() })
     this.set(props)
   }
   /**
@@ -117,7 +119,7 @@ export function prop(target, key, descriptor) {
 
 /**
  * A `@memoProp` is a property whose value we memoize reactively on construction.
- * TODO: clear with `set({ prop: undefined })` ???
+ * TODO: clear with `.set({ prop: undefined })` ???
  */
 export function memoProp(target, key, descriptor) {
   // console.warn("@memoProp", key, descriptor)

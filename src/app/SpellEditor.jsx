@@ -63,18 +63,13 @@ const store = _store({
     if (store.file?.isLoaded) await store.file.save()
   },
   async reload() {
-    store.output = undefined
     if (store.file) {
       await store.file.reload()
       store.compile()
     }
   },
   onInputChanged(codeMirror, change, value) {
-    const { file } = store
-    batch(() => {
-      file.setContents(value, { isDirty: true })
-      store.output = undefined
-    })
+    store.file.setContents(value, { isDirty: true })
   },
   async create() {
     const fileName = prompt("Name for the new file?", "Untitled.spell")
@@ -103,66 +98,10 @@ const store = _store({
     await store.project.removeFile(fileName)
     store.selectFile()
   },
-  compile() {
-    const { file } = store
-    const input = file?.contents
-    let output
-    console.group(`Parsing ${input.length} chars (${input.split("\n").length} lines)`)
-    try {
-      const scope = spellParser.getScope(file.fileName)
-      console.info("scope: ", scope)
-
-      // assign scope and parsing shorthand functions globally
-      // for ad-hoc testing of what was just parsed.
-      global.scope = scope
-      global.parse = scope.parse.bind(scope)
-      global.statement = text => scope.parse(text, "statement")
-      global.exp = text => scope.parse(text, "expression")
-
-      // Break parse/compile into 2 steps so we can time it
-      const start = Date.now()
-      const match = spellParser.parse(input, undefined, scope)
-      const afterParse = Date.now()
-      output = match.compile()
-      const afterCompile = Date.now()
-
-      console.info(`parsed in ${afterParse - start} msec, compiled in ${afterCompile - afterParse} msec`)
-    } catch (e) {
-      console.error(e)
-      output = e.message
-    }
-
-    // Attempt to format the javascript, then excute it if formatting goes ok
-    let pretty = output
-    try {
-      // Use prettier to format the output,
-      // This will throw if the code is bad.
-      pretty = prettier.format(output, { parser: "babel", plugins: [babylon] })
-
-      // add all types to `global` for local hacking
-      try {
-        const scriptEl = document.createElement("script")
-        scriptEl.setAttribute("id", "compileOutput")
-        scriptEl.setAttribute("type", "module")
-        scriptEl.innerHTML = output
-
-        const existingEl = document.getElementById("compileOutput")
-        console.group("attempting to execute contents:")
-        setTimeout(() => console.groupEnd(), 100) // groupEnd after compile finishes asynchronously
-
-        if (existingEl) {
-          existingEl.replaceWith(scriptEl)
-        } else {
-          document.body.append(scriptEl)
-        }
-      } catch (e) {
-        console.error("error evaling output:", e)
-      }
-    } catch (e) {
-      console.warn("Prettier error:", e)
-    }
-    store.output = pretty
-    console.groupEnd()
+  async compile() {
+    if (!store.file) return
+    await store.file.compile()
+    store.file.executeCompiled()
   }
 })
 global._store = store
@@ -201,35 +140,6 @@ const FileMenu = view(function() {
   )
 })
 
-const InputEditor = view(function InputEditor() {
-  const { file } = store
-  console.info("InputEditor", file, file?.contents?.split("\n")[0])
-  return (
-    <CodeMirror
-      key={file?.path || "loading"}
-      value={file?.contents || "Loading"}
-      disabled
-      className="h-100 w-100 rounded shadow-sm border"
-      options={inputOptions}
-      onBeforeChange={store.onInputChanged}
-    />
-  )
-})
-
-const OutputEditor = view(function OutputEditor() {
-  const { output = "" } = store
-  console.info("OutputEditor", output)
-  return (
-    <CodeMirror
-      value={output}
-      disabled
-      className="h-100 w-100 rounded shadow-sm border"
-      options={outputOptions}
-      onChange={Function.prototype}
-    />
-  )
-})
-
 const EditorToolbar = view(function EditorToolbar() {
   const { isDirty } = store.file || {}
   console.info("EditorToolbar", isDirty)
@@ -251,30 +161,53 @@ const EditorToolbar = view(function EditorToolbar() {
   )
 })
 
-const CompileButton = view(function CompileButton() {
-  const { file, output } = store
-  console.info("CompileButton", file, output)
-  if (file && !output) {
-    return (
-      <Button
-        className="border shadow-sm p-0 pt-1 text-secondary"
-        style={{
-          background: "#eee",
-          position: "absolute",
-          width: "5em",
-          left: "calc(50% - 2.5em)",
-          top: "50%",
-          zIndex: 3
-        }}
-        onClick={store.compile}
-      >
-        <Octicon icon={ChevronRight} size="medium" />
-        <br />
-        Compile
-      </Button>
-    )
-  }
-  return null
+const InputEditor = view(function InputEditor() {
+  const { file } = store
+  console.info("InputEditor", file, file?.contents?.split("\n")[0])
+  return (
+    <CodeMirror
+      key={file?.path || "loading"}
+      value={file?.contents || "Loading"}
+      disabled
+      className="h-100 w-100 rounded shadow-sm border"
+      options={inputOptions}
+      onBeforeChange={store.onInputChanged}
+    />
+  )
+})
+
+const OutputEditor = view(function OutputEditor() {
+  const { file } = store
+  const compiled = file?.compiled
+  console.info("OutputEditor", { file, compiled })
+  return (
+    <>
+      {!!file && !compiled && (
+        <Button
+          className="CompileButton border shadow-sm p-0 pt-1 text-secondary"
+          style={{
+            background: "#eee",
+            position: "absolute",
+            width: "5em",
+            left: 0,
+            top: "50%"
+          }}
+          onClick={store.compile}
+        >
+          <Octicon icon={ChevronRight} size="medium" />
+          <br />
+          Compile
+        </Button>
+      )}
+      <CodeMirror
+        value={compiled}
+        disabled
+        className="h-100 w-100 rounded shadow-sm border"
+        options={outputOptions}
+        onChange={Function.prototype}
+      />
+    </>
+  )
 })
 
 export const SpellEditor = view(function SpellEditor() {
@@ -295,13 +228,12 @@ export const SpellEditor = view(function SpellEditor() {
         </Col>
       </Row>
       <Row noGutters className="p-2 h-100">
-        <Col xs={6} className="h-100">
+        <Col xs={6} className="h-100 CodeMirrorContainer">
           <InputEditor />
         </Col>
         <Col xs={6} className="pl-2 CodeMirrorContainer">
           <OutputEditor />
         </Col>
-        <CompileButton />
       </Row>
     </Container>
   )
