@@ -57,48 +57,48 @@ const store = _store({
     if (!project.filePaths.includes(filePath)) filePath = project.filePaths[0]
     setPref(pref, filePath)
     store.file = new SpellFile(filePath)
-    await store.reload()
+    await store.reloadFile()
   },
-  async save() {
+  async saveFile() {
     if (store.file?.isLoaded) await store.file.save()
   },
-  async reload() {
+  async reloadFile() {
     if (store.file) {
       await store.file.reload()
-      store.compile()
+      store.compileFile()
     }
   },
   onInputChanged(codeMirror, change, value) {
     store.file.setContents(value, { isDirty: true })
   },
-  async create() {
+  async createFile() {
     const fileName = prompt("Name for the new file?", "Untitled.spell")
     if (!fileName) return
     const contents = `## File ${fileName}`
     const file = await store.project.createFile(fileName, contents)
     store.selectFile(file.path)
   },
-  async duplicate() {
+  async duplicateFile() {
     const { fileName } = store.file
     const newFileName = prompt("Name for the new file?", fileName)
     if (!newFileName) return
     const file = await store.project.duplicateFile(fileName, newFileName)
     store.selectFile(file.path)
   },
-  async rename() {
+  async renameFile() {
     const { fileName } = store.file
     const newFileName = prompt(`New name for '${fileName}'?`, fileName)
     if (!newFileName || newFileName === fileName) return
     const file = await store.project.renameFile(fileName, newFileName)
     store.selectFile(file.path)
   },
-  async remove() {
+  async removeFile() {
     const { fileName } = store.file
     if (!confirm(`Really delete '${fileName}'?`)) return
     await store.project.removeFile(fileName)
     store.selectFile()
   },
-  async compile() {
+  async compileFile() {
     if (!store.file) return
     await store.file.compile()
     store.file.executeCompiled()
@@ -146,16 +146,16 @@ const EditorToolbar = view(function EditorToolbar() {
   return (
     <Navbar.Collapse id="navbar-buttons" className="ml-2">
       <Nav>
-        <Button variant={isDirty ? "success" : "dark"} onClick={store.save}>
+        <Button variant={isDirty ? "success" : "dark"} onClick={store.saveFile}>
           Save
         </Button>
-        <Button variant={isDirty ? "danger" : "dark"} onClick={store.reload}>
+        <Button variant={isDirty ? "danger" : "dark"} onClick={store.reloadFile}>
           Revert
         </Button>
-        <Nav.Link onClick={store.create}>New File</Nav.Link>
-        <Nav.Link onClick={store.duplicate}>Duplicate</Nav.Link>
-        <Nav.Link onClick={store.rename}>Rename</Nav.Link>
-        <Nav.Link onClick={store.remove}>Delete</Nav.Link>
+        <Nav.Link onClick={store.createFile}>New File</Nav.Link>
+        <Nav.Link onClick={store.duplicateFile}>Duplicate</Nav.Link>
+        <Nav.Link onClick={store.renameFile}>Rename</Nav.Link>
+        <Nav.Link onClick={store.removeFile}>Delete</Nav.Link>
       </Nav>
     </Navbar.Collapse>
   )
