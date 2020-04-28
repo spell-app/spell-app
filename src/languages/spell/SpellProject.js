@@ -1,7 +1,7 @@
 import global from "global"
 // import { observable, computed } from "mobx"
 
-import { LoadableManager, forward, memoize, memoizeForProp, writeOnce, $fetch, OPTIONAL, REQUIRED } from "../../util"
+import { LoadableManager, forward, memoize, writeOnce, $fetch, OPTIONAL, REQUIRED, CONFIRM } from "../../util"
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProjectManifest } from "./SpellProjectManifest"
 import { SpellProjectIndex } from "./SpellProjectIndex"
@@ -126,11 +126,15 @@ export class SpellProject extends LoadableManager {
   //-----------------
 
   /** Create a new project. */
-  async createFile(path, contents = "") {
+  async createFile(path, contents) {
+    if (!path) path = prompt("Name for the new file?", "Untitled.spell")
+    if (!path) return undefined
     path = this.getFilePath(path)
     const location = new SpellFileLocation(path)
-    if (!location.isValidFilePath) throw new TypeError(`createFile('${path}'): invalid file path`)
-    if (this.getFile(path)) throw new TypeError(`createFile('${path}'): file already exists`)
+    if (!location.isValidFilePath) throw new TypeError(`Error in createFile: path '${path}' is invalid.`)
+
+    if (typeof contents !== "string") contents = `## File ${location.fileName}`
+    if (this.getFile(path)) throw new TypeError(`Error in createFile: file '${path}' already exists.`)
 
     // Tell the server to create the file
     await $fetch({
@@ -138,29 +142,35 @@ export class SpellProject extends LoadableManager {
       contents: { path, contents },
       requestFormat: "json"
     })
-    console.warn("created")
-    // Reload the file list and return the file
+    // Reload the projectList and return the file
     await this.reload()
-    console.warn("reloaded")
-    return this.getFile(path, REQUIRED, `createFile('${path}'): new file not found`)
+    return this.getFile(path, REQUIRED, `Error in createFile: server didn't create file '${path}'.`)
   }
 
   /** Duplicate an existing file. */
   async duplicateFile(path, newPath) {
-    // normalize paths
     path = this.getFilePath(path)
+    const file = this.getFile(path, REQUIRED, `Error in duplicateFile: file '${path}' does not exist.`)
+
+    if (!newPath) newPath = prompt("Name for the new file?", file.fileName)
+    if (!newPath) return undefined
     newPath = this.getFilePath(newPath)
-    // Make sure file exists and duplicate does not
-    if (this.getFile(newPath)) throw new TypeError(`duplicateFile('${path}, '${newPath}'): new file already exists`)
-    const file = this.getFile(path, REQUIRED, `duplicateFile('${path}, '${newPath}'): file not found`)
+    if (this.getFile(newPath)) throw new TypeError(`Error in duplicateFile: file '${path} already exists.`)
 
     const contents = await file.load()
     return this.createFile(newPath, contents)
   }
 
-  /** Remove an existing file from the project. */
-  async removeFile(path) {
-    const file = this.getFile(path, REQUIRED, `.removeFile('${path}'): file not found`)
+  /**
+   * Remove an existing file from the project.
+   * Returns `true` on success, `false` if cancelled or throws on error.
+   */
+  async removeFile(path, shouldConfirm) {
+    const file = this.getFile(path, REQUIRED, `Error in removeFile: file '${path}' not found.`)
+    if (shouldConfirm === CONFIRM) {
+      if (!confirm(`Really remove file '${file.fileName}'?`)) return undefined
+    }
+
     // Tell the server to delete the file
     await $fetch({
       url: "/api/projects/delete/file",
@@ -173,14 +183,14 @@ export class SpellProject extends LoadableManager {
     // reload the file list and make sure the file is no longer available
     await this.reload()
     if (this.getFile(path)) throw new TypeError(`removeFile('${path}'): server didn't delete the file`)
+    return true
   }
 
   /** Rename an existing file. */
   async renameFile(path, newPath) {
     await this.duplicateFile(path, newPath)
     await this.removeFile(path)
-    // return the renamed file
-    return this.getFile(newPath, REQUIRED, `renameFile('${path}, '${newPath}'): new file not found`)
+    return this.getFile(newPath, REQUIRED, `Error in enameFile: server didn't rename file to '${newPath}'`)
   }
 }
 

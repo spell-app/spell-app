@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
-    "@primer/octicons-react": "^9.6.0",
     "@risingstack/react-easy-state": "^6.3.0",
     "assert": "^2.0.0",
     "babel-eslint": "^10.0.3",

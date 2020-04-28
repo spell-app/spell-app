@@ -1,6 +1,6 @@
 import global from "global"
 
-import { createStore, setPrefKey, getPref, setPref } from "../util"
+import { createStore, setPrefKey, getPref, setPref, CONFIRM } from "../util"
 import { SpellProjectList } from "../languages/spell/SpellProjectList"
 import { SpellProject } from "../languages/spell/SpellProject"
 import { SpellFile } from "../languages/spell/SpellFile"
@@ -8,6 +8,10 @@ import { SpellFile } from "../languages/spell/SpellFile"
 setPrefKey("spellEditor:")
 
 export const store = createStore({
+  //-----------------
+  // Project and project actions
+  //-----------------
+
   /** Singleton list of all projects. */
   projectList: new SpellProjectList(),
   start: async () => {
@@ -27,6 +31,55 @@ export const store = createStore({
     await project.load()
     store.selectFile()
   },
+  async createProject(projectName) {
+    try {
+      const project = await store.projectList.createProject(projectName)
+      if (project) {
+        store.selectProject(project.path)
+        store.showNotice("Project created.")
+      }
+    } catch (e) {
+      store.showError(e)
+    }
+  },
+  async duplicateProject(newPath) {
+    try {
+      const project = await store.projectList.duplicateProject(store.project.path, newPath)
+      if (project) {
+        store.selectProject(project.path)
+        store.showNotice("Project duplicated.")
+      }
+    } catch (e) {
+      store.showError(e)
+    }
+  },
+  async renameProject(newPath) {
+    try {
+      const project = await store.projectList.renameProject(store.project.path, newPath)
+      if (project) {
+        store.selectProject(project.path)
+        store.showNotice("Project renamed.")
+      }
+    } catch (e) {
+      store.showError(e)
+    }
+  },
+  async removeProject() {
+    try {
+      const removed = await store.projectList.removeProject(store.project.path, CONFIRM)
+      if (removed) {
+        store.selectProject()
+        store.showNotice("Project removed.")
+      }
+    } catch (e) {
+      store.showError(e)
+    }
+  },
+
+  //-----------------
+  // File and file actions
+  //-----------------
+
   /** Current file as `SpellFile`. */
   file: undefined,
   /** Select a file from the `selectedProject`. */
@@ -50,40 +103,75 @@ export const store = createStore({
       store.compileFile()
     }
   },
-  onInputChanged(codeMirror, change, value) {
-    store.file.setContents(value, { isDirty: true })
+  async createFile(path, contents) {
+    try {
+      const newFile = await store.project.createFile(path, contents)
+      if (newFile) {
+        store.selectFile(newFile.path)
+        store.showNotice("File created.")
+      }
+    } catch (e) {
+      store.showError(e)
+    }
   },
-  async createFile() {
-    const fileName = prompt("Name for the new file?", "Untitled.spell")
-    if (!fileName) return
-    const contents = `## File ${fileName}`
-    const file = await store.project.createFile(fileName, contents)
-    store.selectFile(file.path)
+  async duplicateFile(newPath) {
+    try {
+      const newFile = await store.project.duplicateFile(store.file.path, newPath)
+      if (newFile) {
+        store.selectFile(newFile.path)
+        store.showNotice("File duplicated.")
+      }
+    } catch (e) {
+      store.showError(e)
+    }
   },
-  async duplicateFile() {
-    const { fileName } = store.file
-    const newFileName = prompt("Name for the new file?", fileName)
-    if (!newFileName) return
-    const file = await store.project.duplicateFile(fileName, newFileName)
-    store.selectFile(file.path)
-  },
-  async renameFile() {
-    const { fileName } = store.file
-    const newFileName = prompt(`New name for '${fileName}'?`, fileName)
-    if (!newFileName || newFileName === fileName) return
-    const file = await store.project.renameFile(fileName, newFileName)
-    store.selectFile(file.path)
+  async renameFile(newPath) {
+    try {
+      const renamedFile = store.project.renameFile(store.file.path, newPath)
+      if (renamedFile) {
+        store.selectFile(renamedFile.path)
+        store.showNotice("File renamed.")
+      }
+    } catch (e) {
+      store.showError(e)
+    }
   },
   async removeFile() {
-    const { fileName } = store.file
-    if (!confirm(`Really delete '${fileName}'?`)) return
-    await store.project.removeFile(fileName)
-    store.selectFile()
+    try {
+      const removed = await store.project.removeFile(store.file.path, CONFIRM)
+      if (removed) {
+        store.selectFile()
+        store.showNotice("File removed.")
+      }
+    } catch (e) {
+      store.showError(e)
+    }
   },
   async compileFile() {
     if (!store.file) return
     await store.file.compile()
     store.file.executeCompiled()
+  },
+  onInputChanged(codeMirror, change, value) {
+    store.file.setContents(value, { isDirty: true })
+  },
+
+  //-----------------
+  // UI
+  //-----------------
+  message: undefined,
+  showNotice(message) {
+    store.message = message
+  },
+  hideNotice() {
+    store.message = undefined
+  },
+  error: undefined,
+  showError(error) {
+    store.error = error.message
+  },
+  hideError() {
+    store.error = undefined
   }
 })
 global._store = store

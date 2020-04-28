@@ -109,6 +109,11 @@ export class SpellFile extends TextFile {
     })
   }
 
+  /** Clear all of our compiled goop. */
+  clearCompiled() {
+    this.set({ parser: undefined, matched: undefined, compiled: undefined })
+  }
+
   /* Execute our `compiled` code. No-op if not compiled. */
   executeCompiled() {
     const { contents, compiled } = this
@@ -156,7 +161,7 @@ export class SpellFile extends TextFile {
 
   /** When our contents are changed, update our parser vars. */
   setContents(...args) {
-    this.set({ parser: undefined, matched: undefined, compiled: undefined })
+    this.clearCompiled()
     return super.setContents(...args)
   }
 }

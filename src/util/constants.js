@@ -7,6 +7,9 @@ export const REQUIRED = "REQUIRED"
 /** Skip some operation */
 export const SKIP = "SKIP"
 
+/** Show confirmation dialog. */
+export const CONFIRM = "CONFIRM"
+
 /** Loading states. */
 export const UNLOADED = "UNLOADED"
 export const LOADING = "LOADING"
