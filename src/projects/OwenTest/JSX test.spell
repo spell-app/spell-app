@@ -1,6 +1,6 @@
 ## File JSX test.spell
 
-a card is a drawable-thing
+a card is a thing
 a card has a direction as either up or down
 to draw a card
 	return <div>

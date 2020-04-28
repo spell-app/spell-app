@@ -10,79 +10,79 @@ export class Saveable extends Loadable {
   /**
    * Current save state (protected):
    * - `isDirty`:   Do we need to save?
-   * - `params`:    Params passed to last save().
-   * - `promise`:   Promise used for the current in-flight save.
-   * - `results`:   Result returned during last save if it succeeded.
-   * - `error`:     Error returned during last save if it failed.
-   * - `time`:      Last save time (only set after save() completes).
+   * - `saveParams`:    Params passed to last save().
+   * - `saver`:   Promise used for the current in-flight save.
+   * - `saveResults`:   Result returned during last save if it succeeded.
+   * - `saveError`:     Error returned during last save if it failed.
+   * - `saveTime`:      Last save time (only set after save() completes).
    */
   /** Private info about the last save. Immutable. */
-  @prop _save = {
+  @prop _loadable = {
     isDirty: undefined,
-    params: undefined,
-    promise: undefined,
-    result: undefined,
-    error: undefined,
-    time: undefined
+    saveParams: undefined,
+    saver: undefined,
+    saveResults: undefined,
+    saveError: undefined,
+    saveTime: undefined
   }
 
   /** Do we currently need to save?. */
   get isDirty() {
-    return this._save.isDirty
+    return this._loadable.isDirty
   }
 
   /** Set `needsToSave = true` when it's time to save */
   set isDirty(value = true) {
-    const { isDirty: _ignored, ...otherProps } = this._save
-    this.set("_save", { isDirty: value, ...otherProps })
+    const { isDirty: _ignored, ...otherProps } = this._loadable
+    this.set("_loadable", { isDirty: value, ...otherProps })
   }
 
   /** Are we currently saving? */
   get isSaving() {
-    return !!this._save.promise
+    return !!this._loadable.saver
   }
 
   /**
-   * Public `save()` method. `$params` are same as `$fetch()` params.
+   * Public `save()` method. `saveParams` are same as `$fetch()` saveParams.
    * NOTE: don't override this, override `getSaver()` instead!
-   * */
-  save(params) {
+   */
+  save(saveParams) {
     if (this.isSaving) {
-      // bail early if we're already saving with the same params (???)
-      if (isEqual(params, this._save.params)) return this._save.promise
+      // bail early if we're already saving with the same saveParams (???)
+      if (isEqual(saveParams, this._loadable.saveParams)) return this._loadable.saver
       // Otherwise cancel the pending save (if possible) and we'll try again
       this.cancelSave()
     }
 
-    const onSuccess = async result => {
-      this._save = {
+    const onSuccess = async saveResults => {
+      this._loadable = {
         isDirty: false,
-        result,
-        params,
-        time: Date.now()
+        saveResults,
+        saveParams,
+        saveTime: Date.now()
       }
-      return this._save.result
+      return this._loadable.saveResults
     }
 
-    const onError = async error => {
-      this._save = {
+    const onError = async saveError => {
+      this._loadable = {
         isDirty: true,
-        error,
-        params,
-        time: Date.now()
+        saveError,
+        saveParams,
+        saveTime: Date.now()
       }
-      throw this._save.error
+      throw this._loadable.saveError
     }
 
     try {
-      const promise = this.getSaver(params)
-      if (!promise || !promise.then) throw new TypeError(`${this.constructor.name}.getSaver() didn't return a promise!`)
-      this._save = {
+      const saver = this.getSaver(saveParams)
+      if (!saver || !saver.then) throw new TypeError(`${this.constructor.name}.getSaver() didn't return a promise!`)
+      this._loadable = {
         isDirty: true,
-        params,
-        promise: promise.then(onSuccess, onError)
+        saveParams,
+        saver: saver.then(onSuccess, onError)
       }
-      return this._save.promise
+      return this._loadable.saver
     } catch (e) {
       return onError(e)
     }
@@ -90,10 +90,10 @@ export class Saveable extends Loadable {
 
   /** Attempt to cancel an in-flight save. */
   cancelSave() {
-    if (this._save.promise?.cancel) {
-      const { promise, ...otherProps } = this._save
-      promise.cancel()
-      this._save = otherProps
+    if (this._loadable.saver?.cancel) {
+      const { saver, ...otherProps } = this._loadable
+      saver.cancel()
+      this._loadable = otherProps
     }
   }
 
@@ -103,7 +103,7 @@ export class Saveable extends Loadable {
    * Return promise actually used to save this file. Must return a promise.
    * Do any transformation of the result in this method.
    */
-  getSaver(params) {
+  getSaver(saveParams) {
     throw new TypeError("You must override saveable.getSaver()!")
   }
 }

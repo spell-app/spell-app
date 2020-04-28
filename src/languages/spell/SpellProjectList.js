@@ -109,7 +109,7 @@ export class SpellProjectList extends JSON5File {
       requestFormat: "json"
     })
     // Have the project clean itself up
-    project.cleanUpOnRemove()
+    project.onRemove()
 
     // reload the project list and make sure the project is no longer available
     await this.reload()

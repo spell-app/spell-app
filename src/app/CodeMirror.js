@@ -112,7 +112,9 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
           return getTokenType(token)
         }
         stream.skipToEnd()
-      } catch (e) {}
+      } catch (e) {
+        // swallow error
+      }
       return undefined
     }
   }

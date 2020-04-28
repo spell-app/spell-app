@@ -3,7 +3,7 @@ import _set from "lodash/set"
 import _unset from "lodash/unset"
 import { store as _store, batch, autoEffect, clearEffect } from "@risingstack/react-easy-state"
 
-import { proto, readonly } from "./decorators"
+import { readonly } from "./decorators"
 
 // DEBUG
 global._store = _store
@@ -56,9 +56,11 @@ export class Observable {
    * You can also call as `.set(path, value)`
    */
   set(props) {
-    // eslint-disable-next-line prefer-rest-params
-    if (arguments.length === 2 || typeof props === "string") _setOrUnsetProp(this, arguments[0], arguments[1])
-    else if (props) Object.keys(props).forEach(key => _setOrUnsetProp(this, key, props[key]))
+    batch(() => {
+      // eslint-disable-next-line prefer-rest-params
+      if (arguments.length === 2 || typeof props === "string") _setOrUnsetProp(this, arguments[0], arguments[1])
+      else if (props) Object.keys(props).forEach(key => _setOrUnsetProp(this, key, props[key]))
+    })
     return this
   }
   /** Watch some callback, re-executing when observable props change. */
@@ -115,10 +117,11 @@ export function prop(target, key, descriptor) {
 
 /**
  * A `@memoProp` is a property whose value we memoize reactively on construction.
- * TODO: clear with `set({ prop: undefined })` ???
+ * TODO: clear with `set({ prop: undefined })` ???
  */
 export function memoProp(target, key, descriptor) {
   // console.warn("@memoProp", key, descriptor)
+  // eslint-disable-next-line no-unused-vars
   const { get, set, initializer, value, writable, ...rest } = descriptor
   const getter = typeof value === "function" ? value : get
   if (typeof getter !== "function") throw new TypeError(`@memoProp: you must provide either a get or method`)

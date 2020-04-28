@@ -15,7 +15,6 @@ export * from "./abortableFetch"
 export * from "./$fetch"
 export * from "./Loadable"
 export * from "./LoadableManager"
-export * from "./Saveable"
 export * from "./LoadableFile"
 
 export * from "./Observable"

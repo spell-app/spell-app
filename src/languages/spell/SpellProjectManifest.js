@@ -27,8 +27,9 @@ export class SpellProjectManifest extends JSON5File {
   }
 
   /** We've been removed from the server -- clean up memory, etc.. */
-  cleanUpOnRemove() {
-    this.files.forEach(file => file.cleanUpOnRemove())
+  onRemove() {
+    super.onRemove()
+    this.files?.forEach(file => file.onRemove())
     SpellProjectManifest.registry.clear(this.path)
   }
 

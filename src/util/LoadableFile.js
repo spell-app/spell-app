@@ -1,10 +1,10 @@
 import { KNOWN_FORMATS } from "./constants"
 import { proto, overrideable } from "./decorators"
 import { $fetch, merge$fetchParms } from "./$fetch"
-import { Saveable } from "./Saveable"
+import { Loadable } from "./Loadable"
 
 /** Load a single file from `url`, process according to `format` before returning. */
-export class LoadableFile extends Saveable {
+export class LoadableFile extends Loadable {
   /** URL to load from. Make this a getter in your subclass to base it on other properties. */
   @proto url = undefined
   /** If defined, a 404 load or aborted promise will return these contents as a successful result. */

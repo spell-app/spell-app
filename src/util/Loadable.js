@@ -1,13 +1,20 @@
 import global from "global"
 import isEqual from "lodash/isEqual"
+import { batch } from "@risingstack/react-easy-state"
 
-import { UNLOADED, LOADING, LOADED } from "./constants"
 import { proto } from "./decorators"
 import { Observable, prop } from "./Observable"
 
+global.batch = batch
+
 /**
- * Abstract class for a loadable resource.
- * Use `LoadableFile` to load a single file by URL.
+ * Abstract class for a loadable / possibly saveable resource.
+ * Create subclasses and implement:
+ *  - `getLoader()` to return loading promise and
+ *  - `getSaver()` to return saving promise.
+ *
+ * Use `LoadableFile` and the like to load a single file by URL.
+ * Use `LoadableManager` to manage more than one loadable as a group.
  */
 export class Loadable extends Observable {
   /**
@@ -16,59 +23,72 @@ export class Loadable extends Observable {
    * Set to `0` to never cache.
    * Useful, e.g., to reload data when they come back to the browser window after a break.
    */
-  @proto reloadAfter = undefined
+  @proto cacheFor = undefined
 
   /** Contents of the last successful `load()`. */
   @prop contents = undefined
 
   /**
-   * Current load state (protected):
-   * - `status`:    One of `UNLOADED`, `LOADING`, `LOADED`.  See `.isLoading` etc.
-   * - `params`:    Params passed to last load().
-   * - `promise`:   Promise used for the current in-flight load.
-   * - `error`:     Error returned during last load.
-   * - `time`:      Last load time (only set after load() attempted or on `setContents()`)
+   * Internal loadable state:
+   *
+   * | Property | Description |
+   * |----------|-------------|
+   * | **Loading**   |
+   * | `isLoaded`    | `true` if we have successfully loaded.  See `.isUnloaded`, `.isLoading`, `.isLoaded`
+   * | `loader`      | Promise used for the current in-flight `load()`.
+   * | `loadParams`  | Params passed to current in-flight `load()`.
+   * | `loadError`   | Error returned during last load.
+   * | `loadTime`    | Time last `load()` succeeded or failed.
+   * | **Saving**    |
+   * | `isDirty`     | `true` if we need to be saved.
+   * | `saver`       | Promise used for current in-flight `save()`.
+   * | `saveParams`  | Params passed to current in-flight `save()`.
+   * | `saveResult`  | Error returned during last successful `save()`.
+   * | `saveError`   | Error returned during last failed `save()`.
+   * | `saveTime`    | Time last `save()` succeeded or failed.
    */
-  @prop _load = {
-    status: UNLOADED,
-    params: undefined,
-    promise: undefined,
-    error: undefined,
-    time: undefined
+  @prop _loadable = {
+    isLoaded: false
   }
 
   //-----------------
-  // Loading
+  // Cleanup
+  //-----------------
+  onRemove() {
+    super.onRemove()
+    this.stopInflightLoadOrSave()
+  }
+
+  //-----------------
+  // State
   //-----------------
 
   /** Are we unloaded? */
   get isUnloaded() {
-    return this._load.status === UNLOADED
+    return !this.isLoading && !this._loadable.isLoaded
   }
-  /** Are we currently loading? */
-  get isLoading() {
-    return this._load.status === LOADING
-  }
+
   /** Have we been successfully loaded? */
   get isLoaded() {
-    return this._load.status === LOADED
+    const { isLoaded, loader } = this._loadable
+    return isLoaded && !loader
   }
 
-  /**
-   * Manually set load contents.
-   * Cancels in-flight load if necessary. Updates status/etc as well.
-   */
+  /** Are we currently loading? */
+  get isLoading() {
+    return !!this._loadable.loader
+  }
 
-  setContents(contents, params) {
-    this.stopInflightLoad()
-    this.set({
-      contents,
-      _load: {
-        status: LOADED,
-        params,
-        time: Date.now()
-      }
-    })
+  /** Do we need to save? */
+  get isDirty() {
+    return !!this._loadable.isDirty
+  }
+  set isDirty(value) {
+    this.set("_loadable.isDirty", !!value)
+  }
+  /** Are we currently saving? */
+  get isSaving() {
+    return !!this._loadable.saver
   }
 
   /** A loadable is considered `expired` if it's time for it to be reloaded.
@@ -77,124 +97,220 @@ export class Loadable extends Observable {
    * `false` means we are explicitly within cache.
    */
   get isExpired() {
-    const expiryTime = this._load.time + this.reloadAfter * 1000
+    const expiryTime = this._loadable.loadTime + this.cacheFor * 1000
     if (isNaN(expiryTime)) return undefined
     return Date.now() > expiryTime
+  }
+
+  //-----------------
+  // Loading
+  //-----------------
+
+  /**
+   * Override in your subclass to return a promise used to `load()` this file.
+   * Do any transformation of the result in this method.
+   * Don't call this directly, it'll be called from `load()`
+   */
+  async getLoader(loadParams) {
+    throw new TypeError("You must override loadable.getLoader()!")
   }
 
   /**
    * Public load method.
    * NOTE: don't override this, override `getLoader()` instead!
    */
-  load(params) {
-    // If params are the same as last time:
-    if (isEqual(params, this._load.params)) {
-      // If we're currently loading, return the current loading promise
-      if (this._load.promise) return this._load.promise
+  load(loadParams) {
+    // If loadParams are the same as last time:
+    if (isEqual(loadParams, this._loadable.loadParams)) {
+      // If we're currently loading, return the current loader
+      if (this._loadable.loader) return this._loadable.loader
       // If the cached version is still good
       if (!this.isExpired) {
         // if loaded, resolve with last contents
         if (this.isLoaded) return Promise.resolve(this.contents)
         // if load error, reject with last error
-        if (this._load.error) return Promise.reject(this._load.error)
+        if (this._loadable.loadError) return Promise.reject(this._loadable.loadError)
       }
     }
     // Cancel current load if any
-    this.stopInflightLoad()
+    this.stopInflightLoadOrSave()
 
-    let promise
+    let loader
     const onSuccess = async contents => {
-      // Only update if the same `promise` is active
-      if (this._load.promise === promise) {
-        this.set({
-          contents,
-          _load: {
-            status: LOADED,
-            params,
-            time: Date.now()
-          }
-        })
+      // Only update if the same `loader` is active
+      if (this._loadable.loader === loader) {
+        this.setContents(contents, { loadTime: Date.now() })
       }
       return this.contents
     }
 
-    const onError = async error => {
-      // Only update if the same `promise` is active
-      if (this._load.promise === promise) {
-        this.set({
-          contents: undefined,
-          _load: {
-            status: UNLOADED,
-            params,
-            error,
-            time: Date.now()
-          }
-        })
+    const onError = async loadError => {
+      // Only update if the same `loader` is active
+      if (loader === this._loadable.loader) {
+        this.setContents(undefined, { isLoaded: false, loadError })
       }
-      if (this._load.error) throw this._load.error
+      if (this._loadable.loadError) throw this._loadable.loadError
       return this.contents
     }
 
     try {
-      promise = this.getLoader(params)
-      if (!promise || !promise.then)
-        throw new TypeError(`${this.constructor.name}.getLoader() didn't return a promise!`)
+      loader = this.getLoader(loadParams)
+      if (!loader || !loader.then) throw new TypeError(`${this.constructor.name}.getLoader() didn't return a loader!`)
       this.set({
-        contents: undefined,
-        _load: {
-          status: LOADING,
-          params,
-          promise
-        }
+        "_loadable.loadParams": loadParams,
+        "_loadable.loader": loader
       })
-      return promise.then(onSuccess, onError)
+      return loader.then(onSuccess, onError)
     } catch (e) {
       return onError(e)
     }
   }
 
-  /**
-   * Attempt to cancel the current in-flight load.
-   * No-op if not loading. Attempts to minimally clean up load variables.
-   */
-  stopInflightLoad() {
-    if (this.isLoading) {
-      const { promise } = this._load
-      this.set({
-        contents: undefined,
-        _load: {
-          status: UNLOADED
-        }
-      })
-      if (promise?.cancel) promise.cancel()
-    }
-  }
-
   /** Force reload of the resource, ignoring expiration logic. */
-  reload(params) {
-    this.unload()
-    return this.load(params)
+  reload(loadParams) {
+    return batch(() => {
+      this.unload()
+      return this.load(loadParams)
+    })
   }
 
   /** Manual unload. */
   unload() {
-    this.stopInflightLoad()
-    this.set({
-      contents: undefined,
-      _load: {
-        status: UNLOADED
-      }
+    batch(() => {
+      this.stopInflightLoadOrSave()
+      this.set({
+        contents: undefined,
+        _loadable: {
+          isLoaded: false
+        }
+      })
     })
+    return this
   }
 
-  /** Implementation-specific code! */
+  //-----------------
+  // Saving
+  //-----------------
 
   /**
-   * INTERNAL routine to load contents. Must return a promise.
+   * Override in your subclass to return a promise used to `save()` this file.
    * Do any transformation of the result in this method.
    */
-  async getLoader(params) {
-    throw new TypeError("You must override loadable.getLoader()!")
+  getSaver(saveParams) {
+    throw new TypeError("You must override saveable.getSaver()!")
+  }
+
+  /**
+   * Public `save()` method. `saveParams` are same as `$fetch()` saveParams.
+   * NOTE: don't override this, override `getSaver()` instead!
+   */
+  save(saveParams) {
+    if (this.isSaving) {
+      // bail early if we're already saving with equivalent `saveParams`
+      if (isEqual(saveParams, this._loadable.saveParams)) return this._loadable.saver
+    }
+    this.stopInflightLoadOrSave()
+
+    let saver
+    const onSuccess = async saveResults => {
+      console.warn("saved before:", { ...this._loadable })
+      // Only update if the same `saver` is active
+      if (this._loadable.saver === saver) {
+        this.set({
+          "_loadable.isDirty": false,
+          "_loadable.saver": undefined,
+          "_loadable.saveParams": undefined,
+          "_loadable.saveResults": saveResults,
+          "_loadable.saveError": undefined,
+          "_loadable.saveTime": Date.now()
+        })
+        console.warn("saved after:", { ...this._loadable })
+      }
+      return this._loadable.saveResults
+    }
+
+    const onError = async saveError => {
+      // Only update if the same `saver` is active
+      if (this._loadable.saver === saver) {
+        this.set({
+          "_loadable.saver": undefined,
+          "_loadable.saveParams": undefined,
+          "_loadable.saveResults": undefined,
+          "_loadable.saveError": saveError,
+          "_loadable.saveTime": Date.now()
+        })
+      }
+      if (this._loadable.saveError) throw this._loadable.saveError
+      return this._loadable.saveResults
+    }
+
+    try {
+      console.warn("saving: before", { ...this._loadable })
+      saver = this.getSaver(saveParams)
+      if (!saver || !saver.then) throw new TypeError(`${this.constructor.name}.getSaver() didn't return a promise!`)
+      this.set({
+        "_loadable.saveParams": saveParams,
+        "_loadable.saver": saver
+      })
+      console.warn("saving after:", { ...this._loadable })
+      return saver.then(onSuccess, onError)
+    } catch (e) {
+      return onError(e)
+    }
+  }
+
+  //-----------------
+  // Manually setting contents
+  //-----------------
+
+  /**
+   * Manually set load `contents` and adjust any `loadableProps` as necessary.
+   * Cancels in-flight operations if necessary.
+   */
+  setContents(contents, loadableProps) {
+    batch(() => {
+      this.stopInflightLoadOrSave()
+      this.set({
+        contents,
+        _loadable: {
+          ...this._loadable,
+          isLoaded: true,
+          isDirty: false,
+          ...loadableProps
+        }
+      })
+    })
+    return this
+  }
+
+  //-----------------
+  // Internal
+  //-----------------
+
+  /**
+   * Attempt to cancel the current in-flight load.
+   * No-op if not loading. Attempts to minimally clean up load variables.
+   */
+  stopInflightLoadOrSave() {
+    batch(() => {
+      const { loader, saver } = this._loadable
+      if (loader) {
+        this.set({
+          "_loadable.isLoaded": false,
+          "_loadable.loadParams": undefined,
+          "_loadable.loader": undefined
+        })
+        if (loader.cancel) loader.cancel()
+      }
+      if (saver) {
+        this.set({
+          "_loadable.saver": undefined,
+          "_loadable.saveParams": undefined
+        })
+        if (saver.cancel) saver.cancel()
+      }
+    })
+    return this
   }
 }
 

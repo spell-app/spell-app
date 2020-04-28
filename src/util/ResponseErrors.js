@@ -1,7 +1,7 @@
 import { CustomError } from "./CustomError"
 
 /**
- * Errors for use in Loadable/Saveable.
+ * Errors for use in Loadable.
  * Expeced props:
  *  - message       Error message string
  *  - url           Request URL

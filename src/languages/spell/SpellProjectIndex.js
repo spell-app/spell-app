@@ -27,8 +27,9 @@ export class SpellProjectIndex extends JSON5File {
   }
 
   /** We've been removed from the server -- clean up memory, etc.. */
-  cleanUpOnRemove() {
+  onRemove() {
     // NOTE: we don't clean up files, we let the Manifest do that.
+    super.onRemove()
     SpellProjectIndex.registry.clear(this.path)
   }
 

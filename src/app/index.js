@@ -3,17 +3,7 @@ import global from "global"
 // Guarantee async/await works in all environments.
 import "@babel/polyfill"
 
-import {
-  abortableFetch,
-  $fetch,
-  Loadable,
-  Saveable,
-  LoadableFile,
-  TextFile,
-  JSONFile,
-  JSON5File,
-  ImageFile
-} from "../util"
+import { abortableFetch, $fetch, Loadable, LoadableFile, TextFile, JSONFile, JSON5File, ImageFile } from "../util"
 
 // Parser bits
 export * from "../parser"
@@ -27,7 +17,6 @@ Object.assign(global, {
   abortableFetch,
   $fetch,
   Loadable,
-  Saveable,
   LoadableFile,
   TextFile,
   JSONFile,

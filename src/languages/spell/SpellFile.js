@@ -26,7 +26,8 @@ export class SpellFile extends TextFile {
   }
 
   /** We've been removed from the server -- clean up memory, etc.. */
-  cleanUpOnRemove() {
+  onRemove() {
+    super.onRemove()
     SpellFile.registry.clear(this.path)
   }
 

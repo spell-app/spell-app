@@ -60,25 +60,19 @@ const store = _store({
     await store.reload()
   },
   async save() {
-    await store.file.save()
-    batch(() => {
-      store.file.isDirty = false
-      store.output = undefined
-    })
+    if (store.file?.isLoaded) await store.file.save()
   },
   async reload() {
     store.output = undefined
     if (store.file) {
       await store.file.reload()
-      store.file.isDirty = false
       store.compile()
     }
   },
   onInputChanged(codeMirror, change, value) {
     const { file } = store
     batch(() => {
-      file.setContents(value)
-      file.isDirty = true
+      file.setContents(value, { isDirty: true })
       store.output = undefined
     })
   },

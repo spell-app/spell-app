@@ -27,9 +27,10 @@ export class SpellProject extends LoadableManager {
   }
 
   /** We've been removed from the server -- clean up memory, etc.. */
-  cleanUpOnRemove() {
-    this.manifest.cleanUpOnRemove()
-    this.index.cleanUpOnRemove()
+  onRemove() {
+    super.onRemove()
+    this.manifest.onRemove()
+    this.index.onRemove()
     SpellProject.registry.clear(this.path)
   }
 
@@ -168,7 +169,7 @@ export class SpellProject extends LoadableManager {
       requestFormat: "json"
     })
     // Have the file clean itself up
-    file.cleanUpOnRemove()
+    file.onRemove()
     // reload the file list and make sure the file is no longer available
     await this.reload()
     if (this.getFile(path)) throw new TypeError(`removeFile('${path}'): server didn't delete the file`)
