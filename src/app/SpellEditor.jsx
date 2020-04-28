@@ -56,8 +56,20 @@ const store = _store({
     store.file = new SpellFile(filePath)
     await store.file.load()
   },
-  save() {},
-  revert() {},
+  async save() {
+    await store.file.save()
+    store.file.isDirty = false
+  },
+  async revert() {
+    await store.file?.reload()
+    store.file.isDirty = false
+  },
+  onInputChanged(codeMirror, change, value) {
+    const { file } = store
+    file.setContents(value)
+    file.isDirty = true
+  },
+  compile() {},
   async create() {
     const fileName = prompt("Name for the new file?", "Untitled.spell")
     if (!fileName) return
@@ -84,9 +96,7 @@ const store = _store({
     if (!confirm(`Really delete '${fileName}'?`)) return
     await store.project.removeFile(fileName)
     store.selectFile()
-  },
-  onInputChange() {},
-  compile() {}
+  }
 })
 global._store = store
 store.start()
@@ -112,8 +122,7 @@ const ProjectMenu = view(function() {
 const FileMenu = view(function() {
   const { project, file } = store
   console.info("FileMenu", project, file)
-  if (!project || !file?.isLoaded)
-    return <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
+  if (!project || !file) return <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
   return (
     <NavDropdown key={file.path} title={file.fileName} id="FileMenu" style={{ width: "12em" }}>
       {project.filePaths.map(path => (
@@ -135,7 +144,7 @@ const InputEditor = view(function InputEditor() {
       disabled
       className="h-100 w-100 rounded shadow-sm border"
       options={inputOptions}
-      onBeforeChange={store.onInputChange}
+      onBeforeChange={store.onInputChanged}
     />
   )
 })
@@ -155,8 +164,53 @@ const OutputEditor = view(function OutputEditor() {
   )
 })
 
-export function SpellEditor() {
-  const dirty = false
+const EditorToolbar = view(function EditorToolbar() {
+  const { isDirty } = store.file || {}
+  console.info("EditorToolbar", isDirty)
+  return (
+    <Navbar.Collapse id="navbar-buttons" className="ml-2">
+      <Nav>
+        <Button variant={isDirty ? "success" : "dark"} onClick={store.save}>
+          Save
+        </Button>
+        <Button variant={isDirty ? "danger" : "dark"} onClick={store.revert}>
+          Revert
+        </Button>
+        <Nav.Link onClick={store.create}>New File</Nav.Link>
+        <Nav.Link onClick={store.duplicate}>Duplicate</Nav.Link>
+        <Nav.Link onClick={store.rename}>Rename</Nav.Link>
+        <Nav.Link onClick={store.remove}>Delete</Nav.Link>
+      </Nav>
+    </Navbar.Collapse>
+  )
+})
+
+const CompileButton = view(function CompileButton() {
+  const { isDirty } = store.file || {}
+  console.info("CompileButton", isDirty)
+  if (!isDirty) return null
+  return (
+    <Button
+      className="border shadow-sm p-0 pt-1 text-secondary"
+      style={{
+        background: "#eee",
+        position: "absolute",
+        width: "5em",
+        left: "calc(50% - 2.5em)",
+        top: "50%",
+        zIndex: 3
+      }}
+      onClick={store.compile}
+    >
+      <Octicon icon={ChevronRight} size="medium" />
+      <br />
+      Compile
+    </Button>
+  )
+})
+
+export const SpellEditor = view(function SpellEditor() {
+  console.warn("SpellEditor")
   return (
     <Container fluid className="d-flex flex-column h-100 px-0">
       <Row>
@@ -167,20 +221,7 @@ export function SpellEditor() {
               <ProjectMenu />
               <NavLink disabled>File:</NavLink>
               <FileMenu />
-              <Navbar.Collapse id="navbar-buttons" className="ml-2">
-                <Nav>
-                  <Button variant={dirty ? "success" : "dark"} onClick={store.save}>
-                    Save
-                  </Button>
-                  <Button variant={dirty ? "danger" : "dark"} onClick={store.revert}>
-                    Revert
-                  </Button>
-                  <Nav.Link onClick={store.create}>New File</Nav.Link>
-                  <Nav.Link onClick={store.duplicate}>Duplicate</Nav.Link>
-                  <Nav.Link onClick={store.rename}>Rename</Nav.Link>
-                  <Nav.Link onClick={store.remove}>Delete</Nav.Link>
-                </Nav>
-              </Navbar.Collapse>
+              <EditorToolbar />
             </Nav>
           </Navbar>
         </Col>
@@ -192,25 +233,8 @@ export function SpellEditor() {
         <Col xs={6} className="pl-2 CodeMirrorContainer">
           <OutputEditor />
         </Col>
-        {/* !output && (
-          <Button
-            className="border shadow-sm p-0 pt-1 text-secondary"
-            style={{
-              background: "#eee",
-              position: "absolute",
-              width: "5em",
-              left: "calc(50% - 2.5em)",
-              top: "50%",
-              zIndex: 3
-            }}
-            onClick={store.compile}
-          >
-            <Octicon icon={ChevronRight} size="medium" />
-            <br />
-            Compile
-          </Button>
-          ) */}
+        <CompileButton />
       </Row>
     </Container>
   )
-}
+})

@@ -159,7 +159,6 @@ export class SpellProject extends LoadableManager {
 
   /** Remove an existing file from the project. */
   async removeFile(path) {
-    path = this.getFilePath(path)
     const file = this.getFile(path, REQUIRED, `.removeFile('${path}'): file not found`)
     // Tell the server to delete the file
     await $fetch({
