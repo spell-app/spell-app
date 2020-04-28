@@ -26,7 +26,7 @@ import { Token, spellParser } from "."
 // Export `<CodeMirror>` component
 export { Controlled as CodeMirror } from "react-codemirror2"
 
-const codeMirrorOptions = {
+export const codeMirrorOptions = {
   theme: "neat", // Owen favors: "solarized", "neo" and "neat"
   indentWithTabs: true,
   indentUnit: 3,
@@ -92,25 +92,27 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
     },
 
     token(stream, state) {
-      // update state tokens if string changes
-      if (stream.string !== state.string) {
-        state.string = stream.string
-        state.tokens = spellParser.tokenize(stream.string)
-      } else {
-        //        console.info(stream)
-      }
-      // eat whitespace outside of tokens
-      const startPosition = stream.pos
-      stream.eatSpace()
-      if (stream.pos !== startPosition) return null
+      try {
+        // update state tokens if string changes
+        if (stream.string !== state.string) {
+          state.string = stream.string
+          state.tokens = spellParser.tokenize(stream.string)
+        } else {
+          //        console.info(stream)
+        }
+        // eat whitespace outside of tokens
+        const startPosition = stream.pos
+        stream.eatSpace()
+        if (stream.pos !== startPosition) return null
 
-      const token = getToken(state.tokens, stream.pos)
-      if (token) {
-        // console.info("matched ", token, length)
-        advanceStreamPastToken(stream, token)
-        return getTokenType(token)
-      }
-      stream.skipToEnd()
+        const token = getToken(state.tokens, stream.pos)
+        if (token) {
+          // console.info("matched ", token, length)
+          advanceStreamPastToken(stream, token)
+          return getTokenType(token)
+        }
+        stream.skipToEnd()
+      } catch (e) {}
       return undefined
     }
   }

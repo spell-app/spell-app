@@ -14,7 +14,7 @@ import NavLink from "react-bootstrap/NavLink"
 import Octicon, { ChevronRight } from "@githubprimer/octicons-react"
 
 import "./JSHINT"
-import { CodeMirror, inputOptions, outputOptions } from "./CodeMirror"
+import { CodeMirror, codeMirrorOptions, inputOptions, outputOptions } from "./CodeMirror"
 import "./SpellEditor.css"
 
 import { SpellFileLocation } from "../languages/spell/SpellFileLocation"
@@ -23,68 +23,37 @@ import { SpellProject } from "../languages/spell/SpellProject"
 import { SpellFile } from "../languages/spell/SpellFile"
 import { setPrefKey, getPref, setPref } from "../util/prefs"
 
-const projectList = new SpellProjectList()
 setPrefKey("spellEditor:")
 
 const store = _store({
+  projectList: new SpellProjectList(),
   start: async () => {
-    await projectList.load()
+    await store.projectList.load()
     store.selectProject()
   },
-  get projectsLoaded() {
-    return projectList.isLoaded
-  },
-  get projects() {
-    return projectList.projectPaths
-  },
-  selectedProject: undefined,
-  get selectedProjectName() {
-    try {
-      const { projectName } = new SpellFileLocation(store.selectedProject)
-      return projectName
-    } catch (e) {
-      return "Loading..."
-    }
-  },
+  project: undefined,
   /** Select a project. */
-  selectProject: async (projectPath = getPref("selectedProject")) => {
-    console.warn("selecting project", projectPath)
-    const projectPaths = await projectList.load()
-    if (!projectPaths.includes(projectPath)) projectPath = projectPaths[0]
-    store.selectedProject = setPref("selectedProject", projectPath)
+  selectProject: async (path = getPref("selectedProject")) => {
+    console.info("selecting project", path)
+    const projectPaths = await store.projectList.load()
+    if (!projectPaths.includes(path)) path = projectPaths[0]
+    setPref("selectedProject", path)
+    const project = new SpellProject(path)
+    store.project = project
+    await project.load()
     store.selectFile()
   },
-  selectedFile: undefined,
-  get selectedFileName() {
-    try {
-      const { fileName } = new SpellFileLocation(store.selectedFile)
-      return fileName
-    } catch (e) {
-      return "Loading..."
-    }
-  },
+  file: undefined,
   /** Select a file from the `selectedProject`. */
   selectFile: async filePath => {
-    const pref = `selectedFileFor:${store.selectedProject}`
+    // NOTE: assumes `store.project` is a valid, loaded project!
+    const { project } = store
+    const pref = `selectedFileFor:${project.path}`
     if (!filePath) filePath = getPref(pref)
-    // NOTE: assumes `store.selectedProject` is the name of a valid project!!!
-    const { selectedProject } = store
-    const project = new SpellProject(selectedProject)
-    await project.load()
-    const { filePaths } = project
-    if (!filePaths.includes(filePath)) filePath = filePaths[0]
-    store.selectedFile = setPref(pref, filePath)
-  },
-  /** Paths for all files in `selectedProject` */
-  get files() {
-    const { selectedProject } = store
-    if (!selectedProject) return undefined
-    const project = new SpellProject(selectedProject)
-    if (!project.isLoaded) {
-      project.load()
-      return undefined
-    }
-    return project.filePaths
+    if (!project.filePaths.includes(filePath)) filePath = project.filePaths[0]
+    setPref(pref, filePath)
+    store.file = new SpellFile(filePath)
+    await store.file.load()
   },
   save() {},
   revert() {},
@@ -95,18 +64,18 @@ const store = _store({
   onInputChange() {},
   compile() {}
 })
-store.start()
 global._store = store
+store.start()
 
 /** Menu of all available projects. */
 const ProjectMenu = view(function() {
-  const { projectsLoaded, selectedProject, selectedProjectName, projects } = store
-  console.info("ProjectMenu", projectsLoaded, selectedProjectName, projects)
-  if (!projectsLoaded)
+  const { projectList, project } = store
+  console.info("ProjectMenu", projectList, project)
+  if (!projectList.isLoaded || !project)
     return <NavDropdown key="loading" title="Loading..." id="ProjectMenu" style={{ width: "12em" }} />
   return (
-    <NavDropdown key={selectedProject} title={selectedProjectName} id="ProjectMenu" style={{ width: "12em" }}>
-      {projects.map(path => (
+    <NavDropdown key={project.path} title={project.projectName} id="ProjectMenu" style={{ width: "12em" }}>
+      {projectList.projectPaths.map(path => (
         <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectProject}>
           {new SpellFileLocation(path).projectName}
         </NavDropdown.Item>
@@ -117,12 +86,13 @@ const ProjectMenu = view(function() {
 
 /** Menu of all available files. */
 const FileMenu = view(function() {
-  const { selectedFile, selectedFileName, files } = store
-  console.info("FileMenu", selectedFile, selectedFileName, files)
-  if (!files) return <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
+  const { project, file } = store
+  console.info("FileMenu", project, file)
+  if (!project || !file?.isLoaded)
+    return <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
   return (
-    <NavDropdown key={selectedFile} title={selectedFileName} id="FileMenu" style={{ width: "12em" }}>
-      {files.map(path => (
+    <NavDropdown key={file.path} title={file.fileName} id="FileMenu" style={{ width: "12em" }}>
+      {project.filePaths.map(path => (
         <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectFile}>
           {new SpellFileLocation(path).fileName}
         </NavDropdown.Item>
@@ -131,12 +101,38 @@ const FileMenu = view(function() {
   )
 })
 
+const InputEditor = view(function InputEditor() {
+  const { file } = store
+  console.info("InputEditor", file, file?.contents?.split("\n")[0])
+  return (
+    <CodeMirror
+      key={file?.path || "loading"}
+      value={file?.contents || "Loading"}
+      disabled
+      className="h-100 w-100 rounded shadow-sm border"
+      options={inputOptions}
+      onBeforeChange={store.onInputChange}
+    />
+  )
+})
+
+const OutputEditor = view(function OutputEditor() {
+  const { file } = store
+  console.info("OutputEditor", file)
+  return (
+    <CodeMirror
+      key={file?.path || "loading"}
+      value={"output goes here" || "Loading..."}
+      disabled
+      className="h-100 w-100 rounded shadow-sm border"
+      options={outputOptions}
+      onChange={Function.prototype}
+    />
+  )
+})
+
 export function SpellEditor() {
   const dirty = false
-  // const { selectedProject, selectedFile } = store
-  const input = input
-  const output = output
-
   return (
     <Container fluid className="d-flex flex-column h-100 px-0">
       <Row>
@@ -167,10 +163,10 @@ export function SpellEditor() {
       </Row>
       <Row noGutters className="p-2 h-100">
         <Col xs={6} className="h-100">
-          input
+          <InputEditor />
         </Col>
         <Col xs={6} className="pl-2 CodeMirrorContainer">
-          output
+          <OutputEditor />
         </Col>
         {/* !output && (
           <Button
