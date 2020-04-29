@@ -156,7 +156,7 @@ export class SpellFile extends TextFile {
 
   /** Derive `url` from our projectId / filename if not explicitly set. */
   @overrideable get url() {
-    return `/api/${this.path}`
+    return `/api${this.path}`
   }
 
   /** When our contents are changed, update our parser vars. */

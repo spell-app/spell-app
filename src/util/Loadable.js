@@ -82,7 +82,7 @@ export class Loadable extends Observable {
     return !!this._loadable.isDirty
   }
   set isDirty(value) {
-    this.set("_loadable.isDirty", !!value)
+    setLoadableProps(this, { isDirty: !!value })
   }
   /** Are we currently saving? */
   get isSaving() {
@@ -154,10 +154,7 @@ export class Loadable extends Observable {
     try {
       loader = this.getLoader(loadParams)
       if (!loader || !loader.then) throw new TypeError(`${this.constructor.name}.getLoader() didn't return a loader!`)
-      this.set({
-        "_loadable.loadParams": loadParams,
-        "_loadable.loader": loader
-      })
+      setLoadableProps(this, { loadParams, loader })
       return loader.then(onSuccess, onError)
     } catch (e) {
       return onError(e)
@@ -214,13 +211,13 @@ export class Loadable extends Observable {
       console.warn("saved before:", { ...this._loadable })
       // Only update if the same `saver` is active
       if (this._loadable.saver === saver) {
-        this.set({
-          "_loadable.isDirty": false,
-          "_loadable.saver": undefined,
-          "_loadable.saveParams": undefined,
-          "_loadable.saveResults": saveResults,
-          "_loadable.saveError": undefined,
-          "_loadable.saveTime": Date.now()
+        setLoadableProps(this, {
+          isDirty: false,
+          saver: undefined,
+          saveParams: undefined,
+          saveResults,
+          saveError: undefined,
+          saveTime: Date.now()
         })
         console.warn("saved after:", { ...this._loadable })
       }
@@ -230,12 +227,12 @@ export class Loadable extends Observable {
     const onError = async saveError => {
       // Only update if the same `saver` is active
       if (this._loadable.saver === saver) {
-        this.set({
-          "_loadable.saver": undefined,
-          "_loadable.saveParams": undefined,
-          "_loadable.saveResults": undefined,
-          "_loadable.saveError": saveError,
-          "_loadable.saveTime": Date.now()
+        setLoadableProps(this, {
+          saver: undefined,
+          saveParams: undefined,
+          saveResults: undefined,
+          saveError,
+          saveTime: Date.now()
         })
       }
       if (this._loadable.saveError) throw this._loadable.saveError
@@ -246,10 +243,7 @@ export class Loadable extends Observable {
       console.warn("saving: before", { ...this._loadable })
       saver = this.getSaver(saveParams)
       if (!saver || !saver.then) throw new TypeError(`${this.constructor.name}.getSaver() didn't return a promise!`)
-      this.set({
-        "_loadable.saveParams": saveParams,
-        "_loadable.saver": saver
-      })
+      setLoadableProps(this, { saveParams, saver })
       console.warn("saving after:", { ...this._loadable })
       return saver.then(onSuccess, onError)
     } catch (e) {
@@ -268,17 +262,14 @@ export class Loadable extends Observable {
   setContents(contents, loadableProps) {
     batch(() => {
       this.stopInflightLoadOrSave()
-      this.set({
-        contents,
-        _loadable: {
-          ...this._loadable,
-          isLoaded: true,
-          isDirty: false,
-          loadError: undefined,
-          loadTime: Date.now(),
-          ...loadableProps
-        }
+      this.set("contents", contents)
+      setLoadableProps(this, {
+        isLoaded: true,
+        isDirty: false,
+        loadError: undefined,
+        loadTime: Date.now()
       })
+      setLoadableProps(this, loadableProps)
     })
     return this
   }
@@ -295,23 +286,32 @@ export class Loadable extends Observable {
     batch(() => {
       const { loader, saver } = this._loadable
       if (loader) {
-        this.set({
-          "_loadable.isLoaded": false,
-          "_loadable.loadParams": undefined,
-          "_loadable.loader": undefined
+        setLoadableProps(this, {
+          isLoaded: false,
+          loadParams: undefined,
+          loader: undefined
         })
         if (loader.cancel) loader.cancel()
       }
       if (saver) {
-        this.set({
-          "_loadable.saver": undefined,
-          "_loadable.saveParams": undefined
+        setLoadableProps(this, {
+          saver: undefined,
+          saveParams: undefined
         })
         if (saver.cancel) saver.cancel()
       }
     })
     return this
   }
+}
+
+//-----------------
+// Utilities
+//-----------------
+function setLoadableProps(thing, props) {
+  batch(() => {
+    if (props) Object.keys(props).forEach(key => thing.set(`_loadable.${key}`, props[key]))
+  })
 }
 
 global.Loadable = Loadable

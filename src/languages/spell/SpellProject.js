@@ -70,6 +70,7 @@ export class SpellProject extends LoadableManager {
    * Return our index file.
    * Also `spellProject.imports` to return array of import files.
    */
+  @forward("imports", "loadImports")
   @memoize
   get index() {
     return new SpellProjectIndex(this.path)
@@ -155,7 +156,7 @@ export class SpellProject extends LoadableManager {
     if (!newPath) newPath = prompt("Name for the new file?", file.fileName)
     if (!newPath) return undefined
     newPath = this.getFilePath(newPath)
-    if (this.getFile(newPath)) throw new TypeError(`Error in duplicateFile: file '${path} already exists.`)
+    if (this.getFile(newPath)) throw new TypeError(`Error in duplicateFile: file '${newPath} already exists.`)
 
     const contents = await file.load()
     return this.createFile(newPath, contents)

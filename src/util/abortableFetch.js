@@ -40,16 +40,16 @@ export function isAbortError(error) {
  *    promise.cancel() <<<<< `cancel` will not be defined
  */
 export function abortableFetch(url, fetchParams = {}) {
-  let cancelled = false
+  // Semaphore set first thing when `fetch()` completes.
+  let completed = false
   const abortController = new global.AbortController()
   function hookup(newPromise) {
     // console.warn("hooking up", newPromise)
     return Object.assign(newPromise, {
       cancel() {
-        abortController.abort()
-        if (!cancelled) {
-          cancelled = true
-          console.info("Cancelled fetch for ", { url, fetchParams })
+        if (!completed) {
+          console.warn(`Cancelling abortable fetch to ${url}:`)
+          abortController.abort()
         }
         return this
       },
@@ -66,5 +66,9 @@ export function abortableFetch(url, fetchParams = {}) {
   }
   fetchParams.signal = abortController.signal
   const promise = fetch(url, fetchParams)
+  // Set the `completed` semaphore when fetch completes, before anything else happens.
+  promise.finally(() => {
+    completed = true
+  })
   return hookup(promise)
 }

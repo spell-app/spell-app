@@ -26,9 +26,9 @@ export const store = createStore({
     const projectPaths = await store.projectList.load()
     if (!projectPaths.includes(path)) path = projectPaths[0]
     setPref("selectedProject", path)
-    const project = new SpellProject(path)
-    store.project = project
-    await project.load()
+    store.project = new SpellProject(path)
+    global.project = store.project // DEBUG
+    await store.project.load()
     store.selectFile()
   },
   async createProject(projectName) {
@@ -92,6 +92,7 @@ export const store = createStore({
     if (!project.filePaths.includes(filePath)) filePath = project.filePaths[0]
     setPref(pref, filePath)
     store.file = new SpellFile(filePath)
+    global.file = store.file // DEBUG
     await store.reloadFile()
   },
   async saveFile() {

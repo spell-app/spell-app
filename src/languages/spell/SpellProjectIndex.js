@@ -59,14 +59,14 @@ export class SpellProjectIndex extends JSON5File {
   }
 
   /**
-   * Return ordered list of imported `SpellFiles`.
-   * Returns `undefined` if we're not loaded or manifest is malformed.
+   * Return ordered list of imported `SpellFiles`
+   * as `{ path: string, active: boolean, file: SpellFile }`.
+   * Returns empty list if we're not loaded or manifest is malformed.
    */
   // @computed
   @memoizeForProp("contents")
   get imports() {
-    if (!this.isLoaded) console.warn("SpellProjectIndex(): Attempting to get list of imports before loading.")
-    return this.contents?.imports?.map(({ path }) => new SpellFile(path))
+    return this.contents?.imports?.map(item => ({ ...item, file: new SpellFile(item.path) }))
   }
 
   //----------------------------
@@ -82,10 +82,10 @@ export class SpellProjectIndex extends JSON5File {
    * Attempt to load all of the files, succeeding whether they all load or not.
    * Result is the array of files.
    */
-  async loadAll() {
+  async loadImports() {
     await this.load()
     const { imports } = this
-    await Promise.allSettled(imports.map(file => file.load()))
+    await Promise.allSettled(imports.map(({ file }) => file.load()))
     return imports
   }
 }
