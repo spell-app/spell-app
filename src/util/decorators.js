@@ -6,6 +6,8 @@
  * See: https://github.com/loganfsmyth/babel-plugin-transform-decorators-legacy
  */
 
+import { promises } from "fs-extra"
+
 /** Safe "hasOwnProperty" you can apply to a random `thing`. */
 function hasOwnProp(thing, property) {
   return Object.prototype.hasOwnProperty.call(thing, property)
@@ -39,8 +41,9 @@ function getMatcher(type) {
  * NOTE: `"number"` or `Number` will match fail if value is `NaN`.
  */
 export function isOfType(...types) {
+  if (types.length === 0) throw new TypeError("@isOfType(): must pass at least one type.")
   const matchers = types.map(getMatcher)
-  const splainType = types.length > 1 ? ["one of (", ...types, ")"] : ["a", types[0]]
+  const splainType = types.length === 1 ? ["a", types[0]] : ["one of (", ...types, ")"]
   return thing => {
     const matched = matchers.some(matcher => matcher(thing))
     if (!matched) console.warn("Expected", thing, "to be", ...splainType, ":\ngot", thing)
@@ -52,24 +55,22 @@ global.isOfType = isOfType
 /** Throw if we're attempting to set value as other than type. */
 export function asType(...types) {
   return function(target, property, descriptor) {
-    const { get, set, initializer, value: descriptorValue, enumerable, configurable } = descriptor
+    const { get, set, initializer, value: defaultValue, enumerable, configurable } = descriptor
     if (get || set) throw new TypeError("@type doesn't work with getters or setters or...")
 
     const matchesType = isOfType(...types)
-    console.warn("MATCHERS>>>>>", property, types, matchesType)
     return {
-      // return `undefined` until we're set explicitly
-      // TODO: initializer() to get default value?
       get() {
         if (initializer) {
           const value = initializer()
-          Object.defineProperty(this, property, { value })
+          Object.defineProperty(this, property, { value, enumerable, configurable })
           return value
         }
-        return descriptorValue
+        return defaultValue
       },
+      // once we set, we'll override the default
       set(value) {
-        console.warn("asType", property, "" + value, types)
+        console.warn("asType", property, types, "\nvalue", types)
         if (!matchesType(value)) {
           console.warn("attempting to set", this, "to invalid type", value, "\ntypes:", types)
           // TODO: smarter error for god's sake!!!!
