@@ -72,7 +72,7 @@ export class SpellFile extends TextFile {
   // Parsing / Compiling
   //-----------------
 
-  /** Our parser. */
+  /** Our base parser. */
   @prop parser = undefined
 
   /** Results of our last `parse()` as a `Match`. */
@@ -97,16 +97,19 @@ export class SpellFile extends TextFile {
    * Pass an explicit `spellParser` if the file is, e.g. building on other files.
    */
   async compile(parser = coreSpellParser) {
-    const output = (await this.parse(parser)).compile()
+    // Assume our `matched` is current if present, otherwise calculate it.
+    if (!this.matched) this.matched = await this.parse(parser)
+    const output = this.matched.compile()
     batch(() => {
-      this.compiled = output
       try {
         // Use prettier to format the output.  This will throw if the code is bad.
         this.compiled = prettier.format(output, { parser: "babel", plugins: [babylon] })
       } catch (e) {
         console.warn("Prettier error:", e)
+        this.compiled = output
       }
     })
+    return this.compiled
   }
 
   /** Clear all of our compiled goop. */

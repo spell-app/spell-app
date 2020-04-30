@@ -1,7 +1,8 @@
 import global from "global"
 // import { observable, computed } from "mobx"
 
-import { LoadableManager, forward, memoize, writeOnce, $fetch, OPTIONAL, REQUIRED, CONFIRM } from "../../util"
+import { LoadableManager, prop, forward, memoize, writeOnce, $fetch, OPTIONAL, REQUIRED, CONFIRM } from "../../util"
+import { spellParser as coreSpellParser } from "."
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProjectManifest } from "./SpellProjectManifest"
 import { SpellProjectIndex } from "./SpellProjectIndex"
@@ -50,6 +51,26 @@ export class SpellProject extends LoadableManager {
   @memoize
   get location() {
     return new SpellFileLocation(this.path)
+  }
+
+  //-----------------
+  //  Compilation
+  //-----------------
+  /** Our base parser. */
+  @prop parser = undefined
+
+  async parse(parser = coreSpellParser) {
+    this.set({ parser })
+    await this.load()
+    await this.loadImports()
+    const importFiles = this.imports.filter(({ active }) => !!active).map(({ file }) => file)
+    this.compileImports(importFiles, parser)
+  }
+
+  /** Imports will have `{ path, contents, parse(), compile() }` */
+  async compileImports(imports, parser = coreSpellParser) {
+    imports.forEach(file => file.compile(parser))
+    return imports.map(file => file.compiled)
   }
 
   //-----------------

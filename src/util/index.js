@@ -18,3 +18,6 @@ export * from "./Observable"
 export * from "./Loadable"
 export * from "./LoadableManager"
 export * from "./LoadableFile"
+
+export * from "./Task"
+export * from "./TaskList"

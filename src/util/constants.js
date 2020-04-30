@@ -4,24 +4,15 @@ export const OPTIONAL = "OPTIONAL"
 /** Operation or resource is required -- we'll throw an error if it's not found. */
 export const REQUIRED = "REQUIRED"
 
-/** Skip some operation */
-export const SKIP = "SKIP"
-
 /** Show confirmation dialog. */
 export const CONFIRM = "CONFIRM"
 
-/** Loading states. */
-export const UNLOADED = "UNLOADED"
-export const LOADING = "LOADING"
-export const LOADED = "LOADED"
-export const LOAD_ERROR = "LOAD_ERROR"
-
-/** Saving states. */
-export const DIRTY = "DIRTY"
-export const UNSAVED = "UNSAVED"
-export const SAVING = "SAVING"
-export const SAVED = "SAVED"
-export const SAVE_ERROR = "SAVE_ERROR"
+/** Task status */
+export const UNSTARTED = "UNSTARTED"
+export const ACTIVE = "ACTIVE"
+export const SUCCESS = "SUCCESS"
+export const FAILURE = "FAILURE"
+export const CANCELLED = "CANCELLED"
 
 /** Well-known file formats as mime-types. */
 export const KNOWN_FORMATS = {
@@ -47,3 +38,20 @@ export const BINARY_FORMATS = [
   KNOWN_FORMATS.jpeg,
   KNOWN_FORMATS.binary
 ]
+
+// UNUSED
+// /** Skip some operation */
+// export const SKIP = "SKIP"
+
+// /** Loading states. */
+// export const UNLOADED = "UNLOADED"
+// export const LOADING = "LOADING"
+// export const LOADED = "LOADED"
+// export const LOAD_ERROR = "LOAD_ERROR"
+
+// /** Saving states. */
+// export const DIRTY = "DIRTY"
+// export const UNSAVED = "UNSAVED"
+// export const SAVING = "SAVING"
+// export const SAVED = "SAVED"
+// export const SAVE_ERROR = "SAVE_ERROR"

@@ -3,8 +3,6 @@ import _set from "lodash/set"
 import _unset from "lodash/unset"
 import { store as createStore, view, batch, autoEffect, clearEffect } from "@risingstack/react-easy-state"
 
-import { readonly } from "./decorators"
-
 // re-export react-easy-state props for convenience
 export { createStore, view, batch, autoEffect, clearEffect }
 
@@ -33,30 +31,40 @@ function _setOrUnsetProp(thing, key, value) {
 /**
  * Methodology:
  * - inherit from Observable
- * - all observable properties must be defined as `@prop`
- *    - props are non-enumerable by default?
- * - use `@memoProp` for memoized reactive property
- * - use `@protoProp` to sets default value on prototype, instance can override reactively
- * - you can `@prop @readonly` if you want
- * - use `set(props)` or `set(prop, value)` to set multiple values and/or delete props
- * - use getters/setters as normal
+ * - observable public properties should be declated as `@prop key defaulValue`
+ * - observable transient private properties are declared as `@state key defaulValue`
+ *    - use `observable.reset()` to clear all state properties.
+ *    - override `.reset()` in a subclass to do other things.
+ * - non-observable properties can be defined as normal.
+ * - (non-observable) shared properties can be defined with `@proto`
+ * - you can define getters/setters as normal
+ * - use `set(props)` or `set(prop, value)` to set multiple prop/state/normal values
+ *    - NOTE: `delete prop` or `delete state` WON'T WORK!
+ *    - ALWAYS use `observable.set(...)` to update!
  * BAD:
  *  - we can't trap `delete`!  have to use `.set({ prop, undefined })`
  *  - may have problems with arrow functions?
+ *
+ * TODO: `@sharedProp` for an overrideable shared property?
  * HMMM:
  *  - `@sharedProp` set on prototype, reactive on instances when it changes?
  */
 
 export class Observable {
   constructor(props) {
+    // TODO: we could do this dynamically with getters, but that would mess up hooks
+    //       because `createStore()` is attempting to be too clever in regard to memoizing in hooks.
     Object.defineProperty(this, "_props", { value: createStore() })
+    Object.defineProperty(this, "_state", { value: createStore() })
     this.set(props)
   }
+
   /**
-   * Set an object of `props` on this object, returning the object itself.
+   * Set an object of `props` on this object, returning `this`.
+   *
    * If a prop value is `undefined`, we'll `delete` the prop instead.
+   * You can also call as `.set(path, value)` which is more efficient.
    * Keys can be paths, e.g. `.set({ "dotted.path[0].prop": 1 })`
-   * You can also call as `.set(path, value)`
    */
   set(props) {
     batch(() => {
@@ -66,7 +74,19 @@ export class Observable {
     })
     return this
   }
-  /** Watch some callback, re-executing when observable props change. */
+
+  /** Reset our `state` to its default value. */
+  reset() {
+    Object.keys(this._state).forEach(key => delete this._state[key])
+  }
+
+  /**
+   * Watch some `callback`, re-executing when observable props or state change.
+   * Returns `reaction` which you can use to `.clearWatch()` later.
+   *
+   * NOTE: you must `clearWatch()` yourself or manually call `onRemove()`
+   * or you'll get a memory leak.  :-(
+   */
   watch(callback) {
     const reaction = autoEffect((...args) => callback.apply(this, args))
     if (!this._reactions) Object.defineProperty(this, "_reactions", { value: [] })
@@ -79,6 +99,7 @@ export class Observable {
     const index = this._reactions ? this._reactions.indexOf(reaction) : -1
     if (index !== -1) this._reactions.splice(index, 1)
   }
+
   /** Clean up all `watch`es `onRemove()` (which must be called manually). */
   onRemove() {
     if (this._reactions) this._reactions.forEach(reaction => clearEffect(reaction))
@@ -87,112 +108,73 @@ export class Observable {
 global.Observable = Observable
 
 /**
- * A `@prop` is a reactive property defined on an Observable.
+ * A `@prop` is a (semi-) permanent reactive property defined on an Observable,
+ * stored in `_props`.
  */
 export function prop(target, key, descriptor) {
-  // console.warn("@prop", key, descriptor)
-  const { get, set, initializer, value, writable, ...rest } = descriptor
-  const output = { ...rest }
-  // if no get or set, this is just a normal propery
-  if (!get && !set) {
-    output.get = function() {
-      if (!hasOwnProp(this._props, key)) {
-        this._props[key] = initializer ? initializer() : value
-      }
-      return this._props[key]
-    }
-    if (writable) {
-      output.set = function(newValue) {
-        if (newValue === undefined) {
-          delete this[key]
-          delete this._props[key]
-        } else this._props[key] = newValue
-      }
-    } else {
-      output.set = function(newValue) {
-        console.warn(`Attempting to set readonly property '${key}' of`, this, "to", newValue)
-      }
-    }
-    return output
+  // console.warn("@prop", key, descriptor, target)
+  if (descriptor.get || descriptor.set) {
+    console.warn("cant do @prop descriptor with get or set", descriptor)
+    return descriptor
   }
-  return descriptor
-}
 
-/**
- * A `@memoProp` is a property whose value we memoize reactively on construction.
- * TODO: clear with `.set({ prop: undefined })` ???
- */
-export function memoProp(target, key, descriptor) {
-  // console.warn("@memoProp", key, descriptor)
-  // eslint-disable-next-line no-unused-vars
-  const { get, set, initializer, value, writable, ...rest } = descriptor
-  const getter = typeof value === "function" ? value : get
-  if (typeof getter !== "function") throw new TypeError(`@memoProp: you must provide either a get or method`)
-
-  return {
-    ...rest,
-    get() {
-      if (!hasOwnProp(this._props, key)) {
-        this._props[key] = getter.apply(this)
+  const { initializer, value, writable, configurable } = descriptor
+  const get = function() {
+    if (hasOwnProp(this._props, key)) return this._props[key]
+    if (!initializer) return value
+    // eslint-disable-next-line no-return-assign
+    return (this._props[key] = initializer())
+  }
+  let set
+  if (writable) {
+    set = function(newValue) {
+      if (newValue === undefined) {
+        if (hasOwnProp(this, key)) delete this[key]
+        if (hasOwnProp(this._props, key)) delete this._props[key]
+      } else {
+        this._props[key] = newValue
       }
-      return this._props[key]
-    },
-    set(newValue) {
+    }
+  } else {
+    set = function(newValue) {
       console.warn(`Attempting to set readonly property '${key}' of`, this, "to", newValue)
     }
   }
+  return { get, set, enumerable: true, configurable }
 }
 
-export class Test extends Observable {
-  @prop empty
-  @prop undefined = undefined
-  @prop default = 1
-  @prop array = []
-  @prop @readonly readonly = {}
-  // @protoProp proto = "foo"
-  // @protoProp protoObj = {}
-  @memoProp get memo() {
-    return { memo: true }
+/**
+ * A `@state` is a transitive reactive property defined on an Observable, stored in `._state`.
+ * Call `.resetState()` to reset all state variables to their default.
+ */
+export function state(target, key, descriptor) {
+  // console.warn("@state", key, descriptor, target)
+  if (descriptor.get || descriptor.set) {
+    console.warn("cant do @state descriptor with get or set", descriptor)
+    return descriptor
   }
-  @memoProp memoDate() {
-    return Date.now()
+
+  const { initializer, value, writable, configurable } = descriptor
+  const get = function() {
+    if (hasOwnProp(this._state, key)) return this._state[key]
+    if (!initializer) return value
+    // eslint-disable-next-line no-return-assign
+    return (this._state[key] = initializer())
   }
+  let set
+  if (writable) {
+    set = function(newValue) {
+      if (newValue === undefined) {
+        if (hasOwnProp(this, key)) delete this[key]
+        if (hasOwnProp(this._state, key)) delete this._state[key]
+      } else {
+        this._state[key] = newValue
+      }
+    }
+  } else {
+    set = function(newValue) {
+      console.warn(`Attempting to set readonly property '${key}' of`, this, "to", newValue)
+    }
+  }
+  return { get, set, enumerable: false, configurable }
 }
-global.Test = Test
-
-global.it = new Test()
-
-// /**
-//  * A `@protoProp` is a property whose default is set on the prototype,
-//  * but the instance can override???
-//  */
-// export function protoProp(target, key, descriptor) {
-//   console.warn("@protoProp", key, descriptor)
-//   const { get, set, initializer, value, writable, ...rest } = descriptor
-//   const output = { ...rest }
-//   // if no get or set, this is just a normal propery
-//   if (!get && !set) {
-//     let defaultSet = false
-//     let defaultValue
-//     output.get = function() {
-//       if (hasOwnProp(this._props, key)) return this._props[key]
-//       if (!defaultSet) {
-//         defaultValue = initializer ? initializer() : value
-//         defaultSet = true
-//       }
-//       return defaultValue
-//     }
-//     if (writable) {
-//       output.set = function(newValue) {
-//         if (newValue === undefined) delete this._props[key]
-//         else this._props[key] = newValue
-//       }
-//     } else {
-//       output.set = function(newValue) {
-//         console.warn(`Attempting to set readonly property '${key}' of`, this, "to", newValue)
-//       }
-//     }
-//     return output
-//   }
-//   return descriptor
-// }

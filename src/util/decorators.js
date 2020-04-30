@@ -11,6 +11,66 @@ function hasOwnProp(thing, property) {
   return Object.prototype.hasOwnProperty.call(thing, property)
 }
 
+/** Given an array of types as:
+ *  - null
+ *  - undefined
+ *  - string, e.g. "string", "boolean"
+ *  - function / class (e.g. Date, CustomClass, Object)
+ * return an optimized array of matchers
+ * one of which will return `true` if the `thing` passed matches that type.
+ *
+ * NOTE: "number" will match valid numbers but not `NaN` ???
+ */
+function isOfType(...types) {
+  const matchers = types.map(type => {
+    if (type === null) return thing => thing === null
+    if (type === undefined) return thing => thing === undefined
+    if (type === "number" || type === Number) return thing => typeof thing === "number" && !isNaN(thing)
+    if (typeof type === "string") {
+      // eslint-disable-next-line valid-typeof
+      return thing => typeof thing === type
+    }
+    if (type instanceof Function) return thing => !!thing && (thing instanceof type || thing.constructor === type)
+    throw new TypeError(`isOfTypes() don't know how to check for ${type}`)
+  })
+  return thing => matchers.some(matcher => matcher(thing))
+}
+global.isOfType = isOfType
+
+/** Throw if we're attempting to set value as other than type. */
+export function asType(...types) {
+  return function(target, property, descriptor) {
+    const { get, set, initializer, value: descriptorValue, enumerable, configurable } = descriptor
+    if (get || set) throw new TypeError("@type doesn't work with getters or setters or...")
+
+    const matchesType = isOfType(...types)
+    console.warn("MATCHERS>>>>>", matchesType)
+    return {
+      // return `undefined` until we're set explicitly
+      // TODO: initializer() to get default value?
+      get() {
+        if (initializer) {
+          const value = initializer()
+          Object.defineProperty(this, property, { value })
+          return value
+        }
+        return descriptorValue
+      },
+      set(value) {
+        console.info("asType", value, types)
+        if (!matchesType(value)) {
+          console.warn("attempting to set", this, "to invalid type", value, "\ntypes:", types)
+          // TODO: smarter error for god's sake!!!!
+          throw new TypeError(`invalid type for ${property}`)
+        }
+        Object.defineProperty(this, property, { value, enumerable, configurable })
+      },
+      enumerable,
+      configurable
+    }
+  }
+}
+
 /**
  * Define field or method on the prototype rather than during object construction.
  * Use with caution with objects or arrays, as the values will be shared with all instances!
