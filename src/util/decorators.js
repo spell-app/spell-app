@@ -11,29 +11,41 @@ function hasOwnProp(thing, property) {
   return Object.prototype.hasOwnProperty.call(thing, property)
 }
 
+function getMatcher(type) {
+  if (type === null) return thing => thing === null
+  if (type === undefined || type === "undefined") return thing => thing === undefined
+  if (type === "boolean" || type === Boolean) return thing => typeof thing === "boolean"
+  if (type === "string" || type === String) return thing => typeof thing === "string"
+  if (type === "number" || type === Number) return thing => typeof thing === "number" && !isNaN(thing)
+  if (type === "function" || type === Function) return thing => typeof thing === "function"
+  if (type === "symbol" || type === Symbol) return thing => typeof thing === "symbol"
+  if (type === "bigint" || type === BigInt) return thing => typeof thing === "bigint"
+  // try case-insensitive class name
+  if (typeof type === "string") return thing => thing?.constructor.name.toLowerCase() === type.toLowerCase()
+  // try `instanceof` to match class
+  if (type instanceof Function) return thing => !!thing && thing instanceof type
+  // FUGGIT.
+  throw new TypeError(`getMatcher(${type}): don't know how to match type.`)
+}
+
 /** Given an array of types as:
  *  - null
  *  - undefined
- *  - string, e.g. "string", "boolean"
+ *  - string, e.g. "string", "boolean", "number"
+ *  - "Date", "RegExp"
  *  - function / class (e.g. Date, CustomClass, Object)
- * return an optimized array of matchers
- * one of which will return `true` if the `thing` passed matches that type.
+ * return a method which validates `thing` against an optimized array of matcher functions.
  *
- * NOTE: "number" will match valid numbers but not `NaN` ???
+ * NOTE: `"number"` or `Number` will match fail if value is `NaN`.
  */
-function isOfType(...types) {
-  const matchers = types.map(type => {
-    if (type === null) return thing => thing === null
-    if (type === undefined) return thing => thing === undefined
-    if (type === "number" || type === Number) return thing => typeof thing === "number" && !isNaN(thing)
-    if (typeof type === "string") {
-      // eslint-disable-next-line valid-typeof
-      return thing => typeof thing === type
-    }
-    if (type instanceof Function) return thing => !!thing && (thing instanceof type || thing.constructor === type)
-    throw new TypeError(`isOfTypes() don't know how to check for ${type}`)
-  })
-  return thing => matchers.some(matcher => matcher(thing))
+export function isOfType(...types) {
+  const matchers = types.map(getMatcher)
+  const splainType = types.length > 1 ? ["one of (", ...types, ")"] : ["a", types[0]]
+  return thing => {
+    const matched = matchers.some(matcher => matcher(thing))
+    if (!matched) console.warn("Expected", thing, "to be", ...splainType, ":\ngot", thing)
+    return matched
+  }
 }
 global.isOfType = isOfType
 
@@ -44,7 +56,7 @@ export function asType(...types) {
     if (get || set) throw new TypeError("@type doesn't work with getters or setters or...")
 
     const matchesType = isOfType(...types)
-    console.warn("MATCHERS>>>>>", matchesType)
+    console.warn("MATCHERS>>>>>", property, types, matchesType)
     return {
       // return `undefined` until we're set explicitly
       // TODO: initializer() to get default value?
@@ -57,7 +69,7 @@ export function asType(...types) {
         return descriptorValue
       },
       set(value) {
-        console.info("asType", value, types)
+        console.warn("asType", property, "" + value, types)
         if (!matchesType(value)) {
           console.warn("attempting to set", this, "to invalid type", value, "\ntypes:", types)
           // TODO: smarter error for god's sake!!!!

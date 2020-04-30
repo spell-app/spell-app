@@ -8,21 +8,23 @@ import { Observable, prop, state, batch } from "./Observable"
  * Unlike a `Promise`, a `Task` can be inspected, `cancel()`ed, `restart()`ed, etc.
  *
  * A `Task` is especially useful as part of a `TaskList` -- a sequence of multiple actions.
- * By setting `task.name`, we can see which actions need to be performed in the taskList and their current status.
+ * By setting `task.name`, we can see the state of pending actions in a taskList, what's left to do, etc.
  *
  * To create a task, pass:
  * - `run`          Function which returns a `Promise` to execute the task.
+ *                  NOTE: You can pass just a function to set `task.run`.
  * You may also pass:
- * - `name`             String name for the task, recommended for taskList display.
+ * - `name`             String name for the task, e.g. to display as part of the taskList.
  * - `isOptional`       If `true`, a `TaskList` that's executing us will continue even if we fail.
  *
  * Use `task.start(intialValue)` to execute the task with `intialValue`.
  * This returns a promise that always `resolve()`s or `rejects()`s as normal.
+ * After completion:
  *  - `task.result` will be the result of the last successful run.
  *  - `task.error` is the error returned on the last failed run.
- * You can also examine `task.hasSucceded`, `task.wasCancelled` etc to figure out exactly what happened later.
+ * You can also examine `task.hasSucceded`, `task.wasCancelled` etc to see what happened later.
  *
- * You can call `task.cancel()` to abort a running task, see below.
+ * You can call `task.cancel()` to abort a running task, see below for details.
  * Call `task.reset()` to clear all prior state in prep for calling again. (??)
  *
  * TODO: `retry` to retry N times if we fail.
@@ -33,9 +35,9 @@ export class Task extends Observable {
   // Props
   //-----------------
   /** (required) Function which returns a `Promise` to execute this task. */
-  @asType(Function) run
+  // @asType(Function) run
   /** Name for this task (which will be displayed by the TaskList while we're executing). */
-  @prop name = undefined
+  @asType("string") name
   /** If `true`, a TaskList will continue executing even if we fail. */
   @prop isOptional = false
 
