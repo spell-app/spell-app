@@ -1,4 +1,4 @@
-import { forward } from "./decorators"
+import { forward, isOfType } from "./decorators"
 import { prop, state } from "./Observable"
 import { Task } from "./Task"
 
