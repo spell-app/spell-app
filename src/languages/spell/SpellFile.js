@@ -2,7 +2,7 @@ import global from "global"
 import prettier from "prettier/standalone"
 import babylon from "prettier/parser-babylon"
 
-import { TextFile, batch, prop, proto, memoize, forward, writeOnce, overrideable } from "../../util"
+import { TextFile, state, proto, memoize, forward, writeOnce, overrideable } from "../../util"
 import { spellParser as coreSpellParser } from "."
 import { SpellProject } from "./SpellProject"
 import { SpellFileLocation } from "./SpellFileLocation"
@@ -72,49 +72,50 @@ export class SpellFile extends TextFile {
   // Parsing / Compiling
   //-----------------
 
-  /** Our base parser. */
-  @prop parser = undefined
-
   /** Results of our last `parse()` as a `Match`. */
-  @prop matched = undefined
+  @state matched = undefined
+
+  /** AST for our `compiled` output. */
+  @state AST = undefined
 
   /** Our `compiled` output as javascript. */
-  @prop compiled = undefined
+  @state compiled = undefined
+
+  /** Reset our compiled state. */
+  resetCompiled() {
+    this.resetState("matched", "AST", "compiled")
+  }
 
   /**
-   * Load our content and attempt to parse it!
+   * Load our content and attempt to parse it!  Returns a `Match` (available as `this.matched`).
+   * NOTE: if `this.matched` is set, we'll assume that's OK.
+   * Use `spellFile.resetCompiled()` to clear it.
    * Pass an explicit `spellParser` if the file is, e.g. building on other files.
    */
   async parse(parser = coreSpellParser) {
-    this.set({ parser, matched: undefined, compiled: undefined })
+    if (this.matched && this.matched.scope.parser === parser) return this.matched
     await this.load()
-    this.matched = this.parser.parse(this.contents, "block")
+    this.resetCompiled()
+    const matched = parser.parse(this.contents, "block")
+    this.set("_state.matched", matched)
     return this.matched
   }
 
   /**
-   * Load, parse and compile our content.
-   * Pass an explicit `spellParser` if the file is, e.g. building on other files.
+   * Compile our content.  Note: you must parse first!
    */
-  async compile(parser = coreSpellParser) {
-    // Assume our `matched` is current if present, otherwise calculate it.
-    if (!this.matched) this.matched = await this.parse(parser)
-    const output = this.matched.compile()
-    batch(() => {
-      try {
-        // Use prettier to format the output.  This will throw if the code is bad.
-        this.compiled = prettier.format(output, { parser: "babel", plugins: [babylon] })
-      } catch (e) {
-        console.warn("Prettier error:", e)
-        this.compiled = output
-      }
-    })
+  async compile(parser) {
+    const matched = await this.parse(parser)
+    this.set("_state.AST", matched.AST)
+    let compiled = matched.compile()
+    try {
+      // Use prettier to format the output.  This will throw if the code is bad.
+      compiled = prettier.format(compiled, { parser: "babel", plugins: [babylon] })
+    } catch (e) {
+      console.warn("Prettier error:", e)
+    }
+    this.set("_state.compiled", compiled)
     return this.compiled
-  }
-
-  /** Clear all of our compiled goop. */
-  clearCompiled() {
-    this.set({ parser: undefined, matched: undefined, compiled: undefined })
   }
 
   /* Execute our `compiled` code. No-op if not compiled. */
@@ -164,7 +165,7 @@ export class SpellFile extends TextFile {
 
   /** When our contents are changed, update our parser vars. */
   setContents(...args) {
-    this.clearCompiled()
+    this.resetCompiled()
     return super.setContents(...args)
   }
 }

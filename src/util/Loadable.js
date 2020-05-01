@@ -2,8 +2,8 @@ import global from "global"
 import isEqual from "lodash/isEqual"
 import { batch } from "@risingstack/react-easy-state"
 
-import { proto } from "./decorators"
-import { Observable, prop } from "./Observable"
+import { proto, readonly } from "./decorators"
+import { Observable, prop, state } from "./Observable"
 
 /**
  * Abstract class for a loadable / possibly saveable resource.
@@ -24,7 +24,7 @@ export class Loadable extends Observable {
   @proto cacheFor = undefined
 
   /** Contents of the last successful `load()`. */
-  @prop contents = undefined
+  @state contents = undefined
 
   /**
    * Internal loadable state:
@@ -45,7 +45,7 @@ export class Loadable extends Observable {
    * | `saveError`   | Error returned during last failed `save()`.
    * | `saveTime`    | Time last `save()` succeeded or failed.
    */
-  @prop _loadable = {
+  @state _loadable = {
     isLoaded: false
   }
 
@@ -173,12 +173,7 @@ export class Loadable extends Observable {
   unload() {
     batch(() => {
       this.stopInflightLoadOrSave()
-      this.set({
-        contents: undefined,
-        _loadable: {
-          isLoaded: false
-        }
-      })
+      this.resetState("contents", "_loadable")
     })
     return this
   }
@@ -262,14 +257,14 @@ export class Loadable extends Observable {
   setContents(contents, loadableProps) {
     batch(() => {
       this.stopInflightLoadOrSave()
-      this.set("contents", contents)
+      this.set("_state.contents", contents)
       setLoadableProps(this, {
         isLoaded: true,
         isDirty: false,
         loadError: undefined,
-        loadTime: Date.now()
+        loadTime: Date.now(),
+        ...loadableProps
       })
-      setLoadableProps(this, loadableProps)
     })
     return this
   }
@@ -310,7 +305,7 @@ export class Loadable extends Observable {
 //-----------------
 function setLoadableProps(thing, props) {
   batch(() => {
-    if (props) Object.keys(props).forEach(key => thing.set(`_loadable.${key}`, props[key]))
+    if (props) Object.keys(props).forEach(key => thing.set(`_state._loadable.${key}`, props[key]))
   })
 }
 

@@ -47,7 +47,6 @@ export class SpellProjectIndex extends JSON5File {
    */
   @forward("projectType", "projectName", "projectPath", "isLibraryProject", "isUserProject")
   @memoize
-  // @computed
   get location() {
     return new SpellFileLocation(this.path)
   }
@@ -59,14 +58,22 @@ export class SpellProjectIndex extends JSON5File {
   }
 
   /**
-   * Return ordered list of imported `SpellFiles`
+   * Return ordered list of imported `SpellFile`s
    * as `{ path: string, active: boolean, file: SpellFile }`.
    * Returns empty list if we're not loaded or manifest is malformed.
    */
-  // @computed
   @memoizeForProp("contents")
   get imports() {
     return this.contents?.imports?.map(item => ({ ...item, file: new SpellFile(item.path) }))
+  }
+
+  /**
+   * Return active imports as list of `SpellFile`s.
+   * Returns empty list if we're not loaded or manifest is malformed.
+   */
+  @memoizeForProp("imports")
+  get activeImports() {
+    return this.imports.filter(({ active }) => !!active).map(({ file }) => file)
   }
 
   //----------------------------

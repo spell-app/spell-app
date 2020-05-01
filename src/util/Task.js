@@ -1,5 +1,5 @@
 import { UNSTARTED, ACTIVE, SUCCESS, FAILURE } from "./constants"
-import { readonly, asType } from "./decorators"
+import { proto } from "./decorators"
 import { Observable, prop, state, batch } from "./Observable"
 
 /**
@@ -25,7 +25,7 @@ import { Observable, prop, state, batch } from "./Observable"
  * You can also examine `task.hasSucceded`, `task.wasCancelled` etc to see what happened later.
  *
  * You can call `task.cancel()` to abort a running task, see below for details.
- * Call `task.reset()` to clear all prior state in prep for calling again. (??)
+ * Call `task.resetState()` to clear all prior state in prep for calling again. (??)
  *
  * TODO: `retry` to retry N times if we fail.
  * TODO: `failAfter` to fail a promise if it doesn't complete for certain amount of time.
@@ -35,11 +35,11 @@ export class Task extends Observable {
   // Props
   //-----------------
   /** (required) Function which returns a `Promise` to execute this task. */
-  // @asType(Function) run
+  @proto run = undefined
   /** Name for this task (which will be displayed by the TaskList while we're executing). */
-  @asType("string") name
+  @proto name = undefined
   /** If `true`, a TaskList will continue executing even if we fail. */
-  @prop isOptional = false
+  @proto isOptional = false
 
   /**
    * Construct with `{ run, name?, isOptional? }`
@@ -65,11 +65,11 @@ export class Task extends Observable {
   @state error = undefined
 
   /* Current status:  `UNSTARTED`, `ACTIVE`, `SUCCESS` or `FAILURE` */
-  @state @readonly status = UNSTARTED
+  @state status = UNSTARTED
   /* Was our last run cancelled? */
-  @state @readonly wasCancelled = false
+  @state wasCancelled = false
   /* Current task run */
-  @state @readonly execution = undefined
+  @state execution = undefined
 
   //-----------------
   // Syntactic sugar for our `status`
@@ -96,10 +96,10 @@ export class Task extends Observable {
   //-----------------
 
   /**
-   * Start this task by calling `this.run(intialValue)`.
+   * Start this task by calling `this.run(inputValue)`.
    * Returns a promise which you can use as normal.
    */
-  start(intialValue) {
+  start(inputValue) {
     // If we're currently running, just return our active promise.
     // TODO: throw???
     if (this.execution) {
@@ -108,7 +108,7 @@ export class Task extends Observable {
     }
 
     // Reset us to the default state
-    this.reset()
+    this.resetState()
 
     // Create a `execution` object which holds particulars of the current run.
     const execution = {
@@ -120,8 +120,9 @@ export class Task extends Observable {
           this.set({
             "_state.execution": undefined,
             "_state.status": status,
-            [status === SUCCESS ? "result" : "error"]: result
+            [status === SUCCESS ? "_state.result" : "_state.error"]: result
           })
+          this.afterFinish()
           if (status === SUCCESS) execution.resolve(this.result)
           else execution.reject(this.error)
         })
@@ -135,9 +136,12 @@ export class Task extends Observable {
 
       try {
         this.set("_state.status", ACTIVE)
-        const promise = Promise.race([this.run(intialValue)])
+        this.beforeStart(inputValue)
+        let promise = this.run(inputValue)
         // Grab the `cancel` method from the promise, if any
-        execution.cancel = promise.cancel
+        execution.cancel = promise?.cancel
+        // wrap non-promise value in a promise for consistency below
+        if (!promise.then) promise = Promise.resolve(promise)
         // send success or failure to `complete()` above
         promise.then(
           result => execution.complete(SUCCESS, result),
@@ -177,12 +181,35 @@ export class Task extends Observable {
    * Restart this task, `cancel()`ing it if it's running.
    * Does default `cancel()` behavior, call `cancel()` manually to do something else.
    */
-  restart(initialValue) {
+  restart(inputValue) {
     batch(() => {
       this.cancel()
-      this.reset()
+      this.resetState()
     })
-    this.start(initialValue)
+    this.start(inputValue)
+  }
+
+  //-----------------
+  // Debugging
+  //-----------------
+
+  /** Set to true to debug to the console as we operate. */
+  @proto debug = true
+  @proto debugOutput = true
+
+  /** Called before we start executing. */
+  beforeStart(inputValue) {
+    if (this.debug) {
+      const { name } = this
+      console.info(`> Task: ${name}\n     `, { task: this, inputValue })
+    }
+  }
+  /** Called after we finish executing. Yu can examine `this.hasSucceeded`, `this.result`, etc. */
+  afterFinish() {
+    if (this.debugOutput) {
+      const { name, status, result, error, wasCancelled } = this
+      console.info(`< Task: ${name}\n     `, { task: this, status, result, error, wasCancelled })
+    }
   }
 }
 

@@ -21,6 +21,7 @@ function _setOrUnsetProp(thing, key, value) {
   if (value === undefined) {
     _unset(thing, key)
     _unset(thing._props, key)
+    _unset(thing._state, key)
   } else {
     // NOTE: we set on `this` assuming we have a `setter` established for all `@props`
     _set(thing, key, value)
@@ -61,10 +62,10 @@ export class Observable {
 
   /**
    * Set an object of `props` on this object, returning `this`.
+   * Keys can be paths, e.g. `.set({ "dotted.path[0].prop": 1 })`
    *
    * If a prop value is `undefined`, we'll `delete` the prop instead.
    * You can also call as `.set(path, value)` which is more efficient.
-   * Keys can be paths, e.g. `.set({ "dotted.path[0].prop": 1 })`
    */
   set(props) {
     batch(() => {
@@ -75,9 +76,13 @@ export class Observable {
     return this
   }
 
-  /** Reset our `state` to its default value. */
-  reset() {
-    Object.keys(this._state).forEach(key => delete this._state[key])
+  /**
+   * Reset our `state` to its defaults.
+   * By default we totally clear state, pass specific string `keys` array to only clear some.
+   */
+  resetState(...keys) {
+    if (arguments.length === 0) keys = Object.keys(this._state)
+    keys.forEach(key => delete this._state[key])
   }
 
   /**
@@ -131,6 +136,7 @@ export function prop(target, key, descriptor) {
       if (newValue === undefined) {
         if (hasOwnProp(this, key)) delete this[key]
         if (hasOwnProp(this._props, key)) delete this._props[key]
+        if (hasOwnProp(this._state, key)) delete this._state[key]
       } else {
         this._props[key] = newValue
       }
@@ -145,6 +151,7 @@ export function prop(target, key, descriptor) {
 
 /**
  * A `@state` is a transitive reactive property defined on an Observable, stored in `._state`.
+ * You cannot modify `@state` directy!  Instead do `this.set("_state.prop", newValue)`.
  * Call `.resetState()` to reset all state variables to their default.
  */
 export function state(target, key, descriptor) {
@@ -154,27 +161,30 @@ export function state(target, key, descriptor) {
     return descriptor
   }
 
-  const { initializer, value, writable, configurable } = descriptor
+  const { initializer, value, configurable /* writable, */ } = descriptor
   const get = function() {
     if (hasOwnProp(this._state, key)) return this._state[key]
     if (!initializer) return value
     // eslint-disable-next-line no-return-assign
     return (this._state[key] = initializer())
   }
-  let set
-  if (writable) {
-    set = function(newValue) {
-      if (newValue === undefined) {
-        if (hasOwnProp(this, key)) delete this[key]
-        if (hasOwnProp(this._state, key)) delete this._state[key]
-      } else {
-        this._state[key] = newValue
-      }
-    }
-  } else {
-    set = function(newValue) {
-      console.warn(`Attempting to set readonly property '${key}' of`, this, "to", newValue)
-    }
+  const set = function(newValue) {
+    console.warn(`Attempting to set readonly state '${key}' of`, this, "to", newValue)
   }
+  // let set
+  // if (writable) {
+  //   set = function(newValue) {
+  //     if (newValue === undefined) {
+  //       if (hasOwnProp(this, key)) delete this[key]
+  //       if (hasOwnProp(this._state, key)) delete this._state[key]
+  //     } else {
+  //       this._state[key] = newValue
+  //     }
+  //   }
+  // } else {
+  //   set = function(newValue) {
+  //     console.warn(`Attempting to set readonly property '${key}' of`, this, "to", newValue)
+  //   }
+  // }
   return { get, set, enumerable: false, configurable }
 }

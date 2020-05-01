@@ -1,12 +1,23 @@
 import global from "global"
 // import { observable, computed } from "mobx"
 
-import { LoadableManager, prop, forward, memoize, writeOnce, $fetch, OPTIONAL, REQUIRED, CONFIRM } from "../../util"
+import {
+  LoadableManager,
+  state,
+  forward,
+  memoize,
+  writeOnce,
+  $fetch,
+  OPTIONAL,
+  REQUIRED,
+  CONFIRM,
+  TaskList,
+  Task
+} from "../../util"
 import { spellParser as coreSpellParser } from "."
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProjectManifest } from "./SpellProjectManifest"
 import { SpellProjectIndex } from "./SpellProjectIndex"
-
 /**
  * Controller for a `SpellProject`.
  *
@@ -56,21 +67,77 @@ export class SpellProject extends LoadableManager {
   //-----------------
   //  Compilation
   //-----------------
-  /** Our base parser. */
-  @prop parser = undefined
 
-  async parse(parser = coreSpellParser) {
-    this.set({ parser })
-    await this.load()
-    await this.loadImports()
-    const importFiles = this.imports.filter(({ active }) => !!active).map(({ file }) => file)
-    this.compileImports(importFiles, parser)
+  /** Parser use for our last parse/compile. */
+  @state baseParser = undefined
+
+  /** Last compiled result as a javascript string. */
+  @state compiled = undefined
+
+  /** Reset our compiled state. */
+  resetCompiled() {
+    this.resetState("baseParser", "compiled")
   }
 
-  /** Imports will have `{ path, contents, parse(), compile() }` */
-  async compileImports(imports, parser = coreSpellParser) {
-    imports.forEach(file => file.compile(parser))
-    return imports.map(file => file.compiled)
+  /**
+   * Return a TaskList we can use to parse our imports.
+   * Call as `project.parser.start(spellParser?)`
+   */
+  @memoize
+  get parser() {
+    return new TaskList({
+      name: `Parsing project: ${this.projectName}`,
+      tasks: [
+        new Task({
+          name: "Loading project",
+          run: (parser = coreSpellParser) => {
+            this.resetCompiled()
+            this.set("_state.baseParser", parser)
+            return this.load()
+          }
+        }),
+        TaskList.forEach({
+          name: `Parsing imports`,
+          list: () => this.activeImports,
+          getTask: file =>
+            new Task({
+              name: `Parsing import: ${file.fileName}`,
+              run: () => file.parse(this.baseParser)
+            })
+        })
+      ]
+    })
+  }
+
+  /**
+   * Return a TaskList we can use to `compile()` our imports.
+   * Call as `project.compiler.start(spellParser?)`
+   */
+  @memoize
+  get compiler() {
+    return new TaskList({
+      name: `Compiling project: ${this.projectName}`,
+      tasks: [
+        this.parser,
+        TaskList.forEach({
+          name: `Compiling imports`,
+          list: () => this.activeImports,
+          getTask: file =>
+            new Task({
+              name: `Compiling import: ${file.fileName}`,
+              run: () => file.compile()
+            })
+        }),
+        new Task({
+          name: "Combining output",
+          run: allCompiled => {
+            const compiled = allCompiled.join("\n// -----------\n")
+            this.set("_state.compiled", compiled)
+            return compiled
+          }
+        })
+      ]
+    })
   }
 
   //-----------------
@@ -89,9 +156,9 @@ export class SpellProject extends LoadableManager {
 
   /**
    * Return our index file.
-   * Also `spellProject.imports` to return array of import files.
+   * Also `spellProject.imports` and `spellProject.activeImports` to import setup.
    */
-  @forward("imports", "loadImports")
+  @forward("imports", "activeImports")
   @memoize
   get index() {
     return new SpellProjectIndex(this.path)

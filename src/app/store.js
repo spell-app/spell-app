@@ -150,6 +150,7 @@ export const store = createStore({
   },
   async compileFile() {
     if (!store.file) return
+    await store.file.parse()
     await store.file.compile()
     store.file.executeCompiled()
   },

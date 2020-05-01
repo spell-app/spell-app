@@ -14,6 +14,10 @@ export const SUCCESS = "SUCCESS"
 export const FAILURE = "FAILURE"
 export const CANCELLED = "CANCELLED"
 
+/** ResolveWith. */
+export const LAST = "LAST"
+export const RESULTS = "RESULTS"
+
 /** Well-known file formats as mime-types. */
 export const KNOWN_FORMATS = {
   text: "text/plain",

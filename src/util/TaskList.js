@@ -1,4 +1,5 @@
-import { forward, isOfType } from "./decorators"
+import { LAST, RESULTS } from "./constants"
+import { proto, forward } from "./decorators"
 import { prop, state } from "./Observable"
 import { Task } from "./Task"
 
@@ -40,6 +41,12 @@ export class TaskList extends Task {
   @prop delayBetweenTasks = 0
 
   /**
+   * On success, should we `resolve()` with the value of the `LAST` task
+   * or the `RESULTS` of all of the tasks?
+   */
+  @prop resolveWith = LAST
+
+  /**
    * Should we continue when we encounter an error (failed task)?
    * Note that we'll also ignore errors if an individual `task.isOptional`.
    */
@@ -53,13 +60,17 @@ export class TaskList extends Task {
   @state index = -1
 
   /** Pointer to the active task. if any. */
-  @state activeTask = undefined
+  get activeTask() {
+    return this.tasks[this.index]
+  }
 
   /**
    * Pointer to the last active task.
    * An active task can look at this to inspect the result of the last task.
    */
-  @state lastTask = undefined
+  get lastTask() {
+    return this.tasks[this.index - 1]
+  }
 
   //-----------------
   // Syntactic sugar for results of our tasks
@@ -93,6 +104,14 @@ export class TaskList extends Task {
     if (tasks) this.addTasks(...tasks)
   }
 
+  /**
+   * Return the list of `tasks` just prior to our `run()`.
+   * Override to set tasks dynamically (e.g. see `TaskList.forEach`).
+   */
+  getTasks() {
+    return this.tasks
+  }
+
   /** Add one or more `Tasks` to our queue. */
   addTasks(...newTasks) {
     newTasks.forEach(task => {
@@ -109,28 +128,32 @@ export class TaskList extends Task {
 
   /** `run()` the TaskList with `intialValue` passed to `start()`. */
   run(initialValue) {
-    // we will have been `reset()`
+    // Reset list of tasks
+    this.tasks = this.getTasks()
+
+    // `resetState()` will have been called.
     // `this.taskRun` will be set
     // `this.taskRun.resolve/reject` will be available
     return new Promise((resolve, reject) => {
+      const complete = () => {
+        if (this.resolveWith === LAST) resolve(this.lastTask?.result)
+        else resolve(this.results)
+      }
       const processNextTask = async lastValue => {
-        // Bail if we're not still active (e.g. if we were cancelled)
-        if (this.wasCancelled) return resolve(undefined)
+        // Bail if we were explicitly cancelled
+        if (this.wasCancelled) return complete()
+
         // This shouldn't happen... ???
         if (!this.isActive) {
           console.warn("processNextTask for inActive, non-cancelled task", this)
-          return resolve(this.lastTask?.result)
+          return complete()
         }
 
         // Advance to the next task in the queue
-        this.set({
-          lastTask: this.activeTask,
-          index: ++this.index,
-          activeTask: this.tasks[this.index]
-        })
+        this.set("_state.index", this.index + 1)
 
         // If we ran out of tasks, we're done!
-        if (!this.activeTask) return resolve(this.lastTask?.result)
+        if (!this.activeTask) return complete()
 
         let result
         try {
@@ -144,8 +167,8 @@ export class TaskList extends Task {
         // Execute the next task on a slight delay to allow the UI to catch up
         return setTimeout(() => processNextTask(result), this.delayBetweenTasks || 0)
       }
-      // Let's get this party started!!!
-      processNextTask(initialValue)
+      // Get the party started in the next tick
+      setTimeout(() => processNextTask(initialValue), 0)
     })
   }
 
@@ -166,9 +189,52 @@ export class TaskList extends Task {
   }
 
   /** Reset the taskList for another run. */
-  reset() {
-    super.reset()
-    this.tasks.forEach(task => task.reset())
+  resetState() {
+    super.resetState()
+    this.tasks.forEach(task => task.resetState())
+  }
+
+  //-----------------
+  // Debugging
+  //-----------------
+  @proto debug = true
+  @proto debugOutput = true
+
+  /** Called before we start executing. */
+  beforeStart(inputValue) {
+    if (this.debug) {
+      const { name } = this
+      console.group(`> TaskList: ${name}\n     `, { taskList: this, inputValue })
+    }
+  }
+  /** Called after we finish executing. Yu can examine `this.hasSucceeded`, `this.result`, etc. */
+  afterFinish() {
+    if (this.debugOutput) {
+      const { name, status, result, error, wasCancelled } = this
+      console.info(`< TaskList: ${name}\n     `, { taskList: this, status, result, error, wasCancelled })
+    }
+    if (this.debug) console.groupEnd()
+  }
+
+  //-----------------
+  // Factory methods
+  //-----------------
+
+  /**
+   * Create a TaskList which iterates over `getTask(list[], n)` to get a list of tasks.
+   * `list` can be an array or a `function` which returns an array dynamically.
+   * All other props will be passed directly to the taskList.
+   */
+  static forEach({ list, getTask, ...props }) {
+    return new TaskList({
+      resolveWith: RESULTS,
+      getTasks() {
+        // Handle `list` as a function.  Clone the list in case it mutates.
+        const items = typeof list === "function" ? [...list()] : [...list]
+        return items.map((item, index) => getTask(item, index))
+      },
+      ...props
+    })
   }
 }
 
