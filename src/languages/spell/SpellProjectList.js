@@ -26,7 +26,7 @@ export class SpellProjectList extends JSON5File {
    */
   @memoizeForProp("contents")
   get projectPaths() {
-    console.warn("setting projectPaths")
+    // console.warn("setting projectPaths")
     // if (!this.isLoaded) console.warn("SpellProjectList(): Attempting to get list of projects before loading.")
     return this.contents || []
   }
@@ -37,7 +37,7 @@ export class SpellProjectList extends JSON5File {
    */
   @memoizeForProp("projectPaths")
   get projects() {
-    console.warn("setting projects")
+    // console.warn("setting projects")
     return this.projectPaths.map(path => new SpellProject(path))
   }
 

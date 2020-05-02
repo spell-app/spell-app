@@ -156,7 +156,7 @@ const OutputEditor = view(function OutputEditor() {
             top: "50%",
             zIndex: 2
           }}
-          onClick={store.compileFile}
+          onClick={store.compile}
         >
           <ion-icon name="chevron-forward-outline" size="large" />
           Compile

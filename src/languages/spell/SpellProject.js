@@ -79,6 +79,16 @@ export class SpellProject extends LoadableManager {
     this.resetState("baseParser", "compiled")
   }
 
+  parse(parser) {
+    this.parser.cancel()
+    return this.parser.start(parser)
+  }
+  compile(parser) {
+    this.parser.cancel()
+    this.compiler.cancel()
+    return this.compiler.start(parser)
+  }
+
   /**
    * Return a TaskList we can use to parse our imports.
    * Call as `project.parser.start(spellParser?)`

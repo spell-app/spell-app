@@ -101,7 +101,7 @@ export const store = createStore({
   async reloadFile() {
     if (store.file) {
       await store.file.reload()
-      store.compileFile()
+      store.compile()
     }
   },
   async createFile(path, contents) {
@@ -148,10 +148,10 @@ export const store = createStore({
       store.showError(e)
     }
   },
-  async compileFile() {
-    if (!store.file) return
-    await store.file.parse()
-    await store.file.compile()
+  async compile() {
+    if (!store.project || !store.file) return
+    const compiled = await store.project.compile()
+    console.warn("Compiled:", compiled)
     store.file.executeCompiled()
   },
   onInputChanged(codeMirror, change, value) {
