@@ -125,10 +125,8 @@ export function prop(target, key, descriptor) {
 
   const { initializer, value, writable, configurable } = descriptor
   const get = function() {
-    if (hasOwnProp(this._props, key)) return this._props[key]
-    if (!initializer) return value
-    // eslint-disable-next-line no-return-assign
-    return (this._props[key] = initializer())
+    if (!hasOwnProp(this._props, key)) this._props[key] = initializer ? initializer() : value
+    return this._props[key]
   }
   let set
   if (writable) {
@@ -163,10 +161,8 @@ export function state(target, key, descriptor) {
 
   const { initializer, value, configurable /* writable, */ } = descriptor
   const get = function() {
-    if (hasOwnProp(this._state, key)) return this._state[key]
-    if (!initializer) return value
-    // eslint-disable-next-line no-return-assign
-    return (this._state[key] = initializer())
+    if (!hasOwnProp(this._state, key)) this._state[key] = initializer ? initializer() : value
+    return this._state[key]
   }
   const set = function(newValue) {
     console.warn(`Attempting to set readonly state '${key}' of`, this, "to", newValue)
