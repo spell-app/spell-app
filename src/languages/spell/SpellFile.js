@@ -93,7 +93,8 @@ export class SpellFile extends TextFile {
    * Pass an explicit `spellParser` if the file is, e.g. building on other files.
    */
   async parse(parser = coreSpellParser) {
-    if (this.matched && this.matched.scope.parser === parser) return this.matched
+    // if (this.matched && this.matched.scope.parser === parser) return this.matched
+    if (this.matched) return this.matched
     await this.load()
     this.resetCompiled()
     const matched = parser.parse(this.contents, "block")
@@ -165,7 +166,7 @@ export class SpellFile extends TextFile {
 
   /** When our contents are changed, update our parser vars. */
   setContents(...args) {
-    this.resetCompiled()
+    this.project.updatedContentsFor(this)
     return super.setContents(...args)
   }
 }
