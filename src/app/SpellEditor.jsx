@@ -15,10 +15,13 @@ import { SpellFileLocation } from "../languages/spell/SpellFileLocation"
 import { CodeMirror, inputOptions, outputOptions } from "./CodeMirror"
 import { store } from "./store"
 
+// Set to `true` to debug rendering of components as observables change.
+const DEBUG_RENDER = false
+
 /** Menu of all available projects. */
 const ProjectMenu = view(function() {
   const { projectList, project } = store
-  console.info("ProjectMenu", projectList, project)
+  if (DEBUG_RENDER) console.info("ProjectMenu", projectList, project)
   const bound = React.useMemo(() => {
     return {
       createProject: () => store.createProject(),
@@ -56,7 +59,7 @@ const ProjectMenu = view(function() {
 /** Menu of all available files. */
 const FileMenu = view(function() {
   const { project, file } = store
-  console.info("FileMenu", project, file)
+  if (DEBUG_RENDER) console.info("FileMenu", project, file)
   if (!project || !file) return <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
   return (
     <NavDropdown key={file.path} title={file.fileName} id="FileMenu" style={{ width: "12em" }}>
@@ -71,7 +74,7 @@ const FileMenu = view(function() {
 
 const EditorToolbar = view(function EditorToolbar() {
   const { isDirty } = store.file || {}
-  console.info("EditorToolbar", isDirty)
+  if (DEBUG_RENDER) console.info("EditorToolbar", isDirty)
   const bound = React.useMemo(() => {
     return {
       saveFile: () => store.saveFile(),
@@ -119,7 +122,7 @@ const EditorToolbar = view(function EditorToolbar() {
 
 const InputEditor = view(function InputEditor() {
   const { file } = store
-  console.info("InputEditor", file, file?.contents?.split("\n")[0])
+  if (DEBUG_RENDER) console.info("InputEditor", file, file?.contents?.split("\n")[0])
   return (
     <CodeMirror
       key={file?.path || "loading"}
@@ -135,7 +138,7 @@ const InputEditor = view(function InputEditor() {
 const OutputEditor = view(function OutputEditor() {
   const { file } = store
   const compiled = file?.compiled
-  console.info("OutputEditor", { file, compiled })
+  if (DEBUG_RENDER) console.info("OutputEditor", { file, compiled })
   return (
     <>
       <CodeMirror
@@ -212,7 +215,7 @@ const Error = view(function Error() {
 })
 
 export const SpellEditor = view(function SpellEditor() {
-  console.warn("SpellEditor")
+  if (DEBUG_RENDER) console.warn("SpellEditor")
   return (
     <>
       <Container fluid className="d-flex flex-column h-100 px-0">
