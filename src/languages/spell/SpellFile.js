@@ -2,7 +2,7 @@ import global from "global"
 import prettier from "prettier/standalone"
 import babylon from "prettier/parser-babylon"
 
-import { TextFile, state, proto, memoize, forward, writeOnce, overrideable } from "../../util"
+import { TextFile, state, proto, memoize, forward, writeOnce, overrideable, batch } from "../../util"
 import { SpellParser, Scope } from "."
 import { SpellProject } from "./SpellProject"
 import { SpellFileLocation } from "./SpellFileLocation"
@@ -91,9 +91,18 @@ export class SpellFile extends TextFile {
 
   /**
    * Return a `Scope` for parsing this file.
+   * Note that if our `parentScope` is NOT the `rootScope`,
+   * we'll use the same parser.  This will ensure that
    */
-  getScope(parentScope = SpellParser.rootScope) {
-    return new Scope.File({ name: this.fileName, scope: parentScope })
+  getScope(parentScope) {
+    // If we were passed a `parentScope`, set up as a `File` and use same parser.
+    if (parentScope) return new Scope.File({ name: this.fileName, scope: parentScope })
+    // Otherwise set up as an ad-hoc `Project` and clone `SpellParser.rootScope.parser`
+    return new Scope.Project({
+      name: this.fileName,
+      parser: SpellParser.rootScope.parser.clone({ module: this.path }),
+      scope: SpellParser.rootScope
+    })
   }
 
   /**
@@ -106,9 +115,11 @@ export class SpellFile extends TextFile {
     if (this.matched) return this.matched
     await this.load()
     this.resetCompiled()
-    this.set("_state.scope", this.getScope(parentScope))
-    const matched = this.scope.parse(this.contents, "block")
-    this.set("_state.matched", matched)
+    batch(() => {
+      this.set("_state.scope", this.getScope(parentScope))
+      const matched = this.scope.parse(this.contents, "block")
+      this.set("_state.matched", matched)
+    })
     return this.matched
   }
 
@@ -117,15 +128,17 @@ export class SpellFile extends TextFile {
    */
   async compile(parentScope) {
     const matched = await this.parse(parentScope)
-    this.set("_state.AST", matched.AST)
-    let compiled = matched.compile()
-    try {
-      // Use prettier to format the output.  This will throw if the code is bad.
-      compiled = prettier.format(compiled, { parser: "babel", plugins: [babylon] })
-    } catch (e) {
-      console.warn("Prettier error:", e)
-    }
-    this.set("_state.compiled", compiled)
+    batch(() => {
+      this.set("_state.AST", matched.AST)
+      let compiled = matched.compile()
+      try {
+        // Use prettier to format the output.  This will throw if the code is bad.
+        compiled = prettier.format(compiled, { parser: "babel", plugins: [babylon] })
+      } catch (e) {
+        console.warn("Prettier error:", e)
+      }
+      this.set("_state.compiled", compiled)
+    })
     return this.compiled
   }
 
