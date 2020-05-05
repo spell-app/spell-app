@@ -3,9 +3,9 @@
 //  TODO: sort
 //
 
-import { AST, Scope, Spell, singularize } from ".."
+import { AST, Scope, SpellParser, singularize } from ".."
 
-export default new Spell.Parser({
+export default new SpellParser({
   module: "lists",
   rules: [
     // List of identifiers and/or numbers, e.g. "clubs or hearts", "jack, queen, king"
@@ -58,7 +58,10 @@ export default new Spell.Parser({
         },
         {
           title: "doesn't match malformed lists ",
-          tests: [["", undefined], ["[,1]", undefined]]
+          tests: [
+            ["", undefined],
+            ["[,1]", undefined]
+          ]
         }
       ]
     },
@@ -149,7 +152,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       // TODO: `does not start with`?
       syntax: "(operator:starts with) {expression:single_expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
           method: "startsWith",
@@ -177,7 +180,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       // TODO: `does not end with`?
       syntax: "(operator:ends with) {expression:single_expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
           method: "endsWith",
@@ -490,7 +493,7 @@ export default new Spell.Parser({
       syntax: "the? {arg:plural_variable} (in|of) {list:expression} where",
       testRule: "…where",
       precedence: 2,
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       wantsInlineStatement: true,
       parseInlineStatementAs: "expression",
       getNestedScope(match) {
@@ -540,7 +543,7 @@ export default new Spell.Parser({
       syntax: "{list:single_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_variable} where",
       testRule: "…(has|have)",
       precedence: 2,
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       wantsInlineStatement: true,
       parseInlineStatementAs: "expression",
       getNestedScope(match) {
@@ -591,7 +594,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {list:expression}",
       testRule: "add",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         const { thing, list, method } = match.groups
         const spellMethod = method && ["start", "front", "top"].includes(method.value) ? "prepend" : "append"
@@ -627,7 +630,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "prepend {thing:expression} to {list:expression}",
       testRule: "prepend",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
@@ -653,7 +656,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "append {thing:expression} to {list:expression}",
       testRule: "append",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
@@ -687,7 +690,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
       testRule: "add",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         const { thing, list, operator, item } = match.groups
         let position = new AST.CoreMethodInvocation(match, {
@@ -739,7 +742,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "(empty|clear) {list:expression}",
       testRule: "(empty|clear)",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(match, {
@@ -768,7 +771,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "remove the? {position:ordinal} {arg:singular_variable} of {list:expression}",
       testRule: "remove",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         const { position, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
@@ -796,7 +799,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "remove {arg:singular_variable} {number:expression} of {list:expression}",
       testRule: "remove",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         const { number, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
@@ -823,7 +826,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "remove {arg:plural_variable} {start:expression} to {end:expression} of {list:expression}",
       testRule: "remove",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         const { start, end, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
@@ -847,7 +850,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "remove {start:ordinal} to {end:ordinal} {arg:plural_variable} of {list:expression}",
       testRule: "remove",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         const { start, end, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
@@ -875,7 +878,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "remove {thing:expression} from {list:expression}",
       testRule: "remove",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
@@ -901,7 +904,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "remove {arg:plural_variable} (in|of|from) {list:expression} where",
       testRule: "remove",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       wantsInlineStatement: true,
       parseInlineStatementAs: "expression",
       getNestedScope(match) {
@@ -952,7 +955,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "reverse ((the? {arg:plural_variable}) (in|of))? {list:expression}",
       testRule: "reverse",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(match, {
@@ -981,7 +984,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "(randomize|shuffle) ((the? {arg:plural_variable}) (in|of))? {list:expression}",
       testRule: "(randomize|shuffle)",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(match, {
@@ -1013,7 +1016,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "for each? {item:singular_variable} ((and|,) {position:singular_variable})? in {list:expression} :?",
       testRule: "for",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(match) {
@@ -1080,7 +1083,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "for each? {item:singular_variable} from {start:expression} down? to {end:expression} :?",
       testRule: "for",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(match) {

@@ -3,9 +3,9 @@
 //  NOTE: this must come after "operators"
 //
 
-import { AST, Spell } from ".."
+import { AST, SpellParser } from ".."
 
-export default new Spell.Parser({
+export default new SpellParser({
   module: "math",
   rules: [
     {
@@ -14,7 +14,7 @@ export default new Spell.Parser({
       precedence: 11,
       // NOTE: output of `operator` will NOT have space between `>=`
       syntax: "(operator:(<|>) =?) {expression:single_expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       parenthesize: true,
       tests: [
         {
@@ -46,7 +46,7 @@ export default new Spell.Parser({
       precedence: 11,
       // TODO: is *not* greater than???
       syntax: "(operator:is (greater|less) than (or equal to)?) {expression:single_expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       getOutputOperator: ({ value }) => (value.includes("greater") ? ">" : "<") + (value.includes("equal") ? "=" : ""),
       parenthesize: true,
       tests: [
@@ -71,7 +71,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 13,
       syntax: "(operator:plus|+) {expression:single_expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       getOutputOperator: () => "+",
       parenthesize: true,
       tests: [
@@ -81,7 +81,11 @@ export default new Spell.Parser({
             scope.variables.add("price")
             scope.variables.add("tax")
           },
-          tests: [["price + tax", "(price + tax)"], ["price+tax", "(price + tax)"], ["price plus tax", "(price + tax)"]]
+          tests: [
+            ["price + tax", "(price + tax)"],
+            ["price+tax", "(price + tax)"],
+            ["price plus tax", "(price + tax)"]
+          ]
         }
       ]
     },
@@ -90,7 +94,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 13,
       syntax: "(operator:minus|-) {expression:single_expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       getOutputOperator: () => "-",
       parenthesize: true,
       tests: [
@@ -114,7 +118,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 14,
       syntax: "(operator:*|times) {expression:single_expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       getOutputOperator: () => "*",
       parenthesize: true,
       tests: [
@@ -137,7 +141,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 14,
       syntax: "(operator:/|divided by) {expression:single_expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       getOutputOperator: () => "/",
       parenthesize: true,
       tests: [
@@ -164,7 +168,7 @@ export default new Spell.Parser({
       alias: ["expression", "single_expression"],
       syntax: "(operator:the? absolute value of) {expression}",
       testRule: "…absolute",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       getAST(match) {
         const { expression } = match.groups
         return new AST.CoreMethodInvocation(match, {

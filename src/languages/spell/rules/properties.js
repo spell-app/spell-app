@@ -5,12 +5,12 @@
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
 
-import { AST, Spell } from ".."
+import { AST, SpellParser } from ".."
 import identifierBlacklist from "./identifier-blacklist"
 
 const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/
 
-export default new Spell.Parser({
+export default new SpellParser({
   module: "properties",
   rules: [
     // Generic property name -- single word, initial-lower case, not in identifier blacklist.
@@ -90,7 +90,10 @@ export default new Spell.Parser({
         // TESTME: `its` inside an instance method
         {
           compileAs: "expression",
-          tests: [["its foo", "this.foo"], ["the foo of its bar", "this.bar.foo"]]
+          tests: [
+            ["its foo", "this.foo"],
+            ["the foo of its bar", "this.bar.foo"]
+          ]
         }
       ]
     },

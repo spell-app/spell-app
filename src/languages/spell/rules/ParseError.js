@@ -1,7 +1,7 @@
-import { Match, Rule, Spell, Tokenizer, AST } from ".."
+import { Match, Rule, SpellParser, Tokenizer, AST } from ".."
 
 // Parser error representation in parser output.
-Spell.Rule.ParseError = class parse_error extends Rule {
+SpellParser.Rule.ParseError = class parse_error extends Rule {
   // Eat all of the tokens.
   parse(scope, tokens) {
     return new Match({

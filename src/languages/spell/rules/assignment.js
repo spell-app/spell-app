@@ -2,9 +2,9 @@
 //  # Rules for assignment and returning values.
 //
 
-import { Spell, AST } from ".."
+import { SpellParser, AST } from ".."
 
-export default new Spell.Parser({
+export default new SpellParser({
   module: "assignment",
   rules: [
     {
@@ -16,7 +16,7 @@ export default new Spell.Parser({
         { syntax: "set (thing:{expression}|{variable}) to {value:expression}", testRule: "set" },
         { syntax: "(thing:{variable}) is {value: expression}", testRule: "…is" }
       ],
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       mutateScope(match) {
         const { thing } = match.groups
         // If `thing` is a variable...
@@ -75,7 +75,7 @@ export default new Spell.Parser({
       alias: ["assignment", "statement"],
       syntax: "get {value:expression}",
       testRule: "get",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       mutateScope(match) {
         // make sure 'it' is declared LOCALLY
         match.isNewVarable = !match.scope.variables("it", "LOCAL")
@@ -95,7 +95,10 @@ export default new Spell.Parser({
           beforeEach(scope) {
             scope.variables.add("thing")
           },
-          tests: [["get thing", "let it = thing"], ["get the foo of the thing", "let it = thing.foo"]]
+          tests: [
+            ["get thing", "let it = thing"],
+            ["get the foo of the thing", "let it = thing.foo"]
+          ]
         }
       ]
     },
@@ -110,7 +113,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "(return|exit with?) {expression}?",
       testRule: "(return|exit)",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         return new AST.ReturnStatement(match, { value: match.groups.expression?.AST })
       },

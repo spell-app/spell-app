@@ -7,7 +7,7 @@ import { abortableFetch, $fetch, Loadable, LoadableFile, TextFile, JSONFile, JSO
 
 // Parser bits
 export * from "../parser"
-export { spellParser, Spell } from "../languages/spell"
+export { spellParser, SpellParser } from "../languages/spell"
 
 // Spell "core" library
 export { default as spellCore } from "../languages/spell/spell-core"

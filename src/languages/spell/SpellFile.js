@@ -3,7 +3,7 @@ import prettier from "prettier/standalone"
 import babylon from "prettier/parser-babylon"
 
 import { TextFile, state, proto, memoize, forward, writeOnce, overrideable } from "../../util"
-import { spellParser as coreSpellParser } from "."
+import { SpellParser, Scope } from "."
 import { SpellProject } from "./SpellProject"
 import { SpellFileLocation } from "./SpellFileLocation"
 
@@ -72,6 +72,9 @@ export class SpellFile extends TextFile {
   // Parsing / Compiling
   //-----------------
 
+  /** Our scope with which we've compiled. */
+  @state scope = undefined
+
   /** Results of our last `parse()` as a `Match`. */
   @state matched = undefined
 
@@ -83,7 +86,14 @@ export class SpellFile extends TextFile {
 
   /** Reset our compiled state. */
   resetCompiled() {
-    this.resetState("matched", "AST", "compiled")
+    this.resetState("scope", "matched", "AST", "compiled")
+  }
+
+  /**
+   * Return a `Scope` for parsing this file.
+   */
+  getScope(parentScope = SpellParser.rootScope) {
+    return new Scope.File({ name: this.fileName, scope: parentScope })
   }
 
   /**
@@ -92,12 +102,12 @@ export class SpellFile extends TextFile {
    * Use `spellFile.resetCompiled()` to clear it.
    * Pass an explicit `spellParser` if the file is, e.g. building on other files.
    */
-  async parse(parser = coreSpellParser) {
-    // if (this.matched && this.matched.scope.parser === parser) return this.matched
+  async parse(parentScope) {
     if (this.matched) return this.matched
     await this.load()
     this.resetCompiled()
-    const matched = parser.parse(this.contents, "block")
+    this.set("_state.scope", this.getScope(parentScope))
+    const matched = this.scope.parse(this.contents, "block")
     this.set("_state.matched", matched)
     return this.matched
   }
@@ -105,8 +115,8 @@ export class SpellFile extends TextFile {
   /**
    * Compile our content.  Note: you must parse first!
    */
-  async compile(parser) {
-    const matched = await this.parse(parser)
+  async compile(parentScope) {
+    const matched = await this.parse(parentScope)
     this.set("_state.AST", matched.AST)
     let compiled = matched.compile()
     try {

@@ -2,7 +2,7 @@
 //  # Rules for if statements.
 //
 
-import { Scope, Spell, AST } from ".."
+import { Scope, SpellParser, AST } from ".."
 
 // Given a condition expression string, wrap it in parens iff it is not already parenthesized properly.
 // TESTME
@@ -11,7 +11,7 @@ export function parenthesizeCondition(condition) {
   return `(${condition})`
 }
 
-export default new Spell.Parser({
+export default new SpellParser({
   module: "if",
   rules: [
     {
@@ -19,7 +19,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "if {condition:expression} (then|:)?",
       testRule: "if",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(match) {
@@ -104,7 +104,7 @@ export default new Spell.Parser({
       syntax: "(else|otherwise) if {condition:expression} (then|:)?",
       testRule: "(else|otherwise)",
       precedence: 1,
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(match) {
@@ -181,7 +181,7 @@ export default new Spell.Parser({
       alias: "statement",
       syntax: "(else|otherwise) :?",
       testRule: "(else|otherwise)",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(match) {
@@ -239,7 +239,7 @@ export default new Spell.Parser({
       name: "backwards_if",
       alias: "expression_suffix",
       syntax: "if {operator:expression} (else|otherwise) {expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       compileASTExpression(match, { lhs, operator, rhs }) {
         return new AST.TernaryExpression(match, {
           condition: operator.AST,

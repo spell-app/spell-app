@@ -1,6 +1,6 @@
-import { Spell } from ".."
+import { SpellParser } from ".."
 
-// The following add new Rule constructors to `Spell.Rule`
+// The following add new Rule constructors to `SpellParser.Rule`
 import "./Block"
 import "./Statement"
 import "./ParseError"
@@ -23,10 +23,10 @@ import tests from "./tests"
 
 // Create parser which combines all of the above...
 // NOTE: THIS INSTANCE is used by other parsers, to pick up the rules defined below.
-const spellParser = new Spell.Parser({ module: "spell" })
+const spellParser = new SpellParser({ module: "spell" })
 
-spellParser.defineRule({ name: "block", constructor: Spell.Rule.Block })
-spellParser.defineRule({ name: "parse_error", constructor: Spell.Rule.ParseError })
+spellParser.defineRule({ name: "block", constructor: SpellParser.Rule.Block })
+spellParser.defineRule({ name: "parse_error", constructor: SpellParser.Rule.ParseError })
 
 // Import the other rules defined above.
 spellParser.import(

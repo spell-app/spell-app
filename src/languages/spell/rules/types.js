@@ -1,13 +1,13 @@
 //
 //  # Rules for constants, variables, type names, etc
 //
-import { AST, Rule, Spell, typeCase, singularize, pluralize } from ".."
+import { AST, Rule, SpellParser, typeCase, singularize, pluralize } from ".."
 import identifierBlacklist from "./identifier-blacklist"
 
 // Alpha-numeric word, including dashes or underscores.
 const WORD = /^[a-zA-Z][\w\-]*$/
 
-Spell.Rule.Type = class type extends Rule.Pattern {
+SpellParser.Rule.Type = class type extends Rule.Pattern {
   pattern = WORD
   datatype = "type"
   blacklist = identifierBlacklist
@@ -53,13 +53,13 @@ Spell.Rule.Type = class type extends Rule.Pattern {
   }
 }
 
-export default new Spell.Parser({
+export default new SpellParser({
   module: "types",
   rules: [
     // A possibly-unknown type identifier, singular or plural.
     {
       name: "type",
-      constructor: Spell.Rule.Type,
+      constructor: SpellParser.Rule.Type,
       tests: [
         {
           tests: [
@@ -77,7 +77,7 @@ export default new Spell.Parser({
     // Possibly unknown type which MUST be singular.
     {
       name: "singular_type",
-      constructor: class singular_type extends Spell.Rule.Type {
+      constructor: class singular_type extends SpellParser.Rule.Type {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === singularize(match.raw)) return match
@@ -110,7 +110,7 @@ export default new Spell.Parser({
     // NOTE: the output type name will be SINGULAR!
     {
       name: "plural_type",
-      constructor: class plural_type extends Spell.Rule.Type {
+      constructor: class plural_type extends SpellParser.Rule.Type {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === pluralize(match.raw)) return match
@@ -144,7 +144,7 @@ export default new Spell.Parser({
     {
       name: "known_type",
       //      alias: ["expression", "single_expression"],
-      constructor: class known_type extends Spell.Rule.Type {
+      constructor: class known_type extends SpellParser.Rule.Type {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           // Only return match if we picked up an existing `type` scope

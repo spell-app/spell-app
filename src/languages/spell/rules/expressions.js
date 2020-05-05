@@ -2,10 +2,10 @@
 //  # Rules for expressions.
 //
 
-import { AST, Match, Rule, Spell, peek, proto } from ".."
+import { AST, Match, Rule, SpellParser, peek, proto } from ".."
 
 /** TODOC!!! */
-Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
+SpellParser.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
   // set `outputDatatype` to specify explicit datatype in standard `getAST()`
 
   /** If `true`, we'll wrap output expression in parenthesis. */
@@ -67,7 +67,7 @@ Spell.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
 }
 
 /** TODOC!!! */
-Spell.Rule.PostfixOperatorSuffix = class postfix_operator extends Spell.Rule.InfixOperatorSuffix {
+SpellParser.Rule.PostfixOperatorSuffix = class postfix_operator extends SpellParser.Rule.InfixOperatorSuffix {
   /**
    * - `lhs` is left-hand side match
    * - `operator` is raw full input operator string
@@ -77,7 +77,7 @@ Spell.Rule.PostfixOperatorSuffix = class postfix_operator extends Spell.Rule.Inf
   }
 }
 
-export default new Spell.Parser({
+export default new SpellParser({
   module: "expressions",
   rules: [
     {
@@ -115,7 +115,10 @@ export default new Spell.Parser({
         },
         {
           title: "doesn't match malformed parenthesized expressions",
-          tests: [["(foo", undefined], ["(foo(bar)baz", undefined]]
+          tests: [
+            ["(foo", undefined],
+            ["(foo(bar)baz", undefined]
+          ]
         }
       ]
     },
@@ -155,7 +158,7 @@ export default new Spell.Parser({
         const opStack = []
         rhsChain.matched.forEach(rhs => {
           // Unary postfix operator, e.g. "<lhs> is empty"
-          if (rhs.rule instanceof Spell.Rule.PostfixOperatorSuffix) {
+          if (rhs.rule instanceof SpellParser.Rule.PostfixOperatorSuffix) {
             const args = {
               match: rhs,
               lhs: output.pop(),
@@ -165,7 +168,7 @@ export default new Spell.Parser({
             output.push(applyOperatorToRule(args))
           }
           // Infix binary operator, e.g. "<lhs> is a <rhs>"
-          else if (rhs.rule instanceof Spell.Rule.InfixOperatorSuffix) {
+          else if (rhs.rule instanceof SpellParser.Rule.InfixOperatorSuffix) {
             const { operator, expression } = rhs.groups
 
             // While top operator on stack is higher precedence than this one
@@ -232,7 +235,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       syntax: "(operator:and) {expression:single_expression}",
       precedence: 6,
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       getOutputOperator: () => "&&",
       parenthesize: true,
       tests: [
@@ -257,7 +260,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       syntax: "(operator:or) {expression:single_expression}",
       precedence: 5,
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       getOutputOperator: () => "||",
       parenthesize: true,
       tests: [
@@ -277,7 +280,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 10,
       syntax: "(operator:is not?) {expression:single_expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       parenthesize: true,
       getOutputOperator: operator => (operator.value === "is not" ? "!=" : "=="),
       tests: [
@@ -287,7 +290,10 @@ export default new Spell.Parser({
             scope.variables.add("thing")
             scope.variables.add("other")
           },
-          tests: [["thing is other", "(thing == other)"], ["thing is not other", "(thing != other)"]]
+          tests: [
+            ["thing is other", "(thing == other)"],
+            ["thing is not other", "(thing != other)"]
+          ]
         }
       ]
     },
@@ -297,7 +303,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 10,
       syntax: "(operator:is not? exactly) {expression:single_expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       parenthesize: true,
       getOutputOperator: operator => (operator.value === "is not exactly" ? "!==" : "==="),
       tests: [
@@ -307,7 +313,10 @@ export default new Spell.Parser({
             scope.variables.add("thing")
             scope.variables.add("other")
           },
-          tests: [["thing is exactly other", "(thing === other)"], ["thing is not exactly other", "(thing !== other)"]]
+          tests: [
+            ["thing is exactly other", "(thing === other)"],
+            ["thing is not exactly other", "(thing !== other)"]
+          ]
         }
       ]
     },
@@ -317,7 +326,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:is not? (a|an)) {expression:type}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       shouldNegateOutput: operator => operator.value.includes("not"),
       compileASTExpression(match, { lhs, rhs }) {
         // TODO: QuotedExpression feels wrong here...
@@ -347,7 +356,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:is not? the same type as) {expression:single_expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       getOutputOperator: operator => (operator.value.includes("not") ? "!==" : "==="),
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
@@ -376,7 +385,7 @@ export default new Spell.Parser({
       precedence: 11,
       syntax:
         "(operator:is (not? in|not? one of|either|not either of?|neither)) (expression:{single_expression}|{identifier_list})",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       shouldNegateOutput: ({ value }) => value.includes("not") || value.includes("neither"),
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
@@ -412,7 +421,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:includes|contains) {expression:single_expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
           method: "includes",
@@ -439,7 +448,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:does not (include|contain)) {expression:single_expression}",
-      constructor: Spell.Rule.InfixOperatorSuffix,
+      constructor: SpellParser.Rule.InfixOperatorSuffix,
       shouldNegateOutput: () => true,
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
@@ -467,7 +476,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "is (defined|undefined|not defined)",
-      constructor: Spell.Rule.PostfixOperatorSuffix,
+      constructor: SpellParser.Rule.PostfixOperatorSuffix,
       shouldNegateOutput: operator => operator.value !== "is defined",
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
@@ -496,7 +505,7 @@ export default new Spell.Parser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:is not? empty)",
-      constructor: Spell.Rule.PostfixOperatorSuffix,
+      constructor: SpellParser.Rule.PostfixOperatorSuffix,
       shouldNegateOutput: operator => operator.value.includes("not"),
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
@@ -510,7 +519,10 @@ export default new Spell.Parser({
           beforeEach(scope) {
             scope.variables.add("thing")
           },
-          tests: [["thing is empty", "spellCore.isEmpty(thing)"], ["thing is not empty", "!spellCore.isEmpty(thing)"]]
+          tests: [
+            ["thing is empty", "spellCore.isEmpty(thing)"],
+            ["thing is not empty", "!spellCore.isEmpty(thing)"]
+          ]
         }
       ]
     }

@@ -14,7 +14,7 @@ import {
   TaskList,
   Task
 } from "../../util"
-import { spellParser as coreSpellParser } from "."
+import { SpellParser, Scope } from "."
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProjectManifest } from "./SpellProjectManifest"
 import { SpellProjectIndex } from "./SpellProjectIndex"
@@ -69,14 +69,14 @@ export class SpellProject extends LoadableManager {
   //-----------------
 
   /** Parser use for our last parse/compile. */
-  @state baseParser = undefined
+  @state scope = undefined
 
   /** Last compiled result as a javascript string. */
   @state compiled = undefined
 
   /** Reset our compiled state. */
   resetCompiled() {
-    this.resetState("baseParser", "compiled")
+    this.resetState("scope", "compiled")
   }
 
   parse(parser) {
@@ -90,8 +90,16 @@ export class SpellProject extends LoadableManager {
   }
 
   /**
+   * Return base project scope, given a `parentScope`.
+   * TODOC...
+   */
+  getScope(parentScope = SpellParser.rootScope) {
+    return new Scope.Project({ name: this.projectName, scope: parentScope })
+  }
+
+  /**
    * Return a TaskList we can use to parse our imports.
-   * Call as `project.parser.start(spellParser?)`
+   * Call as `project.parser.start(parentScope?)`
    */
   @memoize
   get parser() {
@@ -100,9 +108,10 @@ export class SpellProject extends LoadableManager {
       tasks: [
         new Task({
           name: "Loading project",
-          run: (parser = coreSpellParser) => {
+          run: parentScope => {
             this.resetCompiled()
-            this.set("_state.baseParser", parser)
+            const scope = this.getScope(parentScope)
+            this.set("_state.scope", scope)
             return this.load()
           }
         }),
@@ -112,7 +121,7 @@ export class SpellProject extends LoadableManager {
           getTask: file =>
             new Task({
               name: `Parsing import: ${file.fileName}`,
-              run: () => file.parse(this.baseParser)
+              run: () => file.parse(this.scope)
             })
         })
       ]
@@ -121,7 +130,7 @@ export class SpellProject extends LoadableManager {
 
   /**
    * Return a TaskList we can use to `compile()` our imports.
-   * Call as `project.compiler.start(spellParser?)`
+   * Call as `project.compiler.start(parentScope?)`
    */
   @memoize
   get compiler() {

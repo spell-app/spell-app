@@ -2,9 +2,9 @@
 //  # Rules for inline spell tests.
 //
 
-import { Spell, AST } from ".."
+import { SpellParser, AST } from ".."
 
-export default new Spell.Parser({
+export default new SpellParser({
   module: "tests",
   rules: [
     {
@@ -12,7 +12,7 @@ export default new Spell.Parser({
       alias: ["statement"],
       syntax: "expect {expression} (to be {value:expression})?",
       testRule: "expect",
-      constructor: Spell.Rule.Statement,
+      constructor: SpellParser.Rule.Statement,
       getAST(match) {
         const { expression, value } = match.groups
         const expressionLiteral = new AST.StringLiteral(match, { value: `\`${expression.value}\`` })

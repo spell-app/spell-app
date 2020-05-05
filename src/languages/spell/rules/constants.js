@@ -1,13 +1,13 @@
 //
 //  # Rules for constants, variables, type names, etc
 //
-import { AST, Rule, Scope, Spell, proto } from ".."
+import { AST, Rule, Scope, SpellParser, proto } from ".."
 import identifierBlacklist from "./identifier-blacklist"
 
 // Alpha-numeric word, including dashes or underscores.
 const WORD = /^[a-zA-Z][\w\-]*$/
 
-Spell.Rule.Constant = class constant extends Rule.Pattern {
+SpellParser.Rule.Constant = class constant extends Rule.Pattern {
   @proto pattern = WORD
   @proto blacklist = identifierBlacklist
 
@@ -29,14 +29,14 @@ Spell.Rule.Constant = class constant extends Rule.Pattern {
   }
 }
 
-export default new Spell.Parser({
+export default new SpellParser({
   module: "constants",
   rules: [
     // A possibly-unknown constant.
     // `match.constant` will be the existing Scope.Constant if one already exists.
     {
       name: "constant",
-      constructor: Spell.Rule.Constant,
+      constructor: SpellParser.Rule.Constant,
       tests: [
         {
           tests: [
@@ -53,7 +53,7 @@ export default new Spell.Parser({
     {
       name: "known_constant",
       alias: ["expression", "single_expression"],
-      constructor: class known_constant extends Spell.Rule.Constant {
+      constructor: class known_constant extends SpellParser.Rule.Constant {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (!match || !match.constant) return undefined

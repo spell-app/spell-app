@@ -2,9 +2,9 @@
 //  # Core `rules` -- simple datatypes, etc.
 //
 import { Token } from "../../../parser"
-import { AST, Spell } from ".."
+import { AST, SpellParser } from ".."
 
-export default new Spell.Parser({
+export default new SpellParser({
   module: "core",
   rules: [
     //----------------------------
@@ -93,7 +93,11 @@ export default new Spell.Parser({
         },
         {
           title: "doesn't match things that aren't numbers",
-          tests: [["", undefined], ["-", undefined], [".", undefined]]
+          tests: [
+            ["", undefined],
+            ["-", undefined],
+            [".", undefined]
+          ]
         },
         {
           title: "requires negative sign to touch the number",
@@ -179,7 +183,11 @@ export default new Spell.Parser({
         },
         {
           title: "doesn't match in the middle of a longer keyword",
-          tests: [["yessir", undefined], ["yes-sir", undefined], ["yes_sir", undefined]]
+          tests: [
+            ["yessir", undefined],
+            ["yes-sir", undefined],
+            ["yes_sir", undefined]
+          ]
         }
       ]
     },

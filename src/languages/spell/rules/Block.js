@@ -1,5 +1,5 @@
 import _ from "lodash"
-import { Match, Rule, Spell, Token, AST } from ".."
+import { Match, Rule, SpellParser, Token, AST } from ".."
 
 /** Update Rule.BlankLine to output AST properly. */
 Rule.BlankLine.prototype.getAST = function(match) {
@@ -12,8 +12,8 @@ Rule.BlankLine.prototype.getAST = function(match) {
 //  They are composed of `blockLines` and nested `blocks`,
 //  and correspond roughly to a `Scope` (see `parser/Scope.js`).
 //
-// Note: Access this as `Spell.Rule.Block`.
-Spell.Rule.Block = class block extends Rule {
+// Note: Access this as `SpellParser.Rule.Block`.
+SpellParser.Rule.Block = class block extends Rule {
   // Split statements up into blocks and parse 'em.
   parse(scope, tokens) {
     if (!tokens.length) return undefined
@@ -42,12 +42,12 @@ Spell.Rule.Block = class block extends Rule {
       else if (item instanceof Token.Block) {
         const nestedBlock = this.parseBlock(scope, item)
         if (nestedBlock) {
-          Spell.logger.info("got a nested block when we weren't expecting one")
+          // console.warn("got a nested block when we weren't expecting one")
           // Push it into the stream, but don't wrap it in parens.
           matched.enclose = false
           matched.push(nestedBlock)
         } else {
-          Spell.logger.info("saw unexpected nested block, parsing it didn't return anything")
+          console.warn("saw unexpected nested block, parsing it didn't return anything")
         }
       }
       // Got a single line of tokens: parse as statement

@@ -2,9 +2,9 @@
 //  # Rules for parsing jsx
 //
 
-import { Rule, Spell, Token } from ".."
+import { Rule, SpellParser, Token } from ".."
 
-export default new Spell.Parser({
+export default new SpellParser({
   module: "JSX",
   rules: [
     {
