@@ -92,7 +92,11 @@ rulex.defineRule({
   tests: [
     {
       title: "matches testLocation",
-      tests: [["", undefined], ["…", ANYWHERE], ["^", AT_START]]
+      tests: [
+        ["", undefined],
+        ["…", ANYWHERE],
+        ["^", AT_START]
+      ]
     }
   ]
 })
@@ -110,7 +114,10 @@ rulex.defineRule({
   tests: [
     {
       title: "matches argument",
-      tests: [["", undefined], ["arg:", "arg"]]
+      tests: [
+        ["", undefined],
+        ["arg:", "arg"]
+      ]
     }
   ]
 })
@@ -128,7 +135,12 @@ rulex.defineRule({
   tests: [
     {
       title: "matches repeatFlag",
-      tests: [["", undefined], ["?", "?"], ["*", "*"], ["+", "+"]]
+      tests: [
+        ["", undefined],
+        ["?", "?"],
+        ["*", "*"],
+        ["+", "+"]
+      ]
     }
   ]
 })
@@ -471,7 +483,7 @@ rulex.defineRule({
     const rules = []
     for (let start = 0, rule; (rule = matched[start]); start++) {
       // Consolidate sequences
-      if (rule instanceof Rule.Sequence && (!rule.isAdorned && !rule.optional)) {
+      if (rule instanceof Rule.Sequence && !rule.isAdorned && !rule.optional) {
         rules.push(...rule.rules)
       } else {
         rules.push(rule)
