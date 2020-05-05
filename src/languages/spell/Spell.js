@@ -2,7 +2,7 @@
 //  ## Spell langugage Module root.
 //
 import { DebugLevel, Parser, Tokenizer, WhitespacePolicy, addDebugMethods, proto } from "../../parser"
-import { Module } from "."
+import { Scope } from "."
 
 const Spell = {
   // Create a logger set to `warn`
@@ -28,11 +28,11 @@ const Spell = {
       // Make sure `Object`, `Thing` and `List` types are defined for all modules
       // TODO: this is hacky, better way to do it???
       if (!Spell.rootScope) {
-        Spell.rootScope = new Module({ name: "spellRoot", types: ["Object", "Thing", "List"] })
+        Spell.rootScope = new Scope.Project({ name: "spellRoot", types: ["Object", "Thing", "List"] })
       }
 
       const parser = this.clone({ module })
-      return new Module({ name: moduleName, parser, scope: Spell.rootScope })
+      return new Scope.File({ name: moduleName, parser, scope: Spell.rootScope })
     }
 
     // If we're tokenizing "block", parse them into blocks.

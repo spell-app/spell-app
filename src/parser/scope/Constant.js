@@ -1,4 +1,4 @@
-import { Scope, ParseError } from "."
+import { Scope, ParseError } from ".."
 
 //
 // Constant definition.

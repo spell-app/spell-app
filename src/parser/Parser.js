@@ -74,7 +74,7 @@ export default class Parser {
   // much more complete scopes which proxy methods from the parser.
   //
   // The only hard requirement for a scope is that you must define:
-  //  - `scope.getRuleOrDie(ruleName)` to return a named rile.
+  //  - `scope.getRuleOrDie(ruleName)` to return a named rule.
   //
   getScope() {
     return this

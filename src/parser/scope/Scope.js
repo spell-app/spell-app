@@ -1,4 +1,4 @@
-import { indexedList, typeCase, snakeCase, Variable, Constant, Method, Type } from "."
+import { indexedList, snakeCase, typeCase, Variable, Method, Type, Constant } from ".."
 
 //
 //  Scope: execution context which maintain `IndexedList`s of:
@@ -15,7 +15,7 @@ import { indexedList, typeCase, snakeCase, Variable, Constant, Method, Type } fr
 //  Update as:
 //    - `scope.variables.add(new Variable())  pass explicit pre-created variable, make sure to set `name`
 //    - `scope.variables.add('name')          creates a Variable for you implicitly
-//    - `scope.remove(name)`
+//    - `scope.variables.remove(name)`
 //  See `src/util/indexedList.js` for more details.
 //
 //  Scopes also point to a `parser` (possibly from a parent scope)
@@ -61,26 +61,9 @@ export default class Scope {
   })
   methods
 
-  //----------------------------
-  // Local and scope Constants
-  // TODO: do local constants make sense?  scope to module?  global?
-  //
-  @indexedList({
-    keyProp: "name",
-    parentProp: "scope",
-    normalizeKey: snakeCase,
-    transformer(item) {
-      if (!(item instanceof Constant)) item = new Constant(item)
-      item.scope = this
-      return item
-    }
-  })
-  constants
-
-  //----------------------------
-  // Local and scope Types
-  // TODO: do local types make sense?  scope to module?  global?
-  //
+  /**
+   * Types defined in this project and in parent scopes, available to all Files in the project.
+   */
   @indexedList({
     keyProp: "name",
     parentProp: "scope",
@@ -93,10 +76,28 @@ export default class Scope {
   })
   types
 
-  // Return the named type.  If not found, create a `stub` type.
+  /**
+   * Return the named type.  If not found, create a `stub` type.
+   * TODO: this seems dangerous...
+   */
   getOrStubType(name) {
     return this.types(name) || this.types.add({ name, stub: true })
   }
+
+  /**
+   * Constants defined in this project, available to all files.
+   */
+  @indexedList({
+    keyProp: "name",
+    parentProp: "scope",
+    normalizeKey: snakeCase,
+    transformer(item) {
+      if (!(item instanceof Constant)) item = new Constant(item)
+      item.scope = this
+      return item
+    }
+  })
+  constants
 
   //----------------------------
   // Parsing

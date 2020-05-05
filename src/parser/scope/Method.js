@@ -1,4 +1,4 @@
-import { Scope, Variable } from "."
+import { Scope, Variable } from ".."
 
 // Method scope.  Expected properties:
 //  - name          method name
