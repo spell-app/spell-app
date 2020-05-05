@@ -57,7 +57,7 @@ Spell.Rule.Block = class block extends Rule {
         if (comment) matched.push(comment)
         if (statement) matched.push(statement)
         // add anything unparsed at the end as a parse error
-        if (unparsed.length) matched.push(scope.parse(unparsed, "parse_error"))
+        if (unparsed.length) matched.push(scope.parser.getRuleOrDie("parse_error").parse(scope, unparsed))
 
         if (statement) {
           // TODO: not sure if this is needed anymore
@@ -99,17 +99,17 @@ Spell.Rule.Block = class block extends Rule {
     let end = tokens.length
 
     // eat whitespace at front if found
-    const whitespace = scope.parse(tokens, "eat_whitespace")
+    const whitespace = scope.parser.getRuleOrDie("eat_whitespace").parse(scope, tokens)
     if (whitespace) start = whitespace.length
 
     // pop comment (which will be a single token) off of the end if found
     const last = tokens[tokens.length - 1]
-    const comment = scope.parse([last], "comment")
+    const comment = scope.parser.getRuleOrDie("comment").parse(scope, [last])
     if (comment) end -= 1
 
     // parse the statement
     const unparsed = tokens.slice(start, end)
-    const statement = scope.parse(unparsed, "statement")
+    const statement = scope.parser.getRuleOrDie("statement").parse(scope, unparsed)
 
     // Update `unparsed` so `parseBlock()` will output a parse error if we didn't get it all.
     if (statement) unparsed.splice(0, statement.length)

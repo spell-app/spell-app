@@ -13,13 +13,13 @@ Rule.Subrule = class subrule extends Rule {
 
   // Ask the subrule to figure out if a match is possible.
   test(scope, tokens, testLocation = this.testLocation) {
-    const rule = scope.getRuleOrDie(this.rule)
+    const rule = scope.parser.getRuleOrDie(this.rule)
     return rule.test(scope, tokens, testLocation)
   }
 
   parse(scope, tokens) {
     if (!tokens.length) return undefined
-    const rule = scope.getRuleOrDie(this.rule)
+    const rule = scope.parser.getRuleOrDie(this.rule)
 
     const match = rule.parse(scope, tokens)
     if (!match) return undefined

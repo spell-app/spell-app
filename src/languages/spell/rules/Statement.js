@@ -27,7 +27,7 @@ Spell.Rule.Statement = class _statement extends Rule.Sequence {
     // Attempt to parse any remaining tokens as an inlineStatement if necessary
     const unparsed = tokens.slice(statement.length)
     if (this.wantsInlineStatement && unparsed.length) {
-      scope.getRuleOrDie("block").parseInlineStatement(statement, unparsed, this.parseInlineStatementAs)
+      scope.parser.getRuleOrDie("block").parseInlineStatement(statement, unparsed, this.parseInlineStatementAs)
     }
 
     return statement

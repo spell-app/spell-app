@@ -22,7 +22,7 @@ import { indexedList, snakeCase, typeCase, Variable, Method, Type, Constant } fr
 //  which defines a set of spell `rules`.  You can add rules dynamically:
 //    - `scope.addRule()`
 //
-//  Finally, you can use the scope to actually parse some text:
+//  Finally, you can use the scope to actually parse some raw text:
 //    - `scope.parse(text, startRuleName)`
 //    - `scope.compile(text, startRuleName)
 //
@@ -123,12 +123,6 @@ export default class Scope {
 
   compile(text, ruleName) {
     return this.parser.compile(text, ruleName, this)
-  }
-
-  // Return a named rule from our parser.
-  // Throws if not found.
-  getRuleOrDie(ruleName) {
-    return this.parser?.getRuleOrDie(ruleName)
   }
 
   // Add a generic rule to our `parser`.

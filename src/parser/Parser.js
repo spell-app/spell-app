@@ -68,16 +68,21 @@ export default class Parser {
   // ### Parsing
   //
 
-  // Return a `scope` for top-level `parse()` or `compile()` if one was not provided.
-  //
-  // The default is just to return this parser, but some languages (e.g. spell) manage
-  // much more complete scopes which proxy methods from the parser.
-  //
-  // The only hard requirement for a scope is that you must define:
-  //  - `scope.getRuleOrDie(ruleName)` to return a named rule.
-  //
+  /**
+   * Parsing is done by attempting to match tokens with a set of immutable `rules`.
+   *
+   * When doing a top-level `parser.parse()`, we'll create a `scope` object
+   * to keep track of the internal state of the parser as it descends.
+   *
+   * The only hard requriement is `scope.parser` must point to
+   * a valid `Parser` instance for your language.
+   *
+   * Some languages, e.g. `spell`, use a more elaborate `Scope` concept
+   * which can keep track of allocated variables and methods, type definitions, etc.
+   *
+   */
   getScope() {
-    return this
+    return { parser: this }
   }
 
   // Parse `ruleName` rule at head of `text`.
@@ -89,7 +94,7 @@ export default class Parser {
     if (!tokens || tokens.length === 0) return undefined
 
     // Parse the rule or throw an exception if rule not found.
-    const rule = scope.getRuleOrDie(ruleName)
+    const rule = scope.parser.getRuleOrDie(ruleName)
     const result = rule.parse(scope, tokens)
 
     // If we didn't get anything, note that the parse was incomplete.
@@ -416,7 +421,7 @@ export default class Parser {
             const { input, output } = test
             let result
             try {
-              const match = scope.parse(input, compileAs, scope)
+              const match = scope.parser.parse(input, compileAs, scope)
               if (match) result = match.compile()
             } catch (e) {
               result = e

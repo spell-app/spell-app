@@ -25,7 +25,7 @@ export default new Spell.Parser({
         if (element.attributes) {
           element.attributes.forEach(attribute => {
             if (attribute.value instanceof Token.JSXExpression)
-              attribute.value.expression = scope.parse(attribute.value.contents, "expression")
+              attribute.value.expression = scope.parser.parse(attribute.value.contents, "expression", scope)
           })
         }
         if (element.children) {

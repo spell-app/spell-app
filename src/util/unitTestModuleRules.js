@@ -113,7 +113,7 @@ export default function unitTestModuleRules(parser, moduleName) {
     let match
     let result
     try {
-      match = scope.parse(input, ruleName)
+      match = scope.parser.parse(input, ruleName, scope)
       if (match) {
         try {
           result = match.compile()
