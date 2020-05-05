@@ -94,7 +94,14 @@ export class SpellProject extends LoadableManager {
    * TODOC...
    */
   getScope(parentScope = SpellParser.rootScope) {
-    return new Scope.Project({ name: this.projectName, scope: parentScope })
+    // Make a parser that depends on the parentScope's parser
+    // This way rules added to the project won't leak out.
+    const parser = parentScope.parser.clone({ module: this.path })
+    return new Scope.Project({
+      name: this.projectName,
+      parser,
+      scope: parentScope
+    })
   }
 
   /**
