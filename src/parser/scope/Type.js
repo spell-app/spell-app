@@ -1,7 +1,7 @@
 import assert from "assert"
 import lowerFirst from "lodash/lowerFirst"
 
-import { Scope, Variable, Method, indexedList, typeCase } from ".."
+import { Scope, Variable, Method, IndexedList, typeCase, snakeCase, memoize } from ".."
 
 // Type, which extends Scope.  Specifically:
 //  - `name` is the name of the type, and should be TypeCase and singular.
@@ -22,32 +22,39 @@ export default class Type extends Scope {
     super(props)
   }
 
-  //----------------------------
-  // Class Variables and Methods (statics)
-  //
-  @indexedList({
-    keyProp: "name",
-    normalizeKey: typeCase,
-    transformer(item) {
-      if (!(item instanceof Variable)) item = new Variable(item)
-      item.scope = this
-      item.kind = "static"
-      return item
-    }
-  })
-  classVariables
+  /** Scope `classVariables`. */
+  @memoize
+  get classVariables() {
+    return new IndexedList({
+      target: this,
+      keyProp: "name",
+      parentProp: "scope.classVariables",
+      normalizeKey: snakeCase,
+      transformer(item) {
+        if (!(item instanceof Variable)) item = new Variable(item)
+        item.scope = this
+        item.kind = "static"
+        return item
+      }
+    })
+  }
 
-  @indexedList({
-    keyProp: "name",
-    normalizeKey: typeCase,
-    transformer(item) {
-      if (!(item instanceof Method)) item = new Method(item)
-      item.scope = this
-      item.kind = "static"
-      return item
-    }
-  })
-  classMethods
+  /** Scope `classVariables`. */
+  @memoize
+  get classMethods() {
+    return new IndexedList({
+      target: this,
+      keyProp: "name",
+      parentProp: "scope.classMethods",
+      normalizeKey: snakeCase,
+      transformer(item) {
+        if (!(item instanceof Method)) item = new Method(item)
+        item.scope = this
+        item.kind = "static"
+        return item
+      }
+    })
+  }
 
   // Syntactic sugar for the type name.
   // e.g. if the type name is `Card`, the instanceName would be `card`.

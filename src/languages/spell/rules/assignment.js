@@ -23,7 +23,7 @@ export default new SpellParser({
         if (thing.rule.name === "variable") {
           // get just the `identifier` bit to ignore leading "the "
           const varName = thing.groups.identifier.value
-          match.isNewVariable = !match.scope.variables(varName)
+          match.isNewVariable = !match.scope.variables.get(varName)
           // define it a a new variable in `scope` if not already defined
           if (match.isNewVariable) match.scope.variables.add(varName) // TODO: type???
         }
@@ -78,7 +78,7 @@ export default new SpellParser({
       constructor: SpellParser.Rule.Statement,
       mutateScope(match) {
         // make sure 'it' is declared LOCALLY
-        match.isNewVarable = !match.scope.variables("it", "LOCAL")
+        match.isNewVarable = !match.scope.variables.get("it", "LOCAL")
         if (!match.isNewVarable) match.scope.variables.add("it")
       },
       getAST(match) {

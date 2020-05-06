@@ -16,7 +16,7 @@ export default new SpellParser({
         const { type, superType } = match.groups
         // Forget it if type is already defined.
         // TODO: complain if existing type is set up differently!
-        if (match.scope.types(type.value)) return
+        if (match.scope.types.get(type.value)) return
         match.scope.types.add({ name: type.value, superType: superType?.value })
       },
       getAST(match) {
@@ -55,7 +55,7 @@ export default new SpellParser({
         const { type, instanceType } = match.groups
         // Forget it if type is already defined.
         // TODO: complain if existing type is set up differently!
-        if (match.scope.types(type.value)) return
+        if (match.scope.types.get(type.value)) return
 
         match.scope.types.add({ name: type.value, superType: "list", instanceType: instanceType?.value })
       },
@@ -449,11 +449,11 @@ export default new SpellParser({
         scope.getOrStubType(type.name)
         if (value.rule instanceof SpellParser.Rule.Constant) {
           // TODO: scope.constants.addMissing(value.raw)
-          const constant = value.constant || scope.constants(value.raw)
+          const constant = value.constant || scope.constants.get(value.raw)
           if (!constant) scope.constants.add(value.raw)
         }
         if (otherValue?.rule instanceof SpellParser.Rule.Constant) {
-          const constant = otherValue.constant || scope.constants(otherValue.raw)
+          const constant = otherValue.constant || scope.constants.get(otherValue.raw)
           if (!constant) scope.constants.add(otherValue.raw)
         }
       },
@@ -684,9 +684,9 @@ export default new SpellParser({
               // Try to find the enumeration
               // NOTE: currently this only works for an enumeration defined on the type!!!
               const propertyName = sources[sourceNum]?.groups?.property?.value
-              const variable = match.scope.types(type)?.variables(propertyName)
+              const variable = match.scope.types.get(type)?.variables.get(propertyName)
               const enumeration = variable?.enumeration
-              // console.warn({ type, Type: scope.types(type), propertyName, variable, enumeration })
+              // console.warn({ type, Type: scope.types.get(type), propertyName, variable, enumeration })
               // set up enumeration matcher
               if (variable && enumeration) {
                 // make sure inflection of variables matches `isSingular`

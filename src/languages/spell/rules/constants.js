@@ -14,13 +14,13 @@ SpellParser.Rule.Constant = class constant extends Rule.Pattern {
   parse(scope, tokens) {
     const match = super.parse(scope, tokens)
     if (!match) return undefined
-    match.constant = scope.constants(match.value)
+    match.constant = scope.constants.get(match.value)
     return match
   }
 
   getAST(match) {
     const name = match.constant ? match.constant.name : match.value
-    const scopeConst = match.constant || match.scope.constants(name)
+    const scopeConst = match.constant || match.scope.constants.get(name)
     return new AST.ConstantExpression(match, {
       name,
       value: (scopeConst || new Scope.Constant(name)).toString(),

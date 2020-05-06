@@ -8,7 +8,7 @@ import identifierBlacklist from "./identifier-blacklist"
 const WORD = /^[a-zA-Z][\w\-]*$/
 
 // Single word variable name, known or unknown.
-// NOTE: when compiling, we'll look for `scope.variables(varName)`:
+// NOTE: when compiling, we'll look for `scope.variables.get(varName)`:
 //        - if we find one, you can override what's output with `variable.ouput`.
 // TODO: type based on scope variable type?
 // TODO: higher precedence if variable is known?
@@ -23,7 +23,7 @@ SpellParser.Rule.VariableIdentifier = class _variable extends Rule.Pattern {
 
   getAST(match) {
     // Get scope Variable, if there is one
-    const variable = match.scope.variables(match.value)
+    const variable = match.scope.variables.get(match.value)
     // Allow variable to override name if it wants to (e.g. "it")
     const name = variable && variable.output ? variable.output : match.value
     return new AST.VariableExpression(match, { raw: match.raw, name, variable })
@@ -49,7 +49,7 @@ export default new SpellParser({
           const match = super.parse(scope, tokens)
           if (!match) return undefined
           // Set `match.variable` to the scope variable, if there is one.
-          match.variable = scope.variables(match.groups.identifier.value) || null
+          match.variable = scope.variables.get(match.groups.identifier.value) || null
           return match
         }
         getAST(match) {
@@ -81,7 +81,7 @@ export default new SpellParser({
           const match = super.parse(scope, tokens)
           if (!match) return undefined
           // Try to find the scope Variable associated with the identifier in canonical form
-          match.variable = scope.variables(match.groups.identifier.value)
+          match.variable = scope.variables.get(match.groups.identifier.value)
           if (!match.variable) return undefined
           return match
         }

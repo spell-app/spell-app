@@ -80,7 +80,7 @@ export default new SpellParser({
       testRule: "its",
       getAST(match) {
         const property = match.groups.property.AST
-        const itsVar = match.scope.variables("its")
+        const itsVar = match.scope.variables.get("its")
         const object = itsVar
           ? new AST.VariableExpression(match, { raw: "its", name: itsVar.output, variable: itsVar })
           : new AST.ThisLiteral(match)

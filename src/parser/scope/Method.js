@@ -26,7 +26,7 @@ export default class Method extends Scope {
   // Call without arguments: returns all argument Variables.
   // Call with string `name`, returns named argument or `undefined`.
   args(name) {
-    const args = this.variables().filter(variable => variable.kind === "argument")
+    const args = this.variables.get().filter(variable => variable.kind === "argument")
     if (arguments.length === 0) return args
     return args.find(arg => arg.name === name)
   }

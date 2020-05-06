@@ -1,4 +1,4 @@
-import { indexedList, typeCase, snakeCase, Scope, Constant, Type } from ".."
+import { typeCase, snakeCase, Scope, Constant, Type } from ".."
 
 /**
  * `Project` scope.

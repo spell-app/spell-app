@@ -1,4 +1,4 @@
-import { indexedList, snakeCase, typeCase, Variable, Method, Type, Constant } from ".."
+import { IndexedList, memoize, snakeCase, typeCase, Variable, Method, Type, Constant } from ".."
 
 //
 //  Scope: execution context which maintain `IndexedList`s of:
@@ -31,73 +31,82 @@ export default class Scope {
     Object.assign(this, props)
   }
 
-  //----------------------------
-  // Local and scope Variables
-  //
-  @indexedList({
-    keyProp: "name",
-    parentProp: "scope",
-    normalizeKey: snakeCase,
-    transformer(item) {
-      if (!(item instanceof Variable)) item = new Variable(item)
-      item.scope = this
-      return item
-    }
-  })
-  variables
+  /** Scope `variables`. */
+  @memoize
+  get variables() {
+    return new IndexedList({
+      target: this,
+      keyProp: "name",
+      parentProp: "scope.variables",
+      normalizeKey: snakeCase,
+      transformer(item) {
+        if (!(item instanceof Variable)) item = new Variable(item)
+        item.scope = this.target
+        return item
+      }
+    })
+  }
 
-  //----------------------------
-  // Local and scope Methods
-  //
-  @indexedList({
-    keyProp: "name",
-    parentProp: "scope",
-    normalizeKey: snakeCase,
-    transformer(item) {
-      if (!(item instanceof Method)) item = new Method(item)
-      item.scope = this
-      return item
-    }
-  })
-  methods
+  /** Scope `methods`. */
+  @memoize
+  get methods() {
+    return new IndexedList({
+      target: this,
+      keyProp: "name",
+      parentProp: "scope.methods",
+      normalizeKey: snakeCase,
+      transformer(item) {
+        if (!(item instanceof Method)) item = new Method(item)
+        item.scope = this.target
+        return item
+      }
+    })
+  }
 
-  /**
-   * Types defined in this project and in parent scopes, available to all Files in the project.
-   */
-  @indexedList({
-    keyProp: "name",
-    parentProp: "scope",
-    normalizeKey: typeCase,
-    transformer(item) {
-      if (!(item instanceof Type)) item = new Type(item)
-      item.scope = this
-      return item
-    }
-  })
-  types
+  // /** Pointer to our parent scope. */
+  // @forward("types", "constants", "getOrStubType")
+  // @proto
+  // scope = undefined
+
+  /** Scope `types`. */
+  @memoize
+  get types() {
+    return new IndexedList({
+      target: this,
+      keyProp: "name",
+      parentProp: "scope.types",
+      normalizeKey: typeCase,
+      transformer(item) {
+        if (!(item instanceof Type)) item = new Type(item)
+        item.scope = this
+        return item
+      }
+    })
+  }
 
   /**
    * Return the named type.  If not found, create a `stub` type.
    * TODO: this seems dangerous...
    */
   getOrStubType(name) {
-    return this.types(name) || this.types.add({ name, stub: true })
+    return this.types.get(name) || this.types.add({ name, stub: true })
   }
 
-  /**
-   * Constants defined in this project, available to all files.
-   */
-  @indexedList({
-    keyProp: "name",
-    parentProp: "scope",
-    normalizeKey: snakeCase,
-    transformer(item) {
-      if (!(item instanceof Constant)) item = new Constant(item)
-      item.scope = this
-      return item
-    }
-  })
-  constants
+  /** Scope `constants`. */
+  @memoize
+  get constants() {
+    return new IndexedList({
+      target: this,
+      keyProp: "name",
+      parentProp: "scope.constants",
+      normalizeKey: snakeCase,
+      transformer(item) {
+        if (!(item instanceof Constant)) item = new Constant(item)
+        item.scope = this
+        return item
+      }
+    })
+  }
 
   //----------------------------
   // Parsing

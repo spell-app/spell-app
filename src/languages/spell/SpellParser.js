@@ -18,18 +18,22 @@ export default class SpellParser extends Parser {
 
   @memoize
   static get rootScope() {
-    return new Scope.Project({
-      name: "spellRoot",
-      parser: spellParser,
-      types: ["Object", "Thing", "List"]
-    })
+    const scope = new Scope.Project({ name: "spellRoot", parser: spellParser })
+    scope.types.add("Object")
+    scope.types.add("Thing")
+    scope.types.add("List")
+    return scope
   }
   // Return a scope with a new parser which depends on this parser.
   // This lets us update rules/etc as desired without affecting the original parser.
   // DOCME
-  getScope(module = "ad_hoc") {
-    const parser = this.clone({ module })
-    return new Scope.Project({ name: module, parser, scope: SpellParser.rootScope })
+  getScope(moduleName = "ad_hoc") {
+    const parser = this.clone({ module: moduleName })
+    return new Scope.Project({
+      name: moduleName,
+      parser,
+      scope: SpellParser.rootScope
+    })
   }
 
   // If we're tokenizing "block", parse them into blocks.

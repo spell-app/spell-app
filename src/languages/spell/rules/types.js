@@ -43,7 +43,7 @@ SpellParser.Rule.Type = class type extends Rule.Pattern {
     const match = super.parse(scope, tokens)
     if (!match) return undefined
     // Pick up `type` scope based on canonical, singular type name
-    match.type = scope.types(match.value)
+    match.type = scope.types.get(match.value)
     return match
   }
 
