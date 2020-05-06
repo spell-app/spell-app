@@ -4,7 +4,7 @@ a deck is a list of cards
 to set up a deck
 	for each rank in card ranks
 		for each suit in card suits
-			add a new card with rank and suit to the deck
+			add a new card with rank the rank and suit the suit to it
 
 print card ranks
 

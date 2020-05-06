@@ -168,12 +168,10 @@ export class SpellProject extends LoadableManager {
 
   /**
    * One of our `file`s has updated its contents.
-   * Have it, and any files after it, `resetCompiled()`.
+   * Have all of our files `resetCompiled()` so they'll compile again.
    */
   updatedContentsFor(file) {
-    const imports = this.activeImports
-    const index = imports.indexOf(file)
-    if (index !== -1) imports.slice(index).forEach(it => it.resetCompiled())
+    this.activeImports.forEach(it => it.resetCompiled())
   }
 
   //-----------------
