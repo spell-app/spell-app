@@ -461,7 +461,6 @@ export class ThisLiteral extends Literal {
  *  - `raw` (optional) is the input property name
  */
 export class PropertyLiteral extends Literal {
-  @proto @readonly datatype = "string"
   constructor(...args) {
     super(...args)
     if (!this.value) this.value = this.match.value

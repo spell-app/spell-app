@@ -461,7 +461,7 @@ export const classes = new SpellParser({
         const { value, otherValue, type_property } = match.groups
         const { type } = type_property.groups
         // make sure type is defined
-        getOrStubType(scope, type.name)
+        getOrStubType(scope, type.value)
         if (value.rule instanceof SpellParser.Rule.Constant) {
           // TODO: scope.constants.addMissing(value.raw)
           const constant = value.constant || scope.constants.get(value.raw)
@@ -525,7 +525,7 @@ export const classes = new SpellParser({
         const { type_property, expression } = match.groups
         const { type, property } = type_property.groups
         // make sure type is defined
-        getOrStubType(match.scope, type.name)
+        getOrStubType(match.scope, type.value)
         return new AST.GetterDefinition(match, {
           thing: new AST.PrototypeExpression(type, { type: type.AST }),
           property: property.AST,

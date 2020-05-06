@@ -34,7 +34,7 @@ export class TypeScope extends BlockScope {
       normalizeKey: snakeCase,
       transformer(item) {
         if (!(item instanceof ScopeVariable)) item = new ScopeVariable(item)
-        item.scope = this
+        item.scope = this.target
         item.kind = "static"
         return item
       }
@@ -50,7 +50,7 @@ export class TypeScope extends BlockScope {
       normalizeKey: snakeCase,
       transformer(item) {
         if (!(item instanceof MethodScope)) item = new MethodScope(item)
-        item.scope = this
+        item.scope = this.target
         item.kind = "static"
         return item
       }

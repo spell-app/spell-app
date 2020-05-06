@@ -15,7 +15,7 @@ export class ProjectScope extends BlockScope {
       normalizeKey: typeCase,
       transformer(item) {
         if (!(item instanceof TypeScope)) item = new TypeScope(item)
-        item.scope = this
+        item.scope = this.target
         return item
       }
     })
@@ -31,7 +31,7 @@ export class ProjectScope extends BlockScope {
       normalizeKey: snakeCase,
       transformer(item) {
         if (!(item instanceof ScopeConstant)) item = new ScopeConstant(item)
-        item.scope = this
+        item.scope = this.target
         return item
       }
     })
