@@ -47,7 +47,6 @@ export default class Project extends Scope {
       keyProp: "name",
       parentProp: "scope.rules",
       transformer(item) {
-        console.warn(item)
         return { ...item, scope: this.target }
       }
     })
