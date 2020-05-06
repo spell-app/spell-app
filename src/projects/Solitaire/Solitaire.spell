@@ -2,26 +2,6 @@
 -- Automatically moves cards to foundation piles (aces).
 -- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for naming conventions.
 
-// TODO:  using card
-a card is a thing
-cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
-cards have a suit as one of clubs, diamonds, hearts or spades
-cards have a direction as either up or down
-to turn a card face up
-	set the direction of the card to up
-to turn a card face down
-	set the direction of the card to down
-
-// TODO:  using pile
-a pile is a list of cards
-
-// TODO:  using deck
-a deck is a list of cards
-to set up a deck
-	for each rank in card ranks
-		for each suit in card suits
-      	add a new card with rank = the rank and suit = the suit to the deck
-
 ## Define card-game
 a card-game is a thing
 a card-game has a deck
@@ -29,10 +9,10 @@ a card-game has a score as a number
 
 to set up a card-game
 	set its deck to a new deck
-   set up its deck
+	set up its deck
    
 to start a card-game
-   set its score to 0
+	set its score to 0
 	shuffle its deck
    
 
