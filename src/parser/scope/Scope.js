@@ -1,4 +1,4 @@
-import { IndexedList, memoize, snakeCase, typeCase, Variable, Method, Type, Constant } from ".."
+import { IndexedList, forward, proto, memoize, snakeCase, Variable, Method } from ".."
 
 //
 //  Scope: execution context which maintain `IndexedList`s of:
@@ -27,6 +27,14 @@ import { IndexedList, memoize, snakeCase, typeCase, Variable, Method, Type, Cons
 //    - `scope.compile(text, startRuleName)
 //
 export default class Scope {
+  /**
+   * Pointer to our parent scope.
+   * Note: we forward `types` and `constants` to our parent scope.
+   */
+  @forward("types", "constants", "getOrStubType")
+  @proto
+  scope = undefined
+
   constructor(props) {
     Object.assign(this, props)
   }
@@ -58,51 +66,6 @@ export default class Scope {
       transformer(item) {
         if (!(item instanceof Method)) item = new Method(item)
         item.scope = this.target
-        return item
-      }
-    })
-  }
-
-  // /** Pointer to our parent scope. */
-  // @forward("types", "constants", "getOrStubType")
-  // @proto
-  // scope = undefined
-
-  /** Scope `types`. */
-  @memoize
-  get types() {
-    return new IndexedList({
-      target: this,
-      keyProp: "name",
-      parentProp: "scope.types",
-      normalizeKey: typeCase,
-      transformer(item) {
-        if (!(item instanceof Type)) item = new Type(item)
-        item.scope = this
-        return item
-      }
-    })
-  }
-
-  /**
-   * Return the named type.  If not found, create a `stub` type.
-   * TODO: this seems dangerous...
-   */
-  getOrStubType(name) {
-    return this.types.get(name) || this.types.add({ name, stub: true })
-  }
-
-  /** Scope `constants`. */
-  @memoize
-  get constants() {
-    return new IndexedList({
-      target: this,
-      keyProp: "name",
-      parentProp: "scope.constants",
-      normalizeKey: snakeCase,
-      transformer(item) {
-        if (!(item instanceof Constant)) item = new Constant(item)
-        item.scope = this
         return item
       }
     })
