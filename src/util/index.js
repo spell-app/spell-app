@@ -1,5 +1,3 @@
-import "./polyfill"
-
 export * from "./constants"
 
 export * from "./addDebugMethods"

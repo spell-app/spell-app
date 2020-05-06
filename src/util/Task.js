@@ -1,6 +1,6 @@
 import { UNSTARTED, ACTIVE, SUCCESS, FAILURE } from "./constants"
 import { proto } from "./decorators"
-import { Observable, prop, state, batch } from "./Observable"
+import { Observable, state, batch } from "./Observable"
 
 /**
  * A `Task` is the concrete manifestation of an asynchronous process.

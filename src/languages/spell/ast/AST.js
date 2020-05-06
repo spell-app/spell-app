@@ -1,7 +1,7 @@
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 import _get from "lodash/get"
-import { proto, readonly, Assertable, OPTIONAL } from "../../util"
-import { Match, AST } from "."
+import { proto, readonly, Assertable, OPTIONAL } from "../../../util"
+import { Match } from ".."
 
 // TODO: define this in `constants` or some such?
 const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w\$]*$/
@@ -263,7 +263,7 @@ export class ParenthesizedExpression extends Expression {
   }
   toJS() {
     // don't double up on parens
-    if (this.expression instanceof AST.ParenthesizedExpression) return this.expression.toJS()
+    if (this.expression instanceof ParenthesizedExpression) return this.expression.toJS()
     return `(${this.expression.toJS()})`
   }
 }
@@ -303,7 +303,7 @@ export function MultiInfixExpression(match, { expressions, operator }) {
   let rhs = remaining.pop()
   while (remaining.length) {
     const lhs = remaining.pop()
-    rhs = new AST.InfixExpression(match, { lhs, operator, rhs })
+    rhs = new InfixExpression(match, { lhs, operator, rhs })
   }
   return rhs
 }

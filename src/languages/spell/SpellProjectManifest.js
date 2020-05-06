@@ -29,6 +29,7 @@ export class SpellProjectManifest extends JSON5File {
   /** We've been removed from the server -- clean up memory, etc.. */
   onRemove() {
     super.onRemove()
+    // eslint-disable-next-line no-unused-expressions
     this.files?.forEach(file => file.onRemove())
     SpellProjectManifest.registry.clear(this.path)
   }
