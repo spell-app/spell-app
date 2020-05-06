@@ -7,17 +7,37 @@
 import { Rule } from "./Rule"
 
 // The following subclasses of rule are ALWAYS accessed as `Rule.XXX`
-import "./Pattern"
-import "./Subrule"
-import "./TokenType"
-import "./Word"
-import "./BlankLine"
-import "./Literal" // Also "Keyword" and "Symbol"
-import "./Literals" // Also "Keywords" and "Symbols"
-import "./Sequence"
-import "./Choice" // Also "Group"
-import "./Repeat"
-import "./NestedSplit"
+import { BlankLine } from "./BlankLine"
+import { Choice, Group } from "./Choice"
+import { Literal, Keyword, Symbol } from "./Literal"
+import { Literals, Keywords, Symbols } from "./Literals"
+import { NestedSplit } from "./NestedSplit"
+import { Pattern } from "./Pattern"
+import { Repeat } from "./Repeat"
+import { Sequence } from "./Sequence"
+import { Subrule } from "./Subrule"
+import { TokenType } from "./TokenType"
+import { Word } from "./Word"
+
+// Don't export directly, place on `Rule` instead.
+Object.assign(Rule, {
+  BlankLine,
+  Choice,
+  Group,
+  Literal,
+  Keyword,
+  Symbol,
+  Literals,
+  Keywords,
+  Symbols,
+  NestedSplit,
+  Pattern,
+  Repeat,
+  Sequence,
+  Subrule,
+  TokenType,
+  Word
+})
 
 // Export `Rule` as module root.
 export { Rule }

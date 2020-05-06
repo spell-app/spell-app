@@ -1,4 +1,4 @@
-import { BlockScope } from "."
+import { BlockScope } from "./BlockScope"
 
 /**
  * `FileScope` -- a scope which encapsulates a discrete file.

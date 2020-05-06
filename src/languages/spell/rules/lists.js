@@ -3,7 +3,9 @@
 //  TODO: sort
 //
 
-import { AST, MethodScope, SpellParser, singularize } from ".."
+import { singularize } from "~/util"
+import { MethodScope } from "~/parser"
+import { AST, SpellParser } from "~/languages/spell"
 
 export const lists = new SpellParser({
   module: "lists",

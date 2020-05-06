@@ -1,4 +1,6 @@
-import { Rule, SpellParser, proto } from ".."
+import { proto } from "~/util"
+import { Rule } from "~/parser"
+import { SpellParser } from "~/languages/spell"
 
 // In Spell, we generally match `statements` across the entire line.
 //

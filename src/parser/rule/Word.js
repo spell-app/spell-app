@@ -1,9 +1,9 @@
-import { Rule } from "."
-import { Token, proto } from ".."
+import { proto } from "~/util"
+import { Token } from "~/parser"
+import { TokenType } from "./TokenType"
 
 // Match a single `Token.Word`
-Rule.Word = class word extends Rule.TokenType {
+export class Word extends TokenType {
   @proto name = "word"
-
   @proto tokenType = Token.Word
 }

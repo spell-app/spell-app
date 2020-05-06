@@ -2,7 +2,7 @@
 //  # Rules for inline spell tests.
 //
 
-import { SpellParser, AST } from ".."
+import { SpellParser, AST } from "~/languages/spell"
 
 export const tests = new SpellParser({
   module: "tests",

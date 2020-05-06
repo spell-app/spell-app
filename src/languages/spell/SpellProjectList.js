@@ -1,8 +1,7 @@
 import global from "global"
 
 import { JSON5File, OPTIONAL, REQUIRED, CONFIRM, proto, memoizeForProp, $fetch } from "~/util"
-import { SpellFileLocation } from "./SpellFileLocation"
-import { SpellProject } from "./SpellProject"
+import { SpellFileLocation, SpellProject } from "~/languages/spell"
 
 /**
  * Loadable list of all `SpellProject`s available to this user.

@@ -1,12 +1,13 @@
+import { proto } from "~/util"
+import { Match } from "~/parser"
 import { Rule } from "."
-import { Match, proto } from ".."
 
 // Abstract rule for one or more sequential literal values to match.
 // `rule.literals`:
 //    the literal string or array of literal strings to match.
 // `rule.literalSeparator`
 //    the string to put between multiple literals when joining multiple literals together.
-Rule.Literals = class literals extends Rule {
+export class Literals extends Rule {
   // By default, join literals with no space between
   @proto literalSeparator = ""
 
@@ -68,11 +69,11 @@ Rule.Literals = class literals extends Rule {
 
 // One or more literal symbols: `<`, `%` etc.
 // Symbols join WITHOUT spaces.
-Rule.Symbols = class symbols extends Rule.Literals {}
+export class Symbols extends Literals {}
 
 // One or more literal keywords.
 // Keywords join WITH spaces.
-Rule.Keywords = class keywords extends Rule.Literals {
+export class Keywords extends Literals {
   // Join literals with a space in-between.
   @proto literalSeparator = " "
 }

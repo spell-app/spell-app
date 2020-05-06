@@ -5,7 +5,7 @@ import { Rule } from "."
 //
 // After parsing
 //  we'll return the actual rule that was matched (rather than a clone of this rule)
-Rule.Subrule = class subrule extends Rule {
+export class Subrule extends Rule {
   constructor(props) {
     if (typeof props === "string") props = { rule: props }
     super(props)

@@ -1,4 +1,4 @@
-import { SpellFileLocation } from "./SpellFileLocation"
+import { SpellFileLocation } from "~/languages/spell"
 
 describe("SpellFileLocation", () => {
   describe("creation", () => {

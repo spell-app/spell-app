@@ -2,7 +2,9 @@
 //  # Rules for expressions.
 //
 
-import { AST, Match, Rule, SpellParser, peek, proto } from ".."
+import { peek, proto } from "~/util"
+import { Match, Rule } from "~/parser"
+import { AST, SpellParser } from "~/languages/spell"
 
 /** TODOC!!! */
 SpellParser.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {

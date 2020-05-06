@@ -14,13 +14,13 @@
 //
 import flattenDeep from "lodash/flattenDeep"
 
+import { Match } from "~/parser"
 import { Rule } from "."
-import { Match } from ".."
 
 // Sequence of rules to match.
 //  `rule.rules` is the array of rules to match.
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
-Rule.Sequence = class sequence extends Rule {
+export class Sequence extends Rule {
   constructor(...args) {
     let [props] = args
     if (arguments.length > 1) props = { rules: args }
@@ -95,7 +95,7 @@ Rule.Sequence = class sequence extends Rule {
         }
       }
       // if it's an anonymous sequence, promote it to the main map
-      if (!name && rule instanceof Rule.Sequence) {
+      if (!name && rule instanceof Sequence) {
         this._addGroups(results, match.matched, callback)
       }
       // ignore other anonymous bits

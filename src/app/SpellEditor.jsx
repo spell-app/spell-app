@@ -10,7 +10,7 @@ import NavLink from "react-bootstrap/NavLink"
 import Toast from "react-bootstrap/Toast"
 
 import { view } from "~/util"
-import { SpellFileLocation } from "~/languages/spell/SpellFileLocation"
+import { SpellFileLocation } from "~/languages/spell"
 
 import { CodeMirror, inputOptions, outputOptions } from "./CodeMirror"
 import { store } from "./store"

@@ -4,13 +4,13 @@
 //  or risk circular import problems.
 //
 
-export * from "~/parser"
-
-export { AST } from "./ast/index"
+export { AST } from "./ast"
 // Base parser class
 export { SpellParser } from "./SpellParser"
 // Instance of parser with "core" rules applied
 export { spellParser } from "./rules"
+// spellCore library
+export { spellCore } from "./spell-core"
 
 export * from "./SpellFileLocation"
 export * from "./SpellProjectList"

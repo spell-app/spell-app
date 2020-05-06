@@ -1,5 +1,5 @@
+import { Match } from "~/parser"
 import { Rule } from "."
-import { Match } from ".."
 
 // Recursively find balanced instances of `start` and `end`,
 // then split by `delimiter` and apply `rule` to each, returning an array of matches.
@@ -12,7 +12,7 @@ import { Match } from ".."
 // `prefix` (optional) optional array of rules to match inside the FIRST item
 //
 // If nested start/end blocks are found, WHAT WILL HAPPEN???
-Rule.NestedSplit = class nestedSplit extends Rule {
+export class NestedSplit extends Rule {
   parse(scope, tokens) {
     const end = this.findNestedEnd(scope, tokens)
     if (end === undefined) return undefined

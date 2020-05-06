@@ -1,5 +1,6 @@
-import { IndexedList, memoize, snakeCase } from ".."
-import { Scope, MethodScope, ScopeVariable } from "."
+import { IndexedList, memoize, snakeCase } from "~/util"
+import { MethodScope, ScopeVariable } from "~/parser"
+import { Scope } from "."
 
 /**
  * `BlockScope` -- a scope which encapsulates a block of statements.

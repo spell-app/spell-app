@@ -1,8 +1,8 @@
+import { Match } from "~/parser"
 import { Rule } from "."
-import { Match } from ".."
 
 // Abstract rule for matching tokens of a particular type (Token constructor)
-Rule.TokenType = class tokenType extends Rule {
+export class TokenType extends Rule {
   testAtStart(scope, tokens, start = 0) {
     return tokens[start] instanceof this.tokenType
   }

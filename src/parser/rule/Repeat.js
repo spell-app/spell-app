@@ -14,8 +14,8 @@
 //
 import flattenDeep from "lodash/flattenDeep"
 
+import { Match } from "~/parser"
 import { Rule } from "."
-import { Match } from ".."
 
 // Repeating rule.
 //  `this.rule` is the rule that repeats.
@@ -28,7 +28,7 @@ import { Match } from ".."
 //  `rule.maxCount` is the maximum number we need to match successfully.
 //
 //  Note: Returns `undefined` if we don't match at least once.
-Rule.Repeat = class repeat extends Rule {
+export class Repeat extends Rule {
   constructor(props) {
     if (props instanceof Rule) props = { rule: props }
     super(props)

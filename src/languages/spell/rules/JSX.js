@@ -2,7 +2,8 @@
 //  # Rules for parsing jsx
 //
 
-import { Rule, SpellParser, Token } from ".."
+import { Rule, Token } from "~/parser"
+import { SpellParser } from "~/languages/spell"
 
 export const JSX = new SpellParser({
   module: "JSX",

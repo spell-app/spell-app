@@ -2,7 +2,7 @@
 //  # Rules for assignment and returning values.
 //
 
-import { SpellParser, AST } from ".."
+import { SpellParser, AST } from "~/languages/spell"
 
 export const assignment = new SpellParser({
   module: "assignment",

@@ -2,7 +2,8 @@
 //  # Rules for if statements.
 //
 
-import { BlockScope, SpellParser, AST } from ".."
+import { BlockScope } from "~/parser"
+import { SpellParser, AST } from "~/languages/spell"
 
 // Given a condition expression string, wrap it in parens iff it is not already parenthesized properly.
 // TESTME

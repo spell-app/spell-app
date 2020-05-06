@@ -1,8 +1,9 @@
 import assert from "assert"
 import lowerFirst from "lodash/lowerFirst"
 
-import { IndexedList, typeCase, snakeCase, memoize } from ".."
-import { BlockScope, MethodScope, ScopeVariable } from "."
+import { IndexedList, typeCase, snakeCase, memoize } from "~/util"
+import { MethodScope, ScopeVariable } from "~/parser"
+import { BlockScope } from "."
 
 /**
  * `TypeScope` -- a scope which encapsulates a known class or type.

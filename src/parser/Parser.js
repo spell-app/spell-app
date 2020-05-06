@@ -6,19 +6,8 @@ import flatten from "lodash/flatten"
 import groupBy from "lodash/groupBy"
 import sum from "lodash/sum"
 
-import {
-  ParseError,
-  Rule,
-  rulex,
-  Tokenizer,
-  WhitespacePolicy,
-  cloneClass,
-  memoize,
-  nonEnumerable,
-  proto,
-  showWhitespace,
-  Scope
-} from "."
+import { cloneClass, memoize, nonEnumerable, proto, showWhitespace } from "~/util"
+import { ParseError, Rule, rulex, Tokenizer, WhitespacePolicy, Scope } from "~/parser"
 
 // In the web browser, by default, we'll use `cloneClass()` to make debugging easier
 // by creating named subclasses which you can see in the browser console

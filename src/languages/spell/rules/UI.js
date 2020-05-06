@@ -2,7 +2,7 @@
 //  # Rules for creating variables, property access, etc
 //
 
-import { SpellParser, AST } from ".."
+import { SpellParser, AST } from "~/languages/spell"
 
 export const UI = new SpellParser({
   module: "UI",

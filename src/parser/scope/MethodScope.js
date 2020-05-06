@@ -1,4 +1,5 @@
-import { BlockScope, ScopeVariable } from "."
+import { ScopeVariable } from "~/parser"
+import { BlockScope } from "./BlockScope"
 
 /**
  * `MethodScope` -- a scope which encapsulates a method definition.

@@ -1,5 +1,6 @@
 /* eslint-disable no-continue */
-import { Token, addDebugMethods, DebugLevel, proto } from "."
+import { addDebugMethods, DebugLevel, proto } from "~/util"
+import { Token } from "~/parser"
 
 // Policy for automatically removing whitespace from the token stream.
 export const WhitespacePolicy = {

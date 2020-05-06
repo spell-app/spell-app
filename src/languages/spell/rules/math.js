@@ -3,7 +3,7 @@
 //  NOTE: this must come after "operators"
 //
 
-import { AST, SpellParser } from ".."
+import { AST, SpellParser } from "~/languages/spell"
 
 export const math = new SpellParser({
   module: "math",

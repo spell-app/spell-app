@@ -1,5 +1,7 @@
 import _ from "lodash"
-import { Match, Rule, SpellParser, Token, AST } from ".."
+
+import { Match, Rule, Token } from "~/parser"
+import { SpellParser, AST } from "~/languages/spell"
 
 /** Update Rule.BlankLine to output AST properly. */
 Rule.BlankLine.prototype.getAST = function(match) {

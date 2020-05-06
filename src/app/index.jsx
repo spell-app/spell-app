@@ -8,8 +8,7 @@ import ReactDOM from "react-dom"
 
 // Import parser bits
 import "~/parser"
-import "~/languages/spell"
-import { spellCore } from "~/languages/spell/spell-core"
+import { spellCore } from "~/languages/spell"
 
 // import "./debug"
 import { store } from "./store"

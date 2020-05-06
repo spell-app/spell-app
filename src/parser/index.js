@@ -1,6 +1,3 @@
-// Include utils for ease of import.
-export * from "~/util"
-
 export * from "./constants"
 export { ParseError } from "./ParseError"
 export { Token } from "./Token"

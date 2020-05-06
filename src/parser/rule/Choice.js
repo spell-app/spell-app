@@ -1,5 +1,5 @@
+import { Tokenizer } from "~/parser"
 import { Rule } from "."
-import { Tokenizer } from ".."
 
 // Turn on debugging of choice / precedence semantics
 const DEBUG_CHOICES = false
@@ -11,7 +11,7 @@ const DEBUG_CHOICES = false
 //
 // After parsing
 //  we'll return the rule which is the "best match" (rather than cloning this rule).
-Rule.Choice = class choices extends Rule {
+export class Choice extends Rule {
   constructor(...args) {
     let [props] = args
     if (arguments.length > 1) props = args
@@ -119,9 +119,9 @@ Rule.Choice = class choices extends Rule {
   }
 }
 
-// Alias for `Rule.Choice` used to merge choices together
+// Alias for `Choice` used to merge choices together
 // when implicitly combining multiple rules under the same name.
 // This lets us distinguish between:
 //  - actually defining a semantically-meaning "choices" and
 //  - smooshing rules together because they share the same name
-Rule.Group = class group extends Rule.Choice {}
+export class Group extends Choice {}

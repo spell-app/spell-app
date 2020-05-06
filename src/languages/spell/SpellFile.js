@@ -3,9 +3,8 @@ import prettier from "prettier/standalone"
 import babylon from "prettier/parser-babylon"
 
 import { TextFile, state, proto, memoize, forward, writeOnce, overrideable, batch } from "~/util"
-import { SpellParser, ProjectScope, FileScope } from "."
-import { SpellProject } from "./SpellProject"
-import { SpellFileLocation } from "./SpellFileLocation"
+import { ProjectScope, FileScope } from "~/parser"
+import { SpellParser, SpellProject, SpellFileLocation } from "~/languages/spell"
 
 /**
  * Loadable file of spell code located at `path`.

@@ -25,8 +25,8 @@ import "./CodeMirror.css"
 // Set up JSHINT for displaying compiled JS properly
 import "./JSHINT"
 
-import { Token, spellParser } from "."
-// import { identifierBlacklist } from "~/languages/spell/rules/identifier-blacklist"
+import { Token } from "~/parser"
+import { spellParser } from "~/languages/spell"
 
 // Export `<CodeMirror>` component
 export { Controlled as CodeMirror } from "react-codemirror2"

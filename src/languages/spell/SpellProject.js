@@ -14,10 +14,9 @@ import {
   TaskList,
   Task
 } from "~/util"
-import { SpellParser, ProjectScope } from "."
-import { SpellFileLocation } from "./SpellFileLocation"
-import { SpellProjectManifest } from "./SpellProjectManifest"
-import { SpellProjectIndex } from "./SpellProjectIndex"
+import { ProjectScope } from "~/parser"
+import { SpellParser, SpellFileLocation, SpellProjectManifest, SpellProjectIndex } from "~/languages/spell"
+
 /**
  * Controller for a `SpellProject`.
  *

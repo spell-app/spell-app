@@ -1,5 +1,5 @@
+import { Match } from "~/parser"
 import { Rule } from "."
-import { Match } from ".."
 
 // Abstract rule to match a single literal value.
 // `rule.literal` is either:
@@ -7,7 +7,7 @@ import { Match } from ".."
 //    - array of strings, any of which will work.
 //
 // NOTE: Don't use this -- use `Rule.Keyword` or `Rule.Literal` instead!
-Rule.Literal = class literal extends Rule {
+export class Literal extends Rule {
   constructor(props) {
     if (Array.isArray(props)) props = { literal: props }
     if (typeof props === "string") props = { literal: props }
@@ -49,5 +49,5 @@ Rule.Literal = class literal extends Rule {
 }
 
 // Syntactic sugar for composing rules.
-Rule.Keyword = class keyword extends Rule.Literal {}
-Rule.Symbol = class symbol extends Rule.Literal {}
+export class Keyword extends Literal {}
+export class Symbol extends Literal {}

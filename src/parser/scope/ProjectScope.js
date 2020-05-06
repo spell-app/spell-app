@@ -1,5 +1,6 @@
-import { Rule, memoize, IndexedList, typeCase, snakeCase } from ".."
-import { BlockScope, TypeScope, ScopeConstant } from "."
+import { memoize, IndexedList, typeCase, snakeCase } from "~/util"
+import { Rule, TypeScope, ScopeConstant } from "~/parser"
+import { BlockScope } from "./BlockScope"
 /**
  * A `ProjectScope` manages a set of `FileScope`s.
  * It manages `.types`, `.constants` and `.rules`, which are shared with the `FileScope`s.

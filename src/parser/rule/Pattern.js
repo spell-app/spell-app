@@ -1,4 +1,4 @@
-import { Match } from ".."
+import { Match } from "~/parser"
 import { Rule } from "."
 
 // Regex pattern to match a SINGLE token.
@@ -7,7 +7,7 @@ import { Rule } from "."
 //    - Note that this can only match a single token!
 // - (optional) `blacklist` is a map of `{ key: true }` for strings which will NOT be accepted.
 // - (optional) `mapValue` (optional) is a `function(value) => newValue` used to transform the matched value.
-Rule.Pattern = class pattern extends Rule {
+export class Pattern extends Rule {
   constructor(props) {
     if (props instanceof RegExp) props = { pattern: props }
     super(props)

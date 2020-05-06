@@ -1,4 +1,4 @@
-import { ParseError } from ".."
+import { ParseError } from "~/parser"
 
 // RegExp to match quotes surrounding string name.
 const ENCLOSING_QUOTES = /^['"](.*)['"]$/
