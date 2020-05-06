@@ -8,7 +8,7 @@ export * from "./class"
 export * from "./prefs"
 export * from "./decorators"
 export * from "./Assertable"
-export * from "./IndexedList2"
+export * from "./IndexedList"
 export * from "./string"
 export { default as unitTestModuleRules } from "./unitTestModuleRules"
 
