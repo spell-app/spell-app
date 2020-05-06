@@ -1,7 +1,7 @@
 import global from "global"
 // import { computed } from "mobx"
 
-import { JSON5File, forward, memoize, memoizeForProp, writeOnce } from "../../util"
+import { JSON5File, forward, memoize, memoizeForProp, writeOnce } from "~/util"
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProject } from "./SpellProject"
 import { SpellFile } from "./SpellFile"

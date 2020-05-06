@@ -1,7 +1,7 @@
 //
 //  # Core `rules` -- simple datatypes, etc.
 //
-import { Token } from "../../../parser"
+import { Token } from "~/parser"
 import { AST, SpellParser } from ".."
 
 export const core = new SpellParser({

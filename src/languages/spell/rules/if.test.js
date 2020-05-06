@@ -1,4 +1,4 @@
-import { unitTestModuleRules } from "../../../test"
+import { unitTestModuleRules } from "~/test"
 import { spellParser } from ".."
 import { parenthesizeCondition } from "./if"
 

@@ -1296,13 +1296,6 @@
   resolved "https://registry.yarnpkg.com/@popperjs/core/-/core-2.3.3.tgz#8731722aeb7330e8fd9eb5d424be6b98dea7d6da"
   integrity sha512-yEvVC8RfhRPkD9TUn7cFcLcgoJePgZRAOR7T21rcRY5I8tpuhzeWfGa7We7tB14fe9R7wENdqUABcMdwD4SQLw==
 
-"@primer/octicons-react@^9.6.0":
-  version "9.6.0"
-  resolved "https://registry.yarnpkg.com/@primer/octicons-react/-/octicons-react-9.6.0.tgz#996f621cb063757a4985cd6b45e59ed00e3444bf"
-  integrity sha512-FR0fiU1UY1ds5ZMCUY+iVkkm1Eh4yDHf2ui+cxB3VvYX23DAdUAohPGit+qaMFy2caDd7uWYGRZduKS7dW1FZQ==
-  dependencies:
-    prop-types "^15.6.1"
-
 "@restart/context@^2.1.4":
   version "2.1.4"
   resolved "https://registry.yarnpkg.com/@restart/context/-/context-2.1.4.tgz#a99d87c299a34c28bd85bb489cb07bfd23149c02"
@@ -4486,11 +4479,6 @@ invariant@^2.2.2, invariant@^2.2.4:
   dependencies:
     loose-envify "^1.0.0"
 
-ionicons@^5.0.1:
-  version "5.0.1"
-  resolved "https://registry.yarnpkg.com/ionicons/-/ionicons-5.0.1.tgz#fb48475b042b04b3ed2ba9876800687917d4603d"
-  integrity sha512-P9GHr7pgCJcG211W0wute49NZ9AvJZvFJf4OwYybakjX6j7tu0q5t5HNWn9bcb9YjI7SxBblJg8iqQ1Yb59DXw==
-
 ip-regex@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/ip-regex/-/ip-regex-2.1.0.tgz#fa78bf5d2e6913c911ce9f819ee5146bb6d844e9"
@@ -5458,6 +5446,11 @@ kleur@^3.0.3:
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/kleur/-/kleur-3.0.3.tgz#a79c9ecc86ee1ce3fa6206d1216c501f147fc07e"
   integrity sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==
+
+languages@^0.1.3:
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/languages/-/languages-0.1.3.tgz#f19273bb0e946acd2deb10c07c750ee128bdd4b0"
+  integrity sha1-8ZJzuw6Uas0t6xDAfHUO4Si91LA=
 
 latest-version@^3.0.0:
   version "3.1.0"

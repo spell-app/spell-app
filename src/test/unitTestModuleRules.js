@@ -11,8 +11,8 @@
 import groupBy from "lodash/groupBy"
 import isEqual from "lodash/isEqual"
 
-import { ParseError, Rule } from "../parser"
-import { showWhitespace } from "../util"
+import { ParseError, Rule } from "~/parser"
+import { showWhitespace } from "~/util"
 
 export function unitTestModuleRules(parser, moduleName) {
   describe(`rule unit tests`, () => {

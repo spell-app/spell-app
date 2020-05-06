@@ -9,8 +9,8 @@ import NavDropdown from "react-bootstrap/NavDropdown"
 import NavLink from "react-bootstrap/NavLink"
 import Toast from "react-bootstrap/Toast"
 
-import { view } from "../util"
-import { SpellFileLocation } from "../languages/spell/SpellFileLocation"
+import { view } from "~/util"
+import { SpellFileLocation } from "~/languages/spell/SpellFileLocation"
 
 import { CodeMirror, inputOptions, outputOptions } from "./CodeMirror"
 import { store } from "./store"

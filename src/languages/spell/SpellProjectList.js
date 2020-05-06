@@ -1,6 +1,6 @@
 import global from "global"
 
-import { JSON5File, OPTIONAL, REQUIRED, CONFIRM, proto, memoizeForProp, $fetch } from "../../util"
+import { JSON5File, OPTIONAL, REQUIRED, CONFIRM, proto, memoizeForProp, $fetch } from "~/util"
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProject } from "./SpellProject"
 

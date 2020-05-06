@@ -1,5 +1,5 @@
 import global from "global"
-import { writeOnce, memoize } from "../../util"
+import { writeOnce, memoize } from "~/util"
 
 /**
  * Encapsulate a Spell File's `path` so we can get the various bits quickly and easily.

@@ -3,7 +3,8 @@ import global from "global"
 import _ from "lodash"
 import JSON5 from "json5"
 
-import { SpellParser, spellCore, spellParser } from "."
+import { spellParser, SpellParser } from "~/languages/spell"
+import { spellCore } from "~/languages/spell/spell-core"
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
@@ -13,7 +14,6 @@ Object.assign(global, {
   spellCore,
   SpellParser,
   spellParser,
-  rules: spellParser.rules,
   parse: spellParser.parse.bind(spellParser),
   compile: spellParser.compile.bind(spellParser),
   exp: (expression, scope) => spellParser.parse(expression, "expression", scope),

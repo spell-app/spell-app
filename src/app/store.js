@@ -1,9 +1,7 @@
 import global from "global"
 
-import { createStore, setPrefKey, getPref, setPref, CONFIRM } from "../util"
-import { SpellProjectList } from "../languages/spell/SpellProjectList"
-import { SpellProject } from "../languages/spell/SpellProject"
-import { SpellFile } from "../languages/spell/SpellFile"
+import { createStore, setPrefKey, getPref, setPref, CONFIRM } from "~/util"
+import { SpellProjectList, SpellProject, SpellFile } from "~/languages/spell"
 
 setPrefKey("spellEditor:")
 

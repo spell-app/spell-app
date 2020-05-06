@@ -13,7 +13,7 @@ import {
   CONFIRM,
   TaskList,
   Task
-} from "../../util"
+} from "~/util"
 import { SpellParser, ProjectScope } from "."
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProjectManifest } from "./SpellProjectManifest"

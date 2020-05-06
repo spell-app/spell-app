@@ -11,6 +11,11 @@
     "test": "jest --watch",
     "coverage": "jest --coverage"
   },
+  "jest": {
+    "moduleNameMapper": {
+      "~/(.*)": "<rootDir>/src/$1"
+    }
+  },
   "nodemonConfig": {
     "watch": [
       "server.js",
@@ -34,6 +39,7 @@
     "history": "^4.7.2",
     "jshint": "^2.10.2",
     "json5": "^2.1.1",
+    "languages": "^0.1.3",
     "lodash": "^4.17.11",
     "lodash-inflection": "^1.5.0",
     "mime-types": "^2.1.24",

@@ -4,7 +4,7 @@
 //  or risk circular import problems.
 //
 
-export * from "../../parser"
+export * from "~/parser"
 
 export { AST } from "./ast/index"
 // Base parser class

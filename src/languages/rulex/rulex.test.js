@@ -1,4 +1,4 @@
-import { unitTestModuleRules } from "../../test"
+import { unitTestModuleRules } from "~/test"
 import { rulex } from "."
 
 describe("testing langauge rulex", () => {

@@ -1,4 +1,4 @@
-import { ProjectScope, Parser, Tokenizer, WhitespacePolicy, proto, memoize } from "../../parser"
+import { ProjectScope, Parser, Tokenizer, WhitespacePolicy, proto, memoize } from "~/parser"
 import { spellParser } from "."
 
 export class SpellParser extends Parser {
