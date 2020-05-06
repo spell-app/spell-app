@@ -6,7 +6,7 @@ import express_json5 from "express-json5"
 import "json5/lib/register"
 import path from "path"
 
-import api from "./src/server/api"
+import { api } from "./src/server/api"
 
 const buildFolder = path.join(__dirname, "build")
 const staticFolder = path.join(__dirname, "static")

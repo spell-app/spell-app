@@ -12,9 +12,8 @@ import fse from "fs-extra"
 import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"
 
-// Create the router.
-const router = express.Router()
-export default router
+// Create the api api.
+export const api = express.Router()
 
 function stringify(object, indent) {
   const result = JSON5.stringify(object, null, "  ")
@@ -22,7 +21,7 @@ function stringify(object, indent) {
 }
 
 // Log every api request
-router.use((request, response, next) => {
+api.use((request, response, next) => {
   const info = responseUtils.getRequestDetails(request)
 
   console.warn("\n\n==========================================================")
@@ -49,26 +48,26 @@ function getProjectPath(...suffix) {
 }
 
 //----------------------------
-//  Tests to make sure router is working
+//  Tests to make sure api is working
 //----------------------------
 
-/** Smoke test that router is available.  */
-router.get("/test", (request, response) => {
+/** Smoke test that api is available.  */
+api.get("/test", (request, response) => {
   return responseUtils.sendJSON(response, "YO!")
 })
 
 /** Return a 404 (resource-not-found) error to test client logic. */
-router.get("/missing", (request, response) => {
+api.get("/missing", (request, response) => {
   return response.status(404).send("Nothing to see here")
 })
 
 /** Return a 403 (unauthorized) error to test client logic. */
-router.get("/not-authorized", (request, response) => {
+api.get("/not-authorized", (request, response) => {
   return response.status(403).send("No can do")
 })
 
 /**  Return a 500 error to test client logic. */
-router.get("/error", (request, response) => {
+api.get("/error", (request, response) => {
   return response.status(500).send("No soup for you!")
 })
 
@@ -77,7 +76,7 @@ router.get("/error", (request, response) => {
 //----------------------------
 
 /** List all project folders available to this user. */
-router.get("/projects", (request, response) => {
+api.get("/projects", (request, response) => {
   const options = { includeDirs: true, includeFiles: false, namesOnly: true }
   const dirs = fileUtils.listContents(getProjectPath(), options)
   const paths = dirs.map(dir => `/project/${dir}`)
@@ -85,7 +84,7 @@ router.get("/projects", (request, response) => {
 })
 
 /** Return manifest for a project: all "unhidden" files in the project folder.  */
-router.get("/project/:projectId/.manifest", (request, response) => {
+api.get("/project/:projectId/.manifest", (request, response) => {
   const { projectId } = request.params
   const options = { ignoreHidden: true, namesOnly: true }
   const files = fileUtils.listContents(getProjectPath(projectId), options)
@@ -99,7 +98,7 @@ router.get("/project/:projectId/.manifest", (request, response) => {
 })
 
 /** Return index for a project, creating one if necessary.  */
-router.get("/project/:projectId/.index", async (request, response) => {
+api.get("/project/:projectId/.index", async (request, response) => {
   const { projectId } = request.params
   const path = getProjectPath(projectId, ".index.json5")
   const exists = await fileUtils.pathExists(path)
@@ -115,7 +114,7 @@ router.get("/project/:projectId/.index", async (request, response) => {
 })
 
 // Create a new project.
-router.post("/projects/create", async (request, response) => {
+api.post("/projects/create", async (request, response) => {
   const { path, startFileName = "Untitled.spell", startFileContents = "" } = request.body
   const startFilePath = getProjectPath(path, startFileName)
   try {
@@ -127,7 +126,7 @@ router.post("/projects/create", async (request, response) => {
 })
 
 // Duplicate a project.
-router.post("/projects/duplicate", async (request, response) => {
+api.post("/projects/duplicate", async (request, response) => {
   const { path, newPath } = request.body
   try {
     await fse.copy(getProjectPath(path), getProjectPath(newPath))
@@ -138,7 +137,7 @@ router.post("/projects/duplicate", async (request, response) => {
 })
 
 // Delete a project.
-router.delete("/projects/delete", async (request, response) => {
+api.delete("/projects/delete", async (request, response) => {
   const { path } = request.body
   try {
     await fse.remove(getProjectPath(path))
@@ -153,14 +152,14 @@ router.delete("/projects/delete", async (request, response) => {
 //----------------------------
 
 // Return a specific project file, including the index.
-router.get("/project/:projectId/:filename", (request, response) => {
+api.get("/project/:projectId/:filename", (request, response) => {
   const { projectId, filename } = request.params
   const path = getProjectPath(projectId, filename)
   responseUtils.sendJSONFile(response, path)
 })
 
 // Save a specific project file, including the index.
-router.post("/project/:projectId/:filename", async (request, response) => {
+api.post("/project/:projectId/:filename", async (request, response) => {
   const { projectId, filename } = request.params
   const path = getProjectPath(projectId, filename)
 
@@ -174,7 +173,7 @@ router.post("/project/:projectId/:filename", async (request, response) => {
 })
 
 /** Create a new project file. */
-router.post("/projects/create/file", async (request, response) => {
+api.post("/projects/create/file", async (request, response) => {
   const { path, contents } = request.body
   try {
     await fileUtils.saveFile(getProjectPath(path), contents)
@@ -185,7 +184,7 @@ router.post("/projects/create/file", async (request, response) => {
 })
 
 /** Delete specified file.  NOTE: we do not report an error if the path is not found. */
-router.delete("/projects/delete/file", async (request, response) => {
+api.delete("/projects/delete/file", async (request, response) => {
   const { path } = request.body
   try {
     await fse.remove(getProjectPath(path))
@@ -198,7 +197,7 @@ router.delete("/projects/delete/file", async (request, response) => {
 // DEPRECATED
 // Delete a specific project file, including the index.
 // NOTE: delete swallows the error if the file can't be found.
-router.delete("/project/:projectId/:filename", async (request, response) => {
+api.delete("/project/:projectId/:filename", async (request, response) => {
   const { projectId, filename } = request.params
   const path = getProjectPath(projectId, filename)
 
@@ -218,5 +217,5 @@ function _apiCallNotFound(request, response) {
   const error = new URIError(`API routine not defined on server:   '${request.url}'`)
   return responseUtils.sendError(response, 500, error)
 }
-router.get("*", _apiCallNotFound)
-router.post("*", _apiCallNotFound)
+api.get("*", _apiCallNotFound)
+api.post("*", _apiCallNotFound)
