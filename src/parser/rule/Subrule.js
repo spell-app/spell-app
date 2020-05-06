@@ -1,4 +1,4 @@
-import Rule from "./Rule"
+import { Rule } from "."
 
 // Subrule -- name of another rule to be called.
 // `rule.rule` is the name of the rule in `scope.rules`.

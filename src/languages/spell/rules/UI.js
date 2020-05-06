@@ -4,7 +4,7 @@
 
 import { SpellParser, AST } from ".."
 
-export default new SpellParser({
+export const UI = new SpellParser({
   module: "UI",
   rules: [
     // Print some value (to the console, I guess)

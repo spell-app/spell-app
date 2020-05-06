@@ -11,7 +11,7 @@ import { Assertable, memoize } from "../util"
 // - `match.input`    - [Token] (required)              Array of tokens that were matched
 // - `match.matched`  - [Match or Token] (required)     Array of Matches or Tokens matched.
 //
-export default class Match extends Assertable {
+export class Match extends Assertable {
   static DEBUG_MATCH_INITIALIZATION = true
   constructor(props) {
     super()

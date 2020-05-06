@@ -1,7 +1,7 @@
 import { ProjectScope, Parser, Tokenizer, WhitespacePolicy, proto, memoize } from "../../parser"
 import { spellParser } from "."
 
-export default class SpellParser extends Parser {
+export class SpellParser extends Parser {
   /** Add language-specific top-level rules to this object. */
   static Rule = {}
 
@@ -43,4 +43,3 @@ export default class SpellParser extends Parser {
     return tokens
   }
 }
-global.SpellParser = SpellParser

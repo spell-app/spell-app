@@ -10,7 +10,7 @@ export * from "../parser"
 export { spellParser, SpellParser } from "../languages/spell"
 
 // Spell "core" library
-export { default as spellCore } from "../languages/spell/spell-core"
+export { spellCore } from "../languages/spell/spell-core"
 
 // DEBUG
 Object.assign(global, {

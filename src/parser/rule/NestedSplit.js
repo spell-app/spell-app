@@ -1,4 +1,4 @@
-import Rule from "./Rule"
+import { Rule } from "."
 import { Match } from ".."
 
 // Recursively find balanced instances of `start` and `end`,

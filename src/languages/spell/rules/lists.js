@@ -5,7 +5,7 @@
 
 import { AST, MethodScope, SpellParser, singularize } from ".."
 
-export default new SpellParser({
+export const lists = new SpellParser({
   module: "lists",
   rules: [
     // List of identifiers and/or numbers, e.g. "clubs or hearts", "jack, queen, king"

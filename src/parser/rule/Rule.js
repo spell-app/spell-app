@@ -18,7 +18,7 @@ import { proto } from "../../util/decorators"
 
 // Abstract Rule class.
 // TODOC
-export default class Rule {
+export class Rule {
   // Precedence for this rule.
   // Rules with higher precedence are preferred in `Choice`s.
   // Precedence is also used as "operator precedence" in recursive expressions.

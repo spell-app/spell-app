@@ -1,4 +1,4 @@
-import assert from "./assert"
+import { assert } from "./assert"
 
 beforeEach(() => {
   assert.failed = jest.fn()

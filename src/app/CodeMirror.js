@@ -26,7 +26,7 @@ import "./CodeMirror.css"
 import "./JSHINT"
 
 import { Token, spellParser } from "."
-// import blacklist from "../languages/spell/rules/identifier-blacklist"
+// import { identifierBlacklist } from "../languages/spell/rules/identifier-blacklist"
 
 // Export `<CodeMirror>` component
 export { Controlled as CodeMirror } from "react-codemirror2"

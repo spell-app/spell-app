@@ -8,7 +8,6 @@ export * from "./decorators"
 export * from "./Assertable"
 export * from "./IndexedList"
 export * from "./string"
-export { default as unitTestModuleRules } from "./unitTestModuleRules"
 
 export * from "./abortableFetch"
 export * from "./$fetch"

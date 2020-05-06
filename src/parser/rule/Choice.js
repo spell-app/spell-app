@@ -1,4 +1,4 @@
-import Rule from "./Rule"
+import { Rule } from "."
 import { Tokenizer } from ".."
 
 // Turn on debugging of choice / precedence semantics

@@ -12,9 +12,9 @@ import groupBy from "lodash/groupBy"
 import isEqual from "lodash/isEqual"
 
 import { ParseError, Rule } from "../parser"
-import { showWhitespace } from "."
+import { showWhitespace } from "../util"
 
-export default function unitTestModuleRules(parser, moduleName) {
+export function unitTestModuleRules(parser, moduleName) {
   describe(`rule unit tests`, () => {
     const rules = getTestableRulesForFilePath(moduleName)
     if (!rules || rules.lenth === 0) {

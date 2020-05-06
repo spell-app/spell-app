@@ -8,7 +8,7 @@ import isEqual from "lodash/isEqual"
 
 import { assert } from "."
 
-const spellCore = {
+export const spellCore = {
   //----------------------------
   // Meta-programming
   //--------
@@ -211,5 +211,3 @@ const spellCore = {
     throw new global.RuntimeError("TODO: spellCore.createElement()")
   }
 }
-
-export default spellCore

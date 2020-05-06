@@ -11,7 +11,7 @@ export function parenthesizeCondition(condition) {
   return `(${condition})`
 }
 
-export default new SpellParser({
+export const _if_ = new SpellParser({
   module: "if",
   rules: [
     {

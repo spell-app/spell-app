@@ -1,4 +1,4 @@
-import Rule from "./Rule"
+import { Rule } from "."
 import { Match } from ".."
 
 // Abstract rule for matching tokens of a particular type (Token constructor)

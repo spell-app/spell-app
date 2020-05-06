@@ -2,7 +2,7 @@
 //  # Rules for constants, variables, type names, etc
 //
 import { AST, Rule, SpellParser, typeCase, singularize, pluralize } from ".."
-import identifierBlacklist from "./identifier-blacklist"
+import { identifierBlacklist } from "./identifier-blacklist"
 
 // Alpha-numeric word, including dashes or underscores.
 const WORD = /^[a-zA-Z][\w\-]*$/
@@ -53,7 +53,7 @@ SpellParser.Rule.Type = class type extends Rule.Pattern {
   }
 }
 
-export default new SpellParser({
+export const types = new SpellParser({
   module: "types",
   rules: [
     // A possibly-unknown type identifier, singular or plural.

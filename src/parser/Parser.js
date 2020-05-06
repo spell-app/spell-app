@@ -28,7 +28,7 @@ import {
 
 const CLONE_CLASSES = !isNode
 
-export default class Parser {
+export class Parser {
   // Name of our default rule to parse if calling `parser.parse(text)`.
   @proto defaultRule = "block"
 

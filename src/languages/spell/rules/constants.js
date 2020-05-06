@@ -2,7 +2,7 @@
 //  # Rules for constants, variables, type names, etc
 //
 import { AST, Rule, ScopeConstant, SpellParser, proto } from ".."
-import identifierBlacklist from "./identifier-blacklist"
+import { identifierBlacklist } from "./identifier-blacklist"
 
 // Alpha-numeric word, including dashes or underscores.
 const WORD = /^[a-zA-Z][\w\-]*$/
@@ -29,7 +29,7 @@ SpellParser.Rule.Constant = class constant extends Rule.Pattern {
   }
 }
 
-export default new SpellParser({
+export const constants = new SpellParser({
   module: "constants",
   rules: [
     // A possibly-unknown constant.

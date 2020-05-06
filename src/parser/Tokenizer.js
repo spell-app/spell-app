@@ -13,7 +13,7 @@ export const WhitespacePolicy = {
 //
 // TODO: error checking / reporting, especially in JSX expressions.
 // TODO: have normal `tokenize` stick whitespace elements in the stream, then `tokenizeLines()` takes them out?
-export default class Tokenizer {
+export class Tokenizer {
   // Leave all whitespace by default.
   @proto whitespacePolicy = WhitespacePolicy.ALL
 

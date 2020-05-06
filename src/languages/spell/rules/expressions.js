@@ -77,7 +77,7 @@ SpellParser.Rule.PostfixOperatorSuffix = class postfix_operator extends SpellPar
   }
 }
 
-export default new SpellParser({
+export const expressions = new SpellParser({
   module: "expressions",
   rules: [
     {

@@ -1,4 +1,4 @@
-import Rule from "./Rule"
+import { Rule } from "."
 import { Token, proto } from ".."
 
 // Match a single `Token.Word`

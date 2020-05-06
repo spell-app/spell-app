@@ -4,7 +4,7 @@
 //     or you risk circular import problems.
 //
 
-import Rule from "./Rule"
+import { Rule } from "./Rule"
 
 // The following subclasses of rule are ALWAYS accessed as `Rule.XXX`
 import "./Pattern"
@@ -19,5 +19,5 @@ import "./Choice" // Also "Group"
 import "./Repeat"
 import "./NestedSplit"
 
-// Load the main Rule abstract class.
-export default Rule
+// Export `Rule` as module root.
+export { Rule }

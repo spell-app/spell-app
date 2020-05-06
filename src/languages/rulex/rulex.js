@@ -18,7 +18,6 @@ RulexParser.prototype.tokenizer = new Tokenizer({
 // Create core `rulex` parser.
 // NOTE: THIS INSTANCE is used by other parsers, to pick up the rules defined below.
 export const rulex = new RulexParser()
-export default rulex
 
 // Apply flags from `match` to the `rule` passed in, possibly returning a new rule!
 rulex.applyFlags = function(rule, match) {

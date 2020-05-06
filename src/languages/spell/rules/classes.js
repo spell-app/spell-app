@@ -19,7 +19,7 @@ function getOrStubType(scope, typeName) {
   return typeScope
 }
 
-export default new SpellParser({
+export const classes = new SpellParser({
   module: "classes",
   rules: [
     {

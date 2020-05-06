@@ -9,7 +9,7 @@ import { spellCore } from "."
 /** Assert that some `condition` is truthy:
  *  - if truthy, return `true`
  *  - if not truthy, calls `assert.failed(...message)` and returns `false`. */
-export default function assert(condition, ...message) {
+export function assert(condition, ...message) {
   if (spellCore.isTruthy(condition)) return true
   assert.failed(message)
   return false

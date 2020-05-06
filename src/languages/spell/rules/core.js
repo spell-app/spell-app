@@ -4,7 +4,7 @@
 import { Token } from "../../../parser"
 import { AST, SpellParser } from ".."
 
-export default new SpellParser({
+export const core = new SpellParser({
   module: "core",
   rules: [
     //----------------------------

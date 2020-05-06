@@ -14,7 +14,7 @@
 //
 import flattenDeep from "lodash/flattenDeep"
 
-import Rule from "./Rule"
+import { Rule } from "."
 import { Match } from ".."
 
 // Repeating rule.

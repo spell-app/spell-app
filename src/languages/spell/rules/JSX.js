@@ -4,7 +4,7 @@
 
 import { Rule, SpellParser, Token } from ".."
 
-export default new SpellParser({
+export const JSX = new SpellParser({
   module: "JSX",
   rules: [
     {

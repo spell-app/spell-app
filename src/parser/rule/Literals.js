@@ -1,4 +1,4 @@
-import Rule from "./Rule"
+import { Rule } from "."
 import { Match, proto } from ".."
 
 // Abstract rule for one or more sequential literal values to match.

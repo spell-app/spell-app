@@ -5,7 +5,7 @@
 
 import { AST, SpellParser } from ".."
 
-export default new SpellParser({
+export const math = new SpellParser({
   module: "math",
   rules: [
     {

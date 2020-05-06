@@ -6,11 +6,11 @@
 // TODO: mixins / traits / composed classes / annotations
 
 import { AST, SpellParser } from ".."
-import identifierBlacklist from "./identifier-blacklist"
+import { identifierBlacklist } from "./identifier-blacklist"
 
 const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/
 
-export default new SpellParser({
+export const properties = new SpellParser({
   module: "properties",
   rules: [
     // Generic property name -- single word, initial-lower case, not in identifier blacklist.
@@ -106,11 +106,12 @@ export default new SpellParser({
       name: "object_literal_properties",
       syntax: "[({property} (=|is|of|is? set to) {value:expression})(,|and)]",
       getAST(match) {
-        const properties = match.items.map(propMatch => {
-          const { property, value } = propMatch.groups
-          return new AST.ObjectLiteralProperty(propMatch, { property: property.AST, value: value.AST })
+        return new AST.ObjectLiteral(match, {
+          properties: match.items.map(propMatch => {
+            const { property, value } = propMatch.groups
+            return new AST.ObjectLiteralProperty(propMatch, { property: property.AST, value: value.AST })
+          })
         })
-        return new AST.ObjectLiteral(match, { properties })
       },
       tests: [
         {

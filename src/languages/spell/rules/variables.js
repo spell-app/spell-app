@@ -2,7 +2,7 @@
 //  # Rules for variables
 //
 import { AST, Rule, SpellParser, proto, singularize, pluralize } from ".."
-import identifierBlacklist from "./identifier-blacklist"
+import { identifierBlacklist } from "./identifier-blacklist"
 
 // Alpha-numeric word, including dashes or underscores.
 const WORD = /^[a-zA-Z][\w\-]*$/
@@ -30,7 +30,7 @@ SpellParser.Rule.VariableIdentifier = class _variable extends Rule.Pattern {
   }
 }
 
-export default new SpellParser({
+export const variables = new SpellParser({
   module: "variables",
   rules: [
     // Variable identifier with no adornments.

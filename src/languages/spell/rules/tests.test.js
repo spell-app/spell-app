@@ -1,4 +1,4 @@
-import { unitTestModuleRules } from "../../../util"
+import { unitTestModuleRules } from "../../../test"
 import { spellParser } from ".."
 
 describe("testing spell module tests", () => {

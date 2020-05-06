@@ -1,5 +1,5 @@
 // Blacklist of common english words which may not be used as single-word identifiers.
-const blacklist = {
+export const identifierBlacklist = {
   // Common english verbs:
   are: 1,
   do: 1,
@@ -128,4 +128,3 @@ const blacklist = {
   //     top: 1,           // TODO... ???
   //     bottom: 1,        // TODO... ???
 }
-export default blacklist
