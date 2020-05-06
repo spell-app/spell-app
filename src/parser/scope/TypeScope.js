@@ -2,16 +2,18 @@ import assert from "assert"
 import lowerFirst from "lodash/lowerFirst"
 
 import { IndexedList, typeCase, snakeCase, memoize } from ".."
-import { Scope, MethodScope, ScopeVariable } from "."
+import { BlockScope, MethodScope, ScopeVariable } from "."
 
-// Type, which extends Scope.  Specifically:
-//  - `name` is the name of the type, and should be TypeCase and singular.
-//  - `superClass` is name of superclass, if provided, and should be TypeCase and singular.
-//  - `stub` is `true` if the type was created as a stub.
-//  - `methods` (from Scope) are instance methods, including `constructor` if provided.
-//  - `variables` (from Scope) are instance variables
-//  - `classMethods` and `classVariables` are static to the class.
-export class TypeScope extends Scope {
+/**
+ * `TypeScope` -- a scope which encapsulates a known class or type.
+ *  - `name` is the name of the type, which should be singular and will be normalized to TypeCase.
+ *  - `superClass` is name of superclass, if provided, and should be singular and will be TypeCased.
+ *  - `stub` is `true` if the type was created as a stub. DOCME
+ *  - `methods` (from BlockScope) are instance methods, including `constructor` if provided.
+ *  - `variables` (from BlockScope) are instance variables
+ *  - `classMethods` and `classVariables` are static to the class.
+ */
+export class TypeScope extends BlockScope {
   constructor(props) {
     // If you just pass a string we'll assume it's the type name.
     if (typeof props === "string") props = { name: props }
@@ -29,7 +31,6 @@ export class TypeScope extends Scope {
     return new IndexedList({
       target: this,
       keyProp: "name",
-      parentProp: "scope.classVariables",
       normalizeKey: snakeCase,
       transformer(item) {
         if (!(item instanceof ScopeVariable)) item = new ScopeVariable(item)
@@ -40,13 +41,12 @@ export class TypeScope extends Scope {
     })
   }
 
-  /** Scope `classVariables`. */
+  /** Scope `classMethods`. */
   @memoize
   get classMethods() {
     return new IndexedList({
       target: this,
       keyProp: "name",
-      parentProp: "scope.classMethods",
       normalizeKey: snakeCase,
       transformer(item) {
         if (!(item instanceof MethodScope)) item = new MethodScope(item)

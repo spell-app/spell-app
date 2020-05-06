@@ -1,18 +1,16 @@
 import assert from "assert"
 
-// Variable definition, including:
-//      - global variable
-//      - block-local variable
-//      - class property
-//      - instance property
-//
-// Expected properties:
-//  - module
-//  - scope
-//  - name
-//  - datatype
-//  - initializer
-//  - kind:  "argument", "static"
+/**
+ * `ScopeVariable` a variable defined within a `Scope`.
+ * - `name` (required) variable name, used in spell.
+ * - `output` variable output name in translated language.
+ *            Use this to make an "alias" for the variable w/in its scope,
+ *            e.g. to map spell: `its` to javascript: `this`.
+ * - `kind` One of `"argument"`, `"static"` or `undefined` for a normal variable.
+ * - `scope` Pointer to the scope where this variable was defined.
+ * - `datatype` Type of the variable.  Not consistently used (yet).
+ * - `initializer` String used to initialize the variable.  Not consistently used.
+ */
 export class ScopeVariable {
   constructor(props) {
     // Convert string to 'name'

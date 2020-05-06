@@ -434,7 +434,7 @@ export class VariableExpression extends Expression {
 
 /** ConstantExpression -- pointer to a Constant object.
  *  - `name` is the constant name (not normalized ???)
- *  - `value` is the constant string to output, including quotes.
+ *  - `output` is the constant string to output, including quotes.
  *  - `constant` is pointer to scope Constant, if there is one.
  */
 export class ConstantExpression extends Expression {
@@ -442,10 +442,10 @@ export class ConstantExpression extends Expression {
   constructor(...args) {
     super(...args)
     this.assertType("name", "string")
-    this.assertType("value", "string")
+    this.assertType("output", "string")
   }
   toJS() {
-    return this.value
+    return this.output
   }
 }
 

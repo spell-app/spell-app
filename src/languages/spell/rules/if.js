@@ -2,7 +2,7 @@
 //  # Rules for if statements.
 //
 
-import { Scope, SpellParser, AST } from ".."
+import { BlockScope, SpellParser, AST } from ".."
 
 // Given a condition expression string, wrap it in parens iff it is not already parenthesized properly.
 // TESTME
@@ -23,7 +23,7 @@ export const _if_ = new SpellParser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(match) {
-        return new Scope({ name: "if", scope: match.scope })
+        return new BlockScope({ name: "if", scope: match.scope })
       },
       getAST(match) {
         const { condition, inlineStatement, nestedBlock } = match.groups
@@ -108,7 +108,7 @@ export const _if_ = new SpellParser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(match) {
-        return new Scope({ name: "elseif", scope: match.scope })
+        return new BlockScope({ name: "elseif", scope: match.scope })
       },
       getAST(match) {
         const { condition, inlineStatement, nestedBlock } = match.groups
@@ -185,7 +185,7 @@ export const _if_ = new SpellParser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(match) {
-        return new Scope({ name: "else", scope: match.scope })
+        return new BlockScope({ name: "else", scope: match.scope })
       },
       getAST(match) {
         const { inlineStatement, nestedBlock } = match.groups

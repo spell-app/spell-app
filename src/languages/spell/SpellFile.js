@@ -95,8 +95,8 @@ export class SpellFile extends TextFile {
    * we'll use the same parser.  This will ensure that
    */
   getScope(parentScope) {
-    // If we were passed a `parentScope`, set up as a `File` and use same parser.
-    if (parentScope) return new FileScope({ name: this.fileName, scope: parentScope })
+    // If we were passed a `parentScope` with `types`, set up as a `FileScope` and use same parser.
+    if (parentScope && parentScope.types) return new FileScope({ name: this.fileName, scope: parentScope })
     // Otherwise set up as an ad-hoc `Project` and clone `SpellParser.rootScope.parser`
     return new ProjectScope({
       name: this.fileName,

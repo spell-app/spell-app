@@ -14,7 +14,7 @@ import {
 function getOrStubType(scope, typeName) {
   let typeScope = scope.types.get(typeName)
   if (!typeScope) {
-    typeScope = scope.types.add({ name: typeName, stub: true })
+    ;[typeScope] = scope.types.add({ name: typeName, stub: true })
   }
   return typeScope
 }
@@ -275,7 +275,7 @@ export const classes = new SpellParser({
             [typeName, lowerFirst(typeName)],
             [groupName, lowerFirst(groupName)]
           ]
-          scope.addRule({
+          scope.rules.add({
             name: `${typeName}_${groupName}`,
             alias: ["expression", "single_expression"],
             precedence: 20,
@@ -362,7 +362,7 @@ export const classes = new SpellParser({
           else {
             const specifierConstant = new AST.ConstantExpression(specifier.match, {
               name: specifier.name,
-              value: `'${specifier.name}'`
+              output: `'${specifier.name}'`
             })
             condition = new AST.CoreMethodInvocation(match, {
               method: "isOfType",
@@ -585,7 +585,7 @@ export const classes = new SpellParser({
           // add optional `not` to the rule
           const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ")
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
-          match.scope.addRule({
+          match.scope.rules.add({
             name: match.property,
             alias: "expression_suffix",
             syntax: expressionSuffix,
@@ -739,7 +739,7 @@ export const classes = new SpellParser({
           const { syntax, property, ruleData } = match.groups.bits
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? a queen`
-          match.scope.addRule({
+          match.scope.rules.add({
             name: property,
             alias: "expression_suffix",
             syntax,
@@ -756,10 +756,9 @@ export const classes = new SpellParser({
                     // `values` will be: `"clubs"`, `"spades"`, etc
                     const { enumeration, values } = ruleData[index]
                     const valueIndex = enumeration.indexOf(arg.value)
-                    const value = valueIndex !== -1 ? values[valueIndex] : `'arg.value'`
                     return new AST.ConstantExpression(arg, {
                       name: arg.value,
-                      value
+                      output: valueIndex !== -1 ? values[valueIndex] : `'arg.value'`
                     })
                   }
                   if (typeof arg.value === "number") {
@@ -977,7 +976,7 @@ export const classes = new SpellParser({
               })
             }
           }
-          match.scope.addRule(rule)
+          match.scope.rules.add(rule)
         }
 
         getAST(match) {

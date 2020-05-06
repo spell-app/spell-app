@@ -1,30 +1,29 @@
 import { ParseError } from ".."
 
-//
-// Constant definition.
-//
-// Expected properties:
-//  - module
-//  - scope
-//  - name
-//  - value (defaults to `'name'`)
-//  - datatype (defaults to `string`)
-//
+// RegExp to match quotes surrounding string name.
+const ENCLOSING_QUOTES = /^['"](.*)['"]$/
+
+/**
+ * `ScopeConstant` a variable defined within a `Scope`.
+ * - `name` (required) Constant name, quotes will be stripped.
+ * - `output` Literal output string for constant when expressed in target language,
+ *            with quotes as necessary.  Defaults to `'name'`.
+ * - `scope` Where constant was defined.
+ */
 export class ScopeConstant {
   constructor(props) {
     // Use string as constant `name`
-    if (typeof props === "string") {
-      // remove surrounding single quotes
-      if (typeof props === "string" && props.startsWith("'") && props.endsWith("'")) props = props.slice(1, -1)
-      props = { name: props }
-    }
-    if (!props.name) throw new ParseError("Constants must be created with a 'name'")
+    if (typeof props === "string") props = { name: props }
+
+    if (typeof props.name !== "string") throw new ParseError("Constants must be created with a 'name'")
+    props.name = props.name.replace(ENCLOSING_QUOTES, "$1")
     // Assign all properties in the order provided.
     Object.assign(this, props)
-    if (this.value === undefined) this.value = `'${this.name}'`
+    // Set up `output` as single-quoted version of the `name`.
+    if (this.output === undefined) this.output = `'${this.name}'`
   }
 
   toString() {
-    return this.value
+    return this.output
   }
 }

@@ -1,12 +1,10 @@
-import { memoize, IndexedList, typeCase, snakeCase } from ".."
-import { Scope, TypeScope, ScopeConstant } from "."
+import { Rule, memoize, IndexedList, typeCase, snakeCase } from ".."
+import { BlockScope, TypeScope, ScopeConstant } from "."
 /**
- * `Project` scope.
- * TODOC:  Manages parsing a bunch of `Files` with an explicit load order.
- *
- * `Project` scopes define `types` and `constants` which are shared by all files in the project.
+ * A `ProjectScope` manages a set of `FileScope`s.
+ * It manages `.types`, `.constants` and `.rules`, which are shared with the `FileScope`s.
  */
-export class ProjectScope extends Scope {
+export class ProjectScope extends BlockScope {
   /** Scope `types`. */
   @memoize
   get types() {
@@ -45,9 +43,12 @@ export class ProjectScope extends Scope {
     return new IndexedList({
       target: this,
       keyProp: "name",
-      parentProp: "scope.rules",
       transformer(item) {
-        return { ...item, scope: this.target }
+        if (item instanceof Rule) throw new TypeError(`rules.add(): expected an Object, not a Rule.`)
+        if (!this.target.parser) throw new TypeError(`rules.add(): called on scope without a parser.`)
+        // Define the rule at the parser level.
+        this.target.parser.defineRule({ ...item, scope: this.target })
+        return item
       }
     })
   }

@@ -23,7 +23,7 @@ SpellParser.Rule.Constant = class constant extends Rule.Pattern {
     const scopeConst = match.constant || match.scope.constants.get(name)
     return new AST.ConstantExpression(match, {
       name,
-      value: (scopeConst || new ScopeConstant(name)).toString(),
+      output: (scopeConst || new ScopeConstant(name)).toString(),
       constant: scopeConst
     })
   }
@@ -65,7 +65,7 @@ export const constants = new SpellParser({
           compileAs: "known_constant", // TODO: to "expression"
           beforeEach(scope) {
             scope.constants.add("red")
-            scope.constants.add({ name: "green", value: "#00FF00" })
+            scope.constants.add({ name: "green", output: "#00FF00" })
           },
           tests: [
             { title: "known constant", input: "red", output: "'red'" },

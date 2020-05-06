@@ -1,16 +1,14 @@
-import { Scope, ScopeVariable } from "."
+import { BlockScope, ScopeVariable } from "."
 
-// Method scope.  Expected properties:
-//  - name          method name
-//  - args          arguments as list of names or Variables.
-//      - `args` are fixed when Method is defined.
-//      - Access `args` as:
-//        `method.args()`         list of all arguments
-//        `method.args('name')    named argument
-//
-// Methods frequently define internal `variables`
-//  and could possibly define internal `methods`, etc.
-export class MethodScope extends Scope {
+/**
+ * `MethodScope` -- a scope which encapsulates a method definition.
+ *  - `name` is the method name, if any.
+ *  - `args` are argument `ScopeVariables`, which are fixed upon construction.
+ *     Use `methodScope.args()` or `.args(<argName>)` for arg access.
+ *  - `variables` (from BlockScope) are variables within the method, and include `args`.
+ *  - `methods` (from BlockScope) are methods defined within the method.
+ */
+export class MethodScope extends BlockScope {
   constructor({ args, ...props }) {
     super(props)
     // Add `args` to our variables list

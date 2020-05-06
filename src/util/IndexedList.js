@@ -42,10 +42,12 @@ export class IndexedList {
     return item
   }
 
-  /** Add an item to our list. */
-  add(item) {
-    if (this.transformer) item = this.transformer(item)
-    this.#items.push(item)
-    return item
+  /** Add one or more items to our list. */
+  add(...items) {
+    return items.map(item => {
+      if (this.transformer) item = this.transformer(item)
+      this.#items.push(item)
+      return item
+    })
   }
 }

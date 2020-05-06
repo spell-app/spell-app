@@ -16,7 +16,8 @@ import {
   memoize,
   nonEnumerable,
   proto,
-  showWhitespace
+  showWhitespace,
+  Scope
 } from "."
 
 // In the web browser, by default, we'll use `cloneClass()` to make debugging easier
@@ -82,7 +83,7 @@ export class Parser {
    *
    */
   getScope() {
-    return { parser: this }
+    return new Scope({ parser: this })
   }
 
   // Parse `ruleName` rule at head of `text`.
