@@ -19,7 +19,7 @@ export default new SpellParser({
       alias: "statement",
       syntax: "if {condition:expression} (then|:)?",
       testRule: "if",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(match) {
@@ -104,7 +104,7 @@ export default new SpellParser({
       syntax: "(else|otherwise) if {condition:expression} (then|:)?",
       testRule: "(else|otherwise)",
       precedence: 1,
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(match) {
@@ -181,7 +181,7 @@ export default new SpellParser({
       alias: "statement",
       syntax: "(else|otherwise) :?",
       testRule: "(else|otherwise)",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(match) {
@@ -239,7 +239,7 @@ export default new SpellParser({
       name: "backwards_if",
       alias: "expression_suffix",
       syntax: "if {operator:expression} (else|otherwise) {expression}",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       compileASTExpression(match, { lhs, operator, rhs }) {
         return new AST.TernaryExpression(match, {
           condition: operator.AST,

@@ -37,7 +37,7 @@ export default new SpellParser({
     // You won't generally use this, use `variable` or `unknown_variable` instead.
     {
       name: "variable_identifier",
-      constructor: SpellParser.Rule.VariableIdentifier
+      constructor: "VariableIdentifier"
     },
 
     // VariableIdentifier which may or may not be known, with optional `the` prefix.

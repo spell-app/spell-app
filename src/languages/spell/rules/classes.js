@@ -1,6 +1,14 @@
 import flatten from "lodash/flatten"
 import { Scope, SpellParser, instanceCase, lowerFirst, upperFirst, pluralize, singularize, typeCase, AST } from ".."
 
+function getOrStubType(scope, typeName) {
+  let typeScope = scope.types.get(typeName)
+  if (!typeScope) {
+    typeScope = scope.types.add({ name: typeName, stub: true })
+  }
+  return typeScope
+}
+
 export default new SpellParser({
   module: "classes",
   rules: [
@@ -11,7 +19,7 @@ export default new SpellParser({
         "create a type (named|called) {type} (as (a|an) {superType:type})?",
         "(a|an) {type} is (a|an) {superType:type}"
       ],
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       mutateScope(match) {
         const { type, superType } = match.groups
         // Forget it if type is already defined.
@@ -50,7 +58,7 @@ export default new SpellParser({
         "(a|an) {type} is a list of {instanceType:type}"
         // TODO: "{plural_type} are a list of ..."
       ],
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       mutateScope(match) {
         const { type, instanceType } = match.groups
         // Forget it if type is already defined.
@@ -92,7 +100,7 @@ export default new SpellParser({
       alias: ["expression", "single_expression"],
       syntax: "a new {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       testRule: "…new",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       getAST(match) {
         const { type, props } = match.groups
         return new AST.NewInstanceExpression(match, {
@@ -133,7 +141,7 @@ export default new SpellParser({
       alias: ["expression", "single_expression", "statement"],
       syntax: "create (a|an) {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       testRule: "create",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       getAST(match) {
         const { type, props } = match.groups
         return new AST.NewInstanceExpression(match, {
@@ -224,14 +232,14 @@ export default new SpellParser({
         "{type:plural_type} have (a|an) {property} {specifier:type_specifier}?"
       ],
       testRule: "…(has|have)",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       mutateScope(match) {
         const { scope } = match
         const { type, property, specifier } = match.groups
         const specifierAST = specifier?.AST
 
         const typeName = type.value
-        const typeScope = scope.getOrStubType(typeName)
+        const typeScope = getOrStubType(scope, typeName)
 
         // If there is a specifier as enumerated values, add rules to match it
         if (specifierAST instanceof AST.Enumeration) {
@@ -262,9 +270,6 @@ export default new SpellParser({
             alias: ["expression", "single_expression"],
             precedence: 20,
             literals,
-            compile() {
-              return `${typeName}.${groupName}`
-            },
             getAST(_match) {
               return new AST.PropertyExpression(_match, {
                 object: type.AST,
@@ -440,13 +445,13 @@ export default new SpellParser({
       alias: "statement",
       syntax:
         "{type_property} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       mutateScope(match) {
         const { scope } = match
         const { value, otherValue, type_property } = match.groups
         const { type } = type_property.groups
         // make sure type is defined
-        scope.getOrStubType(type.name)
+        getOrStubType(scope, type.name)
         if (value.rule instanceof SpellParser.Rule.Constant) {
           // TODO: scope.constants.addMissing(value.raw)
           const constant = value.constant || scope.constants.get(value.raw)
@@ -505,12 +510,12 @@ export default new SpellParser({
       name: "property_value_expression",
       alias: "statement",
       syntax: "{type_property} is {expression}",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       getAST(match) {
         const { type_property, expression } = match.groups
         const { type, property } = type_property.groups
         // make sure type is defined
-        match.scope.getOrStubType(type.name)
+        getOrStubType(match.scope, type.name)
         return new AST.GetterDefinition(match, {
           thing: new AST.PrototypeExpression(type, { type: type.AST }),
           property: property.AST,
@@ -562,7 +567,7 @@ export default new SpellParser({
         mutateScope(match) {
           const { type, alias } = match.groups
           // Make sure type is defined
-          match.scope.getOrStubType(type.value)
+          getOrStubType(match.scope, type.value)
 
           const words = JSON.parse(alias.value).split(" ")
           // set `property` which we'll use in `compileASTExpression()` below
@@ -575,7 +580,7 @@ export default new SpellParser({
             alias: "expression_suffix",
             syntax: expressionSuffix,
             precedence: 20,
-            constructor: SpellParser.Rule.PostfixOperatorSuffix,
+            constructor: "PostfixOperatorSuffix",
             shouldNegateOutput: operator => operator.value.includes("not"),
             compileASTExpression(_match, { lhs }) {
               return new AST.PropertyExpression(_match, {
@@ -729,7 +734,7 @@ export default new SpellParser({
             alias: "expression_suffix",
             syntax,
             precedence: 20,
-            constructor: SpellParser.Rule.InfixOperatorSuffix,
+            constructor: "InfixOperatorSuffix",
             shouldNegateOutput: operator => operator.value.includes("not"),
             compileASTExpression(_match, { lhs, rhs }) {
               if (!Array.isArray(rhs)) rhs = [rhs]
@@ -938,7 +943,7 @@ export default new SpellParser({
             name: bits.methodName,
             alias: "statement",
             syntax: bits.ruleSyntax,
-            constructor: SpellParser.Rule.Statement
+            constructor: "Statement"
           }
           if (bits.instanceType) {
             rule.getAST = function(_match) {

@@ -235,7 +235,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       syntax: "(operator:and) {expression:single_expression}",
       precedence: 6,
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       getOutputOperator: () => "&&",
       parenthesize: true,
       tests: [
@@ -260,7 +260,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       syntax: "(operator:or) {expression:single_expression}",
       precedence: 5,
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       getOutputOperator: () => "||",
       parenthesize: true,
       tests: [
@@ -280,7 +280,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       precedence: 10,
       syntax: "(operator:is not?) {expression:single_expression}",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       parenthesize: true,
       getOutputOperator: operator => (operator.value === "is not" ? "!=" : "=="),
       tests: [
@@ -303,7 +303,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       precedence: 10,
       syntax: "(operator:is not? exactly) {expression:single_expression}",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       parenthesize: true,
       getOutputOperator: operator => (operator.value === "is not exactly" ? "!==" : "==="),
       tests: [
@@ -326,7 +326,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:is not? (a|an)) {expression:type}",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       shouldNegateOutput: operator => operator.value.includes("not"),
       compileASTExpression(match, { lhs, rhs }) {
         // TODO: QuotedExpression feels wrong here...
@@ -356,7 +356,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:is not? the same type as) {expression:single_expression}",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       getOutputOperator: operator => (operator.value.includes("not") ? "!==" : "==="),
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
@@ -385,7 +385,7 @@ export default new SpellParser({
       precedence: 11,
       syntax:
         "(operator:is (not? in|not? one of|either|not either of?|neither)) (expression:{single_expression}|{identifier_list})",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       shouldNegateOutput: ({ value }) => value.includes("not") || value.includes("neither"),
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
@@ -421,7 +421,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:includes|contains) {expression:single_expression}",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
           method: "includes",
@@ -448,7 +448,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:does not (include|contain)) {expression:single_expression}",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       shouldNegateOutput: () => true,
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
@@ -476,7 +476,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "is (defined|undefined|not defined)",
-      constructor: SpellParser.Rule.PostfixOperatorSuffix,
+      constructor: "PostfixOperatorSuffix",
       shouldNegateOutput: operator => operator.value !== "is defined",
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
@@ -505,7 +505,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:is not? empty)",
-      constructor: SpellParser.Rule.PostfixOperatorSuffix,
+      constructor: "PostfixOperatorSuffix",
       shouldNegateOutput: operator => operator.value.includes("not"),
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {

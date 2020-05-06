@@ -36,7 +36,7 @@ export default new SpellParser({
     // `match.constant` will be the existing Scope.Constant if one already exists.
     {
       name: "constant",
-      constructor: SpellParser.Rule.Constant,
+      constructor: "Constant",
       tests: [
         {
           tests: [

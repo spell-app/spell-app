@@ -14,7 +14,7 @@ export default new SpellParser({
       precedence: 11,
       // NOTE: output of `operator` will NOT have space between `>=`
       syntax: "(operator:(<|>) =?) {expression:single_expression}",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       parenthesize: true,
       tests: [
         {
@@ -46,7 +46,7 @@ export default new SpellParser({
       precedence: 11,
       // TODO: is *not* greater than???
       syntax: "(operator:is (greater|less) than (or equal to)?) {expression:single_expression}",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       getOutputOperator: ({ value }) => (value.includes("greater") ? ">" : "<") + (value.includes("equal") ? "=" : ""),
       parenthesize: true,
       tests: [
@@ -71,7 +71,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       precedence: 13,
       syntax: "(operator:plus|+) {expression:single_expression}",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       getOutputOperator: () => "+",
       parenthesize: true,
       tests: [
@@ -94,7 +94,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       precedence: 13,
       syntax: "(operator:minus|-) {expression:single_expression}",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       getOutputOperator: () => "-",
       parenthesize: true,
       tests: [
@@ -118,7 +118,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       precedence: 14,
       syntax: "(operator:*|times) {expression:single_expression}",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       getOutputOperator: () => "*",
       parenthesize: true,
       tests: [
@@ -141,7 +141,7 @@ export default new SpellParser({
       alias: "expression_suffix",
       precedence: 14,
       syntax: "(operator:/|divided by) {expression:single_expression}",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       getOutputOperator: () => "/",
       parenthesize: true,
       tests: [
@@ -168,7 +168,7 @@ export default new SpellParser({
       alias: ["expression", "single_expression"],
       syntax: "(operator:the? absolute value of) {expression}",
       testRule: "…absolute",
-      constructor: SpellParser.Rule.InfixOperatorSuffix,
+      constructor: "InfixOperatorSuffix",
       getAST(match) {
         const { expression } = match.groups
         return new AST.CoreMethodInvocation(match, {

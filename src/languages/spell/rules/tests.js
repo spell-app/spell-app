@@ -12,7 +12,7 @@ export default new SpellParser({
       alias: ["statement"],
       syntax: "expect {expression} (to be {value:expression})?",
       testRule: "expect",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       getAST(match) {
         const { expression, value } = match.groups
         const expressionLiteral = new AST.StringLiteral(match, { value: `\`${expression.value}\`` })

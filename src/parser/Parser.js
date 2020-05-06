@@ -279,10 +279,17 @@ export default class Parser {
       if (constructor === Object) constructor = null
 
       // throw if name was not provided
-      const name = props.name || (constructor && constructor.prototype.name)
+      const name = props.name || (constructor && constructor.prototype?.name)
       if (!name) throw new ParseError("You must pass the rule 'name'")
 
-      // Try to infer the constructor if we didn't get one
+      // Try to infer the constructor if we didn't get a Function
+      if (typeof constructor === "string") {
+        // console.warn(constructor, { ...this.constructor.Rule }, { ...Rule })
+        if (!this.constructor.Rule[constructor] && !Rule[constructor]) {
+          throw new TypeError(`defineRule(${name}): don't understand constructor ${constructor}`)
+        }
+        constructor = this.constructor.Rule[constructor] || Rule[constructor]
+      }
       if (!constructor) {
         if (props.tokenType) constructor = Rule.TokenType
         else if (props.pattern) constructor = Rule.Pattern

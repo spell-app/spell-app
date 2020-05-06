@@ -12,7 +12,7 @@ export default new SpellParser({
       name: "print",
       alias: "statement",
       syntax: "print {expression}",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       getAST(match) {
         const { expression } = match.groups
         return new AST.ConsoleMethodInvocation(match, {
@@ -36,7 +36,7 @@ export default new SpellParser({
       alias: ["statement", "async"],
       syntax: "notify {message:expression} (with {okButton:text})?", // TODO: "with close" ?
       testRule: "notify",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       getAST(match) {
         const { message, okButton } = match.groups
         const args = [message.AST]
@@ -66,7 +66,7 @@ export default new SpellParser({
       alias: ["statement", "async"],
       syntax: "alert {message:expression} (with {okButton:text})?",
       testRule: "alert",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       getAST(match) {
         match.scope.async = true // TODO!!!
         const { message, okButton } = match.groups
@@ -99,7 +99,7 @@ export default new SpellParser({
       alias: "statement",
       syntax: "warn {message:expression} (with {okButton:text})?",
       testRule: "warn",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       getAST(match) {
         match.scope.async = true // TODO!!!
         const { message, okButton } = match.groups
@@ -132,7 +132,7 @@ export default new SpellParser({
       alias: "statement",
       syntax: "confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})?)?",
       testRule: "confirm",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       getAST(match) {
         match.scope.async = true // TODO!!!
         const { message, okButton, cancelButton } = match.groups
@@ -168,7 +168,7 @@ export default new SpellParser({
       alias: "statement",
       syntax: "prompt {message:expression} (with {defaultValue:expression})?",
       testRule: "prompt",
-      constructor: SpellParser.Rule.Statement,
+      constructor: "Statement",
       getAST(match) {
         match.scope.async = true // TODO!!!
         const { message, defaultValue } = match.groups

@@ -25,8 +25,8 @@ import tests from "./tests"
 // NOTE: THIS INSTANCE is used by other parsers, to pick up the rules defined below.
 const spellParser = new SpellParser({ module: "spell" })
 
-spellParser.defineRule({ name: "block", constructor: SpellParser.Rule.Block })
-spellParser.defineRule({ name: "parse_error", constructor: SpellParser.Rule.ParseError })
+spellParser.defineRule({ name: "block", constructor: "Block" })
+spellParser.defineRule({ name: "parse_error", constructor: "ParseError" })
 
 // Import the other rules defined above.
 spellParser.import(

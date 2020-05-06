@@ -23,14 +23,6 @@ export default class Project extends Scope {
     })
   }
 
-  /**
-   * Return the named type.  If not found, create a `stub` type.
-   * TODO: this seems dangerous...
-   */
-  getOrStubType(name) {
-    return this.types.get(name) || this.types.add({ name, stub: true })
-  }
-
   /** Scope `constants`. */
   @memoize
   get constants() {
@@ -43,6 +35,20 @@ export default class Project extends Scope {
         if (!(item instanceof Constant)) item = new Constant(item)
         item.scope = this
         return item
+      }
+    })
+  }
+
+  /** Scope `rules`. */
+  @memoize
+  get rules() {
+    return new IndexedList({
+      target: this,
+      keyProp: "name",
+      parentProp: "scope.rules",
+      transformer(item) {
+        console.warn(item)
+        return { ...item, scope: this.target }
       }
     })
   }

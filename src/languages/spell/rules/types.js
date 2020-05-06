@@ -59,7 +59,7 @@ export default new SpellParser({
     // A possibly-unknown type identifier, singular or plural.
     {
       name: "type",
-      constructor: SpellParser.Rule.Type,
+      constructor: "Type",
       tests: [
         {
           tests: [

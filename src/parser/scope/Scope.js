@@ -1,4 +1,8 @@
-import { IndexedList, forward, proto, memoize, snakeCase, Variable, Method } from ".."
+import { IndexedList, forward, writeOnce, memoize, snakeCase, Variable, Method } from ".."
+
+/**
+ * DOCME
+ */
 
 //
 //  Scope: execution context which maintain `IndexedList`s of:
@@ -29,11 +33,14 @@ import { IndexedList, forward, proto, memoize, snakeCase, Variable, Method } fro
 export default class Scope {
   /**
    * Pointer to our parent scope.
-   * Note: we forward `types` and `constants` to our parent scope.
+   *
+   * Note: we forward `.types`, `.constants` and `.rules` to our parent scope,
+   *       so they will be defined, e.g. at the `Project` level
+   *       rather than the `File` level.
    */
-  @forward("types", "constants", "getOrStubType")
-  @proto
-  scope = undefined
+  @forward("types", "constants", "rules")
+  @writeOnce
+  scope
 
   constructor(props) {
     Object.assign(this, props)
@@ -83,11 +90,6 @@ export default class Scope {
     this._parser = parser
   }
 
-  // Syntactic sugar
-  get rules() {
-    return this.parser?.rules
-  }
-
   // Parse using this scope in various flavors.
   parse(text, ruleName) {
     return this.parser.parse(text, ruleName, this)
@@ -102,6 +104,7 @@ export default class Scope {
   addRule(rule) {
     const { parser } = this
     if (!parser) throw new TypeError("scope.addRule() called on scope without a 'parser'")
+    this.rules.add(rule)
     return this.parser.defineRule(rule)
   }
 }
