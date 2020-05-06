@@ -3,7 +3,7 @@ import prettier from "prettier/standalone"
 import babylon from "prettier/parser-babylon"
 
 import { TextFile, state, proto, memoize, forward, writeOnce, overrideable, batch } from "../../util"
-import { SpellParser, Scope } from "."
+import { SpellParser, ProjectScope, FileScope } from "."
 import { SpellProject } from "./SpellProject"
 import { SpellFileLocation } from "./SpellFileLocation"
 
@@ -96,9 +96,9 @@ export class SpellFile extends TextFile {
    */
   getScope(parentScope) {
     // If we were passed a `parentScope`, set up as a `File` and use same parser.
-    if (parentScope) return new Scope.File({ name: this.fileName, scope: parentScope })
+    if (parentScope) return new FileScope({ name: this.fileName, scope: parentScope })
     // Otherwise set up as an ad-hoc `Project` and clone `SpellParser.rootScope.parser`
-    return new Scope.Project({
+    return new ProjectScope({
       name: this.fileName,
       parser: SpellParser.rootScope.parser.clone({ module: this.path }),
       scope: SpellParser.rootScope

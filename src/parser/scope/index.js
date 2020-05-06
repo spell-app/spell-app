@@ -1,0 +1,7 @@
+export { Scope } from "./Scope"
+export { ProjectScope } from "./ProjectScope"
+export { FileScope } from "./FileScope"
+export { TypeScope } from "./TypeScope"
+export { MethodScope } from "./MethodScope"
+export { ScopeVariable } from "./ScopeVariable"
+export { ScopeConstant } from "./ScopeConstant"

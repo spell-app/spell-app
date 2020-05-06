@@ -1,5 +1,15 @@
 import flatten from "lodash/flatten"
-import { Scope, SpellParser, instanceCase, lowerFirst, upperFirst, pluralize, singularize, typeCase, AST } from ".."
+import {
+  MethodScope,
+  SpellParser,
+  instanceCase,
+  lowerFirst,
+  upperFirst,
+  pluralize,
+  singularize,
+  typeCase,
+  AST
+} from ".."
 
 function getOrStubType(scope, typeName) {
   let typeScope = scope.types.get(typeName)
@@ -920,7 +930,7 @@ export default new SpellParser({
 
         getNestedScope(match) {
           const { bits } = match.groups
-          const method = new Scope.Method({
+          const method = new MethodScope({
             scope: match.scope,
             name: bits.methodName,
             args: bits.args

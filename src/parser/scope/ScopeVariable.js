@@ -13,7 +13,7 @@ import assert from "assert"
 //  - datatype
 //  - initializer
 //  - kind:  "argument", "static"
-export default class Variable {
+export class ScopeVariable {
   constructor(props) {
     // Convert string to 'name'
     if (typeof props === "string") props = { name: props }

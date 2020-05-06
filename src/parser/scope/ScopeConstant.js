@@ -1,4 +1,4 @@
-import { Scope, ParseError } from ".."
+import { ParseError } from ".."
 
 //
 // Constant definition.
@@ -10,7 +10,7 @@ import { Scope, ParseError } from ".."
 //  - value (defaults to `'name'`)
 //  - datatype (defaults to `string`)
 //
-export default class Constant {
+export class ScopeConstant {
   constructor(props) {
     // Use string as constant `name`
     if (typeof props === "string") {
@@ -28,4 +28,3 @@ export default class Constant {
     return this.value
   }
 }
-Scope.Constant = Constant

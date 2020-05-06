@@ -1,12 +1,12 @@
-import { memoize, IndexedList, typeCase, snakeCase, Scope, Constant, Type } from ".."
-
+import { memoize, IndexedList, typeCase, snakeCase } from ".."
+import { Scope, TypeScope, ScopeConstant } from "."
 /**
  * `Project` scope.
  * TODOC:  Manages parsing a bunch of `Files` with an explicit load order.
  *
  * `Project` scopes define `types` and `constants` which are shared by all files in the project.
  */
-export default class Project extends Scope {
+export class ProjectScope extends Scope {
   /** Scope `types`. */
   @memoize
   get types() {
@@ -16,7 +16,7 @@ export default class Project extends Scope {
       parentProp: "scope.types",
       normalizeKey: typeCase,
       transformer(item) {
-        if (!(item instanceof Type)) item = new Type(item)
+        if (!(item instanceof TypeScope)) item = new TypeScope(item)
         item.scope = this
         return item
       }
@@ -32,7 +32,7 @@ export default class Project extends Scope {
       parentProp: "scope.constants",
       normalizeKey: snakeCase,
       transformer(item) {
-        if (!(item instanceof Constant)) item = new Constant(item)
+        if (!(item instanceof ScopeConstant)) item = new ScopeConstant(item)
         item.scope = this
         return item
       }
@@ -52,4 +52,3 @@ export default class Project extends Scope {
     })
   }
 }
-Scope.Project = Project

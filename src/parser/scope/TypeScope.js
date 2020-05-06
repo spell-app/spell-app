@@ -1,7 +1,8 @@
 import assert from "assert"
 import lowerFirst from "lodash/lowerFirst"
 
-import { Scope, Variable, Method, IndexedList, typeCase, snakeCase, memoize } from ".."
+import { IndexedList, typeCase, snakeCase, memoize } from ".."
+import { Scope, MethodScope, ScopeVariable } from "."
 
 // Type, which extends Scope.  Specifically:
 //  - `name` is the name of the type, and should be TypeCase and singular.
@@ -10,7 +11,7 @@ import { Scope, Variable, Method, IndexedList, typeCase, snakeCase, memoize } fr
 //  - `methods` (from Scope) are instance methods, including `constructor` if provided.
 //  - `variables` (from Scope) are instance variables
 //  - `classMethods` and `classVariables` are static to the class.
-export default class Type extends Scope {
+export class TypeScope extends Scope {
   constructor(props) {
     // If you just pass a string we'll assume it's the type name.
     if (typeof props === "string") props = { name: props }
@@ -31,7 +32,7 @@ export default class Type extends Scope {
       parentProp: "scope.classVariables",
       normalizeKey: snakeCase,
       transformer(item) {
-        if (!(item instanceof Variable)) item = new Variable(item)
+        if (!(item instanceof ScopeVariable)) item = new ScopeVariable(item)
         item.scope = this
         item.kind = "static"
         return item
@@ -48,7 +49,7 @@ export default class Type extends Scope {
       parentProp: "scope.classMethods",
       normalizeKey: snakeCase,
       transformer(item) {
-        if (!(item instanceof Method)) item = new Method(item)
+        if (!(item instanceof MethodScope)) item = new MethodScope(item)
         item.scope = this
         item.kind = "static"
         return item
@@ -62,4 +63,3 @@ export default class Type extends Scope {
     return lowerFirst(this.name)
   }
 }
-Scope.Type = Type

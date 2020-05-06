@@ -3,7 +3,7 @@
 //  TODO: sort
 //
 
-import { AST, Scope, SpellParser, singularize } from ".."
+import { AST, MethodScope, SpellParser, singularize } from ".."
 
 export default new SpellParser({
   module: "lists",
@@ -498,7 +498,7 @@ export default new SpellParser({
       parseInlineStatementAs: "expression",
       getNestedScope(match) {
         const arg = singularize(match.groups.arg.value)
-        return new Scope.Method({ scope: match.scope, args: [arg], asExpression: true })
+        return new MethodScope({ scope: match.scope, args: [arg], asExpression: true })
       },
       getAST(match) {
         const { arg, list, inlineStatement } = match.groups
@@ -548,7 +548,7 @@ export default new SpellParser({
       parseInlineStatementAs: "expression",
       getNestedScope(match) {
         const arg = singularize(match.groups.arg.value)
-        return new Scope.Method({ scope: match.scope, args: [arg], asExpression: true })
+        return new MethodScope({ scope: match.scope, args: [arg], asExpression: true })
       },
       getAST(match) {
         const { list, operator, arg, inlineStatement } = match.groups
@@ -909,7 +909,7 @@ export default new SpellParser({
       parseInlineStatementAs: "expression",
       getNestedScope(match) {
         const arg = singularize(match.groups.arg.value)
-        return new Scope.Method({ scope: match.scope, args: [arg], asExpression: true })
+        return new MethodScope({ scope: match.scope, args: [arg], asExpression: true })
       },
       getAST(match) {
         const { arg, list, inlineStatement } = match.groups
@@ -1023,7 +1023,7 @@ export default new SpellParser({
         const { item, position } = match.groups
         const args = [{ name: item.value }]
         if (position) args.push({ name: position.value, type: "number" })
-        return new Scope.Method({ scope: match.scope, args })
+        return new MethodScope({ scope: match.scope, args })
       },
       getAST(match) {
         const { list, item, position, inlineStatement, nestedBlock } = match.groups
@@ -1088,7 +1088,7 @@ export default new SpellParser({
       wantsNestedBlock: true,
       getNestedScope(match) {
         const arg = singularize(match.groups.item.value)
-        return new Scope.Method({ scope: match.scope, args: [arg], asExpression: true })
+        return new MethodScope({ scope: match.scope, args: [arg], asExpression: true })
       },
       getAST(match) {
         const { item, start, end, inlineStatement, nestedBlock } = match.groups

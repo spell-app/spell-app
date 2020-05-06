@@ -1,4 +1,4 @@
-import { Scope, Variable } from ".."
+import { Scope, ScopeVariable } from "."
 
 // Method scope.  Expected properties:
 //  - name          method name
@@ -10,13 +10,13 @@ import { Scope, Variable } from ".."
 //
 // Methods frequently define internal `variables`
 //  and could possibly define internal `methods`, etc.
-export default class Method extends Scope {
+export class MethodScope extends Scope {
   constructor({ args, ...props }) {
     super(props)
     // Add `args` to our variables list
     if (args && args.length) {
       args.forEach(arg => {
-        if (!(arg instanceof Variable)) arg = new Variable(arg)
+        if (!(arg instanceof ScopeVariable)) arg = new ScopeVariable(arg)
         arg.kind = "argument"
         return this.variables.add(arg)
       })
@@ -31,4 +31,3 @@ export default class Method extends Scope {
     return args.find(arg => arg.name === name)
   }
 }
-Scope.Method = Method

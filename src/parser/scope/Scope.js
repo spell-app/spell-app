@@ -1,4 +1,5 @@
-import { IndexedList, forward, writeOnce, memoize, snakeCase, Variable, Method } from ".."
+import { IndexedList, forward, writeOnce, memoize, snakeCase } from ".."
+import { MethodScope, ScopeVariable } from "."
 
 /**
  * DOCME
@@ -30,7 +31,7 @@ import { IndexedList, forward, writeOnce, memoize, snakeCase, Variable, Method }
 //    - `scope.parse(text, startRuleName)`
 //    - `scope.compile(text, startRuleName)
 //
-export default class Scope {
+export class Scope {
   /**
    * Pointer to our parent scope.
    *
@@ -55,7 +56,7 @@ export default class Scope {
       parentProp: "scope.variables",
       normalizeKey: snakeCase,
       transformer(item) {
-        if (!(item instanceof Variable)) item = new Variable(item)
+        if (!(item instanceof ScopeVariable)) item = new ScopeVariable(item)
         item.scope = this.target
         return item
       }
@@ -71,7 +72,7 @@ export default class Scope {
       parentProp: "scope.methods",
       normalizeKey: snakeCase,
       transformer(item) {
-        if (!(item instanceof Method)) item = new Method(item)
+        if (!(item instanceof MethodScope)) item = new MethodScope(item)
         item.scope = this.target
         return item
       }

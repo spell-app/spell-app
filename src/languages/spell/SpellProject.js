@@ -14,7 +14,7 @@ import {
   TaskList,
   Task
 } from "../../util"
-import { SpellParser, Scope } from "."
+import { SpellParser, ProjectScope } from "."
 import { SpellFileLocation } from "./SpellFileLocation"
 import { SpellProjectManifest } from "./SpellProjectManifest"
 import { SpellProjectIndex } from "./SpellProjectIndex"
@@ -97,7 +97,7 @@ export class SpellProject extends LoadableManager {
     // Make a parser that depends on the parentScope's parser
     // This way rules added to the project won't leak out.
     const parser = parentScope.parser.clone({ module: this.path })
-    return new Scope.Project({
+    return new ProjectScope({
       name: this.projectName,
       parser,
       scope: parentScope

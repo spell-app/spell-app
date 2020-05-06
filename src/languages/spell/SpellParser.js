@@ -1,4 +1,4 @@
-import { Scope, Parser, Tokenizer, WhitespacePolicy, proto, memoize } from "../../parser"
+import { ProjectScope, Parser, Tokenizer, WhitespacePolicy, proto, memoize } from "../../parser"
 import { spellParser } from "."
 
 export default class SpellParser extends Parser {
@@ -18,7 +18,7 @@ export default class SpellParser extends Parser {
 
   @memoize
   static get rootScope() {
-    const scope = new Scope.Project({ name: "spellRoot", parser: spellParser })
+    const scope = new ProjectScope({ name: "spellRoot", parser: spellParser })
     scope.types.add("Object")
     scope.types.add("Thing")
     scope.types.add("List")
@@ -29,7 +29,7 @@ export default class SpellParser extends Parser {
   // DOCME
   getScope(moduleName = "ad_hoc") {
     const parser = this.clone({ module: moduleName })
-    return new Scope.Project({
+    return new ProjectScope({
       name: moduleName,
       parser,
       scope: SpellParser.rootScope

@@ -1,7 +1,7 @@
 //
 //  # Rules for constants, variables, type names, etc
 //
-import { AST, Rule, Scope, SpellParser, proto } from ".."
+import { AST, Rule, ScopeConstant, SpellParser, proto } from ".."
 import identifierBlacklist from "./identifier-blacklist"
 
 // Alpha-numeric word, including dashes or underscores.
@@ -23,7 +23,7 @@ SpellParser.Rule.Constant = class constant extends Rule.Pattern {
     const scopeConst = match.constant || match.scope.constants.get(name)
     return new AST.ConstantExpression(match, {
       name,
-      value: (scopeConst || new Scope.Constant(name)).toString(),
+      value: (scopeConst || new ScopeConstant(name)).toString(),
       constant: scopeConst
     })
   }
@@ -33,7 +33,7 @@ export default new SpellParser({
   module: "constants",
   rules: [
     // A possibly-unknown constant.
-    // `match.constant` will be the existing Scope.Constant if one already exists.
+    // `match.constant` will be the existing ScopeConstant if one already exists.
     {
       name: "constant",
       constructor: "Constant",

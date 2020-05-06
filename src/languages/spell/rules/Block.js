@@ -10,7 +10,7 @@ Rule.BlankLine.prototype.getAST = function(match) {
 //  This is a top-level construct, e.g. used to parse an entire file.
 //
 //  They are composed of `blockLines` and nested `blocks`,
-//  and correspond roughly to a `Scope` (see `parser/Scope.js`).
+//  and correspond roughly to a `Scope` (see `parser/scope/Scope`).
 //
 // Note: Access this as `SpellParser.Rule.Block`.
 SpellParser.Rule.Block = class block extends Rule {

@@ -140,7 +140,7 @@ export default new SpellParser({
     },
 
     // A known type identifier, NOT including built-in types like 'Object'.
-    // `match.type` will be the existing `Scope.Type`.
+    // `match.type` will be the existing `TypeScope`.
     {
       name: "known_type",
       //      alias: ["expression", "single_expression"],
