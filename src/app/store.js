@@ -148,12 +148,17 @@ export const store = createStore({
   },
   async compile() {
     if (!store.project || !store.file) return
-    const compiled = await store.project.compile()
-    console.warn("Compiled:", compiled)
-    store.file.executeCompiled()
+    console.groupCollapsed("Compiling", store.project)
+    try {
+      await store.project.compile()
+      store.project.executeCompiled()
+    } finally {
+      console.groupEnd()
+    }
   },
   onInputChanged(codeMirror, change, value) {
     store.file.setContents(value, { isDirty: true })
+    store.project.updatedContentsFor(store.file)
   },
 
   //-----------------

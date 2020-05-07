@@ -165,6 +165,39 @@ export class SpellProject extends LoadableManager {
     })
   }
 
+  /* Execute our `compiled` code. No-op if not compiled. */
+  executeCompiled() {
+    const { compiled } = this
+    if (!compiled) return
+    console.group("attempting to execute compiled output:")
+    // console.groupCollapsed("spell")
+    // console.info(contents)
+    // console.groupEnd()
+    console.groupCollapsed("javascript")
+    console.info(compiled)
+    console.groupEnd()
+
+    // add all types to `global` for local hacking
+    try {
+      const scriptEl = document.createElement("script")
+      scriptEl.setAttribute("id", "compileOutput")
+      scriptEl.setAttribute("type", "module")
+      scriptEl.innerHTML = compiled
+
+      const existingEl = document.getElementById("compileOutput")
+
+      if (existingEl) {
+        existingEl.replaceWith(scriptEl)
+      } else {
+        document.body.append(scriptEl)
+      }
+    } catch (e) {
+      console.error("error evaling output:", e)
+    }
+    // groupEnd() in a tick after contents execute
+    setTimeout(() => console.groupEnd(), 100)
+  }
+
   /**
    * One of our `file`s has updated its contents.
    * Have all of our files `resetCompiled()` so they'll compile again.

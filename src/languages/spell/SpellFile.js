@@ -97,6 +97,7 @@ export class SpellFile extends TextFile {
     // If we were passed a `parentScope` with `types`, set up as a `FileScope` and use same parser.
     if (parentScope && parentScope.types) return new FileScope({ name: this.fileName, scope: parentScope })
     // Otherwise set up as an ad-hoc `Project` and clone `SpellParser.rootScope.parser`
+    console.warn(`spellFile.getScope(): no parentScope`)
     return new ProjectScope({
       name: this.fileName,
       parser: SpellParser.rootScope.parser.clone({ module: this.path }),
@@ -108,7 +109,7 @@ export class SpellFile extends TextFile {
    * Load our content and attempt to parse it!  Returns a `Match` (available as `this.matched`).
    * NOTE: if `this.matched` is set, we'll assume that's OK.
    * Use `spellFile.resetCompiled()` to clear it.
-   * Pass an explicit `spellParser` if the file is, e.g. building on other files.
+   * Pass an explicit `parentScope` if the file is, e.g. building on other files.
    */
   async parse(parentScope) {
     if (this.matched) return this.matched
@@ -184,12 +185,6 @@ export class SpellFile extends TextFile {
   /** Derive `url` from our projectId / filename if not explicitly set. */
   @overrideable get url() {
     return `/api${this.path}`
-  }
-
-  /** When our contents are changed, update our parser vars. */
-  setContents(...args) {
-    this.project.updatedContentsFor(this)
-    return super.setContents(...args)
   }
 }
 
