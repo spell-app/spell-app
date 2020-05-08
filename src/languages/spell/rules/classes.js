@@ -141,22 +141,19 @@ export const classes = new SpellParser({
       constructor: "Statement",
       getAST(match) {
         const { instanceType } = match.groups
-        const props =
-          instanceType &&
-          new AST.ObjectLiteral(instanceType, {
-            properties: [
-              new AST.ObjectLiteralProperty(instanceType, {
-                property: new AST.PropertyLiteral(instanceType, { value: "instanceType" }),
-                value: new AST.StringLiteral(instanceType, { value: `"${instanceType.value}"` })
-              })
-            ]
-          })
-        const it = new AST.NewInstanceExpression(match, {
+        return new AST.NewInstanceExpression(match, {
           type: new AST.TypeExpression(match, { name: "List" }),
-          props
+          props:
+            instanceType &&
+            new AST.ObjectLiteral(instanceType, {
+              properties: [
+                new AST.ObjectLiteralProperty(instanceType, {
+                  property: new AST.PropertyLiteral(instanceType, { value: "instanceType" }),
+                  value: new AST.StringLiteral(instanceType, { value: `"${instanceType.value}"` })
+                })
+              ]
+            })
         })
-        console.warn(it)
-        return it
       },
       tests: [
         {
@@ -336,8 +333,8 @@ export const classes = new SpellParser({
           })
 
           // Add comment string which we'll output below
-          match.ruleComment = new AST.LineComment(match, {
-            value: `SPELL added rule: '${literals.map(group => `(${group.join("|")})`).join(" ")}'`
+          match.ruleComment = new AST.ParserAnnotation(match, {
+            value: `added rule: '${literals.map(group => `(${group.join("|")})`).join(" ")}'`
           })
         }
       },
@@ -439,7 +436,7 @@ export const classes = new SpellParser({
             [
               "cards have a direction as either up or down",
               [
-                "// SPELL added rule: '(Card|card) (Directions|directions)'",
+                "/* SPELL: added rule: '(Card|card) (Directions|directions)' */",
                 "Card.Directions = ['up', 'down']",
                 "spellCore.define(Card.prototype, 'Directions', { value: Card.Directions })",
                 "spellCore.define(Card.prototype, 'direction', {",
@@ -643,8 +640,8 @@ export const classes = new SpellParser({
           })
 
           // Add comment string which we'll output below
-          match.ruleComment = new AST.LineComment(match, {
-            value: `SPELL added rule: '${expressionSuffix}'`
+          match.ruleComment = new AST.ParserAnnotation(match, {
+            value: `added rule: '${expressionSuffix}'`
           })
         }
 
@@ -679,16 +676,16 @@ export const classes = new SpellParser({
           tests: [
             [
               'a card "is face up" if its direction is up',
-              "// SPELL added rule: 'is not? face up'\nspellCore.define(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
+              "/* SPELL: added rule: 'is not? face up' */\nspellCore.define(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
             ],
             [
               'a card "is a face card" if its rank is one of [jack, queen, king]',
-              "// SPELL added rule: 'is not? a face card'\nspellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
+              "/* SPELL: added rule: 'is not? a face card' */\nspellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
             ]
             // TODO: this one is failing for some reason, although it works in the app???
             // [
             //   'a card "is a face card" if its rank is one of jack, queen or king',
-            //   "// SPELL added rule: 'is not? a face card'¬spellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
+            //   "/* SPELL: added rule: 'is not? a face card' */¬spellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
             // ]
           ]
         }
@@ -821,8 +818,8 @@ export const classes = new SpellParser({
           })
 
           // Add comment string which we'll output below
-          match.ruleComment = new AST.LineComment(match, {
-            value: `SPELL added expression: '${syntax}'`
+          match.ruleComment = new AST.ParserAnnotation(match, {
+            value: `added expression: '${syntax}'`
           })
         }
 
@@ -874,11 +871,11 @@ export const classes = new SpellParser({
           tests: [
             [
               'a card "is a (rank)" for its ranks',
-              "// SPELL added expression: '(operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)'\nspellCore.define(Card.prototype, 'is_a_$rank', { value(rank) { return this.rank === rank } })"
+              "/* SPELL: added expression: '(operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)' */\nspellCore.define(Card.prototype, 'is_a_$rank', { value(rank) { return this.rank === rank } })"
             ],
             [
               'a card "is the (rank) of (suits)" for its ranks and its suits',
-              "// SPELL added expression: '(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)'\nspellCore.define(Card.prototype, 'is_the_$rank_of_$suits', { value(rank,suit) { return this.rank === rank && this.suit === suit } })"
+              "/* SPELL: added expression: '(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)' */\nspellCore.define(Card.prototype, 'is_the_$rank_of_$suits', { value(rank,suit) { return this.rank === rank && this.suit === suit } })"
             ]
           ]
         },
@@ -1027,8 +1024,8 @@ export const classes = new SpellParser({
           const args = bits.args.map(argName => new AST.VariableExpression(match, { name: argName }))
 
           const statements = [
-            new AST.LineComment(match, {
-              value: `SPELL added rule: '${bits.ruleSyntax}'`
+            new AST.ParserAnnotation(match, {
+              value: `added rule: '${bits.ruleSyntax}'`
             })
           ]
 
@@ -1066,10 +1063,10 @@ export const classes = new SpellParser({
             scope.constants.add("down")
           },
           tests: [
-            ["to start the game", "// SPELL added rule: 'start the game'\nfunction start_the_game() {}"],
+            ["to start the game", "/* SPELL: added rule: 'start the game' */\nfunction start_the_game() {}"],
             [
               "to start the game: shuffle the deck\nstart the game",
-              "// SPELL added rule: 'start the game'\nfunction start_the_game() { spellCore.randomize(deck) }\nstart_the_game()"
+              "/* SPELL: added rule: 'start the game' */\nfunction start_the_game() { spellCore.randomize(deck) }\nstart_the_game()"
             ],
             [
               [
@@ -1079,7 +1076,7 @@ export const classes = new SpellParser({
                 "\tset its pile to the pile"
               ].join("\n"),
               [
-                "// SPELL added rule: 'move {callArgs:expression} to {callArgs:expression}'",
+                "/* SPELL: added rule: 'move {callArgs:expression} to {callArgs:expression}' */",
                 "spellCore.define(Card.prototype, 'move_to_$pile', { value(pile) {",
                 "spellCore.remove(this.pile, this)",
                 "spellCore.append(pile, this)",
@@ -1096,7 +1093,7 @@ export const classes = new SpellParser({
                 "\t\tset its direction to up"
               ].join("\n"),
               [
-                "// SPELL added rule: 'turn {callArgs:expression} over'",
+                "/* SPELL: added rule: 'turn {callArgs:expression} over' */",
                 "spellCore.define(Card.prototype, 'turn_over', { value() {",
                 "if (this.direction == 'up') { this.direction = 'down' }",
                 "else { this.direction = 'up' }",
@@ -1115,13 +1112,13 @@ export const classes = new SpellParser({
                 "\t\tturn it face up"
               ].join("\n"),
               [
-                "// SPELL added rule: 'is not? face up'",
+                "/* SPELL: added rule: 'is not? face up' */",
                 "spellCore.define(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })",
-                "// SPELL added rule: 'turn {callArgs:expression} face up'",
+                "/* SPELL: added rule: 'turn {callArgs:expression} face up' */",
                 "spellCore.define(Card.prototype, 'turn_face_up', { value() { this.direction = 'up' } })",
-                "// SPELL added rule: 'turn {callArgs:expression} face down'",
+                "/* SPELL: added rule: 'turn {callArgs:expression} face down' */",
                 "spellCore.define(Card.prototype, 'turn_face_down', { value() { this.direction = 'down' } })",
-                "// SPELL added rule: 'flip {callArgs:expression} over'",
+                "/* SPELL: added rule: 'flip {callArgs:expression} over' */",
                 "spellCore.define(Card.prototype, 'flip_over', { value() {",
                 "if (this.is_face_up) { this.turn_face_down() }",
                 "else { this.turn_face_up() }",

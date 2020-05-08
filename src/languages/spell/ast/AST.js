@@ -206,7 +206,7 @@ export class ParseError extends Comment {
     this.assertType("message", "string")
   }
   toJS() {
-    return `// PARSE ERROR: ${this.message}`
+    return `/* PARSE ERROR: ${this.message} */`
   }
 }
 
@@ -230,15 +230,6 @@ export class LineComment extends Comment {
   }
 }
 
-/** ParserAnnotation type, used for parser annotations injected into the output.
- *  - `value` is text of the annotation.
- *  - `commentSymbol` is always `>>`
- */
-export class ParserAnnotation extends LineComment {
-  @proto @readonly commentSymbol = ">>"
-  @proto @readonly initialWhitespace = " "
-}
-
 /** BlockComment type.
  *  - `value` is the entire contents of the original comment, including initial space and newlines.
  */
@@ -248,7 +239,16 @@ export class BlockComment extends Comment {
     this.assertType("value", "string")
   }
   toJS() {
-    return `/*${this.value}*/`
+    return `/* ${this.value} */`
+  }
+}
+
+/** ParserAnnotation type, used for parser annotations injected into the output.
+ *  - `value` is text of the annotation.
+ */
+export class ParserAnnotation extends BlockComment {
+  toJS() {
+    return `/* SPELL: ${this.value} */`
   }
 }
 

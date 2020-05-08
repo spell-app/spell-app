@@ -54,7 +54,7 @@ export const assignment = new SpellParser({
             {
               title: "non-existing var: property set (won't work)",
               input: "let the name of nothing = 'bob'",
-              output: `// PARSE ERROR: UNABLE TO PARSE: "let the name of nothing = 'bob'"`
+              output: `/* PARSE ERROR: UNABLE TO PARSE: "let the name of nothing = 'bob'" */`
             },
 
             { title: "existing var: equals", input: "thing = yes", output: "thing = true" },
