@@ -10,9 +10,11 @@ import ReactDOM from "react-dom"
 import "~/parser"
 import { spellCore } from "~/languages/spell"
 
-// import "./debug"
 import { store } from "./store"
 import { SpellEditor } from "./SpellEditor"
+
+// Use the below to set up methods/etc in the browser for hacking
+import "./debug"
 
 // Make the `spellCore` library available globally.
 // TODO: other place to put this???

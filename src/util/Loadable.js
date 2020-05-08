@@ -203,7 +203,7 @@ export class Loadable extends Observable {
 
     let saver
     const onSuccess = async saveResults => {
-      console.warn("saved before:", { ...this._loadable })
+      // console.warn("saved before:", { ...this._loadable })
       // Only update if the same `saver` is active
       if (this._loadable.saver === saver) {
         setLoadableProps(this, {
@@ -214,7 +214,7 @@ export class Loadable extends Observable {
           saveError: undefined,
           saveTime: Date.now()
         })
-        console.warn("saved after:", { ...this._loadable })
+        // console.warn("saved after:", { ...this._loadable })
       }
       return this._loadable.saveResults
     }
@@ -235,11 +235,11 @@ export class Loadable extends Observable {
     }
 
     try {
-      console.warn("saving: before", { ...this._loadable })
+      // console.warn("saving: before", { ...this._loadable })
       saver = this.getSaver(saveParams)
       if (!saver || !saver.then) throw new TypeError(`${this.constructor.name}.getSaver() didn't return a promise!`)
       setLoadableProps(this, { saveParams, saver })
-      console.warn("saving after:", { ...this._loadable })
+      // console.warn("saving after:", { ...this._loadable })
       return saver.then(onSuccess, onError)
     } catch (e) {
       return onError(e)

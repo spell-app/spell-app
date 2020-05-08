@@ -20,19 +20,29 @@ SpellParser.Rule.Type = class type extends Rule.Pattern {
     list: "List",
     List: "List",
     number: "number",
+    numbers: "number",
     Number: "number",
+    Numbers: "number",
     integer: "integer",
+    integers: "integer",
     Integer: "integer",
+    Integers: "integer",
     // decimal: "number",
     // Decimal: "number",
     text: "text",
     Text: "text",
     character: "character",
+    characters: "character",
     Character: "character",
+    Characters: "character",
     boolean: "boolean",
+    booleans: "boolean",
     Boolean: "boolean",
+    Booleans: "boolean",
     choice: "boolean",
-    Choice: "boolean"
+    choices: "boolean",
+    Choice: "boolean",
+    Choices: "boolean"
   }
 
   // Convert value to singular type case, e.g. `Thing` or `Bank_Account`

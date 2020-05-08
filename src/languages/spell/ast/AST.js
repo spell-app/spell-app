@@ -393,7 +393,6 @@ export class AwaitMethodInvocation extends AbstractMethodInvocation {
  *  - `name` is the normalized type name: Typecase, singular and dashes to underscores.
  *  - `raw` (optional) is the original input string, unnormalized.
  *  - `plurality` (optional) is "singular", "plural" or `undefined`
- *  - `scope` (optional) is a pointer to the known type scope, if any
  *  TODO: ^^^ ???
  */
 export class TypeExpression extends Expression {
@@ -737,6 +736,32 @@ export class GetterDefinition extends Statement {
   toJS() {
     const { thing, property, statements } = this
     return `spellCore.define(${thing.toJS()}, '${property.toJS()}', { get() { ${statements?.toJS() || ""} } })`
+  }
+}
+
+/** GetSetDefinition: creates a getter/setter combo for type instances
+ * - `thing` is an Expression
+ * - `property` is the PropertyLiteral
+ * - `get` is a Statement or Expression for the getter
+ * - `set` is a Statement or Expression for the setter
+ */
+export class GetSetDefinition extends Statement {
+  constructor(...args) {
+    super(...args)
+    this.assertType("thing", Expression)
+    this.assertType("property", PropertyLiteral)
+    this.assertType("get", [Statement, Expression], OPTIONAL)
+    this.assertType("set", [Statement, Expression], OPTIONAL)
+    this.assertType("datatype", "string", OPTIONAL)
+  }
+  toJS() {
+    const { thing, property, get, set } = this
+    return (
+      `spellCore.define(${thing.toJS()}, '${property.toJS()}', {` +
+      `\n\tget() { ${get?.toJS() || ""} },` +
+      `\n\tset(${property.toJS()}) { ${set?.toJS() || ""} }` +
+      `\n})`
+    )
   }
 }
 

@@ -102,7 +102,6 @@ export const classes = new SpellParser({
       name: "new_thing",
       alias: ["expression", "single_expression"],
       syntax: "a new {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
-      testRule: "…new",
       constructor: "Statement",
       getAST(match) {
         const { type, props } = match.groups
@@ -129,6 +128,48 @@ export const classes = new SpellParser({
           tests: [
             ["a new Object", "new Object()"],
             ["a new object with a = 1, b = yes", "new Object({ a: 1, b: true })"]
+          ]
+        }
+      ]
+    },
+
+    // `a new list of <type>`
+    {
+      name: "new_list",
+      alias: ["expression", "single_expression"],
+      syntax: "a new (list|List) (of {instanceType:type}?)",
+      constructor: "Statement",
+      getAST(match) {
+        const { instanceType } = match.groups
+        const props =
+          instanceType &&
+          new AST.ObjectLiteral(instanceType, {
+            properties: [
+              new AST.ObjectLiteralProperty(instanceType, {
+                property: new AST.PropertyLiteral(instanceType, { value: "instanceType" }),
+                value: new AST.StringLiteral(instanceType, { value: `"${instanceType.value}"` })
+              })
+            ]
+          })
+        const it = new AST.NewInstanceExpression(match, {
+          type: new AST.TypeExpression(match, { name: "List" }),
+          props
+        })
+        console.warn(it)
+        return it
+      },
+      tests: [
+        {
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.types.add("Thing")
+          },
+          tests: [
+            [`a new list`, `new List()`],
+            [`a new List`, `new List()`],
+            [`a new list of objects`, `new List({ instanceType: "Object" })`],
+            [`a new list of numbers`, `new List({ instanceType: "number" })`],
+            [`a new list of Todos`, `new List({ instanceType: "Todo" })`]
           ]
         }
       ]
@@ -228,11 +269,24 @@ export const classes = new SpellParser({
       ]
     },
     {
+      name: "type_specifier_yes_or_no",
+      alias: "type_specifier",
+      syntax: "as either? (yes or no|true or false)",
+      getAST(match) {
+        return new AST.TypeExpression(match, { raw: "yes or no", name: "boolean" })
+      },
+      tests: [
+        {
+          tests: [["as yes or no", "boolean"]]
+        }
+      ]
+    },
+    {
       name: "define_property_has",
       alias: "statement",
       syntax: [
-        "(a|an) {type:singular_type} has (a|an) {property} {specifier:type_specifier}?",
-        "{type:plural_type} have (a|an) {property} {specifier:type_specifier}?"
+        "(a|an) {type:singular_type} has (a|an|a property) {property} {specifier:type_specifier}?",
+        "{type:plural_type} have (a|an|a property) {property} {specifier:type_specifier}?"
       ],
       testRule: "…(has|have)",
       constructor: "Statement",
@@ -365,26 +419,17 @@ export const classes = new SpellParser({
           assignment = new AST.IfStatement(match, { condition, statements: assignment })
         }
 
-        // getter
+        // getter and setter
         statements.push(
-          new AST.GetterDefinition(match, {
+          new AST.GetSetDefinition(match, {
             thing: prototype,
             property: property.AST,
-            statements: new AST.ReturnStatement(match, {
+            get: new AST.ReturnStatement(match, {
               value: internalExpression
-            })
+            }),
+            set: assignment
           })
         )
-
-        // setter
-        statements.push(
-          new AST.SetterDefinition(match, {
-            thing: prototype,
-            property: property.AST,
-            statements: assignment
-          })
-        )
-
         return new AST.StatementGroup(match, { statements })
       },
       tests: [
@@ -397,15 +442,19 @@ export const classes = new SpellParser({
                 "// SPELL added rule: '(Card|card) (Directions|directions)'",
                 "Card.Directions = ['up', 'down']",
                 "spellCore.define(Card.prototype, 'Directions', { value: Card.Directions })",
-                "spellCore.define(Card.prototype, 'direction', { get() { return this['#direction'] } })",
-                "spellCore.define(Card.prototype, 'direction', { set(direction) { if (spellCore.includes(Card.Directions, direction)) { this['#direction'] = direction } } })"
+                "spellCore.define(Card.prototype, 'direction', {",
+                "\tget() { return this['#direction'] },",
+                "\tset(direction) { if (spellCore.includes(Card.Directions, direction)) { this['#direction'] = direction } }",
+                "})"
               ].join("\n")
             ],
             [
               "a player has a name as text",
               [
-                `spellCore.define(Player.prototype, 'name', { get() { return this['#name'] } })`,
-                `spellCore.define(Player.prototype, 'name', { set(name) { if (spellCore.isOfType(name, 'text')) { this['#name'] = name } } })`
+                "spellCore.define(Player.prototype, 'name', {",
+                "\tget() { return this['#name'] },",
+                "\tset(name) { if (spellCore.isOfType(name, 'text')) { this['#name'] = name } }",
+                "})"
               ].join("\n")
             ]
           ]
@@ -931,10 +980,11 @@ export const classes = new SpellParser({
           if (bits.instanceType) {
             // Add implicit variable mapping instanceType to `this`
             method.variables.add({ name: bits.instanceType, output: "this" })
-            // Add implicit variables `it` and `its` which maps to the instance type.
+            // Add implicit variables `it`, `its` and `me` which maps to the instance type.
             // Note that `it` may be overwritten in the method with `get XXX`
             method.variables.add({ name: "it", output: "this" })
             method.variables.add({ name: "its", output: "this" })
+            method.variables.add({ name: "me", output: "this" })
           }
           return method
         }
