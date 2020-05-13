@@ -415,6 +415,8 @@ export class Parser {
 
           tests.forEach(test => {
             if (Array.isArray(test)) test = { input: test[0], output: test[1] }
+            if (Array.isArray(test.input)) test.input = test.input.join("\n")
+            if (Array.isArray(test.output)) test.output = test.output.join("\n")
             if (test.skip || test.input === "") return
 
             // Create a new scope for the run, so we don't muck with the main parser.

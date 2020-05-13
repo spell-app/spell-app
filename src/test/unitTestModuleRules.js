@@ -60,6 +60,8 @@ export function unitTestModuleRules(parser, moduleName) {
           const [input, output] = test
           test = { input, output }
         }
+        if (Array.isArray(test.input)) test.input = test.input.join("\n")
+        if (Array.isArray(test.output)) test.output = test.output.join("\n")
         // skip blank tests or where `skip` is true
         if (test.skip || test.input === "") return undefined
         return test
