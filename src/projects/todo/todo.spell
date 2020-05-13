@@ -7,11 +7,10 @@ todos have a property completed as yes or no
 a todo "is active" if its completed is no
 a todo "is complete" if its completed is yes
 to draw a todo
-	return 
-		<ui-list-item class="todo" completed={its completed}>
+	return  <ui-list-item class="todo" completed={its completed}>
 			<ui-checkbox value={its completed} appearance="round" />
 			<ui-input expand value={its title}/>
-			<ui-button on-press={delete-a-todo with it}><icon name="x"/></ui-button>
+			<ui-button onpress={delete-a-todo with it}><icon name="x"/></ui-button>
 		</ui-list-item>
 
 ## set up application state, used below
@@ -44,8 +43,7 @@ to draw a todos-app
 			add it to all-todos
 			clear the text-field
 	
-	return
-		<ui-container>
+	return <ui-container>
 			<ui-header huge>todos</ui-header>
 			<ui-text-field on-key={handle-new-todo-key-event}>
 			<ui-list class="todo-list">
