@@ -7,7 +7,7 @@ import groupBy from "lodash/groupBy"
 import sum from "lodash/sum"
 
 import { cloneClass, memoize, nonEnumerable, proto, showWhitespace } from "~/util"
-import { ParseError, Rule, rulex, Tokenizer, WhitespacePolicy, Scope } from "~/parser"
+import { ParseError, Rule, rulex, Token, Tokenizer, WhitespacePolicy, Scope } from "~/parser"
 
 // In the web browser, by default, we'll use `cloneClass()` to make debugging easier
 // by creating named subclasses which you can see in the browser console
@@ -48,10 +48,17 @@ export class Parser {
     whitespacePolicy: WhitespacePolicy.LEADING_ONLY
   })
 
-  // Tokenize input `text`.
+  // Tokenize `input` as:
+  //  - string text
+  //  - a single Token
+  //  - an array (presumably an array of Tokens)
   // `ruleName` is there in case you want to tokenize differently for different top-level rules.
-  tokenize(text, ruleName) {
-    return this.tokenizer.tokenize(text)
+  tokenize(input, ruleName) {
+    if (typeof input === "string") return this.tokenizer.tokenize(input)
+    if (input instanceof Token) return [input]
+    if (Array.isArray(input)) return input
+    console.warn("Don't know how to tokenize: ", input)
+    return undefined
   }
 
   //
@@ -75,12 +82,12 @@ export class Parser {
     return new Scope({ parser: this })
   }
 
-  // Parse `ruleName` rule at head of `text`.
-  // `text` can be a string to tokenize or an Array of tokens.
+  // Parse `ruleName` rule at head of `input`.
+  // `input` can be a string to tokenize, a single token or an Array of tokens.
   // Returns result of parse.
-  parse(text, ruleName = this.defaultRule, scope = this.getScope()) {
+  parse(input, ruleName = this.defaultRule, scope = this.getScope()) {
     // Bail if we didn't get any tokens back.
-    const tokens = Array.isArray(text) ? text : this.tokenize(text, ruleName)
+    const tokens = this.tokenize(input, ruleName)
     if (!tokens || tokens.length === 0) return undefined
 
     // Parse the rule or throw an exception if rule not found.
@@ -99,13 +106,13 @@ export class Parser {
     return result
   }
 
-  // Parse `text` and return the resulting source code.
+  // Parse `input` and return the resulting source code.
   //  - if one string argument, compiles as "block"
   // Throws if not parseable.
-  compile(text, ruleName = this.defaultRule, scope = this.getScope()) {
-    const match = this.parse(text, ruleName, scope)
+  compile(input, ruleName = this.defaultRule, scope = this.getScope()) {
+    const match = this.parse(input, ruleName, scope)
     if (!match) {
-      throw new ParseError(`parser.compile('${text}'): can't parse text`)
+      throw new ParseError(`parser.compile('${input}'): can't parse text`)
     }
     return match.compile()
   }
