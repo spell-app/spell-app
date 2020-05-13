@@ -648,6 +648,7 @@ export class ListExpression extends Expression {
  * TODO: rename?
  * - `args` (optional) is a list of VariableExpressions
  * - `statements` (optional) is a Statement or Expression
+ *    TODO: review this name, maybe "body" is better?
  * - `expression` (optional) is a Expression
  * TODO: create a scope for variables inside???
  */
@@ -890,5 +891,100 @@ export class ConsoleMethodInvocation extends Statement {
   toJS() {
     const { method, args } = this
     return `console.${method}${encloseInParens(args.map(arg => arg.toJS()).join(", "))}`
+  }
+}
+
+/** JSXElement
+ * - `tagName`
+ * - `attrs`
+ * - `children`
+ */
+export class JSXElement extends Expression {
+  constructor(...args) {
+    super(...args)
+    this.assertType("tagName", "string")
+    this.assertArrayType("attrs", JSXAttribute, OPTIONAL)
+    this.assertArrayType("children", [JSXElement, JSXEndTag, JSXElement, JSXText, JSXExpression])
+  }
+  toJS() {
+    const attrs = this.attrs ? `, props: { ${this.attrs?.map(attr => attr.toJS()).join(", ")} }` : ""
+    let children = this.children?.map(child => child.toJS()).filter(Boolean)
+    if (children && children.length) children = `, children: [\n\t${children.join(",\n\t")}\n]`
+    else children = ""
+    return `spellCore.element({ tag: "${this.tagName}"${attrs}${children} })`
+    // const attributes = this.attrs ? `, { ${this.attrs.map(attr => attr.toJS()).join(", ")} }` : ""
+    // const children = this.children
+    //   ? `,\n${this.children
+    //       .map(child => child.toJS())
+    //       .filter(Boolean)
+    //       .join(",\n")}`
+    //   : ""
+    // return `spellCore.createElement('${this.tagName}'${attributes}${children})`
+  }
+}
+
+/** JSXElement
+ * - `name`
+ * - `value`
+ */
+export class JSXAttribute extends Expression {
+  constructor(...args) {
+    super(...args)
+    this.assertType("name", "string")
+    this.assertType("value", [Expression, ParseError])
+  }
+  toJS() {
+    // eslint-disable-next-line prefer-const
+    let { name, value } = this
+    // special case `class` to `className`
+    if (name === "class") name = "className"
+    else if (!LEGAL_PROPERTY_IDENTIFIER.test(name)) name = `"${name}"`
+
+    if (value instanceof ParseError) {
+      return `${name}: undefined ${value.toJS()}`
+    }
+    return `${name}: ${value.toJS()}`
+  }
+}
+
+/** JSXEndTag
+ * - `tagName`
+ */
+export class JSXEndTag extends Expression {
+  constructor(...args) {
+    super(...args)
+    this.assertType("tagName", "string")
+  }
+  toJS() {
+    // we don't actually output end tags
+    return undefined
+  }
+}
+
+/** JSXText
+ * - `value`
+ */
+export class JSXText extends Expression {
+  constructor(...args) {
+    super(...args)
+    this.assertType("value", "string")
+  }
+  toJS() {
+    return this.value
+  }
+}
+
+/** JSXExpression
+ * - `value`
+ */
+export class JSXExpression extends Expression {
+  constructor(...args) {
+    super(...args)
+    this.assertType("value", [Expression, ParseError])
+  }
+  toJS() {
+    const { value } = this
+    if (value instanceof ParseError) return `undefined ${value.toJS()}`
+    return value.toJS()
   }
 }

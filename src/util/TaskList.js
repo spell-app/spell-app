@@ -197,8 +197,8 @@ export class TaskList extends Task {
   //-----------------
   // Debugging
   //-----------------
-  @proto debug = true
-  @proto debugOutput = true
+  @proto debug = false
+  @proto debugOutput = false
 
   /** Called before we start executing. */
   beforeStart(inputValue) {

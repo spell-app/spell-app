@@ -148,7 +148,7 @@ export const store = createStore({
   },
   async compile() {
     if (!store.project || !store.file) return
-    console.groupCollapsed("Compiling", store.project)
+    console.group("Compiling", store.project)
     try {
       await store.project.compile()
       store.project.executeCompiled()

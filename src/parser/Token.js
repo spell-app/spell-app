@@ -106,54 +106,7 @@ Token.Comment = class comment extends Token {}
 //  `element.tagName` is the tag name
 //  `element.attributes` is an array of `jsxAttribute` children
 //  `element.children` is an array of child `jsxElement` instances.
-Token.JSXElement = class jsxElement extends Token {
-  // Return attributes as a map.
-  // TESTME
-  get attrs() {
-    const attrs = {}
-    if (this.attributes)
-      this.attributes.forEach(attr => {
-        // ignore unnamed attributes
-        if (attr.name) attrs[attr.name] = attr.value
-      })
-    return attrs
-  }
-
-  // Return our attributes as a string (used in toString only)
-  // TESTME
-  get attrsAsString() {
-    if (!this.attributes) return ""
-    return this.attributes
-      .map(({ value }) => {
-        if (value === undefined) return "true"
-        // convert value array (tokens) to string
-        // TODO: this will want to be smarter...
-        if (Array.isArray(value)) value = `{${value.join(" ")}}`
-        return `name=${value}`
-      })
-      .join(" ")
-  }
-
-  // Return our children as a string  (used in toString only)
-  // TESTME
-  get childrenAsString() {
-    if (!this.children) return ""
-    return this.children
-      .map(child => {
-        if (Array.isArray(child)) return `{${child.join(" ")}}`
-        return `${child}`
-      })
-      .join("")
-  }
-
-  // TESTME
-  toString() {
-    const attrs = this.attributes ? ` ${this.attributes.join("")}` : ""
-    const children = this.childrenAsString
-    if (this.isUnaryTag) return `<${this.tagName}${attrs}/>`
-    return `<${this.tagName}${attrs}>${children}`
-  }
-}
+Token.JSXElement = class jsxElement extends Token {}
 
 // JSX end tag.
 // `element.tagName` is the tag name.

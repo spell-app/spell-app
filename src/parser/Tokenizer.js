@@ -319,7 +319,7 @@ export class Tokenizer {
 
     if (!jsxElement.isUnaryTag) {
       const children = this.matchJSXChildren(jsxElement.tagName, text, jsxElement.end, end)
-      if (children.length) {
+      if (children && children.length) {
         jsxElement.children = children
         jsxElement.raw = text.slice(start, children[children.length - 1].end)
       }

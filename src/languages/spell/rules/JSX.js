@@ -1,157 +1,229 @@
-//
-//  # Rules for parsing jsx
-//
-
 import { Rule, Token } from "~/parser"
 import { SpellParser } from "~/languages/spell"
+import { AST } from "../ast"
 
 export const JSX = new SpellParser({
   module: "JSX",
   rules: [
     {
-      name: "jsx",
-      alias: ["expression", "single_expression"],
+      name: "jsxElement",
+      alias: ["jsxChild", "expression", "single_expression"],
       tokenType: Token.JSXElement,
       constructor: class SpellJSX extends Rule.TokenType {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
-          // recursively parse jsxExpressions in attributes and children
-          match.matched.forEach(element => this.parseElementExpressions(scope, element))
+          if (match.matched.length !== 1) throw new TypeError("Can only handle a single JSXElement at a time!")
+          const [element] = match.matched
+          match.attributes = element.attributes?.map(attr => scope.parse(attr, "jsxAttribute"))
+          match.children = element.children?.map(
+            child => scope.parse(child, "jsxChild") || scope.parse(child, "parse_error")
+          )
+          // console.warn(match)
           return match
         }
-      },
 
-      parseElementExpressions(scope, element) {
-        if (element.attributes) {
-          element.attributes.forEach(attribute => {
-            if (attribute.value instanceof Token.JSXExpression)
-              attribute.value.expression = scope.parser.parse(attribute.value.contents, "expression", scope)
-          })
-        }
-        if (element.children) {
-          element.children.forEach(child => this.parseElementExpressions(scope, child))
+        getAST(match) {
+          const { tagName } = match.matched[0]
+          const attrs = match.attributes?.map(attr => attr.AST)
+          const children = match.children?.map(child => child.AST)
+          return new AST.JSXElement(match, { tagName, attrs, children })
         }
       },
-
-      compile(match) {
-        return this.jsxElementToSource(match.matched[0])
-      },
-
-      jsxElementToSource(jsxElement) {
-        // get the bits of the output
-        const tagName = `'${jsxElement.tagName}'`
-        const children = this.childrenToSource(jsxElement)
-        const attrs = this.attrsToSource(jsxElement) || (children ? "null" : "")
-
-        let output = `spellCore.createElement(${tagName}`
-        if (attrs) output += `, ${attrs}`
-        if (children) {
-          output += `,\n\t${children.join(",\n\t")}\n`
-        }
-        output += ")"
-        return output
-      },
-
-      // Convert our attributes to source.
-      // Returns `undefined` if no attributes.
-      attrsToSource(jsxElement) {
-        const { attributes } = jsxElement
-        if (!attributes || !attributes.length) return undefined
-
-        const attrs = attributes.map(({ name, value }) => {
-          // if NO value, assume it's a variable of the same name
-          if (value === undefined) value = "true"
-          // if it's a jsx expression, possibly with nested JSX elements...
-          else if (value instanceof Token.JSXExpression) {
-            value = this.jsxExpressionToSource(value)
-          }
-          // else if a JSX element, recurse
-          // TODO: indent...
-          else if (value instanceof Token.JSXElement) {
-            value = value.compile(jsxElement)
-          } else {
-            // eslint-disable-next-line prefer-destructuring
-            value = value.value
-          }
-
-          // special case `class` to `className` because React is effing persnickety.
-          if (name === "class") name = "className"
-          // TODO: escape names which are invalid JS identifiers
-          return `${name}: ${value}`
-        })
-
-        return `{ ${attrs.join(", ")} }`
-      },
-
-      // Return an array with source for each of our children.
-      // Returns `undefined` if we don't have any children.
-      childrenToSource(jsxElement) {
-        // ignore end tags!
-        const children = jsxElement.children && jsxElement.children.filter(child => !(child instanceof Token.JSXEndTag))
-        if (!children || children.length === 0) return undefined
-
-        return (
-          children
-            .map(child => {
-              // ignore end tags
-              if (child instanceof Token.JSXEndTag) return undefined
-
-              if (child instanceof Token.JSXText) {
-                return child.quotedText
-              }
-              if (child instanceof Token.JSXElement) {
-                const childSource = this.jsxElementToSource(child)
-                return childSource.split("\n").join("\n\t")
-              }
-              if (child instanceof Token.JSXExpression) {
-                return this.jsxExpressionToSource(child)
-              }
-
-              throw new SyntaxError(`childrenToSource(): don't understand child${child}`)
-            })
-            // remove undefined/empty string rules
-            .filter(Boolean)
-        )
-      },
-
-      // Convert JSX expression ( `{...}` ) to JS source.
-      jsxExpressionToSource(jsxExpression) {
-        const { expression } = jsxExpression
-        if (jsxExpression.expression && !jsxExpression.expression.incomplete) return expression.js
-        // eslint-disable-next-line no-useless-concat
-        return "/" + `*INCOMPLETE: ${jsxExpression.contents}*` + "/"
-      },
-
       tests: [
         {
+          title: "Simple nested elements",
           compileAs: "expression",
           tests: [
-            [`<a/>`, `spellCore.createElement('a')`],
-            [`<a b=1 c="ccc"/>`, `spellCore.createElement('a', { b: 1, c: "ccc" })`],
-            [`<a b=1 c="ccc" d></a>`, `spellCore.createElement('a', { b: 1, c: "ccc", d: true })`],
+            [`<a/>`, `spellCore.element({ tag: "a" })`],
+            [`<a></a>`, `spellCore.element({ tag: "a" })`],
+            [`<a b=1 c="ccc"/>`, `spellCore.element({ tag: "a", props: { b: 1, c: "ccc" } })`],
+            [`<a b=1 c="ccc" d></a>`, `spellCore.element({ tag: "a", props: { b: 1, c: "ccc", d: true } })`],
 
-            [`<a><b/></a>`, `spellCore.createElement('a', null,\n\tspellCore.createElement('b')\n)`],
-            [`<a><b></b></a>`, `spellCore.createElement('a', null,\n\tspellCore.createElement('b')\n)`],
+            [`<a><b/></a>`, [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]],
+            [
+              `<a><b></b></a>`,
+              [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]
+            ],
             [
               `<a A=1><b c=1>foo</b></a>`,
-              `spellCore.createElement('a', { A: 1 },\n\tspellCore.createElement('b', { c: 1 },\n\t\t"foo"\n\t)\n)`
+              [
+                `spellCore.element({ tag: "a", props: { A: 1 }, children: [`,
+                `\tspellCore.element({ tag: "b", props: { c: 1 }, children: [`,
+                `\t"foo"`,
+                `] })`,
+                `] })`
+              ]
+            ],
+            [
+              `<a><b><c>d</c></b></a>`,
+              [
+                'spellCore.element({ tag: "a", children: [',
+                '\tspellCore.element({ tag: "b", children: [',
+                '\tspellCore.element({ tag: "c", children: [',
+                '\t"d"',
+                "] })",
+                "] })",
+                "] })"
+              ]
+            ],
+            [
+              `<a>\n\tBBB\n\t<c/>\n\tDDD</a>`,
+              [
+                'spellCore.element({ tag: "a", children: [',
+                '\t"BBB",',
+                '\tspellCore.element({ tag: "c" }),',
+                '\t"DDD"',
+                "] })"
+              ]
             ]
           ]
         },
         {
+          title: "Inline and attribute expressions",
           compileAs: "expression",
           beforeEach(scope) {
             scope.variables.add("card")
           },
           tests: [
+            [`<div foo/>`, `spellCore.element({ tag: "div", props: { foo: true } })`],
             [
-              `<div rank={the rank of the card} suit={the suit of the card}/>`,
-              `spellCore.createElement('div', { rank: card.rank, suit: card.suit })`
+              `<div foo={<a><b><c>d</c></b></a>}/>`,
+              [
+                'spellCore.element({ tag: "div", props: { foo: spellCore.element({ tag: "a", children: [',
+                '\tspellCore.element({ tag: "b", children: [',
+                '\tspellCore.element({ tag: "c", children: [',
+                '\t"d"',
+                "] })",
+                "] })",
+                "] }) } })"
+              ]
+            ],
+            [
+              `<div>{the rank of the card}</div>`,
+              ['spellCore.element({ tag: "div", children: [', "\tcard.rank", "] })"]
+            ],
+            [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]],
+            [
+              `<div>{unknown expression}</div>`,
+              [
+                'spellCore.element({ tag: "div", children: [',
+                '\tundefined /* PARSE ERROR: UNABLE TO PARSE: "unknown expression" */',
+                "] })"
+              ]
+            ],
+            [
+              `<div rank={the rank of the card} value={1 + 2 + 3}/>`,
+              `spellCore.element({ tag: "div", props: { rank: card.rank, value: ((1 + 2) + 3) } })`
+            ],
+            [
+              `<div rank={unknown expression} value={another unknown expression}/>`,
+              `spellCore.element({ tag: "div", props: { rank: undefined /* PARSE ERROR: UNABLE TO PARSE: \"unknown expression\" */, value: undefined /* PARSE ERROR: UNABLE TO PARSE: \"another unknown expression\" */ } })`
+            ],
+            // DO NOT parse a statement as an inline expression
+            [
+              `<div>{print 1024}</div>`,
+              [
+                'spellCore.element({ tag: "div", children: [',
+                '\tundefined /* PARSE ERROR: UNABLE TO PARSE: "print 1024" */',
+                "] })"
+              ]
+            ],
+            // DO parse a statement as an attribute expression
+            [
+              `<div on-click={print 1024}/>`,
+              `spellCore.element({ tag: "div", props: { "on-click": () => console.log(1024) } })`
             ]
           ]
         }
       ]
+    },
+
+    {
+      name: "jsxAttribute",
+      tokenType: Token.JSXAttribute,
+      constructor: class SpellJSXAttribute extends Rule.TokenType {
+        parse(scope, tokens) {
+          const match = super.parse(scope, tokens)
+          if (!match) return undefined
+          if (match.matched.length !== 1) throw new TypeError("Can only handle a single JSXAttribute at a time!")
+          // pull attribute name up to match
+          match.attribute = match.matched[0].name
+          // parse `value` if it is a jsxExpression
+          const { value } = match
+          if (value instanceof Token.JSXExpression) {
+            // try as an expression first
+            match.expression = scope.parse(value.contents, "expression")
+            // if that didn't work, try as a `statement` (e.g. for inline method)
+            if (!match.expression) match.statement = scope.parse(value.contents, "statement")
+            // if neither worked, parse error
+            if (!match.expression && !match.statement) match.error = scope.parse(value.contents, "parse_error")
+          } else if (value instanceof Token.Number) {
+            match.expression = scope.parse(value, "number")
+          }
+          return match
+        }
+
+        getAST(match) {
+          const { attribute, expression, statement, error, value } = match
+          let valueAST
+          if (error) valueAST = error.AST
+          else if (expression) valueAST = expression.AST
+          else if (statement) {
+            valueAST = new AST.InlineMethodExpression(match, {
+              statements: statement.AST
+            })
+          } else if (value === undefined) {
+            valueAST = new AST.BooleanLiteral(match, { value: true })
+          } else if (value instanceof Token.Text) {
+            valueAST = new AST.StringLiteral(match, { value: value.value })
+          } else {
+            console.warn("jsxAttribute.getAST: don't know how to render value", value, " for match ", match)
+            valueAST = new AST.UndefinedLiteral(match)
+          }
+          return new AST.JSXAttribute(match, { name: attribute, value: valueAST })
+        }
+      }
+    },
+
+    {
+      name: "jsxText",
+      alias: "jsxChild",
+      tokenType: Token.JSXText,
+      getAST(match) {
+        const { quotedText } = match.matched[0]
+        return new AST.JSXText(match, { value: quotedText || "" })
+      }
+    },
+
+    {
+      name: "jsxEndTag",
+      alias: "jsxChild",
+      tokenType: Token.JSXEndTag,
+      getAST(match) {
+        const { tagName } = match.matched[0]
+        return new AST.JSXEndTag(match, { tagName })
+      }
+    },
+
+    {
+      name: "jsxExpression",
+      alias: "jsxChild",
+      tokenType: Token.JSXExpression,
+      constructor: class SpellJSXExpression extends Rule.TokenType {
+        parse(scope, tokens) {
+          const match = super.parse(scope, tokens)
+          if (!match) return undefined
+          // parse `contents` as an `expression` or `parse_error` if it can't be matched.
+          const { contents } = match.matched[0]
+          match.expression = scope.parse(contents, "expression") || scope.parse(contents, "parse_error")
+          return match
+        }
+        getAST(match) {
+          const { expression } = match
+          return new AST.JSXExpression(expression, { value: expression.AST })
+        }
+      }
     }
   ]
 })

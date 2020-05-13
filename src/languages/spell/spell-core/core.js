@@ -5,6 +5,7 @@ import global from "global"
 import forEach from "lodash/forEach"
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
+import React from "react"
 
 import { assert } from "."
 
@@ -207,7 +208,8 @@ export const spellCore = {
   //--------
 
   // Create an element (ala `React.createElement()`)
-  createElement(tagName, properties, ...children) {
-    throw new global.RuntimeError("TODO: spellCore.createElement()")
+  // eslint-disable-next-line react/prop-types
+  element({ tag, props, children = [] } = {}) {
+    return React.createElement(tag, props, ...children)
   }
 }

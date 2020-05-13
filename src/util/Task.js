@@ -194,8 +194,8 @@ export class Task extends Observable {
   //-----------------
 
   /** Set to true to debug to the console as we operate. */
-  @proto debug = true
-  @proto debugOutput = true
+  @proto debug = false
+  @proto debugOutput = false
 
   /** Called before we start executing. */
   beforeStart(inputValue) {
