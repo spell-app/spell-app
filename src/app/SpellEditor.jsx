@@ -8,6 +8,7 @@ import Navbar from "react-bootstrap/Navbar"
 import NavDropdown from "react-bootstrap/NavDropdown"
 import NavLink from "react-bootstrap/NavLink"
 import Toast from "react-bootstrap/Toast"
+import { useHotkeys } from "react-hotkeys-hook"
 
 import { view } from "~/util"
 import { SpellFileLocation } from "~/languages/spell"
@@ -215,6 +216,19 @@ const Error = view(function Error() {
 })
 
 export const SpellEditor = view(function SpellEditor() {
+  // Set up hotkey when NOT in codemirror
+  // Note these are duplicated in CodeMirror.js
+  useHotkeys("command+s", event => {
+    event.preventDefault()
+    store.saveFile()
+  })
+  useHotkeys("shift-command+r", () => store.reloadFile())
+  useHotkeys("command+enter", () => store.compile())
+  useHotkeys("command+n", event => {
+    event.preventDefault()
+    store.createFile()
+  })
+
   if (DEBUG_RENDER) console.warn("SpellEditor")
   return (
     <>

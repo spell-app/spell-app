@@ -27,6 +27,7 @@ import "./JSHINT"
 
 import { Token } from "~/parser"
 import { spellParser } from "~/languages/spell"
+import { store } from "./store"
 
 // Export `<CodeMirror>` component
 export { Controlled as CodeMirror } from "react-codemirror2"
@@ -39,7 +40,12 @@ export const codeMirrorOptions = {
 }
 export const inputOptions = {
   ...codeMirrorOptions,
-  mode: "spell"
+  mode: "spell",
+  extraKeys: {
+    "Cmd-S": () => store.saveFile(),
+    "Shift-Cmd-R": () => store.reloadFile(),
+    "Cmd-Enter": () => store.compile()
+  }
 }
 
 export const outputOptions = {
