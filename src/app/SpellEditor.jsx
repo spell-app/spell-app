@@ -1,4 +1,4 @@
-import React from "react"
+import React, { isValidElement, cloneElement } from "react"
 import Container from "react-bootstrap/Container"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
@@ -121,16 +121,42 @@ const EditorToolbar = view(function EditorToolbar() {
   )
 })
 
-const InputEditor = view(function InputEditor() {
+/** Create an ErrorBoundary component to re-render the InputEditor if CodeMirror throws. */
+class InputEditor extends React.Component {
+  state = { error: undefined }
+
+  static getDerivedStateFromError(error) {
+    console.warn("InputEditor error boundary got error", error)
+    return { error }
+  }
+
+  componentDidCatch(error, errorInfo) {
+    store.showError(error)
+  }
+  render() {
+    const { error } = this.state
+    if (!error) return <InputEditorInner />
+    return <InputEditorInner error={error} />
+  }
+}
+
+const InputEditorInner = view(function InputEditorInner({ error }) {
   const { file } = store
-  if (DEBUG_RENDER) console.info("InputEditor", file, file?.contents?.split("\n")[0])
+  if (DEBUG_RENDER) console.info("InputEditorInner", file, file?.contents?.split("\n")[0])
+  // if we got a CodeMirror `error` in a previous draw,
+  // remove the `mode` or we'll get an endless loop of pain
+  let options = inputOptions
+  if (error) {
+    options = { ...options }
+    delete options.mode
+  }
   return (
     <CodeMirror
-      key={file?.path || "loading"}
+      key={(error && "error") || file?.path || "loading"}
       value={file?.contents || "Loading"}
       disabled
       className="h-100 w-100 rounded shadow-sm border"
-      options={inputOptions}
+      options={options}
       onBeforeChange={store.onInputChanged}
     />
   )

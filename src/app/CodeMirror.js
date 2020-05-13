@@ -124,7 +124,9 @@ CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
         }
         stream.skipToEnd()
       } catch (e) {
-        // swallow error
+        // log error and just forget parsing the rest
+        console.warn("Spell CodeMirror.token(): got token error:", e)
+        stream.skipToEnd()
       }
       return undefined
     }
