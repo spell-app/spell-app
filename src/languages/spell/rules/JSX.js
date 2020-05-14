@@ -84,38 +84,13 @@ export const JSX = new SpellParser({
           ]
         },
         {
-          title: "Inline and attribute expressions",
+          title: "Attribute expressions",
           compileAs: "expression",
           beforeEach(scope) {
             scope.variables.add("card")
           },
           tests: [
             [`<div foo/>`, `spellCore.element({ tag: "div", props: { foo: true } })`],
-            [
-              `<div foo={<a><b><c>d</c></b></a>}/>`,
-              [
-                'spellCore.element({ tag: "div", props: { foo: spellCore.element({ tag: "a", children: [',
-                '\tspellCore.element({ tag: "b", children: [',
-                '\tspellCore.element({ tag: "c", children: [',
-                '\t"d"',
-                "] })",
-                "] })",
-                "] }) } })"
-              ]
-            ],
-            [
-              `<div>{the rank of the card}</div>`,
-              ['spellCore.element({ tag: "div", children: [', "\tcard.rank", "] })"]
-            ],
-            [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]],
-            [
-              `<div>{unknown expression}</div>`,
-              [
-                'spellCore.element({ tag: "div", children: [',
-                '\tundefined /* PARSE ERROR: UNABLE TO PARSE: "unknown expression" */',
-                "] })"
-              ]
-            ],
             [
               `<div rank={the rank of the card} value={1 + 2 + 3}/>`,
               `spellCore.element({ tag: "div", props: { rank: card.rank, value: ((1 + 2) + 3) } })`
@@ -124,7 +99,67 @@ export const JSX = new SpellParser({
               `<div rank={unknown expression} value={another unknown expression}/>`,
               `spellCore.element({ tag: "div", props: { rank: undefined /* PARSE ERROR: UNABLE TO PARSE: \"unknown expression\" */, value: undefined /* PARSE ERROR: UNABLE TO PARSE: \"another unknown expression\" */ } })`
             ],
-            // DO NOT parse a statement as an inline expression
+            // DO parse a statement as an attribute expression
+            [
+              `<div on-click={print 1024}/>`,
+              `spellCore.element({ tag: "div", props: { "on-click": () => console.log(1024) } })`
+            ],
+            // don't match attribute expressions that don't eat the entire text
+            [
+              "<div foo={true true}/>",
+              `spellCore.element({ tag: "div", props: { foo: undefined /* PARSE ERROR: UNABLE TO PARSE: \"true true\" */ } })`
+            ],
+            [
+              // ignore newlines in attribute expression
+              ("<div foo={\n1 + \n\t2\n\t}/>", `spellCore.element({ tag: "div", props: { foo: (1 + 2) } })`)
+            ]
+          ]
+        },
+        {
+          title: "Inline expressions",
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.variables.add("card")
+          },
+          tests: [
+            [
+              `<div foo={<a><b><c>{1}</c></b></a>}/>`,
+              [
+                'spellCore.element({ tag: "div", props: { foo: spellCore.element({ tag: "a", children: [',
+                '\tspellCore.element({ tag: "b", children: [',
+                '\tspellCore.element({ tag: "c", children: [',
+                "\t1",
+                "] })",
+                "] })",
+                "] }) } })"
+              ]
+            ],
+            // compound expression
+            [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]],
+            //
+            [
+              `<div>{the rank of the card}</div>`,
+              ['spellCore.element({ tag: "div", children: [', "\tcard.rank", "] })"]
+            ],
+            // fail if we don't eat entire expression
+            [
+              `<div>{true true}</div>`,
+              [
+                'spellCore.element({ tag: "div", children: [',
+                '\tundefined /* PARSE ERROR: UNABLE TO PARSE: "true true" */',
+                "] })"
+              ]
+            ],
+            // fail on unknown expression
+            [
+              `<div>{unknown expression}</div>`,
+              [
+                'spellCore.element({ tag: "div", children: [',
+                '\tundefined /* PARSE ERROR: UNABLE TO PARSE: "unknown expression" */',
+                "] })"
+              ]
+            ],
+            // DO NOT parse a inline expression as a statement
             [
               `<div>{print 1024}</div>`,
               [
@@ -132,11 +167,6 @@ export const JSX = new SpellParser({
                 '\tundefined /* PARSE ERROR: UNABLE TO PARSE: "print 1024" */',
                 "] })"
               ]
-            ],
-            // DO parse a statement as an attribute expression
-            [
-              `<div on-click={print 1024}/>`,
-              `spellCore.element({ tag: "div", props: { "on-click": () => console.log(1024) } })`
             ]
           ]
         }
@@ -156,13 +186,23 @@ export const JSX = new SpellParser({
           // parse `value` if it is a jsxExpression
           const { value } = match
           if (value instanceof Token.JSXExpression) {
-            // try as an expression first
-            match.expression = scope.parse(value.contents, "expression")
-            // if that didn't work, try as a `statement` (e.g. for inline method)
-            if (!match.expression) match.statement = scope.parse(value.contents, "statement")
+            // trim and remove newlines from expression
+            const input = value.contents.trim().replace(/\n/g, " ")
+            // try as an expression first, but only take it if we match everything
+            const expression = scope.parse(input, "expression")
+            if (expression && expression.inputText.length === input.length) {
+              match.expression = expression
+            } else {
+              // if that didn't work, try as a `statement` (e.g. for inline method)
+              const statement = scope.parse(input, "statement")
+              if (statement && statement.inputText.length === input.length) {
+                match.statement = statement
+              }
+            }
             // if neither worked, parse error
-            if (!match.expression && !match.statement) match.error = scope.parse(value.contents, "parse_error")
+            if (!match.expression && !match.statement) match.error = scope.parse(input, "parse_error")
           } else if (value instanceof Token.Number) {
+            // NON-STANDARD: we allow you to do `<foo a=1 />` ????
             match.expression = scope.parse(value, "number")
           }
           return match
@@ -171,8 +211,7 @@ export const JSX = new SpellParser({
         getAST(match) {
           const { attribute, expression, statement, error, value } = match
           let valueAST
-          if (error) valueAST = error.AST
-          else if (expression) valueAST = expression.AST
+          if (expression) valueAST = expression.AST
           else if (statement) {
             valueAST = new AST.InlineMethodExpression(match, {
               statements: statement.AST
@@ -181,11 +220,15 @@ export const JSX = new SpellParser({
             valueAST = new AST.BooleanLiteral(match, { value: true })
           } else if (value instanceof Token.Text) {
             valueAST = new AST.StringLiteral(match, { value: value.value })
-          } else {
+          } else if (!error) {
             console.warn("jsxAttribute.getAST: don't know how to render value", value, " for match ", match)
             valueAST = new AST.UndefinedLiteral(match)
           }
-          return new AST.JSXAttribute(match, { name: attribute, value: valueAST })
+          return new AST.JSXAttribute(match, {
+            name: attribute,
+            value: valueAST,
+            error: error?.AST
+          })
         }
       }
     },
@@ -218,14 +261,23 @@ export const JSX = new SpellParser({
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
-          // parse `contents` as an `expression` or `parse_error` if it can't be matched.
-          const { contents } = match.matched[0]
-          match.expression = scope.parse(contents, "expression") || scope.parse(contents, "parse_error")
+          // trim and remove newlines from expression (???)
+          const input = match.matched[0].contents.trim().replace(/\n/g, " ")
+          // only match expression if we used all of the input
+          const expression = scope.parse(input, "expression")
+          if (expression && expression.inputText.length === input.length) {
+            match.expression = expression
+          } else {
+            match.error = scope.parse(input, "parse_error")
+          }
           return match
         }
         getAST(match) {
-          const { expression } = match
-          return new AST.JSXExpression(expression, { value: expression.AST })
+          const { expression, error } = match
+          return new AST.JSXExpression(match, {
+            expression: expression?.AST,
+            error: error?.AST
+          })
         }
       }
     }

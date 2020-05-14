@@ -4,7 +4,11 @@ set foo to "foo"
 print <a A=1><b c=1>foo</b></a>
 
 print 				<ui-button 
-					hidden={true} 
-					on-press={print 2034} 
+					visible={ 
+					2034      +	
+					1024
+					} 
+					hidden={true true} 
+					on-press={    print 2034 + 1024   } 
 					-foo={1}
 				/>

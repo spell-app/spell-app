@@ -926,24 +926,27 @@ export class JSXElement extends Expression {
 /** JSXElement
  * - `name`
  * - `value`
+ * - `error`
  */
 export class JSXAttribute extends Expression {
   constructor(...args) {
     super(...args)
     this.assertType("name", "string")
-    this.assertType("value", [Expression, ParseError])
+    this.assertType("value", Expression, OPTIONAL)
+    this.assertType("error", ParseError, OPTIONAL)
   }
   toJS() {
     // eslint-disable-next-line prefer-const
-    let { name, value } = this
+    const { name, value, error } = this
+    let output = name
     // special case `class` to `className`
-    if (name === "class") name = "className"
-    else if (!LEGAL_PROPERTY_IDENTIFIER.test(name)) name = `"${name}"`
+    if (name === "class") output = "className"
+    // quote dashed-properties etc
+    else if (!LEGAL_PROPERTY_IDENTIFIER.test(name)) output = `"${name}"`
 
-    if (value instanceof ParseError) {
-      return `${name}: undefined ${value.toJS()}`
-    }
-    return `${name}: ${value.toJS()}`
+    output += `: ${value ? value.toJS() : "undefined"}`
+    if (error) output += ` ${error.toJS()}`
+    return output
   }
 }
 
@@ -981,11 +984,13 @@ export class JSXText extends Expression {
 export class JSXExpression extends Expression {
   constructor(...args) {
     super(...args)
-    this.assertType("value", [Expression, ParseError])
+    this.assertType("expression", Expression, OPTIONAL)
+    this.assertType("error", ParseError, OPTIONAL)
   }
   toJS() {
-    const { value } = this
-    if (value instanceof ParseError) return `undefined ${value.toJS()}`
-    return value.toJS()
+    const { expression, error } = this
+    let value = expression ? expression.toJS() : "undefined"
+    if (error) value += ` ${error.toJS()}`
+    return value
   }
 }
