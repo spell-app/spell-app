@@ -1,7 +1,7 @@
 ## Todo app proposal
 
 ## define `todo` class
-a todo is a drawable-thing
+a todo is a drawable
 todos have a title as text
 todos have a property completed as yes or no
 a todo "is active" if its completed is no

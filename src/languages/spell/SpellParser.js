@@ -22,6 +22,8 @@ export class SpellParser extends Parser {
     const scope = new ProjectScope({ name: "spellRoot", parser: spellParser })
     scope.types.add("Object")
     scope.types.add("Thing")
+    scope.types.add("Drawable")
+    scope.types.add("App")
     scope.types.add("List")
     return scope
   }

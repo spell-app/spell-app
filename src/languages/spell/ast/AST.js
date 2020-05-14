@@ -520,6 +520,7 @@ export class ObjectLiteral extends Expression {
     this.assertArrayType("properties", ObjectLiteralProperty, OPTIONAL)
   }
   addProp(property, value) {
+    if (typeof value === "string") value = new StringLiteral(this.match, { value })
     this.assert(value instanceof Expression, `AST.ObjectLiteral.addProp(${property}): value must be an Expression`)
     if (!this.properties) this.properties = []
     this.properties.push(new ObjectLiteralProperty(this.match, { property, value }))
