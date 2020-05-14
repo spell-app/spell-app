@@ -75,7 +75,7 @@ SpellParser.Rule.Block = class block extends Rule {
           // Some `statements.wantsNestedBlock` -- give it a chance to parse the next item.
           const nextItem = block.contents[i + 1]
           if (statement.rule.wantsNestedBlock && nextItem instanceof Token.Block) {
-            const matchedNestedBlock = this.parseNestedBlock(statement, nextItem)
+            const matchedNestedBlock = statement.rule.parseNestedBlock(statement, nextItem)
             // eat the nested block token so we don't parse it again
             if (matchedNestedBlock) i++
           }
@@ -116,33 +116,6 @@ SpellParser.Rule.Block = class block extends Rule {
     // Update `unparsed` so `parseBlock()` will output a parse error if we didn't get it all.
     if (statement) unparsed.splice(0, statement.length)
     return { whitespace, statement, comment, unparsed }
-  }
-
-  // If a parsed `statement` match `.wantsInlineStatement`,
-  // attempt to parse `unparsed` tokens from the end of the input line.
-  // Returns `inlineStatement` match if successful.
-  parseInlineStatement(statement, unparsed, parseAs = "statement") {
-    const inlineStatement = statement.nestedScope?.parse(unparsed, parseAs)
-    if (inlineStatement) {
-      statement.addMatch(inlineStatement, "inlineStatement")
-      // TODO: ???  call `mutateScope()` to initialize any variables/rules/etc
-      inlineStatement.mutateScope()
-    }
-    return inlineStatement
-  }
-
-  // If a parsed `statement` match `.wantsNestedBlock`,
-  // attempt to parse `nextItem` from `block.contents`.
-  // Returns `nestedBlock` match if successful.
-  parseNestedBlock(statement, nextItem) {
-    // TODO: complain if we also have an inlineStatement???
-    const nestedBlock = statement.nestedScope && this.parseBlock(statement.nestedScope, nextItem)
-    if (nestedBlock) {
-      // wrap output in parens
-      nestedBlock.enclose = true
-      statement.addMatch(nestedBlock, "nestedBlock")
-    }
-    return nestedBlock
   }
 
   getAST(match) {

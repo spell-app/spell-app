@@ -19,6 +19,9 @@ SpellParser.Rule.Statement = class _statement extends Rule.Sequence {
   // Set to true if this statement wants to attempt to read an nested block starting on the next line.
   @proto wantsNestedBlock = false
 
+  // Rule to parse a nested block as -- see `parseNestedBlock()`
+  @proto parseNestedBlockAs = "block"
+
   // Parse the staement itself -- assume comment was already popped off the end.
   // If we `wantsInlineStatement`, attempt to parse that and push onto the match.
   // `Block.parseStatement()` will worry about extra stuff at the end of the statement.
@@ -29,12 +32,41 @@ SpellParser.Rule.Statement = class _statement extends Rule.Sequence {
     // Attempt to parse any remaining tokens as an inlineStatement if necessary
     const unparsed = tokens.slice(statement.length)
     if (this.wantsInlineStatement && unparsed.length) {
-      scope.parser.getRuleOrDie("block").parseInlineStatement(statement, unparsed, this.parseInlineStatementAs)
+      this.parseInlineStatement(statement, unparsed, this.parseInlineStatementAs)
     }
 
     return statement
   }
 
+  // If a parsed `statement` match `.wantsInlineStatement`,
+  // attempt to parse `unparsed` tokens from the end of the input line.
+  // Returns `inlineStatement` match if successful.
+  parseInlineStatement(statement, unparsed, parseAs = this.parseInlineStatementAs) {
+    const inlineStatement = statement.nestedScope?.parse(unparsed, parseAs)
+    if (inlineStatement) {
+      statement.addMatch(inlineStatement, "inlineStatement")
+      // TODO: ???  call `mutateScope()` to initialize any variables/rules/etc
+      inlineStatement.mutateScope()
+    }
+    return inlineStatement
+  }
+
+  // If a parsed `statement` match `.wantsNestedBlock`,
+  // attempt to parse `nestedBlock` from `block.contents`.
+  // Returns `nestedBlock` match if successful.
+  parseNestedBlock(statement, nestedBlock, parseAs = this.parseNestedBlockAs) {
+    const { nestedScope } = statement
+    if (!nestedScope) return undefined
+    // TODO: complain if we also have an inlineStatement???
+    const nestedRule = nestedScope.parser.getRuleOrDie(parseAs)
+    const parsedBlock = nestedRule.parse(nestedScope, [nestedBlock])
+    if (parsedBlock) {
+      // wrap output in parens
+      parsedBlock.enclose = true
+      statement.addMatch(parsedBlock, "nestedBlock")
+    }
+    return parsedBlock
+  }
   // Return nested scope to use when parsing an inlineStatement or nestedBlock.
   // Override in your instance.
   getNestedScope(match) {
