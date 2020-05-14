@@ -195,8 +195,8 @@ export const JSX = new SpellParser({
       alias: "jsxChild",
       tokenType: Token.JSXText,
       getAST(match) {
-        const { quotedText } = match.matched[0]
-        return new AST.JSXText(match, { value: quotedText || "" })
+        const { raw, quotedText } = match.matched[0]
+        return new AST.JSXText(match, { raw, value: quotedText })
       }
     },
 

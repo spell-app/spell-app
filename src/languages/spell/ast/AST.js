@@ -967,7 +967,8 @@ export class JSXEndTag extends Expression {
 export class JSXText extends Expression {
   constructor(...args) {
     super(...args)
-    this.assertType("value", "string")
+    this.assertType("value", "string", OPTIONAL)
+    this.assertType("raw", "string", OPTIONAL)
   }
   toJS() {
     return this.value
