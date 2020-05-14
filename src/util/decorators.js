@@ -74,8 +74,7 @@ export function writeOnce(target, property, descriptor) {
  * Provide a getter for some value, but allow user to provide an explicit value
  * for an instance which overrides it.  Note: you MUST NOT provide a setter.
  *
- * NOTE: `delete thing.foo` WILL NOT WORK after a set -- instance will keep the new value.
- *       `thing.foo = undefined` WILL WORK to clear the value though.
+ * NOTE: `delete thing.foo` WILL WORK after a set -- instance will go back to the getter.
  *
  * Example:
  *    class Thing {
@@ -83,7 +82,7 @@ export function writeOnce(target, property, descriptor) {
  *    }
  *    const it = new Thing()
  *    it.prop                 <<<< "original value"
- *    it.prop = "new value"   <<<< logs "set was called with new value"
+ *    it.prop = "new value"   <<<< "new value"
  *    it.prop                 <<<< "new value"
  *    delete it.prop
  *    it.prop                 <<<< "orignal value"

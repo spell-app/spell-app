@@ -148,7 +148,7 @@ export const classes = new SpellParser({
             new AST.ObjectLiteral(instanceType, {
               properties: [
                 new AST.ObjectLiteralProperty(instanceType, {
-                  property: new AST.PropertyLiteral(instanceType, { value: "instanceType" }),
+                  property: new AST.PropertyLiteral(instanceType, "instanceType"),
                   value: new AST.StringLiteral(instanceType, { value: `"${instanceType.value}"` })
                 })
               ]
@@ -327,7 +327,7 @@ export const classes = new SpellParser({
             getAST(_match) {
               return new AST.PropertyExpression(_match, {
                 object: type.AST,
-                property: new AST.PropertyLiteral(property, { value: groupName })
+                property: new AST.PropertyLiteral(property, groupName)
               })
             }
           })
@@ -343,11 +343,9 @@ export const classes = new SpellParser({
 
         // output statements
         const statements = []
+        const props = new AST.ObjectLiteral(match, { properties: [] })
 
-        const internalProp = new AST.PropertyLiteral(property, {
-          raw: property.raw,
-          value: `#${property.value}`
-        })
+        const internalProp = new AST.PropertyLiteral(property, `#${property.value}`)
         const internalExpression = new AST.PropertyExpression(match, {
           object: new AST.ThisLiteral(match),
           property: internalProp
@@ -371,7 +369,7 @@ export const classes = new SpellParser({
 
             const groupName = pluralize(upperFirst(property.value))
             // Set up enumeration variable on the class!
-            const enumerationPropName = new AST.PropertyLiteral(property, { value: groupName })
+            const enumerationPropName = new AST.PropertyLiteral(property, groupName)
             const enumerationExpression = new AST.PropertyExpression(match, {
               object: type.AST,
               property: enumerationPropName
@@ -634,7 +632,7 @@ export const classes = new SpellParser({
             compileASTExpression(_match, { lhs }) {
               return new AST.PropertyExpression(_match, {
                 object: lhs,
-                property: new AST.PropertyLiteral(_match, { value: match.property })
+                property: new AST.PropertyLiteral(_match, match.property)
               })
             }
           })
@@ -651,7 +649,7 @@ export const classes = new SpellParser({
             match.ruleComment,
             new AST.GetterDefinition(match, {
               thing: new AST.PrototypeExpression(type, { type: type.AST }),
-              property: new AST.PropertyLiteral(match, { value: match.property }),
+              property: new AST.PropertyLiteral(match, match.property),
               statements: new AST.ReturnStatement(match, {
                 value: expression.AST
               })
@@ -828,7 +826,7 @@ export const classes = new SpellParser({
           const { vars, property } = match.groups.bits
           // Return AST for the instance method
           const args = vars.map(varName => new AST.VariableExpression(match, { name: varName }))
-          const properties = vars.map(varName => new AST.PropertyLiteral(match, { value: varName }))
+          const properties = vars.map(varName => new AST.PropertyLiteral(match, varName))
           const expressions = args.map(
             (variable, index) =>
               new AST.InfixExpression(match, {

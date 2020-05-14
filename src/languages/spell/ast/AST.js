@@ -461,9 +461,10 @@ export class ThisLiteral extends Literal {
  *  - `raw` (optional) is the input property name
  */
 export class PropertyLiteral extends Literal {
-  constructor(...args) {
-    super(...args)
-    if (!this.value) this.value = this.match.value
+  constructor(match, props) {
+    if (typeof props === "string") props = { value: props }
+    super(match, props)
+    if (this.value === undefined) this.value = this.match.value
     this.assertType("value", "string")
     this.assertType("raw", "string", OPTIONAL)
   }
@@ -478,6 +479,7 @@ export class PropertyExpression extends Expression {
   constructor(...args) {
     super(...args)
     this.assertType("object", Expression)
+    if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
   }
   toJS() {
@@ -492,8 +494,9 @@ export class PropertyExpression extends Expression {
  *  - `value` (optional) is the property value.
  */
 export class ObjectLiteralProperty extends ASTNode {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
+    if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
     this.assertType("value", Expression, OPTIONAL)
   }
@@ -512,6 +515,11 @@ export class ObjectLiteral extends Expression {
   constructor(...args) {
     super(...args)
     this.assertArrayType("properties", ObjectLiteralProperty, OPTIONAL)
+  }
+  addProp(property, value) {
+    this.assert(value instanceof Expression, `AST.ObjectLiteral.addProp(${property}): value must be an Expression`)
+    if (!this.properties) this.properties = []
+    this.properties.push(new ObjectLiteralProperty(this.match, { property, value }))
   }
   // TODO: datatype???
   toJS() {
