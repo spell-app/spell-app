@@ -136,6 +136,11 @@ export const JSX = new SpellParser({
             ],
             // compound expression
             [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]],
+            // multi-line expression is fine
+            [
+              [`<div>{\n\t1 + \n2 + 3\t\n}</div>`],
+              ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]
+            ],
             //
             [
               `<div>{the rank of the card}</div>`,
