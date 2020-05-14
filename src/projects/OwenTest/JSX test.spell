@@ -1,14 +1,3 @@
-get a new thing
-set foo to "foo"
-
-print <a A=1><b c=1>foo</b></a>
-
-print 				<ui-button 
-					visible={ 
-					2034      +	
-					1024
-					} 
-					hidden={true true} 
-					on-press={    print 2034 + 1024   } 
-					-foo={1}
-				/>
+to do it
+	return
+		<div/> + 1

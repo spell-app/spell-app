@@ -1,5 +1,5 @@
 import { proto } from "~/util"
-import { Rule } from "~/parser"
+import { Rule, Token } from "~/parser"
 import { SpellParser } from "~/languages/spell"
 
 // In Spell, we generally match `statements` across the entire line.
@@ -38,6 +38,12 @@ SpellParser.Rule.Statement = class _statement extends Rule.Sequence {
     return statement
   }
 
+  // Return nested scope to use when parsing an inlineStatement or nestedBlock.
+  // Override in your instance.
+  getNestedScope(match) {
+    throw new TypeError("You must override getNestedScope()")
+  }
+
   // If a parsed `statement` match `.wantsInlineStatement`,
   // attempt to parse `unparsed` tokens from the end of the input line.
   // Returns `inlineStatement` match if successful.
@@ -54,22 +60,28 @@ SpellParser.Rule.Statement = class _statement extends Rule.Sequence {
   // If a parsed `statement` match `.wantsNestedBlock`,
   // attempt to parse `nestedBlock` from `block.contents`.
   // Returns `nestedBlock` match if successful.
+  // TODO: complain if we also have an inlineStatement???
+  // NOTE: this will throw if rule does not implement `getNestedScope`
   parseNestedBlock(statement, nestedBlock, parseAs = this.parseNestedBlockAs) {
-    const { nestedScope } = statement
-    if (!nestedScope) return undefined
-    // TODO: complain if we also have an inlineStatement???
-    const nestedRule = nestedScope.parser.getRuleOrDie(parseAs)
-    const parsedBlock = nestedRule.parse(nestedScope, [nestedBlock])
-    if (parsedBlock) {
+    let parsedBlock
+    if (parseAs === "block") {
+      const blockRule = statement.nestedScope.parser.getRuleOrDie("block")
+      parsedBlock = blockRule.parseBlock(statement.nestedScope, nestedBlock)
       // wrap output in parens
-      parsedBlock.enclose = true
+      if (parsedBlock) parsedBlock.enclose = true
+    } else {
+      // if parsing as anything else, we can only handle a single line
+      if (nestedBlock.contents.length > 1) return undefined
+      // get line to process, minus leading whitespace
+      // TODO: remove comment????
+      const line = nestedBlock.contents[0].filter(token => !(token instanceof Token.Indent))
+      parsedBlock = statement.scope.parse(line, parseAs)
+      // forget it if we didn't parse the entire line
+      if (parsedBlock?.length !== line.length) return undefined
+    }
+    if (parsedBlock) {
       statement.addMatch(parsedBlock, "nestedBlock")
     }
     return parsedBlock
-  }
-  // Return nested scope to use when parsing an inlineStatement or nestedBlock.
-  // Override in your instance.
-  getNestedScope(match) {
-    throw new TypeError("You must override getNestedScope()")
   }
 }

@@ -59,7 +59,7 @@ SpellParser.Rule.Block = class block extends Rule {
         if (comment) matched.push(comment)
         if (statement) matched.push(statement)
         // add anything unparsed at the end as a parse error
-        if (unparsed.length) matched.push(scope.parser.getRuleOrDie("parse_error").parse(scope, unparsed))
+        if (unparsed.length) matched.push(scope.parse(unparsed, "parse_error"))
 
         if (statement) {
           // TODO: not sure if this is needed anymore

@@ -427,7 +427,7 @@ export class Parser {
             const { input, output } = test
             let result
             try {
-              const match = scope.parser.parse(input, compileAs, scope)
+              const match = scope.parse(input, compileAs)
               if (match) result = match.compile()
             } catch (e) {
               result = e

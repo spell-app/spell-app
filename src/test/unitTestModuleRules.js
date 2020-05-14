@@ -115,7 +115,7 @@ export function unitTestModuleRules(parser, moduleName) {
     let match
     let result
     try {
-      match = scope.parser.parse(input, ruleName, scope)
+      match = scope.parse(input, ruleName)
       if (match) {
         try {
           result = match.compile()

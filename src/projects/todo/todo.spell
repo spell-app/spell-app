@@ -22,7 +22,7 @@ to delete-a-todo with a todo
 	remove the todo from all-todos
 
 to clear-completed-todos
-	remove todos from all-todos where it is complete
+	remove todos from all-todos where the todo is complete
 
 ## create `app` class
 a todos-app is an app
@@ -64,7 +64,7 @@ to draw a todos-app
 		</ui-container>
 
 ## create an app instance and draw it
-create a todos-app
-draw it
+get a new todos-app
+draw it // tell it to draw???
 
 

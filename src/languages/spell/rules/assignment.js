@@ -114,11 +114,18 @@ export const assignment = new SpellParser({
       syntax: "(return|exit with?) {expression}?",
       testRule: "(return|exit)",
       constructor: "Statement",
+      wantsNestedBlock: true,
+      parseNestedBlockAs: "expression",
+      getNestedScope(match) {
+        return match.scope
+      },
       getAST(match) {
-        return new AST.ReturnStatement(match, { value: match.groups.expression?.AST })
+        const result = match.groups.expression || match.groups.nestedBlock
+        return new AST.ReturnStatement(match, { value: result?.AST })
       },
       tests: [
         {
+          title: "Simple return with inline expression",
           compileAs: "statement",
           beforeEach(scope) {
             scope.variables.add("thing")
@@ -128,6 +135,27 @@ export const assignment = new SpellParser({
             ["return thing", "return thing"],
             ["exit", "return"],
             ["exit with false", "return false"]
+          ]
+        },
+        {
+          title: "Return with nested block expression",
+          compileAs: "block",
+          tests: [
+            // simple expression
+            ["return\n\t1 + 2", "return (1 + 2)"],
+            // inline JSX
+            ["return\n\t<div/>", 'return spellCore.element({ tag: "div" })'],
+            ["return\n\t1 + <div/>", 'return (1 + spellCore.element({ tag: "div" }))'],
+            // multi-line JSX
+            [
+              "return\n\t<div>\n\t\t<span/>\n\t</div>",
+              'return spellCore.element({ tag: "div", children: [\n\tspellCore.element({ tag: "span" })\n] })'
+            ],
+            // fails for more than one indented line
+            [
+              "return\n\t<div/>\n\t1",
+              ["return", '/* PARSE ERROR: UNABLE TO PARSE: "<div/>" */', '/* PARSE ERROR: UNABLE TO PARSE: "1" */']
+            ]
           ]
         }
       ]

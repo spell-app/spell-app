@@ -3,7 +3,7 @@
 //--------
 import _ from "lodash"
 
-import { Observable } from "~/util"
+import { Observable, memoize } from "~/util"
 import { spellCore } from "."
 
 //----------------------------
@@ -23,7 +23,12 @@ spellCore.addExport("Thing", Thing)
 //----------------------------
 // `Drawable`: something that can be used for rendering... ???
 //--------
-export class Drawable extends Thing {}
+export class Drawable extends Thing {
+  @memoize
+  get Component() {
+    return () => this.draw()
+  }
+}
 spellCore.addExport("Drawable", Drawable)
 
 //----------------------------
