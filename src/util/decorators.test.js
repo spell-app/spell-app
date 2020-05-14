@@ -1,11 +1,7 @@
 /** Test decorators */
 
+import { hasOwnProp } from "./class"
 import { proto, readonly, writeOnce, nonEnumerable, overrideable, memoize, memoizeForProp } from "./decorators"
-
-/** Safe "hasOwnProperty" you can apply to a random `thing`. */
-function hasOwnProp(thing, key) {
-  return Object.prototype.hasOwnProperty.call(thing, key)
-}
 
 describe("@proto", () => {
   const originalObject = {}

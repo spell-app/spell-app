@@ -3,6 +3,8 @@ import _set from "lodash/set"
 import _unset from "lodash/unset"
 import { store as createStore, view, batch, autoEffect, clearEffect } from "@risingstack/react-easy-state"
 
+import { hasOwnProp } from "./class"
+
 // re-export react-easy-state props for convenience
 export { createStore, view, batch, autoEffect, clearEffect }
 
@@ -10,11 +12,6 @@ export { createStore, view, batch, autoEffect, clearEffect }
 global.createStore = createStore
 global.autoEffect = autoEffect
 global.clearEffect = clearEffect
-
-function hasOwnProp(thing, key) {
-  if (!thing) return false
-  return Object.prototype.hasOwnProperty.call(thing, key)
-}
 
 /** Internal routine to set/clear a prop. */
 function _setOrUnsetProp(thing, key, value) {

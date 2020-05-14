@@ -6,10 +6,7 @@
  * See: https://github.com/loganfsmyth/babel-plugin-transform-decorators-legacy
  */
 
-/** Safe "hasOwnProperty" you can apply to a random `thing`. */
-function hasOwnProp(thing, property) {
-  return Object.prototype.hasOwnProperty.call(thing, property)
-}
+import { hasOwnProp } from "./class"
 
 /**
  * Define field or method on the prototype rather than during object construction.

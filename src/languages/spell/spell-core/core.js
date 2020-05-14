@@ -7,6 +7,7 @@ import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
 import React from "react"
 
+import { hasOwnProp } from "~/util"
 import { assert } from "."
 
 export const spellCore = {
@@ -19,6 +20,56 @@ export const spellCore = {
   define(thing, propertyName, descriptor) {
     if (descriptor.get || descriptor.set) descriptor.configurable = true
     return Object.defineProperty(thing, propertyName, descriptor)
+  },
+
+  /**
+   * Define a `property` on the `thing`.
+   * This is most useful for `Observable`s where `_props` is an observable proxy object.
+   * For everything else, we'll define `_props` as a plain object as necessary.
+   * - `thing` is object to define property on (likely a prototype)
+   * - `property` is property name
+   * - `value` is default value to use if not set
+   * - `type` is type name or Class. If provided, we'll only set property if value matches `type`
+   * - `enumeration` is array of legal values. If provided, we'll only set if value is in enumeration.
+   * - `enumerationProp` is property name -- if defined, we'll set `thing[enumerationProp]` and `thing.constructor[enumerationProp]`
+   */
+  defineProperty(thing, { property, value, type, enumeration, enumerationProp /* get, set, */ }) {
+    const descriptor = {
+      configurable: true,
+      get() {
+        return hasOwnProp(this._props, property) ? this._props[property] : value
+      },
+      set(newValue) {
+        if (!hasOwnProp(this, "_props")) this._props = {}
+        this._props[property] = newValue
+      }
+    }
+
+    if (type) {
+      descriptor.set = function(newValue) {
+        if (!spellCore.isOfType(newValue, type)) {
+          console.warn(`Expected ${property} to be type '${type}', got:`, newValue)
+        } else {
+          if (!hasOwnProp(this, "_props")) this._props = {}
+          this._props[property] = newValue
+        }
+      }
+    } else if (enumeration) {
+      // If the specified an `enumerationProp`, define the enumeration on the object and its constructor
+      if (enumerationProp) {
+        spellCore.define(thing, enumerationProp, { value: enumeration })
+        if (thing.constructor !== Function) spellCore.define(thing.constructor, enumerationProp, { value: enumeration })
+      }
+      descriptor.set = function(newValue) {
+        if (!enumeration.includes(newValue)) {
+          console.warn(`Expected ${property} to be one of '${enumeration}', got:`, newValue)
+        } else {
+          if (!hasOwnProp(this, "_props")) this._props = {}
+          this._props[property] = newValue
+        }
+      }
+    }
+    spellCore.define(thing, property, descriptor)
   },
 
   // Create an new, "empty" instance of `thing.constructor`.
