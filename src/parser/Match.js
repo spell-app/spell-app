@@ -32,6 +32,11 @@ export class Match extends Assertable {
     return this.argument || this.rule.argument || this.rule.name
   }
 
+  // raw input text
+  get inputText() {
+    return this.input.join("")
+  }
+
   // Syntactic sugar to easily get `groups` of the match for sequences, etc.
   // Only works for some rule types.
   @memoize
