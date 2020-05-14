@@ -148,7 +148,7 @@ export const classes = new SpellParser({
             new AST.ObjectLiteral(instanceType, {
               properties: [
                 new AST.ObjectLiteralProperty(instanceType, {
-                  property: new AST.PropertyLiteral(instanceType, "instanceType"),
+                  property: "instanceType",
                   value: new AST.StringLiteral(instanceType, { value: `"${instanceType.value}"` })
                 })
               ]
@@ -343,86 +343,30 @@ export const classes = new SpellParser({
 
         // output statements
         const statements = []
-        const props = new AST.ObjectLiteral(match, { properties: [] })
+        const props = new AST.ObjectLiteral(match)
+        props.addProp("property", `'${property.value}'`)
 
-        const internalProp = new AST.PropertyLiteral(property, `#${property.value}`)
-        const internalExpression = new AST.PropertyExpression(match, {
-          object: new AST.ThisLiteral(match),
-          property: internalProp
-        })
-        const prototype = new AST.PrototypeExpression(type, { type: type.AST })
-
-        // assignment for the setter
-        let assignment = new AST.AssignmentStatement(match, {
-          thing: internalExpression,
-          value: property.AST
-        })
         // If there is a specifier, add as a condition to the assignment
         const specifier = match.groups.specifier?.AST
         if (specifier) {
-          let condition
           // Enumerated values as strings/numbers/etc
           if (specifier instanceof AST.Enumeration) {
-            // TODO: datatype ???
             // Add comment that we created a rule previously
             statements.push(match.ruleComment)
-
-            const groupName = pluralize(upperFirst(property.value))
-            // Set up enumeration variable on the class!
-            const enumerationPropName = new AST.PropertyLiteral(property, groupName)
-            const enumerationExpression = new AST.PropertyExpression(match, {
-              object: type.AST,
-              property: enumerationPropName
-            })
-            const enumerationProp = new AST.PropertyExpression(match, {
-              object: type.AST,
-              property: enumerationPropName
-            })
-            statements.push(
-              new AST.AssignmentStatement(match, {
-                thing: enumerationProp,
-                value: specifier
-              })
-            )
-
-            // Add enumeration pointer to the prototype as well
-            statements.push(
-              new AST.ValueDefinition(match, {
-                thing: prototype,
-                property: enumerationPropName,
-                value: enumerationProp
-              })
-            )
-
-            // condition for assignment below
-            condition = new AST.CoreMethodInvocation(match, {
-              method: "includes",
-              arguments: [enumerationExpression, property.AST]
-            })
+            props.addProp("enumeration", specifier)
+            props.addProp("enumerationProp", `'${pluralize(upperFirst(property.value))}'`)
           }
-          // datatype
+          // type
           else {
-            const specifierConstant = new AST.ConstantExpression(specifier.match, {
-              name: specifier.name,
-              output: `'${specifier.name}'`
-            })
-            condition = new AST.CoreMethodInvocation(match, {
-              method: "isOfType",
-              arguments: [property.AST, specifierConstant]
-            })
+            props.addProp("type", `'${specifier.name}'`)
           }
-          assignment = new AST.IfStatement(match, { condition, statements: assignment })
         }
 
         // getter and setter
         statements.push(
-          new AST.GetSetDefinition(match, {
-            thing: prototype,
-            property: property.AST,
-            get: new AST.ReturnStatement(match, {
-              value: internalExpression
-            }),
-            set: assignment
+          new AST.CoreMethodInvocation(match, {
+            method: "defineProperty",
+            arguments: [new AST.PrototypeExpression(type, { type: type.AST }), props]
           })
         )
         return new AST.StatementGroup(match, { statements })
@@ -435,22 +379,12 @@ export const classes = new SpellParser({
               "cards have a direction as either up or down",
               [
                 "/* SPELL: added rule: '(Card|card) (Directions|directions)' */",
-                "Card.Directions = ['up', 'down']",
-                "spellCore.define(Card.prototype, 'Directions', { value: Card.Directions })",
-                "spellCore.define(Card.prototype, 'direction', {",
-                "\tget() { return this['#direction'] },",
-                "\tset(direction) { if (spellCore.includes(Card.Directions, direction)) { this['#direction'] = direction } }",
-                "})"
-              ].join("\n")
+                "spellCore.defineProperty(Card.prototype, { property: 'direction', enumeration: ['up', 'down'], enumerationProp: 'Directions' })"
+              ]
             ],
             [
               "a player has a name as text",
-              [
-                "spellCore.define(Player.prototype, 'name', {",
-                "\tget() { return this['#name'] },",
-                "\tset(name) { if (spellCore.isOfType(name, 'text')) { this['#name'] = name } }",
-                "})"
-              ].join("\n")
+              "spellCore.defineProperty(Player.prototype, { property: 'name', type: 'text' })"
             ]
           ]
         },

@@ -71,8 +71,8 @@ export class Expression extends ASTNode {}
  */
 export class QuotedExpression extends Expression {
   @proto @readonly datatype = "string"
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("expression", Expression)
   }
   toJS() {
@@ -93,8 +93,9 @@ export class Literal extends Expression {
 /** NumericLiteral type. */
 export class NumericLiteral extends Literal {
   @proto @readonly datatype = "number"
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    if (typeof props === "number") props = { value: props }
+    super(match, props)
     this.assertType("value", "number")
   }
 }
@@ -102,8 +103,9 @@ export class NumericLiteral extends Literal {
 /** StringLiteral type. */
 export class StringLiteral extends Literal {
   @proto @readonly datatype = "string"
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    if (typeof props === "string") props = { value: props }
+    super(match, props)
     this.assertType("value", "string")
   }
 }
@@ -111,8 +113,9 @@ export class StringLiteral extends Literal {
 /** BooleanLiteral type. */
 export class BooleanLiteral extends Literal {
   @proto @readonly datatype = "boolean"
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    if (typeof props === "string") props = { value: props }
+    super(match, props)
     this.assertType("value", "boolean")
   }
 }
@@ -120,8 +123,8 @@ export class BooleanLiteral extends Literal {
 /** RegExpLiteral type. */
 export class RegExpLiteral extends Literal {
   @proto @readonly datatype = RegExp
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("value", RegExp)
   }
 }
@@ -130,8 +133,8 @@ export class RegExpLiteral extends Literal {
 export class NullLiteral extends Literal {
   // TODO: ???
   @proto @readonly datatype = "null"
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("value", undefined)
   }
   toJS() {
@@ -142,8 +145,8 @@ export class NullLiteral extends Literal {
 /** UndefinedLiteral type. TODO: ???? */
 export class UndefinedLiteral extends Literal {
   @proto @readonly datatype = "undefined"
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("value", undefined)
   }
   toJS() {
@@ -157,8 +160,8 @@ export class UndefinedLiteral extends Literal {
  */
 export class KeywordLiteral extends Literal {
   @proto @readonly datatype = "string" // TODO???
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("value", "string")
     this.assertType("raw", "string", OPTIONAL)
   }
@@ -168,8 +171,8 @@ export class KeywordLiteral extends Literal {
  *  - `items` (optional) is an array of Expressions
  */
 export class ArrayLiteral extends Literal {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertArrayType("items", Expression, OPTIONAL)
   }
   toJS() {
@@ -183,8 +186,8 @@ export class ArrayLiteral extends Literal {
  *  - `values` is an strings or numbers
  */
 export class Enumeration extends Literal {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertArrayType("enumeration", Expression)
     this.assertArrayType("values", ["string", "number"])
   }
@@ -201,8 +204,8 @@ export class Comment extends ASTNode {}
  *  - `message` is text of the error
  */
 export class ParseError extends Comment {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("message", "string")
   }
   toJS() {
@@ -216,8 +219,8 @@ export class ParseError extends Comment {
  *  - `initialWhitespace` is whitespace between the commentSymbol and the `value`
  */
 export class LineComment extends Comment {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("value", "string")
     this.assertType("commentSymbol", "string", OPTIONAL)
     this.assertType("initialWhitespace", "string", OPTIONAL)
@@ -234,8 +237,8 @@ export class LineComment extends Comment {
  *  - `value` is the entire contents of the original comment, including initial space and newlines.
  */
 export class BlockComment extends Comment {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("value", "string")
   }
   toJS() {
@@ -255,8 +258,8 @@ export class ParserAnnotation extends BlockComment {
 /** Parenthesized expression.
  *  - `expression` is the contained AST Expression. */
 export class ParenthesizedExpression extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("expression", Expression)
   }
   get datatype() {
@@ -274,8 +277,8 @@ export class ParenthesizedExpression extends Expression {
  *  - `datatype` is ALWAYS boolean. */
 export class NotExpression extends Expression {
   @proto @readonly datatype = "boolean"
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("expression", Expression)
   }
   toJS() {
@@ -285,8 +288,8 @@ export class NotExpression extends Expression {
 
 /** InfixExpression:  <lhs> <operator> <rhs> */
 export class InfixExpression extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("lhs", Expression)
     this.assertType("operator", "string")
     this.assertType("rhs", Expression)
@@ -324,8 +327,8 @@ export class AbstractMethodInvocation extends Expression {
  * NOTE: this does not ensure that the named method is actually defined in scope!!!!
  */
 export class MethodInvocation extends AbstractMethodInvocation {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("method", "string")
     this.assertArrayType("arguments", Expression, OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
@@ -342,8 +345,8 @@ export class MethodInvocation extends AbstractMethodInvocation {
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
  */
 export class CoreMethodInvocation extends AbstractMethodInvocation {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("method", "string")
     this.assertArrayType("arguments", Expression, OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
@@ -361,8 +364,8 @@ export class CoreMethodInvocation extends AbstractMethodInvocation {
  *  - Try to set `datatype` as string or getter if you can.
  */
 export class ScopedMethodInvocation extends AbstractMethodInvocation {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("thing", Expression)
     this.assertType("method", "string")
     this.assertArrayType("arguments", Expression, OPTIONAL)
@@ -378,8 +381,8 @@ export class ScopedMethodInvocation extends AbstractMethodInvocation {
  *  - `method` is MethodInvocation to call.
  */
 export class AwaitMethodInvocation extends AbstractMethodInvocation {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("method", AbstractMethodInvocation)
     // TODO: Mark the parentScope as asynchronous
     this.parentScope.async = true
@@ -397,8 +400,8 @@ export class AwaitMethodInvocation extends AbstractMethodInvocation {
  */
 export class TypeExpression extends Expression {
   @proto @readonly datatype = "Type"
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("name", "string")
     this.assertType("raw", "string", OPTIONAL)
   }
@@ -420,8 +423,8 @@ export class TypeExpression extends Expression {
  *  - `plurality` (optional) is "singular", "plural" or `undefined`  // TODO: derive?
  */
 export class VariableExpression extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     if (!this.name) this.name = this.match.value
     this.assertType("name", "string")
     this.assertType("raw", "string", OPTIONAL)
@@ -439,8 +442,8 @@ export class VariableExpression extends Expression {
  */
 export class ConstantExpression extends Expression {
   @proto @readonly datatype = "string"
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("name", "string")
     this.assertType("output", "string")
   }
@@ -476,8 +479,8 @@ export class PropertyLiteral extends Literal {
  *  TODO: datatype???
  */
 export class PropertyExpression extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("object", Expression)
     if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
@@ -512,8 +515,8 @@ export class ObjectLiteralProperty extends ASTNode {
  */
 export class ObjectLiteral extends Expression {
   @proto @readonly datatype = "object"
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertArrayType("properties", ObjectLiteralProperty, OPTIONAL)
   }
   addProp(property, value) {
@@ -536,8 +539,8 @@ export class Statement extends ASTNode {}
  *  - `statements` is a list of Statements.
  */
 export class StatementGroup extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
   }
   toJS() {
@@ -551,8 +554,8 @@ export class StatementGroup extends Statement {
  *  - `statements` is a list of Statements.
  */
 export class StatementBlock extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
   }
   toJS() {
@@ -569,8 +572,8 @@ export class StatementBlock extends Statement {
  *  - `isNewVariable` (optional) if true and `thing` is an Expression, we'll declare the var.
  */
 export class AssignmentStatement extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("thing", Expression)
     this.assertType("value", Expression)
     this.assertType("isNewVariable", "boolean", OPTIONAL)
@@ -586,8 +589,8 @@ export class AssignmentStatement extends Statement {
  *  - `value` (optional) is an Expression to be returned.
  */
 export class ReturnStatement extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("value", Expression, OPTIONAL)
   }
   toJS() {
@@ -602,8 +605,8 @@ export class ReturnStatement extends Statement {
  * - `instanceType` (optional) is a TypeExpression for lists of a certain type.
  */
 export class ClassDeclaration extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("type", TypeExpression)
     this.assertType("superType", TypeExpression, OPTIONAL)
     this.assertType("instanceType", TypeExpression, OPTIONAL)
@@ -626,8 +629,8 @@ export class ClassDeclaration extends Statement {
  * - `props` (optional) is an ObjectLiteral
  */
 export class NewInstanceExpression extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("type", TypeExpression)
     this.assertType("props", ObjectLiteral, OPTIONAL)
   }
@@ -641,8 +644,8 @@ export class NewInstanceExpression extends Expression {
  * - `items` (optional) is a list of Expressions
  */
 export class ListExpression extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertArrayType("items", Expression, OPTIONAL)
   }
   toJS() {
@@ -661,8 +664,8 @@ export class ListExpression extends Expression {
  * TODO: create a scope for variables inside???
  */
 export class InlineMethodExpression extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.assertType("expression", Expression, OPTIONAL)
@@ -679,8 +682,8 @@ export class InlineMethodExpression extends Expression {
  *  * - `type` is a TypeExpression
  */
 export class PrototypeExpression extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("type", TypeExpression)
   }
   toJS() {
@@ -695,8 +698,8 @@ export class PrototypeExpression extends Expression {
  * - `value` is an Expression
  */
 export class ValueDefinition extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("thing", Expression)
     this.assertType("property", PropertyLiteral)
     this.assertType("value", Expression)
@@ -713,8 +716,8 @@ export class ValueDefinition extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class SetterDefinition extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("thing", Expression)
     this.assertType("property", PropertyLiteral)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
@@ -735,8 +738,8 @@ export class SetterDefinition extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class GetterDefinition extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("thing", Expression)
     this.assertType("property", PropertyLiteral)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
@@ -755,8 +758,8 @@ export class GetterDefinition extends Statement {
  * - `set` is a Statement or Expression for the setter
  */
 export class GetSetDefinition extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("thing", Expression)
     this.assertType("property", PropertyLiteral)
     this.assertType("get", [Statement, Expression], OPTIONAL)
@@ -781,8 +784,8 @@ export class GetSetDefinition extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class MethodDefinition extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("thing", Expression)
     this.assertType("method", "string")
     this.assertArrayType("args", VariableExpression, OPTIONAL)
@@ -806,8 +809,8 @@ export class MethodDefinition extends Statement {
  * TODO: export this???
  */
 export class FunctionDefinition extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("method", "string", OPTIONAL)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
@@ -825,8 +828,8 @@ export class FunctionDefinition extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class IfStatement extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("condition", Expression)
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
@@ -841,8 +844,8 @@ export class IfStatement extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class ElseIfStatement extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("condition", Expression)
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
@@ -856,8 +859,8 @@ export class ElseIfStatement extends Statement {
  * - `statements` is a Statement or Expression
  */
 export class ElseStatement extends Statement {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
   toJS() {
@@ -872,8 +875,8 @@ export class ElseStatement extends Statement {
  * - `falseValue` is an Expression
  */
 export class TernaryExpression extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("condition", Expression)
     this.assertType("trueValue", Expression)
     this.assertType("falseValue", Expression)
@@ -891,8 +894,8 @@ export class TernaryExpression extends Expression {
  */
 export class ConsoleMethodInvocation extends Statement {
   @proto method = "log"
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertArrayType("args", Expression, OPTIONAL)
     this.assertType("method", "string")
   }
@@ -908,8 +911,8 @@ export class ConsoleMethodInvocation extends Statement {
  * - `children`
  */
 export class JSXElement extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("tagName", "string")
     this.assertArrayType("attrs", JSXAttribute, OPTIONAL)
     this.assertArrayType("children", [JSXElement, JSXEndTag, JSXElement, JSXText, JSXExpression])
@@ -937,8 +940,8 @@ export class JSXElement extends Expression {
  * - `error`
  */
 export class JSXAttribute extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("name", "string")
     this.assertType("value", Expression, OPTIONAL)
     this.assertType("error", ParseError, OPTIONAL)
@@ -962,8 +965,8 @@ export class JSXAttribute extends Expression {
  * - `tagName`
  */
 export class JSXEndTag extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("tagName", "string")
   }
   toJS() {
@@ -976,8 +979,8 @@ export class JSXEndTag extends Expression {
  * - `value`
  */
 export class JSXText extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("value", "string", OPTIONAL)
     this.assertType("raw", "string", OPTIONAL)
   }
@@ -990,8 +993,8 @@ export class JSXText extends Expression {
  * - `value`
  */
 export class JSXExpression extends Expression {
-  constructor(...args) {
-    super(...args)
+  constructor(match, props) {
+    super(match, props)
     this.assertType("expression", Expression, OPTIONAL)
     this.assertType("error", ParseError, OPTIONAL)
   }
