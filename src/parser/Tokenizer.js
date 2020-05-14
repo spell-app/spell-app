@@ -333,6 +333,7 @@ export class Tokenizer {
   // Use `matchJSXElement()` to match children, end tag, etc.
   // Ignores leading whitespace.
   @proto JSX_TAG_START = /^<([A-Za-z][\w-\.]*)(\s*\/>|\s*>|\s+)/
+  @proto JSX_TAG_START_END = /^\s*(\/>|>)/
 
   // TODO: clean this stuff up, maybe with findFirstAtHead?
   matchJSXStartTag(text, start = 0, end) {
@@ -370,23 +371,16 @@ export class Tokenizer {
         jsxElement.attributes = attrs
         nextStart = attrs[attrs.length - 1].end
       }
-    }
 
-    // at this point we should get an `/>` or `>` (with no whitespace).
-    if (text[nextStart] === "/" && text[nextStart + 1] === ">") {
-      endBit = "/>"
-      nextStart += 2
-    } else if (text[nextStart] === ">") {
-      endBit = text[nextStart]
-      nextStart += 1
-    }
-
-    // Return immediately for unary tag
-    if (endBit === "/>") {
-      jsxElement.isUnaryTag = true
-    } else if (endBit !== ">") {
-      this.logger.warn("Missing expected end `>` for jsxElement", jsxElement, `\`${text.slice(start, nextStart)}\``)
-      jsxElement.error = "No end >"
+      // see if we got an end marker after attributes
+      const endBitMatch = this.matchExpressionAtHead(this.JSX_TAG_START_END, text, nextStart, end)
+      if (endBitMatch) {
+        if (endBitMatch[1] === "/>") jsxElement.isUnaryTag = true
+        nextStart += endBitMatch[0].length
+      } else {
+        this.logger.warn("Missing expected end `>` for jsxElement", jsxElement, `\`${text.slice(start, nextStart)}\``)
+        jsxElement.error = "No end >"
+      }
     }
     jsxElement.raw = text.slice(start, nextStart)
     return jsxElement
@@ -465,7 +459,7 @@ export class Tokenizer {
   //  ### JSX attributes
   //
 
-  // Match a single JSX element attribute as `<attr>={<value>}`
+  // Match a single JSX element attribute as `<attr>={<value>}` etc.
   // TODO: {...xxx}
   @proto JSX_ATTRIBUTE_START = /^\s*([\w-]+\b)\s*(=?)\s*/
 
@@ -473,14 +467,14 @@ export class Tokenizer {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
 
-    // attributes must start with a word character
-    if (!this.WORD_START.test(text[start])) return undefined
-
     // attempt to match an attribute name, including `=` if present.
     const result = this.matchExpressionAtHead(this.JSX_ATTRIBUTE_START, text, start, end)
     if (!result) return undefined
 
+    // attributes must start with a word character
     const [match, name, equals] = result
+    if (!this.WORD_START.test(name)) return undefined
+
     const attribute = new Token.JSXAttribute({ name, offset: start })
     let nextStart = start + match.length
 

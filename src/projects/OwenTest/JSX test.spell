@@ -2,15 +2,9 @@ get a new thing
 set foo to "foo"
 
 print <a A=1><b c=1>foo</b></a>
-print <div prop1="stringValue" prop2={1} prop3={unknown} prop4 prop5={1 + 2 + 3} prop6={it}>
-		<div foo="bar">{foo}</div>
-		raw text
-		{1 + 2 + foo}
-		<div class="card"></div>
-		<div sum={1 + 2 + 3}/>
-		<div rank={the rank of the card}>
-			<span>Foo <b>bold</b> Bar</span>
-		</div>
-		<div attr={<span key={1}>children</span>}/>
-		<div suit={the suit of it} on-click={set foo to "bar"}/>
-	</div>
+
+print 				<ui-button 
+					hidden={true} 
+					on-press={print 2034} 
+					-foo={1}
+				/>

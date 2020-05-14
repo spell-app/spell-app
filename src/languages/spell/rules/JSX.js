@@ -76,6 +76,10 @@ export const JSX = new SpellParser({
                 '\t"DDD"',
                 "] })"
               ]
+            ],
+            [
+              ["<ui-button ", "\thidden={1} ", "\ton-press={2}", "\t/>"],
+              'spellCore.element({ tag: "ui-button", props: { hidden: 1, "on-press": 2 } })'
             ]
           ]
         },
