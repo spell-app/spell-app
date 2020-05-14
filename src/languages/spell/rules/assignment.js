@@ -107,7 +107,8 @@ export const assignment = new SpellParser({
     //  ## Returns
     //
 
-    // Return a value
+    // Return a value.
+    // Accepts a single expression in a nested block.
     {
       name: "return_statement",
       alias: "statement",

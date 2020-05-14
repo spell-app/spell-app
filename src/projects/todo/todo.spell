@@ -2,26 +2,26 @@
 
 ## define `todo` class
 a todo is a drawable
-todos have a title as text
-todos have a property completed as yes or no
-a todo "is active" if its completed is no
-a todo "is complete" if its completed is yes
-to draw a todo
-	return  <ui-list-item class="todo" completed={its completed}>
-			<ui-checkbox value={its completed} appearance="round" />
-			<ui-input expand value={its title}/>
-			<ui-button onpress={delete-a-todo with it}><icon name="x"/></ui-button>
-		</ui-list-item>
 
 ## set up application state, used below
 set all-todos to a new list of todos
 set the filter to "all"
 
-## actions
-to delete-a-todo with a todo
-	remove the todo from all-todos
 
-to clear-completed-todos
+todos have a title as text
+todos have a property completed as yes or no
+a todo "is active" if its completed is no
+a todo "is complete" if its completed is yes
+to draw a todo
+	return  
+		<ui-list-item class="todo" completed={its completed}>
+			<ui-checkbox value={its completed} appearance="round" />
+			<ui-input expand value={its title}/>
+			<ui-button onpress={remove it from all-todos}><icon name="x"/></ui-button>
+		</ui-list-item>
+
+## actions
+to clear completed todos
 	remove todos from all-todos where the todo is complete
 
 ## create `app` class
@@ -43,7 +43,8 @@ to draw a todos-app
 			add it to all-todos
 			clear the text-field
 	
-	return <ui-container>
+	return 
+		<ui-container>
 			<ui-header huge>todos</ui-header>
 			<ui-text-field on-key={handle-new-todo-key-event}>
 			<ui-list class="todo-list">
@@ -58,7 +59,7 @@ to draw a todos-app
 				<ui-spring/>
 				<ui-button 
 					hidden={the number of items in completed-todos is 0} 
-					on-press={clear-completed-todos} 
+					on-press={clear completed todos} 
 				/>
 			</ui-toolbar>
 		</ui-container>

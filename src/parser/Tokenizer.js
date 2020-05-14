@@ -41,7 +41,7 @@ export class Tokenizer {
 
     const lastEnd = tokens[tokens.length - 1].end
     if (lastEnd !== end) {
-      this.logger.warn("tokenize(): didn't consume: `", text.slice(start, end), "`")
+      // this.logger.warn("tokenize(): didn't consume: `", text.slice(start, end), "`")
     }
 
     // Filter according to our whitespace policy
@@ -93,7 +93,7 @@ export class Tokenizer {
       results.push(token)
 
       if (token.end === nextStart) {
-        this.logger.warn("error: got token but didn't advance in stream")
+        // this.logger.warn("error: got token but didn't advance in stream")
         break
       }
       nextStart = token.end
@@ -378,7 +378,7 @@ export class Tokenizer {
         if (endBitMatch[1] === "/>") jsxElement.isUnaryTag = true
         nextStart += endBitMatch[0].length
       } else {
-        this.logger.warn("Missing expected end `>` for jsxElement", jsxElement, `\`${text.slice(start, nextStart)}\``)
+        // this.logger.warn("Missing expected end `>` for jsxElement", jsxElement, `\`${text.slice(start, nextStart)}\``)
         jsxElement.error = "No end >"
       }
     }
@@ -416,8 +416,8 @@ export class Tokenizer {
       }
     }
     // TODO: how to surface this error???
-    if (nesting !== 0)
-      this.logger.warn(`matchJSXChildren(${text.slice(start, nextStart + 10)}: didn't match end child!`)
+    // if (nesting !== 0)
+    //   this.logger.warn(`matchJSXChildren(${text.slice(start, nextStart + 10)}: didn't match end child!`)
 
     return children
   }
@@ -559,7 +559,7 @@ export class Tokenizer {
 
     // if no match, we've got some sort of error
     if (endIndex === undefined) {
-      this.logger.warn(`matchJSXText(${text.slice(start, start + 50)}): JSX seems to be unbalanced.`)
+      // this.logger.warn(`matchJSXText(${text.slice(start, start + 50)}): JSX seems to be unbalanced.`)
       return undefined
     }
 
