@@ -19,12 +19,12 @@ export const tests = new SpellParser({
         if (!value) {
           return new AST.CoreMethodInvocation(match, {
             method: "assert",
-            arguments: [expression.AST, expressionLiteral]
+            args: [expression.AST, expressionLiteral]
           })
         }
         return new AST.CoreMethodInvocation(match, {
           method: "assertEquals",
-          arguments: [
+          args: [
             expression.AST,
             value.AST,
             expressionLiteral,

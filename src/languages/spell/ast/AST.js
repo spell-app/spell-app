@@ -322,7 +322,7 @@ export class AbstractMethodInvocation extends Expression {
 
 /** MethodInvocation:  generic named method invocation.
  *  - `method` is method name.
- *  - `arguments` (optional) is a possibly empty list of Expressions.
+ *  - `args` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
  * NOTE: this does not ensure that the named method is actually defined in scope!!!!
  */
@@ -330,37 +330,37 @@ export class MethodInvocation extends AbstractMethodInvocation {
   constructor(match, props) {
     super(match, props)
     this.assertType("method", "string")
-    this.assertArrayType("arguments", Expression, OPTIONAL)
+    this.assertArrayType("args", Expression, OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
   toJS() {
-    const args = this.arguments?.map(arg => arg.toJS()).join(", ") || ""
+    const args = this.args?.map(arg => arg.toJS()).join(", ") || ""
     return `${this.method}(${args})`
   }
 }
 
 /** CoreMethodInvocation:  calls a `spellCore` `method`.  Used for output languge independence.
  *  - `method` is spellcore method name.
- *  - `arguments` (optional) is a possibly empty list of Expressions.
+ *  - `args` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
  */
 export class CoreMethodInvocation extends AbstractMethodInvocation {
   constructor(match, props) {
     super(match, props)
     this.assertType("method", "string")
-    this.assertArrayType("arguments", Expression, OPTIONAL)
+    this.assertArrayType("args", Expression, OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
   toJS() {
-    const args = this.arguments?.map(arg => arg.toJS()).join(", ") || ""
+    const args = this.args?.map(arg => arg.toJS()).join(", ") || ""
     return `spellCore.${this.method}(${args})`
   }
 }
 
-/** Call a `method` on some `thing` with `arguments`.
+/** Call a `method` on some `thing` with `args`.
  *  - `thing` is what we'll call the method on.
  *  - `method` is the method name.
- *  - `arguments` (optional) is a possibly empty list of Expressions.
+ *  - `args` (optional) is a possibly empty list of Expressions.
  *  - Try to set `datatype` as string or getter if you can.
  */
 export class ScopedMethodInvocation extends AbstractMethodInvocation {
@@ -368,11 +368,11 @@ export class ScopedMethodInvocation extends AbstractMethodInvocation {
     super(match, props)
     this.assertType("thing", Expression)
     this.assertType("method", "string")
-    this.assertArrayType("arguments", Expression, OPTIONAL)
+    this.assertArrayType("args", Expression, OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
   toJS() {
-    const args = this.arguments?.map(arg => arg.toJS()).join(", ") || ""
+    const args = this.args?.map(arg => arg.toJS()).join(", ") || ""
     return `${this.thing.toJS()}.${this.method}(${args})`
   }
 }

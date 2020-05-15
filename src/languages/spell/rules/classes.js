@@ -370,7 +370,7 @@ export const classes = new SpellParser({
         statements.push(
           new AST.CoreMethodInvocation(match, {
             method: "defineProperty",
-            arguments: [new AST.PrototypeExpression(type, { type: type.AST }), props]
+            args: [new AST.PrototypeExpression(type, { type: type.AST }), props]
           })
         )
         return new AST.StatementGroup(match, { statements })
@@ -748,7 +748,7 @@ export const classes = new SpellParser({
               return new AST.ScopedMethodInvocation(_match, {
                 thing: lhs,
                 method: property,
-                arguments: args
+                args
               })
             }
           })

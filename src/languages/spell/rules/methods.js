@@ -24,8 +24,8 @@ SpellParser.Rule.DynamicMethod = class dynamic_method extends SpellParser.Rule.S
     const { thisArg, callArgs } = match.groups
     const thing = thisArg?.AST
     const args = (Array.isArray(callArgs) ? callArgs : [callArgs]).map(arg => arg.AST)
-    if (thing) return new AST.ScopedMethodInvocation(match, { thing, method, arguments: args })
-    return new AST.MethodInvocation(match, { method, arguments: args })
+    if (thing) return new AST.ScopedMethodInvocation(match, { thing, method, args })
+    return new AST.MethodInvocation(match, { method, args })
   }
 }
 
@@ -348,7 +348,7 @@ export const methods = new SpellParser({
               return new AST.ScopedMethodInvocation(_match, {
                 thing: args.shift(),
                 method: bits.methodName,
-                arguments: args
+                args
               })
             }
           } else {
@@ -358,7 +358,7 @@ export const methods = new SpellParser({
                 .map(arg => arg.AST)
               return new AST.MethodInvocation(_match, {
                 method: bits.methodName,
-                arguments: args
+                args
               })
             }
           }

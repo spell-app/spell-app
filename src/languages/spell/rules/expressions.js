@@ -334,7 +334,7 @@ export const expressions = new SpellParser({
         // TODO: QuotedExpression feels wrong here...
         return new AST.CoreMethodInvocation(match, {
           method: "isOfType",
-          arguments: [lhs, new AST.QuotedExpression(match, { expression: rhs })]
+          args: [lhs, new AST.QuotedExpression(match, { expression: rhs })]
         })
       },
       tests: [
@@ -363,7 +363,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
           method: "matchesType",
-          arguments: [lhs, rhs]
+          args: [lhs, rhs]
         })
       },
       tests: [
@@ -392,7 +392,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
           method: "includes",
-          arguments: [rhs, lhs]
+          args: [rhs, lhs]
         })
       },
       tests: [
@@ -427,7 +427,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
           method: "includes",
-          arguments: [lhs, rhs]
+          args: [lhs, rhs]
         })
       },
       tests: [
@@ -455,7 +455,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
           method: "includes",
-          arguments: [lhs, rhs]
+          args: [lhs, rhs]
         })
       },
       tests: [
@@ -483,7 +483,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
           method: "isDefined",
-          arguments: [lhs]
+          args: [lhs]
         })
       },
       tests: [
@@ -512,7 +512,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
           method: "isEmpty",
-          arguments: [lhs]
+          args: [lhs]
         })
       },
       tests: [

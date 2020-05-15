@@ -43,7 +43,7 @@ export const UI = new SpellParser({
         if (okButton) args.push(okButton.AST)
         return new AST.CoreMethodInvocation(match, {
           method: "notify",
-          arguments: args
+          args
         })
       },
       tests: [
@@ -75,7 +75,7 @@ export const UI = new SpellParser({
         return new AST.AwaitMethodInvocation(match, {
           method: new AST.CoreMethodInvocation(match, {
             method: "alert",
-            arguments: args
+            args
           })
         })
       },
@@ -108,7 +108,7 @@ export const UI = new SpellParser({
         return new AST.AwaitMethodInvocation(match, {
           method: new AST.CoreMethodInvocation(match, {
             method: "warn",
-            arguments: args
+            args
           })
         })
       },
@@ -142,7 +142,7 @@ export const UI = new SpellParser({
         return new AST.AwaitMethodInvocation(match, {
           method: new AST.CoreMethodInvocation(match, {
             method: "confirm",
-            arguments: args
+            args
           })
         })
       },
@@ -177,7 +177,7 @@ export const UI = new SpellParser({
         return new AST.AwaitMethodInvocation(match, {
           method: new AST.CoreMethodInvocation(match, {
             method: "prompt",
-            arguments: args
+            args
           })
         })
       },
