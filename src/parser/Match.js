@@ -44,17 +44,24 @@ export class Match extends Assertable {
     return this.rule.gatherGroups?.(this)
   }
 
-  // Add an additional `match` to this match.
-  // e.g. You could use this to add a comment or error to an existing match.
-  // Makes sure length and tokens are updated, groups are recalculated, etc.
-  // `argument` is optional group name for the match.
+  /**
+   * Add an additional `match` to this match and our `groups`.
+   * `argument` is optional group name for the match.
+   *
+   * Use this to, e.g., add a comment or error to an existing `match`.
+   * Makes sure length and tokens are updated, groups are updated, etc.
+   */
   addMatch(match, argument) {
-    // clear memoized groups value if any
-    delete this.groups
+    // get groups BEFORE adding the match (we'll add at the end)
+    const { groups } = this
+
     if (argument) match.argument = argument
     this.matched.push(match)
     this.input.push(...match.input)
     this.length += match.length
+
+    // if OUR rule has `_addGroups` defined, add the match to existing groups
+    if (groups && this.rule._addGroups) this.rule._addGroups(groups, [match])
   }
 
   // Return AST nested scope for nested block statements.
