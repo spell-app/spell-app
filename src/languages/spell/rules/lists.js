@@ -1015,7 +1015,7 @@ export const lists = new SpellParser({
     // TODO: return values e.g. array.map() ???
     {
       name: "list_iteration",
-      alias: "statement",
+      alias: ["statement", "expression"],
       syntax: "for each? {item:singular_variable} ((and|,) {position:singular_variable})? in {list:expression} :?",
       testRule: "for",
       constructor: "Statement",
@@ -1036,7 +1036,7 @@ export const lists = new SpellParser({
           statements: (inlineStatement || nestedBlock)?.AST
         })
         return new AST.CoreMethodInvocation(match, {
-          method: "forEach",
+          method: "map", // TODO...
           arguments: [list.AST, method]
         })
       },
@@ -1049,28 +1049,28 @@ export const lists = new SpellParser({
             scope.variables.add("messages")
           },
           tests: [
-            ["for each card in deck:", "spellCore.forEach(deck, (card) => {})"],
-            ["for item, index in my-list:", "spellCore.forEach(my_list, (item, index) => {})"],
+            ["for each card in deck:", "spellCore.map(deck, (card) => {})"],
+            ["for item, index in my-list:", "spellCore.map(my_list, (item, index) => {})"],
             [
               "for each card in deck: set the direction of the card to 'down'",
-              "spellCore.forEach(deck, (card) => card.direction = 'down')"
+              "spellCore.map(deck, (card) => card.direction = 'down')"
             ],
             [
               "for message, index in messages: add message + index to messages",
-              "spellCore.forEach(messages, (message, index) => spellCore.append(messages, (message + index)))"
+              "spellCore.map(messages, (message, index) => spellCore.append(messages, (message + index)))"
             ],
 
             [
               "for each card in deck:\n\tset the direction of the card to 'down'",
-              "spellCore.forEach(deck, (card) => { card.direction = 'down' })"
+              "spellCore.map(deck, (card) => { card.direction = 'down' })"
             ],
             [
               "for each card in deck:\n\tset the direction of the card to 'down'\n\tset the value of the card to 10",
-              "spellCore.forEach(deck, (card) => {\ncard.direction = 'down'\ncard.value = 10\n})"
+              "spellCore.map(deck, (card) => {\ncard.direction = 'down'\ncard.value = 10\n})"
             ],
             [
               "for message and index in messages:\n\tif index is greater than 2 add message to messages",
-              "spellCore.forEach(messages, (message, index) => { if (index > 2) { spellCore.append(messages, message) } })"
+              "spellCore.map(messages, (message, index) => { if (index > 2) { spellCore.append(messages, message) } })"
             ]
           ]
         }
@@ -1103,7 +1103,7 @@ export const lists = new SpellParser({
           statements: inlineStatement?.AST || nestedBlock?.AST
         })
         return new AST.CoreMethodInvocation(match, {
-          method: "forEach",
+          method: "map",
           arguments: [getRange, method]
         })
       },
@@ -1111,14 +1111,14 @@ export const lists = new SpellParser({
         {
           compileAs: "block",
           tests: [
-            ["for each number from 1 to 10:", "spellCore.forEach(spellCore.getRange(1, 10), (number) => {})"],
+            ["for each number from 1 to 10:", "spellCore.map(spellCore.getRange(1, 10), (number) => {})"],
             [
               "for each number from 1 to 10: print the number",
-              "spellCore.forEach(spellCore.getRange(1, 10), (number) => console.log(number))"
+              "spellCore.map(spellCore.getRange(1, 10), (number) => console.log(number))"
             ],
             [
               "for each number from 1 to 10:\n\tget the number",
-              "spellCore.forEach(spellCore.getRange(1, 10), (number) => { let it = number })"
+              "spellCore.map(spellCore.getRange(1, 10), (number) => { let it = number })"
             ]
           ]
         }

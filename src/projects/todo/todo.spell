@@ -1,38 +1,51 @@
 ## Todo app proposal
 
-## define `todo` class
+## define `todo` and `todo-list` classes
 a todo is a drawable
-
-## set up application state, used below
-set all-todos to a new list of todos
-set the filter to "all"
-
+a todo-list is a list of todos
+all-todos is a new todo-list	// application state
 
 todos have a title as text
 todos have a property completed as yes or no
 a todo "is active" if its completed is no
 a todo "is complete" if its completed is yes
+
+to create a todo
+	set its list to all-todos
+	add it to all-todos
+
+it = a new todo
+set its title to "Foo"
+print all-todos
+
 to draw a todo
 	return  
-		<ui-list-item class="todo" completed={its completed}>
+		<ui-list-item key={1} class="todo" completed={its completed}>
 			<ui-checkbox value={its completed} appearance="round" />
 			<ui-input expand value={its title}/>
-			<ui-button onpress={remove it from all-todos}><icon name="x"/></ui-button>
+			<ui-button onpress={remove it from its list}><icon name="x"/></ui-button>
 		</ui-list-item>
 
 ## actions
+to create-a-todo with title
+	set todo to a new todo
+	set the title of the todo to the title
+	set the list of the todo to all-todos
+	add the todo to all-todos
+	
 to clear completed todos
 	remove todos from all-todos where the todo is complete
 
 ## create `app` class
 a todos-app is an app
+a todos-app has a filter as one of all, active or completed
 to draw a todos-app
 	set active-todos to todos in all-todos where the todo is active
 	set completed-todos to todos in all-todos where the todo is complete
 	
 	set visible-todos to all-todos
-	if the filter is "active" set visible-todos to active-todos
-	else if the filter is "completed" set visible-todos to completed-todos
+	if its filter is "active" set visible-todos to active-todos
+	else if its filter is "completed" set visible-todos to completed-todos
 	
 	let active-count = the length of active-todos
 	let active-message = active-count + (" item" if active-count is 1 otherwise " items") + " left"
@@ -46,16 +59,16 @@ to draw a todos-app
 	return 
 		<ui-container>
 			<ui-header huge>todos</ui-header>
-			<ui-text-field on-key={handle-new-todo-key-event}>
+			<ui-text-field on-key={handle-new-todo-key-event}/>
 			<ui-list class="todo-list">
 				{for each todo in visible-todos: draw the todo}
-			<ui-list class="todo-list">
+			</ui-list>
 			<ui-toolbar>
 				<ui-label>{active-message}</ui-label>
 				<ui-spring/>
-				<ui-button active={the filter is "all"} on-press={set the filter to "all"} >All</ui-button>
-				<ui-button active={the filter is "active"} on-press={set the filter to "active"}>Active</ui-button>
-				<ui-button active={the filter is "completed"} on-press={set the filter to "completed"}>Completed</ui-button>
+				<ui-button active={its filter is "all"} on-press={set its filter to "all"} >All</ui-button>
+				<ui-button active={its filter is "active"} on-press={set its filter to "active"}>Active</ui-button>
+				<ui-button active={its filter is "completed"} on-press={set its filter to "completed"}>Completed</ui-button>
 				<ui-spring/>
 				<ui-button 
 					hidden={the number of items in completed-todos is 0} 
@@ -65,7 +78,8 @@ to draw a todos-app
 		</ui-container>
 
 ## create an app instance and draw it
-get a new todos-app
-draw it // tell it to draw???
+set app to a new todos-app
+print (draw the app)
+
 
 

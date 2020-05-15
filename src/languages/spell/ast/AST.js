@@ -619,7 +619,7 @@ export class ClassDeclaration extends Statement {
     output.push(`spellCore.addExport("${type.name}", ${type.name})`)
     if (instanceType) {
       output.push(`spellCore.define(${type.name}.prototype, "instanceType", { value: ${instanceType.name} })`)
-      output.push(`${type.name}.instanceType = ${instanceType.name}`)
+      // output.push(`${type.name}.instanceType = ${instanceType.name}`)
     }
     return output.join("\n")
   }

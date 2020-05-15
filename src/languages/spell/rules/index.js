@@ -20,6 +20,7 @@ import { math } from "./math"
 import { properties } from "./properties"
 import { UI } from "./UI"
 import { classes } from "./classes"
+import { methods } from "./methods"
 import { tests } from "./tests"
 
 /**
@@ -44,6 +45,7 @@ spellParser.import(
   lists,
   UI,
   classes,
+  methods,
   tests,
   JSX
 )

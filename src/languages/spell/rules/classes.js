@@ -1,7 +1,7 @@
 import flatten from "lodash/flatten"
 
 import { instanceCase, lowerFirst, upperFirst, pluralize, singularize, typeCase } from "~/util"
-import { MethodScope } from "~/parser"
+import { MethodScope, Rule } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
 
 function getOrStubType(scope, typeName) {
@@ -89,7 +89,11 @@ export const classes = new SpellParser({
           tests: [
             [
               "a deck is a list of cards",
-              'export class Deck extends Array {}\nspellCore.addExport("Deck", Deck)\nspellCore.define(Deck.prototype, "instanceType", { value: Card })\nDeck.instanceType = Card'
+              [
+                "export class Deck extends Array {}",
+                'spellCore.addExport("Deck", Deck)',
+                'spellCore.define(Deck.prototype, "instanceType", { value: Card })'
+              ]
             ]
           ]
         }
@@ -829,235 +833,6 @@ export const classes = new SpellParser({
           tests: [
             ["print card is a club", "console.log(card.is_a_$suit('clubs'))"],
             ["print card is the 2 of hearts", "console.log(card.is_the_$rank_of_$suits(2, 'hearts'))"]
-          ]
-        }
-      ]
-    },
-
-    // TODO: arbitrary inline arguments with `(foo)` or `(foo: a number)
-    {
-      name: "to_do_something",
-      alias: "statement",
-      syntax: "to (keywords:{keyword}|{type})+ :?",
-      wantsInlineStatement: true,
-      wantsNestedBlock: true,
-      constructor: class to_do_something extends SpellParser.Rule.Statement {
-        // When gathering the match groups, figure out `bits` for making rules and AST nodes
-        gatherGroups(match) {
-          const groups = super.gatherGroups(match)
-          const bits = {
-            // calculated as we run through the keywords
-            method: [], // method signature bits
-            types: [], // names of types we found
-            syntax: [], // rule syntax bits,
-            args: [], // arguments, if any
-            // calculated at the end
-            instanceType: undefined, // type to add instance method to, if any
-            methodName: undefined, // final name of the method
-            ruleSyntax: undefined // final rule syntax
-          }
-          // Process keywords, pulling out types
-          const keywords = groups.keywords.matched
-          for (let i = 0, count = keywords.length; i < count; i++) {
-            let word = keywords[i].value
-            // assume it's a class if it's in TitleCase...
-            let isType = word === typeCase(word)
-            // if "a" or "an", the next word is a type
-            // TODO: "the" ???
-            if (word === "a" || word === "an") {
-              if (i + 1 === count) {
-                console.warn(`to_do_something.gatherGroups(): got danglng article '${word}'`)
-              } else {
-                isType = true
-                word = keywords[++i]?.value // skip article in output
-              }
-            }
-            if (isType) {
-              word = instanceCase(word)
-              bits.types.push(word)
-              bits.syntax.push("{callArgs:expression}")
-              // don't add the first type to the instanceMethod or args -- it'll be defined as a type method instead
-              if (bits.types.length > 1) {
-                bits.method.push(`$${word}`)
-                bits.args.push(word)
-              }
-            } else {
-              // normal keyword
-              bits.syntax.push(word)
-              bits.method.push(word)
-            }
-          }
-
-          // Did we get an instanceType?
-          // eslint-disable-next-line prefer-destructuring
-          bits.instanceType = bits.types[0]
-          bits.methodName = bits.method.join("_")
-          bits.ruleSyntax = bits.syntax.join(" ")
-
-          groups.bits = bits
-          return groups
-        }
-
-        getNestedScope(match) {
-          const { bits } = match.groups
-          const method = new MethodScope({
-            scope: match.scope,
-            name: bits.methodName,
-            args: bits.args
-          })
-
-          if (bits.instanceType) {
-            // Add implicit variable mapping instanceType to `this`
-            method.variables.add({ name: bits.instanceType, output: "this" })
-            // Add implicit variables `it`, `its` and `me` which maps to the instance type.
-            // Note that `it` may be overwritten in the method with `get XXX`
-            method.variables.add({ name: "it", output: "this" })
-            method.variables.add({ name: "its", output: "this" })
-            method.variables.add({ name: "me", output: "this" })
-          }
-          return method
-        }
-
-        mutateScope(match) {
-          // Create a rule to match the specified syntax
-          const { bits } = match.groups
-          const rule = {
-            name: bits.methodName,
-            alias: "statement",
-            syntax: bits.ruleSyntax,
-            constructor: "Statement"
-          }
-          if (bits.instanceType) {
-            rule.getAST = function(_match) {
-              const args = flatten([_match.groups.callArgs])
-                .filter(Boolean)
-                .map(arg => arg.AST)
-              return new AST.ScopedMethodInvocation(_match, {
-                thing: args.shift(),
-                method: bits.methodName,
-                arguments: args
-              })
-            }
-          } else {
-            rule.getAST = function(_match) {
-              const args = flatten([_match.groups.callArgs])
-                .filter(Boolean)
-                .map(arg => arg.AST)
-              return new AST.MethodInvocation(_match, {
-                method: bits.methodName,
-                arguments: args
-              })
-            }
-          }
-          match.scope.rules.add(rule)
-        }
-
-        getAST(match) {
-          const { inlineStatement, nestedBlock, bits } = match.groups
-          const args = bits.args.map(argName => new AST.VariableExpression(match, { name: argName }))
-
-          const statements = [
-            new AST.ParserAnnotation(match, {
-              value: `added rule: '${bits.ruleSyntax}'`
-            })
-          ]
-
-          if (bits.instanceType) {
-            statements.push(
-              new AST.MethodDefinition(match, {
-                thing: new AST.PrototypeExpression(match, {
-                  type: new AST.TypeExpression(match, { name: typeCase(bits.instanceType) })
-                }),
-                method: bits.methodName,
-                args,
-                statements: (inlineStatement || nestedBlock)?.AST
-              })
-            )
-          } else {
-            statements.push(
-              new AST.FunctionDefinition(match, {
-                method: bits.methodName,
-                args,
-                statements: (inlineStatement || nestedBlock)?.AST
-              })
-            )
-          }
-
-          return new AST.StatementGroup(match, { statements })
-        }
-      },
-      tests: [
-        {
-          compileAs: "block",
-          beforeEach(scope) {
-            scope.types.add("card")
-            scope.variables.add("deck")
-            scope.constants.add("up")
-            scope.constants.add("down")
-          },
-          tests: [
-            ["to start the game", "/* SPELL: added rule: 'start the game' */\nfunction start_the_game() {}"],
-            [
-              "to start the game: shuffle the deck\nstart the game",
-              "/* SPELL: added rule: 'start the game' */\nfunction start_the_game() { spellCore.randomize(deck) }\nstart_the_game()"
-            ],
-            [
-              [
-                "to move a card to a pile:",
-                "\tremove it from its pile",
-                "\tadd it to the pile",
-                "\tset its pile to the pile"
-              ].join("\n"),
-              [
-                "/* SPELL: added rule: 'move {callArgs:expression} to {callArgs:expression}' */",
-                "spellCore.define(Card.prototype, 'move_to_$pile', { value(pile) {",
-                "spellCore.remove(this.pile, this)",
-                "spellCore.append(pile, this)",
-                "this.pile = pile",
-                "} })"
-              ].join("\n")
-            ],
-            [
-              [
-                "to turn a card over:",
-                "\tif its direction is up",
-                "\t\tset its direction to down",
-                "\totherwise",
-                "\t\tset its direction to up"
-              ].join("\n"),
-              [
-                "/* SPELL: added rule: 'turn {callArgs:expression} over' */",
-                "spellCore.define(Card.prototype, 'turn_over', { value() {",
-                "if (this.direction == 'up') { this.direction = 'down' }",
-                "else { this.direction = 'up' }",
-                "} })"
-              ].join("\n")
-            ],
-            [
-              [
-                'a card "is face up" if its direction is up',
-                "to turn a card face up: set its direction to up",
-                "to turn a card face down: set its direction to down",
-                "to flip a card over:",
-                "\tif it is face up",
-                "\t\tturn it face down",
-                "\totherwise",
-                "\t\tturn it face up"
-              ].join("\n"),
-              [
-                "/* SPELL: added rule: 'is not? face up' */",
-                "spellCore.define(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })",
-                "/* SPELL: added rule: 'turn {callArgs:expression} face up' */",
-                "spellCore.define(Card.prototype, 'turn_face_up', { value() { this.direction = 'up' } })",
-                "/* SPELL: added rule: 'turn {callArgs:expression} face down' */",
-                "spellCore.define(Card.prototype, 'turn_face_down', { value() { this.direction = 'down' } })",
-                "/* SPELL: added rule: 'flip {callArgs:expression} over' */",
-                "spellCore.define(Card.prototype, 'flip_over', { value() {",
-                "if (this.is_face_up) { this.turn_face_down() }",
-                "else { this.turn_face_up() }",
-                "} })"
-              ].join("\n")
-            ]
           ]
         }
       ]
