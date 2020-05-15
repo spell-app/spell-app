@@ -919,6 +919,7 @@ export const classes = new SpellParser({
         }
 
         mutateScope(match) {
+          // Create a rule to match the specified syntax
           const { bits } = match.groups
           const rule = {
             name: bits.methodName,

@@ -30,7 +30,7 @@ to draw a todos-app
 	set active-todos to todos in all-todos where the todo is active
 	set completed-todos to todos in all-todos where the todo is complete
 	
-	set visible-todos to the todos
+	set visible-todos to all-todos
 	if the filter is "active" set visible-todos to active-todos
 	else if the filter is "completed" set visible-todos to completed-todos
 	

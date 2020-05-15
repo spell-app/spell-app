@@ -79,7 +79,7 @@ export const assignment = new SpellParser({
       mutateScope(match) {
         // make sure 'it' is declared LOCALLY
         match.isNewVarable = !match.scope.variables.get("it", "LOCAL")
-        if (!match.isNewVarable) match.scope.variables.add("it")
+        if (match.isNewVarable) match.scope.variables.add("it")
       },
       getAST(match) {
         const { value } = match.groups
@@ -91,6 +91,7 @@ export const assignment = new SpellParser({
       },
       tests: [
         {
+          title: "`it` is not already defined",
           compileAs: "block",
           beforeEach(scope) {
             scope.variables.add("thing")
@@ -98,6 +99,18 @@ export const assignment = new SpellParser({
           tests: [
             ["get thing", "let it = thing"],
             ["get the foo of the thing", "let it = thing.foo"]
+          ]
+        },
+        {
+          title: "`it` is already defined",
+          compileAs: "block",
+          beforeEach(scope) {
+            scope.variables.add("it")
+            scope.variables.add("thing")
+          },
+          tests: [
+            ["get thing", "it = thing"],
+            ["get the foo of the thing", "it = thing.foo"]
           ]
         }
       ]
