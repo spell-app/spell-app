@@ -532,7 +532,8 @@ export const lists = new SpellParser({
               "spellCore.filter('a word list', (word) => spellCore.startsWith(word, 'a'))"
             ],
             ["the items in my-list where the id of the item > 1", "spellCore.filter(my_list, (item) => (item.id > 1))"],
-            ["the items in my-list where the id of it > 1", "spellCore.filter(my_list, (item) => (item.id > 1))"]
+            ["the items in my-list where the id of it > 1", "spellCore.filter(my_list, (item) => (item.id > 1))"],
+            ["the items in my-list where its id > 1", "spellCore.filter(my_list, (item) => (item.id > 1))"]
           ]
         }
       ]
@@ -584,6 +585,7 @@ export const lists = new SpellParser({
             ["my-list has items where", "spellCore.any(my_list, (item) => {})"],
             ["my-list has items where the item is 1", "spellCore.any(my_list, (item) => (item == 1))"],
             ["my-list has items where it is 1", "spellCore.any(my_list, (item) => (item == 1))"],
+            ["my-list has items where its foo is 1", "spellCore.any(my_list, (item) => (item.foo == 1))"],
             ["my-list has no items where item is 1", "!spellCore.any(my_list, (item) => (item == 1))"],
             ["my-list has no items where it is 1", "!spellCore.any(my_list, (item) => (item == 1))"],
             ["my-list doesnt have items where item is 1", "!spellCore.any(my_list, (item) => (item == 1))"],
@@ -956,6 +958,10 @@ export const lists = new SpellParser({
             [
               "remove cards in deck where the suit of it is clubs",
               "spellCore.removeWhere(deck, (card) => (card.suit == 'clubs'))"
+            ],
+            [
+              "remove cards in deck where its suit is clubs",
+              "spellCore.removeWhere(deck, (card) => (card.suit == 'clubs'))"
             ]
           ]
         }
@@ -1086,6 +1092,10 @@ export const lists = new SpellParser({
               "for message, index in messages: add it + index to messages",
               "spellCore.map(messages, (message, index) => spellCore.append(messages, (message + index)))"
             ],
+            [
+              "for message, index in messages: set its list to messages",
+              "spellCore.map(messages, (message, index) => message.list = messages)"
+            ],
 
             [
               "for each card in deck:\n\tset the direction of the card to 'down'",
@@ -1154,6 +1164,11 @@ export const lists = new SpellParser({
             [
               "for each number from 1 to 10: print it",
               "spellCore.map(spellCore.getRange(1, 10), (number) => console.log(number))"
+            ],
+            [
+              // this is kinda non-sensical for numbers
+              "for each number from 1 to 10: print its foo",
+              "spellCore.map(spellCore.getRange(1, 10), (number) => console.log(number.foo))"
             ],
             [
               "for each number from 1 to 10:\n\tprint the number",

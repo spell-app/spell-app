@@ -71,8 +71,8 @@ export const properties = new SpellParser({
     },
 
     // "its" as:
-    //  - a local variable, if one is defined (e.g. in an instance method), or
-    //  - a synonym for "this"
+    //  - possessive tracking `it`:  `get it / put its foo in the bar`
+    //  - a synonym for "this" if `it` is not defined.
     {
       name: "its_property",
       alias: ["expression", "property_accessor", "single_expression"],
@@ -80,15 +80,37 @@ export const properties = new SpellParser({
       testRule: "its",
       getAST(match) {
         const property = match.groups.property.AST
-        const itsVar = match.scope.variables.get("its")
-        const object = itsVar
-          ? new AST.VariableExpression(match, { raw: "its", name: itsVar.output, variable: itsVar })
+        const itVar = match.scope.variables.get("it")
+        const object = itVar
+          ? new AST.VariableExpression(match, { raw: "it", name: itVar.output })
           : new AST.ThisLiteral(match)
         return new AST.PropertyExpression(match, { object, property })
       },
       tests: [
-        // TESTME: `its` inside an instance method
         {
+          title: "tracks `it` when it var defined as output `it`",
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.variables.add({ name: "it", output: "it" })
+          },
+          tests: [
+            ["its foo", "it.foo"],
+            ["the foo of its bar", "it.bar.foo"]
+          ]
+        },
+        {
+          title: "tracks `it` when it var defined as output `other`",
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.variables.add({ name: "it", output: "other" })
+          },
+          tests: [
+            ["its foo", "other.foo"],
+            ["the foo of its bar", "other.bar.foo"]
+          ]
+        },
+        {
+          title: "maps to `this` when `it` is not defined",
           compileAs: "expression",
           tests: [
             ["its foo", "this.foo"],

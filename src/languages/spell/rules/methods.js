@@ -376,6 +376,14 @@ export const methods = new SpellParser({
               ]
             },
             {
+              title: "multiple type args in signature - its",
+              input: "to add (a card) to (a pile): set its pile to the pile",
+              output: [
+                "/* SPELL: added rule: 'add {thisArg:expression} to {callArgs:expression}' */",
+                "spellCore.define(Card.prototype, 'add_to_$pile', { value(pile) { this.pile = pile } })"
+              ]
+            },
+            {
               title: "typed arg in signature -- arg name",
               input: "to show (thing as a card): print the thing",
               output: [
@@ -397,6 +405,14 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: 'show {thisArg:expression}' */",
                 "spellCore.define(Card.prototype, 'show', { value() { console.log(this) } })"
+              ]
+            },
+            {
+              title: "typed arg in signature -- its",
+              input: "to show (thing as a card): print its name",
+              output: [
+                "/* SPELL: added rule: 'show {thisArg:expression}' */",
+                "spellCore.define(Card.prototype, 'show', { value() { console.log(this.name) } })"
               ]
             },
             {
