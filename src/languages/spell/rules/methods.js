@@ -258,7 +258,7 @@ export const methods = new SpellParser({
       },
       tests: [
         {
-          title: "method signatures",
+          title: "method signatures & variables",
           compileAs: "block",
           beforeEach(scope) {
             scope.types.add("card")
@@ -421,6 +421,18 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: 'prompt {callArgs:expression} and {callArgs:expression}' */",
                 "function prompt_$message_and_$reply(message, reply) {}"
+              ]
+            },
+            {
+              title: "it gets remapped after `get`",
+              input: ["to show (thing as a card)", "\tprint it", "\tget its name", "\tprint it"],
+              output: [
+                "/* SPELL: added rule: 'show {thisArg:expression}' */",
+                "spellCore.define(Card.prototype, 'show', { value() {",
+                "console.log(this)",
+                "let it = this.name",
+                "console.log(it)",
+                "} })"
               ]
             }
           ]

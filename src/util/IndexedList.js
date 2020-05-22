@@ -50,4 +50,14 @@ export class IndexedList {
       return item
     })
   }
+  /** Replace an item with the same `key` if found. */
+  replace(...items) {
+    return items.map(item => {
+      if (this.transformer) item = this.transformer(item)
+      const key = this.getKeyFor(item)
+      this.#items = this.#items.filter(it => this.getKeyFor(it) !== key)
+      this.#items.push(item)
+      return item
+    })
+  }
 }

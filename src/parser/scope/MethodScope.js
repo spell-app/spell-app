@@ -24,8 +24,12 @@ export class MethodScope extends BlockScope {
     }
     // Define variables for thisVar and `it`.  Note that `its` automatically maps to `this`.
     const { thisVar, mapItTo } = this
-    if (thisVar && !this.variables.get(thisVar, "LOCAL")) this.variables.add({ name: thisVar, output: "this" })
-    if (mapItTo && !this.variables.get("it", "LOCAL")) this.variables.add({ name: "it", output: mapItTo })
+    if (thisVar && !this.variables.get(thisVar, "LOCAL")) {
+      this.variables.add({ name: thisVar, output: "this", isAlias: true })
+    }
+    if (mapItTo && !this.variables.get("it", "LOCAL")) {
+      this.variables.add({ name: "it", output: mapItTo, isAlias: true })
+    }
   }
 
   // Call without arguments: returns all argument Variables.

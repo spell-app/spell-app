@@ -27,12 +27,12 @@ to draw a todo
 		</ui-list-item>
 
 ## actions
-to create-a-todo with title
-	set todo to a new todo
-	set the title of the todo to the title
-	set the list of the todo to all-todos
-	add the todo to all-todos
-	
+// to create-a-todo with title
+// 	set todo to a new todo
+// 	set the title of the todo to the title
+// 	set the list of the todo to all-todos
+// 	add the todo to all-todos
+
 to clear completed todos
 	remove todos from all-todos where the todo is complete
 

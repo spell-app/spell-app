@@ -10,6 +10,9 @@ import assert from "assert"
  * - `scope` Pointer to the scope where this variable was defined.
  * - `datatype` Type of the variable.  Not consistently used (yet).
  * - `initializer` String used to initialize the variable.  Not consistently used.
+ * - `isAlias` If true, this is an "alias" for another variable,
+ *      meaning we will need to declare the variable if it is assigned to.
+ *      TODOC
  */
 export class ScopeVariable {
   constructor(props) {

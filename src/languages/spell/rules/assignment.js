@@ -17,30 +17,42 @@ export const assignment = new SpellParser({
         { syntax: "(thing:{variable}) is {value: expression}", testRule: "…is" }
       ],
       constructor: "Statement",
+      // HACK: we also mutate scope in `getAST()`...  :-(
       mutateScope(match) {
         const { thing } = match.groups
         // If `thing` is a variable...
-        if (thing.rule.name === "variable") {
+        // TODO: this is not necessarily the best check...
+        if (thing.rule.name === "variable" || thing.rule.name.endsWith("_variable")) {
           // get just the `identifier` bit to ignore leading "the "
           const varName = thing.groups.identifier.value
-          match.isNewVariable = !match.scope.variables.get(varName)
-          // define it a a new variable in `scope` if not already defined
-          if (match.isNewVariable) match.scope.variables.add(varName) // TODO: type???
+          const scopeVar = match.scope.variables.get(varName)
+          match.isNewVariable = !scopeVar || scopeVar.isAlias
+          // define a new variable in `scope` if not already defined
+          if (!scopeVar) match.scope.variables.add(varName)
+          // Remember the original scopeVar for hackery in getAST() below
+          match.originalVar = scopeVar
         }
       },
       getAST(match) {
         const { thing, value } = match.groups
-        return new AST.AssignmentStatement(match, {
-          thing: thing.AST,
+        const { originalVar } = match
+        const ast = new AST.AssignmentStatement(match, {
+          // if we got an originalVar which was an alias, get a clean VariableExpression for the original name
+          thing: originalVar?.isAlias ? new AST.VariableExpression(match, { name: originalVar.name }) : thing.AST,
           value: value.AST,
           isNewVariable: match.isNewVariable
         })
+        // HACK: if `originalVar` was an alias, redefine as a normal variable.
+        // We have to do this AFTER the above in case the alias variable was in the value expression.
+        if (originalVar?.isAlias) match.scope.variables.replace(originalVar.name)
+        return ast
       },
       tests: [
         {
           compileAs: "block",
           beforeEach(scope) {
             scope.variables.add("thing")
+            scope.variables.add({ name: "it", output: "this", isAlias: true })
             scope.types.add("Person")
           },
           tests: [
@@ -64,6 +76,16 @@ export const assignment = new SpellParser({
               title: "existing var: property set",
               input: "let the name of thing = 'bob'",
               output: "thing.name = 'bob'"
+            },
+            {
+              title: "alias var reassign works",
+              input: "set it to the name of it",
+              output: "let it = this.name"
+            },
+            {
+              title: "assignment to alias property doesn't redefine alias",
+              input: "set the title of it to the name of it",
+              output: "this.title = this.name"
             }
           ]
         }
@@ -76,18 +98,27 @@ export const assignment = new SpellParser({
       syntax: "get {value:expression}",
       testRule: "get",
       constructor: "Statement",
+      // NOTE: we also mutate scope in `getAST()`...  :-(
       mutateScope(match) {
-        // make sure 'it' is declared LOCALLY
-        match.isNewVarable = !match.scope.variables.get("it", "LOCAL")
-        if (match.isNewVarable) match.scope.variables.add("it")
+        // Did we have a LOCAL `it` variable?
+        const itVar = match.scope.variables.get("it", "LOCAL")
+        // Remember the original itVar for hackery in getAST() below
+        match.itVar = itVar
+        match.isNewVarable = !itVar || itVar.isAlias
+        // Define a new local "it" variable if we don't have one
+        if (!itVar) match.scope.variables.add("it")
       },
       getAST(match) {
         const { value } = match.groups
-        return new AST.AssignmentStatement(match, {
-          thing: new AST.VariableExpression(match, { raw: "it", name: "it" }),
+        const ast = new AST.AssignmentStatement(match, {
+          thing: new AST.VariableExpression(match, { name: "it" }),
           value: value.AST,
           isNewVariable: match.isNewVarable
         })
+        // HACK: if `match.itVar` was an alias, redefine as a normal variable
+        // We have to do this AFTER the above in case the alias `it` was in the value expression.
+        match.scope.variables.replace("it")
+        return ast
       },
       tests: [
         {
@@ -111,6 +142,24 @@ export const assignment = new SpellParser({
           tests: [
             ["get thing", "it = thing"],
             ["get the foo of the thing", "it = thing.foo"]
+          ]
+        },
+        {
+          title: "`it` gets redefined if defined as an alias",
+          compileAs: "block",
+          beforeEach(scope) {
+            scope.variables.add({ name: "it", output: "this", isAlias: true })
+            scope.variables.add("thing")
+          },
+          tests: [
+            {
+              input: ["print it", "get the thing", "print it"],
+              output: ["console.log(this)", "let it = thing", "console.log(it)"]
+            },
+            {
+              input: ["print it", "get its name", "print it"],
+              output: ["console.log(this)", "let it = this.name", "console.log(it)"]
+            }
           ]
         }
       ]
