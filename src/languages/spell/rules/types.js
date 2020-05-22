@@ -1,7 +1,7 @@
 //
 //  # Rules for constants, variables, type names, etc
 //
-import { typeCase, singularize, pluralize } from "~/util"
+import { typeCase, instanceCase, singularize, pluralize } from "~/util"
 import { Rule } from "~/parser"
 import { AST, SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"
@@ -43,6 +43,20 @@ SpellParser.Rule.Type = class type extends Rule.Pattern {
     choices: "boolean",
     Choice: "boolean",
     Choices: "boolean"
+  }
+
+  // Is `typeName` a simple type, (e.g. `number` etc).
+  static SIMPLE_TYPES = {
+    number: 1,
+    integer: 1,
+    text: 1,
+    character: 1,
+    boolean: 1,
+    choice: 1
+  }
+  static isSimpleType(typeName) {
+    const instanceName = instanceCase(singularize(typeName))
+    return !!SpellParser.Rule.Type.SIMPLE_TYPES[instanceName]
   }
 
   // Convert value to singular type case, e.g. `Thing` or `Bank_Account`

@@ -820,7 +820,7 @@ export class FunctionDefinition extends Statement {
   }
   toJS() {
     const { method = "", args = [], statements } = this
-    return `function ${method}(${args.map(arg => arg.toJS())}) ${statements?.toJS() || ""}`
+    return `function ${method}(${args.map(arg => arg.toJS()).join(", ")}) ${statements?.toJS() || ""}`
   }
 }
 
