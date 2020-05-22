@@ -6,8 +6,10 @@ import { BlockScope } from "./BlockScope"
  *  - `name` is the method name, if any.
  *  - `args` are argument `ScopeVariables`, which are fixed upon construction.
  *     Use `methodScope.args()` or `.args(<argName>)` for arg access.
- *  - `variables` (from BlockScope) are variables within the method, and include `args`.
+ *  - `variables` (from BlockScope) are variables within the method, and include `args` set on construction.
  *  - `methods` (from BlockScope) are methods defined within the method.
+ *  - `thisVar` (optional) variable name which will map to `this` if set on construction.
+ *  - `mapItTo` (optional) map `it` to output var name.
  */
 export class MethodScope extends BlockScope {
   constructor({ args, ...props }) {
@@ -20,6 +22,10 @@ export class MethodScope extends BlockScope {
         return this.variables.add(arg)
       })
     }
+    // Define variables for thisVar and `it`.  Note that `its` automatically maps to `this`.
+    const { thisVar, mapItTo } = this
+    if (thisVar && !this.variables.get(thisVar, "LOCAL")) this.variables.add({ name: thisVar, output: "this" })
+    if (mapItTo && !this.variables.get("it", "LOCAL")) this.variables.add({ name: "it", output: mapItTo })
   }
 
   // Call without arguments: returns all argument Variables.

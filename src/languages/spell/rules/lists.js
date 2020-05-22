@@ -498,9 +498,14 @@ export const lists = new SpellParser({
       constructor: "Statement",
       wantsInlineStatement: true,
       parseInlineStatementAs: "expression",
+      // TODO: wantsInlineBlock
       getNestedScope(match) {
         const arg = singularize(match.groups.arg.value)
-        return new MethodScope({ scope: match.scope, args: [arg], asExpression: true })
+        return new MethodScope({
+          scope: match.scope,
+          args: [arg],
+          mapItTo: arg
+        })
       },
       getAST(match) {
         const { arg, list, inlineStatement } = match.groups
@@ -526,12 +531,8 @@ export const lists = new SpellParser({
               "words in 'a word list' where word starts with 'a'",
               "spellCore.filter('a word list', (word) => spellCore.startsWith(word, 'a'))"
             ],
-            ["the items in my-list where the id of the item > 1", "spellCore.filter(my_list, (item) => (item.id > 1))"]
-            // TODO: wantsInlineBlock:true could possibly make this work?
-            // [
-            //   "words in 'a word list' where\n\tword starts with 'a'",
-            //   "spellCore.filter('a word list', (word) => { spellCore.startsWith(word, 'a') })"
-            // ],
+            ["the items in my-list where the id of the item > 1", "spellCore.filter(my_list, (item) => (item.id > 1))"],
+            ["the items in my-list where the id of it > 1", "spellCore.filter(my_list, (item) => (item.id > 1))"]
           ]
         }
       ]
@@ -550,7 +551,11 @@ export const lists = new SpellParser({
       parseInlineStatementAs: "expression",
       getNestedScope(match) {
         const arg = singularize(match.groups.arg.value)
-        return new MethodScope({ scope: match.scope, args: [arg], asExpression: true })
+        return new MethodScope({
+          scope: match.scope,
+          args: [arg],
+          mapItTo: arg
+        })
       },
       getAST(match) {
         const { list, operator, arg, inlineStatement } = match.groups
@@ -577,8 +582,10 @@ export const lists = new SpellParser({
           },
           tests: [
             ["my-list has items where", "spellCore.any(my_list, (item) => {})"],
-            ["my-list has items where item is 1", "spellCore.any(my_list, (item) => (item == 1))"],
+            ["my-list has items where the item is 1", "spellCore.any(my_list, (item) => (item == 1))"],
+            ["my-list has items where it is 1", "spellCore.any(my_list, (item) => (item == 1))"],
             ["my-list has no items where item is 1", "!spellCore.any(my_list, (item) => (item == 1))"],
+            ["my-list has no items where it is 1", "!spellCore.any(my_list, (item) => (item == 1))"],
             ["my-list doesnt have items where item is 1", "!spellCore.any(my_list, (item) => (item == 1))"],
             ["the foo of the bar does not have items where item is 1", "!spellCore.any(bar.foo, (item) => (item == 1))"]
           ]
@@ -911,7 +918,11 @@ export const lists = new SpellParser({
       parseInlineStatementAs: "expression",
       getNestedScope(match) {
         const arg = singularize(match.groups.arg.value)
-        return new MethodScope({ scope: match.scope, args: [arg], asExpression: true })
+        return new MethodScope({
+          scope: match.scope,
+          args: [arg],
+          mapItTo: arg
+        })
       },
       getAST(match) {
         const { arg, list, inlineStatement } = match.groups
@@ -940,6 +951,10 @@ export const lists = new SpellParser({
             ],
             [
               "remove cards in deck where the suit of the card is clubs",
+              "spellCore.removeWhere(deck, (card) => (card.suit == 'clubs'))"
+            ],
+            [
+              "remove cards in deck where the suit of it is clubs",
               "spellCore.removeWhere(deck, (card) => (card.suit == 'clubs'))"
             ]
           ]
@@ -1025,7 +1040,11 @@ export const lists = new SpellParser({
         const { item, position } = match.groups
         const args = [{ name: item.value }]
         if (position) args.push({ name: position.value, type: "number" })
-        return new MethodScope({ scope: match.scope, args })
+        return new MethodScope({
+          scope: match.scope,
+          args,
+          mapItTo: item.value
+        })
       },
       getAST(match) {
         const { list, item, position, inlineStatement, nestedBlock } = match.groups
@@ -1056,12 +1075,24 @@ export const lists = new SpellParser({
               "spellCore.map(deck, (card) => card.direction = 'down')"
             ],
             [
+              "for each card in deck: set the direction of it to 'down'",
+              "spellCore.map(deck, (card) => card.direction = 'down')"
+            ],
+            [
               "for message, index in messages: add message + index to messages",
+              "spellCore.map(messages, (message, index) => spellCore.append(messages, (message + index)))"
+            ],
+            [
+              "for message, index in messages: add it + index to messages",
               "spellCore.map(messages, (message, index) => spellCore.append(messages, (message + index)))"
             ],
 
             [
               "for each card in deck:\n\tset the direction of the card to 'down'",
+              "spellCore.map(deck, (card) => { card.direction = 'down' })"
+            ],
+            [
+              "for each card in deck:\n\tset the direction of it to 'down'",
               "spellCore.map(deck, (card) => { card.direction = 'down' })"
             ],
             [
@@ -1090,7 +1121,11 @@ export const lists = new SpellParser({
       wantsNestedBlock: true,
       getNestedScope(match) {
         const arg = singularize(match.groups.item.value)
-        return new MethodScope({ scope: match.scope, args: [arg], asExpression: true })
+        return new MethodScope({
+          scope: match.scope,
+          args: [arg],
+          mapItTo: arg
+        })
       },
       getAST(match) {
         const { item, start, end, inlineStatement, nestedBlock } = match.groups
@@ -1117,8 +1152,16 @@ export const lists = new SpellParser({
               "spellCore.map(spellCore.getRange(1, 10), (number) => console.log(number))"
             ],
             [
-              "for each number from 1 to 10:\n\tget the number",
-              "spellCore.map(spellCore.getRange(1, 10), (number) => { let it = number })"
+              "for each number from 1 to 10: print it",
+              "spellCore.map(spellCore.getRange(1, 10), (number) => console.log(number))"
+            ],
+            [
+              "for each number from 1 to 10:\n\tprint the number",
+              "spellCore.map(spellCore.getRange(1, 10), (number) => { console.log(number) })"
+            ],
+            [
+              "for each number from 1 to 10:\n\tprint it",
+              "spellCore.map(spellCore.getRange(1, 10), (number) => { console.log(number) })"
             ]
           ]
         }

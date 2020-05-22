@@ -1,7 +1,4 @@
-import flatten from "lodash/flatten"
-
-import { instanceCase, lowerFirst, upperFirst, pluralize, singularize, typeCase } from "~/util"
-import { MethodScope, Rule } from "~/parser"
+import { lowerFirst, upperFirst, pluralize, singularize } from "~/util"
 import { SpellParser, AST } from "~/languages/spell"
 
 function getOrStubType(scope, typeName) {

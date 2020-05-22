@@ -196,20 +196,11 @@ export const methods = new SpellParser({
           const method = new MethodScope({
             scope: match.scope,
             name: bits.method,
-            args: bits.argNames
+            args: bits.argNames,
+            thisVar: bits.instanceType,
+            mapItTo: bits.instanceType && "this"
           })
 
-          if (bits.instanceType) {
-            // Add implicit variable mapping instanceType to `this`
-            // TODO: make sure instanceType is not already present?
-            method.variables.add({ name: bits.instanceType, output: "this" })
-            // Add implicit variables `it`, `its` and `me` which maps to the instance type.
-            // Note that `it` may be overwritten in the method with `get XXX`
-            method.variables.add({ name: "it", output: "this" })
-            // TODO: is this necessary?  `its foo` ALWAYS maps to `this.foo`, correct?
-            method.variables.add({ name: "its", output: "this" })
-            // method.variables.add({ name: "me", output: "this" })
-          }
           // add other random variables specified in `bits`
           if (bits.vars.length) method.variables.add(...bits.vars)
 
@@ -288,12 +279,30 @@ export const methods = new SpellParser({
               output: ["/* SPELL: added rule: 'start the game' */", "function start_the_game() {}"]
             },
             {
+              title: "keyword-only signature - `it` is not defined",
+              input: "to start the game: print it",
+              output: [
+                "/* SPELL: added rule: 'start the game' */",
+                "function start_the_game() {}",
+                '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
+              ]
+            },
+            {
               title: "non-escaped type arg in signature",
               input: "to create a card",
               output: ["/* SPELL: added rule: 'create a card' */", "function create_a_card() {}"]
             },
             {
-              title: "simple arg in signature",
+              title: "non-escaped type arg in signature - `it` is not defined",
+              input: "to create a card: print it",
+              output: [
+                "/* SPELL: added rule: 'create a card' */",
+                "function create_a_card() {}",
+                '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
+              ]
+            },
+            {
+              title: "simple arg in signature - arg is defined",
               input: "to notify (message): print the message",
               output: [
                 "/* SPELL: added rule: 'notify {callArgs:expression}' */",
@@ -301,7 +310,16 @@ export const methods = new SpellParser({
               ]
             },
             {
-              title: "typed non-object arg in signature",
+              title: "simple arg in signature - it is not defined",
+              input: "to notify (message): print it",
+              output: [
+                "/* SPELL: added rule: 'notify {callArgs:expression}' */",
+                "function notify_$message(message) {}",
+                '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
+              ]
+            },
+            {
+              title: "typed simple arg in signature - arg is defined",
               input: "to notify (message as text): print the message",
               output: [
                 "/* SPELL: added rule: 'notify {callArgs:expression}' */",
@@ -309,7 +327,24 @@ export const methods = new SpellParser({
               ]
             },
             {
-              title: "type arg in signature",
+              title: "typed simple arg in signature - `it` is not defined",
+              input: "to notify (message as text): print it",
+              output: [
+                "/* SPELL: added rule: 'notify {callArgs:expression}' */",
+                "function notify_$message(message) {}",
+                '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
+              ]
+            },
+            {
+              title: "type arg in signature - thisVar",
+              input: "to create (a card): print the card",
+              output: [
+                "/* SPELL: added rule: 'create {thisArg:expression}' */",
+                "spellCore.define(Card.prototype, 'create', { value() { console.log(this) } })"
+              ]
+            },
+            {
+              title: "type arg in signature - it",
               input: "to create (a card): print it",
               output: [
                 "/* SPELL: added rule: 'create {thisArg:expression}' */",
@@ -317,16 +352,40 @@ export const methods = new SpellParser({
               ]
             },
             {
-              title: "multiple type args in signature",
-              input: "to add (a card) to (a pile)",
+              title: "type arg in signature - its",
+              input: "to create (a card): set its number to 1",
+              output: [
+                "/* SPELL: added rule: 'create {thisArg:expression}' */",
+                "spellCore.define(Card.prototype, 'create', { value() { this.number = 1 } })"
+              ]
+            },
+            {
+              title: "multiple type args in signature - thisVar",
+              input: "to add (a card) to (a pile): set the pile of the card to the pile",
               output: [
                 "/* SPELL: added rule: 'add {thisArg:expression} to {callArgs:expression}' */",
-                "spellCore.define(Card.prototype, 'add_to_$pile', { value(pile) {} })"
+                "spellCore.define(Card.prototype, 'add_to_$pile', { value(pile) { this.pile = pile } })"
+              ]
+            },
+            {
+              title: "multiple type args in signature - it",
+              input: "to add (a card) to (a pile): set the pile of it to the pile",
+              output: [
+                "/* SPELL: added rule: 'add {thisArg:expression} to {callArgs:expression}' */",
+                "spellCore.define(Card.prototype, 'add_to_$pile', { value(pile) { this.pile = pile } })"
               ]
             },
             {
               title: "typed arg in signature -- arg name",
               input: "to show (thing as a card): print the thing",
+              output: [
+                "/* SPELL: added rule: 'show {thisArg:expression}' */",
+                "spellCore.define(Card.prototype, 'show', { value() { console.log(this) } })"
+              ]
+            },
+            {
+              title: "typed arg in signature -- thisVar",
+              input: "to show (thing as a card): print the card",
               output: [
                 "/* SPELL: added rule: 'show {thisArg:expression}' */",
                 "spellCore.define(Card.prototype, 'show', { value() { console.log(this) } })"
