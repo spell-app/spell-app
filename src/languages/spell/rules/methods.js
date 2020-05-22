@@ -416,15 +416,7 @@ export const methods = new SpellParser({
               ]
             },
             {
-              title: "mixed vars in signature",
-              input: "to prompt (message as text) and (reply)",
-              output: [
-                "/* SPELL: added rule: 'prompt {callArgs:expression} and {callArgs:expression}' */",
-                "function prompt_$message_and_$reply(message, reply) {}"
-              ]
-            },
-            {
-              title: "it gets remapped after `get`",
+              title: "typed var in signature: implicit `it` gets remapped after `get`",
               input: ["to show (thing as a card)", "\tprint it", "\tget its name", "\tprint it"],
               output: [
                 "/* SPELL: added rule: 'show {thisArg:expression}' */",
@@ -433,6 +425,69 @@ export const methods = new SpellParser({
                 "let it = this.name",
                 "console.log(it)",
                 "} })"
+              ]
+            },
+            {
+              title: "mixed vars in signature",
+              input: "to prompt (message as text) and (reply)",
+              output: [
+                "/* SPELL: added rule: 'prompt {callArgs:expression} and {callArgs:expression}' */",
+                "function prompt_$message_and_$reply(message, reply) {}"
+              ]
+            }
+          ]
+        },
+        {
+          title: "calling defined methods",
+          compileAs: "block",
+          beforeEach(scope) {
+            scope.types.add("card")
+            scope.types.add("pile")
+          },
+          tests: [
+            {
+              title: "top level keyword-only method",
+              input: ["to start the game", "\tprint 1", "start the game"],
+              output: [
+                "/* SPELL: added rule: 'start the game' */",
+                "function start_the_game() { console.log(1) }",
+                "start_the_game()"
+              ]
+            },
+            {
+              title: "top level simple argument method",
+              input: ["to notify (message): print the message", "notify 1"],
+              output: [
+                "/* SPELL: added rule: 'notify {callArgs:expression}' */",
+                "function notify_$message(message) { console.log(message) }",
+                "notify_$message(1)"
+              ]
+            },
+            {
+              title: "top level typed simple argument method",
+              input: ["to notify (message as text): print the message", "notify 1"],
+              output: [
+                "/* SPELL: added rule: 'notify {callArgs:expression}' */",
+                "function notify_$message(message) { console.log(message) }",
+                "notify_$message(1)"
+              ]
+            },
+            {
+              title: "type arg in signature",
+              input: ["to show (a card): print the card", "show a new card"],
+              output: [
+                "/* SPELL: added rule: 'show {thisArg:expression}' */",
+                "spellCore.define(Card.prototype, 'show', { value() { console.log(this) } })",
+                "new Card().show()"
+              ]
+            },
+            {
+              title: "multiple type args in signature",
+              input: ["to play (a card) on (a pile): set its pile to the pile", "play a new card on a new pile"],
+              output: [
+                "/* SPELL: added rule: 'play {thisArg:expression} on {callArgs:expression}' */",
+                "spellCore.define(Card.prototype, 'play_on_$pile', { value(pile) { this.pile = pile } })",
+                "new Card().play_on_$pile(new Pile())"
               ]
             }
           ]
