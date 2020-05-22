@@ -79,6 +79,11 @@ SpellParser.Rule.Block = class block extends Rule {
             // eat the nested block token so we don't parse it again
             if (matchedNestedBlock) i++
           }
+
+          // OK, we've procesed the statement and its nested block.
+          // Lock in it's (memoized) AST in case the rule's `getAST()` method ALSO mutates scope.
+          // eslint-disable-next-line no-unused-vars
+          const ast = statement.AST
         }
       }
     }
