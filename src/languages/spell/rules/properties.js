@@ -120,19 +120,47 @@ export const properties = new SpellParser({
       ]
     },
 
-    // Properties clause: creates an object with one or more property values.
-    //  `foo = 1, bar = 2`
-    // TODO: don't quote if we don't have to? (ASCII and blacklist only)
-    // TODO: multiple lines if > 2 props?
+    // Single object-literal property declaration
+    {
+      name: "object_literal_property",
+      syntax: "({property} (=|is|of) {value:expression})",
+      getAST(match) {
+        const { property, value } = match.groups
+        return new AST.ObjectLiteralProperty(match, {
+          property: property.AST,
+          value: value.AST
+        })
+      },
+      tests: [
+        {
+          beforeEach(scope) {
+            scope.variables.add("bar")
+          },
+          tests: [
+            [``, undefined],
+            [`a = 1`, `a: 1`],
+            [`b = yes`, `b: true`],
+            [`c = "quoted"`, `c: "quoted"`],
+            [`b = the foo of the bar`, `b: bar.foo`],
+
+            [`length is 1`, `length: 1`],
+            [`rank of "queen"`, `rank: "queen"`],
+
+            // TODO: `{property}` converts to `foo_bar` before we get here
+            [`foo-bar = 1`, `foo_bar: 1`]
+          ]
+        }
+      ]
+    },
+
+    // Object literal: creates an object with one or more property values.
+    //  `foo = 1 and bar is 2`
     {
       name: "object_literal_properties",
-      syntax: "[({property} (=|is|of|is? set to) {value:expression})(,|and)]",
+      syntax: "[{object_literal_property}(,|and)]",
       getAST(match) {
         return new AST.ObjectLiteral(match, {
-          properties: match.items.map(propMatch => {
-            const { property, value } = propMatch.groups
-            return new AST.ObjectLiteralProperty(propMatch, { property: property.AST, value: value.AST })
-          })
+          properties: match.items.map(propMatch => propMatch.AST)
         })
       },
       tests: [
