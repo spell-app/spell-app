@@ -123,7 +123,7 @@ export const properties = new SpellParser({
     // Single object-literal property declaration
     {
       name: "object_literal_property",
-      syntax: "({property} (=|is|of) {value:expression})",
+      syntax: "{property} (=|is|of) {value:expression}",
       getAST(match) {
         const { property, value } = match.groups
         return new AST.ObjectLiteralProperty(match, {

@@ -12,7 +12,7 @@ import { Assertable, memoize } from "~/util"
 // - `match.matched`  - [Match or Token] (required)     Array of Matches or Tokens matched.
 //
 export class Match extends Assertable {
-  static DEBUG_MATCH_INITIALIZATION = true
+  static DEBUG_MATCH_INITIALIZATION = false
   constructor(props) {
     super()
     Object.assign(this, props)

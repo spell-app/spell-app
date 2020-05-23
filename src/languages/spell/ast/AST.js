@@ -417,6 +417,7 @@ export class TypeExpression extends Expression {
 
 /** VariableExpression -- pointer to a Variable object.
  *  - `name` is the normalized type name: dashes and spaces converted to underscores.
+ *  - `default` (optional) AST for default value. See `DestructuredAssignment`
  *  CURRENTLY UNUSED
  *  - `raw` (optional) is the original input string, unnormalized.
  *  - `variable` (optional) is pointer to scope Variable, if there is one.
@@ -427,10 +428,11 @@ export class VariableExpression extends Expression {
     super(match, props)
     if (!this.name) this.name = this.match.value
     this.assertType("name", "string")
+    this.assertType("default", Expression, OPTIONAL)
     this.assertType("raw", "string", OPTIONAL)
   }
-  // TODO: datatype according to Variable ?
   toJS() {
+    if (this.default) return `${this.name} = ${this.default.toJS()}`
     return this.name
   }
 }
@@ -583,6 +585,25 @@ export class AssignmentStatement extends Statement {
     const { thing, value, isNewVariable } = this
     const declarator = isNewVariable ? "let " : ""
     return `${declarator}${thing.toJS()} = ${value.toJS()}`
+  }
+}
+
+/** DestructuredAssignment -- pull multiple variables with defaults out of a `thing`
+ *  - `thing` is an Expression.
+ *  - `variables` are VariableExpressions, possibly with defaults
+ *  - `isNewVariable` (optional) if true and `thing` is an Expression, we'll declare the var.
+ */
+export class DestructuredAssignment extends Statement {
+  constructor(match, props) {
+    super(match, props)
+    this.assertType("thing", Expression)
+    this.assertArrayType("variables", VariableExpression)
+    this.assertType("isNewVariable", "boolean", OPTIONAL)
+  }
+  toJS() {
+    const { thing, variables, isNewVariable } = this
+    const declarator = isNewVariable ? "let " : ""
+    return `${declarator}{ ${variables.map(variable => variable.toJS()).join(", ")} } = ${thing.toJS()}`
   }
 }
 

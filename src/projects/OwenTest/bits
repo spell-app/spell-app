@@ -1,2 +1,29 @@
-to start the game
-abcd
+a card is a thing
+a pile is a thing
+
+to say (message = "no")
+	print the message
+say "No"
+
+to proclaim (reply as text)
+	print the reply
+proclaim "yo"
+
+to notify with message
+	print the message + "!!!"
+notify with message = "YO"
+
+to shout with message as text
+	print the message + "!!!"
+shout with message = "YO"
+
+to confirm (message as text) with reply = "unsure"
+	print the message
+	print the reply
+confirm  "Really"
+confirm "Really" with reply = "No"
+
+to play (a card) on (a pile)
+	set the pile of the card to the pile
+play a new card with foo = "bar" on a new pile
+
