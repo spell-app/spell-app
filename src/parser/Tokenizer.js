@@ -696,7 +696,7 @@ export class Tokenizer {
   // ### Utility
   //
 
-  // Given a set of tokens, slice whitespace (indent, newlinw or normal whitespace) from the front.
+  // Given a set of tokens, slice whitespace (indent, newline or normal whitespace) from the front.
   removeLeadingWhitespace(tokens, start = 0) {
     while (tokens[start] instanceof Token.Whitespace) start++
     if (start === 0) return tokens
