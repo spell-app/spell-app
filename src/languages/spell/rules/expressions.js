@@ -2,7 +2,7 @@
 //  # Rules for expressions.
 //
 
-import { peek, proto } from "~/util"
+import { proto } from "~/util"
 import { Match, Rule } from "~/parser"
 import { AST, SpellParser } from "~/languages/spell"
 
@@ -174,7 +174,7 @@ export const expressions = new SpellParser({
             const { operator, expression } = rhs.groups
 
             // While top operator on stack is higher precedence than this one
-            while (peek(opStack)?.match.rule.precedence >= rhs.rule.precedence) {
+            while (opStack.last?.match.rule.precedence >= rhs.rule.precedence) {
               // pop the top operator and compile it with top 2 things on the output stack
               const topOp = opStack.pop()
               const args = {

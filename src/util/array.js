@@ -1,7 +1,7 @@
-/* eslint-disable import/prefer-default-export */
-/* eslint-disable import/prefer-default-export */
-
-// Return the last thing in an array.
-export function peek(array) {
-  return array[array.length - 1]
-}
+/** Lord-help me, I can't help myself! */
+// eslint-disable-next-line no-extend-native
+Object.defineProperty(Array.prototype, "last", {
+  get() {
+    return this[this.length - 1]
+  }
+})
