@@ -34,10 +34,7 @@ export function instanceCase(text) {
   if (existing !== undefined) {
     return existing
   }
-  INSTANCE_CASE[text] = singularize(`${text}`)
-    .split(/[-_]/)
-    .map(bit => lowerFirst(bit))
-    .join("_")
+  INSTANCE_CASE[text] = singularize(`${text}`).toLowerCase()
   return INSTANCE_CASE[text]
 }
 

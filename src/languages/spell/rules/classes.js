@@ -115,9 +115,6 @@ export const classes = new SpellParser({
         {
           title: "creates normal types",
           compileAs: "expression",
-          beforeEach(scope) {
-            scope.types.add("Thing")
-          },
           tests: [
             [`a new Thing`, `new Thing()`],
             [`a new Thing with a = 1, b = yes`, `new Thing({ a: 1, b: true })`]
@@ -266,16 +263,33 @@ export const classes = new SpellParser({
         }
       ]
     },
+    // {
+    //   name: "type_specifier_instance",
+    //   alias: "type_specifier",
+    //   syntax: "as (a|an) new {datatype:singular_type}", // todo `with...`
+    //   getAST(match) {
+    //     return new AST.NewInstanceExpression(match, { type: match.groups.datatype.AST })
+    //   },
+    //   tests: [
+    //     {
+    //       tests: [
+    //         ["as a number", "number"],
+    //         ["as an automobile", "Automobile"]
+    //       ]
+    //     }
+    //   ]
+    // },
+
     {
       name: "type_specifier_yes_or_no",
       alias: "type_specifier",
       syntax: "as either? (yes or no|true or false)",
       getAST(match) {
-        return new AST.TypeExpression(match, { raw: "yes or no", name: "boolean" })
+        return new AST.TypeExpression(match, { raw: "yes or no", name: "choice" })
       },
       tests: [
         {
-          tests: [["as yes or no", "boolean"]]
+          tests: [["as yes or no", "choice"]]
         }
       ]
     },
@@ -386,6 +400,14 @@ export const classes = new SpellParser({
             [
               "a player has a name as text",
               "spellCore.defineProperty(Player.prototype, { property: 'name', type: 'text' })"
+            ],
+            [
+              "todos have a title as text",
+              "spellCore.defineProperty(Todo.prototype, { property: 'title', type: 'text' })"
+            ],
+            [
+              "todos have a property completed as yes or no",
+              "spellCore.defineProperty(Todo.prototype, { property: 'completed', type: 'choice' })"
             ]
           ]
         },

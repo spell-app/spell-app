@@ -82,13 +82,13 @@ export const properties = new SpellParser({
         const property = match.groups.property.AST
         const itVar = match.scope.variables.get("it")
         const object = itVar
-          ? new AST.VariableExpression(match, { raw: "it", name: itVar.output })
+          ? new AST.VariableExpression(match, { raw: "it", name: itVar.output || itVar.name })
           : new AST.ThisLiteral(match)
         return new AST.PropertyExpression(match, { object, property })
       },
       tests: [
         {
-          title: "tracks `it` when it var defined as output `it`",
+          title: "tracks `it` when it var defined explicitly",
           compileAs: "expression",
           beforeEach(scope) {
             scope.variables.add({ name: "it", output: "it" })
@@ -96,6 +96,16 @@ export const properties = new SpellParser({
           tests: [
             ["its foo", "it.foo"],
             ["the foo of its bar", "it.bar.foo"]
+          ]
+        },
+        {
+          title: "tracks `it` when it var defined via get",
+          compileAs: "block",
+          tests: [
+            [
+              ["get a new thing", "print its foo"],
+              ["let it = new Thing()", "console.log(it.foo)"]
+            ]
           ]
         },
         {

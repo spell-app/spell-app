@@ -55,7 +55,7 @@ SpellParser.Rule.Type = class type extends Rule.Pattern {
     choice: 1
   }
   static isSimpleType(typeName) {
-    const instanceName = instanceCase(singularize(typeName))
+    const instanceName = instanceCase(typeName)
     return !!SpellParser.Rule.Type.SIMPLE_TYPES[instanceName]
   }
 
