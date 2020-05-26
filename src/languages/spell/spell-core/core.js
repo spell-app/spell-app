@@ -49,10 +49,9 @@ export const spellCore = {
       descriptor.set = function(newValue) {
         if (!spellCore.isOfType(newValue, type)) {
           console.warn(`Expected ${property} to be type '${type}', got:`, newValue)
-        } else {
-          if (!hasOwnProp(this, "_props")) this._props = {}
-          this._props[property] = newValue
         }
+        if (!hasOwnProp(this, "_props")) this._props = {}
+        this._props[property] = newValue
       }
     } else if (enumeration) {
       // If the specified an `enumerationProp`, define the enumeration on the object and its constructor
@@ -63,10 +62,9 @@ export const spellCore = {
       descriptor.set = function(newValue) {
         if (!enumeration.includes(newValue)) {
           console.warn(`Expected ${property} to be one of '${enumeration}', got:`, newValue)
-        } else {
-          if (!hasOwnProp(this, "_props")) this._props = {}
-          this._props[property] = newValue
         }
+        if (!hasOwnProp(this, "_props")) this._props = {}
+        this._props[property] = newValue
       }
     }
     spellCore.define(thing, property, descriptor)
@@ -139,6 +137,7 @@ export const spellCore = {
   /** Is `thing` an instance of string `type` (as per `spellCore.typeOf()`)? */
   isOfType(thing, type) {
     // TODO: check for inherited types
+    if (typeof type === "string") type = type.toLowerCase()
     if (spellCore.IS_OF_TYPE_SPECIALS[type]) return spellCore.IS_OF_TYPE_SPECIALS[type](thing)
     const thingType = spellCore.typeOf(thing)
     return type === thingType
