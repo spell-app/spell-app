@@ -731,6 +731,10 @@ export class Tokenizer {
       }
     })
 
+    // remove the last line if it is completely empty
+    const { last } = lines
+    if (last.tokens.length === 0 && !last.newline && !last.leading) lines.pop()
+
     // indent blank lines to the indent AFTER them
     // so a blank line doesn't break an indented block
     let startIndent = 0
