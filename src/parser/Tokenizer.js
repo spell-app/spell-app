@@ -769,6 +769,7 @@ export class Tokenizer {
     // in case the top of the block is indented LESS than somewhere below.
     // TODO: ??? seems like this should be a top-level error???
     const block = new Token.Block({
+      offset: 0,
       indent: Math.min(...lines.map(line => line.indent))
     })
 
@@ -777,28 +778,24 @@ export class Tokenizer {
     lines.forEach(line => {
       let topBlock = stack.last
       // If indenting, push a new block
-      // TODO: `if` not necessary
-      if (line.indent > topBlock.indent) {
-        while (line.indent > topBlock.indent) {
-          const newBlock = new Token.Block({
-            indent: topBlock.indent + 1
-          })
-          topBlock.contents.push(newBlock)
-          stack.push(newBlock)
-          topBlock = newBlock
-        }
+      while (line.indent > topBlock.indent) {
+        const newBlock = new Token.Block({
+          offset: line.offset,
+          indent: topBlock.indent + 1
+        })
+        topBlock.tokens.push(newBlock)
+        stack.push(newBlock)
+        topBlock = newBlock
       }
+
       // If outdenting: pop block(s)
-      // TODO: `if` not necessary
-      else if (line.indent < topBlock.indent) {
-        // TODO: the else isn't necessary... ?
-        while (line.indent < topBlock.indent) {
-          stack.pop()
-          topBlock = stack.last
-        }
+      while (line.indent < topBlock.indent) {
+        stack.pop()
+        topBlock = stack.last
       }
+
       // add line to top block
-      topBlock.contents.push(line)
+      topBlock.tokens.push(line)
     })
 
     return [block]

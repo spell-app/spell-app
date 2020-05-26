@@ -18,7 +18,7 @@ SpellParser.Rule.Block = class block extends Rule {
 
     // build up matches for individual items
     const matched = []
-    const items = [...block.contents]
+    const items = [...block.tokens]
     while (items.length) {
       let result
       const first = items[0]

@@ -70,10 +70,10 @@ SpellParser.Rule.Statement = class _statement extends Rule.Sequence {
       if (result) result.enclose = true
     } else {
       // if parsing as anything else, we can only handle a single line
-      if (nestedBlock.contents.length > 1) return undefined
+      if (nestedBlock.tokens.length > 1) return undefined
       // get line to process, minus leading whitespace
       // TODO: remove comment????
-      const { tokens } = nestedBlock.contents[0]
+      const { tokens } = nestedBlock.tokens[0]
       // TODO: `statement.scope` or `statement.nestedScope` ???
       result = statement.scope.parse(tokens, parseAs)
       // forget it if we didn't parse the entire line

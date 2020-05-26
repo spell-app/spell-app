@@ -126,16 +126,15 @@ export class Match extends Assertable {
 
   // DEBUG: convert to JSON
   toJSON(key) {
-    // eslint-disable-next-line no-unused-vars
     const { name, rule, scope, raw, value, matched, items } = this
     return {
       name,
       rule: `${rule.module || "(core)"}:${rule.name || rule.constructor.name}`,
+      scope: `${scope.constructor.name}:${scope.name}(${this.start}-${this.end})`,
       raw,
       value,
       matched,
-      items,
-      scope: `${scope.constructor.name}:${scope.name}`
+      items
     }
   }
 }

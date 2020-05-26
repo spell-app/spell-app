@@ -11,10 +11,12 @@ export class Token {
     Object.assign(this, props)
   }
 
+  // Start character position in stream.
   get start() {
     return this.offset
   }
 
+  // End character position in stream (non-inclusive)
   get end() {
     return this.offset + (this.raw?.length || 0)
   }
@@ -131,9 +133,8 @@ Token.JSXExpression = class jsxExpression extends Token {
   }
 }
 
-// Simple `line` class for `breakIntoLines`
+// `Line` class for `Tokenizer.breakIntoLines()`
 //  `.offset` is line start offset in source
-//  `.end` is end position of last token in line (newline or EOF)
 //  `.leading` (optional) is leading whitespace at start of line
 //  `.tokens` is (possibly empty) array of tokens other than indent/newline
 //  `.newline` (optional) is newline token AT END OF LINE
@@ -152,11 +153,13 @@ Token.Line = class line extends Token {
   }
 }
 
-// Simple block class for `breakIntoBlocks`.
+// Block class for `Tokenizer.breakIntoBlocks()`.
+//  `.offset` is block start offset chart in source
+//  `.tokens` is (possibly empty) array of `Token.Line`s or `Token.Block`s.
 Token.Block = class block extends Token {
   constructor(props) {
     super(props)
-    if (!this.contents) this.contents = []
+    if (!this.tokens) this.tokens = []
   }
 
   get raw() {
@@ -164,6 +167,6 @@ Token.Block = class block extends Token {
   }
 
   toString() {
-    return this.contents.join("\n")
+    return this.tokens.join("\n")
   }
 }
