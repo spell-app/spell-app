@@ -133,7 +133,7 @@ export class SpellFile extends TextFile {
       let compiled = matched.compile()
       try {
         // Use prettier to format the output.  This will throw if the code is bad.
-        compiled = prettier.format(compiled, { parser: "babel", plugins: [babylon] })
+        compiled = prettier.format(compiled, { parser: "babel", plugins: [babylon], printWidth: 120 })
       } catch (e) {
         console.warn("Prettier error:", e)
       }
