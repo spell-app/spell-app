@@ -32,9 +32,16 @@ export class Match extends Assertable {
     return this.argument || this.rule.argument || this.rule.name
   }
 
-  // raw input text
+  // Raw input text
   get inputText() {
-    return this.input.join("")
+    return this.input?.join("") || ""
+  }
+
+  // Return the offset position of the matched text as `{ start, end }` or `undefined`.
+  get position() {
+    const start = this.input[0]?.offset
+    if (start === undefined) return undefined
+    return { start, end: start + this.inputText.length }
   }
 
   // Syntactic sugar to easily get `groups` of the match for sequences, etc.
@@ -110,6 +117,21 @@ export class Match extends Assertable {
     return {
       rule: this.rule.name,
       ...omit(this, ["rule", "scope"])
+    }
+  }
+
+  // DEBUG: convert to JSON
+  toJSON(key) {
+    // eslint-disable-next-line no-unused-vars
+    const { name, rule, scope, raw, value, matched, items } = this
+    return {
+      name,
+      rule: { name: rule.name, module: rule.module },
+      raw,
+      value,
+      matched,
+      items,
+      scope: { type: scope.constructor.name, name: scope.name }
     }
   }
 }
