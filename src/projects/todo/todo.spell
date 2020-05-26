@@ -38,8 +38,7 @@ a todo-list is a list of todos
 
 // `todo-list` instance method
 to draw (a todo-list)
-	return
-		<ui-list class="todo-list">
+	return <ui-list class="todo-list">
 			{for each todo in it: draw the todo}
 		</ui-list>
 

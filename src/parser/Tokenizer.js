@@ -711,116 +711,89 @@ export class Tokenizer {
   // Returns an array of lines WITHOUT the `Newline`s but WITH any leading `Token.Indent`s.
   // Lines which are composed solely of whitespace are treated as blank.
   breakIntoLines(tokens) {
-    // Convert to lines.
-    let currentLine = []
-    const lines = [currentLine]
+    const lines = []
+    let line = new Token.Line({ offset: 0, indent: undefined })
+    lines.push(line)
     tokens.forEach(token => {
-      // add new array for each newline
       if (token instanceof Token.Newline) {
-        // create a new line and push it in
-        currentLine = []
-        lines.push(currentLine)
+        line.newLine = token
+        if (line.indent === undefined && line.tokens.length) line.indent = 0
+        line = new Token.Line({ offset: token.offset + 1, indent: undefined })
+        lines.push(line)
+      } else if (token instanceof Token.Indent) {
+        // pull out leading whitespace as `line.indent`
+        line.leading = token
+        line.indent = token.length
+        // console.info(lines.length - 1, line.leading, line.indent)
       } else {
-        // otherwise just add to the current line
-        currentLine.push(token)
+        // add to normal tokens
+        line.tokens.push(token)
       }
     })
-
-    // Clear any lines that are only whitespace
-    for (let index = 0, last = lines.length; index < last; index++) {
-      const line = lines[index]
-      if (line.length === 1 && line[0] instanceof Token.Whitespace) lines[index] = []
-    }
-
-    return lines
-  }
-
-  // Return indents of the specified lines.
-  // Indents empty lines (NEWLINEs) into the block AFTER they appear.
-  getLineIndents(lines, defaultIndent = 0) {
-    if (lines.length === 0) return []
-
-    const indents = lines.map(this.getLineIndent)
-    const end = indents.length
-
-    // figure out the indent of the first non-empty line
-    let startIndent = getNextIndent(0)
-    if (startIndent === undefined) startIndent = defaultIndent
-
     // indent blank lines to the indent AFTER them
-    for (let index = 0; index < end; index++) {
-      if (indents[index] === undefined) {
-        indents[index] = getNextIndent(index + 1)
-      }
-    }
-    return indents
-
-    // Return the value of the NEXT non-undefined indent.
+    // so a blank line doesn't break an indented block
+    let startIndent = 0
     function getNextIndent(index) {
-      while (index < end) {
-        if (indents[index] !== undefined) return indents[index]
+      while (lines[index]) {
+        if (lines[index].indent !== undefined) return lines[index].indent
         index++
       }
       return startIndent
     }
+    startIndent = getNextIndent(0)
+    lines.forEach((next, index) => {
+      if (next.indent === undefined) {
+        // if we got tokens but no leading, indent is 0
+        if (next.tokens.length) next.indent = 0
+        // Otherwise find the next AFTER the current line
+        else next.indent = getNextIndent(index + 1)
+      }
+    })
+    return lines
   }
 
-  // Return the indent of a line of tokens.
-  // Returns `0` if not indented.
-  // Returns `undefined` if a blank line.
-  getLineIndent(line) {
-    if (!line || line.length === 0) return undefined
-    // skip newline at the start of the line
-    const indentIndex = line[0] instanceof Token.Newline ? 1 : 0
-    if (line[indentIndex] instanceof Token.Indent) return line[indentIndex].length
-    return 0
-  }
-
-  // Break `tokens` into a `Token.Block` via leading `Token.Indent`s at the beginning of lines.
-  // `block.contents` are the lines/nested blocks found.
+  // Break random `tokens` into array of `Token.Block`s
+  // by breaking into `Token.Line`s and then creating nested blocks
+  // as `line.indent` changes.
   breakIntoBlocks(tokens) {
     // break into lines & return early if no lines
     const lines = this.breakIntoLines(tokens)
     if (lines.length === 0) return []
 
-    // figure out indents
-    const indents = this.getLineIndents(lines)
-
-    // First block is at the MINIMUM indent of all lines!
-    const minIndent = Math.min(...indents)
+    // Establish the first block at the MINIMUM of all indents
+    // in case the top of the block is indented LESS than somewhere below.
+    // TODO: ??? seems like this should be a top-level error???
     const block = new Token.Block({
-      indent: minIndent,
-      tokens
+      indent: Math.min(...lines.map(line => line.indent))
     })
 
-    // stack of blocks
+    // Stack of blocks -- we'll push and pop blocks on the stack as indent changes
     const stack = [block]
-
-    lines.forEach((line, index) => {
-      const lineIndent = indents[index]
-      let top = stack[stack.length - 1]
-      // If indenting, push new block(s)
-      if (lineIndent > top.indent) {
-        while (lineIndent > top.indent) {
+    lines.forEach(line => {
+      let topBlock = stack.last
+      // If indenting, push a new block
+      // TODO: `if` not necessary
+      if (line.indent > topBlock.indent) {
+        while (line.indent > topBlock.indent) {
           const newBlock = new Token.Block({
-            indent: top.indent + 1
+            indent: topBlock.indent + 1
           })
-          top.contents.push(newBlock)
+          topBlock.contents.push(newBlock)
           stack.push(newBlock)
-
-          top = newBlock
+          topBlock = newBlock
         }
       }
       // If outdenting: pop block(s)
-      else if (lineIndent < top.indent) {
+      // TODO: `if` not necessary
+      else if (line.indent < topBlock.indent) {
         // TODO: the else isn't necessary... ?
-        while (lineIndent < top.indent) {
+        while (line.indent < topBlock.indent) {
           stack.pop()
-          top = stack[stack.length - 1]
+          topBlock = stack.last
         }
       }
-      // add to top block
-      top.contents.push(line)
+      // add line to top block
+      topBlock.contents.push(line)
     })
 
     return [block]

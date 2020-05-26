@@ -126,7 +126,7 @@ export class Match extends Assertable {
     const { name, rule, scope, raw, value, matched, items } = this
     return {
       name,
-      rule: { name: rule.name, module: rule.module },
+      rule: { name: rule.name || rule.constructor.name, module: rule.module },
       raw,
       value,
       matched,

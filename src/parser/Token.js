@@ -16,12 +16,7 @@ export class Token {
   }
 
   get end() {
-    return this.offset + this.raw.length
-  }
-
-  // return length consumed, including whitespace if any
-  get charsConsumed() {
-    return this.raw.length + (this.whitespace ? this.whitespace.length : 0)
+    return this.offset + (this.raw || this.toString).length
   }
 
   // Do we match a `literal` value?
@@ -136,14 +131,40 @@ Token.JSXExpression = class jsxExpression extends Token {
   }
 }
 
+// Simple `line` class for `breakIntoLines`
+//  `.offset` is line start offset in source
+//  `.end` is end position of last token in line (newline or EOF)
+//  `.leading` (optional) is leading whitespace at start of line
+//  `.tokens` is (possibly empty) array of tokens other than indent/newline
+//  `.newline` (optional) is newline token AT END OF LINE
+Token.Line = class line extends Token {
+  constructor(props) {
+    super(props)
+    if (!this.tokens) this.tokens = []
+  }
+
+  get raw() {
+    return this.toString()
+  }
+
+  toString() {
+    return (this.leading || "") + this.tokens.join("") + this.newLine ? "\n" : ""
+  }
+}
+
 // Simple block class for `breakIntoBlocks`.
 Token.Block = class block extends Token {
   constructor(props) {
     super(props)
     if (!this.contents) this.contents = []
+    if (!this.stuff) this.stuff = []
+  }
+
+  get raw() {
+    return this.toString()
   }
 
   toString() {
-    return this.contents.map(item => (item instanceof Token.Block ? `${item}` : item.join(""))).join("\n")
+    return this.contents.join("\n")
   }
 }

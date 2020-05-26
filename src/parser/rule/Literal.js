@@ -1,4 +1,3 @@
-import { proto } from "~/util"
 import { Match } from "~/parser"
 import { Rule } from "."
 
@@ -9,7 +8,6 @@ import { Rule } from "."
 //
 // NOTE: Don't use this -- use `Rule.Keyword` or `Rule.Literal` instead!
 export class Literal extends Rule {
-  @proto name = "Literal"
   constructor(props) {
     if (Array.isArray(props)) props = { literal: props }
     if (typeof props === "string") props = { literal: props }
@@ -51,9 +49,5 @@ export class Literal extends Rule {
 }
 
 // Syntactic sugar for composing rules.
-export class Keyword extends Literal {
-  @proto name = "Keyword"
-}
-export class Symbol extends Literal {
-  @proto name = "Symbol"
-}
+export class Keyword extends Literal {}
+export class Symbol extends Literal {}

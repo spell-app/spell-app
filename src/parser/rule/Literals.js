@@ -8,7 +8,6 @@ import { Rule } from "."
 // `rule.literalSeparator`
 //    the string to put between multiple literals when joining multiple literals together.
 export class Literals extends Rule {
-  @proto name = "Literals"
   // By default, join literals with no space between
   @proto literalSeparator = ""
 
@@ -70,14 +69,11 @@ export class Literals extends Rule {
 
 // One or more literal symbols: `<`, `%` etc.
 // Symbols join WITHOUT spaces.
-export class Symbols extends Literals {
-  @proto name = "Symbols"
-}
+export class Symbols extends Literals {}
 
 // One or more literal keywords.
 // Keywords join WITH spaces.
 export class Keywords extends Literals {
-  @proto name = "Keywords"
   // Join literals with a space in-between.
   @proto literalSeparator = " "
 }

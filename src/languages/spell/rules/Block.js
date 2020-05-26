@@ -22,26 +22,15 @@ SpellParser.Rule.Block = class block extends Rule {
     return this.parseBlock(scope, tokens[0])
   }
 
-  // Parse an entire `block`, returning array of matched elements (NOT as a match).
+  // Parse a `Token.Block`, returning a single `Match` for the entire block.
   // eslint-disable-next-line no-shadow
   parseBlock(scope, block) {
     const matched = []
-    for (let i = 0, last = block.contents.length; i < last; i++) {
-      const item = block.contents[i]
-      // Just add a blank link to the stream
-      if (item.length === 0) {
-        matched.push(
-          new Match({
-            rule: new Rule.BlankLine(),
-            matched: [],
-            length: 0,
-            input: [],
-            scope
-          })
-        )
-      }
-      // If we got a nested block
-      else if (item instanceof Token.Block) {
+    let index = 0
+    let item
+    while ((item = block.contents[index++])) {
+      // nested block
+      if (item instanceof Token.Block) {
         const nestedBlock = this.parseBlock(scope, item)
         if (nestedBlock) {
           // console.warn("got a nested block when we weren't expecting one")
@@ -52,9 +41,21 @@ SpellParser.Rule.Block = class block extends Rule {
           console.warn("saw unexpected nested block, parsing it didn't return anything")
         }
       }
-      // Got a single line of tokens: parse as statement
+      // blank line,
+      else if (item.tokens.length === 0) {
+        matched.push(
+          new Match({
+            rule: scope.parser.getRuleOrDie("blank_line"),
+            matched: [item.newLine],
+            length: 1,
+            input: [item.newLine],
+            scope
+          })
+        )
+      }
+      // parse a single line as a `statement`
       else {
-        const { statement, comment, unparsed } = this.parseStatement(scope, item)
+        const { statement, comment, unparsed } = this.parseStatement(scope, item.tokens)
         // add comment FIRST
         if (comment) matched.push(comment)
         if (statement) matched.push(statement)
@@ -73,13 +74,14 @@ SpellParser.Rule.Block = class block extends Rule {
           statement.mutateScope()
 
           // Some `statements.wantsNestedBlock` -- give it a chance to parse the next item.
-          const nextItem = block.contents[i + 1]
+          const nextItem = block.contents[index]
           if (statement.rule.wantsNestedBlock && nextItem instanceof Token.Block) {
             const matchedNestedBlock = statement.rule.parseNestedBlock(statement, nextItem)
             // eat the nested block token so we don't parse it again
-            if (matchedNestedBlock) i++
+            if (matchedNestedBlock) index++
           }
 
+          // HACK HACK HACK
           // OK, we've procesed the statement and its nested block.
           // Lock in it's (memoized) AST in case the rule's `getAST()` method ALSO mutates scope.
           // eslint-disable-next-line no-unused-vars

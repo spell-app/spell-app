@@ -74,10 +74,10 @@ SpellParser.Rule.Statement = class _statement extends Rule.Sequence {
       if (nestedBlock.contents.length > 1) return undefined
       // get line to process, minus leading whitespace
       // TODO: remove comment????
-      const line = nestedBlock.contents[0].filter(token => !(token instanceof Token.Indent))
-      parsedBlock = statement.scope.parse(line, parseAs)
+      const { tokens } = nestedBlock.contents[0]
+      parsedBlock = statement.scope.parse(tokens, parseAs)
       // forget it if we didn't parse the entire line
-      if (parsedBlock?.length !== line.length) return undefined
+      if (parsedBlock?.length !== tokens.length) return undefined
     }
     if (parsedBlock) {
       statement.addMatch(parsedBlock, "nestedBlock")
