@@ -12,7 +12,6 @@ a todo "is complete" if its completed is yes
 
 // `todo` instance method, e.g. what we'll use to `render()`
 to draw (a todo)
-
 	return  
 		<ui-list-item key={1} class="todo" completed={its completed}>
 			<ui-checkbox value={its completed} appearance="round" />

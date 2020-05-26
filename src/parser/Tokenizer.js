@@ -730,6 +730,7 @@ export class Tokenizer {
         line.tokens.push(token)
       }
     })
+
     // indent blank lines to the indent AFTER them
     // so a blank line doesn't break an indented block
     let startIndent = 0

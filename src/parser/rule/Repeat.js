@@ -27,6 +27,8 @@ import { Rule } from "."
 //  `rule.minCount` is the minimum number we need to match successfully.
 //  `rule.maxCount` is the maximum number we need to match successfully.
 //
+//  In our `Match`, `items` will be just he bits matched without the delimiter.
+//
 //  Note: Returns `undefined` if we don't match at least once.
 export class Repeat extends Rule {
   constructor(props) {
@@ -56,7 +58,6 @@ export class Repeat extends Rule {
         // get delimiter, exiting if not found
         const delimiter = this.delimiter.parse(scope, remainingTokens)
         if (!delimiter) break
-        // NOTE: we do not push delimiter into matched!
         matched.push(delimiter)
         length += delimiter.length
         remainingTokens = remainingTokens.slice(delimiter.length)

@@ -37,11 +37,15 @@ export class Match extends Assertable {
     return this.input?.join("") || ""
   }
 
-  // Return the offset position of the matched text as `{ start, end }` or `undefined`.
-  get position() {
-    const start = this.input[0]?.offset
-    if (start === undefined) return undefined
-    return { start, end: start + this.inputText.length }
+  // Start position of our match in the source stream.
+  get start() {
+    return this.input[0]?.offset
+  }
+
+  // End position of our match in the source stream.
+  get end() {
+    const { start, inputText } = this
+    return start === undefined ? undefined : start + inputText.length
   }
 
   // Syntactic sugar to easily get `groups` of the match for sequences, etc.

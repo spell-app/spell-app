@@ -4,6 +4,7 @@ import { SpellParser } from ".."
 
 // The following add new Rule constructors to `SpellParser.Rule`
 import "./Block"
+import "./BlockLine"
 import "./Statement"
 import "./ParseError"
 
@@ -31,6 +32,7 @@ export const spellParser = new SpellParser({ module: "spell" })
 
 spellParser.defineRule({ name: "blank_line", constructor: Rule.BlankLine })
 spellParser.defineRule({ name: "block", constructor: "Block" })
+spellParser.defineRule({ name: "block_line", constructor: "BlockLine" })
 spellParser.defineRule({ name: "parse_error", constructor: "ParseError" })
 
 // Import the other rules defined above.

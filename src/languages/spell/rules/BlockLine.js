@@ -1,0 +1,102 @@
+import _ from "lodash"
+
+import { Match, Rule, Token } from "~/parser"
+import { SpellParser, AST } from "~/languages/spell"
+
+/** Update Rule.BlankLine to output AST properly. */
+Rule.BlankLine.prototype.getAST = function(match) {
+  return new AST.BlankLine(match)
+}
+
+// A `BlockLine` is a single line in a block (and possibly a nested block after it).
+SpellParser.Rule.BlockLine = class block_line extends Rule {
+  parse(scope, lines) {
+    const line = lines[0]
+    if (!line) return undefined
+    const matched = []
+    const input = [line]
+    const { tokens } = line
+    // Blank line
+    if (tokens.length === 0) {
+      matched.push(
+        new Match({
+          rule: scope.parser.getRuleOrDie("blank_line"),
+          matched: [line.newLine],
+          length: 1,
+          input: [line.newLine],
+          scope
+        })
+      )
+    }
+    // parse as a `statement` with optional `comment`
+    else {
+      let start = 0
+      let end = tokens.length
+
+      // eat whitespace at front if found
+      const whitespace = scope.parser.getRuleOrDie("eat_whitespace").parse(scope, tokens)
+      if (whitespace) start = whitespace.length
+
+      // pop comment (which will be a single token) off of the end if found
+      const comment = scope.parser.getRuleOrDie("comment").parse(scope, [tokens.last])
+      if (comment) {
+        end -= 1
+        // add comment BEFORE STATEMENT
+        matched.push(comment)
+      }
+
+      // parse the statement
+      const unparsed = tokens.slice(start, end)
+      const statement = scope.parser.getRuleOrDie("statement").parse(scope, unparsed)
+      if (statement) {
+        matched.push(statement)
+        unparsed.splice(0, statement.length)
+      }
+
+      // add anything unparsed at the end as a parse error
+      if (unparsed.length) matched.push(scope.parse(unparsed, "parse_error"))
+
+      if (statement) {
+        // TODO: not sure if this is needed anymore
+        if (statement.error) {
+          console.warn("Got unexpected statement.error for", statement.rule.name)
+          matched.push(statement.error)
+        }
+
+        // We've locked in this statement -- have it update scope if necessary.
+        // This is used, e.g. by assignment to add new variables to the scope, etc.
+        statement.mutateScope()
+
+        // Some statements `.wantsNestedBlock` -- give it a chance to parse the next item.
+        const nextItem = lines[1]
+        if (statement.rule.wantsNestedBlock && nextItem instanceof Token.Block) {
+          const matchedNestedBlock = statement.rule.parseNestedBlock(statement, nextItem)
+          // add the nestedBlock to `input` to account for it in the output
+          if (matchedNestedBlock) input.push(nextItem)
+        }
+
+        // HACK HACK HACK
+        // OK, we've procesed the statement and its nested block.
+        // Lock in it's (memoized) AST in case the rule's `getAST()` method ALSO mutates scope.
+        // eslint-disable-next-line no-unused-vars
+        const ast = statement.AST
+      }
+    }
+    return new Match({
+      rule: this,
+      matched,
+      input,
+      length: input.length,
+      scope
+    })
+  }
+
+  getAST(match) {
+    // ???  If only one matched item, return it by itself
+    if (match.matched.length === 1) return match.matched[0].AST
+    // otherwise
+    return new AST.StatementGroup(match, {
+      statements: match.matched.map(item => item.AST)
+    })
+  }
+}

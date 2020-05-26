@@ -28,7 +28,7 @@ SpellParser.Rule.Block = class block extends Rule {
     const matched = []
     let index = 0
     let item
-    while ((item = block.contents[index++])) {
+    while ((item = block.contents[index])) {
       // nested block
       if (item instanceof Token.Block) {
         const nestedBlock = this.parseBlock(scope, item)
@@ -40,52 +40,15 @@ SpellParser.Rule.Block = class block extends Rule {
         } else {
           console.warn("saw unexpected nested block, parsing it didn't return anything")
         }
-      }
-      // blank line,
-      else if (item.tokens.length === 0) {
-        matched.push(
-          new Match({
-            rule: scope.parser.getRuleOrDie("blank_line"),
-            matched: [item.newLine],
-            length: 1,
-            input: [item.newLine],
-            scope
-          })
-        )
-      }
-      // parse a single line as a `statement`
-      else {
-        const { statement, comment, unparsed } = this.parseStatement(scope, item.tokens)
-        // add comment FIRST
-        if (comment) matched.push(comment)
-        if (statement) matched.push(statement)
-        // add anything unparsed at the end as a parse error
-        if (unparsed.length) matched.push(scope.parse(unparsed, "parse_error"))
-
-        if (statement) {
-          // TODO: not sure if this is needed anymore
-          if (statement.error) {
-            console.warn("Got unexpected statement.error for", statement.rule.name)
-            matched.push(statement.error)
-          }
-
-          // We've locked in this statement -- have it update scope if necessary.
-          // This is used, e.g. by assignment to add new variables to the scope, etc.
-          statement.mutateScope()
-
-          // Some `statements.wantsNestedBlock` -- give it a chance to parse the next item.
-          const nextItem = block.contents[index]
-          if (statement.rule.wantsNestedBlock && nextItem instanceof Token.Block) {
-            const matchedNestedBlock = statement.rule.parseNestedBlock(statement, nextItem)
-            // eat the nested block token so we don't parse it again
-            if (matchedNestedBlock) index++
-          }
-
-          // HACK HACK HACK
-          // OK, we've procesed the statement and its nested block.
-          // Lock in it's (memoized) AST in case the rule's `getAST()` method ALSO mutates scope.
-          // eslint-disable-next-line no-unused-vars
-          const ast = statement.AST
+        index++
+      } else {
+        const line = scope.parser.getRuleOrDie("block_line").parse(scope, block.contents.slice(index))
+        if (line) {
+          matched.push(line)
+          index += line.length
+        } else {
+          console.warn("Block.parse(): Got unproductive item", item)
+          index++
         }
       }
     }
@@ -95,34 +58,10 @@ SpellParser.Rule.Block = class block extends Rule {
     return new Match({
       rule: this,
       matched,
-      indent: block.indent,
-      input: [block],
       scope,
+      input: [block],
       length: 1 // matched one OUTER block...
     })
-  }
-
-  // Parse a single line as a "statement" with optional leading whitespace and comment at the end.
-  parseStatement(scope, tokens) {
-    let start = 0
-    let end = tokens.length
-
-    // eat whitespace at front if found
-    const whitespace = scope.parser.getRuleOrDie("eat_whitespace").parse(scope, tokens)
-    if (whitespace) start = whitespace.length
-
-    // pop comment (which will be a single token) off of the end if found
-    const last = tokens[tokens.length - 1]
-    const comment = scope.parser.getRuleOrDie("comment").parse(scope, [last])
-    if (comment) end -= 1
-
-    // parse the statement
-    const unparsed = tokens.slice(start, end)
-    const statement = scope.parser.getRuleOrDie("statement").parse(scope, unparsed)
-
-    // Update `unparsed` so `parseBlock()` will output a parse error if we didn't get it all.
-    if (statement) unparsed.splice(0, statement.length)
-    return { whitespace, statement, comment, unparsed }
   }
 
   getAST(match) {

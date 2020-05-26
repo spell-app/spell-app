@@ -16,7 +16,7 @@ export class Token {
   }
 
   get end() {
-    return this.offset + (this.raw || this.toString).length
+    return this.offset + (this.raw?.length || 0)
   }
 
   // Do we match a `literal` value?
@@ -148,7 +148,7 @@ Token.Line = class line extends Token {
   }
 
   toString() {
-    return (this.leading || "") + this.tokens.join("") + this.newLine ? "\n" : ""
+    return (this.leading || "") + this.tokens.join("") + (this.newLine ? "\n" : "")
   }
 }
 
