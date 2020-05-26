@@ -1,24 +1,18 @@
 ## Todo app proposal
 
-## define `todo` and `todo-list` classes
-a todo is a drawable
-a todo-list is a list of todos
-all-todos is a new todo-list	// application state
-
+//////////////////////////
+## define `todo` class
+a todo is a drawable // `drawable` means we can `draw()` as a React Component
+// attributes for the `todo` class
 todos have a title as text
 todos have a property completed as yes or no
+// getters for the `todo` class
 a todo "is active" if its completed is no
 a todo "is complete" if its completed is yes
 
-to create a todo
-	set its list to all-todos
-	add it to all-todos
+// `todo` instance method, e.g. what we'll use to `render()`
+to draw (a todo)
 
-it = a new todo
-set its title to "Foo"
-print all-todos
-
-to draw a todo
 	return  
 		<ui-list-item key={1} class="todo" completed={its completed}>
 			<ui-checkbox value={its completed} appearance="round" />
@@ -26,59 +20,101 @@ to draw a todo
 			<ui-button onpress={remove it from its list}><icon name="x"/></ui-button>
 		</ui-list-item>
 
-## actions
-// to create-a-todo with title
-// 	set todo to a new todo
-// 	set the title of the todo to the title
-// 	set the list of the todo to all-todos
-// 	add the todo to all-todos
+// set up inline test method -- check console for output.
+to test todo creation
+	print "testing todo creation"
+	// `get xxx` puts expression into variable `it`
+	get a new todo with title = "Test" and completed = yes 
+	// `expect` runs an assertion an prints YES or NO to the console
+	expect its title to be "Test" 
+	expect it is active to be false
+	expect it is complete to be true
+// call test method
+test todo creation
 
-to clear completed todos
-	remove todos from all-todos where the todo is complete
+//////////////////////////
+## define `todo-list` class
+a todo-list is a list of todos
 
-## create `app` class
+// `todo-list` instance method
+to draw (a todo-list)
+	return
+		<ui-list class="todo-list">
+			{for each todo in it: draw the todo}
+		</ui-list>
+
+
+//////////////////////////
+## define `todos-app` class
 a todos-app is an app
 a todos-app has a filter as one of all, active or completed
-to draw a todos-app
-	set active-todos to todos in all-todos where the todo is active
-	set completed-todos to todos in all-todos where the todo is complete
-	
-	set visible-todos to all-todos
-	if its filter is "active" set visible-todos to active-todos
-	else if its filter is "completed" set visible-todos to completed-todos
-	
-	let active-count = the length of active-todos
-	let active-message = active-count + (" item" if active-count is 1 otherwise " items") + " left"
-	
-	to handle-new-todo-key-event with event and text-field
-		if the key of the event is "return":
-			create a new todo with title = the text of the text-field
-			add it to all-todos
-			clear the text-field
-	
+a todos-app has a property todos as a todo-list
+the total-count of a todos-app is the length of its todos
+the active-todos of a todos-app is todos in its todos where the todo is active
+the active-count of a todos-app is the length of its active-todos
+the active-message of a todos-app is its active-count + (" item" if its active-count is 1 otherwise " items") + " left"
+the completed-todos of a todos-app is todos in its todos where the todo is complete
+the completed-count of a todos-app is the length of its completed-todos
+a todos-app has a property new-todo-name as text
+
+// create an instance of the app for top-level methods below
+set app to a new todos-app
+set the todos of the app to a new todo-list  // NOTE: shouldn't be necessary
+set the new-todo-name of the app to "???"
+
+// top-level methods
+to create a todo with title as text, completed = no
+	if the title is undefined then set the title to the new-todo-name of the app
+	print "creating a todo with title: " + title + " and completed:" + completed
+	get a new todo with title = the title, completed = the completed
+	add it to the todos of the app
+
+to clear completed todos
+	// note: parens shouldn't be necessary below
+	remove todos from (the todos of the app) where the todo is complete
+
+// test the methods -- check the console for output
+to test todos app methods
+	print "testing todos-app methods"
+	create a todo with title = "Get started", completed = yes
+	create a todo with title = "Test todo creation"
+	expect the length of the todos of the app to be 2
+	clear completed todos
+	expect the length of the todos of the app to be 1
+	// leave one todo in there for `draw` below
+test todos app methods
+
+// instance method for todos-app -- OK that we're defining after `app` was created.
+to draw (a todos-app)
+	// figure out what we'll actually render based on the filter
+	set visible-todos to its todos
+	if its filter is "active" then set visible-todos to its active-todos
+	otherwise if its filter is "completed" set visible-todos to its completed-todos
+	print "visible todos:"
+	print visible-todos
+
 	return 
 		<ui-container>
 			<ui-header huge>todos</ui-header>
-			<ui-text-field on-key={handle-new-todo-key-event}/>
-			<ui-list class="todo-list">
-				{for each todo in visible-todos: draw the todo}
-			</ui-list>
+			<ui-text-field value={its new-todo-name} on-blur={create a todo}/>
+			{draw visible-todos}
 			<ui-toolbar>
-				<ui-label>{active-message}</ui-label>
+				<ui-label>{its active-message}</ui-label>
 				<ui-spring/>
 				<ui-button active={its filter is "all"} on-press={set its filter to "all"} >All</ui-button>
 				<ui-button active={its filter is "active"} on-press={set its filter to "active"}>Active</ui-button>
 				<ui-button active={its filter is "completed"} on-press={set its filter to "completed"}>Completed</ui-button>
 				<ui-spring/>
-				<ui-button 
-					hidden={the number of items in completed-todos is 0} 
-					on-press={clear completed todos} 
-				/>
+				<ui-button hidden={its completed-count is 0} on-press={clear completed todos} >
+					Clear Completed
+				</ui-button>
 			</ui-toolbar>
 		</ui-container>
 
-## create an app instance and draw it
-set app to a new todos-app
+//////////////////////////
+## draw the app
+// note: this will eventually render the app on the screen, 
+// the print bit is so you can check out results in the console.
 print (draw the app)
 
 
