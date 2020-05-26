@@ -157,7 +157,6 @@ Token.Block = class block extends Token {
   constructor(props) {
     super(props)
     if (!this.contents) this.contents = []
-    if (!this.stuff) this.stuff = []
   }
 
   get raw() {

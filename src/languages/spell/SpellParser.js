@@ -40,9 +40,9 @@ export class SpellParser extends Parser {
   }
 
   // If we're tokenizing "block", parse them into blocks.
-  tokenize(text, ruleName) {
-    const tokens = super.tokenize(text)
-    if (ruleName === "block") return this.tokenizer.breakIntoBlocks(tokens)
+  tokenize(input, ruleName) {
+    const tokens = super.tokenize(input)
+    if (typeof input === "string" && ruleName === "block") return this.tokenizer.breakIntoBlocks(tokens)
     return tokens
   }
 }

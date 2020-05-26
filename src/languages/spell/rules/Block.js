@@ -14,24 +14,23 @@ SpellParser.Rule.Block = class block extends Rule {
     if (tokens.length !== 1) console.warn(`Block.parse(): unexpectedly got ${tokens.length} tokens:`, tokens)
     // eslint-disable-next-line no-shadow
     const block = tokens[0]
+    if (!(block instanceof Token.Block)) console.warn("parseBlock: got non-block", block)
+
     // build up matches for individual items
     const matched = []
     const items = [...block.contents]
     while (items.length) {
       let result
-      // nested block
-      if (items[0].tokens?.[0] instanceof Token.Block) {
-        // attempt to parse as a nested block
-        result = this.parse(scope, items[0].tokens)
-        if (result) {
-          // console.warn("got a nested block when we weren't expecting one")
-          // Push it into the stream, but don't wrap it in parens.
-          result.enclose = false
-        } else {
-          console.warn("saw unexpected nested block, parsing it didn't return anything")
-        }
-      } else {
+      const first = items[0]
+      // recurse for nested block
+      if (first instanceof Token.Block) {
+        result = this.parse(scope, [first])
+      }
+      // process Line as "block_line" -- a statement with optional comment, etc.
+      else if (first instanceof Token.Line) {
         result = scope.parse(items, "block_line")
+      } else {
+        console.warn("Block.parse(): Don't know what to do with token", first)
       }
 
       if (result) {
