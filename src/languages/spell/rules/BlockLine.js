@@ -8,7 +8,11 @@ Rule.BlankLine.prototype.getAST = function(match) {
   return new AST.BlankLine(match)
 }
 
-// A `BlockLine` is a single line in a block (and possibly a nested block after it).
+// Use `BlockLine` to parse a single `Token.Line` in a `Token.Block` as:
+// - a `statement`
+// - an optional `comment` at the end of the line
+// - if the `statement.wantsNestedBlock` and the next item in `lines` is a `Token.Block`
+//   we'll let the statement attempt to parse the next line as well.
 SpellParser.Rule.BlockLine = class block_line extends Rule {
   parse(scope, lines) {
     const line = lines[0]
@@ -30,39 +34,38 @@ SpellParser.Rule.BlockLine = class block_line extends Rule {
     }
     // parse as a `statement` with optional `comment`
     else {
-      let start = 0
+      const start = 0
       let end = tokens.length
 
-      // eat whitespace at front if found
-      const whitespace = scope.parser.getRuleOrDie("eat_whitespace").parse(scope, tokens)
-      if (whitespace) start = whitespace.length
-
       // pop comment (which will be a single token) off of the end if found
-      const comment = scope.parser.getRuleOrDie("comment").parse(scope, [tokens.last])
+      const comment = scope.parse([tokens.last], "comment")
       if (comment) {
         end -= 1
         // add comment BEFORE STATEMENT
         matched.push(comment)
       }
 
-      // parse the statement
+      // parse the statement (which may parse an inlineStatement as well)
       const unparsed = tokens.slice(start, end)
-      const statement = scope.parser.getRuleOrDie("statement").parse(scope, unparsed)
+      const statement = scope.parse(unparsed, "statement")
       if (statement) {
         matched.push(statement)
         unparsed.splice(0, statement.length)
       }
 
       // add anything unparsed at the end as a parse error
-      if (unparsed.length) matched.push(scope.parse(unparsed, "parse_error"))
+      if (unparsed.length) {
+        matched.push(scope.parse(unparsed, "parse_error"))
+      }
+
+      // TODO: not sure if this is needed anymore
+      // Check JSX, that seems to be setting it???
+      if (statement?.error) {
+        console.warn("Got unexpected statement.error for", statement.rule.name)
+        matched.push(statement.error)
+      }
 
       if (statement) {
-        // TODO: not sure if this is needed anymore
-        if (statement.error) {
-          console.warn("Got unexpected statement.error for", statement.rule.name)
-          matched.push(statement.error)
-        }
-
         // We've locked in this statement -- have it update scope if necessary.
         // This is used, e.g. by assignment to add new variables to the scope, etc.
         statement.mutateScope()
@@ -70,9 +73,9 @@ SpellParser.Rule.BlockLine = class block_line extends Rule {
         // Some statements `.wantsNestedBlock` -- give it a chance to parse the next item.
         const nextItem = lines[1]
         if (statement.rule.wantsNestedBlock && nextItem instanceof Token.Block) {
-          const matchedNestedBlock = statement.rule.parseNestedBlock(statement, nextItem)
+          const nestedBlock = statement.rule.parseNestedBlock(statement, nextItem)
           // add the nestedBlock to `input` to account for it in the output
-          if (matchedNestedBlock) input.push(nextItem)
+          if (nestedBlock) input.push(nextItem)
         }
 
         // HACK HACK HACK

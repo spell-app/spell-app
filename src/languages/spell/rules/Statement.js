@@ -63,25 +63,23 @@ SpellParser.Rule.Statement = class _statement extends Rule.Sequence {
   // TODO: complain if we also have an inlineStatement???
   // NOTE: this will throw if rule does not implement `getNestedScope`
   parseNestedBlock(statement, nestedBlock, parseAs = this.parseNestedBlockAs) {
-    let parsedBlock
+    let result
     if (parseAs === "block") {
-      const blockRule = statement.nestedScope.parser.getRuleOrDie("block")
-      parsedBlock = blockRule.parseBlock(statement.nestedScope, nestedBlock)
+      result = statement.nestedScope.parse([nestedBlock], "block")
       // wrap output in parens
-      if (parsedBlock) parsedBlock.enclose = true
+      if (result) result.enclose = true
     } else {
       // if parsing as anything else, we can only handle a single line
       if (nestedBlock.contents.length > 1) return undefined
       // get line to process, minus leading whitespace
       // TODO: remove comment????
       const { tokens } = nestedBlock.contents[0]
-      parsedBlock = statement.scope.parse(tokens, parseAs)
+      // TODO: `statement.scope` or `statement.nestedScope` ???
+      result = statement.scope.parse(tokens, parseAs)
       // forget it if we didn't parse the entire line
-      if (parsedBlock?.length !== tokens.length) return undefined
+      if (result?.length !== tokens.length) return undefined
     }
-    if (parsedBlock) {
-      statement.addMatch(parsedBlock, "nestedBlock")
-    }
-    return parsedBlock
+    if (result) statement.addMatch(result, "nestedBlock")
+    return result
   }
 }

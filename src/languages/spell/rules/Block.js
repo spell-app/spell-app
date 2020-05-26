@@ -3,53 +3,44 @@ import _ from "lodash"
 import { Match, Rule, Token } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
 
-/** Update Rule.BlankLine to output AST properly. */
-Rule.BlankLine.prototype.getAST = function(match) {
-  return new AST.BlankLine(match)
-}
-
 // `Blocks` are generally the root entity that we parse in spell.
 //  This is a top-level construct, e.g. used to parse an entire file.
 //
-//  They are composed of `blockLines` and nested `blocks`,
+//  They are composed of `block_lines` and nested `blocks`,
 //  and correspond roughly to a `Scope` (see `parser/scope/Scope`).
-//
-// Note: Access this as `SpellParser.Rule.Block`.
 SpellParser.Rule.Block = class block extends Rule {
-  // Split statements up into blocks and parse 'em.
   parse(scope, tokens) {
     if (!tokens.length) return undefined
-    return this.parseBlock(scope, tokens[0])
-  }
-
-  // Parse a `Token.Block`, returning a single `Match` for the entire block.
-  // eslint-disable-next-line no-shadow
-  parseBlock(scope, block) {
+    if (tokens.length !== 1) console.warn(`Block.parse(): unexpectedly got ${tokens.length} tokens:`, tokens)
+    // eslint-disable-next-line no-shadow
+    const block = tokens[0]
+    // build up matches for individual items
     const matched = []
-    let index = 0
-    let item
-    while ((item = block.contents[index])) {
+    const items = [...block.contents]
+    while (items.length) {
+      let result
       // nested block
-      if (item instanceof Token.Block) {
-        const nestedBlock = this.parseBlock(scope, item)
-        if (nestedBlock) {
+      if (items[0].tokens?.[0] instanceof Token.Block) {
+        // attempt to parse as a nested block
+        result = this.parse(scope, items[0].tokens)
+        if (result) {
           // console.warn("got a nested block when we weren't expecting one")
           // Push it into the stream, but don't wrap it in parens.
-          matched.enclose = false
-          matched.push(nestedBlock)
+          result.enclose = false
         } else {
           console.warn("saw unexpected nested block, parsing it didn't return anything")
         }
-        index++
       } else {
-        const line = scope.parser.getRuleOrDie("block_line").parse(scope, block.contents.slice(index))
-        if (line) {
-          matched.push(line)
-          index += line.length
-        } else {
-          console.warn("Block.parse(): Got unproductive item", item)
-          index++
-        }
+        result = scope.parse(items, "block_line")
+      }
+
+      if (result) {
+        matched.push(result)
+        // pop the matched items off of the list
+        items.splice(0, result.length)
+      } else {
+        console.warn("Block.parse(): Got unproductive item", items[0])
+        items.shift()
       }
     }
     // Forget it if we didn't match anything

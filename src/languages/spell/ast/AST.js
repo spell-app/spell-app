@@ -562,7 +562,11 @@ export class StatementBlock extends Statement {
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
   }
   toJS() {
-    const { statements } = this
+    let { statements } = this
+    // Unwind any single nested StatementGroups
+    while (statements?.length === 1 && statements[0] instanceof StatementGroup) {
+      statements = statements[0].statements
+    }
     if (!statements || !statements.length) return "{}"
     const curlyDelimiter = statements.length === 1 ? " " : "\n"
     return `{${curlyDelimiter}${statements.map(statement => statement.toJS()).join("\n")}${curlyDelimiter}}`
