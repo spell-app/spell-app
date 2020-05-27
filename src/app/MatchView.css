@@ -144,3 +144,12 @@
 .Token.jsxElement {
   white-space: normal;
 }
+
+.Match.parse_error {
+  color: darkred;
+  text-decoration: line-through;
+}
+.Match.parse_error > .name {
+  background: pink;
+}
+
