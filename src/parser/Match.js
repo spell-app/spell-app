@@ -48,6 +48,26 @@ export class Match extends Assertable {
     return start === undefined ? undefined : start + inputText.length
   }
 
+  // Return our `matched` which encompasses `offset`.
+  // Returns `undefined` if nothing works.
+  matchForOffset(offset) {
+    return this.matched.find(match => match.start <= offset && match.end > offset)
+  }
+
+  // Return stack of our `matched` which encompasses `offset` with us first.
+  // Returns empty array if `offset` is not within us.
+  matchStackForOffset(offset) {
+    const stack = []
+    let match = this
+    while (match instanceof Match) {
+      match = match.matchForOffset(offset)
+      if (!match) break
+      stack.push(match)
+    }
+    if (stack.length) stack.unshift(this)
+    return stack
+  }
+
   // Syntactic sugar to easily get `groups` of the match for sequences, etc.
   // Only works for some rule types.
   @memoize

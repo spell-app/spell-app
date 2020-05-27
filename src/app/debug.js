@@ -5,6 +5,7 @@ import JSON5 from "json5"
 
 import { rulex } from "~/parser"
 import { spellParser, SpellParser, spellCore } from "~/languages/spell"
+import { store } from "./store"
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
@@ -19,5 +20,6 @@ Object.assign(global, {
   exp: (expression, scope) => spellParser.parse(expression, "expression", scope),
   tokenizer: spellParser.tokenizer,
   tokenize: spellParser.tokenize.bind(spellParser),
-  rulex
+  rulex,
+  store
 })

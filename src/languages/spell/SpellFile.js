@@ -3,7 +3,7 @@ import prettier from "prettier/standalone"
 import babylon from "prettier/parser-babylon"
 
 import { TextFile, state, proto, memoize, forward, writeOnce, overrideable, batch } from "~/util"
-import { ProjectScope, FileScope } from "~/parser"
+import { Match, ProjectScope, FileScope } from "~/parser"
 import { SpellParser, SpellProject, SpellFileLocation } from "~/languages/spell"
 
 /**
@@ -196,23 +196,10 @@ export class SpellFile extends TextFile {
   //-----------------
 
   /** Convert CodeMirror Position: `{ line, ch }` to char `offset`. */
-  offsetForPosition(position) {
-    const { lines } = this
-    if (!lines) return undefined
-    return lines.slice(0, position.line).join("\n").length + 1 + position.ch
-  }
-
-  /** Given a char `offset`, return the top-level `line` Match it corresponds to. */
-  lineMatchForOffset(offset) {
-    const lines = this.match?.matched
-    if (typeof offset !== "number" || !lines) return undefined
-    // outer thing will be a "block" -- `matched` will be lines.
-    let index = -1
-    let line
-    while ((line = lines[++index])) {
-      if (line.start <= offset && line.end > offset) return line
-    }
-    return undefined
+  offsetForPosition({ line, ch }) {
+    if (!this.lines) return undefined
+    if (line === 0) return ch
+    return this.lines.slice(0, line).join("\n").length + 1 + ch
   }
 }
 

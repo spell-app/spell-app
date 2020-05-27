@@ -4,7 +4,7 @@
   /* border: 1px solid red; */
   display: flex;
   flex-direction: column;
-
+  min-height: 30px;
   transition: background 0.25s ease-in-out;
 }
 .Match.highlight {
@@ -44,11 +44,15 @@
 
 .Match.block {
   display: block;
-  margin: 10px 10px 10px 15px;
-  padding: 10px 0 0 10px;
+  margin: 25px 10px 0px 15px;
+  padding: 5px 0 0 5px;
   text-align: left;
   border-left: 4px solid black;
   border-top: 4px solid black;
+}
+
+.Match.block:first-child {
+  margin: 15px 0 5px 5px;
 }
 
 .Match.block > .contents {
@@ -56,13 +60,12 @@
   padding-top: 0;
 }
 
+/* Position block name like a black tab over block contents. */
 .Match.block > .name {
   position: absolute;
-  transform: rotate(-90deg);
-  transform-origin: left top;
-  left: -17px;
-  top: 62px;
-  padding: 0 10px;
+  display: block;
+  left: -4px; top: -17px;
+  padding: 0 20px !important;
   background: black;
   color: white;
   font-size: 10px;
@@ -79,17 +82,24 @@
   text-align: left;
   border-top: 1px solid black;
   border-left: 1px solid black;
-  margin: 10px 10px 15px 10px;
+  margin: 10px 0px 15px 10px;
   padding: 0;
 }
 
+.Match.line.contents {
+  flex-direction: column;
+}
+
+/* Position line name as a flag to left of line contents (but turned off for now). */
 .Match.line > .name {
+  display: block;
+  /* display: none; */
   position: absolute;
-  display: inline-block;
+  width: 30px;
   transform: rotate(-90deg);
   transform-origin: left top;
   left: -16px;
-  top: 27px;
+  top: 29px;
   font-size: 10px;
   padding: 0 5px;
   border-top-right-radius: 16px;
@@ -97,6 +107,7 @@
   border-bottom-right-radius: 0px;
   border-bottom-left-radius: 0px;
   border-top-width: 1px;
+  opacity: 0.5;
 }   
 
 .Match.hasTokens:not(.hasMatches) {

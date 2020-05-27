@@ -8,16 +8,21 @@ import "./MatchView.css"
 export function MatchView({ match, offset }) {
   if (!match) return null
 
+  // If we're passed a specific `offset`, scroll that line into view and flash its bg.
   React.useLayoutEffect(() => {
-    if (typeof offset !== "number") return
-    const lineMatch = store.file?.lineMatchForOffset(offset)
-    const el = lineMatch && document.querySelector(`.Match.line[data-start="${lineMatch.start}"]`)
-    // console.warn({ offset, lineMatch, el })
-    if (el) {
-      el.scrollIntoView({ block: "center" })
-      el.classList.add("highlight")
-      setTimeout(() => el.classList.remove("highlight"), 300)
-    }
+    if (typeof offset !== "number" || !store.file?.match) return
+    // get the stack of what was matched, with the inner-most thing FIRST
+    const stack = store.file.match.matchStackForOffset(offset).reverse()
+    // find the lowest item that corresponds to a `line`
+    const lineMatch = stack.find(_match => _match.rule?.name === "line")
+    const lineEl = lineMatch && document.querySelector(`.Match.line[data-start="${lineMatch.start}"]`)
+    if (!lineEl) return
+    // console.warn({ offset, lineMatch, lineEl })
+    // scroll the `name` thinger into the center of the display
+    lineEl.querySelector(".name").scrollIntoView({ block: "center" })
+    // add "highlight" class temporarily
+    lineEl.classList.add("highlight")
+    setTimeout(() => lineEl.classList.remove("highlight"), 400)
   }, [offset])
 
   const { rule, matched } = match
@@ -42,17 +47,20 @@ export function MatchView({ match, offset }) {
     rule.name || "anonymous-rule",
     hasTokens && "hasTokens",
     hasMatches && "hasMatched",
-    blocks.length && "hasBlocks"
+    blocks.length && "hasBlocks",
+    matched.length === 1 && matched[0].rule?.name === "blank_line" && "isBlankLine"
   ]
     .filter(Boolean)
     .join(" ")
 
   return (
-    <span className={className} data-start={`${match.start}`} data-end={`${match.end}`}>
-      {!!rule.name && <span className="name">{rule.name}</span>}
-      {contents.length > 0 && <span className="contents">{contents}</span>}
-      {blocks.length > 0 && blocks}
-    </span>
+    <>
+      <span className={className} data-start={`${match.start}`} data-end={`${match.end}`}>
+        {!!rule.name && <span className="name">{rule.name}</span>}
+        {contents.length > 0 && <span className="contents">{contents}</span>}
+        {blocks.length > 0 && blocks}
+      </span>
+    </>
   )
 }
 
