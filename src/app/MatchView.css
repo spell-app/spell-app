@@ -4,6 +4,11 @@
   /* border: 1px solid red; */
   display: flex;
   flex-direction: column;
+
+  transition: background 0.25s ease-in-out;
+}
+.Match.highlight {
+  background: rgb(245, 236, 212);
 }
 
 .Match > .name {
@@ -61,7 +66,7 @@
   background: black;
   color: white;
   font-size: 10px;
-  padding: 0 20px;
+  padding: 2px 8px 2px 10px;
   border-top-right-radius: 20px;
   border-top-left-radius: 20px;
   border-bottom-right-radius: 0px;
@@ -94,8 +99,8 @@
   border-top-width: 1px;
 }   
 
-.Match.line > .Match {
-  text-align: left;
+.Match.hasTokens:not(.hasMatches) {
+  padding: 0;
 }
 
 /* Token display */
@@ -119,6 +124,10 @@
 
 
 /* Color specific things */
+
+.Match.blank_line {
+  opacity: 0.5;
+}
 
 .Match.comment {
   opacity: 0.5;

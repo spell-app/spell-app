@@ -199,7 +199,7 @@ export class SpellFile extends TextFile {
   offsetForPosition(position) {
     const { lines } = this
     if (!lines) return undefined
-    return position.ch + lines.slice(0, position.line).join("\n").length
+    return lines.slice(0, position.line).join("\n").length + 1 + position.ch
   }
 
   /** Given a char `offset`, return the top-level `line` Match it corresponds to. */

@@ -9,10 +9,15 @@ export function MatchView({ match, offset }) {
   if (!match) return null
 
   React.useLayoutEffect(() => {
+    if (typeof offset !== "number") return
     const lineMatch = store.file?.lineMatchForOffset(offset)
-    const el = lineMatch && document.querySelector(`.Match.line[data-offset="${lineMatch.start}"]`)
+    const el = lineMatch && document.querySelector(`.Match.line[data-start="${lineMatch.start}"]`)
     // console.warn({ offset, lineMatch, el })
-    if (el) el.scrollIntoView()
+    if (el) {
+      el.scrollIntoView({ block: "center" })
+      el.classList.add("highlight")
+      setTimeout(() => el.classList.remove("highlight"), 300)
+    }
   }, [offset])
 
   const { rule, matched } = match
@@ -43,7 +48,7 @@ export function MatchView({ match, offset }) {
     .join(" ")
 
   return (
-    <span className={className} data-offset={`${match.start}`}>
+    <span className={className} data-start={`${match.start}`} data-end={`${match.end}`}>
       {!!rule.name && <span className="name">{rule.name}</span>}
       {contents.length > 0 && <span className="contents">{contents}</span>}
       {blocks.length > 0 && blocks}
