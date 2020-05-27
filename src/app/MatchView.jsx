@@ -16,20 +16,34 @@ export function MatchView({ match, offset }) {
   }, [offset])
 
   const { rule, matched } = match
-  const contents = matched
-    .map((child, index) => {
-      if (child.rule?.name === "block") return null
-      return child instanceof Token ? <TokenView key={index} token={child} /> : <MatchView key={index} match={child} />
-    })
+  let hasTokens = false
+  let hasMatches = false
+  const contents = []
+  const blocks = []
+  matched.forEach((child, index) => {
+    if (child.rule?.name === "block") {
+      blocks.push(<MatchView key={index} match={child} />)
+    } else if (child instanceof Token) {
+      hasTokens = true
+      contents.push(<TokenView key={index} token={child} />)
+    } else {
+      hasMatches = true
+      contents.push(<MatchView key={index} match={child} />)
+    }
+  })
+  const className = [
+    "Match",
+    rule.constructor.name,
+    rule.name || "anonymous-rule",
+    hasTokens && "hasTokens",
+    hasMatches && "hasMatched",
+    blocks.length && "hasBlocks"
+  ]
     .filter(Boolean)
-  const blocks = matched
-    .map((child, index) => {
-      if (child.rule?.name === "block") return <MatchView key={index} match={child} />
-      return null
-    })
-    .filter(Boolean)
+    .join(" ")
+
   return (
-    <span className={`Match ${rule.constructor.name} ${rule.name || "anonymous-rule"}`} data-offset={`${match.start}`}>
+    <span className={className} data-offset={`${match.start}`}>
       {!!rule.name && <span className="name">{rule.name}</span>}
       {contents.length > 0 && <span className="contents">{contents}</span>}
       {blocks.length > 0 && blocks}

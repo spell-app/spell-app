@@ -128,7 +128,19 @@
   color: #999;
 }
 
-.Token.text,
+.Token.symbol,
+.Token.number,
 .Token.text {
-  color: blue;
+  color: rgb(0, 0, 128);
+}
+
+.Match.known_constant .Token,
+.Match.constant .Token {
+  color: rgb(0, 0, 128);
+  font-style: italic;
+}
+
+
+.Token.jsxElement {
+  white-space: normal;
 }
