@@ -12,14 +12,18 @@ export function MatchView({ match }) {
   return (
     <span className={`Match ${rule.constructor.name} ${rule.name || "anonymous-rule"}`}>
       {!!rule.name && <span className="name">{rule.name}</span>}
-      {matched.map((child, index) =>
-        child instanceof Token ? <TokenView key={index} token={child} /> : <MatchView key={index} match={child} />
-      )}
+      <span className="contents">
+        {matched.map((child, index) =>
+          child instanceof Token ? <TokenView key={index} token={child} /> : <MatchView key={index} match={child} />
+        )}
+      </span>
     </span>
   )
 }
 
 export function TokenView({ token }) {
   if (!token) return null
-  return <span className={`Token ${token.constructor.name} ${!!token.whitespace && "hasWhitespace"}`}>{token.raw}</span>
+  return (
+    <span className={`Token ${token.constructor.name} ${token.whitespace ? "hasWhitespace" : ""}`}>{token.raw}</span>
+  )
 }

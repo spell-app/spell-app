@@ -26,9 +26,9 @@ SpellParser.Rule.Block = class block extends Rule {
       if (first instanceof Token.Block) {
         result = this.parse(scope, [first])
       }
-      // process Line as "block_line" -- a statement with optional comment, etc.
+      // process Line as "line" -- a statement with optional comment, etc.
       else if (first instanceof Token.Line) {
-        result = scope.parse(items, "block_line")
+        result = scope.parse(items, "line")
       } else {
         console.warn("Block.parse(): Don't know what to do with token", first)
       }

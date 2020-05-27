@@ -278,7 +278,7 @@ export const SpellEditor = view(function SpellEditor() {
         </Row>
         <Row noGutters className="match p-2">
           <Col xs={12}>
-            <MatchView match={store.match} offset={store.offset} />
+            <MatchView match={store.file?.match} offset={store.offset} />
           </Col>
         </Row>
       </Container>

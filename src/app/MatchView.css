@@ -1,51 +1,121 @@
 .Match {
+  position: relative;
   display: inline-block;
   text-align: center;
-}
-
-.Match + .Match {
-  display: inline-block;
+  /* border: 1px dotted #999;
+  border-width: 0 0 0 1px; */
+  margin: 0 2px;
+  padding: 0 8px
 }
 
 .Match > .name {
   display: block;
+  position: relative;
+  left: -1px;
   font-size: 14px;
-  line-height: 20px;
+  line-height: 18px;
   padding: 0px 20px;
-  margin-bottom: 5px;
+  /* margin-bottom: 5px; */
   background: #eee;
   text-align: center;
   border: 1px solid black;
   border-top-width: 0;
+  border-top-left-radius: 5px; 
+   border-top-right-radius:5px;
+  border-bottom-left-radius: 20px; 
   border-bottom-right-radius: 20px;
-  border-bottom-left-radius: 20px;
+}
+
+.Match > .contents {
+  display: block;
+  padding-right: 5px;
+  padding-left: 5px;
 }
 
 .Match.block {
   display: block;
-  margin-top: 20px;
-  margin-left: 20px;
+  margin: 0px 10px 10px 15px;
+  padding: 0px 0 0 10px;
   text-align: left;
+  border-left: 4px solid black;
 }
+
+.Match.block > .contents {
+  padding-top: 0;
+}
+
 
 .Match.block > .name {
-  display: none;
+  position: absolute;
+  display: inline-block;
+  transform: rotate(-90deg) scale(0.75) translate(-1px, 1px);
+  transform-origin: left top;
+  left: -20px;
+  top: 40px;
+  padding: 0 10px;
+}   
+
+/* .Match.block > .name {
+  position: absolute;
+  width: 100%;
+  top: -20px;
+  left: -4px;
+  border-bottom-width: 4px;
+} */
+
+.Match.line {
+  display: block;
+  text-align: left;
+  border-top: 1px solid black;
+  border-left: 1px solid black;
+  margin: 10px 10px 15px 10px;
+  padding: 0;
 }
 
-.Match.block_line {
+.Match.line > .name {
+  position: absolute;
+  display: inline-block;
+  transform: rotate(-90deg) scale(0.75) translate(-1px, 1px);
+  transform-origin: left top;
+  left: -17px;
+  top: 32px;
+  padding: 0 10px;
+}   
+
+.Match.block > .name, .Match.line > .name {
+    border-top-right-radius: 20px;
+  border-top-left-radius: 20px;
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
+  border-top-width: 1px;
+}
+
+/* .Match.comment {
   display: block;
-  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.Match.comment > .contents {
+  display: inline-block;
+} */
+
+.Match.line > .Match {
   text-align: left;
+}
+
+.Match.anonymous-rule {
+  border-width: 0;
 }
 
 .Match.Keyword, .Match.Symbol, .Match.Keywords, .Match.Symbols {
   color: #999;
 }
 
-.Match.block_line > .name {
-  display: none;
+
+.Token {
+  padding: 0 5px;
 }
 
-.Token.hasWhitespace {
-  padding-right: 10px;
+.Token.comment {
+  color: #999;
 }

@@ -13,8 +13,9 @@ Rule.BlankLine.prototype.getAST = function(match) {
 // - an optional `comment` at the end of the line
 // - if the `statement.wantsNestedBlock` and the next item in `lines` is a `Token.Block`
 //   we'll let the statement attempt to parse the next line as well.
-SpellParser.Rule.BlockLine = class block_line extends Rule {
+SpellParser.Rule.BlockLine = class line extends Rule {
   parse(scope, lines) {
+    // eslint-disable-next-line no-shadow
     const line = lines[0]
     if (!line) return undefined
     const matched = []
@@ -39,11 +40,7 @@ SpellParser.Rule.BlockLine = class block_line extends Rule {
 
       // pop comment (which will be a single token) off of the end if found
       const comment = scope.parse([tokens.last], "comment")
-      if (comment) {
-        end -= 1
-        // add comment BEFORE STATEMENT
-        matched.push(comment)
-      }
+      if (comment) end -= 1
 
       // parse the statement (which may parse an inlineStatement as well)
       const unparsed = tokens.slice(start, end)
@@ -64,6 +61,9 @@ SpellParser.Rule.BlockLine = class block_line extends Rule {
         console.warn("Got unexpected statement.error for", statement.rule.name)
         matched.push(statement.error)
       }
+
+      // add comment AFTER statement
+      if (comment) matched.push(comment)
 
       if (statement) {
         // We've locked in this statement -- have it update scope if necessary.
