@@ -74,8 +74,11 @@ export class SpellFile extends TextFile {
   /** Our scope with which we've compiled. */
   @state scope = undefined
 
+  /** Our input text split into lines, for offset calculations. */
+  @state lines = undefined
+
   /** Results of our last `parse()` as a `Match`. */
-  @state matched = undefined
+  @state match = undefined
 
   /** AST for our `compiled` output. */
   @state AST = undefined
@@ -85,7 +88,7 @@ export class SpellFile extends TextFile {
 
   /** Reset our compiled state. */
   resetCompiled() {
-    this.resetState("scope", "matched", "AST", "compiled")
+    this.resetState("scope", "lines", "match", "AST", "compiled")
   }
 
   /**
@@ -106,31 +109,32 @@ export class SpellFile extends TextFile {
   }
 
   /**
-   * Load our content and attempt to parse it!  Returns a `Match` (available as `this.matched`).
-   * NOTE: if `this.matched` is set, we'll assume that's OK.
+   * Load our content and attempt to parse it!  Returns a `Match` (available as `this.match`).
+   * NOTE: if `this.match` is set, we'll assume that's OK.
    * Use `spellFile.resetCompiled()` to clear it.
    * Pass an explicit `parentScope` if the file is, e.g. building on other files.
    */
   async parse(parentScope) {
-    if (this.matched) return this.matched
+    if (this.match) return this.match
     await this.load()
     this.resetCompiled()
     batch(() => {
+      this.set("_state.lines", this.contents.split("\n"))
       this.set("_state.scope", this.getScope(parentScope))
-      const matched = this.scope.parse(this.contents, "block")
-      this.set("_state.matched", matched)
+      const match = this.scope.parse(this.contents, "block")
+      this.set("_state.match", match)
     })
-    return this.matched
+    return this.match
   }
 
   /**
    * Compile our content.  Note: you must parse first!
    */
   async compile(parentScope) {
-    const matched = await this.parse(parentScope)
+    const match = await this.parse(parentScope)
     batch(() => {
-      this.set("_state.AST", matched.AST)
-      let compiled = matched.compile()
+      this.set("_state.AST", match.AST)
+      let compiled = match.compile()
       try {
         // Use prettier to format the output.  This will throw if the code is bad.
         compiled = prettier.format(compiled, { parser: "babel", plugins: [babylon], printWidth: 120 })
@@ -185,6 +189,30 @@ export class SpellFile extends TextFile {
   /** Derive `url` from our projectId / filename if not explicitly set. */
   @overrideable get url() {
     return `/api${this.path}`
+  }
+
+  //-----------------
+  //  Rendering utilities
+  //-----------------
+
+  /** Convert CodeMirror Position: `{ line, ch }` to char `offset`. */
+  offsetForPosition(position) {
+    const { lines } = this
+    if (!lines) return undefined
+    return position.ch + lines.slice(0, position.line).join("\n").length
+  }
+
+  /** Given a char `offset`, return the Match that lines corresponds to. */
+  matchForOffset(offset) {
+    const lines = this.match?.matched
+    if (typeof offset !== "number" || !lines) return undefined
+    // outer thing will be a "block" -- `matched` will be lines.
+    let index = -1
+    let line
+    while ((line = lines[++index])) {
+      if (line.start <= offset && line.end > offset) return line
+    }
+    return undefined
   }
 }
 

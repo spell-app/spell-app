@@ -1,0 +1,51 @@
+.Match {
+  display: inline-block;
+  text-align: center;
+}
+
+.Match + .Match {
+  display: inline-block;
+}
+
+.Match > .name {
+  display: block;
+  font-size: 14px;
+  line-height: 20px;
+  padding: 0px 20px;
+  margin-bottom: 5px;
+  background: #eee;
+  text-align: center;
+  border: 1px solid black;
+  border-top-width: 0;
+  border-bottom-right-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+
+.Match.block {
+  display: block;
+  margin-top: 20px;
+  margin-left: 20px;
+  text-align: left;
+}
+
+.Match.block > .name {
+  display: none;
+}
+
+.Match.block_line {
+  display: block;
+  margin-top: 20px;
+  text-align: left;
+}
+
+.Match.Keyword, .Match.Symbol, .Match.Keywords, .Match.Symbols {
+  color: #999;
+}
+
+.Match.block_line > .name {
+  display: none;
+}
+
+.Token.hasWhitespace {
+  padding-right: 10px;
+}

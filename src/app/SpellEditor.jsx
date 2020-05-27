@@ -1,4 +1,4 @@
-import React, { isValidElement, cloneElement } from "react"
+import React from "react"
 import Container from "react-bootstrap/Container"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
@@ -13,8 +13,11 @@ import { useHotkeys } from "react-hotkeys-hook"
 import { view } from "~/util"
 import { SpellFileLocation } from "~/languages/spell"
 
+import { MatchView } from "./MatchView"
 import { CodeMirror, inputOptions, outputOptions } from "./CodeMirror"
 import { store } from "./store"
+
+import "./SpellEditor.css"
 
 // Set to `true` to debug rendering of components as observables change.
 const DEBUG_RENDER = false
@@ -158,6 +161,7 @@ const InputEditorInner = view(function InputEditorInner({ error }) {
       className="h-100 w-100 rounded shadow-sm border"
       options={options}
       onBeforeChange={store.onInputChanged}
+      onCursorActivity={store.onCursorActivity}
     />
   )
 })
@@ -258,18 +262,23 @@ export const SpellEditor = view(function SpellEditor() {
   if (DEBUG_RENDER) console.warn("SpellEditor")
   return (
     <>
-      <Container fluid className="d-flex flex-column h-100 px-0">
-        <Row>
+      <Container fluid className="SpellEditor d-flex flex-column px-0">
+        <Row className="toolbar">
           <Col xs={12}>
             <EditorToolbar />
           </Col>
         </Row>
-        <Row noGutters className="p-2 h-100">
+        <Row noGutters className="editor p-2">
           <Col xs={6} className="h-100 CodeMirrorContainer">
             <InputEditor />
           </Col>
           <Col xs={6} className="pl-2 CodeMirrorContainer">
             <OutputEditor />
+          </Col>
+        </Row>
+        <Row noGutters className="match p-2">
+          <Col xs={12}>
+            <MatchView match={store.match} offset={store.offset} />
           </Col>
         </Row>
       </Container>

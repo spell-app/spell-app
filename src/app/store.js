@@ -156,9 +156,22 @@ export const store = createStore({
       console.groupEnd()
     }
   },
+
+  //-----------------
+  // Event handlers
+  //-----------------
   onInputChanged(codeMirror, change, value) {
     store.file.setContents(value, { isDirty: true })
     store.project.updatedContentsFor(store.file)
+  },
+  onCursorActivity(codeMirror) {
+    if (!store.file.match) {
+      store.offset = undefined
+      store.match = undefined
+    }
+    const position = codeMirror.doc.sel.ranges[0] // { anchor, head }
+    store.offset = store.file.offsetForPosition(position.head)
+    store.match = store.file.matchForOffset(store.offset)
   },
 
   //-----------------
