@@ -169,9 +169,8 @@ export const store = createStore({
       store.offset = undefined
       store.match = undefined
     }
-    const position = codeMirror.doc.sel.ranges[0] // { anchor, head }
-    store.offset = store.file.offsetForPosition(position.head)
-    store.match = store.file.matchForOffset(store.offset)
+    store.position = codeMirror.doc.sel.ranges[0].head
+    store.offset = store.file.offsetForPosition(store.position)
   },
 
   //-----------------

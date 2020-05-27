@@ -202,8 +202,8 @@ export class SpellFile extends TextFile {
     return position.ch + lines.slice(0, position.line).join("\n").length
   }
 
-  /** Given a char `offset`, return the Match that lines corresponds to. */
-  matchForOffset(offset) {
+  /** Given a char `offset`, return the top-level `line` Match it corresponds to. */
+  lineMatchForOffset(offset) {
     const lines = this.match?.matched
     if (typeof offset !== "number" || !lines) return undefined
     // outer thing will be a "block" -- `matched` will be lines.

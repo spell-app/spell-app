@@ -1,67 +1,73 @@
 .Match {
   position: relative;
-  display: inline-block;
-  text-align: center;
-  /* border: 1px dotted #999;
-  border-width: 0 0 0 1px; */
-  margin: 0 2px;
-  padding: 0 8px
+  padding: 0 2px;
+  /* border: 1px solid red; */
+  display: flex;
+  flex-direction: column;
 }
 
 .Match > .name {
+  flex: 0;
   display: block;
   position: relative;
   left: -1px;
-  font-size: 14px;
-  line-height: 18px;
-  padding: 0px 20px;
+  font-size: 12px;
+  line-height: 14px;
+  padding: 2px 15px;
   /* margin-bottom: 5px; */
   background: #eee;
   text-align: center;
   border: 1px solid black;
   border-top-width: 0;
-  border-top-left-radius: 5px; 
-   border-top-right-radius:5px;
+  border-top-left-radius: 7px; 
+   border-top-right-radius: 7px;
   border-bottom-left-radius: 20px; 
   border-bottom-right-radius: 20px;
 }
 
 .Match > .contents {
-  display: block;
+  flex: 1;
+  position: relative;
+  display: flex;
   padding-right: 5px;
   padding-left: 5px;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  align-items: stretch;
 }
 
 .Match.block {
   display: block;
-  margin: 0px 10px 10px 15px;
-  padding: 0px 0 0 10px;
+  margin: 10px 10px 10px 15px;
+  padding: 10px 0 0 10px;
   text-align: left;
   border-left: 4px solid black;
+  border-top: 4px solid black;
 }
 
 .Match.block > .contents {
+  display: block;
   padding-top: 0;
 }
 
-
 .Match.block > .name {
   position: absolute;
-  display: inline-block;
-  transform: rotate(-90deg) scale(0.75) translate(-1px, 1px);
+  transform: rotate(-90deg);
   transform-origin: left top;
-  left: -20px;
-  top: 40px;
+  left: -17px;
+  top: 62px;
   padding: 0 10px;
+  background: black;
+  color: white;
+  font-size: 10px;
+  padding: 0 20px;
+  border-top-right-radius: 20px;
+  border-top-left-radius: 20px;
+  border-bottom-right-radius: 0px;
+  border-bottom-left-radius: 0px;
+  border-top-width: 1px;
 }   
-
-/* .Match.block > .name {
-  position: absolute;
-  width: 100%;
-  top: -20px;
-  left: -4px;
-  border-bottom-width: 4px;
-} */
 
 .Match.line {
   display: block;
@@ -75,47 +81,54 @@
 .Match.line > .name {
   position: absolute;
   display: inline-block;
-  transform: rotate(-90deg) scale(0.75) translate(-1px, 1px);
+  transform: rotate(-90deg);
   transform-origin: left top;
-  left: -17px;
-  top: 32px;
-  padding: 0 10px;
-}   
-
-.Match.block > .name, .Match.line > .name {
-    border-top-right-radius: 20px;
-  border-top-left-radius: 20px;
+  left: -16px;
+  top: 27px;
+  font-size: 10px;
+  padding: 0 5px;
+  border-top-right-radius: 16px;
+  border-top-left-radius: 16px;
   border-bottom-right-radius: 0px;
   border-bottom-left-radius: 0px;
   border-top-width: 1px;
-}
-
-/* .Match.comment {
-  display: block;
-  margin-bottom: 10px;
-}
-
-.Match.comment > .contents {
-  display: inline-block;
-} */
+}   
 
 .Match.line > .Match {
   text-align: left;
 }
 
-.Match.anonymous-rule {
-  border-width: 0;
+/* Token display */
+.Token {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  white-space: nowrap;
+}
+
+/* Add space between consecutive tokens. */
+.Token + .Token {
+  padding-left: 10px;
+}
+
+/* Spacer to make token text line up on the bottom. */
+.Token > .spacer {
+  flex: 1;
+}
+
+
+/* Color specific things */
+
+.Match.comment {
+  opacity: 0.5;
 }
 
 .Match.Keyword, .Match.Symbol, .Match.Keywords, .Match.Symbols {
   color: #999;
 }
 
-
-.Token {
-  padding: 0 5px;
-}
-
-.Token.comment {
-  color: #999;
+.Token.text,
+.Token.text {
+  color: blue;
 }
