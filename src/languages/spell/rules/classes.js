@@ -263,22 +263,23 @@ export const classes = new SpellParser({
         }
       ]
     },
-    // {
-    //   name: "type_specifier_instance",
-    //   alias: "type_specifier",
-    //   syntax: "as (a|an) new {datatype:singular_type}", // todo `with...`
-    //   getAST(match) {
-    //     return new AST.NewInstanceExpression(match, { type: match.groups.datatype.AST })
-    //   },
-    //   tests: [
-    //     {
-    //       tests: [
-    //         ["as a number", "number"],
-    //         ["as an automobile", "Automobile"]
-    //       ]
-    //     }
-    //   ]
-    // },
+
+    {
+      name: "type_specifier_instance",
+      alias: "type_specifier",
+      syntax: "as {new_thing}",
+      getAST(match) {
+        return match.groups.new_thing.AST
+      },
+      tests: [
+        {
+          tests: [
+            ["as a new thing", "new Thing()"],
+            ["as a new thing with a=1, b = true", "new Thing({ a: 1, b: true })"]
+          ]
+        }
+      ]
+    },
 
     {
       name: "type_specifier_yes_or_no",
@@ -371,6 +372,17 @@ export const classes = new SpellParser({
             props.addProp("enumeration", specifier)
             props.addProp("enumerationProp", `'${pluralize(upperFirst(property.value))}'`)
           }
+          // instance specifier
+          else if (specifier instanceof AST.NewInstanceExpression) {
+            props.addProp(
+              "initializer",
+              new AST.FunctionDefinition(match, {
+                statements: new AST.ReturnStatement(match, {
+                  value: specifier
+                })
+              })
+            )
+          }
           // type
           else {
             props.addProp("type", `'${specifier.name}'`)
@@ -408,6 +420,10 @@ export const classes = new SpellParser({
             [
               "todos have a property completed as yes or no",
               "spellCore.defineProperty(Todo.prototype, { property: 'completed', type: 'choice' })"
+            ],
+            [
+              "todos have a property tags as a new list",
+              "spellCore.defineProperty(Todo.prototype, { property: 'tags', initializer: function () { return new List() } })"
             ]
           ]
         },

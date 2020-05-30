@@ -503,7 +503,7 @@ export class ObjectLiteralProperty extends ASTNode {
     super(match, props)
     if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
-    this.assertType("value", Expression, OPTIONAL)
+    this.assertType("value", [Expression, FunctionDefinition], OPTIONAL)
   }
   toJS() {
     // If no value, assume it's available as a local variable.
@@ -523,7 +523,10 @@ export class ObjectLiteral extends Expression {
   }
   addProp(property, value) {
     if (typeof value === "string") value = new StringLiteral(this.match, { value })
-    this.assert(value instanceof Expression, `AST.ObjectLiteral.addProp(${property}): value must be an Expression`)
+    this.assert(
+      value instanceof Expression || value instanceof FunctionDefinition,
+      `AST.ObjectLiteral.addProp(${property}): value must be an Expression`
+    )
     if (!this.properties) this.properties = []
     this.properties.push(new ObjectLiteralProperty(this.match, { property, value }))
   }
@@ -828,7 +831,7 @@ export class MethodDefinition extends Statement {
   }
 }
 
-/** FunctionDefinition: creates an method for type instances
+/** FunctionDefinition: creates an function instance
  * - `method` is the method name
  * - `args` ia array of VariableExpressions
  * - `statements` is a Statement or Expression

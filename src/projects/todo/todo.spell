@@ -46,7 +46,7 @@ to draw (a todo-list)
 ## define `todos-app` class
 a todos-app is an app
 a todos-app has a filter as one of all, active or completed
-a todos-app has a property todos as a todo-list
+a todos-app has a property todos as a new todo-list
 the total-count of a todos-app is the length of its todos
 the active-todos of a todos-app is todos in its todos where the todo is active
 the active-count of a todos-app is the length of its active-todos
@@ -57,7 +57,6 @@ a todos-app has a property new-todo-name as text
 
 // create an instance of the app for top-level methods below
 set app to a new todos-app
-set the todos of the app to a new todo-list  // NOTE: shouldn't be necessary
 set the new-todo-name of the app to "???"
 
 // top-level methods

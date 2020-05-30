@@ -33,15 +33,27 @@ export const spellCore = {
    * - `enumeration` is array of legal values. If provided, we'll only set if value is in enumeration.
    * - `enumerationProp` is property name -- if defined, we'll set `thing[enumerationProp]` and `thing.constructor[enumerationProp]`
    */
-  defineProperty(thing, { property, value, type, enumeration, enumerationProp /* get, set, */ }) {
-    const descriptor = {
-      configurable: true,
-      get() {
-        return hasOwnProp(this._props, property) ? this._props[property] : value
-      },
-      set(newValue) {
-        if (!hasOwnProp(this, "_props")) this._props = {}
-        this._props[property] = newValue
+  defineProperty(thing, { property, value, type, initializer, enumeration, enumerationProp /* get, set, */ }) {
+    const descriptor = { configurable: true }
+    function baseSet(newValue) {
+      if (!hasOwnProp(this, "_props")) this._props = {}
+      this._props[property] = newValue
+    }
+
+    if (initializer) {
+      descriptor.get = function() {
+        const instanceValue = initializer.apply(this)
+        // On initial `get()`, run the initializer and `set` the value in _props.
+        baseSet.call(this, instanceValue)
+        // Define a getter to return the value from props, preserving `set`
+        Object.defineProperty(this, property, {
+          configurable: true,
+          get() {
+            return this._props[property]
+          },
+          set: descriptor.set
+        })
+        return instanceValue
       }
     }
 
@@ -50,8 +62,7 @@ export const spellCore = {
         if (!spellCore.isOfType(newValue, type)) {
           console.warn(`Expected ${property} to be type '${type}', got:`, newValue)
         }
-        if (!hasOwnProp(this, "_props")) this._props = {}
-        this._props[property] = newValue
+        baseSet.call(this, newValue)
       }
     } else if (enumeration) {
       // If the specified an `enumerationProp`, define the enumeration on the object and its constructor
@@ -63,10 +74,15 @@ export const spellCore = {
         if (!enumeration.includes(newValue)) {
           console.warn(`Expected ${property} to be one of '${enumeration}', got:`, newValue)
         }
-        if (!hasOwnProp(this, "_props")) this._props = {}
-        this._props[property] = newValue
+        baseSet.call(this, newValue)
       }
     }
+    if (!descriptor.get) {
+      descriptor.get = function() {
+        return hasOwnProp(this._props, property) ? this._props[property] : value
+      }
+    }
+    if (!descriptor.set) descriptor.set = baseSet
     spellCore.define(thing, property, descriptor)
   },
 
@@ -74,7 +90,7 @@ export const spellCore = {
   // TODO: number? string?  non-constructable thing???
   newThingLike(thing) {
     if (!assert.isDefined(thing, "spellCore.newThingLike()")) return undefined
-    if (spellCore.isArrayLike(thing)) return []
+    // if (spellCore.isArrayLike(thing)) return []
     try {
       return new thing.constructor()
     } catch (e) {
