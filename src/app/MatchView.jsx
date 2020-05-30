@@ -5,6 +5,13 @@ import { Token } from "~/parser"
 import { store } from "./store"
 import "./MatchView.css"
 
+function highlight(el, delay = 0) {
+  setTimeout(() => {
+    el.classList.add("highlight")
+    setTimeout(() => el.classList.remove("highlight"), 400)
+  }, delay)
+}
+
 export function MatchView({ match, offset }) {
   if (!match) return null
 
@@ -20,9 +27,22 @@ export function MatchView({ match, offset }) {
     // console.warn({ offset, lineMatch, lineEl })
     // scroll the `name` thinger into the center of the display
     lineEl.querySelector(".name").scrollIntoView({ block: "center" })
-    // add "highlight" class temporarily
-    lineEl.classList.add("highlight")
-    setTimeout(() => lineEl.classList.remove("highlight"), 400)
+
+    // highlight the line element
+    // highlight(lineEl)
+
+    // highlight NAMEs of bits higher in the stack
+    stack
+      .slice(0, stack.indexOf(lineMatch))
+      .reverse()
+      .forEach((item, index) => {
+        const itemEl =
+          item instanceof Token
+            ? document.querySelector(`.Token.${item.constructor.name}[data-start="${item.start}"] > .value`)
+            : document.querySelector(`.Match.${item.rule?.name}[data-start="${item.start}"] > .name`)
+
+        if (itemEl) highlight(itemEl, index * 20)
+      })
   }, [offset])
 
   const { rule, matched } = match
@@ -67,7 +87,11 @@ export function MatchView({ match, offset }) {
 export function TokenView({ token }) {
   if (!token) return null
   return (
-    <div className={`Token ${token.constructor.name} ${token.whitespace ? "hasWhitespace" : ""}`}>
+    <div
+      className={`Token ${token.constructor.name} ${token.whitespace ? "hasWhitespace" : ""}`}
+      data-start={`${token.start}`}
+      data-end={`${token.end}`}
+    >
       <div className="spacer" />
       <div className="value">{token.raw}</div>
     </div>

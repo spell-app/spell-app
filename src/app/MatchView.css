@@ -8,8 +8,16 @@
   transition: background 0.25s ease-in-out;
 }
 .Match.highlight {
+  background: rgba(245, 236, 212, 0.33);
+}
+.Match > .name.highlight {
   background: rgb(245, 236, 212);
 }
+
+.Token > .value.highlight {
+  background: rgb(245, 236, 212);
+}
+
 
 .Match > .name {
   flex: 0;
@@ -28,6 +36,7 @@
    border-top-right-radius: 7px;
   border-bottom-left-radius: 20px; 
   border-bottom-right-radius: 20px;
+  transition: background 0.25s ease-in-out;
 }
 
 .Match > .contents {
@@ -133,15 +142,19 @@
   flex: 1;
 }
 
+/* Token value. */
+.Token > .value {
+  transition: background 0.25s ease-in-out;
+}
 
 /* Color specific things */
 
 .Match.blank_line {
-  opacity: 0.5;
+  opacity: 0.25;
 }
 
 .Match.comment {
-  opacity: 0.5;
+  opacity: 0.25;
 }
 
 .Match.Keyword, .Match.Symbol, .Match.Keywords, .Match.Symbols {
