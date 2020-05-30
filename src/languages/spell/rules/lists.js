@@ -786,7 +786,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { position, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "removeItem",
+          method: "removeItemOf",
           args: [list.AST, position.AST]
         })
       },
@@ -797,8 +797,8 @@ export const lists = new SpellParser({
             scope.variables.add("deck")
           },
           tests: [
-            ["remove last card of deck", "spellCore.removeItem(deck, -1)"],
-            ["remove the first card of the deck", "spellCore.removeItem(deck, 1)"]
+            ["remove last card of deck", "spellCore.removeItemOf(deck, -1)"],
+            ["remove the first card of the deck", "spellCore.removeItemOf(deck, 1)"]
           ]
         }
       ]
@@ -814,7 +814,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { number, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "removeItem",
+          method: "removeItemOf",
           args: [list.AST, number.AST]
         })
       },
@@ -824,7 +824,7 @@ export const lists = new SpellParser({
           beforeEach(scope) {
             scope.variables.add("my-list")
           },
-          tests: [["remove item 4 of my-list", "spellCore.removeItem(my_list, 4)"]]
+          tests: [["remove item 4 of my-list", "spellCore.removeItemOf(my_list, 4)"]]
         }
       ]
     },

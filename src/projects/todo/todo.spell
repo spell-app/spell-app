@@ -13,11 +13,11 @@ a todo "is complete" if its completed is yes
 // `todo` instance method, e.g. what we'll use to `render()`
 to draw (a todo)
 	return  
-		<li class="todo" className={"completed" if its completed otherwise "active"}>
+		<div className={"todo" + ("completed" if its completed otherwise "active")}>
 			<input type="checkbox" value={its completed} appearance="round" />
-			<input type="text" defaultValue={its title}/>
+			{" "}{its title}{" "}
 			<button onClick={remove it from its list}>X</button>
-		</li>
+		</div>
 
 // set up inline test method -- check console for output.
 to test todo creation
@@ -34,13 +34,6 @@ test todo creation
 //////////////////////////
 ## define `todo-list` class
 a todo-list is a list of todos
-
-// `todo-list` instance method
-to draw (a todo-list)
-	return <ul class="todo-list">
-			{draw it}
-		</ul>
-
 
 //////////////////////////
 ## define `todos-app` class
@@ -97,7 +90,12 @@ to draw (a todos-app)
 		<div>
 			<h2>todos</h2>
 			<input type="text" defaultValue={its new-todo-name} onBlur={create a todo}/>
-			{draw visible-todos}
+			<br/>
+			<br/>
+			<div>
+				{draw visible-todos}
+			</div>
+			<br/>
 			<div>
 				<span>{its active-message}</span>
 				<button className={"active" if its filter is "all" otherwise "inactive"} onClick={set its filter to "all"} >All</button>

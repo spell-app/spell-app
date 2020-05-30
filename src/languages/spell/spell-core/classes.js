@@ -101,10 +101,11 @@ spellParser.defineRule({
 //----------------------------
 // `List`: our array concept (1-based)
 //--------
-export class List extends Array {
+export class List extends Observable {
   constructor(...values) {
     super()
-    if (values.length) this.push(...values)
+    this._state.items = []
+    if (values.length) this.add(...values)
     this.create()
   }
 
@@ -130,6 +131,67 @@ export class List extends Array {
   /* list.draw() to return list items as react components */
   draw() {
     return this.map((item, index) => <item.Component key={index} />)
+  }
+
+  // syntactic sugar
+  get length() {
+    return this.itemCount()
+  }
+
+  add(...items) {
+    spellCore.append(this, ...items)
+  }
+
+  map(callback) {
+    const results = []
+    this.getKeys().forEach(index => {
+      results[index] = callback(this.getItem(index), index)
+    })
+    return results
+  }
+
+  //----------------------------
+  // Collection methods
+  //----------------------------
+
+  itemCount() {
+    return this._state.items.length
+  }
+  getKeys() {
+    return _.range(1, this.length + 1)
+  }
+  getValues() {
+    return this.getKeys().map(index => this.getItem(index))
+  }
+  itemOf(thing) {
+    const zeroIndex = this._state.items.indexOf(thing)
+    if (zeroIndex === -1) return undefined
+    return zeroIndex + 1
+  }
+  getItem(index) {
+    return this._state.items[index - 1]
+  }
+  setItem(index, value) {
+    const items = [...this._state.items]
+    items[index - 1] = value
+    this._state.items = items
+  }
+  addAtPosition(start, ...things) {
+    const items = [...this._state.items]
+    const itemStart = start === 0 ? 0 : start - 1
+    items.splice(itemStart, 0, ...things)
+    this._state.items = items
+  }
+  removeItem(index) {
+    const items = [...this._state.items]
+    items.splice(index - 1, 1)
+    this._state.items = items
+  }
+  clear() {
+    this._state.items = []
+  }
+  getIterator() {
+    return this._state.items[Symbol.iterator]
   }
 }
 spellCore.addExport("List", List)

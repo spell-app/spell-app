@@ -74,7 +74,7 @@ export const classes = new SpellParser({
             // Declare the class
             new AST.ClassDeclaration(match, {
               type: type.AST,
-              superType: new AST.TypeExpression(match, { raw: "list", name: "Array" }),
+              superType: new AST.TypeExpression(match, { raw: "list", name: "List" }),
               instanceType: instanceType.AST
             })
           ]
