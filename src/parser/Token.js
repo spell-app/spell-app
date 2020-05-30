@@ -16,9 +16,9 @@ export class Token {
     return this.offset
   }
 
-  // End character position in stream (non-inclusive)
+  // End character position in stream (non-inclusive), doesn't include whitespace
   get end() {
-    return this.offset + (this.raw?.length || 0)
+    return this.offset + (this.raw?.length || 0) + (this.whitespace?.length || 0)
   }
 
   // Do we match a `literal` value?
