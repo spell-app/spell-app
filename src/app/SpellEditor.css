@@ -10,9 +10,14 @@
   height: calc(100vh - 440px);
 }
 
-.SpellEditor > .match {
+.SpellEditor #match {
   border: 1px solid #ccc;
-  padding: 10px;
+  overflow: auto;
+  height: 400px;
+}
+
+.SpellEditor #output {
+  border: 1px solid #ccc;
   overflow: auto;
   height: 400px;
 }

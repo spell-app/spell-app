@@ -276,7 +276,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { position, expression } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "getItem",
+          method: "getItemOf",
           args: [expression.AST, position.AST]
         })
       },
@@ -305,7 +305,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { ordinal, expression } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "getItem",
+          method: "getItemOf",
           args: [expression.AST, ordinal.AST]
         })
       },

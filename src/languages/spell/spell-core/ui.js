@@ -2,6 +2,23 @@
 // UI interaction thingers for spell
 // TODO: these are maybe not core, since they're tied into particular UI???
 // ----------------------------
+import React from "react"
+
+import { spellCore } from "."
+
+Object.assign(spellCore, {
+  //----------------------------
+  // components
+  //--------
+
+  // Create an element (ala `React.createElement()`)
+  // eslint-disable-next-line react/prop-types
+  element({ tag, props, children = [] } = {}) {
+    // if (!children || !children.length) return <Tag {...props} />
+    // return <Tag {...props}>{children}</Tag>
+    return React.createElement(tag, props, ...children)
+  }
+})
 
 // import spell from "."
 // Object.assign(spell, {

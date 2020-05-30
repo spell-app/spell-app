@@ -276,9 +276,12 @@ export const SpellEditor = view(function SpellEditor() {
             <OutputEditor />
           </Col>
         </Row>
-        <Row noGutters className="match p-2">
-          <Col xs={12}>
+        <Row noGutters>
+          <Col xs={8} id="match" className="p-2">
             <MatchView match={store.file?.match} offset={store.offset} />
+          </Col>
+          <Col xs={4} id="output" className="p-2">
+            <div id="app-root" />
           </Col>
         </Row>
       </Container>

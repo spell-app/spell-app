@@ -193,19 +193,19 @@ export const JSX = new SpellParser({
           if (value instanceof Token.JSXExpression) {
             // trim and remove newlines from expression
             const input = value.contents.trim().replace(/\n/g, " ")
-            // try as an expression first, but only take it if we match everything
-            const expression = scope.parse(input, "expression")
-            if (expression && expression.inputText.length === input.length) {
-              match.expression = expression
+            // try as an statement first, but only take it if we match everything
+            const statement = scope.parse(input, "statement")
+            if (statement && statement.inputText.length === input.length) {
+              match.statement = statement
             } else {
-              // if that didn't work, try as a `statement` (e.g. for inline method)
-              const statement = scope.parse(input, "statement")
-              if (statement && statement.inputText.length === input.length) {
-                match.statement = statement
+              // if that didn't work, try as an `expression` (e.g. for inline method)
+              const expression = scope.parse(input, "expression")
+              if (expression && expression.inputText.length === input.length) {
+                match.expression = expression
               }
+              // if neither worked, parse error
+              if (!match.expression && !match.statement) match.error = scope.parse(input, "parse_error")
             }
-            // if neither worked, parse error
-            if (!match.expression && !match.statement) match.error = scope.parse(input, "parse_error")
           } else if (value instanceof Token.Number) {
             // NON-STANDARD: we allow you to do `<foo a=1 />` ????
             match.expression = scope.parse(value, "number")

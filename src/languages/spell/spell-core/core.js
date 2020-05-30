@@ -5,7 +5,6 @@ import global from "global"
 import forEach from "lodash/forEach"
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
-import React from "react"
 
 import { hasOwnProp } from "~/util"
 import { assert } from "."
@@ -267,15 +266,5 @@ export const spellCore = {
       for (let next = start; next >= end; next--) range.push(next)
     }
     return range
-  },
-
-  //----------------------------
-  // components
-  //--------
-
-  // Create an element (ala `React.createElement()`)
-  // eslint-disable-next-line react/prop-types
-  element({ tag, props, children = [] } = {}) {
-    return React.createElement(tag, props, ...children)
   }
 }

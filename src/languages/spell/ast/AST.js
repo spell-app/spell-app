@@ -963,7 +963,7 @@ export class JSXElement extends Expression {
   }
 }
 
-/** JSXElement
+/** JSXAttribute
  * - `name`
  * - `value`
  * - `error`

@@ -13,11 +13,11 @@ a todo "is complete" if its completed is yes
 // `todo` instance method, e.g. what we'll use to `render()`
 to draw (a todo)
 	return  
-		<ui-list-item key={1} class="todo" completed={its completed}>
-			<ui-checkbox value={its completed} appearance="round" />
-			<ui-input expand value={its title}/>
-			<ui-button onpress={remove it from its list}><icon name="x"/></ui-button>
-		</ui-list-item>
+		<li class="todo" className={"completed" if its completed otherwise "active"}>
+			<input type="checkbox" value={its completed} appearance="round" />
+			<input type="text" defaultValue={its title}/>
+			<button onClick={remove it from its list}>X</button>
+		</li>
 
 // set up inline test method -- check console for output.
 to test todo creation
@@ -37,9 +37,9 @@ a todo-list is a list of todos
 
 // `todo-list` instance method
 to draw (a todo-list)
-	return <ui-list class="todo-list">
-			{for each todo in it: draw the todo}
-		</ui-list>
+	return <ul class="todo-list">
+			{draw it}
+		</ul>
 
 
 //////////////////////////
@@ -58,12 +58,14 @@ a todos-app has a property new-todo-name as text
 // create an instance of the app for top-level methods below
 set app to a new todos-app
 set the new-todo-name of the app to "???"
+print the app
 
 // top-level methods
 to create a todo with title as text, completed = no
 	if the title is undefined then set the title to the new-todo-name of the app
 	print "creating a todo with title: " + title + " and completed:" + completed
 	get a new todo with title = the title, completed = the completed
+	set its list to the todos of the app
 	add it to the todos of the app
 
 to clear completed todos
@@ -89,30 +91,27 @@ to draw (a todos-app)
 	otherwise if its filter is "completed" set visible-todos to its completed-todos
 	print "visible todos:"
 	print visible-todos
+	print the Component of visible-todos
 
 	return 
-		<ui-container>
-			<ui-header huge>todos</ui-header>
-			<ui-text-field value={its new-todo-name} on-blur={create a todo}/>
+		<div>
+			<h2>todos</h2>
+			<input type="text" defaultValue={its new-todo-name} onBlur={create a todo}/>
 			{draw visible-todos}
-			<ui-toolbar>
-				<ui-label>{its active-message}</ui-label>
-				<ui-spring/>
-				<ui-button active={its filter is "all"} on-press={set its filter to "all"} >All</ui-button>
-				<ui-button active={its filter is "active"} on-press={set its filter to "active"}>Active</ui-button>
-				<ui-button active={its filter is "completed"} on-press={set its filter to "completed"}>Completed</ui-button>
-				<ui-spring/>
-				<ui-button hidden={its completed-count is 0} on-press={clear completed todos} >
+			<div>
+				<span>{its active-message}</span>
+				<button className={"active" if its filter is "all" otherwise "inactive"} onClick={set its filter to "all"} >All</button>
+				<button className={"active" if its filter is "active" otherwise "inactive"} onClick={set its filter to "active"}>Active</button>
+				<button className={"active" if its filter is "completed" otherwise "inactive"}  onClick={set its filter to "completed"}>Completed</button>
+				<button hidden={its completed-count is 0} onClick={clear completed todos} >
 					Clear Completed
-				</ui-button>
-			</ui-toolbar>
-		</ui-container>
+				</button>
+			</div>
+		</div>
 
 //////////////////////////
 ## draw the app
-// note: this will eventually render the app on the screen, 
-// the print bit is so you can check out results in the console.
-print (draw the app)
+start the app
 
 
 
