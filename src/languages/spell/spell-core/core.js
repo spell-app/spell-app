@@ -40,6 +40,8 @@ export const spellCore = {
       this._props[property] = newValue
     }
 
+    // If we get an `initializer()`, call it to get a value for each instance,
+    // store that in `_props`
     if (initializer) {
       descriptor.get = function() {
         const instanceValue = initializer.apply(this)
@@ -55,9 +57,7 @@ export const spellCore = {
         })
         return instanceValue
       }
-    }
-
-    if (type) {
+    } else if (type) {
       descriptor.set = function(newValue) {
         if (!spellCore.isOfType(newValue, type)) {
           console.warn(`Expected ${property} to be type '${type}', got:`, newValue)

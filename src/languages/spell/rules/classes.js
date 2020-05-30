@@ -1,4 +1,4 @@
-import { lowerFirst, upperFirst, pluralize, singularize } from "~/util"
+import { upperFirst, pluralize, singularize } from "~/util"
 import { SpellParser, AST } from "~/languages/spell"
 
 function getOrStubType(scope, typeName) {
@@ -332,8 +332,8 @@ export const classes = new SpellParser({
 
           // Add multi-word identifier rule which returns enumeration, e.g. `card suits` or `Card Suits`
           const literals = [
-            [typeName, lowerFirst(typeName)],
-            [groupName, lowerFirst(groupName)]
+            [typeName, typeName.toLowerCase()],
+            [groupName, groupName.toLowerCase()]
           ]
           scope.rules.add({
             name: `${typeName}_${groupName}`,

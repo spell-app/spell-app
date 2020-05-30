@@ -71,7 +71,7 @@ to clear completed todos
 	remove todos from (the todos of the app) where the todo is complete
 
 // test the methods -- check the console for output
-to test todos app methods
+to test todos-app methods
 	print "testing todos-app methods"
 	create a todo with title = "Get started", completed = yes
 	create a todo with title = "Test todo creation"
@@ -79,7 +79,7 @@ to test todos app methods
 	clear completed todos
 	expect the length of the todos of the app to be 1
 	// leave one todo in there for `draw` below
-test todos app methods
+test todos-app methods
 
 // instance method for todos-app -- OK that we're defining after `app` was created.
 to draw (a todos-app)

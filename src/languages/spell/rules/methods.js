@@ -144,9 +144,10 @@ export const methods = new SpellParser({
           // Set up the method signature and rule syntax
           // We'll get one of the following combos: keyword, type, variable, variable + type
           groups.signature.forEach(({ keyword, variable, type, arg }) => {
+            // console.info({ keyword, variable, type, arg })
             if (keyword) {
               bits.method.push(keyword.value)
-              bits.syntax.push(keyword.value)
+              bits.syntax.push(keyword.raw)
               return
             }
 
@@ -155,7 +156,7 @@ export const methods = new SpellParser({
             bits.args.push(arg)
 
             const varName = variable && variable.value
-            const typeName = type && instanceCase(type.value)
+            const typeName = type && type.raw // instanceCase(type.value)
             bits.method.push(`$${varName || typeName}`)
             let syntaxArgType = "callArgs"
 
