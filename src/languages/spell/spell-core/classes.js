@@ -23,10 +23,16 @@ export class Thing extends Observable {
 }
 spellCore.addExport("Thing", Thing)
 
-//----------------------------
-// `Drawable`: something that can be used for rendering... ???
-//--------
+/**
+ * `Drawable`: component that can be used for rendering.
+ * Define a draw method as `to draw (a <thing>)` which returns JSX.
+ * `draw the thing` will then draw it reactively.
+ */
 export class Drawable extends Thing {
+  /**
+   * Return a React.Component which renders an instance.
+   * Note that we use a class component to get around hook issues with `react-easy-state`.
+   */
   @memoize
   get Component() {
     const render = () => {
@@ -41,11 +47,16 @@ export class Drawable extends Thing {
   }
 }
 spellCore.addExport("Drawable", Drawable)
-// Add `draw <thing>` statement with high precedence.
+
+/** Add `draw <thing>` expression which draws a drawable as a React Component.
+ * NOTE: precedence must be higher than ad-hoc `draw_$thing` rules
+ *       defined when setting up JSX output with `to draw a <thing>`.
+ */
 spellParser.defineRule({
   name: "draw_thing",
   alias: "expression",
   syntax: "draw {expression}",
+  constructor: "Statement",
   precedence: 100,
   getAST(match) {
     return new AST.CoreMethodInvocation(match, {

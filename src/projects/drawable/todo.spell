@@ -1,22 +1,28 @@
 a todo is a drawable
 a todo has a title as text
 a todo has a completed as yes or no
+a todo "is complete" if its completed is yes
+a todo "is active" if its completed is not yes
 
 a todos-app is an app
 a todos-app has a property todos as a new List
+a todos-app has a filter as one of all, active or completed
 
 set app to a new todos-app
+set the filter of the app to "all"
 add a new todo with title = "One", completed = false to the todos of the app
 add a new todo with title = "Two", completed = true to the todos of the app
 add a new todo with title = "Three", completed = false to the todos of the app
 
 to draw (a todo)
+	if the filter of the app is "active" and it is complete return no
+	if the filter of the app is "completed" and it is active return no
 	return <tr>
 		<td>
 			<input 
 				type="checkbox" 
-				checked={its completed is true} 
-				onChange={set its completed to yes if its completed is no otherwise no}/>
+				checked={it is complete} 
+				onChange={set its completed to yes if it is active otherwise no}/>
 		</td>
 		<td>{" "}{its title}{" "}</td>
 		<td><button onClick={remove it from the todos of the app}>x</button></td>
@@ -28,9 +34,20 @@ to draw (a todos-app)
 			<table><tbody>
 				{draw its todos}
 			</tbody></table>
-			<button onClick={add a new todo with title = "Moar" to the todos of the app}>+</button>
-			<button onClick={remove the first item of the todos of the app}>-</button>
-			<button onClick={set the title of the first item of the todos of the app to "New title"}>change</button>
+			<br/>
+			<div>
+				Show:
+				<button onClick={set the filter of the app to "all"}>All</button>
+				<button onClick={set the filter of the app to "active"}>Active</button>
+				<button onClick={set the filter of the app to "completed"}>Completed</button>
+			</div>
+			<br/>
+			<div>
+				<button onClick={add a new todo with title = "Moar" to the todos of the app}>+ Add</button>
+				<button onClick={remove the first item of the todos of the app}>- Remove</button>
+				<button onClick={set the title of the first item of the todos of the app to "New title"}>Change name</button>
+				<button onClick={remove items in (the todos of the app) where it is complete}>Remove Completed</button>
+			</div>
 		</div>
 
 start the app
