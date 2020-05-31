@@ -169,28 +169,7 @@ const OutputEditor = view(function OutputEditor() {
   const { file } = store
   const compiled = file?.compiled
   if (DEBUG_RENDER) console.info("OutputEditor", { file, compiled })
-  return (
-    <>
-      <CodeMirror value={compiled} disabled options={outputOptions} onChange={Function.prototype} />
-      {file?.isLoaded && !compiled && (
-        <Button
-          className="CompileButton border shadow-sm p-0 pt-1 text-secondary"
-          style={{
-            background: "#eee",
-            position: "absolute",
-            width: "5em",
-            left: 0,
-            top: "50%",
-            zIndex: 2
-          }}
-          onClick={store.compile}
-        >
-          <ion-icon name="chevron-forward-outline" size="large" />
-          Compile
-        </Button>
-      )}
-    </>
-  )
+  return <CodeMirror value={compiled} disabled options={outputOptions} onChange={Function.prototype} />
 })
 
 const Notice = view(function Notice() {
@@ -207,6 +186,29 @@ const Notice = view(function Notice() {
         </Toast.Header>
       </Toast>
     </div>
+  )
+})
+
+const CompileButton = view(function CompileButton() {
+  const { file } = store
+  const compiled = file?.compiled
+  if (!file?.isLoaded || compiled) return null
+  return (
+    <Button
+      className="CompileButton border shadow-sm p-0 pt-1 text-secondary"
+      style={{
+        background: "#eee",
+        position: "absolute",
+        width: "5em",
+        left: "-2.5em",
+        top: "50%",
+        zIndex: 2
+      }}
+      onClick={store.compile}
+    >
+      <ion-icon name="chevron-forward-outline" size="large" />
+      Compile
+    </Button>
   )
 })
 
@@ -273,6 +275,7 @@ export const SpellEditor = view(function SpellEditor() {
             <div id="match" className="p-2 rounded shadow-sm border">
               <MatchView match={store.file?.match} offset={store.offset} />
             </div>
+            <CompileButton />
           </Col>
         </Row>
         <Row id="bottomRow" noGutters>

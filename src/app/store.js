@@ -82,6 +82,7 @@ export const store = createStore({
   file: undefined,
   /** Select a file from the `selectedProject`. */
   selectFile: async filePath => {
+    store.clearCompileSoon()
     // TODO: switch project if filePath doesn't match selected project?
     // NOTE: assumes `store.project` is a valid, loaded project!
     const { project } = store
@@ -97,12 +98,14 @@ export const store = createStore({
     if (store.file?.isLoaded) await store.file.save()
   },
   async reloadFile() {
+    store.clearCompileSoon()
     if (store.file) {
       await store.file.reload()
       store.compile()
     }
   },
   async createFile(path, contents) {
+    store.clearCompileSoon()
     try {
       const newFile = await store.project.createFile(path, contents)
       if (newFile) {
@@ -114,6 +117,7 @@ export const store = createStore({
     }
   },
   async duplicateFile(newPath) {
+    store.clearCompileSoon()
     try {
       const newFile = await store.project.duplicateFile(store.file.path, newPath)
       if (newFile) {
@@ -125,6 +129,7 @@ export const store = createStore({
     }
   },
   async renameFile(newPath) {
+    store.clearCompileSoon()
     try {
       const renamedFile = store.project.renameFile(store.file.path, newPath)
       if (renamedFile) {
@@ -136,6 +141,7 @@ export const store = createStore({
     }
   },
   async removeFile() {
+    store.clearCompileSoon()
     try {
       const removed = await store.project.removeFile(store.file.path, CONFIRM)
       if (removed) {
@@ -149,11 +155,25 @@ export const store = createStore({
   async compile() {
     if (!store.project || !store.file) return
     console.group("Compiling", store.project)
+    store.clearCompileSoon()
     try {
       await store.project.compile()
+      store.setScrollOffset()
       store.project.executeCompiled()
     } finally {
       console.groupEnd()
+    }
+  },
+
+  // Compile after `delay` seconds.
+  compileSoon(delay = 1) {
+    clearTimeout(store.compileSoonTimer)
+    store.compileSoonTimer = setTimeout(store.compile, delay * 1000)
+  },
+  clearCompileSoon() {
+    if (store.compileSoonTimer) {
+      clearTimeout(store.compileSoonTimer)
+      delete store.compileSoonTimer
     }
   },
 
@@ -163,14 +183,22 @@ export const store = createStore({
   onInputChanged(codeMirror, change, value) {
     store.file.setContents(value, { isDirty: true })
     store.project.updatedContentsFor(store.file)
+    // auto-compile 2 seconds after input settles
+    store.compileSoon(2)
   },
+
+  // input CodeMirror position as { line, ch }
+  position: { line: 0, ch: 0 },
+  // file.contents `offset` for above position
+  offset: 0,
   onCursorActivity(codeMirror) {
-    if (!store.file.match) {
-      store.offset = undefined
-      store.match = undefined
-    }
     store.position = codeMirror.doc.sel.ranges[0].head
-    store.offset = store.file.offsetForPosition(store.position)
+    store.setScrollOffset()
+  },
+  // Adjust `store.offset` (and thus scroll of <MatchView/>) to reflect input `position`.
+  setScrollOffset() {
+    if (!store.file?.match) store.offset = 0
+    else store.offset = store.file.offsetForPosition(store.position)
   },
 
   //-----------------
