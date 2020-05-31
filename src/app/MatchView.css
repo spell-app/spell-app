@@ -27,17 +27,25 @@
   font-size: 12px;
   line-height: 14px;
   padding: 2px 15px;
+  height: 18px;
   /* margin-bottom: 5px; */
   background: #eee;
   text-align: center;
   border: 1px solid black;
   border-top-width: 0;
   border-top-left-radius: 7px; 
-   border-top-right-radius: 7px;
+  border-top-right-radius: 7px;
   border-bottom-left-radius: 20px; 
   border-bottom-right-radius: 20px;
   transition: background 0.25s ease-in-out;
 }
+/* The below will hide non-statement rule names until you hover
+.Match.line > .contents > .Match .Match:not(.line):not(.block) .name {
+  height: 2px;
+}
+.Match.line:hover > .contents > .Match .Match:not(.line):not(.block) .name {
+  height: 18px;
+} */
 
 .Match > .contents {
   flex: 1;
@@ -61,7 +69,8 @@
 }
 
 .Match.block:first-child {
-  margin: 15px 0 5px 5px;
+  margin-top: 15px;
+  margin-left: 5px;
 }
 
 .Match.block > .contents {

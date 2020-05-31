@@ -158,7 +158,6 @@ const InputEditorInner = view(function InputEditorInner({ error }) {
       key={(error && "error") || file?.path || "loading"}
       value={file?.contents || "Loading"}
       disabled
-      className="h-100 w-100 rounded shadow-sm border"
       options={options}
       onBeforeChange={store.onInputChanged}
       onCursorActivity={store.onCursorActivity}
@@ -172,13 +171,7 @@ const OutputEditor = view(function OutputEditor() {
   if (DEBUG_RENDER) console.info("OutputEditor", { file, compiled })
   return (
     <>
-      <CodeMirror
-        value={compiled}
-        disabled
-        className="h-100 w-100 rounded shadow-sm border"
-        options={outputOptions}
-        onChange={Function.prototype}
-      />
+      <CodeMirror value={compiled} disabled options={outputOptions} onChange={Function.prototype} />
       {file?.isLoaded && !compiled && (
         <Button
           className="CompileButton border shadow-sm p-0 pt-1 text-secondary"
@@ -263,25 +256,37 @@ export const SpellEditor = view(function SpellEditor() {
   return (
     <>
       <Container fluid className="SpellEditor d-flex flex-column px-0">
-        <Row className="toolbar">
+        <Row id="toolbar">
           <Col xs={12}>
             <EditorToolbar />
           </Col>
         </Row>
-        <Row noGutters className="editor p-2">
-          <Col xs={6} className="h-100 CodeMirrorContainer">
-            <InputEditor />
+        <Row id="topRow" noGutters>
+          <Col xs={6} className="p-2">
+            <div id="input" className="rounded shadow-sm border">
+              <div className="CodeMirrorContainer">
+                <InputEditor />
+              </div>
+            </div>
           </Col>
-          <Col xs={6} className="pl-2 CodeMirrorContainer">
-            <OutputEditor />
+          <Col xs={6} className="pt-2 pr-2 pb-2">
+            <div id="match" className="p-2 rounded shadow-sm border">
+              <MatchView match={store.file?.match} offset={store.offset} />
+            </div>
           </Col>
         </Row>
-        <Row noGutters>
-          <Col xs={8} id="match" className="p-2">
-            <MatchView match={store.file?.match} offset={store.offset} />
+        <Row id="bottomRow" noGutters>
+          <Col xs={6} className="pl-2 pr-2 pb-2">
+            <div id="app" className="p-4 rounded shadow-sm border">
+              <div id="app-root" />
+            </div>
           </Col>
-          <Col xs={4} id="output" className="p-2">
-            <div id="app-root" />
+          <Col xs={6} className="pr-2 pb-2">
+            <div id="output" className="rounded shadow-sm border">
+              <div className="CodeMirrorContainer">
+                <OutputEditor />
+              </div>
+            </div>
           </Col>
         </Row>
       </Container>

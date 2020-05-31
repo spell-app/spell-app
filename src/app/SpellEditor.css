@@ -2,22 +2,37 @@
  height: 100vh; 
 }
 
-.SpellEditor > .toolbar {
+.SpellEditor .row,
+.SpellEditor .row > div,
+.SpellEditor .row > div > div {
+  position: relative;
+}
+
+.SpellEditor .row > div,
+.SpellEditor .row > div > div {
+  height: 100%;
+}
+
+.SpellEditor #toolbar {
   height: 40px;
 }
 
-.SpellEditor > .editor {
+.SpellEditor #topRow,
+.SpellEditor #topRow .CodeMirror {
   height: calc(100vh - 440px);
 }
 
-.SpellEditor #match {
-  border: 1px solid #ccc;
-  overflow: auto;
+.SpellEditor #bottomRow,
+.SpellEditor #bottomRow .CodeMirror {
   height: 400px;
 }
 
-.SpellEditor #output {
-  border: 1px solid #ccc;
+.SpellEditor #match {
   overflow: auto;
-  height: 400px;
+  height: 100%;
+}
+
+.SpellEditor #app {
+  overflow: auto;
+  height: 100%;
 }
