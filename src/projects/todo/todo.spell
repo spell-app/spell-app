@@ -40,16 +40,17 @@ a todo-list is a list of todos
 a todos-app is an app
 a todos-app has a filter as one of all, active or completed
 a todos-app has a property todos as a new todo-list
-the total-count of a todos-app is the length of its todos
-the active-todos of a todos-app is todos in its todos where the todo is active
-the active-count of a todos-app is the length of its active-todos
-the active-message of a todos-app is its active-count + (" item" if its active-count is 1 otherwise " items") + " left"
-the completed-todos of a todos-app is todos in its todos where the todo is complete
-the completed-count of a todos-app is the length of its completed-todos
+// the total-count of a todos-app is the length of its todos
+// the active-todos of a todos-app is todos in its todos where the todo is active
+// the active-count of a todos-app is the length of its active-todos
+// the active-message of a todos-app is its active-count + (" item" if its active-count is 1 otherwise " items") + " left"
+// the completed-todos of a todos-app is todos in its todos where the todo is complete
+// the completed-count of a todos-app is the length of its completed-todos
 a todos-app has a property new-todo-name as text
 
 // create an instance of the app for top-level methods below
 set app to a new todos-app
+set the filter of the app to "all"
 set the new-todo-name of the app to "???"
 print the app
 
@@ -79,12 +80,15 @@ test todos-app methods
 // instance method for todos-app -- OK that we're defining after `app` was created.
 to draw (a todos-app)
 	// figure out what we'll actually render based on the filter
-	set visible-todos to its todos
-	if its filter is "active" then set visible-todos to its active-todos
-	otherwise if its filter is "completed" set visible-todos to its completed-todos
-	print "visible todos:"
-	print visible-todos
-	print the Component of visible-todos
+	set todos to its todos
+	if its filter is "active" then set todos to todos in todos where it is activve
+	if its filter is "completed" then  set todos to todos in todos where it is complete
+	print its filter
+	print todos
+	// if its filter is "active" then set visible-todos to its active-todos
+	// otherwise if its filter is "completed" set visible-todos to its completed-todos
+	// print "visible todos:"
+	// print visible-todos
 
 	return 
 		<div>
@@ -93,7 +97,7 @@ to draw (a todos-app)
 			<br/>
 			<br/>
 			<div>
-				{draw visible-todos}
+				{draw the todos}
 			</div>
 			<br/>
 			<div>

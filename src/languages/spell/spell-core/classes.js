@@ -29,13 +29,15 @@ spellCore.addExport("Thing", Thing)
 export class Drawable extends Thing {
   @memoize
   get Component() {
-    // return view(() => this.draw())
-    // Wrap with `view` from react-easy-state to make it dynamic
-    return view(() => {
+    const render = () => {
       const elements = this.draw()
       console.info({ drawable: this, elements })
       return elements
-    })
+    }
+    class DrawableC extends React.Component {
+      render = render
+    }
+    return view(DrawableC)
   }
 }
 spellCore.addExport("Drawable", Drawable)
@@ -78,7 +80,6 @@ export class App extends Drawable {
       document.body.appendChild(root)
     }
     const AppComponent = this.Component
-    console.warn(AppComponent)
     ReactDOM.render(<AppComponent />, root)
   }
 }
@@ -114,19 +115,25 @@ export class List extends Observable {
 
   @memoize
   get Component() {
-    // return view(() => this.draw())
-    // Wrap with `view` from react-easy-state to make it dynamic
-    // return view(() => {
-    //   const elements = this.draw()
-    //   console.info({ list: this, elements })
-    //   return elements
-    // })
-    return view(() => {
+    const render = () => {
       const elements = this.draw()
       console.info({ list: this, elements })
       return elements
-    })
+    }
+    class ListC extends React.Component {
+      render = render
+    }
+    return view(ListC)
   }
+
+  // @memoize
+  // get Component() {
+  //   return view(() => {
+  //     const elements = this.draw()
+  //     console.info({ list: this, elements })
+  //     return elements
+  //   })
+  // }
 
   /* list.draw() to return list items as react components */
   draw() {

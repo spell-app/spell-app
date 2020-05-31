@@ -1,46 +1,37 @@
 a todo is a drawable
 a todo has a title as text
 a todo has a completed as yes or no
-to toggle (a todo)
-	set its completed to yes if its completed is no otherwise no
-	print it
 
 a todos-app is an app
 a todos-app has a property todos as a new List
+
 set app to a new todos-app
-print the app
-
-to draw (a todo)
-	return <li>
-		<input type="checkbox" checked={its completed is true} onChange={toggle it}/>
-		{" "}{its title}
-		<button onClick={remove it from the todos of the app}>x</button>
-	</li>
-
-
-
 add a new todo with title = "One", completed = false to the todos of the app
 add a new todo with title = "Two", completed = true to the todos of the app
 add a new todo with title = "Three", completed = false to the todos of the app
 
-to add one
-	add a new todo with title = "Four" to the todos of the app
-	print the todos of the app
-
-to remove one
-	remove the first item of the todos of the app
-	print the todos of the app
-
-to change one
-	set the title of the second item of the todos of the app to "Two-new"
+to draw (a todo)
+	return <tr>
+		<td>
+			<input 
+				type="checkbox" 
+				checked={its completed is true} 
+				onChange={set its completed to yes if its completed is no otherwise no}/>
+		</td>
+		<td>{" "}{its title}{" "}</td>
+		<td><button onClick={remove it from the todos of the app}>x</button></td>
+	</tr>
 
 to draw (a todos-app)
 	return 
 		<div>
-			{draw its todos}
-			<button onClick={add one}>+</button>
-			<button onClick={remove one}>-</button>
-			<button onClick={change one}>change</button>
+			<table><tbody>
+				{draw its todos}
+			</tbody></table>
+			<button onClick={add a new todo with title = "Moar" to the todos of the app}>+</button>
+			<button onClick={remove the first item of the todos of the app}>-</button>
+			<button onClick={set the title of the first item of the todos of the app to "New title"}>change</button>
 		</div>
 
 start the app
+print the app
