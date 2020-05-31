@@ -87,7 +87,7 @@ export const classes = new SpellParser({
             [
               "a deck is a list of cards",
               [
-                "export class Deck extends Array {}",
+                "export class Deck extends List {}",
                 'spellCore.addExport("Deck", Deck)',
                 'spellCore.define(Deck.prototype, "instanceType", { value: Card })'
               ]

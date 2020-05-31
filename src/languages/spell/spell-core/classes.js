@@ -142,10 +142,11 @@ export class List extends Observable {
     spellCore.append(this, ...items)
   }
 
+  // Map callback RETURNING AS AN ARRAY
   map(callback) {
     const results = []
     this.getKeys().forEach(index => {
-      results[index] = callback(this.getItem(index), index)
+      results[index] = callback(this.getItem(index), index, this)
     })
     return results
   }
@@ -161,7 +162,7 @@ export class List extends Observable {
     return _.range(1, this.length + 1)
   }
   getValues() {
-    return this.getKeys().map(index => this.getItem(index))
+    return [...this._state.items]
   }
   itemOf(thing) {
     const zeroIndex = this._state.items.indexOf(thing)
@@ -190,8 +191,9 @@ export class List extends Observable {
   clear() {
     this._state.items = []
   }
-  getIterator() {
-    return this._state.items[Symbol.iterator]
+
+  [Symbol.iterator]() {
+    return this._state.items[Symbol.iterator]()
   }
 }
 spellCore.addExport("List", List)

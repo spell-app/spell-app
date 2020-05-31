@@ -289,9 +289,9 @@ export const lists = new SpellParser({
             scope.variables.add("n")
           },
           tests: [
-            ["item 1 of my-list", "spellCore.getItem(my_list, 1)"],
-            ["card 10 of deck", "spellCore.getItem(deck, 10)"],
-            ["card n of the cards of the deck", "spellCore.getItem(deck.cards, n)"]
+            ["item 1 of my-list", "spellCore.getItemOf(my_list, 1)"],
+            ["card 10 of deck", "spellCore.getItemOf(deck, 10)"],
+            ["card n of the cards of the deck", "spellCore.getItemOf(deck.cards, n)"]
           ]
         }
       ]
@@ -318,9 +318,9 @@ export const lists = new SpellParser({
             scope.variables.add("words")
           },
           tests: [
-            ["the first item of my-list", "spellCore.getItem(my_list, 1)"],
-            ["the tenth card of deck", "spellCore.getItem(deck, 10)"],
-            ["the penultimate word in words", "spellCore.getItem(words, -2)"]
+            ["the first item of my-list", "spellCore.getItemOf(my_list, 1)"],
+            ["the tenth card of deck", "spellCore.getItemOf(deck, 10)"],
+            ["the penultimate word in words", "spellCore.getItemOf(words, -2)"]
           ]
         }
       ]

@@ -152,7 +152,7 @@ Object.assign(spellCore, {
         // THIS SPACE INTENTIONALLY LEFT BLANK
       })()
     }
-    if (typeof collection.getIterator === "function") return collection.getIterator()
+    if (typeof collection.iterator === "function") return collection.iterator()
 
     if (spellCore.isArrayLike(collection)) {
       return (function* numericIterator() {

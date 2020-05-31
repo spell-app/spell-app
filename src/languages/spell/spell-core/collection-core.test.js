@@ -18,7 +18,7 @@ class CustomCollection {
   removeItem = jest.fn()
   itemOf = jest.fn(() => "item")
   clear = jest.fn()
-  getIterator = jest.fn()
+  iterator = jest.fn()
 }
 
 describe("spellCore.itemCountOf()", () => {
@@ -321,7 +321,7 @@ describe("spellCore.getIteratorFor()", () => {
   test("calls `getIteratorFor` function if defined", () => {
     const custom = new CustomCollection()
     spellCore.getIteratorFor(custom)
-    expect(custom.getIterator).toHaveBeenCalled()
+    expect(custom.iterator).toHaveBeenCalled()
   })
   test("returns expected values for empty array", () => {
     const collection = []
