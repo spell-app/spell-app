@@ -1,119 +1,63 @@
-## Todo app proposal
-
-//////////////////////////
-## define `todo` class
-a todo is a drawable // `drawable` means we can `draw()` as a React Component
-// attributes for the `todo` class
-todos have a title as text
-todos have a property completed as yes or no
-// getters for the `todo` class
-a todo "is active" if its completed is no
+a todo is a drawable
+a todo has a title as text
+a todo has a completed as yes or no
 a todo "is complete" if its completed is yes
+a todo "is active" if its completed is not yes
 
-// `todo` instance method, e.g. what we'll use to `render()`
-to draw (a todo)
-	return  
-		<div className={"todo" + ("completed" if its completed otherwise "active")}>
-			<input type="checkbox" value={its completed} appearance="round" />
-			{" "}{its title}{" "}
-			<button onClick={remove it from its list}>X</button>
-		</div>
-
-// set up inline test method -- check console for output.
-to test todo creation
-	print "testing todo creation"
-	// `get xxx` puts expression into variable `it`
-	get a new todo with title = "Test" and completed = yes 
-	// `expect` runs an assertion an prints YES or NO to the console
-	expect its title to be "Test" 
-	expect it is active to be false
-	expect it is complete to be true
-// call test method
-test todo creation
-
-//////////////////////////
-## define `todo-list` class
-a todo-list is a list of todos
-
-//////////////////////////
-## define `todos-app` class
 a todos-app is an app
+a todos-app has a property todos as a new List
 a todos-app has a filter as one of all, active or completed
-a todos-app has a property todos as a new todo-list
-// the total-count of a todos-app is the length of its todos
-// the active-todos of a todos-app is todos in its todos where the todo is active
-// the active-count of a todos-app is the length of its active-todos
-// the active-message of a todos-app is its active-count + (" item" if its active-count is 1 otherwise " items") + " left"
-// the completed-todos of a todos-app is todos in its todos where the todo is complete
-// the completed-count of a todos-app is the length of its completed-todos
-a todos-app has a property new-todo-name as text
 
-// create an instance of the app for top-level methods below
 set app to a new todos-app
 set the filter of the app to "all"
-set the new-todo-name of the app to "???"
-print the app
 
-// top-level methods
-to create a todo with title as text, completed = no
-	if the title is undefined then set the title to the new-todo-name of the app
-	print "creating a todo with title: " + title + " and completed:" + completed
-	get a new todo with title = the title, completed = the completed
-	set its list to the todos of the app
-	add it to the todos of the app
+to create a todo with title as text
+	add a new todo with title = the title, completed = false to the todos of the app
 
-to clear completed todos
-	// note: parens shouldn't be necessary below
-	remove todos from (the todos of the app) where the todo is complete
+create a todo with title = "One"
+create a todo with title = "Two"
+create a todo with title = "Three"
 
-// test the methods -- check the console for output
-to test todos-app methods
-	print "testing todos-app methods"
-	create a todo with title = "Get started", completed = yes
-	create a todo with title = "Test todo creation"
-	expect the length of the todos of the app to be 2
-	clear completed todos
-	expect the length of the todos of the app to be 1
-	// leave one todo in there for `draw` below
-test todos-app methods
+to draw (a todo)
+	if the filter of the app is "active" and it is complete return no
+	if the filter of the app is "completed" and it is active return no
+	return <tr>
+		<td width="10%">
+			<input 
+				type="checkbox" 
+				checked={it is complete} 
+				onChange={set its completed to yes if it is active otherwise no}/>
+		</td>
+		<td width="80%">{" "}{its title}{" "}</td>
+		<td width="10%"><button onClick={remove it from the todos of the app}>x</button></td>
+	</tr>
 
-// instance method for todos-app -- OK that we're defining after `app` was created.
 to draw (a todos-app)
-	// figure out what we'll actually render based on the filter
-	set todos to its todos
-	if its filter is "active" then set todos to todos in todos where it is activve
-	if its filter is "completed" then  set todos to todos in todos where it is complete
-	print its filter
-	print todos
-	// if its filter is "active" then set visible-todos to its active-todos
-	// otherwise if its filter is "completed" set visible-todos to its completed-todos
-	// print "visible todos:"
-	// print visible-todos
-
 	return 
 		<div>
-			<h2>todos</h2>
-			<input type="text" defaultValue={its new-todo-name} onBlur={create a todo}/>
+			<h2>To Do:</h2>
+			<div>
+				<input type="text" onBlur={create a todo with title = the value of the target of the event}/>
+			</div>
 			<br/>
+			<table width="50%"><tbody>
+				{draw its todos}
+			</tbody></table>
 			<br/>
 			<div>
-				{draw the todos}
+				Show:
+				<button onClick={set the filter of the app to "all"}>All</button>
+				<button onClick={set the filter of the app to "active"}>Active</button>
+				<button onClick={set the filter of the app to "completed"}>Completed</button>
 			</div>
 			<br/>
 			<div>
-				<span>{its active-message}</span>
-				<button className={"active" if its filter is "all" otherwise "inactive"} onClick={set its filter to "all"} >All</button>
-				<button className={"active" if its filter is "active" otherwise "inactive"} onClick={set its filter to "active"}>Active</button>
-				<button className={"active" if its filter is "completed" otherwise "inactive"}  onClick={set its filter to "completed"}>Completed</button>
-				<button hidden={its completed-count is 0} onClick={clear completed todos} >
-					Clear Completed
-				</button>
+				<button onClick={create a todo with title = "Moar"}>+ Add</button>
+				<button onClick={remove the first item of the todos of the app}>- Remove</button>
+				<button onClick={set the title of the first item of the todos of the app to "New title"}>Change name</button>
+				<button onClick={remove items in (the todos of the app) where it is complete}>Remove Completed</button>
 			</div>
 		</div>
 
-//////////////////////////
-## draw the app
 start the app
-
-
-
+print the app
