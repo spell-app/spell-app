@@ -189,13 +189,12 @@ export const store = createStore({
 
   // input CodeMirror position as { line, ch }
   position: { line: 0, ch: 0 },
-  // file.contents `offset` for above position
-  offset: 0,
   onCursorActivity(codeMirror) {
     store.position = codeMirror.doc.sel.ranges[0].head
     store.setScrollOffset()
   },
   // Adjust `store.offset` (and thus scroll of <MatchView/>) to reflect input `position`.
+  offset: 0,
   setScrollOffset() {
     if (!store.file?.match) store.offset = 0
     else store.offset = store.file.offsetForPosition(store.position)

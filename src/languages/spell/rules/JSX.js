@@ -1,4 +1,4 @@
-import { Rule, Token } from "~/parser"
+import { Rule, Token, MethodScope } from "~/parser"
 import { SpellParser } from "~/languages/spell"
 import { AST } from "../ast"
 
@@ -78,8 +78,12 @@ export const JSX = new SpellParser({
               ]
             ],
             [
-              ["<ui-button ", "\thidden={1} ", "\ton-press={2}", "\t/>"],
-              'spellCore.element({ tag: "ui-button", props: { hidden: 1, "on-press": 2 } })'
+              ["<ui-button ", "\thidden={1} ", "\tonPress={print 2}", "\t/>"],
+              'spellCore.element({ tag: "ui-button", props: { hidden: 1, onPress: (event) => console.log(2) } })'
+            ],
+            [
+              '<input attrOnly text="text" number=1 boolean={yes} expression={1 + 1} onClick={print the value of the target of the event} />',
+              'spellCore.element({ tag: "input", props: { attrOnly: true, text: "text", number: 1, boolean: true, expression: (1 + 1), onClick: (event) => console.log(event.target.value) } })'
             ]
           ]
         },
@@ -102,7 +106,7 @@ export const JSX = new SpellParser({
             // DO parse a statement as an attribute expression
             [
               `<div on-click={print 1024}/>`,
-              `spellCore.element({ tag: "div", props: { "on-click": () => console.log(1024) } })`
+              `spellCore.element({ tag: "div", props: { "on-click": (event) => console.log(1024) } })`
             ],
             // don't match attribute expressions that don't eat the entire text
             [
@@ -188,27 +192,31 @@ export const JSX = new SpellParser({
           if (match.matched.length !== 1) throw new TypeError("Can only handle a single JSXAttribute at a time!")
           // pull attribute name up to match
           match.attribute = match.matched[0].name
-          // parse `value` if it is a jsxExpression
+          // parse `value` if as a number or JSXExpression
           const { value } = match
-          if (value instanceof Token.JSXExpression) {
-            // trim and remove newlines from expression
-            const input = value.contents.trim().replace(/\n/g, " ")
-            // try as an statement first, but only take it if we match everything
-            const statement = scope.parse(input, "statement")
-            if (statement && statement.inputText.length === input.length) {
-              match.statement = statement
+          if (value) {
+            const inputIsExpression = value instanceof Token.JSXExpression
+            const input = inputIsExpression ? value.contents.trim().replace(/\n/g, " ") : value
+            // parse "onXXX" as an inline method with an `event` argument
+            if (match.attribute.startsWith("on")) {
+              const methodScope = new MethodScope({
+                scope,
+                args: ["event"],
+                mapItTo: "this"
+              })
+              const statement = methodScope.parse(input, "statement")
+              if (statement && statement.inputText.length === input.length) {
+                match.statement = statement
+              }
             } else {
-              // if that didn't work, try as an `expression` (e.g. for inline method)
               const expression = scope.parse(input, "expression")
-              if (expression && expression.inputText.length === input.length) {
+              if (expression && (!inputIsExpression || expression.inputText.length === input.length)) {
                 match.expression = expression
               }
-              // if neither worked, parse error
-              if (!match.expression && !match.statement) match.error = scope.parse(input, "parse_error")
             }
-          } else if (value instanceof Token.Number) {
-            // NON-STANDARD: we allow you to do `<foo a=1 />` ????
-            match.expression = scope.parse(value, "number")
+            // if neither worked, parse error
+            if (!match.expression && !match.statement) match.error = scope.parse(input, "parse_error")
+            // console.warn({ match, name: match.attribute, inputIsExpression, value, input })
           }
           return match
         }
@@ -219,7 +227,10 @@ export const JSX = new SpellParser({
           if (expression) valueAST = expression.AST
           else if (statement) {
             valueAST = new AST.InlineMethodExpression(match, {
-              statements: statement.AST
+              statements: statement.AST,
+              args: attribute.toLowerCase().startsWith("on")
+                ? [new AST.VariableExpression(match, { name: "event" })]
+                : undefined
             })
           } else if (value === undefined) {
             valueAST = new AST.BooleanLiteral(match, { value: true })
