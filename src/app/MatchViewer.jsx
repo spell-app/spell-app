@@ -109,12 +109,12 @@ export function TokenView({ token }) {
 
 export function JSXElementView({ match }) {
   const ruleName = match.rule.name
+  const { tagName, isUnaryTag } = match.input[0]
+  // console.info({ match, ruleName, rule: match.rule, tagName })
   if (ruleName === "jsxText") return <JSXTextView match={match} />
   if (ruleName === "jsxExpression") return <JSXExpressionView match={match} />
   if (ruleName === "jsxEndTag") return null
 
-  const { tagName, isUnaryTag } = match.input[0]
-  // console.info({ tagName, match, rule: match.rule })
   const attributes = match.attributes?.map((attr, index) => <JSXAttributeView key={index} match={attr} />)
   const children = match.children?.map((child, index) => <JSXElementView key={index} match={child} />)
   const className = [
@@ -154,7 +154,11 @@ export function JSXAttributeView({ match }) {
   return (
     <span className={className}>
       <span className="name">{attribute.name + (attrMatch ? " = " : "")}</span>
-      {attrMatch ? <MatchView match={attrMatch} /> : null}
+      {attrMatch ? (
+        <span className="value">
+          {attrMatch.rule?.name === "text" ? <JSXTextView match={attrMatch} /> : <MatchView match={attrMatch} />}
+        </span>
+      ) : null}
     </span>
   )
 }

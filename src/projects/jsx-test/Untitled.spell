@@ -1,13 +1,4 @@
-get <div>
-	<div>Raw Text</div>
-	<div>{"text expression"}</div>
-	<div>{"compound" + "expression"}</div>
-	<div>
-		<span>A</span>
-		<span>B</span>
-	</div>
-	<div>
-		<input 
+get <input 
 			attrOnly
 			text="text" 
 			number=1 
@@ -17,5 +8,3 @@ get <div>
 			onClick={print the value of the target of the event}
 			error={foo bar}
 			/>
-	</div>
-	</div>
