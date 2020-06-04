@@ -125,7 +125,7 @@ Token.JSXText = class jsxText extends Token {
   }
 }
 
-// JSX expression, composed of inline tokens which should yield an `expression`.
+// JSX expression, composed of inline tokens which should yield an `expression` or `statement`.
 Token.JSXExpression = class jsxExpression extends Token {
   constructor(props) {
     super(props)

@@ -13,7 +13,7 @@ import { useHotkeys } from "react-hotkeys-hook"
 import { view } from "~/util"
 import { SpellFileLocation } from "~/languages/spell"
 
-import { MatchView } from "./MatchView"
+import { MatchViewer } from "./MatchViewer"
 import { CodeMirror, inputOptions, outputOptions } from "./CodeMirror"
 import { store } from "./store"
 
@@ -273,7 +273,7 @@ export const SpellEditor = view(function SpellEditor() {
           </Col>
           <Col xs={6} className="pt-2 pr-2 pb-2">
             <div id="match" className="p-2 rounded shadow-sm border">
-              <MatchView match={store.file?.match} offset={store.offset} />
+              <MatchViewer match={store.file?.match} offset={store.offset} />
             </div>
             <CompileButton />
           </Col>

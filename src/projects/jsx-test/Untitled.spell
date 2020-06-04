@@ -1,9 +1,21 @@
-get <input 
-	attrOnly
-	text="text" 
-	number=1 
-	boolean={yes}
-	expression={1 + 1}
-	onBlur={print 1}
-	onClick={print the value of the target of the event}
-	/>
+get <div>
+	<div>Raw Text</div>
+	<div>{"text expression"}</div>
+	<div>{"compound" + "expression"}</div>
+	<div>
+		<span>A</span>
+		<span>B</span>
+	</div>
+	<div>
+		<input 
+			attrOnly
+			text="text" 
+			number=1 
+			boolean={yes}
+			expression={1 + 1}
+			onBlur={print 1}
+			onClick={print the value of the target of the event}
+			error={foo bar}
+			/>
+	</div>
+	</div>

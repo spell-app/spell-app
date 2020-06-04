@@ -1,0 +1,247 @@
+.MatchViewer {
+  .Match {
+    position: relative;
+    padding: 0 2px;
+    /* border: 1px solid red; */
+    display: flex;
+    flex-direction: column;
+    min-height: 30px;
+    transition: background 0.25s ease-in-out;
+  }
+  .Match.highlight {
+    background: rgba(245, 236, 212, 0.33);
+  }
+  .Match > .name.highlight {
+    background: rgb(245, 236, 212);
+  }
+
+  .Token > .value.highlight {
+    background: rgb(245, 236, 212);
+  }
+
+  .Match > .name {
+    flex: 0;
+    display: block;
+    position: relative;
+    left: -1px;
+    font-size: 12px;
+    line-height: 14px;
+    padding: 2px 15px;
+    /* margin-bottom: 5px; */
+    background: #eee;
+    text-align: center;
+    border: 1px solid black;
+    border-top-width: 0;
+    border-top-left-radius: 7px; 
+    border-top-right-radius: 7px;
+    border-bottom-left-radius: 20px; 
+    border-bottom-right-radius: 20px;
+    transition: background 0.25s ease-in-out;
+  }
+  /* The below will hide non-statement rule names until you hover */
+  /* .Match.line > .contents > .Match .Match:not(.line):not(.block) .name {
+    height: 2px;
+    overflow: hidden;
+  }
+  .Match.line:hover > .contents > .Match .Match:not(.line):not(.block) .name {
+    height: 18px;
+    overflow: visible;
+  } */
+
+  .Match > .contents {
+    display: flex;
+    position: relative;
+    flex: 1;
+    padding-right: 5px;
+    padding-left: 5px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: stretch;
+  }
+
+  .Match.block {
+    display: block;
+    margin: 25px 10px 0px 15px;
+    padding: 5px 0 0 5px;
+    text-align: left;
+    border-left: 4px solid black;
+    border-top: 4px solid black;
+  }
+
+  .Match.block:first-child {
+    margin-top: 15px;
+    margin-left: 5px;
+  }
+
+  .Match.block > .contents {
+    display: block;
+    padding-top: 0;
+  }
+
+  /* Position block name like a black tab over block contents. */
+  .Match.block > .name {
+    position: absolute;
+    display: block;
+    left: -4px; top: -17px;
+    padding: 0 20px !important;
+    background: black;
+    color: white;
+    font-size: 10px;
+    padding: 2px 8px 2px 10px;
+    border-top-right-radius: 20px;
+    border-top-left-radius: 20px;
+    border-bottom-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+    border-top-width: 1px;
+  }   
+
+  .Match.line {
+    display: block;
+    text-align: left;
+    border-top: 1px solid black;
+    border-left: 1px solid black;
+    margin: 10px 0px 15px 10px;
+    padding: 0;
+  }
+
+  .Match.line.contents {
+    flex-direction: column;
+  }
+
+  /* Position line name as a flag to left of line contents (but turned off for now). */
+  .Match.line > .name {
+    display: block;
+    /* display: none; */
+    position: absolute;
+    width: 30px;
+    transform: rotate(-90deg);
+    transform-origin: left top;
+    left: -16px;
+    top: 29px;
+    font-size: 10px;
+    padding: 0 5px;
+    border-top-right-radius: 16px;
+    border-top-left-radius: 16px;
+    border-bottom-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+    border-top-width: 1px;
+    opacity: 0.5;
+  }   
+
+  .Match.hasTokens:not(.hasMatches) {
+    padding: 0;
+  }
+
+  //////////////////////
+  // Token display
+  //////////////////////
+
+  .Token {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    white-space: nowrap;
+  }
+
+  /* Add space between consecutive tokens. */
+  .Token + .Token {
+    padding-left: 10px;
+  }
+
+  /* Spacer to make token text line up on the bottom. */
+  .Token > .spacer {
+    flex: 1;
+  }
+
+  /* Token value. */
+  .Token > .value {
+    transition: background 0.25s ease-in-out;
+  }
+
+
+  //////////////////////
+  // JSX Elements and Attributes
+  //////////////////////
+  .JSXElement {
+    display: block;
+    border-left: 1px solid #666;
+    margin: 4px 0 4px 10px;
+    padding-left: 4px;
+    border-radius: 4px;
+  }
+
+  .JSXElement > .startTag {
+    display: inline-flex;
+  }
+
+  .JSXElement > .startTag > .attributes {
+    display: block;
+    padding-left: 4px;
+  }
+
+  .JSXAttribute {
+    display: flex;
+    border: 1px solid #ccc;
+    border-radius: 15px;
+    padding: 0 10px;
+    margin: 2px;
+  }
+  .JSXAttribute:not(.isEmpty) > .name {
+    white-space: nowrap;
+    margin-right: 10px;
+  }
+
+  .JSXText {
+    color: rgb(0, 0, 128);
+  }
+
+  .JSXExpression {
+    display: inline-block;
+    margin: 4px;
+    border: 1px solid #666;
+    border-radius: 0 0 15px 15px ;
+    padding: 0 4px 4px 4px;
+}
+
+  //////////////////////
+  // Color specific things
+  //////////////////////
+
+  .Match.blank_line {
+    opacity: 0.25;
+  }
+
+  .Match.comment {
+    opacity: 0.25;
+  }
+
+  .Match.Keyword, .Match.Symbol, .Match.Keywords, .Match.Symbols {
+    color: #999;
+  }
+
+  .Token.symbol,
+  .Token.number,
+  .Token.text {
+    color: rgb(0, 0, 128);
+  }
+
+  .Match.known_constant .Token,
+  .Match.constant .Token {
+    color: rgb(0, 0, 128);
+    font-style: italic;
+  }
+
+  .Match.parse_error {
+    color: darkred;
+    text-decoration: line-through;
+  }
+  .Match.parse_error > .name {
+    background: pink;
+  }
+
+  .JSXElement > .startTag, .JSXElement > .startTagEnd, .JSXElement > .endTag, .JSXAttribute > .name {
+    color: #999;
+  }
+}
