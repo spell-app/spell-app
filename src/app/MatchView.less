@@ -26,7 +26,7 @@
     left: -1px;
     font-size: 12px;
     line-height: 14px;
-    padding: 2px 15px;
+    padding: 2px 10px;
     /* margin-bottom: 5px; */
     background: #eee;
     text-align: center;
@@ -52,8 +52,8 @@
     display: flex;
     position: relative;
     flex: 1;
-    padding-right: 5px;
-    padding-left: 5px;
+    padding-right: 3px;
+    padding-left: 3px;
     flex-direction: row;
     flex-wrap: nowrap;
     justify-content: flex-start;
@@ -147,7 +147,7 @@
 
   /* Add space between consecutive tokens. */
   .Token + .Token {
-    padding-left: 10px;
+    padding-left: 4px;
   }
 
   /* Spacer to make token text line up on the bottom. */
@@ -192,7 +192,7 @@
   }
   .JSXAttribute:not(.isEmpty) > .name {
     white-space: nowrap;
-    margin-right: 10px;
+    margin-right: 4px;
   }
 
   .JSXText {
@@ -205,7 +205,13 @@
     border: 1px solid #666;
     border-radius: 0 0 15px 15px ;
     padding: 0 4px 4px 4px;
-}
+  }
+  .JSXElement > .startTag > .tagName, 
+  .JSXElement > .startTag > .startTagEnd, 
+  .JSXElement > .endTag, 
+  .JSXAttribute > .name {
+    color: #999;
+  }
 
   //////////////////////
   // Color specific things
@@ -243,7 +249,4 @@
     background: pink;
   }
 
-  .JSXElement > .startTag, .JSXElement > .startTagEnd, .JSXElement > .endTag, .JSXAttribute > .name {
-    color: #999;
-  }
 }
