@@ -167,7 +167,7 @@ export const store = createStore({
 
   // Compile after `delay` seconds.
   compileSoon(delay = 1) {
-    clearTimeout(store.compileSoonTimer)
+    store.clearCompileSoon()
     store.compileSoonTimer = setTimeout(store.compile, delay * 1000)
   },
   clearCompileSoon() {
@@ -193,11 +193,11 @@ export const store = createStore({
     store.position = codeMirror.doc.sel.ranges[0].head
     store.setScrollOffset()
   },
-  // Adjust `store.offset` (and thus scroll of <MatchView/>) to reflect input `position`.
-  offset: 0,
+  // Adjust `store.inputOffset` (and thus scroll of <MatchView/>) to reflect input `position`.
+  inputOffset: 0,
   setScrollOffset() {
-    if (!store.file?.match) store.offset = 0
-    else store.offset = store.file.offsetForPosition(store.position)
+    if (!store.file?.match) store.inputOffset = 0
+    else store.inputOffset = store.file.offsetForPosition(store.position)
   },
 
   //-----------------

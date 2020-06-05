@@ -273,7 +273,7 @@ export const SpellEditor = view(function SpellEditor() {
           </Col>
           <Col xs={6} className="pt-2 pr-2 pb-2">
             <div id="match" className="p-2 rounded shadow-sm border">
-              <MatchViewer match={store.file?.match} offset={store.offset} />
+              <MatchViewer match={store.file?.match} inputOffset={store.inputOffset} />
             </div>
             <CompileButton />
           </Col>

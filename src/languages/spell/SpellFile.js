@@ -75,7 +75,7 @@ export class SpellFile extends TextFile {
   @state scope = undefined
 
   /** Our input text split into lines, for offset calculations. */
-  @state lines = undefined
+  @state inputLines = undefined
 
   /** Results of our last `parse()` as a `Match`. */
   @state match = undefined
@@ -88,7 +88,7 @@ export class SpellFile extends TextFile {
 
   /** Reset our compiled state. */
   resetCompiled() {
-    this.resetState("scope", "lines", "match", "AST", "compiled")
+    this.resetState("scope", "inputLines", "match", "AST", "compiled")
   }
 
   /**
@@ -119,7 +119,7 @@ export class SpellFile extends TextFile {
     await this.load()
     this.resetCompiled()
     batch(() => {
-      this.set("_state.lines", this.contents.split("\n"))
+      this.set("_state.inputLines", this.contents.split("\n"))
       this.set("_state.scope", this.getScope(parentScope))
       const match = this.scope.parse(this.contents, "block")
       this.set("_state.match", match)
@@ -135,12 +135,12 @@ export class SpellFile extends TextFile {
     batch(() => {
       this.set("_state.AST", match.AST)
       let compiled = match.compile()
-      try {
-        // Use prettier to format the output.  This will throw if the code is bad.
-        compiled = prettier.format(compiled, { parser: "babel", plugins: [babylon], printWidth: 120 })
-      } catch (e) {
-        console.warn("Prettier error:", e)
-      }
+      // try {
+      //   // Use prettier to format the output.  This will throw if the code is bad.
+      //   compiled = prettier.format(compiled, { parser: "babel", plugins: [babylon], printWidth: 120 })
+      // } catch (e) {
+      //   console.warn("Prettier error:", e)
+      // }
       this.set("_state.compiled", compiled)
     })
     return this.compiled
@@ -197,9 +197,9 @@ export class SpellFile extends TextFile {
 
   /** Convert CodeMirror Position: `{ line, ch }` to char `offset`. */
   offsetForPosition({ line, ch }) {
-    if (!this.lines) return undefined
+    if (!this.inputLines) return undefined
     if (line === 0) return ch
-    return this.lines.slice(0, line).join("\n").length + 1 + ch
+    return this.inputLines.slice(0, line).join("\n").length + 1 + ch
   }
 }
 

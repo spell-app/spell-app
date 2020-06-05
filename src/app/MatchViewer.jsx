@@ -14,19 +14,19 @@ function highlight(el, delay = 0) {
 /** Top-level viewer for a Match.
  * Create one of these and it will create <MatchView>s and <TokenView>s underneath it.the
  */
-export function MatchViewer({ match, offset }) {
+export function MatchViewer({ match, inputOffset }) {
   if (!match) return null
 
-  // If we're passed a specific `offset`, scroll that line into view and flash its bg.
+  // If we're passed a specific `inputOffset`, scroll that line into view and flash its bg.
   React.useLayoutEffect(() => {
-    if (typeof offset !== "number" || !match) return
+    if (typeof inputOffset !== "number" || !match) return
     // get the stack of what was matched, with the inner-most thing FIRST
-    const stack = match.matchStackForOffset(offset).reverse()
+    const stack = match.matchStackForOffset(inputOffset).reverse()
     // find the lowest item that corresponds to a `line`
     const lineMatch = stack.find(_match => _match.rule?.name === "line")
     const lineEl = lineMatch && document.querySelector(`.Match.line[data-start="${lineMatch.start}"]`)
     if (!lineEl) return
-    // console.warn({ offset, lineMatch, lineEl })
+    // console.warn({ inputOffset, lineMatch, lineEl })
     // scroll the `name` thinger into the center of the display
     lineEl.querySelector(".name").scrollIntoView({ block: "center" })
 
@@ -45,7 +45,7 @@ export function MatchViewer({ match, offset }) {
 
         if (itemEl) highlight(itemEl, index * 20)
       })
-  }, [offset])
+  }, [inputOffset])
   return (
     <div className="MatchViewer">
       <MatchView match={match} />
@@ -53,7 +53,7 @@ export function MatchViewer({ match, offset }) {
   )
 }
 
-export function MatchView({ match, offset }) {
+export function MatchView({ match }) {
   if (!match) return null
   const { rule, matched } = match
   let hasTokens = false
