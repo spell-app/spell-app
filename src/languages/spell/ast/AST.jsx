@@ -2,18 +2,11 @@
 import React from "react"
 import _get from "lodash/get"
 
-import { proto, memoize, readonly, Assertable, OPTIONAL } from "~/util"
+import { proto, memoize, readonly, getSuperHierarchy, Assertable, OPTIONAL } from "~/util"
 import { Match } from "~/parser"
 
 // TODO: define this in `constants` or some such?
 const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w\$]*$/
-
-/** Enclose `value` in parens, unless it is already a propertly parenthesized string. */
-function encloseInParens(value) {
-  // TODO: this is not a sufficient check!!!
-  if (typeof value === "string" && value.startsWith("(") && value.endsWith(")")) return value
-  return `(${value})`
-}
 
 function convertStatementsToBlock(match, statements) {
   if (!statements) return new StatementBlock(match)
@@ -128,15 +121,59 @@ export class ASTNode extends Assertable {
     return this.match.scope
   }
 
+  //-------------------------
+  // Rendering as JS text
+  //-------------------------
+
   /** Compile this AST into Javascript.  You MUST override in a subclass. */
   toJS() {
     throw new TypeError(`AST ${this.nodeType} must implement toJS()`)
   }
 
+  /** Helper to turn list of things into JS */
+  listToJS(list, delimiter = ", ") {
+    return list ? list.map(item => item.toJS()).join(delimiter) : ""
+  }
+
+  /** Helper to wrap JS value in curlies. */
+  wrapJSInCurlies(value = "") {
+    if (!value) return "{}"
+    if (value.includes("\n")) return `{\n\t${value.split("\n").join("\n\t")}\n}`
+    return `{ ${value} }`
+  }
+
+  /** Enclose `value` in parens, unless it is already a propertly parenthesized string. */
+  wrapJSInParens(value) {
+    // TODO: this is not a sufficient check!!!
+    if (typeof value === "string" && value.startsWith("(") && value.endsWith(")")) return value
+    return `(${value})`
+  }
+
+  /** Helper to turn `args` array into JS */
+  argsToJS(args = this.args) {
+    return this.wrapJSInParens(this.listToJS(args))
+  }
+
+  //-------------------------
+  // Rendering as React nodes
+  //-------------------------
+
   /** Return STATIC react component to render this node. */
   @memoize
   get component() {
     return this.draw()
+  }
+
+  /**
+   * Return css className as concatenation of all superclass method names.
+   * Override in your subclass to add special stuff, e.g.
+   *  `get className() { return super.className + "foo bar baz" }`
+   */
+  get className() {
+    const supers = getSuperHierarchy(this, ASTNode)
+      .reverse()
+      .map(constructor => constructor.name)
+    return supers.join(" ")
   }
 
   /**
@@ -146,11 +183,19 @@ export class ASTNode extends Assertable {
   draw() {
     return drawNode(this, { className: this.className, children: this.drawChildren() })
   }
-  get className() {
-    return "ASTNode"
-  }
+
+  /**
+   * Render children to draw INSIDE the outer element,
+   * which has `node.className` (e.g. `ASTNode Expression StringLiteral`) set.
+   */
   drawChildren() {
     return null
+  }
+
+  /** Rendering Helpers */
+  drawArgs(args = this.args) {
+    const drawArg = (arg, index) => <span className={`arg arg-${index}`}>{arg.component}</span>
+    return _drawInParens(<span className="args">{_drawList(args, drawArg)}</span>)
   }
 }
 
@@ -158,9 +203,6 @@ export class ASTNode extends Assertable {
 export class BlankLine extends ASTNode {
   toJS() {
     return "\n"
-  }
-  get className() {
-    return `${super.className} BlankLine`
   }
   drawChildren() {
     return _drawNewline()
@@ -170,11 +212,7 @@ export class BlankLine extends ASTNode {
 /** Base of all Expression types.  Useful for `instanceof`.
  *  - Try to figure out `datatype` if you can, either as a value or as a getter.
  */
-export class Expression extends ASTNode {
-  get className() {
-    return `${super.className} Expression`
-  }
-}
+export class Expression extends ASTNode {}
 
 /** QuotedExpression -- use to wrap resulting AST in quotes.
  *  TODO: is this a good idea?  Don't use too much!
@@ -182,15 +220,12 @@ export class Expression extends ASTNode {
 export class QuotedExpression extends Expression {
   @proto @readonly datatype = "string"
   constructor(match, props) {
+    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
     super(match, props)
     this.assertType("expression", Expression)
   }
   toJS() {
     return `'${this.expression.toJS()}'`
-  }
-
-  get className() {
-    return `${super.className} QuotedExpression`
   }
   drawChildren() {
     return _drawInSingleQuotes(<span className="expression">{this.expression.component}</span>)
@@ -205,9 +240,6 @@ export class Literal extends Expression {
   toJS() {
     return this.value
   }
-  get className() {
-    return `${super.className} Literal`
-  }
   drawChildren() {
     return <span className="value">{this.value}</span>
   }
@@ -221,10 +253,6 @@ export class NumericLiteral extends Literal {
     super(match, props)
     this.assertType("value", "number")
   }
-
-  get className() {
-    return `${super.className} NumericLiteral`
-  }
 }
 
 /** StringLiteral type. */
@@ -234,10 +262,6 @@ export class StringLiteral extends Literal {
     if (typeof props === "string") props = { value: props }
     super(match, props)
     this.assertType("value", "string")
-  }
-
-  get className() {
-    return `${super.className} StringLiteral`
   }
 }
 
@@ -249,10 +273,6 @@ export class BooleanLiteral extends Literal {
     super(match, props)
     this.assertType("value", "boolean")
   }
-
-  get className() {
-    return `${super.className} BooleanLiteral`
-  }
 }
 
 /** RegExpLiteral type. */
@@ -261,10 +281,6 @@ export class RegExpLiteral extends Literal {
   constructor(match, props) {
     super(match, props)
     this.assertType("value", RegExp)
-  }
-
-  get className() {
-    return `${super.className} RegExpLiteral`
   }
 }
 
@@ -278,9 +294,6 @@ export class NullLiteral extends Literal {
   }
   toJS() {
     return "null"
-  }
-  get className() {
-    return `${super.className} NullLiteral`
   }
   drawChildren() {
     return <span className="value">null</span>
@@ -297,9 +310,6 @@ export class UndefinedLiteral extends Literal {
   toJS() {
     return "undefined"
   }
-  get className() {
-    return `${super.className} UndefinedLiteral`
-  }
   drawChildren() {
     return <span className="value">undefined</span>
   }
@@ -309,9 +319,6 @@ export class UndefinedLiteral extends Literal {
 export class ThisLiteral extends Literal {
   toJS() {
     return "this"
-  }
-  get className() {
-    return `${super.className} ThisLiteral`
   }
   drawChildren() {
     return <span className="value">this</span>
@@ -329,9 +336,6 @@ export class KeywordLiteral extends Literal {
     this.assertType("value", "string")
     this.assertType("raw", "string", OPTIONAL)
   }
-  get className() {
-    return `${super.className} KeywordLiteral`
-  }
 }
 
 /** ArrayLiteral
@@ -343,11 +347,7 @@ export class ArrayLiteral extends Literal {
     this.assertArrayType("items", Expression, OPTIONAL)
   }
   toJS() {
-    if (!this.items) return "[]"
-    return `[${this.items.map(item => item.toJS()).join(", ")}]`
-  }
-  get className() {
-    return `${super.className} ArrayLiteral`
+    return `[${this.listToJS(this.items)}]`
   }
   drawChildren() {
     return _drawInSquares(_drawList(this.items))
@@ -365,11 +365,7 @@ export class Enumeration extends Literal {
     this.assertArrayType("values", ["string", "number"])
   }
   toJS() {
-    if (!this.enumeration) return "[]"
-    return `[${this.enumeration.map(item => item.toJS()).join(", ")}]`
-  }
-  get className() {
-    return `${super.className} Enumeration`
+    return `[${this.listToJS(this.enumeration)}]`
   }
   drawChildren() {
     return _drawInSquares(_drawList(this.enumeration))
@@ -378,25 +374,6 @@ export class Enumeration extends Literal {
 
 /** Abstract comment type. Useful for `instanceof`. */
 export class Comment extends ASTNode {}
-
-/** ParseError type.
- *  - `message` is text of the error
- */
-export class ParseError extends Comment {
-  constructor(match, props) {
-    super(match, props)
-    this.assertType("message", "string")
-  }
-  toJS() {
-    return `/* PARSE ERROR: ${this.message} */`
-  }
-  get className() {
-    return `${super.className} ParseError`
-  }
-  drawChildren() {
-    return <span className="message">{this.message}</span>
-  }
-}
 
 /** LineComment type.
  *  - `value` is text of the comment (may be empty string).
@@ -416,17 +393,13 @@ export class LineComment extends Comment {
     if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
     return `${commentSymbol}${initialWhitespace}${value}`
   }
-  get className() {
-    return `${super.className} LineComment`
-  }
   drawChildren() {
-    const { initialWhitespace = " ", value } = this
     let { commentSymbol = "" } = this
     if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
     return (
       <>
         <span className="punctuation line-comment-symbol">${commentSymbol}</span>
-        <span className="whitespace">${initialWhitespace}</span>
+        <span className="whitespace">${this.initialWhitespace || " "}</span>
         <span className="comment">{this.value}</span>
       </>
     )
@@ -444,13 +417,29 @@ export class BlockComment extends Comment {
   toJS() {
     return `/* ${this.value} */`
   }
-  get className() {
-    return `${super.className} BlockComment`
+  drawChildren() {
+    return (
+      <>
+        <span className="punctuation open-comment-symbol">{"/*"}</span>
+        <span className="comment">{this.value}</span>
+        <span className="punctuation close-comment-symbol">{"*/"}</span>
+      </>
+    )
+  }
+}
+
+/** ParseError type.
+ *  - `message` is text of the error
+ */
+export class ParseError extends BlockComment {
+  toJS() {
+    return `/* PARSE ERROR: ${this.value} */`
   }
   drawChildren() {
     return (
       <>
         <span className="punctuation open-comment-symbol">{"/*"}</span>
+        <span className="annotation">PARSE ERROR:</span>
         <span className="comment">{this.value}</span>
         <span className="punctuation close-comment-symbol">{"*/"}</span>
       </>
@@ -464,9 +453,6 @@ export class BlockComment extends Comment {
 export class ParserAnnotation extends BlockComment {
   toJS() {
     return `/* SPELL: ${this.value} */`
-  }
-  get className() {
-    return `${super.className} ParserAnnotation`
   }
   drawChildren() {
     return (
@@ -495,10 +481,8 @@ export class ParenthesizedExpression extends Expression {
     if (this.expression instanceof ParenthesizedExpression) return this.expression.toJS()
     return `(${this.expression.toJS()})`
   }
-  get className() {
-    return `${super.className} ParenthesizedExpression`
-  }
   drawChildren() {
+    // don't double up on parens
     if (this.expression instanceof ParenthesizedExpression) return this.expression.component
     return _drawInParens(<span className="expression">{this.expression.component}</span>)
   }
@@ -515,9 +499,6 @@ export class NotExpression extends Expression {
   }
   toJS() {
     return `!${this.expression.toJS()}`
-  }
-  get className() {
-    return `${super.className} NotExpression`
   }
   drawChildren() {
     return (
@@ -539,9 +520,6 @@ export class InfixExpression extends Expression {
   }
   toJS() {
     return `${this.lhs.toJS()} ${this.operator} ${this.rhs.toJS()}`
-  }
-  get className() {
-    return `${super.className} InfixExpression`
   }
   drawChildren() {
     return (
@@ -589,48 +567,13 @@ export class MethodInvocation extends AbstractMethodInvocation {
     this.assertType("datatype", "string", OPTIONAL)
   }
   toJS() {
-    const args = this.args?.map(arg => arg.toJS()).join(", ") || ""
-    return `${this.method}(${args})`
-  }
-  get className() {
-    return `${super.className} MethodInvocation`
+    return `${this.method}${this.argsToJS()}`
   }
   drawChildren() {
     return (
       <>
         <span className="method-name">{this.method}</span>
-        {_drawArgs(this.args)}
-      </>
-    )
-  }
-}
-
-/** CoreMethodInvocation:  calls a `spellCore` `method`.  Used for output languge independence.
- *  - `method` is spellcore method name.
- *  - `args` (optional) is a possibly empty list of Expressions.
- *  - `datatype` (optional) is return datatype as string, try to set if you can.
- */
-export class CoreMethodInvocation extends AbstractMethodInvocation {
-  constructor(match, props) {
-    super(match, props)
-    this.assertType("method", "string")
-    this.assertArrayType("args", Expression, OPTIONAL)
-    this.assertType("datatype", "string", OPTIONAL)
-  }
-  toJS() {
-    const args = this.args?.map(arg => arg.toJS()).join(", ") || ""
-    return `spellCore.${this.method}(${args})`
-  }
-  get className() {
-    return `${super.className} CoreMethodInvocation`
-  }
-  drawChildren() {
-    return (
-      <>
-        <span className="method-scope">spellCore</span>
-        {_drawPeriod()}
-        <span className="method-name">{this.method}</span>
-        {_drawArgs(this.args)}
+        {this.drawArgs()}
       </>
     )
   }
@@ -651,11 +594,7 @@ export class ScopedMethodInvocation extends AbstractMethodInvocation {
     this.assertType("datatype", "string", OPTIONAL)
   }
   toJS() {
-    const args = this.args?.map(arg => arg.toJS()).join(", ") || ""
-    return `${this.thing.toJS()}.${this.method}(${args})`
-  }
-  get className() {
-    return `${super.className} ScopedMethodInvocation`
+    return `${this.thing.toJS()}.${this.method}${this.argsToJS()}`
   }
   drawChildren() {
     return (
@@ -663,7 +602,34 @@ export class ScopedMethodInvocation extends AbstractMethodInvocation {
         <span className="method-scope">{this.thing.component}</span>
         {_drawPeriod()}
         <span className="method-name">{this.method}</span>
-        {_drawArgs(this.args)}
+        {this.drawArgs()}
+      </>
+    )
+  }
+}
+
+/** CoreMethodInvocation:  calls a `spellCore` `method`.  Used for output languge independence.
+ *  - `method` is spellcore method name.
+ *  - `args` (optional) is a possibly empty list of Expressions.
+ *  - `datatype` (optional) is return datatype as string, try to set if you can.
+ */
+export class CoreMethodInvocation extends AbstractMethodInvocation {
+  constructor(match, props) {
+    super(match, props)
+    this.assertType("method", "string")
+    this.assertArrayType("args", Expression, OPTIONAL)
+    this.assertType("datatype", "string", OPTIONAL)
+  }
+  toJS() {
+    return `spellCore.${this.method}${this.argsToJS()}`
+  }
+  drawChildren() {
+    return (
+      <>
+        <span className="method-scope">spellCore</span>
+        {_drawPeriod()}
+        <span className="method-name">{this.method}</span>
+        {this.drawArgs()}
       </>
     )
   }
@@ -681,9 +647,6 @@ export class AwaitMethodInvocation extends AbstractMethodInvocation {
   }
   toJS() {
     return `await ${this.method.toJS()}`
-  }
-  get className() {
-    return `${super.className} AwaitMethodInvocation`
   }
   drawChildren() {
     return (
@@ -710,9 +673,6 @@ export class TypeExpression extends Expression {
   }
   toJS() {
     return this.name
-  }
-  get className() {
-    return `${super.className} TypeExpression`
   }
   drawChildren() {
     return <span className="type">{this.name}</span>
@@ -744,19 +704,15 @@ export class VariableExpression extends Expression {
     if (this.default) return `${this.name} = ${this.default.toJS()}`
     return this.name
   }
-  get className() {
-    return `${super.className} VariableExpression`
-  }
   drawChildren() {
-    if (this.default)
-      return (
-        <>
-          <span className="name">{this.name}</span>
-          <span className="punctuation equals">{" = "}</span>
-          <span className="default">{this.default.component}</span>
-        </>
-      )
-    return <span className="name">{this.name}</span>
+    if (!this.default) return <span className="name">{this.name}</span>
+    return (
+      <>
+        <span className="name">{this.name}</span>
+        <span className="punctuation equals">{" = "}</span>
+        <span className="default">{this.default.component}</span>
+      </>
+    )
   }
 }
 
@@ -774,9 +730,6 @@ export class ConstantExpression extends Expression {
   }
   toJS() {
     return this.output
-  }
-  get className() {
-    return `${super.className} ConstantExpression`
   }
   drawChildren() {
     return <span className="constant">{this.output}</span>
@@ -799,7 +752,7 @@ export class PropertyLiteral extends Literal {
     return LEGAL_PROPERTY_IDENTIFIER.test(this.value)
   }
   get className() {
-    return `${super.className} PropertyLiteral ${this.isLegalIdentifier ? "legal-identifier" : "non-legal-identifier"}`
+    return `${super.className} ${this.isLegalIdentifier ? "legal-identifier" : "non-legal-identifier"}`
   }
   drawChildren() {
     if (this.isLegalIdentifier) return <span clasName="property">{this.value}</span>
@@ -823,9 +776,6 @@ export class PropertyExpression extends Expression {
     const prop = this.property.toJS()
     if (this.property.isLegalIdentifier) return `${this.object.toJS()}.${prop}`
     return `${this.object.toJS()}['${prop}']`
-  }
-  get className() {
-    return `${super.className} PropertyExpression`
   }
   drawChildren() {
     const object = <span className="object">{this.object.component}</span>
@@ -864,9 +814,6 @@ export class ObjectLiteralProperty extends ASTNode {
     if (!this.value) return this.property.toJS()
     return `${this.property.toJS()}: ${this.value.toJS()}`
   }
-  get className() {
-    return `${super.className} ObjectLiteralProperty`
-  }
   drawChildren() {
     // If no value, assume it's available as a local variable.
     if (!this.value) return <span className="value">{this.property.component}</span>
@@ -881,8 +828,37 @@ export class ObjectLiteralProperty extends ASTNode {
   }
 }
 
+/** ObjectLiteralMethod type, eg: `{ foo(arg, arg) {...} }`
+ *  - `property` is the normalized property name.
+ *  - `args` are method arguments
+ *  - `statements` (optional) is the method body.
+ */
+export class ObjectLiteralMethod extends ObjectLiteralProperty {
+  constructor(match, props) {
+    super(match, props)
+    if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
+    this.assertType("property", PropertyLiteral)
+    this.assertArrayType("args", Expression, OPTIONAL)
+    this.assertType("statements", [Statement, Expression], OPTIONAL)
+    this.statements = convertStatementsToBlock(this.match, this.statements)
+  }
+  toJS() {
+    return `${this.property.toJS()}${this.argsToJS()} ${this.statements.toJS()}`
+  }
+  drawChildren() {
+    return (
+      <>
+        {this.property.component}
+        {this.drawArgs()}
+        {this.statements.component}
+      </>
+    )
+  }
+}
+
 /** ObjectLiteral -- bag of properties.
  *  - `properties` is an array of PropertyValues
+ * TODO: datatype???
  */
 export class ObjectLiteral extends Expression {
   @proto @readonly datatype = "object"
@@ -899,14 +875,9 @@ export class ObjectLiteral extends Expression {
     if (!this.properties) this.properties = []
     this.properties.push(new ObjectLiteralProperty(this.match, { property, value }))
   }
-  // TODO: datatype???
   toJS() {
-    if (!this.properties) return "{}"
     // TODO: single prop on one line, newlines + indent for multiple props
-    return `{ ${this.properties.map(prop => prop.toJS()).join(", ")} }`
-  }
-  get className() {
-    return `${super.className} ObjectLiteral`
+    return this.wrapJSInCurlies(this.listToJS(this.properties))
   }
   drawChildren() {
     return _drawInCurlies(_drawList(this.properties))
@@ -914,11 +885,7 @@ export class ObjectLiteral extends Expression {
 }
 
 /** Statement abstract type. */
-export class Statement extends ASTNode {
-  get className() {
-    return `${super.className} Statement`
-  }
-}
+export class Statement extends ASTNode {}
 
 /** StatementGroup -- set of random statements which does NOT get wrapped with curly braces!
  *  - `statements` is a list of Statements.
@@ -929,12 +896,7 @@ export class StatementGroup extends Statement {
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
   }
   toJS() {
-    const { statements } = this
-    if (!statements) return ""
-    return `${statements.map(statement => statement.toJS()).join("\n")}`
-  }
-  get className() {
-    return `${super.className} StatementGroup`
+    return this.listToJS(this.statements, "\n")
   }
   drawChildren() {
     return _drawList(this.statements, _drawItem, _drawNewline)
@@ -955,12 +917,7 @@ export class StatementBlock extends Statement {
     while (statements?.length === 1 && statements[0] instanceof StatementGroup) {
       statements = statements[0].statements
     }
-    if (!statements || !statements.length) return "{}"
-    const curlyDelimiter = statements.length === 1 ? " " : "\n"
-    return `{${curlyDelimiter}${statements.map(statement => statement.toJS()).join("\n")}${curlyDelimiter}}`
-  }
-  get className() {
-    return `${super.className} StatementBlock`
+    return this.wrapJSInCurlies(this.listToJS(statements, "\n"))
   }
   drawChildren() {
     return _drawInCurlies(_drawList(this.statements, _drawItem, _drawNewline))
@@ -983,9 +940,6 @@ export class AssignmentStatement extends Statement {
     const { thing, value, isNewVariable } = this
     const declarator = isNewVariable ? "let " : ""
     return `${declarator}${thing.toJS()} = ${value.toJS()}`
-  }
-  get className() {
-    return `${super.className} AssignmentStatement`
   }
   drawChildren() {
     return (
@@ -1012,12 +966,8 @@ export class DestructuredAssignment extends Statement {
     this.assertType("isNewVariable", "boolean", OPTIONAL)
   }
   toJS() {
-    const { thing, variables, isNewVariable } = this
-    const declarator = isNewVariable ? "let " : ""
-    return `${declarator}{ ${variables.map(variable => variable.toJS()).join(", ")} } = ${thing.toJS()}`
-  }
-  get className() {
-    return `${super.className} DestructuredAssignment`
+    const declarator = this.isNewVariable ? "let " : ""
+    return `${declarator}${this.wrapJSInCurlies(this.listToJS(this.variables))} = ${this.thing.toJS()}`
   }
   drawChildren() {
     return (
@@ -1042,9 +992,6 @@ export class ReturnStatement extends Statement {
   toJS() {
     if (!this.value) return "return"
     return `return ${this.value.toJS()}`
-  }
-  get className() {
-    return `${super.className} ReturnStatement`
   }
   drawChildren() {
     return (
@@ -1079,9 +1026,6 @@ export class ClassDeclaration extends Statement {
     }
     return output.join("\n")
   }
-  get className() {
-    return `${super.className} ClassDeclaration`
-  }
   drawChildren() {
     return (
       <>
@@ -1114,15 +1058,12 @@ export class NewInstanceExpression extends Expression {
     const { type, props } = this
     return `new ${type.name}(${props ? props.toJS() : ""})`
   }
-  get className() {
-    return `${super.className} NewInstanceExpression`
-  }
   drawChildren() {
     return (
       <>
-        <span className="keyword export">{"new "}</span>
+        <span className="keyword new">{"new "}</span>
         <span className="type">{this.type.component}</span>
-        {_drawInParens(_drawList(this.props))}
+        {_drawInParens(this.props && this.props.component)}
       </>
     )
   }
@@ -1137,12 +1078,7 @@ export class ListExpression extends Expression {
     this.assertArrayType("items", Expression, OPTIONAL)
   }
   toJS() {
-    const { items } = this
-    if (!items) return "[]"
-    return `[${items.map(item => item.toJS()).join(", ")}]`
-  }
-  get className() {
-    return `${super.className} ListExpression`
+    return `[${this.listToJS(this.items)}]`
   }
   drawChildren() {
     return _drawInSquares(_drawList(this.items))
@@ -1165,19 +1101,15 @@ export class InlineMethodExpression extends Expression {
     this.assertType("expression", Expression, OPTIONAL)
   }
   toJS() {
-    const args = this.args ? `(${this.args.map(arg => arg.toJS()).join(", ")})` : "()"
-    if (this.expression) return `${args} => ${this.expression.toJS()}`
-    if (this.statements) return `${args} => ${this.statements.toJS()}`
-    return `${args} => {}`
-  }
-  get className() {
-    return `${super.className} InlineMethodExpression`
+    const body = this.expression || this.statements
+    if (body) return `${this.argsToJS()} => ${body.toJS()}`
+    return `${this.argsToJS()} => {}`
   }
   drawChildren() {
     return (
       <>
-        {_drawArgs(this.args)}
-        <span className="punctuation fat-arrow"> => </span>
+        {this.drawArgs()}
+        <span className="punctuation fat-arrow">{" => "}</span>
         {_drawInCurlies(this.expression?.component || this.statements?.component)}
       </>
     )
@@ -1196,9 +1128,6 @@ export class PrototypeExpression extends Expression {
     const { type } = this
     return `${type.toJS()}.prototype`
   }
-  get className() {
-    return `${super.className} PrototypeExpression`
-  }
   drawChildren() {
     return (
       <>
@@ -1210,27 +1139,34 @@ export class PrototypeExpression extends Expression {
   }
 }
 
+/** PropertyDefinition: spellCore.define(...)
+ * Define `@memoize get definition()` to return spellCore.define() statement.
+ */
+export class PropertyDefinition extends Statement {
+  toJS() {
+    return this.definition.toJS()
+  }
+  drawChildren() {
+    return this.definition.component
+  }
+}
+
 /** ValueDefinition: assigns named value to prototype
  * - `thing` is an Expression
  * - `property` is PropertyLiteral
  * - `value` is an Expression
  */
-export class ValueDefinition extends Statement {
+export class ValueDefinition extends PropertyDefinition {
   constructor(match, props) {
     super(match, props)
     this.assertType("thing", Expression)
     this.assertType("property", PropertyLiteral)
     this.assertType("value", Expression)
   }
-  toJS() {
-    const { thing, property, value } = this
-    return `spellCore.define(${thing.toJS()}, '${property.toJS()}', { value: ${value.toJS()} })`
-  }
-  get className() {
-    return `${super.className} ValueDefinition`
-  }
-  drawChildren() {
-    const method = new CoreMethodInvocation(this.match, {
+  // Return `CoreMethodInvocation` which we'll use to render as JS or component
+  @memoize
+  get definition() {
+    return new CoreMethodInvocation(this.match, {
       method: "define",
       args: [
         this.thing,
@@ -1245,7 +1181,6 @@ export class ValueDefinition extends Statement {
         })
       ]
     })
-    return method.component
   }
 }
 
@@ -1254,7 +1189,7 @@ export class ValueDefinition extends Statement {
  * - `property` is PropertyLiteral
  * - `statements` is a Statement or Expression
  */
-export class SetterDefinition extends Statement {
+export class SetterDefinition extends PropertyDefinition {
   constructor(match, props) {
     super(match, props)
     this.assertType("thing", Expression)
@@ -1262,12 +1197,31 @@ export class SetterDefinition extends Statement {
     this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
+  // Return `CoreMethodInvocation` which we'll use to render as JS or component
+  @memoize
+  get definition() {
+    return new CoreMethodInvocation(this.match, {
+      method: "define",
+      args: [
+        this.thing,
+        new QuotedExpression(this.property.match, { expression: this.property }),
+        new ObjectLiteral(this.property.match, {
+          properties: [
+            new ObjectLiteralMethod(this.statements.match, {
+              property: "set",
+              args: [this.property],
+              statements: this.statements
+            })
+          ]
+        })
+      ]
+    })
+  }
   toJS() {
-    const { thing, property, statements } = this
-    return (
-      `spellCore.define(${thing.toJS()}, '${property.toJS()}', ` +
-      `{ set(${property.toJS()}) { ${statements?.toJS() || ""} } })`
-    )
+    return this.definition.toJS()
+  }
+  drawChildren() {
+    return this.definition.component
   }
 }
 
@@ -1276,7 +1230,7 @@ export class SetterDefinition extends Statement {
  * - `property` is the PropertyLiteral
  * - `statements` is a Statement or Expression
  */
-export class GetterDefinition extends Statement {
+export class GetterDefinition extends PropertyDefinition {
   constructor(match, props) {
     super(match, props)
     this.assertType("thing", Expression)
@@ -1284,9 +1238,30 @@ export class GetterDefinition extends Statement {
     this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
+  // Return `CoreMethodInvocation` which we'll use to render as JS or component
+  @memoize
+  get definition() {
+    return new CoreMethodInvocation(this.match, {
+      method: "define",
+      args: [
+        this.thing,
+        new QuotedExpression(this.property.match, { expression: this.property }),
+        new ObjectLiteral(this.property.match, {
+          properties: [
+            new ObjectLiteralMethod(this.statements.match, {
+              property: "get",
+              statements: this.statements
+            })
+          ]
+        })
+      ]
+    })
+  }
   toJS() {
-    const { thing, property, statements } = this
-    return `spellCore.define(${thing.toJS()}, '${property.toJS()}', { get() { ${statements?.toJS() || ""} } })`
+    return this.definition.toJS()
+  }
+  drawChildren() {
+    return this.definition.component
   }
 }
 
@@ -1296,7 +1271,7 @@ export class GetterDefinition extends Statement {
  * - `get` is a Statement or Expression for the getter
  * - `set` is a Statement or Expression for the setter
  */
-export class GetSetDefinition extends Statement {
+export class GetSetDefinition extends PropertyDefinition {
   constructor(match, props) {
     super(match, props)
     this.assertType("thing", Expression)
@@ -1305,14 +1280,35 @@ export class GetSetDefinition extends Statement {
     this.assertType("set", [Statement, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
+  // Return `CoreMethodInvocation` which we'll use to render as JS or component
+  @memoize
+  get definition() {
+    return new CoreMethodInvocation(this.match, {
+      method: "define",
+      args: [
+        this.thing,
+        new QuotedExpression(this.property.match, { expression: this.property }),
+        new ObjectLiteral(this.property.match, {
+          properties: [
+            new ObjectLiteralMethod(this.get.match, {
+              property: "get",
+              statements: this.get
+            }),
+            new ObjectLiteralMethod(this.statements.match, {
+              property: "set",
+              args: [this.property],
+              statements: this.set
+            })
+          ]
+        })
+      ]
+    })
+  }
   toJS() {
-    const { thing, property, get, set } = this
-    return (
-      `spellCore.define(${thing.toJS()}, '${property.toJS()}', {` +
-      `\n\tget() { ${get?.toJS() || ""} },` +
-      `\n\tset(${property.toJS()}) { ${set?.toJS() || ""} }` +
-      `\n})`
-    )
+    return this.definition.toJS()
+  }
+  drawChildren() {
+    return this.definition.component
   }
 }
 
@@ -1322,7 +1318,7 @@ export class GetSetDefinition extends Statement {
  * - `args` ia array of VariableExpressions
  * - `statements` is a Statement or Expression
  */
-export class MethodDefinition extends Statement {
+export class MethodDefinition extends PropertyDefinition {
   constructor(match, props) {
     super(match, props)
     this.assertType("thing", Expression)
@@ -1330,14 +1326,32 @@ export class MethodDefinition extends Statement {
     this.assertArrayType("args", VariableExpression, OPTIONAL)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
-    this.statements = convertStatementsToBlock(this.match, this.statements)
+  }
+  // Return `CoreMethodInvocation` which we'll use to render as JS or component
+  @memoize
+  get definition() {
+    return new CoreMethodInvocation(this.match, {
+      method: "define",
+      args: [
+        this.thing,
+        new QuotedExpression(this.match, this.method),
+        new ObjectLiteral(this.match, {
+          properties: [
+            new ObjectLiteralMethod(this.statements.match, {
+              property: "value",
+              args: this.args,
+              statements: convertStatementsToBlock(this.match, this.statements)
+            })
+          ]
+        })
+      ]
+    })
   }
   toJS() {
-    const { thing, method, args = [], statements } = this
-    return (
-      `spellCore.define(${thing.toJS()}, '${method}', {` +
-      ` value(${args.map(arg => arg.toJS())}) ${statements?.toJS() || ""} })`
-    )
+    return this.definition.toJS()
+  }
+  drawChildren() {
+    return this.definition.component
   }
 }
 
@@ -1354,11 +1368,20 @@ export class FunctionDefinition extends Statement {
     this.assertArrayType("args", VariableExpression, OPTIONAL)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
-    this.statements = convertStatementsToBlock(this.match, this.statements)
+    this.body = convertStatementsToBlock(this.match, this.statements)
   }
   toJS() {
-    const { method = "", args = [], statements } = this
-    return `function ${method}(${args.map(arg => arg.toJS()).join(", ")}) ${statements?.toJS() || ""}`
+    return `function ${this.method || ""}${this.argsToJS()} ${this.body.toJS()}`
+  }
+  drawChildren() {
+    return (
+      <>
+        <span className="keyword function">function </span>
+        {!!this.method && <span className="method-name">{this.method}</span>}
+        {this.drawArgs()}
+        {this.body.component}
+      </>
+    )
   }
 }
 
@@ -1373,8 +1396,15 @@ export class IfStatement extends Statement {
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
   toJS() {
-    const { condition, statements } = this
-    return `if ${encloseInParens(condition.toJS())} ${statements.toJS()}`
+    return `if ${this.wrapJSInParens(this.condition.toJS())} ${this.statements.toJS()}`
+  }
+  drawChildren() {
+    return (
+      <>
+        <span className="keyword if">if </span>
+        <span className="condition">{_drawInParens(this.condition.component)}</span> {this.statements.component}
+      </>
+    )
   }
 }
 
@@ -1389,8 +1419,16 @@ export class ElseIfStatement extends Statement {
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
   toJS() {
-    const { condition, statements } = this
-    return `else if ${encloseInParens(condition.toJS())} ${statements.toJS()}`
+    return `else if ${this.wrapJSInParens(this.condition.toJS())} ${this.statements.toJS()}`
+  }
+  drawChildren() {
+    return (
+      <>
+        <span className="keyword else">else </span>
+        <span className="keyword if">if </span>
+        <span className="condition">{_drawInParens(this.condition.component)}</span> {this.statements.component}
+      </>
+    )
   }
 }
 
@@ -1403,8 +1441,15 @@ export class ElseStatement extends Statement {
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
   toJS() {
-    const { statements } = this
-    return `else ${statements.toJS()}`
+    return `else ${this.statements.toJS()}`
+  }
+  drawChildren() {
+    return (
+      <>
+        <span className="keyword else">else </span>
+        {this.statements.component}
+      </>
+    )
   }
 }
 
@@ -1425,22 +1470,27 @@ export class TernaryExpression extends Expression {
     const expression = `(${condition.toJS()} ? ${trueValue.toJS()} : ${falseValue.toJS()})`
     return expression
   }
+  drawChildren() {
+    return _drawInParens(
+      <>
+        <span className="condition">{this.condition.component}</span>
+        <span className="punctuation question-mark">{" ? "}</span>
+        {this.trueValue.component}
+        <span className="punctuation colon">: </span>
+        {this.falseValue.component}
+      </>
+    )
+  }
 }
 
 /** ConsoleMethodInvocation
  * - `method` is method name, e.g. `log` or `warn`
  * - `args` is an array of expressions
  */
-export class ConsoleMethodInvocation extends Statement {
+export class ConsoleMethodInvocation extends ScopedMethodInvocation {
   @proto method = "log"
   constructor(match, props) {
-    super(match, props)
-    this.assertArrayType("args", Expression, OPTIONAL)
-    this.assertType("method", "string")
-  }
-  toJS() {
-    const { method, args } = this
-    return `console.${method}${encloseInParens(args.map(arg => arg.toJS()).join(", "))}`
+    super(match, { ...props, thing: new VariableExpression(match, { name: "console" }) })
   }
 }
 

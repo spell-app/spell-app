@@ -16,7 +16,7 @@ SpellParser.Rule.ParseError = class parse_error extends Rule {
 
   getAST(match) {
     return new AST.ParseError(match, {
-      message: `UNABLE TO PARSE: "${Tokenizer.join(match.matched)}"`
+      value: `UNABLE TO PARSE: "${Tokenizer.join(match.matched)}"`
     })
   }
 }

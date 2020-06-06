@@ -1,5 +1,9 @@
 ## File B.spell
 a todo-list is a list
-to test a todo-list
+to foo (a todo-list)
 	print 1
-test a todo-list
+to test (a todo-list)
+	print it
+	get 2
+	print it
+test a new todo-list

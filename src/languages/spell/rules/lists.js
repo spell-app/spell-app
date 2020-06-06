@@ -1107,7 +1107,7 @@ export const lists = new SpellParser({
             ],
             [
               "for each card in deck:\n\tset the direction of the card to 'down'\n\tset the value of the card to 10",
-              "spellCore.map(deck, (card) => {\ncard.direction = 'down'\ncard.value = 10\n})"
+              "spellCore.map(deck, (card) => {\n\tcard.direction = 'down'\n\tcard.value = 10\n})"
             ],
             [
               "for message and index in messages:\n\tif index is greater than 2 add message to messages",

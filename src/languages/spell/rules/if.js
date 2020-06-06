@@ -72,19 +72,19 @@ export const _if_ = new SpellParser({
               output: "if (a) { let b = 1 }"
             },
             {
-              title: "Indent with tab, output has 2 spaces",
+              title: "Indent with tab, output has tabs spaces",
               input: "if a:\n\tb = 1\n\tc=1",
-              output: "if (a) {\nlet b = 1\nlet c = 1\n}"
+              output: "if (a) {\n\tlet b = 1\n\tlet c = 1\n}"
             },
             {
               title: "Multiple lines in the nested block",
               input: "if a:\n\tb = 1\n\tc = 2",
-              output: "if (a) {\nlet b = 1\nlet c = 2\n}"
+              output: "if (a) {\n\tlet b = 1\n\tlet c = 2\n}"
             },
             {
               title: "Nested ifs work fine",
-              input: "if a\n\tb = 1\n\tif b\n\t\tc = 2",
-              output: "if (a) {\nlet b = 1\nif (b) { let c = 2 }\n}"
+              input: "if a\n\tb = 1\n\tif b\n\t\tc = 2\n\t\td = 3",
+              output: "if (a) {\n\tlet b = 1\n\tif (b) {\n\t\tlet c = 2\n\t\tlet d = 3\n\t}\n}"
             }
             // TODO: ignore console warnings with this one
             // {
@@ -159,7 +159,7 @@ export const _if_ = new SpellParser({
             {
               title: "Multiple lines in the nested block",
               input: "else if a:\n\tb = 1\n\tc = 2",
-              output: "else if (a) {\nlet b = 1\nlet c = 2\n}"
+              output: "else if (a) {\n\tlet b = 1\n\tlet c = 2\n}"
             },
             {
               title: "Nested else ifs work fine",
@@ -229,7 +229,7 @@ export const _if_ = new SpellParser({
             {
               title: "Multiple lines in the nested block",
               input: "else\n\tb = 1\n\tlet c = 2",
-              output: "else {\nlet b = 1\nlet c = 2\n}"
+              output: "else {\n\tlet b = 1\n\tlet c = 2\n}"
             }
           ]
         }

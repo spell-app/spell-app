@@ -519,7 +519,14 @@ export const classes = new SpellParser({
             ],
             [
               "a cards color is black if its suit is either clubs or spades otherwise it is red",
-              "spellCore.define(Card.prototype, 'color', { get() { if (spellCore.includes(['clubs', 'spades'], this.suit)) { return 'black' }\nreturn 'red' } })"
+              [
+                "spellCore.define(Card.prototype, 'color', {",
+                "\tget() {",
+                "\t\tif (spellCore.includes(['clubs', 'spades'], this.suit)) { return 'black' }",
+                "\t\treturn 'red'",
+                "\t}",
+                "})"
+              ]
             ]
           ]
         }
@@ -846,7 +853,7 @@ export const classes = new SpellParser({
             ],
             [
               'a card "is the (rank) of (suits)" for its ranks and its suits',
-              "/* SPELL: added expression: '(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)' */\nspellCore.define(Card.prototype, 'is_the_$rank_of_$suits', { value(rank,suit) { return this.rank === rank && this.suit === suit } })"
+              "/* SPELL: added expression: '(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)' */\nspellCore.define(Card.prototype, 'is_the_$rank_of_$suits', { value(rank, suit) { return this.rank === rank && this.suit === suit } })"
             ]
           ]
         },
