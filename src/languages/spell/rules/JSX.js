@@ -40,41 +40,26 @@ export const JSX = new SpellParser({
             [`<a b=1 c="ccc"/>`, `spellCore.element({ tag: "a", props: { b: 1, c: "ccc" } })`],
             [`<a b=1 c="ccc" d></a>`, `spellCore.element({ tag: "a", props: { b: 1, c: "ccc", d: true } })`],
 
-            [`<a><b/></a>`, [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]],
-            [
-              `<a><b></b></a>`,
-              [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]
-            ],
+            [`<a><b/></a>`, `spellCore.element({ tag: "a", children: [spellCore.element({ tag: "b" })] })`],
+            [`<a><b></b></a>`, `spellCore.element({ tag: "a", children: [spellCore.element({ tag: "b" })] })`],
             [
               `<a A=1><b c=1>foo</b></a>`,
-              [
-                `spellCore.element({ tag: "a", props: { A: 1 }, children: [`,
-                `\tspellCore.element({ tag: "b", props: { c: 1 }, children: [`,
-                `\t"foo"`,
-                `] })`,
-                `] })`
-              ]
+              `spellCore.element({ tag: "a", props: { A: 1 }, children: [spellCore.element({ tag: "b", props: { c: 1 }, children: ["foo"] })] })`
             ],
             [
               `<a><b><c>d</c></b></a>`,
-              [
-                'spellCore.element({ tag: "a", children: [',
-                '\tspellCore.element({ tag: "b", children: [',
-                '\tspellCore.element({ tag: "c", children: [',
-                '\t"d"',
-                "] })",
-                "] })",
-                "] })"
-              ]
+              'spellCore.element({ tag: "a", children: [spellCore.element({ tag: "b", children: [spellCore.element({ tag: "c", children: ["d"] })] })] })'
             ],
             [
               `<a>\n\tBBB\n\t<c/>\n\tDDD</a>`,
               [
-                'spellCore.element({ tag: "a", children: [',
-                '\t"BBB",',
-                '\tspellCore.element({ tag: "c" }),',
-                '\t"DDD"',
-                "] })"
+                "spellCore.element({",
+                '\ttag: "a", children: [',
+                '\t\t"BBB",',
+                '\t\tspellCore.element({ tag: "c" }),',
+                '\t\t"DDD"',
+                "\t]",
+                "})"
               ]
             ],
             [
@@ -106,7 +91,7 @@ export const JSX = new SpellParser({
             // DO parse a statement as an attribute expression
             [
               `<div on-click={print 1024}/>`,
-              `spellCore.element({ tag: "div", props: { "on-click": (event) => console.log(1024) } })`
+              `spellCore.element({ tag: "div", props: { 'on-click': (event) => console.log(1024) } })`
             ],
             // don't match attribute expressions that don't eat the entire text
             [
@@ -128,53 +113,48 @@ export const JSX = new SpellParser({
           tests: [
             [
               `<div foo={<a><b><c>{1}</c></b></a>}/>`,
-              [
-                'spellCore.element({ tag: "div", props: { foo: spellCore.element({ tag: "a", children: [',
-                '\tspellCore.element({ tag: "b", children: [',
-                '\tspellCore.element({ tag: "c", children: [',
-                "\t1",
-                "] })",
-                "] })",
-                "] }) } })"
-              ]
+              'spellCore.element({ tag: "div", props: { foo: spellCore.element({ tag: "a", children: [spellCore.element({ tag: "b", children: [spellCore.element({ tag: "c", children: [1] })] })] }) } })'
             ],
             // compound expression
-            [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]],
+            [`<div>{1 + 2 + 3}</div>`, 'spellCore.element({ tag: "div", children: [((1 + 2) + 3)] })'],
             // multi-line expression is fine
-            [
-              [`<div>{\n\t1 + \n2 + 3\t\n}</div>`],
-              ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]
-            ],
+            ["<div>{\n\t1 + \n2 + 3\t\n}</div>", 'spellCore.element({ tag: "div", children: [((1 + 2) + 3)] })'],
             //
-            [
-              `<div>{the rank of the card}</div>`,
-              ['spellCore.element({ tag: "div", children: [', "\tcard.rank", "] })"]
-            ],
+            [`<div>{the rank of the card}</div>`, 'spellCore.element({ tag: "div", children: [card.rank] })'],
             // fail if we don't eat entire expression
             [
               `<div>{true true}</div>`,
               [
-                'spellCore.element({ tag: "div", children: [',
-                '\tundefined /* PARSE ERROR: UNABLE TO PARSE: "true true" */',
-                "] })"
+                "spellCore.element({",
+                '\ttag: "div", children: [',
+                "\t\tnull",
+                '\t\t/* PARSE ERROR: UNABLE TO PARSE: "true true" */',
+                "\t]",
+                "})"
               ]
             ],
             // fail on unknown expression
             [
               `<div>{unknown expression}</div>`,
               [
-                'spellCore.element({ tag: "div", children: [',
-                '\tundefined /* PARSE ERROR: UNABLE TO PARSE: "unknown expression" */',
-                "] })"
+                "spellCore.element({",
+                '\ttag: "div", children: [',
+                "\t\tnull",
+                '\t\t/* PARSE ERROR: UNABLE TO PARSE: "unknown expression" */',
+                "\t]",
+                "})"
               ]
             ],
             // DO NOT parse a inline expression as a statement
             [
               `<div>{print 1024}</div>`,
               [
-                'spellCore.element({ tag: "div", children: [',
-                '\tundefined /* PARSE ERROR: UNABLE TO PARSE: "print 1024" */',
-                "] })"
+                "spellCore.element({",
+                '\ttag: "div", children: [',
+                "\t\tnull",
+                '\t\t/* PARSE ERROR: UNABLE TO PARSE: "print 1024" */',
+                "\t]",
+                "})"
               ]
             ]
           ]
