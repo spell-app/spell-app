@@ -150,7 +150,10 @@ export class ASTNode extends Assertable {
   /** Helper to wrap JS value in square brackets. */
   wrapJSInSquares(value = "") {
     if (!value) return "[]"
-    if (value.includes("\n")) return `[\n\t${value.split("\n").join("\n\t")}\n]`
+    if (value.includes("\n")) {
+      const prefix = value.startsWith("\n") ? "\t" : "\n\t"
+      return `[${prefix}${value.split("\n").join("\n\t")}\n]`
+    }
     return `[${value}]`
   }
 
@@ -225,6 +228,29 @@ export class BlankLine extends ASTNode {
  *  - Try to figure out `datatype` if you can, either as a value or as a getter.
  */
 export class Expression extends ASTNode {}
+
+/** Expression with attached comment.
+ *  - `expression`
+ *  - `comment`
+ */
+export class ExpressionWithComment extends Expression {
+  constructor(match, props) {
+    super(match, props)
+    this.assertType("expression", Expression)
+    this.assertType("comment", BlockComment)
+  }
+  toJS() {
+    return `${this.expression.toJS()} ${this.comment.toJS()}`
+  }
+  drawChildren() {
+    return (
+      <>
+        {this.expression.component}
+        {this.comment.component}
+      </>
+    )
+  }
+}
 
 /** QuotedExpression -- use to wrap resulting AST in quotes.
  *  TODO: is this a good idea?  Don't use too much!
@@ -1510,16 +1536,14 @@ export class JSXElement extends Expression {
         })
       )
     }
-    if (this.children && this.children.length) {
-      const items = this.children.map(child => child.output).filter(Boolean)
-      if (items.length) {
-        properties.push(
-          new ObjectLiteralProperty(this.match, {
-            property: "children",
-            value: new ArrayLiteral(this.match, { items, wrap: true })
-          })
-        )
-      }
+    const items = this.children?.length && this.children.map(child => child?.output).filter(Boolean)
+    if (items?.length) {
+      properties.push(
+        new ObjectLiteralProperty(this.match, {
+          property: "children",
+          value: new ArrayLiteral(this.match, { items, wrap: true })
+        })
+      )
     }
 
     return new CoreMethodInvocation(this.match, {
@@ -1583,14 +1607,6 @@ export class JSXEndTag extends Expression {
     super(match, props)
     this.assertType("tagName", "string")
   }
-  toJS() {
-    // we don't actually output end tags
-    return undefined
-  }
-  draw() {
-    // we don't actually output end tags
-    return null
-  }
 }
 
 /** JSXText
@@ -1621,24 +1637,11 @@ export class JSXExpression extends Expression {
   get output() {
     if (this.error) {
       const expression = this.expression || new NullLiteral(this.match)
-      return new StatementGroup(this.match, {
-        statements: [expression, this.error]
+      return new ExpressionWithComment(this.match, {
+        expression,
+        comment: this.error
       })
     }
     return this.expression
   }
-  // toJS() {
-  //   const { expression, error } = this
-  //   let value = expression ? expression.toJS() : "undefined"
-  //   if (error) value += ` ${error.toJS()}`
-  //   return value
-  // }
-  // drawChildren() {
-  //   return (
-  //     <>
-  //       {!!this.expression && <span className="expression">{this.expression.component}</span>}
-  //       {!!this.error && <span className="error">{this.error.component}</span>}
-  //     </>
-  //   )
-  // }
 }

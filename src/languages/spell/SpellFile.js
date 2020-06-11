@@ -134,7 +134,7 @@ export class SpellFile extends TextFile {
     const match = await this.parse(parentScope)
     batch(() => {
       this.set("_state.AST", match.AST)
-      let compiled = match.compile()
+      const compiled = match.compile()
       // try {
       //   // Use prettier to format the output.  This will throw if the code is bad.
       //   compiled = prettier.format(compiled, { parser: "babel", plugins: [babylon], printWidth: 120 })

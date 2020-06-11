@@ -26,7 +26,7 @@ export const JSX = new SpellParser({
         getAST(match) {
           const { tagName } = match.matched[0]
           const attrs = match.attributes?.map(attr => attr.AST)
-          const children = match.children?.map(child => child.AST)
+          const children = match.children?.map(child => child.AST).filter(Boolean)
           return new AST.JSXElement(match, { tagName, attrs, children })
         }
       },
@@ -124,38 +124,17 @@ export const JSX = new SpellParser({
             // fail if we don't eat entire expression
             [
               `<div>{true true}</div>`,
-              [
-                "spellCore.element({",
-                '\ttag: "div", children: [',
-                "\t\tnull",
-                '\t\t/* PARSE ERROR: UNABLE TO PARSE: "true true" */',
-                "\t]",
-                "})"
-              ]
+              'spellCore.element({ tag: "div", children: [null /* PARSE ERROR: UNABLE TO PARSE: "true true" */] })'
             ],
             // fail on unknown expression
             [
               `<div>{unknown expression}</div>`,
-              [
-                "spellCore.element({",
-                '\ttag: "div", children: [',
-                "\t\tnull",
-                '\t\t/* PARSE ERROR: UNABLE TO PARSE: "unknown expression" */',
-                "\t]",
-                "})"
-              ]
+              'spellCore.element({ tag: "div", children: [null /* PARSE ERROR: UNABLE TO PARSE: "unknown expression" */] })'
             ],
-            // DO NOT parse a inline expression as a statement
+            // DO NOT parse a inline statement as a JSXExpression
             [
               `<div>{print 1024}</div>`,
-              [
-                "spellCore.element({",
-                '\ttag: "div", children: [',
-                "\t\tnull",
-                '\t\t/* PARSE ERROR: UNABLE TO PARSE: "print 1024" */',
-                "\t]",
-                "})"
-              ]
+              'spellCore.element({ tag: "div", children: [null /* PARSE ERROR: UNABLE TO PARSE: "print 1024" */] })'
             ]
           ]
         }
@@ -235,6 +214,7 @@ export const JSX = new SpellParser({
       tokenType: Token.JSXText,
       getAST(match) {
         const { raw, quotedText } = match.matched[0]
+        if (!quotedText) return null
         return new AST.JSXText(match, { raw, value: quotedText })
       }
     },
