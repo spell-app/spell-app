@@ -1,0 +1,39 @@
+the color of a card is red if its suit is diamonds or hearts otherwise it is black
+
+(property_value_either:
+  (property_of_a_type:
+    the
+    (property: color)
+    of a
+    (type: card)
+  )
+  is
+  (value:red)
+  if
+  (condition:
+    (lhs:
+      (its_property_accessor:
+        its
+        (property:color)
+      )
+    (rhs: [
+      (is_in:
+        is one of
+        (identifier_list: diamonds or hearts )
+      )
+    ])
+  )
+  otherwise it is
+  (otherValue:black)
+)
+
+
+
+_________________________________________________________________________________________________________________________________________________
+\___________________________________________________________property_value_either_______________________________________________________________/
+ \_______property_of_a_type_______/  \__value__/  \__________________________condition__________________________/                \_other_value_/
+      \__property__/    \__type__/                 \_________lhs_________/\________________rhs_________________/
+                                                    \___its_property____/  \______________is_in_______________/
+                                                          \__property__/               \___identifier_list___/
+   the    color     of a   card    is    red    if    its     color          is one of   diamonds or hearts      otherwise it is      black
+
