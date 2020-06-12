@@ -1,12 +1,10 @@
 ## File FizzBuzz.spell
 
 to play fizzbuzz
-	output is a new list
 	for each number from 1 to 100
-		if the number divided by 15 is an integer: add "fizzbuzz" to the output
-		otherwise if the number divided by 3 is an integer: add "fizz" to the output
-		otherwise if the number divided by 5 is an integer: add "buzz" to the output
-		otherwise add the number to the output
-	print the output
+		if the number divided by 15 is an integer: print the number + ": fizzbuzz"
+		otherwise if the number divided by 3 is an integer: print the number + ": fizz"
+		otherwise if the number divided by 5 is an integer: print the number + ": buzz"
+		otherwise print the number
 
 play fizzbuzz
