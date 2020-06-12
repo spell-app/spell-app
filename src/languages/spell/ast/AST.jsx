@@ -3,7 +3,7 @@
 import React from "react"
 import _get from "lodash/get"
 
-import { proto, memoize, readonly, getSuperHierarchy, Assertable, OPTIONAL } from "~/util"
+import { proto, memoize, readonly, overrideable, getSuperHierarchy, Assertable, OPTIONAL } from "~/util"
 import { Match } from "~/parser"
 
 // TODO: define this in `constants` or some such?
@@ -92,17 +92,33 @@ const _drawBlock = (content, indented = false) => {
   )
 }
 
-/** Surround `content` in square brackets. */
-const _drawInSquares = content => {
-  const whiteSpace = content ? " " : ""
+const _drawLeftSquare = (whiteSpace = "") => <span className="punctuation left-square-bracket">{`[${whiteSpace}`}</span>
+const _drawRightSquare = (whiteSpace = "") => (
+  <span className="punctuation right-square-bracket">{`${whiteSpace}]`}</span>
+)
+const _drawArray = (items, indented = false, drawItem = _drawItem) => {
+  if (!items || items.length === 0) {
+    return (
+      <>
+        {_drawLeftSquare()}
+        {_drawRightSquare()}
+      </>
+    )
+  }
+  const delimiter = indented ? _drawIndentedComma : _drawComma
+  const content = _drawList(items, drawItem, delimiter)
+  const whiteSpace = indented ? "" : " "
   return (
-    <>
-      <span className="punctuation left-square-bracket">{`[${whiteSpace}`}</span>
-      {content}
-      <span className="punctuation right-square-bracket">{`${whiteSpace}]`}</span>
-    </>
+    <span className={`ASTBlock${indented ? " indented" : ""}`}>
+      {_drawLeftSquare(whiteSpace)}
+      {indented && _drawNewline()}
+      <span className={`blockContents${indented ? " indented" : ""}`}>{content}</span>
+      {indented && _drawNewline()}
+      {_drawRightSquare(whiteSpace)}
+    </span>
   )
 }
+
 /** Surround `content` in single quotes. */
 const _drawInSingleQuotes = content => {
   return (
@@ -401,13 +417,16 @@ export class ArrayLiteral extends Literal {
     this.assertArrayType("items", Expression, OPTIONAL)
     this.assertType("wrap", "boolean", OPTIONAL)
   }
+  @overrideable
+  get wrap() {
+    return this.items?.length > 2
+  }
   toJS() {
     const delimiter = this.wrap ? ",\n" : ", "
     return this.wrapJSInSquares(this.listToJS(this.items, delimiter))
   }
   drawChildren() {
-    const delimiter = this.wrap ? _drawComma : _drawIndentedComma
-    return _drawInSquares(_drawList(this.items, delimiter))
+    return _drawArray(this.items, this.wrap)
   }
 }
 
@@ -425,7 +444,7 @@ export class Enumeration extends Literal {
     return this.wrapJSInSquares(this.listToJS(this.enumeration))
   }
   drawChildren() {
-    return _drawInSquares(_drawList(this.enumeration))
+    return _drawArray(this.enumeration)
   }
 }
 
@@ -956,7 +975,6 @@ export class ObjectLiteral extends Expression {
     return this.properties?.length > 2 || this.properties?.some(item => item instanceof ObjectLiteralMethod)
   }
   toJS() {
-    // TODO: single prop on one line, newlines + indent for multiple props
     const delimiter = this.wrap ? ",\n" : ", "
     return this.wrapJSInCurlies(this.listToJS(this.properties, delimiter))
   }
@@ -1612,6 +1630,9 @@ export class JSXElement extends Expression {
   }
   toJS() {
     return this.output.toJS()
+  }
+  drawChildren() {
+    return this.output.component
   }
 }
 
