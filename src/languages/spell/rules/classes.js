@@ -406,7 +406,11 @@ export const classes = new SpellParser({
               "cards have a direction as either up or down",
               [
                 "/* SPELL: added rule: '(Card|card) (Directions|directions)' */",
-                "spellCore.defineProperty(Card.prototype, { property: 'direction', enumeration: ['up', 'down'], enumerationProp: 'Directions' })"
+                `spellCore.defineProperty(Card.prototype, {`,
+                `\tproperty: 'direction',`,
+                `\tenumeration: ['up', 'down'],`,
+                `\tenumerationProp: 'Directions'`,
+                `})`
               ]
             ],
             [
@@ -423,7 +427,12 @@ export const classes = new SpellParser({
             ],
             [
               "todos have a property tags as a new list",
-              "spellCore.defineProperty(Todo.prototype, { property: 'tags', initializer: function () { return new List() } })"
+              [
+                `spellCore.defineProperty(Todo.prototype, {`,
+                `\tproperty: 'tags',`,
+                `\tinitializer() { return new List() }`,
+                `})`
+              ]
             ]
           ]
         },

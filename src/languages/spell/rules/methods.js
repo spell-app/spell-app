@@ -631,7 +631,11 @@ export const methods = new SpellParser({
                 '\tlet { name, message, reply = "yep" } = props',
                 "\tconsole.log((name + message) + reply)",
                 "}",
-                'notify({ name: "Bob", message: "How many?", reply: 2 })'
+                "notify({",
+                '\tname: "Bob",',
+                '\tmessage: "How many?",',
+                "\treply: 2",
+                "})"
               ]
             },
             {

@@ -904,6 +904,7 @@ export class ObjectLiteralProperty extends ASTNode {
 export class ObjectLiteralMethod extends ObjectLiteralProperty {
   constructor(match, props) {
     super(match, props)
+    if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
     this.assertArrayType("args", Expression, OPTIONAL)
     this.assertType("statements", [Statement, Expression], OPTIONAL)

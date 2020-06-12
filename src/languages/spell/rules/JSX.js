@@ -38,13 +38,28 @@ export const JSX = new SpellParser({
             [`<a/>`, `spellCore.element({ tag: "a" })`],
             [`<a></a>`, `spellCore.element({ tag: "a" })`],
             [`<a b=1 c="ccc"/>`, `spellCore.element({ tag: "a", props: { b: 1, c: "ccc" } })`],
-            [`<a b=1 c="ccc" d></a>`, `spellCore.element({ tag: "a", props: { b: 1, c: "ccc", d: true } })`],
+            [
+              `<a b=1 c="ccc" d></a>`,
+              [`spellCore.element({`, `\ttag: "a", props: {`, `\t\tb: 1,`, `\t\tc: "ccc",`, `\t\td: true`, `\t}`, `})`]
+            ],
 
             [`<a><b/></a>`, `spellCore.element({ tag: "a", children: [spellCore.element({ tag: "b" })] })`],
             [`<a><b></b></a>`, `spellCore.element({ tag: "a", children: [spellCore.element({ tag: "b" })] })`],
             [
               `<a A=1><b c=1>foo</b></a>`,
-              `spellCore.element({ tag: "a", props: { A: 1 }, children: [spellCore.element({ tag: "b", props: { c: 1 }, children: ["foo"] })] })`
+              [
+                `spellCore.element({`,
+                `\ttag: "a",`,
+                `\tprops: { A: 1 },`,
+                `\tchildren: [`,
+                `\t\tspellCore.element({`,
+                `\t\t\ttag: "b",`,
+                `\t\t\tprops: { c: 1 },`,
+                `\t\t\tchildren: ["foo"]`,
+                `\t\t})`,
+                `\t]`,
+                `})`
+              ]
             ],
             [
               `<a><b><c>d</c></b></a>`,
@@ -68,7 +83,18 @@ export const JSX = new SpellParser({
             ],
             [
               '<input attrOnly text="text" number=1 boolean={yes} expression={1 + 1} onClick={print the value of the target of the event} />',
-              'spellCore.element({ tag: "input", props: { attrOnly: true, text: "text", number: 1, boolean: true, expression: (1 + 1), onClick: (event) => console.log(event.target.value) } })'
+              [
+                `spellCore.element({`,
+                `\ttag: "input", props: {`,
+                `\t\tattrOnly: true,`,
+                `\t\ttext: "text",`,
+                `\t\tnumber: 1,`,
+                `\t\tboolean: true,`,
+                `\t\texpression: (1 + 1),`,
+                `\t\tonClick: (event) => console.log(event.target.value)`,
+                `\t}`,
+                `})`
+              ]
             ]
           ]
         },

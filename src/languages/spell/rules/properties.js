@@ -182,7 +182,7 @@ export const properties = new SpellParser({
             [``, undefined],
             [`a = 1`, `{ a: 1 }`],
             [`a = 1,`, `{ a: 1 }`],
-            [`a = 1, b = yes, c = "quoted"`, `{ a: 1, b: true, c: "quoted" }`],
+            [`a = 1, b = yes, c = "quoted"`, [`{`, `\ta: 1,`, `\tb: true,`, `\tc: "quoted"`, `}`]],
             [`a = 1, b = the foo of the bar`, `{ a: 1, b: bar.foo }`],
 
             [`length is 1, rank of "queen"`, `{ length: 1, rank: "queen" }`],
