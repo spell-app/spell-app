@@ -287,14 +287,14 @@ export const SpellEditor = view(function SpellEditor() {
             </div>
           </Col>
           <Col xs={6} className="pr-2 pb-2">
-            {/* <div id="match" className="p-2 rounded shadow-sm border">
+            <div id="match" className="p-2 rounded shadow-sm border">
               <MatchViewer match={store.file?.match} inputOffset={store.inputOffset} />
-            </div> */}
-            <div id="output" className="rounded shadow-sm border">
+            </div>
+            {/* <div id="output" className="rounded shadow-sm border">
               <div className="CodeMirrorContainer">
                 <OutputEditor />
               </div>
-            </div>
+            </div> */}
           </Col>
         </Row>
       </Container>

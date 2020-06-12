@@ -1,6 +1,6 @@
 a todo is a drawable
 a todo has a title as text
-a todo has a completed as yes or no
+a todo has a property completed as yes or no
 a todo "is complete" if its completed is yes
 a todo "is active" if its completed is not yes
 
@@ -19,8 +19,8 @@ create a todo with title = "Two"
 create a todo with title = "Three"
 
 to draw (a todo)
-	if the filter of the app is "active" and it is complete return no
-	if the filter of the app is "completed" and it is active return no
+	if it is complete and the filter of the app is "active" return no
+	if it is active and the filter of the app is "completed" return no
 	return <tr>
 		<td width="8%">
 			<input 
