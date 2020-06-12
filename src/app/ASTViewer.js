@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from "react"
 
+import { store } from "./store"
 import "./ASTViewer.less"
 
 function highlight(el, delay = 0) {
@@ -13,7 +14,7 @@ function highlight(el, delay = 0) {
 /** Top-level viewer for a ASTNode.
  * Create one of these and it will create <ASTView>s and <TokenView>s underneath it.the
  */
-export function ASTViewer({ ast, match, inputOffset }) {
+export function ASTViewerInner({ ast, match, inputOffset }) {
   if (!ast) return null
   // If we're passed a specific `inputOffset`, scroll that line into view and flash its bg.
   React.useLayoutEffect(() => {
@@ -45,4 +46,44 @@ export function ASTViewer({ ast, match, inputOffset }) {
     //   })
   }, [match, inputOffset])
   return <div className="ASTViewer">{ast.component}</div>
+}
+
+/**
+ * Top-level viewer for a ASTNode with error handling.
+ * Create one of these and it will create <ASTView>s underneath for `props.ast`.
+ */
+export class ASTViewer extends React.Component {
+  state = { error: undefined }
+
+  static getDerivedStateFromError(error) {
+    console.warn("ASTViewer error boundary got error", error)
+    return { error }
+  }
+
+  static getDerivedStateFromProps(props, state) {
+    const newState = {
+      lastAST: props.ast
+    }
+    if (state.error && state.lastAST !== props.ast) {
+      newState.error = null
+    }
+    return newState
+  }
+
+  componentDidCatch(error, errorInfo) {
+    store.showError(error)
+  }
+
+  render() {
+    const { error } = this.state
+    const { ast, match, inputOffset } = this.props
+    if (error) {
+      return (
+        <div className="ASTViewer">
+          <h4>Error: {error.message}</h4>
+        </div>
+      )
+    }
+    return <ASTViewerInner ast={ast} match={match} inputOffset={inputOffset} />
+  }
 }
