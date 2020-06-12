@@ -66,7 +66,7 @@ export const methods = new SpellParser({
         gatherGroups(match) {
           return {
             variable: match,
-            arg: new AST.VariableExpression(match, { name: match.value })
+            arg: new AST.VariableExpression(match, { name: match.value, type: "argument" })
           }
         }
       }
@@ -79,7 +79,7 @@ export const methods = new SpellParser({
         const type = match.matched[1]
         return {
           type,
-          arg: new AST.VariableExpression(match, { name: instanceCase(type.value) })
+          arg: new AST.VariableExpression(match, { name: instanceCase(type.value), type: "argument" })
         }
       }
     },
@@ -92,7 +92,7 @@ export const methods = new SpellParser({
         return {
           variable,
           type,
-          arg: new AST.VariableExpression(match, { name: variable.value, datatype: type.value })
+          arg: new AST.VariableExpression(match, { name: variable.value, datatype: type.value, type: "argument" })
         }
       }
     },
@@ -105,7 +105,7 @@ export const methods = new SpellParser({
         const groups = {
           variable,
           value,
-          arg: new AST.VariableExpression(match, { name: variable.value, default: value.AST })
+          arg: new AST.VariableExpression(match, { name: variable.value, default: value.AST, type: "argument" })
         }
         // console.warn("valued_method_arg_specifier:", variable, value, "\n", groups)
         return groups
@@ -186,7 +186,8 @@ export const methods = new SpellParser({
             bits.args.push(
               new AST.VariableExpression(groups.withArgs, {
                 name: "props",
-                default: new AST.ObjectLiteral(groups.withArgs)
+                default: new AST.ObjectLiteral(groups.withArgs),
+                type: "argument"
               })
             )
             // set `withArgs` to AST.VariableExpressions for each argument
@@ -248,7 +249,10 @@ export const methods = new SpellParser({
           if (withArgs) {
             const assignment = new AST.DestructuredAssignment(match, {
               // `props` argument will be the last thing in args
-              thing: new AST.VariableExpression(match.groups.withArgs, { name: args[args.length - 1].name }),
+              thing: new AST.VariableExpression(match.groups.withArgs, {
+                name: args[args.length - 1].name,
+                type: "argument"
+              }),
               variables: withArgs,
               isNewVariable: true
             })

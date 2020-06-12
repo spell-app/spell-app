@@ -27,12 +27,12 @@ const _drawIndentedComma = index => (
   </>
 )
 /** Draw a newline as a list delimiter. */
-const _drawNewline = index => <span className="punctuation newline">{"\n"}</span>
+const _drawNewline = index => <span className="whitespace newline">{"\n"}</span>
 /** Draw a newline as a list delimiter. */
 const _drawIndentedNewline = index => (
   <>
-    <span className="punctuation newline">{"\n"}</span>
-    <span className="punctuation indent" />
+    <span className="whitespace newline">{"\n"}</span>
+    <span className="whitespace indent" />
   </>
 )
 
@@ -563,7 +563,7 @@ export class NotExpression extends Expression {
   drawChildren() {
     return (
       <>
-        <span className="punctuation exclamation-point">!</span>
+        <span className="operator exclamation-point">!</span>
         <span className="expression">{this.expression.component}</span>
       </>
     )
@@ -652,7 +652,7 @@ export class ScopedMethodInvocation extends MethodInvocation {
     return (
       <>
         <span className="method-scope">{this.thing.component}</span>
-        <span className="punctuation period">.</span>
+        <span className="operator period">.</span>
         <span className="method-name">{this.method}</span>
         {this.drawArgs()}
       </>
@@ -667,7 +667,7 @@ export class ScopedMethodInvocation extends MethodInvocation {
 export class ConsoleMethodInvocation extends ScopedMethodInvocation {
   @proto method = "log"
   constructor(match, props) {
-    super(match, { ...props, thing: new VariableExpression(match, { name: "console" }) })
+    super(match, { ...props, thing: new VariableExpression(match, { name: "console", type: "global" }) })
   }
 }
 
@@ -678,7 +678,7 @@ export class ConsoleMethodInvocation extends ScopedMethodInvocation {
  */
 export class CoreMethodInvocation extends ScopedMethodInvocation {
   constructor(match, props) {
-    super(match, { ...props, thing: new VariableExpression(match, { name: "spellCore" }) })
+    super(match, { ...props, thing: new VariableExpression(match, { name: "spellCore", type: "global" }) })
   }
 }
 
@@ -734,6 +734,7 @@ export class TypeExpression extends Expression {
 /** VariableExpression -- pointer to a Variable object.
  *  - `name` is the normalized type name: dashes and spaces converted to underscores.
  *  - `default` (optional) AST for default value. See `DestructuredAssignment`
+ *  - `type` (optional) "argument" or "this" etc
  *  CURRENTLY UNUSED
  *  - `raw` (optional) is the original input string, unnormalized.
  *  - `variable` (optional) is pointer to scope Variable, if there is one.
@@ -751,12 +752,19 @@ export class VariableExpression extends Expression {
     if (this.default) return `${this.name} = ${this.default.toJS()}`
     return this.name
   }
+  get className() {
+    const classes = [super.className]
+    if (this.type) classes.push(this.type)
+    if (this.variable?.kind && !classes.includes(this.variable.kind)) classes.push(this.variable.kind)
+    return classes.join(" ")
+  }
   drawChildren() {
+    console.warn(this)
     if (!this.default) return <span className="name">{this.name}</span>
     return (
       <>
         <span className="name">{this.name}</span>
-        <span className="punctuation equals">{" = "}</span>
+        <span className="operator equals">{" = "}</span>
         <span className="default">{this.default.component}</span>
       </>
     )
@@ -834,7 +842,7 @@ export class PropertyExpression extends Expression {
       return (
         <>
           {object}
-          <span className="punctuation period">.</span>
+          <span className="operator period">.</span>
           {this.property.component}
         </>
       )
@@ -874,7 +882,7 @@ export class ObjectLiteralProperty extends ASTNode {
     // If no value, assume it's available as a local variable.
     const value = !!this.value && (
       <>
-        <span className="punctuation colon">: </span>
+        <span className="operator colon">: </span>
         <span className="value">{this.value.component}</span>
       </>
     )
@@ -1019,7 +1027,7 @@ export class AssignmentStatement extends Statement {
       <>
         {this.isNewVariable && <span className="keyword declarator">let </span>}
         <span className="thing">{this.thing.component}</span>
-        <span className="punctuation equals"> = </span>
+        <span className="operator equals"> = </span>
         <span className="value">{this.value.component}</span>
       </>
     )
@@ -1050,7 +1058,7 @@ export class DestructuredAssignment extends Statement {
       <>
         {this.isNewVariable && <span className="keyword declarator">let </span>}
         {_drawInCurlies(_drawList(this.variables))}
-        <span className="punctuation equals"> = </span>
+        <span className="operator equals"> = </span>
         <span className="thing">{this.thing.component}</span>
       </>
     )
@@ -1185,7 +1193,7 @@ export class InlineMethodExpression extends Expression {
     return (
       <>
         {this.drawArgs()}
-        <span className="punctuation fat-arrow">{" => "}</span>
+        <span className="operator fat-arrow">{" => "}</span>
         {_drawInCurlies(this.expression?.component || this.statements?.component)}
       </>
     )
@@ -1208,7 +1216,7 @@ export class PrototypeExpression extends Expression {
     return (
       <>
         {this.type.component}
-        <span className="punctuation period">.</span>
+        <span className="operator period">.</span>
         <span className="keyword prototype">{"prototype"}</span>
       </>
     )
@@ -1537,9 +1545,9 @@ export class TernaryExpression extends Expression {
     return _drawInParens(
       <>
         <span className="condition">{this.condition.component}</span>
-        <span className="punctuation question-mark">{" ? "}</span>
+        <span className="operator question-mark">{" ? "}</span>
         {this.trueValue.component}
-        <span className="punctuation colon">: </span>
+        <span className="operator colon">: </span>
         {this.falseValue.component}
       </>
     )

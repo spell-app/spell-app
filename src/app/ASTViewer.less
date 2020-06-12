@@ -15,6 +15,24 @@
     background: rgb(245, 236, 212);
   }
 
+  /* Block with curlies inside an ASTNode. */
+  .ASTBlock {
+    // Indent blockContents. This looks right but loses spaces on copy-paste.
+    .blockContents.indented {
+      display: inline-block;
+      vertical-align: top;
+      margin-left: 1em;
+    }
+  /* end .ASTBlock */
+  }
+
+  .punctuation {
+    .syntax-punctuation()
+  }
+  .operator {
+    .syntax-operator()
+  }
+
   .keyword,
   &.ThisLiteral {
     .syntax-keyword()
@@ -33,12 +51,16 @@
     .syntax-parser-annotation()
   }
 
-  &.QuotedExpression,
   &.StringLiteral,
+  &.QuotedExpression,
+  &.QuotedExpression .PropertyLiteral {
+    .syntax-string()
+  }  
+
   &.ConstantExpression {
-    .syntax-text()
+    .syntax-enum()
   }
-  
+
   &.NumericLiteral {
     .syntax-number()
   }
@@ -47,85 +69,58 @@
     .syntax-boolean()
   }
 
-  &.TypeExpression,
-  &.PrototypeExpression .keyword.prototype {
-    .syntax-type()
+  &.TypeExpression {
+    .syntax-class()
   }
+  // &.PrototypeExpression .keyword.prototype {
+  //   .syntax-class()
+  // }
+
 
   &.VariableExpression > .name {
     .syntax-variable()
   }
   &.AssignmentStatement.declaration .VariableExpression > .name {
-    .syntax-new-variable()
+    .syntax-variable-declaration()
+  }
+
+  &.VariableExpression.argument > .name {
+    .syntax-parameter();
+  }
+
+  &.VariableExpression.global > .name {
+    .syntax-global-variable();
   }
 
   &.PropertyLiteral {
-    .syntax-property-literal()
+    .syntax-property()
   }
 
   &.FunctionDefinition > .method-name,
   &.MethodInvocation > .method-name {
-    .syntax-method-name()
+    .syntax-function()
   }
 
 /* end .ASTNode */
 }
 
-/* Block with curlies inside an ASTNode. */
-.ASTBlock {
-  // Indent blockContents.
-  // This looks right but loses spaces on copy-paste.
-  .blockContents.indented {
-    display: inline-block;
-    vertical-align: top;
-    margin-left: 1em;
-  }
-
-/* end .ASTBlock */
-}
 
 
 //////////////////
 //
 //  Common syntax coloring methods
 //
+//  VS Code's Semantic Tokens:  https://github.com/microsoft/vscode-extension-samples/tree/master/semantic-tokens-sample
+//
 //////////////////
 
-.syntax-new-variable() {
-  color: cornflowerblue;
-  font-weight: bold;
-}
-
-.syntax-variable() {
-  color: cornflowerblue;
-}
-
-.syntax-property-literal{
-  color: cornflowerblue;
-}
-
-.syntax-method-name{
-  color: chocolate;
-}
-
-.syntax-type() {
-  color: darkgreen;
-  font-weight: bold;
-}
-
-.syntax-text() {
-  color: #a22;
-}
-
-.syntax-number() {
-  color: #3a3;
-}
-.syntax-boolean() {
-  .syntax-number()
-}
-
-.syntax-keyword() {
-  color: blue;
+.syntax-pill(@bgcolor: #eee, @color: black) {
+  background-color: @bgcolor;
+  color: @color;
+  border-radius: 15px;
+  padding: 0 10px;
+  position: relative;
+  left: -10px;
 }
 
 .syntax-comment() {
@@ -138,6 +133,88 @@
 }
 
 .syntax-parser-annotation() {
-  color: #999;
+  color: #ccc;
+  // .syntax-pill(#ccc, #666);
+  // .punctuation {
+  //   display: none;
+  // }
 }
 
+.syntax-string() {
+  color: #a22;
+}
+
+.syntax-enum() {
+  color: #a22;
+}
+
+.syntax-keyword() {
+  color: blue;
+}
+
+.syntax-number() {
+  color: #3a3;
+}
+
+.syntax-boolean() {
+  .syntax-number()
+}
+
+.syntax-punctuation() {
+  color: #ddd;
+}
+
+.syntax-operator() {
+  color: red;
+}
+
+.syntax-class() {
+  color: darkgreen;
+  font-weight: bold;
+}
+.syntax-function{
+  color: chocolate;
+}
+
+.syntax-variable() {
+  color: cornflowerblue;
+}
+
+.syntax-variable-declaration() {
+  color: cornflowerblue;
+  font-weight: bold;
+}
+
+.syntax-global-variable() {
+  color: mediumorchid;
+}
+
+
+.syntax-parameter() {
+  color: goldenrod;
+}
+
+.syntax-property{
+  color: sienna;
+}
+
+.syntax-regexp() {}
+.syntax-namespace() {}
+.syntax-type() {}
+.syntax-struct() {}
+.syntax-interface() {}
+.syntax-type-parameter() {}
+
+.syntax-member() {}
+.syntax-macro() {}
+
+
+// VSCode token modifiers
+.syntax-declaration() {}
+.syntax-documentation() {}
+.syntax-member() {}
+.syntax-static() {}
+.syntax-abstract() {}
+.syntax-deprecated() {}
+.syntax-modification() {}
+.syntax-async() {}
