@@ -13,6 +13,7 @@ import { useHotkeys } from "react-hotkeys-hook"
 import { view } from "~/util"
 import { SpellFileLocation } from "~/languages/spell"
 
+import { ASTViewer } from "./ASTViewer"
 import { MatchViewer } from "./MatchViewer"
 import { CodeMirror, inputOptions, outputOptions } from "./CodeMirror"
 import { store } from "./store"
@@ -138,6 +139,7 @@ class InputEditor extends React.Component {
   }
   render() {
     const { error } = this.state
+    // make sure we re-render if we have an CodeMirror renders with an error
     if (!error) return <InputEditorInner />
     return <InputEditorInner error={error} />
   }
@@ -272,8 +274,8 @@ export const SpellEditor = view(function SpellEditor() {
             </div>
           </Col>
           <Col xs={6} className="pt-2 pr-2 pb-2">
-            <div id="match" className="p-2 rounded shadow-sm border">
-              <MatchViewer match={store.file?.match} inputOffset={store.inputOffset} />
+            <div id="ast" className="p-2 rounded shadow-sm border">
+              <ASTViewer ast={store.file?.AST} match={store.file?.match} inputOffset={store.inputOffset} />
             </div>
             <CompileButton />
           </Col>
@@ -285,6 +287,9 @@ export const SpellEditor = view(function SpellEditor() {
             </div>
           </Col>
           <Col xs={6} className="pr-2 pb-2">
+            {/* <div id="match" className="p-2 rounded shadow-sm border">
+              <MatchViewer match={store.file?.match} inputOffset={store.inputOffset} />
+            </div> */}
             <div id="output" className="rounded shadow-sm border">
               <div className="CodeMirrorContainer">
                 <OutputEditor />

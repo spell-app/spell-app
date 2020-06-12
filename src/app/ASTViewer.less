@@ -1,0 +1,143 @@
+@import "syntax.less";
+
+.ASTViewer {
+  position: relative;
+  padding: 8px;
+  height: 100%;
+  overflow: auto;
+}
+
+
+.ASTNode {
+  white-space: pre;
+
+  &.highlight {
+    background: rgb(245, 236, 212);
+  }
+
+  .keyword,
+  &.ThisLiteral {
+    .syntax-keyword()
+  }
+
+  &.LineComment,
+  &.BlockComment {
+    .syntax-comment()
+  }
+
+  &.LineComment.header {
+    .syntax-comment-header()
+  }
+
+  &.ParserAnnotation {
+    .syntax-parser-annotation()
+  }
+
+  &.QuotedExpression,
+  &.StringLiteral,
+  &.ConstantExpression {
+    .syntax-text()
+  }
+  
+  &.NumericLiteral {
+    .syntax-number()
+  }
+
+  &.BooleanLiteral {
+    .syntax-boolean()
+  }
+
+  &.TypeExpression,
+  &.PrototypeExpression .keyword.prototype {
+    .syntax-type()
+  }
+
+  &.VariableExpression > .name {
+    .syntax-variable()
+  }
+  &.AssignmentStatement.declaration .VariableExpression > .name {
+    .syntax-new-variable()
+  }
+
+  &.PropertyLiteral {
+    .syntax-property-literal()
+  }
+
+  &.FunctionDefinition > .method-name,
+  &.MethodInvocation > .method-name {
+    .syntax-method-name()
+  }
+
+/* end .ASTNode */
+}
+
+/* Block with curlies inside an ASTNode. */
+.ASTBlock {
+  // Indent blockContents.
+  // This looks right but loses spaces on copy-paste.
+  .blockContents.indented {
+    display: inline-block;
+    vertical-align: top;
+    margin-left: 1em;
+  }
+
+/* end .ASTBlock */
+}
+
+
+//////////////////
+//
+//  Common syntax coloring methods
+//
+//////////////////
+
+.syntax-new-variable() {
+  color: cornflowerblue;
+  font-weight: bold;
+}
+
+.syntax-variable() {
+  color: cornflowerblue;
+}
+
+.syntax-property-literal{
+  color: cornflowerblue;
+}
+
+.syntax-method-name{
+  color: chocolate;
+}
+
+.syntax-type() {
+  color: darkgreen;
+  font-weight: bold;
+}
+
+.syntax-text() {
+  color: #a22;
+}
+
+.syntax-number() {
+  color: #3a3;
+}
+.syntax-boolean() {
+  .syntax-number()
+}
+
+.syntax-keyword() {
+  color: blue;
+}
+
+.syntax-comment() {
+  color: #a86;
+}
+
+.syntax-comment-header() {
+  .syntax-comment();
+  font-weight: bold;
+}
+
+.syntax-parser-annotation() {
+  color: #999;
+}
+

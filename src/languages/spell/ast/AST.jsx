@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 import React from "react"
 import _get from "lodash/get"
@@ -14,26 +15,24 @@ function convertStatementsToBlock(match, statements) {
   return new StatementBlock(match, { statements: [statements] })
 }
 
-// Abstract method to draw a node
-function drawNode(node, { className = "", children = null } = {}) {
-  return (
-    <span className={className} data-start={`${node.match.start}`} data-end={`${node.match.end}`}>
-      {children}
-    </span>
-  )
-}
-
 /** Draw a single item in a list by having it render its component. */
 const _drawItem = (item, index) => item.component
 /** Draw a comma as a list delimiter. */
 const _drawComma = index => <span className="punctuation comma">, </span>
-/** Draw a newline as a list delimiter. */
-const _drawNewline = index => <span className="punctuation newline">\n</span>
 /** Draw a comma and then a newline as a list delimiter. */
-const _drawCommaAndNewline = index => (
+const _drawIndentedComma = index => (
   <>
-    <span className="punctuation comma">,</span>
-    <span className="punctuation newline">\n</span>
+    {_drawComma()}
+    {_drawIndentedNewline()}
+  </>
+)
+/** Draw a newline as a list delimiter. */
+const _drawNewline = index => <span className="punctuation newline">{"\n"}</span>
+/** Draw a newline as a list delimiter. */
+const _drawIndentedNewline = index => (
+  <>
+    <span className="punctuation newline">{"\n"}</span>
+    <span className="punctuation indent" />
   </>
 )
 
@@ -60,7 +59,7 @@ const _drawInParens = content => {
 }
 /** Surround `content` in curly brackets. */
 const _drawInCurlies = content => {
-  const whiteSpace = content ? " " : ""
+  const whiteSpace = content && content.length ? " " : ""
   return (
     <>
       <span className="punctuation left-curly-bracket">{`{${whiteSpace}`}</span>
@@ -69,6 +68,30 @@ const _drawInCurlies = content => {
     </>
   )
 }
+
+const _drawLeftCurly = (whiteSpace = "") => <span className="punctuation left-curly-bracket">{`{${whiteSpace}`}</span>
+const _drawRightCurly = (whiteSpace = "") => <span className="punctuation right-curly-bracket">{`${whiteSpace}}`}</span>
+const _drawBlock = (content, indented = false) => {
+  if (!content || content.length === 0) {
+    return (
+      <>
+        {_drawLeftCurly()}
+        {_drawRightCurly()}
+      </>
+    )
+  }
+  const whiteSpace = indented ? "" : " "
+  return (
+    <span className={`ASTBlock${indented ? " indented" : ""}`}>
+      {_drawLeftCurly(whiteSpace)}
+      {indented && _drawNewline()}
+      <span className={`blockContents${indented ? " indented" : ""}`}>{content}</span>
+      {indented && _drawNewline()}
+      {_drawRightCurly(whiteSpace)}
+    </span>
+  )
+}
+
 /** Surround `content` in square brackets. */
 const _drawInSquares = content => {
   const whiteSpace = content ? " " : ""
@@ -84,18 +107,11 @@ const _drawInSquares = content => {
 const _drawInSingleQuotes = content => {
   return (
     <>
-      <span className="punctuation left-single-quote">&lsquo;</span>
+      <span className="punctuation left-single-quote">{"'"}</span>
       {content}
-      <span className="punctuation right-single-quote">&rsquo;</span>
+      <span className="punctuation right-single-quote">{"'"}</span>
     </>
   )
-}
-
-/** Draw a single argument in an arg list. */
-const _drawArg = (arg, index) => <span className={`arg arg-${index}`}>{arg.component}</span>
-/** Draw an array of arguments including surrounding parens. */
-const _drawArgs = args => {
-  return _drawInParens(<span className="args">{_drawList(args, _drawArg)}</span>)
 }
 
 /** Abstract root of all AST node types.
@@ -173,10 +189,14 @@ export class ASTNode extends Assertable {
   // Rendering as React nodes
   //-------------------------
 
-  /** Return STATIC react component to render this node. */
+  /** Return STATIC react component which render this node. */
   @memoize
   get component() {
-    return this.draw()
+    return (
+      <span className={this.className} data-start={`${this.match.start}`} data-end={`${this.match.end}`}>
+        {this.drawChildren()}
+      </span>
+    )
   }
 
   /**
@@ -189,14 +209,6 @@ export class ASTNode extends Assertable {
       .reverse()
       .map(constructor => constructor.name)
     return supers.join(" ")
-  }
-
-  /**
-   * Override in your subclass to output your node.
-   * NOTE: don't call this directly, use `node.component` for memoization.
-   */
-  draw() {
-    return drawNode(this, { className: this.className, children: this.drawChildren() })
   }
 
   /**
@@ -217,10 +229,10 @@ export class ASTNode extends Assertable {
 /** Blank line */
 export class BlankLine extends ASTNode {
   toJS() {
-    return "\n"
+    return "" // "\n"
   }
   drawChildren() {
-    return _drawNewline()
+    return null // _drawNewline()
   }
 }
 
@@ -311,6 +323,9 @@ export class BooleanLiteral extends Literal {
     super(match, props)
     this.assertType("value", "boolean")
   }
+  drawChildren() {
+    return this.value ? "true" : "false"
+  }
 }
 
 /** RegExpLiteral type. */
@@ -391,7 +406,7 @@ export class ArrayLiteral extends Literal {
     return this.wrapJSInSquares(this.listToJS(this.items, delimiter))
   }
   drawChildren() {
-    const delimiter = this.wrap ? _drawComma : _drawCommaAndNewline
+    const delimiter = this.wrap ? _drawComma : _drawIndentedComma
     return _drawInSquares(_drawList(this.items, delimiter))
   }
 }
@@ -435,13 +450,16 @@ export class LineComment extends Comment {
     if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
     return `${commentSymbol}${initialWhitespace}${value}`
   }
+  get className() {
+    return `${super.className}${this.commentSymbol !== "//" ? " header" : ""}`
+  }
   drawChildren() {
     let { commentSymbol = "" } = this
     if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
     return (
       <>
-        <span className="punctuation line-comment-symbol">${commentSymbol}</span>
-        <span className="whitespace">${this.initialWhitespace || " "}</span>
+        <span className="punctuation line-comment-symbol">{commentSymbol}</span>
+        <span className="whitespace">{this.initialWhitespace || " "}</span>
         <span className="comment">{this.value}</span>
       </>
     )
@@ -462,9 +480,9 @@ export class BlockComment extends Comment {
   drawChildren() {
     return (
       <>
-        <span className="punctuation open-comment-symbol">{"/*"}</span>
+        <span className="punctuation open-comment-symbol">{"/* "}</span>
         <span className="comment">{this.value}</span>
-        <span className="punctuation close-comment-symbol">{"*/"}</span>
+        <span className="punctuation close-comment-symbol">{" */"}</span>
       </>
     )
   }
@@ -480,10 +498,10 @@ export class ParseError extends BlockComment {
   drawChildren() {
     return (
       <>
-        <span className="punctuation open-comment-symbol">{"/*"}</span>
-        <span className="annotation">PARSE ERROR:</span>
+        <span className="punctuation open-comment-symbol">{"/* "}</span>
+        <span className="annotation">PARSE ERROR: </span>
         <span className="comment">{this.value}</span>
-        <span className="punctuation close-comment-symbol">{"*/"}</span>
+        <span className="punctuation close-comment-symbol">{" */"}</span>
       </>
     )
   }
@@ -499,10 +517,10 @@ export class ParserAnnotation extends BlockComment {
   drawChildren() {
     return (
       <>
-        <span className="punctuation open-comment-symbol">{"/*"}</span>
-        <span className="annotation">SPELL:</span>
+        <span className="punctuation open-comment-symbol">{"/* "}</span>
+        <span className="annotation">SPELL: </span>
         <span className="comment">{this.value}</span>
-        <span className="punctuation close-comment-symbol">{"*/"}</span>
+        <span className="punctuation close-comment-symbol">{" */"}</span>
       </>
     )
   }
@@ -514,18 +532,18 @@ export class ParenthesizedExpression extends Expression {
   constructor(match, props) {
     super(match, props)
     this.assertType("expression", Expression)
+    // Unwind nested parenthesis
+    while (this.expression instanceof ParenthesizedExpression) {
+      this.expression = this.expression.expression
+    }
   }
   get datatype() {
     return this.expression.datatype
   }
   toJS() {
-    // don't double up on parens
-    if (this.expression instanceof ParenthesizedExpression) return this.expression.toJS()
     return `(${this.expression.toJS()})`
   }
   drawChildren() {
-    // don't double up on parens
-    if (this.expression instanceof ParenthesizedExpression) return this.expression.component
     return _drawInParens(<span className="expression">{this.expression.component}</span>)
   }
 }
@@ -567,7 +585,7 @@ export class InfixExpression extends Expression {
     return (
       <>
         <span className="lhs">{this.lhs.component}</span>
-        <span className="operator">{this.operator}</span>
+        <span className="operator"> {this.operator} </span>
         <span className="rhs">{this.rhs.component}</span>
       </>
     )
@@ -788,8 +806,8 @@ export class PropertyLiteral extends Literal {
     return `${super.className} ${this.isLegalIdentifier ? "legal-identifier" : "non-legal-identifier"}`
   }
   drawChildren() {
-    if (this.isLegalIdentifier) return <span clasName="property">{this.value}</span>
-    return _drawInSingleQuotes(<span clasName="property">{this.value}</span>)
+    const element = <span className="property">{this.value}</span>
+    return this.isLegalIdentifier ? element : _drawInSingleQuotes(element)
   }
 }
 
@@ -878,7 +896,6 @@ export class ObjectLiteralProperty extends ASTNode {
 export class ObjectLiteralMethod extends ObjectLiteralProperty {
   constructor(match, props) {
     super(match, props)
-    if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
     this.assertArrayType("args", Expression, OPTIONAL)
     this.assertType("statements", [Statement, Expression], OPTIONAL)
@@ -912,24 +929,32 @@ export class ObjectLiteral extends Expression {
     if (typeof value === "string") value = new StringLiteral(this.match, { value })
     this.assert(
       value instanceof Expression || value instanceof FunctionDefinition,
-      `AST.ObjectLiteral.addProp(${property}): value must be an Expression`
+      `AST.ObjectLiteral.addProp(${property}): value must be an Expression or FunctionDefinition`
     )
     if (!this.properties) this.properties = []
     this.properties.push(new ObjectLiteralProperty(this.match, { property, value }))
   }
+  // Should we wrap properties block?
+  get wrap() {
+    return this.properties?.length > 2 || this.properties?.some(item => item instanceof ObjectLiteralMethod)
+  }
   toJS() {
     // TODO: single prop on one line, newlines + indent for multiple props
-    return this.wrapJSInCurlies(this.listToJS(this.properties))
+    const delimiter = this.wrap ? ",\n" : ", "
+    return this.wrapJSInCurlies(this.listToJS(this.properties, delimiter))
   }
   drawChildren() {
-    return _drawInCurlies(_drawList(this.properties))
+    const { wrap } = this
+    const delimiter = wrap ? _drawIndentedComma : _drawComma
+    const contents = _drawList(this.properties, _drawItem, delimiter)
+    return _drawBlock(contents, wrap)
   }
 }
 
 /** Statement abstract type. */
 export class Statement extends ASTNode {}
 
-/** StatementGroup -- set of random statements which does NOT get wrapped with curly braces!
+/** StatementGroup -- set of random statements which does NOT get indented with curly braces!
  *  - `statements` is a list of Statements.
  */
 export class StatementGroup extends Statement {
@@ -952,17 +977,20 @@ export class StatementBlock extends Statement {
   constructor(match, props) {
     super(match, props)
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
+    // Unwind any single nested StatementGroups
+    while (this.statements?.length === 1 && this.statements[0] instanceof StatementGroup) {
+      this.statements = this.statements[0].statements
+    }
+  }
+  get wrap() {
+    return this.statements?.length > 1
   }
   toJS() {
-    let { statements } = this
-    // Unwind any single nested StatementGroups
-    while (statements?.length === 1 && statements[0] instanceof StatementGroup) {
-      statements = statements[0].statements
-    }
-    return this.wrapJSInCurlies(this.listToJS(statements, "\n"))
+    return this.wrapJSInCurlies(this.listToJS(this.statements, "\n"))
   }
   drawChildren() {
-    return _drawInCurlies(_drawList(this.statements, _drawItem, _drawNewline))
+    const statements = _drawList(this.statements, _drawItem, _drawIndentedNewline)
+    return _drawBlock(statements, this.wrap)
   }
 }
 
@@ -983,10 +1011,13 @@ export class AssignmentStatement extends Statement {
     const declarator = isNewVariable ? "let " : ""
     return `${declarator}${thing.toJS()} = ${value.toJS()}`
   }
+  get className() {
+    return `${super.className}${this.isNewVariable ? " declaration" : ""}`
+  }
   drawChildren() {
     return (
       <>
-        {this.isNewVariable && <span className="declarator">let </span>}
+        {this.isNewVariable && <span className="keyword declarator">let </span>}
         <span className="thing">{this.thing.component}</span>
         <span className="punctuation equals"> = </span>
         <span className="value">{this.value.component}</span>
@@ -1011,10 +1042,13 @@ export class DestructuredAssignment extends Statement {
     const declarator = this.isNewVariable ? "let " : ""
     return `${declarator}${this.wrapJSInCurlies(this.listToJS(this.variables))} = ${this.thing.toJS()}`
   }
+  get className() {
+    return `${super.className}${this.isNewVariable ? " declaration" : ""}`
+  }
   drawChildren() {
     return (
       <>
-        {this.isNewVariable && <span className="declarator">let </span>}
+        {this.isNewVariable && <span className="keyword declarator">let </span>}
         {_drawInCurlies(_drawList(this.variables))}
         <span className="punctuation equals"> = </span>
         <span className="thing">{this.thing.component}</span>
@@ -1080,7 +1114,7 @@ export class ClassDeclaration extends Statement {
             <span className="superType">{this.superType.component}</span>
           </>
         )}
-        <span className="todo">TODO: output addExport() etc</span>
+        <span className="todo"> {"/"}* TODO: output addExport() etc */</span>
       </>
     )
   }
@@ -1414,16 +1448,20 @@ export class IfStatement extends Statement {
   constructor(match, props) {
     super(match, props)
     this.assertType("condition", Expression)
+    // wrap condition in parens if necessary
+    if (!(this.condition instanceof ParenthesizedExpression)) {
+      this.condition = new ParenthesizedExpression(this.condition.match, { expression: this.condition })
+    }
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
   toJS() {
-    return `if ${this.wrapJSInParens(this.condition.toJS())} ${this.statements.toJS()}`
+    return `if ${this.condition.toJS()} ${this.statements.toJS()}`
   }
   drawChildren() {
     return (
       <>
         <span className="keyword if">if </span>
-        <span className="condition">{_drawInParens(this.condition.component)}</span> {this.statements.component}
+        <span className="condition">{this.condition.component}</span> {this.statements.component}
       </>
     )
   }
@@ -1437,17 +1475,21 @@ export class ElseIfStatement extends Statement {
   constructor(match, props) {
     super(match, props)
     this.assertType("condition", Expression)
+    // wrap condition in parens if necessary
+    if (!(this.condition instanceof ParenthesizedExpression)) {
+      this.condition = new ParenthesizedExpression(this.condition.match, { expression: this.condition })
+    }
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
   toJS() {
-    return `else if ${this.wrapJSInParens(this.condition.toJS())} ${this.statements.toJS()}`
+    return `else if ${this.condition.toJS()} ${this.statements.toJS()}`
   }
   drawChildren() {
     return (
       <>
         <span className="keyword else">else </span>
         <span className="keyword if">if </span>
-        <span className="condition">{_drawInParens(this.condition.component)}</span> {this.statements.component}
+        <span className="condition">{this.condition.component}</span> {this.statements.component}
       </>
     )
   }
@@ -1553,20 +1595,6 @@ export class JSXElement extends Expression {
   }
   toJS() {
     return this.output.toJS()
-    // const attrs = this.attrs ? `, props: { ${this.attrs?.map(attr => attr.toJS()).join(", ")} }` : ""
-    // let children = this.children?.map(child => child.toJS()).filter(Boolean)
-    // if (children && children.length) children = `, children: [\n\t${children.join(",\n\t")}\n]`
-    // else children = ""
-    // return `spellCore.element({ tag: "${this.tagName}"${attrs}${children} })`
-
-    // const attributes = this.attrs ? `, { ${this.attrs.map(attr => attr.toJS()).join(", ")} }` : ""
-    // const children = this.children
-    //   ? `,\n${this.children
-    //       .map(child => child.toJS())
-    //       .filter(Boolean)
-    //       .join(",\n")}`
-    //   : ""
-    // return `spellCore.createElement('${this.tagName}'${attributes}${children})`
   }
 }
 
