@@ -374,9 +374,9 @@ export const classes = new SpellParser({
           }
           // instance specifier
           else if (specifier instanceof AST.NewInstanceExpression) {
-            props.addProp(
-              "initializer",
-              new AST.FunctionDefinition(match, {
+            props.addMethod(
+              new AST.ObjectLiteralMethod(match, {
+                property: "initializer",
                 statements: new AST.ReturnStatement(match, {
                   value: specifier
                 })

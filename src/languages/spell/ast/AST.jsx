@@ -942,6 +942,14 @@ export class ObjectLiteral extends Expression {
     if (!this.properties) this.properties = []
     this.properties.push(new ObjectLiteralProperty(this.match, { property, value }))
   }
+  addMethod(method) {
+    this.assert(
+      method instanceof ObjectLiteralMethod,
+      `AST.ObjectLiteral.addMethod(): method must be an ObjectLiteralMethod`
+    )
+    if (!this.properties) this.properties = []
+    this.properties.push(method)
+  }
   // Should we wrap properties block?
   get wrap() {
     return this.properties?.length > 2 || this.properties?.some(item => item instanceof ObjectLiteralMethod)
