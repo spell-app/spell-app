@@ -15,6 +15,11 @@
   left: -10px;
 }
 
+.syntax-error() {
+  color: darkred;
+}
+
+
 .syntax-comment() {
   color: #a86;
 }
@@ -34,6 +39,11 @@
 
 .syntax-string() {
   color: #a22;
+}
+
+.syntax-constant() {
+  .syntax-string();
+  font-style: italic;
 }
 
 .syntax-enum() {
@@ -88,6 +98,13 @@
 
 .syntax-property{
   color: sienna;
+}
+
+.syntax-tag-name() {
+  color: saddlebrown;
+}
+.syntax-tag-attribute() {
+  color: peru;
 }
 
 .syntax-regexp() {}

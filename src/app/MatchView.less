@@ -1,3 +1,5 @@
+@import "syntax.less";
+
 .MatchViewer {
   position: relative;
   padding: 8px;
@@ -214,12 +216,6 @@
     border-radius: 0 0 15px 15px ;
     padding: 0 4px 4px 4px;
   }
-  .JSXElement > .startTag > .tagName, 
-  .JSXElement > .startTag > .startTagEnd, 
-  .JSXElement > .endTag, 
-  .JSXAttribute > .name {
-    color: #999;
-  }
 
   //////////////////////
   // Color specific things
@@ -229,32 +225,80 @@
     opacity: 0.25;
   }
 
-  .Match.comment {
-    opacity: 0.25;
+  .Match.comment > .contents {
+    opacity: 0.5;
+    .syntax-comment()
   }
 
-  .Match.Keyword, .Match.Symbol, .Match.Keywords, .Match.Symbols {
-    color: #999;
+  .Token.symbol {
+    .syntax-punctuation()
+  } 
+
+  .Token.number {
+    .syntax-number()    
   }
 
-  .Token.symbol,
-  .Token.number,
   .Token.text {
-    color: rgb(0, 0, 128);
+    .syntax-string()
+  }
+
+  .Match.boolean .Token.word {
+    .syntax-boolean();
+  } 
+
+  .Match.Keyword > .contents, 
+  .Match.Symbol > .contents, 
+  .Match.Keywords > .contents, 
+  .Match.Symbols > .contents {
+    .syntax-keyword()
+  }
+
+  .Match.type > .contents,
+  .Match.known_type > .contents,
+  .Match.singular_type > .contents,
+  .Match.plural_type > .contents {
+    .syntax-class();
+  }
+
+  .Match.plural_variable > .contents,
+  .Match.singular_variable > .contents,
+  .Match.variable_identifier > .contents {
+    .syntax-variable()
+  }
+
+  .Match.property > .contents {
+    .syntax-property()
+  }
+
+  .Match.method_keyword > .contents {
+    .syntax-function()
+  }
+
+  .Match.ordinal > .contents {
+    .syntax-number();
   }
 
   .Match.known_constant .Token,
   .Match.constant .Token {
-    color: rgb(0, 0, 128);
-    font-style: italic;
+    .syntax-constant()
   }
 
   .Match.parse_error {
-    color: darkred;
+    .syntax-error();
     text-decoration: line-through;
   }
+
   .Match.parse_error > .name {
     background: pink;
   }
 
+  .JSXElement > .startTag > .tagName, 
+  .JSXElement > .startTag > .startTagEnd, 
+  .JSXElement > .endTag {
+    .syntax-tag-name();
+  }
+ 
+  .JSXAttribute > .name {
+    .syntax-tag-attribute();
+  }
 }

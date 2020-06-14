@@ -218,8 +218,9 @@ export class ASTNode extends Assertable {
   /** Return STATIC react component which render this node. */
   @memoize
   get component() {
+    const { className } = this
     return (
-      <span className={this.className} data-start={`${this.match.start}`} data-end={`${this.match.end}`}>
+      <span className={className} title={className} data-start={`${this.match.start}`} data-end={`${this.match.end}`}>
         {this.drawChildren()}
       </span>
     )
