@@ -3,8 +3,11 @@
 .ASTViewer {
   position: relative;
   padding: 8px;
-  height: 100%;
-  overflow: auto;
+
+  &.scroll {
+    height: 100%;
+    overflow: auto;
+  }
 }
 
 
@@ -106,115 +109,3 @@
 
 
 
-//////////////////
-//
-//  Common syntax coloring methods
-//
-//  VS Code's Semantic Tokens:  https://github.com/microsoft/vscode-extension-samples/tree/master/semantic-tokens-sample
-//
-//////////////////
-
-.syntax-pill(@bgcolor: #eee, @color: black) {
-  background-color: @bgcolor;
-  color: @color;
-  border-radius: 15px;
-  padding: 0 10px;
-  position: relative;
-  left: -10px;
-}
-
-.syntax-comment() {
-  color: #a86;
-}
-
-.syntax-comment-header() {
-  .syntax-comment();
-  font-weight: bold;
-}
-
-.syntax-parser-annotation() {
-  color: #ccc;
-  // .syntax-pill(#ccc, #666);
-  // .punctuation {
-  //   display: none;
-  // }
-}
-
-.syntax-string() {
-  color: #a22;
-}
-
-.syntax-enum() {
-  color: #a22;
-}
-
-.syntax-keyword() {
-  color: blue;
-}
-
-.syntax-number() {
-  color: #3a3;
-}
-
-.syntax-boolean() {
-  .syntax-number()
-}
-
-.syntax-punctuation() {
-  color: #999;
-}
-
-.syntax-operator() {
-  color: #333;
-}
-
-.syntax-class() {
-  color: darkgreen;
-  font-weight: bold;
-}
-.syntax-function{
-  color: chocolate;
-}
-
-.syntax-variable() {
-  color: cornflowerblue;
-}
-
-.syntax-variable-declaration() {
-  color: cornflowerblue;
-  font-weight: bold;
-}
-
-.syntax-global-variable() {
-  color: mediumorchid;
-}
-
-
-.syntax-parameter() {
-  color: goldenrod;
-}
-
-.syntax-property{
-  color: sienna;
-}
-
-.syntax-regexp() {}
-.syntax-namespace() {}
-.syntax-type() {}
-.syntax-struct() {}
-.syntax-interface() {}
-.syntax-type-parameter() {}
-
-.syntax-member() {}
-.syntax-macro() {}
-
-
-// VSCode token modifiers
-.syntax-declaration() {}
-.syntax-documentation() {}
-.syntax-member() {}
-.syntax-static() {}
-.syntax-abstract() {}
-.syntax-deprecated() {}
-.syntax-modification() {}
-.syntax-async() {}

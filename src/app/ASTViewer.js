@@ -45,7 +45,7 @@ export function ASTViewerInner({ ast, match, inputOffset }) {
     //     if (itemEl) highlight(itemEl, index * 20)
     //   })
   }, [match, inputOffset])
-  return <div className="ASTViewer">{ast.component}</div>
+  return ast.component
 }
 
 /**
@@ -76,14 +76,10 @@ export class ASTViewer extends React.Component {
 
   render() {
     const { error } = this.state
-    const { ast, match, inputOffset } = this.props
-    if (error) {
-      return (
-        <div className="ASTViewer">
-          <h4>Error: {error.message}</h4>
-        </div>
-      )
-    }
-    return <ASTViewerInner ast={ast} match={match} inputOffset={inputOffset} />
+    const contents = error ? <h4>Error: {error.message}</h4> : <ASTViewerInner {...this.props} />
+
+    const classNames = ["ASTViewer"]
+    if (this.props.scroll) classNames.push("scroll")
+    return <div className={classNames.join(" ")}>{contents}</div>
   }
 }

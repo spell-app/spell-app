@@ -1,3 +1,7 @@
+@toolbar-height: 40px;
+@top-height: 50vh;
+@bottom-height: calc(50vh - @toolbar-height);
+
 .SpellEditor {
  height: 100vh; 
 }
@@ -14,29 +18,23 @@
 }
 
 .SpellEditor #toolbar {
-  height: 40px;
+  height: @toolbar-height;
 }
 
 .SpellEditor #topRow,
 .SpellEditor #topRow .CodeMirror {
-  height: calc(100vh - 440px);
+  height: @top-height;
 }
 
 .SpellEditor #bottomRow,
 .SpellEditor #bottomRow .CodeMirror {
-  height: 400px;
+  height: @bottom-height;
 }
 
-.SpellEditor #match {
-  overflow: auto;
-  height: 100%;
-}
-
-.SpellEditor #ast {
-  height: 100%;
-}
-
-.SpellEditor #app {
-  overflow: auto;
-  height: 100%;
+#SpellEditor-CompileButton {
+  position: absolute;
+  top: 100px;
+  left: calc(50% - 2.5em);
+  width: 5em;
+  z-index: 2;
 }

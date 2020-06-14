@@ -18,7 +18,7 @@ import { MatchViewer } from "./MatchViewer"
 import { CodeMirror, inputOptions, outputOptions } from "./CodeMirror"
 import { store } from "./store"
 
-import "./SpellEditor.css"
+import "./SpellEditor.less"
 
 // Set to `true` to debug rendering of components as observables change.
 const DEBUG_RENDER = false
@@ -78,10 +78,14 @@ const FileMenu = view(function() {
 })
 
 const EditorToolbar = view(function EditorToolbar() {
-  const { isDirty } = store.file || {}
-  if (DEBUG_RENDER) console.info("EditorToolbar", isDirty)
+  const { file } = store
+  const fileNeedsCompilation = file?.isLoaded && !file?.compiled
+  const fileIsDirty = file?.isDirty
+
+  if (DEBUG_RENDER) console.info("EditorToolbar", fileIsDirty)
   const bound = React.useMemo(() => {
     return {
+      compile: () => store.compile(),
       saveFile: () => store.saveFile(),
       reloadFile: () => store.reloadFile(),
       createFile: () => store.createFile(),
@@ -100,10 +104,13 @@ const EditorToolbar = view(function EditorToolbar() {
         <FileMenu />
         <Navbar.Collapse id="navbar-buttons" className="ml-2">
           <Nav>
-            <Button variant={isDirty ? "success" : "dark"} onClick={bound.saveFile}>
+            <Button variant={fileNeedsCompilation ? "primary" : "dark"} onClick={bound.compile}>
+              <ion-icon name="chevron-forward-outline" size="medium" /> Compile
+            </Button>
+            <Button variant={fileIsDirty ? "success" : "dark"} onClick={bound.saveFile}>
               <ion-icon name="cloud-upload-outline" size="medium" /> Save
             </Button>
-            <Button variant={isDirty ? "danger" : "dark"} onClick={bound.reloadFile}>
+            <Button variant={fileIsDirty ? "danger" : "dark"} onClick={bound.reloadFile}>
               <ion-icon name="reload-outline" size="medium" /> Revert
             </Button>
             <Nav.Link onClick={bound.createFile}>
@@ -140,8 +147,8 @@ class InputEditor extends React.Component {
   render() {
     const { error } = this.state
     // make sure we re-render if we have an CodeMirror renders with an error
-    if (!error) return <InputEditorInner />
-    return <InputEditorInner error={error} />
+    const editor = error ? <InputEditorInner key="noerror" /> : <InputEditorInner key="error" error={error} />
+    return <div className="CodeMirrorContainer">{editor}</div>
   }
 }
 
@@ -171,8 +178,14 @@ const OutputEditor = view(function OutputEditor() {
   const { file } = store
   const compiled = file?.compiled
   if (DEBUG_RENDER) console.info("OutputEditor", { file, compiled })
-  return <CodeMirror value={compiled} disabled options={outputOptions} onChange={Function.prototype} />
+  return (
+    <div className="CodeMirrorContainer">
+      <CodeMirror value={compiled} disabled options={outputOptions} onChange={Function.prototype} />
+    </div>
+  )
 })
+
+const AppContainer = <div id="app-root" style={{ padding: 20, height: "100%", overflow: "auto" }} />
 
 const Notice = view(function Notice() {
   const { message } = store
@@ -188,29 +201,6 @@ const Notice = view(function Notice() {
         </Toast.Header>
       </Toast>
     </div>
-  )
-})
-
-const CompileButton = view(function CompileButton() {
-  const { file } = store
-  const compiled = file?.compiled
-  if (!file?.isLoaded || compiled) return null
-  return (
-    <Button
-      className="CompileButton border shadow-sm p-0 pt-1 text-secondary"
-      style={{
-        background: "#eee",
-        position: "absolute",
-        width: "5em",
-        left: "-2.5em",
-        top: "50%",
-        zIndex: 2
-      }}
-      onClick={store.compile}
-    >
-      <ion-icon name="chevron-forward-outline" size="large" />
-      Compile
-    </Button>
   )
 })
 
@@ -267,34 +257,25 @@ export const SpellEditor = view(function SpellEditor() {
         </Row>
         <Row id="topRow" noGutters>
           <Col xs={6} className="p-2">
-            <div id="input" className="rounded shadow-sm border">
-              <div className="CodeMirrorContainer">
-                <InputEditor />
-              </div>
+            <div className="rounded shadow-sm border">
+              <InputEditor />
             </div>
           </Col>
           <Col xs={6} className="pt-2 pr-2 pb-2">
-            <div id="ast" className="p-2 rounded shadow-sm border">
-              <ASTViewer ast={store.file?.AST} match={store.file?.match} inputOffset={store.inputOffset} />
+            <div className="rounded shadow-sm border">
+              <ASTViewer scroll ast={store.file?.AST} match={store.file?.match} inputOffset={store.inputOffset} />
             </div>
-            <CompileButton />
           </Col>
         </Row>
         <Row id="bottomRow" noGutters>
           <Col xs={6} className="pl-2 pr-2 pb-2">
-            <div id="app" className="p-4 rounded shadow-sm border">
-              <div id="app-root" />
-            </div>
+            <div className="rounded shadow-sm border">{AppContainer}</div>
           </Col>
           <Col xs={6} className="pr-2 pb-2">
-            <div id="match" className="p-2 rounded shadow-sm border">
-              <MatchViewer match={store.file?.match} inputOffset={store.inputOffset} />
+            <div className="rounded shadow-sm border">
+              <MatchViewer scroll match={store.file?.match} inputOffset={store.inputOffset} />
             </div>
-            {/* <div id="output" className="rounded shadow-sm border">
-              <div className="CodeMirrorContainer">
-                <OutputEditor />
-              </div>
-            </div> */}
+            {/* <OutputEditor /> */}
           </Col>
         </Row>
       </Container>

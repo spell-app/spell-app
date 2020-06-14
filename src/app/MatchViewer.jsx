@@ -14,7 +14,7 @@ function highlight(el, delay = 0) {
 /** Top-level viewer for a Match.
  * Create one of these and it will create <MatchView>s and <TokenView>s underneath it.the
  */
-export function MatchViewer({ match, inputOffset }) {
+export function MatchViewer({ match, scroll, inputOffset }) {
   if (!match) return null
 
   // If we're passed a specific `inputOffset`, scroll that line into view and flash its bg.
@@ -46,8 +46,10 @@ export function MatchViewer({ match, inputOffset }) {
         if (itemEl) highlight(itemEl, index * 20)
       })
   }, [inputOffset])
+  const classNames = ["MatchViewer"]
+  if (scroll) classNames.push("scroll")
   return (
-    <div className="MatchViewer">
+    <div className={classNames.join(" ")}>
       <MatchView match={match} />
     </div>
   )
