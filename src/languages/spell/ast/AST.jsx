@@ -37,7 +37,7 @@ const _drawIndentedNewline = index => (
 )
 
 /** Draw a series of items with a delimiter between */
-function _drawList(items, drawItem = _drawItem, drawSeparator = _drawComma) {
+function _drawList(items, drawSeparator = _drawComma, drawItem = _drawItem) {
   if (!items) return null
   return items.map((item, index) => (
     <>
@@ -48,38 +48,51 @@ function _drawList(items, drawItem = _drawItem, drawSeparator = _drawComma) {
 }
 
 /** Surround `content` in parens. */
-const _drawInParens = content => {
+const _drawLeftParen = (whiteSpace = "") => <span className="punctuation open-paren">{`(${whiteSpace}`}</span>
+const _drawRightParen = (whiteSpace = "") => <span className="punctuation close-paren">{`${whiteSpace})`}</span>
+const _drawInParens = (content, whiteSpace = "") => {
   return (
     <>
-      <span className="punctuation open-paren">(</span>
+      {_drawLeftParen(whiteSpace)}
       {content}
-      <span className="punctuation close-paren">)</span>
-    </>
-  )
-}
-/** Surround `content` in curly brackets. */
-const _drawInCurlies = content => {
-  const whiteSpace = content && content.length ? " " : ""
-  return (
-    <>
-      <span className="punctuation left-curly-bracket">{`{${whiteSpace}`}</span>
-      {content}
-      <span className="punctuation right-curly-bracket">{`${whiteSpace}}`}</span>
+      {_drawRightParen(whiteSpace)}
     </>
   )
 }
 
+/** Surround `content` in single quotes. */
+const _drawSingleQuote = () => <span className="punctuation left-single-quote">{"'"}</span>
+const _drawInSingleQuotes = content => {
+  return (
+    <>
+      {_drawSingleQuote()}
+      {content}
+      {_drawSingleQuote()}
+    </>
+  )
+}
+
+/** Surround `content` in curly brackets. */
 const _drawLeftCurly = (whiteSpace = "") => <span className="punctuation left-curly-bracket">{`{${whiteSpace}`}</span>
 const _drawRightCurly = (whiteSpace = "") => <span className="punctuation right-curly-bracket">{`${whiteSpace}}`}</span>
-const _drawBlock = (content, indented = false) => {
-  if (!content || content.length === 0) {
-    return (
-      <>
-        {_drawLeftCurly()}
-        {_drawRightCurly()}
-      </>
-    )
-  }
+const _drawInCurlies = (content = "") => {
+  const whiteSpace = content && content.length ? " " : ""
+  return (
+    <>
+      {_drawLeftCurly(whiteSpace)}
+      {content}
+      {_drawRightCurly(whiteSpace)}
+    </>
+  )
+}
+
+/**
+ * Draw a block surrounded by curlies.
+ * If `indented === true`, the block contents will indent every newline.
+ */
+const _drawBlock = (content = "", indented = false) => {
+  if (!content || content.length === 0) return _drawInCurlies()
+
   const whiteSpace = indented ? "" : " "
   return (
     <span className={`ASTBlock${indented ? " indented" : ""}`}>
@@ -92,21 +105,29 @@ const _drawBlock = (content, indented = false) => {
   )
 }
 
+/** Surround `content` in square brackets. */
 const _drawLeftSquare = (whiteSpace = "") => <span className="punctuation left-square-bracket">{`[${whiteSpace}`}</span>
 const _drawRightSquare = (whiteSpace = "") => (
   <span className="punctuation right-square-bracket">{`${whiteSpace}]`}</span>
 )
+const _drawInSquares = (content = "", whiteSpace = "") => {
+  return (
+    <>
+      {_drawLeftSquare(whiteSpace)}
+      {content}
+      {_drawRightSquare(whiteSpace)}
+    </>
+  )
+}
+
+/**
+ * Draw an array of `items` delimited by commas and surrounded by square brackets.
+ */
 const _drawArray = (items, indented = false, drawItem = _drawItem) => {
-  if (!items || items.length === 0) {
-    return (
-      <>
-        {_drawLeftSquare()}
-        {_drawRightSquare()}
-      </>
-    )
-  }
+  if (!items || items.length === 0) return _drawInSquares()
+
   const delimiter = indented ? _drawIndentedComma : _drawComma
-  const content = _drawList(items, drawItem, delimiter)
+  const content = _drawList(items, delimiter, drawItem)
   const whiteSpace = indented ? "" : " "
   return (
     <span className={`ASTBlock${indented ? " indented" : ""}`}>
@@ -116,17 +137,6 @@ const _drawArray = (items, indented = false, drawItem = _drawItem) => {
       {indented && _drawNewline()}
       {_drawRightSquare(whiteSpace)}
     </span>
-  )
-}
-
-/** Surround `content` in single quotes. */
-const _drawInSingleQuotes = content => {
-  return (
-    <>
-      <span className="punctuation left-single-quote">{"'"}</span>
-      {content}
-      <span className="punctuation right-single-quote">{"'"}</span>
-    </>
   )
 }
 
@@ -238,7 +248,7 @@ export class ASTNode extends Assertable {
   /** Rendering Helpers */
   drawArgs(args = this.args) {
     const drawArg = (arg, index) => <span className={`arg arg-${index}`}>{arg.component}</span>
-    return _drawInParens(<span className="args">{_drawList(args, drawArg)}</span>)
+    return _drawInParens(<span className="args">{_drawList(args, _drawComma, drawArg)}</span>)
   }
 }
 
@@ -778,7 +788,6 @@ export class VariableExpression extends Expression {
     return classes.join(" ")
   }
   drawChildren() {
-    console.warn(this)
     if (!this.default) return <span className="name">{this.name}</span>
     return (
       <>
@@ -981,7 +990,7 @@ export class ObjectLiteral extends Expression {
   drawChildren() {
     const { wrap } = this
     const delimiter = wrap ? _drawIndentedComma : _drawComma
-    const contents = _drawList(this.properties, _drawItem, delimiter)
+    const contents = _drawList(this.properties, delimiter)
     return _drawBlock(contents, wrap)
   }
 }
@@ -1001,7 +1010,7 @@ export class StatementGroup extends Statement {
     return this.listToJS(this.statements, "\n")
   }
   drawChildren() {
-    return _drawList(this.statements, _drawItem, _drawNewline)
+    return _drawList(this.statements, _drawNewline)
   }
 }
 
@@ -1024,7 +1033,7 @@ export class StatementBlock extends Statement {
     return this.wrapJSInCurlies(this.listToJS(this.statements, "\n"))
   }
   drawChildren() {
-    const statements = _drawList(this.statements, _drawItem, _drawIndentedNewline)
+    const statements = _drawList(this.statements, _drawIndentedNewline)
     return _drawBlock(statements, this.wrap)
   }
 }
