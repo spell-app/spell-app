@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /**
  *
  * Utilites for rendering things (e.g. `ASTNode`s) as React components.
@@ -5,138 +6,168 @@
  *  - each thing has a GENERIC `getComponent(key?)` method which renders an outer container.
  * Usage:
  *    `import * as draw from ".../drawComponent"`
- *    `draw.Item(thing)`
- *    `draw.List(thing.items, draw.Newline)`
+ * TODOC!!!
  *    etc
  */
 import React from "react"
 
-/** Draw a comma as a list delimiter. */
-export const Comma = index => <span className="punctuation comma">, </span>
-/** Draw a comma and then a newline as a list delimiter. */
-export const IndentedComma = index => (
+/** Draw a single space. */
+export const SPACE = <span className="whitespace space"> </span>
+/** Draw an indent as a list delimiter. */
+export const INDENT = <span className="whitespace indent" />
+/** Draw a newline as a list delimiter. */
+export const NEWLINE = <span className="whitespace newline">{"\n"}</span>
+/** Draw a newline as a list delimiter. */
+export const INDENTED_NEWLINE = (
   <>
-    {Comma()}
-    {IndentedNewline()}
+    {NEWLINE}
+    {INDENT}
   </>
 )
-/** Draw a newline as a list delimiter. */
-export const Newline = index => <span className="whitespace newline">{"\n"}</span>
-/** Draw an indent as a list delimiter. */
-export const Indent = index => <span className="whitespace indent" />
-/** Draw a newline as a list delimiter. */
-export const IndentedNewline = index => (
+/** Draw a comma as a list delimiter. */
+export const COMMA = <span className="punctuation comma">, </span>
+/** Draw a comma and then a newline as a list delimiter. */
+export const SPACED_COMMA = (
   <>
-    {Newline()}
-    {Indent()}
+    {COMMA}
+    {SPACE}
+  </>
+)
+/** Draw a comma and then a newline as a list delimiter. */
+export const INDENTED_COMMA = (
+  <>
+    {COMMA}
+    {INDENTED_NEWLINE}
   </>
 )
 
 /** Draw a single item in a list by having it render its component. */
-export const Item = (item, index) => item.getComponent(index)
+export const Item = ({ item, index }) => item.getComponent(index)
 
 /** Draw a series of items with a delimiter between */
-export const List = (items, drawSeparator = Comma, drawItem = Item) => {
-  if (!items) return null
+export const List = ({ items, delimiter = COMMA, DrawItem = Item }) => {
+  if (!items || !items.length) return null
   // create `kids` array in funky way to get around key errors
   const kids = []
   items.forEach((item, index) => {
-    kids.push(drawItem(item, index))
-    if (index !== items.length - 1) kids.push(drawSeparator())
+    kids.push(<DrawItem item={item} index={index} />)
+    if (index !== items.length - 1) kids.push(delimiter)
   })
-  return <>{kids}</>
+  return React.createElement(React.Fragment, null, ...kids)
 }
 
-/** Surround `content` in parens. */
-export const LeftParen = (whiteSpace = "") => <span className="punctuation open-paren">{`(${whiteSpace}`}</span>
-export const RightParen = (whiteSpace = "") => <span className="punctuation close-paren">{`${whiteSpace})`}</span>
-export const InParens = (content, whiteSpace = "") => {
+/** Surround `children` in parens. */
+export const LEFT_PAREN = <span className="punctuation open-paren">(</span>
+export const RIGHT_PAREN = <span className="punctuation close-paren">)</span>
+const EMPTY_PARENS = (
+  <>
+    {LEFT_PAREN}
+    {RIGHT_PAREN}
+  </>
+)
+export const InParens = ({ children = null, wrap = false, space = false }) => {
+  if (!children) return EMPTY_PARENS
+  const delimiter = (wrap && NEWLINE) || (space && SPACE) || null
   return (
     <>
-      {LeftParen(whiteSpace)}
-      {content}
-      {RightParen(whiteSpace)}
+      {LEFT_PAREN}
+      {delimiter}
+      {children}
+      {delimiter}
+      {RIGHT_PAREN}
     </>
   )
 }
 
 /** Draw list of function `args` */
-export const Arg = (arg, index) => (
+export const Arg = ({ item, index }) => (
   <span key={index} className={`arg arg-${index}`}>
-    {arg.getComponent()}
+    {item.getComponent(index)}
   </span>
 )
-export const Args = args => {
-  // TODO: indent if more than 3 args?
+
+export const Args = ({ args, wrap = args?.length > 2 }) => {
+  const delimiter = wrap ? INDENTED_COMMA : COMMA
   return (
     <span className="arg-list">
-      {LeftParen()}
-      <span className="args">{List(args, Comma, Arg)}</span>
-      {RightParen()}
+      <InParens wrap={wrap}>
+        <span className="args">
+          <List items={args} DrawItem={Arg} delimiter={delimiter} />
+        </span>
+      </InParens>
     </span>
   )
 }
 
-/** Surround `content` in single quotes. */
-export const SingleQuote = () => <span className="punctuation left-single-quote">{"'"}</span>
-export const InSingleQuotes = content => {
+/** Surround `children` in double quotes. */
+export const DOUBLE_QUOTE = <span className="punctuation left-double-quote">{'"'}</span>
+export const InDoubleQuotes = ({ children }) => {
   return (
     <>
-      {SingleQuote()}
-      {content}
-      {SingleQuote()}
+      {DOUBLE_QUOTE}
+      {children}
+      {DOUBLE_QUOTE}
     </>
   )
 }
 
-/** Surround `content` in curly brackets. */
-export const LeftCurly = (whiteSpace = "") => <span className="punctuation left-curly-bracket">{`{${whiteSpace}`}</span>
-export const RightCurly = (whiteSpace = "") => (
-  <span className="punctuation right-curly-bracket">{`${whiteSpace}}`}</span>
+/** Surround `children` in single quotes. */
+export const SINGLE_QUOTE = <span className="punctuation left-single-quote">{"'"}</span>
+export const InSingleQuotes = ({ children }) => {
+  return (
+    <>
+      {SINGLE_QUOTE}
+      {children}
+      {SINGLE_QUOTE}
+    </>
+  )
+}
+
+/** Surround `children` in curly brackets. */
+export const LEFT_CURLY = <span className="punctuation left-curly-bracket">{"{"}</span>
+export const RIGHT_CURLY = <span className="punctuation right-curly-bracket">{"}"}</span>
+export const InCurlies = ({ children, wrap = false, space = false }) => {
+  const delimiter = (wrap && NEWLINE) || (space && SPACE) || null
+  return (
+    <>
+      {LEFT_CURLY}
+      {delimiter}
+      {children}
+      {delimiter}
+      {RIGHT_CURLY}
+    </>
+  )
+}
+
+/** Draw a block surrounded by curlies. */
+const EMPTY_BLOCK = (
+  <span className="ASTBlock empty">
+    <InCurlies />
+  </span>
 )
-export const InCurlies = (content = null) => {
-  const whiteSpace = content && content.length ? " " : ""
+export const Block = ({ children = null, wrap = false, space = false }) => {
+  if (!children) return EMPTY_BLOCK
   return (
-    <>
-      {LeftCurly(whiteSpace)}
-      {content}
-      {RightCurly(whiteSpace)}
-    </>
-  )
-}
-
-/**
- * Draw a block surrounded by curlies.
- * If `indented === true`, the block contents will indent every newline.
- */
-export const Block = (content = null, indented = false) => {
-  if (!content || content.length === 0) return InCurlies()
-
-  const whiteSpace = indented ? "" : " "
-  return (
-    <span className={`ASTBlock${indented ? " indented" : ""}`}>
-      {LeftCurly(whiteSpace)}
-      {indented && Newline()}
-      <span className={`blockContents${indented ? " indented" : ""}`}>{content}</span>
-      {indented && Newline()}
-      {RightCurly(whiteSpace)}
+    <span className={`ASTBlock${wrap ? " indented" : ""}`}>
+      <InCurlies wrap={wrap} space={space}>
+        <span className={`blockContents${wrap ? " indented" : ""}`}>{children}</span>
+      </InCurlies>
     </span>
   )
 }
 
-/** Surround `content` in square brackets. */
-export const LeftSquare = (whiteSpace = "") => (
-  <span className="punctuation left-square-bracket">{`[${whiteSpace}`}</span>
-)
-export const RightSquare = (whiteSpace = "") => (
-  <span className="punctuation right-square-bracket">{`${whiteSpace}]`}</span>
-)
-export const InSquares = (content = null, whiteSpace = "") => {
+/** Surround `children` in square brackets. */
+export const LEFT_SQUARE_BRACKET = <span className="punctuation left-square-bracket">[</span>
+export const RIGHT_SQUARE_BRACKET = <span className="punctuation right-square-bracket">]</span>
+export const InSquareBrackets = ({ children = null, wrap = false, space = false }) => {
+  const delimiter = (wrap && NEWLINE) || (space && SPACE) || null
   return (
     <>
-      {LeftSquare(whiteSpace)}
-      {content}
-      {RightSquare(whiteSpace)}
+      {LEFT_SQUARE_BRACKET}
+      {delimiter}
+      {children}
+      {delimiter}
+      {RIGHT_SQUARE_BRACKET}
     </>
   )
 }
@@ -144,19 +175,18 @@ export const InSquares = (content = null, whiteSpace = "") => {
 /**
  * Draw an array of `items` delimited by commas and surrounded by square brackets.
  */
-export const Array = (items, indented = false, drawItem = Item) => {
-  if (!items || items.length === 0) return InSquares()
+const EMPTY_ARRAY = <InSquareBrackets />
+export const Array = ({ items, DrawItem = Item, wrap = false }) => {
+  if (!items || items.length === 0) return EMPTY_ARRAY
 
-  const delimiter = indented ? IndentedComma : Comma
-  const content = List(items, delimiter, drawItem)
-  const whiteSpace = indented ? "" : " "
+  const delimiter = wrap ? INDENTED_COMMA : SPACED_COMMA
   return (
-    <span className={`ASTBlock${indented ? " indented" : ""}`}>
-      {LeftSquare(whiteSpace)}
-      {indented && Newline()}
-      <span className={`blockContents${indented ? " indented" : ""}`}>{content}</span>
-      {indented && Newline()}
-      {RightSquare(whiteSpace)}
+    <span className={`ASTArray${wrap ? " indented" : ""}`}>
+      <InSquareBrackets wrap={wrap}>
+        <span className={`blockContents${wrap ? " indented" : ""}`}>
+          <List items={items} delimiter={delimiter} DrawItem={DrawItem} />
+        </span>
+      </InSquareBrackets>
     </span>
   )
 }
