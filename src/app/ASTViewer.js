@@ -45,7 +45,7 @@ export function ASTViewerInner({ ast, match, inputOffset }) {
     //     if (itemEl) highlight(itemEl, index * 20)
     //   })
   }, [match, inputOffset])
-  return React.useMemo(() => ast.getComponent("root"), [ast])
+  return ast.component
 }
 
 /**

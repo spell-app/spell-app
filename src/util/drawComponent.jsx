@@ -42,7 +42,7 @@ export const INDENTED_COMMA = (
 )
 
 /** Draw a single item in a list by having it render its component. */
-export const Item = ({ item, index }) => item.getComponent(index)
+export const Item = ({ item, index }) => (item != null ? item.component : null)
 
 /** Draw a series of items with a delimiter between */
 export const List = ({ items, delimiter = COMMA, DrawItem = Item }) => {
@@ -82,7 +82,7 @@ export const InParens = ({ children = null, wrap = false, space = false }) => {
 /** Draw list of function `args` */
 export const Arg = ({ item, index }) => (
   <span key={index} className={`arg arg-${index}`}>
-    {item.getComponent(index)}
+    <Item item={item} index={index} />
   </span>
 )
 

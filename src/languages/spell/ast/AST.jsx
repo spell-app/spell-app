@@ -93,18 +93,15 @@ export class ASTNode extends Assertable {
   // Rendering as React nodes
   //-------------------------
 
-  /** Return react component which render this node. */
-  getComponent(key) {
+  /** Return react component used render this node as syntax-colored Javascript. */
+  @memoize
+  get component() {
     const { className } = this
     const props = {
       className,
       title: className,
       "data-start": this.match.start,
       "data-end": this.match.end
-    }
-    if (key != null) {
-      props["data-key"] = key
-      props.key = key
     }
     return React.createElement("span", props, this.drawChildren())
   }
@@ -161,8 +158,8 @@ export class ExpressionWithComment extends Expression {
   drawChildren() {
     return (
       <>
-        {this.expression.getComponent()}
-        {this.comment.getComponent()}
+        <draw.Item item={this.expression} />
+        <draw.Item item={this.comment} />
       </>
     )
   }
@@ -184,7 +181,9 @@ export class QuotedExpression extends Expression {
   drawChildren() {
     return (
       <draw.InSingleQuotes>
-        <span className="expression">{this.expression.getComponent()}</span>
+        <span className="expression">
+          <draw.Item item={this.expression} />
+        </span>
       </draw.InSingleQuotes>
     )
   }
@@ -457,7 +456,9 @@ export class ParenthesizedExpression extends Expression {
   drawChildren() {
     return (
       <draw.InParens>
-        <span className="expression">{this.expression.getComponent()}</span>
+        <span className="expression">
+          <draw.Item item={this.expression} />
+        </span>
       </draw.InParens>
     )
   }
@@ -479,7 +480,9 @@ export class NotExpression extends Expression {
     return (
       <>
         <span className="operator exclamation-point">!</span>
-        <span className="expression">{this.expression.getComponent()}</span>
+        <span className="expression">
+          <draw.Item item={this.expression} />
+        </span>
       </>
     )
   }
@@ -499,9 +502,13 @@ export class InfixExpression extends Expression {
   drawChildren() {
     return (
       <>
-        <span className="lhs">{this.lhs.getComponent()}</span>
+        <span className="lhs">
+          <draw.Item item={this.lhs} />
+        </span>
         <span className="operator"> {this.operator} </span>
-        <span className="rhs">{this.rhs.getComponent()}</span>
+        <span className="rhs">
+          <draw.Item item={this.rhs} />
+        </span>
       </>
     )
   }
@@ -567,7 +574,9 @@ export class ScopedMethodInvocation extends MethodInvocation {
     const SMI = () => {
       return (
         <>
-          <span className="method-scope">{this.thing.getComponent()}</span>
+          <span className="method-scope">
+            <draw.Item item={this.thing} />
+          </span>
           <span className="operator period">.</span>
           <span className="method-name">{this.method}</span>
           <draw.Args args={this.args} />
@@ -621,7 +630,7 @@ export class AwaitMethodInvocation extends Expression {
     return (
       <>
         <span className="keyword await">await </span>
-        {this.method.getComponent()}
+        <draw.Item item={this.method} />
       </>
     )
   }
@@ -686,7 +695,9 @@ export class VariableExpression extends Expression {
       <>
         <span className="name">{this.name}</span>
         <span className="operator equals">{" = "}</span>
-        <span className="default">{this.default.getComponent()}</span>
+        <span className="default">
+          <draw.Item item={this.default} />
+        </span>
       </>
     )
   }
@@ -758,20 +769,26 @@ export class PropertyExpression extends Expression {
     return `${this.object.toJS()}['${prop}']`
   }
   drawChildren() {
-    const object = <span className="object">{this.object.getComponent()}</span>
+    const object = (
+      <span className="object">
+        <draw.Item item={this.object} />
+      </span>
+    )
     if (this.property.isLegalIdentifier) {
       return (
         <>
           {object}
           <span className="operator period">.</span>
-          {this.property.getComponent()}
+          <draw.Item item={this.property} />
         </>
       )
     }
     return (
       <>
         {object}
-        <draw.InSquareBrackets>this.property.getComponent())</draw.InSquareBrackets>
+        <draw.InSquareBrackets>
+          <draw.Item item={this.property} />
+        </draw.InSquareBrackets>
       </>
     )
   }
@@ -798,13 +815,19 @@ export class ObjectLiteralProperty extends ASTNode {
     return `${prop}: ${this.value.toJS()}${error}`
   }
   drawChildren() {
-    const error = this.error ? this.error.getComponent() : null
-    const prop = <span className="property">{this.property.getComponent()}</span>
+    const error = this.error ? <draw.Item item={this.error} /> : null
+    const prop = (
+      <span className="property">
+        <draw.Item item={this.property} />
+      </span>
+    )
     // If no value, assume it's available as a local variable.
     const value = !!this.value && (
       <>
         <span className="operator colon">: </span>
-        <span className="value">{this.value.getComponent()}</span>
+        <span className="value">
+          <draw.Item item={this.value} />
+        </span>
       </>
     )
     return (
@@ -837,9 +860,9 @@ export class ObjectLiteralMethod extends ObjectLiteralProperty {
   drawChildren() {
     return (
       <>
-        {this.property.getComponent()}
+        <draw.Item item={this.property} />
         <draw.Args args={this.args} />
-        {this.statements.getComponent()}
+        <draw.Item item={this.statements} />
       </>
     )
   }
@@ -962,9 +985,13 @@ export class AssignmentStatement extends Statement {
     return (
       <>
         {this.isNewVariable && <span className="keyword declarator">let </span>}
-        <span className="thing">{this.thing.getComponent()}</span>
+        <span className="thing">
+          <draw.Item item={this.thing} />
+        </span>
         <span className="operator equals"> = </span>
-        <span className="value">{this.value.getComponent()}</span>
+        <span className="value">
+          <draw.Item item={this.value} />
+        </span>
       </>
     )
   }
@@ -997,7 +1024,9 @@ export class DestructuredAssignment extends Statement {
           <draw.List items={this.variables} />
         </draw.InCurlies>
         <span className="operator equals"> = </span>
-        <span className="thing">{this.thing.getComponent()}</span>
+        <span className="thing">
+          <draw.Item item={this.thing} />
+        </span>
       </>
     )
   }
@@ -1019,7 +1048,9 @@ export class ReturnStatement extends Statement {
     return (
       <>
         <span className="keyword return">{"return "}</span>
-        <span className="value">{this.value.getComponent()}</span>
+        <span className="value">
+          <draw.Item item={this.value} />
+        </span>
       </>
     )
   }
@@ -1053,11 +1084,15 @@ export class ClassDeclaration extends Statement {
       <>
         <span className="keyword export">{"export "}</span>
         <span className="keyword class">{"class "}</span>
-        <span className="type">{this.type.getComponent()}</span>
+        <span className="type">
+          <draw.Item item={this.type} />
+        </span>
         {!!this.superType && (
           <>
             <span className="keyword extends">{" extends "}</span>
-            <span className="superType">{this.superType.getComponent()}</span>
+            <span className="superType">
+              <draw.Item item={this.superType} />
+            </span>
           </>
         )}
         <span className="todo"> {"/"}* TODO: output addExport() etc */</span>
@@ -1085,8 +1120,12 @@ export class NewInstanceExpression extends Expression {
     return (
       <>
         <span className="keyword new">{"new "}</span>
-        <span className="type">{this.type.getComponent()}</span>
-        <draw.InParens>{this.props?.getComponent()}</draw.InParens>
+        <span className="type">
+          <draw.Item item={this.type} />
+        </span>
+        <draw.InParens>
+          <draw.Item item={this.props} />
+        </draw.InParens>
       </>
     )
   }
@@ -1137,7 +1176,9 @@ export class InlineMethodExpression extends Expression {
       <>
         <draw.Args args={this.args} />
         <span className="operator fat-arrow">{" => "}</span>
-        <draw.InCurlies>{this.expression?.getComponent() || this.statements?.getComponent()}</draw.InCurlies>
+        <draw.InCurlies>
+          <draw.Item item={this.expression || this.statements} />
+        </draw.InCurlies>
       </>
     )
   }
@@ -1158,7 +1199,7 @@ export class PrototypeExpression extends Expression {
   drawChildren() {
     return (
       <>
-        {this.type.getComponent()}
+        <draw.Item item={this.type} />
         <span className="operator period">.</span>
         <span className="keyword prototype">{"prototype"}</span>
       </>
@@ -1174,7 +1215,7 @@ export class PropertyDefinition extends Statement {
     return this.definition.toJS()
   }
   drawChildren() {
-    return this.definition.getComponent()
+    return <draw.Item item={this.definition} />
   }
 }
 
@@ -1385,7 +1426,7 @@ export class FunctionDefinition extends Statement {
         <span className="keyword function">function </span>
         {!!this.method && <span className="method-name">{this.method}</span>}
         <draw.Args args={this.args} />
-        {this.body.getComponent()}
+        <draw.Item item={this.body} />
       </>
     )
   }
@@ -1412,7 +1453,10 @@ export class IfStatement extends Statement {
     return (
       <>
         <span className="keyword if">if </span>
-        <span className="condition">{this.condition.getComponent()}</span> {this.statements.getComponent()}
+        <span className="condition">
+          <draw.Item item={this.condition} />
+        </span>{" "}
+        <draw.Item item={this.statements} />
       </>
     )
   }
@@ -1440,7 +1484,10 @@ export class ElseIfStatement extends Statement {
       <>
         <span className="keyword else">else </span>
         <span className="keyword if">if </span>
-        <span className="condition">{this.condition.getComponent()}</span> {this.statements.getComponent()}
+        <span className="condition">
+          <draw.Item item={this.condition} />
+        </span>{" "}
+        <draw.Item item={this.statements} />
       </>
     )
   }
@@ -1461,7 +1508,7 @@ export class ElseStatement extends Statement {
     return (
       <>
         <span className="keyword else">else </span>
-        {this.statements.getComponent()}
+        <draw.Item item={this.statements} />
       </>
     )
   }
@@ -1487,11 +1534,13 @@ export class TernaryExpression extends Expression {
   drawChildren() {
     return (
       <draw.InParens>
-        <span className="condition">{this.condition.getComponent()}</span>
+        <span className="condition">
+          <draw.Item item={this.condition} />
+        </span>
         <span className="operator question-mark">{" ? "}</span>
-        {this.trueValue.getComponent()}
+        <draw.Item item={this.trueValue} />
         <span className="operator colon">: </span>
-        {this.falseValue.getComponent()}
+        <draw.Item item={this.falseValue} />
       </draw.InParens>
     )
   }
@@ -1548,7 +1597,7 @@ export class JSXElement extends Expression {
     return this.output.toJS()
   }
   drawChildren() {
-    return this.output.getComponent()
+    return <draw.Item item={this.output} />
   }
 }
 
