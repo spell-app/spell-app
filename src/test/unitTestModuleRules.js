@@ -109,9 +109,9 @@ export function unitTestModuleRules(parser, moduleName) {
         // Show returns and tabs in the output display
         test(`compiled matches output`, () => expect(showWhitespace(compiled)).toBe(showWhitespace(output)))
 
-        // if (rendered !== SKIP) {
-        //   test(`rendered matches compiled`, () => expect(normalizedRendered).toBe(normalizedCompiled))
-        // }
+        if (rendered !== SKIP) {
+          test(`rendered matches compiled`, () => expect(normalizedRendered).toBe(normalizedCompiled))
+        }
       })
     } else {
       test(testTitle, () => expect(compiled).toEqual(output))

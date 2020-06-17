@@ -16,5 +16,7 @@ export * from "./Loadable"
 export * from "./LoadableManager"
 export * from "./LoadableFile"
 
+export * from "./React"
+
 export * from "./Task"
 export * from "./TaskList"

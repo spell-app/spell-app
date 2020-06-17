@@ -4,7 +4,16 @@ import React from "react"
 import createUnitTestComponent from "react-unit"
 import _get from "lodash/get"
 
-import { proto, memoize, readonly, overrideable, getSuperHierarchy, Assertable, OPTIONAL } from "~/util"
+import {
+  proto,
+  memoize,
+  readonly,
+  overrideable,
+  getNamedComponent,
+  getSuperHierarchy,
+  Assertable,
+  OPTIONAL
+} from "~/util"
 import { Match } from "~/parser"
 import * as draw from "./drawAST"
 
@@ -97,14 +106,19 @@ export class ASTNode extends Assertable {
   /** Return react component used render this node as syntax-colored Javascript. */
   @memoize
   get component() {
-    const { className } = this
+    const { nodeType, className } = this
     const props = {
       className,
       title: className,
       "data-start": this.match.start,
       "data-end": this.match.end
     }
-    return React.createElement("span", props, this.drawChildren())
+    const children = this.renderChildren()
+    // Render so that a problem node rendering will show up as, e.g., `AST-CoreMethodInvocation`
+    const Component = getNamedComponent(`AST-${nodeType}`, function() {
+      return React.createElement("span", props, children)
+    })
+    return React.createElement(Component)
   }
 
   /**
@@ -123,7 +137,7 @@ export class ASTNode extends Assertable {
    * Render children to draw INSIDE the outer element,
    * which has `node.className` (e.g. `ASTNode Expression StringLiteral`) set.
    */
-  drawChildren() {
+  renderChildren() {
     return null
   }
 
@@ -139,7 +153,7 @@ export class BlankLine extends ASTNode {
   compile() {
     return "" // "\n"
   }
-  drawChildren() {
+  renderChildren() {
     return null // draw.NEWLINE
   }
 }
@@ -162,7 +176,7 @@ export class ExpressionWithComment extends Expression {
   compile() {
     return `${this.expression.compile()} ${this.comment.compile()}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <draw.Item item={this.expression} />
@@ -185,7 +199,7 @@ export class QuotedExpression extends Expression {
   compile() {
     return `'${this.expression.compile()}'`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <draw.InSingleQuotes>
         <span className="expression">
@@ -204,7 +218,7 @@ export class Literal extends Expression {
   compile() {
     return this.value
   }
-  drawChildren() {
+  renderChildren() {
     return <span className="value">{this.value}</span>
   }
 }
@@ -237,7 +251,7 @@ export class BooleanLiteral extends Literal {
     super(match, props)
     this.assertType("value", "boolean")
   }
-  drawChildren() {
+  renderChildren() {
     return this.value ? "true" : "false"
   }
 }
@@ -262,7 +276,7 @@ export class NullLiteral extends Literal {
   compile() {
     return "null"
   }
-  drawChildren() {
+  renderChildren() {
     return <span className="value">null</span>
   }
 }
@@ -277,7 +291,7 @@ export class UndefinedLiteral extends Literal {
   compile() {
     return "undefined"
   }
-  drawChildren() {
+  renderChildren() {
     return <span className="value">undefined</span>
   }
 }
@@ -287,7 +301,7 @@ export class ThisLiteral extends Literal {
   compile() {
     return "this"
   }
-  drawChildren() {
+  renderChildren() {
     return <span className="value">this</span>
   }
 }
@@ -323,7 +337,7 @@ export class ArrayLiteral extends Literal {
     const delimiter = this.wrap ? ",\n" : ", "
     return this.wrapJSInSquares(this.listToJS(this.items, delimiter))
   }
-  drawChildren() {
+  renderChildren() {
     return <draw.Array items={this.items} wrap={this.wrap} />
   }
 }
@@ -341,7 +355,7 @@ export class Enumeration extends Literal {
   compile() {
     return this.wrapJSInSquares(this.listToJS(this.enumeration))
   }
-  drawChildren() {
+  renderChildren() {
     return <draw.Array items={this.enumeration} />
   }
 }
@@ -370,7 +384,7 @@ export class LineComment extends Comment {
   get className() {
     return `${super.className}${this.commentSymbol !== "//" ? " header" : ""}`
   }
-  drawChildren() {
+  renderChildren() {
     let { commentSymbol = "" } = this
     if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
     return (
@@ -394,7 +408,7 @@ export class BlockComment extends Comment {
   compile() {
     return `/* ${this.value} */`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <span className="punctuation open-comment-symbol">{"/* "}</span>
@@ -412,7 +426,7 @@ export class ParseError extends BlockComment {
   compile() {
     return `/* PARSE ERROR: ${this.value} */`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <span className="punctuation open-comment-symbol">{"/* "}</span>
@@ -431,7 +445,7 @@ export class ParserAnnotation extends BlockComment {
   compile() {
     return `/* SPELL: ${this.value} */`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <span className="punctuation open-comment-symbol">{"/* "}</span>
@@ -460,7 +474,7 @@ export class ParenthesizedExpression extends Expression {
   compile() {
     return `(${this.expression.compile()})`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <draw.InParens>
         <span className="expression">
@@ -483,7 +497,7 @@ export class NotExpression extends Expression {
   compile() {
     return `!${this.expression.compile()}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <span className="operator exclamation-point">!</span>
@@ -506,7 +520,7 @@ export class InfixExpression extends Expression {
   compile() {
     return `${this.lhs.compile()} ${this.operator} ${this.rhs.compile()}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <span className="lhs">
@@ -550,7 +564,7 @@ export class MethodInvocation extends Expression {
   compile() {
     return `${this.method}${this.argsToJS()}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <span className="method-name">{this.method}</span>
@@ -577,22 +591,15 @@ export class ScopedMethodInvocation extends MethodInvocation {
   compile() {
     return `${this.thing.compile()}.${this.method}${this.argsToJS()}`
   }
-  drawChildren() {
-    const SMI = () => {
-      return (
-        <>
-          <span className="method-scope">
-            <draw.Item item={this.thing} />
-          </span>
-          <span className="operator period">.</span>
-          <span className="method-name">{this.method}</span>
-          <draw.Args args={this.args} />
-        </>
-      )
-    }
+  renderChildren() {
     return (
       <>
-        <SMI />
+        <span className="method-scope">
+          <draw.Item item={this.thing} />
+        </span>
+        <span className="operator period">.</span>
+        <span className="method-name">{this.method}</span>
+        <draw.Args args={this.args} />
       </>
     )
   }
@@ -633,7 +640,7 @@ export class AwaitMethodInvocation extends Expression {
   compile() {
     return `await ${this.method.compile()}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <span className="keyword await">await </span>
@@ -659,7 +666,7 @@ export class TypeExpression extends Expression {
   compile() {
     return this.name
   }
-  drawChildren() {
+  renderChildren() {
     return <span className="type">{this.name}</span>
   }
 
@@ -696,7 +703,7 @@ export class VariableExpression extends Expression {
     if (this.variable?.kind && !classes.includes(this.variable.kind)) classes.push(this.variable.kind)
     return classes.join(" ")
   }
-  drawChildren() {
+  renderChildren() {
     if (!this.default) return <span className="name">{this.name}</span>
     return (
       <>
@@ -725,7 +732,7 @@ export class ConstantExpression extends Expression {
   compile() {
     return this.output
   }
-  drawChildren() {
+  renderChildren() {
     return <span className="constant">{this.output}</span>
   }
 }
@@ -752,7 +759,7 @@ export class PropertyLiteral extends Literal {
   get className() {
     return `${super.className} ${this.isLegalIdentifier ? "legal-identifier" : "non-legal-identifier"}`
   }
-  drawChildren() {
+  renderChildren() {
     const element = <span className="property">{this.value}</span>
     return this.isLegalIdentifier ? element : <draw.InSingleQuotes>element</draw.InSingleQuotes>
   }
@@ -775,7 +782,7 @@ export class PropertyExpression extends Expression {
     if (this.property.isLegalIdentifier) return `${this.object.compile()}.${prop}`
     return `${this.object.compile()}['${prop}']`
   }
-  drawChildren() {
+  renderChildren() {
     const object = (
       <span className="object">
         <draw.Item item={this.object} />
@@ -821,7 +828,7 @@ export class ObjectLiteralProperty extends ASTNode {
     if (!this.value) return `${prop}${error}`
     return `${prop}: ${this.value.compile()}${error}`
   }
-  drawChildren() {
+  renderChildren() {
     const error = this.error ? <draw.Item item={this.error} /> : null
     const prop = (
       <span className="property">
@@ -864,7 +871,7 @@ export class ObjectLiteralMethod extends ObjectLiteralProperty {
   compile() {
     return `${this.property.compile()}${this.argsToJS()} ${this.statements.compile()}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <draw.Item item={this.property} />
@@ -910,7 +917,7 @@ export class ObjectLiteral extends Expression {
     const delimiter = this.wrap ? ",\n" : ", "
     return this.wrapJSInCurlies(this.listToJS(this.properties, delimiter))
   }
-  drawChildren() {
+  renderChildren() {
     const { wrap } = this
     const delimiter = wrap ? draw.INDENTED_COMMA : draw.SPACED_COMMA
     return (
@@ -935,7 +942,7 @@ export class StatementGroup extends Statement {
   compile() {
     return this.listToJS(this.statements, "\n")
   }
-  drawChildren() {
+  renderChildren() {
     return <draw.List items={this.statements} delimiter={draw.NEWLINE} />
   }
 }
@@ -958,7 +965,7 @@ export class StatementBlock extends Statement {
   compile() {
     return this.wrapJSInCurlies(this.listToJS(this.statements, "\n"))
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <draw.Block wrap={this.wrap}>
         <draw.List items={this.statements} delimiter={draw.INDENTED_NEWLINE} />
@@ -987,7 +994,7 @@ export class AssignmentStatement extends Statement {
   get className() {
     return `${super.className}${this.isNewVariable ? " declaration" : ""}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         {this.isNewVariable && <span className="keyword declarator">let </span>}
@@ -1022,7 +1029,7 @@ export class DestructuredAssignment extends Statement {
   get className() {
     return `${super.className}${this.isNewVariable ? " declaration" : ""}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         {this.isNewVariable && <span className="keyword declarator">let </span>}
@@ -1050,7 +1057,7 @@ export class ReturnStatement extends Statement {
     if (!this.value) return "return"
     return `return ${this.value.compile()}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <span className="keyword return">{"return "}</span>
@@ -1085,7 +1092,7 @@ export class ClassDeclaration extends Statement {
     }
     return output.join("\n")
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <span className="keyword export">{"export "}</span>
@@ -1121,7 +1128,7 @@ export class NewInstanceExpression extends Expression {
     const { type, props } = this
     return `new ${type.name}(${props ? props.compile() : ""})`
   }
-  drawChildren() {
+  renderChildren() {
     // TODO: wrap???
     return (
       <>
@@ -1148,7 +1155,7 @@ export class ListExpression extends Expression {
   compile() {
     return `[${this.listToJS(this.items)}]`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <draw.InSquareBrackets>
         <draw.List items={this.items} />
@@ -1177,7 +1184,7 @@ export class InlineMethodExpression extends Expression {
     if (body) return `${this.argsToJS()} => ${body.compile()}`
     return `${this.argsToJS()} => {}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <draw.Args args={this.args} />
@@ -1202,7 +1209,7 @@ export class PrototypeExpression extends Expression {
     const { type } = this
     return `${type.compile()}.prototype`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <draw.Item item={this.type} />
@@ -1220,7 +1227,7 @@ export class PropertyDefinition extends Statement {
   compile() {
     return this.definition.compile()
   }
-  drawChildren() {
+  renderChildren() {
     return <draw.Item item={this.definition} />
   }
 }
@@ -1426,7 +1433,7 @@ export class FunctionDefinition extends Statement {
   compile() {
     return `function ${this.method || ""}${this.argsToJS()} ${this.body.compile()}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <span className="keyword function">function </span>
@@ -1455,7 +1462,7 @@ export class IfStatement extends Statement {
   compile() {
     return `if ${this.condition.compile()} ${this.statements.compile()}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <span className="keyword if">if </span>
@@ -1485,7 +1492,7 @@ export class ElseIfStatement extends Statement {
   compile() {
     return `else if ${this.condition.compile()} ${this.statements.compile()}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <span className="keyword else">else </span>
@@ -1510,7 +1517,7 @@ export class ElseStatement extends Statement {
   compile() {
     return `else ${this.statements.compile()}`
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <>
         <span className="keyword else">else </span>
@@ -1537,7 +1544,7 @@ export class TernaryExpression extends Expression {
     const expression = `(${condition.compile()} ? ${trueValue.compile()} : ${falseValue.compile()})`
     return expression
   }
-  drawChildren() {
+  renderChildren() {
     return (
       <draw.InParens>
         <span className="condition">
@@ -1602,7 +1609,7 @@ export class JSXElement extends Expression {
   compile() {
     return this.output.compile()
   }
-  drawChildren() {
+  renderChildren() {
     return <draw.Item item={this.output} />
   }
 }

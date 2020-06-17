@@ -14,7 +14,7 @@ function highlight(el, delay = 0) {
 /** Top-level viewer for a ASTNode.
  * Create one of these and it will create <ASTView>s and <TokenView>s underneath it.the
  */
-export function ASTViewerInner({ ast, match, inputOffset }) {
+export function ASTViewerContents({ ast, match, inputOffset }) {
   if (!ast) return null
   // If we're passed a specific `inputOffset`, scroll that line into view and flash its bg.
   React.useLayoutEffect(() => {
@@ -76,7 +76,7 @@ export class ASTViewer extends React.Component {
 
   render() {
     const { error } = this.state
-    const contents = error ? <h4>Error: {error.message}</h4> : <ASTViewerInner {...this.props} />
+    const contents = error ? <h4>Error: {error.message}</h4> : <ASTViewerContents {...this.props} />
 
     const classNames = ["ASTViewer"]
     if (this.props.scroll) classNames.push("scroll")
