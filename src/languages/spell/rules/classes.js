@@ -524,7 +524,11 @@ export const classes = new SpellParser({
             // is one of diamonds or hearts => is_one_of_list
             [
               "the color of a card is red if its suit is either diamonds or hearts",
-              "spellCore.define(Card.prototype, 'color', { get() { if (spellCore.includes(['diamonds', 'hearts'], this.suit)) { return 'red' } } })"
+              [
+                "spellCore.define(Card.prototype, 'color', {",
+                "\tget() { if (spellCore.includes(['diamonds', 'hearts'], this.suit)) { return 'red' } }",
+                "})"
+              ]
             ],
             [
               "a cards color is black if its suit is either clubs or spades otherwise it is red",
@@ -575,9 +579,16 @@ export const classes = new SpellParser({
           tests: [
             [
               "the value of a card is the position of its rank in card ranks",
-              "spellCore.define(Card.prototype, 'value', { get() { return spellCore.itemOf(Card.Ranks, this.rank) } })"
+              [
+                "spellCore.define(Card.prototype, 'value', {",
+                "\tget() { return spellCore.itemOf(Card.Ranks, this.rank) }",
+                "})"
+              ]
             ],
-            ["a cards score is its value", "spellCore.define(Card.prototype, 'score', { get() { return this.value } })"]
+            [
+              "a cards score is its value",
+              ["spellCore.define(Card.prototype, 'score', {", "\tget() { return this.value }", "})"]
+            ]
           ]
         }
       ]
@@ -663,11 +674,21 @@ export const classes = new SpellParser({
           tests: [
             [
               'a card "is face up" if its direction is up',
-              "/* SPELL: added rule: 'is not? face up' */\nspellCore.define(Card.prototype, 'is_face_up', { get() { return (this.direction == 'up') } })"
+              [
+                "/* SPELL: added rule: 'is not? face up' */",
+                "spellCore.define(Card.prototype, 'is_face_up', {",
+                "\tget() { return (this.direction == 'up') }",
+                "})"
+              ]
             ],
             [
               'a card "is a face card" if its rank is one of [jack, queen, king]',
-              "/* SPELL: added rule: 'is not? a face card' */\nspellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
+              [
+                "/* SPELL: added rule: 'is not? a face card' */",
+                "spellCore.define(Card.prototype, 'is_a_face_card', {",
+                "\tget() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) }",
+                "})"
+              ]
             ]
             // TODO: this one is failing for some reason, although it works in the app???
             // [
@@ -858,11 +879,21 @@ export const classes = new SpellParser({
           tests: [
             [
               'a card "is a (rank)" for its ranks',
-              "/* SPELL: added expression: '(operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)' */\nspellCore.define(Card.prototype, 'is_a_$rank', { value(rank) { return this.rank === rank } })"
+              [
+                "/* SPELL: added expression: '(operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)' */",
+                "spellCore.define(Card.prototype, 'is_a_$rank', {",
+                "\tvalue(rank) { return this.rank === rank }",
+                "})"
+              ]
             ],
             [
               'a card "is the (rank) of (suits)" for its ranks and its suits',
-              "/* SPELL: added expression: '(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)' */\nspellCore.define(Card.prototype, 'is_the_$rank_of_$suits', { value(rank, suit) { return this.rank === rank && this.suit === suit } })"
+              [
+                "/* SPELL: added expression: '(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)' */",
+                "spellCore.define(Card.prototype, 'is_the_$rank_of_$suits', {",
+                "\tvalue(rank, suit) { return this.rank === rank && this.suit === suit }",
+                "})"
+              ]
             ]
           ]
         },

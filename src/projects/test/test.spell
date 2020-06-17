@@ -1,10 +1,1 @@
-## File B.spell
-a todo-list is a list
-to foo (a todo-list)
-	print 1
-	
-to test (a todo-list)
-	print it
-	get 2
-	print it
-test a new todo-list
+print <a A=1><b c=1>foo</b></a>

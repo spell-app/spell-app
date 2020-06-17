@@ -87,7 +87,7 @@ export const Arg = ({ item, index }) => (
 )
 
 export const Args = ({ args, wrap = args?.length > 3 }) => {
-  const delimiter = wrap ? INDENTED_COMMA : COMMA
+  const delimiter = wrap ? INDENTED_COMMA : SPACED_COMMA
   return (
     <span className={`ASTBlock ASTArgsBlock${wrap ? " indented" : ""}`}>
       <InParens wrap={wrap}>
@@ -145,7 +145,7 @@ const EMPTY_BLOCK = (
     <InCurlies />
   </span>
 )
-export const Block = ({ children = null, wrap = false, space = false }) => {
+export const Block = ({ children = null, wrap = false, space = !wrap }) => {
   if (!children) return EMPTY_BLOCK
   return (
     <span className={`ASTBlock${wrap ? " indented" : ""}`}>

@@ -15,6 +15,7 @@ import {
   OPTIONAL
 } from "~/util"
 import { Match } from "~/parser"
+import * as stringify from "./stringifyAST"
 import * as draw from "./drawAST"
 
 window.draw = draw
@@ -94,16 +95,11 @@ export class ASTNode extends Assertable {
     return `(${value})`
   }
 
-  /** Helper to turn `args` array into JS */
-  argsToJS(args = this.args) {
-    return this.wrapJSInParens(this.listToJS(args))
-  }
-
   //-------------------------
   // Rendering as React nodes
   //-------------------------
 
-  /** Return react component used render this node as syntax-colored Javascript. */
+  /** Return rendered react component which draws this node as syntax-colored Javascript. */
   @memoize
   get component() {
     const { nodeType, className } = this
@@ -114,7 +110,7 @@ export class ASTNode extends Assertable {
       "data-end": this.match.end
     }
     const children = this.renderChildren()
-    // Render so that a problem node rendering will show up as, e.g., `AST-CoreMethodInvocation`
+    // Render so that a problem in node rendering will show up as, e.g., `AST-CoreMethodInvocation`
     const Component = getNamedComponent(`AST-${nodeType}`, function() {
       return React.createElement("span", props, children)
     })
@@ -197,7 +193,7 @@ export class QuotedExpression extends Expression {
     this.assertType("expression", Expression)
   }
   compile() {
-    return `'${this.expression.compile()}'`
+    return stringify.InSingleQuotes({ children: this.expression.compile() })
   }
   renderChildren() {
     return (
@@ -334,8 +330,8 @@ export class ArrayLiteral extends Literal {
     return this.items?.length > 2
   }
   compile() {
-    const delimiter = this.wrap ? ",\n" : ", "
-    return this.wrapJSInSquares(this.listToJS(this.items, delimiter))
+    const { items, wrap } = this
+    return stringify.Array({ items, wrap })
   }
   renderChildren() {
     return <draw.Array items={this.items} wrap={this.wrap} />
@@ -353,7 +349,7 @@ export class Enumeration extends Literal {
     this.assertArrayType("values", ["string", "number"])
   }
   compile() {
-    return this.wrapJSInSquares(this.listToJS(this.enumeration))
+    return stringify.Array({ items: this.enumeration })
   }
   renderChildren() {
     return <draw.Array items={this.enumeration} />
@@ -472,7 +468,7 @@ export class ParenthesizedExpression extends Expression {
     return this.expression.datatype
   }
   compile() {
-    return `(${this.expression.compile()})`
+    return stringify.InParens({ children: this.expression.compile() })
   }
   renderChildren() {
     return (
@@ -562,7 +558,8 @@ export class MethodInvocation extends Expression {
     this.assertType("datatype", "string", OPTIONAL)
   }
   compile() {
-    return `${this.method}${this.argsToJS()}`
+    const { method, args } = this
+    return `${method}${stringify.Args({ args })}`
   }
   renderChildren() {
     return (
@@ -589,7 +586,8 @@ export class ScopedMethodInvocation extends MethodInvocation {
     this.assertType("datatype", "string", OPTIONAL)
   }
   compile() {
-    return `${this.thing.compile()}.${this.method}${this.argsToJS()}`
+    const { method, args } = this
+    return `${this.thing.compile()}.${method}${stringify.Args({ args })}`
   }
   renderChildren() {
     return (
@@ -754,14 +752,14 @@ export class PropertyLiteral extends Literal {
   }
   compile() {
     if (this.isLegalIdentifier) return this.value
-    return `'${this.value}'`
+    return stringify.InSingleQuotes({ children: this.value })
   }
   get className() {
     return `${super.className} ${this.isLegalIdentifier ? "legal-identifier" : "non-legal-identifier"}`
   }
   renderChildren() {
-    const element = <span className="property">{this.value}</span>
-    return this.isLegalIdentifier ? element : <draw.InSingleQuotes>element</draw.InSingleQuotes>
+    const value = <span className="property">{this.value}</span>
+    return this.isLegalIdentifier ? value : <draw.InSingleQuotes>{value}</draw.InSingleQuotes>
   }
 }
 
@@ -869,7 +867,8 @@ export class ObjectLiteralMethod extends ObjectLiteralProperty {
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
   compile() {
-    return `${this.property.compile()}${this.argsToJS()} ${this.statements.compile()}`
+    const args = stringify.Args({ args: this.args })
+    return `${this.property.compile()}${args} ${this.statements.compile()}`
   }
   renderChildren() {
     return (
@@ -891,6 +890,7 @@ export class ObjectLiteral extends Expression {
   constructor(match, props) {
     super(match, props)
     this.assertArrayType("properties", ObjectLiteralProperty, OPTIONAL)
+    this.assertType("wrap", "boolean", OPTIONAL)
   }
   addProp(property, value) {
     if (typeof value === "string") value = new StringLiteral(this.match, { value })
@@ -910,12 +910,23 @@ export class ObjectLiteral extends Expression {
     this.properties.push(method)
   }
   // Should we wrap properties block?
+  @overrideable
   get wrap() {
-    return this.properties?.length > 2 || this.properties?.some(item => item instanceof ObjectLiteralMethod)
+    return (
+      this.properties?.length > 2 ||
+      this.properties?.some(item => item instanceof ObjectLiteralMethod || item.value instanceof InlineMethodExpression)
+    )
   }
   compile() {
-    const delimiter = this.wrap ? ",\n" : ", "
-    return this.wrapJSInCurlies(this.listToJS(this.properties, delimiter))
+    // const delimiter = this.wrap ? ",\n" : ", "
+    // return this.wrapJSInCurlies(this.listToJS(this.properties, delimiter))
+    const { wrap } = this
+    const delimiter = wrap ? stringify.INDENTED_COMMA : stringify.SPACED_COMMA
+    return stringify.Block({
+      wrap,
+      space: !wrap,
+      children: stringify.List({ items: this.properties, delimiter })
+    })
   }
   renderChildren() {
     const { wrap } = this
@@ -940,7 +951,7 @@ export class StatementGroup extends Statement {
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
   }
   compile() {
-    return this.listToJS(this.statements, "\n")
+    return stringify.List({ items: this.statements, delimiter: stringify.NEWLINE })
   }
   renderChildren() {
     return <draw.List items={this.statements} delimiter={draw.NEWLINE} />
@@ -963,7 +974,13 @@ export class StatementBlock extends Statement {
     return this.statements?.length > 1
   }
   compile() {
-    return this.wrapJSInCurlies(this.listToJS(this.statements, "\n"))
+    return stringify.Block({
+      wrap: this.wrap,
+      children: stringify.List({
+        items: this.statements,
+        delimiter: stringify.NEWLINE
+      })
+    })
   }
   renderChildren() {
     return (
@@ -1024,7 +1041,13 @@ export class DestructuredAssignment extends Statement {
   }
   compile() {
     const declarator = this.isNewVariable ? "let " : ""
-    return `${declarator}${this.wrapJSInCurlies(this.listToJS(this.variables))} = ${this.thing.compile()}`
+    const vars = stringify.InCurlies({
+      space: true,
+      children: stringify.List({
+        items: this.variables
+      })
+    })
+    return `${declarator}${vars} = ${this.thing.compile()}`
   }
   get className() {
     return `${super.className}${this.isNewVariable ? " declaration" : ""}`
@@ -1125,8 +1148,8 @@ export class NewInstanceExpression extends Expression {
     this.assertType("props", ObjectLiteral, OPTIONAL)
   }
   compile() {
-    const { type, props } = this
-    return `new ${type.name}(${props ? props.compile() : ""})`
+    const props = stringify.InParens({ children: this.props?.compile() })
+    return `new ${this.type.compile()}${props}`
   }
   renderChildren() {
     // TODO: wrap???
@@ -1153,7 +1176,9 @@ export class ListExpression extends Expression {
     this.assertArrayType("items", Expression, OPTIONAL)
   }
   compile() {
-    return `[${this.listToJS(this.items)}]`
+    return stringify.InSquareBrackets({
+      children: stringify.List({ items: this.items })
+    })
   }
   renderChildren() {
     return (
@@ -1180,9 +1205,9 @@ export class InlineMethodExpression extends Expression {
     this.assertType("expression", Expression, OPTIONAL)
   }
   compile() {
-    const body = this.expression || this.statements
-    if (body) return `${this.argsToJS()} => ${body.compile()}`
-    return `${this.argsToJS()} => {}`
+    const args = stringify.Args({ args: this.args })
+    const body = (this.expression || this.statements)?.compile() || stringify.EMPTY_BLOCK
+    return `${args} => ${body}`
   }
   renderChildren() {
     return (
@@ -1431,7 +1456,8 @@ export class FunctionDefinition extends Statement {
     return `${super.className}${this.method ? " anonymous" : ""}`
   }
   compile() {
-    return `function ${this.method || ""}${this.argsToJS()} ${this.body.compile()}`
+    const args = stringify.Args({ args: this.args })
+    return `function ${this.method || ""}${args} ${this.body.compile()}`
   }
   renderChildren() {
     return (
@@ -1541,8 +1567,7 @@ export class TernaryExpression extends Expression {
   }
   compile() {
     const { condition, trueValue, falseValue } = this
-    const expression = `(${condition.compile()} ? ${trueValue.compile()} : ${falseValue.compile()})`
-    return expression
+    return stringify.InParens({ children: `${condition.compile()} ? ${trueValue.compile()} : ${falseValue.compile()}` })
   }
   renderChildren() {
     return (
@@ -1581,13 +1606,17 @@ export class JSXElement extends Expression {
       })
     ]
 
-    if (this.attrs && this.attrs.length) {
+    const attrs =
+      this.attrs &&
+      this.attrs.length &&
+      new ObjectLiteral(this.match, {
+        properties: this.attrs.map(attr => attr.output)
+      })
+    if (attrs) {
       properties.push(
         new ObjectLiteralProperty(this.match, {
           property: "props",
-          value: new ObjectLiteral(this.match, {
-            properties: this.attrs.map(attr => attr.output)
-          })
+          value: attrs
         })
       )
     }
@@ -1603,7 +1632,7 @@ export class JSXElement extends Expression {
 
     return new CoreMethodInvocation(this.match, {
       method: "element",
-      args: [new ObjectLiteral(this.match, { properties })]
+      args: [new ObjectLiteral(this.match, { properties, wrap: attrs?.wrap || false })]
     })
   }
   compile() {

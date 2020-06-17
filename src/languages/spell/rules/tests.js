@@ -41,7 +41,7 @@ export const tests = new SpellParser({
           tests: [
             [
               'expect the rank of it to be "queen"',
-              'spellCore.assertEquals(it.rank, "queen", `the rank of it`, `"queen"`)'
+              ["spellCore.assertEquals(", "\tit.rank,", '\t"queen",', "\t`the rank of it`,", '\t`"queen"`', ")"]
             ],
             ["expect the is-face-up of it", "spellCore.assert(it.is_face_up, `the is-face-up of it`)"]
           ]

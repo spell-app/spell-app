@@ -40,52 +40,73 @@ export const JSX = new SpellParser({
             [`<a b=1 c="ccc"/>`, `spellCore.element({ tag: "a", props: { b: 1, c: "ccc" } })`],
             [
               `<a b=1 c="ccc" d></a>`,
-              [`spellCore.element({`, `\ttag: "a", props: {`, `\t\tb: 1,`, `\t\tc: "ccc",`, `\t\td: true`, `\t}`, `})`]
-            ],
-
-            [`<a><b/></a>`, `spellCore.element({ tag: "a", children: [spellCore.element({ tag: "b" })] })`],
-            [`<a><b></b></a>`, `spellCore.element({ tag: "a", children: [spellCore.element({ tag: "b" })] })`],
-            [
-              `<a A=1><b c=1>foo</b></a>`,
               [
                 `spellCore.element({`,
                 `\ttag: "a",`,
-                `\tprops: { A: 1 },`,
-                `\tchildren: [`,
-                `\t\tspellCore.element({`,
-                `\t\t\ttag: "b",`,
-                `\t\t\tprops: { c: 1 },`,
-                `\t\t\tchildren: ["foo"]`,
-                `\t\t})`,
-                `\t]`,
+                `\tprops: {`,
+                `\t\tb: 1,`,
+                `\t\tc: "ccc",`,
+                `\t\td: true`,
+                `\t}`,
                 `})`
+              ]
+            ],
+
+            [`<a><b/></a>`, [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]],
+            [
+              `<a><b></b></a>`,
+              [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]
+            ],
+            [
+              `<a A=1><b c=1>foo</b></a>`,
+              [
+                `spellCore.element({ tag: "a", props: { A: 1 }, children: [`,
+                `\tspellCore.element({ tag: "b", props: { c: 1 }, children: [`,
+                `\t\t"foo"`,
+                `\t] })`,
+                `] })`
               ]
             ],
             [
               `<a><b><c>d</c></b></a>`,
-              'spellCore.element({ tag: "a", children: [spellCore.element({ tag: "b", children: [spellCore.element({ tag: "c", children: ["d"] })] })] })'
+              [
+                `spellCore.element({ tag: "a", children: [`,
+                `\tspellCore.element({ tag: "b", children: [`,
+                `\t\tspellCore.element({ tag: "c", children: [`,
+                `\t\t\t"d"`,
+                `\t\t] })`,
+                `\t] })`,
+                `] })`
+              ]
             ],
             [
               `<a>\n\tBBB\n\t<c/>\n\tDDD</a>`,
               [
-                "spellCore.element({",
-                '\ttag: "a", children: [',
-                '\t\t"BBB",',
-                '\t\tspellCore.element({ tag: "c" }),',
-                '\t\t"DDD"',
-                "\t]",
-                "})"
+                'spellCore.element({ tag: "a", children: [',
+                '\t"BBB",',
+                '\tspellCore.element({ tag: "c" }),',
+                '\t"DDD"',
+                "] })"
               ]
             ],
             [
               ["<ui-button ", "\thidden={1} ", "\tonPress={print 2}", "\t/>"],
-              'spellCore.element({ tag: "ui-button", props: { hidden: 1, onPress: (event) => console.log(2) } })'
+              [
+                "spellCore.element({",
+                '\ttag: "ui-button",',
+                "\tprops: {",
+                "\t\thidden: 1,",
+                "\t\tonPress: (event) => console.log(2)",
+                "\t}",
+                "})"
+              ]
             ],
             [
               '<input attrOnly text="text" number=1 boolean={yes} expression={1 + 1} onClick={print the value of the target of the event} />',
               [
                 `spellCore.element({`,
-                `\ttag: "input", props: {`,
+                `\ttag: "input",`,
+                `\tprops: {`,
                 `\t\tattrOnly: true,`,
                 `\t\ttext: "text",`,
                 `\t\tnumber: 1,`,
@@ -117,7 +138,14 @@ export const JSX = new SpellParser({
             // DO parse a statement as an attribute expression
             [
               `<div on-click={print 1024}/>`,
-              `spellCore.element({ tag: "div", props: { 'on-click': (event) => console.log(1024) } })`
+              [
+                `spellCore.element({`,
+                `\ttag: "div",`,
+                `\tprops: {`,
+                `\t\t'on-click': (event) => console.log(1024)`,
+                `\t}`,
+                `})`
+              ]
             ],
             // don't match attribute expressions that don't eat the entire text
             [
@@ -139,28 +167,54 @@ export const JSX = new SpellParser({
           tests: [
             [
               `<div foo={<a><b><c>{1}</c></b></a>}/>`,
-              'spellCore.element({ tag: "div", props: { foo: spellCore.element({ tag: "a", children: [spellCore.element({ tag: "b", children: [spellCore.element({ tag: "c", children: [1] })] })] }) } })'
+              [
+                'spellCore.element({ tag: "div", props: { foo: spellCore.element({ tag: "a", children: [',
+                '\tspellCore.element({ tag: "b", children: [',
+                '\t\tspellCore.element({ tag: "c", children: [',
+                "\t\t\t1",
+                "\t\t] })",
+                "\t] })",
+                "] }) } })"
+              ]
             ],
             // compound expression
-            [`<div>{1 + 2 + 3}</div>`, 'spellCore.element({ tag: "div", children: [((1 + 2) + 3)] })'],
+            [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]],
             // multi-line expression is fine
-            ["<div>{\n\t1 + \n2 + 3\t\n}</div>", 'spellCore.element({ tag: "div", children: [((1 + 2) + 3)] })'],
+            [
+              "<div>{\n\t1 + \n2 + 3\t\n}</div>",
+              ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]
+            ],
             //
-            [`<div>{the rank of the card}</div>`, 'spellCore.element({ tag: "div", children: [card.rank] })'],
+            [
+              `<div>{the rank of the card}</div>`,
+              ['spellCore.element({ tag: "div", children: [', "\tcard.rank", "] })"]
+            ],
             // fail if we don't eat entire expression
             [
               `<div>{true true}</div>`,
-              'spellCore.element({ tag: "div", children: [null /* PARSE ERROR: UNABLE TO PARSE: "true true" */] })'
+              [
+                'spellCore.element({ tag: "div", children: [',
+                '\tnull /* PARSE ERROR: UNABLE TO PARSE: "true true" */',
+                "] })"
+              ]
             ],
             // fail on unknown expression
             [
               `<div>{unknown expression}</div>`,
-              'spellCore.element({ tag: "div", children: [null /* PARSE ERROR: UNABLE TO PARSE: "unknown expression" */] })'
+              [
+                'spellCore.element({ tag: "div", children: [',
+                '\tnull /* PARSE ERROR: UNABLE TO PARSE: "unknown expression" */',
+                "] })"
+              ]
             ],
             // DO NOT parse a inline statement as a JSXExpression
             [
               `<div>{print 1024}</div>`,
-              'spellCore.element({ tag: "div", children: [null /* PARSE ERROR: UNABLE TO PARSE: "print 1024" */] })'
+              [
+                'spellCore.element({ tag: "div", children: [',
+                '\tnull /* PARSE ERROR: UNABLE TO PARSE: "print 1024" */',
+                "] })"
+              ]
             ]
           ]
         }
