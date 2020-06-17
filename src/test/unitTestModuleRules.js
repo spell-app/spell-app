@@ -12,7 +12,11 @@ import groupBy from "lodash/groupBy"
 import isEqual from "lodash/isEqual"
 
 import { ParseError, Rule } from "~/parser"
-import { showWhitespace } from "~/util"
+import { showWhitespace, normalizeInitialWhitespace } from "~/util"
+import { normalize } from "path"
+
+// Skip running a rest
+const SKIP = { skip: true }
 
 export function unitTestModuleRules(parser, moduleName) {
   describe(`rule unit tests`, () => {
@@ -81,53 +85,67 @@ export function unitTestModuleRules(parser, moduleName) {
     // If a `beforeEach` method was defined, run that before parsing to seed variables/etc.
     if (beforeEach) beforeEach(scope)
 
-    const [match, result] = executeCompileTest(scope, ruleName, input, output)
+    const [_match, compiled, rendered] = compileMatch(scope, ruleName, input, output)
 
-    const success = isEqual(result, output)
-    // If it didn't work, log the match for debugging purposes
-    if (!success) {
-      if (match instanceof Error) {
-        console.warn(`ERROR PARSING: "${input}": ${match.message}`)
-      } else {
-        console.warn(`ERROR PARSING: "${input}": match: \n`, match?.toPrint())
-      }
-    }
+    const normalizedCompiled = typeof compiled === "string" ? normalizeInitialWhitespace(compiled) : compiled
+    const normalizedRendered = typeof rendered === "string" ? normalizeInitialWhitespace(rendered) : rendered
+
+    const success = isEqual(compiled, output) && normalizedRendered === normalizedCompiled
 
     const testTitle = `${(title ? `${title}: '` : "'") + showWhitespace(input)}'`
-    if (typeof result === "string" && typeof output === "string") {
-      // Show returns and tabs in the output display
-      test(testTitle, () => expect(showWhitespace(result)).toBe(showWhitespace(output)))
-    } else {
-      test(testTitle, () => expect(result).toEqual(output))
+    if (success) {
+      test(testTitle, () => expect(true).toBe(true))
+      return true
     }
+    // // If it didn't work, log the match for debugging purposes
+    //   if (match instanceof Error) {
+    //     console.warn(`ERROR PARSING: "${input}": ${match.message}`)
+    //   } else {
+    //     console.warn(`ERROR PARSING: "${input}": match: \n`, match?.toPrint())
+    //   }
 
-    // if we were successful, see if match.inputText is the same as the output
-    //     if (match) {
-    //       const matchInput = match.inputText;
-    //       if (input !== matchInput) {
-    //         test(`input text for: '${title}'`, () => expect(showWhitespace(matchInput)).toBe(showWhitespace(input)));
-    //       }
-    //     }
-    return success
+    if (typeof compiled === "string" && typeof output === "string") {
+      describe(testTitle, () => {
+        // Show returns and tabs in the output display
+        test(`compiled matches output`, () => expect(showWhitespace(compiled)).toBe(showWhitespace(output)))
+
+        if (rendered !== SKIP) {
+          test(`rendered matches compiled`, () => expect(normalizedRendered).toBe(normalizedCompiled))
+        }
+      })
+    } else {
+      test(testTitle, () => expect(compiled).toEqual(output))
+    }
+    return false
   }
 
-  function executeCompileTest(scope, ruleName, input, output) {
+  function compileMatch(scope, ruleName, input, output) {
+    const UNDEFINED_RESULT = [undefined, undefined, undefined]
     let match
-    let result
+    let compiled
+    let rendered
     try {
       match = scope.parse(input, ruleName)
       if (match) {
         try {
-          result = match.compile()
+          compiled = match.compile()
         } catch (e) {
-          if (e instanceof ParseError && output === undefined) return [undefined, undefined]
-          result = e
+          if (e instanceof ParseError && output === undefined) return UNDEFINED_RESULT
+          compiled = e
+        }
+        if (typeof compiled === "string") {
+          try {
+            if (match.rule.getAST) rendered = match.AST.renderedText
+            else rendered = SKIP
+          } catch (e) {
+            rendered = e
+          }
         }
       }
     } catch (e) {
-      if (e instanceof ParseError && output === undefined) return [undefined, undefined]
+      if (e instanceof ParseError && output === undefined) return UNDEFINED_RESULT
       match = e
     }
-    return [match, result]
+    return [match, compiled, rendered]
   }
 }

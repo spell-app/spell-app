@@ -1,3 +1,7 @@
+to foo
+print <div/>
+print <div>Child</div>
+print <div>Child <span/></div>
 a card is a thing
 a card has a title as text
 cards have a suit as one of clubs, diamonds, hearts or spades

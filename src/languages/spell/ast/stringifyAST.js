@@ -1,0 +1,110 @@
+/* eslint-disable react/prop-types */
+/**
+ *
+ * Utilites for rendering things (e.g. `ASTNode`s) as React components.
+ * Contract:
+ *  - each thing has a GENERIC `getComponent(key?)` method which renders an outer container.
+ * Usage:
+ *    `import * as draw from ".../drawComponent"`
+ * TODOC!!!
+ *    etc
+ */
+
+/** Draw a single space. */
+export const SPACE = " "
+/** Draw an indent as a list delimiter. */
+export const INDENT = "\t"
+/** Draw a newline as a list delimiter. */
+export const NEWLINE = "\n"
+/** Draw a newline as a list delimiter. */
+export const INDENTED_NEWLINE = `${NEWLINE}${INDENT}`
+
+/** Draw a comma as a list delimiter. */
+export const COMMA = ","
+/** Draw a comma and then a newline as a list delimiter. */
+export const SPACED_COMMA = `${COMMA}${SPACE}`
+/** Draw a comma and then a newline as a list delimiter. */
+export const INDENTED_COMMA = `${COMMA}${INDENTED_NEWLINE}`
+
+/** Draw a single item in a list by having it render its component. */
+export const Item = ({ item, index }) => item?.toJS() || ""
+
+/** Draw a series of items with a delimiter between */
+export const List = ({ items, delimiter = SPACED_COMMA, DrawItem = Item }) => {
+  if (!items || !items.length) return ""
+  // create `kids` array in funky way to get around key errors
+  const kids = []
+  items.forEach((item, index) => {
+    kids.push(DrawItem({ item, index }))
+    if (index !== items.length - 1) kids.push(delimiter)
+  })
+  return items.join("")
+}
+
+/** Surround `children` in parens. */
+export const LEFT_PAREN = "("
+export const RIGHT_PAREN = ")"
+export const EMPTY_PARENS = `${LEFT_PAREN}${RIGHT_PAREN}`
+export const InParens = ({ children = "", wrap = false, space = false }) => {
+  if (!children) return EMPTY_PARENS
+  const delimiter = (wrap && NEWLINE) || (space && SPACE) || ""
+  return `${LEFT_PAREN}${delimiter}${children}${delimiter}${RIGHT_PAREN}`
+}
+
+/** Draw list of function `args` */
+export const Arg = ({ item }) => Item({ item })
+export const Args = ({ args, wrap = args?.length > 3 }) => {
+  const delimiter = wrap ? INDENTED_COMMA : COMMA
+  return InParens({
+    wrap,
+    children: List({ items: args, DrawItem: Arg, delimiter })
+  })
+}
+
+/** Surround `children` in double quotes. */
+export const DOUBLE_QUOTE = '"'
+export const InDoubleQuotes = ({ children = "" }) => {
+  return `${DOUBLE_QUOTE}${children}${DOUBLE_QUOTE}`
+}
+
+/** Surround `children` in single quotes. */
+export const SINGLE_QUOTE = "'"
+export const InSingleQuotes = ({ children = "" }) => {
+  return `${SINGLE_QUOTE}${children}${SINGLE_QUOTE}`
+}
+
+/** Surround `children` in curly brackets. */
+export const LEFT_CURLY = "{"
+export const RIGHT_CURLY = "}"
+export const InCurlies = ({ children = "", wrap = false, space = false }) => {
+  const delimiter = (wrap && NEWLINE) || (space && SPACE) || ""
+  return `${LEFT_CURLY}${delimiter}${children}${delimiter}${RIGHT_CURLY}`
+}
+
+/** Draw a block surrounded by curlies. */
+export const EMPTY_BLOCK = InCurlies({})
+export const Block = ({ children = "", wrap = false, space = false }) => {
+  if (!children) return EMPTY_BLOCK
+  return InCurlies({ wrap, space, children })
+}
+
+/** Surround `children` in square brackets. */
+export const LEFT_SQUARE_BRACKET = "["
+export const RIGHT_SQUARE_BRACKET = "]"
+export const InSquareBrackets = ({ children = "", wrap = false, space = false }) => {
+  const delimiter = (wrap && NEWLINE) || (space && SPACE) || ""
+  return `${LEFT_SQUARE_BRACKET}${delimiter}${children}${delimiter}${RIGHT_SQUARE_BRACKET}`
+}
+
+/**
+ * Draw an array of `items` delimited by commas and surrounded by square brackets.
+ */
+export const EMPTY_ARRAY = InSquareBrackets({})
+export const Array = ({ items, DrawItem = Item, wrap = false }) => {
+  if (!items || items.length === 0) return EMPTY_ARRAY
+  const delimiter = wrap ? INDENTED_COMMA : SPACED_COMMA
+  return InSquareBrackets({
+    wrap,
+    children: List({ items, delimiter })
+  })
+}

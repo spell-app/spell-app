@@ -87,6 +87,15 @@ export function showWhitespace(string) {
   return string.replace(/\n/g, "¬").replace(/\t/g, "∆")
 }
 
+// Eliminate initial and trailing whitespace on lines of string and show remaining whitespace
+export function normalizeInitialWhitespace(string) {
+  if (typeof string !== "string") return string
+  return string
+    .split("\n")
+    .map(line => line.trim().replace(/\t/g, "∆"))
+    .join("¬")
+}
+
 // Return a certain `number` of tab characters.
 const TABS = "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t"
 export function getTabs(number) {

@@ -14,7 +14,7 @@ import React from "react"
 /** Draw a single space. */
 export const SPACE = <span className="whitespace space"> </span>
 /** Draw an indent as a list delimiter. */
-export const INDENT = <span className="whitespace indent" />
+export const INDENT = <span className="whitespace indent">{"\t"}</span>
 /** Draw a newline as a list delimiter. */
 export const NEWLINE = <span className="whitespace newline">{"\n"}</span>
 /** Draw a newline as a list delimiter. */
@@ -25,7 +25,7 @@ export const INDENTED_NEWLINE = (
   </>
 )
 /** Draw a comma as a list delimiter. */
-export const COMMA = <span className="punctuation comma">, </span>
+export const COMMA = <span className="punctuation comma">,</span>
 /** Draw a comma and then a newline as a list delimiter. */
 export const SPACED_COMMA = (
   <>
@@ -45,7 +45,7 @@ export const INDENTED_COMMA = (
 export const Item = ({ item, index }) => (item != null ? item.component : null)
 
 /** Draw a series of items with a delimiter between */
-export const List = ({ items, delimiter = COMMA, DrawItem = Item }) => {
+export const List = ({ items, delimiter = SPACED_COMMA, DrawItem = Item }) => {
   if (!items || !items.length) return null
   // create `kids` array in funky way to get around key errors
   const kids = []
@@ -90,7 +90,7 @@ export const Args = ({ args, wrap = args?.length > 3 }) => {
   const delimiter = wrap ? INDENTED_COMMA : COMMA
   return (
     <span className={`ASTBlock ASTArgsBlock${wrap ? " indented" : ""}`}>
-      <InParens wrap={wrap} indent={wrap}>
+      <InParens wrap={wrap}>
         <span className="blockContents">
           <List items={args} DrawItem={Arg} delimiter={delimiter} />
         </span>
@@ -181,7 +181,7 @@ export const Array = ({ items, DrawItem = Item, wrap = false }) => {
 
   const delimiter = wrap ? INDENTED_COMMA : SPACED_COMMA
   return (
-    <span className={`ASTArray${wrap ? " indented" : ""}`}>
+    <span className={`ASTBlock ASTArray${wrap ? " indented" : ""}`}>
       <InSquareBrackets wrap={wrap}>
         <span className={`blockContents${wrap ? " indented" : ""}`}>
           <List items={items} delimiter={delimiter} DrawItem={DrawItem} />

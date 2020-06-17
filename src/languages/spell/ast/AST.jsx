@@ -1,11 +1,12 @@
 /* eslint-disable react/prop-types */
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 import React from "react"
+import createUnitTestComponent from "react-unit"
 import _get from "lodash/get"
 
 import { proto, memoize, readonly, overrideable, getSuperHierarchy, Assertable, OPTIONAL } from "~/util"
-import * as draw from "~util/drawComponent"
 import { Match } from "~/parser"
+import * as draw from "./drawAST"
 
 window.draw = draw
 
@@ -124,6 +125,12 @@ export class ASTNode extends Assertable {
    */
   drawChildren() {
     return null
+  }
+
+  /** TEST: return text from `component` for comparison to `toJS()` text */
+  get renderedText() {
+    const TestComponent = () => this.component
+    return createUnitTestComponent(<TestComponent />).text
   }
 }
 
