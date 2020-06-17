@@ -234,7 +234,7 @@ export const classes = new SpellParser({
         const enumeration = match.groups.enumeration.items.map(item => item.AST)
         return new AST.Enumeration(match, {
           enumeration,
-          values: enumeration.map(literal => literal.toJS())
+          values: enumeration.map(literal => literal.compile())
         })
       },
       tests: [

@@ -110,21 +110,6 @@ export class Match extends Assertable {
     return this.rule.mutateScope?.(this)
   }
 
-  // Compile the output of the match.
-  compile() {
-    // Some languages (e.g. Spell) convert to an AST first, then compile().
-    if (this.rule.getAST) {
-      return this.AST.toJS()
-    }
-    // NOTE: this should NOT be used for spell, but will be used for other languages
-    return this.rule.compile(this)
-  }
-
-  // Syntactic sugar to compile the match w/o calling a function.
-  get js() {
-    return this.compile()
-  }
-
   // Return the Abstract Syntax Tree for this match.
   @memoize
   get AST() {
@@ -133,6 +118,21 @@ export class Match extends Assertable {
       return undefined
     }
     return this.rule.getAST(this)
+  }
+
+  // Compile the output of the match.
+  compile() {
+    // Some languages (e.g. Spell) convert to an AST first, then compile().
+    if (this.rule.getAST) {
+      return this.AST.compile()
+    }
+    // NOTE: this should NOT be used for spell, but will be used for other languages
+    return this.rule.compile(this)
+  }
+
+  // Syntactic sugar to compile the match w/o calling a function.
+  get js() {
+    return this.compile()
   }
 
   // DEBUG: Call this when printing to the console to eliminate the big bits in node.

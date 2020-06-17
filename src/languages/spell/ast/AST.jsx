@@ -52,13 +52,13 @@ export class ASTNode extends Assertable {
   //-------------------------
 
   /** Compile this AST into Javascript.  You MUST override in a subclass. */
-  toJS() {
-    throw new TypeError(`AST ${this.nodeType} must implement toJS()`)
+  compile() {
+    throw new TypeError(`AST ${this.nodeType} must implement compile()`)
   }
 
   /** Helper to turn list of things into JS */
   listToJS(list, delimiter = ", ") {
-    return list ? list.map(item => item.toJS()).join(delimiter) : ""
+    return list ? list.map(item => item.compile()).join(delimiter) : ""
   }
 
   /** Helper to wrap JS value in curlies. */
@@ -127,7 +127,7 @@ export class ASTNode extends Assertable {
     return null
   }
 
-  /** TEST: return text from `component` for comparison to `toJS()` text */
+  /** TEST: return text from `component` for comparison to `compile()` text */
   get renderedText() {
     const TestComponent = () => this.component
     return createUnitTestComponent(<TestComponent />).text
@@ -136,7 +136,7 @@ export class ASTNode extends Assertable {
 
 /** Blank line */
 export class BlankLine extends ASTNode {
-  toJS() {
+  compile() {
     return "" // "\n"
   }
   drawChildren() {
@@ -159,8 +159,8 @@ export class ExpressionWithComment extends Expression {
     this.assertType("expression", Expression)
     this.assertType("comment", BlockComment)
   }
-  toJS() {
-    return `${this.expression.toJS()} ${this.comment.toJS()}`
+  compile() {
+    return `${this.expression.compile()} ${this.comment.compile()}`
   }
   drawChildren() {
     return (
@@ -182,8 +182,8 @@ export class QuotedExpression extends Expression {
     super(match, props)
     this.assertType("expression", Expression)
   }
-  toJS() {
-    return `'${this.expression.toJS()}'`
+  compile() {
+    return `'${this.expression.compile()}'`
   }
   drawChildren() {
     return (
@@ -201,7 +201,7 @@ export class QuotedExpression extends Expression {
  *  - `raw` (optional) is the raw input value.
  */
 export class Literal extends Expression {
-  toJS() {
+  compile() {
     return this.value
   }
   drawChildren() {
@@ -259,7 +259,7 @@ export class NullLiteral extends Literal {
     super(match, props)
     this.assertType("value", undefined)
   }
-  toJS() {
+  compile() {
     return "null"
   }
   drawChildren() {
@@ -274,7 +274,7 @@ export class UndefinedLiteral extends Literal {
     super(match, props)
     this.assertType("value", undefined)
   }
-  toJS() {
+  compile() {
     return "undefined"
   }
   drawChildren() {
@@ -284,7 +284,7 @@ export class UndefinedLiteral extends Literal {
 
 /** ThisLiteral type. */
 export class ThisLiteral extends Literal {
-  toJS() {
+  compile() {
     return "this"
   }
   drawChildren() {
@@ -319,7 +319,7 @@ export class ArrayLiteral extends Literal {
   get wrap() {
     return this.items?.length > 2
   }
-  toJS() {
+  compile() {
     const delimiter = this.wrap ? ",\n" : ", "
     return this.wrapJSInSquares(this.listToJS(this.items, delimiter))
   }
@@ -338,7 +338,7 @@ export class Enumeration extends Literal {
     this.assertArrayType("enumeration", Expression)
     this.assertArrayType("values", ["string", "number"])
   }
-  toJS() {
+  compile() {
     return this.wrapJSInSquares(this.listToJS(this.enumeration))
   }
   drawChildren() {
@@ -361,7 +361,7 @@ export class LineComment extends Comment {
     this.assertType("commentSymbol", "string", OPTIONAL)
     this.assertType("initialWhitespace", "string", OPTIONAL)
   }
-  toJS() {
+  compile() {
     const { initialWhitespace = " ", value } = this
     let { commentSymbol = "" } = this
     if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
@@ -391,7 +391,7 @@ export class BlockComment extends Comment {
     super(match, props)
     this.assertType("value", "string")
   }
-  toJS() {
+  compile() {
     return `/* ${this.value} */`
   }
   drawChildren() {
@@ -409,7 +409,7 @@ export class BlockComment extends Comment {
  *  - `message` is text of the error
  */
 export class ParseError extends BlockComment {
-  toJS() {
+  compile() {
     return `/* PARSE ERROR: ${this.value} */`
   }
   drawChildren() {
@@ -428,7 +428,7 @@ export class ParseError extends BlockComment {
  *  - `value` is text of the annotation.
  */
 export class ParserAnnotation extends BlockComment {
-  toJS() {
+  compile() {
     return `/* SPELL: ${this.value} */`
   }
   drawChildren() {
@@ -457,8 +457,8 @@ export class ParenthesizedExpression extends Expression {
   get datatype() {
     return this.expression.datatype
   }
-  toJS() {
-    return `(${this.expression.toJS()})`
+  compile() {
+    return `(${this.expression.compile()})`
   }
   drawChildren() {
     return (
@@ -480,8 +480,8 @@ export class NotExpression extends Expression {
     super(match, props)
     this.assertType("expression", Expression)
   }
-  toJS() {
-    return `!${this.expression.toJS()}`
+  compile() {
+    return `!${this.expression.compile()}`
   }
   drawChildren() {
     return (
@@ -503,8 +503,8 @@ export class InfixExpression extends Expression {
     this.assertType("operator", "string")
     this.assertType("rhs", Expression)
   }
-  toJS() {
-    return `${this.lhs.toJS()} ${this.operator} ${this.rhs.toJS()}`
+  compile() {
+    return `${this.lhs.compile()} ${this.operator} ${this.rhs.compile()}`
   }
   drawChildren() {
     return (
@@ -547,7 +547,7 @@ export class MethodInvocation extends Expression {
     this.assertArrayType("args", Expression, OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
-  toJS() {
+  compile() {
     return `${this.method}${this.argsToJS()}`
   }
   drawChildren() {
@@ -574,8 +574,8 @@ export class ScopedMethodInvocation extends MethodInvocation {
     this.assertArrayType("args", Expression, OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
-  toJS() {
-    return `${this.thing.toJS()}.${this.method}${this.argsToJS()}`
+  compile() {
+    return `${this.thing.compile()}.${this.method}${this.argsToJS()}`
   }
   drawChildren() {
     const SMI = () => {
@@ -630,8 +630,8 @@ export class AwaitMethodInvocation extends Expression {
     // TODO: Mark the parentScope as asynchronous
     this.parentScope.async = true
   }
-  toJS() {
-    return `await ${this.method.toJS()}`
+  compile() {
+    return `await ${this.method.compile()}`
   }
   drawChildren() {
     return (
@@ -656,7 +656,7 @@ export class TypeExpression extends Expression {
     this.assertType("name", "string")
     this.assertType("raw", "string", OPTIONAL)
   }
-  toJS() {
+  compile() {
     return this.name
   }
   drawChildren() {
@@ -686,8 +686,8 @@ export class VariableExpression extends Expression {
     this.assertType("default", Expression, OPTIONAL)
     this.assertType("raw", "string", OPTIONAL)
   }
-  toJS() {
-    if (this.default) return `${this.name} = ${this.default.toJS()}`
+  compile() {
+    if (this.default) return `${this.name} = ${this.default.compile()}`
     return this.name
   }
   get className() {
@@ -722,7 +722,7 @@ export class ConstantExpression extends Expression {
     this.assertType("name", "string")
     this.assertType("output", "string")
   }
-  toJS() {
+  compile() {
     return this.output
   }
   drawChildren() {
@@ -745,7 +745,7 @@ export class PropertyLiteral extends Literal {
   get isLegalIdentifier() {
     return LEGAL_PROPERTY_IDENTIFIER.test(this.value)
   }
-  toJS() {
+  compile() {
     if (this.isLegalIdentifier) return this.value
     return `'${this.value}'`
   }
@@ -770,10 +770,10 @@ export class PropertyExpression extends Expression {
     if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
   }
-  toJS() {
-    const prop = this.property.toJS()
-    if (this.property.isLegalIdentifier) return `${this.object.toJS()}.${prop}`
-    return `${this.object.toJS()}['${prop}']`
+  compile() {
+    const prop = this.property.compile()
+    if (this.property.isLegalIdentifier) return `${this.object.compile()}.${prop}`
+    return `${this.object.compile()}['${prop}']`
   }
   drawChildren() {
     const object = (
@@ -814,12 +814,12 @@ export class ObjectLiteralProperty extends ASTNode {
     this.assertType("error", ParseError, OPTIONAL)
     // this.assert(this.property.isLegalIdentifier || !!this.value, "Non-legal identifiers must specify a value!")
   }
-  toJS() {
-    const error = this.error ? ` ${this.error.toJS()}` : ""
-    const prop = this.property.toJS()
+  compile() {
+    const error = this.error ? ` ${this.error.compile()}` : ""
+    const prop = this.property.compile()
     // If no value, assume it's available as a local variable.
     if (!this.value) return `${prop}${error}`
-    return `${prop}: ${this.value.toJS()}${error}`
+    return `${prop}: ${this.value.compile()}${error}`
   }
   drawChildren() {
     const error = this.error ? <draw.Item item={this.error} /> : null
@@ -861,8 +861,8 @@ export class ObjectLiteralMethod extends ObjectLiteralProperty {
     this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
-  toJS() {
-    return `${this.property.toJS()}${this.argsToJS()} ${this.statements.toJS()}`
+  compile() {
+    return `${this.property.compile()}${this.argsToJS()} ${this.statements.compile()}`
   }
   drawChildren() {
     return (
@@ -906,7 +906,7 @@ export class ObjectLiteral extends Expression {
   get wrap() {
     return this.properties?.length > 2 || this.properties?.some(item => item instanceof ObjectLiteralMethod)
   }
-  toJS() {
+  compile() {
     const delimiter = this.wrap ? ",\n" : ", "
     return this.wrapJSInCurlies(this.listToJS(this.properties, delimiter))
   }
@@ -932,7 +932,7 @@ export class StatementGroup extends Statement {
     super(match, props)
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
   }
-  toJS() {
+  compile() {
     return this.listToJS(this.statements, "\n")
   }
   drawChildren() {
@@ -955,7 +955,7 @@ export class StatementBlock extends Statement {
   get wrap() {
     return this.statements?.length > 1
   }
-  toJS() {
+  compile() {
     return this.wrapJSInCurlies(this.listToJS(this.statements, "\n"))
   }
   drawChildren() {
@@ -979,10 +979,10 @@ export class AssignmentStatement extends Statement {
     this.assertType("value", Expression)
     this.assertType("isNewVariable", "boolean", OPTIONAL)
   }
-  toJS() {
+  compile() {
     const { thing, value, isNewVariable } = this
     const declarator = isNewVariable ? "let " : ""
-    return `${declarator}${thing.toJS()} = ${value.toJS()}`
+    return `${declarator}${thing.compile()} = ${value.compile()}`
   }
   get className() {
     return `${super.className}${this.isNewVariable ? " declaration" : ""}`
@@ -1015,9 +1015,9 @@ export class DestructuredAssignment extends Statement {
     this.assertArrayType("variables", VariableExpression)
     this.assertType("isNewVariable", "boolean", OPTIONAL)
   }
-  toJS() {
+  compile() {
     const declarator = this.isNewVariable ? "let " : ""
-    return `${declarator}${this.wrapJSInCurlies(this.listToJS(this.variables))} = ${this.thing.toJS()}`
+    return `${declarator}${this.wrapJSInCurlies(this.listToJS(this.variables))} = ${this.thing.compile()}`
   }
   get className() {
     return `${super.className}${this.isNewVariable ? " declaration" : ""}`
@@ -1046,9 +1046,9 @@ export class ReturnStatement extends Statement {
     super(match, props)
     this.assertType("value", Expression, OPTIONAL)
   }
-  toJS() {
+  compile() {
     if (!this.value) return "return"
-    return `return ${this.value.toJS()}`
+    return `return ${this.value.compile()}`
   }
   drawChildren() {
     return (
@@ -1074,7 +1074,7 @@ export class ClassDeclaration extends Statement {
     this.assertType("superType", TypeExpression, OPTIONAL)
     this.assertType("instanceType", TypeExpression, OPTIONAL)
   }
-  toJS() {
+  compile() {
     const { type, superType, instanceType } = this
     const superDeclarator = superType ? `extends ${superType.name} ` : ""
     const output = [`export class ${type.name} ${superDeclarator}{}`]
@@ -1117,9 +1117,9 @@ export class NewInstanceExpression extends Expression {
     this.assertType("type", TypeExpression)
     this.assertType("props", ObjectLiteral, OPTIONAL)
   }
-  toJS() {
+  compile() {
     const { type, props } = this
-    return `new ${type.name}(${props ? props.toJS() : ""})`
+    return `new ${type.name}(${props ? props.compile() : ""})`
   }
   drawChildren() {
     // TODO: wrap???
@@ -1145,7 +1145,7 @@ export class ListExpression extends Expression {
     super(match, props)
     this.assertArrayType("items", Expression, OPTIONAL)
   }
-  toJS() {
+  compile() {
     return `[${this.listToJS(this.items)}]`
   }
   drawChildren() {
@@ -1172,9 +1172,9 @@ export class InlineMethodExpression extends Expression {
     this.assertType("statements", [Statement, Expression], OPTIONAL)
     this.assertType("expression", Expression, OPTIONAL)
   }
-  toJS() {
+  compile() {
     const body = this.expression || this.statements
-    if (body) return `${this.argsToJS()} => ${body.toJS()}`
+    if (body) return `${this.argsToJS()} => ${body.compile()}`
     return `${this.argsToJS()} => {}`
   }
   drawChildren() {
@@ -1198,9 +1198,9 @@ export class PrototypeExpression extends Expression {
     super(match, props)
     this.assertType("type", TypeExpression)
   }
-  toJS() {
+  compile() {
     const { type } = this
-    return `${type.toJS()}.prototype`
+    return `${type.compile()}.prototype`
   }
   drawChildren() {
     return (
@@ -1217,8 +1217,8 @@ export class PrototypeExpression extends Expression {
  * Define `@memoize get definition()` to return `spellCore.define()` statement.
  */
 export class PropertyDefinition extends Statement {
-  toJS() {
-    return this.definition.toJS()
+  compile() {
+    return this.definition.compile()
   }
   drawChildren() {
     return <draw.Item item={this.definition} />
@@ -1423,8 +1423,8 @@ export class FunctionDefinition extends Statement {
   get className() {
     return `${super.className}${this.method ? " anonymous" : ""}`
   }
-  toJS() {
-    return `function ${this.method || ""}${this.argsToJS()} ${this.body.toJS()}`
+  compile() {
+    return `function ${this.method || ""}${this.argsToJS()} ${this.body.compile()}`
   }
   drawChildren() {
     return (
@@ -1452,8 +1452,8 @@ export class IfStatement extends Statement {
     }
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
-  toJS() {
-    return `if ${this.condition.toJS()} ${this.statements.toJS()}`
+  compile() {
+    return `if ${this.condition.compile()} ${this.statements.compile()}`
   }
   drawChildren() {
     return (
@@ -1482,8 +1482,8 @@ export class ElseIfStatement extends Statement {
     }
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
-  toJS() {
-    return `else if ${this.condition.toJS()} ${this.statements.toJS()}`
+  compile() {
+    return `else if ${this.condition.compile()} ${this.statements.compile()}`
   }
   drawChildren() {
     return (
@@ -1507,8 +1507,8 @@ export class ElseStatement extends Statement {
     super(match, props)
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
-  toJS() {
-    return `else ${this.statements.toJS()}`
+  compile() {
+    return `else ${this.statements.compile()}`
   }
   drawChildren() {
     return (
@@ -1532,9 +1532,9 @@ export class TernaryExpression extends Expression {
     this.assertType("trueValue", Expression)
     this.assertType("falseValue", Expression)
   }
-  toJS() {
+  compile() {
     const { condition, trueValue, falseValue } = this
-    const expression = `(${condition.toJS()} ? ${trueValue.toJS()} : ${falseValue.toJS()})`
+    const expression = `(${condition.compile()} ? ${trueValue.compile()} : ${falseValue.compile()})`
     return expression
   }
   drawChildren() {
@@ -1599,8 +1599,8 @@ export class JSXElement extends Expression {
       args: [new ObjectLiteral(this.match, { properties })]
     })
   }
-  toJS() {
-    return this.output.toJS()
+  compile() {
+    return this.output.compile()
   }
   drawChildren() {
     return <draw.Item item={this.output} />
@@ -1631,8 +1631,8 @@ export class JSXAttribute extends Expression {
       error: this.error
     })
   }
-  toJS() {
-    return this.output.toJS()
+  compile() {
+    return this.output.compile()
   }
 }
 

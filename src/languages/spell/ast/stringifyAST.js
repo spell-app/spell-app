@@ -27,7 +27,7 @@ export const SPACED_COMMA = `${COMMA}${SPACE}`
 export const INDENTED_COMMA = `${COMMA}${INDENTED_NEWLINE}`
 
 /** Draw a single item in a list by having it render its component. */
-export const Item = ({ item, index }) => item?.toJS() || ""
+export const Item = ({ item, index }) => item?.compile() || ""
 
 /** Draw a series of items with a delimiter between */
 export const List = ({ items, delimiter = SPACED_COMMA, DrawItem = Item }) => {
