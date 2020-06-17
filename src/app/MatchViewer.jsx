@@ -11,8 +11,12 @@ function highlight(el, delay = 0) {
   }, delay)
 }
 
-/** Top-level viewer for a Match.
- * Create one of these and it will create <MatchView>s and <TokenView>s underneath it.the
+/**
+ * Top-level viewer for a Match, e.g. for a `spellFile.match`.
+ * Create one of these and it will create <MatchView>s and <TokenView>s underneath it.
+ *
+ * If you pass `inputOffset` as a character position in the source file,
+ * we'll scroll to that position and highlight elements surrounding that position.
  */
 export function MatchViewer({ match, scroll, inputOffset }) {
   if (!match) return null
@@ -46,15 +50,23 @@ export function MatchViewer({ match, scroll, inputOffset }) {
         if (itemEl) highlight(itemEl, index * 20)
       })
   }, [inputOffset])
-  const classNames = ["MatchViewer"]
-  if (scroll) classNames.push("scroll")
-  return (
-    <div className={classNames.join(" ")}>
-      <MatchView match={match} />
-    </div>
-  )
+
+  // Memoize for the specified `match` (and `scroll`, which we don't expect to change).
+  // This allow us to update `inputOffset` without redrawing matches.
+  return React.useMemo(() => {
+    const classNames = ["MatchViewer"]
+    if (scroll) classNames.push("scroll")
+    return (
+      <div className={classNames.join(" ")}>
+        <MatchView match={match} />
+      </div>
+    )
+  }, [match, scroll])
 }
 
+/**
+ * View for a particular `Match`.
+ */
 export function MatchView({ match }) {
   if (!match) return null
   const { rule, matched } = match

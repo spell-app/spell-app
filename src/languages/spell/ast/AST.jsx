@@ -905,9 +905,9 @@ export class ObjectLiteral extends Expression {
   }
   drawChildren() {
     const { wrap } = this
-    const delimiter = wrap ? draw.INDENTED_COMMA : draw.COMMA
+    const delimiter = wrap ? draw.INDENTED_COMMA : draw.SPACED_COMMA
     return (
-      <draw.Block wrap={wrap}>
+      <draw.Block wrap={wrap} space={!wrap}>
         <draw.List items={this.properties} delimiter={delimiter} />
       </draw.Block>
     )
@@ -952,12 +952,11 @@ export class StatementBlock extends Statement {
     return this.wrapJSInCurlies(this.listToJS(this.statements, "\n"))
   }
   drawChildren() {
-    const BL = () => (
+    return (
       <draw.Block wrap={this.wrap}>
-        <draw.List items={this.statements} delmiter={draw.INDENTED_NEWLINE} />
+        <draw.List items={this.statements} delimiter={draw.INDENTED_NEWLINE} />
       </draw.Block>
     )
-    return <BL />
   }
 }
 

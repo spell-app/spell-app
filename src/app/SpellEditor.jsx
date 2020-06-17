@@ -269,13 +269,16 @@ export const SpellEditor = view(function SpellEditor() {
         </Row>
         <Row id="bottomRow" noGutters>
           <Col xs={6} className="pl-2 pr-2 pb-2">
-            <div className="rounded shadow-sm border">{AppContainer}</div>
+            <div className="rounded shadow-sm border">
+              <MatchViewer scroll match={store.file?.match} inputOffset={store.inputOffset} />
+              {/* {AppContainer} */}
+            </div>
           </Col>
           <Col xs={6} className="pr-2 pb-2">
             <div className="rounded shadow-sm border">
-              <MatchViewer scroll match={store.file?.match} inputOffset={store.inputOffset} />
+              {/* <MatchViewer scroll match={store.file?.match} inputOffset={store.inputOffset} /> */}
+              <OutputEditor />
             </div>
-            {/* <OutputEditor /> */}
           </Col>
         </Row>
       </Container>

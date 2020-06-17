@@ -86,12 +86,12 @@ export const Arg = ({ item, index }) => (
   </span>
 )
 
-export const Args = ({ args, wrap = args?.length > 2 }) => {
+export const Args = ({ args, wrap = args?.length > 3 }) => {
   const delimiter = wrap ? INDENTED_COMMA : COMMA
   return (
-    <span className="arg-list">
-      <InParens wrap={wrap}>
-        <span className="args">
+    <span className={`ASTBlock ASTArgsBlock${wrap ? " indented" : ""}`}>
+      <InParens wrap={wrap} indent={wrap}>
+        <span className="blockContents">
           <List items={args} DrawItem={Arg} delimiter={delimiter} />
         </span>
       </InParens>
@@ -150,7 +150,7 @@ export const Block = ({ children = null, wrap = false, space = false }) => {
   return (
     <span className={`ASTBlock${wrap ? " indented" : ""}`}>
       <InCurlies wrap={wrap} space={space}>
-        <span className={`blockContents${wrap ? " indented" : ""}`}>{children}</span>
+        <span className="blockContents">{children}</span>
       </InCurlies>
     </span>
   )

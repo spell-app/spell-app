@@ -19,15 +19,15 @@
   }
 
   /* Block with curlies inside an ASTNode. */
-  .ASTBlock {
+  .ASTBlock.indented {
     // Indent blockContents. This looks right but loses spaces on copy-paste.
-    .blockContents.indented {
+    & > .blockContents {
       display: inline-block;
       vertical-align: top;
       margin-left: 1em;
     }
   /* end .ASTBlock */
-  }
+  }s
 
   .punctuation {
     .syntax-punctuation()
