@@ -173,7 +173,7 @@ export const math = new SpellParser({
         const { expression } = match.groups
         return new AST.CoreMethodInvocation(match, {
           datatype: "number",
-          method: "absoluteValue", // TODO: implement in spellCore
+          methodName: "absoluteValue", // TODO: implement in spellCore
           args: [expression.AST]
         })
       },
@@ -198,7 +198,7 @@ export const math = new SpellParser({
         const { expression } = match.groups
         return new AST.CoreMethodInvocation(match, {
           datatype: "number",
-          method: "largestOf",
+          methodName: "largestOf",
           args: [expression.AST]
         })
       },
@@ -228,7 +228,7 @@ export const math = new SpellParser({
         const { expression } = match.groups
         return new AST.CoreMethodInvocation(match, {
           datatype: "number",
-          method: "smallestOf",
+          methodName: "smallestOf",
           args: [expression.AST]
         })
       },
@@ -255,12 +255,12 @@ export const math = new SpellParser({
       precedence: 1,
       getAST(match) {
         const { expression, operator } = match.groups
-        let method = "round"
-        if (operator?.value === "up") method = "roundUp"
-        else if (operator?.value === "down") method = "roundDown"
+        let methodName = "round"
+        if (operator?.value === "up") methodName = "roundUp"
+        else if (operator?.value === "down") methodName = "roundDown"
         return new AST.CoreMethodInvocation(match, {
           datatype: "number",
-          method, // TODO: implement in spellCore
+          methodName, // TODO: implement in spellCore
           args: [expression.AST]
         })
       },

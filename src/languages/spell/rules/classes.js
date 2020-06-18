@@ -408,7 +408,7 @@ export const classes = new SpellParser({
         // getter and setter
         statements.push(
           new AST.CoreMethodInvocation(match, {
-            method: "defineProperty",
+            methodName: "defineProperty",
             args: [new AST.PrototypeExpression(type, { type: type.AST }), props]
           })
         )
@@ -835,7 +835,7 @@ export const classes = new SpellParser({
                 .filter(Boolean)
               return new AST.ScopedMethodInvocation(_match, {
                 thing: lhs,
-                method: property,
+                methodName: property,
                 args
               })
             }

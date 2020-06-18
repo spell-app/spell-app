@@ -333,7 +333,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs, rhs }) {
         // TODO: QuotedExpression feels wrong here...
         return new AST.CoreMethodInvocation(match, {
-          method: "isOfType",
+          methodName: "isOfType",
           args: [lhs, new AST.QuotedExpression(match, { expression: rhs })]
         })
       },
@@ -362,7 +362,7 @@ export const expressions = new SpellParser({
       getOutputOperator: operator => (operator.value.includes("not") ? "!==" : "==="),
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
-          method: "matchesType",
+          methodName: "matchesType",
           args: [lhs, rhs]
         })
       },
@@ -391,7 +391,7 @@ export const expressions = new SpellParser({
       shouldNegateOutput: ({ value }) => value.includes("not") || value.includes("neither"),
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
-          method: "includes",
+          methodName: "includes",
           args: [rhs, lhs]
         })
       },
@@ -426,7 +426,7 @@ export const expressions = new SpellParser({
       constructor: "InfixOperatorSuffix",
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
-          method: "includes",
+          methodName: "includes",
           args: [lhs, rhs]
         })
       },
@@ -454,7 +454,7 @@ export const expressions = new SpellParser({
       shouldNegateOutput: () => true,
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
-          method: "includes",
+          methodName: "includes",
           args: [lhs, rhs]
         })
       },
@@ -482,7 +482,7 @@ export const expressions = new SpellParser({
       shouldNegateOutput: operator => operator.value !== "is defined",
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
-          method: "isDefined",
+          methodName: "isDefined",
           args: [lhs]
         })
       },
@@ -511,7 +511,7 @@ export const expressions = new SpellParser({
       shouldNegateOutput: operator => operator.value.includes("not"),
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
-          method: "isEmpty",
+          methodName: "isEmpty",
           args: [lhs]
         })
       },

@@ -28,8 +28,8 @@ SpellParser.Rule.DynamicMethodRule = class dynamic_method extends SpellParser.Ru
     if (withArgs) args.push(withArgs.AST)
 
     // if `thing` is defined, method is scoped
-    if (thing) return new AST.ScopedMethodInvocation(match, { thing, method, args })
-    return new AST.MethodInvocation(match, { method, args })
+    if (thing) return new AST.ScopedMethodInvocation(match, { thing, methodName: method, args })
+    return new AST.MethodInvocation(match, { methodName: method, args })
   }
 }
 

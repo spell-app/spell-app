@@ -18,12 +18,12 @@ export const tests = new SpellParser({
         const expressionLiteral = new AST.StringLiteral(match, { value: `\`${expression.value}\`` })
         if (!value) {
           return new AST.CoreMethodInvocation(match, {
-            method: "assert",
+            methodName: "assert",
             args: [expression.AST, expressionLiteral]
           })
         }
         return new AST.CoreMethodInvocation(match, {
-          method: "assertEquals",
+          methodName: "assertEquals",
           args: [
             expression.AST,
             value.AST,

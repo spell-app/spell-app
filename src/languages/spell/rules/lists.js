@@ -94,7 +94,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "itemCountOf",
+          methodName: "itemCountOf",
           args: [list.AST]
         })
       },
@@ -127,7 +127,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "itemOf",
+          methodName: "itemOf",
           args: [list.AST, thing.AST]
         })
       },
@@ -157,7 +157,7 @@ export const lists = new SpellParser({
       constructor: "InfixOperatorSuffix",
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
-          method: "startsWith",
+          methodName: "startsWith",
           args: [lhs, rhs]
         })
       },
@@ -185,7 +185,7 @@ export const lists = new SpellParser({
       constructor: "InfixOperatorSuffix",
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
-          method: "endsWith",
+          methodName: "endsWith",
           args: [lhs, rhs]
         })
       },
@@ -276,7 +276,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { position, expression } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "getItemOf",
+          methodName: "getItemOf",
           args: [expression.AST, position.AST]
         })
       },
@@ -305,7 +305,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { ordinal, expression } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "getItemOf",
+          methodName: "getItemOf",
           args: [expression.AST, ordinal.AST]
         })
       },
@@ -335,7 +335,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "randomItemOf",
+          methodName: "randomItemOf",
           args: [list.AST]
         })
       },
@@ -365,7 +365,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { number, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "randomItemsOf",
+          methodName: "randomItemsOf",
           args: [list.AST, number.AST]
         })
       },
@@ -397,7 +397,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { list, start, end } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "rangeBetween",
+          methodName: "rangeBetween",
           args: [list.AST, start.AST, end.AST]
         })
       },
@@ -428,11 +428,11 @@ export const lists = new SpellParser({
       getAST(match) {
         const { thing, list } = match.groups
         const itemExpression = new AST.CoreMethodInvocation(match, {
-          method: "itemOf",
+          methodName: "itemOf",
           args: [list.AST, thing.AST]
         })
         return new AST.CoreMethodInvocation(match, {
-          method: "rangeStartingAt",
+          methodName: "rangeStartingAt",
           args: [list.AST, itemExpression]
         })
       },
@@ -468,7 +468,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { list, ordinal, number } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "rangeStartingAt",
+          methodName: "rangeStartingAt",
           args: [list.AST, ordinal.AST, number.AST]
         })
       },
@@ -514,7 +514,7 @@ export const lists = new SpellParser({
           expression: inlineStatement?.AST
         })
         return new AST.CoreMethodInvocation(match, {
-          method: "filter",
+          methodName: "filter",
           args: [list.AST, filter]
         })
       },
@@ -565,7 +565,7 @@ export const lists = new SpellParser({
           expression: inlineStatement?.AST
         })
         const expression = new AST.CoreMethodInvocation(match, {
-          method: "any",
+          methodName: "any",
           args: [list.AST, filter],
           datatype: "boolean"
         })
@@ -610,7 +610,7 @@ export const lists = new SpellParser({
         const { thing, list, method } = match.groups
         const spellMethod = method && ["start", "front", "top"].includes(method.value) ? "prepend" : "append"
         return new AST.CoreMethodInvocation(match, {
-          method: spellMethod,
+          methodName: spellMethod,
           args: [list.AST, thing.AST]
         })
       },
@@ -645,7 +645,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "prepend",
+          methodName: "prepend",
           args: [list.AST, thing.AST]
         })
       },
@@ -671,7 +671,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "append",
+          methodName: "append",
           args: [list.AST, thing.AST]
         })
       },
@@ -705,7 +705,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { thing, list, operator, item } = match.groups
         let position = new AST.CoreMethodInvocation(match, {
-          method: "itemOf",
+          methodName: "itemOf",
           args: [list.AST, item.AST]
         })
         if (operator.value === "after") {
@@ -716,7 +716,7 @@ export const lists = new SpellParser({
           })
         }
         return new AST.CoreMethodInvocation(match, {
-          method: "addAtPosition",
+          methodName: "addAtPosition",
           args: [list.AST, position, thing.AST]
         })
       },
@@ -757,7 +757,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "clear",
+          methodName: "clear",
           args: [list.AST]
         })
       },
@@ -786,7 +786,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { position, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "removeItemOf",
+          methodName: "removeItemOf",
           args: [list.AST, position.AST]
         })
       },
@@ -814,7 +814,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { number, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "removeItemOf",
+          methodName: "removeItemOf",
           args: [list.AST, number.AST]
         })
       },
@@ -841,7 +841,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { start, end, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "removeRangeBetween",
+          methodName: "removeRangeBetween",
           args: [list.AST, start.AST, end.AST]
         })
       },
@@ -865,7 +865,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { start, end, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "removeRangeBetween",
+          methodName: "removeRangeBetween",
           args: [list.AST, start.AST, end.AST]
         })
       },
@@ -893,7 +893,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { thing, list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "remove",
+          methodName: "remove",
           args: [list.AST, thing.AST]
         })
       },
@@ -933,7 +933,7 @@ export const lists = new SpellParser({
           expression: inlineStatement?.AST
         })
         return new AST.CoreMethodInvocation(match, {
-          method: "removeWhere",
+          methodName: "removeWhere",
           args: [list.AST, filter]
         })
       },
@@ -982,7 +982,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "reverse",
+          methodName: "reverse",
           args: [list.AST]
         })
       },
@@ -1011,7 +1011,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { list } = match.groups
         return new AST.CoreMethodInvocation(match, {
-          method: "randomize",
+          methodName: "randomize",
           args: [list.AST]
         })
       },
@@ -1061,7 +1061,7 @@ export const lists = new SpellParser({
           statements: (inlineStatement || nestedBlock)?.AST
         })
         return new AST.CoreMethodInvocation(match, {
-          method: "map", // TODO...
+          methodName: "map", // TODO...
           args: [list.AST, method]
         })
       },
@@ -1140,7 +1140,7 @@ export const lists = new SpellParser({
       getAST(match) {
         const { item, start, end, inlineStatement, nestedBlock } = match.groups
         const getRange = new AST.CoreMethodInvocation(match, {
-          method: "getRange",
+          methodName: "getRange",
           args: [start.AST, end.AST]
         })
         const method = new AST.InlineMethodDeclaration(inlineStatement || nestedBlock || match, {
@@ -1148,7 +1148,7 @@ export const lists = new SpellParser({
           statements: inlineStatement?.AST || nestedBlock?.AST
         })
         return new AST.CoreMethodInvocation(match, {
-          method: "map",
+          methodName: "map",
           args: [getRange, method]
         })
       },

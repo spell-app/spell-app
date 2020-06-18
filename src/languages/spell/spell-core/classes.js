@@ -60,7 +60,7 @@ spellParser.defineRule({
   precedence: 100,
   getAST(match) {
     return new AST.CoreMethodInvocation(match, {
-      method: "element",
+      methodName: "element",
       args: [
         new AST.ObjectLiteral(match, {
           properties: [
@@ -105,7 +105,7 @@ spellParser.defineRule({
   getAST(match) {
     return new AST.ScopedMethodInvocation(match, {
       thing: match.groups.app.AST,
-      method: "start"
+      methodName: "start"
     })
   }
 })

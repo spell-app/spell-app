@@ -557,18 +557,17 @@ export class InvocationArgs extends ASTNode {
 export class MethodInvocation extends Expression {
   constructor(match, { args, ...props }) {
     super(match, props)
-    this.assertType("method", "string")
+    this.assertType("methodName", "string")
     this.assertType("datatype", "string", OPTIONAL)
     this.args = new InvocationArgs(match, { args })
   }
   compile() {
-    const { method, args } = this
-    return `${method}${args.compile()}`
+    return `${this.methodName}${this.args.compile()}`
   }
   renderChildren() {
     return (
       <>
-        <span className="method-name">{this.method}</span>
+        <span className="method-name">{this.methodName}</span>
         {this.args.component}
       </>
     )
@@ -577,7 +576,7 @@ export class MethodInvocation extends Expression {
 
 /** Call a `method` on some `thing` with `args`.
  *  - `thing` is what we'll call the method on.
- *  - `method` is the method name.
+ *  - `methodName` is the method name.
  *  - `args` (optional) is a possibly empty list of Expressions.
  *  - Try to set `datatype` as string or getter if you can.
  */
@@ -585,20 +584,18 @@ export class ScopedMethodInvocation extends MethodInvocation {
   constructor(match, { args, ...props }) {
     super(match, props)
     this.assertType("thing", Expression)
-    this.assertType("method", "string")
-    this.assertType("datatype", "string", OPTIONAL)
+    // `methodName` and `datatype` are handled by MethodInvocation
     this.args = new InvocationArgs(match, { args })
   }
   compile() {
-    const { method, args } = this
-    return `${this.thing.compile()}.${method}${args.compile()}`
+    return `${this.thing.compile()}.${this.methodName}${this.args.compile()}`
   }
   renderChildren() {
     return (
       <>
         <span className="method-scope">{this.thing.component}</span>
         <span className="operator period">.</span>
-        <span className="method-name">{this.method}</span>
+        <span className="method-name">{this.methodName}</span>
         {this.args.component}
       </>
     )
@@ -610,14 +607,14 @@ export class ScopedMethodInvocation extends MethodInvocation {
  * - `args` is an array of expressions
  */
 export class ConsoleMethodInvocation extends ScopedMethodInvocation {
-  @proto method = "log"
+  @proto methodName = "log"
   constructor(match, props) {
     super(match, { ...props, thing: new VariableExpression(match, { name: "console", type: "global" }) })
   }
 }
 
 /** CoreMethodInvocation:  calls a `spellCore` `method`.  Used for output languge independence.
- *  - `method` is spellcore method name.
+ *  - `methodName` is spellcore method name.
  *  - `args` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
  */
@@ -628,16 +625,15 @@ export class CoreMethodInvocation extends ScopedMethodInvocation {
 }
 
 /** ExportInvocation:  `spellCore.addExport(property, value)`
- *  - `property` is QuotedString to
+ *  - `property` is string or QuotedString for export name
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
  */
 export class ExportInvocation extends CoreMethodInvocation {
   constructor(match, props) {
     let { property } = props
     if (typeof property === "string") property = new QuotedExpression(match, property)
-
     super(match, {
-      method: "addExport",
+      methodName: "addExport",
       args: [property, props.value]
     })
   }
@@ -1259,7 +1255,7 @@ export class ValueDefinition extends PropertyDefinition {
   @memoize
   get definition() {
     return new CoreMethodInvocation(this.match, {
-      method: "define",
+      methodName: "define",
       args: [
         this.thing,
         new QuotedExpression(this.property.match, { expression: this.property }),
@@ -1293,7 +1289,7 @@ export class SetterDefinition extends PropertyDefinition {
   @memoize
   get definition() {
     return new CoreMethodInvocation(this.match, {
-      method: "define",
+      methodName: "define",
       args: [
         this.thing,
         new QuotedExpression(this.property.match, { expression: this.property }),
@@ -1329,7 +1325,7 @@ export class GetterDefinition extends PropertyDefinition {
   @memoize
   get definition() {
     return new CoreMethodInvocation(this.match, {
-      method: "define",
+      methodName: "define",
       args: [
         this.thing,
         new QuotedExpression(this.property.match, { expression: this.property }),
@@ -1366,7 +1362,7 @@ export class GetSetDefinition extends PropertyDefinition {
   @memoize
   get definition() {
     return new CoreMethodInvocation(this.match, {
-      method: "define",
+      methodName: "define",
       args: [
         this.thing,
         new QuotedExpression(this.property.match, { expression: this.property }),
@@ -1409,7 +1405,7 @@ export class MethodDefinition extends PropertyDefinition {
   @memoize
   get definition() {
     return new CoreMethodInvocation(this.match, {
-      method: "define",
+      methodName: "define",
       args: [
         this.thing,
         new QuotedExpression(this.match, this.method),
@@ -1675,7 +1671,7 @@ export class JSXElement extends Expression {
     }
 
     return new CoreMethodInvocation(this.match, {
-      method: "element",
+      methodName: "element",
       args: [new ObjectLiteral(this.match, { properties, wrap: attrs?.wrap || false })]
     })
   }

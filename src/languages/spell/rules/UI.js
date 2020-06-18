@@ -16,7 +16,7 @@ export const UI = new SpellParser({
       getAST(match) {
         const { expression } = match.groups
         return new AST.ConsoleMethodInvocation(match, {
-          method: "log",
+          methodName: "log",
           args: [expression.AST]
         })
       },
@@ -42,7 +42,7 @@ export const UI = new SpellParser({
         const args = [message.AST]
         if (okButton) args.push(okButton.AST)
         return new AST.CoreMethodInvocation(match, {
-          method: "notify",
+          methodName: "notify",
           args
         })
       },
@@ -74,7 +74,7 @@ export const UI = new SpellParser({
         if (okButton) args.push(okButton.AST)
         return new AST.AwaitMethodInvocation(match, {
           method: new AST.CoreMethodInvocation(match, {
-            method: "alert",
+            methodName: "alert",
             args
           })
         })
@@ -107,7 +107,7 @@ export const UI = new SpellParser({
         if (okButton) args.push(okButton.AST)
         return new AST.AwaitMethodInvocation(match, {
           method: new AST.CoreMethodInvocation(match, {
-            method: "warn",
+            methodName: "warn",
             args
           })
         })
@@ -141,7 +141,7 @@ export const UI = new SpellParser({
         if (cancelButton) args.push(cancelButton.AST)
         return new AST.AwaitMethodInvocation(match, {
           method: new AST.CoreMethodInvocation(match, {
-            method: "confirm",
+            methodName: "confirm",
             args
           })
         })
@@ -176,7 +176,7 @@ export const UI = new SpellParser({
         if (defaultValue) args.push(defaultValue.AST)
         return new AST.AwaitMethodInvocation(match, {
           method: new AST.CoreMethodInvocation(match, {
-            method: "prompt",
+            methodName: "prompt",
             args
           })
         })
