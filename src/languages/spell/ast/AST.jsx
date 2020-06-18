@@ -986,7 +986,8 @@ export class StatementGroup extends Statement {
 }
 
 /** StatementBlock -- set of statements which outputs with curly braces around.
- *  - `statements` is a list of Statements.
+ *  - `statements` (optional) is a list of Statements etc.
+ *  - `wrap` (optional) set to explicitly control block wrapping.
  */
 export class StatementBlock extends ASTNode {
   constructor(match, props) {
@@ -997,6 +998,7 @@ export class StatementBlock extends ASTNode {
       this.statements = this.statements[0].statements
     }
   }
+  @overrideable
   get wrap() {
     return this.statements?.length > 1
   }
@@ -1247,12 +1249,13 @@ export class PropertyDefinition extends Statement {
 
 /**
  * Args + method body, NOT including method name or `function` keyword.
- * - `args` ia array of VariableExpressions
- * - `body` is:
+ * - `args` (optional) is array of VariableExpressions
+ * - `body` (optional)is:
  *    - a single Statement or StatementGroup
  *    - a StatementBlock
  *    - an Expression
- *  - `inline` is:
+ *  - `wrap` (optional) provide to explicitly wrap body
+ *  - `inline` (optional) is:
  *    - `true` we'll make a fat arrow function
  *    - `false` we explicitly WILL NOT make a fat arrow function
  *    - `undefined` we'll make a fat arrow function if you pass an `Expression`
@@ -1283,6 +1286,7 @@ export class MethodBody extends ASTNode {
         statements: [new ReturnStatement(match, { value: this.body })]
       })
     }
+    if (typeof this.wrap === "boolean") this.body.wrap = this.wrap
   }
   compile() {
     const args = stringify.Args({ args: this.args })

@@ -232,12 +232,11 @@ export const methods = new SpellParser({
         }
 
         getAST(match) {
-          // console.warn(match)
           // console.warn("getAST:", match.groups)
           const {
             inlineStatement,
             nestedBlock,
-            bits: { methodName, args, syntax, instanceType, withArgs }
+            bits: { method, methodName, args, syntax, instanceType, withArgs }
           } = match.groups
 
           const output = [
@@ -276,15 +275,36 @@ export const methods = new SpellParser({
                 })
               })
             )
-          } else {
+          }
+          // No instance type: create as a loose function
+          else {
+            let body = new AST.MethodBody(match, {
+              args,
+              body: statements,
+              inline: false
+            })
+            // HACK???  If first word is "test" wrap in `spellCore.test(...)`
+            if (method[0] === "test") {
+              let testName = [...method]
+              testName[0] = "testing"
+              testName = testName.join(" ").toUpperCase()
+              body = new AST.MethodBody(match, {
+                inline: false,
+                body: new AST.CoreMethodInvocation(match, {
+                  methodName: "test",
+                  wrap: true,
+                  args: [
+                    new AST.QuotedExpression(match, testName),
+                    new AST.FunctionDeclaration(match, { method: body })
+                  ]
+                })
+              })
+            }
             output.push(
               new AST.FunctionDeclaration(match, {
+                wrap: true,
                 methodName,
-                method: new AST.MethodBody(match, {
-                  inline: false,
-                  args,
-                  body: statements
-                })
+                method: body
               })
             )
           }

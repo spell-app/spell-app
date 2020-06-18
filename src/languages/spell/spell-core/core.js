@@ -215,22 +215,43 @@ export const spellCore = {
    * - With 4 arguments:
    *    - uses `spellCore.equals(thing, otherThing)`
    *    - `thingSource` is spell Expression source for `thing`
-   *    - `otherThingSource` is spell Expression source for `otherThing`
+   *    - `otherSource` is spell Expression source for `otherThing`
    */
-  expect(thing, thingSource, otherThing, otherThingSource) {
+  expect(thing, thingSource, otherThing, otherSource) {
+    thingSource = spellCore.doubleQuote(thingSource)
     if (arguments.length === 2) {
       if (thing) {
-        console.info(`YES: Expected "${thingSource}" to be truthy`)
+        console.info(`✅ ${thingSource} is truthy`)
       } else {
-        console.warn(`NO: Expected "${thingSource}" to be truthy, got: "${thing}"`)
+        thing = spellCore.doubleQuote(thing)
+        console.info(`❌ Expected ${thingSource} to be truthy, got: "${thing}"`)
       }
-      return
-    }
-    if (spellCore.equals(thing, otherThing)) {
-      console.info(`YES: Expected "${thingSource}" to be "${otherThingSource}"`)
     } else {
-      console.warn(`NO: Expected "${thingSource}" to be "${otherThingSource}", got: "${thing}"`)
+      otherSource = spellCore.doubleQuote(otherSource)
+      if (spellCore.equals(thing, otherThing)) {
+        console.info(`✅ ${thingSource} is ${otherSource}`)
+      } else {
+        thing = spellCore.doubleQuote(thing)
+        console.info(`❌ Expected ${thingSource} to be ${otherSource}, got: ${thing}`)
+      }
     }
+  },
+
+  /** Dynamic test: prints to console for now... */
+  test(message, testMethod) {
+    console.group(message)
+    try {
+      testMethod()
+    } catch (e) {
+      console.error("Error in test:", e)
+    }
+    console.groupEnd()
+  },
+
+  /** Wrap `thing` in double quotes. */
+  doubleQuote(thing) {
+    if (typeof thing === "string" && thing.startsWith('"') && thing.endsWith('"')) return thing
+    return `"${thing}"`
   },
 
   //----------------------------

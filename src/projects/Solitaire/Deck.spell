@@ -1,17 +1,27 @@
 ## Deck:   US standard card deck (without jokers currently)
 
 a deck is a list of cards
-to set up a deck
+to set up (a deck)
 	for each rank in card ranks
 		for each suit in card suits
-			add a new card with rank the rank and suit the suit to it
+			get a new card with rank = the rank, suit = the suit
+			add it to the deck
 
-print card ranks
+to test deck creation
+	the deck is a new deck
+	set up the deck
+	expect the number of cards in the deck to be 52
 
-## test deck creation
-the deck is a new deck
-set up the deck
-expect the number of cards in the deck to be 52
+	set the queens to the cards in the deck where the rank of the card is "queen" 
+	expect the number of cards in the queens to be 4
+test deck creation
 
-set the queens to the cards in the deck where the rank of the card is "queen" 
-expect the number of cards in the queens to be 4
+to test deck shuffling
+	print "AFTER SHUFFLING:"
+	the deck is a new deck
+	set up the deck
+	shuffle the deck
+	for each card in the deck:
+		print the name of the card
+test deck shuffling
+
