@@ -9,16 +9,14 @@ import {
   memoize,
   readonly,
   overrideable,
-  getNamedComponent,
   getSuperHierarchy,
   Assertable,
-  OPTIONAL
+  OPTIONAL,
+  normalizeInitialWhitespace
 } from "~/util"
 import { Match } from "~/parser"
 import * as stringify from "./stringifyAST"
-import * as draw from "./drawAST"
-
-window.draw = draw
+import * as render from "./renderAST"
 
 // TODO: define this in `constants` or some such?
 const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w\$]*$/
@@ -66,35 +64,6 @@ export class ASTNode extends Assertable {
     throw new TypeError(`AST ${this.nodeType} must implement compile()`)
   }
 
-  /** Helper to turn list of things into JS */
-  listToJS(list, delimiter = ", ") {
-    return list ? list.map(item => item.compile()).join(delimiter) : ""
-  }
-
-  /** Helper to wrap JS value in curlies. */
-  wrapJSInCurlies(value = "") {
-    if (!value) return "{}"
-    if (value.includes("\n")) return `{\n\t${value.split("\n").join("\n\t")}\n}`
-    return `{ ${value} }`
-  }
-
-  /** Helper to wrap JS value in square brackets. */
-  wrapJSInSquares(value = "") {
-    if (!value) return "[]"
-    if (value.includes("\n")) {
-      const prefix = value.startsWith("\n") ? "\t" : "\n\t"
-      return `[${prefix}${value.split("\n").join("\n\t")}\n]`
-    }
-    return `[${value}]`
-  }
-
-  /** Enclose `value` in parens, unless it is already a propertly parenthesized string. */
-  wrapJSInParens(value) {
-    // TODO: this is not a sufficient check!!!
-    if (typeof value === "string" && value.startsWith("(") && value.endsWith(")")) return value
-    return `(${value})`
-  }
-
   //-------------------------
   // Rendering as React nodes
   //-------------------------
@@ -102,19 +71,7 @@ export class ASTNode extends Assertable {
   /** Return rendered react component which draws this node as syntax-colored Javascript. */
   @memoize
   get component() {
-    const { nodeType, className } = this
-    const props = {
-      className,
-      title: className,
-      "data-start": this.match.start,
-      "data-end": this.match.end
-    }
-    const children = this.renderChildren()
-    // Render so that a problem in node rendering will show up as, e.g., `AST-CoreMethodInvocation`
-    const Component = getNamedComponent(`AST-${nodeType}`, function() {
-      return React.createElement("span", props, children)
-    })
-    return React.createElement(Component)
+    return render.Node(this)
   }
 
   /**
@@ -130,7 +87,7 @@ export class ASTNode extends Assertable {
   }
 
   /**
-   * Render children to draw INSIDE the outer element,
+   * Render children to render INSIDE the outer element,
    * which has `node.className` (e.g. `ASTNode Expression StringLiteral`) set.
    */
   renderChildren() {
@@ -142,6 +99,34 @@ export class ASTNode extends Assertable {
     const TestComponent = () => this.component
     return createUnitTestComponent(<TestComponent />).text
   }
+
+  // TEST: ensure that `compile()` output is the same as `ast.renderedText`
+  test() {
+    let compiled
+    let rendered
+    try {
+      compiled = this.compile()
+      if (typeof compiled === "string") compiled = normalizeInitialWhitespace(compiled)
+    } catch (e) {
+      compiled = e
+    }
+    try {
+      rendered = this.renderedText
+      if (typeof rendered === "string") rendered = normalizeInitialWhitespace(rendered)
+    } catch (e) {
+      rendered = e
+    }
+    if (compiled === rendered) return true
+    console.group("Error in Match.test() for ", this)
+    console.group("Expected compiled:")
+    console.info(compiled)
+    console.groupEnd()
+    console.group("To match rendered:")
+    console.info(rendered)
+    console.groupEnd()
+    console.groupEnd()
+    return false
+  }
 }
 
 /** Blank line */
@@ -150,7 +135,7 @@ export class BlankLine extends ASTNode {
     return "" // "\n"
   }
   renderChildren() {
-    return null // draw.NEWLINE
+    return null // render.NEWLINE
   }
 }
 
@@ -175,8 +160,9 @@ export class ExpressionWithComment extends Expression {
   renderChildren() {
     return (
       <>
-        <draw.Item item={this.expression} />
-        <draw.Item item={this.comment} />
+        {this.expression.component}
+        {render.SPACE}
+        {this.comment.component}
       </>
     )
   }
@@ -197,11 +183,9 @@ export class QuotedExpression extends Expression {
   }
   renderChildren() {
     return (
-      <draw.InSingleQuotes>
-        <span className="expression">
-          <draw.Item item={this.expression} />
-        </span>
-      </draw.InSingleQuotes>
+      <render.InSingleQuotes>
+        <span className="expression">{this.expression.component}</span>
+      </render.InSingleQuotes>
     )
   }
 }
@@ -337,7 +321,7 @@ export class ArrayLiteral extends Literal {
     return stringify.Array({ items, wrap })
   }
   renderChildren() {
-    return <draw.Array items={this.items} wrap={this.wrap} />
+    return <render.Array items={this.items} wrap={this.wrap} />
   }
 }
 
@@ -355,7 +339,7 @@ export class Enumeration extends Literal {
     return stringify.Array({ items: this.enumeration })
   }
   renderChildren() {
-    return <draw.Array items={this.enumeration} />
+    return <render.Array items={this.enumeration} />
   }
 }
 
@@ -475,11 +459,9 @@ export class ParenthesizedExpression extends Expression {
   }
   renderChildren() {
     return (
-      <draw.InParens>
-        <span className="expression">
-          <draw.Item item={this.expression} />
-        </span>
-      </draw.InParens>
+      <render.InParens>
+        <span className="expression">{this.expression.component}</span>
+      </render.InParens>
     )
   }
 }
@@ -500,9 +482,7 @@ export class NotExpression extends Expression {
     return (
       <>
         <span className="operator exclamation-point">!</span>
-        <span className="expression">
-          <draw.Item item={this.expression} />
-        </span>
+        <span className="expression">{this.expression.component}</span>
       </>
     )
   }
@@ -522,13 +502,9 @@ export class InfixExpression extends Expression {
   renderChildren() {
     return (
       <>
-        <span className="lhs">
-          <draw.Item item={this.lhs} />
-        </span>
+        <span className="lhs">{this.lhs.component}</span>
         <span className="operator"> {this.operator} </span>
-        <span className="rhs">
-          <draw.Item item={this.rhs} />
-        </span>
+        <span className="rhs">{this.rhs.component}</span>
       </>
     )
   }
@@ -568,7 +544,7 @@ export class MethodInvocation extends Expression {
     return (
       <>
         <span className="method-name">{this.method}</span>
-        <draw.Args args={this.args} />
+        <render.Args args={this.args} />
       </>
     )
   }
@@ -595,12 +571,10 @@ export class ScopedMethodInvocation extends MethodInvocation {
   renderChildren() {
     return (
       <>
-        <span className="method-scope">
-          <draw.Item item={this.thing} />
-        </span>
+        <span className="method-scope">{this.thing.component}</span>
         <span className="operator period">.</span>
         <span className="method-name">{this.method}</span>
-        <draw.Args args={this.args} />
+        <render.Args args={this.args} />
       </>
     )
   }
@@ -628,6 +602,22 @@ export class CoreMethodInvocation extends ScopedMethodInvocation {
   }
 }
 
+/** ExportInvocation:  `spellCore.addExport(property, value)`
+ *  - `property` is QuotedString to
+ *  - `datatype` (optional) is return datatype as string, try to set if you can.
+ */
+export class ExportInvocation extends CoreMethodInvocation {
+  constructor(match, props) {
+    let { property } = props
+    if (typeof property === "string") property = new QuotedExpression(match, property)
+
+    super(match, {
+      method: "addExport",
+      args: [property, props.value]
+    })
+  }
+}
+
 /** AwaitMethodInvocation:  wrap another method invocation to `await` it.
  *  - `method` is MethodInvocation to call.
  */
@@ -645,7 +635,7 @@ export class AwaitMethodInvocation extends Expression {
     return (
       <>
         <span className="keyword await">await </span>
-        <draw.Item item={this.method} />
+        {this.method.component}
       </>
     )
   }
@@ -710,9 +700,7 @@ export class VariableExpression extends Expression {
       <>
         <span className="name">{this.name}</span>
         <span className="operator equals">{" = "}</span>
-        <span className="default">
-          <draw.Item item={this.default} />
-        </span>
+        <span className="default">{this.default.component}</span>
       </>
     )
   }
@@ -762,7 +750,7 @@ export class PropertyLiteral extends Literal {
   }
   renderChildren() {
     const value = <span className="property">{this.value}</span>
-    return this.isLegalIdentifier ? value : <draw.InSingleQuotes>{value}</draw.InSingleQuotes>
+    return this.isLegalIdentifier ? value : <render.InSingleQuotes>{value}</render.InSingleQuotes>
   }
 }
 
@@ -784,26 +772,20 @@ export class PropertyExpression extends Expression {
     return `${this.object.compile()}['${prop}']`
   }
   renderChildren() {
-    const object = (
-      <span className="object">
-        <draw.Item item={this.object} />
-      </span>
-    )
+    const object = <span className="object">{this.object.component}</span>
     if (this.property.isLegalIdentifier) {
       return (
         <>
           {object}
           <span className="operator period">.</span>
-          <draw.Item item={this.property} />
+          {this.property.component}
         </>
       )
     }
     return (
       <>
         {object}
-        <draw.InSquareBrackets>
-          <draw.Item item={this.property} />
-        </draw.InSquareBrackets>
+        <render.InSquareBrackets>{this.property.component}</render.InSquareBrackets>
       </>
     )
   }
@@ -830,19 +812,18 @@ export class ObjectLiteralProperty extends ASTNode {
     return `${prop}: ${this.value.compile()}${error}`
   }
   renderChildren() {
-    const error = this.error ? <draw.Item item={this.error} /> : null
-    const prop = (
-      <span className="property">
-        <draw.Item item={this.property} />
-      </span>
-    )
+    const error = this.error ? (
+      <>
+        {render.SPACE}
+        {this.error.component}
+      </>
+    ) : null
+    const prop = <span className="property">{this.property.component}</span>
     // If no value, assume it's available as a local variable.
     const value = !!this.value && (
       <>
         <span className="operator colon">: </span>
-        <span className="value">
-          <draw.Item item={this.value} />
-        </span>
+        <span className="value">{this.value.component}</span>
       </>
     )
     return (
@@ -876,9 +857,10 @@ export class ObjectLiteralMethod extends ObjectLiteralProperty {
   renderChildren() {
     return (
       <>
-        <draw.Item item={this.property} />
-        <draw.Args args={this.args} />
-        <draw.Item item={this.statements} />
+        {this.property.component}
+        <render.Args args={this.args} />
+        {render.SPACE}
+        {this.statements.component}
       </>
     )
   }
@@ -921,8 +903,6 @@ export class ObjectLiteral extends Expression {
     )
   }
   compile() {
-    // const delimiter = this.wrap ? ",\n" : ", "
-    // return this.wrapJSInCurlies(this.listToJS(this.properties, delimiter))
     const { wrap } = this
     const delimiter = wrap ? stringify.INDENTED_COMMA : stringify.SPACED_COMMA
     return stringify.Block({
@@ -932,12 +912,13 @@ export class ObjectLiteral extends Expression {
     })
   }
   renderChildren() {
+    if (!this.properties || !this.properties.length) return render.EMPTY_BLOCK
     const { wrap } = this
-    const delimiter = wrap ? draw.INDENTED_COMMA : draw.SPACED_COMMA
+    const delimiter = wrap ? render.INDENTED_COMMA : render.SPACED_COMMA
     return (
-      <draw.Block wrap={wrap} space={!wrap}>
-        <draw.List items={this.properties} delimiter={delimiter} />
-      </draw.Block>
+      <render.Block wrap={wrap} space={!wrap}>
+        <render.List items={this.properties} delimiter={delimiter} />
+      </render.Block>
     )
   }
 }
@@ -957,7 +938,7 @@ export class StatementGroup extends Statement {
     return stringify.List({ items: this.statements, delimiter: stringify.NEWLINE })
   }
   renderChildren() {
-    return <draw.List items={this.statements} delimiter={draw.NEWLINE} />
+    return <render.List items={this.statements} delimiter={render.NEWLINE} />
   }
 }
 
@@ -986,10 +967,11 @@ export class StatementBlock extends Statement {
     })
   }
   renderChildren() {
+    if (!this.statements || !this.statements.length) return render.EMPTY_BLOCK
     return (
-      <draw.Block wrap={this.wrap}>
-        <draw.List items={this.statements} delimiter={draw.INDENTED_NEWLINE} />
-      </draw.Block>
+      <render.Block wrap={this.wrap}>
+        <render.List items={this.statements} delimiter={render.INDENTED_NEWLINE} />
+      </render.Block>
     )
   }
 }
@@ -1018,13 +1000,9 @@ export class AssignmentStatement extends Statement {
     return (
       <>
         {this.isNewVariable && <span className="keyword declarator">let </span>}
-        <span className="thing">
-          <draw.Item item={this.thing} />
-        </span>
+        <span className="thing">{this.thing.component}</span>
         <span className="operator equals"> = </span>
-        <span className="value">
-          <draw.Item item={this.value} />
-        </span>
+        <span className="value">{this.value.component}</span>
       </>
     )
   }
@@ -1059,13 +1037,11 @@ export class DestructuredAssignment extends Statement {
     return (
       <>
         {this.isNewVariable && <span className="keyword declarator">let </span>}
-        <draw.InCurlies space>
-          <draw.List items={this.variables} />
-        </draw.InCurlies>
+        <render.InCurlies space>
+          <render.List items={this.variables} />
+        </render.InCurlies>
         <span className="operator equals"> = </span>
-        <span className="thing">
-          <draw.Item item={this.thing} />
-        </span>
+        <span className="thing">{this.thing.component}</span>
       </>
     )
   }
@@ -1087,9 +1063,7 @@ export class ReturnStatement extends Statement {
     return (
       <>
         <span className="keyword return">{"return "}</span>
-        <span className="value">
-          <draw.Item item={this.value} />
-        </span>
+        {this.value && <span className="value">{this.value.component}</span>}
       </>
     )
   }
@@ -1105,36 +1079,26 @@ export class ClassDeclaration extends Statement {
     super(match, props)
     this.assertType("type", TypeExpression)
     this.assertType("superType", TypeExpression, OPTIONAL)
-    this.assertType("instanceType", TypeExpression, OPTIONAL)
   }
   compile() {
-    const { type, superType, instanceType } = this
+    const { type, superType } = this
     const superDeclarator = superType ? `extends ${superType.name} ` : ""
-    const output = [`export class ${type.name} ${superDeclarator}{}`]
-    output.push(`spellCore.addExport("${type.name}", ${type.name})`)
-    if (instanceType) {
-      output.push(`spellCore.define(${type.name}.prototype, "instanceType", { value: ${instanceType.name} })`)
-      // output.push(`${type.name}.instanceType = ${instanceType.name}`)
-    }
-    return output.join("\n")
+    return `export class ${type.name} ${superDeclarator}{}`
   }
   renderChildren() {
     return (
       <>
         <span className="keyword export">{"export "}</span>
         <span className="keyword class">{"class "}</span>
-        <span className="type">
-          <draw.Item item={this.type} />
-        </span>
+        <span className="type">{this.type.component}</span>
         {!!this.superType && (
           <>
             <span className="keyword extends">{" extends "}</span>
-            <span className="superType">
-              <draw.Item item={this.superType} />
-            </span>
+            <span className="superType">{this.superType.component}</span>
           </>
         )}
-        <span className="todo"> {"/"}* TODO: output addExport() etc */</span>
+        {render.SPACE}
+        {render.EMPTY_BLOCK}
       </>
     )
   }
@@ -1155,16 +1119,12 @@ export class NewInstanceExpression extends Expression {
     return `new ${this.type.compile()}${props}`
   }
   renderChildren() {
-    // TODO: wrap???
+    const props = this.props ? <render.InParens>{this.props.component}</render.InParens> : render.EMPTY_PARENS
     return (
       <>
         <span className="keyword new">{"new "}</span>
-        <span className="type">
-          <draw.Item item={this.type} />
-        </span>
-        <draw.InParens>
-          <draw.Item item={this.props} />
-        </draw.InParens>
+        <span className="type">{this.type.component}</span>
+        {props}
       </>
     )
   }
@@ -1185,9 +1145,9 @@ export class ListExpression extends Expression {
   }
   renderChildren() {
     return (
-      <draw.InSquareBrackets>
-        <draw.List items={this.items} />
-      </draw.InSquareBrackets>
+      <render.InSquareBrackets>
+        <render.List items={this.items} />
+      </render.InSquareBrackets>
     )
   }
 }
@@ -1213,13 +1173,16 @@ export class InlineMethodExpression extends Expression {
     return `${args} => ${body}`
   }
   renderChildren() {
+    const { statements, expression } = this
+    let body
+    if (statements) body = statements.component
+    else if (expression) body = expression.component
+    else body = render.EMPTY_BLOCK
     return (
       <>
-        <draw.Args args={this.args} />
+        <render.Args args={this.args} />
         <span className="operator fat-arrow">{" => "}</span>
-        <draw.InCurlies>
-          <draw.Item item={this.expression || this.statements} />
-        </draw.InCurlies>
+        {body}
       </>
     )
   }
@@ -1240,7 +1203,7 @@ export class PrototypeExpression extends Expression {
   renderChildren() {
     return (
       <>
-        <draw.Item item={this.type} />
+        {this.type.component}
         <span className="operator period">.</span>
         <span className="keyword prototype">{"prototype"}</span>
       </>
@@ -1256,7 +1219,7 @@ export class PropertyDefinition extends Statement {
     return this.definition.compile()
   }
   renderChildren() {
-    return <draw.Item item={this.definition} />
+    return this.definition.component
   }
 }
 
@@ -1279,7 +1242,7 @@ export class ValueDefinition extends PropertyDefinition {
       method: "define",
       args: [
         this.thing,
-        this.property,
+        new QuotedExpression(this.property.match, { expression: this.property }),
         new ObjectLiteral(this.value.match, {
           properties: [
             new ObjectLiteralProperty(this.value.match, {
@@ -1467,8 +1430,9 @@ export class FunctionDefinition extends Statement {
       <>
         <span className="keyword function">function </span>
         {!!this.method && <span className="method-name">{this.method}</span>}
-        <draw.Args args={this.args} />
-        <draw.Item item={this.body} />
+        <render.Args args={this.args} />
+        {render.SPACE}
+        {this.body.component}
       </>
     )
   }
@@ -1495,10 +1459,9 @@ export class IfStatement extends Statement {
     return (
       <>
         <span className="keyword if">if </span>
-        <span className="condition">
-          <draw.Item item={this.condition} />
-        </span>{" "}
-        <draw.Item item={this.statements} />
+        <span className="condition">{this.condition.component}</span>
+        {render.SPACE}
+        {this.statements.component}
       </>
     )
   }
@@ -1526,10 +1489,9 @@ export class ElseIfStatement extends Statement {
       <>
         <span className="keyword else">else </span>
         <span className="keyword if">if </span>
-        <span className="condition">
-          <draw.Item item={this.condition} />
-        </span>{" "}
-        <draw.Item item={this.statements} />
+        <span className="condition">{this.condition.component}</span>
+        {render.SPACE}
+        {this.statements.component}
       </>
     )
   }
@@ -1550,7 +1512,7 @@ export class ElseStatement extends Statement {
     return (
       <>
         <span className="keyword else">else </span>
-        <draw.Item item={this.statements} />
+        {this.statements.component}
       </>
     )
   }
@@ -1574,15 +1536,13 @@ export class TernaryExpression extends Expression {
   }
   renderChildren() {
     return (
-      <draw.InParens>
-        <span className="condition">
-          <draw.Item item={this.condition} />
-        </span>
+      <render.InParens>
+        <span className="condition">{this.condition.component}</span>
         <span className="operator question-mark">{" ? "}</span>
-        <draw.Item item={this.trueValue} />
-        <span className="operator colon">: </span>
-        <draw.Item item={this.falseValue} />
-      </draw.InParens>
+        {this.trueValue.component}
+        <span className="operator colon"> : </span>
+        {this.falseValue.component}
+      </render.InParens>
     )
   }
 }
@@ -1642,7 +1602,7 @@ export class JSXElement extends Expression {
     return this.output.compile()
   }
   renderChildren() {
-    return <draw.Item item={this.output} />
+    return this.output.component
   }
 }
 

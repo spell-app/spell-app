@@ -1,2 +1,1 @@
-get [yes,no,'a',1]
-expect the rank of it to be "queen"
+to notify with message

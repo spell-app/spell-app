@@ -13,7 +13,6 @@ import isEqual from "lodash/isEqual"
 
 import { ParseError, Rule } from "~/parser"
 import { showWhitespace, normalizeInitialWhitespace } from "~/util"
-import { normalize } from "path"
 
 // Skip running a rest
 const SKIP = { skip: true }
@@ -109,9 +108,9 @@ export function unitTestModuleRules(parser, moduleName) {
         // Show returns and tabs in the output display
         test(`compiled matches output`, () => expect(showWhitespace(compiled)).toBe(showWhitespace(output)))
 
-        // if (rendered !== SKIP) {
-        //   test(`rendered matches compiled`, () => expect(normalizedRendered).toBe(normalizedCompiled))
-        // }
+        if (rendered !== SKIP) {
+          test(`rendered matches compiled`, () => expect(normalizedRendered).toBe(normalizedCompiled))
+        }
       })
     } else {
       test(testTitle, () => expect(compiled).toEqual(output))

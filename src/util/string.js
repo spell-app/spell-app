@@ -93,7 +93,7 @@ export function normalizeInitialWhitespace(string) {
   return string
     .split("\n")
     .map(line => line.trim().replace(/\t/g, "∆"))
-    .join("¬")
+    .join("\n")
 }
 
 // Return a certain `number` of tab characters.

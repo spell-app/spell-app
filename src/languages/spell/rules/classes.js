@@ -29,22 +29,30 @@ export const classes = new SpellParser({
       },
       getAST(match) {
         const { type, superType } = match.groups
-        return new AST.ClassDeclaration(match, {
-          type: type.AST,
-          superType: superType?.AST
+        return new AST.StatementGroup(match, {
+          statements: [
+            new AST.ClassDeclaration(match, {
+              type: type.AST,
+              superType: superType?.AST
+            }),
+            new AST.ExportInvocation(match, {
+              property: type.value,
+              value: type.AST
+            })
+          ]
         })
       },
       tests: [
         {
           compileAs: "statement",
           tests: [
-            ["create a type named card", `export class Card {}\nspellCore.addExport("Card", Card)`],
+            ["create a type named card", `export class Card {}\nspellCore.addExport('Card', Card)`],
             [
               "create a type called car as a vehicle",
-              `export class Car extends Vehicle {}\nspellCore.addExport("Car", Car)`
+              `export class Car extends Vehicle {}\nspellCore.addExport('Car', Car)`
             ],
-            ["a card is a thing", `export class Card extends Thing {}\nspellCore.addExport("Card", Card)`],
-            ["a set is a list", `export class Set extends List {}\nspellCore.addExport("Set", Set)`]
+            ["a card is a thing", `export class Card extends Thing {}\nspellCore.addExport('Card', Card)`],
+            ["a set is a list", `export class Set extends List {}\nspellCore.addExport('Set', Set)`]
           ]
         }
       ]
@@ -74,8 +82,16 @@ export const classes = new SpellParser({
             // Declare the class
             new AST.ClassDeclaration(match, {
               type: type.AST,
-              superType: new AST.TypeExpression(match, { raw: "list", name: "List" }),
-              instanceType: instanceType.AST
+              superType: new AST.TypeExpression(match, { raw: "list", name: "List" })
+            }),
+            new AST.ExportInvocation(match, {
+              property: type.value,
+              value: type.AST
+            }),
+            new AST.ValueDefinition(match, {
+              thing: new AST.PrototypeExpression(match, { type: type.AST }),
+              property: new AST.PropertyLiteral(match, "instanceType"),
+              value: instanceType.AST
             })
           ]
         })
@@ -88,8 +104,8 @@ export const classes = new SpellParser({
               "a deck is a list of cards",
               [
                 "export class Deck extends List {}",
-                'spellCore.addExport("Deck", Deck)',
-                'spellCore.define(Deck.prototype, "instanceType", { value: Card })'
+                "spellCore.addExport('Deck', Deck)",
+                "spellCore.define(Deck.prototype, 'instanceType', { value: Card })"
               ]
             ]
           ]

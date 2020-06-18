@@ -10,6 +10,24 @@
  *    etc
  */
 import React from "react"
+import { getNamedComponent } from "~/util"
+
+/** Default render for a single ASTNode. */
+export function Node(astNode) {
+  const { nodeType, className } = astNode
+  const props = {
+    className,
+    title: className,
+    "data-start": astNode.match.start,
+    "data-end": astNode.match.end
+  }
+  const children = astNode.renderChildren()
+  // Trixy setup so problems in node rendering will show up as, e.g., `AST-CoreMethodInvocation`
+  const Component = getNamedComponent(`AST-${nodeType}`, function() {
+    return React.createElement("span", props, children)
+  })
+  return React.createElement(Component)
+}
 
 /** Draw a single space. */
 export const SPACE = <span className="whitespace space"> </span>
@@ -59,7 +77,7 @@ export const List = ({ items, delimiter = SPACED_COMMA, DrawItem = Item }) => {
 /** Surround `children` in parens. */
 export const LEFT_PAREN = <span className="punctuation open-paren">(</span>
 export const RIGHT_PAREN = <span className="punctuation close-paren">)</span>
-const EMPTY_PARENS = (
+export const EMPTY_PARENS = (
   <>
     {LEFT_PAREN}
     {RIGHT_PAREN}
@@ -140,7 +158,7 @@ export const InCurlies = ({ children, wrap = false, space = false }) => {
 }
 
 /** Draw a block surrounded by curlies. */
-const EMPTY_BLOCK = (
+export const EMPTY_BLOCK = (
   <span className="ASTBlock empty">
     <InCurlies />
   </span>
