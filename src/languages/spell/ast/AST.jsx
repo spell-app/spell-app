@@ -521,7 +521,7 @@ export class InvocationArgs extends ASTNode {
   constructor(match, { wrap, ...props }) {
     super(match, props)
     if (typeof wrap === "boolean") this.wrap = wrap
-    this.assertArrayType("args", [Expression, MethodBody], OPTIONAL)
+    this.assertArrayType("args", [Expression, MethodBody, FunctionDeclaration], OPTIONAL)
     if (this.args) {
       // unwind parenthesized expressions in args
       this.args = this.args.map(arg => {

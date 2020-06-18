@@ -725,6 +725,64 @@ export const methods = new SpellParser({
               ]
             }
           ]
+        },
+        {
+          title: "to test",
+          compileAs: "block",
+          beforeEach(scope) {
+            scope.types.add("card")
+            scope.types.add("pile")
+          },
+          tests: [
+            {
+              title: "empty body",
+              input: ["to test something"],
+              output: [
+                `/* SPELL: added rule: 'test something' */`,
+                `function test_something() { return spellCore.test(`,
+                `\t'TESTING SOMETHING',`,
+                `\tfunction () {}`,
+                `) }`
+              ]
+            },
+            {
+              title: "empty body calling itself",
+              input: ["to test something", "test something"],
+              output: [
+                `/* SPELL: added rule: 'test something' */`,
+                `function test_something() { return spellCore.test(`,
+                `\t'TESTING SOMETHING',`,
+                `\tfunction () {}`,
+                `) }`,
+                `test_something()`
+              ]
+            },
+            {
+              title: "inline single statement",
+              input: ["to test something: print 1"],
+              output: [
+                `/* SPELL: added rule: 'test something' */`,
+                `function test_something() { return spellCore.test(`,
+                `\t'TESTING SOMETHING',`,
+                `\tfunction () { return console.log(1) }`,
+                `) }`
+              ]
+            },
+            {
+              title: "indented multi-line",
+              input: ["to test something", "\tprint 1", "\tprint 2"],
+              output: [
+                `/* SPELL: added rule: 'test something' */`,
+                `function test_something() { return spellCore.test(`,
+                `\t'TESTING SOMETHING',`,
+                `\tfunction () {`,
+                `\t\tconsole.log(1)`,
+                `\t\tconsole.log(2)`,
+                `\t}`,
+                `) }`
+              ]
+            }
+          ]
         }
       ]
     }
