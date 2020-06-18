@@ -7,7 +7,7 @@ import { SpellParser, AST } from "~/languages/spell"
  */
 SpellParser.Rule.DynamicMethodRule = class dynamic_method extends SpellParser.Rule.Statement {
   // Name of the method to call
-  @proto method = undefined
+  @proto methodName = undefined
 
   // Normalize `callArgs` to an array
   gatherGroups(match) {
@@ -18,7 +18,7 @@ SpellParser.Rule.DynamicMethodRule = class dynamic_method extends SpellParser.Ru
   }
 
   getAST(match) {
-    const { method } = this
+    const { methodName } = this
     const { thisArg, callArgs, withArgs } = match.groups
     const thing = thisArg?.AST
     const args = callArgs?.map(arg => arg.AST) || []
@@ -28,8 +28,8 @@ SpellParser.Rule.DynamicMethodRule = class dynamic_method extends SpellParser.Ru
     if (withArgs) args.push(withArgs.AST)
 
     // if `thing` is defined, method is scoped
-    if (thing) return new AST.ScopedMethodInvocation(match, { thing, methodName: method, args })
-    return new AST.MethodInvocation(match, { methodName: method, args })
+    if (thing) return new AST.ScopedMethodInvocation(match, { thing, methodName, args })
+    return new AST.MethodInvocation(match, { methodName, args })
   }
 }
 
@@ -139,6 +139,7 @@ export const methods = new SpellParser({
             vars: [], // random vars we should enable
             withArgs: undefined, // array of AST.VariableExpression for withArgs
             // calculated at the end
+            methodName: undefined, // full methodName from `method` array
             instanceType: undefined // type to add instance method to, if any
           })
           // Set up the method signature and rule syntax
@@ -195,17 +196,17 @@ export const methods = new SpellParser({
           }
 
           // convert method/syntax to simple string
-          bits.method = bits.method.join("_")
+          bits.methodName = bits.method.join("_")
           bits.syntax = bits.syntax.join(" ")
           bits.argNames = bits.args.map(arg => arg.name)
           // console.warn("to_do_something groups for: ", match.inputText, "\n", groups)
           return groups
         }
         getNestedScope(match) {
-          const { method, argNames, instanceType, vars, withArgs } = match.groups.bits
+          const { methodName, argNames, instanceType, vars, withArgs } = match.groups.bits
           const methodScope = new MethodScope({
             scope: match.scope,
-            name: method,
+            name: methodName,
             args: argNames,
             thisVar: instanceType,
             mapItTo: instanceType && "this"
@@ -220,22 +221,23 @@ export const methods = new SpellParser({
 
         mutateScope(match) {
           // Create a `DynamicMethodRule` rule (see above) to match the specified syntax.
-          const { method, syntax } = match.groups.bits
+          const { methodName, syntax } = match.groups.bits
           match.scope.rules.add({
-            name: method,
+            name: methodName,
             alias: ["statement", "expression"],
             constructor: "DynamicMethodRule",
             syntax,
-            method
+            methodName
           })
         }
 
         getAST(match) {
+          // console.warn(match)
           // console.warn("getAST:", match.groups)
           const {
             inlineStatement,
             nestedBlock,
-            bits: { method, args, syntax, instanceType, withArgs }
+            bits: { methodName, args, syntax, instanceType, withArgs }
           } = match.groups
 
           const output = [
@@ -266,7 +268,7 @@ export const methods = new SpellParser({
                 thing: new AST.PrototypeExpression(match, {
                   type: typeCase(instanceType)
                 }),
-                property: method,
+                property: methodName,
                 value: new AST.MethodBody(match, {
                   args,
                   body: statements,
@@ -277,7 +279,7 @@ export const methods = new SpellParser({
           } else {
             output.push(
               new AST.FunctionDeclaration(match, {
-                methodName: method,
+                methodName,
                 method: new AST.MethodBody(match, {
                   inline: false,
                   args,
