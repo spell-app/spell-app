@@ -512,9 +512,15 @@ export function MultiInfixExpression(match, { expressions, operator }) {
   return rhs
 }
 
+/** InvocationArgs:  generic named method invocation.
+ *  - `args` (optional) is a possibly empty list of Expressions.
+ *  - `wrap` (optional) is return datatype as string, try to set if you can.
+ * NOTE: this does not ensure that the named method is actually defined in scope!!!!
+ */
 export class InvocationArgs extends ASTNode {
-  constructor(match, props) {
+  constructor(match, { wrap, ...props }) {
     super(match, props)
+    if (typeof wrap === "boolean") this.wrap = wrap
     this.assertArrayType("args", [Expression, MethodBody], OPTIONAL)
     if (this.args) {
       // unwind parenthesized expressions in args
@@ -538,17 +544,18 @@ export class InvocationArgs extends ASTNode {
 }
 
 /** MethodInvocation:  generic named method invocation.
- *  - `method` is method name.
+ *  - `methodName` is method name.
  *  - `args` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
+ *  - `wrap` (optional) set to control arg wrapping explicitly
  * NOTE: this does not ensure that the named method is actually defined in scope!!!!
  */
 export class MethodInvocation extends Expression {
-  constructor(match, { args, ...props }) {
+  constructor(match, { args, wrap, ...props }) {
     super(match, props)
     this.assertType("methodName", "string")
     this.assertType("datatype", "string", OPTIONAL)
-    this.args = new InvocationArgs(match, { args })
+    this.args = new InvocationArgs(match, { args, wrap })
   }
   compile() {
     return `${this.methodName}${this.args.compile()}`
@@ -570,11 +577,10 @@ export class MethodInvocation extends Expression {
  *  - Try to set `datatype` as string or getter if you can.
  */
 export class ScopedMethodInvocation extends MethodInvocation {
-  constructor(match, { args, ...props }) {
+  constructor(match, props) {
     super(match, props)
+    // `methodName`, `args`, wrap` and `datatype` are handled by MethodInvocation
     this.assertType("thing", Expression)
-    // `methodName` and `datatype` are handled by MethodInvocation
-    this.args = new InvocationArgs(match, { args })
   }
   compile() {
     return `${this.thing.compile()}.${this.methodName}${this.args.compile()}`
@@ -592,7 +598,7 @@ export class ScopedMethodInvocation extends MethodInvocation {
 }
 
 /** ConsoleMethodInvocation
- * - `method` is method name, e.g. `log` or `warn`
+ * - `methodName` is method name, e.g. `log` or `warn`
  * - `args` is an array of expressions
  */
 export class ConsoleMethodInvocation extends ScopedMethodInvocation {

@@ -24,6 +24,7 @@ export const tests = new SpellParser({
         }
         return new AST.CoreMethodInvocation(match, {
           methodName: "assertEquals",
+          wrap: false,
           args: [
             expression.AST,
             value.AST,
