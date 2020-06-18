@@ -207,20 +207,26 @@ export const spellCore = {
     return isEqual(thing, otherThing)
   },
 
-  // Asserd `value` is truthy.
-  // Uses lodash `isEqual` semantics.
-  assert(value, thingSource) {
-    if (value) {
-      console.info(`YES: Expected "${thingSource}" to be truthy`)
-    } else {
-      console.warn(`NO: Expected "${thingSource}" to be truthy, got: "${value}"`)
+  /**
+   * Print whether a runtime assertion is true or false.
+   * - With 2 arguments:
+   *    - passes if `thing` is truthy
+   *    - `thingSource` is spell Expression source for `thing`
+   * - With 4 arguments:
+   *    - uses `spellCore.equals(thing, otherThing)`
+   *    - `thingSource` is spell Expression source for `thing`
+   *    - `otherThingSource` is spell Expression source for `otherThing`
+   */
+  expect(thing, thingSource, otherThing, otherThingSource) {
+    if (arguments.length === 2) {
+      if (thing) {
+        console.info(`YES: Expected "${thingSource}" to be truthy`)
+      } else {
+        console.warn(`NO: Expected "${thingSource}" to be truthy, got: "${thing}"`)
+      }
+      return
     }
-  },
-
-  // Does `thing` conceptually equal `otherThing`?
-  // Uses lodash `isEqual` semantics.
-  assertEquals(thing, otherThing, thingSource, otherThingSource) {
-    if (isEqual(thing, otherThing)) {
+    if (spellCore.equals(thing, otherThing)) {
       console.info(`YES: Expected "${thingSource}" to be "${otherThingSource}"`)
     } else {
       console.warn(`NO: Expected "${thingSource}" to be "${otherThingSource}", got: "${thing}"`)

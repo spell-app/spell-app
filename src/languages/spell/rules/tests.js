@@ -18,17 +18,17 @@ export const tests = new SpellParser({
         const expressionLiteral = new AST.StringLiteral(match, { value: `\`${expression.value}\`` })
         if (!value) {
           return new AST.CoreMethodInvocation(match, {
-            methodName: "assert",
+            methodName: "expect",
             args: [expression.AST, expressionLiteral]
           })
         }
         return new AST.CoreMethodInvocation(match, {
-          methodName: "assertEquals",
+          methodName: "expect",
           wrap: false,
           args: [
             expression.AST,
-            value.AST,
             expressionLiteral,
+            value.AST,
             new AST.StringLiteral(match, { value: `\`${value.value}\`` })
           ]
         })
@@ -40,11 +40,8 @@ export const tests = new SpellParser({
             scope.compile("it = a new card with rank = 'queen' and is-face-up = true")
           },
           tests: [
-            [
-              'expect the rank of it to be "queen"',
-              ["spellCore.assertEquals(", "\tit.rank,", '\t"queen",', "\t`the rank of it`,", '\t`"queen"`', ")"]
-            ],
-            ["expect the is-face-up of it", "spellCore.assert(it.is_face_up, `the is-face-up of it`)"]
+            ['expect the rank of it to be "queen"', 'spellCore.expect(it.rank, `the rank of it`, "queen", `"queen"`)'],
+            ["expect the is-face-up of it", "spellCore.expect(it.is_face_up, `the is-face-up of it`)"]
           ]
         }
       ]

@@ -54,13 +54,13 @@ expect the card is the queen of clubs to be false
 expect the card is not the 2 of diamonds to be true
 
 ## actions
-to turn a card face up: 
+to turn (a card) face up: 
 	set its direction to up
-to turn a card face down: set its direction to down
+to turn (a card) face down: set its direction to down
 turn the card face down
 expect the direction of the card to be down
 
-to turn a card over:
+to turn (a card) over:
 	if its direction is up
 		set its direction to down
 	otherwise 
@@ -68,10 +68,12 @@ to turn a card over:
 turn the card over
 expect the card is face up to be true
 
-to flip a card over:
+to flip (a card) over:
 	if it is face up then 
 		turn it face down
 	otherwise 
 		turn it face up
 flip the card over
 expect the card is face down
+
+
