@@ -35,11 +35,7 @@ export class Drawable extends Thing {
    */
   @memoize
   get Component() {
-    const render = () => {
-      const elements = this.draw()
-      console.info({ drawable: this, elements })
-      return elements
-    }
+    const render = () => this.draw()
     class DrawableC extends React.Component {
       render = render
     }

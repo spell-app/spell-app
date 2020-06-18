@@ -41,7 +41,9 @@
   }
 
   .keyword,
-  &.ThisLiteral {
+    &.NullLiteral,
+    &.UndefinedLiteral,
+    &.ThisLiteral {
     .syntax-keyword()
   }
 
