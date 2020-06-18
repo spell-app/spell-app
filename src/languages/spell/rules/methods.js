@@ -637,7 +637,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: 'notify (with {withArgs:object_literal_properties})?' */",
                 "function notify(props = {}) {",
                 '\tlet { message = "nope", reply = "yep" } = props',
-                "\tconsole.log((message + reply))",
+                "\tconsole.log(message + reply)",
                 "}",
                 'notify({ message: "How many?", reply: 2 })'
               ]
@@ -653,7 +653,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: 'notify (with {withArgs:object_literal_properties})?' */",
                 "function notify(props = {}) {",
                 '\tlet { name, message, reply = "yep" } = props',
-                "\tconsole.log(((name + message) + reply))",
+                "\tconsole.log((name + message) + reply)",
                 "}",
                 "notify({",
                 '\tname: "Bob",',

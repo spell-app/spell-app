@@ -1,6 +1,4 @@
 import global from "global"
-import prettier from "prettier/standalone"
-import babylon from "prettier/parser-babylon"
 
 import { TextFile, state, proto, memoize, forward, writeOnce, overrideable, batch } from "~/util"
 import { Match, ProjectScope, FileScope } from "~/parser"
@@ -128,20 +126,13 @@ export class SpellFile extends TextFile {
   }
 
   /**
-   * Compile our content.  Note: you must parse first!
+   * Compile our content.
    */
   async compile(parentScope) {
     const match = await this.parse(parentScope)
     batch(() => {
       this.set("_state.AST", match.AST)
-      const compiled = match.compile()
-      // try {
-      //   // Use prettier to format the output.  This will throw if the code is bad.
-      //   compiled = prettier.format(compiled, { parser: "babel", plugins: [babylon], printWidth: 120 })
-      // } catch (e) {
-      //   console.warn("Prettier error:", e)
-      // }
-      this.set("_state.compiled", compiled)
+      this.set("_state.compiled", match.compile())
     })
     return this.compiled
   }

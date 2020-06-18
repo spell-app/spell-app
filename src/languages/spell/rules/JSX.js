@@ -265,7 +265,7 @@ export const JSX = new SpellParser({
           let valueAST
           if (expression) valueAST = expression.AST
           else if (statement) {
-            valueAST = new AST.InlineMethodExpression(match, {
+            valueAST = new AST.InlineMethodDeclaration(match, {
               statements: statement.AST,
               args: attribute.toLowerCase().startsWith("on")
                 ? [new AST.VariableExpression(match, { name: "event" })]

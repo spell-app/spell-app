@@ -509,7 +509,7 @@ export const lists = new SpellParser({
       },
       getAST(match) {
         const { arg, list, inlineStatement } = match.groups
-        const filter = new AST.InlineMethodExpression(inlineStatement || match, {
+        const filter = new AST.InlineMethodDeclaration(inlineStatement || match, {
           args: [new AST.VariableExpression(arg, { name: singularize(arg.value) })],
           expression: inlineStatement?.AST
         })
@@ -560,7 +560,7 @@ export const lists = new SpellParser({
       },
       getAST(match) {
         const { list, operator, arg, inlineStatement } = match.groups
-        const filter = new AST.InlineMethodExpression(inlineStatement || match, {
+        const filter = new AST.InlineMethodDeclaration(inlineStatement || match, {
           args: [new AST.VariableExpression(arg, { name: singularize(arg.value) })],
           expression: inlineStatement?.AST
         })
@@ -928,7 +928,7 @@ export const lists = new SpellParser({
       },
       getAST(match) {
         const { arg, list, inlineStatement } = match.groups
-        const filter = new AST.InlineMethodExpression(inlineStatement || match, {
+        const filter = new AST.InlineMethodDeclaration(inlineStatement || match, {
           args: [new AST.VariableExpression(arg, { name: singularize(arg.value) })],
           expression: inlineStatement?.AST
         })
@@ -1056,7 +1056,7 @@ export const lists = new SpellParser({
         const { list, item, position, inlineStatement, nestedBlock } = match.groups
         const args = [new AST.VariableExpression(item, { name: item.value })]
         if (position) args.push(new AST.VariableExpression(position))
-        const method = new AST.InlineMethodExpression(inlineStatement || nestedBlock || match, {
+        const method = new AST.InlineMethodDeclaration(inlineStatement || nestedBlock || match, {
           args,
           statements: (inlineStatement || nestedBlock)?.AST
         })
@@ -1086,11 +1086,11 @@ export const lists = new SpellParser({
             ],
             [
               "for message, index in messages: add message + index to messages",
-              "spellCore.map(messages, (message, index) => spellCore.append(messages, (message + index)))"
+              "spellCore.map(messages, (message, index) => spellCore.append(messages, message + index))"
             ],
             [
               "for message, index in messages: add it + index to messages",
-              "spellCore.map(messages, (message, index) => spellCore.append(messages, (message + index)))"
+              "spellCore.map(messages, (message, index) => spellCore.append(messages, message + index))"
             ],
             [
               "for message, index in messages: set its list to messages",
@@ -1143,7 +1143,7 @@ export const lists = new SpellParser({
           method: "getRange",
           args: [start.AST, end.AST]
         })
-        const method = new AST.InlineMethodExpression(inlineStatement || nestedBlock || match, {
+        const method = new AST.InlineMethodDeclaration(inlineStatement || nestedBlock || match, {
           args: [new AST.VariableExpression(item)],
           statements: inlineStatement?.AST || nestedBlock?.AST
         })

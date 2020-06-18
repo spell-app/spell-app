@@ -523,6 +523,31 @@ export function MultiInfixExpression(match, { expressions, operator }) {
   return rhs
 }
 
+export class InvocationArgs extends ASTNode {
+  constructor(match, props) {
+    super(match, props)
+    this.assertArrayType("args", Expression, OPTIONAL)
+    if (this.args) {
+      // unwind parenthesized expressions in args
+      this.args = this.args.map(arg => {
+        while (arg instanceof ParenthesizedExpression) arg = arg.expression
+        return arg
+      })
+    }
+  }
+  @overrideable
+  get wrap() {
+    return this.args?.length > 3
+  }
+  compile() {
+    const { args, wrap } = this
+    return stringify.Args({ args, wrap })
+  }
+  renderChildren() {
+    return <render.Args args={this.args} wrap={this.wrap} />
+  }
+}
+
 /** MethodInvocation:  generic named method invocation.
  *  - `method` is method name.
  *  - `args` (optional) is a possibly empty list of Expressions.
@@ -530,21 +555,21 @@ export function MultiInfixExpression(match, { expressions, operator }) {
  * NOTE: this does not ensure that the named method is actually defined in scope!!!!
  */
 export class MethodInvocation extends Expression {
-  constructor(match, props) {
+  constructor(match, { args, ...props }) {
     super(match, props)
     this.assertType("method", "string")
-    this.assertArrayType("args", Expression, OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
+    this.args = new InvocationArgs(match, { args })
   }
   compile() {
     const { method, args } = this
-    return `${method}${stringify.Args({ args })}`
+    return `${method}${args.compile()}`
   }
   renderChildren() {
     return (
       <>
         <span className="method-name">{this.method}</span>
-        <render.Args args={this.args} />
+        {this.args.component}
       </>
     )
   }
@@ -557,16 +582,16 @@ export class MethodInvocation extends Expression {
  *  - Try to set `datatype` as string or getter if you can.
  */
 export class ScopedMethodInvocation extends MethodInvocation {
-  constructor(match, props) {
+  constructor(match, { args, ...props }) {
     super(match, props)
     this.assertType("thing", Expression)
     this.assertType("method", "string")
-    this.assertArrayType("args", Expression, OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
+    this.args = new InvocationArgs(match, { args })
   }
   compile() {
     const { method, args } = this
-    return `${this.thing.compile()}.${method}${stringify.Args({ args })}`
+    return `${this.thing.compile()}.${method}${args.compile()}`
   }
   renderChildren() {
     return (
@@ -574,7 +599,7 @@ export class ScopedMethodInvocation extends MethodInvocation {
         <span className="method-scope">{this.thing.component}</span>
         <span className="operator period">.</span>
         <span className="method-name">{this.method}</span>
-        <render.Args args={this.args} />
+        {this.args.component}
       </>
     )
   }
@@ -899,7 +924,9 @@ export class ObjectLiteral extends Expression {
   get wrap() {
     return (
       this.properties?.length > 2 ||
-      this.properties?.some(item => item instanceof ObjectLiteralMethod || item.value instanceof InlineMethodExpression)
+      this.properties?.some(
+        item => item instanceof ObjectLiteralMethod || item.value instanceof InlineMethodDeclaration
+      )
     )
   }
   compile() {
@@ -1152,7 +1179,7 @@ export class ListExpression extends Expression {
   }
 }
 
-/** InlineMethodExpression
+/** InlineMethodDeclaration
  * TODO: rename?
  * - `args` (optional) is a list of VariableExpressions
  * - `statements` (optional) is a Statement or Expression
@@ -1160,7 +1187,7 @@ export class ListExpression extends Expression {
  * - `expression` (optional) is a Expression
  * TODO: create a scope for variables inside???
  */
-export class InlineMethodExpression extends Expression {
+export class InlineMethodDeclaration extends Expression {
   constructor(match, props) {
     super(match, props)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
@@ -1629,9 +1656,6 @@ export class JSXAttribute extends Expression {
       value,
       error: this.error
     })
-  }
-  compile() {
-    return this.output.compile()
   }
 }
 
