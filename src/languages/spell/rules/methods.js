@@ -381,7 +381,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: 'create {thisArg:expression}' */",
                 `spellCore.define(Card.prototype, 'create', {`,
-                `\tvalue() { console.log(this) }`,
+                `\tvalue() { return console.log(this) }`,
                 `})`
               ]
             },
@@ -391,7 +391,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: 'create {thisArg:expression}' */",
                 `spellCore.define(Card.prototype, 'create', {`,
-                `\tvalue() { console.log(this) }`,
+                `\tvalue() { return console.log(this) }`,
                 `})`
               ]
             },
@@ -441,7 +441,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: 'show {thisArg:expression}' */",
                 `spellCore.define(Card.prototype, 'show', {`,
-                `\tvalue() { console.log(this) }`,
+                `\tvalue() { return console.log(this) }`,
                 `})`
               ]
             },
@@ -451,7 +451,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: 'show {thisArg:expression}' */",
                 `spellCore.define(Card.prototype, 'show', {`,
-                `\tvalue() { console.log(this) }`,
+                `\tvalue() { return console.log(this) }`,
                 `})`
               ]
             },
@@ -461,7 +461,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: 'show {thisArg:expression}' */",
                 `spellCore.define(Card.prototype, 'show', {`,
-                `\tvalue() { console.log(this) }`,
+                `\tvalue() { return console.log(this) }`,
                 `})`
               ]
             },
@@ -471,7 +471,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: 'show {thisArg:expression}' */",
                 `spellCore.define(Card.prototype, 'show', {`,
-                `\tvalue() { console.log(this.name) }`,
+                `\tvalue() { return console.log(this.name) }`,
                 `})`
               ]
             },
@@ -540,7 +540,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: 'show {thisArg:expression}' */",
                 `spellCore.define(Card.prototype, 'show', {`,
-                `\tvalue() { console.log(this) }`,
+                `\tvalue() { return console.log(this) }`,
                 `})`,
                 "new Card().show()"
               ]

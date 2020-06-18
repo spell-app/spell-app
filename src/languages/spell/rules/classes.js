@@ -393,9 +393,9 @@ export const classes = new SpellParser({
             props.addMethod(
               new AST.ObjectLiteralMethod(match, {
                 property: "initializer",
-                statements: new AST.ReturnStatement(match, {
-                  value: specifier
-                })
+                inline: false,
+                statements: specifier,
+                body: specifier
               })
             )
           }

@@ -867,25 +867,18 @@ export class ObjectLiteralProperty extends ASTNode {
  *  - `statements` (optional) is the method body.
  */
 export class ObjectLiteralMethod extends ObjectLiteralProperty {
-  constructor(match, props) {
+  constructor(match, { args, body, inline, ...props }) {
     super(match, props)
-    if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
-    this.assertType("property", PropertyLiteral)
-    this.assertArrayType("args", Expression, OPTIONAL)
-    this.assertType("statements", [Statement, Expression], OPTIONAL)
-    this.statements = convertStatementsToBlock(this.match, this.statements)
+    this.method = new MethodBody(match, { args, body, inline })
   }
   compile() {
-    const args = stringify.Args({ args: this.args })
-    return `${this.property.compile()}${args} ${this.statements.compile()}`
+    return `${this.property.compile()}${this.method.compile()}`
   }
   renderChildren() {
     return (
       <>
         {this.property.component}
-        <render.Args args={this.args} />
-        {render.SPACE}
-        {this.statements.component}
+        {this.method.component}
       </>
     )
   }
@@ -972,7 +965,7 @@ export class StatementGroup extends Statement {
 /** StatementBlock -- set of statements which outputs with curly braces around.
  *  - `statements` is a list of Statements.
  */
-export class StatementBlock extends Statement {
+export class StatementBlock extends ASTNode {
   constructor(match, props) {
     super(match, props)
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
@@ -1191,7 +1184,7 @@ export class InlineMethodDeclaration extends Expression {
   constructor(match, props) {
     super(match, props)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
-    this.assertType("statements", [Statement, Expression], OPTIONAL)
+    this.assertType("statements", [Statement, StatementBlock, Expression], OPTIONAL)
     this.assertType("expression", Expression, OPTIONAL)
   }
   compile() {
@@ -1293,7 +1286,7 @@ export class SetterDefinition extends PropertyDefinition {
     super(match, props)
     this.assertType("thing", Expression)
     this.assertType("property", PropertyLiteral)
-    this.assertType("statements", [Statement, Expression], OPTIONAL)
+    this.assertType("statements", [Statement, StatementBlock, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
   // Return `CoreMethodInvocation` which we'll use to render as JS or component
@@ -1309,7 +1302,8 @@ export class SetterDefinition extends PropertyDefinition {
             new ObjectLiteralMethod(this.statements.match, {
               property: "set",
               args: [this.property],
-              statements: this.statements
+              body: this.statements,
+              inline: false
             })
           ]
         })
@@ -1328,7 +1322,7 @@ export class GetterDefinition extends PropertyDefinition {
     super(match, props)
     this.assertType("thing", Expression)
     this.assertType("property", PropertyLiteral)
-    this.assertType("statements", [Statement, Expression], OPTIONAL)
+    this.assertType("statements", [Statement, StatementBlock, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
   // Return `CoreMethodInvocation` which we'll use to render as JS or component
@@ -1343,7 +1337,8 @@ export class GetterDefinition extends PropertyDefinition {
           properties: [
             new ObjectLiteralMethod(this.statements.match, {
               property: "get",
-              statements: this.statements
+              body: this.statements,
+              inline: false
             })
           ]
         })
@@ -1363,8 +1358,8 @@ export class GetSetDefinition extends PropertyDefinition {
     super(match, props)
     this.assertType("thing", Expression)
     this.assertType("property", PropertyLiteral)
-    this.assertType("get", [Statement, Expression], OPTIONAL)
-    this.assertType("set", [Statement, Expression], OPTIONAL)
+    this.assertType("get", [Statement, StatementBlock, Expression], OPTIONAL)
+    this.assertType("set", [Statement, StatementBlock, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
   // Return `CoreMethodInvocation` which we'll use to render as JS or component
@@ -1379,12 +1374,14 @@ export class GetSetDefinition extends PropertyDefinition {
           properties: [
             new ObjectLiteralMethod(this.get.match, {
               property: "get",
-              statements: this.get
+              body: this.get,
+              inline: false
             }),
             new ObjectLiteralMethod(this.statements.match, {
               property: "set",
               args: [this.property],
-              statements: this.set
+              body: this.set,
+              inline: false
             })
           ]
         })
@@ -1405,7 +1402,7 @@ export class MethodDefinition extends PropertyDefinition {
     this.assertType("thing", Expression)
     this.assertType("method", "string")
     this.assertArrayType("args", VariableExpression, OPTIONAL)
-    this.assertType("statements", [Statement, Expression], OPTIONAL)
+    this.assertType("statements", [Statement, StatementBlock, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
   }
   // Return `CoreMethodInvocation` which we'll use to render as JS or component
@@ -1421,12 +1418,69 @@ export class MethodDefinition extends PropertyDefinition {
             new ObjectLiteralMethod(this.statements.match, {
               property: "value",
               args: this.args,
-              statements: convertStatementsToBlock(this.match, this.statements)
+              body: this.statements,
+              inline: false
             })
           ]
         })
       ]
     })
+  }
+}
+
+/**
+ * Method body from `args => body`.
+ * - `args` ia array of VariableExpressions
+ * - `body` is:
+ *    - a single Statement or StatementGroup
+ *    - a StatementBlock
+ *    - an Expression
+ *  - `inline` is:
+ *    - `true` we'll make a fat arrow function
+ *    - `false` we explicitly will NOT make a fat arrow function
+ *    - `undefined` we'll make a fat arrow function if you pass an `Expression`
+ */
+export class MethodBody extends ASTNode {
+  constructor(match, props) {
+    super(match, props)
+    this.assertArrayType("args", VariableExpression, OPTIONAL)
+    this.assertType("body", [Statement, StatementBlock, Expression], OPTIONAL)
+    // If we got an `Expression,` assume `inline` unless we were told otherwise.
+    if (this.inline === undefined && this.body instanceof Expression) this.inline = true
+    this.assertType("inline", "boolean", OPTIONAL)
+    this.assertType("datatype", "string", OPTIONAL)
+
+    // Default `body` to empty StatementBlock
+    if (!this.body) {
+      this.body = new StatementBlock(match)
+    }
+    // convert Statement/StatementGroup to StatementBlock
+    else if (this.body instanceof Statement) {
+      this.body = new StatementBlock(match, {
+        statements: [this.body]
+      })
+    }
+    // convert non-inline Expression to `return <expression>` StatementBlock
+    else if (this.body instanceof Expression && !this.inline) {
+      this.body = new StatementBlock(match, {
+        statements: [new ReturnStatement(match, { value: this.body })]
+      })
+    }
+  }
+  compile() {
+    const args = stringify.Args({ args: this.args })
+    const operator = this.inline ? " => " : " "
+    return `${args}${operator}${this.body.compile()}`
+  }
+  renderChildren() {
+    const operator = this.inline ? <span className="operator fat-arrow">{" => "}</span> : render.SPACE
+    return (
+      <>
+        <render.Args args={this.args} />
+        {operator}
+        {this.body.component}
+      </>
+    )
   }
 }
 
@@ -1441,7 +1495,7 @@ export class FunctionDeclaration extends Statement {
     super(match, props)
     this.assertType("method", "string", OPTIONAL)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
-    this.assertType("statements", [Statement, Expression], OPTIONAL)
+    this.assertType("statements", [Statement, StatementBlock, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
     this.body = convertStatementsToBlock(this.match, this.statements)
   }
