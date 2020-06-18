@@ -262,13 +262,16 @@ export const methods = new SpellParser({
 
           if (instanceType) {
             output.push(
-              new AST.MethodDefinition(match, {
+              new AST.PropertyDefinition(match, {
                 thing: new AST.PrototypeExpression(match, {
                   type: new AST.TypeExpression(match, { name: typeCase(instanceType) })
                 }),
-                method,
-                args,
-                statements
+                property: method,
+                value: new AST.MethodBody(match, {
+                  args,
+                  body: statements,
+                  inline: false
+                })
               })
             )
           } else {

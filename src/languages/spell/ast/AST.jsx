@@ -815,6 +815,7 @@ export class PropertyExpression extends Expression {
 /** ObjectLiteralProperty type
  *  - `property` is the normalized property name.
  *  - `value` (optional) is the property value.
+ *  - `error` (optional) is a parse error associated with this property
  */
 export class ObjectLiteralProperty extends ASTNode {
   constructor(match, props) {
@@ -832,14 +833,16 @@ export class ObjectLiteralProperty extends ASTNode {
     if (!this.value) return `${prop}${error}`
     return `${prop}: ${this.value.compile()}${error}`
   }
-  renderChildren() {
-    const error = this.error ? (
+  renderError() {
+    if (!this.error) return null
+    return (
       <>
         {render.SPACE}
         {this.error.component}
       </>
-    ) : null
-    const prop = <span className="property">{this.property.component}</span>
+    )
+  }
+  renderChildren() {
     // If no value, assume it's available as a local variable.
     const value = !!this.value && (
       <>
@@ -849,9 +852,9 @@ export class ObjectLiteralProperty extends ASTNode {
     )
     return (
       <>
-        {prop}
+        {<span className="property">{this.property.component}</span>}
         {value}
-        {error}
+        {this.renderError()}
       </>
     )
   }
@@ -859,22 +862,26 @@ export class ObjectLiteralProperty extends ASTNode {
 
 /** ObjectLiteralMethod type, eg: `{ foo(arg, arg) {...} }`
  *  - `property` is the normalized property name.
- *  - `args` are method arguments
- *  - `statements` (optional) is the method body.
+ *  - `method` is MethodBody to use.
+ *  - `error` (optional) is a syntax error associated with this property
  */
 export class ObjectLiteralMethod extends ObjectLiteralProperty {
-  constructor(match, { args, body, inline, ...props }) {
+  constructor(match, props) {
     super(match, props)
-    this.method = new MethodBody(match, { args, body, inline })
+    // `property` and `error` will be set up by ObjectLiteralProperty
+    this.assertType("method", MethodBody)
   }
   compile() {
-    return `${this.property.compile()}${this.method.compile()}`
+    const error = this.error ? ` ${this.error.compile()}` : ""
+    return `${this.property.compile()}${this.method.compile()}${error}`
   }
   renderChildren() {
+    // TODO: inline methods must be handled differently!!
     return (
       <>
         {this.property.component}
         {this.method.component}
+        {this.renderError()}
       </>
     )
   }
@@ -892,6 +899,7 @@ export class ObjectLiteral extends Expression {
     this.assertType("wrap", "boolean", OPTIONAL)
   }
   addProp(property, value) {
+    // convert string value to StringLiteral
     if (typeof value === "string") value = new StringLiteral(this.match, { value })
     this.assert(
       value instanceof Expression || value instanceof FunctionDeclaration,
@@ -900,13 +908,9 @@ export class ObjectLiteral extends Expression {
     if (!this.properties) this.properties = []
     this.properties.push(new ObjectLiteralProperty(this.match, { property, value }))
   }
-  addMethod(method) {
-    this.assert(
-      method instanceof ObjectLiteralMethod,
-      `AST.ObjectLiteral.addMethod(): method must be an ObjectLiteralMethod`
-    )
+  addMethod(property, method) {
     if (!this.properties) this.properties = []
-    this.properties.push(method)
+    this.properties.push(new ObjectLiteralMethod(method.match, { property, method }))
   }
   // Should we wrap properties block?
   @overrideable
@@ -1180,7 +1184,7 @@ export class InlineMethodDeclaration extends Expression {
   constructor(match, props) {
     super(match, props)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
-    this.assertType("statements", [Statement, StatementBlock, Expression], OPTIONAL)
+    this.assertType("statements", [StatementBlock, Statement, Expression], OPTIONAL)
     this.assertType("expression", Expression, OPTIONAL)
   }
   compile() {
@@ -1228,199 +1232,51 @@ export class PrototypeExpression extends Expression {
 }
 
 /** PropertyDefinition: spellCore.define(...)
+ * - `thing` (required) is an Expression
+ * - `property` (required) is PropertyLiteral or string
+ * - `value` (optional) is an Expression
+ * - `initializer` (optional) is an initializer method body
+ * - `get` (optional) is a method body
+ * - `set` (optional)  is a method body for `setter` (with arg `property`)
  * Define `@memoize get definition()` to return `spellCore.define()` statement.
  */
 export class PropertyDefinition extends Statement {
+  constructor(match, props) {
+    super(match, props)
+    this.assertType("thing", Expression)
+    if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
+    this.assertType("property", PropertyLiteral)
+    this.assertType("value", [Expression, MethodBody], OPTIONAL)
+    this.assertType("initializer", [StatementBlock, Statement, Expression], OPTIONAL)
+    this.assertType("get", [StatementBlock, Statement, Expression], OPTIONAL)
+    this.assertType("set", [StatementBlock, Statement, Expression], OPTIONAL)
+  }
+  // Return `CoreMethodInvocation` which we'll use to render as JS or component
+  @memoize
+  get definition() {
+    const { match, thing, property, value, get, set, initializer } = this
+    const propName = new QuotedExpression(property.match, { expression: property })
+
+    const descriptor = new ObjectLiteral(match)
+    if (value) {
+      if (value instanceof MethodBody) descriptor.addMethod("value", value)
+      else descriptor.addProp("value", value)
+    }
+    if (initializer)
+      descriptor.addMethod("initializer", new MethodBody(initializer.match, { body: initializer, inline: false }))
+    if (get) descriptor.addMethod("get", new MethodBody(get.match, { body: get, inline: false }))
+    if (set) descriptor.addMethod("set", new MethodBody(set.match, { args: [property], body: set, inline: false }))
+
+    return new CoreMethodInvocation(match, {
+      methodName: "define",
+      args: [thing, propName, descriptor]
+    })
+  }
   compile() {
     return this.definition.compile()
   }
   renderChildren() {
     return this.definition.component
-  }
-}
-
-/** ValueDefinition: assigns named value to prototype
- * - `thing` is an Expression
- * - `property` is PropertyLiteral
- * - `value` is an Expression
- */
-export class ValueDefinition extends PropertyDefinition {
-  constructor(match, props) {
-    super(match, props)
-    this.assertType("thing", Expression)
-    this.assertType("property", PropertyLiteral)
-    this.assertType("value", Expression)
-  }
-  // Return `CoreMethodInvocation` which we'll use to render as JS or component
-  @memoize
-  get definition() {
-    return new CoreMethodInvocation(this.match, {
-      methodName: "define",
-      args: [
-        this.thing,
-        new QuotedExpression(this.property.match, { expression: this.property }),
-        new ObjectLiteral(this.value.match, {
-          properties: [
-            new ObjectLiteralProperty(this.value.match, {
-              property: "value",
-              value: this.value
-            })
-          ]
-        })
-      ]
-    })
-  }
-}
-
-/** SetterDefinition: creates a setter for type instances
- * - `thing` is an Expression
- * - `property` is PropertyLiteral
- * - `statements` is a Statement or Expression
- */
-export class SetterDefinition extends PropertyDefinition {
-  constructor(match, props) {
-    super(match, props)
-    this.assertType("thing", Expression)
-    this.assertType("property", PropertyLiteral)
-    this.assertType("statements", [Statement, StatementBlock, Expression], OPTIONAL)
-    this.assertType("datatype", "string", OPTIONAL)
-  }
-  // Return `CoreMethodInvocation` which we'll use to render as JS or component
-  @memoize
-  get definition() {
-    return new CoreMethodInvocation(this.match, {
-      methodName: "define",
-      args: [
-        this.thing,
-        new QuotedExpression(this.property.match, { expression: this.property }),
-        new ObjectLiteral(this.property.match, {
-          properties: [
-            new ObjectLiteralMethod(this.statements.match, {
-              property: "set",
-              args: [this.property],
-              body: this.statements,
-              inline: false
-            })
-          ]
-        })
-      ]
-    })
-  }
-}
-
-/** GetterDefinition: creates a setter for type instances
- * - `thing` is an Expression
- * - `property` is the PropertyLiteral
- * - `statements` is a Statement or Expression
- */
-export class GetterDefinition extends PropertyDefinition {
-  constructor(match, props) {
-    super(match, props)
-    this.assertType("thing", Expression)
-    this.assertType("property", PropertyLiteral)
-    this.assertType("statements", [Statement, StatementBlock, Expression], OPTIONAL)
-    this.assertType("datatype", "string", OPTIONAL)
-  }
-  // Return `CoreMethodInvocation` which we'll use to render as JS or component
-  @memoize
-  get definition() {
-    return new CoreMethodInvocation(this.match, {
-      methodName: "define",
-      args: [
-        this.thing,
-        new QuotedExpression(this.property.match, { expression: this.property }),
-        new ObjectLiteral(this.property.match, {
-          properties: [
-            new ObjectLiteralMethod(this.statements.match, {
-              property: "get",
-              body: this.statements,
-              inline: false
-            })
-          ]
-        })
-      ]
-    })
-  }
-}
-
-/** GetSetDefinition: creates a getter/setter combo for type instances
- * - `thing` is an Expression
- * - `property` is the PropertyLiteral
- * - `get` is a Statement or Expression for the getter
- * - `set` is a Statement or Expression for the setter
- */
-export class GetSetDefinition extends PropertyDefinition {
-  constructor(match, props) {
-    super(match, props)
-    this.assertType("thing", Expression)
-    this.assertType("property", PropertyLiteral)
-    this.assertType("get", [Statement, StatementBlock, Expression], OPTIONAL)
-    this.assertType("set", [Statement, StatementBlock, Expression], OPTIONAL)
-    this.assertType("datatype", "string", OPTIONAL)
-  }
-  // Return `CoreMethodInvocation` which we'll use to render as JS or component
-  @memoize
-  get definition() {
-    return new CoreMethodInvocation(this.match, {
-      methodName: "define",
-      args: [
-        this.thing,
-        new QuotedExpression(this.property.match, { expression: this.property }),
-        new ObjectLiteral(this.property.match, {
-          properties: [
-            new ObjectLiteralMethod(this.get.match, {
-              property: "get",
-              body: this.get,
-              inline: false
-            }),
-            new ObjectLiteralMethod(this.statements.match, {
-              property: "set",
-              args: [this.property],
-              body: this.set,
-              inline: false
-            })
-          ]
-        })
-      ]
-    })
-  }
-}
-
-/** MethodDefinition: creates a method for type instances
- * - `thing` is an Expression (e.g. a ProtypeExpression)
- * - `method` is the method name
- * - `args` ia array of VariableExpressions
- * - `statements` is a Statement or Expression
- */
-export class MethodDefinition extends PropertyDefinition {
-  constructor(match, props) {
-    super(match, props)
-    this.assertType("thing", Expression)
-    this.assertType("method", "string")
-    this.assertArrayType("args", VariableExpression, OPTIONAL)
-    this.assertType("statements", [Statement, StatementBlock, Expression], OPTIONAL)
-    this.assertType("datatype", "string", OPTIONAL)
-  }
-  // Return `CoreMethodInvocation` which we'll use to render as JS or component
-  @memoize
-  get definition() {
-    return new CoreMethodInvocation(this.match, {
-      methodName: "define",
-      args: [
-        this.thing,
-        new QuotedExpression(this.match, this.method),
-        new ObjectLiteral(this.match, {
-          properties: [
-            new ObjectLiteralMethod(this.statements.match, {
-              property: "value",
-              args: this.args,
-              body: this.statements,
-              inline: false
-            })
-          ]
-        })
-      ]
-    })
   }
 }
 
@@ -1440,7 +1296,7 @@ export class MethodBody extends ASTNode {
   constructor(match, props) {
     super(match, props)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
-    this.assertType("body", [Statement, StatementBlock, Expression], OPTIONAL)
+    this.assertType("body", [StatementBlock, Statement, Expression], OPTIONAL)
     // If we got an `Expression,` assume `inline` unless we were told otherwise.
     if (this.inline === undefined && this.body instanceof Expression) this.inline = true
     this.assertType("inline", "boolean", OPTIONAL)
@@ -1491,7 +1347,7 @@ export class FunctionDeclaration extends Statement {
     super(match, props)
     this.assertType("method", "string", OPTIONAL)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
-    this.assertType("statements", [Statement, StatementBlock, Expression], OPTIONAL)
+    this.assertType("statements", [StatementBlock, Statement, Expression], OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
     this.body = convertStatementsToBlock(this.match, this.statements)
   }

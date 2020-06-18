@@ -88,9 +88,9 @@ export const classes = new SpellParser({
               property: type.value,
               value: type.AST
             }),
-            new AST.ValueDefinition(match, {
+            new AST.PropertyDefinition(match, {
               thing: new AST.PrototypeExpression(match, { type: type.AST }),
-              property: new AST.PropertyLiteral(match, "instanceType"),
+              property: "instanceType",
               value: instanceType.AST
             })
           ]
@@ -391,8 +391,8 @@ export const classes = new SpellParser({
           // instance specifier
           else if (specifier instanceof AST.NewInstanceExpression) {
             props.addMethod(
-              new AST.ObjectLiteralMethod(match, {
-                property: "initializer",
+              "initializer",
+              new AST.MethodBody(specifier.match, {
                 inline: false,
                 statements: specifier,
                 body: specifier
@@ -523,10 +523,10 @@ export const classes = new SpellParser({
             statements: [ifAST, new AST.ReturnStatement(match, { value: otherValue.AST })]
           })
         }
-        return new AST.GetterDefinition(match, {
+        return new AST.PropertyDefinition(match, {
           thing: prototype,
           property: property.AST,
-          statements: getterBody
+          get: getterBody
         })
       },
       tests: [
@@ -572,12 +572,10 @@ export const classes = new SpellParser({
         const { type, property } = type_property.groups
         // make sure type is defined
         getOrStubType(match.scope, type.value)
-        return new AST.GetterDefinition(match, {
+        return new AST.PropertyDefinition(match, {
           thing: new AST.PrototypeExpression(type, { type: type.AST }),
           property: property.AST,
-          statements: new AST.ReturnStatement(match, {
-            value: expression.AST
-          })
+          get: expression.AST
         })
       },
       tests: [
@@ -663,12 +661,10 @@ export const classes = new SpellParser({
           const { type, expression } = match.groups
           const statements = [
             match.ruleComment,
-            new AST.GetterDefinition(match, {
+            new AST.PropertyDefinition(match, {
               thing: new AST.PrototypeExpression(type, { type: type.AST }),
               property: new AST.PropertyLiteral(match, match.property),
-              statements: new AST.ReturnStatement(match, {
-                value: expression.AST
-              })
+              get: expression.AST
             })
           ]
           return new AST.StatementGroup(match, { statements })
@@ -866,14 +862,17 @@ export const classes = new SpellParser({
           )
           const statements = [
             match.ruleComment,
-            new AST.MethodDefinition(match, {
+            new AST.PropertyDefinition(match, {
               thing: new AST.PrototypeExpression(type, { type: type.AST }),
-              method: property,
-              args,
-              statements: new AST.ReturnStatement(match, {
-                value: AST.MultiInfixExpression(match, { expressions, operator: "&&" })
-              }),
-              datatype: "boolean"
+              property,
+              value: new AST.MethodBody(match, {
+                args,
+                body: new AST.ReturnStatement(match, {
+                  value: AST.MultiInfixExpression(match, { expressions, operator: "&&" })
+                }),
+                inline: false,
+                datatype: "boolean"
+              })
             })
           ]
           return new AST.StatementGroup(match, { statements })
