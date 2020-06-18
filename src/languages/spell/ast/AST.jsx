@@ -825,7 +825,7 @@ export class ObjectLiteralProperty extends ASTNode {
     super(match, props)
     if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
-    this.assertType("value", [Expression, FunctionDefinition], OPTIONAL)
+    this.assertType("value", [Expression, FunctionDeclaration], OPTIONAL)
     this.assertType("error", ParseError, OPTIONAL)
     // this.assert(this.property.isLegalIdentifier || !!this.value, "Non-legal identifiers must specify a value!")
   }
@@ -905,8 +905,8 @@ export class ObjectLiteral extends Expression {
   addProp(property, value) {
     if (typeof value === "string") value = new StringLiteral(this.match, { value })
     this.assert(
-      value instanceof Expression || value instanceof FunctionDefinition,
-      `AST.ObjectLiteral.addProp(${property}): value must be an Expression or FunctionDefinition`
+      value instanceof Expression || value instanceof FunctionDeclaration,
+      `AST.ObjectLiteral.addProp(${property}): value must be an Expression or FunctionDeclaration`
     )
     if (!this.properties) this.properties = []
     this.properties.push(new ObjectLiteralProperty(this.match, { property, value }))
@@ -1430,13 +1430,13 @@ export class MethodDefinition extends PropertyDefinition {
   }
 }
 
-/** FunctionDefinition: creates an function instance
+/** FunctionDeclaration: creates an function instance
  * - `method` is the method name
  * - `args` ia array of VariableExpressions
  * - `statements` is a Statement or Expression
  * TODO: export this???
  */
-export class FunctionDefinition extends Statement {
+export class FunctionDeclaration extends Statement {
   constructor(match, props) {
     super(match, props)
     this.assertType("method", "string", OPTIONAL)

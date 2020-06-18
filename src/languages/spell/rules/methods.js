@@ -273,7 +273,7 @@ export const methods = new SpellParser({
             )
           } else {
             output.push(
-              new AST.FunctionDefinition(match, {
+              new AST.FunctionDeclaration(match, {
                 method,
                 args,
                 statements
