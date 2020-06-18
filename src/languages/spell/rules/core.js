@@ -173,12 +173,12 @@ export const core = new SpellParser({
           title: "correctly matches booleans",
           tests: [
             ["", undefined],
-            ["true", true],
-            ["yes", true],
-            ["ok", true],
-            ["false", false],
-            ["no", false],
-            ["cancel", false]
+            ["true", "true"],
+            ["yes", "true"],
+            ["ok", "true"],
+            ["false", "false"],
+            ["no", "false"],
+            ["cancel", "false"]
           ]
         },
         {

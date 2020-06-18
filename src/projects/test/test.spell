@@ -1,1 +1,2 @@
-print <a A=1><b c=1>foo</b></a>
+get [yes,no,'a',1]
+expect the rank of it to be "queen"

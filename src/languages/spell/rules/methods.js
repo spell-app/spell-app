@@ -380,7 +380,9 @@ export const methods = new SpellParser({
               input: "to create (a card): print the card",
               output: [
                 "/* SPELL: added rule: 'create {thisArg:expression}' */",
-                "spellCore.define(Card.prototype, 'create', { value() { console.log(this) } })"
+                `spellCore.define(Card.prototype, 'create', {`,
+                `\tvalue() { console.log(this) }`,
+                `})`
               ]
             },
             {
@@ -388,7 +390,9 @@ export const methods = new SpellParser({
               input: "to create (a card): print it",
               output: [
                 "/* SPELL: added rule: 'create {thisArg:expression}' */",
-                "spellCore.define(Card.prototype, 'create', { value() { console.log(this) } })"
+                `spellCore.define(Card.prototype, 'create', {`,
+                `\tvalue() { console.log(this) }`,
+                `})`
               ]
             },
             {
@@ -396,7 +400,9 @@ export const methods = new SpellParser({
               input: "to create (a card): set its number to 1",
               output: [
                 "/* SPELL: added rule: 'create {thisArg:expression}' */",
-                "spellCore.define(Card.prototype, 'create', { value() { this.number = 1 } })"
+                `spellCore.define(Card.prototype, 'create', {`,
+                `\tvalue() { this.number = 1 }`,
+                `})`
               ]
             },
             {
@@ -404,7 +410,9 @@ export const methods = new SpellParser({
               input: "to add (a card) to (a pile): set the pile of the card to the pile",
               output: [
                 "/* SPELL: added rule: 'add {thisArg:expression} to {callArgs:expression}' */",
-                "spellCore.define(Card.prototype, 'add_to_$pile', { value(pile) { this.pile = pile } })"
+                `spellCore.define(Card.prototype, 'add_to_$pile', {`,
+                `\tvalue(pile) { this.pile = pile }`,
+                `})`
               ]
             },
             {
@@ -412,7 +420,9 @@ export const methods = new SpellParser({
               input: "to add (a card) to (a pile): set the pile of it to the pile",
               output: [
                 "/* SPELL: added rule: 'add {thisArg:expression} to {callArgs:expression}' */",
-                "spellCore.define(Card.prototype, 'add_to_$pile', { value(pile) { this.pile = pile } })"
+                `spellCore.define(Card.prototype, 'add_to_$pile', {`,
+                `\tvalue(pile) { this.pile = pile }`,
+                `})`
               ]
             },
             {
@@ -420,7 +430,9 @@ export const methods = new SpellParser({
               input: "to add (a card) to (a pile): set its pile to the pile",
               output: [
                 "/* SPELL: added rule: 'add {thisArg:expression} to {callArgs:expression}' */",
-                "spellCore.define(Card.prototype, 'add_to_$pile', { value(pile) { this.pile = pile } })"
+                `spellCore.define(Card.prototype, 'add_to_$pile', {`,
+                `\tvalue(pile) { this.pile = pile }`,
+                `})`
               ]
             },
             {
@@ -428,7 +440,9 @@ export const methods = new SpellParser({
               input: "to show (thing as a card): print the thing",
               output: [
                 "/* SPELL: added rule: 'show {thisArg:expression}' */",
-                "spellCore.define(Card.prototype, 'show', { value() { console.log(this) } })"
+                `spellCore.define(Card.prototype, 'show', {`,
+                `\tvalue() { console.log(this) }`,
+                `})`
               ]
             },
             {
@@ -436,7 +450,9 @@ export const methods = new SpellParser({
               input: "to show (thing as a card): print the card",
               output: [
                 "/* SPELL: added rule: 'show {thisArg:expression}' */",
-                "spellCore.define(Card.prototype, 'show', { value() { console.log(this) } })"
+                `spellCore.define(Card.prototype, 'show', {`,
+                `\tvalue() { console.log(this) }`,
+                `})`
               ]
             },
             {
@@ -444,7 +460,9 @@ export const methods = new SpellParser({
               input: "to show (thing as a card): print it",
               output: [
                 "/* SPELL: added rule: 'show {thisArg:expression}' */",
-                "spellCore.define(Card.prototype, 'show', { value() { console.log(this) } })"
+                `spellCore.define(Card.prototype, 'show', {`,
+                `\tvalue() { console.log(this) }`,
+                `})`
               ]
             },
             {
@@ -452,7 +470,9 @@ export const methods = new SpellParser({
               input: "to show (thing as a card): print its name",
               output: [
                 "/* SPELL: added rule: 'show {thisArg:expression}' */",
-                "spellCore.define(Card.prototype, 'show', { value() { console.log(this.name) } })"
+                `spellCore.define(Card.prototype, 'show', {`,
+                `\tvalue() { console.log(this.name) }`,
+                `})`
               ]
             },
             {
@@ -519,7 +539,9 @@ export const methods = new SpellParser({
               input: ["to show (a card): print the card", "show a new card"],
               output: [
                 "/* SPELL: added rule: 'show {thisArg:expression}' */",
-                "spellCore.define(Card.prototype, 'show', { value() { console.log(this) } })",
+                `spellCore.define(Card.prototype, 'show', {`,
+                `\tvalue() { console.log(this) }`,
+                `})`,
                 "new Card().show()"
               ]
             },
@@ -528,7 +550,9 @@ export const methods = new SpellParser({
               input: ["to play (a card) on (a pile): set its pile to the pile", "play a new card on a new pile"],
               output: [
                 "/* SPELL: added rule: 'play {thisArg:expression} on {callArgs:expression}' */",
-                "spellCore.define(Card.prototype, 'play_on_$pile', { value(pile) { this.pile = pile } })",
+                `spellCore.define(Card.prototype, 'play_on_$pile', {`,
+                `\tvalue(pile) { this.pile = pile }`,
+                `})`,
                 "new Card().play_on_$pile(new Pile())"
               ]
             }
@@ -613,7 +637,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: 'notify (with {withArgs:object_literal_properties})?' */",
                 "function notify(props = {}) {",
                 '\tlet { message = "nope", reply = "yep" } = props',
-                "\tconsole.log(message + reply)",
+                "\tconsole.log((message + reply))",
                 "}",
                 'notify({ message: "How many?", reply: 2 })'
               ]
@@ -629,7 +653,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: 'notify (with {withArgs:object_literal_properties})?' */",
                 "function notify(props = {}) {",
                 '\tlet { name, message, reply = "yep" } = props',
-                "\tconsole.log((name + message) + reply)",
+                "\tconsole.log(((name + message) + reply))",
                 "}",
                 "notify({",
                 '\tname: "Bob",',

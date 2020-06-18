@@ -247,6 +247,9 @@ export class BooleanLiteral extends Literal {
     super(match, props)
     this.assertType("value", "boolean")
   }
+  compile() {
+    return this.value ? "true" : "false"
+  }
   renderChildren() {
     return this.value ? "true" : "false"
   }

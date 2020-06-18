@@ -34,7 +34,6 @@ export const Item = ({ item, index }) => item?.compile() || ""
 /** Draw a series of items with a delimiter between */
 export const List = ({ items, delimiter = SPACED_COMMA, DrawItem = Item }) => {
   if (!items || !items.length) return ""
-  // create `kids` array in funky way to get around key errors
   const kids = []
   items.forEach((item, index) => {
     kids.push(DrawItem({ item, index }))
@@ -50,6 +49,7 @@ export const EMPTY_PARENS = `${LEFT_PAREN}${RIGHT_PAREN}`
 export const InParens = ({ children = "", wrap = false, space = false }) => {
   if (children == null || children === "") return EMPTY_PARENS
   const delimiter = (wrap && NEWLINE) || (space && SPACE) || ""
+  if (wrap) children = `${children.split("\n").join("\n\t")}`
   return `${LEFT_PAREN}${delimiter}${children}${delimiter}${RIGHT_PAREN}`
 }
 

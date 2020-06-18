@@ -212,7 +212,7 @@ export const assignment = new SpellParser({
             // multi-line JSX
             [
               ["return", "\t<div>", "\t\t<span/>", "\t</div>"],
-              'return spellCore.element({ tag: "div", children: [spellCore.element({ tag: "span" })] })'
+              ['return spellCore.element({ tag: "div", children: [', '\tspellCore.element({ tag: "span" })', "] })"]
             ],
             // fails for more than one indented line
             [
