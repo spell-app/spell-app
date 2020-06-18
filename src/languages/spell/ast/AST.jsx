@@ -402,18 +402,19 @@ export class BlockComment extends Comment {
   }
 }
 
-/** ParseError type.
- *  - `message` is text of the error
+/** ParserAnnotation type, used for parser annotations injected into the output.
+ *  - `value` is text of the annotation.
  */
-export class ParseError extends BlockComment {
+export class ParserAnnotation extends BlockComment {
+  @proto annotation = "SPELL:"
   compile() {
-    return `/* PARSE ERROR: ${this.value} */`
+    return `/* ${this.annotation} ${this.value} */`
   }
   renderChildren() {
     return (
       <>
         <span className="punctuation open-comment-symbol">{"/* "}</span>
-        <span className="annotation">PARSE ERROR: </span>
+        <span className="annotation">{this.annotation} </span>
         <span className="comment">{this.value}</span>
         <span className="punctuation close-comment-symbol">{" */"}</span>
       </>
@@ -421,23 +422,11 @@ export class ParseError extends BlockComment {
   }
 }
 
-/** ParserAnnotation type, used for parser annotations injected into the output.
- *  - `value` is text of the annotation.
+/** ParseError type.
+ *  - `value` is text of the error
  */
-export class ParserAnnotation extends BlockComment {
-  compile() {
-    return `/* SPELL: ${this.value} */`
-  }
-  renderChildren() {
-    return (
-      <>
-        <span className="punctuation open-comment-symbol">{"/* "}</span>
-        <span className="annotation">SPELL: </span>
-        <span className="comment">{this.value}</span>
-        <span className="punctuation close-comment-symbol">{" */"}</span>
-      </>
-    )
-  }
+export class ParseError extends ParserAnnotation {
+  @proto annotation = "PARSE ERROR:"
 }
 
 /** Parenthesized expression.
@@ -688,6 +677,30 @@ export class TypeExpression extends Expression {
   }
 }
 
+/** PrototypeExpression:  type.prototype
+ *  * - `type` is a TypeExpression
+ */
+export class PrototypeExpression extends Expression {
+  constructor(match, props) {
+    super(match, props)
+    if (typeof this.type === "string") this.type = new TypeExpression(match, { name: this.type })
+    this.assertType("type", TypeExpression)
+  }
+  compile() {
+    const { type } = this
+    return `${type.compile()}.prototype`
+  }
+  renderChildren() {
+    return (
+      <>
+        {this.type.component}
+        <span className="operator period">.</span>
+        <span className="keyword prototype">{"prototype"}</span>
+      </>
+    )
+  }
+}
+
 /** VariableExpression -- pointer to a Variable object.
  *  - `name` is the normalized type name: dashes and spaces converted to underscores.
  *  - `default` (optional) AST for default value. See `DestructuredAssignment`
@@ -777,7 +790,7 @@ export class PropertyLiteral extends Literal {
 
 /** PropertyExpression -- named property of some object.
  *  - `object` is the thing to get the property from, as an Expression.
- *  - `property` is the normalized property name.
+ *  - `property` is the normalized property name or PropertyLiteral.
  *  TODO: datatype???
  */
 export class PropertyExpression extends Expression {
@@ -822,7 +835,7 @@ export class ObjectLiteralProperty extends ASTNode {
     super(match, props)
     if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
-    this.assertType("value", [Expression, FunctionDeclaration], OPTIONAL)
+    this.assertType("value", Expression, OPTIONAL)
     this.assertType("error", ParseError, OPTIONAL)
     // this.assert(this.property.isLegalIdentifier || !!this.value, "Non-legal identifiers must specify a value!")
   }
@@ -950,6 +963,7 @@ export class ObjectLiteral extends Expression {
 export class Statement extends ASTNode {}
 
 /** StatementGroup -- set of random statements which does NOT get indented with curly braces!
+ * NOTE: you can use this interchangably whenever something takes a single `Statement`.
  *  - `statements` is a list of Statements.
  */
 export class StatementGroup extends Statement {
@@ -1175,30 +1189,8 @@ export class ListExpression extends Expression {
   }
 }
 
-/** PrototypeExpression:  type.prototype
- *  * - `type` is a TypeExpression
- */
-export class PrototypeExpression extends Expression {
-  constructor(match, props) {
-    super(match, props)
-    this.assertType("type", TypeExpression)
-  }
-  compile() {
-    const { type } = this
-    return `${type.compile()}.prototype`
-  }
-  renderChildren() {
-    return (
-      <>
-        {this.type.component}
-        <span className="operator period">.</span>
-        <span className="keyword prototype">{"prototype"}</span>
-      </>
-    )
-  }
-}
-
-/** PropertyDefinition: spellCore.define(...)
+/**
+ * PropertyDefinition: `spellCore.define(thing, property, {...})`
  * - `thing` (required) is an Expression
  * - `property` (required) is PropertyLiteral or string
  * - `value` (optional) is an Expression
@@ -1248,7 +1240,7 @@ export class PropertyDefinition extends Statement {
 }
 
 /**
- * Method body from `args => body`.
+ * Args + method body, NOT including method name or `function` keyword.
  * - `args` ia array of VariableExpressions
  * - `body` is:
  *    - a single Statement or StatementGroup
@@ -1256,7 +1248,7 @@ export class PropertyDefinition extends Statement {
  *    - an Expression
  *  - `inline` is:
  *    - `true` we'll make a fat arrow function
- *    - `false` we explicitly will NOT make a fat arrow function
+ *    - `false` we explicitly WILL NOT make a fat arrow function
  *    - `undefined` we'll make a fat arrow function if you pass an `Expression`
  */
 export class MethodBody extends ASTNode {
@@ -1303,11 +1295,9 @@ export class MethodBody extends ASTNode {
   }
 }
 
-/** FunctionDeclaration: creates an function instance
- * - `method` is the method name
- * - `args` ia array of VariableExpressions
- * - `statements` is a Statement or Expression
- * TODO: export this???
+/** FunctionDeclaration: creates a function instance
+ * - `methodName` is the method name
+ * - `method` is MethodBody (args + body)
  */
 export class FunctionDeclaration extends Statement {
   constructor(match, props) {

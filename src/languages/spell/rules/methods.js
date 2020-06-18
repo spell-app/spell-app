@@ -264,7 +264,7 @@ export const methods = new SpellParser({
             output.push(
               new AST.PropertyDefinition(match, {
                 thing: new AST.PrototypeExpression(match, {
-                  type: new AST.TypeExpression(match, { name: typeCase(instanceType) })
+                  type: typeCase(instanceType)
                 }),
                 property: method,
                 value: new AST.MethodBody(match, {
