@@ -509,9 +509,10 @@ export const lists = new SpellParser({
       },
       getAST(match) {
         const { arg, list, inlineStatement } = match.groups
-        const filter = new AST.InlineMethodDeclaration(inlineStatement || match, {
+        const filter = new AST.MethodBody(inlineStatement || match, {
+          inline: true,
           args: [new AST.VariableExpression(arg, { name: singularize(arg.value) })],
-          expression: inlineStatement?.AST
+          body: inlineStatement?.AST
         })
         return new AST.CoreMethodInvocation(match, {
           methodName: "filter",
@@ -560,9 +561,10 @@ export const lists = new SpellParser({
       },
       getAST(match) {
         const { list, operator, arg, inlineStatement } = match.groups
-        const filter = new AST.InlineMethodDeclaration(inlineStatement || match, {
+        const filter = new AST.MethodBody(inlineStatement || match, {
+          inline: true,
           args: [new AST.VariableExpression(arg, { name: singularize(arg.value) })],
-          expression: inlineStatement?.AST
+          body: inlineStatement?.AST
         })
         const expression = new AST.CoreMethodInvocation(match, {
           methodName: "any",
@@ -928,9 +930,10 @@ export const lists = new SpellParser({
       },
       getAST(match) {
         const { arg, list, inlineStatement } = match.groups
-        const filter = new AST.InlineMethodDeclaration(inlineStatement || match, {
+        const filter = new AST.MethodBody(inlineStatement || match, {
+          inline: true,
           args: [new AST.VariableExpression(arg, { name: singularize(arg.value) })],
-          expression: inlineStatement?.AST
+          body: inlineStatement?.AST
         })
         return new AST.CoreMethodInvocation(match, {
           methodName: "removeWhere",
@@ -1056,9 +1059,10 @@ export const lists = new SpellParser({
         const { list, item, position, inlineStatement, nestedBlock } = match.groups
         const args = [new AST.VariableExpression(item, { name: item.value })]
         if (position) args.push(new AST.VariableExpression(position))
-        const method = new AST.InlineMethodDeclaration(inlineStatement || nestedBlock || match, {
+        const method = new AST.MethodBody(inlineStatement || nestedBlock || match, {
+          inline: true,
           args,
-          statements: (inlineStatement || nestedBlock)?.AST
+          body: (inlineStatement || nestedBlock)?.AST
         })
         return new AST.CoreMethodInvocation(match, {
           methodName: "map", // TODO...
@@ -1078,11 +1082,11 @@ export const lists = new SpellParser({
             ["for item, index in my-list:", "spellCore.map(my_list, (item, index) => {})"],
             [
               "for each card in deck: set the direction of the card to 'down'",
-              "spellCore.map(deck, (card) => card.direction = 'down')"
+              "spellCore.map(deck, (card) => { card.direction = 'down' })"
             ],
             [
               "for each card in deck: set the direction of it to 'down'",
-              "spellCore.map(deck, (card) => card.direction = 'down')"
+              "spellCore.map(deck, (card) => { card.direction = 'down' })"
             ],
             [
               "for message, index in messages: add message + index to messages",
@@ -1094,7 +1098,7 @@ export const lists = new SpellParser({
             ],
             [
               "for message, index in messages: set its list to messages",
-              "spellCore.map(messages, (message, index) => message.list = messages)"
+              "spellCore.map(messages, (message, index) => { message.list = messages })"
             ],
 
             [
@@ -1143,9 +1147,10 @@ export const lists = new SpellParser({
           methodName: "getRange",
           args: [start.AST, end.AST]
         })
-        const method = new AST.InlineMethodDeclaration(inlineStatement || nestedBlock || match, {
+        const method = new AST.MethodBody(inlineStatement || nestedBlock || match, {
+          inline: true,
           args: [new AST.VariableExpression(item)],
-          statements: inlineStatement?.AST || nestedBlock?.AST
+          body: inlineStatement?.AST || nestedBlock?.AST
         })
         return new AST.CoreMethodInvocation(match, {
           methodName: "map",

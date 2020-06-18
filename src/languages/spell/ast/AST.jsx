@@ -526,7 +526,7 @@ export function MultiInfixExpression(match, { expressions, operator }) {
 export class InvocationArgs extends ASTNode {
   constructor(match, props) {
     super(match, props)
-    this.assertArrayType("args", Expression, OPTIONAL)
+    this.assertArrayType("args", [Expression, MethodBody], OPTIONAL)
     if (this.args) {
       // unwind parenthesized expressions in args
       this.args = this.args.map(arg => {
@@ -873,10 +873,20 @@ export class ObjectLiteralMethod extends ObjectLiteralProperty {
   }
   compile() {
     const error = this.error ? ` ${this.error.compile()}` : ""
+    if (this.method.inline) return `${this.property.compile()}: ${this.method.compile()}${error}`
     return `${this.property.compile()}${this.method.compile()}${error}`
   }
   renderChildren() {
-    // TODO: inline methods must be handled differently!!
+    if (this.method.inline) {
+      return (
+        <>
+          {this.property.component}
+          <span className="operator colon">: </span>
+          {this.method.component}
+          {this.renderError()}
+        </>
+      )
+    }
     return (
       <>
         {this.property.component}
@@ -901,26 +911,19 @@ export class ObjectLiteral extends Expression {
   addProp(property, value) {
     // convert string value to StringLiteral
     if (typeof value === "string") value = new StringLiteral(this.match, { value })
-    this.assert(
-      value instanceof Expression || value instanceof FunctionDeclaration,
-      `AST.ObjectLiteral.addProp(${property}): value must be an Expression or FunctionDeclaration`
-    )
+    this.assert(value instanceof Expression, `AST.ObjectLiteral.addProp(${property}): value must be an Expression`)
     if (!this.properties) this.properties = []
     this.properties.push(new ObjectLiteralProperty(this.match, { property, value }))
   }
   addMethod(property, method) {
     if (!this.properties) this.properties = []
+    this.assert(method instanceof MethodBody, `AST.ObjectLiteral.addMethod(${property}): method must be a MethodBody`)
     this.properties.push(new ObjectLiteralMethod(method.match, { property, method }))
   }
   // Should we wrap properties block?
   @overrideable
   get wrap() {
-    return (
-      this.properties?.length > 2 ||
-      this.properties?.some(
-        item => item instanceof ObjectLiteralMethod || item.value instanceof InlineMethodDeclaration
-      )
-    )
+    return this.properties?.length > 2 || this.properties?.some(item => item instanceof ObjectLiteralMethod)
   }
   compile() {
     const { wrap } = this
@@ -1172,42 +1175,6 @@ export class ListExpression extends Expression {
   }
 }
 
-/** InlineMethodDeclaration
- * TODO: rename?
- * - `args` (optional) is a list of VariableExpressions
- * - `statements` (optional) is a Statement or Expression
- *    TODO: review this name, maybe "body" is better?
- * - `expression` (optional) is a Expression
- * TODO: create a scope for variables inside???
- */
-export class InlineMethodDeclaration extends Expression {
-  constructor(match, props) {
-    super(match, props)
-    this.assertArrayType("args", VariableExpression, OPTIONAL)
-    this.assertType("statements", [StatementBlock, Statement, Expression], OPTIONAL)
-    this.assertType("expression", Expression, OPTIONAL)
-  }
-  compile() {
-    const args = stringify.Args({ args: this.args })
-    const body = (this.expression || this.statements)?.compile() || stringify.EMPTY_BLOCK
-    return `${args} => ${body}`
-  }
-  renderChildren() {
-    const { statements, expression } = this
-    let body
-    if (statements) body = statements.component
-    else if (expression) body = expression.component
-    else body = render.EMPTY_BLOCK
-    return (
-      <>
-        <render.Args args={this.args} />
-        <span className="operator fat-arrow">{" => "}</span>
-        {body}
-      </>
-    )
-  }
-}
-
 /** PrototypeExpression:  type.prototype
  *  * - `type` is a TypeExpression
  */
@@ -1345,27 +1312,21 @@ export class MethodBody extends ASTNode {
 export class FunctionDeclaration extends Statement {
   constructor(match, props) {
     super(match, props)
-    this.assertType("method", "string", OPTIONAL)
-    this.assertArrayType("args", VariableExpression, OPTIONAL)
-    this.assertType("statements", [StatementBlock, Statement, Expression], OPTIONAL)
-    this.assertType("datatype", "string", OPTIONAL)
-    this.body = convertStatementsToBlock(this.match, this.statements)
+    this.assertType("methodName", "string", OPTIONAL)
+    this.assertType("method", MethodBody)
   }
   get className() {
-    return `${super.className}${this.method ? " anonymous" : ""}`
+    return `${super.className}${this.methodName ? " anonymous" : ""}`
   }
   compile() {
-    const args = stringify.Args({ args: this.args })
-    return `function ${this.method || ""}${args} ${this.body.compile()}`
+    return `function ${this.methodName || ""}${this.method.compile()}`
   }
   renderChildren() {
     return (
       <>
         <span className="keyword function">function </span>
-        {!!this.method && <span className="method-name">{this.method}</span>}
-        <render.Args args={this.args} />
-        {render.SPACE}
-        {this.body.component}
+        {!!this.methodName && <span className="method-name">{this.methodName}</span>}
+        {this.method.component}
       </>
     )
   }
@@ -1548,7 +1509,7 @@ export class JSXAttribute extends Expression {
   constructor(match, props) {
     super(match, props)
     this.assertType("name", "string")
-    this.assertType("value", Expression, OPTIONAL)
+    this.assertType("value", [Expression, MethodBody], OPTIONAL)
     this.assertType("error", ParseError, OPTIONAL)
   }
   @memoize
@@ -1557,6 +1518,13 @@ export class JSXAttribute extends Expression {
     //  if we have a parse error, return `undefined`
     //  otherwise return `true` as per spec for an empty attribute
     const value = this.value || (this.error ? new UndefinedLiteral(this.match) : new BooleanLiteral(this.match, true))
+    if (value instanceof MethodBody) {
+      return new ObjectLiteralMethod(this.match, {
+        property: this.name,
+        method: value,
+        error: this.error
+      })
+    }
     return new ObjectLiteralProperty(this.match, {
       property: this.name,
       value,

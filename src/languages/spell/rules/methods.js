@@ -277,9 +277,12 @@ export const methods = new SpellParser({
           } else {
             output.push(
               new AST.FunctionDeclaration(match, {
-                method,
-                args,
-                statements
+                methodName: method,
+                method: new AST.MethodBody(match, {
+                  inline: false,
+                  args,
+                  body: statements
+                })
               })
             )
           }
@@ -332,7 +335,7 @@ export const methods = new SpellParser({
               input: "to notify (message): print the message",
               output: [
                 "/* SPELL: added rule: 'notify {callArgs:expression}' */",
-                "function notify_$message(message) { console.log(message) }"
+                "function notify_$message(message) { return console.log(message) }"
               ]
             },
             {
@@ -349,7 +352,7 @@ export const methods = new SpellParser({
               input: "to notify (message as text): print the message",
               output: [
                 "/* SPELL: added rule: 'notify {callArgs:expression}' */",
-                "function notify_$message(message) { console.log(message) }"
+                "function notify_$message(message) { return console.log(message) }"
               ]
             },
             {
@@ -366,7 +369,7 @@ export const methods = new SpellParser({
               input: 'to notify (message = "Really?"): print the message',
               output: [
                 "/* SPELL: added rule: 'notify {callArgs:expression}' */",
-                'function notify_$message(message = "Really?") { console.log(message) }'
+                'function notify_$message(message = "Really?") { return console.log(message) }'
               ]
             },
             {
@@ -524,7 +527,7 @@ export const methods = new SpellParser({
               input: ["to notify (message): print the message", "notify 1"],
               output: [
                 "/* SPELL: added rule: 'notify {callArgs:expression}' */",
-                "function notify_$message(message) { console.log(message) }",
+                "function notify_$message(message) { return console.log(message) }",
                 "notify_$message(1)"
               ]
             },
@@ -533,7 +536,7 @@ export const methods = new SpellParser({
               input: ["to notify (message as text): print the message", "notify 1"],
               output: [
                 "/* SPELL: added rule: 'notify {callArgs:expression}' */",
-                "function notify_$message(message) { console.log(message) }",
+                "function notify_$message(message) { return console.log(message) }",
                 "notify_$message(1)"
               ]
             },

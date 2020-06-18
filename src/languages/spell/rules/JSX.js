@@ -265,11 +265,12 @@ export const JSX = new SpellParser({
           let valueAST
           if (expression) valueAST = expression.AST
           else if (statement) {
-            valueAST = new AST.InlineMethodDeclaration(match, {
-              statements: statement.AST,
+            valueAST = new AST.MethodBody(match, {
+              inline: true,
               args: attribute.toLowerCase().startsWith("on")
                 ? [new AST.VariableExpression(match, { name: "event" })]
-                : undefined
+                : undefined,
+              body: statement.AST
             })
           } else if (value === undefined) {
             valueAST = new AST.BooleanLiteral(match, { value: true })
