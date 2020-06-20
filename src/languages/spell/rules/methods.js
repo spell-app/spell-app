@@ -33,18 +33,19 @@ SpellParser.Rule.DynamicMethodRule = class dynamic_method extends SpellParser.Ru
   }
 }
 
+// to foo the bar
+// to foo (a thing)
+// to foo (a thing) in (a thing)
+// to foo (bar)
+// to foo the (bar as text)
+// to foo (with bar)
+// to foo (with a bar)
+// to foo (with baz = "baz")
+// to foo (with bar as text)
+// to foo (with bar and baz = "baz" and bong as text)
 export const methods = new SpellParser({
   module: "methods",
   rules: [
-    // to foo the bar
-    // to foo (a thing)
-    // to foo (a thing) in (a thing)
-    // to foo (bar)
-    // to foo the (bar as text)
-    // to foo with bar
-    // to foo with a bar
-    // to foo with bar as text
-    // to foo with bar and baz and bong as text
     {
       name: "method_keyword",
       pattern: /^[a-zA-Z][\w\-]*$/,
@@ -52,12 +53,9 @@ export const methods = new SpellParser({
       mapValue(value) {
         return `${value}`.replace(/\-/g, "_")
       },
-      blacklist: {
-        with: 1
-      },
       gatherGroups(match) {
         return {
-          match,
+          keyword: match,
           method: match.value,
           syntax: match.raw
         }
@@ -65,7 +63,7 @@ export const methods = new SpellParser({
     },
     {
       name: "var_method_arg",
-      alias: "method_arg",
+      alias: ["method_arg", "simple_method_arg"],
       constructor: class method_arg extends SpellParser.Rule.VariableIdentifier {
         gatherGroups(match) {
           return {
@@ -79,7 +77,7 @@ export const methods = new SpellParser({
     },
     {
       name: "valued_var_method_arg",
-      alias: "method_arg",
+      alias: ["method_arg", "simple_method_arg"],
       syntax: `{variable_identifier} (=|is|of|as|set to) {value:expression}`,
       gatherGroups(match) {
         const [variable, _ignore, value] = match.matched
@@ -95,7 +93,7 @@ export const methods = new SpellParser({
     },
     {
       name: "type_method_arg",
-      alias: "method_arg",
+      alias: ["method_arg", "simple_method_arg"],
       syntax: `(a|an) {type}`,
       gatherGroups(match) {
         const type = match.matched[1]
@@ -109,7 +107,7 @@ export const methods = new SpellParser({
     },
     {
       name: "typed_method_arg",
-      alias: "method_arg",
+      alias: ["method_arg", "simple_method_arg"],
       syntax: `{variable_identifier} as (a|an)? {type}`,
       gatherGroups(match) {
         const [variable, _ignore, type] = match.matched
@@ -124,16 +122,16 @@ export const methods = new SpellParser({
     },
     {
       name: "with_props_arg",
-      syntax: "with [{method_arg}(,|and)]",
+      alias: ["method_arg"],
+      syntax: "with [{simple_method_arg}(,|and)]",
       gatherGroups(match) {
         const { items } = match.matched[1]
         const props = items.map(item => item.groups.arg)
         const groups = {
           items,
-          method: "with_$props",
+          method: "",
           syntax: "(with {props:object_literal_properties})?",
           props,
-          extraVars: ["props", ...props.map(prop => prop.name)],
           arg: new AST.VariableExpression(match, {
             name: "props",
             default: new AST.ObjectLiteral(match),
@@ -146,100 +144,95 @@ export const methods = new SpellParser({
     {
       name: "method_signature",
       syntax: `({method_keyword}|\\({method_arg}\\))+`,
-      gatherGroups(match) {
-        const groups = {
-          items: match.items.map(item => (item.matched.length === 1 ? item.groups : item.matched[1].groups)),
-          // calculated as we run through the keywords
-          methodBits: [], // method signature bits.  Converted to `methodName` string at end of gatherGroups().
-          syntaxBits: [], // rule syntax bits.  Converted to string at end of this method.
-          types: [], // names of types we found, as strings in instanceCase
-          args: [], // method arguments, as `AST.VariableExpression`s
-          extraVars: [], // random extra vars we should enable (e.g. aliases for `this`)
-          props: undefined, // array of AST.VariableExpression for props
-          // calculated at the end
-          methodName: undefined, // full methodName from `methodBits` array
-          syntax: undefined, // full method syntax
-          instanceType: undefined // type to add instance method to, if any
+      constructor: class method_signature extends Rule.Repeat {
+        parse(scope, tokens) {
+          const match = super.parse(scope, tokens)
+          // forget it if we didn't find at least one keyword
+          if (match && match.groups.foundKeyword) return match
+          return undefined
         }
-        // Set up the method signature and rule syntax
-        // We'll get one of the following combos: keyword, type, variable, variable + type
-        groups.items.forEach(({ method, syntax, arg, props, keyword, variable, type }) => {
-          // TODO:
-          //  - add by `method` and `syntax`
-          //  - if variable
-          //  - if type
-          //  - if props:
-          //    - alias `with_props_arg` to `method_arg`
-          //    - alias others to `single_method_arg` as well, use that in `with_props_arg`
-          //
-          // HOW:  to know if we should sequester type???
-
-          const varName = arg?.name
-          const typeName = type?.raw
-
-          // Convert to an instance method???
-          if (type) groups.types.push(typeName)
-          const makeInstanceType = type && groups.types.length === 1 && !SpellParser.Rule.Type.isSimpleType(typeName)
-          if (makeInstanceType) {
-            groups.instanceType = typeName
-            groups.syntaxBits.push("{thisArg:expression}")
-            // If we got a distinct varName, add an alias variable for the method
-            if (varName && varName !== typeName) {
-              groups.extraVars.push({ name: varName, output: "this", type: "alias" })
-            }
-          } else {
-            groups.methodBits.push(method)
-            groups.syntaxBits.push(syntax)
-
-            if (arg) {
-              // args in the initial portion are required (not enforced yet)
-              if (!props) arg.required = true
-              groups.args.push(arg)
-            }
+        gatherGroups(match) {
+          const groups = {
+            items: match.items.map(item => (item.matched.length === 1 ? item.groups : item.matched[1].groups)),
+            // calculated as we run through the keywords
+            foundKeyword: false, // `true` if we found at least one keyword.  arg-only signatures are invalid!
+            methodBits: [], // method signature bits.  Converted to `methodName` string at end of gatherGroups().
+            syntaxBits: [], // rule syntax bits.  Converted to string at end of this method.
+            types: [], // names of types we found, as strings in instanceCase
+            args: [], // method arguments, as `AST.VariableExpression`s
+            extraVars: [], // random extra vars we should enable (e.g. aliases for `this`)
+            // calculated at the end
+            props: undefined, // array of AST.VariableExpression for `with_props_arg`
+            methodName: undefined, // full methodName from `methodBits` array
+            syntax: undefined, // full method syntax
+            instanceType: undefined // type to add instance method to, if any
           }
-        })
-        // convert method/syntax to simple string
-        groups.methodName = groups.methodBits.join("_")
-        groups.syntax = groups.syntaxBits.join(" ")
+          // Set up the method signature and rule syntax
+          // We'll get one of the following combos: keyword, type, variable, variable + type
+          groups.items.forEach(({ method, syntax, arg, props, keyword, type /* , variable */ }) => {
+            // TODO: HOW to know if we should sequester type???
 
-        return groups
+            // arg-only methods are not allowed
+            if (keyword) groups.foundKeyword = true
+
+            const varName = arg?.name
+            const typeName = type?.raw
+
+            // Convert to an instance method???
+            if (type) groups.types.push(typeName)
+            const makeInstanceType = type && groups.types.length === 1 && !SpellParser.Rule.Type.isSimpleType(typeName)
+            if (makeInstanceType) {
+              groups.instanceType = typeName
+              groups.syntaxBits.push("{thisArg:expression}")
+              // If we got a distinct varName, add an alias variable for the method
+              if (varName && varName !== typeName) {
+                groups.extraVars.push({ name: varName, output: "this", type: "alias" })
+              }
+            } else {
+              groups.methodBits.push(method)
+              groups.syntaxBits.push(syntax)
+
+              if (arg) {
+                // args in the initial portion are required (not enforced yet)
+                if (!props) arg.required = true
+                groups.args.push(arg)
+              }
+
+              // Recognize prop names in the method
+              if (props) {
+                groups.props = props
+                groups.extraVars.push(...props.map(prop => prop.name))
+              }
+            }
+          })
+
+          // convert method/syntax to simple string
+          groups.methodName = groups.methodBits.filter(Boolean).join("_")
+          groups.syntax = groups.syntaxBits.join(" ")
+
+          return groups
+        }
       }
     },
     {
       name: "to_do_something",
       alias: "statement",
-      syntax: `to {signature:method_signature} {props:with_props_arg}? :?`,
+      syntax: `to {method_signature} :?`,
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       constructor: class to_do_something extends SpellParser.Rule.Statement {
         gatherGroups(match) {
-          const originalGroups = super.gatherGroups(match)
-          const signature = originalGroups.signature.groups
-          const props = originalGroups.props?.groups
-          const groups = { signature, props }
-          // merge syntax/props stuff
-          groups.methodName = signature.methodName
-          groups.syntax = signature.syntax
-          groups.args = [...signature.args]
-          groups.extraVars = [...signature.extraVars]
-          if (props) {
-            groups.syntax += ` ${props.syntax}`
-            groups.args.push(props.arg)
-            groups.extraVars.push(...props.extraVars)
-          }
-          // console.warn(groups)
-          return groups
+          return super.gatherGroups(match).method_signature.groups
         }
 
         getNestedScope(match) {
-          // const { methodName, argNames, instanceType, extraVars, props } = match.groups.bits
-          const { methodName, args, extraVars, signature } = match.groups
+          const { methodName, args, extraVars, instanceType } = match.groups
           const methodScope = new MethodScope({
             scope: match.scope,
             name: methodName,
             args: args.map(arg => arg.name),
-            thisVar: signature.instanceType,
-            mapItTo: signature.instanceType && "this"
+            thisVar: instanceType,
+            mapItTo: instanceType && "this"
           })
 
           // add other random variables
@@ -249,7 +242,6 @@ export const methods = new SpellParser({
 
         mutateScope(match) {
           // Create a `DynamicMethodRule` rule (see above) to match the specified syntax.
-          // const { methodName, syntax } = match.groups.bits
           const { methodName, syntax } = match.groups
           match.scope.rules.add({
             name: methodName,
@@ -261,8 +253,16 @@ export const methods = new SpellParser({
         }
 
         getAST(match) {
-          // console.warn("getAST:", match.groups)
-          const { methodName, syntax, args, signature, props, inlineStatement, nestedBlock } = match.groups
+          const {
+            methodName,
+            methodBits,
+            syntax,
+            args,
+            props,
+            instanceType,
+            inlineStatement,
+            nestedBlock
+          } = match.groups
 
           const output = [
             new AST.ParserAnnotation(match, {
@@ -276,18 +276,18 @@ export const methods = new SpellParser({
             const assignment = new AST.DestructuredAssignment(match, {
               // `props` argument will be the last thing in args
               thing: new AST.VariableExpression(match, { name: "props" }),
-              variables: props.props,
+              variables: props,
               isNewVariable: true
             })
             if (!statements) statements = assignment
             else statements.statements.unshift(assignment)
           }
 
-          if (signature.instanceType) {
+          if (instanceType) {
             output.push(
               new AST.PropertyDefinition(match, {
                 thing: new AST.PrototypeExpression(match, {
-                  type: typeCase(signature.instanceType)
+                  type: typeCase(instanceType)
                 }),
                 property: methodName,
                 value: new AST.MethodBody(match, {
@@ -306,8 +306,9 @@ export const methods = new SpellParser({
               inline: false
             })
             // HACK???  If first word is "test" wrap in `spellCore.test(...)`
-            if (signature.methodBits[0] === "test") {
-              let testName = [...signature.methodBits]
+            if (methodBits[0] === "test") {
+              let testName = [...methodBits]
+              // convert message from "test a thing" to "TESTING A THING"
               testName[0] = "testing"
               testName = testName.join(" ").toUpperCase()
               method = new AST.MethodBody(match, {
@@ -614,13 +615,13 @@ export const methods = new SpellParser({
           },
           tests: [
             {
-              title: "empty signature is not matched",
-              input: "to with foo",
-              output: '/* PARSE ERROR: UNABLE TO PARSE: "to with foo" */'
+              title: "signature with no keywords is not matched",
+              input: "to (foo)",
+              output: '/* PARSE ERROR: UNABLE TO PARSE: "to (foo)" */'
             },
             {
               title: "with arg is optional when calling",
-              input: ["to notify with message:", "\tprint the message", "notify"],
+              input: ["to notify (with message):", "\tprint the message", "notify"],
               output: [
                 "/* SPELL: added rule: 'notify (with {props:object_literal_properties})?' */",
                 "function notify(props = {}) {",
@@ -632,8 +633,8 @@ export const methods = new SpellParser({
             },
 
             {
-              title: "simple variable withArg",
-              input: ["to notify with message:", "\tprint the message", 'notify with message = "It worked!"'],
+              title: "simple variable props",
+              input: ["to notify (with message):", "\tprint the message", 'notify with message = "It worked!"'],
               output: [
                 "/* SPELL: added rule: 'notify (with {props:object_literal_properties})?' */",
                 "function notify(props = {}) {",
@@ -644,9 +645,9 @@ export const methods = new SpellParser({
               ]
             },
             {
-              title: "typed variable withArg",
+              title: "typed variable props",
               input: [
-                "to play with a card:",
+                "to play (with a card):",
                 "\tprint the card",
                 "play with card = a new card",
                 'play with card = a new card with suit of "hearts"'
@@ -662,8 +663,8 @@ export const methods = new SpellParser({
               ]
             },
             {
-              title: "object literal property",
-              input: ['to notify with message = "nope":', "\tprint the message", 'notify with message = "Ship it!!"'],
+              title: "default value props",
+              input: ['to notify (with message = "nope"):', "\tprint the message", 'notify with message = "Ship it!!"'],
               output: [
                 "/* SPELL: added rule: 'notify (with {props:object_literal_properties})?' */",
                 "function notify(props = {}) {",
@@ -674,10 +675,11 @@ export const methods = new SpellParser({
               ]
             },
             {
-              title: "multiple object literal properties",
+              title: "multiple default value props",
               input: [
-                'to notify with message = "nope" and reply = "yep":',
+                'to notify (with message = "nope" and reply = "yep"):',
                 "\tprint the message + the reply",
+                'notify with message = "How many?"',
                 'notify with message = "How many?" and reply = 2'
               ],
               output: [
@@ -686,13 +688,14 @@ export const methods = new SpellParser({
                 '\tlet { message = "nope", reply = "yep" } = props',
                 "\tconsole.log(message + reply)",
                 "}",
+                'notify({ message: "How many?" })',
                 'notify({ message: "How many?", reply: 2 })'
               ]
             },
             {
-              title: "mixed variables and object literal properties",
+              title: "mixed props",
               input: [
-                'to notify with name, message as text and reply = "yep":',
+                'to notify (with name, message as text and reply = "yep"):',
                 "\tprint the name + the message + the reply",
                 'notify with name = "Bob", message = "How many?" and reply = 2'
               ],
@@ -710,9 +713,9 @@ export const methods = new SpellParser({
               ]
             },
             {
-              title: "mixed withArg and signature",
+              title: "mixed props and signature",
               input: [
-                'to notify (message) with reply = "yep":',
+                'to notify (message) (with reply = "yep"):',
                 "\tprint the message",
                 "\tprint the reply",
                 'notify "Really?" with reply = "yes"'
@@ -730,7 +733,7 @@ export const methods = new SpellParser({
             {
               title: "extra props passed in are OK",
               input: [
-                "to notify with message:",
+                "to notify (with message):",
                 "\tprint the message",
                 `notify with message = "It worked!" and reply = "No it didn't"`
               ],

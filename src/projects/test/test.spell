@@ -1,3 +1,3 @@
-a card is a thing
-a pile is a thing
-to add (a card) to (a pile):
+to notify (with message):
+	print the message
+notify
