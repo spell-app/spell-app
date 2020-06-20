@@ -183,23 +183,29 @@ export class List extends Observable {
     if (zeroIndex === -1) return undefined
     return zeroIndex + 1
   }
+  _getZeroIndex(index) {
+    if (index === 0) return 1 // ???
+    if (index < 0) return this._state.items.length - index
+    return index - 1
+  }
   getItem(index) {
-    return this._state.items[index - 1]
+    return this._state.items[this._getZeroIndex(index)]
   }
   setItem(index, value) {
     const items = [...this._state.items]
-    items[index - 1] = value
+    const zeroIndex = this._getZeroIndex(index)
+    items[zeroIndex] = value
     this._state.items = items
   }
   addAtPosition(start, ...things) {
     const items = [...this._state.items]
-    const itemStart = start === 0 ? 0 : start - 1
+    const itemStart = this._getZeroIndex(start)
     items.splice(itemStart, 0, ...things)
     this._state.items = items
   }
   removeItem(index) {
     const items = [...this._state.items]
-    items.splice(index - 1, 1)
+    items.splice(this._getZeroIndex(index), 1)
     this._state.items = items
   }
   clear() {
