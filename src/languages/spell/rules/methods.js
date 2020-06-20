@@ -56,19 +56,41 @@ export const methods = new SpellParser({
         with: 1
       },
       gatherGroups(match) {
-        return { keyword: match }
+        return {
+          match,
+          method: match.value,
+          syntax: match.raw
+        }
       }
     },
     {
-      name: "simple_method_arg",
+      name: "var_method_arg",
       alias: "method_arg",
       constructor: class method_arg extends SpellParser.Rule.VariableIdentifier {
         gatherGroups(match) {
           return {
             variable: match,
+            method: `$${match.value}`,
+            syntax: "{callArgs:expression}",
             arg: new AST.VariableExpression(match, { name: match.value, type: "argument" })
           }
         }
+      }
+    },
+    {
+      name: "valued_var_method_arg",
+      alias: "method_arg",
+      syntax: `{variable_identifier} (=|is|of|as|set to) {value:expression}`,
+      gatherGroups(match) {
+        const [variable, _ignore, value] = match.matched
+        const groups = {
+          variable,
+          method: `$${variable.value}`,
+          syntax: "{callArgs:expression}",
+          arg: new AST.VariableExpression(match, { name: variable.value, default: value.AST, type: "argument" })
+        }
+        // console.warn("valued_method_arg:", variable, value, "\n", groups)
+        return groups
       }
     },
     {
@@ -79,6 +101,8 @@ export const methods = new SpellParser({
         const type = match.matched[1]
         return {
           type,
+          method: `$${type.raw}`, // TODO: instanceCase(type.value) ???
+          syntax: "{callArgs:expression}",
           arg: new AST.VariableExpression(match, { name: instanceCase(type.value), type: "argument" })
         }
       }
@@ -92,89 +116,12 @@ export const methods = new SpellParser({
         return {
           variable,
           type,
+          method: `$${variable.value}`,
+          syntax: "{callArgs:expression}",
           arg: new AST.VariableExpression(match, { name: variable.value, datatype: type.value, type: "argument" })
         }
       }
     },
-    {
-      name: "valued_method_arg",
-      alias: "method_arg",
-      syntax: `{variable_identifier} (=|is|of|as|set to) {value:expression}`,
-      gatherGroups(match) {
-        const [variable, _ignore, value] = match.matched
-        const groups = {
-          variable,
-          value,
-          arg: new AST.VariableExpression(match, { name: variable.value, default: value.AST, type: "argument" })
-        }
-        // console.warn("valued_method_arg:", variable, value, "\n", groups)
-        return groups
-      }
-    },
-    {
-      name: "method_signature",
-      syntax: `({method_keyword}|\\({method_arg}\\))+`,
-      gatherGroups(match) {
-        const groups = {
-          items: match.items.map(item =>
-            item.rule.name === "method_keyword" ? { keyword: item } : item.matched[1].groups
-          ),
-          // calculated as we run through the keywords
-          method: [], // method signature bits.  Converted to string at end of this method.
-          syntax: [], // rule syntax bits.  Converted to string at end of this method.
-          types: [], // names of types we found, in instanceCase
-          args: [], // method arguments, as AST.VariableExpression
-          vars: [], // random vars we should enable
-          props: undefined, // array of AST.VariableExpression for props
-          // calculated at the end
-          methodName: undefined, // full methodName from `method` array
-          instanceType: undefined // type to add instance method to, if any
-        }
-        // Set up the method signature and rule syntax
-        // We'll get one of the following combos: keyword, type, variable, variable + type
-        groups.items.forEach(({ keyword, variable, type, arg }) => {
-          // console.info({ keyword, variable, type, arg })
-          if (keyword) {
-            groups.method.push(keyword.value)
-            groups.syntax.push(keyword.raw)
-            return
-          }
-
-          // args in the initial portion are required (not enforced yet)
-          arg.required = true
-          groups.args.push(arg)
-
-          const varName = variable && variable.value
-          const typeName = type && type.raw // instanceCase(type.value)
-          groups.method.push(`$${varName || typeName}`)
-          let syntaxArgType = "callArgs"
-
-          if (type) {
-            groups.types.push(typeName)
-            // If the first `type` is not a simple type (e.g. `number` etc)
-            if (groups.types.length === 1 && !SpellParser.Rule.Type.isSimpleType(typeName)) {
-              // Convert to an instance method
-              groups.instanceType = typeName
-              syntaxArgType = "thisArg"
-              // remove the type from method signature and args
-              groups.method.pop()
-              groups.args.pop()
-              // If we got a distinct varName, make sure we get an alias for that in the method
-              if (varName && varName !== typeName) {
-                groups.vars.push({ name: varName, output: "this" })
-              }
-            }
-          }
-          groups.syntax.push(`{${syntaxArgType}:expression}`)
-        })
-        // convert method/syntax to simple string
-        groups.methodName = groups.method.join("_")
-        groups.syntax = groups.syntax.join(" ")
-
-        return groups
-      }
-    },
-
     {
       name: "with_props_arg",
       syntax: "with [{method_arg}(,|and)]",
@@ -183,10 +130,11 @@ export const methods = new SpellParser({
         const props = items.map(item => item.groups.arg)
         const groups = {
           items,
+          method: "with_$props",
           syntax: "(with {props:object_literal_properties})?",
           props,
-          vars: ["props", ...props.map(prop => prop.name)],
-          propsArg: new AST.VariableExpression(match, {
+          extraVars: ["props", ...props.map(prop => prop.name)],
+          arg: new AST.VariableExpression(match, {
             name: "props",
             default: new AST.ObjectLiteral(match),
             type: "argument"
@@ -195,7 +143,68 @@ export const methods = new SpellParser({
         return groups
       }
     },
+    {
+      name: "method_signature",
+      syntax: `({method_keyword}|\\({method_arg}\\))+`,
+      gatherGroups(match) {
+        const groups = {
+          items: match.items.map(item => (item.matched.length === 1 ? item.groups : item.matched[1].groups)),
+          // calculated as we run through the keywords
+          methodBits: [], // method signature bits.  Converted to `methodName` string at end of gatherGroups().
+          syntaxBits: [], // rule syntax bits.  Converted to string at end of this method.
+          types: [], // names of types we found, as strings in instanceCase
+          args: [], // method arguments, as `AST.VariableExpression`s
+          extraVars: [], // random extra vars we should enable (e.g. aliases for `this`)
+          props: undefined, // array of AST.VariableExpression for props
+          // calculated at the end
+          methodName: undefined, // full methodName from `methodBits` array
+          syntax: undefined, // full method syntax
+          instanceType: undefined // type to add instance method to, if any
+        }
+        // Set up the method signature and rule syntax
+        // We'll get one of the following combos: keyword, type, variable, variable + type
+        groups.items.forEach(({ method, syntax, arg, props, keyword, variable, type }) => {
+          // TODO:
+          //  - add by `method` and `syntax`
+          //  - if variable
+          //  - if type
+          //  - if props:
+          //    - alias `with_props_arg` to `method_arg`
+          //    - alias others to `single_method_arg` as well, use that in `with_props_arg`
+          //
+          // HOW:  to know if we should sequester type???
 
+          const varName = arg?.name
+          const typeName = type?.raw
+
+          // Convert to an instance method???
+          if (type) groups.types.push(typeName)
+          const makeInstanceType = type && groups.types.length === 1 && !SpellParser.Rule.Type.isSimpleType(typeName)
+          if (makeInstanceType) {
+            groups.instanceType = typeName
+            groups.syntaxBits.push("{thisArg:expression}")
+            // If we got a distinct varName, add an alias variable for the method
+            if (varName && varName !== typeName) {
+              groups.extraVars.push({ name: varName, output: "this", type: "alias" })
+            }
+          } else {
+            groups.methodBits.push(method)
+            groups.syntaxBits.push(syntax)
+
+            if (arg) {
+              // args in the initial portion are required (not enforced yet)
+              if (!props) arg.required = true
+              groups.args.push(arg)
+            }
+          }
+        })
+        // convert method/syntax to simple string
+        groups.methodName = groups.methodBits.join("_")
+        groups.syntax = groups.syntaxBits.join(" ")
+
+        return groups
+      }
+    },
     {
       name: "to_do_something",
       alias: "statement",
@@ -212,19 +221,19 @@ export const methods = new SpellParser({
           groups.methodName = signature.methodName
           groups.syntax = signature.syntax
           groups.args = [...signature.args]
-          groups.vars = [...signature.vars]
+          groups.extraVars = [...signature.extraVars]
           if (props) {
             groups.syntax += ` ${props.syntax}`
-            groups.args.push(props.propsArg)
-            groups.vars.push(...props.vars)
+            groups.args.push(props.arg)
+            groups.extraVars.push(...props.extraVars)
           }
           // console.warn(groups)
           return groups
         }
 
         getNestedScope(match) {
-          // const { methodName, argNames, instanceType, vars, props } = match.groups.bits
-          const { methodName, args, vars, signature } = match.groups
+          // const { methodName, argNames, instanceType, extraVars, props } = match.groups.bits
+          const { methodName, args, extraVars, signature } = match.groups
           const methodScope = new MethodScope({
             scope: match.scope,
             name: methodName,
@@ -234,7 +243,7 @@ export const methods = new SpellParser({
           })
 
           // add other random variables
-          if (vars.length) methodScope.variables.add(...vars)
+          if (extraVars.length) methodScope.variables.add(...extraVars)
           return methodScope
         }
 
@@ -253,7 +262,6 @@ export const methods = new SpellParser({
 
         getAST(match) {
           // console.warn("getAST:", match.groups)
-          // const { inlineStatement, nestedBlock, bits: { method, methodName, args, syntax, instanceType, props } } = match.groups
           const { methodName, syntax, args, signature, props, inlineStatement, nestedBlock } = match.groups
 
           const output = [
@@ -292,25 +300,22 @@ export const methods = new SpellParser({
           }
           // No instance type: create as a loose function
           else {
-            let body = new AST.MethodBody(match, {
+            let method = new AST.MethodBody(match, {
               args,
               body: statements,
               inline: false
             })
             // HACK???  If first word is "test" wrap in `spellCore.test(...)`
-            if (signature.method[0] === "test") {
-              let testName = [...signature.method]
+            if (signature.methodBits[0] === "test") {
+              let testName = [...signature.methodBits]
               testName[0] = "testing"
               testName = testName.join(" ").toUpperCase()
-              body = new AST.MethodBody(match, {
+              method = new AST.MethodBody(match, {
                 inline: false,
                 body: new AST.CoreMethodInvocation(match, {
                   methodName: "test",
                   wrap: true,
-                  args: [
-                    new AST.QuotedExpression(match, testName),
-                    new AST.FunctionDeclaration(match, { method: body })
-                  ]
+                  args: [new AST.QuotedExpression(match, testName), new AST.FunctionDeclaration(match, { method })]
                 })
               })
             }
@@ -318,7 +323,7 @@ export const methods = new SpellParser({
               new AST.FunctionDeclaration(match, {
                 wrap: true,
                 methodName,
-                method: body
+                method
               })
             )
           }
