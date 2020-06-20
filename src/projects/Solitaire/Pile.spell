@@ -4,10 +4,13 @@ a pile is a list of cards
 a pile has a name as text
 a pile has an appearance as one of stacked, staggered or fanned
 
+to can play (a card) on (a pile)
+	return yes
+
 -- cards can only be in one pile at a time
-to add a card to a pile
-	if the current-pile of the card is defined
-		remove the card from its current-pile
-	append the card to the pile
-	set the current-pile of the card to the pile
+to play (a card) on (a pile)
+	if the pile of the card is not empty: remove the card from its pile
+	add the card to the pile
+	set the pile of the card to the pile
+	return ok
 

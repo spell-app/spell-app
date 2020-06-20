@@ -14,6 +14,7 @@ to test deck creation
 
 	set the queens to the cards in the deck where the rank of the card is "queen" 
 	expect the number of cards in the queens to be 4
+	print the name of the bottom card of the deck
 test deck creation
 
 to test deck shuffling
@@ -23,5 +24,5 @@ to test deck shuffling
 	shuffle the deck
 	for each card in the deck:
 		print the name of the card
-test deck shuffling
+// test deck shuffling
 

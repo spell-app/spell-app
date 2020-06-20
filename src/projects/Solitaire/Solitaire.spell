@@ -4,14 +4,14 @@
 
 ## Define card-game
 a card-game is a thing
+a card-game has a score as a number
 a card-game has a deck
 a card-game has a score as a number
 
-to set up a card-game
-	set its deck to a new deck
-	set up its deck
-   
-to start a card-game
+to start (a card-game)
+	if its deck does not exist:
+		set its deck to a new deck
+		set up its deck
 	set its score to 0
 	shuffle its deck
    
