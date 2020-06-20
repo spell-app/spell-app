@@ -501,6 +501,33 @@ export const expressions = new SpellParser({
       ]
     },
 
+    {
+      name: "exists",
+      alias: "expression_suffix",
+      precedence: 11,
+      syntax: "(exists|does not exist)",
+      constructor: "PostfixOperatorSuffix",
+      shouldNegateOutput: operator => operator.value !== "exists",
+      compileASTExpression(match, { lhs }) {
+        return new AST.CoreMethodInvocation(match, {
+          methodName: "isDefined",
+          args: [lhs]
+        })
+      },
+      tests: [
+        {
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.variables.add("thing")
+          },
+          tests: [
+            ["thing exists", "spellCore.isDefined(thing)"],
+            ["thing does not exist", "!spellCore.isDefined(thing)"]
+          ]
+        }
+      ]
+    },
+
     /** Collection is empty */
     {
       name: "is_empty",
