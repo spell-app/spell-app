@@ -91,6 +91,18 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
       methodName
     })
   }
+
+  /** If `signature.props` return `DestructuredAssignment` to pull those props into scope. */
+  getPropsAST(match) {
+    const { props } = match.groups
+    if (!props) return undefined
+    return new AST.DestructuredAssignment(match, {
+      // `props` argument will be the last thing in args
+      thing: new AST.VariableExpression(match, { name: "props" }),
+      variables: props,
+      isNewVariable: true
+    })
+  }
 }
 
 // to foo the bar
@@ -830,24 +842,24 @@ export const methods = new SpellParser({
           ]
         }
       ]
-    },
-    {
-      name: "type_method",
-      alias: "statement",
-      syntax: "(a|an) {type:singular_type} {method_signature}",
-      // watch out for:  "a card has", "a card is"
-      wantsInlineStatement: true,
-      wantsNestedBlock: true,
-      constructor: class to_do_something extends SpellParser.Rule.Statement {
-        gatherGroups(match) {
-          const groups = super.gatherGroups(match)
-          console.warn(groups)
-          return {
-            type: groups.type,
-            signature: groups.signature.groups
-          }
-        }
-      }
     }
+    // {
+    //   name: "type_method",
+    //   alias: "statement",
+    //   syntax: "(a|an) {type:singular_type} {method_signature}",
+    //   // watch out for:  "a card has", "a card is"
+    //   wantsInlineStatement: true,
+    //   wantsNestedBlock: true,
+    //   constructor: class to_do_something extends SpellParser.Rule.Statement {
+    //     gatherGroups(match) {
+    //       const groups = super.gatherGroups(match)
+    //       console.warn(groups)
+    //       return {
+    //         type: groups.type,
+    //         signature: groups.signature.groups
+    //       }
+    //     }
+    //   }
+    // }
   ]
 })

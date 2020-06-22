@@ -1250,10 +1250,12 @@ export class PropertyDefinition extends Statement {
 /**
  * Args + method body, NOT including method name or `function` keyword.
  * - `args` (optional) is array of VariableExpressions
- * - `body` (optional)is:
+ * - `body` (optional) is:
  *    - a single Statement or StatementGroup
  *    - a StatementBlock
  *    - an Expression
+ *    Note that we'll ALWAYS convert `body` to a StatementBlock on construction
+ *    so you can change it by manipulating `body.statements`, e.g. `methodBody.body.statements.push(...)`
  *  - `wrap` (optional) provide to explicitly wrap body
  *  - `inline` (optional) is:
  *    - `true` we'll make a fat arrow function
@@ -1281,11 +1283,13 @@ export class MethodBody extends ASTNode {
       })
     }
     // convert non-inline Expression to `return <expression>` StatementBlock
-    else if (this.body instanceof Expression && !this.inline) {
+    else if (this.body instanceof Expression) {
       this.body = new StatementBlock(match, {
         statements: [new ReturnStatement(match, { value: this.body })]
       })
     }
+    // Make sure we body ends up as a StatementBlock
+    this.assertType("body", StatementBlock)
     if (typeof this.wrap === "boolean") this.body.wrap = this.wrap
   }
   compile() {
