@@ -1,3 +1,5 @@
-to notify (with message):
-	print the message
-notify
+a card is a thing
+a pile is a list of cards
+to play (cards as a pile) on (a pile)
+	print the cards
+	if the pile is empty

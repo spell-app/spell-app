@@ -33,6 +33,66 @@ SpellParser.Rule.DynamicMethodRule = class dynamic_method extends SpellParser.Ru
   }
 }
 
+/** Base for method definitions with dynamic syntax via `method_signature`.  See `to_do_something` below. */
+SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.Rule.Statement {
+  @proto wantsInlineStatement = true
+  @proto wantsNestedBlock = true
+  // Set to `true` in rule definition to make into an instance method on first simple type found in `signature`
+  @proto inlineInitialType = false
+
+  // Iniline initial type epression, making an instance method?
+  processInitialType(signature) {
+    const [initialType] = signature.types
+    if (this.inlineInitialType && initialType && !initialType.isSimple) {
+      signature.instanceType = initialType.name
+      // remove from args and method signature
+      signature.args.splice(initialType.argIndex, 1)
+      signature.methodBits.splice(initialType.methodIndex, 1)
+      // replace with `thisArg` in syntax and add an alias for `this`
+      signature.syntaxBits[initialType.syntaxIndex] = "{thisArg:expression}"
+      if (initialType.varName && initialType.varName !== initialType.name) {
+        signature.extraVars.push({ name: initialType.varName, output: "this", type: "alias" })
+      }
+    }
+    signature.methodName = signature.methodBits.join("_")
+    signature.syntax = signature.syntaxBits.join(" ")
+    // console.warn(signature)
+    return signature
+  }
+
+  gatherGroups(match) {
+    const signature = super.gatherGroups(match).method_signature.groups
+    return this.processInitialType(signature)
+  }
+
+  getNestedScope(match) {
+    const { methodName, args, extraVars, instanceType } = match.groups
+    const methodScope = new MethodScope({
+      scope: match.scope,
+      name: methodName,
+      args: args.map(arg => arg.name),
+      thisVar: instanceType,
+      mapItTo: instanceType && "this"
+    })
+
+    // add other random variables
+    if (extraVars.length) methodScope.variables.add(...extraVars)
+    return methodScope
+  }
+
+  mutateScope(match) {
+    // Create a `DynamicMethodRule` rule (see above) to match the specified syntax.
+    const { methodName, syntax } = match.groups
+    match.scope.rules.add({
+      name: methodName,
+      alias: ["statement", "expression"],
+      constructor: "DynamicMethodRule",
+      syntax,
+      methodName
+    })
+  }
+}
+
 // to foo the bar
 // to foo (a thing)
 // to foo (a thing) in (a thing)
@@ -129,7 +189,7 @@ export const methods = new SpellParser({
         const props = items.map(item => item.groups.arg)
         const groups = {
           items,
-          method: "",
+          method: undefined, // not part of method signature
           syntax: "(with {props:object_literal_properties})?",
           props,
           arg: new AST.VariableExpression(match, {
@@ -158,7 +218,7 @@ export const methods = new SpellParser({
             foundKeyword: false, // `true` if we found at least one keyword.  arg-only signatures are invalid!
             methodBits: [], // method signature bits.  Converted to `methodName` string at end of gatherGroups().
             syntaxBits: [], // rule syntax bits.  Converted to string at end of this method.
-            types: [], // names of types we found, as strings in instanceCase
+            types: [], // types we found, as `{ raw: instanceCase, simple, arg: number, method: number, syntax: number }`
             args: [], // method arguments, as `AST.VariableExpression`s
             extraVars: [], // random extra vars we should enable (e.g. aliases for `this`)
             // calculated at the end
@@ -179,36 +239,31 @@ export const methods = new SpellParser({
             const typeName = type?.raw
 
             // Convert to an instance method???
-            if (type) groups.types.push(typeName)
-            const makeInstanceType = type && groups.types.length === 1 && !SpellParser.Rule.Type.isSimpleType(typeName)
-            if (makeInstanceType) {
-              groups.instanceType = typeName
-              groups.syntaxBits.push("{thisArg:expression}")
-              // If we got a distinct varName, add an alias variable for the method
-              if (varName && varName !== typeName) {
-                groups.extraVars.push({ name: varName, output: "this", type: "alias" })
-              }
-            } else {
-              groups.methodBits.push(method)
-              groups.syntaxBits.push(syntax)
+            if (type) {
+              groups.types.push({
+                name: typeName,
+                varName,
+                isSimple: SpellParser.Rule.Type.isSimpleType(typeName),
+                argIndex: groups.args.length,
+                methodIndex: groups.methodBits.length,
+                syntaxIndex: groups.syntaxBits.length
+              })
+            }
 
-              if (arg) {
-                // args in the initial portion are required (not enforced yet)
-                if (!props) arg.required = true
-                groups.args.push(arg)
-              }
+            if (method) groups.methodBits.push(method)
+            if (syntax) groups.syntaxBits.push(syntax)
+            if (arg) {
+              // non-props args are required (not enforced yet)
+              if (!props) arg.required = true
+              groups.args.push(arg)
+            }
 
-              // Recognize prop names in the method
-              if (props) {
-                groups.props = props
-                groups.extraVars.push(...props.map(prop => prop.name))
-              }
+            // Recognize prop names in the method
+            if (props) {
+              groups.props = props
+              groups.extraVars.push(...props.map(prop => prop.name))
             }
           })
-
-          // convert method/syntax to simple string
-          groups.methodName = groups.methodBits.filter(Boolean).join("_")
-          groups.syntax = groups.syntaxBits.join(" ")
 
           return groups
         }
@@ -218,40 +273,8 @@ export const methods = new SpellParser({
       name: "to_do_something",
       alias: "statement",
       syntax: `to {method_signature} :?`,
-      wantsInlineStatement: true,
-      wantsNestedBlock: true,
-      constructor: class to_do_something extends SpellParser.Rule.Statement {
-        gatherGroups(match) {
-          return super.gatherGroups(match).method_signature.groups
-        }
-
-        getNestedScope(match) {
-          const { methodName, args, extraVars, instanceType } = match.groups
-          const methodScope = new MethodScope({
-            scope: match.scope,
-            name: methodName,
-            args: args.map(arg => arg.name),
-            thisVar: instanceType,
-            mapItTo: instanceType && "this"
-          })
-
-          // add other random variables
-          if (extraVars.length) methodScope.variables.add(...extraVars)
-          return methodScope
-        }
-
-        mutateScope(match) {
-          // Create a `DynamicMethodRule` rule (see above) to match the specified syntax.
-          const { methodName, syntax } = match.groups
-          match.scope.rules.add({
-            name: methodName,
-            alias: ["statement", "expression"],
-            constructor: "DynamicMethodRule",
-            syntax,
-            methodName
-          })
-        }
-
+      constructor: class to_do_something extends SpellParser.Rule.MethodDefinition {
+        @proto inlineInitialType = true
         getAST(match) {
           const {
             methodName,
@@ -807,6 +830,24 @@ export const methods = new SpellParser({
           ]
         }
       ]
+    },
+    {
+      name: "type_method",
+      alias: "statement",
+      syntax: "(a|an) {type:singular_type} {method_signature}",
+      // watch out for:  "a card has", "a card is"
+      wantsInlineStatement: true,
+      wantsNestedBlock: true,
+      constructor: class to_do_something extends SpellParser.Rule.Statement {
+        gatherGroups(match) {
+          const groups = super.gatherGroups(match)
+          console.warn(groups)
+          return {
+            type: groups.type,
+            signature: groups.signature.groups
+          }
+        }
+      }
     }
   ]
 })
