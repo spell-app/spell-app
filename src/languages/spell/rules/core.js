@@ -193,7 +193,7 @@ export const core = new SpellParser({
     },
 
     // Literal `text` string.
-    // You can use either single or double quotes on the outside (although double quotes are preferred).
+    // Note that in spell you must use DOUBLE QUOTES (`"`) -- single quotes are treated as a single symbol.
     // Returned value has the original enclosing quotes.
     {
       name: "text",
@@ -209,12 +209,10 @@ export const core = new SpellParser({
           title: "correctly matches text",
           tests: [
             ['""', '""'],
-            ["''", "''"],
             ['"a"', '"a"'],
-            ["'a'", "'a'"],
             ['"abcd"', '"abcd"'],
             ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
-            ['"...Can\'t touch this"', '"...Can\'t touch this"']
+            [`"...Can't touch this"`, `"...Can't touch this"`]
           ]
         }
       ]

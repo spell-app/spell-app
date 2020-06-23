@@ -60,13 +60,13 @@ export const assignment = new SpellParser({
             { title: "non-existing var: set", input: "set nothing to yes", output: "let nothing = true" },
             {
               title: "non-existing var: variable is",
-              input: "bob is a new person whose name is 'bob'",
-              output: "let bob = new Person({ name: 'bob' })"
+              input: `bob is a new person whose name is "bob"`,
+              output: `let bob = new Person({ name: "bob" })`
             },
             {
               title: "non-existing var: property set (won't work)",
-              input: "let the name of nothing = 'bob'",
-              output: `/* PARSE ERROR: UNABLE TO PARSE: "let the name of nothing = 'bob'" */`
+              input: `let the name of nothing = "bob"`,
+              output: `/* PARSE ERROR: UNABLE TO PARSE: "let the name of nothing = \"bob\"" */`
             },
 
             { title: "existing var: equals", input: "thing = yes", output: "thing = true" },
@@ -74,8 +74,8 @@ export const assignment = new SpellParser({
             { title: "existing var: variable is", input: "thing is a new person", output: "thing = new Person()" },
             {
               title: "existing var: property set",
-              input: "let the name of thing = 'bob'",
-              output: "thing.name = 'bob'"
+              input: `let the name of thing = "bob"`,
+              output: `thing.name = "bob"`
             },
             {
               title: "alias var reassign works",

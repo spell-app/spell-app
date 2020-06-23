@@ -227,7 +227,7 @@ export const expressions = new SpellParser({
           beforeEach(scope) {
             scope.variables.add("card")
           },
-          tests: [["the suit of the card is 'ace'", "(card.suit == 'ace')"]]
+          tests: [[`the suit of the card is "ace"`, `(card.suit == "ace")`]]
         }
       ]
     },

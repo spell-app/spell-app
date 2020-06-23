@@ -55,7 +55,7 @@ export const lists = new SpellParser({
             ["[1,2,3]", "[1, 2, 3]"],
             ["[1, 2, 3]", "[1, 2, 3]"],
             ["[1,2,3,]", "[1, 2, 3]"],
-            ["[yes,no,'a',1]", "[true, false, 'a', 1]"]
+            [`[yes,no,"a",1]`, `[true, false, "a", 1]`]
           ]
         },
         {
@@ -142,7 +142,7 @@ export const lists = new SpellParser({
           tests: [
             ["position of thing in my-list", "spellCore.itemOf(my_list, thing)"],
             ["the position of thing in the foo of the bar", "spellCore.itemOf(bar.foo, thing)"],
-            ["the position of 'a' in ['a', 'b', 'c']", "spellCore.itemOf(['a', 'b', 'c'], 'a')"]
+            [`the position of "a" in ["a", "b", "c"]`, `spellCore.itemOf(["a", "b", "c"], "a")`]
           ]
         }
       ]
@@ -348,7 +348,7 @@ export const lists = new SpellParser({
           },
           tests: [
             ["a random item of my-list", "spellCore.randomItemOf(my_list)"],
-            ["a random word in 'some words'", "spellCore.randomItemOf('some words')"],
+            [`a random word in "some words"`, `spellCore.randomItemOf("some words")`],
             ["a random card from the deck", "spellCore.randomItemOf(deck)"]
           ]
         }
@@ -378,7 +378,7 @@ export const lists = new SpellParser({
           },
           tests: [
             ["2 random items of my-list", "spellCore.randomItemsOf(my_list, 2)"],
-            ["2 random words in 'some other words'", "spellCore.randomItemsOf('some other words', 2)"],
+            [`2 random words in "some other words"`, `spellCore.randomItemsOf("some other words", 2)`],
             ["3 random cards from deck", "spellCore.randomItemsOf(deck, 3)"]
           ]
         }
@@ -410,7 +410,7 @@ export const lists = new SpellParser({
           },
           tests: [
             ["item 1 to 2 of my-list", "spellCore.rangeBetween(my_list, 1, 2)"],
-            ["word 2 to 3 in 'some other words'", "spellCore.rangeBetween('some other words', 2, 3)"],
+            [`word 2 to 3 in "some other words"`, `spellCore.rangeBetween("some other words", 2, 3)`],
             ["card 1 to 3 from deck", "spellCore.rangeBetween(deck, 1, 3)"]
           ]
         }
@@ -449,8 +449,8 @@ export const lists = new SpellParser({
               "spellCore.rangeStartingAt(my_list, spellCore.itemOf(my_list, thing))"
             ],
             [
-              "words in 'some words' starting with 'some'",
-              "spellCore.rangeStartingAt('some words', spellCore.itemOf('some words', 'some'))"
+              `words in "some words" starting with "some"`,
+              `spellCore.rangeStartingAt("some words", spellCore.itemOf("some words", "some"))`
             ]
           ]
         }
@@ -481,7 +481,7 @@ export const lists = new SpellParser({
           },
           tests: [
             ["top 2 items of my-list", "spellCore.rangeStartingAt(my_list, 1, 2)"],
-            ["first 2 words in 'some other words'", "spellCore.rangeStartingAt('some other words', 1, 2)"],
+            [`first 2 words in "some other words"`, `spellCore.rangeStartingAt("some other words", 1, 2)`],
             ["last two cards from deck", "spellCore.rangeStartingAt(deck, -1, 2)"]
           ]
         }
@@ -527,10 +527,10 @@ export const lists = new SpellParser({
             scope.variables.add("my-list")
           },
           tests: [
-            ["words in 'a word list' where", "spellCore.filter('a word list', (word) => {})"],
+            [`words in "a word list" where`, `spellCore.filter("a word list", (word) => {})`],
             [
-              "words in 'a word list' where word starts with 'a'",
-              "spellCore.filter('a word list', (word) => { return spellCore.startsWith(word, 'a') })"
+              `words in "a word list" where word starts with "a"`,
+              `spellCore.filter("a word list", (word) => { return spellCore.startsWith(word, "a") })`
             ],
             [
               "the items in my-list where the id of the item > 1",
@@ -960,8 +960,8 @@ export const lists = new SpellParser({
           tests: [
             ["remove items from my-list where", "spellCore.removeWhere(my_list, (item) => {})"],
             [
-              "remove items from my-list where item is not 'ace'",
-              "spellCore.removeWhere(my_list, (item) => { return (item != 'ace') })"
+              `remove items from my-list where item is not "ace"`,
+              `spellCore.removeWhere(my_list, (item) => { return (item != "ace") })`
             ],
             [
               "remove cards in deck where the suit of the card is clubs",
@@ -1090,12 +1090,12 @@ export const lists = new SpellParser({
             ["for each card in deck:", "spellCore.map(deck, (card) => {})"],
             ["for item, index in my-list:", "spellCore.map(my_list, (item, index) => {})"],
             [
-              "for each card in deck: set the direction of the card to 'down'",
-              "spellCore.map(deck, (card) => { card.direction = 'down' })"
+              `for each card in deck: set the direction of the card to "down"`,
+              `spellCore.map(deck, (card) => { card.direction = "down" })`
             ],
             [
-              "for each card in deck: set the direction of it to 'down'",
-              "spellCore.map(deck, (card) => { card.direction = 'down' })"
+              `for each card in deck: set the direction of it to "down"`,
+              `spellCore.map(deck, (card) => { card.direction = "down" })`
             ],
             [
               "for message, index in messages: add message + index to messages",
@@ -1111,16 +1111,20 @@ export const lists = new SpellParser({
             ],
 
             [
-              "for each card in deck:\n\tset the direction of the card to 'down'",
-              "spellCore.map(deck, (card) => { card.direction = 'down' })"
+              `for each card in deck:\n\tset the direction of the card to "down"`,
+              `spellCore.map(deck, (card) => { card.direction = "down" })`
             ],
             [
-              "for each card in deck:\n\tset the direction of it to 'down'",
-              "spellCore.map(deck, (card) => { card.direction = 'down' })"
+              `for each card in deck:\n\tset the direction of it to "down"`,
+              `spellCore.map(deck, (card) => { card.direction = "down" })`
             ],
             [
-              "for each card in deck:\n\tset the direction of the card to 'down'\n\tset the value of the card to 10",
-              "spellCore.map(deck, (card) => {\n\tcard.direction = 'down'\n\tcard.value = 10\n})"
+              [
+                `for each card in deck:`,
+                `\tset the direction of the card to "down"`,
+                `\tset the value of the card to 10`
+              ],
+              [`spellCore.map(deck, (card) => {`, `\tcard.direction = "down"`, `\tcard.value = 10`, `})`]
             ],
             [
               "for message and index in messages:\n\tif index is greater than 2 add message to messages",

@@ -13,6 +13,8 @@ export class SpellParser extends Parser {
   @proto defaultRule = "block"
 
   @proto tokenizer = new Tokenizer({
+    // Only support double-quotes as quote symbols (so we can do contractions with single quotes)
+    quoteSymbols: [`"`],
     // Remove "normal" whitespace (leaving newlines and indents) when parsing
     whitespacePolicy: WhitespacePolicy.LEADING_ONLY
   })
