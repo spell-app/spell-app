@@ -1,5 +1,5 @@
 import { instanceCase, typeCase, proto } from "~/util"
-import { Rule, MethodScope } from "~/parser"
+import { Rule, Token, MethodScope } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
 
 /**
@@ -41,32 +41,35 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
   @proto inlineInitialType = false
 
   // Iniline initial type epression, making an instance method?
-  processInitialType(signature) {
+  processSignature(groups, signature) {
     const [initialType] = signature.types
     if (this.inlineInitialType && initialType && !initialType.isSimple) {
       signature.instanceType = initialType.name
-      // remove from args and method signature
+      // remove instance bits from args and method signature
       signature.args.splice(initialType.argIndex, 1)
       signature.methodBits.splice(initialType.methodIndex, 1)
-      // replace with `thisArg` in syntax and add an alias for `this`
+      // replace in syntax with `thisArg` and add a variable alias for `this`
       signature.syntaxBits[initialType.syntaxIndex] = "{thisArg:expression}"
       if (initialType.varName && initialType.varName !== initialType.name) {
         signature.extraVars.push({ name: initialType.varName, output: "this", type: "alias" })
       }
     }
-    signature.methodName = signature.methodBits.join("_")
-    signature.syntax = signature.syntaxBits.join(" ")
-    // console.warn(signature)
     return signature
   }
 
   gatherGroups(match) {
-    const signature = super.gatherGroups(match).method_signature.groups
-    return this.processInitialType(signature)
+    const groups = super.gatherGroups(match)
+    if (groups.signature) {
+      const signature = this.processSignature(groups, groups.signature.groups)
+      signature.methodName = signature.methodBits.join("_")
+      signature.syntax = signature.syntaxBits.join(" ")
+      groups.signature = signature
+    }
+    return groups
   }
 
   getNestedScope(match) {
-    const { methodName, args, extraVars, instanceType } = match.groups
+    const { methodName, args, extraVars, instanceType } = match.groups.signature
     const methodScope = new MethodScope({
       scope: match.scope,
       name: methodName,
@@ -82,7 +85,7 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
 
   mutateScope(match) {
     // Create a `DynamicMethodRule` rule (see above) to match the specified syntax.
-    const { methodName, syntax } = match.groups
+    const { methodName, syntax } = match.groups.signature
     match.scope.rules.add({
       name: methodName,
       alias: ["statement", "expression"],
@@ -92,9 +95,52 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
     })
   }
 
+  getAST(match) {
+    const { signature, inlineStatement, nestedBlock } = match.groups
+    const { methodName, syntax, args, props, instanceType } = signature
+
+    const output = [
+      new AST.ParserAnnotation(match, {
+        value: `added rule: '${syntax}'`
+      })
+    ]
+
+    const method = new AST.MethodBody(match, {
+      args,
+      body: (inlineStatement || nestedBlock)?.AST,
+      inline: false
+    })
+    // Add props assignment to START of method body
+    if (props) method.body.statements.unshift(this.getPropsAssignment(match))
+
+    if (instanceType) {
+      output.push(
+        new AST.PropertyDefinition(match, {
+          thing: new AST.PrototypeExpression(match, {
+            type: typeCase(instanceType)
+          }),
+          property: methodName,
+          value: method
+        })
+      )
+    }
+    // No instance type: create as a loose function
+    else {
+      output.push(
+        new AST.FunctionDeclaration(match, {
+          wrap: true,
+          methodName,
+          method
+        })
+      )
+    }
+
+    return new AST.StatementGroup(match, { statements: output })
+  }
+
   /** If `signature.props` return `DestructuredAssignment` to pull those props into scope. */
-  getPropsAST(match) {
-    const { props } = match.groups
+  getPropsAssignment(match) {
+    const { props } = match.groups.signature
     if (!props) return undefined
     return new AST.DestructuredAssignment(match, {
       // `props` argument will be the last thing in args
@@ -235,9 +281,9 @@ export const methods = new SpellParser({
             extraVars: [], // random extra vars we should enable (e.g. aliases for `this`)
             // calculated at the end
             props: undefined, // array of AST.VariableExpression for `with_props_arg`
-            methodName: undefined, // full methodName from `methodBits` array
-            syntax: undefined, // full method syntax
-            instanceType: undefined // type to add instance method to, if any
+            methodName: undefined, // full methodName from `methodBits` array, set elsewhere
+            syntax: undefined, // full method syntax, set elsewhere
+            instanceType: undefined // type to add instance method to, set elsewhere
           }
           // Set up the method signature and rule syntax
           // We'll get one of the following combos: keyword, type, variable, variable + type
@@ -281,91 +327,31 @@ export const methods = new SpellParser({
         }
       }
     },
+    /** Method signature surrounded by quotes.  A "good idea"??? */
+    {
+      name: "quoted_method_signature",
+      tokenType: Token.Text,
+      constructor: class quoted_method_signature extends Rule.TokenType {
+        parse(scope, tokens) {
+          const match = super.parse(scope, tokens)
+          // TODO: returned match is off in terms of char positions matched
+          const signature = match && scope.parse(JSON.parse(match.value), "method_signature")
+          if (!signature || !signature.groups.foundKeyword) return undefined
+          // HACK: swizzle matched, input and length to reflect that we actually matched a string
+          // TODO: necessary???
+          signature.input = [match]
+          signature.matched = [match]
+          signature.length = 1
+          return signature
+        }
+      }
+    },
     {
       name: "to_do_something",
       alias: "statement",
-      syntax: `to {method_signature} :?`,
+      syntax: `to {signature:method_signature} :?`,
       constructor: class to_do_something extends SpellParser.Rule.MethodDefinition {
         @proto inlineInitialType = true
-        getAST(match) {
-          const {
-            methodName,
-            methodBits,
-            syntax,
-            args,
-            props,
-            instanceType,
-            inlineStatement,
-            nestedBlock
-          } = match.groups
-
-          const output = [
-            new AST.ParserAnnotation(match, {
-              value: `added rule: '${syntax}'`
-            })
-          ]
-
-          let statements = (inlineStatement || nestedBlock)?.AST
-          // if we have `props`, use a destructuredAssignment to pull them out of `props`
-          if (props) {
-            const assignment = new AST.DestructuredAssignment(match, {
-              // `props` argument will be the last thing in args
-              thing: new AST.VariableExpression(match, { name: "props" }),
-              variables: props,
-              isNewVariable: true
-            })
-            if (!statements) statements = assignment
-            else statements.statements.unshift(assignment)
-          }
-
-          if (instanceType) {
-            output.push(
-              new AST.PropertyDefinition(match, {
-                thing: new AST.PrototypeExpression(match, {
-                  type: typeCase(instanceType)
-                }),
-                property: methodName,
-                value: new AST.MethodBody(match, {
-                  args,
-                  body: statements,
-                  inline: false
-                })
-              })
-            )
-          }
-          // No instance type: create as a loose function
-          else {
-            let method = new AST.MethodBody(match, {
-              args,
-              body: statements,
-              inline: false
-            })
-            // HACK???  If first word is "test" wrap in `spellCore.test(...)`
-            if (methodBits[0] === "test") {
-              let testName = [...methodBits]
-              // convert message from "test a thing" to "TESTING A THING"
-              testName[0] = "testing"
-              testName = testName.join(" ").toUpperCase()
-              method = new AST.MethodBody(match, {
-                inline: false,
-                body: new AST.CoreMethodInvocation(match, {
-                  methodName: "test",
-                  wrap: true,
-                  args: [new AST.QuotedExpression(match, testName), new AST.FunctionDeclaration(match, { method })]
-                })
-              })
-            }
-            output.push(
-              new AST.FunctionDeclaration(match, {
-                wrap: true,
-                methodName,
-                method
-              })
-            )
-          }
-
-          return new AST.StatementGroup(match, { statements: output })
-        }
       },
       tests: [
         {
@@ -782,84 +768,21 @@ export const methods = new SpellParser({
               ]
             }
           ]
-        },
-        {
-          title: "to test",
-          compileAs: "block",
-          beforeEach(scope) {
-            scope.types.add("card")
-            scope.types.add("pile")
-          },
-          tests: [
-            {
-              title: "empty body",
-              input: ["to test something"],
-              output: [
-                `/* SPELL: added rule: 'test something' */`,
-                `function test_something() { return spellCore.test(`,
-                `\t'TESTING SOMETHING',`,
-                `\tfunction () {}`,
-                `) }`
-              ]
-            },
-            {
-              title: "empty body calling itself",
-              input: ["to test something", "test something"],
-              output: [
-                `/* SPELL: added rule: 'test something' */`,
-                `function test_something() { return spellCore.test(`,
-                `\t'TESTING SOMETHING',`,
-                `\tfunction () {}`,
-                `) }`,
-                `test_something()`
-              ]
-            },
-            {
-              title: "inline single statement",
-              input: ["to test something: print 1"],
-              output: [
-                `/* SPELL: added rule: 'test something' */`,
-                `function test_something() { return spellCore.test(`,
-                `\t'TESTING SOMETHING',`,
-                `\tfunction () { return console.log(1) }`,
-                `) }`
-              ]
-            },
-            {
-              title: "indented multi-line",
-              input: ["to test something", "\tprint 1", "\tprint 2"],
-              output: [
-                `/* SPELL: added rule: 'test something' */`,
-                `function test_something() { return spellCore.test(`,
-                `\t'TESTING SOMETHING',`,
-                `\tfunction () {`,
-                `\t\tconsole.log(1)`,
-                `\t\tconsole.log(2)`,
-                `\t}`,
-                `) }`
-              ]
-            }
-          ]
         }
       ]
+    },
+    {
+      name: "quoted_type_method",
+      precedence: 9, // defer to more-specific methods in `classes`, e.g. `define_property_has`, ...
+      alias: "statement",
+      syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} if?",
+      constructor: class quoted_type_method extends SpellParser.Rule.MethodDefinition {
+        processSignature(groups, signature) {
+          signature.instanceType = groups.type.raw
+          signature.syntaxBits.unshift("{thisArg:single_expression}")
+          return signature
+        }
+      }
     }
-    // {
-    //   name: "type_method",
-    //   alias: "statement",
-    //   syntax: "(a|an) {type:singular_type} {method_signature}",
-    //   // watch out for:  "a card has", "a card is"
-    //   wantsInlineStatement: true,
-    //   wantsNestedBlock: true,
-    //   constructor: class to_do_something extends SpellParser.Rule.Statement {
-    //     gatherGroups(match) {
-    //       const groups = super.gatherGroups(match)
-    //       console.warn(groups)
-    //       return {
-    //         type: groups.type,
-    //         signature: groups.signature.groups
-    //       }
-    //     }
-    //   }
-    // }
   ]
 })

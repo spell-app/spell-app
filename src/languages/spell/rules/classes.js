@@ -14,6 +14,7 @@ export const classes = new SpellParser({
   rules: [
     {
       name: "create_type",
+      precedence: 10,
       alias: "statement",
       syntax: [
         "create a type (named|called) {type} (as (a|an) {superType:type})?",
@@ -60,6 +61,7 @@ export const classes = new SpellParser({
 
     {
       name: "create_list_type",
+      precedence: 10,
       alias: "statement",
       syntax: [
         "create a type (named|called) {type} as a list of {instanceType:type}",
@@ -312,6 +314,7 @@ export const classes = new SpellParser({
     },
     {
       name: "define_property_has",
+      precedence: 10,
       alias: "statement",
       syntax: [
         "(a|an) {type:singular_type} has (a|an|a property) {property} {specifier:type_specifier}?",
@@ -353,8 +356,8 @@ export const classes = new SpellParser({
           ]
           scope.rules.add({
             name: `${typeName}_${groupName}`,
-            alias: ["expression", "single_expression"],
             precedence: 20,
+            alias: ["expression", "single_expression"],
             literals,
             getAST(_match) {
               return new AST.PropertyExpression(_match, {
@@ -610,6 +613,7 @@ export const classes = new SpellParser({
 
     {
       name: "quoted_property_alias",
+      precedence: 10,
       alias: "statement",
       //  e.g. `a card "is face up" if ...`
       //  NOTE: the first word in quotes must be "is" !!
@@ -638,9 +642,9 @@ export const classes = new SpellParser({
           // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
           match.scope.rules.add({
             name: match.property,
+            precedence: 20,
             alias: "expression_suffix",
             syntax: expressionSuffix,
-            precedence: 20,
             constructor: "PostfixOperatorSuffix",
             shouldNegateOutput: operator => operator.value.includes("not"),
             compileASTExpression(_match, { lhs }) {
@@ -714,6 +718,7 @@ export const classes = new SpellParser({
 
     {
       name: "quoted_property_formula",
+      precedence: 10,
       alias: "statement",
       //  `a card "is a (rank) of (suits)" for its ranks and its suits`
       //  e.g. `a card is the queen of spades`
@@ -800,9 +805,9 @@ export const classes = new SpellParser({
           // Create an expression suffix to match the quoted statement, e.g. `is not? a queen`
           match.scope.rules.add({
             name: property,
+            precedence: 20,
             alias: "expression_suffix",
             syntax,
-            precedence: 20,
             constructor: "InfixOperatorSuffix",
             shouldNegateOutput: operator => operator.value.includes("not"),
             compileASTExpression(_match, { lhs, rhs }) {

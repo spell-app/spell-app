@@ -1,5 +1,5 @@
 import { proto } from "~/util"
-import { Rule, Token } from "~/parser"
+import { Rule } from "~/parser"
 import { SpellParser } from "~/languages/spell"
 
 // In Spell, we generally match `statements` across the entire line.

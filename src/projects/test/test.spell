@@ -1,5 +1,14 @@
 a card is a thing
 a pile is a list of cards
-to play (cards as a pile) on (a pile)
-	print the cards
-	if the pile is empty
+c is a new card
+p is a new pile
+
+a pile "will accept anything" if
+	print the it + the pile
+	return true
+p will accept anything
+
+a pile "will accept (a card)" if
+	print it + the pile + the card
+	return true
+if p will accept c then print "yES"
