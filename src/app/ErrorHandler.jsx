@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
 import React from "react"
-import { shallowEqual } from "shallow-equal-object"
 
 export class ErrorHandler extends React.Component {
   /**
