@@ -1,3 +1,5 @@
+import { isNode } from "browser-or-node"
+
 import { instanceCase, typeCase, proto } from "~/util"
 import { Rule, Token, MethodScope } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
@@ -89,9 +91,9 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
 
   getRuleAnnotation(match) {
     const { syntax, asPostfixExpression, asInfixExpression } = match.groups.signature
-    if (asPostfixExpression) return `added expression '{thing:single_expression} ${syntax}'`
-    if (asInfixExpression) return `added expression '{thing:single_expression} ${syntax}'`
-    return `added rule: '${match.groups.signature.syntax}'`
+    if (asPostfixExpression) return `added expression \`{thing:single_expression} ${syntax}\``
+    if (asInfixExpression) return `added expression \`{thing:single_expression} ${syntax}\``
+    return `added rule: \`${match.groups.signature.syntax}\``
   }
   getRule(match) {
     const {
@@ -177,7 +179,7 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
 
     if (instanceType) {
       if (asPostfixExpression) {
-        console.warn("APE:", method)
+        // console.warn("APE:", method)
         output.push(
           new AST.PropertyDefinition(match, {
             thing: new AST.PrototypeExpression(match, {
@@ -435,13 +437,13 @@ export const methods = new SpellParser({
             {
               title: "keyword-only signature",
               input: "to start the game",
-              output: ["/* SPELL: added rule: 'start the game' */", "function start_the_game() {}"]
+              output: ["/* SPELL: added rule: `start the game` */", "function start_the_game() {}"]
             },
             {
               title: "keyword-only signature - `it` is not defined",
               input: "to start the game: print it",
               output: [
-                "/* SPELL: added rule: 'start the game' */",
+                "/* SPELL: added rule: `start the game` */",
                 "function start_the_game() {}",
                 '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
               ]
@@ -449,13 +451,13 @@ export const methods = new SpellParser({
             {
               title: "non-escaped type arg in signature",
               input: "to create a card",
-              output: ["/* SPELL: added rule: 'create a card' */", "function create_a_card() {}"]
+              output: ["/* SPELL: added rule: `create a card` */", "function create_a_card() {}"]
             },
             {
               title: "non-escaped type arg in signature - `it` is not defined",
               input: "to create a card: print it",
               output: [
-                "/* SPELL: added rule: 'create a card' */",
+                "/* SPELL: added rule: `create a card` */",
                 "function create_a_card() {}",
                 '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
               ]
@@ -464,7 +466,7 @@ export const methods = new SpellParser({
               title: "simple arg in signature - arg is defined",
               input: "to notify (message): print the message",
               output: [
-                "/* SPELL: added rule: 'notify {callArgs:expression}' */",
+                "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 "function notify_$message(message) { return console.log(message) }"
               ]
             },
@@ -472,7 +474,7 @@ export const methods = new SpellParser({
               title: "simple arg in signature - it is not defined",
               input: "to notify (message): print it",
               output: [
-                "/* SPELL: added rule: 'notify {callArgs:expression}' */",
+                "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 "function notify_$message(message) {}",
                 '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
               ]
@@ -481,7 +483,7 @@ export const methods = new SpellParser({
               title: "typed simple arg in signature - arg is defined",
               input: "to notify (message as text): print the message",
               output: [
-                "/* SPELL: added rule: 'notify {callArgs:expression}' */",
+                "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 "function notify_$message(message) { return console.log(message) }"
               ]
             },
@@ -489,7 +491,7 @@ export const methods = new SpellParser({
               title: "typed simple arg in signature - `it` is not defined",
               input: "to notify (message as text): print it",
               output: [
-                "/* SPELL: added rule: 'notify {callArgs:expression}' */",
+                "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 "function notify_$message(message) {}",
                 '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
               ]
@@ -498,7 +500,7 @@ export const methods = new SpellParser({
               title: "valued simple arg in signature - arg is defined",
               input: 'to notify (message = "Really?"): print the message',
               output: [
-                "/* SPELL: added rule: 'notify {callArgs:expression}' */",
+                "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 'function notify_$message(message = "Really?") { return console.log(message) }'
               ]
             },
@@ -506,7 +508,7 @@ export const methods = new SpellParser({
               title: "typed simple arg in signature - `it` is not defined",
               input: 'to notify (message = "Really?"): print it',
               output: [
-                "/* SPELL: added rule: 'notify {callArgs:expression}' */",
+                "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 'function notify_$message(message = "Really?") {}',
                 '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
               ]
@@ -515,7 +517,7 @@ export const methods = new SpellParser({
               title: "type arg in signature - thisVar",
               input: "to create (a card): print the card",
               output: [
-                "/* SPELL: added rule: 'create {thisArg:expression}' */",
+                "/* SPELL: added rule: `create {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'create', {`,
                 `\tvalue() { return console.log(this) }`,
                 `})`
@@ -525,7 +527,7 @@ export const methods = new SpellParser({
               title: "type arg in signature - it",
               input: "to create (a card): print it",
               output: [
-                "/* SPELL: added rule: 'create {thisArg:expression}' */",
+                "/* SPELL: added rule: `create {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'create', {`,
                 `\tvalue() { return console.log(this) }`,
                 `})`
@@ -535,7 +537,7 @@ export const methods = new SpellParser({
               title: "type arg in signature - its",
               input: "to create (a card): set its number to 1",
               output: [
-                "/* SPELL: added rule: 'create {thisArg:expression}' */",
+                "/* SPELL: added rule: `create {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'create', {`,
                 `\tvalue() { this.number = 1 }`,
                 `})`
@@ -545,7 +547,7 @@ export const methods = new SpellParser({
               title: "multiple type args in signature - thisVar",
               input: "to add (a card) to (a pile): set the pile of the card to the pile",
               output: [
-                "/* SPELL: added rule: 'add {thisArg:expression} to {callArgs:expression}' */",
+                "/* SPELL: added rule: `add {thisArg:expression} to {callArgs:expression}` */",
                 `spellCore.define(Card.prototype, 'add_to_$pile', {`,
                 `\tvalue(pile) { this.pile = pile }`,
                 `})`
@@ -555,7 +557,7 @@ export const methods = new SpellParser({
               title: "multiple type args in signature - it",
               input: "to add (a card) to (a pile): set the pile of it to the pile",
               output: [
-                "/* SPELL: added rule: 'add {thisArg:expression} to {callArgs:expression}' */",
+                "/* SPELL: added rule: `add {thisArg:expression} to {callArgs:expression}` */",
                 `spellCore.define(Card.prototype, 'add_to_$pile', {`,
                 `\tvalue(pile) { this.pile = pile }`,
                 `})`
@@ -565,7 +567,7 @@ export const methods = new SpellParser({
               title: "multiple type args in signature - its",
               input: "to add (a card) to (a pile): set its pile to the pile",
               output: [
-                "/* SPELL: added rule: 'add {thisArg:expression} to {callArgs:expression}' */",
+                "/* SPELL: added rule: `add {thisArg:expression} to {callArgs:expression}` */",
                 `spellCore.define(Card.prototype, 'add_to_$pile', {`,
                 `\tvalue(pile) { this.pile = pile }`,
                 `})`
@@ -575,7 +577,7 @@ export const methods = new SpellParser({
               title: "typed arg in signature -- arg name",
               input: "to show (thing as a card): print the thing",
               output: [
-                "/* SPELL: added rule: 'show {thisArg:expression}' */",
+                "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
                 `\tvalue() { return console.log(this) }`,
                 `})`
@@ -585,7 +587,7 @@ export const methods = new SpellParser({
               title: "typed arg in signature -- thisVar",
               input: "to show (thing as a card): print the card",
               output: [
-                "/* SPELL: added rule: 'show {thisArg:expression}' */",
+                "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
                 `\tvalue() { return console.log(this) }`,
                 `})`
@@ -595,7 +597,7 @@ export const methods = new SpellParser({
               title: "typed arg in signature -- it",
               input: "to show (thing as a card): print it",
               output: [
-                "/* SPELL: added rule: 'show {thisArg:expression}' */",
+                "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
                 `\tvalue() { return console.log(this) }`,
                 `})`
@@ -605,7 +607,7 @@ export const methods = new SpellParser({
               title: "typed arg in signature -- its",
               input: "to show (thing as a card): print its name",
               output: [
-                "/* SPELL: added rule: 'show {thisArg:expression}' */",
+                "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
                 `\tvalue() { return console.log(this.name) }`,
                 `})`
@@ -615,7 +617,7 @@ export const methods = new SpellParser({
               title: "typed var in signature: implicit `it` gets remapped after `get`",
               input: ["to show (thing as a card)", "\tprint it", "\tget its name", "\tprint it"],
               output: [
-                "/* SPELL: added rule: 'show {thisArg:expression}' */",
+                "/* SPELL: added rule: `show {thisArg:expression}` */",
                 "spellCore.define(Card.prototype, 'show', {",
                 "\tvalue() {",
                 "\t\tconsole.log(this)",
@@ -629,7 +631,7 @@ export const methods = new SpellParser({
               title: "mixed vars in signature",
               input: "to prompt (message as text) and (reply)",
               output: [
-                "/* SPELL: added rule: 'prompt {callArgs:expression} and {callArgs:expression}' */",
+                "/* SPELL: added rule: `prompt {callArgs:expression} and {callArgs:expression}` */",
                 "function prompt_$message_and_$reply(message, reply) {}"
               ]
             }
@@ -647,7 +649,7 @@ export const methods = new SpellParser({
               title: "top level keyword-only method",
               input: ["to start the game", "\tprint 1", "start the game"],
               output: [
-                "/* SPELL: added rule: 'start the game' */",
+                "/* SPELL: added rule: `start the game` */",
                 "function start_the_game() { console.log(1) }",
                 "start_the_game()"
               ]
@@ -656,7 +658,7 @@ export const methods = new SpellParser({
               title: "top level simple argument method",
               input: ["to notify (message): print the message", "notify 1"],
               output: [
-                "/* SPELL: added rule: 'notify {callArgs:expression}' */",
+                "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 "function notify_$message(message) { return console.log(message) }",
                 "notify_$message(1)"
               ]
@@ -665,7 +667,7 @@ export const methods = new SpellParser({
               title: "top level typed simple argument method",
               input: ["to notify (message as text): print the message", "notify 1"],
               output: [
-                "/* SPELL: added rule: 'notify {callArgs:expression}' */",
+                "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 "function notify_$message(message) { return console.log(message) }",
                 "notify_$message(1)"
               ]
@@ -674,7 +676,7 @@ export const methods = new SpellParser({
               title: "type arg in signature",
               input: ["to show (a card): print the card", "show a new card"],
               output: [
-                "/* SPELL: added rule: 'show {thisArg:expression}' */",
+                "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
                 `\tvalue() { return console.log(this) }`,
                 `})`,
@@ -685,7 +687,7 @@ export const methods = new SpellParser({
               title: "multiple type args in signature",
               input: ["to play (a card) on (a pile): set its pile to the pile", "play a new card on a new pile"],
               output: [
-                "/* SPELL: added rule: 'play {thisArg:expression} on {callArgs:expression}' */",
+                "/* SPELL: added rule: `play {thisArg:expression} on {callArgs:expression}` */",
                 `spellCore.define(Card.prototype, 'play_on_$pile', {`,
                 `\tvalue(pile) { this.pile = pile }`,
                 `})`,
@@ -711,7 +713,7 @@ export const methods = new SpellParser({
               title: "with arg is optional when calling",
               input: ["to notify (with message):", "\tprint the message", "notify"],
               output: [
-                "/* SPELL: added rule: 'notify (with {props:object_literal_properties})?' */",
+                "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
                 "function notify(props = {}) {",
                 "\tlet { message } = props",
                 "\tconsole.log(message)",
@@ -724,7 +726,7 @@ export const methods = new SpellParser({
               title: "simple variable props",
               input: ["to notify (with message):", "\tprint the message", 'notify with message = "It worked!"'],
               output: [
-                "/* SPELL: added rule: 'notify (with {props:object_literal_properties})?' */",
+                "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
                 "function notify(props = {}) {",
                 "\tlet { message } = props",
                 "\tconsole.log(message)",
@@ -741,7 +743,7 @@ export const methods = new SpellParser({
                 'play with card = a new card with suit of "hearts"'
               ],
               output: [
-                "/* SPELL: added rule: 'play (with {props:object_literal_properties})?' */",
+                "/* SPELL: added rule: `play (with {props:object_literal_properties})?` */",
                 "function play(props = {}) {",
                 "\tlet { card } = props",
                 "\tconsole.log(card)",
@@ -754,7 +756,7 @@ export const methods = new SpellParser({
               title: "default value props",
               input: ['to notify (with message = "nope"):', "\tprint the message", 'notify with message = "Ship it!!"'],
               output: [
-                "/* SPELL: added rule: 'notify (with {props:object_literal_properties})?' */",
+                "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
                 "function notify(props = {}) {",
                 '\tlet { message = "nope" } = props',
                 "\tconsole.log(message)",
@@ -771,7 +773,7 @@ export const methods = new SpellParser({
                 'notify with message = "How many?" and reply = 2'
               ],
               output: [
-                "/* SPELL: added rule: 'notify (with {props:object_literal_properties})?' */",
+                "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
                 "function notify(props = {}) {",
                 '\tlet { message = "nope", reply = "yep" } = props',
                 "\tconsole.log(message + reply)",
@@ -788,7 +790,7 @@ export const methods = new SpellParser({
                 'notify with name = "Bob", message = "How many?" and reply = 2'
               ],
               output: [
-                "/* SPELL: added rule: 'notify (with {props:object_literal_properties})?' */",
+                "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
                 "function notify(props = {}) {",
                 '\tlet { name, message, reply = "yep" } = props',
                 "\tconsole.log((name + message) + reply)",
@@ -809,7 +811,7 @@ export const methods = new SpellParser({
                 'notify "Really?" with reply = "yes"'
               ],
               output: [
-                "/* SPELL: added rule: 'notify {callArgs:expression} (with {props:object_literal_properties})?' */",
+                "/* SPELL: added rule: `notify {callArgs:expression} (with {props:object_literal_properties})?` */",
                 "function notify_$message(message, props = {}) {",
                 '\tlet { reply = "yep" } = props',
                 "\tconsole.log(message)",
@@ -826,7 +828,7 @@ export const methods = new SpellParser({
                 `notify with message = "It worked!" and reply = "No it didn't"`
               ],
               output: [
-                "/* SPELL: added rule: 'notify (with {props:object_literal_properties})?' */",
+                "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
                 "function notify(props = {}) {",
                 "\tlet { message } = props",
                 "\tconsole.log(message)",
@@ -850,15 +852,13 @@ export const methods = new SpellParser({
           if (match) {
             const { signature } = match.groups
             if (!signature.startsWithKeyword) {
-              console.warn("quoted_type_expression: must start with a keyword. Skipping match.", { tokens, match })
-              return undefined
-            }
-            if (!signature.foundKeyword) {
-              console.warn("quoted_type_expression: must specify a keyword. Skipping match.", { tokens, match })
+              if (!isNode)
+                console.warn("quoted_type_expression: must start with a keyword. Skipping match.", { tokens, match })
               return undefined
             }
             if (signature.args.length > 1) {
-              console.warn("quoted_type_expression: too many arguments. Skipping match.", { tokens, match })
+              if (!isNode)
+                console.warn("quoted_type_expression: too many arguments. Skipping match.", { tokens, match })
               return undefined
             }
           }
@@ -881,10 +881,10 @@ export const methods = new SpellParser({
           if (signature.asPostfixExpression || signature.asInfixExpression) {
             let foundOne = false
             const NEGATABLES = {
-              is: ["(operator:is not?|isnt)", op => op.value !== "is"],
-              can: ["(operator:can not?|cant)", op => op.value !== "can"],
-              will: ["(operator:will not?|wont)", op => op.value !== "will"],
-              has: ["(operator:has|does not have|doesnt have)", op => op.value !== "has"]
+              is: ["(operator:is not?|isn't|isnt)", op => op.value !== "is"],
+              can: ["(operator:can not?|can't|cant)", op => op.value !== "can"],
+              will: ["(operator:will not?|won't|wont)", op => op.value !== "will"],
+              has: ["(operator:has|does not have|doesn't have|doesnt have)", op => op.value !== "has"]
             }
             signature.syntaxBits = signature.syntaxBits.map(bit => {
               const negatable = NEGATABLES[bit]
@@ -894,10 +894,204 @@ export const methods = new SpellParser({
               return negatable[0]
             })
           }
-          console.warn(signature)
+          // console.warn(signature)
           return signature
         }
-      }
+      },
+      tests: [
+        {
+          title: "fails if",
+          compileAs: "block",
+          tests: [
+            {
+              title: "signature is empty",
+              input: `a thing "" if`,
+              output: `/* PARSE ERROR: UNABLE TO PARSE: "a thing "" if" */`
+            },
+            {
+              title: "signature doesn't start with a keyword",
+              input: `a thing "(thing)" if`,
+              output: `/* PARSE ERROR: UNABLE TO PARSE: "a thing "(thing)" if" */`
+            },
+            {
+              title: "more than one arg specified",
+              input: `a thing "(thing) but (thing)" if`,
+              output: `/* PARSE ERROR: UNABLE TO PARSE: "a thing "(thing) but (thing)" if" */`
+            }
+          ]
+        },
+        {
+          title: "no args, no negatables",
+          compileAs: "block",
+          tests: [
+            {
+              title: "no body",
+              input: [`a thing "nerds out" if`, `if a new thing nerds out`],
+              output: [
+                `/* SPELL: added expression \`{thing:single_expression} nerds out\` */`,
+                `spellCore.define(Thing.prototype, 'nerds_out', {`,
+                `\tget() {}`,
+                `})`,
+                `if (new Thing().nerds_out) {}`
+              ]
+            },
+            {
+              title: "inline expression",
+              input: [`a thing "nerds out" if yes`, `if a new thing nerds out`],
+              output: [
+                `/* SPELL: added expression \`{thing:single_expression} nerds out\` */`,
+                `spellCore.define(Thing.prototype, 'nerds_out', {`,
+                `\tget() { return true }`,
+                `})`,
+                `if (new Thing().nerds_out) {}`
+              ]
+            },
+            {
+              title: "indented method body",
+              input: [`a thing "nerds out" if`, `\treturn yes`, `if a new thing nerds out`],
+              output: [
+                `/* SPELL: added expression \`{thing:single_expression} nerds out\` */`,
+                `spellCore.define(Thing.prototype, 'nerds_out', {`,
+                `\tget() { return true }`,
+                `})`,
+                `if (new Thing().nerds_out) {}`
+              ]
+            }
+          ]
+        },
+        {
+          title: "one arg",
+          compileAs: "block",
+          tests: [
+            {
+              title: "no body",
+              input: [`a thing "nerds out with (another as a thing)" if`, `if a new thing nerds out with a new thing`],
+              output: [
+                `/* SPELL: added expression \`{thing:single_expression} nerds out with {expression:single_expression}\` */`,
+                `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
+                `\tvalue(another) {}`,
+                `})`,
+                `if (new Thing().nerds_out_with_$another(new Thing())) {}`
+              ]
+            },
+            {
+              title: "inline expression",
+              input: [
+                `a thing "nerds out with (another as a thing)" if yes`,
+                `if a new thing nerds out with a new thing`
+              ],
+              output: [
+                `/* SPELL: added expression \`{thing:single_expression} nerds out with {expression:single_expression}\` */`,
+                `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
+                `\tvalue(another) { return true }`,
+                `})`,
+                `if (new Thing().nerds_out_with_$another(new Thing())) {}`
+              ]
+            },
+            {
+              title: "indented method body",
+              input: [
+                `a thing "nerds out with (another as a thing)" if`,
+                `\treturn yes`,
+                `if a new thing nerds out with a new thing`
+              ],
+              output: [
+                `/* SPELL: added expression \`{thing:single_expression} nerds out with {expression:single_expression}\` */`,
+                `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
+                `\tvalue(another) { return true }`,
+                `})`,
+                `if (new Thing().nerds_out_with_$another(new Thing())) {}`
+              ]
+            }
+          ]
+        },
+        {
+          title: "negatables",
+          compileAs: "block",
+          tests: [
+            {
+              title: "is",
+              input: [
+                `a thing "is a bug" if`,
+                `if a new thing is a bug`,
+                `if a new thing is not a bug`,
+                `if a new thing isnt a bug`,
+                `if a new thing isn't a bug`
+              ],
+              output: [
+                `/* SPELL: added expression \`{thing:single_expression} (operator:is not?|isn't|isnt) a bug\` */`,
+                `spellCore.define(Thing.prototype, 'is_a_bug', {`,
+                `\tget() {}`,
+                `})`,
+                `if (new Thing().is_a_bug) {}`,
+                `if (!new Thing().is_a_bug) {}`,
+                `if (!new Thing().is_a_bug) {}`,
+                `if (!new Thing().is_a_bug) {}`
+              ]
+            },
+            {
+              title: "can",
+              input: [
+                `a thing "can play" if`,
+                `if a new thing can play`,
+                `if a new thing can not play`,
+                `if a new thing cant play`,
+                `if a new thing can't play`
+              ],
+              output: [
+                `/* SPELL: added expression \`{thing:single_expression} (operator:can not?|can't|cant) play\` */`,
+                `spellCore.define(Thing.prototype, 'can_play', {`,
+                `\tget() {}`,
+                `})`,
+                `if (new Thing().can_play) {}`,
+                `if (!new Thing().can_play) {}`,
+                `if (!new Thing().can_play) {}`,
+                `if (!new Thing().can_play) {}`
+              ]
+            },
+            {
+              title: "will",
+              input: [
+                `a thing "will blow up" if`,
+                `if a new thing will blow up`,
+                `if a new thing will not blow up`,
+                `if a new thing wont blow up`,
+                `if a new thing won't blow up`
+              ],
+              output: [
+                `/* SPELL: added expression \`{thing:single_expression} (operator:will not?|won't|wont) blow up\` */`,
+                `spellCore.define(Thing.prototype, 'will_blow_up', {`,
+                `\tget() {}`,
+                `})`,
+                `if (new Thing().will_blow_up) {}`,
+                `if (!new Thing().will_blow_up) {}`,
+                `if (!new Thing().will_blow_up) {}`,
+                `if (!new Thing().will_blow_up) {}`
+              ]
+            },
+            {
+              title: "has",
+              input: [
+                `a thing "has a friend" if`,
+                `if a new thing has a friend`,
+                `if a new thing does not have a friend`,
+                `if a new thing doesnt have a friend`,
+                `if a new thing doesn't have a friend`
+              ],
+              output: [
+                `/* SPELL: added expression \`{thing:single_expression} (operator:has|does not have|doesn't have|doesnt have) a friend\` */`,
+                `spellCore.define(Thing.prototype, 'has_a_friend', {`,
+                `\tget() {}`,
+                `})`,
+                `if (new Thing().has_a_friend) {}`,
+                `if (!new Thing().has_a_friend) {}`,
+                `if (!new Thing().has_a_friend) {}`,
+                `if (!new Thing().has_a_friend) {}`
+              ]
+            }
+          ]
+        }
+      ]
     }
   ]
 })
