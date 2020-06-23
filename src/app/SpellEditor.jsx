@@ -276,8 +276,8 @@ export const SpellEditor = view(function SpellEditor() {
           </Col>
           <Col xs={6} className="pr-2 pb-2">
             <div className="rounded shadow-sm border">
-              {/* <MatchViewer scroll match={store.file?.match} inputOffset={store.inputOffset} /> */}
-              <OutputEditor />
+              <MatchViewer scroll match={store.file?.match} inputOffset={store.inputOffset} />
+              {/* <OutputEditor /> */}
             </div>
           </Col>
         </Row>

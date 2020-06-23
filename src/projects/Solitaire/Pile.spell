@@ -4,13 +4,21 @@ a pile is a list of cards
 a pile has a name as text
 a pile has an appearance as one of stacked, staggered or fanned
 
-to can play (a card) on (a pile)
+a pile "will accept (a card)" if
 	return yes
 
 -- cards can only be in one pile at a time
 to play (a card) on (a pile)
+	if the pile will not accept the card return no
 	if the pile of the card is not empty: remove the card from its pile
 	add the card to the pile
 	set the pile of the card to the pile
 	return ok
 
+to draw (a pile)
+	set className to "Pile " + its appearance
+	return <div className={className}>
+			{for each card in the pile: draw the card}
+		</div>
+		
+	

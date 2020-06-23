@@ -8,7 +8,7 @@ to set up (a deck)
 			add it to the deck
 
 to test deck creation
-	print "testing deck creation"
+	print "==testing deck creation=="
 	the deck is a new deck
 	set up the deck
 	expect the number of cards in the deck to be 52
@@ -19,16 +19,19 @@ to test deck creation
 test deck creation
 
 to display (a deck)
-	set output to "deck: "
+	set output to ""
 	for each card in the deck
 		set output to output + the short-name of the card + ", "
-	return output
+	print output
 
 to test deck shuffling
-	print "testing deck shuffling:"
+	print "==testing deck shuffling=="
 	the deck is a new deck
 	set up the deck
+	print "> before shuffling: "
+	display the deck
 	shuffle the deck
-	print display the deck
+	print "> after shuffling: "
+	display the deck
 test deck shuffling
 
