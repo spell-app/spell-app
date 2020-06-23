@@ -84,24 +84,86 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
   }
 
   mutateScope(match) {
-    // Create a `DynamicMethodRule` rule (see above) to match the specified syntax.
-    const { methodName, syntax } = match.groups.signature
-    match.scope.rules.add({
+    return match.scope.rules.add(this.getRule(match))
+  }
+
+  getRuleAnnotation(match) {
+    const { syntax, asPostfixExpression, asInfixExpression } = match.groups.signature
+    if (asPostfixExpression) return `added expression '{thing:single_expression} ${syntax}'`
+    if (asInfixExpression) return `added expression '{thing:single_expression} ${syntax}'`
+    return `added rule: '${match.groups.signature.syntax}'`
+  }
+  getRule(match) {
+    const {
+      methodName,
+      syntax,
+      asPostfixExpression,
+      asInfixExpression,
+      shouldNegateOutput = () => false
+    } = match.groups.signature
+
+    if (asPostfixExpression) {
+      return {
+        name: methodName,
+        precedence: 20,
+        alias: "expression_suffix",
+        syntax,
+        constructor: "PostfixOperatorSuffix",
+        shouldNegateOutput,
+        compileASTExpression(_match, { lhs }) {
+          return new AST.PropertyExpression(_match, {
+            object: lhs,
+            property: new AST.PropertyLiteral(_match, methodName)
+          })
+        }
+      }
+    }
+    if (asInfixExpression) {
+      return {
+        name: methodName,
+        precedence: 20,
+        alias: "expression_suffix",
+        syntax,
+        constructor: "InfixOperatorSuffix",
+        parenthesize: true,
+        shouldNegateOutput,
+        compileASTExpression(_match, { lhs, rhs }) {
+          return new AST.ScopedMethodInvocation(match, {
+            thing: lhs,
+            methodName,
+            args: [rhs]
+          })
+        }
+      }
+    }
+    return {
       name: methodName,
       alias: ["statement", "expression"],
       constructor: "DynamicMethodRule",
       syntax,
       methodName
+    }
+  }
+
+  /** If `signature.props` return `DestructuredAssignment` to pull those props into scope. */
+  getPropsAssignment(match) {
+    const { props } = match.groups.signature
+    if (!props) return undefined
+    return new AST.DestructuredAssignment(match, {
+      // `props` argument will be the last thing in args
+      thing: new AST.VariableExpression(match, { name: "props" }),
+      variables: props,
+      isNewVariable: true
     })
   }
 
   getAST(match) {
     const { signature, inlineStatement, nestedBlock } = match.groups
-    const { methodName, syntax, args, props, instanceType } = signature
+    const { methodName, args, props, instanceType, asPostfixExpression } = signature
 
     const output = [
       new AST.ParserAnnotation(match, {
-        value: `added rule: '${syntax}'`
+        value: this.getRuleAnnotation(match)
       })
     ]
 
@@ -114,15 +176,28 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
     if (props) method.body.statements.unshift(this.getPropsAssignment(match))
 
     if (instanceType) {
-      output.push(
-        new AST.PropertyDefinition(match, {
-          thing: new AST.PrototypeExpression(match, {
-            type: typeCase(instanceType)
-          }),
-          property: methodName,
-          value: method
-        })
-      )
+      if (asPostfixExpression) {
+        console.warn("APE:", method)
+        output.push(
+          new AST.PropertyDefinition(match, {
+            thing: new AST.PrototypeExpression(match, {
+              type: typeCase(instanceType)
+            }),
+            property: methodName,
+            get: method
+          })
+        )
+      } else {
+        output.push(
+          new AST.PropertyDefinition(match, {
+            thing: new AST.PrototypeExpression(match, {
+              type: typeCase(instanceType)
+            }),
+            property: methodName,
+            value: method
+          })
+        )
+      }
     }
     // No instance type: create as a loose function
     else {
@@ -136,18 +211,6 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
     }
 
     return new AST.StatementGroup(match, { statements: output })
-  }
-
-  /** If `signature.props` return `DestructuredAssignment` to pull those props into scope. */
-  getPropsAssignment(match) {
-    const { props } = match.groups.signature
-    if (!props) return undefined
-    return new AST.DestructuredAssignment(match, {
-      // `props` argument will be the last thing in args
-      thing: new AST.VariableExpression(match, { name: "props" }),
-      variables: props,
-      isNewVariable: true
-    })
   }
 }
 
@@ -273,6 +336,7 @@ export const methods = new SpellParser({
           const groups = {
             items: match.items.map(item => (item.matched.length === 1 ? item.groups : item.matched[1].groups)),
             // calculated as we run through the keywords
+            startsWithKeyword: false, // `true` if first item is a keyword.
             foundKeyword: false, // `true` if we found at least one keyword.  arg-only signatures are invalid!
             methodBits: [], // method signature bits.  Converted to `methodName` string at end of gatherGroups().
             syntaxBits: [], // rule syntax bits.  Converted to string at end of this method.
@@ -287,11 +351,14 @@ export const methods = new SpellParser({
           }
           // Set up the method signature and rule syntax
           // We'll get one of the following combos: keyword, type, variable, variable + type
-          groups.items.forEach(({ method, syntax, arg, props, keyword, type /* , variable */ }) => {
+          groups.items.forEach(({ method, syntax, arg, props, keyword, type /* , variable */ }, index) => {
             // TODO: HOW to know if we should sequester type???
 
             // arg-only methods are not allowed
-            if (keyword) groups.foundKeyword = true
+            if (keyword) {
+              groups.foundKeyword = true
+              if (index === 0) groups.startsWithKeyword = true
+            }
 
             const varName = arg?.name
             const typeName = type?.raw
@@ -772,14 +839,62 @@ export const methods = new SpellParser({
       ]
     },
     {
-      name: "quoted_type_method",
+      name: "quoted_type_expression",
       precedence: 9, // defer to more-specific methods in `classes`, e.g. `define_property_has`, ...
       alias: "statement",
-      syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} if?",
-      constructor: class quoted_type_method extends SpellParser.Rule.MethodDefinition {
+      syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} if",
+      parseInlineStatementAs: "expression",
+      constructor: class quoted_type_expression extends SpellParser.Rule.MethodDefinition {
+        parse(scope, tokens) {
+          const match = super.parse(scope, tokens)
+          if (match) {
+            const { signature } = match.groups
+            if (!signature.startsWithKeyword) {
+              console.warn("quoted_type_expression: must start with a keyword. Skipping match.", { tokens, match })
+              return undefined
+            }
+            if (!signature.foundKeyword) {
+              console.warn("quoted_type_expression: must specify a keyword. Skipping match.", { tokens, match })
+              return undefined
+            }
+            if (signature.args.length > 1) {
+              console.warn("quoted_type_expression: too many arguments. Skipping match.", { tokens, match })
+              return undefined
+            }
+          }
+          return match
+        }
         processSignature(groups, signature) {
           signature.instanceType = groups.type.raw
-          signature.syntaxBits.unshift("{thisArg:single_expression}")
+          if (signature.args.length === 0) {
+            signature.asPostfixExpression = true
+          } else if (signature.args.length === 1) {
+            signature.asInfixExpression = true
+            signature.syntaxBits = signature.syntaxBits.map(bit =>
+              bit.startsWith("{") ? "{expression:single_expression}" : bit
+            )
+          } else {
+            // TODO: we don't handle this currently...
+            // signature.syntaxBits.unshift("{thisArg:single_expression}")
+          }
+          // convert "is", "has", "can", "will" to negatable expression
+          if (signature.asPostfixExpression || signature.asInfixExpression) {
+            let foundOne = false
+            const NEGATABLES = {
+              is: ["(operator:is not?|isnt)", op => op.value !== "is"],
+              can: ["(operator:can not?|cant)", op => op.value !== "can"],
+              will: ["(operator:will not?|wont)", op => op.value !== "will"],
+              has: ["(operator:has|does not have|doesnt have)", op => op.value !== "has"]
+            }
+            signature.syntaxBits = signature.syntaxBits.map(bit => {
+              const negatable = NEGATABLES[bit]
+              if (foundOne || !negatable) return bit
+              foundOne = true
+              signature.shouldNegateOutput = negatable[1]
+              return negatable[0]
+            })
+          }
+          console.warn(signature)
           return signature
         }
       }

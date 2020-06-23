@@ -3,12 +3,29 @@ a pile is a list of cards
 c is a new card
 p is a new pile
 
+a pile "is stylish" if yes
+print "is stylish " + p is stylish
+print "is not stylish " + p is not stylish
+print "isnt stylish " + p isnt stylish
+
+a pile "can do the thing" if yes
+print "can do " + p can do the thing
+print "can not do " + p can not do the thing
+print "cant do " + p cant do the thing
+
 a pile "will accept anything" if
-	print the it + the pile
+	print the it
+	print the pile
 	return true
-p will accept anything
+print "will accept anything " + p will accept anything
+print "will not accept anything " + p will not accept anything
+print "wont accept anything " + p wont accept anything
 
 a pile "will accept (a card)" if
-	print it + the pile + the card
-	return true
-if p will accept c then print "yES"
+	print it
+	print the pile
+	print the card
+	return no
+print "will accept card" + p will accept c
+print "will not accept card" + p will not accept c
+print "wont accept card" + p wont accept c

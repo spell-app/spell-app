@@ -1215,8 +1215,8 @@ export class PropertyDefinition extends Statement {
     this.assertType("property", PropertyLiteral)
     this.assertType("value", [Expression, MethodBody], OPTIONAL)
     this.assertType("initializer", [StatementBlock, Statement, Expression], OPTIONAL)
-    this.assertType("get", [StatementBlock, Statement, Expression], OPTIONAL)
-    this.assertType("set", [StatementBlock, Statement, Expression], OPTIONAL)
+    this.assertType("get", [MethodBody, StatementBlock, Statement, Expression], OPTIONAL)
+    this.assertType("set", [MethodBody, StatementBlock, Statement, Expression], OPTIONAL)
   }
   // Return `CoreMethodInvocation` which we'll use to render as JS or component
   @memoize
@@ -1231,8 +1231,16 @@ export class PropertyDefinition extends Statement {
     }
     if (initializer)
       descriptor.addMethod("initializer", new MethodBody(initializer.match, { body: initializer, inline: false }))
-    if (get) descriptor.addMethod("get", new MethodBody(get.match, { body: get, inline: false }))
-    if (set) descriptor.addMethod("set", new MethodBody(set.match, { args: [property], body: set, inline: false }))
+    if (get)
+      descriptor.addMethod(
+        "get",
+        get instanceof MethodBody ? get : new MethodBody(get.match, { body: get, inline: false })
+      )
+    if (set)
+      descriptor.addMethod(
+        "set",
+        set instanceof MethodBody ? set : new MethodBody(set.match, { args: [property], body: set, inline: false })
+      )
 
     return new CoreMethodInvocation(match, {
       methodName: "define",

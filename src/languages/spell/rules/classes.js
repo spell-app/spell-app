@@ -611,110 +611,110 @@ export const classes = new SpellParser({
       ]
     },
 
-    {
-      name: "quoted_property_alias",
-      precedence: 10,
-      alias: "statement",
-      //  e.g. `a card "is face up" if ...`
-      //  NOTE: the first word in quotes must be "is" !!
-      syntax: "(a|an) {type} {alias:text} if {expression}",
-      constructor: class quoted_property_alias extends SpellParser.Rule.Statement {
-        parse(scope, tokens) {
-          const match = super.parse(scope, tokens)
-          if (!match) return undefined
-          // If first word of `alias` is not `is`, forget it
-          const alias = JSON.parse(match.groups.alias.value).split(" ")
-          if (alias[0] !== "is") return undefined
+    // {
+    //   name: "quoted_property_alias",
+    //   precedence: 10,
+    //   alias: "statement",
+    //   //  e.g. `a card "is face up" if ...`
+    //   //  NOTE: the first word in quotes must be "is" !!
+    //   syntax: "(a|an) {type} {alias:text} if {expression}",
+    //   constructor: class quoted_property_alias extends SpellParser.Rule.Statement {
+    //     parse(scope, tokens) {
+    //       const match = super.parse(scope, tokens)
+    //       if (!match) return undefined
+    //       // If first word of `alias` is not `is`, forget it
+    //       const alias = JSON.parse(match.groups.alias.value).split(" ")
+    //       if (alias[0] !== "is") return undefined
 
-          return match
-        }
+    //       return match
+    //     }
 
-        mutateScope(match) {
-          const { type, alias } = match.groups
-          // Make sure type is defined
-          getOrStubType(match.scope, type.value)
+    //     mutateScope(match) {
+    //       const { type, alias } = match.groups
+    //       // Make sure type is defined
+    //       getOrStubType(match.scope, type.value)
 
-          const words = JSON.parse(alias.value).split(" ")
-          // set `property` which we'll use in `compileASTExpression()` below
-          match.property = words.join("_")
-          // add optional `not` to the rule
-          const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ")
-          // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
-          match.scope.rules.add({
-            name: match.property,
-            precedence: 20,
-            alias: "expression_suffix",
-            syntax: expressionSuffix,
-            constructor: "PostfixOperatorSuffix",
-            shouldNegateOutput: operator => operator.value.includes("not"),
-            compileASTExpression(_match, { lhs }) {
-              return new AST.PropertyExpression(_match, {
-                object: lhs,
-                property: new AST.PropertyLiteral(_match, match.property)
-              })
-            }
-          })
+    //       const words = JSON.parse(alias.value).split(" ")
+    //       // set `property` which we'll use in `compileASTExpression()` below
+    //       match.property = words.join("_")
+    //       // add optional `not` to the rule
+    //       const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ")
+    //       // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
+    //       match.scope.rules.add({
+    //         name: match.property,
+    //         precedence: 20,
+    //         alias: "expression_suffix",
+    //         syntax: expressionSuffix,
+    //         constructor: "PostfixOperatorSuffix",
+    //         shouldNegateOutput: operator => operator.value.includes("not"),
+    //         compileASTExpression(_match, { lhs }) {
+    //           return new AST.PropertyExpression(_match, {
+    //             object: lhs,
+    //             property: new AST.PropertyLiteral(_match, match.property)
+    //           })
+    //         }
+    //       })
 
-          // Add comment string which we'll output below
-          match.ruleComment = new AST.ParserAnnotation(match, {
-            value: `added rule: '${expressionSuffix}'`
-          })
-        }
+    //       // Add comment string which we'll output below
+    //       match.ruleComment = new AST.ParserAnnotation(match, {
+    //         value: `added rule: '${expressionSuffix}'`
+    //       })
+    //     }
 
-        getAST(match) {
-          const { type, expression } = match.groups
-          const statements = [
-            match.ruleComment,
-            new AST.PropertyDefinition(match, {
-              thing: new AST.PrototypeExpression(type, { type: type.AST }),
-              property: new AST.PropertyLiteral(match, match.property),
-              get: expression.AST
-            })
-          ]
-          return new AST.StatementGroup(match, { statements })
-        }
-      },
-      tests: [
-        {
-          beforeEach(scope) {
-            scope.parse(
-              [
-                "a card is a thing",
-                "cards have a direction as either up or down",
-                "cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king"
-              ].join("\n"),
-              "block"
-            )
-          },
-          compileAs: "block",
-          tests: [
-            [
-              'a card "is face up" if its direction is up',
-              [
-                "/* SPELL: added rule: 'is not? face up' */",
-                "spellCore.define(Card.prototype, 'is_face_up', {",
-                "\tget() { return (this.direction == 'up') }",
-                "})"
-              ]
-            ],
-            [
-              'a card "is a face card" if its rank is one of [jack, queen, king]',
-              [
-                "/* SPELL: added rule: 'is not? a face card' */",
-                "spellCore.define(Card.prototype, 'is_a_face_card', {",
-                "\tget() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) }",
-                "})"
-              ]
-            ]
-            // TODO: this one is failing for some reason, although it works in the app???
-            // [
-            //   'a card "is a face card" if its rank is one of jack, queen or king',
-            //   "/* SPELL: added rule: 'is not? a face card' */¬spellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
-            // ]
-          ]
-        }
-      ]
-    },
+    //     getAST(match) {
+    //       const { type, expression } = match.groups
+    //       const statements = [
+    //         match.ruleComment,
+    //         new AST.PropertyDefinition(match, {
+    //           thing: new AST.PrototypeExpression(type, { type: type.AST }),
+    //           property: new AST.PropertyLiteral(match, match.property),
+    //           get: expression.AST
+    //         })
+    //       ]
+    //       return new AST.StatementGroup(match, { statements })
+    //     }
+    //   },
+    //   tests: [
+    //     {
+    //       beforeEach(scope) {
+    //         scope.parse(
+    //           [
+    //             "a card is a thing",
+    //             "cards have a direction as either up or down",
+    //             "cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king"
+    //           ].join("\n"),
+    //           "block"
+    //         )
+    //       },
+    //       compileAs: "block",
+    //       tests: [
+    //         [
+    //           'a card "is face up" if its direction is up',
+    //           [
+    //             "/* SPELL: added rule: 'is not? face up' */",
+    //             "spellCore.define(Card.prototype, 'is_face_up', {",
+    //             "\tget() { return (this.direction == 'up') }",
+    //             "})"
+    //           ]
+    //         ],
+    //         [
+    //           'a card "is a face card" if its rank is one of [jack, queen, king]',
+    //           [
+    //             "/* SPELL: added rule: 'is not? a face card' */",
+    //             "spellCore.define(Card.prototype, 'is_a_face_card', {",
+    //             "\tget() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) }",
+    //             "})"
+    //           ]
+    //         ]
+    //         // TODO: this one is failing for some reason, although it works in the app???
+    //         // [
+    //         //   'a card "is a face card" if its rank is one of jack, queen or king',
+    //         //   "/* SPELL: added rule: 'is not? a face card' */¬spellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
+    //         // ]
+    //       ]
+    //     }
+    //   ]
+    // },
 
     {
       name: "quoted_property_formula",
