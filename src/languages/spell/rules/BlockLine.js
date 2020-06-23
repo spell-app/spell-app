@@ -4,7 +4,7 @@ import { Match, Rule, Token } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
 
 /** Update Rule.BlankLine to output AST properly. */
-Rule.BlankLine.prototype.getAST = function(match) {
+Rule.BlankLine.prototype.getAST = function (match) {
   return new AST.BlankLine(match)
 }
 
@@ -23,13 +23,14 @@ SpellParser.Rule.BlockLine = class line extends Rule {
     const { tokens } = line
     // Blank line
     if (tokens.length === 0) {
+      const token = line.newLine || line.leading
       matched.push(
         new Match({
           rule: scope.parser.getRuleOrDie("blank_line"),
-          matched: [line.newLine],
+          matched: [token],
           length: 1,
-          input: [line.newLine],
-          scope
+          input: [token],
+          scope,
         })
       )
     }
@@ -90,7 +91,7 @@ SpellParser.Rule.BlockLine = class line extends Rule {
       matched,
       input,
       length: input.length,
-      scope
+      scope,
     })
   }
 
@@ -99,7 +100,7 @@ SpellParser.Rule.BlockLine = class line extends Rule {
     if (match.matched.length === 1) return match.matched[0].AST
     // otherwise
     return new AST.StatementGroup(match, {
-      statements: match.matched.map(item => item.AST)
+      statements: match.matched.map((item) => item.AST),
     })
   }
 }
