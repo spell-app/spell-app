@@ -18,6 +18,9 @@ export class Tokenizer {
   // Leave all whitespace by default.
   @proto whitespacePolicy = WhitespacePolicy.ALL
 
+  // Quote symbols
+  @proto quoteSymbols = [`"`, `'`]
+
   // Debug logger.
   @proto logger = addDebugMethods({}, "tokenizer", DebugLevel.WARN)
 
@@ -247,7 +250,7 @@ export class Tokenizer {
     if (start >= end) return undefined
 
     const quoteSymbol = text[start]
-    if (quoteSymbol !== '"' && quoteSymbol !== "'") return undefined
+    if (!this.quoteSymbols.includes(quoteSymbol)) return undefined
 
     let textEnd = start + 1
     while (textEnd < end) {
