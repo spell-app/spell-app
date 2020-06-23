@@ -1,0 +1,47 @@
+## Piles for Solitaire game
+
+##############
+## `tableaus` are the 7 piles where the cards are initially dealt
+a tableau is a pile
+// TODO: `the appearance of a tableau is staggered`
+to create (a tableau): 
+	set its appearance to staggered
+
+a tableau "will accept (a card)" if:
+	if the tableau is empty
+		return the card is a king
+	return its color is not the color of the card and its value + 1 is the value of the card
+
+to test tableaus
+	get a new tableau with number = 3
+	expect its class-name to be "Pile Tableau staggered num-3" 
+
+##############
+## `foundations` are the cards where the aces go
+a foundation is a pile
+to create (a foundation): set its appearance to stacked // TODO: `the appearance of...
+// TODO: ...as one of card suits
+a foundation has a suit as one of clubs, diamonds, hearts, spades 
+
+a foundation "will accept (a card)" if
+	if its suit is not the suit of the card return no
+	if it is empty return the card is an ace
+	return the value of the foundation + 1 is the value of the card
+
+
+##############
+## `stock-pile` is the pile where new cards come from
+a stock-pile is a pile
+to create (a stock-pile): set its appearance to stacked // TODO: the appearance of...
+a stock-pile "will accept (a card)" if never
+
+
+##############
+## `waste-pile` is where the cards go when you turn them over
+a waste-pile is a pile
+to create (a waste-pile): set its appearance to stacked // TODO: the appearance of...
+a waste-pile "will accept (a card)" if never
+
+
+
+

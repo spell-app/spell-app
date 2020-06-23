@@ -53,8 +53,8 @@ to flip (a card) over:
 
 ## create a card instance with default properties
 to test card setup
-	print "testing card setup"
 	the card is a new card whose rank is queen, suit is spades and direction is up
+	print "'the card' is: " + the name of the card
 	expect the rank of the card to be queen
 	expect the suit of the card to be spades
 	expect the name of the card to be "queen-of-spades"
@@ -86,5 +86,9 @@ to test card setup
 
 	flip the card over
 	expect the card is face down
-
 test card setup
+
+to draw (a card):
+	return <div className={"Card " + its rank + " " + its suit}>{its name}</div>
+
+

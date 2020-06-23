@@ -20,6 +20,15 @@ export class Thing extends Observable {
 
   // Called automatially at end of `thing` constructor.
   create() {}
+
+  // Default `type` to the name of our constructor.  Instances can override.
+  // TESTME
+  get type() {
+    return "type" in this._props ? this._props.type : this.constructor.name
+  }
+  set type(type) {
+    this._props.type = type
+  }
 }
 spellCore.addExport("Thing", Thing)
 
@@ -120,6 +129,14 @@ export class List extends Observable {
   // Called automatially at end of `List` constructor.
   create() {}
 
+  // Default `type` to the name of our constructor.  Instances can override.
+  get type() {
+    return "type" in this._props ? this._props.type : this.constructor.name
+  }
+  set type(type) {
+    this._props.type = type
+  }
+
   @memoize
   get Component() {
     const render = () => {
@@ -159,7 +176,7 @@ export class List extends Observable {
   // Map callback RETURNING AS AN ARRAY
   map(callback) {
     const results = []
-    this.getKeys().forEach(index => {
+    this.getKeys().forEach((index) => {
       results[index] = callback(this.getItem(index), index, this)
     })
     return results

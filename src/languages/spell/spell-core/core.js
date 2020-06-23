@@ -42,7 +42,7 @@ export const spellCore = {
     // If we get an `initializer()`, call it to get a value for each instance,
     // store that in `_props`
     if (initializer) {
-      descriptor.get = function() {
+      descriptor.get = function () {
         const instanceValue = initializer.apply(this)
         // On initial `get()`, run the initializer and `set` the value in _props.
         baseSet.call(this, instanceValue)
@@ -52,12 +52,12 @@ export const spellCore = {
           get() {
             return this._props[property]
           },
-          set: descriptor.set
+          set: descriptor.set,
         })
         return instanceValue
       }
     } else if (type) {
-      descriptor.set = function(newValue) {
+      descriptor.set = function (newValue) {
         if (!spellCore.isOfType(newValue, type)) {
           console.warn(`Expected ${property} to be type '${type}', got:`, newValue)
         }
@@ -69,7 +69,7 @@ export const spellCore = {
         spellCore.define(thing, enumerationProp, { value: enumeration })
         if (thing.constructor !== Function) spellCore.define(thing.constructor, enumerationProp, { value: enumeration })
       }
-      descriptor.set = function(newValue) {
+      descriptor.set = function (newValue) {
         if (!enumeration.includes(newValue)) {
           console.warn(`Expected ${property} to be one of '${enumeration}', got:`, newValue)
         }
@@ -77,7 +77,7 @@ export const spellCore = {
       }
     }
     if (!descriptor.get) {
-      descriptor.get = function() {
+      descriptor.get = function () {
         return hasOwnProp(this._props, property) ? this._props[property] : value
       }
     }
@@ -125,7 +125,7 @@ export const spellCore = {
   TYPE_NAME_CONVERSIONS: {
     array: "list",
     boolean: "choice",
-    string: "text"
+    string: "text",
   },
 
   /** Return string "type" of `thing`.
@@ -144,9 +144,9 @@ export const spellCore = {
 
   /** Special methods for `isOfType()` */
   IS_OF_TYPE_SPECIALS: {
-    integer: thing => spellCore.isAnInteger(thing),
-    character: thing => spellCore.typeOf(thing) === "text" && thing.length === 1,
-    char: thing => spellCore.isOfType(thing, "character")
+    integer: (thing) => spellCore.isAnInteger(thing),
+    character: (thing) => spellCore.typeOf(thing) === "text" && thing.length === 1,
+    char: (thing) => spellCore.isOfType(thing, "character"),
   },
 
   /** Is `thing` an instance of string `type` (as per `spellCore.typeOf()`)? */
@@ -239,7 +239,7 @@ export const spellCore = {
 
   /** Dynamic test: prints to console for now... */
   test(message, testMethod) {
-    console.group(message)
+    console.groupCollapsed(`=== TEST: ${message} ===`)
     try {
       testMethod()
     } catch (e) {
@@ -293,5 +293,5 @@ export const spellCore = {
       for (let next = start; next >= end; next--) range.push(next)
     }
     return range
-  }
+  },
 }

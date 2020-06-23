@@ -3,15 +3,25 @@
 -- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for naming conventions.
 
 ## Define card-game
-a card-game is a thing
+a card-game is an app
 a card-game has a score as a number
 a card-game has a deck
-a card-game has a score as a number
+
+to create (a card-game)
+	set its deck to a new deck
+	set up its deck
+	set its tableaus to a new list of tableaus
+	for number from 1 to 7
+		set tableau to a new tableau with number = number
+		add the tableau to its tableaus
+	set its foundations to a new list of foundations
+	for each suit and number of card suits
+		set foundation to a new foundation with suit = suit, number = number
+		add the foundation to its foundations
+	set its stock-pile to a new stock-pile with appearance stacked
+	set its waste-pile to a new waste-pile with appearance stacked
 
 to start (a card-game)
-	if its deck does not exist:
-		set its deck to a new deck
-		set up its deck
 	set its score to 0
 	shuffle its deck
    

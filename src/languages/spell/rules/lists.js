@@ -18,7 +18,7 @@ export const lists = new SpellParser({
       datatype: "array", // TODO: array of what?
       getAST(match) {
         const { items } = match
-        return new AST.ListExpression(match, { items: items.map(item => item.AST) })
+        return new AST.ListExpression(match, { items: items.map((item) => item.AST) })
       },
       tests: [
         {
@@ -42,7 +42,7 @@ export const lists = new SpellParser({
       testRule: "\\[",
       getAST(match) {
         const { list } = match.groups
-        const items = list ? list.items.map(item => item.AST) : undefined
+        const items = list ? list.items.map((item) => item.AST) : undefined
         return new AST.ListExpression(match, { items })
       },
       tests: [
@@ -1049,7 +1049,7 @@ export const lists = new SpellParser({
     {
       name: "list_iteration",
       alias: ["statement", "expression"],
-      syntax: "for each? {item:singular_variable} ((and|,) {position:singular_variable})? in {list:expression} :?",
+      syntax: "for each? {item:singular_variable} ((and|,) {position:singular_variable})? (in|of) {list:expression} :?",
       testRule: "for",
       constructor: "Statement",
       wantsInlineStatement: true,
@@ -1150,8 +1150,7 @@ export const lists = new SpellParser({
         const arg = singularize(match.groups.item.value)
         return new MethodScope({
           scope: match.scope,
-          args: [arg],
-          mapItTo: arg
+          args: [arg]
         })
       },
       getAST(match) {
@@ -1180,20 +1179,7 @@ export const lists = new SpellParser({
               "spellCore.map(spellCore.getRange(1, 10), (number) => { return console.log(number) })"
             ],
             [
-              "for each number from 1 to 10: print it",
-              "spellCore.map(spellCore.getRange(1, 10), (number) => { return console.log(number) })"
-            ],
-            [
-              // this is kinda non-sensical for numbers
-              "for each number from 1 to 10: print its foo",
-              "spellCore.map(spellCore.getRange(1, 10), (number) => { return console.log(number.foo) })"
-            ],
-            [
               "for each number from 1 to 10:\n\tprint the number",
-              "spellCore.map(spellCore.getRange(1, 10), (number) => { console.log(number) })"
-            ],
-            [
-              "for each number from 1 to 10:\n\tprint it",
               "spellCore.map(spellCore.getRange(1, 10), (number) => { console.log(number) })"
             ]
           ]

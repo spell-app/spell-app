@@ -75,7 +75,7 @@ export const properties = new SpellParser({
     //  - a synonym for "this" if `it` is not defined.
     {
       name: "its_property",
-      alias: ["expression", "property_accessor", "single_expression"],
+      alias: ["expression", "single_expression"],
       syntax: "its {property}",
       testRule: "its",
       getAST(match) {
@@ -130,6 +130,63 @@ export const properties = new SpellParser({
       ]
     },
 
+    // "its first thing" as:
+    //  - possessive tracking `it`:  `get it / put its foo in the bar`
+    //  - a synonym for "this" if `it` is not defined.
+    {
+      name: "its_ordinal",
+      alias: ["expression", "property_accessor", "single_expression"],
+      syntax: "its {ordinal} {arg:singular_variable}",
+      testRule: "its",
+      getAST(match) {
+        const { ordinal } = match.groups
+        const itVar = match.scope.variables.get("it")
+        const object = itVar
+          ? new AST.VariableExpression(match, { raw: "it", name: itVar.output || itVar.name })
+          : new AST.ThisLiteral(match)
+        return new AST.CoreMethodInvocation(match, {
+          methodName: "getItemOf",
+          args: [object, ordinal.AST]
+        })
+      },
+      tests: [
+        {
+          title: "tracks `it` when it var defined explicitly",
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.variables.add({ name: "it", output: "it" })
+          },
+          tests: [
+            ["its third foo", "spellCore.getItemOf(it, 3)"],
+            ["its last card", "spellCore.getItemOf(it, -1)"]
+          ]
+        },
+        {
+          title: "tracks `it` when it var defined via get",
+          compileAs: "block",
+          tests: [
+            [
+              ["get a new thing", "print its last item"],
+              ["let it = new Thing()", "console.log(spellCore.getItemOf(it, -1))"]
+            ]
+          ]
+        },
+        {
+          title: "tracks `it` when it var defined as output `other`",
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.variables.add({ name: "it", output: "other" })
+          },
+          tests: [["its third thing", "spellCore.getItemOf(other, 3)"]]
+        },
+        {
+          title: "maps to `this` when `it` is not defined",
+          compileAs: "expression",
+          tests: [["its third thing", "spellCore.getItemOf(this, 3)"]]
+        }
+      ]
+    },
+
     // Single object-literal property declaration
     {
       name: "object_literal_property",
@@ -170,7 +227,7 @@ export const properties = new SpellParser({
       syntax: "[{object_literal_property}(,|and)]",
       getAST(match) {
         return new AST.ObjectLiteral(match, {
-          properties: match.items.map(propMatch => propMatch.AST)
+          properties: match.items.map((propMatch) => propMatch.AST)
         })
       },
       tests: [

@@ -1,21 +1,28 @@
 ## Deck:   US standard card deck (without jokers currently)
 
 a deck is a list of cards
+a deck has a subset as a list
 to set up (a deck)
+	if  the is-set-up of it return
 	for each rank in card ranks
 		for each suit in card suits
 			get a new card with rank = the rank, suit = the suit
 			add it to the deck
+	set the is-set-up of the deck to yes
 
 to test deck creation
-	print "==testing deck creation=="
 	the deck is a new deck
+	print "> before setting up"
 	set up the deck
+	expect the number of cards in the deck to be 52
+	set up the deck
+	print "> after setting up a secondtime"
 	expect the number of cards in the deck to be 52
 
 	set the queens to the cards in the deck where the rank of the card is "queen" 
 	expect the number of cards in the queens to be 4
 	expect the name of the bottom card of the deck to be "king-of-spades"
+	expect the short-name of the top card of the deck to be "AC"
 test deck creation
 
 to display (a deck)
@@ -25,7 +32,6 @@ to display (a deck)
 	print output
 
 to test deck shuffling
-	print "==testing deck shuffling=="
 	the deck is a new deck
 	set up the deck
 	print "> before shuffling: "

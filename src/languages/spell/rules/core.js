@@ -155,14 +155,16 @@ export const core = new SpellParser({
       name: "boolean",
       alias: ["expression", "single_expression"],
       datatype: "boolean",
-      pattern: /^(true|false|yes|no|ok|cancel)$/,
+      pattern: /^(true|false|yes|no|ok|cancel|always|never)$/,
       VALUE_MAP: {
         true: true,
         false: false,
         yes: true,
         no: false,
         ok: true,
-        cancel: false
+        cancel: false,
+        always: true,
+        never: false
       },
       getAST(match) {
         const { value, raw } = match
@@ -176,9 +178,11 @@ export const core = new SpellParser({
             ["true", "true"],
             ["yes", "true"],
             ["ok", "true"],
+            ["always", "true"],
             ["false", "false"],
             ["no", "false"],
-            ["cancel", "false"]
+            ["cancel", "false"],
+            ["never", "false"]
           ]
         },
         {

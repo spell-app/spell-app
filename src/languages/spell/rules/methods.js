@@ -23,7 +23,7 @@ SpellParser.Rule.DynamicMethodRule = class dynamic_method extends SpellParser.Ru
     const { methodName } = this
     const { thisArg, callArgs, props } = match.groups
     const thing = thisArg?.AST
-    const args = callArgs?.map(arg => arg.AST) || []
+    const args = callArgs?.map((arg) => arg.AST) || []
     // Add `props` to the end of the args if found.
     // NOTE: This assumes that all inline arguments are REQUIRED by the syntax.
     //       If we decide to match syntax with optional args we'll need to update this.
@@ -75,7 +75,7 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
     const methodScope = new MethodScope({
       scope: match.scope,
       name: methodName,
-      args: args.map(arg => arg.name),
+      args: args.map((arg) => arg.name),
       thisVar: instanceType,
       mapItTo: instanceType && "this"
     })
@@ -160,9 +160,8 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
   }
 
   getAST(match) {
-    const { signature, inlineStatement, nestedBlock } = match.groups
+    const { asTest, signature, inlineStatement, nestedBlock } = match.groups
     const { methodName, args, props, instanceType, asPostfixExpression } = signature
-
     const output = [
       new AST.ParserAnnotation(match, {
         value: this.getRuleAnnotation(match)
@@ -203,13 +202,22 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
     }
     // No instance type: create as a loose function
     else {
-      output.push(
-        new AST.FunctionDeclaration(match, {
-          wrap: true,
-          methodName,
-          method
-        })
-      )
+      const fn = new AST.FunctionDeclaration(match, {
+        wrap: true,
+        methodName,
+        method
+      })
+
+      if (asTest) {
+        output.push(
+          new AST.CoreMethodInvocation(match, {
+            methodName: "test",
+            args: [new AST.QuotedExpression(match, signature.methodBits.join(" ")), fn]
+          })
+        )
+      } else {
+        output.push(fn)
+      }
     }
 
     return new AST.StatementGroup(match, { statements: output })
@@ -309,7 +317,7 @@ export const methods = new SpellParser({
       syntax: "with [{simple_method_arg}(,|and)]",
       gatherGroups(match) {
         const { items } = match.matched[1]
-        const props = items.map(item => item.groups.arg)
+        const props = items.map((item) => item.groups.arg)
         const groups = {
           items,
           method: undefined, // not part of method signature
@@ -336,7 +344,7 @@ export const methods = new SpellParser({
         }
         gatherGroups(match) {
           const groups = {
-            items: match.items.map(item => (item.matched.length === 1 ? item.groups : item.matched[1].groups)),
+            items: match.items.map((item) => (item.matched.length === 1 ? item.groups : item.matched[1].groups)),
             // calculated as we run through the keywords
             startsWithKeyword: false, // `true` if first item is a keyword.
             foundKeyword: false, // `true` if we found at least one keyword.  arg-only signatures are invalid!
@@ -388,7 +396,7 @@ export const methods = new SpellParser({
             // Recognize prop names in the method
             if (props) {
               groups.props = props
-              groups.extraVars.push(...props.map(prop => prop.name))
+              groups.extraVars.push(...props.map((prop) => prop.name))
             }
           })
 
@@ -418,7 +426,7 @@ export const methods = new SpellParser({
     {
       name: "to_do_something",
       alias: "statement",
-      syntax: `to {signature:method_signature} :?`,
+      syntax: `to (asTest:test)? {signature:method_signature} :?`,
       constructor: class to_do_something extends SpellParser.Rule.MethodDefinition {
         @proto inlineInitialType = true
       },
@@ -844,7 +852,7 @@ export const methods = new SpellParser({
       name: "quoted_type_expression",
       precedence: 9, // defer to more-specific methods in `classes`, e.g. `define_property_has`, ...
       alias: "statement",
-      syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} if",
+      syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} (if|is) :?",
       parseInlineStatementAs: "expression",
       constructor: class quoted_type_expression extends SpellParser.Rule.MethodDefinition {
         parse(scope, tokens) {
@@ -870,7 +878,7 @@ export const methods = new SpellParser({
             signature.asPostfixExpression = true
           } else if (signature.args.length === 1) {
             signature.asInfixExpression = true
-            signature.syntaxBits = signature.syntaxBits.map(bit =>
+            signature.syntaxBits = signature.syntaxBits.map((bit) =>
               bit.startsWith("{") ? "{expression:single_expression}" : bit
             )
           } else {
@@ -881,12 +889,12 @@ export const methods = new SpellParser({
           if (signature.asPostfixExpression || signature.asInfixExpression) {
             let foundOne = false
             const NEGATABLES = {
-              is: ["(operator:is not?|isn't|isnt)", op => op.value !== "is"],
-              can: ["(operator:can not?|can't|cant)", op => op.value !== "can"],
-              will: ["(operator:will not?|won't|wont)", op => op.value !== "will"],
-              has: ["(operator:has|does not have|doesn't have|doesnt have)", op => op.value !== "has"]
+              is: ["(operator:is not?|isn't|isnt)", (op) => op.value !== "is"],
+              can: ["(operator:can not?|can't|cant)", (op) => op.value !== "can"],
+              will: ["(operator:will not?|won't|wont)", (op) => op.value !== "will"],
+              has: ["(operator:has|does not have|doesn't have|doesnt have)", (op) => op.value !== "has"]
             }
-            signature.syntaxBits = signature.syntaxBits.map(bit => {
+            signature.syntaxBits = signature.syntaxBits.map((bit) => {
               const negatable = NEGATABLES[bit]
               if (foundOne || !negatable) return bit
               foundOne = true

@@ -2,10 +2,18 @@
 
 a pile is a list of cards
 a pile has a name as text
+a pile has a number as a number
 a pile has an appearance as one of stacked, staggered or fanned
 
-a pile "will accept (a card)" if
-	return yes
+a pile "color" is:
+	if it is empty return "none"
+	return the color of its last card
+
+a pile "value" is:
+	if it is empty return 0
+	return the value of its last card
+
+a pile "will accept (a card)" if: always
 
 -- cards can only be in one pile at a time
 to play (a card) on (a pile)
@@ -15,10 +23,11 @@ to play (a card) on (a pile)
 	set the pile of the card to the pile
 	return ok
 
+a pile "class-name" is:
+	return "Pile " + its type + " " + its appearance + "  num-" + (its number or 0)
+
 to draw (a pile)
-	set className to "Pile " + its appearance
-	return <div className={className}>
+	return 
+		<div className={its class-name}>
 			{for each card in the pile: draw the card}
 		</div>
-		
-	
