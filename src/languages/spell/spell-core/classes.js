@@ -185,7 +185,7 @@ export class List extends Observable {
   }
   _getZeroIndex(index) {
     if (index === 0) return 1 // ???
-    if (index < 0) return this._state.items.length - index
+    if (index < 0) return this._state.items.length + index
     return index - 1
   }
   getItem(index) {
