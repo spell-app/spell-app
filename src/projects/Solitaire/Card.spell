@@ -10,6 +10,7 @@ cards have a suit as one of clubs, diamonds, hearts or spades
 
 // name as a derivation of name/suit
 the name of a card is its rank + "-of-" + its suit
+the short-name of a card is ((the first character of (""+its rank)) + the first character of its suit) as uppercase
 
 // color as derivation of suit
 the color of a card is red if its suit is either diamonds or hearts otherwise it is black
@@ -52,6 +53,7 @@ to flip (a card) over:
 
 ## create a card instance with default properties
 to test card setup
+	print "testing card setup"
 	the card is a new card whose rank is queen, suit is spades and direction is up
 	expect the rank of the card to be queen
 	expect the suit of the card to be spades
@@ -86,4 +88,3 @@ to test card setup
 	expect the card is face down
 
 test card setup
-

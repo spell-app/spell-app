@@ -554,6 +554,52 @@ export const expressions = new SpellParser({
           ]
         }
       ]
+    },
+
+    /** String utilities */
+    {
+      name: "as_uppercase",
+      alias: "expression_suffix",
+      precedence: 11,
+      syntax: "as (upper case|uppercase)",
+      constructor: "PostfixOperatorSuffix",
+      compileASTExpression(match, { lhs }) {
+        return new AST.CoreMethodInvocation(match, {
+          methodName: "upperCase",
+          args: [lhs]
+        })
+      },
+      tests: [
+        {
+          compileAs: "expression",
+          tests: [
+            [`"foo" as upper case`, `spellCore.upperCase("foo")`],
+            [`1 as uppercase`, `spellCore.upperCase(1)`]
+          ]
+        }
+      ]
+    },
+    {
+      name: "as_lowercase",
+      alias: "expression_suffix",
+      precedence: 11,
+      syntax: "as (lower case|lowercase)",
+      constructor: "PostfixOperatorSuffix",
+      compileASTExpression(match, { lhs }) {
+        return new AST.CoreMethodInvocation(match, {
+          methodName: "lowerCase",
+          args: [lhs]
+        })
+      },
+      tests: [
+        {
+          compileAs: "expression",
+          tests: [
+            [`"foo" as lower case`, `spellCore.lowerCase("foo")`],
+            [`1 as lowercase`, `spellCore.lowerCase(1)`]
+          ]
+        }
+      ]
     }
   ]
 })

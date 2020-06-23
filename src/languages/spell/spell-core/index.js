@@ -8,6 +8,7 @@ import { assert } from "./assert"
 import { spellCore } from "./core"
 import "./collection-core"
 import "./collection-other"
+import "./string"
 import "./ui"
 import { Thing, List } from "./classes"
 

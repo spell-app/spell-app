@@ -8,21 +8,27 @@ to set up (a deck)
 			add it to the deck
 
 to test deck creation
+	print "testing deck creation"
 	the deck is a new deck
 	set up the deck
 	expect the number of cards in the deck to be 52
 
 	set the queens to the cards in the deck where the rank of the card is "queen" 
 	expect the number of cards in the queens to be 4
-	print the name of the bottom card of the deck
+	expect the name of the bottom card of the deck to be "king-of-spades"
 test deck creation
 
+to display (a deck)
+	set output to "deck: "
+	for each card in the deck
+		set output to output + the short-name of the card + ", "
+	return output
+
 to test deck shuffling
-	print "AFTER SHUFFLING:"
+	print "testing deck shuffling:"
 	the deck is a new deck
 	set up the deck
 	shuffle the deck
-	for each card in the deck:
-		print the name of the card
-// test deck shuffling
+	print display the deck
+test deck shuffling
 
