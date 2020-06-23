@@ -2,6 +2,8 @@
 import React from "react"
 import { Token } from "~/parser"
 
+import { store } from "./store"
+import { ErrorHandler } from "./ErrorHandler"
 import "./MatchView.less"
 
 function highlight(el, delay = 0) {
@@ -11,57 +13,70 @@ function highlight(el, delay = 0) {
   }, delay)
 }
 
-/**
- * Top-level viewer for a Match, e.g. for a `spellFile.match`.
- * Create one of these and it will create <MatchView>s and <TokenView>s underneath it.
- *
- * If you pass `inputOffset` as a character position in the source file,
- * we'll scroll to that position and highlight elements surrounding that position.
- */
-export function MatchViewer({ match, scroll, inputOffset }) {
-  if (!match) return null
+export class MatchViewer extends ErrorHandler {
+  /** Clear `state.error` if `props.match` changes. */
+  static getDerivedStateFromProps(props, oldState) {
+    const newState = { match: props.match }
+    if (oldState.match !== newState.match) newState.error = null
+    return newState
+  }
 
-  // If we're passed a specific `inputOffset`, scroll that line into view and flash its bg.
-  React.useLayoutEffect(() => {
-    if (typeof inputOffset !== "number" || !match) return
-    // get the stack of what was matched, with the inner-most thing FIRST
-    const stack = match.matchStackForOffset(inputOffset).reverse()
-    // find the lowest item that corresponds to a `line`
-    const lineMatch = stack.find(_match => _match.rule?.name === "line")
-    const lineEl = lineMatch && document.querySelector(`.Match.line[data-start="${lineMatch.start}"]`)
-    if (!lineEl) return
-    // console.warn({ inputOffset, lineMatch, lineEl })
-    // scroll the `name` thinger into the center of the display
-    lineEl.querySelector(".name").scrollIntoView({ block: "center" })
+  /* Show error in UI when caught. */
+  componentDidCatch(error, errorInfo) {
+    store.showError(error)
+  }
 
-    // highlight the line element
-    // highlight(lineEl)
-
-    // highlight NAMEs of bits higher in the stack
-    stack
-      .slice(0, stack.indexOf(lineMatch))
-      .reverse()
-      .forEach((item, index) => {
-        const itemEl =
-          item instanceof Token
-            ? document.querySelector(`.Token.${item.constructor.name}[data-start="${item.start}"] > .value`)
-            : document.querySelector(`.Match.${item.rule?.name}[data-start="${item.start}"] > .name`)
-
-        if (itemEl) highlight(itemEl, index * 20)
-      })
-  }, [inputOffset])
-
-  // Memoize for the specified `match` (and `scroll`, which we don't expect to change).
-  // This allow us to update `inputOffset` without redrawing matches.
-  return React.useMemo(() => {
+  /** Wrapper class to manage scrolling. */
+  Wrapper({ contents, props }) {
     const classNames = ["MatchViewer"]
     if (scroll) classNames.push("scroll")
-    return (
-      <div className={classNames.join(" ")}>
-        <MatchView match={match} />
-      </div>
-    )
-  }, [match, scroll])
+    return <div className={classNames.join(" ")}>{contents}</div>
+  }
+
+  /**
+   * Top-level viewer for a Match, e.g. for a `spellFile.match`.
+   * Create one of these and it will create <MatchView>s and <TokenView>s underneath it.
+   *
+   * If you pass `inputOffset` as a character position in the source file,
+   * we'll scroll to that position and highlight elements surrounding that position.
+   */
+  Component({ match, scroll, inputOffset }) {
+    if (!match) return null
+
+    // If we're passed a specific `inputOffset`, scroll that line into view and flash its bg.
+    React.useLayoutEffect(() => {
+      if (typeof inputOffset !== "number" || !match) return
+      // get the stack of what was matched, with the inner-most thing FIRST
+      const stack = match.matchStackForOffset(inputOffset).reverse()
+      // find the lowest item that corresponds to a `line`
+      const lineMatch = stack.find((_match) => _match.rule?.name === "line")
+      const lineEl = lineMatch && document.querySelector(`.Match.line[data-start="${lineMatch.start}"]`)
+      if (!lineEl) return
+      // console.warn({ inputOffset, lineMatch, lineEl })
+      // scroll the `name` thinger into the center of the display
+      lineEl.querySelector(".name").scrollIntoView({ block: "center" })
+
+      // highlight the line element
+      // highlight(lineEl)
+
+      // highlight NAMEs of bits higher in the stack
+      stack
+        .slice(0, stack.indexOf(lineMatch))
+        .reverse()
+        .forEach((item, index) => {
+          const itemEl =
+            item instanceof Token
+              ? document.querySelector(`.Token.${item.constructor.name}[data-start="${item.start}"] > .value`)
+              : document.querySelector(`.Match.${item.rule?.name}[data-start="${item.start}"] > .name`)
+
+          if (itemEl) highlight(itemEl, index * 20)
+        })
+    }, [inputOffset])
+
+    // Memoize for the specified `match`.
+    // This allow us to update `inputOffset` without redrawing matches.
+    return React.useMemo(() => <MatchView match={match} />, [match])
+  }
 }
 
 /**
@@ -75,6 +90,7 @@ export function MatchView({ match }) {
   const contents = []
   const blocks = []
   matched.forEach((child, index) => {
+    if (!child) return console.warn(index, match)
     const childRule = child.rule?.name
     if (childRule === "block") {
       blocks.push(<MatchView key={index} match={child} />)
@@ -96,7 +112,7 @@ export function MatchView({ match }) {
     hasTokens && "hasTokens",
     hasMatches && "hasMatched",
     blocks.length && "hasBlocks",
-    matched.length === 1 && matched[0].rule?.name === "blank_line" && "isBlankLine"
+    matched.length === 1 && matched[0].rule?.name === "blank_line" && "isBlankLine",
   ]
     .filter(Boolean)
     .join(" ")
@@ -135,7 +151,7 @@ export function JSXElementView({ match }) {
     "JSXElement",
     isUnaryTag && "unary",
     attributes?.length && "hasAttributes",
-    children?.length && "hasChildren"
+    children?.length && "hasChildren",
   ]
     .filter(Boolean)
     .join(" ")
@@ -160,7 +176,7 @@ export function JSXAttributeView({ match }) {
     match.statement && "hasStatement",
     match.expression && "hasExpression",
     match.error && "hasError",
-    !attrMatch && "isEmpty"
+    !attrMatch && "isEmpty",
   ]
     .filter(Boolean)
     .join(" ")
