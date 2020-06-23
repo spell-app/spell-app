@@ -13,6 +13,10 @@ function highlight(el, delay = 0) {
   }, delay)
 }
 
+function getRuleName(match) {
+  return (match.rule.name || "anonymous-rule").replace(/\$/g, "_")
+}
+
 export class MatchViewer extends ErrorHandler {
   /** Clear `state.error` if `props.match` changes. */
   static getDerivedStateFromProps(props, oldState) {
@@ -67,7 +71,7 @@ export class MatchViewer extends ErrorHandler {
           const itemEl =
             item instanceof Token
               ? document.querySelector(`.Token.${item.constructor.name}[data-start="${item.start}"] > .value`)
-              : document.querySelector(`.Match.${item.rule?.name}[data-start="${item.start}"] > .name`)
+              : document.querySelector(`.Match.${getRuleName(item)}[data-start="${item.start}"] > .name`)
 
           if (itemEl) highlight(itemEl, index * 20)
         })
@@ -108,7 +112,7 @@ export function MatchView({ match }) {
   const className = [
     "Match",
     rule.constructor.name,
-    rule.name || "anonymous-rule",
+    getRuleName(match),
     hasTokens && "hasTokens",
     hasMatches && "hasMatched",
     blocks.length && "hasBlocks",
