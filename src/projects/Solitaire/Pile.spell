@@ -14,20 +14,46 @@ a pile "value" is:
 	return the value of its last card
 
 a pile "will accept (a card)" if: always
+to can play (a card) on (a pile):
+	return the pile will accept the card
 
--- cards can only be in one pile at a time
-to play (a card) on (a pile)
-	if the pile will not accept the card return no
-	if the pile of the card is not empty: remove the card from its pile
-	add the card to the pile
+// "move" a card -- make sure it's only in one pile at a time
+// NOTE: this doesn't check if this is a legal move, use `play` for that
+to move (a card) to (a pile)
+	if the pile of the card is defined: remove the card from its pile
 	set the pile of the card to the pile
-	return ok
+	add the card to the pile
+	return ok	
+
+// "play" a card -- only works if it's a legal move
+to play (a card) on (a pile)
+	if can play the card on the pile:
+		move the card to the pile
+		return ok
+	print "Sorry, you cannot move " + the name of the card + " to that " + the type of the pile
+	return no
 
 a pile "class-name" is:
-	return "Pile " + its type + " " + its appearance + "  num-" + (its number or 0)
+	return "Pile " + its type + " " + its appearance + " num-" + (its number or 0)
 
 to draw (a pile)
-	return 
-		<div className={its class-name}>
+	return <div className={its class-name}>
 			{for each card in the pile: draw the card}
 		</div>
+		
+to test piles
+	set pile1 to a new pile with number = 1
+	set pile2 to a new pile with number = 2
+	set the card to a new card with rank = king and suit = clubs
+	move the card to pile1
+	expect the first item of pile1 to be the card
+	expect the pile of the card to be pile1
+	expect pile2 will accept the card to be yes
+	expect can play the card on pile2 to be yes
+	play the card on pile2
+	expect pile1 is empty to be true
+	expect the first item of pile2 to be the card
+	expect the pile of the card to be pile2
+	expect the first item of pile2 to be the card
+test piles
+

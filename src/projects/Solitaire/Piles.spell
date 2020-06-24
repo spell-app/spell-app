@@ -12,9 +12,18 @@ a tableau "will accept (a card)" if:
 		return the card is a king
 	return its color is not the color of the card and its value + 1 is the value of the card
 
-to test tableaus
+to quietly test tableaus
 	get a new tableau with number = 3
 	expect its class-name to be "Pile Tableau staggered num-3" 
+	set the king to a new card with suit = clubs and rank = king
+	expect it will accept the king to be true
+	expect can play the king on it to be true
+	play the king on the tableau
+	expect the first card of the tableau is a king
+	expect the color of the tableau is black
+	set the queen to a new card with suit = hearts and rank = queen
+	expect can play the queen on it to be true
+test tableaus
 
 ##############
 ## `foundations` are the cards where the aces go

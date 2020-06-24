@@ -3,6 +3,8 @@ import { isNode } from "browser-or-node"
 import { instanceCase, typeCase, proto } from "~/util"
 import { Rule, Token, MethodScope } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
+import { ExpectMethodInvocation } from "../ast/AST"
+import { ConsoleMethodInvocation } from "../ast/AST"
 
 /**
  * Abstract class for a dynamic method created with `to_do_something` below.
@@ -56,6 +58,10 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
         signature.extraVars.push({ name: initialType.varName, output: "this", type: "alias" })
       }
     }
+    if (groups.asTest) {
+      signature.methodBits.unshift("test")
+      signature.syntaxBits.unshift("test")
+    }
     return signature
   }
 
@@ -97,6 +103,7 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
   }
   getRule(match) {
     const {
+      asTest,
       methodName,
       syntax,
       asPostfixExpression,
@@ -140,7 +147,7 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
     }
     return {
       name: methodName,
-      alias: ["statement", "expression"],
+      alias: asTest ? "statement" : ["statement", "expression"],
       constructor: "DynamicMethodRule",
       syntax,
       methodName
@@ -173,6 +180,21 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
       body: (inlineStatement || nestedBlock)?.AST,
       inline: false
     })
+
+    if (asTest) {
+      // HACK: echo all non-console / non-expect lines inside the test so we can tell what's going on!
+      const statements = []
+      method.body.statements.forEach((line) => {
+        if ((line instanceof AST.Statement || line instanceof AST.Expression) && line.echoInTests !== false) {
+          statements.push(
+            new AST.EchoInvocation(line.match, { methodName: "echoTestAction", expression: line.match.value })
+          )
+        }
+        statements.push(line)
+      })
+      method.body.statements = statements
+    }
+
     // Add props assignment to START of method body
     if (props) method.body.statements.unshift(this.getPropsAssignment(match))
 
@@ -210,9 +232,20 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
 
       if (asTest) {
         output.push(
-          new AST.CoreMethodInvocation(match, {
-            methodName: "test",
-            args: [new AST.QuotedExpression(match, signature.methodBits.join(" ")), fn]
+          new AST.FunctionDeclaration(match, {
+            methodName,
+            method: new AST.MethodBody(match, {
+              wrap: true,
+              inline: false,
+              body: new AST.CoreMethodInvocation(match, {
+                methodName: "test",
+                args: [
+                  new AST.QuotedExpression(match, signature.methodBits.join(" ")),
+                  fn,
+                  new AST.BooleanLiteral(match, asTest.value === "quietly test")
+                ]
+              })
+            })
           })
         )
       } else {
@@ -426,7 +459,8 @@ export const methods = new SpellParser({
     {
       name: "to_do_something",
       alias: "statement",
-      syntax: `to (asTest:test)? {signature:method_signature} :?`,
+      // TODO: add tests for `test` case
+      syntax: `to (asTest:quietly? test)? {signature:method_signature} :?`,
       constructor: class to_do_something extends SpellParser.Rule.MethodDefinition {
         @proto inlineInitialType = true
       },
@@ -890,7 +924,7 @@ export const methods = new SpellParser({
             let foundOne = false
             const NEGATABLES = {
               is: ["(operator:is not?|isn't|isnt)", (op) => op.value !== "is"],
-              can: ["(operator:can not?|can't|cant)", (op) => op.value !== "can"],
+              can: ["(operator:can not?|cannot|can't|cant)", (op) => op.value !== "can"],
               will: ["(operator:will not?|won't|wont)", (op) => op.value !== "will"],
               has: ["(operator:has|does not have|doesn't have|doesnt have)", (op) => op.value !== "has"]
             }
@@ -1042,16 +1076,18 @@ export const methods = new SpellParser({
               input: [
                 `a thing "can play" if`,
                 `if a new thing can play`,
+                `if a new thing cannot play`,
                 `if a new thing can not play`,
                 `if a new thing cant play`,
                 `if a new thing can't play`
               ],
               output: [
-                `/* SPELL: added expression \`{thing:single_expression} (operator:can not?|can't|cant) play\` */`,
+                `/* SPELL: added expression \`{thing:single_expression} (operator:can not?|cannot|can't|cant) play\` */`,
                 `spellCore.define(Thing.prototype, 'can_play', {`,
                 `\tget() {}`,
                 `})`,
                 `if (new Thing().can_play) {}`,
+                `if (!new Thing().can_play) {}`,
                 `if (!new Thing().can_play) {}`,
                 `if (!new Thing().can_play) {}`,
                 `if (!new Thing().can_play) {}`

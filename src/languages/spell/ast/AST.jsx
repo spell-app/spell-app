@@ -82,7 +82,7 @@ export class ASTNode extends Assertable {
   get className() {
     const supers = getSuperHierarchy(this, ASTNode)
       .reverse()
-      .map(constructor => constructor.name)
+      .map((constructor) => constructor.name)
     return supers.join(" ")
   }
 
@@ -168,8 +168,8 @@ export class ExpressionWithComment extends Expression {
   }
 }
 
-/** QuotedExpression -- use to wrap resulting AST in quotes.
- *  TODO: is this a good idea?  Don't use too much!
+/**
+ * QuotedExpression -- use to wrap `expression` in single quotes.
  */
 export class QuotedExpression extends Expression {
   @proto @readonly datatype = "string"
@@ -186,6 +186,28 @@ export class QuotedExpression extends Expression {
       <render.InSingleQuotes>
         <span className="expression">{this.expression.component}</span>
       </render.InSingleQuotes>
+    )
+  }
+}
+
+/**
+ * BackTickExpression -- use to wrap `expression` AST in back-ticks.
+ */
+export class BackTickExpression extends Expression {
+  @proto @readonly datatype = "string"
+  constructor(match, props) {
+    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
+    super(match, props)
+    this.assertType("expression", Expression)
+  }
+  compile() {
+    return stringify.InBackTicks({ children: this.expression.compile() })
+  }
+  renderChildren() {
+    return (
+      <render.InBackTicks>
+        <span className="expression">{this.expression.component}</span>
+      </render.InBackTicks>
     )
   }
 }
@@ -524,7 +546,7 @@ export class InvocationArgs extends ASTNode {
     this.assertArrayType("args", [Expression, MethodBody, FunctionDeclaration], OPTIONAL)
     if (this.args) {
       // unwind parenthesized expressions in args
-      this.args = this.args.map(arg => {
+      this.args = this.args.map((arg) => {
         while (arg instanceof ParenthesizedExpression) arg = arg.expression
         return arg
       })
@@ -603,6 +625,7 @@ export class ScopedMethodInvocation extends MethodInvocation {
  */
 export class ConsoleMethodInvocation extends ScopedMethodInvocation {
   @proto methodName = "log"
+  @proto echoInTests = false
   constructor(match, props) {
     super(match, { ...props, thing: new VariableExpression(match, { name: "console", type: "global" }) })
   }
@@ -654,6 +677,34 @@ export class AwaitMethodInvocation extends Expression {
         {this.method.component}
       </>
     )
+  }
+}
+
+/** ExpectMethodInvocation:  `spellCore.expect(...)`
+ *  - `expression` is expression AST
+ *  - `expressionString` is string for spell code used to generate expression
+ *  - `value` (optional) is value to match AST
+ *  - `valueString` (optional) is string for spell code used to generate value
+ */
+export class ExpectMethodInvocation extends CoreMethodInvocation {
+  @proto methodName = "expect"
+  @proto echoInTests = false
+  constructor(match, props) {
+    const { expression, expressionString, value, valueString } = props
+    const args = [expression, new StringLiteral(match, "`" + expressionString + "`")]
+    if (value) args.push(value, new StringLiteral(match, "`" + valueString + "`"))
+    return super(match, { args, wrap: false })
+  }
+}
+/** EchoMethodInvocation:  `spellCore.echo(...)`
+ *  - `message` is string to ouput
+ */
+export class EchoInvocation extends CoreMethodInvocation {
+  @proto echoInTests = false
+  constructor(match, props) {
+    let { expression, methodName = "echo" } = props
+    if (typeof expression === "string") expression = new StringLiteral(match, "`" + expression + "`")
+    return super(match, { methodName, args: [expression] })
   }
 }
 
@@ -942,7 +993,7 @@ export class ObjectLiteral extends Expression {
   // Should we wrap properties block?
   @overrideable
   get wrap() {
-    return this.properties?.length > 2 || this.properties?.some(item => item instanceof ObjectLiteralMethod)
+    return this.properties?.length > 2 || this.properties?.some((item) => item instanceof ObjectLiteralMethod)
   }
   compile() {
     const { wrap } = this
@@ -973,6 +1024,7 @@ export class Statement extends ASTNode {}
  *  - `statements` is a list of Statements.
  */
 export class StatementGroup extends Statement {
+  @proto echoInTests = false
   constructor(match, props) {
     super(match, props)
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
@@ -1479,7 +1531,7 @@ export class JSXElement extends Expression {
       this.attrs &&
       this.attrs.length &&
       new ObjectLiteral(this.match, {
-        properties: this.attrs.map(attr => attr.output)
+        properties: this.attrs.map((attr) => attr.output)
       })
     if (attrs) {
       properties.push(
@@ -1489,7 +1541,7 @@ export class JSXElement extends Expression {
         })
       )
     }
-    const items = this.children?.length && this.children.map(child => child?.output).filter(Boolean)
+    const items = this.children?.length && this.children.map((child) => child?.output).filter(Boolean)
     if (items?.length) {
       properties.push(
         new ObjectLiteralProperty(this.match, {

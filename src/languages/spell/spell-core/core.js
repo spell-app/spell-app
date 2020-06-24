@@ -52,7 +52,7 @@ export const spellCore = {
           get() {
             return this._props[property]
           },
-          set: descriptor.set,
+          set: descriptor.set
         })
         return instanceValue
       }
@@ -125,7 +125,7 @@ export const spellCore = {
   TYPE_NAME_CONVERSIONS: {
     array: "list",
     boolean: "choice",
-    string: "text",
+    string: "text"
   },
 
   /** Return string "type" of `thing`.
@@ -146,7 +146,7 @@ export const spellCore = {
   IS_OF_TYPE_SPECIALS: {
     integer: (thing) => spellCore.isAnInteger(thing),
     character: (thing) => spellCore.typeOf(thing) === "text" && thing.length === 1,
-    char: (thing) => spellCore.isOfType(thing, "character"),
+    char: (thing) => spellCore.isOfType(thing, "character")
   },
 
   /** Is `thing` an instance of string `type` (as per `spellCore.typeOf()`)? */
@@ -207,53 +207,6 @@ export const spellCore = {
     return isEqual(thing, otherThing)
   },
 
-  /**
-   * Print whether a runtime assertion is true or false.
-   * - With 2 arguments:
-   *    - passes if `thing` is truthy
-   *    - `thingSource` is spell Expression source for `thing`
-   * - With 4 arguments:
-   *    - uses `spellCore.equals(thing, otherThing)`
-   *    - `thingSource` is spell Expression source for `thing`
-   *    - `otherSource` is spell Expression source for `otherThing`
-   */
-  expect(thing, thingSource, otherThing, otherSource) {
-    thingSource = spellCore.doubleQuote(thingSource)
-    if (arguments.length === 2) {
-      if (thing) {
-        console.info(`✅ ${thingSource} is truthy`)
-      } else {
-        thing = spellCore.doubleQuote(thing)
-        console.info(`❌ Expected ${thingSource} to be truthy, got: "${thing}"`)
-      }
-    } else {
-      otherSource = spellCore.doubleQuote(otherSource)
-      if (spellCore.equals(thing, otherThing)) {
-        console.info(`✅ ${thingSource} is ${otherSource}`)
-      } else {
-        thing = spellCore.doubleQuote(thing)
-        console.info(`❌ Expected ${thingSource} to be ${otherSource}, got: ${thing}`)
-      }
-    }
-  },
-
-  /** Dynamic test: prints to console for now... */
-  test(message, testMethod) {
-    console.groupCollapsed(`=== TEST: ${message} ===`)
-    try {
-      testMethod()
-    } catch (e) {
-      console.error("Error in test:", e)
-    }
-    console.groupEnd()
-  },
-
-  /** Wrap `thing` in double quotes. */
-  doubleQuote(thing) {
-    if (typeof thing === "string" && thing.startsWith('"') && thing.endsWith('"')) return thing
-    return `"${thing}"`
-  },
-
   //----------------------------
   // math
   //--------
@@ -293,5 +246,5 @@ export const spellCore = {
       for (let next = start; next >= end; next--) range.push(next)
     }
     return range
-  },
+  }
 }

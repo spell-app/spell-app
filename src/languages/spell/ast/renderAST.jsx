@@ -23,7 +23,7 @@ export function Node(astNode) {
   }
   const children = astNode.renderChildren()
   // Trixy setup so problems in node rendering will show up as, e.g., `AST-CoreMethodInvocation`
-  const Component = getNamedComponent(`AST-${nodeType}`, function() {
+  const Component = getNamedComponent(`AST-${nodeType}`, function () {
     return React.createElement("span", props, children)
   })
   return React.createElement(Component)
@@ -118,7 +118,7 @@ export const Args = ({ args, wrap = args?.length > 3 }) => {
 }
 
 /** Surround `children` in double quotes. */
-export const DOUBLE_QUOTE = <span className="punctuation left-double-quote">{'"'}</span>
+export const DOUBLE_QUOTE = <span className="punctuation double-quote">{'"'}</span>
 export const InDoubleQuotes = ({ children }) => {
   return (
     <>
@@ -130,13 +130,25 @@ export const InDoubleQuotes = ({ children }) => {
 }
 
 /** Surround `children` in single quotes. */
-export const SINGLE_QUOTE = <span className="punctuation left-single-quote">{"'"}</span>
+export const SINGLE_QUOTE = <span className="punctuation single-quote">{"'"}</span>
 export const InSingleQuotes = ({ children }) => {
   return (
     <>
       {SINGLE_QUOTE}
       {children}
       {SINGLE_QUOTE}
+    </>
+  )
+}
+
+/** Surround `children` in back ticks. */
+export const BACK_TICK = <span className="punctuation back-tick">{"`"}</span>
+export const InBackTicks = ({ children }) => {
+  return (
+    <>
+      {BACK_TICK}
+      {children}
+      {BACK_TICK}
     </>
   )
 }

@@ -16,10 +16,10 @@ to create (a card-game)
 		add the tableau to its tableaus
 	set its foundations to a new list of foundations
 	for each suit and number of card suits
-		set foundation to a new foundation with suit = suit, number = number
+		set foundation to a new foundation with suit = the suit, number = the number
 		add the foundation to its foundations
-	set its stock-pile to a new stock-pile with appearance stacked
-	set its waste-pile to a new waste-pile with appearance stacked
+	set its stock-pile to a new stock-pile
+	set its waste-pile to a new waste-pile
 
 to start (a card-game)
 	set its score to 0

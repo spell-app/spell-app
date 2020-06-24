@@ -119,10 +119,9 @@ spellParser.defineRule({
 // `List`: our array concept (1-based)
 //--------
 export class List extends Observable {
-  constructor(...values) {
-    super()
+  constructor(props) {
+    super(props)
     this._state.items = []
-    if (values.length) this.add(...values)
     this.create()
   }
 

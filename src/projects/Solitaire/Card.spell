@@ -52,9 +52,9 @@ to flip (a card) over:
 		turn it face up
 
 ## create a card instance with default properties
-to test card setup
+to quietly test card setup
 	the card is a new card whose rank is queen, suit is spades and direction is up
-	print "'the card' is: " + the name of the card
+	echo the card
 	expect the rank of the card to be queen
 	expect the suit of the card to be spades
 	expect the name of the card to be "queen-of-spades"

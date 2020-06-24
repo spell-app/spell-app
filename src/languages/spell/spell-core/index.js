@@ -9,6 +9,7 @@ import { spellCore } from "./core"
 import "./collection-core"
 import "./collection-other"
 import "./string"
+import "./tests"
 import "./ui"
 import { Thing, List } from "./classes"
 
