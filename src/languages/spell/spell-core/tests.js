@@ -18,9 +18,7 @@ Object.assign(spellCore, {
   },
 
   startTest(message, collapse = true) {
-    if (spellCore.ACTIVE_TEST)
-      throw new TypeError(`spellCore.startTest(${message}): only one test can be active at a time!`)
-
+    if (spellCore.ACTIVE_TEST) spellCore.endTest()
     spellCore.ACTIVE_TEST = {
       message,
       collapse,

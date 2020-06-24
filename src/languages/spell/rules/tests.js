@@ -35,7 +35,30 @@ export const tests = new SpellParser({
         }
       ]
     },
-    // TODO: start test, end test
+    {
+      name: "start_test",
+      alias: "statement",
+      syntax: "start (quiet:quiet)? test {message:text}",
+      constructor: "Statement",
+      getAST(match) {
+        const { quiet, message } = match.groups
+        return new AST.CoreMethodInvocation(match, {
+          methodName: "startTest",
+          args: [new AST.QuotedString(message, message.value), new AST.BooleanLiteral(match, !!quiet)]
+        })
+      }
+    },
+    {
+      name: "end_test",
+      alias: "statement",
+      syntax: "end test",
+      constructor: "Statement",
+      getAST(match) {
+        return new AST.CoreMethodInvocation(match, {
+          methodName: "endTest"
+        })
+      }
+    },
     {
       name: "echo",
       alias: ["statement"],
