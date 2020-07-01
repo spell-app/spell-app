@@ -2,8 +2,9 @@
 
 a pile is a list of cards
 a pile has a name as text
-a pile has a number as a number
 a pile has an appearance as one of stacked, staggered or fanned
+a pile "class-name" is:
+	return "Pile " + its appearance
 
 a pile "color" is:
 	if it is empty return "none"
@@ -33,8 +34,6 @@ to play (a card) on (a pile)
 	print "Sorry, you cannot move " + the name of the card + " to that " + the type of the pile
 	return no
 
-a pile "class-name" is:
-	return "Pile " + its type + " " + its appearance + " num-" + (its number or 0)
 
 to draw (a pile)
 	return <div className={its class-name}>

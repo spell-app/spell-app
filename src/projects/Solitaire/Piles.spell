@@ -3,9 +3,10 @@
 ##############
 ## `tableaus` are the 7 piles where the cards are initially dealt
 a tableau is a pile
-// TODO: `the appearance of a tableau is staggered`
+a tableau has a number as a number
+a tableau "class-name" is: "Pile Tableau staggered num-" + (its number or 0)
 to create (a tableau): 
-	set its appearance to staggered
+	set its appearance to staggered // TODO: `the appearance of a tableau is staggered`
 
 a tableau "will accept (a card)" if:
 	if the tableau is empty
@@ -35,19 +36,19 @@ test tableaus
 ##############
 ## `foundations` are the cards where the aces go
 a foundation is a pile
+a foundation has a number as a number
 to create (a foundation): set its appearance to stacked // TODO: `the appearance of...
-// TODO: ...as one of card suits
-a foundation has a suit as one of clubs, diamonds, hearts, spades 
-a foundation "class-name" is: "Pile Foundation " + its appearance + " " + its suit
+a foundation has a suit as one of clubs, diamonds, hearts, spades // TODO: ...as one of card suits
+a foundation "class-name" is: "Pile Foundation stacked " + its suit  + " num-" + (its number or 0)
 
 a foundation "will accept (a card)" if
 	if its suit is not the suit of the card return no
 	if it is empty return the card is an ace
 	return the value of the foundation + 1 is the value of the card
 
-to test foundations
+to quietly test foundations
 	set the pile to a new foundation with suit = diamonds
-	expect the class-name of the pile to be "Pile Foundation stacked diamonds"
+	expect the class-name of the pile to be "Pile Foundation stacked diamonds num-0"
 	set the ace to a new card with suit = diamonds and rank = ace
 	set card-two to a new card with suit = diamonds and rank = 2
 	set card-three to a new card with suit = clubs and rank = 3
@@ -66,17 +67,18 @@ test foundations
 a stock-pile is a pile
 to create (a stock-pile): set its appearance to stacked // TODO: the appearance of...
 a stock-pile "will accept (a card)" if never
+a stock-pile "class-name" is: "Pile Stock-Pile stacked"
 
-to test stock-piles
+to quietly test stock-piles
 	set the pile to a new stock-pile
+	expect the class-name of the pile to be "Pile Stock-Pile stacked"
 	set the card to a new card with suit = hearts and rank = ace
 	expect can play the card on the pile to be no
 	play the card on the pile
-	expect the length of the pile to be 0
-	// expect the number of cards in the pile to be 0
+	expect the number of cards in the pile to be 0
 	move the card to the pile
-	// expect the number of cards in the pile to be 1
-	// expect the top card of the pile to be the card
+	expect the number of cards in the pile to be 1
+	expect the top card of the pile to be the card
 test stock-piles
 
 ##############
@@ -84,7 +86,16 @@ test stock-piles
 a waste-pile is a pile
 to create (a waste-pile): set its appearance to stacked // TODO: the appearance of...
 a waste-pile "will accept (a card)" if never
+a waste-pile "class-name" is: "Pile Waste-Pile stacked"
 
-
-
-
+to quietly test waste-piles
+	set the pile to a new waste-pile
+	expect the class-name of the pile to be "Pile Waste-Pile stacked"
+	set the card to a new card with suit = hearts and rank = ace
+	expect can play the card on the pile to be no
+	play the card on the pile
+	expect the number of cards in the pile to be 0
+	move the card to the pile
+	expect the number of cards in the pile to be 1
+	expect the top card of the pile to be the card
+test waste-piles
