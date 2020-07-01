@@ -1,7 +1,5 @@
-/* eslint-disable react/prop-types */
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 import React from "react"
-import createUnitTestComponent from "react-unit"
 import _get from "lodash/get"
 
 import {
@@ -17,6 +15,7 @@ import {
 import { Match } from "~/parser"
 import * as stringify from "./stringifyAST"
 import * as render from "./renderAST"
+import { mount } from "./enzyme-setup"
 
 // TODO: define this in `constants` or some such?
 const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w\$]*$/
@@ -96,8 +95,8 @@ export class ASTNode extends Assertable {
 
   /** TEST: return text from `component` for comparison to `compile()` text */
   get renderedText() {
-    const TestComponent = () => this.component
-    return createUnitTestComponent(<TestComponent />).text
+    const component = mount(this.component)
+    return component.text()
   }
 
   // TEST: ensure that `compile()` output is the same as `ast.renderedText`

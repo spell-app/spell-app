@@ -1,1 +1,3 @@
-print the first character of "foo"
+get a new list
+expect the number of items in it
+get 0

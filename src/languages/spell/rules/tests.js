@@ -19,7 +19,7 @@ export const tests = new SpellParser({
           expression: expression.AST,
           expressionString: expression.value,
           value: value?.AST,
-          valueString: value?.value
+          valueString: value && "raw" in value ? value.raw : value?.value
         })
       },
       tests: [
@@ -27,10 +27,19 @@ export const tests = new SpellParser({
           beforeEach(scope) {
             scope.compile("a card is a thing")
             scope.compile("it = a new card with rank = 'queen' and is-face-up = true")
+            scope.compile("my-list is a new list")
           },
           tests: [
             ['expect the rank of it to be "queen"', 'spellCore.expect(it.rank, `the rank of it`, "queen", `"queen"`)'],
-            ["expect the is-face-up of it", "spellCore.expect(it.is_face_up, `the is-face-up of it`)"]
+            [
+              "expect the is-face-up of it to be yes",
+              "spellCore.expect(it.is_face_up, `the is-face-up of it`, true, `yes`)"
+            ],
+            ["expect the is-face-up of it", "spellCore.expect(it.is_face_up, `the is-face-up of it`)"],
+            [
+              "expect the number of items in my-list to be 0",
+              "spellCore.expect(spellCore.itemCountOf(my_list), `the number of items in my-list`, 0, `0`)"
+            ]
           ]
         }
       ]

@@ -10,19 +10,26 @@ to create (a tableau):
 a tableau "will accept (a card)" if:
 	if the tableau is empty
 		return the card is a king
-	return its color is not the color of the card and its value + 1 is the value of the card
+	return (its color is not the color of the card) and (the value of the card + 1 is the value of the tableau)
 
-to quietly test tableaus
-	get a new tableau with number = 3
-	expect its class-name to be "Pile Tableau staggered num-3" 
+to  quietly test tableaus
+	set the pile to a new tableau with number = 3
+	expect the class-name of the pile to be "Pile Tableau staggered num-3" 
 	set the king to a new card with suit = clubs and rank = king
-	expect it will accept the king to be true
-	expect can play the king on it to be true
-	play the king on the tableau
-	expect the first card of the tableau is a king
-	expect the color of the tableau is black
+	expect the pile will accept the king to be true
+	expect can play the king on the pile to be true
+	play the king on the pile
+	expect the pile of the king to be the pile
+	expect the number of items in the pile to be 1
+	expect (the first card of the pile) is a king
+	expect the color of the pile to be black
+	expect the value of the pile to be 13
 	set the queen to a new card with suit = hearts and rank = queen
-	expect can play the queen on it to be true
+	expect can play the queen on the pile to be true
+	play the queen on the pile
+	expect (the last card of the pile) is the queen
+	set the jack to a new card with suit = diamonds and rank = jack
+	expect can play the jack on the pile to be false
 test tableaus
 
 ##############
@@ -31,12 +38,28 @@ a foundation is a pile
 to create (a foundation): set its appearance to stacked // TODO: `the appearance of...
 // TODO: ...as one of card suits
 a foundation has a suit as one of clubs, diamonds, hearts, spades 
+a foundation "class-name" is: "Pile Foundation " + its appearance + " " + its suit
 
 a foundation "will accept (a card)" if
 	if its suit is not the suit of the card return no
 	if it is empty return the card is an ace
 	return the value of the foundation + 1 is the value of the card
 
+to test foundations
+	set the pile to a new foundation with suit = diamonds
+	expect the class-name of the pile to be "Pile Foundation stacked diamonds"
+	set the ace to a new card with suit = diamonds and rank = ace
+	set card-two to a new card with suit = diamonds and rank = 2
+	set card-three to a new card with suit = clubs and rank = 3
+	expect can play the ace on the pile to be yes
+	expect can play card-two on the pile to be no
+	play the ace on the pile
+	expect can play card-two on the pile to be yes
+	play card-two on the pile
+	expect can play card-three on the pile to be no
+	play card-three on the pile
+	expect the top card of the pile to be card-two
+test foundations
 
 ##############
 ## `stock-pile` is the pile where new cards come from
@@ -44,6 +67,17 @@ a stock-pile is a pile
 to create (a stock-pile): set its appearance to stacked // TODO: the appearance of...
 a stock-pile "will accept (a card)" if never
 
+to test stock-piles
+	set the pile to a new stock-pile
+	set the card to a new card with suit = hearts and rank = ace
+	expect can play the card on the pile to be no
+	play the card on the pile
+	expect the length of the pile to be 0
+	// expect the number of cards in the pile to be 0
+	move the card to the pile
+	// expect the number of cards in the pile to be 1
+	// expect the top card of the pile to be the card
+test stock-piles
 
 ##############
 ## `waste-pile` is where the cards go when you turn them over

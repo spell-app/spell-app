@@ -29,7 +29,7 @@ export const SPACED_COMMA = `${COMMA}${SPACE}`
 export const INDENTED_COMMA = `${COMMA}${NEWLINE}`
 
 /** Draw a single item in a list by having it render its component. */
-export const Item = ({ item, index }) => item?.compile() || ""
+export const Item = ({ item, index }) => (item ? item.compile() : "")
 
 /** Draw a series of items with a delimiter between */
 export const List = ({ items, delimiter = SPACED_COMMA, DrawItem = Item }) => {
@@ -54,11 +54,10 @@ export const InParens = ({ children = "", wrap = false, space = false }) => {
 }
 
 /** Draw list of function `args` */
-export const Arg = ({ item }) => Item({ item })
 export const Args = ({ args, wrap = args?.length > 3 }) => {
   if (!args || args.length === 0) return EMPTY_PARENS
   const delimiter = wrap ? INDENTED_COMMA : SPACED_COMMA
-  let children = List({ items: args, DrawItem: Arg, delimiter })
+  let children = List({ items: args, delimiter })
   if (wrap && children.includes("\n")) children = `\t${children}`
   return InParens({ wrap, children })
 }

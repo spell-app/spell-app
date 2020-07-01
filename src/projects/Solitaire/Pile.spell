@@ -41,7 +41,7 @@ to draw (a pile)
 			{for each card in the pile: draw the card}
 		</div>
 		
-to test piles
+to quietly test piles
 	set pile1 to a new pile with number = 1
 	set pile2 to a new pile with number = 2
 	set the card to a new card with rank = king and suit = clubs

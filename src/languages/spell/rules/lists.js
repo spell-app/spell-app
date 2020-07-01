@@ -88,7 +88,7 @@ export const lists = new SpellParser({
     {
       name: "list_length",
       alias: ["expression", "single_expression"],
-      syntax: "the? number of {arg:plural_variable} in {list:expression}",
+      syntax: "the? number of {arg:plural_variable} (in|of) {list:expression}",
       testRule: "…(number of)",
       precedence: 3,
       getAST(match) {

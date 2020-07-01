@@ -184,7 +184,7 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
     if (asTest) {
       // HACK: echo all non-console / non-expect lines inside the test so we can tell what's going on!
       const statements = []
-      method.body.statements.forEach((line) => {
+      method.body?.statements?.forEach((line) => {
         if ((line instanceof AST.Statement || line instanceof AST.Expression) && line.echoInTests !== false) {
           statements.push(
             new AST.EchoInvocation(line.match, { methodName: "echoTestAction", expression: line.match.value })
