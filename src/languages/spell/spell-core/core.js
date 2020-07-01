@@ -246,5 +246,12 @@ export const spellCore = {
       for (let next = start; next >= end; next--) range.push(next)
     }
     return range
+  },
+
+  //----------------------------
+  // primitive iteration
+  //--------
+  repeat(count, callback) {
+    for (let i = 0; i < count; i++) callback()
   }
 }

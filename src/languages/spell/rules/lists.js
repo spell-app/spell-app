@@ -1043,6 +1043,37 @@ export const lists = new SpellParser({
       ]
     },
 
+    /** Repeat an action N times */
+    {
+      name: "repeat_n_times",
+      alias: ["statement", "expression"],
+      syntax: "repeat {number:expression} times :?",
+      testRule: "repeat",
+      constructor: "Statement",
+      wantsInlineStatement: true,
+      wantsNestedBlock: true,
+      getNestedScope(match) {
+        return new MethodScope({ scope: match.scope })
+      },
+      getAST(match) {
+        const { number, inlineStatement, nestedBlock } = match.groups
+        const method = new AST.MethodBody(inlineStatement || nestedBlock || match, {
+          inline: true,
+          body: (inlineStatement || nestedBlock)?.AST
+        })
+        return new AST.CoreMethodInvocation(match, {
+          methodName: "repeat", // TODO...
+          args: [number.AST, method]
+        })
+      },
+      tests: [
+        {
+          compileAs: "block",
+          tests: [["repeat 3 times:", "spellCore.repeat(3, () => {})"]]
+        }
+      ]
+    },
+
     // Generic iteration
     // TODO: can work for object enumeration as well (maybe with 'of'?)
     // TODO: return values e.g. array.map() ???
