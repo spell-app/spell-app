@@ -186,7 +186,11 @@ export class SpellProject extends LoadableManager {
     // console.info(contents)
     // console.groupEnd()
     console.groupCollapsed("javascript")
-    console.info(compiled)
+    const lines = compiled
+      .split("\n")
+      .map((line, index) => `${index}`.padStart(4, " ") + `  ${line}`)
+      .join("\n")
+    console.info(lines)
     console.groupEnd()
 
     // add all types to `global` for local hacking
