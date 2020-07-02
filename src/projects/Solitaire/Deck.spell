@@ -11,9 +11,9 @@ to set up (a deck)
 	set the is-set-up of the deck to yes
 
 to display (a deck)
-	set output to ""
+	set output to "deck"
 	for each card in the deck
-		set output to output + print the card + ", "
+		set output to output + ":" + the short-name of the card
 	return output
 
 to quietly test deck creation

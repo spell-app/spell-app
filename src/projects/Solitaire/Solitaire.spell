@@ -88,31 +88,31 @@ to turn over stock
 
 to play (a card)
 	// make sure we can pick up the card
-	set old-pile to the pile of the card
-	if old-pile cannot pick up the card return no
+	set start-pile to the pile of the card
+	if start-pile cannot pick up the card return no
 	// print "can pick up the " + the name of the card
 	
-	if old-pile is the stock
+	if start-pile is the stock
 		turn over stock
 		return
 	
-	set new-pile to the first pile in piles in (the piles of the game) where its droppable and it can play the card
-	if new-pile is not defined return no
-	// print new-pile
+	set droppable-piles to piles in (the piles of the game) where its droppable is yes and it can play the card
+	set end-pile to the first pile in droppable-piles
+	if end-pile is not defined return no
 
-	// move cards if we got a new-pile
-	set cards-to-move to cards in old-pile starting with the card
+	// move cards if we got a end-pile
+	set cards-to-move to cards in start-pile starting with the card
 	for each card in cards-to-move
-		move it to new-pile
+		move it to end-pile
 
 	// turn over last tableau card if necessary
-	if the old-pile is a tableau and the old-pile is not empty
-		turn the last card of the old-pile face up
+	if the start-pile is a tableau and the start-pile is not empty
+		turn the last card of the start-pile face up
 
 	// update score
-	if new-pile is a foundation
+	if end-pile is a foundation
 		set the score of the game to the score of the game + 10
-	else if old-pile is discards
+	else if start-pile is discards
 		set the score of the game to the score of the game + 5
 
 to auto-play
@@ -124,6 +124,15 @@ to reset the game
 	set the score of the game to 0
 	deal the cards
 	turn over stock
+
+to cheat
+	set remaining-piles to piles in the tableaus where it is not empty and its first card is face down
+	if remaining-piles is empty return
+	set the pile to a random pile in remaining-piles
+	set unplaid-cards to cards in the pile where the card is face down
+	set card to a random card in unplaid-cards
+	turn the card face up
+	move the card to discards
 
 ##############
 ## rendering the bits
@@ -152,7 +161,7 @@ to draw (a card):
 	set className to "Card face-" + its direction + " "	+ its rank + " " + its suit + " ui button compact fluid "
 	if it is face down 
 		return <div onClick={play the card} className={className}><i className="fitted bicycle icon"/></div>
-	return <div onClick={play the card} className={className +	its color}>{display the card}</div>
+	return <div onClick={play the card} className={className +	its color}>{the short-rank of the card + " " + the short-suit of the card}</div>
 
 to draw (a card-game)
  	return <div>
@@ -161,8 +170,9 @@ to draw (a card-game)
 				<thead>
 					<tr>
 						<th colSpan="2" className="left aligned">Klondike Solitaire</th>
-						<th colSpan="2" className="right aligned">{"Score: " + the score of the game}</th>
+						<th className="right aligned">{"Score: " + the score of the game}</th>
 						<th><div className="tiny fluid ui button compact" onClick={auto-play}>AutoPlay</div></th>
+						<th><div className="tiny fluid ui button compact" onClick={cheat}>Cheat</div></th>
 						<th><div className="tiny fluid ui button compact" onClick={display the game}>Debug</div></th>
 						<th><div className="tiny fluid ui button compact" onClick={reset the game}>Restart</div></th>
 					</tr>

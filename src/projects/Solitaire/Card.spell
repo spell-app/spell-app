@@ -49,8 +49,6 @@ the short-rank of a card is:
 	return (the first character of its rank) as uppercase
 
 the short-name of a card is: its short-rank + its short-suit
-to display (a card)
-	return its short-name
 
 ## actions
 to turn (a card) face up: 
