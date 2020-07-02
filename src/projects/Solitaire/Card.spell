@@ -2,6 +2,7 @@
 
 ## definition of a Card with nice english aliases for working with it
 a card is a drawable
+a pile is a list of cards
 
 ## properties of cards
 // card ranks
@@ -34,19 +35,14 @@ a card "is the (rank) of (suits)" for its ranks and its suits
 
 // name as a derivation of name/suit
 the name of a card is its rank + "-of-" + its suit
-to print (a card)
+to display (a card)
 	set name to the first character of ((its rank or "❓") as uppercase)
 	if the rank of the card is 10 set name to 10
 	if it is a club return name + " ♣️"
-	if it is a diamond return name +  "♦️"
+	if it is a diamond return name +  " ♦️"
 	if it is a heart return name + " ♥️"
 	if it is a spade return name + " ♠️"
 	return name + "❓"
-
-to draw (a card):
-	set className to "Card face-" + its direction + " "  + its rank + " " + its suit + " ui button compact fluid "
-	if it is face down return <div className={className}><i className="fitted bicycle icon"/></div>
-	return <div className={className +  its color}>{print the card}</div>
 
 ## actions
 to turn (a card) face up: 

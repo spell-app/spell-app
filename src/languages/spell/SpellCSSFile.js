@@ -104,14 +104,12 @@ export class SpellCSSFile extends TextFile {
   async parse(parentScope) {
     if (this.match) return this.match
     await this.load()
-    console.warn("CSSF.parse", this.contents)
     this.resetCompiled()
     const token = new Token.Text({ value: this.contents, raw: this.contents, offset: 0 })
     const scope = this.getScope(parentScope)
     const match = scope.parse([token], "css")
     // HACK
     match.fileName = this.name
-    console.warn("SpellCSSFile got match", match)
     batch(() => {
       this.set("_state.scope", scope)
       this.set("_state.match", match)

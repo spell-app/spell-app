@@ -2,59 +2,168 @@
 -- Automatically moves cards to foundation piles (aces).
 -- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for naming conventions.
 
-## Define card-game
+## Game bits
 a card-game is an app
 a card-game has a score as a number
+set the game to a new card-game
+print the game
 
+// set up deck of cards
 set the deck to a new deck
 set up the deck
-set the tableaus to a new list of tableaus
-for number from 1 to 7
-	set tableau to a new tableau with number = number
-	add the tableau to the tableaus
-set the foundations to a new list of foundations
-for each suit and number of card suits
-	set foundation to a new foundation with suit = the suit, number = the number
-	add the foundation to the foundations
-set the stock to a new stock-pile
-set discards to a new discard-pile
 
-to play from stock
-	if the stock is empty
-		for each card in discards
-			turn the card face down
-			add it to the stock
-	repeat 3 times
-		if the stock is not empty
-			turn the top card of stock face up
-			move the top card of stock to the discards
+set droppable-piles to a new list
+set auto-play-piles to a new list
+
+// set up stock pile: unplayed cards
+a stock-pile is a pile
+a stock-pile "can pick up (a card)" if: the card is its bottom card 
+set the stock to a new stock-pile
+
+// set up discards: where played cards go when turning over stock
+a discard-pile is a pile
+a discard-pile "can pick up (a card)" if: the card is its bottom card 
+set discards to a new discard-pile
+add discards to auto-play-piles
+
+// set up foundation piles: where we build up from ace => king
+a foundation is a pile
+a foundation "can pick up (a card)" if: never
+a foundation "can play (a card)" if: 
+	if the suit of the foundation is not the suit of the card return no
+	return the value of the foundation + 1 is the value of the card
+set the foundations to a new list of foundations
+for each suit in card suits
+	get a new foundation with suit = the suit
+	add it to the foundations
+	add it to droppable-piles
+	
+// set up tableau piles: where cards are initially dealt
+a tableau is a pile
+a tableau "can pick up (a card)" if:
+	if the card is face up return yes
+	return the card is the bottom card of the tableau
+a tableau "can play (a card)" if: 
+	if the tableau is empty
+		return the card is a king
+	if the color of the tableau is the color of the card return no
+	return the value of the tableau is the value of the card + 1
+set the tableaus to a new list of tableaus
+repeat 7 times
+	get a new tableau 
+	add it to the tableaus
+	add it to droppable-piles
+ 	add it to auto-play-piles
+
 
 to deal the cards
-	for each card in the deck
-		turn it face down	// TODO: `turn the card face down` doesnt work...???
 	shuffle the deck
 	for each card in the deck
+		turn the card face down
 		move the card to the stock
 	for row from 1 to 7
-		turn the top card of the stock face up
+		turn the bottom card of the stock face up
 		for column from row to 7
-			move the top card of the stock to item column of the tableaus
+			move the bottom card of the stock to item column of the tableaus
 
-to reset (a card-game)
-	set its score to 0
+to reset stock
+	set cards to cards in discards starting with the first card in discards
+	reverse the cards
+	for each card in cards
+		turn the card face down
+		move it to the stock
+		
+to turn over stock
+	if the stock is empty reset stock
+	repeat 1 time  // TODO: `repeat 3 times` for some versions of klondike
+		if the stock is not empty
+			turn the bottom card of stock face up
+			move the bottom card of stock to the discards
+
+to play (a card)
+	// make sure we can pick up the card
+	set old-pile to the pile of the card
+	if old-pile cannot pick up the card return no
+	print "can pick up the " + the name of the card
+	
+	if old-pile is the stock
+		return turn over stock
+	
+	set valid-piles to piles in droppable-piles where the pile can play the card
+	set new-pile to the first pile in valid-piles
+	if new-pile is not defined return no
+	print new-pile
+
+	// move cards if we got a new-pile
+	set cards-to-move to cards in old-pile starting with the card
+	for each card in cards-to-move
+		move it to new-pile
+
+	// turn over last tableau card if necessary
+	if the old-pile is a tableau and the old-pile is not empty
+		turn the last card of the old-pile face up
+
+	// update score
+	if new-pile is a foundation
+		set the score of the game to the score of the game + 10
+	else if old-pile is discards
+		set the score of the game to the score of the game + 5
+	print the score of the game
+	return yes
+
+to auto-play
+	for each pile in auto-play-piles
+		play the bottom card of the pile
+
+to reset the game
+	set the score of the game to 0
 	deal the cards
-	play from stock
+	repeat 3 times
+		turn over stock
 
+##############
+## rendering the bits
+
+// note: tableaus just draw as a (vertical) list of cards
+
+to draw (a foundation):
+	if it is empty
+		if its suit is clubs return <div className="Card Placeholder ui button basic compact fluid black">♣️</div>
+		if its suit is diamonds return <div className="Card Placeholder ui button basic compact fluid red">♦️</div>
+		if its suit is hearts return <div className="Card Placeholder ui button basic compact fluid red">♥️</div>
+		if its suit is spades return <div className="Card Placeholder ui button basic compact fluid black">♠️</div>
+	return draw its bottom card
+
+to draw (a stock-pile):
+	if it is empty
+		return <div onClick={turn over stock} className="Card Placeholder ui button basic compact fluid"></div>
+	return draw its bottom card
+
+to draw (a discard-pile):
+	if it is empty
+		return <div onClick={turn over stock} className="Card Placeholder ui button basic compact fluid"></div>
+	return draw its bottom card
+
+to draw (a card):
+	set className to "Card face-" + its direction + " "	+ its rank + " " + its suit + " ui button compact fluid "
+	if it is face down 
+		return <div onClick={play the card} className={className}><i className="fitted bicycle icon"/></div>
+	return <div onClick={play the card} className={className +	its color}>{display the card}</div>
+
+##############
+## Set up card game
 to draw (a card-game)
+	print warning "redrawing game"
  	return <div>
 		<div className="board">
 			<table className="ui table fixed">
 				<thead>
 					<tr>
-						<th colSpan="3"><h4>Klondike</h4></th>
-						<th></th>
+						<th colSpan="2"><h4>Klondike</h4></th>
 						<th colSpan="2" className="right aligned">Score:</th>
-						<th>{its score}</th>
+						<th>{the score of the game}</th>
+						<th><div className="tiny fluid ui button compact" onClick={auto-play}>Auto</div></th>
+						<th><div className="tiny fluid ui button compact" onClick={reset the game}>Restart</div></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -74,179 +183,13 @@ to draw (a card-game)
 						<td>{draw item 4 of the tableaus}</td>
 						<td>{draw item 5 of the tableaus}</td>
 						<td>{draw item 6 of the tableaus}</td>
-						<td>{draw item 7 of the tableaus}</div>
+						<td>{draw item 7 of the tableaus}</td>
 					</tr>
 				</tbody>
 			</table>
 		</div>
 	</div>
 	
-set the game to a new card-game
 reset the game
 start the game
 
-// 		// scoring
-// 		if current pile is waste pile
-// 			if pile is in tableaus
-// 				add 5 to score
-// 			else if pile is in foundations
-// 				add 10 to score
-// 
-// 		else if current pile is in tableus
-// 			if pile is in foundations
-// 				add 5 to score
-// 
-// 		else if current pile is in foundations
-// 			if pile is in tableaus
-// 				subtract 10 from score
-// 
-// 
-// 	to move Cards to Pile
-// 		for each card in cards
-// 			move card to pile
-// 
-// 
-// 	#### Click on card in tableau or waste pile
-// 	to try to play Card
-// 		put back active pile
-// 		return no if can not pick up card
-// 
-// 		for each pile in tableaus
-// 			if can play card on pile
-// 				cards = items of pile starting with card
-// 				move cards to pile
-// 				return yes
-// 
-// 		return no
-// 
-// 
-// 	#### Drag and dop events
-// 	to pick up Card
-// 		put back active pile
-// 		return no if can not pick up card
-// 
-// 		pile = pile of card
-// 		cards = items of pile starting with card
-// 		move cards to active pile
-// 		set active source to pile
-// 		return yes
-// 
-// 	to drop active cards on Pile
-// 		return no if active pile is empty
-// 		return no if length of active pile > 1 and pile is in foundations
-// 
-// 		card = bottom card of active pile
-// 		return no if can not play card on pile
-// 
-// 		move active pile to pile
-// 		return yes
-// 
-// 
-// 	#### Legal moves
-// 	expression can pick up Card
-// 		pile = pile of card
-// 		return no if pile is not in tableaus or pile is not waste pile
-// 		return no if appearance of pile is "stacked" and card is not top card of pile
-// 		return no if card is face down
-// 		return yes
-// 
-// 	expression can play Card on Pile
-// 		top card = top card of pile
-// 		pile value = value of top card if pile is not empty otherwise 0
-// 		pile color = color of top card if pile is not empty otherwise undefined
-// 
-// 		if pile is in foundations
-// 			return yes if ¬
-// 				suit of card is name of pile and
-// 				value of card is pile value + 1
-// 
-// 		if pile is in tableaus
-// 			return yes if ¬
-// 				pile is empty and ¬
-// 				card is a king
-// 
-// 			return yes if ¬
-// 				pile color is not color of card and ¬
-// 				value of card is pile value + 1
-// 
-// 		return no
-// 
-// 
-// 
-// 	### Auto Play
-// 	auto play to foundations = yes
-// 	auto play piles = (waste pile) + tableaus
-// 
-// 	#### Move to aces and turn over face down cards automatically
-// 	to auto play cards
-// 		for each pile in auto play piles
-// 			if auto play top card of pile
-// 				// recurse on success
-// 				auto play cards
-// 				return
-// 
-// 	to auto play Card
-// 		if card is face down
-// 			turn card face up
-// 			return yes
-// 
-// 		if auto play to foundations
-// 			foundation = first item in foundations where name of pile is suit of card
-// 			if can play card on foundation
-// 				move card to foundation
-// 				return yes
-// 
-// 		return no
-// 
-// 
-// 	#### Winning
-// 	expression they won
-// 		for each pile in foundations
-// 			if size of pile is less than 13 return no
-// 		return yes
-// 
-// 
-// 	### Create piles for the game
-// 
-// 	#### Create stock pile (unplayed cards) and waste pile (new cards in play)
-// 	stock pile = new Pile with name "stock"
-// 	waste pile = new Pile with name "waste"
-// 
-// 	to play from stock
-// 		return no if stock pile is empty
-// 		repeat 3 times
-// 			if stock pile is not empty
-// 				turn over top card of stock pile
-// 				move top card of stock pile to waste pile
-// 		auto play cards
-// 		return yes
-// 
-// 	to reset stock
-// 		flip waste pile
-// 		move waste pile to stock pile
-// 
-// 
-// 	#### Create tableau piles (where you play cards)
-// 	tableaus = new Piles
-// 	repeat with index from 1 to 7
-// 		get new Pile with name "Tableau{index}" and appearance "staggered"
-// 		add it to tableaus
-// 
-// 
-// 	#### Create foundation piles (aces)
-// 	foundations = (
-// 		new Pile with name "clubs",
-// 		new Pile with name "diamonds",
-// 		new Pile with name "hearts",
-// 		new Pile with name "spades"
-// 	)
-// 
-// 
-// 	##### Create `active pile` (what we move)
-// 	active pile = new Pile with name "active"
-// 	##### Create `active source` (where cards in active pile CAME from)
-// 	active source as Pile
-// 
-// 	to put back active pile
-// 		if active pile is not empty
-// 			move active pile to active source

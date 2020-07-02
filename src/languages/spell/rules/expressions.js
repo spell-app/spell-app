@@ -158,7 +158,7 @@ export const expressions = new SpellParser({
         const { lhs, rhsChain } = match.groups
         const output = [lhs]
         const opStack = []
-        rhsChain.matched.forEach(rhs => {
+        rhsChain.matched.forEach((rhs) => {
           // Unary postfix operator, e.g. "<lhs> is empty"
           if (rhs.rule instanceof SpellParser.Rule.PostfixOperatorSuffix) {
             const args = {
@@ -284,7 +284,7 @@ export const expressions = new SpellParser({
       syntax: "(operator:is not?) {expression:single_expression}",
       constructor: "InfixOperatorSuffix",
       parenthesize: true,
-      getOutputOperator: operator => (operator.value === "is not" ? "!=" : "=="),
+      getOutputOperator: (operator) => (operator.value === "is not" ? "!=" : "=="),
       tests: [
         {
           compileAs: "expression",
@@ -307,7 +307,7 @@ export const expressions = new SpellParser({
       syntax: "(operator:is not? exactly) {expression:single_expression}",
       constructor: "InfixOperatorSuffix",
       parenthesize: true,
-      getOutputOperator: operator => (operator.value === "is not exactly" ? "!==" : "==="),
+      getOutputOperator: (operator) => (operator.value === "is not exactly" ? "!==" : "==="),
       tests: [
         {
           compileAs: "expression",
@@ -329,7 +329,7 @@ export const expressions = new SpellParser({
       precedence: 11,
       syntax: "(operator:is not? (a|an)) {expression:type}",
       constructor: "InfixOperatorSuffix",
-      shouldNegateOutput: operator => operator.value.includes("not"),
+      shouldNegateOutput: (operator) => operator.value.includes("not"),
       compileASTExpression(match, { lhs, rhs }) {
         // TODO: QuotedExpression feels wrong here...
         return new AST.CoreMethodInvocation(match, {
@@ -359,7 +359,7 @@ export const expressions = new SpellParser({
       precedence: 11,
       syntax: "(operator:is not? the same type as) {expression:single_expression}",
       constructor: "InfixOperatorSuffix",
-      getOutputOperator: operator => (operator.value.includes("not") ? "!==" : "==="),
+      getOutputOperator: (operator) => (operator.value.includes("not") ? "!==" : "==="),
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
           methodName: "matchesType",
@@ -479,7 +479,7 @@ export const expressions = new SpellParser({
       precedence: 11,
       syntax: "is (defined|undefined|not defined)",
       constructor: "PostfixOperatorSuffix",
-      shouldNegateOutput: operator => operator.value !== "is defined",
+      shouldNegateOutput: (operator) => operator.value !== "is defined",
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
           methodName: "isDefined",
@@ -507,7 +507,7 @@ export const expressions = new SpellParser({
       precedence: 11,
       syntax: "(exists|does not exist)",
       constructor: "PostfixOperatorSuffix",
-      shouldNegateOutput: operator => operator.value !== "exists",
+      shouldNegateOutput: (operator) => operator.value !== "exists",
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
           methodName: "isDefined",
@@ -535,7 +535,7 @@ export const expressions = new SpellParser({
       precedence: 11,
       syntax: "(operator:is not? empty)",
       constructor: "PostfixOperatorSuffix",
-      shouldNegateOutput: operator => operator.value.includes("not"),
+      shouldNegateOutput: (operator) => operator.value.includes("not"),
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
           methodName: "isEmpty",

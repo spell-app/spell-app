@@ -1047,7 +1047,7 @@ export const lists = new SpellParser({
     {
       name: "repeat_n_times",
       alias: ["statement", "expression"],
-      syntax: "repeat {number:expression} times :?",
+      syntax: "repeat {number:expression} (time|times) :?",
       testRule: "repeat",
       constructor: "Statement",
       wantsInlineStatement: true,

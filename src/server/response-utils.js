@@ -34,7 +34,7 @@ export function convertNumericId(id) {
 // Given an express `request`, return an array of id properties.
 // Uses `convertNumericId` to convert to numbers as appropriate.
 export function getIdParams(request, ...idProperties) {
-  return idProperties.map(property => convertNumericId(request.params[property]))
+  return idProperties.map((property) => convertNumericId(request.params[property]))
 }
 
 //----------------------------
@@ -80,7 +80,7 @@ export async function sendJSFile(response, path) {
 // Return `json` as string or object to stringify as `response` to `request`.
 export function sendJSON(response, json) {
   response.set("Content-Type", "application/json")
-  if (typeof json !== "string") json = JSON.stringify(json)
+  if (typeof json !== "string") json = JSON.stringify(json, null, "  ")
   return response.send(json)
 }
 
@@ -97,7 +97,7 @@ export function sendJSONFile(response, path) {
 // If `optional` is `true`, we'll just write `null` for any file that can't be found.
 // Otherwise we'll return an error result if ANY file can't be found.
 export function sendJSONFiles(response, paths, optional = false) {
-  return fileUtils.loadFiles(paths, "utf8", optional).then(jsonBlocks => {
+  return fileUtils.loadFiles(paths, "utf8", optional).then((jsonBlocks) => {
     // Log what we're sending
     console.warn("Sending JSON files:")
     jsonBlocks.forEach((json, index) => {
@@ -107,7 +107,7 @@ export function sendJSONFiles(response, paths, optional = false) {
     })
 
     // remove any null blocks
-    jsonBlocks = jsonBlocks.filter(block => block != null)
+    jsonBlocks = jsonBlocks.filter((block) => block != null)
 
     // group them all in an array
     return sendJSON(response, `[\n\n${jsonBlocks.join(",\n\n")}\n\n]`)
@@ -118,7 +118,7 @@ export function sendJSONFiles(response, paths, optional = false) {
 // NOTE: the returned map really only works if all `paths` are in the same folder
 //     or otherwise have unique leaf file names.
 export function sendJSONFileMap(response, paths, optional = false) {
-  return fileUtils.loadFiles(paths, "utf8", optional).then(jsonBlocks => {
+  return fileUtils.loadFiles(paths, "utf8", optional).then((jsonBlocks) => {
     const fileMap = {}
 
     // Log what we're sending

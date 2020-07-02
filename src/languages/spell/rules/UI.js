@@ -229,21 +229,28 @@ export const UI = new SpellParser({
       alias: ["expression", "single_expression"],
       tokenType: Token.Text,
       getAST(match) {
-        console.warn("CSS rule getAST():", match)
-        // NOTE: `name` should come from SpellCSSFile
-        const { value, name } = match
-        const fileName = name ? new AST.QuotedExpression(match, name) : new AST.UndefinedLiteral(match)
+        // HACK: `name` comes from SpellCSSFile
+        const { value, fileName } = match
         // munge returns to `¬`
         const safeValue = value.replace(/\n/g, "¬")
         return new AST.CoreMethodInvocation(match, {
           methodName: "installStyles",
-          args: [fileName, new AST.BackTickExpression(match, safeValue)]
+          args: [
+            fileName ? new AST.QuotedExpression(match, fileName) : new AST.UndefinedLiteral(match),
+            new AST.BackTickExpression(match, safeValue)
+          ]
         })
       },
       tests: [
         {
           title: "correctly matches css",
-          tests: [['""', '""']]
+          tests: [
+            [`""`, `spellCore.installStyles(undefined, \`""\`)`],
+            [
+              `".Card {\\n\\theight:30px;\\n}\\n"`,
+              `spellCore.installStyles(undefined, \`".Card {\\n\\theight:30px;\\n}\\n"\`)`
+            ]
+          ]
         }
       ]
     }

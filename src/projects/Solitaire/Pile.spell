@@ -1,11 +1,4 @@
 ## Pile of playing cards
-
-a pile is a list of cards
-a pile has a name as text
-a pile has an appearance as one of stacked, staggered or fanned
-a pile "class-name" is:
-	return "Pile " + its appearance
-
 a pile "color" is:
 	if it is empty return "none"
 	return the color of its last card
@@ -14,39 +7,10 @@ a pile "value" is:
 	if it is empty return 0
 	return the value of its last card
 
-a pile "will accept (a card)" if: always
-to can play (a card) on (a pile):
-	return the pile will accept the card
-
 // "move" a card -- make sure it's only in one pile at a time
 // NOTE: this doesn't check if this is a legal move, use `play` for that
 to move (a card) to (a pile)
 	if the pile of the card is defined: remove the card from its pile
 	set the pile of the card to the pile
 	add the card to the pile
-	return ok	
-
-// "play" a card -- only works if it's a legal move
-to play (a card) on (a pile)
-	if can play the card on the pile:
-		move the card to the pile
-		return ok
-	print "Sorry, you cannot move " + the name of the card + " to that " + the type of the pile
-	return no
-
-to quietly test piles
-	set pile1 to a new pile with number = 1
-	set pile2 to a new pile with number = 2
-	set the card to a new card with rank = king and suit = clubs
-	move the card to pile1
-	expect the first item of pile1 to be the card
-	expect the pile of the card to be pile1
-	expect pile2 will accept the card to be yes
-	expect can play the card on pile2 to be yes
-	play the card on pile2
-	expect pile1 is empty to be true
-	expect the first item of pile2 to be the card
-	expect the pile of the card to be pile2
-	expect the first item of pile2 to be the card
-test piles
 

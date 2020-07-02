@@ -248,14 +248,17 @@ export const core = new SpellParser({
       name: "undefined",
       alias: ["expression", "single_expression"],
       datatype: "undefined",
-      syntax: "undefined",
+      syntax: "(undefined|nothing)",
       getAST(match) {
         return new AST.UndefinedLiteral(match)
       },
       tests: [
         {
           compileAs: "expression",
-          tests: [["undefined", "undefined"]]
+          tests: [
+            ["nothing", "undefined"],
+            ["undefined", "undefined"]
+          ]
         }
       ]
     },

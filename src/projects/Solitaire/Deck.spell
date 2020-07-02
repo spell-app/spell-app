@@ -1,7 +1,7 @@
 ## Deck:   US standard card deck (without jokers currently)
 
 a deck is a list of cards
-a deck has a subset as a list
+
 to set up (a deck)
 	if  the is-set-up of it return
 	for each rank in card ranks
