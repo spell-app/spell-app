@@ -51,7 +51,7 @@ export class Match extends Assertable {
   // Return our `matched` which encompasses `offset`.
   // Returns `undefined` if nothing works.
   matchForOffset(offset) {
-    return this.matched.find(match => match.start <= offset && match.end > offset)
+    return this.matched.find((match) => match.start <= offset && match.end > offset)
   }
 
   // Return stack of our `matched` which encompasses `offset` with us first.
@@ -70,6 +70,7 @@ export class Match extends Assertable {
 
   // Syntactic sugar to easily get `groups` of the match for sequences, etc.
   // Only works for some rule types.
+  // NOTE: ALWAYS GET THIS FROM THE MATCH!!!
   @memoize
   get groups() {
     return this.rule.gatherGroups?.(this)
@@ -95,9 +96,8 @@ export class Match extends Assertable {
     if (groups && this.rule._addGroups) this.rule._addGroups(groups, [match])
   }
 
-  // Return AST nested scope for nested block statements.
-  // NOTE: ONLY CALL THIS FROM THE MATCH!!!
-  // TODOC
+  // Return nested scope for nested block statements.
+  // NOTE: ALWAYS GET THIS FROM THE MATCH!!!
   @memoize
   get nestedScope() {
     return this.rule.getNestedScope?.(this)

@@ -175,10 +175,14 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
       })
     ]
 
-    const method = new AST.MethodBody(match, {
+    const asFunction = !instanceType
+    const method = new AST.MethodDefinition(match, {
       args,
       body: (inlineStatement || nestedBlock)?.AST,
-      inline: false
+      wrap: true,
+      inline: false,
+      asFunction,
+      methodName
     })
 
     if (asTest) {
@@ -234,7 +238,7 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
         output.push(
           new AST.FunctionDeclaration(match, {
             methodName,
-            method: new AST.MethodBody(match, {
+            method: new AST.MethodDefinition(match, {
               wrap: true,
               inline: false,
               body: new AST.CoreMethodInvocation(match, {
@@ -509,7 +513,9 @@ export const methods = new SpellParser({
               input: "to notify (message): print the message",
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
-                "function notify_$message(message) { return console.log(message) }"
+                `function notify_$message(message) {`,
+                `\treturn console.log(message)`,
+                `}`
               ]
             },
             {
@@ -526,7 +532,9 @@ export const methods = new SpellParser({
               input: "to notify (message as text): print the message",
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
-                "function notify_$message(message) { return console.log(message) }"
+                `function notify_$message(message) {`,
+                `\treturn console.log(message)`,
+                `}`
               ]
             },
             {
@@ -543,7 +551,9 @@ export const methods = new SpellParser({
               input: 'to notify (message = "Really?"): print the message',
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
-                'function notify_$message(message = "Really?") { return console.log(message) }'
+                `function notify_$message(message = "Really?") {`,
+                `\treturn console.log(message)`,
+                `}`
               ]
             },
             {
@@ -561,7 +571,9 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `create {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'create', {`,
-                `\tvalue() { return console.log(this) }`,
+                `\tvalue() {`,
+                `\t\treturn console.log(this)`,
+                `\t}`,
                 `})`
               ]
             },
@@ -571,7 +583,9 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `create {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'create', {`,
-                `\tvalue() { return console.log(this) }`,
+                `\tvalue() {`,
+                `\t\treturn console.log(this)`,
+                `\t}`,
                 `})`
               ]
             },
@@ -581,7 +595,9 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `create {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'create', {`,
-                `\tvalue() { this.number = 1 }`,
+                `\tvalue() {`,
+                `\t\tthis.number = 1`,
+                `\t}`,
                 `})`
               ]
             },
@@ -591,7 +607,9 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `add {thisArg:expression} to {callArgs:expression}` */",
                 `spellCore.define(Card.prototype, 'add_to_$pile', {`,
-                `\tvalue(pile) { this.pile = pile }`,
+                `\tvalue(pile) {`,
+                `\t\tthis.pile = pile`,
+                `\t}`,
                 `})`
               ]
             },
@@ -601,7 +619,9 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `add {thisArg:expression} to {callArgs:expression}` */",
                 `spellCore.define(Card.prototype, 'add_to_$pile', {`,
-                `\tvalue(pile) { this.pile = pile }`,
+                `\tvalue(pile) {`,
+                `\t\tthis.pile = pile`,
+                `\t}`,
                 `})`
               ]
             },
@@ -611,7 +631,9 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `add {thisArg:expression} to {callArgs:expression}` */",
                 `spellCore.define(Card.prototype, 'add_to_$pile', {`,
-                `\tvalue(pile) { this.pile = pile }`,
+                `\tvalue(pile) {`,
+                `\t\tthis.pile = pile`,
+                `\t}`,
                 `})`
               ]
             },
@@ -621,7 +643,9 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
-                `\tvalue() { return console.log(this) }`,
+                `\tvalue() {`,
+                `\t\treturn console.log(this)`,
+                `\t}`,
                 `})`
               ]
             },
@@ -631,7 +655,9 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
-                `\tvalue() { return console.log(this) }`,
+                `\tvalue() {`,
+                `\t\treturn console.log(this)`,
+                `\t}`,
                 `})`
               ]
             },
@@ -641,7 +667,9 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
-                `\tvalue() { return console.log(this) }`,
+                `\tvalue() {`,
+                `\t\treturn console.log(this)`,
+                `\t}`,
                 `})`
               ]
             },
@@ -651,7 +679,9 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
-                `\tvalue() { return console.log(this.name) }`,
+                `\tvalue() {`,
+                `\t\treturn console.log(this.name)`,
+                `\t}`,
                 `})`
               ]
             },
@@ -692,8 +722,10 @@ export const methods = new SpellParser({
               input: ["to start the game", "\tprint 1", "start the game"],
               output: [
                 "/* SPELL: added rule: `start the game` */",
-                "function start_the_game() { console.log(1) }",
-                "start_the_game()"
+                `function start_the_game() {`,
+                `\tconsole.log(1)`,
+                `}`,
+                `start_the_game()`
               ]
             },
             {
@@ -701,7 +733,9 @@ export const methods = new SpellParser({
               input: ["to notify (message): print the message", "notify 1"],
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
-                "function notify_$message(message) { return console.log(message) }",
+                `function notify_$message(message) {`,
+                `\treturn console.log(message)`,
+                `}`,
                 "notify_$message(1)"
               ]
             },
@@ -710,8 +744,10 @@ export const methods = new SpellParser({
               input: ["to notify (message as text): print the message", "notify 1"],
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
-                "function notify_$message(message) { return console.log(message) }",
-                "notify_$message(1)"
+                `function notify_$message(message) {`,
+                `\treturn console.log(message)`,
+                `}`,
+                `notify_$message(1)`
               ]
             },
             {
@@ -720,7 +756,9 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
-                `\tvalue() { return console.log(this) }`,
+                `\tvalue() {`,
+                `\t\treturn console.log(this)`,
+                `\t}`,
                 `})`,
                 "new Card().show()"
               ]
@@ -731,7 +769,9 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `play {thisArg:expression} on {callArgs:expression}` */",
                 `spellCore.define(Card.prototype, 'play_on_$pile', {`,
-                `\tvalue(pile) { this.pile = pile }`,
+                `\tvalue(pile) {`,
+                `\t\tthis.pile = pile`,
+                `\t}`,
                 `})`,
                 "new Card().play_on_$pile(new Pile())"
               ]
@@ -983,7 +1023,9 @@ export const methods = new SpellParser({
               output: [
                 `/* SPELL: added expression \`{thing:single_expression} nerds out\` */`,
                 `spellCore.define(Thing.prototype, 'nerds_out', {`,
-                `\tget() { return true }`,
+                `\tget() {`,
+                `\t\treturn true`,
+                `\t}`,
                 `})`,
                 `if (new Thing().nerds_out) {}`
               ]
@@ -994,7 +1036,9 @@ export const methods = new SpellParser({
               output: [
                 `/* SPELL: added expression \`{thing:single_expression} nerds out\` */`,
                 `spellCore.define(Thing.prototype, 'nerds_out', {`,
-                `\tget() { return true }`,
+                `\tget() {`,
+                `\t\treturn true`,
+                `\t}`,
                 `})`,
                 `if (new Thing().nerds_out) {}`
               ]
@@ -1025,7 +1069,9 @@ export const methods = new SpellParser({
               output: [
                 `/* SPELL: added expression \`{thing:single_expression} nerds out with {expression:single_expression}\` */`,
                 `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
-                `\tvalue(another) { return true }`,
+                `\tvalue(another) {`,
+                `\t\treturn true`,
+                `\t}`,
                 `})`,
                 `if (new Thing().nerds_out_with_$another(new Thing())) {}`
               ]
@@ -1040,7 +1086,9 @@ export const methods = new SpellParser({
               output: [
                 `/* SPELL: added expression \`{thing:single_expression} nerds out with {expression:single_expression}\` */`,
                 `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
-                `\tvalue(another) { return true }`,
+                `\tvalue(another) {`,
+                `\t\treturn true`,
+                `\t}`,
                 `})`,
                 `if (new Thing().nerds_out_with_$another(new Thing())) {}`
               ]

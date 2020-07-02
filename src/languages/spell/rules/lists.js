@@ -509,7 +509,7 @@ export const lists = new SpellParser({
       },
       getAST(match) {
         const { arg, list, inlineStatement } = match.groups
-        const filter = new AST.MethodBody(inlineStatement || match, {
+        const filter = new AST.MethodDefinition(inlineStatement || match, {
           inline: true,
           args: [new AST.VariableExpression(arg, { name: singularize(arg.value) })],
           body: inlineStatement?.AST
@@ -567,7 +567,7 @@ export const lists = new SpellParser({
       },
       getAST(match) {
         const { list, operator, arg, inlineStatement } = match.groups
-        const filter = new AST.MethodBody(inlineStatement || match, {
+        const filter = new AST.MethodDefinition(inlineStatement || match, {
           inline: true,
           args: [new AST.VariableExpression(arg, { name: singularize(arg.value) })],
           body: inlineStatement?.AST
@@ -939,7 +939,7 @@ export const lists = new SpellParser({
       },
       getAST(match) {
         const { arg, list, inlineStatement } = match.groups
-        const filter = new AST.MethodBody(inlineStatement || match, {
+        const filter = new AST.MethodDefinition(inlineStatement || match, {
           inline: true,
           args: [new AST.VariableExpression(arg, { name: singularize(arg.value) })],
           body: inlineStatement?.AST
@@ -1057,7 +1057,7 @@ export const lists = new SpellParser({
       },
       getAST(match) {
         const { number, inlineStatement, nestedBlock } = match.groups
-        const method = new AST.MethodBody(match, {
+        const method = new AST.MethodDefinition(match, {
           inline: true,
           body: (inlineStatement || nestedBlock)?.AST
         })
@@ -1099,7 +1099,7 @@ export const lists = new SpellParser({
         const { list, item, position, inlineStatement, nestedBlock } = match.groups
         const args = [new AST.VariableExpression(item, { name: item.value })]
         if (position) args.push(new AST.VariableExpression(position))
-        const method = new AST.MethodBody(match, {
+        const method = new AST.MethodDefinition(match, {
           inline: true,
           args,
           body: (inlineStatement || nestedBlock)?.AST
@@ -1190,10 +1190,10 @@ export const lists = new SpellParser({
           methodName: "getRange",
           args: [start.AST, end.AST]
         })
-        const method = new AST.MethodBody(match, {
+        const method = new AST.MethodDefinition(match, {
           inline: true,
           args: [new AST.VariableExpression(item)],
-          body: inlineStatement?.AST || nestedBlock?.AST
+          body: (inlineStatement || nestedBlock)?.AST
         })
         return new AST.CoreMethodInvocation(match, {
           methodName: "map",

@@ -15,9 +15,9 @@ export const JSX = new SpellParser({
           if (!match) return undefined
           if (match.matched.length !== 1) throw new TypeError("Can only handle a single JSXElement at a time!")
           const [element] = match.matched
-          match.attributes = element.attributes?.map(attr => scope.parse(attr, "jsxAttribute"))
+          match.attributes = element.attributes?.map((attr) => scope.parse(attr, "jsxAttribute"))
           match.children = element.children?.map(
-            child => scope.parse(child, "jsxChild") || scope.parse(child, "parse_error")
+            (child) => scope.parse(child, "jsxChild") || scope.parse(child, "parse_error")
           )
           // console.warn(match)
           return match
@@ -25,8 +25,8 @@ export const JSX = new SpellParser({
 
         getAST(match) {
           const { tagName } = match.matched[0]
-          const attrs = match.attributes?.map(attr => attr.AST)
-          const children = match.children?.map(child => child.AST).filter(Boolean)
+          const attrs = match.attributes?.map((attr) => attr.AST)
+          const children = match.children?.map((child) => child.AST).filter(Boolean)
           return new AST.JSXElement(match, { tagName, attrs, children })
         }
       },
@@ -265,7 +265,7 @@ export const JSX = new SpellParser({
           let valueAST
           if (expression) valueAST = expression.AST
           else if (statement) {
-            valueAST = new AST.MethodBody(match, {
+            valueAST = new AST.MethodDefinition(match, {
               inline: true,
               args: attribute.toLowerCase().startsWith("on")
                 ? [new AST.VariableExpression(match, { name: "event" })]

@@ -564,7 +564,7 @@ export class InvocationArgs extends ASTNode {
   constructor(match, { wrap, ...props }) {
     super(match, props)
     if (typeof wrap === "boolean") this.wrap = wrap
-    this.assertArrayType("args", [Expression, MethodBody, FunctionDeclaration], OPTIONAL)
+    this.assertArrayType("args", [Expression, MethodDefinition, FunctionDeclaration], OPTIONAL)
     if (this.args) {
       // unwind parenthesized expressions in args
       this.args = this.args.map((arg) => {
@@ -953,14 +953,14 @@ export class ObjectLiteralProperty extends ASTNode {
 
 /** ObjectLiteralMethod type, eg: `{ foo(arg, arg) {...} }`
  *  - `property` is the normalized property name.
- *  - `method` is MethodBody to use.
+ *  - `method` is MethodDefinition to use.
  *  - `error` (optional) is a syntax error associated with this property
  */
 export class ObjectLiteralMethod extends ObjectLiteralProperty {
   constructor(match, props) {
     super(match, props)
     // `property` and `error` will be set up by ObjectLiteralProperty
-    this.assertType("method", MethodBody)
+    this.assertType("method", MethodDefinition)
   }
   compile() {
     const error = this.error ? ` ${this.error.compile()}` : ""
@@ -1008,7 +1008,10 @@ export class ObjectLiteral extends Expression {
   }
   addMethod(property, method) {
     if (!this.properties) this.properties = []
-    this.assert(method instanceof MethodBody, `AST.ObjectLiteral.addMethod(${property}): method must be a MethodBody`)
+    this.assert(
+      method instanceof MethodDefinition,
+      `AST.ObjectLiteral.addMethod(${property}): method must be a MethodDefinition`
+    )
     this.properties.push(new ObjectLiteralMethod(method.match, { property, method }))
   }
   // Should we wrap properties block?
@@ -1286,10 +1289,10 @@ export class PropertyDefinition extends Statement {
     this.assertType("thing", Expression)
     if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
-    this.assertType("value", [Expression, MethodBody], OPTIONAL)
+    this.assertType("value", [Expression, MethodDefinition], OPTIONAL)
     this.assertType("initializer", [StatementBlock, Statement, Expression], OPTIONAL)
-    this.assertType("get", [MethodBody, StatementBlock, Statement, Expression], OPTIONAL)
-    this.assertType("set", [MethodBody, StatementBlock, Statement, Expression], OPTIONAL)
+    this.assertType("get", [MethodDefinition, StatementBlock, Statement, Expression], OPTIONAL)
+    this.assertType("set", [MethodDefinition, StatementBlock, Statement, Expression], OPTIONAL)
   }
   // Return `CoreMethodInvocation` which we'll use to render as JS or component
   @memoize
@@ -1299,20 +1302,22 @@ export class PropertyDefinition extends Statement {
 
     const descriptor = new ObjectLiteral(match)
     if (value) {
-      if (value instanceof MethodBody) descriptor.addMethod("value", value)
+      if (value instanceof MethodDefinition) descriptor.addMethod("value", value)
       else descriptor.addProp("value", value)
     }
     if (initializer)
-      descriptor.addMethod("initializer", new MethodBody(initializer.match, { body: initializer, inline: false }))
+      descriptor.addMethod("initializer", new MethodDefinition(initializer.match, { body: initializer, inline: false }))
     if (get)
       descriptor.addMethod(
         "get",
-        get instanceof MethodBody ? get : new MethodBody(get.match, { body: get, inline: false })
+        get instanceof MethodDefinition ? get : new MethodDefinition(get.match, { body: get, inline: false })
       )
     if (set)
       descriptor.addMethod(
         "set",
-        set instanceof MethodBody ? set : new MethodBody(set.match, { args: [property], body: set, inline: false })
+        set instanceof MethodDefinition
+          ? set
+          : new MethodDefinition(set.match, { args: [property], body: set, inline: false })
       )
 
     return new CoreMethodInvocation(match, {
@@ -1343,7 +1348,7 @@ export class PropertyDefinition extends Statement {
  *    - `false` we explicitly WILL NOT make a fat arrow function
  *    - `undefined` we'll make a fat arrow function if you pass an `Expression`
  */
-export class MethodBody extends ASTNode {
+export class MethodDefinition extends ASTNode {
   constructor(match, props) {
     super(match, props)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
@@ -1397,13 +1402,13 @@ export class MethodBody extends ASTNode {
 
 /** FunctionDeclaration: creates a function instance
  * - `methodName` is the method name
- * - `method` is MethodBody (args + body)
+ * - `method` is MethodDefinition (args + body)
  */
 export class FunctionDeclaration extends Statement {
   constructor(match, props) {
     super(match, props)
     this.assertType("methodName", "string", OPTIONAL)
-    this.assertType("method", MethodBody)
+    this.assertType("method", MethodDefinition)
   }
   get isAsync() {
     return !!this.match.nestedScope?.async
@@ -1602,7 +1607,7 @@ export class JSXAttribute extends Expression {
   constructor(match, props) {
     super(match, props)
     this.assertType("name", "string")
-    this.assertType("value", [Expression, MethodBody], OPTIONAL)
+    this.assertType("value", [Expression, MethodDefinition], OPTIONAL)
     this.assertType("error", ParseError, OPTIONAL)
   }
   @memoize
@@ -1611,7 +1616,7 @@ export class JSXAttribute extends Expression {
     //  if we have a parse error, return `undefined`
     //  otherwise return `true` as per spec for an empty attribute
     const value = this.value || (this.error ? new UndefinedLiteral(this.match) : new BooleanLiteral(this.match, true))
-    if (value instanceof MethodBody) {
+    if (value instanceof MethodDefinition) {
       return new ObjectLiteralMethod(this.match, {
         property: this.name,
         method: value,

@@ -396,7 +396,7 @@ export const classes = new SpellParser({
           else if (specifier instanceof AST.NewInstanceExpression) {
             props.addMethod(
               "initializer",
-              new AST.MethodBody(specifier.match, {
+              new AST.MethodDefinition(specifier.match, {
                 inline: false,
                 statements: specifier,
                 body: specifier
@@ -773,7 +773,7 @@ export const classes = new SpellParser({
             new AST.PropertyDefinition(match, {
               thing: new AST.PrototypeExpression(type, { type: type.AST }),
               property,
-              value: new AST.MethodBody(match, {
+              value: new AST.MethodDefinition(match, {
                 args,
                 body: new AST.ReturnStatement(match, {
                   value: AST.MultiInfixExpression(match, { expressions, operator: "&&" })
