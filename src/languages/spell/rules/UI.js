@@ -4,11 +4,53 @@
 
 import { Token } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
+import { NumericLiteral } from "../ast/AST"
 
 export const UI = new SpellParser({
   module: "UI",
   rules: [
-    // Print some value (to the console, I guess)
+    /** Delay for a certain amount of time. */
+    {
+      name: "wait",
+      alias: "statement",
+      syntax: "wait for {number} (units:second|seconds|sec|millisecond|milliseconds|msec|tick|ticks)",
+      constructor: "Statement",
+      // convert operator to number of millisecond
+      unitsMap: {
+        second: 1000,
+        seconds: 1000,
+        sec: 1000,
+        millisecond: 1,
+        milliseconds: 1,
+        msec: 1,
+        // a "tick" (from hypercard) is 1/60th of a second
+        tick: 1000 / 60,
+        ticks: 1000 / 60
+      },
+      getAST(match) {
+        const { number, units } = match.groups
+        const delay = Math.round(number.value * this.unitsMap[units.value])
+        return new AST.AwaitMethodInvocation(match, {
+          method: new AST.CoreMethodInvocation(match, {
+            methodName: "waitFor",
+            args: [new NumericLiteral(match, delay)]
+          })
+        })
+      },
+      tests: [
+        {
+          compileAs: "statement",
+          tests: [
+            [`wait for 1 second"`, `await spellCore.waitFor(1000)`],
+            [`wait for 2 seconds"`, `await spellCore.waitFor(2000)`],
+            [`wait for 500 msec"`, `await spellCore.waitFor(500)`],
+            [`wait for 10 ticks"`, `await spellCore.waitFor(167)`]
+          ]
+        }
+      ]
+    },
+
+    /** Print an expression (to the console, I guess) */
     {
       name: "print",
       alias: "statement",
@@ -43,6 +85,7 @@ export const UI = new SpellParser({
       ]
     },
 
+    /** Stop a previous `print group...` */
     {
       name: "end_print_group",
       alias: "statement",
@@ -223,6 +266,26 @@ export const UI = new SpellParser({
       ]
     },
 
+    // Chose one or more items from `collection` (of strings???)
+    // Returns a promise which `resolve()`s if they "OK" with a value, `reject()`s if they "cancel".
+    // TODO
+    //     {
+    //       name: "choose_one",
+    //       alias: "statement",
+    //       syntax: "choose ((a|an)? {singular_variable} (from|of)|one of) {collection:expression} with (prompt|message)? {message:expression}",
+    //          => `await spellCore.chooseOne(message, list, defaultValue)`
+    //     },
+
+    // Chose one or more items from `collection` (of strings???)
+    // Returns a promise which `resolve()`s if they "OK" with a value, `reject()`s if they "cancel".
+    // TODO
+    //     {
+    //       name: "choose_multiple",
+    //       alias: "statement",
+    //       syntax: "choose multiple {plural_variable} (of|from) {collection:expression} with (prompt|message)? {message:expression}",
+    //          => `await spellCore.chooseMultiple(message, list, defaultValues)`
+    //     }
+
     /** Parse CSS from a `Text` token WITHOUT quotes. */
     {
       name: "css",
@@ -254,24 +317,5 @@ export const UI = new SpellParser({
         }
       ]
     }
-    // Chose one or more items from `collection` (of strings???)
-    // Returns a promise which `resolve()`s if they "OK" with a value, `reject()`s if they "cancel".
-    // TODO
-    //     {
-    //       name: "choose_one",
-    //       alias: "statement",
-    //       syntax: "choose ((a|an)? {singular_variable} (from|of)|one of) {collection:expression} with (prompt|message)? {message:expression}",
-    //          => `await spellCore.chooseOne(message, list, defaultValue)`
-    //     },
-
-    // Chose one or more items from `collection` (of strings???)
-    // Returns a promise which `resolve()`s if they "OK" with a value, `reject()`s if they "cancel".
-    // TODO
-    //     {
-    //       name: "choose_multiple",
-    //       alias: "statement",
-    //       syntax: "choose multiple {plural_variable} (of|from) {collection:expression} with (prompt|message)? {message:expression}",
-    //          => `await spellCore.chooseMultiple(message, list, defaultValues)`
-    //     }
   ]
 })

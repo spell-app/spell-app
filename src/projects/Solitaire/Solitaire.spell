@@ -80,11 +80,13 @@ to reset stock
 		move it to the stock
 		
 to turn over stock
-	if the stock is empty reset stock
-	repeat 1 time  // TODO: `repeat 3 times` for some versions of klondike
-		if the stock is not empty
-			turn the bottom card of stock face up
-			move the bottom card of stock to the discards
+	if the stock is empty 
+		reset stock
+		return
+	// `repeat 3 times` for some versions of klondike
+	turn the bottom card of stock face up
+	wait for 200 msec
+	move the bottom card of stock to the discards
 
 to play (a card)
 	// make sure we can pick up the card
@@ -132,6 +134,7 @@ to cheat
 	set unplaid-cards to cards in the pile where the card is face down
 	set card to a random card in unplaid-cards
 	turn the card face up
+	wait for 30 ticks
 	move the card to discards
 
 ##############

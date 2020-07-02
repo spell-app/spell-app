@@ -8,6 +8,15 @@ import { spellCore } from "."
 
 Object.assign(spellCore, {
   //----------------------------
+  // time
+  //--------
+
+  /** Return promise which resolves after `delay` milliseconds. */
+  waitFor(delay) {
+    return new Promise((resolve) => setTimeout(resolve, delay))
+  },
+
+  //----------------------------
   // components
   //--------
 

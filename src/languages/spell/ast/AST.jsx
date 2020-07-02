@@ -1373,15 +1373,20 @@ export class MethodBody extends ASTNode {
     this.assertType("body", StatementBlock)
     if (typeof this.wrap === "boolean") this.body.wrap = this.wrap
   }
+  get isAsync() {
+    return !!this.match.nestedScope?.async
+  }
   compile() {
+    const async = "" // this.isAsync ? "async " : ""
     const args = stringify.Args({ args: this.args })
     const operator = this.inline ? " => " : " "
-    return `${args}${operator}${this.body.compile()}`
+    return `${async}${args}${operator}${this.body.compile()}`
   }
   renderChildren() {
     const operator = this.inline ? <span className="operator fat-arrow">{" => "}</span> : render.SPACE
     return (
       <>
+        {/* {this.isAsync && <span className="keyword async">async </span>} */}
         <render.Args args={this.args} />
         {operator}
         {this.body.component}
@@ -1400,15 +1405,18 @@ export class FunctionDeclaration extends Statement {
     this.assertType("methodName", "string", OPTIONAL)
     this.assertType("method", MethodBody)
   }
-  get className() {
-    return `${super.className}${this.methodName ? " anonymous" : ""}`
+  get isAsync() {
+    return !!this.match.nestedScope?.async
   }
   compile() {
-    return `function ${this.methodName || ""}${this.method.compile()}`
+    const async = this.isAsync ? "async " : ""
+    return `${async}function ${this.methodName || ""}${this.method.compile()}`
   }
   renderChildren() {
+    const async = this.isAsync ? "async " : ""
     return (
       <>
+        {this.isAsync && <span className="keyword async">async </span>}
         <span className="keyword function">function </span>
         {!!this.methodName && <span className="method-name">{this.methodName}</span>}
         {this.method.component}
