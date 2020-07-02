@@ -34,15 +34,23 @@ a card "is a (rank)" for its ranks
 a card "is the (rank) of (suits)" for its ranks and its suits
 
 // name as a derivation of name/suit
-the name of a card is its rank + "-of-" + its suit
+the name of a card is: its rank + "-of-" + its suit
+
+the short-suit of a card is:
+	if it is a club return "♣️"
+	if it is a diamond return "♦️"
+	if it is a heart return "♥️"
+	if it is a spade return "♠️"
+	return "?"
+
+the short-rank of a card is:
+	if its rank is nothing return "?"
+	if its rank is a number return "" + its rank
+	return (the first character of its rank) as uppercase
+
+the short-name of a card is: its short-rank + its short-suit
 to display (a card)
-	set name to the first character of ((its rank or "❓") as uppercase)
-	if the rank of the card is 10 set name to 10
-	if it is a club return name + " ♣️"
-	if it is a diamond return name +  " ♦️"
-	if it is a heart return name + " ♥️"
-	if it is a spade return name + " ♠️"
-	return name + "❓"
+	return its short-name
 
 ## actions
 to turn (a card) face up: 
@@ -70,6 +78,9 @@ to quietly test card setup
 	expect the name of the card to be "queen-of-spades"
 	expect the color of the card to be black
 	expect the value of the card to be 12
+	expect the short-suit of the to be "♠️"
+	expect the short-rank of the card to be "Q"
+	expect the short-name of the card to be "Q♠️"
 
 	expect the card is face up to be yes
 	expect the card is face down to be no

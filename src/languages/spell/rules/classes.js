@@ -1,5 +1,6 @@
 import { upperFirst, pluralize, singularize } from "~/util"
 import { SpellParser, AST } from "~/languages/spell"
+import { MethodScope } from "../../../parser"
 
 function getOrStubType(scope, typeName) {
   let typeScope = scope.types.get(typeName)
@@ -249,10 +250,10 @@ export const classes = new SpellParser({
       alias: "type_specifier",
       syntax: "as (either|one of) {enumeration:identifier_list}",
       getAST(match) {
-        const enumeration = match.groups.enumeration.items.map(item => item.AST)
+        const enumeration = match.groups.enumeration.items.map((item) => item.AST)
         return new AST.Enumeration(match, {
           enumeration,
-          values: enumeration.map(literal => literal.compile())
+          values: enumeration.map((literal) => literal.compile())
         })
       },
       tests: [
@@ -345,7 +346,7 @@ export const classes = new SpellParser({
           typeScope.variables.add({ ...varProps })
 
           // Add enumeration string values to scope as constants.
-          values.forEach(value => {
+          values.forEach((value) => {
             if (typeof value === "string") scope.constants.add(value)
           })
 
@@ -369,7 +370,7 @@ export const classes = new SpellParser({
 
           // Add comment string which we'll output below
           match.ruleComment = new AST.ParserAnnotation(match, {
-            value: `added rule: '${literals.map(group => `(${group.join("|")})`).join(" ")}'`
+            value: `added rule: '${literals.map((group) => `(${group.join("|")})`).join(" ")}'`
           })
         }
       },
@@ -566,155 +567,57 @@ export const classes = new SpellParser({
     },
 
     {
-      name: "property_value_expression",
+      name: "property_value_getter",
       alias: "statement",
-      syntax: "{type_property} is {expression}",
+      syntax: "the {property} of (a|an) {type:known_type} is :?",
       constructor: "Statement",
+      wantsInlineStatement: true,
+      parseInlineStatementAs: "expression",
+      wantsNestedBlock: true,
+      getNestedScope(match) {
+        const { type } = match.groups
+        return new MethodScope({
+          scope: match.scope,
+          thisVar: type.type.instanceName,
+          mapItTo: "this"
+        })
+      },
       getAST(match) {
-        const { type_property, expression } = match.groups
-        const { type, property } = type_property.groups
-        // make sure type is defined
-        getOrStubType(match.scope, type.value)
+        const { type, property, inlineStatement, nestedBlock } = match.groups
         return new AST.PropertyDefinition(match, {
           thing: new AST.PrototypeExpression(type, { type: type.AST }),
           property: property.AST,
-          get: expression.AST
+          // default getter value to `undefined` if nothing specified
+          get: (inlineStatement || nestedBlock)?.AST || new AST.UndefinedLiteral(match)
         })
       },
       tests: [
         {
-          compileAs: "statement",
+          compileAs: "block",
           beforeEach(scope) {
-            scope.compile(
-              [
-                "a card is a thing",
-                "cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king"
-              ].join("\n"),
-              "block"
-            )
+            scope.compile("a card is a thing\na pile is a list of cards")
           },
           tests: [
             [
-              "the value of a card is the position of its rank in card ranks",
-              [
-                "spellCore.define(Card.prototype, 'value', {",
-                "\tget() { return spellCore.itemOf(Card.Ranks, this.rank) }",
-                "})"
-              ]
+              "the value of a card is:",
+              ["spellCore.define(Card.prototype, 'value', {", "\tget() { return undefined }", "})"]
             ],
             [
-              "a cards score is its value",
-              ["spellCore.define(Card.prototype, 'score', {", "\tget() { return this.value }", "})"]
+              "the value of a card is its name",
+              ["spellCore.define(Card.prototype, 'value', {", "\tget() { return this.name }", "})"]
+            ],
+            [
+              "the short-name of a card is:\n\treturn the first word of the name of the card",
+              [
+                "spellCore.define(Card.prototype, 'short_name', {",
+                "\tget() { return spellCore.getItemOf(this.name, 1) }",
+                "})"
+              ]
             ]
           ]
         }
       ]
     },
-
-    // {
-    //   name: "quoted_property_alias",
-    //   precedence: 10,
-    //   alias: "statement",
-    //   //  e.g. `a card "is face up" if ...`
-    //   //  NOTE: the first word in quotes must be "is" !!
-    //   syntax: "(a|an) {type} {alias:text} if {expression}",
-    //   constructor: class quoted_property_alias extends SpellParser.Rule.Statement {
-    //     parse(scope, tokens) {
-    //       const match = super.parse(scope, tokens)
-    //       if (!match) return undefined
-    //       // If first word of `alias` is not `is`, forget it
-    //       const alias = JSON.parse(match.groups.alias.value).split(" ")
-    //       if (alias[0] !== "is") return undefined
-
-    //       return match
-    //     }
-
-    //     mutateScope(match) {
-    //       const { type, alias } = match.groups
-    //       // Make sure type is defined
-    //       getOrStubType(match.scope, type.value)
-
-    //       const words = JSON.parse(alias.value).split(" ")
-    //       // set `property` which we'll use in `compileASTExpression()` below
-    //       match.property = words.join("_")
-    //       // add optional `not` to the rule
-    //       const expressionSuffix = [words[0], "not?", ...words.slice(1)].join(" ")
-    //       // Create an expression suffix to match the quoted statement, e.g. `is not? face up`
-    //       match.scope.rules.add({
-    //         name: match.property,
-    //         precedence: 20,
-    //         alias: "expression_suffix",
-    //         syntax: expressionSuffix,
-    //         constructor: "PostfixOperatorSuffix",
-    //         shouldNegateOutput: operator => operator.value.includes("not"),
-    //         compileASTExpression(_match, { lhs }) {
-    //           return new AST.PropertyExpression(_match, {
-    //             object: lhs,
-    //             property: new AST.PropertyLiteral(_match, match.property)
-    //           })
-    //         }
-    //       })
-
-    //       // Add comment string which we'll output below
-    //       match.ruleComment = new AST.ParserAnnotation(match, {
-    //         value: `added rule: '${expressionSuffix}'`
-    //       })
-    //     }
-
-    //     getAST(match) {
-    //       const { type, expression } = match.groups
-    //       const statements = [
-    //         match.ruleComment,
-    //         new AST.PropertyDefinition(match, {
-    //           thing: new AST.PrototypeExpression(type, { type: type.AST }),
-    //           property: new AST.PropertyLiteral(match, match.property),
-    //           get: expression.AST
-    //         })
-    //       ]
-    //       return new AST.StatementGroup(match, { statements })
-    //     }
-    //   },
-    //   tests: [
-    //     {
-    //       beforeEach(scope) {
-    //         scope.parse(
-    //           [
-    //             "a card is a thing",
-    //             "cards have a direction as either up or down",
-    //             "cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king"
-    //           ].join("\n"),
-    //           "block"
-    //         )
-    //       },
-    //       compileAs: "block",
-    //       tests: [
-    //         [
-    //           'a card "is face up" if its direction is up',
-    //           [
-    //             "/* SPELL: added rule: 'is not? face up' */",
-    //             "spellCore.define(Card.prototype, 'is_face_up', {",
-    //             "\tget() { return (this.direction == 'up') }",
-    //             "})"
-    //           ]
-    //         ],
-    //         [
-    //           'a card "is a face card" if its rank is one of [jack, queen, king]',
-    //           [
-    //             "/* SPELL: added rule: 'is not? a face card' */",
-    //             "spellCore.define(Card.prototype, 'is_a_face_card', {",
-    //             "\tget() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) }",
-    //             "})"
-    //           ]
-    //         ]
-    //         // TODO: this one is failing for some reason, although it works in the app???
-    //         // [
-    //         //   'a card "is a face card" if its rank is one of jack, queen or king',
-    //         //   "/* SPELL: added rule: 'is not? a face card' */¬spellCore.define(Card.prototype, 'is_a_face_card', { get() { return spellCore.includes(['jack', 'queen', 'king'], this.rank) } })"
-    //         // ]
-    //       ]
-    //     }
-    //   ]
-    // },
 
     {
       name: "quoted_property_formula",
@@ -747,7 +650,7 @@ export const classes = new SpellParser({
           const vars = []
           let sourceNum = 0
           const property = words
-            .map(word => {
+            .map((word) => {
               // output keywords directly into words/keywords immediately
               if (!word.startsWith("(")) {
                 // transform `a` to `(a|an)` for flexbility
@@ -770,7 +673,7 @@ export const classes = new SpellParser({
               if (variable && enumeration) {
                 // make sure inflection of variables matches `isSingular`
                 const inflector = isSingular ? singularize : pluralize
-                const inflectedEnumeration = enumeration.map(value => {
+                const inflectedEnumeration = enumeration.map((value) => {
                   if (typeof value !== "string") return value
                   if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1)
                   return inflector(value)
@@ -809,7 +712,7 @@ export const classes = new SpellParser({
             alias: "expression_suffix",
             syntax,
             constructor: "InfixOperatorSuffix",
-            shouldNegateOutput: operator => operator.value.includes("not"),
+            shouldNegateOutput: (operator) => operator.value.includes("not"),
             compileASTExpression(_match, { lhs, rhs }) {
               if (!Array.isArray(rhs)) rhs = [rhs]
               const args = rhs
@@ -852,8 +755,8 @@ export const classes = new SpellParser({
           const { type } = match.groups
           const { vars, property } = match.groups.bits
           // Return AST for the instance method
-          const args = vars.map(varName => new AST.VariableExpression(match, { name: varName }))
-          const properties = vars.map(varName => new AST.PropertyLiteral(match, varName))
+          const args = vars.map((varName) => new AST.VariableExpression(match, { name: varName }))
+          const properties = vars.map((varName) => new AST.PropertyLiteral(match, varName))
           const expressions = args.map(
             (variable, index) =>
               new AST.InfixExpression(match, {

@@ -1,7 +1,7 @@
 import assert from "assert"
 import lowerFirst from "lodash/lowerFirst"
 
-import { IndexedList, typeCase, snakeCase, memoize } from "~/util"
+import { IndexedList, typeCase, instanceCase, snakeCase, memoize } from "~/util"
 import { MethodScope, ScopeVariable } from "~/parser"
 import { BlockScope } from "."
 
@@ -61,6 +61,6 @@ export class TypeScope extends BlockScope {
   // Syntactic sugar for the type name.
   // e.g. if the type name is `Card`, the instanceName would be `card`.
   get instanceName() {
-    return lowerFirst(this.name)
+    return instanceCase(this.name)
   }
 }

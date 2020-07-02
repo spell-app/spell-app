@@ -1,10 +1,10 @@
-// # Klondike Solitaire Card Game
--- Automatically moves cards to foundation piles (aces).
--- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for naming conventions.
+## Klondike Solitaire Card Game
+-- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
 
 ## Game bits
 a card-game is an app
 a card-game has a score as a number
+a card-game has a property piles as a new list
 set the game to a new card-game
 print the game
 
@@ -12,33 +12,29 @@ print the game
 set the deck to a new deck
 set up the deck
 
-set droppable-piles to a new list
-set auto-play-piles to a new list
-
 // set up stock pile: unplayed cards
 a stock-pile is a pile
 a stock-pile "can pick up (a card)" if: the card is its bottom card 
-set the stock to a new stock-pile
+set the stock to a new stock-pile with name = "stock", droppable = no, auto-play = no
+add the stock to the piles of the game
 
 // set up discards: where played cards go when turning over stock
 a discard-pile is a pile
 a discard-pile "can pick up (a card)" if: the card is its bottom card 
-set discards to a new discard-pile
-add discards to auto-play-piles
+set discards to a new discard-pile with name = "stock", droppable = no, auto-play = yes
+add discards to the piles of the game
 
 // set up foundation piles: where we build up from ace => king
 a foundation is a pile
 a foundation "can pick up (a card)" if: never
 a foundation "can play (a card)" if: 
-	if the suit of the foundation is not the suit of the card return no
+	if the name of the foundation is not the suit of the card return no
 	return the value of the foundation + 1 is the value of the card
-set the foundations to a new list of foundations
 for each suit in card suits
-	get a new foundation with suit = the suit
-	add it to the foundations
-	add it to droppable-piles
+	get a new foundation with name = the suit, droppable = yes, auto-play = no
+	add it to the piles of the game
 	
-// set up tableau piles: where cards are initially dealt
+// set up tableau piles: vertical piles from king => ace
 a tableau is a pile
 a tableau "can pick up (a card)" if:
 	if the card is face up return yes
@@ -48,19 +44,29 @@ a tableau "can play (a card)" if:
 		return the card is a king
 	if the color of the tableau is the color of the card return no
 	return the value of the tableau is the value of the card + 1
-set the tableaus to a new list of tableaus
-repeat 7 times
-	get a new tableau 
-	add it to the tableaus
-	add it to droppable-piles
- 	add it to auto-play-piles
+for each number from 1 to 7
+	get a new tableau with name = ("T" + the number), droppable = yes, auto-play = yes
+	add it to the piles of the game
 
+set foundations to piles in (the piles of the game) where the pile is a foundation
+set tableaus to piles in (the piles of the game) where the pile is a tableau
+
+## actions
+
+to display (a pile)
+	set output to its name + ":"
+	for each card in the pile
+		set output to output + ":" + (display the card)
+	echo output
+	
+to display (a card-game)
+	for each pile in its piles: display the pile
 
 to deal the cards
-	shuffle the deck
 	for each card in the deck
 		turn the card face down
 		move the card to the stock
+	shuffle the stock
 	for row from 1 to 7
 		turn the bottom card of the stock face up
 		for column from row to 7
@@ -84,15 +90,15 @@ to play (a card)
 	// make sure we can pick up the card
 	set old-pile to the pile of the card
 	if old-pile cannot pick up the card return no
-	print "can pick up the " + the name of the card
+	// print "can pick up the " + the name of the card
 	
 	if old-pile is the stock
-		return turn over stock
+		turn over stock
+		return
 	
-	set valid-piles to piles in droppable-piles where the pile can play the card
-	set new-pile to the first pile in valid-piles
+	set new-pile to the first pile in piles in (the piles of the game) where its droppable and it can play the card
 	if new-pile is not defined return no
-	print new-pile
+	// print new-pile
 
 	// move cards if we got a new-pile
 	set cards-to-move to cards in old-pile starting with the card
@@ -108,18 +114,16 @@ to play (a card)
 		set the score of the game to the score of the game + 10
 	else if old-pile is discards
 		set the score of the game to the score of the game + 5
-	print the score of the game
-	return yes
 
 to auto-play
-	for each pile in auto-play-piles
+	set auto-play-piles to piles in (the piles of the game) where it is not empty and its auto-play is yes
+	for each pile in the auto-play-piles
 		play the bottom card of the pile
 
 to reset the game
 	set the score of the game to 0
 	deal the cards
-	repeat 3 times
-		turn over stock
+	turn over stock
 
 ##############
 ## rendering the bits
@@ -128,10 +132,10 @@ to reset the game
 
 to draw (a foundation):
 	if it is empty
-		if its suit is clubs return <div className="Card Placeholder ui button basic compact fluid black">♣️</div>
-		if its suit is diamonds return <div className="Card Placeholder ui button basic compact fluid red">♦️</div>
-		if its suit is hearts return <div className="Card Placeholder ui button basic compact fluid red">♥️</div>
-		if its suit is spades return <div className="Card Placeholder ui button basic compact fluid black">♠️</div>
+		if its name is clubs return <div className="Card Placeholder ui button basic compact fluid black">♣️</div>
+		if its name is diamonds return <div className="Card Placeholder ui button basic compact fluid red">♦️</div>
+		if its name is hearts return <div className="Card Placeholder ui button basic compact fluid red">♥️</div>
+		if its name is spades return <div className="Card Placeholder ui button basic compact fluid black">♠️</div>
 	return draw its bottom card
 
 to draw (a stock-pile):
@@ -150,19 +154,16 @@ to draw (a card):
 		return <div onClick={play the card} className={className}><i className="fitted bicycle icon"/></div>
 	return <div onClick={play the card} className={className +	its color}>{display the card}</div>
 
-##############
-## Set up card game
 to draw (a card-game)
-	print warning "redrawing game"
  	return <div>
 		<div className="board">
 			<table className="ui table fixed">
 				<thead>
 					<tr>
-						<th colSpan="2"><h4>Klondike</h4></th>
-						<th colSpan="2" className="right aligned">Score:</th>
-						<th>{the score of the game}</th>
-						<th><div className="tiny fluid ui button compact" onClick={auto-play}>Auto</div></th>
+						<th colSpan="2" className="left aligned">Klondike Solitaire</th>
+						<th colSpan="2" className="right aligned">{"Score: " + the score of the game}</th>
+						<th><div className="tiny fluid ui button compact" onClick={auto-play}>AutoPlay</div></th>
+						<th><div className="tiny fluid ui button compact" onClick={display the game}>Debug</div></th>
 						<th><div className="tiny fluid ui button compact" onClick={reset the game}>Restart</div></th>
 					</tr>
 				</thead>
@@ -171,10 +172,10 @@ to draw (a card-game)
 						<td>{draw the stock}</td>
 						<td>{draw the discards}</td>
 						<td></td>
-						<td>{draw item 1 of the foundations}</td>
-						<td>{draw item 2 of the foundations}</td>
-						<td>{draw item 3 of the foundations}</td>
-						<td>{draw item 4 of the foundations}</td>
+						<td>{draw the first pile in foundations}</td>
+						<td>{draw the second pile in foundations}</td>
+						<td>{draw the third pile in foundations}</td>
+						<td>{draw the fourth pile in foundations}</td>
 				</tr>
 				<tr>
 						<td>{draw item 1 of the tableaus}</td>

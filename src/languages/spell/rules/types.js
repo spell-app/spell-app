@@ -70,6 +70,8 @@ SpellParser.Rule.Type = class type extends Rule.Pattern {
     if (!match) return undefined
     // Pick up `type` scope based on canonical, singular type name
     match.type = scope.types.get(match.value)
+    // NOTE: `match.type?.name` is the class name
+    //       `match.type?.instanceName` is the instance case name
     return match
   }
 
