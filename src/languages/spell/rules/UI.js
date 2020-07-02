@@ -30,21 +30,21 @@ export const UI = new SpellParser({
       getAST(match) {
         const { number, units } = match.groups
         const delay = Math.round(number.value * this.unitsMap[units.value])
-        return new AST.AwaitMethodInvocation(match, {
-          method: new AST.CoreMethodInvocation(match, {
-            methodName: "waitFor",
-            args: [new NumericLiteral(match, delay)]
-          })
+        // return new AST.AwaitMethodInvocation(match, { method:
+        return new AST.CoreMethodInvocation(match, {
+          methodName: "waitFor",
+          args: [new NumericLiteral(match, delay)]
         })
+        // })
       },
       tests: [
         {
           compileAs: "statement",
           tests: [
-            [`wait for 1 second"`, `await spellCore.waitFor(1000)`],
-            [`wait for 2 seconds"`, `await spellCore.waitFor(2000)`],
-            [`wait for 500 msec"`, `await spellCore.waitFor(500)`],
-            [`wait for 10 ticks"`, `await spellCore.waitFor(167)`]
+            [`wait for 1 second"`, `spellCore.waitFor(1000)`],
+            [`wait for 2 seconds"`, `spellCore.waitFor(2000)`],
+            [`wait for 500 msec"`, `spellCore.waitFor(500)`],
+            [`wait for 10 ticks"`, `spellCore.waitFor(167)`]
           ]
         }
       ]

@@ -180,7 +180,6 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
       args,
       body: (inlineStatement || nestedBlock)?.AST,
       wrap: true,
-      inline: false,
       asFunction,
       methodName
     })
@@ -227,34 +226,20 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
       }
     }
     // No instance type: create as a loose function
-    else {
-      const fn = new AST.FunctionDeclaration(match, {
-        wrap: true,
-        methodName,
-        method
-      })
-
-      if (asTest) {
-        output.push(
-          new AST.FunctionDeclaration(match, {
-            methodName,
-            method: new AST.MethodDefinition(match, {
-              wrap: true,
-              inline: false,
-              body: new AST.CoreMethodInvocation(match, {
-                methodName: "test",
-                args: [
-                  new AST.QuotedExpression(match, signature.methodBits.join(" ")),
-                  fn,
-                  new AST.BooleanLiteral(match, asTest.value === "quietly test")
-                ]
-              })
-            })
+    else if (asTest) {
+      output.push(
+        new AST.MethodDefinition(match, {
+          asFunction: true,
+          wrap: true,
+          methodName,
+          body: new AST.CoreMethodInvocation(match, {
+            methodName: asTest.value === "quietly test" ? "quietlyTest" : "test",
+            args: [new AST.QuotedExpression(match, signature.methodBits.join(" ")), method]
           })
-        )
-      } else {
-        output.push(fn)
-      }
+        })
+      )
+    } else {
+      output.push(method)
     }
 
     return new AST.StatementGroup(match, { statements: output })

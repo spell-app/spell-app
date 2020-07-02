@@ -96,7 +96,9 @@ export const JSX = new SpellParser({
                 '\ttag: "ui-button",',
                 "\tprops: {",
                 "\t\thidden: 1,",
-                "\t\tonPress: (event) => { return console.log(2) }",
+                "\t\tonPress: (event) => {",
+                "\t\t\treturn console.log(2)",
+                "\t\t}",
                 "\t}",
                 "})"
               ]
@@ -112,7 +114,9 @@ export const JSX = new SpellParser({
                 `\t\tnumber: 1,`,
                 `\t\tboolean: true,`,
                 `\t\texpression: (1 + 1),`,
-                `\t\tonClick: (event) => { return console.log(event.target.value) }`,
+                `\t\tonClick: (event) => {`,
+                `\t\t\treturn console.log(event.target.value)`,
+                `\t\t}`,
                 `\t}`,
                 `})`
               ]
@@ -142,7 +146,9 @@ export const JSX = new SpellParser({
                 `spellCore.element({`,
                 `\ttag: "div",`,
                 `\tprops: {`,
-                `\t\t'on-click': (event) => { return console.log(1024) }`,
+                `\t\t'on-click': (event) => {`,
+                `\t\t\treturn console.log(1024)`,
+                `\t\t}`,
                 `\t}`,
                 `})`
               ]

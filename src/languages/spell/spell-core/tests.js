@@ -9,12 +9,16 @@ Object.assign(spellCore, {
     return !!success ? "✅" : "❌"
   },
   /** Dynamic test: prints to console for now... */
-  test(message, testMethod, collapse = true) {
+  test(message, testMethod, collapse) {
     spellCore.startTest(message, collapse)
     try {
       testMethod()
     } catch (e) {}
     spellCore.endTest()
+  },
+  /** Dynamic test: prints to console for now... */
+  quietlyTest(message, testMethod) {
+    return spellCore.test(message, testMethod, true)
   },
 
   startTest(message, collapse = true) {

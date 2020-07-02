@@ -564,7 +564,7 @@ export class InvocationArgs extends ASTNode {
   constructor(match, { wrap, ...props }) {
     super(match, props)
     if (typeof wrap === "boolean") this.wrap = wrap
-    this.assertArrayType("args", [Expression, MethodDefinition, FunctionDeclaration], OPTIONAL)
+    this.assertArrayType("args", [Expression, MethodDefinition], OPTIONAL)
     if (this.args) {
       // unwind parenthesized expressions in args
       this.args = this.args.map((arg) => {
@@ -1348,14 +1348,17 @@ export class PropertyDefinition extends Statement {
  *    - `false` we explicitly WILL NOT make a fat arrow function
  *    - `undefined` we'll make a fat arrow function if you pass an `Expression`
  */
-export class MethodDefinition extends ASTNode {
+export class MethodDefinition extends Expression {
   constructor(match, props) {
     super(match, props)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
     this.assertType("body", [StatementBlock, Statement, Expression], OPTIONAL)
     // If we got an `Expression,` assume `inline` unless we were told otherwise.
-    if (this.inline === undefined && this.body instanceof Expression) this.inline = true
+    // TODO: assert that EITHER inline or asFunction
+    // if (this.inline === undefined && this.body instanceof Expression) this.inline = true
     this.assertType("inline", "boolean", OPTIONAL)
+    this.assertType("asFunction", "boolean", OPTIONAL)
+    this.assertType("methodName", "string", OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
 
     // Default `body` to empty StatementBlock
@@ -1376,55 +1379,29 @@ export class MethodDefinition extends ASTNode {
     }
     // Make sure we body ends up as a StatementBlock
     this.assertType("body", StatementBlock)
-    if (typeof this.wrap === "boolean") this.body.wrap = this.wrap
+    // ALWAYS wrap the body
+    this.body.wrap = true
   }
   get isAsync() {
     return !!this.match.nestedScope?.async
   }
   compile() {
     const async = "" // this.isAsync ? "async " : ""
+    const fn = this.asFunction ? "function " : ""
+    const name = this.asFunction && this.methodName ? this.methodName : ""
     const args = stringify.Args({ args: this.args })
     const operator = this.inline ? " => " : " "
-    return `${async}${args}${operator}${this.body.compile()}`
+    return `${async}${fn}${name}${args}${operator}${this.body.compile()}`
   }
   renderChildren() {
-    const operator = this.inline ? <span className="operator fat-arrow">{" => "}</span> : render.SPACE
     return (
       <>
         {/* {this.isAsync && <span className="keyword async">async </span>} */}
+        {this.asFunction ? <span className="keyword function">function </span> : null}
+        {this.asFunction && this.methodName ? <span className="method-name">{this.methodName}</span> : null}
         <render.Args args={this.args} />
-        {operator}
+        {this.inline ? <span className="operator fat-arrow">{" => "}</span> : render.SPACE}
         {this.body.component}
-      </>
-    )
-  }
-}
-
-/** FunctionDeclaration: creates a function instance
- * - `methodName` is the method name
- * - `method` is MethodDefinition (args + body)
- */
-export class FunctionDeclaration extends Statement {
-  constructor(match, props) {
-    super(match, props)
-    this.assertType("methodName", "string", OPTIONAL)
-    this.assertType("method", MethodDefinition)
-  }
-  get isAsync() {
-    return !!this.match.nestedScope?.async
-  }
-  compile() {
-    const async = this.isAsync ? "async " : ""
-    return `${async}function ${this.methodName || ""}${this.method.compile()}`
-  }
-  renderChildren() {
-    const async = this.isAsync ? "async " : ""
-    return (
-      <>
-        {this.isAsync && <span className="keyword async">async </span>}
-        <span className="keyword function">function </span>
-        {!!this.methodName && <span className="method-name">{this.methodName}</span>}
-        {this.method.component}
       </>
     )
   }

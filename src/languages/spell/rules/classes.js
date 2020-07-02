@@ -397,7 +397,6 @@ export const classes = new SpellParser({
             props.addMethod(
               "initializer",
               new AST.MethodDefinition(specifier.match, {
-                inline: false,
                 statements: specifier,
                 body: specifier
               })
@@ -450,7 +449,9 @@ export const classes = new SpellParser({
               [
                 `spellCore.defineProperty(Todo.prototype, {`,
                 `\tproperty: 'tags',`,
-                `\tinitializer() { return new List() }`,
+                `\tinitializer() {`,
+                `\t\treturn new List()`,
+                `\t}`,
                 `})`
               ]
             ]
@@ -546,7 +547,9 @@ export const classes = new SpellParser({
               "the color of a card is red if its suit is either diamonds or hearts",
               [
                 "spellCore.define(Card.prototype, 'color', {",
-                "\tget() { if (spellCore.includes(['diamonds', 'hearts'], this.suit)) { return 'red' } }",
+                `\tget() {`,
+                `\t\tif (spellCore.includes(['diamonds', 'hearts'], this.suit)) { return 'red' }`,
+                `\t}`,
                 "})"
               ]
             ],
@@ -600,17 +603,19 @@ export const classes = new SpellParser({
           tests: [
             [
               "the value of a card is:",
-              ["spellCore.define(Card.prototype, 'value', {", "\tget() { return undefined }", "})"]
+              ["spellCore.define(Card.prototype, 'value', {", "\tget() {", "\t\treturn undefined", "\t}", "})"]
             ],
             [
               "the value of a card is its name",
-              ["spellCore.define(Card.prototype, 'value', {", "\tget() { return this.name }", "})"]
+              ["spellCore.define(Card.prototype, 'value', {", "\tget() {", "\t\treturn this.name", "\t}", "})"]
             ],
             [
               "the short-name of a card is:\n\treturn the first word of the name of the card",
               [
                 "spellCore.define(Card.prototype, 'short_name', {",
-                "\tget() { return spellCore.getItemOf(this.name, 1) }",
+                "\tget() {",
+                "\t\treturn spellCore.getItemOf(this.name, 1)",
+                "\t}",
                 "})"
               ]
             ]
@@ -778,7 +783,6 @@ export const classes = new SpellParser({
                 body: new AST.ReturnStatement(match, {
                   value: AST.MultiInfixExpression(match, { expressions, operator: "&&" })
                 }),
-                inline: false,
                 datatype: "boolean"
               })
             })
@@ -805,7 +809,9 @@ export const classes = new SpellParser({
               [
                 "/* SPELL: added expression: '(operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)' */",
                 "spellCore.define(Card.prototype, 'is_a_$rank', {",
-                "\tvalue(rank) { return this.rank === rank }",
+                "\tvalue(rank) {",
+                "\t\treturn this.rank === rank",
+                "\t}",
                 "})"
               ]
             ],
@@ -814,7 +820,9 @@ export const classes = new SpellParser({
               [
                 "/* SPELL: added expression: '(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)' */",
                 "spellCore.define(Card.prototype, 'is_the_$rank_of_$suits', {",
-                "\tvalue(rank, suit) { return this.rank === rank && this.suit === suit }",
+                "\tvalue(rank, suit) {",
+                "\t\treturn this.rank === rank && this.suit === suit",
+                "\t}",
                 "})"
               ]
             ]
