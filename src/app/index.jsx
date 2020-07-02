@@ -1,3 +1,6 @@
+// semantic-ui styles
+import "semantic-ui-css/semantic.min.css"
+
 // Guarantee async/await works in all environments.
 import "@babel/polyfill"
 

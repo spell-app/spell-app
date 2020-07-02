@@ -34,12 +34,6 @@ to play (a card) on (a pile)
 	print "Sorry, you cannot move " + the name of the card + " to that " + the type of the pile
 	return no
 
-
-to draw (a pile)
-	return <div className={its class-name}>
-			{for each card in the pile: draw the card}
-		</div>
-		
 to quietly test piles
 	set pile1 to a new pile with number = 1
 	set pile2 to a new pile with number = 2

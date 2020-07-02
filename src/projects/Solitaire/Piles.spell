@@ -40,6 +40,13 @@ a foundation has a number as a number
 to create (a foundation): set its appearance to stacked // TODO: `the appearance of...
 a foundation has a suit as one of clubs, diamonds, hearts, spades // TODO: ...as one of card suits
 a foundation "class-name" is: "Pile Foundation stacked " + its suit  + " num-" + (its number or 0)
+to draw (a foundation):
+	if it is empty
+		if its suit is clubs return <div className="Card Placeholder ui button basic compact fluid black">♣️</div>
+		if its suit is diamonds return <div className="Card Placeholder ui button basic compact fluid red">♦️</div>
+		if its suit is hearts return <div className="Card Placeholder ui button basic compact fluid red">♥️</div>
+		if its suit is spades return <div className="Card Placeholder ui button basic compact fluid black">♠️</div>
+	return draw its top card
 
 a foundation "will accept (a card)" if
 	if its suit is not the suit of the card return no
@@ -68,6 +75,10 @@ a stock-pile is a pile
 to create (a stock-pile): set its appearance to stacked // TODO: the appearance of...
 a stock-pile "will accept (a card)" if never
 a stock-pile "class-name" is: "Pile Stock-Pile stacked"
+to draw (a stock-pile):
+	if it is empty
+		return <div className="Card Placeholder ui button basic compact fluid"></div>
+	return draw its top card
 
 to quietly test stock-piles
 	set the pile to a new stock-pile
@@ -82,15 +93,18 @@ to quietly test stock-piles
 test stock-piles
 
 ##############
-## `waste-pile` is where the cards go when you turn them over
-a waste-pile is a pile
-to create (a waste-pile): set its appearance to stacked // TODO: the appearance of...
-a waste-pile "will accept (a card)" if never
-a waste-pile "class-name" is: "Pile Waste-Pile stacked"
+## `discard-pile` is where the cards go when you turn them over
+a discard-pile is a pile
+a discard-pile "will accept (a card)" if never
+a discard-pile "class-name" is: "Pile Discard-Pile stacked"
+to draw (a discard-pile):
+	if it is empty
+		return <div className="Card Placeholder ui button basic compact fluid"></div>
+	return draw its top card
 
-to quietly test waste-piles
-	set the pile to a new waste-pile
-	expect the class-name of the pile to be "Pile Waste-Pile stacked"
+to quietly test discard-piles
+	set the pile to a new discard-pile
+	expect the class-name of the pile to be "Pile Discard-Pile stacked"
 	set the card to a new card with suit = hearts and rank = ace
 	expect can play the card on the pile to be no
 	play the card on the pile
@@ -98,4 +112,4 @@ to quietly test waste-piles
 	move the card to the pile
 	expect the number of cards in the pile to be 1
 	expect the top card of the pile to be the card
-test waste-piles
+test discard-piles

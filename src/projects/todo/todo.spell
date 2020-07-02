@@ -13,8 +13,9 @@ a todos-app has a filter as one of all, active or completed
 set app to a new todos-app
 set the filter of the app to "all"
 
-to create a todo with title as text
-	add a new todo with title = the title, completed = false to the front of the todos of the app
+to create a todo (with title as text)
+	get a new todo with title = the title, completed = false
+	add it to the front of the todos of the app
 
 create a todo with title = "Blah"
 create a todo with title = "Two"

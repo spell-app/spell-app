@@ -2,6 +2,7 @@
 //  # Rules for creating variables, property access, etc
 //
 
+import { Token } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
 
 export const UI = new SpellParser({
@@ -18,14 +19,14 @@ export const UI = new SpellParser({
         error: "error",
         group: "group",
         "collapsed group": "groupCollapsed",
-        default: "log",
+        default: "log"
       },
       getAST(match) {
         const { operator, expression } = match.groups
         const methodName = this.operatorMap[operator?.value || "default"]
         return new AST.ConsoleMethodInvocation(match, {
           methodName,
-          args: [expression.AST],
+          args: [expression.AST]
         })
       },
       tests: [
@@ -36,10 +37,10 @@ export const UI = new SpellParser({
             [`print warning "Yo!"`, `console.warn("Yo!")`],
             [`print error "Yo!"`, `console.error("Yo!")`],
             [`print group "Yo!"`, `console.group("Yo!")`],
-            [`print collapsed group "Yo!"`, `console.groupCollapsed("Yo!")`],
-          ],
-        },
-      ],
+            [`print collapsed group "Yo!"`, `console.groupCollapsed("Yo!")`]
+          ]
+        }
+      ]
     },
 
     {
@@ -53,9 +54,9 @@ export const UI = new SpellParser({
       tests: [
         {
           compileAs: "statement",
-          tests: [[`end print group"`, `console.groupEnd()`]],
-        },
-      ],
+          tests: [[`end print group"`, `console.groupEnd()`]]
+        }
+      ]
     },
 
     // Notify user about `message` in a non-modal (popup?) interface.
@@ -73,7 +74,7 @@ export const UI = new SpellParser({
         if (okButton) args.push(okButton.AST)
         return new AST.CoreMethodInvocation(match, {
           methodName: "notify",
-          args,
+          args
         })
       },
       tests: [
@@ -81,10 +82,10 @@ export const UI = new SpellParser({
           compileAs: "statement",
           tests: [
             [`notify "Yo!"`, `spellCore.notify("Yo!")`],
-            [`notify "Yo!" with "gotcha"`, `spellCore.notify("Yo!", "gotcha")`],
-          ],
-        },
-      ],
+            [`notify "Yo!" with "gotcha"`, `spellCore.notify("Yo!", "gotcha")`]
+          ]
+        }
+      ]
     },
 
     // Show user a `message` in a modal alert.
@@ -105,8 +106,8 @@ export const UI = new SpellParser({
         return new AST.AwaitMethodInvocation(match, {
           method: new AST.CoreMethodInvocation(match, {
             methodName: "alert",
-            args,
-          }),
+            args
+          })
         })
       },
       tests: [
@@ -114,10 +115,10 @@ export const UI = new SpellParser({
           compileAs: "statement",
           tests: [
             [`alert "Yo!"`, `await spellCore.alert("Yo!")`],
-            [`alert "Yo!" with "yep"`, `await spellCore.alert("Yo!", "yep")`],
-          ],
-        },
-      ],
+            [`alert "Yo!" with "yep"`, `await spellCore.alert("Yo!", "yep")`]
+          ]
+        }
+      ]
     },
 
     // Warning message -- like alert but more dire.
@@ -138,8 +139,8 @@ export const UI = new SpellParser({
         return new AST.AwaitMethodInvocation(match, {
           method: new AST.CoreMethodInvocation(match, {
             methodName: "warn",
-            args,
-          }),
+            args
+          })
         })
       },
       tests: [
@@ -147,10 +148,10 @@ export const UI = new SpellParser({
           compileAs: "statement",
           tests: [
             [`warn "Yo!"`, `await spellCore.warn("Yo!")`],
-            [`warn "Yo!" with "yep"`, `await spellCore.warn("Yo!", "yep")`],
-          ],
-        },
-      ],
+            [`warn "Yo!" with "yep"`, `await spellCore.warn("Yo!", "yep")`]
+          ]
+        }
+      ]
     },
 
     // Confirm message -- present a question with two answers.
@@ -172,8 +173,8 @@ export const UI = new SpellParser({
         return new AST.AwaitMethodInvocation(match, {
           method: new AST.CoreMethodInvocation(match, {
             methodName: "confirm",
-            args,
-          }),
+            args
+          })
         })
       },
       tests: [
@@ -182,10 +183,10 @@ export const UI = new SpellParser({
           tests: [
             [`confirm "Yo!"`, `await spellCore.confirm("Yo!")`],
             [`confirm "Yo!" with "yep"`, `await spellCore.confirm("Yo!", "yep")`],
-            [`confirm "Yo!" with "yep" and "nope"`, `await spellCore.confirm("Yo!", "yep", "nope")`],
-          ],
-        },
-      ],
+            [`confirm "Yo!" with "yep" and "nope"`, `await spellCore.confirm("Yo!", "yep", "nope")`]
+          ]
+        }
+      ]
     },
 
     // Prompt user to specify a value in response to `message` with `defaultValue`.
@@ -207,8 +208,8 @@ export const UI = new SpellParser({
         return new AST.AwaitMethodInvocation(match, {
           method: new AST.CoreMethodInvocation(match, {
             methodName: "prompt",
-            args,
-          }),
+            args
+          })
         })
       },
       tests: [
@@ -216,12 +217,36 @@ export const UI = new SpellParser({
           compileAs: "statement",
           tests: [
             [`prompt "Name for the new baby?"`, `await spellCore.prompt("Name for the new baby?")`],
-            [`prompt "File name:" with "Untitled"`, `await spellCore.prompt("File name:", "Untitled")`],
-          ],
-        },
-      ],
+            [`prompt "File name:" with "Untitled"`, `await spellCore.prompt("File name:", "Untitled")`]
+          ]
+        }
+      ]
     },
 
+    /** Parse CSS from a `Text` token WITHOUT quotes. */
+    {
+      name: "css",
+      alias: ["expression", "single_expression"],
+      tokenType: Token.Text,
+      getAST(match) {
+        console.warn("CSS rule getAST():", match)
+        // NOTE: `name` should come from SpellCSSFile
+        const { value, name } = match
+        const fileName = name ? new AST.QuotedExpression(match, name) : new AST.UndefinedLiteral(match)
+        // munge returns to `¬`
+        const safeValue = value.replace(/\n/g, "¬")
+        return new AST.CoreMethodInvocation(match, {
+          methodName: "installStyles",
+          args: [fileName, new AST.BackTickExpression(match, safeValue)]
+        })
+      },
+      tests: [
+        {
+          title: "correctly matches css",
+          tests: [['""', '""']]
+        }
+      ]
+    }
     // Chose one or more items from `collection` (of strings???)
     // Returns a promise which `resolve()`s if they "OK" with a value, `reject()`s if they "cancel".
     // TODO
@@ -241,5 +266,5 @@ export const UI = new SpellParser({
     //       syntax: "choose multiple {plural_variable} (of|from) {collection:expression} with (prompt|message)? {message:expression}",
     //          => `await spellCore.chooseMultiple(message, list, defaultValues)`
     //     }
-  ],
+  ]
 })

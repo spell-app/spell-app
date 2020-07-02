@@ -63,6 +63,18 @@ export class SpellProject extends LoadableManager {
     return new SpellFileLocation(this.path)
   }
 
+  /**
+   * Given a project `path`, return an appropriate file to load/manage it.
+   * Currently:
+   *    - `xxx.css` will return a `CSSFile`
+   *    - anything else will return a `SpellFile`
+   */
+  getFileForPath(path) {
+    const location = new SpellFileLocation(path)
+    if (location.extension === ".css") return new SpellCSSFile(path)
+    return new SpellFile(path)
+  }
+
   //-----------------
   //  Compilation
   //-----------------
@@ -114,7 +126,7 @@ export class SpellProject extends LoadableManager {
       tasks: [
         new Task({
           name: "Loading project",
-          run: parentScope => {
+          run: (parentScope) => {
             this.resetCompiled()
             const scope = this.getScope(parentScope)
             this.set("_state.scope", scope)
@@ -124,7 +136,7 @@ export class SpellProject extends LoadableManager {
         TaskList.forEach({
           name: `Parsing imports`,
           list: () => this.activeImports,
-          getTask: file =>
+          getTask: (file) =>
             new Task({
               name: `Parsing import: ${file.fileName}`,
               run: () => file.parse(this.scope)
@@ -147,7 +159,7 @@ export class SpellProject extends LoadableManager {
         TaskList.forEach({
           name: `Compiling imports`,
           list: () => this.activeImports,
-          getTask: file =>
+          getTask: (file) =>
             new Task({
               name: `Compiling import: ${file.fileName}`,
               run: () => file.compile()
@@ -155,7 +167,7 @@ export class SpellProject extends LoadableManager {
         }),
         new Task({
           name: "Combining output",
-          run: allCompiled => {
+          run: (allCompiled) => {
             const compiled = allCompiled.join("\n// -----------\n")
             this.set("_state.compiled", compiled)
             return compiled
@@ -203,7 +215,7 @@ export class SpellProject extends LoadableManager {
    * Have all of our files `resetCompiled()` so they'll compile again.
    */
   updatedContentsFor(file) {
-    this.activeImports.forEach(it => it.resetCompiled())
+    this.activeImports.forEach((it) => it.resetCompiled())
   }
 
   //-----------------
@@ -253,7 +265,7 @@ export class SpellProject extends LoadableManager {
    */
   getFile(path = "", required = OPTIONAL) {
     path = this.getFilePath(path)
-    const file = this.files?.find(f => f.path === path)
+    const file = this.files?.find((f) => f.path === path)
     if (!file && required === REQUIRED) throw new TypeError(`spellProject.getFile("${path}"): file not found.`)
     return file
   }
@@ -265,7 +277,7 @@ export class SpellProject extends LoadableManager {
    */
   getFileInfo(path = "", required = OPTIONAL) {
     path = this.getFilePath(path)
-    const fileInfo = this.manifest.contents.files?.find(f => f.path === path)
+    const fileInfo = this.manifest.contents.files?.find((f) => f.path === path)
     if (!fileInfo && required === REQUIRED) throw new TypeError(`spellProject.getFileInfo("${path}"): file not found.`)
     return fileInfo
   }

@@ -140,7 +140,7 @@ export class List extends Observable {
   get Component() {
     const render = () => {
       const elements = this.draw()
-      console.info({ list: this, elements })
+      // console.info({ list: this, elements })
       return elements
     }
     class ListC extends React.Component {
@@ -172,13 +172,9 @@ export class List extends Observable {
     spellCore.append(this, ...items)
   }
 
-  // Map callback RETURNING AS AN ARRAY
+  // Map callback RETURNING AS A ZERO-BASED ARRAY ???
   map(callback) {
-    const results = []
-    this.getKeys().forEach((index) => {
-      results[index] = callback(this.getItem(index), index, this)
-    })
-    return results
+    return this.getKeys().map((index) => callback(this.getItem(index), index, this))
   }
 
   //----------------------------

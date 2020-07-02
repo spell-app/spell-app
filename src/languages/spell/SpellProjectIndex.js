@@ -2,7 +2,7 @@ import global from "global"
 // import { computed } from "mobx"
 
 import { JSON5File, forward, memoize, memoizeForProp, writeOnce } from "~/util"
-import { SpellFileLocation, SpellProject, SpellFile } from "~/languages/spell"
+import { SpellFileLocation, SpellProject, SpellCSSFile, SpellFile } from "~/languages/spell"
 
 /**
  * Index of imports for a given `SpellProject`.
@@ -62,7 +62,7 @@ export class SpellProjectIndex extends JSON5File {
    */
   @memoizeForProp("contents")
   get imports() {
-    return this.contents?.imports?.map(item => ({ ...item, file: new SpellFile(item.path) }))
+    return this.contents?.imports?.map((item) => ({ ...item, file: this.project.getFileForPath(item.path) }))
   }
 
   /**

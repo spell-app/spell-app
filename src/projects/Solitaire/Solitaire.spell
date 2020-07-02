@@ -5,59 +5,86 @@
 ## Define card-game
 a card-game is an app
 a card-game has a score as a number
-a card-game has a deck
 
-to create (a card-game)
-	set its deck to a new deck
-	set up its deck
-	set its tableaus to a new list of tableaus
-	for number from 1 to 7
-		set tableau to a new tableau with number = number
-		add the tableau to its tableaus
-	set its foundations to a new list of foundations
-	for each suit and number of card suits
-		set foundation to a new foundation with suit = the suit, number = the number
-		add the foundation to its foundations
-	set its stock-pile to a new stock-pile
-	set its waste-pile to a new waste-pile
+set the deck to a new deck
+set up the deck
+set the tableaus to a new list of tableaus
+for number from 1 to 7
+	set tableau to a new tableau with number = number
+	add the tableau to the tableaus
+set the foundations to a new list of foundations
+for each suit and number of card suits
+	set foundation to a new foundation with suit = the suit, number = the number
+	add the foundation to the foundations
+set the stock to a new stock-pile
+set discards to a new discard-pile
 
-to start (a card-game)
+to play from stock
+	if the stock is empty
+		for each card in discards
+			turn the card face down
+			add it to the stock
+	repeat 3 times
+		if the stock is not empty
+			turn the top card of stock face up
+			move the top card of stock to the discards
+
+to deal the cards
+	for each card in the deck
+		turn it face down	// TODO: `turn the card face down` doesnt work...???
+	shuffle the deck
+	for each card in the deck
+		move the card to the stock
+	for row from 1 to 7
+		turn the top card of the stock face up
+		for column from row to 7
+			move the top card of the stock to item column of the tableaus
+
+to reset (a card-game)
 	set its score to 0
-	shuffle its deck
-   
+	deal the cards
+	play from stock
 
-// define type Klondike
-// 	### Deck
-// 	deck = new Deck
-// 	score = 0
-// 
-// 	### Start game on creation
-// 	after creation
-// 		start game
-// 
-// 	### Game Play
-// 
-// 	to start game
-// 		turn deck face down
-// 		move deck to stock pile
-// 		shuffle deck
-// 		deal cards
-// 
-// 	to deal cards
-// 		repeat with row as 1 to 7
-// 			turn top card of stock pile over
-// 			repeat with column as row to 7
-// 				move top card of stock pile to item column of tableaus
-// 		play from stock
-// 
-// 	to move Card to Pile
-// 		current pile = the pile of card
-// 		if current pile is not empty
-// 			remove card from current pile
-// 
-// 		add card to pile
-// 		set the pile of card to pile
-// 
+to draw (a card-game)
+ 	return <div>
+		<div className="board">
+			<table className="ui table fixed">
+				<thead>
+					<tr>
+						<th colSpan="3"><h4>Klondike</h4></th>
+						<th></th>
+						<th colSpan="2" className="right aligned">Score:</th>
+						<th>{its score}</th>
+					</tr>
+				</thead>
+				<tbody>
+				<tr>
+						<td>{draw the stock}</td>
+						<td>{draw the discards}</td>
+						<td></td>
+						<td>{draw item 1 of the foundations}</td>
+						<td>{draw item 2 of the foundations}</td>
+						<td>{draw item 3 of the foundations}</td>
+						<td>{draw item 4 of the foundations}</td>
+				</tr>
+				<tr>
+						<td>{draw item 1 of the tableaus}</td>
+						<td>{draw item 2 of the tableaus}</td>
+						<td>{draw item 3 of the tableaus}</td>
+						<td>{draw item 4 of the tableaus}</td>
+						<td>{draw item 5 of the tableaus}</td>
+						<td>{draw item 6 of the tableaus}</td>
+						<td>{draw item 7 of the tableaus}</div>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+	
+set the game to a new card-game
+reset the game
+start the game
+
 // 		// scoring
 // 		if current pile is waste pile
 // 			if pile is in tableaus

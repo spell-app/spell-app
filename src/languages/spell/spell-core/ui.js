@@ -11,12 +11,33 @@ Object.assign(spellCore, {
   // components
   //--------
 
-  // Create an element (ala `React.createElement()`)
-  // eslint-disable-next-line react/prop-types
+  /** Create a react element (ala `React.createElement()`) */
   element({ tag, props, children = [] } = {}) {
     // if (!children || !children.length) return <Tag {...props} />
     // return <Tag {...props}>{children}</Tag>
     return React.createElement(tag, props, ...children)
+  },
+
+  /**
+   * Create/initialize a `name`d stylesheet with specified `css` text.
+   * If you call this a second time, it'll replace element with the specified `name`.
+   */
+  installStyles(name = "anonymous-css", safeCSS = "") {
+    // UN-munge `¬` back to return character
+    const css = safeCSS.replace(/¬/g, "\n")
+
+    const id = `--spell-styles--${name}--`
+    const newElement = document.createElement("style")
+    newElement.id = id
+    newElement.type = "text/css"
+    newElement.appendChild(document.createTextNode(css))
+    const oldElement = document.getElementById(id)
+    if (oldElement) {
+      oldElement.parentNode.replaceChild(newElement, oldElement)
+    } else {
+      const head = document.getElementsByTagName("head")[0] || document.getElementsByTagName("body")[0]
+      head.appendChild(newElement)
+    }
   }
 })
 

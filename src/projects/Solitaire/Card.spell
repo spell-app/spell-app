@@ -1,5 +1,7 @@
+## constants for card suit emoji
+
 ## definition of a Card with nice english aliases for working with it
-a card is a thing
+a card is a drawable
 
 ## properties of cards
 // card ranks
@@ -7,10 +9,6 @@ cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
 
 // card suits
 cards have a suit as one of clubs, diamonds, hearts or spades
-
-// name as a derivation of name/suit
-the name of a card is its rank + "-of-" + its suit
-the short-name of a card is ((the first character of (""+its rank)) + the first character of its suit) as uppercase
 
 // color as derivation of suit
 the color of a card is red if its suit is either diamonds or hearts otherwise it is black
@@ -33,6 +31,22 @@ a card "is a (suit)" for its suits
 a card "is a (rank)" for its ranks
 // "card is the queen of spades" etc
 a card "is the (rank) of (suits)" for its ranks and its suits
+
+// name as a derivation of name/suit
+the name of a card is its rank + "-of-" + its suit
+to print (a card)
+	set name to the first character of ((its rank or "❓") as uppercase)
+	if the rank of the card is 10 set name to 10
+	if it is a club return name + " ♣️"
+	if it is a diamond return name +  "♦️"
+	if it is a heart return name + " ♥️"
+	if it is a spade return name + " ♠️"
+	return name + "❓"
+
+to draw (a card):
+	set className to "Card face-" + its direction + " "  + its rank + " " + its suit + " ui button compact fluid "
+	if it is face down return <div className={className}><i className="fitted bicycle icon"/></div>
+	return <div className={className +  its color}>{print the card}</div>
 
 ## actions
 to turn (a card) face up: 
@@ -87,8 +101,5 @@ to quietly test card setup
 	flip the card over
 	expect the card is face down
 test card setup
-
-to draw (a card):
-	return <div className={"Card " + its rank + " " + its suit}>{its name}</div>
 
 

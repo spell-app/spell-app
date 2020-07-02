@@ -28,7 +28,7 @@ export class SpellProjectManifest extends JSON5File {
   onRemove() {
     super.onRemove()
     // eslint-disable-next-line no-unused-expressions
-    this.files?.forEach(file => file.onRemove())
+    this.files?.forEach((file) => file.onRemove())
     SpellProjectManifest.registry.clear(this.path)
   }
 
@@ -62,7 +62,7 @@ export class SpellProjectManifest extends JSON5File {
    */
   @memoizeForProp("contents")
   get filePaths() {
-    return this.contents?.files.map(file => file.path) || []
+    return this.contents?.files.map((file) => file.path) || []
   }
 
   /**
@@ -71,7 +71,7 @@ export class SpellProjectManifest extends JSON5File {
    */
   @memoizeForProp("filePaths")
   get files() {
-    return this.filePaths.map(path => new SpellFile(path))
+    return this.filePaths.map((path) => this.project.getFileForPath(path))
   }
 
   //----------------------------
@@ -90,7 +90,7 @@ export class SpellProjectManifest extends JSON5File {
   async loadAll() {
     await this.load()
     const { files } = this
-    await Promise.allSettled(files.map(file => file.load()))
+    await Promise.allSettled(files.map((file) => file.load()))
     return files
   }
 }

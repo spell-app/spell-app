@@ -211,6 +211,28 @@ export class BackTickExpression extends Expression {
   }
 }
 
+/**
+ * TripleBackTickExpression -- use to wrap `expression` AST in triple-back-ticks.
+ */
+export class TripleBackTickExpression extends Expression {
+  @proto @readonly datatype = "string"
+  constructor(match, props) {
+    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
+    super(match, props)
+    this.assertType("expression", Expression)
+  }
+  compile() {
+    return stringify.InTripleBackTicks({ children: this.expression.compile() })
+  }
+  renderChildren() {
+    return (
+      <render.InTripleBackTicks>
+        <span className="expression">{this.expression.component}</span>
+      </render.InTripleBackTicks>
+    )
+  }
+}
+
 /** Generic Literal type.  Useful for `instanceof`.
  *  - `value` is the actual JS value, which by default we assume we can just output.
  *  - `raw` (optional) is the raw input value.

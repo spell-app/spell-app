@@ -79,6 +79,9 @@ export const BACK_TICK = "`"
 export const InBackTicks = ({ children = "" }) => {
   return `${BACK_TICK}${children}${BACK_TICK}`
 }
+export const InTripleBackTicks = ({ children = "" }) => {
+  return `${BACK_TICK}${BACK_TICK}${BACK_TICK}${children}${BACK_TICK}${BACK_TICK}${BACK_TICK}`
+}
 
 /** Surround `children` in curly brackets. */
 export const LEFT_CURLY = "{"

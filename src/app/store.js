@@ -81,7 +81,7 @@ export const store = createStore({
   /** Current file as `SpellFile`. */
   file: undefined,
   /** Select a file from the `selectedProject`. */
-  selectFile: async filePath => {
+  selectFile: async (filePath) => {
     store.clearCompileSoon()
     // TODO: switch project if filePath doesn't match selected project?
     // NOTE: assumes `store.project` is a valid, loaded project!
@@ -90,7 +90,7 @@ export const store = createStore({
     if (!filePath) filePath = getPref(pref)
     if (!project.filePaths.includes(filePath)) filePath = project.filePaths[0]
     setPref(pref, filePath)
-    store.file = new SpellFile(filePath)
+    store.file = store.project.getFileForPath(filePath)
     global.file = store.file // DEBUG
     await store.reloadFile()
   },
