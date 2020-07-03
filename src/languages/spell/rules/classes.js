@@ -397,8 +397,6 @@ export const classes = new SpellParser({
             props.addMethod(
               "initializer",
               new AST.MethodDefinition(specifier.match, {
-                type: "property",
-                methodName: "initializer",
                 body: specifier
               })
             )
@@ -532,7 +530,7 @@ export const classes = new SpellParser({
         return new AST.PropertyDefinition(match, {
           thing: prototype,
           property: property.AST,
-          get: getterBody
+          get: new AST.MethodDefinition(match, { body: getterBody })
         })
       },
       tests: [
@@ -591,8 +589,9 @@ export const classes = new SpellParser({
         return new AST.PropertyDefinition(match, {
           thing: new AST.PrototypeExpression(type, { type: type.AST }),
           property: property.AST,
-          // default getter value to `undefined` if nothing specified
-          get: (inlineStatement || nestedBlock)?.AST || new AST.StatementBlock(match)
+          get: new AST.MethodDefinition(match, {
+            body: (inlineStatement || nestedBlock)?.AST
+          })
         })
       },
       tests: [
@@ -777,8 +776,6 @@ export const classes = new SpellParser({
               thing: new AST.PrototypeExpression(type, { type: type.AST }),
               property,
               value: new AST.MethodDefinition(match, {
-                methodName: "value",
-                type: "property",
                 args,
                 body: new AST.ReturnStatement(match, {
                   value: AST.MultiInfixExpression(match, { expressions, operator: "&&" })

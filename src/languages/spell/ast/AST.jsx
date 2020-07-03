@@ -798,6 +798,105 @@ export class ConstantExpression extends Expression {
   }
 }
 
+/**
+ * Method Definition
+ * TODOC
+ * - `args` (optional) is array of VariableExpressions
+ * - `body` (optional) is:
+ *    - a single Statement or StatementGroup
+ *    - a StatementBlock
+ *    - an Expression
+ *    Note that we'll ALWAYS convert `body` to a StatementBlock on construction
+ *    so you can change it by manipulating `body.statements`, e.g. `methodBody.body.statements.push(...)`
+ *  - `inline` (optional) set to `true` to make a fat arrow function
+ *  - `asProperty` (optional) set to `true` to use object literaly property syntax
+ *                 Note: this is done automatically by `ObjectLiteral.addMethod()`.
+ */
+export class MethodDefinition extends Expression {
+  constructor(match, props) {
+    super(match, props)
+    this.assertArrayType("args", VariableExpression, OPTIONAL)
+    this.assertType("body", [StatementBlock, Statement, Expression], OPTIONAL)
+    this.assertType("inline", "boolean", OPTIONAL)
+    this.assertType("asProperty", "boolean", OPTIONAL)
+    this.assertType("methodName", "string", OPTIONAL)
+    this.assertType("error", ParseError, OPTIONAL)
+    this.assertType("datatype", "string", OPTIONAL)
+
+    // Default `body` to empty StatementBlock
+    if (!this.body) {
+      this.body = new StatementBlock(match)
+    }
+    // convert Statement/StatementGroup to StatementBlock
+    else if (this.body instanceof Statement) {
+      this.body = new StatementBlock(match, {
+        statements: [this.body]
+      })
+    }
+    // convert non-inline Expression to `return <expression>` StatementBlock
+    else if (this.body instanceof Expression) {
+      this.body = new StatementBlock(match, {
+        statements: [new ReturnStatement(match, { value: this.body })]
+      })
+    }
+    // Make sure we body ends up as a StatementBlock
+    this.assertType("body", StatementBlock)
+    // ALWAYS wrap the body
+    this.body.wrap = true
+  }
+  get isAsync() {
+    return !!this.match.nestedScope?.async
+  }
+  getMethodName() {
+    const { methodName } = this
+    if (!methodName) return ""
+    if (this.asProperty && !isLegalIdentifier(methodName)) return `'${methodName}'`
+    return methodName
+  }
+  compile() {
+    const async = this.isAsync ? "async " : ""
+    const args = stringify.Args({ args: this.args })
+    const error = this.error ? ` ${this.error.compile()}` : ""
+    const body = this.body.compile()
+
+    const methodName = this.getMethodName()
+    if (this.asProperty) {
+      if (!methodName) console.warn("MethodDef: property missing methodName", this)
+      if (this.inline) return `${async}${methodName}: ${args} => ${body}${error}`
+      return `${async}${methodName}${args} ${body}${error}`
+    }
+
+    // normal method
+    if (this.inline) return `${async}${args} => ${body}${error}`
+    return `${async}function ${methodName}${args} ${body}${error}`
+  }
+  renderError() {
+    if (!this.error) return null
+    return render.Fragment(
+      <>
+        {render.SPACE}
+        {this.error.component}
+      </>
+    )
+  }
+  renderChildren() {
+    const async = this.isAsync && render.ASYNC
+    const methodName = !!this.methodName && <span className="method-name">{this.getMethodName()}</span>
+    const args = <render.Args args={this.args} />
+    const body = this.body.component
+    const error = !!this.error && render.Fragment(render.SPACE, this.error.component)
+    if (this.asProperty) {
+      if (!methodName) console.warn("MethodDef: property missing methodName", this)
+      if (this.inline)
+        return render.Fragment(async, methodName, render.COLON_AND_SPACE, args, render.FAT_ARROW, body, error)
+      return render.Fragment(async, methodName, args, render.SPACE, body, error)
+    }
+    // normal method
+    if (this.inline) return render.Fragment(async, args, render.FAT_ARROW, body, error)
+    return render.Fragment(async, render.FUNCTION, methodName, args, render.SPACE, body, error)
+  }
+}
+
 /** PropertyLiteral -- identifier which refers to some property of an object.
  *  - `value` is the normalized property name.  It will be inferred from the `match`.
  *  - `raw` (optional) is the input property name
@@ -852,6 +951,81 @@ export class PropertyExpression extends Expression {
   }
 }
 
+/** ObjectLiteral -- bag of properties.
+ *  - `properties` is an array of PropertyValues
+ * TODO: datatype???
+ */
+export class ObjectLiteral extends Expression {
+  @proto @readonly datatype = "object"
+  constructor(match, { properties, ...props } = {}) {
+    super(match, props)
+    this.properties = []
+    this.assertType("wrap", "boolean", OPTIONAL)
+
+    // validate any properties passed in
+    if (properties)
+      properties.forEach((property) => {
+        if (property instanceof ObjectLiteralProperty) {
+          this.properties.push(property)
+        } else if (property instanceof MethodDefinition) {
+          this.assert(
+            property.methodName,
+            "new AST.ObjectLiteral(): MethodDefinition must specify methodName",
+            property
+          )
+          property.asProperty = true
+          this.properties.push(property)
+        } else {
+          this.assert(false, `new AST.ObjectLiteral(): invalid property`, property)
+        }
+      })
+  }
+  // Should we wrap properties block?
+  @overrideable
+  get wrap() {
+    return this.properties.length > 2 || this.properties.some((item) => item instanceof MethodDefinition)
+  }
+  addProp(property, value) {
+    // convert string value to StringLiteral
+    if (typeof value === "string") value = new StringLiteral(this.match, { value })
+    this.assert(
+      value instanceof Expression,
+      `AST.ObjectLiteral.addProp(${property}): value must be an Expression`,
+      value
+    )
+    this.properties.push(new ObjectLiteralProperty(this.match, { property, value }))
+  }
+  addMethod(property, method) {
+    this.assert(
+      method instanceof MethodDefinition,
+      `AST.ObjectLiteral.addMethod(${property}): method must be a MethodDefinition`,
+      method
+    )
+    method.methodName = property
+    method.asProperty = true
+    this.properties.push(method)
+  }
+  compile() {
+    const { wrap } = this
+    const delimiter = wrap ? stringify.INDENTED_COMMA : stringify.SPACED_COMMA
+    return stringify.Block({
+      wrap,
+      space: !wrap,
+      children: stringify.List({ items: this.properties, delimiter })
+    })
+  }
+  renderChildren() {
+    if (!this.properties.length) return render.EMPTY_BLOCK
+    const { wrap } = this
+    const delimiter = wrap ? render.INDENTED_COMMA : render.SPACED_COMMA
+    return (
+      <render.Block wrap={wrap} space={!wrap}>
+        <render.List items={this.properties} delimiter={delimiter} />
+      </render.Block>
+    )
+  }
+}
+
 /** ObjectLiteralProperty type
  *  - `property` is the normalized property name.
  *  - `value` (optional) is the property value.
@@ -879,61 +1053,6 @@ export class ObjectLiteralProperty extends ASTNode {
       !!this.value && render.Fragment(render.COLON_AND_SPACE, <span className="value">{this.value.component}</span>)
     const error = !!this.error && render.Fragment(render.SPACE, this.error.component)
     return render.Fragment(<span className="property">{this.property.component}</span>, value, error)
-  }
-}
-
-/** ObjectLiteral -- bag of properties.
- *  - `properties` is an array of PropertyValues
- * TODO: datatype???
- */
-export class ObjectLiteral extends Expression {
-  @proto @readonly datatype = "object"
-  constructor(match, props) {
-    super(match, props)
-    this.assertArrayType("properties", [ObjectLiteralProperty, MethodDefinition], OPTIONAL)
-    this.assertType("wrap", "boolean", OPTIONAL)
-    if (!this.properties) this.properties = []
-  }
-  // Should we wrap properties block?
-  @overrideable
-  get wrap() {
-    return this.properties?.length > 2 || this.properties?.some((item) => item instanceof MethodDefinition)
-  }
-  addProp(property, value) {
-    // convert string value to StringLiteral
-    if (typeof value === "string") value = new StringLiteral(this.match, { value })
-    this.assert(value instanceof Expression, `AST.ObjectLiteral.addProp(${property}): value must be an Expression`)
-    if (!this.properties) this.properties = []
-    this.properties.push(new ObjectLiteralProperty(this.match, { property, value }))
-  }
-  addMethod(property, method) {
-    if (!this.properties) this.properties = []
-    this.assert(
-      method instanceof MethodDefinition,
-      `AST.ObjectLiteral.addMethod(${property}): method must be a MethodDefinition`
-    )
-    method.methodName = property
-    method.type = "property"
-    this.properties.push(method)
-  }
-  compile() {
-    const { wrap } = this
-    const delimiter = wrap ? stringify.INDENTED_COMMA : stringify.SPACED_COMMA
-    return stringify.Block({
-      wrap,
-      space: !wrap,
-      children: stringify.List({ items: this.properties, delimiter })
-    })
-  }
-  renderChildren() {
-    if (!this.properties || !this.properties.length) return render.EMPTY_BLOCK
-    const { wrap } = this
-    const delimiter = wrap ? render.INDENTED_COMMA : render.SPACED_COMMA
-    return (
-      <render.Block wrap={wrap} space={!wrap}>
-        <render.List items={this.properties} delimiter={delimiter} />
-      </render.Block>
-    )
   }
 }
 
@@ -1154,9 +1273,9 @@ export class ListExpression extends Expression {
  * - `thing` (required) is an Expression
  * - `property` (required) is PropertyLiteral or string
  * - `value` (optional) is an Expression
- * - `initializer` (optional) is an initializer method body
- * - `get` (optional) is a method body
- * - `set` (optional)  is a method body for `setter` (with arg `property`)
+ * - `initializer` (optional) is an initializer MethodDefintion
+ * - `get` (optional) is a MethodDefintion for property `getter`
+ * - `set` (optional)  is a MethodDefintion for `setter` (which should specify `arg`)
  * Define `@memoize get definition()` to return `spellCore.define()` statement.
  */
 export class PropertyDefinition extends Statement {
@@ -1166,14 +1285,14 @@ export class PropertyDefinition extends Statement {
     if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
     this.assertType("value", Expression, OPTIONAL)
-    this.assertType("initializer", [StatementBlock, Statement, Expression], OPTIONAL)
-    this.assertType("get", [StatementBlock, Statement, Expression], OPTIONAL)
-    this.assertType("set", [StatementBlock, Statement, Expression], OPTIONAL)
+    this.assertType("initializer", MethodDefinition, OPTIONAL)
+    this.assertType("get", MethodDefinition, OPTIONAL)
+    this.assertType("set", MethodDefinition, OPTIONAL)
   }
   // Return `CoreMethodInvocation` which we'll use to render as JS or component
   @memoize
   get definition() {
-    let { match, thing, property, value, get, set, initializer } = this
+    const { match, thing, property, value, get, set, initializer } = this
     const propName = new QuotedExpression(property.match, { expression: property })
 
     const descriptor = new ObjectLiteral(match)
@@ -1181,24 +1300,9 @@ export class PropertyDefinition extends Statement {
       if (value instanceof MethodDefinition) descriptor.addMethod("value", value)
       else descriptor.addProp("value", value)
     }
-    if (initializer) {
-      if (!(initializer instanceof MethodDefinition)) {
-        initializer = new MethodDefinition(initializer.match, { type: "property", body: initializer })
-      }
-      descriptor.addMethod("initializer", initializer)
-    }
-    if (get) {
-      if (!(get instanceof MethodDefinition)) {
-        get = new MethodDefinition(get.match, { type: "property", methodName: "get", body: get })
-      }
-      descriptor.addMethod("get", get)
-    }
-    if (set) {
-      if (!(set instanceof MethodDefinition)) {
-        set = new MethodDefinition(set.match, { type: "property", methodName: "set", args: [property], body: set })
-      }
-      descriptor.addMethod("set", set)
-    }
+    if (initializer) descriptor.addMethod("initializer", initializer)
+    if (get) descriptor.addMethod("get", get)
+    if (set) descriptor.addMethod("set", set)
 
     return new CoreMethodInvocation(match, {
       methodName: "define",
@@ -1210,107 +1314,6 @@ export class PropertyDefinition extends Statement {
   }
   renderChildren() {
     return this.definition.component
-  }
-}
-
-/**
- * Args + method body, NOT including method name or `function` keyword.
- * - `args` (optional) is array of VariableExpressions
- * - `body` (optional) is:
- *    - a single Statement or StatementGroup
- *    - a StatementBlock
- *    - an Expression
- *    Note that we'll ALWAYS convert `body` to a StatementBlock on construction
- *    so you can change it by manipulating `body.statements`, e.g. `methodBody.body.statements.push(...)`
- *  - `wrap` (optional) provide to explicitly wrap body
- *  - `inline` (optional) is:
- *    - `true` we'll make a fat arrow function
- *    - `false` we explicitly WILL NOT make a fat arrow function
- *    - `undefined` we'll make a fat arrow function if you pass an `Expression`
- */
-export class MethodDefinition extends Expression {
-  constructor(match, props) {
-    super(match, props)
-    this.assertArrayType("args", VariableExpression, OPTIONAL)
-    this.assertType("body", [StatementBlock, Statement, Expression], OPTIONAL)
-    // TODO: assert that EITHER inline or asFunction
-    this.assertType("inline", "boolean", OPTIONAL)
-    this.assertType("asFunction", "boolean", OPTIONAL)
-    this.assertType("methodName", "string", OPTIONAL)
-    this.assertType("datatype", "string", OPTIONAL)
-    this.assertType("error", ParseError, OPTIONAL)
-
-    // Default `body` to empty StatementBlock
-    if (!this.body) {
-      this.body = new StatementBlock(match)
-    }
-    // convert Statement/StatementGroup to StatementBlock
-    else if (this.body instanceof Statement) {
-      this.body = new StatementBlock(match, {
-        statements: [this.body]
-      })
-    }
-    // convert non-inline Expression to `return <expression>` StatementBlock
-    else if (this.body instanceof Expression) {
-      this.body = new StatementBlock(match, {
-        statements: [new ReturnStatement(match, { value: this.body })]
-      })
-    }
-    // Make sure we body ends up as a StatementBlock
-    this.assertType("body", StatementBlock)
-    // ALWAYS wrap the body
-    this.body.wrap = true
-  }
-  get isAsync() {
-    return !!this.match.nestedScope?.async
-  }
-  getMethodName() {
-    const { methodName } = this
-    if (!methodName) return ""
-    if (this.type === "property" && !isLegalIdentifier(methodName)) return `'${methodName}'`
-    return methodName
-  }
-  compile() {
-    const async = this.isAsync ? "async " : ""
-    const args = stringify.Args({ args: this.args })
-    const error = this.error ? ` ${this.error.compile()}` : ""
-    const body = this.body.compile()
-
-    const methodName = this.getMethodName()
-    if (this.type === "property") {
-      if (!methodName) console.warn("MethodDef: property missing methodName", this)
-      if (this.inline) return `${async}${methodName}: ${args} => ${body}${error}`
-      return `${async}${methodName}${args} ${body}${error}`
-    }
-
-    // normal method
-    if (this.inline) return `${async}${args} => ${body}${error}`
-    return `${async}function ${methodName}${args} ${body}${error}`
-  }
-  renderError() {
-    if (!this.error) return null
-    return render.Fragment(
-      <>
-        {render.SPACE}
-        {this.error.component}
-      </>
-    )
-  }
-  renderChildren() {
-    const async = this.isAsync && render.ASYNC
-    const methodName = !!this.methodName && <span className="method-name">{this.getMethodName()}</span>
-    const args = <render.Args args={this.args} />
-    const body = this.body.component
-    const error = !!this.error && render.Fragment(render.SPACE, this.error.component)
-    if (this.type === "property") {
-      if (!methodName) console.warn("MethodDef: property missing methodName", this)
-      if (this.inline)
-        return render.Fragment(async, methodName, render.COLON_AND_SPACE, args, render.FAT_ARROW, body, error)
-      return render.Fragment(async, methodName, args, render.SPACE, body, error)
-    }
-    // normal method
-    if (this.inline) return render.Fragment(async, args, render.FAT_ARROW, body, error)
-    return render.Fragment(async, render.FUNCTION, methodName, args, render.SPACE, body, error)
   }
 }
 
@@ -1492,7 +1495,7 @@ export class JSXAttribute extends Expression {
     //  otherwise return `true` as per spec for an empty attribute
     const value = this.value || (this.error ? new UndefinedLiteral(this.match) : new BooleanLiteral(this.match, true))
     if (value instanceof MethodDefinition) {
-      value.type = "property"
+      value.asProperty = true
       value.methodName = this.name
       if (this.error) value.error = this.error
       return value
