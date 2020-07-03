@@ -48,7 +48,13 @@ the short-rank of a card is:
 	if its rank is a number return "" + its rank
 	return (the first character of its rank) as uppercase
 
+the short-direction of a card is:
+	if its direction is up return "+"
+	return "—"
+	
 the short-name of a card is: its short-rank + its short-suit
+
+the state of a card is: its short-rank + its short-suit + its short-direction
 
 ## actions
 to turn (a card) face up: 

@@ -51,16 +51,17 @@ for each number from 1 to 7
 set foundations to piles in (the piles of the game) where the pile is a foundation
 set tableaus to piles in (the piles of the game) where the pile is a tableau
 
+the state of a card-game is:
+	set state to []
+	for each pile in its piles
+		add the state of the pile to state
+	return state
+
 ## actions
 
-to display (a pile)
-	set output to its name + ":"
-	for each card in the pile
-		set output to output + ":" + (display the card)
-	echo output
-	
-to display (a card-game)
-	for each pile in its piles: display the pile
+to debug the game
+	for each line of the state of the game
+		print the line
 
 to reset stock
 	set cards to cards in discards starting with the first card in discards
@@ -125,7 +126,8 @@ to auto-play
 	for each pile and pile-num in the auto-play-piles
 		set the card to the first card of (the cards in the pile where the card is face up)
 		if the card does not exist return
-		if the card is a king and the card is the first card of the pile return
+		if the card is a king 
+			if the pile is not discards and the card is the first card of the pile return
 		play the card
 		pause for 100 msec
 
@@ -150,27 +152,30 @@ to cheat
 
 to draw (a foundation):
 	if it is empty
-		if its name is clubs return <div className="Card Placeholder ui button basic compact fluid black">♣️</div>
-		if its name is diamonds return <div className="Card Placeholder ui button basic compact fluid red">♦️</div>
-		if its name is hearts return <div className="Card Placeholder ui button basic compact fluid red">♥️</div>
-		if its name is spades return <div className="Card Placeholder ui button basic compact fluid black">♠️</div>
+		if its name is clubs return <div className="Pile Placeholder ui button basic compact fluid black"><span className="suit clubs">♣️</span></div>
+		if its name is diamonds return <div className="Pile Placeholder ui button basic compact fluid red"><span className="suit diamonds">♦️</span></div>
+		if its name is hearts return <div className="Pile Placeholder ui button basic compact fluid red"><span className="suit hearts">♥️</span></div>
+		if its name is spades return <div className="Pile Placeholder ui button basic compact fluid black"><span className="suit spades">♠️</span></div>
 	return draw its bottom card
 
 to draw (a stock-pile):
 	if it is empty
-		return <div onClick={turn over stock} className="Card Placeholder ui button basic compact fluid"></div>
+		return <div onClick={turn over stock} className="Pile Placeholder ui button basic compact fluid"></div>
 	return draw its bottom card
 
 to draw (a discard-pile):
 	if it is empty
-		return <div onClick={turn over stock} className="Card Placeholder ui button basic compact fluid"></div>
+		return <div onClick={turn over stock} className="Pile Placeholder ui button basic compact fluid"></div>
 	return draw its bottom card
 
 to draw (a card):
 	set className to "Card face-" + its direction + " "	+ its rank + " " + its suit + " ui button compact fluid "
 	if it is face down 
 		return <div onClick={play the card} className={className}><i className="fitted bicycle icon"/></div>
-	return <div onClick={play the card} className={className +	its color}>{the short-rank of the card + " " + the short-suit of the card}</div>
+	return <div onClick={play the card} className={className +	its color}>
+		{the short-rank of the card + " "}
+		<span className="suit">{the short-suit of the card}</span>
+	</div>
 
 to draw (a card-game)
  	return <div>
@@ -182,7 +187,7 @@ to draw (a card-game)
 						<th className="right aligned">{"Score: " + the score of the game}</th>
 						<th><div className="tiny fluid ui button compact" onClick={auto-play}>AutoPlay</div></th>
 						<th><div className="tiny fluid ui button compact" onClick={cheat}>Cheat</div></th>
-						<th><div className="tiny fluid ui button compact" onClick={display the game}>Debug</div></th>
+						<th><div className="tiny fluid ui button compact" onClick={debug the game}>Debug</div></th>
 						<th><div className="tiny fluid ui button compact" onClick={reset the game}>Restart</div></th>
 					</tr>
 				</thead>

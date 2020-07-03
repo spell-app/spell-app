@@ -1,16 +1,20 @@
 ## Pile of playing cards
-a pile "color" is:
+the color of a pile is:
 	if it is empty return "none"
 	return the color of its last card
 
-a pile "value" is:
+the value of a pile is:
 	if it is empty return 0
 	return the value of its last card
-
+	
 // "move" a card -- make sure it's only in one pile at a time
-// NOTE: this doesn't check if this is a legal move, use `play` for that
 to move (a card) to (a pile)
 	if the pile of the card is defined: remove the card from its pile
 	set the pile of the card to the pile
 	add the card to the pile
 
+the state of a pile is:
+	set state to (the name of the pile or "pile") + ":"
+	for each card in pile
+		set state to state + " " + the state of the card
+	return state

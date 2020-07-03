@@ -1,5 +1,31 @@
 /* File styles.css */
 .Card {
+	position: relative;
 	margin: 4px 0 !important;
 	height: 30px;
+}
+
+.Card .suit {
+	position: relative;
+	font-size: 1.5rem;
+	padding-left: 1px;
+	vertical-align: top;
+	top: -0.15rem;
+}
+
+.Pile.Placeholder {
+	position: relative;
+	margin: 4px 0 !important;
+	height: 30px;
+}
+
+.Pile.Placeholder .suit {
+	position: relative;
+	font-size: 1.6rem;
+}
+
+.Pile.Placeholder .suit.diamonds,
+.Pile.Placeholder .suit.spades {
+	font-size: 1.75rem;
+	top: -0.1rem;
 }
