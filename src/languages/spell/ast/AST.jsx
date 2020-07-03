@@ -12,7 +12,7 @@ import {
   OPTIONAL,
   normalizeInitialWhitespace
 } from "~/util"
-import { Match } from "~/parser"
+import { Match, MethodScope } from "~/parser"
 import * as stringify from "./stringifyAST"
 import * as render from "./renderAST"
 import { mount } from "./enzyme-setup"
@@ -391,8 +391,13 @@ export class AwaitExpression extends Expression {
   constructor(match, props) {
     super(match, props)
     this.assertType("expression", Expression)
-    // TODO: Mark the parentScope as asynchronous
-    this.parentScope.async = true
+    // Work our way up the scope chain
+    // -- if we find a MethodScope, mark it as asynchronous
+    let scope = this.parentScope
+    while (scope && !(scope instanceof MethodScope)) scope = scope.scope
+    if (scope instanceof MethodScope) {
+      scope.async = true
+    }
   }
   compile() {
     return `await ${this.expression.compile()}`

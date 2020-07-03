@@ -8,7 +8,11 @@ import { AST, SpellParser } from "~/languages/spell"
 export const _async = new SpellParser({
   module: "async",
   rules: [
-    /** Await some expression! */
+    /**
+     * Await some expression!
+     * TODO: add test to make sure parents are made async properly,
+     *       especially for `await` inside an if block, etc
+     */
     {
       name: "await",
       alias: "statement",

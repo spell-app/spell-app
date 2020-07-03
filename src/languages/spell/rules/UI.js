@@ -101,7 +101,6 @@ export const UI = new SpellParser({
       testRule: "alert",
       constructor: "Statement",
       getAST(match) {
-        match.scope.async = true // TODO!!!
         const { message, okButton } = match.groups
         const args = [message.AST]
         if (okButton) args.push(okButton.AST)
@@ -134,7 +133,6 @@ export const UI = new SpellParser({
       testRule: "warn",
       constructor: "Statement",
       getAST(match) {
-        match.scope.async = true // TODO!!!
         const { message, okButton } = match.groups
         const args = [message.AST]
         if (okButton) args.push(okButton.AST)
@@ -167,7 +165,6 @@ export const UI = new SpellParser({
       testRule: "confirm",
       constructor: "Statement",
       getAST(match) {
-        match.scope.async = true // TODO!!!
         const { message, okButton, cancelButton } = match.groups
         const args = [message.AST]
         if (okButton) args.push(okButton.AST)
@@ -203,7 +200,6 @@ export const UI = new SpellParser({
       testRule: "prompt",
       constructor: "Statement",
       getAST(match) {
-        match.scope.async = true // TODO!!!
         const { message, defaultValue } = match.groups
         const args = [message.AST]
         if (defaultValue) args.push(defaultValue.AST)
