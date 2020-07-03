@@ -68,17 +68,23 @@ to reset stock
 	for each card in cards
 		turn the card face down
 		move it to the stock
+		wait 10 ticks
 		
 to turn over stock
 	if the stock is empty 
 		reset stock
 		return
 	// `repeat 3 times` for some versions of klondike
-	turn the bottom card of stock face up
+	set the card to the bottom card of stock
+	turn the card face up
 	pause for 20 ticks
-	move the bottom card of stock to the discards
+	move the card to the discards
 
+// use `dealing` as a flag in case they try to deal while we're animating
+set dealing to no
 to deal the cards
+	if dealing return
+	set dealing to yes
 	for each card and number in the deck
 		turn the card face down
 		move the card to the stock
@@ -90,6 +96,7 @@ to deal the cards
 			move the bottom card of the stock to item column of the tableaus
 			pause for 10 msec
 	turn over stock
+	set dealing to no
 
 to play (a card)
 	set start-pile to the pile of the card
@@ -116,9 +123,8 @@ to play (a card)
 to auto-play
 	set auto-play-piles to piles in (the piles of the game) where it is not empty and its auto-play is yes
 	for each pile and pile-num in the auto-play-piles
-		set cards to the cards in the pile where the card is face up
-		if cards is empty return
-		set the card to the first card of cards
+		set the card to the first card of (the cards in the pile where the card is face up)
+		if the card does not exist return
 		if the card is a king and the card is the first card of the pile return
 		play the card
 		pause for 100 msec
