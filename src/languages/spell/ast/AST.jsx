@@ -19,6 +19,9 @@ import { mount } from "./enzyme-setup"
 
 // TODO: define this in `constants` or some such?
 const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w\$]*$/
+function isLegalIdentifier(value) {
+  return LEGAL_PROPERTY_IDENTIFIER.test(value)
+}
 
 function convertStatementsToBlock(match, statements) {
   if (!statements) return new StatementBlock(match)
@@ -157,13 +160,7 @@ export class ExpressionWithComment extends Expression {
     return `${this.expression.compile()} ${this.comment.compile()}`
   }
   renderChildren() {
-    return (
-      <>
-        {this.expression.component}
-        {render.SPACE}
-        {this.comment.component}
-      </>
-    )
+    return render.Fragment(this.expression.component, render.SPACE, this.comment.component)
   }
 }
 
@@ -413,12 +410,10 @@ export class LineComment extends Comment {
   renderChildren() {
     let { commentSymbol = "" } = this
     if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
-    return (
-      <>
-        <span className="punctuation line-comment-symbol">{commentSymbol}</span>
-        <span className="whitespace">{this.initialWhitespace || " "}</span>
-        <span className="comment">{this.value}</span>
-      </>
+    return render.Fragment(
+      <span className="punctuation line-comment-symbol">{commentSymbol}</span>,
+      <span className="whitespace">{this.initialWhitespace || " "}</span>,
+      <span className="comment">{this.value}</span>
     )
   }
 }
@@ -435,13 +430,7 @@ export class BlockComment extends Comment {
     return `/* ${this.value} */`
   }
   renderChildren() {
-    return (
-      <>
-        <span className="punctuation open-comment-symbol">{"/* "}</span>
-        <span className="comment">{this.value}</span>
-        <span className="punctuation close-comment-symbol">{" */"}</span>
-      </>
-    )
+    return render.Fragment(render.OPEN_COMMENT, <span className="comment">{this.value}</span>, render.CLOSE_COMMENT)
   }
 }
 
@@ -454,13 +443,11 @@ export class ParserAnnotation extends BlockComment {
     return `/* ${this.annotation} ${this.value} */`
   }
   renderChildren() {
-    return (
-      <>
-        <span className="punctuation open-comment-symbol">{"/* "}</span>
-        <span className="annotation">{this.annotation} </span>
-        <span className="comment">{this.value}</span>
-        <span className="punctuation close-comment-symbol">{" */"}</span>
-      </>
+    return render.Fragment(
+      render.OPEN_COMMENT,
+      <span className="annotation">{this.annotation} </span>,
+      <span className="comment">{this.value}</span>,
+      render.CLOSE_COMMENT
     )
   }
 }
@@ -511,12 +498,7 @@ export class NotExpression extends Expression {
     return `!${this.expression.compile()}`
   }
   renderChildren() {
-    return (
-      <>
-        <span className="operator exclamation-point">!</span>
-        <span className="expression">{this.expression.component}</span>
-      </>
-    )
+    return render.Fragment(render.BANG, <span className="expression">{this.expression.component}</span>)
   }
 }
 
@@ -532,12 +514,10 @@ export class InfixExpression extends Expression {
     return `${this.lhs.compile()} ${this.operator} ${this.rhs.compile()}`
   }
   renderChildren() {
-    return (
-      <>
-        <span className="lhs">{this.lhs.component}</span>
-        <span className="operator"> {this.operator} </span>
-        <span className="rhs">{this.rhs.component}</span>
-      </>
+    return render.Fragment(
+      <span className="lhs">{this.lhs.component}</span>,
+      <span className="operator"> {this.operator} </span>,
+      <span className="rhs">{this.rhs.component}</span>
     )
   }
 }
@@ -564,7 +544,7 @@ export class InvocationArgs extends ASTNode {
   constructor(match, { wrap, ...props }) {
     super(match, props)
     if (typeof wrap === "boolean") this.wrap = wrap
-    this.assertArrayType("args", [Expression, MethodDefinition], OPTIONAL)
+    this.assertArrayType("args", Expression, OPTIONAL)
     if (this.args) {
       // unwind parenthesized expressions in args
       this.args = this.args.map((arg) => {
@@ -604,12 +584,7 @@ export class MethodInvocation extends Expression {
     return `${this.methodName}${this.args.compile()}`
   }
   renderChildren() {
-    return (
-      <>
-        <span className="method-name">{this.methodName}</span>
-        {this.args.component}
-      </>
-    )
+    return render.Fragment(<span className="method-name">{this.methodName}</span>, this.args.component)
   }
 }
 
@@ -629,13 +604,11 @@ export class ScopedMethodInvocation extends MethodInvocation {
     return `${this.thing.compile()}.${this.methodName}${this.args.compile()}`
   }
   renderChildren() {
-    return (
-      <>
-        <span className="method-scope">{this.thing.component}</span>
-        <span className="operator period">.</span>
-        <span className="method-name">{this.methodName}</span>
-        {this.args.component}
-      </>
+    return render.Fragment(
+      <span className="method-scope">{this.thing.component}</span>,
+      <span className="operator period">.</span>,
+      <span className="method-name">{this.methodName}</span>,
+      this.args.component
     )
   }
 }
@@ -692,12 +665,7 @@ export class AwaitMethodInvocation extends Expression {
     return `await ${this.method.compile()}`
   }
   renderChildren() {
-    return (
-      <>
-        <span className="keyword await">await </span>
-        {this.method.component}
-      </>
-    )
+    return render.Fragment(render.AWAIT, this.method.component)
   }
 }
 
@@ -769,13 +737,7 @@ export class PrototypeExpression extends Expression {
     return `${type.compile()}.prototype`
   }
   renderChildren() {
-    return (
-      <>
-        {this.type.component}
-        <span className="operator period">.</span>
-        <span className="keyword prototype">{"prototype"}</span>
-      </>
-    )
+    return render.Fragment(this.type.component, render.PERIOD, render.PROTOTYPE)
   }
 }
 
@@ -808,12 +770,10 @@ export class VariableExpression extends Expression {
   }
   renderChildren() {
     if (!this.default) return <span className="name">{this.name}</span>
-    return (
-      <>
-        <span className="name">{this.name}</span>
-        <span className="operator equals">{" = "}</span>
-        <span className="default">{this.default.component}</span>
-      </>
+    return render.Fragment(
+      <span className="name">{this.name}</span>,
+      render.EQUALS,
+      <span className="default">{this.default.component}</span>
     )
   }
 }
@@ -851,7 +811,7 @@ export class PropertyLiteral extends Literal {
     this.assertType("raw", "string", OPTIONAL)
   }
   get isLegalIdentifier() {
-    return LEGAL_PROPERTY_IDENTIFIER.test(this.value)
+    return isLegalIdentifier(this.value)
   }
   compile() {
     if (this.isLegalIdentifier) return this.value
@@ -886,20 +846,9 @@ export class PropertyExpression extends Expression {
   renderChildren() {
     const object = <span className="object">{this.object.component}</span>
     if (this.property.isLegalIdentifier) {
-      return (
-        <>
-          {object}
-          <span className="operator period">.</span>
-          {this.property.component}
-        </>
-      )
+      return render.Fragment(object, render.PERIOD, this.property.component)
     }
-    return (
-      <>
-        {object}
-        <render.InSquareBrackets>{this.property.component}</render.InSquareBrackets>
-      </>
-    )
+    return render.Fragment(object, <render.InSquareBrackets>{this.property.component}</render.InSquareBrackets>)
   }
 }
 
@@ -924,67 +873,12 @@ export class ObjectLiteralProperty extends ASTNode {
     if (!this.value) return `${prop}${error}`
     return `${prop}: ${this.value.compile()}${error}`
   }
-  renderError() {
-    if (!this.error) return null
-    return (
-      <>
-        {render.SPACE}
-        {this.error.component}
-      </>
-    )
-  }
   renderChildren() {
     // If no value, assume it's available as a local variable.
-    const value = !!this.value && (
-      <>
-        <span className="operator colon">: </span>
-        <span className="value">{this.value.component}</span>
-      </>
-    )
-    return (
-      <>
-        {<span className="property">{this.property.component}</span>}
-        {value}
-        {this.renderError()}
-      </>
-    )
-  }
-}
-
-/** ObjectLiteralMethod type, eg: `{ foo(arg, arg) {...} }`
- *  - `property` is the normalized property name.
- *  - `method` is MethodDefinition to use.
- *  - `error` (optional) is a syntax error associated with this property
- */
-export class ObjectLiteralMethod extends ObjectLiteralProperty {
-  constructor(match, props) {
-    super(match, props)
-    // `property` and `error` will be set up by ObjectLiteralProperty
-    this.assertType("method", MethodDefinition)
-  }
-  compile() {
-    const error = this.error ? ` ${this.error.compile()}` : ""
-    if (this.method.inline) return `${this.property.compile()}: ${this.method.compile()}${error}`
-    return `${this.property.compile()}${this.method.compile()}${error}`
-  }
-  renderChildren() {
-    if (this.method.inline) {
-      return (
-        <>
-          {this.property.component}
-          <span className="operator colon">: </span>
-          {this.method.component}
-          {this.renderError()}
-        </>
-      )
-    }
-    return (
-      <>
-        {this.property.component}
-        {this.method.component}
-        {this.renderError()}
-      </>
-    )
+    const value =
+      !!this.value && render.Fragment(render.COLON_AND_SPACE, <span className="value">{this.value.component}</span>)
+    const error = !!this.error && render.Fragment(render.SPACE, this.error.component)
+    return render.Fragment(<span className="property">{this.property.component}</span>, value, error)
   }
 }
 
@@ -996,8 +890,14 @@ export class ObjectLiteral extends Expression {
   @proto @readonly datatype = "object"
   constructor(match, props) {
     super(match, props)
-    this.assertArrayType("properties", ObjectLiteralProperty, OPTIONAL)
+    this.assertArrayType("properties", [ObjectLiteralProperty, MethodDefinition], OPTIONAL)
     this.assertType("wrap", "boolean", OPTIONAL)
+    if (!this.properties) this.properties = []
+  }
+  // Should we wrap properties block?
+  @overrideable
+  get wrap() {
+    return this.properties?.length > 2 || this.properties?.some((item) => item instanceof MethodDefinition)
   }
   addProp(property, value) {
     // convert string value to StringLiteral
@@ -1012,12 +912,9 @@ export class ObjectLiteral extends Expression {
       method instanceof MethodDefinition,
       `AST.ObjectLiteral.addMethod(${property}): method must be a MethodDefinition`
     )
-    this.properties.push(new ObjectLiteralMethod(method.match, { property, method }))
-  }
-  // Should we wrap properties block?
-  @overrideable
-  get wrap() {
-    return this.properties?.length > 2 || this.properties?.some((item) => item instanceof ObjectLiteralMethod)
+    method.methodName = property
+    method.type = "property"
+    this.properties.push(method)
   }
   compile() {
     const { wrap } = this
@@ -1118,13 +1015,11 @@ export class AssignmentStatement extends Statement {
     return `${super.className}${this.isNewVariable ? " declaration" : ""}`
   }
   renderChildren() {
-    return (
-      <>
-        {this.isNewVariable && <span className="keyword declarator">let </span>}
-        <span className="thing">{this.thing.component}</span>
-        <span className="operator equals"> = </span>
-        <span className="value">{this.value.component}</span>
-      </>
+    return render.Fragment(
+      !!this.isNewVariable && render.LET,
+      <span className="thing">{this.thing.component}</span>,
+      render.EQUALS,
+      <span className="value">{this.value.component}</span>
     )
   }
 }
@@ -1155,15 +1050,13 @@ export class DestructuredAssignment extends Statement {
     return `${super.className}${this.isNewVariable ? " declaration" : ""}`
   }
   renderChildren() {
-    return (
-      <>
-        {this.isNewVariable && <span className="keyword declarator">let </span>}
-        <render.InCurlies space>
-          <render.List items={this.variables} />
-        </render.InCurlies>
-        <span className="operator equals"> = </span>
-        <span className="thing">{this.thing.component}</span>
-      </>
+    return render.Fragment(
+      !!this.isNewVariable && render.LET,
+      <render.InCurlies space>
+        <render.List items={this.variables} />
+      </render.InCurlies>,
+      render.EQUALS,
+      <span className="thing">{this.thing.component}</span>
     )
   }
 }
@@ -1181,12 +1074,7 @@ export class ReturnStatement extends Statement {
     return `return ${this.value.compile()}`
   }
   renderChildren() {
-    return (
-      <>
-        <span className="keyword return">{"return "}</span>
-        {this.value && <span className="value">{this.value.component}</span>}
-      </>
-    )
+    return render.Fragment(render.RETURN, !!this.value && <span className="value">{this.value.component}</span>)
   }
 }
 
@@ -1207,20 +1095,14 @@ export class ClassDeclaration extends Statement {
     return `export class ${type.name} ${superDeclarator}{}`
   }
   renderChildren() {
-    return (
-      <>
-        <span className="keyword export">{"export "}</span>
-        <span className="keyword class">{"class "}</span>
-        <span className="type">{this.type.component}</span>
-        {!!this.superType && (
-          <>
-            <span className="keyword extends">{" extends "}</span>
-            <span className="superType">{this.superType.component}</span>
-          </>
-        )}
-        {render.SPACE}
-        {render.EMPTY_BLOCK}
-      </>
+    return render.Fragment(
+      render.EXPORT,
+      render.CLASS,
+      <span className="type">{this.type.component}</span>,
+      !!this.superType && render.EXTENDS,
+      !!this.superType && <span className="superType">{this.superType.component}</span>,
+      render.SPACE,
+      render.EMPTY_BLOCK
     )
   }
 }
@@ -1241,13 +1123,7 @@ export class NewInstanceExpression extends Expression {
   }
   renderChildren() {
     const props = this.props ? <render.InParens>{this.props.component}</render.InParens> : render.EMPTY_PARENS
-    return (
-      <>
-        <span className="keyword new">{"new "}</span>
-        <span className="type">{this.type.component}</span>
-        {props}
-      </>
-    )
+    return render.Fragment(render.NEW, <span className="type">{this.type.component}</span>, props)
   }
 }
 
@@ -1289,15 +1165,15 @@ export class PropertyDefinition extends Statement {
     this.assertType("thing", Expression)
     if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
-    this.assertType("value", [Expression, MethodDefinition], OPTIONAL)
+    this.assertType("value", Expression, OPTIONAL)
     this.assertType("initializer", [StatementBlock, Statement, Expression], OPTIONAL)
-    this.assertType("get", [MethodDefinition, StatementBlock, Statement, Expression], OPTIONAL)
-    this.assertType("set", [MethodDefinition, StatementBlock, Statement, Expression], OPTIONAL)
+    this.assertType("get", [StatementBlock, Statement, Expression], OPTIONAL)
+    this.assertType("set", [StatementBlock, Statement, Expression], OPTIONAL)
   }
   // Return `CoreMethodInvocation` which we'll use to render as JS or component
   @memoize
   get definition() {
-    const { match, thing, property, value, get, set, initializer } = this
+    let { match, thing, property, value, get, set, initializer } = this
     const propName = new QuotedExpression(property.match, { expression: property })
 
     const descriptor = new ObjectLiteral(match)
@@ -1305,20 +1181,24 @@ export class PropertyDefinition extends Statement {
       if (value instanceof MethodDefinition) descriptor.addMethod("value", value)
       else descriptor.addProp("value", value)
     }
-    if (initializer)
-      descriptor.addMethod("initializer", new MethodDefinition(initializer.match, { body: initializer, inline: false }))
-    if (get)
-      descriptor.addMethod(
-        "get",
-        get instanceof MethodDefinition ? get : new MethodDefinition(get.match, { body: get, inline: false })
-      )
-    if (set)
-      descriptor.addMethod(
-        "set",
-        set instanceof MethodDefinition
-          ? set
-          : new MethodDefinition(set.match, { args: [property], body: set, inline: false })
-      )
+    if (initializer) {
+      if (!(initializer instanceof MethodDefinition)) {
+        initializer = new MethodDefinition(initializer.match, { type: "property", body: initializer })
+      }
+      descriptor.addMethod("initializer", initializer)
+    }
+    if (get) {
+      if (!(get instanceof MethodDefinition)) {
+        get = new MethodDefinition(get.match, { type: "property", methodName: "get", body: get })
+      }
+      descriptor.addMethod("get", get)
+    }
+    if (set) {
+      if (!(set instanceof MethodDefinition)) {
+        set = new MethodDefinition(set.match, { type: "property", methodName: "set", args: [property], body: set })
+      }
+      descriptor.addMethod("set", set)
+    }
 
     return new CoreMethodInvocation(match, {
       methodName: "define",
@@ -1353,13 +1233,12 @@ export class MethodDefinition extends Expression {
     super(match, props)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
     this.assertType("body", [StatementBlock, Statement, Expression], OPTIONAL)
-    // If we got an `Expression,` assume `inline` unless we were told otherwise.
     // TODO: assert that EITHER inline or asFunction
-    // if (this.inline === undefined && this.body instanceof Expression) this.inline = true
     this.assertType("inline", "boolean", OPTIONAL)
     this.assertType("asFunction", "boolean", OPTIONAL)
     this.assertType("methodName", "string", OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
+    this.assertType("error", ParseError, OPTIONAL)
 
     // Default `body` to empty StatementBlock
     if (!this.body) {
@@ -1385,25 +1264,53 @@ export class MethodDefinition extends Expression {
   get isAsync() {
     return !!this.match.nestedScope?.async
   }
-  compile() {
-    const async = "" // this.isAsync ? "async " : ""
-    const fn = this.asFunction ? "function " : ""
-    const name = this.asFunction && this.methodName ? this.methodName : ""
-    const args = stringify.Args({ args: this.args })
-    const operator = this.inline ? " => " : " "
-    return `${async}${fn}${name}${args}${operator}${this.body.compile()}`
+  getMethodName() {
+    const { methodName } = this
+    if (!methodName) return ""
+    if (this.type === "property" && !isLegalIdentifier(methodName)) return `'${methodName}'`
+    return methodName
   }
-  renderChildren() {
-    return (
+  compile() {
+    const async = this.isAsync ? "async " : ""
+    const args = stringify.Args({ args: this.args })
+    const error = this.error ? ` ${this.error.compile()}` : ""
+    const body = this.body.compile()
+
+    const methodName = this.getMethodName()
+    if (this.type === "property") {
+      if (!methodName) console.warn("MethodDef: property missing methodName", this)
+      if (this.inline) return `${async}${methodName}: ${args} => ${body}${error}`
+      return `${async}${methodName}${args} ${body}${error}`
+    }
+
+    // normal method
+    if (this.inline) return `${async}${args} => ${body}${error}`
+    return `${async}function ${methodName}${args} ${body}${error}`
+  }
+  renderError() {
+    if (!this.error) return null
+    return render.Fragment(
       <>
-        {/* {this.isAsync && <span className="keyword async">async </span>} */}
-        {this.asFunction ? <span className="keyword function">function </span> : null}
-        {this.asFunction && this.methodName ? <span className="method-name">{this.methodName}</span> : null}
-        <render.Args args={this.args} />
-        {this.inline ? <span className="operator fat-arrow">{" => "}</span> : render.SPACE}
-        {this.body.component}
+        {render.SPACE}
+        {this.error.component}
       </>
     )
+  }
+  renderChildren() {
+    const async = this.isAsync && render.ASYNC
+    const methodName = !!this.methodName && <span className="method-name">{this.getMethodName()}</span>
+    const args = <render.Args args={this.args} />
+    const body = this.body.component
+    const error = !!this.error && render.Fragment(render.SPACE, this.error.component)
+    if (this.type === "property") {
+      if (!methodName) console.warn("MethodDef: property missing methodName", this)
+      if (this.inline)
+        return render.Fragment(async, methodName, render.COLON_AND_SPACE, args, render.FAT_ARROW, body, error)
+      return render.Fragment(async, methodName, args, render.SPACE, body, error)
+    }
+    // normal method
+    if (this.inline) return render.Fragment(async, args, render.FAT_ARROW, body, error)
+    return render.Fragment(async, render.FUNCTION, methodName, args, render.SPACE, body, error)
   }
 }
 
@@ -1425,13 +1332,11 @@ export class IfStatement extends Statement {
     return `if ${this.condition.compile()} ${this.statements.compile()}`
   }
   renderChildren() {
-    return (
-      <>
-        <span className="keyword if">if </span>
-        <span className="condition">{this.condition.component}</span>
-        {render.SPACE}
-        {this.statements.component}
-      </>
+    return render.Fragment(
+      render.IF,
+      <span className="condition">{this.condition.component}</span>,
+      render.SPACE,
+      this.statements.component
     )
   }
 }
@@ -1454,14 +1359,12 @@ export class ElseIfStatement extends Statement {
     return `else if ${this.condition.compile()} ${this.statements.compile()}`
   }
   renderChildren() {
-    return (
-      <>
-        <span className="keyword else">else </span>
-        <span className="keyword if">if </span>
-        <span className="condition">{this.condition.component}</span>
-        {render.SPACE}
-        {this.statements.component}
-      </>
+    return render.Fragment(
+      render.ELSE,
+      render.IF,
+      <span className="condition">{this.condition.component}</span>,
+      render.SPACE,
+      this.statements.component
     )
   }
 }
@@ -1478,12 +1381,7 @@ export class ElseStatement extends Statement {
     return `else ${this.statements.compile()}`
   }
   renderChildren() {
-    return (
-      <>
-        <span className="keyword else">else </span>
-        {this.statements.component}
-      </>
-    )
+    return render.Fragment(render.ELSE, this.statements.component)
   }
 }
 
@@ -1507,9 +1405,9 @@ export class TernaryExpression extends Expression {
     return (
       <render.InParens>
         <span className="condition">{this.condition.component}</span>
-        <span className="operator question-mark">{" ? "}</span>
+        {render.TERNARY_QUESTION}
         {this.trueValue.component}
-        <span className="operator colon"> : </span>
+        {render.TERNARY_COLON}
         {this.falseValue.component}
       </render.InParens>
     )
@@ -1584,7 +1482,7 @@ export class JSXAttribute extends Expression {
   constructor(match, props) {
     super(match, props)
     this.assertType("name", "string")
-    this.assertType("value", [Expression, MethodDefinition], OPTIONAL)
+    this.assertType("value", Expression, OPTIONAL)
     this.assertType("error", ParseError, OPTIONAL)
   }
   @memoize
@@ -1594,11 +1492,10 @@ export class JSXAttribute extends Expression {
     //  otherwise return `true` as per spec for an empty attribute
     const value = this.value || (this.error ? new UndefinedLiteral(this.match) : new BooleanLiteral(this.match, true))
     if (value instanceof MethodDefinition) {
-      return new ObjectLiteralMethod(this.match, {
-        property: this.name,
-        method: value,
-        error: this.error
-      })
+      value.type = "property"
+      value.methodName = this.name
+      if (this.error) value.error = this.error
+      return value
     }
     return new ObjectLiteralProperty(this.match, {
       property: this.name,

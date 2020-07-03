@@ -397,7 +397,8 @@ export const classes = new SpellParser({
             props.addMethod(
               "initializer",
               new AST.MethodDefinition(specifier.match, {
-                statements: specifier,
+                type: "property",
+                methodName: "initializer",
                 body: specifier
               })
             )
@@ -591,7 +592,7 @@ export const classes = new SpellParser({
           thing: new AST.PrototypeExpression(type, { type: type.AST }),
           property: property.AST,
           // default getter value to `undefined` if nothing specified
-          get: (inlineStatement || nestedBlock)?.AST || new AST.UndefinedLiteral(match)
+          get: (inlineStatement || nestedBlock)?.AST || new AST.StatementBlock(match)
         })
       },
       tests: [
@@ -601,16 +602,13 @@ export const classes = new SpellParser({
             scope.compile("a card is a thing\na pile is a list of cards")
           },
           tests: [
-            [
-              "the value of a card is:",
-              ["spellCore.define(Card.prototype, 'value', {", "\tget() {", "\t\treturn undefined", "\t}", "})"]
-            ],
+            ["the value of a card is:", ["spellCore.define(Card.prototype, 'value', {", "\tget() {}", "})"]],
             [
               "the value of a card is its name",
               ["spellCore.define(Card.prototype, 'value', {", "\tget() {", "\t\treturn this.name", "\t}", "})"]
             ],
             [
-              "the short-name of a card is:\n\treturn the first word of the name of the card",
+              ["the short-name of a card is:", "\treturn the first word of the name of the card"],
               [
                 "spellCore.define(Card.prototype, 'short_name', {",
                 "\tget() {",
@@ -779,6 +777,8 @@ export const classes = new SpellParser({
               thing: new AST.PrototypeExpression(type, { type: type.AST }),
               property,
               value: new AST.MethodDefinition(match, {
+                methodName: "value",
+                type: "property",
                 args,
                 body: new AST.ReturnStatement(match, {
                   value: AST.MultiInfixExpression(match, { expressions, operator: "&&" })

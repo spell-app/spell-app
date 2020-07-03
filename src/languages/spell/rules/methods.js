@@ -177,11 +177,11 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
 
     const asFunction = !instanceType
     const method = new AST.MethodDefinition(match, {
-      args,
-      body: (inlineStatement || nestedBlock)?.AST,
-      wrap: true,
+      methodName,
+      type: instanceType ? "property" : "function",
       asFunction,
-      methodName
+      args,
+      body: (inlineStatement || nestedBlock)?.AST
     })
 
     if (asTest) {
@@ -230,7 +230,6 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
       output.push(
         new AST.MethodDefinition(match, {
           asFunction: true,
-          wrap: true,
           methodName,
           body: new AST.CoreMethodInvocation(match, {
             methodName: asTest.value === "quietly test" ? "quietlyTest" : "test",

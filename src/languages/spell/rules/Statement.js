@@ -41,7 +41,8 @@ SpellParser.Rule.Statement = class _statement extends Rule.Sequence {
   // Return nested scope to use when parsing an inlineStatement or nestedBlock.
   // Override in your instance.
   getNestedScope(match) {
-    throw new TypeError("You must override getNestedScope()")
+    return undefined
+    // throw new TypeError("You must override getNestedScope()")
   }
 
   // If a parsed `statement` match `.wantsInlineStatement`,
