@@ -61,7 +61,6 @@ export const _async = new SpellParser({
         {
           compileAs: "statement",
           tests: [
-            [`pause for 1 second"`, `await spellCore.pauseFor(1, 'second')`],
             [`pause for 2 seconds"`, `await spellCore.pauseFor(2, 'seconds')`],
             [`pause for 500 msec"`, `await spellCore.pauseFor(500, 'msec')`],
             [`pause for 10 ticks"`, `await spellCore.pauseFor(10, 'ticks')`],

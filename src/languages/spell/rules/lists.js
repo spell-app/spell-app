@@ -68,6 +68,65 @@ export const lists = new SpellParser({
       ]
     },
 
+    /** Duplicate a list. */
+    {
+      name: "copy_list",
+      alias: ["expression", "single_expression"],
+      // QUESTIONABLE SYNTAX
+      // "...as a {type}" ???
+      syntax: "a (copy|duplicate) of list? {expression} (as (a|an) {type:known_type})?",
+      getAST(match) {
+        const { expression, type } = match.groups
+        const args = [expression.AST]
+        if (type) args.push(type.AST)
+        return new AST.CoreMethodInvocation(match, {
+          methodName: "duplicateCollection",
+          args
+        })
+      },
+      tests: [
+        {
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.variables.add("piles")
+          },
+          tests: [
+            ["a copy of the piles", "spellCore.duplicateCollection(piles)"],
+            ["a duplicate of list the piles as a list", "spellCore.duplicateCollection(piles, List)"]
+          ]
+        }
+      ]
+    },
+
+    /** Merge a set of lists together. */
+    {
+      name: "merge_lists",
+      alias: ["expression", "single_expression"],
+      // QUESTIONABLE SYNTAX
+      syntax: "merge lists? {expression} ((as|into) (a|an) new? {type:known_type})?",
+      getAST(match) {
+        const { expression, type } = match.groups
+        const args = [expression.AST]
+        if (type) args.push(type.AST)
+        return new AST.CoreMethodInvocation(match, {
+          methodName: "mergeCollections",
+          args
+        })
+      },
+      tests: [
+        {
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.variables.add("piles")
+          },
+          tests: [
+            ["merge the piles", "spellCore.mergeCollections(piles)"],
+            ["merge the piles as a list", "spellCore.mergeCollections(piles, List)"]
+          ]
+        }
+      ]
+    },
+
     // WORKING FROM OTHER RULES (testme)
     //  `the length of <list>`
     //  `<thing> is not? in <list>`

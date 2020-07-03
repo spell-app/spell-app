@@ -14,7 +14,7 @@ to move (a card) to (a pile)
 	if the pile of the card is defined: remove the card from its pile
 	set the pile of the card to the pile
 	add the card to the pile
-	pause for 1 tick	// one 1/16 of a second
+	pause for 50 msec
 
 
 the state of a pile is:

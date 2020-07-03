@@ -32,6 +32,41 @@ Object.assign(spellCore, {
   // numeric iteration -- arrays only
   //----------
 
+  // Return a duplicate of the collection.
+  duplicateCollection(collection, constructor) {
+    if (!assert.isArrayLike(collection, "spellCore.duplicateCollection(collection)")) return false
+    const result = constructor ? new constructor() : spellCore.newThingLike(collection)
+    return spellCore.mergeCollectionsInto(result, collection)
+  },
+
+  // Merge all `source` collection(s) into `destination`, in place.
+  mergeCollectionsInto(destination, ...sources) {
+    if (!assert.isArrayLike(destination, "spellCore.mergeCollectionsInto(collection)")) return false
+    sources.forEach((source) => {
+      if (source) spellCore.forEach(source, (item) => spellCore.append(destination, item))
+    })
+    return destination
+  },
+
+  // Given a collection of collections, merge into a new one of the same type as the first in the list.
+  mergeCollections(collections, constructor) {
+    if (!assert.isArrayLike(collections, "spellCore.mergeCollections(collection)")) return
+    let merged
+    if (constructor) {
+      merged = new constructor()
+    } else {
+      const first = spellCore.getItemOf(collections, 1)
+      if (!assert.isArrayLike(first, "spellCore.mergeCollections(collection)")) return
+      merged = spellCore.newThingLike(first)
+    }
+    spellCore.forEach(collections, (next) => spellCore.mergeCollectionsInto(merged, next))
+    return merged
+  },
+
+  //----------------------------
+  // numeric iteration -- arrays only
+  //----------
+
   // Is `thing` the first thing in `collection`?
   // Array only.
   startsWith(collection, thing) {
@@ -72,7 +107,7 @@ Object.assign(spellCore, {
   // Reverse list in-place.
   // Array only.
   reverse(collection) {
-    if (!assert.isDefined(collection, "spellCore.reverse(collection)")) return
+    if (!assert.isArrayLike(collection, "spellCore.reverse(collection)")) return
     const reversed = spellCore.valuesOf(collection).reverse()
     spellCore.setItemsOf(collection, 1, ...reversed)
   },
@@ -149,7 +184,7 @@ Object.assign(spellCore, {
 
   // Execute `method` for each item in `collection`, ignoring results.
   forEach(collection, method) {
-    if (!assert.isDefined(collection, "spellCore.map(collection)")) return
+    if (!assert.isDefined(collection, "spellCore.forEach(collection)")) return
     if (!method) return
     const iterator = spellCore.getIteratorFor(collection)
     let result = iterator.next()

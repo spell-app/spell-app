@@ -125,7 +125,7 @@ Object.assign(spellCore, {
       return
     }
     const keys = spellCore.keysOf(collection).reverse()
-    keys.forEach(key => spellCore.removeItemOf(collection, key))
+    keys.forEach((key) => spellCore.removeItemOf(collection, key))
 
     // For arrays, try to set the `length` to 0
     // Might fail on a read-only object.
@@ -157,7 +157,7 @@ Object.assign(spellCore, {
     if (spellCore.isArrayLike(collection)) {
       return (function* numericIterator() {
         const count = spellCore.itemCountOf(collection)
-        for (let position = 1; position <= count; position++) {
+        for (let position = 1; position <= spellCore.itemCountOf(collection); position++) {
           yield [spellCore.getItemOf(collection, position), position, collection]
         }
       })()

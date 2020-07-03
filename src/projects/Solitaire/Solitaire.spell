@@ -2,97 +2,112 @@
 -- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
 
 ## Game bits
-a card-game is an app
-a card-game has a score as a number
-a card-game has a property piles as a new list
-set the game to a new card-game
+a game is an app
+a game has a score as a number
+set the game to a new game
 print the game
 
-// set up deck of cards
-set the deck to a new deck
-set up the deck
+## set up all piles
+set piles to a new list of piles
+set foundations to a new list of piles
+set tableaus to a new list of piles
 
 // set up stock pile: unplayed cards
 a stock-pile is a pile
 a stock-pile "can pick up (a card)" if: the card is its bottom card 
 set the stock to a new stock-pile with name = "stock", droppable = no, auto-play = no
-add the stock to the piles of the game
+add the stock to the piles
 
 // set up discards: where played cards go when turning over stock
 a discard-pile is a pile
 a discard-pile "can pick up (a card)" if: the card is its bottom card 
 set discards to a new discard-pile with name = "discards", droppable = no, auto-play = yes
-add discards to the piles of the game
+add discards to the piles
 
-// set up tableau piles: vertical piles from king => ace
+// set up tableau piles: vertical piles where we arrange from king to ace
 a tableau is a pile
-a tableau "can pick up (a card)" if:
-	if the card is face up return yes
-	return the card is the bottom card of the tableau
+a tableau "can pick up (a card)" if: the card is face up
 a tableau "can play (a card)" if: 
 	if the tableau is empty
 		return the card is a king
-	if the color of the tableau is the color of the card return no
-	return the value of the tableau is the value of the card + 1
+	return its color is not the color of the card and its value is the value of the card + 1
 for each number from 1 to 7
 	get a new tableau with name = ("T" + the number), droppable = yes, auto-play = yes
-	add it to the piles of the game
+	add it to the piles
+	add it to the tableaus
 
 // set up foundation piles: where we build up from ace => king
 a foundation is a pile
 a foundation "can pick up (a card)" if: never
 a foundation "can play (a card)" if: 
-	if the name of the foundation is not the suit of the card return no
-	return the value of the foundation + 1 is the value of the card
+	return (its name is the suit of the card) and (its value + 1 is the value of the card)
 for each suit in card suits
 	get a new foundation with name = the suit, droppable = yes, auto-play = no
-	add it to the piles of the game
-	
-set foundations to piles in (the piles of the game) where the pile is a foundation
-set tableaus to piles in (the piles of the game) where the pile is a tableau
+	add it to the piles
+	add it to the foundations
 
-the state of a card-game is:
-	set state to []
-	for each pile in its piles
-		add the state of the pile to state
-	return state
+
+// set up deck of cards
+set the deck to a new deck
+set up the deck
+// start with cards in the stock pile
+for each card in the deck
+	move it to the stock
+
 
 ## actions
+
+the state of a game is:
+	set state to []
+	for each pile in the piles
+		add the state of the pile to state
+	return state
 
 to debug the game
 	for each line of the state of the game
 		print the line
 
-to reset stock
-	// TODO: this clones the list, nicer way to do this?
-	set cards to cards in discards starting with the first card in discards
+to reset the stock pile
+	set cards to a copy of list discards as a pile
 	reverse the cards
-	for each card in cards
+	for each card in the cards
+		move it to the stock
 		turn the card face down
-		wait for move it to the stock
 
-to turn over stock
+to play from the stock pile
+	start exclusive animation playing-from-stock
 	if the stock is empty 
-		wait for reset stock
-		return
-	// `repeat 3 times` for some versions of klondike
-	set the card to the bottom card of stock
-	turn the card face up
-	wait for move the card to the discards
+		wait for: reset the stock pile
 
-// use `dealing` as a flag in case they try to deal while we're animating
+	get the bottom card of stock
+	turn it face up
+	// pause for 150 msec
+	move it to the discards
+	end animation playing-from-stock
+
 to deal the cards
-	// use start animation to make sure we don't re-start the process if in the middle
-	start exclusive animation dealing
-	for each card in the deck
+	// make sure we don't run this twice at the same time
+	start exclusive animation dealing 
+	
+	// pull all cards into stock with a nice animation
+	set cards to merge the piles into a new pile
+	reverse the cards
+	for each card in the cards
+		set start-pile to the pile of the card
 		turn the card face down
-		wait for move the card to the stock
+		if start-pile is discards // move discards right away
+			move the card to the stock
+		else if start-pile is not the stock // animate everything else not in stock
+			wait for: move the card to the stock
 	shuffle the stock
+	
+	// deal cards into tableaus
 	for row from 1 to 7
-		turn the bottom card of the stock face up
+		turn (the bottom card of the stock) face up
 		for column from row to 7
-			wait for move the bottom card of the stock to item column of the tableaus
-	wait for turn over stock
+			wait for: move the bottom card of the stock to item column of the tableaus
+
+	wait for: play from the stock pile
 	finish animation dealing
 
 to play (a card)
@@ -100,16 +115,17 @@ to play (a card)
 	if start-pile cannot pick up the card return no
 	
 	if start-pile is the stock
-		turn over stock
+		play from the stock pile
 		return
 	
-	set droppable-piles to piles in (the piles of the game) where its droppable is yes and it can play the card
+	set droppable-piles to piles in the piles where its droppable is yes and it can play the card
 	set end-pile to the first pile in droppable-piles
 	if end-pile is not defined return no
 
-	set cards-to-move to cards in start-pile starting with the card
+	set cards-to-move to (cards in start-pile starting with the card)
 	for each card in cards-to-move
 		move it to end-pile
+	pause for 100 msec
 
 	if the start-pile is a tableau and the start-pile is not empty
 		turn the last card of the start-pile face up
@@ -121,14 +137,14 @@ to auto-play
 	print collapsed group "auto-play"
 	print warning "before"
 	debug the game
-	set auto-play-piles to piles in (the piles of the game) where it is not empty and its auto-play is yes
-	for each pile and pile-num in the auto-play-piles
-		set the card to the first card of (the cards in the pile where the card is face up)
-		if the card does not exist return
-		if the card is a king 
-			if the pile is not discards and the card is the first card of the pile return
-		play the card
-		pause for 100 msec
+	set auto-play-piles to piles in the piles where it is not empty and its auto-play is yes
+	for each pile in the auto-play-piles
+		set face-up-cards to the cards in the pile where the card is face up
+		if face-up-cards is empty return
+		get the first card in face-up-cards
+		// don't move kings if they're already at the base of a tableau
+		if (it is a king) and (it is the first card of its pile) and (its pile is a tableau) return
+		await play it
 	print warning "after"
 	debug the game
 	end print group
@@ -162,12 +178,12 @@ to draw (a foundation):
 
 to draw (a stock-pile):
 	if it is empty
-		return <div onClick={turn over stock} className="Pile Placeholder ui button basic compact fluid"></div>
+		return <div onClick={play from the stock pile} className="Pile Placeholder ui button basic compact fluid"></div>
 	return draw its bottom card
 
 to draw (a discard-pile):
 	if it is empty
-		return <div onClick={turn over stock} className="Pile Placeholder ui button basic compact fluid"></div>
+		return <div onClick={play from the stock pile} className="Pile Placeholder ui button basic compact fluid"></div>
 	return draw its bottom card
 
 to draw (a card):
@@ -179,7 +195,7 @@ to draw (a card):
 		<span className="suit">{the short-suit of the card}</span>
 	</div>
 
-to draw (a card-game)
+to draw (a game)
  	return <div>
 		<div className="board">
 			<table className="ui table fixed">

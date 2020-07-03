@@ -57,21 +57,22 @@ the short-name of a card is: its short-rank + its short-suit
 the state of a card is: its short-rank + its short-suit + its short-direction
 
 ## actions
+
+// Turn card face up or face down
+// Note that this will animate if you `wait for turn the card face up`
 to turn (a card) face up: 
 	set its direction to up
-to turn (a card) face down: set its direction to down
+	pause for 50 msec
+to turn (a card) face down: 
+	set its direction to down
+	pause for 50 msec
 
+// Flip card to opposite direction
+// Note that this will animate if you `wait for turn the card face up`
 to turn (a card) over:
-	if its direction is up
-		set its direction to down
-	otherwise 
-		set its direction to up
-
-to flip (a card) over:
-	if it is face up then 
-		turn it face down
-	otherwise 
-		turn it face up
+	if its direction is up: turn it face down
+	otherwise: turn it face up
+	pause for 50 msec
 
 ## create a card instance with default properties
 to quietly test card setup
@@ -108,9 +109,6 @@ to quietly test card setup
 
 	turn the card over
 	expect the card is face up to be true
-
-	flip the card over
-	expect the card is face down
 test card setup
 
 
