@@ -18,14 +18,14 @@ Object.assign(spellCore, {
   includes(collection, ...values) {
     if (!assert.isDefined(collection, "spellCore.includes(collection)")) return false
     if (!values.length) return false
-    return spellCore.all(values, value => spellCore.itemOf(collection, value) !== undefined)
+    return spellCore.all(values, (value) => spellCore.itemOf(collection, value) !== undefined)
   },
 
   // Does `collection` include any of the specified `values`?
   // If more than one value specified, only one must be included.
   includesAny(collection, ...values) {
     if (!assert.isDefined(collection, "spellCore.includesAny(collection)")) return false
-    return spellCore.any(values, value => spellCore.itemOf(collection, value) !== undefined)
+    return spellCore.any(values, (value) => spellCore.itemOf(collection, value) !== undefined)
   },
 
   //----------------------------
@@ -159,8 +159,24 @@ Object.assign(spellCore, {
     }
   },
 
+  /**
+   * Execute `method` for each item of map, `await`ing methods completion.
+   * The entire thing will finish when all waiting is done.
+   * Results are ignored.
+   */
+  async forEachSequential(collection, method) {
+    if (!assert.isDefined(collection, "spellCore.map(collection)")) return
+    if (!method) return
+    const iterator = spellCore.getIteratorFor(collection)
+    let result = iterator.next()
+    while (!result.done) {
+      await method(...result.value)
+      result = iterator.next()
+    }
+  },
+
   // Execute `method` for each item in `collection`, returning results in same type as `collection`
-  // Pass `results` as thing to put results into, defults to new thing like `collection`.
+  // Pass `results` as thing to put results into, defaults to new thing like `collection`.
   // TODO: rename???
   map(collection, method) {
     if (!assert.isDefined(collection, "spellCore.map(collection)")) return undefined
@@ -177,7 +193,7 @@ Object.assign(spellCore, {
   // For object: returns new type of collection with just specified keys.
   filter(collection, condition) {
     if (!assert.isDefined(collection, "spellCore.all(collection)")) return undefined
-    if (!condition) condition = it => it
+    if (!condition) condition = (it) => it
     const results = spellCore.newThingLike(collection)
     let filter
     if (spellCore.isArrayLike(collection)) {
@@ -197,7 +213,7 @@ Object.assign(spellCore, {
   // called as `condition(value, item, collection)`
   all(collection, condition) {
     if (!assert.isDefined(collection, "spellCore.all(collection)")) return false
-    if (!condition) condition = it => it
+    if (!condition) condition = (it) => it
     const iterator = spellCore.getIteratorFor(collection)
     let result = iterator.next()
     if (result.done) return false
@@ -212,7 +228,7 @@ Object.assign(spellCore, {
   // called as `condition(value, item, collection)`
   any(collection, condition) {
     if (!assert.isDefined(collection, "spellCore.any(collection)")) return false
-    if (!condition) condition = it => it
+    if (!condition) condition = (it) => it
     const iterator = spellCore.getIteratorFor(collection)
     let result = iterator.next()
     if (result.done) return false
@@ -230,14 +246,14 @@ Object.assign(spellCore, {
     if (!assert.isDefined(collection, "spellCore.removeItemsOf(collection)")) return
     // reverse numeric keys so we don't have to worry about renumbering as we go
     if (spellCore.isArrayLike(collection)) items = items.sort().reverse()
-    items.forEach(item => spellCore.removeItemOf(collection, item))
+    items.forEach((item) => spellCore.removeItemOf(collection, item))
   },
 
   // Remove all occurance of `things` from collection, in-place.
   // For object: removes `values`
   remove(collection, ...things) {
     if (!assert.isDefined(collection, "spellCore.remove(collection)")) return
-    things.forEach(thing => {
+    things.forEach((thing) => {
       let item = spellCore.itemOf(collection, thing)
       while (item !== undefined) {
         spellCore.removeItemOf(collection, item)
@@ -287,11 +303,11 @@ Object.assign(spellCore, {
     const keys = spellCore.keysOf(collection)
     const shuffledKeys = _.shuffle(keys).slice(0, count)
     if (spellCore.isArrayLike(collection)) {
-      shuffledKeys.forEach(key => {
+      shuffledKeys.forEach((key) => {
         spellCore.append(results, spellCore.getItemOf(collection, key))
       })
     } else {
-      shuffledKeys.forEach(key => {
+      shuffledKeys.forEach((key) => {
         spellCore.setItemOf(results, key, spellCore.getItemOf(collection, key))
       })
     }

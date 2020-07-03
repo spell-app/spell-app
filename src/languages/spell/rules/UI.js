@@ -13,38 +13,27 @@ export const UI = new SpellParser({
     {
       name: "wait",
       alias: "statement",
-      syntax: "wait for {number} (units:second|seconds|sec|millisecond|milliseconds|msec|tick|ticks)",
+      // TODO: "a second", "a little bit", "a while", "a noticeable amount"
+      syntax: "pause for {number:expression} (units:second|seconds|sec|millisecond|milliseconds|msec|tick|ticks)",
       constructor: "Statement",
-      // convert operator to number of millisecond
-      unitsMap: {
-        second: 1000,
-        seconds: 1000,
-        sec: 1000,
-        millisecond: 1,
-        milliseconds: 1,
-        msec: 1,
-        // a "tick" (from hypercard) is 1/60th of a second
-        tick: 1000 / 60,
-        ticks: 1000 / 60
-      },
       getAST(match) {
         const { number, units } = match.groups
-        const delay = Math.round(number.value * this.unitsMap[units.value])
-        // return new AST.AwaitMethodInvocation(match, { method:
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "waitFor",
-          args: [new NumericLiteral(match, delay)]
+        return new AST.AwaitMethodInvocation(match, {
+          method: new AST.CoreMethodInvocation(match, {
+            methodName: "pauseFor",
+            args: [number.AST, new AST.QuotedExpression(units, units.value)]
+          })
         })
-        // })
       },
       tests: [
         {
           compileAs: "statement",
           tests: [
-            [`wait for 1 second"`, `spellCore.waitFor(1000)`],
-            [`wait for 2 seconds"`, `spellCore.waitFor(2000)`],
-            [`wait for 500 msec"`, `spellCore.waitFor(500)`],
-            [`wait for 10 ticks"`, `spellCore.waitFor(167)`]
+            [`pause for 1 second"`, `await spellCore.pauseFor(1, 'second')`],
+            [`pause for 2 seconds"`, `await spellCore.pauseFor(2, 'seconds')`],
+            [`pause for 500 msec"`, `await spellCore.pauseFor(500, 'msec')`],
+            [`pause for 10 ticks"`, `await spellCore.pauseFor(10, 'ticks')`],
+            [`pause for (10 + 10) sec`, `await spellCore.pauseFor(10 + 10, 'sec')`]
           ]
         }
       ]

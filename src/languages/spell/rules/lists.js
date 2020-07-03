@@ -1122,6 +1122,17 @@ export const lists = new SpellParser({
           args,
           body: (inlineStatement || nestedBlock)?.AST
         })
+
+        if (method.isAsync) {
+          // console.warn(match.inputText)
+          return new AST.AwaitMethodInvocation(match, {
+            method: new AST.CoreMethodInvocation(match, {
+              methodName: "forEachSequential",
+              args: [list.AST, method]
+            })
+          })
+        }
+
         return new AST.CoreMethodInvocation(match, {
           methodName: "map", // TODO...
           args: [list.AST, method]
@@ -1225,6 +1236,17 @@ export const lists = new SpellParser({
           args: [new AST.VariableExpression(item)],
           body: (inlineStatement || nestedBlock)?.AST
         })
+
+        if (method.isAsync) {
+          // console.warn(match.inputText)
+          return new AST.AwaitMethodInvocation(match, {
+            method: new AST.CoreMethodInvocation(match, {
+              methodName: "forEachSequential",
+              args: [getRange, method]
+            })
+          })
+        }
+
         return new AST.CoreMethodInvocation(match, {
           methodName: "map",
           args: [getRange, method]

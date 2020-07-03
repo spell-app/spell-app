@@ -62,16 +62,6 @@ to display (a pile)
 to display (a card-game)
 	for each pile in its piles: display the pile
 
-to deal the cards
-	for each card in the deck
-		turn the card face down
-		move the card to the stock
-	shuffle the stock
-	for row from 1 to 7
-		turn the bottom card of the stock face up
-		for column from row to 7
-			move the bottom card of the stock to item column of the tableaus
-
 to reset stock
 	set cards to cards in discards starting with the first card in discards
 	reverse the cards
@@ -85,8 +75,21 @@ to turn over stock
 		return
 	// `repeat 3 times` for some versions of klondike
 	turn the bottom card of stock face up
-	wait for 30 ticks
+	pause for 20 ticks
 	move the bottom card of stock to the discards
+
+to deal the cards
+	for each card and number in the deck
+		turn the card face down
+		move the card to the stock
+		pause for 10 msec
+	shuffle the stock
+	for row from 1 to 7
+		turn the bottom card of the stock face up
+		for column from row to 7
+			move the bottom card of the stock to item column of the tableaus
+			pause for 10 msec
+	turn over stock
 
 to play (a card)
 	set start-pile to the pile of the card
@@ -112,13 +115,17 @@ to play (a card)
 
 to auto-play
 	set auto-play-piles to piles in (the piles of the game) where it is not empty and its auto-play is yes
-	for each pile in the auto-play-piles
-		play the bottom card of the pile
+	for each pile and pile-num in the auto-play-piles
+		set cards to the cards in the pile where the card is face up
+		if cards is empty return
+		set the card to the first card of cards
+		if the card is a king and the card is the first card of the pile return
+		play the card
+		pause for 100 msec
 
 to reset the game
 	set the score of the game to 0
 	deal the cards
-	turn over stock
 
 to cheat
 	set remaining-piles to piles in the tableaus where it is not empty and its first card is face down
@@ -127,7 +134,7 @@ to cheat
 	set unplaid-cards to cards in the pile where the card is face down
 	set card to a random card in unplaid-cards
 	turn the card face up
-	wait for 30 ticks
+	pause for 30 ticks
 	move the card to discards
 
 ##############

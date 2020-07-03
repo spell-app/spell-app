@@ -11,8 +11,25 @@ Object.assign(spellCore, {
   // time
   //--------
 
-  /** Return promise which resolves after `delay` milliseconds. */
-  waitFor(delay) {
+  /** Convert time units into milliseconds. */
+  TIME_UNITS_MAP: {
+    second: 1000,
+    seconds: 1000,
+    sec: 1000,
+
+    millisecond: 1,
+    milliseconds: 1,
+    msec: 1,
+    // a "tick" (from hypercard) is 1/60th of a second
+    tick: 1000 / 60,
+    ticks: 1000 / 60
+  },
+
+  /** Return promise which resolves after certain amount of time. */
+  pauseFor(number, units = "seconds") {
+    const multiplier = spellCore.TIME_UNITS_MAP[units] || 1000
+    // default to 0 if `isNaN`
+    const delay = Math.round(number * multiplier) || 0
     return new Promise((resolve) => setTimeout(resolve, delay))
   },
 
