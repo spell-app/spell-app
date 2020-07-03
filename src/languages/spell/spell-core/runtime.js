@@ -3,15 +3,19 @@
 // TODOC
 // ----------------------------
 import React from "react"
+import { isNode } from "browser-or-node"
 
 import { spellCore } from "."
 
 Object.assign(spellCore, {
+  // Set to true to show debug messages for spellCore.RUNTIME actions
+  DEBUG_RUNTIME: false, // !isNode,
+
   //----------------------------
   // Runtime state
   //--------
 
-  /** Global runtime state */
+  /** Global runtime state root. */
   RUNTIME: undefined,
 
   /**
@@ -19,12 +23,14 @@ Object.assign(spellCore, {
    * Returns the new runtime.
    */
   resetRuntime() {
+    if (spellCore.DEBUG_RUNTIME) console.info("Resetting spellCore.RUNTIME")
     spellCore.RUNTIME = {}
     return spellCore.RUNTIME
   },
 
   /** Clear the `spellCore.RUNTIME` */
   clearRuntime() {
+    if (spellCore.DEBUG_RUNTIME) console.info("Clearing spellCore.RUNTIME")
     spellCore.RUNTIME = undefined
   },
 
@@ -36,11 +42,13 @@ Object.assign(spellCore, {
    */
   getRuntimeState(name, initializer) {
     if (!spellCore.RUNTIME) {
-      console.warn("spellCore.initializeRuntimeState(): spellCore.RUNTIME is not set up!")
+      if (spellCore.DEBUG_RUNTIME) console.warn(`spellCore.getRuntimeState(${name}): spellCore.RUNTIME is not set up!`)
       return initializer()
     }
-    if (!Object.hasOwnProperty(spellCore.RUNTIME, name)) {
+    if (!(name in spellCore.RUNTIME)) {
       spellCore.RUNTIME[name] = initializer()
+      if (spellCore.DEBUG_RUNTIME)
+        console.info(`spellCore.getRuntimeState(${name}): reset state to `, spellCore.RUNTIME[name])
     }
     return spellCore.RUNTIME[name]
   },
@@ -52,7 +60,8 @@ Object.assign(spellCore, {
 
   clearRuntimeState(name) {
     if (!spellCore.RUNTIME) {
-      console.warn("spellCore.clearRuntimeState(): spellCore.RUNTIME is not set up!")
+      if (spellCore.DEBUG_RUNTIME)
+        console.warn(`spellCore.clearRuntimeState(${name}): spellCore.RUNTIME is not set up!`)
     } else {
       delete spellCore.RUNTIME[name]
     }
@@ -78,9 +87,11 @@ Object.assign(spellCore, {
    */
   startProcess(name, exclusively) {
     const flags = spellCore.getProcessFlags()
+    const wasRunning = flags[name]
     if (exclusively) flags[name] = "!"
     else flags[name] = flags[name]++ || 1
-    return flags
+    if (spellCore.DEBUG_RUNTIME)
+      console.warn("startProcess", { name, wasRunning, isRunning: flags[name], flags: { ...flags } })
   },
 
   /**
@@ -89,7 +100,9 @@ Object.assign(spellCore, {
    */
   processIsRunning(name) {
     const flags = spellCore.getProcessFlags()
-    return flags[name] === "!" || (typeof flags[name] === "number" && flags[name] > 0)
+    const isRunning = flags[name] === "!" || (typeof flags[name] === "number" && flags[name] > 0)
+    if (spellCore.DEBUG_RUNTIME) console.warn("processIsRunning", { name, isRunning, flags: { ...flags } })
+    return isRunning
   },
 
   /**
@@ -99,10 +112,13 @@ Object.assign(spellCore, {
    */
   stopProcess(name) {
     const flags = spellCore.getProcessFlags()
-    if (flags[name]) {
+    let wasRunning = !!flags[name]
+    if (wasRunning) {
       if (flags[name] === "!") delete flags[name]
       else if (flag[name] > 0) flags[name]--
     }
+    if (spellCore.DEBUG_RUNTIME)
+      console.warn("stopProcess", { name, wasRunning, isRunning: flags[name], flags: { ...flags } })
     return !!flags[name]
   }
 })

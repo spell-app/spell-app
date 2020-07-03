@@ -1,7 +1,7 @@
 import global from "global"
 
 import { TextFile, proto, memoize, forward, writeOnce, overrideable, state } from "~/util"
-import { Token, ProjectScope, FileScope } from "~/parser"
+import { Token } from "~/parser"
 import { SpellProject, SpellFileLocation } from "~/languages/spell"
 import { batch } from "../../util"
 
@@ -150,4 +150,3 @@ export class SpellCSSFile extends TextFile {
     return this.inputLines.slice(0, line).join("\n").length + 1 + ch
   }
 }
-global.SpellCSSFile = SpellCSSFile

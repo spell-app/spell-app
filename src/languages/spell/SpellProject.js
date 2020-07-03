@@ -16,6 +16,7 @@ import {
 } from "~/util"
 import { ProjectScope } from "~/parser"
 import {
+  spellCore,
   SpellParser,
   SpellFileLocation,
   SpellProjectManifest,
@@ -188,10 +189,13 @@ export class SpellProject extends LoadableManager {
   executeCompiled() {
     const { compiled } = this
     if (!compiled) return
+
     console.group("attempting to execute compiled output:")
-    // console.groupCollapsed("spell")
-    // console.info(contents)
-    // console.groupEnd()
+
+    // Reset spellcore RUNTIME for this run
+    spellCore.resetRuntime()
+
+    // Output javascript with line numbers
     console.groupCollapsed("javascript")
     const lines = compiled
       .split("\n")

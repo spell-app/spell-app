@@ -110,8 +110,8 @@ export const UI = new SpellParser({
         {
           compileAs: "statement",
           tests: [
-            [`stop process dealing`, `spellCore.stopProcess('dealing')`],
             [`stop animation dealing`, `spellCore.stopProcess('dealing')`],
+            [`stop process dealing`, `spellCore.stopProcess('dealing')`],
             [`end process dealing`, `spellCore.stopProcess('dealing')`],
             [`finish process dealing`, `spellCore.stopProcess('dealing')`],
             [`cancel process dealing`, `spellCore.stopProcess('dealing')`]
