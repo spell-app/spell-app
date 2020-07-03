@@ -1138,15 +1138,24 @@ export const lists = new SpellParser({
           inline: true,
           body: (inlineStatement || nestedBlock)?.AST
         })
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "repeat", // TODO...
-          args: [number.AST, method]
+        const getRange = new AST.CoreMethodInvocation(match, {
+          methodName: "getRange",
+          args: [new AST.NumericLiteral(match, 0), number.AST]
         })
+        const expression = new AST.CoreMethodInvocation(match, {
+          methodName: method.isAsync ? "forEachSequential" : "map",
+          args: [getRange, method]
+        })
+        if (method.isAsync) return new AST.AwaitExpression(match, { expression })
+        return expression
       },
       tests: [
         {
           compileAs: "block",
-          tests: [["repeat 3 times:", "spellCore.repeat(3, () => {})"]]
+          tests: [
+            ["repeat 1 time:", "spellCore.map(spellCore.getRange(0, 1), () => {})"],
+            ["repeat 3 times:", "spellCore.map(spellCore.getRange(0, 3), () => {})"]
+          ]
         }
       ]
     },
@@ -1295,21 +1304,12 @@ export const lists = new SpellParser({
           args: [new AST.VariableExpression(item)],
           body: (inlineStatement || nestedBlock)?.AST
         })
-
-        if (method.isAsync) {
-          // console.warn(match.inputText)
-          return new AST.AwaitExpression(match, {
-            expression: new AST.CoreMethodInvocation(match, {
-              methodName: "forEachSequential",
-              args: [getRange, method]
-            })
-          })
-        }
-
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "map",
+        const expression = new AST.CoreMethodInvocation(match, {
+          methodName: method.isAsync ? "forEachSequential" : "map",
           args: [getRange, method]
         })
+        if (method.isAsync) return new AST.AwaitExpression(match, { expression })
+        return expression
       },
       tests: [
         {

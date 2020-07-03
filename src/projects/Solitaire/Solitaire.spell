@@ -125,9 +125,9 @@ to play (a card)
 	set cards-to-move to (cards in start-pile starting with the card)
 	for each card in cards-to-move
 		move it to end-pile
-	pause for 100 msec
 
 	if the start-pile is a tableau and the start-pile is not empty
+		pause for 200 msec
 		turn the last card of the start-pile face up
 
 	if end-pile is a foundation: set the score of the game to the score of the game + 10
@@ -137,13 +137,13 @@ to auto-play
 	print collapsed group "auto-play"
 	print warning "before"
 	debug the game
-	set auto-play-piles to piles in the piles where it is not empty and its auto-play is yes
+	set auto-play-piles to piles in the piles where its auto-play is yes
 	for each pile in the auto-play-piles
 		set face-up-cards to the cards in the pile where the card is face up
 		if face-up-cards is empty return
 		get the first card in face-up-cards
 		// don't move kings if they're already at the base of a tableau
-		if (it is a king) and (it is the first card of its pile) and (its pile is a tableau) return
+		if (it is a king) and (the pile is a tableau) and (it is the first card of the pile)  return
 		await play it
 	print warning "after"
 	debug the game
