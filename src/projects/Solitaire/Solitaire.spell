@@ -64,22 +64,21 @@ to debug the game
 		print the line
 
 to reset stock
+	// TODO: this clones the list, nicer way to do this?
 	set cards to cards in discards starting with the first card in discards
 	reverse the cards
 	for each card in cards
 		turn the card face down
-		move it to the stock
-		wait 10 ticks
-		
+		wait for move it to the stock
+
 to turn over stock
 	if the stock is empty 
-		reset stock
+		wait for reset stock
 		return
 	// `repeat 3 times` for some versions of klondike
 	set the card to the bottom card of stock
 	turn the card face up
-	pause for 20 ticks
-	move the card to the discards
+	wait for move the card to the discards
 
 // use `dealing` as a flag in case they try to deal while we're animating
 to deal the cards
@@ -87,15 +86,13 @@ to deal the cards
 	start exclusive animation dealing
 	for each card in the deck
 		turn the card face down
-		move the card to the stock
-		pause for 10 msec
+		wait for move the card to the stock
 	shuffle the stock
 	for row from 1 to 7
 		turn the bottom card of the stock face up
 		for column from row to 7
-			move the bottom card of the stock to item column of the tableaus
-			pause for 10 msec
-	turn over stock
+			wait for move the bottom card of the stock to item column of the tableaus
+	wait for turn over stock
 	finish animation dealing
 
 to play (a card)

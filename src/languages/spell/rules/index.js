@@ -23,6 +23,7 @@ import { properties } from "./properties"
 import { UI } from "./UI"
 import { classes } from "./classes"
 import { methods } from "./methods"
+import { _async } from "./async"
 import { tests } from "./tests"
 
 /**
@@ -50,6 +51,7 @@ spellParser.import(
   UI,
   classes,
   methods,
+  _async,
   tests,
   JSX
 )

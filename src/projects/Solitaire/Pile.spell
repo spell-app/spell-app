@@ -7,11 +7,15 @@ the value of a pile is:
 	if it is empty return 0
 	return the value of its last card
 	
-// "move" a card -- make sure it's only in one pile at a time
+// "move" a card
+// NOTE: use this rather than `add` to make sure card is only in one pile at a time
+// if you `wait for: move the card to the pile` the move will be animated
 to move (a card) to (a pile)
 	if the pile of the card is defined: remove the card from its pile
 	set the pile of the card to the pile
 	add the card to the pile
+	pause for 1 tick	// one 1/16 of a second
+
 
 the state of a pile is:
 	set state to (the name of the pile or "pile") + ":"

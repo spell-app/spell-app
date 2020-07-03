@@ -164,72 +164,6 @@ export class ExpressionWithComment extends Expression {
   }
 }
 
-/**
- * QuotedExpression -- use to wrap `expression` in single quotes.
- */
-export class QuotedExpression extends Expression {
-  @proto @readonly datatype = "string"
-  constructor(match, props) {
-    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
-    super(match, props)
-    this.assertType("expression", Expression)
-  }
-  compile() {
-    return stringify.InSingleQuotes({ children: this.expression.compile() })
-  }
-  renderChildren() {
-    return (
-      <render.InSingleQuotes>
-        <span className="expression">{this.expression.component}</span>
-      </render.InSingleQuotes>
-    )
-  }
-}
-
-/**
- * BackTickExpression -- use to wrap `expression` AST in back-ticks.
- */
-export class BackTickExpression extends Expression {
-  @proto @readonly datatype = "string"
-  constructor(match, props) {
-    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
-    super(match, props)
-    this.assertType("expression", Expression)
-  }
-  compile() {
-    return stringify.InBackTicks({ children: this.expression.compile() })
-  }
-  renderChildren() {
-    return (
-      <render.InBackTicks>
-        <span className="expression">{this.expression.component}</span>
-      </render.InBackTicks>
-    )
-  }
-}
-
-/**
- * TripleBackTickExpression -- use to wrap `expression` AST in triple-back-ticks.
- */
-export class TripleBackTickExpression extends Expression {
-  @proto @readonly datatype = "string"
-  constructor(match, props) {
-    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
-    super(match, props)
-    this.assertType("expression", Expression)
-  }
-  compile() {
-    return stringify.InTripleBackTicks({ children: this.expression.compile() })
-  }
-  renderChildren() {
-    return (
-      <render.InTripleBackTicks>
-        <span className="expression">{this.expression.component}</span>
-      </render.InTripleBackTicks>
-    )
-  }
-}
-
 /** Generic Literal type.  Useful for `instanceof`.
  *  - `value` is the actual JS value, which by default we assume we can just output.
  *  - `raw` (optional) is the raw input value.
@@ -380,6 +314,91 @@ export class Enumeration extends Literal {
   }
   renderChildren() {
     return <render.Array items={this.enumeration} />
+  }
+}
+
+/**
+ * QuotedExpression -- use to wrap `expression` in single quotes.
+ */
+export class QuotedExpression extends Expression {
+  @proto @readonly datatype = "string"
+  constructor(match, props) {
+    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
+    super(match, props)
+    this.assertType("expression", Expression)
+  }
+  compile() {
+    return stringify.InSingleQuotes({ children: this.expression.compile() })
+  }
+  renderChildren() {
+    return (
+      <render.InSingleQuotes>
+        <span className="expression">{this.expression.component}</span>
+      </render.InSingleQuotes>
+    )
+  }
+}
+
+/**
+ * BackTickExpression -- use to wrap `expression` AST in back-ticks.
+ */
+export class BackTickExpression extends Expression {
+  @proto @readonly datatype = "string"
+  constructor(match, props) {
+    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
+    super(match, props)
+    this.assertType("expression", Expression)
+  }
+  compile() {
+    return stringify.InBackTicks({ children: this.expression.compile() })
+  }
+  renderChildren() {
+    return (
+      <render.InBackTicks>
+        <span className="expression">{this.expression.component}</span>
+      </render.InBackTicks>
+    )
+  }
+}
+
+/**
+ * TripleBackTickExpression -- use to wrap `expression` AST in triple-back-ticks.
+ */
+export class TripleBackTickExpression extends Expression {
+  @proto @readonly datatype = "string"
+  constructor(match, props) {
+    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
+    super(match, props)
+    this.assertType("expression", Expression)
+  }
+  compile() {
+    return stringify.InTripleBackTicks({ children: this.expression.compile() })
+  }
+  renderChildren() {
+    return (
+      <render.InTripleBackTicks>
+        <span className="expression">{this.expression.component}</span>
+      </render.InTripleBackTicks>
+    )
+  }
+}
+
+/** AwaitExpression:  `await {expression}`.
+ *  - `expression` is Expression to await.
+ * NOTE: this marks the `parentScope` as asynchronous!!!
+ */
+export class AwaitExpression extends Expression {
+  constructor(match, props) {
+    super(match, props)
+    this.assertType("expression", Expression)
+    // TODO: Mark the parentScope as asynchronous
+    this.parentScope.async = true
+  }
+  compile() {
+    return `await ${this.expression.compile()}`
+  }
+  renderChildren() {
+    return render.Fragment(render.AWAIT, this.expression.component)
   }
 }
 
@@ -648,24 +667,6 @@ export class ExportInvocation extends CoreMethodInvocation {
       methodName: "addExport",
       args: [property, props.value]
     })
-  }
-}
-
-/** AwaitMethodInvocation:  wrap another method invocation to `await` it.
- *  - `method` is MethodInvocation to call.
- */
-export class AwaitMethodInvocation extends Expression {
-  constructor(match, props) {
-    super(match, props)
-    this.assertType("method", MethodInvocation)
-    // TODO: Mark the parentScope as asynchronous
-    this.parentScope.async = true
-  }
-  compile() {
-    return `await ${this.method.compile()}`
-  }
-  renderChildren() {
-    return render.Fragment(render.AWAIT, this.method.component)
   }
 }
 
