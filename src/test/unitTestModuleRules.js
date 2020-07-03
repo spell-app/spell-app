@@ -17,7 +17,11 @@ import { showWhitespace, normalizeInitialWhitespace } from "~/util"
 // Skip running a rest
 const SKIP = { skip: true }
 
-export function unitTestModuleRules(parser, moduleName) {
+/**
+ * Unit test all rules for `moduleName` in `parser`.
+ * If you run `initializeContext` it will be executed before each rule.
+ */
+export function unitTestModuleRules(parser, moduleName, initializeContext) {
   describe(`rule unit tests`, () => {
     const rules = getTestableRulesForFilePath(moduleName)
     if (!rules || rules.lenth === 0) {
@@ -27,7 +31,7 @@ export function unitTestModuleRules(parser, moduleName) {
       return
     }
 
-    rules.forEach(rule => executeRuleTests(rule))
+    rules.forEach((rule) => executeRuleTests(rule))
   })
 
   function getTestableRulesForFilePath(module) {
@@ -40,7 +44,7 @@ export function unitTestModuleRules(parser, moduleName) {
   function executeRuleTests({ name, tests }) {
     // Handle simple block of e
     describe(`rule '${name}'`, () => {
-      tests.forEach(testBlock => {
+      tests.forEach((testBlock) => {
         if (testBlock.skip) return
         if (testBlock.title) describe(testBlock.title, () => executeTestBlock(name, testBlock))
         else executeTestBlock(name, testBlock)
@@ -58,7 +62,7 @@ export function unitTestModuleRules(parser, moduleName) {
 
     // Normalize tests as `[input, output]` to `{ input, output }`
     tests = tests
-      .map(test => {
+      .map((test) => {
         if (Array.isArray(test)) {
           const [input, output] = test
           test = { input, output }
@@ -75,10 +79,13 @@ export function unitTestModuleRules(parser, moduleName) {
     if (tests.length === 0) return
 
     // Excute each test
-    tests.map(test => executeTest(test, compileAs, beforeEach))
+    tests.map((test) => executeTest(test, compileAs, beforeEach))
   }
 
   function executeTest({ input, output, title }, ruleName, beforeEach) {
+    // Run `initializeContext` method passed in to the test suite.
+    if (typeof initializeContext === "function") initializeContext()
+
     // Get a test scope to parse with.
     const scope = parser.getScope(`test_${moduleName}`)
     // If a `beforeEach` method was defined, run that before parsing to seed variables/etc.

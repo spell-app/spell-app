@@ -1,8 +1,8 @@
 import { unitTestModuleRules } from "~/test"
-import { spellParser } from "~/languages/spell"
+import { spellParser, spellCore } from "~/languages/spell"
 
 describe("testing spell module classes", () => {
-  unitTestModuleRules(spellParser, "classes", "SHOW_ALL")
+  unitTestModuleRules(spellParser, "classes", spellCore.resetRuntime)
 
   describe("integration tests", () => {})
 })

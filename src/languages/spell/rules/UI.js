@@ -39,7 +39,110 @@ export const UI = new SpellParser({
       ]
     },
 
-    /** Print an expression (to the console, I guess) */
+    /** Start a conceptual animation or process. */
+    {
+      name: "start_process",
+      alias: "statement",
+      syntax: "start (operator:exclusive|non-exclusive|nonexclusive)? (animation|process) {name:constant}",
+      constructor: "Statement",
+      getAST(match) {
+        const { operator, name } = match.groups
+        const exclusive = operator?.value === "exclusive"
+
+        const nameArg = new AST.QuotedExpression(match, name.value)
+        const args = [nameArg]
+        if (exclusive) args.push(new AST.QuotedExpression(match, "EXCLUSIVE"))
+
+        const startStatement = new AST.CoreMethodInvocation(match, {
+          methodName: "startProcess",
+          args
+        })
+        if (!exclusive) return startStatement
+
+        return new AST.StatementGroup(match, {
+          statements: [
+            new AST.IfStatement(match, {
+              condition: new AST.CoreMethodInvocation(match, {
+                methodName: "processIsRunning",
+                args: [nameArg]
+              }),
+              statements: new AST.ReturnStatement(match)
+            }),
+            startStatement
+          ]
+        })
+      },
+      tests: [
+        {
+          compileAs: "statement",
+          tests: [
+            [`start process dealing`, `spellCore.startProcess('dealing')`],
+            [`start animation dealing`, `spellCore.startProcess('dealing')`],
+            [`start non-exclusive animation dealing`, `spellCore.startProcess('dealing')`],
+            [`start nonexclusive process dealing`, `spellCore.startProcess('dealing')`],
+            [
+              `start exclusive process dealing`,
+              [
+                `if (spellCore.processIsRunning('dealing')) { return }`,
+                `spellCore.startProcess('dealing', 'EXCLUSIVE')`
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+
+    /** Stop a conceptual animation or process. */
+    {
+      name: "stop_process",
+      alias: "statement",
+      syntax: "(stop|end|finish|cancel) (animation|process) {name:constant}",
+      constructor: "Statement",
+      getAST(match) {
+        const { operator, name } = match.groups
+        const args = [new AST.QuotedExpression(match, name.value)]
+        return new AST.CoreMethodInvocation(match, {
+          methodName: "stopProcess",
+          args
+        })
+      },
+      tests: [
+        {
+          compileAs: "statement",
+          tests: [
+            [`stop process dealing`, `spellCore.stopProcess('dealing')`],
+            [`stop animation dealing`, `spellCore.stopProcess('dealing')`],
+            [`end process dealing`, `spellCore.stopProcess('dealing')`],
+            [`finish process dealing`, `spellCore.stopProcess('dealing')`],
+            [`cancel process dealing`, `spellCore.stopProcess('dealing')`]
+          ]
+        }
+      ]
+    },
+
+    /** Check a conceptual animation or process. */
+    {
+      name: "check_process",
+      alias: "expression",
+      syntax: "(animation|process) {name:constant} (operator:is|is not|isn't|isnt) (running|active)",
+      getAST(match) {
+        const { operator, name } = match.groups
+        const expression = new AST.CoreMethodInvocation(match, {
+          methodName: "processIsRunning",
+          args: [new AST.QuotedExpression(match, name.value)]
+        })
+        if (operator.value === "is") return expression
+        return new AST.NotExpression(match, { expression })
+      },
+      tests: [
+        {
+          compileAs: "expression",
+          tests: [[`animation dealing is running`, `spellCore.processIsRunning('dealing')`]]
+        }
+      ]
+    },
+
+    /** Print an expression (to the console currently) */
     {
       name: "print",
       alias: "statement",

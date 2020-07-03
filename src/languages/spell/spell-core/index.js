@@ -10,6 +10,7 @@ import "./collection-core"
 import "./collection-other"
 import "./string"
 import "./tests"
+import "./runtime"
 import "./ui"
 import { Thing, List } from "./classes"
 

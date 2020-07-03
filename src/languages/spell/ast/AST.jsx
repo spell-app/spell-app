@@ -1193,7 +1193,8 @@ export class ReturnStatement extends Statement {
     return `return ${this.value.compile()}`
   }
   renderChildren() {
-    return render.Fragment(render.RETURN, !!this.value && <span className="value">{this.value.component}</span>)
+    const value = !!this.value && render.Fragment(render.SPACE, <span className="value">{this.value.component}</span>)
+    return render.Fragment(render.RETURN, value)
   }
 }
 

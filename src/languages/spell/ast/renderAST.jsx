@@ -62,7 +62,7 @@ export const FUNCTION = <span className="keyword function">{"function "}</span>
 export const ASYNC = <span className="keyword async">{"async "}</span>
 export const AWAIT = <span className="keyword await">{"await "}</span>
 export const LET = <span className="keyword declarator let">{"let "}</span>
-export const RETURN = <span className="keyword return">{"return "}</span>
+export const RETURN = <span className="keyword return">{"return"}</span>
 export const EXPORT = <span className="keyword export">{"export "}</span>
 export const NEW = <span className="keyword new">{"new "}</span>
 export const CLASS = <span className="keyword class">{"class "}</span>

@@ -1,9 +1,9 @@
 import { unitTestModuleRules } from "~/test"
-import { spellParser } from "~/languages/spell"
+import { spellParser, spellCore } from "~/languages/spell"
 import { parenthesizeCondition } from "./if"
 
 describe("testing spell module if", () => {
-  unitTestModuleRules(spellParser, "if")
+  unitTestModuleRules(spellParser, "if", spellCore.resetRuntime)
 
   describe("\n    methods defined in rule file", () => {
     describe("parenthesizedCondition()", () => {

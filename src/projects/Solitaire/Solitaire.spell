@@ -1,6 +1,10 @@
 ## Klondike Solitaire Card Game
 -- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
 
+
+
+start animation foo
+
 ## Game bits
 a card-game is an app
 a card-game has a score as a number
@@ -86,7 +90,7 @@ set dealing to no
 to deal the cards
 	if dealing return
 	set dealing to yes
-	for each card and number in the deck
+	for each card in the deck
 		turn the card face down
 		move the card to the stock
 		pause for 10 msec
