@@ -122,11 +122,7 @@ to play (a card)
 
 	set cards-to-move to (cards in start-pile starting with the card)
 	set the name of cards-to-move to the name of the start-pile
-	set drop-card to the last card in end-pile
-	set output to "moving (" + the state of cards-to-move + ") to (" 
-	if drop-card: output = output + the name of end-pile + ": " + the state of drop-card + ")"
-	else output = output + the name of end-pile + ")"
-	print output
+	print "moving (" + the state of cards-to-move + ") to (" + the state of end-pile + ")"
 		
 	for each card in cards-to-move
 		move it to end-pile
