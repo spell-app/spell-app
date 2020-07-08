@@ -20,9 +20,11 @@ export class Choice extends Rule {
     if (!this.rules) this.rules = []
   }
 
-  // Add a rule to the list of choices.
-  // Note that we always create a new array when adding!
-  addRule(...rules) {
+  /**
+   * Add one or more `rules` to the list of choices.
+   * `parser` is the parser instance that's calling this.
+   */
+  addChoice(parser, ...rules) {
     this.rules = [...this.rules, ...rules]
   }
 
@@ -114,7 +116,7 @@ export class Choice extends Rule {
 
   toSyntax() {
     const { testLocation, argument, optional } = this.getSyntaxFlags()
-    const rules = this.rules.map(rule => rule.toSyntax()).join("|")
+    const rules = this.rules.map((rule) => rule.toSyntax()).join("|")
     return `${testLocation}(${argument}${rules})${optional}`
   }
 }

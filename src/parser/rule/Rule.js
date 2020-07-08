@@ -19,6 +19,21 @@ import { proto } from "~/util"
 // Abstract Rule class.
 // TODOC
 export class Rule {
+  /**
+   * Main `name` of the rule.
+   * Should generally be unique; rules with the same `name`
+   * will be auto-joined into a `Group` when added defined on a parser.
+   */
+  @proto name = undefined
+
+  /**
+   * `alias` for the rule as single string or array of strings.
+   * Rules will be defined under their `alias` as well as their `name`,
+   * allowing each rule to potentially have a unique `name`
+   * but making it easy to merge them into a `Group` as well.
+   */
+  @proto alias = undefined
+
   // Precedence for this rule.
   // Rules with higher precedence are preferred in `Choice`s.
   // Precedence is also used as "operator precedence" in recursive expressions.
@@ -31,6 +46,12 @@ export class Rule {
   // Return a clone of this rule (same constructor, all public properties)
   clone() {
     return new this.constructor(this)
+  }
+
+  /**
+   * Return array of `names` for this rule:  its `.name` + any `.alias`es. */
+  get names() {
+    return [].concat(this.name, this.alias || [])
   }
 
   //

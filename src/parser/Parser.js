@@ -132,7 +132,7 @@ export class Parser {
   @memoize
   get rules() {
     if (!this.imports) return { ...this._rules }
-    return this.mergeRuleSets(this._rules, ...this.imports.map(parser => parser.rules))
+    return this.mergeRuleSets(this._rules, ...this.imports.map((parser) => parser.rules))
   }
 
   // Setting rules through assignment calls `defineRules()`, adding to our existing rules.
@@ -151,6 +151,7 @@ export class Parser {
     return rule
   }
 
+  // TODO: @clearMemoized ?
   // Add a `rule` to our list of rules!
   // Converts to `Rule.Group` on re-defining the same rule.
   addRule(rule, ruleName) {
@@ -174,7 +175,7 @@ export class Parser {
 
     // If we got an array of `ruleName`s, recursively add under each name with the same `rule`.
     if (Array.isArray(ruleName)) {
-      ruleName.forEach(name => this.addRule(rule, name))
+      ruleName.forEach((name) => this.addRule(rule, name))
     }
     // Add to our list of rules
     else {
@@ -188,9 +189,7 @@ export class Parser {
   import(...imports) {
     // Clear memoized "rules" value if any
     delete this.rules
-
     this.imports = [].concat(this.imports || [], imports)
-    // TODO:     this.imports = (this.imports || []).concat(imports)
   }
 
   // Merge all rule `sources` together into a new rules map.
@@ -198,7 +197,7 @@ export class Parser {
     const rules = { ...sources[0] }
     for (let i = 1, last = sources.length; i < last; i++) {
       const source = sources[i]
-      Object.keys(source).forEach(ruleName => this.mergeRule(rules, ruleName, source[ruleName]))
+      Object.keys(source).forEach((ruleName) => this.mergeRule(rules, ruleName, source[ruleName]))
     }
     return rules
   }
@@ -221,8 +220,8 @@ export class Parser {
     else map[ruleName] = new Rule.Group({ rules: [existing], argument: ruleName })
 
     // If rule is ALSO a group with the same argument, merge the groups.
-    if (rule instanceof Rule.Group && rule.argument === existing?.argument) map[ruleName].addRule(...rule.rules)
-    else map[ruleName].addRule(rule)
+    if (rule instanceof Rule.Group && rule.argument === existing?.argument) map[ruleName].addChoice(this, ...rule.rules)
+    else map[ruleName].addChoice(this, rule)
   }
 
   //
@@ -234,7 +233,7 @@ export class Parser {
   //       as error stack traces will get you to the right line if there's a problem.
   defineRules(...ruleProps) {
     ruleProps = flatten(ruleProps)
-    const rules = ruleProps.map(props => this.defineRule(props))
+    const rules = ruleProps.map((props) => this.defineRule(props))
     return flatten(rules).filter(Boolean)
   }
 
@@ -413,7 +412,7 @@ export class Parser {
         testBlocks.forEach(({ compileAs = ruleName, tests, beforeEach }) => {
           if (debug && compileAs !== ruleName) console.group(`testing as ${compileAs}`)
 
-          tests.forEach(test => {
+          tests.forEach((test) => {
             if (Array.isArray(test)) test = { input: test[0], output: test[1] }
             if (Array.isArray(test.input)) test.input = test.input.join("\n")
             if (Array.isArray(test.output)) test.output = test.output.join("\n")
