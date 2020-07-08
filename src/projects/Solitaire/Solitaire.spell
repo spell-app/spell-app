@@ -15,13 +15,13 @@ set tableaus to a new list of piles
 // set up stock pile: unplayed cards
 a stock-pile is a pile
 a stock-pile "can pick up (a card)" if: the card is its bottom card 
-set the stock to a new stock-pile with name = "stock", droppable = no, auto-play = no
+set the stock to a new stock-pile with name = "stock", droppable = no
 add the stock to all-piles
 
 // set up discards: where played cards go when turning over stock
 a discard-pile is a pile
 a discard-pile "can pick up (a card)" if: the card is its bottom card 
-set discards to a new discard-pile with name = "discards", droppable = no, auto-play = yes
+set discards to a new discard-pile with name = "discards", droppable = no
 add discards to all-piles
 
 // set up foundation piles: where we build up from ace => king
@@ -29,13 +29,13 @@ a foundation is a pile
 a foundation "can pick up (a card)" if: never
 a foundation "can play (a card)" if: 
 	return (its name is the suit of the card) and (its value + 1 is the value of the card)
-get a new foundation with name = clubs, symbol = "♣️", droppable = yes, auto-play = no
+get a new foundation with name = clubs, symbol = "♣️", droppable = yes
 add it to the foundations
-get a new foundation with name = diamonds, symbol = "♦️", droppable = yes, auto-play = no
+get a new foundation with name = diamonds, symbol = "♦️", droppable = yes
 add it to the foundations
-get a new foundation with name = hearts, symbol = "♥️", droppable = yes, auto-play = no
+get a new foundation with name = hearts, symbol = "♥️", droppable = yes
 add it to the foundations
-get a new foundation with name = spades, symbol = "♠️", droppable = yes, auto-play = no
+get a new foundation with name = spades, symbol = "♠️", droppable = yes
 add it to the foundations
 for each pile in the foundations
 	add it to all-piles
@@ -48,7 +48,7 @@ a tableau "can play (a card)" if:
 		return the card is a king
 	return its color is not the color of the card and its value is the value of the card + 1
 for each number from 1 to 7
-	get a new tableau with name = ("T" + the number), droppable = yes, auto-play = yes
+	get a new tableau with name = ("T" + the number), droppable = yes
 	add it to the tableaus
 	add it to all-piles
 
@@ -138,21 +138,35 @@ to play (a card)
 	return yes
 
 to auto-play
-	set auto-play-piles to piles in all-piles where its auto-play is yes
 	set anything-changed to no
-	for each pile in the auto-play-piles
+	if the discards is not empty
+		set test-card to the last card of discards
+		if await play test-card
+			set anything-changed to yes
+			pause for 500 msec
+	
+	// attempt to move bottom card of tableaus to foundations
+	for each pile in the tableaus
+		if the pile is empty return
+		set test-card to the last card in the pile
+		set foundation to the first pile in (piles in foundations where the name of the pile is the suit of test-card)
+		if the foundation can play test-card
+			set anything-changed to yes
+			await play test-card
+			pause for 100 msec
+	
+	// attempt to move the entire pile of face-up cards
+	for each pile in the tableaus
 		set face-up-cards to the cards in the pile where the card is face up
 		if face-up-cards is empty return
 		set test-card to the first card in face-up-cards
-		if (the pile is the discards)
-			set test-card to the last card in the discards
-		// don't move kings if they're already at the base of a tableau
-		if (test-card is a king) and (test-card is the first card of the pile) and (the pile is a tableau) return
+		if (test-card is a king) and (test-card is the first card of the pile) return
 		if await play test-card
-			pause for 500 msec
 			set anything-changed to yes
+			pause for 500 msec
+
 	// call auto-play again if anything actually changed
-	if anything-changed auto-play
+	if anything-changed await auto-play
 
 to reset the game
 	set the score of the game to 0
@@ -174,7 +188,7 @@ to cheat
 // note: tableaus just draw as a (vertical) list of cards
 
 to draw (a foundation):
-	set color to "black" if (its name is diamonds or its name is hearts) otherwise "black"
+	set color to "red" if (its name is diamonds or its name is hearts) otherwise "black"
 	return <div className="Pile Foundation stacked">
 		<div className={"Placeholder ui button basic compact fluid " + color + " " + its name}>
 			<div className={"suit " + its name}>{its symbol}</div>

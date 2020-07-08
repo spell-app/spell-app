@@ -17,6 +17,10 @@
 	min-height: 30px;
 }
 
+.Pile.Tableau {
+	min-height: 500px;
+}
+
 .Pile.stacked .Card {
 	position: absolute;
 	left: 0;
