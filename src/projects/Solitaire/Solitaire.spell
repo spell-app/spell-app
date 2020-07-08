@@ -8,7 +8,7 @@ set the game to a new game
 print the game
 
 ## set up all piles
-set piles to a new list of piles
+set all-piles to a new list of piles
 set foundations to a new list of piles
 set tableaus to a new list of piles
 
@@ -16,13 +16,29 @@ set tableaus to a new list of piles
 a stock-pile is a pile
 a stock-pile "can pick up (a card)" if: the card is its bottom card 
 set the stock to a new stock-pile with name = "stock", droppable = no, auto-play = no
-add the stock to the piles
+add the stock to all-piles
 
 // set up discards: where played cards go when turning over stock
 a discard-pile is a pile
 a discard-pile "can pick up (a card)" if: the card is its bottom card 
 set discards to a new discard-pile with name = "discards", droppable = no, auto-play = yes
-add discards to the piles
+add discards to all-piles
+
+// set up foundation piles: where we build up from ace => king
+a foundation is a pile
+a foundation "can pick up (a card)" if: never
+a foundation "can play (a card)" if: 
+	return (its name is the suit of the card) and (its value + 1 is the value of the card)
+get a new foundation with name = clubs, symbol = "♣️", droppable = yes, auto-play = no
+add it to the foundations
+get a new foundation with name = diamonds, symbol = "♦️", droppable = yes, auto-play = no
+add it to the foundations
+get a new foundation with name = hearts, symbol = "♥️", droppable = yes, auto-play = no
+add it to the foundations
+get a new foundation with name = spades, symbol = "♠️", droppable = yes, auto-play = no
+add it to the foundations
+for each pile in the foundations
+	add it to all-piles
 
 // set up tableau piles: vertical piles where we arrange from king to ace
 a tableau is a pile
@@ -33,18 +49,8 @@ a tableau "can play (a card)" if:
 	return its color is not the color of the card and its value is the value of the card + 1
 for each number from 1 to 7
 	get a new tableau with name = ("T" + the number), droppable = yes, auto-play = yes
-	add it to the piles
 	add it to the tableaus
-
-// set up foundation piles: where we build up from ace => king
-a foundation is a pile
-a foundation "can pick up (a card)" if: never
-a foundation "can play (a card)" if: 
-	return (its name is the suit of the card) and (its value + 1 is the value of the card)
-for each suit in card suits
-	get a new foundation with name = the suit, droppable = yes, auto-play = no
-	add it to the piles
-	add it to the foundations
+	add it to all-piles
 
 
 // set up deck of cards
@@ -59,7 +65,7 @@ for each card in the deck
 
 the state of a game is:
 	set state to []
-	for each pile in the piles
+	for each pile in all-piles
 		add the state of the pile to state
 	return state
 
@@ -90,7 +96,7 @@ to deal the cards
 	start exclusive animation dealing 
 	
 	// pull all cards into stock with a nice animation
-	set cards to merge the piles into a new pile
+	set cards to (merge all-piles into a new pile)
 	reverse the cards
 	for each card in the cards
 		set start-pile to the pile of the card
@@ -118,9 +124,9 @@ to play (a card)
 		play from the stock pile
 		return
 	
-	set droppable-piles to piles in the piles where its droppable is yes and it can play the card
+	set droppable-piles to piles in all-piles where its droppable is yes and it can play the card
+	if droppable-piles is empty return no
 	set end-pile to the first pile in droppable-piles
-	if end-pile is not defined return no
 
 	set cards-to-move to (cards in start-pile starting with the card)
 	for each card in cards-to-move
@@ -137,13 +143,13 @@ to auto-play
 	print collapsed group "auto-play"
 	print warning "before"
 	debug the game
-	set auto-play-piles to piles in the piles where its auto-play is yes
+	set auto-play-piles to piles in all-piles where its auto-play is yes
 	for each pile in the auto-play-piles
 		set face-up-cards to the cards in the pile where the card is face up
 		if face-up-cards is empty return
 		get the first card in face-up-cards
 		// don't move kings if they're already at the base of a tableau
-		if (it is a king) and (the pile is a tableau) and (it is the first card of the pile)  return
+		if (it is a king) and (it is the first card of the pile) and (the pile is a tableau) return
 		await play it
 	print warning "after"
 	debug the game
@@ -169,22 +175,29 @@ to cheat
 // note: tableaus just draw as a (vertical) list of cards
 
 to draw (a foundation):
-	if it is empty
-		if its name is clubs return <div className="Pile Placeholder ui button basic compact fluid black"><span className="suit clubs">♣️</span></div>
-		if its name is diamonds return <div className="Pile Placeholder ui button basic compact fluid red"><span className="suit diamonds">♦️</span></div>
-		if its name is hearts return <div className="Pile Placeholder ui button basic compact fluid red"><span className="suit hearts">♥️</span></div>
-		if its name is spades return <div className="Pile Placeholder ui button basic compact fluid black"><span className="suit spades">♠️</span></div>
-	return draw its bottom card
+	set color to "black" if (its name is diamonds or its name is hearts) otherwise "black"
+	return <div className="Pile Foundation stacked">
+		<div className={"Placeholder ui button basic compact fluid " + color + " " + its name}>
+			<div className={"suit " + its name}>{its symbol}</div>
+		</div>
+		{draw its bottom card}
+	</div>
+
+to draw (a tableau):
+	return <div className="Pile Tableau staggered">
+		{draw cards in it}
+	</div>
 
 to draw (a stock-pile):
-	if it is empty
-		return <div onClick={play from the stock pile} className="Pile Placeholder ui button basic compact fluid"></div>
-	return draw its bottom card
+	return <div className="Pile Stock stacked">
+		<div className="Placeholder ui button basic compact fluid" onClick={play from the stock pile}/>
+		{draw its bottom card}
+	</div>
 
 to draw (a discard-pile):
-	if it is empty
-		return <div onClick={play from the stock pile} className="Pile Placeholder ui button basic compact fluid"></div>
-	return draw its bottom card
+	return <div className="Pile Discards stacked">
+		{draw its bottom card}
+	</div>
 
 to draw (a card):
 	set className to "Card face-" + its direction + " "	+ its rank + " " + its suit + " ui button compact fluid "

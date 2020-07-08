@@ -15,8 +15,8 @@ export const _async = new SpellParser({
      */
     {
       name: "await",
-      alias: "statement",
-      syntax: "(await|wait for|wait until) :? {expression}?",
+      alias: ["expression", "statement"],
+      syntax: "(await|wait for) :? {expression}?",
       constructor: "Statement",
       getAST(match) {
         const { expression } = match.groups
@@ -27,15 +27,28 @@ export const _async = new SpellParser({
       tests: [
         {
           compileAs: "statement",
-          beforeEach(scope) {
-            scope.variables.add("card")
-            scope.variables.add("list")
-          },
           tests: [
             ["await", "await undefined"],
             ["wait for 1", "await 1"],
-            ["wait until the card exists", "await spellCore.isDefined(card)"],
-            ["wait until: the list is not empty", "await !spellCore.isEmpty(list)"]
+            ["set the result to wait for 1", "result = await 1"]
+          ]
+        },
+        {
+          compileAs: "block",
+          tests: [
+            {
+              input: ["to do something", "\twait for 1"],
+              output: ["/* SPELL: added rule: `do something` */", "async function do_something() {", "\tawait 1", "}"]
+            },
+            {
+              input: ["to do something", "\tif (1) wait for 1"],
+              output: [
+                "/* SPELL: added rule: `do something` */",
+                "async function do_something() {",
+                "\tif (1) { await 1 }",
+                "}"
+              ]
+            }
           ]
         }
       ]
@@ -43,7 +56,7 @@ export const _async = new SpellParser({
 
     /** Delay for a certain amount of time. */
     {
-      name: "wait",
+      name: "pause",
       alias: "statement",
       // TODO: "a second", "a little bit", "a while", "a noticeable amount"
       syntax: "pause for {number:expression} (units:second|seconds|sec|millisecond|milliseconds|msec|tick|ticks)",

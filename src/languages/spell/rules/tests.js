@@ -10,7 +10,7 @@ export const tests = new SpellParser({
     {
       name: "expect_test",
       alias: ["statement"],
-      syntax: "expect {expression} (to be {value:expression})?",
+      syntax: "expect that? {expression} (to be {value:expression})?",
       testRule: "expect",
       constructor: "Statement",
       getAST(match) {
@@ -39,7 +39,8 @@ export const tests = new SpellParser({
             [
               "expect the number of items in my-list to be 0",
               "spellCore.expect(spellCore.itemCountOf(my_list), `the number of items in my-list`, 0, `0`)"
-            ]
+            ],
+            ["expect that it is a card", "spellCore.expect(spellCore.isOfType(it, 'Card'), `it is a card`)"]
           ]
         }
       ]

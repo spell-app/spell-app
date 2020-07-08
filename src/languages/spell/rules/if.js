@@ -261,7 +261,8 @@ export const _if_ = new SpellParser({
             [
               "get the foo of the bar if bar is defined otherwise the bar of the foo",
               "let it = (spellCore.isDefined(bar) ? bar.foo : foo.bar)"
-            ]
+            ],
+            [`set color to "red" if 1 + 1 else "black"`, `let color = ((1 + 1) ? "red" : "black")`]
           ]
         }
       ]

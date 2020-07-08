@@ -1,7 +1,6 @@
 /* File styles.css */
 .Card {
 	position: relative;
-	margin: 4px 0 !important;
 	height: 30px;
 }
 
@@ -13,19 +12,33 @@
 	top: -0.15rem;
 }
 
-.Pile.Placeholder {
+.Pile {
 	position: relative;
-	margin: 4px 0 !important;
+	min-height: 30px;
+}
+
+.Pile.stacked .Card {
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.Pile.staggered .Card {
+	margin-bottom: 8px !important;
+}
+
+.Pile > .Placeholder {
+	position: relative;
 	height: 30px;
 }
 
-.Pile.Placeholder .suit {
+.Pile > .Placeholder .suit {
 	position: relative;
 	font-size: 1.6rem;
 }
 
-.Pile.Placeholder .suit.diamonds,
-.Pile.Placeholder .suit.spades {
+.Pile > .Placeholder .suit.diamonds,
+.Pile > .Placeholder .suit.spades {
 	font-size: 1.75rem;
 	top: -0.1rem;
 }
