@@ -24,6 +24,7 @@ import { UI } from "./UI"
 import { classes } from "./classes"
 import { methods } from "./methods"
 import { _async } from "./async"
+import { draw } from "./draw"
 import { tests } from "./tests"
 
 /**
@@ -53,5 +54,6 @@ spellParser.import(
   methods,
   _async,
   tests,
+  draw,
   JSX
 )

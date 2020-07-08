@@ -12,6 +12,6 @@ import "./string"
 import "./tests"
 import "./runtime"
 import "./ui"
-import { Thing, List } from "./classes"
 
-export { spellCore, assert, Thing, List }
+export { spellCore, assert }
+export * from "./classes"

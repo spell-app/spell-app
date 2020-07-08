@@ -175,9 +175,6 @@ export const classes = new SpellParser({
       tests: [
         {
           compileAs: "expression",
-          beforeEach(scope) {
-            scope.types.add("Thing")
-          },
           tests: [
             [`a new list`, `new List()`],
             [`a new List`, `new List()`],
