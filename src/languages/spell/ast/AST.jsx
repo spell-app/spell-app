@@ -1150,8 +1150,8 @@ export class TryCatchBlock extends StatementGroup {
   compile() {
     const { body, errorArg, catchBlock, finallyBlock } = this
     const output = [`try ${body.compile()}`]
-    if (catchBlock) output.push(stringify.NEWLINE, `catch (${errorBlock.compile()}) ${catchBlock.compile()}`)
-    if (finallyBlock) output.push(stringify.NEWLINE, `finally ${finallyBlock.compile()}`)
+    if (catchBlock) output.push(`catch (${errorBlock.compile()}) ${catchBlock.compile()}`)
+    if (finallyBlock) output.push(`finally ${finallyBlock.compile()}`)
     return output.join("\n")
   }
   renderChildren() {

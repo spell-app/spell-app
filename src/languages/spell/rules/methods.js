@@ -931,7 +931,33 @@ export const methods = new SpellParser({
           tests: [
             {
               input: "animation deal the cards",
-              output: ["/* SPELL: added rule: `deal the cards` */", "function deal_the_cards() {}"]
+              output: [
+                "/* SPELL: added rule: `deal the cards` */",
+                "async function deal_the_cards() {",
+                "\tif (spellCore.processIsRunning('deal_the_cards')) { return }",
+                "\tspellCore.startProcess('deal_the_cards', 'EXCLUSIVE')",
+                "\ttry {}",
+                "\tfinally {",
+                "\t\tspellCore.stopProcess('deal_the_cards')",
+                "\t}",
+                "}"
+              ]
+            },
+            {
+              input: ["animation deal the cards", "\tpause for 10 seconds"],
+              output: [
+                "/* SPELL: added rule: `deal the cards` */",
+                "async function deal_the_cards() {",
+                "\tif (spellCore.processIsRunning('deal_the_cards')) { return }",
+                "\tspellCore.startProcess('deal_the_cards', 'EXCLUSIVE')",
+                "\ttry {",
+                "\t\tawait spellCore.pauseFor(10, 'seconds')",
+                "\t}",
+                "\tfinally {",
+                "\t\tspellCore.stopProcess('deal_the_cards')",
+                "\t}",
+                "}"
+              ]
             }
           ]
         }
