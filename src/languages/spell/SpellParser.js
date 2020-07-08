@@ -19,6 +19,15 @@ export class SpellParser extends Parser {
     whitespacePolicy: WhitespacePolicy.LEADING_ONLY
   })
 
+  /** Override `addRule` to also add to `simple_expression` or `simple_statement` as necessary. */
+  addRule(rule, names) {
+    if (Array.isArray(names) && !rule.isLeftRecursive) {
+      if (names.includes("expression")) names.push("simple_expression")
+      if (names.includes("statement")) names.push("simple_statement")
+    }
+    super.addRule(rule, names)
+  }
+
   @memoize
   static get rootScope() {
     const scope = new ProjectScope({ name: "spellRoot", parser: spellParser })

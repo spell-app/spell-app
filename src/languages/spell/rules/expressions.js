@@ -127,6 +127,7 @@ export const expressions = new SpellParser({
 
     {
       name: "compound_expression",
+      isLeftRecursive: true,
       alias: "expression",
       precedence: 12,
       syntax: "{lhs:single_expression} {rhsChain:expression_suffix}+",
