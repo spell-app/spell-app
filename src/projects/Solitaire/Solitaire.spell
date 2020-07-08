@@ -121,31 +121,42 @@ to play (a card)
 	if there is not an end-pile return no
 
 	set cards-to-move to (cards in start-pile starting with the card)
+	set the name of cards-to-move to the name of the start-pile
+	set drop-card to the last card in end-pile
+	set output to "moving (" + the state of cards-to-move + ") to (" 
+	if drop-card: output = output + the name of end-pile + ": " + the state of drop-card + ")"
+	else output = output + the name of end-pile + ")"
+	print output
+		
 	for each card in cards-to-move
 		move it to end-pile
 
 	if the start-pile is a tableau and the start-pile is not empty
 		pause for 200 msec
-		turn the last card of the start-pile face up
+		get the last card of the start-pile
+		print "turning over (" + the name of start-pile + ": " + its state + ")"
+		turn it face up
 
 	if end-pile is a foundation: set the score of the game to the score of the game + 10
 	else if start-pile is discards: set the score of the game to the score of the game + 5
+	return yes
 
 to auto-play
-	print collapsed group "auto-play"
-	print warning "before"
-	debug the game
 	set auto-play-piles to piles in all-piles where its auto-play is yes
+	set anything-changed to no
 	for each pile in the auto-play-piles
 		set face-up-cards to the cards in the pile where the card is face up
 		if face-up-cards is empty return
-		get the first card in face-up-cards
+		set test-card to the first card in face-up-cards
+		if (the pile is the discards)
+			set test-card to the last card in the discards
 		// don't move kings if they're already at the base of a tableau
-		if (it is a king) and (it is the first card of the pile) and (the pile is a tableau) return
-		await play it
-	print warning "after"
-	debug the game
-	end print group
+		if (test-card is a king) and (test-card is the first card of the pile) and (the pile is a tableau) return
+		if await play test-card
+			pause for 500 msec
+			set anything-changed to yes
+	// call auto-play again if anything actually changed
+	if anything-changed auto-play
 
 to reset the game
 	set the score of the game to 0

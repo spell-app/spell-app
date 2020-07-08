@@ -171,7 +171,7 @@ export const types = new SpellParser({
     // `match.type` will be the existing `TypeScope`.
     {
       name: "known_type",
-      //      alias: ["expression", "single_expression"],
+      //      alias: "expression",
       constructor: class known_type extends SpellParser.Rule.Type {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)

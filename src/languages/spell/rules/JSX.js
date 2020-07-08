@@ -7,7 +7,7 @@ export const JSX = new SpellParser({
   rules: [
     {
       name: "jsxElement",
-      alias: ["jsxChild", "expression", "single_expression"],
+      alias: ["jsxChild", "expression"],
       tokenType: Token.JSXElement,
       constructor: class SpellJSX extends Rule.TokenType {
         parse(scope, tokens) {

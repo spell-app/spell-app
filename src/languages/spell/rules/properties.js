@@ -43,8 +43,8 @@ export const properties = new SpellParser({
     {
       // TODO: multiple identifiers would be cool...
       name: "property_expression",
-      alias: ["expression", "single_expression"],
-      syntax: "{property_accessor} {expression:single_expression}",
+      alias: "expression",
+      syntax: "{property_accessor} {expression:simple_expression}",
       testRule: "{property_accessor}", // ???
       getAST(match) {
         const { property_accessor, expression } = match.groups
@@ -75,7 +75,7 @@ export const properties = new SpellParser({
     //  - a synonym for "this" if `it` is not defined.
     {
       name: "its_property",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "its {property}",
       testRule: "its",
       getAST(match) {
@@ -135,7 +135,7 @@ export const properties = new SpellParser({
     //  - a synonym for "this" if `it` is not defined.
     {
       name: "its_ordinal",
-      alias: ["expression", "property_accessor", "single_expression"],
+      alias: ["expression", "property_accessor"],
       syntax: "its {ordinal} {arg:singular_variable}",
       testRule: "its",
       getAST(match) {

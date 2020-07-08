@@ -95,8 +95,8 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
 
   getRuleAnnotation(match) {
     const { syntax, asPostfixExpression, asInfixExpression } = match.groups.signature
-    if (asPostfixExpression) return `added expression \`{thing:single_expression} ${syntax}\``
-    if (asInfixExpression) return `added expression \`{thing:single_expression} ${syntax}\``
+    if (asPostfixExpression) return `added expression \`{thing:simple_expression} ${syntax}\``
+    if (asInfixExpression) return `added expression \`{thing:simple_expression} ${syntax}\``
     return `added rule: \`${match.groups.signature.syntax}\``
   }
   getRule(match) {
@@ -995,11 +995,11 @@ export const methods = new SpellParser({
           } else if (signature.args.length === 1) {
             signature.asInfixExpression = true
             signature.syntaxBits = signature.syntaxBits.map((bit) =>
-              bit.startsWith("{") ? "{expression:single_expression}" : bit
+              bit.startsWith("{") ? "{expression:simple_expression}" : bit
             )
           } else {
             // TODO: we don't handle this currently...
-            // signature.syntaxBits.unshift("{thisArg:single_expression}")
+            // signature.syntaxBits.unshift("{thisArg:simple_expression}")
           }
           // convert "is", "has", "can", "will" to negatable expression
           if (signature.asPostfixExpression || signature.asInfixExpression) {
@@ -1052,7 +1052,7 @@ export const methods = new SpellParser({
               title: "no body",
               input: [`a thing "nerds out" if`, `if a new thing nerds out`],
               output: [
-                `/* SPELL: added expression \`{thing:single_expression} nerds out\` */`,
+                `/* SPELL: added expression \`{thing:simple_expression} nerds out\` */`,
                 `spellCore.define(Thing.prototype, 'nerds_out', {`,
                 `\tget() {}`,
                 `})`,
@@ -1063,7 +1063,7 @@ export const methods = new SpellParser({
               title: "inline expression",
               input: [`a thing "nerds out" if yes`, `if a new thing nerds out`],
               output: [
-                `/* SPELL: added expression \`{thing:single_expression} nerds out\` */`,
+                `/* SPELL: added expression \`{thing:simple_expression} nerds out\` */`,
                 `spellCore.define(Thing.prototype, 'nerds_out', {`,
                 `\tget() {`,
                 `\t\treturn true`,
@@ -1076,7 +1076,7 @@ export const methods = new SpellParser({
               title: "indented method body",
               input: [`a thing "nerds out" if`, `\treturn yes`, `if a new thing nerds out`],
               output: [
-                `/* SPELL: added expression \`{thing:single_expression} nerds out\` */`,
+                `/* SPELL: added expression \`{thing:simple_expression} nerds out\` */`,
                 `spellCore.define(Thing.prototype, 'nerds_out', {`,
                 `\tget() {`,
                 `\t\treturn true`,
@@ -1095,7 +1095,7 @@ export const methods = new SpellParser({
               title: "no body",
               input: [`a thing "nerds out with (another as a thing)" if`, `if a new thing nerds out with a new thing`],
               output: [
-                `/* SPELL: added expression \`{thing:single_expression} nerds out with {expression:single_expression}\` */`,
+                `/* SPELL: added expression \`{thing:simple_expression} nerds out with {expression:simple_expression}\` */`,
                 `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
                 `\tvalue(another) {}`,
                 `})`,
@@ -1109,7 +1109,7 @@ export const methods = new SpellParser({
                 `if a new thing nerds out with a new thing`
               ],
               output: [
-                `/* SPELL: added expression \`{thing:single_expression} nerds out with {expression:single_expression}\` */`,
+                `/* SPELL: added expression \`{thing:simple_expression} nerds out with {expression:simple_expression}\` */`,
                 `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
                 `\tvalue(another) {`,
                 `\t\treturn true`,
@@ -1126,7 +1126,7 @@ export const methods = new SpellParser({
                 `if a new thing nerds out with a new thing`
               ],
               output: [
-                `/* SPELL: added expression \`{thing:single_expression} nerds out with {expression:single_expression}\` */`,
+                `/* SPELL: added expression \`{thing:simple_expression} nerds out with {expression:simple_expression}\` */`,
                 `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
                 `\tvalue(another) {`,
                 `\t\treturn true`,
@@ -1151,7 +1151,7 @@ export const methods = new SpellParser({
                 `if a new thing isn't a bug`
               ],
               output: [
-                `/* SPELL: added expression \`{thing:single_expression} (operator:is not?|isn't|isnt) a bug\` */`,
+                `/* SPELL: added expression \`{thing:simple_expression} (operator:is not?|isn't|isnt) a bug\` */`,
                 `spellCore.define(Thing.prototype, 'is_a_bug', {`,
                 `\tget() {}`,
                 `})`,
@@ -1172,7 +1172,7 @@ export const methods = new SpellParser({
                 `if a new thing can't play`
               ],
               output: [
-                `/* SPELL: added expression \`{thing:single_expression} (operator:can not?|cannot|can't|cant) play\` */`,
+                `/* SPELL: added expression \`{thing:simple_expression} (operator:can not?|cannot|can't|cant) play\` */`,
                 `spellCore.define(Thing.prototype, 'can_play', {`,
                 `\tget() {}`,
                 `})`,
@@ -1193,7 +1193,7 @@ export const methods = new SpellParser({
                 `if a new thing won't blow up`
               ],
               output: [
-                `/* SPELL: added expression \`{thing:single_expression} (operator:will not?|won't|wont) blow up\` */`,
+                `/* SPELL: added expression \`{thing:simple_expression} (operator:will not?|won't|wont) blow up\` */`,
                 `spellCore.define(Thing.prototype, 'will_blow_up', {`,
                 `\tget() {}`,
                 `})`,
@@ -1213,7 +1213,7 @@ export const methods = new SpellParser({
                 `if a new thing doesn't have a friend`
               ],
               output: [
-                `/* SPELL: added expression \`{thing:single_expression} (operator:has|does not have|doesn't have|doesnt have) a friend\` */`,
+                `/* SPELL: added expression \`{thing:simple_expression} (operator:has|does not have|doesn't have|doesnt have) a friend\` */`,
                 `spellCore.define(Thing.prototype, 'has_a_friend', {`,
                 `\tget() {}`,
                 `})`,

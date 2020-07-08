@@ -120,7 +120,7 @@ export const classes = new SpellParser({
     // NOTE: we assume that all types take an object of properties????
     {
       name: "new_thing",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "a new {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       constructor: "Statement",
       getAST(match) {
@@ -153,7 +153,7 @@ export const classes = new SpellParser({
     // `a new list of <type>`
     {
       name: "new_list",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "a new (list|List) (of {instanceType:type}?)",
       constructor: "Statement",
       getAST(match) {
@@ -193,7 +193,7 @@ export const classes = new SpellParser({
     // FIXME: `list`, `text`, etc don't follow these semantics???
     {
       name: "create_thing",
-      alias: ["expression", "single_expression", "statement"],
+      alias: ["expression", "statement"],
       syntax: "create (a|an) {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       testRule: "create",
       constructor: "Statement",
@@ -355,7 +355,7 @@ export const classes = new SpellParser({
           scope.rules.add({
             name: `${typeName}_${groupName}`,
             precedence: 20,
-            alias: ["expression", "single_expression"],
+            alias: "expression",
             literals,
             getAST(_match) {
               return new AST.PropertyExpression(_match, {

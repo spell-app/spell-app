@@ -75,7 +75,7 @@ export const variables = new SpellParser({
     // Note that we match this as an "expression".
     {
       name: "known_variable",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       // NOTE: `match` returned is the `{variable_identifier}`, not this sequence.
       syntax: "the? {identifier:variable_identifier}",
       constructor: class known_variable extends Rule.Sequence {

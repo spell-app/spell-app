@@ -84,7 +84,7 @@ export const expressions = new SpellParser({
   rules: [
     {
       name: "parenthesized_expression",
-      alias: ["expression", "single_expression"],
+      alias: ["expression"],
       syntax: "\\( {expression} \\)",
       testRule: "\\(",
       getAST(match) {
@@ -127,10 +127,10 @@ export const expressions = new SpellParser({
 
     {
       name: "compound_expression",
-      isLeftRecursive: true,
       alias: "expression",
+      isLeftRecursive: true,
       precedence: 12,
-      syntax: "{lhs:single_expression} {rhsChain:expression_suffix}+",
+      syntax: "{lhs:simple_expression} {rhsChain:expression_suffix}+",
       getAST(match) {
         function applyOperatorToRule({ match: ruleMatch, operator, rhs, lhs }) {
           function compile(thing) {
@@ -236,7 +236,7 @@ export const expressions = new SpellParser({
     {
       name: "and",
       alias: "expression_suffix",
-      syntax: "(operator:and) {expression:single_expression}",
+      syntax: "(operator:and) {expression:simple_expression}",
       precedence: 6,
       constructor: "InfixOperatorSuffix",
       getOutputOperator: () => "&&",
@@ -261,7 +261,7 @@ export const expressions = new SpellParser({
     {
       name: "or",
       alias: "expression_suffix",
-      syntax: "(operator:or) {expression:single_expression}",
+      syntax: "(operator:or) {expression:simple_expression}",
       precedence: 5,
       constructor: "InfixOperatorSuffix",
       getOutputOperator: () => "||",
@@ -282,7 +282,7 @@ export const expressions = new SpellParser({
       name: "is",
       alias: "expression_suffix",
       precedence: 10,
-      syntax: "(operator:is not?) {expression:single_expression}",
+      syntax: "(operator:is not?) {expression:simple_expression}",
       constructor: "InfixOperatorSuffix",
       parenthesize: true,
       getOutputOperator: (operator) => (operator.value === "is not" ? "!=" : "=="),
@@ -305,7 +305,7 @@ export const expressions = new SpellParser({
       name: "is_exactly",
       alias: "expression_suffix",
       precedence: 10,
-      syntax: "(operator:is not? exactly) {expression:single_expression}",
+      syntax: "(operator:is not? exactly) {expression:simple_expression}",
       constructor: "InfixOperatorSuffix",
       parenthesize: true,
       getOutputOperator: (operator) => (operator.value === "is not exactly" ? "!==" : "==="),
@@ -358,7 +358,7 @@ export const expressions = new SpellParser({
       name: "is_same_type_as",
       alias: "expression_suffix",
       precedence: 11,
-      syntax: "(operator:is not? the same type as) {expression:single_expression}",
+      syntax: "(operator:is not? the same type as) {expression:simple_expression}",
       constructor: "InfixOperatorSuffix",
       getOutputOperator: (operator) => (operator.value.includes("not") ? "!==" : "==="),
       compileASTExpression(match, { lhs, rhs }) {
@@ -387,7 +387,7 @@ export const expressions = new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax:
-        "(operator:is (not? in|not? one of|either|not either of?|neither)) (expression:{single_expression}|{identifier_list})",
+        "(operator:is (not? in|not? one of|either|not either of?|neither)) (expression:{simple_expression}|{identifier_list})",
       constructor: "InfixOperatorSuffix",
       shouldNegateOutput: ({ value }) => value.includes("not") || value.includes("neither"),
       compileASTExpression(match, { lhs, rhs }) {
@@ -423,7 +423,7 @@ export const expressions = new SpellParser({
       name: "includes",
       alias: "expression_suffix",
       precedence: 11,
-      syntax: "(operator:includes|contains) {expression:single_expression}",
+      syntax: "(operator:includes|contains) {expression:simple_expression}",
       constructor: "InfixOperatorSuffix",
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
@@ -450,7 +450,7 @@ export const expressions = new SpellParser({
       name: "does_not_include",
       alias: "expression_suffix",
       precedence: 11,
-      syntax: "(operator:does not (include|contain)) {expression:single_expression}",
+      syntax: "(operator:does not (include|contain)) {expression:simple_expression}",
       constructor: "InfixOperatorSuffix",
       shouldNegateOutput: () => true,
       compileASTExpression(match, { lhs, rhs }) {

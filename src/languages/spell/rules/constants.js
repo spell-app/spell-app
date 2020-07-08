@@ -54,7 +54,7 @@ export const constants = new SpellParser({
     // Note that this is defined as an "expression".
     {
       name: "known_constant",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       constructor: class known_constant extends SpellParser.Rule.Constant {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)

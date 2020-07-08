@@ -13,7 +13,7 @@ export const math = new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       // NOTE: output of `operator` will NOT have space between `>=`
-      syntax: "(operator:(<|>) =?) {expression:single_expression}",
+      syntax: "(operator:(<|>) =?) {expression:simple_expression}",
       constructor: "InfixOperatorSuffix",
       parenthesize: true,
       tests: [
@@ -45,7 +45,7 @@ export const math = new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       // TODO: is *not* greater than???
-      syntax: "(operator:is (greater|less) than (or equal to)?) {expression:single_expression}",
+      syntax: "(operator:is (greater|less) than (or equal to)?) {expression:simple_expression}",
       constructor: "InfixOperatorSuffix",
       getOutputOperator: ({ value }) => (value.includes("greater") ? ">" : "<") + (value.includes("equal") ? "=" : ""),
       parenthesize: true,
@@ -70,7 +70,7 @@ export const math = new SpellParser({
       name: "plus",
       alias: "expression_suffix",
       precedence: 13,
-      syntax: "(operator:plus|+) {expression:single_expression}",
+      syntax: "(operator:plus|+) {expression:simple_expression}",
       constructor: "InfixOperatorSuffix",
       getOutputOperator: () => "+",
       parenthesize: true,
@@ -93,7 +93,7 @@ export const math = new SpellParser({
       name: "minus",
       alias: "expression_suffix",
       precedence: 13,
-      syntax: "(operator:minus|-) {expression:single_expression}",
+      syntax: "(operator:minus|-) {expression:simple_expression}",
       constructor: "InfixOperatorSuffix",
       getOutputOperator: () => "-",
       parenthesize: true,
@@ -117,7 +117,7 @@ export const math = new SpellParser({
       name: "times",
       alias: "expression_suffix",
       precedence: 14,
-      syntax: "(operator:*|times) {expression:single_expression}",
+      syntax: "(operator:*|times) {expression:simple_expression}",
       constructor: "InfixOperatorSuffix",
       getOutputOperator: () => "*",
       parenthesize: true,
@@ -140,7 +140,7 @@ export const math = new SpellParser({
       name: "divided_by",
       alias: "expression_suffix",
       precedence: 14,
-      syntax: "(operator:/|divided by) {expression:single_expression}",
+      syntax: "(operator:/|divided by) {expression:simple_expression}",
       constructor: "InfixOperatorSuffix",
       getOutputOperator: () => "/",
       parenthesize: true,
@@ -165,7 +165,7 @@ export const math = new SpellParser({
 
     {
       name: "absolute_value",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "(operator:the? absolute value of) {expression}",
       testRule: "…absolute",
       constructor: "InfixOperatorSuffix",
@@ -190,7 +190,7 @@ export const math = new SpellParser({
 
     {
       name: "max",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       precedence: 2,
       syntax: "(operator:the? (biggest|largest)) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…(biggest|largest)",
@@ -220,7 +220,7 @@ export const math = new SpellParser({
 
     {
       name: "min",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       precedence: 2,
       syntax: "(operator:the? smallest) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…smallest",
@@ -249,7 +249,7 @@ export const math = new SpellParser({
     {
       // TODO: precision:  to the nearest tenth ?
       name: "round_number",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "round {expression} (operator:off|up|down)?",
       testRule: "round",
       precedence: 1,

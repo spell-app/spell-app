@@ -244,7 +244,7 @@ export const UI = new SpellParser({
     /** Parse CSS from a `Text` token WITHOUT quotes. */
     {
       name: "css",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       tokenType: Token.Text,
       getAST(match) {
         // HACK: `name` comes from SpellCSSFile

@@ -70,7 +70,7 @@ export const core = new SpellParser({
     // TODO:  `integer` and `decimal`?  too techy?
     {
       name: "number",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       datatype: "number",
       tokenType: Token.Number,
       getAST(match) {
@@ -109,7 +109,7 @@ export const core = new SpellParser({
     // `number` as a string `zero` to `ten`
     {
       name: "number",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       datatype: "number",
       pattern: /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
       VALUE_MAP: {
@@ -153,7 +153,7 @@ export const core = new SpellParser({
     // TODO: better name for this?  "flag"?  "truism"?
     {
       name: "boolean",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       datatype: "boolean",
       pattern: /^(true|false|yes|no|ok|cancel|always|never)$/,
       VALUE_MAP: {
@@ -201,7 +201,7 @@ export const core = new SpellParser({
     // Returned value has the original enclosing quotes.
     {
       name: "text",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       datatype: "string",
       tokenType: Token.Text,
       getAST(match) {
@@ -246,7 +246,7 @@ export const core = new SpellParser({
     // `undefined` as an expression... ???
     {
       name: "undefined",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       datatype: "undefined",
       syntax: "(undefined|nothing)",
       getAST(match) {

@@ -36,7 +36,7 @@ export const lists = new SpellParser({
     // Bracketed list (array), eg:  `[1,2 , true,false ]`
     {
       name: "bracketed_list",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       datatype: "array", // TODO: array of what?
       syntax: "\\[ [list:{expression},]? \\]",
       testRule: "\\[",
@@ -71,7 +71,7 @@ export const lists = new SpellParser({
     /** Duplicate a list. */
     {
       name: "copy_list",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       // QUESTIONABLE SYNTAX
       // "...as a {type}" ???
       syntax: "a (copy|duplicate) of list? {expression} (as (a|an) {type:known_type})?",
@@ -101,7 +101,7 @@ export const lists = new SpellParser({
     /** Merge a set of lists together. */
     {
       name: "merge_lists",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       // QUESTIONABLE SYNTAX
       syntax: "merge lists? {expression} ((as|into) (a|an) new? {type:known_type})?",
       getAST(match) {
@@ -146,7 +146,7 @@ export const lists = new SpellParser({
     // Return the length of a list.
     {
       name: "list_length",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "the? number of {arg:plural_variable} (in|of) {list:expression}",
       testRule: "…(number of)",
       precedence: 3,
@@ -179,7 +179,7 @@ export const lists = new SpellParser({
     // TODO: `positions`, `last position`, `after...`
     {
       name: "list_position",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "the? position of {thing:expression} in {list:expression}",
       testRule: "…(position of)",
       precedence: 3,
@@ -212,7 +212,7 @@ export const lists = new SpellParser({
       name: "starts_with",
       alias: "expression_suffix",
       // TODO: `does not start with`?
-      syntax: "(operator:starts with) {expression:single_expression}",
+      syntax: "(operator:starts with) {expression:simple_expression}",
       constructor: "InfixOperatorSuffix",
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
@@ -240,7 +240,7 @@ export const lists = new SpellParser({
       name: "ends_with",
       alias: "expression_suffix",
       // TODO: `does not end with`?
-      syntax: "(operator:ends with) {expression:single_expression}",
+      syntax: "(operator:ends with) {expression:simple_expression}",
       constructor: "InfixOperatorSuffix",
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
@@ -329,7 +329,7 @@ export const lists = new SpellParser({
     //     e.g. `item 1 of the array`  = `array[0]`
     {
       name: "position_expression",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "{arg:singular_variable} {position:expression} of {expression}",
       testRule: "…of",
       getAST(match) {
@@ -358,7 +358,7 @@ export const lists = new SpellParser({
 
     {
       name: "ordinal_position_expression",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "the {ordinal} {arg:singular_variable} (in|of) {expression}",
       testRule: "…(in|of)",
       getAST(match) {
@@ -388,7 +388,7 @@ export const lists = new SpellParser({
     // Pick a SINGLE random item from the list.
     {
       name: "random_item_expression",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "a random {arg:singular_variable} (of|from|in) {list:expression}",
       testRule: "a random",
       getAST(match) {
@@ -418,7 +418,7 @@ export const lists = new SpellParser({
     // TODO: `two random items...`
     {
       name: "random_items_expression",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "{number} random {arg:plural_variable} (of|from|in) {list:expression}",
       testRule: "…random",
       getAST(match) {
@@ -450,7 +450,7 @@ export const lists = new SpellParser({
     // NOTE: `end` is inclusive!
     {
       name: "range_between_expression",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:expression}",
       testRule: "…(of|in|from)",
       getAST(match) {
@@ -481,7 +481,7 @@ export const lists = new SpellParser({
     // If item is not found, returns an empty list. (???)
     {
       name: "range_starting_with_expression",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "{arg:plural_variable} (in|of) {list:expression} starting with {thing:expression}",
       testRule: "…(starting with)",
       getAST(match) {
@@ -521,7 +521,7 @@ export const lists = new SpellParser({
     // TODO: restrict ordinals to `first`, `last`, `final`, `top`, etc
     {
       name: "range_count_expression",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "{ordinal} {number} {arg:plural_variable} (of|in|from) {list:expression}",
       testRule: "…(of|in|from)",
       getAST(match) {
@@ -550,7 +550,7 @@ export const lists = new SpellParser({
     // List filter.
     {
       name: "list_filter",
-      alias: ["expression", "single_expression"],
+      alias: "expression",
       syntax: "the? {arg:plural_variable} (in|of) {list:expression} where",
       testRule: "…where",
       precedence: 2,
@@ -612,8 +612,9 @@ export const lists = new SpellParser({
     // TODO: this is a postfix_operator expression
     {
       name: "list_membership_test",
-      alias: ["expression"],
-      syntax: "{list:single_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_variable} where",
+      alias: "expression",
+      isLeftRecursive: true,
+      syntax: "{list:simple_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_variable} where",
       testRule: "…(has|have)",
       precedence: 2,
       constructor: "Statement",
