@@ -125,8 +125,8 @@ to play (a card)
 		return
 	
 	set droppable-piles to piles in all-piles where its droppable is yes and it can play the card
-	if droppable-piles is empty return no
 	set end-pile to the first pile in droppable-piles
+	if there is not an end-pile return no
 
 	set cards-to-move to (cards in start-pile starting with the card)
 	for each card in cards-to-move

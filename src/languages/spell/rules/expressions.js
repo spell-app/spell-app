@@ -528,6 +528,37 @@ export const expressions = new SpellParser({
       ]
     },
 
+    {
+      name: "there_is_a",
+      alias: "expression",
+      precedence: 11,
+      syntax: "there (operator:is not? (a|an)|is no such) {expression}",
+      getAST(match) {
+        const { operator } = match.groups
+        const expression = new AST.CoreMethodInvocation(match, {
+          methodName: "isDefined",
+          args: [match.groups.expression.AST]
+        })
+        if (operator.value.includes("no")) return new AST.NotExpression(match, { expression })
+        return expression
+      },
+      tests: [
+        {
+          compileAs: "expression",
+          beforeEach(scope) {
+            scope.variables.add("thing")
+            scope.variables.add("animal")
+          },
+          tests: [
+            { input: "there is a thing", output: "spellCore.isDefined(thing)" },
+            { input: "there is an animal", output: "spellCore.isDefined(animal)" },
+            { input: "there is not a thing", output: "!spellCore.isDefined(thing)" },
+            { input: "there is no such animal", output: "!spellCore.isDefined(animal)" }
+          ]
+        }
+      ]
+    },
+
     /** Collection is empty */
     {
       name: "is_empty",
