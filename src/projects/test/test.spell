@@ -1,3 +1,8 @@
-get a new list
-expect the number of items in it
-get 0
+animation deal the cards
+	print 1
+	
+animation play (a thing)
+	print 1
+	
+animation play (a thing) on (another as a thing)
+	print 1

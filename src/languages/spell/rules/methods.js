@@ -3,8 +3,6 @@ import { isNode } from "browser-or-node"
 import { instanceCase, typeCase, proto } from "~/util"
 import { Rule, Token, MethodScope } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
-import { ExpectMethodInvocation } from "../ast/AST"
-import { ConsoleMethodInvocation } from "../ast/AST"
 
 /**
  * Abstract class for a dynamic method created with `to_do_something` below.
@@ -104,12 +102,8 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
   getRule(match) {
     const {
       asTest,
-      methodName,
-      syntax,
-      asPostfixExpression,
-      asInfixExpression,
-      shouldNegateOutput = () => false
-    } = match.groups.signature
+      signature: { methodName, syntax, asPostfixExpression, asInfixExpression, shouldNegateOutput = () => false }
+    } = match.groups
 
     if (asPostfixExpression) {
       return {
@@ -167,7 +161,7 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
   }
 
   getAST(match) {
-    const { asTest, signature, inlineStatement, nestedBlock } = match.groups
+    const { asTest, asAnimation, signature, inlineStatement, nestedBlock } = match.groups
     const { methodName, args, props, instanceType, asPostfixExpression } = signature
     const output = [
       new AST.ParserAnnotation(match, {
@@ -197,6 +191,19 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
 
     // Add props assignment to START of method body
     if (props) method.body.statements.unshift(this.getPropsAssignment(match))
+
+    if (asAnimation) {
+      method.async = true
+      method.body = new AST.StatementBlock(match, {
+        statements: [
+          new AST.StartProcessInvocation(match, { name: methodName, exclusive: true }),
+          new AST.TryCatchBlock(match, {
+            body: method.body || new AST.StatementBlock(match),
+            finallyBlock: new AST.StopProcessInvocation(match, { name: methodName })
+          })
+        ]
+      })
+    }
 
     if (instanceType) {
       if (asPostfixExpression) {
@@ -902,6 +909,35 @@ export const methods = new SpellParser({
         }
       ]
     },
+
+    {
+      name: "create_animation",
+      alias: "statement",
+      syntax: `(asAnimation:create? animation) {signature:method_signature} :?`,
+      constructor: class create_animation extends SpellParser.Rule.MethodDefinition {
+        @proto inlineInitialType = true
+      },
+      tests: [
+        {
+          title: "inline method signatures & variables",
+          compileAs: "block",
+          beforeEach(scope) {
+            scope.types.add("card")
+            scope.types.add("pile")
+            scope.types.add("deck")
+            scope.constants.add("up")
+            scope.constants.add("down")
+          },
+          tests: [
+            {
+              input: "animation deal the cards",
+              output: ["/* SPELL: added rule: `deal the cards` */", "function deal_the_cards() {}"]
+            }
+          ]
+        }
+      ]
+    },
+
     {
       name: "quoted_type_expression",
       precedence: 9, // defer to more-specific methods in `classes`, e.g. `define_property_has`, ...

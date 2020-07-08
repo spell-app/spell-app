@@ -91,29 +91,9 @@ export const _async = new SpellParser({
       constructor: "Statement",
       getAST(match) {
         const { operator, name } = match.groups
-        const exclusive = operator?.value === "exclusive"
-
-        const nameArg = new AST.QuotedExpression(match, name.value)
-        const args = [nameArg]
-        if (exclusive) args.push(new AST.QuotedExpression(match, "EXCLUSIVE"))
-
-        const startStatement = new AST.CoreMethodInvocation(match, {
-          methodName: "startProcess",
-          args
-        })
-        if (!exclusive) return startStatement
-
-        return new AST.StatementGroup(match, {
-          statements: [
-            new AST.IfStatement(match, {
-              condition: new AST.CoreMethodInvocation(match, {
-                methodName: "processIsRunning",
-                args: [nameArg]
-              }),
-              statements: new AST.ReturnStatement(match)
-            }),
-            startStatement
-          ]
+        return new AST.StartProcessInvocation(match, {
+          name: name.value,
+          exclusive: operator?.value === "exclusive"
         })
       },
       tests: [

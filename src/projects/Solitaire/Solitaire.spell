@@ -80,8 +80,7 @@ to reset the stock pile
 		move it to the stock
 		turn the card face down
 
-to play from the stock pile
-	start exclusive animation playing-from-stock
+animation play from the stock pile
 	if the stock is empty 
 		wait for: reset the stock pile
 
@@ -89,21 +88,15 @@ to play from the stock pile
 	turn it face up
 	// pause for 150 msec
 	move it to the discards
-	end animation playing-from-stock
 
-to deal the cards
-	// make sure we don't run this twice at the same time
-	start exclusive animation dealing 
-	
+animation deal the cards
 	// pull all cards into stock with a nice animation
 	set cards to (merge all-piles into a new pile)
 	reverse the cards
 	for each card in the cards
 		set start-pile to the pile of the card
 		turn the card face down
-		if start-pile is discards // move discards right away
-			move the card to the stock
-		else if start-pile is not the stock // animate everything else not in stock
+		if start-pile is not the stock
 			wait for: move the card to the stock
 	shuffle the stock
 	
@@ -114,7 +107,6 @@ to deal the cards
 			wait for: move the bottom card of the stock to item column of the tableaus
 
 	wait for: play from the stock pile
-	finish animation dealing
 
 to play (a card)
 	set start-pile to the pile of the card

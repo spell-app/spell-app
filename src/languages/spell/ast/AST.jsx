@@ -817,6 +817,8 @@ export class ConstantExpression extends Expression {
  *  - `inline` (optional) set to `true` to make a fat arrow function
  *  - `asProperty` (optional) set to `true` to use object literaly property syntax
  *                 Note: this is done automatically by `ObjectLiteral.addMethod()`.
+ *  - `async` (optional) set to `true` to force the method to be async
+ *            if not set, we'll use `match.nestedScope.async`
  */
 export class MethodDefinition extends Expression {
   constructor(match, props) {
@@ -828,6 +830,7 @@ export class MethodDefinition extends Expression {
     this.assertType("methodName", "string", OPTIONAL)
     this.assertType("error", ParseError, OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
+    this.assertType("async", "boolean", OPTIONAL)
 
     // Default `body` to empty StatementBlock
     if (!this.body) {
@@ -851,6 +854,7 @@ export class MethodDefinition extends Expression {
     this.body.wrap = true
   }
   get isAsync() {
+    if (typeof this.async === "boolean") return this.async
     return !!this.match.nestedScope?.async
   }
   getMethodName() {
@@ -1116,6 +1120,48 @@ export class StatementBlock extends ASTNode {
         <render.List items={this.statements} delimiter={render.INDENTED_NEWLINE} />
       </render.Block>
     )
+  }
+}
+
+/**
+ * try...catch...finally
+ */
+export class TryCatchBlock extends StatementGroup {
+  constructor(match, props) {
+    super(match, props)
+    this.assertType("body", [StatementBlock, Statement, Expression])
+    this.assertType("errorArg", ["string", VariableExpression], OPTIONAL)
+    this.assertType("catchBlock", [StatementBlock, Statement, Expression], OPTIONAL)
+    this.assertType("finallyBlock", [StatementBlock, Statement, Expression], OPTIONAL)
+    this.assert(this.catchBlock || this.finallyBlock, "You must provide at least one catchBlock or finallyBlock")
+
+    if (typeof this.errorArg === "string") this.errorArg = new VariableExpression(match, { name: this.errorArg })
+    this.body = convertStatementsToBlock(this.match, this.body)
+    this.body.wrap = true
+    if (this.catchBlock) {
+      this.catchBlock = convertStatementsToBlock(this.catchBlock.match, this.catchBlock)
+      this.catchBlock.wrap = true
+    }
+    if (this.finallyBlock) {
+      this.finallyBlock = convertStatementsToBlock(this.finallyBlock.match, this.finallyBlock)
+      this.finallyBlock.wrap = true
+    }
+  }
+  compile() {
+    const { body, errorArg, catchBlock, finallyBlock } = this
+    const output = [`try ${body.compile()}`]
+    if (catchBlock) output.push(stringify.NEWLINE, `catch (${errorBlock.compile()}) ${catchBlock.compile()}`)
+    if (finallyBlock) output.push(stringify.NEWLINE, `finally ${finallyBlock.compile()}`)
+    return output.join("\n")
+  }
+  renderChildren() {
+    const { body, errorArg, catchBlock, finallyBlock } = this
+    const output = [render.TRY, <span className="try-block">{body.component}</span>]
+    if (catchBlock)
+      output.push(render.NEWLINE, render.CATCH, <span className="catch-block">{catchBlock.component}</span>)
+    if (finallyBlock)
+      output.push(render.NEWLINE, render.FINALLY, <span className="finally-block">{finallyBlock.component}</span>)
+    return render.Fragment(...output)
   }
 }
 
@@ -1421,6 +1467,52 @@ export class TernaryExpression extends Expression {
         {this.falseValue.component}
       </render.InParens>
     )
+  }
+}
+
+/**
+ * Start a `name`d process (or animation).
+ * - `name` (string) is the process name
+ * - `exclusive` (boolean, optional) if `true`, the process can only be run once at a time
+ */
+export class StartProcessInvocation extends StatementGroup {
+  constructor(match, { name, exclusive = false, ...props }) {
+    super(match, props)
+    this.statements = []
+    const nameArg = new QuotedExpression(match, name)
+    const args = [nameArg]
+    if (exclusive) args.push(new QuotedExpression(match, "EXCLUSIVE"))
+
+    if (exclusive) {
+      this.statements.push(
+        new IfStatement(match, {
+          condition: new CoreMethodInvocation(match, {
+            methodName: "processIsRunning",
+            args: [nameArg]
+          }),
+          statements: new ReturnStatement(match)
+        })
+      )
+    }
+    this.statements.push(
+      new CoreMethodInvocation(match, {
+        methodName: "startProcess",
+        args
+      })
+    )
+  }
+}
+
+/**
+ * Stop a `name`d process (or animation).
+ * - `name` (string) is the process name
+ */
+export class StopProcessInvocation extends CoreMethodInvocation {
+  constructor(match, { name }) {
+    super(match, {
+      methodName: "stopProcess",
+      args: [new QuotedExpression(match, name)]
+    })
   }
 }
 
