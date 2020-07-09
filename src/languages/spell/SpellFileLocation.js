@@ -38,10 +38,15 @@ export class SpellFileLocation {
   //  Syntactic sugar for working with paths.
   //-----------------
 
+  /** ProjectRoot object. */
+  get projectList() {
+    // return new SpellProjectList()
+  }
+
   /** Path to the project. */
   get projectPath() {
-    const { projectType, projectName } = this._split_
-    return `/${projectType}/${projectName}`
+    const { projectType, projectId } = this._split_
+    return `/${projectType}/${projectId}`
   }
   /** Type of the project, expected to be `project` or `library`. */
   get projectType() {
@@ -56,8 +61,8 @@ export class SpellFileLocation {
     return this.projectType === "project"
   }
   /** Name of the project. */
-  get projectName() {
-    return this._split_.projectName
+  get projectId() {
+    return this._split_.projectId
   }
   /**
    * Full file path including folder.
@@ -105,26 +110,26 @@ export class SpellFileLocation {
    * NOTE: Returns false if it has a filePath...
    */
   @memoize get isValidProjectPath() {
-    const { projectType, projectName, filePath } = this
-    return (projectType === "project" || projectType === "library") && !!projectName && !filePath
+    const { projectType, projectId, filePath } = this
+    return (projectType === "project" || projectType === "library") && !!projectId && !filePath
   }
 
   /**
    * Is this a valid project file path?
    */
   @memoize get isValidFilePath() {
-    const { projectType, projectName, filePath } = this
-    return (projectType === "project" || projectType === "library") && !!projectName && !!filePath
+    const { projectType, projectId, filePath } = this
+    return (projectType === "project" || projectType === "library") && !!projectId && !!filePath
   }
 
   /** Split path into rough bits -- further refinement in getters below. */
   @memoize get _split_() {
-    const [_empty, projectType, projectName, ...filePath] = this.path.split("/")
+    const [_empty, projectType, projectId, ...filePath] = this.path.split("/")
     const fileName = filePath.pop() || undefined
     const folder = filePath.length ? `/${filePath.join("")}` : undefined
     return {
       projectType,
-      projectName,
+      projectId,
       folder,
       fileName
     }

@@ -37,7 +37,7 @@ export class SpellFile extends TextFile {
   @writeOnce path
 
   /** `location` object which we can use to get various bits of the path. */
-  @forward("projectPath", "projectName", "filePath", "folder", "fileName", "name", "extension")
+  @forward("projectList", "projectPath", "projectId", "filePath", "folder", "fileName", "name", "extension")
   @memoize
   get location() {
     return new SpellFileLocation(this.path)

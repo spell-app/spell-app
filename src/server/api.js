@@ -6,11 +6,10 @@ import express from "express"
 import chalk from "chalk"
 import JSON5 from "json5"
 import nodePath from "path"
-import fse from "fs-extra"
 
 // Express utility functions
-import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"
+import { ProjectRoot } from "./ProjectRoot"
 
 // Create the api api.
 export const api = express.Router()
@@ -29,23 +28,11 @@ api.use((request, response, next) => {
   console.warn("----------------------------------------------------------")
 
   if (info.query) console.warn(chalk.grey(` query: ${stringify(info.query, "      ")}`))
-
   if (info.params) console.warn(chalk.grey(` params: ${stringify(info.params, "       ")}`))
-
   if (info.body) console.warn(chalk.grey(` body: ${stringify(info.body, "     ")}`))
 
   next()
 })
-
-//----------------------------
-//  Path utilities
-//----------------------------
-const projectsDir = nodePath.join(__dirname, "..", "projects")
-function getProjectPath(...suffix) {
-  // remove leading `/project/`
-  const path = nodePath.join(...suffix).replace(/^\/project\//, "")
-  return nodePath.join(projectsDir, path)
-}
 
 //----------------------------
 //  Tests to make sure api is working
@@ -72,146 +59,66 @@ api.get("/error", (request, response) => {
 })
 
 //----------------------------
-//  Project manipulation
+//  User projects manipulation
 //----------------------------
 
-/** List all project folders available to this user. */
-api.get("/projects", (request, response) => {
-  const options = { includeDirs: true, includeFiles: false, namesOnly: true }
-  const dirs = fileUtils.listContents(getProjectPath(), options)
-  const paths = dirs.map(dir => `/project/${dir}`)
-  responseUtils.sendJSON(response, paths)
+/** Path specification for working with user projects. */
+const projects = new ProjectRoot({
+  name: "User projects",
+  serverPath: nodePath.normalize(nodePath.join(__dirname, "..", "projects")),
+  fileURLPrefix: `/project/`
 })
 
-/** Return manifest for a project: all "unhidden" files in the project folder.  */
-api.get("/project/:projectId/.manifest", (request, response) => {
-  const { projectId } = request.params
-  const options = { ignoreHidden: true, namesOnly: true }
-  const files = fileUtils.listContents(getProjectPath(projectId), options)
-  const index = {
-    files: files.map(name => {
-      const { created, modified } = fileUtils.getFileTimes(getProjectPath(projectId, name))
-      return { name, path: `/project/${projectId}/${name}`, created, modified }
-    })
-  }
-  responseUtils.sendJSON(response, index)
-})
+// working with projects
+api.get("/projects", projects.request_getProjectList)
+api.post("/projects/create/project", projects.request_createProject)
+api.post("/projects/rename/project", projects.request_renameProject)
+api.post("/projects/duplicate/project", projects.request_duplicateProject)
+api.delete("/projects/remove/project", projects.request_removeProject)
 
-/** Return index for a project, creating one if necessary.  */
-api.get("/project/:projectId/.index", async (request, response) => {
-  const { projectId } = request.params
-  const path = getProjectPath(projectId, ".index.json5")
-  const exists = await fileUtils.pathExists(path)
-  console.warn(exists)
-  if (exists) return responseUtils.sendJSONFile(response, path)
+// working with project files
+api.post("/projects/create/file", projects.request_createFile)
+// api.delete("/projects/rename/file", projects.request_renameFile)
+api.delete("/projects/remove/file", projects.request_removeFile)
 
-  const options = { ignoreHidden: true, namesOnly: true }
-  const files = fileUtils.listContents(getProjectPath(projectId), options)
-  const index = {
-    imports: files.map(name => ({ path: `/project/${projectId}/${name}`, active: true }))
-  }
-  return responseUtils.sendJSON(response, index)
-})
+// returning project files
+api.get("/project/:projectId/.manifest", projects.request_getManifest)
+api.get("/project/:projectId/.index", projects.request_getIndex)
+api.get("/project/:projectId/:filePath*", projects.request_getFile)
+api.post("/project/:projectId/:filePath*", projects.request_saveFile)
 
-// Create a new project.
-api.post("/projects/create", async (request, response) => {
-  const { path, startFileName = "Untitled.spell", startFileContents = "" } = request.body
-  const startFilePath = getProjectPath(path, startFileName)
-  try {
-    await fileUtils.saveFile(startFilePath, startFileContents)
-    responseUtils.sendJSON(response, "OK")
-  } catch (e) {
-    responseUtils.sendError(response, 500, e)
-  }
-})
-
-// Duplicate a project.
-api.post("/projects/duplicate", async (request, response) => {
-  const { path, newPath } = request.body
-  try {
-    await fse.copy(getProjectPath(path), getProjectPath(newPath))
-    responseUtils.sendJSON(response, "OK")
-  } catch (e) {
-    responseUtils.sendError(response, 500, e)
-  }
-})
-
-// Delete a project.
-api.delete("/projects/delete", async (request, response) => {
-  const { path } = request.body
-  try {
-    await fse.remove(getProjectPath(path))
-    responseUtils.sendJSON(response, "OK")
-  } catch (e) {
-    responseUtils.sendError(response, 500, e)
-  }
-})
-
+//
 //----------------------------
-//  Project file manipulation
+//  System example projects manipulation
 //----------------------------
+//
 
-// Return a specific project file, including the index.
-api.get("/project/:projectId/:filename", (request, response) => {
-  const { projectId, filename } = request.params
-  const path = getProjectPath(projectId, filename)
-  responseUtils.sendJSONFile(response, path)
+/** Path specification for working with system examples. */
+const examples = new ProjectRoot({
+  name: "System examples",
+  serverPath: nodePath.normalize(nodePath.join(__dirname, "..", "examples")),
+  fileURLPrefix: `/example/`
 })
 
-// Save a specific project file, including the index.
-api.post("/project/:projectId/:filename", async (request, response) => {
-  const { projectId, filename } = request.params
-  const path = getProjectPath(projectId, filename)
-
-  const contents = request.body
-  try {
-    await fileUtils.saveFile(path, contents)
-    responseUtils.sendJSON(response, "OK")
-  } catch (e) {
-    responseUtils.sendError(response, 500, e)
-  }
-})
-
-/** Create a new project file. */
-api.post("/projects/create/file", async (request, response) => {
-  const { path, contents } = request.body
-  try {
-    await fileUtils.saveFile(getProjectPath(path), contents)
-    responseUtils.sendJSON(response, "OK")
-  } catch (e) {
-    responseUtils.sendError(response, 500, e)
-  }
-})
-
-/** Delete specified file.  NOTE: we do not report an error if the path is not found. */
-api.delete("/projects/delete/file", async (request, response) => {
-  const { path } = request.body
-  try {
-    await fse.remove(getProjectPath(path))
-    responseUtils.sendJSON(response, "OK")
-  } catch (e) {
-    responseUtils.sendError(response, 500, e)
-  }
-})
-
-// DEPRECATED
-// Delete a specific project file, including the index.
-// NOTE: delete swallows the error if the file can't be found.
-api.delete("/project/:projectId/:filename", async (request, response) => {
-  const { projectId, filename } = request.params
-  const path = getProjectPath(projectId, filename)
-
-  try {
-    await fse.remove(path, true)
-    responseUtils.sendJSON(response, "OK")
-  } catch (e) {
-    responseUtils.sendError(response, 500, e)
-  }
-})
-
+//
 //----------------------------
-// Log an error to the console for an unknown API path.
-// NOTE: this MUST be after the require()s above.
+//  System guide projects manipulation
+//----------------------------
+//
+
+/** Path specification for working with system guides. */
+const guides = new ProjectRoot({
+  name: "System guides",
+  serverPath: nodePath.normalize(nodePath.join(__dirname, "..", "guides")),
+  fileURLPrefix: `/guide/`
+})
+
+//
+//----------------------------
+//  Error handling
+//
+//  Log an error to the console for an unknown API path.
+//  NOTE: THIS MUST BE AT THE END OF THE FILE!
 //----------------------------
 function _apiCallNotFound(request, response) {
   const error = new URIError(`API routine not defined on server:   '${request.url}'`)

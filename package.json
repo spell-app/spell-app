@@ -45,6 +45,7 @@
     "lodash": "^4.17.11",
     "lodash-inflection": "^1.5.0",
     "mime-types": "^2.1.24",
+    "node-filter-async": "^2.0.0",
     "parcel-bundler": "^1.12.4",
     "path": "^0.12.7",
     "prop-types": "^15.5.8",

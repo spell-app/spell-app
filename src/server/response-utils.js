@@ -38,6 +38,26 @@ export function getIdParams(request, ...idProperties) {
 }
 
 //----------------------------
+//  Generic response wrappers
+//----------------------------
+
+/**
+ * Wrap `await callback(request, response)` in standard API semantics:
+ * - if `callback` returns result, return that to the browser as JSON.
+ * - if `callback` throws, return a 500 server error with the result.
+ */
+export function respondWithJSON(callback) {
+  return async function (request, response) {
+    try {
+      const result = await callback(request, response)
+      sendJSON(response, result || "OK")
+    } catch (error) {
+      sendError(response, 500, error)
+    }
+  }
+}
+
+//----------------------------
 //  Text responses
 //----------------------------
 
@@ -56,20 +76,15 @@ export function sendJavascript(response, javascript) {
 // Return text file at `path` (as text/plain) as `response` to `request`.
 export async function sendTextFile(response, path, defaultValue) {
   response.set("Content-Type", "text/plain")
-
   if (await fileUtils.pathExists(path)) return response.sendFile(path)
-
   if (defaultValue !== undefined) return response.send(defaultValue)
-
   return sendError(response, 404, new Error(`File not found: '${path}'`))
 }
 
 // Return js file at `path` (as text/plain) as `response` to `request`.
 export async function sendJSFile(response, path) {
   response.set("Content-Type", "application/javascript")
-
   if (await fileUtils.pathExists(path)) return response.sendFile(path)
-
   return sendError(response, 404, new Error(`File not found: '${path}'`))
 }
 
@@ -92,66 +107,72 @@ export function sendJSONFile(response, path) {
   return response.sendFile(path)
 }
 
-// Return contents of multiple files at `paths` as as JSON `response` to `request`.
-// File results will be wrapped in an array.
-// If `optional` is `true`, we'll just write `null` for any file that can't be found.
-// Otherwise we'll return an error result if ANY file can't be found.
-export function sendJSONFiles(response, paths, optional = false) {
-  return fileUtils.loadFiles(paths, "utf8", optional).then((jsonBlocks) => {
-    // Log what we're sending
-    console.warn("Sending JSON files:")
-    jsonBlocks.forEach((json, index) => {
-      // Log missing / empty files in lighter color
-      if (json === null) console.warn(chalk.grey(`  ${paths[index]}`))
-      else console.warn(`  ${paths[index]}`)
-    })
+// UNUSED UNTESTED
+//
+// // Return contents of multiple files at `paths` as as JSON `response` to `request`.
+// // File results will be wrapped in an array.
+// // If `optional` is `true`, we'll just write `null` for any file that can't be found.
+// // Otherwise we'll return an error result if ANY file can't be found.
+// export function sendJSONFiles(response, paths, optional = false) {
+//   return fileUtils.loadFiles(paths, "utf8", optional).then((jsonBlocks) => {
+//     // Log what we're sending
+//     console.warn("Sending JSON files:")
+//     jsonBlocks.forEach((json, index) => {
+//       // Log missing / empty files in lighter color
+//       if (json === null) console.warn(chalk.grey(`  ${paths[index]}`))
+//       else console.warn(`  ${paths[index]}`)
+//     })
 
-    // remove any null blocks
-    jsonBlocks = jsonBlocks.filter((block) => block != null)
+//     // remove any null blocks
+//     jsonBlocks = jsonBlocks.filter((block) => block != null)
 
-    // group them all in an array
-    return sendJSON(response, `[\n\n${jsonBlocks.join(",\n\n")}\n\n]`)
-  })
-}
+//     // group them all in an array
+//     return sendJSON(response, `[\n\n${jsonBlocks.join(",\n\n")}\n\n]`)
+//   })
+// }
 
-// Return a map of `{ <path.filename> => <path contents> }` for a mess of JSON files.
-// NOTE: the returned map really only works if all `paths` are in the same folder
-//     or otherwise have unique leaf file names.
-export function sendJSONFileMap(response, paths, optional = false) {
-  return fileUtils.loadFiles(paths, "utf8", optional).then((jsonBlocks) => {
-    const fileMap = {}
+// UNUSED UNTESTED
+//
+// // Return a map of `{ <path.filename> => <path contents> }` for a mess of JSON files.
+// // NOTE: the returned map really only works if all `paths` are in the same folder
+// //     or otherwise have unique leaf file names.
+// export function sendJSONFileMap(response, paths, optional = false) {
+//   return fileUtils.loadFiles(paths, "utf8", optional).then((jsonBlocks) => {
+//     const fileMap = {}
 
-    // Log what we're sending
-    console.warn("Sending JSON map with:")
-    jsonBlocks.forEach((json, index) => {
-      const path = paths[index]
-      const filename = fileUtils.filename(path)
-      const message = `  ${filename}: ${path}`
+//     // Log what we're sending
+//     console.warn("Sending JSON map with:")
+//     jsonBlocks.forEach((json, index) => {
+//       const path = paths[index]
+//       const filename = fileUtils.getPathFile(path)
+//       const message = `  ${filename}: ${path}`
 
-      // Log missing / empty files in lighter color
-      if (json === null) {
-        console.warn(chalk.grey(message))
-      } else {
-        // Got a live one
-        console.warn(message)
-        fileMap[filename] = json
-      }
-    })
+//       // Log missing / empty files in lighter color
+//       if (json === null) {
+//         console.warn(chalk.grey(message))
+//       } else {
+//         // Got a live one
+//         console.warn(message)
+//         fileMap[filename] = json
+//       }
+//     })
 
-    // group them all in an array
-    return sendJSON(response, fileMap)
-  })
-}
+//     // group them all in an array
+//     return sendJSON(response, fileMap)
+//   })
+// }
 
-// Send a simple JSON "ok" response.
-// Pass `extraData` as JSON object to merge into response.
-export function sendOK(response, extraData) {
-  const result = {
-    status: "OK",
-    ...extraData
-  }
-  return sendJSON(response, result)
-}
+// UNUSED UNTESTED
+//
+// // Send a simple JSON "ok" response.
+// // Pass `extraData` as JSON object to merge into response.
+// export function sendOK(response, extraData) {
+//   const result = {
+//     status: "OK",
+//     ...extraData
+//   }
+//   return sendJSON(response, result)
+// }
 
 //----------------------------
 //  Error responses

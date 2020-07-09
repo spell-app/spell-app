@@ -11,7 +11,15 @@ import { SpellFileLocation, SpellProject } from "~/languages/spell"
  * TODO: compile status / etc
  */
 export class SpellProjectList extends JSON5File {
-  @proto url = "/api/projects"
+  /** Root for all `project` urls. */
+  projectAPI = "/api/projects"
+
+  /** Root for all `file` urls. */
+  fileAPI = "/api/project"
+
+  get url() {
+    return this.projectAPI
+  }
 
   /** Pointer to our singleton instance. */
   static #singleton
@@ -37,7 +45,7 @@ export class SpellProjectList extends JSON5File {
   @memoizeForProp("projectPaths")
   get projects() {
     // console.warn("setting projects")
-    return this.projectPaths.map(path => new SpellProject(path))
+    return this.projectPaths.map((path) => new SpellProject(path))
   }
 
   /** DOCME Given a path, make sure it's relative to this project. */
@@ -53,7 +61,7 @@ export class SpellProjectList extends JSON5File {
    * Pass `dieMessage` for a custom error message.
    */
   getProject(path, required = OPTIONAL, dieMessage) {
-    const project = this.projects?.find(p => p.path === path)
+    const project = this.projects?.find((p) => p.path === path)
     if (!project && required === REQUIRED) {
       throw new TypeError(dieMessage || `Error in getProject("${path}"): project not found.`)
     }
@@ -64,11 +72,11 @@ export class SpellProjectList extends JSON5File {
   //  Project manipulation
   //-----------------
 
-  /** Create a new project. */
-  async createProject(path) {
-    if (!path) path = prompt("Name for the new project?", "Untitled")
-    if (!path) return undefined
-    path = this.getProjectPath(path)
+  /** Create a new project `projectId`. */
+  async createProject(projectId) {
+    if (!projectId) projectId = prompt("Name for the new project?", "Untitled")
+    if (!projectId) return undefined
+    path = this.getProjectPath(projectId)
 
     const location = new SpellFileLocation(path)
     if (!location.isValidProjectPath) throw new TypeError(`Error in createProject: path '${path}' is invalid.`)
@@ -76,11 +84,11 @@ export class SpellProjectList extends JSON5File {
 
     // Tell the server to create the project
     await $fetch({
-      url: "/api/projects/create",
+      url: `${this.projectAPI}/create/project`,
       contents: {
-        path,
-        startFile: "Untitled.spell",
-        startFileContents: "## this space intentionally left blank"
+        projectId,
+        filePath: "Untitled.spell",
+        contents: "## this space intentionally left blank"
       },
       requestFormat: "json"
     })
@@ -90,41 +98,62 @@ export class SpellProjectList extends JSON5File {
   }
 
   /** Duplicate an existing project. */
-  async duplicateProject(path, newPath) {
-    path = this.getProjectPath(path)
+  async duplicateProject(projectId, newProjectId) {
+    const path = this.getProjectPath(projectId)
     const project = this.getProject(path, REQUIRED, `Error in duplicateProject: project '${path}' not found.`)
 
-    if (!newPath) newPath = prompt("Name for the new project?", project.projectName)
-    if (!newPath) return undefined
-    newPath = this.getProjectPath(newPath)
+    if (!newProjectId) newProjectId = prompt("Name for the new project?", projectId)
+    if (!newProjectId) return undefined
+    newPath = this.getProjectPath(newProjectId)
     if (this.getProject(newPath)) throw new TypeError(`Error in duplicateProject: project '${newPath}' already exists.`)
 
     // Tell the server to duplicate the project
     await $fetch({
-      url: "/api/projects/duplicate",
-      contents: { path, newPath },
+      url: `${this.projectAPI}/duplicate/project`,
+      contents: { projectId, newProjectId },
       requestFormat: "json"
     })
     // reload the project list and return the new project
     await this.reload()
-    return this.getProject(newPath, REQUIRED, `Error in duplicateProject: couldn't create new project '${path}'.`)
+    return this.getProject(newPath, REQUIRED, `Error in duplicateProject: couldn't create new project '${newPath}'.`)
+  }
+
+  /** Rename an existing project. */
+  async renameProject(projectId, newProjectId) {
+    const path = this.getProjectPath(projectId)
+    const project = this.getProject(path, REQUIRED, `Error in renameProject: project '${path}' not found.`)
+
+    if (!newProjectId) newProjectId = prompt("New name for the project?", projectId)
+    if (!newProjectId) return undefined
+    newPath = this.getProjectPath(newProjectId)
+    if (this.getProject(newPath)) throw new TypeError(`Error in renameProject: project '${newPath}' already exists.`)
+
+    // Tell the server to duplicate the project
+    await $fetch({
+      url: `${this.projectAPI}/rename/project`,
+      contents: { projectId, newProjectId },
+      requestFormat: "json"
+    })
+    // reload the project list and return the new project
+    await this.reload()
+    return this.getProject(newPath, REQUIRED, `Error in renameProject: couldn't create new project '${newPath}'.`)
   }
 
   /**
    * Remove an existing project.
    * Returns `true` on success, `false` if cancelled or throws on error.
    */
-  async removeProject(path, shouldConfirm) {
-    path = this.getProjectPath(path)
+  async removeProject(projectId, shouldConfirm) {
+    const path = this.getProjectPath(projectId)
     const project = this.getProject(path, REQUIRED, `Error in removeProject: project '${path}' not found.`)
     if (shouldConfirm === CONFIRM) {
-      if (!confirm(`Really remove project '${project.projectName}'?`)) return false
+      if (!confirm(`Really remove project '${project.projectId}'?`)) return false
     }
     // Tell the server to delete the project
     await $fetch({
-      url: "/api/projects/delete",
+      url: `${this.projectAPI}/remove/project`,
       method: "DELETE",
-      contents: { path },
+      contents: { projectId },
       requestFormat: "json"
     })
     // Have the project clean itself up
@@ -134,14 +163,6 @@ export class SpellProjectList extends JSON5File {
     await this.reload()
     if (this.getProject(path)) throw new TypeError(`Error in removeProject: server didn't delete project '${path}'.`)
     return true
-  }
-
-  /** Rename an existing project. */
-  async renameProject(path, newPath) {
-    await this.duplicateProject(path, newPath)
-    await this.removeProject(path)
-    // return the renamed project
-    return this.getProject(newPath, REQUIRED, `Error in renameProject: server didn't create project '${newPath}'.`)
   }
 }
 

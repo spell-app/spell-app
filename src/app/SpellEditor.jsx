@@ -24,7 +24,7 @@ import "./SpellEditor.less"
 const DEBUG_RENDER = false
 
 /** Menu of all available projects. */
-const ProjectMenu = view(function() {
+const ProjectMenu = view(function () {
   const { projectList, project } = store
   if (DEBUG_RENDER) console.info("ProjectMenu", projectList, project)
   const bound = React.useMemo(() => {
@@ -38,10 +38,10 @@ const ProjectMenu = view(function() {
   if (!projectList.isLoaded || !project)
     return <NavDropdown key="loading" title="Loading..." id="ProjectMenu" style={{ width: "12em" }} />
   return (
-    <NavDropdown key={project.path} title={project.projectName} id="ProjectMenu" style={{ width: "12em" }}>
-      {projectList.projectPaths.map(path => (
+    <NavDropdown key={project.path} title={project.projectId} id="ProjectMenu" style={{ width: "12em" }}>
+      {projectList.projectPaths.map((path) => (
         <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectProject}>
-          <ion-icon name="briefcase-outline" size="medium" /> {new SpellFileLocation(path).projectName}
+          <ion-icon name="briefcase-outline" size="medium" /> {new SpellFileLocation(path).projectId}
         </NavDropdown.Item>
       ))}
       <NavDropdown.Divider />
@@ -62,13 +62,13 @@ const ProjectMenu = view(function() {
 })
 
 /** Menu of all available files. */
-const FileMenu = view(function() {
+const FileMenu = view(function () {
   const { project, file } = store
   if (DEBUG_RENDER) console.info("FileMenu", project, file)
   if (!project || !file) return <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
   return (
     <NavDropdown key={file.path} title={file.fileName} id="FileMenu" style={{ width: "12em" }}>
-      {project.filePaths.map(path => (
+      {project.filePaths.map((path) => (
         <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectFile}>
           {new SpellFileLocation(path).fileName}
         </NavDropdown.Item>
@@ -235,13 +235,13 @@ const Error = view(function Error() {
 export const SpellEditor = view(function SpellEditor() {
   // Set up hotkey when NOT in codemirror
   // Note these are duplicated in CodeMirror.js
-  useHotkeys("command+s", event => {
+  useHotkeys("command+s", (event) => {
     event.preventDefault()
     store.saveFile()
   })
   useHotkeys("shift-command+r", () => store.reloadFile())
   useHotkeys("command+enter", () => store.compile())
-  useHotkeys("command+n", event => {
+  useHotkeys("command+n", (event) => {
     event.preventDefault()
     store.createFile()
   })

@@ -63,9 +63,9 @@ export class SpellProject extends LoadableManager {
    * Immutable `location` object which we use to get various bits of the path.
    *
    * Note that we `forward` lots of methods on the location object to this object,
-   * so you can say `project.projectName` rather than `project.location.projectName`.
+   * so you can say `project.projectId` rather than `project.location.projectId`.
    */
-  @forward("projectType", "projectName", "projectPath", "isLibraryProject", "isUserProject")
+  @forward("projectList", "projectType", "projectId", "projectPath", "isLibraryProject", "isUserProject")
   @memoize
   get location() {
     return new SpellFileLocation(this.path)
@@ -117,7 +117,7 @@ export class SpellProject extends LoadableManager {
     // This way rules added to the project won't leak out.
     const parser = parentScope.parser.clone({ module: this.path })
     return new ProjectScope({
-      name: this.projectName,
+      name: this.projectId,
       parser,
       scope: parentScope
     })
@@ -130,7 +130,7 @@ export class SpellProject extends LoadableManager {
   @memoize
   get parser() {
     return new TaskList({
-      name: `Parsing project: ${this.projectName}`,
+      name: `Parsing project: ${this.projectId}`,
       tasks: [
         new Task({
           name: "Loading project",
@@ -161,7 +161,7 @@ export class SpellProject extends LoadableManager {
   @memoize
   get compiler() {
     return new TaskList({
-      name: `Compiling project: ${this.projectName}`,
+      name: `Compiling project: ${this.projectId}`,
       tasks: [
         this.parser,
         TaskList.forEach({
@@ -266,6 +266,12 @@ export class SpellProject extends LoadableManager {
   //  Project file access
   //-----------------
 
+  /** Given a `filePath`, return the full "project path" for it. */
+  getPathForFile(path) {
+    if (!path.startsWith("/")) return `${this.projectPath}/${path}`
+    return `${this.projectPath}${path}`
+  }
+
   /** Given a path, make sure it's relative to this project. */
   getFilePath(path) {
     if (typeof path !== "string") throw new TypeError(`getFilePath('${path}'): must pass a string`)
@@ -307,21 +313,28 @@ export class SpellProject extends LoadableManager {
   //  Project file manipulation
   //-----------------
 
-  /** Create a new project. */
-  async createFile(path, contents) {
-    if (!path) path = prompt("Name for the new file?", "Untitled.spell")
-    if (!path) return undefined
-    path = this.getFilePath(path)
+  /**
+   * Create a new file within this project.
+   * TODO: handle nested files!
+   */
+  async createFile(filePath, contents) {
+    if (!filePath) filePath = prompt("Name for the new file?", "Untitled.spell")
+    if (!filePath) return undefined
+    const path = this.getPathForFile(filePath)
     const location = new SpellFileLocation(path)
     if (!location.isValidFilePath) throw new TypeError(`Error in createFile: path '${path}' is invalid.`)
 
-    if (typeof contents !== "string") contents = `## File ${location.fileName}`
+    if (typeof contents !== "string") contents = `## This space intentionally left blank`
     if (this.getFile(path)) throw new TypeError(`Error in createFile: file '${path}' already exists.`)
 
     // Tell the server to create the file
     await $fetch({
       url: "/api/projects/create/file",
-      contents: { path, contents },
+      contents: {
+        projectId: this.projectId,
+        filePath,
+        contents
+      },
       requestFormat: "json"
     })
     // Reload the projectList and return the file
@@ -330,24 +343,50 @@ export class SpellProject extends LoadableManager {
   }
 
   /** Duplicate an existing file. */
-  async duplicateFile(path, newPath) {
-    path = this.getFilePath(path)
+  async duplicateFile(filePath, newFilePath) {
+    const path = this.getPathForFile(filePath)
     const file = this.getFile(path, REQUIRED, `Error in duplicateFile: file '${path}' does not exist.`)
 
-    if (!newPath) newPath = prompt("Name for the new file?", file.fileName)
-    if (!newPath) return undefined
-    newPath = this.getFilePath(newPath)
+    if (!newFilePath) newFilePath = prompt("Name for the new file?", file.fileName)
+    if (!newFilePath) return undefined
+    const newPath = this.getPathForFile(newFilePath)
     if (this.getFile(newPath)) throw new TypeError(`Error in duplicateFile: file '${newPath} already exists.`)
 
     const contents = await file.load()
     return this.createFile(newPath, contents)
   }
 
+  /** Rename an existing file. */
+  async renameFile(filePath, newFilePath) {
+    const path = this.getPathForFile(filePath)
+    const file = this.getFile(path, REQUIRED, `Error in renameFile: file '${path}' does not exist.`)
+
+    if (!newPath) newPath = prompt("New name for the file?", file.fileName)
+    if (!newPath) return undefined
+    newPath = this.getPathForFile(newPath)
+    if (this.getFile(newPath)) throw new TypeError(`Error in renameFile: file '${newPath} already exists.`)
+
+    // Tell the server to create the file
+    await $fetch({
+      url: "/api/projects/rename/file",
+      contents: {
+        projectId: this.projectId,
+        filePath,
+        newFilePath
+      },
+      requestFormat: "json"
+    })
+    // Reload the project and return the new file
+    await this.reload()
+    return this.getFile(newPath, REQUIRED, `Error in renameFile: server can't load '${newPath}'.`)
+  }
+
   /**
    * Remove an existing file from the project.
    * Returns `true` on success, `false` if cancelled or throws on error.
    */
-  async removeFile(path, shouldConfirm) {
+  async removeFile(filePath, shouldConfirm) {
+    const path = this.getPathForFile(filePath)
     const file = this.getFile(path, REQUIRED, `Error in removeFile: file '${path}' not found.`)
     if (shouldConfirm === CONFIRM) {
       if (!confirm(`Really remove file '${file.fileName}'?`)) return undefined
@@ -355,9 +394,12 @@ export class SpellProject extends LoadableManager {
 
     // Tell the server to delete the file
     await $fetch({
-      url: "/api/projects/delete/file",
+      url: "/api/projects/remove/file",
       method: "DELETE",
-      contents: { path: file.path },
+      contents: {
+        projectId: this.projectId,
+        filePath
+      },
       requestFormat: "json"
     })
     // Have the file clean itself up
@@ -366,13 +408,6 @@ export class SpellProject extends LoadableManager {
     await this.reload()
     if (this.getFile(path)) throw new TypeError(`removeFile('${path}'): server didn't delete the file`)
     return true
-  }
-
-  /** Rename an existing file. */
-  async renameFile(path, newPath) {
-    await this.duplicateFile(path, newPath)
-    await this.removeFile(path)
-    return this.getFile(newPath, REQUIRED, `Error in enameFile: server didn't rename file to '${newPath}'`)
   }
 }
 

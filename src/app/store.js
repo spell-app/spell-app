@@ -29,9 +29,9 @@ export const store = createStore({
     await store.project.load()
     store.selectFile()
   },
-  async createProject(projectName) {
+  async createProject(projectId) {
     try {
-      const project = await store.projectList.createProject(projectName)
+      const project = await store.projectList.createProject(projectId)
       if (project) {
         store.selectProject(project.path)
         store.showNotice("Project created.")
@@ -40,20 +40,20 @@ export const store = createStore({
       store.showError(e)
     }
   },
-  async duplicateProject(newPath) {
+  async duplicateProject(newProjectId) {
     try {
-      const project = await store.projectList.duplicateProject(store.project.path, newPath)
-      if (project) {
-        store.selectProject(project.path)
+      const newProject = await store.projectList.duplicateProject(store.project.projectId, newProjectId)
+      if (newProject) {
+        store.selectProject(newProject.path)
         store.showNotice("Project duplicated.")
       }
     } catch (e) {
       store.showError(e)
     }
   },
-  async renameProject(newPath) {
+  async renameProject(newProjectId) {
     try {
-      const project = await store.projectList.renameProject(store.project.path, newPath)
+      const project = await store.projectList.renameProject(store.project.projectId, newProjectId)
       if (project) {
         store.selectProject(project.path)
         store.showNotice("Project renamed.")
@@ -64,7 +64,7 @@ export const store = createStore({
   },
   async removeProject() {
     try {
-      const removed = await store.projectList.removeProject(store.project.path, CONFIRM)
+      const removed = await store.projectList.removeProject(store.project.projectId, CONFIRM)
       if (removed) {
         store.selectProject()
         store.showNotice("Project removed.")
@@ -78,7 +78,7 @@ export const store = createStore({
   // File and file actions
   //-----------------
 
-  /** Current file as `SpellFile`. */
+  /** Current file as `SpellFile` or `SpellCSSFile`. */
   file: undefined,
   /** Select a file from the `selectedProject`. */
   selectFile: async (filePath) => {
@@ -104,10 +104,10 @@ export const store = createStore({
       store.compile()
     }
   },
-  async createFile(path, contents) {
+  async createFile(filePath, contents) {
     store.clearCompileSoon()
     try {
-      const newFile = await store.project.createFile(path, contents)
+      const newFile = await store.project.createFile(filePath, contents)
       if (newFile) {
         store.selectFile(newFile.path)
         store.showNotice("File created.")
@@ -119,7 +119,7 @@ export const store = createStore({
   async duplicateFile(newPath) {
     store.clearCompileSoon()
     try {
-      const newFile = await store.project.duplicateFile(store.file.path, newPath)
+      const newFile = await store.project.duplicateFile(store.file.filePath, newPath)
       if (newFile) {
         store.selectFile(newFile.path)
         store.showNotice("File duplicated.")
@@ -131,7 +131,7 @@ export const store = createStore({
   async renameFile(newPath) {
     store.clearCompileSoon()
     try {
-      const renamedFile = store.project.renameFile(store.file.path, newPath)
+      const renamedFile = store.project.renameFile(store.file.filePath, newPath)
       if (renamedFile) {
         store.selectFile(renamedFile.path)
         store.showNotice("File renamed.")
@@ -143,7 +143,7 @@ export const store = createStore({
   async removeFile() {
     store.clearCompileSoon()
     try {
-      const removed = await store.project.removeFile(store.file.path, CONFIRM)
+      const removed = await store.project.removeFile(store.file.filePath, CONFIRM)
       if (removed) {
         store.selectFile()
         store.showNotice("File removed.")

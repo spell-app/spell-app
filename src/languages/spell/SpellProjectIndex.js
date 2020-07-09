@@ -41,9 +41,9 @@ export class SpellProjectIndex extends JSON5File {
    * Immutable `location` object which we use to get various bits of the path.
    *
    * Note that we `forward` lots of methods on the location object to this object,
-   * so you can say `manifest.projectName` rather than `manifest.location.projectName`.
+   * so you can say `manifest.projectId` rather than `manifest.location.projectId`.
    */
-  @forward("projectType", "projectName", "projectPath", "isLibraryProject", "isUserProject")
+  @forward("projectList", "projectType", "projectId", "projectPath", "isLibraryProject", "isUserProject")
   @memoize
   get location() {
     return new SpellFileLocation(this.path)
