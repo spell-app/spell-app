@@ -7,27 +7,28 @@ import { SpellPath } from "../languages/spell/SpellPath"
 
 const { respondWithJSON } = responseUtils
 
-const USER_SERVER_PATH = fileUtils.normalizePath(__dirname, "..")
-const SYSTEM_SERVER_PATH = fileUtils.normalizePath(__dirname, "..")
+// Root of "@system" files
+const SYSTEM_SERVER_ROOT = fileUtils.normalizePath(__dirname, "..")
+// Root of "@user" files
+const USER_SERVER_ROOT = fileUtils.normalizePath(__dirname, "..")
 
 // HACKY!!!
 // Make sure we don't save `SpellPath`s in the singleton registry
 // or we would have a memory leak!
 SpellPath.useRegistry = false
 
+/**
+ * Add a getter to figure out the `serverPath` for a `SpellPath`.
+ */
 Object.defineProperty(SpellPath.prototype, "serverPath", {
   get() {
-    const path = [this.owner === "@system" ? SYSTEM_SERVER_PATH : USER_SERVER_PATH, this.domain, this.projectName]
+    const path = [this.owner === "@system" ? SYSTEM_SERVER_ROOT : USER_SERVER_ROOT, this.domain, this.projectName]
     if (this.filePath) path.push(...this.filePath.split("/"))
     const serverPath = fileUtils.normalizePath(...path.filter(Boolean))
     console.warn(`Server path for path '${this.path}' => '${serverPath}'`)
     return serverPath
   }
 })
-SpellPath.prototype.getPathForFile = function (filePath) {
-  const fullPath = this.projectId + (filePath.startsWith("/") ? "" : "/") + filePath
-  return new SpellPath(fullPath)
-}
 
 /**
  * `ProjectRoot` class: encompasses
@@ -49,66 +50,33 @@ export class ProjectRoot {
   //  Path Utilities
   //----------------------------
 
-  get serverPath() {
-    if (this.type === "user") return `${USER_SERVER_PATH}/${this.key}`
-    return `${SYSTEM_SERVER_PATH}/${this.key}`
+  /**
+   * Get `SpellPath` for `domainId` string, throwing if it's not a valid DOMAIN path.
+   */
+  getDomainPath(domainId) {
+    const domain = new SpellPath(domainId)
+    if (!domain.isDomainPath) throw new TypeError(`You must pass a valid domain, got '${domainId}'`)
+    return domain
   }
 
   /**
-   * Return `true` if server `path` is "legal".
-   * Use this to, e.g., guard against paths containing ".." from going outside of our root.
+   * Get `SpellPath` for `projectId`, throwing if it's not a valid PROJECT path.
    */
-  static LEGAL_PROJECT_ID = /^[\w\d-]+$/
-  static LEGAL_PATH_SEGMENT = /^[\w\d-\.]+$/
-  isValidServerPath(path) {
-    return true
-    // if (!path.startsWith(this.serverPath)) return false
-    // return fileUtils.splitPath(path).some((segment) => {
-    //   return segment === ".." || !ProjectRoot.LEGAL_PATH_SEGMENT.test(segment)
-    // })
-  }
-
-  // TODO
-  isValidProjectId(projectId) {
-    return true
-  }
-
-  // `@library:`
-  getProjectDomainName(projectId) {
-    return projectId.split(":")[0] + ":"
-  }
-
-  // `library`
-  getProjectDomainName(projectId) {
-    return projectId.split(":")[0].substr(1)
-  }
-
-  getProjectName(projectId) {
-    return projectId.split(":")[1]
+  getProjectPath(projectId) {
+    const project = new SpellPath(projectId)
+    if (!project.isProjectPath) throw new TypeError(`You must pass a valid projectId, got '${projectId}'`)
+    return project
   }
 
   /**
-   * Given a `projectId` and one or more `pathSegments`, return server path for resource.
-   * Throws is invalid `projectId` or resulting `path`.
-   *
-   * TODO: `pathSuffix` items might come in from the client with `/` in it, which won't work on windows!
+   * Get `SpellPath` for `project` (as a SpellPath) and `filePath`,
+   * throwing if it's not a valid FILE path.
    */
-  getServerPath = (projectId, ...pathSuffix) => {
-    const projectName = this.getProjectName(projectId)
-    const path = fileUtils.joinPath(this.serverPath, projectName, ...pathSuffix)
-    console.warn("getServerPath", { projectId, projectName, pathSuffix, path })
-    // if (!ProjectRoot.LEGAL_PROJECT_ID.test(projectId)) {
-    //   throw new TypeError(`getServerPath(): invalid projectId: '${projectId}' for path '${path}'`)
-    // }
-    // if (!this.isValidServerPath(path)) {
-    //   throw new TypeError(`getServerPath(): invalid path: '${path}'`)
-    // }
-    return path
-  }
-
-  /** Given one or more `path` strings, return client URL resource. */
-  getURL = (projectId, ...path) => {
-    return fileUtils.joinURL(projectId, ...path)
+  getFilePath(project, filePath) {
+    const fullPath = project.path + (filePath.startsWith("/") ? filePath : `/${filePath}`)
+    const file = new SpellPath(fullPath)
+    if (!file.isFilePath) throw new TypeError(`You must pass a valid filePath, got '${filePath}'`)
+    return file
   }
 
   //----------------------------
@@ -120,16 +88,18 @@ export class ProjectRoot {
    * Format:
    *   `[ "<project-path>"... ]`
    */
-  getProjectList = async (domainPath) => {
-    const path = new SpellPath(domainPath)
-    if (!path.isDomainPath) throw new TypeError(`You must pass a valid domain path, got '${domainPath}'`)
+  getProjectList = async (domainId) => {
+    const domain = this.getDomainPath(domainId)
     const options = { includeFolders: true, includeFiles: false, namesOnly: true }
-    const projectNames = await fileUtils.getFolderContents(path.serverPath, options)
-    return projectNames.map((projectName) => `${path.owner}:${path.domain}:${projectName}`)
+    const projectNames = await fileUtils.getFolderContents(domain.serverPath, options)
+    return projectNames.map((projectName) => `${domain.owner}:${domain.domain}:${projectName}`)
   }
 
   /** Send projects list as part of a request. */
-  request_getProjectList = respondWithJSON(async () => this.getProjectList("@user:projects"))
+  request_getProjectList = respondWithJSON(async (request) => {
+    const { domainId } = request.params
+    return await this.getProjectList(domainId)
+  })
 
   //----------------------------
   //  Project manifest
@@ -142,13 +112,12 @@ export class ProjectRoot {
    *   `{ files: [ { name, path, created, modified }... ] }`
    */
   getManifest = async (projectId) => {
-    const project = new SpellPath(projectId)
-    if (!project.isProjectPath) throw new TypeError(`You must pass a valid projectId, got '${projectId}'`)
+    const project = this.getProjectPath(projectId)
     const options = { includeFolders: false, ignoreHidden: true, namesOnly: true }
     const fileNames = await fileUtils.getFolderContents(project.serverPath, options)
     const files = await Promise.all(
       fileNames.map(async (name) => {
-        const filePath = project.getPathForFile(name)
+        const filePath = this.getFilePath(project, name)
         const { created, modified } = await fileUtils.getPathInfo(filePath.serverPath)
         return { name, path: filePath.path, created, modified }
       })
@@ -179,12 +148,12 @@ export class ProjectRoot {
     // const exists = await fileUtils.pathExists(path)
     // if (exists) return responseUtils.sendJSONFile(response, path)
 
-    console.info(`Creating index for project ${this.getURL(projectId)}`)
+    console.info(`Creating index for project ${projectId}`)
     const options = { includeFolders: false, ignoreHidden: true, namesOnly: true }
     const files = await fileUtils.getFolderContents(project.serverPath, options)
     return {
       imports: files.map((name) => {
-        const file = project.getPathForFile(name)
+        const file = this.getFilePath(project, name)
         return { path: file.path, active: true }
       })
     }
@@ -204,10 +173,8 @@ export class ProjectRoot {
    */
   request_getFile = (request, response) => {
     const { projectId, filePath } = request.params
-    const project = new SpellPath(projectId)
-    if (!project.isProjectPath) throw new TypeError(`You must pass a valid projectId, got '${projectId}'`)
-    const file = project.getPathForFile(filePath)
-    if (!file.isFilePath) throw new TypeError(`You must pass a valid filePath, got '${filePath}'`)
+    const project = this.getProjectPath(projectId)
+    const file = this.getFilePath(project, filePath)
     responseUtils.sendJSONFile(response, file.serverPath)
   }
 
@@ -216,8 +183,9 @@ export class ProjectRoot {
    * TODO: format according to extension!!!
    */
   saveFile = async (projectId, filePath, contents) => {
-    const path = this.getServerPath(projectId, filePath)
-    return await fileUtils.saveFile(path, contents)
+    const project = this.getProjectPath(projectId)
+    const file = this.getFilePath(project, filePath)
+    return await fileUtils.saveFile(file.serverPath, contents)
   }
   request_saveFile = respondWithJSON(async (request) => {
     const { projectId, filePath } = request.params
@@ -234,8 +202,9 @@ export class ProjectRoot {
    * Request returns the updated `projectList`.
    */
   createProject = async (projectId, filePath = "Untitled.spell", contents = "") => {
-    const startFilePath = this.getServerPath(projectId, filePath)
-    return await fileUtils.saveFile(startFilePath, contents)
+    const project = this.getProjectPath(projectId)
+    const file = this.getFilePath(project, filePath)
+    return await fileUtils.saveFile(file.serverPath, contents)
   }
   request_createProject = respondWithJSON(async (request) => {
     const { projectId, filePath, contents } = request.body
@@ -248,9 +217,9 @@ export class ProjectRoot {
    * Request returns the updated `projectList`.
    */
   renameProject = async (projectId, newProjectId) => {
-    const path = this.getServerPath(projectId)
-    const newPath = this.getServerPath(newProjectId)
-    return await fileUtils.movePath(path, newPath)
+    const project = this.getProjectPath(projectId)
+    const newProject = this.getProjectPath(newProjectId)
+    return await fileUtils.movePath(project.serverPath, newProject.serverPath)
   }
   request_renameProject = respondWithJSON(async (request) => {
     const { projectId, newProjectId } = request.body
@@ -263,9 +232,9 @@ export class ProjectRoot {
    * Request returns the updated `projectList`.
    */
   duplicateProject = async (projectId, newProjectId) => {
-    const path = this.getServerPath(projectId)
-    const newPath = this.getServerPath(newProjectId)
-    return await fileUtils.copyPath(path, newPath)
+    const project = this.getProjectPath(projectId)
+    const newProject = this.getProjectPath(newProjectId)
+    return await fileUtils.copyPath(project.serverPath, newProject.serverPath)
   }
   request_duplicateProject = respondWithJSON(async (request) => {
     const { projectId, newProjectId } = request.body
@@ -278,8 +247,8 @@ export class ProjectRoot {
    * Request returns the updated `projectList`.
    */
   removeProject = async (projectId) => {
-    const path = this.getServerPath(projectId)
-    return await fileUtils.deletePath(path)
+    const project = this.getProjectPath(projectId)
+    return await fileUtils.deletePath(project.serverPath)
   }
   request_removeProject = respondWithJSON(async (request) => {
     const { projectId } = request.body
@@ -308,9 +277,10 @@ export class ProjectRoot {
    * TODO: update index!
    */
   renameFile = async (projectId, filePath, newFilePath) => {
-    const path = this.getServerPath(projectId, filePath)
-    const newPath = this.getServerPath(projectId, newFilePath)
-    return await fileUtils.movePath(path, newPath)
+    const project = this.getProjectPath(projectId)
+    const file = this.getFilePath(project, filePath)
+    const newFile = this.getFilePath(project, newFilePath)
+    return await fileUtils.movePath(file.serverPath, newFile.servePath)
   }
   request_renameFile = respondWithJSON(async (request) => {
     const { projectId, filePath, newFilePath } = request.body
@@ -322,8 +292,9 @@ export class ProjectRoot {
    * TODO: update index!
    */
   removeFile = async (projectId, filePath) => {
-    const path = this.getServerPath(projectId, filePath)
-    return await fileUtils.deletePath(path)
+    const project = this.getProjectPath(projectId)
+    const file = this.getFilePath(project, filePath)
+    return await fileUtils.deletePath(file.serverPath)
   }
   request_removeFile = respondWithJSON(async (request) => {
     const { projectId, filePath } = request.body

@@ -68,7 +68,7 @@ const projects = new ProjectRoot(spellSetup.projectRoots.projects)
 // const guides = new ProjectRoot(spellSetup.projectRoots.guides)
 
 // working with projects
-api.get("/projects/list", projects.request_getProjectList)
+api.get("/projects/list/:domainId", projects.request_getProjectList)
 api.post("/projects/create/project", projects.request_createProject)
 api.post("/projects/rename/project", projects.request_renameProject)
 api.post("/projects/duplicate/project", projects.request_duplicateProject)

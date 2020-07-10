@@ -15,7 +15,7 @@ export class SpellProjectList extends JSON5File {
 
   /** URL to load the project list. */
   get url() {
-    return `/api/projects/list`
+    return `/api/projects/list/@user:projects`
   }
 
   /**
