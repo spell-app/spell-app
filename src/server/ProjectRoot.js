@@ -6,44 +6,33 @@ import * as responseUtils from "./response-utils"
 
 const { respondWithJSON } = responseUtils
 
+const USER_SERVER_PATH = fileUtils.normalizePath(__dirname, "..")
+const SYSTEM_SERVER_PATH = fileUtils.normalizePath(__dirname, "..")
+
 /**
  * `ProjectRoot` class: encompasses
  */
 export class ProjectRoot {
-  /**
-   * Conceptual name for this project root, e.g. "User projects"
-   * Should be set on construction.
-   */
-  name = undefined
-
-  /**
-   * Server path for all projects that contains `project` folders.
-   * Must be set on construction.
-   */
-  serverPath = undefined
-
-  /**
-   * Client URL prefix for project file URLs.
-   * Must be set on construction.
-   */
-  fileURLPrefix = undefined
+  // key = "projects"
+  // type = "user"
+  // description = "User projects"
+  // projectRoot = "/projects/"
+  // apiPrefix = "/api/projects"
 
   /** TODOC */
   constructor(props) {
     Object.assign(this, props)
-    try {
-      if (!this.serverPath) throw new TypeError("ProjectRoot must be initialized with 'serverPath'.")
-      if (!this.fileURLPrefix) throw new TypeError("ProjectRoot must be initialized with 'fileURLPrefix'.")
-      fileUtils.logJSON("Created projectList", this)
-    } catch (e) {
-      fileUtils.logError(e)
-      throw e
-    }
+    fileUtils.logJSON("Created projectList", this)
   }
 
-  ////////////////////
+  //----------------------------
   //  Path Utilities
-  ////////////////////
+  //----------------------------
+
+  get serverPath() {
+    if (this.type === "user") return `${USER_SERVER_PATH}/${this.key}`
+    return `${SYSTEM_SERVER_PATH}/${this.key}`
+  }
 
   /**
    * Return `true` if server `path` is "legal".
@@ -77,12 +66,12 @@ export class ProjectRoot {
 
   /** Given one or more `path` strings, return client URL resource. */
   getURL = (...path) => {
-    return fileUtils.joinURL(this.fileURLPrefix, ...path)
+    return fileUtils.joinURL(this.projectRoot, ...path)
   }
 
-  ////////////////////
+  //----------------------------
   //  Projects list
-  ////////////////////
+  //----------------------------
 
   /**
    * Return list of client projects relative to this projectSpec as JSON blob.
@@ -98,9 +87,9 @@ export class ProjectRoot {
   /** Send projects list as part of a request. */
   request_getProjectList = respondWithJSON(async () => this.getProjectList())
 
-  ////////////////////
+  //----------------------------
   //  Project manipulation
-  ////////////////////
+  //----------------------------
 
   /**
    * Create project `projectId` by creating file at `filePath` within it.
@@ -160,9 +149,9 @@ export class ProjectRoot {
     return this.getProjectList()
   })
 
-  ////////////////////
+  //----------------------------
   //  Project manifest
-  ////////////////////
+  //----------------------------
 
   /**
    * Return `manifest.json` for a project as JSON blob.
@@ -189,9 +178,9 @@ export class ProjectRoot {
     return await this.getManifest(projectId)
   })
 
-  ////////////////////
+  //----------------------------
   //  Project index
-  ////////////////////
+  //----------------------------
 
   /**
    * Return `index.json` for a project as a JSON blob.
@@ -216,9 +205,9 @@ export class ProjectRoot {
     return await this.getIndex(projectId)
   })
 
-  ////////////////////
+  //----------------------------
   //  Project file manipulation
-  ////////////////////
+  //----------------------------
 
   /**
    * Return a file from a project.

@@ -206,8 +206,8 @@ export function sendError(response, statusCode, error, errorMessage = error && e
 //  - body      (optional) Body
 export function getRequestDetails(request) {
   const result = {
-    url: request.originalURL,
-    method: request.method
+    method: request.method,
+    url: request.originalUrl
   }
   // Add URL query params if there are any
   const { query, params, body } = request

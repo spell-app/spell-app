@@ -7,6 +7,8 @@ import chalk from "chalk"
 import JSON5 from "json5"
 import nodePath from "path"
 
+import { SPELL_PROJECT_ROOTS } from "../projectSetup"
+
 // Express utility functions
 import * as responseUtils from "./response-utils"
 import { ProjectRoot } from "./ProjectRoot"
@@ -63,11 +65,10 @@ api.get("/error", (request, response) => {
 //----------------------------
 
 /** Path specification for working with user projects. */
-const projects = new ProjectRoot({
-  name: "User projects",
-  serverPath: nodePath.normalize(nodePath.join(__dirname, "..", "projects")),
-  fileURLPrefix: `/projects/`
-})
+const projects = new ProjectRoot(SPELL_PROJECT_ROOTS.projects)
+const library = new ProjectRoot(SPELL_PROJECT_ROOTS.library)
+const examples = new ProjectRoot(SPELL_PROJECT_ROOTS.examples)
+const guides = new ProjectRoot(SPELL_PROJECT_ROOTS.guides)
 
 // working with projects
 api.get("/projects/list", projects.request_getProjectList)
@@ -87,33 +88,6 @@ api.get("/projects/index/:projectId", projects.request_getIndex)
 api.get("/projects/file/:projectId/:filePath*", projects.request_getFile)
 api.post("/projects/file/:projectId/:filePath*", projects.request_saveFile)
 
-//
-//----------------------------
-//  System example projects manipulation
-//----------------------------
-//
-
-/** Path specification for working with system examples. */
-const examples = new ProjectRoot({
-  name: "System examples",
-  serverPath: nodePath.normalize(nodePath.join(__dirname, "..", "examples")),
-  fileURLPrefix: `/example/`
-})
-
-//
-//----------------------------
-//  System guide projects manipulation
-//----------------------------
-//
-
-/** Path specification for working with system guides. */
-const guides = new ProjectRoot({
-  name: "System guides",
-  serverPath: nodePath.normalize(nodePath.join(__dirname, "..", "guides")),
-  fileURLPrefix: `/guide/`
-})
-
-//
 //----------------------------
 //  Error handling
 //

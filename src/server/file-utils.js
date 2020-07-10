@@ -9,7 +9,7 @@ import nodejs_path from "path"
 import fse from "fs-extra"
 import filterAsync from "node-filter-async"
 import chalk from "chalk"
-import mime from "mime-types"
+// import mime from "mime-types"
 
 //----------------------------
 //  File encoding formats for `readFile()`, `writeFile()`, etc.
@@ -42,6 +42,15 @@ export function splitPath(path) {
  */
 export function joinPath(...pathSegments) {
   return nodejs_path.join(...pathSegments)
+}
+
+/**
+ * Normalize `...pathSegments` by resoving `..` and `.` segments, or squishing together `//`.
+ * Returns the path as a single string.
+ */
+export function normalizePath(...pathSegments) {
+  const path = joinPath(...pathSegments)
+  return nodejs_path.normalize(path)
 }
 
 /**
