@@ -54,7 +54,7 @@ export class SpellProject extends LoadableManager {
   }
 
   /**
-   * Project path as `/project/<projectId>` or `/library/<projectId>`.
+   * Project path as `/projects/<projectId>` or `/library/<projectId>`.
    * MUST be passed to constructor.
    */
   @writeOnce path
@@ -65,7 +65,7 @@ export class SpellProject extends LoadableManager {
    * Note that we `forward` lots of methods on the location object to this object,
    * so you can say `project.projectId` rather than `project.location.projectId`.
    */
-  @forward("projectList", "projectType", "projectId", "projectPath", "isLibraryProject", "isUserProject")
+  @forward("projectList", "projectType", "projectId", "projectPath", "isSystemProject", "isUserProject")
   @memoize
   get location() {
     return new SpellFileLocation(this.path)
@@ -329,7 +329,7 @@ export class SpellProject extends LoadableManager {
 
     // Tell the server to create the file
     await $fetch({
-      url: "/api/projects/create/file",
+      url: `${this.projectList.apiPrefix}/create/file`,
       contents: {
         projectId: this.projectId,
         filePath,
@@ -368,7 +368,7 @@ export class SpellProject extends LoadableManager {
 
     // Tell the server to create the file
     await $fetch({
-      url: "/api/projects/rename/file",
+      url: `${this.projectList.apiPrefix}/rename/file`,
       contents: {
         projectId: this.projectId,
         filePath,
@@ -394,7 +394,7 @@ export class SpellProject extends LoadableManager {
 
     // Tell the server to delete the file
     await $fetch({
-      url: "/api/projects/remove/file",
+      url: `${this.projectList.apiPrefix}/remove/file`,
       method: "DELETE",
       contents: {
         projectId: this.projectId,

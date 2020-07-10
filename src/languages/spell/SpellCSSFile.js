@@ -2,7 +2,7 @@ import global from "global"
 
 import { TextFile, proto, memoize, forward, writeOnce, overrideable, state } from "~/util"
 import { Token } from "~/parser"
-import { SpellProject, SpellFileLocation } from "~/languages/spell"
+import { SpellFileLocation } from "~/languages/spell"
 import { batch } from "../../util"
 
 /**
@@ -32,23 +32,16 @@ export class SpellCSSFile extends TextFile {
   }
 
   /**
-   * Project path as `/project/<projectId>/<filePath...>` or `/library/<projectId>/<filePath...>`.
+   * Project path as `/projects/<projectId>/<filePath...>` or `/library/<projectId>/<filePath...>`.
    * MUST be passed to constructor.
    */
   @writeOnce path
 
   /** `location` object which we can use to get various bits of the path. */
-  @forward("projectList", "projectPath", "projectId", "filePath", "folder", "fileName", "name", "extension")
+  @forward("projectList", "project", "projectPath", "projectId", "filePath", "folder", "fileName", "name", "extension")
   @memoize
   get location() {
     return new SpellFileLocation(this.path)
-  }
-
-  /**
-   * Return our `project` as a `SpellProject` based on our `path`.
-   */
-  @memoize get project() {
-    return new SpellProject(this.projectPath)
   }
 
   /**
@@ -136,7 +129,7 @@ export class SpellCSSFile extends TextFile {
 
   /** Derive `url` from our `path` if not explicitly set. */
   @overrideable get url() {
-    return `/api${this.path}`
+    return `${this.projectList.apiPrefix}/file/${this.projectId}${this.filePath}`
   }
 
   //-----------------

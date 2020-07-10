@@ -199,14 +199,14 @@ export function sendError(response, statusCode, error, errorMessage = error && e
 //----------------------------
 
 // Return a POJO with relevant details from the request:
-//  - url       Url called
+//  - url       URL called
 //  - method    "GET", "POST", etc
 //  - params    (optional) Named request params from the router
 //  - query     (optional) Query params from URL string
 //  - body      (optional) Body
 export function getRequestDetails(request) {
   const result = {
-    url: request.originalUrl,
+    url: request.originalURL,
     method: request.method
   }
   // Add URL query params if there are any

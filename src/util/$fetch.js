@@ -15,9 +15,9 @@ import {
 /** Merge miltiple sets of `$fetch()` `params` and set up defaults. */
 export function merge$fetchParms(...allParams) {
   const output = {}
-  allParams.forEach(params => {
+  allParams.forEach((params) => {
     if (!params) return
-    Object.keys(params).forEach(key => {
+    Object.keys(params).forEach((key) => {
       const value = params[key]
       if (typeof value === "object") {
         if (output[key]) Object.assign(output[key], value)
@@ -65,9 +65,9 @@ export function $fetch($params) {
     fetchParams.body = typeof contents === "string" ? contents : JSON.stringify(contents)
   }
 
-  const fullUrl = query ? `${url}?${queryString.stringify(query)}` : url
-  // console.warn(fullUrl, fetchParams)
-  const request = abortableFetch(fullUrl, fetchParams)
+  const fullURL = query ? `${url}?${queryString.stringify(query)}` : url
+  // console.warn(fullURL, fetchParams)
+  const request = abortableFetch(fullURL, fetchParams)
 
   async function success(response) {
     if (!response.ok) {

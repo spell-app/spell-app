@@ -8,7 +8,7 @@ import { SpellFileLocation, SpellProject, SpellFile } from "~/languages/spell"
  * Manifest of files for a given `SpellProject`.
  *
  * Note that these are singleton instances --
- * you'll always get the same object back for a given `path`.
+ * you'll always get the same object back for a given project `path`.
  */
 export class SpellProjectManifest extends JSON5File {
   /** Registry of known instances. */
@@ -33,7 +33,7 @@ export class SpellProjectManifest extends JSON5File {
   }
 
   /**
-   * Project path as `/project/<projectId>` or `/library/<projectId>`.
+   * Project path as `/projects/<projectId>` or `/library/<projectId>`.
    * MUST be passed to constructor.
    */
   @writeOnce path
@@ -44,16 +44,10 @@ export class SpellProjectManifest extends JSON5File {
    * Note that we `forward` lots of methods on the location object to this object,
    * so you can say `manifest.projectId` rather than `manifest.location.projectId`.
    */
-  @forward("projectList", "projectType", "projectId", "projectPath", "isLibraryProject", "isUserProject")
+  @forward("projectList", "project", "projectType", "projectId", "projectPath", "isSystemProject", "isUserProject")
   @memoize
   get location() {
     return new SpellFileLocation(this.path)
-  }
-
-  /** Pointer to our `SpellProject`. */
-  @memoize
-  get project() {
-    return new SpellProject(this.projectPath)
   }
 
   /**
@@ -80,7 +74,7 @@ export class SpellProjectManifest extends JSON5File {
 
   /** Derive `url` from our path if not explicitly set. */
   get url() {
-    return `/api${this.path}/.manifest`
+    return `${this.projectList.apiPrefix}/manifest/${this.projectId}`
   }
 
   /**

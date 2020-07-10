@@ -1,17 +1,17 @@
 import global from "global"
 
 import { createStore, setPrefKey, getPref, setPref, CONFIRM } from "~/util"
-import { SpellProjectList, SpellProject, SpellFile } from "~/languages/spell"
+import { spellInstall, SpellProjectList, SpellProject } from "~/languages/spell"
 
 setPrefKey("spellEditor:")
-
+console.warn(spellInstall)
 export const store = createStore({
   //-----------------
   // Project and project actions
   //-----------------
 
   /** Singleton list of all projects. */
-  projectList: new SpellProjectList(),
+  projectList: spellInstall.projects,
   start: async () => {
     await store.projectList.load()
     store.selectProject()

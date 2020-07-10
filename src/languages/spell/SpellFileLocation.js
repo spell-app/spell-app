@@ -1,5 +1,6 @@
 import global from "global"
 import { writeOnce, memoize } from "~/util"
+import { spellInstall, SpellProject, SpellProjectList } from "."
 
 /**
  * Encapsulate a Spell File's `path` so we can get the various bits quickly and easily.
@@ -12,14 +13,17 @@ export class SpellFileLocation {
   /** Registry of known instances. */
   static registry = new Map()
   constructor(path) {
-    // Create instance if not already present in registry
-    if (!SpellFileLocation.registry.has(path)) {
-      if (typeof path !== "string" || !path.startsWith("/"))
-        throw new TypeError(`SpellFileLocation('${path}'): Path is invalid.`)
-      this.path = path
-      SpellFileLocation.registry.set(path, this)
+    // Return immediatly from registry if already present.
+    const existingLocation = SpellFileLocation.registry.get(path)
+    if (existingLocation) return existingLocation
+
+    // Throw if invalid path
+    if (!spellInstall.isValidPath(path)) {
+      throw new TypeError(`SpellFileLocation('${path}'): Path is invalid.`)
     }
-    return SpellFileLocation.registry.get(path)
+
+    this.path = path
+    SpellFileLocation.registry.set(path, this)
   }
 
   /** Full `path` to the resource. */
@@ -38,9 +42,29 @@ export class SpellFileLocation {
   //  Syntactic sugar for working with paths.
   //-----------------
 
-  /** ProjectRoot object. */
+  /** ProjectList for this location. */
   get projectList() {
-    // return new SpellProjectList()
+    return spellInstall[this.projectType]
+  }
+
+  /** `projectRoot`, e,g `/projects/` or `/library/`. */
+  get projectRoot() {
+    return this._split_.projectRoot
+  }
+
+  /** Is this a library project? */
+  get isSystemProject() {
+    return spellInstall.isSystemProject(this.projectRoot)
+  }
+
+  /** Is this a user's project? */
+  get isUserProject() {
+    return spellInstall.isUserPath(this.projectRoot)
+  }
+
+  /** Project for this location. */
+  get project() {
+    return new SpellProject(this.projectPath)
   }
 
   /** Path to the project. */
@@ -48,18 +72,12 @@ export class SpellFileLocation {
     const { projectType, projectId } = this._split_
     return `/${projectType}/${projectId}`
   }
-  /** Type of the project, expected to be `project` or `library`. */
+
+  /** Type of the project, e.g. `project`, `library`, `example` or `guide`. */
   get projectType() {
     return this._split_.projectType
   }
-  /** Is this a library project? */
-  get isLibraryProject() {
-    return this.projectType === "library"
-  }
-  /** Is this a user's project? */
-  get isUserProject() {
-    return this.projectType === "project"
-  }
+
   /** Name of the project. */
   get projectId() {
     return this._split_.projectId
@@ -110,24 +128,23 @@ export class SpellFileLocation {
    * NOTE: Returns false if it has a filePath...
    */
   @memoize get isValidProjectPath() {
-    const { projectType, projectId, filePath } = this
-    return (projectType === "project" || projectType === "library") && !!projectId && !filePath
+    return !!this.projectId && !this.filePath
   }
 
   /**
    * Is this a valid project file path?
    */
   @memoize get isValidFilePath() {
-    const { projectType, projectId, filePath } = this
-    return (projectType === "project" || projectType === "library") && !!projectId && !!filePath
+    return !!this.projectId && !!this.filePath
   }
 
-  /** Split path into rough bits -- further refinement in getters below. */
+  /** Split path into rough bits -- further refinement in getters above. */
   @memoize get _split_() {
     const [_empty, projectType, projectId, ...filePath] = this.path.split("/")
     const fileName = filePath.pop() || undefined
     const folder = filePath.length ? `/${filePath.join("")}` : undefined
     return {
+      projectPrefix: `/${projectType}/`,
       projectType,
       projectId,
       folder,

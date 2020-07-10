@@ -66,11 +66,11 @@ api.get("/error", (request, response) => {
 const projects = new ProjectRoot({
   name: "User projects",
   serverPath: nodePath.normalize(nodePath.join(__dirname, "..", "projects")),
-  fileURLPrefix: `/project/`
+  fileURLPrefix: `/projects/`
 })
 
 // working with projects
-api.get("/projects", projects.request_getProjectList)
+api.get("/projects/list", projects.request_getProjectList)
 api.post("/projects/create/project", projects.request_createProject)
 api.post("/projects/rename/project", projects.request_renameProject)
 api.post("/projects/duplicate/project", projects.request_duplicateProject)
@@ -78,14 +78,14 @@ api.delete("/projects/remove/project", projects.request_removeProject)
 
 // working with project files
 api.post("/projects/create/file", projects.request_createFile)
-// api.delete("/projects/rename/file", projects.request_renameFile)
+api.post("/projects/rename/file", projects.request_renameFile)
 api.delete("/projects/remove/file", projects.request_removeFile)
 
 // returning project files
-api.get("/project/:projectId/.manifest", projects.request_getManifest)
-api.get("/project/:projectId/.index", projects.request_getIndex)
-api.get("/project/:projectId/:filePath*", projects.request_getFile)
-api.post("/project/:projectId/:filePath*", projects.request_saveFile)
+api.get("/projects/manifest/:projectId", projects.request_getManifest)
+api.get("/projects/index/:projectId", projects.request_getIndex)
+api.get("/projects/file/:projectId/:filePath*", projects.request_getFile)
+api.post("/projects/file/:projectId/:filePath*", projects.request_saveFile)
 
 //
 //----------------------------

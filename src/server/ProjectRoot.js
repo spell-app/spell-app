@@ -76,7 +76,7 @@ export class ProjectRoot {
   }
 
   /** Given one or more `path` strings, return client URL resource. */
-  getUrl = (...path) => {
+  getURL = (...path) => {
     return fileUtils.joinURL(this.fileURLPrefix, ...path)
   }
 
@@ -92,8 +92,7 @@ export class ProjectRoot {
   getProjectList = async () => {
     const options = { includeDirs: true, includeFiles: false, namesOnly: true }
     const projectIds = await fileUtils.getFolderContents(this.serverPath, options)
-    console.warn(projectIds)
-    return projectIds.map((projectId) => this.getUrl(projectId))
+    return projectIds.map((projectId) => this.getURL(projectId))
   }
 
   /** Send projects list as part of a request. */
@@ -179,7 +178,7 @@ export class ProjectRoot {
       fileNames.map(async (name) => {
         const serverPath = this.getServerPath(projectId, name)
         const { created, modified } = await fileUtils.getPathInfo(serverPath)
-        return { name, path: this.getUrl(projectId, name), created, modified }
+        return { name, path: this.getURL(projectId, name), created, modified }
       })
     )
 
@@ -205,11 +204,11 @@ export class ProjectRoot {
     const exists = await fileUtils.pathExists(path)
     if (exists) return responseUtils.sendJSONFile(response, path)
 
-    console.info(`Creating index for project ${this.getUrl(projectId)}`)
+    console.info(`Creating index for project ${this.getURL(projectId)}`)
     const options = { ignoreHidden: true, namesOnly: true }
     const files = await fileUtils.getFolderContents(this.getServerPath(projectId), options)
     return {
-      imports: files.map((name) => ({ path: this.getUrl(projectId, name), active: true }))
+      imports: files.map((name) => ({ path: this.getURL(projectId, name), active: true }))
     }
   }
   request_getIndex = respondWithJSON(async (request) => {

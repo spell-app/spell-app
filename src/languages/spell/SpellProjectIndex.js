@@ -2,7 +2,7 @@ import global from "global"
 // import { computed } from "mobx"
 
 import { JSON5File, forward, memoize, memoizeForProp, writeOnce } from "~/util"
-import { SpellFileLocation, SpellProject, SpellCSSFile, SpellFile } from "~/languages/spell"
+import { SpellFileLocation } from "~/languages/spell"
 
 /**
  * Index of imports for a given `SpellProject`.
@@ -32,7 +32,7 @@ export class SpellProjectIndex extends JSON5File {
   }
 
   /**
-   * Project path as `/project/<projectId>` or `/library/<projectId>`.
+   * Project path as `/projects/<projectId>`, `/library/<projectId>` etc.
    * MUST be passed to constructor.
    */
   @writeOnce path
@@ -43,16 +43,10 @@ export class SpellProjectIndex extends JSON5File {
    * Note that we `forward` lots of methods on the location object to this object,
    * so you can say `manifest.projectId` rather than `manifest.location.projectId`.
    */
-  @forward("projectList", "projectType", "projectId", "projectPath", "isLibraryProject", "isUserProject")
+  @forward("projectList", "project", "projectType", "projectId", "projectPath", "isSystemProject", "isUserProject")
   @memoize
   get location() {
     return new SpellFileLocation(this.path)
-  }
-
-  /** Pointer to our `SpellProject`. */
-  @memoize
-  get project() {
-    return new SpellProject(this.projectPath)
   }
 
   /**
@@ -80,7 +74,7 @@ export class SpellProjectIndex extends JSON5File {
 
   /** Derive `url` from our path if not explicitly set. */
   get url() {
-    return `/api${this.path}/.index`
+    return `${this.projectList.apiPrefix}/index/${this.projectId}`
   }
 
   /**

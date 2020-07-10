@@ -31,23 +31,16 @@ export class SpellFile extends TextFile {
   }
 
   /**
-   * Project path as `/project/<projectId>/<filename>` or `/library/<projectId>/<filename>`.
+   * Project path as `/projects/<projectId>/<filename>` or `/library/<projectId>/<filename>`.
    * MUST be passed to constructor.
    */
   @writeOnce path
 
   /** `location` object which we can use to get various bits of the path. */
-  @forward("projectList", "projectPath", "projectId", "filePath", "folder", "fileName", "name", "extension")
+  @forward("projectList", "project", "projectPath", "projectId", "filePath", "folder", "fileName", "name", "extension")
   @memoize
   get location() {
     return new SpellFileLocation(this.path)
-  }
-
-  /**
-   * Return our `project` as a `SpellProject` based on our `path`.
-   */
-  @memoize get project() {
-    return new SpellProject(this.projectPath)
   }
 
   /**
@@ -179,7 +172,7 @@ export class SpellFile extends TextFile {
 
   /** Derive `url` from our projectId / filename if not explicitly set. */
   @overrideable get url() {
-    return `/api${this.path}`
+    return `${this.projectList.apiPrefix}/file/${this.projectId}${this.filePath}`
   }
 
   //-----------------
