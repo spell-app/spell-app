@@ -5,7 +5,6 @@
 import express from "express"
 import chalk from "chalk"
 import JSON5 from "json5"
-import nodePath from "path"
 
 import { SPELL_PROJECT_ROOTS } from "../projectSetup"
 

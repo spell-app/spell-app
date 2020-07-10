@@ -88,7 +88,7 @@ export class SpellFileLocation {
   /** Path to the project. */
   get projectPath() {
     const { projectType, projectName } = this._split_
-    return `/${projectType}/${projectName}`
+    return `/${projectType}:${projectName}`
   }
 
   /** Type of the project, e.g. `project`, `library`, `example` or `guide`. */
@@ -103,7 +103,7 @@ export class SpellFileLocation {
 
   /** Name of the project. */
   get projectName() {
-    return this._split_.projectId
+    return this._split_.projectName
   }
 
   /**
@@ -149,14 +149,15 @@ export class SpellFileLocation {
 
   /** Split path into rough bits -- further refinement in getters above. */
   @memoize get _split_() {
-    const [_empty, projectType, projectId, ...filePath] = this.path.split("/")
+    const [_empty, projectId, ...filePath] = this.path.split("/")
+    const [projectType, projectName] = projectId.split(":")
     const fileName = filePath.pop() || undefined
     const folder = filePath.length ? `/${filePath.join("")}` : undefined
     return {
       projectRoot: `/${projectType}/`,
       projectType,
       projectId,
-      projectName: projectId,
+      projectName,
       folder,
       fileName
     }

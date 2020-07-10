@@ -7,28 +7,28 @@ export const SPELL_PROJECT_ROOTS = {
     key: "projects",
     type: "user",
     description: "User projects",
-    projectRoot: "/projects/",
+    projectRoot: "/projects:",
     apiPrefix: "/api/projects"
   },
   library: {
     key: "library",
     type: "system",
     description: "Library projects",
-    projectRoot: "/library/",
+    projectRoot: "/library:",
     apiPrefix: "/api/library"
   },
   examples: {
     key: "examples",
     type: "system",
     description: "Example projects",
-    projectRoot: "/examples/",
+    projectRoot: "/examples:",
     apiPrefix: "/api/examples"
   },
   guides: {
     key: "guides",
     type: "system",
     description: "Guides",
-    projectRoot: "/guides/",
+    projectRoot: "/guides:",
     apiPrefix: "/api/guides"
   }
 }

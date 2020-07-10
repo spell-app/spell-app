@@ -48,6 +48,15 @@ export class ProjectRoot {
     // })
   }
 
+  // TODO
+  isValidProjectId(projectId) {
+    return true
+  }
+
+  getProjectName(projectId) {
+    return projectId.split(":")[1]
+  }
+
   /**
    * Given a `projectId` and one or more `pathSegments`, return server path for resource.
    * Throws is invalid `projectId` or resulting `path`.
@@ -55,19 +64,20 @@ export class ProjectRoot {
    * TODO: `pathSuffix` items might come in from the client with `/` in it, which won't work on windows!
    */
   getServerPath = (projectId, ...pathSuffix) => {
-    const path = fileUtils.joinPath(this.serverPath, projectId, ...pathSuffix)
-    if (!ProjectRoot.LEGAL_PROJECT_ID.test(projectId)) {
-      throw new TypeError(`getServerPath(): invalid projectId: '${projectId}' for path '${path}'`)
-    }
-    if (!this.isValidServerPath(path)) {
-      throw new TypeError(`getServerPath(): invalid path: '${path}'`)
-    }
+    const projectName = this.getProjectName(projectId)
+    const path = fileUtils.joinPath(this.serverPath, projectName, ...pathSuffix)
+    // if (!ProjectRoot.LEGAL_PROJECT_ID.test(projectId)) {
+    //   throw new TypeError(`getServerPath(): invalid projectId: '${projectId}' for path '${path}'`)
+    // }
+    // if (!this.isValidServerPath(path)) {
+    //   throw new TypeError(`getServerPath(): invalid path: '${path}'`)
+    // }
     return path
   }
 
   /** Given one or more `path` strings, return client URL resource. */
-  getURL = (...path) => {
-    return fileUtils.joinURL(this.projectRoot, ...path)
+  getURL = (projectId, ...path) => {
+    return fileUtils.joinURL(`/${projectId}`, ...path)
   }
 
   //----------------------------
@@ -82,7 +92,7 @@ export class ProjectRoot {
   getProjectList = async () => {
     const options = { includeDirs: true, includeFiles: false, namesOnly: true }
     const projectIds = await fileUtils.getFolderContents(this.serverPath, options)
-    return projectIds.map((projectId) => this.getURL(projectId))
+    return projectIds.map((projectId) => this.getURL(`${this.projectRoot}${projectId}`))
   }
 
   /** Send projects list as part of a request. */
