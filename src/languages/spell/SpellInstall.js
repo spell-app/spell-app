@@ -47,11 +47,11 @@ class SpellInstall {
   }
 
   isUserPath = (path) => {
-    return !!SpellInstall.getPathSetup(path)?.type === "user"
+    return !!(this.getPathSetup(path)?.type === "user")
   }
 
   isSystemPath = (path) => {
-    return !!SpellInstall.getPathSetup(path)?.type === "system"
+    return !!(this.getPathSetup(path)?.type === "system")
   }
 
   /** Return project roots by type. */

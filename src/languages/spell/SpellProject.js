@@ -35,14 +35,15 @@ export class SpellProject extends LoadableManager {
   /** Registry of known instances. */
   static registry = new Map()
   constructor(path) {
-    // Create instance if not already present in registry
-    if (!SpellProject.registry.has(path)) {
-      const instance = super({ path })
-      if (!instance.location.isValidProjectPath)
-        throw new TypeError(`SpellProjectManifest initialized with invalid path '${this.path}'`)
-      SpellProject.registry.set(path, instance)
+    // Return immediately from registry if already present.
+    const existing = SpellProject.registry.get(path)
+    if (existing) return existing
+
+    super({ path })
+    if (!this.location.isValidProjectPath) {
+      throw new TypeError(`new SpellProject('${path}'): Must be initialized with project path.`)
     }
-    return SpellProject.registry.get(path)
+    SpellProject.registry.set(path, this)
   }
 
   /** We've been removed from the server -- clean up memory, etc.. */

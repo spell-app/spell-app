@@ -2,7 +2,7 @@ import global from "global"
 // import { computed } from "mobx"
 
 import { JSON5File, forward, memoize, memoizeForProp, writeOnce } from "~/util"
-import { SpellFileLocation, SpellProject, SpellFile } from "~/languages/spell"
+import { SpellFileLocation } from "~/languages/spell"
 
 /**
  * Manifest of files for a given `SpellProject`.
@@ -14,14 +14,16 @@ export class SpellProjectManifest extends JSON5File {
   /** Registry of known instances. */
   static registry = new Map()
   constructor(path) {
-    // Create instance if not already present in registry
-    if (!SpellProjectManifest.registry.has(path)) {
-      const instance = super({ path })
-      if (!instance.location.isValidProjectPath)
-        throw new TypeError(`SpellProjectManifest initialized with invalid path '${this.path}'`)
-      SpellProjectManifest.registry.set(path, instance)
+    // Return immediately from registry if already present.
+    const existing = SpellProjectManifest.registry.get(path)
+    if (existing) return existing
+
+    // Setup as normal and implicitly return `this`
+    super({ path })
+    if (!this.location.isValidProjectPath) {
+      throw new TypeError(`new SpellProjectManifest('${path}'): Must be initialized with project path.`)
     }
-    return SpellProjectManifest.registry.get(path)
+    SpellProjectManifest.registry.set(path, this)
   }
 
   /** We've been removed from the server -- clean up memory, etc.. */

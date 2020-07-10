@@ -5,6 +5,8 @@ import { spellInstall, SpellProject, SpellProjectList } from "."
 /**
  * Encapsulate a Spell File's `path` so we can get the various bits quickly and easily.
  * Immutable object.
+ * You can call `new SpellFileLocation("/some/path")` repeatedly and get the same object back.
+ * Use `isValidPath`, `isValidProjectPath` or `isValidFilePath` to make sure you've got a good path!
  *
  * NOTE: assumes that we have a single level of project paths. ???
  * TODO: add user concept here???
@@ -13,21 +15,39 @@ export class SpellFileLocation {
   /** Registry of known instances. */
   static registry = new Map()
   constructor(path) {
-    // Return immediatly from registry if already present.
-    const existingLocation = SpellFileLocation.registry.get(path)
-    if (existingLocation) return existingLocation
+    // Return immediately from registry if already present.
+    const existing = SpellFileLocation.registry.get(path)
+    if (existing) return existing
 
-    // Throw if invalid path
-    if (!spellInstall.isValidPath(path)) {
-      throw new TypeError(`SpellFileLocation('${path}'): Path is invalid.`)
-    }
-
+    // Setup as normal and implicitly return `this`
     this.path = path
     SpellFileLocation.registry.set(path, this)
   }
 
   /** Full `path` to the resource. */
   @writeOnce path
+
+  /**
+   * Is this a valid path for a project or a file?
+   */
+  get isValidPath() {
+    return spellInstall.isValidPath(this.path) && !!this.projectId
+  }
+
+  /**
+   * Is this a valid project path?
+   * NOTE: Returns false if it has a filePath...
+   */
+  get isValidProjectPath() {
+    return this.isValidPath && !this.filePath
+  }
+
+  /**
+   * Is this a valid project file path?
+   */
+  get isValidFilePath() {
+    return this.isValidPath && !!this.filePath
+  }
 
   //-----------------
   //  Deriving paths
@@ -54,7 +74,7 @@ export class SpellFileLocation {
 
   /** Is this a library project? */
   get isSystemProject() {
-    return spellInstall.isSystemProject(this.projectRoot)
+    return spellInstall.isSystemPath(this.projectRoot)
   }
 
   /** Is this a user's project? */
@@ -123,28 +143,13 @@ export class SpellFileLocation {
     return fileName.substr(name.length)
   }
 
-  /**
-   * Is this a valid project path?
-   * NOTE: Returns false if it has a filePath...
-   */
-  @memoize get isValidProjectPath() {
-    return !!this.projectId && !this.filePath
-  }
-
-  /**
-   * Is this a valid project file path?
-   */
-  @memoize get isValidFilePath() {
-    return !!this.projectId && !!this.filePath
-  }
-
   /** Split path into rough bits -- further refinement in getters above. */
   @memoize get _split_() {
     const [_empty, projectType, projectId, ...filePath] = this.path.split("/")
     const fileName = filePath.pop() || undefined
     const folder = filePath.length ? `/${filePath.join("")}` : undefined
     return {
-      projectPrefix: `/${projectType}/`,
+      projectRoot: `/${projectType}/`,
       projectType,
       projectId,
       folder,

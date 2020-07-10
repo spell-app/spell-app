@@ -15,14 +15,15 @@ export class SpellCSSFile extends TextFile {
   /** Registry of known instances. */
   static registry = new Map()
   constructor(path) {
-    // Create instance if not already present in registry
-    if (!SpellCSSFile.registry.has(path)) {
-      const instance = super({ path })
-      if (!instance.location.isValidFilePath)
-        throw new TypeError(`SpellCSSFile initialized with invalid path '${this.path}'`)
-      SpellCSSFile.registry.set(path, instance)
+    // Return immediately from registry if already present.
+    const existing = SpellCSSFile.registry.get(path)
+    if (existing) return existing
+
+    super({ path })
+    if (!this.location.isValidFilePath) {
+      throw new TypeError(`new SpellCSSFile('${path}'): Must be initialized with valid file path.`)
     }
-    return SpellCSSFile.registry.get(path)
+    SpellCSSFile.registry.set(path, this)
   }
 
   /** We've been removed from the server -- clean up memory, etc.. */

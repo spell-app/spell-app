@@ -14,14 +14,16 @@ export class SpellProjectIndex extends JSON5File {
   /** Registry of known instances. */
   static registry = new Map()
   constructor(path) {
-    // Create instance if not already present in registry
-    if (!SpellProjectIndex.registry.has(path)) {
-      const instance = super({ path })
-      if (!instance.location.isValidProjectPath)
-        throw new TypeError(`SpellProjectIndex initialized with invalid path '${this.path}'`)
-      SpellProjectIndex.registry.set(path, instance)
+    // Return immediately from registry if already present.
+    const existing = SpellProjectIndex.registry.get(path)
+    if (existing) return existing
+
+    // Setup as normal and implicitly return `this`
+    super({ path })
+    if (!this.location.isValidProjectPath) {
+      throw new TypeError(`new SpellProjectManifest('${path}'): Must be initialized with project path.`)
     }
-    return SpellProjectIndex.registry.get(path)
+    SpellProjectIndex.registry.set(path, this)
   }
 
   /** We've been removed from the server -- clean up memory, etc.. */

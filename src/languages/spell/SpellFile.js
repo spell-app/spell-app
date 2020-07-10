@@ -14,14 +14,15 @@ export class SpellFile extends TextFile {
   /** Registry of known instances. */
   static registry = new Map()
   constructor(path) {
-    // Create instance if not already present in registry
-    if (!SpellFile.registry.has(path)) {
-      const instance = super({ path })
-      if (!instance.location.isValidFilePath)
-        throw new TypeError(`SpellFile initialized with invalid path '${this.path}'`)
-      SpellFile.registry.set(path, instance)
+    // Return immediately from registry if already present.
+    const existing = SpellFile.registry.get(path)
+    if (existing) return existing
+
+    super({ path })
+    if (!this.location.isValidFilePath) {
+      throw new TypeError(`new SpellFile('${path}'): Must be initialized with valid file path.`)
     }
-    return SpellFile.registry.get(path)
+    SpellFile.registry.set(path, this)
   }
 
   /** We've been removed from the server -- clean up memory, etc.. */
