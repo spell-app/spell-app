@@ -69,8 +69,22 @@ export class SpellPath {
   }
 
   /**
+   * Is this a valid project DOMAIN path?
+   */
+  get isDomainPath() {
+    const projectRoot = spellSetup.projectRoots[this.domain]
+    return (
+      !!projectRoot &&
+      projectRoot.owner === this.owner &&
+      projectRoot.domain === this.domain &&
+      !this.projectName &&
+      !this.folder &&
+      !this.filePath
+    )
+  }
+
+  /**
    * Is this a valid project path?
-   * NOTE: Returns false if it has a filePath...
    */
   get isProjectPath() {
     return this.isValidPath && !this.folder && !this.fileName

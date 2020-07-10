@@ -2,7 +2,7 @@
 import global from "global"
 import { memoize } from "~/util"
 
-import { projectSetup, SpellProjectList } from "."
+import { spellSetup, SpellProjectList } from "."
 
 // Singleton instance, we don't export the class!
 class SpellInstall {
@@ -28,29 +28,29 @@ class SpellInstall {
   }
 
   /**
-   * Given a `path`, return its path setup from `projectSetup` or `undefined`.
+   * Given a `path`, return its path setup from `spellSetup` or `undefined`.
    */
   getPathSetup = (path) => {
     const domain = this.getProjectDomain(path)
-    return projectSetup[domain]
+    return spellSetup[domain]
   }
 
   /** Return project roots by type, creating only once. */
   @memoize
   get projects() {
-    return new SpellProjectList(projectSetup.projectRoots.projects)
+    return new SpellProjectList(spellSetup.projectRoots.projects)
   }
   @memoize
   get library() {
-    return new SpellProjectList(projectSetup.projectRoots.library)
+    return new SpellProjectList(spellSetup.projectRoots.library)
   }
   @memoize
   get examples() {
-    return new SpellProjectList(projectSetup.projectRoots.examples)
+    return new SpellProjectList(spellSetup.projectRoots.examples)
   }
   @memoize
   get guides() {
-    return new SpellProjectList(projectSetup.projectRoots.guides)
+    return new SpellProjectList(spellSetup.projectRoots.guides)
   }
 }
 

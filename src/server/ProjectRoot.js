@@ -3,11 +3,31 @@
  */
 import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"
+import { SpellPath } from "../languages/spell/SpellPath"
 
 const { respondWithJSON } = responseUtils
 
 const USER_SERVER_PATH = fileUtils.normalizePath(__dirname, "..")
 const SYSTEM_SERVER_PATH = fileUtils.normalizePath(__dirname, "..")
+
+// HACKY!!!
+// Make sure we don't save `SpellPath`s in the singleton registry
+// or we would have a memory leak!
+SpellPath.useRegistry = false
+
+Object.defineProperty(SpellPath.prototype, "serverPath", {
+  get() {
+    const path = [this.owner === "@system" ? SYSTEM_SERVER_PATH : USER_SERVER_PATH, this.domain, this.projectName]
+    if (this.filePath) path.push(...this.filePath.split("/"))
+    const serverPath = fileUtils.normalizePath(...path.filter(Boolean))
+    console.warn(`Server path for path '${this.path}' => '${serverPath}'`)
+    return serverPath
+  }
+})
+SpellPath.prototype.getPathForFile = function (filePath) {
+  const fullPath = this.projectId + (filePath.startsWith("/") ? "" : "/") + filePath
+  return new SpellPath(fullPath)
+}
 
 /**
  * `ProjectRoot` class: encompasses
@@ -98,16 +118,112 @@ export class ProjectRoot {
   /**
    * Return list of client projects relative to this projectSpec as JSON blob.
    * Format:
-   *   `[ "/projects:project1", "/projects:project2" ]`
+   *   `[ "<project-path>"... ]`
    */
-  getProjectList = async () => {
-    const options = { includeDirs: true, includeFiles: false, namesOnly: true }
-    const projectNames = await fileUtils.getFolderContents(this.serverPath, options)
-    return projectNames.map((projectName) => `${this.domain}${projectName}`)
+  getProjectList = async (domainPath) => {
+    const path = new SpellPath(domainPath)
+    if (!path.isDomainPath) throw new TypeError(`You must pass a valid domain path, got '${domainPath}'`)
+    const options = { includeFolders: true, includeFiles: false, namesOnly: true }
+    const projectNames = await fileUtils.getFolderContents(path.serverPath, options)
+    return projectNames.map((projectName) => `${path.owner}:${path.domain}:${projectName}`)
   }
 
   /** Send projects list as part of a request. */
-  request_getProjectList = respondWithJSON(async () => this.getProjectList())
+  request_getProjectList = respondWithJSON(async () => this.getProjectList("@user:projects"))
+
+  //----------------------------
+  //  Project manifest
+  //----------------------------
+
+  /**
+   * Return `manifest.json` for a project as JSON blob.
+   * NOTE: does not handle nested folders!!!
+   * Format:
+   *   `{ files: [ { name, path, created, modified }... ] }`
+   */
+  getManifest = async (projectId) => {
+    const project = new SpellPath(projectId)
+    if (!project.isProjectPath) throw new TypeError(`You must pass a valid projectId, got '${projectId}'`)
+    const options = { includeFolders: false, ignoreHidden: true, namesOnly: true }
+    const fileNames = await fileUtils.getFolderContents(project.serverPath, options)
+    const files = await Promise.all(
+      fileNames.map(async (name) => {
+        const filePath = project.getPathForFile(name)
+        const { created, modified } = await fileUtils.getPathInfo(filePath.serverPath)
+        return { name, path: filePath.path, created, modified }
+      })
+    )
+
+    return { files }
+  }
+  request_getManifest = respondWithJSON(async (request) => {
+    const { projectId } = request.params
+    return await this.getManifest(projectId)
+  })
+
+  //----------------------------
+  //  Project index
+  //----------------------------
+
+  /**
+   * Return `index.json` for a project as a JSON blob.
+   * Format:
+   *   `{ imports: [ { path, active }...] }`
+   * TODO: verify that all files in project are present in index???
+   */
+  getIndex = async (projectId) => {
+    const project = new SpellPath(projectId)
+    if (!project.isProjectPath) throw new TypeError(`You must pass a valid projectId, got '${projectId}'`)
+
+    // const path = this.getServerPath(projectId, ".index.json5")
+    // const exists = await fileUtils.pathExists(path)
+    // if (exists) return responseUtils.sendJSONFile(response, path)
+
+    console.info(`Creating index for project ${this.getURL(projectId)}`)
+    const options = { includeFolders: false, ignoreHidden: true, namesOnly: true }
+    const files = await fileUtils.getFolderContents(project.serverPath, options)
+    return {
+      imports: files.map((name) => {
+        const file = project.getPathForFile(name)
+        return { path: file.path, active: true }
+      })
+    }
+  }
+  request_getIndex = respondWithJSON(async (request) => {
+    const { projectId } = request.params
+    return await this.getIndex(projectId)
+  })
+
+  //----------------------------
+  //  Get/save project files
+  //----------------------------
+
+  /**
+   * Return a file from a project.
+   * TODO: return proper file type according to mime-type and/or request???!
+   */
+  request_getFile = (request, response) => {
+    const { projectId, filePath } = request.params
+    const project = new SpellPath(projectId)
+    if (!project.isProjectPath) throw new TypeError(`You must pass a valid projectId, got '${projectId}'`)
+    const file = project.getPathForFile(filePath)
+    if (!file.isFilePath) throw new TypeError(`You must pass a valid filePath, got '${filePath}'`)
+    responseUtils.sendJSONFile(response, file.serverPath)
+  }
+
+  /**
+   * Save a (non-nested!) file in a project.
+   * TODO: format according to extension!!!
+   */
+  saveFile = async (projectId, filePath, contents) => {
+    const path = this.getServerPath(projectId, filePath)
+    return await fileUtils.saveFile(path, contents)
+  }
+  request_saveFile = respondWithJSON(async (request) => {
+    const { projectId, filePath } = request.params
+    const contents = request.body
+    return await this.saveFile(projectId, filePath, contents)
+  })
 
   //----------------------------
   //  Project manipulation
@@ -172,89 +288,8 @@ export class ProjectRoot {
   })
 
   //----------------------------
-  //  Project manifest
-  //----------------------------
-
-  /**
-   * Return `manifest.json` for a project as JSON blob.
-   * NOTE: does not handle nested folders!!!
-   * Format:
-   *   `{ files: [ { name, path, created, modified }... ] }`
-   */
-  getManifest = async (projectId) => {
-    // TODO: check options if we have nested folders
-    const options = { foldersOnly: true, namesOnly: true, ignoreHidden: true }
-    const fileNames = await fileUtils.getFolderContents(this.getServerPath(projectId), options)
-    console.warn("getManifest", { projectId, url: this.getURL(projectId) })
-    const files = await Promise.all(
-      fileNames.map(async (name) => {
-        const serverPath = this.getServerPath(projectId, name)
-        const { created, modified } = await fileUtils.getPathInfo(serverPath)
-        return { name, path: this.getURL(projectId, name), created, modified }
-      })
-    )
-
-    return { files }
-  }
-  request_getManifest = respondWithJSON(async (request) => {
-    const { projectId } = request.params
-    return await this.getManifest(projectId)
-  })
-
-  //----------------------------
-  //  Project index
-  //----------------------------
-
-  /**
-   * Return `index.json` for a project as a JSON blob.
-   * Format:
-   *   `{ imports: [ { path, active }...] }`
-   * TODO: verify that all files in project are present in index???
-   */
-  getIndex = async (projectId) => {
-    const path = this.getServerPath(projectId, ".index.json5")
-    const exists = await fileUtils.pathExists(path)
-    if (exists) return responseUtils.sendJSONFile(response, path)
-
-    console.info(`Creating index for project ${this.getURL(projectId)}`)
-    const options = { ignoreHidden: true, namesOnly: true }
-    const files = await fileUtils.getFolderContents(this.getServerPath(projectId), options)
-    return {
-      imports: files.map((name) => ({ path: this.getURL(projectId, name), active: true }))
-    }
-  }
-  request_getIndex = respondWithJSON(async (request) => {
-    const { projectId } = request.params
-    return await this.getIndex(projectId)
-  })
-
-  //----------------------------
   //  Project file manipulation
   //----------------------------
-
-  /**
-   * Return a file from a project.
-   * TODO: return proper file type according to mime-type and/or request???!
-   */
-  request_getFile = (request, response) => {
-    const { projectId, filePath } = request.params
-    const path = this.getServerPath(projectId, filePath)
-    responseUtils.sendJSONFile(response, path)
-  }
-
-  /**
-   * Save a (non-nested!) file in a project.
-   * TODO: format according to extension!!!
-   */
-  saveFile = async (projectId, filePath, contents) => {
-    const path = this.getServerPath(projectId, filePath)
-    return await fileUtils.saveFile(path, contents)
-  }
-  request_saveFile = respondWithJSON(async (request) => {
-    const { projectId, filePath } = request.params
-    const contents = request.body
-    return await this.saveFile(projectId, filePath, contents)
-  })
 
   /**
    * Create a new project file.

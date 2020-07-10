@@ -63,9 +63,9 @@ api.get("/error", (request, response) => {
 
 /** Path specification for working with user projects. */
 const projects = new ProjectRoot(spellSetup.projectRoots.projects)
-const library = new ProjectRoot(spellSetup.projectRoots.library)
-const examples = new ProjectRoot(spellSetup.projectRoots.examples)
-const guides = new ProjectRoot(spellSetup.projectRoots.guides)
+// const library = new ProjectRoot(spellSetup.projectRoots.library)
+// const examples = new ProjectRoot(spellSetup.projectRoots.examples)
+// const guides = new ProjectRoot(spellSetup.projectRoots.guides)
 
 // working with projects
 api.get("/projects/list", projects.request_getProjectList)

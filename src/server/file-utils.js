@@ -211,7 +211,7 @@ export async function makeFolder(path) {
 export async function getFolderContents(path, options = {}) {
   const {
     sort = true, // `true` = perform case-insensitive sort on results
-    includeDirs = false, // `true` = include directories
+    includeFolders = false, // `true` = include directories
     includeFiles = true, // `true` = include files
     namesOnly = false, // `true` = return names only, `false` = return full path
     ignoreHidden = false, // `true` = ignore hidden files
@@ -222,11 +222,11 @@ export async function getFolderContents(path, options = {}) {
   let paths = await fse.readdir(path)
   paths = paths.map((name) => joinPath(path, name))
 
-  if (!includeDirs || !includeFiles) {
+  if (!includeFolders || !includeFiles) {
     paths = await filterAsync(paths, async (nextPath) => {
-      const isDir = await pathIsAFolder(nextPath)
-      if (includeDirs && isDir) return true
-      if (includeFiles && !isDir) return true
+      const isFolder = await pathIsAFolder(nextPath)
+      if (includeFolders && isFolder) return true
+      if (includeFiles && !isFolder) return true
       return false
     })
   }
