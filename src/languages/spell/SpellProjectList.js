@@ -52,9 +52,14 @@ export class SpellProjectList extends JSON5File {
   }
 
   /** Return full projectPath for project specified by `projectId`. */
-  getProjectPath(projectId) {
-    if (typeof projectId !== "string") throw new TypeError(`getProjectPath('${path}'): must pass a string`)
+  getPathForProjectId(projectId) {
+    if (typeof projectId !== "string") throw new TypeError(`getPathForProjectId('${path}'): must pass a string`)
     return `${this.projectRoot}${projectId}`
+  }
+
+  /** Given projectId, return just the `name` portion. */
+  getNameForProjectId(projectId) {
+    return projectId
   }
 
   /**
@@ -78,7 +83,7 @@ export class SpellProjectList extends JSON5File {
   async createProject(projectId) {
     if (!projectId) projectId = prompt("Name for the new project?", "Untitled")
     if (!projectId) return undefined
-    path = this.getProjectPath(projectId)
+    path = this.getPathForProjectId(projectId)
 
     const location = new SpellFileLocation(path)
     if (!location.isValidProjectPath) throw new TypeError(`Error in createProject: path '${path}' is invalid.`)
@@ -101,12 +106,14 @@ export class SpellProjectList extends JSON5File {
 
   /** Duplicate an existing project. */
   async duplicateProject(projectId, newProjectId) {
-    const path = this.getProjectPath(projectId)
+    const path = this.getPathForProjectId(projectId)
     const project = this.getProject(path, REQUIRED, `Error in duplicateProject: project '${path}' not found.`)
 
-    if (!newProjectId) newProjectId = prompt("Name for the new project?", projectId)
-    if (!newProjectId) return undefined
-    newPath = this.getProjectPath(newProjectId)
+    if (!newProjectId) {
+      newProjectId = prompt("Name for the new project?", this.getNameForProjectId(projectId))
+      if (!newProjectId) return undefined
+    }
+    newPath = this.getPathForProjectId(newProjectId)
     if (this.getProject(newPath)) throw new TypeError(`Error in duplicateProject: project '${newPath}' already exists.`)
 
     // Tell the server to duplicate the project
@@ -122,12 +129,14 @@ export class SpellProjectList extends JSON5File {
 
   /** Rename an existing project. */
   async renameProject(projectId, newProjectId) {
-    const path = this.getProjectPath(projectId)
+    const path = this.getPathForProjectId(projectId)
     const project = this.getProject(path, REQUIRED, `Error in renameProject: project '${path}' not found.`)
 
-    if (!newProjectId) newProjectId = prompt("New name for the project?", projectId)
-    if (!newProjectId) return undefined
-    newPath = this.getProjectPath(newProjectId)
+    if (!newProjectId) {
+      newProjectId = prompt("New name for the project?", this.getNameForProjectId(projectId))
+      if (!newProjectId) return undefined
+    }
+    newPath = this.getPathForProjectId(newProjectId)
     if (this.getProject(newPath)) throw new TypeError(`Error in renameProject: project '${newPath}' already exists.`)
 
     // Tell the server to duplicate the project
@@ -146,10 +155,12 @@ export class SpellProjectList extends JSON5File {
    * Returns `true` on success, `false` if cancelled or throws on error.
    */
   async removeProject(projectId, shouldConfirm) {
-    const path = this.getProjectPath(projectId)
+    const path = this.getPathForProjectId(projectId)
     const project = this.getProject(path, REQUIRED, `Error in removeProject: project '${path}' not found.`)
+
     if (shouldConfirm === CONFIRM) {
-      if (!confirm(`Really remove project '${project.projectId}'?`)) return false
+      const projectName = this.getNameForProjectId(projectId)
+      if (!confirm(`Really remove project '${projectName}'?`)) return false
     }
     // Tell the server to delete the project
     await $fetch({

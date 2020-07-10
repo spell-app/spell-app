@@ -41,10 +41,11 @@ export class ProjectRoot {
   static LEGAL_PROJECT_ID = /^[\w\d-]+$/
   static LEGAL_PATH_SEGMENT = /^[\w\d-\.]+$/
   isValidServerPath(path) {
-    if (!path.startsWith(this.serverPath)) return false
-    return fileUtils.splitPath(path).some((segment) => {
-      return segment === ".." || !ProjectRoot.LEGAL_PATH_SEGMENT.test(segment)
-    })
+    return true
+    // if (!path.startsWith(this.serverPath)) return false
+    // return fileUtils.splitPath(path).some((segment) => {
+    //   return segment === ".." || !ProjectRoot.LEGAL_PATH_SEGMENT.test(segment)
+    // })
   }
 
   /**

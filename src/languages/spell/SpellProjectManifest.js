@@ -35,7 +35,7 @@ export class SpellProjectManifest extends JSON5File {
   }
 
   /**
-   * Project path as `/projects/<projectId>` or `/library/<projectId>`.
+   * Path to project, as specified by server.
    * MUST be passed to constructor.
    */
   @writeOnce path
@@ -44,9 +44,18 @@ export class SpellProjectManifest extends JSON5File {
    * Immutable `location` object which we use to get various bits of the path.
    *
    * Note that we `forward` lots of methods on the location object to this object,
-   * so you can say `manifest.projectId` rather than `manifest.location.projectId`.
+   * so you can say `manifest.projectName` rather than `manifest.location.projectName`.
    */
-  @forward("projectList", "project", "projectType", "projectId", "projectPath", "isSystemProject", "isUserProject")
+  @forward(
+    "projectList",
+    "project",
+    "projectType",
+    "projectId",
+    "projectName",
+    "projectPath",
+    "isSystemProject",
+    "isUserProject"
+  )
   @memoize
   get location() {
     return new SpellFileLocation(this.path)

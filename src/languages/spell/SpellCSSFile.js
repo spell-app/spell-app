@@ -33,13 +33,24 @@ export class SpellCSSFile extends TextFile {
   }
 
   /**
-   * Project path as `/projects/<projectId>/<filePath...>` or `/library/<projectId>/<filePath...>`.
+   * Path to file, as specified by server.
    * MUST be passed to constructor.
    */
   @writeOnce path
 
   /** `location` object which we can use to get various bits of the path. */
-  @forward("projectList", "project", "projectPath", "projectId", "filePath", "folder", "fileName", "name", "extension")
+  @forward(
+    "projectList",
+    "project",
+    "projectPath",
+    "projectId",
+    "projectName",
+    "filePath",
+    "folder",
+    "fileName",
+    "name",
+    "extension"
+  )
   @memoize
   get location() {
     return new SpellFileLocation(this.path)

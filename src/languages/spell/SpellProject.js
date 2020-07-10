@@ -54,19 +54,15 @@ export class SpellProject extends LoadableManager {
     SpellProject.registry.clear(this.path)
   }
 
-  /**
-   * Project path as `/projects/<projectId>` or `/library/<projectId>`.
-   * MUST be passed to constructor.
-   */
   @writeOnce path
 
   /**
    * Immutable `location` object which we use to get various bits of the path.
    *
    * Note that we `forward` lots of methods on the location object to this object,
-   * so you can say `project.projectId` rather than `project.location.projectId`.
+   * so you can say `project.projectName` rather than `project.location.projectName`.
    */
-  @forward("projectList", "projectType", "projectId", "projectPath", "isSystemProject", "isUserProject")
+  @forward("projectList", "projectType", "projectId", "projectName", "projectPath", "isSystemProject", "isUserProject")
   @memoize
   get location() {
     return new SpellFileLocation(this.path)
@@ -118,7 +114,7 @@ export class SpellProject extends LoadableManager {
     // This way rules added to the project won't leak out.
     const parser = parentScope.parser.clone({ module: this.path })
     return new ProjectScope({
-      name: this.projectId,
+      name: this.projectName,
       parser,
       scope: parentScope
     })
@@ -131,7 +127,7 @@ export class SpellProject extends LoadableManager {
   @memoize
   get parser() {
     return new TaskList({
-      name: `Parsing project: ${this.projectId}`,
+      name: `Parsing project: ${this.projectName}`,
       tasks: [
         new Task({
           name: "Loading project",
@@ -162,7 +158,7 @@ export class SpellProject extends LoadableManager {
   @memoize
   get compiler() {
     return new TaskList({
-      name: `Compiling project: ${this.projectId}`,
+      name: `Compiling project: ${this.projectName}`,
       tasks: [
         this.parser,
         TaskList.forEach({

@@ -24,7 +24,10 @@ export class SpellFileLocation {
     SpellFileLocation.registry.set(path, this)
   }
 
-  /** Full `path` to the resource. */
+  /**
+   * Path to file or project, as specified by server.
+   * MUST be passed to constructor.
+   */
   @writeOnce path
 
   /**
@@ -52,11 +55,6 @@ export class SpellFileLocation {
   //-----------------
   //  Deriving paths
   //-----------------
-
-  /** Return a file path relative to this project. */
-  getFilePath(filePath) {
-    return this.projectPath + (filePath.startsWith("/") ? "" : "/") + (filePath || "")
-  }
 
   //-----------------
   //  Syntactic sugar for working with paths.
@@ -89,8 +87,8 @@ export class SpellFileLocation {
 
   /** Path to the project. */
   get projectPath() {
-    const { projectType, projectId } = this._split_
-    return `/${projectType}/${projectId}`
+    const { projectType, projectName } = this._split_
+    return `/${projectType}/${projectName}`
   }
 
   /** Type of the project, e.g. `project`, `library`, `example` or `guide`. */
@@ -102,6 +100,12 @@ export class SpellFileLocation {
   get projectId() {
     return this._split_.projectId
   }
+
+  /** Name of the project. */
+  get projectName() {
+    return this._split_.projectId
+  }
+
   /**
    * Full file path including folder.
    * `undefined` if we're a project path.
@@ -152,6 +156,7 @@ export class SpellFileLocation {
       projectRoot: `/${projectType}/`,
       projectType,
       projectId,
+      projectName: projectId,
       folder,
       fileName
     }

@@ -38,10 +38,10 @@ const ProjectMenu = view(function () {
   if (!projectList.isLoaded || !project)
     return <NavDropdown key="loading" title="Loading..." id="ProjectMenu" style={{ width: "12em" }} />
   return (
-    <NavDropdown key={project.path} title={project.projectId} id="ProjectMenu" style={{ width: "12em" }}>
+    <NavDropdown key={project.path} title={project.projectName} id="ProjectMenu" style={{ width: "12em" }}>
       {projectList.projectPaths.map((path) => (
         <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectProject}>
-          <ion-icon name="briefcase-outline" size="medium" /> {new SpellFileLocation(path).projectId}
+          <ion-icon name="briefcase-outline" size="medium" /> {new SpellFileLocation(path).projectName}
         </NavDropdown.Item>
       ))}
       <NavDropdown.Divider />
