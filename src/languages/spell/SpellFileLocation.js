@@ -1,28 +1,32 @@
 import global from "global"
+import { spellSetup } from "~/projectSetup"
 import { writeOnce, memoize } from "~/util"
-import { spellInstall, SpellProject, SpellProjectList } from "."
-
+import { spellInstall, SpellProject } from "."
 /**
  * Encapsulate a Spell File's `path` so we can get the various bits quickly and easily.
- * Immutable object.
+ * These are immutable objects, and are stored in a registry.
  * You can call `new SpellFileLocation("/some/path")` repeatedly and get the same object back.
- * Use `isValidPath`, `isValidProjectPath` or `isValidFilePath` to make sure you've got a good path!
+ * Use `isValidPath`, `isProjectPath` or `isFilePath` to make sure you've got a good path!
  *
- * NOTE: assumes that we have a single level of project paths. ???
- * TODO: add user concept here???
+ * Paths are assumed to be in the form:
+ *  `@owner:domain:projectName:/folder/folder/file.extension`
+ *
+ * which corresponds to
+ *  - `projectId`   `@owner:domain:projectName`
+ *  - `owner`       `@owner`
+ *  - `domain`      `domain`
+ *  - `projectName` `projectName`
+ *  - `folder`      `/folder/folder/`  (`undefined` for project path)
+ *  - `fileName`    `file.extension`   (`undefined` for project path)
+ *  - `name`        `file`             (`undefined` for project path)
+ *  - `extension`   `.extension`       (`undefined` for project path)
  */
 export class SpellFileLocation {
   /** Registry of known instances. */
   static registry = new Map()
-  constructor(path) {
-    // Return immediately from registry if already present.
-    const existing = SpellFileLocation.registry.get(path)
-    if (existing) return existing
 
-    // Setup as normal and implicitly return `this`
-    this.path = path
-    SpellFileLocation.registry.set(path, this)
-  }
+  /** Set to `false` to ignore registry (e.g. on the server). */
+  static useRegistry = true
 
   /**
    * Path to file or project, as specified by server.
@@ -30,137 +34,86 @@ export class SpellFileLocation {
    */
   @writeOnce path
 
+  constructor(path) {
+    // Throw if we `path` is not a string.
+    if (typeof path !== "string" || !path) {
+      throw new TypeError(`new SpellFileLocation('${path}': Path must be a string.`)
+    }
+
+    // Return from registry if present, add if not.
+    if (SpellFileLocation.useRegistry) {
+      const existing = SpellFileLocation.registry.get(path)
+      if (existing) return existing
+      SpellFileLocation.registry.set(path, this)
+    }
+
+    this.path = path
+
+    // Figure out out bits
+    const [projectId, ...filePath] = path.split("/")
+    const [owner, domain, projectName] = projectId.split(":")
+    const fileName = filePath.pop()
+    this.projectId = projectId
+    this.owner = owner
+    this.domain = domain
+    this.projectName = projectName
+    if (fileName !== undefined || filePath.length) {
+      this.folder = filePath.length ? `/${filePath.join("/")}/` : "/"
+      this.fileName = fileName || undefined
+      this.filePath = `${this.folder}${fileName || ""}`
+      const [name, ...extension] = fileName.split(".")
+      this.name = fileName.startsWith(".") ? `.${extension.shift() || ""}` : name
+      this.extension = extension.length ? `.${extension.join(".")}` : undefined
+    }
+  }
+
   /**
    * Is this a valid path for a project or a file?
    */
   get isValidPath() {
-    return spellInstall.isValidPath(this.path) && !!this.projectId
+    const projectRoot = spellSetup.projectRoots[this.domain]
+    return !!projectRoot && projectRoot.owner === this.owner && projectRoot.domain === this.domain && !!this.projectName
   }
 
   /**
    * Is this a valid project path?
    * NOTE: Returns false if it has a filePath...
    */
-  get isValidProjectPath() {
-    return this.isValidPath && !this.filePath
+  get isProjectPath() {
+    return this.isValidPath && !this.folder && !this.fileName
   }
 
   /**
-   * Is this a valid project file path?
+   * Is this a valid file path?
    */
-  get isValidFilePath() {
-    return this.isValidPath && !!this.filePath
+  get isFilePath() {
+    return this.isValidPath && !!this.folder && !!this.fileName
   }
 
-  //-----------------
-  //  Deriving paths
-  //-----------------
+  /**
+   * Is this a valid folder path (with no file)?
+   */
+  get isFolderPath() {
+    return this.isValidPath && !!this.folder && !this.fileName
+  }
+
+  /** Is this a system project? */
+  get isSystemProject() {
+    return this.isValidPath && this.owner === "@system"
+  }
+
+  /** Is this a user project? */
+  get isUserProject() {
+    return this.isValidPath && this.owner === "@user"
+  }
 
   //-----------------
   //  Syntactic sugar for working with paths.
   //-----------------
 
-  /** ProjectList for this location. */
-  get projectList() {
-    return spellInstall[this.projectType]
-  }
-
-  /** `projectRoot`, e,g `/projects/` or `/library/`. */
-  get projectRoot() {
-    return this._split_.projectRoot
-  }
-
-  /** Is this a library project? */
-  get isSystemProject() {
-    return spellInstall.isSystemPath(this.projectRoot)
-  }
-
-  /** Is this a user's project? */
-  get isUserProject() {
-    return spellInstall.isUserPath(this.projectRoot)
-  }
-
   /** Project for this location. */
   get project() {
-    return new SpellProject(this.projectPath)
-  }
-
-  /** Path to the project. */
-  get projectPath() {
-    const { projectType, projectName } = this._split_
-    return `/${projectType}:${projectName}`
-  }
-
-  /** Type of the project, e.g. `project`, `library`, `example` or `guide`. */
-  get projectType() {
-    return this._split_.projectType
-  }
-
-  /** Name of the project. */
-  get projectId() {
-    return this._split_.projectId
-  }
-
-  /** Name of the project. */
-  get projectName() {
-    return this._split_.projectName
-  }
-
-  /**
-   * Full file path including folder.
-   * `undefined` if we're a project path.
-   * If we have a value, it will always start with slash.
-   */
-  get filePath() {
-    const { folder, fileName } = this
-    if (!folder && !fileName) return undefined
-    if (!folder) return `/${fileName}`
-    return `${folder}/${fileName}`
-  }
-  /** File folder within project. */
-  get folder() {
-    return this._split_.folder
-  }
-  /** Full file name including extension. */
-  get fileName() {
-    return this._split_.fileName
-  }
-  /**
-   * Leaf file name without extension. `undefined` if no `fileName`.
-   */
-  @memoize get name() {
-    const { fileName } = this._split_
-    if (!fileName) return undefined
-    const split = fileName.split(".")
-    // If name starts with a period, assume it's a hidden file and return the first bit.
-    if (fileName[0] === ".") return `.${split[1] || ""}`
-    return split[0] || ""
-  }
-  /**
-   * File extension, e.g. `.spell` or `.foo.bar`.
-   * `undefined` if no filename.
-   * `""` if there is a filename but no extension.
-   */
-  @memoize get extension() {
-    const { fileName, name } = this
-    if (!fileName) return undefined
-    return fileName.substr(name.length)
-  }
-
-  /** Split path into rough bits -- further refinement in getters above. */
-  @memoize get _split_() {
-    const [_empty, projectId, ...filePath] = this.path.split("/")
-    const [projectType, projectName] = projectId.split(":")
-    const fileName = filePath.pop() || undefined
-    const folder = filePath.length ? `/${filePath.join("")}` : undefined
-    return {
-      projectRoot: `/${projectType}/`,
-      projectType,
-      projectId,
-      projectName,
-      folder,
-      fileName
-    }
+    return new SpellProject(this.projectId)
   }
 }
 

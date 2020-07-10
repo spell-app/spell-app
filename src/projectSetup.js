@@ -1,34 +1,46 @@
+import global from "global"
+
 /**
- * Spell project root setup for client and server.
- * TODO: how to map server folders in here???
+ * Shared client/server setup for project roots and routines for working with paths.
+ *
+ * We assume `path`s are of the form:
+ *  `@owner:domain:projectName:/folder/folder/file.extension`
+ *
+ * which corresponds to:
+ *  - `projectId`   `@owner:domain:projectName`
+ *  - `owner`       `@owner`
+ *  - `domain`      `domain`
+ *  - `projectName` `projectName`
+ *  - `folder`      `/folder/folder/`  (will be undefined for project path)
+ *  - `fileName`    `file.extension`   (will be undefined for project path)
+ *
+ * Use `spellSetup.splitPath(path)` to return an object with thhose properties.
  */
-export const SPELL_PROJECT_ROOTS = {
-  projects: {
-    key: "projects",
-    type: "user",
-    description: "User projects",
-    projectRoot: "/projects:",
-    apiPrefix: "/api/projects"
-  },
-  library: {
-    key: "library",
-    type: "system",
-    description: "Library projects",
-    projectRoot: "/library:",
-    apiPrefix: "/api/library"
-  },
-  examples: {
-    key: "examples",
-    type: "system",
-    description: "Example projects",
-    projectRoot: "/examples:",
-    apiPrefix: "/api/examples"
-  },
-  guides: {
-    key: "guides",
-    type: "system",
-    description: "Guides",
-    projectRoot: "/guides:",
-    apiPrefix: "/api/guides"
+class SpellSetup {
+  /** TODOC:   */
+  projectRoots = {
+    projects: {
+      owner: "@user",
+      domain: "projects",
+      description: "User projects"
+    },
+    library: {
+      owner: "@user",
+      domain: "library",
+      description: "User library"
+    },
+    examples: {
+      owner: "@system",
+      domain: "examples",
+      description: "Example projects"
+    },
+    guides: {
+      owner: "@system",
+      domain: "guides",
+      description: "Usage guides"
+    }
   }
 }
+export const spellSetup = new SpellSetup()
+// HACK
+global.spellSetup = spellSetup

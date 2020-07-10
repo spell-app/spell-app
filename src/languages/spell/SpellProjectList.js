@@ -8,27 +8,14 @@ import { SpellFileLocation, SpellProject } from "~/languages/spell"
  * NOTE: don't create these directly, use the ones set up by `SpellInstall`.
  */
 export class SpellProjectList extends JSON5File {
-  /**
-   * Root of project / file "paths", e.g. `/projects/`
-   * MUST be passed to constructor.
-   */
-  // projectRoot
-
-  /**
-   * Root for all `project` urls, e.g. for `createProject()` etc.
-   * MUST be passed to constructor.
-   */
-  // apiPrefix
-
-  constructor(props) {
-    super(props)
-    // if (!this.projectRoot || !this.apiPrefix)
-    //   throw new TypeError("new ProjectList(): don't create these manually, use ones created by `spellInstall`.")
-  }
+  // From `src/projectSetup.js`
+  // owner: "@user"
+  // domain: "projects",
+  // description: "User projects",
 
   /** URL to load the project list. */
   get url() {
-    return `${this.apiPrefix}/list`
+    return `/api/projects/list`
   }
 
   /**
@@ -54,7 +41,7 @@ export class SpellProjectList extends JSON5File {
   /** Return full projectPath for project specified by `projectId`. */
   getPathForProjectId(projectId) {
     if (typeof projectId !== "string") throw new TypeError(`getPathForProjectId('${path}'): must pass a string`)
-    return `${this.projectRoot}${projectId}`
+    return `${this.domain}${projectId}`
   }
 
   /** Given projectId, return just the `name` portion. */
@@ -86,12 +73,14 @@ export class SpellProjectList extends JSON5File {
     path = this.getPathForProjectId(projectId)
 
     const location = new SpellFileLocation(path)
-    if (!location.isValidProjectPath) throw new TypeError(`Error in createProject: path '${path}' is invalid.`)
+    if (!this.location.isProjectPath) {
+      throw new TypeError(`Error in createProject: path '${path}' is invalid.`)
+    }
     if (this.getProject(path)) throw new TypeError(`Error in createProject: project '${path}' already exists.`)
 
     // Tell the server to create the project
     await $fetch({
-      url: `${this.apiPrefix}/create/project`,
+      url: `/api/projects/create/project`,
       contents: {
         projectId,
         filePath: "Untitled.spell",
@@ -118,7 +107,7 @@ export class SpellProjectList extends JSON5File {
 
     // Tell the server to duplicate the project
     await $fetch({
-      url: `${this.apiPrefix}/duplicate/project`,
+      url: `/api/projects/duplicate/project`,
       contents: { projectId, newProjectId },
       requestFormat: "json"
     })
@@ -141,7 +130,7 @@ export class SpellProjectList extends JSON5File {
 
     // Tell the server to duplicate the project
     await $fetch({
-      url: `${this.apiPrefix}/rename/project`,
+      url: `/api/projects/rename/project`,
       contents: { projectId, newProjectId },
       requestFormat: "json"
     })
@@ -164,7 +153,7 @@ export class SpellProjectList extends JSON5File {
     }
     // Tell the server to delete the project
     await $fetch({
-      url: `${this.apiPrefix}/remove/project`,
+      url: `/api/projects/remove/project`,
       method: "DELETE",
       contents: { projectId },
       requestFormat: "json"

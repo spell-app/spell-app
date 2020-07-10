@@ -2,44 +2,56 @@
 import global from "global"
 import { memoize } from "~/util"
 
-import { SPELL_PROJECT_ROOTS } from "~/projectSetup"
+import { projectSetup } from "~/projectSetup"
 import { SpellProjectList } from "."
 
 // Singleton instance, we don't export the class!
 class SpellInstall {
+  /**
+   * Given a `path`, return its `projectId` or `undefined`.
+   */
+  getProjectId(path) {
+    return path?.split?.("/")[0]
+  }
+
+  /**
+   * Given a `path`, return its project `domain` or `undefined`.
+   */
+  getProjectDomain(path) {
+    return this.getProjectId(path)?.split(":")[1]
+  }
+
+  /**
+   * Given a `path`, return its `projectName` or `undefined`.
+   */
+  getProjectName(path) {
+    return this.getProjectId(path)?.split(":")[2]
+  }
+
+  /**
+   * Given a `path`, return its path setup from `projectSetup` or `undefined`.
+   */
   getPathSetup = (path) => {
-    if (typeof path !== "string") return undefined
-    return Object.values(SPELL_PROJECT_ROOTS).find(({ projectRoot }) => path.startsWith(projectRoot))
+    const domain = this.getProjectDomain(path)
+    return projectSetup[domain]
   }
 
-  isValidPath = (path) => {
-    return !!this.getPathSetup(path)
-  }
-
-  isUserPath = (path) => {
-    return !!(this.getPathSetup(path)?.type === "user")
-  }
-
-  isSystemPath = (path) => {
-    return !!(this.getPathSetup(path)?.type === "system")
-  }
-
-  /** Return project roots by type. */
+  /** Return project roots by type, creating only once. */
   @memoize
   get projects() {
-    return new SpellProjectList(SPELL_PROJECT_ROOTS.projects)
+    return new SpellProjectList(projectSetup.projectRoots.projects)
   }
   @memoize
   get library() {
-    return new SpellProjectList(SPELL_PROJECT_ROOTS.library)
+    return new SpellProjectList(projectSetup.projectRoots.library)
   }
   @memoize
   get examples() {
-    return new SpellProjectList(SPELL_PROJECT_ROOTS.examples)
+    return new SpellProjectList(projectSetup.projectRoots.examples)
   }
   @memoize
   get guides() {
-    return new SpellProjectList(SPELL_PROJECT_ROOTS.guides)
+    return new SpellProjectList(projectSetup.projectRoots.guides)
   }
 }
 

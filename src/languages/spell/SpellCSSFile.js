@@ -20,7 +20,7 @@ export class SpellCSSFile extends TextFile {
     if (existing) return existing
 
     super({ path })
-    if (!this.location.isValidFilePath) {
+    if (!this.location.isFilePath) {
       throw new TypeError(`new SpellCSSFile('${path}'): Must be initialized with valid file path.`)
     }
     SpellCSSFile.registry.set(path, this)
@@ -39,18 +39,7 @@ export class SpellCSSFile extends TextFile {
   @writeOnce path
 
   /** `location` object which we can use to get various bits of the path. */
-  @forward(
-    "projectList",
-    "project",
-    "projectPath",
-    "projectId",
-    "projectName",
-    "filePath",
-    "folder",
-    "fileName",
-    "name",
-    "extension"
-  )
+  @forward("project", "projectId", "projectName", "filePath", "folder", "fileName", "name", "extension")
   @memoize
   get location() {
     return new SpellFileLocation(this.path)
@@ -141,7 +130,7 @@ export class SpellCSSFile extends TextFile {
 
   /** Derive `url` from our `path` if not explicitly set. */
   @overrideable get url() {
-    return `${this.projectList.apiPrefix}/file/${this.projectId}${this.filePath}`
+    return `/api/projects/file/${this.projectId}${this.filePath}`
   }
 
   //-----------------

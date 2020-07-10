@@ -19,7 +19,7 @@ export class SpellFile extends TextFile {
     if (existing) return existing
 
     super({ path })
-    if (!this.location.isValidFilePath) {
+    if (!this.location.isFilePath) {
       throw new TypeError(`new SpellFile('${path}'): Must be initialized with valid file path.`)
     }
     SpellFile.registry.set(path, this)
@@ -38,18 +38,7 @@ export class SpellFile extends TextFile {
   @writeOnce path
 
   /** `location` object which we can use to get various bits of the path. */
-  @forward(
-    "projectList",
-    "project",
-    "projectPath",
-    "projectId",
-    "projectName",
-    "filePath",
-    "folder",
-    "fileName",
-    "name",
-    "extension"
-  )
+  @forward("project", "projectId", "projectName", "filePath", "folder", "fileName", "name", "extension")
   @memoize
   get location() {
     return new SpellFileLocation(this.path)
@@ -184,7 +173,7 @@ export class SpellFile extends TextFile {
 
   /** URL to serve the file. */
   get url() {
-    return `${this.projectList.apiPrefix}/file/${this.projectId}${this.filePath}`
+    return `/api/projects/file/${this.projectId}${this.filePath}`
   }
 
   //-----------------

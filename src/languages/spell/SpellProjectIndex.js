@@ -20,7 +20,7 @@ export class SpellProjectIndex extends JSON5File {
 
     // Setup as normal and implicitly return `this`
     super({ path })
-    if (!this.location.isValidProjectPath) {
+    if (!this.location.isProjectPath) {
       throw new TypeError(`new SpellProjectManifest('${path}'): Must be initialized with project path.`)
     }
     SpellProjectIndex.registry.set(path, this)
@@ -45,16 +45,7 @@ export class SpellProjectIndex extends JSON5File {
    * Note that we `forward` lots of methods on the location object to this object,
    * so you can say `manifest.projectName` rather than `manifest.location.projectName`.
    */
-  @forward(
-    "projectList",
-    "project",
-    "projectType",
-    "projectId",
-    "projectName",
-    "projectPath",
-    "isSystemProject",
-    "isUserProject"
-  )
+  @forward("project", "projectId", "projectDomain", "projectName", "projectPath", "isSystemProject", "isUserProject")
   @memoize
   get location() {
     return new SpellFileLocation(this.path)
@@ -85,7 +76,7 @@ export class SpellProjectIndex extends JSON5File {
 
   /** Derive `url` from our path if not explicitly set. */
   get url() {
-    return `${this.projectList.apiPrefix}/index/${this.projectId}`
+    return `/api/projects/index/${this.projectId}`
   }
 
   /**

@@ -13,11 +13,11 @@ const SYSTEM_SERVER_PATH = fileUtils.normalizePath(__dirname, "..")
  * `ProjectRoot` class: encompasses
  */
 export class ProjectRoot {
-  // key = "projects"
+  // pathName: "projects",
+  // key: "projects",
+  // domain = "projects"
   // type = "user"
   // description = "User projects"
-  // projectRoot = "/projects/"
-  // apiPrefix = "/api/projects"
 
   /** TODOC */
   constructor(props) {
@@ -53,6 +53,16 @@ export class ProjectRoot {
     return true
   }
 
+  // `@library:`
+  getProjectDomainName(projectId) {
+    return projectId.split(":")[0] + ":"
+  }
+
+  // `library`
+  getProjectDomainName(projectId) {
+    return projectId.split(":")[0].substr(1)
+  }
+
   getProjectName(projectId) {
     return projectId.split(":")[1]
   }
@@ -66,6 +76,7 @@ export class ProjectRoot {
   getServerPath = (projectId, ...pathSuffix) => {
     const projectName = this.getProjectName(projectId)
     const path = fileUtils.joinPath(this.serverPath, projectName, ...pathSuffix)
+    console.warn("getServerPath", { projectId, projectName, pathSuffix, path })
     // if (!ProjectRoot.LEGAL_PROJECT_ID.test(projectId)) {
     //   throw new TypeError(`getServerPath(): invalid projectId: '${projectId}' for path '${path}'`)
     // }
@@ -77,7 +88,7 @@ export class ProjectRoot {
 
   /** Given one or more `path` strings, return client URL resource. */
   getURL = (projectId, ...path) => {
-    return fileUtils.joinURL(`/${projectId}`, ...path)
+    return fileUtils.joinURL(projectId, ...path)
   }
 
   //----------------------------
@@ -87,12 +98,12 @@ export class ProjectRoot {
   /**
    * Return list of client projects relative to this projectSpec as JSON blob.
    * Format:
-   *   `[ "/projects/project1", "/projects/project2" ]`
+   *   `[ "/projects:project1", "/projects:project2" ]`
    */
   getProjectList = async () => {
     const options = { includeDirs: true, includeFiles: false, namesOnly: true }
-    const projectIds = await fileUtils.getFolderContents(this.serverPath, options)
-    return projectIds.map((projectId) => this.getURL(`${this.projectRoot}${projectId}`))
+    const projectNames = await fileUtils.getFolderContents(this.serverPath, options)
+    return projectNames.map((projectName) => `${this.domain}${projectName}`)
   }
 
   /** Send projects list as part of a request. */
@@ -174,6 +185,7 @@ export class ProjectRoot {
     // TODO: check options if we have nested folders
     const options = { foldersOnly: true, namesOnly: true, ignoreHidden: true }
     const fileNames = await fileUtils.getFolderContents(this.getServerPath(projectId), options)
+    console.warn("getManifest", { projectId, url: this.getURL(projectId) })
     const files = await Promise.all(
       fileNames.map(async (name) => {
         const serverPath = this.getServerPath(projectId, name)

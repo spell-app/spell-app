@@ -40,7 +40,7 @@ export class SpellProject extends LoadableManager {
     if (existing) return existing
 
     super({ path })
-    if (!this.location.isValidProjectPath) {
+    if (!this.location.isProjectPath) {
       throw new TypeError(`new SpellProject('${path}'): Must be initialized with project path.`)
     }
     SpellProject.registry.set(path, this)
@@ -62,7 +62,7 @@ export class SpellProject extends LoadableManager {
    * Note that we `forward` lots of methods on the location object to this object,
    * so you can say `project.projectName` rather than `project.location.projectName`.
    */
-  @forward("projectList", "projectType", "projectId", "projectName", "projectPath", "isSystemProject", "isUserProject")
+  @forward("projectId", "projectDomain", "projectName", "projectPath", "isSystemProject", "isUserProject")
   @memoize
   get location() {
     return new SpellFileLocation(this.path)
@@ -319,14 +319,16 @@ export class SpellProject extends LoadableManager {
     if (!filePath) return undefined
     const path = this.getPathForFile(filePath)
     const location = new SpellFileLocation(path)
-    if (!location.isValidFilePath) throw new TypeError(`Error in createFile: path '${path}' is invalid.`)
+    if (!location.isFilePath) {
+      throw new TypeError(`Error in createFile: path '${path}' is invalid.`)
+    }
 
     if (typeof contents !== "string") contents = `## This space intentionally left blank`
     if (this.getFile(path)) throw new TypeError(`Error in createFile: file '${path}' already exists.`)
 
     // Tell the server to create the file
     await $fetch({
-      url: `${this.projectList.apiPrefix}/create/file`,
+      url: `/api/projects/create/file`,
       contents: {
         projectId: this.projectId,
         filePath,
@@ -334,7 +336,7 @@ export class SpellProject extends LoadableManager {
       },
       requestFormat: "json"
     })
-    // Reload the projectList and return the file
+    // Reload the project and return the file
     await this.reload()
     return this.getFile(path, REQUIRED, `Error in createFile: server didn't create file '${path}'.`)
   }
@@ -365,7 +367,7 @@ export class SpellProject extends LoadableManager {
 
     // Tell the server to create the file
     await $fetch({
-      url: `${this.projectList.apiPrefix}/rename/file`,
+      url: `/api/projects/rename/file`,
       contents: {
         projectId: this.projectId,
         filePath,
@@ -391,7 +393,7 @@ export class SpellProject extends LoadableManager {
 
     // Tell the server to delete the file
     await $fetch({
-      url: `${this.projectList.apiPrefix}/remove/file`,
+      url: `/api/projects/remove/file`,
       method: "DELETE",
       contents: {
         projectId: this.projectId,
