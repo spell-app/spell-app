@@ -2,7 +2,7 @@ import global from "global"
 // import { computed } from "mobx"
 
 import { JSON5File, forward, memoize, memoizeForProp, writeOnce } from "~/util"
-import { SpellFileLocation } from "~/languages/spell"
+import { SpellProject, SpellPath } from "~/languages/spell"
 
 /**
  * Index of imports for a given `SpellProject`.
@@ -45,10 +45,13 @@ export class SpellProjectIndex extends JSON5File {
    * Note that we `forward` lots of methods on the location object to this object,
    * so you can say `manifest.projectName` rather than `manifest.location.projectName`.
    */
-  @forward("project", "projectId", "projectDomain", "projectName", "projectPath", "isSystemProject", "isUserProject")
+  @forward("projectId", "projectDomain", "projectName", "projectPath", "isSystemProject", "isUserProject")
   @memoize
   get location() {
-    return new SpellFileLocation(this.path)
+    return new SpellPath(this.path)
+  }
+  @memoize get project() {
+    return new SpellProject(this.projectId)
   }
 
   /**

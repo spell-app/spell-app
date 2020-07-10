@@ -18,7 +18,7 @@ import { ProjectScope } from "~/parser"
 import {
   spellCore,
   SpellParser,
-  SpellFileLocation,
+  SpellPath,
   SpellProjectManifest,
   SpellProjectIndex,
   SpellFile,
@@ -65,7 +65,7 @@ export class SpellProject extends LoadableManager {
   @forward("projectId", "projectDomain", "projectName", "projectPath", "isSystemProject", "isUserProject")
   @memoize
   get location() {
-    return new SpellFileLocation(this.path)
+    return new SpellPath(this.path)
   }
 
   /**
@@ -75,7 +75,7 @@ export class SpellProject extends LoadableManager {
    *    - anything else will return a `SpellFile`
    */
   getFileForPath(path) {
-    const location = new SpellFileLocation(path)
+    const location = new SpellPath(path)
     if (location.extension === ".css") return new SpellCSSFile(path)
     return new SpellFile(path)
   }
@@ -318,7 +318,7 @@ export class SpellProject extends LoadableManager {
     if (!filePath) filePath = prompt("Name for the new file?", "Untitled.spell")
     if (!filePath) return undefined
     const path = this.getPathForFile(filePath)
-    const location = new SpellFileLocation(path)
+    const location = new SpellPath(path)
     if (!location.isFilePath) {
       throw new TypeError(`Error in createFile: path '${path}' is invalid.`)
     }

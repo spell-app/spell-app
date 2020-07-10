@@ -1,7 +1,7 @@
 import global from "global"
 
 import { JSON5File, OPTIONAL, REQUIRED, CONFIRM, proto, memoizeForProp, $fetch } from "~/util"
-import { SpellFileLocation, SpellProject } from "~/languages/spell"
+import { SpellPath, SpellProject } from "~/languages/spell"
 
 /**
  * Loadable list of all `SpellProject`s available to this user.
@@ -72,7 +72,7 @@ export class SpellProjectList extends JSON5File {
     if (!projectId) return undefined
     path = this.getPathForProjectId(projectId)
 
-    const location = new SpellFileLocation(path)
+    const location = new SpellPath(path)
     if (!this.location.isProjectPath) {
       throw new TypeError(`Error in createProject: path '${path}' is invalid.`)
     }

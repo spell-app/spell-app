@@ -1,15 +1,14 @@
 import global from "global"
-import { spellSetup } from "~/projectSetup"
-import { writeOnce, memoize } from "~/util"
-import { spellInstall, SpellProject } from "."
+import { spellSetup } from "./projectSetup"
+
 /**
  * Encapsulate a Spell File's `path` so we can get the various bits quickly and easily.
  * These are immutable objects, and are stored in a registry.
- * You can call `new SpellFileLocation("/some/path")` repeatedly and get the same object back.
+ * You can call `new SpellPath("/some/path")` repeatedly and get the same object back.
  * Use `isValidPath`, `isProjectPath` or `isFilePath` to make sure you've got a good path!
  *
  * Paths are assumed to be in the form:
- *  `@owner:domain:projectName:/folder/folder/file.extension`
+ *  `@owner:domain:projectName/folder/folder/file.extension`
  *
  * which corresponds to
  *  - `projectId`   `@owner:domain:projectName`
@@ -17,34 +16,28 @@ import { spellInstall, SpellProject } from "."
  *  - `domain`      `domain`
  *  - `projectName` `projectName`
  *  - `folder`      `/folder/folder/`  (`undefined` for project path)
- *  - `fileName`    `file.extension`   (`undefined` for project path)
- *  - `name`        `file`             (`undefined` for project path)
- *  - `extension`   `.extension`       (`undefined` for project path)
+ *  - `fileName`    `file.extension`   (`undefined` for folder or project path)
+ *  - `name`        `file`             (`undefined` for folder or project path)
+ *  - `extension`   `.extension`       (`undefined` for folder project path)
  */
-export class SpellFileLocation {
+export class SpellPath {
   /** Registry of known instances. */
   static registry = new Map()
 
   /** Set to `false` to ignore registry (e.g. on the server). */
   static useRegistry = true
 
-  /**
-   * Path to file or project, as specified by server.
-   * MUST be passed to constructor.
-   */
-  @writeOnce path
-
   constructor(path) {
     // Throw if we `path` is not a string.
     if (typeof path !== "string" || !path) {
-      throw new TypeError(`new SpellFileLocation('${path}': Path must be a string.`)
+      throw new TypeError(`new SpellPath('${path}': Path must be a string.`)
     }
 
     // Return from registry if present, add if not.
-    if (SpellFileLocation.useRegistry) {
-      const existing = SpellFileLocation.registry.get(path)
+    if (SpellPath.useRegistry) {
+      const existing = SpellPath.registry.get(path)
       if (existing) return existing
-      SpellFileLocation.registry.set(path, this)
+      SpellPath.registry.set(path, this)
     }
 
     this.path = path
@@ -117,4 +110,4 @@ export class SpellFileLocation {
   }
 }
 
-global.SpellFileLocation = SpellFileLocation
+global.SpellPath = SpellPath

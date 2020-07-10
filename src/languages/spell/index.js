@@ -12,7 +12,7 @@ export { spellParser } from "./rules"
 // spellCore library
 export { spellCore } from "./spell-core"
 
-export * from "./SpellFileLocation"
+export * from "./SpellPath"
 export * from "./SpellProjectList"
 export * from "./SpellProject"
 export * from "./SpellProjectManifest"
@@ -20,3 +20,4 @@ export * from "./SpellProjectIndex"
 export * from "./SpellFile"
 export * from "./SpellCSSFile"
 export * from "./SpellInstall"
+export * from "./projectSetup"

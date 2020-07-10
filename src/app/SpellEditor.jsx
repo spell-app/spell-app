@@ -11,7 +11,7 @@ import Toast from "react-bootstrap/Toast"
 import { useHotkeys } from "react-hotkeys-hook"
 
 import { view } from "~/util"
-import { SpellFileLocation } from "~/languages/spell"
+import { SpellPath } from "~/languages/spell"
 
 import { ASTViewer } from "./ASTViewer"
 import { MatchViewer } from "./MatchViewer"
@@ -41,7 +41,7 @@ const ProjectMenu = view(function () {
     <NavDropdown key={project.path} title={project.projectName} id="ProjectMenu" style={{ width: "12em" }}>
       {projectList.projectPaths.map((path) => (
         <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectProject}>
-          <ion-icon name="briefcase-outline" size="medium" /> {new SpellFileLocation(path).projectName}
+          <ion-icon name="briefcase-outline" size="medium" /> {new SpellPath(path).projectName}
         </NavDropdown.Item>
       ))}
       <NavDropdown.Divider />
@@ -70,7 +70,7 @@ const FileMenu = view(function () {
     <NavDropdown key={file.path} title={file.fileName} id="FileMenu" style={{ width: "12em" }}>
       {project.filePaths.map((path) => (
         <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectFile}>
-          {new SpellFileLocation(path).fileName}
+          {new SpellPath(path).fileName}
         </NavDropdown.Item>
       ))}
     </NavDropdown>

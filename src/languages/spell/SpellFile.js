@@ -2,7 +2,7 @@ import global from "global"
 
 import { TextFile, state, proto, memoize, forward, writeOnce, overrideable, batch } from "~/util"
 import { ProjectScope, FileScope } from "~/parser"
-import { SpellParser, SpellProject, SpellFileLocation } from "~/languages/spell"
+import { SpellProject, SpellParser, SpellPath } from "~/languages/spell"
 
 /**
  * Loadable file of spell code located at `path`.
@@ -38,10 +38,13 @@ export class SpellFile extends TextFile {
   @writeOnce path
 
   /** `location` object which we can use to get various bits of the path. */
-  @forward("project", "projectId", "projectName", "filePath", "folder", "fileName", "name", "extension")
+  @forward("projectId", "projectName", "filePath", "folder", "fileName", "name", "extension")
   @memoize
   get location() {
-    return new SpellFileLocation(this.path)
+    return new SpellPath(this.path)
+  }
+  @memoize get project() {
+    return new SpellProject(this.projectId)
   }
 
   /**

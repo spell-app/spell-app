@@ -9,7 +9,8 @@
     "prettier": "prettier --write \"src/**/*.js*\"",
     "eslint": "./node_modules/.bin/eslint \"src/**/*.js\"",
     "test": "jest --watch",
-    "coverage": "jest --coverage"
+    "coverage": "jest --coverage",
+    "clean": "rm -rf ./.cache; rm -rf ./build"
   },
   "jest": {
     "moduleNameMapper": {

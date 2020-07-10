@@ -2,7 +2,7 @@ import global from "global"
 
 import { TextFile, proto, memoize, forward, writeOnce, overrideable, state } from "~/util"
 import { Token } from "~/parser"
-import { SpellFileLocation } from "~/languages/spell"
+import { SpellPath, SpellProject } from "~/languages/spell"
 import { batch } from "../../util"
 
 /**
@@ -39,10 +39,13 @@ export class SpellCSSFile extends TextFile {
   @writeOnce path
 
   /** `location` object which we can use to get various bits of the path. */
-  @forward("project", "projectId", "projectName", "filePath", "folder", "fileName", "name", "extension")
+  @forward("projectId", "projectName", "filePath", "folder", "fileName", "name", "extension")
   @memoize
   get location() {
-    return new SpellFileLocation(this.path)
+    return new SpellPath(this.path)
+  }
+  @memoize get project() {
+    return new SpellProject(this.projectId)
   }
 
   /**

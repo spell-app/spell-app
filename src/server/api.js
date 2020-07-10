@@ -6,11 +6,9 @@ import express from "express"
 import chalk from "chalk"
 import JSON5 from "json5"
 
-import { spellSetup } from "../projectSetup"
-
-// Express utility functions
-import * as responseUtils from "./response-utils"
+import { spellSetup } from "../languages/spell/projectSetup"
 import { ProjectRoot } from "./ProjectRoot"
+import * as responseUtils from "./response-utils" // Express utility functions
 
 // Create the api api.
 export const api = express.Router()
@@ -64,10 +62,10 @@ api.get("/error", (request, response) => {
 //----------------------------
 
 /** Path specification for working with user projects. */
-const projects = new ProjectRoot(spellSetup.projects)
-const library = new ProjectRoot(spellSetup.library)
-const examples = new ProjectRoot(spellSetup.examples)
-const guides = new ProjectRoot(spellSetup.guides)
+const projects = new ProjectRoot(spellSetup.projectRoots.projects)
+const library = new ProjectRoot(spellSetup.projectRoots.library)
+const examples = new ProjectRoot(spellSetup.projectRoots.examples)
+const guides = new ProjectRoot(spellSetup.projectRoots.guides)
 
 // working with projects
 api.get("/projects/list", projects.request_getProjectList)

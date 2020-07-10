@@ -4,17 +4,9 @@ import global from "global"
  * Shared client/server setup for project roots and routines for working with paths.
  *
  * We assume `path`s are of the form:
- *  `@owner:domain:projectName:/folder/folder/file.extension`
+ *  `@owner:domain:projectName/folder/folder/file.extension`
+ * See `src/languages/spell/SpellPath` for how this breaks down.
  *
- * which corresponds to:
- *  - `projectId`   `@owner:domain:projectName`
- *  - `owner`       `@owner`
- *  - `domain`      `domain`
- *  - `projectName` `projectName`
- *  - `folder`      `/folder/folder/`  (will be undefined for project path)
- *  - `fileName`    `file.extension`   (will be undefined for project path)
- *
- * Use `spellSetup.splitPath(path)` to return an object with thhose properties.
  */
 class SpellSetup {
   /** TODOC:   */

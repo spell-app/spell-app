@@ -2,8 +2,7 @@
 import global from "global"
 import { memoize } from "~/util"
 
-import { projectSetup } from "~/projectSetup"
-import { SpellProjectList } from "."
+import { projectSetup, SpellProjectList } from "."
 
 // Singleton instance, we don't export the class!
 class SpellInstall {
