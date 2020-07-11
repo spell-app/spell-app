@@ -61,7 +61,7 @@ export class SpellProjectIndex extends JSON5File {
    */
   @memoizeForProp("contents")
   get imports() {
-    return this.contents?.imports?.map((item) => ({ ...item, file: this.project.getFileForPath(item.path) }))
+    return this.contents?.imports?.map((item) => ({ ...item, file: SpellProject.getFileForPath(item.path) }))
   }
 
   /**

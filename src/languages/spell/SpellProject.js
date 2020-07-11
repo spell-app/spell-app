@@ -62,22 +62,19 @@ export class SpellProject extends LoadableManager {
    * Note that we `forward` lots of methods on the location object to this object,
    * so you can say `project.projectName` rather than `project.location.projectName`.
    */
-  @forward("projectId", "owner", "projectDomain", "projectName", "isSystemProject", "isUserProject")
+  @forward(
+    //
+    "projectId",
+    "owner",
+    "projectDomain",
+    "projectName",
+    "isSystemProject",
+    "isUserProject",
+    "getProjectFile"
+  )
   @memoize
   get location() {
     return new SpellPath(this.path)
-  }
-
-  /**
-   * Given a project `path`, return an appropriate file to load/manage it.
-   * Currently:
-   *    - `xxx.css` will return a `CSSFile`
-   *    - anything else will return a `SpellFile`
-   */
-  getFileForPath(path) {
-    const location = new SpellPath(path)
-    if (location.extension === ".css") return new SpellCSSFile(path)
-    return new SpellFile(path)
   }
 
   //-----------------
@@ -263,38 +260,61 @@ export class SpellProject extends LoadableManager {
   //  Project file access
   //-----------------
 
-  /** Given a `filePath`, return the full "project path" for it. */
-  getPathForFile(path) {
-    if (!path.startsWith("/")) return `${this.projectPath}/${path}`
-    return `${this.projectPath}${path}`
-  }
-
-  /** Given a path, make sure it's relative to this project. */
-  getFilePath(path) {
-    if (typeof path !== "string") throw new TypeError(`getFilePath('${path}'): must pass a string`)
-    if (!path.startsWith("/")) path = `${this.projectPath}/${path}`
-    return path
+  /** Given the `fullPath` to a file, return a `SpellFile` or `SpellCSSFile` etc. */
+  static getFileForPath(fullPath) {
+    const path = new SpellPath(fullPath)
+    if (!path.isFilePath) throw new TypeError(`SpellProject.getFileForPath('${fullPath}'): path is not a file path.`)
+    if (path.extension === ".css") return new SpellCSSFile(fullPath)
+    return new SpellFile(fullPath)
   }
 
   /**
-   * Synchronously get one of our files by `path`.
-   * If `path` doesn't start with a `/`, we'll assume it's a local file path.
-   * Returns `undefined` if file not found or manifest is not loaded.
+   * Give a `path`as:
+   * - `fullPath`, e.g. `@user:projects:project/file.spell`
+   * - `filePath`, e.g. `file.spell` or `/file.spell`
+   * - `SpellPath` for a file
+   * return the `SpellPath` for the file.
+   *
+   * Returns `undefined` if not found.
+   * Throws if path is not a valid file path.
    */
-  getFile(path = "", required = OPTIONAL) {
-    path = this.getFilePath(path)
-    const file = this.files?.find((f) => f.path === path)
-    if (!file && required === REQUIRED) throw new TypeError(`spellProject.getFile("${path}"): file not found.`)
+  getFilePath(path) {
+    if (typeof path === "string") {
+      if (path.startsWith("@")) return SpellPath.getFilePath(path)
+      return SpellPath.getFilePath(this.projectId, path)
+    }
+    if (path instanceof SpellPath) {
+      if (!path.isFilePath) throw new TypeError(`getFilePath(): must be a file path.`)
+      return path
+    }
+  }
+
+  /**
+   * Synchronously get one of our files as a `SpellFile` or `SpellCSSFile` etc.
+   * `filePath` can be any of:
+   * - `fullPath`, e.g. `@user:projects:project/file.spell`
+   * - `filePath`, e.g. `file.spell` or `/file.spell`
+   * - `SpellPath` for a file
+   *
+   * Returns `undefined` if file not found or manifest is not loaded.
+   * Pass `required = REQUIRED` to throw if not found.
+   */
+  getFile(filePath, required = OPTIONAL, message = `getFile('${filePath}'): file not found.`) {
+    const path = this.getFilePath(filePath)
+    const file = path && this.files?.find((f) => f.path === path.path)
+    if (!file && required === REQUIRED) throw new TypeError(message)
     return file
   }
 
   /**
-   * Return manifest `info` for a file specified by `path`.
-   * If `path` doesn't start with a `/`, we'll assume it's a local file path.
+   * Synchronously return manifest `info` for a file specified by `filePath`.
+   * either as a SpellPath or local `filePath`.
+   *
    * Returns `undefined` if file not found or manifest is not loaded.
+   * Pass `required = REQUIRED` to throw if not found.
    */
-  getFileInfo(path = "", required = OPTIONAL) {
-    path = this.getFilePath(path)
+  getFileInfo(filePath, required = OPTIONAL) {
+    const { path } = this.getFilePath(filePath)
     const fileInfo = this.manifest.contents.files?.find((f) => f.path === path)
     if (!fileInfo && required === REQUIRED) throw new TypeError(`spellProject.getFileInfo("${path}"): file not found.`)
     return fileInfo
@@ -312,19 +332,15 @@ export class SpellProject extends LoadableManager {
 
   /**
    * Create a new file within this project.
-   * TODO: handle nested files!
+   * `filePath` is a relative to this project, and may or may not start with `/`.
+   * NOTE: in theory this handles nested files.
    */
-  async createFile(filePath, contents) {
-    if (!filePath) filePath = prompt("Name for the new file?", "Untitled.spell")
+  async createFile(filePath, contents, newFileName = "Untitled.spell") {
+    if (!filePath) filePath = prompt("Name for the new file?", newFileName)
     if (!filePath) return undefined
-    const path = this.getPathForFile(filePath)
-    const location = new SpellPath(path)
-    if (!location.isFilePath) {
-      throw new TypeError(`Error in createFile: path '${path}' is invalid.`)
-    }
 
-    if (typeof contents !== "string") contents = `## This space intentionally left blank`
-    if (this.getFile(path)) throw new TypeError(`Error in createFile: file '${path}' already exists.`)
+    await this.load()
+    if (this.getFile(filePath)) throw new TypeError(`createFile(): file '${filePath} already exists.`)
 
     // Tell the server to create the file
     await $fetch({
@@ -332,38 +348,38 @@ export class SpellProject extends LoadableManager {
       contents: {
         projectId: this.projectId,
         filePath,
-        contents
+        contents: contents ?? `## This space intentionally left blank`
       },
       requestFormat: "json"
     })
+
     // Reload the project and return the file
     await this.reload()
-    return this.getFile(path, REQUIRED, `Error in createFile: server didn't create file '${path}'.`)
+    return this.getFile(filePath, REQUIRED, `createFile(): server didn't create file '${filePath}'.`)
   }
 
-  /** Duplicate an existing file. */
+  /**
+   * Duplicate an existing file.
+   * Returns pointer to new file.
+   */
   async duplicateFile(filePath, newFilePath) {
-    const path = this.getPathForFile(filePath)
-    const file = this.getFile(path, REQUIRED, `Error in duplicateFile: file '${path}' does not exist.`)
-
-    if (!newFilePath) newFilePath = prompt("Name for the new file?", file.file)
-    if (!newFilePath) return undefined
-    const newPath = this.getPathForFile(newFilePath)
-    if (this.getFile(newPath)) throw new TypeError(`Error in duplicateFile: file '${newPath} already exists.`)
-
+    await this.load()
+    const file = this.getFile(filePath, REQUIRED, `duplicateFile(): file '${filePath}' does not exist.`)
     const contents = await file.load()
-    return this.createFile(newPath, contents)
+    return this.createFile(newFilePath, contents, file.file)
   }
 
-  /** Rename an existing file. */
+  /**
+   * Rename an existing file.
+   * Returns new file.
+   */
   async renameFile(filePath, newFilePath) {
-    const path = this.getPathForFile(filePath)
-    const file = this.getFile(path, REQUIRED, `Error in renameFile: file '${path}' does not exist.`)
+    await this.load()
+    const file = this.getFile(filePath, REQUIRED, `renameFile(): file '${filePath}' does not exist.`)
 
-    if (!newPath) newPath = prompt("New name for the file?", file.file)
-    if (!newPath) return undefined
-    newPath = this.getPathForFile(newPath)
-    if (this.getFile(newPath)) throw new TypeError(`Error in renameFile: file '${newPath} already exists.`)
+    if (!newFilePath) newFilePath = prompt("New name for the file?", file.file)
+    if (!newFilePath) return undefined
+    if (this.getFile(newFilePath)) throw new TypeError(`renameFile(): file '${newFilePath} already exists.`)
 
     // Tell the server to create the file
     await $fetch({
@@ -377,16 +393,16 @@ export class SpellProject extends LoadableManager {
     })
     // Reload the project and return the new file
     await this.reload()
-    return this.getFile(newPath, REQUIRED, `Error in renameFile: server can't load '${newPath}'.`)
+    return this.getFile(newFilePath, REQUIRED, `renameFile(): server didn't create '${newFilePath}'.`)
   }
 
   /**
    * Remove an existing file from the project.
-   * Returns `true` on success, `false` if cancelled or throws on error.
+   * Returns `true` on success, `undefined` if cancelled or throws on error.
    */
   async removeFile(filePath, shouldConfirm) {
-    const path = this.getPathForFile(filePath)
-    const file = this.getFile(path, REQUIRED, `Error in removeFile: file '${path}' not found.`)
+    await this.load()
+    const file = this.getFile(filePath, REQUIRED, `removeFile(): file '${filePath}' not found.`)
     if (shouldConfirm === CONFIRM) {
       if (!confirm(`Really remove file '${file.file}'?`)) return undefined
     }
@@ -403,9 +419,10 @@ export class SpellProject extends LoadableManager {
     })
     // Have the file clean itself up
     file.onRemove()
+
     // reload the file list and make sure the file is no longer available
     await this.reload()
-    if (this.getFile(path)) throw new TypeError(`removeFile('${path}'): server didn't delete the file`)
+    if (this.getFile(filePath)) throw new TypeError(`removeFile('${filePath}'): server didn't delete the file.`)
     return true
   }
 }

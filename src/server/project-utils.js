@@ -65,7 +65,7 @@ export const getManifest = async (projectId) => {
   const fileNames = await fileUtils.getFolderContents(project.serverPath, options)
   const files = await Promise.all(
     fileNames.map(async (name) => {
-      const filePath = SpellPath.getFilePath(project, name)
+      const filePath = SpellPath.getFilePath(projectId, name)
       const { created, modified } = await fileUtils.getPathInfo(filePath.serverPath)
       return { name, path: filePath.path, created, modified }
     })
@@ -89,8 +89,7 @@ export const request_getManifest = respondWithJSON(async (request) => {
  * TODO: verify that all files in project are present in index???
  */
 export const getIndex = async (projectId) => {
-  const project = new SpellPath(projectId)
-  if (!project.isProjectPath) throw new TypeError(`You must pass a valid projectId, got '${projectId}'`)
+  const project = SpellPath.getProjectPath(projectId)
 
   // TODO: load index from disk if present
   // const path = getServerPath(projectId, ".index.json5")
@@ -102,7 +101,7 @@ export const getIndex = async (projectId) => {
   const files = await fileUtils.getFolderContents(project.serverPath, options)
   return {
     imports: files.map((name) => {
-      const file = SpellPath.getFilePath(project, name)
+      const file = SpellPath.getFilePath(projectId, name)
       return { path: file.path, active: true }
     })
   }
@@ -123,7 +122,7 @@ export const request_getIndex = respondWithJSON(async (request) => {
 export const request_getFile = (request, response) => {
   const { projectId, filePath } = request.params
   const project = SpellPath.getProjectPath(projectId)
-  const file = SpellPath.getFilePath(project, filePath)
+  const file = SpellPath.getFilePath(projectId, filePath)
   responseUtils.sendJSONFile(response, file.serverPath)
 }
 
@@ -133,7 +132,7 @@ export const request_getFile = (request, response) => {
  */
 export const saveFile = async (projectId, filePath, contents) => {
   const project = SpellPath.getProjectPath(projectId)
-  const file = SpellPath.getFilePath(project, filePath)
+  const file = SpellPath.getFilePath(projectId, filePath)
   return await fileUtils.saveFile(file.serverPath, contents)
 }
 export const request_saveFile = respondWithJSON(async (request) => {
@@ -151,7 +150,7 @@ export const request_saveFile = respondWithJSON(async (request) => {
  */
 export const createProject = async (projectId, filePath = "Untitled.spell", contents = "") => {
   const project = SpellPath.getProjectPath(projectId)
-  const file = SpellPath.getFilePath(project, filePath)
+  const file = SpellPath.getFilePath(projectId, filePath)
   return await fileUtils.saveFile(file.serverPath, contents)
 }
 export const request_createProject = respondWithJSON(async (request) => {
@@ -219,8 +218,8 @@ export const request_createFile = respondWithJSON(async (request) => {
  */
 export const renameFile = async (projectId, filePath, newFilePath) => {
   const project = SpellPath.getProjectPath(projectId)
-  const file = SpellPath.getFilePath(project, filePath)
-  const newFile = SpellPath.getFilePath(project, newFilePath)
+  const file = SpellPath.getFilePath(projectId, filePath)
+  const newFile = SpellPath.getFilePath(projectId, newFilePath)
   return await fileUtils.movePath(file.serverPath, newFile.servePath)
 }
 export const request_renameFile = respondWithJSON(async (request) => {
@@ -234,7 +233,7 @@ export const request_renameFile = respondWithJSON(async (request) => {
  */
 export const removeFile = async (projectId, filePath) => {
   const project = SpellPath.getProjectPath(projectId)
-  const file = SpellPath.getFilePath(project, filePath)
+  const file = SpellPath.getFilePath(projectId, filePath)
   return await fileUtils.deletePath(file.serverPath)
 }
 export const request_removeFile = respondWithJSON(async (request) => {

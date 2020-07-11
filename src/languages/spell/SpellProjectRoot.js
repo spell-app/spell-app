@@ -52,7 +52,7 @@ export class SpellProjectRoot extends JSON5File {
   }
 
   //-----------------
-  //  Project manipulation
+  //  Project CRUD
   //-----------------
 
   /**

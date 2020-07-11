@@ -90,7 +90,7 @@ export const store = createStore({
     if (!filePath) filePath = getPref(pref)
     if (!project.filePaths.includes(filePath)) filePath = project.filePaths[0]
     setPref(pref, filePath)
-    store.file = store.project.getFileForPath(filePath)
+    store.file = store.project.getFile(filePath)
     global.file = store.file // DEBUG
     await store.reloadFile()
   },

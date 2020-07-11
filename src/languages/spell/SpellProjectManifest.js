@@ -70,7 +70,7 @@ export class SpellProjectManifest extends JSON5File {
    */
   @memoizeForProp("filePaths")
   get files() {
-    return this.filePaths.map((path) => this.project.getFileForPath(path))
+    return this.filePaths.map((path) => SpellProject.getFileForPath(path))
   }
 
   //----------------------------

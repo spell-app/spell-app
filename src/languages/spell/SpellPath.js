@@ -137,11 +137,6 @@ export class SpellPath {
     return new SpellFile(projectPath)
   }
 
-  /** Get a peer file, in the same domain as this one. */
-  getProjectFile(filePath) {
-    return SpellPath.getFilePath(this, filePath)
-  }
-
   //-----------------
   //  Get a path of the specified type or throw on invalid path.
   //-----------------
@@ -165,16 +160,15 @@ export class SpellPath {
   }
 
   /**
-   * Get `SpellPath` for a full file `path` or `project` (as a SpellPath) and `filePath`,
+   * Get `SpellPath` for a full file `path` or `projectId` and `filePath`,
    * throwing if it's not a valid FILE path.
    */
-  static getFilePath(project, filePath) {
-    let fullPath
-    if (arguments.length === 1 && typeof project === "string") fullPath = project
-    else fullPath = project.path + (filePath?.startsWith?.("/") ? filePath : `/${filePath}`)
-    const file = new SpellPath(fullPath)
-    if (!file.isFilePath) throw new TypeError(`You must pass a valid filePath, got '${filePath}'`)
-    return file
+  static getFilePath(projectId, filePath) {
+    let fullPath = projectId
+    if (typeof filePath === "string") fullPath += filePath?.startsWith?.("/") ? filePath : `/${filePath}`
+    const path = new SpellPath(fullPath)
+    if (!path.isFilePath) throw new TypeError(`XYou must pass a valid filePath, got '${filePath}': ${fullPath}`)
+    return path
   }
 }
 
