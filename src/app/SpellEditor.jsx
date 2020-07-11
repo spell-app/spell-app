@@ -67,10 +67,10 @@ const FileMenu = view(function () {
   if (DEBUG_RENDER) console.info("FileMenu", project, file)
   if (!project || !file) return <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
   return (
-    <NavDropdown key={file.path} title={file.fileName} id="FileMenu" style={{ width: "12em" }}>
+    <NavDropdown key={file.path} title={file.file} id="FileMenu" style={{ width: "12em" }}>
       {project.filePaths.map((path) => (
         <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectFile}>
-          {new SpellPath(path).fileName}
+          {new SpellPath(path).file}
         </NavDropdown.Item>
       ))}
     </NavDropdown>

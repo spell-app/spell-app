@@ -39,7 +39,7 @@ export class SpellCSSFile extends TextFile {
   @writeOnce path
 
   /** `location` object which we can use to get various bits of the path. */
-  @forward("projectId", "projectName", "filePath", "folder", "fileName", "name", "extension")
+  @forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")
   @memoize
   get location() {
     return new SpellPath(this.path)
@@ -106,7 +106,7 @@ export class SpellCSSFile extends TextFile {
     const scope = this.getScope(parentScope)
     const match = scope.parse([token], "css")
     // HACK
-    match.fileName = this.name
+    match.file = this.name
     batch(() => {
       this.set("_state.scope", scope)
       this.set("_state.match", match)

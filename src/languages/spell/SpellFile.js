@@ -38,7 +38,7 @@ export class SpellFile extends TextFile {
   @writeOnce path
 
   /** `location` object which we can use to get various bits of the path. */
-  @forward("projectId", "projectName", "filePath", "folder", "fileName", "name", "extension")
+  @forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")
   @memoize
   get location() {
     return new SpellPath(this.path)
@@ -93,11 +93,11 @@ export class SpellFile extends TextFile {
    */
   getScope(parentScope) {
     // If we were passed a `parentScope` with `types`, set up as a `FileScope` and use same parser.
-    if (parentScope && parentScope.types) return new FileScope({ name: this.fileName, scope: parentScope })
+    if (parentScope && parentScope.types) return new FileScope({ name: this.file, scope: parentScope })
     // Otherwise set up as an ad-hoc `Project` and clone `SpellParser.rootScope.parser`
     console.warn(`spellFile.getScope(): no parentScope`)
     return new ProjectScope({
-      name: this.fileName,
+      name: this.file,
       parser: SpellParser.rootScope.parser.clone({ module: this.path }),
       scope: SpellParser.rootScope
     })

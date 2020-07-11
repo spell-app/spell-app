@@ -12,17 +12,17 @@ import { spellSetup } from "./projectSetup"
  * Use `isValidPath`, `isProjectPath` or `isFilePath` to make sure you've got a good path!
  *
  * Paths are assumed to be in the form:
- *  `@owner:domain:projectName/folder/folder/file.extension`
+ *  `@owner:domain:projectName/folder/folder/fileName.extension`
  *
  * which corresponds to
  *  - `projectId`   `@owner:domain:projectName`
  *  - `owner`       `@owner`
  *  - `domain`      `domain`
  *  - `projectName` `projectName`
- *  - `folder`      `/folder/folder/`  (`undefined` for project path)
- *  - `fileName`    `file.extension`   (`undefined` for folder or project path)
- *  - `name`        `file`             (`undefined` for folder or project path)
- *  - `extension`   `.extension`       (`undefined` for folder project path)
+ *  - `folder`      `/folder/folder/`     (`undefined` for project path)
+ *  - `file`        `fileName.extension`  (`undefined` for folder or project path)
+ *  - `fileName`    `fileName`            (`undefined` for folder or project path)
+ *  - `extension`   `.extension`          (`undefined` for folder/project/some files)
  */
 export class SpellPath {
   /** Registry of known instances. */
@@ -49,17 +49,17 @@ export class SpellPath {
     // Figure out out bits
     const [projectId, ...filePath] = path.split("/")
     const [owner, domain, projectName] = projectId.split(":")
-    const fileName = filePath.pop()
+    const file = filePath.pop()
     this.projectId = projectId
     this.owner = owner
     this.domain = domain
     this.projectName = projectName
-    if (fileName !== undefined || filePath.length) {
+    if (file !== undefined || filePath.length) {
       this.folder = filePath.length ? `/${filePath.join("/")}/` : "/"
-      this.fileName = fileName || undefined
-      this.filePath = `${this.folder}${fileName || ""}`
-      const [name, ...extension] = fileName.split(".")
-      this.name = fileName.startsWith(".") ? `.${extension.shift() || ""}` : name
+      this.file = file || undefined
+      this.filePath = `${this.folder}${file || ""}`
+      const [fileName, ...extension] = file.split(".")
+      this.fileName = file.startsWith(".") ? `.${extension.shift() || ""}` : fileName
       this.extension = extension.length ? `.${extension.join(".")}` : undefined
     }
   }
@@ -91,21 +91,21 @@ export class SpellPath {
    * Is this a valid project path?
    */
   get isProjectPath() {
-    return this.isValidPath && !this.folder && !this.fileName
+    return this.isValidPath && !this.folder && !this.file
   }
 
   /**
    * Is this a valid file path?
    */
   get isFilePath() {
-    return this.isValidPath && !!this.folder && !!this.fileName
+    return this.isValidPath && !!this.folder && !!this.file
   }
 
   /**
    * Is this a valid folder path (with no file)?
    */
   get isFolderPath() {
-    return this.isValidPath && !!this.folder && !this.fileName
+    return this.isValidPath && !!this.folder && !this.file
   }
 
   /** Is this a system project? */

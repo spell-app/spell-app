@@ -143,7 +143,7 @@ export class SpellProject extends LoadableManager {
           list: () => this.activeImports,
           getTask: (file) =>
             new Task({
-              name: `Parsing import: ${file.fileName}`,
+              name: `Parsing import: ${file.file}`,
               run: () => file.parse(this.scope)
             })
         })
@@ -166,7 +166,7 @@ export class SpellProject extends LoadableManager {
           list: () => this.activeImports,
           getTask: (file) =>
             new Task({
-              name: `Compiling import: ${file.fileName}`,
+              name: `Compiling import: ${file.file}`,
               run: () => file.compile()
             })
         }),
@@ -346,7 +346,7 @@ export class SpellProject extends LoadableManager {
     const path = this.getPathForFile(filePath)
     const file = this.getFile(path, REQUIRED, `Error in duplicateFile: file '${path}' does not exist.`)
 
-    if (!newFilePath) newFilePath = prompt("Name for the new file?", file.fileName)
+    if (!newFilePath) newFilePath = prompt("Name for the new file?", file.file)
     if (!newFilePath) return undefined
     const newPath = this.getPathForFile(newFilePath)
     if (this.getFile(newPath)) throw new TypeError(`Error in duplicateFile: file '${newPath} already exists.`)
@@ -360,7 +360,7 @@ export class SpellProject extends LoadableManager {
     const path = this.getPathForFile(filePath)
     const file = this.getFile(path, REQUIRED, `Error in renameFile: file '${path}' does not exist.`)
 
-    if (!newPath) newPath = prompt("New name for the file?", file.fileName)
+    if (!newPath) newPath = prompt("New name for the file?", file.file)
     if (!newPath) return undefined
     newPath = this.getPathForFile(newPath)
     if (this.getFile(newPath)) throw new TypeError(`Error in renameFile: file '${newPath} already exists.`)
@@ -388,7 +388,7 @@ export class SpellProject extends LoadableManager {
     const path = this.getPathForFile(filePath)
     const file = this.getFile(path, REQUIRED, `Error in removeFile: file '${path}' not found.`)
     if (shouldConfirm === CONFIRM) {
-      if (!confirm(`Really remove file '${file.fileName}'?`)) return undefined
+      if (!confirm(`Really remove file '${file.file}'?`)) return undefined
     }
 
     // Tell the server to delete the file

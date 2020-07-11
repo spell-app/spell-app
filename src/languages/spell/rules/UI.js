@@ -248,13 +248,13 @@ export const UI = new SpellParser({
       tokenType: Token.Text,
       getAST(match) {
         // HACK: `name` comes from SpellCSSFile
-        const { value, fileName } = match
+        const { value, file } = match
         // munge returns to `¬`
         const safeValue = value.replace(/\n/g, "¬")
         return new AST.CoreMethodInvocation(match, {
           methodName: "installStyles",
           args: [
-            fileName ? new AST.QuotedExpression(match, fileName) : new AST.UndefinedLiteral(match),
+            file ? new AST.QuotedExpression(match, file) : new AST.UndefinedLiteral(match),
             new AST.BackTickExpression(match, safeValue)
           ]
         })
