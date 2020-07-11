@@ -25,8 +25,8 @@ const DEBUG_RENDER = false
 
 /** Menu of all available projects. */
 const ProjectMenu = view(function () {
-  const { projectList, project } = store
-  if (DEBUG_RENDER) console.info("ProjectMenu", projectList, project)
+  const { projectRoot, project } = store
+  if (DEBUG_RENDER) console.info("ProjectMenu", projectRoot, project)
   const bound = React.useMemo(() => {
     return {
       createProject: () => store.createProject(),
@@ -35,11 +35,11 @@ const ProjectMenu = view(function () {
       removeProject: () => store.removeProject()
     }
   })
-  if (!projectList.isLoaded || !project)
+  if (!projectRoot.isLoaded || !project)
     return <NavDropdown key="loading" title="Loading..." id="ProjectMenu" style={{ width: "12em" }} />
   return (
     <NavDropdown key={project.path} title={project.projectName} id="ProjectMenu" style={{ width: "12em" }}>
-      {projectList.projectPaths.map((path) => (
+      {projectRoot.projectPaths.map((path) => (
         <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectProject}>
           <ion-icon name="briefcase-outline" size="medium" /> {new SpellPath(path).projectName}
         </NavDropdown.Item>

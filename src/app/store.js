@@ -1,7 +1,7 @@
 import global from "global"
 
 import { createStore, setPrefKey, getPref, setPref, CONFIRM } from "~/util"
-import { spellInstall, SpellProjectList, SpellProject } from "~/languages/spell"
+import { spellInstall, SpellProjectRoot, SpellProject } from "~/languages/spell"
 
 setPrefKey("spellEditor:")
 console.warn(spellInstall)
@@ -11,9 +11,9 @@ export const store = createStore({
   //-----------------
 
   /** Singleton list of all projects. */
-  projectList: spellInstall.projects,
+  projectRoot: spellInstall.projects,
   start: async () => {
-    await store.projectList.load()
+    await store.projectRoot.load()
     store.selectProject()
   },
   /** Current project as `SpellProject`. */
@@ -21,7 +21,7 @@ export const store = createStore({
   /** Select a project. */
   selectProject: async (path = getPref("selectedProject")) => {
     console.info("selecting project", path)
-    const projectPaths = await store.projectList.load()
+    const projectPaths = await store.projectRoot.load()
     if (!projectPaths.includes(path)) path = projectPaths[0]
     setPref("selectedProject", path)
     store.project = new SpellProject(path)
@@ -31,7 +31,7 @@ export const store = createStore({
   },
   async createProject(projectId) {
     try {
-      const project = await store.projectList.createProject(projectId)
+      const project = await store.projectRoot.createProject(projectId)
       if (project) {
         store.selectProject(project.path)
         store.showNotice("Project created.")
@@ -42,7 +42,7 @@ export const store = createStore({
   },
   async duplicateProject(newProjectId) {
     try {
-      const newProject = await store.projectList.duplicateProject(store.project.projectId, newProjectId)
+      const newProject = await store.projectRoot.duplicateProject(store.project.projectId, newProjectId)
       if (newProject) {
         store.selectProject(newProject.path)
         store.showNotice("Project duplicated.")
@@ -53,7 +53,7 @@ export const store = createStore({
   },
   async renameProject(newProjectId) {
     try {
-      const project = await store.projectList.renameProject(store.project.projectId, newProjectId)
+      const project = await store.projectRoot.renameProject(store.project.projectId, newProjectId)
       if (project) {
         store.selectProject(project.path)
         store.showNotice("Project renamed.")
@@ -64,7 +64,7 @@ export const store = createStore({
   },
   async removeProject() {
     try {
-      const removed = await store.projectList.removeProject(store.project.projectId, CONFIRM)
+      const removed = await store.projectRoot.removeProject(store.project.projectId, CONFIRM)
       if (removed) {
         store.selectProject()
         store.showNotice("Project removed.")

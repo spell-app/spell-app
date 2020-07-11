@@ -7,7 +7,7 @@ import { SpellPath, SpellProject } from "~/languages/spell"
  * Loadable list of all `SpellProject`s available to this user.
  * NOTE: don't create these directly, use the ones set up by `SpellInstall`.
  */
-export class SpellProjectList extends JSON5File {
+export class SpellProjectRoot extends JSON5File {
   // From `src/projectSetup.js`
   // owner: "@user"
   // domain: "projects",
@@ -24,7 +24,7 @@ export class SpellProjectList extends JSON5File {
   @memoizeForProp("contents")
   get projectPaths() {
     // console.warn("setting projectPaths")
-    // if (!this.isLoaded) console.warn("SpellProjectList(): Attempting to get list of projects before loading.")
+    // if (!this.isLoaded) console.warn("SpellProjectRoot(): Attempting to get list of projects before loading.")
     return this.contents || []
   }
 
@@ -177,4 +177,4 @@ export class SpellProjectList extends JSON5File {
   }
 }
 
-global.SpellProjectList = SpellProjectList
+global.SpellProjectRoot = SpellProjectRoot
