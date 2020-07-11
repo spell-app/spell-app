@@ -1,5 +1,9 @@
 import global from "global"
 import { spellSetup } from "./projectSetup"
+/**
+ * IMPORTANT: this file MUST NOT import from anything other than `spellSetup`
+ * as it is used by the server, and we don't want to pull all of that crap in!
+ */
 
 /**
  * Encapsulate a Spell File's `path` so we can get the various bits quickly and easily.
@@ -30,7 +34,7 @@ export class SpellPath {
   constructor(path) {
     // Throw if we `path` is not a string.
     if (typeof path !== "string" || !path) {
-      throw new TypeError(`new SpellPath('${path}': Path must be a string.`)
+      throw new TypeError(`new SpellPath('${path}'): Path must be a string.`)
     }
 
     // Return from registry if present, add if not.
@@ -115,12 +119,62 @@ export class SpellPath {
   }
 
   //-----------------
+  //  Syntactic sugar
+  //-----------------
+
+  /** `domainPath` as `@user:projects` or `@system:examples` */
+  get domainPath() {
+    return `${this.owner}:${this.domain}`
+  }
+
+  //-----------------
   //  Syntactic sugar for working with paths.
   //-----------------
 
-  /** Project for this location. */
-  get project() {
-    return new SpellProject(this.projectId)
+  /** Get a peer project, in the same domain as this one. */
+  getDomainProject(projectName) {
+    const projectPath = `${this.domainPath}:${projectName}`
+    return new SpellFile(projectPath)
+  }
+
+  /** Get a peer file, in the same domain as this one. */
+  getProjectFile(filePath) {
+    return SpellPath.getFilePath(this, filePath)
+  }
+
+  //-----------------
+  //  Get a path of the specified type or throw on invalid path.
+  //-----------------
+
+  /**
+   * Get `SpellPath` for `domainId` string, throwing if it's not a valid DOMAIN path.
+   */
+  static getDomainPath(domainId) {
+    const domain = new SpellPath(domainId)
+    if (!domain.isDomainPath) throw new TypeError(`You must pass a valid domain, got '${domainId}'`)
+    return domain
+  }
+
+  /**
+   * Get `SpellPath` for `projectId`, throwing if it's not a valid PROJECT path.
+   */
+  static getProjectPath(projectId) {
+    const project = new SpellPath(projectId)
+    if (!project.isProjectPath) throw new TypeError(`You must pass a valid projectId, got '${projectId}'`)
+    return project
+  }
+
+  /**
+   * Get `SpellPath` for a full file `path` or `project` (as a SpellPath) and `filePath`,
+   * throwing if it's not a valid FILE path.
+   */
+  static getFilePath(project, filePath) {
+    let fullPath
+    if (arguments.length === 1 && typeof project === "string") fullPath = project
+    else fullPath = project.path + (filePath?.startsWith?.("/") ? filePath : `/${filePath}`)
+    const file = new SpellPath(fullPath)
+    if (!file.isFilePath) throw new TypeError(`You must pass a valid filePath, got '${filePath}'`)
+    return file
   }
 }
 

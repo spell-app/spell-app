@@ -62,7 +62,7 @@ export class SpellProject extends LoadableManager {
    * Note that we `forward` lots of methods on the location object to this object,
    * so you can say `project.projectName` rather than `project.location.projectName`.
    */
-  @forward("projectId", "projectDomain", "projectName", "projectPath", "isSystemProject", "isUserProject")
+  @forward("projectId", "owner", "projectDomain", "projectName", "isSystemProject", "isUserProject")
   @memoize
   get location() {
     return new SpellPath(this.path)

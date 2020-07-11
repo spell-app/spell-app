@@ -38,17 +38,6 @@ export class SpellProjectList extends JSON5File {
     return this.projectPaths.map((path) => new SpellProject(path))
   }
 
-  /** Return full projectPath for project specified by `projectId`. */
-  getPathForProjectId(projectId) {
-    if (typeof projectId !== "string") throw new TypeError(`getPathForProjectId('${path}'): must pass a string`)
-    return `${this.domain}${projectId}`
-  }
-
-  /** Given projectId, return just the `name` portion. */
-  getNameForProjectId(projectId) {
-    return projectId
-  }
-
   /**
    * Return a known `project` by path.
    * Pass `required = REQUIRED` to throw if not found.
@@ -66,17 +55,31 @@ export class SpellProjectList extends JSON5File {
   //  Project manipulation
   //-----------------
 
+  /**
+   * Show `prompt()` to get new filename.  Returns `projectId` or `undefined`
+   */
+  promptForProjectId(message, defaultName, originalProjectId) {
+    const originalProject = originalProjectId && new SpellFile(originalProjectId)
+    if (!defaultName) defaultName = originalProject ? originalProject.projectName : "Untitled"
+
+    const projectName = prompt(message, defaultName)
+    if (!projectName) return undefined
+    if (originalProject) return originalProject.getPeerProject(projectName)
+    return `${this.owner}:${this.domain}:${projectName}`
+  }
+
   /** Create a new project `projectId`. */
   async createProject(projectId) {
-    if (!projectId) projectId = prompt("Name for the new project?", "Untitled")
-    if (!projectId) return undefined
-    path = this.getPathForProjectId(projectId)
-
-    const location = new SpellPath(path)
-    if (!this.location.isProjectPath) {
-      throw new TypeError(`Error in createProject: path '${path}' is invalid.`)
+    if (!projectId) {
+      projectId = this.promptForProjectId("Name for the new project?", "Untitled")
+      if (!projectId) return undefined
     }
-    if (this.getProject(path)) throw new TypeError(`Error in createProject: project '${path}' already exists.`)
+
+    const projectPath = new SpellPath(projectId)
+    if (!projectPath.isProjectPath) throw new TypeError(`createProject(): projectId '${projectId}' is invalid.`)
+
+    await this.load()
+    if (this.getProject(projectId)) throw new TypeError(`createProject(): project '${projectId}' already exists.`)
 
     // Tell the server to create the project
     await $fetch({
@@ -90,20 +93,23 @@ export class SpellProjectList extends JSON5File {
     })
     // Reload the projects list and return the project
     await this.reload()
-    return this.getProject(path, REQUIRED, `Error in createProject: couldn't create new project '${path}'.`)
+    return this.getProject(projectId, REQUIRED, `createProject(): couldn't create new project '${projectId}'.`)
   }
 
   /** Duplicate an existing project. */
   async duplicateProject(projectId, newProjectId) {
-    const path = this.getPathForProjectId(projectId)
-    const project = this.getProject(path, REQUIRED, `Error in duplicateProject: project '${path}' not found.`)
+    await this.load()
+    const project = this.getProject(projectId, REQUIRED, `duplicateProject(): project '${projectId}' not found.`)
 
     if (!newProjectId) {
-      newProjectId = prompt("Name for the new project?", this.getNameForProjectId(projectId))
+      newProjectId = this.promptForProjectId("Name for the new project?", undefined, projectId)
       if (!newProjectId) return undefined
     }
-    newPath = this.getPathForProjectId(newProjectId)
-    if (this.getProject(newPath)) throw new TypeError(`Error in duplicateProject: project '${newPath}' already exists.`)
+    const newProjectPath = new SpellPath(newProjectId)
+    if (!newProjectPath.isProjectPath) throw new TypeError(`duplicateProject(): '${newProjectId}' is not a project id.`)
+    if (this.getProject(newProjectId)) {
+      throw new TypeError(`duplicateProject(): project '${newProjectId}' already exists.`)
+    }
 
     // Tell the server to duplicate the project
     await $fetch({
@@ -113,20 +119,20 @@ export class SpellProjectList extends JSON5File {
     })
     // reload the project list and return the new project
     await this.reload()
-    return this.getProject(newPath, REQUIRED, `Error in duplicateProject: couldn't create new project '${newPath}'.`)
+    return this.getProject(newProjectId, REQUIRED, `duplicateProject(): couldn't create new project '${newProjectId}'.`)
   }
 
   /** Rename an existing project. */
   async renameProject(projectId, newProjectId) {
-    const path = this.getPathForProjectId(projectId)
-    const project = this.getProject(path, REQUIRED, `Error in renameProject: project '${path}' not found.`)
+    await this.load()
+    const project = this.getProject(projectId, REQUIRED, `renameProject(): project '${projectId}' not found.`)
 
     if (!newProjectId) {
-      newProjectId = prompt("New name for the project?", this.getNameForProjectId(projectId))
+      newProjectId = this.promptForProjectId("New name for the project?", undefined, projectId)
       if (!newProjectId) return undefined
     }
-    newPath = this.getPathForProjectId(newProjectId)
-    if (this.getProject(newPath)) throw new TypeError(`Error in renameProject: project '${newPath}' already exists.`)
+
+    if (this.getProject(newProjectId)) throw new TypeError(`renameProject(): project '${newProjectId}' already exists.`)
 
     // Tell the server to duplicate the project
     await $fetch({
@@ -134,9 +140,12 @@ export class SpellProjectList extends JSON5File {
       contents: { projectId, newProjectId },
       requestFormat: "json"
     })
+    // Have the project clean itself up
+    project.onRemove()
+
     // reload the project list and return the new project
     await this.reload()
-    return this.getProject(newPath, REQUIRED, `Error in renameProject: couldn't create new project '${newPath}'.`)
+    return this.getProject(newProjectId, REQUIRED, `renameProject(): couldn't create new project '${newProjectId}'.`)
   }
 
   /**
@@ -144,13 +153,13 @@ export class SpellProjectList extends JSON5File {
    * Returns `true` on success, `false` if cancelled or throws on error.
    */
   async removeProject(projectId, shouldConfirm) {
-    const path = this.getPathForProjectId(projectId)
-    const project = this.getProject(path, REQUIRED, `Error in removeProject: project '${path}' not found.`)
+    await this.load()
+    const project = this.getProject(projectId, REQUIRED, `removeProject(): project '${projectId}' not found.`)
 
     if (shouldConfirm === CONFIRM) {
-      const projectName = this.getNameForProjectId(projectId)
-      if (!confirm(`Really remove project '${projectName}'?`)) return false
+      if (!confirm(`Really remove project '${project.projectName}'?`)) return false
     }
+
     // Tell the server to delete the project
     await $fetch({
       url: `/api/projects/remove/project`,
@@ -163,7 +172,7 @@ export class SpellProjectList extends JSON5File {
 
     // reload the project list and make sure the project is no longer available
     await this.reload()
-    if (this.getProject(path)) throw new TypeError(`Error in removeProject: server didn't delete project '${path}'.`)
+    if (this.getProject(projectId)) throw new TypeError(`removeProject(): server didn't delete project '${projectId}'.`)
     return true
   }
 }
