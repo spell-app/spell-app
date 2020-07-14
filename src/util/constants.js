@@ -43,19 +43,7 @@ export const BINARY_FORMATS = [
   KNOWN_FORMATS.binary
 ]
 
-// UNUSED
-// /** Skip some operation */
-// export const SKIP = "SKIP"
-
-// /** Loading states. */
-// export const UNLOADED = "UNLOADED"
-// export const LOADING = "LOADING"
-// export const LOADED = "LOADED"
-// export const LOAD_ERROR = "LOAD_ERROR"
-
-// /** Saving states. */
-// export const DIRTY = "DIRTY"
-// export const UNSAVED = "UNSAVED"
-// export const SAVING = "SAVING"
-// export const SAVED = "SAVED"
-// export const SAVE_ERROR = "SAVE_ERROR"
+/**
+ * DOM `id` for the react root element for `App` components.
+ */
+export const REACT_APP_ROOT_ID = "app-root"

@@ -1,6 +1,7 @@
 import global from "global"
+import ReactDOM from "react-dom"
 
-import { createStore, setPrefKey, getPref, setPref, CONFIRM } from "~/util"
+import { createStore, setPrefKey, getPref, setPref, CONFIRM, REACT_APP_ROOT_ID } from "~/util"
 import { spellSetup, SpellProjectRoot, SpellProject } from "~/languages/spell"
 
 setPrefKey("spellEditor:")
@@ -28,6 +29,8 @@ export const store = createStore({
     store.file = undefined
     global.project = store.project // DEBUG
     await store.project.load()
+    const appRoot = document.getElementById(REACT_APP_ROOT_ID)
+    if (appRoot) ReactDOM.unmountComponentAtNode(appRoot)
     store.selectFile()
   },
   async createProject(projectId) {

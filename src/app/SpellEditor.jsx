@@ -10,7 +10,7 @@ import NavLink from "react-bootstrap/NavLink"
 import Toast from "react-bootstrap/Toast"
 import { useHotkeys } from "react-hotkeys-hook"
 
-import { view } from "~/util"
+import { view, REACT_APP_ROOT_ID } from "~/util"
 import { SpellPath } from "~/languages/spell"
 
 import { ASTViewer } from "./ASTViewer"
@@ -204,7 +204,7 @@ const OutputEditor = view(function OutputEditor() {
   )
 })
 
-const AppContainer = <div id="app-root" style={{ padding: 20, height: "100%", overflow: "auto" }} />
+const AppContainer = <div id={REACT_APP_ROOT_ID} style={{ padding: 20, height: "100%", overflow: "auto" }} />
 
 const Notice = view(function Notice() {
   const { message } = store
