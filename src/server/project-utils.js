@@ -5,7 +5,6 @@
 import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"
 import { SpellPath } from "../languages/spell/SpellPath"
-import { any } from "prop-types"
 
 const { respondWithJSON } = responseUtils
 
@@ -31,6 +30,11 @@ Object.defineProperty(SpellPath.prototype, "serverPath", {
     return serverPath
   }
 })
+
+const DEFAULT_FILE = {
+  filePath: "/Untitled.spell",
+  contents: "// New file"
+}
 
 /**
  * Return list of client projects relative to this projectSpec as JSON blob.
@@ -103,6 +107,12 @@ export const getIndex = async (projectId) => {
   const options = { includeFolders: false, ignoreHidden: true, namesOnly: true }
   let fileNames = (await fileUtils.getFolderContents(project.serverPath, options)) //
     .filter(isManifestFile)
+
+  // HACKY: make sure we have at least one valid file by creating a default file
+  if (!fileNames.length) {
+    await createFile(projectId, DEFAULT_FILE.filePath, DEFAULT_FILE.contents)
+    fileNames = [DEFAULT_FILE.filePath]
+  }
 
   // create manifest including created/modified/size info per file
   const manifest = {}
@@ -193,15 +203,15 @@ export const request_saveFile = respondWithJSON(async (request) => {
 /**
  * Create project `projectId` by creating file at `filePath` within it.
  */
-export const createProject = async (projectId, filePath = "Untitled.spell", contents = "") => {
+export const createProject = async (projectId, filePath, contents) => {
   const project = SpellPath.getProjectPath(projectId)
-  const location = SpellPath.getFilePath(projectId, filePath)
-  return await fileUtils.saveFile(location.serverPath, contents)
+  const location = SpellPath.getFilePath(projectId, filePath || DEFAULT_FILE.filePath)
+  return await fileUtils.saveFile(location.serverPath, contents || DEFAULT_FILE.contents)
 }
 export const request_createProject = respondWithJSON(async (request) => {
   const { projectId, filePath, contents } = request.body
   await createProject(projectId, filePath, contents)
-  return await getIndex(projectId)
+  return await getProjectList(projectId)
 })
 
 /**
@@ -215,7 +225,7 @@ export const duplicateProject = async (projectId, newProjectId) => {
 export const request_duplicateProject = respondWithJSON(async (request) => {
   const { projectId, newProjectId } = request.body
   await duplicateProject(projectId, newProjectId)
-  return await getIndex(newProjectId)
+  return await getProjectList(projectId)
 })
 
 /**
@@ -228,7 +238,8 @@ export const renameProject = async (projectId, newProjectId) => {
 }
 export const request_renameProject = respondWithJSON(async (request) => {
   const { projectId, newProjectId } = request.body
-  return await renameProject(projectId, newProjectId)
+  await renameProject(projectId, newProjectId)
+  return await getProjectList(projectId)
 })
 
 /**
@@ -240,7 +251,8 @@ export const removeProject = async (projectId) => {
 }
 export const request_removeProject = respondWithJSON(async (request) => {
   const { projectId } = request.body
-  return removeProject(projectId)
+  await removeProject(projectId)
+  return await getProjectList(projectId)
 })
 
 //----------------------------

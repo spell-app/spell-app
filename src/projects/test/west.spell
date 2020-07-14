@@ -1,8 +1,0 @@
-animation deal the cards
-	print 1
-	
-animation play (a thing)
-	print 1
-	
-animation play (a thing) on (another as a thing)
-	print 1

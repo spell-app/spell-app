@@ -376,9 +376,10 @@ export class SpellProject extends JSON5File {
   async createFile(filePath, contents, newFileName = "Untitled.spell") {
     if (!filePath) filePath = prompt("Name for the new file?", newFileName)
     if (!filePath) return undefined
+    const errorPrefix = `Error creating file '${filePath}'::`
 
     await this.load()
-    if (this.getFile(filePath)) throw new TypeError(`createFile(): file '${filePath} already exists.`)
+    if (this.getFile(filePath)) throw new TypeError(`${errorPrefix} File already exists.`)
 
     // Tell the server to create the file, which returns updated index
     const newIndex = await $fetch({
@@ -394,7 +395,7 @@ export class SpellProject extends JSON5File {
     this.setContents(newIndex)
 
     // Return the file
-    return this.getFile(filePath, REQUIRED, `createFile(): server didn't create file '${filePath}'.`)
+    return this.getFile(filePath, REQUIRED, `${errorPrefix} Server didn't create file.`)
   }
 
   /**
@@ -402,8 +403,9 @@ export class SpellProject extends JSON5File {
    * Returns pointer to new file.
    */
   async duplicateFile(filePath, newFilePath) {
+    const errorPrefix = `Error duplicating file '${filePath}'::`
     await this.load()
-    const file = this.getFile(filePath, REQUIRED, `duplicateFile(): file '${filePath}' does not exist.`)
+    const file = this.getFile(filePath, REQUIRED, `${errorPrefix} File does not exist.`)
     const contents = await file.load()
     return this.createFile(newFilePath, contents, file.file)
   }
@@ -413,15 +415,18 @@ export class SpellProject extends JSON5File {
    * Returns new file.
    */
   async renameFile(filePath, newFilePath) {
+    const errorPrefix = `Error renaming file '${filePath}'::`
+
     await this.load()
-    const file = this.getFile(filePath, REQUIRED, `renameFile(): file '${filePath}' does not exist.`)
+    const file = this.getFile(filePath, REQUIRED, `${errorPrefix} File does not exist.`)
 
     if (!newFilePath) {
       const filename = prompt("New name for the file?", file.file)
       if (!filename) return undefined
       newFilePath = SpellPath.getFilePath(this.projectId, filename).filePath
+      if (newFilePath === filePath) return undefined
     }
-    if (this.getFile(newFilePath)) throw new TypeError(`renameFile(): file '${newFilePath} already exists.`)
+    if (this.getFile(newFilePath)) throw new TypeError(`${errorPrefix} File '${newFilePath}' already exists.`)
 
     // Tell the server to rename the file, which returns the updated index.
     const newIndex = await $fetch({
@@ -439,7 +444,7 @@ export class SpellProject extends JSON5File {
     // (doing it immediately causes react to barf)
     setTimeout(() => file.onRemove(), 10)
     // return the new file
-    return this.getFile(newFilePath, REQUIRED, `renameFile(): server didn't create '${newFilePath}'.`)
+    return this.getFile(newFilePath, REQUIRED, `${errorPrefix} Server didn't create file at '${newFilePath}'.`)
   }
 
   /**
@@ -447,8 +452,11 @@ export class SpellProject extends JSON5File {
    * Returns `true` on success, `undefined` if cancelled, or throws on error.
    */
   async removeFile(filePath, shouldConfirm) {
+    const errorPrefix = `Error removing file '${filePath}'::`
+
     await this.load()
-    const file = this.getFile(filePath, REQUIRED, `removeFile(): file '${filePath}' not found.`)
+    if (this.files.length === 1) throw new TypeError(`${errorPrefix} You can't remove the last file in a project.`)
+    const file = this.getFile(filePath, REQUIRED, `${errorPrefix} File not found.`)
     if (shouldConfirm === CONFIRM) {
       if (!confirm(`Really remove file '${file.file}'?`)) return undefined
     }
@@ -467,7 +475,7 @@ export class SpellProject extends JSON5File {
     })
     this.setContents(newIndex)
     // throw if file is still found
-    if (this.getFile(filePath)) throw new TypeError(`removeFile('${filePath}'): server didn't delete the file.`)
+    if (this.getFile(filePath)) throw new TypeError(`${errorPrefix} Server didn't delete the file.`)
     // Have the file clean itself up in a tick
     // (doing it immediately causes react to barf)
     setTimeout(() => file.onRemove(), 10)

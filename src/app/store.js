@@ -44,6 +44,7 @@ export const store = createStore({
   async duplicateProject(newProjectId) {
     try {
       const newProject = await store.projectRoot.duplicateProject(store.project.projectId, newProjectId)
+      console.warn({ newProject })
       if (newProject) {
         store.selectProject(newProject.path)
         store.showNotice("Project duplicated.")
@@ -212,6 +213,7 @@ export const store = createStore({
   //-----------------
   message: undefined,
   showNotice(message) {
+    console.info("showNotice:", message)
     store.message = message
   },
   hideNotice() {
@@ -219,6 +221,7 @@ export const store = createStore({
   },
   error: undefined,
   showError(error) {
+    console.warn("showError:", error)
     store.error = error.message
   },
   hideError() {

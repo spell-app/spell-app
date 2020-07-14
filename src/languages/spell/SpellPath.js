@@ -142,26 +142,28 @@ export class SpellPath {
   //-----------------
 
   /**
-   * Get `SpellPath` for `domainId` string, throwing if it's not a valid DOMAIN path.
+   * Get `SpellPath` for the `domain` portion of any valid `path` string.
+   * Throws if you pass an invalid path.
    */
-  static getDomainPath(domainId) {
-    const domain = new SpellPath(domainId)
-    if (!domain.isDomainPath) throw new TypeError(`You must pass a valid domain, got '${domainId}'`)
-    return domain
+  static getDomainPath(path) {
+    const location = new SpellPath(path)
+    return location.isDomainPath ? location : new SpellPath(location.domainPath)
   }
 
   /**
-   * Get `SpellPath` for `projectId`, throwing if it's not a valid PROJECT path.
+   * Get `SpellPath` for the `projectId` portion of any valid `path` string.
+   * Throws if you pass an invalid path.
    */
-  static getProjectPath(projectId) {
-    const project = new SpellPath(projectId)
-    if (!project.isProjectPath) throw new TypeError(`You must pass a valid projectId, got '${projectId}'`)
-    return project
+  static getProjectPath(path) {
+    const location = new SpellPath(path)
+    return location.isProjectPath ? location : new SpellPath(location.projectId)
   }
 
   /**
-   * Get `SpellPath` for a full file `path` or `projectId` and `filePath`,
-   * throwing if it's not a valid FILE path.
+   * Get `SpellPath` for a full file `path` or `projectId` and `filePath`.
+   *
+   * Note: unlike `getProjectPath` and `getDomainPath`,
+   *       this throws if it's not a valid FILE path.
    */
   static getFilePath(projectId, filePath) {
     let fullPath = projectId
@@ -170,7 +172,7 @@ export class SpellPath {
       else fullPath += filePath.startsWith("/") ? filePath : `/${filePath}`
     }
     const path = new SpellPath(fullPath)
-    if (!path.isFilePath) throw new TypeError(`XYou must pass a valid filePath, got '${filePath}': ${fullPath}`)
+    if (!path.isFilePath) throw new TypeError(`You must pass a valid filePath, got '${filePath}': ${fullPath}`)
     return path
   }
 }

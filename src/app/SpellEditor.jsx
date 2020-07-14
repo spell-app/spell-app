@@ -91,8 +91,7 @@ const EditorToolbar = view(function EditorToolbar() {
   const { file } = store
   const fileNeedsCompilation = file?.isLoaded && !file?.compiled
   const fileIsDirty = file?.isDirty
-  // if (DEBUG_RENDER)
-  console.info("EditorToolbar", { file, fileIsDirty })
+  if (DEBUG_RENDER) console.info("EditorToolbar", { file, fileIsDirty })
   const bound = React.useMemo(() => {
     return {
       compile: () => store.compile(),
@@ -227,7 +226,7 @@ const Notice = view(function Notice() {
 const Error = view(function Error() {
   const { error } = store
   if (typeof error !== "string") return null
-  const split = error.split(":")
+  const split = error.split("::")
   let header
   let message
   if (split.length === 1) {
@@ -235,7 +234,7 @@ const Error = view(function Error() {
     message = error
   } else {
     header = split[0]
-    message = split.slice(1).join(":")
+    message = split.slice(1).join("::")
   }
   return (
     <div style={{ position: "fixed", top: 60, left: "calc(50% - 250px)", width: 500, zIndex: 100 }}>

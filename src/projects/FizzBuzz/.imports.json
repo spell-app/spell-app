@@ -1,7 +1,7 @@
 {
   "imports": [
     {
-      "path": "/west.spell",
+      "path": "/FizzBuzz.spell",
       "active": true
     }
   ]

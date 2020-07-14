@@ -43,10 +43,10 @@ export class SpellProjectRoot extends JSON5File {
    * Pass `required = REQUIRED` to throw if not found.
    * Pass `dieMessage` for a custom error message.
    */
-  getProject(path, required = OPTIONAL, dieMessage) {
+  getProject(path, required = OPTIONAL, dieMessage = `Error in getProject("${path}"): project not found.`) {
     const project = this.projects?.find((p) => p.path === path)
     if (!project && required === REQUIRED) {
-      throw new TypeError(dieMessage || `Error in getProject("${path}"): project not found.`)
+      throw new TypeError(dieMessage || dieMessage)
     }
     return project
   }
@@ -56,123 +56,146 @@ export class SpellProjectRoot extends JSON5File {
   //-----------------
 
   /**
-   * Show `prompt()` to get new filename.  Returns `projectId` or `undefined`
+   * Show `prompt()` to get new filename.
+   * Returns `projectId` or `undefined`
    */
-  promptForProjectId(message, defaultName, originalProjectId) {
-    const originalProject = originalProjectId && new SpellFile(originalProjectId)
-    if (!defaultName) defaultName = originalProject ? originalProject.projectName : "Untitled"
+  promptForProjectId({ projectId, defaultName, message = "Name for the new project?" } = {}) {
+    const originalProject = projectId && new SpellPath(projectId)
+    if (!defaultName) defaultName = originalProject?.projectName || "Untitled"
 
     const projectName = prompt(message, defaultName)
     if (!projectName) return undefined
-    if (originalProject) return originalProject.getPeerProject(projectName)
-    return `${this.owner}:${this.domain}:${projectName}`
+    const { owner, domain } = originalProject || this
+    return `${owner}:${domain}:${projectName}`
   }
 
-  /** Create a new project `projectId`. */
+  /**
+   * Create a new project at `projectId`.
+   * Returns new project, `undefined` if cancelled, or throws on error.
+   */
   async createProject(projectId) {
-    if (!projectId) {
-      projectId = this.promptForProjectId("Name for the new project?", "Untitled")
-      if (!projectId) return undefined
-    }
+    if (!projectId) projectId = this.promptForProjectId()
+    if (!projectId) return undefined
+    const location = new SpellPath(projectId)
+    const errorPrefix = `Error creating project '${location.projectName}'::`
 
-    const projectPath = new SpellPath(projectId)
-    if (!projectPath.isProjectPath) throw new TypeError(`createProject(): projectId '${projectId}' is invalid.`)
+    if (!location.isProjectPath) throw new TypeError(`${errorPrefix} Project name is not valid.`)
 
     await this.load()
-    if (this.getProject(projectId)) throw new TypeError(`createProject(): project '${projectId}' already exists.`)
+    if (this.getProject(projectId)) throw new TypeError(`${errorPrefix} Project already exists.`)
 
-    // Tell the server to create the project
-    await $fetch({
+    // Tell the server to create the project, which returns new projects list
+    const newContents = await $fetch({
       url: `/api/projects/create/project`,
       contents: {
         projectId,
         filePath: "Untitled.spell",
         contents: "## this space intentionally left blank"
       },
-      requestFormat: "json"
+      requestFormat: "json",
+      format: "json"
     })
-    // Reload the projects list and return the project
-    await this.reload()
-    return this.getProject(projectId, REQUIRED, `createProject(): couldn't create new project '${projectId}'.`)
+    this.setContents(newContents)
+    // Return the new project
+    return this.getProject(projectId, REQUIRED, `${errorPrefix} Server couldn't create the new project.`)
   }
 
-  /** Duplicate an existing project. */
+  /**
+   * Duplicate an existing project.
+   * Returns new project, `undefined` if cancelled, or throws on error.
+   */
   async duplicateProject(projectId, newProjectId) {
+    const location = new SpellPath(projectId)
+    const errorPrefix = `Error duplicating project '${location.projectName}'::`
+
     await this.load()
-    const project = this.getProject(projectId, REQUIRED, `duplicateProject(): project '${projectId}' not found.`)
+    const project = this.getProject(projectId, REQUIRED, `${errorPrefix} Project does not exizt.`)
 
-    if (!newProjectId) {
-      newProjectId = this.promptForProjectId("Name for the new project?", undefined, projectId)
-      if (!newProjectId) return undefined
-    }
+    if (!newProjectId) newProjectId = this.promptForProjectId({ projectId })
+    if (!newProjectId) return undefined
+
     const newProjectPath = new SpellPath(newProjectId)
-    if (!newProjectPath.isProjectPath) throw new TypeError(`duplicateProject(): '${newProjectId}' is not a project id.`)
+    if (!newProjectPath.isProjectPath) {
+      throw new TypeError(`${errorPrefix} '${newProjectId}' is not a project id.`)
+    }
     if (this.getProject(newProjectId)) {
-      throw new TypeError(`duplicateProject(): project '${newProjectId}' already exists.`)
+      throw new TypeError(`${errorPrefix} Project '${newProjectId}' already exists.`)
     }
 
-    // Tell the server to duplicate the project
-    await $fetch({
+    // Tell the server to duplicate the project, which returns new projects list
+    const newContents = await $fetch({
       url: `/api/projects/duplicate/project`,
       contents: { projectId, newProjectId },
-      requestFormat: "json"
+      requestFormat: "json",
+      format: "json"
     })
-    // reload the project list and return the new project
-    await this.reload()
-    return this.getProject(newProjectId, REQUIRED, `duplicateProject(): couldn't create new project '${newProjectId}'.`)
+    this.setContents(newContents)
+    // Return the new project
+    return this.getProject(newProjectId, REQUIRED, `${errorPrefix} Couldn't create new project '${newProjectId}'.`)
   }
 
-  /** Rename an existing project. */
+  /**
+   * Rename an existing project.
+   * Returns new project, `undefined` if cancelled, or throws on error.
+   */
   async renameProject(projectId, newProjectId) {
+    const location = new SpellPath(projectId)
+    const errorPrefix = `Error renaming project '${location.projectName}'::`
+
     await this.load()
-    const project = this.getProject(projectId, REQUIRED, `renameProject(): project '${projectId}' not found.`)
+    const project = this.getProject(projectId, REQUIRED, `${errorPrefix} Project '${projectId}' not found.`)
 
-    if (!newProjectId) {
-      newProjectId = this.promptForProjectId("New name for the project?", undefined, projectId)
-      if (!newProjectId) return undefined
-    }
+    if (!newProjectId) newProjectId = this.promptForProjectId({ projectId, message: "New name for the project?" })
+    if (!newProjectId || newProjectId === projectId) return undefined
 
-    if (this.getProject(newProjectId)) throw new TypeError(`renameProject(): project '${newProjectId}' already exists.`)
+    // Throw if project already exists
+    if (this.getProject(newProjectId)) throw new TypeError(`${errorPrefix} Project '${newProjectId}' already exists.`)
 
-    // Tell the server to duplicate the project
-    await $fetch({
+    // Tell the server to duplicate the project, which returns new projects list
+    const newContents = await $fetch({
       url: `/api/projects/rename/project`,
       contents: { projectId, newProjectId },
-      requestFormat: "json"
+      requestFormat: "json",
+      format: "json"
     })
-    // Have the project clean itself up
-    project.onRemove()
-
-    // reload the project list and return the new project
-    await this.reload()
-    return this.getProject(newProjectId, REQUIRED, `renameProject(): couldn't create new project '${newProjectId}'.`)
+    this.setContents(newContents)
+    // Have the project clean itself up in a tick
+    // (delay is so React doesn't barf on hooks).
+    setTimeout(() => project.onRemove(), 10)
+    // Return the new project
+    return this.getProject(newProjectId, REQUIRED, `${errorPrefix} Couldn't create new project '${newProjectId}'.`)
   }
 
   /**
    * Remove an existing project.
-   * Returns `true` on success, `false` if cancelled or throws on error.
+   * Returns `true` on success, `false` if cancelled, or throws on error.
    */
   async removeProject(projectId, shouldConfirm) {
+    const location = new SpellPath(projectId)
+    const errorPrefix = `Error duplicating project '${location.projectName}'::`
+
     await this.load()
-    const project = this.getProject(projectId, REQUIRED, `removeProject(): project '${projectId}' not found.`)
+    if (this.projects.length === 1) throw new TypeError(`${errorPrefix} You can't delete the last project.`)
+    const project = this.getProject(projectId, REQUIRED, `${errorPrefix} Project not found.`)
 
     if (shouldConfirm === CONFIRM) {
       if (!confirm(`Really remove project '${project.projectName}'?`)) return false
     }
 
-    // Tell the server to delete the project
-    await $fetch({
+    // Tell the server to delete the project, which returns new projects list
+    const newContents = await $fetch({
       url: `/api/projects/remove/project`,
       method: "DELETE",
       contents: { projectId },
-      requestFormat: "json"
+      requestFormat: "json",
+      format: "json"
     })
-    // Have the project clean itself up
-    project.onRemove()
-
-    // reload the project list and make sure the project is no longer available
-    await this.reload()
-    if (this.getProject(projectId)) throw new TypeError(`removeProject(): server didn't delete project '${projectId}'.`)
+    this.setContents(newContents)
+    // Barf if the project still exists
+    if (this.getProject(projectId)) throw new TypeError(`${errorPrefix} Server didn't delete project '${projectId}'.`)
+    // Have the project clean itself up in a tick
+    // (delay is so React doesn't barf on hooks).
+    setTimeout(() => project.onRemove(), 10)
     return true
   }
 }
