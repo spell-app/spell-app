@@ -8,6 +8,7 @@ export * from "./decorators"
 export * from "./Assertable"
 export * from "./IndexedList"
 export * from "./string"
+export * from "./guid"
 
 export * from "./abortableFetch"
 export * from "./$fetch"
