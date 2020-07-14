@@ -320,7 +320,7 @@ export class SpellProject extends LoadableManager {
     return fileInfo
   }
 
-  /** Asynchronously load file by `path` (or `filename` if path doesn't start with slash). */
+  /** Asynchronously load file by `path` (or `filename` if path doesn't start with `@`). */
   async loadFile(path) {
     await this.load()
     return this.getFile(path, REQUIRED).load()

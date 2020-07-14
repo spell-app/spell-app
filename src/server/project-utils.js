@@ -5,6 +5,7 @@
 import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"
 import { SpellPath } from "../languages/spell/SpellPath"
+import { any } from "prop-types"
 
 const { respondWithJSON } = responseUtils
 
@@ -67,7 +68,7 @@ export const getManifest = async (projectId) => {
     fileNames.map(async (name) => {
       const filePath = SpellPath.getFilePath(projectId, name)
       const { created, modified } = await fileUtils.getPathInfo(filePath.serverPath)
-      return { name, path: filePath.path, created, modified }
+      return { path: filePath.path, created, modified }
     })
   )
 
@@ -88,23 +89,60 @@ export const request_getManifest = respondWithJSON(async (request) => {
  *   `{ imports: [ { path, active }...] }`
  * TODO: verify that all files in project are present in index???
  */
+function fileNameFilter(name) {
+  return name.endsWith(".spell") || name.endsWith(".css")
+}
 export const getIndex = async (projectId) => {
   const project = SpellPath.getProjectPath(projectId)
 
-  // TODO: load index from disk if present
-  // const path = getServerPath(projectId, ".index.json5")
-  // const exists = await fileUtils.pathExists(path)
-  // if (exists) return responseUtils.sendJSONFile(response, path)
-
-  console.info(`Creating index for project ${projectId}`)
+  // Get non-hidden files in project which the front-end knows how to deal with
   const options = { includeFolders: false, ignoreHidden: true, namesOnly: true }
-  const files = await fileUtils.getFolderContents(project.serverPath, options)
-  return {
-    imports: files.map((name) => {
-      const file = SpellPath.getFilePath(projectId, name)
-      return { path: file.path, active: true }
+  let fileNames = (await fileUtils.getFolderContents(project.serverPath, options)) //
+    .filter(fileNameFilter)
+
+  // create manifest including created/modified/size info per file
+  const manifest = {}
+  await Promise.all(
+    fileNames.map(async (name) => {
+      const filePath = SpellPath.getFilePath(projectId, name)
+      const { created, modified, size } = await fileUtils.getPathInfo(filePath.serverPath)
+      manifest[filePath.path] = { created, modified, size }
     })
+  )
+
+  // get `imports` from existing imports file if present
+  const index = SpellPath.getFilePath(projectId, ".index.json")
+  const existingInded = await fileUtils.loadJSONFile(index.serverPath, "OPTIONAL")
+  let imports = existingInded?.imports || []
+
+  // Filter imports: which are not in existingPaths
+  const existingPaths = { ...manifest }
+  let anythingChanged = false
+  imports = imports.filter(({ path }) => {
+    // if not found, remove from imports
+    if (!existingPaths[path]) {
+      anythingChanged = true
+      return false
+    }
+    // otherwise return from existing so we know it was found
+    delete existingPaths[path]
+    return true
+  })
+  // Anything left in `existingPaths` is MISSING from the imports,
+  // add at the end of the imports as `active`.
+  Object.keys(existingPaths).forEach((path) => {
+    anythingChanged = true
+    imports.push({ path, active: true })
+  })
+
+  // Save the new imports if anything changed
+  // NOTE: we explicitly do not save the `manifest`
+  if (anythingChanged) {
+    fileUtils.saveJSONFile(index.serverPath, { imports })
   }
+
+  // return manifest and imports
+  return { manifest, imports }
 }
 export const request_getIndex = respondWithJSON(async (request) => {
   const { projectId } = request.params
