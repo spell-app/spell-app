@@ -24,7 +24,7 @@ import "./SpellEditor.less"
 const DEBUG_RENDER = false
 
 /** Menu of all available projects. */
-const ProjectMenu = view(function () {
+const ProjectMenu = view(function ProjectMenu() {
   const { projectRoot, project } = store
   if (DEBUG_RENDER) console.info("ProjectMenu", projectRoot, project)
   const bound = React.useMemo(() => {
@@ -70,17 +70,19 @@ const ProjectMenu = view(function () {
 })
 
 /** Menu of all available files. */
-const FileMenu = view(function () {
+const FileMenu = view(function FileMenu() {
   const { project, file } = store
   if (DEBUG_RENDER) console.info("FileMenu", project, file)
   if (!project || !file) return <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
   return (
     <NavDropdown key={file.path} title={file.file} id="FileMenu" style={{ width: "12em" }}>
-      {project.imports.map(({ path, location }) => (
-        <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectFile}>
-          {location.file}
-        </NavDropdown.Item>
-      ))}
+      {project.imports.map(({ path, location }) => {
+        return (
+          <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectFile}>
+            {location.file}
+          </NavDropdown.Item>
+        )
+      })}
     </NavDropdown>
   )
 })
@@ -89,8 +91,8 @@ const EditorToolbar = view(function EditorToolbar() {
   const { file } = store
   const fileNeedsCompilation = file?.isLoaded && !file?.compiled
   const fileIsDirty = file?.isDirty
-
-  if (DEBUG_RENDER) console.info("EditorToolbar", fileIsDirty)
+  // if (DEBUG_RENDER)
+  console.info("EditorToolbar", { file, fileIsDirty })
   const bound = React.useMemo(() => {
     return {
       compile: () => store.compile(),
@@ -109,7 +111,7 @@ const EditorToolbar = view(function EditorToolbar() {
         <ProjectMenu />
 
         <NavLink disabled>File:</NavLink>
-        <FileMenu />
+        {!!file && <FileMenu />}
         <Navbar.Collapse id="navbar-buttons" className="ml-2">
           <Nav>
             <Button variant={fileNeedsCompilation ? "primary" : "dark"} onClick={bound.compile}>

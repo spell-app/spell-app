@@ -49,7 +49,6 @@ api.post("/projects/rename/file", projectUtils.request_renameFile)
 api.delete("/projects/remove/file", projectUtils.request_removeFile)
 
 // returning project files
-api.get("/projects/manifest/:projectId", projectUtils.request_getManifest)
 api.get("/projects/index/:projectId", projectUtils.request_getIndex)
 api.get("/projects/file/:projectId/:filePath*", projectUtils.request_getFile)
 api.post("/projects/file/:projectId/:filePath*", projectUtils.request_saveFile)

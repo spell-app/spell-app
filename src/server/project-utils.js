@@ -51,54 +51,58 @@ export const request_getProjectList = respondWithJSON(async (request) => {
 })
 
 //----------------------------
-//  Project manifest
-//----------------------------
-
-/**
- * Return `manifest.json` for a project as JSON blob.
- * NOTE: does not handle nested folders!!!
- * Format:
- *   `{ files: [ { name, path, created, modified }... ] }`
- */
-export const getManifest = async (projectId) => {
-  const project = SpellPath.getProjectPath(projectId)
-  const options = { includeFolders: false, ignoreHidden: true, namesOnly: true }
-  const fileNames = await fileUtils.getFolderContents(project.serverPath, options)
-  const files = await Promise.all(
-    fileNames.map(async (name) => {
-      const filePath = SpellPath.getFilePath(projectId, name)
-      const { created, modified } = await fileUtils.getPathInfo(filePath.serverPath)
-      return { path: filePath.path, created, modified }
-    })
-  )
-
-  return { files }
-}
-export const request_getManifest = respondWithJSON(async (request) => {
-  const { projectId } = request.params
-  return await getManifest(projectId)
-})
-
-//----------------------------
 //  Project index
 //----------------------------
 
 /**
- * Return `index.json` for a project as a JSON blob.
- * Format:
- *   `{ imports: [ { path, active }...] }`
- * TODO: verify that all files in project are present in index???
+ * Given a file `name`, return `true` if we should add it to the manifest.
  */
-function fileNameFilter(name) {
+function isManifestFile(name) {
   return name.endsWith(".spell") || name.endsWith(".css")
 }
+
+/**
+ * Return the `SpellPath` for project `imports` file.
+ */
+export function getImportsLocation(projectId) {
+  return SpellPath.getFilePath(projectId, ".imports.json")
+}
+
+/**
+ * Load a project `.imports.json` file, returning default import file if not found.
+ */
+export const loadImports = async (projectId) => {
+  const { serverPath } = getImportsLocation(projectId)
+  const existing = await fileUtils.loadJSONFile(serverPath, "OPTIONAL")
+  return existing || { imports: [] }
+}
+
+/**
+ * Save a project `.imports.json` file.
+ */
+export const saveImports = async (projectId, contents) => {
+  const { serverPath } = getImportsLocation(projectId)
+  return await fileUtils.saveJSONFile(serverPath, contents)
+}
+
+/**
+ * Return `index` for a project as a JSON blob.
+ *
+ * Returned value includes:
+ *  - `manifest: { [path]: { created, modified, size }  }`
+ *  - `imports: [ { path, active } ] }`
+ *
+ * The `manifest` portion will reflect the current state of the file system.
+ * The `imports` portion will be synced with the `manifest`,
+ * and will be saved to disk as `.imports.json` if imports change.
+ */
 export const getIndex = async (projectId) => {
   const project = SpellPath.getProjectPath(projectId)
 
   // Get non-hidden files in project which the front-end knows how to deal with
   const options = { includeFolders: false, ignoreHidden: true, namesOnly: true }
   let fileNames = (await fileUtils.getFolderContents(project.serverPath, options)) //
-    .filter(fileNameFilter)
+    .filter(isManifestFile)
 
   // create manifest including created/modified/size info per file
   const manifest = {}
@@ -111,38 +115,41 @@ export const getIndex = async (projectId) => {
   )
 
   // get `imports` from existing imports file if present
-  const index = SpellPath.getFilePath(projectId, ".index.json")
-  const existingInded = await fileUtils.loadJSONFile(index.serverPath, "OPTIONAL")
-  let imports = existingInded?.imports || []
-
+  const importsFile = await loadImports(projectId)
   // Filter imports: which are not in existingPaths
   const existingPaths = { ...manifest }
   let anythingChanged = false
-  imports = imports.filter(({ path }) => {
+  importsFile.imports = importsFile.imports.filter(({ path }) => {
+    // Full paths including projectId refer to other projects
+    // So assume we should leave them alone.
+    if (path.startsWith("@")) return true
+
+    // Get the location relative to this project
+    const location = SpellPath.getFilePath(projectId, path)
     // if not found, remove from imports
-    if (!existingPaths[path]) {
+    if (!existingPaths[location.path]) {
       anythingChanged = true
       return false
     }
-    // otherwise return from existing so we know it was found
-    delete existingPaths[path]
+    // otherwise return from existing so we know it was found below
+    delete existingPaths[location.path]
     return true
   })
   // Anything left in `existingPaths` is MISSING from the imports,
   // add at the end of the imports as `active`.
   Object.keys(existingPaths).forEach((path) => {
+    const location = new SpellPath(path)
+    // Record as a local `filepa` string, which includes the folder / leading slash
+    importsFile.imports.push({ path: location.filePath, active: true })
     anythingChanged = true
-    imports.push({ path, active: true })
   })
 
   // Save the new imports if anything changed
   // NOTE: we explicitly do not save the `manifest`
-  if (anythingChanged) {
-    fileUtils.saveJSONFile(index.serverPath, { imports })
-  }
+  if (anythingChanged) await saveImports(projectId, importsFile)
 
   // return manifest and imports
-  return { manifest, imports }
+  return { ...importsFile, manifest }
 }
 export const request_getIndex = respondWithJSON(async (request) => {
   const { projectId } = request.params
@@ -170,8 +177,8 @@ export const request_getFile = (request, response) => {
  */
 export const saveFile = async (projectId, filePath, contents) => {
   const project = SpellPath.getProjectPath(projectId)
-  const file = SpellPath.getFilePath(projectId, filePath)
-  return await fileUtils.saveFile(file.serverPath, contents)
+  const { serverPath } = SpellPath.getFilePath(projectId, filePath)
+  return await fileUtils.saveFile(serverPath, contents)
 }
 export const request_saveFile = respondWithJSON(async (request) => {
   const { projectId, filePath } = request.params
@@ -188,12 +195,27 @@ export const request_saveFile = respondWithJSON(async (request) => {
  */
 export const createProject = async (projectId, filePath = "Untitled.spell", contents = "") => {
   const project = SpellPath.getProjectPath(projectId)
-  const file = SpellPath.getFilePath(projectId, filePath)
-  return await fileUtils.saveFile(file.serverPath, contents)
+  const location = SpellPath.getFilePath(projectId, filePath)
+  return await fileUtils.saveFile(location.serverPath, contents)
 }
 export const request_createProject = respondWithJSON(async (request) => {
   const { projectId, filePath, contents } = request.body
-  return createProject(projectId, filePath, contents)
+  await createProject(projectId, filePath, contents)
+  return await getIndex(projectId)
+})
+
+/**
+ * Duplicate project `projectId` as `newProjectId`.
+ */
+export const duplicateProject = async (projectId, newProjectId) => {
+  const project = SpellPath.getProjectPath(projectId)
+  const newProject = SpellPath.getProjectPath(newProjectId)
+  return await fileUtils.copyPath(project.serverPath, newProject.serverPath)
+}
+export const request_duplicateProject = respondWithJSON(async (request) => {
+  const { projectId, newProjectId } = request.body
+  await duplicateProject(projectId, newProjectId)
+  return await getIndex(newProjectId)
 })
 
 /**
@@ -207,19 +229,6 @@ export const renameProject = async (projectId, newProjectId) => {
 export const request_renameProject = respondWithJSON(async (request) => {
   const { projectId, newProjectId } = request.body
   return await renameProject(projectId, newProjectId)
-})
-
-/**
- * Duplicate project `projectId` as `newProjectId`.
- */
-export const duplicateProject = async (projectId, newProjectId) => {
-  const project = SpellPath.getProjectPath(projectId)
-  const newProject = SpellPath.getProjectPath(newProjectId)
-  return await fileUtils.copyPath(project.serverPath, newProject.serverPath)
-}
-export const request_duplicateProject = respondWithJSON(async (request) => {
-  const { projectId, newProjectId } = request.body
-  return await duplicateProject(projectId, newProjectId)
 })
 
 /**
@@ -240,34 +249,46 @@ export const request_removeProject = respondWithJSON(async (request) => {
 
 /**
  * Create a new project file.
- * TODO: save in the index!
+ * Request returns updated index, which will `import` new file at the end.
  */
 export const createFile = async (projectId, filePath, contents) => {
   return await saveFile(projectId, filePath, contents)
 }
 export const request_createFile = respondWithJSON(async (request) => {
   const { projectId, filePath, contents } = request.body
-  return await createFile(projectId, filePath, contents)
+  await createFile(projectId, filePath, contents)
+  return await getIndex(projectId)
 })
 
 /**
  * Rename a project file.
- * TODO: update index!
+ * Request returns updated index.
  */
 export const renameFile = async (projectId, filePath, newFilePath) => {
   const project = SpellPath.getProjectPath(projectId)
   const file = SpellPath.getFilePath(projectId, filePath)
   const newFile = SpellPath.getFilePath(projectId, newFilePath)
-  return await fileUtils.movePath(file.serverPath, newFile.servePath)
+  await fileUtils.movePath(file.serverPath, newFile.serverPath)
+
+  // update `imports` so file order stays the same
+  let importsFile = await loadImports(projectId)
+  importsFile.imports = importsFile.imports.map((item) => {
+    if (item.path === filePath) return { ...item, path: newFilePath }
+    return item
+  })
+  await saveImports(projectId, importsFile)
+
+  return true
 }
 export const request_renameFile = respondWithJSON(async (request) => {
   const { projectId, filePath, newFilePath } = request.body
-  return await renameFile(projectId, filePath, newFilePath)
+  await renameFile(projectId, filePath, newFilePath)
+  return await getIndex(projectId)
 })
 
 /**
  * Delete a project file.
- * TODO: update index!
+ * Request returns updated index.
  */
 export const removeFile = async (projectId, filePath) => {
   const project = SpellPath.getProjectPath(projectId)
@@ -276,5 +297,6 @@ export const removeFile = async (projectId, filePath) => {
 }
 export const request_removeFile = respondWithJSON(async (request) => {
   const { projectId, filePath } = request.body
-  return await removeFile(projectId, filePath)
+  await removeFile(projectId, filePath)
+  return await getIndex(projectId)
 })

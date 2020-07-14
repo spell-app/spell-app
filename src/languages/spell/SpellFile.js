@@ -29,6 +29,7 @@ export class SpellFile extends TextFile {
   onRemove() {
     super.onRemove()
     SpellFile.registry.clear(this.path)
+    SpellPath.registry.clear(this.path)
   }
 
   /**

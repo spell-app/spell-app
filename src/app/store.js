@@ -25,6 +25,7 @@ export const store = createStore({
     if (!projectPaths.includes(path)) path = projectPaths[0]
     setPref("selectedProject", path)
     store.project = new SpellProject(path)
+    store.file = undefined
     global.project = store.project // DEBUG
     await store.project.load()
     store.selectFile()
@@ -88,10 +89,12 @@ export const store = createStore({
     const { project } = store
     const pref = `selectedFileFor:${project.path}`
     if (!filePath) filePath = getPref(pref)
-    if (!project.getFile(filePath)) filePath = project.activeImports[0]?.path || project.files[0]?.path
+    if (!filePath || !project.getFile(filePath)) {
+      filePath = project.activeImports[0]?.path || project.files[0]?.path || ""
+    }
     setPref(pref, filePath)
     if (filePath) {
-      store.file = store.project.getFile(filePath)
+      store.file = project.getFile(filePath)
       global.file = store.file // DEBUG
       await store.reloadFile()
     } else {
@@ -135,7 +138,7 @@ export const store = createStore({
   async renameFile(newPath) {
     store.clearCompileSoon()
     try {
-      const renamedFile = store.project.renameFile(store.file.filePath, newPath)
+      const renamedFile = await store.project.renameFile(store.file.filePath, newPath)
       if (renamedFile) {
         store.selectFile(renamedFile.path)
         store.showNotice("File renamed.")
@@ -158,9 +161,9 @@ export const store = createStore({
   },
   async compile() {
     if (!store.project || !store.file) return
-    console.group("Compiling", store.project)
-    store.clearCompileSoon()
     try {
+      console.group("Compiling", store.project)
+      store.clearCompileSoon()
       await store.project.compile()
       store.setScrollOffset()
       store.project.executeCompiled()

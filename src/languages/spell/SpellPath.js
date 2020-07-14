@@ -165,7 +165,10 @@ export class SpellPath {
    */
   static getFilePath(projectId, filePath) {
     let fullPath = projectId
-    if (typeof filePath === "string") fullPath += filePath?.startsWith?.("/") ? filePath : `/${filePath}`
+    if (typeof filePath === "string") {
+      if (filePath.startsWith("@")) fullPath = filePath
+      else fullPath += filePath.startsWith("/") ? filePath : `/${filePath}`
+    }
     const path = new SpellPath(fullPath)
     if (!path.isFilePath) throw new TypeError(`XYou must pass a valid filePath, got '${filePath}': ${fullPath}`)
     return path

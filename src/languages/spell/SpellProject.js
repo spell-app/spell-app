@@ -267,22 +267,22 @@ export class SpellProject extends JSON5File {
    * Returns `[]` if not loaded or index is malformed.
    *
    * Returned objects will have:
-   *  - `path` string
+   *  - `path` full path string
    *  - `active` boolean, `true` if the file should be included in compilation
    *  - `location` as SpellPath for its `path`
    *  - `file` as pointer to `SpellFile` (etc) for its `path`
-   *  - `created` as created timestamp
-   *  - `modified` as last modified timestamp
-   *  - `size` as file size in bytes
    */
   @memoizeForProp("contents")
   get imports() {
     if (!this.contents?.imports) return []
-    const { manifest } = this
-    return this.contents.imports.map((item) => {
-      const { file, location } = manifest[item.path]
-      // NOTE: order below is deliberate for debugging
-      return { ...item, file, location }
+    return this.contents.imports.map(({ path, active }) => {
+      const location = SpellPath.getFilePath(this.projectId, path)
+      return {
+        path: location.path,
+        active,
+        location,
+        file: SpellProject.getFileForPath(location.path)
+      }
     })
   }
 
@@ -380,19 +380,20 @@ export class SpellProject extends JSON5File {
     await this.load()
     if (this.getFile(filePath)) throw new TypeError(`createFile(): file '${filePath} already exists.`)
 
-    // Tell the server to create the file
-    await $fetch({
+    // Tell the server to create the file, which returns updated index
+    const newIndex = await $fetch({
       url: `/api/projects/create/file`,
       contents: {
         projectId: this.projectId,
         filePath,
         contents: contents ?? `## This space intentionally left blank`
       },
-      requestFormat: "json"
+      requestFormat: "json",
+      format: "json"
     })
+    this.setContents(newIndex)
 
-    // Reload the project and return the file
-    await this.reload()
+    // Return the file
     return this.getFile(filePath, REQUIRED, `createFile(): server didn't create file '${filePath}'.`)
   }
 
@@ -415,28 +416,35 @@ export class SpellProject extends JSON5File {
     await this.load()
     const file = this.getFile(filePath, REQUIRED, `renameFile(): file '${filePath}' does not exist.`)
 
-    if (!newFilePath) newFilePath = prompt("New name for the file?", file.file)
-    if (!newFilePath) return undefined
+    if (!newFilePath) {
+      const filename = prompt("New name for the file?", file.file)
+      if (!filename) return undefined
+      newFilePath = SpellPath.getFilePath(this.projectId, filename).filePath
+    }
     if (this.getFile(newFilePath)) throw new TypeError(`renameFile(): file '${newFilePath} already exists.`)
 
-    // Tell the server to create the file
-    await $fetch({
+    // Tell the server to rename the file, which returns the updated index.
+    const newIndex = await $fetch({
       url: `/api/projects/rename/file`,
       contents: {
         projectId: this.projectId,
         filePath,
         newFilePath
       },
-      requestFormat: "json"
+      requestFormat: "json",
+      format: "json"
     })
-    // Reload the project and return the new file
-    await this.reload()
+    this.setContents(newIndex)
+    // Have the file clean itself up in a tick
+    // (doing it immediately causes react to barf)
+    setTimeout(() => file.onRemove(), 10)
+    // return the new file
     return this.getFile(newFilePath, REQUIRED, `renameFile(): server didn't create '${newFilePath}'.`)
   }
 
   /**
    * Remove an existing file from the project.
-   * Returns `true` on success, `undefined` if cancelled or throws on error.
+   * Returns `true` on success, `undefined` if cancelled, or throws on error.
    */
   async removeFile(filePath, shouldConfirm) {
     await this.load()
@@ -445,22 +453,24 @@ export class SpellProject extends JSON5File {
       if (!confirm(`Really remove file '${file.file}'?`)) return undefined
     }
 
-    // Tell the server to delete the file
-    await $fetch({
+    // console.warn("before:", { activeImports: this.activeImports })
+    // Tell the server to delete the file, which returns the updated index.
+    const newIndex = await $fetch({
       url: `/api/projects/remove/file`,
       method: "DELETE",
       contents: {
         projectId: this.projectId,
         filePath
       },
-      requestFormat: "json"
+      requestFormat: "json",
+      format: "json"
     })
-    // Have the file clean itself up
-    file.onRemove()
-
-    // reload the file list and make sure the file is no longer available
-    await this.reload()
+    this.setContents(newIndex)
+    // throw if file is still found
     if (this.getFile(filePath)) throw new TypeError(`removeFile('${filePath}'): server didn't delete the file.`)
+    // Have the file clean itself up in a tick
+    // (doing it immediately causes react to barf)
+    setTimeout(() => file.onRemove(), 10)
     return true
   }
 }
