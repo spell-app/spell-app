@@ -256,26 +256,26 @@ export const SpellEditor = view(function SpellEditor() {
           </Col>
         </Row>
         <Row id="topRow" noGutters>
-          <Col xs={6} className="p-2">
-            <div className="rounded shadow-sm border">
+          <Col xs={6} className="pl-2 pr-2 pb-2">
+            <div className="SpellEditorPanel rounded shadow-sm border">
               <InputEditor />
             </div>
           </Col>
-          <Col xs={6} className="pt-2 pr-2 pb-2">
-            <div className="rounded shadow-sm border">
+          <Col xs={6} className="pr-2 pb-2">
+            <div className="SpellEditorPanel rounded shadow-sm border">
               <ASTViewer scroll ast={store.file?.AST} match={store.file?.match} inputOffset={store.inputOffset} />
             </div>
           </Col>
         </Row>
         <Row id="bottomRow" noGutters>
           <Col xs={6} className="pl-2 pr-2 pb-2">
-            <div className="rounded shadow-sm border">
+            <div className="SpellEditorPanel rounded shadow-sm border">
               {/* <MatchViewer scroll match={store.file?.match} inputOffset={store.inputOffset} /> */}
               {AppContainer}
             </div>
           </Col>
           <Col xs={6} className="pr-2 pb-2">
-            <div className="rounded shadow-sm border">
+            <div className="SpellEditorPanel rounded shadow-sm border">
               <MatchViewer scroll match={store.file?.match} inputOffset={store.inputOffset} />
               {/* <OutputEditor /> */}
             </div>
