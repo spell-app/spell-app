@@ -2,11 +2,12 @@ import global from "global"
 // import { observable, computed } from "mobx"
 
 import {
-  LoadableManager,
+  JSON5File,
   state,
   forward,
   memoize,
   writeOnce,
+  memoizeForProp,
   $fetch,
   OPTIONAL,
   REQUIRED,
@@ -15,15 +16,7 @@ import {
   Task
 } from "~/util"
 import { ProjectScope } from "~/parser"
-import {
-  spellCore,
-  SpellParser,
-  SpellPath,
-  SpellProjectManifest,
-  SpellProjectIndex,
-  SpellFile,
-  SpellCSSFile
-} from "~/languages/spell"
+import { spellCore, SpellParser, SpellPath, SpellFile, SpellCSSFile } from "~/languages/spell"
 
 /**
  * Controller for a `SpellProject`.
@@ -31,7 +24,7 @@ import {
  * Note that these are singleton instances --
  * you'll always get the same object back for a given `path`.
  */
-export class SpellProject extends LoadableManager {
+export class SpellProject extends JSON5File {
   /** Registry of known instances. */
   static registry = new Map()
   constructor(path) {
@@ -49,8 +42,8 @@ export class SpellProject extends LoadableManager {
   /** We've been removed from the server -- clean up memory, etc.. */
   onRemove() {
     super.onRemove()
-    this.manifest.onRemove()
-    this.index.onRemove()
+    // eslint-disable-next-line no-unused-expressions
+    this.files.forEach((file) => file.onRemove())
     SpellProject.registry.clear(this.path)
   }
 
@@ -193,7 +186,7 @@ export class SpellProject extends LoadableManager {
     console.groupCollapsed("javascript")
     const lines = compiled
       .split("\n")
-      .map((line, index) => `${index}`.padStart(4, " ") + `  ${line}`)
+      .map((line, lineNum) => `${lineNum}`.padStart(4, " ") + `  ${line}`)
       .join("\n")
     console.info(lines)
     console.groupEnd()
@@ -224,36 +217,69 @@ export class SpellProject extends LoadableManager {
    * Have all of our files `resetCompiled()` so they'll compile again.
    */
   updatedContentsFor(file) {
-    this.activeImports.forEach((it) => it.resetCompiled())
+    this.activeImports.forEach((file) => file.resetCompiled())
   }
 
   //-----------------
-  //  Loading
+  //  Loading / contents
   //-----------------
 
+  /** Derive `url` from our path if not explicitly set. */
+  get url() {
+    return `/api/projects/index/${this.projectId}`
+  }
+
   /**
-   * Return our manifest file.
-   * Also `spellProject.filePaths` and `spellProject.files`.
+   * Return the `manifest` map from our `contents`.
+   * Returned objects will also have `path` and `file` pointer to `SpellFile` (etc) for that path.
+   * Returns `{}` if not loaded or index is malformed.
    */
-  @forward("filePaths", "files")
-  @memoize
+  @memoizeForProp("contents")
   get manifest() {
-    return new SpellProjectManifest(this.path)
+    if (!this.contents?.manifest) return {}
+    for (const [path, entry] of Object.entries(this.contents.manifest)) {
+      entry.path = path
+      entry.file = SpellProject.getFileForPath(path)
+    }
+    return this.contents.manifest
   }
 
   /**
-   * Return our index file.
-   * Also `spellProject.imports` and `spellProject.activeImports` to import setup.
+   * Return paths of usable files from our mainfest.
+   * Returns `[]` if we're not loaded or index is malformed.
    */
-  @forward("imports", "activeImports")
-  @memoize
-  get index() {
-    return new SpellProjectIndex(this.path)
+  @memoizeForProp("manifest")
+  get filePaths() {
+    return Object.keys(this.manifest)
   }
 
-  /** Return the files we load automatically when we load.  */
-  get loadables() {
-    return [this.manifest, this.index]
+  /**
+   * Return pointers to all `SpellFiles` in our mainfest.
+   * Returns `[]` if we're not loaded.
+   */
+  @memoizeForProp("filePaths")
+  get files() {
+    return this.filePaths.map(SpellProject.getFileForPath)
+  }
+
+  /**
+   * Return the full `imports` list from our `contents`, including inactive items.
+   * Returns `[]` if not loaded or index is malformed.
+   */
+  @memoizeForProp("contents")
+  get imports() {
+    return this.contents?.imports || []
+  }
+
+  /**
+   * Return array of `SpellFile` (etc) objects from our active imports.
+   * Returns `[]` if we're not loaded or index is malformed.
+   */
+  @memoizeForProp("imports")
+  get activeImports() {
+    return this.imports //
+      .filter((item) => item.active)
+      .map((item) => SpellProject.getFileForPath(item.path))
   }
 
   //-----------------
@@ -287,6 +313,24 @@ export class SpellProject extends LoadableManager {
       if (!path.isFilePath) throw new TypeError(`getFilePath(): must be a file path.`)
       return path
     }
+    throw new TypeError(`getFilePath(): typeof path not understood: '${path}'.`)
+  }
+
+  /**
+   * Synchronously return manifest `info` for a file specified by `filePath`.
+   * `filePath` can be any of:
+   * - `fullPath`, e.g. `@user:projects:project/file.spell`
+   * - `filePath`, e.g. `file.spell` or `/file.spell`
+   * - `SpellPath` for a file
+   *
+   * Returns `undefined` if file not found or manifest is not loaded.
+   * Pass `required = REQUIRED` to throw if not found.
+   */
+  getFileInfo(filePath, required = OPTIONAL, message = `File '${filePath}' not found`) {
+    const { path } = this.getFilePath(filePath)
+    const fileInfo = this.manifest[path]
+    if (!fileInfo && required === REQUIRED) throw new TypeError(message)
+    return fileInfo
   }
 
   /**
@@ -299,25 +343,9 @@ export class SpellProject extends LoadableManager {
    * Returns `undefined` if file not found or manifest is not loaded.
    * Pass `required = REQUIRED` to throw if not found.
    */
-  getFile(filePath, required = OPTIONAL, message = `getFile('${filePath}'): file not found.`) {
-    const path = this.getFilePath(filePath)
-    const file = path && this.files?.find((f) => f.path === path.path)
-    if (!file && required === REQUIRED) throw new TypeError(message)
-    return file
-  }
-
-  /**
-   * Synchronously return manifest `info` for a file specified by `filePath`.
-   * either as a SpellPath or local `filePath`.
-   *
-   * Returns `undefined` if file not found or manifest is not loaded.
-   * Pass `required = REQUIRED` to throw if not found.
-   */
-  getFileInfo(filePath, required = OPTIONAL) {
-    const { path } = this.getFilePath(filePath)
-    const fileInfo = this.manifest.contents.files?.find((f) => f.path === path)
-    if (!fileInfo && required === REQUIRED) throw new TypeError(`spellProject.getFileInfo("${path}"): file not found.`)
-    return fileInfo
+  getFile(filePath, required = OPTIONAL, message) {
+    const info = this.getFileInfo(filePath, required, message)
+    return info?.file
   }
 
   /** Asynchronously load file by `path` (or `filename` if path doesn't start with `@`). */
