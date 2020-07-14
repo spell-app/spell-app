@@ -68,9 +68,9 @@ const FileMenu = view(function () {
   if (!project || !file) return <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
   return (
     <NavDropdown key={file.path} title={file.file} id="FileMenu" style={{ width: "12em" }}>
-      {project.filePaths.map((path) => (
+      {project.imports.map(({ path, location }) => (
         <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectFile}>
-          {new SpellPath(path).file}
+          {location.file}
         </NavDropdown.Item>
       ))}
     </NavDropdown>

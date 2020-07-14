@@ -88,11 +88,15 @@ export const store = createStore({
     const { project } = store
     const pref = `selectedFileFor:${project.path}`
     if (!filePath) filePath = getPref(pref)
-    if (!project.filePaths.includes(filePath)) filePath = project.filePaths[0]
+    if (!project.getFile(filePath)) filePath = project.activeImports[0]?.path || project.files[0]?.path
     setPref(pref, filePath)
-    store.file = store.project.getFile(filePath)
-    global.file = store.file // DEBUG
-    await store.reloadFile()
+    if (filePath) {
+      store.file = store.project.getFile(filePath)
+      global.file = store.file // DEBUG
+      await store.reloadFile()
+    } else {
+      console.error("TODO: show UI when no files in project!")
+    }
   },
   async saveFile() {
     if (store.file?.isLoaded) await store.file.save()

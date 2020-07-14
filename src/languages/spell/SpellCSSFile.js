@@ -1,5 +1,3 @@
-import global from "global"
-
 import { TextFile, proto, memoize, forward, writeOnce, overrideable, state } from "~/util"
 import { Token } from "~/parser"
 import { SpellPath, SpellProject } from "~/languages/spell"
@@ -44,23 +42,22 @@ export class SpellCSSFile extends TextFile {
   get location() {
     return new SpellPath(this.path)
   }
-  @memoize get project() {
+
+  /**
+   * Pointer to our `SpellProject`.
+   */
+  @memoize
+  get project() {
     return new SpellProject(this.projectId)
   }
 
   /**
-   * Return our `created` time according to the server as a timestamp.
+   * Return our `info` record according to the project manifest.
+   * Note that `modified` and `size` may be out of sync if we've been modified on the client.
    */
-  get created() {
-    return this.project.getFileInfo(this.path).created
-  }
-
-  /**
-   * Return our `modified` time according to the server as a timestamp.
-   * NOTE: this may be out of sync if we've been modified on the client.
-   */
-  get modified() {
-    return this.project.getFileInfo(this.path).modified
+  @forward("created", "modified", "size")
+  get info() {
+    return this.project.getFileInfo(this.path)
   }
 
   //-----------------

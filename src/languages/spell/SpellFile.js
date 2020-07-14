@@ -37,29 +37,30 @@ export class SpellFile extends TextFile {
    */
   @writeOnce path
 
-  /** `location` object which we can use to get various bits of the path. */
+  /**
+   * Return `location` object as a SpellPath which we use to get various bits of our `path`.
+   */
   @forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")
   @memoize
   get location() {
     return new SpellPath(this.path)
   }
-  @memoize get project() {
+
+  /**
+   * Pointer to our `SpellProject`.
+   */
+  @memoize
+  get project() {
     return new SpellProject(this.projectId)
   }
 
   /**
-   * Return our `created` time according to the server as a timestamp.
+   * Return our `info` record according to the project manifest.
+   * Note that `modified` and `size` may be out of sync if we've been modified on the client.
    */
-  get created() {
-    return this.project.getFileInfo(this.path).created
-  }
-
-  /**
-   * Return our `modified` time according to the server as a timestamp.
-   * NOTE: this may be out of sync if we've been modified on the client.
-   */
-  get modified() {
-    return this.project.getFileInfo(this.path).modified
+  @forward("created", "modified", "size")
+  get info() {
+    return this.project.getFileInfo(this.path)
   }
 
   //-----------------

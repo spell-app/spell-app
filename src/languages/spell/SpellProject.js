@@ -217,7 +217,7 @@ export class SpellProject extends JSON5File {
    * Have all of our files `resetCompiled()` so they'll compile again.
    */
   updatedContentsFor(file) {
-    this.activeImports.forEach((file) => file.resetCompiled())
+    this.activeImports.forEach((item) => item.resetCompiled())
   }
 
   //-----------------
@@ -231,55 +231,71 @@ export class SpellProject extends JSON5File {
 
   /**
    * Return the `manifest` map from our `contents`.
-   * Returned objects will also have `path` and `file` pointer to `SpellFile` (etc) for that path.
    * Returns `{}` if not loaded or index is malformed.
+   *
+   * Returned objects will have:
+   *  - `path` string
+   *  - `location` as SpellPath for its `path`
+   *  - `file` as pointer to `SpellFile` (etc) for its `path`
+   *  - `created` as created timestamp
+   *  - `modified` as last modified timestamp
+   *  - `size` as file size in bytes
    */
   @memoizeForProp("contents")
   get manifest() {
     if (!this.contents?.manifest) return {}
-    for (const [path, entry] of Object.entries(this.contents.manifest)) {
+    // add useful stuff to manifest entries
+    Object.entries(this.contents.manifest).forEach(([path, entry]) => {
       entry.path = path
+      entry.location = new SpellPath(path)
       entry.file = SpellProject.getFileForPath(path)
-    }
+    })
     return this.contents.manifest
-  }
-
-  /**
-   * Return paths of usable files from our mainfest.
-   * Returns `[]` if we're not loaded or index is malformed.
-   */
-  @memoizeForProp("manifest")
-  get filePaths() {
-    return Object.keys(this.manifest)
   }
 
   /**
    * Return pointers to all `SpellFiles` in our mainfest.
    * Returns `[]` if we're not loaded.
    */
-  @memoizeForProp("filePaths")
+  @memoizeForProp("contents")
   get files() {
-    return this.filePaths.map(SpellProject.getFileForPath)
+    return Object.values(this.manifest).map((item) => item.file)
   }
 
   /**
-   * Return the full `imports` list from our `contents`, including inactive items.
+   * Return the full ordered `imports` list from our `contents`, including inactive items.
    * Returns `[]` if not loaded or index is malformed.
+   *
+   * Returned objects will have:
+   *  - `path` string
+   *  - `active` boolean, `true` if the file should be included in compilation
+   *  - `location` as SpellPath for its `path`
+   *  - `file` as pointer to `SpellFile` (etc) for its `path`
+   *  - `created` as created timestamp
+   *  - `modified` as last modified timestamp
+   *  - `size` as file size in bytes
    */
   @memoizeForProp("contents")
   get imports() {
-    return this.contents?.imports || []
+    if (!this.contents?.imports) return []
+    const { manifest } = this
+    return this.contents.imports.map((item) => {
+      const { file, location } = manifest[item.path]
+      // NOTE: order below is deliberate for debugging
+      return { ...item, file, location }
+    })
   }
 
   /**
-   * Return array of `SpellFile` (etc) objects from our active imports.
+   * Return array of `SpellFile` (etc) objects from our `active` imports.
    * Returns `[]` if we're not loaded or index is malformed.
    */
-  @memoizeForProp("imports")
+  @memoizeForProp("contents")
   get activeImports() {
+    const { manifest } = this
     return this.imports //
       .filter((item) => item.active)
-      .map((item) => SpellProject.getFileForPath(item.path))
+      .map((item) => manifest[item.path]?.file)
   }
 
   //-----------------
@@ -295,7 +311,7 @@ export class SpellProject extends JSON5File {
   }
 
   /**
-   * Give a `path`as:
+   * Given a `path`as:
    * - `fullPath`, e.g. `@user:projects:project/file.spell`
    * - `filePath`, e.g. `file.spell` or `/file.spell`
    * - `SpellPath` for a file
@@ -346,12 +362,6 @@ export class SpellProject extends JSON5File {
   getFile(filePath, required = OPTIONAL, message) {
     const info = this.getFileInfo(filePath, required, message)
     return info?.file
-  }
-
-  /** Asynchronously load file by `path` (or `filename` if path doesn't start with `@`). */
-  async loadFile(path) {
-    await this.load()
-    return this.getFile(path, REQUIRED).load()
   }
 
   //-----------------
