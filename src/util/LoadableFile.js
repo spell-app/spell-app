@@ -70,7 +70,7 @@ export class LoadableFile extends Loadable {
   getSaver(params) {
     const { url, contents = this.defaultContents, format, saveParams } = this
     const $params = merge$fetchParms({ url, contents, format }, saveParams, params)
-    return $fetch($params).then(result => {
+    return $fetch($params).then((result) => {
       if (this.autoUpdateContentsOnSave && this.contents !== $params.contents) {
         this.contents = $params.contents
       }
@@ -79,10 +79,7 @@ export class LoadableFile extends Loadable {
 
   /** Return url extension, if any. */
   @overrideable get extension() {
-    const url = this.url
-      .toLowerCase()
-      .split("?")[0]
-      .split("#")[0]
+    const url = this.url.toLowerCase().split("?")[0].split("#")[0]
     const index = url.lastIndexOf(".")
     if (index === -1) return undefined
     return url.slice(index + 1)
@@ -94,13 +91,7 @@ export class LoadableFile extends Loadable {
  */
 
 /** Loadable text file. */
-export class TextFile extends LoadableFile {
-  /** If you call `save(<text>)` we'll use those as the `contents`. */
-  getSaver(params) {
-    if (typeof params === "string") params = { contents: params }
-    return super.getSaver(params)
-  }
-}
+export class TextFile extends LoadableFile {}
 
 /** Loadable JSON file. */
 export class JSONFile extends TextFile {

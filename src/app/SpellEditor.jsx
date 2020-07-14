@@ -41,21 +41,29 @@ const ProjectMenu = view(function () {
     <NavDropdown key={project.path} title={project.projectName} id="ProjectMenu" style={{ width: "12em" }}>
       {projectRoot.projectPaths.map((path) => (
         <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectProject}>
-          <ion-icon name="briefcase-outline" size="medium" /> {new SpellPath(path).projectName}
+          <i className="large folder outline icon" />
+          {new SpellPath(path).projectName}
         </NavDropdown.Item>
       ))}
       <NavDropdown.Divider />
       <NavDropdown.Item key="create" onSelect={bound.createProject}>
-        <ion-icon name="create-outline" size="medium" /> New Project
+        <i className="large icons">
+          <i className="folder outline icon" />
+          <i className="small inverted corner plus icon" />
+        </i>
+        {"New Project"}
       </NavDropdown.Item>
       <NavDropdown.Item key="duplicate" onSelect={bound.duplicateProject}>
-        <ion-icon name="duplicate-outline" size="medium" /> Duplicate Project
+        <i className="large clone outline icon" />
+        {"Duplicate Project"}
       </NavDropdown.Item>
       <NavDropdown.Item key="rename" onSelect={bound.renameProject}>
-        <ion-icon name="git-branch-outline" size="medium" /> Rename Project
+        <i className="large edit outline icon" />
+        {"Rename Project"}
       </NavDropdown.Item>
       <NavDropdown.Item key="delete" onSelect={bound.removeProject}>
-        <ion-icon name="trash-outline" size="medium" /> Delete Project
+        <i className="large trash alternate outline icon" />
+        {"Delete Project"}
       </NavDropdown.Item>
     </NavDropdown>
   )
@@ -95,7 +103,7 @@ const EditorToolbar = view(function EditorToolbar() {
     }
   })
   return (
-    <Navbar bg="dark" variant="dark" className="py-0">
+    <Navbar bg="dark" variant="dark">
       <Nav>
         <NavLink disabled>Project:</NavLink>
         <ProjectMenu />
@@ -105,26 +113,36 @@ const EditorToolbar = view(function EditorToolbar() {
         <Navbar.Collapse id="navbar-buttons" className="ml-2">
           <Nav>
             <Button variant={fileNeedsCompilation ? "primary" : "dark"} onClick={bound.compile}>
-              <ion-icon name="chevron-forward-outline" size="medium" /> Compile
+              <i className="large chevron circle right icon" />
+              {"Compile"}
             </Button>
             <Button variant={fileIsDirty ? "success" : "dark"} onClick={bound.saveFile}>
-              <ion-icon name="cloud-upload-outline" size="medium" /> Save
+              <i className="large cloud upload icon" />
+              {"Save"}
             </Button>
             <Button variant={fileIsDirty ? "danger" : "dark"} onClick={bound.reloadFile}>
-              <ion-icon name="reload-outline" size="medium" /> Revert
+              <i className="large cloud download icon" />
+              {"Revert"}
             </Button>
-            <Nav.Link onClick={bound.createFile}>
-              <ion-icon name="create-outline" size="medium" /> New File
-            </Nav.Link>
-            <Nav.Link onClick={bound.duplicateFile}>
-              <ion-icon name="duplicate-outline" size="medium" /> Duplicate
-            </Nav.Link>
-            <Nav.Link onClick={bound.renameFile}>
-              <ion-icon name="git-branch-outline" size="medium" /> Rename
-            </Nav.Link>
-            <Nav.Link onClick={bound.removeFile}>
-              <ion-icon name="trash-outline" size="medium" /> Delete
-            </Nav.Link>
+            <Button variant="dark" onClick={bound.createFile}>
+              <i className="large icons">
+                <i className="file outline icon" />
+                <i className="small inverted corner plus icon" />
+              </i>
+              {"New File"}
+            </Button>
+            <Button variant="dark" onClick={bound.duplicateFile}>
+              <i className="large clone outline icon" />
+              {"Duplicate"}
+            </Button>
+            <Button variant="dark" onClick={bound.renameFile}>
+              <i className="large edit outline icon" />
+              {"Rename"}
+            </Button>
+            <Button variant="dark" onClick={bound.removeFile}>
+              <i className="large trash alternate outline icon" />
+              {"Delete"}
+            </Button>
           </Nav>
         </Navbar.Collapse>
       </Nav>
@@ -194,7 +212,7 @@ const Notice = view(function Notice() {
     <div style={{ position: "fixed", bottom: 20, left: "calc(50% - 250px)", width: 500, zIndex: 100 }}>
       <Toast autohide onClose={store.hideNotice} style={{ maxWidth: "100%", background: "green", color: "white" }}>
         <Toast.Header>
-          <ion-icon name="checkmark-circle-outline" size="medium" />
+          <i className="large check circle outline icon" />
           <div style={{ marginLeft: "0.25em", marginRight: "auto", fontSize: "1.5em", fontWeight: "bold" }}>
             {message}
           </div>
@@ -221,7 +239,7 @@ const Error = view(function Error() {
     <div style={{ position: "fixed", top: 60, left: "calc(50% - 250px)", width: 500, zIndex: 100 }}>
       <Toast autohide onClose={store.hideError} style={{ maxWidth: "100%", background: "red", color: "white" }}>
         <Toast.Header>
-          <ion-icon name="warning-outline" size="medium" />
+          <i className="large exclamation triangle icon" />
           <div style={{ marginLeft: "0.25em", marginRight: "auto", fontSize: "1.5em", fontWeight: "bold" }}>
             {header}
           </div>
@@ -255,26 +273,26 @@ export const SpellEditor = view(function SpellEditor() {
             <EditorToolbar />
           </Col>
         </Row>
-        <Row id="topRow" noGutters>
-          <Col xs={6} className="pl-2 pr-2 pb-2">
+        <Row id="topRow" noGutters className="p-1">
+          <Col xs={6} className="">
             <div className="SpellEditorPanel rounded shadow-sm border">
               <InputEditor />
             </div>
           </Col>
-          <Col xs={6} className="pr-2 pb-2">
+          <Col xs={6} className="pl-2">
             <div className="SpellEditorPanel rounded shadow-sm border">
               <ASTViewer scroll ast={store.file?.AST} match={store.file?.match} inputOffset={store.inputOffset} />
             </div>
           </Col>
         </Row>
-        <Row id="bottomRow" noGutters>
-          <Col xs={6} className="pl-2 pr-2 pb-2">
+        <Row id="bottomRow" noGutters className="p-1">
+          <Col xs={6} className="">
             <div className="SpellEditorPanel rounded shadow-sm border">
               {/* <MatchViewer scroll match={store.file?.match} inputOffset={store.inputOffset} /> */}
               {AppContainer}
             </div>
           </Col>
-          <Col xs={6} className="pr-2 pb-2">
+          <Col xs={6} className="pl-2">
             <div className="SpellEditorPanel rounded shadow-sm border">
               <MatchViewer scroll match={store.file?.match} inputOffset={store.inputOffset} />
               {/* <OutputEditor /> */}

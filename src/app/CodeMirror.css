@@ -27,14 +27,3 @@
   border-width: 0px 1px 1px 0px;
   margin-right: 3px;
 }
-
-ion-icon[size=medium] {
-  display: inline-block !important;
-  width: 24px;
-  height:24px;
-  vertical-align: bottom;
-}
-a > ion-icon[size=medium],
-  button > ion-icon[size=medium] {
-  margin: 0 5px;
-}

@@ -1,6 +1,6 @@
-@toolbar-height: 40px;
+@toolbar-height: 45px;
 @top-height: 50vh;
-@bottom-height: calc(100vh - @top-height - @toolbar-height);
+@bottom-height: calc(100vh - @top-height - @toolbar-height - 2px);
 
 .SpellEditor {
  height: 100vh; 
@@ -37,6 +37,25 @@
   height: @bottom-height;
 }
 
+.SpellEditor .btn,
+  .SpellEditor .dropdown-item {
+  & > i.icons,
+  & > i.icon {
+    line-height: 1em;
+    margin-right: 0.4em;
+  }
+}
+
+i.icons {
+  .left.corner.icon {
+    left: 0;
+  }
+}
+
+.SpellEditor .navbar-dark .navbar-nav .nav-link:hover {
+  color: white;
+}
+
 #SpellEditor-CompileButton {
   position: absolute;
   top: 100px;
@@ -44,3 +63,4 @@
   width: 5em;
   z-index: 2;
 }
+
