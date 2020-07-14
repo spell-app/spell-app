@@ -1,0 +1,205 @@
+import global from "global"
+import { DIE_SILENTLY } from "../../util/constants"
+import { spellSetup } from "./projectSetup"
+/**
+ * IMPORTANT: this file MUST NOT import from anything other than `spellSetup`
+ * as it is used by the server, and we don't want to pull all of that crap in!
+ */
+
+/**
+ * Return `true` if the path `segment` passed in is "valid".
+ * TODO: enhance with regex?
+ */
+const LEGAL_SEGMENT_PATTERN = /^[\w\d-$. ]+$/
+const SEGMENT_BLACKLIST = [".", ".."]
+export function isValidPathSegment(segment) {
+  return typeof segment === "string" && !SEGMENT_BLACKLIST.includes(segment) && LEGAL_SEGMENT_PATTERN.test(segment)
+}
+/**
+ * Return `true` if the `/`-delimited `path` passed in is "valid", ignoring any empty spots.
+ */
+export function isValid(path) {
+  return typeof path === "string" && path.split("/").filter(Boolean).every(isValidPathSegment)
+}
+
+/**
+ * Encapsulate a Spell File's `path` so we can get the various bits quickly and easily.
+ * This is roughly analagous to the `window.location` object in the browser.
+ *
+ * Call as `new SpellLocation("/some/path")`.
+ * These are immutable objects, and are stored in a registry.
+ * Doing this repeatedly with the same `path` will always return the same object.
+ *
+ * It is impossible to make a `SpellLocation` with an invalid path --
+ * if you pass an invalid path you'll get `undefined` back.
+ *
+ * Use `.isDomainPath`, `.isProjectPath` or `.isFilePath` to figure the path type.
+ *
+ * Legal paths are in the form:
+ *  `@owner:domain:projectName/folder/folder/fileName.extension`
+ *
+ * which corresponds to
+ *  - `isValid`     `true`
+ *  - `projectId`   `@owner:domain:projectName`
+ *  - `domainPath`  `@owner:domain`
+ *  - `owner`       `@owner`
+ *  - `domain`      `domain`
+ *  - `projectName` `projectName`                       (`undefined` if `isDomainPath`)
+ *  - `filePath`    `/folder/folder/fileName.extension` (`undefined` if not `.isFilePath`)
+ *  - `folder`      `/folder/folder/`                   (`undefined` if not `.isFilePath`)
+ *  - `file`        `fileName.extension`                (`undefined` if not `.isFilePath` )
+ *  - `fileName`    `fileName`                          (`undefined` if not `.isFilePath` )
+ *  - `extension`   `.extension`                        (`undefined` if not `.isFilePath` )
+ */
+export class SpellLocation {
+  /** Registry of known instances. */
+  static registry = new Map()
+
+  /** Set to `false` to ignore registry (e.g. on the server). */
+  static useRegistry = true
+
+  constructor(path) {
+    // Throw if we `path` is not a string.
+    if (typeof path !== "string" || !path) {
+      throw new TypeError(`new SpellLocation('${path}'): Path must be a string.`)
+    }
+
+    // Return from registry if present, add if not.
+    if (SpellLocation.useRegistry) {
+      const existing = SpellLocation.registry.get(path)
+      if (existing) return existing
+    }
+
+    this.path = path
+
+    // Figure out out bits
+    const [projectId, ...filePath] = path.split("/")
+    const [owner, domain, projectName] = projectId.split(":")
+    const file = filePath.pop()
+    this.projectId = projectId
+    this.owner = owner
+    this.domain = domain
+    this.projectName = projectName
+    if (file !== undefined || filePath.length) {
+      this.folder = filePath.length ? `/${filePath.join("/")}/` : "/"
+      this.file = file || undefined
+      this.filePath = `${this.folder}${file || ""}`
+      const [fileName, ...extension] = file.split(".")
+      this.fileName = file.startsWith(".") ? `.${extension.shift() || ""}` : fileName
+      this.extension = extension.length ? `.${extension.join(".")}` : undefined
+    }
+
+    // Is this a valid path??  Let's take it in steps:
+    // 1. Does it match a `projectRoot` in `spellSetup`
+    const projectRoot = spellSetup.projectRoots[this.domain]
+    this.isValid = projectRoot && projectRoot.owner === this.owner && projectRoot.domain === this.domain
+    // 2. If it has a projectName, is that valid?
+    if (this.isValid && this.projectName) this.isValid = isValidPathSegment(this.projectName)
+    // 3. If it has a filePath, does it have a projectName and is the filePath all valid?
+    if (this.isValid && this.filePath) this.isValid = !!this.projectName && isValid(this.filePath)
+
+    // Bail if this is not a valid path!!!
+    if (!this.isValid) return undefined
+
+    // Add to registry
+    if (SpellLocation.useRegistry) SpellLocation.registry.set(path, this)
+  }
+
+  /**
+   * Is this a project DOMAIN path?
+   */
+  get isDomainPath() {
+    return !this.projectName && !this.folder && !this.filePath
+  }
+
+  /**
+   * Is this a project path?
+   */
+  get isProjectPath() {
+    return !this.folder && !this.file
+  }
+
+  /**
+   * Is this a folder path (with no file)?
+   */
+  get isFolderPath() {
+    return !!this.projectId && !!this.folder && !this.file
+  }
+
+  /**
+   * Is this a file path?
+   */
+  get isFilePath() {
+    return !!this.projectId && !!this.folder && !!this.file
+  }
+
+  /** Is this a system project? */
+  get isSystemProject() {
+    return this.owner === "@system"
+  }
+
+  /** Is this a user project? */
+  get isUserProject() {
+    return this.owner === "@user"
+  }
+
+  //-----------------
+  //  Syntactic sugar
+  //-----------------
+
+  /** `domainPath` as `@user:projects` or `@system:examples` */
+  get domainPath() {
+    return `${this.owner}:${this.domain}`
+  }
+
+  //-----------------
+  //  Syntactic sugar for working with paths.
+  //-----------------
+
+  /** Get a peer project, in the same domain as this one. */
+  getDomainProject(projectName) {
+    const projectPath = `${this.domainPath}:${projectName}`
+    return new SpellFile(projectPath)
+  }
+
+  //-----------------
+  //  Get a path of the specified type or throw on invalid path.
+  //-----------------
+
+  /**
+   * Get `SpellLocation` for the `domain` portion of any valid `path` string.
+   * Throws if you pass an invalid path.
+   */
+  static getDomainPath(path) {
+    const location = new SpellLocation(path)
+    return location.isDomainPath ? location : new SpellLocation(location.domainPath)
+  }
+
+  /**
+   * Get `SpellLocation` for the `projectId` portion of any valid `path` string.
+   * Throws if you pass an invalid path.
+   */
+  static getProjectPath(path) {
+    const location = new SpellLocation(path)
+    return location.isProjectPath ? location : new SpellLocation(location.projectId)
+  }
+
+  /**
+   * Get `SpellLocation` for a full file `path` or `projectId` and `filePath`.
+   *
+   * Note: unlike `getProjectPath` and `getDomainPath`,
+   *       this throws if it's not a valid FILE path.
+   */
+  static getFileLocation(projectId, filePath) {
+    let fullPath = projectId
+    if (typeof filePath === "string") {
+      if (filePath.startsWith("@")) fullPath = filePath
+      else fullPath += filePath.startsWith("/") ? filePath : `/${filePath}`
+    }
+    const path = new SpellLocation(fullPath)
+    if (!path.isFilePath) throw new TypeError(`You must pass a valid filePath, got '${filePath}': ${fullPath}`)
+    return path
+  }
+}
+
+global.SpellLocation = SpellLocation

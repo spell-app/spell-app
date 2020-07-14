@@ -67,9 +67,9 @@ export const store = createStore({
       store.showError(e)
     }
   },
-  async removeProject() {
+  async deleteProject() {
     try {
-      const removed = await store.projectRoot.removeProject(store.project.projectId, CONFIRM)
+      const removed = await store.projectRoot.deleteProject(store.project.projectId, CONFIRM)
       if (removed) {
         store.selectProject()
         store.showNotice("Project removed.")
@@ -151,10 +151,10 @@ export const store = createStore({
       store.showError(e)
     }
   },
-  async removeFile() {
+  async deleteFile() {
     store.clearCompileSoon()
     try {
-      const removed = await store.project.removeFile(store.file.filePath, CONFIRM)
+      const removed = await store.project.deleteFile(store.file.filePath, CONFIRM)
       if (removed) {
         store.selectFile()
         store.showNotice("File removed.")

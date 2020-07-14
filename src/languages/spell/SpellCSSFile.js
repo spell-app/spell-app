@@ -1,6 +1,6 @@
 import { TextFile, proto, memoize, forward, writeOnce, overrideable, state } from "~/util"
 import { Token } from "~/parser"
-import { SpellPath, SpellProject } from "~/languages/spell"
+import { SpellLocation, SpellProject } from "~/languages/spell"
 import { batch } from "../../util"
 
 /**
@@ -28,6 +28,7 @@ export class SpellCSSFile extends TextFile {
   onRemove() {
     super.onRemove()
     SpellCSSFile.registry.clear(this.path)
+    SpellLocation.registry.clear(this.path)
   }
 
   /**
@@ -40,7 +41,7 @@ export class SpellCSSFile extends TextFile {
   @forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")
   @memoize
   get location() {
-    return new SpellPath(this.path)
+    return new SpellLocation(this.path)
   }
 
   /**
@@ -52,10 +53,9 @@ export class SpellCSSFile extends TextFile {
   }
 
   /**
-   * Return our `info` record according to the project manifest.
+   * Return promise which yields our `info` record according to the project manifest.
    * Note that `modified` and `size` may be out of sync if we've been modified on the client.
    */
-  @forward("created", "modified", "size")
   get info() {
     return this.project.getFileInfo(this.path)
   }

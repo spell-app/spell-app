@@ -2,7 +2,7 @@ import global from "global"
 
 import { TextFile, state, proto, memoize, forward, writeOnce, overrideable, batch } from "~/util"
 import { ProjectScope, FileScope } from "~/parser"
-import { SpellProject, SpellParser, SpellPath } from "~/languages/spell"
+import { SpellProject, SpellParser, SpellLocation } from "~/languages/spell"
 
 /**
  * Loadable file of spell code located at `path`.
@@ -29,7 +29,7 @@ export class SpellFile extends TextFile {
   onRemove() {
     super.onRemove()
     SpellFile.registry.clear(this.path)
-    SpellPath.registry.clear(this.path)
+    SpellLocation.registry.clear(this.path)
   }
 
   /**
@@ -39,12 +39,12 @@ export class SpellFile extends TextFile {
   @writeOnce path
 
   /**
-   * Return `location` object as a SpellPath which we use to get various bits of our `path`.
+   * Return `location` object as a SpellLocation which we use to get various bits of our `path`.
    */
   @forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")
   @memoize
   get location() {
-    return new SpellPath(this.path)
+    return new SpellLocation(this.path)
   }
 
   /**
@@ -56,10 +56,9 @@ export class SpellFile extends TextFile {
   }
 
   /**
-   * Return our `info` record according to the project manifest.
+   * Return promise which yields our `info` record according to the project manifest.
    * Note that `modified` and `size` may be out of sync if we've been modified on the client.
    */
-  @forward("created", "modified", "size")
   get info() {
     return this.project.getFileInfo(this.path)
   }

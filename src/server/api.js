@@ -41,12 +41,12 @@ api.get("/projects/list/:domainId", projectUtils.request_getProjectList)
 api.post("/projects/create/project", projectUtils.request_createProject)
 api.post("/projects/rename/project", projectUtils.request_renameProject)
 api.post("/projects/duplicate/project", projectUtils.request_duplicateProject)
-api.delete("/projects/remove/project", projectUtils.request_removeProject)
+api.delete("/projects/remove/project", projectUtils.request_deleteProject)
 
 // working with project files
 api.post("/projects/create/file", projectUtils.request_createFile)
 api.post("/projects/rename/file", projectUtils.request_renameFile)
-api.delete("/projects/remove/file", projectUtils.request_removeFile)
+api.delete("/projects/remove/file", projectUtils.request_deleteFile)
 
 // returning project files
 api.get("/projects/index/:projectId", projectUtils.request_getIndex)

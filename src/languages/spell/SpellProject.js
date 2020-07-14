@@ -13,10 +13,11 @@ import {
   REQUIRED,
   CONFIRM,
   TaskList,
-  Task
+  Task,
+  getDier
 } from "~/util"
 import { ProjectScope } from "~/parser"
-import { spellCore, SpellParser, SpellPath, SpellFile, SpellCSSFile } from "~/languages/spell"
+import { spellCore, SpellParser, SpellLocation, SpellFile, SpellCSSFile } from "~/languages/spell"
 
 /**
  * Controller for a `SpellProject`.
@@ -67,7 +68,7 @@ export class SpellProject extends JSON5File {
   )
   @memoize
   get location() {
-    return new SpellPath(this.path)
+    return new SpellLocation(this.path)
   }
 
   //-----------------
@@ -230,12 +231,24 @@ export class SpellProject extends JSON5File {
   }
 
   /**
+   * Load our index if necesssary, calling `die()` if something goes wrong.
+   */
+  async loadOrDie(die) {
+    if (this.isLoaded) return
+    try {
+      this.load()
+    } catch (e) {
+      die("Error loading project index", e)
+    }
+  }
+
+  /**
    * Return the `manifest` map from our `contents`.
    * Returns `{}` if not loaded or index is malformed.
    *
    * Returned objects will have:
    *  - `path` string
-   *  - `location` as SpellPath for its `path`
+   *  - `location` as SpellLocation for its `path`
    *  - `file` as pointer to `SpellFile` (etc) for its `path`
    *  - `created` as created timestamp
    *  - `modified` as last modified timestamp
@@ -247,7 +260,7 @@ export class SpellProject extends JSON5File {
     // add useful stuff to manifest entries
     Object.entries(this.contents.manifest).forEach(([path, entry]) => {
       entry.path = path
-      entry.location = new SpellPath(path)
+      entry.location = new SpellLocation(path)
       entry.file = SpellProject.getFileForPath(path)
     })
     return this.contents.manifest
@@ -269,14 +282,14 @@ export class SpellProject extends JSON5File {
    * Returned objects will have:
    *  - `path` full path string
    *  - `active` boolean, `true` if the file should be included in compilation
-   *  - `location` as SpellPath for its `path`
+   *  - `location` as SpellLocation for its `path`
    *  - `file` as pointer to `SpellFile` (etc) for its `path`
    */
   @memoizeForProp("contents")
   get imports() {
     if (!this.contents?.imports) return []
     return this.contents.imports.map(({ path, active }) => {
-      const location = SpellPath.getFilePath(this.projectId, path)
+      const location = SpellLocation.getFileLocation(this.projectId, path)
       return {
         path: location.path,
         active,
@@ -304,9 +317,11 @@ export class SpellProject extends JSON5File {
 
   /** Given the `fullPath` to a file, return a `SpellFile` or `SpellCSSFile` etc. */
   static getFileForPath(fullPath) {
-    const path = new SpellPath(fullPath)
-    if (!path.isFilePath) throw new TypeError(`SpellProject.getFileForPath('${fullPath}'): path is not a file path.`)
-    if (path.extension === ".css") return new SpellCSSFile(fullPath)
+    const location = new SpellLocation(fullPath)
+    if (!location.isFilePath) {
+      throw new TypeError(`SpellProject.getFileForPath('${fullPath}'): path is not a file path.`)
+    }
+    if (location.extension === ".css") return new SpellCSSFile(fullPath)
     return new SpellFile(fullPath)
   }
 
@@ -314,54 +329,47 @@ export class SpellProject extends JSON5File {
    * Given a `path`as:
    * - `fullPath`, e.g. `@user:projects:project/file.spell`
    * - `filePath`, e.g. `file.spell` or `/file.spell`
-   * - `SpellPath` for a file
-   * return the `SpellPath` for the file.
+   * - `SpellLocation` for a file
+   * return the `SpellLocation` for the file.
    *
-   * Returns `undefined` if not found.
-   * Throws if path is not a valid file path.
+   * Returns `undefined` if not found, path is not valid or is not a file path.
    */
-  getFilePath(path) {
-    if (typeof path === "string") {
-      if (path.startsWith("@")) return SpellPath.getFilePath(path)
-      return SpellPath.getFilePath(this.projectId, path)
+  getFileLocation(path) {
+    let location
+    if (path instanceof SpellLocation) {
+      location = path
+    } else if (typeof path === "string") {
+      if (path.startsWith("@")) location = SpellLocation.getFileLocation(path)
+      else location = SpellLocation.getFileLocation(this.projectId, path)
     }
-    if (path instanceof SpellPath) {
-      if (!path.isFilePath) throw new TypeError(`getFilePath(): must be a file path.`)
-      return path
-    }
-    throw new TypeError(`getFilePath(): typeof path not understood: '${path}'.`)
+    if (location?.isFilePath) return location
   }
 
   /**
-   * Synchronously return manifest `info` for a file specified by `filePath`.
+   * Assuming we're loaded, return manifest `info` for a file specified by `filePath`.
    * `filePath` can be any of:
    * - `fullPath`, e.g. `@user:projects:project/file.spell`
    * - `filePath`, e.g. `file.spell` or `/file.spell`
-   * - `SpellPath` for a file
+   * - `SpellLocation` for a file
    *
-   * Returns `undefined` if file not found or manifest is not loaded.
-   * Pass `required = REQUIRED` to throw if not found.
+   * Returns `undefined` if file not found, couldn't load index, etc.
    */
-  getFileInfo(filePath, required = OPTIONAL, message = `File '${filePath}' not found`) {
-    const { path } = this.getFilePath(filePath)
-    const fileInfo = this.manifest[path]
-    if (!fileInfo && required === REQUIRED) throw new TypeError(message)
-    return fileInfo
+  getFileInfo(filePath) {
+    const location = this.getFileLocation(filePath)
+    if (location) return this.manifest[location.path]
   }
 
   /**
-   * Synchronously get one of our files as a `SpellFile` or `SpellCSSFile` etc.
+   * Assuming we're loaded, then return one of our `files` as a `SpellFile` or `SpellCSSFile` etc.
    * `filePath` can be any of:
    * - `fullPath`, e.g. `@user:projects:project/file.spell`
    * - `filePath`, e.g. `file.spell` or `/file.spell`
-   * - `SpellPath` for a file
+   * - `SpellLocation` for a file
    *
-   * Returns `undefined` if file not found or manifest is not loaded.
-   * Pass `required = REQUIRED` to throw if not found.
+   * Returns `undefined` if file not found, couldn't load index, etc.
    */
-  getFile(filePath, required = OPTIONAL, message) {
-    const info = this.getFileInfo(filePath, required, message)
-    return info?.file
+  getFile(filePath) {
+    return this.getFileInfo(filePath)?.file
   }
 
   //-----------------
@@ -373,29 +381,35 @@ export class SpellProject extends JSON5File {
    * `filePath` is a relative to this project, and may or may not start with `/`.
    * NOTE: in theory this handles nested files.
    */
-  async createFile(filePath, contents, newFileName = "Untitled.spell") {
+  async createFile(filePath, contents, newFileName = "Untitled.spell", die) {
+    if (!die) die = getDier(this, "creating file", { projectId: this.projectId, filePath })
+
     if (!filePath) filePath = prompt("Name for the new file?", newFileName)
     if (!filePath) return undefined
-    const errorPrefix = `Error creating file '${filePath}'::`
+    die.params.filePath = filePath
 
-    await this.load()
-    if (this.getFile(filePath)) throw new TypeError(`${errorPrefix} File already exists.`)
+    await this.loadOrDie(die)
+    if (this.getFile(filePath)) die("File already exists.")
 
     // Tell the server to create the file, which returns updated index
-    const newIndex = await $fetch({
-      url: `/api/projects/create/file`,
-      contents: {
-        projectId: this.projectId,
-        filePath,
-        contents: contents ?? `## This space intentionally left blank`
-      },
-      requestFormat: "json",
-      format: "json"
-    })
-    this.setContents(newIndex)
+    try {
+      const newIndex = await $fetch({
+        url: `/api/projects/create/file`,
+        contents: {
+          projectId: this.projectId,
+          filePath,
+          contents: contents ?? `## This space intentionally left blank`
+        },
+        requestFormat: "json",
+        format: "json"
+      })
+      this.setContents(newIndex)
+    } catch (e) {
+      die("Server error creating project", e)
+    }
 
     // Return the file
-    return this.getFile(filePath, REQUIRED, `${errorPrefix} Server didn't create file.`)
+    return this.getFile(filePath) || die("Server didn't create file.")
   }
 
   /**
@@ -403,11 +417,21 @@ export class SpellProject extends JSON5File {
    * Returns pointer to new file.
    */
   async duplicateFile(filePath, newFilePath) {
-    const errorPrefix = `Error duplicating file '${filePath}'::`
-    await this.load()
-    const file = this.getFile(filePath, REQUIRED, `${errorPrefix} File does not exist.`)
-    const contents = await file.load()
-    return this.createFile(newFilePath, contents, file.file)
+    const die = getDier(this, "duplicating file", {
+      projectId: this.projectId,
+      originalFilePath: filePath,
+      filePath: newFilePath
+    })
+    await this.loadOrDie(die)
+
+    const file = this.getFile(filePath) || die("File not found.")
+    let contents
+    try {
+      contents = await file.load()
+    } catch (e) {
+      die("Server error loading file", e)
+    }
+    return this.createFile(newFilePath, contents, file.file, die)
   }
 
   /**
@@ -415,70 +439,81 @@ export class SpellProject extends JSON5File {
    * Returns new file.
    */
   async renameFile(filePath, newFilePath) {
-    const errorPrefix = `Error renaming file '${filePath}'::`
-
-    await this.load()
-    const file = this.getFile(filePath, REQUIRED, `${errorPrefix} File does not exist.`)
+    const die = getDier(this, "renaming file", { projectId: this.projectId, filePath, newFilePath })
+    await this.loadOrDie(die)
+    const file = this.getFile(filePath) || die("File not found.")
 
     if (!newFilePath) {
       const filename = prompt("New name for the file?", file.file)
       if (!filename) return undefined
-      newFilePath = SpellPath.getFilePath(this.projectId, filename).filePath
+      newFilePath = SpellLocation.getFileLocation(this.projectId, filename).filePath
       if (newFilePath === filePath) return undefined
+      die.params.newFilePath = newFilePath
     }
-    if (this.getFile(newFilePath)) throw new TypeError(`${errorPrefix} File '${newFilePath}' already exists.`)
+    if (this.getFile(newFilePath)) die("New file already exists.")
 
     // Tell the server to rename the file, which returns the updated index.
-    const newIndex = await $fetch({
-      url: `/api/projects/rename/file`,
-      contents: {
-        projectId: this.projectId,
-        filePath,
-        newFilePath
-      },
-      requestFormat: "json",
-      format: "json"
-    })
-    this.setContents(newIndex)
+    try {
+      const newIndex = await $fetch({
+        url: `/api/projects/rename/file`,
+        contents: {
+          projectId: this.projectId,
+          filePath,
+          newFilePath
+        },
+        requestFormat: "json",
+        format: "json"
+      })
+      this.setContents(newIndex)
+    } catch (e) {
+      die("Server error renaming file", e)
+    }
     // Have the file clean itself up in a tick
     // (doing it immediately causes react to barf)
     setTimeout(() => file.onRemove(), 10)
     // return the new file
-    return this.getFile(newFilePath, REQUIRED, `${errorPrefix} Server didn't create file at '${newFilePath}'.`)
+    return this.getFile(newFilePath) || die("Server didn't rename file.")
   }
 
   /**
    * Remove an existing file from the project.
    * Returns `true` on success, `undefined` if cancelled, or throws on error.
    */
-  async removeFile(filePath, shouldConfirm) {
-    const errorPrefix = `Error removing file '${filePath}'::`
+  async deleteFile(filePath, shouldConfirm) {
+    const die = getDier(this, "deleting file", { projectId: this.projectId, filePath })
+    await this.loadOrDie(die)
+    if (this.files.length === 1) die("You can't delete the last file in a project.")
 
-    await this.load()
-    if (this.files.length === 1) throw new TypeError(`${errorPrefix} You can't remove the last file in a project.`)
-    const file = this.getFile(filePath, REQUIRED, `${errorPrefix} File not found.`)
+    const file = this.getFile(filePath) || die("File not found.")
+
     if (shouldConfirm === CONFIRM) {
       if (!confirm(`Really remove file '${file.file}'?`)) return undefined
     }
 
     // console.warn("before:", { activeImports: this.activeImports })
     // Tell the server to delete the file, which returns the updated index.
-    const newIndex = await $fetch({
-      url: `/api/projects/remove/file`,
-      method: "DELETE",
-      contents: {
-        projectId: this.projectId,
-        filePath
-      },
-      requestFormat: "json",
-      format: "json"
-    })
-    this.setContents(newIndex)
+    try {
+      const newIndex = await $fetch({
+        url: `/api/projects/remove/file`,
+        method: "DELETE",
+        contents: {
+          projectId: this.projectId,
+          filePath
+        },
+        requestFormat: "json",
+        format: "json"
+      })
+      this.setContents(newIndex)
+    } catch (e) {
+      die("Server error deleting file", e)
+    }
     // throw if file is still found
-    if (this.getFile(filePath)) throw new TypeError(`${errorPrefix} Server didn't delete the file.`)
+    if (this.getFile(filePath)) die("Server didn't delete the file.")
+
     // Have the file clean itself up in a tick
     // (doing it immediately causes react to barf)
     setTimeout(() => file.onRemove(), 10)
+
     return true
   }
 }

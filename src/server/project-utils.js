@@ -1,10 +1,10 @@
 /**
  * Utilities for working with projects and project files.
- * The `request_XXX` variant can be passed directly to express.
+ * The `request_XXX` version can be passed directly to express.
  */
 import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"
-import { SpellPath } from "../languages/spell/SpellPath"
+import { SpellLocation } from "../languages/spell/SpellLocation"
 
 const { respondWithJSON } = responseUtils
 
@@ -14,14 +14,14 @@ const SYSTEM_SERVER_ROOT = fileUtils.normalizePath(__dirname, "..")
 const USER_SERVER_ROOT = fileUtils.normalizePath(__dirname, "..")
 
 // HACKY!!!
-// Make sure we don't save `SpellPath` instances in the singleton registry
+// Make sure we don't save `SpellLocation` instances in the singleton registry
 // or we'll leak memory!
-SpellPath.useRegistry = false
+SpellLocation.useRegistry = false
 
 /**
- * Add a getter to figure out the `serverPath` for a `SpellPath`.
+ * Add a getter to figure out the `serverPath` for a `SpellLocation`.
  */
-Object.defineProperty(SpellPath.prototype, "serverPath", {
+Object.defineProperty(SpellLocation.prototype, "serverPath", {
   get() {
     const path = [this.owner === "@system" ? SYSTEM_SERVER_ROOT : USER_SERVER_ROOT, this.domain, this.projectName]
     if (this.filePath) path.push(...this.filePath.split("/"))
@@ -42,7 +42,7 @@ const DEFAULT_FILE = {
  *   `[ "<project-path>"... ]`
  */
 export const getProjectList = async (domainId) => {
-  const domain = SpellPath.getDomainPath(domainId)
+  const domain = SpellLocation.getDomainPath(domainId)
   const options = { includeFolders: true, includeFiles: false, namesOnly: true }
   const projectNames = await fileUtils.getFolderContents(domain.serverPath, options)
   return projectNames.map((projectName) => `${domain.owner}:${domain.domain}:${projectName}`)
@@ -66,18 +66,18 @@ function isManifestFile(name) {
 }
 
 /**
- * Return the `SpellPath` for project `imports` file.
+ * Return the `SpellLocation` for project `imports` file.
  */
 export function getImportsLocation(projectId) {
-  return SpellPath.getFilePath(projectId, ".imports.json")
+  return SpellLocation.getFileLocation(projectId, ".imports.json")
 }
 
 /**
  * Load a project `.imports.json` file, returning default import file if not found.
  */
 export const loadImports = async (projectId) => {
-  const { serverPath } = getImportsLocation(projectId)
-  const existing = await fileUtils.loadJSONFile(serverPath, "OPTIONAL")
+  const location = getImportsLocation(projectId)
+  const existing = await fileUtils.loadJSONFile(location.serverPath, "OPTIONAL")
   return existing || { imports: [] }
 }
 
@@ -85,8 +85,8 @@ export const loadImports = async (projectId) => {
  * Save a project `.imports.json` file.
  */
 export const saveImports = async (projectId, contents) => {
-  const { serverPath } = getImportsLocation(projectId)
-  return await fileUtils.saveJSONFile(serverPath, contents)
+  const location = getImportsLocation(projectId)
+  return await fileUtils.saveJSONFile(location.serverPath, contents)
 }
 
 /**
@@ -101,11 +101,11 @@ export const saveImports = async (projectId, contents) => {
  * and will be saved to disk as `.imports.json` if imports change.
  */
 export const getIndex = async (projectId) => {
-  const project = SpellPath.getProjectPath(projectId)
+  const location = SpellLocation.getProjectPath(projectId)
 
   // Get non-hidden files in project which the front-end knows how to deal with
   const options = { includeFolders: false, ignoreHidden: true, namesOnly: true }
-  let fileNames = (await fileUtils.getFolderContents(project.serverPath, options)) //
+  let fileNames = (await fileUtils.getFolderContents(location.serverPath, options)) //
     .filter(isManifestFile)
 
   // HACKY: make sure we have at least one valid file by creating a default file
@@ -118,9 +118,9 @@ export const getIndex = async (projectId) => {
   const manifest = {}
   await Promise.all(
     fileNames.map(async (name) => {
-      const filePath = SpellPath.getFilePath(projectId, name)
-      const { created, modified, size } = await fileUtils.getPathInfo(filePath.serverPath)
-      manifest[filePath.path] = { created, modified, size }
+      const location = SpellLocation.getFileLocation(projectId, name)
+      const { created, modified, size } = await fileUtils.getPathInfo(location.serverPath)
+      manifest[location.path] = { created, modified, size }
     })
   )
 
@@ -135,7 +135,7 @@ export const getIndex = async (projectId) => {
     if (path.startsWith("@")) return true
 
     // Get the location relative to this project
-    const location = SpellPath.getFilePath(projectId, path)
+    const location = SpellLocation.getFileLocation(projectId, path)
     // if not found, remove from imports
     if (!existingPaths[location.path]) {
       anythingChanged = true
@@ -148,7 +148,7 @@ export const getIndex = async (projectId) => {
   // Anything left in `existingPaths` is MISSING from the imports,
   // add at the end of the imports as `active`.
   Object.keys(existingPaths).forEach((path) => {
-    const location = new SpellPath(path)
+    const location = new SpellLocation(path)
     // Record as a local `filepa` string, which includes the folder / leading slash
     importsFile.imports.push({ path: location.filePath, active: true })
     anythingChanged = true
@@ -176,9 +176,8 @@ export const request_getIndex = respondWithJSON(async (request) => {
  */
 export const request_getFile = (request, response) => {
   const { projectId, filePath } = request.params
-  const project = SpellPath.getProjectPath(projectId)
-  const file = SpellPath.getFilePath(projectId, filePath)
-  responseUtils.sendJSONFile(response, file.serverPath)
+  const location = SpellLocation.getFileLocation(projectId, filePath)
+  responseUtils.sendJSONFile(response, location.serverPath)
 }
 
 /**
@@ -186,9 +185,8 @@ export const request_getFile = (request, response) => {
  * TODO: format according to extension!!!
  */
 export const saveFile = async (projectId, filePath, contents) => {
-  const project = SpellPath.getProjectPath(projectId)
-  const { serverPath } = SpellPath.getFilePath(projectId, filePath)
-  return await fileUtils.saveFile(serverPath, contents)
+  const location = SpellLocation.getFileLocation(projectId, filePath)
+  return await fileUtils.saveFile(location.serverPath, contents)
 }
 export const request_saveFile = respondWithJSON(async (request) => {
   const { projectId, filePath } = request.params
@@ -202,10 +200,10 @@ export const request_saveFile = respondWithJSON(async (request) => {
 
 /**
  * Create project `projectId` by creating file at `filePath` within it.
+ * Request version returns updated project list.
  */
 export const createProject = async (projectId, filePath, contents) => {
-  const project = SpellPath.getProjectPath(projectId)
-  const location = SpellPath.getFilePath(projectId, filePath || DEFAULT_FILE.filePath)
+  const location = SpellLocation.getFileLocation(projectId, filePath || DEFAULT_FILE.filePath)
   return await fileUtils.saveFile(location.serverPath, contents || DEFAULT_FILE.contents)
 }
 export const request_createProject = respondWithJSON(async (request) => {
@@ -216,11 +214,12 @@ export const request_createProject = respondWithJSON(async (request) => {
 
 /**
  * Duplicate project `projectId` as `newProjectId`.
+ * Request version returns updated project list.
  */
 export const duplicateProject = async (projectId, newProjectId) => {
-  const project = SpellPath.getProjectPath(projectId)
-  const newProject = SpellPath.getProjectPath(newProjectId)
-  return await fileUtils.copyPath(project.serverPath, newProject.serverPath)
+  const location = SpellLocation.getProjectPath(projectId)
+  const newLocation = SpellLocation.getProjectPath(newProjectId)
+  return await fileUtils.copyPath(location.serverPath, newLocation.serverPath)
 }
 export const request_duplicateProject = respondWithJSON(async (request) => {
   const { projectId, newProjectId } = request.body
@@ -230,11 +229,12 @@ export const request_duplicateProject = respondWithJSON(async (request) => {
 
 /**
  * Rename project `projectId` to `newProjectId`.
+ * Request version returns updated project list.
  */
 export const renameProject = async (projectId, newProjectId) => {
-  const project = SpellPath.getProjectPath(projectId)
-  const newProject = SpellPath.getProjectPath(newProjectId)
-  return await fileUtils.movePath(project.serverPath, newProject.serverPath)
+  const location = SpellLocation.getProjectPath(projectId)
+  const newLocation = SpellLocation.getProjectPath(newProjectId)
+  return await fileUtils.movePath(location.serverPath, newLocation.serverPath)
 }
 export const request_renameProject = respondWithJSON(async (request) => {
   const { projectId, newProjectId } = request.body
@@ -244,14 +244,15 @@ export const request_renameProject = respondWithJSON(async (request) => {
 
 /**
  * Remove (permanently delete) project `projectId`.
+ * Request version returns updated project list.
  */
-export const removeProject = async (projectId) => {
-  const project = SpellPath.getProjectPath(projectId)
-  return await fileUtils.deletePath(project.serverPath)
+export const deleteProject = async (projectId) => {
+  const location = SpellLocation.getProjectPath(projectId)
+  return await fileUtils.deletePath(location.serverPath)
 }
-export const request_removeProject = respondWithJSON(async (request) => {
+export const request_deleteProject = respondWithJSON(async (request) => {
   const { projectId } = request.body
-  await removeProject(projectId)
+  await deleteProject(projectId)
   return await getProjectList(projectId)
 })
 
@@ -261,7 +262,7 @@ export const request_removeProject = respondWithJSON(async (request) => {
 
 /**
  * Create a new project file.
- * Request returns updated index, which will `import` new file at the end.
+ * Request version returns updated index, which will `import` new file at the end.
  */
 export const createFile = async (projectId, filePath, contents) => {
   return await saveFile(projectId, filePath, contents)
@@ -274,13 +275,12 @@ export const request_createFile = respondWithJSON(async (request) => {
 
 /**
  * Rename a project file.
- * Request returns updated index.
+ * Request version returns updated index.
  */
 export const renameFile = async (projectId, filePath, newFilePath) => {
-  const project = SpellPath.getProjectPath(projectId)
-  const file = SpellPath.getFilePath(projectId, filePath)
-  const newFile = SpellPath.getFilePath(projectId, newFilePath)
-  await fileUtils.movePath(file.serverPath, newFile.serverPath)
+  const location = SpellLocation.getFileLocation(projectId, filePath)
+  const newLocation = SpellLocation.getFileLocation(projectId, newFilePath)
+  await fileUtils.movePath(location.serverPath, newLocation.serverPath)
 
   // update `imports` so file order stays the same
   let importsFile = await loadImports(projectId)
@@ -300,15 +300,14 @@ export const request_renameFile = respondWithJSON(async (request) => {
 
 /**
  * Delete a project file.
- * Request returns updated index.
+ * Request version returns updated index.
  */
-export const removeFile = async (projectId, filePath) => {
-  const project = SpellPath.getProjectPath(projectId)
-  const file = SpellPath.getFilePath(projectId, filePath)
-  return await fileUtils.deletePath(file.serverPath)
+export const deleteFile = async (projectId, filePath) => {
+  const location = SpellLocation.getFileLocation(projectId, filePath)
+  return await fileUtils.deletePath(location.serverPath)
 }
-export const request_removeFile = respondWithJSON(async (request) => {
+export const request_deleteFile = respondWithJSON(async (request) => {
   const { projectId, filePath } = request.body
-  await removeFile(projectId, filePath)
+  await deleteFile(projectId, filePath)
   return await getIndex(projectId)
 })

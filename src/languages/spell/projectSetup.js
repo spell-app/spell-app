@@ -5,7 +5,7 @@ import global from "global"
  *
  * We assume `path`s are of the form:
  *  `@owner:domain:projectName/folder/folder/file.extension`
- * See `src/languages/spell/SpellPath` for how this breaks down.
+ * See `src/languages/spell/SpellLocation` for how this breaks down.
  *
  */
 class SpellSetup {

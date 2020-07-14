@@ -11,7 +11,7 @@ import Toast from "react-bootstrap/Toast"
 import { useHotkeys } from "react-hotkeys-hook"
 
 import { view, REACT_APP_ROOT_ID } from "~/util"
-import { SpellPath } from "~/languages/spell"
+import { SpellLocation } from "~/languages/spell"
 
 import { ASTViewer } from "./ASTViewer"
 import { MatchViewer } from "./MatchViewer"
@@ -32,7 +32,7 @@ const ProjectMenu = view(function ProjectMenu() {
       createProject: () => store.createProject(),
       duplicateProject: () => store.duplicateProject(),
       renameProject: () => store.renameProject(),
-      removeProject: () => store.removeProject()
+      deleteProject: () => store.deleteProject()
     }
   })
   if (!projectRoot.isLoaded || !project)
@@ -42,7 +42,7 @@ const ProjectMenu = view(function ProjectMenu() {
       {projectRoot.projectPaths.map((path) => (
         <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectProject}>
           <i className="large folder outline icon" />
-          {new SpellPath(path).projectName}
+          {new SpellLocation(path).projectName}
         </NavDropdown.Item>
       ))}
       <NavDropdown.Divider />
@@ -61,7 +61,7 @@ const ProjectMenu = view(function ProjectMenu() {
         <i className="large edit outline icon" />
         {"Rename Project"}
       </NavDropdown.Item>
-      <NavDropdown.Item key="delete" onSelect={bound.removeProject}>
+      <NavDropdown.Item key="delete" onSelect={bound.deleteProject}>
         <i className="large trash alternate outline icon" />
         {"Delete Project"}
       </NavDropdown.Item>
@@ -100,7 +100,7 @@ const EditorToolbar = view(function EditorToolbar() {
       createFile: () => store.createFile(),
       duplicateFile: () => store.duplicateFile(),
       renameFile: () => store.renameFile(),
-      removeFile: () => store.removeFile()
+      deleteFile: () => store.deleteFile()
     }
   })
   return (
@@ -140,7 +140,7 @@ const EditorToolbar = view(function EditorToolbar() {
               <i className="large edit outline icon" />
               {"Rename"}
             </Button>
-            <Button variant="dark" onClick={bound.removeFile}>
+            <Button variant="dark" onClick={bound.deleteFile}>
               <i className="large trash alternate outline icon" />
               {"Delete"}
             </Button>
@@ -210,7 +210,7 @@ const Notice = view(function Notice() {
   const { message } = store
   if (!message) return null
   return (
-    <div style={{ position: "fixed", bottom: 20, left: "calc(50% - 250px)", width: 500, zIndex: 100 }}>
+    <div style={{ position: "fixed", top: 60, left: "calc(50% - 250px)", width: 500, zIndex: 100 }}>
       <Toast autohide onClose={store.hideNotice} style={{ maxWidth: "100%", background: "green", color: "white" }}>
         <Toast.Header>
           <i className="large check circle outline icon" />
@@ -236,16 +236,21 @@ const Error = view(function Error() {
     header = split[0]
     message = split.slice(1).join("::")
   }
+  const lines = message.split("\n")
   return (
     <div style={{ position: "fixed", top: 60, left: "calc(50% - 250px)", width: 500, zIndex: 100 }}>
-      <Toast autohide onClose={store.hideError} style={{ maxWidth: "100%", background: "red", color: "white" }}>
+      <Toast onClose={store.hideError} style={{ maxWidth: "100%", background: "red", color: "white" }}>
         <Toast.Header>
           <i className="large exclamation triangle icon" />
           <div style={{ marginLeft: "0.25em", marginRight: "auto", fontSize: "1.5em", fontWeight: "bold" }}>
             {header}
           </div>
         </Toast.Header>
-        <Toast.Body>{message}</Toast.Body>
+        <Toast.Body>
+          {lines.map((line, index) => (
+            <div key={index}>{line}</div>
+          ))}
+        </Toast.Body>
       </Toast>
     </div>
   )
