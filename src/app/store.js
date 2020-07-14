@@ -4,7 +4,6 @@ import { createStore, setPrefKey, getPref, setPref, CONFIRM } from "~/util"
 import { spellSetup, SpellProjectRoot, SpellProject } from "~/languages/spell"
 
 setPrefKey("spellEditor:")
-console.warn(spellInstall)
 export const store = createStore({
   //-----------------
   // Project and project actions
