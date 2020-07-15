@@ -69,8 +69,8 @@ export class SpellProjectRoot extends JSON5File {
    * If you're basing off of a different project, pass its `projectId` (which MUST be valid!!!)
    * Returns `projectId` or `undefined`
    */
-  promptForProjectId({ projectId, defaultName, message = "Name for the new project?" } = {}) {
-    const originalLocation = projectId && new SpellLocation(projectId)
+  promptForProjectId({ projectId, defaultName, message = "Name for the new project?", die } = {}) {
+    const originalLocation = projectId && new SpellLocation(projectId, die)
     if (!defaultName) defaultName = originalLocation?.projectName || "Untitled"
 
     const projectName = prompt(message, defaultName)
@@ -86,11 +86,11 @@ export class SpellProjectRoot extends JSON5File {
   async createProject(projectId) {
     const die = getDier(this, "creating project", { projectId })
 
-    if (!projectId) projectId = this.promptForProjectId()
+    if (!projectId) projectId = this.promptForProjectId({ die })
     if (!projectId) return undefined
     die.params.projectId = projectId
 
-    const location = new SpellLocation(projectId) || die("Invalid projectId")
+    const location = new SpellLocation(projectId, die)
     if (!location.isProjectPath) die("You must pass a projectId.")
 
     await this.loadOrDie(die)
@@ -123,16 +123,16 @@ export class SpellProjectRoot extends JSON5File {
   async duplicateProject(projectId, newProjectId) {
     const die = getDier(this, "duplicating project", { projectId, newProjectId })
 
-    const location = new SpellLocation(projectId) || die("Invalid projectId")
+    const location = new SpellLocation(projectId, die)
 
     await this.loadOrDie(die)
     const project = this.getProject(projectId) || die("Project does not exist.")
 
-    if (!newProjectId) newProjectId = this.promptForProjectId({ projectId })
+    if (!newProjectId) newProjectId = this.promptForProjectId({ projectId, die })
     if (!newProjectId) return undefined
     die.params.newProjectId = newProjectId
 
-    const newLocation = new SpellLocation(newProjectId) || die("Invalid newProjectId")
+    const newLocation = new SpellLocation(newProjectId, die)
     if (!newLocation.isProjectPath) die("You must pass a newProjectId.")
     if (this.getProject(newProjectId)) die("New project already exists.")
 
@@ -159,16 +159,16 @@ export class SpellProjectRoot extends JSON5File {
   async renameProject(projectId, newProjectId) {
     const die = getDier(this, "renaming project", { projectId, newProjectId })
 
-    const location = new SpellLocation(projectId) || die("Invalid projectId")
+    const location = new SpellLocation(projectId, die)
 
     await this.loadOrDie(die)
     const project = this.getProject(projectId) || die("Project does not exist.")
 
-    if (!newProjectId) newProjectId = this.promptForProjectId({ projectId, message: "New name for the project?" })
+    if (!newProjectId) newProjectId = this.promptForProjectId({ projectId, message: "New name for the project?", die })
     if (!newProjectId || newProjectId === projectId) return undefined
     die.params.newProjectId = newProjectId
 
-    const newLocation = new SpellLocation(newProjectId) || die("Invalid newProjectId")
+    const newLocation = new SpellLocation(newProjectId, die)
     if (!newLocation.isProjectPath) die("You must pass a newProjectId.")
     if (this.getProject(newProjectId)) die("New project already exists.")
 
@@ -197,7 +197,7 @@ export class SpellProjectRoot extends JSON5File {
    */
   async deleteProject(projectId, shouldConfirm) {
     const die = getDier(this, "removing project", { projectId })
-    const location = new SpellLocation(projectId) || die("Invalid projectId")
+    const location = new SpellLocation(projectId, die)
 
     await this.loadOrDie(die)
     const project = this.getProject(projectId) || die("Project does not exist.")

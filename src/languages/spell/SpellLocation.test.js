@@ -60,25 +60,20 @@ describe("SpellLocation", () => {
 
   describe("invalid project paths", () => {
     test("invalid user", () => {
-      const path = new SpellLocation("@INVALID_USER/projects/PROJECT")
-      expect(path.isValid).toBe(false)
-      expect(path.isProjectPath).toBe(false)
-      expect(path.isSystemProject).toBe(false)
-      expect(path.isUserProject).toBe(false)
+      expect(() => new SpellLocation("@INVALID_USER/projects/PROJECT")).toThrow()
     })
     test("invalid domain", () => {
-      const path = new SpellLocation("@user:INVALID_DOMAIN:PROJECT")
-      expect(path.isValid).toBe(false)
-      expect(path.isProjectPath).toBe(false)
-      expect(path.isSystemProject).toBe(false)
-      expect(path.isUserProject).toBe(false)
+      expect(() => new SpellLocation("@user:INVALID_DOMAIN:PROJECT")).toThrow()
     })
     test("no project name", () => {
       const path = new SpellLocation("@user:projects")
-      expect(path.isValid).toBe(false)
+      expect(path.isValid).toBe(true)
       expect(path.isSystemProject).toBe(false)
-      expect(path.isUserProject).toBe(false)
+      expect(path.isUserProject).toBe(true)
+      expect(path.isDomainPath).toBe(true)
       expect(path.isProjectPath).toBe(false)
+      expect(path.isFolderPath).toBe(false)
+      expect(path.isFilePath).toBe(false)
     })
   })
 
