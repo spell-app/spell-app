@@ -42,7 +42,7 @@ const DEFAULT_FILE = {
  *   `[ "<project-path>"... ]`
  */
 export const getProjectList = async (domainId) => {
-  const domain = SpellLocation.getDomainPath(domainId)
+  const domain = SpellLocation.getProjectRoot(domainId)
   const options = { includeFolders: true, includeFiles: false, namesOnly: true }
   const projectNames = await fileUtils.getFolderContents(domain.serverPath, options)
   return projectNames.map((projectName) => `${domain.owner}:${domain.domain}:${projectName}`)
@@ -101,7 +101,7 @@ export const saveImports = async (projectId, contents) => {
  * and will be saved to disk as `.imports.json` if imports change.
  */
 export const getIndex = async (projectId) => {
-  const location = SpellLocation.getProjectPath(projectId)
+  const location = SpellLocation.getProjectLocation(projectId)
 
   // Get non-hidden files in project which the front-end knows how to deal with
   const options = { includeFolders: false, ignoreHidden: true, namesOnly: true }
@@ -217,8 +217,8 @@ export const request_createProject = respondWithJSON(async (request) => {
  * Request version returns updated project list.
  */
 export const duplicateProject = async (projectId, newProjectId) => {
-  const location = SpellLocation.getProjectPath(projectId)
-  const newLocation = SpellLocation.getProjectPath(newProjectId)
+  const location = SpellLocation.getProjectLocation(projectId)
+  const newLocation = SpellLocation.getProjectLocation(newProjectId)
   return await fileUtils.copyPath(location.serverPath, newLocation.serverPath)
 }
 export const request_duplicateProject = respondWithJSON(async (request) => {
@@ -232,8 +232,8 @@ export const request_duplicateProject = respondWithJSON(async (request) => {
  * Request version returns updated project list.
  */
 export const renameProject = async (projectId, newProjectId) => {
-  const location = SpellLocation.getProjectPath(projectId)
-  const newLocation = SpellLocation.getProjectPath(newProjectId)
+  const location = SpellLocation.getProjectLocation(projectId)
+  const newLocation = SpellLocation.getProjectLocation(newProjectId)
   return await fileUtils.movePath(location.serverPath, newLocation.serverPath)
 }
 export const request_renameProject = respondWithJSON(async (request) => {
@@ -247,7 +247,7 @@ export const request_renameProject = respondWithJSON(async (request) => {
  * Request version returns updated project list.
  */
 export const deleteProject = async (projectId) => {
-  const location = SpellLocation.getProjectPath(projectId)
+  const location = SpellLocation.getProjectLocation(projectId)
   return await fileUtils.deletePath(location.serverPath)
 }
 export const request_deleteProject = respondWithJSON(async (request) => {

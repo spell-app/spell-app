@@ -70,7 +70,7 @@ describe("SpellLocation", () => {
       expect(path.isValid).toBe(true)
       expect(path.isSystemProject).toBe(false)
       expect(path.isUserProject).toBe(true)
-      expect(path.isDomainPath).toBe(true)
+      expect(path.isProjectRoot).toBe(true)
       expect(path.isProjectPath).toBe(false)
       expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(false)

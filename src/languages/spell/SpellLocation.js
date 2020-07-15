@@ -35,7 +35,7 @@ export function isValid(path) {
  * These are immutable objects, and are stored in a registry.
  * Doing this repeatedly with the same `path` will always return the same object.
  *
- * Use `.isDomainPath`, `.isProjectPath` or `.isFilePath` etc to figure the path type.
+ * Use `.isProjectRoot`, `.isProjectPath` or `.isFilePath` etc to figure the path type.
  *
  * Legal paths are in the form:
  *  `@owner:domain:projectName/folder/folder/fileName.extension`
@@ -43,10 +43,10 @@ export function isValid(path) {
  * which corresponds to
  *  - `isValid`     `true`
  *  - `projectId`   `@owner:domain:projectName`
- *  - `domainPath`  `@owner:domain`
+ *  - `projectRoot`  `@owner:domain`
  *  - `owner`       `@owner`
  *  - `domain`      `domain`
- *  - `projectName` `projectName`                       (`undefined` if `isDomainPath`)
+ *  - `projectName` `projectName`                       (`undefined` if `isProjectRoot`)
  *  - `filePath`    `/folder/folder/fileName.extension` (`undefined` if not `.isFilePath`)
  *  - `folder`      `/folder/folder/`                   (`undefined` if not `.isFilePath`)
  *  - `file`        `fileName.extension`                (`undefined` if not `.isFilePath` )
@@ -97,7 +97,6 @@ export class SpellLocation {
       // Is this a valid path??  Let's take it in steps:
       // 1. Does it match a `projectRoot` in `spellSetup`
       const projectRoot = spellSetup.projectRoots[this.domain]
-      this.projectRoot = projectRoot
       this.isValid = !!projectRoot && projectRoot.owner === this.owner && projectRoot.domain === this.domain
       // 2. If it has a projectName, is that valid?
       if (this.isValid && this.projectName) this.isValid = isValidPathSegment(this.projectName)
@@ -116,47 +115,47 @@ export class SpellLocation {
   /**
    * Is this a project DOMAIN path?
    */
-  get isDomainPath() {
-    return this.isValid && !this.projectName && !this.folder && !this.filePath
+  get isProjectRoot() {
+    return !this.projectName && !this.folder && !this.filePath
   }
 
   /**
    * Is this a project path?
    */
   get isProjectPath() {
-    return this.isValid && !!this.projectName && !this.folder && !this.file
+    return !!this.projectName && !this.folder && !this.file
   }
 
   /**
    * Is this a folder path (with no file)?
    */
   get isFolderPath() {
-    return this.isValid && !!this.projectId && !!this.folder && !this.file
+    return !!this.projectId && !!this.folder && !this.file
   }
 
   /**
    * Is this a file path?
    */
   get isFilePath() {
-    return this.isValid && !!this.projectId && !!this.folder && !!this.file
+    return !!this.projectId && !!this.folder && !!this.file
   }
 
   /** Is this a system project? */
   get isSystemProject() {
-    return this.isValid && this.owner === "@system"
+    return this.owner === "@system"
   }
 
   /** Is this a user project? */
   get isUserProject() {
-    return this.isValid && this.owner === "@user"
+    return this.owner === "@user"
   }
 
   //-----------------
   //  Syntactic sugar
   //-----------------
 
-  /** `domainPath` as `@user:projects` or `@system:examples` */
-  get domainPath() {
+  /** `projectRoot` as `@user:projects` or `@system:examples` */
+  get projectRoot() {
     return `${this.owner}:${this.domain}`
   }
 
@@ -166,7 +165,7 @@ export class SpellLocation {
 
   /** Get a peer project, in the same domain as this one. */
   getDomainProject(projectName) {
-    const projectPath = `${this.domainPath}:${projectName}`
+    const projectPath = `${this.projectRoot}:${projectName}`
     return new SpellFile(projectPath)
   }
 
@@ -178,16 +177,16 @@ export class SpellLocation {
    * Get `SpellLocation` for the `domain` portion of any valid `path` string.
    * Throws if you pass an invalid path.
    */
-  static getDomainPath(path) {
+  static getProjectRoot(path) {
     const location = new SpellLocation(path)
-    return location.isDomainPath ? location : new SpellLocation(location.domainPath)
+    return location.isProjectRoot ? location : new SpellLocation(location.projectRoot)
   }
 
   /**
    * Get `SpellLocation` for the `projectId` portion of any valid `path` string.
    * Throws if you pass an invalid path.
    */
-  static getProjectPath(path) {
+  static getProjectLocation(path) {
     const location = new SpellLocation(path)
     return location.isProjectPath ? location : new SpellLocation(location.projectId)
   }
@@ -195,7 +194,7 @@ export class SpellLocation {
   /**
    * Get `SpellLocation` for a full file `path` or `projectId` and `filePath`.
    *
-   * Note: unlike `getProjectPath` and `getDomainPath`,
+   * Note: unlike `getProjectLocation` and `getProjectRoot`,
    *       this throws if it's not a valid FILE path.
    */
   static getFileLocation(projectId, filePath) {
