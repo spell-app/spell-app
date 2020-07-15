@@ -184,7 +184,7 @@ const InputEditorInner = view(function InputEditorInner({ error }) {
   return (
     <CodeMirror
       key={(error && "error") || file?.path || "loading"}
-      value={file?.contents || "Loading"}
+      value={file?.contents ?? "Loading"}
       disabled
       options={options}
       onBeforeChange={store.onInputChanged}

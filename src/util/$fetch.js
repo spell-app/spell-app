@@ -49,7 +49,7 @@ export function $fetch($params) {
     url,
     query,
     contents,
-    method = contents ? "POST" : "GET",
+    method = contents != null ? "POST" : "GET",
     headers = {},
     requestFormat,
     format = "text",
@@ -66,7 +66,7 @@ export function $fetch($params) {
   }
 
   const fullURL = query ? `${url}?${queryString.stringify(query)}` : url
-  // console.warn(fullURL, fetchParams)
+  // console.warn("$fetch:", fullURL, fetchParams)
   const request = abortableFetch(fullURL, fetchParams)
 
   async function success(response) {

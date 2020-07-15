@@ -96,7 +96,7 @@ export class SpellFile extends TextFile {
     // If we were passed a `parentScope` with `types`, set up as a `FileScope` and use same parser.
     if (parentScope && parentScope.types) return new FileScope({ name: this.file, scope: parentScope })
     // Otherwise set up as an ad-hoc `Project` and clone `SpellParser.rootScope.parser`
-    console.warn(`spellFile.getScope(): no parentScope`)
+    console.warn(`spellFile.getScope(): no parentScope for ${this.filePath}`)
     return new ProjectScope({
       name: this.file,
       parser: SpellParser.rootScope.parser.clone({ module: this.path }),
@@ -117,7 +117,11 @@ export class SpellFile extends TextFile {
     batch(() => {
       this.set("_state.inputLines", this.contents.split("\n"))
       this.set("_state.scope", this.getScope(parentScope))
-      const match = this.scope.parse(this.contents, "block")
+      // HACK: things get wierd downstream if we don't get a `match` at all
+      // If contents is empty, use a default comment so we'll at least match something.
+      const contents = this.contents.trim() ? this.contents : `// Blank file ${this.file}`
+      const match = this.scope.parse(contents, "block")
+      // console.warn(this.filePath, match)
       this.set("_state.match", match)
     })
     return this.match

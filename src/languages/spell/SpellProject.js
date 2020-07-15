@@ -9,8 +9,6 @@ import {
   writeOnce,
   memoizeForProp,
   $fetch,
-  OPTIONAL,
-  REQUIRED,
   CONFIRM,
   TaskList,
   Task,
