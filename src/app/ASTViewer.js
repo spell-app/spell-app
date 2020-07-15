@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from "react"
 
+import { Match } from "~/parser"
 import { store } from "./store"
 import { ErrorHandler } from "./ErrorHandler"
 import "./ASTViewer.less"
@@ -41,20 +42,25 @@ export class ASTViewer extends ErrorHandler {
       if (typeof inputOffset !== "number" || !match) return
       // get the stack of what was matched, with the inner-most thing FIRST
       const stack = match.matchStackForOffset(inputOffset).reverse()
-      // find the lowest item that corresponds to a `line`
-      const lineAST = stack.find((_match) => _match.rule?.name === "line")
-      const lineEl = lineAST && document.querySelector(`.ASTNode[data-start="${lineAST.start}"]`)
-      if (!lineEl) return
-      // console.warn({ inputOffset, lineAST, lineEl })
+      // find the inner-most thing that's represented on the page
+      let inner
+      let element
+      for (inner of stack) {
+        element = document.querySelector(`.ASTNode[data-start="${inner.start}"]`)
+        if (element) break
+      }
+      // console.info(inputOffset, { stack, inner, start: inner?.start, element })
+      if (!element) return
+      // console.warn({ inputOffset, lineAST, element })
       // scroll the `name` thinger into the center of the display
-      lineEl.scrollIntoView({ block: "center" })
+      element.scrollIntoView({ block: "center" })
 
       // make sure we're scrolled all the way to the left horizontally
-      lineEl.closest(".ASTViewer").scrollLeft = 0
+      element.closest(".ASTViewer").scrollLeft = 0
       // parent.scrollTo(0, parent.scrollTop)
 
-      // highlight the line element
-      highlight(lineEl)
+      // highlight the element
+      highlight(element)
 
       // highlight NAMEs of bits higher in the stack
       // stack
