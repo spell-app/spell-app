@@ -1,8 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from "react"
 
-import { Match } from "~/parser"
-import { store } from "./store"
 import { ErrorHandler } from "./ErrorHandler"
 import "./ASTViewer.less"
 
@@ -24,7 +22,7 @@ export class ASTViewer extends ErrorHandler {
 
   /* Show error in UI when caught. */
   componentDidCatch(error, errorInfo) {
-    store.showError(error)
+    this.props.showError(error)
   }
 
   /** Wrapper class to manage scrolling. */
@@ -35,42 +33,30 @@ export class ASTViewer extends ErrorHandler {
   }
 
   /** Actual component which draws the root `ast` ASTNode passed in. */
-  Component({ ast, match, inputOffset }) {
-    // If we're passed a specific `inputOffset`, scroll that line into view and flash its bg.
+  Component({ ast, match, selection }) {
+    // If we're passed a specific `selection`, scroll that line into view and flash its bg.
     React.useLayoutEffect(() => {
-      if (!ast) return
-      if (typeof inputOffset !== "number" || !match) return
+      if (!match || typeof selection?.headOffset !== "number") return
+      const viewer = document.querySelector(".ASTViewer")
+      const { scrollTop, clientHeight, scrollHeight } = viewer
+      // const outerNode = document.querySelector(".ASTViewer > .ASTNode")
+
       // get the stack of what was matched, with the inner-most thing FIRST
-      const stack = match.matchStackForOffset(inputOffset).reverse()
       // find the inner-most thing that's represented on the page
+      const stack = match.matchStackForOffset(selection.headOffset).reverse()
       let inner
       let element
       for (inner of stack) {
         element = document.querySelector(`.ASTNode[data-start="${inner.start}"]`)
         if (element) break
       }
-      // console.info(inputOffset, { stack, inner, start: inner?.start, element })
-      if (!element) return
-      // console.warn({ inputOffset, lineAST, element })
-      // scroll the `name` thinger into the center of the display
-      element.scrollIntoView({ block: "center" })
-
-      // make sure we're scrolled all the way to the left horizontally
-      element.closest(".ASTViewer").scrollLeft = 0
-      // parent.scrollTo(0, parent.scrollTop)
-
-      // highlight the element
-      highlight(element)
-
-      // highlight NAMEs of bits higher in the stack
-      // stack
-      //   .slice(0, stack.indexOf(lineAST))
-      //   .reverse()
-      //   .forEach((item, index) => {
-      //     const itemEl = document.querySelector(`.ASTNode.${item.rule?.name}[data-start="${item.start}"] > .name`)
-      //     if (itemEl) highlight(itemEl, index * 20)
-      //   })
-    }, [match, inputOffset])
+      if (element) {
+      }
+      // if (!element) return
+      // element.scrollIntoView({ block: "center" })
+      // element.closest(".ASTViewer").scrollLeft = 0
+      // highlight(element)
+    }, [match, selection])
 
     return ast?.component || null
   }

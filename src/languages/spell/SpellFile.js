@@ -194,6 +194,19 @@ export class SpellFile extends TextFile {
     if (line === 0) return ch
     return this.inputLines.slice(0, line).join("\n").length + 1 + ch
   }
+
+  /** Convert char `offset` to CodeMirror Position: `{ line, ch }` */
+  positionForOffset(offset) {
+    let line = 0
+    let ch = 0
+    if (typeof this.contents === "string") {
+      // TODO: offset + 1?
+      const lines = this.contents.substr(0, offset).split("\n")
+      line = lines.length - 1
+      ch = lines[line].length
+    }
+    return { line, ch }
+  }
 }
 
 global.SpellFile = SpellFile

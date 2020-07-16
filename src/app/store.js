@@ -4,6 +4,12 @@ import ReactDOM from "react-dom"
 import { createStore, setPrefKey, getPref, setPref, CONFIRM, REACT_APP_ROOT_ID } from "~/util"
 import { spellSetup, SpellProjectRoot, SpellProject } from "~/languages/spell"
 
+const EMPTY_SELECTION = {
+  scrollTop: 0,
+  anchor: { line: 0, ch: 0 },
+  head: { line: 0, ch: 0 }
+}
+
 setPrefKey("spellEditor:")
 export const store = createStore({
   //-----------------
@@ -91,16 +97,20 @@ export const store = createStore({
     // TODO: switch project if filePath doesn't match selected project?
     // NOTE: assumes `store.project` is a valid, loaded project!
     const { project } = store
-    const pref = `selectedFileFor:${project.path}`
-    if (!filePath) filePath = getPref(pref)
+    if (!filePath) filePath = getPref(project.path)
     if (!filePath || !project.getFile(filePath)) {
       filePath = project.activeImports[0]?.path || project.files[0]?.path || ""
     }
-    setPref(pref, filePath)
+    setPref(project.path, filePath)
     if (filePath) {
       store.file = project.getFile(filePath)
       global.file = store.file // DEBUG
-      await store.reloadFile()
+      if (store.file) {
+        // set `store.file.initialSelection` to our prefence value
+        //  we'll use this as a flag to scroll the line into view on initial render
+        store.file.initialSelection = getPref(store.file.path) || EMPTY_SELECTION
+        await store.reloadFile()
+      }
     } else {
       console.error("TODO: show UI when no files in project!")
     }
@@ -169,7 +179,7 @@ export const store = createStore({
       console.group("Compiling", store.project)
       store.clearCompileSoon()
       await store.project.compile()
-      store.setScrollOffset()
+      // store.scrollViewers()
       store.project.executeCompiled()
     } finally {
       console.groupEnd()
@@ -191,6 +201,86 @@ export const store = createStore({
   //-----------------
   // Event handlers
   //-----------------
+
+  /**
+   * Pointer to the `codeMirror` instance for our InputEditor.
+   * TODO: generalize this for multiple editors!
+   */
+
+  inputEditor: undefined,
+  /** Remember `inputEditor` in our <InputEditor editorDidMount /> event. */
+  onInputDidMount(codeMirror) {
+    console.info("initializing", { codeMirror })
+    store.inputEditor = codeMirror
+    codeMirror.on("refresh", store.onInputCursor)
+  },
+  /** Forget `inputEditor` in our <InputEditor editorWillUnmount /> event. */
+  onInputWillUnmount(codeMirror) {
+    codeMirror.off("refresh", store.onInputCursor)
+    store.inputEditor = null
+  },
+
+  /** Handle cursor move in our inputEditor, remembering the `selection`  */
+  selection: EMPTY_SELECTION,
+  onInputCursor(codeMirror) {
+    // `head` will always be provided, `anchor` might not be. ???
+    const { head, anchor = head } = codeMirror.doc.sel.ranges[0]
+    const hasContents = !!store.file?.contents
+    const old = store.selection || {}
+    const selection = {
+      direction: old.direction,
+      scrollTop: Math.floor(codeMirror.doc.scrollTop),
+      scrollHeight: Math.floor(codeMirror.doc.height),
+      displayHeight: codeMirror.display.lastWrapHeight,
+      anchor: {
+        line: anchor.line,
+        ch: anchor.ch,
+        top: Math.floor(codeMirror.cursorCoords(anchor, "local").top),
+        offset: hasContents ? store.file.offsetForPosition(anchor) : undefined
+      },
+      head: {
+        line: head.line,
+        ch: head.ch,
+        top: Math.floor(codeMirror.cursorCoords(head, "local").top),
+        offset: hasContents ? store.file.offsetForPosition(head) : undefined
+      }
+    }
+    // update "direction" if we can
+    if (typeof old.scrollTop === "number" && old.scrollTop !== selection.scrollTop) {
+      selection.direction = old.scrollTop < selection.scrollTop ? "down" : "up"
+    }
+
+    store.selection = selection
+    // store selection as file `pref`, we'll reload it in `selectFile()` above.
+    if (store.file) setPref(store.file.path, store.selection)
+  },
+
+  /**
+   * Called from a `useEffect()` hook in our `<InputEditor />`,
+   * if `store.file.initialSelection` is set and things are ready to go
+   * scroll the codeMirror `inportEditor` and reset the selection.
+   */
+  onInputEffect() {
+    const { inputEditor, file } = store
+    if (!inputEditor || !file?.isLoaded || !file?.initialSelection) return
+    console.warn("onInputEffect firing", file.path, file.initialSelection)
+    try {
+      const selection = file.initialSelection
+      // clear the `initialSelection` flag so we don't try to scroll again
+      delete file.initialSelection
+      setPref(store.file.path, selection)
+
+      store.selection = selection
+      inputEditor.scrollTo(0, selection.scrollTop || 0)
+      inputEditor.doc.setSelection(selection.anchor, selection.head)
+      inputEditor.focus()
+    } catch (e) {
+      console.warn("CM scroll error:", e)
+    }
+    store.scrollViewers()
+  },
+
+  /** Handle change event from our inputEditor. */
   onInputChanged(codeMirror, change, value) {
     store.file.setContents(value, { isDirty: true })
     store.project.updatedContentsFor(store.file)
@@ -198,17 +288,15 @@ export const store = createStore({
     store.compileSoon(2)
   },
 
-  // input CodeMirror position as { line, ch }
-  position: { line: 0, ch: 0 },
-  onCursorActivity(codeMirror) {
-    store.position = codeMirror.doc.sel.ranges[0].head
-    store.setScrollOffset()
-  },
-  // Adjust `store.inputOffset` (and thus scroll of <MatchView/>) to reflect input `position`.
+  /**
+   * Adjust scroll of <ASTViewer /> and <MatchViewer />
+   * by updating `inputOffset` to match `store.selection`.
+   */
   inputOffset: 0,
-  setScrollOffset() {
-    if (!store.file?.match) store.inputOffset = 0
-    else store.inputOffset = store.file.offsetForPosition(store.position)
+  scrollViewers() {
+    const { file, selection } = store
+    if (!file || !file.contents || !selection) store.inputOffset = 0
+    else store.inputOffset = file.offsetForPosition(selection.head)
   },
 
   //-----------------

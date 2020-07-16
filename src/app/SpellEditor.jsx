@@ -165,15 +165,19 @@ class InputEditor extends React.Component {
   }
   render() {
     const { error } = this.state
-    // make sure we re-render if we have an CodeMirror renders with an error
+    // make sure we re-render if CodeMirror trips the error boundary
     const editor = error ? <InputEditorInner key="noerror" /> : <InputEditorInner key="error" error={error} />
     return <div className="CodeMirrorContainer">{editor}</div>
   }
 }
 
 const InputEditorInner = view(function InputEditorInner({ error }) {
-  const { file } = store
+  const { file, selection } = store
   if (DEBUG_RENDER) console.info("InputEditorInner", file, file?.contents?.split("\n")[0])
+
+  // Call `store.onInputEffect()` to adjust selection on initial render
+  React.useEffect(store.onInputEffect)
+
   // if we got a CodeMirror `error` in a previous draw,
   // remove the `mode` or we'll get an endless loop of pain
   let options = inputOptions
@@ -187,8 +191,11 @@ const InputEditorInner = view(function InputEditorInner({ error }) {
       value={file?.contents ?? "Loading"}
       disabled
       options={options}
+      editorDidMount={store.onInputDidMount}
+      editorWillUnmount={store.onInputWillUnmount}
       onBeforeChange={store.onInputChanged}
-      onCursorActivity={store.onCursorActivity}
+      onCursorActivity={store.onInputCursor}
+      onScroll={store.onInputCursor}
     />
   )
 })
@@ -287,7 +294,13 @@ export const SpellEditor = view(function SpellEditor() {
           </Col>
           <Col xs={6} className="pl-2">
             <div className="SpellEditorPanel rounded shadow-sm border">
-              <ASTViewer scroll ast={store.file?.AST} match={store.file?.match} inputOffset={store.inputOffset} />
+              <ASTViewer
+                scroll
+                ast={store.file?.AST}
+                match={store.file?.match}
+                selection={store.selection}
+                showError={store.showError}
+              />
             </div>
           </Col>
         </Row>
