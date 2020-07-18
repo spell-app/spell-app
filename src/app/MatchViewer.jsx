@@ -1,21 +1,13 @@
 /* eslint-disable react/prop-types */
 import React from "react"
 
-import { scrollForElement } from "~/util"
+import { scrollForElement, offsetTopRelativeTo } from "~/util"
 import { Token } from "~/parser"
 
-import { store } from "./store"
 import { ErrorHandler } from "./ErrorHandler"
 import { MatchView } from "./MatchView"
 
 import "./MatchViewer.less"
-
-function highlight(el, delay = 0) {
-  setTimeout(() => {
-    el.classList.add("highlight")
-    setTimeout(() => el.classList.remove("highlight"), 400)
-  }, delay)
-}
 
 function getRuleName(match) {
   return (match.rule.name || "anonymous-rule").replace(/\$/g, "_")
@@ -36,40 +28,45 @@ export class MatchViewer extends ErrorHandler {
 
   /** Update scroll for `selection`. */
   updateScroll(viewer, match, selection) {
-    if (!viewer || typeof selection?.scroll?.percent !== "number") return
+    const { scroll } = selection
+    if (scroll.event === "cursor" || typeof scroll.percent !== "number") return
     const size = scrollForElement(viewer)
     // console.info(selection.scroll, size)
-    viewer.scrollTop = selection.scroll.percent * size.max
+    viewer.scrollTop = scroll.percent * size.max
+  }
+
+  highlight(viewer, stack) {
+    viewer.querySelectorAll(".highlight").forEach((el) => el.classList.remove("highlight"))
+    stack.forEach((item, index) => {
+      let itemEl
+      if (item instanceof Token) {
+        itemEl = viewer.querySelector(`.Token.${item.constructor.name}[data-start="${item.start}"] > .value`)
+      } else {
+        const ruleName = (item.rule?.name || "anonymous-rule").replace(/\$/g, "_")
+        itemEl = viewer.querySelector(`.Match.${ruleName}[data-start="${item.start}"] > .name`)
+      }
+      if (itemEl) itemEl.classList.add("highlight")
+    })
   }
 
   /** Update highlight for `match` and `selection` */
   updateHighlight(viewer, match, selection) {
-    if (!viewer || !match || typeof selection?.head?.offset !== "number") return
+    if (typeof selection.head?.offset !== "number") return
     // get the stack of what was matched, with the inner-most thing FIRST
     const stack = match.matchStackForOffset(selection.head.offset).reverse()
     // find the lowest item that corresponds to a `line`
     const lineMatch = stack.find((_match) => _match.rule?.name === "line")
     const lineEl = lineMatch && document.querySelector(`.Match.line[data-start="${lineMatch.start}"]`)
     if (!lineEl) return
-    // console.warn({ selection, lineMatch, lineEl })
+    // console.info({ selection, lineMatch, lineEl })
 
-    // scroll the `name` thinger into the center of the display
-    // lineEl.querySelector(".name").scrollIntoView({ block: "center" })
-
-    // highlight the line element
-    // highlight(lineEl)
-
-    // highlight NAMEs of bits higher in the stack
-    stack
-      .slice(0, stack.indexOf(lineMatch))
-      .reverse()
-      .forEach((item, index) => {
-        const itemEl =
-          item instanceof Token
-            ? document.querySelector(`.Token.${item.constructor.name}[data-start="${item.start}"] > .value`)
-            : document.querySelector(`.Match.${getRuleName(item)}[data-start="${item.start}"] > .name`)
-        if (itemEl) highlight(itemEl, index * 20)
-      })
+    // on "cursor" events, scroll the `name` thinger into the center of the display
+    if (selection.scroll?.event === "cursor") {
+      const nameEl = lineEl.querySelector(".name")
+      const top = offsetTopRelativeTo(nameEl, viewer) - viewer.clientHeight / 2
+      viewer.scrollTo({ left: 0, top, behavior: "smooth" })
+    }
+    this.highlight(viewer, stack.slice(0, stack.indexOf(lineMatch)).reverse())
   }
 
   /**
@@ -82,6 +79,7 @@ export class MatchViewer extends ErrorHandler {
     // If we're passed a specific `selection`, scroll that line into view and flash its bg.
     React.useLayoutEffect(() => {
       const viewer = document.querySelector(".MatchViewer")
+      if (!viewer || !match || !selection?.scroll) return
       this.updateScroll(viewer, match, selection)
       this.updateHighlight(viewer, match, selection)
     }, [match, selection])

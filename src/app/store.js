@@ -223,11 +223,10 @@ export const store = createStore({
   /** Handle cursor move or scroll in our inputEditor, remembering the `selection`  */
   selection: EMPTY_SELECTION,
   onInputCursor(codeMirror) {
-    const hasContents = !!store.file?.contents
-
+    const event = arguments.length === 1 ? "cursor" : "scroll"
     const { direction, current: oldCurrent } = store.selection?.scroll || {}
-    // allocate this way to make percent and max the first thing displayed in console
-    const scroll = { direction, percent: 0, max: 0 }
+    // allocate this way to console debugging easier
+    const scroll = { event, direction, percent: 0, max: 0 }
     scroll.current = Math.floor(codeMirror.doc.scrollTop)
     scroll.total = Math.floor(codeMirror.doc.height)
     scroll.visible = codeMirror.display.lastWrapHeight
@@ -239,6 +238,7 @@ export const store = createStore({
     }
 
     const range = codeMirror.doc.sel.ranges[0]
+    const hasContents = !!store.file?.contents
     const anchor = {
       line: range.anchor.line,
       ch: range.anchor.ch,

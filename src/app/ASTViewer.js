@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from "react"
 
-import { scrollForElement } from "~/util"
+import { scrollForElement, scrollElementToCenterOfParent } from "~/util"
 import { ErrorHandler } from "./ErrorHandler"
 import "./ASTViewer.less"
 
@@ -30,7 +30,7 @@ export class ASTViewer extends ErrorHandler {
 
   /** Update scroll for `selection`. */
   updateScroll(viewer, match, selection) {
-    if (!viewer || typeof selection?.scroll?.percent !== "number") return
+    if (selection.scroll.event === "cursor" || typeof selection.scroll?.percent !== "number") return
     const size = scrollForElement(viewer)
     // console.info(selection.scroll, size)
     viewer.scrollTop = selection.scroll.percent * size.max
@@ -38,17 +38,22 @@ export class ASTViewer extends ErrorHandler {
 
   /** Update highlight for `match` and `selection` */
   updateHighlight(viewer, match, selection) {
-    if (!viewer || !match || typeof selection?.head?.offset !== "number") return
+    if (typeof selection?.head?.offset !== "number") return
     // get the stack of what was matched, with the inner-most thing FIRST
     // find the inner-most thing that's represented on the page
     const stack = match.matchStackForOffset(selection.head.offset).reverse()
+    let element
     for (let inner of stack) {
-      const element = viewer.querySelector(`.ASTNode[data-start="${inner.start}"]`)
-      if (element) {
-        highlight(viewer, element)
-        return
-      }
+      element = viewer.querySelector(`.ASTNode[data-start="${inner.start}"]`)
+      if (element) break
     }
+    if (!element) return
+    // console.info(element)
+    // on "cursor" events, scroll the element into the center of the display
+    if (selection.scroll?.event === "cursor") {
+      scrollElementToCenterOfParent(element, viewer)
+    }
+    highlight(viewer, element)
   }
 
   /**
@@ -59,6 +64,7 @@ export class ASTViewer extends ErrorHandler {
     // Update view to match selection
     React.useLayoutEffect(() => {
       const viewer = document.querySelector(".ASTViewer")
+      if (!viewer || !match || !selection?.scroll) return
       this.updateScroll(viewer, match, selection)
       this.updateHighlight(viewer, match, selection)
     }, [match, selection])
@@ -70,6 +76,7 @@ export class ASTViewer extends ErrorHandler {
 
   /** Actual component which draws the root `ast` ASTNode passed in. */
   Component({ ast }) {
+    // `ast.component` is memoized
     return ast?.component || null
   }
 }
