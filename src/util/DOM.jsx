@@ -17,6 +17,6 @@ export function scrollForElement(element, direction = "vertical") {
     }
   }
   size.available = size.total - size.visible
-  size.percent = (size.scroll / size.available).toPrecision(4)
+  size.percent = parseFloat((size.scroll / size.available).toPrecision(4), 10)
   return size
 }

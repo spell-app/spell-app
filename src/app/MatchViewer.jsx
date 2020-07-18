@@ -61,7 +61,7 @@ export class MatchViewer extends ErrorHandler {
       if (typeof selection.scroll?.percent === "number") {
         const size = scrollForElement(viewer)
         // console.info(size, selection.scroll)
-        // viewer.scrollTop = selection.scroll.percent * size.available
+        viewer.scrollTop = selection.scroll.percent * size.available
       }
 
       if (typeof selection.head?.offset === "number") {

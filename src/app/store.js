@@ -5,7 +5,7 @@ import { createStore, setPrefKey, getPref, setPref, CONFIRM, REACT_APP_ROOT_ID }
 import { spellSetup, SpellProjectRoot, SpellProject } from "~/languages/spell"
 
 const EMPTY_SELECTION = {
-  scroll: { top: 0, height: 0, visible: 0 },
+  scroll: { top: 0, total: 0, visible: 0 },
   anchor: { line: 0, ch: 0 },
   head: { line: 0, ch: 0 }
 }
@@ -220,37 +220,36 @@ export const store = createStore({
     store.inputEditor = null
   },
 
-  /** Handle cursor move in our inputEditor, remembering the `selection`  */
+  /** Handle cursor move or scroll in our inputEditor, remembering the `selection`  */
   selection: EMPTY_SELECTION,
   onInputCursor(codeMirror) {
-    // `head` will always be provided, `anchor` might not be. ???
     const hasContents = !!store.file?.contents
     const old = store.selection || {}
     const scroll = {
       direction: old.scroll?.direction,
-      top: Math.floor(codeMirror.doc.scrollTop),
-      height: Math.floor(codeMirror.doc.height),
+      scroll: Math.floor(codeMirror.doc.scrollTop),
+      total: Math.floor(codeMirror.doc.height),
       visible: codeMirror.display.lastWrapHeight
     }
-    scroll.available = scroll.height - scroll.visible
-    scroll.percent = scroll.top / scroll.available
+    scroll.available = scroll.total - scroll.visible
+    scroll.percent = parseFloat((scroll.scroll / scroll.available).toPrecision(4), 10)
     const range = codeMirror.doc.sel.ranges[0]
     const anchor = {
       line: range.anchor.line,
       ch: range.anchor.ch,
-      top: Math.floor(codeMirror.cursorCoords(range.anchor, "local").top),
+      scroll: Math.floor(codeMirror.cursorCoords(range.anchor, "local").top),
       offset: hasContents ? store.file.offsetForPosition(range.anchor) : undefined
     }
     const head = {
       line: range.head.line,
       ch: range.head.ch,
-      top: Math.floor(codeMirror.cursorCoords(range.head, "local").top),
+      scroll: Math.floor(codeMirror.cursorCoords(range.head, "local").top),
       offset: hasContents ? store.file.offsetForPosition(range.head) : undefined
     }
 
     // update "direction" if we can
-    if (typeof old.scroll?.top === "number" && old.scroll.top !== scroll.top) {
-      scroll.direction = old.scroll.top < scroll.top ? "down" : "up"
+    if (typeof old.scroll?.scroll === "number" && old.scroll.scroll !== scroll.scroll) {
+      scroll.direction = old.scroll.scroll < scroll.scroll ? "down" : "up"
     }
 
     store.selection = { scroll, anchor, head }
@@ -274,7 +273,7 @@ export const store = createStore({
       setPref(store.file.path, selection)
 
       store.selection = selection
-      inputEditor.scrollTo(0, selection.scroll?.top || 0)
+      inputEditor.scrollTo(0, selection.scroll?.scroll || 0)
       inputEditor.doc.setSelection(selection.anchor, selection.head)
       inputEditor.focus()
     } catch (e) {

@@ -40,7 +40,8 @@ export class ASTViewer extends ErrorHandler {
     // If we're passed a specific `selection`, scroll that line into view and flash its bg.
     React.useLayoutEffect(() => {
       const viewer = document.querySelector(".ASTViewer")
-      if (viewer && typeof selection?.scroll?.percent === "number") {
+      if (!viewer || !selection) return
+      if (typeof selection.scroll?.percent === "number") {
         const size = scrollForElement(viewer)
         // console.info(size, selection.scroll)
         viewer.scrollTop = selection.scroll.percent * size.available
@@ -48,7 +49,7 @@ export class ASTViewer extends ErrorHandler {
 
       // get the stack of what was matched, with the inner-most thing FIRST
       // find the inner-most thing that's represented on the page
-      if (viewer && match && typeof selection?.head?.offset === "number") {
+      if (match && typeof selection.head?.offset === "number") {
         const stack = match.matchStackForOffset(selection.head.offset).reverse()
         let inner
         let element
