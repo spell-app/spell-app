@@ -19,6 +19,7 @@ export * from "./LoadableManager"
 export * from "./LoadableFile"
 
 export * from "./React"
+export * from "./DOM"
 
 export * from "./Task"
 export * from "./TaskList"

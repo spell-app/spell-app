@@ -55,11 +55,11 @@ export class ErrorHandler extends React.Component {
   render() {
     const {
       props,
-      state: { error },
+      state: { error }
     } = this
-    const contents = error
+    const component = error
       ? React.createElement(this.ErrorComponent, { error, props })
       : React.createElement(this.Component, props)
-    return this.Wrapper({ contents, error, props })
+    return this.Wrapper({ component, error, props })
   }
 }
