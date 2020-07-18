@@ -1,17 +1,12 @@
 /* eslint-disable react/prop-types */
 import React from "react"
 
-import { scrollForElement, offsetTopRelativeTo } from "~/util"
+import { scrollForElement, scrollElementToCenterOfParent } from "~/util"
 import { Token } from "~/parser"
 
 import { ErrorHandler } from "./ErrorHandler"
-import { MatchView } from "./MatchView"
-
+import { MatchView, getRuleName } from "./MatchView"
 import "./MatchViewer.less"
-
-function getRuleName(match) {
-  return (match.rule.name || "anonymous-rule").replace(/\$/g, "_")
-}
 
 export class MatchViewer extends ErrorHandler {
   /** Clear `state.error` if `props.match` changes. */
@@ -37,13 +32,12 @@ export class MatchViewer extends ErrorHandler {
 
   highlight(viewer, stack) {
     viewer.querySelectorAll(".highlight").forEach((el) => el.classList.remove("highlight"))
-    stack.forEach((item, index) => {
+    stack.forEach((item) => {
       let itemEl
       if (item instanceof Token) {
         itemEl = viewer.querySelector(`.Token.${item.constructor.name}[data-start="${item.start}"] > .value`)
       } else {
-        const ruleName = (item.rule?.name || "anonymous-rule").replace(/\$/g, "_")
-        itemEl = viewer.querySelector(`.Match.${ruleName}[data-start="${item.start}"] > .name`)
+        itemEl = viewer.querySelector(`.Match.${getRuleName(item)}[data-start="${item.start}"] > .name`)
       }
       if (itemEl) itemEl.classList.add("highlight")
     })
@@ -63,8 +57,7 @@ export class MatchViewer extends ErrorHandler {
     // on "cursor" events, scroll the `name` thinger into the center of the display
     if (selection.scroll?.event === "cursor") {
       const nameEl = lineEl.querySelector(".name")
-      const top = offsetTopRelativeTo(nameEl, viewer) - viewer.clientHeight / 2
-      viewer.scrollTo({ left: 0, top, behavior: "smooth" })
+      scrollElementToCenterOfParent(nameEl, viewer)
     }
     this.highlight(viewer, stack.slice(0, stack.indexOf(lineMatch)).reverse())
   }

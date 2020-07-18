@@ -2,7 +2,7 @@
 import React from "react"
 import { Token } from "~/parser"
 
-function getRuleName(match) {
+export function getRuleName(match) {
   return (match.rule.name || "anonymous-rule").replace(/\$/g, "_")
 }
 
