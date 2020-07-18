@@ -28,44 +28,48 @@ export class ASTViewer extends ErrorHandler {
     this.props.showError(error)
   }
 
-  /** Wrapper class to manage scrolling. */
-  Wrapper({ component, props }) {
+  /** Update scroll for `selection`. */
+  updateScroll(viewer, match, selection) {
+    if (!viewer || typeof selection?.scroll?.percent !== "number") return
+    const size = scrollForElement(viewer)
+    // console.info(selection.scroll, size)
+    viewer.scrollTop = selection.scroll.percent * size.max
+  }
+
+  /** Update highlight for `match` and `selection` */
+  updateHighlight(viewer, match, selection) {
+    if (!viewer || !match || typeof selection?.head?.offset !== "number") return
+    // get the stack of what was matched, with the inner-most thing FIRST
+    // find the inner-most thing that's represented on the page
+    const stack = match.matchStackForOffset(selection.head.offset).reverse()
+    for (let inner of stack) {
+      const element = viewer.querySelector(`.ASTNode[data-start="${inner.start}"]`)
+      if (element) {
+        highlight(viewer, element)
+        return
+      }
+    }
+  }
+
+  /**
+   * Wrapper class to manage scrolling and showing selection.
+   */
+  Wrapper = ({ component, props }) => {
+    const { match, selection } = props
+    // Update view to match selection
+    React.useLayoutEffect(() => {
+      const viewer = document.querySelector(".ASTViewer")
+      this.updateScroll(viewer, match, selection)
+      this.updateHighlight(viewer, match, selection)
+    }, [match, selection])
+
     const classNames = ["ASTViewer"]
     if (props.scroll) classNames.push("scroll")
     return <div className={classNames.join(" ")}>{component}</div>
   }
 
   /** Actual component which draws the root `ast` ASTNode passed in. */
-  Component({ ast, match, selection }) {
-    // If we're passed a specific `selection`, scroll that line into view and flash its bg.
-    React.useLayoutEffect(() => {
-      const viewer = document.querySelector(".ASTViewer")
-      if (!viewer || !selection) return
-      if (typeof selection.scroll?.percent === "number") {
-        const size = scrollForElement(viewer)
-        // console.info(size, selection.scroll)
-        viewer.scrollTop = selection.scroll.percent * size.available
-      }
-
-      // get the stack of what was matched, with the inner-most thing FIRST
-      // find the inner-most thing that's represented on the page
-      if (match && typeof selection.head?.offset === "number") {
-        const stack = match.matchStackForOffset(selection.head.offset).reverse()
-        let inner
-        let element
-        for (inner of stack) {
-          element = viewer.querySelector(`.ASTNode[data-start="${inner.start}"]`)
-          if (element) break
-        }
-        if (element) {
-          // element.scrollIntoView({ block: "center" })
-          // element.closest(".ASTViewer").scrollLeft = 0
-          highlight(viewer, element)
-        }
-      }
-    }, [match, selection])
-
-    // Actual render is `ast.component`, which is alread memoized
+  Component({ ast }) {
     return ast?.component || null
   }
 }

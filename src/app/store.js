@@ -224,32 +224,33 @@ export const store = createStore({
   selection: EMPTY_SELECTION,
   onInputCursor(codeMirror) {
     const hasContents = !!store.file?.contents
-    const old = store.selection || {}
-    const scroll = {
-      direction: old.scroll?.direction,
-      scroll: Math.floor(codeMirror.doc.scrollTop),
-      total: Math.floor(codeMirror.doc.height),
-      visible: codeMirror.display.lastWrapHeight
+
+    const { direction, current: oldCurrent } = store.selection?.scroll || {}
+    // allocate this way to make percent and max the first thing displayed in console
+    const scroll = { direction, percent: 0, max: 0 }
+    scroll.current = Math.floor(codeMirror.doc.scrollTop)
+    scroll.total = Math.floor(codeMirror.doc.height)
+    scroll.visible = codeMirror.display.lastWrapHeight
+    scroll.max = scroll.total - scroll.visible
+    scroll.percent = parseFloat((scroll.current / scroll.max).toPrecision(4), 10)
+    // update "direction" if we can
+    if (typeof oldCurrent === "number" && oldCurrent !== scroll.current) {
+      scroll.direction = oldCurrent < scroll.current ? "down" : "up"
     }
-    scroll.available = scroll.total - scroll.visible
-    scroll.percent = parseFloat((scroll.scroll / scroll.available).toPrecision(4), 10)
+
     const range = codeMirror.doc.sel.ranges[0]
     const anchor = {
       line: range.anchor.line,
       ch: range.anchor.ch,
-      scroll: Math.floor(codeMirror.cursorCoords(range.anchor, "local").top),
+      top: Math.floor(codeMirror.cursorCoords(range.anchor, "local").top),
       offset: hasContents ? store.file.offsetForPosition(range.anchor) : undefined
     }
+
     const head = {
       line: range.head.line,
       ch: range.head.ch,
-      scroll: Math.floor(codeMirror.cursorCoords(range.head, "local").top),
+      top: Math.floor(codeMirror.cursorCoords(range.head, "local").top),
       offset: hasContents ? store.file.offsetForPosition(range.head) : undefined
-    }
-
-    // update "direction" if we can
-    if (typeof old.scroll?.scroll === "number" && old.scroll.scroll !== scroll.scroll) {
-      scroll.direction = old.scroll.scroll < scroll.scroll ? "down" : "up"
     }
 
     store.selection = { scroll, anchor, head }

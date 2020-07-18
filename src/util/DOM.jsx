@@ -2,21 +2,18 @@
 
 export function scrollForElement(element, direction = "vertical") {
   if (!element) return undefined
-  let size
+  // allocate this way to make percent and max the first thing displayed in console
+  const scroll = { percent: 0, max: 0 }
   if (direction === "vertical") {
-    size = {
-      scroll: element.scrollTop,
-      total: element.scrollHeight,
-      visible: element.clientHeight
-    }
+    scroll.current = element.scrollTop
+    scroll.total = element.scrollHeight
+    scroll.visible = element.clientHeight
   } else {
-    size = {
-      scroll: element.scrollLeft,
-      total: element.scrollWidth,
-      visible: element.clientWidth
-    }
+    scroll.current = element.scrollLeft
+    scroll.total = element.scrollWidth
+    scroll.visible = element.clientWidth
   }
-  size.available = size.total - size.visible
-  size.percent = parseFloat((size.scroll / size.available).toPrecision(4), 10)
-  return size
+  scroll.max = scroll.total - scroll.visible
+  scroll.percent = parseFloat((scroll.current / scroll.max).toPrecision(4), 10)
+  return scroll
 }

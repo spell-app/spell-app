@@ -307,13 +307,13 @@ export const SpellEditor = view(function SpellEditor() {
         <Row id="bottomRow" noGutters className="p-1">
           <Col xs={6} className="">
             <div className="SpellEditorPanel rounded shadow-sm border">
-              {/* <MatchViewer scroll match={store.file?.match} inputOffset={store.inputOffset} /> */}
+              {/* <MatchViewer... /> */}
               {AppContainer}
             </div>
           </Col>
           <Col xs={6} className="pl-2">
             <div className="SpellEditorPanel rounded shadow-sm border">
-              <MatchViewer scroll match={store.file?.match} selection={store.selection} />
+              <MatchViewer scroll match={store.file?.match} selection={store.selection} showError={store.showError} />
               {/* <OutputEditor /> */}
             </div>
           </Col>

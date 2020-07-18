@@ -60,6 +60,6 @@ export class ErrorHandler extends React.Component {
     const component = error
       ? React.createElement(this.ErrorComponent, { error, props })
       : React.createElement(this.Component, props)
-    return this.Wrapper({ component, error, props })
+    return React.createElement(this.Wrapper, { component, error, props })
   }
 }
