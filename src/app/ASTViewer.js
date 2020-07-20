@@ -83,11 +83,14 @@ export class ASTViewer extends ErrorHandler {
       // -- back up one and try again
       stack = match.matchStackForOffset(cursorOffset - 1).reverse()
     }
-    //if (stack.length === 0) return
-
     // restrict to everything up to the first `line`, then reverse so the line is at the front
     const lineIndex = stack.findIndex((item) => item.ruleName === "line")
+
     if (lineIndex !== -1) stack = stack.slice(0, lineIndex + 1).reverse()
+    if (stack.length === 0) {
+      console.info("Got empty stack for", { selection, cursorOffset, lineIndex })
+      return
+    }
 
     // on "cursor" events, scroll the first element on that line to the center of the display
     const firstElForLine = viewer.querySelector(`.ASTNode[data-line="${stack[0].line}"]`)
