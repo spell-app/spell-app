@@ -330,19 +330,26 @@ export const store = createStore({
       const { clientWidth, clientHeight } = document.querySelector("#InputEditor")
       inputEditor.setSize(clientWidth, clientHeight - 1)
 
-      const selection = file.initialSelection
       // clear the `initialSelection` flag so we don't try to scroll again
       delete file.initialSelection
-      store.lastSelectionForFile(store.file.path, selection)
 
-      store.selection = selection
-      inputEditor.scrollTo(0, selection.scroll?.scroll || 0)
-      inputEditor.doc.setSelection(selection.anchor, selection.head)
+      // turn into a `cursor` event so we'll scroll the views
+      if (initialSelection.scroll) initialSelection.scroll.event = "cursor"
+      store.lastSelectionForFile(file.path, initialSelection)
+      // Set `store.selection` after a delay so rendering works better
+      setTimeout(() => {
+        console.info("onInputEffect setting selection to ", initialSelection)
+        store.selection = initialSelection
+      }, 10)
+
+      // scroll the inputEditor itself to match
+      const { scroll, anchor, head } = initialSelection
+      inputEditor.scrollTo(0, scroll?.scroll || 0)
+      if (anchor && head) inputEditor.doc.setSelection(anchor, head)
       inputEditor.focus()
     } catch (e) {
       console.warn("CM scroll error:", e)
     }
-    store.scrollViewers()
   },
 
   /** Handle change event from our inputEditor. */
@@ -351,17 +358,6 @@ export const store = createStore({
     store.project.updatedContentsFor(store.file)
     // auto-compile 2 seconds after input settles
     store.compileSoon(2)
-  },
-
-  /**
-   * Adjust scroll of <ASTViewer /> and <MatchViewer />
-   * by updating `inputOffset` to match `store.selection`.
-   */
-  inputOffset: 0,
-  scrollViewers() {
-    const { file, selection } = store
-    if (!file || !file.contents || !selection) store.inputOffset = 0
-    else store.inputOffset = file.offsetForPosition(selection.head)
   },
 
   //-----------------

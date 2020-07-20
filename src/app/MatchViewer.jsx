@@ -37,18 +37,20 @@ export class MatchViewer extends ErrorHandler {
    * Create one of these and it will create <MatchView>s and <TokenView>s underneath it.
    */
   Component({ match, selection }) {
-    // If we're passed a specific `selection`, scroll that line into view and highlight it.
-    React.useLayoutEffect(() => {
-      const viewer = document.querySelector(".MatchViewer")
-      if (!viewer || !match || !selection?.scroll) return
-      MatchViewer.updateScroll(viewer, match, selection)
-      MatchViewer.updateHighlight(viewer, match, selection)
-    }, [match, selection])
-
-    return React.useMemo(() => {
+    const component = React.useMemo(() => {
       if (!match) return null
       return <MatchView match={match} />
     }, [match])
+
+    // If we're passed a specific `selection`, scroll that line into view and highlight it.
+    const viewer = document.querySelector(".MatchViewer")
+    React.useEffect(() => {
+      if (!viewer || !match || !selection?.scroll) return
+      MatchViewer.updateScroll(viewer, match, selection)
+      MatchViewer.updateHighlight(viewer, match, selection)
+    }, [viewer, component, match, selection])
+
+    return component
   }
 
   /////////////////////////
@@ -86,7 +88,7 @@ export class MatchViewer extends ErrorHandler {
   static highlight(viewer, ...matches) {
     matches.forEach((match) => {
       const element = MatchViewer.elementForMatch(viewer, match)
-      if (element) element.classList.add("highlight")
+      element?.classList.add("highlight")
     })
   }
   /** Update highlight for `match` and `selection` */
@@ -109,7 +111,7 @@ export class MatchViewer extends ErrorHandler {
     // on "cursor" events, scroll the `name` thinger into the center of the display
     if (selection.scroll?.event === "cursor") {
       const lineEl = viewer.querySelector(`.Match.line[data-line="${lineMatch.line}"]`)
-      if (lineEl) scrollElementToCenterOfParent(lineEl, viewer)
+      scrollElementToCenterOfParent(lineEl, viewer)
     }
 
     MatchViewer.clearHighlights(viewer)

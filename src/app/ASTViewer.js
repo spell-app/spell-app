@@ -30,16 +30,19 @@ export class ASTViewer extends ErrorHandler {
 
   /** Actual component which draws the root `ast` ASTNode passed in. */
   Component({ ast, match, selection }) {
+    // `ast.component` is memoized
+    const component = ast?.component || null
+
     // Update view to match selection
-    React.useLayoutEffect(() => {
-      const viewer = document.querySelector(".ASTViewer")
+    const viewer = document.querySelector(".ASTViewer")
+    React.useEffect(() => {
+      // console.info("ASTViewer.Component layoutEffect", { match, selection })
       if (!viewer || !match || !selection) return
       ASTViewer.updateScroll(viewer, match, selection)
       ASTViewer.updateHighlight(viewer, match, selection)
-    }, [match, selection])
+    }, [viewer, component, match, selection])
 
-    // `ast.component` is memoized
-    return ast?.component || null
+    return component
   }
 
   /////////////////////////
@@ -95,7 +98,7 @@ export class ASTViewer extends ErrorHandler {
     ASTViewer.clearHighlights(viewer)
     // find the inner-most thing that's represented on the page
     const innerItem = stack.reverse().find((item) => ASTViewer.elementForMatch(viewer, item))
-    console.info(stack, { lineIndex, innerItem, firstElForLine })
+    // console.info(stack, { lineIndex, innerItem, firstElForLine })
     if (innerItem) ASTViewer.highlight(viewer, innerItem)
     else if (firstElForLine) ASTViewer.highlight(viewer, firstElForLine)
   }
