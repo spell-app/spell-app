@@ -290,7 +290,7 @@ export const store = createStore({
     // Extra stuff we COULD get from codeMirror
     // See:  https://codemirror.net/doc/manual.html#api_sizing
     // scroll.lineHeight = codeMirror.defaultTextHeight()
-    // scroll.mousePosition = codeMirror.coordsChar(<global-mouse-position>, "window")
+    // scroll.mouseLine = codeMirror.lineAtHeight(<global-mouse-position>, "window")
 
     const range = codeMirror.doc.sel.ranges[0]
     const hasContents = !!store.file?.contents

@@ -32,17 +32,27 @@ export class Match extends Assertable {
     return this.argument || this.rule.argument || this.rule.name
   }
 
-  // Raw input text
+  // Raw input text, including whitespace.
   get inputText() {
     return this.input?.join("") || ""
   }
 
-  // Start position of our match in the source stream.
+  // Start line number in the source stream.
+  get line() {
+    return this.input[0]?.line
+  }
+
+  // Start char number within our `line` in the source stream.
+  get char() {
+    return this.input[0]?.ch
+  }
+
+  // Character offset of start position in the source stream.
   get start() {
     return this.input[0]?.offset
   }
 
-  // End position of our match in the source stream.
+  // Character offset of end position in the source stream.
   get end() {
     const { start, inputText } = this
     return start === undefined ? undefined : start + inputText.length

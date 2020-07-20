@@ -19,12 +19,14 @@ export { Fragment }
 
 /** Default render for a single ASTNode. */
 export function Node(astNode) {
-  const { nodeType, className } = astNode
+  const { nodeType, className, match } = astNode
   const props = {
     className,
     title: className,
-    "data-start": astNode.match.start,
-    "data-end": astNode.match.end
+    "data-line": match.line,
+    "data-char": match.char,
+    "data-start": match.start,
+    "data-end": match.end
   }
   const children = astNode.renderChildren()
   // Trixy setup so problems in node rendering will show up as, e.g., `AST-CoreMethodInvocation`

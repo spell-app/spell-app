@@ -3,7 +3,10 @@ import React from "react"
 import { Token } from "~/parser"
 
 export function getRuleName(match) {
-  return (match.rule.name || "anonymous-rule").replace(/\$/g, "_")
+  const ruleName = match.rule.name || "anonymous-rule"
+  const constructorName = match.rule.constructor.name
+  if (ruleName === constructorName) return ruleName
+  return `${constructorName} ${ruleName}`
 }
 
 /**
@@ -32,10 +35,10 @@ export function MatchView({ match }) {
       contents.push(<MatchView key={index} match={child} />)
     }
   })
+  const ruleName = getRuleName(match)
   const className = [
     "Match",
-    rule.constructor.name,
-    getRuleName(match),
+    ruleName,
     hasTokens && "hasTokens",
     hasMatches && "hasMatched",
     blocks.length && "hasBlocks",
@@ -44,8 +47,16 @@ export function MatchView({ match }) {
     .filter(Boolean)
     .join(" ")
 
+  const props = {
+    className,
+    title: ruleName,
+    "data-line": match.line,
+    "data-char": match.char,
+    "data-start": match.start,
+    "data-end": match.end
+  }
   return (
-    <span className={className} data-start={`${match.start}`} data-end={`${match.end}`}>
+    <span {...props}>
       {!!rule.name && <span className="name">{rule.name}</span>}
       {contents.length > 0 && <span className="contents">{contents}</span>}
       {blocks.length > 0 && blocks}

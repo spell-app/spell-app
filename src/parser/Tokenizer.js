@@ -47,6 +47,20 @@ export class Tokenizer {
       // this.logger.warn("tokenize(): didn't consume: `", text.slice(start, end), "`")
     }
 
+    // Iterate through tokens setting `line` and `ch`(ar),
+    // which is sometimes more useful than the raw `offset` within the file.
+    let line = 0
+    let ch = 0
+    tokens.forEach((token) => {
+      token.line = line
+      token.ch = ch
+      ch += token.length
+      if (token instanceof Token.Newline) {
+        line++
+        ch = 0
+      }
+    })
+
     // Filter according to our whitespace policy
     if (this.whitespacePolicy === WhitespacePolicy.NONE) return this.filterWhitespace(tokens, Token.Whitespace)
 
@@ -715,13 +729,13 @@ export class Tokenizer {
   // Lines which are composed solely of whitespace are treated as blank.
   breakIntoLines(tokens) {
     const lines = []
-    let line = new Token.Line({ offset: 0, indent: undefined })
+    let line = new Token.Line({ offset: 0, line: 0, ch: 0, indent: undefined })
     lines.push(line)
-    tokens.forEach(token => {
+    tokens.forEach((token) => {
       if (token instanceof Token.Newline) {
         line.newLine = token
         if (line.indent === undefined && line.tokens.length) line.indent = 0
-        line = new Token.Line({ offset: token.offset + 1, indent: undefined })
+        line = new Token.Line({ offset: token.offset + 1, line: token.line + 1, ch: 0, indent: undefined })
         lines.push(line)
       } else if (token instanceof Token.Indent) {
         // pull out leading whitespace as `line.indent`
@@ -729,12 +743,12 @@ export class Tokenizer {
         line.indent = token.length
         // console.info(lines.length - 1, line.leading, line.indent)
       } else {
-        // add to normal tokens
+        // add to normal tokens in the line
         line.tokens.push(token)
       }
     })
 
-    // remove the last line if it is completely empty
+    // remove the last `line` if it is completely empty
     const { last } = lines
     if (last.tokens.length === 0 && !last.newline && !last.leading) lines.pop()
 
@@ -773,17 +787,21 @@ export class Tokenizer {
     // TODO: ??? seems like this should be a top-level error???
     const block = new Token.Block({
       offset: 0,
-      indent: Math.min(...lines.map(line => line.indent))
+      line: 0,
+      ch: 0,
+      indent: Math.min(...lines.map((line) => line.indent))
     })
 
     // Stack of blocks -- we'll push and pop blocks on the stack as indent changes
     const stack = [block]
-    lines.forEach(line => {
+    lines.forEach((line) => {
       let topBlock = stack.last
       // If indenting, push a new block
       while (line.indent > topBlock.indent) {
         const newBlock = new Token.Block({
           offset: line.offset,
+          line: line.line,
+          ch: line.ch,
           indent: topBlock.indent + 1
         })
         topBlock.tokens.push(newBlock)
