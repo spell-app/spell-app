@@ -12,10 +12,12 @@ export class SpellProjectRoot extends JSON5File {
   // From `src/projectSetup.js`
   // owner: "@user"
   // domain: "projects",
+  // label: "Projects",
   // description: "User projects",
   @writeOnce path
   @writeOnce owner
   @writeOnce domain
+  @writeOnce label
   @writeOnce description
   @writeOnce location
 

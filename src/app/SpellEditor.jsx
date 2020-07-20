@@ -25,7 +25,7 @@ import "./SpellEditor.less"
 const DEBUG_RENDER = false
 
 /** Menu of all available projects. */
-const ProjectMenu = view(function ProjectMenu() {
+const ProjectMenu = view(function ProjectMenu({ showLabel = true }) {
   const { projectRoot, project } = store
   if (DEBUG_RENDER) console.info("ProjectMenu", projectRoot, project)
   const bound = React.useMemo(() => {
@@ -36,61 +36,88 @@ const ProjectMenu = view(function ProjectMenu() {
       deleteProject: () => store.deleteProject()
     }
   })
+  const label = !!showLabel && (
+    <NavLink disabled style={{ width: "5em" }}>
+      {projectRoot?.label}:
+    </NavLink>
+  )
+
   if (!projectRoot?.isLoaded || !project) {
-    return <NavDropdown key="loading" title="Loading..." id="ProjectMenu" style={{ width: "12em" }} />
+    return (
+      <>
+        {label}
+        <NavDropdown key="loading" title="Loading..." id="ProjectMenu" style={{ width: "12em" }} />
+      </>
+    )
   }
   return (
-    <NavDropdown key={project.path} title={project.projectName} id="ProjectMenu" style={{ width: "12em" }}>
-      {projectRoot.projectPaths.map((path) => {
-        const { projectName } = new SpellLocation(path)
-        return (
-          <NavDropdown.Item key={path} eventKey={path} onSelect={store.navigateToPath}>
-            <i className="large folder outline icon" />
-            {projectName}
-          </NavDropdown.Item>
-        )
-      })}
-      <NavDropdown.Divider />
-      <NavDropdown.Item key="create" onSelect={bound.createProject}>
-        <i className="large icons">
-          <i className="folder outline icon" />
-          <i className="small inverted corner plus icon" />
-        </i>
-        {"New Project"}
-      </NavDropdown.Item>
-      <NavDropdown.Item key="duplicate" onSelect={bound.duplicateProject}>
-        <i className="large clone outline icon" />
-        {"Duplicate Project"}
-      </NavDropdown.Item>
-      <NavDropdown.Item key="rename" onSelect={bound.renameProject}>
-        <i className="large edit outline icon" />
-        {"Rename Project"}
-      </NavDropdown.Item>
-      <NavDropdown.Item key="delete" onSelect={bound.deleteProject}>
-        <i className="large trash alternate outline icon" />
-        {"Delete Project"}
-      </NavDropdown.Item>
-    </NavDropdown>
+    <>
+      {label}
+      <NavDropdown key={project.path} title={project.projectName} id="ProjectMenu" style={{ width: "12em" }}>
+        {projectRoot.projectPaths.map((path) => {
+          const { projectName } = new SpellLocation(path)
+          return (
+            <NavDropdown.Item key={path} eventKey={path} onSelect={store.navigateToPath}>
+              <i className="large folder outline icon" />
+              {projectName}
+            </NavDropdown.Item>
+          )
+        })}
+        <NavDropdown.Divider />
+        <NavDropdown.Item key="create" onSelect={bound.createProject}>
+          <i className="large icons">
+            <i className="folder outline icon" />
+            <i className="small inverted corner plus icon" />
+          </i>
+          {"New Project"}
+        </NavDropdown.Item>
+        <NavDropdown.Item key="duplicate" onSelect={bound.duplicateProject}>
+          <i className="large clone outline icon" />
+          {"Duplicate Project"}
+        </NavDropdown.Item>
+        <NavDropdown.Item key="rename" onSelect={bound.renameProject}>
+          <i className="large edit outline icon" />
+          {"Rename Project"}
+        </NavDropdown.Item>
+        <NavDropdown.Item key="delete" onSelect={bound.deleteProject}>
+          <i className="large trash alternate outline icon" />
+          {"Delete Project"}
+        </NavDropdown.Item>
+      </NavDropdown>
+    </>
   )
 })
 
 /** Menu of all available files. */
-const FileMenu = view(function FileMenu() {
+const FileMenu = view(function FileMenu({ showLabel = true }) {
   const { project, file } = store
   if (DEBUG_RENDER) console.info("FileMenu", project, file)
+  const label = !!showLabel && (
+    <NavLink disabled style={{ width: "3em" }}>
+      Files:
+    </NavLink>
+  )
   if (!project?.isLoaded || !file) {
-    return <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
+    return (
+      <>
+        {label}
+        <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
+      </>
+    )
   }
   return (
-    <NavDropdown key={file.path} title={file.file} id="FileMenu" style={{ width: "12em" }}>
-      {project.imports.map(({ path, location }) => {
-        return (
-          <NavDropdown.Item key={path} eventKey={path} onSelect={store.navigateToPath}>
-            {location.file}
-          </NavDropdown.Item>
-        )
-      })}
-    </NavDropdown>
+    <>
+      {label}
+      <NavDropdown key={file.path} title={file.file} id="FileMenu" style={{ width: "12em" }}>
+        {project.imports.map(({ path, location }) => {
+          return (
+            <NavDropdown.Item key={path} eventKey={path} onSelect={store.navigateToPath}>
+              {location.file}
+            </NavDropdown.Item>
+          )
+        })}
+      </NavDropdown>
+    </>
   )
 })
 
@@ -113,11 +140,8 @@ const EditorToolbar = view(function EditorToolbar() {
   return (
     <Navbar bg="dark" variant="dark">
       <Nav>
-        <NavLink disabled>Project:</NavLink>
         <ProjectMenu />
-
-        <NavLink disabled>File:</NavLink>
-        {!!file && <FileMenu />}
+        <FileMenu />
         <Navbar.Collapse id="navbar-buttons" className="ml-2">
           <Nav>
             <Button variant={fileNeedsCompilation ? "primary" : "dark"} onClick={bound.compile}>
