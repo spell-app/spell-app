@@ -198,7 +198,11 @@ class InputEditor extends React.Component {
     const { error } = this.state
     // make sure we re-render if CodeMirror trips the error boundary
     const editor = error ? <InputEditorInner key="noerror" /> : <InputEditorInner key="error" error={error} />
-    return <div className="CodeMirrorContainer">{editor}</div>
+    return (
+      <div id="InputEditor" className="CodeMirrorContainer">
+        {editor}
+      </div>
+    )
   }
 }
 

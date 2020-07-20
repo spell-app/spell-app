@@ -45,7 +45,8 @@ export const inputOptions = {
     "Cmd-S": () => store.saveFile(),
     "Shift-Cmd-R": () => store.reloadFile(),
     "Cmd-Enter": () => store.compile()
-  }
+  },
+  scrollbarStyle: "native"
 }
 
 export const outputOptions = {
@@ -57,10 +58,10 @@ export const outputOptions = {
   lint: true
 }
 
-CodeMirror.defineMode("spell", function(codeMirrorConfig, modeConfig) {
+CodeMirror.defineMode("spell", function (codeMirrorConfig, modeConfig) {
   // Return the token that starts at numeric offset
   function getToken(tokens, offset) {
-    return tokens.find(token => token.offset >= offset)
+    return tokens.find((token) => token.offset >= offset)
   }
 
   function advanceStreamPastToken(stream, token) {

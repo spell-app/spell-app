@@ -287,6 +287,11 @@ export const store = createStore({
       scroll.direction = oldCurrent < scroll.current ? "down" : "up"
     }
 
+    // Extra stuff we COULD get from codeMirror
+    // See:  https://codemirror.net/doc/manual.html#api_sizing
+    // scroll.lineHeight = codeMirror.defaultTextHeight()
+    // scroll.mousePosition = codeMirror.coordsChar(<global-mouse-position>, "window")
+
     const range = codeMirror.doc.sel.ranges[0]
     const hasContents = !!store.file?.contents
     const anchor = {
@@ -319,6 +324,12 @@ export const store = createStore({
     if (!inputEditor || !isLoaded || !initialSelection) return
     console.info("initializing input", { path, initialSelection })
     try {
+      // HACK: manually set the height of the codeMirror instance
+      // so that the bottom scrollbar shows up in the right place.
+      // ????
+      const { clientWidth, clientHeight } = document.querySelector("#InputEditor")
+      inputEditor.setSize(clientWidth, clientHeight - 1)
+
       const selection = file.initialSelection
       // clear the `initialSelection` flag so we don't try to scroll again
       delete file.initialSelection
