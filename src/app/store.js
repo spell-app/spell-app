@@ -146,7 +146,7 @@ export const store = createStore({
     try {
       const removed = await store.projectRoot.deleteProject(store.project.projectId, CONFIRM)
       if (removed) {
-        // Navigate to the projectRoot, which will select another project
+        // Navigate to nextProject, or the projectRoot, which will select another project
         store.navigateToPath(store.projectRoot.path)
         store.showNotice("Project removed.")
       }
@@ -208,10 +208,16 @@ export const store = createStore({
   async deleteFile() {
     store.clearCompileSoon()
     try {
-      const removed = await store.project.deleteFile(store.file.filePath, CONFIRM)
+      const { project, file } = store
+      // figure out what to select next out of `project.imports`
+      const files = project.imports.map(({ file }) => file)
+      const fileIndex = files.indexOf(file)
+      const nextFile = files[fileIndex + (fileIndex === files.length - 1 ? -1 : 1)]
+      // actually remove the file
+      const removed = await project.deleteFile(file.filePath, CONFIRM)
       if (removed) {
-        // select the project, which will select another file in the project
-        store.navigateToPath(store.project.path)
+        // select the nextFile, or the project (which will select another file)
+        store.navigateToPath(nextFile?.path || project.path)
         store.showNotice("File removed.")
       }
     } catch (e) {
