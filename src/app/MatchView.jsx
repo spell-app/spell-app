@@ -2,13 +2,6 @@
 import React from "react"
 import { Token } from "~/parser"
 
-export function getRuleName(match) {
-  const ruleName = match.rule.name || "anonymous-rule"
-  const constructorName = match.rule.constructor.name
-  if (ruleName === constructorName) return ruleName
-  return `${constructorName} ${ruleName}`
-}
-
 /**
  * View for a particular `Match`.
  */
@@ -35,7 +28,7 @@ export function MatchView({ match }) {
       contents.push(<MatchView key={index} match={child} />)
     }
   })
-  const ruleName = getRuleName(match)
+  const { ruleName } = match
   const className = [
     "Match",
     ruleName,

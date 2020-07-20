@@ -5,15 +5,6 @@ import { scrollForElement, scrollElementToCenterOfParent } from "~/util"
 import { ErrorHandler } from "./ErrorHandler"
 import "./ASTViewer.less"
 
-function highlight(parent, element, delay = 0) {
-  parent.querySelectorAll(".ASTNode.highlight").forEach((el) => el.classList.remove("highlight"))
-  element.classList.add("highlight")
-  // console.info("highlighted", element)
-  // setTimeout(() => {
-  //   setTimeout(() => element.classList.remove("highlight"), 400)
-  // }, delay)
-}
-
 /** Top-level error handler. */
 export class ASTViewer extends ErrorHandler {
   /** Clear `state.error` if `props.ast` changes. */
@@ -28,55 +19,84 @@ export class ASTViewer extends ErrorHandler {
     this.props.showError(error)
   }
 
-  /** Update scroll for `selection`. */
-  updateScroll(viewer, match, selection) {
-    if (selection.scroll.event === "cursor" || typeof selection.scroll?.percent !== "number") return
-    const size = scrollForElement(viewer)
-    // console.info(selection.scroll, size)
-    viewer.scrollTop = selection.scroll.percent * size.max
-  }
-
-  /** Update highlight for `match` and `selection` */
-  updateHighlight(viewer, match, selection) {
-    if (typeof selection?.head?.offset !== "number") return
-    // get the stack of what was matched, with the inner-most thing FIRST
-    // find the inner-most thing that's represented on the page
-    const stack = match.matchStackForOffset(selection.head.offset).reverse()
-    let element
-    for (let inner of stack) {
-      element = viewer.querySelector(`.ASTNode[data-start="${inner.start}"]`)
-      if (element) break
-    }
-    if (!element) return
-    // console.info(element)
-    // on "cursor" events, scroll the element into the center of the display
-    if (selection.scroll?.event === "cursor") {
-      scrollElementToCenterOfParent(element, viewer)
-    }
-    highlight(viewer, element)
-  }
-
   /**
    * Wrapper class to manage scrolling and showing selection.
    */
   Wrapper = ({ component, props }) => {
-    const { match, selection } = props
-    // Update view to match selection
-    React.useLayoutEffect(() => {
-      const viewer = document.querySelector(".ASTViewer")
-      if (!viewer || !match || !selection?.scroll) return
-      this.updateScroll(viewer, match, selection)
-      this.updateHighlight(viewer, match, selection)
-    }, [match, selection])
-
     const classNames = ["ASTViewer"]
     if (props.scroll) classNames.push("scroll")
     return <div className={classNames.join(" ")}>{component}</div>
   }
 
   /** Actual component which draws the root `ast` ASTNode passed in. */
-  Component({ ast }) {
+  Component({ ast, match, selection }) {
+    // Update view to match selection
+    React.useLayoutEffect(() => {
+      const viewer = document.querySelector(".ASTViewer")
+      if (!viewer || !match || !selection) return
+      ASTViewer.updateScroll(viewer, match, selection)
+      ASTViewer.updateHighlight(viewer, match, selection)
+    }, [match, selection])
+
     // `ast.component` is memoized
     return ast?.component || null
+  }
+
+  /////////////////////////
+  //  Scroll / highlight management
+  /////////////////////////
+
+  /** Return element that corresponds to `match`. */
+  static elementForMatch(viewer, match) {
+    return viewer.querySelector(`.ASTNode[data-match="${match.ruleName}"][data-start="${match.start}"]`)
+  }
+
+  /** Update scroll for `selection`. */
+  static updateScroll(viewer, match, selection) {
+    if (selection?.scroll?.event === "cursor" || typeof selection.scroll.percent !== "number") return
+    const size = scrollForElement(viewer)
+    // console.info(selection.scroll, size)
+    viewer.scrollTop = selection.scroll.percent * size.max
+  }
+
+  static clearHighlights(viewer) {
+    viewer.querySelectorAll(".ASTNode.highlight").forEach((el) => el.classList.remove("highlight"))
+  }
+  static highlight(viewer, ...matches) {
+    matches.forEach((match) => {
+      const element = ASTViewer.elementForMatch(viewer, match)
+      if (element) element.classList.add("highlight")
+    })
+  }
+  /** Update highlight for `match` and `selection` */
+  static updateHighlight(viewer, match, selection) {
+    const cursorOffset = selection.head?.offset
+    if (typeof cursorOffset !== "number") return
+
+    // get the stack of what was matched, with the inner-most thing FIRST
+    let stack = match.matchStackForOffset(cursorOffset).reverse()
+    // if we got a `line` match as the first thing, we're at the end of the line
+    if (stack[0]?.ruleName === "line") {
+      // -- back up one and try again
+      stack = match.matchStackForOffset(cursorOffset - 1).reverse()
+    }
+    //if (stack.length === 0) return
+
+    // restrict to everything up to the first `line`, then reverse so the line is at the front
+    const lineIndex = stack.findIndex((item) => item.ruleName === "line")
+    if (lineIndex !== -1) stack = stack.slice(0, lineIndex + 1).reverse()
+
+    // on "cursor" events, scroll the first element on that line to the center of the display
+    const firstElForLine = viewer.querySelector(`.ASTNode[data-line="${stack[0].line}"]`)
+    if (selection.scroll?.event === "cursor") {
+      scrollElementToCenterOfParent(firstElForLine, viewer)
+    }
+
+    ASTViewer.clearHighlights(viewer)
+    // find the inner-most thing that's represented on the page
+    const innerItem = stack.reverse().find((item) => ASTViewer.elementForMatch(viewer, item))
+    console.info(stack, { lineIndex, innerItem, firstElForLine })
+    if (innerItem) ASTViewer.highlight(viewer, innerItem)
+    else if (firstElForLine) ASTViewer.highlight(viewer, firstElForLine)
   }
 }

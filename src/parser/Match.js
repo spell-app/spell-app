@@ -58,6 +58,11 @@ export class Match extends Assertable {
     return start === undefined ? undefined : start + inputText.length
   }
 
+  // Return the `name` for our rule, using `rule.constructor.name` for anonymous rules.
+  get ruleName() {
+    return this.rule.name || this.rule.constructor.name
+  }
+
   // Return our `matched` which encompasses `offset`.
   // Returns `undefined` if nothing works.
   matchForOffset(offset) {

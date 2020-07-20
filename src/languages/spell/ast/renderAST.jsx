@@ -23,6 +23,7 @@ export function Node(astNode) {
   const props = {
     className,
     title: className,
+    "data-match": match.ruleName,
     "data-line": match.line,
     "data-char": match.char,
     "data-start": match.start,

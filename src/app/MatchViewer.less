@@ -19,14 +19,15 @@
     transition: background 0.25s ease-in-out;
   }
   .Match.highlight {
-    background: rgba(245, 236, 212, 0.33);
+    background: @highlight-subtle;
   }
   .Match > .name.highlight {
-    background: rgb(245, 236, 212);
+    background: @highlight-color;
   }
 
   .Token > .value.highlight {
-    background: rgb(245, 236, 212);
+    background: @highlight-color;
+    text-decoration: underline;
   }
 
   .Match > .name {
