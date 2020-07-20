@@ -1,4 +1,5 @@
 import React from "react"
+
 import Container from "react-bootstrap/Container"
 import Row from "react-bootstrap/Row"
 import Col from "react-bootstrap/Col"
@@ -35,16 +36,20 @@ const ProjectMenu = view(function ProjectMenu() {
       deleteProject: () => store.deleteProject()
     }
   })
-  if (!projectRoot.isLoaded || !project)
+  if (!projectRoot?.isLoaded || !project) {
     return <NavDropdown key="loading" title="Loading..." id="ProjectMenu" style={{ width: "12em" }} />
+  }
   return (
     <NavDropdown key={project.path} title={project.projectName} id="ProjectMenu" style={{ width: "12em" }}>
-      {projectRoot.projectPaths.map((path) => (
-        <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectProject}>
-          <i className="large folder outline icon" />
-          {new SpellLocation(path).projectName}
-        </NavDropdown.Item>
-      ))}
+      {projectRoot.projectPaths.map((path) => {
+        const { projectName } = new SpellLocation(path)
+        return (
+          <NavDropdown.Item key={path} eventKey={path} onSelect={store.navigateToPath}>
+            <i className="large folder outline icon" />
+            {projectName}
+          </NavDropdown.Item>
+        )
+      })}
       <NavDropdown.Divider />
       <NavDropdown.Item key="create" onSelect={bound.createProject}>
         <i className="large icons">
@@ -73,12 +78,14 @@ const ProjectMenu = view(function ProjectMenu() {
 const FileMenu = view(function FileMenu() {
   const { project, file } = store
   if (DEBUG_RENDER) console.info("FileMenu", project, file)
-  if (!project || !file) return <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
+  if (!project?.isLoaded || !file) {
+    return <NavDropdown key="loading" title="Loading..." id="FileMenu" style={{ width: "12em" }} />
+  }
   return (
     <NavDropdown key={file.path} title={file.file} id="FileMenu" style={{ width: "12em" }}>
       {project.imports.map(({ path, location }) => {
         return (
-          <NavDropdown.Item key={path} eventKey={path} onSelect={store.selectFile}>
+          <NavDropdown.Item key={path} eventKey={path} onSelect={store.navigateToPath}>
             {location.file}
           </NavDropdown.Item>
         )
@@ -263,7 +270,24 @@ const Error = view(function Error() {
   )
 })
 
+const MatchRoot = view(function MatchRoot() {
+  return <MatchViewer scroll match={store.file?.match} selection={store.selection} showError={store.showError} />
+})
+
+const ASTRoot = view(function ASTRoot() {
+  return (
+    <ASTViewer
+      scroll
+      ast={store.file?.AST}
+      match={store.file?.match}
+      selection={store.selection}
+      showError={store.showError}
+    />
+  )
+})
+
 export const SpellEditor = view(function SpellEditor() {
+  console.info("SpellEditor")
   // Set up hotkey when NOT in codemirror
   // Note these are duplicated in CodeMirror.js
   useHotkeys("command+s", (event) => {
@@ -294,26 +318,20 @@ export const SpellEditor = view(function SpellEditor() {
           </Col>
           <Col xs={6} className="pl-2">
             <div className="SpellEditorPanel rounded shadow-sm border">
-              <ASTViewer
-                scroll
-                ast={store.file?.AST}
-                match={store.file?.match}
-                selection={store.selection}
-                showError={store.showError}
-              />
+              <ASTRoot />
             </div>
           </Col>
         </Row>
         <Row id="bottomRow" noGutters className="p-1">
           <Col xs={6} className="">
             <div className="SpellEditorPanel rounded shadow-sm border">
-              {/* <MatchViewer... /> */}
+              {/* <MatchRoot /> */}
               {AppContainer}
             </div>
           </Col>
           <Col xs={6} className="pl-2">
             <div className="SpellEditorPanel rounded shadow-sm border">
-              <MatchViewer scroll match={store.file?.match} selection={store.selection} showError={store.showError} />
+              <MatchRoot />
               {/* <OutputEditor /> */}
             </div>
           </Col>
@@ -324,3 +342,12 @@ export const SpellEditor = view(function SpellEditor() {
     </>
   )
 })
+
+export function SpellRoute(props) {
+  const { domain, project, filePath } = props
+  const path = SpellLocation.pathForUrl({ domain, project, filePath })
+  // console.info("SpellRoute", path, props)
+  // HACK: Actually navigate on a timeout to avoid hook / rerender problems.
+  setTimeout(() => store.selectPath(path), 0)
+  return <SpellEditor />
+}

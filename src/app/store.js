@@ -1,14 +1,9 @@
 import global from "global"
 import ReactDOM from "react-dom"
+import { navigate } from "@reach/router"
 
-import { createStore, setPrefKey, getPref, setPref, CONFIRM, REACT_APP_ROOT_ID } from "~/util"
-import { spellSetup, SpellProjectRoot, SpellProject } from "~/languages/spell"
-
-const EMPTY_SELECTION = {
-  scroll: { top: 0, total: 0, visible: 0 },
-  anchor: { line: 0, ch: 0 },
-  head: { line: 0, ch: 0 }
-}
+import { createStore, setPrefKey, getSetPref, CONFIRM, REACT_APP_ROOT_ID } from "~/util"
+import { SpellProjectRoot, SpellProject, SpellLocation } from "~/languages/spell"
 
 setPrefKey("spellEditor:")
 export const store = createStore({
@@ -16,34 +11,108 @@ export const store = createStore({
   // Project and project actions
   //-----------------
 
-  /** Singleton list of all projects. */
-  projectRoot: new SpellProjectRoot(spellSetup.projectRoots.projects),
+  /**
+   * `SpellProjectRoot` shown in `SpellEditor`.
+   * Update with `store.navigateToPath()
+   */
+  projectRoot: undefined,
+  /** Get/save last viewed `projectPath` for `projectRootPath`. */
+  lastProjectForRoot: getSetPref("projectRootPath", "projectPath"),
 
-  start: async () => {
-    await store.projectRoot.load()
-    store.selectProject()
-  },
-  /** Current project as `SpellProject`. */
+  /**
+   * `SpellProject` shown in `SpellEditor`.
+   * Update with `store.navigateToPath()`
+   */
   project: undefined,
-  /** Select a project. */
-  selectProject: async (path = getPref("selectedProject")) => {
-    console.info("selecting project", path)
-    const projectPaths = await store.projectRoot.load()
-    if (!projectPaths.includes(path)) path = projectPaths[0]
-    setPref("selectedProject", path)
-    store.project = new SpellProject(path)
-    store.file = undefined
-    global.project = store.project // DEBUG
-    await store.project.load()
-    const appRoot = document.getElementById(REACT_APP_ROOT_ID)
-    if (appRoot) ReactDOM.unmountComponentAtNode(appRoot)
-    store.selectFile()
+  /** Get/save last viewed full `filePath` for `projectPath`. */
+  lastFileForProject: getSetPref("projectPath", "filePath"),
+
+  /**
+   * `SpellFile` etc shown in `SpellEditor`.
+   * Update with `store.navigateToPath()`
+   */
+  file: undefined,
+  /** Get/save last `selection` for `filePath`.  */
+  lastSelectionForFile: getSetPref("filePath", "selection"),
+
+  /**
+   * Navigate to a `path` by updating the URL, which will eventually call `selectPath`
+   */
+  navigateToPath(path) {
+    try {
+      navigate(new SpellLocation(path).url)
+    } catch (e) {
+      store.showError(`Path '${path}' is invalid!`)
+    }
   },
+
+  /**
+   * Select a `path` to show in the `<SpellEditor/>`.
+   *  - ultimately this will always (?) come down to selecting a file.
+   *  - Default project = last project selected for projectRoot or first project in root.
+   *  - Default file = last file selected for project or first file in project.
+   *  - Restores file selection if stored.
+   */
+  selectPath: async (path) => {
+    store.clearCompileSoon()
+
+    let location
+    try {
+      location = new SpellLocation(path)
+    } catch (e) {
+      console.warn(`store.selectPath('${path}'): invalid path`)
+      // default to user projects if `new SpellLocation()` throws
+      location = new SpellLocation("@user:projects")
+    }
+    console.info("store.selectPath", { path, location })
+
+    store.projectRoot = new SpellProjectRoot(location.projectRoot)
+    const projectPaths = await store.projectRoot.load()
+
+    // Figure out which project to show, using pref if not specified in `path`
+    let projectPath =
+      location.isProjectPath || location.isFilePath //
+        ? location.projectPath
+        : store.lastProjectForRoot(location.projectRoot)
+    if (!projectPaths.includes(projectPath)) projectPath = projectPaths[0]
+    // TODO: what if no project???
+    const project = new SpellProject(projectPath)
+    if (store.project !== project) {
+      console.info("selecting project", project)
+      store.lastProjectForRoot(location.projectRoot, projectPath)
+      await project.load()
+      store.project = project
+      // clear file while we're loading the project so file menu updates
+      store.file = undefined
+      // Clear application display when switching projects
+      const appRoot = document.getElementById(REACT_APP_ROOT_ID)
+      if (appRoot) ReactDOM.unmountComponentAtNode(appRoot)
+    }
+
+    // Figure out which file to show, using pref if not specified in `path`
+    let filePath = location.isFilePath //
+      ? location.filePath
+      : store.lastFileForProject(project.path)
+    if (!filePath || !project.getFile(filePath)) {
+      filePath = project.activeImports[0]?.path || project.files[0]?.path || ""
+    }
+    // TODO: what if no file???
+    const file = project.getFile(filePath)
+    if (store.file !== file) {
+      console.info("selecting file", file)
+      store.lastFileForProject(project.path, file.path)
+      // restore file selection -- we'll use this below as a flag to reselect
+      file.initialSelection = store.lastSelectionForFile(file.path)
+      store.file = file
+    }
+    await store.reloadFile()
+  },
+
   async createProject(projectId) {
     try {
       const project = await store.projectRoot.createProject(projectId)
       if (project) {
-        store.selectProject(project.path)
+        store.navigateToPath(project.path)
         store.showNotice("Project created.")
       }
     } catch (e) {
@@ -55,7 +124,7 @@ export const store = createStore({
       const newProject = await store.projectRoot.duplicateProject(store.project.projectId, newProjectId)
       console.warn({ newProject })
       if (newProject) {
-        store.selectProject(newProject.path)
+        store.navigateToPath(newProject.path)
         store.showNotice("Project duplicated.")
       }
     } catch (e) {
@@ -66,7 +135,7 @@ export const store = createStore({
     try {
       const project = await store.projectRoot.renameProject(store.project.projectId, newProjectId)
       if (project) {
-        store.selectProject(project.path)
+        store.navigateToPath(project.path)
         store.showNotice("Project renamed.")
       }
     } catch (e) {
@@ -77,7 +146,8 @@ export const store = createStore({
     try {
       const removed = await store.projectRoot.deleteProject(store.project.projectId, CONFIRM)
       if (removed) {
-        store.selectProject()
+        // Navigate to the projectRoot, which will select another project
+        store.navigateToPath(store.projectRoot.path)
         store.showNotice("Project removed.")
       }
     } catch (e) {
@@ -86,35 +156,9 @@ export const store = createStore({
   },
 
   //-----------------
-  // File and file actions
+  // File actions
   //-----------------
 
-  /** Current file as `SpellFile` or `SpellCSSFile`. */
-  file: undefined,
-  /** Select a file from the `selectedProject`. */
-  selectFile: async (filePath) => {
-    store.clearCompileSoon()
-    // TODO: switch project if filePath doesn't match selected project?
-    // NOTE: assumes `store.project` is a valid, loaded project!
-    const { project } = store
-    if (!filePath) filePath = getPref(project.path)
-    if (!filePath || !project.getFile(filePath)) {
-      filePath = project.activeImports[0]?.path || project.files[0]?.path || ""
-    }
-    setPref(project.path, filePath)
-    if (filePath) {
-      store.file = project.getFile(filePath)
-      global.file = store.file // DEBUG
-      if (store.file) {
-        // set `store.file.initialSelection` to our prefence value
-        //  we'll use this as a flag to scroll the line into view on initial render
-        store.file.initialSelection = getPref(store.file.path) || EMPTY_SELECTION
-        await store.reloadFile()
-      }
-    } else {
-      console.error("TODO: show UI when no files in project!")
-    }
-  },
   async saveFile() {
     if (store.file?.isLoaded) await store.file.save()
   },
@@ -130,7 +174,7 @@ export const store = createStore({
     try {
       const newFile = await store.project.createFile(filePath, contents)
       if (newFile) {
-        store.selectFile(newFile.path)
+        store.navigateToPath(newFile.path)
         store.showNotice("File created.")
       }
     } catch (e) {
@@ -142,7 +186,7 @@ export const store = createStore({
     try {
       const newFile = await store.project.duplicateFile(store.file.filePath, newPath)
       if (newFile) {
-        store.selectFile(newFile.path)
+        store.navigateToPath(newFile.path)
         store.showNotice("File duplicated.")
       }
     } catch (e) {
@@ -154,7 +198,7 @@ export const store = createStore({
     try {
       const renamedFile = await store.project.renameFile(store.file.filePath, newPath)
       if (renamedFile) {
-        store.selectFile(renamedFile.path)
+        store.navigateToPath(renamedFile.path)
         store.showNotice("File renamed.")
       }
     } catch (e) {
@@ -166,7 +210,8 @@ export const store = createStore({
     try {
       const removed = await store.project.deleteFile(store.file.filePath, CONFIRM)
       if (removed) {
-        store.selectFile()
+        // select the project, which will select another file in the project
+        store.navigateToPath(store.project.path)
         store.showNotice("File removed.")
       }
     } catch (e) {
@@ -179,7 +224,6 @@ export const store = createStore({
       console.group("Compiling", store.project)
       store.clearCompileSoon()
       await store.project.compile()
-      // store.scrollViewers()
       store.project.executeCompiled()
     } finally {
       console.groupEnd()
@@ -210,18 +254,18 @@ export const store = createStore({
   inputEditor: undefined,
   /** Remember `inputEditor` in our <InputEditor editorDidMount /> event. */
   onInputDidMount(codeMirror) {
-    console.info("initializing", { codeMirror })
+    // console.info("initializing", { codeMirror })
     store.inputEditor = codeMirror
     codeMirror.on("refresh", store.onInputCursor)
   },
   /** Forget `inputEditor` in our <InputEditor editorWillUnmount /> event. */
   onInputWillUnmount(codeMirror) {
-    codeMirror.off("refresh", store.onInputCursor)
     store.inputEditor = null
+    codeMirror.off("refresh", store.onInputCursor)
   },
 
   /** Handle cursor move or scroll in our inputEditor, remembering the `selection`  */
-  selection: EMPTY_SELECTION,
+  selection: undefined,
   onInputCursor(codeMirror) {
     const event = arguments.length === 1 ? "cursor" : "scroll"
     const { direction, current: oldCurrent } = store.selection?.scroll || {}
@@ -254,8 +298,8 @@ export const store = createStore({
     }
 
     store.selection = { scroll, anchor, head }
-    // store selection as file `pref`, we'll reload it in `selectFile()` above.
-    if (store.file) setPref(store.file.path, store.selection)
+    // store selection as file `pref`, we'll reload it in `selectPath()` above.
+    if (store.file) store.lastSelectionForFile(store.file.path, store.selection)
   },
 
   /**
@@ -265,13 +309,14 @@ export const store = createStore({
    */
   onInputEffect() {
     const { inputEditor, file } = store
-    if (!inputEditor || !file?.isLoaded || !file?.initialSelection) return
-    console.warn("onInputEffect firing", file.path, file.initialSelection)
+    const { path, initialSelection, isLoaded } = file || {}
+    if (!inputEditor || !isLoaded || !initialSelection) return
+    console.info("initializing input", { path, initialSelection })
     try {
       const selection = file.initialSelection
       // clear the `initialSelection` flag so we don't try to scroll again
       delete file.initialSelection
-      setPref(store.file.path, selection)
+      store.lastSelectionForFile(store.file.path, selection)
 
       store.selection = selection
       inputEditor.scrollTo(0, selection.scroll?.scroll || 0)

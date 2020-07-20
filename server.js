@@ -38,7 +38,10 @@ app.use("/api", api)
 // This MUST come after `use()` of any other middlewares.
 app.use(bundler.middleware())
 
-app.use("/static", express.static("static"))
+// Make everything else render `index.html` for front-end routing
+app.use("*", (request, response) => {
+  response.sendFile("src/index.html")
+})
 
 // Go go go!
 app.listen(port)

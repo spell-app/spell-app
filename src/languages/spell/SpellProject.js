@@ -58,11 +58,10 @@ export class SpellProject extends JSON5File {
     //
     "projectId",
     "owner",
-    "projectDomain",
+    "projectRoot",
     "projectName",
     "isSystemProject",
-    "isUserProject",
-    "getProjectFile"
+    "isUserProject"
   )
   @memoize
   get location() {

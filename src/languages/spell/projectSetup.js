@@ -11,22 +11,22 @@ import global from "global"
 class SpellSetup {
   /** TODOC:   */
   projectRoots = {
-    projects: {
+    "@user:projects": {
       owner: "@user",
       domain: "projects",
       description: "User projects"
     },
-    library: {
+    "@user:library": {
       owner: "@user",
       domain: "library",
       description: "User library"
     },
-    examples: {
+    "@system:examples": {
       owner: "@system",
       domain: "examples",
       description: "Example projects"
     },
-    guides: {
+    "@system:guides": {
       owner: "@system",
       domain: "guides",
       description: "Usage guides"

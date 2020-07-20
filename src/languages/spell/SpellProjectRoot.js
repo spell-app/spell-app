@@ -1,7 +1,8 @@
 import global from "global"
 
-import { JSON5File, CONFIRM, memoizeForProp, $fetch, getDier } from "~/util"
+import { forward, memoize, writeOnce, memoizeForProp, JSON5File, CONFIRM, $fetch, getDier } from "~/util"
 import { SpellLocation, SpellProject } from "~/languages/spell"
+import { spellSetup } from "./projectSetup"
 
 /**
  * Loadable list of all `SpellProject`s available to this user.
@@ -12,10 +13,37 @@ export class SpellProjectRoot extends JSON5File {
   // owner: "@user"
   // domain: "projects",
   // description: "User projects",
+  @writeOnce path
+  @writeOnce owner
+  @writeOnce domain
+  @writeOnce description
+  @writeOnce location
+
+  /**
+   * Given a `path` as `@user:projects` etc, return a singleton `SpellProjectRoot`
+   * Throws if `path` is not in `spellSetup.projectRoots`.
+   */
+  /** Registry of known instances. */
+  static registry = new Map()
+  constructor(path, die) {
+    // Return immediately from registry if already present.
+    const existing = SpellProjectRoot.registry.get(path)
+    if (existing) return existing
+
+    const setup = spellSetup.projectRoots[path]
+    if (!setup) {
+      const message = `Invalid domain path '${path}'.`
+      if (die) die(message)
+      throw new TypeError(message)
+    }
+    super({ path, ...setup })
+    this.location = new SpellLocation(this.path)
+    SpellLocation.registry.set(path, this)
+  }
 
   /** URL to load the project list. */
   get url() {
-    return `/api/projects/list/@user:projects`
+    return `/api/projects/list/${this.path}`
   }
 
   /**

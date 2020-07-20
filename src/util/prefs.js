@@ -51,10 +51,22 @@ export function setPref(key, value) {
 // Clear ALL application-level prefs.
 export function clearAllPrefs() {
   try {
-    Object.keys(localStorage).forEach(key => {
+    Object.keys(localStorage).forEach((key) => {
       if (key.startsWith(APP_PREF_PREFIX)) delete localStorage[key]
     })
   } catch (e) {
     console.error("clearAllPrefs(): Error clearing prefs:", e)
+  }
+}
+
+/**
+ * Return a function to get/set pref:
+ *  - If passed single `prefKey` argument, return stored pref value or `undefined`.
+ *  - If also passed `newValue` (including `undefined`), we'll `setPref()` instead.
+ */
+export function getSetPref() {
+  return function (prefKey, newValue) {
+    if (arguments.length === 1) return getPref(prefKey)
+    return setPref(prefKey, newValue)
   }
 }

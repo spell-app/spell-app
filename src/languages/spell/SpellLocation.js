@@ -1,5 +1,4 @@
 import global from "global"
-import { DIE_SILENTLY } from "../../util/constants"
 import { spellSetup } from "./projectSetup"
 /**
  * IMPORTANT: this file MUST NOT import from anything other than `spellSetup`
@@ -47,6 +46,7 @@ export function isValid(path) {
  *  - `owner`       `@owner`
  *  - `domain`      `domain`
  *  - `projectName` `projectName`                       (`undefined` if `isProjectRoot`)
+ *  - `projectPath` `@owner:domain:projectName`         (`undefined` if `isProjectRoot`)
  *  - `filePath`    `/folder/folder/fileName.extension` (`undefined` if not `.isFilePath`)
  *  - `folder`      `/folder/folder/`                   (`undefined` if not `.isFilePath`)
  *  - `file`        `fileName.extension`                (`undefined` if not `.isFilePath` )
@@ -96,8 +96,8 @@ export class SpellLocation {
 
       // Is this a valid path??  Let's take it in steps:
       // 1. Does it match a `projectRoot` in `spellSetup`
-      const projectRoot = spellSetup.projectRoots[this.domain]
-      this.isValid = !!projectRoot && projectRoot.owner === this.owner && projectRoot.domain === this.domain
+      const projectSetup = spellSetup.projectRoots[this.projectRoot]
+      this.isValid = !!projectSetup && projectSetup.owner === this.owner && projectSetup.domain === this.domain
       // 2. If it has a projectName, is that valid?
       if (this.isValid && this.projectName) this.isValid = isValidPathSegment(this.projectName)
       // 3. If it has a filePath, does it have a projectName and is the filePath all valid?
@@ -154,19 +154,52 @@ export class SpellLocation {
   //  Syntactic sugar
   //-----------------
 
-  /** `projectRoot` as `@user:projects` or `@system:examples` */
+  /**
+   * Return our `projectRoot` as `@user:projects` or `@system:examples`
+   */
   get projectRoot() {
     return `${this.owner}:${this.domain}`
   }
 
-  //-----------------
-  //  Syntactic sugar for working with paths.
-  //-----------------
+  /**
+   * Return our `projectPath` as `@user:projects:projectName` etc.
+   */
+  get projectPath() {
+    if (this.isProjectRoot) return undefined
+    return `${this.projectRoot}:${this.projectName}`
+  }
 
-  /** Get a peer project, in the same domain as this one. */
-  getDomainProject(projectName) {
-    const projectPath = `${this.projectRoot}:${projectName}`
-    return new SpellFile(projectPath)
+  /**
+   * Return the font-end `url` to load this location.
+   */
+  get url() {
+    if (this.isDomainPath) return `/${this.domain}`
+    if (this.isProjectPath) return `/${this.domain}/${this.projectName}`
+    return `/${this.domain}/${this.projectName}${this.filePath}`
+  }
+
+  /**
+   * Given a `path` string, return the appropriate `url` or `undefined`.
+   */
+  static urlForPath(path) {
+    try {
+      return new SpellLocation(path).url
+    } catch (e) {
+      return undefined
+    }
+  }
+
+  /**
+   * Given `urlParams` of `{ domain, project, filePath }`
+   * return the associated `path` string.
+   */
+  static pathForUrl({ domain, project, filePath } = {}) {
+    let path = domain?.startsWith("example") ? "@system:examples" : "@user:projects"
+    if (!project) return path
+    path += `:${project}`
+    if (!filePath) return path
+    path += filePath.startsWith("/") ? filePath : `/${filePath}`
+    return path
   }
 
   //-----------------
