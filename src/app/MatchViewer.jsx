@@ -67,7 +67,7 @@ export class MatchViewer extends ErrorHandler {
       selector =
         matchOrToken.ruleName === "line" //
           ? `.Match.line[data-start="${matchOrToken.start}"]`
-          : `.Match.${matchOrToken.ruleName}[data-start="${matchOrToken.start}"] > .name`
+          : `.Match.${matchOrToken.ruleName.replace(/\$/g, "_")}[data-start="${matchOrToken.start}"] > .name`
     }
     return viewer.querySelector(selector)
   }

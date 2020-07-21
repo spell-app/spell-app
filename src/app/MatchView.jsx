@@ -31,7 +31,7 @@ export function MatchView({ match }) {
   const { ruleName } = match
   const className = [
     "Match",
-    ruleName,
+    ruleName.replace(/\$/g, "_"),
     hasTokens && "hasTokens",
     hasMatches && "hasMatched",
     blocks.length && "hasBlocks",
@@ -69,7 +69,7 @@ export function TokenView({ token }) {
 }
 
 export function JSXElementView({ match }) {
-  const ruleName = match.rule.name
+  const { ruleName } = match
   const { tagName, isUnaryTag } = match.input[0]
   // console.info({ match, ruleName, rule: match.rule, tagName })
   if (ruleName === "jsxText") return <JSXTextView match={match} />
