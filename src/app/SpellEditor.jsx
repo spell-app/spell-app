@@ -27,7 +27,6 @@ const DEBUG_RENDER = false
 /** Menu of all available projects. */
 const ProjectMenu = view(function ProjectMenu({ showLabel = true }) {
   const { projectRoot, project } = store
-  if (DEBUG_RENDER) console.info("ProjectMenu", projectRoot, project)
   const bound = React.useMemo(() => {
     return {
       createProject: () => store.createProject(),
@@ -299,7 +298,9 @@ const Error = view(function Error() {
 })
 
 const MatchRoot = view(function MatchRoot() {
-  return <MatchViewer scroll match={store.file?.match} selection={store.selection} showError={store.showError} />
+  return (
+    <MatchViewer scroll compact match={store.file?.match} selection={store.selection} showError={store.showError} />
+  )
 })
 
 const ASTRoot = view(function ASTRoot() {

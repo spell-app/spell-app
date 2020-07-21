@@ -81,7 +81,7 @@ to quietly test card setup
 	expect the name of the card to be "queen-of-spades"
 	expect the color of the card to be black
 	expect the value of the card to be 12
-	expect the short-suit of the to be "♠️"
+	expect the short-suit of the card to be "♠️"
 	expect the short-rank of the card to be "Q"
 	expect the short-name of the card to be "Q♠️"
 

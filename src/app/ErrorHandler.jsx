@@ -5,15 +5,19 @@ export class ErrorHandler extends React.Component {
   /**
    * Component used to draw a wrapper around `Component` or `ErrorComponent`.
    * Default is just to return the `contents` passed in.
-   * - `contents` are rendered Component or ErrorComponent
-   * - `error` is the error
+   * - `component` is the rendered Component or ErrorComponent
+   * - `error` is the error, if any
    * - `props` are props passed in to this element
    */
-  Wrapper({ contents, error, props }) {
-    return contents
+  Wrapper({ component, error, props }) {
+    return component
   }
 
-  /** Component or Fn which should be used to render your thing if all is well. */
+  /**
+   * Component or Fn which should be used to render your thing if all is well.
+   * You'll be passed all of the props as passed to the root element and:
+   *  - `wrapperRef` DOM ref to the wrapper element.
+   */
   Component(props) {
     return null
   }
@@ -21,9 +25,9 @@ export class ErrorHandler extends React.Component {
   /**
    * Component or Fn which should be used to render an error.
    * - `error` is the error which was caught
-   * - `props` are the **current** props passed to this component.
+   * - will also contain all `props` passed to the root element.
    */
-  ErrorComponent({ error, props }) {
+  ErrorComponent({ error }) {
     return <h4>Error: {error.message}</h4>
   }
 
@@ -58,7 +62,7 @@ export class ErrorHandler extends React.Component {
       state: { error }
     } = this
     const component = error
-      ? React.createElement(this.ErrorComponent, { error, props })
+      ? React.createElement(this.ErrorComponent, { ...props, error })
       : React.createElement(this.Component, props)
     return React.createElement(this.Wrapper, { component, error, props })
   }

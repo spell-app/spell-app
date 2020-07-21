@@ -29,6 +29,7 @@ export class MatchViewer extends ErrorHandler {
   Wrapper = ({ component, props }) => {
     const classNames = ["MatchViewer"]
     if (props.scroll) classNames.push("scroll")
+    if (props.compact) classNames.push("compact")
     return <div className={classNames.join(" ")}>{component}</div>
   }
 

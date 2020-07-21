@@ -9,6 +9,44 @@
     overflow: auto;
   }
 
+  &.compact {
+    .Match {
+      min-height: auto !important;
+      padding: 0 !important;
+    }
+    .Match.line.isBlankLine {
+      height: 19px !important;
+    }
+    .Match.block {
+      padding: 0;
+      margin: 0 0 0 15px !important;
+      border-left-width: 0 !important;
+      border-top-width: 0 !important;
+    }
+    .Match.line {
+      border-left-width: 0 !important;
+      border-top-width: 0 !important;
+      margin: 0 !important;
+    }
+    .name { 
+      display: none !important;
+    }
+    .Match > .contents {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+    .Token > .spacer {
+      display: none !important;
+    }
+    .Token {
+      padding-left: 0 !important;
+      padding-right: 5px;
+      // enable the below to see how tokens are drawn
+      // margin-left: 1px !important;
+      // border-bottom: 1px solid red;
+    }
+  }
+
   .Match {
     position: relative;
     padding: 0 2px;
