@@ -37,7 +37,7 @@ const ProjectMenu = view(function ProjectMenu({ showLabel = true }) {
   })
   const label = !!showLabel && (
     <NavLink disabled style={{ width: "5em" }}>
-      {projectRoot?.label}:
+      {projectRoot?.singular}:
     </NavLink>
   )
 
@@ -93,7 +93,7 @@ const FileMenu = view(function FileMenu({ showLabel = true }) {
   if (DEBUG_RENDER) console.info("FileMenu", project, file)
   const label = !!showLabel && (
     <NavLink disabled style={{ width: "3em" }}>
-      Files:
+      File:
     </NavLink>
   )
   if (!project?.isLoaded || !file) {

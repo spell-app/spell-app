@@ -9,6 +9,10 @@
   z-index: 1;
 }
 
+.CodeMirror-scroll {
+  padding-left: 0.5em;
+}
+
 .CodeMirror.cm-s-solarized {
   box-shadow: none;
 }

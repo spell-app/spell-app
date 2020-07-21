@@ -15,24 +15,28 @@ class SpellSetup {
       owner: "@user",
       domain: "projects",
       label: "Projects",
+      singular: "Project",
       description: "User projects"
     },
     "@user:library": {
       owner: "@user",
       domain: "library",
       label: "Library",
+      singular: "Library",
       description: "User library"
     },
     "@system:examples": {
       owner: "@system",
       domain: "examples",
       label: "Examples",
+      singular: "Example",
       description: "Example projects"
     },
     "@system:guides": {
       owner: "@system",
       domain: "guides",
       label: "Guides",
+      singular: "Guide",
       description: "Usage guides"
     }
   }
