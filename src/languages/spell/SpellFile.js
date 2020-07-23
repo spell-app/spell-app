@@ -1,6 +1,6 @@
 import global from "global"
 
-import { TextFile, state, proto, memoize, forward, writeOnce, overrideable, batch } from "~/util"
+import { TextFile, state, proto, memoize, forward, writeOnce, overridable, batch } from "~/util"
 import { ProjectScope, FileScope } from "~/parser"
 import { SpellProject, SpellParser, SpellLocation } from "~/languages/spell"
 

@@ -43,7 +43,7 @@ function _setOrUnsetProp(thing, key, value) {
  *  - we can't trap `delete`!  have to use `.set({ prop, undefined })`
  *  - may have problems with arrow functions?
  *
- * TODO: `@sharedProp` for an overrideable shared property?
+ * TODO: `@sharedProp` for an overridable shared property?
  * HMMM:
  *  - `@sharedProp` set on prototype, reactive on instances when it changes?
  */
@@ -68,7 +68,7 @@ export class Observable {
     batch(() => {
       // eslint-disable-next-line prefer-rest-params
       if (arguments.length === 2 || typeof props === "string") _setOrUnsetProp(this, arguments[0], arguments[1])
-      else if (props) Object.keys(props).forEach(key => _setOrUnsetProp(this, key, props[key]))
+      else if (props) Object.keys(props).forEach((key) => _setOrUnsetProp(this, key, props[key]))
     })
     return this
   }
@@ -79,7 +79,7 @@ export class Observable {
    */
   resetState(...keys) {
     if (arguments.length === 0) keys = Object.keys(this._state)
-    keys.forEach(key => delete this._state[key])
+    keys.forEach((key) => delete this._state[key])
   }
 
   /**
@@ -104,7 +104,7 @@ export class Observable {
 
   /** Clean up all `watch`es `onRemove()` (which must be called manually). */
   onRemove() {
-    if (this._reactions) this._reactions.forEach(reaction => clearEffect(reaction))
+    if (this._reactions) this._reactions.forEach((reaction) => clearEffect(reaction))
   }
 }
 global.Observable = Observable
@@ -121,13 +121,13 @@ export function prop(target, key, descriptor) {
   }
 
   const { initializer, value, writable, configurable } = descriptor
-  const get = function() {
+  const get = function () {
     if (!hasOwnProp(this._props, key)) this._props[key] = initializer ? initializer() : value
     return this._props[key]
   }
   let set
   if (writable) {
-    set = function(newValue) {
+    set = function (newValue) {
       if (newValue === undefined) {
         if (hasOwnProp(this, key)) delete this[key]
         if (hasOwnProp(this._props, key)) delete this._props[key]
@@ -137,7 +137,7 @@ export function prop(target, key, descriptor) {
       }
     }
   } else {
-    set = function(newValue) {
+    set = function (newValue) {
       console.warn(`Attempting to set readonly property '${key}' of`, this, "to", newValue)
     }
   }
@@ -157,11 +157,11 @@ export function state(target, key, descriptor) {
   }
 
   const { initializer, value, configurable /* writable, */ } = descriptor
-  const get = function() {
+  const get = function () {
     if (!hasOwnProp(this._state, key)) this._state[key] = initializer ? initializer() : value
     return this._state[key]
   }
-  const set = function(newValue) {
+  const set = function (newValue) {
     console.warn(`Attempting to set readonly state '${key}' of`, this, "to", newValue)
   }
   // let set

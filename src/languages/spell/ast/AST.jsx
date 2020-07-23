@@ -6,7 +6,7 @@ import {
   proto,
   memoize,
   readonly,
-  overrideable,
+  overridable,
   getSuperHierarchy,
   Assertable,
   OPTIONAL,
@@ -286,7 +286,7 @@ export class ArrayLiteral extends Literal {
     this.assertArrayType("items", Expression, OPTIONAL)
     this.assertType("wrap", "boolean", OPTIONAL)
   }
-  @overrideable
+  @overridable
   get wrap() {
     return this.items?.length > 2
   }
@@ -577,7 +577,7 @@ export class InvocationArgs extends ASTNode {
       })
     }
   }
-  @overrideable
+  @overridable
   get wrap() {
     return this.args?.length > 3
   }
@@ -991,7 +991,7 @@ export class ObjectLiteral extends Expression {
       })
   }
   // Should we wrap properties block?
-  @overrideable
+  @overridable
   get wrap() {
     return this.properties.length > 2 || this.properties.some((item) => item instanceof MethodDefinition)
   }
@@ -1100,7 +1100,7 @@ export class StatementBlock extends ASTNode {
       this.statements = this.statements[0].statements
     }
   }
-  @overrideable
+  @overridable
   get wrap() {
     return this.statements?.length > 1
   }

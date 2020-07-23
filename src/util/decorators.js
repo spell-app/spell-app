@@ -78,7 +78,7 @@ export function writeOnce(target, property, descriptor) {
  *
  * Example:
  *    class Thing {
- *      @overrideable get prop() { return "original value" }
+ *      @overridable get prop() { return "original value" }
  *    }
  *    const it = new Thing()
  *    it.prop                 <<<< "original value"
@@ -87,9 +87,9 @@ export function writeOnce(target, property, descriptor) {
  *    delete it.prop
  *    it.prop                 <<<< "orignal value"
  */
-export function overrideable(target, property, descriptor) {
+export function overridable(target, property, descriptor) {
   const { get, set, ...descriptorProps } = descriptor
-  if (!get || set) throw new TypeError("@overrideable: Only know how to apply to getter without setter.")
+  if (!get || set) throw new TypeError("@overridable: Only know how to apply to getter without setter.")
   return {
     ...descriptorProps,
     get,
@@ -104,8 +104,8 @@ export function overrideable(target, property, descriptor) {
  * This allows you to use them on the target object just like they were defined there.
  */
 export function forward(...properties) {
-  return function(target, property, descriptor) {
-    properties.forEach(prop => {
+  return function (target, property, descriptor) {
+    properties.forEach((prop) => {
       Object.defineProperty(target, prop, {
         configurable: false,
         enumerable: false,
@@ -140,7 +140,7 @@ export function memoize(target, property, descriptor) {
 
   const newSet =
     set &&
-    function(value) {
+    function (value) {
       if (hasOwnProp(this, property)) delete this[property]
       set.apply(this, [value])
     }
@@ -171,7 +171,7 @@ export function memoize(target, property, descriptor) {
 export function memoizeForProp(sourceProp) {
   const propCache = new WeakMap()
   const valueCache = new WeakMap()
-  return function(target, property, descriptor) {
+  return function (target, property, descriptor) {
     const { get, set } = descriptor
     if (!get || set) throw new TypeError("@memoizeForProp: Only know how to apply to getter without setter.")
     return {

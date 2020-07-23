@@ -1,7 +1,7 @@
 /** Test decorators */
 
 import { hasOwnProp } from "./class"
-import { proto, readonly, writeOnce, nonEnumerable, overrideable, memoize, memoizeForProp } from "./decorators"
+import { proto, readonly, writeOnce, nonEnumerable, overridable, memoize, memoizeForProp } from "./decorators"
 
 describe("@proto", () => {
   const originalObject = {}
@@ -170,12 +170,12 @@ describe("@nonEnumerable", () => {
   })
 })
 
-describe("@overrideable", () => {
+describe("@overridable", () => {
   class Thing {
-    @overrideable get getter() {
+    @overridable get getter() {
       return "original getter"
     }
-    @overrideable get getset() {
+    @overridable get getset() {
       return "original getset"
     }
   }
