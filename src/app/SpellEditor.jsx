@@ -2,8 +2,6 @@ import React from "react"
 import { useHotkeys } from "react-hotkeys-hook"
 // import * as SUI from "semantic-ui-react"
 
-import { view } from "~/util"
-
 import { AppContainer } from "./AppContainer"
 import { ASTRoot } from "./ASTViewer"
 import { EditorToolbar } from "./EditorToolbar"
@@ -41,7 +39,7 @@ export function SpellEditor() {
               Console
             </SplitPanel.Pane>
           </SplitPanel>
-          <SplitPanel spaced bordered raised rounded rows="60%,20%,20%">
+          <SplitPanel spaced bordered raised rounded rows="60%">
             <SplitPanel.Pane padded scrolling>
               <AppContainer />
             </SplitPanel.Pane>

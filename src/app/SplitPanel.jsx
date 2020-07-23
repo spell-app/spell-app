@@ -38,8 +38,8 @@ export function SplitPanel(startProps) {
   // console.info("SplitPanel", startProps)
   const {
     children,
-    columns, // column sizes for horizontal split, as `true`, string or array.  See `sizesToFlex()`.
-    rows, // row sizes for vertical split, as `true`, string or array.  See `sizesToFlex()`.
+    columns, // column sizes for horizontal split, as `true`, string or array.  See `normalizeSizes()`.
+    rows, // row sizes for vertical split, as `true`, string or array.  See `normalizeSizes()`.
     fluid = false, // fill container in alternate axis?
     spaced = false, // spacing around and between children. `true`, "slightly", "very" ???
     resizable = false, // provide resize bars.  Will store sizes as preference if element has an `id`.
@@ -75,12 +75,12 @@ export function SplitPanel(startProps) {
   // and possibly adding `SplitPanel-sizer` or `SplitPanel-spacer` elements in-between.
   const kidProps = { bordered, padded, raised, rounded, scrolling }
   const kids = React.useMemo(() => {
-    const flexes = sizesToFlex(columns || rows, React.Children.count(children))
+    const sizes = normalizeSizes(columns || rows, React.Children.count(children))
     const kids = []
     // NOTE: children MUST NOT be a fragment. (???)
     React.Children.forEach(children, (child, index) => {
-      const flex = flexes[index]
-
+      const { value, units } = sizes[index]
+      const flex = units === "%" ? `${value} ${value} 0` : `0 0 ${value}${units}`
       if (child.type === SplitPane || child.type === SplitPanel) {
         const cloneProps = {
           key: `panel-${index}`,
@@ -164,43 +164,40 @@ SplitPanel.Sizer = SplitSizer
  * Utility method to convert `sizes` to css `flex` property.
  */
 const NUM_WITH_UNITS_PATTERN = /^([0-9]*\.?[0-9]+)(px|em|rem|%)?$/
-export function sizesToFlex(startSizes = [], childCount) {
+export function normalizeSizes(startSizes = [], childCount) {
   if (typeof startSizes === "string") startSizes = startSizes.split(",")
   else if (!Array.isArray(startSizes)) startSizes = []
 
-  const sizes = startSizes.slice(0, childCount)
+  let sizes = startSizes.slice(0, childCount)
   if (sizes.length < childCount) {
     const start = sizes.length - childCount
     sizes.length = childCount
     sizes.fill("*", start)
   }
 
+  // normalize `sizes` to `{ number, units }`
   let starCount = 0
-  let remainingPercent = 100
-  const flexes = sizes.map((size) => {
-    if (size === "*") {
-      starCount += 1
-      return "*"
-    } else if (typeof size === "number") {
-      return `0 0 ${size}px`
-    } else {
+  let percents = 0
+  sizes = sizes.map((size) => {
+    if (typeof size === "number") return { value: size, units: "px" }
+    if (size !== "*") {
       try {
-        const [_, num, units] = NUM_WITH_UNITS_PATTERN.exec(size)
-        if (units === "%") {
-          remainingPercent -= parseInt(num, 10)
-          return `${num} ${num} 0`
-        }
-        return `0 0 ${num}${units || "px"}`
+        let [_, num, units = "px"] = NUM_WITH_UNITS_PATTERN.exec(size)
+        const value = parseFloat(num, 10)
+        if (units === "%") percents += value
+        return { value, units }
       } catch (e) {
-        // not understood, assume "*"
-        return "*"
+        console.warn(`Start size '${size}' not understood`)
       }
     }
+    starCount++
+    return { value: "*", units: "%" }
   })
-  // console.info(starCount)
-  if (!starCount) return flexes
-
-  // convert all "*" to an equal percentage
-  const flexPerStar = Math.floor(Math.max(1, remainingPercent / starCount))
-  return flexes.map((flex) => (flex === "*" ? `${flexPerStar} ${flexPerStar} 0` : flex))
+  if (starCount) {
+    const valuePerStar = Math.max(1, (100 - percents) / starCount)
+    sizes.forEach((size) => {
+      if (size.value === "*") size.value = valuePerStar
+    })
+  }
+  return sizes
 }
