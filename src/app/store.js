@@ -327,8 +327,10 @@ export const store = createStore({
       // HACK: manually set the height of the codeMirror instance
       // so that the bottom scrollbar shows up in the right place.
       // ????
-      const { clientWidth, clientHeight } = document.querySelector("#InputEditor")
-      inputEditor.setSize(clientWidth, clientHeight - 1)
+      // const { clientWidth, clientHeight } = document.querySelector("#InputEditor")
+      // inputEditor.setSize(clientWidth, clientHeight - 1)
+      // inputEditor.resize()
+      // console.info(inputEditor)
 
       // clear the `initialSelection` flag so we don't try to scroll again
       delete file.initialSelection
@@ -374,7 +376,7 @@ export const store = createStore({
   error: undefined,
   showError(error) {
     console.warn("showError:", error)
-    store.error = error.message
+    store.error = error
   },
   hideError() {
     store.error = undefined

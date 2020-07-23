@@ -1,12 +1,29 @@
 /* eslint-disable react/prop-types */
 import React from "react"
 
-import { scrollForElement, scrollElementToCenterOfParent } from "~/util"
+import { view, scrollForElement, scrollElementToCenterOfParent } from "~/util"
 import { Token } from "~/parser"
 
+import { store } from "./store"
 import { ErrorHandler } from "./ErrorHandler"
 import { MatchView } from "./MatchView"
 import "./MatchViewer.less"
+
+/**
+ *  Root element to show the `<MatchViewer/>` in `SpellEditor`
+ */
+
+export const MatchRoot = view(function MatchRoot({ compact = false, scroll = true }) {
+  return (
+    <MatchViewer //
+      compact={compact}
+      scroll={scroll}
+      match={store.file?.match}
+      selection={store.selection}
+      showError={store.showError}
+    />
+  )
+})
 
 export class MatchViewer extends ErrorHandler {
   /** Clear `state.error` if `props.match` changes. */

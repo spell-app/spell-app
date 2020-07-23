@@ -11,11 +11,15 @@ import { Router } from "@reach/router"
 import "~/parser"
 import { spellCore } from "~/languages/spell"
 
-import { store } from "./store"
-import { SpellRoute } from "./SpellEditor"
+import { SpellPathRoute } from "./SpellPathRoute"
 
 // Use the below to set up methods/etc in the browser for hacking
 import "./debug"
+
+// Load spell-specific CSS
+import "./spell.less"
+// Load spell-specific Semantic-UI customizations
+import "./SUI-additions.less"
 
 // Make the `spellCore` library available globally.
 // TODO: other place to put this???
@@ -24,15 +28,14 @@ global.spellCore = spellCore
 function renderApp() {
   ReactDOM.render(
     <Router>
-      <SpellRoute path=":domain" />
-      <SpellRoute path=":domain/:project" />
-      <SpellRoute path=":domain/:project/*filePath" />
-      <SpellRoute default domain="projects" />
+      <SpellPathRoute path=":domain" />
+      <SpellPathRoute path=":domain/:project" />
+      <SpellPathRoute path=":domain/:project/*filePath" />
+      <SpellPathRoute default domain="projects" />
     </Router>,
     // eslint-disable-next-line no-undef
     document.getElementById("react-root")
   )
-  // store.start()
 }
 
 renderApp()

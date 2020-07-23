@@ -1,9 +1,25 @@
 /* eslint-disable react/prop-types */
 import React from "react"
 
-import { scrollForElement, scrollElementToCenterOfParent } from "~/util"
+import { view, scrollForElement, scrollElementToCenterOfParent } from "~/util"
+import { store } from "./store"
 import { ErrorHandler } from "./ErrorHandler"
 import "./ASTViewer.less"
+
+/**
+ *  Root element to show the `<ASTViewer/>` in `SpellEditor`
+ */
+export const ASTRoot = view(function ASTRoot() {
+  return (
+    <ASTViewer
+      scroll
+      ast={store.file?.AST}
+      match={store.file?.match}
+      selection={store.selection}
+      showError={store.showError}
+    />
+  )
+})
 
 /** Top-level error handler. */
 export class ASTViewer extends ErrorHandler {

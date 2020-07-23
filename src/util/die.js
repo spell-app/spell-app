@@ -38,7 +38,7 @@ export function getDier(owner, activity, params) {
   function die(message, originalError) {
     const output = [`Error ${activity}:: ${message}`]
     Object.entries(die.params).forEach(([key, value]) => {
-      output.push(`- '${key}' = '${value}'`)
+      output.push(`'${key}' = '${value}'`)
     })
     if (originalError) console.error(originalError)
     const dieError = new TypeError(output.join("\n"))
