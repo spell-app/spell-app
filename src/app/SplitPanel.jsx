@@ -9,6 +9,7 @@ import "./SplitPanel.less"
 // - SplitPane: `min-` and/or `max-sizes`. as `[ { size, min, max }... ]`
 // - Responsive sizing or alternative layouts for devices
 // - Special case a <SplitPanel> inside another <SplitPanel/> ?
+// - Check `hidden` of childen and drop as necessary
 
 /**
  * A `<SplitPanel>` manages its `children` to set their sizes.
@@ -140,7 +141,7 @@ export function SplitPane(startProps) {
 
   return <div {...props}>{children}</div>
 }
-SplitPanel.SplitPane = SplitPane
+SplitPanel.Pane = SplitPane
 
 /**
  * Spacer auto-added between elements for `<SplitPanel spaced />`
@@ -148,7 +149,7 @@ SplitPanel.SplitPane = SplitPane
 export function SplitSpacer() {
   return <div className="SplitPanel-spacer" />
 }
-SplitPanel.SplitSpacer = SplitSpacer
+SplitPanel.Spacer = SplitSpacer
 
 /**
  * Sizer auto-added between elements for `<SplitPanel resizable />`
@@ -156,7 +157,7 @@ SplitPanel.SplitSpacer = SplitSpacer
 export function SplitSizer({ index }) {
   return <div className="SplitPanel-sizer" onMouseDown={(event) => console.warn(event.target)} />
 }
-SplitPanel.SplitSizer = SplitSizer
+SplitPanel.Sizer = SplitSizer
 
 /**
  * Utility method to convert `sizes` to css `flex` property.

@@ -1,8 +1,6 @@
 import React from "react"
 import { REACT_APP_ROOT_ID } from "~/util"
 
-import "./AppContainer.less"
-
 /**
  * Container element for the rendered spell `app`
  */

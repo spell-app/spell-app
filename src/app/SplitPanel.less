@@ -25,7 +25,7 @@
     flex-direction: row;
   }
 
-  /** Spacing around/between panes **/
+  /** Spacing around panes **/
   &.spaced  {
     padding: @normal-padding;
     & > .SplitPanel-spacer {
@@ -44,6 +44,14 @@
       flex: 0 0 @loose-padding;
     }
   }
+
+  // Don't double space between two peer <SplitPanel space/>s.
+  &.vertical.spaced + &.vertical.spaced {
+     padding-left: 0;
+  }
+  &.horizontal.spaced + &.horizontal.spaced {
+    padding-top: 0;
+ }
 }
 
 

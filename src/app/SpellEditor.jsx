@@ -11,10 +11,8 @@ import { ErrorNotice } from "./ErrorNotice"
 import { InputEditor } from "./InputEditor"
 import { MatchRoot } from "./MatchViewer"
 import { Notice } from "./Notice"
-import { SplitPanel, SplitPane } from "./SplitPanel"
+import { SplitPanel } from "./SplitPanel"
 import { store } from "./store"
-
-import "./SpellEditor.less"
 
 export function SpellEditor() {
   console.info("SpellEditor")
@@ -34,23 +32,21 @@ export function SpellEditor() {
   // console.warn("SpellEditor")
   return (
     <>
-      <div className="SpellEditor OWN-THE-WINDOW">
+      <div id="SpellEditor" className="OWN-THE-WINDOW" style={{ background: "#343a40" }}>
         <EditorToolbar />
-        <SplitPanel spaced resizable columns fluid>
-          <SplitPanel bordered raised rounded resizable scrolling rows="80%,10%">
-            <SplitPane padded={false} scrolling={false}>
-              <InputEditor />
-            </SplitPane>
-            Console
+        <SplitPanel columns fluid>
+          <SplitPanel spaced bordered raised rounded rows="80%,10%">
+            <InputEditor />
+            <SplitPanel.Pane padded scrolling>
+              Console
+            </SplitPanel.Pane>
           </SplitPanel>
-          <SplitPanel bordered raised rounded resizable rows="60%,20%,20%">
-            <SplitPane padded scrolling>
+          <SplitPanel spaced bordered raised rounded rows="60%,20%,20%">
+            <SplitPanel.Pane padded scrolling>
               <AppContainer />
-            </SplitPane>
+            </SplitPanel.Pane>
             <ASTRoot />
-            <SplitPane>
-              <MatchRoot />
-            </SplitPane>
+            <MatchRoot />
           </SplitPanel>
         </SplitPanel>
       </div>
