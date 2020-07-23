@@ -322,7 +322,7 @@ export const store = createStore({
     const { inputEditor, file } = store
     const { path, initialSelection, isLoaded } = file || {}
     if (!inputEditor || !isLoaded || !initialSelection) return
-    console.info("initializing input", { path, initialSelection })
+    console.info("initializing input", { path, initialSelection, inputEditor })
     try {
       // HACK: manually set the height of the codeMirror instance
       // so that the bottom scrollbar shows up in the right place.

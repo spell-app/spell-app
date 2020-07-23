@@ -1,12 +1,6 @@
-.CodeMirrorContainer {
-  position: relative;
-  overflow: hidden;
-  height: 100%; 
-}
-
 .CodeMirror {
   font-family: Lato, Arial, sans-serif;
-  z-index: 1;
+  height: 100%;
 }
 
 .CodeMirror-scroll {
