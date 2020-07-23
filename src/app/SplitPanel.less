@@ -82,34 +82,36 @@
     .inset(@loose-padding);
   }
 
-  // Border for pane
+  // `bordered` pane
   &.bordered {
     border: 1px solid rgba(34,36,38,.15)
   }
 
-  // Padding for pane
+  // `padded` pane
   &.padded {
     padding: @normal-padding;
   }
+  // `padded="slightly"` pane
   &[class*="slightly padded"] {
     padding: @tight-padding;
   }
+  // `padded="very"` pane
   &[class*="very padded"] {
     padding: @loose-padding;
   }
 
-  // Raised for pane
+  // `raised` pane
   &.raised {
     background: white;
     box-shadow: 0 1px 2px 0 rgba(34,36,38,.15);      
   }
 
-  // Rounded for pane
+  // `rounded` pane
   &.rounded {
     border-radius: .28571429rem;
   }
 
-  // Scrolling for pane
+  // `scrolling` pane
   &.scrolling {
     overflow: auto;
   }

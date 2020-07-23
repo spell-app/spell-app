@@ -35,7 +35,7 @@ export function SpellEditor() {
       <div id="SpellEditor" className="OWN-THE-WINDOW" style={{ background: "#343a40" }}>
         <EditorToolbar />
         <SplitPanel columns fluid>
-          <SplitPanel spaced bordered raised rounded rows="80%,10%">
+          <SplitPanel spaced bordered raised rounded rows="85%">
             <InputEditor />
             <SplitPanel.Pane padded scrolling>
               Console

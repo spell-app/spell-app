@@ -10,6 +10,7 @@ import "./SplitPanel.less"
 // - Responsive sizing or alternative layouts for devices
 // - Special case a <SplitPanel> inside another <SplitPanel/> ?
 // - Check `hidden` of childen and drop as necessary
+// - position:absolute on pane child is a bit dodgy... ??
 
 /**
  * A `<SplitPanel>` manages its `children` to set their sizes.
