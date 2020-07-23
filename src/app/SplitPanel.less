@@ -61,43 +61,26 @@
   position: relative;
   overflow: hidden;
 
-  .inset(@padding: 0) {
+  // Make children take up the entire space
+  // TODO: there must be a smarter way to do this...
+  .inset(@padding) {
     top: @padding; right: @padding; bottom: @padding; left: @padding;
   }
-  
-  // Make children take up the entire space
-//  &:not(.scrolling) {
-    & > * {
-      position: absolute;
-      width: auto;
-      height: auto;
-        .inset(0);
-    }
-    &.padded > * {
-      .inset(@normal-padding);
-    }
-    &[class*="slightly padded"] > * {
-      .inset(@tight-padding);
-    }
-    &[class*="very padded"] > * {
-      .inset(@loose-padding);
-    }
- // }
-
-  // Make children take up the entire space
-  // &.scrolling {
-  //   &.padded > * {
-  //     position: relative;
-  //     margin: @normal-padding;
-  //   }
-  //   &[class*="slightly padded"] > * {
-  //     margin: @tight-padding;
-  //   }
-  //   &[class*="very padded"] > * {
-  //     margin: @loose-padding;
-  //   }
-  // }
-
+  & > * {
+    position: absolute;
+    width: auto;
+    height: auto;
+      .inset(0);
+  }
+  &.padded > * {
+    .inset(@normal-padding);
+  }
+  &[class*="slightly padded"] > * {
+    .inset(@tight-padding);
+  }
+  &[class*="very padded"] > * {
+    .inset(@loose-padding);
+  }
 
   // Border for pane
   &.bordered {
