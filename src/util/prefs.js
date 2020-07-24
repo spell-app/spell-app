@@ -23,8 +23,10 @@ export function getPrefKey(key) {
 }
 
 // Return app pref value stored under `key`, or `defaultValue` if not found.
+// Throws if `key` is falsy.
 // Translates to/from JSON automatically.
 export function getPref(key, defaultValue) {
+  if (!key) throw new TypeError(`getPref('${key}') called with invalid key.`)
   try {
     const storedValue = localStorage[getPrefKey(key)]
     if (storedValue !== undefined) return JSON.parse(storedValue)
@@ -37,8 +39,10 @@ export function getPref(key, defaultValue) {
 // Set app pref `value` under `key`.
 // Set `value` of `undefined` to clear the pref.
 // Returns `value`.
+// Throws if `key` is falsy.
 // Translates to JSON automatically.
 export function setPref(key, value) {
+  if (!key) throw new TypeError(`getPref('${key}') called with invalid key.`)
   try {
     if (value === undefined) delete localStorage[getPrefKey(key)]
     else localStorage[getPrefKey(key)] = JSON.stringify(value)
@@ -46,6 +50,13 @@ export function setPref(key, value) {
     console.error(`setPref('${key}'): Error saving pref:`, e)
   }
   return value
+}
+
+// Reset (clear) app pref `value` under `key`.
+// Throws if `key` is falsy.
+// Translates to JSON automatically.
+export function resetPref(key) {
+  return setPref(key, undefined)
 }
 
 // Clear ALL application-level prefs.
@@ -61,10 +72,15 @@ export function clearAllPrefs() {
 
 /**
  * Return a function to get/set pref:
- *  - If passed single `prefKey` argument, return stored pref value or `undefined`.
- *  - If also passed `newValue` (including `undefined`), we'll `setPref()` instead.
+ *  - If fn passed single `prefKey` argument, return stored pref value or `undefined`.
+ *  - If fn is passed a second `newValue` (including `undefined`), we'll `setPref()` instead.
+ *
+ * Note: the `keyExpectation` and `valueExpectation` strings passed to this argument
+ * are to serve as documentation for the expected values of the prefs.
+ *
+ * TODO: this is squirrely...
  */
-export function getSetPref() {
+export function getSetPref(keyExpectation, valueExpectation) {
   return function (prefKey, newValue) {
     if (arguments.length === 1) return getPref(prefKey)
     return setPref(prefKey, newValue)
