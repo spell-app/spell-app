@@ -3,8 +3,9 @@ import { SpellEditor } from "./SpellEditor"
 
 /**
  * Reach-router `<Route/>` to show a project/example/etc by path.
+ * Note that this will redraw the editor every time the route changes.
  */
-export function SpellPathRoute(props) {
+export function SpellEditorRoute(props) {
   const { domain, project, filePath } = props
   const path = SpellLocation.pathForUrl({ domain, project, filePath })
   // console.info("SpellRoute", path, props)

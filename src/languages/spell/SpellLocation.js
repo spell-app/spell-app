@@ -170,23 +170,21 @@ export class SpellLocation {
   }
 
   /**
-   * Return the font-end `url` to load this location.
+   * Return the font-end `editorUrl` to load this location.
    */
-  get url() {
-    if (this.isDomainPath) return `/${this.domain}`
-    if (this.isProjectPath) return `/${this.domain}/${this.projectName}`
-    return `/${this.domain}/${this.projectName}${this.filePath}`
+  get editorUrl() {
+    if (this.isDomainPath) return `/edit/${this.domain}`
+    if (this.isProjectPath) return `/edit/${this.domain}/${this.projectName}`
+    return `/edit/${this.domain}/${this.projectName}${this.filePath}`
   }
 
   /**
-   * Given a `path` string, return the appropriate `url` or `undefined`.
+   * Return the font-end `runnerUrl` to load this location.
    */
-  static urlForPath(path) {
-    try {
-      return new SpellLocation(path).url
-    } catch (e) {
-      return undefined
-    }
+  get runnerUrl() {
+    if (this.isDomainPath) return `/run/${this.domain}`
+    if (this.isProjectPath) return `/run/${this.domain}/${this.projectName}`
+    return `/run/${this.domain}/${this.projectName}${this.filePath}`
   }
 
   /**

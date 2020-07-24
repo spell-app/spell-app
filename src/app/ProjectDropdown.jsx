@@ -20,7 +20,7 @@ const bound = {
     store.deleteProject()
   },
   navigateToMenuItem(event, { value }) {
-    store.navigateToPath(value)
+    store.showEditor(value)
   }
 }
 

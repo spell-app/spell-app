@@ -19,7 +19,7 @@ const bound = {
     store.deleteFile()
   },
   navigateToMenuItem(event, { value }) {
-    store.navigateToPath(value)
+    store.showEditor(value)
   }
 }
 

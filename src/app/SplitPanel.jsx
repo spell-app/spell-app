@@ -29,7 +29,7 @@ import "./SplitPanel.less"
  *  e.g. `*,*,200px` (same as `50%,50%,200px`)
  *
  * Provided `children` will be automatically wrapped in `<SplitPane>` elements,
- * with `bordered`, `padded`, `raised`, `rounded` and `scrolling` applied as set on the panel.
+ * with `bordered`, `padded`, `light`, `rounded` and `scrolling` applied as set on the panel.
  * You can manually wrap a child in a `<SplitPane>` to overide panel-level settings.
  *
  * If `<SplitPanel resizable />` we'll put `<SplitSizer>` elements in between provided children.
@@ -77,7 +77,7 @@ export class SplitPanel extends React.Component {
       // If you create a <SplitPane> manually, these settings are ignored.
       bordered, // panes are borderd
       padded, // padding in panes
-      raised, // panes appeear raised
+      light, // panes appeear light
       rounded, // panes appear rounded
       scrolling, // provide scrollbars in panes
 
@@ -107,7 +107,7 @@ export class SplitPanel extends React.Component {
     )
 
     const kids = []
-    const kidProps = { bordered, padded, raised, rounded, scrolling }
+    const kidProps = { bordered, padded, light, rounded, scrolling }
     React.Children.forEach(children, (child, index) => {
       // add resizer or spacer
       if (index !== 0) {
@@ -417,7 +417,7 @@ export class SplitPane extends React.PureComponent {
       children,
       bordered = false, // add border
       padded = false, // add padding, `true`, `slightly` or very`
-      raised = false, // show white background and shadow
+      light = false, // show white background and shadow
       rounded = false, // round corners
       scrolling = false, // add auto-scrolling
       ...props // including `id`, `style`, `className` (dealt with below), aria stuff...
@@ -429,11 +429,11 @@ export class SplitPane extends React.PureComponent {
         tightly: padded === "tightly",
         very: padded === "very",
         padded,
-        raised,
+        light,
         rounded,
         scrolling
       },
-      "SplitPanel-pane",
+      "SplitPanelPane",
       props.className // put provided className at the end so it will win
     )
     return <div {...props}>{children}</div>
@@ -445,7 +445,7 @@ SplitPanel.Pane = SplitPane
  * Spacer auto-added between elements for `<SplitPanel spaced />` if not `resizable`.
  */
 export function SplitSpacer() {
-  return <div className="SplitPanel-spacer" />
+  return <div className="Spacer" />
 }
 SplitPanel.Spacer = SplitSpacer
 
@@ -453,6 +453,6 @@ SplitPanel.Spacer = SplitSpacer
  * Sizer auto-added between elements for `<SplitPanel resizable />`.
  */
 export function SplitSizer({ onMouseDown }) {
-  return <div className="SplitPanel-sizer" onMouseDown={onMouseDown} />
+  return <div className="SplitPanelSizer" onMouseDown={onMouseDown} />
 }
 SplitPanel.Sizer = SplitSizer

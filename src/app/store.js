@@ -13,7 +13,7 @@ export const store = createStore({
 
   /**
    * `SpellProjectRoot` shown in `SpellEditor`.
-   * Update with `store.navigateToPath()
+   * Update with `store.showEditor()
    */
   projectRoot: undefined,
   /** Get/save last viewed `projectPath` for `projectRootPath`. */
@@ -21,7 +21,7 @@ export const store = createStore({
 
   /**
    * `SpellProject` shown in `SpellEditor`.
-   * Update with `store.navigateToPath()`
+   * Update with `store.showEditor()`
    */
   project: undefined,
   /** Get/save last viewed full `filePath` for `projectPath`. */
@@ -29,18 +29,30 @@ export const store = createStore({
 
   /**
    * `SpellFile` etc shown in `SpellEditor`.
-   * Update with `store.navigateToPath()`
+   * Update with `store.showEditor()`
    */
   file: undefined,
   /** Get/save last `selection` for `filePath`.  */
   lastSelectionForFile: getSetPref("filePath", "selection"),
 
   /**
-   * Navigate to a `path` by updating the URL, which will eventually call `selectPath`
+   * Show `<SpellEditor>` for a `path` by updating the URL, which will eventually call `selectPath`
    */
-  navigateToPath(path) {
+  showEditor(path = store.file?.path) {
     try {
-      navigate(new SpellLocation(path).url)
+      navigate(new SpellLocation(path).editorUrl)
+    } catch (e) {
+      store.showError(`Path '${path}' is invalid!`)
+    }
+  },
+
+  /**
+   * Show `<SpellRunner>` for a `path` by updating the URL, which will eventually call `selectPath`
+   */
+  showRunner: async (path = store.file?.path) => {
+    try {
+      await navigate(new SpellLocation(path).runnerUrl)
+      store.compile()
     } catch (e) {
       store.showError(`Path '${path}' is invalid!`)
     }
@@ -53,7 +65,7 @@ export const store = createStore({
    *  - Default file = last file selected for project or first file in project.
    *  - Restores file selection if stored.
    */
-  selectPath: async (path) => {
+  async selectPath(path) {
     store.clearCompileSoon()
 
     let location
@@ -105,6 +117,7 @@ export const store = createStore({
       file.initialSelection = store.lastSelectionForFile(file.path)
       store.file = file
     }
+    // reload the file, which will compile() once it's loaded
     await store.reloadFile()
   },
 
@@ -112,7 +125,7 @@ export const store = createStore({
     try {
       const project = await store.projectRoot.createProject(projectId)
       if (project) {
-        store.navigateToPath(project.path)
+        store.showEditor(project.path)
         store.showNotice("Project created.")
       }
     } catch (e) {
@@ -124,7 +137,7 @@ export const store = createStore({
       const newProject = await store.projectRoot.duplicateProject(store.project.projectId, newProjectId)
       console.warn({ newProject })
       if (newProject) {
-        store.navigateToPath(newProject.path)
+        store.showEditor(newProject.path)
         store.showNotice("Project duplicated.")
       }
     } catch (e) {
@@ -135,7 +148,7 @@ export const store = createStore({
     try {
       const project = await store.projectRoot.renameProject(store.project.projectId, newProjectId)
       if (project) {
-        store.navigateToPath(project.path)
+        store.showEditor(project.path)
         store.showNotice("Project renamed.")
       }
     } catch (e) {
@@ -147,7 +160,7 @@ export const store = createStore({
       const removed = await store.projectRoot.deleteProject(store.project.projectId, CONFIRM)
       if (removed) {
         // Navigate to nextProject, or the projectRoot, which will select another project
-        store.navigateToPath(store.projectRoot.path)
+        store.showEditor(store.projectRoot.path)
         store.showNotice("Project removed.")
       }
     } catch (e) {
@@ -174,7 +187,7 @@ export const store = createStore({
     try {
       const newFile = await store.project.createFile(filePath, contents)
       if (newFile) {
-        store.navigateToPath(newFile.path)
+        store.showEditor(newFile.path)
         store.showNotice("File created.")
       }
     } catch (e) {
@@ -186,7 +199,7 @@ export const store = createStore({
     try {
       const newFile = await store.project.duplicateFile(store.file.filePath, newPath)
       if (newFile) {
-        store.navigateToPath(newFile.path)
+        store.showEditor(newFile.path)
         store.showNotice("File duplicated.")
       }
     } catch (e) {
@@ -198,7 +211,7 @@ export const store = createStore({
     try {
       const renamedFile = await store.project.renameFile(store.file.filePath, newPath)
       if (renamedFile) {
-        store.navigateToPath(renamedFile.path)
+        store.showEditor(renamedFile.path)
         store.showNotice("File renamed.")
       }
     } catch (e) {
@@ -217,7 +230,7 @@ export const store = createStore({
       const removed = await project.deleteFile(file.filePath, CONFIRM)
       if (removed) {
         // select the nextFile, or the project (which will select another file)
-        store.navigateToPath(nextFile?.path || project.path)
+        store.showEditor(nextFile?.path || project.path)
         store.showNotice("File removed.")
       }
     } catch (e) {

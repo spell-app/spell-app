@@ -11,7 +11,8 @@ import { Router } from "@reach/router"
 import "~/parser"
 import { spellCore } from "~/languages/spell"
 
-import { SpellPathRoute } from "./SpellPathRoute"
+import { SpellEditorRoute } from "./SpellEditorRoute"
+import { SpellRunnerRoute } from "./SpellRunnerRoute"
 
 // Use the below to set up methods/etc in the browser for hacking
 import "./debug"
@@ -28,10 +29,14 @@ global.spellCore = spellCore
 function renderApp() {
   ReactDOM.render(
     <Router>
-      <SpellPathRoute path=":domain" />
-      <SpellPathRoute path=":domain/:project" />
-      <SpellPathRoute path=":domain/:project/*filePath" />
-      <SpellPathRoute default domain="projects" />
+      <SpellEditorRoute path="edit/:domain" />
+      <SpellEditorRoute path="edit/:domain/:project" />
+      <SpellEditorRoute path="edit/:domain/:project/*filePath" />
+      <SpellEditorRoute default domain="projects" />
+
+      <SpellRunnerRoute path="run/:domain" />
+      <SpellRunnerRoute path="run/:domain/:project" />
+      <SpellRunnerRoute path="run/:domain/:project/*filePath" />
     </Router>,
     // eslint-disable-next-line no-undef
     document.getElementById("react-root")

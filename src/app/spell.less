@@ -1,17 +1,164 @@
-// Component which takes over the entire window.
-.OWN-THE-WINDOW {
+/**
+ *  
+ *  Generic styling helpers / varaibles for Spell components.
+ *
+ **/
+
+@spell-tight-padding: 0.3em;
+@spell-normal-padding: 0.6em;
+@spell-loose-padding: 1em;
+
+
+/** Standard `bordered` variant: matches `<SUI.Segment>`. */
+.spell-bordered-variant() {
+  &.bordered {
+    border: 1px solid rgba(34,36,38,.15);
+  }
+}
+
+/** Standard `dark` variant. */
+.spell-dark-variant() {
+  &.dark {
+    // TODO: <SUI.Segment inverted> is #1b1c1d  ???
+    background: #343a40;
+    box-shadow: 0 1px 2px 0 rgba(34,36,38,.15);      
+  }
+}
+
+/** Standard `flexible columns` variant: show flexbox laying out children as columns. */
+.spell-flexible-columns-variant() {
+  &[class*="flexible columns"] {
+    display: flex;
+    flex-direction: row;
+  }
+}
+
+/** Standard `fill-window` variant -- takes entire width of window. */
+.spell-fill-window-variant() {
+  &.fill-window {
+    .spell-fill-window();
+  }
+}
+
+/** Standard `fill-container` variant -- takes entire width of container. */
+.spell-fill-container-variant() {
+  &.fill-container {
+    .spell-fill-container();
+  }
+}
+
+/** Standard `fluid` variant -- takes entire width of container with flexbox. */
+.spell-fluid-variant() {
+  &.fluid {
+    flex: 1 0 0;
+  }
+}
+
+/** Standard `light` variant: matches `<SUI.Segment>`. */
+.spell-light-variant() {
+  &.light {
+    background: white;
+    box-shadow: 0 1px 2px 0 rgba(34,36,38,.15);      
+  }
+}
+
+/** Standard `padded` variants with `padding`. */
+.spell-padded-variant() {
+  &.padded {
+    padding: @spell-normal-padding;
+  }
+  &[class*="slightly padded"] {
+    padding: @spell-tight-padding;
+  }
+  &[class*="very padded"] {
+    padding: @spell-loose-padding
+  }
+}
+
+/** Standard `padded` variants with `inset` of single child element. */
+.spell-padded-with-inset-variant() {
+  &.padded > * {
+    .spell-inset(@spell-normal-padding);
+  }
+  &[class*="slightly padded"] > * {
+    .spell-inset(@spell-tight-padding);
+  }
+  &[class*="very padded"] > * {
+    .spell-inset(@spell-loose-padding);
+  }
+}
+
+/** Standard `rounded` variant: matches `<SUI.Segment>`. */
+.spell-rounded-variant() {
+  &.rounded {
+    border-radius: .28571429rem;
+  }
+}
+
+/** Standard `flexible rows` variant: flexbox adjusting rows of children. */
+.spell-flexible-rows-variant() {
+  &[class*="flexible rows"] {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+/** Standard `scrolling` variant: matches `<SUI.Segment>`. */
+.spell-scrolling-variant() {
+  &.scrolling {
+    overflow: auto;
+  }
+}
+
+/** Standard `spaced` variant around panes, and for `Spacer` elements in direct children. */
+.spell-spaced-variant() {
+  /** Spacing around panes **/
+  &.spaced  {
+    padding: @spell-normal-padding;
+    & > .Spacer {
+      flex: 0 0 @spell-normal-padding;
+    }
+  }
+  &[class*="slightly spaced"]  {
+    padding: @spell-tight-padding;
+    & > .Spacer {
+      flex: 0 0 @spell-tight-padding;
+    }
+  }
+  &[class*="very spaced"]  {
+    padding: @spell-loose-padding;
+    & > .Spacer {
+      flex: 0 0 @spell-loose-padding;
+    }
+  }
+  // Don't double space between two peer spaced elements.
+  &.vertical.spaced + &.vertical.spaced {
+    padding-left: 0;
+  }
+  &.horizontal.spaced + &.horizontal.spaced {
+    padding-top: 0;
+  }
+}
+
+
+////////////////////
+// Utility methods
+////////////////////
+
+/** Add inset to `top`, `right`, `bottom`, `left`. */
+.spell-inset(@inset) {
+  top: @inset; right: @inset; bottom: @inset; left: @inset;
+}
+
+/** Component which takes over the entire window. */
+.spell-fill-window() {
   position: absolute;
   width: 100vw;
   height: 100vh; 
-  display: flex;
-  flex-direction: column;
 }
 
-// Component which takes over the entire container.
-.OWN-THE-CONTAINER {
+/** Component which takes over the entire container. */
+.spell-fill-container() {
   position: absolute;
-  width: 100%;
-  height: 100%; 
-  display: flex;
-  flex-direction: column;
+  .spell-inset(0);
 }

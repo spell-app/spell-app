@@ -1,129 +1,55 @@
-@tight-padding: 0.3em;
-@normal-padding: 0.6em;
-@loose-padding: 1em;
+@import "./spell.less";
 
 .SplitPanel {
-  // border: 2px solid pink;
   position: relative;
+  z-index: 1;
   display: flex;
   flex: 1 0 0;
-  z-index: 1;
-
-  // Fluid means take up entire space of container
-  &.fluid {
-    flex: 1 0 0;
-  }
-
+  
   &.vertical {
-    // border: 2px solid red;
     height: 100%;
     flex-direction: column;    
   }
 
   &.horizontal {
-    // border: 2px solid green;
     width: 100%;
     flex-direction: row;
   }
 
-  /** Spacing around panes **/
-  &.spaced  {
-    padding: @normal-padding;
-    & > .SplitPanel-spacer {
-      flex: 0 0 @normal-padding;
-    }
-  }
-  &[class*="slightly spaced"]  {
-    padding: @tight-padding;
-    & > .SplitPanel-spacer {
-      flex: 0 0 @tight-padding;
-    }
-  }
-  &[class*="very spaced"]  {
-    padding: @loose-padding;
-    & > .SplitPanel-spacer {
-      flex: 0 0 @loose-padding;
-    }
-  }
-
-  // Don't double space between two peer <SplitPanel space/>s.
-  &.vertical.spaced + &.vertical.spaced {
-     padding-left: 0;
-  }
-  &.horizontal.spaced + &.horizontal.spaced {
-    padding-top: 0;
- }
+  // standard spell variants
+  .spell-fluid-variant();
+  .spell-spaced-variant();
 }
 
 
 // Wrapper for children
-.SplitPanel-pane {
+.SplitPanelPane {
   // border: 2px solid yellow;
   position: relative;
   overflow: hidden;
 
-  // Make children take up the entire space
-  // TODO: there must be a smarter way to do this...
-  .inset(@padding) {
-    top: @padding; right: @padding; bottom: @padding; left: @padding;
-  }
+  // A SplitPane will have only one child.
+  // Make it take up the entire space.
+  // TODO: is there a better way to get the result we want???
   & > * {
-    position: absolute;
-    width: auto;
-    height: auto;
-      .inset(0);
+    .spell-fill-container();
   }
-  &.padded > * {
-    .inset(@normal-padding);
-  }
-  &[class*="slightly padded"] > * {
-    .inset(@tight-padding);
-  }
-  &[class*="very padded"] > * {
-    .inset(@loose-padding);
-  }
-
-  // `bordered` pane
-  &.bordered {
-    border: 1px solid rgba(34,36,38,.15)
-  }
-
-  // `padded` pane
-  &.padded {
-    padding: @normal-padding;
-  }
-  // `padded="slightly"` pane
-  &[class*="slightly padded"] {
-    padding: @tight-padding;
-  }
-  // `padded="very"` pane
-  &[class*="very padded"] {
-    padding: @loose-padding;
-  }
-
-  // `raised` pane
-  &.raised {
-    background: white;
-    box-shadow: 0 1px 2px 0 rgba(34,36,38,.15);      
-  }
-
-  // `rounded` pane
-  &.rounded {
-    border-radius: .28571429rem;
-  }
-
-  // `scrolling` pane
-  &.scrolling {
-    overflow: auto;
-  }
+  
+  // standard variants
+  .spell-padded-with-inset-variant();
+  .spell-bordered-variant();
+  .spell-light-variant();
+  .spell-rounded-variant();
+  .spell-scrolling-variant();
 }
 
 // Sizer element between children when resizable
-.SplitPanel-sizer {
-  flex: 0 0 12px;
+.SplitPanelSizer {
+  z-index: 2;
+  flex: 0 0 @spell-loose-padding;
   cursor: col-resize;
 }
 
-.vertical.SplitPanel > .SplitPanel-sizer {
+.vertical.SplitPanel > .SplitPanelSizer {
   cursor: row-resize;
 }
