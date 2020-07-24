@@ -1,6 +1,7 @@
 import React from "react"
 import classnames from "classnames"
 
+import { getPadding, getPref, setPref, resetPref } from "~/util"
 import "./SplitPanel.less"
 
 // TODO:
@@ -36,9 +37,91 @@ import "./SplitPanel.less"
  * as well as add spacing around the children.
  */
 export class SplitPanel extends React.Component {
+  /** Ref to the panel.  We use this to get pane elements for dynamic sizing. */
   ref = React.createRef()
-  // NOTE: we don't store sizes in state because we update it frequently
+
+  /**
+   * Currently calculated sizes.
+   * NOTE: we don't store sizes in state because we update it during drag-resize.
+   */
   sizes = undefined
+
+  /** Return our current sizes as a string. */
+  get sizeString() {
+    if (!this.sizes) return ""
+    return this.sizes.map(({ value, units }) => `${value}${units}`).join(",")
+  }
+
+  /** Preference name for our sizes.  May be `undefined`. */
+  get prefName() {
+    return this.props.id
+  }
+
+  /** Load normalized `sizes`, or, if not stored, calculate them based on our `props`. */
+  loadSizes() {
+    const sizeString = (this.prefName && getPref(this.prefName)) || this.props.columns || this.props.rows
+    this.sizes = SplitPanel.normalizeSizes(sizeString, this.props.children)
+    //console.warn(sizeString, this.sizes)
+    return this.sizes
+  }
+
+  /**
+   * Reset our `sizes` to our "factory defaults".
+   * Returns the new `sizes`.
+   */
+  resetSizes() {
+    // clear old value
+    if (this.prefName) resetPref(this.prefName)
+    return this.loadSizes()
+  }
+
+  /** Save normalized `sizes` as a preference. */
+  saveSizes() {
+    if (this.prefName) setPref(this.prefName, this.sizeString)
+  }
+
+  /** Return our `direction`. */
+  get direction() {
+    return this.props.columns ? "horizontal" : "vertical"
+  }
+
+  /** Get pointers to all of our pane elements, or an empty array if we haven't drawn yet. */
+  get paneElements() {
+    return this.ref.current?.querySelectorAll(":scope > *[data-pane]") || []
+  }
+
+  /** Get a particular panel element by `index`. */
+  getPane(index) {
+    return this.paneElements[index]
+  }
+
+  /** Return min-size for one of our panels, AS A PERCENTAGE. */
+  get minPercent() {
+    return this.props.minSize || 5
+  }
+
+  /**
+   * Update geometry of our `paneElements` to match normalized `sizes`.
+   *
+   * By default, we do use calculated `sizes` for this,
+   * during resize the `<PanelSizer>` element will call this automatically.
+   *
+   * If we have an `id` prop, we'll save the sizes as `prefs`,
+   * so we can restore the sizes later.
+   */
+  updateSizes = (sizes = this.sizes) => {
+    if (sizes !== this.sizes) {
+      this.sizes = sizes
+      this.saveSizes()
+    }
+    this.paneElements.forEach((pane, index) => {
+      const size = sizes[index]
+      if (!size) return
+      const { value, units } = size
+      const flex = units === "%" ? `${value} ${value} 0` : `0 0 ${value}${units}`
+      pane.style.flex = flex
+    })
+  }
 
   componentDidMount() {
     this.updateSizes()
@@ -46,29 +129,6 @@ export class SplitPanel extends React.Component {
 
   componentDidUpdate() {
     this.updateSizes()
-  }
-
-  get direction() {
-    return this.props.columns ? "horizontal" : "vertical"
-  }
-
-  get panes() {
-    return this.ref.current?.querySelectorAll(":scope > *[data-pane]") || []
-  }
-
-  get sizers() {
-    return this.ref.current?.querySelectorAll(":scope > .SplitPanel-sizer") || []
-  }
-
-  updateSizes(sizes = this.sizes) {
-    if (sizes !== this.sizes) this.sizes = sizes
-    this.panes.forEach((pane, index) => {
-      const size = sizes[index]
-      if (!size) return
-      const { value, units } = size
-      const flex = units === "%" ? `${value} ${value} 0` : `0 0 ${value}${units}`
-      pane.style.flex = flex
-    })
   }
 
   render() {
@@ -79,6 +139,7 @@ export class SplitPanel extends React.Component {
       fluid = false, // fill container in alternate axis?
       spaced = false, // spacing around and between children. `true`, "slightly", "very" ???
       resizable = false, // provide resize bars.  Will store `sizes` as preference if element has an `id`.
+      minSize = 5, // minimum percent size for resizable panels
 
       // The following will be passed down to SplitPanes which are automatically created.
       // If you create a <SplitPane> manually, these settings are ignored.
@@ -95,7 +156,9 @@ export class SplitPanel extends React.Component {
     if ((!columns && !rows) || (columns && rows)) {
       console.warn("<SplitPanel>s must be initialized with exactly one of 'columns' or 'rows'.", props)
     }
-    this.sizes = SplitPanel.normalizeSizes(columns || rows, children)
+
+    // Load our `sizes` or calculate based on props
+    this.loadSizes()
 
     renderProps.ref = this.ref
     renderProps.className = classnames(
@@ -117,7 +180,15 @@ export class SplitPanel extends React.Component {
       // add resizer or spacer
       if (index !== 0) {
         if (resizable) {
-          kids.push(<SplitSizer key={`sizer-${index - 1}`} index={index - 1} panel={this} />)
+          kids.push(
+            <SplitSizer
+              key={`sizer-${index - 1}`}
+              pane1={index - 1}
+              pane2={index}
+              panel={this}
+              updateSizes={this.updateSizes}
+            />
+          )
         } else if (spaced) {
           kids.push(<SplitSpacer key={`spacer-${index}`} />)
         }
@@ -152,7 +223,10 @@ export class SplitPanel extends React.Component {
   static NUM_WITH_UNITS_PATTERN = /^([0-9]*\.?[0-9]+)(px|em|rem|%)?$/
   static normalizeSizes(startSizes = [], children) {
     // TODO: `hidden` children shouldn't be counted!
+    //  BUT: make sure we keep an entry in the array for them!!!
+    // TODO: take `minSize` for child elements into account
     const childCount = React.Children.count(children)
+
     if (typeof startSizes === "string") startSizes = startSizes.split(",")
     else if (!Array.isArray(startSizes)) startSizes = []
 
@@ -236,86 +310,140 @@ SplitPanel.Spacer = SplitSpacer
 
 /**
  * Sizer auto-added between elements for `<SplitPanel resizable />`.
- * ASSUMES resizable <SplitPanel>s HAVE EXACTLY 2 CHILDREN!
  */
 export class SplitSizer extends React.PureComponent {
-  get minSize() {
-    return 100
-  }
-  get direction() {
-    return this.props.panel.direction
-  }
+  /**
+   * Return `dimensions` for sizing calculations, according to our `direction`.
+   * Believe it or not, we actually need to figure out all of the below.
+   *
+   * We'll catch any errors if this throws, so don't worry if DOM is not ready etc.
+   *
+   * Called `onMouseDown` and cached.
+   * Unfortunately, `getBoundingClientRect()` is very slow, so we can't call this every `mouseMove`.
+   * That means if the window scrolls while the mouse is down, we're screwed.
+   * If we need to account for that, we COULD check periodically check `window.scrollX`/`.scrollY`
+   * and get the dimensions again if they change.
+   */
+  getSizingDimensions() {
+    const { panel, pane1, pane2 } = this.props
+    const { sizes, direction, paneElements, minPercent } = panel
 
-  get panelEl() {
-    return this.props.panel.ref?.current
-  }
+    const pane1El = paneElements[pane1]
+    const pane2El = paneElements[pane2]
 
-  /** Return element for pane by index, */
-  getPane(index = this.props.index) {
-    return this.props.panel.panes[index]
-  }
+    // TODO: this will be off if CSS transform has been applied to the panel.
+    const rect1 = pane1El.getBoundingClientRect()
+    const rect2 = pane2El.getBoundingClientRect()
 
-  getDimensions(event) {
-    const pane1 = this.getPane(this.props.index)?.getBoundingClientRect()
-    const pane2 = this.getPane(this.props.index + 1)?.getBoundingClientRect()
-    if (!pane1 || !pane2) return {}
+    // page min / max value in appropriate direction
+    const vertical = direction === "vertical"
+    const pageMin = vertical ? rect1.top : rect1.left
+    const pageMax = vertical ? rect2.bottom : rect2.right
 
-    const vertical = this.direction === "vertical"
-    const dimensions = {
-      minSize: this.minSize,
-      panelMin: Math.round(vertical ? pane1.top : pane1.left),
-      panelMax: Math.round(vertical ? pane2.bottom : pane2.right),
-      gap: pane2.top - pane1.bottom
+    // gap between the two elements, then gapOffset we'll use for mouse adjustments
+    const gap = Math.ceil(vertical ? rect2.top - rect1.bottom : rect2.left - rect1.right)
+    const gapOffset = gap / 2
+
+    // element padding, which affects flex calculations. :-(
+    const pad1 = getPadding(pane1El)[direction]
+    const pad2 = getPadding(pane2El)[direction]
+
+    // Inner size is what's actually available for resizing, accounting for gap + padding.
+    const outerSize = pageMax - pageMin
+    const innerSize = outerSize - gap - pad1 - pad2
+
+    // Figure out active percentage we can update by taking out percentages allocated to other panes.
+    let activePercent = sizes.reduce((total, size, index) => {
+      if (index === pane1 || index === pane2 || size.units !== "%") return total
+      return total - size.value
+    }, 100)
+    // TESTME: make sure activePercent is at least minPercent * 2???
+    activePercent = Math.max(activePercent, minPercent * 2)
+    // max percent values for either pane
+    const maxPercent = activePercent - minPercent
+
+    // We don't need to return them all, but it's helpful for debugging to lay them all out like this
+    return {
+      direction,
+      sizes,
+      pageMin,
+      pageMax,
+      outerSize,
+      innerSize,
+      gap,
+      gapOffset,
+      pad1,
+      pad2,
+      activePercent,
+      minPercent,
+      maxPercent
     }
-    // get panelSize, adjusting for gap between ???
-    dimensions.panelSize = dimensions.panelMax - dimensions.panelMin
-    return dimensions
-  }
-  getMouse(event) {
-    return this.direction === "vertical" ? event.pageY : event.pageX
   }
 
+  /**
+   * Return the mouse position for resizing, relative to our `direction`.
+   */
+  getMousePosition(event) {
+    return this.dimensions.direction === "vertical" ? event.pageY : event.pageX
+  }
+
+  /**
+   * `onMouseDown` `event` handler.  This just sets things up.
+   */
   onMouseDown = (event) => {
-    this.dimensions = this.getDimensions()
-    console.warn("onMouseDown", this.dimensions)
-
+    // Calculate sizing dimensions up-front, so mousemove can be fast.
+    try {
+      this.dimensions = this.getSizingDimensions()
+      console.info("<SplitSizer> onMouseDown", { dimensions: this.dimensions, panel: this.props.panel })
+    } catch (e) {
+      console.error("<SplitPanel.Sizer> got error figuring dimensions:", e)
+      return
+    }
+    // add mouseup / mousemove event handlers to actualy do the work
     document.addEventListener("mouseup", this.onMouseUp)
     document.addEventListener("mousemove", this.onMouseMove)
-    document.addEventListener("scroll", this.onMouseMove) // scroll === mousemove
+    // we got this
     event.preventDefault()
     event.stopPropagation()
   }
+
+  /**
+   * `onMouseMove` `event` handler. This does the actual resizing.
+   */
   onMouseMove = (event) => {
-    //    console.info("mouseMove", event)
-    const currentIndex = this.props.index
-    const { gap, minSize, panelMin, panelMax, panelSize } = this.dimensions
-    const mouse = this.getMouse(event)
-    if (isNaN(panelSize) || isNaN(mouse)) return
-
-    // make sure we're not tooo small
-    if (mouse < panelMin + minSize || mouse > panelMax - minSize) return
-
-    // figure out active percentage we're updating
-    // by taking out percentages allocatd to other panes
-    const sizes = [...this.props.panel.sizes]
-    let active = 100
-    sizes.forEach((size, index) => {
-      if (index === currentIndex || index === currentIndex + 1) return
-      if (size.units === "%") active -= size.value
+    const { pane1, pane2, updateSizes } = this.props
+    const { pageMin, gapOffset, innerSize, activePercent, minPercent, maxPercent, sizes } = this.dimensions
+    const mousePosition = this.getMousePosition(event)
+    // if either of these is not a number, we can't figure anything out
+    if (isNaN(innerSize) || isNaN(mousePosition)) return
+    // adjust global mouse coordinate for panel start + gap, so gap is centered under the mouse
+    let adjustedMousePosition = mousePosition - pageMin - gapOffset
+    // get raw value for first pane
+    let pane1Value = (adjustedMousePosition * activePercent) / innerSize
+    // round and clamp value between minPercent and maxPercent
+    pane1Value = Math.min(maxPercent, Math.max(minPercent, pane1Value))
+    // go to 2 digits of precision
+    pane1Value = Math.round(pane1Value * 100) / 100
+    // other pane gets what's left, also with 2 digits of precision
+    const pane2Value = Math.round((activePercent - pane1Value) * 100) / 100
+    // actually adjust the sizes
+    this.dimensions.sizes = sizes.map((size, index) => {
+      if (index === pane1) return { ...size, value: pane1Value, units: "%" }
+      if (index === pane2) return { ...size, value: pane2Value, units: "%" }
+      return size
     })
-    const currentValue = Math.floor(((mouse - panelMin) * active) / panelSize)
-    const nextValue = active - currentValue
-    sizes[currentIndex] = { value: currentValue, units: "%" }
-    sizes[currentIndex + 1] = { value: nextValue, units: "%" }
-    // console.info({ active, newValue, other: active - newValue })
-    this.props.panel.updateSizes(sizes)
+    updateSizes(this.dimensions.sizes)
+    // console.info({ mousePosition, adjustedMousePosition, innerSize, activePercent, pane1Value, pane2Value })
   }
-  onMouseUp = (event) => {
-    // console.info("mouseUp", event)
 
+  /**
+   * `onMouseUp` `event` handler. This cleans things up.
+   */
+  onMouseUp = (event) => {
+    console.info("<SplitSizer> onMouseUp: sizes", this.dimensions.sizes)
+    // Clean up event handlers
     document.removeEventListener("mouseup", this.onMouseUp)
     document.removeEventListener("mousemove", this.onMouseMove)
-    document.removeEventListener("scroll", this.onMouseMove)
   }
 
   render() {

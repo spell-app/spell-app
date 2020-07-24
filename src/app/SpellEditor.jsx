@@ -32,14 +32,14 @@ export function SpellEditor() {
     <>
       <div id="SpellEditor" className="OWN-THE-WINDOW" style={{ background: "#343a40" }}>
         <EditorToolbar />
-        <SplitPanel id="spellEditor-columns" spaced resizable columns fluid>
-          <SplitPanel id="spellEditor-left" resizable bordered raised rounded rows="85%">
+        <SplitPanel id="spellEditor-columns" columns resizable fluid spaced>
+          <SplitPanel id="spellEditor-left" rows="85%" resizable bordered raised rounded>
             <InputEditor />
             <SplitPanel.Pane padded scrolling>
               Console
             </SplitPanel.Pane>
           </SplitPanel>
-          <SplitPanel id="spellEditor-right" bordered raised rounded resizable rows="60%">
+          <SplitPanel id="spellEditor-right" rows="60%" resizable bordered raised rounded>
             <SplitPanel.Pane padded scrolling>
               <AppContainer />
             </SplitPanel.Pane>
