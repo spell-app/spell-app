@@ -5,28 +5,28 @@ import { getPadding, getPref, setPref, resetPref } from "~/util"
 import "./SplitPanel.less"
 
 // TODO:
-// - drag resize
-// - If SplitPanel has an `id`, retain dragged-size
+// - Check `hidden` of childen and drop as necessary (must be set in <SplitPanel> context).
 // - SplitPane: `collapsible`
-// - SplitPane: `min-` and/or `max-sizes`. as `[ { size, min, max }... ]`
-// - Responsive sizing or alternative layouts for devices
-// - Special case a <SplitPanel> inside another <SplitPanel/> ?
-// - Check `hidden` of childen and drop as necessary
-// - position:absolute on pane child is a bit dodgy... ??
+// - SplitPane: `minSize` and/or `maxSizes` as percentage.
+// - SplitPane: specify explicit `size`?  specify that it's not `resizable`?
+// - Responsive sizing or alternative layouts for devices.
+// - `position:absolute` on pane child is a bit dodgy... ??
+// - test sizing logic in other browsers
 
 /**
  * A `<SplitPanel>` manages its `children` to set their sizes.
  *
- * Specify child sizes as one of `rows` or `columns` as:
+ * Specify child sizes as EITHER `rows` or `columns` as:
  *  - `true` to give each child equal size, or
  *  - an array like: `["20%", "20%", "*", 100]`, or
  *  - a string like `30%,2em`.
  *
- * In those sizes, panels will be sized:
+ * Panels will be sized like so:
  *  - numbers without units, or with units `px`, `em`, `rem`:  fixed size panel.
- *  - numbers with units of `%`:  will take up that percent of avaliable space.
+ *  - numbers with units of `%`:  will take up that percent of non-fixed space.
  *  - `*` or not specified:  Split left-over percentage of space equally amongst all `*` children.
- * If percentages don't match up to 100%, all `%` or `*` values will be adjusted up or down.
+ *  e.g. `80%,20%` (same as just `80%` for 2 panes)
+ *  e.g. `*,*,200px` (same as `50%,50%,200px`)
  *
  * Provided `children` will be automatically wrapped in `<SplitPane>` elements,
  * with `bordered`, `padded`, `raised`, `rounded` and `scrolling` applied as set on the panel.
@@ -35,6 +35,11 @@ import "./SplitPanel.less"
  * If `<SplitPanel resizable />` we'll put `<SplitSizer>` elements in between provided children.
  * If `<SplitPanel spaced />` we'll put `<SplitSpacer>` elements in between provided children.
  * as well as add spacing around the children.
+ *
+ * Resizble `<SplitPanel>`s will automatically remember their sizes as "preferences"
+ * if you specify an `id` property.  It's up to you to make this unique for your app.
+ *
+ * If you have a pointer to a `<SplitPanel>`, you can have it `updateSizes()` with a size string.
  */
 export class SplitPanel extends React.Component {
   /** Ref to the panel.  We use this to get pane elements for dynamic sizing. */
@@ -164,7 +169,6 @@ export class SplitPanel extends React.Component {
     const sizeString = (this.sizesPref && getPref(this.sizesPref)) || this.props.columns || this.props.rows
     this.sizes = SplitPanel.normalizeSizes(sizeString, this.props.children)
     //console.warn(sizeString, this.sizes)
-    return this.sizes
   }
 
   /** Reset our `sizes` to our "factory defaults". */
@@ -181,16 +185,15 @@ export class SplitPanel extends React.Component {
   }
 
   /**
-   * Update geometry of our `paneElements` to match normalized `sizes`.
+   * Update geometry of our `paneElements` to match `sizes`.
+   * Called after draw and during resize to update pane sizes.
    *
-   * By default, we do use calculated `sizes` for this,
-   * during resize the `<PanelSizer>` element will call this automatically.
-   *
-   * If we have an `id` prop, we'll save the sizes as `prefs`,
-   * so we can restore the sizes later.
+   * You can pass a string and we'll normalize for you.
    */
   updateSizes = (sizes = this.sizes) => {
-    if (sizes !== this.sizes) {
+    if (typeof sizes === "string") {
+      sizes = SplitPanel.normalizeSizes(sizes, this.props.children)
+    } else if (sizes !== this.sizes) {
       this.sizes = sizes
       this.saveSizes()
     }
@@ -213,7 +216,7 @@ export class SplitPanel extends React.Component {
     // TODO: take `minSize` for child elements into account
     const childCount = React.Children.count(children)
 
-    if (typeof startSizes === "string") startSizes = startSizes.split(",")
+    if (typeof startSizes === "string" && startSizes) startSizes = startSizes.split(",")
     else if (!Array.isArray(startSizes)) startSizes = []
 
     let sizes = startSizes.slice(0, childCount)
