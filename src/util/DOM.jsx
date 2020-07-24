@@ -70,12 +70,12 @@ export class CSS_TLBR_VALUES {
   #right
   #bottom
   #left
-  constructor(propPrefix, elementOrStyle) {
+  constructor(prefix = "", elementOrStyle, suffix = "") {
     const style = getComputedStyle(elementOrStyle)
-    this.#top = style[`${propPrefix}top`]
-    this.#right = style[`${propPrefix}right`]
-    this.#bottom = style[`${propPrefix}bottom`]
-    this.#left = style[`${propPrefix}left`]
+    this.#top = style[`${prefix}top${suffix}`]
+    this.#right = style[`${prefix}right${suffix}`]
+    this.#bottom = style[`${prefix}bottom${suffix}`]
+    this.#left = style[`${prefix}left${suffix}`]
   }
   get top() {
     return parseFloat(this.#top, 10)
@@ -108,6 +108,7 @@ class margin extends CSS_TLBR_VALUES {}
 export function getMargin(element) {
   return new margin("margin-", element)
 }
+global.getMargin = getMargin // DEBUG
 
 /**
  * Return `border` object for an `element` according to its `computedStyle`,
@@ -116,10 +117,11 @@ export function getMargin(element) {
  * NOTE: `element` can be a DOM element or a previously obtained `styleDeclaration`.
  * NOTE: Values will be `NaN` if you pass an invalid `element`.
  */
-class border extends CSS_TLBR_VALUES {}
-export function getBorder(element) {
-  return new border("border-", element)
+class borderSize extends CSS_TLBR_VALUES {}
+export function getBorderSize(element) {
+  return new borderSize("border-", element, "-width")
 }
+global.getBorderSize = getBorderSize // DEBUG
 
 /**
  * Return `padding` object for an `element` according to its `computedStyle`,
@@ -132,3 +134,4 @@ class padding extends CSS_TLBR_VALUES {}
 export function getPadding(element) {
   return new padding("padding-", element)
 }
+global.getPadding = getPadding // DEBUG
