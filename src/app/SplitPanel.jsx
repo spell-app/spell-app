@@ -40,49 +40,6 @@ export class SplitPanel extends React.Component {
   /** Ref to the panel.  We use this to get pane elements for dynamic sizing. */
   ref = React.createRef()
 
-  /**
-   * Currently calculated sizes.
-   * NOTE: we don't store sizes in state because we update it during drag-resize.
-   */
-  sizes = undefined
-
-  /** Return our current sizes as a string. */
-  get sizeString() {
-    if (!this.sizes) return ""
-    return this.sizes.map(({ value, units }) => `${value}${units}`).join(",")
-  }
-
-  /** Preference name for our sizes.  May be `undefined`. */
-  get prefName() {
-    return this.props.id
-  }
-
-  /** Load normalized `sizes`, or, if not stored, calculate them based on our `props`. */
-  loadSizes() {
-    const sizeString = (this.prefName && getPref(this.prefName)) || this.props.columns || this.props.rows
-    this.sizes = SplitPanel.normalizeSizes(sizeString, this.props.children)
-    //console.warn(sizeString, this.sizes)
-    return this.sizes
-  }
-
-  /** Reset our `sizes` to our "factory defaults". */
-  resetSizes() {
-    // clear old value
-    if (this.prefName) resetPref(this.prefName)
-    this.loadSizes()
-    this.updateSizes()
-  }
-
-  /** Save normalized `sizes` as a preference. */
-  saveSizes() {
-    if (this.prefName) setPref(this.prefName, this.sizeString)
-  }
-
-  /** Return our `direction`. */
-  get direction() {
-    return this.props.columns ? "horizontal" : "vertical"
-  }
-
   /** Get pointers to all of our pane elements, or an empty array if we haven't drawn yet. */
   get paneElements() {
     return this.ref.current?.querySelectorAll(":scope > *[data-pane]") || []
@@ -91,34 +48,6 @@ export class SplitPanel extends React.Component {
   /** Get a particular panel element by `index`. */
   getPane(index) {
     return this.paneElements[index]
-  }
-
-  /** Return min-size for one of our panels, AS A PERCENTAGE. */
-  get minPercent() {
-    return this.props.minSize || 5
-  }
-
-  /**
-   * Update geometry of our `paneElements` to match normalized `sizes`.
-   *
-   * By default, we do use calculated `sizes` for this,
-   * during resize the `<PanelSizer>` element will call this automatically.
-   *
-   * If we have an `id` prop, we'll save the sizes as `prefs`,
-   * so we can restore the sizes later.
-   */
-  updateSizes = (sizes = this.sizes) => {
-    if (sizes !== this.sizes) {
-      this.sizes = sizes
-      this.saveSizes()
-    }
-    this.paneElements?.forEach((pane, index) => {
-      const size = sizes[index]
-      if (!size) return
-      const { value, units } = size
-      const flex = units === "%" ? `${value} ${value} 0` : `0 0 ${value}${units}`
-      pane.style.flex = flex
-    })
   }
 
   componentDidMount() {
@@ -209,6 +138,71 @@ export class SplitPanel extends React.Component {
     )
   }
 
+  /////////////////////////////
+  // Size logic and calculations
+  /////////////////////////////
+
+  /**
+   * Currently calculated `sizes`, updated when drawn and on resize.
+   * NOTE: we don't store sizes in state because we update it during drag-resize.
+   */
+  sizes = undefined
+
+  /** Return our current sizes as a string. */
+  get sizeString() {
+    if (!this.sizes) return ""
+    return this.sizes.map(({ value, units }) => `${value}${units}`).join(",")
+  }
+
+  /** Preference name for our sizes.  May be `undefined`. */
+  get sizesPref() {
+    return this.props.id
+  }
+
+  /** Load normalized `sizes`, or, if not stored, calculate them based on our `props`. */
+  loadSizes() {
+    const sizeString = (this.sizesPref && getPref(this.sizesPref)) || this.props.columns || this.props.rows
+    this.sizes = SplitPanel.normalizeSizes(sizeString, this.props.children)
+    //console.warn(sizeString, this.sizes)
+    return this.sizes
+  }
+
+  /** Reset our `sizes` to our "factory defaults". */
+  resetSizes() {
+    // clear old value
+    if (this.sizesPref) resetPref(this.sizesPref)
+    this.loadSizes()
+    this.updateSizes()
+  }
+
+  /** Save normalized `sizes` as a preference. */
+  saveSizes() {
+    if (this.sizesPref) setPref(this.sizesPref, this.sizeString)
+  }
+
+  /**
+   * Update geometry of our `paneElements` to match normalized `sizes`.
+   *
+   * By default, we do use calculated `sizes` for this,
+   * during resize the `<PanelSizer>` element will call this automatically.
+   *
+   * If we have an `id` prop, we'll save the sizes as `prefs`,
+   * so we can restore the sizes later.
+   */
+  updateSizes = (sizes = this.sizes) => {
+    if (sizes !== this.sizes) {
+      this.sizes = sizes
+      this.saveSizes()
+    }
+    this.paneElements?.forEach((pane, index) => {
+      const size = sizes[index]
+      if (!size) return
+      const { value, units } = size
+      const flex = units === "%" ? `${value} ${value} 0` : `0 0 ${value}${units}`
+      pane.style.flex = flex
+    })
+  }
+
   /**
    * Utility method to convert `sizes` to css `flex` property.
    */
@@ -259,6 +253,16 @@ export class SplitPanel extends React.Component {
   /////////////////////////////
   // Event handlers and utilites for resizing
   /////////////////////////////
+
+  /** Return our `direction`. */
+  get direction() {
+    return this.props.columns ? "horizontal" : "vertical"
+  }
+
+  /** Return min-size for one of our panels, AS A PERCENTAGE. */
+  get minPercent() {
+    return this.props.minSize || 5
+  }
 
   /**
    * Return `dimensions` for sizing calculations, according to our `direction`.
@@ -388,12 +392,16 @@ export class SplitPanel extends React.Component {
    * `onMouseUp` `event` handler. This cleans things up.
    */
   onMouseUp = (event) => {
-    console.info("<SplitPanel> onMouseUp: new sizes", this.dimensions.sizes)
+    console.info("<SplitPanel> onMouseUp: new sizes", this.sizes)
     // Clean up event handlers
     document.removeEventListener("mouseup", this.onMouseUp)
     document.removeEventListener("mousemove", this.onMouseMove)
   }
 }
+
+/////////////////////////////
+// Sub-components
+/////////////////////////////
 
 /**
  * Single pane in a `<SplitPanel />`.
