@@ -89,7 +89,7 @@ export function SpellEditor() {
 
   return (
     <>
-      <SpellPage id="SpellEditor" fillWindow dark flex="rows">
+      <SpellPage id="SpellEditor" fillWindow dark rows>
         <EditorToolbar />
         <SplitPanel id="spellEditor-columns" columns resizable fluid spaced>
           <SplitPanel id="spellEditor-left" rows="85%" resizable bordered light rounded>

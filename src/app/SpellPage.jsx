@@ -17,8 +17,8 @@ export function SpellPage(props) {
     spaced = false, // spaced variant (around page)
     padded = false, // padding (within page)
     scrolling = false, // scrolling variant
-    flex = true, // use flexbox for children? Values: `true` (rows), `rows` or `columns`.
-
+    rows = false, // use flexbox to lay children out in rows, down the page.
+    columns = false, // use flexbox to lay children out in columns, across the page.
     // other props, e.g. `children`, id`, `style`, aria-stuff, etc...
     ...renderProps
   } = props
@@ -28,9 +28,8 @@ export function SpellPage(props) {
       bordered,
       dark,
       "fill-window": fillWindow,
-      flexible: !!flex,
-      rows: flex === true || flex === "rows",
-      columns: flex === "columns",
+      rows,
+      columns,
       light,
       rounded,
       spaced,

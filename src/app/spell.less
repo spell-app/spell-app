@@ -26,8 +26,8 @@
 }
 
 /** Standard `flexible columns` variant: show flexbox laying out children as columns. */
-.spell-flexible-columns-variant() {
-  &[class*="flexible columns"] {
+.spell-columns-variant() {
+  &.columns {
     display: flex;
     flex-direction: row;
   }
@@ -96,8 +96,8 @@
 }
 
 /** Standard `flexible rows` variant: flexbox adjusting rows of children. */
-.spell-flexible-rows-variant() {
-  &[class*="flexible rows"] {
+.spell-rows-variant() {
+  &.rows {
     display: flex;
     flex-direction: column;
   }

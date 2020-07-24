@@ -33,7 +33,7 @@ export function RunnerToolbar() {
 export function SpellRunner() {
   return (
     <>
-      <SpellPage id="SpellRunner" fillWindow dark flex="rows">
+      <SpellPage id="SpellRunner" fillWindow dark rows>
         <RunnerToolbar />
         <SplitPanel id="spellRunner" rows="85%" spaced padded resizable resizable bordered light rounded>
           <SUI.Container>

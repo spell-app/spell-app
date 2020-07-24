@@ -6,9 +6,9 @@ import "./SplitPanel.less"
 
 // TODO:
 // - Check `hidden` of childen and drop as necessary (must be set in <SplitPanel> context).
+// - SplitPanel: `minSize` and/or `maxSizes` as percentage.
 // - SplitPane: `collapsible`
-// - SplitPane: `minSize` and/or `maxSizes` as percentage.
-// - SplitPane: specify explicit `size`?  specify that it's not `resizable`?
+// - SplitPane `fixed` so never resizable?
 // - Responsive sizing or alternative layouts for devices.
 // - `position:absolute` on pane child is a bit dodgy... ??
 // - test sizing logic in other browsers
