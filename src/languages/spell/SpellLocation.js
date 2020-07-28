@@ -169,6 +169,10 @@ export class SpellLocation {
     return `${this.projectRoot}:${this.projectName}`
   }
 
+  //-----------------
+  //  Navigation
+  //-----------------
+
   /**
    * Return the font-end `editorUrl` to load this location.
    */
@@ -237,6 +241,13 @@ export class SpellLocation {
     const path = new SpellLocation(fullPath)
     if (!path.isFilePath) throw new TypeError(`You must pass a valid filePath, got '${filePath}': ${fullPath}`)
     return path
+  }
+
+  //-----------------
+  //  Debug
+  //-----------------
+  toString() {
+    return `[${this.constructor.name} ${this.path}]`
   }
 }
 

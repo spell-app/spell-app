@@ -262,7 +262,7 @@ export const store = createStore({
   },
 
   //-----------------
-  // Event handlers
+  // InputEditor event handlers
   //-----------------
 
   /**
@@ -376,8 +376,55 @@ export const store = createStore({
   },
 
   //-----------------
+  // console
+  //-----------------
+  /**
+   * Array of `console` messages.
+   * NOTE: We PUSH items into this array so it's stable
+   *       and update `lastLogged` timestamp for reactivity.
+   */
+  console: [],
+  lastLogged: undefined,
+  /**
+   * Log to the console:
+   * - `message` as a string or array of strings/objects
+   * - optional `props`:
+   *    - `error`      Associated JS Error
+   *    - `context`    Thing that owns the action being executed.
+   *    - `activity`   Name of action or method being executed.
+   *    - `params`     Relevant function or other parameters.
+   * - log `level`     one of "debug" (default), "info", "warning", "error", "group"
+   */
+  log(message, props, level = "debug") {
+    const logged = Date.now()
+    store.console.push({ message, level, logged, ...props })
+    store.lastLogged = logged
+  },
+  // Syntactic sugar for logging other levels
+  logInfo(message, props) {
+    store.log(message, props, "info")
+  },
+  logWarn(message, props) {
+    store.log(message, props, "warning")
+  },
+  logError(message, props) {
+    store.log(message, props, "error")
+  },
+  group(message, props) {
+    store.log(message, props, "group")
+  },
+  groupEnd(message, props) {
+    store.log(message, props, "groupEnd")
+  },
+  clearConsole() {
+    store.console = []
+    store.lastLogged = Date.now()
+  },
+
+  //-----------------
   // UI
   //-----------------
+
   message: undefined,
   showNotice(message) {
     console.info("showNotice:", message)
@@ -386,9 +433,12 @@ export const store = createStore({
   hideNotice() {
     store.message = undefined
   },
+
+  /** Single error message display. */
   error: undefined,
+  /** Show an error to the user. */
   showError(error) {
-    console.warn("showError:", error)
+    console.dir(error)
     store.error = error
   },
   hideError() {

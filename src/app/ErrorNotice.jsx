@@ -4,84 +4,68 @@ import * as SUI from "semantic-ui-react"
 import { view } from "~/util"
 import { store } from "./store"
 
-// const Error = view(function Error() {
-//   const { error } = store
-//   if (typeof error !== "string") return null
-//   const split = error.split("::")
-//   let header
-//   let message
-//   if (split.length === 1) {
-//     header = "Error"
-//     message = error
-//   } else {
-//     header = split[0]
-//     message = split.slice(1).join("::")
-//   }
-//   const lines = message.split("\n")
-//   return (
-//     <div style={{ position: "fixed", top: 60, left: "calc(50% - 250px)", width: 500, zIndex: 100 }}>
-//       <Toast onClose={store.hideError} style={{ maxWidth: "100%", background: "red", color: "white" }}>
-//         <Toast.Header>
-//           <i className="large exclamation triangle icon" />
-//           <div style={{ marginLeft: "0.25em", marginRight: "auto", fontSize: "1.5em", fontWeight: "bold" }}>
-//             {header}
-//           </div>
-//         </Toast.Header>
-//         <Toast.Body>
-//           {lines.map((line, index) => (
-//             <div key={index}>{line}</div>
-//           ))}
-//         </Toast.Body>
-//       </Toast>
-//     </div>
-//   )
-// })
-
-export const ErrorNotice = view(function ErrorNotice({ autoHide = false }) {
-  const { error } = store
+/**
+ * Display for a single `error`.
+ * This can be inlined, stacked, etc.
+ * See also `<ErrorNotice>`.
+ */
+export function ErrorDisplay(allProps) {
+  const {
+    error, // `Error` to display
+    onDismiss, // Callback when they click the `x` close button.
+    autoHide = false, // Auto-hide after a certain amount of time by calling `onDismiss`?
+    autoHideDelay = 3000, // Auto-hide delay, in msec.
+    ...props // Other props like `id`, `style`, aria stuff
+  } = allProps
 
   // autoHide on timeout
+  // TODO: do we need to cache the timer id?
   React.useEffect(() => {
-    if (!autoHide || error === null) return
-    setTimeout(() => {
-      if (store.error === error) store.hideError()
-    }, 3000)
+    if (!onDismiss || !autoHide || error === null) return
+    setTimeout(onDismiss, autoHideDelay)
   }, [error])
 
   if (!error) return null
-  const message = error instanceof Error ? error.message : `${error}`
 
+  const header = error.header || error.constructor.name || "Error"
+  const params = error.params && Object.keys(error.params).length > 0 ? error.params : undefined
+  const context = error.context
+
+  props.error = true
+  props.onDismiss = onDismiss
+  props.children = [
+    <SUI.Message.Header key="header">{header}</SUI.Message.Header>,
+    <SUI.Message.Content key="message">{error.message}</SUI.Message.Content>
+  ]
+
+  // add line break betweeen error and context/params
+  if (params || context) props.children.push(<br key="break" />)
+  if (context) props.children.push(<SUI.Message.Content key="context">Context: {`${context}`}</SUI.Message.Content>)
+  if (params) {
+    props.children.push(<SUI.Message.Content key="params-label">Params:</SUI.Message.Content>)
+    props.children.push(
+      <SUI.Message.List key="params">
+        {Object.entries(params).map(([key, value], index) => (
+          <SUI.Message.Item key={index}>{`${key}: ${value}`}</SUI.Message.Item>
+        ))}
+      </SUI.Message.List>
+    )
+  }
+
+  return <SUI.Message {...props} />
+}
+
+/**
+ * Display `store.error` over page content.
+ */
+const FIXED_ERROR_STYLE = { position: "fixed", top: 60, left: "calc(50% - 250px)", width: 500, zIndex: 100 }
+export const ErrorNotice = view(function ErrorNotice() {
+  const { error } = store
+  if (!error) return
   const props = {
-    error: true,
-    style: { position: "fixed", top: 60, left: "calc(50% - 250px)", width: 500, zIndex: 100 },
+    error,
     onDismiss: store.hideError,
-    children: []
+    style: FIXED_ERROR_STYLE
   }
-
-  const lines = message.split("\n")
-  const split = lines[0].split("::")
-  let header, content, list
-  if (split.length === 1) {
-    header = "Error"
-    content = lines[0]
-  } else {
-    header = split[0]
-    content = split.slice(1).join("::")
-  }
-  if (lines.length > 1) {
-    list = lines.slice(1)
-  }
-  return (
-    <SUI.Message {...props}>
-      {header && <SUI.Message.Header>{header}</SUI.Message.Header>}
-      {content && <SUI.Message.Content>{content}</SUI.Message.Content>}
-      {list && (
-        <SUI.Message.List>
-          {list.map((text, index) => (
-            <SUI.Message.Item key={index}>{text}</SUI.Message.Item>
-          ))}
-        </SUI.Message.List>
-      )}
-    </SUI.Message>
-  )
+  return <ErrorDisplay {...props} />
 })

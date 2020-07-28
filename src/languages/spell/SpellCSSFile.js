@@ -143,4 +143,11 @@ export class SpellCSSFile extends TextFile {
     if (line === 0) return ch
     return this.inputLines.slice(0, line).join("\n").length + 1 + ch
   }
+
+  //-----------------
+  //  Debug
+  //-----------------
+  toString() {
+    return `[${this.constructor.name} ${this.path}]`
+  }
 }

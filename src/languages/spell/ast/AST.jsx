@@ -129,6 +129,13 @@ export class ASTNode extends Assertable {
     console.groupEnd()
     return false
   }
+
+  //-----------------
+  //  Debug
+  //-----------------
+  toString() {
+    return `[${this.constructor.name}]`
+  }
 }
 
 /** Blank line */

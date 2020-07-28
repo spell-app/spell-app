@@ -10,6 +10,7 @@ export * from "./IndexedList"
 export * from "./string"
 export * from "./die"
 export * from "./guid"
+export * from "./CustomError"
 
 export * from "./abortableFetch"
 export * from "./$fetch"

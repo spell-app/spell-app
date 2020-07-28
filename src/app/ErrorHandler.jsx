@@ -1,6 +1,10 @@
 /* eslint-disable react/prop-types */
 import React from "react"
 
+/**
+ * Generic `ErrorHandler` component.
+ * DOCME
+ */
 export class ErrorHandler extends React.Component {
   /**
    * Component used to draw a wrapper around `Component` or `ErrorComponent`.

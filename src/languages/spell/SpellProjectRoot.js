@@ -257,6 +257,13 @@ export class SpellProjectRoot extends JSON5File {
     setTimeout(() => project.onRemove(), 10)
     return true
   }
+
+  //-----------------
+  //  Debug
+  //-----------------
+  toString() {
+    return `[${this.constructor.name} ${this.path}]`
+  }
 }
 
 global.SpellProjectRoot = SpellProjectRoot

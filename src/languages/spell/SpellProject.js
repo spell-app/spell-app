@@ -513,6 +513,13 @@ export class SpellProject extends JSON5File {
 
     return true
   }
+
+  //-----------------
+  //  Debug
+  //-----------------
+  toString() {
+    return `[${this.constructor.name} ${this.path}]`
+  }
 }
 
 global.SpellProject = SpellProject

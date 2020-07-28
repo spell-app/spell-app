@@ -207,6 +207,13 @@ export class SpellFile extends TextFile {
     }
     return { line, ch }
   }
+
+  //-----------------
+  //  Debug
+  //-----------------
+  toString() {
+    return `[${this.constructor.name} ${this.path}]`
+  }
 }
 
 global.SpellFile = SpellFile
