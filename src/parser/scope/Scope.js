@@ -42,4 +42,11 @@ export class Scope {
   compile(text, ruleName, scope = this) {
     return this.parser.compile(text, ruleName, scope)
   }
+
+  //-----------------
+  //  Debug
+  //-----------------
+  toString() {
+    return `[${this.constructor.name}]`
+  }
 }

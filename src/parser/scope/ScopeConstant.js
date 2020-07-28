@@ -15,7 +15,14 @@ export class ScopeConstant {
     // Use string as constant `name`
     if (typeof props === "string") props = { name: props }
 
-    if (typeof props.name !== "string") throw new ParserError("Constants must be created with a 'name'")
+    if (typeof props.name !== "string")
+      throw new ParserError({
+        messaage: "Constants must be created with a 'name'",
+        context: this,
+        activity: "constructor",
+        params: { props }
+      })
+
     props.name = props.name.replace(ENCLOSING_QUOTES, "$1")
     // Assign all properties in the order provided.
     Object.assign(this, props)

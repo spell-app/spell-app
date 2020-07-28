@@ -6,8 +6,11 @@ import flatten from "lodash/flatten"
 import groupBy from "lodash/groupBy"
 import sum from "lodash/sum"
 
-import { cloneClass, memoize, nonEnumerable, proto, showWhitespace } from "~/util"
-import { ParserError, Rule, rulex, Token, Tokenizer, WhitespacePolicy, Scope } from "~/parser"
+import { CustomError, cloneClass, memoize, nonEnumerable, proto, showWhitespace } from "~/util"
+import { Rule, rulex, Token, Tokenizer, WhitespacePolicy, Scope } from "~/parser"
+
+/** Error we'll throw when setting up / executing parser. */
+export class ParserError extends CustomError {}
 
 // In the web browser, by default, we'll use `cloneClass()` to make debugging easier
 // by creating named subclasses which you can see in the browser console
@@ -112,7 +115,12 @@ export class Parser {
   compile(input, ruleName = this.defaultRule, scope = this.getScope()) {
     const match = this.parse(input, ruleName, scope)
     if (!match) {
-      throw new ParserError(`parser.compile('${input}'): can't parse text`)
+      throw new ParserError({
+        message: "Can't parse input",
+        context: this,
+        activity: "compile",
+        params: { input, ruleName, scope }
+      })
     }
     return match.compile()
   }
@@ -147,7 +155,13 @@ export class Parser {
   // Throws if not found.
   getRuleOrDie(ruleName) {
     const rule = this.rules[ruleName]
-    if (!rule) throw new ParserError(`getRuleOrDie('${ruleName}'): rule not found`)
+    if (!rule)
+      throw new ParserError({
+        message: `Rule '${ruleName}' not found.`,
+        context: this,
+        activity: "getRuleOrDie",
+        params: { ruleName }
+      })
     return rule
   }
 
@@ -164,12 +178,18 @@ export class Parser {
 
     // If we didn't get a ruleName, try `rule.name`
     if (!ruleName) {
-      if (!rule.name) throw new ParserError("addRule(): you must set 'rule.name' or pass an explicit ruleName")
+      if (!rule.name)
+        throw new ParserError({
+          message: `You must set 'rule.name' or pass an explicit ruleName.`,
+          context: this,
+          activity: "addRule",
+          params: { rule, ruleName }
+        })
       ruleName = rule.name
     }
 
     if (!(rule instanceof Rule)) {
-      this.error("addRule() called with a non-rule.  Did you mean to call defineRule()?\n", rule)
+      console.warn("addRule() called with a non-rule.  Did you mean to call defineRule()?\n", rule)
       return undefined
     }
 
@@ -276,13 +296,24 @@ export class Parser {
 
       // throw if name was not provided
       const name = props.name || (constructor && constructor.prototype?.name)
-      if (!name) throw new ParserError("You must pass the rule 'name'")
+      if (!name)
+        throw new ParserError({
+          message: `You must pass 'rule.name'.`,
+          context: this,
+          activity: "defineRule",
+          params: { ruleProps }
+        })
 
       // Try to infer the constructor if we didn't get a Function
       if (typeof constructor === "string") {
         // console.warn(constructor, { ...this.constructor.Rule }, { ...Rule })
         if (!this.constructor.Rule[constructor] && !Rule[constructor]) {
-          throw new TypeError(`defineRule(${name}): don't understand constructor ${constructor}`)
+          throw new ParserError({
+            message: `Don't understand constructor: ${constructor}`,
+            context: this,
+            activity: "defineRule",
+            params: { ruleProps, name, constructor }
+          })
         }
         constructor = this.constructor.Rule[constructor] || Rule[constructor]
       }
@@ -291,7 +322,13 @@ export class Parser {
         else if (props.pattern) constructor = Rule.Pattern
         else if (props.literal) constructor = Rule.Keyword
         else if (props.literals) constructor = Rule.Keywords
-        else if (!ruleProps.syntax) throw new ParserError("You must pass 'constructor' or 'syntax'")
+        else if (!ruleProps.syntax)
+          throw ParserError({
+            message: `You must pass 'constructor' or 'syntax'.`,
+            context: this,
+            activity: "defineRule",
+            params: { ruleProps }
+          })
       }
 
       // Note the module that the rule was defined in
@@ -312,7 +349,13 @@ export class Parser {
       if (props.syntax) {
         // Use the `rulex` compiler to generate a rule
         rule = rulex.compile(props.syntax)
-        if (!rule) throw new ParserError(`Didn't get a rule from rulex.compile('${props.syntax}')`)
+        if (!rule)
+          throw new ParserError({
+            message: `Didn't get a rule from rulex.compile('${props.syntax}')`,
+            context: this,
+            activity: "defineRule",
+            params: { ruleProps, syntax: props.syntax }
+          })
 
         // If we're constructing a sequence, make sure we've got `rules`...
         if (constructor && constructor.prototype instanceof Rule.Sequence && !(rule instanceof Rule.Sequence)) {
@@ -331,7 +374,13 @@ export class Parser {
 
       if (constructor) rule = new constructor(props)
       else if (rule) Object.assign(rule, props)
-      else throw new ParserError("no rule... ???")
+      else
+        throw new ParserError({
+          message: `No rule...???`,
+          context: this,
+          activity: "defineRule",
+          params: { ruleProps }
+        })
 
       // Combine aliases with the main name and add rule under all the names
       const names = [props.name].concat(props.alias || [])
@@ -339,6 +388,7 @@ export class Parser {
       this.addRule(rule, names)
       return rule
     } catch (error) {
+      // If not on the server, change to a warning instead
       if (!isNode) console.warn("Error in defineRule():", error, "\nprops:", ruleProps)
     }
     return undefined
