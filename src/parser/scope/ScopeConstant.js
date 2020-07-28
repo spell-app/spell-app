@@ -1,4 +1,4 @@
-import { ParseError } from "~/parser"
+import { ParserError } from "~/parser"
 
 // RegExp to match quotes surrounding string name.
 const ENCLOSING_QUOTES = /^['"](.*)['"]$/
@@ -15,7 +15,7 @@ export class ScopeConstant {
     // Use string as constant `name`
     if (typeof props === "string") props = { name: props }
 
-    if (typeof props.name !== "string") throw new ParseError("Constants must be created with a 'name'")
+    if (typeof props.name !== "string") throw new ParserError("Constants must be created with a 'name'")
     props.name = props.name.replace(ENCLOSING_QUOTES, "$1")
     // Assign all properties in the order provided.
     Object.assign(this, props)

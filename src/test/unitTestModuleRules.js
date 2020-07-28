@@ -11,7 +11,7 @@
 import groupBy from "lodash/groupBy"
 import isEqual from "lodash/isEqual"
 
-import { ParseError, Rule } from "~/parser"
+import { ParserError, Rule } from "~/parser"
 import { showWhitespace, normalizeInitialWhitespace } from "~/util"
 
 // Skip running a rest
@@ -136,7 +136,7 @@ export function unitTestModuleRules(parser, moduleName, initializeContext) {
         try {
           compiled = match.compile()
         } catch (e) {
-          if (e instanceof ParseError && output === undefined) return UNDEFINED_RESULT
+          if (e instanceof ParserError && output === undefined) return UNDEFINED_RESULT
           compiled = e
         }
         if (typeof compiled === "string") {
@@ -149,7 +149,7 @@ export function unitTestModuleRules(parser, moduleName, initializeContext) {
         }
       }
     } catch (e) {
-      if (e instanceof ParseError && output === undefined) return UNDEFINED_RESULT
+      if (e instanceof ParserError && output === undefined) return UNDEFINED_RESULT
       match = e
     }
     return [match, compiled, rendered]

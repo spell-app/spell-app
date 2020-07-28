@@ -3,7 +3,7 @@
 // Note that lots of parser functionality is tested via other files in this package. ???
 //
 
-import { Parser, ParseError, Rule } from "~/parser"
+import { Parser, ParserError, Rule } from "~/parser"
 
 describe("addRule() and rules", () => {
   test("parser.rules works when no rules are defined", () => {
@@ -151,7 +151,7 @@ describe("parser.parse()", () => {
   })
 
   test("throws if named rule is not found", () => {
-    expect(() => parser.parse("text", "missing_rule")).toThrow(ParseError)
+    expect(() => parser.parse("text", "missing_rule")).toThrow(ParserError)
   })
 })
 
@@ -167,6 +167,6 @@ describe("parser.compile()", () => {
   })
 
   test("throws if text can't be parsed", () => {
-    expect(() => parser.compile("blah")).toThrow(ParseError)
+    expect(() => parser.compile("blah")).toThrow(ParserError)
   })
 })

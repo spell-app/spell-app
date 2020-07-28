@@ -1,5 +1,5 @@
 export * from "./constants"
-export { ParseError } from "./ParseError"
+export { ParserError } from "./ParserError"
 export { Token } from "./Token"
 export { Match } from "./Match"
 export { Tokenizer, WhitespacePolicy } from "./Tokenizer"
