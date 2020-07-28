@@ -2,9 +2,6 @@
 // Runtime setup.
 // TODOC
 // ----------------------------
-import React from "react"
-import { isNode } from "browser-or-node"
-
 import { spellCore } from "."
 
 Object.assign(spellCore, {

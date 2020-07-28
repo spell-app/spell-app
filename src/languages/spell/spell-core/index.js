@@ -9,9 +9,10 @@ import { spellCore } from "./core"
 import "./collection-core"
 import "./collection-other"
 import "./string"
+import { SpellEvent, Eventful } from "./events"
 import "./tests"
 import "./runtime"
 import "./ui"
 
-export { spellCore, assert }
+export { spellCore, assert, SpellEvent, Eventful }
 export * from "./classes"

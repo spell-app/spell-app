@@ -4,7 +4,7 @@
 import _ from "lodash"
 
 import { Observable } from "~/util"
-import { spellCore } from ".."
+import { spellCore, Eventful } from ".."
 
 //----------------------------
 // `Thing`: base for all object-like things

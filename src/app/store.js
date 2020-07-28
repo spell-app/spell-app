@@ -379,45 +379,66 @@ export const store = createStore({
   // console
   //-----------------
   /**
-   * Array of `console` messages.
+   * Structure for `console` messages.
+   * DOCME
    * NOTE: We PUSH items into this array so it's stable
    *       and update `lastLogged` timestamp for reactivity.
    */
-  console: [],
+  console: {
+    lines: [],
+    groups: []
+  },
   lastLogged: undefined,
   /**
    * Log to the console:
    * - `message` as a string or array of strings/objects
    * - optional `props`:
-   *    - `error`      Associated JS Error
-   *    - `context`    Thing that owns the action being executed.
-   *    - `activity`   Name of action or method being executed.
-   *    - `params`     Relevant function or other parameters.
+   *    - `context`     Thing that owns the action being executed.
+   *    - `activity`    Name of action or method being executed.
+   *    - `params`      Relevant function or other parameters.
+   *    - `error`       Associated JS Error
+   *    - `lines`       For `group`.
+   *    - `collapsed`   For collapsed `group`
    * - log `level`     one of "debug" (default), "info", "warning", "error", "group"
+   *
+   * Returns `line` logged.
    */
   log(message, props, level = "debug") {
     const logged = Date.now()
-    store.console.push({ message, level, logged, ...props })
+    const line = { message, level, logged, ...props }
+    // if we have any `groups`, log to that -- otherwise to console.lines
+    const activeList = store.console.groups[0]?.lines || store.console.lines
+    activeList.push(line)
     store.lastLogged = logged
+    return line
   },
   // Syntactic sugar for logging other levels
   logInfo(message, props) {
-    store.log(message, props, "info")
+    return store.log(message, props, "info")
   },
   logWarn(message, props) {
-    store.log(message, props, "warning")
+    return store.log(message, props, "warning")
   },
   logError(message, props) {
-    store.log(message, props, "error")
+    return store.log(message, props, "error")
   },
   group(message, props) {
-    store.log(message, props, "group")
+    const group = store.log(message, { ...props, lines: [] }, "group")
+    store.console.groups.unshift(group)
+    return group
   },
-  groupEnd(message, props) {
-    store.log(message, props, "groupEnd")
+  groupCollapsed(message, props) {
+    return store.group(message, { ...props, collapsed: true })
   },
-  clearConsole() {
-    store.console = []
+  groupEnd() {
+    // remove the first item from `console.groups`
+    store.console.groups.shift()
+  },
+  resetConsole() {
+    store.console = {
+      lines: [],
+      groups: []
+    }
     store.lastLogged = Date.now()
   },
 
