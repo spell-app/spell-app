@@ -9,7 +9,7 @@ import { spellCore, Eventful } from ".."
 //----------------------------
 // `Thing`: base for all object-like things
 //--------
-export class Thing extends Observable {
+export class Thing extends Eventful(Observable) {
   constructor(props) {
     super(props)
     this.create()

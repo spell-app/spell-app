@@ -72,6 +72,15 @@ to turn (a card) over:
 	otherwise: turn it face up
 	pause for 50 msec
 
+to draw (a card):
+	set className to "Card face-" + its direction + " "	+ its rank + " " + its suit + " ui button compact fluid "
+	if it is face down 
+		return <div onClick={fire event card-click with card = it} className={className}><i className="fitted bicycle icon"/></div>
+	return <div onClick={fire event card-click with card = it} className={className +	its color}>
+		{the short-rank of the card + " "}
+		<span className="suit">{the short-suit of the card}</span>
+	</div>
+
 ## create a card instance with default properties
 to quietly test card setup
 	the card is a new card whose rank is queen, suit is spades and direction is up

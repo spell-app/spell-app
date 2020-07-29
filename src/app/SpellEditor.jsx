@@ -59,8 +59,6 @@ export const EditorToolbar = view(function EditorToolbar() {
       <SUI.Menu.Item
         content=" Run Project"
         icon={<SUI.Icon size="large" name="hand point up outline" />}
-        color="red"
-        active={fileIsDirty}
         onClick={bound.showRunner}
       />
     </SUI.Menu>

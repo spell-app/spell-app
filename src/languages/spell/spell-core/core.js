@@ -9,7 +9,8 @@ import isEqual from "lodash/isEqual"
 import { hasOwnProp } from "~/util"
 import { assert } from "."
 
-export const spellCore = {
+export const spellCore = new (class spellCore {})()
+Object.assign(spellCore, {
   //----------------------------
   // Meta-programming
   //--------
@@ -254,4 +255,4 @@ export const spellCore = {
   repeat(count, callback) {
     for (let i = 0; i < count; i++) callback()
   }
-}
+})

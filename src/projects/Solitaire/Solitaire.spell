@@ -137,6 +137,9 @@ to play (a card)
 	else if start-pile is discards: set the score of the game to the score of the game + 5
 	return yes
 
+on card-click with a card
+	play the card
+
 to auto-play
 	set anything-changed to no
 	if the discards is not empty
@@ -210,15 +213,6 @@ to draw (a stock-pile):
 to draw (a discard-pile):
 	return <div className="Pile Discards stacked">
 		{draw its bottom card}
-	</div>
-
-to draw (a card):
-	set className to "Card face-" + its direction + " "	+ its rank + " " + its suit + " ui button compact fluid "
-	if it is face down 
-		return <div onClick={play the card} className={className}><i className="fitted bicycle icon"/></div>
-	return <div onClick={play the card} className={className +	its color}>
-		{the short-rank of the card + " "}
-		<span className="suit">{the short-suit of the card}</span>
 	</div>
 
 to draw (a game)

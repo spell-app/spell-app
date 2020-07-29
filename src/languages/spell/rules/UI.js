@@ -4,7 +4,6 @@
 
 import { Token } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
-import { NumericLiteral } from "../ast/AST"
 
 export const UI = new SpellParser({
   module: "UI",

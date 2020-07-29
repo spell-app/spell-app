@@ -20,6 +20,7 @@ import { JSX } from "./JSX"
 import { lists } from "./lists"
 import { math } from "./math"
 import { properties } from "./properties"
+import { events } from "./events"
 import { UI } from "./UI"
 import { classes } from "./classes"
 import { methods } from "./methods"
@@ -47,6 +48,7 @@ spellParser.import(
   expressions,
   math,
   properties,
+  events,
   _if_,
   lists,
   UI,
