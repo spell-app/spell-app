@@ -13,6 +13,8 @@ import { spellCore } from "~/languages/spell"
 
 import { SpellEditorRoute } from "./SpellEditorRoute"
 import { SpellRunnerRoute } from "./SpellRunnerRoute"
+import { ErrorNotice } from "./ErrorNotice"
+import { Notice } from "./Notice"
 
 // Use the below to set up methods/etc in the browser for hacking
 import "./debug"
@@ -28,16 +30,21 @@ global.spellCore = spellCore
 
 function renderApp() {
   ReactDOM.render(
-    <Router>
-      <SpellEditorRoute path="edit/:domain" />
-      <SpellEditorRoute path="edit/:domain/:project" />
-      <SpellEditorRoute path="edit/:domain/:project/*filePath" />
-      <SpellEditorRoute default domain="projects" />
+    <>
+      <Router>
+        <SpellEditorRoute path="edit/:domain" />
+        <SpellEditorRoute path="edit/:domain/:project" />
+        <SpellEditorRoute path="edit/:domain/:project/*filePath" />
+        <SpellEditorRoute default domain="projects" />
 
-      <SpellRunnerRoute path="run/:domain" />
-      <SpellRunnerRoute path="run/:domain/:project" />
-      <SpellRunnerRoute path="run/:domain/:project/*filePath" />
-    </Router>,
+        <SpellRunnerRoute path="run/:domain" />
+        <SpellRunnerRoute path="run/:domain/:project" />
+        <SpellRunnerRoute path="run/:domain/:project/*filePath" />
+      </Router>
+      {/* Show Notice / ErrorNotice for all pages */}
+      <Notice />
+      <ErrorNotice />
+    </>,
     // eslint-disable-next-line no-undef
     document.getElementById("react-root")
   )

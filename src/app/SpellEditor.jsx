@@ -6,11 +6,9 @@ import { view } from "~/util"
 
 import { AppContainer } from "./AppContainer"
 import { ASTRoot } from "./ASTViewer"
-import { ErrorNotice } from "./ErrorNotice"
 import { FileDropdown } from "./FileDropdown"
 import { InputEditor } from "./InputEditor"
 import { MatchRoot } from "./MatchViewer"
-import { Notice } from "./Notice"
 import { SpellPage } from "./SpellPage"
 import { ProjectDropdown } from "./ProjectDropdown"
 import { SplitPanel } from "./SplitPanel"
@@ -105,8 +103,6 @@ export function SpellEditor() {
           </SplitPanel>
         </SplitPanel>
       </SpellPage>
-      <Notice />
-      <ErrorNotice />
     </>
   )
 }

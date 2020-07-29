@@ -2,8 +2,6 @@ import React from "react"
 import * as SUI from "semantic-ui-react"
 
 import { AppContainer } from "./AppContainer"
-import { ErrorNotice } from "./ErrorNotice"
-import { Notice } from "./Notice"
 import { SpellPage } from "./SpellPage"
 import { SplitPanel } from "./SplitPanel"
 import { ProjectDropdown } from "./ProjectDropdown"
@@ -32,18 +30,14 @@ export function RunnerToolbar() {
 /** Runner page. */
 export function SpellRunner() {
   return (
-    <>
-      <SpellPage id="SpellRunner" fillWindow dark rows>
-        <RunnerToolbar />
-        <SplitPanel id="spellRunner" rows="85%" spaced padded resizable resizable bordered light rounded>
-          <SUI.Container>
-            <AppContainer />
-          </SUI.Container>
-          Console
-        </SplitPanel>
-      </SpellPage>
-      <Notice />
-      <ErrorNotice />
-    </>
+    <SpellPage id="SpellRunner" fillWindow dark rows>
+      <RunnerToolbar />
+      <SplitPanel id="spellRunner" rows="85%" spaced padded resizable resizable bordered light rounded>
+        <SUI.Container>
+          <AppContainer />
+        </SUI.Container>
+        Console
+      </SplitPanel>
+    </SpellPage>
   )
 }
