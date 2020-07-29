@@ -118,29 +118,38 @@ export class SpellEvent {
   }
 
   /**
-   * Make some arbitrary `target` able to deal with events.
-   * Does this by monkey-patching the object with `on`, `off`, `once` and `trigger` methods.
+   * Make some arbitrary `target` able to deal with events by monkey-patching
+   * `on`, `off`, `once` and `trigger` methods.
    * NOTE: To apply for all instances of a class, use `Eventful` HOC below:
    *
    * To apply to a singleton or statically to a class:
-   *    `spellCore.makeEventful(SingletonOrClass)`
+   *    `SpellEvent.makeEventful(SingletonOrClass)`
    */
   static makeEventful(target) {
-    target.on = function on(eventType, callback) {
-      SpellEvent.on(target, eventType, callback)
-    }
-    target.off = function off(eventType, callback) {
-      SpellEvent.off(target, eventType, callback, target)
-    }
-    target.once = function once(eventType, callback) {
-      SpellEvent.once(target, eventType, callback, target)
-    }
-    target.trigger = function trigger(event, props) {
-      SpellEvent.trigger(target, event, props)
-    }
+    Object.defineProperties(target, {
+      on: {
+        value(eventType, callback) {
+          SpellEvent.on(target, eventType, callback)
+        }
+      },
+      off: {
+        value(eventType, callback) {
+          SpellEvent.off(target, eventType, callback, target)
+        }
+      },
+      once: {
+        value(eventType, callback) {
+          SpellEvent.once(target, eventType, callback, target)
+        }
+      },
+      trigger: {
+        value(event, props) {
+          SpellEvent.trigger(target, event, props)
+        }
+      }
+    })
   }
 }
-
 // Make spellCore itself eventful.
 SpellEvent.makeEventful(spellCore)
 
@@ -149,7 +158,24 @@ SpellEvent.makeEventful(spellCore)
  * Usage:  `class MyClass extends Eventful(SomeBaseClass) {...}`
  */
 export function Eventful(BaseClass) {
-  return class Eventful extends BaseClass {
+  if (BaseClass) {
+    return class Eventful extends BaseClass {
+      on(eventType, callback) {
+        SpellEvent.on(this, eventType, callback)
+      }
+      off(eventType, callback) {
+        SpellEvent.off(this, eventType, callback)
+      }
+      once(eventType, callback) {
+        SpellEvent.once(this, eventType, callback)
+      }
+      trigger(event, props) {
+        SpellEvent.trigger(this, event, props)
+      }
+    }
+  }
+
+  return class Eventful {
     on(eventType, callback) {
       SpellEvent.on(this, eventType, callback)
     }

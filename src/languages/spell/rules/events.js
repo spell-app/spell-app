@@ -21,7 +21,7 @@ export const events = new SpellParser({
         // Use the `raw` eventName, dashes are ok!
         const args = [new AST.QuotedExpression(match, eventName.raw)]
         if (props) args.push(props.AST)
-        return new AST.CoreMethodInvocation(match, {
+        return new AST.RuntimeMethodInvocation(match, {
           methodName: "trigger",
           args
         })
@@ -31,8 +31,11 @@ export const events = new SpellParser({
           compileAs: "statement",
           tests: [
             //
-            { input: `trigger card-click`, output: "spellCore.trigger('card-click')" },
-            { input: `fire event card-click with card = 1`, output: "spellCore.trigger('card-click', { card: 1 })" }
+            { input: `trigger card-click`, output: "spellCore.RUNTIME.trigger('card-click')" },
+            {
+              input: `fire event card-click with card = 1`,
+              output: "spellCore.RUNTIME.trigger('card-click', { card: 1 })"
+            }
           ]
         }
       ]
@@ -84,7 +87,7 @@ export const events = new SpellParser({
           }
           args.push(method)
         }
-        return new AST.CoreMethodInvocation(match, {
+        return new AST.RuntimeMethodInvocation(match, {
           methodName: "on",
           args
         })
@@ -97,15 +100,15 @@ export const events = new SpellParser({
           },
           tests: [
             //
-            { input: `on card-click`, output: "spellCore.on('card-click')" },
+            { input: `on card-click`, output: "spellCore.RUNTIME.on('card-click')" },
             {
               input: `on event card-click: print 1`,
-              output: ["spellCore.on('card-click', (event) => {", "\treturn console.log(1)", "})"]
+              output: ["spellCore.RUNTIME.on('card-click', (event) => {", "\treturn console.log(1)", "})"]
             },
             {
               input: `on event card-click with a card: print the name of the card`,
               output: [
-                "spellCore.on('card-click', (event) => {",
+                "spellCore.RUNTIME.on('card-click', (event) => {",
                 "\tlet { card } = event",
                 "\treturn console.log(card.name)",
                 "})"

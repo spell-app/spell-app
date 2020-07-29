@@ -390,6 +390,69 @@ export class TripleBackTickExpression extends Expression {
   }
 }
 
+/** PropertyExpression -- named property of some object.
+ *  - `object` is the thing to get the property from, as an Expression.
+ *  - `property` is the normalized property name or PropertyLiteral.
+ *  TODO: datatype???
+ */
+export class PropertyExpression extends Expression {
+  constructor(match, props) {
+    super(match, props)
+    this.assertType("object", Expression)
+    if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
+    this.assertType("property", PropertyLiteral)
+  }
+  compile() {
+    const prop = this.property.compile()
+    if (this.property.isLegalIdentifier) return `${this.object.compile()}.${prop}`
+    return `${this.object.compile()}['${prop}']`
+  }
+  renderChildren() {
+    const object = <span className="object">{this.object.component}</span>
+    if (this.property.isLegalIdentifier) {
+      return render.Fragment(object, render.PERIOD, this.property.component)
+    }
+    return render.Fragment(object, <render.InSquareBrackets>{this.property.component}</render.InSquareBrackets>)
+  }
+}
+
+/** VariableExpression -- pointer to a Variable object.
+ *  - `name` is the normalized type name: dashes and spaces converted to underscores.
+ *  - `default` (optional) AST for default value. See `DestructuredAssignment`
+ *  - `type` (optional) "argument" or "this" etc
+ *  CURRENTLY UNUSED
+ *  - `raw` (optional) is the original input string, unnormalized.
+ *  - `variable` (optional) is pointer to scope Variable, if there is one.
+ *  - `plurality` (optional) is "singular", "plural" or `undefined`  // TODO: derive?
+ */
+export class VariableExpression extends Expression {
+  constructor(match, props) {
+    super(match, props)
+    if (!this.name) this.name = this.match.value
+    this.assertType("name", "string")
+    this.assertType("default", Expression, OPTIONAL)
+    this.assertType("raw", "string", OPTIONAL)
+  }
+  compile() {
+    if (this.default) return `${this.name} = ${this.default.compile()}`
+    return this.name
+  }
+  get className() {
+    const classes = [super.className]
+    if (this.type) classes.push(this.type)
+    if (this.variable?.kind && !classes.includes(this.variable.kind)) classes.push(this.variable.kind)
+    return classes.join(" ")
+  }
+  renderChildren() {
+    if (!this.default) return <span className="name">{this.name}</span>
+    return render.Fragment(
+      <span className="name">{this.name}</span>,
+      render.EQUALS,
+      <span className="default">{this.default.component}</span>
+    )
+  }
+}
+
 /** AwaitExpression:  `await {expression}`.
  *  - `expression` is Expression to await.
  * NOTE: this marks the `parentScope` as asynchronous!!!
@@ -656,14 +719,48 @@ export class ConsoleMethodInvocation extends ScopedMethodInvocation {
   }
 }
 
-/** CoreMethodInvocation:  calls a `spellCore` `method`.  Used for output languge independence.
+/**
+ * Create a `Expression` that refers to `spellCore`
+ */
+export class SpellCoreExpression extends VariableExpression {
+  constructor(match) {
+    super(match, { name: "spellCore", type: "global" })
+  }
+}
+
+/**
+ * CoreMethodInvocation:  calls a `spellCore` `method`.  Used for output languge independence.
  *  - `methodName` is spellcore method name.
  *  - `args` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
  */
 export class CoreMethodInvocation extends ScopedMethodInvocation {
   constructor(match, props) {
-    super(match, { ...props, thing: new VariableExpression(match, { name: "spellCore", type: "global" }) })
+    super(match, { ...props, thing: new SpellCoreExpression(match) })
+  }
+}
+
+/**
+ * Create an `Expression` that refers to `spellCore.RUNTIME`
+ */
+export class RuntimeExpression extends PropertyExpression {
+  constructor(match) {
+    super(match, {
+      object: new SpellCoreExpression(match),
+      property: "RUNTIME"
+    })
+  }
+}
+
+/**
+ * RuntimeMethodInvocation:  calls a `spellCore.RUNTIME` `method`.  Used for output languge independence.
+ *  - `methodName` is spellcore method name.
+ *  - `args` (optional) is a possibly empty list of Expressions.
+ *  - `datatype` (optional) is return datatype as string, try to set if you can.
+ */
+export class RuntimeMethodInvocation extends ScopedMethodInvocation {
+  constructor(match, props) {
+    super(match, { ...props, thing: new RuntimeExpression(match) })
   }
 }
 
@@ -751,43 +848,6 @@ export class PrototypeExpression extends Expression {
   }
   renderChildren() {
     return render.Fragment(this.type.component, render.PERIOD, render.PROTOTYPE)
-  }
-}
-
-/** VariableExpression -- pointer to a Variable object.
- *  - `name` is the normalized type name: dashes and spaces converted to underscores.
- *  - `default` (optional) AST for default value. See `DestructuredAssignment`
- *  - `type` (optional) "argument" or "this" etc
- *  CURRENTLY UNUSED
- *  - `raw` (optional) is the original input string, unnormalized.
- *  - `variable` (optional) is pointer to scope Variable, if there is one.
- *  - `plurality` (optional) is "singular", "plural" or `undefined`  // TODO: derive?
- */
-export class VariableExpression extends Expression {
-  constructor(match, props) {
-    super(match, props)
-    if (!this.name) this.name = this.match.value
-    this.assertType("name", "string")
-    this.assertType("default", Expression, OPTIONAL)
-    this.assertType("raw", "string", OPTIONAL)
-  }
-  compile() {
-    if (this.default) return `${this.name} = ${this.default.compile()}`
-    return this.name
-  }
-  get className() {
-    const classes = [super.className]
-    if (this.type) classes.push(this.type)
-    if (this.variable?.kind && !classes.includes(this.variable.kind)) classes.push(this.variable.kind)
-    return classes.join(" ")
-  }
-  renderChildren() {
-    if (!this.default) return <span className="name">{this.name}</span>
-    return render.Fragment(
-      <span className="name">{this.name}</span>,
-      render.EQUALS,
-      <span className="default">{this.default.component}</span>
-    )
   }
 }
 
@@ -939,32 +999,6 @@ export class PropertyLiteral extends Literal {
   renderChildren() {
     const value = <span className="property">{this.value}</span>
     return this.isLegalIdentifier ? value : <render.InSingleQuotes>{value}</render.InSingleQuotes>
-  }
-}
-
-/** PropertyExpression -- named property of some object.
- *  - `object` is the thing to get the property from, as an Expression.
- *  - `property` is the normalized property name or PropertyLiteral.
- *  TODO: datatype???
- */
-export class PropertyExpression extends Expression {
-  constructor(match, props) {
-    super(match, props)
-    this.assertType("object", Expression)
-    if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
-    this.assertType("property", PropertyLiteral)
-  }
-  compile() {
-    const prop = this.property.compile()
-    if (this.property.isLegalIdentifier) return `${this.object.compile()}.${prop}`
-    return `${this.object.compile()}['${prop}']`
-  }
-  renderChildren() {
-    const object = <span className="object">{this.object.component}</span>
-    if (this.property.isLegalIdentifier) {
-      return render.Fragment(object, render.PERIOD, this.property.component)
-    }
-    return render.Fragment(object, <render.InSquareBrackets>{this.property.component}</render.InSquareBrackets>)
   }
 }
 

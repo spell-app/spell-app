@@ -2,7 +2,9 @@
 // Runtime setup.
 // TODOC
 // ----------------------------
-import { spellCore } from "."
+import { spellCore, Eventful } from "."
+
+export class SpellRuntime extends Eventful() {}
 
 Object.assign(spellCore, {
   // Set to true to show debug messages for spellCore.RUNTIME actions
@@ -21,7 +23,7 @@ Object.assign(spellCore, {
    */
   resetRuntime() {
     if (spellCore.DEBUG_RUNTIME) console.info("Resetting spellCore.RUNTIME")
-    spellCore.RUNTIME = {}
+    spellCore.RUNTIME = new SpellRuntime()
     return spellCore.RUNTIME
   },
 
