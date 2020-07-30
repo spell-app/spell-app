@@ -9,6 +9,7 @@ import isEqual from "lodash/isEqual"
 import { hasOwnProp } from "~/util"
 import { assert } from "."
 
+// Create the `spellCore` singeton, using a class for recognition when debugging.
 export const spellCore = new (class spellCore {})()
 Object.assign(spellCore, {
   //----------------------------
@@ -127,6 +128,19 @@ Object.assign(spellCore, {
     array: "list",
     boolean: "choice",
     string: "text"
+  },
+
+  /** Return `true` if the thing is a simple type. */
+  isSimpleType(thing) {
+    if (thing == null) return true
+    switch (typeof thing) {
+      case "number":
+      case "string":
+      case "boolean":
+        return true
+      default:
+        return false
+    }
   },
 
   /** Return string "type" of `thing`.

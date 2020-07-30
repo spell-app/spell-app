@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import { navigate } from "@reach/router"
 
 import { createStore, setPrefKey, getSetPref, CONFIRM, REACT_APP_ROOT_ID } from "~/util"
-import { SpellProjectRoot, SpellProject, SpellLocation } from "~/languages/spell"
+import { spellCore, SpellProjectRoot, SpellProject, SpellLocation } from "~/languages/spell"
 
 setPrefKey("spellEditor:")
 export const store = createStore({
@@ -135,7 +135,7 @@ export const store = createStore({
   async duplicateProject(newProjectId) {
     try {
       const newProject = await store.projectRoot.duplicateProject(store.project.projectId, newProjectId)
-      console.warn({ newProject })
+      // console.warn({ newProject })
       if (newProject) {
         store.showEditor(newProject.path)
         store.showNotice("Project duplicated.")
@@ -239,13 +239,41 @@ export const store = createStore({
   },
   async compile() {
     if (!store.project || !store.file) return
+
+    spellCore.console.clear()
     try {
-      console.group("Compiling", store.project)
+      spellCore.console.group("Compiling", store.project)
+
       store.clearCompileSoon()
       await store.project.compile()
-      store.project.executeCompiled()
+      const { compiled } = store.project
+
+      if (compiled) {
+        spellCore.console.groupCollapsed("Compiled to javascript:")
+        const lines = compiled
+          .split("\n")
+          .map((line, lineNum) => `${lineNum}`.padStart(4, " ") + `  ${line}`)
+          .join("\n")
+        spellCore.console.log(lines)
+        spellCore.console.groupEnd()
+
+        await store.executeCompiled()
+      }
     } finally {
-      console.groupEnd()
+      spellCore.console.groupEnd()
+    }
+  },
+
+  async executeCompiled() {
+    if (!store.project?.compiled) return
+    spellCore.console.group("Executing project")
+    try {
+      store.project.executeCompiled()
+      await spellCore.pauseFor(100, "msec")
+    } catch (e) {
+      spellCore.console.error("Error executing project", e)
+    } finally {
+      spellCore.console.groupEnd()
     }
   },
 
@@ -373,73 +401,6 @@ export const store = createStore({
     store.project.updatedContentsFor(store.file)
     // auto-compile 2 seconds after input settles
     store.compileSoon(2)
-  },
-
-  //-----------------
-  // console
-  //-----------------
-  /**
-   * Structure for `console` messages.
-   * DOCME
-   * NOTE: We PUSH items into this array so it's stable
-   *       and update `lastLogged` timestamp for reactivity.
-   */
-  console: {
-    lines: [],
-    groups: []
-  },
-  lastLogged: undefined,
-  /**
-   * Log to the console:
-   * - `message` as a string or array of strings/objects
-   * - optional `props`:
-   *    - `context`     Thing that owns the action being executed.
-   *    - `activity`    Name of action or method being executed.
-   *    - `params`      Relevant function or other parameters.
-   *    - `error`       Associated JS Error
-   *    - `lines`       For `group`.
-   *    - `collapsed`   For collapsed `group`
-   * - log `level`     one of "debug" (default), "info", "warning", "error", "group"
-   *
-   * Returns `line` logged.
-   */
-  log(message, props, level = "debug") {
-    const logged = Date.now()
-    const line = { message, level, logged, ...props }
-    // if we have any `groups`, log to that -- otherwise to console.lines
-    const activeList = store.console.groups[0]?.lines || store.console.lines
-    activeList.push(line)
-    store.lastLogged = logged
-    return line
-  },
-  // Syntactic sugar for logging other levels
-  logInfo(message, props) {
-    return store.log(message, props, "info")
-  },
-  logWarn(message, props) {
-    return store.log(message, props, "warning")
-  },
-  logError(message, props) {
-    return store.log(message, props, "error")
-  },
-  group(message, props) {
-    const group = store.log(message, { ...props, lines: [] }, "group")
-    store.console.groups.unshift(group)
-    return group
-  },
-  groupCollapsed(message, props) {
-    return store.group(message, { ...props, collapsed: true })
-  },
-  groupEnd() {
-    // remove the first item from `console.groups`
-    store.console.groups.shift()
-  },
-  resetConsole() {
-    store.console = {
-      lines: [],
-      groups: []
-    }
-    store.lastLogged = Date.now()
   },
 
   //-----------------

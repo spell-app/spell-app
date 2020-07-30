@@ -390,6 +390,34 @@ export class TripleBackTickExpression extends Expression {
   }
 }
 
+/** PropertyLiteral -- identifier which refers to some property of an object.
+ *  - `value` is the normalized property name.  It will be inferred from the `match`.
+ *  - `raw` (optional) is the input property name
+ */
+export class PropertyLiteral extends Literal {
+  constructor(match, props) {
+    if (typeof props === "string") props = { value: props }
+    super(match, props)
+    if (this.value === undefined) this.value = this.match.value
+    this.assertType("value", "string")
+    this.assertType("raw", "string", OPTIONAL)
+  }
+  get isLegalIdentifier() {
+    return isLegalIdentifier(this.value)
+  }
+  compile() {
+    if (this.isLegalIdentifier) return this.value
+    return stringify.InSingleQuotes({ children: this.value })
+  }
+  get className() {
+    return `${super.className} ${this.isLegalIdentifier ? "legal-identifier" : "non-legal-identifier"}`
+  }
+  renderChildren() {
+    const value = <span className="property">{this.value}</span>
+    return this.isLegalIdentifier ? value : <render.InSingleQuotes>{value}</render.InSingleQuotes>
+  }
+}
+
 /** PropertyExpression -- named property of some object.
  *  - `object` is the thing to get the property from, as an Expression.
  *  - `property` is the normalized property name or PropertyLiteral.
@@ -971,34 +999,6 @@ export class MethodDefinition extends Expression {
     // normal method
     if (this.inline) return render.Fragment(async, args, render.FAT_ARROW, body, error)
     return render.Fragment(async, render.FUNCTION, methodName, args, render.SPACE, body, error)
-  }
-}
-
-/** PropertyLiteral -- identifier which refers to some property of an object.
- *  - `value` is the normalized property name.  It will be inferred from the `match`.
- *  - `raw` (optional) is the input property name
- */
-export class PropertyLiteral extends Literal {
-  constructor(match, props) {
-    if (typeof props === "string") props = { value: props }
-    super(match, props)
-    if (this.value === undefined) this.value = this.match.value
-    this.assertType("value", "string")
-    this.assertType("raw", "string", OPTIONAL)
-  }
-  get isLegalIdentifier() {
-    return isLegalIdentifier(this.value)
-  }
-  compile() {
-    if (this.isLegalIdentifier) return this.value
-    return stringify.InSingleQuotes({ children: this.value })
-  }
-  get className() {
-    return `${super.className} ${this.isLegalIdentifier ? "legal-identifier" : "non-legal-identifier"}`
-  }
-  renderChildren() {
-    const value = <span className="property">{this.value}</span>
-    return this.isLegalIdentifier ? value : <render.InSingleQuotes>{value}</render.InSingleQuotes>
   }
 }
 

@@ -29,6 +29,7 @@ export const draw = new SpellParser({
     {
       name: "draw_items",
       alias: "expression",
+      // TODO: `draw its {plural_variable}` ?
       syntax: "draw {arg:plural_variable} (of|in) {expression}",
       constructor: "Statement",
       precedence: 101,

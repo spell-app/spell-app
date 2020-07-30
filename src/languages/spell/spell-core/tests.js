@@ -32,12 +32,12 @@ Object.assign(spellCore, {
   },
   echo(message) {
     if (spellCore.ACTIVE_TEST) spellCore.ACTIVE_TEST.output.push(message)
-    else console.info(message)
+    else spellCore.console.info(message)
   },
   echoTestAction(message) {
     const output = `> Executing \`${message}\``
     if (spellCore.ACTIVE_TEST) spellCore.ACTIVE_TEST.output.push(output)
-    else console.info(output)
+    else spellCore.console.info(output)
   },
   endTest() {
     const test = spellCore.ACTIVE_TEST
@@ -45,9 +45,9 @@ Object.assign(spellCore, {
     delete spellCore.ACTIVE_TEST
 
     const icon = spellCore._getTestResultIcon(test.result)
-    console[test.collapse ? "groupCollapsed" : "group"](`${icon} ${test.message}`)
-    test.output.forEach((line) => console.log(line))
-    console.groupEnd()
+    spellCore.console[test.collapse ? "groupCollapsed" : "group"](`${icon} ${test.message}`)
+    test.output.forEach((line) => spellCore.console.log(line))
+    spellCore.console.groupEnd()
   },
 
   /**
@@ -77,7 +77,7 @@ Object.assign(spellCore, {
 
     const test = spellCore.ACTIVE_TEST
     if (!test) {
-      console.log(result)
+      spellCore.console.log(result)
     } else {
       if (test.result === undefined) test.result = result
       else if (!result) test.result = false

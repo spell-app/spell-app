@@ -71,25 +71,35 @@ export class SpellEvent {
     if (typeof event === "string") event = new SpellEvent(event)
     if (props) Object.assign(event, props)
     const callbacks = SpellEvent.getEventList(target, event.type)
-    if (!callbacks) return []
-    console.info("triggering", event, " on ", target)
-    return [...callbacks].map((callback) => {
-      try {
-        callback(event, target)
-      } catch (error) {
-        // TODO: surface as an `eventError` event?
-        console.warn(
-          `Error calling event '${event.type}': `,
-          error,
-          "\ntarget:",
-          target,
-          "\nevent:",
-          event,
-          "\ncallback:",
-          callback
-        )
-      }
-    })
+    let results = []
+    if (callbacks) {
+      console.info("triggering", event, " on ", target)
+      results = [...callbacks].map((callback) => {
+        try {
+          return callback(event, target)
+        } catch (error) {
+          // TODO: surface as an `eventError` event?
+          console.warn(
+            `Error calling event '${event.type}': `,
+            error,
+            "\ntarget:",
+            target,
+            "\nevent:",
+            event,
+            "\ncallback:",
+            callback
+          )
+        }
+      })
+    }
+    // Delegate to `eventParent` if defined
+    const { eventParent } = target
+    if (eventParent) {
+      console.info("delegating to parent", eventParent)
+      const parentResults = SpellEvent.trigger(eventParent, event)
+      if (parentResults.length) results.push(...parentResults)
+    }
+    return results
   }
 
   /**
@@ -125,29 +135,30 @@ export class SpellEvent {
    * To apply to a singleton or statically to a class:
    *    `SpellEvent.makeEventful(SingletonOrClass)`
    */
-  static makeEventful(target) {
-    Object.defineProperties(target, {
-      on: {
-        value(eventType, callback) {
-          SpellEvent.on(target, eventType, callback)
-        }
-      },
-      off: {
-        value(eventType, callback) {
-          SpellEvent.off(target, eventType, callback, target)
-        }
-      },
-      once: {
-        value(eventType, callback) {
-          SpellEvent.once(target, eventType, callback, target)
-        }
-      },
-      trigger: {
-        value(event, props) {
-          SpellEvent.trigger(target, event, props)
-        }
+  static instanceMethods = {
+    on: {
+      value(eventType, callback) {
+        SpellEvent.on(this, eventType, callback)
       }
-    })
+    },
+    off: {
+      value(eventType, callback) {
+        SpellEvent.off(this, eventType, callback)
+      }
+    },
+    once: {
+      value(eventType, callback) {
+        SpellEvent.once(this, eventType, callback)
+      }
+    },
+    trigger: {
+      value(event, props) {
+        SpellEvent.trigger(this, event, props)
+      }
+    }
+  }
+  static makeEventful(target) {
+    Object.defineProperties(target, SpellEvent.instanceMethods)
   }
 }
 // Make spellCore itself eventful.
@@ -158,37 +169,9 @@ SpellEvent.makeEventful(spellCore)
  * Usage:  `class MyClass extends Eventful(SomeBaseClass) {...}`
  */
 export function Eventful(BaseClass) {
-  if (BaseClass) {
-    return class Eventful extends BaseClass {
-      on(eventType, callback) {
-        SpellEvent.on(this, eventType, callback)
-      }
-      off(eventType, callback) {
-        SpellEvent.off(this, eventType, callback)
-      }
-      once(eventType, callback) {
-        SpellEvent.once(this, eventType, callback)
-      }
-      trigger(event, props) {
-        SpellEvent.trigger(this, event, props)
-      }
-    }
-  }
-
-  return class Eventful {
-    on(eventType, callback) {
-      SpellEvent.on(this, eventType, callback)
-    }
-    off(eventType, callback) {
-      SpellEvent.off(this, eventType, callback)
-    }
-    once(eventType, callback) {
-      SpellEvent.once(this, eventType, callback)
-    }
-    trigger(event, props) {
-      SpellEvent.trigger(this, event, props)
-    }
-  }
+  const newClass = BaseClass ? class Eventful extends BaseClass {} : class Eventful {}
+  SpellEvent.makeEventful(newClass.prototype)
+  return newClass
 }
 
 // debug

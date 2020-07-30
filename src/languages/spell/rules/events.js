@@ -42,7 +42,8 @@ export const events = new SpellParser({
     },
 
     /**
-     * Watch a global event on the `spellCore` singleton.
+     * Watch a global event on the `spellCore.RUNTIME` singleton.
+     * TODO: apply to instances?
      */
     {
       name: "on",

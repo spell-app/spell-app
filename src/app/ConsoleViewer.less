@@ -1,0 +1,40 @@
+.ConsoleViewer {
+  font-family: monaco, monospace;
+  font-size: 11px;
+  white-space: pre;
+
+  .ConsoleLine {
+    border-bottom: 1px solid #eee;
+    
+    &.debug {}
+
+    &.info {
+      background-color: lightblue;
+    }
+    &.warn {
+      background-color: lightgoldenrodyellow;
+    }
+    &.error {
+      background-color: pink;
+    }
+    &.group {
+      font-weight: bold;
+    }
+  }
+
+  .ConsoleLines {
+    border-left: 1px solid #ccc;
+
+    > .ConsoleLines {
+      margin-left: 12px;
+    }
+
+    > .ConsoleLine {
+      margin-left: 20px;
+    }
+  }
+
+  .ConsoleValue + .ConsoleValue:before {
+    content: " "
+  }
+}

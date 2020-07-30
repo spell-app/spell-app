@@ -6,6 +6,7 @@ import { view } from "~/util"
 
 import { AppContainer } from "./AppContainer"
 import { ASTRoot } from "./ASTViewer"
+import { ConsoleRoot } from "./ConsoleViewer"
 import { FileDropdown } from "./FileDropdown"
 import { InputEditor } from "./InputEditor"
 import { MatchRoot } from "./MatchViewer"
@@ -91,7 +92,7 @@ export function SpellEditor() {
           <SplitPanel id="spellEditor-left" rows="85%" resizable bordered light rounded>
             <InputEditor />
             <SplitPanel.Pane padded scrolling>
-              Console
+              <ConsoleRoot />
             </SplitPanel.Pane>
           </SplitPanel>
           <SplitPanel id="spellEditor-right" rows="60%" resizable bordered light rounded>

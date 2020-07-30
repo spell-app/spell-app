@@ -170,44 +170,29 @@ export class SpellProject extends JSON5File {
     })
   }
 
-  /* Execute our `compiled` code. No-op if not compiled. */
+  /**
+   * Execute our `compiled` code. No-op if not compiled.
+   * Throws if there's a syntax error executing script. ???
+   */
   executeCompiled() {
     const { compiled } = this
     if (!compiled) return
 
-    console.group("attempting to execute compiled output:")
-
     // Reset spellcore RUNTIME for this run
     spellCore.resetRuntime()
 
-    // Output javascript with line numbers
-    console.groupCollapsed("javascript")
-    const lines = compiled
-      .split("\n")
-      .map((line, lineNum) => `${lineNum}`.padStart(4, " ") + `  ${line}`)
-      .join("\n")
-    console.info(lines)
-    console.groupEnd()
+    const scriptEl = document.createElement("script")
+    scriptEl.setAttribute("id", "compileOutput")
+    scriptEl.setAttribute("type", "module")
+    scriptEl.innerHTML = compiled
 
-    // add all types to `global` for local hacking
-    try {
-      const scriptEl = document.createElement("script")
-      scriptEl.setAttribute("id", "compileOutput")
-      scriptEl.setAttribute("type", "module")
-      scriptEl.innerHTML = compiled
+    const existingEl = document.getElementById("compileOutput")
 
-      const existingEl = document.getElementById("compileOutput")
-
-      if (existingEl) {
-        existingEl.replaceWith(scriptEl)
-      } else {
-        document.body.append(scriptEl)
-      }
-    } catch (e) {
-      console.error("error evaling output:", e)
+    if (existingEl) {
+      existingEl.replaceWith(scriptEl)
+    } else {
+      document.body.append(scriptEl)
     }
-    // groupEnd() in a tick after contents execute
-    setTimeout(() => console.groupEnd(), 100)
   }
 
   /**

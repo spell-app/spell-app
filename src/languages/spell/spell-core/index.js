@@ -11,6 +11,7 @@ import "./collection-other"
 import "./string"
 import { SpellEvent, Eventful } from "./SpellEvent"
 import "./tests"
+import "./console"
 import "./runtime"
 import "./ui"
 

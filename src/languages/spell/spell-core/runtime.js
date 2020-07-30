@@ -2,13 +2,20 @@
 // Runtime setup.
 // TODOC
 // ----------------------------
+import { isNode } from "browser-or-node"
 import { spellCore, Eventful } from "."
 
-export class SpellRuntime extends Eventful() {}
+export class SpellRuntime extends Eventful() {
+  // Delegate events to `spellCore`.
+  get eventParent() {
+    return spellCore
+  }
+}
 
 Object.assign(spellCore, {
   // Set to true to show debug messages for spellCore.RUNTIME actions
   DEBUG_RUNTIME: false, // !isNode,
+  DEBUG_PROCESSES: false, // !isNode,
 
   //----------------------------
   // Runtime state
@@ -89,7 +96,7 @@ Object.assign(spellCore, {
     const wasRunning = flags[name]
     if (exclusively) flags[name] = "!"
     else flags[name] = flags[name]++ || 1
-    if (spellCore.DEBUG_RUNTIME)
+    if (spellCore.DEBUG_PROCESSES)
       console.warn("startProcess", { name, wasRunning, isRunning: flags[name], flags: { ...flags } })
   },
 
@@ -100,7 +107,7 @@ Object.assign(spellCore, {
   processIsRunning(name) {
     const flags = spellCore.getProcessFlags()
     const isRunning = flags[name] === "!" || (typeof flags[name] === "number" && flags[name] > 0)
-    if (spellCore.DEBUG_RUNTIME) console.warn("processIsRunning", { name, isRunning, flags: { ...flags } })
+    if (spellCore.DEBUG_PROCESSES) console.warn("processIsRunning", { name, isRunning, flags: { ...flags } })
     return isRunning
   },
 
@@ -116,7 +123,7 @@ Object.assign(spellCore, {
       if (flags[name] === "!") delete flags[name]
       else if (flag[name] > 0) flags[name]--
     }
-    if (spellCore.DEBUG_RUNTIME)
+    if (spellCore.DEBUG_PROCESSES)
       console.warn("stopProcess", { name, wasRunning, isRunning: flags[name], flags: { ...flags } })
     return !!flags[name]
   }
