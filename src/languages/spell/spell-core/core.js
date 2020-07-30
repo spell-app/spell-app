@@ -130,19 +130,6 @@ Object.assign(spellCore, {
     string: "text"
   },
 
-  /** Return `true` if the thing is a simple type. */
-  isSimpleType(thing) {
-    if (thing == null) return true
-    switch (typeof thing) {
-      case "number":
-      case "string":
-      case "boolean":
-        return true
-      default:
-        return false
-    }
-  },
-
   /** Return string "type" of `thing`.
    * TODO:  Return type aliases, e.g. ["number", "integer"]
    * TODO:  Return inherited class types ?

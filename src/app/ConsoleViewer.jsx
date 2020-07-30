@@ -117,7 +117,7 @@ export function ConsoleLine({ line, icon }) {
 /** Console `group`. */
 export const ConsoleGroup = view(function ConsoleGroup({ line }) {
   const { lines, collapsed } = line
-  console.info("group", line, lines, collapsed)
+  // console.info("group", line, lines, collapsed)
   const toggle = () => (line.collapsed = !line.collapsed)
   const icon = <SUI.Icon name={collapsed ? "caret right" : "caret down"} onClick={toggle} />
   return (

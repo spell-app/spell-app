@@ -743,7 +743,11 @@ export class ConsoleMethodInvocation extends ScopedMethodInvocation {
   @proto methodName = "log"
   @proto echoInTests = false
   constructor(match, props) {
-    super(match, { ...props, thing: new VariableExpression(match, { name: "console", type: "global" }) })
+    const thing = new PropertyExpression(match, {
+      object: new SpellCoreExpression(match),
+      property: "console"
+    })
+    super(match, { ...props, thing })
   }
 }
 

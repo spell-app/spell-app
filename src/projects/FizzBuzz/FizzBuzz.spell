@@ -2,9 +2,9 @@
 
 to play fizzbuzz
 	for each number from 1 to 100
-		if the number divided by 15 is an integer: print the number + ": fizzbuzz"
-		otherwise if the number divided by 3 is an integer: print the number + ": fizz"
-		otherwise if the number divided by 5 is an integer: print the number + ": buzz"
+		if the number divided by 15 is an integer: print the number, "fizzbuzz"
+		otherwise if the number divided by 3 is an integer: print the number, "fizz"
+		otherwise if the number divided by 5 is an integer: print the number, "buzz"
 		otherwise print the number
 
 play fizzbuzz

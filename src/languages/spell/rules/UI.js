@@ -12,9 +12,10 @@ export const UI = new SpellParser({
     {
       name: "print",
       alias: "statement",
-      syntax: "print (operator:warning|error|collapsed? group)?{expression}",
+      syntax: "print (operator:info|warning|error|collapsed? group)? [expressions: {expression} ,]",
       constructor: "Statement",
       operatorMap: {
+        info: "info",
         warning: "warn",
         error: "error",
         group: "group",
@@ -22,11 +23,11 @@ export const UI = new SpellParser({
         default: "log"
       },
       getAST(match) {
-        const { operator, expression } = match.groups
+        const { operator, expressions } = match.groups
         const methodName = this.operatorMap[operator?.value || "default"]
         return new AST.ConsoleMethodInvocation(match, {
           methodName,
-          args: [expression.AST]
+          args: expressions.items.map((item) => item.AST)
         })
       },
       tests: [
