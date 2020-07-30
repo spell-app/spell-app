@@ -104,14 +104,14 @@ export const events = new SpellParser({
             { input: `on card-click`, output: "spellCore.RUNTIME.on('card-click')" },
             {
               input: `on event card-click: print 1`,
-              output: ["spellCore.RUNTIME.on('card-click', (event) => {", "\treturn console.log(1)", "})"]
+              output: ["spellCore.RUNTIME.on('card-click', (event) => {", "\treturn spellCore.console.log(1)", "})"]
             },
             {
               input: `on event card-click with a card: print the name of the card`,
               output: [
                 "spellCore.RUNTIME.on('card-click', (event) => {",
                 "\tlet { card } = event",
-                "\treturn console.log(card.name)",
+                "\treturn spellCore.console.log(card.name)",
                 "})"
               ]
             }

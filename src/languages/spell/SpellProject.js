@@ -503,7 +503,7 @@ export class SpellProject extends JSON5File {
   //  Debug
   //-----------------
   toString() {
-    return `[${this.constructor.name} ${this.path}]`
+    return `${this.constructor.name}: ${this.path}`
   }
 }
 

@@ -36,12 +36,19 @@
 
   .ConsoleValue {
     &.boolean,
-      &.number {
+    &.number {
       color: darkblue;
+    }
+
+    &.object {
+      font-style: italic;
+      color: darkblue;
+      cursor: pointer;
     }
   }
 
   .ConsoleValue + .ConsoleValue:before {
-    content: " "
+    content: " ";
+    text-decoration: none;
   }
 }

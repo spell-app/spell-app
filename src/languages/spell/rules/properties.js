@@ -104,7 +104,7 @@ export const properties = new SpellParser({
           tests: [
             [
               ["get a new thing", "print its foo"],
-              ["let it = new Thing()", "console.log(it.foo)"]
+              ["let it = new Thing()", "spellCore.console.log(it.foo)"]
             ]
           ]
         },
@@ -167,7 +167,7 @@ export const properties = new SpellParser({
           tests: [
             [
               ["get a new thing", "print its last item"],
-              ["let it = new Thing()", "console.log(spellCore.getItemOf(it, -1))"]
+              ["let it = new Thing()", "spellCore.console.log(spellCore.getItemOf(it, -1))"]
             ]
           ]
         },

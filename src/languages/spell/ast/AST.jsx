@@ -134,7 +134,7 @@ export class ASTNode extends Assertable {
   //  Debug
   //-----------------
   toString() {
-    return `[${this.constructor.name}]`
+    return `${this.constructor.name} {...}`
   }
 }
 

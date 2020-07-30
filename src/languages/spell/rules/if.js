@@ -257,7 +257,7 @@ export const _if_ = new SpellParser({
             scope.variables.add("foo")
           },
           tests: [
-            ["print 1 if bar else 2", "console.log((bar ? 1 : 2))"],
+            ["print 1 if bar else 2", "spellCore.console.log((bar ? 1 : 2))"],
             [
               "get the foo of the bar if bar is defined otherwise the bar of the foo",
               "let it = (spellCore.isDefined(bar) ? bar.foo : foo.bar)"

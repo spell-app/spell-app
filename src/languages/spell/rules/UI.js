@@ -27,18 +27,18 @@ export const UI = new SpellParser({
         const methodName = this.operatorMap[operator?.value || "default"]
         return new AST.ConsoleMethodInvocation(match, {
           methodName,
-          args: expressions.items.map((item) => item.AST)
+          args: expressions?.items.map((item) => item.AST)
         })
       },
       tests: [
         {
           compileAs: "statement",
           tests: [
-            [`print "Yo!"`, `console.log("Yo!")`],
-            [`print warning "Yo!"`, `console.warn("Yo!")`],
-            [`print error "Yo!"`, `console.error("Yo!")`],
-            [`print group "Yo!"`, `console.group("Yo!")`],
-            [`print collapsed group "Yo!"`, `console.groupCollapsed("Yo!")`]
+            [`print "Yo!"`, `spellCore.console.log("Yo!")`],
+            [`print warning "Yo!"`, `spellCore.console.warn("Yo!")`],
+            [`print error "Yo!"`, `spellCore.console.error("Yo!")`],
+            [`print group "Yo!"`, `spellCore.console.group("Yo!")`],
+            [`print collapsed group "Yo!"`, `spellCore.console.groupCollapsed("Yo!")`]
           ]
         }
       ]
@@ -56,7 +56,7 @@ export const UI = new SpellParser({
       tests: [
         {
           compileAs: "statement",
-          tests: [[`end print group"`, `console.groupEnd()`]]
+          tests: [[`end print group"`, `spellCore.console.groupEnd()`]]
         }
       ]
     },

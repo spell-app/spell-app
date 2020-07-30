@@ -148,6 +148,6 @@ export class SpellCSSFile extends TextFile {
   //  Debug
   //-----------------
   toString() {
-    return `[${this.constructor.name} ${this.path}]`
+    return `${this.constructor.name}: ${this.path}`
   }
 }

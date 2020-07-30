@@ -466,10 +466,10 @@ export const classes = new SpellParser({
           },
           compileAs: "statement",
           tests: [
-            ["print Card suits", "console.log(Card.Suits)"],
-            ["print card suits", "console.log(Card.Suits)"],
-            ["print the suit of the card", "console.log(card.suit)"],
-            ["print the suits of the card", "console.log(card.suits)"]
+            ["print Card suits", "spellCore.console.log(Card.Suits)"],
+            ["print card suits", "spellCore.console.log(Card.Suits)"],
+            ["print the suit of the card", "spellCore.console.log(card.suit)"],
+            ["print the suits of the card", "spellCore.console.log(card.suits)"]
           ]
         }
       ]
@@ -838,8 +838,8 @@ export const classes = new SpellParser({
           },
           compileAs: "statement",
           tests: [
-            ["print card is a club", "console.log(card.is_a_$suit('clubs'))"],
-            ["print card is the 2 of hearts", "console.log(card.is_the_$rank_of_$suits(2, 'hearts'))"]
+            ["print card is a club", "spellCore.console.log(card.is_a_$suit('clubs'))"],
+            ["print card is the 2 of hearts", "spellCore.console.log(card.is_the_$rank_of_$suits(2, 'hearts'))"]
           ]
         }
       ]

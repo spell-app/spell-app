@@ -1319,11 +1319,11 @@ export const lists = new SpellParser({
             ["for each number from 1 to 10:", "spellCore.map(spellCore.getRange(1, 10), (number) => {})"],
             [
               "for each number from 1 to 10: print the number",
-              ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "\treturn console.log(number)", "})"]
+              ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "\treturn spellCore.console.log(number)", "})"]
             ],
             [
               "for each number from 1 to 10:\n\tprint the number",
-              ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "\tconsole.log(number)", "})"]
+              ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "\tspellCore.console.log(number)", "})"]
             ]
           ]
         }

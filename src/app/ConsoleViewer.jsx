@@ -84,8 +84,8 @@ function ConsoleValue({ type, display }) {
 
 export function ConsoleObject({ thing }) {
   if (thing === null) return <ConsoleValue type="null" display="null" />
-  if (Array.isArray(thing)) return <ConsoleValue type="array" display={`Array(${thing.length})`} />
   let type = typeof thing
+  // TODO: these aren't spell names for types...
   switch (type) {
     case "undefined":
     case "string":
@@ -96,8 +96,15 @@ export function ConsoleObject({ thing }) {
       return <ConsoleValue type={type} display="ƒ {...}" />
     default:
       type = thing.constructor.name || "object???"
-      const keys = Object.keys(thing)
-      return <ConsoleValue type={type} display={`${type} {${keys.length ? "..." : ""}}`} />
+      let display
+      if (thing instanceof Date) display = `Date (${thing})`
+      else if (Array.isArray(thing)) display = `Array(${thing.length})`
+      else if (thing.toString !== Object.prototype.toString) display = `${thing}`
+      else {
+        const keys = Object.keys(thing)
+        display = `${type} {${keys.length ? "..." : ""}}`
+      }
+      return <ConsoleValue type={`object ${type}`} display={display} />
   }
 }
 

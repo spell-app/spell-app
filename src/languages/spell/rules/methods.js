@@ -501,7 +501,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 `function notify_$message(message) {`,
-                `\treturn console.log(message)`,
+                `\treturn spellCore.console.log(message)`,
                 `}`
               ]
             },
@@ -520,7 +520,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 `function notify_$message(message) {`,
-                `\treturn console.log(message)`,
+                `\treturn spellCore.console.log(message)`,
                 `}`
               ]
             },
@@ -539,7 +539,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 `function notify_$message(message = "Really?") {`,
-                `\treturn console.log(message)`,
+                `\treturn spellCore.console.log(message)`,
                 `}`
               ]
             },
@@ -559,7 +559,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `create {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'create', {`,
                 `\tvalue() {`,
-                `\t\treturn console.log(this)`,
+                `\t\treturn spellCore.console.log(this)`,
                 `\t}`,
                 `})`
               ]
@@ -571,7 +571,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `create {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'create', {`,
                 `\tvalue() {`,
-                `\t\treturn console.log(this)`,
+                `\t\treturn spellCore.console.log(this)`,
                 `\t}`,
                 `})`
               ]
@@ -631,7 +631,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
                 `\tvalue() {`,
-                `\t\treturn console.log(this)`,
+                `\t\treturn spellCore.console.log(this)`,
                 `\t}`,
                 `})`
               ]
@@ -643,7 +643,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
                 `\tvalue() {`,
-                `\t\treturn console.log(this)`,
+                `\t\treturn spellCore.console.log(this)`,
                 `\t}`,
                 `})`
               ]
@@ -655,7 +655,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
                 `\tvalue() {`,
-                `\t\treturn console.log(this)`,
+                `\t\treturn spellCore.console.log(this)`,
                 `\t}`,
                 `})`
               ]
@@ -667,7 +667,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
                 `\tvalue() {`,
-                `\t\treturn console.log(this.name)`,
+                `\t\treturn spellCore.console.log(this.name)`,
                 `\t}`,
                 `})`
               ]
@@ -679,9 +679,9 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `show {thisArg:expression}` */",
                 "spellCore.define(Card.prototype, 'show', {",
                 "\tvalue() {",
-                "\t\tconsole.log(this)",
+                "\t\tspellCore.console.log(this)",
                 "\t\tlet it = this.name",
-                "\t\tconsole.log(it)",
+                "\t\tspellCore.console.log(it)",
                 "\t}",
                 "})"
               ]
@@ -710,7 +710,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `start the game` */",
                 `function start_the_game() {`,
-                `\tconsole.log(1)`,
+                `\tspellCore.console.log(1)`,
                 `}`,
                 `start_the_game()`
               ]
@@ -721,7 +721,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 `function notify_$message(message) {`,
-                `\treturn console.log(message)`,
+                `\treturn spellCore.console.log(message)`,
                 `}`,
                 "notify_$message(1)"
               ]
@@ -732,7 +732,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 `function notify_$message(message) {`,
-                `\treturn console.log(message)`,
+                `\treturn spellCore.console.log(message)`,
                 `}`,
                 `notify_$message(1)`
               ]
@@ -744,7 +744,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `show {thisArg:expression}` */",
                 `spellCore.define(Card.prototype, 'show', {`,
                 `\tvalue() {`,
-                `\t\treturn console.log(this)`,
+                `\t\treturn spellCore.console.log(this)`,
                 `\t}`,
                 `})`,
                 "new Card().show()"
@@ -785,7 +785,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
                 "function notify(props = {}) {",
                 "\tlet { message } = props",
-                "\tconsole.log(message)",
+                "\tspellCore.console.log(message)",
                 "}",
                 "notify()"
               ]
@@ -798,7 +798,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
                 "function notify(props = {}) {",
                 "\tlet { message } = props",
-                "\tconsole.log(message)",
+                "\tspellCore.console.log(message)",
                 "}",
                 'notify({ message: "It worked!" })'
               ]
@@ -815,7 +815,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `play (with {props:object_literal_properties})?` */",
                 "function play(props = {}) {",
                 "\tlet { card } = props",
-                "\tconsole.log(card)",
+                "\tspellCore.console.log(card)",
                 "}",
                 "play({ card: new Card() })",
                 'play({ card: new Card({ suit: "hearts" }) })'
@@ -828,7 +828,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
                 "function notify(props = {}) {",
                 '\tlet { message = "nope" } = props',
-                "\tconsole.log(message)",
+                "\tspellCore.console.log(message)",
                 "}",
                 'notify({ message: "Ship it!!" })'
               ]
@@ -845,7 +845,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
                 "function notify(props = {}) {",
                 '\tlet { message = "nope", reply = "yep" } = props',
-                "\tconsole.log(message + reply)",
+                "\tspellCore.console.log(message + reply)",
                 "}",
                 'notify({ message: "How many?" })',
                 'notify({ message: "How many?", reply: 2 })'
@@ -862,7 +862,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
                 "function notify(props = {}) {",
                 '\tlet { name, message, reply = "yep" } = props',
-                "\tconsole.log((name + message) + reply)",
+                "\tspellCore.console.log((name + message) + reply)",
                 "}",
                 "notify({",
                 '\tname: "Bob",',
@@ -883,8 +883,8 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `notify {callArgs:expression} (with {props:object_literal_properties})?` */",
                 "function notify_$message(message, props = {}) {",
                 '\tlet { reply = "yep" } = props',
-                "\tconsole.log(message)",
-                "\tconsole.log(reply)",
+                "\tspellCore.console.log(message)",
+                "\tspellCore.console.log(reply)",
                 "}",
                 'notify_$message("Really?", { reply: "yes" })'
               ]
@@ -900,7 +900,7 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
                 "function notify(props = {}) {",
                 "\tlet { message } = props",
-                "\tconsole.log(message)",
+                "\tspellCore.console.log(message)",
                 "}",
                 `notify({ message: "It worked!", reply: "No it didn't" })`
               ]

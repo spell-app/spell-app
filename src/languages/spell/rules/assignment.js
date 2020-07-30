@@ -154,11 +154,11 @@ export const assignment = new SpellParser({
           tests: [
             {
               input: ["print it", "get the thing", "print it"],
-              output: ["console.log(this)", "let it = thing", "console.log(it)"]
+              output: ["spellCore.console.log(this)", "let it = thing", "spellCore.console.log(it)"]
             },
             {
               input: ["print it", "get its name", "print it"],
-              output: ["console.log(this)", "let it = this.name", "console.log(it)"]
+              output: ["spellCore.console.log(this)", "let it = this.name", "spellCore.console.log(it)"]
             }
           ]
         }
