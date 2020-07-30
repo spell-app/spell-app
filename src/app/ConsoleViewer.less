@@ -40,15 +40,17 @@
       color: darkblue;
     }
 
-    &.object {
-      font-style: italic;
-      color: darkblue;
+    &.observable {
+      // font-style: italic;
+      color: darkgreen;
+      background: #ddd;
+      border-radius: 5px;
+      padding: 0 3px;
       cursor: pointer;
     }
   }
 
-  .ConsoleValue + .ConsoleValue:before {
-    content: " ";
-    text-decoration: none;
+  .ConsoleValue + .ConsoleValue {
+    margin: 0.5em;
   }
 }

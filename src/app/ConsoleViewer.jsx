@@ -3,7 +3,7 @@ import React from "react"
 import classnames from "classnames"
 import * as SUI from "semantic-ui-react"
 
-import { view } from "~/util"
+import { view, Observable } from "~/util"
 import { spellCore } from "~/languages/spell"
 
 import { ErrorHandler } from "./ErrorHandler"
@@ -60,26 +60,22 @@ export function ConsoleLines({ lines, collapsed = false, className = "ConsoleLin
   )
 }
 
-// export function XConsoleValue({value}) {
-//   let type = value === null ? "null" : typeof value
-//   if (Array.isArray(thing)) {
-//     type = "array"
-//     value = `Array(${value.length})`
-//   } else if (type === "object") {
-//     type = value.constructor.name
-//     value = `{...}`
-//   } else if (type === "function") {
-//     value = `ƒ ${value.name || "anoymous"} {...}`
-//   }
-//  return <span className={`ConsoleValue ${type}`}>{value}</span>
-// }
-
-// export function ConsoleProp({prop, value}) {
-//   return <span className="ConsoleProp">{prop}{": "}<ConsoleValue value={value}/></span>
-// }
-
-function ConsoleValue({ type, display }) {
-  return <span className={`ConsoleValue ${type}`}>{display}</span>
+export function ConsoleValue({ type, display, observable }) {
+  // if they pass an `observable`, when they click:
+  //    set as` global.it`
+  //    log it to browser console
+  const onClick = observable
+    ? () => {
+        global.it = observable
+        console.log(`it =`)
+        console.dir(observable)
+      }
+    : Function.prototype
+  return (
+    <span className={`ConsoleValue ${type}${observable ? " observable" : ""}`} onClick={onClick}>
+      {display}
+    </span>
+  )
 }
 
 export function ConsoleObject({ thing }) {
@@ -100,11 +96,9 @@ export function ConsoleObject({ thing }) {
       if (thing instanceof Date) display = `Date (${thing})`
       else if (Array.isArray(thing)) display = `Array(${thing.length})`
       else if (thing.toString !== Object.prototype.toString) display = `${thing}`
-      else {
-        const keys = Object.keys(thing)
-        display = `${type} {${keys.length ? "..." : ""}}`
-      }
-      return <ConsoleValue type={`object ${type}`} display={display} />
+      else display = `${type} {${Object.keys(thing).length || thing instanceof Observable ? "..." : ""}}`
+
+      return <ConsoleValue observable={thing} type={type} display={display} />
   }
 }
 
