@@ -63,12 +63,12 @@ export function ConsoleLines({ lines, collapsed = false, className = "ConsoleLin
 export function ConsoleValue({ type, display, observable }) {
   // if they pass an `observable`, when they click:
   //    set as` global.it`
-  //    log it to browser console
+  //    log it to browser console for detailed inspection
+  // TODO: ObjectInspector popup or modal
   const onClick = observable
     ? () => {
         global.it = observable
-        console.log(`it =`)
-        console.dir(observable)
+        console.log(`it =`, observable)
       }
     : Function.prototype
   return (
