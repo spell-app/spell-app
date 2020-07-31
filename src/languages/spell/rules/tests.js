@@ -26,7 +26,7 @@ export const tests = new SpellParser({
         {
           beforeEach(scope) {
             scope.compile("a card is a thing")
-            scope.compile("it = a new card with rank = 'queen' and is-face-up = true")
+            scope.compile(`it = a new thing with rank = "queen", is-face-up = yes`)
             scope.compile("my-list is a new list")
           },
           tests: [
@@ -40,7 +40,7 @@ export const tests = new SpellParser({
               "expect the number of items in my-list to be 0",
               "spellCore.expect(spellCore.itemCountOf(my_list), `the number of items in my-list`, 0, `0`)"
             ],
-            ["expect that it is a card", "spellCore.expect(spellCore.isOfType(it, 'Card'), `it is a card`)"]
+            ["expect that it is a thing", "spellCore.expect(spellCore.isOfType(it, 'Thing'), `it is a thing`)"]
           ]
         }
       ]

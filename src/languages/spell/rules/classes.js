@@ -135,7 +135,7 @@ export const classes = new SpellParser({
           title: "creates normal types",
           compileAs: "expression",
           tests: [
-            [`a new Thing`, `new Thing()`],
+            [`a new thing`, `new Thing()`],
             [`a new Thing with a = 1, b = yes`, `new Thing({ a: 1, b: true })`]
           ]
         },
