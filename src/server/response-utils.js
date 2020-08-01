@@ -73,16 +73,31 @@ export function sendJavascript(response, javascript) {
   return response.send(javascript)
 }
 
+/**
+ * Return file at `path`as `response` to `request`.
+ * Uses express `sendFile()` to do the magic, which should set mime type automatically.
+ * Pass `options` as per: https://expressjs.com/en/api.html#res.sendFile
+ * Sends a 404 if the file was not found, unless you set `options.defaultValue` string
+ * in which case we'll return that instead of failing.
+ */
+export async function send(response, path, { defaultValue, ...options } = {}) {
+  const fileExists = await fileUtils.pathExists(path)
+  console.warn(path, fileExists, options)
+  if (fileExists) return response.sendFile(path, options)
+  if (defaultValue !== undefined) return response.send(defaultValue)
+  return sendError(response, 404, new Error(`File not found: '${path}'`))
+}
+
 // Return text file at `path` (as text/plain) as `response` to `request`.
-export async function sendTextFile(response, path, defaultValue) {
+export async function sendTextFile(response, path, { defaultValue, ...options } = {}) {
   response.set("Content-Type", "text/plain")
-  if (await fileUtils.pathExists(path)) return response.sendFile(path)
+  if (await fileUtils.pathExists(path)) return response.sendFile(path, options)
   if (defaultValue !== undefined) return response.send(defaultValue)
   return sendError(response, 404, new Error(`File not found: '${path}'`))
 }
 
 // Return js file at `path` (as text/plain) as `response` to `request`.
-export async function sendJSFile(response, path) {
+export async function sendJSFile(response, path, options = {}) {
   response.set("Content-Type", "application/javascript")
   if (await fileUtils.pathExists(path)) return response.sendFile(path)
   return sendError(response, 404, new Error(`File not found: '${path}'`))
