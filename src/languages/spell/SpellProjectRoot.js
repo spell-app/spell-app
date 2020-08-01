@@ -40,7 +40,7 @@ export class SpellProjectRoot extends JSON5File {
     }
     super({ path, ...setup })
     this.location = new SpellLocation(this.path)
-    SpellLocation.registry.set(path, this)
+    SpellProjectRoot.registry.set(path, this)
   }
 
   /** URL to load the project list. */

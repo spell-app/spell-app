@@ -76,8 +76,14 @@ export const store = createStore({
     }
     console.info("store.selectPath", { path, location })
 
-    store.projectRoot = new SpellProjectRoot(location.projectRoot)
-    const projectPaths = await store.projectRoot.load()
+    const projectRoot = new SpellProjectRoot(location.projectRoot)
+    const sameRoot = store.projectRoot === projectRoot
+    if (!sameRoot) {
+      console.info("selecting projectRoot", projectRoot)
+      await projectRoot.load()
+      store.projectRoot = projectRoot
+    }
+    const projectPaths = projectRoot.projectPaths
 
     // Figure out which project to show, using pref if not specified in `path`
     let projectPath =
