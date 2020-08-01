@@ -195,7 +195,7 @@ export class SpellProject extends JSON5File {
     // reset runtime environment
     spellCore.resetRuntime()
 
-    if (this.runAsImport) {
+    if (SpellProject.runAsImport) {
       try {
         delete this.exports
         this.exports = await import(this.outputFile.url + `?${Date.now()}`)
@@ -290,17 +290,20 @@ export class SpellProject extends JSON5File {
    *  - `active` boolean, `true` if the file should be included in compilation
    *  - `location` as SpellLocation for its `path`
    *  - `file` as pointer to `SpellFile` (etc) for its `path`
+   *  - `contents` as file contents (NOTE: text only!)
    */
   @memoizeForProp("contents")
   get imports() {
     if (!this.contents?.imports) return []
-    return this.contents.imports.map(({ path, active }) => {
+    return this.contents.imports.map(({ path, active, contents }) => {
       const location = SpellLocation.getFileLocation(this.projectId, path)
+      const file = SpellProject.getFileForPath(location.path)
+      if (contents !== undefined) file.setContents(contents)
       return {
         path: location.path,
         active,
         location,
-        file: SpellProject.getFileForPath(location.path)
+        file
       }
     })
   }

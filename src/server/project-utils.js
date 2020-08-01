@@ -61,8 +61,14 @@ export const request_getProjectList = respondWithJSON(async (request) => {
 /**
  * Given a file `name`, return `true` if we should add it to the manifest.
  */
+const manifestExtensions = [".spell", ".css", ".js", ".jsx"]
 function isManifestFile(name) {
-  return name.endsWith(".spell") || name.endsWith(".css")
+  return manifestExtensions.some((extension) => name.endsWith(extension))
+}
+
+/** Given a file `name`, return `true` if we should preload it. */
+function isPreloadFile(name) {
+  return manifestExtensions.some((extension) => name.endsWith(extension))
 }
 
 /**
@@ -141,6 +147,7 @@ export const getIndex = async (projectId) => {
       anythingChanged = true
       return false
     }
+
     // otherwise return from existing so we know it was found below
     delete existingPaths[location.path]
     return true
@@ -149,7 +156,7 @@ export const getIndex = async (projectId) => {
   // add at the end of the imports as `active`.
   Object.keys(existingPaths).forEach((path) => {
     const location = new SpellLocation(path)
-    // Record as a local `filepa` string, which includes the folder / leading slash
+    // Record as a local `filePath` string, which includes the folder / leading slash
     importsFile.imports.push({ path: location.filePath, active: true })
     anythingChanged = true
   })
@@ -157,6 +164,16 @@ export const getIndex = async (projectId) => {
   // Save the new imports if anything changed
   // NOTE: we explicitly do not save the `manifest`
   if (anythingChanged) await saveImports(projectId, importsFile)
+
+  // Set `contents` for the active imports
+  await Promise.all(
+    importsFile.imports.map(async (entry) => {
+      const { path, active } = entry
+      if (!active || !isPreloadFile(path)) return
+      const location = SpellLocation.getFileLocation(projectId, path)
+      entry.contents = await fileUtils.loadFile(location.serverPath)
+    })
+  )
 
   // return manifest and imports
   return { ...importsFile, manifest }
