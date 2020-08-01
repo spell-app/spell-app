@@ -4,6 +4,7 @@ import classnames from "classnames"
 import * as SUI from "semantic-ui-react"
 
 import { view, Observable } from "~/util"
+import { Match } from "~/parser"
 import { spellCore } from "~/languages/spell"
 
 import { ErrorHandler } from "./ErrorHandler"
@@ -60,17 +61,25 @@ export function ConsoleLines({ lines, collapsed = false, className = "ConsoleLin
   )
 }
 
+export function onObservableClick(thing) {
+  if (!thing) return
+  // Always log to the browser console for debugging
+  global.it = thing
+  console.log(`it =`, thing)
+
+  // If we got a match, push clicking it should select that text in the editor
+  if (thing instanceof Match) {
+    const { line, char, inputText, scope } = thing
+    console.warn({ scope, line, char, length: inputText.length })
+  }
+}
+
 export function ConsoleValue({ type, display, observable }) {
   // if they pass an `observable`, when they click:
   //    set as` global.it`
   //    log it to browser console for detailed inspection
   // TODO: ObjectInspector popup or modal
-  const onClick = observable
-    ? () => {
-        global.it = observable
-        console.log(`it =`, observable)
-      }
-    : Function.prototype
+  const onClick = onObservableClick.bind(null, observable)
   return (
     <span className={`ConsoleValue ${type}${observable ? " observable" : ""}`} onClick={onClick}>
       {display}
@@ -89,13 +98,17 @@ export function ConsoleObject({ thing }) {
     case "boolean":
       return <ConsoleValue type={type} display={thing} />
     case "function":
-      return <ConsoleValue type={type} display="ƒ {...}" />
+      return <ConsoleValue type={type} display="ƒ {...}" observable={thing} />
     default:
       type = thing.constructor.name || "object???"
       let display
+      // TODO: `List`, `match`
       if (thing instanceof Date) display = `Date (${thing})`
       else if (Array.isArray(thing)) display = `Array(${thing.length})`
-      else if (thing.toString !== Object.prototype.toString) display = `${thing}`
+      else if (thing instanceof Match) {
+        if (thing.rule instanceof SpellParser.Rule.ParseError) display = "ParseError"
+        else display = "Match {...}"
+      } else if (thing.toString !== Object.prototype.toString) display = `${thing}`
       else display = `${type} {${Object.keys(thing).length || thing instanceof Observable ? "..." : ""}}`
 
       return <ConsoleValue observable={thing} type={type} display={display} />

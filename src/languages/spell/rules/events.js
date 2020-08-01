@@ -5,6 +5,7 @@
 import { SpellParser, AST } from "~/languages/spell"
 import { MethodScope } from "../../../parser"
 
+window.AST = AST
 export const events = new SpellParser({
   module: "events",
   rules: [

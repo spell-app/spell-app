@@ -118,6 +118,27 @@ export class Match extends Assertable {
     return this.rule.getNestedScope?.(this)
   }
 
+  /**
+   * Return array of `scope` and their parent scopes, with this scope first.
+   */
+  get scopes() {
+    const scopes = []
+    let scope = this.scope
+    while (scope) {
+      scopes.push(scope)
+      scope = scope.scope
+    }
+    return scopes
+  }
+
+  /**
+   * Return first item in `scopes` which matches `scopeConstructor`.
+   * Returns `undefined` if not found.
+   */
+  getScopeOfType(scopeConstructor) {
+    return this.scopes.find((scope) => scope instanceof scopeConstructor)
+  }
+
   // Have the match call `mutateScope()` if it can.
   // TODOC
   // NOTE: ONLY CALL THIS FROM THE MATCH!!!

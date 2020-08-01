@@ -18,25 +18,27 @@ SpellParser.Rule.Block = class block extends Rule {
 
     // build up matches for individual items
     const matched = []
+    const errors = []
     const items = [...block.tokens]
     while (items.length) {
-      let result
+      let match
       const first = items[0]
       // recurse for nested block
       if (first instanceof Token.Block) {
-        result = this.parse(scope, [first])
+        match = this.parse(scope, [first])
       }
       // process Line as "line" -- a statement with optional comment, etc.
       else if (first instanceof Token.Line) {
-        result = scope.parse(items, "line")
+        match = scope.parse(items, "line")
       } else {
         console.warn("Block.parse(): Don't know what to do with token", first)
       }
 
-      if (result) {
-        matched.push(result)
+      if (match) {
+        matched.push(match)
+        if (match.errors) errors.push(...match.errors)
         // pop the matched items off of the list
-        items.splice(0, result.length)
+        items.splice(0, match.length)
       } else {
         console.warn("Block.parse(): Got unproductive item", items[0])
         items.shift()
@@ -48,6 +50,7 @@ SpellParser.Rule.Block = class block extends Rule {
     return new Match({
       rule: this,
       matched,
+      errors: errors.length ? errors : undefined,
       scope,
       input: [block],
       length: 1 // matched one OUTER block...
@@ -55,7 +58,7 @@ SpellParser.Rule.Block = class block extends Rule {
   }
 
   getAST(match) {
-    const statements = match.matched.map(item => item.AST)
+    const statements = match.matched.map((item) => item.AST)
     if (match.enclose) return new AST.StatementBlock(match, { statements })
     return new AST.StatementGroup(match, { statements })
   }

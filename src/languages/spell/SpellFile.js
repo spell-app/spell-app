@@ -2,7 +2,7 @@ import global from "global"
 
 import { TextFile, state, proto, memoize, forward, writeOnce, overridable, batch } from "~/util"
 import { ProjectScope, FileScope } from "~/parser"
-import { SpellProject, SpellParser, SpellLocation } from "~/languages/spell"
+import { spellCore, SpellProject, SpellParser, SpellLocation } from "~/languages/spell"
 
 /**
  * Loadable file of spell code located at `path`.
@@ -123,6 +123,15 @@ export class SpellFile extends TextFile {
       const match = this.scope.parse(contents, "block")
       // console.warn(this.filePath, match)
       this.set("_state.match", match)
+      if (match.errors) {
+        match.errors.forEach((error) => {
+          const { line, inputText } = error
+          let message = "Don't understand `" + inputText + "` on line " + (line + 1)
+          const fileScope = error.getScopeOfType(FileScope)
+          if (fileScope) message += ` of ${fileScope.name}`
+          spellCore.console.error(error, message)
+        })
+      }
     })
     return this.match
   }

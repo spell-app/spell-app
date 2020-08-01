@@ -15,7 +15,7 @@ import {
   getDier
 } from "~/util"
 import { ProjectScope } from "~/parser"
-import { spellCore, SpellParser, SpellLocation, SpellFile, SpellCSSFile } from "~/languages/spell"
+import { spellCore, SpellParser, SpellLocation, SpellFile, SpellCSSFile, SpellJSFile } from "~/languages/spell"
 
 /**
  * Controller for a `SpellProject`.
@@ -77,6 +77,12 @@ export class SpellProject extends JSON5File {
 
   /** Last compiled result as a javascript string. */
   @state compiled = undefined
+
+  @memoize
+  get outputFile() {
+    const location = this.getFileLocation(".output.js")
+    return new SpellJSFile(location.path)
+  }
 
   /** Reset our compiled state. */
   resetCompiled() {
@@ -146,6 +152,7 @@ export class SpellProject extends JSON5File {
   @memoize
   get compiler() {
     return new TaskList({
+      debug: true,
       name: `Compiling project: ${this.projectName}`,
       tasks: [
         this.parser,
@@ -164,6 +171,13 @@ export class SpellProject extends JSON5File {
             const compiled = allCompiled.join("\n// -----------\n")
             this.set("_state.compiled", compiled)
             return compiled
+          }
+        }),
+        new Task({
+          name: "Saving compiled output",
+          run: (compiled) => {
+            this.outputFile.set("_state.contents", compiled)
+            return this.outputFile.save()
           }
         })
       ]
@@ -184,8 +198,8 @@ export class SpellProject extends JSON5File {
     const scriptEl = document.createElement("script")
     scriptEl.setAttribute("id", "compileOutput")
     scriptEl.setAttribute("type", "module")
-    scriptEl.innerHTML = compiled
-
+    scriptEl.innerHTML = `try { ${compiled} } catch (e) { console.warn(e) }`
+    console.warn(scriptEl)
     const existingEl = document.getElementById("compileOutput")
 
     if (existingEl) {
@@ -299,12 +313,20 @@ export class SpellProject extends JSON5File {
 
   /** Given the `fullPath` to a file, return a `SpellFile` or `SpellCSSFile` etc. */
   static getFileForPath(fullPath) {
+    if (!SpellProject.extensionMap) {
+      SpellProject.extensionMap = {
+        ".css": SpellCSSFile,
+        ".js": SpellJSFile,
+        ".jsx": SpellJSFile,
+        default: SpellFile
+      }
+    }
     const location = new SpellLocation(fullPath)
     if (!location.isFilePath) {
       throw new TypeError(`SpellProject.getFileForPath('${fullPath}'): path is not a file path.`)
     }
-    if (location.extension === ".css") return new SpellCSSFile(fullPath)
-    return new SpellFile(fullPath)
+    const Constructor = SpellProject.extensionMap[location.extension] || SpellProject.extensionMap.default
+    return new Constructor(fullPath)
   }
 
   /**

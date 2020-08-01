@@ -1,5 +1,6 @@
 export { Scope } from "./Scope"
 export { BlockScope } from "./BlockScope"
+export { RootScope } from "./RootScope"
 export { ProjectScope } from "./ProjectScope"
 export { FileScope } from "./FileScope"
 export { TypeScope } from "./TypeScope"

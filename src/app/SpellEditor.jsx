@@ -91,7 +91,7 @@ export function SpellEditor() {
         <SplitPanel id="spellEditor-columns" columns resizable fluid spaced>
           <SplitPanel id="spellEditor-left" rows="85%" resizable bordered light rounded>
             <InputEditor />
-            <SplitPanel.Pane padded scrolling>
+            <SplitPanel.Pane scrolling>
               <ConsoleRoot />
             </SplitPanel.Pane>
           </SplitPanel>

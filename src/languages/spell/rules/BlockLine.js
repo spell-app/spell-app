@@ -19,6 +19,7 @@ SpellParser.Rule.BlockLine = class line extends Rule {
     const line = lines[0]
     if (!line) return undefined
     const matched = []
+    const errors = []
     const input = [line]
     const { tokens } = line
     // Blank line
@@ -30,7 +31,7 @@ SpellParser.Rule.BlockLine = class line extends Rule {
           matched: [token],
           length: 1,
           input: [token],
-          scope,
+          scope
         })
       )
     }
@@ -53,13 +54,16 @@ SpellParser.Rule.BlockLine = class line extends Rule {
 
       // add anything unparsed at the end as a parse error
       if (unparsed.length) {
-        matched.push(scope.parse(unparsed, "parse_error"))
+        const error = scope.parse(unparsed, "parse_error")
+        errors.push(error)
+        matched.push(error)
       }
 
       // TODO: not sure if this is needed anymore
       // Check JSX, that seems to be setting it???
       if (statement?.error) {
         console.warn("Got unexpected statement.error for", statement.rule.name)
+        errors.push(error)
         matched.push(statement.error)
       }
 
@@ -75,12 +79,16 @@ SpellParser.Rule.BlockLine = class line extends Rule {
         const nextItem = lines[1]
         if (statement.rule.wantsNestedBlock && nextItem instanceof Token.Block) {
           const nestedBlock = statement.rule.parseNestedBlock(statement, nextItem)
-          // add the nestedBlock to `input` to account for it in the output
-          if (nestedBlock) input.push(nextItem)
+          if (nestedBlock) {
+            // add any errors in the nestedBlock to `errors`
+            if (nestedBlock.errors) errors.push(...nestedBlock.errors)
+            // add the nestedBlock to `input` to account for it in the output
+            input.push(nextItem)
+          }
         }
 
         // HACK HACK HACK
-        // OK, we've procesed the statement and its nested block.
+        // OK, we've procesed the statement and its nested block if there is one.
         // Lock in it's (memoized) AST in case the rule's `getAST()` method ALSO mutates scope.
         // eslint-disable-next-line no-unused-vars
         const ast = statement.AST
@@ -89,9 +97,10 @@ SpellParser.Rule.BlockLine = class line extends Rule {
     return new Match({
       rule: this,
       matched,
+      errors: errors.length ? errors : undefined,
       input,
       length: input.length,
-      scope,
+      scope
     })
   }
 
@@ -100,7 +109,7 @@ SpellParser.Rule.BlockLine = class line extends Rule {
     if (match.matched.length === 1) return match.matched[0].AST
     // otherwise
     return new AST.StatementGroup(match, {
-      statements: match.matched.map((item) => item.AST),
+      statements: match.matched.map((item) => item.AST)
     })
   }
 }
