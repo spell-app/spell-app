@@ -1,5 +1,4 @@
 ## File FizzBuzz.spell
-
 to play fizzbuzz
 	for each number from 1 to 100
 		if the number divided by 15 is an integer: print the number, "fizzbuzz"

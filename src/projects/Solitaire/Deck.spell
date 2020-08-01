@@ -25,7 +25,7 @@ to quietly test deck creation
 	set the queens to the cards in the deck where the rank of the card is "queen" 
 	expect the number of cards in the queens to be 4
 	expect the name of the bottom card of the deck to be "king-of-spades"
-	expect print the top card of the deck to be "A♣️"
+	expect the short-name of the top card of the deck to be "A♣️"
 test deck creation
 
 to quietly test deck shuffling

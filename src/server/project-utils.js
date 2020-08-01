@@ -177,7 +177,7 @@ export const request_getIndex = respondWithJSON(async (request) => {
 export const request_getFile = (request, response) => {
   const { projectId, filePath } = request.params
   const location = SpellLocation.getFileLocation(projectId, filePath)
-  responseUtils.sendJSONFile(response, location.serverPath)
+  responseUtils.send(response, location.serverPath, { dotfiles: "allow" })
 }
 
 /**

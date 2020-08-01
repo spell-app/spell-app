@@ -175,9 +175,9 @@ export class SpellProject extends JSON5File {
         }),
         new Task({
           name: "Saving compiled output",
-          run: (compiled) => {
+          run: async (compiled) => {
             this.outputFile.set("_state.contents", compiled)
-            return this.outputFile.save()
+            return await this.outputFile.save()
           }
         })
       ]
@@ -188,24 +188,34 @@ export class SpellProject extends JSON5File {
    * Execute our `compiled` code. No-op if not compiled.
    * Throws if there's a syntax error executing script. ???
    */
-  executeCompiled() {
-    const { compiled } = this
-    if (!compiled) return
+  static runAsImport = true // `false` to run by script injection
+  async executeCompiled() {
+    if (!this.compiled) return
 
-    // Reset spellcore RUNTIME for this run
+    // reset runtime environment
     spellCore.resetRuntime()
 
-    const scriptEl = document.createElement("script")
-    scriptEl.setAttribute("id", "compileOutput")
-    scriptEl.setAttribute("type", "module")
-    scriptEl.innerHTML = `try { ${compiled} } catch (e) { console.warn(e) }`
-    console.warn(scriptEl)
-    const existingEl = document.getElementById("compileOutput")
-
-    if (existingEl) {
-      existingEl.replaceWith(scriptEl)
+    if (this.runAsImport) {
+      try {
+        delete this.exports
+        this.exports = await import(this.outputFile.url + `?${Date.now()}`)
+        console.warn("GOT MODULE", this.exports)
+      } catch (e) {
+        this.executionError = e
+        console.error("executeCompiled failed with ", e)
+      }
     } else {
-      document.body.append(scriptEl)
+      const scriptEl = document.createElement("script")
+      scriptEl.setAttribute("id", "compileOutput")
+      scriptEl.setAttribute("type", "module")
+      scriptEl.innerHTML = this.compiled
+      const existingEl = document.getElementById("compileOutput")
+
+      if (existingEl) {
+        existingEl.replaceWith(scriptEl)
+      } else {
+        document.body.append(scriptEl)
+      }
     }
   }
 
