@@ -72,7 +72,7 @@ export class LoadableFile extends Loadable {
     const $params = merge$fetchParms({ url, contents, format }, saveParams, params)
     return $fetch($params).then((result) => {
       if (this.autoUpdateContentsOnSave && this.contents !== $params.contents) {
-        this.contents = $params.contents
+        this.set("_state.contents", $params.contents)
       }
     })
   }

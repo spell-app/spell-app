@@ -169,20 +169,31 @@ export function memoize(target, property, descriptor) {
  * TODO: allow setters? they should work in theory...
  */
 export function memoizeForProp(sourceProp) {
-  const propCache = new WeakMap()
-  const valueCache = new WeakMap()
+  // One cache for last source property value.
+  const sourcePropCache = new WeakMap()
+  // One cache for cached getter value.
+  const getterCache = new WeakMap()
   return function (target, property, descriptor) {
-    const { get, set } = descriptor
-    if (!get || set) throw new TypeError("@memoizeForProp: Only know how to apply to getter without setter.")
+    const { get: oldGetter, set } = descriptor
+    if (!oldGetter || set) throw new TypeError("@memoizeForProp: Only know how to apply to getter without setter.")
     return {
       ...descriptor,
       get() {
-        const currentProp = this[sourceProp]
-        if (!propCache.has(this) || propCache.get(this) !== currentProp) {
-          propCache.set(this, currentProp)
-          valueCache.set(this, get.apply(this))
+        const current = this[sourceProp]
+        const cached = sourcePropCache.get(this)
+        // console.info({ target: this, getterCache, sourcePropCache, current, cached, match: current === cached })
+        if (!sourcePropCache.has(this) || current !== cached) {
+          try {
+            const getterValue = oldGetter.apply(this)
+            // console.info("applying getter, value", getterValue)
+            getterCache.set(this, getterValue)
+            // set sourcePropCache AFTER in case there's an error calculating the value
+            sourcePropCache.set(this, current)
+          } catch (error) {
+            console.warn("Error calling oldGetter", { target: this, error, oldGetter })
+          }
         }
-        return valueCache.get(this)
+        return getterCache.get(this)
       }
     }
   }

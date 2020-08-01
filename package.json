@@ -1,6 +1,7 @@
 {
   "repository": "https://github.com/oakjs/parser",
   "license": "MIT",
+  "browserslist": "> 1.6%, node > 10",
   "scripts": {
     "start": "nodemon server.js --exec babel-node",
     "watch": "parcel watch src/index.html --out-dir build",

@@ -66,8 +66,6 @@ export const store = createStore({
    *  - Restores file selection if stored.
    */
   async selectPath(path) {
-    store.clearCompileSoon()
-
     let location
     try {
       location = new SpellLocation(path)
@@ -89,13 +87,14 @@ export const store = createStore({
     if (!projectPaths.includes(projectPath)) projectPath = projectPaths[0]
     // TODO: what if no project???
     const project = new SpellProject(projectPath)
-    if (store.project !== project) {
+    let sameProject = store.project === project
+    if (!sameProject) {
       console.info("selecting project", project)
+      // stop current compilation
+      store.clearCompileSoon()
+      // remember this project was selected for projectRoot
       store.lastProjectForRoot(location.projectRoot, projectPath)
       await project.load()
-      store.project = project
-      // clear file while we're loading the project so file menu updates
-      store.file = undefined
       // Clear application display when switching projects
       const appRoot = document.getElementById(REACT_APP_ROOT_ID)
       if (appRoot) ReactDOM.unmountComponentAtNode(appRoot)
@@ -110,15 +109,20 @@ export const store = createStore({
     }
     // TODO: what if no file???
     const file = project.getFile(filePath)
-    if (store.file !== file) {
+    const sameFile = store.file === file
+    if (!sameFile) {
       console.info("selecting file", file)
       store.lastFileForProject(project.path, file.path)
       // restore file selection -- we'll use this below as a flag to reselect
       file.initialSelection = store.lastSelectionForFile(file.path)
-      store.file = file
     }
+    // Set store and file together, else <FileDropdown> will blow up.  :-(
+    store.project = project
+    store.file = file
     // reload the file, which will compile() once it's loaded
-    await store.reloadFile()
+    if (!file.isLoaded) await file.load()
+    // If we switched projects, recompile
+    if (!sameProject) store.compile()
   },
 
   async createProject(projectId) {
