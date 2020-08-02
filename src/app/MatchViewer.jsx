@@ -92,7 +92,7 @@ export class MatchViewer extends ErrorHandler {
   /** Update scroll for `selection`. */
   static updateScroll(viewer, match, selection) {
     const { scroll } = selection
-    if (scroll.event === "cursor" || typeof scroll.percent !== "number") return
+    if (scroll?.event === "cursor" || typeof scroll.percent !== "number") return
     const size = scrollForElement(viewer)
     // console.info(selection.scroll, size)
     viewer.scrollTop = scroll.percent * size.max

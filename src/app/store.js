@@ -2,6 +2,7 @@ import global from "global"
 import ReactDOM from "react-dom"
 import { navigate } from "@reach/router"
 
+import { FileScope, ProjectScope } from "~/parser"
 import { createStore, setPrefKey, getSetPref, CONFIRM, REACT_APP_ROOT_ID } from "~/util"
 import { spellCore, SpellProjectRoot, SpellProject, SpellLocation } from "~/languages/spell"
 
@@ -38,7 +39,8 @@ export const store = createStore({
   /**
    * Show `<SpellEditor>` for a `path` by updating the URL, which will eventually call `selectPath`
    */
-  showEditor(path = store.file?.path) {
+  showEditor(path = store.file?.path, selection) {
+    // TODO: selection!!!!
     try {
       navigate(new SpellLocation(path).editorUrl)
     } catch (e) {
@@ -60,12 +62,13 @@ export const store = createStore({
 
   /**
    * Select a `path` to show in the `<SpellEditor/>`.
+   * Pass `selection` as `{ line, ch }` to set the cursor in the file.
    *  - ultimately this will always (?) come down to selecting a file.
    *  - Default project = last project selected for projectRoot or first project in root.
    *  - Default file = last file selected for project or first file in project.
    *  - Restores file selection if stored.
    */
-  async selectPath(path) {
+  async selectPath(path, selection) {
     let location
     try {
       location = new SpellLocation(path)
@@ -122,13 +125,34 @@ export const store = createStore({
       // restore file selection -- we'll use this below as a flag to reselect
       file.initialSelection = store.lastSelectionForFile(file.path)
     }
+    // if we were passed a `selection` and path matches full path passed in, select it
+    if (selection && path === file.path) file.initialSelection = selection
+
     // Set store and file together, else <FileDropdown> will blow up.  :-(
     store.project = project
     store.file = file
-    // reload the file, which will compile() once it's loaded
-    if (!file.isLoaded) await file.load()
+    await file.load()
     // If we switched projects, recompile
     if (!sameProject) store.compile()
+  },
+
+  /**
+   * Given a `match`, attempt to show it and put the cursor in the right spot.
+   * This may not be accurate if text has changed since
+   */
+  async showMatch(match) {
+    const path = match.getScopeOfType(FileScope)?.path
+    if (!path) return
+    const selection = {
+      anchor: { line: match.line, ch: match.char },
+      head: { line: match.line, ch: match.char + match.inputText.length },
+      // TODO: scroll!!!?!?!?!
+      scroll: { event: "cursor", percent: 0 }
+    }
+    // TODO: showEditor...
+    await store.selectPath(path, selection)
+    // TODO....???
+    store.onInputEffect()
   },
 
   async createProject(projectId) {
@@ -261,6 +285,7 @@ export const store = createStore({
       if (compiled) {
         spellCore.console.groupCollapsed("Compiled to javascript:")
         const lines = compiled
+          .replace(/\t/g, "   ")
           .split("\n")
           .map((line, lineNum) => `${lineNum}`.padStart(4, " ") + `  ${line}`)
           .join("\n")

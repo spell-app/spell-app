@@ -94,11 +94,18 @@ export class SpellFile extends TextFile {
    */
   getScope(parentScope) {
     // If we were passed a `parentScope` with `types`, set up as a `FileScope` and use same parser.
-    if (parentScope && parentScope.types) return new FileScope({ name: this.file, scope: parentScope })
+    if (parentScope && parentScope.types) {
+      return new FileScope({
+        name: this.file,
+        path: this.path,
+        scope: parentScope
+      })
+    }
     // Otherwise set up as an ad-hoc `Project` and clone `SpellParser.rootScope.parser`
     console.warn(`spellFile.getScope(): no parentScope for ${this.filePath}`)
     return new ProjectScope({
       name: this.file,
+      path: this.path,
       parser: SpellParser.rootScope.parser.clone({ module: this.path }),
       scope: SpellParser.rootScope
     })

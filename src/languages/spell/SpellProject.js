@@ -109,6 +109,7 @@ export class SpellProject extends JSON5File {
     const parser = parentScope.parser.clone({ module: this.path })
     return new ProjectScope({
       name: this.projectName,
+      path: this.path,
       parser,
       scope: parentScope
     })
