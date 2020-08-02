@@ -6,4 +6,5 @@ function do_something() {
 	}
 }
 /* PARSE ERROR: UNABLE TO PARSE: "print it as lowercase and then do this and do that and do the other thing" */
-return 1
+export let it = 2
+return 5

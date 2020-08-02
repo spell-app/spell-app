@@ -45,21 +45,58 @@ export class ConsoleViewer extends ErrorHandler {
    */
   Component({ lines }) {
     // TODO: memoize?
-    return <ConsoleLines lines={lines} className="ConsoleViewer" />
+    return <ConsoleLines lines={lines} className="ConsoleViewer" indent={0} />
   }
 }
 
-export function ConsoleLines({ lines, collapsed = false, className = "ConsoleLines" }) {
+NORMAL_LINE_SPACE = 20
+const INDENT_WIDTH = 12
+const SPAN_OFFSET = -4
+export function ConsoleLines({ indent = 0, lines, collapsed = false, className = "ConsoleLines" }) {
   return (
     <div className={className}>
       {!collapsed &&
         lines.map((line, index) => {
-          if (line.level === "group") return <ConsoleGroup key={index} line={line} />
-          return <ConsoleLine key={index} line={line} />
+          if (line.level === "group") return <ConsoleGroup key={index} line={line} indent={indent} />
+          return <ConsoleLine key={index} line={line} indent={indent} />
         })}
+      {!collapsed && <div className="ConsoleGroupSpan" style={{ left: SPAN_OFFSET + indent * INDENT_WIDTH }} />}
     </div>
   )
 }
+
+/** Single console line for anything that is NOT a `group`. */
+export function ConsoleLine({ line, icon, indent }) {
+  const { message, level } = line
+  const left = indent * INDENT_WIDTH + (level !== "group" ? NORMAL_LINE_SPACE : 0)
+  return (
+    <div className={classnames(level, "ConsoleLine")} style={{ paddingLeft: left }}>
+      {icon}
+      {/* {indent}{" "} */}
+      {message.map((thing, index) => (
+        <ConsoleObject key={index} thing={thing} />
+      ))}
+    </div>
+  )
+}
+
+/** Console `group`. */
+export const ConsoleGroup = view(function ConsoleGroup({ line, indent }) {
+  const { lines, collapsed } = line
+  // console.info("group", line, lines, collapsed)
+  const toggle = () => (line.collapsed = !line.collapsed)
+  const icon = (
+    <span className="ConsoleGroupIcon" style={{ width: NORMAL_LINE_SPACE }}>
+      <SUI.Icon name={collapsed ? "caret right" : "caret down"} onClick={toggle} />
+    </span>
+  )
+  return (
+    <>
+      <ConsoleLine line={line} icon={icon} indent={indent} />
+      <ConsoleLines lines={lines} collapsed={collapsed} indent={indent + 1} />
+    </>
+  )
+})
 
 export function onObservableClick(thing) {
   if (!thing) return
@@ -100,44 +137,28 @@ export function ConsoleObject({ thing }) {
     case "function":
       return <ConsoleValue type={type} display="ƒ {...}" observable={thing} />
     default:
-      type = thing.constructor.name || "object???"
+      type = thing?.constructor?.name || "object???"
       let display
       // TODO: `List`, `match`
       if (thing instanceof Date) display = `Date (${thing})`
       else if (Array.isArray(thing)) display = `Array(${thing.length})`
       else if (thing instanceof Match) {
+        // Special display for ParseError matches
         if (thing.rule instanceof SpellParser.Rule.ParseError) display = "ParseError"
         else display = "Match {...}"
-      } else if (thing.toString !== Object.prototype.toString) display = `${thing}`
-      else display = `${type} {${Object.keys(thing).length || thing instanceof Observable ? "..." : ""}}`
+      } else {
+        try {
+          // exotic objects sometimes have `Symbol.toStringTag` property as their name
+          if (Symbol.toStringTag in thing) display = `${thing[Symbol.toStringTag]} {...}`
+          // If it has a custom toString, use that
+          else if (thing.toString && thing.toString !== Object.prototype.toString) display = `${thing}`
+          // `Object {...}` or `Object {}` for empty object
+          else display = `${type} {${Object.keys(thing).length || thing instanceof Observable ? "..." : ""}}`
+        } catch (e) {
+          display = "Unknown Thinger???"
+        }
+      }
 
       return <ConsoleValue observable={thing} type={type} display={display} />
   }
 }
-
-/** Single console line for anything that is NOT a `group`. */
-export function ConsoleLine({ line, icon }) {
-  const { message, level } = line
-  return (
-    <div className={classnames(level, "ConsoleLine")}>
-      {icon}
-      {message.map((thing, index) => (
-        <ConsoleObject key={index} thing={thing} />
-      ))}
-    </div>
-  )
-}
-
-/** Console `group`. */
-export const ConsoleGroup = view(function ConsoleGroup({ line }) {
-  const { lines, collapsed } = line
-  // console.info("group", line, lines, collapsed)
-  const toggle = () => (line.collapsed = !line.collapsed)
-  const icon = <SUI.Icon name={collapsed ? "caret right" : "caret down"} onClick={toggle} />
-  return (
-    <>
-      <ConsoleLine line={line} icon={icon} />
-      <ConsoleLines lines={lines} collapsed={collapsed} />
-    </>
-  )
-})

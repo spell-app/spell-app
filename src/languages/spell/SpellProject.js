@@ -194,29 +194,36 @@ export class SpellProject extends JSON5File {
 
     // reset runtime environment
     spellCore.resetRuntime()
+    delete this.exports
+    delete this.executionError
 
-    if (SpellProject.runAsImport) {
-      try {
-        delete this.exports
-        this.exports = await import(this.outputFile.url + `?${Date.now()}`)
-        console.warn("GOT MODULE", this.exports)
-      } catch (e) {
-        this.executionError = e
-        console.error("executeCompiled failed with ", e)
-      }
-    } else {
-      const scriptEl = document.createElement("script")
-      scriptEl.setAttribute("id", "compileOutput")
-      scriptEl.setAttribute("type", "module")
-      scriptEl.innerHTML = this.compiled
-      const existingEl = document.getElementById("compileOutput")
-
-      if (existingEl) {
-        existingEl.replaceWith(scriptEl)
-      } else {
-        document.body.append(scriptEl)
-      }
+    // Run by importing our `outputFile` as a module.
+    // This lets us catch errors and get access to module `exports`
+    try {
+      delete this.exports
+      // Use `?<timestamp>` to create a unique URL each time
+      this.exports = await import(this.outputFile.url + `?${Date.now()}`)
+      return this.exports
+    } catch (e) {
+      if (Error.captureStackTrace) Error.captureStackTrace(e, this.executeCompiled)
+      this.executionError = e
+      return e
     }
+
+    // Alternate method of running: create a <script> tag
+    // Problem with this is that we don't get access to errors
+    // or `exports` in the compiled code.
+    //
+    // const scriptEl = document.createElement("script")
+    // scriptEl.setAttribute("id", "compileOutput")
+    // scriptEl.setAttribute("type", "module")
+    // scriptEl.innerHTML = this.compiled
+    // const existingEl = document.getElementById("compileOutput")
+    // if (existingEl) {
+    //   existingEl.replaceWith(scriptEl)
+    // } else {
+    //   document.body.append(scriptEl)
+    // }
   }
 
   /**

@@ -1,21 +1,28 @@
 .ConsoleViewer {
+  position: relative;
   font-family: monaco, monospace;
   font-size: 11px;
   white-space: pre;
 
+  .ConsoleGroupIcon {
+    display: inline-block;
+    text-align: center;
+  }
+
   .ConsoleLine {
-    border-bottom: 1px solid #eee;
+    z-index: 1;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
     
     &.debug {}
 
     &.info {
-      background-color: lightblue;
+      background-color: hsla(200,100%,50%,0.15)
     }
     &.warn {
-      background-color: lightgoldenrodyellow;
+      background-color: hsla(50,100%,50%,0.15)
     }
     &.error {
-      background-color: pink;
+      background-color: hsla(12,100%,50%,0.15)
     }
     &.group {
       font-weight: bold;
@@ -23,18 +30,16 @@
   }
 
   .ConsoleLines {
-    border-left: 1px solid #ccc;
+    position: relative;
 
-    > .ConsoleLines {
-      margin-left: 12px;
-    }
-
-    > .ConsoleLine.group {
-      margin-left: 8px;
-    }
-
-    > .ConsoleLine {
-      margin-left: 12px;
+    .ConsoleGroupSpan {
+      z-index: 2;
+      position: absolute;
+      overflow: hidden;
+      top: -5px; bottom: 0;
+      width: 5px;
+      border: solid rgba(0,0,0,0.4);
+      border-width: 0 0 1px 1px;
     }
   }
 
@@ -47,7 +52,8 @@
     &.observable {
       // font-style: italic;
       color: darkgreen;
-      background: #eee;
+      //background: rgba(0,0,0,0.1);
+      background: #ddd;
       border-radius: 5px;
       padding: 0 3px;
       cursor: pointer;
@@ -55,6 +61,6 @@
   }
 
   .ConsoleValue + .ConsoleValue {
-    margin: 0.5em;
+    margin-left: 0.5em;
   }
 }

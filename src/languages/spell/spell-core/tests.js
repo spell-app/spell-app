@@ -35,9 +35,12 @@ Object.assign(spellCore, {
     else spellCore.console.info(message)
   },
   echoTestAction(message) {
-    const output = `> Executing \`${message}\``
-    if (spellCore.ACTIVE_TEST) spellCore.ACTIVE_TEST.output.push(output)
-    else spellCore.console.info(output)
+    const output = ["▶️ Executing  ", spellCore.backTickQuote(message)]
+    if (spellCore.ACTIVE_TEST) {
+      spellCore.ACTIVE_TEST.output.push(output)
+    } else {
+      spellCore.console.info(...output)
+    }
   },
   endTest() {
     const test = spellCore.ACTIVE_TEST
@@ -46,7 +49,10 @@ Object.assign(spellCore, {
 
     const icon = spellCore._getTestResultIcon(test.result)
     spellCore.console[test.collapse ? "groupCollapsed" : "group"](`${icon} ${test.message}`)
-    test.output.forEach((line) => spellCore.console.log(line))
+    test.output.forEach((line) => {
+      if (Array.isArray(line)) spellCore.console.log(...line)
+      else spellCore.console.log(line)
+    })
     spellCore.console.groupEnd()
   },
 
@@ -63,25 +69,37 @@ Object.assign(spellCore, {
    *    - `otherSource` is spell Expression source for `otherThing`
    */
   expect(thing, thingSource, otherThing, otherSource) {
-    let result
+    let success
     if (arguments.length === 2) {
-      result = !!thing
+      success = !!thing
       otherSource = `truthy`
     } else {
-      result = spellCore.equals(thing, otherThing)
+      success = spellCore.equals(thing, otherThing)
       otherSource = spellCore.backTickQuote(otherSource)
     }
-    const icon = spellCore._getTestResultIcon(result)
-    let output = `${icon} Expected ${spellCore.backTickQuote(thingSource)} to be ${otherSource}`
-    if (!result) output += `, got: ${spellCore.backTickQuote(thing)}`
+
+    const output = [spellCore._getTestResultIcon(success)]
+    thingSource = spellCore.backTickQuote(thingSource)
+    if (success) {
+      output.push("As expected", thingSource, "is", otherSource)
+    } else {
+      output.push(
+        "Unexpected:",
+        thingSource,
+        "should be",
+        otherSource,
+        "but is actually",
+        spellCore.backTickQuote(thing)
+      )
+    }
 
     const test = spellCore.ACTIVE_TEST
-    if (!test) {
-      spellCore.console.log(result)
-    } else {
-      if (test.result === undefined) test.result = result
-      else if (!result) test.result = false
+    if (test) {
+      if (test.result === undefined) test.result = success
+      else if (!success) test.result = false
       test.output.push(output)
+    } else {
+      spellCore.console.log(...output)
     }
   }
 })

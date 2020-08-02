@@ -277,14 +277,16 @@ export const store = createStore({
   async executeCompiled() {
     if (!store.project?.compiled) return
     spellCore.console.group("Executing project")
-    try {
-      store.project.executeCompiled()
-      await spellCore.pauseFor(100, "msec")
-    } catch (e) {
-      spellCore.console.error("Error executing project", e)
-    } finally {
-      spellCore.console.groupEnd()
+    const result = await store.project.executeCompiled()
+    spellCore.console.groupEnd()
+    if (result instanceof Error) {
+      spellCore.console.error("Project failed with error:", result)
+      // Throw so the error is printed to the browser console.
+      // This will have the print the correct line number to the right
+      // but we apparently don't have another way to get it???
+      throw result
     }
+    spellCore.console.info("Project executed without errors.  exports =", result)
   },
 
   // Compile after `delay` seconds.
