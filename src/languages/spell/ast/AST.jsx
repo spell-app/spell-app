@@ -12,7 +12,7 @@ import {
   OPTIONAL,
   normalizeInitialWhitespace
 } from "~/util"
-import { Match, MethodScope } from "~/parser"
+import { Match, MethodScope, FileScope, ProjectScope } from "~/parser"
 import * as stringify from "./stringifyAST"
 import * as render from "./renderAST"
 import { mount } from "./enzyme-setup"
@@ -1215,6 +1215,7 @@ export class TryCatchBlock extends StatementGroup {
  *  - `value` is an Expression
  *  - `isNewVariable` (optional) if true and `thing` is an Expression, we'll declare the var.
  */
+const EXPORT_VARS = true // true to export vars declared in a File/ProjectScope
 export class AssignmentStatement extends Statement {
   constructor(match, props) {
     super(match, props)
@@ -1222,9 +1223,15 @@ export class AssignmentStatement extends Statement {
     this.assertType("value", Expression)
     this.assertType("isNewVariable", "boolean", OPTIONAL)
   }
+  get isFileOrProjectVar() {
+    if (!EXPORT_VARS) return false
+    const { scope } = this.match
+    return scope instanceof FileScope || scope instanceof ProjectScope
+  }
   compile() {
     const { thing, value, isNewVariable } = this
-    const declarator = isNewVariable ? "let " : ""
+    let declarator = ""
+    if (isNewVariable) declarator = this.isFileOrProjectVar ? "export let " : "let "
     return `${declarator}${thing.compile()} = ${value.compile()}`
   }
   get className() {
@@ -1232,6 +1239,7 @@ export class AssignmentStatement extends Statement {
   }
   renderChildren() {
     return render.Fragment(
+      !!this.isNewVariable && this.isFileOrProjectVar && render.EXPORT,
       !!this.isNewVariable && render.LET,
       <span className="thing">{this.thing.component}</span>,
       render.EQUALS,

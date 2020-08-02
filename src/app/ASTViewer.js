@@ -10,15 +10,8 @@ import "./ASTViewer.less"
  *  Root element to show the `<ASTViewer/>` in `SpellEditor`
  */
 export const ASTRoot = view(function ASTRoot() {
-  return (
-    <ASTViewer
-      scroll
-      ast={store.file?.AST}
-      match={store.file?.match}
-      selection={store.selection}
-      showError={store.showError}
-    />
-  )
+  if (!store.file) return null
+  return <ASTViewer scroll ast={store.file.AST} selection={store.selection} showError={store.showError} />
 })
 
 /** Top-level error handler. */
@@ -45,18 +38,17 @@ export class ASTViewer extends ErrorHandler {
   }
 
   /** Actual component which draws the root `ast` ASTNode passed in. */
-  Component({ ast, match, selection }) {
+  Component({ ast, selection }) {
     // `ast.component` is memoized
     const component = ast?.component || null
 
     // Update view to match selection
-    const viewer = document.querySelector(".ASTViewer")
     React.useEffect(() => {
-      // console.info("ASTViewer.Component layoutEffect", { match, selection })
-      if (!viewer || !match || !selection) return
-      ASTViewer.updateScroll(viewer, match, selection)
-      ASTViewer.updateHighlight(viewer, match, selection)
-    }, [viewer, component, match, selection])
+      if (!ast || !selection) return
+      const viewer = document.querySelector(".ASTViewer")
+      ASTViewer.updateScroll(viewer, ast.match, selection)
+      ASTViewer.updateHighlight(viewer, ast.match, selection)
+    }, [component, selection])
 
     return component
   }

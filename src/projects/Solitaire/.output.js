@@ -363,13 +363,13 @@ spellCore.define(Pile.prototype, 'state', {
 export class Game extends App {}
 spellCore.addExport('Game', Game)
 spellCore.defineProperty(Game.prototype, { property: 'score', type: 'number' })
-let game = new Game()
+export let game = new Game()
 spellCore.console.log(game)
 
 //## set up all piles
-let all_piles = new List({ instanceType: "Pile" })
-let foundations = new List({ instanceType: "Pile" })
-let tableaus = new List({ instanceType: "Pile" })
+export let all_piles = new List({ instanceType: "Pile" })
+export let foundations = new List({ instanceType: "Pile" })
+export let tableaus = new List({ instanceType: "Pile" })
 
 // set up stock pile: unplayed cards
 export class Stock_Pile extends Pile {}
@@ -380,7 +380,7 @@ spellCore.define(Stock_Pile.prototype, 'can_pick_up_$card', {
 		return (card == spellCore.getItemOf(this, -1))
 	}
 })
-let stock = new Stock_Pile({ name: "stock", droppable: false })
+export let stock = new Stock_Pile({ name: "stock", droppable: false })
 spellCore.append(all_piles, stock)
 
 // set up discards: where played cards go when turning over stock
@@ -392,7 +392,7 @@ spellCore.define(Discard_Pile.prototype, 'can_pick_up_$card', {
 		return (card == spellCore.getItemOf(this, -1))
 	}
 })
-let discards = new Discard_Pile({ name: "discards", droppable: false })
+export let discards = new Discard_Pile({ name: "discards", droppable: false })
 spellCore.append(all_piles, discards)
 
 // set up foundation piles: where we build up from ace => king
@@ -410,7 +410,7 @@ spellCore.define(Foundation.prototype, 'can_play_$card', {
 		return ((this.name == card.suit) && ((this.value + 1) == card.value))
 	}
 })
-let it = new Foundation({
+export let it = new Foundation({
 	name: 'clubs',
 	symbol: "♣️",
 	droppable: true
@@ -462,7 +462,7 @@ spellCore.map(spellCore.getRange(1, 7), (number) => {
 
 
 // set up deck of cards
-let deck = new Deck()
+export let deck = new Deck()
 deck.set_up()
 // start with cards in the stock pile
 spellCore.map(deck, (card) => {

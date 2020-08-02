@@ -2,4 +2,4 @@ to do something
 	if 1
 		get 100 + card
 print it as lowercase and then do this and do that and do the other thing
-return 1
+get 2
