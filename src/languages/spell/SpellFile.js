@@ -123,6 +123,7 @@ export class SpellFile extends TextFile {
       const match = this.scope.parse(contents, "block")
       // console.warn(this.filePath, match)
       this.set("_state.match", match)
+      // Show errors on the console
       if (match.errors) {
         match.errors.forEach((error) => {
           const { line, inputText } = error

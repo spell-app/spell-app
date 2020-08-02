@@ -134,7 +134,7 @@ export class Loadable extends Observable {
     this.stopInflightLoadOrSave()
 
     let loader
-    const onSuccess = async contents => {
+    const onSuccess = async (contents) => {
       // Only update if the same `loader` is active
       if (this._loadable.loader === loader) {
         this.setContents(contents, { loadParams })
@@ -142,7 +142,7 @@ export class Loadable extends Observable {
       return this.contents
     }
 
-    const onError = async loadError => {
+    const onError = async (loadError) => {
       // Only update if the same `loader` is active
       if (loader === this._loadable.loader) {
         this.setContents(undefined, { isLoaded: false, loadParams, loadError })
@@ -202,7 +202,7 @@ export class Loadable extends Observable {
     this.stopInflightLoadOrSave()
 
     let saver
-    const onSuccess = async saveResults => {
+    const onSuccess = async (saveResults) => {
       // console.warn("saved before:", { ...this._loadable })
       // Only update if the same `saver` is active
       if (this._loadable.saver === saver) {
@@ -219,7 +219,7 @@ export class Loadable extends Observable {
       return this._loadable.saveResults
     }
 
-    const onError = async saveError => {
+    const onError = async (saveError) => {
       // Only update if the same `saver` is active
       if (this._loadable.saver === saver) {
         setLoadableProps(this, {
@@ -265,9 +265,16 @@ export class Loadable extends Observable {
         loadTime: Date.now(),
         ...loadableProps
       })
+      this.onContentsUpdated(contents)
     })
     return this
   }
+
+  /**
+   * Our `contents` were just updated -- recalculate any dependent variables, etc.
+   * Happens inside the `batch()` where contents / load props are set.
+   */
+  onContentsUpdated() {}
 
   //-----------------
   // Internal
@@ -305,7 +312,7 @@ export class Loadable extends Observable {
 //-----------------
 function setLoadableProps(thing, props) {
   batch(() => {
-    if (props) Object.keys(props).forEach(key => thing.set(`_state._loadable.${key}`, props[key]))
+    if (props) Object.keys(props).forEach((key) => thing.set(`_state._loadable.${key}`, props[key]))
   })
 }
 

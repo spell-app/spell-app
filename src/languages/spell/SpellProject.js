@@ -237,6 +237,17 @@ export class SpellProject extends JSON5File {
   }
 
   /**
+   * HACK HACK HACK
+   * When our `contents` are updated,
+   * immediately re-calculate derived properties below
+   * to try to avoid react-easy-state rendering errors  :-(
+   */
+  onContentsUpdated() {
+    // eslint-disable-next-line no-unused-vars
+    const { manifest, files, imports, activeImports } = this
+  }
+
+  /**
    * Load our index if necesssary, calling `die()` if something goes wrong.
    */
   async loadOrDie(die) {
@@ -290,7 +301,7 @@ export class SpellProject extends JSON5File {
    *  - `active` boolean, `true` if the file should be included in compilation
    *  - `location` as SpellLocation for its `path`
    *  - `file` as pointer to `SpellFile` (etc) for its `path`
-   *  - `contents` as file contents (NOTE: text only!)
+   *  - `contents` as file contents (NOTE: only for text files with certain extensions!)
    */
   @memoizeForProp("contents")
   get imports() {
