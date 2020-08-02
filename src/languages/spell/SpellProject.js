@@ -187,7 +187,7 @@ export class SpellProject extends JSON5File {
 
   /**
    * Execute our `compiled` code. No-op if not compiled.
-   * Throws if there's a syntax error executing script. ???
+   * Returns compiled module `exports` or `error` on JS error.
    */
   static runAsImport = true // `false` to run by script injection
   async executeCompiled() {
@@ -198,10 +198,12 @@ export class SpellProject extends JSON5File {
     delete this.exports
     delete this.executionError
 
+    // METHOD 2 (working except we can't get line number of failure)
     // Run by importing our `outputFile` as a module.
-    // This lets us catch errors and get access to module `exports`
+    // This lets us catch errors and get access to module `exports`.
+    // Unfortunately, we don't get the line number of the error
+    // (although Chrome does get the line number if we re-throw the error.)
     try {
-      delete this.exports
       // Use `?<timestamp>` to create a unique URL each time
       this.exports = await import(this.outputFile.url + `?${Date.now()}`)
       return this.exports
@@ -211,6 +213,7 @@ export class SpellProject extends JSON5File {
       return e
     }
 
+    // METHOD 1
     // Alternate method of running: create a <script> tag
     // Problem with this is that we don't get access to errors
     // or `exports` in the compiled code.
