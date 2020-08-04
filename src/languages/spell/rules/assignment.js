@@ -56,17 +56,21 @@ export const assignment = new SpellParser({
             scope.types.add("Person")
           },
           tests: [
-            { title: "non-existing var: equals", input: "unkown-var = yes", output: "let unkown_var = true" },
-            { title: "non-existing var: set", input: "set unkown-var to yes", output: "let unkown_var = true" },
+            { title: "non-existing var: equals", input: "unknown-var = yes", output: "export let unknown_var = true" },
+            {
+              title: "non-existing var: set",
+              input: "set unknown-var to yes",
+              output: "export let unknown_var = true"
+            },
             {
               title: "non-existing var: variable is",
               input: `bob is a new person whose name is "bob"`,
-              output: `let bob = new Person({ name: "bob" })`
+              output: `export let bob = new Person({ name: "bob" })`
             },
             {
               title: "non-existing var: property set (won't work)",
-              input: `let the name of unkown-var = "bob"`,
-              output: `/* PARSE ERROR: UNABLE TO PARSE: "let the name of unkown-var = \"bob\"" */`
+              input: `let the name of unknown-var = "bob"`,
+              output: `/* PARSE ERROR: UNABLE TO PARSE: "let the name of unknown-var = \"bob\"" */`
             },
 
             { title: "existing var: equals", input: "thing = yes", output: "thing = true" },

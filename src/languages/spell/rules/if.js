@@ -28,9 +28,10 @@ export const _if_ = new SpellParser({
       },
       getAST(match) {
         const { condition, inlineStatement, nestedBlock } = match.groups
+        // Prefer nestedBlock if we get both
         return new AST.IfStatement(match, {
           condition: condition.AST,
-          statements: (inlineStatement || nestedBlock)?.AST
+          statements: (nestedBlock || inlineStatement)?.AST
         })
       },
       tests: [
@@ -58,40 +59,39 @@ export const _if_ = new SpellParser({
           tests: [
             {
               title: "Separate blocks if no indentation on second line.",
-              input: "if a:\nb = 1",
-              output: "if (a) {}\nlet b = 1" // NOTE: this is correct!
+              input: ["if a:", "b = 1"],
+              output: ["if (a) {}", "export let b = 1"] // NOTE: this is correct!
             },
             {
               title: "Single tabbed statement appears inline",
-              input: "if a:\n\tb = 1",
+              input: ["if a:", "\tb = 1"],
               output: "if (a) { let b = 1 }"
             },
             {
               title: "ANY number of spaces should count as indentation",
-              input: "if a:\n b = 1",
+              input: ["if a:", " b = 1"],
               output: "if (a) { let b = 1 }"
             },
             {
               title: "Indent with tab, output has tabs spaces",
-              input: "if a:\n\tb = 1\n\tc=1",
-              output: "if (a) {\n\tlet b = 1\n\tlet c = 1\n}"
+              input: ["if a:", "\tb = 1", "\tc=1"],
+              output: ["if (a) {", "\tlet b = 1", "\tlet c = 1", "}"]
             },
             {
               title: "Multiple lines in the nested block",
-              input: "if a:\n\tb = 1\n\tc = 2",
-              output: "if (a) {\n\tlet b = 1\n\tlet c = 2\n}"
+              input: ["if a:", "\tb = 1", "\tc = 2"],
+              output: ["if (a) {", "\tlet b = 1", "\tlet c = 2", "}"]
             },
             {
               title: "Nested ifs work fine",
-              input: "if a\n\tb = 1\n\tif b\n\t\tc = 2\n\t\td = 3",
-              output: "if (a) {\n\tlet b = 1\n\tif (b) {\n\t\tlet c = 2\n\t\tlet d = 3\n\t}\n}"
+              input: ["if a", "\tb = 1", "\tif b", "\t\tc = 2", "\t\td = 3"],
+              output: ["if (a) {", "\tlet b = 1", "\tif (b) {", "\t\tlet c = 2", "\t\tlet d = 3", "\t}", "}"]
+            },
+            {
+              title: "Nested blocks are preferred to inline statements",
+              input: ["if a b = 1", "\tc = 2"],
+              output: "if (a) { let b = 1 }"
             }
-            // TODO: ignore console warnings with this one
-            // {
-            //   title: "Nested blocks are preferred to inline statements",
-            //   input: "if a b = 1\n\tc = 2",
-            //   output: "if (a) { let c = 2 }"
-            // }
           ]
         }
         // TESTME: test full if/else if/else blocks
@@ -143,33 +143,33 @@ export const _if_ = new SpellParser({
           tests: [
             {
               title: "Separate blocks if no indentation on second line.",
-              input: "else if a:\nb = 1",
-              output: "else if (a) {}\nlet b = 1"
+              input: ["else if a:", "b = 1"],
+              output: ["else if (a) {}", "export let b = 1"]
             },
             {
               title: "Indent with tab",
-              input: "else if a:\n\tb = 1",
+              input: ["else if a:", "\tb = 1"],
               output: "else if (a) { let b = 1 }"
             },
             {
               title: "ANY number of spaces should count as indentation",
-              input: "else if a:\n b = 1",
+              input: ["else if a:", " b = 1"],
               output: "else if (a) { let b = 1 }"
             },
             {
               title: "Multiple lines in the nested block",
-              input: "else if a:\n\tb = 1\n\tc = 2",
-              output: "else if (a) {\n\tlet b = 1\n\tlet c = 2\n}"
+              input: ["else if a:", "\tb = 1", "\tc = 2"],
+              output: ["else if (a) {", "\tlet b = 1", "\tlet c = 2", "}"]
             },
             {
               title: "Nested else ifs work fine",
-              input: "else if a\n\tif a\n\t\tc=2",
+              input: ["else if a", "\tif a", "\t\tc=2"],
               output: "else if (a) { if (a) { let c = 2 } }"
             }
             // TODO: ignore console warnings with this one
             // {
             //   title: "Nested blocks are preferred to inline statements",
-            //   input: "else if a b = 1\n\tc = 2",
+            //   input: ["else if a b = 1","\tc = 2"],
             //   output: "else if (a) { let c = 2 }"
             // }
           ]
@@ -213,23 +213,23 @@ export const _if_ = new SpellParser({
           tests: [
             {
               title: "Separate blocks if no indentation on second line.",
-              input: "else\nb = 1",
-              output: "else {}\nlet b = 1"
+              input: ["else", "b = 1"],
+              output: ["else {}", "export let b = 1"]
             },
             {
               title: "Indent with tab",
-              input: "else\n\tb = 1",
+              input: ["else", "\tb = 1"],
               output: "else { let b = 1 }"
             },
             {
               title: "ANY number of spaces should count as indentation",
-              input: "else\n b = 1",
+              input: ["else", " b = 1"],
               output: "else { let b = 1 }"
             },
             {
               title: "Multiple lines in the nested block",
-              input: "else\n\tb = 1\n\tlet c = 2",
-              output: "else {\n\tlet b = 1\n\tlet c = 2\n}"
+              input: ["else", "\tb = 1", "\tlet c = 2"],
+              output: ["else {", "\tlet b = 1", "\tlet c = 2", "}"]
             }
           ]
         }
@@ -257,12 +257,15 @@ export const _if_ = new SpellParser({
             scope.variables.add("foo")
           },
           tests: [
-            ["print 1 if bar else 2", "spellCore.console.log((bar ? 1 : 2))"],
-            [
-              "get the foo of the bar if bar is defined otherwise the bar of the foo",
-              "let it = (spellCore.isDefined(bar) ? bar.foo : foo.bar)"
-            ],
-            [`set color to "red" if 1 + 1 else "black"`, `let color = ((1 + 1) ? "red" : "black")`]
+            { input: "print 1 if bar else 2", output: "spellCore.console.log((bar ? 1 : 2))" },
+            {
+              input: "get the foo of the bar if bar is defined otherwise the bar of the foo",
+              output: "let it = (spellCore.isDefined(bar) ? bar.foo : foo.bar)"
+            },
+            {
+              input: `set color to "red" if 1 + 1 else "black"`,
+              output: `export let color = ((1 + 1) ? "red" : "black")`
+            }
           ]
         }
       ]

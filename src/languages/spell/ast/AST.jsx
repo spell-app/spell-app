@@ -1215,7 +1215,6 @@ export class TryCatchBlock extends StatementGroup {
  *  - `value` is an Expression
  *  - `isNewVariable` (optional) if true and `thing` is an Expression, we'll declare the var.
  */
-const EXPORT_VARS = true // true to export vars declared in a File/ProjectScope
 export class AssignmentStatement extends Statement {
   constructor(match, props) {
     super(match, props)
@@ -1223,23 +1222,39 @@ export class AssignmentStatement extends Statement {
     this.assertType("value", Expression)
     this.assertType("isNewVariable", "boolean", OPTIONAL)
   }
-  get isFileOrProjectVar() {
-    if (!EXPORT_VARS) return false
+  /** Should we `export` top-level vars? */
+  static EXPORT_VARS = true
+  /** Names of top-level vars that we NEVER export. */
+  static EXPORT_BLACKLIST = {
+    it: true
+  }
+  /** Should we `export` this variable in the output? */
+  get exportVar() {
+    if (!AssignmentStatement.EXPORT_VARS || !this.isNewVariable) return false
     const { scope } = this.match
-    return scope instanceof FileScope || scope instanceof ProjectScope
+    if (!(scope instanceof ProjectScope || scope instanceof FileScope)) return false
+    const varName = this.thing.compile()
+    return !AssignmentStatement.EXPORT_BLACKLIST[varName]
   }
   compile() {
     const { thing, value, isNewVariable } = this
-    let declarator = ""
-    if (isNewVariable) declarator = this.isFileOrProjectVar ? "export let " : "let "
-    return `${declarator}${thing.compile()} = ${value.compile()}`
+    const export_ = this.exportVar ? "export " : ""
+    const declarator = isNewVariable ? "let " : ""
+    return `${export_}${declarator}${thing.compile()} = ${value.compile()}`
   }
   get className() {
-    return `${super.className}${this.isNewVariable ? " declaration" : ""}`
+    return [
+      //
+      super.className,
+      this.exportVar && "export",
+      this.isNewVariable && "declaration"
+    ]
+      .filter(Boolean)
+      .join(" ")
   }
   renderChildren() {
     return render.Fragment(
-      !!this.isNewVariable && this.isFileOrProjectVar && render.EXPORT,
+      this.exportVar && render.EXPORT,
       !!this.isNewVariable && render.LET,
       <span className="thing">{this.thing.component}</span>,
       render.EQUALS,
