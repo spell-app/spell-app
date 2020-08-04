@@ -410,7 +410,7 @@ spellCore.define(Foundation.prototype, 'can_play_$card', {
 		return ((this.name == card.suit) && ((this.value + 1) == card.value))
 	}
 })
-export let it = new Foundation({
+let it = new Foundation({
 	name: 'clubs',
 	symbol: "♣️",
 	droppable: true

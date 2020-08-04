@@ -298,7 +298,7 @@ export class Parser {
         // console.warn(constructor, { ...this.constructor.Rule }, { ...Rule })
         if (!this.constructor.Rule[constructor] && !Rule[constructor]) {
           throw new ParserError({
-            message: `Don't understand constructor: ${constructor}`,
+            message: `Don\'t understand constructor: ${constructor}`,
             context: this,
             activity: "defineRule",
             params: { ruleProps, name, constructor }

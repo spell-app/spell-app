@@ -1131,13 +1131,18 @@ export const lists = new SpellParser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       getNestedScope(match) {
-        return new MethodScope({ scope: match.scope })
+        return new MethodScope({
+          scope: match.scope,
+          args: ["number"],
+          mapItTo: "number"
+        })
       },
       getAST(match) {
         const { number, inlineStatement, nestedBlock } = match.groups
         const method = new AST.MethodDefinition(match, {
           inline: true,
-          body: (inlineStatement || nestedBlock)?.AST
+          args: [new AST.VariableExpression(match, { name: "number" })],
+          body: (nestedBlock || inlineStatement)?.AST
         })
         const getRange = new AST.CoreMethodInvocation(match, {
           methodName: "getRange",
@@ -1154,8 +1159,35 @@ export const lists = new SpellParser({
         {
           compileAs: "block",
           tests: [
-            ["repeat 1 time:", "spellCore.map(spellCore.getRange(0, 1), () => {})"],
-            ["repeat 3 times:", "spellCore.map(spellCore.getRange(0, 3), () => {})"]
+            {
+              title: "No statements",
+              input: "repeat 1 time:",
+              output: "spellCore.map(spellCore.getRange(0, 1), (number) => {})"
+            },
+            {
+              title: "Inline statement",
+              input: "repeat 3 times: print the number",
+              output: [
+                "spellCore.map(spellCore.getRange(0, 3), (number) => {",
+                "\treturn spellCore.console.log(number)",
+                "})"
+              ]
+            },
+            {
+              title: "Nested block statement",
+              input: ["repeat 3 times:", "\tprint it"],
+              output: ["spellCore.map(spellCore.getRange(0, 3), (number) => {", "\tspellCore.console.log(number)", "})"]
+            },
+            {
+              title: "Error if nested block and inline statement",
+              input: ["repeat 3 times: print 1", "\tprint it"],
+              output: [
+                "spellCore.map(spellCore.getRange(0, 3), (number) => {",
+                "\tspellCore.console.log(number)",
+                "})",
+                "/* PARSE ERROR: Got both inline statement and nested block */"
+              ]
+            }
           ]
         }
       ]
@@ -1189,7 +1221,7 @@ export const lists = new SpellParser({
         const method = new AST.MethodDefinition(match, {
           inline: true,
           args,
-          body: (inlineStatement || nestedBlock)?.AST
+          body: (nestedBlock || inlineStatement)?.AST
         })
 
         if (method.isAsync) {
@@ -1252,7 +1284,7 @@ export const lists = new SpellParser({
               [`spellCore.map(deck, (card) => {`, `\tcard.direction = "down"`, `})`]
             ],
             [
-              `for each card in deck:\n\tset the direction of it to "down"`,
+              [`for each card in deck:`, `\tset the direction of it to "down"`],
               [`spellCore.map(deck, (card) => {`, `\tcard.direction = "down"`, `})`]
             ],
             [
@@ -1303,7 +1335,7 @@ export const lists = new SpellParser({
         const method = new AST.MethodDefinition(match, {
           inline: true,
           args: [new AST.VariableExpression(item)],
-          body: (inlineStatement || nestedBlock)?.AST
+          body: (nestedBlock || inlineStatement)?.AST
         })
         const expression = new AST.CoreMethodInvocation(match, {
           methodName: method.isAsync ? "forEachSequential" : "map",

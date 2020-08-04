@@ -172,7 +172,7 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
     const method = new AST.MethodDefinition(match, {
       methodName,
       args,
-      body: (inlineStatement || nestedBlock)?.AST
+      body: (nestedBlock || inlineStatement)?.AST
     })
 
     if (asTest) {
@@ -478,7 +478,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `start the game` */",
                 "function start_the_game() {}",
-                '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
+                '/* PARSE ERROR: Don\'t understand "print it" */'
               ]
             },
             {
@@ -492,7 +492,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `create a card` */",
                 "function create_a_card() {}",
-                '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
+                '/* PARSE ERROR: Don\'t understand "print it" */'
               ]
             },
             {
@@ -511,7 +511,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 "function notify_$message(message) {}",
-                '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
+                '/* PARSE ERROR: Don\'t understand "print it" */'
               ]
             },
             {
@@ -530,7 +530,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 "function notify_$message(message) {}",
-                '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
+                '/* PARSE ERROR: Don\'t understand "print it" */'
               ]
             },
             {
@@ -549,7 +549,7 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 'function notify_$message(message = "Really?") {}',
-                '/* PARSE ERROR: UNABLE TO PARSE: "print it" */'
+                '/* PARSE ERROR: Don\'t understand "print it" */'
               ]
             },
             {
@@ -776,7 +776,7 @@ export const methods = new SpellParser({
             {
               title: "signature with no keywords is not matched",
               input: "to (foo)",
-              output: '/* PARSE ERROR: UNABLE TO PARSE: "to (foo)" */'
+              output: '/* PARSE ERROR: Don\'t understand "to (foo)" */'
             },
             {
               title: "with arg is optional when calling",
@@ -1030,17 +1030,17 @@ export const methods = new SpellParser({
             {
               title: "signature is empty",
               input: `a thing "" if`,
-              output: `/* PARSE ERROR: UNABLE TO PARSE: "a thing "" if" */`
+              output: `/* PARSE ERROR: Don\'t understand "a thing "" if" */`
             },
             {
               title: "signature doesn't start with a keyword",
               input: `a thing "(thing)" if`,
-              output: `/* PARSE ERROR: UNABLE TO PARSE: "a thing "(thing)" if" */`
+              output: `/* PARSE ERROR: Don\'t understand "a thing "(thing)" if" */`
             },
             {
               title: "more than one arg specified",
               input: `a thing "(thing) but (thing)" if`,
-              output: `/* PARSE ERROR: UNABLE TO PARSE: "a thing "(thing) but (thing)" if" */`
+              output: `/* PARSE ERROR: Don\'t understand "a thing "(thing) but (thing)" if" */`
             }
           ]
         },

@@ -1,7 +1,7 @@
 import _ from "lodash"
 
 import { Match, Rule, Token } from "~/parser"
-import { SpellParser, AST } from "~/languages/spell"
+import { SpellParser, AST, spellParser } from "~/languages/spell"
 
 /** Update Rule.BlankLine to output AST properly. */
 Rule.BlankLine.prototype.getAST = function (match) {
@@ -42,7 +42,11 @@ SpellParser.Rule.BlockLine = class line extends Rule {
 
       // pop comment (which will be a single token) off of the end if found
       const comment = scope.parse([tokens.last], "comment")
-      if (comment) end -= 1
+      if (comment) {
+        end -= 1
+        // add comment BEFORE statement
+        matched.push(comment)
+      }
 
       // parse the statement (which may parse an inlineStatement as well)
       const unparsed = tokens.slice(start, end)
@@ -58,17 +62,6 @@ SpellParser.Rule.BlockLine = class line extends Rule {
         errors.push(error)
         matched.push(error)
       }
-
-      // TODO: not sure if this is needed anymore
-      // Check JSX, that seems to be setting it???
-      if (statement?.error) {
-        console.warn("Got unexpected statement.error for", statement.rule.name)
-        errors.push(error)
-        matched.push(statement.error)
-      }
-
-      // add comment AFTER statement
-      if (comment) matched.push(comment)
 
       if (statement) {
         // We've locked in this statement -- have it update scope if necessary.
@@ -92,6 +85,26 @@ SpellParser.Rule.BlockLine = class line extends Rule {
         // Lock in it's (memoized) AST in case the rule's `getAST()` method ALSO mutates scope.
         // eslint-disable-next-line no-unused-vars
         const ast = statement.AST
+
+        // TODO: not sure if this is needed anymore
+        // Check JSX, that seems to be setting it???
+        if (statement.error) {
+          console.warn("Got unexpected statement.error for", statement.rule.name)
+          errors.push(error)
+          matched.push(statement.error)
+        }
+
+        // Add parse error if we got both a `nestedBlock` and an `inlineStatement`
+        const { inlineStatement, nestedBlock } = statement.groups
+        if (inlineStatement && nestedBlock) {
+          const error = spellParser.createParseError(
+            scope,
+            [line, nextItem],
+            "Got both inline statement and nested block"
+          )
+          errors.push(error)
+          matched.push(error)
+        }
       }
     }
     return new Match({

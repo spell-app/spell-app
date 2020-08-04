@@ -133,8 +133,7 @@ export class SpellFile extends TextFile {
       // Show errors on the console
       if (match.errors) {
         match.errors.forEach((error) => {
-          const { line, inputText } = error
-          let message = "Don't understand `" + inputText + "` on line " + (line + 1)
+          let message = `${error.AST.value} on line ${error.line + 1}`
           const fileScope = error.getScopeOfType(FileScope)
           if (fileScope) message += ` of ${fileScope.name}`
           spellCore.console.error(error, message)

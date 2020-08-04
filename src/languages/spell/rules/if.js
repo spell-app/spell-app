@@ -88,13 +88,12 @@ export const _if_ = new SpellParser({
               output: ["if (a) {", "\tlet b = 1", "\tif (b) {", "\t\tlet c = 2", "\t\tlet d = 3", "\t}", "}"]
             },
             {
-              title: "Nested blocks are preferred to inline statements",
+              title: "Show error if nested block AND inline statement. Prefer block.",
               input: ["if a b = 1", "\tc = 2"],
-              output: "if (a) { let b = 1 }"
+              output: ["if (a) { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"]
             }
           ]
         }
-        // TESTME: test full if/else if/else blocks
       ]
     },
 
@@ -115,7 +114,7 @@ export const _if_ = new SpellParser({
         const { condition, inlineStatement, nestedBlock } = match.groups
         return new AST.ElseIfStatement(match, {
           condition: condition.AST,
-          statements: (inlineStatement || nestedBlock)?.AST
+          statements: (nestedBlock || inlineStatement)?.AST
         })
       },
       tests: [
@@ -165,13 +164,12 @@ export const _if_ = new SpellParser({
               title: "Nested else ifs work fine",
               input: ["else if a", "\tif a", "\t\tc=2"],
               output: "else if (a) { if (a) { let c = 2 } }"
+            },
+            {
+              title: "Show error if nested block AND inline statement. Prefer block.",
+              input: ["else if a b = 1", "\tc = 2"],
+              output: ["else if (a) { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"]
             }
-            // TODO: ignore console warnings with this one
-            // {
-            //   title: "Nested blocks are preferred to inline statements",
-            //   input: ["else if a b = 1","\tc = 2"],
-            //   output: "else if (a) { let c = 2 }"
-            // }
           ]
         }
       ]
@@ -191,7 +189,7 @@ export const _if_ = new SpellParser({
       getAST(match) {
         const { inlineStatement, nestedBlock } = match.groups
         return new AST.ElseStatement(match, {
-          statements: (inlineStatement || nestedBlock)?.AST
+          statements: (nestedBlock || inlineStatement)?.AST
         })
       },
       tests: [
@@ -230,6 +228,11 @@ export const _if_ = new SpellParser({
               title: "Multiple lines in the nested block",
               input: ["else", "\tb = 1", "\tlet c = 2"],
               output: ["else {", "\tlet b = 1", "\tlet c = 2", "}"]
+            },
+            {
+              title: "Show error if nested block AND inline statement. Prefer block.",
+              input: ["else b = 1", "\tc = 2"],
+              output: ["else { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"]
             }
           ]
         }

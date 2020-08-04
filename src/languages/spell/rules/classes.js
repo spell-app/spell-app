@@ -587,7 +587,7 @@ export const classes = new SpellParser({
           thing: new AST.PrototypeExpression(type, { type: type.AST }),
           property: property.AST,
           get: new AST.MethodDefinition(match, {
-            body: (inlineStatement || nestedBlock)?.AST
+            body: (nestedBlock || inlineStatement)?.AST
           })
         })
       },
@@ -598,21 +598,36 @@ export const classes = new SpellParser({
             scope.compile("a card is a thing\na pile is a list of cards")
           },
           tests: [
-            ["the value of a card is:", ["spellCore.define(Card.prototype, 'value', {", "\tget() {}", "})"]],
-            [
-              "the value of a card is its name",
-              ["spellCore.define(Card.prototype, 'value', {", "\tget() {", "\t\treturn this.name", "\t}", "})"]
-            ],
-            [
-              ["the short-name of a card is:", "\treturn the first word of the name of the card"],
-              [
+            {
+              input: "the value of a card is:",
+              output: ["spellCore.define(Card.prototype, 'value', {", "\tget() {}", "})"]
+            },
+            {
+              input: "the value of a card is its name",
+              output: ["spellCore.define(Card.prototype, 'value', {", "\tget() {", "\t\treturn this.name", "\t}", "})"]
+            },
+            {
+              input: ["the short-name of a card is:", "\treturn the first word of the name of the card"],
+              output: [
                 "spellCore.define(Card.prototype, 'short_name', {",
                 "\tget() {",
                 "\t\treturn spellCore.getItemOf(this.name, 1)",
                 "\t}",
                 "})"
               ]
-            ]
+            },
+            {
+              title: "Show error if both nestedBlock and inlineStatement",
+              input: ["the short-name of a card is its name", "\treturn the first word of the name of the card"],
+              output: [
+                "spellCore.define(Card.prototype, 'short_name', {",
+                "\tget() {",
+                "\t\treturn spellCore.getItemOf(this.name, 1)",
+                "\t}",
+                "})",
+                "/* PARSE ERROR: Got both inline statement and nested block */"
+              ]
+            }
           ]
         }
       ]

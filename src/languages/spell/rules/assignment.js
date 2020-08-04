@@ -70,7 +70,7 @@ export const assignment = new SpellParser({
             {
               title: "non-existing var: property set (won't work)",
               input: `let the name of unknown-var = "bob"`,
-              output: `/* PARSE ERROR: UNABLE TO PARSE: "let the name of unknown-var = \"bob\"" */`
+              output: `/* PARSE ERROR: Don\'t understand "let the name of unknown-var = \"bob\"" */`
             },
 
             { title: "existing var: equals", input: "thing = yes", output: "thing = true" },
@@ -221,7 +221,7 @@ export const assignment = new SpellParser({
             // fails for more than one indented line
             [
               "return\n\t<div/>\n\t1",
-              ["return", '/* PARSE ERROR: UNABLE TO PARSE: "<div/>" */', '/* PARSE ERROR: UNABLE TO PARSE: "1" */']
+              ["return", '/* PARSE ERROR: Don\'t understand "<div/>" */', '/* PARSE ERROR: Don\'t understand "1" */']
             ]
           ]
         }

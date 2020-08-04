@@ -6,7 +6,6 @@ import { SpellParser } from ".."
 import "./Block"
 import "./BlockLine"
 import "./Statement"
-import "./ParseError"
 
 // The following define "modules" of rule sets, which will be combined below.
 import { core } from "./core"
@@ -32,6 +31,9 @@ import { tests } from "./tests"
  * All core spell rules combined into a `SpellParser` instance.
  */
 export const spellParser = new SpellParser({ module: "spell" })
+
+/** Export ParseError so we can create them programmatically. */
+export { ParseError } from "./ParseError"
 
 spellParser.defineRule({ name: "blank_line", constructor: Rule.BlankLine })
 spellParser.defineRule({ name: "block", constructor: "Block" })

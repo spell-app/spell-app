@@ -70,10 +70,10 @@ export const events = new SpellParser({
         const event = new AST.VariableExpression(match, { name: "event", type: "argument" })
         // Use the `raw` eventName, dashes are ok!
         const args = [new AST.QuotedExpression(match, eventName.raw)]
-        if (inlineStatement || nestedBlock) {
+        if (nestedBlock || inlineStatement) {
           const method = new AST.MethodDefinition(match, {
             inline: true,
-            body: (inlineStatement || nestedBlock).AST,
+            body: (nestedBlock || inlineStatement).AST,
             args: [event]
           })
           // If they specified event props to pay attention to,
@@ -102,18 +102,31 @@ export const events = new SpellParser({
           },
           tests: [
             //
-            { input: `on card-click`, output: "spellCore.RUNTIME.on('card-click')" },
+            { title: "No statements", input: `on card-click`, output: "spellCore.RUNTIME.on('card-click')" },
             {
+              title: "Inline statement",
               input: `on event card-click: print 1`,
               output: ["spellCore.RUNTIME.on('card-click', (event) => {", "\treturn spellCore.console.log(1)", "})"]
             },
             {
-              input: `on event card-click with a card: print the name of the card`,
+              title: "Nested block",
+              input: [`on event card-click with a card:`, `\tprint the name of the card`],
               output: [
                 "spellCore.RUNTIME.on('card-click', (event) => {",
                 "\tlet { card } = event",
-                "\treturn spellCore.console.log(card.name)",
+                "\tspellCore.console.log(card.name)",
                 "})"
+              ]
+            },
+            {
+              title: "Show error if nested block and inline statement",
+              input: [`on event card-click with a card: print 1`, `\tprint the name of the card`],
+              output: [
+                "spellCore.RUNTIME.on('card-click', (event) => {",
+                "\tlet { card } = event",
+                "\tspellCore.console.log(card.name)",
+                "})",
+                "/* PARSE ERROR: Got both inline statement and nested block */"
               ]
             }
           ]

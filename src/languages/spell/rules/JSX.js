@@ -137,7 +137,7 @@ export const JSX = new SpellParser({
             ],
             [
               `<div rank={unknown expression} value={another unknown expression}/>`,
-              `spellCore.element({ tag: "div", props: { rank: undefined /* PARSE ERROR: UNABLE TO PARSE: \"unknown expression\" */, value: undefined /* PARSE ERROR: UNABLE TO PARSE: \"another unknown expression\" */ } })`
+              `spellCore.element({ tag: "div", props: { rank: undefined /* PARSE ERROR: Don\'t understand \"unknown expression\" */, value: undefined /* PARSE ERROR: Don\'t understand \"another unknown expression\" */ } })`
             ],
             // DO parse a statement as an attribute expression
             [
@@ -156,7 +156,7 @@ export const JSX = new SpellParser({
             // don't match attribute expressions that don't eat the entire text
             [
               "<div foo={true true}/>",
-              `spellCore.element({ tag: "div", props: { foo: undefined /* PARSE ERROR: UNABLE TO PARSE: \"true true\" */ } })`
+              `spellCore.element({ tag: "div", props: { foo: undefined /* PARSE ERROR: Don\'t understand \"true true\" */ } })`
             ],
             [
               // ignore newlines in attribute expression
@@ -200,7 +200,7 @@ export const JSX = new SpellParser({
               `<div>{true true}</div>`,
               [
                 'spellCore.element({ tag: "div", children: [',
-                '\tnull /* PARSE ERROR: UNABLE TO PARSE: "true true" */',
+                '\tnull /* PARSE ERROR: Don\'t understand "true true" */',
                 "] })"
               ]
             ],
@@ -209,7 +209,7 @@ export const JSX = new SpellParser({
               `<div>{unknown expression}</div>`,
               [
                 'spellCore.element({ tag: "div", children: [',
-                '\tnull /* PARSE ERROR: UNABLE TO PARSE: "unknown expression" */',
+                '\tnull /* PARSE ERROR: Don\'t understand "unknown expression" */',
                 "] })"
               ]
             ],
@@ -218,7 +218,7 @@ export const JSX = new SpellParser({
               `<div>{print 1024}</div>`,
               [
                 'spellCore.element({ tag: "div", children: [',
-                '\tnull /* PARSE ERROR: UNABLE TO PARSE: "print 1024" */',
+                '\tnull /* PARSE ERROR: Don\'t understand "print 1024" */',
                 "] })"
               ]
             ]

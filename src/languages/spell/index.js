@@ -8,7 +8,7 @@ export { AST } from "./ast"
 // Base parser class
 export { SpellParser } from "./SpellParser"
 // Instance of parser with "core" rules applied
-export { spellParser } from "./rules"
+export { spellParser, ParseError } from "./rules"
 // spellCore library
 export { spellCore } from "./spell-core"
 

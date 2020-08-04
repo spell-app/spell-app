@@ -3,4 +3,5 @@ to do something
 		get 100 + card
 print it as lowercase and then do this and do that and do the other thing
 get 2
-return 5
+if 1: get 2
+	get 3
