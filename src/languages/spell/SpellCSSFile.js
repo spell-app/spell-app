@@ -105,8 +105,8 @@ export class SpellCSSFile extends TextFile {
     // HACK
     match.file = this.name
     batch(() => {
-      this.set("_state.scope", scope)
-      this.set("_state.match", match)
+      this.setState("scope", scope)
+      this.setState("match", match)
     })
     return this.match
   }
@@ -115,8 +115,8 @@ export class SpellCSSFile extends TextFile {
   async compile(parentScope) {
     const match = await this.parse(parentScope)
     batch(() => {
-      this.set("_state.AST", match.AST)
-      this.set("_state.compiled", match.compile())
+      this.setState("AST", match.AST)
+      this.setState("compiled", match.compile())
     })
     return this.compiled
   }

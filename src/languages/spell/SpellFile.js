@@ -122,14 +122,14 @@ export class SpellFile extends TextFile {
     await this.load()
     this.resetCompiled()
     batch(() => {
-      this.set("_state.inputLines", this.contents.split("\n"))
-      this.set("_state.scope", this.getScope(parentScope))
+      this.setState("inputLines", this.contents.split("\n"))
+      this.setState("scope", this.getScope(parentScope))
       // HACK: things get wierd downstream if we don't get a `match` at all
       // If contents is empty, use a default comment so we'll at least match something.
       const contents = this.contents.trim() ? this.contents : `// Blank file ${this.file}`
       const match = this.scope.parse(contents, "block")
       // console.warn(this.filePath, match)
-      this.set("_state.match", match)
+      this.setState("match", match)
       // Show errors on the console
       if (match.errors) {
         match.errors.forEach((error) => {
@@ -149,8 +149,8 @@ export class SpellFile extends TextFile {
   async compile(parentScope) {
     const match = await this.parse(parentScope)
     batch(() => {
-      this.set("_state.AST", match.AST)
-      this.set("_state.compiled", match.compile())
+      this.setState("AST", match.AST)
+      this.setState("compiled", match.compile())
     })
     return this.compiled
   }

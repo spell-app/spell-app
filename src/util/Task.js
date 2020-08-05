@@ -49,8 +49,8 @@ export class Task extends Observable {
     if (typeof props === "function") props = { run: props }
     super(props)
     if (typeof this.run !== "function") {
-      this.run = value => {
-        return new Promise(resolve => setTimeout(() => resolve(value), 2000))
+      this.run = (value) => {
+        return new Promise((resolve) => setTimeout(() => resolve(value), 2000))
       }
       // throw new TypeError("Tasks must be created with an `run` function.")
     }
@@ -117,25 +117,23 @@ export class Task extends Observable {
         batch(() => {
           // Forget it if we're not the current execution (e.g. we were cancelled)
           if (execution !== this.execution) return
-          this.set({
-            "_state.execution": undefined,
-            "_state.status": status,
-            [status === SUCCESS ? "_state.result" : "_state.error"]: result
-          })
+          this.setState("execution", undefined)
+          this.setState("status", status)
+          this.setState(status === SUCCESS ? "result" : "error", result)
           this.afterFinish()
           if (status === SUCCESS) execution.resolve(this.result)
           else execution.reject(this.error)
         })
       }
     }
-    this.set("_state.execution", execution)
+    this.setState("execution", execution)
     execution.promise = new Promise((resolve, reject) => {
       // squirrel away the resolve/reject methods for `complete()` above
       execution.resolve = resolve
       execution.reject = reject
 
       try {
-        this.set("_state.status", ACTIVE)
+        this.setState("status", ACTIVE)
         this.beforeStart(inputValue)
         let promise = this.run(inputValue)
         // Grab the `cancel` method from the promise, if any
@@ -144,8 +142,8 @@ export class Task extends Observable {
         if (!promise.then) promise = Promise.resolve(promise)
         // send success or failure to `complete()` above
         promise.then(
-          result => execution.complete(SUCCESS, result),
-          error => execution.complete(FAILURE, error)
+          (result) => execution.complete(SUCCESS, result),
+          (error) => execution.complete(FAILURE, error)
         )
       } catch (errorInExecutor) {
         execution.complete(FAILURE, errorInExecutor)
@@ -169,7 +167,7 @@ export class Task extends Observable {
     batch(() => {
       const { execution } = this
       if (execution) {
-        this.set("_state.wasCancelled", true)
+        this.setState("wasCancelled", true)
         // Cancel the task before attempting to cancel the executor
         execution.complete(status, result)
         if (execution.cancel) execution.cancel()

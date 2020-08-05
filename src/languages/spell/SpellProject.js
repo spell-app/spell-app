@@ -129,7 +129,7 @@ export class SpellProject extends JSON5File {
           run: (parentScope) => {
             this.resetCompiled()
             const scope = this.getScope(parentScope)
-            this.set("_state.scope", scope)
+            this.setState("scope", scope)
             return this.load()
           }
         }),
@@ -170,14 +170,14 @@ export class SpellProject extends JSON5File {
           name: "Combining output",
           run: (allCompiled) => {
             const compiled = allCompiled.join("\n// -----------\n")
-            this.set("_state.compiled", compiled)
+            this.setState("compiled", compiled)
             return compiled
           }
         }),
         new Task({
           name: "Saving compiled output",
           run: async (compiled) => {
-            this.outputFile.set("_state.contents", compiled)
+            this.outputFile.setContents(compiled)
             return await this.outputFile.save()
           }
         })

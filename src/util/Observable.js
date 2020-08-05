@@ -13,73 +13,57 @@ global.createStore = createStore
 global.autoEffect = autoEffect
 global.clearEffect = clearEffect
 
-/** Internal routine to set/clear a prop. */
-function _setOrUnsetProp(thing, key, value) {
-  if (value === undefined) {
-    _unset(thing, key)
-    _unset(thing._props, key)
-    _unset(thing._state, key)
-  } else {
-    // NOTE: we set on `this` assuming we have a `setter` established for all `@props`
-    _set(thing, key, value)
-  }
-  return thing
-}
-
 /**
  * Methodology:
- * - inherit from Observable
- * - observable public properties should be declated as `@prop key defaulValue`
- * - observable transient private properties are declared as `@state key defaulValue`
- *    - use `observable.reset()` to clear all state properties.
- *    - override `.reset()` in a subclass to do other things.
- * - non-observable properties can be defined as normal.
- * - (non-observable) shared properties can be defined with `@proto`
- * - you can define getters/setters as normal
- * - use `set(props)` or `set(prop, value)` to set multiple prop/state/normal values
- *    - NOTE: `delete prop` or `delete state` WON'T WORK!
- *    - ALWAYS use `observable.set(...)` to update!
- * BAD:
- *  - we can't trap `delete`!  have to use `.set({ prop, undefined })`
- *  - may have problems with arrow functions?
+ * - Create a subclass of `Observable`.
+ * - Observable public properties should be declated as `@prop key defaulValue`
+ * - Observable transient private properties are declared as `@state key defaulValue`
+ * - "Normal" getters/setters will be reactive if they reference a `@prop` or `@state` variable.
+ * - As for all classes, non-observable SHARED properties or defaults can be defined with `@proto`
  *
- * TODO: `@sharedProp` for an overridable shared property?
- * HMMM:
- *  - `@sharedProp` set on prototype, reactive on instances when it changes?
+ * - NOTE: We can't trap `delete this[<prop>]`, do `this.<prop> = undefined` instead.
+ *
+ * Props vs State
+ * - `props` are "normal" reactive user gettable/settable properties, just assign to them to change reactively.
+ * - `state` are transient internal state, e.g. `@state runCount = 0`
+ *    - We set up a getter to access its value:  `print(this.runCount)`
+ *    - To update the value, do `this.setState("runCount", this.runCount + 1)`
+ *    - Use `this.resetState()` or `this.resetState(<stateKey>...)` to reset state.
  */
 
 export class Observable {
   constructor(props) {
-    // TODO: we could do this dynamically with getters, but that would mess up hooks
+    // TODO: we could do this on demand with a getter, but that would mess up hooks
     //       because `createStore()` is attempting to be too clever in regard to memoizing in hooks.
-    Object.defineProperty(this, "_props", { value: createStore() })
-    Object.defineProperty(this, "_state", { value: createStore() })
-    this.set(props)
+    Object.defineProperty(this, "_props", { value: createStore({ _state: {} }) })
+    // NOTE: you cannot initialize state this way!!!
+    // Assign start state as `@state key = <value>` or call `this.setState(<key>, <value>)` after construction.
+    Object.assign(this, props)
+  }
+
+  /** Pointer to our reactive `_state` object (initialized on construction). */
+  get _state() {
+    return this._props._state
   }
 
   /**
-   * Set an object of `props` on this object, returning `this`.
-   * Keys can be paths, e.g. `.set({ "dotted.path[0].prop": 1 })`
-   *
-   * If a prop value is `undefined`, we'll `delete` the prop instead.
-   * You can also call as `.set(path, value)` which is more efficient.
+   * Set property `key` on our `_state` to `value`.
+   * If `value` is `undefined`, deletes instead.
+   * `key` can be a dotted path.
    */
-  set(props) {
-    batch(() => {
-      // eslint-disable-next-line prefer-rest-params
-      if (arguments.length === 2 || typeof props === "string") _setOrUnsetProp(this, arguments[0], arguments[1])
-      else if (props) Object.keys(props).forEach((key) => _setOrUnsetProp(this, key, props[key]))
-    })
-    return this
+  setState(key, value) {
+    const { _state } = this
+    if (value === undefined) _unset(_state, key)
+    else _set(_state, key, value)
   }
 
   /**
    * Reset our `state` to its defaults.
-   * By default we totally clear state, pass specific string `keys` array to only clear some.
+   * By default we totally clear state, pass specific string `keys` array to clear just those.
    */
   resetState(...keys) {
     if (arguments.length === 0) keys = Object.keys(this._state)
-    keys.forEach((key) => delete this._state[key])
+    keys.forEach((key) => this.setState(key, undefined))
   }
 
   /**
@@ -110,8 +94,8 @@ export class Observable {
 global.Observable = Observable
 
 /**
- * A `@prop` is a (semi-) permanent reactive property defined on an Observable,
- * stored in `_props`.
+ * A `@prop` is a (semi-) permanent reactive property defined on an `Observable`,
+ * stored in `_props`.  You can get and set it as if it's a normal property.
  */
 export function prop(target, key, descriptor) {
   // console.warn("@prop", key, descriptor, target)
@@ -145,9 +129,11 @@ export function prop(target, key, descriptor) {
 }
 
 /**
- * A `@state` is a transitive reactive property defined on an Observable, stored in `._state`.
- * You cannot modify `@state` directy!  Instead do `this.set("_state.prop", newValue)`.
- * Call `.resetState()` to reset all state variables to their default.
+ * A `@state` is a transient reactive property defined on an `Observable`,
+ * stored in `._props._state` (which is set during object construction).
+ * You cannot modify `@state` directy!  Instead do `this.setState("prop", newValue)`.
+ * Call `this.resetState()` to reset all state variables to their default
+ * or `this.resetState(<key>...)` to reset certain state variables.
  */
 export function state(target, key, descriptor) {
   // console.warn("@state", key, descriptor, target)
@@ -164,20 +150,5 @@ export function state(target, key, descriptor) {
   const set = function (newValue) {
     console.warn(`Attempting to set readonly state '${key}' of`, this, "to", newValue)
   }
-  // let set
-  // if (writable) {
-  //   set = function(newValue) {
-  //     if (newValue === undefined) {
-  //       if (hasOwnProp(this, key)) delete this[key]
-  //       if (hasOwnProp(this._state, key)) delete this._state[key]
-  //     } else {
-  //       this._state[key] = newValue
-  //     }
-  //   }
-  // } else {
-  //   set = function(newValue) {
-  //     console.warn(`Attempting to set readonly property '${key}' of`, this, "to", newValue)
-  //   }
-  // }
   return { get, set, enumerable: false, configurable }
 }

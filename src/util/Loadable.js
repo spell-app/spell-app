@@ -257,7 +257,7 @@ export class Loadable extends Observable {
   setContents(contents, loadableProps) {
     batch(() => {
       this.stopInflightLoadOrSave()
-      this.set("_state.contents", contents)
+      this.setState("contents", contents)
       setLoadableProps(this, {
         isLoaded: true,
         isDirty: false,
@@ -311,8 +311,9 @@ export class Loadable extends Observable {
 // Utilities
 //-----------------
 function setLoadableProps(thing, props) {
+  if (!props) return
   batch(() => {
-    if (props) Object.keys(props).forEach((key) => thing.set(`_state._loadable.${key}`, props[key]))
+    Object.keys(props).forEach((key) => thing.setState(`_loadable.${key}`, props[key]))
   })
 }
 

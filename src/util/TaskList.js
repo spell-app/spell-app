@@ -81,7 +81,7 @@ export class TaskList extends Task {
    * Values will be `undefined` if the task failed or has not executed yet.
    */
   get results() {
-    return this.tasks.map(task => task.result)
+    return this.tasks.map((task) => task.result)
   }
 
   /**
@@ -89,7 +89,7 @@ export class TaskList extends Task {
    * Item will be `undefined` if the task succeeded or has not executed yet.
    */
   get errors() {
-    return this.tasks.map(task => task.error)
+    return this.tasks.map((task) => task.error)
   }
 
   //-----------------
@@ -114,7 +114,7 @@ export class TaskList extends Task {
 
   /** Add one or more `Tasks` to our queue. */
   addTasks(...newTasks) {
-    newTasks.forEach(task => {
+    newTasks.forEach((task) => {
       if (!(task instanceof Task)) throw new TypeError("TaskList.addTasks() added non-task")
       // Make the task point back to us!
       task.taskList = this
@@ -139,7 +139,7 @@ export class TaskList extends Task {
         if (this.resolveWith === LAST) resolve(this.lastTask?.result)
         else resolve(this.results)
       }
-      const processNextTask = async lastValue => {
+      const processNextTask = async (lastValue) => {
         // Bail if we were explicitly cancelled
         if (this.wasCancelled) return complete()
 
@@ -150,7 +150,7 @@ export class TaskList extends Task {
         }
 
         // Advance to the next task in the queue
-        this.set("_state.index", this.index + 1)
+        this.setState("index", this.index + 1)
 
         // If we ran out of tasks, we're done!
         if (!this.activeTask) return complete()
@@ -191,7 +191,7 @@ export class TaskList extends Task {
   /** Reset the taskList for another run. */
   resetState() {
     super.resetState()
-    this.tasks.forEach(task => task.resetState())
+    this.tasks.forEach((task) => task.resetState())
   }
 
   //-----------------
