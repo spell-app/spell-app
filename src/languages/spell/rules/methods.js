@@ -968,7 +968,7 @@ export const methods = new SpellParser({
       name: "quoted_type_expression",
       precedence: 9, // defer to more-specific methods in `classes`, e.g. `define_property_has`, ...
       alias: "statement",
-      syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} (if|is) :?",
+      syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} (if|is)? :?",
       parseInlineStatementAs: "expression",
       constructor: class quoted_type_expression extends SpellParser.Rule.MethodDefinition {
         parse(scope, tokens) {
@@ -1055,6 +1055,19 @@ export const methods = new SpellParser({
                 `/* SPELL: added expression \`{thing:simple_expression} nerds out\` */`,
                 `spellCore.define(Thing.prototype, 'nerds_out', {`,
                 `\tget() {}`,
+                `})`,
+                `if (new Thing().nerds_out) {}`
+              ]
+            },
+            {
+              title: "no if",
+              input: [`a thing "nerds out": never`, `if a new thing nerds out`],
+              output: [
+                `/* SPELL: added expression \`{thing:simple_expression} nerds out\` */`,
+                `spellCore.define(Thing.prototype, 'nerds_out', {`,
+                `\tget() {`,
+                `\t\treturn false`,
+                `\t}`,
                 `})`,
                 `if (new Thing().nerds_out) {}`
               ]

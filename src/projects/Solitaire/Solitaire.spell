@@ -26,7 +26,7 @@ add discards to all-piles
 
 // set up foundation piles: where we build up from ace => king
 a foundation is a pile
-a foundation "can pick up (a card)" if: never
+a foundation "can pick up (a card)": never
 a foundation "can play (a card)" if: 
 	return (its name is the suit of the card) and (its value + 1 is the value of the card)
 get a new foundation with name = clubs, symbol = "♣️", droppable = yes
