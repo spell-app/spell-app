@@ -3,7 +3,7 @@ import ReactDOM from "react-dom"
 import { navigate } from "@reach/router"
 
 import { FileScope, ProjectScope } from "~/parser"
-import { createStore, setPrefKey, getSetPref, CONFIRM, REACT_APP_ROOT_ID } from "~/util"
+import { createStore, setPrefKey, getSetPref, CONFIRM } from "~/util"
 import { spellCore, SpellProjectRoot, SpellProject, SpellLocation } from "~/languages/spell"
 
 setPrefKey("spellEditor:")
@@ -105,7 +105,7 @@ export const store = createStore({
       store.lastProjectForRoot(location.projectRoot, projectPath)
       await project.load()
       // Clear application display when switching projects
-      const appRoot = document.getElementById(REACT_APP_ROOT_ID)
+      const appRoot = document.getElementById(spellCore.REACT_APP_ROOT_ID)
       if (appRoot) ReactDOM.unmountComponentAtNode(appRoot)
     }
 

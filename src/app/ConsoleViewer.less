@@ -1,8 +1,20 @@
+.ConsoleRoot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
 .ConsoleViewer {
   position: relative;
   font-family: monaco, monospace;
+  background: white;
   font-size: 11px;
   white-space: pre;
+
+  &.scrolling {
+    flex: 1 1 auto;
+    overflow: auto;
+  }
 
   .ConsoleGroupIcon {
     display: inline-block;

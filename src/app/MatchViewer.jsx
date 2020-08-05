@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
 import React from "react"
+import { Menu } from "semantic-ui-react"
 
-import { view, scrollForElement, scrollElementToCenterOfParent } from "~/util"
+import { view, scrollForElement, centerElementInParent } from "~/util"
 import { Token } from "~/parser"
 
 import { store } from "./store"
@@ -13,17 +14,34 @@ import "./MatchViewer.less"
  *  Root element to show the `<MatchViewer/>` in `SpellEditor`
  */
 
-export const MatchRoot = view(function MatchRoot({ compact = false, scroll = true }) {
+export const MatchRoot = view(function MatchRoot({ showToolbar = true, compact = false, scrolling = true }) {
   return (
-    <MatchViewer //
-      compact={compact}
-      scroll={scroll}
-      match={store.file?.match}
-      selection={store.selection}
-      showError={store.showError}
-    />
+    <div className="MatchRoot">
+      {!!showToolbar && <MatchToolbar />}
+      <MatchViewer //
+        compact={compact}
+        scrolling={scrolling}
+        match={store.file?.match}
+        selection={store.selection}
+        showError={store.showError}
+      />
+    </div>
   )
 })
+
+export function MatchToolbar() {
+  return (
+    <Menu attached="top" className="short SplitPanelToolbar">
+      <Menu.Item header className="no-border">
+        Matched Rules
+      </Menu.Item>
+      <Menu.Menu position="right">
+        <Menu.Item icon="eye" content="Show Rule Names" className="no-border" />
+        <Menu.Item icon="ellipsis horizontal" />
+      </Menu.Menu>
+    </Menu>
+  )
+}
 
 export class MatchViewer extends ErrorHandler {
   /** Clear `state.error` if `props.match` changes. */
@@ -45,7 +63,7 @@ export class MatchViewer extends ErrorHandler {
    */
   Wrapper = ({ component, props }) => {
     const classNames = ["MatchViewer"]
-    if (props.scroll) classNames.push("scroll")
+    if (props.scrolling) classNames.push("scrolling")
     if (props.compact) classNames.push("compact")
     return <div className={classNames.join(" ")}>{component}</div>
   }
@@ -129,7 +147,7 @@ export class MatchViewer extends ErrorHandler {
     // on "cursor" events, scroll the `name` thinger into the center of the display
     if (selection.scroll?.event === "cursor") {
       const lineEl = viewer.querySelector(`.Match.line[data-line="${lineMatch.line}"]`)
-      scrollElementToCenterOfParent(lineEl, viewer)
+      centerElementInParent(lineEl, viewer)
     }
 
     MatchViewer.clearHighlights(viewer)

@@ -1,0 +1,22 @@
+.AppRoot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.AppContainer {
+  position: relative;
+  background: white;
+
+  &.scrolling {
+    flex: 1 1 auto;
+    overflow: auto;
+  }
+
+  &.padded {
+    padding: 12px;
+  }
+
+  /** Element which React takes over to draw the app. */
+  & > .App {}
+}

@@ -4,7 +4,7 @@ import * as SUI from "semantic-ui-react"
 
 import { view } from "~/util"
 
-import { AppContainer } from "./AppContainer"
+import { AppRoot } from "./AppContainer"
 import { ASTRoot } from "./ASTViewer"
 import { ConsoleRoot } from "./ConsoleViewer"
 import { FileDropdown } from "./FileDropdown"
@@ -89,16 +89,12 @@ export function SpellEditor() {
       <SpellPage id="SpellEditor" fillWindow dark rows>
         <EditorToolbar />
         <SplitPanel id="spellEditor-columns" columns resizable fluid spaced>
-          <SplitPanel id="spellEditor-left" rows="85%" resizable bordered light rounded>
+          <SplitPanel id="spellEditor-left" rows="85%" resizable rounded>
             <InputEditor />
-            <SplitPanel.Pane scrolling>
-              <ConsoleRoot />
-            </SplitPanel.Pane>
+            <ConsoleRoot />
           </SplitPanel>
-          <SplitPanel id="spellEditor-right" rows="60%" resizable bordered light rounded>
-            <SplitPanel.Pane padded scrolling>
-              <AppContainer />
-            </SplitPanel.Pane>
+          <SplitPanel id="spellEditor-right" rows="60%" resizable rounded>
+            <AppRoot />
             <ASTRoot />
             <MatchRoot />
           </SplitPanel>

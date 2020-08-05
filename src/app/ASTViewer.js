@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
 import React from "react"
+import { Menu } from "semantic-ui-react"
 
-import { view, scrollForElement, scrollElementToCenterOfParent } from "~/util"
+import { view, scrollForElement, centerElementInParent } from "~/util"
 import { store } from "./store"
 import { ErrorHandler } from "./ErrorHandler"
 import "./ASTViewer.less"
@@ -9,10 +10,27 @@ import "./ASTViewer.less"
 /**
  *  Root element to show the `<ASTViewer/>` in `SpellEditor`
  */
-export const ASTRoot = view(function ASTRoot() {
-  if (!store.file) return null
-  return <ASTViewer scroll ast={store.file.AST} selection={store.selection} showError={store.showError} />
+export const ASTRoot = view(function ASTRoot({ showToolbar = true, scrolling = true }) {
+  return (
+    <div className="ASTRoot">
+      {!!showToolbar && <ASTToolbar />}
+      <ASTViewer scrolling={scrolling} ast={store.file?.AST} selection={store.selection} showError={store.showError} />
+    </div>
+  )
 })
+
+export function ASTToolbar() {
+  return (
+    <Menu attached="top" className="short SplitPanelToolbar">
+      <Menu.Item header className="no-border">
+        Javascript Output
+      </Menu.Item>
+      <Menu.Menu position="right">
+        <Menu.Item icon="ellipsis horizontal" className="no-border" />
+      </Menu.Menu>
+    </Menu>
+  )
+}
 
 /** Top-level error handler. */
 export class ASTViewer extends ErrorHandler {
@@ -33,7 +51,7 @@ export class ASTViewer extends ErrorHandler {
    */
   Wrapper = ({ component, props }) => {
     const classNames = ["ASTViewer"]
-    if (props.scroll) classNames.push("scroll")
+    if (props.scrolling) classNames.push("scrolling")
     return <div className={classNames.join(" ")}>{component}</div>
   }
 
@@ -103,7 +121,7 @@ export class ASTViewer extends ErrorHandler {
     // on "cursor" events, scroll the first element on that line to the center of the display
     const firstElForLine = viewer.querySelector(`.ASTNode[data-line="${stack[0].line}"]`)
     if (selection.scroll?.event === "cursor") {
-      scrollElementToCenterOfParent(firstElForLine, viewer)
+      centerElementInParent(firstElForLine, viewer)
     }
 
     ASTViewer.clearHighlights(viewer)

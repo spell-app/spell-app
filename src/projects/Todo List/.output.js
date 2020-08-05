@@ -32,7 +32,7 @@ spellCore.defineProperty(Todos_App.prototype, {
 	enumerationProp: 'Filters'
 })
 
-let app = new Todos_App()
+export let app = new Todos_App()
 app.filter = "all"
 
 /* SPELL: added rule: `create a todo (with {props:object_literal_properties})?` */

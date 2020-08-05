@@ -1,12 +1,18 @@
 @import "syntax.less";
 
+.MatchRoot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
 .MatchViewer {
   position: relative;
+  background: white;  
   padding: 8px;
-background: white;  
 
-  &.scroll {
-    height: 100%;
+  &.scrolling {
+    flex: 1 1 auto;
     overflow: auto;
   }
 

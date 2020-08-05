@@ -5,4 +5,19 @@
     padding: 0 0.2em 0 1em;
     opacity: 0.6;
   }
+
+  // "short" menu
+  &.short {
+    min-height: 28px;
+    .item {
+      padding-top: 0;
+      padding-bottom: 0;
+    }  
+  }
+
+  .item.no-border {
+    &:before {
+      width: 0px;
+    }
+  }
 }

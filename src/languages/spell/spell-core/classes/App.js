@@ -5,9 +5,13 @@ import React from "react"
 import ReactDOM from "react-dom"
 import _ from "lodash"
 
-import { REACT_APP_ROOT_ID } from "~/util"
 import { spellCore } from ".."
 import { Drawable } from "./Drawable"
+
+/**
+ * DOM `id` for the react root element for `App` components.
+ */
+spellCore.REACT_APP_ROOT_ID = "spell-app-root"
 
 //----------------------------
 // `App`: a Drawable that renders a full application.
@@ -15,10 +19,10 @@ import { Drawable } from "./Drawable"
 //--------
 export class App extends Drawable {
   start() {
-    let root = document.getElementById(REACT_APP_ROOT_ID)
+    let root = document.getElementById(spellCore.REACT_APP_ROOT_ID)
     if (!root) {
       root = document.createElement("div")
-      document.id = REACT_APP_ROOT_ID
+      root.id = spellCore.REACT_APP_ROOT_ID
       document.body.appendChild(root)
     }
     const AppComponent = this.Component

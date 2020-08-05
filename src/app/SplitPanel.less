@@ -46,10 +46,18 @@
 // Sizer element between children when resizable
 .SplitPanelSizer {
   z-index: 2;
-  flex: 0 0 @spell-loose-padding;
+  flex: 0 0 @spell-normal-padding;
   cursor: col-resize;
 }
 
 .vertical.SplitPanel > .SplitPanelSizer {
   cursor: row-resize;
+}
+
+// Shorter toolbar to go into a splitPanel
+.ui.menu.SplitPanelToolbar {
+  z-index: 2;
+  background: #bbb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  border-color: transparent transparent #aaa transparent !important;
 }

@@ -36,11 +36,18 @@ export function offsetTopRelativeTo(element, parent = document.querySelector("bo
  * Center `element` vertically in its `parent` element by scrolling `parent`.
  * NOTE: always scrolls to the far left horizontally.
  */
-export function scrollElementToCenterOfParent(element, parent) {
+export function centerElementInParent(element, parent) {
   if (!element || !parent) return
   const elementTop = offsetTopRelativeTo(element, parent)
-  const top = elementTop - parent.clientHeight / 2
-  parent.scrollTo({ left: 0, top, behavior: "smooth" })
+  const elementHeight = element.clientHeight
+  const parentHeight = parent.clientHeight
+  const delta =
+    elementHeight < parentHeight
+      ? // if element is smaller than parent, center within parent vertically
+        (parentHeight - elementHeight) / 2
+      : // otherwise scroll just below the top of the parent
+        10
+  parent.scrollTo({ left: 0, top: elementTop - delta, behavior: "smooth" })
 }
 
 /**

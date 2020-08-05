@@ -42,8 +42,3 @@ export const BINARY_FORMATS = [
   KNOWN_FORMATS.jpeg,
   KNOWN_FORMATS.binary
 ]
-
-/**
- * DOM `id` for the react root element for `App` components.
- */
-export const REACT_APP_ROOT_ID = "app-root"

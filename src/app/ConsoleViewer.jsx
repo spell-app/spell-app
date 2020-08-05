@@ -1,23 +1,41 @@
 /* eslint-disable react/prop-types */
 import React from "react"
 import classnames from "classnames"
-import * as SUI from "semantic-ui-react"
+import { Menu, Icon } from "semantic-ui-react"
 
 import { view, Observable } from "~/util"
-import { Match, FileScope, ProjectScope } from "~/parser"
+import { Match } from "~/parser"
 import { spellCore } from "~/languages/spell"
 
 import { ErrorHandler } from "./ErrorHandler"
-
 import "./ConsoleViewer.less"
 
 /**
  *  Root element to show the `<ConsoleViewer/>` in `SpellEditor`
  */
 
-export const ConsoleRoot = view(function ConsoleRoot() {
-  return <ConsoleViewer lines={spellCore.console.lines} />
+export const ConsoleRoot = view(function ConsoleRoot({ showToolbar = true, scrolling = true }) {
+  return (
+    <div className="ConsoleRoot">
+      {!!showToolbar && <ConsoleToolbar />}
+      <ConsoleViewer lines={spellCore.console.lines} scrolling={scrolling} />
+    </div>
+  )
 })
+
+export function ConsoleToolbar() {
+  return (
+    <Menu attached="top" className="short SplitPanelToolbar">
+      <Menu.Item header className="no-border">
+        Program Output
+      </Menu.Item>
+      <Menu.Menu position="right">
+        <Menu.Item icon="ban" content="Clear" className="no-border" />
+        <Menu.Item icon="ellipsis horizontal" />
+      </Menu.Menu>
+    </Menu>
+  )
+}
 
 export class ConsoleViewer extends ErrorHandler {
   /** Clear `state.error` if ...??? */
@@ -36,7 +54,9 @@ export class ConsoleViewer extends ErrorHandler {
    * and will be passed `Component` for the root `Console`.
    */
   Wrapper = ({ component, props }) => {
-    return <div className="ConsoleRoot">{component}</div>
+    const classNames = ["ConsoleViewer"]
+    if (props.scrolling) classNames.push("scrolling")
+    return <div className={classNames.join(" ")}>{component}</div>
   }
 
   /**
@@ -45,7 +65,7 @@ export class ConsoleViewer extends ErrorHandler {
    */
   Component({ lines }) {
     // TODO: memoize?
-    return <ConsoleLines lines={lines} className="ConsoleViewer" indent={0} />
+    return <ConsoleLines lines={lines} indent={0} />
   }
 }
 
@@ -87,7 +107,7 @@ export const ConsoleGroup = view(function ConsoleGroup({ line, indent }) {
   const toggle = () => (line.collapsed = !line.collapsed)
   const icon = (
     <span className="ConsoleGroupIcon" style={{ width: NORMAL_LINE_SPACE }}>
-      <SUI.Icon name={collapsed ? "caret right" : "caret down"} onClick={toggle} />
+      <Icon name={collapsed ? "caret right" : "caret down"} onClick={toggle} />
     </span>
   )
   return (

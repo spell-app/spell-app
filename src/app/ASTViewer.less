@@ -1,16 +1,21 @@
 @import "syntax.less";
 
+.ASTRoot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
 .ASTViewer {
   position: relative;
-  padding: 8px;
   background: white;
+  padding: 8px;
 
-  &.scroll {
-    height: 100%;
+  &.scrolling {
+    flex: 1 1 auto;
     overflow: auto;
   }
 }
-
 
 .ASTNode {
   white-space: pre;
