@@ -1,9 +1,15 @@
 // SUI CUSTOM STYLING
 .ui.menu {
   .dropdown-label {
-    border: none !important;
-    padding: 0 0.2em 0 1em;
-    opacity: 0.6;
+    padding: 0 0 0 1em;
+    opacity: 0.8;
+    &:before {
+      width: 0;
+    }
+
+    & + .ui.dropdown {
+      padding-left: 0.5em;
+    }
   }
 
   // "short" menu

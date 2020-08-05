@@ -8,7 +8,7 @@ import { AppRoot } from "./AppContainer"
 import { ASTRoot } from "./ASTViewer"
 import { ConsoleRoot } from "./ConsoleViewer"
 import { FileDropdown } from "./FileDropdown"
-import { InputEditor } from "./InputEditor"
+import { InputRoot } from "./InputEditor"
 import { MatchRoot } from "./MatchViewer"
 import { SpellPage } from "./SpellPage"
 import { ProjectDropdown } from "./ProjectDropdown"
@@ -90,7 +90,7 @@ export function SpellEditor() {
         <EditorToolbar />
         <SplitPanel id="spellEditor-columns" columns resizable fluid spaced>
           <SplitPanel id="spellEditor-left" rows="85%" resizable rounded>
-            <InputEditor />
+            <InputRoot />
             <ConsoleRoot />
           </SplitPanel>
           <SplitPanel id="spellEditor-right" rows="60%" resizable rounded>

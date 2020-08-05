@@ -35,7 +35,8 @@ export const FileDropdown = view(function FileDropdown({ showLabel = true, showA
     text: ready ? file.file : "Loading...",
     lazyLoad: true,
     labeled: true,
-    style: { width: "10em" }
+    style: { minWidth: "16em", fontWeight: 700 },
+    className: "no-border"
   }
   if (ready) {
     const menuItems = project.imports.map(({ path, location }) => {
@@ -85,7 +86,7 @@ export const FileDropdown = view(function FileDropdown({ showLabel = true, showA
   if (!showLabel) return dropdown
   return (
     <>
-      <SUI.Menu.Item className="dropdown-label" content="File" />
+      <SUI.Menu.Item header className="dropdown-label" content="File:" />
       {dropdown}
     </>
   )
