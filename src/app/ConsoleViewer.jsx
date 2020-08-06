@@ -23,19 +23,23 @@ export const ConsoleRoot = view(function ConsoleRoot({ showToolbar = true, scrol
   )
 })
 
-export function ConsoleToolbar() {
+const bound = {
+  clear: () => spellCore.console.clear()
+}
+export const ConsoleToolbar = view(function ConsoleToolbar() {
+  const consoleisEmpty = spellCore.console.lines.length === 0
   return (
     <Menu inverted attached="top" className="short tight light-grey">
       <Menu.Item header className="no-border">
         Program Output
       </Menu.Item>
       <Menu.Menu position="right">
-        <Menu.Item icon="ban" content="Clear" className="no-border" />
-        <Menu.Item icon="ellipsis horizontal" />
+        <Menu.Item content="Clear" disabled={consoleisEmpty} icon="ban" className="no-border" onClick={bound.clear} />
+        <Menu.Item disabled icon="ellipsis horizontal" />
       </Menu.Menu>
     </Menu>
   )
-}
+})
 
 export class ConsoleViewer extends ErrorHandler {
   /** Clear `state.error` if ...??? */
@@ -56,7 +60,11 @@ export class ConsoleViewer extends ErrorHandler {
   Wrapper = ({ component, props }) => {
     const classNames = ["ConsoleViewer"]
     if (props.scrolling) classNames.push("scrolling")
-    return <div className={classNames.join(" ")}>{component}</div>
+    return (
+      <div className={classNames.join(" ")}>
+        <div className="stretcher">{component}</div>
+      </div>
+    )
   }
 
   /**

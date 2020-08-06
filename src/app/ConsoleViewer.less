@@ -16,15 +16,32 @@
     overflow: auto;
   }
 
-  .ConsoleGroupIcon {
+  // Stretch children to their "natural" width inside `<ConsoleViewer>`,
+  // otherwise the line background would not extend when scrolling.
+  .stretcher {
     display: inline-block;
-    text-align: center;
   }
 
+  .ConsoleLines {
+    position: relative;
+    overflow: visible;
+
+    .ConsoleGroupSpan {
+      z-index: 2;
+      position: absolute;
+      overflow: hidden;
+      top: -5px; bottom: 0;
+      width: 5px;
+      border: solid rgba(0,0,0,0.4);
+      border-width: 0 0 1px 1px;
+    }
+  }
+  
   .ConsoleLine {
     z-index: 1;
     border-bottom: 1px solid rgba(0,0,0,0.1);
-    
+    padding-right: 10px;
+
     &.debug {}
 
     &.info {
@@ -41,18 +58,9 @@
     }
   }
 
-  .ConsoleLines {
-    position: relative;
-
-    .ConsoleGroupSpan {
-      z-index: 2;
-      position: absolute;
-      overflow: hidden;
-      top: -5px; bottom: 0;
-      width: 5px;
-      border: solid rgba(0,0,0,0.4);
-      border-width: 0 0 1px 1px;
-    }
+  .ConsoleGroupIcon {
+    display: inline-block;
+    text-align: center;
   }
 
   .ConsoleValue {
