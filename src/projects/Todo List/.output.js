@@ -1,17 +1,16 @@
 //## Todo app example
-// This actually runs!
-export class Todo extends Drawable {}
-spellCore.addExport('Todo', Todo)
-spellCore.defineProperty(Todo.prototype, { property: 'title', type: 'text' })
-spellCore.defineProperty(Todo.prototype, { property: 'completed', type: 'choice' })
+export class Task extends Drawable {}
+spellCore.addExport('Task', Task)
+spellCore.defineProperty(Task.prototype, { property: 'title', type: 'text' })
+spellCore.defineProperty(Task.prototype, { property: 'completed', type: 'choice' })
 /* SPELL: added expression `{thing:simple_expression} (operator:is not?|isn't|isnt) complete` */
-spellCore.define(Todo.prototype, 'is_complete', {
+spellCore.define(Task.prototype, 'is_complete', {
 	get() {
 		return (this.completed == true)
 	}
 })
 /* SPELL: added expression `{thing:simple_expression} (operator:is not?|isn't|isnt) active` */
-spellCore.define(Todo.prototype, 'is_active', {
+spellCore.define(Task.prototype, 'is_active', {
 	get() {
 		return (this.completed == false)
 	}
@@ -20,7 +19,7 @@ spellCore.define(Todo.prototype, 'is_active', {
 export class Todos_App extends App {}
 spellCore.addExport('Todos_App', Todos_App)
 spellCore.defineProperty(Todos_App.prototype, {
-	property: 'todos',
+	property: 'tasks',
 	initializer() {
 		return new List()
 	}
@@ -35,19 +34,19 @@ spellCore.defineProperty(Todos_App.prototype, {
 export let app = new Todos_App()
 app.filter = "all"
 
-/* SPELL: added rule: `create a todo (with {props:object_literal_properties})?` */
-function create_a_todo(props = {}) {
+/* SPELL: added rule: `create a task (with {props:object_literal_properties})?` */
+function create_a_task(props = {}) {
 	let { title } = props
-	let it = new Todo({ title: title, completed: false })
-	spellCore.prepend(app.todos, it)
+	let it = new Task({ title: title, completed: false })
+	spellCore.prepend(app.tasks, it)
 }
 
-create_a_todo({ title: "Blah" })
-create_a_todo({ title: "Two" })
-create_a_todo({ title: "Three" })
+create_a_task({ title: "Blah" })
+create_a_task({ title: "Two" })
+create_a_task({ title: "Three" })
 
 /* SPELL: added rule: `draw {thisArg:expression}` */
-spellCore.define(Todo.prototype, 'draw', {
+spellCore.define(Task.prototype, 'draw', {
 	value() {
 		if (this.is_complete && (app.filter == "active")) { return false }
 		if (this.is_active && (app.filter == "completed")) { return false }
@@ -72,7 +71,7 @@ spellCore.define(Todo.prototype, 'draw', {
 					tag: "button",
 					props: {
 						onClick: (event) => {
-							return spellCore.remove(app.todos, this)
+							return spellCore.remove(app.tasks, this)
 						}
 					},
 					children: [
@@ -97,7 +96,7 @@ spellCore.define(Todos_App.prototype, 'draw', {
 					props: {
 						type: "text",
 						onBlur: (event) => {
-							return create_a_todo({ title: event.target.value })
+							return create_a_task({ title: event.target.value })
 						}
 					}
 				})
@@ -105,7 +104,7 @@ spellCore.define(Todos_App.prototype, 'draw', {
 			spellCore.element({ tag: "br" }),
 			spellCore.element({ tag: "table", props: { width: "50%" }, children: [
 				spellCore.element({ tag: "tbody", children: [
-					spellCore.drawThing(this.todos)
+					spellCore.drawItems(app.tasks)
 				] })
 			] }),
 			spellCore.element({ tag: "br" }),
@@ -151,7 +150,7 @@ spellCore.define(Todos_App.prototype, 'draw', {
 					tag: "button",
 					props: {
 						onClick: (event) => {
-							return create_a_todo({ title: "Moar" })
+							return create_a_task({ title: "Moar" })
 						}
 					},
 					children: [
@@ -162,7 +161,7 @@ spellCore.define(Todos_App.prototype, 'draw', {
 					tag: "button",
 					props: {
 						onClick: (event) => {
-							return spellCore.removeItemOf(app.todos, 1)
+							return spellCore.removeItemOf(app.tasks, 1)
 						}
 					},
 					children: [
@@ -173,7 +172,7 @@ spellCore.define(Todos_App.prototype, 'draw', {
 					tag: "button",
 					props: {
 						onClick: (event) => {
-							spellCore.getItemOf(app.todos, 1).title = "New title"
+							spellCore.getItemOf(app.tasks, 1).title = "New title"
 						}
 					},
 					children: [
@@ -184,7 +183,7 @@ spellCore.define(Todos_App.prototype, 'draw', {
 					tag: "button",
 					props: {
 						onClick: (event) => {
-							return spellCore.removeWhere(app.todos, (item) => {
+							return spellCore.removeWhere(app.tasks, (item) => {
 								return item.is_complete
 							})
 						}
