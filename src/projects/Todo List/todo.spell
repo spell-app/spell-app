@@ -14,11 +14,11 @@ set the filter of the app to "all"
 
 to create a task (with title as text)
 	get a new task with title = the title, completed = false
-	add it to the front of the tasks of the app
+	add it to the tasks of the app
 
-create a task with title = "Blah"
-create a task with title = "Two"
-create a task with title = "Three"
+create a task with title = "Create todos app"
+create a task with title = "Teach it to draw"
+create a task with title = "Test app"
 
 to draw (a task)
 	if it is complete and the filter of the app is "active" return no

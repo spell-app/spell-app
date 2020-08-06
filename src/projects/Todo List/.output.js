@@ -38,12 +38,12 @@ app.filter = "all"
 function create_a_task(props = {}) {
 	let { title } = props
 	let it = new Task({ title: title, completed: false })
-	spellCore.prepend(app.tasks, it)
+	spellCore.append(app.tasks, it)
 }
 
-create_a_task({ title: "Blah" })
-create_a_task({ title: "Two" })
-create_a_task({ title: "Three" })
+create_a_task({ title: "Create todos app" })
+create_a_task({ title: "Teach it to draw" })
+create_a_task({ title: "Test app" })
 
 /* SPELL: added rule: `draw {thisArg:expression}` */
 spellCore.define(Task.prototype, 'draw', {

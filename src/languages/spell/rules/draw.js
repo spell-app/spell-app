@@ -1,13 +1,9 @@
 //----------------------------
 // Draw utilities, tightly tied into App, Drawable and List.
 //--------
-import React from "react"
-import ReactDOM from "react-dom"
 import _ from "lodash"
 
-import { Observable, memoize, view } from "~/util"
 import { AST, SpellParser } from ".."
-import { spellCore } from "."
 
 export const draw = new SpellParser({
   module: "draw",

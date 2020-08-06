@@ -713,7 +713,7 @@ spellCore.define(Discard_Pile.prototype, 'draw', {
 /* SPELL: added rule: `draw {thisArg:expression}` */
 spellCore.define(Game.prototype, 'draw', {
 	value() {
-		return spellCore.element({ tag: "div", children: [
+		return spellCore.element({ tag: "div", props: { className: "ui container" }, children: [
 			spellCore.element({ tag: "div", props: { className: "board" }, children: [
 				spellCore.element({ tag: "table", props: { className: "ui table fixed" }, children: [
 					spellCore.element({ tag: "thead", children: [

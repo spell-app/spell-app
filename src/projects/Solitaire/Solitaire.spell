@@ -216,7 +216,7 @@ to draw (a discard-pile):
 	</div>
 
 to draw (a game)
- 	return <div>
+ 	return <div className="ui container">
 		<div className="board">
 			<table className="ui table fixed">
 				<thead>
