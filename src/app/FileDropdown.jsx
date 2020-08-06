@@ -30,7 +30,7 @@ export const fileDropdownActions = [
   <Dropdown.Item key="delete" text="Delete File" icon="trash alternate outline" onClick={bound.deleteFile} />
 ]
 
-export const FILE_ICON = "file outline"
+export const FILE_ICON = "file code outline"
 
 /** Menu of all available projects. */
 export const FileDropdown = view(function FileDropdown({ showLabel = true, showActions = false, noBorder = false }) {

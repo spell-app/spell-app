@@ -15,10 +15,10 @@ import { SplitPanel } from "./SplitPanel"
 import { store } from "./store"
 
 const bound = {
+  aboutSpell: () => store.aboutSpell(),
   compile: () => store.compile(),
   createProject: () => store.createProject(),
-  showExampleChooser: () => store.showExampleChooser(),
-  showProjectChooser: () => store.showProjectChooser(),
+  showChooser: () => store.showChooser(),
   showProjectSettings: () => store.showProjectSettings(),
   showHelp: () => store.showHelp(),
   showDocs: () => store.showDocs(),
@@ -36,18 +36,18 @@ export const EditorToolbar = view(function EditorToolbar() {
         <ProjectActionsDropdown />
         <SUI.Menu.Item className="spring no-border" />
       </SUI.Menu.Menu>
-      <SUI.Menu.Menu style={{ minWidth: "33%" }}>
+      <SUI.Menu.Menu style={{ minWidth: "34%" }}>
         <SUI.Menu.Item className="spring no-border" />
-        <SUI.Menu.Item disabled content="Open Example" icon="app store ios" onClick={bound.showExampleChooser} />
-        <SUI.Menu.Item disabled content="Open Project" icon="app store ios" onClick={bound.showProjectChooser} />
+        <SUI.Menu.Item disabled content="Open Example or Project" icon="app store ios" onClick={bound.showChooser} />
         <SUI.Menu.Item content="New Project" icon="pencil" onClick={bound.createProject} />
         <SUI.Menu.Item className="spring no-border" />
       </SUI.Menu.Menu>
       <SUI.Menu.Menu position="right" style={{ minWidth: "33%" }}>
         <SUI.Menu.Item className="spring no-border" />
-        <SUI.Menu.Item disabled content="Help" icon="help circle" className="no-border" onClick={bound.showHelp} />
         <SUI.Menu.Item disabled content="Docs" icon="newspaper outline" onClick={bound.showDocs} />
-        <SUI.Menu.Item disabled content="Log In" icon="user outline" onClick={bound.logIn} />
+        <SUI.Menu.Item disabled content="About Spell" icon="wizard" onClick={bound.aboutSpell} />
+        {/* <SUI.Menu.Item disabled content="Help" icon="help circle" className="no-border" onClick={bound.showHelp} /> */}
+        {/* <SUI.Menu.Item disabled content="Log In" icon="user outline" onClick={bound.logIn} /> */}
         <SUI.Menu.Item disabled icon="ellipsis horizontal" />
       </SUI.Menu.Menu>
     </SUI.Menu>
