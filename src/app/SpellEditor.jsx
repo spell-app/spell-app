@@ -32,23 +32,23 @@ export const EditorToolbar = view(function EditorToolbar() {
     <SUI.Menu inverted color="purple" compact attached className="medium-short tight">
       <SUI.Menu.Menu style={{ minWidth: "33%" }}>
         <ProjectDropdown />
-        <SUI.Menu.Item content="Settings" icon="setting" onClick={bound.showProjectSettings} />
+        <SUI.Menu.Item disabled content="Settings" icon="setting" onClick={bound.showProjectSettings} />
         <ProjectActionsDropdown />
         <SUI.Menu.Item className="spring no-border" />
       </SUI.Menu.Menu>
       <SUI.Menu.Menu style={{ minWidth: "33%" }}>
         <SUI.Menu.Item className="spring no-border" />
-        <SUI.Menu.Item content="Open Example" icon="app store ios" onClick={bound.showExampleChooser} />
-        <SUI.Menu.Item content="Open Project" icon="app store ios" onClick={bound.showProjectChooser} />
+        <SUI.Menu.Item disabled content="Open Example" icon="app store ios" onClick={bound.showExampleChooser} />
+        <SUI.Menu.Item disabled content="Open Project" icon="app store ios" onClick={bound.showProjectChooser} />
         <SUI.Menu.Item content="New Project" icon="pencil" onClick={bound.createProject} />
         <SUI.Menu.Item className="spring no-border" />
       </SUI.Menu.Menu>
       <SUI.Menu.Menu position="right" style={{ minWidth: "33%" }}>
         <SUI.Menu.Item className="spring no-border" />
-        <SUI.Menu.Item content="Help" icon="help circle" className="no-border" onClick={bound.showHelp} />
-        <SUI.Menu.Item content="Docs" icon="newspaper outline" onClick={bound.showDocs} />
-        <SUI.Menu.Item content="Log In" icon="user outline" onClick={bound.logIn} />
-        <SUI.Menu.Item icon="ellipsis horizontal" />
+        <SUI.Menu.Item disabled content="Help" icon="help circle" className="no-border" onClick={bound.showHelp} />
+        <SUI.Menu.Item disabled content="Docs" icon="newspaper outline" onClick={bound.showDocs} />
+        <SUI.Menu.Item disabled content="Log In" icon="user outline" onClick={bound.logIn} />
+        <SUI.Menu.Item disabled icon="ellipsis horizontal" />
       </SUI.Menu.Menu>
     </SUI.Menu>
   )

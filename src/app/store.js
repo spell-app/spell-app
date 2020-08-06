@@ -444,16 +444,23 @@ export const store = createStore({
   // UI
   //-----------------
 
-  message: undefined,
-  showNotice(message) {
-    console.info("showNotice:", message)
-    store.message = message
-  },
-  hideNotice() {
-    store.message = undefined
+  /** Show rule names in MatchViewer? */
+  showingMatchRuleNames: true,
+  toggleMatchRuleNames(on = !store.showingMatchRuleNames) {
+    store.showingMatchRuleNames = on
   },
 
-  /** Single error message display. */
+  /** Single `notice` display. */
+  notice: undefined,
+  showNotice(notice) {
+    console.info("showNotice:", notice)
+    store.notice = notice
+  },
+  hideNotice() {
+    store.notice = undefined
+  },
+
+  /** Single error display. */
   error: undefined,
   /** Show an error to the user. */
   showError(error) {

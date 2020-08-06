@@ -14,12 +14,13 @@ import "./MatchViewer.less"
  *  Root element to show the `<MatchViewer/>` in `SpellEditor`
  */
 
-export const MatchRoot = view(function MatchRoot({ showToolbar = true, compact = false, scrolling = true }) {
+export const MatchRoot = view(function MatchRoot({ showToolbar = true, scrolling = true }) {
+  const { showingMatchRuleNames: showNames } = store
   return (
     <div className="MatchRoot">
-      {!!showToolbar && <MatchToolbar />}
+      {!!showToolbar && <MatchToolbar showNames={showNames} />}
       <MatchViewer //
-        compact={compact}
+        compact={showNames}
         scrolling={scrolling}
         match={store.file?.match}
         selection={store.selection}
@@ -29,15 +30,23 @@ export const MatchRoot = view(function MatchRoot({ showToolbar = true, compact =
   )
 })
 
-export function MatchToolbar() {
+const bound = {
+  toggleMatchRuleNames: () => store.toggleMatchRuleNames()
+}
+export function MatchToolbar({ showNames }) {
   return (
     <Menu inverted attached="top" className="short tight light-grey">
       <Menu.Item header className="no-border">
         Matched Rules
       </Menu.Item>
       <Menu.Menu position="right">
-        <Menu.Item icon="eye" content="Show Rule Names" className="no-border" />
-        <Menu.Item icon="ellipsis horizontal" />
+        <Menu.Item
+          icon={showNames ? "eye" : "eye slash outline"}
+          content={(showNames ? "Show" : "Hide") + " Rule Names"}
+          className="no-border"
+          onClick={bound.toggleMatchRuleNames}
+        />
+        <Menu.Item disabled icon="ellipsis horizontal" />
       </Menu.Menu>
     </Menu>
   )
@@ -72,19 +81,19 @@ export class MatchViewer extends ErrorHandler {
    * Memoized top-level viewer for a Match, e.g. for a `spellFile.match`.
    * Create one of these and it will create <MatchView>s and <TokenView>s underneath it.
    */
-  Component({ match, selection }) {
+  Component({ match, selection, compact }) {
     const component = React.useMemo(() => {
       if (!match) return null
       return <MatchView match={match} />
     }, [match])
 
     // If we're passed a specific `selection`, scroll that line into view and highlight it.
-    const viewer = document.querySelector(".MatchViewer")
     React.useEffect(() => {
-      if (!viewer || !match || !selection?.scroll) return
+      const viewer = document.querySelector(".MatchViewer")
+      if (!match || !selection?.scroll) return
       MatchViewer.updateScroll(viewer, match, selection)
       MatchViewer.updateHighlight(viewer, match, selection)
-    }, [viewer, component, match, selection])
+    }, [component, match, selection, compact])
 
     return component
   }

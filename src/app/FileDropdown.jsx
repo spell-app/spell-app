@@ -24,7 +24,7 @@ const bound = {
 }
 
 export const fileDropdownActions = [
-  <Dropdown.Item key="create" text="Create File" icon="plus square outline" onClick={bound.createFile} />,
+  <Dropdown.Item key="create" text="New File" icon="plus square outline" onClick={bound.createFile} />,
   <Dropdown.Item key="duplicate`" text="Duplicate File" icon="clone outline" onClick={bound.duplicateFile} />,
   <Dropdown.Item key="rename" text="Rename File" icon="edit outline" onClick={bound.renameFile} />,
   <Dropdown.Item key="delete" text="Delete File" icon="trash alternate outline" onClick={bound.deleteFile} />
