@@ -24,11 +24,13 @@ const bound = {
   }
 }
 const projectDropdownActions = [
-  <Dropdown.Item key="create" text="Create Project" icon="plus square outline" onClick={bound.createProject} />,
+  <Dropdown.Item key="create" text="New Project" icon="pencil" onClick={bound.createProject} />,
   <Dropdown.Item key="duplicate`" text="Duplicate Project" icon="clone outline" onClick={bound.duplicateProject} />,
   <Dropdown.Item key="rename" text="Rename Project" icon="edit outline" onClick={bound.renameProject} />,
   <Dropdown.Item key="delete" text="Delete Project" icon="trash alternate outline" onClick={bound.deleteProject} />
 ]
+
+export const PROJECT_ICON = "app store ios"
 
 /** Menu of all available projects. */
 export const ProjectDropdown = view(function ProjectDropdown({
@@ -57,7 +59,7 @@ export const ProjectDropdown = view(function ProjectDropdown({
           key={path}
           text={`${location.projectName}`}
           value={path}
-          icon="folder outline"
+          icon={PROJECT_ICON}
           active={ready && path === project.path}
           onClick={bound.navigateToMenuItem}
         />
@@ -72,7 +74,7 @@ export const ProjectDropdown = view(function ProjectDropdown({
   if (!showLabel) return dropdown
   return (
     <>
-      <Menu.Item header className="dropdown-label" content={`${projectType}:`} />
+      <Menu.Item className="dropdown-label" content={`${projectType}:`} icon={PROJECT_ICON} />
       {dropdown}
     </>
   )

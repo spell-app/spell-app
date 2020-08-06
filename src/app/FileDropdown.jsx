@@ -30,6 +30,8 @@ export const fileDropdownActions = [
   <Dropdown.Item key="delete" text="Delete File" icon="trash alternate outline" onClick={bound.deleteFile} />
 ]
 
+export const FILE_ICON = "file outline"
+
 /** Menu of all available projects. */
 export const FileDropdown = view(function FileDropdown({ showLabel = true, showActions = false, noBorder = false }) {
   const { project, file } = store
@@ -38,11 +40,11 @@ export const FileDropdown = view(function FileDropdown({ showLabel = true, showA
     id: "FileDropdown",
     basic: true,
     item: true,
-    loading: !ready,
     text: ready ? file.file : "",
+    loading: !ready,
     lazyLoad: true,
     labeled: true,
-    style: { minWidth: "12em", fontWeight: 700 },
+    style: { minWidth: "8em", fontWeight: 700 },
     className: noBorder ? "no-border" : ""
   }
   if (ready) {
@@ -52,7 +54,7 @@ export const FileDropdown = view(function FileDropdown({ showLabel = true, showA
           key={path}
           text={`${location.file}`}
           value={path}
-          icon="file outline"
+          icon={FILE_ICON}
           active={ready && path === file.path}
           onClick={bound.navigateToMenuItem}
         />
@@ -67,7 +69,7 @@ export const FileDropdown = view(function FileDropdown({ showLabel = true, showA
   if (!showLabel) return dropdown
   return (
     <>
-      <Menu.Item header className="dropdown-label" content="File:" />
+      <Menu.Item className="dropdown-label" content="File:" icon={FILE_ICON} />
       {dropdown}
     </>
   )
@@ -77,7 +79,7 @@ export const FileDropdown = view(function FileDropdown({ showLabel = true, showA
  * Menu of just file actions which by default shows as a `...` icon in a menu.
  * Other `props` will be passed down to the dropDown (and you can override icon/etc if you like).
  */
-export function FileActionsDropdown({ item = true, pointing = "top right", icon = "ellipsis horizontal", ...props }) {
+export function FileActionsDropdown({ item = true, pointing = false, icon = "ellipsis horizontal", ...props }) {
   return (
     <Dropdown item={item} pointing={pointing} icon={icon} {...props}>
       <Dropdown.Menu>{fileDropdownActions}</Dropdown.Menu>

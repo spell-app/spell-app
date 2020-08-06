@@ -24,6 +24,12 @@ export function AppContainer({ scrolling, padded }) {
   )
 }
 
+const bound = {
+  restartApp: () => store.compile(),
+  showRunner: () => store.showRunner(),
+  publish: () => store.publish()
+}
+
 export function AppToolbar() {
   return (
     <Menu inverted attached="top" className="short tight light-grey">
@@ -31,10 +37,10 @@ export function AppToolbar() {
         App
       </Menu.Item>
       <Menu.Menu position="right">
-        <Menu.Item icon="redo" content="Restart" className="no-border" />
-        <Menu.Item icon="hand point up" content="Preview" />
-        <Menu.Item icon="world" content="Publish" />
-        <Menu.Item icon="ellipsis horizontal" />
+        <Menu.Item content="Restart" icon="redo" className="no-border" onClick={bound.restartApp} />
+        <Menu.Item content="Preview" icon="hand point up" onClick={bound.showRunner} />
+        <Menu.Item content="Publish" disabled icon="world" onClick={bound.publish} />
+        <Menu.Item disabled icon="ellipsis horizontal" />
       </Menu.Menu>
     </Menu>
   )
