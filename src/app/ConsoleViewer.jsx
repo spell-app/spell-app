@@ -25,7 +25,7 @@ export const ConsoleRoot = view(function ConsoleRoot({ showToolbar = true, scrol
 
 export function ConsoleToolbar() {
   return (
-    <Menu attached="top" className="short SplitPanelToolbar">
+    <Menu inverted attached="top" className="short tight light-grey">
       <Menu.Item header className="no-border">
         Program Output
       </Menu.Item>

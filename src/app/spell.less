@@ -67,10 +67,10 @@
   &.padded {
     padding: @spell-normal-padding;
   }
-  &[class*="slightly padded"] {
+  &[class*="tightly padded"] {
     padding: @spell-tight-padding;
   }
-  &[class*="very padded"] {
+  &[class*="loosely padded"] {
     padding: @spell-loose-padding
   }
 }
@@ -80,10 +80,10 @@
   &.padded > * {
     .spell-inset(@spell-normal-padding);
   }
-  &[class*="slightly padded"] > * {
+  &[class*="tightly padded"] > * {
     .spell-inset(@spell-tight-padding);
   }
-  &[class*="very padded"] > * {
+  &[class*="loosely padded"] > * {
     .spell-inset(@spell-loose-padding);
   }
 }
@@ -119,13 +119,13 @@
       flex: 0 0 @spell-normal-padding;
     }
   }
-  &[class*="slightly spaced"]  {
+  &[class*="tightly spaced"]  {
     padding: @spell-tight-padding;
     & > .Spacer {
       flex: 0 0 @spell-tight-padding;
     }
   }
-  &[class*="very spaced"]  {
+  &[class*="loosely spaced"]  {
     padding: @spell-loose-padding;
     & > .Spacer {
       flex: 0 0 @spell-loose-padding;

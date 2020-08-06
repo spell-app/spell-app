@@ -7,59 +7,49 @@ import { view } from "~/util"
 import { AppRoot } from "./AppContainer"
 import { ASTRoot } from "./ASTViewer"
 import { ConsoleRoot } from "./ConsoleViewer"
-import { FileDropdown } from "./FileDropdown"
 import { InputRoot } from "./InputEditor"
 import { MatchRoot } from "./MatchViewer"
 import { SpellPage } from "./SpellPage"
-import { ProjectDropdown } from "./ProjectDropdown"
+import { ProjectDropdown, ProjectActionsDropdown } from "./ProjectDropdown"
 import { SplitPanel } from "./SplitPanel"
 import { store } from "./store"
 
+const bound = {
+  compile: () => store.compile(),
+  createProject: () => store.createProject(),
+  showExampleChooser: () => store.showExampleChooser(),
+  showProjectChooser: () => store.showProjectChooser(),
+  showProjectSettings: () => store.showProjectSettings(),
+  showHelp: () => store.showHelp(),
+  showDocs: () => store.showDocs(),
+  logIn: () => store.logIn()
+}
+
 /** EditorToolbar as a `view()`. */
 export const EditorToolbar = view(function EditorToolbar() {
-  const { file } = store
-  const fileNeedsCompilation = file?.isLoaded && !file?.compiled
-  const fileIsDirty = file?.isDirty
   // console.info("EditorToolbar", { file, fileIsDirty })
-  const bound = React.useMemo(() => {
-    return {
-      compile: () => store.compile(),
-      saveFile: () => store.saveFile(),
-      reloadFile: () => store.reloadFile(),
-      showRunner: () => store.showRunner()
-    }
-  })
   return (
-    <SUI.Menu inverted compact>
-      <ProjectDropdown showLabel showActions />
-      <FileDropdown showLabel showActions />
-      <SUI.Menu.Item style={{ width: "2em" }} />
-      <SUI.Menu.Item
-        content=" Compile"
-        icon={<SUI.Icon size="large" name="chevron circle right" />}
-        color="blue"
-        active={fileNeedsCompilation}
-        onClick={bound.compile}
-      />
-      <SUI.Menu.Item
-        content="Save"
-        icon={<SUI.Icon size="large" name="cloud download" />}
-        color="green"
-        active={fileIsDirty}
-        onClick={bound.saveFile}
-      />
-      <SUI.Menu.Item
-        content=" Revert"
-        icon={<SUI.Icon size="large" name="cloud download" />}
-        color="red"
-        active={fileIsDirty}
-        onClick={bound.reloadFile}
-      />
-      <SUI.Menu.Item
-        content=" Run Project"
-        icon={<SUI.Icon size="large" name="hand point up outline" />}
-        onClick={bound.showRunner}
-      />
+    <SUI.Menu inverted color="purple" compact attached className="medium-short tight">
+      <SUI.Menu.Menu style={{ minWidth: "33%" }}>
+        <ProjectDropdown />
+        <SUI.Menu.Item content="Settings" icon="setting" onClick={bound.showProjectSettings} />
+        <ProjectActionsDropdown />
+        <SUI.Menu.Item className="spring no-border" />
+      </SUI.Menu.Menu>
+      <SUI.Menu.Menu style={{ minWidth: "33%" }}>
+        <SUI.Menu.Item className="spring no-border" />
+        <SUI.Menu.Item content="Open Example" icon="app store ios" onClick={bound.showExampleChooser} />
+        <SUI.Menu.Item content="Open Project" icon="app store ios" onClick={bound.showProjectChooser} />
+        <SUI.Menu.Item content="New Project" icon="pencil" onClick={bound.createProject} />
+        <SUI.Menu.Item className="spring no-border" />
+      </SUI.Menu.Menu>
+      <SUI.Menu.Menu position="right" style={{ minWidth: "33%" }}>
+        <SUI.Menu.Item className="spring no-border" />
+        <SUI.Menu.Item content="Help" icon="help circle" className="no-border" onClick={bound.showHelp} />
+        <SUI.Menu.Item content="Docs" icon="newspaper outline" onClick={bound.showDocs} />
+        <SUI.Menu.Item content="Log In" icon="user outline" onClick={bound.logIn} />
+        <SUI.Menu.Item icon="ellipsis horizontal" />
+      </SUI.Menu.Menu>
     </SUI.Menu>
   )
 })
@@ -88,7 +78,7 @@ export function SpellEditor() {
     <>
       <SpellPage id="SpellEditor" fillWindow dark rows>
         <EditorToolbar />
-        <SplitPanel id="spellEditor-columns" columns resizable fluid spaced>
+        <SplitPanel id="spellEditor-columns" columns resizable fluid spaced="tightly">
           <SplitPanel id="spellEditor-left" rows="85%" resizable rounded>
             <InputRoot />
             <ConsoleRoot />

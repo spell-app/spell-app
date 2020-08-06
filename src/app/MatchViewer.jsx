@@ -31,7 +31,7 @@ export const MatchRoot = view(function MatchRoot({ showToolbar = true, compact =
 
 export function MatchToolbar() {
   return (
-    <Menu attached="top" className="short SplitPanelToolbar">
+    <Menu inverted attached="top" className="short tight light-grey">
       <Menu.Item header className="no-border">
         Matched Rules
       </Menu.Item>

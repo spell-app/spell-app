@@ -1,5 +1,5 @@
 import React from "react"
-import * as SUI from "semantic-ui-react"
+import { Dropdown, Icon, Menu } from "semantic-ui-react"
 
 import { view } from "~/util"
 
@@ -23,8 +23,15 @@ const bound = {
   }
 }
 
+export const fileDropdownActions = [
+  <Dropdown.Item key="create" text="Create File" icon="plus square outline" onClick={bound.createFile} />,
+  <Dropdown.Item key="duplicate`" text="Duplicate File" icon="clone outline" onClick={bound.duplicateFile} />,
+  <Dropdown.Item key="rename" text="Rename File" icon="edit outline" onClick={bound.renameFile} />,
+  <Dropdown.Item key="delete" text="Delete File" icon="trash alternate outline" onClick={bound.deleteFile} />
+]
+
 /** Menu of all available projects. */
-export const FileDropdown = view(function FileDropdown({ showLabel = true, showActions = true }) {
+export const FileDropdown = view(function FileDropdown({ showLabel = true, showActions = false, noBorder = false }) {
   const { project, file } = store
   const ready = project?.isLoaded && !!file
   const dropdownProps = {
@@ -32,16 +39,16 @@ export const FileDropdown = view(function FileDropdown({ showLabel = true, showA
     basic: true,
     item: true,
     loading: !ready,
-    text: ready ? file.file : "Loading...",
+    text: ready ? file.file : "",
     lazyLoad: true,
     labeled: true,
-    style: { minWidth: "16em", fontWeight: 700 },
-    className: "no-border"
+    style: { minWidth: "12em", fontWeight: 700 },
+    className: noBorder ? "no-border" : ""
   }
   if (ready) {
     const menuItems = project.imports.map(({ path, location }) => {
       return (
-        <SUI.Dropdown.Item
+        <Dropdown.Item
           key={path}
           text={`${location.file}`}
           value={path}
@@ -52,42 +59,28 @@ export const FileDropdown = view(function FileDropdown({ showLabel = true, showA
       )
     })
     if (showActions) {
-      menuItems.push(
-        <SUI.Dropdown.Divider key="divider" />,
-        <SUI.Dropdown.Item
-          key="create"
-          text="Create File"
-          icon={<SUI.Icon name="plus square outline" />}
-          onClick={bound.createFile}
-        />,
-        <SUI.Dropdown.Item
-          key="duplicate`"
-          text="Duplicate File"
-          icon={<SUI.Icon name="clone outline" />}
-          onClick={bound.duplicateFile}
-        />,
-        <SUI.Dropdown.Item
-          key="rename"
-          text="Rename File"
-          icon={<SUI.Icon name="edit outline" />}
-          onClick={bound.renameFile}
-        />,
-        <SUI.Dropdown.Item
-          key="delete"
-          text="Delete File"
-          icon={<SUI.Icon name="trash alternate outline" />}
-          onClick={bound.deleteFile}
-        />
-      )
+      menuItems.push(<Dropdown.Divider key="divider" />, ...fileDropdownActions)
     }
-    dropdownProps.children = <SUI.Dropdown.Menu>{menuItems}</SUI.Dropdown.Menu>
+    dropdownProps.children = <Dropdown.Menu>{menuItems}</Dropdown.Menu>
   }
-  const dropdown = <SUI.Dropdown {...dropdownProps} />
+  const dropdown = <Dropdown {...dropdownProps} />
   if (!showLabel) return dropdown
   return (
     <>
-      <SUI.Menu.Item header className="dropdown-label" content="File:" />
+      <Menu.Item header className="dropdown-label" content="File:" />
       {dropdown}
     </>
   )
 })
+
+/**
+ * Menu of just file actions which by default shows as a `...` icon in a menu.
+ * Other `props` will be passed down to the dropDown (and you can override icon/etc if you like).
+ */
+export function FileActionsDropdown({ item = true, pointing = "top right", icon = "ellipsis horizontal", ...props }) {
+  return (
+    <Dropdown item={item} pointing={pointing} icon={icon} {...props}>
+      <Dropdown.Menu>{fileDropdownActions}</Dropdown.Menu>
+    </Dropdown>
+  )
+}

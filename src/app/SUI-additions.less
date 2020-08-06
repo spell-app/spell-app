@@ -1,29 +1,67 @@
 // SUI CUSTOM STYLING
-.ui.menu {
-  .dropdown-label {
-    padding: 0 0 0 1em;
-    opacity: 0.8;
-    &:before {
-      width: 0;
-    }
 
-    & + .ui.dropdown {
-      padding-left: 0.5em;
-    }
-  }
+// Light-grey menu
+.ui.menu.light-grey {
+  z-index: 10;
+  background: #bbb;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  border: none !important;
 
-  // "short" menu
-  &.short {
-    min-height: 28px;
-    .item {
-      padding-top: 0;
-      padding-bottom: 0;
-    }  
-  }
-
-  .item.no-border {
-    &:before {
-      width: 0px;
-    }
+  .item {
+    color: rgba(0,0,0,.87);
   }
 }
+
+// "medium-short" menu
+.ui.menu.medium-short {
+  min-height: 32px;
+  .item {
+    padding-top: 0;
+    padding-bottom: 0;
+  }  
+}
+
+// "short" menu
+.ui.menu.short {
+  min-height: 28px;
+  .item {
+    padding-top: 0;
+    padding-bottom: 0;
+  }  
+}
+
+// "tight" menu
+.ui.menu.tight {
+  .item {
+    padding-left: 8px;
+    padding-right: 8px;
+  }  
+}
+
+
+// remove border from a menu-item with `className="no-border"`
+.ui.menu .item.no-border:before {
+  width: 0px;
+}
+
+// make a "springy" item with `<Menu.Item className="spring"/>`
+.ui.menu .item.spring {
+  flex: 1 1 auto;
+}
+
+
+
+// `<Menu.Item class="dropdown-label">` for a label next to a <Dropdown>.
+.ui.menu .dropdown-label {
+  padding: 0 0 0 1em;
+  opacity: 0.8;
+  &:before {
+    width: 0;
+  }
+
+  & + .ui.dropdown {
+    padding-left: 0.6em;
+  }
+}
+
+  

@@ -6,8 +6,17 @@ import { view } from "~/util"
 import { store } from "./store"
 import { ErrorHandler } from "./ErrorHandler"
 import { CodeMirror, inputOptions } from "./CodeMirror"
-import { FileDropdown } from "./FileDropdown"
+import { FileDropdown, FileActionsDropdown } from "./FileDropdown"
 import "./InputEditor.less"
+
+// console.info("EditorToolbar", { file, fileIsDirty })
+const bound = {
+  compile: () => store.compile(),
+  createFile: () => store.createFile(),
+  saveFile: () => store.saveFile(),
+  reloadFile: () => store.reloadFile(),
+  showRunner: () => store.showRunner()
+}
 
 /**
  *  Root element to show the `<InputEditor/>` in `SpellEditor`
@@ -21,19 +30,30 @@ export const InputRoot = function InputRoot({ showToolbar = true }) {
   )
 }
 
-export function InputToolbar() {
+export const InputToolbar = view(function InputToolbar() {
+  const { file } = store
+  const fileIsDirty = file?.isDirty
+  const fileNeedsCompilation = file?.isLoaded && !file?.compiled
   return (
-    <Menu attached="top" className="short SplitPanelToolbar">
-      <FileDropdown />
+    <Menu inverted attached="top" className="short tight light-grey">
+      <FileDropdown noBorder />
       <Menu.Menu position="right">
-        <Menu.Item icon="cloud upload" content="Save" className="no-border" />
-        <Menu.Item icon="cloud download" content="Revert" />
-        <Menu.Item icon="pencil" content="New File" />
-        <Menu.Item icon="ellipsis horizontal" />
+        <Menu.Item
+          content="Compile"
+          active={fileNeedsCompilation}
+          color="blue"
+          icon="paper plane"
+          className="no-border"
+          onClick={bound.saveFile}
+        />
+        <Menu.Item content="Save" active={fileIsDirty} color="green" icon="cloud upload" onClick={bound.saveFile} />
+        <Menu.Item content="Reload" active={fileIsDirty} color="red" icon="cloud download" onClick={bound.reloadFile} />
+        <Menu.Item content="New File" icon="pencil" onClick={bound.createFile} />
+        <FileActionsDropdown />
       </Menu.Menu>
     </Menu>
   )
-}
+})
 
 export class InputEditor extends ErrorHandler {
   /** Clear `state.error` if `props.match` changes. */

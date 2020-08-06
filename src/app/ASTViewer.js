@@ -21,7 +21,7 @@ export const ASTRoot = view(function ASTRoot({ showToolbar = true, scrolling = t
 
 export function ASTToolbar() {
   return (
-    <Menu attached="top" className="short SplitPanelToolbar">
+    <Menu inverted attached="top" className="short tight light-grey">
       <Menu.Item header className="no-border">
         Javascript Output
       </Menu.Item>

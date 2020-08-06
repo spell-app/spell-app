@@ -69,7 +69,7 @@ export class SplitPanel extends React.Component {
       columns, // column sizes for horizontal split, as `true`, string or array.  See `normalizeSizes()`.
       rows, // row sizes for vertical split, as `true`, string or array.  See `normalizeSizes()`.
       fluid = false, // fill container in alternate axis?
-      spaced = false, // spacing around and between children. `true`, "slightly", "very" ???
+      spaced = false, // spacing around and between children. `true`, "tightly", "loosely" ???
       resizable = false, // provide resize bars.  Will store `sizes` as preference if element has an `id`.
       minSize = 5, // minimum percent size for resizable panels
 
@@ -97,7 +97,7 @@ export class SplitPanel extends React.Component {
       {
         fluid,
         tightly: spaced === "tightly",
-        very: spaced === "very",
+        loosely: spaced === "loosely",
         spaced,
         resizable
       },
@@ -416,7 +416,7 @@ export class SplitPane extends React.PureComponent {
     const {
       children,
       bordered = false, // add border
-      padded = false, // add padding, `true`, `slightly` or very`
+      padded = false, // add padding, `true`, `tightly` or loosely`
       light = false, // show white background and shadow
       rounded = false, // round corners
       scrolling = false, // add auto-scrolling
@@ -427,7 +427,7 @@ export class SplitPane extends React.PureComponent {
       {
         bordered,
         tightly: padded === "tightly",
-        very: padded === "very",
+        loosely: padded === "loosely",
         padded,
         light,
         rounded,
