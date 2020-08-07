@@ -178,8 +178,8 @@ export class SpellLocation {
    */
   get editorUrl() {
     if (this.isDomainPath) return `/edit/${this.domain}`
-    if (this.isProjectPath) return `/edit/${this.domain}/${this.projectName}`
-    return `/edit/${this.domain}/${this.projectName}${this.filePath}`
+    if (this.isProjectPath) return `/edit/${this.domain}/${this.projectName}`.replace(/ /g, "+")
+    return `/edit/${this.domain}/${this.projectName}${this.filePath}`.replace(/ /g, "+")
   }
 
   /**
@@ -187,8 +187,8 @@ export class SpellLocation {
    */
   get runnerUrl() {
     if (this.isDomainPath) return `/run/${this.domain}`
-    if (this.isProjectPath) return `/run/${this.domain}/${this.projectName}`
-    return `/run/${this.domain}/${this.projectName}${this.filePath}`
+    if (this.isProjectPath) return `/run/${this.domain}/${this.projectName}`.replace(/ /g, "+")
+    return `/run/${this.domain}/${this.projectName}${this.filePath}`.replace(/ /g, "+")
   }
 
   /**
@@ -197,11 +197,11 @@ export class SpellLocation {
    */
   static pathForUrl({ domain, project, filePath } = {}) {
     let path = domain?.startsWith("example") ? "@system:examples" : "@user:projects"
-    if (!project) return path
-    path += `:${project}`
-    if (!filePath) return path
-    path += filePath.startsWith("/") ? filePath : `/${filePath}`
-    return path
+    if (project) {
+      path += `:${project}`
+      if (filePath) path += filePath.startsWith("/") ? filePath : `/${filePath}`
+    }
+    return path.replace(/\+/g, " ")
   }
 
   //-----------------
