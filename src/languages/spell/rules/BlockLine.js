@@ -41,7 +41,8 @@ SpellParser.Rule.BlockLine = class line extends Rule {
       let end = tokens.length
 
       // pop comment (which will be a single token) off of the end if found
-      const comment = scope.parse([tokens.last], "comment")
+      const last = tokens[tokens.length - 1]
+      const comment = scope.parse([last], "comment")
       if (comment) {
         end -= 1
         // add comment BEFORE statement

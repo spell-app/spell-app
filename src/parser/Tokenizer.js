@@ -749,7 +749,7 @@ export class Tokenizer {
     })
 
     // remove the last `line` if it is completely empty
-    const { last } = lines
+    const last = lines[lines.length - 1]
     if (last.tokens.length === 0 && !last.newline && !last.leading) lines.pop()
 
     // indent blank lines to the indent AFTER them
@@ -795,7 +795,7 @@ export class Tokenizer {
     // Stack of blocks -- we'll push and pop blocks on the stack as indent changes
     const stack = [block]
     lines.forEach((line) => {
-      let topBlock = stack.last
+      let topBlock = stack[stack.length - 1]
       // If indenting, push a new block
       while (line.indent > topBlock.indent) {
         const newBlock = new Token.Block({
@@ -812,7 +812,7 @@ export class Tokenizer {
       // If outdenting: pop block(s)
       while (line.indent < topBlock.indent) {
         stack.pop()
-        topBlock = stack.last
+        topBlock = stack[stack.length - 1]
       }
 
       // add line to top block

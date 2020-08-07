@@ -175,7 +175,7 @@ export const expressions = new SpellParser({
             const { operator, expression } = rhs.groups
 
             // While top operator on stack is higher precedence than this one
-            while (opStack.last?.match.rule.precedence >= rhs.rule.precedence) {
+            while (opStack[opStack.length - 1]?.match.rule.precedence >= rhs.rule.precedence) {
               // pop the top operator and compile it with top 2 things on the output stack
               const topOp = opStack.pop()
               const args = {

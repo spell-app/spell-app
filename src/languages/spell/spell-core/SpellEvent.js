@@ -6,6 +6,7 @@
  * TODO: pass/etc events
  */
 
+import _remove from "lodash/remove"
 import global from "global"
 import { spellCore } from "."
 
@@ -42,7 +43,7 @@ export class SpellEvent {
   static off(target, eventType, callback) {
     if (!callback) return
     const list = SpellEvent.getEventList(target, eventType)
-    if (list) list.remove(callback)
+    if (list) _remove(list, (next) => next === callback)
   }
 
   /**

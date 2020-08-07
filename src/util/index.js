@@ -1,7 +1,6 @@
 export * from "./constants"
 
 export * from "./addDebugMethods"
-export * from "./array"
 export * from "./class"
 export * from "./prefs"
 export * from "./decorators"

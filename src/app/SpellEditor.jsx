@@ -17,7 +17,6 @@ import { store } from "./store"
  * it redraws automatically when the file changes.
  */
 export const SpellEditor = React.memo(function SpellEditor() {
-  console.info("SpellEditor")
   // Set up hotkey when NOT in codemirror
   // Note these are duplicated in CodeMirror.js
   useHotkeys("command+s", (event) => {
