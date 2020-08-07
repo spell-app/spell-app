@@ -2,9 +2,10 @@ import global from "global"
 import ReactDOM from "react-dom"
 import { navigate } from "@reach/router"
 
-import { FileScope, ProjectScope } from "~/parser"
+import { FileScope } from "~/parser"
 import { createStore, setPrefKey, getSetPref, CONFIRM } from "~/util"
 import { spellCore, SpellProjectRoot, SpellProject, SpellLocation } from "~/languages/spell"
+import { UI } from "./ui"
 
 setPrefKey("spellEditor:")
 export const store = createStore({
@@ -328,6 +329,67 @@ export const store = createStore({
       delete store.compileSoonTimer
     }
   },
+
+  //-----------------
+  // Dialogs
+  //-----------------
+
+  async testDialog() {
+    const reply = await store.answer({ header: "Header", message: "Message?", ok: "Yep", cancel: "Nope" })
+    console.warn("testDialog resolved with ", reply)
+  },
+
+  /**
+   * Get the user's answer to some question.
+   * `props`:
+   *  - `message` (required) Message to show.
+   *  - `header` (optional) Header for the dialog.  Default is no header.
+   *  - `ok` (optional) string or props for OK button.  Default is `"OK"`.
+   *  - `cancel` (optional) string or props for Cancel button.  Default is `"Cancel"`.
+   *  - any additional `props` will be passed to the `<Modal>`.s
+   * Instead of passing `props`, you can simply pass string `message` to use other defaults.
+   *
+   * Returns a promise which resolves with one of:
+   *  - `true` if they clicked the `ok` button
+   *  - `false` if they clicked the `cancel` button
+   *  - `undefined` if they clicked away from the modal or hit the escape key.
+   */
+  alert(props = "DOH!") {
+    if (typeof props === "string") props = { message: props }
+    return store.showModal(props, UI.Alert)
+  },
+
+  confirm(props = "Really?") {
+    if (typeof props === "string") props = { message: props }
+    return store.showModal(props, UI.Confirm)
+  },
+
+  prompt(props = { message: "How much?", defaultValue: "10" }) {
+    if (typeof props === "string") props = { message: props }
+    return store.showModal(props, UI.Prompt)
+  },
+
+  /**
+   * Generic method to show a `component` modal with `props`.
+   * Returns a promise which will resolve/reject as per `component` setup.
+   */
+  modalId: 0,
+  modals: [],
+  showModal(props, component) {
+    let modalProps
+    const promise = new Promise((resolve, reject) => {
+      modalProps = { id: store.modalId++, props, component, resolve, reject }
+      store.modals = [...store.modals, modalProps]
+    })
+    promise.finally(() => {
+      store.modals = store.modals.filter((it) => it === modalProps)
+    })
+    return promise
+  },
+
+  //-----------------
+  // ProjectSettings
+  //-----------------
 
   //-----------------
   // InputEditor event handlers

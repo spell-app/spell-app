@@ -15,6 +15,7 @@ import { SpellEditorRoute } from "./SpellEditorRoute"
 import { SpellRunnerRoute } from "./SpellRunnerRoute"
 import { ErrorNotice } from "./ErrorNotice"
 import { Notice } from "./Notice"
+import { UI } from "./ui"
 
 // Use the below to set up methods/etc in the browser for hacking
 import "./debug"
@@ -41,7 +42,8 @@ function renderApp() {
         <SpellRunnerRoute path="run/:domain/:project" />
         <SpellRunnerRoute path="run/:domain/:project/*filePath" />
       </Router>
-      {/* Show Notice / ErrorNotice for all pages */}
+      {/* Modals / Notice / ErrorNotice for all pages */}
+      <UI.ModalContainer />
       <Notice />
       <ErrorNotice />
     </>,

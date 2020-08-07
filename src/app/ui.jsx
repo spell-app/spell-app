@@ -13,7 +13,8 @@
  *  }
  */
 import React from "react"
-import { Icon, Menu, Dropdown } from "semantic-ui-react"
+import { Icon, Button, Menu, Modal, Dropdown } from "semantic-ui-react"
+import { useHotkeys } from "react-hotkeys-hook"
 
 import { spellCore } from "~/languages/spell"
 import { view } from "~/util"
@@ -46,12 +47,14 @@ export const UI = {
   )),
 
   /** Left / Center / Right Sub-Menus. */
-  Submenu: React.memo(({ position = "left", spring = false, children, ...props }) => {
+  Submenu: React.memo(({ left, center, right, spring, children, ...props }) => {
+    const style = {}
+    if (left || center || right) style.minWidth = "33.3%"
     return (
-      <Menu.Menu position={position === "center" ? "left" : position} style={{ minWidth: "33.3%" }} {...props}>
-        {spring && (position === "center" || position === "right") && <UI.Spring />}
+      <Menu.Menu position={right ? "right" : "left"} style={style} {...props}>
+        {spring && (center || right) && <UI.Spring />}
         {children}
-        {spring && (position === "center" || position === "left") && <UI.Spring />}
+        {spring && (center || left) && <UI.Spring />}
       </Menu.Menu>
     )
   }),
@@ -114,6 +117,120 @@ export const UI = {
   )),
   FileActionsDropdown: React.memo((props) => {
     return <UI.MoreMenu {...props}>{actions.FILE_DROPDOWN_ACTIONS}</UI.MoreMenu>
+  }),
+
+  //////////////////////
+  // Modals
+  //////////////////////
+  ModalContainer: view(() =>
+    store.modals.map(({ id, component, props, resolve, reject }) =>
+      React.createElement(component, { key: id, props, resolve, reject })
+    )
+  ),
+  Modal: React.memo(
+    ({
+      resolve,
+      header,
+      content,
+      buttons = [{ button: "OK", color: "blue", value: true }],
+      required = false,
+      returnValue = true,
+      escapeValue = undefined,
+      ...props
+    }) => {
+      const onReturn = resolveWith(returnValue)
+      const onEscape = resolveWith(escapeValue)
+      // make return key say "ok".  We get escape for free.
+      useHotkeys("return", () => {
+        if (!required) onReturn()
+      })
+      return (
+        <Modal open={true} size="small" closeOnDimmerClick={!required} onClose={onEscape} {...props}>
+          {!!header && <Modal.Header>{header}</Modal.Header>}
+          <Modal.Content>{content}</Modal.Content>
+          <Modal.Actions>
+            {buttons.map(({ value, ...btnProps }, index) => (
+              <UI.ModalButton key={index} onClick={resolveWith(value)} {...btnProps} />
+            ))}
+          </Modal.Actions>
+        </Modal>
+      )
+      // return resolver for `value`
+      //  - if a function, just use that
+      //  - otherwise resolve with the value
+      function resolveWith(value) {
+        if (typeof value === "function") return value
+        return () => resolve(value)
+      }
+    }
+  ),
+  ModalButton: React.memo(({ button, onClick, ...props }) => {
+    // If they passed an element, just set its onClick and return as-is.
+    if (React.isValidElement(button)) {
+      return React.cloneElement(button, { onClick, ...props })
+    }
+    // assume `button` is a text string
+    return (
+      <Button onClick={onClick} {...props}>
+        {button}
+      </Button>
+    )
+  }),
+  /** Alert the user to some message. */
+  Alert: React.memo(function Alert({ props, resolve }) {
+    const { header, message, ok = "OK", ...extraProps } = props
+    return (
+      <UI.Modal
+        resolve={resolve}
+        header={header}
+        content={message}
+        buttons={[{ button: ok, value: true, color: "blue" }]}
+        size="small"
+        {...extraProps}
+      />
+    )
+  }),
+  /** Confirm something with the user -- yea or nay? */
+  Confirm: React.memo(function Confirm({ props, resolve }) {
+    const { header, message, ok = "OK", cancel = "Cancel", ...extraProps } = props
+    return (
+      <UI.Modal
+        resolve={resolve}
+        header={header}
+        content={message}
+        buttons={[
+          { button: ok, value: true, color: "blue" },
+          { button: cancel, value: false, color: "grey" }
+        ]}
+        size="small"
+        {...extraProps}
+      />
+    )
+  }),
+  Prompt: React.memo(function Prompt({ props, resolve }) {
+    const { header, message, defaultValue = "", ok = "OK", cancel = "Cancel", ...extraProps } = props
+    const [value, setValue] = React.useState(defaultValue)
+    const resolveWithValue = () => resolve(value)
+    const content = (
+      <div>
+        <div>{message}</div>
+        <input type="text" value={value} onChange={(e) => setValue(e.target.value)} />
+      </div>
+    )
+    return (
+      <UI.Modal
+        resolve={resolve}
+        header={header}
+        content={content}
+        buttons={[
+          { button: ok, value: resolveWithValue, color: "blue" },
+          { button: cancel, value: false, color: "grey" }
+        ]}
+        returnValue={resolveWithValue}
+        size="small"
+        {...extraProps}
+      />
+    )
   })
 }
 
@@ -194,7 +311,7 @@ actions = {
     )
   }),
   publishProject: React.memo((props) => (
-    <ActionItem title="Publish" icon="world" onClick={() => store.publishProject()} {...props} />
+    <ActionItem title="Publish" icon="world" onClick={() => store.testDialog()} {...props} />
   )),
   restartApp: React.memo((props) => (
     <ActionItem title="Restart" icon="redo" onClick={() => store.compile()} {...props} />
@@ -272,7 +389,20 @@ actions = {
         {...props}
       />
     )
-  })
+  }),
+
+  //////////////////////
+  // Testing
+  //////////////////////
+  alert: React.memo((props) => (
+    <ActionItem title="Alert" icon="warning sign" onClick={() => store.alert({ ...props }).then(console.info)} />
+  )),
+  confirm: React.memo((props) => (
+    <ActionItem title="Confirm" icon="question circle" onClick={() => store.alert({ ...props }).then(console.info)} />
+  )),
+  prompt: React.memo((props) => (
+    <ActionItem title="Prompt" icon="edit" onClick={() => store.alert({ ...props }).then(console.info)} />
+  ))
 }
 
 //////////////////////

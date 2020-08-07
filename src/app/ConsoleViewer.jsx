@@ -29,6 +29,10 @@ export function ConsoleToolbar() {
       <UI.Submenu left spring>
         <UI.MenuHeader title="Program Output" />
       </UI.Submenu>
+      <UI.Submenu right spring>
+        <actions.alert message="Yo!" />
+        <actions.prompt message="Yah?" ok="Yep" cancel="Nope" />
+        <actions.confirm header="Quantity needed" message="How many?" />
         <actions.clearConsole />
         <UI.MoreMenu stub />
       </UI.Submenu>
