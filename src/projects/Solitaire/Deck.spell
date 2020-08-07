@@ -34,6 +34,7 @@ to quietly test deck shuffling
 	echo display the deck
 	expect (the first card of the deck) is the ace of clubs to be yes
 	shuffle the deck
+	shuffle the deck
 	echo display the deck
 	expect (the first card of the deck) is the ace of clubs to be no
 test deck shuffling

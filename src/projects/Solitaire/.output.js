@@ -310,6 +310,8 @@ function test_deck_shuffling() {
 		spellCore.expect((spellCore.getItemOf(deck, 1)).is_the_$rank_of_$suits('ace', 'clubs'), `(the first card of the deck) is the ace of clubs`, true, `yes`)
 		spellCore.echoTestAction(`shuffle the deck`)
 		spellCore.randomize(deck)
+		spellCore.echoTestAction(`shuffle the deck`)
+		spellCore.randomize(deck)
 		spellCore.echo(deck.display())
 		spellCore.expect((spellCore.getItemOf(deck, 1)).is_the_$rank_of_$suits('ace', 'clubs'), `(the first card of the deck) is the ace of clubs`, false, `no`)
 	})
