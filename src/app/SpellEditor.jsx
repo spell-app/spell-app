@@ -54,18 +54,18 @@ export function EditorToolbar() {
   // console.info("EditorToolbar", { file, fileIsDirty })
   return (
     <UI.AppMenu>
-      <UI.Submenu position="left" spring>
+      <UI.Submenu left spring>
         <UI.ProjectDropdown />
         <actions.showRunner />
         <actions.showProjectSettings />
         <UI.ProjectActionsDropdown />
       </UI.Submenu>
-      <UI.Submenu position="center" spring>
+      <UI.Submenu center spring>
         <actions.showProjectChooser />
         <actions.createProject />
       </UI.Submenu>
-      <UI.Submenu position="right" spring>
-        <actions.aboutSpell />
+      <UI.Submenu right spring>
+        <actions.aboutSpell noBorder />
         <actions.showHelp />
         <actions.showDocs />
         <UI.MoreMenu stub />

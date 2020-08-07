@@ -23,10 +23,10 @@ export const ASTRoot = view(function ASTRoot({ showToolbar = true, scrolling = t
 export function ASTToolbar() {
   return (
     <UI.PanelMenu>
-      <UI.Submenu position="left" spring>
+      <UI.Submenu left spring>
         <UI.MenuHeader title="Javascript Output" />
       </UI.Submenu>
-      <UI.Submenu position="right" spring>
+      <UI.Submenu right spring>
         <UI.MoreMenu stub />
       </UI.Submenu>
     </UI.PanelMenu>

@@ -22,16 +22,16 @@ export const SpellRunner = React.memo(function SpellRunner() {
 export function RunnerToolbar() {
   return (
     <UI.AppMenu>
-      <UI.Submenu position="left" spring>
+      <UI.Submenu left spring>
         <UI.ProjectDropdown useRunner />
         <actions.restartApp />
         <actions.showEditor />
       </UI.Submenu>
-      <UI.Submenu position="center" spring>
+      <UI.Submenu center spring>
         <actions.showProjectChooser noBorder />
         <actions.createProject />
       </UI.Submenu>
-      <UI.Submenu position="right" spring>
+      <UI.Submenu right spring>
         <actions.aboutSpell />
         <actions.showDocs noBorder />
         {/* <actions.showHelp /> */}

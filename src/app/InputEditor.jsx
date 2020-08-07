@@ -33,10 +33,10 @@ export const InputRoot = React.memo(function InputRoot({ showToolbar = true }) {
 export function InputToolbar() {
   return (
     <UI.PanelMenu>
-      <UI.Submenu position="left" spring>
+      <UI.Submenu left spring>
         <UI.FileDropdown noBorder />
       </UI.Submenu>
-      <UI.Submenu position="right" spring>
+      <UI.Submenu right spring>
         <actions.compileProject noBorder />
         <actions.saveFile />
         <actions.reloadFile />

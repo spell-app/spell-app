@@ -26,10 +26,9 @@ export const ConsoleRoot = React.memo(function ConsoleRoot({ showToolbar = true,
 export function ConsoleToolbar() {
   return (
     <UI.PanelMenu>
-      <UI.Submenu position="left" spring>
+      <UI.Submenu left spring>
         <UI.MenuHeader title="Program Output" />
       </UI.Submenu>
-      <UI.Submenu position="right" spring>
         <actions.clearConsole />
         <UI.MoreMenu stub />
       </UI.Submenu>

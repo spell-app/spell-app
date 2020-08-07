@@ -16,10 +16,10 @@ export const AppRoot = React.memo(function AppRoot({ showToolbar = true, scrolli
 export function AppToolbar() {
   return (
     <UI.PanelMenu>
-      <UI.Submenu position="left" spring>
+      <UI.Submenu left spring>
         <UI.MenuHeader title="App" />
       </UI.Submenu>
-      <UI.Submenu position="right" spring>
+      <UI.Submenu right spring>
         <actions.restartApp noBorder />
         {/* <actions.showRunner /> */}
         <actions.publishProject />

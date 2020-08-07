@@ -33,10 +33,10 @@ export const MatchRoot = view(function MatchRoot({ showToolbar = true, scrolling
 export const MatchToolbar = React.memo(function MatchToolbar() {
   return (
     <UI.PanelMenu>
-      <UI.Submenu position="left" spring>
+      <UI.Submenu left spring>
         <UI.MenuHeader title="Matched Rules" />
       </UI.Submenu>
-      <UI.Submenu position="right" spring>
+      <UI.Submenu right spring>
         <actions.toggleMatchRuleNames noBorder />
         <UI.MoreMenu stub />
       </UI.Submenu>
