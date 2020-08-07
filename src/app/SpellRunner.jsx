@@ -1,6 +1,7 @@
 import React from "react"
 
-import { actions, UI } from "./ui"
+import { actions } from "./actions"
+import { UI } from "./ui"
 import { AppRoot } from "./AppContainer"
 import { ConsoleRoot } from "./ConsoleViewer"
 import { SpellPage } from "./SpellPage"

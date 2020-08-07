@@ -382,7 +382,7 @@ export const store = createStore({
       store.modals = [...store.modals, modalProps]
     })
     promise.finally(() => {
-      store.modals = store.modals.filter((it) => it === modalProps)
+      store.modals = store.modals.filter((it) => it.id !== modalProps.id)
     })
     return promise
   },

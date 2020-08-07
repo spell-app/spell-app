@@ -2,21 +2,13 @@ import React from "react"
 
 import { view } from "~/util"
 
-import { actions, UI } from "./ui"
+import { actions } from "./actions"
+import { UI } from "./ui"
 import { ErrorHandler } from "./ErrorHandler"
 import { CodeMirror, inputOptions } from "./CodeMirror"
 import { store } from "./store"
 
 import "./InputEditor.less"
-
-// console.info("EditorToolbar", { file, fileIsDirty })
-const bound = {
-  compile: () => store.compile(),
-  createFile: () => store.createFile(),
-  saveFile: () => store.saveFile(),
-  reloadFile: () => store.reloadFile(),
-  showRunner: () => store.showRunner()
-}
 
 /**
  *  Root element to show the `<InputEditor/>` in `SpellEditor`

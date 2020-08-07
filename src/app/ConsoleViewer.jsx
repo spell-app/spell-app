@@ -6,7 +6,8 @@ import { view, Observable } from "~/util"
 import { Match } from "~/parser"
 import { spellCore } from "~/languages/spell"
 
-import { actions, UI } from "./ui"
+import { actions } from "./actions"
+import { UI } from "./ui"
 import { ErrorHandler } from "./ErrorHandler"
 import "./ConsoleViewer.less"
 
@@ -31,8 +32,20 @@ export function ConsoleToolbar() {
       </UI.Submenu>
       <UI.Submenu right spring>
         <actions.alert message="Yo!" />
-        <actions.prompt message="Yah?" ok="Yep" cancel="Nope" />
-        <actions.confirm header="Quantity needed" message="How many?" />
+        <actions.confirm message="Yah?" ok="Yep" cancel={{ content: "Nope", color: "pink", floated: "left" }} />
+        <actions.prompt
+          header="Quantity needed"
+          message="How many?"
+          extraButtons={[{ floated: "left", button: "YES", value: () => store.alert("You're MINE") }]}
+        />
+        <actions.alert
+          title="Recursive"
+          icon="bug"
+          header="Recursive alert"
+          message="Shall we recurse???"
+          ok="no"
+          extraButtons={[{ floated: "left", button: "YES", value: () => store.alert("You're MINE") }]}
+        />
         <actions.clearConsole />
         <UI.MoreMenu stub />
       </UI.Submenu>

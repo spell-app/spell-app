@@ -13,23 +13,17 @@
  *  }
  */
 import React from "react"
-import { Icon, Button, Menu, Modal, Dropdown } from "semantic-ui-react"
+import classnames from "classnames"
+import { Icon, Input, Button, Menu, Modal, Dropdown } from "semantic-ui-react"
 import { useHotkeys } from "react-hotkeys-hook"
 
-import { spellCore } from "~/languages/spell"
 import { view } from "~/util"
 
+import { actions, ActionItem } from "./actions"
 import { FileDropdown } from "./FileDropdown"
 import { ProjectDropdown } from "./ProjectDropdown"
 import { store } from "./store"
 
-// NOTE: we assume the caller will be React.memo()d as appropriate.
-function ActionItem({ title, noBorder, className = "", ...props }) {
-  const klass = [className, noBorder && "no-border"].filter(Boolean).join(" ")
-  return <Menu.Item content={title} className={klass} {...props} />
-}
-
-let actions
 /**
  * Constructors for standard UI elements.
  */
@@ -122,305 +116,219 @@ export const UI = {
   //////////////////////
   // Modals
   //////////////////////
-  ModalContainer: view(() =>
-    store.modals.map(({ id, component, props, resolve, reject }) =>
-      React.createElement(component, { key: id, props, resolve, reject })
+  getResolver(resolve, value) {
+    if (typeof value === "function") return value
+    return () => resolve(value)
+  },
+  ModalContainer: view(() => {
+    const { modals } = store
+    if (!modals.length) return null
+    const lastIndex = modals.length - 1
+    return store.modals.map(({ id, component, props, resolve, reject }, index) =>
+      React.createElement(component, { key: id, id, index, props, isTop: index === lastIndex, resolve, reject })
     )
-  ),
+  }),
   Modal: React.memo(
     ({
+      isTop,
       resolve,
+      type = "",
       header,
       content,
-      buttons = [{ button: "OK", color: "blue", value: true }],
-      required = false,
-      returnValue = true,
+      className,
+      buttons = [{ button: "OK", color: "blue" }],
+      extraButtons = null,
+      trapReturn = false,
+      returnValue = undefined,
+      trapEscape = false,
       escapeValue = undefined,
       ...props
     }) => {
-      const onReturn = resolveWith(returnValue)
-      const onEscape = resolveWith(escapeValue)
-      // make return key say "ok".  We get escape for free.
-      useHotkeys("return", () => {
-        if (!required) onReturn()
+      // Trap return key if neccessary
+      useHotkeys("return", (event) => {
+        if (trapReturn) UI.getResolver(resolve, returnValue)()
       })
+      // convert `buttons` to `<ModalButtons>`
+      buttons = buttons.map(({ value, ...btnProps }, index) => (
+        <UI.ModalButton key={index} onClick={UI.getResolver(resolve, value)} {...btnProps} />
+      ))
+      // convert `extraButtons` to `<ModalButtons>`
+      if (extraButtons) {
+        extraButtons = extraButtons.map(({ value, ...btnProps }, index) => (
+          <UI.ModalButton key={index} onClick={UI.getResolver(resolve, value)} {...btnProps} />
+        ))
+      }
       return (
-        <Modal open={true} size="small" closeOnDimmerClick={!required} onClose={onEscape} {...props}>
+        <Modal
+          className={classnames("SpellModal", type, className)}
+          open={true}
+          size="small"
+          closeOnDimmerClick={trapEscape}
+          onClose={UI.getResolver(resolve, escapeValue)}
+          {...props}
+        >
           {!!header && <Modal.Header>{header}</Modal.Header>}
           <Modal.Content>{content}</Modal.Content>
           <Modal.Actions>
-            {buttons.map(({ value, ...btnProps }, index) => (
-              <UI.ModalButton key={index} onClick={resolveWith(value)} {...btnProps} />
-            ))}
+            {extraButtons}
+            {buttons}
           </Modal.Actions>
         </Modal>
       )
-      // return resolver for `value`
-      //  - if a function, just use that
-      //  - otherwise resolve with the value
-      function resolveWith(value) {
-        if (typeof value === "function") return value
-        return () => resolve(value)
-      }
     }
   ),
-  ModalButton: React.memo(({ button, onClick, ...props }) => {
-    // If they passed an element, just set its onClick and return as-is.
-    if (React.isValidElement(button)) {
-      return React.cloneElement(button, { onClick, ...props })
-    }
-    // assume `button` is a text string
-    return (
-      <Button onClick={onClick} {...props}>
-        {button}
-      </Button>
-    )
-  }),
-  /** Alert the user to some message. */
-  Alert: React.memo(function Alert({ props, resolve }) {
-    const { header, message, ok = "OK", ...extraProps } = props
+  ModalButton: React.memo(
+    React.forwardRef((allProps, ref) => {
+      const { button, onClick, ...props } = allProps
+      if (!button) return null
+      if (ref) props.ref = ref
+
+      // If they passed an element, just set its onClick and return as-is.
+      if (React.isValidElement(button)) {
+        return React.cloneElement(button, { onClick })
+      }
+      if (typeof button === "string") {
+        return (
+          <Button onClick={onClick} {...props}>
+            {button}
+          </Button>
+        )
+      }
+      if (typeof button === "object") {
+        // Assume properties which will override other props?
+        return <Button onClick={onClick} {...props} {...button} />
+      }
+      console.warn("<UI.ModalButton>: don't understand 'button' in", allProps)
+      return null
+    })
+  ),
+
+  /**
+   * Alert the user to some condition, with a single "OK" button.
+   * `resolve()`s with `undefined`.
+   *
+   * Props:
+   * - `header` Optional header for the dialog.
+   * - `message` Mandatory message to show.
+   * - `ok` (default "OK") Text title or button props for OK button.
+   * - other standard `Modal` props.
+   */
+  Alert: React.memo(function Alert({ props, resolve, isTop }) {
+    const { message, ok = "OK", trapReturn = false, ...extraProps } = props
+    const okRef = React.createRef()
+    React.useEffect(() => {
+      console.warn(okRef.current)
+      okRef.current.focus()
+    })
     return (
       <UI.Modal
+        isTop={isTop}
+        type="Alert"
         resolve={resolve}
-        header={header}
-        content={message}
-        buttons={[{ button: ok, value: true, color: "blue" }]}
+        content={<div className="message">{message}</div>}
+        buttons={[{ ref: okRef, button: ok, className: "default" }]}
+        trapReturn={trapReturn}
+        trapEscape
         size="small"
         {...extraProps}
       />
     )
   }),
-  /** Confirm something with the user -- yea or nay? */
-  Confirm: React.memo(function Confirm({ props, resolve }) {
-    const { header, message, ok = "OK", cancel = "Cancel", ...extraProps } = props
+
+  /**
+   * Confirm if the user wants to do something:
+   * `resolve()`s with `true` or `false`.
+   *
+   * Props:
+   * - `header` Optional header for the dialog.
+   * - `message` Mandatory message to show.
+   * - `ok` (default "OK") Text title or button props for OK button.
+   * - `cancel` (default "Cancel") Text title or button props for Cancel button.
+   * - other standard `Modal` props.
+   */
+  Confirm: React.memo(function Confirm({ props, resolve, isTop }) {
+    const { message, ok = "OK", cancel = "Cancel", trapReturn = true, ...extraProps } = props
     return (
       <UI.Modal
+        isTop={isTop}
+        type="Confirm"
         resolve={resolve}
-        header={header}
-        content={message}
+        content={<div className="message">{message}</div>}
         buttons={[
-          { button: ok, value: true, color: "blue" },
-          { button: cancel, value: false, color: "grey" }
+          { button: cancel, value: false },
+          { button: ok, value: true, className: trapReturn ? "default" : "" }
         ]}
+        trapReturn={trapReturn}
+        returnValue={true}
+        trapEscape
+        escapeValue={false}
         size="small"
         {...extraProps}
       />
     )
   }),
-  Prompt: React.memo(function Prompt({ props, resolve }) {
-    const { header, message, defaultValue = "", ok = "OK", cancel = "Cancel", ...extraProps } = props
+  /**
+   * Prompt with a single input field value:
+   * `resolve()`s with:
+   * - the field value in OK, or
+   * - `undefined` if they cancel or submit the field with an empty value.
+   * Note that we always make the return key submit the value.
+   *
+   * Props:
+   * - `header` Optional header for the dialog.
+   * - `message` Mandatory message to show.
+   * - `defaultValue` (default `""`) Start value for field.
+   * - `valueType` (default `text`) `<Input type>`.
+   * - `inputProps` Optional props to pass to the `<Input>`.
+   * - `ok` (default "OK") Text title or button props for OK button.
+   * - `cancel` (default "Cancel") Text title or button props for Cancel button.
+   * - other standard `Modal` props.
+   */
+  Prompt: React.memo(function Prompt({ props, resolve, isTop }) {
+    const { message, defaultValue = "", ok = "OK", cancel = "Cancel", valueType = "text", ...extraProps } = props
     const [value, setValue] = React.useState(defaultValue)
-    const resolveWithValue = () => resolve(value)
+
+    const input = React.useRef()
+    // Auto-focus if we're the top field
+    React.useEffect(() => {
+      if (isTop) input.current.select()
+    }, [isTop])
+
+    // when resolving, treat empty string as `undefined` in the result.
+    const resolveWithValue = () => {
+      if (value === "") resolve(undefined)
+      else resolve(value)
+    }
     const content = (
-      <div>
+      <div className="message">
         <div>{message}</div>
-        <input type="text" value={value} onChange={(e) => setValue(e.target.value)} />
+        <Input
+          ref={input}
+          fluid
+          focus={true}
+          type={valueType}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => e.key !== "Enter" || resolveWithValue()}
+        />
       </div>
     )
+
     return (
       <UI.Modal
+        isTop={isTop}
+        type="Prompt"
         resolve={resolve}
-        header={header}
         content={content}
         buttons={[
-          { button: ok, value: resolveWithValue, color: "blue" },
-          { button: cancel, value: false, color: "grey" }
+          { button: cancel, value: undefined },
+          { button: ok, value: resolveWithValue, className: "default" }
         ]}
-        returnValue={resolveWithValue}
+        trapReturn={false}
+        trapEscape
         size="small"
         {...extraProps}
       />
     )
   })
 }
-
-/**
- * Constructors for <Menu.Items> for public actions.
- */
-actions = {
-  //////////////////////
-  // Navigation
-  //////////////////////
-
-  aboutSpell: React.memo((props) => (
-    <ActionItem title="About Spell" icon="wizard" onClick={() => store.aboutSpell()} {...props} />
-  )),
-  showEditor: React.memo((props) => (
-    <ActionItem title="Edit Project" icon="edit outline" onClick={() => store.showEditor()} {...props} />
-  )),
-  showRunner: React.memo((props) => (
-    <ActionItem title="Preview" icon="hand point up" onClick={() => store.showRunner()} {...props} />
-  )),
-  showProjectSettings: React.memo((props) => (
-    <ActionItem title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
-  )),
-  showProjectChooser: React.memo((props) => (
-    <ActionItem
-      title="Open Example or Project"
-      icon="app store ios"
-      onClick={() => store.showProjectChooser()}
-      {...props}
-    />
-  )),
-  showDocs: React.memo((props) => (
-    <ActionItem title="Docs" icon="newspaper outline" onClick={() => store.showDocs()} {...props} />
-  )),
-  showHelp: React.memo((props) => (
-    <ActionItem title="Help" icon="help circle" onClick={() => store.showHelp()} {...props} />
-  )),
-  logIn: React.memo((props) => (
-    <ActionItem title="Log In" icon="user outline" onClick={() => store.logIn()} {...props} />
-  )),
-
-  //////////////////////
-  // Project actions
-  //////////////////////
-  createProject: React.memo((props) => (
-    <ActionItem title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
-  )),
-  createProject: React.memo((props) => (
-    <ActionItem title="New Project" icon="pencil" onClick={() => store.createProject()} {...props} />
-  )),
-  duplicateProject: React.memo((props) => (
-    <ActionItem title="Duplicate Project" icon="clone outline" onClick={() => store.duplicateProject()} {...props} />
-  )),
-  renameProject: React.memo((props) => (
-    <ActionItem title="Rename Project" icon="edit outline" onClick={() => store.renameProject()} {...props} />
-  )),
-  deleteProject: React.memo((props) => (
-    <ActionItem
-      title="Delete Project"
-      icon="trash alternate outline"
-      onClick={() => store.deleteProject()}
-      {...props}
-    />
-  )),
-  compileProject: view((props) => {
-    const { file } = store
-    const fileNeedsCompilation = file?.isLoaded && !file?.compiled
-    return (
-      <ActionItem
-        title="Compile"
-        active={fileNeedsCompilation}
-        color="blue"
-        icon="paper plane"
-        className="no-border"
-        onClick={() => store.compile()}
-        {...props}
-      />
-    )
-  }),
-  publishProject: React.memo((props) => (
-    <ActionItem title="Publish" icon="world" onClick={() => store.testDialog()} {...props} />
-  )),
-  restartApp: React.memo((props) => (
-    <ActionItem title="Restart" icon="redo" onClick={() => store.compile()} {...props} />
-  )),
-
-  //////////////////////
-  // File Actions
-  //////////////////////
-  createFile: React.memo((props) => (
-    <ActionItem title="New File" icon="pencil" onClick={() => store.createFile()} {...props} />
-  )),
-  duplicateFile: React.memo((props) => (
-    <ActionItem title="Duplicate File" icon="clone outline" onClick={() => store.duplicateFile()} {...props} />
-  )),
-  renameFile: React.memo((props) => (
-    <ActionItem title="Rename File" icon="edit outline" onClick={() => store.renameFile()} {...props} />
-  )),
-  deleteFile: React.memo((props) => (
-    <ActionItem title="Delete File" icon="trash alternate outline" onClick={() => store.deleteFile()} {...props} />
-  )),
-  saveFile: view((props) => {
-    const fileIsDirty = store.file?.isDirty
-    return (
-      <ActionItem
-        title="Save"
-        active={fileIsDirty}
-        color="green"
-        icon="cloud upload"
-        onClick={() => store.saveFile()}
-        {...props}
-      />
-    )
-  }),
-  reloadFile: view((props) => {
-    const fileIsDirty = store.file?.isDirty
-    return (
-      <ActionItem
-        title="Reload"
-        active={fileIsDirty}
-        color="red"
-        icon="cloud download"
-        onClick={() => store.reloadFile()}
-        {...props}
-      />
-    )
-  }),
-
-  //////////////////////
-  // Console
-  //////////////////////
-
-  clearConsole: view((props) => {
-    const consoleisEmpty = spellCore.console.lines.length === 0
-    return (
-      <ActionItem
-        title="Clear Console"
-        disabled={consoleisEmpty}
-        icon="ban"
-        onClick={() => spellCore.console.clear()}
-        {...props}
-      />
-    )
-  }),
-
-  //////////////////////
-  // MatchViwer
-  //////////////////////
-  toggleMatchRuleNames: view((props) => {
-    const { showingMatchRuleNames: showNames } = store
-    return (
-      <ActionItem
-        icon={showNames ? "eye" : "eye slash outline"}
-        content={(showNames ? "Show" : "Hide") + " Rule Names"}
-        onClick={() => store.toggleMatchRuleNames()}
-        {...props}
-      />
-    )
-  }),
-
-  //////////////////////
-  // Testing
-  //////////////////////
-  alert: React.memo((props) => (
-    <ActionItem title="Alert" icon="warning sign" onClick={() => store.alert({ ...props }).then(console.info)} />
-  )),
-  confirm: React.memo((props) => (
-    <ActionItem title="Confirm" icon="question circle" onClick={() => store.alert({ ...props }).then(console.info)} />
-  )),
-  prompt: React.memo((props) => (
-    <ActionItem title="Prompt" icon="edit" onClick={() => store.alert({ ...props }).then(console.info)} />
-  ))
-}
-
-//////////////////////
-// groups of actions
-//////////////////////
-
-actions.PROJECT_DROPDOWN_ACTIONS = [
-  <actions.createProject key="createProject" />,
-  <actions.duplicateProject key="duplicateProject" />,
-  <actions.renameProject key="renameProject" />,
-  <actions.deleteProject key="deleteProject" />
-]
-
-actions.FILE_DROPDOWN_ACTIONS = [
-  <actions.createFile key="createFile" />,
-  <actions.duplicateFile key="duplicateFile" />,
-  <actions.renameFile key="renameFile" />,
-  <actions.deleteFile key="deleteFile" />
-]
-
-export { actions }

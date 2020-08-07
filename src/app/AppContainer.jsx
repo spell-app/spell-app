@@ -1,7 +1,8 @@
 import React from "react"
 
 import { spellCore } from "~/languages/spell"
-import { actions, UI } from "./ui"
+import { actions } from "./actions"
+import { UI } from "./ui"
 import "./AppContainer.less"
 
 export const AppRoot = React.memo(function AppRoot({ showToolbar = true, scrolling = true, padded = true }) {

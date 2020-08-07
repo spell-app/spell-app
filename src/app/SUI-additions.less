@@ -76,3 +76,27 @@
     padding-left: 0.6em;
   }
 }
+
+/** Standard Spell modal apperance */
+.ui.modal.SpellModal {
+  > .header {
+    padding: 1rem;
+  }
+  > .content > .message {
+    font-size: 1.25em;
+  }
+  > .actions {
+    padding: 0.5rem;
+
+    & > .leftButtons {
+      float: left;
+    }
+  }
+}
+
+/** Default button appearance. */
+.ui.button.default {
+  // TODO: take from theme?
+  background-color:#2185d0;
+  color: white;
+}
