@@ -1,5 +1,5 @@
 import React from "react"
-import * as SUI from "semantic-ui-react"
+import { Message } from "semantic-ui-react"
 
 import { view } from "~/util"
 import { store } from "./store"
@@ -34,25 +34,25 @@ export function ErrorDisplay(allProps) {
   props.error = true
   props.onDismiss = onDismiss
   props.children = [
-    <SUI.Message.Header key="header">{header}</SUI.Message.Header>,
-    <SUI.Message.Content key="message">{error.message}</SUI.Message.Content>
+    <Message.Header key="header">{header}</Message.Header>,
+    <Message.Content key="message">{error.message}</Message.Content>
   ]
 
   // add line break betweeen error and context/params
   if (params || context) props.children.push(<br key="break" />)
-  if (context) props.children.push(<SUI.Message.Content key="context">Context: {`${context}`}</SUI.Message.Content>)
+  if (context) props.children.push(<Message.Content key="context">Context: {`${context}`}</Message.Content>)
   if (params) {
-    props.children.push(<SUI.Message.Content key="params-label">Params:</SUI.Message.Content>)
+    props.children.push(<Message.Content key="params-label">Params:</Message.Content>)
     props.children.push(
-      <SUI.Message.List key="params">
+      <Message.List key="params">
         {Object.entries(params).map(([key, value], index) => (
-          <SUI.Message.Item key={index}>{`${key}: ${value}`}</SUI.Message.Item>
+          <Message.Item key={index}>{`${key}: ${value}`}</Message.Item>
         ))}
-      </SUI.Message.List>
+      </Message.List>
     )
   }
 
-  return <SUI.Message {...props} />
+  return <Message {...props} />
 }
 
 /**

@@ -1,12 +1,12 @@
 /* eslint-disable react/prop-types */
 import React from "react"
 import classnames from "classnames"
-import { Menu, Icon } from "semantic-ui-react"
 
 import { view, Observable } from "~/util"
 import { Match } from "~/parser"
 import { spellCore } from "~/languages/spell"
 
+import { actions, UI } from "./ui"
 import { ErrorHandler } from "./ErrorHandler"
 import "./ConsoleViewer.less"
 
@@ -14,32 +14,28 @@ import "./ConsoleViewer.less"
  *  Root element to show the `<ConsoleViewer/>` in `SpellEditor`
  */
 
-export const ConsoleRoot = view(function ConsoleRoot({ showToolbar = true, scrolling = true }) {
+export const ConsoleRoot = React.memo(function ConsoleRoot({ showToolbar = true, scrolling = true }) {
   return (
     <div className="ConsoleRoot">
       {!!showToolbar && <ConsoleToolbar />}
-      <ConsoleViewer lines={spellCore.console.lines} scrolling={scrolling} />
+      <ConsoleViewer scrolling={scrolling} />
     </div>
   )
 })
 
-const bound = {
-  clear: () => spellCore.console.clear()
-}
-export const ConsoleToolbar = view(function ConsoleToolbar() {
-  const consoleisEmpty = spellCore.console.lines.length === 0
+export function ConsoleToolbar() {
   return (
-    <Menu inverted attached="top" className="short tight light-grey">
-      <Menu.Item header className="no-border">
-        Program Output
-      </Menu.Item>
-      <Menu.Menu position="right">
-        <Menu.Item content="Clear" disabled={consoleisEmpty} icon="ban" className="no-border" onClick={bound.clear} />
-        <Menu.Item disabled icon="ellipsis horizontal" />
-      </Menu.Menu>
-    </Menu>
+    <UI.PanelMenu>
+      <UI.Submenu position="left" spring>
+        <UI.MenuHeader title="Program Output" />
+      </UI.Submenu>
+      <UI.Submenu position="right" spring>
+        <actions.clearConsole />
+        <UI.MoreMenu stub />
+      </UI.Submenu>
+    </UI.PanelMenu>
   )
-})
+}
 
 export class ConsoleViewer extends ErrorHandler {
   /** Clear `state.error` if ...??? */
@@ -71,10 +67,10 @@ export class ConsoleViewer extends ErrorHandler {
    * Memoized top-level viewer for a Console, e.g. for a `spellFile.match`.
    * Create one of these and it will create <ConsoleView>s and <TokenView>s underneath it.
    */
-  Component({ lines }) {
-    // TODO: memoize?
+  Component = view(() => {
+    const lines = spellCore.console.lines
     return <ConsoleLines lines={lines} indent={0} />
-  }
+  })
 }
 
 NORMAL_LINE_SPACE = 20
@@ -115,7 +111,7 @@ export const ConsoleGroup = view(function ConsoleGroup({ line, indent }) {
   const toggle = () => (line.collapsed = !line.collapsed)
   const icon = (
     <span className="ConsoleGroupIcon" style={{ width: NORMAL_LINE_SPACE }}>
-      <Icon name={collapsed ? "caret right" : "caret down"} onClick={toggle} />
+      <UI.Icon name={collapsed ? UI.ARROW_COLLAPSED_ICON : UI.ARROW_EXPANDED_ICON} onClick={toggle} />
     </span>
   )
   return (

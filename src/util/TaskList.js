@@ -34,23 +34,22 @@ export class TaskList extends Task {
 
   /** Queue of `Tasks` to run. Note we can also say `taskList.length` */
   @forward("length")
-  @prop
   tasks = []
 
   /** Delay between tasks, in milliseconds. */
-  @prop delayBetweenTasks = 0
+  @proto delayBetweenTasks = 0
 
   /**
    * On success, should we `resolve()` with the value of the `LAST` task
    * or the `RESULTS` of all of the tasks?
    */
-  @prop resolveWith = LAST
+  @proto resolveWith = LAST
 
   /**
    * Should we continue when we encounter an error (failed task)?
    * Note that we'll also ignore errors if an individual `task.isOptional`.
    */
-  @prop continueOnError = false
+  @proto continueOnError = false
 
   //-----------------
   // State

@@ -1,10 +1,11 @@
 /* eslint-disable react/prop-types */
 import React from "react"
-import { Menu } from "semantic-ui-react"
 
 import { view, scrollForElement, centerElementInParent } from "~/util"
-import { store } from "./store"
+
+import { actions, UI } from "./ui"
 import { ErrorHandler } from "./ErrorHandler"
+import { store } from "./store"
 import "./ASTViewer.less"
 
 /**
@@ -21,14 +22,14 @@ export const ASTRoot = view(function ASTRoot({ showToolbar = true, scrolling = t
 
 export function ASTToolbar() {
   return (
-    <Menu inverted attached="top" className="short tight light-grey">
-      <Menu.Item header className="no-border">
-        Javascript Output
-      </Menu.Item>
-      <Menu.Menu position="right">
-        <Menu.Item icon="ellipsis horizontal" className="no-border" />
-      </Menu.Menu>
-    </Menu>
+    <UI.PanelMenu>
+      <UI.Submenu position="left" spring>
+        <UI.MenuHeader title="Javascript Output" />
+      </UI.Submenu>
+      <UI.Submenu position="right" spring>
+        <UI.MoreMenu stub />
+      </UI.Submenu>
+    </UI.PanelMenu>
   )
 }
 

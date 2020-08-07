@@ -39,10 +39,12 @@ export const store = createStore({
   /**
    * Show `<SpellEditor>` for a `path` by updating the URL, which will eventually call `selectPath`
    */
-  showEditor(path = store.file?.path, selection) {
+  showEditor(path, selection) {
+    if (!path) path = store.file?.path
     // TODO: selection!!!!
     try {
       navigate(new SpellLocation(path).editorUrl)
+      store.compile()
     } catch (e) {
       store.showError(`Path '${path}' is invalid!`)
     }
@@ -51,7 +53,8 @@ export const store = createStore({
   /**
    * Show `<SpellRunner>` for a `path` by updating the URL, which will eventually call `selectPath`
    */
-  showRunner: async (path = store.file?.path) => {
+  showRunner: async (path) => {
+    if (!path) path = store.file?.path
     try {
       await navigate(new SpellLocation(path).runnerUrl)
       store.compile()

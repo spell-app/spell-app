@@ -1,5 +1,5 @@
 import React from "react"
-import * as SUI from "semantic-ui-react"
+import { Message } from "semantic-ui-react"
 
 import { view } from "~/util"
 import { store } from "./store"
@@ -19,7 +19,7 @@ export const Notice = view(function Notice({ autoHide = true }) {
 
   if (!message) return null
   return (
-    <SUI.Message
+    <Message
       success
       onDismiss={store.hideNotice}
       header={message}

@@ -1,12 +1,12 @@
 import React from "react"
-import { Menu } from "semantic-ui-react"
 
 import { view } from "~/util"
 
-import { store } from "./store"
+import { actions, UI } from "./ui"
 import { ErrorHandler } from "./ErrorHandler"
 import { CodeMirror, inputOptions } from "./CodeMirror"
-import { FileDropdown, FileActionsDropdown } from "./FileDropdown"
+import { store } from "./store"
+
 import "./InputEditor.less"
 
 // console.info("EditorToolbar", { file, fileIsDirty })
@@ -21,39 +21,31 @@ const bound = {
 /**
  *  Root element to show the `<InputEditor/>` in `SpellEditor`
  */
-export const InputRoot = function InputRoot({ showToolbar = true }) {
+export const InputRoot = React.memo(function InputRoot({ showToolbar = true }) {
   return (
     <div className="InputRoot">
       {!!showToolbar && <InputToolbar />}
       <InputEditor showError={store.showError} />
     </div>
   )
-}
-
-export const InputToolbar = view(function InputToolbar() {
-  const { file } = store
-  const fileIsDirty = file?.isDirty
-  const fileNeedsCompilation = file?.isLoaded && !file?.compiled
-  return (
-    <Menu inverted attached="top" className="short tight light-grey">
-      <FileDropdown noBorder />
-      <Menu.Menu position="right">
-        <Menu.Item
-          content="Compile"
-          active={fileNeedsCompilation}
-          color="blue"
-          icon="paper plane"
-          className="no-border"
-          onClick={bound.saveFile}
-        />
-        <Menu.Item content="Save" active={fileIsDirty} color="green" icon="cloud upload" onClick={bound.saveFile} />
-        <Menu.Item content="Reload" active={fileIsDirty} color="red" icon="cloud download" onClick={bound.reloadFile} />
-        <Menu.Item content="New File" icon="pencil" onClick={bound.createFile} />
-        <FileActionsDropdown />
-      </Menu.Menu>
-    </Menu>
-  )
 })
+
+export function InputToolbar() {
+  return (
+    <UI.PanelMenu>
+      <UI.Submenu position="left" spring>
+        <UI.FileDropdown noBorder />
+      </UI.Submenu>
+      <UI.Submenu position="right" spring>
+        <actions.compileProject noBorder />
+        <actions.saveFile />
+        <actions.reloadFile />
+        <actions.createFile />
+        <UI.FileActionsDropdown />
+      </UI.Submenu>
+    </UI.PanelMenu>
+  )
+}
 
 export class InputEditor extends ErrorHandler {
   /** Clear `state.error` if `props.match` changes. */

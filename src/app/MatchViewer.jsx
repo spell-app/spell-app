@@ -1,13 +1,13 @@
 /* eslint-disable react/prop-types */
 import React from "react"
-import { Menu } from "semantic-ui-react"
 
 import { view, scrollForElement, centerElementInParent } from "~/util"
 import { Token } from "~/parser"
 
-import { store } from "./store"
+import { actions, UI } from "./ui"
 import { ErrorHandler } from "./ErrorHandler"
 import { MatchView } from "./MatchView"
+import { store } from "./store"
 import "./MatchViewer.less"
 
 /**
@@ -18,10 +18,10 @@ export const MatchRoot = view(function MatchRoot({ showToolbar = true, scrolling
   const { showingMatchRuleNames: showNames } = store
   return (
     <div className="MatchRoot">
-      {!!showToolbar && <MatchToolbar showNames={showNames} />}
+      {!!showToolbar && <MatchToolbar />}
       <MatchViewer //
-        compact={showNames}
         scrolling={scrolling}
+        compact={showNames}
         match={store.file?.match}
         selection={store.selection}
         showError={store.showError}
@@ -30,27 +30,19 @@ export const MatchRoot = view(function MatchRoot({ showToolbar = true, scrolling
   )
 })
 
-const bound = {
-  toggleMatchRuleNames: () => store.toggleMatchRuleNames()
-}
-export function MatchToolbar({ showNames }) {
+export const MatchToolbar = React.memo(function MatchToolbar() {
   return (
-    <Menu inverted attached="top" className="short tight light-grey">
-      <Menu.Item header className="no-border">
-        Matched Rules
-      </Menu.Item>
-      <Menu.Menu position="right">
-        <Menu.Item
-          icon={showNames ? "eye" : "eye slash outline"}
-          content={(showNames ? "Show" : "Hide") + " Rule Names"}
-          className="no-border"
-          onClick={bound.toggleMatchRuleNames}
-        />
-        <Menu.Item disabled icon="ellipsis horizontal" />
-      </Menu.Menu>
-    </Menu>
+    <UI.PanelMenu>
+      <UI.Submenu position="left" spring>
+        <UI.MenuHeader title="Matched Rules" />
+      </UI.Submenu>
+      <UI.Submenu position="right" spring>
+        <actions.toggleMatchRuleNames noBorder />
+        <UI.MoreMenu stub />
+      </UI.Submenu>
+    </UI.PanelMenu>
   )
-}
+})
 
 export class MatchViewer extends ErrorHandler {
   /** Clear `state.error` if `props.match` changes. */
