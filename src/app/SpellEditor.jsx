@@ -18,6 +18,7 @@ import { store } from "./store"
  * it redraws automatically when the file changes.
  */
 export const SpellEditor = React.memo(function SpellEditor() {
+  store.projectPage = "editor"
   // Set up hotkey when NOT in codemirror
   // Note these are duplicated in CodeMirror.js
   useHotkeys("command+s", (event) => {
@@ -63,7 +64,6 @@ export function EditorToolbar() {
       </UI.Submenu>
       <UI.Submenu center spring>
         <actions.showProjectChooser />
-        <actions.createProject />
       </UI.Submenu>
       <UI.Submenu right spring>
         <actions.aboutSpell noBorder />

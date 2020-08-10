@@ -5,24 +5,24 @@ import { view } from "~/util"
 import { store } from "./store"
 
 export const Notice = view(function Notice({ autoHide = true }) {
-  const { message } = store
+  const { notice } = store
 
   // autoHide on timeout
   React.useEffect(() => {
-    if (!autoHide || message === null) return
+    if (!autoHide || notice === null) return
     // console.info("creating timer")
     setTimeout(() => {
-      // console.info("timer firing for ", message)
-      if (store.message === message) store.hideNotice()
+      // console.info("timer firing for ", notice)
+      if (store.notice === notice) store.hideNotice()
     }, 3000)
-  }, [message])
+  }, [notice])
 
-  if (!message) return null
+  if (!notice) return null
   return (
     <Message
       success
       onDismiss={store.hideNotice}
-      header={message}
+      header={notice}
       style={{ position: "fixed", top: 60, left: "calc(50% - 250px)", width: 500, zIndex: 100 }}
     />
   )

@@ -9,7 +9,9 @@ import { spellSetup } from "./projectSetup"
  * NOTE: don't create these directly, use the ones set up by `SpellInstall`.
  */
 export class SpellProjectRoot extends JSON5File {
-  // Singleton instances
+  /**
+   * Singleton instances
+   */
   static get projects() {
     return new SpellProjectRoot("@user:projects")
   }
@@ -18,6 +20,16 @@ export class SpellProjectRoot extends JSON5File {
   }
   static get guides() {
     return new SpellProjectRoot("@system:guides")
+  }
+
+  /**
+   * Return singleton root associated with `name` string.
+   */
+  static getRoot(name) {
+    if (typeof name !== "string") return undefined
+    if (name.startsWith("project")) return SpellProjectRoot.projects
+    if (name.startsWith("examples")) return SpellProjectRoot.examples
+    if (name.startsWith("guides")) return SpellProjectRoot.guides
   }
 
   // From `src/projectSetup.js`
@@ -108,7 +120,7 @@ export class SpellProjectRoot extends JSON5File {
    * If you're basing off of a different project, pass its `projectId` (which MUST be valid!!!)
    * Returns `projectId` or `undefined`
    */
-  promptForProjectId({ projectId, defaultName, message = "Name for the new project?", die } = {}) {
+  promptForProjectId({ projectId, defaultName, message = `Name for the new ${this.type}?`, die } = {}) {
     const originalLocation = projectId && new SpellLocation(projectId, die)
     if (!defaultName) defaultName = originalLocation?.projectName || "Untitled"
 

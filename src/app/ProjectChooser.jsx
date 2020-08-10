@@ -81,7 +81,7 @@ export const ProjectChooser = React.memo(function ProjectChooser() {
                   <actions.createExample button title="Create a New Example" fluid />
                 </Column>
                 <Column>
-                  <actions.createExample button title="Create a New Guide" fluid />
+                  <actions.createGuide button title="Create a New Guide" fluid />
                 </Column>
               </Row>
             </UI.Grid>
@@ -98,7 +98,6 @@ export function ChooserToolbar() {
       <UI.Submenu left spring />
       <UI.Submenu center spring>
         <actions.showProjectChooser active />
-        <actions.createProject disabled />
       </UI.Submenu>
       <UI.Submenu right spring>
         <actions.aboutSpell noBorder />

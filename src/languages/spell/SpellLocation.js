@@ -196,7 +196,9 @@ export class SpellLocation {
    * return the associated `path` string.
    */
   static pathForUrl({ domain, project, filePath } = {}) {
-    let path = domain?.startsWith("example") ? "@system:examples" : "@user:projects"
+    const root = SpellProjectRoot.getRoot(domain)
+    if (!root) throw new TypeError(`pathForUrl(): domain '${domain}' is not valid!`)
+    let path = root.path
     if (project) {
       path += `:${project}`
       if (filePath) path += filePath.startsWith("/") ? filePath : `/${filePath}`

@@ -215,6 +215,7 @@ export async function getFolderContents(path, options = {}) {
     includeFiles = true, // `true` = include files
     namesOnly = false, // `true` = return names only, `false` = return full path
     ignoreHidden = false, // `true` = ignore hidden files
+    ignoreEmptyFolders = false, // `true` = ignore empty folders
     pattern // only return items where `pattern.test(path)` is `true` for the full path
   } = options
 
@@ -225,9 +226,13 @@ export async function getFolderContents(path, options = {}) {
   if (!includeFolders || !includeFiles) {
     paths = await filterAsync(paths, async (nextPath) => {
       const isFolder = await pathIsAFolder(nextPath)
-      if (includeFolders && isFolder) return true
-      if (includeFiles && !isFolder) return true
-      return false
+      if (!isFolder) return includeFiles
+      if (!includeFolders) return false
+      if (ignoreEmptyFolders) {
+        const files = await fse.readdir(nextPath)
+        if (files.length === 0) return false
+      }
+      return true
     })
   }
 

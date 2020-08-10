@@ -9,6 +9,7 @@ import { SplitPanel } from "./SplitPanel"
 
 /** Runner page. */
 export const SpellRunner = React.memo(function SpellRunner() {
+  store.projectPage = "runner"
   return (
     <SpellPage id="SpellRunner" fillWindow dark rows>
       <RunnerToolbar />
@@ -30,7 +31,6 @@ export function RunnerToolbar() {
       </UI.Submenu>
       <UI.Submenu center spring>
         <actions.showProjectChooser noBorder />
-        <actions.createProject />
       </UI.Submenu>
       <UI.Submenu right spring>
         <actions.aboutSpell />

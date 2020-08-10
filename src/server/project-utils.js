@@ -43,7 +43,7 @@ const DEFAULT_FILE = {
  */
 export const getProjectList = async (domainId) => {
   const domain = SpellLocation.getProjectRoot(domainId)
-  const options = { includeFolders: true, includeFiles: false, namesOnly: true }
+  const options = { includeFolders: true, includeFiles: false, namesOnly: true, ignoreEmptyFolders: true }
   const projectNames = await fileUtils.getFolderContents(domain.serverPath, options)
   return projectNames.map((projectName) => `${domain.owner}:${domain.domain}:${projectName}`)
 }

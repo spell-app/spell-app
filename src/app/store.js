@@ -38,6 +38,13 @@ export const store = createStore({
   lastSelectionForFile: getSetPref("filePath", "selection"),
 
   /**
+   * Show the project / example / guide chooser page.
+   */
+  showProjectChooser() {
+    return navigate("/")
+  },
+
+  /**
    * Show `<SpellEditor>` for a `path` by updating the URL, which will eventually call `selectPath`
    */
   showEditor(path, selection) {
@@ -65,14 +72,13 @@ export const store = createStore({
   },
 
   /**
-   * Show the project / example / guide chooser page.
+   * Last project page we were showing: "editor" or "runner".
+   * Set by `<SpellEditor>` or `<SpellRunner>`
    */
-  showProjectChooser() {
-    return navigate("/")
-  },
+  projectPage: "editor",
 
   /**
-   * Select a `path` to show in the `<SpellEditor/>`.
+   * Select a `path` to show in the `<SpellEditor/>` or `<SpellRunner>`.
    * Pass `selection` as `{ line, ch }` to set the cursor in the file.
    *  - ultimately this will always (?) come down to selecting a file.
    *  - Default project = last project selected for projectRoot or first project in root.
@@ -128,7 +134,15 @@ export const store = createStore({
       filePath = project.activeImports[0]?.path || project.files[0]?.path || ""
     }
     // TODO: what if no file???
+
     const file = project.getFile(filePath)
+    // if we landed on something else other than the original path, navigate to it
+    if (path !== file.path) {
+      console.warn({ path, file: file.path })
+      if (store.projectPage === "editor") return navigate(new SpellLocation(file.path).editorUrl, { replace: true })
+      else return navigate(new SpellLocation(file.path).editorUrl, { replace: true })
+    }
+
     const sameFile = store.file === file
     if (!sameFile) {
       console.info("selecting file", file)
@@ -166,17 +180,22 @@ export const store = createStore({
     store.onInputEffect()
   },
 
-  async createProject(projectId) {
+  /**
+   * Create an app for the specified `projectRoot`.
+   * `projectId` is optional, if you don't specify we'll ask the user for one.
+   */
+  async createProjectForRoot(projectRoot = store.projectRoot, projectId) {
     try {
-      const project = await store.projectRoot.createProject(projectId)
+      const project = await projectRoot.createProject(projectId)
       if (project) {
         store.showEditor(project.path)
-        store.showNotice("Project created.")
+        store.showNotice(`Created ${project.type} ${project.projectName}.`)
       }
     } catch (e) {
       store.showError(e)
     }
   },
+
   async duplicateProject(newProjectId) {
     try {
       const newProject = await store.projectRoot.duplicateProject(store.project.projectId, newProjectId)
@@ -214,33 +233,24 @@ export const store = createStore({
   },
 
   //-----------------
+  // Projects actions
+  //-----------------
+  createProject(projectId) {
+    return store.createProjectForRoot(SpellProjectRoot.projects, projectId)
+  },
+
+  //-----------------
   // Examples actions
   //-----------------
   async createExample(projectId) {
-    try {
-      const project = await SpellProjectRoot.examples.createProject(projectId)
-      if (project) {
-        store.showEditor(project.path)
-        store.showNotice("Example created.")
-      }
-    } catch (e) {
-      store.showError(e)
-    }
+    return store.createProjectForRoot(SpellProjectRoot.examples, projectId)
   },
 
   //-----------------
   // Guides actions
   //-----------------
   async createGuide(projectId) {
-    try {
-      const project = await SpellProjectRoot.guides.createProject(projectId)
-      if (project) {
-        store.showEditor(project.path)
-        store.showNotice("Example created.")
-      }
-    } catch (e) {
-      store.showError(e)
-    }
+    return store.createProjectForRoot(SpellProjectRoot.guides, projectId)
   },
 
   //-----------------
