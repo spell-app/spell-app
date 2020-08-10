@@ -35,7 +35,7 @@ export function RunnerToolbar() {
       <UI.Submenu right spring>
         <actions.aboutSpell />
         <actions.showDocs noBorder />
-        {/* {/* <actions.showHelp /> */} */}
+        {/* <actions.showHelp /> */}
         {/* <actions.logIn /> */}
         <UI.MoreMenu stub />
       </UI.Submenu>

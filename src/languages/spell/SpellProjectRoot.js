@@ -171,7 +171,7 @@ export class SpellProjectRoot extends JSON5File {
    * Duplicate an existing project.
    * Returns new project, `undefined` if cancelled, or throws on error.
    */
-  async duplicateProject(projectId, newProjectId) {
+  async duplicateApp(projectId, newProjectId) {
     const die = getDier(this, `duplicating ${this.type}`, { projectId, newProjectId })
 
     const location = new SpellLocation(projectId, die)
@@ -207,7 +207,7 @@ export class SpellProjectRoot extends JSON5File {
    * Rename an existing project.
    * Returns new project, `undefined` if cancelled, or throws on error.
    */
-  async renameProject(projectId, newProjectId) {
+  async renameApp(projectId, newProjectId) {
     const die = getDier(this, `renaming ${this.type}`, { projectId, newProjectId })
 
     const location = new SpellLocation(projectId, die)
@@ -247,7 +247,7 @@ export class SpellProjectRoot extends JSON5File {
    * Remove an existing project.
    * Returns `true` on success, `false` if cancelled, or throws on error.
    */
-  async deleteProject(projectId, shouldConfirm) {
+  async deleteApp(projectId, shouldConfirm) {
     const die = getDier(this, `removing ${this.type}`, { projectId })
     const location = new SpellLocation(projectId, die)
 

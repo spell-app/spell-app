@@ -61,29 +61,21 @@ export const actions = {
   )),
 
   //////////////////////
-  // Project actions
+  // App actions -- work on store.project
   //////////////////////
-  projectSettings: React.memo((props) => (
+  duplicateApp: React.memo((props) => (
+    <ActionItem title="Duplicate Project" icon="clone outline" onClick={() => store.duplicateApp()} {...props} />
+  )),
+  renameApp: React.memo((props) => (
+    <ActionItem title="Rename Project" icon="edit outline" onClick={() => store.renameApp()} {...props} />
+  )),
+  deleteApp: React.memo((props) => (
+    <ActionItem title="Delete Project" icon="trash alternate outline" onClick={() => store.deleteApp()} {...props} />
+  )),
+  appSettings: React.memo((props) => (
     <ActionItem title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
   )),
-  createProject: React.memo((props) => (
-    <ActionItem title="New Project" icon="pencil" onClick={() => store.createProject()} {...props} />
-  )),
-  duplicateProject: React.memo((props) => (
-    <ActionItem title="Duplicate Project" icon="clone outline" onClick={() => store.duplicateProject()} {...props} />
-  )),
-  renameProject: React.memo((props) => (
-    <ActionItem title="Rename Project" icon="edit outline" onClick={() => store.renameProject()} {...props} />
-  )),
-  deleteProject: React.memo((props) => (
-    <ActionItem
-      title="Delete Project"
-      icon="trash alternate outline"
-      onClick={() => store.deleteProject()}
-      {...props}
-    />
-  )),
-  compileProject: view((props) => {
+  compileApp: view((props) => {
     const { file } = store
     const fileNeedsCompilation = file?.isLoaded && !file?.compiled
     return (
@@ -93,16 +85,23 @@ export const actions = {
         color="blue"
         icon="paper plane"
         className="no-border"
-        onClick={() => store.compile()}
+        onClick={() => store.compileApp()}
         {...props}
       />
     )
   }),
-  publishProject: React.memo((props) => (
-    <ActionItem title="Publish" icon="world" onClick={() => store.testDialog()} {...props} />
+  publishApp: React.memo((props) => (
+    <ActionItem title="Publish" icon="world" onClick={() => store.publishApp()} {...props} />
   )),
   restartApp: React.memo((props) => (
-    <ActionItem title="Restart" icon="redo" onClick={() => store.compile()} {...props} />
+    <ActionItem title="Restart" icon="redo" onClick={() => store.compileApp()} {...props} />
+  )),
+
+  //////////////////////
+  // Project actions
+  //////////////////////
+  createProject: React.memo((props) => (
+    <ActionItem title="New Project" icon="pencil" onClick={() => store.createProject()} {...props} />
   )),
 
   //////////////////////
@@ -120,7 +119,7 @@ export const actions = {
   )),
 
   //////////////////////
-  // File Actions
+  // File Actions -- work on store.file
   //////////////////////
   createFile: React.memo((props) => (
     <ActionItem title="New File" icon="pencil" onClick={() => store.createFile()} {...props} />
@@ -233,9 +232,9 @@ export const actions = {
 
 actions.PROJECT_DROPDOWN_ACTIONS = [
   <actions.createProject key="createProject" />,
-  <actions.duplicateProject key="duplicateProject" />,
-  <actions.renameProject key="renameProject" />,
-  <actions.deleteProject key="deleteProject" />
+  <actions.duplicateApp key="duplicateApp" />,
+  <actions.renameApp key="renameApp" />,
+  <actions.deleteApp key="deleteApp" />
 ]
 
 actions.FILE_DROPDOWN_ACTIONS = [

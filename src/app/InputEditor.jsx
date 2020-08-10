@@ -29,7 +29,7 @@ export function InputToolbar() {
         <UI.FileDropdown noBorder />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.compileProject noBorder />
+        <actions.compileApp noBorder />
         <actions.saveFile />
         <actions.reloadFile />
         <actions.createFile />

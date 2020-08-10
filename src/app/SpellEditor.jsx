@@ -26,7 +26,7 @@ export const SpellEditor = React.memo(function SpellEditor() {
     store.saveFile()
   })
   useHotkeys("shift-command+r", () => store.reloadFile())
-  useHotkeys("command+enter", () => store.compile())
+  useHotkeys("command+enter", () => store.compileApp())
   useHotkeys("command+n", (event) => {
     event.preventDefault()
     store.createFile()

@@ -52,7 +52,7 @@ export const store = createStore({
     // TODO: selection!!!!
     try {
       navigate(new SpellLocation(path).editorUrl)
-      store.compile()
+      store.compileApp()
     } catch (e) {
       store.showError(`Path '${path}' is invalid!`)
     }
@@ -65,7 +65,7 @@ export const store = createStore({
     if (!path) path = store.file?.path
     try {
       await navigate(new SpellLocation(path).runnerUrl)
-      store.compile()
+      store.compileApp()
     } catch (e) {
       store.showError(`Path '${path}' is invalid!`)
     }
@@ -117,7 +117,7 @@ export const store = createStore({
     if (!sameProject) {
       console.info("selecting project", project)
       // stop current compilation
-      store.clearCompileSoon()
+      store.clearCompileAppSoon()
       // remember this project was selected for projectRoot
       store.lastProjectForRoot(location.projectRoot, projectPath)
       await project.load()
@@ -158,7 +158,7 @@ export const store = createStore({
     store.file = file
     await file.load()
     // If we switched projects, recompile
-    if (!sameProject) store.compile()
+    if (!sameProject) store.compileApp()
   },
 
   /**
@@ -184,7 +184,7 @@ export const store = createStore({
    * Create an app for the specified `projectRoot`.
    * `projectId` is optional, if you don't specify we'll ask the user for one.
    */
-  async createProjectForRoot(projectRoot = store.projectRoot, projectId) {
+  async createApp(projectRoot = store.projectRoot, projectId) {
     try {
       const project = await projectRoot.createProject(projectId)
       if (project) {
@@ -196,9 +196,9 @@ export const store = createStore({
     }
   },
 
-  async duplicateProject(newProjectId) {
+  async duplicateApp(newProjectId) {
     try {
-      const newProject = await store.projectRoot.duplicateProject(store.project.projectId, newProjectId)
+      const newProject = await store.projectRoot.duplicateApp(store.project.projectId, newProjectId)
       // console.warn({ newProject })
       if (newProject) {
         store.showEditor(newProject.path)
@@ -208,9 +208,9 @@ export const store = createStore({
       store.showError(e)
     }
   },
-  async renameProject(newProjectId) {
+  async renameApp(newProjectId) {
     try {
-      const project = await store.projectRoot.renameProject(store.project.projectId, newProjectId)
+      const project = await store.projectRoot.renameApp(store.project.projectId, newProjectId)
       if (project) {
         store.showEditor(project.path)
         store.showNotice("Project renamed.")
@@ -219,9 +219,9 @@ export const store = createStore({
       store.showError(e)
     }
   },
-  async deleteProject() {
+  async deleteApp() {
     try {
-      const removed = await store.projectRoot.deleteProject(store.project.projectId, CONFIRM)
+      const removed = await store.projectRoot.deleteApp(store.project.projectId, CONFIRM)
       if (removed) {
         // Navigate to nextProject, or the projectRoot, which will select another project
         store.showEditor(store.projectRoot.path)
@@ -232,104 +232,14 @@ export const store = createStore({
     }
   },
 
-  //-----------------
-  // Projects actions
-  //-----------------
-  createProject(projectId) {
-    return store.createProjectForRoot(SpellProjectRoot.projects, projectId)
-  },
-
-  //-----------------
-  // Examples actions
-  //-----------------
-  async createExample(projectId) {
-    return store.createProjectForRoot(SpellProjectRoot.examples, projectId)
-  },
-
-  //-----------------
-  // Guides actions
-  //-----------------
-  async createGuide(projectId) {
-    return store.createProjectForRoot(SpellProjectRoot.guides, projectId)
-  },
-
-  //-----------------
-  // File actions
-  //-----------------
-
-  async saveFile() {
-    if (store.file?.isLoaded) await store.file.save()
-  },
-  async reloadFile() {
-    store.clearCompileSoon()
-    if (store.file) {
-      await store.file.reload()
-      store.compile()
-    }
-  },
-  async createFile(filePath, contents) {
-    store.clearCompileSoon()
-    try {
-      const newFile = await store.project.createFile(filePath, contents)
-      if (newFile) {
-        store.showEditor(newFile.path)
-        store.showNotice("File created.")
-      }
-    } catch (e) {
-      store.showError(e)
-    }
-  },
-  async duplicateFile(newPath) {
-    store.clearCompileSoon()
-    try {
-      const newFile = await store.project.duplicateFile(store.file.filePath, newPath)
-      if (newFile) {
-        store.showEditor(newFile.path)
-        store.showNotice("File duplicated.")
-      }
-    } catch (e) {
-      store.showError(e)
-    }
-  },
-  async renameFile(newPath) {
-    store.clearCompileSoon()
-    try {
-      const renamedFile = await store.project.renameFile(store.file.filePath, newPath)
-      if (renamedFile) {
-        store.showEditor(renamedFile.path)
-        store.showNotice("File renamed.")
-      }
-    } catch (e) {
-      store.showError(e)
-    }
-  },
-  async deleteFile() {
-    store.clearCompileSoon()
-    try {
-      const { project, file } = store
-      // figure out what to select next out of `project.imports`
-      const files = project.imports.map(({ file }) => file)
-      const fileIndex = files.indexOf(file)
-      const nextFile = files[fileIndex + (fileIndex === files.length - 1 ? -1 : 1)]
-      // actually remove the file
-      const removed = await project.deleteFile(file.filePath, CONFIRM)
-      if (removed) {
-        // select the nextFile, or the project (which will select another file)
-        store.showEditor(nextFile?.path || project.path)
-        store.showNotice("File removed.")
-      }
-    } catch (e) {
-      store.showError(e)
-    }
-  },
-  async compile() {
+  async compileApp() {
     if (!store.project || !store.file) return
 
     spellCore.console.clear()
     try {
       spellCore.console.group("Compiling", store.project)
 
-      store.clearCompileSoon()
+      store.clearCompileAppSoon()
       await store.project.compile()
       const { compiled } = store.project
 
@@ -343,14 +253,14 @@ export const store = createStore({
         spellCore.console.log(lines)
         spellCore.console.groupEnd()
 
-        await store.executeCompiled()
+        await store.executeCompiledApp()
       }
     } finally {
       spellCore.console.groupEnd()
     }
   },
 
-  async executeCompiled() {
+  async executeCompiledApp() {
     if (!store.project?.compiled) return
     spellCore.console.group("Executing project")
     const result = await store.project.executeCompiled()
@@ -366,14 +276,105 @@ export const store = createStore({
   },
 
   // Compile after `delay` seconds.
-  compileSoon(delay = 1) {
-    store.clearCompileSoon()
-    store.compileSoonTimer = setTimeout(store.compile, delay * 1000)
+  compileAppSoon(delay = 1) {
+    store.clearCompileAppSoon()
+    store.compileAppSoonTimer = setTimeout(store.compileApp, delay * 1000)
   },
-  clearCompileSoon() {
-    if (store.compileSoonTimer) {
-      clearTimeout(store.compileSoonTimer)
-      delete store.compileSoonTimer
+  clearCompileAppSoon() {
+    if (store.compileAppSoonTimer) {
+      clearTimeout(store.compileAppSoonTimer)
+      delete store.compileAppSoonTimer
+    }
+  },
+
+  //-----------------
+  // Projects actions
+  //-----------------
+  createProject(projectId) {
+    return store.createApp(SpellProjectRoot.projects, projectId)
+  },
+
+  //-----------------
+  // Examples actions
+  //-----------------
+  async createExample(projectId) {
+    return store.createApp(SpellProjectRoot.examples, projectId)
+  },
+
+  //-----------------
+  // Guides actions
+  //-----------------
+  async createGuide(projectId) {
+    return store.createApp(SpellProjectRoot.guides, projectId)
+  },
+
+  //-----------------
+  // File actions
+  //-----------------
+
+  async saveFile() {
+    if (store.file?.isLoaded) await store.file.save()
+  },
+  async reloadFile() {
+    store.clearCompileAppSoon()
+    if (store.file) {
+      await store.file.reload()
+      store.compileApp()
+    }
+  },
+  async createFile(filePath, contents) {
+    store.clearCompileAppSoon()
+    try {
+      const newFile = await store.project.createFile(filePath, contents)
+      if (newFile) {
+        store.showEditor(newFile.path)
+        store.showNotice("File created.")
+      }
+    } catch (e) {
+      store.showError(e)
+    }
+  },
+  async duplicateFile(newPath) {
+    store.clearCompileAppSoon()
+    try {
+      const newFile = await store.project.duplicateFile(store.file.filePath, newPath)
+      if (newFile) {
+        store.showEditor(newFile.path)
+        store.showNotice("File duplicated.")
+      }
+    } catch (e) {
+      store.showError(e)
+    }
+  },
+  async renameFile(newPath) {
+    store.clearCompileAppSoon()
+    try {
+      const renamedFile = await store.project.renameFile(store.file.filePath, newPath)
+      if (renamedFile) {
+        store.showEditor(renamedFile.path)
+        store.showNotice("File renamed.")
+      }
+    } catch (e) {
+      store.showError(e)
+    }
+  },
+  async deleteFile() {
+    store.clearCompileAppSoon()
+    try {
+      const { project, file } = store
+      // figure out what to select next out of `project.imports`
+      const files = project.imports.map(({ file }) => file)
+      const fileIndex = files.indexOf(file)
+      const nextFile = files[fileIndex + (fileIndex === files.length - 1 ? -1 : 1)]
+      // actually remove the file
+      const removed = await project.deleteFile(file.filePath, CONFIRM)
+      if (removed) {
+        // select the nextFile, or the project (which will select another file)
+        store.showEditor(nextFile?.path || project.path)
+        store.showNotice("File removed.")
+      }
+    } catch (e) {
+      store.showError(e)
     }
   },
 
@@ -575,7 +576,7 @@ export const store = createStore({
     store.file.setContents(value, { isDirty: true })
     store.project.updatedContentsFor(store.file)
     // auto-compile 2 seconds after input settles
-    store.compileSoon(2)
+    store.compileAppSoon(2)
   },
 
   //-----------------

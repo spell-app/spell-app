@@ -233,14 +233,14 @@ export const request_createProject = respondWithJSON(async (request) => {
  * Duplicate project `projectId` as `newProjectId`.
  * Request version returns updated project list.
  */
-export const duplicateProject = async (projectId, newProjectId) => {
+export const duplicateApp = async (projectId, newProjectId) => {
   const location = SpellLocation.getProjectLocation(projectId)
   const newLocation = SpellLocation.getProjectLocation(newProjectId)
   return await fileUtils.copyPath(location.serverPath, newLocation.serverPath)
 }
-export const request_duplicateProject = respondWithJSON(async (request) => {
+export const request_duplicateApp = respondWithJSON(async (request) => {
   const { projectId, newProjectId } = request.body
-  await duplicateProject(projectId, newProjectId)
+  await duplicateApp(projectId, newProjectId)
   return await getProjectList(projectId)
 })
 
@@ -248,14 +248,14 @@ export const request_duplicateProject = respondWithJSON(async (request) => {
  * Rename project `projectId` to `newProjectId`.
  * Request version returns updated project list.
  */
-export const renameProject = async (projectId, newProjectId) => {
+export const renameApp = async (projectId, newProjectId) => {
   const location = SpellLocation.getProjectLocation(projectId)
   const newLocation = SpellLocation.getProjectLocation(newProjectId)
   return await fileUtils.movePath(location.serverPath, newLocation.serverPath)
 }
-export const request_renameProject = respondWithJSON(async (request) => {
+export const request_renameApp = respondWithJSON(async (request) => {
   const { projectId, newProjectId } = request.body
-  await renameProject(projectId, newProjectId)
+  await renameApp(projectId, newProjectId)
   return await getProjectList(projectId)
 })
 
@@ -263,13 +263,13 @@ export const request_renameProject = respondWithJSON(async (request) => {
  * Remove (permanently delete) project `projectId`.
  * Request version returns updated project list.
  */
-export const deleteProject = async (projectId) => {
+export const deleteApp = async (projectId) => {
   const location = SpellLocation.getProjectLocation(projectId)
   return await fileUtils.deletePath(location.serverPath)
 }
-export const request_deleteProject = respondWithJSON(async (request) => {
+export const request_deleteApp = respondWithJSON(async (request) => {
   const { projectId } = request.body
-  await deleteProject(projectId)
+  await deleteApp(projectId)
   return await getProjectList(projectId)
 })
 

@@ -23,7 +23,7 @@ export function AppToolbar() {
       <UI.Submenu right spring>
         <actions.restartApp noBorder />
         {/* <actions.showRunner /> */}
-        <actions.publishProject />
+        <actions.publishApp />
         <UI.MoreMenu stub />
       </UI.Submenu>
     </UI.PanelMenu>

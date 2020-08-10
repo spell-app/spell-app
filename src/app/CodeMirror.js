@@ -44,7 +44,7 @@ export const inputOptions = {
   extraKeys: {
     "Cmd-S": () => store.saveFile(),
     "Shift-Cmd-R": () => store.reloadFile(),
-    "Cmd-Enter": () => store.compile()
+    "Cmd-Enter": () => store.compileApp()
   },
   scrollbarStyle: "native"
 }
