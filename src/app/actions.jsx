@@ -172,17 +172,37 @@ export const actions = {
   }),
 
   //////////////////////
-  // Modals -- props will be passed directly to modal constructor
+  // Modals
+  // - `title`, `icon`, `itemProps` will be passed to the item.
+  // - `callback` will be executed with returned value (logs to console by default).
+  // - other `props` will be passed to modal constructor. ???
   //////////////////////
-  alert: React.memo(({ title = "Alert", icon = "warning sign", ...props }) => (
-    <ActionItem title={title} icon={icon} onClick={() => store.alert({ ...props }).then(console.info)} />
-  )),
-  confirm: React.memo((props) => (
-    <ActionItem title="Confirm" icon="question circle" onClick={() => store.confirm({ ...props }).then(console.info)} />
-  )),
-  prompt: React.memo((props) => (
-    <ActionItem title="Prompt" icon="edit" onClick={() => store.prompt({ ...props }).then(console.info)} />
-  ))
+  alert: React.memo(({ callback = console.log, title = "Alert", icon = "warning sign", itemProps, ...modalProps }) => {
+    itemProps = { title, icon, ...itemProps }
+    return (
+      <ActionItem title={title} icon={icon} {...itemProps} onClick={() => store.alert(modalProps).then(callback)} />
+    )
+  }),
+  confirm: React.memo(
+    ({ callback = console.log, title = "Confirm", icon = "question circle", itemProps, ...modalProps }) => {
+      itemProps = { title, icon, ...itemProps }
+      return <ActionItem {...itemProps} onClick={() => store.confirm(modalProps).then(callback)} />
+    }
+  ),
+  prompt: React.memo(({ callback = console.log, title = "Prompt", icon = "edit", itemProps, ...modalProps }) => {
+    itemProps = { title, icon, ...itemProps }
+    return <ActionItem {...itemProps} onClick={() => store.prompt(modalProps).then(callback)} />
+  }),
+  promptForNumber: React.memo(
+    ({ callback = console.log, title = "Prompt Number", icon = "hashtag", itemProps, ...modalProps }) => {
+      itemProps = { title, icon, ...itemProps }
+      return <ActionItem {...itemProps} onClick={() => store.promptForNumber(modalProps).then(callback)} />
+    }
+  ),
+  choose: React.memo(({ callback = console.log, title = "Choose", icon = "list", itemProps, ...modalProps }) => {
+    itemProps = { title, icon, ...itemProps }
+    return <ActionItem {...itemProps} onClick={() => store.choose(modalProps).then(callback)} />
+  })
 }
 
 //////////////////////

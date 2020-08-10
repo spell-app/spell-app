@@ -95,8 +95,18 @@
 }
 
 /** Default button appearance. */
-.ui.button.default {
-  // TODO: take from theme?
-  background-color:#2185d0;
-  color: white;
+.ui.button.default {}
+
+/** Invalid form fields. */
+.spell.input-hint {
+  display: block;
+  color: rgba(0,0,0,.5);
+  font-size: .8em;
+  line-height: 1.4em;
+  padding-top: 0.4em;
+  height: 1.8em;
+
+  &.error {
+    color: #9f3a38;
+  }
 }

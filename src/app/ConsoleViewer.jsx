@@ -31,20 +31,40 @@ export function ConsoleToolbar() {
         <UI.MenuHeader title="Program Output" />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.alert message="Yo!" />
-        <actions.confirm message="Yah?" ok="Yep" cancel={{ content: "Nope", color: "pink", floated: "left" }} />
-        <actions.prompt
-          header="Quantity needed"
-          message="How many?"
-          extraButtons={[{ floated: "left", button: "YES", value: () => store.alert("You're MINE") }]}
+        <actions.alert title="" message="Yo!" />
+        <actions.confirm
+          title=""
+          message="Yah?"
+          ok="Yep"
+          cancel={{ content: "Nope", color: "pink", floated: "left" }}
         />
-        <actions.alert
-          title="Recursive"
-          icon="bug"
-          header="Recursive alert"
-          message="Shall we recurse???"
-          ok="no"
-          extraButtons={[{ floated: "left", button: "YES", value: () => store.alert("You're MINE") }]}
+        <actions.prompt
+          title=""
+          message="What is your name?"
+          defaultValue="Bob"
+          extraButtons={[{ floated: "left", button: "Recurse", value: () => store.alert("Modal-in-modal action!") }]}
+        />
+        <actions.promptForNumber
+          title=""
+          header="Quantity needed:"
+          message="How many did you want?"
+          inputProps={{ min: 10, max: 100, step: 1, hint: "Between 10 and 100", required: true }}
+        />
+        <actions.choose
+          title=""
+          header="Pick one"
+          message="Message"
+          options={{ a: "Option A", b: "Option B", c: "Option C" }}
+        />
+        <actions.choose
+          title=""
+          header="Pick many"
+          message="Message"
+          options={{ a: "Option A", b: "Option B", c: "Option C" }}
+          required
+          multiple
+          extensible
+          defaultValue={["a", "b"]}
         />
         <actions.clearConsole />
         <UI.MoreMenu stub />

@@ -364,26 +364,52 @@ export const store = createStore({
     return store.showModal(props, UI.Confirm)
   },
 
-  prompt(props = { message: "How much?", defaultValue: "10" }) {
+  prompt(props = "Tell me what you think?") {
     if (typeof props === "string") props = { message: props }
     return store.showModal(props, UI.Prompt)
+  },
+
+  // Prompt for a number, by default an integer.
+  // Pass `{ inputProps: { step, min, max }` to customize input.
+  promptForNumber(props = "How many?") {
+    if (typeof props === "string") props = { message: props }
+    props = { valueType: "number", inputProps: { step: 1 }, ...props }
+    return store.showModal(props, UI.Prompt)
+  },
+
+  // Show chooser dialog.
+  // You MUST pass at least `{ message, options }`.
+  choose(props) {
+    if (!props?.message || !props.options) {
+      console.warn("store.choose(): must pass 'message' and 'options', got:", props)
+      return Promise.reject(undefined)
+    }
+    return store.showModal(props, UI.Chooser)
   },
 
   /**
    * Generic method to show a `component` modal with `props`.
    * Returns a promise which will resolve/reject as per `component` setup.
    */
-  modalId: 0,
-  modals: [],
+  modalId: 0, // Seqeuence to generate unique modal `id`s.
+  modals: [], // Current stack of modals, topmost at end.
+  debugModals: false,
   showModal(props, component) {
     let modalProps
     const promise = new Promise((resolve, reject) => {
       modalProps = { id: store.modalId++, props, component, resolve, reject }
       store.modals = [...store.modals, modalProps]
-    })
-    promise.finally(() => {
+    }).finally(() => {
+      // make sure `store.modals` gets cleaned up however we resolve the promise
       store.modals = store.modals.filter((it) => it.id !== modalProps.id)
     })
+
+    if (store.debugModals) {
+      // NOTE: don't put this in the promise returned to the caller
+      promise.then((value) => console.info("Modal resolved with:", value, "\nprops:", modalProps))
+      promise.catch((error) => console.info("Modal rejected with:", error, "\nprops:", modalProps))
+    }
+
     return promise
   },
 

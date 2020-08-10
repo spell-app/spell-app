@@ -976,13 +976,15 @@ export const methods = new SpellParser({
           if (match) {
             const { signature } = match.groups
             if (!signature.startsWithKeyword) {
-              if (!isNode)
-                console.warn("quoted_type_expression: must start with a keyword. Skipping match.", { tokens, match })
+              if (!isNode) {
+                // console.warn("quoted_type_expression: must start with a keyword. Skipping match.", { tokens, match })
+              }
               return undefined
             }
             if (signature.args.length > 1) {
-              if (!isNode)
-                console.warn("quoted_type_expression: too many arguments. Skipping match.", { tokens, match })
+              if (!isNode) {
+                // console.warn("quoted_type_expression: too many arguments. Skipping match.", { tokens, match })
+              }
               return undefined
             }
           }
