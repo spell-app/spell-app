@@ -14,31 +14,39 @@ class SpellSetup {
     "@user:projects": {
       owner: "@user",
       domain: "projects",
-      label: "Projects",
-      singular: "Project",
-      description: "User projects"
-    },
-    "@user:library": {
-      owner: "@user",
-      domain: "library",
-      label: "Library",
-      singular: "Library",
-      description: "User library"
+      title: "Projects",
+      Type: "Project",
+      type: "project",
+      description: "User projects blah blah blah",
+      icon: "app store ios"
     },
     "@system:examples": {
       owner: "@system",
       domain: "examples",
-      label: "Examples",
-      singular: "Example",
-      description: "Example projects"
+      title: "Examples",
+      Type: "Example",
+      type: "example",
+      description: "Example projects",
+      icon: "app store ios"
     },
     "@system:guides": {
       owner: "@system",
       domain: "guides",
-      label: "Guides",
-      singular: "Guide",
-      description: "Usage guides"
+      title: "Guides",
+      Type: "Guide",
+      type: "guide",
+      description: "Usage guides",
+      icon: "newspaper outline"
     }
+    // "@user:library": {
+    //   owner: "@user",
+    //   domain: "library",
+    //   label: "Library",
+    //   singular: "Library",
+    //   type: "library",
+    //   description: "User library",
+    //   icon: "app store ios"
+    // },
   }
 }
 export const spellSetup = new SpellSetup()

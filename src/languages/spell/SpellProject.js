@@ -58,7 +58,6 @@ export class SpellProject extends JSON5File {
     //
     "projectId",
     "owner",
-    "projectRoot",
     "projectName",
     "isSystemProject",
     "isUserProject"
@@ -66,6 +65,12 @@ export class SpellProject extends JSON5File {
   @memoize
   get location() {
     return new SpellLocation(this.path)
+  }
+
+  @forward("type", "Type")
+  @memoize
+  get projectRoot() {
+    return new SpellProjectRoot(this.location.projectRoot)
   }
 
   //-----------------
@@ -122,10 +127,10 @@ export class SpellProject extends JSON5File {
   @memoize
   get parser() {
     return new TaskList({
-      name: `Parsing project: ${this.projectName}`,
+      name: `Parsing ${this.type}: ${this.projectName}`,
       tasks: [
         new Task({
-          name: "Loading project",
+          name: `Loading ${this.type}`,
           run: (parentScope) => {
             this.resetCompiled()
             const scope = this.getScope(parentScope)
@@ -154,7 +159,7 @@ export class SpellProject extends JSON5File {
   get compiler() {
     return new TaskList({
       debug: true,
-      name: `Compiling project: ${this.projectName}`,
+      name: `Compiling ${this.type}: ${this.projectName}`,
       tasks: [
         this.parser,
         TaskList.forEach({
@@ -266,7 +271,7 @@ export class SpellProject extends JSON5File {
     try {
       this.load()
     } catch (e) {
-      die("Error loading project index", e)
+      die(`Error loading ${this.type} index`, e)
     }
   }
 
@@ -444,7 +449,7 @@ export class SpellProject extends JSON5File {
       })
       this.setContents(newIndex)
     } catch (e) {
-      die("Server error creating project", e)
+      die("Server error creating file", e)
     }
 
     // Return the file
@@ -521,7 +526,7 @@ export class SpellProject extends JSON5File {
   async deleteFile(filePath, shouldConfirm) {
     const die = getDier(this, "deleting file", { projectId: this.projectId, filePath })
     await this.loadOrDie(die)
-    if (this.files.length === 1) die("You can't delete the last file in a project.")
+    if (this.files.length === 1) die(`You can't delete the last file in this ${this.type}.`)
 
     const file = this.getFile(filePath) || die("File not found.")
 

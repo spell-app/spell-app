@@ -1,17 +1,25 @@
 import React from "react"
-import { Menu } from "semantic-ui-react"
+import classnames from "classnames"
+import { Button, Menu } from "semantic-ui-react"
 
 import { spellCore } from "~/languages/spell"
 import { view } from "~/util"
 import { store } from "./store"
 
 /**
- * Component to show action menu item with our semantics.
+ * Component to show action menu item or button with our semantics.
+ * - `button`     If `true` we'll make a SUI `Button`, otherwise a `Menu.Item`.
+ * - `title`      Item title
+ * - `icon`       Item icon
+ * - `noBorder`   True to hide the SUI item border.
+ * - `className`  Custom className
+ * ... everything else will be passed directly to the item
  * NOTE: we assume this will be memoized by the caller if appropriate.
  */
-export function ActionItem({ title, noBorder, className = "", ...props }) {
+export function ActionItem({ title, button = false, noBorder, className = "", ...props }) {
   const klass = [className, noBorder && "no-border"].filter(Boolean).join(" ")
-  return <Menu.Item content={title} className={klass} {...props} />
+  const Component = button ? Button : Menu.Item
+  return <Component content={title} className={classnames(className, noBorder && "no-border")} {...props} />
 }
 
 /**
@@ -55,7 +63,7 @@ export const actions = {
   //////////////////////
   // Project actions
   //////////////////////
-  createProject: React.memo((props) => (
+  projectSettings: React.memo((props) => (
     <ActionItem title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
   )),
   createProject: React.memo((props) => (
@@ -95,6 +103,20 @@ export const actions = {
   )),
   restartApp: React.memo((props) => (
     <ActionItem title="Restart" icon="redo" onClick={() => store.compile()} {...props} />
+  )),
+
+  //////////////////////
+  // Examples actions
+  //////////////////////
+  createExample: React.memo((props) => (
+    <ActionItem title="New Example" icon="pencil" onClick={() => store.createExample()} {...props} />
+  )),
+
+  //////////////////////
+  // Guides actions
+  //////////////////////
+  createGuide: React.memo((props) => (
+    <ActionItem title="New Guide" icon="pencil" onClick={() => store.createGuide()} {...props} />
   )),
 
   //////////////////////

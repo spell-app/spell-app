@@ -54,7 +54,7 @@ export const store = createStore({
   /**
    * Show `<SpellRunner>` for a `path` by updating the URL, which will eventually call `selectPath`
    */
-  showRunner: async (path) => {
+  async showRunner(path) {
     if (!path) path = store.file?.path
     try {
       await navigate(new SpellLocation(path).runnerUrl)
@@ -62,6 +62,13 @@ export const store = createStore({
     } catch (e) {
       store.showError(`Path '${path}' is invalid!`)
     }
+  },
+
+  /**
+   * Show the project / example / guide chooser page.
+   */
+  showProjectChooser() {
+    return navigate("/")
   },
 
   /**
@@ -200,6 +207,36 @@ export const store = createStore({
         // Navigate to nextProject, or the projectRoot, which will select another project
         store.showEditor(store.projectRoot.path)
         store.showNotice("Project removed.")
+      }
+    } catch (e) {
+      store.showError(e)
+    }
+  },
+
+  //-----------------
+  // Examples actions
+  //-----------------
+  async createExample(projectId) {
+    try {
+      const project = await SpellProjectRoot.examples.createProject(projectId)
+      if (project) {
+        store.showEditor(project.path)
+        store.showNotice("Example created.")
+      }
+    } catch (e) {
+      store.showError(e)
+    }
+  },
+
+  //-----------------
+  // Guides actions
+  //-----------------
+  async createGuide(projectId) {
+    try {
+      const project = await SpellProjectRoot.guides.createProject(projectId)
+      if (project) {
+        store.showEditor(project.path)
+        store.showNotice("Example created.")
       }
     } catch (e) {
       store.showError(e)

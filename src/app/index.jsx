@@ -11,8 +11,9 @@ import { Router } from "@reach/router"
 import "~/parser"
 import { spellCore } from "~/languages/spell"
 
-import { SpellEditorRoute } from "./SpellEditorRoute"
-import { SpellRunnerRoute } from "./SpellRunnerRoute"
+import { ProjectChooserRoute } from "./ProjectChooser"
+import { SpellEditorRoute } from "./SpellEditor"
+import { SpellRunnerRoute } from "./SpellRunner"
 import { ErrorNotice } from "./ErrorNotice"
 import { Notice } from "./Notice"
 import { UI } from "./ui"
@@ -36,11 +37,12 @@ function renderApp() {
         <SpellEditorRoute path="edit/:domain" />
         <SpellEditorRoute path="edit/:domain/:project" />
         <SpellEditorRoute path="edit/:domain/:project/*filePath" />
-        <SpellEditorRoute default domain="projects" />
 
         <SpellRunnerRoute path="run/:domain" />
         <SpellRunnerRoute path="run/:domain/:project" />
         <SpellRunnerRoute path="run/:domain/:project/*filePath" />
+
+        <ProjectChooserRoute default />
       </Router>
       {/* Modals / Notice / ErrorNotice for all pages */}
       <UI.ModalContainer />

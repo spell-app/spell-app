@@ -14,13 +14,13 @@
  */
 import React from "react"
 import classnames from "classnames"
-import { Icon, Input, Button, Menu, Modal, Dropdown } from "semantic-ui-react"
+import { Button, Card, Container, Dropdown, Grid, Icon, Input, Menu, Modal, Segment } from "semantic-ui-react"
 
 import { view } from "~/util"
 
 import { actions, ActionItem } from "./actions"
 import { FileDropdown } from "./FileDropdown"
-import { ProjectDropdown } from "./ProjectDropdown"
+import { ProjectDropdown, ProjectMenu } from "./ProjectDropdown"
 import { store } from "./store"
 
 /**
@@ -38,6 +38,12 @@ export const UI = {
   PanelMenu: React.memo((props) => (
     <Menu inverted color="purple" attached="top" className="PanelMenu short tight" {...props} />
   )),
+
+  /** SUI Pass-throughs */
+  Container,
+  Grid,
+  Segment,
+  Card,
 
   /** Left / Center / Right Sub-Menus. */
   Submenu: React.memo(({ left, center, right, spring, children, ...props }) => {
@@ -80,7 +86,8 @@ export const UI = {
   // Project UI
   //////////////////////
   PROJECT_ICON: "app store ios",
-  ProjectDropdown: ProjectDropdown, // re-export for convenience
+  ProjectDropdown, // re-export for convenience
+  ProjectMenu, // re-export for convenience
   ProjectActionsDropdown: React.memo((props) => {
     return <UI.MoreMenu {...props}>{actions.PROJECT_DROPDOWN_ACTIONS}</UI.MoreMenu>
   }),

@@ -9,15 +9,24 @@ import { spellSetup } from "./projectSetup"
  * NOTE: don't create these directly, use the ones set up by `SpellInstall`.
  */
 export class SpellProjectRoot extends JSON5File {
+  // Singleton instances
+  static get projects() {
+    return new SpellProjectRoot("@user:projects")
+  }
+  static get examples() {
+    return new SpellProjectRoot("@system:examples")
+  }
+  static get guides() {
+    return new SpellProjectRoot("@system:guides")
+  }
+
   // From `src/projectSetup.js`
-  // owner: "@user"
-  // domain: "projects",
-  // label: "Projects",
-  // description: "User projects",
   @writeOnce path
   @writeOnce owner
   @writeOnce domain
   @writeOnce label
+  @writeOnce singular
+  @writeOnce type
   @writeOnce description
   @writeOnce location
 
@@ -114,7 +123,7 @@ export class SpellProjectRoot extends JSON5File {
    * Returns new project, `undefined` if cancelled, or throws on error.
    */
   async createProject(projectId) {
-    const die = getDier(this, "creating project", { projectId })
+    const die = getDier(this, `creating ${this.type}`, { projectId })
 
     if (!projectId) projectId = this.promptForProjectId({ die })
     if (!projectId) return undefined
@@ -124,7 +133,7 @@ export class SpellProjectRoot extends JSON5File {
     if (!location.isProjectPath) die("You must pass a projectId.")
 
     await this.loadOrDie(die)
-    if (this.getProject(projectId)) die("Project already exists.")
+    if (this.getProject(projectId)) die(`${this.Type} already exists.`)
 
     // Tell the server to create the project, which returns new projects list
     try {
@@ -140,10 +149,10 @@ export class SpellProjectRoot extends JSON5File {
       })
       this.setContents(newContents)
     } catch (e) {
-      die("Server error creating project", e)
+      die(`Server error creating ${this.type}`, e)
     }
     // Return the new project
-    return this.getProject(projectId) || die("Server didn't create the new project.")
+    return this.getProject(projectId) || die(`Server didn't create the new ${this.type}.`)
   }
 
   /**
@@ -151,12 +160,12 @@ export class SpellProjectRoot extends JSON5File {
    * Returns new project, `undefined` if cancelled, or throws on error.
    */
   async duplicateProject(projectId, newProjectId) {
-    const die = getDier(this, "duplicating project", { projectId, newProjectId })
+    const die = getDier(this, `duplicating ${this.type}`, { projectId, newProjectId })
 
     const location = new SpellLocation(projectId, die)
 
     await this.loadOrDie(die)
-    const project = this.getProject(projectId) || die("Project does not exist.")
+    const project = this.getProject(projectId) || die(`${this.Type} does not exist.`)
 
     if (!newProjectId) newProjectId = this.promptForProjectId({ projectId, die })
     if (!newProjectId) return undefined
@@ -164,7 +173,7 @@ export class SpellProjectRoot extends JSON5File {
 
     const newLocation = new SpellLocation(newProjectId, die)
     if (!newLocation.isProjectPath) die("You must pass a newProjectId.")
-    if (this.getProject(newProjectId)) die("New project already exists.")
+    if (this.getProject(newProjectId)) die(`New ${this.type} already exists.`)
 
     // Tell the server to duplicate the project, which returns new projects list
     try {
@@ -176,10 +185,10 @@ export class SpellProjectRoot extends JSON5File {
       })
       this.setContents(newContents)
     } catch (e) {
-      die("Server error duplicating project", e)
+      die(`Server error duplicating ${this.type}`, e)
     }
     // Return the new project
-    return this.getProject(newProjectId) || die("Couldn't create new project")
+    return this.getProject(newProjectId) || die(`Couldn't create new ${this.type}`)
   }
 
   /**
@@ -187,20 +196,21 @@ export class SpellProjectRoot extends JSON5File {
    * Returns new project, `undefined` if cancelled, or throws on error.
    */
   async renameProject(projectId, newProjectId) {
-    const die = getDier(this, "renaming project", { projectId, newProjectId })
+    const die = getDier(this, `renaming ${this.type}`, { projectId, newProjectId })
 
     const location = new SpellLocation(projectId, die)
 
     await this.loadOrDie(die)
-    const project = this.getProject(projectId) || die("Project does not exist.")
+    const project = this.getProject(projectId) || die(`${this.Type} does not exist.`)
 
-    if (!newProjectId) newProjectId = this.promptForProjectId({ projectId, message: "New name for the project?", die })
+    if (!newProjectId)
+      newProjectId = this.promptForProjectId({ projectId, message: `New name for the ${this.type}?`, die })
     if (!newProjectId || newProjectId === projectId) return undefined
     die.params.newProjectId = newProjectId
 
     const newLocation = new SpellLocation(newProjectId, die)
     if (!newLocation.isProjectPath) die("You must pass a newProjectId.")
-    if (this.getProject(newProjectId)) die("New project already exists.")
+    if (this.getProject(newProjectId)) die(`New ${this.type} already exists.`)
 
     // Tell the server to duplicate the project, which returns new projects list
     try {
@@ -214,11 +224,11 @@ export class SpellProjectRoot extends JSON5File {
       // Have the project clean itself up in a tick (delay is so React doesn't barf on hooks).
       setTimeout(() => project.onRemove(), 10)
     } catch (e) {
-      die("Server error renaming project", e)
+      die(`Server error renaming ${this.type}`, e)
     }
 
     // Return the new project
-    return this.getProject(newProjectId) || die("Server couldn't rename project.")
+    return this.getProject(newProjectId) || die(`Server couldn't rename ${this.type}.`)
   }
 
   /**
@@ -226,14 +236,14 @@ export class SpellProjectRoot extends JSON5File {
    * Returns `true` on success, `false` if cancelled, or throws on error.
    */
   async deleteProject(projectId, shouldConfirm) {
-    const die = getDier(this, "removing project", { projectId })
+    const die = getDier(this, `removing ${this.type}`, { projectId })
     const location = new SpellLocation(projectId, die)
 
     await this.loadOrDie(die)
-    const project = this.getProject(projectId) || die("Project does not exist.")
+    const project = this.getProject(projectId) || die(`${this.Type} does not exist.`)
 
     if (shouldConfirm === CONFIRM) {
-      if (!confirm(`Really remove project '${project.projectName}'?`)) return false
+      if (!confirm(`Really remove ${this.type} '${project.projectName}'?`)) return false
     }
 
     // Tell the server to remove the project, which returns new projects list
@@ -247,10 +257,10 @@ export class SpellProjectRoot extends JSON5File {
       })
       this.setContents(newContents)
     } catch (e) {
-      die("Server error renaming project", e)
+      die(`Server error renaming ${this.type}`, e)
     }
     // Barf if the project still exists
-    if (this.getProject(projectId)) die("Server didn't delete project.")
+    if (this.getProject(projectId)) die(`Server didn't delete ${this.type}.`)
 
     // Have the project clean itself up in a tick
     // (delay is so React doesn't barf on hooks).

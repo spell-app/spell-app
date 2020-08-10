@@ -35,10 +35,22 @@ export function RunnerToolbar() {
       <UI.Submenu right spring>
         <actions.aboutSpell />
         <actions.showDocs noBorder />
-        {/* <actions.showHelp /> */}
+        {/* {/* <actions.showHelp /> */} */}
         {/* <actions.logIn /> */}
         <UI.MoreMenu stub />
       </UI.Submenu>
     </UI.AppMenu>
   )
+}
+
+/**
+ * Reach-router `<Route/>` to show a project/example/etc by path.
+ */
+export function SpellRunnerRoute(props) {
+  const { domain, project, filePath } = props
+  const path = SpellLocation.pathForUrl({ domain, project, filePath })
+  // console.info("SpellRunnerRoute", path, props)
+  // HACK: Actually navigate on a timeout to avoid hook / rerender problems.
+  setTimeout(() => store.selectPath(path), 0)
+  return <SpellRunner />
 }
