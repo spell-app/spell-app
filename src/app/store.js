@@ -20,9 +20,12 @@ export const store = createStore({
   projectRoot: undefined,
   /** Get/save last viewed `projectPath` for `projectRootPath`. */
   lastProjectForRoot: getSetPref("projectRootPath", "projectPath"),
+  get appType() {
+    return store.projectRoot?.Type || "Project"
+  },
 
   /**
-   * `SpellProject` shown in `SpellEditor`.
+   * Current `SpellProject` shown in `SpellEditor`.
    * Update with `store.showEditor()`
    */
   project: undefined,
@@ -202,7 +205,7 @@ export const store = createStore({
       // console.warn({ newProject })
       if (newProject) {
         store.showEditor(newProject.path)
-        store.showNotice("Project duplicated.")
+        store.showNotice(`${project.Type} duplicated.`)
       }
     } catch (e) {
       store.showError(e)
@@ -213,7 +216,7 @@ export const store = createStore({
       const project = await store.projectRoot.renameApp(store.project.projectId, newProjectId)
       if (project) {
         store.showEditor(project.path)
-        store.showNotice("Project renamed.")
+        store.showNotice(`${project.Type} renamed.`)
       }
     } catch (e) {
       store.showError(e)
@@ -225,7 +228,7 @@ export const store = createStore({
       if (removed) {
         // Navigate to nextProject, or the projectRoot, which will select another project
         store.showEditor(store.projectRoot.path)
-        store.showNotice("Project removed.")
+        store.showNotice(`${removed.Type} removed.`)
       }
     } catch (e) {
       store.showError(e)
@@ -262,17 +265,17 @@ export const store = createStore({
 
   async executeCompiledApp() {
     if (!store.project?.compiled) return
-    spellCore.console.group("Executing project")
+    spellCore.console.group(`Executing ${store.project.type}`)
     const result = await store.project.executeCompiled()
     spellCore.console.groupEnd()
     if (result instanceof Error) {
-      spellCore.console.error("Project failed with error:", result)
+      spellCore.console.error(`${store.project.Type} failed with error:`, result)
       // Throw so the error is printed to the browser console.
       // This will have the print the correct line number to the right
       // but we apparently don't have another way to get it???
       throw result
     }
-    spellCore.console.info("Project executed without errors.  exports =", result)
+    spellCore.console.info(`${store.project.Type} executed without errors.  exports =`, result)
   },
 
   // Compile after `delay` seconds.

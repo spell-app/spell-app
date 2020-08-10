@@ -8,16 +8,15 @@ import { store } from "./store"
 
 /**
  * Component to show action menu item or button with our semantics.
+ * - `title`      Required item title.
+ * - `icon`       Required item icon.
  * - `button`     If `true` we'll make a SUI `Button`, otherwise a `Menu.Item`.
- * - `title`      Item title
- * - `icon`       Item icon
- * - `noBorder`   True to hide the SUI item border.
+ * - `noBorder`   Set to `true` to hide the SUI item border.
  * - `className`  Custom className
  * ... everything else will be passed directly to the item
  * NOTE: we assume this will be memoized by the caller if appropriate.
  */
 export function ActionItem({ title, button = false, noBorder, className = "", ...props }) {
-  const klass = [className, noBorder && "no-border"].filter(Boolean).join(" ")
   const Component = button ? Button : Menu.Item
   return <Component content={title} className={classnames(className, noBorder && "no-border")} {...props} />
 }
@@ -33,8 +32,8 @@ export const actions = {
   aboutSpell: React.memo((props) => (
     <ActionItem title="About Spell" icon="wizard" onClick={() => store.aboutSpell()} {...props} />
   )),
-  showEditor: React.memo((props) => (
-    <ActionItem title="Edit Project" icon="edit outline" onClick={() => store.showEditor()} {...props} />
+  showEditor: view((props) => (
+    <ActionItem title={`Edit ${store.appType}`} icon="edit outline" onClick={() => store.showEditor()} {...props} />
   )),
   showRunner: React.memo((props) => (
     <ActionItem title="Preview" icon="hand point up" onClick={() => store.showRunner()} {...props} />
@@ -43,12 +42,7 @@ export const actions = {
     <ActionItem title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
   )),
   showProjectChooser: React.memo((props) => (
-    <ActionItem
-      title="Open Example or Project"
-      icon="app store ios"
-      onClick={() => store.showProjectChooser()}
-      {...props}
-    />
+    <ActionItem title="Open or Create..." icon="app store ios" onClick={() => store.showProjectChooser()} {...props} />
   )),
   showDocs: React.memo((props) => (
     <ActionItem title="Docs" icon="newspaper outline" onClick={() => store.showDocs()} {...props} />
@@ -61,16 +55,29 @@ export const actions = {
   )),
 
   //////////////////////
-  // App actions -- work on store.project
+  // App actions -- work on store.project, create according to `store.projectRoot`
   //////////////////////
-  duplicateApp: React.memo((props) => (
-    <ActionItem title="Duplicate Project" icon="clone outline" onClick={() => store.duplicateApp()} {...props} />
+  createApp: view((props) => (
+    <ActionItem title={`Create ${store.appType}`} icon="pencil" onClick={() => store.createApp()} {...props} />
   )),
-  renameApp: React.memo((props) => (
-    <ActionItem title="Rename Project" icon="edit outline" onClick={() => store.renameApp()} {...props} />
+  duplicateApp: view((props) => (
+    <ActionItem
+      title={`Duplicate ${store.appType}`}
+      icon="clone outline"
+      onClick={() => store.duplicateApp()}
+      {...props}
+    />
   )),
-  deleteApp: React.memo((props) => (
-    <ActionItem title="Delete Project" icon="trash alternate outline" onClick={() => store.deleteApp()} {...props} />
+  renameApp: view((props) => (
+    <ActionItem title={`Rename ${store.appType}`} icon="edit outline" onClick={() => store.renameApp()} {...props} />
+  )),
+  deleteApp: view((props) => (
+    <ActionItem
+      title={`Delete ${store.appType}`}
+      icon="trash alternate outline"
+      onClick={() => store.deleteApp()}
+      {...props}
+    />
   )),
   appSettings: React.memo((props) => (
     <ActionItem title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
@@ -100,7 +107,7 @@ export const actions = {
   //////////////////////
   // Project actions
   //////////////////////
-  createProject: React.memo((props) => (
+  createProject: view((props) => (
     <ActionItem title="New Project" icon="pencil" onClick={() => store.createProject()} {...props} />
   )),
 
@@ -231,7 +238,7 @@ export const actions = {
 //////////////////////
 
 actions.PROJECT_DROPDOWN_ACTIONS = [
-  <actions.createProject key="createProject" />,
+  <actions.createApp key="createApp" />,
   <actions.duplicateApp key="duplicateApp" />,
   <actions.renameApp key="renameApp" />,
   <actions.deleteApp key="deleteApp" />
