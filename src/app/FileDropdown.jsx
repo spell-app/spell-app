@@ -7,6 +7,17 @@ import { actions } from "./actions"
 import { UI } from "./ui"
 import { store } from "./store"
 
+/* Single item in FileDropdown */
+const FileDropdownAction = React.memo(({ useRunner, path, location, active }) => (
+  <Dropdown.Item
+    text={location.file}
+    value={path}
+    icon={UI.FILE_ICON}
+    active={active}
+    onClick={() => (useRunner ? store.showRunner(path) : store.showEditor(path))}
+  />
+))
+
 /** Menu of all available projects. */
 export const FileDropdown = view(function FileDropdown({
   useRunner = false,
@@ -29,7 +40,7 @@ export const FileDropdown = view(function FileDropdown({
   }
   if (ready) {
     const menuItems = project.imports.map(({ path, location }) => (
-      <UI.FileDropdownAction
+      <FileDropdownAction
         key={path}
         useRunner={useRunner}
         path={path}

@@ -8,6 +8,16 @@ import { actions } from "./actions"
 import { UI } from "./ui"
 import { store } from "./store"
 
+export const ProjectDropdownAction = React.memo(({ useRunner, path, location, active }) => (
+  <Dropdown.Item
+    text={location.projectName}
+    value={path}
+    icon={UI.PROJECT_ICON}
+    active={active}
+    onClick={() => (useRunner ? store.showRunner(path) : store.showEditor(path))}
+  />
+))
+
 /** Menu of all available projects. */
 export const ProjectDropdown = React.memo(
   view(function ProjectDropdown({ useRunner = false, showLabel = true, showActions = false, noBorder = false }) {
@@ -28,7 +38,7 @@ export const ProjectDropdown = React.memo(
       const menuItems = projectRoot.projectPaths.map((path) => {
         const location = new SpellLocation(path)
         return (
-          <UI.ProjectDropdownAction
+          <ProjectDropdownAction
             key={path}
             useRunner={useRunner}
             path={path}

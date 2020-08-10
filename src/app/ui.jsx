@@ -84,30 +84,12 @@ export const UI = {
   ProjectActionsDropdown: React.memo((props) => {
     return <UI.MoreMenu {...props}>{actions.PROJECT_DROPDOWN_ACTIONS}</UI.MoreMenu>
   }),
-  ProjectDropdownAction: React.memo(({ useRunner, path, location, active }) => (
-    <Dropdown.Item
-      text={location.projectName}
-      value={path}
-      icon={UI.PROJECT_ICON}
-      active={active}
-      onClick={() => (useRunner ? store.showRunner(path) : store.showEditor(path))}
-    />
-  )),
 
   //////////////////////
   // File UI
   //////////////////////
   FILE_ICON: "file code",
   FileDropdown: FileDropdown, // re-export for convenience
-  FileDropdownAction: React.memo(({ useRunner, path, location, active }) => (
-    <Dropdown.Item
-      text={location.file}
-      value={path}
-      icon={UI.FILE_ICON}
-      active={active}
-      onClick={() => (useRunner ? store.showRunner(path) : store.showEditor(path))}
-    />
-  )),
   FileActionsDropdown: React.memo((props) => {
     return <UI.MoreMenu {...props}>{actions.FILE_DROPDOWN_ACTIONS}</UI.MoreMenu>
   }),
