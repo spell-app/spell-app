@@ -14,7 +14,7 @@
  */
 import React from "react"
 import classnames from "classnames"
-import { Button, Card, Container, Dropdown, Form, Grid, Icon, Input, Menu, Modal, Segment } from "semantic-ui-react"
+import { Button, Card, Container, Dropdown, Grid, Icon, Input, Menu, Modal, Segment } from "semantic-ui-react"
 
 import { view } from "~/util"
 
@@ -22,13 +22,13 @@ import { actions, ActionItem } from "./actions"
 import { FileDropdown } from "./FileDropdown"
 import { ProjectDropdown, ProjectMenu } from "./ProjectDropdown"
 import { store } from "./store"
-import * as WithField from "./WithField"
+import * as Form from "./Form"
 
 /**
  * Constructors for standard UI elements.
  */
 export const UI = {
-  ...WithField,
+  ...Form,
 
   ActionItem,
 
