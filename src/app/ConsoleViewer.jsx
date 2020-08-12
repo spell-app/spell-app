@@ -49,6 +49,7 @@ export function ConsoleToolbar() {
           header="Quantity needed:"
           message="How many did you want?"
           inputProps={{ min: 10, max: 100, step: 1, hint: "Between 10 and 100", required: true }}
+          callback={(value) => console.log(value, typeof value)}
         />
         <actions.choose
           title=""

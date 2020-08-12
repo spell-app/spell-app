@@ -14,7 +14,7 @@
  */
 import React from "react"
 import classnames from "classnames"
-import { Button, Card, Container, Dropdown, Grid, Icon, Input, Menu, Modal, Segment } from "semantic-ui-react"
+import { Button, Card, Container, Dropdown, Form, Grid, Icon, Input, Menu, Modal, Segment } from "semantic-ui-react"
 
 import { view } from "~/util"
 
@@ -22,11 +22,14 @@ import { actions, ActionItem } from "./actions"
 import { FileDropdown } from "./FileDropdown"
 import { ProjectDropdown, ProjectMenu } from "./ProjectDropdown"
 import { store } from "./store"
+import * as WithField from "./WithField"
 
 /**
  * Constructors for standard UI elements.
  */
 export const UI = {
+  ...WithField,
+
   ActionItem,
 
   /** Top-level app menu. */
@@ -332,45 +335,29 @@ export const UI = {
    * - `message`      Mandatory message to show.
    * - `header`       Optional header for the dialog.
    * - `defaultValue` Start value for field, default `""`.
-   * - `valueType`    `<Input type>`, default `text`.
+   * - `type`         `<Input type>`, default `text`.
    * - `inputProps`   Optional props to pass to the `<Input>`, e.g.
-   *                  with `valueType="number"` set `inputProps={{ min: 10, max: 100 }}`
+   *                  with `type="number"` set `inputProps={{ min: 10, max: 100 }}`
    * - `ok`           Text title or button props for OK button, default "OK".
    * - `cancel`       Text title or button props for Cancel button, default "Cancel".
    * - ...and other standard `Modal` props.
    */
   Prompt: React.memo(function Prompt({ props, resolve, isTopModal }) {
-    const {
-      message,
-      ok = "OK",
-      cancel = "Cancel",
-      defaultValue = "",
-      valueType = "text",
-      inputProps,
-      ...modalProps
-    } = props
+    const { message, ok = "OK", cancel = "Cancel", defaultValue, type = "text", inputProps, ...modalProps } = props
 
     const input = UI.useInput({
-      focus: true,
+      label: message,
+      autoFocus: true,
       fluid: true,
-      valueType,
+      type: type,
       defaultValue,
       ...inputProps,
-      onEnterKey() {
-        const { value, isValid } = input
-        if (!isValid) return
-        if (value === "") return resolve(undefined)
-        resolve(value)
-      }
+      onEnterKey: submit
     })
-    // console.warn(input)
-
-    const content = (
-      <div className="message">
-        <label htmlFor="prompt">{message}</label>
-        {input.content}
-      </div>
-    )
+    const content = <div className="message">{input.content}</div>
+    function submit() {
+      if (!input.error) resolve(input.value)
+    }
 
     return (
       <UI.Modal
@@ -379,7 +366,7 @@ export const UI = {
         resolve={resolve}
         content={content}
         buttons={[
-          { isDefault: true, button: ok, value: input.onEnterKey },
+          { isDefault: true, button: ok, value: submit, disabled: !!input.error || input.value === undefined },
           { isCancel: true, button: cancel, value: undefined }
         ]}
         onEscape="cancel"
@@ -394,7 +381,7 @@ export const UI = {
    * `props` of note:
    * - `focus`          Set to true to always focus (??).
    * - `defaultValue`   Initial value for field, defaults to `""`.
-   * - `valueType`      `<input type>`.  Defaults to `text`.
+   * - `type`           `<input type>`.  Defaults to `text`.
    * - `onEnterKey`     Function to execute if they hit enter and the field is valid.
    * - `hint`           Hint about value, will be replaced by validation error message if necessary.
    * all other `props` are passed to the `<Input>`.
@@ -408,16 +395,16 @@ export const UI = {
    * - `wasTouched` Has the field been touched (focused in and exited).
    * and internal-ish properties:
    * - `inputId`    Unique id string for the input (for attaching to labels.)
-   * - `inputRef`   React `ref` to the `<Input>`.
-   * - `state`      React `ref` for the current state: `{ value, touched, focused, error }`.
+   * - `state`      React `ref` for the current state: `{ current: { value, touched, focused, error } }`.
+   * - DOC:  `value`, `isValid`, `error`, `isFocused`, `wasTouched`
    * - `onEnterKey` As passed in, to make it easy to hook up to the `ok` button in a modal.
    */
   inputId: 0,
-  useInput({ valueType, defaultValue = "", hint = "", focus = false, required, onEnterKey, ...inputProps }) {
-    // Pointer to the input.
-    const inputRef = React.useRef()
+  useInput({ type, defaultValue, label, hint, autoFocus = false, required, onEnterKey, ...inputProps }) {
+    const [_, forceUpdate] = React.useState()
     // Current state, passed back to caller to manipulate field
     const state = React.useRef({
+      content: undefined, // set below
       value: defaultValue,
       touched: false,
       focused: false,
@@ -426,104 +413,69 @@ export const UI = {
     const bound = React.useMemo(() => {
       return {
         inputId: `input-${UI.inputId++}`,
-        getHTMLInput: () => document.querySelector(`#${bound.inputId}`),
-        getSUIElement: () => bound.getHTMLInput()?.parentElement,
-        getHintElement: () => bound.getSUIElement()?.nextElementSibling,
+        get inputElement() {
+          return document.querySelector(`#${bound.inputId}`)
+        },
+        setAndValidate(stateProps, delay = 0) {
+          Object.assign(state.current, stateProps)
 
-        fieldIsValid() {
-          const field = bound.getHTMLInput()
-          if (!field) return
-          // figure out browser valid/error
-          let { validationMessage: error } = field
+          // get browser validation error directly from the field
+          let error = bound.inputElement?.validationMessage
+          // do our own `required` checking so we don't show required error until after field is touched
+          // TODO: form submit needs to set `touched` on all fields!
           if (!error && required && state.current.touched && state.current.value === "") {
             error = "This field is required."
           }
           state.current.error = error || undefined
-          const suiElement = bound.getSUIElement()
-          const hintElement = bound.getHintElement()
-          // console.info({ error, field, element, hintElement })
-
-          // update element and hintElement out of react's hands
-          if (error) {
-            suiElement.classList.add("error")
-            hintElement.classList.add("error")
-            hintElement.innerText = error
-          } else {
-            suiElement.classList.remove("error")
-            hintElement.classList.remove("error")
-            hintElement.innerText = hint
-          }
-          return !error
-        },
-        onFocus() {
-          // console.info("focus")
-          bound.getSUIElement()?.classList.add("focus")
-          state.current.focused = true
-        },
-        onBlur() {
-          // console.info("blur")
-          bound.getSUIElement()?.classList.remove("focus")
-          state.current.focused = false
-          state.current.touched = true
-          bound.fieldIsValid()
+          // update on slight delay
+          setTimeout(() => bound.inputElement && forceUpdate(Date.now(), delay))
         },
         onChange(event, { value }) {
-          // console.info("change")
-          state.current.value = value
-          bound.fieldIsValid()
+          if (value === "") value = undefined
+          else if (type === "number" || type === "range") value = parseFloat(value, 10)
+          bound.setAndValidate({ value }, 20)
+        },
+        onFocus() {
+          bound.setAndValidate({ focused: true })
+        },
+        onBlur() {
+          bound.setAndValidate({ focused: false, touched: true }, 200) // longer delay so no flash if they `Cancel`
         },
         onKeyUp({ key }) {
           // console.info("onKeyUp", target.value, target, target.validationMessage)
-          if (onEnterKey && key === "Enter" && bound.fieldIsValid()) onEnterKey(state.current.value)
+          if (onEnterKey && key === "Enter") onEnterKey()
         }
       }
     }, [])
 
-    // Auto-focus if we were told to.
-    // And run `fieldIsValid` on start.
-    React.useEffect(() => {
-      bound.fieldIsValid()
-      if (focus) inputRef.current.focus()
-    }, [focus])
-
-    const content = (
+    // Run field validation before each draw
+    const { error, focused, value } = state.current
+    state.current.content = (
       <>
+        {!!label && (
+          <label className="spell input-label" htmlFor={bound.inputId}>
+            {label}
+          </label>
+        )}
         <Input
           id={bound.inputId}
-          ref={inputRef}
-          type={valueType}
-          defaultValue={state.current.value}
+          type={type}
+          autoFocus={autoFocus}
+          focus={focused}
+          defaultValue={value}
+          error={!!error}
           onFocus={bound.onFocus}
           onBlur={bound.onBlur}
           onChange={bound.onChange}
           onKeyUp={bound.onKeyUp}
           {...inputProps}
         />
-        <label htmlFor={bound.inputId} className="spell input-hint" />
+        <label htmlFor={bound.inputId} className={classnames("spell", "input-hint", error && "error")}>
+          {error || hint || ""}
+        </label>
       </>
     )
-    return {
-      inputId: bound.inputId,
-      inputRef,
-      state,
-      content,
-      get value() {
-        return state.current.value
-      },
-      get error() {
-        return state.current.error
-      },
-      get isValid() {
-        return !state.current.error
-      },
-      get isFocused() {
-        return state.current.focused
-      },
-      get wasTouched() {
-        return state.current.touched
-      },
-      onEnterKey // pass back for caller convenience
-    }
+    return state.current
   },
 
   /**
@@ -766,5 +718,55 @@ export const UI = {
     return Object.entries(options).map(([value, text]) => {
       return { key: value, value, text }
     })
+  },
+
+  fieldId: 0,
+  Field: class Field extends React.Component {
+    id = `spell-field-${UI.fieldId++}`
+    get form() {
+      return this.props.form
+    }
+    get element() {
+      return document.getElementById(this.id)
+    }
+    validate = () => {
+      let error = this.element?.validationMessage
+      if (!error && this.props.required && (this.form.isSubmitting || this.touched) && this.value === undefined) {
+        error = "This field is required."
+      }
+      this.form.setError(this.props.path, error)
+    }
+    fieldProps = {
+      id: this.id,
+      get value() {
+        return this.form.getValue(this.props.path)
+      },
+      get error() {
+        return this.form.getError(this.props.path)
+      },
+      touched: false,
+      focused: false,
+      onChange() {
+        this.validate()
+        this.form.setValue(this, value, !fieldProps.error)
+      },
+      onFocus() {
+        this.focused = true
+        this.validate()
+      },
+      onBlur() {
+        this.focused = false
+        this.touched = true
+        this.validate()
+      },
+      onKeyUp() {
+        if (key === "Enter") this.form.onEnterKey(this)
+      }
+    }
+    render() {
+      const { form, path, Component, ...elementProps } = this.props
+      return React.createElement(Component, { ...elementProps, ...this.fieldProps })
+    }
   }
 }
+window.UI = UI

@@ -141,9 +141,9 @@ export const store = createStore({
     const file = project.getFile(filePath)
     // if we landed on something else other than the original path, navigate to it
     if (path !== file.path) {
-      console.warn({ path, file: file.path })
-      if (store.projectPage === "editor") return navigate(new SpellLocation(file.path).editorUrl, { replace: true })
-      else return navigate(new SpellLocation(file.path).editorUrl, { replace: true })
+      // console.warn({ path, file: file.path })
+      const url = file.location[store.projectPage === "editor" ? "editorUrl" : "runnerUrl"]
+      return navigate(url, { replace: true })
     }
 
     const sameFile = store.file === file
@@ -424,7 +424,7 @@ export const store = createStore({
   // Pass `{ inputProps: { step, min, max }` to customize input.
   promptForNumber(props = "How many?") {
     if (typeof props === "string") props = { message: props }
-    props = { valueType: "number", inputProps: { step: 1 }, ...props }
+    props = { type: "number", inputProps: { step: 1 }, ...props }
     return store.showModal(props, UI.Prompt)
   },
 
@@ -542,36 +542,38 @@ export const store = createStore({
     const { inputEditor, file } = store
     const { path, initialSelection, isLoaded } = file || {}
     if (!inputEditor || !isLoaded || !initialSelection) return
-    console.info("initializing input", { path, initialSelection, inputEditor })
-    try {
-      // HACK: manually set the height of the codeMirror instance
-      // so that the bottom scrollbar shows up in the right place.
-      // ????
-      // const { clientWidth, clientHeight } = document.querySelector("#InputEditor")
-      // inputEditor.setSize(clientWidth, clientHeight - 1)
-      // inputEditor.resize()
-      // console.info(inputEditor)
 
-      // clear the `initialSelection` flag so we don't try to scroll again
-      delete file.initialSelection
+    console.info("TODO: DEFERRING onInputEffect():  see store.onInputEffect")
+    // console.info("initializing input", { path, initialSelection, inputEditor })
+    // try {
+    //   // HACK: manually set the height of the codeMirror instance
+    //   // so that the bottom scrollbar shows up in the right place.
+    //   // ????
+    //   // const { clientWidth, clientHeight } = document.querySelector("#InputEditor")
+    //   // inputEditor.setSize(clientWidth, clientHeight - 1)
+    //   // inputEditor.resize()
+    //   // console.info(inputEditor)
 
-      // turn into a `cursor` event so we'll scroll the views
-      if (initialSelection.scroll) initialSelection.scroll.event = "cursor"
-      store.lastSelectionForFile(file.path, initialSelection)
-      // Set `store.selection` after a delay so rendering works better
-      setTimeout(() => {
-        console.info("onInputEffect setting selection to ", initialSelection)
-        store.selection = initialSelection
-      }, 10)
+    //   // clear the `initialSelection` flag so we don't try to scroll again
+    //   delete file.initialSelection
 
-      // scroll the inputEditor itself to match
-      const { scroll, anchor, head } = initialSelection
-      inputEditor.scrollTo(0, scroll?.scroll || 0)
-      if (anchor && head) inputEditor.doc.setSelection(anchor, head)
-      inputEditor.focus()
-    } catch (e) {
-      console.warn("CM scroll error:", e)
-    }
+    //   // turn into a `cursor` event so we'll scroll the views
+    //   if (initialSelection.scroll) initialSelection.scroll.event = "cursor"
+    //   store.lastSelectionForFile(file.path, initialSelection)
+    //   // Set `store.selection` after a delay so rendering works better
+    //   setTimeout(() => {
+    //     console.info("onInputEffect setting selection to ", initialSelection)
+    //     store.selection = initialSelection
+    //   }, 10)
+
+    //   // scroll the inputEditor itself to match
+    //   const { scroll, anchor, head } = initialSelection
+    //   inputEditor.scrollTo(0, scroll?.scroll || 0)
+    //   if (anchor && head) inputEditor.doc.setSelection(anchor, head)
+    //   inputEditor.focus()
+    // } catch (e) {
+    //   console.warn("CM scroll error:", e)
+    // }
   },
 
   /** Handle change event from our inputEditor. */
