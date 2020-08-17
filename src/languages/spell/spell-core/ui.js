@@ -3,6 +3,7 @@
 // TODO: these are maybe not core, since they're tied into particular UI???
 // ----------------------------
 import React from "react"
+import _get from "lodash/get"
 
 import { spellCore } from "."
 
@@ -37,10 +38,17 @@ Object.assign(spellCore, {
   // components
   //--------
 
+  /** Map of `{ <key>: <elements map> }` for known elements. */
+  knownElements: {},
+
+  /** Register a suite of React elements so they can be used in Spell Projects by name. */
+  registerElements(componentMap) {
+    Object.assign(spellCore.knownElements, componentMap)
+  },
+
   /** Create a react element (ala `React.createElement()`) */
   element({ tag, props, children = [] } = {}) {
-    // if (!children || !children.length) return <Tag {...props} />
-    // return <Tag {...props}>{children}</Tag>
+    if (typeof tag === "string") tag = _get(spellCore.knownElements, tag) || tag
     return React.createElement(tag, props, ...children)
   },
 

@@ -2,7 +2,6 @@
 // Base classes for spell
 //--------
 import React from "react"
-import _ from "lodash"
 
 import { Observable, memoize, view } from "~/util"
 import { spellCore, Eventful } from ".."

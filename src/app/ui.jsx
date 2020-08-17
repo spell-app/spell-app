@@ -394,12 +394,12 @@ export const UI = {
    * - `isFocused`  Does the field currently have focus?
    * - `wasTouched` Has the field been touched (focused in and exited).
    * and internal-ish properties:
-   * - `inputId`    Unique id string for the input (for attaching to labels.)
+   * - `fieldId`    Unique id string for the input (for attaching to labels.)
    * - `state`      React `ref` for the current state: `{ current: { value, touched, focused, error } }`.
    * - DOC:  `value`, `isValid`, `error`, `isFocused`, `wasTouched`
    * - `onEnterKey` As passed in, to make it easy to hook up to the `ok` button in a modal.
    */
-  inputId: 0,
+  fieldId: 0,
   useInput({ type, defaultValue, label, hint, autoFocus = false, required, onEnterKey, ...inputProps }) {
     const [_, forceUpdate] = React.useState()
     // Current state, passed back to caller to manipulate field
@@ -412,7 +412,7 @@ export const UI = {
     })
     const bound = React.useMemo(() => {
       return {
-        inputId: `input-${UI.inputId++}`,
+        inputId: `input-${UI.fieldId++}`,
         get inputElement() {
           return document.querySelector(`#${bound.inputId}`)
         },
@@ -592,7 +592,7 @@ export const UI = {
     })
     const bound = React.useMemo(() => {
       return {
-        inputId: `select-${UI.inputId++}`,
+        inputId: `select-${UI.fieldId++}`,
         inputRef,
         options: UI.normalizeOptions(options),
         // getSUIElement: () => document.querySelector(`#${bound.inputId}`),

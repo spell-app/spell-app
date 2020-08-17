@@ -6,6 +6,7 @@ import global from "global"
 import React from "react"
 import ReactDOM from "react-dom"
 import { Router } from "@reach/router"
+import * as SUI from "semantic-ui-react"
 
 // Import parser bits
 import "~/parser"
@@ -29,6 +30,9 @@ import "./SUI-additions.less"
 // Make the `spellCore` library available globally.
 // TODO: other place to put this???
 global.spellCore = spellCore
+
+// Register `UI` and `SUI` elements so we can use them in spell JSX.
+spellCore.registerElements({ UI, SUI })
 
 function renderApp() {
   ReactDOM.render(
