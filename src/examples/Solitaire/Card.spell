@@ -1,5 +1,5 @@
 ## definition of a Card with nice english aliases for working with it
-a card is a drawable
+a card is a thing
 a pile is a list of cards
 
 ## properties of cards

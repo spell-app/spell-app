@@ -1,5 +1,5 @@
 //## definition of a Card with nice english aliases for working with it
-export class Card extends Drawable {}
+export class Card extends Thing {}
 spellCore.addExport('Card', Card)
 export class Pile extends List {}
 spellCore.addExport('Pile', Pile)

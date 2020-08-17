@@ -1,5 +1,5 @@
 //## Todo app example
-export class Task extends Drawable {}
+export class Task extends Thing {}
 spellCore.addExport('Task', Task)
 spellCore.defineProperty(Task.prototype, { property: 'title', type: 'text' })
 spellCore.defineProperty(Task.prototype, { property: 'completed', type: 'choice' })

@@ -1,5 +1,5 @@
 ## Todo app example
-a task is a drawable
+a task is a thing
 a task has a title as text
 a task has a property completed as yes or no
 a task "is complete" if its completed is yes
