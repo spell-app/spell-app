@@ -8,26 +8,24 @@ import { Form as SUIForm, Button as SUIButton } from "semantic-ui-react"
 import { UIError } from "~/util"
 
 // Generic function to recursively map children
-// function recursivelyMapChildren(children, callback) {
-//   const count = React.Children.count(children)
-//   const kids = count === 1 ? [children] : React.Children.toArray(children)
-//   return kids.map((child, index) => {
-//     if (!React.isValidElement(child)) return child
-//     if (child.props.children) {
-//       const newKids = recursivelyMapChildren(child.props.children, callback)
-//       if (newKids !== child.props.children)
-//         child = React.cloneElement(child, { key: child.key || index, children: newKids })
-//     }
-//     return callback(child, child.key || index)
-//   })
-// }
+function recursivelyMapChildren(children, callback) {
+  return React.Children.toArray(children).map((child, index) => {
+    if (!React.isValidElement(child)) return child
+    child = callback(child, child.key || index)
+    if (child.props.children) {
+      const newKids = recursivelyMapChildren(child.props.children, callback)
+      if (newKids !== child.props.children)
+        child = React.cloneElement(child, { key: child.key || index, children: newKids })
+    }
+    return child
+  })
+}
 
 export class Form extends React.Component {
   // Create react-easy-state store on construction
   store = store({
     value: this.props.value,
-    errors: {},
-    isSubmitting: false
+    errors: {}
   })
 
   ////////////////////
@@ -35,9 +33,7 @@ export class Form extends React.Component {
   // TODO: we're assuming children never change???
   ////////////////////
   enhanceFields = (children, parentPath = "") => {
-    const count = React.Children.count(children)
-    const kids = count === 1 ? [children] : React.Children.toArray(children)
-    return kids.map((child, index) => {
+    return React.Children.toArray(children).map((child, index) => {
       if (!React.isValidElement(child)) return child
       child = this.enhanceField(child, child.key || index, parentPath)
       if (child.props.children) {
@@ -52,21 +48,27 @@ export class Form extends React.Component {
     if (!child.type?.injectForm) return child
     if (child.props.form === this) console.warn("enhanceField(): form is already set!", child)
     const props = { key, form: this }
-    // if component specifies `name` or `field`, set its path
+
+    // if component specifies `name`, set its path
     const name = child.props.name
     if (name) props.path = parentPath ? `${parentPath}.${name}` : name
 
     const clone = React.cloneElement(child, props)
-    console.warn("enhancing", { props, clone })
+    // console.info("enhancing", { props, clone })
     return clone
   }
-  joinPath = (parentPath, childField) => {
-    if (!childField) return parentPath
-    if (!parentPath) return childField
-    return `${parentPath}.${childField}`
-  }
-  fields = {}
+
+  // On initial render, enhance descendent fields.
+  // ASSUMES that fields will not change on re-render!!
   kids = this.enhanceFields(this.props.children)
+
+  // Map of `{ <fieldId>: <fieldWrapper> }` set up when fields render.
+  fields = {}
+
+  // Have our fields re-render
+  updateFields() {
+    Object.values(this.fields).forEach((field) => field.forceUpdate?.())
+  }
 
   ////////////////////
   // `value` API for children
@@ -78,10 +80,12 @@ export class Form extends React.Component {
   // NOTE: look at `this.store.errors[path]` to get current error
   setValue = (path, value) => {
     // forget it if no change
-    if (value === this.getValue(path)) return
+    // if (value === this.getValue(path)) return
     // update!!!
     _set(this.props.value, path, value)
+    _set(this.store.value, path, value)
     console.info("form.setValue(", { form: this, path, value }, "): after:", this.store)
+    this.updateFields()
   }
 
   ////////////////////
@@ -93,6 +97,7 @@ export class Form extends React.Component {
   setError(path, error) {
     if (!error) delete this.store.errors[path]
     else this.store.errors[path] = error
+    // this.updateFields()
   }
   get hasErrors() {
     return Object.keys(this.store.errors).length > 0
@@ -101,13 +106,17 @@ export class Form extends React.Component {
   ////////////////////
   // submission -- only submit if we're error free!!
   ////////////////////
-  submit() {
-    this.store.isSubmitting = true
-    // TODO: focus in error field!
+  validateFields() {
     Object.values(this.fields).forEach((field) => field?.validate?.())
-    // this.fields.forEach(field => field.validate())
-    if (!this.hasErrors) this.props.onSubmit(this.props.value)
-    this.store.isSubmitting = false
+  }
+  submit() {
+    // Have all fields check their validation, whether touched or not
+    this.validateFields()
+    if (this.hasErrors) {
+      // TODO: focus in error field!
+      return
+    }
+    this.props.onSubmit(this.props.value)
   }
 
   ////////////////////
@@ -134,42 +143,40 @@ const FieldWrapper = view(
 
     /** Generate a unique id for this field. */
     id = `spell-field-${UI.fieldId++}`
-    /** Pointer back to our `form`, passed as `props`. */
-    get form() {
-      return this.props.form
-    }
-    /** Syntactic sugar for our `path` */
-    get path() {
-      return this.props.path
-    }
+
     /** Form `value` for this field according to our `path`. */
     get value() {
-      const { form, path } = this
+      const { form, path } = this.props
       if (form && path) return form.getValue(path)
       return this.props.value
     }
     /** Update the `value`. Override in your subclass if necessary. */
     set value(value) {
-      const { form, path } = this
+      const { form, path } = this.props
       if (form && path) form.setValue(path, value)
-      else this.props.onChange(value)
+      else {
+        this.props.onChange(value)
+        this.forceUpdate()
+      }
     }
+
     /** Form `error` for this field according to our `path`. */
     get error() {
-      const { form, path } = this
+      const { form, path } = this.props
       if (form && path) return form.getError(path)
       return this._error
     }
     /** Update the `error`. Override in your subclass if necessary. */
     set error(error) {
       if (error === this.error) return
-      const { form, path } = this
+      const { form, path } = this.props
       if (form && path) return form.setError(path, error)
       else {
         this._error = error
         this.forceUpdate()
       }
     }
+
     /** Pointer to HTML `<input>` etc element. */
     get htmlElement() {
       return document.getElementById(this.id)
@@ -191,52 +198,46 @@ const FieldWrapper = view(
      * Validate the current value, setting form error if invalid.
      * Currently uses DOM `element.validationMessage`.
      * TODO: custom validators.
-     * TODO: custom validation messages.
+     * TODO: custom validation messages for DOM errors.
      */
     validate = () => {
       // get validationMessage from HTML element ???
-      let error = this.htmlElement?.validationMessage
-      if (error !== this.error) this.error = error
+      const error = this.htmlElement?.validationMessage
+      if (error !== this.error) {
+        this.error = error
+        // this.forceUpdate()
+      }
     }
+
     /** Properties to pass to component we render. */
     fieldProps = {
       id: this.id,
       onChange: () => {
-        let { elementValue } = this
-        if (elementValue === this.value) return
-        this.validate()
-        this.value = elementValue
+        const { value, elementValue } = this
+        // if (elementValue === this.value) return
+        if (value !== elementValue) {
+          this.value = elementValue
+          this.validate()
+        }
       },
       onBlur: () => {
         this.validate()
       },
       onKeyUp: ({ key }) => {
-        if (key === "Enter" && this.props.submitOnEnter && this.form) this.form.submit()
-        else this.validate()
+        this.validate()
+        if (key !== "Enter") return
+        const { submitOnEnter, form } = this.props
+        if (submitOnEnter && form) form.submit()
       }
     }
-    /** Remove us from `form.fields` on unmount. */
-    componentWillUnmount() {
-      const { form, path } = this
-      if (form && path) delete form.fields[path]
-    }
-    render() {
-      console.info("rendering field", this, this.props)
-      // take out props we've added
-      const { form, field, path, submitOnEnter, onChange, ...elementProps } = this.props
 
-      if (!(form && path) && !onChange) {
-        const error = new UIError({
-          message: "Error rendering Field: you must either specify `name` and wrap in a <Form> or provide `onChange`",
-          context: this,
-          activity: "rendering",
-          params: this.props
-        })
-        console.error(error.message, this.props)
-      }
+    render() {
+      // take out props we've added or that we manage separately
+      const { form, path, submitOnEnter, onChange, ...elementProps } = this.props
+      // console.info("rendering field", { id: this.id, path, value: this.value, props: this.props })
 
       // add us to our form's `fields` on render
-      if (path && form) form.fields[path] = this
+      if (form) form.fields[this.id] = this
 
       // validate right after render
       // this is not optimal, but it makes SubmitButton semantics work out
@@ -245,9 +246,30 @@ const FieldWrapper = view(
       return React.createElement(this.Component, {
         ...elementProps,
         ...this.fieldProps,
-        defaultValue: this.value || "", // must not be `undefined`!
+        "data-path": path, // debug
+        value: this.value || "", // must not be `undefined`!
         error: this.error
       })
+    }
+
+    /** Show an error on initial render if things aren't set up properly. */
+    componentDidMount() {
+      const { form, path, onChange } = this.props
+      if (!(form && path) && !onChange) {
+        const error = new UIError({
+          message: "Error rendering <Field>: you must either specify `name` and wrap in a <Form> or provide `onChange`",
+          context: this,
+          activity: "rendering",
+          params: this.props
+        })
+        console.error(error, "\n", this.props)
+      }
+    }
+
+    /** Remove us from `form.fields` on unmount. */
+    componentWillUnmount() {
+      const { form } = this.props
+      if (form) delete form.fields[this.id]
     }
   }
 )
@@ -276,36 +298,8 @@ export const Checkbox = WithField(SUIForm.Checkbox)
 // TODO: Output => <Input readOnly .../>
 
 /////////////////////
-// Formulaic components
+// WithForm wrapper
 /////////////////////
-
-// export const FormWrapper = view(
-//   class FormWrapper extends React.Component {
-//     get form() {
-//       return this.props.form
-//     }
-//     get path() {
-//       return this.props.path
-//     }
-//     render() {
-//       const { form, field, path, ...elementProps } = this.props
-//       return React.createElement(this.Component, elementProps)
-//     }
-//   }
-// )
-
-// /** Take an ordinary `Component` and set it up to point to a `form`,
-//  * adding the following props on `instantiation`:
-//  *  `{ form, path }`
-//  * It will be reactive, meaning it will redraw when accessed form properties change.
-//  */
-// export function WithForm(Component) {
-//   return class WithForm extends FormWrapper {
-//     get Component() {
-//       return Component
-//     }
-//   }
-// }
 
 export function WithForm(Component) {
   const formComponent = view(Component)
@@ -313,16 +307,53 @@ export function WithForm(Component) {
   return formComponent
 }
 
+/////////////////////
+// WithForm components
+/////////////////////
+
 /**
  * Submit button, disabled when `form` is invalid.
  */
 export const SubmitButton = WithForm(function SubmitButton(props) {
-  const { form, field, path, ...btnProps } = props
+  const { form, path, ...btnProps } = props
   return <SUIButton primary {...btnProps} disabled={form.hasErrors} onClick={() => form.submit()} />
 })
 
-/** FormGroup: can set `field` to scope children. */
+/**
+ * FormGroup:
+ * - set `name` to scope children's paths.
+ */
 export const FormGroup = WithForm(function FormGroup(props) {
-  const { form, field, path, ...groupProps } = props
-  return <SUIForm.Group {...groupProps} />
+  const { form, path, ...groupProps } = props
+  return <SUIForm.Group data-path={path} {...groupProps} />
 })
+
+/**
+ * FormRepeat:
+ * - repeat children for form array value
+ * TODO: how to render array index in child?
+ */
+export const FormRepeat = WithForm(
+  class FormRepeat extends React.Component {
+    render() {
+      const { form, path, children, ...groupProps } = this.props
+      const arrayValue = form.getValue(path)
+      // TODO: won't work with List etc
+      if (!Array.isArray(arrayValue)) return null
+
+      return arrayValue.map((_, index) => {
+        const itemPath = `${path}[${index}]`
+        const kids = recursivelyMapChildren(children, (child, key) => {
+          if (!child.type?.injectForm || !child.props.path) return child
+          let childPath = child.props.path.substr(path.length)
+          return React.cloneElement(child, {
+            key,
+            path: itemPath + childPath
+          })
+        })
+        // console.warn(children, kids)
+        return React.createElement(React.Fragment, { key: index }, ...kids)
+      })
+    }
+  }
+)

@@ -718,55 +718,6 @@ export const UI = {
     return Object.entries(options).map(([value, text]) => {
       return { key: value, value, text }
     })
-  },
-
-  fieldId: 0,
-  Field: class Field extends React.Component {
-    id = `spell-field-${UI.fieldId++}`
-    get form() {
-      return this.props.form
-    }
-    get element() {
-      return document.getElementById(this.id)
-    }
-    validate = () => {
-      let error = this.element?.validationMessage
-      if (!error && this.props.required && (this.form.isSubmitting || this.touched) && this.value === undefined) {
-        error = "This field is required."
-      }
-      this.form.setError(this.props.path, error)
-    }
-    fieldProps = {
-      id: this.id,
-      get value() {
-        return this.form.getValue(this.props.path)
-      },
-      get error() {
-        return this.form.getError(this.props.path)
-      },
-      touched: false,
-      focused: false,
-      onChange() {
-        this.validate()
-        this.form.setValue(this, value, !fieldProps.error)
-      },
-      onFocus() {
-        this.focused = true
-        this.validate()
-      },
-      onBlur() {
-        this.focused = false
-        this.touched = true
-        this.validate()
-      },
-      onKeyUp() {
-        if (key === "Enter") this.form.onEnterKey(this)
-      }
-    }
-    render() {
-      const { form, path, Component, ...elementProps } = this.props
-      return React.createElement(Component, { ...elementProps, ...this.fieldProps })
-    }
   }
 }
 window.UI = UI
