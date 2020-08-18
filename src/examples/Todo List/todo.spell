@@ -12,7 +12,7 @@ a todos-app has a filter as one of all, active or completed
 
 set app to a new todos-app
 set the filter of the app to "all"
-set the newTaskName of the app to "x"
+set the newTaskName of the app to ""
 
 to create a task (with title as text, completed as a choice)
 	if the title is undefined
@@ -34,9 +34,9 @@ to draw (a todos-app)
 					<SUI.Menu.Item header content="To Do:" />
 					<SUI.Menu.Menu position="right">
 						<SUI.Menu.Item content="Show:"/>
-						<SUI.Menu.Item content="All" onClick={set the filter of the app to all} active={the filter of the app is all} />
-						<SUI.Menu.Item content="Active" onClick={set the filter of the app to "active"} active={the filter of the app is active} />
-						<SUI.Menu.Item content="Completed" onClick={set the filter of the app to "completed"} active={the filter of the app is completed} />
+						<SUI.Menu.Item content="All" onClick={set the filter of the app to "all"} active={the filter of the app is "all"} />
+						<SUI.Menu.Item content="Active" onClick={set the filter of the app to "active"} active={the filter of the app is "active"} />
+						<SUI.Menu.Item content="Completed" onClick={set the filter of the app to "completed"} active={the filter of the app is "completed"} />
 					</SUI.Menu.Menu>
 				</SUI.Menu>
 				<UI.Form debug value={the app}>

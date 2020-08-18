@@ -114,9 +114,9 @@ export function JSXAttributeView({ match }) {
   // console.info({ match, attribute })
   return (
     <span className={className}>
-      <span className="name">{attribute.name + (attrMatch ? " = " : "")}</span>
+      <span className="attr-name">{attribute.name + (attrMatch ? " = " : "")}</span>
       {attrMatch ? (
-        <span className="value">
+        <span className="attr-value">
           {attrMatch.rule?.name === "text" ? <JSXTextView match={attrMatch} /> : <MatchView match={attrMatch} />}
         </span>
       ) : null}

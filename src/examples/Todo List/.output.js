@@ -34,7 +34,7 @@ spellCore.defineProperty(Todos_App.prototype, {
 
 export let app = new Todos_App()
 app.filter = "all"
-app.newTaskName = "x"
+app.newTaskName = ""
 
 /* SPELL: added rule: `create a task (with {props:object_literal_properties})?` */
 function create_a_task(props = {}) {
@@ -73,9 +73,9 @@ spellCore.define(Todos_App.prototype, 'draw', {
 								props: {
 									content: "All",
 									onClick: (event) => {
-										app.filter = 'all'
+										app.filter = "all"
 									},
-									active: (app.filter == 'all')
+									active: (app.filter == "all")
 								}
 							}),
 							spellCore.element({
@@ -85,7 +85,7 @@ spellCore.define(Todos_App.prototype, 'draw', {
 									onClick: (event) => {
 										app.filter = "active"
 									},
-									active: app.filter.is_active
+									active: (app.filter == "active")
 								}
 							}),
 							spellCore.element({
@@ -95,7 +95,7 @@ spellCore.define(Todos_App.prototype, 'draw', {
 									onClick: (event) => {
 										app.filter = "completed"
 									},
-									active: (app.filter == 'completed')
+									active: (app.filter == "completed")
 								}
 							})
 						] })
