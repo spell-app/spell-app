@@ -8,7 +8,7 @@ import { ASTRoot } from "./ASTViewer"
 import { ConsoleRoot } from "./ConsoleViewer"
 import { InputRoot } from "./InputEditor"
 import { MatchRoot } from "./MatchViewer"
-import { ProjectSettings } from "./ProjectSettings"
+// import { ProjectSettings } from "./ProjectSettings"
 import { SpellPage } from "./SpellPage"
 import { SplitPanel, SplitPane } from "./SplitPanel"
 import { store } from "./store"
@@ -40,9 +40,9 @@ export const SpellEditor = React.memo(function SpellEditor() {
         <SplitPanel id="spellEditor-columns" columns resizable fluid spaced="tightly">
           <SplitPanel id="spellEditor-left" rows="85%" resizable rounded>
             <InputRoot />
-            <SplitPane scrolling light>
+            {/* <SplitPane scrolling light>
               <ProjectSettings />
-            </SplitPane>
+            </SplitPane> */}
             <ConsoleRoot />
           </SplitPanel>
           <SplitPanel id="spellEditor-right" rows="60%" resizable rounded>

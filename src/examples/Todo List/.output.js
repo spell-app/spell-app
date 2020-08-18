@@ -24,6 +24,7 @@ spellCore.defineProperty(Todos_App.prototype, {
 		return new List()
 	}
 })
+spellCore.defineProperty(Todos_App.prototype, { property: 'newTaskName' })
 /* SPELL: added rule: '(Todos_App|todos_app) (Filters|filters)' */
 spellCore.defineProperty(Todos_App.prototype, {
 	property: 'filter',
@@ -33,165 +34,141 @@ spellCore.defineProperty(Todos_App.prototype, {
 
 export let app = new Todos_App()
 app.filter = "all"
+app.newTaskName = "x"
 
 /* SPELL: added rule: `create a task (with {props:object_literal_properties})?` */
 function create_a_task(props = {}) {
-	let { title } = props
-	let it = new Task({ title: title, completed: false })
+	let { title, completed } = props
+	if (!spellCore.isDefined(title)) {
+		if (app.newTaskName == "") { return }
+		title = app.newTaskName
+		app.newTaskName = ""
+	}
+	let it = new Task({ title: title, completed: (completed || false) })
 	spellCore.append(app.tasks, it)
 }
 
-create_a_task({ title: "Create todos app" })
+create_a_task({ title: "Create todos app", completed: true })
 create_a_task({ title: "Teach it to draw" })
 create_a_task({ title: "Test app" })
 
 /* SPELL: added rule: `draw {thisArg:expression}` */
-spellCore.define(Task.prototype, 'draw', {
-	value() {
-		if (this.is_complete && (app.filter == "active")) { return false }
-		if (this.is_active && (app.filter == "completed")) { return false }
-		return spellCore.element({ tag: "tr", children: [
-			spellCore.element({ tag: "td", props: { width: "8%" }, children: [
-				spellCore.element({
-					tag: "input",
-					props: {
-						type: "checkbox",
-						checked: this.is_complete,
-						onChange: (event) => {
-							this.completed = (this.is_active ? true : false)
-						}
-					}
-				})
-			] }),
-			spellCore.element({ tag: "td", props: { width: "82%" }, children: [
-				this.title
-			] }),
-			spellCore.element({ tag: "td", props: { width: "10%" }, children: [
-				spellCore.element({
-					tag: "button",
-					props: {
-						onClick: (event) => {
-							return spellCore.remove(app.tasks, this)
-						}
-					},
-					children: [
-						"x"
-					]
-				})
-			] })
-		] })
-	}
-})
-
-/* SPELL: added rule: `draw {thisArg:expression}` */
 spellCore.define(Todos_App.prototype, 'draw', {
 	value() {
-		return spellCore.element({ tag: "div", children: [
-			spellCore.element({ tag: "h2", children: [
-				"To Do:"
-			] }),
-			spellCore.element({ tag: "div", children: [
+		return spellCore.element({ tag: "SUI.Container", children: [
+			spellCore.element({ tag: "SUI.Segment", children: [
 				spellCore.element({
-					tag: "input",
+					tag: "SUI.Menu",
 					props: {
-						type: "text",
-						onBlur: (event) => {
-							return create_a_task({ title: event.target.value })
-						}
-					}
-				})
-			] }),
-			spellCore.element({ tag: "br" }),
-			spellCore.element({ tag: "table", props: { width: "50%" }, children: [
-				spellCore.element({ tag: "tbody", children: [
-					spellCore.drawItems(app.tasks)
-				] })
-			] }),
-			spellCore.element({ tag: "br" }),
-			spellCore.element({ tag: "div", children: [
-				"Show:",
-				spellCore.element({
-					tag: "button",
-					props: {
-						onClick: (event) => {
-							app.filter = 'all'
-						}
+						inverted: true,
+						color: "violet",
+						borderless: true
 					},
 					children: [
-						"All"
-					]
-				}),
-				spellCore.element({
-					tag: "button",
-					props: {
-						onClick: (event) => {
-							app.filter = "active"
-						}
-					},
-					children: [
-						"Active"
-					]
-				}),
-				spellCore.element({
-					tag: "button",
-					props: {
-						onClick: (event) => {
-							app.filter = "completed"
-						}
-					},
-					children: [
-						"Completed"
-					]
-				})
-			] }),
-			spellCore.element({ tag: "br" }),
-			spellCore.element({ tag: "div", children: [
-				spellCore.element({
-					tag: "button",
-					props: {
-						onClick: (event) => {
-							return create_a_task({ title: "Moar" })
-						}
-					},
-					children: [
-						"+ Add"
-					]
-				}),
-				spellCore.element({
-					tag: "button",
-					props: {
-						onClick: (event) => {
-							return spellCore.removeItemOf(app.tasks, 1)
-						}
-					},
-					children: [
-						"- Remove"
-					]
-				}),
-				spellCore.element({
-					tag: "button",
-					props: {
-						onClick: (event) => {
-							spellCore.getItemOf(app.tasks, 1).title = "New title"
-						}
-					},
-					children: [
-						"Change name"
-					]
-				}),
-				spellCore.element({
-					tag: "button",
-					props: {
-						onClick: (event) => {
-							return spellCore.removeWhere(app.tasks, (item) => {
-								return item.is_complete
+						spellCore.element({ tag: "SUI.Menu.Item", props: { header: true, content: "To Do:" } }),
+						spellCore.element({ tag: "SUI.Menu.Menu", props: { position: "right" }, children: [
+							spellCore.element({ tag: "SUI.Menu.Item", props: { content: "Show:" } }),
+							spellCore.element({
+								tag: "SUI.Menu.Item",
+								props: {
+									content: "All",
+									onClick: (event) => {
+										app.filter = 'all'
+									},
+									active: (app.filter == 'all')
+								}
+							}),
+							spellCore.element({
+								tag: "SUI.Menu.Item",
+								props: {
+									content: "Active",
+									onClick: (event) => {
+										app.filter = "active"
+									},
+									active: app.filter.is_active
+								}
+							}),
+							spellCore.element({
+								tag: "SUI.Menu.Item",
+								props: {
+									content: "Completed",
+									onClick: (event) => {
+										app.filter = "completed"
+									},
+									active: (app.filter == 'completed')
+								}
 							})
-						}
-					},
-					children: [
-						"Remove Completed"
+						] })
 					]
-				})
+				}),
+				spellCore.element({ tag: "UI.Form", props: { debug: true, value: app }, children: [
+					spellCore.element({ tag: "UI.FormRepeat", props: { name: "tasks" }, children: [
+						spellCore.element({ tag: "UI.Checkbox", props: { name: "completed", width: 1 } }),
+						spellCore.element({ tag: "UI.Input", props: { name: "title", width: 10 } })
+					] }),
+					spellCore.element({
+						tag: "UI.Input",
+						props: {
+							name: "newTaskName",
+							placeholder: "New task name",
+							label: "New task:",
+							width: 11
+						}
+					}),
+					spellCore.element({
+						tag: "UI.Button",
+						props: {
+							disabled: (app.newTaskName == ""),
+							onClick: (event) => {
+								return create_a_task()
+							},
+							content: "Add Task"
+						}
+					})
+				] }),
+				spellCore.element({ tag: "br" }),
+				spellCore.element({ tag: "br" }),
+				spellCore.element({ tag: "SUI.Menu", props: { inverted: true, color: "grey" }, children: [
+					spellCore.element({ tag: "SUI.Menu.Item", props: { header: true, content: "Test:" } }),
+					spellCore.element({
+						tag: "SUI.Menu.Item",
+						props: {
+							onClick: (event) => {
+								return create_a_task({ title: "Moar" })
+							},
+							content: "Add Item"
+						}
+					}),
+					spellCore.element({
+						tag: "SUI.Menu.Item",
+						props: {
+							onClick: (event) => {
+								return spellCore.removeItemOf(app.tasks, 1)
+							},
+							content: "Remove Item"
+						}
+					}),
+					spellCore.element({
+						tag: "SUI.Menu.Item",
+						props: {
+							onClick: (event) => {
+								spellCore.getItemOf(app.tasks, 1).title = "New title"
+							},
+							content: "Change name"
+						}
+					}),
+					spellCore.element({
+						tag: "SUI.Menu.Item",
+						props: {
+							onClick: (event) => {
+								return spellCore.removeWhere(app.tasks, (item) => {
+									return item.is_complete
+								})
+							},
+							content: "Remove Completed"
+						}
+					})
+				] })
 			] })
 		] })
 	}

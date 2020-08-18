@@ -47,6 +47,7 @@ export const UI = {
   Grid,
   Segment,
   Card,
+  Button: view(Button),
 
   /** Left / Center / Right Sub-Menus. */
   Submenu: React.memo(({ left, center, right, spring, children, ...props }) => {

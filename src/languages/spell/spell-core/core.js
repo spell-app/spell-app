@@ -200,6 +200,13 @@ Object.assign(spellCore, {
   },
 
   //----------------------------
+  // get/set access for paths
+  //--------
+  get(thing, path) {},
+
+  set(thing, path, value) {},
+
+  //----------------------------
   // operators
   //--------
 

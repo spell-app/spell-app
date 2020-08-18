@@ -48,7 +48,12 @@ Object.assign(spellCore, {
 
   /** Create a react element (ala `React.createElement()`) */
   element({ tag, props, children = [] } = {}) {
-    if (typeof tag === "string") tag = _get(spellCore.knownElements, tag) || tag
+    if (typeof tag === "string") {
+      tag = _get(spellCore.knownElements, tag) || tag
+      if (typeof tag === "string" && tag.includes(".")) {
+        console.warn(`spellCore.element(): Don't recognize tag '${tag}'`)
+      }
+    }
     return React.createElement(tag, props, ...children)
   },
 

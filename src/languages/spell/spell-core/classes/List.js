@@ -55,7 +55,7 @@ export class List extends Observable {
   /**
    * `list.draw()` returns list items as react components.
    * You can override in a subclass to render a wrapper element, etc
-   * and use `draw items of {list}` to render items if desired.
+   * and use `draw items of {list}` or `draw each of {list}` to render items if desired.
    */
   draw() {
     return this.drawItems()

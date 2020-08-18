@@ -7,59 +7,57 @@ a task "is active" if its completed is no
 
 a todos-app is an app
 a todos-app has a property tasks as a new List
+a todos-app has a property newTaskName
 a todos-app has a filter as one of all, active or completed
 
 set app to a new todos-app
 set the filter of the app to "all"
+set the newTaskName of the app to "x"
 
-to create a task (with title as text)
-	get a new task with title = the title, completed = false
+to create a task (with title as text, completed as a choice)
+	if the title is undefined
+		if the newTaskName of the app is "" return
+		set the title to the newTaskName of the app
+		set the newTaskName of the app to ""
+	get a new task with title = the title, completed = the completed or no
 	add it to the tasks of the app
 
-create a task with title = "Create todos app"
+create a task with title = "Create todos app", completed = yes
 create a task with title = "Teach it to draw"
 create a task with title = "Test app"
 
-to draw (a task)
-	if it is complete and the filter of the app is "active" return no
-	if it is active and the filter of the app is "completed" return no
-	return <tr>
-		<td width="8%">
-			<input 
-				type="checkbox" 
-				checked={it is complete} 
-				onChange={set its completed to yes if it is active otherwise no}/>
-		</td>
-		<td width="82%">{its title}</td>
-		<td width="10%"><button onClick={remove it from the tasks of the app}>x</button></td>
-	</tr>
-
 to draw (a todos-app)
 	return 
-		<div>
-			<h2>To Do:</h2>
-			<div>
-				<input type="text" onBlur={create a task with title = the value of the target of the event}/>
-			</div>
-			<br/>
-			<table width="50%"><tbody>
-				{draw each of the tasks of the app}
-			</tbody></table>
-			<br/>
-			<div>
-				Show:
-				<button onClick={set the filter of the app to all}>All</button>
-				<button onClick={set the filter of the app to "active"}>Active</button>
-				<button onClick={set the filter of the app to "completed"}>Completed</button>
-			</div>
-			<br/>
-			<div>
-				<button onClick={create a task with title = "Moar"}>+ Add</button>
-				<button onClick={remove the first item of the tasks of the app}>- Remove</button>
-				<button onClick={set the title of the first item of the tasks of the app to "New title"}>Change name</button>
-				<button onClick={remove items in (the tasks of the app) where it is complete}>Remove Completed</button>
-			</div>
-		</div>
+		<SUI.Container>
+			<SUI.Segment>
+				<SUI.Menu inverted color="violet" borderless>
+					<SUI.Menu.Item header content="To Do:" />
+					<SUI.Menu.Menu position="right">
+						<SUI.Menu.Item content="Show:"/>
+						<SUI.Menu.Item content="All" onClick={set the filter of the app to all} active={the filter of the app is all} />
+						<SUI.Menu.Item content="Active" onClick={set the filter of the app to "active"} active={the filter of the app is active} />
+						<SUI.Menu.Item content="Completed" onClick={set the filter of the app to "completed"} active={the filter of the app is completed} />
+					</SUI.Menu.Menu>
+				</SUI.Menu>
+				<UI.Form debug value={the app}>
+					<UI.FormRepeat name="tasks">
+						<UI.Checkbox name="completed" width={1}/>
+						<UI.Input name="title" width={10}/>
+					</UI.FormRepeat>
+					<UI.Input name="newTaskName" placeholder="New task name" label="New task:" width={11}/>
+					<UI.Button disabled={the newTaskName of the app is ""} onClick={create a task} content="Add Task"/>
+				</UI.Form>
+				<br/>
+				<br/>
+				<SUI.Menu inverted color="grey">
+					<SUI.Menu.Item header content="Test:" />
+					<SUI.Menu.Item onClick={create a task with title = "Moar"} content="Add Item" />
+					<SUI.Menu.Item onClick={remove the first item of the tasks of the app} content="Remove Item" />
+					<SUI.Menu.Item onClick={set the title of the first item of the tasks of the app to "New title"} content="Change name" />
+					<SUI.Menu.Item onClick={remove items in (the tasks of the app) where it is complete} content="Remove Completed" />
+				</SUI.Menu>
+			</SUI.Segment>
+		</SUI.Container>
 
 start the app
 print the app
