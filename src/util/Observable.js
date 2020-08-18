@@ -33,9 +33,10 @@ global.clearEffect = clearEffect
 
 export class Observable {
   constructor(props) {
+    this.__props__ = { _state: {} }
     // TODO: we could do this on demand with a getter, but that would mess up hooks
     //       because `createStore()` is attempting to be too clever in regard to memoizing in hooks.
-    Object.defineProperty(this, "_props", { value: createStore({ _state: {} }) })
+    Object.defineProperty(this, "_props", { value: createStore(this.__props__) })
     // NOTE: you cannot initialize state this way!!!
     // Assign start state as `@state key = <value>` or call `this.setState(<key>, <value>)` after construction.
     Object.assign(this, props)
@@ -67,28 +68,14 @@ export class Observable {
   }
 
   /**
-   * Watch some `callback`, re-executing when observable props or state change.
-   * Returns `reaction` which you can use to `.clearWatch()` later.
-   *
-   * NOTE: you must `clearWatch()` yourself or manually call `onRemove()`
-   * or you'll get a memory leak.  :-(
+   * Clean up this object when it's being "removed".
+   * Note that this must be called manually.
    */
-  watch(callback) {
-    const reaction = autoEffect((...args) => callback.apply(this, args))
-    if (!this._reactions) Object.defineProperty(this, "_reactions", { value: [] })
-    this._reactions.push(reaction)
-    return reaction
-  }
-  /** Clear a `reaction` generated from `this.watch()` */
-  clearWatch(reaction) {
-    clearEffect(reaction)
-    const index = this._reactions ? this._reactions.indexOf(reaction) : -1
-    if (index !== -1) this._reactions.splice(index, 1)
-  }
+  onRemove() {}
 
-  /** Clean up all `watch`es `onRemove()` (which must be called manually). */
-  onRemove() {
-    if (this._reactions) this._reactions.forEach((reaction) => clearEffect(reaction))
+  /** Make toJSON() output our `props`. */
+  toJSON() {
+    return this.__props__
   }
 }
 global.Observable = Observable
