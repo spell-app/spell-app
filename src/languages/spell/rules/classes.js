@@ -17,10 +17,7 @@ export const classes = new SpellParser({
       name: "create_type",
       precedence: 10,
       alias: "statement",
-      syntax: [
-        "create a type (named|called) {type} (as (a|an) {superType:type})?",
-        "(a|an) {type} is (a|an) {superType:type}"
-      ],
+      syntax: "(a|an) {type} is (a|an) {superType:type}",
       constructor: "Statement",
       mutateScope(match) {
         const { type, superType } = match.groups
@@ -48,13 +45,8 @@ export const classes = new SpellParser({
         {
           compileAs: "statement",
           tests: [
-            ["create a type named card", `export class Card {}\nspellCore.addExport('Card', Card)`],
-            [
-              "create a type called car as a vehicle",
-              `export class Car extends Vehicle {}\nspellCore.addExport('Car', Car)`
-            ],
             ["a card is a thing", `export class Card extends Thing {}\nspellCore.addExport('Card', Card)`],
-            ["a set is a list", `export class Set extends List {}\nspellCore.addExport('Set', Set)`]
+            ["a deck is a list", `export class Deck extends List {}\nspellCore.addExport('Deck', Deck)`]
           ]
         }
       ]
