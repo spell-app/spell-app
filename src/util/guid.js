@@ -19,7 +19,7 @@ const UUID_PATTERN = /([0-9a-f]{4})([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0
  * as a user-friendly string, based on standard UUID v4, but with friendly encoding.
  *
  * Note that, due to extreme randomness, these won't sort well in a database in terms of time.
- * If this is a problem, use  `getTimeId()`.
+ * If this is a problem, use  `getTimeGuid()`.
  */
 export function getGuid() {
   const uuid = makeUUID() // NOTE: makeUUID also uses LOWERCASE alpha chars, so we're clear
