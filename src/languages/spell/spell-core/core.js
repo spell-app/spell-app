@@ -61,7 +61,7 @@ Object.assign(spellCore, {
     } else if (type) {
       descriptor.set = function (newValue) {
         if (!spellCore.isOfType(newValue, type)) {
-          console.warn(`Expected ${property} to be type '${type}', got:`, newValue)
+          spellCore.console.warn(`Expected ${property} to be type '${type}', got:`, newValue)
         }
         baseSet.call(this, newValue)
       }
@@ -73,7 +73,7 @@ Object.assign(spellCore, {
       }
       descriptor.set = function (newValue) {
         if (!enumeration.includes(newValue)) {
-          console.warn(`Expected ${property} to be one of '${enumeration}', got:`, newValue)
+          spellCore.console.warn(`Expected ${property} to be one of '${enumeration}', got:`, newValue)
         }
         baseSet.call(this, newValue)
       }
