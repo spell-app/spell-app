@@ -449,7 +449,7 @@ export const store = createStore({
     let modalProps
     const promise = new Promise((resolve, reject) => {
       modalProps = { id: store.modalId++, props, component, resolve, reject }
-      store.modals = [...store.modals, modalProps]
+      store.modals = [modalProps, ...store.modals]
     }).finally(() => {
       // make sure `store.modals` gets cleaned up however we resolve the promise
       store.modals = store.modals.filter((it) => it.id !== modalProps.id)

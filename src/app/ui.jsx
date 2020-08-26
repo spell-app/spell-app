@@ -120,10 +120,8 @@ export const UI = {
   ModalContainer: view(() => {
     const { modals } = store
     if (!modals.length) return null
-    const topIndex = modals.length - 1
-    return store.modals.map(({ id, component, props, resolve, reject }, index) =>
-      React.createElement(component, { key: id, id, index, props, isTopModal: index === topIndex, resolve, reject })
-    )
+    const { id, component, props, resolve, reject } = modals[0]
+    return React.createElement(component, { key: id, id, props, resolve, reject })
   }),
 
   /**
@@ -145,14 +143,13 @@ export const UI = {
    *                    - `default` = same as hitting the default button.
    *                    - `nothing` = do nothing -- keep the dialog visible.
    *  The following `props` are automatically set up by `store.showModal()`:
-   *  - `isTopModal`         Is this the top-most Modal currently showing?
-   *                    Note that we temporarily hide all but the top-most Modal.
    *  - `resolve`       Promise `resolve()` function to call when dismissing the modal.
    *
    * TODO: wrap in an error handler?
    */
   Modal: React.memo((props) => {
     const {
+      id,
       content,
       buttons = [{ isDefault: true, button: "OK" }],
       name = "",
@@ -161,7 +158,6 @@ export const UI = {
       extraButtons,
       manageFocus = false,
       onEscape = "cancel",
-      isTopModal = true,
       resolve,
       ...modalProps
     } = props
@@ -173,7 +169,7 @@ export const UI = {
     // On each redraw, focus the default button if we have one
     // so the return key will close the dialog.
     React.useEffect(() => {
-      if (manageFocus && isTopModal) btns.defaultRef?.current?.focus()
+      if (manageFocus) btns.defaultRef?.current?.focus()
     })
 
     // Figure out what we should do if they click outside the modal or hit escape
@@ -184,8 +180,9 @@ export const UI = {
 
     return (
       <Modal
+        id={id}
         className={classnames("SpellModal", name, className)}
-        open={isTopModal} // show only one modal at a time
+        open={true}
         closeOnEscape={!!onClose}
         closeOnDimmerClick={!!onClose}
         onClose={onClose}
@@ -277,11 +274,10 @@ export const UI = {
    * - `ok`           Text title or button props for OK button, default "OK".
    * - ...and other standard `Modal` props.
    */
-  Alert: React.memo(function Alert({ props, resolve, isTopModal }) {
+  Alert: React.memo(function Alert({ props, resolve }) {
     const { message, ok = "OK", ...modalProps } = props
     return (
       <UI.Modal
-        isTopModal={isTopModal}
         name="Alert"
         resolve={resolve}
         content={<div className="message">{message}</div>}
@@ -305,11 +301,10 @@ export const UI = {
    * - `cancel`       Text title or button props for Cancel button, default "Cancel".
    * - ...and other standard `Modal` props.
    */
-  Confirm: React.memo(function Confirm({ props, resolve, isTopModal }) {
+  Confirm: React.memo(function Confirm({ props, resolve }) {
     const { message, ok = "OK", cancel = "Cancel", ...modalProps } = props
     return (
       <UI.Modal
-        isTopModal={isTopModal}
         name="Confirm"
         resolve={resolve}
         content={<div className="message">{message}</div>}
@@ -343,7 +338,7 @@ export const UI = {
    * - `cancel`       Text title or button props for Cancel button, default "Cancel".
    * - ...and other standard `Modal` props.
    */
-  Prompt: React.memo(function Prompt({ props, resolve, isTopModal }) {
+  Prompt: React.memo(function Prompt({ props, resolve }) {
     const { message, ok = "OK", cancel = "Cancel", defaultValue, type = "text", inputProps, ...modalProps } = props
 
     const input = UI.useInput({
@@ -362,7 +357,6 @@ export const UI = {
 
     return (
       <UI.Modal
-        isTopModal={isTopModal}
         name="Prompt"
         resolve={resolve}
         content={content}
@@ -499,7 +493,7 @@ export const UI = {
    * - `cancel`       Text title or button props for Cancel button, default "Cancel".
    * - ...and other standard `Modal` props.
    */
-  Chooser: React.memo(function Prompt({ props, resolve, isTopModal }) {
+  Chooser: React.memo(function Prompt({ props, resolve }) {
     const {
       message,
       options,
@@ -533,7 +527,6 @@ export const UI = {
 
     return (
       <UI.Modal
-        isTopModal={isTopModal}
         name="Prompt"
         resolve={resolve}
         content={content}
