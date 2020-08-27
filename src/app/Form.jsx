@@ -19,12 +19,44 @@ function recursivelyMapChildren(children, callback) {
   })
 }
 
-export class Form extends React.Component {
-  // Create react-easy-state store on construction
-  store = store({
-    value: this.props.value,
-    errors: {}
+/**
+ *  Create a react-easy-state `store` for use in a form with `value`.
+ *  NOTE: `filling out the form will modify the value directly!!!`
+ *  Returned store has methods to `getValue(path)/setValue(path`) by dotted path.
+ *  Also has `errors`/`hasErrors`/`getError(path)`/`setError(path)`.
+ */
+export function makeFormStore(value) {
+  const formStore = store({
+    value,
+    getValue(path) {
+      return spellCore.getPath(formStore.value, path)
+    },
+    setValue(path, value) {
+      return spellCore.setPath(formStore.value, path, value)
+    },
+    errors: {},
+    getError(path) {
+      return formStore.errors[path]
+    },
+    setError(path, error) {
+      if (error) formStore.errors[path] = error
+      else delete formStore.errors[path]
+    },
+    get hasErrors() {
+      return Object.keys(formStore.errors).length > 0
+    }
   })
+  return formStore
+}
+
+export class Form extends React.Component {
+  /**
+   * Create react-easy-state store on construction
+   * NOTE: to get a handle to the store OUTSIDE the <Form>, do:
+   *       `myStore = makeFormStore()`
+   *       `return <Form store={myStore}... />`
+   */
+  store = this.props.store || makeFormStore(this.props.value)
 
   ////////////////////
   // upgrade children to point back to us as their `form`???
@@ -71,23 +103,17 @@ export class Form extends React.Component {
   ////////////////////
   // `value` API for children
   ////////////////////
-  getValue = (path) => {
-    return spellCore.getPath(this.store.value, path)
-  }
+  getValue = (path) => this.store.getValue(path)
 
   // NOTE: look at `this.store.errors[path]` to get current error
   setValue = (path, value) => {
-    // forget it if no change
-    // if (value === this.getValue(path)) return
-    // update!!!
-    spellCore.setPath(this.props.value, path, value)
-    spellCore.setPath(this.store.value, path, value)
+    this.store.setValue(path, value)
     if (this.props.debug) {
       console.info(
         "form.setValue(",
         { form: this, path, value },
-        "): props.value after:\n",
-        JSON.stringify(this.props.value, null, "  ")
+        "): store.value after:\n",
+        JSON.stringify(this.store.value, null, "  ")
       )
     }
     this.updateFields()
@@ -96,16 +122,10 @@ export class Form extends React.Component {
   ////////////////////
   // errors API as a FLAT object (e.g. no nesting of paths)
   ////////////////////
-  getError(path) {
-    return this.store.errors[path]
-  }
-  setError(path, error) {
-    if (!error) delete this.store.errors[path]
-    else this.store.errors[path] = error
-    // this.updateFields()
-  }
+  getError = (path) => this.store.getError(path)
+  setError = (path, error) => this.store.setError(path, error)
   get hasErrors() {
-    return Object.keys(this.store.errors).length > 0
+    return this.store.hasErrors
   }
 
   ////////////////////
@@ -127,9 +147,9 @@ export class Form extends React.Component {
   ////////////////////
 
   render() {
-    console.info("Rendering form")
-    window.form = this
-    const { children, value, onSubmit, debug, ...props } = this.props
+    if (this.props.debug) console.info("Rendering form")
+    window.form = this // DEBUG
+    const { store, value, children, onSubmit, debug, ...props } = this.props
     return <SUIForm {...props}>{this.kids}</SUIForm>
   }
 }
@@ -140,12 +160,16 @@ export class Form extends React.Component {
 //
 //
 //
+let fieldId = 0
 const FieldWrapper = view(
   class FieldWrapper extends React.Component {
     static injectForm = true
 
-    /** Generate a unique id for this field. */
-    id = `spell-field-${UI.fieldId++}`
+    /**
+     * Generate a unique id for this field.
+     * We'll use this to link the field with its label, etc.
+     */
+    id = `spell-field-${fieldId}`
 
     /** Form `value` for this field according to our `path`. */
     getValue() {
@@ -184,18 +208,6 @@ const FieldWrapper = view(
     getHtmlElement() {
       return document.getElementById(this.id)
     }
-    /**
-     * Return the current value according to our html element.
-     * Override this if you have an exotic way to get the value.
-     * Coerce to appropriate output type or `undefined`.
-     */
-    getElementValue() {
-      const value = this.getHtmlElement()?.value
-      if (value === "") return undefined
-      const { type } = this.props
-      if (type === "number" || type === "range") return parseFloat(value, 10)
-      return value
-    }
 
     /**
      * Validate the current value, setting form error if invalid.
@@ -209,31 +221,45 @@ const FieldWrapper = view(
       this.setError(error)
     }
 
+    /**
+     * Given `onChange()` arguments, return the current element value.
+     */
+    getOnChangeValue(event) {
+      // console.info("getOnChangeValue", ...arguments)
+      const { value } = event.target
+      const { type } = this.props
+      if (type === "number" || type === "range") return parseFloat(value, 10)
+      return value
+    }
+
     /** Properties to pass to component we render. */
     fieldProps = {
       id: this.id,
-      onChange: () => {
-        console.info("onChange", this)
-        const value = this.getValue()
-        const elementValue = this.getElementValue()
-        if (value !== elementValue) this.setValue(elementValue)
+      onChange: (...args) => {
+        const value = this.getOnChangeValue(...args)
+        if (this.props.form?.props.debug) console.info("onChange", { value, field: this })
+        //if (value !== this.getValue())
+        this.setValue(value)
         this.validate()
       },
       onBlur: () => {
-        console.info("onBlur", this)
+        if (this.props.form?.props.debug) console.info("onBlur", this)
         this.validate()
       },
       onKeyUp: ({ key }) => {
-        console.info("onKeyUp", this)
+        if (this.props.form?.props.debug) console.info("onKeyUp", this)
         this.validate()
         if (key !== "Enter") return
         const { submitOnEnter, form, onEnter } = this.props
         if (submitOnEnter && form) form.submit()
-        else if (onEnter) onEnter(this.getElementValue())
+        else if (onEnter) onEnter(this.getValue())
       }
     }
 
-    /** Return props to set `value` and `error` according to this component. */
+    /**
+     * Return props to for field `value` and `error` as they should be passed to the rendered component.  If a subclass sets a different property
+     * Some subclasses will set other properties, e.g. `checkbox` sets `{ checked, error }` instead.
+     */
     getValueProps() {
       return {
         value: this.getValue() ?? "",
@@ -286,6 +312,7 @@ const FieldWrapper = view(
 )
 
 /**
+ * DOCME: NO LONGER TRUE
  * Take an ordinary `Component` and set it up as a `Field`,
  * where it will get the following props on instantiation:
  *  `{ form, defaultValue, error, id, onChange, onBlur, onKeyUp }`
@@ -305,6 +332,10 @@ export function WithField(Component) {
 /////////////////////
 
 export const Input = WithField(SUIForm.Input)
+
+export const Output = WithField(SUIForm.Input)
+Output.defaultProps = { readonly: true }
+
 export class Checkbox extends FieldWrapper {
   get Component() {
     return SUIForm.Checkbox
@@ -319,7 +350,23 @@ export class Checkbox extends FieldWrapper {
     return !!this.getHtmlElement()?.checked
   }
 }
-// TODO: Output => <Input readOnly .../>
+
+export class Select extends FieldWrapper {
+  get Component() {
+    return SUIForm.Dropdown
+  }
+  static defaultProps = {
+    selection: true,
+    lazyLoad: true
+  }
+  /**
+   * non-standard way to get element value `onChange()`...
+   */
+  getOnChangeValue(event, select) {
+    console.warn(select)
+    return select.value
+  }
+}
 
 /////////////////////
 // WithForm wrapper

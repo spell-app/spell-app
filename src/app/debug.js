@@ -2,6 +2,7 @@
 import global from "global"
 import _ from "lodash"
 import JSON5 from "json5"
+import * as SUI from "semantic-ui-react"
 
 import { rulex } from "~/parser"
 import { spellParser, SpellParser, spellCore } from "~/languages/spell"
@@ -21,5 +22,6 @@ Object.assign(global, {
   tokenizer: spellParser.tokenizer,
   tokenize: spellParser.tokenize.bind(spellParser),
   rulex,
-  store
+  store,
+  SUI
 })

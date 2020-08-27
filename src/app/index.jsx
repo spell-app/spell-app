@@ -49,7 +49,7 @@ function renderApp() {
         <ProjectChooserRoute default />
       </Router>
       {/* Modals / Notice / ErrorNotice for all pages */}
-      <UI.ModalContainer />
+      <UI.ModalRoot />
       <Notice />
       <ErrorNotice />
     </>,

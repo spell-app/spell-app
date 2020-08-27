@@ -31,24 +31,14 @@ export function ConsoleToolbar() {
         <UI.MenuHeader title="Program Output" />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.alert title="" message="Yo!" />
-        <actions.confirm
-          title=""
-          message="Yah?"
-          ok="Yep"
-          cancel={{ content: "Nope", color: "pink", floated: "left" }}
-        />
-        <actions.prompt
-          title=""
-          message="What is your name?"
-          defaultValue="Bob"
-          extraButtons={[{ floated: "left", button: "Recurse", value: () => store.alert("Modal-in-modal action!") }]}
-        />
+        <actions.alert title="" header="Header" message="Yo!" />
+        <actions.confirm title="" message="Yah?" ok="Yep" cancel="Nope" />
+        <actions.prompt title="" message="What is your name?" defaultValue="Bob" />
         <actions.promptForNumber
           title=""
           header="Quantity needed:"
           message="How many did you want?"
-          inputProps={{ min: 10, max: 100, step: 1, hint: "Between 10 and 100", required: true }}
+          inputProps={{ min: 10, max: 100, step: 1, placeholder: "Between 10 and 100" }}
           callback={(value) => console.log(value, typeof value)}
         />
         <actions.choose
@@ -62,9 +52,7 @@ export function ConsoleToolbar() {
           header="Pick many"
           message="Message"
           options={{ a: "Option A", b: "Option B", c: "Option C" }}
-          required
           multiple
-          extensible
           defaultValue={["a", "b"]}
         />
         <actions.clearConsole />

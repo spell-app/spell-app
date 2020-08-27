@@ -393,7 +393,7 @@ export const store = createStore({
   /**
    * Get the user's answer to some question.
    * `props`:
-   *  - `message` (required) Message to show.
+   *  - `content` (required) Message to show.
    *  - `header` (optional) Header for the dialog.  Default is no header.
    *  - `ok` (optional) string or props for OK button.  Default is `"OK"`.
    *  - `cancel` (optional) string or props for Cancel button.  Default is `"Cancel"`.
@@ -406,7 +406,7 @@ export const store = createStore({
    *  - `undefined` if they clicked away from the modal or hit the escape key.
    */
   alert(props = "DOH!") {
-    if (typeof props === "string") props = { message: props }
+    if (typeof props === "string") props = { content: props }
     return store.showModal(props, UI.Alert)
   },
 
@@ -443,12 +443,12 @@ export const store = createStore({
    * Returns a promise which will resolve/reject as per `component` setup.
    */
   modalId: 0, // Seqeuence to generate unique modal `id`s.
-  modals: [], // Current stack of modals, topmost at end.
+  modals: [], // Current stack of modals, topmost at start.
   debugModals: false,
   showModal(props, component) {
     let modalProps
     const promise = new Promise((resolve, reject) => {
-      modalProps = { id: store.modalId++, props, component, resolve, reject }
+      modalProps = { props: { ...props, id: store.modalId++ }, component, resolve, reject }
       store.modals = [modalProps, ...store.modals]
     }).finally(() => {
       // make sure `store.modals` gets cleaned up however we resolve the promise
