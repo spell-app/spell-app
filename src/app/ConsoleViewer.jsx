@@ -41,12 +41,7 @@ export function ConsoleToolbar() {
           inputProps={{ min: 10, max: 100, step: 1, placeholder: "Between 10 and 100" }}
           callback={(value) => console.log(value, typeof value)}
         />
-        <actions.choose
-          title=""
-          header="Pick one"
-          message="Message"
-          options={{ a: "Option A", b: "Option B", c: "Option C" }}
-        />
+        <actions.choose title="" header="Pick one" message="Message" options={["A", "B", "C"]} />
         <actions.choose
           title=""
           header="Pick many"

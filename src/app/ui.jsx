@@ -318,7 +318,7 @@ export const UI = {
   normalizeOptions(options) {
     if (Array.isArray(options)) {
       return options.map((option, index) => {
-        if (typeof option === object) return { key: index, ...option }
+        if (typeof option === "object") return { key: index, ...option }
         else return { key: index, text: option, value: option }
       })
     }
