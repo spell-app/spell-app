@@ -351,6 +351,12 @@ export class Checkbox extends FieldWrapper {
   }
 }
 
+/**
+ * `Select` field component (based on SUIForm.dropdown).
+ * TODO: normalize `options` (as state?)
+ * TODO: auto-support for `allowAdditions` and `onAddItem()`
+ * TODO: `autoFocus` (set: `search:true, searchInput:{{ autoFocus: true }}`)
+ */
 export class Select extends FieldWrapper {
   get Component() {
     return SUIForm.Dropdown
@@ -360,10 +366,9 @@ export class Select extends FieldWrapper {
     lazyLoad: true
   }
   /**
-   * non-standard way to get element value `onChange()`...
+   * Non-standard way to get element value `onChange()`...
    */
   getOnChangeValue(event, select) {
-    console.warn(select)
     return select.value
   }
 }

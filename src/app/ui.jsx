@@ -14,7 +14,7 @@
  */
 import React from "react"
 import cloneDeep from "lodash/cloneDeep"
-import { Button, Card, Container, Dropdown, Grid, Icon, Input, Menu, Modal, Segment } from "semantic-ui-react"
+import { Button, Card, Container, Dropdown, Grid, Icon, Menu, Modal, Segment } from "semantic-ui-react"
 
 import { view } from "~/util"
 
@@ -23,7 +23,6 @@ import { FileDropdown } from "./FileDropdown"
 import { ProjectDropdown, ProjectMenu } from "./ProjectDropdown"
 import { store } from "./store"
 import * as Form from "./Form"
-import { readSync } from "fs-extra"
 
 /**
  * Constructors for standard UI elements.
