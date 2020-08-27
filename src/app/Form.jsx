@@ -1,4 +1,5 @@
 import React from "react"
+import cloneDeep from "lodash/cloneDeep"
 import { store, view } from "@risingstack/react-easy-state"
 
 import { Form as SUIForm, Button as SUIButton } from "semantic-ui-react"
@@ -20,19 +21,30 @@ function recursivelyMapChildren(children, callback) {
 }
 
 /**
- *  Create a react-easy-state `store` for use in a form with `value`.
- *  NOTE: `filling out the form will modify the value directly!!!`
- *  Returned store has methods to `getValue(path)/setValue(path`) by dotted path.
- *  Also has `errors`/`hasErrors`/`getError(path)`/`setError(path)`.
+ * Create a react-easy-state `store` for use in a form with form `value`.
+ * Note that modifying the form will NOT update the `value` passed in directly!
+ * Access properties as `formState.value.x.y.z` or `formState.getValue("x.y.z")`.
+ *
+ * Note that either of the above returns a `Proxy` object for an object or array value,
+ * use `formState.raw.x.y.z` to get a POJO representation,
+ * but be aware that accessing it this way will NOT be reactive!
+ *
+ * Set values as `formState.setValue("x.y.z", 10)` or `formState.value.x.y.z = 10`.
+ *
+ * Returned store has methods to `getValue(path)/setValue(path`) by dotted path.
+ * Also has `errors`/`hasErrors`/`getError(path)`/`setError(path)`.
  */
 export function makeFormStore(value) {
   const formStore = store({
     value,
+    get raw() {
+      return cloneDeep(value)
+    },
     getValue(path) {
       return spellCore.getPath(formStore.value, path)
     },
     setValue(path, value) {
-      return spellCore.setPath(formStore.value, path, value)
+      spellCore.setPath(formStore.value, path, value)
     },
     errors: {},
     getError(path) {
@@ -46,6 +58,7 @@ export function makeFormStore(value) {
       return Object.keys(formStore.errors).length > 0
     }
   })
+  // console.warn(formStore)
   return formStore
 }
 
@@ -103,10 +116,26 @@ export class Form extends React.Component {
   ////////////////////
   // `value` API for children
   ////////////////////
-  getValue = (path) => this.store.getValue(path)
 
-  // NOTE: look at `this.store.errors[path]` to get current error
-  setValue = (path, value) => {
+  /**
+   * Get the raw `value` of the form as a POJO.
+   * NOTE: this is NOT REACTIVE!!!
+   */
+  get raw() {
+    return this.store.raw
+  }
+
+  /**
+   * Reactively get a value by nested `path`.
+   */
+  getValue(path) {
+    return this.store.getValue(path)
+  }
+
+  /**
+   * Reactively set a `value` by nested `path`.
+   */
+  setValue(path, value) {
     this.store.setValue(path, value)
     if (this.props.debug) {
       console.info(
@@ -122,8 +151,12 @@ export class Form extends React.Component {
   ////////////////////
   // errors API as a FLAT object (e.g. no nesting of paths)
   ////////////////////
-  getError = (path) => this.store.getError(path)
-  setError = (path, error) => this.store.setError(path, error)
+  getError(path) {
+    return this.store.getError(path)
+  }
+  setError(path, error) {
+    this.store.setError(path, error)
+  }
   get hasErrors() {
     return this.store.hasErrors
   }
@@ -139,7 +172,7 @@ export class Form extends React.Component {
     this.validateFields()
     // TODO: focus in first error field!
     if (this.hasErrors) return
-    this.props.onSubmit(this.props.value)
+    this.props.onSubmit(this.props.raw)
   }
 
   ////////////////////

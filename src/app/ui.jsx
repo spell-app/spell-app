@@ -200,7 +200,7 @@ export const UI = {
   Prompt: view(function Prompt({ props, resolve }) {
     const { message, ok = "OK", cancel = "Cancel", defaultValue, type = "text", inputProps, ...modalProps } = props
     const formStore = UI.makeFormStore({ input: defaultValue })
-    const submit = () => !formStore.hasErrors && resolve(formStore.value.input)
+    const submit = () => !formStore.hasErrors && resolve(formStore.raw.input)
     const close = () => resolve(undefined)
     const disableOK = formStore.hasError || formStore.value.input === undefined
     return (
@@ -265,7 +265,7 @@ export const UI = {
       // options: UI.normalizeOptions(startOptions)
     })
     // NOTE: we use `cloneDeep` to get an array back
-    const submit = () => !formStore.hasErrors && resolve(cloneDeep(formStore.value.choice))
+    const submit = () => !formStore.hasErrors && resolve(formStore.raw.choice)
     const close = () => resolve(undefined)
     const disableOK = formStore.hasError || formStore.value.choice === undefined
     return (
