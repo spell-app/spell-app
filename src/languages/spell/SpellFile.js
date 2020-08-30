@@ -3,7 +3,7 @@ import global from "global"
 import { TextFile, state, proto, memoize, forward, writeOnce, batch } from "~/util"
 import { ProjectScope, FileScope } from "~/parser"
 import { SpellProject, SpellParser, SpellLocation } from "~/languages/spell"
-import { spellCore } from "~/spell-core"
+import { spellCore } from "~/spellCore"
 
 /**
  * Loadable file of spell code located at `path`.

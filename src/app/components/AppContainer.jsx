@@ -1,6 +1,6 @@
 import React from "react"
 
-import { spellCore } from "~/spell-core"
+import { spellCore } from "~/spellCore"
 import { actions } from "~/app/actions"
 import { UI } from "./ui"
 import "./AppContainer.less"

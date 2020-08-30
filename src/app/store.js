@@ -4,7 +4,7 @@ import { navigate } from "@reach/router"
 
 import { FileScope } from "~/parser"
 import { createStore, setPrefKey, getSetPref, CONFIRM } from "~/util"
-import { spellCore } from "~/spell-core"
+import { spellCore } from "~/spellCore"
 import { SpellProjectRoot, SpellProject, SpellLocation } from "~/languages/spell"
 import { UI } from "~/app/components/ui"
 

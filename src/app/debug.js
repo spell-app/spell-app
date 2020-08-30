@@ -5,7 +5,7 @@ import JSON5 from "json5"
 import * as SUI from "semantic-ui-react"
 
 import { rulex } from "~/parser"
-import { spellCore } from "~/spell-core"
+import { spellCore } from "~/spellCore"
 import { spellParser, SpellParser } from "~/languages/spell"
 import { store } from "~/app/store"
 

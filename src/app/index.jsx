@@ -9,7 +9,7 @@ import * as SUI from "semantic-ui-react"
 
 // Import parser bits
 import "~/parser"
-import { spellCore } from "~/spell-core"
+import { spellCore } from "~/spellCore"
 import { Routes } from "./pages/routes"
 import { ErrorNotice } from "~/app/components/ErrorNotice"
 import { Notice } from "~/app/components/Notice"

@@ -4,7 +4,7 @@ import classnames from "classnames"
 
 import { view, Observable } from "~/util"
 import { Match } from "~/parser"
-import { spellCore } from "~/spell-core"
+import { spellCore } from "~/spellCore"
 
 import { actions } from "~/app/actions"
 import { UI } from "./ui"

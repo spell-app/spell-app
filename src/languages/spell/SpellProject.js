@@ -16,7 +16,7 @@ import {
 } from "~/util"
 import { ProjectScope } from "~/parser"
 import { SpellParser, SpellLocation, SpellFile, SpellCSSFile, SpellJSFile } from "~/languages/spell"
-import { spellCore } from "~/spell-core"
+import { spellCore } from "~/spellCore"
 
 /**
  * Controller for a `SpellProject`.

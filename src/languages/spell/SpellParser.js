@@ -1,7 +1,7 @@
 import { proto, memoize } from "~/util"
 import { RootScope, ProjectScope, Parser, Tokenizer, WhitespacePolicy } from "~/parser"
 import { spellParser } from "~/languages/spell"
-import { spellCore } from "~/spell-core"
+import { spellCore } from "~/spellCore"
 
 export class SpellParser extends Parser {
   /** Add language-specific top-level rules to this object. */
@@ -37,7 +37,7 @@ export class SpellParser extends Parser {
   static get rootScope() {
     const scope = new RootScope({ name: "spellRoot", parser: spellParser })
     // Add all BASE_TYPES defined in `spellCore`.
-    // See: `src/languages/spell/spell-core/classes/index.js`
+    // See: `src/languages/spell/spellCore/classes/index.js`
     spellCore.BASE_TYPES.forEach((type) => scope.types.add(type))
     return scope
   }
