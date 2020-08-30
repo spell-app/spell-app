@@ -26,10 +26,10 @@ export function InputToolbar() {
   return (
     <UI.PanelMenu>
       <UI.Submenu left spring>
-        <UI.FileDropdown noBorder />
+        <UI.FileDropdown />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.compileApp noBorder />
+        <actions.compileApp />
         <actions.saveFile />
         <actions.reloadFile />
         <actions.createFile />

@@ -24,7 +24,7 @@ export const ProjectRootDisplay = React.memo(({ projectRoot, children, useRunner
  * Note that this does not need to be a `view()`.
  */
 export const ProjectChooser = React.memo(function ProjectChooser() {
-  const { Row, Column } = UI.Grid
+  const { Grid, Row, Column } = UI
   const { projects, examples, guides } = SpellProjectRoot
   const roots = [projects, examples, guides]
 
@@ -35,7 +35,7 @@ export const ProjectChooser = React.memo(function ProjectChooser() {
         <br />
         <UI.Container>
           <UI.Segment>
-            <UI.Grid relaxed="very" padded columns="equal">
+            <Grid relaxed="very" padded columns="equal">
               <Row>
                 <Column>
                   <h1>Welcome to Spell!</h1>
@@ -84,7 +84,7 @@ export const ProjectChooser = React.memo(function ProjectChooser() {
                   <actions.createGuide button title="Create a New Guide" fluid />
                 </Column>
               </Row>
-            </UI.Grid>
+            </Grid>
           </UI.Segment>
         </UI.Container>
       </SpellPage>
@@ -100,7 +100,7 @@ export function ChooserToolbar() {
         <actions.showProjectChooser active />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.aboutSpell noBorder />
+        <actions.aboutSpell />
         {/* <actions.showHelp /> */}
         <actions.showDocs />
         <UI.MoreMenu stub />

@@ -405,24 +405,24 @@ export const store = createStore({
    *  - `false` if they clicked the `cancel` button
    *  - `undefined` if they clicked away from the modal or hit the escape key.
    */
-  alert(props = "DOH!") {
+  alert(props) {
     if (typeof props === "string") props = { content: props }
     return store.showModal(props, UI.Alert)
   },
 
-  confirm(props = "Really?") {
+  confirm(props) {
     if (typeof props === "string") props = { message: props }
     return store.showModal(props, UI.Confirm)
   },
 
-  prompt(props = "Tell me what you think?") {
+  prompt(props) {
     if (typeof props === "string") props = { message: props }
     return store.showModal(props, UI.Prompt)
   },
 
   // Prompt for a number, by default an integer.
-  // Pass `{ inputProps: { step, min, max }` to customize input.
-  promptForNumber(props = "How many?") {
+  // Pass e.g. `{ inputProps: { step, min, max }` to customize input.
+  promptForNumber(props) {
     if (typeof props === "string") props = { message: props }
     props = { type: "number", inputProps: { step: 1 }, ...props }
     return store.showModal(props, UI.Prompt)

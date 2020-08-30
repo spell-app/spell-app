@@ -35,10 +35,10 @@ export const MatchToolbar = React.memo(function MatchToolbar() {
   return (
     <UI.PanelMenu>
       <UI.Submenu left spring>
-        <UI.MenuHeader title="Matched Rules" />
+        <UI.MenuHeader content="Matched Rules" />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.toggleMatchRuleNames noBorder />
+        <actions.toggleMatchRuleNames />
         <UI.MoreMenu stub />
       </UI.Submenu>
     </UI.PanelMenu>

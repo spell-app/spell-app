@@ -70,7 +70,7 @@ export function EditorToolbar() {
         <actions.showProjectChooser />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.aboutSpell noBorder />
+        <actions.aboutSpell />
         {/* <actions.showHelp /> */}
         <actions.showDocs />
         <UI.MoreMenu stub />

@@ -11,14 +11,13 @@ import { store } from "./store"
  * - `title`      Required item title.
  * - `icon`       Required item icon.
  * - `button`     If `true` we'll make a SUI `Button`, otherwise a `Menu.Item`.
- * - `noBorder`   Set to `true` to hide the SUI item border.
  * - `className`  Custom className
  * ... everything else will be passed directly to the item
  * NOTE: we assume this will be memoized by the caller if appropriate.
  */
-export function ActionItem({ title, button = false, noBorder, className = "", ...props }) {
+export function Action({ title, button = false, ...props }) {
   const Component = button ? Button : Menu.Item
-  return <Component content={title} className={classnames(className, noBorder && "no-border")} {...props} />
+  return <Component content={title} {...props} />
 }
 
 /**
@@ -30,49 +29,42 @@ export const actions = {
   //////////////////////
 
   aboutSpell: React.memo((props) => (
-    <ActionItem title="About Spell" icon="wizard" onClick={() => store.aboutSpell()} {...props} />
+    <Action title="About Spell" icon="wizard" onClick={() => store.aboutSpell()} {...props} />
   )),
   showEditor: view((props) => (
-    <ActionItem title={`Edit ${store.appType}`} icon="edit outline" onClick={() => store.showEditor()} {...props} />
+    <Action title={`Edit ${store.appType}`} icon="edit outline" onClick={() => store.showEditor()} {...props} />
   )),
   showRunner: React.memo((props) => (
-    <ActionItem title="Preview" icon="hand point up" onClick={() => store.showRunner()} {...props} />
+    <Action title="Preview" icon="hand point up" onClick={() => store.showRunner()} {...props} />
   )),
   showProjectSettings: React.memo((props) => (
-    <ActionItem title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
+    <Action title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
   )),
   showProjectChooser: React.memo((props) => (
-    <ActionItem title="Open or Create..." icon="app store ios" onClick={() => store.showProjectChooser()} {...props} />
+    <Action title="Open or Create..." icon="app store ios" onClick={() => store.showProjectChooser()} {...props} />
   )),
   showDocs: React.memo((props) => (
-    <ActionItem title="Docs" icon="newspaper outline" onClick={() => store.showDocs()} {...props} />
+    <Action title="Docs" icon="newspaper outline" onClick={() => store.showDocs()} {...props} />
   )),
   showHelp: React.memo((props) => (
-    <ActionItem title="Help" icon="help circle" onClick={() => store.showHelp()} {...props} />
+    <Action title="Help" icon="help circle" onClick={() => store.showHelp()} {...props} />
   )),
-  logIn: React.memo((props) => (
-    <ActionItem title="Log In" icon="user outline" onClick={() => store.logIn()} {...props} />
-  )),
+  logIn: React.memo((props) => <Action title="Log In" icon="user outline" onClick={() => store.logIn()} {...props} />),
 
   //////////////////////
   // App actions -- work on store.project, create according to `store.projectRoot`
   //////////////////////
   createApp: view((props) => (
-    <ActionItem title={`Create ${store.appType}`} icon="pencil" onClick={() => store.createApp()} {...props} />
+    <Action title={`Create ${store.appType}`} icon="pencil" onClick={() => store.createApp()} {...props} />
   )),
   duplicateApp: view((props) => (
-    <ActionItem
-      title={`Duplicate ${store.appType}`}
-      icon="clone outline"
-      onClick={() => store.duplicateApp()}
-      {...props}
-    />
+    <Action title={`Duplicate ${store.appType}`} icon="clone outline" onClick={() => store.duplicateApp()} {...props} />
   )),
   renameApp: view((props) => (
-    <ActionItem title={`Rename ${store.appType}`} icon="edit outline" onClick={() => store.renameApp()} {...props} />
+    <Action title={`Rename ${store.appType}`} icon="edit outline" onClick={() => store.renameApp()} {...props} />
   )),
   deleteApp: view((props) => (
-    <ActionItem
+    <Action
       title={`Delete ${store.appType}`}
       icon="trash alternate outline"
       onClick={() => store.deleteApp()}
@@ -80,13 +72,13 @@ export const actions = {
     />
   )),
   appSettings: React.memo((props) => (
-    <ActionItem title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
+    <Action title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
   )),
   compileApp: view((props) => {
     const { file } = store
     const fileNeedsCompilation = file?.isLoaded && !file?.compiled
     return (
-      <ActionItem
+      <Action
         title="Compile"
         active={fileNeedsCompilation}
         color="blue"
@@ -98,52 +90,52 @@ export const actions = {
     )
   }),
   publishApp: React.memo((props) => (
-    <ActionItem title="Publish" icon="world" onClick={() => store.publishApp()} {...props} />
+    <Action title="Publish" icon="world" onClick={() => store.publishApp()} {...props} />
   )),
   restartApp: React.memo((props) => (
-    <ActionItem title="Restart" icon="redo" onClick={() => store.compileApp()} {...props} />
+    <Action title="Restart" icon="redo" onClick={() => store.compileApp()} {...props} />
   )),
 
   //////////////////////
   // Project actions
   //////////////////////
   createProject: view((props) => (
-    <ActionItem title="New Project" icon="pencil" onClick={() => store.createProject()} {...props} />
+    <Action title="New Project" icon="pencil" onClick={() => store.createProject()} {...props} />
   )),
 
   //////////////////////
   // Examples actions
   //////////////////////
   createExample: React.memo((props) => (
-    <ActionItem title="New Example" icon="pencil" onClick={() => store.createExample()} {...props} />
+    <Action title="New Example" icon="pencil" onClick={() => store.createExample()} {...props} />
   )),
 
   //////////////////////
   // Guides actions
   //////////////////////
   createGuide: React.memo((props) => (
-    <ActionItem title="New Guide" icon="pencil" onClick={() => store.createGuide()} {...props} />
+    <Action title="New Guide" icon="pencil" onClick={() => store.createGuide()} {...props} />
   )),
 
   //////////////////////
   // File Actions -- work on store.file
   //////////////////////
   createFile: React.memo((props) => (
-    <ActionItem title="New File" icon="pencil" onClick={() => store.createFile()} {...props} />
+    <Action title="New File" icon="pencil" onClick={() => store.createFile()} {...props} />
   )),
   duplicateFile: React.memo((props) => (
-    <ActionItem title="Duplicate File" icon="clone outline" onClick={() => store.duplicateFile()} {...props} />
+    <Action title="Duplicate File" icon="clone outline" onClick={() => store.duplicateFile()} {...props} />
   )),
   renameFile: React.memo((props) => (
-    <ActionItem title="Rename File" icon="edit outline" onClick={() => store.renameFile()} {...props} />
+    <Action title="Rename File" icon="edit outline" onClick={() => store.renameFile()} {...props} />
   )),
   deleteFile: React.memo((props) => (
-    <ActionItem title="Delete File" icon="trash alternate outline" onClick={() => store.deleteFile()} {...props} />
+    <Action title="Delete File" icon="trash alternate outline" onClick={() => store.deleteFile()} {...props} />
   )),
   saveFile: view((props) => {
     const fileIsDirty = store.file?.isDirty
     return (
-      <ActionItem
+      <Action
         title="Save"
         active={fileIsDirty}
         color="green"
@@ -156,7 +148,7 @@ export const actions = {
   reloadFile: view((props) => {
     const fileIsDirty = store.file?.isDirty
     return (
-      <ActionItem
+      <Action
         title="Reload"
         active={fileIsDirty}
         color="red"
@@ -174,7 +166,7 @@ export const actions = {
   clearConsole: view((props) => {
     const consoleisEmpty = spellCore.console.lines.length === 0
     return (
-      <ActionItem
+      <Action
         title="Clear Console"
         disabled={consoleisEmpty}
         icon="ban"
@@ -190,7 +182,7 @@ export const actions = {
   toggleMatchRuleNames: view((props) => {
     const { showingMatchRuleNames: showNames } = store
     return (
-      <ActionItem
+      <Action
         icon={showNames ? "eye" : "eye slash outline"}
         content={(showNames ? "Show" : "Hide") + " Rule Names"}
         onClick={() => store.toggleMatchRuleNames()}
@@ -207,29 +199,27 @@ export const actions = {
   //////////////////////
   alert: React.memo(({ callback = console.log, title = "Alert", icon = "warning sign", itemProps, ...modalProps }) => {
     itemProps = { title, icon, ...itemProps }
-    return (
-      <ActionItem title={title} icon={icon} {...itemProps} onClick={() => store.alert(modalProps).then(callback)} />
-    )
+    return <Action title={title} icon={icon} {...itemProps} onClick={() => store.alert(modalProps).then(callback)} />
   }),
   confirm: React.memo(
     ({ callback = console.log, title = "Confirm", icon = "question circle", itemProps, ...modalProps }) => {
       itemProps = { title, icon, ...itemProps }
-      return <ActionItem {...itemProps} onClick={() => store.confirm(modalProps).then(callback)} />
+      return <Action {...itemProps} onClick={() => store.confirm(modalProps).then(callback)} />
     }
   ),
   prompt: React.memo(({ callback = console.log, title = "Prompt", icon = "edit", itemProps, ...modalProps }) => {
     itemProps = { title, icon, ...itemProps }
-    return <ActionItem {...itemProps} onClick={() => store.prompt(modalProps).then(callback)} />
+    return <Action {...itemProps} onClick={() => store.prompt(modalProps).then(callback)} />
   }),
   promptForNumber: React.memo(
     ({ callback = console.log, title = "Prompt Number", icon = "hashtag", itemProps, ...modalProps }) => {
       itemProps = { title, icon, ...itemProps }
-      return <ActionItem {...itemProps} onClick={() => store.promptForNumber(modalProps).then(callback)} />
+      return <Action {...itemProps} onClick={() => store.promptForNumber(modalProps).then(callback)} />
     }
   ),
   choose: React.memo(({ callback = console.log, title = "Choose", icon = "list", itemProps, ...modalProps }) => {
     itemProps = { title, icon, ...itemProps }
-    return <ActionItem {...itemProps} onClick={() => store.choose(modalProps).then(callback)} />
+    return <Action {...itemProps} onClick={() => store.choose(modalProps).then(callback)} />
   })
 }
 

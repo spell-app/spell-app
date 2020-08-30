@@ -30,11 +30,11 @@ export function RunnerToolbar() {
         <actions.showEditor />
       </UI.Submenu>
       <UI.Submenu center spring>
-        <actions.showProjectChooser noBorder />
+        <actions.showProjectChooser />
       </UI.Submenu>
       <UI.Submenu right spring>
         <actions.aboutSpell />
-        <actions.showDocs noBorder />
+        <actions.showDocs />
         {/* <actions.showHelp /> */}
         {/* <actions.logIn /> */}
         <UI.MoreMenu stub />

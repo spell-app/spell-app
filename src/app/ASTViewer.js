@@ -25,7 +25,7 @@ export function ASTToolbar() {
   return (
     <UI.PanelMenu>
       <UI.Submenu left spring>
-        <UI.MenuHeader title="Javascript Output" />
+        <UI.MenuHeader content="Javascript Output" />
       </UI.Submenu>
       <UI.Submenu right spring>
         <UI.MoreMenu stub />

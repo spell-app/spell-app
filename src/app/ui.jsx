@@ -13,12 +13,11 @@
  *  }
  */
 import React from "react"
-import cloneDeep from "lodash/cloneDeep"
 import { Button, Card, Container, Dropdown, Grid, Icon, Menu, Modal, Segment } from "semantic-ui-react"
 
 import { view } from "~/util"
 
-import { actions, ActionItem } from "./actions"
+import { actions, Action } from "./actions"
 import { FileDropdown } from "./FileDropdown"
 import { ProjectDropdown, ProjectMenu } from "./ProjectDropdown"
 import { store } from "./store"
@@ -28,29 +27,32 @@ import * as Form from "./Form"
  * Constructors for standard UI elements.
  */
 export const UI = {
+  /** SUI pass-throughs as views */
+  Button: view(Button),
+  Card: view(Card),
+  Column: view(Grid.Column),
+  Container: view(Container),
+  Grid: view(Grid),
+  Icon: view((props) => <Icon {...props} />),
+  Row: view(Grid.Row),
+  Segment: view(Segment),
+
+  /** Action from actions.jsx */
+  Action,
+
+  /** Form stuff from Form.jsx */
   ...Form,
 
-  ActionItem,
-
   /** Top-level app menu. */
-  AppMenu: React.memo((props) => (
-    <Menu inverted color="violet" attached className="AppMenu medium-short tight" {...props} />
-  )),
+  AppMenu: view((props) => <Menu inverted color="violet" attached className="AppMenu medium-short tight" {...props} />),
 
   /** Panel menu. */
-  PanelMenu: React.memo((props) => (
+  PanelMenu: view((props) => (
     <Menu inverted color="purple" attached="top" className="PanelMenu short tight" {...props} />
   )),
 
-  /** SUI Pass-throughs */
-  Container,
-  Grid,
-  Segment,
-  Card,
-  Button: view(Button),
-
   /** Left / Center / Right Sub-Menus. */
-  Submenu: React.memo(({ left, center, right, spring, children, ...props }) => {
+  Submenu: view(({ left, center, right, spring, children, ...props }) => {
     const style = {}
     if (left || center || right) style.minWidth = "33.3%"
     return (
@@ -63,13 +65,13 @@ export const UI = {
   }),
 
   /** Menu header item. */
-  MenuHeader: React.memo((props) => <ActionItem header noBorder {...props} />),
+  MenuHeader: view((props) => <Menu.Item header {...props} />),
 
   /** `Spring` to eat up space beside objects. */
-  Spring: React.memo((props) => <Menu.Item className="spring no-border" {...props} />),
+  Spring: view((props) => <Menu.Item className="spring no-border" {...props} />),
 
   /** A "..." menu. */
-  MoreMenu: React.memo(({ stub, item = true, icon = "ellipsis horizontal", children, ...props }) => {
+  MoreMenu: view(({ stub, item = true, icon = "ellipsis horizontal", children, ...props }) => {
     if (stub) return <Menu.Item disabled icon={icon} {...props} />
     return (
       <Dropdown item={item} icon={icon} {...props}>
@@ -79,12 +81,11 @@ export const UI = {
   }),
 
   /** Label that goes next to a dropdown. */
-  DropdownLabel: React.memo((props) => <ActionItem className="dropdown-label" {...props} />),
+  DropdownLabel: React.memo((props) => <Menu.Item className="dropdown-label" {...props} />),
 
   /** Icon */
   ARROW_COLLAPSED_ICON: "caret right",
   ARROW_EXPANDED_ICON: "caret down",
-  Icon: React.memo((props) => <Icon {...props} />),
 
   //////////////////////
   // Project UI
@@ -132,7 +133,7 @@ export const UI = {
    * - `ok`           Text title or button props for OK button, default "OK".
    * - ...and other standard `Modal` props.
    */
-  Alert: view(function Alert({ props, resolve }) {
+  Alert({ props, resolve }) {
     const { message, ok = "OK", ...modalProps } = props
     const close = () => resolve()
     return (
@@ -146,7 +147,7 @@ export const UI = {
         {...modalProps}
       />
     )
-  }),
+  },
 
   /**
    * Confirm if the user wants to do something:
@@ -159,7 +160,7 @@ export const UI = {
    * - `cancel`       Text title for Cancel button, default "Cancel".
    * - ...and other standard `Modal` props.
    */
-  Confirm: view(function Confirm({ props, resolve }) {
+  Confirm({ props, resolve }) {
     const { message, ok = "OK", cancel = "Cancel", ...modalProps } = props
     const yes = () => resolve(true)
     const no = () => resolve(false)
@@ -177,7 +178,7 @@ export const UI = {
         {...modalProps}
       />
     )
-  }),
+  },
 
   /**
    * Prompt with a single input field value:
@@ -197,12 +198,11 @@ export const UI = {
    * - `cancel`       Text title for Cancel button, default "Cancel".
    * - ...and other standard `Modal` props.
    */
-  Prompt: view(function Prompt({ props, resolve }) {
+  Prompt({ props, resolve }) {
     const { message, ok = "OK", cancel = "Cancel", defaultValue, type = "text", inputProps, ...modalProps } = props
     const formStore = UI.makeFormStore({ input: defaultValue })
     const submit = () => !formStore.hasErrors && resolve(formStore.raw.input)
     const close = () => resolve(undefined)
-    const disableOK = formStore.hasError || formStore.value.input === undefined
     return (
       <Modal
         open
@@ -215,7 +215,7 @@ export const UI = {
           </Modal.Content>
         }
         actions={[
-          { key: "ok", content: ok, primary: true, onClick: submit, disabled: disableOK },
+          { key: "ok", content: ok, primary: true, onClick: submit },
           { key: "cancel", content: cancel, onClick: close }
         ]}
         onClose={close}
@@ -223,7 +223,7 @@ export const UI = {
         {...modalProps}
       />
     )
-  }),
+  },
 
   /**
    * Present a Modal which allows the user `Choose` a single value from a list in.
@@ -248,7 +248,7 @@ export const UI = {
    * TODO: `allowAdditions` to add additional values
    * TODO: `value` for a multi-select is a proxy, not an array!
    */
-  Chooser: view(function Prompt({ props, resolve }) {
+  Chooser({ props, resolve }) {
     const {
       message,
       options: startOptions,
@@ -267,7 +267,6 @@ export const UI = {
     // NOTE: we use `cloneDeep` to get an array back
     const submit = () => !formStore.hasErrors && resolve(formStore.raw.choice)
     const close = () => resolve(undefined)
-    const disableOK = formStore.hasError || formStore.value.choice === undefined
     return (
       <Modal
         open
@@ -298,7 +297,7 @@ export const UI = {
           </Modal.Content>
         }
         actions={[
-          { key: "ok", content: ok, primary: true, onClick: submit, disabled: disableOK },
+          { key: "ok", content: ok, primary: true, onClick: submit },
           { key: "cancel", content: cancel, onClick: close }
         ]}
         onClose={close}
@@ -306,7 +305,7 @@ export const UI = {
         {...modalProps}
       />
     )
-  }),
+  },
 
   /**
    * Normalize `options` for  SUI <Dropdown/>:

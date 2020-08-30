@@ -18,10 +18,10 @@ export function AppToolbar() {
   return (
     <UI.PanelMenu>
       <UI.Submenu left spring>
-        <UI.MenuHeader title="App" />
+        <UI.MenuHeader content="App" />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.restartApp noBorder />
+        <actions.restartApp />
         {/* <actions.showRunner /> */}
         <actions.publishApp />
         <UI.MoreMenu stub />

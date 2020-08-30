@@ -28,7 +28,7 @@ export function ConsoleToolbar() {
   return (
     <UI.PanelMenu>
       <UI.Submenu left spring>
-        <UI.MenuHeader title="Program Output" />
+        <UI.MenuHeader content="Program Output" />
       </UI.Submenu>
       <UI.Submenu right spring>
         <actions.alert title="" header="Header" message="Yo!" />

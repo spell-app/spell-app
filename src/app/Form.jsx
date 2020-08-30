@@ -31,8 +31,8 @@ function recursivelyMapChildren(children, callback) {
  *
  * Set values as `formState.setValue("x.y.z", 10)` or `formState.value.x.y.z = 10`.
  *
- * Returned store has methods to `getValue(path)/setValue(path`) by dotted path.
- * Also has `errors`/`hasErrors`/`getError(path)`/`setError(path)`.
+ * Returned store has methods to `getValue(path)/setValue(path,value)`) by dotted path.
+ * Also has `errors`/`hasErrors`/`getError(path)`/`setError(path,error)` with FLATTENED dotted path.
  */
 export function makeFormStore(value) {
   const formStore = store({
@@ -257,8 +257,8 @@ const FieldWrapper = view(
     /**
      * Given `onChange()` arguments, return the current element value.
      */
-    getOnChangeValue(event) {
-      // console.info("getOnChangeValue", ...arguments)
+    getEventValue(event) {
+      // console.info("getEventValue", ...arguments)
       const { value } = event.target
       const { type } = this.props
       if (type === "number" || type === "range") return parseFloat(value, 10)
@@ -269,7 +269,7 @@ const FieldWrapper = view(
     fieldProps = {
       id: this.id,
       onChange: (...args) => {
-        const value = this.getOnChangeValue(...args)
+        const value = this.getEventValue(...args)
         if (this.props.form?.props.debug) console.info("onChange", { value, field: this })
         //if (value !== this.getValue())
         this.setValue(value)
@@ -401,7 +401,7 @@ export class Select extends FieldWrapper {
   /**
    * Non-standard way to get element value `onChange()`...
    */
-  getOnChangeValue(event, select) {
+  getEventValue(event, select) {
     return select.value
   }
 }

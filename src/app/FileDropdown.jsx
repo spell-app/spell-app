@@ -19,12 +19,7 @@ const FileDropdownAction = React.memo(({ useRunner, path, location, active }) =>
 ))
 
 /** Menu of all available projects. */
-export const FileDropdown = view(function FileDropdown({
-  useRunner = false,
-  showLabel = true,
-  showActions = false,
-  noBorder = false
-}) {
+export const FileDropdown = view(function FileDropdown({ useRunner = false, showLabel = true, showActions = false }) {
   const { project, file } = store
   const ready = project?.isLoaded && !!file
   const dropdownProps = {
@@ -35,8 +30,7 @@ export const FileDropdown = view(function FileDropdown({
     loading: !ready,
     lazyLoad: true,
     labeled: true,
-    style: { minWidth: "8em", fontWeight: 700 },
-    className: noBorder ? "no-border" : ""
+    style: { minWidth: "8em", fontWeight: 700 }
   }
   if (ready) {
     const menuItems = project.imports.map(({ path, location }) => (

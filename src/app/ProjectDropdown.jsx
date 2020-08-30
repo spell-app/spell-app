@@ -78,7 +78,6 @@ export const ProjectDropdown = view(function ProjectDropdown({
   project = store.project,
   useRunner = false,
   showLabel = true,
-  noBorder = false,
   extraActions = undefined,
   itemProps,
   className,
@@ -120,7 +119,7 @@ export const ProjectDropdown = view(function ProjectDropdown({
       lazyLoad
       labeled
       style={{ minWidth: "8em", fontWeight: 700 }}
-      className={classnames("ProjectDropdown", className, noBorder && "no-border")}
+      className={classnames("ProjectDropdown", className)}
       {...dropdownProps}
     >
       <Dropdown.Menu>{items}</Dropdown.Menu>
