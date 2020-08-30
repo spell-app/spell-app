@@ -1,6 +1,6 @@
 import React from "react"
 import { view } from "~/util"
-import { store } from "./store"
+import { store } from "~/app/store"
 import { CodeMirror, outputOptions } from "./CodeMirror"
 
 /**

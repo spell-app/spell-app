@@ -1,6 +1,6 @@
 import React from "react"
 
-import { actions } from "./actions"
+import { actions } from "~/app/actions"
 import { UI } from "./ui"
 import { AppRoot } from "./components/AppContainer"
 import { ConsoleRoot } from "./ConsoleViewer"

@@ -1,7 +1,7 @@
 import React from "react"
 
 import { SpellProjectRoot } from "~/languages/spell"
-import { actions } from "./actions"
+import { actions } from "~/app/actions"
 import { UI } from "./ui"
 import { SpellPage } from "./SpellPage"
 

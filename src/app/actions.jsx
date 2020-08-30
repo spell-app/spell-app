@@ -4,7 +4,7 @@ import { Button, Menu } from "semantic-ui-react"
 
 import { spellCore } from "~/languages/spell"
 import { view } from "~/util"
-import { store } from "./store"
+import { store } from "~/app/store"
 
 /**
  * Component to show action menu item or button with our semantics.

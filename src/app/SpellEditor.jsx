@@ -1,7 +1,7 @@
 import React from "react"
 import { useHotkeys } from "react-hotkeys-hook"
 
-import { actions } from "./actions"
+import { actions } from "~/app/actions"
 import { UI } from "./ui"
 import { AppRoot } from "./components/AppContainer"
 import { ASTRoot } from "./components/ASTViewer"
@@ -11,7 +11,7 @@ import { MatchRoot } from "./components/MatchViewer"
 // import { ProjectSettings } from "./ProjectSettings"
 import { SpellPage } from "./SpellPage"
 import { SplitPanel, SplitPane } from "./SplitPanel"
-import { store } from "./store"
+import { store } from "~/app/store"
 
 /**
  * <SpellEditor />

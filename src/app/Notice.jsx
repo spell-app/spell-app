@@ -2,7 +2,7 @@ import React from "react"
 import { Message } from "semantic-ui-react"
 
 import { view } from "~/util"
-import { store } from "./store"
+import { store } from "~/app/store"
 
 export const Notice = view(function Notice({ autoHide = true }) {
   const { notice } = store

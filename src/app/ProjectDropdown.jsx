@@ -5,9 +5,9 @@ import { Dropdown, Menu } from "semantic-ui-react"
 import { view } from "~/util"
 import { SpellLocation } from "~/languages/spell"
 
-import { actions } from "./actions"
+import { actions } from "~/app/actions"
 import { UI } from "./ui"
-import { store } from "./store"
+import { store } from "~/app/store"
 
 /** Just the items for a Project/Examples/etc Menu or Dropdown, as an array */
 export function getProjectMenuItems({ paths, useRunner, Component, icon = UI.PROJECT_ICON, itemProps }) {

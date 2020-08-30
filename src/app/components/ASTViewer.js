@@ -3,10 +3,10 @@ import React from "react"
 
 import { view, scrollForElement, centerElementInParent } from "~/util"
 
-import { actions } from "../actions"
+import { actions } from "~/app/actions"
 import { UI } from "../ui"
 import { ErrorHandler } from "../ErrorHandler"
-import { store } from "../store"
+import { store } from "~/app/store"
 import "./ASTViewer.less"
 
 /**

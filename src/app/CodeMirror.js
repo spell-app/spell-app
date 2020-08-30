@@ -24,7 +24,7 @@ import "./CodeMirror.css"
 
 import { Token } from "~/parser"
 import { spellParser } from "~/languages/spell"
-import { store } from "./store"
+import { store } from "~/app/store"
 
 // Set up JSHINT for displaying compiled JS properly
 import "./CodeMirror-JSHINT"

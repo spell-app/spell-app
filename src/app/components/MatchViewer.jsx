@@ -4,11 +4,11 @@ import React from "react"
 import { view, scrollForElement, centerElementInParent } from "~/util"
 import { Token } from "~/parser"
 
-import { actions } from "../actions"
+import { actions } from "~/app/actions"
 import { UI } from "../ui"
 import { ErrorHandler } from "../ErrorHandler"
 import { MatchView } from "./MatchView"
-import { store } from "../store"
+import { store } from "~/app/store"
 import "./MatchViewer.less"
 
 /**

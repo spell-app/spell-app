@@ -6,7 +6,7 @@ import * as SUI from "semantic-ui-react"
 
 import { rulex } from "~/parser"
 import { spellParser, SpellParser, spellCore } from "~/languages/spell"
-import { store } from "./store"
+import { store } from "~/app/store"
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
