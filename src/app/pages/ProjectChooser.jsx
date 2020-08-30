@@ -3,7 +3,7 @@ import React from "react"
 import { SpellProjectRoot } from "~/languages/spell"
 import { actions } from "~/app/actions"
 import { UI } from "~/app/components/ui"
-import { SpellPage } from "./SpellPage"
+import { SpellPage } from "../components/SpellPage"
 
 export const ProjectRootDisplay = React.memo(({ projectRoot, children, useRunner }) => {
   return (

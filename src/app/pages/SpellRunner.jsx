@@ -4,7 +4,7 @@ import { actions } from "~/app/actions"
 import { UI } from "~/app/components/ui"
 import { AppRoot } from "~/app/components/AppContainer"
 import { ConsoleRoot } from "~/app/components/ConsoleViewer"
-import { SpellPage } from "./SpellPage"
+import { SpellPage } from "../components/SpellPage"
 import { SplitPanel } from "~/app/components/SplitPanel"
 
 /** Runner page. */

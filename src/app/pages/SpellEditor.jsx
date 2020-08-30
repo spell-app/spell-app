@@ -9,7 +9,7 @@ import { ConsoleRoot } from "~/app/components/ConsoleViewer"
 import { InputRoot } from "~/app/components/InputEditor"
 import { MatchRoot } from "~/app/components/MatchViewer"
 // import { ProjectSettings } from "./ProjectSettings"
-import { SpellPage } from "./SpellPage"
+import { SpellPage } from "../components/SpellPage"
 import { SplitPanel, SplitPane } from "~/app/components/SplitPanel"
 import { store } from "~/app/store"
 

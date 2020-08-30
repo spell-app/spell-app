@@ -18,11 +18,6 @@ import { UI } from "~/app/components/ui"
 // Use the below to set up methods/etc in the browser for hacking
 import "./debug"
 
-// Load spell-specific CSS
-import "~/app/components/spell.less"
-// Load spell-specific Semantic-UI customizations
-import "~/app/components/SUI-additions.less"
-
 // Make the `spellCore` library available globally.
 // TODO: other place to put this???
 global.spellCore = spellCore

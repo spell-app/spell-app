@@ -23,6 +23,12 @@ import { ProjectDropdown, ProjectMenu } from "./ProjectDropdown"
 import { store } from "~/app/store"
 import * as Form from "./Form"
 
+/** Genric spell styles */
+import "~/app/components/spell.less"
+
+/** SUI-additions for spell */
+import "~/app/components/SUI-additions.less"
+
 /**
  * Constructors for standard UI elements.
  */
