@@ -4,7 +4,7 @@ import { Dropdown } from "semantic-ui-react"
 import { view } from "~/util"
 
 import { actions } from "~/app/actions"
-import { UI } from "./ui"
+import { UI } from "../ui"
 import { store } from "~/app/store"
 
 /* Single item in FileDropdown */
@@ -18,7 +18,7 @@ const FileDropdownAction = React.memo(({ useRunner, path, location, active }) =>
   />
 ))
 
-/** Menu of all available projects. */
+/** Menu of all available files for the selected project. */
 export const FileDropdown = view(function FileDropdown({ useRunner = false, showLabel = true, showActions = false }) {
   const { project, file } = store
   const ready = project?.isLoaded && !!file

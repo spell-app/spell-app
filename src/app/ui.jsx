@@ -18,8 +18,8 @@ import { Button, Card, Container, Dropdown, Grid, Icon, Menu, Modal, Segment } f
 import { view } from "~/util"
 
 import { actions, Action } from "~/app/actions"
-import { FileDropdown } from "./FileDropdown"
-import { ProjectDropdown, ProjectMenu } from "./ProjectDropdown"
+import { FileDropdown } from "./components/FileDropdown"
+import { ProjectDropdown, ProjectMenu } from "./components/ProjectDropdown"
 import { store } from "~/app/store"
 import * as Form from "./Form"
 
