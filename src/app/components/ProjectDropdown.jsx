@@ -6,7 +6,7 @@ import { view } from "~/util"
 import { SpellLocation } from "~/languages/spell"
 
 import { actions } from "~/app/actions"
-import { UI } from "../ui"
+import { UI } from "./ui"
 import { store } from "~/app/store"
 
 /** Just the items for a Project/Examples/etc Menu or Dropdown, as an array */

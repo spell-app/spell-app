@@ -4,7 +4,7 @@ import { Dropdown } from "semantic-ui-react"
 import { view } from "~/util"
 
 import { actions } from "~/app/actions"
-import { UI } from "../ui"
+import { UI } from "./ui"
 import { store } from "~/app/store"
 
 /* Single item in FileDropdown */

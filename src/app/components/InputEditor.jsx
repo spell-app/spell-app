@@ -3,7 +3,7 @@ import React from "react"
 import { view } from "~/util"
 
 import { actions } from "~/app/actions"
-import { UI } from "../ui"
+import { UI } from "./ui"
 import { ErrorHandler } from "./ErrorHandler"
 import { CodeMirror, inputOptions } from "./CodeMirror"
 import { store } from "~/app/store"

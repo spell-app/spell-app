@@ -17,7 +17,7 @@ import { SpellEditorRoute } from "./SpellEditor"
 import { SpellRunnerRoute } from "./SpellRunner"
 import { ErrorNotice } from "./components/ErrorNotice"
 import { Notice } from "./components/Notice"
-import { UI } from "./ui"
+import { UI } from "./components/ui"
 
 // Use the below to set up methods/etc in the browser for hacking
 import "./debug"

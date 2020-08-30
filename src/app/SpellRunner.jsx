@@ -1,7 +1,7 @@
 import React from "react"
 
 import { actions } from "~/app/actions"
-import { UI } from "./ui"
+import { UI } from "./components/ui"
 import { AppRoot } from "./components/AppContainer"
 import { ConsoleRoot } from "./components/ConsoleViewer"
 import { SpellPage } from "./SpellPage"

@@ -2,7 +2,7 @@ import React from "react"
 import { useHotkeys } from "react-hotkeys-hook"
 
 import { actions } from "~/app/actions"
-import { UI } from "./ui"
+import { UI } from "./components/ui"
 import { AppRoot } from "./components/AppContainer"
 import { ASTRoot } from "./components/ASTViewer"
 import { ConsoleRoot } from "./components/ConsoleViewer"

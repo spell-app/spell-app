@@ -5,7 +5,7 @@ import { view, scrollForElement, centerElementInParent } from "~/util"
 import { Token } from "~/parser"
 
 import { actions } from "~/app/actions"
-import { UI } from "../ui"
+import { UI } from "./ui"
 import { ErrorHandler } from "./ErrorHandler"
 import { MatchView } from "./MatchView"
 import { store } from "~/app/store"

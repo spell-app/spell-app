@@ -5,7 +5,7 @@ import { navigate } from "@reach/router"
 import { FileScope } from "~/parser"
 import { createStore, setPrefKey, getSetPref, CONFIRM } from "~/util"
 import { spellCore, SpellProjectRoot, SpellProject, SpellLocation } from "~/languages/spell"
-import { UI } from "./ui"
+import { UI } from "./components/ui"
 
 setPrefKey("spellEditor:")
 export const store = createStore({
