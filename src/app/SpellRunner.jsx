@@ -5,7 +5,7 @@ import { UI } from "./ui"
 import { AppRoot } from "./components/AppContainer"
 import { ConsoleRoot } from "./components/ConsoleViewer"
 import { SpellPage } from "./SpellPage"
-import { SplitPanel } from "./SplitPanel"
+import { SplitPanel } from "./components/SplitPanel"
 
 /** Runner page. */
 export const SpellRunner = React.memo(function SpellRunner() {

@@ -6,11 +6,11 @@ import { UI } from "./ui"
 import { AppRoot } from "./components/AppContainer"
 import { ASTRoot } from "./components/ASTViewer"
 import { ConsoleRoot } from "./components/ConsoleViewer"
-import { InputRoot } from "./InputEditor"
+import { InputRoot } from "./components/InputEditor"
 import { MatchRoot } from "./components/MatchViewer"
 // import { ProjectSettings } from "./ProjectSettings"
 import { SpellPage } from "./SpellPage"
-import { SplitPanel, SplitPane } from "./SplitPanel"
+import { SplitPanel, SplitPane } from "./components/SplitPanel"
 import { store } from "~/app/store"
 
 /**

@@ -1,7 +1,7 @@
 import React from "react"
 import { view } from "~/util"
 import { store } from "~/app/store"
-import { CodeMirror, outputOptions } from "./components/CodeMirror"
+import { CodeMirror, outputOptions } from "./CodeMirror"
 
 /**
  * Use CodeMirror to display `store.file` output.
