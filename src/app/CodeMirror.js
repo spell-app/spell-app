@@ -22,12 +22,12 @@ import "codemirror/addon/lint/javascript-lint"
 
 import "./CodeMirror.css"
 
-// Set up JSHINT for displaying compiled JS properly
-import "./JSHINT"
-
 import { Token } from "~/parser"
 import { spellParser } from "~/languages/spell"
 import { store } from "./store"
+
+// Set up JSHINT for displaying compiled JS properly
+import "./CodeMirror-JSHINT"
 
 // Export `<CodeMirror>` component
 export { Controlled as CodeMirror } from "react-codemirror2"
