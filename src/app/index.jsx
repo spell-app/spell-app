@@ -5,27 +5,23 @@ import "@babel/polyfill"
 import global from "global"
 import React from "react"
 import ReactDOM from "react-dom"
-import { Router } from "@reach/router"
 import * as SUI from "semantic-ui-react"
 
 // Import parser bits
 import "~/parser"
 import { spellCore } from "~/languages/spell"
-
-import { ProjectChooserRoute } from "./ProjectChooser"
-import { SpellEditorRoute } from "./SpellEditor"
-import { SpellRunnerRoute } from "./SpellRunner"
-import { ErrorNotice } from "./components/ErrorNotice"
-import { Notice } from "./components/Notice"
-import { UI } from "./components/ui"
+import { Routes } from "./pages/routes"
+import { ErrorNotice } from "~/app/components/ErrorNotice"
+import { Notice } from "~/app/components/Notice"
+import { UI } from "~/app/components/ui"
 
 // Use the below to set up methods/etc in the browser for hacking
 import "./debug"
 
 // Load spell-specific CSS
-import "./components/spell.less"
+import "~/app/components/spell.less"
 // Load spell-specific Semantic-UI customizations
-import "./components/SUI-additions.less"
+import "~/app/components/SUI-additions.less"
 
 // Make the `spellCore` library available globally.
 // TODO: other place to put this???
@@ -37,17 +33,7 @@ spellCore.registerElements({ UI, SUI })
 function renderApp() {
   ReactDOM.render(
     <>
-      <Router>
-        <SpellEditorRoute path="edit/:domain" />
-        <SpellEditorRoute path="edit/:domain/:project" />
-        <SpellEditorRoute path="edit/:domain/:project/*filePath" />
-
-        <SpellRunnerRoute path="run/:domain" />
-        <SpellRunnerRoute path="run/:domain/:project" />
-        <SpellRunnerRoute path="run/:domain/:project/*filePath" />
-
-        <ProjectChooserRoute default />
-      </Router>
+      <Routes />
       {/* Modals / Notice / ErrorNotice for all pages */}
       <UI.ModalRoot />
       <Notice />

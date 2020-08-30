@@ -1,11 +1,11 @@
 import React from "react"
 
 import { actions } from "~/app/actions"
-import { UI } from "./components/ui"
-import { AppRoot } from "./components/AppContainer"
-import { ConsoleRoot } from "./components/ConsoleViewer"
+import { UI } from "~/app/components/ui"
+import { AppRoot } from "~/app/components/AppContainer"
+import { ConsoleRoot } from "~/app/components/ConsoleViewer"
 import { SpellPage } from "./SpellPage"
-import { SplitPanel } from "./components/SplitPanel"
+import { SplitPanel } from "~/app/components/SplitPanel"
 
 /** Runner page. */
 export const SpellRunner = React.memo(function SpellRunner() {
