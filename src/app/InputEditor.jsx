@@ -5,7 +5,7 @@ import { view } from "~/util"
 import { actions } from "~/app/actions"
 import { UI } from "./ui"
 import { ErrorHandler } from "./ErrorHandler"
-import { CodeMirror, inputOptions } from "./CodeMirror"
+import { CodeMirror, inputOptions } from "./components/CodeMirror"
 import { store } from "~/app/store"
 
 import "./InputEditor.less"
