@@ -1,8 +1,9 @@
 import global from "global"
 
-import { TextFile, state, proto, memoize, forward, writeOnce, overridable, batch } from "~/util"
+import { TextFile, state, proto, memoize, forward, writeOnce, batch } from "~/util"
 import { ProjectScope, FileScope } from "~/parser"
-import { spellCore, SpellProject, SpellParser, SpellLocation } from "~/languages/spell"
+import { SpellProject, SpellParser, SpellLocation } from "~/languages/spell"
+import { spellCore } from "~/spell-core"
 
 /**
  * Loadable file of spell code located at `path`.

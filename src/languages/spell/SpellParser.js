@@ -1,6 +1,7 @@
 import { proto, memoize } from "~/util"
 import { RootScope, ProjectScope, Parser, Tokenizer, WhitespacePolicy } from "~/parser"
-import { spellParser, spellCore } from "~/languages/spell"
+import { spellParser } from "~/languages/spell"
+import { spellCore } from "~/spell-core"
 
 export class SpellParser extends Parser {
   /** Add language-specific top-level rules to this object. */

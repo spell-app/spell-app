@@ -5,7 +5,8 @@ import JSON5 from "json5"
 import * as SUI from "semantic-ui-react"
 
 import { rulex } from "~/parser"
-import { spellParser, SpellParser, spellCore } from "~/languages/spell"
+import { spellCore } from "~/spell-core"
+import { spellParser, SpellParser } from "~/languages/spell"
 import { store } from "~/app/store"
 
 // Stick interesting bits on `global` to make console debugging easier.

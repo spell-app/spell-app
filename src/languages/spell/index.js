@@ -10,7 +10,7 @@ export { SpellParser } from "./SpellParser"
 // Instance of parser with "core" rules applied
 export { spellParser, ParseError } from "./rules"
 // spellCore library
-export { spellCore } from "./spell-core"
+export { spellCore } from "~/spell-core"
 
 export * from "./SpellLocation"
 export * from "./SpellProjectRoot"

@@ -15,7 +15,8 @@ import {
   getDier
 } from "~/util"
 import { ProjectScope } from "~/parser"
-import { spellCore, SpellParser, SpellLocation, SpellFile, SpellCSSFile, SpellJSFile } from "~/languages/spell"
+import { SpellParser, SpellLocation, SpellFile, SpellCSSFile, SpellJSFile } from "~/languages/spell"
+import { spellCore } from "~/spell-core"
 
 /**
  * Controller for a `SpellProject`.

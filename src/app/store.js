@@ -4,7 +4,8 @@ import { navigate } from "@reach/router"
 
 import { FileScope } from "~/parser"
 import { createStore, setPrefKey, getSetPref, CONFIRM } from "~/util"
-import { spellCore, SpellProjectRoot, SpellProject, SpellLocation } from "~/languages/spell"
+import { spellCore } from "~/spell-core"
+import { SpellProjectRoot, SpellProject, SpellLocation } from "~/languages/spell"
 import { UI } from "~/app/components/ui"
 
 setPrefKey("spellEditor:")

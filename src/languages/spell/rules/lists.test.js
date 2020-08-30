@@ -1,5 +1,6 @@
 import { unitTestModuleRules } from "~/test"
-import { spellParser, spellCore } from "~/languages/spell"
+import { spellParser } from "~/languages/spell"
+import { spellCore } from "~/spell-core"
 
 describe("testing spell module lists", () => {
   unitTestModuleRules(spellParser, "lists", spellCore.resetRuntime)

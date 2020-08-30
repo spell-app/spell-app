@@ -1,7 +1,7 @@
 import React from "react"
 import { Button, Menu } from "semantic-ui-react"
 
-import { spellCore } from "~/languages/spell"
+import { spellCore } from "~/spell-core"
 import { view } from "~/util"
 import { store } from "~/app/store"
 

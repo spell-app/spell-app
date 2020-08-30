@@ -5,7 +5,6 @@ import { Dropdown, Menu } from "semantic-ui-react"
 import { view } from "~/util"
 import { SpellLocation } from "~/languages/spell"
 
-import { actions } from "~/app/actions"
 import { UI } from "./ui"
 import { store } from "~/app/store"
 
