@@ -2,7 +2,7 @@ import React from "react"
 
 import { actions } from "./actions"
 import { UI } from "./ui"
-import { AppRoot } from "./AppContainer"
+import { AppRoot } from "./components/AppContainer"
 import { ConsoleRoot } from "./ConsoleViewer"
 import { SpellPage } from "./SpellPage"
 import { SplitPanel } from "./SplitPanel"

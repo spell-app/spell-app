@@ -3,7 +3,7 @@ import { useHotkeys } from "react-hotkeys-hook"
 
 import { actions } from "./actions"
 import { UI } from "./ui"
-import { AppRoot } from "./AppContainer"
+import { AppRoot } from "./components/AppContainer"
 import { ASTRoot } from "./ASTViewer"
 import { ConsoleRoot } from "./ConsoleViewer"
 import { InputRoot } from "./InputEditor"
