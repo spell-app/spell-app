@@ -21,7 +21,7 @@ import { actions, Action } from "~/app/actions"
 import { FileDropdown } from "./components/FileDropdown"
 import { ProjectDropdown, ProjectMenu } from "./components/ProjectDropdown"
 import { store } from "~/app/store"
-import * as Form from "./Form"
+import * as Form from "./components/Form"
 
 /**
  * Constructors for standard UI elements.

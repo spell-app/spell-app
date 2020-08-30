@@ -16,16 +16,16 @@ import { ProjectChooserRoute } from "./ProjectChooser"
 import { SpellEditorRoute } from "./SpellEditor"
 import { SpellRunnerRoute } from "./SpellRunner"
 import { ErrorNotice } from "./components/ErrorNotice"
-import { Notice } from "./Notice"
+import { Notice } from "./components/Notice"
 import { UI } from "./ui"
 
 // Use the below to set up methods/etc in the browser for hacking
 import "./debug"
 
 // Load spell-specific CSS
-import "./spell.less"
+import "./components/spell.less"
 // Load spell-specific Semantic-UI customizations
-import "./SUI-additions.less"
+import "./components/SUI-additions.less"
 
 // Make the `spellCore` library available globally.
 // TODO: other place to put this???
