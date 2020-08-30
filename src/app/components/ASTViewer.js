@@ -5,7 +5,7 @@ import { view, scrollForElement, centerElementInParent } from "~/util"
 
 import { actions } from "~/app/actions"
 import { UI } from "../ui"
-import { ErrorHandler } from "../ErrorHandler"
+import { ErrorHandler } from "./ErrorHandler"
 import { store } from "~/app/store"
 import "./ASTViewer.less"
 

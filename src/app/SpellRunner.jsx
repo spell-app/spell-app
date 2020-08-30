@@ -3,7 +3,7 @@ import React from "react"
 import { actions } from "~/app/actions"
 import { UI } from "./ui"
 import { AppRoot } from "./components/AppContainer"
-import { ConsoleRoot } from "./ConsoleViewer"
+import { ConsoleRoot } from "./components/ConsoleViewer"
 import { SpellPage } from "./SpellPage"
 import { SplitPanel } from "./SplitPanel"
 

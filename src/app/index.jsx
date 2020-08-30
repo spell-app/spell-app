@@ -15,7 +15,7 @@ import { spellCore } from "~/languages/spell"
 import { ProjectChooserRoute } from "./ProjectChooser"
 import { SpellEditorRoute } from "./SpellEditor"
 import { SpellRunnerRoute } from "./SpellRunner"
-import { ErrorNotice } from "./ErrorNotice"
+import { ErrorNotice } from "./components/ErrorNotice"
 import { Notice } from "./Notice"
 import { UI } from "./ui"
 

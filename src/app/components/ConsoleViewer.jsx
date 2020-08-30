@@ -7,7 +7,7 @@ import { Match } from "~/parser"
 import { spellCore } from "~/languages/spell"
 
 import { actions } from "~/app/actions"
-import { UI } from "./ui"
+import { UI } from "../ui"
 import { ErrorHandler } from "./ErrorHandler"
 import "./ConsoleViewer.less"
 
