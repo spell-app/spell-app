@@ -448,7 +448,7 @@ export const store = createStore({
   showModal(props, component) {
     let modalProps
     const promise = new Promise((resolve, reject) => {
-      modalProps = { props: { ...props, id: store.modalId++ }, component, resolve, reject }
+      modalProps = { props: { ...props, id: `Modal-${store.modalId++}` }, component, resolve, reject }
       store.modals = [modalProps, ...store.modals]
     }).finally(() => {
       // make sure `store.modals` gets cleaned up however we resolve the promise
