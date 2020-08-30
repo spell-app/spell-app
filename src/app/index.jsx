@@ -19,7 +19,6 @@ import { UI } from "~/app/components/ui"
 import "./debug"
 
 // Make the `spellCore` library available globally.
-// TODO: other place to put this???
 global.spellCore = spellCore
 
 // Register `UI` and `SUI` elements so we can use them in spell JSX.

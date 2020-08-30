@@ -18,9 +18,9 @@ import { Button, Card, Container, Dropdown, Grid, Icon, Menu, Modal, Segment } f
 import { view } from "~/util"
 
 import { actions, Action } from "~/app/actions"
+import { store } from "~/app/store"
 import { FileDropdown } from "./FileDropdown"
 import { ProjectDropdown, ProjectMenu } from "./ProjectDropdown"
-import { store } from "~/app/store"
 import * as Form from "./Form"
 
 /** Genric spell styles */
@@ -39,7 +39,7 @@ export const UI = {
   Column: view(Grid.Column),
   Container: view(Container),
   Grid: view(Grid),
-  Icon: view((props) => <Icon {...props} />),
+  Icon: view(Icon),
   Row: view(Grid.Row),
   Segment: view(Segment),
 
