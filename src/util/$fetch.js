@@ -12,7 +12,7 @@ import {
   AbortedRequestError
 } from "./ResponseErrors"
 
-/** Merge miltiple sets of `$fetch()` `params` and set up defaults. */
+/** Merge multiple sets of `$fetch()` `params` and set up defaults. */
 export function merge$fetchParms(...allParams) {
   const output = {}
   allParams.forEach((params) => {
@@ -38,8 +38,8 @@ export function merge$fetchParms(...allParams) {
  * `$params` consists of the following (all optional except for `url`):
  * - `url`            URL to load.
  * - `query`          URL query params, as string or object which will be serialized.
- * - `contents`       Request body as string or object which will be `JSON.stringified()`
- * - `method`         HTTP method.  `POST` if `contents` provided, otherwise `GET`.
+ * - `contents`       Request body as string or object which will be `JSON.stringify()`ed.
+ * - `method`         HTTP method.  Defaults to `POST` if `contents` provided, otherwise `GET`.
  * - `headers`        HTTP headers.
  * - `requestFormat`  Input format, used to set `Content-Type` header. See KNOWN_FORMATS.
  * - `format`         Output format, used to format output.  Defaults to `text`. See KNOWN_FORMATS.
