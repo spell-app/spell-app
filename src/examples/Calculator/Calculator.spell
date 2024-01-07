@@ -1,0 +1,109 @@
+// TODO:
+// - addition doesn't work -- `as a number`
+// - check for NaN in total
+// - <delete> button
+// - blinking cursor in current field
+// - keyboard input
+// - `output` as getter
+// - tape
+
+a calculator is an app
+a calculator has an input
+a calculator has an output
+a calculator has a left
+a calculator has a right
+a calculator has a total
+a calculator has an operator
+
+to clear (a calculator):
+	set its input to ""
+	set its output to ""
+	set its left to ""
+	set its operator to ""
+	set its right to ""
+	set its total to ""
+
+to update the total of (a calculator):
+	if its right is empty: 
+		set its output to ""
+	otherwise
+		if its operator is "+"
+			set its total to its left plus its right
+		else if its operator is "-"
+			set its total to its left minus its right
+		else if its operator is "x"
+			set its total to its left times its right
+		else
+			set its total to its left divided by its right
+		set its output to " = " + its total
+
+to append (digit) to (a calculator):
+	if the digit is "."
+		if its input is empty
+			set its input to "0."
+		otherwise if its input does not contain "."
+			set its input to its input + "."
+	otherwise if the digit is a number:
+		set its input to "" + its input + the digit
+	// add to left or right field as appropriate
+	if its operator is empty
+		set its left to its input
+	else
+		set its right to its input
+	update the total of it
+
+to set the operator of (a calculator) to (op):
+	set its operator to the op
+	set its input to ""
+	if its right is not empty
+		// move total to right
+		set its left to its total
+		set its right to ""
+		set its total to ""
+		set its output to ""
+
+to draw (a calculator)
+  return <div className="ui container">
+ 	<table className="ui table">
+		<tr>
+			<td colSpan="3">
+				<h2>
+					<span>{its left}</span>
+					<span id="operator">{" "}{its operator}{" "}</span>
+					<span id="right">{" "}{its right}{" "}</span>
+					<span id="output">{its output}</span>
+				</h2>
+			</td>
+			<td ><button className="ui button fluid red" onClick={clear it}>C</button></td>
+		</tr>
+		<tr>
+			<td><button className="ui button fluid" onClick={append "7" to it}>7</button></td>
+			<td><button className="ui button fluid" onClick={append 8 to it}>8</button></td>
+			<td><button className="ui button fluid" onClick={append 9 to it}>9</button></td>
+			<td><button className="ui button fluid orange" onClick={set the operator of it to "+"}>+</button></td>
+		</tr>
+		<tr>
+			<td><button className="ui button fluid" onClick={append 4 to it}>4</button></td>
+			<td><button className="ui button fluid" onClick={append 5 to it}>5</button></td>
+			<td><button className="ui button fluid" onClick={append 6 to it}>6</button></td>
+			<td><button className="ui button fluid orange" onClick={set the operator of it to "-"}>-</button></td>
+		</tr>
+		<tr>
+			<td><button className="ui button fluid" onClick={append 1 to it}>1</button></td>
+			<td><button  className="ui button fluid" onClick={append 2 to it}>2</button></td>
+			<td><button className="ui button fluid" onClick={append 3 to it}>3</button></td>
+			<td><button className="ui button fluid orange" onClick={set the operator of it to "x"}>x</button></td>
+		</tr>
+		<tr>
+			<td ><button className="ui button fluid" onClick={append 0 to it}>0</button></td>
+			<td><button className="ui button fluid" onClick={append "." to it}>.</button></td>
+			<td><button hidden className="ui button fluid" onClick={append "DELETE" to it}>DEL</button></td>
+			<td><button className="ui button fluid orange" onClick={set the operator of it to "÷"}>÷</button></td>
+		</tr>
+	</table>
+  </div>
+
+set calculator to a new calculator
+clear the calculator
+start the calculator
+
