@@ -10,7 +10,7 @@ import { api } from "./src/server/api"
 
 const buildFolder = path.join(__dirname, "build")
 const staticFolder = path.join(__dirname, "static")
-const port = process.env.PORT || 5000
+const port = process.env.PORT || 5001
 
 // Create the parcel bundler
 const startFile = path.join(__dirname, "src/index.html")

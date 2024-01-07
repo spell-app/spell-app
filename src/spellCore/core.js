@@ -12,12 +12,17 @@ import { assert } from "."
 // Create the `spellCore` singeton, using a class for recognition when debugging.
 export const spellCore = new (class spellCore {})()
 Object.assign(spellCore, {
+  /** Do nothing -- use this as a placeholder, e.g. in an `if` branch. */
+  doNothing() {},
+
   //----------------------------
   // Meta-programming
   //--------
 
-  // Object.defineProperty alias.
-  // NOTE: `get`ters and `set`ters are defined configurably.
+  /**
+   * Object.defineProperty alias.
+   * NOTE: `get`ters and `set`ters are defined configurably.
+   */
   define(thing, propertyName, descriptor) {
     if (descriptor.configurable === undefined && (descriptor.get || descriptor.set)) descriptor.configurable = true
     return Object.defineProperty(thing, propertyName, descriptor)
@@ -87,8 +92,10 @@ Object.assign(spellCore, {
     spellCore.define(thing, property, descriptor)
   },
 
-  // Create an new, "empty" instance of `thing.constructor`.
-  // TODO: number? string?  non-constructable thing???
+  /**
+   * Create an new, "empty" instance of `thing.constructor`.
+   * - TODO: number? string?  non-constructable thing???
+   */
   newThingLike(thing) {
     if (!assert.isDefined(thing, "spellCore.newThingLike()")) return undefined
     // if (spellCore.isArrayLike(thing)) return []

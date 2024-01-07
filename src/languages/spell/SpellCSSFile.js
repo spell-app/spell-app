@@ -1,7 +1,7 @@
 import { TextFile, proto, memoize, forward, writeOnce, overridable, state } from "~/util"
 import { Token } from "~/parser"
 import { SpellLocation, SpellProject } from "~/languages/spell"
-import { batch } from "../../util"
+import { batch } from "~/util"
 
 /**
  * CSS file as part of SpellProject.

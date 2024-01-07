@@ -14,6 +14,7 @@ import { variables } from "./variables"
 import { constants } from "./constants"
 import { assignment } from "./assignment"
 import { expressions } from "./expressions"
+import { statements } from "./statements"
 import { _if_ } from "./if"
 import { JSX } from "./JSX"
 import { lists } from "./lists"
@@ -48,6 +49,7 @@ spellParser.import(
   constants,
   assignment,
   expressions,
+  statements,
   math,
   properties,
   events,
