@@ -186,7 +186,7 @@ export class Literal extends Expression {
 
 /** NumericLiteral type. */
 export class NumericLiteral extends Literal {
-  @proto @readonly datatype = "number"
+  @proto /*@readonly*/ datatype = "number"
   constructor(match, props) {
     if (typeof props === "number") props = { value: props }
     super(match, props)
@@ -196,7 +196,7 @@ export class NumericLiteral extends Literal {
 
 /** StringLiteral type. */
 export class StringLiteral extends Literal {
-  @proto @readonly datatype = "string"
+  @proto /*@readonly*/ datatype = "string"
   constructor(match, props) {
     if (typeof props === "string") props = { value: props }
     super(match, props)
@@ -206,7 +206,7 @@ export class StringLiteral extends Literal {
 
 /** BooleanLiteral type. */
 export class BooleanLiteral extends Literal {
-  @proto @readonly datatype = "boolean"
+  @proto /*@readonly*/ datatype = "boolean"
   constructor(match, props) {
     if (typeof props === "boolean") props = { value: props }
     super(match, props)
@@ -222,7 +222,7 @@ export class BooleanLiteral extends Literal {
 
 /** RegExpLiteral type. */
 export class RegExpLiteral extends Literal {
-  @proto @readonly datatype = RegExp
+  @proto /*@readonly*/ datatype = RegExp
   constructor(match, props) {
     super(match, props)
     this.assertType("value", RegExp)
@@ -232,7 +232,7 @@ export class RegExpLiteral extends Literal {
 /** NullLiteral type. TODO: ???? */
 export class NullLiteral extends Literal {
   // TODO: ???
-  @proto @readonly datatype = "null"
+  @proto /*@readonly*/ datatype = "null"
   constructor(match, props) {
     super(match, props)
     this.assertType("value", undefined)
@@ -247,7 +247,7 @@ export class NullLiteral extends Literal {
 
 /** UndefinedLiteral type. TODO: ???? */
 export class UndefinedLiteral extends Literal {
-  @proto @readonly datatype = "undefined"
+  @proto /*@readonly*/ datatype = "undefined"
   constructor(match, props) {
     super(match, props)
     this.assertType("value", undefined)
@@ -275,7 +275,7 @@ export class ThisLiteral extends Literal {
  *  - `raw` (optional) is the raw input string
  */
 export class KeywordLiteral extends Literal {
-  @proto @readonly datatype = "string" // TODO???
+  @proto /*@readonly*/ datatype = "string" // TODO???
   constructor(match, props) {
     super(match, props)
     this.assertType("value", "string")
@@ -328,7 +328,7 @@ export class Enumeration extends Literal {
  * QuotedExpression -- use to wrap `expression` in single quotes.
  */
 export class QuotedExpression extends Expression {
-  @proto @readonly datatype = "string"
+  @proto /*@readonly*/ datatype = "string"
   constructor(match, props) {
     if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
     super(match, props)
@@ -350,7 +350,7 @@ export class QuotedExpression extends Expression {
  * BackTickExpression -- use to wrap `expression` AST in back-ticks.
  */
 export class BackTickExpression extends Expression {
-  @proto @readonly datatype = "string"
+  @proto /*@readonly*/ datatype = "string"
   constructor(match, props) {
     if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
     super(match, props)
@@ -372,7 +372,7 @@ export class BackTickExpression extends Expression {
  * TripleBackTickExpression -- use to wrap `expression` AST in triple-back-ticks.
  */
 export class TripleBackTickExpression extends Expression {
-  @proto @readonly datatype = "string"
+  @proto /*@readonly*/ datatype = "string"
   constructor(match, props) {
     if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
     super(match, props)
@@ -611,7 +611,7 @@ export class ParenthesizedExpression extends Expression {
  *  - `expression` is the contained AST Expression.
  *  - `datatype` is ALWAYS boolean. */
 export class NotExpression extends Expression {
-  @proto @readonly datatype = "boolean"
+  @proto /*@readonly*/ datatype = "boolean"
   constructor(match, props) {
     super(match, props)
     this.assertType("expression", Expression)
@@ -846,7 +846,7 @@ export class EchoInvocation extends CoreMethodInvocation {
  *  TODO: ^^^ ???
  */
 export class TypeExpression extends Expression {
-  @proto @readonly datatype = "Type"
+  @proto /*@readonly*/ datatype = "Type"
   constructor(match, props) {
     super(match, props)
     this.assertType("name", "string")
@@ -889,7 +889,7 @@ export class PrototypeExpression extends Expression {
  *  - `constant` is pointer to scope Constant, if there is one.
  */
 export class ConstantExpression extends Expression {
-  @proto @readonly datatype = "string"
+  @proto /*@readonly*/ datatype = "string"
   constructor(match, props) {
     super(match, props)
     this.assertType("name", "string")
@@ -1011,7 +1011,7 @@ export class MethodDefinition extends Expression {
  * TODO: datatype???
  */
 export class ObjectLiteral extends Expression {
-  @proto @readonly datatype = "object"
+  @proto /*@readonly*/ datatype = "object"
   constructor(match, { properties, ...props } = {}) {
     super(match, props)
     this.properties = []

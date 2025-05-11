@@ -63,7 +63,7 @@ describe("@proto", () => {
 
 describe("@readonly", () => {
   class Thing {
-    @readonly prop = "original value"
+    /*@readonly*/ prop = "original value"
   }
   test("sets expected value on new instance", () => {
     const thing = new Thing()
