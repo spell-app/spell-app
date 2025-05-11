@@ -150,7 +150,7 @@ describe("@writeOnce", () => {
 
 describe("@nonEnumerable", () => {
   class Thing {
-    @nonEnumerable string = "original value"
+    /*@nonEnumerable*/ string = "original value"
   }
   test("can be accessed on instance", () => {
     const thing = new Thing()
