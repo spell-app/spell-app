@@ -6,7 +6,7 @@ import { Rule } from "."
 //    - string to match, or
 //    - array of strings, any of which will work.
 //
-// NOTE: Don't use this -- use `Rule.Keyword` or `Rule.Literal` instead!
+// NOTE: Don't use this -- use `Rule.Keyword` or `Rule.Symbol` instead!
 export class Literal extends Rule {
   constructor(props) {
     if (Array.isArray(props)) props = { literal: props }

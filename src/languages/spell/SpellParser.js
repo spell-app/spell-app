@@ -15,6 +15,7 @@ export class SpellParser extends Parser {
 
   @proto tokenizer = new Tokenizer({
     // Only support double-quotes as quote symbols (so we can do contractions with single quotes)
+    // TODO: backtick as alternative quote, for embedding double quotes?
     quoteSymbols: [`"`],
     // Remove "normal" whitespace (leaving newlines and indents) when parsing
     whitespacePolicy: WhitespacePolicy.LEADING_ONLY
@@ -37,7 +38,7 @@ export class SpellParser extends Parser {
   static get rootScope() {
     const scope = new RootScope({ name: "spellRoot", parser: spellParser })
     // Add all BASE_TYPES defined in `spellCore`.
-    // See: `src/languages/spell/spellCore/classes/index.js`
+    // See: `src/spellCore/classes/index.js`
     spellCore.BASE_TYPES.forEach((type) => scope.types.add(type))
     return scope
   }

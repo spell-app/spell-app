@@ -1,4 +1,6 @@
 ## Pile of playing cards
+a pile is a list of cards
+
 the color of a pile is:
 	if it is empty return "none"
 	return the color of its last card

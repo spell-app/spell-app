@@ -320,6 +320,10 @@ test_deck_shuffling()
 
 // -----------
 //## Pile of playing cards
+export class Pile extends List {}
+spellCore.addExport('Pile', Pile)
+spellCore.define(Pile.prototype, 'instanceType', { value: Card })
+
 spellCore.define(Pile.prototype, 'color', {
 	get() {
 		if (spellCore.isEmpty(this)) { return "none" }
