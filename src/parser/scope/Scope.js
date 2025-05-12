@@ -14,9 +14,24 @@ export class Scope {
    * Note: We forward `.methods`, `.variables.`, `.types`, `.constants` and `.rules` to our parent scope.
    *       Subclasses may choose to implement these directly, generally as `IndexedList`s.
    */
-  @forward("methods", "variables", "types", "constants", "rules")
+  /*@forward("methods", "variables", "types", "constants", "rules")*/
   @writeOnce
   scope
+  get methods() {
+    return this.scope.methods
+  }
+  get variables() {
+    return this.scope.variables
+  }
+  get types() {
+    return this.scope.types
+  }
+  get constants() {
+    return this.scope.constants
+  }
+  get rules() {
+    return this.scope.rules
+  }
 
   constructor(props) {
     Object.assign(this, props)

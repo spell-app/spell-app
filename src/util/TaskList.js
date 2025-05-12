@@ -33,8 +33,11 @@ export class TaskList extends Task {
   //-----------------
 
   /** Queue of `Tasks` to run. Note we can also say `taskList.length` */
-  @forward("length")
+  /*@forward("length")*/
   tasks = []
+  get length() {
+    return this.tasks.length
+  }
 
   /** Delay between tasks, in milliseconds. */
   @proto delayBetweenTasks = 0

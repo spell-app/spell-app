@@ -55,23 +55,37 @@ export class SpellProject extends JSON5File {
    * Note that we `forward` lots of methods on the location object to this object,
    * so you can say `project.projectName` rather than `project.location.projectName`.
    */
-  @forward(
-    //
-    "projectId",
-    "owner",
-    "projectName",
-    "isSystemProject",
-    "isUserProject"
-  )
+  /*@forward("projectId", "owner", "projectName", "isSystemProject", "isUserProject")*/
   @memoize
   get location() {
     return new SpellLocation(this.path)
   }
+  get projectId() {
+    return this.location.projectId
+  }
+  get owner() {
+    return this.location.owner
+  }
+  get projectName() {
+    return this.location.projectName
+  }
+  get isSystemProject() {
+    return this.location.isSystemProject
+  }
+  get isUserProject() {
+    return this.location.isUserProject
+  }
 
-  @forward("type", "Type")
+  /*@forward("type", "Type")*/
   @memoize
   get projectRoot() {
     return new SpellProjectRoot(this.location.projectRoot)
+  }
+  get type() {
+    return this.projectRoot.type
+  }
+  get Type() {
+    return this.projectRoot.Type
   }
 
   //-----------------

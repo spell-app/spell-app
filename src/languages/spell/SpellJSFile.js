@@ -36,10 +36,31 @@ export class SpellJSFile extends TextFile {
   @writeOnce path
 
   /** `location` object which we can use to get various bits of the path. */
-  @forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")
+  /*@forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")*/
   @memoize
   get location() {
     return new SpellLocation(this.path)
+  }
+  get projectId() {
+    return this.location.projectId
+  }
+  get projectName() {
+    return this.location.projectName
+  }
+  get filePath() {
+    return this.location.filePath
+  }
+  get folder() {
+    return this.location.folder
+  }
+  get file() {
+    return this.location.file
+  }
+  get fileName() {
+    return this.location.fileName
+  }
+  get extension() {
+    return this.location.extension
   }
 
   /**
