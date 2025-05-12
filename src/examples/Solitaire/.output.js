@@ -1,9 +1,6 @@
 //## definition of a Card with nice english aliases for working with it
 export class Card extends Thing {}
 spellCore.addExport('Card', Card)
-export class Pile extends List {}
-spellCore.addExport('Pile', Pile)
-spellCore.define(Pile.prototype, 'instanceType', { value: Card })
 
 //## properties of cards
 // card ranks
