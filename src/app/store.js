@@ -117,6 +117,8 @@ export const store = createStore({
     if (!projectPaths.includes(projectPath)) projectPath = projectPaths[0]
     // TODO: what if no project???
     const project = new SpellProject(projectPath)
+    // DEBUG: access globally as `window.project`
+    window.project = project
     let sameProject = store.project === project
     if (!sameProject) {
       console.info("selecting project", project)
