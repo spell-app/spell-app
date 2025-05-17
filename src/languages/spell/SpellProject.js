@@ -47,7 +47,7 @@ export class SpellProject extends JSON5File {
     SpellProject.registry.clear(this.path)
   }
 
-  @writeOnce path
+  /*@writeOnce path*/
 
   /**
    * Immutable `location` object which we use to get various bits of the path.

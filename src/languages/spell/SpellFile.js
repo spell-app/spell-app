@@ -37,7 +37,7 @@ export class SpellFile extends TextFile {
    * Path to file, as specified by server.
    * MUST be passed to constructor.
    */
-  @writeOnce path
+  /*@writeOnce path*/
 
   /**
    * Return `location` object as a SpellLocation which we use to get various bits of our `path`.

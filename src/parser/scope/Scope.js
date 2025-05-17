@@ -15,8 +15,7 @@ export class Scope {
    *       Subclasses may choose to implement these directly, generally as `IndexedList`s.
    */
   /*@forward("methods", "variables", "types", "constants", "rules")*/
-  @writeOnce
-  scope
+  /*@writeOnce scope*/
   get methods() {
     return this.scope.methods
   }

@@ -88,7 +88,7 @@ describe("@readonly", () => {
 
 describe("@writeOnce", () => {
   class Thing {
-    @writeOnce prop
+    /*@writeOnce prop*/
     constructor(value) {
       if (arguments.length > 0) this.prop = value
     }

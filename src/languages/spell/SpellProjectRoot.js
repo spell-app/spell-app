@@ -33,14 +33,14 @@ export class SpellProjectRoot extends JSON5File {
   }
 
   // From `src/projectSetup.js`
-  @writeOnce path
-  @writeOnce owner
-  @writeOnce domain
-  @writeOnce label
-  @writeOnce singular
-  @writeOnce type
-  @writeOnce description
-  @writeOnce location
+  /*@writeOnce path*/
+  /*@writeOnce owner*/
+  /*@writeOnce domain*/
+  /*@writeOnce label*/
+  /*@writeOnce singular*/
+  /*@writeOnce type*/
+  /*@writeOnce description*/
+  /*@writeOnce location*/
 
   /**
    * Given a `path` as `@user:projects` etc, return a singleton `SpellProjectRoot`

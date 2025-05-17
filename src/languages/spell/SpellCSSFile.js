@@ -35,7 +35,7 @@ export class SpellCSSFile extends TextFile {
    * Path to file, as specified by server.
    * MUST be passed to constructor.
    */
-  @writeOnce path
+  /*@writeOnce path*/
 
   /** `location` object which we can use to get various bits of the path. */
   /*@forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")*/
