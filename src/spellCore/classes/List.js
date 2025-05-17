@@ -24,10 +24,10 @@ export class List extends Observable {
 
   // Default `type` to the name of our constructor.  Instances can override.
   get type() {
-    return "type" in this._props ? this._props.type : this.constructor.name
+    return "type" in this.$props ? this.$props.type : this.constructor.name
   }
   set type(type) {
-    this._props.type = type
+    this.$props.type = type
   }
 
   /*@memoize*/

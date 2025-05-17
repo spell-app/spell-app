@@ -35,29 +35,29 @@ global.clearEffect = clearEffect
 export class Observable extends Memorable() {
   constructor(props) {
     super()
-    this.__props__ = { _state: {} }
+    Object.defineProperty(this, "__props__", { value: { $state: {} } })
     // TODO: we could do this on demand with a getter, but that would mess up hooks
     //       because `createStore()` is attempting to be too clever in regard to memoizing in hooks.
-    Object.defineProperty(this, "_props", { value: createStore(this.__props__) })
+    Object.defineProperty(this, "$props", { value: createStore(this.__props__) })
     // NOTE: you cannot initialize state this way!!!
     // Assign start state as `@state key = <value>` or call `this.setState(<key>, <value>)` after construction.
     Object.assign(this, props)
   }
 
-  /** Pointer to our reactive `_state` object (initialized on construction). */
-  get _state() {
-    return this._props._state
+  /** Pointer to our reactive `$state` object (initialized on construction). */
+  get $state() {
+    return this.$props.$state
   }
 
   /**
-   * Set property `key` on our `_state` to `value`.
+   * Set property `key` on our `$state` to `value`.
    * If `value` is `undefined`, deletes instead.
    * `key` can be a dotted path.
    */
   setState(key, value) {
-    const { _state } = this
-    if (value === undefined) _unset(_state, key)
-    else _set(_state, key, value)
+    const { $state } = this
+    if (value === undefined) _unset($state, key)
+    else _set($state, key, value)
   }
 
   /**
@@ -65,7 +65,7 @@ export class Observable extends Memorable() {
    * By default we totally clear state, pass specific string `keys` array to clear just those.
    */
   resetState(...keys) {
-    if (arguments.length === 0) keys = Object.keys(this._state)
+    if (arguments.length === 0) keys = Object.keys(this.$state)
     keys.forEach((key) => this.setState(key, undefined))
   }
 
@@ -77,14 +77,15 @@ export class Observable extends Memorable() {
 
   /** Make toJSON() output our `props`. */
   toJSON() {
-    return this.__props__
+    const { $state, ...nonStateProps } = this.__props__
+    return nonStateProps
   }
 }
 global.Observable = Observable
 
 /**
  * A `@prop` is a (semi-) permanent reactive property defined on an `Observable`,
- * stored in `_props`.  You can get and set it as if it's a normal property.
+ * stored in `$props`.  You can get and set it as if it's a normal property.
  */
 export function prop(target, key, descriptor) {
   // console.warn("@prop", key, descriptor, target)
@@ -95,18 +96,18 @@ export function prop(target, key, descriptor) {
 
   const { initializer, value, writable, configurable } = descriptor
   const get = function () {
-    if (!hasOwnProp(this._props, key)) this._props[key] = initializer ? initializer() : value
-    return this._props[key]
+    if (!hasOwnProp(this.$props, key)) this.$props[key] = initializer ? initializer() : value
+    return this.$props[key]
   }
   let set
   if (writable) {
     set = function (newValue) {
       if (newValue === undefined) {
         if (hasOwnProp(this, key)) delete this[key]
-        if (hasOwnProp(this._props, key)) delete this._props[key]
-        if (hasOwnProp(this._state, key)) delete this._state[key]
+        if (hasOwnProp(this.$props, key)) delete this.$props[key]
+        if (hasOwnProp(this.$state, key)) delete this.$state[key]
       } else {
-        this._props[key] = newValue
+        this.$props[key] = newValue
       }
     }
   } else {
@@ -119,7 +120,7 @@ export function prop(target, key, descriptor) {
 
 /**
  * A `@state` is a transient reactive property defined on an `Observable`,
- * stored in `._props._state` (which is set during object construction).
+ * stored in `.$props.$state` (which is set during object construction).
  * You cannot modify `@state` directy!  Instead do `this.setState("prop", newValue)`.
  * Call `this.resetState()` to reset all state variables to their default
  * or `this.resetState(<key>...)` to reset certain state variables.
@@ -133,8 +134,8 @@ export function state(target, key, descriptor) {
 
   const { initializer, value, configurable /* writable, */ } = descriptor
   const get = function () {
-    if (!hasOwnProp(this._state, key)) this._state[key] = initializer ? initializer() : value
-    return this._state[key]
+    if (!hasOwnProp(this.$state, key)) this.$state[key] = initializer ? initializer() : value
+    return this.$state[key]
   }
   const set = function (newValue) {
     console.warn(`Attempting to set readonly state '${key}' of`, this, "to", newValue)

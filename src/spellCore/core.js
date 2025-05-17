@@ -30,8 +30,8 @@ Object.assign(spellCore, {
 
   /**
    * Define a `property` on the `thing`.
-   * This is most useful for `Observable`s where `_props` is an observable proxy object.
-   * For everything else, we'll define `_props` as a plain object as necessary.
+   * This is most useful for `Observable`s where `$props` is an observable proxy object.
+   * For everything else, we'll define `$props` as a plain object as necessary.
    * - `thing` is object to define property on (likely a prototype)
    * - `property` is property name
    * - `value` is default value to use if not set
@@ -42,22 +42,22 @@ Object.assign(spellCore, {
   defineProperty(thing, { property, value, type, initializer, enumeration, enumerationProp /* get, set, */ }) {
     const descriptor = { configurable: true }
     function baseSet(newValue) {
-      if (!hasOwnProp(this, "_props")) this._props = {}
-      this._props[property] = newValue
+      if (!hasOwnProp(this, "$props")) this.$props = {}
+      this.$props[property] = newValue
     }
 
     // If we get an `initializer()`, call it to get a value for each instance,
-    // store that in `_props`
+    // store that in `$props`
     if (initializer) {
       descriptor.get = function () {
         const instanceValue = initializer.apply(this)
-        // On initial `get()`, run the initializer and `set` the value in _props.
+        // On initial `get()`, run the initializer and `set` the value in $props.
         baseSet.call(this, instanceValue)
         // Define a getter to return the value from props, preserving `set`
         Object.defineProperty(this, property, {
           configurable: true,
           get() {
-            return this._props[property]
+            return this.$props[property]
           },
           set: descriptor.set
         })
@@ -85,7 +85,7 @@ Object.assign(spellCore, {
     }
     if (!descriptor.get) {
       descriptor.get = function () {
-        return hasOwnProp(this._props, property) ? this._props[property] : value
+        return hasOwnProp(this.$props, property) ? this.$props[property] : value
       }
     }
     if (!descriptor.set) descriptor.set = baseSet
