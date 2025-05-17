@@ -1,4 +1,4 @@
-import { TextFile, proto, memoize, forward, writeOnce, overridable, state } from "~/util"
+import { TextFile, proto, overridable, state } from "~/util"
 import { Token } from "~/parser"
 import { SpellLocation, SpellProject } from "~/languages/spell"
 import { batch } from "~/util"
@@ -39,9 +39,9 @@ export class SpellCSSFile extends TextFile {
 
   /** `location` object which we can use to get various bits of the path. */
   /*@forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")*/
-  @memoize
+  /*@memoize*/
   get location() {
-    return new SpellLocation(this.path)
+    return this.memoized("location", () => new SpellLocation(this.path))
   }
   get projectId() {
     return this.location.projectId
@@ -68,9 +68,9 @@ export class SpellCSSFile extends TextFile {
   /**
    * Pointer to our `SpellProject`.
    */
-  @memoize
+  /*@memoize*/
   get project() {
-    return new SpellProject(this.projectId)
+    return this.memoized("project", () => new SpellProject(this.projectId))
   }
 
   /**

@@ -1,19 +1,7 @@
 import global from "global"
 // import { observable, computed } from "mobx"
 
-import {
-  JSON5File,
-  state,
-  forward,
-  memoize,
-  writeOnce,
-  memoizeForProp,
-  $fetch,
-  CONFIRM,
-  TaskList,
-  Task,
-  getDier
-} from "~/util"
+import { JSON5File, state, memoizeForProp, $fetch, CONFIRM, TaskList, Task, getDier } from "~/util"
 import { ProjectScope } from "~/parser"
 import { SpellParser, SpellLocation, SpellFile, SpellCSSFile, SpellJSFile } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
@@ -56,9 +44,9 @@ export class SpellProject extends JSON5File {
    * so you can say `project.projectName` rather than `project.location.projectName`.
    */
   /*@forward("projectId", "owner", "projectName", "isSystemProject", "isUserProject")*/
-  @memoize
+  /*@memoize*/
   get location() {
-    return new SpellLocation(this.path)
+    return this.memoized("location", () => new SpellLocation(this.path))
   }
   get projectId() {
     return this.location.projectId
@@ -77,9 +65,9 @@ export class SpellProject extends JSON5File {
   }
 
   /*@forward("type", "Type")*/
-  @memoize
+  /*@memoize*/
   get projectRoot() {
-    return new SpellProjectRoot(this.location.projectRoot)
+    return this.memoized("projectRoot", () => new SpellProjectRoot(this.location.projectRoot))
   }
   get type() {
     return this.projectRoot.type
@@ -98,10 +86,12 @@ export class SpellProject extends JSON5File {
   /** Last compiled result as a javascript string. */
   @state compiled = undefined
 
-  @memoize
+  /*@memoize*/
   get outputFile() {
-    const location = this.getFileLocation(".output.js")
-    return new SpellJSFile(location.path)
+    return this.memoized("outputFile", () => {
+      const location = this.getFileLocation(".output.js")
+      return new SpellJSFile(location.path)
+    })
   }
 
   /** Reset our compiled state. */
@@ -139,30 +129,32 @@ export class SpellProject extends JSON5File {
    * Return a TaskList we can use to parse our imports.
    * Call as `project.parser.start(parentScope?)`
    */
-  @memoize
+  /*@memoize*/
   get parser() {
-    return new TaskList({
-      name: `Parsing ${this.type}: ${this.projectName}`,
-      tasks: [
-        new Task({
-          name: `Loading ${this.type}`,
-          run: (parentScope) => {
-            this.resetCompiled()
-            const scope = this.getScope(parentScope)
-            this.setState("scope", scope)
-            return this.load()
-          }
-        }),
-        TaskList.forEach({
-          name: `Parsing imports`,
-          list: () => this.activeImports,
-          getTask: (file) =>
-            new Task({
-              name: `Parsing import: ${file.file}`,
-              run: () => file.parse(this.scope)
-            })
-        })
-      ]
+    return this.memoized("parser", () => {
+      return new TaskList({
+        name: `Parsing ${this.type}: ${this.projectName}`,
+        tasks: [
+          new Task({
+            name: `Loading ${this.type}`,
+            run: (parentScope) => {
+              this.resetCompiled()
+              const scope = this.getScope(parentScope)
+              this.setState("scope", scope)
+              return this.load()
+            }
+          }),
+          TaskList.forEach({
+            name: `Parsing imports`,
+            list: () => this.activeImports,
+            getTask: (file) =>
+              new Task({
+                name: `Parsing import: ${file.file}`,
+                run: () => file.parse(this.scope)
+              })
+          })
+        ]
+      })
     })
   }
 
@@ -170,38 +162,40 @@ export class SpellProject extends JSON5File {
    * Return a TaskList we can use to `compile()` our imports.
    * Call as `project.compiler.start(parentScope?)`
    */
-  @memoize
+  /*@memoize*/
   get compiler() {
-    return new TaskList({
-      debug: true,
-      name: `Compiling ${this.type}: ${this.projectName}`,
-      tasks: [
-        this.parser,
-        TaskList.forEach({
-          name: `Compiling imports`,
-          list: () => this.activeImports,
-          getTask: (file) =>
-            new Task({
-              name: `Compiling import: ${file.file}`,
-              run: () => file.compile()
-            })
-        }),
-        new Task({
-          name: "Combining output",
-          run: (allCompiled) => {
-            const compiled = allCompiled.join("\n// -----------\n")
-            this.setState("compiled", compiled)
-            return compiled
-          }
-        }),
-        new Task({
-          name: "Saving compiled output",
-          run: async (compiled) => {
-            this.outputFile.setContents(compiled)
-            return await this.outputFile.save()
-          }
-        })
-      ]
+    return this.memoized("compiler", () => {
+      return new TaskList({
+        debug: true,
+        name: `Compiling ${this.type}: ${this.projectName}`,
+        tasks: [
+          this.parser,
+          TaskList.forEach({
+            name: `Compiling imports`,
+            list: () => this.activeImports,
+            getTask: (file) =>
+              new Task({
+                name: `Compiling import: ${file.file}`,
+                run: () => file.compile()
+              })
+          }),
+          new Task({
+            name: "Combining output",
+            run: (allCompiled) => {
+              const compiled = allCompiled.join("\n// -----------\n")
+              this.setState("compiled", compiled)
+              return compiled
+            }
+          }),
+          new Task({
+            name: "Saving compiled output",
+            run: async (compiled) => {
+              this.outputFile.setContents(compiled)
+              return await this.outputFile.save()
+            }
+          })
+        ]
+      })
     })
   }
 

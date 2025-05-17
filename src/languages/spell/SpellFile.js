@@ -1,6 +1,6 @@
 import global from "global"
 
-import { TextFile, state, proto, memoize, forward, writeOnce, batch } from "~/util"
+import { TextFile, state, proto, batch } from "~/util"
 import { ProjectScope, FileScope } from "~/parser"
 import { SpellProject, SpellParser, SpellLocation } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
@@ -43,9 +43,9 @@ export class SpellFile extends TextFile {
    * Return `location` object as a SpellLocation which we use to get various bits of our `path`.
    */
   /*@forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")*/
-  @memoize
+  /*@memoize*/
   get location() {
-    return new SpellLocation(this.path)
+    return this.memoized("location", () => new SpellLocation(this.path))
   }
   get projectId() {
     return this.location.projectId
@@ -72,9 +72,9 @@ export class SpellFile extends TextFile {
   /**
    * Pointer to our `SpellProject`.
    */
-  @memoize
+  /*@memoize*/
   get project() {
-    return new SpellProject(this.projectId)
+    return this.memoized("project", () => new SpellProject(this.projectId))
   }
 
   /**

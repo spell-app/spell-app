@@ -6,7 +6,7 @@ import flatten from "lodash/flatten"
 import groupBy from "lodash/groupBy"
 import sum from "lodash/sum"
 
-import { CustomError, cloneClass, memoize, nonEnumerable, proto, showWhitespace } from "~/util"
+import { CustomError, cloneClass, nonEnumerable, Memorable, proto, showWhitespace } from "~/util"
 import { Rule, rulex, Token, Tokenizer, WhitespacePolicy, Scope } from "~/parser"
 
 /** Error we'll throw when setting up / executing parser. */
@@ -21,12 +21,13 @@ export class ParserError extends CustomError {}
 
 const CLONE_CLASSES = !isNode
 
-export class Parser {
+export class Parser extends Memorable() {
   // Name of our default rule to parse if calling `parser.parse(text)`.
   @proto defaultRule = "block"
 
   // Constructor.
   constructor(properties) {
+    super()
     Object.assign(this, properties)
   }
 
@@ -126,10 +127,12 @@ export class Parser {
   @nonEnumerable
   _rules = {}
 
-  @memoize
+  /*@memoize*/
   get rules() {
-    if (!this.imports) return { ...this._rules }
-    return this.mergeRuleSets(this._rules, ...this.imports.map((parser) => parser.rules))
+    return this.memoized("rules", () => {
+      if (!this.imports) return { ...this._rules }
+      return this.mergeRuleSets(this._rules, ...this.imports.map((parser) => parser.rules))
+    })
   }
 
   // Setting rules through assignment calls `defineRules()`, adding to our existing rules.
@@ -137,6 +140,7 @@ export class Parser {
   //  `const myParser = new Parser({  module: "xxx", rules: [...] });`
   // TESTME!!!
   set rules(rules) {
+    this.clearMemoized("rules")
     this.defineRules(...rules)
   }
 
@@ -158,8 +162,8 @@ export class Parser {
   // Add a `rule` to our list of rules!
   // Converts to `Rule.Group` on re-defining the same rule.
   addRule(rule, ruleName) {
-    // Clear memoized "rules" value if any
-    delete this.rules
+    // Clear memoized "rules" so we'll recalculate them
+    this.clearMemoized("rules")
 
     // If rule is a Rule subclass, instantiate it
     // eslint-disable-next-line new-cap
@@ -196,8 +200,8 @@ export class Parser {
 
   // Add rules from other parsers to this parser.
   import(...imports) {
-    // Clear memoized "rules" value if any
-    delete this.rules
+    // Clear memoized "rules" so we'll recalculate them
+    this.clearMemoized("rules")
     this.imports = [].concat(this.imports || [], imports)
   }
 
@@ -258,6 +262,8 @@ export class Parser {
   //  `testRule` (Rule or string, optional) Rule or keywords string to use as a test rule.
   //    Specifying this can let us jump out quickly if there is no possible match.
   defineRule(ruleProps) {
+    // Clear memoized "rules" so we'll recalculate them
+    this.clearMemoized("rules")
     try {
       // If passed in a Rule instance or rule instance, just call addRule
       if (ruleProps instanceof Rule || ruleProps.prototype instanceof Rule) return this.addRule(ruleProps)

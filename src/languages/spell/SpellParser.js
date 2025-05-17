@@ -1,4 +1,4 @@
-import { proto, memoize } from "~/util"
+import { proto, initMemo, memo } from "~/util"
 import { RootScope, ProjectScope, Parser, Tokenizer, WhitespacePolicy } from "~/parser"
 import { spellParser } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
@@ -34,13 +34,16 @@ export class SpellParser extends Parser {
    * `rootScope` for all spellParsers -- contains base rules, types, constants.
    * All project scopes will point back to this.
    */
-  @memoize
+  /*@memoize*/
   static get rootScope() {
-    const scope = new RootScope({ name: "spellRoot", parser: spellParser })
-    // Add all BASE_TYPES defined in `spellCore`.
-    // See: `src/spellCore/classes/index.js`
-    spellCore.BASE_TYPES.forEach((type) => scope.types.add(type))
-    return scope
+    initMemo(this)
+    return memo(this, "rootScope", () => {
+      const scope = new RootScope({ name: "spellRoot", parser: spellParser })
+      // Add all BASE_TYPES defined in `spellCore`.
+      // See: `src/spellCore/classes/index.js`
+      spellCore.BASE_TYPES.forEach((type) => scope.types.add(type))
+      return scope
+    })
   }
 
   // Return a scope with a new parser which depends on this parser.

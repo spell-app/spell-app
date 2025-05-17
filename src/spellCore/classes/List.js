@@ -4,7 +4,7 @@
 import React from "react"
 import _ from "lodash"
 
-import { Observable, memoize, view, state } from "~/util"
+import { Observable, view, state } from "~/util"
 import { spellCore } from ".."
 
 //----------------------------
@@ -30,17 +30,15 @@ export class List extends Observable {
     this._props.type = type
   }
 
-  @memoize
+  /*@memoize*/
   get Component() {
-    const render = () => {
-      const elements = this.draw()
-      // console.info({ list: this, elements })
-      return elements
-    }
-    class ListC extends React.Component {
-      render = render
-    }
-    return view(ListC)
+    return this.memoized("Component", () => {
+      const render = () => this.draw()
+      class ListC extends React.Component {
+        render = render
+      }
+      return view(ListC)
+    })
   }
 
   // @memoize

@@ -2,7 +2,7 @@ import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
 
 import { Rule, Token } from "~/parser"
-import { Assertable, memoize } from "~/util"
+import { Assertable, Memorable } from "~/util"
 
 // Result of a successful `rule.parse()`.
 // This is a flyweight object which links a rule with the tokens that it successfully matched.
@@ -11,7 +11,7 @@ import { Assertable, memoize } from "~/util"
 // - `match.input`    - [Token] (required)              Array of tokens that were matched
 // - `match.matched`  - [Match or Token] (required)     Array of Matches or Tokens matched.
 //
-export class Match extends Assertable {
+export class Match extends Memorable(Assertable) {
   static DEBUG_MATCH_INITIALIZATION = false
   constructor(props) {
     super()
@@ -86,9 +86,9 @@ export class Match extends Assertable {
   // Syntactic sugar to easily get `groups` of the match for sequences, etc.
   // Only works for some rule types.
   // NOTE: ALWAYS GET THIS FROM THE MATCH!!!
-  @memoize
+  /*@memoize*/
   get groups() {
-    return this.rule.gatherGroups?.(this)
+    return this.memoized("groups", () => this.rule.gatherGroups?.(this))
   }
 
   /**
@@ -113,9 +113,9 @@ export class Match extends Assertable {
 
   // Return nested scope for nested block statements.
   // NOTE: ALWAYS GET THIS FROM THE MATCH!!!
-  @memoize
+  /*@memoize*/
   get nestedScope() {
-    return this.rule.getNestedScope?.(this)
+    return this.memoized("nestedScope", () => this.rule.getNestedScope?.(this))
   }
 
   /**
@@ -147,13 +147,15 @@ export class Match extends Assertable {
   }
 
   // Return the Abstract Syntax Tree for this match.
-  @memoize
+  /*@memoize*/
   get AST() {
-    if (!this.rule.getAST) {
-      console.warn("No getAST() method defined for rule: ", this.rule)
-      return undefined
-    }
-    return this.rule.getAST(this)
+    return this.memoized("AST", () => {
+      if (!this.rule.getAST) {
+        console.warn("No getAST() method defined for rule: ", this.rule)
+        return undefined
+      }
+      return this.rule.getAST(this)
+    })
   }
 
   // Compile the output of the match.

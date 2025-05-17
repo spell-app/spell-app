@@ -1,4 +1,4 @@
-import { memoize, IndexedList, typeCase, snakeCase } from "~/util"
+import { IndexedList, typeCase, snakeCase } from "~/util"
 import { Rule, TypeScope, ScopeConstant } from "~/parser"
 import { BlockScope } from "./BlockScope"
 /**
@@ -10,50 +10,62 @@ import { BlockScope } from "./BlockScope"
  */
 export class RootScope extends BlockScope {
   /** Scope `types`. */
-  @memoize
+  /*@memoize*/
   get types() {
-    return new IndexedList({
-      target: this,
-      keyProp: "name",
-      parentProp: "scope.types",
-      normalizeKey: typeCase,
-      transformer(item) {
-        if (!(item instanceof TypeScope)) item = new TypeScope(item)
-        item.scope = this.target
-        return item
-      }
-    })
+    return this.memoized(
+      "types",
+      () =>
+        new IndexedList({
+          target: this,
+          keyProp: "name",
+          parentProp: "scope.types",
+          normalizeKey: typeCase,
+          transformer(item) {
+            if (!(item instanceof TypeScope)) item = new TypeScope(item)
+            item.scope = this.target
+            return item
+          }
+        })
+    )
   }
 
   /** Scope `constants`. */
-  @memoize
+  /*@memoize*/
   get constants() {
-    return new IndexedList({
-      target: this,
-      keyProp: "name",
-      parentProp: "scope.constants",
-      normalizeKey: snakeCase,
-      transformer(item) {
-        if (!(item instanceof ScopeConstant)) item = new ScopeConstant(item)
-        item.scope = this.target
-        return item
-      }
-    })
+    return this.memoized(
+      "constants",
+      () =>
+        new IndexedList({
+          target: this,
+          keyProp: "name",
+          parentProp: "scope.constants",
+          normalizeKey: snakeCase,
+          transformer(item) {
+            if (!(item instanceof ScopeConstant)) item = new ScopeConstant(item)
+            item.scope = this.target
+            return item
+          }
+        })
+    )
   }
 
   /** Scope `rules`. */
-  @memoize
+  /*@memoize*/
   get rules() {
-    return new IndexedList({
-      target: this,
-      keyProp: "name",
-      transformer(item) {
-        if (item instanceof Rule) throw new TypeError(`rules.add(): expected an Object, not a Rule.`)
-        if (!this.target.parser) throw new TypeError(`rules.add(): called on scope without a parser.`)
-        // Define the rule at the parser level.
-        this.target.parser.defineRule({ ...item, scope: this.target })
-        return item
-      }
-    })
+    return this.memoized(
+      "rules",
+      () =>
+        new IndexedList({
+          target: this,
+          keyProp: "name",
+          transformer(item) {
+            if (item instanceof Rule) throw new TypeError(`rules.add(): expected an Object, not a Rule.`)
+            if (!this.target.parser) throw new TypeError(`rules.add(): called on scope without a parser.`)
+            // Define the rule at the parser level.
+            this.target.parser.defineRule({ ...item, scope: this.target })
+            return item
+          }
+        })
+    )
   }
 }

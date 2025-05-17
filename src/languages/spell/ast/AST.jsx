@@ -4,8 +4,7 @@ import _get from "lodash/get"
 
 import {
   proto,
-  memoize,
-  readonly,
+  Memorable,
   overridable,
   getSuperHierarchy,
   Assertable,
@@ -32,7 +31,7 @@ function convertStatementsToBlock(match, statements) {
 /** Abstract root of all AST node types.
  *  - `type` is
  */
-export class ASTNode extends Assertable {
+export class ASTNode extends Memorable(Assertable) {
   /** On construction, pass:
    *  - `match` passed to `getAST()` method,
    *  - `props` as arbitrary properties to be assigned to the instance.
@@ -71,9 +70,9 @@ export class ASTNode extends Assertable {
   //-------------------------
 
   /** Return rendered react component which draws this node as syntax-colored Javascript. */
-  @memoize
+  /*@memoize*/
   get component() {
-    return render.Node(this)
+    return this.memoized("component", () => render.Node(this))
   }
 
   /**
@@ -1411,23 +1410,25 @@ export class PropertyDefinition extends Statement {
     this.assertType("set", MethodDefinition, OPTIONAL)
   }
   // Return `CoreMethodInvocation` which we'll use to render as JS or component
-  @memoize
+  /*@memoize*/
   get definition() {
-    const { match, thing, property, value, get, set, initializer } = this
-    const propName = new QuotedExpression(property.match, { expression: property })
+    return this.memoized("definition", () => {
+      const { match, thing, property, value, get, set, initializer } = this
+      const propName = new QuotedExpression(property.match, { expression: property })
 
-    const descriptor = new ObjectLiteral(match)
-    if (value) {
-      if (value instanceof MethodDefinition) descriptor.addMethod("value", value)
-      else descriptor.addProp("value", value)
-    }
-    if (initializer) descriptor.addMethod("initializer", initializer)
-    if (get) descriptor.addMethod("get", get)
-    if (set) descriptor.addMethod("set", set)
+      const descriptor = new ObjectLiteral(match)
+      if (value) {
+        if (value instanceof MethodDefinition) descriptor.addMethod("value", value)
+        else descriptor.addProp("value", value)
+      }
+      if (initializer) descriptor.addMethod("initializer", initializer)
+      if (get) descriptor.addMethod("get", get)
+      if (set) descriptor.addMethod("set", set)
 
-    return new CoreMethodInvocation(match, {
-      methodName: "define",
-      args: [thing, propName, descriptor]
+      return new CoreMethodInvocation(match, {
+        methodName: "define",
+        args: [thing, propName, descriptor]
+      })
     })
   }
   compile() {
@@ -1597,42 +1598,44 @@ export class JSXElement extends Expression {
     this.assertArrayType("children", [JSXElement, JSXEndTag, JSXElement, JSXText, JSXExpression])
   }
   // Return `spellCore.createElement()` which we'll use to render as JS or component
-  @memoize
+  /*@memoize*/
   get output() {
-    const properties = [
-      new ObjectLiteralProperty(this.match, {
-        property: "tag",
-        value: new StringLiteral(this.match, `"${this.tagName}"`)
-      })
-    ]
-
-    const attrs =
-      this.attrs &&
-      this.attrs.length &&
-      new ObjectLiteral(this.match, {
-        properties: this.attrs.map((attr) => attr.output)
-      })
-    if (attrs) {
-      properties.push(
+    return this.memoized("output", () => {
+      const properties = [
         new ObjectLiteralProperty(this.match, {
-          property: "props",
-          value: attrs
+          property: "tag",
+          value: new StringLiteral(this.match, `"${this.tagName}"`)
         })
-      )
-    }
-    const items = this.children?.length && this.children.map((child) => child?.output).filter(Boolean)
-    if (items?.length) {
-      properties.push(
-        new ObjectLiteralProperty(this.match, {
-          property: "children",
-          value: new ArrayLiteral(this.match, { items, wrap: true })
-        })
-      )
-    }
+      ]
 
-    return new CoreMethodInvocation(this.match, {
-      methodName: "element",
-      args: [new ObjectLiteral(this.match, { properties, wrap: attrs?.wrap || false })]
+      const attrs =
+        this.attrs &&
+        this.attrs.length &&
+        new ObjectLiteral(this.match, {
+          properties: this.attrs.map((attr) => attr.output)
+        })
+      if (attrs) {
+        properties.push(
+          new ObjectLiteralProperty(this.match, {
+            property: "props",
+            value: attrs
+          })
+        )
+      }
+      const items = this.children?.length && this.children.map((child) => child?.output).filter(Boolean)
+      if (items?.length) {
+        properties.push(
+          new ObjectLiteralProperty(this.match, {
+            property: "children",
+            value: new ArrayLiteral(this.match, { items, wrap: true })
+          })
+        )
+      }
+
+      return new CoreMethodInvocation(this.match, {
+        methodName: "element",
+        args: [new ObjectLiteral(this.match, { properties, wrap: attrs?.wrap || false })]
+      })
     })
   }
   compile() {
@@ -1655,22 +1658,24 @@ export class JSXAttribute extends Expression {
     this.assertType("value", Expression, OPTIONAL)
     this.assertType("error", ParseError, OPTIONAL)
   }
-  @memoize
+  /*@memoize*/
   get output() {
-    // If we didn't get a value:
-    //  if we have a parse error, return `undefined`
-    //  otherwise return `true` as per spec for an empty attribute
-    const value = this.value || (this.error ? new UndefinedLiteral(this.match) : new BooleanLiteral(this.match, true))
-    if (value instanceof MethodDefinition) {
-      value.asProperty = true
-      value.methodName = this.name
-      if (this.error) value.error = this.error
-      return value
-    }
-    return new ObjectLiteralProperty(this.match, {
-      property: this.name,
-      value,
-      error: this.error
+    return this.memoized("output", () => {
+      // If we didn't get a value:
+      //  if we have a parse error, return `undefined`
+      //  otherwise return `true` as per spec for an empty attribute
+      const value = this.value || (this.error ? new UndefinedLiteral(this.match) : new BooleanLiteral(this.match, true))
+      if (value instanceof MethodDefinition) {
+        value.asProperty = true
+        value.methodName = this.name
+        if (this.error) value.error = this.error
+        return value
+      }
+      return new ObjectLiteralProperty(this.match, {
+        property: this.name,
+        value,
+        error: this.error
+      })
     })
   }
 }
@@ -1694,9 +1699,11 @@ export class JSXText extends Expression {
     this.assertType("value", "string")
     this.assertType("raw", "string", OPTIONAL)
   }
-  @memoize
+  /*@memoize*/
   get output() {
-    return new StringLiteral(this.match, this.value)
+    return this.memoized("output", () => {
+      return new StringLiteral(this.match, this.value)
+    })
   }
 }
 
@@ -1709,15 +1716,17 @@ export class JSXExpression extends Expression {
     this.assertType("expression", Expression, OPTIONAL)
     this.assertType("error", ParseError, OPTIONAL)
   }
-  @memoize
+  /*@memoize*/
   get output() {
-    if (this.error) {
-      const expression = this.expression || new NullLiteral(this.match)
-      return new ExpressionWithComment(this.match, {
-        expression,
-        comment: this.error
-      })
-    }
-    return this.expression
+    return this.memoized("output", () => {
+      if (this.error) {
+        const expression = this.expression || new NullLiteral(this.match)
+        return new ExpressionWithComment(this.match, {
+          expression,
+          comment: this.error
+        })
+      }
+      return this.expression
+    })
   }
 }

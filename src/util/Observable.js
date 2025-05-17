@@ -4,6 +4,7 @@ import _unset from "lodash/unset"
 import { store as createStore, view, batch, autoEffect, clearEffect } from "@risingstack/react-easy-state"
 
 import { hasOwnProp } from "./class"
+import { Memorable } from "./Memorable"
 
 // re-export react-easy-state props for convenience
 export { createStore, view, batch, autoEffect, clearEffect }
@@ -31,8 +32,9 @@ global.clearEffect = clearEffect
  *    - Use `this.resetState()` or `this.resetState(<stateKey>...)` to reset state.
  */
 
-export class Observable {
+export class Observable extends Memorable() {
   constructor(props) {
+    super()
     this.__props__ = { _state: {} }
     // TODO: we could do this on demand with a getter, but that would mess up hooks
     //       because `createStore()` is attempting to be too clever in regard to memoizing in hooks.

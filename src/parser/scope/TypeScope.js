@@ -27,35 +27,43 @@ export class TypeScope extends BlockScope {
   }
 
   /** Scope `classVariables`. */
-  @memoize
+  /*@memoize*/
   get classVariables() {
-    return new IndexedList({
-      target: this,
-      keyProp: "name",
-      normalizeKey: snakeCase,
-      transformer(item) {
-        if (!(item instanceof ScopeVariable)) item = new ScopeVariable(item)
-        item.scope = this.target
-        item.kind = "static"
-        return item
-      }
-    })
+    return this.memoized(
+      "classVariables",
+      () =>
+        new IndexedList({
+          target: this,
+          keyProp: "name",
+          normalizeKey: snakeCase,
+          transformer(item) {
+            if (!(item instanceof ScopeVariable)) item = new ScopeVariable(item)
+            item.scope = this.target
+            item.kind = "static"
+            return item
+          }
+        })
+    )
   }
 
   /** Scope `classMethods`. */
-  @memoize
+  /*@memoize*/
   get classMethods() {
-    return new IndexedList({
-      target: this,
-      keyProp: "name",
-      normalizeKey: snakeCase,
-      transformer(item) {
-        if (!(item instanceof MethodScope)) item = new MethodScope(item)
-        item.scope = this.target
-        item.kind = "static"
-        return item
-      }
-    })
+    return this.memoized(
+      "classMethods",
+      () =>
+        new IndexedList({
+          target: this,
+          keyProp: "name",
+          normalizeKey: snakeCase,
+          transformer(item) {
+            if (!(item instanceof MethodScope)) item = new MethodScope(item)
+            item.scope = this.target
+            item.kind = "static"
+            return item
+          }
+        })
+    )
   }
 
   // Syntactic sugar for the type name.

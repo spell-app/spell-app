@@ -1,4 +1,4 @@
-import { IndexedList, memoize, snakeCase } from "~/util"
+import { IndexedList, snakeCase } from "~/util"
 import { MethodScope, ScopeVariable } from "~/parser"
 import { Scope } from "."
 
@@ -9,34 +9,42 @@ import { Scope } from "."
  */
 export class BlockScope extends Scope {
   /** Scope `variables`. */
-  @memoize
+  /*@memoize*/
   get variables() {
-    return new IndexedList({
-      target: this,
-      keyProp: "name",
-      parentProp: "scope.variables",
-      normalizeKey: snakeCase,
-      transformer(item) {
-        if (!(item instanceof ScopeVariable)) item = new ScopeVariable(item)
-        item.scope = this.target
-        return item
-      }
-    })
+    return this.memoized(
+      "variables",
+      () =>
+        new IndexedList({
+          target: this,
+          keyProp: "name",
+          parentProp: "scope.variables",
+          normalizeKey: snakeCase,
+          transformer(item) {
+            if (!(item instanceof ScopeVariable)) item = new ScopeVariable(item)
+            item.scope = this.target
+            return item
+          }
+        })
+    )
   }
 
   /** Scope `methods`. */
-  @memoize
+  /*@memoize*/
   get methods() {
-    return new IndexedList({
-      target: this,
-      keyProp: "name",
-      parentProp: "scope.methods",
-      normalizeKey: snakeCase,
-      transformer(item) {
-        if (!(item instanceof MethodScope)) item = new MethodScope(item)
-        item.scope = this.target
-        return item
-      }
-    })
+    return this.memoized(
+      "methods",
+      () =>
+        new IndexedList({
+          target: this,
+          keyProp: "name",
+          parentProp: "scope.methods",
+          normalizeKey: snakeCase,
+          transformer(item) {
+            if (!(item instanceof MethodScope)) item = new MethodScope(item)
+            item.scope = this.target
+            return item
+          }
+        })
+    )
   }
 }

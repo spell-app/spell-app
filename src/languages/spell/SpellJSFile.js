@@ -1,4 +1,4 @@
-import { TextFile, memoize, forward, writeOnce, proto } from "~/util"
+import { TextFile, proto } from "~/util"
 import { SpellLocation, SpellProject } from "~/languages/spell"
 
 /**
@@ -37,9 +37,9 @@ export class SpellJSFile extends TextFile {
 
   /** `location` object which we can use to get various bits of the path. */
   /*@forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")*/
-  @memoize
+  /*@memoize*/
   get location() {
-    return new SpellLocation(this.path)
+    return this.memoized("location", () => new SpellLocation(this.path))
   }
   get projectId() {
     return this.location.projectId
@@ -66,9 +66,9 @@ export class SpellJSFile extends TextFile {
   /**
    * Pointer to our `SpellProject`.
    */
-  @memoize
+  /*@memoize*/
   get project() {
-    return new SpellProject(this.projectId)
+    return memo(this, "project", () => new SpellProject(this.projectId))
   }
 
   /**

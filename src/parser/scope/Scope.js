@@ -1,4 +1,4 @@
-import { forward, writeOnce } from "~/util"
+import { forward, writeOnce, Memorable } from "~/util"
 /**
  * We create a `Scope` when starting a parse run to allow the parser
  * to keep state as it descends up and down.
@@ -7,7 +7,7 @@ import { forward, writeOnce } from "~/util"
  *
  * The base scope is basically just a wrapper to the `parser`.
  */
-export class Scope {
+export class Scope extends Memorable() {
   /**
    * Pointer to our parent scope, if any, set on construction.
    *
@@ -33,6 +33,7 @@ export class Scope {
   }
 
   constructor(props) {
+    super()
     Object.assign(this, props)
   }
 
