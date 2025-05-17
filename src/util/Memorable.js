@@ -25,6 +25,9 @@ export function Memorable(BaseClass) {
       memoized(property, getter) {
         return memo(this, property, getter)
       }
+      dervived({ property, getter, dependsOn }) {
+        return derived(this, property, getter, dependsOn)
+      }
       clearMemoized(property) {
         clearMemoized(this, property)
       }
@@ -37,6 +40,9 @@ export function Memorable(BaseClass) {
     memoized(property, getter) {
       return memo(this, property, getter)
     }
+    derived({ property, getter, dependsOn }) {
+      return derived(this, property, getter, dependsOn)
+    }
     clearMemoized(property) {
       clearMemoized(this, property)
     }
@@ -46,7 +52,7 @@ export function Memorable(BaseClass) {
 /** Set `target` object up for use with memoization. */
 export function initMemo(target) {
   if (!hasOwnProp(target, "__memo__")) {
-    Object.defineProperty(target, "__memo__", { value: {}, enumerable: false })
+    Object.defineProperty(target, "__memo__", { value: {}, writable: true })
   }
 }
 /**
@@ -54,7 +60,7 @@ export function initMemo(target) {
  * calling `getter` to get the value if not defined.
  */
 export function memo(target, property, getter) {
-  if (!(property in target.__memo__)) target.__memo__[property] = getter()
+  if (!hasOwnProp(target.__memo__, property)) target.__memo__[property] = getter()
   return target.__memo__[property]
 }
 
@@ -66,7 +72,28 @@ export function memo(target, property, getter) {
  * - Call with no arguments to clear all memoized properties.
  */
 export function clearMemoized(target, property) {
-  if (!("__memo__" in target)) return
-  if (property) delete target.__memo__[property]
-  else target.__memo__ = {}
+  if (!hasOwnProp(target, "__memo__")) return
+  if (property) {
+    delete target.__memo__[property]
+    delete target.__memo__[`${property}=>dependsOn`]
+  } else target.__memo__ = {}
+}
+
+/**
+ * Get derived value of `property` for `target` by calling `getter()`,
+ * remembering value across calls.
+ * - If you pass `dependsOn` array, `property` will automatically be recalculated
+ *   when the `dependsOn` values change since last call.
+ */
+export function derived(target, property, getter, dependsOn) {
+  const dependsProp = `${property}=>dependsOn`
+  const memo = target.__memo__
+  const recalculate =
+    !hasOwnProp(memo, property) || //
+    (dependsOn && memo[dependsProp]?.some((value, index) => value !== dependsOn[index]))
+  if (recalculate) {
+    memo[property] = getter()
+    if (dependsOn) memo[dependsProp] = dependsOn
+  }
+  return memo[property]
 }

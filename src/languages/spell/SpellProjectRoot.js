@@ -84,11 +84,13 @@ export class SpellProjectRoot extends JSON5File {
   /**
    * List of paths for all available `SpellProject`s.
    */
-  @memoizeForProp("contents")
+  /*@memoizeForProp("contents")*/
   get projectPaths() {
-    // console.warn("setting projectPaths")
-    // if (!this.isLoaded) console.warn("SpellProjectRoot(): Attempting to get list of projects before loading.")
-    return this.contents || []
+    return this.derived({
+      property: "projectPaths",
+      dependsOn: [this.contents],
+      getter: () => this.contents || []
+    })
   }
 
   /**
@@ -97,10 +99,13 @@ export class SpellProjectRoot extends JSON5File {
    *
    * TODOC: it's tricky to use this in a component!
    */
-  @memoizeForProp("projectPaths")
+  /*@memoizeForProp("projectPaths")*/
   get projects() {
-    // console.warn("setting projects")
-    return this.projectPaths.map((path) => new SpellProject(path))
+    return this.derived({
+      property: "projectPaths",
+      dependsOn: [this.contents],
+      getter: () => this.projectPaths.map((path) => new SpellProject(path))
+    })
   }
 
   /**

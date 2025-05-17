@@ -296,25 +296,38 @@ export class SpellProject extends JSON5File {
    *  - `modified` as last modified timestamp
    *  - `size` as file size in bytes
    */
-  @memoizeForProp("contents")
+  /*@memoizeForProp("contents")*/
   get manifest() {
-    if (!this.contents?.manifest) return {}
-    // add useful stuff to manifest entries
-    Object.entries(this.contents.manifest).forEach(([path, entry]) => {
-      entry.path = path
-      entry.location = new SpellLocation(path)
-      entry.file = SpellProject.getFileForPath(path)
+    return this.derived({
+      property: "manifest",
+      dependsOn: [this.contents],
+      getter: () => {
+        if (!this.contents?.manifest) return {}
+        // add useful stuff to manifest entries
+        Object.entries(this.contents.manifest).forEach(([path, entry]) => {
+          entry.path = path
+          entry.location = new SpellLocation(path)
+          entry.file = SpellProject.getFileForPath(path)
+        })
+        return this.contents.manifest
+      }
     })
-    return this.contents.manifest
   }
 
   /**
    * Return pointers to all `SpellFiles` in our mainfest.
    * Returns `[]` if we're not loaded.
    */
-  @memoizeForProp("contents")
+  /*@memoizeForProp("contents")*/
   get files() {
-    return Object.values(this.manifest).map((item) => item.file)
+    return this.derived({
+      property: "files",
+      dependsOn: [this.contents],
+      getter: () => {
+        console.info("getFiles", this, this.manifest)
+        return Object.values(this.manifest).map((item) => item.file)
+      }
+    })
   }
 
   /**
@@ -328,18 +341,24 @@ export class SpellProject extends JSON5File {
    *  - `file` as pointer to `SpellFile` (etc) for its `path`
    *  - `contents` as file contents (NOTE: only for text files with certain extensions!)
    */
-  @memoizeForProp("contents")
+  /*@memoizeForProp("contents")*/
   get imports() {
-    if (!this.contents?.imports) return []
-    return this.contents.imports.map(({ path, active, contents }) => {
-      const location = SpellLocation.getFileLocation(this.projectId, path)
-      const file = SpellProject.getFileForPath(location.path)
-      if (contents !== undefined) file.setContents(contents)
-      return {
-        path: location.path,
-        active,
-        location,
-        file
+    return this.derived({
+      property: "imports",
+      dependsOn: [this.contents],
+      getter: () => {
+        if (!this.contents?.imports) return []
+        return this.contents.imports.map(({ path, active, contents }) => {
+          const location = SpellLocation.getFileLocation(this.projectId, path)
+          const file = SpellProject.getFileForPath(location.path)
+          if (contents !== undefined) file.setContents(contents)
+          return {
+            path: location.path,
+            active,
+            location,
+            file
+          }
+        })
       }
     })
   }
@@ -348,12 +367,18 @@ export class SpellProject extends JSON5File {
    * Return array of `SpellFile` (etc) objects from our `active` imports.
    * Returns `[]` if we're not loaded or index is malformed.
    */
-  @memoizeForProp("contents")
+  /*@memoizeForProp("contents")*/
   get activeImports() {
-    const { manifest } = this
-    return this.imports //
-      .filter((item) => item.active)
-      .map((item) => manifest[item.path]?.file)
+    return this.derived({
+      property: "activeImports",
+      dependsOn: [this.contents],
+      getter: () => {
+        const { manifest } = this
+        return this.imports //
+          .filter((item) => item.active)
+          .map((item) => manifest[item.path]?.file)
+      }
+    })
   }
 
   //-----------------
