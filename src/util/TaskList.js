@@ -73,7 +73,12 @@ export class TaskList extends Task {
   //-----------------
 
   /** Index of the active task. */
-  @state index = -1
+  /*@state*/ get index() {
+    return this.getState("index", () => -1)
+  }
+  set index(index) {
+    this.setState("index", index)
+  }
 
   /** Pointer to the active task. if any. */
   get activeTask() {

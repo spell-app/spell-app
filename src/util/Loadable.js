@@ -28,7 +28,12 @@ export class Loadable extends Observable {
   }
 
   /** Contents of the last successful `load()`. */
-  @state contents = undefined
+  /*@state*/ get contents() {
+    return this.getState("contents", () => undefined)
+  }
+  set contents(contents) {
+    this.setState("contents", contents)
+  }
 
   /**
    * Internal loadable state:
@@ -49,8 +54,11 @@ export class Loadable extends Observable {
    * | `saveError`   | Error returned during last failed `save()`.
    * | `saveTime`    | Time last `save()` succeeded or failed.
    */
-  @state _loadable = {
-    isLoaded: false
+  /*@state*/ get _loadable() {
+    return this.getState("_loadable", () => ({ isLoaded: false }))
+  }
+  set _loadable(_loadable) {
+    this.setState("_loadable", _loadable)
   }
 
   //-----------------

@@ -74,16 +74,41 @@ export class Task extends Observable {
   // State.  Note: these are the values after `reset()`.
   //-----------------
   /** Result set when we `resolve()`. */
-  @state result = undefined
+  /*@state*/ get result() {
+    return this.getState("result", () => undefined)
+  }
+  set result(result) {
+    this.setState("result", result)
+  }
   /** Error set when we `reject()`. */
-  @state error = undefined
+  /*@state*/ get error() {
+    return this.getState("error", () => undefined)
+  }
+  set error(error) {
+    this.setState("error", error)
+  }
 
   /* Current status:  `UNSTARTED`, `ACTIVE`, `SUCCESS` or `FAILURE` */
-  @state status = UNSTARTED
+  /*@state*/ get status() {
+    return this.getState("status", () => UNSTARTED)
+  }
+  set status(status) {
+    this.setState("status", status)
+  }
   /* Was our last run cancelled? */
-  @state wasCancelled = false
+  /*@state*/ get wasCancelled() {
+    return this.getState("wasCancelled", () => false)
+  }
+  set wasCancelled(wasCancelled) {
+    this.setState("wasCancelled", wasCancelled)
+  }
   /* Current task run */
-  @state execution = undefined
+  /*@state*/ get execution() {
+    return this.getState("execution", () => undefined)
+  }
+  set execution(execution) {
+    this.setState("execution", execution)
+  }
 
   //-----------------
   // Syntactic sugar for our `status`

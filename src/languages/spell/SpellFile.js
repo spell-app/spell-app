@@ -90,19 +90,44 @@ export class SpellFile extends TextFile {
   //-----------------
 
   /** Our scope with which we've compiled. */
-  @state scope = undefined
+  /*@state*/ get scope() {
+    return this.getState("scope", () => undefined)
+  }
+  set scope(scope) {
+    this.setState("scope", scope)
+  }
 
   /** Our input text split into lines, for offset calculations. */
-  @state inputLines = undefined
+  /*@state*/ get inputLines() {
+    return this.getState("inputLines", () => undefined)
+  }
+  set inputLines(inputLines) {
+    this.setState("inputLines", inputLines)
+  }
 
   /** Results of our last `parse()` as a `Match`. */
-  @state match = undefined
+  /*@state*/ get match() {
+    return this.getState("match", () => undefined)
+  }
+  set match(match) {
+    this.setState("match", match)
+  }
 
   /** AST for our `compiled` output. */
-  @state AST = undefined
+  /*@state*/ get AST() {
+    return this.getState("AST", () => undefined)
+  }
+  set AST(AST) {
+    this.setState("AST", AST)
+  }
 
   /** Our `compiled` output as javascript. */
-  @state compiled = undefined
+  /*@state*/ get compiled() {
+    return this.getState("compiled", () => undefined)
+  }
+  set compiled(compiled) {
+    this.setState("compiled", compiled)
+  }
 
   /** Reset our compiled state. */
   resetCompiled() {

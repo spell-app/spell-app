@@ -12,14 +12,33 @@ export class SpellConsoleGroup extends Observable {
     this.override("level", level)
   }
   // REFACTOR: can we make this `state`?
-  @prop lines = []
-  @prop collapsed = false
+  /*@prop*/
+  get lines() {
+    return this.getProp("lines", () => [])
+  }
+  set lines(lines) {
+    return this.setProp("lines", lines)
+  }
+
+  /*@prop*/
+  get collapsed() {
+    return this.getProp("collapsed", () => false)
+  }
+  set collapsed(collapsed) {
+    return this.setProp("collapsed", collapsed)
+  }
 }
 
 export class SpellConsole extends Observable {
   // Logged `lines`.  Note that `group` lines will have their own `lines`.
   // REFACTOR: can we make this `state`?
-  @prop lines = []
+  /*@prop*/
+  get lines() {
+    return this.getProp("lines", () => [])
+  }
+  set lines(lines) {
+    return this.setProp("lines", lines)
+  }
 
   // Reverse stack of active groups.
   // Internal use only, not observable. (???)

@@ -81,10 +81,20 @@ export class SpellProject extends JSON5File {
   //-----------------
 
   /** Parser use for our last parse/compile. */
-  @state scope = undefined
+  /*@state*/ get scope() {
+    return this.getState("scope", () => undefined)
+  }
+  set scope(scope) {
+    this.setState("scope", scope)
+  }
 
   /** Last compiled result as a javascript string. */
-  @state compiled = undefined
+  /*@state*/ get compiled() {
+    return this.getState("compiled", () => undefined)
+  }
+  set compiled(compiled) {
+    this.setState("compiled", compiled)
+  }
 
   /*@memoize*/
   get outputFile() {

@@ -266,7 +266,7 @@ export class SpellProjectRoot extends JSON5File {
       })
       this.setContents(newContents)
     } catch (e) {
-      die(`Server error renaming ${this.type}`, e)
+      die(`Server error deleting ${this.type}`, e)
     }
     // Barf if the project still exists
     if (this.getProject(projectId)) die(`Server didn't delete ${this.type}.`)

@@ -50,23 +50,30 @@ export class Observable extends Derivative {
   }
 
   /**
-   * Set property `key` on our `$state` to `value`.
-   * If `value` is `undefined`, deletes instead.
-   * `key` can be a dotted path.
+   * Get state `property`, defaulting to `initializer` if never set.
    */
-  setState(key, value) {
+  getState(property, initializer) {
+    if (!hasOwnProp(this.__props__.$state, property)) this.__props__.$state[property] = initializer()
+    return this.$state[property]
+  }
+  /**
+   * Set property `property` on our `$state` to `value`.
+   * If `value` is `undefined`, deletes instead.
+   * `property` can be a dotted path.
+   */
+  setState(property, value) {
     const { $state } = this
-    if (value === undefined) _unset($state, key)
-    else _set($state, key, value)
+    if (value === undefined) _unset($state, property)
+    else _set($state, property, value)
   }
 
   /**
    * Reset our `state` to its defaults.
-   * By default we totally clear state, pass specific string `keys` array to clear just those.
+   * By default we totally clear state, pass specific string `properties` array to clear just those.
    */
-  resetState(...keys) {
-    if (arguments.length === 0) keys = Object.keys(this.$state)
-    keys.forEach((key) => this.setState(key, undefined))
+  resetState(...properties) {
+    if (arguments.length === 0) properties = Object.keys(this.$state)
+    properties.forEach((property) => this.setState(property, undefined))
   }
 
   /**
@@ -80,65 +87,86 @@ export class Observable extends Derivative {
     const { $state, ...nonStateProps } = this.__props__
     return nonStateProps
   }
+
+  /** Return reactive `property`, starting with memoized `initializer`. */
+  getProp(property, initializer) {
+    if (!hasOwnProp(this.$props, property)) this.$props[property] = initializer ? initializer() : undefined
+    return this.$props[property]
+  }
+  /**
+   * Set reactive `property` to `value`.
+   * - NOTE: if setting to `undefined`, we'll delete the property instead.
+   */
+  setProp(property, value) {
+    if (value === undefined) {
+      if (hasOwnProp(this.$props, property)) delete this.$props[property]
+      // TODO: necessary?
+      if (hasOwnProp(this, property)) delete this[property]
+      // TODO: necessary?
+      if (hasOwnProp(this.$state, property)) delete this.$state[property]
+    } else {
+      this.$props[property] = value
+    }
+  }
 }
 global.Observable = Observable
 
-/**
- * A `@prop` is a (semi-) permanent reactive property defined on an `Observable`,
- * stored in `$props`.  You can get and set it as if it's a normal property.
- */
-export function prop(target, key, descriptor) {
-  // console.warn("@prop", key, descriptor, target)
-  if (descriptor.get || descriptor.set) {
-    console.warn("cant do @prop descriptor with get or set", descriptor)
-    return descriptor
-  }
+// /**
+//  * A `@prop` is a (semi-) permanent reactive property defined on an `Observable`,
+//  * stored in `$props`.  You can get and set it as if it's a normal property.
+//  */
+// export function prop(target, property, descriptor) {
+//   // console.warn("@prop", key, descriptor, target)
+//   if (descriptor.get || descriptor.set) {
+//     console.warn("cant do @prop descriptor with get or set", descriptor)
+//     return descriptor
+//   }
+//   const { initializer, value, writable, configurable } = descriptor
+//   console.info("@prop", { target, key, initializer, value, writable, configurable })
+//   const get = function () {
+//     if (!hasOwnProp(this.$props, key)) this.$props[key] = initializer ? initializer() : value
+//     return this.$props[key]
+//   }
+//   let set
+//   if (writable) {
+//     set = function (newValue) {
+//       if (newValue === undefined) {
+//         if (hasOwnProp(this, key)) delete this[key]
+//         if (hasOwnProp(this.$props, key)) delete this.$props[key]
+//         if (hasOwnProp(this.$state, key)) delete this.$state[key]
+//       } else {
+//         this.$props[key] = newValue
+//       }
+//     }
+//   } else {
+//     set = function (newValue) {
+//       console.warn(`Attempting to set readonly property '${key}' of`, this, "to", newValue)
+//     }
+//   }
+//   return { get, set, enumerable: true, configurable }
+// }
 
-  const { initializer, value, writable, configurable } = descriptor
-  const get = function () {
-    if (!hasOwnProp(this.$props, key)) this.$props[key] = initializer ? initializer() : value
-    return this.$props[key]
-  }
-  let set
-  if (writable) {
-    set = function (newValue) {
-      if (newValue === undefined) {
-        if (hasOwnProp(this, key)) delete this[key]
-        if (hasOwnProp(this.$props, key)) delete this.$props[key]
-        if (hasOwnProp(this.$state, key)) delete this.$state[key]
-      } else {
-        this.$props[key] = newValue
-      }
-    }
-  } else {
-    set = function (newValue) {
-      console.warn(`Attempting to set readonly property '${key}' of`, this, "to", newValue)
-    }
-  }
-  return { get, set, enumerable: true, configurable }
-}
+// /**
+//  * A `@state` is a transient reactive property defined on an `Observable`,
+//  * stored in `.$props.$state` (which is set during object construction).
+//  * You cannot modify `@state` directy!  Instead do `this.setState("prop", newValue)`.
+//  * Call `this.resetState()` to reset all state variables to their default
+//  * or `this.resetState(<key>...)` to reset certain state variables.
+//  */
+// export function state(target, key, descriptor) {
+//   // console.warn("@state", key, descriptor, target)
+//   if (descriptor.get || descriptor.set) {
+//     console.warn("cant do @state descriptor with get or set", descriptor)
+//     return descriptor
+//   }
 
-/**
- * A `@state` is a transient reactive property defined on an `Observable`,
- * stored in `.$props.$state` (which is set during object construction).
- * You cannot modify `@state` directy!  Instead do `this.setState("prop", newValue)`.
- * Call `this.resetState()` to reset all state variables to their default
- * or `this.resetState(<key>...)` to reset certain state variables.
- */
-export function state(target, key, descriptor) {
-  // console.warn("@state", key, descriptor, target)
-  if (descriptor.get || descriptor.set) {
-    console.warn("cant do @state descriptor with get or set", descriptor)
-    return descriptor
-  }
-
-  const { initializer, value, configurable /* writable, */ } = descriptor
-  const get = function () {
-    if (!hasOwnProp(this.$state, key)) this.$state[key] = initializer ? initializer() : value
-    return this.$state[key]
-  }
-  const set = function (newValue) {
-    console.warn(`Attempting to set readonly state '${key}' of`, this, "to", newValue)
-  }
-  return { get, set, enumerable: false, configurable }
-}
+//   const { initializer, value, configurable /* writable, */ } = descriptor
+//   const get = function () {
+//     if (!hasOwnProp(this.$state, key)) this.$state[key] = initializer ? initializer() : value
+//     return this.$state[key]
+//   }
+//   const set = function (newValue) {
+//     console.warn(`Attempting to set readonly state '${key}' of`, this, "to", newValue)
+//   }
+//   return { get, set, enumerable: false, configurable }
+// }

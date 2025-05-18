@@ -17,7 +17,12 @@ export class List extends Observable {
   }
 
   /** `items` array as state */
-  @state items = []
+  /*@state*/ get items() {
+    return this.getState("items", () => [])
+  }
+  set items(items) {
+    this.setState("items", items)
+  }
 
   // Called automatially at end of `List` constructor.
   create() {}
