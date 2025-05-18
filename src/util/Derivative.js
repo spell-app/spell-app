@@ -48,6 +48,10 @@ export function Derivative(BaseClass) {
       clearDerived(property) {
         clearDerived(this, property)
       }
+      /** Overide getter for `property`, returning explicit `value` instead. */
+      override(property, value) {
+        override(this, property, value)
+      }
     }
   }
   return class Derivative {
@@ -80,6 +84,10 @@ export function Derivative(BaseClass) {
      */
     clearDerived(property) {
       clearDerived(this, property)
+    }
+    /** Overide getter for `property`, returning explicit `value` instead. */
+    override(property, value) {
+      override(this, property, value)
     }
   }
 }
@@ -165,4 +173,21 @@ export function dependenciesMatch(list1, list2) {
     const item2 = convertObjectFromWeakRef(list2[i])
     return item1 === item2
   }
+}
+
+/**
+ * Override getter defined for `property` on `target`,
+ * returning explicit `value` instead.
+ * - Note that you can call this repeatedly.
+ */
+export function override(target, property, value) {
+  Object.defineProperty(target, property, {
+    get() {
+      return value
+    },
+    set(value) {
+      override(this, property, value)
+    },
+    configurable: true
+  })
 }

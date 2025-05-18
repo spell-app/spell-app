@@ -2,15 +2,7 @@
 import React from "react"
 import _get from "lodash/get"
 
-import {
-  proto,
-  Derivative,
-  overridable,
-  getSuperHierarchy,
-  Assertable,
-  OPTIONAL,
-  normalizeInitialWhitespace
-} from "~/util"
+import { proto, Derivative, getSuperHierarchy, Assertable, OPTIONAL, normalizeInitialWhitespace } from "~/util"
 import { Match, MethodScope, FileScope, ProjectScope } from "~/parser"
 import * as stringify from "./stringifyAST"
 import * as render from "./renderAST"
@@ -292,9 +284,12 @@ export class ArrayLiteral extends Literal {
     this.assertArrayType("items", Expression, OPTIONAL)
     this.assertType("wrap", "boolean", OPTIONAL)
   }
-  @overridable
+  /*@overridable*/
   get wrap() {
     return this.items?.length > 2
+  }
+  set wrap(wrap) {
+    this.override("wrap", wrap)
   }
   compile() {
     const { items, wrap } = this
@@ -674,9 +669,12 @@ export class InvocationArgs extends ASTNode {
       })
     }
   }
-  @overridable
+  /*@overridable*/
   get wrap() {
     return this.args?.length > 3
+  }
+  set wrap(wrap) {
+    this.override("wrap", wrap)
   }
   compile() {
     const { args, wrap } = this
@@ -1035,9 +1033,12 @@ export class ObjectLiteral extends Expression {
       })
   }
   // Should we wrap properties block?
-  @overridable
+  /*@overridable*/
   get wrap() {
     return this.properties.length > 2 || this.properties.some((item) => item instanceof MethodDefinition)
+  }
+  set wrap(wrap) {
+    this.override("wrap", wrap)
   }
   addProp(property, value) {
     // convert string value to StringLiteral
@@ -1144,9 +1145,12 @@ export class StatementBlock extends ASTNode {
       this.statements = this.statements[0].statements
     }
   }
-  @overridable
+  /*@overridable*/
   get wrap() {
     return this.statements?.length > 1
+  }
+  set wrap(wrap) {
+    this.override("wrap", wrap)
   }
   compile() {
     return stringify.Block({

@@ -1,4 +1,4 @@
-import { TextFile, proto, overridable, state } from "~/util"
+import { TextFile, proto, state } from "~/util"
 import { Token } from "~/parser"
 import { SpellLocation, SpellProject } from "~/languages/spell"
 import { batch } from "~/util"
@@ -150,8 +150,11 @@ export class SpellCSSFile extends TextFile {
   @proto autoUpdateContentsOnSave = true
 
   /** Derive `url` from our `path` if not explicitly set. */
-  @overridable get url() {
+  /*@overridable*/ get url() {
     return `/api/projects/file/${this.projectId}${this.filePath}`
+  }
+  set url(url) {
+    this.override("url", { get: () => url })
   }
 
   //-----------------

@@ -13,6 +13,7 @@ import { hasOwnProp } from "./class"
  * Use with caution with objects or arrays, as the values will be shared with all instances!
  */
 export function proto(target, property, descriptor) {
+  console.info("proto", { target, property }, descriptor)
   const { initializer, ...otherProps } = descriptor
   if (initializer) {
     return {
@@ -88,6 +89,7 @@ export function writeOnce(target, property, descriptor) {
  *    it.prop                 <<<< "orignal value"
  */
 export function overridable(target, property, descriptor) {
+  console.info("overridable", { target, property }, descriptor)
   const { get, set, ...descriptorProps } = descriptor
   if (!get || set) throw new TypeError("@overridable: Only know how to apply to getter without setter.")
   return {
