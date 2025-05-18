@@ -4,7 +4,7 @@ import _unset from "lodash/unset"
 import { store as createStore, view, batch, autoEffect, clearEffect } from "@risingstack/react-easy-state"
 
 import { hasOwnProp } from "./class"
-import { Memorable } from "./Memorable"
+import { Derivative } from "./Derivative"
 
 // re-export react-easy-state props for convenience
 export { createStore, view, batch, autoEffect, clearEffect }
@@ -32,7 +32,7 @@ global.clearEffect = clearEffect
  *    - Use `this.resetState()` or `this.resetState(<stateKey>...)` to reset state.
  */
 
-export class Observable extends Memorable() {
+export class Observable extends Derivative() {
   constructor(props) {
     super()
     Object.defineProperty(this, "__props__", { value: { $state: {} } })

@@ -68,7 +68,7 @@ export class SpellJSFile extends TextFile {
    */
   /*@memoize*/
   get project() {
-    return memo(this, "project", () => new SpellProject(this.projectId))
+    return this.memoized("project", () => new SpellProject(this.projectId))
   }
 
   /**

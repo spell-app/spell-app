@@ -16,9 +16,9 @@ export function cloneClass(constructor, name) {
   }
 }
 
+const hasOwnProperty = Object.prototype.hasOwnProperty
 export function hasOwnProp(thing, key) {
-  if (!thing) return false
-  return Object.prototype.hasOwnProperty.call(thing, key)
+  return thing != null && hasOwnProperty.call(thing, key)
 }
 
 /**

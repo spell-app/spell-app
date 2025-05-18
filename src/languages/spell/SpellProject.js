@@ -1,7 +1,7 @@
 import global from "global"
 // import { observable, computed } from "mobx"
 
-import { JSON5File, state, memoizeForProp, $fetch, CONFIRM, TaskList, Task, getDier } from "~/util"
+import { Derivative, JSON5File, state, memoizeForProp, $fetch, CONFIRM, TaskList, Task, getDier } from "~/util"
 import { ProjectScope } from "~/parser"
 import { SpellParser, SpellLocation, SpellFile, SpellCSSFile, SpellJSFile } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
@@ -298,10 +298,9 @@ export class SpellProject extends JSON5File {
    */
   /*@memoizeForProp("contents")*/
   get manifest() {
-    return this.derived({
-      property: "manifest",
-      dependsOn: [this.contents],
-      getter: () => {
+    return this.derived(
+      "manifest",
+      () => {
         if (!this.contents?.manifest) return {}
         // add useful stuff to manifest entries
         Object.entries(this.contents.manifest).forEach(([path, entry]) => {
@@ -310,8 +309,9 @@ export class SpellProject extends JSON5File {
           entry.file = SpellProject.getFileForPath(path)
         })
         return this.contents.manifest
-      }
-    })
+      },
+      [this.contents]
+    )
   }
 
   /**
@@ -320,14 +320,14 @@ export class SpellProject extends JSON5File {
    */
   /*@memoizeForProp("contents")*/
   get files() {
-    return this.derived({
-      property: "files",
-      dependsOn: [this.contents],
-      getter: () => {
+    return this.derived(
+      "files",
+      () => {
         console.info("getFiles", this, this.manifest)
         return Object.values(this.manifest).map((item) => item.file)
-      }
-    })
+      },
+      [this.contents]
+    )
   }
 
   /**
@@ -343,10 +343,9 @@ export class SpellProject extends JSON5File {
    */
   /*@memoizeForProp("contents")*/
   get imports() {
-    return this.derived({
-      property: "imports",
-      dependsOn: [this.contents],
-      getter: () => {
+    return this.derived(
+      "imports",
+      () => {
         if (!this.contents?.imports) return []
         return this.contents.imports.map(({ path, active, contents }) => {
           const location = SpellLocation.getFileLocation(this.projectId, path)
@@ -359,8 +358,9 @@ export class SpellProject extends JSON5File {
             file
           }
         })
-      }
-    })
+      },
+      [this.contents]
+    )
   }
 
   /**
@@ -369,16 +369,16 @@ export class SpellProject extends JSON5File {
    */
   /*@memoizeForProp("contents")*/
   get activeImports() {
-    return this.derived({
-      property: "activeImports",
-      dependsOn: [this.contents],
-      getter: () => {
+    return this.derived(
+      "activeImports",
+      () => {
         const { manifest } = this
         return this.imports //
           .filter((item) => item.active)
           .map((item) => manifest[item.path]?.file)
-      }
-    })
+      },
+      [this.contents]
+    )
   }
 
   //-----------------

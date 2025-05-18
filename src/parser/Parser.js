@@ -6,7 +6,7 @@ import flatten from "lodash/flatten"
 import groupBy from "lodash/groupBy"
 import sum from "lodash/sum"
 
-import { CustomError, cloneClass, nonEnumerable, Memorable, proto, showWhitespace } from "~/util"
+import { CustomError, cloneClass, nonEnumerable, Derivative, proto, showWhitespace } from "~/util"
 import { Rule, rulex, Token, Tokenizer, WhitespacePolicy, Scope } from "~/parser"
 
 /** Error we'll throw when setting up / executing parser. */
@@ -21,7 +21,7 @@ export class ParserError extends CustomError {}
 
 const CLONE_CLASSES = !isNode
 
-export class Parser extends Memorable() {
+export class Parser extends Derivative() {
   // Name of our default rule to parse if calling `parser.parse(text)`.
   @proto defaultRule = "block"
 
@@ -140,7 +140,7 @@ export class Parser extends Memorable() {
   //  `const myParser = new Parser({  module: "xxx", rules: [...] });`
   // TESTME!!!
   set rules(rules) {
-    this.clearMemoized("rules")
+    this.clearDerived("rules")
     this.defineRules(...rules)
   }
 
@@ -158,12 +158,12 @@ export class Parser extends Memorable() {
     return rule
   }
 
-  // TODO: @clearMemoized ?
+  // TODO: @clearDerived ?
   // Add a `rule` to our list of rules!
   // Converts to `Rule.Group` on re-defining the same rule.
   addRule(rule, ruleName) {
     // Clear memoized "rules" so we'll recalculate them
-    this.clearMemoized("rules")
+    this.clearDerived("rules")
 
     // If rule is a Rule subclass, instantiate it
     // eslint-disable-next-line new-cap
@@ -201,7 +201,7 @@ export class Parser extends Memorable() {
   // Add rules from other parsers to this parser.
   import(...imports) {
     // Clear memoized "rules" so we'll recalculate them
-    this.clearMemoized("rules")
+    this.clearDerived("rules")
     this.imports = [].concat(this.imports || [], imports)
   }
 
@@ -263,7 +263,7 @@ export class Parser extends Memorable() {
   //    Specifying this can let us jump out quickly if there is no possible match.
   defineRule(ruleProps) {
     // Clear memoized "rules" so we'll recalculate them
-    this.clearMemoized("rules")
+    this.clearDerived("rules")
     try {
       // If passed in a Rule instance or rule instance, just call addRule
       if (ruleProps instanceof Rule || ruleProps.prototype instanceof Rule) return this.addRule(ruleProps)

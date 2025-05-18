@@ -86,11 +86,7 @@ export class SpellProjectRoot extends JSON5File {
    */
   /*@memoizeForProp("contents")*/
   get projectPaths() {
-    return this.derived({
-      property: "projectPaths",
-      dependsOn: [this.contents],
-      getter: () => this.contents || []
-    })
+    return this.derived("projectPaths", () => this.contents || [], [this.contents])
   }
 
   /**
@@ -101,11 +97,7 @@ export class SpellProjectRoot extends JSON5File {
    */
   /*@memoizeForProp("projectPaths")*/
   get projects() {
-    return this.derived({
-      property: "projectPaths",
-      dependsOn: [this.contents],
-      getter: () => this.projectPaths.map((path) => new SpellProject(path))
-    })
+    return this.derived("projectPaths", () => this.projectPaths.map((path) => new SpellProject(path)), [this.contents])
   }
 
   /**
