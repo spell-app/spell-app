@@ -1,4 +1,3 @@
-import { proto } from "~/util"
 import { Token } from "~/parser"
 import { TokenType } from "./TokenType"
 

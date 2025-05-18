@@ -32,7 +32,7 @@ global.clearEffect = clearEffect
  *    - Use `this.resetState()` or `this.resetState(<stateKey>...)` to reset state.
  */
 
-export class Observable extends Derivative() {
+export class Observable extends Derivative {
   constructor(props) {
     super()
     Object.defineProperty(this, "__props__", { value: { $state: {} } })

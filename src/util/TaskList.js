@@ -1,5 +1,4 @@
 import { LAST, RESULTS } from "./constants"
-import { proto, forward } from "./decorators"
 import { prop, state } from "./Observable"
 import { Task } from "./Task"
 

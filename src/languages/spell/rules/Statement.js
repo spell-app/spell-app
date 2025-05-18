@@ -1,4 +1,3 @@
-import { proto } from "~/util"
 import { Rule } from "~/parser"
 import { SpellParser } from "~/languages/spell"
 

@@ -1,7 +1,7 @@
 //
 //  # Rules for variables
 //
-import { proto, singularize, pluralize } from "~/util"
+import { singularize, pluralize } from "~/util"
 import { Rule } from "~/parser"
 import { AST, SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"

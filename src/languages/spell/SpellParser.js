@@ -1,4 +1,4 @@
-import { proto, initDerived, getMemoized } from "~/util"
+import { initDerived, memoized } from "~/util"
 import { RootScope, ProjectScope, Parser, Tokenizer, WhitespacePolicy } from "~/parser"
 import { spellParser } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
@@ -52,8 +52,7 @@ export class SpellParser extends Parser {
    */
   /*@memoize*/
   static get rootScope() {
-    initDerived(this)
-    return getMemoized(this, "rootScope", () => {
+    return memoized(this, "rootScope", () => {
       const scope = new RootScope({ name: "spellRoot", parser: spellParser })
       // Add all BASE_TYPES defined in `spellCore`.
       // See: `src/spellCore/classes/index.js`

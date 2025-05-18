@@ -2,7 +2,6 @@ import global from "global"
 import isEqual from "lodash/isEqual"
 import { batch } from "@risingstack/react-easy-state"
 
-import { proto } from "./decorators"
 import { Observable, state } from "./Observable"
 
 /**

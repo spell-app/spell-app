@@ -1,7 +1,7 @@
 // ----------------------------
 // SpellCore console
 // ----------------------------
-import { Observable, prop, proto } from "~/util"
+import { Observable, prop } from "~/util"
 import { spellCore } from "."
 
 export class SpellConsoleGroup extends Observable {
@@ -11,12 +11,14 @@ export class SpellConsoleGroup extends Observable {
   set level(level) {
     this.override("level", level)
   }
+  // REFACTOR: can we make this `state`?
   @prop lines = []
   @prop collapsed = false
 }
 
 export class SpellConsole extends Observable {
   // Logged `lines`.  Note that `group` lines will have their own `lines`.
+  // REFACTOR: can we make this `state`?
   @prop lines = []
 
   // Reverse stack of active groups.

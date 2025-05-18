@@ -14,11 +14,11 @@
 //
 
 import { TestLocation } from "~/parser"
-import { proto, Derivative } from "~/util"
+import { Derivative } from "~/util"
 
 // Abstract Rule class.
 // TODOC
-export class Rule extends Derivative() {
+export class Rule extends Derivative {
   /**
    * Main `name` of the rule.
    * Should generally be unique; rules with the same `name`

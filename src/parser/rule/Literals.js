@@ -1,4 +1,3 @@
-import { proto } from "~/util"
 import { Match } from "~/parser"
 import { Rule } from "."
 

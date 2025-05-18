@@ -1,5 +1,4 @@
 import { UNSTARTED, ACTIVE, SUCCESS, FAILURE } from "./constants"
-import { proto } from "./decorators"
 import { Observable, state, batch } from "./Observable"
 
 /**

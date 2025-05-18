@@ -1,7 +1,6 @@
 //
 //  # Rules for constants, variables, type names, etc
 //
-import { proto } from "~/util"
 import { Rule, ScopeConstant } from "~/parser"
 import { AST, SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"

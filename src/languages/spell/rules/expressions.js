@@ -2,7 +2,6 @@
 //  # Rules for expressions.
 //
 
-import { proto } from "~/util"
 import { Match, Rule } from "~/parser"
 import { AST, SpellParser } from "~/languages/spell"
 

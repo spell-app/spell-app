@@ -1,5 +1,4 @@
 import { KNOWN_FORMATS } from "./constants"
-import { proto, override } from "./decorators"
 import { $fetch, merge$fetchParms } from "./$fetch"
 import { Loadable } from "./Loadable"
 

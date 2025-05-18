@@ -6,7 +6,7 @@ import flatten from "lodash/flatten"
 import groupBy from "lodash/groupBy"
 import sum from "lodash/sum"
 
-import { CustomError, cloneClass, nonEnumerable, Derivative, proto, showWhitespace } from "~/util"
+import { CustomError, cloneClass, Derivative, showWhitespace } from "~/util"
 import { Rule, rulex, Token, Tokenizer, WhitespacePolicy, Scope } from "~/parser"
 
 /** Error we'll throw when setting up / executing parser. */
@@ -21,7 +21,7 @@ export class ParserError extends CustomError {}
 
 const CLONE_CLASSES = !isNode
 
-export class Parser extends Derivative() {
+export class Parser extends Derivative {
   // Name of our default rule to parse if calling `parser.parse(text)`.
   /*@proto*/ get defaultRule() {
     return "block"
@@ -127,18 +127,15 @@ export class Parser extends Derivative() {
   //
 
   // Private map of all of our rules, NOT including rules from imports.
-  // NOTE: optimally this would be `#rules` to mark it private,
-  //  but private fields and decorators don't work together in babel 7.
-  //
-  // Use `parser.rules` to get ALL rules, including those from imports.
-  @nonEnumerable
-  _rules = {}
+  // - Use `parser.rules` to get ALL rules, including those from imports.
+  #ownRules = {}
 
   /*@memoize*/
+  // REFACTOR: derived() instead?
   get rules() {
     return this.memoized("rules", () => {
-      if (!this.imports) return { ...this._rules }
-      return this.mergeRuleSets(this._rules, ...this.imports.map((parser) => parser.rules))
+      if (!this.imports) return { ...this.#ownRules }
+      return this.mergeRuleSets(this.#ownRules, ...this.imports.map((parser) => parser.rules))
     })
   }
 
@@ -199,7 +196,7 @@ export class Parser extends Derivative() {
     }
     // Add to our list of rules
     else {
-      this.mergeRule(this._rules, ruleName, rule)
+      this.mergeRule(this.#ownRules, ruleName, rule)
     }
 
     return rule
