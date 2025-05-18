@@ -6,42 +6,63 @@ import { Loadable } from "./Loadable"
 /** Load a single file from `url`, process according to `format` before returning. */
 export class LoadableFile extends Loadable {
   /** URL to load from. Make this a getter in your subclass to base it on other properties. */
-  @proto url = undefined
+  /*@proto*/ get url() {
+    return undefined
+  }
+  set url(url) {
+    this.override("url", url)
+  }
   /** If defined, a 404 load or aborted promise will return these contents as a successful result. */
-  @proto defaultContents = undefined
+  /*@proto*/ get defaultContents() {
+    return undefined
+  }
+  set defaultContents(defaultContents) {
+    this.override("defaultContents", defaultContents)
+  }
   /** Result type for auto-processing of results.  Defaults implicitly in`$fetch()` to TEXT */
-  @proto format = undefined
+  /*@proto*/ get format() {
+    return undefined
+  }
+  set format(format) {
+    this.override("format", format)
+  }
   /** If true, on successful save, we auto-update `#load.contents` with specified `contents`. */
-  @proto autoUpdateContentsOnSave = false
+  /*@proto*/ get autoUpdateContentsOnSave() {
+    return false
+  }
 
   /**
    * Default load params to pass to `$fetch()`.
    * Default `getLoader()` method mixes these with params passed directly to `load()`.
    */
-  @proto loadParams = {
-    /**  HTTP method to use.  If undefined, we'll use `GET` unless you specify `callParams.body`, in which case we'll use `POST` */
-    method: undefined,
-    /** Object of default URL headers.  Mixed with headers specified during `load()`. */
-    headers: undefined,
-    /** Object of default URL query params.  Mixed with query specified during `load()`. */
-    query: undefined,
-    /** Request type.  Use one of the constants above or a string. */
-    requestFormat: undefined
+  /*@proto*/ get loadParams() {
+    return {
+      /**  HTTP method to use.  If undefined, we'll use `GET` unless you specify `callParams.body`, in which case we'll use `POST` */
+      method: undefined,
+      /** Object of default URL headers.  Mixed with headers specified during `load()`. */
+      headers: undefined,
+      /** Object of default URL query params.  Mixed with query specified during `load()`. */
+      query: undefined,
+      /** Request type.  Use one of the constants above or a string. */
+      requestFormat: undefined
+    }
   }
 
   /**
    * Default save params to pass to `$fetch()`.
    * Default `getSaver()` method mixes these with params passed directly to `save()`.
    */
-  @proto saveParams = {
-    /**  HTTP method to use.  If undefined, we'll use `GET` unless you specify `callParams.body`, in which case we'll use `POST` */
-    method: undefined,
-    /** Object of default URL headers.  Mixed with headers specified during `save()`. */
-    headers: undefined,
-    /** Object of default URL query params.  Mixed with query specified during `save()`. */
-    query: undefined,
-    /** Request type.  Use one of the constants above or a string. */
-    requestFormat: undefined
+  /*@proto*/ get saveParams() {
+    return {
+      /**  HTTP method to use.  If undefined, we'll use `GET` unless you specify `callParams.body`, in which case we'll use `POST` */
+      method: undefined,
+      /** Object of default URL headers.  Mixed with headers specified during `save()`. */
+      headers: undefined,
+      /** Object of default URL query params.  Mixed with query specified during `save()`. */
+      query: undefined,
+      /** Request type.  Use one of the constants above or a string. */
+      requestFormat: undefined
+    }
   }
 
   /** Initialize with just a string to set `url` only. */
@@ -98,25 +119,33 @@ export class TextFile extends LoadableFile {}
 
 /** Loadable JSON file. */
 export class JSONFile extends TextFile {
-  @proto loadParams = {
-    requestFormat: KNOWN_FORMATS.json,
-    format: KNOWN_FORMATS.json
+  /*@proto*/ get loadParams() {
+    return {
+      requestFormat: KNOWN_FORMATS.json,
+      format: KNOWN_FORMATS.json
+    }
   }
-  @proto saveParams = {
-    requestFormat: KNOWN_FORMATS.json,
-    format: KNOWN_FORMATS.json
+  /*@proto*/ get saveParams() {
+    return {
+      requestFormat: KNOWN_FORMATS.json,
+      format: KNOWN_FORMATS.json
+    }
   }
 }
 
 /** Loadable JSON5 file. */
 export class JSON5File extends TextFile {
-  @proto loadParams = {
-    requestFormat: KNOWN_FORMATS.json5,
-    format: KNOWN_FORMATS.json5
+  /*@proto*/ get loadParams() {
+    return {
+      requestFormat: KNOWN_FORMATS.json5,
+      format: KNOWN_FORMATS.json5
+    }
   }
-  @proto saveParams = {
-    requestFormat: KNOWN_FORMATS.json5,
-    format: KNOWN_FORMATS.json5
+  /*@proto*/ get saveParams() {
+    return {
+      requestFormat: KNOWN_FORMATS.json5,
+      format: KNOWN_FORMATS.json5
+    }
   }
 }
 

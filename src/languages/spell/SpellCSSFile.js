@@ -147,7 +147,9 @@ export class SpellCSSFile extends TextFile {
   //-----------------
 
   /** Update file contents when you  do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
-  @proto autoUpdateContentsOnSave = true
+  /*@proto*/ get autoUpdateContentsOnSave() {
+    return true
+  }
 
   /** Derive `url` from our `path` if not explicitly set. */
   /*@overridable*/ get url() {

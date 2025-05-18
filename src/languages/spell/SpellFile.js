@@ -215,7 +215,9 @@ export class SpellFile extends TextFile {
   //-----------------
 
   /** Update file contents when you  do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
-  @proto autoUpdateContentsOnSave = true
+  /*@proto*/ get autoUpdateContentsOnSave() {
+    return true
+  }
 
   /** URL to serve the file. */
   get url() {

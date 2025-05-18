@@ -8,18 +8,34 @@ export class SpellParser extends Parser {
   static Rule = {}
 
   // Name of the module in which we were defined.
-  @proto module = undefined
+  /*@proto*/ get module() {
+    return undefined
+  }
+  set module(module) {
+    this.override("module", module)
+  }
 
   // Name of our default rule to parse if calling `parser.parse(text)`.
-  @proto defaultRule = "block"
+  /*@proto*/ get defaultRule() {
+    return "block"
+  }
+  set defaultRule(defaultRule) {
+    this.override("defaultRule", defaultRule)
+  }
 
-  @proto tokenizer = new Tokenizer({
-    // Only support double-quotes as quote symbols (so we can do contractions with single quotes)
-    // TODO: backtick as alternative quote, for embedding double quotes?
-    quoteSymbols: [`"`],
-    // Remove "normal" whitespace (leaving newlines and indents) when parsing
-    whitespacePolicy: WhitespacePolicy.LEADING_ONLY
-  })
+  get tokenizer() {
+    return this.memoized(
+      "tokenizer",
+      () =>
+        new Tokenizer({
+          // Only support double-quotes as quote symbols (so we can do contractions with single quotes)
+          // TODO: backtick as alternative quote, for embedding double quotes?
+          quoteSymbols: [`"`],
+          // Remove "normal" whitespace (leaving newlines and indents) when parsing
+          whitespacePolicy: WhitespacePolicy.LEADING_ONLY
+        })
+    )
+  }
 
   /** Override `addRule` to also add to `simple_expression` or `simple_statement` as necessary. */
   addRule(rule, names) {

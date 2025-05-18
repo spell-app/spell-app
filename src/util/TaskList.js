@@ -40,19 +40,34 @@ export class TaskList extends Task {
   }
 
   /** Delay between tasks, in milliseconds. */
-  @proto delayBetweenTasks = 0
+  /*@proto*/ get delayBetweenTasks() {
+    return 0
+  }
+  set delayBetweenTasks(delayBetweenTasks) {
+    this.override("delayBetweenTasks", delayBetweenTasks)
+  }
 
   /**
    * On success, should we `resolve()` with the value of the `LAST` task
    * or the `RESULTS` of all of the tasks?
    */
-  @proto resolveWith = LAST
+  /*@proto*/ get resolveWith() {
+    return LAST
+  }
+  set resolveWith(resolveWith) {
+    this.override("resolveWith", resolveWith)
+  }
 
   /**
    * Should we continue when we encounter an error (failed task)?
    * Note that we'll also ignore errors if an individual `task.isOptional`.
    */
-  @proto continueOnError = false
+  /*@proto*/ get continueOnError() {
+    return false
+  }
+  set continueOnError(continueOnError) {
+    this.override("continueOnError", continueOnError)
+  }
 
   //-----------------
   // State
@@ -199,8 +214,18 @@ export class TaskList extends Task {
   //-----------------
   // Debugging
   //-----------------
-  @proto debug = false
-  @proto debugOutput = false
+  /*@proto*/ get debug() {
+    return false
+  }
+  set debug(debug) {
+    this.override("debug", debug)
+  }
+  /*@proto*/ get debugOutput() {
+    return false
+  }
+  set debugOutput(debugOutput) {
+    this.override("debugOutput", debugOutput)
+  }
 
   /** Called before we start executing. */
   beforeStart(inputValue) {

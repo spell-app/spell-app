@@ -23,7 +23,12 @@ const CLONE_CLASSES = !isNode
 
 export class Parser extends Derivative() {
   // Name of our default rule to parse if calling `parser.parse(text)`.
-  @proto defaultRule = "block"
+  /*@proto*/ get defaultRule() {
+    return "block"
+  }
+  set defaultRule(defaultRule) {
+    this.override("defaultRule", defaultRule)
+  }
 
   // Constructor.
   constructor(properties) {
@@ -46,11 +51,13 @@ export class Parser extends Derivative() {
   // ### Tokenizing (a.k.a. "lexical analysis")
   //
 
-  // Default tokenizer.  You may want to create one in your parser subclasses,
-  //  e.g. to change the whitespacePolicy.
-  @proto tokenizer = new Tokenizer({
-    whitespacePolicy: WhitespacePolicy.LEADING_ONLY
-  })
+  /**
+   * Tokenizer for parsing input string.
+   * Override in your subclass if parsing with different policies.
+   */
+  get tokenizer() {
+    return this.memoized("tokenizer", () => new Tokenizer({ whitespacePolicy: WhitespacePolicy.LEADING_ONLY }))
+  }
 
   // Tokenize `input` as:
   //  - string text

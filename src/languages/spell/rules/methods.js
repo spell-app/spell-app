@@ -9,7 +9,12 @@ import { SpellParser, AST } from "~/languages/spell"
  */
 SpellParser.Rule.DynamicMethodRule = class dynamic_method extends SpellParser.Rule.Statement {
   // Name of the method to call
-  @proto methodName = undefined
+  /*@proto*/ get methodName() {
+    return undefined
+  }
+  set methodName(methodName) {
+    this.override("methodName", methodName)
+  }
 
   // Normalize `callArgs` to an array
   gatherGroups(match) {
@@ -37,10 +42,25 @@ SpellParser.Rule.DynamicMethodRule = class dynamic_method extends SpellParser.Ru
 
 /** Base for method definitions with dynamic syntax via `method_signature`.  See `to_do_something` below. */
 SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.Rule.Statement {
-  @proto wantsInlineStatement = true
-  @proto wantsNestedBlock = true
+  /*@proto*/ get wantsInlineStatement() {
+    return true
+  }
+  set wantsInlineStatement(wantsInlineStatement) {
+    this.override("wantsInlineStatement", wantsInlineStatement)
+  }
+  /*@proto*/ get wantsNestedBlock() {
+    return true
+  }
+  set wantsNestedBlock(wantsNestedBlock) {
+    this.override("wantsNestedBlock", wantsNestedBlock)
+  }
   // Set to `true` in rule definition to make into an instance method on first simple type found in `signature`
-  @proto inlineInitialType = false
+  /*@proto*/ get inlineInitialType() {
+    return false
+  }
+  set inlineInitialType(inlineInitialType) {
+    this.override("inlineInitialType", inlineInitialType)
+  }
 
   // Iniline initial type epression, making an instance method?
   processSignature(groups, signature) {
@@ -453,7 +473,12 @@ export const methods = new SpellParser({
       // TODO: add tests for `test` case
       syntax: `to (asTest:quietly? test)? {signature:method_signature} :?`,
       constructor: class to_do_something extends SpellParser.Rule.MethodDefinition {
-        @proto inlineInitialType = true
+        /*@proto*/ get inlineInitialType() {
+          return true
+        }
+        set inlineInitialType(inlineInitialType) {
+          this.override("inlineInitialType", inlineInitialType)
+        }
       },
       tests: [
         {
@@ -915,7 +940,12 @@ export const methods = new SpellParser({
       alias: "statement",
       syntax: `(asAnimation:create? animation) {signature:method_signature} :?`,
       constructor: class create_animation extends SpellParser.Rule.MethodDefinition {
-        @proto inlineInitialType = true
+        /*@proto*/ get inlineInitialType() {
+          return true
+        }
+        set inlineInitialType(inlineInitialType) {
+          this.override("inlineInitialType", inlineInitialType)
+        }
       },
       tests: [
         {

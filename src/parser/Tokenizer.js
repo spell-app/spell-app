@@ -16,13 +16,13 @@ export const WhitespacePolicy = {
 // TODO: have normal `tokenize` stick whitespace elements in the stream, then `tokenizeLines()` takes them out?
 export class Tokenizer {
   // Leave all whitespace by default.
-  @proto whitespacePolicy = WhitespacePolicy.ALL
+  whitespacePolicy = WhitespacePolicy.ALL
 
   // Quote symbols
-  @proto quoteSymbols = [`"`, `'`]
+  quoteSymbols = [`"`, `'`]
 
   // Debug logger.
-  @proto logger = addDebugMethods({}, "tokenizer", DebugLevel.WARN)
+  logger = addDebugMethods({}, "tokenizer", DebugLevel.WARN)
 
   constructor(props) {
     Object.assign(this, props)
@@ -182,9 +182,12 @@ export class Tokenizer {
   // Match a single `word` in `text` at character `start`.
   // Returns `[word, wordEnd]`.
   // Returns an empty array if couldn't match a word.
-  @proto WORD_START = /[A-Za-z]/
-
-  @proto WORD_CHAR = /^[\w_-]/
+  /*@proto*/ get WORD_START() {
+    return /[A-Za-z]/
+  }
+  /*@proto*/ get WORD_CHAR() {
+    return /^[\w_-]/
+  }
 
   matchWord(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
@@ -212,9 +215,13 @@ export class Tokenizer {
 
   // Eat a single number.
   // Returns a `Number` if matched.
-  @proto NUMBER_START = /[0-9-.]/
+  /*@proto*/ get NUMBER_START() {
+    return /[0-9-.]/
+  }
 
-  @proto NUMBER = /^-?([0-9]*\.)?[0-9]+/
+  /*@proto*/ get NUMBER() {
+    return /^-?([0-9]*\.)?[0-9]+/
+  }
 
   matchNumber(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
@@ -297,7 +304,9 @@ export class Tokenizer {
   //    `--`, `---`, etc
   //    `//`
   // Returns a `Token.Comment` if matched.
-  @proto COMMENT = /^(##+|--+|\/\/+)(\s*)(.*)/
+  /*@proto*/ get COMMENT() {
+    return /^(##+|--+|\/\/+)(\s*)(.*)/
+  }
 
   matchComment(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
@@ -349,8 +358,12 @@ export class Tokenizer {
   // Returns `[jsxElement, nextStart]` or `undefined`.
   // Use `matchJSXElement()` to match children, end tag, etc.
   // Ignores leading whitespace.
-  @proto JSX_TAG_START = /^<([A-Za-z][\w-\.]*)(\s*\/>|\s*>|\s+)/
-  @proto JSX_TAG_START_END = /^\s*(\/>|>)/
+  /*@proto*/ get JSX_TAG_START() {
+    return /^<([A-Za-z][\w-\.]*)(\s*\/>|\s*>|\s+)/
+  }
+  /*@proto*/ get JSX_TAG_START_END() {
+    return /^\s*(\/>|>)/
+  }
 
   // TODO: clean this stuff up, maybe with findFirstAtHead?
   matchJSXStartTag(text, start = 0, end) {
@@ -478,7 +491,9 @@ export class Tokenizer {
 
   // Match a single JSX element attribute as `<attr>={<value>}` etc.
   // TODO: {...xxx}
-  @proto JSX_ATTRIBUTE_START = /^\s*([\w-]+\b)\s*(=?)\s*/
+  /*@proto*/ get JSX_ATTRIBUTE_START() {
+    return /^\s*([\w-]+\b)\s*(=?)\s*/
+  }
 
   matchJSXAttribute(text, start = 0, end) {
     if (typeof end !== "number" || end > text.length) end = text.length
@@ -561,7 +576,9 @@ export class Tokenizer {
 
   // Match JSXText until the one of `{`, `<`, `>` or `}`.
   // NOTE: INCLUDES leading / trailing whitespace.
-  @proto JSX_TEXT_END_CHARS = ["{", "<", ">", "}"]
+  /*@proto*/ get JSX_TEXT_END_CHARS() {
+    return ["{", "<", ">", "}"]
+  }
 
   // TESTME
   matchJSXText(text, start = 0, end) {

@@ -10,8 +10,18 @@ import { identifierBlacklist } from "./identifier-blacklist"
 const WORD = /^[a-zA-Z][\w\-]*$/
 
 SpellParser.Rule.Constant = class constant extends Rule.Pattern {
-  @proto pattern = WORD
-  @proto blacklist = identifierBlacklist
+  /*@proto*/ get pattern() {
+    return WORD
+  }
+  set pattern(pattern) {
+    this.override("pattern", pattern)
+  }
+  /*@proto*/ get blacklist() {
+    return identifierBlacklist
+  }
+  set blacklist(blacklist) {
+    this.override("blacklist", blacklist)
+  }
 
   parse(scope, tokens) {
     const match = super.parse(scope, tokens)

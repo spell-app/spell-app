@@ -10,17 +10,13 @@ const { ANYWHERE, AT_START } = TestLocation
 export class RulexParser extends Parser {}
 RulexParser.prototype.module = "rulex"
 RulexParser.prototype.defaultRule = "statement"
-// Remove "normal" whitespace (leaving newlines and indents) when parsing
-RulexParser.prototype.tokenizer = new Tokenizer({
-  whitespacePolicy: WhitespacePolicy.LEADING_ONLY
-})
 
 // Create core `rulex` parser.
 // NOTE: THIS INSTANCE is used by other parsers, to pick up the rules defined below.
 export const rulex = new RulexParser()
 
 // Apply flags from `match` to the `rule` passed in, possibly returning a new rule!
-rulex.applyFlags = function(rule, match) {
+rulex.applyFlags = function (rule, match) {
   const repeatFlag = match.groups.repeatFlag?.compile()
   const argument = match.groups.argument?.compile()
   const testLocation = match.groups.testLocation?.compile()
@@ -37,7 +33,7 @@ rulex.applyFlags = function(rule, match) {
 }
 
 // Consolidate runs of literals in `rules` of type `constructor` together.
-rulex.consolidateLiterals = function(rules, constructor, literalKey, GroupConstructor = constructor) {
+rulex.consolidateLiterals = function (rules, constructor, literalKey, GroupConstructor = constructor) {
   if (rules.length === 1) return rules
 
   const output = []
@@ -50,7 +46,7 @@ rulex.consolidateLiterals = function(rules, constructor, literalKey, GroupConstr
       }
       if (end > start) {
         // combine literals into a single map
-        const literals = rules.slice(start, end + 1).map(nextRule => {
+        const literals = rules.slice(start, end + 1).map((nextRule) => {
           const literal = nextRule[literalKey]
           if (!nextRule.optional) return literal
 
@@ -67,7 +63,7 @@ rulex.consolidateLiterals = function(rules, constructor, literalKey, GroupConstr
 }
 
 // Given a value as an array or a single value, turn it into an `optional` array.
-rulex.makeOptionalArray = function(value) {
+rulex.makeOptionalArray = function (value) {
   const array = Array.isArray(value) ? value.concat() : [value]
   array.optional = true
   return array
@@ -473,7 +469,7 @@ rulex.defineRule({
   name: "statement",
   rule: new Rule.Subrule("rule"),
   compile(match) {
-    let matched = match.matched.map(nextMatch => nextMatch.compile())
+    let matched = match.matched.map((nextMatch) => nextMatch.compile())
 
     // Consolidate keywords and symbols
     matched = rulex.consolidateLiterals(matched, Rule.Keyword, "literal", Rule.Keywords)

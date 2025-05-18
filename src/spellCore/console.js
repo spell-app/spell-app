@@ -5,7 +5,12 @@ import { Observable, prop, proto } from "~/util"
 import { spellCore } from "."
 
 export class SpellConsoleGroup extends Observable {
-  @proto level = "group"
+  /*@proto*/ get level() {
+    return "group"
+  }
+  set level(level) {
+    this.override("level", level)
+  }
   @prop lines = []
   @prop collapsed = false
 }

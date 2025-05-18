@@ -35,11 +35,26 @@ export class Task extends Observable {
   // Props
   //-----------------
   /** (required) Function which returns a `Promise` to execute this task. */
-  @proto run = undefined
+  /*@proto*/ get run() {
+    return undefined
+  }
+  set run(run) {
+    this.override("run", run)
+  }
   /** Name for this task (which will be displayed by the TaskList while we're executing). */
-  @proto name = undefined
+  /*@proto*/ get name() {
+    return undefined
+  }
+  set name(name) {
+    this.override("name", name)
+  }
   /** If `true`, a TaskList will continue executing even if we fail. */
-  @proto isOptional = false
+  /*@proto*/ get isOptional() {
+    return false
+  }
+  set isOptional(isOptional) {
+    this.override("isOptional", isOptional)
+  }
 
   /**
    * Construct with `{ run, name?, isOptional? }`
@@ -192,8 +207,18 @@ export class Task extends Observable {
   //-----------------
 
   /** Set to true to debug to the console as we operate. */
-  @proto debug = false
-  @proto debugOutput = false
+  /*@proto*/ get debug() {
+    return false
+  }
+  set debug(debug) {
+    this.override("debug", debug)
+  }
+  /*@proto*/ get debugOutput() {
+    return false
+  }
+  set debugOutput(debugOutput) {
+    this.override("debugOutput", debugOutput)
+  }
 
   /** Called before we start executing. */
   beforeStart(inputValue) {

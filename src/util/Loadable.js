@@ -21,7 +21,12 @@ export class Loadable extends Observable {
    * Set to `0` to never cache.
    * Useful, e.g., to reload data when they come back to the browser window after a break.
    */
-  @proto cacheFor = undefined
+  /*@proto*/ get cacheFor() {
+    return undefined
+  }
+  set cacheFor(cacheFor) {
+    this.override("cacheFor", cacheFor)
+  }
 
   /** Contents of the last successful `load()`. */
   @state contents = undefined

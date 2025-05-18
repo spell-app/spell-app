@@ -15,8 +15,18 @@ const WORD = /^[a-zA-Z][\w\-]*$/
 // TODO: type based on scope variable type?
 // TODO: higher precedence if variable is known?
 SpellParser.Rule.VariableIdentifier = class _variable extends Rule.Pattern {
-  @proto pattern = WORD
-  @proto blacklist = identifierBlacklist
+  /*@proto*/ get pattern() {
+    return WORD
+  }
+  set pattern(pattern) {
+    this.override("pattern", pattern)
+  }
+  /*@proto*/ get blacklist() {
+    return identifierBlacklist
+  }
+  set blacklist(blacklist) {
+    this.override("blacklist", blacklist)
+  }
 
   /** Map value by converting dashes and whitespace to underscores. */
   mapValue(value) {

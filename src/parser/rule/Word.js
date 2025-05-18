@@ -4,5 +4,7 @@ import { TokenType } from "./TokenType"
 
 // Match a single `Token.Word`
 export class Word extends TokenType {
-  @proto tokenType = Token.Word
+  /*@proto*/ get tokenType() {
+    return Token.Word
+  }
 }

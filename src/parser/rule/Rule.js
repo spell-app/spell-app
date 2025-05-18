@@ -14,17 +14,22 @@
 //
 
 import { TestLocation } from "~/parser"
-import { proto } from "~/util"
+import { proto, Derivative } from "~/util"
 
 // Abstract Rule class.
 // TODOC
-export class Rule {
+export class Rule extends Derivative() {
   /**
    * Main `name` of the rule.
    * Should generally be unique; rules with the same `name`
    * will be auto-joined into a `Group` when added defined on a parser.
    */
-  @proto name = undefined
+  /*@proto*/ get name() {
+    return undefined
+  }
+  set name(name) {
+    this.override("name", name)
+  }
 
   /**
    * `alias` for the rule as single string or array of strings.
@@ -32,14 +37,25 @@ export class Rule {
    * allowing each rule to potentially have a unique `name`
    * but making it easy to merge them into a `Group` as well.
    */
-  @proto alias = undefined
+  /*@proto*/ get alias() {
+    return undefined
+  }
+  set alias(alias) {
+    this.override("alias", alias)
+  }
 
   // Precedence for this rule.
   // Rules with higher precedence are preferred in `Choice`s.
   // Precedence is also used as "operator precedence" in recursive expressions.
-  @proto precedence = 0
+  /*@proto*/ get precedence() {
+    return 0
+  }
+  set precedence(precedence) {
+    this.override("precedence", precedence)
+  }
 
   constructor(props) {
+    super()
     Object.assign(this, props)
   }
 

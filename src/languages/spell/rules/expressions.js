@@ -11,7 +11,12 @@ SpellParser.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequenc
   // set `outputDatatype` to specify explicit datatype in standard `getAST()`
 
   /** If `true`, we'll wrap output expression in parenthesis. */
-  @proto parenthesize = false
+  /*@proto*/ get parenthesize() {
+    return false
+  }
+  set parenthesize(parenthesize) {
+    this.override("parenthesize", parenthesize)
+  }
 
   /** Return output operator from `operator` match. Override for more complex logic.
    * TODO: this is language-dependent!

@@ -9,7 +9,12 @@ import { Rule } from "."
 //    the string to put between multiple literals when joining multiple literals together.
 export class Literals extends Rule {
   // By default, join literals with no space between
-  @proto literalSeparator = ""
+  /*@proto*/ get literalSeparator() {
+    return ""
+  }
+  set literalSeparator(literalSeparator) {
+    this.override("literalSeparator", literalSeparator)
+  }
 
   constructor(...args) {
     let [props] = args
@@ -53,7 +58,7 @@ export class Literals extends Rule {
     const { testLocation, argument, optional } = this.getSyntaxFlags()
 
     const literalStrings = this.literals
-      .map(literal => {
+      .map((literal) => {
         if (typeof literal === "string") return literal
         const optionalOperator = literal.optional ? "?" : ""
         if (literal.length === 1) return `${literal}${optionalOperator}`
@@ -75,5 +80,10 @@ export class Symbols extends Literals {}
 // Keywords join WITH spaces.
 export class Keywords extends Literals {
   // Join literals with a space in-between.
-  @proto literalSeparator = " "
+  /*@proto*/ get literalSeparator() {
+    return " "
+  }
+  set literalSeparator(literalSeparator) {
+    this.override("literalSeparator", literalSeparator)
+  }
 }

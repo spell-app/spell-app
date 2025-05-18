@@ -11,16 +11,36 @@ import { SpellParser } from "~/languages/spell"
 // Note: Access this as `SpellParser.Rule.Statement`.
 SpellParser.Rule.Statement = class _statement extends Rule.Sequence {
   // Set to true if this statement wants to attempt to read an inline statement on the same line.
-  @proto wantsInlineStatement = false
+  /*@proto*/ get wantsInlineStatement() {
+    return false
+  }
+  set wantsInlineStatement(wantsInlineStatement) {
+    this.override("wantsInlineStatement", wantsInlineStatement)
+  }
 
   // Rule to parse inline statement as -- see `parseInlineStatement()`
-  @proto parseInlineStatementAs = "statement"
+  /*@proto*/ get parseInlineStatementAs() {
+    return "statement"
+  }
+  set parseInlineStatementAs(parseInlineStatementAs) {
+    this.override("parseInlineStatementAs", parseInlineStatementAs)
+  }
 
   // Set to true if this statement wants to attempt to read an nested block starting on the next line.
-  @proto wantsNestedBlock = false
+  /*@proto*/ get wantsNestedBlock() {
+    return false
+  }
+  set wantsNestedBlock(wantsNestedBlock) {
+    this.override("wantsNestedBlock", wantsNestedBlock)
+  }
 
   // Rule to parse a nested block as -- see `parseNestedBlock()`
-  @proto parseNestedBlockAs = "block"
+  /*@proto*/ get parseNestedBlockAs() {
+    return "block"
+  }
+  set parseNestedBlockAs(parseNestedBlockAs) {
+    this.override("parseNestedBlockAs", parseNestedBlockAs)
+  }
 
   // Parse the staement itself -- assume comment was already popped off the end.
   // If we `wantsInlineStatement`, attempt to parse that and push onto the match.
