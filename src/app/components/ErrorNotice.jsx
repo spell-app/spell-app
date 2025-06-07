@@ -61,7 +61,7 @@ export function ErrorDisplay(allProps) {
 const FIXED_ERROR_STYLE = { position: "fixed", top: 60, left: "calc(50% - 250px)", width: 500, zIndex: 100 }
 export const ErrorNotice = view(function ErrorNotice() {
   const { error } = store
-  if (!error) return
+  if (!error) return null
   const props = {
     error,
     onDismiss: store.hideError,

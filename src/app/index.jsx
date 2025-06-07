@@ -4,7 +4,7 @@ import "@babel/polyfill"
 // Common imports
 import global from "global"
 import React from "react"
-import ReactDOM from "react-dom"
+import { createRoot } from "react-dom/client"
 import * as SUI from "semantic-ui-react"
 
 // Import parser bits
@@ -25,16 +25,16 @@ global.spellCore = spellCore
 spellCore.registerElements({ UI, SUI })
 
 function renderApp() {
-  ReactDOM.render(
+  const container = document.getElementById("react-root")
+  const root = createRoot(container)
+  root.render(
     <>
       <Routes />
       {/* Modals / Notice / ErrorNotice for all pages */}
       <UI.ModalRoot />
       <Notice />
       <ErrorNotice />
-    </>,
-    // eslint-disable-next-line no-undef
-    document.getElementById("react-root")
+    </>
   )
 }
 
