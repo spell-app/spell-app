@@ -1,6 +1,6 @@
 import global from "global"
 
-import { writeOnce, memoizeForProp, JSON5File, CONFIRM, $fetch, getDier } from "~/util"
+import { JSON5File, CONFIRM, $fetch, getDier } from "~/util"
 import { SpellLocation, SpellProject } from "~/languages/spell"
 import { spellSetup } from "./projectSetup"
 

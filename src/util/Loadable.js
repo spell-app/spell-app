@@ -2,7 +2,7 @@ import global from "global"
 import isEqual from "lodash/isEqual"
 import { batch } from "@risingstack/react-easy-state"
 
-import { Observable, state } from "./Observable"
+import { Observable } from "./Observable"
 
 /**
  * Abstract class for a loadable / possibly saveable resource.

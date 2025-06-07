@@ -1,7 +1,7 @@
 import assert from "assert"
 import lowerFirst from "lodash/lowerFirst"
 
-import { IndexedList, typeCase, instanceCase, snakeCase, memoize } from "~/util"
+import { IndexedList, typeCase, instanceCase, snakeCase } from "~/util"
 import { MethodScope, ScopeVariable } from "~/parser"
 import { BlockScope } from "."
 

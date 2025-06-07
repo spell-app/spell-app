@@ -1,7 +1,7 @@
 import global from "global"
 // import { observable, computed } from "mobx"
 
-import { Derivative, JSON5File, state, $fetch, CONFIRM, TaskList, Task, getDier } from "~/util"
+import { Derivative, JSON5File, $fetch, CONFIRM, TaskList, Task, getDier } from "~/util"
 import { ProjectScope } from "~/parser"
 import { SpellParser, SpellLocation, SpellFile, SpellCSSFile, SpellJSFile } from "~/languages/spell"
 import { spellCore } from "~/spellCore"

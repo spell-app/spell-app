@@ -1,6 +1,6 @@
 import { isNode } from "browser-or-node"
 
-import { instanceCase, typeCase, proto } from "~/util"
+import { instanceCase, typeCase } from "~/util"
 import { Rule, Token, MethodScope } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
 

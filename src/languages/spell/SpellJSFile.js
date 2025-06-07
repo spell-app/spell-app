@@ -1,4 +1,4 @@
-import { TextFile, proto } from "~/util"
+import { TextFile } from "~/util"
 import { SpellLocation, SpellProject } from "~/languages/spell"
 
 /**

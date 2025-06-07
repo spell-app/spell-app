@@ -4,7 +4,7 @@
 import React from "react"
 import _ from "lodash"
 
-import { Observable, view, state } from "~/util"
+import { Observable, view } from "~/util"
 import { spellCore } from ".."
 
 //----------------------------

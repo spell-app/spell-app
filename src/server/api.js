@@ -58,7 +58,7 @@ api.post("/projects/file/:projectId/:filePath*", projectUtils.request_saveFile)
 //----------------------------
 
 /** Smoke test that api is available.  */
-api.get("/test", (request, response) => responseUtils.sendJSON(response, "YO!"))
+api.get("/test", (request, response) => responseUtils.sendJSON(response, { message: "YO!" }))
 
 /** Return a 404 (resource-not-found) error to test client logic. */
 api.get("/missing", (request, response) => response.status(404).send("Nothing to see here"))

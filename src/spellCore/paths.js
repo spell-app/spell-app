@@ -66,7 +66,7 @@ Object.assign(spellCore, {
   splitPath(path) {
     if (!path || typeof path !== "string") return undefined
     if (spellCore.PATH_REGISTRY[path]) return spellCore.PATH_REGISTRY[path]
-    const steps = path.trim().split(PATH_PATTERN)
+    let steps = path.trim().split(PATH_PATTERN)
     let step
     try {
       for (let i = steps.length - 1; i >= 0; i--) {

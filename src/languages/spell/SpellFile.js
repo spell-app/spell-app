@@ -1,6 +1,6 @@
 import global from "global"
 
-import { TextFile, state, batch } from "~/util"
+import { TextFile, batch } from "~/util"
 import { ProjectScope, FileScope } from "~/parser"
 import { SpellProject, SpellParser, SpellLocation } from "~/languages/spell"
 import { spellCore } from "~/spellCore"

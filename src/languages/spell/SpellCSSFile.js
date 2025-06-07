@@ -1,4 +1,4 @@
-import { TextFile, state } from "~/util"
+import { TextFile } from "~/util"
 import { Token } from "~/parser"
 import { SpellLocation, SpellProject } from "~/languages/spell"
 import { batch } from "~/util"

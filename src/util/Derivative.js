@@ -160,7 +160,7 @@ export function dependenciesMatch(list1, list2) {
   ) {
     return false
   }
-  for (const i = 0; i < list1.length; i++) {
+  for (let i = 0; i < list1.length; i++) {
     const item1 = convertObjectFromWeakRef(list1[i])
     const item2 = convertObjectFromWeakRef(list2[i])
     return item1 === item2

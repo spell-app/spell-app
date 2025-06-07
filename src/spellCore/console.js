@@ -1,7 +1,7 @@
 // ----------------------------
 // SpellCore console
 // ----------------------------
-import { Observable, prop } from "~/util"
+import { Observable } from "~/util"
 import { spellCore } from "."
 
 export class SpellConsoleGroup extends Observable {
