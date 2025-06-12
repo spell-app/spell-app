@@ -37,7 +37,7 @@
     "classnames": "^2.2.6",
     "codemirror": "^5.48.2",
     "enzyme": "^3.11.0",
-    "enzyme-adapter-react-16": "^1.15.2",
+    "@cfaester/enzyme-adapter-react-18": "^0.8.0",
     "express": "^4.16.4",
     "express-json5": "^0.1.0",
     "fs-extra": "^7.0.1",
