@@ -1,7 +1,7 @@
 import { Token, Tokenizer } from "~/parser"
 
 // Turn off tokenizer warnings in the console
-Tokenizer.prototype.logger.setDebugLevel("ERROR")
+// Tokenizer.prototype.logger.setDebugLevel("ERROR")
 
 // FIXME:  this is only working with our default tokenizer...
 const tokenizer = new Tokenizer()

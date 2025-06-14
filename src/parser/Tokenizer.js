@@ -22,7 +22,7 @@ export class Tokenizer {
   quoteSymbols = [`"`, `'`]
 
   // Debug logger.
-  logger = addDebugMethods({}, "tokenizer", DebugLevel.WARN)
+  logger = addDebugMethods({}, "tokenizer", DebugLevel.ERROR)
 
   constructor(props) {
     Object.assign(this, props)
