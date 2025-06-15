@@ -2,16 +2,13 @@
  * Utilities for working with projects and project files.
  * The `request_XXX` version can be passed directly to express.
  */
+import environment from "../environment.js"
+
 import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"
 import { SpellLocation } from "../languages/spell/SpellLocation"
 
 const { respondWithJSON } = responseUtils
-
-// Root of "@system" files
-const SYSTEM_SERVER_ROOT = fileUtils.normalizePath(__dirname, "..")
-// Root of "@user" files
-const USER_SERVER_ROOT = fileUtils.normalizePath(__dirname, "..")
 
 // HACKY!!!
 // Make sure we don't save `SpellLocation` instances in the singleton registry
@@ -23,7 +20,11 @@ SpellLocation.useRegistry = false
  */
 Object.defineProperty(SpellLocation.prototype, "serverPath", {
   get() {
-    const path = [this.owner === "@system" ? SYSTEM_SERVER_ROOT : USER_SERVER_ROOT, this.domain, this.projectName]
+    const path = [
+      this.owner === "@system" ? environment.systemFilesRoot : environment.userFilesRoot,
+      this.domain,
+      this.projectName
+    ]
     if (this.filePath) path.push(...this.filePath.split("/"))
     const serverPath = fileUtils.normalizePath(...path.filter(Boolean))
     console.warn(`Server path for path '${this.path}' => '${serverPath}'`)

@@ -1,5 +1,5 @@
-import { Match } from "~/parser"
-import { Rule } from "."
+import { Match } from "~/parser/Match.js"
+import { Rule } from "./Rule.js"
 
 // Regex pattern to match a SINGLE token.
 // - `pattern` is the regular expression to match.

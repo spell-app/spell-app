@@ -1,5 +1,4 @@
 import global from "global"
-import ReactDOM from "react-dom"
 import { navigate } from "@reach/router"
 
 import { FileScope } from "~/parser"
@@ -128,8 +127,10 @@ export const store = createStore({
       store.lastProjectForRoot(location.projectRoot, projectPath)
       await project.load()
       // Clear application display when switching projects
-      const appRoot = document.getElementById(spellCore.REACT_APP_ROOT_ID)
-      if (appRoot) ReactDOM.unmountComponentAtNode(appRoot)
+      const oldProjectRoot = document.getElementById(spellCore.REACT_APP_ROOT_ID)
+      if (typeof oldProjectRoot?.["REACT_ROOT"]?.unmount === "function") {
+        oldProjectRoot["REACT_ROOT"].unmount()
+      }
     }
 
     // Figure out which file to show, using pref if not specified in `path`

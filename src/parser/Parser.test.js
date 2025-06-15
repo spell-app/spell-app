@@ -3,6 +3,7 @@
 // Note that lots of parser functionality is tested via other files in this package. ???
 //
 
+import { describe, test, expect } from "vitest"
 import { Parser, ParserError, Rule } from "~/parser"
 
 describe("addRule() and rules", () => {

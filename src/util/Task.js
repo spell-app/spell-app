@@ -1,3 +1,4 @@
+import global from "global"
 import { UNSTARTED, ACTIVE, SUCCESS, FAILURE } from "./constants"
 import { Observable, batch } from "./Observable"
 

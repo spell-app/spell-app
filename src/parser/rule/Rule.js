@@ -13,8 +13,8 @@
 //    - `match.compile()`    Return javascript source to interpret the rule.
 //
 
-import { TestLocation } from "~/parser"
-import { Derivative } from "~/util"
+import { Derivative } from "~/util/Derivative.js"
+import { TestLocation } from "~/parser/constants"
 
 // Abstract Rule class.
 // TODOC

@@ -2,7 +2,7 @@
 //  Create a router for all api calls.
 //----------------------------
 
-import express from "express"
+import express /*, type{ Request, Response, NextFunction } */ from "express"
 import chalk from "chalk"
 import JSON5 from "json5"
 
@@ -61,10 +61,10 @@ api.post("/projects/file/:projectId/:filePath*", projectUtils.request_saveFile)
 api.get("/test", (request, response) => responseUtils.sendJSON(response, { message: "YO!" }))
 
 /** Return a 404 (resource-not-found) error to test client logic. */
-api.get("/missing", (request, response) => response.status(404).send("Nothing to see here"))
+api.get("/missing", (request, response) => response.status(404).send("Nothing to see here."))
 
 /** Return a 403 (unauthorized) error to test client logic. */
-api.get("/not-authorized", (request, response) => response.status(403).send("No can do"))
+api.get("/not-authorized", (request, response) => response.status(403).send("No can do."))
 
 /**  Return a 500 error to test client logic. */
 api.get("/error", (request, response) => response.status(500).send("No soup for you!"))
@@ -75,9 +75,7 @@ api.get("/error", (request, response) => response.status(500).send("No soup for 
 //  Log an error to the console for an unknown API path.
 //  NOTE: THIS MUST BE AT THE END OF THE FILE!
 //----------------------------
-function _apiCallNotFound(request, response) {
-  const error = new URIError(`API routine not defined on server:   '${request.url}'`)
-  return responseUtils.sendError(response, 500, error)
-}
-api.get("*", _apiCallNotFound)
-api.post("*", _apiCallNotFound)
+api.get("*", (request, response) =>
+  response.status(500).send(`API routine not defined on server:   '${request.originalUrl}'`)
+)
+api.post("*", (request, response) => response.status(500).send(`API routine not defined on server:   '${request.url}'`))

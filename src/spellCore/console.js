@@ -1,8 +1,8 @@
 // ----------------------------
 // SpellCore console
 // ----------------------------
-import { Observable } from "~/util"
-import { spellCore } from "."
+import { Observable } from "~/util/Observable.js"
+import { spellCore } from "./core.js"
 
 export class SpellConsoleGroup extends Observable {
   /*@proto*/ get level() {

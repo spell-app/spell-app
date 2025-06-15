@@ -1,7 +1,8 @@
-import { assert } from "."
+import { describe, test, expect, beforeEach, vi } from "vitest"
+import { assert } from "./assert.js"
 
 beforeEach(() => {
-  assert.failed = jest.fn()
+  assert.failed = vi.fn()
 })
 
 describe("assert()", () => {
@@ -136,7 +137,7 @@ describe("assert.isArrayLike()", () => {
     test("a non-empty array", () => {
       expect(assert.isArrayLike([1, 2, 3])).toBe(true)
     })
-    test("function arguments", function(...args) {
+    test("function arguments", function (...args) {
       expect(assert.isArrayLike(args)).toBe(true)
     })
     test("an object with a numeric `length` property", () => {

@@ -1,14 +1,15 @@
 import _ from "lodash"
+import { describe, test, expect, beforeEach, afterEach, vi } from "vitest"
 import { spellCore, assert } from "."
 
 // Wrap `assert.failed` for each test
 beforeEach(() => {
-  jest.spyOn(assert, "failed").mockImplementation(Function.prototype)
+  vi.spyOn(assert, "failed").mockImplementation(Function.prototype)
 })
 
 // Clear ALL mocks after each test
 afterEach(() => {
-  jest.restoreAllMocks()
+  vi.restoreAllMocks()
 })
 
 describe("spellCore.includes()", () => {
@@ -433,12 +434,12 @@ describe("spellCore.forEach()", () => {
   })
   describe("for arrays", () => {
     test("doesn't call method for empty array", () => {
-      const method = jest.fn()
+      const method = vi.fn()
       spellCore.forEach([], method)
       expect(method).not.toHaveBeenCalled()
     })
     test("calls method properly for non-empty array", () => {
-      const method = jest.fn()
+      const method = vi.fn()
       const collection = ["a", "b"]
       spellCore.forEach(collection, method)
       expect(method.mock.calls.length).toBe(2)
@@ -448,12 +449,12 @@ describe("spellCore.forEach()", () => {
   })
   describe("for objects", () => {
     test("doesn't call method for empty object", () => {
-      const method = jest.fn()
+      const method = vi.fn()
       spellCore.forEach({}, method)
       expect(method).not.toHaveBeenCalled()
     })
     test("calls method properly for non-empty object", () => {
-      const method = jest.fn()
+      const method = vi.fn()
       const collection = { a: 1, b: 2 }
       spellCore.forEach(collection, method)
       expect(method.mock.calls.length).toBe(2)
@@ -473,12 +474,12 @@ describe("spellCore.map()", () => {
       expect(spellCore.map([])).toEqual([])
     })
     test("doesn't call method for empty array", () => {
-      const method = jest.fn()
+      const method = vi.fn()
       expect(spellCore.map([], method)).toEqual([])
       expect(method).not.toHaveBeenCalled()
     })
     test("calls method properly for non-empty array", () => {
-      const method = jest.fn(str => str.toUpperCase())
+      const method = vi.fn((str) => str.toUpperCase())
       const collection = ["a", "b"]
       expect(spellCore.map(collection, method)).toEqual(["A", "B"])
       expect(method.mock.calls.length).toEqual(2)
@@ -491,12 +492,12 @@ describe("spellCore.map()", () => {
       expect(spellCore.map({})).toEqual({})
     })
     test("doesn't call method for empty object", () => {
-      const method = jest.fn()
+      const method = vi.fn()
       expect(spellCore.map({}, method)).toEqual({})
       expect(method).not.toHaveBeenCalled()
     })
     test("calls method properly for non-empty object", () => {
-      const method = jest.fn(num => num + 1)
+      const method = vi.fn((num) => num + 1)
       const collection = { a: 1, b: 2 }
       expect(spellCore.map(collection, method)).toEqual({ a: 2, b: 3 })
       expect(method.mock.calls.length).toEqual(2)
@@ -516,12 +517,12 @@ describe("spellCore.filter()", () => {
       expect(spellCore.filter(["a", false, 0])).toEqual(["a"])
     })
     test("doesn't call method for empty array", () => {
-      const method = jest.fn()
+      const method = vi.fn()
       expect(spellCore.filter([], method)).toEqual([])
       expect(method).not.toHaveBeenCalled()
     })
     test("calls method properly for non-empty array", () => {
-      const method = jest.fn(str => str > "a")
+      const method = vi.fn((str) => str > "a")
       const collection = ["a", "b"]
       expect(spellCore.filter(collection, method)).toEqual(["b"])
       expect(method.mock.calls.length).toEqual(2)
@@ -534,12 +535,12 @@ describe("spellCore.filter()", () => {
       expect(spellCore.filter({ a: "a", b: false, c: 0 })).toEqual({ a: "a" })
     })
     test("doesn't call method for empty object", () => {
-      const method = jest.fn()
+      const method = vi.fn()
       expect(spellCore.filter({}, method)).toEqual({})
       expect(method).not.toHaveBeenCalled()
     })
     test("calls method properly for non-empty object", () => {
-      const method = jest.fn(num => num > 1)
+      const method = vi.fn((num) => num > 1)
       const collection = { a: 1, b: 2 }
       expect(spellCore.filter(collection, method)).toEqual({ b: 2 })
       expect(method.mock.calls.length).toEqual(2)
@@ -559,12 +560,12 @@ describe("spellCore.all()", () => {
       expect(spellCore.all(["a", false, 0])).toEqual(false)
     })
     test("doesn't call method for empty array", () => {
-      const method = jest.fn()
+      const method = vi.fn()
       expect(spellCore.all([], method)).toBe(false)
       expect(method).not.toHaveBeenCalled()
     })
     test("calls method properly for non-empty array", () => {
-      const method = jest.fn(str => str > "a")
+      const method = vi.fn((str) => str > "a")
       const collection = ["a", "b"]
       expect(spellCore.all(collection, method)).toEqual(false)
       expect(method.mock.calls.length).toEqual(1)
@@ -576,12 +577,12 @@ describe("spellCore.all()", () => {
       expect(spellCore.all({ a: "a", b: false, c: 0 })).toEqual(false)
     })
     test("doesn't call method for empty object", () => {
-      const method = jest.fn()
+      const method = vi.fn()
       spellCore.all({}, method)
       expect(method).not.toHaveBeenCalled()
     })
     test("calls method properly for non-empty object", () => {
-      const method = jest.fn(num => num > 1)
+      const method = vi.fn((num) => num > 1)
       const collection = { a: 1, b: 2 }
       expect(spellCore.all(collection, method)).toEqual(false)
       expect(method.mock.calls.length).toEqual(1)
@@ -600,12 +601,12 @@ describe("spellCore.any()", () => {
       expect(spellCore.any(["a", false, 0])).toEqual(true)
     })
     test("doesn't call method for empty array", () => {
-      const method = jest.fn()
+      const method = vi.fn()
       expect(spellCore.any([], method)).toBe(false)
       expect(method).not.toHaveBeenCalled()
     })
     test("calls method properly for non-empty array", () => {
-      const method = jest.fn(str => str > "a")
+      const method = vi.fn((str) => str > "a")
       const collection = ["a", "b"]
       expect(spellCore.any(collection, method)).toEqual(true)
       expect(method.mock.calls.length).toEqual(2)
@@ -613,7 +614,7 @@ describe("spellCore.any()", () => {
       expect(method.mock.calls[1]).toEqual(["b", 2, collection])
     })
     test("falls through to false if nothing matches", () => {
-      const method = jest.fn(str => str > "b")
+      const method = vi.fn((str) => str > "b")
       const collection = ["a", "b"]
       expect(spellCore.any(collection, method)).toEqual(false)
       expect(method.mock.calls.length).toEqual(2)
@@ -626,12 +627,12 @@ describe("spellCore.any()", () => {
       expect(spellCore.any({ a: "a", b: false, c: 0 })).toEqual(true)
     })
     test("doesn't call method for empty object", () => {
-      const method = jest.fn()
+      const method = vi.fn()
       spellCore.any({}, method)
       expect(method).not.toHaveBeenCalled()
     })
     test("calls method properly for non-empty object", () => {
-      const method = jest.fn(num => num > 1)
+      const method = vi.fn((num) => num > 1)
       const collection = { a: 1, b: 2 }
       expect(spellCore.any(collection, method)).toEqual(true)
       expect(method.mock.calls.length).toEqual(2)
@@ -716,13 +717,13 @@ describe("spellCore.removeWhere()", () => {
     })
     test("doesn't call method for empty array", () => {
       const collection = []
-      const method = jest.fn()
+      const method = vi.fn()
       spellCore.removeWhere(collection, method)
       expect(collection).toEqual([])
       expect(method).not.toHaveBeenCalled()
     })
     test("calls method properly for non-empty array", () => {
-      const method = jest.fn(str => str > "a")
+      const method = vi.fn((str) => str > "a")
       const collection = ["a", "b"]
       spellCore.removeWhere(collection, method)
       expect(collection).toEqual(["a"])
@@ -738,14 +739,14 @@ describe("spellCore.removeWhere()", () => {
       expect(collection).toEqual({ b: false, c: 0 })
     })
     test("doesn't call method for empty object", () => {
-      const method = jest.fn()
+      const method = vi.fn()
       const collection = {}
       spellCore.removeWhere({}, method)
       expect(collection).toEqual({})
       expect(method).not.toHaveBeenCalled()
     })
     test("calls method properly for non-empty object", () => {
-      const method = jest.fn(num => num > 1)
+      const method = vi.fn((num) => num > 1)
       const collection = { a: 1, b: 2 }
       spellCore.removeWhere(collection, method)
       expect(collection).toEqual({ a: 1 })
@@ -769,7 +770,7 @@ describe("spellCore._randomKeyOf()", () => {
       expect(spellCore._randomKeyOf(["a"])).toBe(1)
     })
     test("returns value in range for multi-item array", () => {
-      jest.spyOn(spellCore, "randomNumber").mockImplementation(() => 2)
+      vi.spyOn(spellCore, "randomNumber").mockImplementation(() => 2)
       expect(spellCore._randomKeyOf(["a", "b", "c"])).toBe(2)
     })
   })
@@ -781,7 +782,7 @@ describe("spellCore._randomKeyOf()", () => {
       expect(spellCore._randomKeyOf({ a: 1 })).toBe("a")
     })
     test("returns key in range for multi-item object", () => {
-      jest.spyOn(spellCore, "randomNumber").mockImplementation(() => 2)
+      vi.spyOn(spellCore, "randomNumber").mockImplementation(() => 2)
       expect(spellCore._randomKeyOf({ a: 1, b: 2, c: 3 })).toBe("b")
     })
   })
@@ -800,7 +801,7 @@ describe("spellCore.randomItemOf()", () => {
       expect(spellCore.randomItemOf(["a"])).toBe("a")
     })
     test("returns value in range for multi-item array", () => {
-      jest.spyOn(spellCore, "randomNumber").mockImplementation(() => 2)
+      vi.spyOn(spellCore, "randomNumber").mockImplementation(() => 2)
       expect(spellCore.randomItemOf(["a", "b", "c"])).toBe("b")
     })
   })
@@ -812,7 +813,7 @@ describe("spellCore.randomItemOf()", () => {
       expect(spellCore.randomItemOf({ a: 1 })).toBe(1)
     })
     test("returns key in range for multi-item object", () => {
-      jest.spyOn(spellCore, "randomNumber").mockImplementation(() => 2)
+      vi.spyOn(spellCore, "randomNumber").mockImplementation(() => 2)
       expect(spellCore.randomItemOf({ a: 1, b: 2, c: 3 })).toBe(2)
     })
   })
@@ -834,11 +835,11 @@ describe("spellCore.randomItemsOf()", () => {
       expect(spellCore.randomItemsOf(["a"])).toEqual(["a"])
     })
     test("returns all values if count not specified", () => {
-      jest.spyOn(_, "shuffle").mockImplementation(() => [2, 3, 1])
+      vi.spyOn(_, "shuffle").mockImplementation(() => [2, 3, 1])
       expect(spellCore.randomItemsOf(["a", "b", "c"])).toEqual(["b", "c", "a"])
     })
     test("returns value in range for multi-item array", () => {
-      jest.spyOn(_, "shuffle").mockImplementation(() => [2, 3, 1])
+      vi.spyOn(_, "shuffle").mockImplementation(() => [2, 3, 1])
       expect(spellCore.randomItemsOf(["a", "b", "c"], 2)).toEqual(["b", "c"])
     })
   })
@@ -853,11 +854,11 @@ describe("spellCore.randomItemsOf()", () => {
       expect(spellCore.randomItemsOf({ a: 1 })).toEqual({ a: 1 })
     })
     test("returns all keys if count not specified", () => {
-      jest.spyOn(_, "shuffle").mockImplementation(() => ["b", "c", "a"])
+      vi.spyOn(_, "shuffle").mockImplementation(() => ["b", "c", "a"])
       expect(spellCore.randomItemsOf({ a: 1, b: 2, c: 3 })).toEqual({ b: 2, c: 3, a: 1 })
     })
     test("returns key in range for multi-item object", () => {
-      jest.spyOn(_, "shuffle").mockImplementation(() => ["b", "c", "a"])
+      vi.spyOn(_, "shuffle").mockImplementation(() => ["b", "c", "a"])
       expect(spellCore.randomItemsOf({ a: 1, b: 2, c: 3 }, 2)).toEqual({ b: 2, c: 3 })
     })
   })
@@ -875,7 +876,7 @@ describe("spellCore.randomize()", () => {
       expect(collection).toEqual([])
     })
     test("returns all values for multi-item array", () => {
-      jest.spyOn(_, "shuffle").mockImplementation(() => [2, 3, 1])
+      vi.spyOn(_, "shuffle").mockImplementation(() => [2, 3, 1])
       const collection = ["a", "b", "c"]
       spellCore.randomize(collection)
       expect(collection).toEqual(["b", "c", "a"])

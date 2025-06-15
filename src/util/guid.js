@@ -1,3 +1,4 @@
+import global from "global"
 import { v4 as makeUUID } from "uuid"
 import anyBase from "any-base"
 
@@ -12,7 +13,8 @@ export const decimalToFriendlyChars = anyBase("0123456789", FRIENDLY_CHARS)
  * Standard UUID v4 format as a regex
  * e.g.: `88cf3e49-e28e-4c0e-b95f-6a68a785a89d`
  */
-const UUID_PATTERN = /([0-9a-f]{4})([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{4})/
+const UUID_PATTERN =
+  /([0-9a-f]{4})([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})([0-9a-f]{4})([0-9a-f]{4})/
 
 /**
  * Create a globally unique identifier with virtually no chance of collision, ever,
@@ -40,8 +42,8 @@ export function getTimeGuid() {
   return `${time}--${getGuid()}`
 }
 
-window.UUID_PATTERN = UUID_PATTERN
-window.anyBase = anyBase
-window.makeUUID = makeUUID
-window.getGuid = getGuid
-window.getTimeGuid = getTimeGuid
+global.UUID_PATTERN = UUID_PATTERN
+global.anyBase = anyBase
+global.makeUUID = makeUUID
+global.getGuid = getGuid
+global.getTimeGuid = getTimeGuid

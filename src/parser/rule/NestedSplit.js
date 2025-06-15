@@ -1,5 +1,5 @@
-import { Match } from "~/parser"
-import { Rule } from "."
+import { Match } from "~/parser/Match.js"
+import { Rule } from "./Rule.js"
 
 // Recursively find balanced instances of `start` and `end`,
 // then split by `delimiter` and apply `rule` to each, returning an array of matches.
@@ -54,7 +54,7 @@ export class NestedSplit extends Rule {
     const { rule, prefix, items } = match
     const results = (prefix && prefix.compile()) || {}
     const name = rule.rule.argument || rule.rule.name
-    results[name] = items.map(item => item.compile())
+    results[name] = items.map((item) => item.compile())
     return results
   }
 

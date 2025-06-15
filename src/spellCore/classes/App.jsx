@@ -2,7 +2,7 @@
 // Base classes for spell
 //--------
 import React from "react"
-import ReactDOM from "react-dom"
+import { createRoot } from "react-dom/client"
 import _ from "lodash"
 
 import { spellCore } from ".."
@@ -19,14 +19,16 @@ spellCore.REACT_APP_ROOT_ID = "spell-app-root"
 //--------
 export class App extends Thing {
   start() {
-    let root = document.getElementById(spellCore.REACT_APP_ROOT_ID)
-    if (!root) {
-      root = document.createElement("div")
-      root.id = spellCore.REACT_APP_ROOT_ID
-      document.body.appendChild(root)
+    let element = document.getElementById(spellCore.REACT_APP_ROOT_ID)
+    if (!element) {
+      element = document.createElement("div")
+      element.id = spellCore.REACT_APP_ROOT_ID
+      document.body.appendChild(element)
     }
-    const AppComponent = this.Component
-    ReactDOM.render(<AppComponent />, root)
+    const root = createRoot(element)
+    root.render(<this.Component />)
+    // assign `root` to element so we can unmount it later
+    element.REACT_ROOT = root
   }
 }
 spellCore.addExport("App", App)

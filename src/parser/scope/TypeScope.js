@@ -1,4 +1,3 @@
-import assert from "assert"
 import lowerFirst from "lodash/lowerFirst"
 
 import { IndexedList, typeCase, instanceCase, snakeCase } from "~/util"
@@ -18,7 +17,9 @@ export class TypeScope extends BlockScope {
   constructor(props) {
     // If you just pass a string we'll assume it's the type name.
     if (typeof props === "string") props = { name: props }
-    assert(props.name, "Types must be initialized with a 'name'")
+    if (typeof props.name !== "string" || !props.name) {
+      throw new TypeError("Types must be created with a 'name'")
+    }
     // Make sure type `name` and `superType` are in `Type_Case`
     props.name = typeCase(props.name)
     if (props.superType) props.superType = typeCase(props.superType)

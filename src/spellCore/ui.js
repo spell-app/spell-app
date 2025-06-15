@@ -5,7 +5,7 @@
 import React from "react"
 import _get from "lodash/get"
 
-import { spellCore } from "."
+import { spellCore } from "./core.js"
 
 Object.assign(spellCore, {
   //----------------------------

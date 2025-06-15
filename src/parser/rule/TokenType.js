@@ -1,5 +1,5 @@
-import { Match } from "~/parser"
-import { Rule } from "."
+import { Match } from "~/parser/Match.js"
+import { Rule } from "./Rule.js"
 
 // Abstract rule for matching tokens of a particular type (Token constructor)
 export class TokenType extends Rule {

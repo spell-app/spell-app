@@ -1,4 +1,4 @@
-import { Rule } from "."
+import { Rule } from "./Rule.js"
 
 // Blank line representation in parser output.
 export class BlankLine extends Rule {

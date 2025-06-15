@@ -3,7 +3,8 @@
 // TODOC
 // ----------------------------
 import { isNode } from "browser-or-node"
-import { spellCore, Eventful } from "."
+import { spellCore } from "./core.js"
+import { Eventful } from "~/spellCore/SpellEvent.js"
 
 export class SpellRuntime extends Eventful() {
   // Delegate events to `spellCore`.

@@ -6,7 +6,8 @@
 //  - TODO: collections for `words`, `lines`, etc?
 //--------
 import _ from "lodash"
-import { spellCore, assert } from "."
+import { spellCore } from "./core"
+import { assert } from "."
 
 Object.assign(spellCore, {
   //----------------------------

@@ -1,5 +1,3 @@
-import assert from "assert"
-
 /**
  * `ScopeVariable` a variable defined within a `Scope`.
  * - `name` (required) variable name, used in spell.
@@ -18,7 +16,9 @@ export class ScopeVariable {
   constructor(props) {
     // Convert string to 'name'
     if (typeof props === "string") props = { name: props }
-    assert(props.name, "Variables must be created with a 'name'")
+    if (typeof props.name !== "string" || !props.name) {
+      throw new TypeError("Variables must be created with a 'name'")
+    }
     // Assign all properties in the order provided.
     Object.assign(this, props)
   }

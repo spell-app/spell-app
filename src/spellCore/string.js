@@ -1,7 +1,7 @@
 // ----------------------------
 // String utilites
 // ----------------------------
-import { spellCore } from "."
+import { spellCore } from "./core.js"
 
 Object.assign(spellCore, {
   /** Wrap `thing` in double quotes. */

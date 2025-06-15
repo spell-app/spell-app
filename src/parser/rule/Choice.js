@@ -1,5 +1,5 @@
-import { Tokenizer } from "~/parser"
-import { Rule } from "."
+import { Tokenizer } from "~/parser/Tokenizer.js"
+import { Rule } from "./Rule.js"
 
 // Turn on debugging of choice / precedence semantics
 const DEBUG_CHOICES = false

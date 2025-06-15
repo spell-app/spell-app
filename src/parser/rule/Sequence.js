@@ -14,8 +14,8 @@
 //
 import flattenDeep from "lodash/flattenDeep"
 
-import { Match } from "~/parser"
-import { Rule } from "."
+import { Match } from "~/parser/Match.js"
+import { Rule } from "./Rule.js"
 
 // Sequence of rules to match.
 //  `rule.rules` is the array of rules to match.
@@ -62,7 +62,7 @@ export class Sequence extends Rule {
       // tokens: usedTokens,
       // TODOC: WHY??  FOR USE AS A LITERAL STRING??
       value: usedTokens.join("").trim(),
-      input: flattenDeep(matched.map(next => next.input)),
+      input: flattenDeep(matched.map((next) => next.input)),
       length,
       scope
     })
@@ -71,7 +71,7 @@ export class Sequence extends Rule {
   // If no explcit compile method, gather our groups and return the compiled output of each.
   // TODO: ... ??
   compile(match) {
-    return this._addGroups({}, match.matched, nextMatch => nextMatch.compile())
+    return this._addGroups({}, match.matched, (nextMatch) => nextMatch.compile())
   }
 
   gatherGroups(match) {
@@ -107,7 +107,7 @@ export class Sequence extends Rule {
   // Echo this rule back out.
   toSyntax() {
     const { argument, optional } = this.getSyntaxFlags()
-    const rules = this.rules.map(rule => rule.toSyntax()).join(" ")
+    const rules = this.rules.map((rule) => rule.toSyntax()).join(" ")
     if (optional || argument) return `(${argument}${rules})${optional}`
     return `${rules}${optional}`
   }

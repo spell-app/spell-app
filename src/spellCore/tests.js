@@ -1,7 +1,7 @@
 // ----------------------------
 // Test utilites
 // ----------------------------
-import { spellCore } from "."
+import { spellCore } from "./core.js"
 
 Object.assign(spellCore, {
   _getTestResultIcon(success) {

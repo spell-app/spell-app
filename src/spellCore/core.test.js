@@ -1,16 +1,17 @@
+import { describe, test, expect, beforeEach, afterEach, vi } from "vitest"
 import { spellCore, assert } from "."
 
 // Wrap `assert.failed` for each test
 beforeEach(() => {
-  assert.failed = jest.fn()
+  assert.failed = vi.fn()
 })
 
 describe("spellCore.define()", () => {
   beforeEach(() => {
-    jest.spyOn(Object, "defineProperty")
+    vi.spyOn(Object, "defineProperty")
   })
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
   test("calls Object.defineProperty", () => {
     const object = {}
@@ -35,10 +36,10 @@ describe("spellCore.newThingLike()", () => {
   test("returns an empty object when passed an object", () => {
     expect(spellCore.newThingLike({ a: 1 })).toEqual({})
   })
-  test("returns an empty array when passed arguments", function(...args) {
+  test("returns an empty array when passed arguments", function (...args) {
     expect(spellCore.newThingLike(args)).toEqual([])
   })
-  test("returns a new Date when passed a Date", function() {
+  test("returns a new Date when passed a Date", function () {
     expect(spellCore.newThingLike(new Date())).toBeInstanceOf(Date)
   })
 })
@@ -150,7 +151,7 @@ describe("spellCore.isArrayLike()", () => {
   test("returns true for an array", () => {
     expect(spellCore.isArrayLike([])).toBe(true)
   })
-  test("returns true for function arguments", function(...args) {
+  test("returns true for function arguments", function (...args) {
     expect(spellCore.isArrayLike(args)).toBe(true)
   })
   test("returns false for an object", () => {
@@ -162,10 +163,10 @@ describe("spellCore.isTruthy()", () => {
   test("returns false for `false`", () => {
     expect(spellCore.isTruthy(false)).toBe(false)
   })
-  test("returns false for `undefined`", function() {
+  test("returns false for `undefined`", function () {
     expect(spellCore.isTruthy(undefined)).toBe(false)
   })
-  test("returns false for `null`", function() {
+  test("returns false for `null`", function () {
     expect(spellCore.isTruthy(null)).toBe(false)
   })
   test("returns true for 0", () => {

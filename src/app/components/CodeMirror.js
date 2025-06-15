@@ -27,7 +27,8 @@ import { spellParser } from "~/languages/spell"
 import { store } from "~/app/store"
 
 // Set up JSHINT for displaying compiled JS properly
-import "./CodeMirror-JSHINT"
+// REFACTOR: this was breaking page display
+// import "./CodeMirror-JSHINT"
 
 // Export `<CodeMirror>` component
 export { Controlled as CodeMirror } from "react-codemirror2"

@@ -1,6 +1,3 @@
-// Guarantee async/await works in all environments.
-import "@babel/polyfill"
-
 // Common imports
 import global from "global"
 import React from "react"
@@ -30,7 +27,6 @@ function renderApp() {
   root.render(
     <>
       <Routes />
-      {/* Modals / Notice / ErrorNotice for all pages */}
       <UI.ModalRoot />
       <Notice />
       <ErrorNotice />

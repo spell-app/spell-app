@@ -1,4 +1,4 @@
-import { spellCore } from "."
+import { spellCore } from "./core.js"
 
 const PATH_PATTERN = /(\.|\[[^\]]+\])/
 

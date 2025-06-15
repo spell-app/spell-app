@@ -228,8 +228,10 @@ export class SpellProject extends JSON5File {
     // Unfortunately, we don't get the line number of the error
     // (although Chrome does get the line number if we re-throw the error.)
     try {
-      // Use `?<timestamp>` to create a unique URL each time
-      this.exports = await import(this.outputFile.url + `?${Date.now()}`)
+      let url = this.outputFile.url
+      // REFACTOR: ???  Use `?<timestamp>` to create a unique URL each time
+      // url += `?${Date.now()
+      this.exports = await import(/* @vite-ignore */ url)
       return this.exports
     } catch (e) {
       if (Error.captureStackTrace) Error.captureStackTrace(e, this.executeCompiled)

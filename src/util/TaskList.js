@@ -1,3 +1,4 @@
+import global from "global"
 import { LAST, RESULTS } from "./constants"
 import { Task } from "./Task"
 

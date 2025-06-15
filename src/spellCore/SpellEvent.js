@@ -8,7 +8,7 @@
 
 import _remove from "lodash/remove"
 import global from "global"
-import { spellCore } from "."
+import { spellCore } from "./core.js"
 
 /**
  * Constructor for an immutable `SpellEvent`

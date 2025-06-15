@@ -93,7 +93,7 @@ export class ConsoleViewer extends ErrorHandler {
   })
 }
 
-NORMAL_LINE_SPACE = 20
+const NORMAL_LINE_SPACE = 20
 const INDENT_WIDTH = 12
 const SPAN_OFFSET = -4
 export function ConsoleLines({ indent = 0, lines, collapsed = false, className = "ConsoleLines" }) {

@@ -1,5 +1,3 @@
-import { hasOwnProp } from "./class"
-
 /**
  * Base class to add `@memoized`, `@derived`, `@override` functionality to class instances.
  * - Call as: `class MyClass extends Derivative {...}`
@@ -89,7 +87,7 @@ export function makeDerivative(BaseClass) {
  * - NOTE: you can safely call this repeatedly with the same `target`.
  */
 export function initDerived(target) {
-  if (!hasOwnProp(target, "__derived__")) {
+  if (!Object.hasOwn(target, "__derived__")) {
     // TODO: add to FinalizationRegistry to clearDerived() when deallocated?
     Object.defineProperty(target, "__derived__", { value: {}, writable: true })
   }
@@ -104,7 +102,7 @@ export function initDerived(target) {
  * - Call with no arguments to clear all derived properties.
  */
 export function clearDerived(target, property) {
-  if (!hasOwnProp(target, "__derived__")) return
+  if (!Object.hasOwn(target, "__derived__")) return
   if (property) delete target.__derived__[property]
   else target.__derived__ = {}
 }
@@ -116,7 +114,7 @@ export function clearDerived(target, property) {
  */
 export function memoized(target, property, getter) {
   const derived = initDerived(target)
-  if (!hasOwnProp(derived, property)) derived[property] = getter()
+  if (!Object.hasOwn(derived, property)) derived[property] = getter()
   return derived[property]
 }
 /**

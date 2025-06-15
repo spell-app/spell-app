@@ -14,8 +14,8 @@
 //
 import flattenDeep from "lodash/flattenDeep"
 
-import { Match } from "~/parser"
-import { Rule } from "."
+import { Match } from "~/parser/Match.js"
+import { Rule } from "./Rule.js"
 
 // Repeating rule.
 //  `this.rule` is the rule that repeats.
@@ -73,7 +73,7 @@ export class Repeat extends Rule {
       rule: this,
       matched,
       items,
-      input: flattenDeep(matched.map(next => next.input)),
+      input: flattenDeep(matched.map((next) => next.input)),
       length,
       scope
     })
@@ -82,7 +82,7 @@ export class Repeat extends Rule {
   }
 
   compile(match) {
-    return match.items.map(next => next.compile())
+    return match.items.map((next) => next.compile())
   }
 
   toSyntax() {

@@ -1,3 +1,4 @@
+import { describe, test, expect } from "vitest"
 import { Token, Tokenizer } from "~/parser"
 
 // Turn off tokenizer warnings in the console

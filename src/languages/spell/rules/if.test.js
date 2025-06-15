@@ -1,3 +1,4 @@
+import { describe, test, expect } from "vitest"
 import { unitTestModuleRules } from "~/test"
 import { spellParser } from "~/languages/spell"
 import { parenthesizeCondition } from "./if"
@@ -18,5 +19,5 @@ describe("testing spell module if", () => {
     })
   })
 
-  describe("integration tests", () => {})
+  // describe("integration tests", () => {})
 })

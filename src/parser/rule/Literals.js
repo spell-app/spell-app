@@ -1,5 +1,5 @@
-import { Match } from "~/parser"
-import { Rule } from "."
+import { Match } from "~/parser/Match.js"
+import { Rule } from "./Rule.js"
 
 // Abstract rule for one or more sequential literal values to match.
 // `rule.literals`:

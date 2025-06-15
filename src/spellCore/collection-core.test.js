@@ -1,24 +1,25 @@
 /* eslint-disable lines-between-class-members */
+import { describe, test, expect, beforeEach, vi } from "vitest"
 import { spellCore, assert } from "."
 
 // Wrap `assert.failed` for each test
 beforeEach(() => {
-  assert.failed = jest.fn()
+  assert.failed = vi.fn()
 })
 
 // Custom collection class simulating our custom api
 class CustomCollection {
   length = 2
-  itemCount = jest.fn(() => 2)
-  getKeys = jest.fn(() => ["key1", "key2"])
-  getValues = jest.fn(() => ["value1", "value2"])
-  getItem = jest.fn(() => "value")
-  setItem = jest.fn((item, value) => value)
-  addAtPosition = jest.fn()
-  removeItem = jest.fn()
-  itemOf = jest.fn(() => "item")
-  clear = jest.fn()
-  iterator = jest.fn()
+  itemCount = vi.fn(() => 2)
+  getKeys = vi.fn(() => ["key1", "key2"])
+  getValues = vi.fn(() => ["value1", "value2"])
+  getItem = vi.fn(() => "value")
+  setItem = vi.fn((item, value) => value)
+  addAtPosition = vi.fn()
+  removeItem = vi.fn()
+  itemOf = vi.fn(() => "item")
+  clear = vi.fn()
+  iterator = vi.fn()
 }
 
 describe("spellCore.itemCountOf()", () => {
@@ -34,13 +35,17 @@ describe("spellCore.itemCountOf()", () => {
   test("returns correct number for an array", () => {
     expect(spellCore.itemCountOf([1, 2])).toBe(2)
   })
-  test("returns correct number for arguments", function(...args) {
+  test("returns correct number for arguments", function () {
+    let args
+    ;(function (..._args) {
+      args = _args
+    })()
     expect(spellCore.itemCountOf(args)).toBe(0)
   })
-  test("returns correct number for empty object", function() {
+  test("returns correct number for empty object", function () {
     expect(spellCore.itemCountOf({})).toBe(0)
   })
-  test("returns correct number for non-empty object", function() {
+  test("returns correct number for non-empty object", function () {
     expect(spellCore.itemCountOf({ a: 1, b: 2 })).toBe(2)
   })
 })

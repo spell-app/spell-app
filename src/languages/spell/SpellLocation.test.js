@@ -1,4 +1,5 @@
-import { SpellLocation } from "~/languages/spell"
+import { describe, test, expect } from "vitest"
+import { SpellLocation } from "./SpellLocation.js"
 
 // Make sure we don't re-use registry items.
 SpellLocation.useRegistry = false
@@ -183,5 +184,11 @@ describe("SpellLocation", () => {
     })
   })
 
-  describe("invalid file paths", () => {})
+  test("invalid file paths", () => {
+    expect(() => new SpellLocation("@user:projects:bad/file/name/#")).toThrow()
+    expect(() => new SpellLocation("@user:projects:bad/file/name/@")).toThrow()
+    expect(() => new SpellLocation("@user:projects:bad/file/name/[")).toThrow()
+    expect(() => new SpellLocation("@user:projects:bad/file/name/(")).toThrow()
+    expect(() => new SpellLocation("@user:projects:bad/file/name/©")).toThrow()
+  })
 })

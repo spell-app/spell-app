@@ -1,11 +1,11 @@
 //
 //  # Rules for creating variables, property access, etc
 //
-
+import global from "global"
 import { SpellParser, AST } from "~/languages/spell"
-import { MethodScope } from "../../../parser"
+import { MethodScope } from "~/parser/scope/MethodScope.js"
 
-window.AST = AST
+global.AST = AST
 export const events = new SpellParser({
   module: "events",
   rules: [

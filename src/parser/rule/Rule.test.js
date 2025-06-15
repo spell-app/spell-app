@@ -1,3 +1,4 @@
+import { describe, test, expect } from "vitest"
 import { Parser, Rule, TestLocation, Tokenizer, WhitespacePolicy } from "~/parser"
 
 const tokenizer = new Tokenizer({
