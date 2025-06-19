@@ -9,21 +9,20 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      "@": environment.srcDir,
-      "~": environment.srcDir
-    }
+      "~": environment.srcDir,
+    },
   },
   server: {
     port: environment.vitePort,
     proxy: {
       "/api": {
         target: `http://localhost:${environment.expressPort}`,
-        changeOrigin: true
-      }
-    }
+        changeOrigin: true,
+      },
+    },
   },
   define: {
     global: {},
-    "process.env": {}
-  }
+    "process.env": {},
+  },
 })
