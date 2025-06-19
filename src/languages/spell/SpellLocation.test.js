@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest"
-import { SpellLocation } from "@/languages/spell/SpellLocation"
+import { SpellLocation } from "~/languages/spell/SpellLocation.ts"
 
 // Make sure we don't re-use registry items.
 SpellLocation.useRegistry = false
