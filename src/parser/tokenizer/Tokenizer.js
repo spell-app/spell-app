@@ -1,12 +1,12 @@
 /* eslint-disable no-continue */
 import { addDebugMethods, DebugLevel } from "~/util"
-import { Token } from "~/parser"
+import { Token } from "./Token.js"
 
 // Policy for automatically removing whitespace from the token stream.
 export const WhitespacePolicy = {
   ALL: "ALL", // Leave ALL whitespace
   NONE: "NONE", // Remove ALL whitespace
-  LEADING_ONLY: "LEADING_ONLY" // Remove inline whitespace only (leaving indents and newlines)
+  LEADING_ONLY: "LEADING_ONLY", // Remove inline whitespace only (leaving indents and newlines)
 }
 
 //
@@ -156,7 +156,7 @@ export class Tokenizer {
     const props = {
       value,
       raw: value,
-      offset: start
+      offset: start,
     }
     if (start === 0 || text[start - 1] === "\n") return new Token.Indent(props)
     return new Token.InlineWhitespace(props)
@@ -205,7 +205,7 @@ export class Tokenizer {
     return new Token.Word({
       value,
       raw: value,
-      offset: start
+      offset: start,
     })
   }
 
@@ -237,7 +237,7 @@ export class Tokenizer {
     return new Token.Number({
       value,
       raw: input,
-      offset: start
+      offset: start,
     })
   }
 
@@ -255,7 +255,7 @@ export class Tokenizer {
     return new Token.Symbol({
       value,
       raw: value,
-      offset: start
+      offset: start,
     })
   }
 
@@ -290,7 +290,7 @@ export class Tokenizer {
     return new Token.Text({
       value,
       raw: value,
-      offset: start
+      offset: start,
     })
   }
 
@@ -326,7 +326,7 @@ export class Tokenizer {
       commentSymbol, // actual comment symbol
       initialWhitespace, // whitespace between commentSymbol and comment value
       raw,
-      offset: start
+      offset: start,
     })
   }
 
@@ -383,7 +383,7 @@ export class Tokenizer {
 
     const jsxElement = new Token.JSXElement({
       tagName,
-      offset: start
+      offset: start,
     })
 
     // If unary tag, mark as such and return.
@@ -481,7 +481,7 @@ export class Tokenizer {
     return new Token.JSXEndTag({
       raw: text.slice(start, end),
       tagName,
-      offset: start
+      offset: start,
     })
   }
 
@@ -544,7 +544,7 @@ export class Tokenizer {
     return new Token.JSXExpression({
       contents,
       raw: contents.value,
-      offset: start
+      offset: start,
     })
   }
 
@@ -570,7 +570,7 @@ export class Tokenizer {
     return new Token.JSXExpression({
       contents,
       raw: text.slice(start, endIndex + 1),
-      offset: start
+      offset: start,
     })
   }
 
@@ -602,7 +602,7 @@ export class Tokenizer {
     return new Token.JSXText({
       value,
       raw: value,
-      offset: start
+      offset: start,
     })
   }
 
@@ -806,7 +806,7 @@ export class Tokenizer {
       offset: 0,
       line: 0,
       ch: 0,
-      indent: Math.min(...lines.map((line) => line.indent))
+      indent: Math.min(...lines.map((line) => line.indent)),
     })
 
     // Stack of blocks -- we'll push and pop blocks on the stack as indent changes
@@ -819,7 +819,7 @@ export class Tokenizer {
           offset: line.offset,
           line: line.line,
           ch: line.ch,
-          indent: topBlock.indent + 1
+          indent: topBlock.indent + 1,
         })
         topBlock.tokens.push(newBlock)
         stack.push(newBlock)

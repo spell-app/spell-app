@@ -1,4 +1,4 @@
-import { Tokenizer } from "~/parser/Tokenizer.js"
+import { Tokenizer } from "~/parser/tokenizer/Tokenizer.js"
 import { Rule } from "./Rule.js"
 
 // Turn on debugging of choice / precedence semantics
