@@ -2,23 +2,23 @@
 //  Create a router for all api calls.
 //----------------------------
 
-import express /*, type{ Request, Response, NextFunction } */ from "express"
+import express, { Request, Response, NextFunction } from "express"
 import chalk from "chalk"
 import JSON5 from "json5"
 
-import * as responseUtils from "./response-utils"
-import * as projectUtils from "./project-utils"
+import * as responseUtils from "./response-utils.ts"
+import * as projectUtils from "./project-utils.ts"
 
 // Create the api api.
 export const api = express.Router()
 
-function stringify(object, indent) {
+function stringify(object: any, indent: string) {
   const result = JSON5.stringify(object, null, "  ")
-  return result.split("\n").join(`\n${indent.substr(2)}`)
+  return result.split("\n").join(`\n${indent.substring(2)}`)
 }
 
 // Log every api request
-api.use((request, response, next) => {
+api.use((request: Request, response: Response, next: NextFunction) => {
   const info = responseUtils.getRequestDetails(request)
 
   console.warn("\n\n==========================================================")
@@ -75,7 +75,5 @@ api.get("/error", (request, response) => response.status(500).send("No soup for 
 //  Log an error to the console for an unknown API path.
 //  NOTE: THIS MUST BE AT THE END OF THE FILE!
 //----------------------------
-api.get("*", (request, response) =>
-  response.status(500).send(`API routine not defined on server:   '${request.originalUrl}'`)
-)
+api.get("*", (request, response) => response.status(500).send(`API routine not defined on server:   '${request.url}'`))
 api.post("*", (request, response) => response.status(500).send(`API routine not defined on server:   '${request.url}'`))

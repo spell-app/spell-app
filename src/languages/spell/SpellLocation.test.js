@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest"
-import { SpellLocation } from "./SpellLocation.js"
+import { SpellLocation } from "@/languages/spell/SpellLocation"
 
 // Make sure we don't re-use registry items.
 SpellLocation.useRegistry = false
@@ -68,7 +68,6 @@ describe("SpellLocation", () => {
     })
     test("no project name", () => {
       const path = new SpellLocation("@user:projects")
-      expect(path.isValid).toBe(true)
       expect(path.isSystemProject).toBe(false)
       expect(path.isUserProject).toBe(true)
       expect(path.isProjectRoot).toBe(true)
@@ -91,7 +90,6 @@ describe("SpellLocation", () => {
       expect(path.file).toBe("FILE.EXTENSION")
       expect(path.fileName).toBe("FILE")
       expect(path.extension).toBe(".EXTENSION")
-      expect(path.isValid).toBe(true)
       expect(path.isProjectPath).toBe(false)
       expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(true)
@@ -110,7 +108,6 @@ describe("SpellLocation", () => {
       expect(path.file).toBe("FILE.EXTENSION")
       expect(path.fileName).toBe("FILE")
       expect(path.extension).toBe(".EXTENSION")
-      expect(path.isValid).toBe(true)
       expect(path.isProjectPath).toBe(false)
       expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(true)
@@ -129,7 +126,6 @@ describe("SpellLocation", () => {
       expect(path.file).toBe("FILE.EXTENSION")
       expect(path.fileName).toBe("FILE")
       expect(path.extension).toBe(".EXTENSION")
-      expect(path.isValid).toBe(true)
       expect(path.isProjectPath).toBe(false)
       expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(true)
@@ -144,7 +140,6 @@ describe("SpellLocation", () => {
       expect(path.file).toBe("FILE")
       expect(path.fileName).toBe("FILE")
       expect(path.extension).toBe(undefined)
-      expect(path.isValid).toBe(true)
       expect(path.isProjectPath).toBe(false)
       expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(true)
@@ -156,7 +151,6 @@ describe("SpellLocation", () => {
       expect(path.file).toBe("FILE.EXT1.EXT2")
       expect(path.fileName).toBe("FILE")
       expect(path.extension).toBe(".EXT1.EXT2")
-      expect(path.isValid).toBe(true)
       expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(true)
     })
@@ -167,7 +161,6 @@ describe("SpellLocation", () => {
       expect(path.file).toBe(".FILE")
       expect(path.fileName).toBe(".FILE")
       expect(path.extension).toBe()
-      expect(path.isValid).toBe(true)
       expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(true)
     })
@@ -178,17 +171,23 @@ describe("SpellLocation", () => {
       expect(path.file).toBe(".FILE.EXT1.EXT2")
       expect(path.fileName).toBe(".FILE")
       expect(path.extension).toBe(".EXT1.EXT2")
-      expect(path.isValid).toBe(true)
       expect(path.isFolderPath).toBe(false)
       expect(path.isFilePath).toBe(true)
     })
   })
 
-  test("invalid file paths", () => {
-    expect(() => new SpellLocation("@user:projects:bad/file/name/#")).toThrow()
-    expect(() => new SpellLocation("@user:projects:bad/file/name/@")).toThrow()
-    expect(() => new SpellLocation("@user:projects:bad/file/name/[")).toThrow()
-    expect(() => new SpellLocation("@user:projects:bad/file/name/(")).toThrow()
-    expect(() => new SpellLocation("@user:projects:bad/file/name/©")).toThrow()
+  describe("invalid file paths", () => {
+    test("`.` paths throw", () => {
+      expect(() => new SpellLocation("@user/projects/relative/./path")).toThrow()
+    })
+    test("`..` paths throw", () => {
+      expect(() => new SpellLocation("@user/projects/relative/../path")).toThrow()
+    })
+    test("weird characters paths throw", () => {
+      expect(() => new SpellLocation("@user/projects/weird@path")).toThrow()
+      expect(() => new SpellLocation("@user/projects/weird^path")).toThrow()
+      expect(() => new SpellLocation("@user/projects/weird(path")).toThrow()
+      expect(() => new SpellLocation("@user/projects/weird)path")).toThrow()
+    })
   })
 })

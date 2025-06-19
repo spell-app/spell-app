@@ -7,8 +7,8 @@
 //  See `APP SPECIFIC` below for app-specific stuff.
 //
 //----------------------------
-import chalk from "chalk"
-
+import type { Request, Response } from "express"
+import type { SendFileOptions } from "express-serve-static-core"
 // File manipulation utilities and path config
 import * as fileUtils from "./file-utils"
 
@@ -19,7 +19,7 @@ import * as fileUtils from "./file-utils"
 // If `id` passed in is a string which converts EXACTLY to a number, return the number.
 // Otherwise return the string.
 // Useful for dealing with provisional ids.
-export function convertNumericId(id) {
+export function convertNumericId(id: string): number | string | undefined {
   if (id == null) return undefined
 
   if (typeof id === "number") return id
@@ -33,7 +33,7 @@ export function convertNumericId(id) {
 
 // Given an express `request`, return an array of id properties.
 // Uses `convertNumericId` to convert to numbers as appropriate.
-export function getIdParams(request, ...idProperties) {
+export function getIdParams(request: Request, ...idProperties: string[]) {
   return idProperties.map((property) => convertNumericId(request.params[property]))
 }
 
@@ -46,13 +46,13 @@ export function getIdParams(request, ...idProperties) {
  * - if `callback` returns result, return that to the browser as JSON.
  * - if `callback` throws, return a 500 server error with the result.
  */
-export function respondWithJSON(callback) {
-  return async function (request, response) {
+export function respondWithJSON(callback: (request: Request, response: Response) => Promise<any>) {
+  return async function (request: Request, response: Response) {
     try {
       const result = await callback(request, response)
       sendJSON(response, result || "OK")
     } catch (error) {
-      sendError(response, 500, error)
+      sendError(response, 500, error as Error)
     }
   }
 }
@@ -62,15 +62,19 @@ export function respondWithJSON(callback) {
 //----------------------------
 
 // Return `text` as `response` to `request`.
-export function sendText(response, text) {
+export function sendText(response: Response, text: string) {
   response.set("Content-Type", "text/plain")
   return response.send(text)
 }
 
 // Return `javascript` as `response` to `request`.
-export function sendJavascript(response, javascript) {
+export function sendJavascript(response: Response, javascript: string) {
   response.set("Content-Type", "application/javascript")
   return response.send(javascript)
+}
+
+type ExtendedSendFileOptions = SendFileOptions & {
+  defaultValue?: any
 }
 
 /**
@@ -80,7 +84,11 @@ export function sendJavascript(response, javascript) {
  * Sends a 404 if the file was not found, unless you set `options.defaultValue` string
  * in which case we'll return that instead of failing.
  */
-export async function send(response, path, { defaultValue, ...options } = {}) {
+export async function sendFile(
+  response: Response,
+  path: string,
+  { defaultValue, ...options }: ExtendedSendFileOptions = {}
+) {
   const fileExists = await fileUtils.pathExists(path)
   console.warn(path, fileExists, options)
   if (fileExists) return response.sendFile(path, options)
@@ -89,7 +97,11 @@ export async function send(response, path, { defaultValue, ...options } = {}) {
 }
 
 // Return text file at `path` (as text/plain) as `response` to `request`.
-export async function sendTextFile(response, path, { defaultValue, ...options } = {}) {
+export async function sendTextFile(
+  response: Response,
+  path: string,
+  { defaultValue, ...options }: ExtendedSendFileOptions = {}
+) {
   response.set("Content-Type", "text/plain")
   if (await fileUtils.pathExists(path)) return response.sendFile(path, options)
   if (defaultValue !== undefined) return response.send(defaultValue)
@@ -97,9 +109,9 @@ export async function sendTextFile(response, path, { defaultValue, ...options } 
 }
 
 // Return js file at `path` (as text/plain) as `response` to `request`.
-export async function sendJSFile(response, path, options = {}) {
+export async function sendJSFile(response: Response, path: string, options: SendFileOptions = {}) {
   response.set("Content-Type", "application/javascript")
-  if (await fileUtils.pathExists(path)) return response.sendFile(path)
+  if (await fileUtils.pathExists(path)) return response.sendFile(path, options)
   return sendError(response, 404, new Error(`File not found: '${path}'`))
 }
 
@@ -108,93 +120,34 @@ export async function sendJSFile(response, path, options = {}) {
 //----------------------------
 
 // Return `json` as string or object to stringify as `response` to `request`.
-export function sendJSON(response, json) {
+export function sendJSON(response: Response, json: any) {
   response.set("Content-Type", "application/json")
   if (typeof json !== "string") json = JSON.stringify(json, null, "  ")
   return response.send(json)
 }
 
 // Return contents of a single file at `path` as as JSON `response` to `request`.
-export function sendJSONFile(response, path) {
+export function sendJSONFile(response: Response, path: string) {
   response.set("Content-Type", "application/json")
-
   console.warn("Sending JSON file:\n  ", path)
   return response.sendFile(path)
 }
-
-// UNUSED UNTESTED
-//
-// // Return contents of multiple files at `paths` as as JSON `response` to `request`.
-// // File results will be wrapped in an array.
-// // If `optional` is `true`, we'll just write `null` for any file that can't be found.
-// // Otherwise we'll return an error result if ANY file can't be found.
-// export function sendJSONFiles(response, paths, optional = false) {
-//   return fileUtils.loadFiles(paths, "utf8", optional).then((jsonBlocks) => {
-//     // Log what we're sending
-//     console.warn("Sending JSON files:")
-//     jsonBlocks.forEach((json, index) => {
-//       // Log missing / empty files in lighter color
-//       if (json === null) console.warn(chalk.grey(`  ${paths[index]}`))
-//       else console.warn(`  ${paths[index]}`)
-//     })
-
-//     // remove any null blocks
-//     jsonBlocks = jsonBlocks.filter((block) => block != null)
-
-//     // group them all in an array
-//     return sendJSON(response, `[\n\n${jsonBlocks.join(",\n\n")}\n\n]`)
-//   })
-// }
-
-// UNUSED UNTESTED
-//
-// // Return a map of `{ <path.filename> => <path contents> }` for a mess of JSON files.
-// // NOTE: the returned map really only works if all `paths` are in the same folder
-// //     or otherwise have unique leaf file names.
-// export function sendJSONFileMap(response, paths, optional = false) {
-//   return fileUtils.loadFiles(paths, "utf8", optional).then((jsonBlocks) => {
-//     const fileMap = {}
-
-//     // Log what we're sending
-//     console.warn("Sending JSON map with:")
-//     jsonBlocks.forEach((json, index) => {
-//       const path = paths[index]
-//       const filename = fileUtils.getPathFile(path)
-//       const message = `  ${filename}: ${path}`
-
-//       // Log missing / empty files in lighter color
-//       if (json === null) {
-//         console.warn(chalk.grey(message))
-//       } else {
-//         // Got a live one
-//         console.warn(message)
-//         fileMap[filename] = json
-//       }
-//     })
-
-//     // group them all in an array
-//     return sendJSON(response, fileMap)
-//   })
-// }
-
-// UNUSED UNTESTED
-//
-// // Send a simple JSON "ok" response.
-// // Pass `extraData` as JSON object to merge into response.
-// export function sendOK(response, extraData) {
-//   const result = {
-//     status: "OK",
-//     ...extraData
-//   }
-//   return sendJSON(response, result)
-// }
 
 //----------------------------
 //  Error responses
 //----------------------------
 
+export function isFileOrFolderNotFoundError(error: any): error is Error {
+  return (error as any).code === "ENOENT"
+}
+
 // Return an error response.
-export function sendError(response, statusCode, error, errorMessage = error && error.message) {
+export function sendError(
+  response: Response,
+  statusCode: number,
+  error: Error,
+  errorMessage: string = error && error.message
+) {
   if (!statusCode || !error) throw new TypeError("sendError() requires both statusCode and error params")
 
   fileUtils.logError(error, errorMessage)
@@ -203,9 +156,9 @@ export function sendError(response, statusCode, error, errorMessage = error && e
     errors: [
       {
         message: errorMessage,
-        trace: error && error instanceof Error && error.stack
-      }
-    ]
+        trace: error && error instanceof Error && error.stack,
+      },
+    ],
   })
 }
 
@@ -216,25 +169,16 @@ export function sendError(response, statusCode, error, errorMessage = error && e
 // Return a POJO with relevant details from the request:
 //  - url       URL called
 //  - method    "GET", "POST", etc
-//  - params    (optional) Named request params from the router
-//  - query     (optional) Query params from URL string
-//  - body      (optional) Body
-export function getRequestDetails(request) {
-  const result = {
-    method: request.method,
-    url: request.originalUrl
-  }
-  // Add URL query params if there are any
+//  - params    Clone of named request params from the router, if any provided.
+//  - query     Clone of query params from URL string, if any provided.
+//  - body      Body as string or CLONE OF body object, if any provided.
+export function getRequestDetails(request: Request) {
   const { query, params, body } = request
-  if (Object.keys(query).length) result.query = { ...query }
-
-  // Add URL params from router if there are any
-  if (Object.keys(params).length) result.params = { ...params }
-
-  // Add request body if provided
-  if (body) {
-    if (typeof body === "string") result.body = body
-    else if (Object.keys(body).length) result.body = { ...body }
+  return {
+    method: request.method,
+    url: request.originalUrl,
+    query: Object.keys(query).length ? { ...query } : undefined,
+    params: Object.keys(params).length ? { ...params } : undefined,
+    body: typeof body === "string" ? body : Object.keys(body).length ? { ...body } : undefined,
   }
-  return result
 }

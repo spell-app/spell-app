@@ -1,18 +1,19 @@
 import lockfile from "proper-lockfile"
-import { folderName, makeFolder } from "./file-utils"
+import { getPathFolder, makeFolder, saveFile } from "./file-utils.ts"
+import { isFileOrFolderNotFoundError } from "./response-utils.ts"
 
 //----------------------------
 //  Locking / Unlocking files
 //----------------------------
 
 // Given a `path`, return the path for the lock file (dir).
-export function getLockPath(path) {
+export function getLockPath(path: string) {
   return `${path}.lock`
 }
 
 // Return a promise which yields `true/false` for whether file at `path` is locked.
 // Returns `false` if error thrown.
-export function checkLock(path) {
+export async function checkLock(path: string) {
   return lockfile.check(path).catch((error) => false)
 }
 
@@ -27,11 +28,11 @@ export const DEFAULT_LOCK_OPTIONS = {
   // Retry lock up to 10 times
   retries: 10,
   // Don't kill the server if the lock was compromised!!!!
-  onCompromised: (error) => {
+  onCompromised: (error: Error) => {
     console.error("file-utils.lockFile(): lock was compromised!", error)
   }
 }
-export async function lockFile(path, defaultValue, options = DEFAULT_LOCK_OPTIONS) {
+export async function lockFile(path: string, defaultValue: any, options = DEFAULT_LOCK_OPTIONS) {
   // Make sure the directory to the file is present
   const dir = getPathFolder(path)
   await makeFolder(dir)
@@ -39,19 +40,19 @@ export async function lockFile(path, defaultValue, options = DEFAULT_LOCK_OPTION
   // Lock it!
   try {
     return await lockfile.lock(path, options)
-  } catch (e) {
+  } catch (error) {
     // If file not found, create file and then lock
-    if (e.code === "ENOENT") {
+    if (isFileOrFolderNotFoundError(error)) {
       await saveFile(path, defaultValue)
       return lockfile.lock(path, options)
     }
-    throw e
+    throw error
   }
 }
 
 //  Unlock file at `path`.
 //  No-op if file does not exist or is unlocked.
-export function unlockFile(path) {
+export function unlockFile(path: string) {
   return lockfile.unlock(path)
 }
 
@@ -61,11 +62,8 @@ export function unlockFile(path) {
 
 // Simple lock error.
 // Throw this if your subclasses have a lock exception.
-export class LockError {
-  constructor(message) {
-    this.name = "LockError"
-    this.message = message
-    this.stack = new Error().stack
+export class LockError extends Error {
+  get name() {
+    return "LockError"
   }
 }
-LockError.prototype = Object.create(Error.prototype)

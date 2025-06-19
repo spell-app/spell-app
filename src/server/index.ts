@@ -1,11 +1,9 @@
 import bodyParser from "body-parser"
-import express /*, type { Request, Response } */ from "express"
+import express, { Request, Response } from "express"
 import express_json5 from "express-json5"
 
-import { api } from "./api.js"
-
 import environment from "../environment.js"
-console.log({ environment })
+import { api } from "./api.ts"
 
 const app = express()
 
@@ -17,8 +15,8 @@ app.use(bodyParser.text({ limit: "10mb" }))
 app.use(bodyParser.json({ limit: "10mb" }))
 app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }))
 
-// TEST API routes
-app.get("/hello", (request, response) => {
+// API routes
+app.get("/hello", (request: Request, response: Response) => {
   response.json({ message: "Hello from the API!" })
 })
 
@@ -26,12 +24,8 @@ app.get("/hello", (request, response) => {
 app.use("/api", api)
 
 // Serve static files from the dist directory
-app.use("/static", express.static("../../static"))
-
-// Make everything else render `index.html` for front-end routing
-app.use("*", (request, response) => {
-  response.sendFile("src/app/_vite/index.html")
-})
+// REFACTOR: static files are served by vite, so this is not needed?
+app.use("/static", express.static(environment.staticDir)) // Make everything else render `index.html` for front-end routing
 
 app.listen(environment.expressPort, () => {
   console.log(`Server running at http://localhost:${environment.expressPort}`)

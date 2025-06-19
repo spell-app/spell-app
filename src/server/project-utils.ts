@@ -2,17 +2,25 @@
  * Utilities for working with projects and project files.
  * The `request_XXX` version can be passed directly to express.
  */
-import environment from "../environment.js"
-
-import * as fileUtils from "./file-utils"
-import * as responseUtils from "./response-utils"
-import { SpellLocation } from "../languages/spell/SpellLocation"
+import { Request, Response } from "express"
+import environment from "~/environment.js"
+import * as fileUtils from "./file-utils.ts"
+import * as responseUtils from "./response-utils.ts"
+import { SpellLocation } from "~/languages/spell/SpellLocation.ts"
 
 const { respondWithJSON } = responseUtils
 
+export type ImportEntryJSON = { path: string; active: boolean; contents?: string | null }
+export type ImportsFileJSON = { imports: ImportEntryJSON[] }
+
+export type ManifestEntryJSON = { created: number; modified: number; size: number }
+export type ManifestJSON = Record<string, ManifestEntryJSON>
+
+export type ProjectIndexJSON = { manifest: ManifestJSON; imports: ImportEntryJSON[] }
+
 // HACKY!!!
-// Make sure we don't save `SpellLocation` instances in the singleton registry
-// or we'll leak memory!
+// Make sure we don't save `SpellLocation` instances in the singleton registry or we'll leak memory!
+// TESTME: is this still needed?
 SpellLocation.useRegistry = false
 
 /**
@@ -23,26 +31,26 @@ Object.defineProperty(SpellLocation.prototype, "serverPath", {
     const path = [
       this.owner === "@system" ? environment.systemFilesRoot : environment.userFilesRoot,
       this.domain,
-      this.projectName
+      this.projectName,
     ]
     if (this.filePath) path.push(...this.filePath.split("/"))
     const serverPath = fileUtils.normalizePath(...path.filter(Boolean))
     console.warn(`Server path for path '${this.path}' => '${serverPath}'`)
     return serverPath
-  }
+  },
 })
 
 const DEFAULT_FILE = {
   filePath: "/Untitled.spell",
-  contents: "// New file"
-}
+  contents: "// New file",
+} as const
 
 /**
  * Return list of client projects relative to this projectSpec as JSON blob.
  * Format:
  *   `[ "<project-path>"... ]`
  */
-export const getProjectList = async (domainId) => {
+export const getProjectList = async (domainId: string) => {
   const domain = SpellLocation.getProjectRoot(domainId)
   const options = { includeFolders: true, includeFiles: false, namesOnly: true, ignoreEmptyFolders: true }
   const projectNames = await fileUtils.getFolderContents(domain.serverPath, options)
@@ -63,26 +71,27 @@ export const request_getProjectList = respondWithJSON(async (request) => {
  * Given a file `name`, return `true` if we should add it to the manifest.
  */
 const manifestExtensions = [".spell", ".css", ".js", ".jsx"]
-function isManifestFile(name) {
+function isManifestFile(name: string) {
   return manifestExtensions.some((extension) => name.endsWith(extension))
 }
 
 /** Given a file `name`, return `true` if we should preload it. */
-function isPreloadFile(name) {
+function isPreloadFile(name: string) {
   return manifestExtensions.some((extension) => name.endsWith(extension))
 }
 
 /**
  * Return the `SpellLocation` for project `imports` file.
  */
-export function getImportsLocation(projectId) {
+export function getImportsLocation(projectId: string) {
   return SpellLocation.getFileLocation(projectId, ".imports.json")
 }
 
 /**
  * Load a project `.imports.json` file, returning default import file if not found.
  */
-export const loadImports = async (projectId) => {
+// TODO: why is this arrow function?
+export const loadImports = async (projectId: string): Promise<ImportsFileJSON> => {
   const location = getImportsLocation(projectId)
   const existing = await fileUtils.loadJSONFile(location.serverPath, "OPTIONAL")
   return existing || { imports: [] }
@@ -91,7 +100,7 @@ export const loadImports = async (projectId) => {
 /**
  * Save a project `.imports.json` file.
  */
-export const saveImports = async (projectId, contents) => {
+export const saveImports = async (projectId: string, contents: any) => {
   const location = getImportsLocation(projectId)
   return await fileUtils.saveJSONFile(location.serverPath, contents)
 }
@@ -107,7 +116,7 @@ export const saveImports = async (projectId, contents) => {
  * The `imports` portion will be synced with the `manifest`,
  * and will be saved to disk as `.imports.json` if imports change.
  */
-export const getIndex = async (projectId) => {
+export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => {
   const location = SpellLocation.getProjectLocation(projectId)
 
   // Get non-hidden files in project which the front-end knows how to deal with
@@ -122,7 +131,8 @@ export const getIndex = async (projectId) => {
   }
 
   // create manifest including created/modified/size info per file
-  const manifest = {}
+  // REFACTOR: type for `manifest`
+  const manifest: ManifestJSON = {}
   await Promise.all(
     fileNames.map(async (name) => {
       const location = SpellLocation.getFileLocation(projectId, name)
@@ -136,7 +146,7 @@ export const getIndex = async (projectId) => {
   // Filter imports: which are not in existingPaths
   const existingPaths = { ...manifest }
   let anythingChanged = false
-  importsFile.imports = importsFile.imports.filter(({ path }) => {
+  importsFile.imports = importsFile.imports.filter(({ path }: { path: string }) => {
     // Full paths including projectId refer to other projects
     // So assume we should leave them alone.
     if (path.startsWith("@")) return true
@@ -157,6 +167,7 @@ export const getIndex = async (projectId) => {
   // add at the end of the imports as `active`.
   Object.keys(existingPaths).forEach((path) => {
     const location = new SpellLocation(path)
+    if (!location.filePath) return
     // Record as a local `filePath` string, which includes the folder / leading slash
     importsFile.imports.push({ path: location.filePath, active: true })
     anythingChanged = true
@@ -177,7 +188,7 @@ export const getIndex = async (projectId) => {
   )
 
   // return manifest and imports
-  return { ...importsFile, manifest }
+  return { imports: importsFile.imports, manifest }
 }
 export const request_getIndex = respondWithJSON(async (request) => {
   const { projectId } = request.params
@@ -192,17 +203,17 @@ export const request_getIndex = respondWithJSON(async (request) => {
  * Return a file from a project.
  * TODO: return proper file type according to mime-type and/or request???!
  */
-export const request_getFile = (request, response) => {
+export const request_getFile = (request: Request, response: Response) => {
   const { projectId, filePath } = request.params
   const location = SpellLocation.getFileLocation(projectId, filePath)
-  responseUtils.send(response, location.serverPath, { dotfiles: "allow" })
+  responseUtils.sendFile(response, location.serverPath, { dotfiles: "allow" })
 }
 
 /**
  * Save a (non-nested!) file in a project.
  * TODO: format according to extension!!!
  */
-export const saveFile = async (projectId, filePath, contents) => {
+export const saveFile = async (projectId: string, filePath: string, contents: any) => {
   const location = SpellLocation.getFileLocation(projectId, filePath)
   return await fileUtils.saveFile(location.serverPath, contents)
 }
@@ -220,7 +231,7 @@ export const request_saveFile = respondWithJSON(async (request) => {
  * Create project `projectId` by creating file at `filePath` within it.
  * Request version returns updated project list.
  */
-export const createProject = async (projectId, filePath, contents) => {
+export const createProject = async (projectId: string, filePath: string, contents: any) => {
   const location = SpellLocation.getFileLocation(projectId, filePath || DEFAULT_FILE.filePath)
   return await fileUtils.saveFile(location.serverPath, contents || DEFAULT_FILE.contents)
 }
@@ -234,7 +245,7 @@ export const request_createProject = respondWithJSON(async (request) => {
  * Duplicate project `projectId` as `newProjectId`.
  * Request version returns updated project list.
  */
-export const duplicateApp = async (projectId, newProjectId) => {
+export const duplicateApp = async (projectId: string, newProjectId: string) => {
   const location = SpellLocation.getProjectLocation(projectId)
   const newLocation = SpellLocation.getProjectLocation(newProjectId)
   return await fileUtils.copyPath(location.serverPath, newLocation.serverPath)
@@ -249,7 +260,7 @@ export const request_duplicateApp = respondWithJSON(async (request) => {
  * Rename project `projectId` to `newProjectId`.
  * Request version returns updated project list.
  */
-export const renameApp = async (projectId, newProjectId) => {
+export const renameApp = async (projectId: string, newProjectId: string) => {
   const location = SpellLocation.getProjectLocation(projectId)
   const newLocation = SpellLocation.getProjectLocation(newProjectId)
   return await fileUtils.movePath(location.serverPath, newLocation.serverPath)
@@ -264,7 +275,7 @@ export const request_renameApp = respondWithJSON(async (request) => {
  * Remove (permanently delete) project `projectId`.
  * Request version returns updated project list.
  */
-export const deleteApp = async (projectId) => {
+export const deleteApp = async (projectId: string) => {
   const location = SpellLocation.getProjectLocation(projectId)
   return await fileUtils.deletePath(location.serverPath)
 }
@@ -282,7 +293,7 @@ export const request_deleteApp = respondWithJSON(async (request) => {
  * Create a new project file.
  * Request version returns updated index, which will `import` new file at the end.
  */
-export const createFile = async (projectId, filePath, contents) => {
+export const createFile = async (projectId: string, filePath: string, contents: any) => {
   return await saveFile(projectId, filePath, contents)
 }
 export const request_createFile = respondWithJSON(async (request) => {
@@ -295,7 +306,7 @@ export const request_createFile = respondWithJSON(async (request) => {
  * Rename a project file.
  * Request version returns updated index.
  */
-export const renameFile = async (projectId, filePath, newFilePath) => {
+export const renameFile = async (projectId: string, filePath: string, newFilePath: string) => {
   const location = SpellLocation.getFileLocation(projectId, filePath)
   const newLocation = SpellLocation.getFileLocation(projectId, newFilePath)
   await fileUtils.movePath(location.serverPath, newLocation.serverPath)
@@ -320,7 +331,7 @@ export const request_renameFile = respondWithJSON(async (request) => {
  * Delete a project file.
  * Request version returns updated index.
  */
-export const deleteFile = async (projectId, filePath) => {
+export const deleteFile = async (projectId: string, filePath: string) => {
   const location = SpellLocation.getFileLocation(projectId, filePath)
   return await fileUtils.deletePath(location.serverPath)
 }
