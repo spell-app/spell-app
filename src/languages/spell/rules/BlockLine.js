@@ -1,19 +1,19 @@
 import _ from "lodash"
 
-import { Match, Rule, Token } from "~/parser"
+import { Match, Rule, Rules, Tokens } from "~/parser"
 import { SpellParser, AST, spellParser } from "~/languages/spell"
 
-/** Update Rule.BlankLine to output AST properly. */
-Rule.BlankLine.prototype.getAST = function (match) {
+/** Update Rules.BlankLine to output AST properly. */
+Rules.BlankLine.prototype.getAST = function (match) {
   return new AST.BlankLine(match)
 }
 
-// Use `BlockLine` to parse a single `Token.Line` in a `Token.Block` as:
+// Use `BlockLine` to parse a single `Tokens.Line` in a `Tokens.Block` as:
 // - a `statement`
 // - an optional `comment` at the end of the line
-// - if the `statement.wantsNestedBlock` and the next item in `lines` is a `Token.Block`
+// - if the `statement.wantsNestedBlock` and the next item in `lines` is a `Tokens.Block`
 //   we'll let the statement attempt to parse the next line as well.
-SpellParser.Rule.BlockLine = class line extends Rule {
+SpellParser.Rules.BlockLine = class line extends Rule {
   parse(scope, lines) {
     // eslint-disable-next-line no-shadow
     const line = lines[0]
@@ -24,14 +24,14 @@ SpellParser.Rule.BlockLine = class line extends Rule {
     const { tokens } = line
     // Blank line
     if (tokens.length === 0) {
-      const token = line.newLine || line.leading
+      const token = line.newline || line.leading
       matched.push(
         new Match({
           rule: scope.parser.getRuleOrDie("blank_line"),
           matched: [token],
           length: 1,
           input: [token],
-          scope
+          scope,
         })
       )
     }
@@ -71,7 +71,7 @@ SpellParser.Rule.BlockLine = class line extends Rule {
 
         // Some statements `.wantsNestedBlock` -- give it a chance to parse the next item.
         const nextItem = lines[1]
-        if (statement.rule.wantsNestedBlock && nextItem instanceof Token.Block) {
+        if (statement.rule.wantsNestedBlock && nextItem instanceof Tokens.Block) {
           const nestedBlock = statement.rule.parseNestedBlock(statement, nextItem)
           if (nestedBlock) {
             // add any errors in the nestedBlock to `errors`
@@ -114,7 +114,7 @@ SpellParser.Rule.BlockLine = class line extends Rule {
       errors: errors.length ? errors : undefined,
       input,
       length: input.length,
-      scope
+      scope,
     })
   }
 
@@ -123,7 +123,7 @@ SpellParser.Rule.BlockLine = class line extends Rule {
     if (match.matched.length === 1) return match.matched[0].AST
     // otherwise
     return new AST.StatementGroup(match, {
-      statements: match.matched.map((item) => item.AST)
+      statements: match.matched.map((item) => item.AST),
     })
   }
 }

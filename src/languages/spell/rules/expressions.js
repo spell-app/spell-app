@@ -2,11 +2,12 @@
 //  # Rules for expressions.
 //
 
+import { Sequence } from "~/parser/rule/Sequence"
 import { Match, Rule } from "~/parser"
 import { AST, SpellParser } from "~/languages/spell"
 
 /** TODOC!!! */
-SpellParser.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequence {
+SpellParser.Rules.InfixOperatorSuffix = class infix_operator extends Sequence {
   // set `outputDatatype` to specify explicit datatype in standard `getAST()`
 
   /** If `true`, we'll wrap output expression in parenthesis. */
@@ -42,7 +43,7 @@ SpellParser.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequenc
     return new AST.InfixExpression(match, {
       lhs,
       operator: this.getOutputOperator(operator),
-      rhs
+      rhs,
     })
   }
 
@@ -73,7 +74,7 @@ SpellParser.Rule.InfixOperatorSuffix = class infix_operator extends Rule.Sequenc
 }
 
 /** TODOC!!! */
-SpellParser.Rule.PostfixOperatorSuffix = class postfix_operator extends SpellParser.Rule.InfixOperatorSuffix {
+SpellParser.Rules.PostfixOperatorSuffix = class postfix_operator extends SpellParser.Rules.InfixOperatorSuffix {
   /**
    * - `lhs` is left-hand side match
    * - `operator` is raw full input operator string
@@ -94,7 +95,7 @@ export const expressions = new SpellParser({
       getAST(match) {
         const { expression } = match.groups
         return new AST.ParenthesizedExpression(match, {
-          expression: expression.AST
+          expression: expression.AST,
         })
       },
       tests: [
@@ -107,8 +108,8 @@ export const expressions = new SpellParser({
             ["(thing)", "(thing)"],
             ["((thing))", "(thing)"],
             ["(((thing)))", "(thing)"],
-            ["(1 and yes)", "(1 && true)"]
-          ]
+            ["(1 and yes)", "(1 && true)"],
+          ],
         },
         {
           title: "correctly matches multiple parenthesis",
@@ -116,17 +117,17 @@ export const expressions = new SpellParser({
           tests: [
             ["(1) and (yes)", "((1) && (true))"],
             ["((1) and (yes))", "((1) && (true))"],
-            ["((1) and ((yes)))", "((1) && (true))"]
-          ]
+            ["((1) and ((yes)))", "((1) && (true))"],
+          ],
         },
         {
           title: "doesn't match malformed parenthesized expressions",
           tests: [
             ["(foo", undefined],
-            ["(foo(bar)baz", undefined]
-          ]
-        }
-      ]
+            ["(foo(bar)baz", undefined],
+          ],
+        },
+      ],
     },
 
     {
@@ -148,7 +149,7 @@ export const expressions = new SpellParser({
           const args = {
             operator,
             rhs: compile(rhs),
-            lhs: compile(lhs)
+            lhs: compile(lhs),
           }
           const result = ruleMatch.rule.compileAST(ruleMatch, args)
           return result
@@ -165,17 +166,17 @@ export const expressions = new SpellParser({
         const opStack = []
         rhsChain.matched.forEach((rhs) => {
           // Unary postfix operator, e.g. "<lhs> is empty"
-          if (rhs.rule instanceof SpellParser.Rule.PostfixOperatorSuffix) {
+          if (rhs.rule instanceof SpellParser.Rules.PostfixOperatorSuffix) {
             const args = {
               match: rhs,
               lhs: output.pop(),
               // use explicit operator if there is one, default to entire match
-              operator: rhs.groups.operator || rhs
+              operator: rhs.groups.operator || rhs,
             }
             output.push(applyOperatorToRule(args))
           }
           // Infix binary operator, e.g. "<lhs> is a <rhs>"
-          else if (rhs.rule instanceof SpellParser.Rule.InfixOperatorSuffix) {
+          else if (rhs.rule instanceof SpellParser.Rules.InfixOperatorSuffix) {
             const { operator, expression } = rhs.groups
 
             // While top operator on stack is higher precedence than this one
@@ -185,7 +186,7 @@ export const expressions = new SpellParser({
               const args = {
                 ...topOp,
                 rhs: output.pop(), // NOTE: order is vital here!
-                lhs: output.pop()
+                lhs: output.pop(),
               }
               output.push(applyOperatorToRule(args))
             }
@@ -205,7 +206,7 @@ export const expressions = new SpellParser({
           const args = {
             ...topOp,
             rhs: output.pop(), // NOTE: order is vital here!
-            lhs: output.pop()
+            lhs: output.pop(),
           }
           output.push(applyOperatorToRule(args))
         }
@@ -223,8 +224,8 @@ export const expressions = new SpellParser({
           tests: [
             ["1 + 2 + 3", "((1 + 2) + 3)"],
             ["(1+1) * (2+2)", "((1 + 1) * (2 + 2))"],
-            ["((1+1) * (2+2))", "((1 + 1) * (2 + 2))"]
-          ]
+            ["((1+1) * (2+2))", "((1 + 1) * (2 + 2))"],
+          ],
         },
         {
           title: "complex property/etc expressions",
@@ -232,9 +233,9 @@ export const expressions = new SpellParser({
           beforeEach(scope) {
             scope.variables.add("card")
           },
-          tests: [[`the suit of the card is "ace"`, `(card.suit == "ace")`]]
-        }
-      ]
+          tests: [[`the suit of the card is "ace"`, `(card.suit == "ace")`]],
+        },
+      ],
     },
 
     {
@@ -256,10 +257,10 @@ export const expressions = new SpellParser({
           tests: [
             ["thing and other", "(thing && other)"],
             ["thing and other and yet-another", "((thing && other) && yet_another)"],
-            ["thing is 1 and other is 2", "((thing == 1) && (other == 2))"]
-          ]
-        }
-      ]
+            ["thing is 1 and other is 2", "((thing == 1) && (other == 2))"],
+          ],
+        },
+      ],
     },
 
     {
@@ -277,9 +278,9 @@ export const expressions = new SpellParser({
             scope.variables.add("thing")
             scope.variables.add("other")
           },
-          tests: [["thing or other", "(thing || other)"]]
-        }
-      ]
+          tests: [["thing or other", "(thing || other)"]],
+        },
+      ],
     },
 
     {
@@ -299,10 +300,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["thing is other", "(thing == other)"],
-            ["thing is not other", "(thing != other)"]
-          ]
-        }
-      ]
+            ["thing is not other", "(thing != other)"],
+          ],
+        },
+      ],
     },
 
     {
@@ -322,10 +323,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["thing is exactly other", "(thing === other)"],
-            ["thing is not exactly other", "(thing !== other)"]
-          ]
-        }
-      ]
+            ["thing is not exactly other", "(thing !== other)"],
+          ],
+        },
+      ],
     },
 
     {
@@ -339,7 +340,7 @@ export const expressions = new SpellParser({
         // TODO: QuotedExpression feels wrong here...
         return new AST.CoreMethodInvocation(match, {
           methodName: "isOfType",
-          args: [lhs, new AST.QuotedExpression(match, { expression: rhs })]
+          args: [lhs, new AST.QuotedExpression(match, { expression: rhs })],
         })
       },
       tests: [
@@ -352,10 +353,10 @@ export const expressions = new SpellParser({
             ["thing is a Bee", "spellCore.isOfType(thing, 'Bee')"],
             ["thing is an Animal", "spellCore.isOfType(thing, 'Animal')"],
             ["thing is not a Bee", "!spellCore.isOfType(thing, 'Bee')"],
-            ["thing is not an Animal", "!spellCore.isOfType(thing, 'Animal')"]
-          ]
-        }
-      ]
+            ["thing is not an Animal", "!spellCore.isOfType(thing, 'Animal')"],
+          ],
+        },
+      ],
     },
 
     {
@@ -368,7 +369,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
           methodName: "matchesType",
-          args: [lhs, rhs]
+          args: [lhs, rhs],
         })
       },
       tests: [
@@ -380,10 +381,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["thing is the same type as other", "spellCore.matchesType(thing, other)"],
-            ["thing is not the same type as other", "spellCore.matchesType(thing, other)"]
-          ]
-        }
-      ]
+            ["thing is not the same type as other", "spellCore.matchesType(thing, other)"],
+          ],
+        },
+      ],
     },
 
     {
@@ -397,7 +398,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
           methodName: "includes",
-          args: [rhs, lhs]
+          args: [rhs, lhs],
         })
       },
       tests: [
@@ -417,10 +418,10 @@ export const expressions = new SpellParser({
             ["thing is either red or green", "spellCore.includes([red, 'green'], thing)"],
             ["thing is not either red or green", "!spellCore.includes([red, 'green'], thing)"],
             ["thing is not either of red or green", "!spellCore.includes([red, 'green'], thing)"],
-            ["thing is neither red nor green", "!spellCore.includes([red, 'green'], thing)"]
-          ]
-        }
-      ]
+            ["thing is neither red nor green", "!spellCore.includes([red, 'green'], thing)"],
+          ],
+        },
+      ],
     },
 
     {
@@ -432,7 +433,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
           methodName: "includes",
-          args: [lhs, rhs]
+          args: [lhs, rhs],
         })
       },
       tests: [
@@ -444,10 +445,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["theList includes thing", "spellCore.includes(theList, thing)"],
-            ["theList contains thing", "spellCore.includes(theList, thing)"]
-          ]
-        }
-      ]
+            ["theList contains thing", "spellCore.includes(theList, thing)"],
+          ],
+        },
+      ],
     },
 
     {
@@ -460,7 +461,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs, rhs }) {
         return new AST.CoreMethodInvocation(match, {
           methodName: "includes",
-          args: [lhs, rhs]
+          args: [lhs, rhs],
         })
       },
       tests: [
@@ -472,10 +473,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["theList does not include thing", "!spellCore.includes(theList, thing)"],
-            ["theList does not contain thing", "!spellCore.includes(theList, thing)"]
-          ]
-        }
-      ]
+            ["theList does not contain thing", "!spellCore.includes(theList, thing)"],
+          ],
+        },
+      ],
     },
 
     {
@@ -488,7 +489,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
           methodName: "isDefined",
-          args: [lhs]
+          args: [lhs],
         })
       },
       tests: [
@@ -500,10 +501,10 @@ export const expressions = new SpellParser({
           tests: [
             ["thing is defined", "spellCore.isDefined(thing)"],
             ["thing is undefined", "!spellCore.isDefined(thing)"],
-            ["thing is not defined", "!spellCore.isDefined(thing)"]
-          ]
-        }
-      ]
+            ["thing is not defined", "!spellCore.isDefined(thing)"],
+          ],
+        },
+      ],
     },
 
     {
@@ -516,7 +517,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
           methodName: "isDefined",
-          args: [lhs]
+          args: [lhs],
         })
       },
       tests: [
@@ -527,10 +528,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["thing exists", "spellCore.isDefined(thing)"],
-            ["thing does not exist", "!spellCore.isDefined(thing)"]
-          ]
-        }
-      ]
+            ["thing does not exist", "!spellCore.isDefined(thing)"],
+          ],
+        },
+      ],
     },
 
     {
@@ -542,7 +543,7 @@ export const expressions = new SpellParser({
         const { operator } = match.groups
         const expression = new AST.CoreMethodInvocation(match, {
           methodName: "isDefined",
-          args: [match.groups.expression.AST]
+          args: [match.groups.expression.AST],
         })
         if (operator.value.includes("no")) return new AST.NotExpression(match, { expression })
         return expression
@@ -558,10 +559,10 @@ export const expressions = new SpellParser({
             { input: "there is a thing", output: "spellCore.isDefined(thing)" },
             { input: "there is an animal", output: "spellCore.isDefined(animal)" },
             { input: "there is not a thing", output: "!spellCore.isDefined(thing)" },
-            { input: "there is no such animal", output: "!spellCore.isDefined(animal)" }
-          ]
-        }
-      ]
+            { input: "there is no such animal", output: "!spellCore.isDefined(animal)" },
+          ],
+        },
+      ],
     },
 
     /** Collection is empty */
@@ -575,7 +576,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
           methodName: "isEmpty",
-          args: [lhs]
+          args: [lhs],
         })
       },
       tests: [
@@ -586,10 +587,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["thing is empty", "spellCore.isEmpty(thing)"],
-            ["thing is not empty", "!spellCore.isEmpty(thing)"]
-          ]
-        }
-      ]
+            ["thing is not empty", "!spellCore.isEmpty(thing)"],
+          ],
+        },
+      ],
     },
 
     /** String utilities */
@@ -602,7 +603,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
           methodName: "upperCase",
-          args: [lhs]
+          args: [lhs],
         })
       },
       tests: [
@@ -610,10 +611,10 @@ export const expressions = new SpellParser({
           compileAs: "expression",
           tests: [
             [`"foo" as upper case`, `spellCore.upperCase("foo")`],
-            [`1 as uppercase`, `spellCore.upperCase(1)`]
-          ]
-        }
-      ]
+            [`1 as uppercase`, `spellCore.upperCase(1)`],
+          ],
+        },
+      ],
     },
     {
       name: "as_lowercase",
@@ -624,7 +625,7 @@ export const expressions = new SpellParser({
       compileASTExpression(match, { lhs }) {
         return new AST.CoreMethodInvocation(match, {
           methodName: "lowerCase",
-          args: [lhs]
+          args: [lhs],
         })
       },
       tests: [
@@ -632,10 +633,10 @@ export const expressions = new SpellParser({
           compileAs: "expression",
           tests: [
             [`"foo" as lower case`, `spellCore.lowerCase("foo")`],
-            [`1 as lowercase`, `spellCore.lowerCase(1)`]
-          ]
-        }
-      ]
-    }
-  ]
+            [`1 as lowercase`, `spellCore.lowerCase(1)`],
+          ],
+        },
+      ],
+    },
+  ],
 })

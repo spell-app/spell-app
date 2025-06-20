@@ -2,14 +2,14 @@
 //  # Rules for constants, variables, type names, etc
 //
 import { typeCase, instanceCase, singularize, pluralize } from "~/util"
-import { Rule } from "~/parser"
+import { Pattern } from "~/parser/rule/Pattern"
 import { AST, SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"
 
 // Alpha-numeric word, including dashes or underscores.
 const WORD = /^[a-zA-Z][\w\-]*$/
 
-SpellParser.Rule.Type = class type extends Rule.Pattern {
+SpellParser.Rules.Type = class type extends Pattern {
   pattern = WORD
   datatype = "type"
   blacklist = identifierBlacklist
@@ -42,7 +42,7 @@ SpellParser.Rule.Type = class type extends Rule.Pattern {
     choice: "boolean",
     choices: "boolean",
     Choice: "boolean",
-    Choices: "boolean"
+    Choices: "boolean",
   }
 
   // Is `typeName` a simple type, (e.g. `number` etc).
@@ -52,11 +52,11 @@ SpellParser.Rule.Type = class type extends Rule.Pattern {
     text: 1,
     character: 1,
     boolean: 1,
-    choice: 1
+    choice: 1,
   }
   static isSimpleType(typeName) {
     const instanceName = instanceCase(typeName)
-    return !!SpellParser.Rule.Type.SIMPLE_TYPES[instanceName]
+    return !!SpellParser.Rules.Type.SIMPLE_TYPES[instanceName]
   }
 
   // Convert value to singular type case, e.g. `Thing` or `Bank_Account`
@@ -96,16 +96,16 @@ export const types = new SpellParser({
             { title: "multi-word, lower case", input: "bank-account", output: "Bank_Account" },
             { title: "multi-word, mixed case", input: "Bank-account", output: "Bank_Account" },
             { title: "multi-word, upper case", input: "Bank-Account", output: "Bank_Account" },
-            { title: "blacklisted word", input: "if", output: undefined }
-          ]
-        }
-      ]
+            { title: "blacklisted word", input: "if", output: undefined },
+          ],
+        },
+      ],
     },
 
     // Possibly unknown type which MUST be singular.
     {
       name: "singular_type",
-      constructor: class singular_type extends SpellParser.Rule.Type {
+      constructor: class singular_type extends SpellParser.Rules.Type {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === singularize(match.raw)) return match
@@ -128,17 +128,17 @@ export const types = new SpellParser({
             { title: "plural, lower case", input: "things", output: undefined },
             { title: "plural, upper case", input: "Things", output: undefined },
             { title: "plural, multi-word, lower case", input: "bank-accounts", output: undefined },
-            { title: "plural, multi-word, mixed case", input: "Bank-accounts", output: undefined }
-          ]
-        }
-      ]
+            { title: "plural, multi-word, mixed case", input: "Bank-accounts", output: undefined },
+          ],
+        },
+      ],
     },
 
     // Possibly unknown type which MUST be plural.
     // NOTE: the output type name will be SINGULAR!
     {
       name: "plural_type",
-      constructor: class plural_type extends SpellParser.Rule.Type {
+      constructor: class plural_type extends SpellParser.Rules.Type {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === pluralize(match.raw)) return match
@@ -161,10 +161,10 @@ export const types = new SpellParser({
             { title: "singular, lower case", input: "thing", output: undefined },
             { title: "singular, upper case", input: "Thing", output: undefined },
             { title: "singular, multi-word, lower case", input: "bank-account", output: undefined },
-            { title: "singular, multi-word, mixed case", input: "Bank-account", output: undefined }
-          ]
-        }
-      ]
+            { title: "singular, multi-word, mixed case", input: "Bank-account", output: undefined },
+          ],
+        },
+      ],
     },
 
     // A known type identifier, NOT including built-in types like 'Object'.
@@ -172,7 +172,7 @@ export const types = new SpellParser({
     {
       name: "known_type",
       //      alias: "expression",
-      constructor: class known_type extends SpellParser.Rule.Type {
+      constructor: class known_type extends SpellParser.Rules.Type {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           // Only return match if we picked up an existing `type` scope
@@ -198,10 +198,10 @@ export const types = new SpellParser({
             { title: "plural, known, multi-word, mixed case", input: "Bank-accounts", output: "Bank_Account" },
             { title: "plural, known, multi-word, upper case", input: "Bank-Accounts", output: "Bank_Account" },
             { title: "unknown", input: "nothing", output: undefined },
-            { title: "unknown. multi-word", input: "other-thing", output: undefined }
-          ]
-        }
-      ]
-    }
-  ]
+            { title: "unknown. multi-word", input: "other-thing", output: undefined },
+          ],
+        },
+      ],
+    },
+  ],
 })

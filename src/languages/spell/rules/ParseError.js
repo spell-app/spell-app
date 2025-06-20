@@ -10,17 +10,17 @@ export const ParseError = class parse_error extends Rule {
       rule: this,
       matched: tokens,
       input: [...tokens],
-      length: tokens.length
+      length: tokens.length,
     })
   }
 
   getAST(match) {
     return new AST.ParseError(match, {
-      value: match.message || `Don't understand "${match.inputText}"`
+      value: match.message || `Don't understand "${match.inputText}"`,
     })
   }
 }
-SpellParser.Rule.ParseError = ParseError
+SpellParser.Rules.ParseError = ParseError
 
 /** Add `spellParser.createParseError()` method. */
 Object.defineProperty(SpellParser.prototype, "createParseError", {
@@ -32,7 +32,7 @@ Object.defineProperty(SpellParser.prototype, "createParseError", {
       matched: tokens,
       input: [...tokens],
       length: tokens.length,
-      message
+      message,
     })
-  }
+  },
 })

@@ -490,12 +490,12 @@ export const classes = new SpellParser({
         const { type } = type_property.groups
         // make sure type is defined
         getOrStubType(scope, type.value)
-        if (value.rule instanceof SpellParser.Rule.Constant) {
+        if (value.rule instanceof SpellParser.Rules.Constant) {
           // TODO: scope.constants.addMissing(value.raw)
           const constant = value.constant || scope.constants.get(value.raw)
           if (!constant) scope.constants.add(value.raw)
         }
-        if (otherValue?.rule instanceof SpellParser.Rule.Constant) {
+        if (otherValue?.rule instanceof SpellParser.Rules.Constant) {
           const constant = otherValue.constant || scope.constants.get(otherValue.raw)
           if (!constant) scope.constants.add(otherValue.raw)
         }
@@ -633,7 +633,7 @@ export const classes = new SpellParser({
       //  e.g. `a card is the queen of spades`
       //  NOTE: the first word in quotes must be "is" !!
       syntax: "(a|an) {type} {alias:text} for [sources:(its {property}) and]",
-      constructor: class quoted_property_formula extends SpellParser.Rule.Statement {
+      constructor: class quoted_property_formula extends SpellParser.Rules.Statement {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined

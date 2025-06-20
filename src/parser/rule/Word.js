@@ -1,9 +1,9 @@
-import { Token } from "~/parser"
+import { Tokens } from "~/parser"
 import { TokenType } from "./TokenType"
 
-// Match a single `Token.Word`
+// Match a single `Word` token.
 export class Word extends TokenType {
-  /*@proto*/ get tokenType() {
-    return Token.Word
+  get tokenType() {
+    return Tokens.Word
   }
 }

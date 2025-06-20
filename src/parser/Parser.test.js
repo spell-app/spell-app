@@ -4,7 +4,7 @@
 //
 
 import { describe, test, expect } from "vitest"
-import { Parser, ParserError, Rule } from "~/parser"
+import { Parser, ParserError, Rule, Rules } from "~/parser"
 
 describe("addRule() and rules", () => {
   test("parser.rules works when no rules are defined", () => {
@@ -42,7 +42,7 @@ describe("defineRule()", () => {
 
   test("doesn't add rule if passed a Rule instance without a 'name' property", () => {
     const parser = new Parser()
-    parser.defineRule(new Rule.Symbols({}))
+    parser.defineRule(new Rules.Symbols({}))
     expect(parser.rules).toEqual({})
   })
 
@@ -88,7 +88,7 @@ describe("Parser.import()", () => {
     const bar1 = bar.rules.rule1
 
     foo.import(bar)
-    expect(foo.rules.rule1).toBeInstanceOf(Rule.Group)
+    expect(foo.rules.rule1).toBeInstanceOf(Rules.Group)
     expect(foo.rules.rule1.argument).toBe("rule1")
     expect(foo.rules.rule1.rules.length).toBe(2)
     expect(foo.rules.rule1.rules).toEqual([foo1, bar1])
@@ -104,7 +104,7 @@ describe("Parser.import()", () => {
     bar.defineRule({ name: "rule1", syntax: "bar1" })
 
     foo.import(bar)
-    expect(foo.rules.rule1).toBeInstanceOf(Rule.Group)
+    expect(foo.rules.rule1).toBeInstanceOf(Rules.Group)
     expect(foo.rules.rule1.argument).toBe("rule1")
     expect(foo.rules.rule1).not.toBe(foo1OriginalGroup)
     expect(foo.rules.rule1.rules.length).toBe(3)
@@ -116,8 +116,8 @@ describe("Parser.import()", () => {
 
 // Set up parser used in the below
 const parser = new Parser()
-const statement = new Rule.Group({ name: "statement", argument: "statement" })
-const statements = new Rule.Repeat({ name: "block", rule: new Rule.Subrule("statement") })
+const statement = new Rules.Group({ name: "statement", argument: "statement" })
+const statements = new Rules.Repeat({ name: "block", rule: new Rules.Subrule("statement") })
 parser.defineRules(
   statement,
   statements,

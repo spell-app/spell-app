@@ -12,7 +12,7 @@ import { describe, test, expect } from "vitest"
 import groupBy from "lodash/groupBy"
 import isEqual from "lodash/isEqual"
 
-import { ParserError, Rule } from "~/parser"
+import { ParserError, Rules } from "~/parser"
 import { showWhitespace, normalizeInitialWhitespace } from "~/util"
 
 // Skip running a rest
@@ -36,7 +36,7 @@ export function unitTestModuleRules(parser, moduleName, initializeContext) {
   })
 
   function getTestableRulesForFilePath(module) {
-    const testableRules = parser.rules._testable_ instanceof Rule.Group && parser.rules._testable_.rules
+    const testableRules = parser.rules._testable_ instanceof Rules.Group && parser.rules._testable_.rules
     if (!testableRules) return undefined
     const modules = groupBy(testableRules, "module")
     return modules[module]

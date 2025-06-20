@@ -5,7 +5,7 @@ import { spellCore } from "~/spellCore"
 
 export class SpellParser extends Parser {
   /** Add language-specific top-level rules to this object. */
-  static Rule = {}
+  static Rules = {}
 
   // Name of the module in which we were defined.
   /*@proto*/ get module() {
@@ -32,7 +32,7 @@ export class SpellParser extends Parser {
           // TODO: backtick as alternative quote, for embedding double quotes?
           quoteSymbols: [`"`],
           // Remove "normal" whitespace (leaving newlines and indents) when parsing
-          whitespacePolicy: WhitespacePolicy.LEADING_ONLY
+          whitespacePolicy: WhitespacePolicy.LEADING_ONLY,
         })
     )
   }
@@ -69,14 +69,14 @@ export class SpellParser extends Parser {
     return new ProjectScope({
       name: moduleName,
       parser,
-      scope: SpellParser.rootScope
+      scope: SpellParser.rootScope,
     })
   }
 
   // If we're tokenizing "block", parse them into blocks.
   tokenize(input, ruleName) {
     const tokens = super.tokenize(input)
-    if (typeof input === "string" && ruleName === "block") return this.tokenizer.breakIntoBlocks(tokens)
+    if (typeof input === "string" && ruleName === "block") return this.tokenizer.breakIntoIndentedBlocks(tokens)
     return tokens
   }
 }

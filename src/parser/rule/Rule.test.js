@@ -1,50 +1,50 @@
 import { describe, test, expect } from "vitest"
-import { Parser, Rule, TestLocation, Tokenizer, WhitespacePolicy } from "~/parser"
+import { Parser, Rules, TestLocation, Tokenizer, WhitespacePolicy } from "~/parser"
 
 const tokenizer = new Tokenizer({
-  whitespacePolicy: WhitespacePolicy.NONE
+  whitespacePolicy: WhitespacePolicy.NONE,
 })
 const { tokenize } = tokenizer
 
-describe("Rule.Symbol", () => {
+describe("Rules.Symbol", () => {
   describe("on construction", () => {
     test("creates proper rule when passed literal as an object", () => {
-      const rule = new Rule.Symbol({ literal: ">" })
-      expect(rule).toBeInstanceOf(Rule.Symbol)
+      const rule = new Rules.Symbol({ literal: ">" })
+      expect(rule).toBeInstanceOf(Rules.Symbol)
       expect(rule.literal).toEqual(">")
     })
 
     test("creates proper rule when passed single symbol as a string", () => {
-      const rule = new Rule.Symbol(">")
-      expect(rule).toBeInstanceOf(Rule.Symbol)
+      const rule = new Rules.Symbol(">")
+      expect(rule).toBeInstanceOf(Rules.Symbol)
       expect(rule.literal).toEqual(">")
     })
 
     test("creates proper rule when passed multiple symbols as an array", () => {
-      const rule = new Rule.Symbol([">", "="])
-      expect(rule).toBeInstanceOf(Rule.Symbol)
+      const rule = new Rules.Symbol([">", "="])
+      expect(rule).toBeInstanceOf(Rules.Symbol)
       expect(rule.literal).toEqual([">", "="])
     })
   })
 })
 
-describe("Rule.Symbols", () => {
+describe("Rules.Symbols", () => {
   describe("on construction", () => {
     test("creates proper rule when passed literals as an object", () => {
-      const rule = new Rule.Symbols({ literals: [">"] })
-      expect(rule).toBeInstanceOf(Rule.Symbols)
+      const rule = new Rules.Symbols({ literals: [">"] })
+      expect(rule).toBeInstanceOf(Rules.Symbols)
       expect(rule.literals).toEqual([">"])
     })
 
     test("creates proper rule when passed single symbol as a string", () => {
-      const rule = new Rule.Symbols(">")
-      expect(rule).toBeInstanceOf(Rule.Symbols)
+      const rule = new Rules.Symbols(">")
+      expect(rule).toBeInstanceOf(Rules.Symbols)
       expect(rule.literals).toEqual([">"])
     })
 
     test("creates proper rule when passed multiple symbols as a string", () => {
-      const rule = new Rule.Symbols([">", "="])
-      expect(rule).toBeInstanceOf(Rule.Symbols)
+      const rule = new Rules.Symbols([">", "="])
+      expect(rule).toBeInstanceOf(Rules.Symbols)
       expect(rule.literals).toEqual([">", "="])
     })
   })
@@ -53,7 +53,7 @@ describe("Rule.Symbols", () => {
   describe("with a single symbol", () => {
     describe("test() method", () => {
       describe("TEST_AT_START", () => {
-        const rule = new Rule.Symbols(">")
+        const rule = new Rules.Symbols(">")
         test("returns a non-zero number if present at the start of tokens", () => {
           const test = rule.test({ parser }, tokenize(">"))
           expect(test).toBe(1)
@@ -66,7 +66,7 @@ describe("Rule.Symbols", () => {
       })
 
       describe("TEST_ANYWHERE", () => {
-        const rule = new Rule.Symbols({ literals: ">", testLocation: TestLocation.ANYWHERE })
+        const rule = new Rules.Symbols({ literals: ">", testLocation: TestLocation.ANYWHERE })
         test("returns true if present at the start of tokens", () => {
           const test = rule.test({ parser }, tokenize(">"))
           expect(test).toBe(true)
@@ -84,7 +84,7 @@ describe("Rule.Symbols", () => {
       })
     })
     describe("parse() method", () => {
-      const rule = new Rule.Symbols(">")
+      const rule = new Rules.Symbols(">")
       test("parses at the start of tokens", () => {
         const match = rule.parse({ parser }, tokenize(">"))
         expect(match.length).toBe(1)
@@ -101,7 +101,7 @@ describe("Rule.Symbols", () => {
   describe("with multiple symbols", () => {
     describe("test() method", () => {
       describe("TEST_AT_START", () => {
-        const rule = new Rule.Symbols([">", "="])
+        const rule = new Rules.Symbols([">", "="])
         test("returns a non-zero number if present at the start of tokens", () => {
           const test = rule.test({ parser }, tokenize(">= b"))
           expect(test).toBe(2)
@@ -114,7 +114,7 @@ describe("Rule.Symbols", () => {
       })
 
       describe("TEST_ANYWHERE", () => {
-        const rule = new Rule.Symbols({ literals: [">", "="], testLocation: TestLocation.ANYWHERE })
+        const rule = new Rules.Symbols({ literals: [">", "="], testLocation: TestLocation.ANYWHERE })
         test("returns true if present at the start of tokens", () => {
           const test = rule.test({ parser }, tokenize(">="))
           expect(test).toBe(true)
@@ -132,7 +132,7 @@ describe("Rule.Symbols", () => {
       })
     })
     describe("parse() method", () => {
-      const rule = new Rule.Symbols([">", "="])
+      const rule = new Rules.Symbols([">", "="])
       test("parses at the start of tokens", () => {
         const match = rule.parse({ parser }, tokenize(">="))
         expect(match.length).toBe(2)
@@ -147,57 +147,57 @@ describe("Rule.Symbols", () => {
   })
 })
 
-describe("Rule.Keyword", () => {
+describe("Rules.Keyword", () => {
   describe("on construction", () => {
     test("creates proper rule when passed literal string as an object", () => {
-      const rule = new Rule.Keyword({ literal: "this" })
-      expect(rule).toBeInstanceOf(Rule.Keyword)
+      const rule = new Rules.Keyword({ literal: "this" })
+      expect(rule).toBeInstanceOf(Rules.Keyword)
       expect(rule.literal).toEqual("this")
     })
 
     test("creates proper rule when passed literal string as an array", () => {
-      const rule = new Rule.Keyword({ literal: ["this"] })
-      expect(rule).toBeInstanceOf(Rule.Keyword)
+      const rule = new Rules.Keyword({ literal: ["this"] })
+      expect(rule).toBeInstanceOf(Rules.Keyword)
       expect(rule.literal).toEqual(["this"])
     })
 
     test("creates proper rule when passed single keyword as a string", () => {
-      const rule = new Rule.Keyword("this")
-      expect(rule).toBeInstanceOf(Rule.Keyword)
+      const rule = new Rules.Keyword("this")
+      expect(rule).toBeInstanceOf(Rules.Keyword)
       expect(rule.literal).toEqual("this")
     })
 
     test("creates proper rule when passed multiple keywords as an array", () => {
-      const rule = new Rule.Keyword(["this", "that"])
-      expect(rule).toBeInstanceOf(Rule.Keyword)
+      const rule = new Rules.Keyword(["this", "that"])
+      expect(rule).toBeInstanceOf(Rules.Keyword)
       expect(rule.literal).toEqual(["this", "that"])
     })
   })
 })
 
-describe("Rule.Keywords", () => {
+describe("Rules.Keywords", () => {
   describe("on construction", () => {
     test("creates proper rule when passed literals string as an object", () => {
-      const rule = new Rule.Keywords({ literals: "this" })
-      expect(rule).toBeInstanceOf(Rule.Keywords)
+      const rule = new Rules.Keywords({ literals: "this" })
+      expect(rule).toBeInstanceOf(Rules.Keywords)
       expect(rule.literals).toEqual(["this"])
     })
 
     test("creates proper rule when passed literals array as an object", () => {
-      const rule = new Rule.Keywords({ literals: ["this", "that"] })
-      expect(rule).toBeInstanceOf(Rule.Keywords)
+      const rule = new Rules.Keywords({ literals: ["this", "that"] })
+      expect(rule).toBeInstanceOf(Rules.Keywords)
       expect(rule.literals).toEqual(["this", "that"])
     })
 
     test("creates proper rule when passed single keyword as a string", () => {
-      const rule = new Rule.Keywords("this")
-      expect(rule).toBeInstanceOf(Rule.Keywords)
+      const rule = new Rules.Keywords("this")
+      expect(rule).toBeInstanceOf(Rules.Keywords)
       expect(rule.literals).toEqual(["this"])
     })
 
     test("creates proper rule when passed multiple keywords as an array", () => {
-      const rule = new Rule.Keywords(["this", "that"])
-      expect(rule).toBeInstanceOf(Rule.Keywords)
+      const rule = new Rules.Keywords(["this", "that"])
+      expect(rule).toBeInstanceOf(Rules.Keywords)
       expect(rule.literals).toEqual(["this", "that"])
     })
   })
@@ -206,7 +206,7 @@ describe("Rule.Keywords", () => {
   describe("with a single keyword", () => {
     describe("test() method", () => {
       describe("TEST_ANYWHERE", () => {
-        const rule = new Rule.Keywords({ literals: "this", testLocation: TestLocation.ANYWHERE })
+        const rule = new Rules.Keywords({ literals: "this", testLocation: TestLocation.ANYWHERE })
         test("returns true if present at the start of tokens", () => {
           const test = rule.test({ parser }, tokenize("this"))
           expect(test).toBe(true)
@@ -224,7 +224,7 @@ describe("Rule.Keywords", () => {
       })
 
       describe("TEST_AT_START", () => {
-        const rule = new Rule.Keywords("this")
+        const rule = new Rules.Keywords("this")
         test("returns 1 if present at the start of tokens", () => {
           const test = rule.test({ parser }, tokenize("this"))
           expect(test).toBe(1)
@@ -237,7 +237,7 @@ describe("Rule.Keywords", () => {
       })
     })
     describe("parse() method", () => {
-      const rule = new Rule.Keywords("this")
+      const rule = new Rules.Keywords("this")
       test("parses at the start of tokens", () => {
         const match = rule.parse({ parser }, tokenize("this"))
         expect(match.length).toBe(1)
@@ -254,7 +254,7 @@ describe("Rule.Keywords", () => {
   describe("with multiple keywords", () => {
     describe("test() method", () => {
       describe("TEST_ANYWHERE", () => {
-        const rule = new Rule.Keywords({ literals: ["this", "that"], testLocation: TestLocation.ANYWHERE })
+        const rule = new Rules.Keywords({ literals: ["this", "that"], testLocation: TestLocation.ANYWHERE })
         test("returns true if present at the start of tokens", () => {
           const test = rule.test({ parser }, tokenize("this that"))
           expect(test).toBe(true)
@@ -272,7 +272,7 @@ describe("Rule.Keywords", () => {
       })
 
       describe("TEST_AT_START", () => {
-        const rule = new Rule.Keywords(["this", "that"])
+        const rule = new Rules.Keywords(["this", "that"])
         test("returns a non-zero number if present at the start of tokens", () => {
           const test = rule.test({ parser }, tokenize("this that"))
           expect(test).toBe(2)
@@ -290,7 +290,7 @@ describe("Rule.Keywords", () => {
       })
     })
     describe("parse() method", () => {
-      const rule = new Rule.Keywords(["this", "that"])
+      const rule = new Rules.Keywords(["this", "that"])
       test("parses at the start of tokens", () => {
         const match = rule.parse({ parser }, tokenize("this that other"))
         expect(match.length).toBe(2)
@@ -305,17 +305,17 @@ describe("Rule.Keywords", () => {
   })
 })
 
-describe("Rule.Pattern", () => {
+describe("Rules.Pattern", () => {
   const parser = new Parser()
   // test with "word" pattern
-  const ruleAtStart = new Rule.Pattern({
-    pattern: /^[a-z][\w\-]*$/,
-    blacklist: ["nope"]
-  })
-  const ruleAnywhere = new Rule.Pattern({
+  const ruleAtStart = new Rules.Pattern({
     pattern: /^[a-z][\w\-]*$/,
     blacklist: ["nope"],
-    testLocation: TestLocation.ANYWHERE
+  })
+  const ruleAnywhere = new Rules.Pattern({
+    pattern: /^[a-z][\w\-]*$/,
+    blacklist: ["nope"],
+    testLocation: TestLocation.ANYWHERE,
   })
 
   test("converts array blacklist to a map", () => {
@@ -378,25 +378,25 @@ describe("Rule.Pattern", () => {
   })
 })
 
-describe("Rule.Subrule", () => {
+describe("Rules.Subrule", () => {
   const parser = new Parser()
   parser.defineRules(
-    new Rule.Keywords({ name: "this", literals: "this" }),
-    new Rule.Keywords({ name: "that", literals: "that" }),
+    new Rules.Keywords({ name: "this", literals: "this" }),
+    new Rules.Keywords({ name: "that", literals: "that" }),
     {
       name: "sequence",
       syntax: "{this} {that}",
-      testRule: new Rule.Keywords(["this", "that"]),
+      testRule: new Rules.Keywords(["this", "that"]),
       compile(results) {
         return "COMPILED"
-      }
+      },
     }
   )
 
   describe("simple rules", () => {
     describe("test() method", () => {
       describe("TEST_AT_START", () => {
-        const rule = new Rule.Subrule({ rule: "this" })
+        const rule = new Rules.Subrule({ rule: "this" })
         test("returns 1 if present at the start of tokens", () => {
           const test = rule.test({ parser }, tokenize("this that other"))
           expect(test).toBe(1)
@@ -414,7 +414,7 @@ describe("Rule.Subrule", () => {
       })
 
       describe("TEST_ANYWHERE", () => {
-        const rule = new Rule.Subrule({ rule: "this", testLocation: TestLocation.ANYWHERE })
+        const rule = new Rules.Subrule({ rule: "this", testLocation: TestLocation.ANYWHERE })
         test("returns true if present at the start of tokens", () => {
           const test = rule.test({ parser }, tokenize("this that other"))
           expect(test).toBe(true)
@@ -432,7 +432,7 @@ describe("Rule.Subrule", () => {
       })
     })
     describe("parse() method", () => {
-      const rule = new Rule.Subrule({ rule: "this" })
+      const rule = new Rules.Subrule({ rule: "this" })
       test("parses at the start of tokens", () => {
         const match = rule.parse({ parser }, tokenize("this that other"))
         expect(match.length).toBe(1)
@@ -449,7 +449,7 @@ describe("Rule.Subrule", () => {
   describe("sequence rules", () => {
     describe("test() method", () => {
       describe("TEST_AT_START", () => {
-        const rule = new Rule.Subrule({ rule: "this" })
+        const rule = new Rules.Subrule({ rule: "this" })
         test("returns 1 if present at the start of tokens", () => {
           const test = rule.test({ parser }, tokenize("this that"))
           expect(test).toBe(1)
@@ -467,7 +467,7 @@ describe("Rule.Subrule", () => {
       })
 
       describe("TEST_AT_START", () => {
-        const rule = new Rule.Subrule({ rule: "this", testLocation: TestLocation.ANYWHERE })
+        const rule = new Rules.Subrule({ rule: "this", testLocation: TestLocation.ANYWHERE })
         test("returns true if present at the start of tokens", () => {
           const test = rule.test({ parser }, tokenize("this that"))
           expect(test).toBe(true)
@@ -485,7 +485,7 @@ describe("Rule.Subrule", () => {
       })
     })
     describe("parse() method", () => {
-      const rule = new Rule.Subrule({ rule: "sequence" })
+      const rule = new Rules.Subrule({ rule: "sequence" })
       test("parses at the start of tokens", () => {
         const match = rule.parse({ parser }, tokenize("this that"))
         expect(match.length).toBe(2)
@@ -500,18 +500,18 @@ describe("Rule.Subrule", () => {
   })
 })
 
-describe("Rule.Choice", () => {
+describe("Rules.Choice", () => {
   const parser = new Parser()
 
-  const ruleStart = new Rule.Choice({
-    rules: [new Rule.Keywords("this"), new Rule.Keywords("that"), new Rule.Keywords("other")],
-    argument: "arg"
+  const ruleStart = new Rules.Choice({
+    rules: [new Rules.Keywords("this"), new Rules.Keywords("that"), new Rules.Keywords("other")],
+    argument: "arg",
   })
 
-  const ruleAnywhere = new Rule.Choice({
-    rules: [new Rule.Keywords("this"), new Rule.Keywords("that"), new Rule.Keywords("other")],
+  const ruleAnywhere = new Rules.Choice({
+    rules: [new Rules.Keywords("this"), new Rules.Keywords("that"), new Rules.Keywords("other")],
     argument: "arg",
-    testLocation: TestLocation.ANYWHERE
+    testLocation: TestLocation.ANYWHERE,
   })
 
   describe("test() method", () => {
@@ -578,21 +578,21 @@ describe("Rule.Choice", () => {
   })
 })
 
-describe("Rule.Repeat", () => {
+describe("Rules.Repeat", () => {
   const parser = new Parser()
-  const ruleNoTest = new Rule.Repeat(new Rule.Keywords("word"))
-  const ruleStart = new Rule.Repeat({
-    testRule: new Rule.Keywords("word"),
-    rule: new Rule.Keywords("word")
+  const ruleNoTest = new Rules.Repeat(new Rules.Keywords("word"))
+  const ruleStart = new Rules.Repeat({
+    testRule: new Rules.Keywords("word"),
+    rule: new Rules.Keywords("word"),
   })
-  const ruleAnywhere = new Rule.Repeat({
-    testRule: new Rule.Keywords("word"),
-    rule: new Rule.Keywords("word"),
-    testLocation: TestLocation.ANYWHERE
+  const ruleAnywhere = new Rules.Repeat({
+    testRule: new Rules.Keywords("word"),
+    rule: new Rules.Keywords("word"),
+    testLocation: TestLocation.ANYWHERE,
   })
-  const ruleDelimiter = new Rule.Repeat({
-    rule: new Rule.Keywords("word"),
-    delimiter: new Rule.Symbol(",")
+  const ruleDelimiter = new Rules.Repeat({
+    rule: new Rules.Keywords("word"),
+    delimiter: new Rules.Symbol(","),
   })
 
   describe("test() method", () => {
@@ -697,32 +697,32 @@ describe("Rule.Repeat", () => {
   })
 })
 
-describe("Rule.Sequence", () => {
+describe("Rules.Sequence", () => {
   const parser = new Parser()
   parser.defineRules(
-    new Rule.Keywords({ name: "that", literals: "that" }),
-    new Rule.Keywords({ name: "other", literals: "other" }),
+    new Rules.Keywords({ name: "that", literals: "that" }),
+    new Rules.Keywords({ name: "other", literals: "other" }),
     {
       name: "noTest",
-      syntax: "this {that} the {other}"
+      syntax: "this {that} the {other}",
     },
     {
       name: "atStart",
       syntax: "this {that} the {other}",
-      testRule: new Rule.Keywords("this"),
+      testRule: new Rules.Keywords("this"),
       compile() {
         return "COMPILED"
-      }
+      },
     },
     {
       name: "anywhere",
       syntax: "this {that} the {other}",
-      testRule: new Rule.Keywords("this"),
-      testLocation: TestLocation.ANYWHERE
+      testRule: new Rules.Keywords("this"),
+      testLocation: TestLocation.ANYWHERE,
     },
     {
       name: "noCompile",
-      syntax: "this {that} the {other}"
+      syntax: "this {that} the {other}",
     }
   )
 

@@ -1,7 +1,7 @@
 //
 //  # Core `rules` -- simple datatypes, etc.
 //
-import { Token } from "~/parser"
+import { Tokens } from "~/parser"
 import { AST, SpellParser } from "~/languages/spell"
 
 export const core = new SpellParser({
@@ -14,40 +14,40 @@ export const core = new SpellParser({
     {
       name: "eat_whitespace",
       syntax: "{whitespace}*",
-      datatype: "string"
+      datatype: "string",
     },
 
     // Any whitespace.
     {
       name: "whitespace",
       datatype: "string",
-      tokenType: Token.Whitespace,
+      tokenType: Tokens.Whitespace,
       getAST(match) {
         const { value, raw } = match
         return new AST.StringLiteral(match, { value, raw })
-      }
+      },
     },
 
     // Indent whitespace specifically.
     {
       name: "indent",
       datatype: "string",
-      tokenType: Token.Indent,
+      tokenType: Tokens.Indent,
       getAST(match) {
         const { value, raw } = match
         return new AST.StringLiteral(match, { value, raw })
-      }
+      },
     },
 
     // Newlines only.
     {
       name: "newline",
       datatype: "string",
-      tokenType: Token.Newline,
+      tokenType: Tokens.Newline,
       getAST(match) {
         const { value, raw } = match
         return new AST.StringLiteral(match, { value, raw })
-      }
+      },
     },
 
     // Inline whitespace only.
@@ -55,11 +55,11 @@ export const core = new SpellParser({
     {
       name: "inline_whitespace",
       datatype: "string",
-      tokenType: Token.InlineWhitespace,
+      tokenType: Tokens.InlineWhitespace,
       getAST(match) {
         const { value, raw } = match
         return new AST.StringLiteral(match, { value, raw })
-      }
+      },
     },
 
     //----------------------------
@@ -72,7 +72,7 @@ export const core = new SpellParser({
       name: "number",
       alias: "expression",
       datatype: "number",
-      tokenType: Token.Number,
+      tokenType: Tokens.Number,
       getAST(match) {
         const { value, raw } = match
         return new AST.NumericLiteral(match, { value, raw })
@@ -88,22 +88,22 @@ export const core = new SpellParser({
             ["000.1", 0.1],
             ["1.", 1],
             [".1", 0.1],
-            ["-111.111", -111.111]
-          ]
+            ["-111.111", -111.111],
+          ],
         },
         {
           title: "doesn't match things that aren't numbers",
           tests: [
             ["", undefined],
             ["-", undefined],
-            [".", undefined]
-          ]
+            [".", undefined],
+          ],
         },
         {
           title: "requires negative sign to touch the number",
-          tests: [["- 1", undefined]]
-        }
-      ]
+          tests: [["- 1", undefined]],
+        },
+      ],
     },
 
     // `number` as a string `zero` to `ten`
@@ -123,7 +123,7 @@ export const core = new SpellParser({
         seven: 7,
         eight: 8,
         nine: 9,
-        ten: 10
+        ten: 10,
       },
       getAST(match) {
         const { value, raw } = match
@@ -143,10 +143,10 @@ export const core = new SpellParser({
             ["seven", 7],
             ["eight", 8],
             ["nine", 9],
-            ["ten", 10]
-          ]
-        }
-      ]
+            ["ten", 10],
+          ],
+        },
+      ],
     },
 
     // Boolean literal.
@@ -164,7 +164,7 @@ export const core = new SpellParser({
         ok: true,
         cancel: false,
         always: true,
-        never: false
+        never: false,
       },
       getAST(match) {
         const { value, raw } = match
@@ -182,18 +182,18 @@ export const core = new SpellParser({
             ["false", "false"],
             ["no", "false"],
             ["cancel", "false"],
-            ["never", "false"]
-          ]
+            ["never", "false"],
+          ],
         },
         {
           title: "doesn't match in the middle of a longer keyword",
           tests: [
             ["yessir", undefined],
             ["yes-sir", undefined],
-            ["yes_sir", undefined]
-          ]
-        }
-      ]
+            ["yes_sir", undefined],
+          ],
+        },
+      ],
     },
 
     // Literal `text` string.
@@ -203,7 +203,7 @@ export const core = new SpellParser({
       name: "text",
       alias: "expression",
       datatype: "string",
-      tokenType: Token.Text,
+      tokenType: Tokens.Text,
       getAST(match) {
         const { value, raw } = match
         return new AST.StringLiteral(match, { value, raw })
@@ -216,15 +216,15 @@ export const core = new SpellParser({
             ['"a"', '"a"'],
             ['"abcd"', '"abcd"'],
             ['"abc def ghi. jkl"', '"abc def ghi. jkl"'],
-            [`"...Can't touch this"`, `"...Can't touch this"`]
-          ]
-        }
-      ]
+            [`"...Can't touch this"`, `"...Can't touch this"`],
+          ],
+        },
+      ],
     },
 
     {
       name: "comment",
-      tokenType: Token.Comment,
+      tokenType: Tokens.Comment,
       getAST(match) {
         const { commentSymbol, initialWhitespace, value } = match.matched[0]
         return new AST.LineComment(match, { commentSymbol, initialWhitespace, value })
@@ -237,10 +237,10 @@ export const core = new SpellParser({
             ["// foo", "// foo"],
             ["-- foo", "//-- foo"],
             ["## foo", "//## foo"],
-            ["//    foo bar baz", "//    foo bar baz"]
-          ]
-        }
-      ]
+            ["//    foo bar baz", "//    foo bar baz"],
+          ],
+        },
+      ],
     },
 
     // `undefined` as an expression... ???
@@ -257,10 +257,10 @@ export const core = new SpellParser({
           compileAs: "expression",
           tests: [
             ["nothing", "undefined"],
-            ["undefined", "undefined"]
-          ]
-        }
-      ]
+            ["undefined", "undefined"],
+          ],
+        },
+      ],
     },
 
     // `keyword` = is a single alphanumeric word used as a keyword in, e.g. a method definition.
@@ -284,17 +284,17 @@ export const core = new SpellParser({
             ["abc-def", "abc_def"],
             ["abc_def", "abc_def"],
             ["abc01", "abc01"],
-            ["abc-def_01", "abc_def_01"]
-          ]
+            ["abc-def_01", "abc_def_01"],
+          ],
         },
         {
           title: "doesn't match things that aren't words",
           tests: [
             ["$asda", undefined],
-            ["(asda)", undefined] // TODO... ???
-          ]
-        }
-      ]
-    }
-  ]
+            ["(asda)", undefined], // TODO... ???
+          ],
+        },
+      ],
+    },
+  ],
 })

@@ -182,7 +182,7 @@ export function ConsoleObject({ thing }) {
       else if (Array.isArray(thing)) display = `Array(${thing.length})`
       else if (thing instanceof Match) {
         // Special display for ParseError matches
-        if (thing.rule instanceof SpellParser.Rule.ParseError) display = "ParseError"
+        if (thing.rule instanceof SpellParser.Rules.ParseError) display = "ParseError"
         else display = "Match {...}"
       } else {
         try {

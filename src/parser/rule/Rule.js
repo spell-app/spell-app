@@ -16,7 +16,7 @@
 import { Derivative } from "~/util/Derivative.js"
 import { TestLocation } from "~/parser/constants"
 
-// Abstract Rule class.
+/** Abstract Rule class. */
 // TODOC
 export class Rule extends Derivative {
   /**

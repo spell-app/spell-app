@@ -16,6 +16,7 @@ import flattenDeep from "lodash/flattenDeep"
 
 import { Match } from "~/parser/Match.js"
 import { Rule } from "./Rule.js"
+import { Rules } from "./index.js"
 
 // Repeating rule.
 //  `this.rule` is the rule that repeats.
@@ -75,7 +76,7 @@ export class Repeat extends Rule {
       items,
       input: flattenDeep(matched.map((next) => next.input)),
       length,
-      scope
+      scope,
     })
     if (this.argument) match.argument = this.argument
     return match
@@ -98,8 +99,8 @@ export class Repeat extends Rule {
 
     const wrapInParens =
       argument ||
-      this.rule instanceof Rule.Sequence ||
-      (this.rule instanceof Rule.Literals && this.rule.literals.length > 1)
+      this.rule instanceof Rules.Sequence ||
+      (this.rule instanceof Rules.Literals && this.rule.literals.length > 1)
 
     if (wrapInParens && rule.startsWith("(") && rule.endsWith(")")) rule = rule.slice(1, -1)
 

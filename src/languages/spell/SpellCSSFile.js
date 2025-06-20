@@ -1,5 +1,5 @@
 import { TextFile } from "~/util"
-import { Token } from "~/parser"
+import { Tokens } from "~/parser"
 import { SpellLocation, SpellProject } from "~/languages/spell"
 import { batch } from "~/util"
 
@@ -140,7 +140,7 @@ export class SpellCSSFile extends TextFile {
     if (this.match) return this.match
     await this.load()
     this.resetCompiled()
-    const token = new Token.Text({ value: this.contents, raw: this.contents, offset: 0 })
+    const token = new Tokens.Text({ value: this.contents, raw: this.contents, offset: 0 })
     const scope = this.getScope(parentScope)
     const match = scope.parse([token], "css")
     // HACK

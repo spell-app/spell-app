@@ -2,7 +2,7 @@
 //  # Rules for creating variables, property access, etc
 //
 
-import { Token } from "~/parser"
+import { Tokens } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
 
 export const UI = new SpellParser({
@@ -20,14 +20,14 @@ export const UI = new SpellParser({
         error: "error",
         group: "group",
         "collapsed group": "groupCollapsed",
-        default: "log"
+        default: "log",
       },
       getAST(match) {
         const { operator, expressions } = match.groups
         const methodName = this.operatorMap[operator?.value || "default"]
         return new AST.ConsoleMethodInvocation(match, {
           methodName,
-          args: expressions?.items.map((item) => item.AST)
+          args: expressions?.items.map((item) => item.AST),
         })
       },
       tests: [
@@ -38,10 +38,10 @@ export const UI = new SpellParser({
             [`print warning "Yo!"`, `spellCore.console.warn("Yo!")`],
             [`print error "Yo!"`, `spellCore.console.error("Yo!")`],
             [`print group "Yo!"`, `spellCore.console.group("Yo!")`],
-            [`print collapsed group "Yo!"`, `spellCore.console.groupCollapsed("Yo!")`]
-          ]
-        }
-      ]
+            [`print collapsed group "Yo!"`, `spellCore.console.groupCollapsed("Yo!")`],
+          ],
+        },
+      ],
     },
 
     /** Stop a previous `print group...` */
@@ -56,9 +56,9 @@ export const UI = new SpellParser({
       tests: [
         {
           compileAs: "statement",
-          tests: [[`end print group"`, `spellCore.console.groupEnd()`]]
-        }
-      ]
+          tests: [[`end print group"`, `spellCore.console.groupEnd()`]],
+        },
+      ],
     },
 
     // Notify user about `message` in a non-modal (popup?) interface.
@@ -76,7 +76,7 @@ export const UI = new SpellParser({
         if (okButton) args.push(okButton.AST)
         return new AST.CoreMethodInvocation(match, {
           methodName: "notify",
-          args
+          args,
         })
       },
       tests: [
@@ -84,10 +84,10 @@ export const UI = new SpellParser({
           compileAs: "statement",
           tests: [
             [`notify "Yo!"`, `spellCore.notify("Yo!")`],
-            [`notify "Yo!" with "gotcha"`, `spellCore.notify("Yo!", "gotcha")`]
-          ]
-        }
-      ]
+            [`notify "Yo!" with "gotcha"`, `spellCore.notify("Yo!", "gotcha")`],
+          ],
+        },
+      ],
     },
 
     // Show user a `message` in a modal alert.
@@ -107,8 +107,8 @@ export const UI = new SpellParser({
         return new AST.AwaitExpression(match, {
           expression: new AST.CoreMethodInvocation(match, {
             methodName: "alert",
-            args
-          })
+            args,
+          }),
         })
       },
       tests: [
@@ -116,10 +116,10 @@ export const UI = new SpellParser({
           compileAs: "statement",
           tests: [
             [`alert "Yo!"`, `await spellCore.alert("Yo!")`],
-            [`alert "Yo!" with "yep"`, `await spellCore.alert("Yo!", "yep")`]
-          ]
-        }
-      ]
+            [`alert "Yo!" with "yep"`, `await spellCore.alert("Yo!", "yep")`],
+          ],
+        },
+      ],
     },
 
     // Warning message -- like alert but more dire.
@@ -139,8 +139,8 @@ export const UI = new SpellParser({
         return new AST.AwaitExpression(match, {
           expression: new AST.CoreMethodInvocation(match, {
             methodName: "warn",
-            args
-          })
+            args,
+          }),
         })
       },
       tests: [
@@ -148,10 +148,10 @@ export const UI = new SpellParser({
           compileAs: "statement",
           tests: [
             [`warn "Yo!"`, `await spellCore.warn("Yo!")`],
-            [`warn "Yo!" with "yep"`, `await spellCore.warn("Yo!", "yep")`]
-          ]
-        }
-      ]
+            [`warn "Yo!" with "yep"`, `await spellCore.warn("Yo!", "yep")`],
+          ],
+        },
+      ],
     },
 
     // Confirm message -- present a question with two answers.
@@ -172,8 +172,8 @@ export const UI = new SpellParser({
         return new AST.AwaitExpression(match, {
           expression: new AST.CoreMethodInvocation(match, {
             methodName: "confirm",
-            args
-          })
+            args,
+          }),
         })
       },
       tests: [
@@ -182,10 +182,10 @@ export const UI = new SpellParser({
           tests: [
             [`confirm "Yo!"`, `await spellCore.confirm("Yo!")`],
             [`confirm "Yo!" with "yep"`, `await spellCore.confirm("Yo!", "yep")`],
-            [`confirm "Yo!" with "yep" and "nope"`, `await spellCore.confirm("Yo!", "yep", "nope")`]
-          ]
-        }
-      ]
+            [`confirm "Yo!" with "yep" and "nope"`, `await spellCore.confirm("Yo!", "yep", "nope")`],
+          ],
+        },
+      ],
     },
 
     // Prompt user to specify a value in response to `message` with `defaultValue`.
@@ -206,8 +206,8 @@ export const UI = new SpellParser({
         return new AST.AwaitExpression(match, {
           expression: new AST.CoreMethodInvocation(match, {
             methodName: "prompt",
-            args
-          })
+            args,
+          }),
         })
       },
       tests: [
@@ -215,10 +215,10 @@ export const UI = new SpellParser({
           compileAs: "statement",
           tests: [
             [`prompt "Name for the new baby?"`, `await spellCore.prompt("Name for the new baby?")`],
-            [`prompt "File name:" with "Untitled"`, `await spellCore.prompt("File name:", "Untitled")`]
-          ]
-        }
-      ]
+            [`prompt "File name:" with "Untitled"`, `await spellCore.prompt("File name:", "Untitled")`],
+          ],
+        },
+      ],
     },
 
     // Chose one or more items from `collection` (of strings???)
@@ -245,7 +245,7 @@ export const UI = new SpellParser({
     {
       name: "css",
       alias: "expression",
-      tokenType: Token.Text,
+      tokenType: Tokens.Text,
       getAST(match) {
         // HACK: `name` comes from SpellCSSFile
         const { value, file } = match
@@ -255,8 +255,8 @@ export const UI = new SpellParser({
           methodName: "installStyles",
           args: [
             file ? new AST.QuotedExpression(match, file) : new AST.UndefinedLiteral(match),
-            new AST.BackTickExpression(match, safeValue)
-          ]
+            new AST.BackTickExpression(match, safeValue),
+          ],
         })
       },
       tests: [
@@ -266,11 +266,11 @@ export const UI = new SpellParser({
             [`""`, `spellCore.installStyles(undefined, \`""\`)`],
             [
               `".Card {\\n\\theight:30px;\\n}\\n"`,
-              `spellCore.installStyles(undefined, \`".Card {\\n\\theight:30px;\\n}\\n"\`)`
-            ]
-          ]
-        }
-      ]
-    }
-  ]
+              `spellCore.installStyles(undefined, \`".Card {\\n\\theight:30px;\\n}\\n"\`)`,
+            ],
+          ],
+        },
+      ],
+    },
+  ],
 })

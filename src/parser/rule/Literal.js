@@ -6,7 +6,7 @@ import { Rule } from "./Rule.js"
 //    - string to match, or
 //    - array of strings, any of which will work.
 //
-// NOTE: Don't use this -- use `Rule.Keyword` or `Rule.Symbol` instead!
+// NOTE: Don't use this -- use `Rules.Keyword` or `Rules.Symbol` instead!
 export class Literal extends Rule {
   constructor(props) {
     if (Array.isArray(props)) props = { literal: props }
@@ -27,7 +27,7 @@ export class Literal extends Rule {
       value: tokens[0].value,
       input: [tokens[0]],
       length: 1,
-      scope
+      scope,
     })
   }
 

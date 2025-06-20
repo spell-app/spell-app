@@ -1,6 +1,6 @@
 import _ from "lodash"
 
-import { Match, Rule, Token } from "~/parser"
+import { Match, Rule, Tokens } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
 
 // `Blocks` are generally the root entity that we parse in spell.
@@ -8,13 +8,13 @@ import { SpellParser, AST } from "~/languages/spell"
 //
 //  They are composed of `block_lines` and nested `blocks`,
 //  and correspond roughly to a `Scope` (see `parser/scope/Scope`).
-SpellParser.Rule.Block = class block extends Rule {
+SpellParser.Rules.Block = class block extends Rule {
   parse(scope, tokens) {
     if (!tokens.length) return undefined
     if (tokens.length !== 1) console.warn(`Block.parse(): unexpectedly got ${tokens.length} tokens:`, tokens)
     // eslint-disable-next-line no-shadow
     const block = tokens[0]
-    if (!(block instanceof Token.Block)) console.warn("parseBlock: got non-block", block)
+    if (!(block instanceof Tokens.Block)) console.warn("parseBlock: got non-block", block)
 
     // build up matches for individual items
     const matched = []
@@ -24,11 +24,11 @@ SpellParser.Rule.Block = class block extends Rule {
       let match
       const first = items[0]
       // recurse for nested block
-      if (first instanceof Token.Block) {
+      if (first instanceof Tokens.Block) {
         match = this.parse(scope, [first])
       }
       // process Line as "line" -- a statement with optional comment, etc.
-      else if (first instanceof Token.Line) {
+      else if (first instanceof Tokens.Line) {
         match = scope.parse(items, "line")
       } else {
         console.warn("Block.parse(): Don't know what to do with token", first)
@@ -53,7 +53,7 @@ SpellParser.Rule.Block = class block extends Rule {
       errors: errors.length ? errors : undefined,
       scope,
       input: [block],
-      length: 1 // matched one OUTER block...
+      length: 1, // matched one OUTER block...
     })
   }
 

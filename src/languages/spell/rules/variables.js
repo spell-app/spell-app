@@ -2,7 +2,8 @@
 //  # Rules for variables
 //
 import { singularize, pluralize } from "~/util"
-import { Rule } from "~/parser"
+import { Pattern } from "~/parser/rule/Pattern"
+import { Rules } from "~/parser"
 import { AST, SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"
 
@@ -14,7 +15,7 @@ const WORD = /^[a-zA-Z][\w\-]*$/
 //        - if we find one, you can override what's output with `variable.ouput`.
 // TODO: type based on scope variable type?
 // TODO: higher precedence if variable is known?
-SpellParser.Rule.VariableIdentifier = class _variable extends Rule.Pattern {
+SpellParser.Rules.VariableIdentifier = class _variable extends Pattern {
   /*@proto*/ get pattern() {
     return WORD
   }
@@ -49,14 +50,14 @@ export const variables = new SpellParser({
     // You won't generally use this, use `variable` or `unknown_variable` instead.
     {
       name: "variable_identifier",
-      constructor: "VariableIdentifier"
+      constructor: "VariableIdentifier",
     },
 
     // VariableIdentifier which may or may not be known, with optional `the` prefix.
     {
       name: "variable",
       syntax: "the? {identifier:variable_identifier}",
-      constructor: class variable extends Rule.Sequence {
+      constructor: class variable extends Rules.Sequence {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
@@ -75,10 +76,10 @@ export const variables = new SpellParser({
             { title: "single word with the", input: "the thing", output: "thing" },
             { title: "multi-word", input: "bank-account", output: "bank_account" },
             { title: "multi-word with the", input: "the bank-account", output: "bank_account" },
-            { title: "blacklisted word", input: "if", output: undefined }
-          ]
-        }
-      ]
+            { title: "blacklisted word", input: "if", output: undefined },
+          ],
+        },
+      ],
     },
 
     // Single word variable which is already known by our scope, with optional `the` prefix
@@ -88,7 +89,7 @@ export const variables = new SpellParser({
       alias: "expression",
       // NOTE: `match` returned is the `{variable_identifier}`, not this sequence.
       syntax: "the? {identifier:variable_identifier}",
-      constructor: class known_variable extends Rule.Sequence {
+      constructor: class known_variable extends Rules.Sequence {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
@@ -111,16 +112,16 @@ export const variables = new SpellParser({
           tests: [
             { title: "single word", input: "thing", output: "thing" },
             { title: "multi-word", input: "bank-account", output: "bank_account" },
-            { title: "not defined", input: "nothing", output: undefined }
-          ]
-        }
-      ]
+            { title: "not defined", input: "nothing", output: undefined },
+          ],
+        },
+      ],
     },
 
     // Possibly unknown variable identifier which MUST be singular, WITHOUT `the`.
     {
       name: "singular_variable",
-      constructor: class singular_variable extends SpellParser.Rule.VariableIdentifier {
+      constructor: class singular_variable extends SpellParser.Rules.VariableIdentifier {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === singularize(match.raw)) return match
@@ -138,16 +139,16 @@ export const variables = new SpellParser({
             { title: "singular, single word", input: "thing", output: "thing" },
             { title: "singular, multi-word", input: "bank-account", output: "bank_account" },
             { title: "plural, single word", input: "things", output: undefined },
-            { title: "plural, multi-word", input: "bank-accounts", output: undefined }
-          ]
-        }
-      ]
+            { title: "plural, multi-word", input: "bank-accounts", output: undefined },
+          ],
+        },
+      ],
     },
 
     // Possibly unknown variable identifier which MUST be plural, WITHOUT `the`.
     {
       name: "plural_variable",
-      constructor: class plural_variable extends SpellParser.Rule.VariableIdentifier {
+      constructor: class plural_variable extends SpellParser.Rules.VariableIdentifier {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === pluralize(match.raw)) return match
@@ -165,10 +166,10 @@ export const variables = new SpellParser({
             { title: "plural, single word", input: "things", output: "things" },
             { title: "plural, multi-word", input: "bank-accounts", output: "bank_accounts" },
             { title: "singular, single word", input: "thing", output: undefined },
-            { title: "singular, multi-word", input: "bank-account", output: undefined }
-          ]
-        }
-      ]
-    }
-  ]
+            { title: "singular, multi-word", input: "bank-account", output: undefined },
+          ],
+        },
+      ],
+    },
+  ],
 })

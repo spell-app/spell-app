@@ -1,4 +1,4 @@
-import { Rule, Token, MethodScope } from "~/parser"
+import { Rules, Tokens, MethodScope } from "~/parser"
 import { SpellParser } from "~/languages/spell"
 import { AST } from "../ast"
 
@@ -8,8 +8,8 @@ export const JSX = new SpellParser({
     {
       name: "jsxElement",
       alias: ["jsxChild", "expression"],
-      tokenType: Token.JSXElement,
-      constructor: class SpellJSX extends Rule.TokenType {
+      tokenType: Tokens.JSXElement,
+      constructor: class SpellJSX extends Rules.TokenType {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
@@ -48,14 +48,14 @@ export const JSX = new SpellParser({
                 `\t\tc: "ccc",`,
                 `\t\td: true`,
                 `\t}`,
-                `})`
-              ]
+                `})`,
+              ],
             ],
 
             [`<a><b/></a>`, [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]],
             [
               `<a><b></b></a>`,
-              [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]
+              [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`],
             ],
             [
               `<a A=1><b c=1>foo</b></a>`,
@@ -64,8 +64,8 @@ export const JSX = new SpellParser({
                 `\tspellCore.element({ tag: "b", props: { c: 1 }, children: [`,
                 `\t\t"foo"`,
                 `\t] })`,
-                `] })`
-              ]
+                `] })`,
+              ],
             ],
             [
               `<a><b><c>d</c></b></a>`,
@@ -76,8 +76,8 @@ export const JSX = new SpellParser({
                 `\t\t\t"d"`,
                 `\t\t] })`,
                 `\t] })`,
-                `] })`
-              ]
+                `] })`,
+              ],
             ],
             [
               `<a>\n\tBBB\n\t<c/>\n\tDDD</a>`,
@@ -86,8 +86,8 @@ export const JSX = new SpellParser({
                 '\t"BBB",',
                 '\tspellCore.element({ tag: "c" }),',
                 '\t"DDD"',
-                "] })"
-              ]
+                "] })",
+              ],
             ],
             [
               ["<ui-button ", "\thidden={1} ", "\tonPress={print 2}", "\t/>"],
@@ -100,8 +100,8 @@ export const JSX = new SpellParser({
                 "\t\t\treturn spellCore.console.log(2)",
                 "\t\t}",
                 "\t}",
-                "})"
-              ]
+                "})",
+              ],
             ],
             [
               '<input attrOnly text="text" number=1 boolean={yes} expression={1 + 1} onClick={print the value of the target of the event} />',
@@ -118,10 +118,10 @@ export const JSX = new SpellParser({
                 `\t\t\treturn spellCore.console.log(event.target.value)`,
                 `\t\t}`,
                 `\t}`,
-                `})`
-              ]
-            ]
-          ]
+                `})`,
+              ],
+            ],
+          ],
         },
         {
           title: "Attribute expressions",
@@ -133,11 +133,11 @@ export const JSX = new SpellParser({
             [`<div foo/>`, `spellCore.element({ tag: "div", props: { foo: true } })`],
             [
               `<div rank={the rank of the card} value={1 + 2 + 3}/>`,
-              `spellCore.element({ tag: "div", props: { rank: card.rank, value: ((1 + 2) + 3) } })`
+              `spellCore.element({ tag: "div", props: { rank: card.rank, value: ((1 + 2) + 3) } })`,
             ],
             [
               `<div rank={unknown expression} value={another unknown expression}/>`,
-              `spellCore.element({ tag: "div", props: { rank: undefined /* PARSE ERROR: Don\'t understand \"unknown expression\" */, value: undefined /* PARSE ERROR: Don\'t understand \"another unknown expression\" */ } })`
+              `spellCore.element({ tag: "div", props: { rank: undefined /* PARSE ERROR: Don\'t understand \"unknown expression\" */, value: undefined /* PARSE ERROR: Don\'t understand \"another unknown expression\" */ } })`,
             ],
             // DO parse a statement as an attribute expression
             [
@@ -150,19 +150,19 @@ export const JSX = new SpellParser({
                 `\t\t\treturn spellCore.console.log(1024)`,
                 `\t\t}`,
                 `\t}`,
-                `})`
-              ]
+                `})`,
+              ],
             ],
             // don't match attribute expressions that don't eat the entire text
             [
               "<div foo={true true}/>",
-              `spellCore.element({ tag: "div", props: { foo: undefined /* PARSE ERROR: Don\'t understand \"true true\" */ } })`
+              `spellCore.element({ tag: "div", props: { foo: undefined /* PARSE ERROR: Don\'t understand \"true true\" */ } })`,
             ],
             [
               // ignore newlines in attribute expression
-              ("<div foo={\n1 + \n\t2\n\t}/>", `spellCore.element({ tag: "div", props: { foo: (1 + 2) } })`)
-            ]
-          ]
+              ("<div foo={\n1 + \n\t2\n\t}/>", `spellCore.element({ tag: "div", props: { foo: (1 + 2) } })`),
+            ],
+          ],
         },
         {
           title: "Inline expressions",
@@ -180,20 +180,20 @@ export const JSX = new SpellParser({
                 "\t\t\t1",
                 "\t\t] })",
                 "\t] })",
-                "] }) } })"
-              ]
+                "] }) } })",
+              ],
             ],
             // compound expression
             [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]],
             // multi-line expression is fine
             [
               "<div>{\n\t1 + \n2 + 3\t\n}</div>",
-              ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]
+              ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"],
             ],
             //
             [
               `<div>{the rank of the card}</div>`,
-              ['spellCore.element({ tag: "div", children: [', "\tcard.rank", "] })"]
+              ['spellCore.element({ tag: "div", children: [', "\tcard.rank", "] })"],
             ],
             // fail if we don't eat entire expression
             [
@@ -201,8 +201,8 @@ export const JSX = new SpellParser({
               [
                 'spellCore.element({ tag: "div", children: [',
                 '\tnull /* PARSE ERROR: Don\'t understand "true true" */',
-                "] })"
-              ]
+                "] })",
+              ],
             ],
             // fail on unknown expression
             [
@@ -210,8 +210,8 @@ export const JSX = new SpellParser({
               [
                 'spellCore.element({ tag: "div", children: [',
                 '\tnull /* PARSE ERROR: Don\'t understand "unknown expression" */',
-                "] })"
-              ]
+                "] })",
+              ],
             ],
             // DO NOT parse a inline statement as a JSXExpression
             [
@@ -219,18 +219,18 @@ export const JSX = new SpellParser({
               [
                 'spellCore.element({ tag: "div", children: [',
                 '\tnull /* PARSE ERROR: Don\'t understand "print 1024" */',
-                "] })"
-              ]
-            ]
-          ]
-        }
-      ]
+                "] })",
+              ],
+            ],
+          ],
+        },
+      ],
     },
 
     {
       name: "jsxAttribute",
-      tokenType: Token.JSXAttribute,
-      constructor: class SpellJSXAttribute extends Rule.TokenType {
+      tokenType: Tokens.JSXAttribute,
+      constructor: class SpellJSXAttribute extends Rules.TokenType {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
@@ -240,14 +240,14 @@ export const JSX = new SpellParser({
           // parse `value` if as a number or JSXExpression
           const { value } = match
           if (value) {
-            const inputIsExpression = value instanceof Token.JSXExpression
+            const inputIsExpression = value instanceof Tokens.JSXExpression
             const input = inputIsExpression ? value.contents.trim().replace(/\n/g, " ") : value
             // parse "onXXX" as an inline method with an `event` argument
             if (match.attribute.startsWith("on")) {
               const methodScope = new MethodScope({
                 scope,
                 args: ["event"],
-                mapItTo: "this"
+                mapItTo: "this",
               })
               const statement = methodScope.parse(input, "statement")
               if (statement && statement.inputText.length === input.length) {
@@ -276,11 +276,11 @@ export const JSX = new SpellParser({
               args: attribute.toLowerCase().startsWith("on")
                 ? [new AST.VariableExpression(match, { name: "event" })]
                 : undefined,
-              body: statement.AST
+              body: statement.AST,
             })
           } else if (value === undefined) {
             valueAST = new AST.BooleanLiteral(match, { value: true })
-          } else if (value instanceof Token.Text) {
+          } else if (value instanceof Tokens.Text) {
             valueAST = new AST.StringLiteral(match, { value: value.value })
           } else if (!error) {
             console.warn("jsxAttribute.getAST: don't know how to render value", value, " for match ", match)
@@ -289,38 +289,38 @@ export const JSX = new SpellParser({
           return new AST.JSXAttribute(match, {
             name: attribute,
             value: valueAST,
-            error: error?.AST
+            error: error?.AST,
           })
         }
-      }
+      },
     },
 
     {
       name: "jsxText",
       alias: "jsxChild",
-      tokenType: Token.JSXText,
+      tokenType: Tokens.JSXText,
       getAST(match) {
         const { raw, quotedText } = match.matched[0]
         if (!quotedText) return null
         return new AST.JSXText(match, { raw, value: quotedText })
-      }
+      },
     },
 
     {
       name: "jsxEndTag",
       alias: "jsxChild",
-      tokenType: Token.JSXEndTag,
+      tokenType: Tokens.JSXEndTag,
       getAST(match) {
         const { tagName } = match.matched[0]
         return new AST.JSXEndTag(match, { tagName })
-      }
+      },
     },
 
     {
       name: "jsxExpression",
       alias: "jsxChild",
-      tokenType: Token.JSXExpression,
-      constructor: class SpellJSXExpression extends Rule.TokenType {
+      tokenType: Tokens.JSXExpression,
+      constructor: class SpellJSXExpression extends Rules.TokenType {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
@@ -339,10 +339,10 @@ export const JSX = new SpellParser({
           const { expression, error } = match
           return new AST.JSXExpression(match, {
             expression: expression?.AST,
-            error: error?.AST
+            error: error?.AST,
           })
         }
-      }
-    }
-  ]
+      },
+    },
+  ],
 })

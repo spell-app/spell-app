@@ -99,7 +99,7 @@ export const DebugLevel = {
   ERROR: 1,
   WARN: 2,
   INFO: 3,
-  DEBUG: 4
+  DEBUG: 4,
 }
 
 // Add debug methods to `object`
@@ -129,12 +129,12 @@ export function addDebugMethods(object = {}, prefix, defaultLevel = "WARN", colo
 
       // Add assert handler
       // Unfortunately, this won't preserve line numbers in anything other than Chrome.
-      this.assert = function(condition, ...messages) {
+      this.assert = function (condition, ...messages) {
         if (condition) return
         this.error.apply(object, messages)
         throw new TypeError(messages.join(" "))
       }
-    }
+    },
   })
 
   // Set up methods according to the debug level.
@@ -176,7 +176,7 @@ export function colorLogMessages(prefix, style = ";", messageBits = []) {
   }
 
   let objectified = false
-  messageBits.forEach(bit => {
+  messageBits.forEach((bit) => {
     // If we already found an object, just output into the results
     if (objectified) {
       results.push(bit)

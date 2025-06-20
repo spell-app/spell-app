@@ -99,6 +99,10 @@ export class Match extends makeDerivative(Assertable) {
    * Makes sure length and tokens are updated, groups are updated, etc.
    */
   addMatch(match, argument) {
+    if (match === undefined) {
+      console.warn("addMatch() called with undefined match", { match, argument })
+      return
+    }
     // get groups BEFORE adding the match (we'll add at the end)
     const { groups } = this
 
@@ -178,7 +182,7 @@ export class Match extends makeDerivative(Assertable) {
     if (!isNode) return this
     return {
       rule: this.rule.name,
-      ...omit(this, ["rule", "scope"])
+      ...omit(this, ["rule", "scope"]),
     }
   }
 
@@ -192,7 +196,7 @@ export class Match extends makeDerivative(Assertable) {
       raw,
       value,
       matched,
-      items
+      items,
     }
   }
 }

@@ -1,4 +1,4 @@
-import { Rule } from "~/parser"
+import { Rule, Rules } from "~/parser"
 import { SpellParser } from "~/languages/spell"
 
 // In Spell, we generally match `statements` across the entire line.
@@ -7,8 +7,8 @@ import { SpellParser } from "~/languages/spell"
 //  where the statement MIGHT have an inline statement at the end
 //  or might have a nested block of statements.
 //
-// Note: Access this as `SpellParser.Rule.Statement`.
-SpellParser.Rule.Statement = class _statement extends Rule.Sequence {
+// Note: Access this as `SpellParser.Rules.Statement`.
+SpellParser.Rules.Statement = class _statement extends Rules.Sequence {
   // Set to true if this statement wants to attempt to read an inline statement on the same line.
   /*@proto*/ get wantsInlineStatement() {
     return false

@@ -22,7 +22,7 @@ import "codemirror/addon/lint/javascript-lint"
 
 import "./CodeMirror.css"
 
-import { Token } from "~/parser"
+import { Tokens } from "~/parser"
 import { spellParser } from "~/languages/spell"
 import { store } from "~/app/store"
 
@@ -71,22 +71,22 @@ CodeMirror.defineMode("spell", function (codeMirrorConfig, modeConfig) {
   }
 
   function getTokenType(token) {
-    if (token instanceof Token.Word) {
+    if (token instanceof Tokens.Word) {
       //      if (blacklist[token.raw]) return "keyword"
       return "unknown"
     }
-    if (token instanceof Token.Symbol) return "operator"
-    if (token instanceof Token.Number) return "number"
-    if (token instanceof Token.Comment) {
+    if (token instanceof Tokens.Symbol) return "operator"
+    if (token instanceof Tokens.Number) return "number"
+    if (token instanceof Tokens.Comment) {
       if (token.commentSymbol === "##") return "comment header"
       return "comment"
     }
-    if (token instanceof Token.Text) return "string"
-    // if (token instanceof Token.JSXElement) return null
-    // if (token instanceof Token.JSXEndTag) return null
-    // if (token instanceof Token.JSXAttribute) return null
-    // if (token instanceof Token.JSXExpression) return null
-    // if (token instanceof Token.Block) return null
+    if (token instanceof Tokens.Text) return "string"
+    // if (token instanceof Tokens.JSXElement) return null
+    // if (token instanceof Tokens.JSXEndTag) return null
+    // if (token instanceof Tokens.JSXAttribute) return null
+    // if (token instanceof Tokens.JSXExpression) return null
+    // if (token instanceof Tokens.Block) return null
     return null
   }
 

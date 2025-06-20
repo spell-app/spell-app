@@ -1,16 +1,18 @@
-import { Tokenizer } from "~/parser/tokenizer/Tokenizer.js"
+import { Tokenizer } from "~/parser/tokenizer/Tokenizer.ts"
 import { Rule } from "./Rule.js"
 
 // Turn on debugging of choice / precedence semantics
 const DEBUG_CHOICES = false
 
-// Alternative syntax, matching one of a number of different rules.
-// The result of a parse is the longest rule that actually matched.
-// NOTE: Currently takes the longest valid match.
-// TODO: match all valid choices
-//
-// After parsing
-//  we'll return the rule which is the "best match" (rather than cloning this rule).
+/**
+ * Alternative syntax, matching one of a number of different rules.
+ * The result of a parse is the longest rule that actually matched.
+ *
+ * - NOTE: Currently takes the longest valid match.
+ * - TODO: match all valid choices
+ *
+ * After parsing we'll return the rule which is the "best match" (rather than cloning this rule).
+ */
 export class Choice extends Rule {
   constructor(...args) {
     let [props] = args
@@ -121,9 +123,12 @@ export class Choice extends Rule {
   }
 }
 
-// Alias for `Choice` used to merge choices together
-// when implicitly combining multiple rules under the same name.
-// This lets us distinguish between:
-//  - actually defining a semantically-meaning "choices" and
-//  - smooshing rules together because they share the same name
+/**
+ * Alias for `Choice` used to merge choices together
+ * when implicitly combining multiple rules under the same name.
+ *
+ * This lets us distinguish between:
+ *  - actually defining a semantically-meaning "choices" and
+ *  - smooshing rules together because they share the same name
+ */
 export class Group extends Choice {}

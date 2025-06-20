@@ -7,7 +7,7 @@ import groupBy from "lodash/groupBy"
 import sum from "lodash/sum"
 
 import { CustomError, cloneClass, Derivative, showWhitespace } from "~/util"
-import { Rule, rulex, Token, Tokenizer, WhitespacePolicy, Scope } from "~/parser"
+import { Rule, Rules, rulex, Token, Tokenizer, WhitespacePolicy, Scope } from "~/parser"
 
 /** Error we'll throw when setting up / executing parser. */
 export class ParserError extends CustomError {}
@@ -116,7 +116,7 @@ export class Parser extends Derivative {
         message: "Can't parse input",
         context: this,
         activity: "compile",
-        params: { input, ruleName, scope }
+        params: { input, ruleName, scope },
       })
     }
     return match.compile()
@@ -157,14 +157,14 @@ export class Parser extends Derivative {
         message: `Rule '${ruleName}' not found.`,
         context: this,
         activity: "getRuleOrDie",
-        params: { ruleName }
+        params: { ruleName },
       })
     return rule
   }
 
   // TODO: @clearDerived ?
   // Add a `rule` to our list of rules!
-  // Converts to `Rule.Group` on re-defining the same rule.
+  // Converts to `Rules.Group` on re-defining the same rule.
   addRule(rule, ruleName) {
     // Clear memoized "rules" so we'll recalculate them
     this.clearDerived("rules")
@@ -180,7 +180,7 @@ export class Parser extends Derivative {
           message: `You must set 'rule.name' or pass an explicit ruleName.`,
           context: this,
           activity: "addRule",
-          params: { rule, ruleName }
+          params: { rule, ruleName },
         })
       ruleName = rule.name
     }
@@ -221,23 +221,24 @@ export class Parser extends Derivative {
 
   // Merge a single `rule` into map of `rules` by `ruleName`.
   // If `rules` already has a rule with that name:
-  //  - if `rules[ruleName]` is a Rule.Group, we'll just add the new rule to the group,
+  //  - if `rules[ruleName]` is a Rules.Group, we'll just add the new rule to the group,
   //  - or we'll convert `rules[ruleName]` to a group with the original + new rules.
   mergeRule(map, ruleName, rule) {
     const existing = map[ruleName]
     if (!existing) {
       // Always clone groups when adding.
-      if (rule instanceof Rule.Group) rule = rule.clone()
+      if (rule instanceof Rules.Group) rule = rule.clone()
       map[ruleName] = rule
       return
     }
 
     // Merge existing rule and rule passed in as a new Group
-    if (existing instanceof Rule.Group) map[ruleName] = existing.clone()
-    else map[ruleName] = new Rule.Group({ rules: [existing], argument: ruleName })
+    if (existing instanceof Rules.Group) map[ruleName] = existing.clone()
+    else map[ruleName] = new Rules.Group({ rules: [existing], argument: ruleName })
 
     // If rule is ALSO a group with the same argument, merge the groups.
-    if (rule instanceof Rule.Group && rule.argument === existing?.argument) map[ruleName].addChoice(this, ...rule.rules)
+    if (rule instanceof Rules.Group && rule.argument === existing?.argument)
+      map[ruleName].addChoice(this, ...rule.rules)
     else map[ruleName].addChoice(this, rule)
   }
 
@@ -295,38 +296,39 @@ export class Parser extends Derivative {
 
       // throw if name was not provided
       const name = props.name || (constructor && constructor.prototype?.name)
-      if (!name)
+      if (!name) {
         throw new ParserError({
           message: `You must pass 'rule.name'.`,
           context: this,
           activity: "defineRule",
-          params: { ruleProps }
+          params: { ruleProps },
         })
+      }
 
       // Try to infer the constructor if we didn't get a Function
       if (typeof constructor === "string") {
         // console.warn(constructor, { ...this.constructor.Rule }, { ...Rule })
-        if (!this.constructor.Rule[constructor] && !Rule[constructor]) {
+        if (!this.constructor.Rules[constructor] && !Rules[constructor]) {
           throw new ParserError({
             message: `Don\'t understand constructor: ${constructor}`,
             context: this,
             activity: "defineRule",
-            params: { ruleProps, name, constructor }
+            params: { ruleProps, name, constructor },
           })
         }
-        constructor = this.constructor.Rule[constructor] || Rule[constructor]
+        constructor = this.constructor.Rules[constructor] || Rules[constructor]
       }
       if (!constructor) {
-        if (props.tokenType) constructor = Rule.TokenType
-        else if (props.pattern) constructor = Rule.Pattern
-        else if (props.literal) constructor = Rule.Keyword
-        else if (props.literals) constructor = Rule.Keywords
+        if (props.tokenType) constructor = Rules.TokenType
+        else if (props.pattern) constructor = Rules.Pattern
+        else if (props.literal) constructor = Rules.Keyword
+        else if (props.literals) constructor = Rules.Keywords
         else if (!ruleProps.syntax)
           throw ParserError({
             message: `You must pass 'constructor' or 'syntax'.`,
             context: this,
             activity: "defineRule",
-            params: { ruleProps }
+            params: { ruleProps },
           })
       }
 
@@ -353,11 +355,11 @@ export class Parser extends Derivative {
             message: `Didn't get a rule from rulex.compile('${props.syntax}')`,
             context: this,
             activity: "defineRule",
-            params: { ruleProps, syntax: props.syntax }
+            params: { ruleProps, syntax: props.syntax },
           })
 
         // If we're constructing a sequence, make sure we've got `rules`...
-        if (constructor && constructor.prototype instanceof Rule.Sequence && !(rule instanceof Rule.Sequence)) {
+        if (constructor && constructor.prototype instanceof Rules.Sequence && !(rule instanceof Rules.Sequence)) {
           props.rules = [rule]
         }
         // We want to use a named constructor below, so copy properties from the rule
@@ -378,7 +380,7 @@ export class Parser extends Derivative {
           message: `No rule...???`,
           context: this,
           activity: "defineRule",
-          params: { ruleProps }
+          params: { ruleProps },
         })
 
       // Combine aliases with the main name and add rule under all the names
@@ -387,6 +389,7 @@ export class Parser extends Derivative {
       this.addRule(rule, names)
       return rule
     } catch (error) {
+      console.warn("error in defineRule()", error)
       // If not on the server, change to a warning instead
       if (!isNode) console.warn("Error in defineRule():", error, "\nprops:", ruleProps)
     }
@@ -443,7 +446,7 @@ export class Parser extends Derivative {
     const results = {
       pass: 0, // number of tests that passed
       fail: 0, // number of tests that failed
-      failed: [] // input tests that failed as `{ ruleName, input }`
+      failed: [], // input tests that failed as `{ ruleName, input }`
     }
     if (moduleName)
       if (debug) console.group("Testing rules for module", moduleName)

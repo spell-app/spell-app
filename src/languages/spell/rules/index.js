@@ -1,5 +1,5 @@
 // Core rules composed into a `spellParser` instance.
-import { Rule } from "~/parser"
+import { Rules } from "~/parser"
 import { SpellParser } from ".."
 
 // The following add new Rule constructors to `SpellParser.Rule`
@@ -36,7 +36,7 @@ export const spellParser = new SpellParser({ module: "spell" })
 /** Export ParseError so we can create them programmatically. */
 export { ParseError } from "./ParseError"
 
-spellParser.defineRule({ name: "blank_line", constructor: Rule.BlankLine })
+spellParser.defineRule({ name: "blank_line", constructor: Rules.BlankLine })
 spellParser.defineRule({ name: "block", constructor: "Block" })
 spellParser.defineRule({ name: "line", constructor: "BlockLine" })
 spellParser.defineRule({ name: "parse_error", constructor: "ParseError" })

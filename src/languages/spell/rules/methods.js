@@ -1,13 +1,13 @@
 import { isNode } from "browser-or-node"
 
 import { instanceCase, typeCase } from "~/util"
-import { Rule, Token, MethodScope } from "~/parser"
+import { Rules, Tokens, MethodScope } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
 
 /**
  * Abstract class for a dynamic method created with `to_do_something` below.
  */
-SpellParser.Rule.DynamicMethodRule = class dynamic_method extends SpellParser.Rule.Statement {
+SpellParser.Rules.DynamicMethodRule = class dynamic_method extends SpellParser.Rules.Statement {
   // Name of the method to call
   /*@proto*/ get methodName() {
     return undefined
@@ -41,7 +41,7 @@ SpellParser.Rule.DynamicMethodRule = class dynamic_method extends SpellParser.Ru
 }
 
 /** Base for method definitions with dynamic syntax via `method_signature`.  See `to_do_something` below. */
-SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.Rule.Statement {
+SpellParser.Rules.MethodDefinition = class method_definition extends SpellParser.Rules.Statement {
   /*@proto*/ get wantsInlineStatement() {
     return true
   }
@@ -101,7 +101,7 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
       name: methodName,
       args: args.map((arg) => arg.name),
       thisVar: instanceType,
-      mapItTo: instanceType && "this"
+      mapItTo: instanceType && "this",
     })
 
     // add other random variables
@@ -122,7 +122,7 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
   getRule(match) {
     const {
       asTest,
-      signature: { methodName, syntax, asPostfixExpression, asInfixExpression, shouldNegateOutput = () => false }
+      signature: { methodName, syntax, asPostfixExpression, asInfixExpression, shouldNegateOutput = () => false },
     } = match.groups
 
     if (asPostfixExpression) {
@@ -136,9 +136,9 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
         compileASTExpression(_match, { lhs }) {
           return new AST.PropertyExpression(_match, {
             object: lhs,
-            property: new AST.PropertyLiteral(_match, methodName)
+            property: new AST.PropertyLiteral(_match, methodName),
           })
-        }
+        },
       }
     }
     if (asInfixExpression) {
@@ -154,9 +154,9 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
           return new AST.ScopedMethodInvocation(match, {
             thing: lhs,
             methodName,
-            args: [rhs]
+            args: [rhs],
           })
-        }
+        },
       }
     }
     return {
@@ -164,7 +164,7 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
       alias: asTest ? "statement" : ["statement", "expression"],
       constructor: "DynamicMethodRule",
       syntax,
-      methodName
+      methodName,
     }
   }
 
@@ -176,7 +176,7 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
       // `props` argument will be the last thing in args
       thing: new AST.VariableExpression(match, { name: "props" }),
       variables: props,
-      isNewVariable: true
+      isNewVariable: true,
     })
   }
 
@@ -185,14 +185,14 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
     const { methodName, args, props, instanceType, asPostfixExpression } = signature
     const output = [
       new AST.ParserAnnotation(match, {
-        value: this.getRuleAnnotation(match)
-      })
+        value: this.getRuleAnnotation(match),
+      }),
     ]
 
     const method = new AST.MethodDefinition(match, {
       methodName,
       args,
-      body: (nestedBlock || inlineStatement)?.AST
+      body: (nestedBlock || inlineStatement)?.AST,
     })
 
     if (asTest) {
@@ -219,9 +219,9 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
           new AST.StartProcessInvocation(match, { name: methodName, exclusive: true }),
           new AST.TryCatchBlock(match, {
             body: method.body || new AST.StatementBlock(match),
-            finallyBlock: new AST.StopProcessInvocation(match, { name: methodName })
-          })
-        ]
+            finallyBlock: new AST.StopProcessInvocation(match, { name: methodName }),
+          }),
+        ],
       })
     }
 
@@ -231,20 +231,20 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
         output.push(
           new AST.PropertyDefinition(match, {
             thing: new AST.PrototypeExpression(match, {
-              type: typeCase(instanceType)
+              type: typeCase(instanceType),
             }),
             property: methodName,
-            get: method
+            get: method,
           })
         )
       } else {
         output.push(
           new AST.PropertyDefinition(match, {
             thing: new AST.PrototypeExpression(match, {
-              type: typeCase(instanceType)
+              type: typeCase(instanceType),
             }),
             property: methodName,
-            value: method
+            value: method,
           })
         )
       }
@@ -256,8 +256,8 @@ SpellParser.Rule.MethodDefinition = class method_definition extends SpellParser.
           methodName,
           body: new AST.CoreMethodInvocation(match, {
             methodName: asTest.value === "quietly test" ? "quietlyTest" : "test",
-            args: [new AST.QuotedExpression(match, signature.methodBits.join(" ")), method]
-          })
+            args: [new AST.QuotedExpression(match, signature.methodBits.join(" ")), method],
+          }),
         })
       )
     } else {
@@ -292,23 +292,23 @@ export const methods = new SpellParser({
         return {
           keyword: match,
           method: match.value,
-          syntax: match.raw
+          syntax: match.raw,
         }
-      }
+      },
     },
     {
       name: "var_method_arg",
       alias: ["method_arg", "simple_method_arg"],
-      constructor: class method_arg extends SpellParser.Rule.VariableIdentifier {
+      constructor: class method_arg extends SpellParser.Rules.VariableIdentifier {
         gatherGroups(match) {
           return {
             variable: match,
             method: `$${match.value}`,
             syntax: "{callArgs:expression}",
-            arg: new AST.VariableExpression(match, { name: match.value, type: "argument" })
+            arg: new AST.VariableExpression(match, { name: match.value, type: "argument" }),
           }
         }
-      }
+      },
     },
     {
       name: "valued_var_method_arg",
@@ -320,11 +320,11 @@ export const methods = new SpellParser({
           variable,
           method: `$${variable.value}`,
           syntax: "{callArgs:expression}",
-          arg: new AST.VariableExpression(match, { name: variable.value, default: value.AST, type: "argument" })
+          arg: new AST.VariableExpression(match, { name: variable.value, default: value.AST, type: "argument" }),
         }
         // console.warn("valued_method_arg:", variable, value, "\n", groups)
         return groups
-      }
+      },
     },
     {
       name: "type_method_arg",
@@ -336,9 +336,9 @@ export const methods = new SpellParser({
           type,
           method: `$${type.raw}`, // TODO: instanceCase(type.value) ???
           syntax: "{callArgs:expression}",
-          arg: new AST.VariableExpression(match, { name: instanceCase(type.value), type: "argument" })
+          arg: new AST.VariableExpression(match, { name: instanceCase(type.value), type: "argument" }),
         }
-      }
+      },
     },
     {
       name: "typed_method_arg",
@@ -351,9 +351,9 @@ export const methods = new SpellParser({
           type,
           method: `$${variable.value}`,
           syntax: "{callArgs:expression}",
-          arg: new AST.VariableExpression(match, { name: variable.value, datatype: type.value, type: "argument" })
+          arg: new AST.VariableExpression(match, { name: variable.value, datatype: type.value, type: "argument" }),
         }
-      }
+      },
     },
     {
       name: "with_props_arg",
@@ -370,16 +370,16 @@ export const methods = new SpellParser({
           arg: new AST.VariableExpression(match, {
             name: "props",
             default: new AST.ObjectLiteral(match),
-            type: "argument"
-          })
+            type: "argument",
+          }),
         }
         return groups
-      }
+      },
     },
     {
       name: "method_signature",
       syntax: `({method_keyword}|\\({method_arg}\\))+`,
-      constructor: class method_signature extends Rule.Repeat {
+      constructor: class method_signature extends Rules.Repeat {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           // forget it if we didn't find at least one keyword
@@ -401,7 +401,7 @@ export const methods = new SpellParser({
             props: undefined, // array of AST.VariableExpression for `with_props_arg`
             methodName: undefined, // full methodName from `methodBits` array, set elsewhere
             syntax: undefined, // full method syntax, set elsewhere
-            instanceType: undefined // type to add instance method to, set elsewhere
+            instanceType: undefined, // type to add instance method to, set elsewhere
           }
           // Set up the method signature and rule syntax
           // We'll get one of the following combos: keyword, type, variable, variable + type
@@ -422,10 +422,10 @@ export const methods = new SpellParser({
               groups.types.push({
                 name: typeName,
                 varName,
-                isSimple: SpellParser.Rule.Type.isSimpleType(typeName),
+                isSimple: SpellParser.Rules.Type.isSimpleType(typeName),
                 argIndex: groups.args.length,
                 methodIndex: groups.methodBits.length,
-                syntaxIndex: groups.syntaxBits.length
+                syntaxIndex: groups.syntaxBits.length,
               })
             }
 
@@ -446,13 +446,13 @@ export const methods = new SpellParser({
 
           return groups
         }
-      }
+      },
     },
     /** Method signature surrounded by quotes.  A "good idea"??? */
     {
       name: "quoted_method_signature",
-      tokenType: Token.Text,
-      constructor: class quoted_method_signature extends Rule.TokenType {
+      tokenType: Tokens.Text,
+      constructor: class quoted_method_signature extends Rules.TokenType {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           // TODO: returned match is off in terms of char positions matched
@@ -465,14 +465,14 @@ export const methods = new SpellParser({
           signature.length = 1
           return signature
         }
-      }
+      },
     },
     {
       name: "to_do_something",
       alias: "statement",
       // TODO: add tests for `test` case
       syntax: `to (asTest:quietly? test)? {signature:method_signature} :?`,
-      constructor: class to_do_something extends SpellParser.Rule.MethodDefinition {
+      constructor: class to_do_something extends SpellParser.Rules.MethodDefinition {
         /*@proto*/ get inlineInitialType() {
           return true
         }
@@ -495,7 +495,7 @@ export const methods = new SpellParser({
             {
               title: "keyword-only signature",
               input: "to start the game",
-              output: ["/* SPELL: added rule: `start the game` */", "function start_the_game() {}"]
+              output: ["/* SPELL: added rule: `start the game` */", "function start_the_game() {}"],
             },
             {
               title: "keyword-only signature - `it` is not defined",
@@ -503,13 +503,13 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `start the game` */",
                 "function start_the_game() {}",
-                '/* PARSE ERROR: Don\'t understand "print it" */'
-              ]
+                '/* PARSE ERROR: Don\'t understand "print it" */',
+              ],
             },
             {
               title: "non-escaped type arg in signature",
               input: "to create a card",
-              output: ["/* SPELL: added rule: `create a card` */", "function create_a_card() {}"]
+              output: ["/* SPELL: added rule: `create a card` */", "function create_a_card() {}"],
             },
             {
               title: "non-escaped type arg in signature - `it` is not defined",
@@ -517,8 +517,8 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `create a card` */",
                 "function create_a_card() {}",
-                '/* PARSE ERROR: Don\'t understand "print it" */'
-              ]
+                '/* PARSE ERROR: Don\'t understand "print it" */',
+              ],
             },
             {
               title: "simple arg in signature - arg is defined",
@@ -527,8 +527,8 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 `function notify_$message(message) {`,
                 `\treturn spellCore.console.log(message)`,
-                `}`
-              ]
+                `}`,
+              ],
             },
             {
               title: "simple arg in signature - it is not defined",
@@ -536,8 +536,8 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 "function notify_$message(message) {}",
-                '/* PARSE ERROR: Don\'t understand "print it" */'
-              ]
+                '/* PARSE ERROR: Don\'t understand "print it" */',
+              ],
             },
             {
               title: "typed simple arg in signature - arg is defined",
@@ -546,8 +546,8 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 `function notify_$message(message) {`,
                 `\treturn spellCore.console.log(message)`,
-                `}`
-              ]
+                `}`,
+              ],
             },
             {
               title: "typed simple arg in signature - `it` is not defined",
@@ -555,8 +555,8 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 "function notify_$message(message) {}",
-                '/* PARSE ERROR: Don\'t understand "print it" */'
-              ]
+                '/* PARSE ERROR: Don\'t understand "print it" */',
+              ],
             },
             {
               title: "valued simple arg in signature - arg is defined",
@@ -565,8 +565,8 @@ export const methods = new SpellParser({
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 `function notify_$message(message = "Really?") {`,
                 `\treturn spellCore.console.log(message)`,
-                `}`
-              ]
+                `}`,
+              ],
             },
             {
               title: "typed simple arg in signature - `it` is not defined",
@@ -574,8 +574,8 @@ export const methods = new SpellParser({
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression}` */",
                 'function notify_$message(message = "Really?") {}',
-                '/* PARSE ERROR: Don\'t understand "print it" */'
-              ]
+                '/* PARSE ERROR: Don\'t understand "print it" */',
+              ],
             },
             {
               title: "type arg in signature - thisVar",
@@ -586,8 +586,8 @@ export const methods = new SpellParser({
                 `\tvalue() {`,
                 `\t\treturn spellCore.console.log(this)`,
                 `\t}`,
-                `})`
-              ]
+                `})`,
+              ],
             },
             {
               title: "type arg in signature - it",
@@ -598,8 +598,8 @@ export const methods = new SpellParser({
                 `\tvalue() {`,
                 `\t\treturn spellCore.console.log(this)`,
                 `\t}`,
-                `})`
-              ]
+                `})`,
+              ],
             },
             {
               title: "type arg in signature - its",
@@ -610,8 +610,8 @@ export const methods = new SpellParser({
                 `\tvalue() {`,
                 `\t\tthis.number = 1`,
                 `\t}`,
-                `})`
-              ]
+                `})`,
+              ],
             },
             {
               title: "multiple type args in signature - thisVar",
@@ -622,8 +622,8 @@ export const methods = new SpellParser({
                 `\tvalue(pile) {`,
                 `\t\tthis.pile = pile`,
                 `\t}`,
-                `})`
-              ]
+                `})`,
+              ],
             },
             {
               title: "multiple type args in signature - it",
@@ -634,8 +634,8 @@ export const methods = new SpellParser({
                 `\tvalue(pile) {`,
                 `\t\tthis.pile = pile`,
                 `\t}`,
-                `})`
-              ]
+                `})`,
+              ],
             },
             {
               title: "multiple type args in signature - its",
@@ -646,8 +646,8 @@ export const methods = new SpellParser({
                 `\tvalue(pile) {`,
                 `\t\tthis.pile = pile`,
                 `\t}`,
-                `})`
-              ]
+                `})`,
+              ],
             },
             {
               title: "typed arg in signature -- arg name",
@@ -658,8 +658,8 @@ export const methods = new SpellParser({
                 `\tvalue() {`,
                 `\t\treturn spellCore.console.log(this)`,
                 `\t}`,
-                `})`
-              ]
+                `})`,
+              ],
             },
             {
               title: "typed arg in signature -- thisVar",
@@ -670,8 +670,8 @@ export const methods = new SpellParser({
                 `\tvalue() {`,
                 `\t\treturn spellCore.console.log(this)`,
                 `\t}`,
-                `})`
-              ]
+                `})`,
+              ],
             },
             {
               title: "typed arg in signature -- it",
@@ -682,8 +682,8 @@ export const methods = new SpellParser({
                 `\tvalue() {`,
                 `\t\treturn spellCore.console.log(this)`,
                 `\t}`,
-                `})`
-              ]
+                `})`,
+              ],
             },
             {
               title: "typed arg in signature -- its",
@@ -694,8 +694,8 @@ export const methods = new SpellParser({
                 `\tvalue() {`,
                 `\t\treturn spellCore.console.log(this.name)`,
                 `\t}`,
-                `})`
-              ]
+                `})`,
+              ],
             },
             {
               title: "typed var in signature: implicit `it` gets remapped after `get`",
@@ -708,18 +708,18 @@ export const methods = new SpellParser({
                 "\t\tlet it = this.name",
                 "\t\tspellCore.console.log(it)",
                 "\t}",
-                "})"
-              ]
+                "})",
+              ],
             },
             {
               title: "mixed vars in signature",
               input: "to prompt (message as text) and (reply)",
               output: [
                 "/* SPELL: added rule: `prompt {callArgs:expression} and {callArgs:expression}` */",
-                "function prompt_$message_and_$reply(message, reply) {}"
-              ]
-            }
-          ]
+                "function prompt_$message_and_$reply(message, reply) {}",
+              ],
+            },
+          ],
         },
         {
           title: "calling signature arguments",
@@ -737,8 +737,8 @@ export const methods = new SpellParser({
                 `function start_the_game() {`,
                 `\tspellCore.console.log(1)`,
                 `}`,
-                `start_the_game()`
-              ]
+                `start_the_game()`,
+              ],
             },
             {
               title: "top level simple argument method",
@@ -748,8 +748,8 @@ export const methods = new SpellParser({
                 `function notify_$message(message) {`,
                 `\treturn spellCore.console.log(message)`,
                 `}`,
-                "notify_$message(1)"
-              ]
+                "notify_$message(1)",
+              ],
             },
             {
               title: "top level typed simple argument method",
@@ -759,8 +759,8 @@ export const methods = new SpellParser({
                 `function notify_$message(message) {`,
                 `\treturn spellCore.console.log(message)`,
                 `}`,
-                `notify_$message(1)`
-              ]
+                `notify_$message(1)`,
+              ],
             },
             {
               title: "type arg in signature",
@@ -772,8 +772,8 @@ export const methods = new SpellParser({
                 `\t\treturn spellCore.console.log(this)`,
                 `\t}`,
                 `})`,
-                "new Card().show()"
-              ]
+                "new Card().show()",
+              ],
             },
             {
               title: "multiple type args in signature",
@@ -785,10 +785,10 @@ export const methods = new SpellParser({
                 `\t\tthis.pile = pile`,
                 `\t}`,
                 `})`,
-                "new Card().play_on_$pile(new Pile())"
-              ]
-            }
-          ]
+                "new Card().play_on_$pile(new Pile())",
+              ],
+            },
+          ],
         },
         {
           title: "props",
@@ -801,7 +801,7 @@ export const methods = new SpellParser({
             {
               title: "signature with no keywords is not matched",
               input: "to (foo)",
-              output: '/* PARSE ERROR: Don\'t understand "to (foo)" */'
+              output: '/* PARSE ERROR: Don\'t understand "to (foo)" */',
             },
             {
               title: "with arg is optional when calling",
@@ -812,8 +812,8 @@ export const methods = new SpellParser({
                 "\tlet { message } = props",
                 "\tspellCore.console.log(message)",
                 "}",
-                "notify()"
-              ]
+                "notify()",
+              ],
             },
 
             {
@@ -825,8 +825,8 @@ export const methods = new SpellParser({
                 "\tlet { message } = props",
                 "\tspellCore.console.log(message)",
                 "}",
-                'notify({ message: "It worked!" })'
-              ]
+                'notify({ message: "It worked!" })',
+              ],
             },
             {
               title: "typed variable props",
@@ -834,7 +834,7 @@ export const methods = new SpellParser({
                 "to play (with a card):",
                 "\tprint the card",
                 "play with card = a new card",
-                'play with card = a new card with suit of "hearts"'
+                'play with card = a new card with suit of "hearts"',
               ],
               output: [
                 "/* SPELL: added rule: `play (with {props:object_literal_properties})?` */",
@@ -843,8 +843,8 @@ export const methods = new SpellParser({
                 "\tspellCore.console.log(card)",
                 "}",
                 "play({ card: new Card() })",
-                'play({ card: new Card({ suit: "hearts" }) })'
-              ]
+                'play({ card: new Card({ suit: "hearts" }) })',
+              ],
             },
             {
               title: "default value props",
@@ -855,8 +855,8 @@ export const methods = new SpellParser({
                 '\tlet { message = "nope" } = props',
                 "\tspellCore.console.log(message)",
                 "}",
-                'notify({ message: "Ship it!!" })'
-              ]
+                'notify({ message: "Ship it!!" })',
+              ],
             },
             {
               title: "multiple default value props",
@@ -864,7 +864,7 @@ export const methods = new SpellParser({
                 'to notify (with message = "nope" and reply = "yep"):',
                 "\tprint the message + the reply",
                 'notify with message = "How many?"',
-                'notify with message = "How many?" and reply = 2'
+                'notify with message = "How many?" and reply = 2',
               ],
               output: [
                 "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
@@ -873,15 +873,15 @@ export const methods = new SpellParser({
                 "\tspellCore.console.log(message + reply)",
                 "}",
                 'notify({ message: "How many?" })',
-                'notify({ message: "How many?", reply: 2 })'
-              ]
+                'notify({ message: "How many?", reply: 2 })',
+              ],
             },
             {
               title: "mixed props",
               input: [
                 'to notify (with name, message as text and reply = "yep"):',
                 "\tprint the name + the message + the reply",
-                'notify with name = "Bob", message = "How many?" and reply = 2'
+                'notify with name = "Bob", message = "How many?" and reply = 2',
               ],
               output: [
                 "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
@@ -893,8 +893,8 @@ export const methods = new SpellParser({
                 '\tname: "Bob",',
                 '\tmessage: "How many?",',
                 "\treply: 2",
-                "})"
-              ]
+                "})",
+              ],
             },
             {
               title: "mixed props and signature",
@@ -902,7 +902,7 @@ export const methods = new SpellParser({
                 'to notify (message) (with reply = "yep"):',
                 "\tprint the message",
                 "\tprint the reply",
-                'notify "Really?" with reply = "yes"'
+                'notify "Really?" with reply = "yes"',
               ],
               output: [
                 "/* SPELL: added rule: `notify {callArgs:expression} (with {props:object_literal_properties})?` */",
@@ -911,15 +911,15 @@ export const methods = new SpellParser({
                 "\tspellCore.console.log(message)",
                 "\tspellCore.console.log(reply)",
                 "}",
-                'notify_$message("Really?", { reply: "yes" })'
-              ]
+                'notify_$message("Really?", { reply: "yes" })',
+              ],
             },
             {
               title: "extra props passed in are OK",
               input: [
                 "to notify (with message):",
                 "\tprint the message",
-                `notify with message = "It worked!" and reply = "No it didn't"`
+                `notify with message = "It worked!" and reply = "No it didn't"`,
               ],
               output: [
                 "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
@@ -927,19 +927,19 @@ export const methods = new SpellParser({
                 "\tlet { message } = props",
                 "\tspellCore.console.log(message)",
                 "}",
-                `notify({ message: "It worked!", reply: "No it didn't" })`
-              ]
-            }
-          ]
-        }
-      ]
+                `notify({ message: "It worked!", reply: "No it didn't" })`,
+              ],
+            },
+          ],
+        },
+      ],
     },
 
     {
       name: "create_animation",
       alias: "statement",
       syntax: `(asAnimation:create? animation) {signature:method_signature} :?`,
-      constructor: class create_animation extends SpellParser.Rule.MethodDefinition {
+      constructor: class create_animation extends SpellParser.Rules.MethodDefinition {
         /*@proto*/ get inlineInitialType() {
           return true
         }
@@ -970,8 +970,8 @@ export const methods = new SpellParser({
                 "\tfinally {",
                 "\t\tspellCore.stopProcess('deal_the_cards')",
                 "\t}",
-                "}"
-              ]
+                "}",
+              ],
             },
             {
               input: ["animation deal the cards", "\tpause for 10 seconds"],
@@ -986,12 +986,12 @@ export const methods = new SpellParser({
                 "\tfinally {",
                 "\t\tspellCore.stopProcess('deal_the_cards')",
                 "\t}",
-                "}"
-              ]
-            }
-          ]
-        }
-      ]
+                "}",
+              ],
+            },
+          ],
+        },
+      ],
     },
 
     {
@@ -1000,7 +1000,7 @@ export const methods = new SpellParser({
       alias: "statement",
       syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} (if|is)? :?",
       parseInlineStatementAs: "expression",
-      constructor: class quoted_type_expression extends SpellParser.Rule.MethodDefinition {
+      constructor: class quoted_type_expression extends SpellParser.Rules.MethodDefinition {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match) {
@@ -1040,7 +1040,7 @@ export const methods = new SpellParser({
               is: ["(operator:is not?|isn't|isnt)", (op) => op.value !== "is"],
               can: ["(operator:can not?|cannot|can't|cant)", (op) => op.value !== "can"],
               will: ["(operator:will not?|won't|wont)", (op) => op.value !== "will"],
-              has: ["(operator:has|does not have|doesn't have|doesnt have)", (op) => op.value !== "has"]
+              has: ["(operator:has|does not have|doesn't have|doesnt have)", (op) => op.value !== "has"],
             }
             signature.syntaxBits = signature.syntaxBits.map((bit) => {
               const negatable = NEGATABLES[bit]
@@ -1062,19 +1062,19 @@ export const methods = new SpellParser({
             {
               title: "signature is empty",
               input: `a thing "" if`,
-              output: `/* PARSE ERROR: Don\'t understand "a thing "" if" */`
+              output: `/* PARSE ERROR: Don\'t understand "a thing "" if" */`,
             },
             {
               title: "signature doesn't start with a keyword",
               input: `a thing "(thing)" if`,
-              output: `/* PARSE ERROR: Don\'t understand "a thing "(thing)" if" */`
+              output: `/* PARSE ERROR: Don\'t understand "a thing "(thing)" if" */`,
             },
             {
               title: "more than one arg specified",
               input: `a thing "(thing) but (thing)" if`,
-              output: `/* PARSE ERROR: Don\'t understand "a thing "(thing) but (thing)" if" */`
-            }
-          ]
+              output: `/* PARSE ERROR: Don\'t understand "a thing "(thing) but (thing)" if" */`,
+            },
+          ],
         },
         {
           title: "no args, no negatables",
@@ -1088,8 +1088,8 @@ export const methods = new SpellParser({
                 `spellCore.define(Thing.prototype, 'nerds_out', {`,
                 `\tget() {}`,
                 `})`,
-                `if (new Thing().nerds_out) {}`
-              ]
+                `if (new Thing().nerds_out) {}`,
+              ],
             },
             {
               title: "no if",
@@ -1101,8 +1101,8 @@ export const methods = new SpellParser({
                 `\t\treturn false`,
                 `\t}`,
                 `})`,
-                `if (new Thing().nerds_out) {}`
-              ]
+                `if (new Thing().nerds_out) {}`,
+              ],
             },
             {
               title: "inline expression",
@@ -1114,8 +1114,8 @@ export const methods = new SpellParser({
                 `\t\treturn true`,
                 `\t}`,
                 `})`,
-                `if (new Thing().nerds_out) {}`
-              ]
+                `if (new Thing().nerds_out) {}`,
+              ],
             },
             {
               title: "indented method body",
@@ -1127,10 +1127,10 @@ export const methods = new SpellParser({
                 `\t\treturn true`,
                 `\t}`,
                 `})`,
-                `if (new Thing().nerds_out) {}`
-              ]
-            }
-          ]
+                `if (new Thing().nerds_out) {}`,
+              ],
+            },
+          ],
         },
         {
           title: "one arg",
@@ -1144,14 +1144,14 @@ export const methods = new SpellParser({
                 `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
                 `\tvalue(another) {}`,
                 `})`,
-                `if (new Thing().nerds_out_with_$another(new Thing())) {}`
-              ]
+                `if (new Thing().nerds_out_with_$another(new Thing())) {}`,
+              ],
             },
             {
               title: "inline expression",
               input: [
                 `a thing "nerds out with (another as a thing)" if yes`,
-                `if a new thing nerds out with a new thing`
+                `if a new thing nerds out with a new thing`,
               ],
               output: [
                 `/* SPELL: added expression \`{thing:simple_expression} nerds out with {expression:simple_expression}\` */`,
@@ -1160,15 +1160,15 @@ export const methods = new SpellParser({
                 `\t\treturn true`,
                 `\t}`,
                 `})`,
-                `if (new Thing().nerds_out_with_$another(new Thing())) {}`
-              ]
+                `if (new Thing().nerds_out_with_$another(new Thing())) {}`,
+              ],
             },
             {
               title: "indented method body",
               input: [
                 `a thing "nerds out with (another as a thing)" if`,
                 `\treturn yes`,
-                `if a new thing nerds out with a new thing`
+                `if a new thing nerds out with a new thing`,
               ],
               output: [
                 `/* SPELL: added expression \`{thing:simple_expression} nerds out with {expression:simple_expression}\` */`,
@@ -1177,10 +1177,10 @@ export const methods = new SpellParser({
                 `\t\treturn true`,
                 `\t}`,
                 `})`,
-                `if (new Thing().nerds_out_with_$another(new Thing())) {}`
-              ]
-            }
-          ]
+                `if (new Thing().nerds_out_with_$another(new Thing())) {}`,
+              ],
+            },
+          ],
         },
         {
           title: "negatables",
@@ -1193,7 +1193,7 @@ export const methods = new SpellParser({
                 `if a new thing is a bug`,
                 `if a new thing is not a bug`,
                 `if a new thing isnt a bug`,
-                `if a new thing isn't a bug`
+                `if a new thing isn't a bug`,
               ],
               output: [
                 `/* SPELL: added expression \`{thing:simple_expression} (operator:is not?|isn't|isnt) a bug\` */`,
@@ -1203,8 +1203,8 @@ export const methods = new SpellParser({
                 `if (new Thing().is_a_bug) {}`,
                 `if (!new Thing().is_a_bug) {}`,
                 `if (!new Thing().is_a_bug) {}`,
-                `if (!new Thing().is_a_bug) {}`
-              ]
+                `if (!new Thing().is_a_bug) {}`,
+              ],
             },
             {
               title: "can",
@@ -1214,7 +1214,7 @@ export const methods = new SpellParser({
                 `if a new thing cannot play`,
                 `if a new thing can not play`,
                 `if a new thing cant play`,
-                `if a new thing can't play`
+                `if a new thing can't play`,
               ],
               output: [
                 `/* SPELL: added expression \`{thing:simple_expression} (operator:can not?|cannot|can't|cant) play\` */`,
@@ -1225,8 +1225,8 @@ export const methods = new SpellParser({
                 `if (!new Thing().can_play) {}`,
                 `if (!new Thing().can_play) {}`,
                 `if (!new Thing().can_play) {}`,
-                `if (!new Thing().can_play) {}`
-              ]
+                `if (!new Thing().can_play) {}`,
+              ],
             },
             {
               title: "will",
@@ -1235,7 +1235,7 @@ export const methods = new SpellParser({
                 `if a new thing will blow up`,
                 `if a new thing will not blow up`,
                 `if a new thing wont blow up`,
-                `if a new thing won't blow up`
+                `if a new thing won't blow up`,
               ],
               output: [
                 `/* SPELL: added expression \`{thing:simple_expression} (operator:will not?|won't|wont) blow up\` */`,
@@ -1245,8 +1245,8 @@ export const methods = new SpellParser({
                 `if (new Thing().will_blow_up) {}`,
                 `if (!new Thing().will_blow_up) {}`,
                 `if (!new Thing().will_blow_up) {}`,
-                `if (!new Thing().will_blow_up) {}`
-              ]
+                `if (!new Thing().will_blow_up) {}`,
+              ],
             },
             {
               title: "has",
@@ -1255,7 +1255,7 @@ export const methods = new SpellParser({
                 `if a new thing has a friend`,
                 `if a new thing does not have a friend`,
                 `if a new thing doesnt have a friend`,
-                `if a new thing doesn't have a friend`
+                `if a new thing doesn't have a friend`,
               ],
               output: [
                 `/* SPELL: added expression \`{thing:simple_expression} (operator:has|does not have|doesn't have|doesnt have) a friend\` */`,
@@ -1265,12 +1265,12 @@ export const methods = new SpellParser({
                 `if (new Thing().has_a_friend) {}`,
                 `if (!new Thing().has_a_friend) {}`,
                 `if (!new Thing().has_a_friend) {}`,
-                `if (!new Thing().has_a_friend) {}`
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ]
+                `if (!new Thing().has_a_friend) {}`,
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
 })

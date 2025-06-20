@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from "react"
-import { Token } from "~/parser"
+import { Tokens } from "~/parser"
 
 /**
  * View for a particular `Match`.
@@ -13,14 +13,13 @@ export function MatchView({ match }) {
   const contents = []
   const blocks = []
   matched.forEach((child, index) => {
-    if (!child) return console.warn(index, match)
-    const childRule = child.rule?.name
+    const childRule = child?.rule?.name
     if (childRule === "block") {
       blocks.push(<MatchView key={index} match={child} />)
-    } else if (child instanceof Token.JSXElement) {
+    } else if (child instanceof Tokens.JSXElement) {
       hasMatches = true
       contents.push(<JSXElementView key={index} match={match} />)
-    } else if (child instanceof Token) {
+    } else if (child instanceof Tokens.Token) {
       hasTokens = true
       contents.push(<TokenView key={index} token={child} />)
     } else {
@@ -33,9 +32,9 @@ export function MatchView({ match }) {
     "Match",
     ruleName.replace(/\$/g, "_"),
     hasTokens && "hasTokens",
-    hasMatches && "hasMatched",
+    hasMatches && "hasMatches",
     blocks.length && "hasBlocks",
-    matched.length === 1 && matched[0].rule?.name === "blank_line" && "isBlankLine"
+    matched.length === 1 && matched[0]?.rule?.name === "blank_line" && "isBlankLine"
   ]
     .filter(Boolean)
     .join(" ")
@@ -48,6 +47,7 @@ export function MatchView({ match }) {
     "data-start": match.start,
     "data-end": match.end
   }
+
   return (
     <span {...props}>
       {!!rule.name && <span className="name">{rule.name}</span>}
