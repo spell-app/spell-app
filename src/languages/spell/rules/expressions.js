@@ -5,9 +5,10 @@
 import { Sequence } from "~/parser/rule/Sequence"
 import { Match, Rule } from "~/parser"
 import { AST, SpellParser } from "~/languages/spell"
+import { SpellStatement } from "./Statement"
 
 /** Base class for all Spell expressions. */
-export class SpellExpression extends Sequence {
+export class SpellExpression extends SpellStatement {
   // TODO:       isLeftRecursive: true
 }
 

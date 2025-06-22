@@ -6,6 +6,9 @@ import { Pattern } from "~/parser/rule/Pattern"
 import { Rules } from "~/parser"
 import { AST, SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"
+import { Sequence } from "~/parser/rule/Sequence"
+import { SpellStatement } from "./Statement"
+import { SpellExpression } from "./expressions"
 
 // Alpha-numeric word, including dashes or underscores.
 const WORD = /^[a-zA-Z][\w\-]*$/
@@ -50,7 +53,7 @@ export const variables = new SpellParser({
     // You won't generally use this, use `variable` or `unknown_variable` instead.
     {
       name: "variable_identifier",
-      constructor: "VariableIdentifier",
+      constructor: "VariableIdentifier"
     },
 
     // VariableIdentifier which may or may not be known, with optional `the` prefix.
@@ -76,10 +79,10 @@ export const variables = new SpellParser({
             { title: "single word with the", input: "the thing", output: "thing" },
             { title: "multi-word", input: "bank-account", output: "bank_account" },
             { title: "multi-word with the", input: "the bank-account", output: "bank_account" },
-            { title: "blacklisted word", input: "if", output: undefined },
-          ],
-        },
-      ],
+            { title: "blacklisted word", input: "if", output: undefined }
+          ]
+        }
+      ]
     },
 
     // Single word variable which is already known by our scope, with optional `the` prefix
@@ -112,10 +115,10 @@ export const variables = new SpellParser({
           tests: [
             { title: "single word", input: "thing", output: "thing" },
             { title: "multi-word", input: "bank-account", output: "bank_account" },
-            { title: "not defined", input: "nothing", output: undefined },
-          ],
-        },
-      ],
+            { title: "not defined", input: "nothing", output: undefined }
+          ]
+        }
+      ]
     },
 
     // Possibly unknown variable identifier which MUST be singular, WITHOUT `the`.
@@ -139,10 +142,10 @@ export const variables = new SpellParser({
             { title: "singular, single word", input: "thing", output: "thing" },
             { title: "singular, multi-word", input: "bank-account", output: "bank_account" },
             { title: "plural, single word", input: "things", output: undefined },
-            { title: "plural, multi-word", input: "bank-accounts", output: undefined },
-          ],
-        },
-      ],
+            { title: "plural, multi-word", input: "bank-accounts", output: undefined }
+          ]
+        }
+      ]
     },
 
     // Possibly unknown variable identifier which MUST be plural, WITHOUT `the`.
@@ -166,10 +169,10 @@ export const variables = new SpellParser({
             { title: "plural, single word", input: "things", output: "things" },
             { title: "plural, multi-word", input: "bank-accounts", output: "bank_accounts" },
             { title: "singular, single word", input: "thing", output: undefined },
-            { title: "singular, multi-word", input: "bank-account", output: undefined },
-          ],
-        },
-      ],
-    },
-  ],
+            { title: "singular, multi-word", input: "bank-account", output: undefined }
+          ]
+        }
+      ]
+    }
+  ]
 })

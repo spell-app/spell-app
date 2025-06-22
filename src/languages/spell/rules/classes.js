@@ -3,7 +3,7 @@ import { SpellParser, AST } from "~/languages/spell"
 import { MethodScope } from "../../../parser"
 import { Sequence } from "~/parser/rule/Sequence"
 import { SpellStatement } from "./Statement"
-import { SpellExpression } from "./expressions"
+import { SpellExpression, InfixOperatorSuffix } from "./expressions"
 
 function getOrStubType(scope, typeName) {
   let typeScope = scope.types.get(typeName)
@@ -738,37 +738,40 @@ export const classes = new SpellParser({
             precedence: 20,
             alias: "expression_suffix",
             syntax,
-            constructor: "InfixOperatorSuffix",
-            shouldNegateOutput: (operator) => operator.value.includes("not"),
-            compileASTExpression(_match, { lhs, rhs }) {
-              if (!Array.isArray(rhs)) rhs = [rhs]
-              const args = rhs
-                .map((arg, index) => {
-                  if (typeof arg.value === "string") {
-                    // Handle singular input values mapping to plural internal values
-                    // `enumeration` will be: "club", "spade", etc
-                    // `values` will be: `"clubs"`, `"spades"`, etc
-                    const { enumeration, values } = ruleData[index]
-                    const valueIndex = enumeration.indexOf(arg.value)
-                    return new AST.ConstantExpression(arg, {
-                      name: arg.value,
-                      output: valueIndex !== -1 ? values[valueIndex] : `'arg.value'`
-                    })
-                  }
-                  if (typeof arg.value === "number") {
-                    return new AST.NumericLiteral(arg, {
-                      value: arg.value
-                    })
-                  }
-                  console.warn("quoted_property_formula: don't understand arg", arg)
-                  return undefined
+            constructor: class _quoted_property_rule extends InfixOperatorSuffix {
+              shouldNegateOutput(operator) {
+                return operator.value.includes("not")
+              }
+              compileASTExpression(_match, { lhs, rhs }) {
+                if (!Array.isArray(rhs)) rhs = [rhs]
+                const args = rhs
+                  .map((arg, index) => {
+                    if (typeof arg.value === "string") {
+                      // Handle singular input values mapping to plural internal values
+                      // `enumeration` will be: "club", "spade", etc
+                      // `values` will be: `"clubs"`, `"spades"`, etc
+                      const { enumeration, values } = ruleData[index]
+                      const valueIndex = enumeration.indexOf(arg.value)
+                      return new AST.ConstantExpression(arg, {
+                        name: arg.value,
+                        output: valueIndex !== -1 ? values[valueIndex] : `'arg.value'`
+                      })
+                    }
+                    if (typeof arg.value === "number") {
+                      return new AST.NumericLiteral(arg, {
+                        value: arg.value
+                      })
+                    }
+                    console.warn("quoted_property_formula: don't understand arg", arg)
+                    return undefined
+                  })
+                  .filter(Boolean)
+                return new AST.ScopedMethodInvocation(_match, {
+                  thing: lhs,
+                  methodName: property,
+                  args
                 })
-                .filter(Boolean)
-              return new AST.ScopedMethodInvocation(_match, {
-                thing: lhs,
-                methodName: property,
-                args
-              })
+              }
             }
           })
 

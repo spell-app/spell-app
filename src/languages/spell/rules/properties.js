@@ -7,6 +7,9 @@
 
 import { AST, SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"
+import { Sequence } from "~/parser/rule/Sequence"
+import { SpellStatement } from "./Statement"
+import { SpellExpression } from "./expressions"
 
 const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/
 

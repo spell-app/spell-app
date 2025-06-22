@@ -4,6 +4,9 @@
 //
 
 import { AST, SpellParser } from "~/languages/spell"
+import { Sequence } from "~/parser/rule/Sequence"
+import { SpellStatement } from "./Statement"
+import { SpellExpression } from "./expressions"
 
 export const math = new SpellParser({
   module: "math",

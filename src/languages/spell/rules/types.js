@@ -5,6 +5,9 @@ import { typeCase, instanceCase, singularize, pluralize } from "~/util"
 import { Pattern } from "~/parser/rule/Pattern"
 import { AST, SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"
+import { Sequence } from "~/parser/rule/Sequence"
+import { SpellStatement } from "./Statement"
+import { SpellExpression } from "./expressions"
 
 // Alpha-numeric word, including dashes or underscores.
 const WORD = /^[a-zA-Z][\w\-]*$/
@@ -42,7 +45,7 @@ SpellParser.Rules.Type = class type extends Pattern {
     choice: "boolean",
     choices: "boolean",
     Choice: "boolean",
-    Choices: "boolean",
+    Choices: "boolean"
   }
 
   // Is `typeName` a simple type, (e.g. `number` etc).
@@ -52,7 +55,7 @@ SpellParser.Rules.Type = class type extends Pattern {
     text: 1,
     character: 1,
     boolean: 1,
-    choice: 1,
+    choice: 1
   }
   static isSimpleType(typeName) {
     const instanceName = instanceCase(typeName)
@@ -96,10 +99,10 @@ export const types = new SpellParser({
             { title: "multi-word, lower case", input: "bank-account", output: "Bank_Account" },
             { title: "multi-word, mixed case", input: "Bank-account", output: "Bank_Account" },
             { title: "multi-word, upper case", input: "Bank-Account", output: "Bank_Account" },
-            { title: "blacklisted word", input: "if", output: undefined },
-          ],
-        },
-      ],
+            { title: "blacklisted word", input: "if", output: undefined }
+          ]
+        }
+      ]
     },
 
     // Possibly unknown type which MUST be singular.
@@ -128,10 +131,10 @@ export const types = new SpellParser({
             { title: "plural, lower case", input: "things", output: undefined },
             { title: "plural, upper case", input: "Things", output: undefined },
             { title: "plural, multi-word, lower case", input: "bank-accounts", output: undefined },
-            { title: "plural, multi-word, mixed case", input: "Bank-accounts", output: undefined },
-          ],
-        },
-      ],
+            { title: "plural, multi-word, mixed case", input: "Bank-accounts", output: undefined }
+          ]
+        }
+      ]
     },
 
     // Possibly unknown type which MUST be plural.
@@ -161,10 +164,10 @@ export const types = new SpellParser({
             { title: "singular, lower case", input: "thing", output: undefined },
             { title: "singular, upper case", input: "Thing", output: undefined },
             { title: "singular, multi-word, lower case", input: "bank-account", output: undefined },
-            { title: "singular, multi-word, mixed case", input: "Bank-account", output: undefined },
-          ],
-        },
-      ],
+            { title: "singular, multi-word, mixed case", input: "Bank-account", output: undefined }
+          ]
+        }
+      ]
     },
 
     // A known type identifier, NOT including built-in types like 'Object'.
@@ -198,10 +201,10 @@ export const types = new SpellParser({
             { title: "plural, known, multi-word, mixed case", input: "Bank-accounts", output: "Bank_Account" },
             { title: "plural, known, multi-word, upper case", input: "Bank-Accounts", output: "Bank_Account" },
             { title: "unknown", input: "nothing", output: undefined },
-            { title: "unknown. multi-word", input: "other-thing", output: undefined },
-          ],
-        },
-      ],
-    },
-  ],
+            { title: "unknown. multi-word", input: "other-thing", output: undefined }
+          ]
+        }
+      ]
+    }
+  ]
 })

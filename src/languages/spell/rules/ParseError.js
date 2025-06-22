@@ -1,5 +1,8 @@
 import { Match, Rule } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
+import { Sequence } from "~/parser/rule/Sequence"
+import { SpellStatement } from "./Statement"
+import { SpellExpression } from "./expressions"
 
 // Parser error representation in parser output.
 export const ParseError = class parse_error extends Rule {
@@ -10,13 +13,13 @@ export const ParseError = class parse_error extends Rule {
       rule: this,
       matched: tokens,
       input: [...tokens],
-      length: tokens.length,
+      length: tokens.length
     })
   }
 
   getAST(match) {
     return new AST.ParseError(match, {
-      value: match.message || `Don't understand "${match.inputText}"`,
+      value: match.message || `Don't understand "${match.inputText}"`
     })
   }
 }
@@ -32,7 +35,7 @@ Object.defineProperty(SpellParser.prototype, "createParseError", {
       matched: tokens,
       input: [...tokens],
       length: tokens.length,
-      message,
+      message
     })
-  },
+  }
 })
