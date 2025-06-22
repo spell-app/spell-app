@@ -7,4 +7,5 @@
 export const TestLocation = {
   AT_START: "AT_START",
   ANYWHERE: "ANYWHERE"
-}
+} as const
+export type TestLocation = (typeof TestLocation)[keyof typeof TestLocation]

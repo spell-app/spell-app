@@ -64,6 +64,7 @@ rulex.consolidateLiterals = function (rules, constructor, literalKey, GroupConst
 
 // Given a value as an array or a single value, turn it into an `optional` array.
 rulex.makeOptionalArray = function (value) {
+  // HACK HACK HACK -- decorating a JS `array`, which is not type-friendly.
   const array = Array.isArray(value) ? value.concat() : [value]
   array.optional = true
   return array

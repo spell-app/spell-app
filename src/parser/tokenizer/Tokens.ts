@@ -1,4 +1,5 @@
-import type { IdentifierBlacklist, Prettify } from "../types"
+import { Prettify } from "~/global_types.ts"
+import type { IdentifierBlacklist } from "../types"
 
 /**
  * Generic `Token` record.
