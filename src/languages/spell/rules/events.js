@@ -4,6 +4,7 @@
 import global from "global"
 import { SpellParser, AST } from "~/languages/spell"
 import { MethodScope } from "~/parser/scope/MethodScope.js"
+import { SpellStatement } from "./Statement"
 
 global.AST = AST
 export const events = new SpellParser({
@@ -16,16 +17,17 @@ export const events = new SpellParser({
       name: "trigger",
       alias: "statement",
       syntax: "(trigger|fire|send) event? {eventName:keyword} (with {props:object_literal_properties})?",
-      constructor: "Statement",
-      getAST(match) {
-        const { eventName, props } = match.groups
-        // Use the `raw` eventName, dashes are ok!
-        const args = [new AST.QuotedExpression(match, eventName.raw)]
-        if (props) args.push(props.AST)
-        return new AST.RuntimeMethodInvocation(match, {
-          methodName: "trigger",
-          args
-        })
+      constructor: class trigger extends SpellStatement {
+        getAST(match) {
+          const { eventName, props } = match.groups
+          // Use the `raw` eventName, dashes are ok!
+          const args = [new AST.QuotedExpression(match, eventName.raw)]
+          if (props) args.push(props.AST)
+          return new AST.RuntimeMethodInvocation(match, {
+            methodName: "trigger",
+            args
+          })
+        }
       },
       tests: [
         {
@@ -53,46 +55,47 @@ export const events = new SpellParser({
       //syntax: "on event? {eventName:keyword}:?",
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      constructor: "Statement",
-      getNestedScope(match) {
-        const { eventName, props } = match.groups
-        const args = ["event"]
-        if (props) args.push(...props.groups.props.map(({ name }) => name))
-        return new MethodScope({
-          scope: match.scope,
-          name: eventName.value,
-          args
-        })
-      },
-      getAST(match) {
-        const { eventName, props, inlineStatement, nestedBlock } = match.groups
-        // event variable
-        const event = new AST.VariableExpression(match, { name: "event", type: "argument" })
-        // Use the `raw` eventName, dashes are ok!
-        const args = [new AST.QuotedExpression(match, eventName.raw)]
-        if (nestedBlock || inlineStatement) {
-          const method = new AST.MethodDefinition(match, {
-            inline: true,
-            body: (nestedBlock || inlineStatement).AST,
-            args: [event]
+      constructor: class on extends SpellStatement {
+        getNestedScope(match) {
+          const { eventName, props } = match.groups
+          const args = ["event"]
+          if (props) args.push(...props.groups.props.map(({ name }) => name))
+          return new MethodScope({
+            scope: match.scope,
+            name: eventName.value,
+            args
           })
-          // If they specified event props to pay attention to,
-          // look them up at the start of the message
-          if (props) {
-            method.body.statements.unshift(
-              new AST.DestructuredAssignment(props, {
-                thing: event,
-                variables: props.groups.props,
-                isNewVariable: true
-              })
-            )
-          }
-          args.push(method)
         }
-        return new AST.RuntimeMethodInvocation(match, {
-          methodName: "on",
-          args
-        })
+        getAST(match) {
+          const { eventName, props, inlineStatement, nestedBlock } = match.groups
+          // event variable
+          const event = new AST.VariableExpression(match, { name: "event", type: "argument" })
+          // Use the `raw` eventName, dashes are ok!
+          const args = [new AST.QuotedExpression(match, eventName.raw)]
+          if (nestedBlock || inlineStatement) {
+            const method = new AST.MethodDefinition(match, {
+              inline: true,
+              body: (nestedBlock || inlineStatement).AST,
+              args: [event]
+            })
+            // If they specified event props to pay attention to,
+            // look them up at the start of the message
+            if (props) {
+              method.body.statements.unshift(
+                new AST.DestructuredAssignment(props, {
+                  thing: event,
+                  variables: props.groups.props,
+                  isNewVariable: true
+                })
+              )
+            }
+            args.push(method)
+          }
+          return new AST.RuntimeMethodInvocation(match, {
+            methodName: "on",
+            args
+          })
+        }
       },
       tests: [
         {

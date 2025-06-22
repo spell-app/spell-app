@@ -3,6 +3,7 @@
 //
 
 import { SpellParser, AST } from "~/languages/spell"
+import { SpellStatement } from "./Statement"
 
 export const assignment = new SpellParser({
   module: "assignment",
@@ -16,36 +17,37 @@ export const assignment = new SpellParser({
         { syntax: "set (thing:{expression}|{variable}) to {value:expression}", testRule: "set" },
         { syntax: "(thing:{variable}) is {value: expression}", testRule: "…is" }
       ],
-      constructor: "Statement",
-      // HACK: we also mutate scope in `getAST()`...  :-(
-      mutateScope(match) {
-        const { thing } = match.groups
-        // If `thing` is a variable...
-        // TODO: this is not necessarily the best check...
-        if (thing.rule.name === "variable" || thing.rule.name.endsWith("_variable")) {
-          // get just the `identifier` bit to ignore leading "the "
-          const varName = thing.groups.identifier.value
-          const scopeVar = match.scope.variables.get(varName)
-          match.isNewVariable = !scopeVar || scopeVar.isAlias
-          // define a new variable in `scope` if not already defined
-          if (!scopeVar) match.scope.variables.add(varName)
-          // Remember the original scopeVar for hackery in getAST() below
-          match.originalVar = scopeVar
+      constructor: class assignment extends SpellStatement {
+        // HACK: we also mutate scope in `getAST()`...  :-(
+        mutateScope(match) {
+          const { thing } = match.groups
+          // If `thing` is a variable...
+          // TODO: this is not necessarily the best check...
+          if (thing.rule.name === "variable" || thing.rule.name.endsWith("_variable")) {
+            // get just the `identifier` bit to ignore leading "the "
+            const varName = thing.groups.identifier.value
+            const scopeVar = match.scope.variables.get(varName)
+            match.isNewVariable = !scopeVar || scopeVar.isAlias
+            // define a new variable in `scope` if not already defined
+            if (!scopeVar) match.scope.variables.add(varName)
+            // Remember the original scopeVar for hackery in getAST() below
+            match.originalVar = scopeVar
+          }
         }
-      },
-      getAST(match) {
-        const { thing, value } = match.groups
-        const { originalVar } = match
-        const ast = new AST.AssignmentStatement(match, {
-          // if we got an originalVar which was an alias, get a clean VariableExpression for the original name
-          thing: originalVar?.isAlias ? new AST.VariableExpression(match, { name: originalVar.name }) : thing.AST,
-          value: value.AST,
-          isNewVariable: match.isNewVariable
-        })
-        // HACK: if `originalVar` was an alias, redefine as a normal variable.
-        // We have to do this AFTER the above in case the alias variable was in the value expression.
-        if (originalVar?.isAlias) match.scope.variables.replace(originalVar.name)
-        return ast
+        getAST(match) {
+          const { thing, value } = match.groups
+          const { originalVar } = match
+          const ast = new AST.AssignmentStatement(match, {
+            // if we got an originalVar which was an alias, get a clean VariableExpression for the original name
+            thing: originalVar?.isAlias ? new AST.VariableExpression(match, { name: originalVar.name }) : thing.AST,
+            value: value.AST,
+            isNewVariable: match.isNewVariable
+          })
+          // HACK: if `originalVar` was an alias, redefine as a normal variable.
+          // We have to do this AFTER the above in case the alias variable was in the value expression.
+          if (originalVar?.isAlias) match.scope.variables.replace(originalVar.name)
+          return ast
+        }
       },
       tests: [
         {
@@ -101,28 +103,29 @@ export const assignment = new SpellParser({
       alias: ["assignment", "statement"],
       syntax: "get {value:expression}",
       testRule: "get",
-      constructor: "Statement",
-      // NOTE: we also mutate scope in `getAST()`...  :-(
-      mutateScope(match) {
-        // Did we have a LOCAL `it` variable?
-        const itVar = match.scope.variables.get("it", "LOCAL")
-        // Remember the original itVar for hackery in getAST() below
-        match.itVar = itVar
-        match.isNewVarable = !itVar || itVar.isAlias
-        // Define a new local "it" variable if we don't have one
-        if (!itVar) match.scope.variables.add("it")
-      },
-      getAST(match) {
-        const { value } = match.groups
-        const ast = new AST.AssignmentStatement(match, {
-          thing: new AST.VariableExpression(match, { name: "it" }),
-          value: value.AST,
-          isNewVariable: match.isNewVarable
-        })
-        // HACK: if `match.itVar` was an alias, redefine as a normal variable
-        // We have to do this AFTER the above in case the alias `it` was in the value expression.
-        match.scope.variables.replace("it")
-        return ast
+      constructor: class get extends SpellStatement {
+        // NOTE: we also mutate scope in `getAST()`...  :-(
+        mutateScope(match) {
+          // Did we have a LOCAL `it` variable?
+          const itVar = match.scope.variables.get("it", "LOCAL")
+          // Remember the original itVar for hackery in getAST() below
+          match.itVar = itVar
+          match.isNewVarable = !itVar || itVar.isAlias
+          // Define a new local "it" variable if we don't have one
+          if (!itVar) match.scope.variables.add("it")
+        }
+        getAST(match) {
+          const { value } = match.groups
+          const ast = new AST.AssignmentStatement(match, {
+            thing: new AST.VariableExpression(match, { name: "it" }),
+            value: value.AST,
+            isNewVariable: match.isNewVarable
+          })
+          // HACK: if `match.itVar` was an alias, redefine as a normal variable
+          // We have to do this AFTER the above in case the alias `it` was in the value expression.
+          match.scope.variables.replace("it")
+          return ast
+        }
       },
       tests: [
         {
@@ -180,15 +183,16 @@ export const assignment = new SpellParser({
       alias: "statement",
       syntax: "(return|exit with?) {expression}?",
       testRule: "(return|exit)",
-      constructor: "Statement",
       wantsNestedBlock: true,
       parseNestedBlockAs: "expression",
-      getNestedScope(match) {
-        return match.scope
-      },
-      getAST(match) {
-        const result = match.groups.expression || match.groups.nestedBlock
-        return new AST.ReturnStatement(match, { value: result?.AST })
+      constructor: class return_statement extends SpellStatement {
+        getNestedScope(match) {
+          return match.scope
+        }
+        getAST(match) {
+          const result = match.groups.expression || match.groups.nestedBlock
+          return new AST.ReturnStatement(match, { value: result?.AST })
+        }
       },
       tests: [
         {

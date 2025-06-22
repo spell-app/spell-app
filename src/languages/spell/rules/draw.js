@@ -4,6 +4,7 @@
 import _ from "lodash"
 
 import { AST, SpellParser } from ".."
+import { SpellStatement } from "./Statement"
 
 export const draw = new SpellParser({
   module: "draw",
@@ -12,13 +13,14 @@ export const draw = new SpellParser({
       name: "draw_thing",
       alias: "expression",
       syntax: "draw {expression}",
-      constructor: "Statement",
       precedence: 100,
-      getAST(match) {
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "drawThing",
-          args: [match.groups.expression.AST]
-        })
+      constructor: class draw_thing extends SpellStatement {
+        getAST(match) {
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "drawThing",
+            args: [match.groups.expression.AST]
+          })
+        }
       }
     },
 
@@ -27,13 +29,14 @@ export const draw = new SpellParser({
       alias: "expression",
       // TODO: `draw its {plural_variable}` ?
       syntax: "draw (each|{plural_variable}) (of|in) {expression}",
-      constructor: "Statement",
       precedence: 101,
-      getAST(match) {
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "drawItems",
-          args: [match.groups.expression.AST]
-        })
+      constructor: class draw_items extends SpellStatement {
+        getAST(match) {
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "drawItems",
+            args: [match.groups.expression.AST]
+          })
+        }
       },
       tests: [
         {
@@ -50,12 +53,13 @@ export const draw = new SpellParser({
       name: "start_app",
       alias: "statement",
       syntax: "start {app:expression}",
-      constructor: "Statement",
-      getAST(match) {
-        return new AST.ScopedMethodInvocation(match, {
-          thing: match.groups.app.AST,
-          methodName: "start"
-        })
+      constructor: class start_app extends SpellStatement {
+        getAST(match) {
+          return new AST.ScopedMethodInvocation(match, {
+            thing: match.groups.app.AST,
+            methodName: "start"
+          })
+        }
       }
     }
   ]

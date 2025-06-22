@@ -9,7 +9,8 @@ import { identifierBlacklist } from "./identifier-blacklist"
 // Alpha-numeric word, including dashes or underscores.
 const WORD = /^[a-zA-Z][\w\-]*$/
 
-SpellParser.Rules.Constant = class constant extends Pattern {
+class SpellConstant extends Pattern {
+  name = "constant"
   /*@proto*/ get pattern() {
     return WORD
   }
@@ -36,10 +37,11 @@ SpellParser.Rules.Constant = class constant extends Pattern {
     return new AST.ConstantExpression(match, {
       name,
       output: (scopeConst || new ScopeConstant(name)).toString(),
-      constant: scopeConst,
+      constant: scopeConst
     })
   }
 }
+SpellParser.Rules.Constant = SpellConstant
 
 export const constants = new SpellParser({
   module: "constants",
@@ -48,16 +50,16 @@ export const constants = new SpellParser({
     // `match.constant` will be the existing ScopeConstant if one already exists.
     {
       name: "constant",
-      constructor: "Constant",
+      constructor: class constant extends SpellConstant {},
       tests: [
         {
           tests: [
             { title: "single word", input: "red", output: "'red'" },
             { title: "multi-word", input: "orangish-red", output: "'orangish-red'" },
-            { title: "blacklisted word", input: "if", output: undefined },
-          ],
-        },
-      ],
+            { title: "blacklisted word", input: "if", output: undefined }
+          ]
+        }
+      ]
     },
 
     // A known single-word constant.
@@ -65,7 +67,7 @@ export const constants = new SpellParser({
     {
       name: "known_constant",
       alias: "expression",
-      constructor: class known_constant extends SpellParser.Rules.Constant {
+      constructor: class known_constant extends SpellConstant {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (!match || !match.constant) return undefined
@@ -82,10 +84,10 @@ export const constants = new SpellParser({
           tests: [
             { title: "known constant", input: "red", output: "'red'" },
             { title: "known constant w/specific value", input: "green", output: "#00FF00" },
-            { title: "unknown constant", input: "missing", output: undefined },
-          ],
-        },
-      ],
-    },
-  ],
+            { title: "unknown constant", input: "missing", output: undefined }
+          ]
+        }
+      ]
+    }
+  ]
 })

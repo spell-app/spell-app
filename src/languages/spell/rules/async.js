@@ -4,6 +4,9 @@
 //
 
 import { AST, SpellParser } from "~/languages/spell"
+import { Sequence } from "~/parser/rule/Sequence"
+import { SpellStatement } from "./Statement"
+import { SpellExpression } from "./expressions"
 
 export const _async = new SpellParser({
   module: "async",
@@ -17,12 +20,13 @@ export const _async = new SpellParser({
       name: "await",
       alias: ["expression", "statement"],
       syntax: "(await|wait for) :? {expression}?",
-      constructor: "Statement",
-      getAST(match) {
-        const { expression } = match.groups
-        return new AST.AwaitExpression(match, {
-          expression: expression?.AST || new AST.UndefinedLiteral(match)
-        })
+      constructor: class _await extends SpellStatement {
+        getAST(match) {
+          const { expression } = match.groups
+          return new AST.AwaitExpression(match, {
+            expression: expression?.AST || new AST.UndefinedLiteral(match)
+          })
+        }
       },
       tests: [
         {
@@ -60,15 +64,16 @@ export const _async = new SpellParser({
       alias: "statement",
       // TODO: "a second", "a little bit", "a while", "a noticeable amount"
       syntax: "pause for {number:expression} (units:second|seconds|sec|millisecond|milliseconds|msec|tick|ticks)",
-      constructor: "Statement",
-      getAST(match) {
-        const { number, units } = match.groups
-        return new AST.AwaitExpression(match, {
-          expression: new AST.CoreMethodInvocation(match, {
-            methodName: "pauseFor",
-            args: [number.AST, new AST.QuotedExpression(units, units.value)]
+      constructor: class pause extends SpellStatement {
+        getAST(match) {
+          const { number, units } = match.groups
+          return new AST.AwaitExpression(match, {
+            expression: new AST.CoreMethodInvocation(match, {
+              methodName: "pauseFor",
+              args: [number.AST, new AST.QuotedExpression(units, units.value)]
+            })
           })
-        })
+        }
       },
       tests: [
         {
@@ -88,13 +93,14 @@ export const _async = new SpellParser({
       name: "start_process",
       alias: "statement",
       syntax: "start (operator:exclusive|non-exclusive|nonexclusive)? (animation|process) {name:constant}",
-      constructor: "Statement",
-      getAST(match) {
-        const { operator, name } = match.groups
-        return new AST.StartProcessInvocation(match, {
-          name: name.value,
-          exclusive: operator?.value === "exclusive"
-        })
+      constructor: class start_process extends SpellStatement {
+        getAST(match) {
+          const { operator, name } = match.groups
+          return new AST.StartProcessInvocation(match, {
+            name: name.value,
+            exclusive: operator?.value === "exclusive"
+          })
+        }
       },
       tests: [
         {
@@ -121,14 +127,15 @@ export const _async = new SpellParser({
       name: "stop_process",
       alias: "statement",
       syntax: "(stop|end|finish|cancel) (animation|process) {name:constant}",
-      constructor: "Statement",
-      getAST(match) {
-        const { operator, name } = match.groups
-        const args = [new AST.QuotedExpression(match, name.value)]
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "stopProcess",
-          args
-        })
+      constructor: class stop_process extends SpellStatement {
+        getAST(match) {
+          const { operator, name } = match.groups
+          const args = [new AST.QuotedExpression(match, name.value)]
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "stopProcess",
+            args
+          })
+        }
       },
       tests: [
         {
@@ -149,14 +156,16 @@ export const _async = new SpellParser({
       name: "check_process",
       alias: "expression",
       syntax: "(animation|process) {name:constant} (operator:is|is not|isn't|isnt) (running|active)",
-      getAST(match) {
-        const { operator, name } = match.groups
-        const expression = new AST.CoreMethodInvocation(match, {
-          methodName: "processIsRunning",
-          args: [new AST.QuotedExpression(match, name.value)]
-        })
-        if (operator.value === "is") return expression
-        return new AST.NotExpression(match, { expression })
+      constructor: class check_process extends SpellExpression {
+        getAST(match) {
+          const { operator, name } = match.groups
+          const expression = new AST.CoreMethodInvocation(match, {
+            methodName: "processIsRunning",
+            args: [new AST.QuotedExpression(match, name.value)]
+          })
+          if (operator.value === "is") return expression
+          return new AST.NotExpression(match, { expression })
+        }
       },
       tests: [
         {

@@ -4,35 +4,31 @@
 
 import { BlockScope } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
-
-// Given a condition expression string, wrap it in parens iff it is not already parenthesized properly.
-// TESTME
-export function parenthesizeCondition(condition) {
-  if (typeof condition === "string" && condition.startsWith("(") && condition.endsWith(")")) return condition
-  return `(${condition})`
-}
+import { SpellStatement } from "~/languages/spell/rules/Statement"
+import { InfixOperatorSuffix } from "~/languages/spell/rules/expressions"
 
 export const _if_ = new SpellParser({
   module: "if",
   rules: [
     {
-      name: "_if",
+      name: "if",
       alias: "statement",
       syntax: "if {condition:expression} (then|:)?",
       testRule: "if",
-      constructor: "Statement",
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getNestedScope(match) {
-        return new BlockScope({ name: "if", scope: match.scope })
-      },
-      getAST(match) {
-        const { condition, inlineStatement, nestedBlock } = match.groups
-        // Prefer nestedBlock if we get both
-        return new AST.IfStatement(match, {
-          condition: condition.AST,
-          statements: (nestedBlock || inlineStatement)?.AST
-        })
+      constructor: class _if extends SpellStatement {
+        getNestedScope(match) {
+          return new BlockScope({ name: "if", scope: match.scope })
+        }
+        getAST(match) {
+          const { condition, inlineStatement, nestedBlock } = match.groups
+          // Prefer nestedBlock if we get both
+          return new AST.IfStatement(match, {
+            condition: condition.AST,
+            statements: (nestedBlock || inlineStatement)?.AST
+          })
+        }
       },
       tests: [
         {
@@ -104,18 +100,19 @@ export const _if_ = new SpellParser({
       syntax: "(else|otherwise) if {condition:expression} (then|:)?",
       testRule: "(else|otherwise)",
       precedence: 1,
-      constructor: "Statement",
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getNestedScope(match) {
-        return new BlockScope({ name: "elseif", scope: match.scope })
-      },
-      getAST(match) {
-        const { condition, inlineStatement, nestedBlock } = match.groups
-        return new AST.ElseIfStatement(match, {
-          condition: condition.AST,
-          statements: (nestedBlock || inlineStatement)?.AST
-        })
+      constructor: class else_if extends SpellStatement {
+        getNestedScope(match) {
+          return new BlockScope({ name: "elseif", scope: match.scope })
+        }
+        getAST(match) {
+          const { condition, inlineStatement, nestedBlock } = match.groups
+          return new AST.ElseIfStatement(match, {
+            condition: condition.AST,
+            statements: (nestedBlock || inlineStatement)?.AST
+          })
+        }
       },
       tests: [
         {
@@ -180,17 +177,18 @@ export const _if_ = new SpellParser({
       alias: "statement",
       syntax: "(else|otherwise) :?",
       testRule: "(else|otherwise)",
-      constructor: "Statement",
       wantsInlineStatement: true,
       wantsNestedBlock: true,
-      getNestedScope(match) {
-        return new BlockScope({ name: "else", scope: match.scope })
-      },
-      getAST(match) {
-        const { inlineStatement, nestedBlock } = match.groups
-        return new AST.ElseStatement(match, {
-          statements: (nestedBlock || inlineStatement)?.AST
-        })
+      constructor: class _else extends SpellStatement {
+        getNestedScope(match) {
+          return new BlockScope({ name: "else", scope: match.scope })
+        }
+        getAST(match) {
+          const { inlineStatement, nestedBlock } = match.groups
+          return new AST.ElseStatement(match, {
+            statements: (nestedBlock || inlineStatement)?.AST
+          })
+        }
       },
       tests: [
         {
@@ -243,13 +241,14 @@ export const _if_ = new SpellParser({
       name: "backwards_if",
       alias: "expression_suffix",
       syntax: "if {operator:expression} (else|otherwise) {expression}",
-      constructor: "InfixOperatorSuffix",
-      compileASTExpression(match, { lhs, operator, rhs }) {
-        return new AST.TernaryExpression(match, {
-          condition: operator.AST,
-          trueValue: lhs,
-          falseValue: rhs
-        })
+      constructor: class backwards_if extends InfixOperatorSuffix {
+        compileASTExpression(match, { lhs, operator, rhs }) {
+          return new AST.TernaryExpression(match, {
+            condition: operator.AST,
+            trueValue: lhs,
+            falseValue: rhs
+          })
+        }
       },
       tests: [
         {

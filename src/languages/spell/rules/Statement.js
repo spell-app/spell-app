@@ -8,7 +8,7 @@ import { SpellParser } from "~/languages/spell"
 //  or might have a nested block of statements.
 //
 // Note: Access this as `SpellParser.Rules.Statement`.
-SpellParser.Rules.Statement = class _statement extends Rules.Sequence {
+export class SpellStatement extends Rules.Sequence {
   // Set to true if this statement wants to attempt to read an inline statement on the same line.
   /*@proto*/ get wantsInlineStatement() {
     return false
@@ -103,3 +103,4 @@ SpellParser.Rules.Statement = class _statement extends Rules.Sequence {
     return result
   }
 }
+SpellParser.Rules.Statement = SpellStatement

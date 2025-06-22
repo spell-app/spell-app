@@ -6,8 +6,13 @@ import { Sequence } from "~/parser/rule/Sequence"
 import { Match, Rule } from "~/parser"
 import { AST, SpellParser } from "~/languages/spell"
 
+/** Base class for all Spell expressions. */
+export class SpellExpression extends Sequence {
+  // TODO:       isLeftRecursive: true
+}
+
 /** TODOC!!! */
-SpellParser.Rules.InfixOperatorSuffix = class infix_operator extends Sequence {
+export class InfixOperatorSuffix extends SpellExpression {
   // set `outputDatatype` to specify explicit datatype in standard `getAST()`
 
   /** If `true`, we'll wrap output expression in parenthesis. */
@@ -21,6 +26,7 @@ SpellParser.Rules.InfixOperatorSuffix = class infix_operator extends Sequence {
   /** Return output operator from `operator` match. Override for more complex logic.
    * TODO: this is language-dependent!
    */
+  // TODO: @override
   getOutputOperator(operator) {
     // Default to just use input string
     return operator.value
@@ -29,6 +35,7 @@ SpellParser.Rules.InfixOperatorSuffix = class infix_operator extends Sequence {
   /** Return `true` if we should "negate" the output expression based on `operator`.
    * TODO: this is language-dependent!
    */
+  // TODO: @override
   shouldNegateOutput(operator) {
     return false
   }
@@ -43,7 +50,7 @@ SpellParser.Rules.InfixOperatorSuffix = class infix_operator extends Sequence {
     return new AST.InfixExpression(match, {
       lhs,
       operator: this.getOutputOperator(operator),
-      rhs,
+      rhs
     })
   }
 
@@ -72,9 +79,10 @@ SpellParser.Rules.InfixOperatorSuffix = class infix_operator extends Sequence {
     throw new TypeError("This should never be called")
   }
 }
+SpellParser.Rules.InfixOperatorSuffix = InfixOperatorSuffix
 
 /** TODOC!!! */
-SpellParser.Rules.PostfixOperatorSuffix = class postfix_operator extends SpellParser.Rules.InfixOperatorSuffix {
+export class PostfixOperatorSuffix extends InfixOperatorSuffix {
   /**
    * - `lhs` is left-hand side match
    * - `operator` is raw full input operator string
@@ -83,20 +91,27 @@ SpellParser.Rules.PostfixOperatorSuffix = class postfix_operator extends SpellPa
     throw new TypeError("Must implement compileASTExpression()")
   }
 }
+SpellParser.Rules.PostfixOperatorSuffix = PostfixOperatorSuffix
+
+////////////////////
+// Expression rules
+////////////////////
 
 export const expressions = new SpellParser({
   module: "expressions",
   rules: [
     {
       name: "parenthesized_expression",
-      alias: ["expression"],
+      alias: "expression",
       syntax: "\\( {expression} \\)",
       testRule: "\\(",
-      getAST(match) {
-        const { expression } = match.groups
-        return new AST.ParenthesizedExpression(match, {
-          expression: expression.AST,
-        })
+      constructor: class parenthesized_expression extends SpellExpression {
+        getAST(match) {
+          const { expression } = match.groups
+          return new AST.ParenthesizedExpression(match, {
+            expression: expression.AST
+          })
+        }
       },
       tests: [
         {
@@ -108,8 +123,8 @@ export const expressions = new SpellParser({
             ["(thing)", "(thing)"],
             ["((thing))", "(thing)"],
             ["(((thing)))", "(thing)"],
-            ["(1 and yes)", "(1 && true)"],
-          ],
+            ["(1 and yes)", "(1 && true)"]
+          ]
         },
         {
           title: "correctly matches multiple parenthesis",
@@ -117,17 +132,17 @@ export const expressions = new SpellParser({
           tests: [
             ["(1) and (yes)", "((1) && (true))"],
             ["((1) and (yes))", "((1) && (true))"],
-            ["((1) and ((yes)))", "((1) && (true))"],
-          ],
+            ["((1) and ((yes)))", "((1) && (true))"]
+          ]
         },
         {
           title: "doesn't match malformed parenthesized expressions",
           tests: [
             ["(foo", undefined],
-            ["(foo(bar)baz", undefined],
-          ],
-        },
-      ],
+            ["(foo(bar)baz", undefined]
+          ]
+        }
+      ]
     },
 
     {
@@ -136,86 +151,87 @@ export const expressions = new SpellParser({
       isLeftRecursive: true,
       precedence: 12,
       syntax: "{lhs:simple_expression} {rhsChain:expression_suffix}+",
-      getAST(match) {
-        function applyOperatorToRule({ match: ruleMatch, operator, rhs, lhs }) {
-          function compile(thing) {
-            if (!thing) return undefined
-            // TODO: we have one case ("is the queen of spades") where `thing` match is an array... :-(
-            if (Array.isArray(thing)) return thing.map(compile)
-            if (thing instanceof Match && thing.rule.getAST) return thing.AST
-            return thing
-          }
-
-          const args = {
-            operator,
-            rhs: compile(rhs),
-            lhs: compile(lhs),
-          }
-          const result = ruleMatch.rule.compileAST(ruleMatch, args)
-          return result
-        }
-
-        // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
-        //  to deal with operator precedence.  Note that we assume:
-        //  - all infix operators are `left-to-right` associative, and
-        //  - all postfix operators are left to right associative.
-        // See: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
-        // See: https://www.chris-j.co.uk/parsing.php
-        const { lhs, rhsChain } = match.groups
-        const output = [lhs]
-        const opStack = []
-        rhsChain.matched.forEach((rhs) => {
-          // Unary postfix operator, e.g. "<lhs> is empty"
-          if (rhs.rule instanceof SpellParser.Rules.PostfixOperatorSuffix) {
-            const args = {
-              match: rhs,
-              lhs: output.pop(),
-              // use explicit operator if there is one, default to entire match
-              operator: rhs.groups.operator || rhs,
+      constructor: class compound_expression extends SpellExpression {
+        getAST(match) {
+          function applyOperatorToRule({ match: ruleMatch, operator, rhs, lhs }) {
+            function compile(thing) {
+              if (!thing) return undefined
+              // TODO: we have one case ("is the queen of spades") where `thing` match is an array... :-(
+              if (Array.isArray(thing)) return thing.map(compile)
+              if (thing instanceof Match && thing.rule.getAST) return thing.AST
+              return thing
             }
-            output.push(applyOperatorToRule(args))
-          }
-          // Infix binary operator, e.g. "<lhs> is a <rhs>"
-          else if (rhs.rule instanceof SpellParser.Rules.InfixOperatorSuffix) {
-            const { operator, expression } = rhs.groups
 
-            // While top operator on stack is higher precedence than this one
-            while (opStack[opStack.length - 1]?.match.rule.precedence >= rhs.rule.precedence) {
-              // pop the top operator and compile it with top 2 things on the output stack
-              const topOp = opStack.pop()
+            const args = {
+              operator,
+              rhs: compile(rhs),
+              lhs: compile(lhs)
+            }
+            const result = ruleMatch.rule.compileAST(ruleMatch, args)
+            return result
+          }
+
+          // Iterate through the rhs expressions, using a variant of the shunting-yard algorithm
+          //  to deal with operator precedence.  Note that we assume:
+          //  - all infix operators are `left-to-right` associative, and
+          //  - all postfix operators are left to right associative.
+          // See: https://en.wikipedia.org/wiki/Shunting-yard_algorithm
+          // See: https://www.chris-j.co.uk/parsing.php
+          const { lhs, rhsChain } = match.groups
+          const output = [lhs]
+          const opStack = []
+          rhsChain.matched.forEach((rhs) => {
+            // Unary postfix operator, e.g. "<lhs> is empty"
+            if (rhs.rule instanceof SpellParser.Rules.PostfixOperatorSuffix) {
               const args = {
-                ...topOp,
-                rhs: output.pop(), // NOTE: order is vital here!
+                match: rhs,
                 lhs: output.pop(),
+                // use explicit operator if there is one, default to entire match
+                operator: rhs.groups.operator || rhs
               }
               output.push(applyOperatorToRule(args))
             }
+            // Infix binary operator, e.g. "<lhs> is a <rhs>"
+            else if (rhs.rule instanceof SpellParser.Rules.InfixOperatorSuffix) {
+              const { operator, expression } = rhs.groups
 
-            // Push the current operator and expression
-            opStack.push({ match: rhs, operator })
-            output.push(expression)
-          } else {
-            console.warn("Unexpected rule type", rhs.rule.name)
-          }
-        })
+              // While top operator on stack is higher precedence than this one
+              while (opStack[opStack.length - 1]?.match.rule.precedence >= rhs.rule.precedence) {
+                // pop the top operator and compile it with top 2 things on the output stack
+                const topOp = opStack.pop()
+                const args = {
+                  ...topOp,
+                  rhs: output.pop(), // NOTE: order is vital here!
+                  lhs: output.pop()
+                }
+                output.push(applyOperatorToRule(args))
+              }
 
-        // At this point, we have only binary operators in the output stack.
-        // Run through them and apply the operator to them in pairs.
-        let topOp
-        while ((topOp = opStack.pop())) {
-          const args = {
-            ...topOp,
-            rhs: output.pop(), // NOTE: order is vital here!
-            lhs: output.pop(),
+              // Push the current operator and expression
+              opStack.push({ match: rhs, operator })
+              output.push(expression)
+            } else {
+              console.warn("Unexpected rule type", rhs.rule.name)
+            }
+          })
+
+          // At this point, we have only binary operators in the output stack.
+          // Run through them and apply the operator to them in pairs.
+          let topOp
+          while ((topOp = opStack.pop())) {
+            const args = {
+              ...topOp,
+              rhs: output.pop(), // NOTE: order is vital here!
+              lhs: output.pop()
+            }
+            output.push(applyOperatorToRule(args))
           }
-          output.push(applyOperatorToRule(args))
+          if (output.length !== 1) {
+            console.warn("Shunting yard ended up with too much output:", output)
+          }
+          return output[0]
         }
-        if (output.length !== 1) {
-          console.warn("Shunting yard ended up with too much output:", output)
-        }
-        return output[0]
       },
-
       // test multiple infix expressions in a row
       tests: [
         {
@@ -224,8 +240,8 @@ export const expressions = new SpellParser({
           tests: [
             ["1 + 2 + 3", "((1 + 2) + 3)"],
             ["(1+1) * (2+2)", "((1 + 1) * (2 + 2))"],
-            ["((1+1) * (2+2))", "((1 + 1) * (2 + 2))"],
-          ],
+            ["((1+1) * (2+2))", "((1 + 1) * (2 + 2))"]
+          ]
         },
         {
           title: "complex property/etc expressions",
@@ -233,9 +249,9 @@ export const expressions = new SpellParser({
           beforeEach(scope) {
             scope.variables.add("card")
           },
-          tests: [[`the suit of the card is "ace"`, `(card.suit == "ace")`]],
-        },
-      ],
+          tests: [[`the suit of the card is "ace"`, `(card.suit == "ace")`]]
+        }
+      ]
     },
 
     {
@@ -243,9 +259,12 @@ export const expressions = new SpellParser({
       alias: "expression_suffix",
       syntax: "(operator:and) {expression:simple_expression}",
       precedence: 6,
-      constructor: "InfixOperatorSuffix",
-      getOutputOperator: () => "&&",
       parenthesize: true,
+      constructor: class and extends InfixOperatorSuffix {
+        getOutputOperator() {
+          return "&&"
+        }
+      },
       tests: [
         {
           compileAs: "expression",
@@ -257,10 +276,10 @@ export const expressions = new SpellParser({
           tests: [
             ["thing and other", "(thing && other)"],
             ["thing and other and yet-another", "((thing && other) && yet_another)"],
-            ["thing is 1 and other is 2", "((thing == 1) && (other == 2))"],
-          ],
-        },
-      ],
+            ["thing is 1 and other is 2", "((thing == 1) && (other == 2))"]
+          ]
+        }
+      ]
     },
 
     {
@@ -268,9 +287,12 @@ export const expressions = new SpellParser({
       alias: "expression_suffix",
       syntax: "(operator:or) {expression:simple_expression}",
       precedence: 5,
-      constructor: "InfixOperatorSuffix",
-      getOutputOperator: () => "||",
       parenthesize: true,
+      constructor: class or extends InfixOperatorSuffix {
+        getOutputOperator() {
+          return "||"
+        }
+      },
       tests: [
         {
           compileAs: "expression",
@@ -278,9 +300,9 @@ export const expressions = new SpellParser({
             scope.variables.add("thing")
             scope.variables.add("other")
           },
-          tests: [["thing or other", "(thing || other)"]],
-        },
-      ],
+          tests: [["thing or other", "(thing || other)"]]
+        }
+      ]
     },
 
     {
@@ -288,9 +310,12 @@ export const expressions = new SpellParser({
       alias: "expression_suffix",
       precedence: 10,
       syntax: "(operator:is not?) {expression:simple_expression}",
-      constructor: "InfixOperatorSuffix",
       parenthesize: true,
-      getOutputOperator: (operator) => (operator.value === "is not" ? "!=" : "=="),
+      constructor: class is extends InfixOperatorSuffix {
+        getOutputOperator(operator) {
+          return operator.value === "is not" ? "!=" : "=="
+        }
+      },
       tests: [
         {
           compileAs: "expression",
@@ -300,10 +325,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["thing is other", "(thing == other)"],
-            ["thing is not other", "(thing != other)"],
-          ],
-        },
-      ],
+            ["thing is not other", "(thing != other)"]
+          ]
+        }
+      ]
     },
 
     {
@@ -311,9 +336,12 @@ export const expressions = new SpellParser({
       alias: "expression_suffix",
       precedence: 10,
       syntax: "(operator:is not? exactly) {expression:simple_expression}",
-      constructor: "InfixOperatorSuffix",
       parenthesize: true,
-      getOutputOperator: (operator) => (operator.value === "is not exactly" ? "!==" : "==="),
+      constructor: class is_exactly extends InfixOperatorSuffix {
+        getOutputOperator(operator) {
+          return operator.value === "is not exactly" ? "!==" : "==="
+        }
+      },
       tests: [
         {
           compileAs: "expression",
@@ -323,10 +351,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["thing is exactly other", "(thing === other)"],
-            ["thing is not exactly other", "(thing !== other)"],
-          ],
-        },
-      ],
+            ["thing is not exactly other", "(thing !== other)"]
+          ]
+        }
+      ]
     },
 
     {
@@ -334,14 +362,17 @@ export const expressions = new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:is not? (a|an)) {expression:type}",
-      constructor: "InfixOperatorSuffix",
-      shouldNegateOutput: (operator) => operator.value.includes("not"),
-      compileASTExpression(match, { lhs, rhs }) {
-        // TODO: QuotedExpression feels wrong here...
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "isOfType",
-          args: [lhs, new AST.QuotedExpression(match, { expression: rhs })],
-        })
+      constructor: class is_a extends InfixOperatorSuffix {
+        shouldNegateOutput(operator) {
+          return operator.value.includes("not")
+        }
+        compileASTExpression(match, { lhs, rhs }) {
+          // TODO: QuotedExpression feels wrong here...
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "isOfType",
+            args: [lhs, new AST.QuotedExpression(match, { expression: rhs })]
+          })
+        }
       },
       tests: [
         {
@@ -353,10 +384,10 @@ export const expressions = new SpellParser({
             ["thing is a Bee", "spellCore.isOfType(thing, 'Bee')"],
             ["thing is an Animal", "spellCore.isOfType(thing, 'Animal')"],
             ["thing is not a Bee", "!spellCore.isOfType(thing, 'Bee')"],
-            ["thing is not an Animal", "!spellCore.isOfType(thing, 'Animal')"],
-          ],
-        },
-      ],
+            ["thing is not an Animal", "!spellCore.isOfType(thing, 'Animal')"]
+          ]
+        }
+      ]
     },
 
     {
@@ -364,13 +395,16 @@ export const expressions = new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:is not? the same type as) {expression:simple_expression}",
-      constructor: "InfixOperatorSuffix",
-      getOutputOperator: (operator) => (operator.value.includes("not") ? "!==" : "==="),
-      compileASTExpression(match, { lhs, rhs }) {
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "matchesType",
-          args: [lhs, rhs],
-        })
+      constructor: class is_same_type_as extends InfixOperatorSuffix {
+        getOutputOperator(operator) {
+          return operator.value.includes("not") ? "!==" : "==="
+        }
+        compileASTExpression(match, { lhs, rhs }) {
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "matchesType",
+            args: [lhs, rhs]
+          })
+        }
       },
       tests: [
         {
@@ -381,10 +415,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["thing is the same type as other", "spellCore.matchesType(thing, other)"],
-            ["thing is not the same type as other", "spellCore.matchesType(thing, other)"],
-          ],
-        },
-      ],
+            ["thing is not the same type as other", "spellCore.matchesType(thing, other)"]
+          ]
+        }
+      ]
     },
 
     {
@@ -393,13 +427,16 @@ export const expressions = new SpellParser({
       precedence: 11,
       syntax:
         "(operator:is (not? in|not? one of|either|not either of?|neither)) (expression:{simple_expression}|{identifier_list})",
-      constructor: "InfixOperatorSuffix",
-      shouldNegateOutput: ({ value }) => value.includes("not") || value.includes("neither"),
-      compileASTExpression(match, { lhs, rhs }) {
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "includes",
-          args: [rhs, lhs],
-        })
+      constructor: class is_in extends InfixOperatorSuffix {
+        shouldNegateOutput({ value }) {
+          return value.includes("not") || value.includes("neither")
+        }
+        compileASTExpression(match, { lhs, rhs }) {
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "includes",
+            args: [rhs, lhs]
+          })
+        }
       },
       tests: [
         {
@@ -418,10 +455,10 @@ export const expressions = new SpellParser({
             ["thing is either red or green", "spellCore.includes([red, 'green'], thing)"],
             ["thing is not either red or green", "!spellCore.includes([red, 'green'], thing)"],
             ["thing is not either of red or green", "!spellCore.includes([red, 'green'], thing)"],
-            ["thing is neither red nor green", "!spellCore.includes([red, 'green'], thing)"],
-          ],
-        },
-      ],
+            ["thing is neither red nor green", "!spellCore.includes([red, 'green'], thing)"]
+          ]
+        }
+      ]
     },
 
     {
@@ -429,12 +466,13 @@ export const expressions = new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:includes|contains) {expression:simple_expression}",
-      constructor: "InfixOperatorSuffix",
-      compileASTExpression(match, { lhs, rhs }) {
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "includes",
-          args: [lhs, rhs],
-        })
+      constructor: class includes extends InfixOperatorSuffix {
+        compileASTExpression(match, { lhs, rhs }) {
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "includes",
+            args: [lhs, rhs]
+          })
+        }
       },
       tests: [
         {
@@ -445,10 +483,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["theList includes thing", "spellCore.includes(theList, thing)"],
-            ["theList contains thing", "spellCore.includes(theList, thing)"],
-          ],
-        },
-      ],
+            ["theList contains thing", "spellCore.includes(theList, thing)"]
+          ]
+        }
+      ]
     },
 
     {
@@ -456,13 +494,16 @@ export const expressions = new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:does not (include|contain)) {expression:simple_expression}",
-      constructor: "InfixOperatorSuffix",
-      shouldNegateOutput: () => true,
-      compileASTExpression(match, { lhs, rhs }) {
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "includes",
-          args: [lhs, rhs],
-        })
+      constructor: class does_not_include extends InfixOperatorSuffix {
+        shouldNegateOutput() {
+          return true
+        }
+        compileASTExpression(match, { lhs, rhs }) {
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "includes",
+            args: [lhs, rhs]
+          })
+        }
       },
       tests: [
         {
@@ -473,10 +514,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["theList does not include thing", "!spellCore.includes(theList, thing)"],
-            ["theList does not contain thing", "!spellCore.includes(theList, thing)"],
-          ],
-        },
-      ],
+            ["theList does not contain thing", "!spellCore.includes(theList, thing)"]
+          ]
+        }
+      ]
     },
 
     {
@@ -484,13 +525,16 @@ export const expressions = new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "is (defined|undefined|not defined)",
-      constructor: "PostfixOperatorSuffix",
-      shouldNegateOutput: (operator) => operator.value !== "is defined",
-      compileASTExpression(match, { lhs }) {
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "isDefined",
-          args: [lhs],
-        })
+      constructor: class is_defined extends PostfixOperatorSuffix {
+        shouldNegateOutput(operator) {
+          return operator.value !== "is defined"
+        }
+        compileASTExpression(match, { lhs }) {
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "isDefined",
+            args: [lhs]
+          })
+        }
       },
       tests: [
         {
@@ -501,10 +545,10 @@ export const expressions = new SpellParser({
           tests: [
             ["thing is defined", "spellCore.isDefined(thing)"],
             ["thing is undefined", "!spellCore.isDefined(thing)"],
-            ["thing is not defined", "!spellCore.isDefined(thing)"],
-          ],
-        },
-      ],
+            ["thing is not defined", "!spellCore.isDefined(thing)"]
+          ]
+        }
+      ]
     },
 
     {
@@ -512,13 +556,16 @@ export const expressions = new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(exists|does not exist)",
-      constructor: "PostfixOperatorSuffix",
-      shouldNegateOutput: (operator) => operator.value !== "exists",
-      compileASTExpression(match, { lhs }) {
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "isDefined",
-          args: [lhs],
-        })
+      constructor: class exists extends PostfixOperatorSuffix {
+        shouldNegateOutput(operator) {
+          return operator.value !== "exists"
+        }
+        compileASTExpression(match, { lhs }) {
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "isDefined",
+            args: [lhs]
+          })
+        }
       },
       tests: [
         {
@@ -528,10 +575,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["thing exists", "spellCore.isDefined(thing)"],
-            ["thing does not exist", "!spellCore.isDefined(thing)"],
-          ],
-        },
-      ],
+            ["thing does not exist", "!spellCore.isDefined(thing)"]
+          ]
+        }
+      ]
     },
 
     {
@@ -539,14 +586,16 @@ export const expressions = new SpellParser({
       alias: "expression",
       precedence: 11,
       syntax: "there (operator:is not? (a|an)|is no such) {expression}",
-      getAST(match) {
-        const { operator } = match.groups
-        const expression = new AST.CoreMethodInvocation(match, {
-          methodName: "isDefined",
-          args: [match.groups.expression.AST],
-        })
-        if (operator.value.includes("no")) return new AST.NotExpression(match, { expression })
-        return expression
+      constructor: class there_is_a extends SpellExpression {
+        getAST(match) {
+          const { operator } = match.groups
+          const expression = new AST.CoreMethodInvocation(match, {
+            methodName: "isDefined",
+            args: [match.groups.expression.AST]
+          })
+          if (operator.value.includes("no")) return new AST.NotExpression(match, { expression })
+          return expression
+        }
       },
       tests: [
         {
@@ -559,10 +608,10 @@ export const expressions = new SpellParser({
             { input: "there is a thing", output: "spellCore.isDefined(thing)" },
             { input: "there is an animal", output: "spellCore.isDefined(animal)" },
             { input: "there is not a thing", output: "!spellCore.isDefined(thing)" },
-            { input: "there is no such animal", output: "!spellCore.isDefined(animal)" },
-          ],
-        },
-      ],
+            { input: "there is no such animal", output: "!spellCore.isDefined(animal)" }
+          ]
+        }
+      ]
     },
 
     /** Collection is empty */
@@ -571,13 +620,16 @@ export const expressions = new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "(operator:is not? empty)",
-      constructor: "PostfixOperatorSuffix",
-      shouldNegateOutput: (operator) => operator.value.includes("not"),
-      compileASTExpression(match, { lhs }) {
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "isEmpty",
-          args: [lhs],
-        })
+      constructor: class is_empty extends PostfixOperatorSuffix {
+        shouldNegateOutput(operator) {
+          return operator.value.includes("not")
+        }
+        compileASTExpression(match, { lhs }) {
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "isEmpty",
+            args: [lhs]
+          })
+        }
       },
       tests: [
         {
@@ -587,10 +639,10 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["thing is empty", "spellCore.isEmpty(thing)"],
-            ["thing is not empty", "!spellCore.isEmpty(thing)"],
-          ],
-        },
-      ],
+            ["thing is not empty", "!spellCore.isEmpty(thing)"]
+          ]
+        }
+      ]
     },
 
     /** String utilities */
@@ -599,44 +651,46 @@ export const expressions = new SpellParser({
       alias: "expression_suffix",
       precedence: 11,
       syntax: "as (upper case|uppercase)",
-      constructor: "PostfixOperatorSuffix",
-      compileASTExpression(match, { lhs }) {
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "upperCase",
-          args: [lhs],
-        })
+      constructor: class as_uppercase extends PostfixOperatorSuffix {
+        compileASTExpression(match, { lhs }) {
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "upperCase",
+            args: [lhs]
+          })
+        }
       },
       tests: [
         {
           compileAs: "expression",
           tests: [
             [`"foo" as upper case`, `spellCore.upperCase("foo")`],
-            [`1 as uppercase`, `spellCore.upperCase(1)`],
-          ],
-        },
-      ],
+            [`1 as uppercase`, `spellCore.upperCase(1)`]
+          ]
+        }
+      ]
     },
     {
       name: "as_lowercase",
       alias: "expression_suffix",
       precedence: 11,
       syntax: "as (lower case|lowercase)",
-      constructor: "PostfixOperatorSuffix",
-      compileASTExpression(match, { lhs }) {
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "lowerCase",
-          args: [lhs],
-        })
+      constructor: class as_lowercase extends PostfixOperatorSuffix {
+        compileASTExpression(match, { lhs }) {
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "lowerCase",
+            args: [lhs]
+          })
+        }
       },
       tests: [
         {
           compileAs: "expression",
           tests: [
             [`"foo" as lower case`, `spellCore.lowerCase("foo")`],
-            [`1 as lowercase`, `spellCore.lowerCase(1)`],
-          ],
-        },
-      ],
-    },
-  ],
+            [`1 as lowercase`, `spellCore.lowerCase(1)`]
+          ]
+        }
+      ]
+    }
+  ]
 })
