@@ -37,9 +37,9 @@ export const spellParser = new SpellParser({ module: "spell" })
 export { ParseError } from "./ParseError"
 
 spellParser.defineRule({ name: "blank_line", constructor: Rules.BlankLine })
-spellParser.defineRule({ name: "block", constructor: "Block" })
-spellParser.defineRule({ name: "line", constructor: "BlockLine" })
-spellParser.defineRule({ name: "parse_error", constructor: "ParseError" })
+spellParser.defineRule({ name: "block", constructor: SpellParser.Rules.Block })
+spellParser.defineRule({ name: "line", constructor: SpellParser.Rules.BlockLine })
+spellParser.defineRule({ name: "parse_error", constructor: SpellParser.Rules.ParseError })
 
 // Import the other rules defined above.
 spellParser.import(

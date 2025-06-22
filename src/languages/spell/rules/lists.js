@@ -732,7 +732,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {list:expression}",
       testRule: "add",
-      constructor: "Statement",
       constructor: class list_add extends SpellStatement {
         getAST(match) {
           const { thing, list, method } = match.groups
@@ -770,7 +769,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "prepend {thing:expression} to {list:expression}",
       testRule: "prepend",
-      constructor: "Statement",
       constructor: class list_prepend extends SpellStatement {
         getAST(match) {
           const { thing, list } = match.groups
@@ -798,7 +796,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "append {thing:expression} to {list:expression}",
       testRule: "append",
-      constructor: "Statement",
       constructor: class list_append extends SpellStatement {
         getAST(match) {
           const { thing, list } = match.groups
@@ -834,7 +831,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
       testRule: "add",
-      constructor: "Statement",
       constructor: class list_add_relative extends SpellStatement {
         getAST(match) {
           const { thing, list, operator, item } = match.groups
@@ -888,7 +884,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "(empty|clear) {list:expression}",
       testRule: "(empty|clear)",
-      constructor: "Statement",
       constructor: class list_empty extends SpellStatement {
         getAST(match) {
           const { list } = match.groups
@@ -919,7 +914,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "remove the? {position:ordinal} {arg:singular_variable} of {list:expression}",
       testRule: "remove",
-      constructor: "Statement",
       constructor: class list_remove_ordinal extends SpellStatement {
         getAST(match) {
           const { position, list } = match.groups
@@ -949,7 +943,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "remove {arg:singular_variable} {number:expression} of {list:expression}",
       testRule: "remove",
-      constructor: "Statement",
       constructor: class list_remove_position extends SpellStatement {
         getAST(match) {
           const { number, list } = match.groups
@@ -978,7 +971,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "remove {arg:plural_variable} {start:expression} to {end:expression} of {list:expression}",
       testRule: "remove",
-      constructor: "Statement",
       constructor: class list_remove_range extends SpellStatement {
         getAST(match) {
           const { start, end, list } = match.groups
@@ -1004,7 +996,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "remove {start:ordinal} to {end:ordinal} {arg:plural_variable} of {list:expression}",
       testRule: "remove",
-      constructor: "Statement",
       constructor: class list_remove_range_ordinal extends SpellStatement {
         getAST(match) {
           const { start, end, list } = match.groups
@@ -1034,7 +1025,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "remove {thing:expression} from {list:expression}",
       testRule: "remove",
-      constructor: "Statement",
       constructor: class list_remove extends SpellStatement {
         getAST(match) {
           const { thing, list } = match.groups
@@ -1062,7 +1052,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "remove {arg:plural_variable} (in|of|from) {list:expression} where",
       testRule: "remove",
-      constructor: "Statement",
       wantsInlineStatement: true,
       parseInlineStatementAs: "expression",
       constructor: class list_remove_where extends SpellStatement {
@@ -1129,7 +1118,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "reverse ((the? {arg:plural_variable}) (in|of))? {list:expression}",
       testRule: "reverse",
-      constructor: "Statement",
       constructor: class list_reverse extends SpellStatement {
         getAST(match) {
           const { list } = match.groups
@@ -1160,7 +1148,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "(randomize|shuffle) ((the? {arg:plural_variable}) (in|of))? {list:expression}",
       testRule: "(randomize|shuffle)",
-      constructor: "Statement",
       constructor: class list_shuffle extends SpellStatement {
         getAST(match) {
           const { list } = match.groups
@@ -1192,7 +1179,6 @@ export const lists = new SpellParser({
       alias: ["statement", "expression"],
       syntax: "repeat {number:expression} (time|times) :?",
       testRule: "repeat",
-      constructor: "Statement",
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       constructor: class repeat_n_times extends SpellStatement {
@@ -1269,7 +1255,6 @@ export const lists = new SpellParser({
       alias: ["statement", "expression"],
       syntax: "for each? {item:singular_variable} ((and|,) {position:singular_variable})? (in|of) {list:expression} :?",
       testRule: "for",
-      constructor: "Statement",
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       constructor: class list_iteration extends SpellStatement {
@@ -1386,7 +1371,6 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "for each? {item:singular_variable} from {start:expression} down? to {end:expression} :?",
       testRule: "for",
-      constructor: "Statement",
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       constructor: class list_range_iteration extends SpellStatement {

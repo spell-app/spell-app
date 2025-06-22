@@ -5,12 +5,12 @@ import { Rules, Tokens, MethodScope } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
 import { Sequence } from "~/parser/rule/Sequence"
 import { SpellStatement } from "./Statement"
-import { SpellExpression } from "./expressions"
+import { SpellExpression, PostfixOperatorSuffix, InfixOperatorSuffix } from "./expressions"
 
 /**
  * Abstract class for a dynamic method created with `to_do_something` below.
  */
-SpellParser.Rules.DynamicMethodRule = class dynamic_method extends SpellStatement {
+const DynamicMethodRule = class dynamic_method extends SpellStatement {
   // Name of the method to call
   /*@proto*/ get methodName() {
     return undefined
@@ -134,13 +134,14 @@ SpellParser.Rules.MethodDefinition = class method_definition extends SpellParser
         precedence: 20,
         alias: "expression_suffix",
         syntax,
-        constructor: "PostfixOperatorSuffix",
         shouldNegateOutput,
-        compileASTExpression(_match, { lhs }) {
-          return new AST.PropertyExpression(_match, {
-            object: lhs,
-            property: new AST.PropertyLiteral(_match, methodName)
-          })
+        constructor: class _dynamicMethodRulePostfix extends PostfixOperatorSuffix {
+          compileASTExpression(_match, { lhs }) {
+            return new AST.PropertyExpression(_match, {
+              object: lhs,
+              property: new AST.PropertyLiteral(_match, methodName)
+            })
+          }
         }
       }
     }
@@ -150,22 +151,23 @@ SpellParser.Rules.MethodDefinition = class method_definition extends SpellParser
         precedence: 20,
         alias: "expression_suffix",
         syntax,
-        constructor: "InfixOperatorSuffix",
         parenthesize: true,
         shouldNegateOutput,
-        compileASTExpression(_match, { lhs, rhs }) {
-          return new AST.ScopedMethodInvocation(match, {
-            thing: lhs,
-            methodName,
-            args: [rhs]
-          })
+        constructor: class _dynamicMethodRuleInfix extends InfixOperatorSuffix {
+          compileASTExpression(_match, { lhs, rhs }) {
+            return new AST.ScopedMethodInvocation(match, {
+              thing: lhs,
+              methodName,
+              args: [rhs]
+            })
+          }
         }
       }
     }
     return {
       name: methodName,
       alias: asTest ? "statement" : ["statement", "expression"],
-      constructor: "DynamicMethodRule",
+      constructor: DynamicMethodRule,
       syntax,
       methodName
     }
@@ -270,6 +272,7 @@ SpellParser.Rules.MethodDefinition = class method_definition extends SpellParser
     return new AST.StatementGroup(match, { statements: output })
   }
 }
+SpellParser.Rules.DynamicMethodRule = DynamicMethodRule
 
 // to foo the bar
 // to foo (a thing)

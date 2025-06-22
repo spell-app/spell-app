@@ -1,6 +1,7 @@
 import { upperFirst, pluralize, singularize } from "~/util"
 import { SpellParser, AST } from "~/languages/spell"
 import { MethodScope } from "../../../parser"
+import { Literals } from "~/parser/rule/Literals"
 import { Sequence } from "~/parser/rule/Sequence"
 import { SpellStatement } from "./Statement"
 import { SpellExpression, InfixOperatorSuffix } from "./expressions"
@@ -365,11 +366,13 @@ export const classes = new SpellParser({
               precedence: 20,
               alias: "expression",
               literals,
-              getAST(_match) {
-                return new AST.PropertyExpression(_match, {
-                  object: type.AST,
-                  property: new AST.PropertyLiteral(property, groupName)
-                })
+              constructor: class typename_groupname extends Literals {
+                getAST(_match) {
+                  return new AST.PropertyExpression(_match, {
+                    object: type.AST,
+                    property: new AST.PropertyLiteral(property, groupName)
+                  })
+                }
               }
             })
 

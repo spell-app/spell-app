@@ -15,7 +15,8 @@ export const core = new SpellParser({
     {
       name: "eat_whitespace",
       syntax: "{whitespace}*",
-      datatype: "string"
+      datatype: "string",
+      constructor: class eat_whitespace extends Rules.Subrule {}
     },
 
     // Any whitespace.

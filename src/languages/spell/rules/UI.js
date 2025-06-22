@@ -105,17 +105,18 @@ export const UI = new SpellParser({
       alias: ["statement", "async"],
       syntax: "alert {message:expression} (with {okButton:text})?",
       testRule: "alert",
-      constructor: "Statement",
-      getAST(match) {
-        const { message, okButton } = match.groups
-        const args = [message.AST]
-        if (okButton) args.push(okButton.AST)
-        return new AST.AwaitExpression(match, {
-          expression: new AST.CoreMethodInvocation(match, {
-            methodName: "alert",
-            args
+      constructor: class alert extends SpellStatement {
+        getAST(match) {
+          const { message, okButton } = match.groups
+          const args = [message.AST]
+          if (okButton) args.push(okButton.AST)
+          return new AST.AwaitExpression(match, {
+            expression: new AST.CoreMethodInvocation(match, {
+              methodName: "alert",
+              args
+            })
           })
-        })
+        }
       },
       tests: [
         {
