@@ -18,7 +18,7 @@ const WORD = /^[a-zA-Z][\w\-]*$/
 //        - if we find one, you can override what's output with `variable.ouput`.
 // TODO: type based on scope variable type?
 // TODO: higher precedence if variable is known?
-SpellParser.Rules.VariableIdentifier = class _variable extends Pattern {
+class VariableIdentifier extends Pattern {
   /*@proto*/ get pattern() {
     return WORD
   }
@@ -45,6 +45,7 @@ SpellParser.Rules.VariableIdentifier = class _variable extends Pattern {
     return new AST.VariableExpression(match, { raw: match.raw, name, variable })
   }
 }
+SpellParser.Rules.VariableIdentifier = VariableIdentifier
 
 export const variables = new SpellParser({
   module: "variables",
@@ -53,7 +54,7 @@ export const variables = new SpellParser({
     // You won't generally use this, use `variable` or `unknown_variable` instead.
     {
       name: "variable_identifier",
-      constructor: "VariableIdentifier"
+      constructor: VariableIdentifier
     },
 
     // VariableIdentifier which may or may not be known, with optional `the` prefix.
@@ -124,7 +125,7 @@ export const variables = new SpellParser({
     // Possibly unknown variable identifier which MUST be singular, WITHOUT `the`.
     {
       name: "singular_variable",
-      constructor: class singular_variable extends SpellParser.Rules.VariableIdentifier {
+      constructor: class singular_variable extends VariableIdentifier {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === singularize(match.raw)) return match
@@ -151,7 +152,7 @@ export const variables = new SpellParser({
     // Possibly unknown variable identifier which MUST be plural, WITHOUT `the`.
     {
       name: "plural_variable",
-      constructor: class plural_variable extends SpellParser.Rules.VariableIdentifier {
+      constructor: class plural_variable extends VariableIdentifier {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === pluralize(match.raw)) return match

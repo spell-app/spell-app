@@ -2,7 +2,7 @@
 //  # Rules for creating variables, property access, etc
 //
 
-import { Tokens } from "~/parser"
+import { Tokens, Rules } from "~/parser"
 import { SpellParser, AST } from "~/languages/spell"
 import { Sequence } from "~/parser/rule/Sequence"
 import { SpellStatement } from "./Statement"
@@ -16,22 +16,23 @@ export const UI = new SpellParser({
       name: "print",
       alias: "statement",
       syntax: "print (operator:info|warning|error|collapsed? group)? [expressions: {expression} ,]",
-      constructor: "Statement",
-      operatorMap: {
-        info: "info",
-        warning: "warn",
-        error: "error",
-        group: "group",
-        "collapsed group": "groupCollapsed",
-        default: "log"
-      },
-      getAST(match) {
-        const { operator, expressions } = match.groups
-        const methodName = this.operatorMap[operator?.value || "default"]
-        return new AST.ConsoleMethodInvocation(match, {
-          methodName,
-          args: expressions?.items.map((item) => item.AST)
-        })
+      constructor: class print extends SpellStatement {
+        operatorMap = {
+          info: "info",
+          warning: "warn",
+          error: "error",
+          group: "group",
+          "collapsed group": "groupCollapsed",
+          default: "log"
+        }
+        getAST(match) {
+          const { operator, expressions } = match.groups
+          const methodName = this.operatorMap[operator?.value || "default"]
+          return new AST.ConsoleMethodInvocation(match, {
+            methodName,
+            args: expressions?.items.map((item) => item.AST)
+          })
+        }
       },
       tests: [
         {
@@ -52,9 +53,10 @@ export const UI = new SpellParser({
       name: "end_print_group",
       alias: "statement",
       syntax: "end print group",
-      constructor: "Statement",
-      getAST(match) {
-        return new AST.ConsoleMethodInvocation(match, { methodName: "groupEnd" })
+      constructor: class end_print_group extends SpellStatement {
+        getAST(match) {
+          return new AST.ConsoleMethodInvocation(match, { methodName: "groupEnd" })
+        }
       },
       tests: [
         {
@@ -72,15 +74,16 @@ export const UI = new SpellParser({
       alias: ["statement", "async"],
       syntax: "notify {message:expression} (with {okButton:text})?", // TODO: "with close" ?
       testRule: "notify",
-      constructor: "Statement",
-      getAST(match) {
-        const { message, okButton } = match.groups
-        const args = [message.AST]
-        if (okButton) args.push(okButton.AST)
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "notify",
-          args
-        })
+      constructor: class notify extends SpellStatement {
+        getAST(match) {
+          const { message, okButton } = match.groups
+          const args = [message.AST]
+          if (okButton) args.push(okButton.AST)
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "notify",
+            args
+          })
+        }
       },
       tests: [
         {
@@ -134,17 +137,18 @@ export const UI = new SpellParser({
       alias: "statement",
       syntax: "warn {message:expression} (with {okButton:text})?",
       testRule: "warn",
-      constructor: "Statement",
-      getAST(match) {
-        const { message, okButton } = match.groups
-        const args = [message.AST]
-        if (okButton) args.push(okButton.AST)
-        return new AST.AwaitExpression(match, {
-          expression: new AST.CoreMethodInvocation(match, {
-            methodName: "warn",
-            args
+      constructor: class warn extends SpellStatement {
+        getAST(match) {
+          const { message, okButton } = match.groups
+          const args = [message.AST]
+          if (okButton) args.push(okButton.AST)
+          return new AST.AwaitExpression(match, {
+            expression: new AST.CoreMethodInvocation(match, {
+              methodName: "warn",
+              args
+            })
           })
-        })
+        }
       },
       tests: [
         {
@@ -166,18 +170,19 @@ export const UI = new SpellParser({
       alias: "statement",
       syntax: "confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})?)?",
       testRule: "confirm",
-      constructor: "Statement",
-      getAST(match) {
-        const { message, okButton, cancelButton } = match.groups
-        const args = [message.AST]
-        if (okButton) args.push(okButton.AST)
-        if (cancelButton) args.push(cancelButton.AST)
-        return new AST.AwaitExpression(match, {
-          expression: new AST.CoreMethodInvocation(match, {
-            methodName: "confirm",
-            args
+      constructor: class confirm extends SpellStatement {
+        getAST(match) {
+          const { message, okButton, cancelButton } = match.groups
+          const args = [message.AST]
+          if (okButton) args.push(okButton.AST)
+          if (cancelButton) args.push(cancelButton.AST)
+          return new AST.AwaitExpression(match, {
+            expression: new AST.CoreMethodInvocation(match, {
+              methodName: "confirm",
+              args
+            })
           })
-        })
+        }
       },
       tests: [
         {
@@ -201,17 +206,18 @@ export const UI = new SpellParser({
       alias: "statement",
       syntax: "prompt {message:expression} (with {defaultValue:expression})?",
       testRule: "prompt",
-      constructor: "Statement",
-      getAST(match) {
-        const { message, defaultValue } = match.groups
-        const args = [message.AST]
-        if (defaultValue) args.push(defaultValue.AST)
-        return new AST.AwaitExpression(match, {
-          expression: new AST.CoreMethodInvocation(match, {
-            methodName: "prompt",
-            args
+      constructor: class prompt extends SpellStatement {
+        getAST(match) {
+          const { message, defaultValue } = match.groups
+          const args = [message.AST]
+          if (defaultValue) args.push(defaultValue.AST)
+          return new AST.AwaitExpression(match, {
+            expression: new AST.CoreMethodInvocation(match, {
+              methodName: "prompt",
+              args
+            })
           })
-        })
+        }
       },
       tests: [
         {
@@ -249,18 +255,20 @@ export const UI = new SpellParser({
       name: "css",
       alias: "expression",
       tokenType: Tokens.Text,
-      getAST(match) {
-        // HACK: `name` comes from SpellCSSFile
-        const { value, file } = match
-        // munge returns to `¬`
-        const safeValue = value.replace(/\n/g, "¬")
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "installStyles",
-          args: [
-            file ? new AST.QuotedExpression(match, file) : new AST.UndefinedLiteral(match),
-            new AST.BackTickExpression(match, safeValue)
-          ]
-        })
+      constructor: class css extends Rules.TokenType {
+        getAST(match) {
+          // HACK: `name` comes from SpellCSSFile
+          const { value, file } = match
+          // munge returns to `¬`
+          const safeValue = value.replace(/\n/g, "¬")
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "installStyles",
+            args: [
+              file ? new AST.QuotedExpression(match, file) : new AST.UndefinedLiteral(match),
+              new AST.BackTickExpression(match, safeValue)
+            ]
+          })
+        }
       },
       tests: [
         {
