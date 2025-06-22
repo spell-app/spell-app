@@ -1,10 +1,13 @@
-import { Rule } from "./Rule.js"
+import { Symbol } from "./Literal.js"
 
 /**
  * Blank line representation in parser output.
  */
-export class BlankLine extends Rule {
-  compile(match) {
+export class BlankLine extends Symbol {
+  constructor(props) {
+    super({ literal: "\n", ...props })
+  }
+  compile() {
     return "\n"
   }
 }
