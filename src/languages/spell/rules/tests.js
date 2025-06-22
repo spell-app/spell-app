@@ -15,15 +15,16 @@ export const tests = new SpellParser({
       alias: ["statement"],
       syntax: "expect that? {expression} (to be {value:expression})?",
       testRule: "expect",
-      constructor: "Statement",
-      getAST(match) {
-        const { expression, value } = match.groups
-        return new AST.ExpectMethodInvocation(match, {
-          expression: expression.AST,
-          expressionString: expression.value,
-          value: value?.AST,
-          valueString: value && "raw" in value ? value.raw : value?.value
-        })
+      constructor: class expect_test extends SpellStatement {
+        getAST(match) {
+          const { expression, value } = match.groups
+          return new AST.ExpectMethodInvocation(match, {
+            expression: expression.AST,
+            expressionString: expression.value,
+            value: value?.AST,
+            valueString: value && "raw" in value ? value.raw : value?.value
+          })
+        }
       },
       tests: [
         {
@@ -52,36 +53,39 @@ export const tests = new SpellParser({
       name: "start_test",
       alias: "statement",
       syntax: "start (quiet:quiet)? test {message:text}",
-      constructor: "Statement",
-      getAST(match) {
-        const { quiet, message } = match.groups
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "startTest",
-          args: [new AST.QuotedString(message, message.value), new AST.BooleanLiteral(match, !!quiet)]
-        })
+      constructor: class start_test extends SpellStatement {
+        getAST(match) {
+          const { quiet, message } = match.groups
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "startTest",
+            args: [new AST.QuotedString(message, message.value), new AST.BooleanLiteral(match, !!quiet)]
+          })
+        }
       }
     },
     {
       name: "end_test",
       alias: "statement",
       syntax: "end test",
-      constructor: "Statement",
-      getAST(match) {
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "endTest"
-        })
+      constructor: class end_test extends SpellStatement {
+        getAST(match) {
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "endTest"
+          })
+        }
       }
     },
     {
       name: "echo",
       alias: ["statement"],
       syntax: "echo {expression}",
-      constructor: "Statement",
-      getAST(match) {
-        const { expression } = match.groups
-        return new AST.EchoInvocation(match, {
-          expression: expression.AST
-        })
+      constructor: class echo extends SpellStatement {
+        getAST(match) {
+          const { expression } = match.groups
+          return new AST.EchoInvocation(match, {
+            expression: expression.AST
+          })
+        }
       },
       tests: [
         {

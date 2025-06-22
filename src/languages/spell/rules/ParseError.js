@@ -26,6 +26,7 @@ export const ParseError = class parse_error extends Rule {
 SpellParser.Rules.ParseError = ParseError
 
 /** Add `spellParser.createParseError()` method. */
+// REFACTOR: just define it on the class directly!!
 Object.defineProperty(SpellParser.prototype, "createParseError", {
   value(scope, tokens, message) {
     const rule = this.getRuleOrDie("parse_error")

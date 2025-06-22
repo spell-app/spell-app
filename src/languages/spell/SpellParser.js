@@ -32,7 +32,7 @@ export class SpellParser extends Parser {
           // TODO: backtick as alternative quote, for embedding double quotes?
           quoteSymbols: [`"`],
           // Remove "normal" whitespace (leaving newlines and indents) when parsing
-          whitespacePolicy: WhitespacePolicy.LEADING_ONLY,
+          whitespacePolicy: WhitespacePolicy.LEADING_ONLY
         })
     )
   }
@@ -69,7 +69,7 @@ export class SpellParser extends Parser {
     return new ProjectScope({
       name: moduleName,
       parser,
-      scope: SpellParser.rootScope,
+      scope: SpellParser.rootScope
     })
   }
 
@@ -78,5 +78,17 @@ export class SpellParser extends Parser {
     const tokens = super.tokenize(input)
     if (typeof input === "string" && ruleName === "block") return this.tokenizer.breakIntoIndentedBlocks(tokens)
     return tokens
+  }
+
+  createParseError(scope, tokens, message) {
+    const rule = this.getRuleOrDie("parse_error")
+    return new Match({
+      scope,
+      rule,
+      matched: tokens,
+      input: [...tokens],
+      length: tokens.length,
+      message
+    })
   }
 }

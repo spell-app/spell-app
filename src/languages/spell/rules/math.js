@@ -6,7 +6,7 @@
 import { AST, SpellParser } from "~/languages/spell"
 import { Sequence } from "~/parser/rule/Sequence"
 import { SpellStatement } from "./Statement"
-import { SpellExpression } from "./expressions"
+import { SpellExpression, InfixOperatorSuffix } from "./expressions"
 
 export const math = new SpellParser({
   module: "math",
@@ -17,7 +17,15 @@ export const math = new SpellParser({
       precedence: 11,
       // NOTE: output of `operator` will NOT have space between `>=`
       syntax: "(operator:(<|>) =?) {expression:simple_expression}",
-      constructor: "InfixOperatorSuffix",
+      constructor: class gt_lt extends InfixOperatorSuffix {
+        getAST(match) {
+          const { operator, expression } = match.groups
+          return new AST.CoreMethodInvocation(match, {
+            methodName: operator.value,
+            args: [expression.AST]
+          })
+        }
+      },
       parenthesize: true,
       tests: [
         {
@@ -49,9 +57,19 @@ export const math = new SpellParser({
       precedence: 11,
       // TODO: is *not* greater than???
       syntax: "(operator:is (greater|less) than (or equal to)?) {expression:simple_expression}",
-      constructor: "InfixOperatorSuffix",
-      getOutputOperator: ({ value }) => (value.includes("greater") ? ">" : "<") + (value.includes("equal") ? "=" : ""),
       parenthesize: true,
+      constructor: class is_gt_lt extends InfixOperatorSuffix {
+        getOutputOperator({ value }) {
+          return (value.includes("greater") ? ">" : "<") + (value.includes("equal") ? "=" : "")
+        }
+        getAST(match) {
+          const { operator, expression } = match.groups
+          return new AST.CoreMethodInvocation(match, {
+            methodName: operator.value,
+            args: [expression.AST]
+          })
+        }
+      },
       tests: [
         {
           compileAs: "expression",
@@ -74,9 +92,12 @@ export const math = new SpellParser({
       alias: "expression_suffix",
       precedence: 13,
       syntax: "(operator:plus|+) {expression:simple_expression}",
-      constructor: "InfixOperatorSuffix",
-      getOutputOperator: () => "+",
       parenthesize: true,
+      constructor: class plus extends InfixOperatorSuffix {
+        getOutputOperator() {
+          return "+"
+        }
+      },
       tests: [
         {
           compileAs: "expression",
@@ -97,9 +118,12 @@ export const math = new SpellParser({
       alias: "expression_suffix",
       precedence: 13,
       syntax: "(operator:minus|-) {expression:simple_expression}",
-      constructor: "InfixOperatorSuffix",
-      getOutputOperator: () => "-",
       parenthesize: true,
+      constructor: class minus extends InfixOperatorSuffix {
+        getOutputOperator() {
+          return "-"
+        }
+      },
       tests: [
         {
           compileAs: "expression",
@@ -121,9 +145,12 @@ export const math = new SpellParser({
       alias: "expression_suffix",
       precedence: 14,
       syntax: "(operator:*|times) {expression:simple_expression}",
-      constructor: "InfixOperatorSuffix",
-      getOutputOperator: () => "*",
       parenthesize: true,
+      constructor: class times extends InfixOperatorSuffix {
+        getOutputOperator() {
+          return "*"
+        }
+      },
       tests: [
         {
           compileAs: "expression",
@@ -144,9 +171,12 @@ export const math = new SpellParser({
       alias: "expression_suffix",
       precedence: 14,
       syntax: "(operator:/|divided by) {expression:simple_expression}",
-      constructor: "InfixOperatorSuffix",
-      getOutputOperator: () => "/",
       parenthesize: true,
+      constructor: class divided_by extends InfixOperatorSuffix {
+        getOutputOperator() {
+          return "/"
+        }
+      },
       tests: [
         {
           compileAs: "expression",
@@ -171,14 +201,15 @@ export const math = new SpellParser({
       alias: "expression",
       syntax: "(operator:the? absolute value of) {expression}",
       testRule: "…absolute",
-      constructor: "InfixOperatorSuffix",
-      getAST(match) {
-        const { expression } = match.groups
-        return new AST.CoreMethodInvocation(match, {
-          datatype: "number",
-          methodName: "absoluteValue", // TODO: implement in spellCore
-          args: [expression.AST]
-        })
+      constructor: class divided_by extends InfixOperatorSuffix {
+        getAST(match) {
+          const { expression } = match.groups
+          return new AST.CoreMethodInvocation(match, {
+            datatype: "number",
+            methodName: "absoluteValue", // TODO: implement in spellCore
+            args: [expression.AST]
+          })
+        }
       },
       tests: [
         {
@@ -197,13 +228,15 @@ export const math = new SpellParser({
       precedence: 2,
       syntax: "(operator:the? (biggest|largest)) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…(biggest|largest)",
-      getAST(match) {
-        const { expression } = match.groups
-        return new AST.CoreMethodInvocation(match, {
-          datatype: "number",
-          methodName: "largestOf",
-          args: [expression.AST]
-        })
+      constructor: class max extends SpellExpression {
+        getAST(match) {
+          const { expression } = match.groups
+          return new AST.CoreMethodInvocation(match, {
+            datatype: "number",
+            methodName: "largestOf",
+            args: [expression.AST]
+          })
+        }
       },
       tests: [
         {
@@ -215,7 +248,7 @@ export const math = new SpellParser({
           tests: [
             ["largest of the prices", "spellCore.largestOf(prices)"],
             ["biggest in prices", "spellCore.largestOf(prices)"],
-            ["biggest number in prices", "spellCore.largestOf(prices)"]
+            ["the biggest number in prices", "spellCore.largestOf(prices)"]
           ]
         }
       ]
@@ -227,13 +260,15 @@ export const math = new SpellParser({
       precedence: 2,
       syntax: "(operator:the? smallest) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…smallest",
-      getAST(match) {
-        const { expression } = match.groups
-        return new AST.CoreMethodInvocation(match, {
-          datatype: "number",
-          methodName: "smallestOf",
-          args: [expression.AST]
-        })
+      constructor: class min extends SpellExpression {
+        getAST(match) {
+          const { expression } = match.groups
+          return new AST.CoreMethodInvocation(match, {
+            datatype: "number",
+            methodName: "smallestOf",
+            args: [expression.AST]
+          })
+        }
       },
       tests: [
         {
@@ -256,16 +291,18 @@ export const math = new SpellParser({
       syntax: "round {expression} (operator:off|up|down)?",
       testRule: "round",
       precedence: 1,
-      getAST(match) {
-        const { expression, operator } = match.groups
-        let methodName = "round"
-        if (operator?.value === "up") methodName = "roundUp"
-        else if (operator?.value === "down") methodName = "roundDown"
-        return new AST.CoreMethodInvocation(match, {
-          datatype: "number",
-          methodName, // TODO: implement in spellCore
-          args: [expression.AST]
-        })
+      constructor: class round_number extends SpellExpression {
+        getAST(match) {
+          const { expression, operator } = match.groups
+          let methodName = "round"
+          if (operator?.value === "up") methodName = "roundUp"
+          else if (operator?.value === "down") methodName = "roundDown"
+          return new AST.CoreMethodInvocation(match, {
+            datatype: "number",
+            methodName, // TODO: implement in spellCore
+            args: [expression.AST]
+          })
+        }
       },
       tests: [
         {

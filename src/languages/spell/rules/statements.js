@@ -15,9 +15,10 @@ export const statements = new SpellParser({
       name: "do_nothing",
       alias: "statement",
       syntax: "do nothing",
-      constructor: "Statement",
-      getAST(match) {
-        return new AST.CoreMethodInvocation(match, { methodName: "doNothing" })
+      constructor: class do_nothing extends SpellStatement {
+        getAST(match) {
+          return new AST.CoreMethodInvocation(match, { methodName: "doNothing" })
+        }
       },
       tests: [
         {

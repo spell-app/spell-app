@@ -12,7 +12,7 @@ import { SpellExpression } from "./expressions"
 // Alpha-numeric word, including dashes or underscores.
 const WORD = /^[a-zA-Z][\w\-]*$/
 
-SpellParser.Rules.Type = class type extends Pattern {
+export class SpellType extends Pattern {
   pattern = WORD
   datatype = "type"
   blacklist = identifierBlacklist
@@ -83,6 +83,7 @@ SpellParser.Rules.Type = class type extends Pattern {
     return new AST.TypeExpression(match, { raw, name: value })
   }
 }
+SpellParser.Rules.Type = SpellType
 
 export const types = new SpellParser({
   module: "types",
@@ -90,7 +91,7 @@ export const types = new SpellParser({
     // A possibly-unknown type identifier, singular or plural.
     {
       name: "type",
-      constructor: "Type",
+      constructor: SpellType,
       tests: [
         {
           tests: [
@@ -108,7 +109,7 @@ export const types = new SpellParser({
     // Possibly unknown type which MUST be singular.
     {
       name: "singular_type",
-      constructor: class singular_type extends SpellParser.Rules.Type {
+      constructor: class singular_type extends SpellType {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === singularize(match.raw)) return match
@@ -141,7 +142,7 @@ export const types = new SpellParser({
     // NOTE: the output type name will be SINGULAR!
     {
       name: "plural_type",
-      constructor: class plural_type extends SpellParser.Rules.Type {
+      constructor: class plural_type extends SpellType {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match && match.raw === pluralize(match.raw)) return match
@@ -175,7 +176,7 @@ export const types = new SpellParser({
     {
       name: "known_type",
       //      alias: "expression",
-      constructor: class known_type extends SpellParser.Rules.Type {
+      constructor: class known_type extends SpellType {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           // Only return match if we picked up an existing `type` scope

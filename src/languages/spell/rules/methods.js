@@ -10,7 +10,7 @@ import { SpellExpression } from "./expressions"
 /**
  * Abstract class for a dynamic method created with `to_do_something` below.
  */
-SpellParser.Rules.DynamicMethodRule = class dynamic_method extends SpellParser.Rules.Statement {
+SpellParser.Rules.DynamicMethodRule = class dynamic_method extends SpellStatement {
   // Name of the method to call
   /*@proto*/ get methodName() {
     return undefined
@@ -287,15 +287,17 @@ export const methods = new SpellParser({
     {
       name: "method_keyword",
       pattern: /^[a-zA-Z][\w\-]*$/,
-      // convert dashes to underscores when compiling
-      mapValue(value) {
-        return `${value}`.replace(/\-/g, "_")
-      },
-      gatherGroups(match) {
-        return {
-          keyword: match,
-          method: match.value,
-          syntax: match.raw
+      constructor: class method_keyword extends Rules.Pattern {
+        // convert dashes to underscores when compiling
+        mapValue(value) {
+          return `${value}`.replace(/\-/g, "_")
+        }
+        gatherGroups(match) {
+          return {
+            keyword: match,
+            method: match.value,
+            syntax: match.raw
+          }
         }
       }
     },
@@ -317,29 +319,33 @@ export const methods = new SpellParser({
       name: "valued_var_method_arg",
       alias: ["method_arg", "simple_method_arg"],
       syntax: `{variable_identifier} (=|is|of|as|set to) {value:expression}`,
-      gatherGroups(match) {
-        const [variable, _ignore, value] = match.matched
-        const groups = {
-          variable,
-          method: `$${variable.value}`,
-          syntax: "{callArgs:expression}",
-          arg: new AST.VariableExpression(match, { name: variable.value, default: value.AST, type: "argument" })
+      constructor: class valued_var_method_arg extends SpellStatement {
+        gatherGroups(match) {
+          const [variable, _ignore, value] = match.matched
+          const groups = {
+            variable,
+            method: `$${variable.value}`,
+            syntax: "{callArgs:expression}",
+            arg: new AST.VariableExpression(match, { name: variable.value, default: value.AST, type: "argument" })
+          }
+          // console.warn("valued_method_arg:", variable, value, "\n", groups)
+          return groups
         }
-        // console.warn("valued_method_arg:", variable, value, "\n", groups)
-        return groups
       }
     },
     {
       name: "type_method_arg",
       alias: ["method_arg", "simple_method_arg"],
       syntax: `(a|an) {type}`,
-      gatherGroups(match) {
-        const type = match.matched[1]
-        return {
-          type,
-          method: `$${type.raw}`, // TODO: instanceCase(type.value) ???
-          syntax: "{callArgs:expression}",
-          arg: new AST.VariableExpression(match, { name: instanceCase(type.value), type: "argument" })
+      constructor: class type_method_arg extends Rules.Sequence {
+        gatherGroups(match) {
+          const type = match.matched[1]
+          return {
+            type,
+            method: `$${type.raw}`, // TODO: instanceCase(type.value) ???
+            syntax: "{callArgs:expression}",
+            arg: new AST.VariableExpression(match, { name: instanceCase(type.value), type: "argument" })
+          }
         }
       }
     },
@@ -347,14 +353,16 @@ export const methods = new SpellParser({
       name: "typed_method_arg",
       alias: ["method_arg", "simple_method_arg"],
       syntax: `{variable_identifier} as (a|an)? {type}`,
-      gatherGroups(match) {
-        const [variable, _ignore, type] = match.matched
-        return {
-          variable,
-          type,
-          method: `$${variable.value}`,
-          syntax: "{callArgs:expression}",
-          arg: new AST.VariableExpression(match, { name: variable.value, datatype: type.value, type: "argument" })
+      constructor: class type_method_arg extends Rules.Sequence {
+        gatherGroups(match) {
+          const [variable, _ignore, type] = match.matched
+          return {
+            variable,
+            type,
+            method: `$${variable.value}`,
+            syntax: "{callArgs:expression}",
+            arg: new AST.VariableExpression(match, { name: variable.value, datatype: type.value, type: "argument" })
+          }
         }
       }
     },
@@ -362,21 +370,23 @@ export const methods = new SpellParser({
       name: "with_props_arg",
       alias: ["method_arg"],
       syntax: "with [{simple_method_arg}(,|and)]",
-      gatherGroups(match) {
-        const { items } = match.matched[1]
-        const props = items.map((item) => item.groups.arg)
-        const groups = {
-          items,
-          method: undefined, // not part of method signature
-          syntax: "(with {props:object_literal_properties})?",
-          props,
-          arg: new AST.VariableExpression(match, {
-            name: "props",
-            default: new AST.ObjectLiteral(match),
-            type: "argument"
-          })
+      constructor: class type_method_arg extends Rules.Sequence {
+        gatherGroups(match) {
+          const { items } = match.matched[1]
+          const props = items.map((item) => item.groups.arg)
+          const groups = {
+            items,
+            method: undefined, // not part of method signature
+            syntax: "(with {props:object_literal_properties})?",
+            props,
+            arg: new AST.VariableExpression(match, {
+              name: "props",
+              default: new AST.ObjectLiteral(match),
+              type: "argument"
+            })
+          }
+          return groups
         }
-        return groups
       }
     },
     {

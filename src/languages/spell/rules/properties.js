@@ -7,6 +7,7 @@
 
 import { AST, SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"
+import { Rules } from "~/parser"
 import { Sequence } from "~/parser/rule/Sequence"
 import { SpellStatement } from "./Statement"
 import { SpellExpression } from "./expressions"
@@ -23,12 +24,14 @@ export const properties = new SpellParser({
       name: "property",
       pattern: LOWER_INITIAL_WORD,
       blacklist: identifierBlacklist,
-      // convert dashes to underscores
-      mapValue(value) {
-        return `${value}`.replace(/-/g, "_")
-      },
-      getAST(match) {
-        return new AST.PropertyLiteral(match)
+      constructor: class property extends Rules.Pattern {
+        // convert dashes to underscores
+        mapValue(value) {
+          return `${value}`.replace(/-/g, "_")
+        }
+        getAST(match) {
+          return new AST.PropertyLiteral(match)
+        }
       }
     },
 
@@ -37,9 +40,11 @@ export const properties = new SpellParser({
       alias: "property_accessor",
       syntax: "the {property} of",
       testRule: "the",
-      getAST(match) {
-        const { value, raw } = match.groups.property
-        return new AST.PropertyLiteral(match, { value, raw })
+      constructor: class the_property_of extends Rules.Sequence {
+        getAST(match) {
+          const { value, raw } = match.groups.property
+          return new AST.PropertyLiteral(match, { value, raw })
+        }
       }
     },
 
@@ -49,12 +54,14 @@ export const properties = new SpellParser({
       alias: "expression",
       syntax: "{property_accessor} {expression:simple_expression}",
       testRule: "{property_accessor}", // ???
-      getAST(match) {
-        const { property_accessor, expression } = match.groups
-        return new AST.PropertyExpression(match, {
-          object: expression.AST,
-          property: property_accessor.AST
-        })
+      constructor: class property_expression extends SpellExpression {
+        getAST(match) {
+          const { property_accessor, expression } = match.groups
+          return new AST.PropertyExpression(match, {
+            object: expression.AST,
+            property: property_accessor.AST
+          })
+        }
       },
       tests: [
         {
@@ -81,13 +88,15 @@ export const properties = new SpellParser({
       alias: "expression",
       syntax: "its {property}",
       testRule: "its",
-      getAST(match) {
-        const property = match.groups.property.AST
-        const itVar = match.scope.variables.get("it")
-        const object = itVar
-          ? new AST.VariableExpression(match, { raw: "it", name: itVar.output || itVar.name })
-          : new AST.ThisLiteral(match)
-        return new AST.PropertyExpression(match, { object, property })
+      constructor: class its_property extends SpellExpression {
+        getAST(match) {
+          const property = match.groups.property.AST
+          const itVar = match.scope.variables.get("it")
+          const object = itVar
+            ? new AST.VariableExpression(match, { raw: "it", name: itVar.output || itVar.name })
+            : new AST.ThisLiteral(match)
+          return new AST.PropertyExpression(match, { object, property })
+        }
       },
       tests: [
         {
@@ -141,16 +150,18 @@ export const properties = new SpellParser({
       alias: ["expression", "property_accessor"],
       syntax: "its {ordinal} {arg:singular_variable}",
       testRule: "its",
-      getAST(match) {
-        const { ordinal } = match.groups
-        const itVar = match.scope.variables.get("it")
-        const object = itVar
-          ? new AST.VariableExpression(match, { raw: "it", name: itVar.output || itVar.name })
-          : new AST.ThisLiteral(match)
-        return new AST.CoreMethodInvocation(match, {
-          methodName: "getItemOf",
-          args: [object, ordinal.AST]
-        })
+      constructor: class its_ordinal extends SpellExpression {
+        getAST(match) {
+          const { ordinal } = match.groups
+          const itVar = match.scope.variables.get("it")
+          const object = itVar
+            ? new AST.VariableExpression(match, { raw: "it", name: itVar.output || itVar.name })
+            : new AST.ThisLiteral(match)
+          return new AST.CoreMethodInvocation(match, {
+            methodName: "getItemOf",
+            args: [object, ordinal.AST]
+          })
+        }
       },
       tests: [
         {
@@ -194,12 +205,14 @@ export const properties = new SpellParser({
     {
       name: "object_literal_property",
       syntax: "{property} (=|is|of) {value:expression}",
-      getAST(match) {
-        const { property, value } = match.groups
-        return new AST.ObjectLiteralProperty(match, {
-          property: property.AST,
-          value: value.AST
-        })
+      constructor: class object_literal_property extends Rules.Sequence {
+        getAST(match) {
+          const { property, value } = match.groups
+          return new AST.ObjectLiteralProperty(match, {
+            property: property.AST,
+            value: value.AST
+          })
+        }
       },
       tests: [
         {
@@ -228,10 +241,12 @@ export const properties = new SpellParser({
     {
       name: "object_literal_properties",
       syntax: "[{object_literal_property}(,|and)]",
-      getAST(match) {
-        return new AST.ObjectLiteral(match, {
-          properties: match.items.map((propMatch) => propMatch.AST)
-        })
+      constructor: class object_literal_properties extends Rules.Repeat {
+        getAST(match) {
+          return new AST.ObjectLiteral(match, {
+            properties: match.items.map((propMatch) => propMatch.AST)
+          })
+        }
       },
       tests: [
         {
