@@ -1,13 +1,13 @@
 /** Base class with assertion methods */
 import _get from "lodash/get"
-
+import { Derivative } from "./Derivative"
 import { OPTIONAL } from "./constants"
 
 /** Return `true` if `value` matches `type`(s).
  * DOCME
  */
 export function checkType(value, type) {
-  if (Array.isArray(type)) return type.some(nextType => checkType(value, nextType))
+  if (Array.isArray(type)) return type.some((nextType) => checkType(value, nextType))
   // eslint-disable-next-line valid-typeof
   if (typeof type === "string") return typeof value === type
   if (type === null) return value === null
@@ -16,7 +16,7 @@ export function checkType(value, type) {
 }
 
 /** Base class with assertion methods usable on construction. */
-export class Assertable {
+export class Assertable extends Derivative {
   /** Debug: assert that a condition is true, generally called on constructor as sanity check. */
   assert(expressionValue, ...message) {
     if (!expressionValue) console.warn(`Error creating ${this.constructor.name}: `, ...message)

@@ -2,7 +2,7 @@ import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
 
 import { Rule, Token } from "~/parser"
-import { Assertable, makeDerivative } from "~/util"
+import { Assertable } from "~/util"
 
 // Result of a successful `rule.parse()`.
 // This is a flyweight object which links a rule with the tokens that it successfully matched.
@@ -11,7 +11,7 @@ import { Assertable, makeDerivative } from "~/util"
 // - `match.input`    - [Token] (required)              Array of tokens that were matched
 // - `match.matched`  - [Match or Token] (required)     Array of Matches or Tokens matched.
 //
-export class Match extends makeDerivative(Assertable) {
+export class Match extends Assertable {
   static DEBUG_MATCH_INITIALIZATION = false
   constructor(props) {
     super()
@@ -182,7 +182,7 @@ export class Match extends makeDerivative(Assertable) {
     if (!isNode) return this
     return {
       rule: this.rule.name,
-      ...omit(this, ["rule", "scope"]),
+      ...omit(this, ["rule", "scope"])
     }
   }
 
@@ -196,7 +196,7 @@ export class Match extends makeDerivative(Assertable) {
       raw,
       value,
       matched,
-      items,
+      items
     }
   }
 }

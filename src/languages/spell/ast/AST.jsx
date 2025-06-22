@@ -2,7 +2,7 @@
 import React from "react"
 import _get from "lodash/get"
 
-import { makeDerivative, getSuperHierarchy, Assertable, OPTIONAL, normalizeInitialWhitespace } from "~/util"
+import { getSuperHierarchy, Assertable, OPTIONAL, normalizeInitialWhitespace } from "~/util"
 import { Match, MethodScope, FileScope, ProjectScope } from "~/parser"
 import * as stringify from "./stringifyAST"
 import * as render from "./renderAST"
@@ -23,7 +23,7 @@ function convertStatementsToBlock(match, statements) {
 /** Abstract root of all AST node types.
  *  - `type` is
  */
-export class ASTNode extends makeDerivative(Assertable) {
+export class ASTNode extends Assertable {
   /** On construction, pass:
    *  - `match` passed to `getAST()` method,
    *  - `props` as arbitrary properties to be assigned to the instance.
