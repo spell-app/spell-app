@@ -116,7 +116,7 @@ export class Parser extends Derivative {
         message: "Can't parse input",
         context: this,
         activity: "compile",
-        params: { input, ruleName, scope },
+        params: { input, ruleName, scope }
       })
     }
     return match.compile()
@@ -157,7 +157,7 @@ export class Parser extends Derivative {
         message: `Rule '${ruleName}' not found.`,
         context: this,
         activity: "getRuleOrDie",
-        params: { ruleName },
+        params: { ruleName }
       })
     return rule
   }
@@ -180,7 +180,7 @@ export class Parser extends Derivative {
           message: `You must set 'rule.name' or pass an explicit ruleName.`,
           context: this,
           activity: "addRule",
-          params: { rule, ruleName },
+          params: { rule, ruleName }
         })
       ruleName = rule.name
     }
@@ -301,7 +301,7 @@ export class Parser extends Derivative {
           message: `You must pass 'rule.name'.`,
           context: this,
           activity: "defineRule",
-          params: { ruleProps },
+          params: { ruleProps }
         })
       }
 
@@ -313,7 +313,7 @@ export class Parser extends Derivative {
             message: `Don\'t understand constructor: ${constructor}`,
             context: this,
             activity: "defineRule",
-            params: { ruleProps, name, constructor },
+            params: { ruleProps, name, constructor }
           })
         }
         constructor = this.constructor.Rules[constructor] || Rules[constructor]
@@ -328,7 +328,7 @@ export class Parser extends Derivative {
             message: `You must pass 'constructor' or 'syntax'.`,
             context: this,
             activity: "defineRule",
-            params: { ruleProps },
+            params: { ruleProps }
           })
       }
 
@@ -355,7 +355,7 @@ export class Parser extends Derivative {
             message: `Didn't get a rule from rulex.compile('${props.syntax}')`,
             context: this,
             activity: "defineRule",
-            params: { ruleProps, syntax: props.syntax },
+            params: { ruleProps, syntax: props.syntax }
           })
 
         // If we're constructing a sequence, make sure we've got `rules`...
@@ -380,7 +380,7 @@ export class Parser extends Derivative {
           message: `No rule...???`,
           context: this,
           activity: "defineRule",
-          params: { ruleProps },
+          params: { ruleProps }
         })
 
       // Combine aliases with the main name and add rule under all the names
@@ -446,7 +446,7 @@ export class Parser extends Derivative {
     const results = {
       pass: 0, // number of tests that passed
       fail: 0, // number of tests that failed
-      failed: [], // input tests that failed as `{ ruleName, input }`
+      failed: [] // input tests that failed as `{ ruleName, input }`
     }
     if (moduleName)
       if (debug) console.group("Testing rules for module", moduleName)
