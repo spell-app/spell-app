@@ -1,0 +1,118 @@
+## definición de una Carta con alias bonitos en español para trabajar con ella
+una carta es una cosa
+
+## propiedades de las cartas
+// rangos de cartas
+las cartas tienen un rango como uno de as, 2, 3, 4, 5, 6, 7, 8, 9, 10, jota, reina o rey
+
+// palos de cartas
+las cartas tienen un palo como uno de tréboles, diamantes, corazones o espadas
+
+// color como derivación del palo
+el color de una carta es rojo si su palo es diamantes o corazones de lo contrario es negro
+
+// valor como derivación del rango
+el valor de una carta es la posición de su rango en rangos de cartas
+
+// dirección de carta: arriba o abajo
+una carta tiene una dirección como arriba o abajo
+
+## alias
+// "carta está boca arriba/abajo"
+una carta "está boca arriba" si su dirección es arriba
+una carta "está boca abajo" si su dirección es abajo
+// `carta es una figura`
+una carta "es una figura" si su rango es uno de jota, reina o rey
+// "carta es una espada", "...es un trébol" etc
+una carta "es un (palo)" para sus palos
+// "carta es una reina", "...es un as" etc
+una carta "es un (rango)" para sus rangos
+// "carta es la reina de espadas" etc
+una carta "es el (rango) de (palos)" para sus rangos y sus palos
+
+// nombre como derivación de nombre/palo
+el nombre de una carta es: su rango + "-de-" + su palo
+
+el palo-corto de una carta es:
+	si es un trébol devolver "♣️"
+	si es un diamante devolver "♦️"
+	si es un corazón devolver "♥️"
+	si es una espada devolver "♠️"
+	devolver "?"
+
+el rango-corto de una carta es:
+	si su rango es nada devolver "?"
+	si su rango es un número devolver "" + su rango
+	devolver (el primer carácter de su rango) como mayúscula
+
+la dirección-corta de una carta es:
+	si su dirección es arriba devolver "+"
+	devolver "—"
+	
+el nombre-corto de una carta es: su rango-corto + su palo-corto
+
+el estado de una carta es: su rango-corto + su palo-corto + su dirección-corta
+
+## acciones
+
+// Voltear carta boca arriba o boca abajo
+// Nota que esto se animará si haces `esperar a voltear la carta boca arriba`
+para voltear (una carta) boca arriba: 
+	establecer su dirección a arriba
+	pausar por 50 mseg
+para voltear (una carta) boca abajo: 
+	establecer su dirección a abajo
+	pausar por 50 mseg
+
+// Voltear carta a la dirección opuesta
+// Nota que esto se animará si haces `esperar a voltear la carta boca arriba`
+para voltear (una carta):
+	si su dirección es arriba: voltearla boca abajo
+	de lo contrario: voltearla boca arriba
+	pausar por 50 mseg
+
+para dibujar (una carta):
+	establecer className a "Card face-" + su dirección + " "	+ su rango + " " + su palo + " ui button compact fluid "
+	si está boca abajo 
+		devolver <div onClick={fire event card-click with card = it} className={className}><i className="fitted bicycle icon"/></div>
+	devolver <div onClick={fire event card-click with card = it} className={className +	su color}>
+		{el rango-corto de la carta + " "}
+		<span className="suit">{el palo-corto de la carta}</span>
+	</div>
+
+## crear una instancia de carta con propiedades por defecto
+para silenciosamente probar configuración de carta
+	la carta es una nueva carta cuyo rango es reina, palo es espadas y dirección es arriba
+	mostrar la carta
+	esperar que el rango de la carta sea reina
+	esperar que el palo de la carta sea espadas
+	esperar que el nombre de la carta sea "reina-de-espadas"
+	esperar que el color de la carta sea negro
+	esperar que el valor de la carta sea 12
+	esperar que el palo-corto de la carta sea "♠️"
+	esperar que el rango-corto de la carta sea "Q"
+	esperar que el nombre-corto de la carta sea "Q♠️"
+
+	esperar que la carta está boca arriba sea sí
+	esperar que la carta está boca abajo sea no
+
+	esperar que la carta es una figura sea sí
+	esperar que la carta no es una figura sea falso
+
+	esperar que la carta es una espada sea verdadero
+	esperar que la carta es un trébol sea falso
+
+	esperar que la carta es una reina sea verdadero
+	esperar que la carta es un as sea falso
+	esperar que la carta es un 2 sea falso
+
+	esperar que la carta es la reina de espadas sea verdadero
+	esperar que la carta es la reina de tréboles sea falso
+	esperar que la carta no es el 2 de diamantes sea verdadero
+
+	voltear la carta boca abajo
+	esperar que la dirección de la carta sea abajo
+
+	voltear la carta
+	esperar que la carta está boca arriba sea verdadero
+probar configuración de carta
