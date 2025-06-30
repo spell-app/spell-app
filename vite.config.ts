@@ -14,10 +14,22 @@ export default defineConfig({
   },
   server: {
     port: environment.vitePort,
+    host: '0.0.0.0',
     proxy: {
       "/api": {
-        target: `http://localhost:${environment.expressPort}`,
+        target: `http://backend-server:${environment.expressPort}`,
         changeOrigin: true,
+      },
+    },
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+        },
       },
     },
   },

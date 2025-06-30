@@ -1,6 +1,7 @@
 import bodyParser from "body-parser"
 import express, { Request, Response } from "express"
 import express_json5 from "express-json5"
+import path from "path"
 
 import environment from "../environment.js"
 import { api } from "./api.ts"
@@ -23,9 +24,18 @@ app.get("/hello", (request: Request, response: Response) => {
 // Use our api routines under `/api/...`
 app.use("/api", api)
 
-// Serve static files from the dist directory
-// REFACTOR: static files are served by vite, so this is not needed?
-app.use("/static", express.static(environment.staticDir)) // Make everything else render `index.html` for front-end routing
+// Serve static files from the dist directory in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(process.cwd(), 'dist')))
+  
+  // Serve index.html for all non-API routes (SPA routing)
+  app.get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(process.cwd(), 'dist', 'index.html'))
+  })
+} else {
+  // Development: serve static files from the static directory
+  app.use("/static", express.static(environment.staticDir))
+}
 
 app.listen(environment.expressPort, () => {
   console.log(`Server running at http://localhost:${environment.expressPort}`)
