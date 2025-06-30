@@ -34,10 +34,10 @@ The project consists of two main services:
 
 ```bash
 # Build and start both services in background
-docker-compose up -d --build
+docker compose up -d --build
 
 # Or start in foreground (to see logs)
-docker-compose up --build
+docker compose up --build
 ```
 
 #### 2. Access the Application
@@ -53,10 +53,10 @@ docker-compose up --build
 
 ```bash
 # Build and start production container
-docker-compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml up -d --build
 
 # Or start in foreground
-docker-compose -f docker-compose.prod.yml up --build
+docker compose -f docker-compose.prod.yml up --build
 ```
 
 #### 2. Access the Application
@@ -79,101 +79,101 @@ docker-compose -f docker-compose.prod.yml up --build
 
 ```bash
 # Start in background (detached mode)
-docker-compose up -d
+docker compose up -d
 
 # Start in foreground (see logs)
-docker-compose up
+docker compose up
 
 # Start and rebuild images
-docker-compose up -d --build
+docker compose up -d --build
 
 # Start specific service only
-docker-compose up -d dev-server
-docker-compose up -d backend-server
+docker compose up -d dev-server
+docker compose up -d backend-server
 ```
 
 ### Production Commands
 
 ```bash
 # Start production container
-docker-compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml up -d --build
 
 # View production logs
-docker-compose -f docker-compose.prod.yml logs -f
+docker compose -f docker-compose.prod.yml logs -f
 
 # Stop production container
-docker-compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml down
 
 # Restart production container
-docker-compose -f docker-compose.prod.yml restart
+docker compose -f docker-compose.prod.yml restart
 ```
 
 ### Stopping Services
 
 ```bash
 # Stop development services
-docker-compose down
+docker compose down
 
 # Stop production services
-docker-compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml down
 
 # Stop and remove volumes
-docker-compose down -v
+docker compose down -v
 
 # Stop and remove images
-docker-compose down --rmi all
+docker compose down --rmi all
 ```
 
 ### Monitoring and Logs
 
 ```bash
 # View logs for all development services
-docker-compose logs -f
+docker compose logs -f
 
 # View logs for specific development service
-docker-compose logs -f dev-server
-docker-compose logs -f backend-server
+docker compose logs -f dev-server
+docker compose logs -f backend-server
 
 # View production logs
-docker-compose -f docker-compose.prod.yml logs -f
+docker compose -f docker-compose.prod.yml logs -f
 
 # View recent logs (last 100 lines)
-docker-compose logs --tail=100
+docker compose logs --tail=100
 ```
 
 ### Service Management
 
 ```bash
 # Check development service status
-docker-compose ps
+docker compose ps
 
 # Check production service status
-docker-compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml ps
 
 # Restart all development services
-docker-compose restart
+docker compose restart
 
 # Restart production service
-docker-compose -f docker-compose.prod.yml restart
+docker compose -f docker-compose.prod.yml restart
 
 # Rebuild specific development service
-docker-compose build dev-server
-docker-compose build backend-server
+docker compose build dev-server
+docker compose build backend-server
 ```
 
 ### Development Workflow
 
 ```bash
 # 1. Start development services
-docker-compose up -d
+docker compose up -d
 
 # 2. Make code changes (files are mounted as volumes)
 
 # 3. View logs to see changes
-docker-compose logs -f
+docker compose logs -f
 
 # 4. Stop services when done
-docker-compose down
+docker compose down
 ```
 
 ## Configuration Details
@@ -185,7 +185,7 @@ docker-compose down
 - **Base Image**: Node 20
 - **Port**: 3000
 - **Command**: `yarn dev --host`
-- **Volume Mounts**: 
+- **Volume Mounts**:
   - Source code mounted for hot reloading
   - Node modules isolated in container
 
@@ -217,7 +217,7 @@ docker-compose down
 
 - **Networking**: Custom bridge network for service communication
 - **Environment**: Development mode enabled
-- **Port Mapping**: 
+- **Port Mapping**:
   - Host 3000 → Container 3000 (frontend)
   - Host 3001 → Container 3001 (backend)
 
@@ -227,7 +227,7 @@ docker-compose down
 - **Environment**: Production mode
 - **Health Checks**: Automatic monitoring
 - **Restart Policy**: Automatic restart on failure
-- **Port Mapping**: 
+- **Port Mapping**:
   - Host 3000 → Container 3000 (frontend)
   - Host 3001 → Container 3001 (API)
 
@@ -249,15 +249,15 @@ lsof -i :3001
 
 ```bash
 # Check container logs
-docker-compose logs dev-server
-docker-compose logs backend-server
+docker compose logs dev-server
+docker compose logs backend-server
 
 # Check production logs
-docker-compose -f docker-compose.prod.yml logs
+docker compose -f docker-compose.prod.yml logs
 
 # Rebuild containers
-docker-compose down
-docker-compose up --build
+docker compose down
+docker compose up --build
 ```
 
 ### Permission Issues
@@ -271,10 +271,10 @@ sudo docker-compose up -d
 
 ```bash
 # Remove all containers, networks, and images
-docker-compose down --rmi all --volumes --remove-orphans
+docker compose down --rmi all --volumes --remove-orphans
 
 # Clean up production containers
-docker-compose -f docker-compose.prod.yml down --rmi all --volumes --remove-orphans
+docker compose -f docker-compose.prod.yml down --rmi all --volumes --remove-orphans
 
 # Clean up Docker system
 docker system prune -a
@@ -303,10 +303,10 @@ The following environment variables can be configured:
 
 ```bash
 # Build and deploy to production
-docker-compose -f docker-compose.prod.yml up -d --build
+docker compose -f docker-compose.prod.yml up -d --build
 
 # Monitor deployment
-docker-compose -f docker-compose.prod.yml logs -f
+docker compose -f docker-compose.prod.yml logs -f
 
 # Check health
 curl http://localhost:3001/hello
@@ -324,4 +324,4 @@ The following files were created/modified for Docker support:
 - `vite.config.ts` - Added host binding and production build configuration
 - `src/server/index.ts` - Added production static file serving
 - `package.json` - Added production server script
-- `.dockerignore` - Excludes unnecessary files from build context 
+- `.dockerignore` - Excludes unnecessary files from build context
