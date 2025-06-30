@@ -247,22 +247,33 @@ export class Parser extends Derivative {
     return flatten(rules).filter(Boolean)
   }
 
-  // Define a rule using (rule)`syntax` or `patterns` to create the rule instances.
-  //  `skip` (boolean, optional) Set to true to skip this rule if it's not working.
-  //  `name` (identifier, required)  Base name of the rule.
-  //  `alias` (string or [string], optinal) Other names to define rule under.
-  //  `constructor` (class, required) Class which will be used to instantiate the rule.
-  //  `syntax` (string, required) RuleSyntax string for this rule.
-  //  `pattern` (RegExp, optional) Regular expression for `Pattern` rules
-  //  `precedence` (number, optional) Precedence number for the rule (currently doesn't do anything)
-  //  `blacklist` ([string], optional) Array of strings as blacklist for pattern rules.
-  //  `testRule` (Rule or string, optional) Rule or keywords string to use as a test rule.
-  //    Specifying this can let us jump out quickly if there is no possible match.
+  /**
+   * Simplified way to define and install a rule using one of:
+   * - `syntax` Rulex string to define rules using regex-like syntax
+   * - `pattern` for regular expressions
+   * - `literal` for a single literal string
+   * - `literals` for an array of literal strings
+   * - `tokenType` for a token type
+   *
+   * Other things you might specify:
+   * - `name` (required)  Base name of the rule.
+   * - `constructor` (Rule subclass) Class which will be used to instantiate the rule.
+   * - `alias` (string or [string], optinal) Other names to define rule under.
+   * - `syntax` (string, required) RuleSyntax string for this rule.
+   * - `pattern` (RegExp, optional) Regular expression for `Pattern` rules
+   * - `precedence` (number, optional) Precedence number for the rule (currently doesn't do anything)
+   * - `blacklist` ([string], optional) Array of strings as blacklist for pattern rules.
+   * - `testRule` (Rule or string, optional) Rule or keywords string to use as a test rule.
+   *    Specifying this can let us jump out quickly if there is no possible match.
+   * - `skip` (boolean, optional) Set to true to skip this rule, e.g. if it's not working.
+   *
+   * TODO: separate out into `initRule()` and `addRule()`
+   */
   defineRule(ruleProps) {
     // Clear memoized "rules" so we'll recalculate them
     this.clearDerived("rules")
     try {
-      // If passed in a Rule instance or rule instance, just call addRule
+      // If passed in a Rule instance or rule instance, addRule
       if (ruleProps instanceof Rule || ruleProps.prototype instanceof Rule) return this.addRule(ruleProps)
 
       // eslint-disable-next-line prefer-const
@@ -281,38 +292,9 @@ export class Parser extends Derivative {
         })
       }
 
-      // if `constructor` was not specified, it will be Object,
+      // If `constructor` was not specified, it will be Object,
       // we're expecting it to be a Rule, so clear it.
       if (constructor === Object) constructor = null
-
-      // throw if name was not provided
-      const name = props.name || (constructor && constructor.prototype?.name)
-      if (!name) {
-        throw new ParserError({
-          message: `You must pass 'rule.name'.`,
-          context: this,
-          activity: "defineRule",
-          params: { ruleProps }
-        })
-      }
-
-      if (!constructor) {
-        console.warn("no constructor", props)
-      }
-
-      if (!constructor) {
-        if (props.tokenType) constructor = Rules.TokenType
-        else if (props.pattern) constructor = Rules.Pattern
-        else if (props.literal) constructor = Rules.Keyword
-        else if (props.literals) constructor = Rules.Keywords
-        else if (!ruleProps.syntax)
-          throw ParserError({
-            message: `You must pass 'constructor' or 'syntax'.`,
-            context: this,
-            activity: "defineRule",
-            params: { ruleProps }
-          })
-      }
 
       // Note the module that the rule was defined in
       if (this.module) props.module = this.module
@@ -349,27 +331,47 @@ export class Parser extends Derivative {
         if (!constructor) constructor = rule.constructor
       }
 
-      if (!constructor) console.info("no con", props)
+      if (!constructor) {
+        if (props.tokenType) constructor = Rules.TokenType
+        else if (props.pattern) constructor = Rules.Pattern
+        else if (props.literal) constructor = Rules.Keyword
+        else if (props.literals) constructor = Rules.Keywords
+        else {
+          throw ParserError({
+            message: `You must pass 'constructor', 'syntax', 'pattern', 'literal', or 'literals'.`,
+            context: this,
+            activity: "defineRule",
+            params: { ruleProps }
+          })
+        }
+      }
 
-      if (constructor) rule = new constructor(props)
-      else if (rule) Object.assign(rule, props)
-      else
+      // Create the rule instance
+      rule = new constructor(props)
+
+      // throw if name was not provided
+      const name = props.name
+      if (!name) {
         throw new ParserError({
-          message: `No rule...???`,
+          message: `You must pass 'rule.name'.`,
           context: this,
           activity: "defineRule",
-          params: { ruleProps }
+          params: { props }
         })
-
+      }
       // Combine aliases with the main name and add rule under all the names
       const names = [props.name].concat(props.alias || [])
+      // Add to the list of testable rules if we have tests.
       if (props.tests) names.push("_testable_")
-      this.addRule(rule, names)
-      return rule
+
+      // add under all of the names provided
+      return this.addRule(rule, names)
     } catch (error) {
       console.warn("error in defineRule()", error)
       // If not on the server, change to a warning instead
-      if (!isNode) console.warn("Error in defineRule():", error, "\nprops:", ruleProps)
+      if (!isNode) {
+        console.warn("Error in defineRule():", error, "\nprops:", ruleProps)
+      }
     }
     return undefined
   }
