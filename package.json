@@ -8,6 +8,7 @@
   },
   "browserslist": "> 1%, node > 20",
   "scripts": {
+    "docker": "docker compose up --build",
     "dev": "vite",
     "server": "tsx watch src/server/index.ts",
     "server:prod": "tsx src/server/index.ts",

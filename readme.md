@@ -12,24 +12,27 @@ Experimental [Deepwiki Documentation](https://deepwiki.com/oakjs/parser)
 
 ## To get started (including auto-compiling code changes)
 
-- Make sure you're running Node 21.5+ with `yarn` installed
-- Clone this repo & install dependencies
+- Install Docker Desktop
+- Clone this repo
   - `cd <repo location>`
-  - `yarn`
-- Start app server (runs on port 3000)
-  - `yarn dev`
-- Start API server (runs on port 3001)
-  - `yarn start`
+- Start app server (port 3000) and api server (port 3001) with Docker
+  - `yarn docker`
 - Open http://localhost:3000 in your web browser.
 - Check out the [Solitaire Example](http://localhost:3000/run/examples/Solitaire/Card.spell)
 - Click the `Edit Example` button to see the code.
+
+## To see server logs
+
+- The `yarn docker` command will output server logs for both servers in the command line.
+- To see just the API server logs:
+  - In Docker Desktop, click `Containers` => `parser` => `backend-server`
 
 ## To test
 
 - `cd <repo location>`
 - `yarn test`
 
-for test coverage:
+or for test coverage:
 
 - `yarn coverage`
 
