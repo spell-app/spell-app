@@ -10,26 +10,37 @@ At the root of this is a "Rule Syntax" which resembles regular expressions on st
 
 Experimental [Deepwiki Documentation](https://deepwiki.com/oakjs/parser)
 
-## To get started (including auto-compiling code changes)
+## To get started (including re-starting app when code changes)
 
 - Install Docker Desktop
-- Clone this repo
-  - `cd <repo location>`
+- Clone this repo and switch into the project directory
+- Build the docker images (e.g. first time or when docker config changes)
+  - `docker compose build`
 - Start app server (port 3000) and api server (port 3001) with Docker
-  - `yarn docker`
+  - `docker compose up` [1]
+  - `ctrl-c` in the terminal window to stop the image, or stop in docker desktop.
 - Open http://localhost:3000 in your web browser.
 - Check out the [Solitaire Example](http://localhost:3000/run/examples/Solitaire/Card.spell)
 - Click the `Edit Example` button to see the code.
 
+### with local node/yarn installed
+
+- Install Docker Desktop
+- Install node and yarn with volta (TODO)
+- `yarn docker-build`
+- `yarn docker` or `yarn docker-bg`
+
+---
+
 ## To see server logs
 
 - The `yarn docker` command will output server logs for both servers in the command line.
-- To see just the API server logs:
-  - In Docker Desktop, click `Containers` => `parser` => `backend-server`
+- To see API server logs in docker:
+  - In Docker Desktop, click `Containers` => `parser` => `api-server`
+- To start docker without server logs, use `yarn docker-bg`.
 
 ## To test
 
-- `cd <repo location>`
 - `yarn test`
 
 or for test coverage:

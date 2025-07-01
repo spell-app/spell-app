@@ -1,5 +1,7 @@
 services:
-  dev-server:
+  app-server-dev:
+    env_file: 
+      - docker.env
     build:
       context: .
       dockerfile: Dockerfile.dev
@@ -8,12 +10,12 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    environment:
-      - NODE_ENV=development
     networks:
       - spell-network
 
-  backend-server:
+  api-server:
+    env_file: 
+      - docker.env
     build:
       context: .
       dockerfile: Dockerfile.server
@@ -22,11 +24,9 @@ services:
     volumes:
       - .:/app
       - /app/node_modules
-    environment:
-      - NODE_ENV=development
     networks:
       - spell-network
 
 networks:
   spell-network:
-    driver: bridge 
+    driver: bridge
