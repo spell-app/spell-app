@@ -7,6 +7,7 @@ import environment from "~/environment.js"
 import * as fileUtils from "./file-utils.ts"
 import * as responseUtils from "./response-utils.ts"
 import { SpellLocation } from "~/languages/spell/SpellLocation.ts"
+import { spellParser } from "~/languages/spell"
 
 const { respondWithJSON } = responseUtils
 
@@ -31,18 +32,18 @@ Object.defineProperty(SpellLocation.prototype, "serverPath", {
     const path = [
       this.owner === "@system" ? environment.systemFilesRoot : environment.userFilesRoot,
       this.domain,
-      this.projectName,
+      this.projectName
     ]
     if (this.filePath) path.push(...this.filePath.split("/"))
     const serverPath = fileUtils.normalizePath(...path.filter(Boolean))
     console.warn(`Server path for path '${this.path}' => '${serverPath}'`)
     return serverPath
-  },
+  }
 })
 
 const DEFAULT_FILE = {
   filePath: "/Untitled.spell",
-  contents: "// New file",
+  contents: "// New file"
 } as const
 
 /**
@@ -340,3 +341,27 @@ export const request_deleteFile = respondWithJSON(async (request) => {
   await deleteFile(projectId, filePath)
   return await getIndex(projectId)
 })
+
+//----------------------------
+//  Compilation
+//----------------------------
+
+export const compileFile = async (fileContents: string) => {
+  const compiled = spellParser.compile(fileContents)
+  return compiled
+}
+export const request_compileFile = respondWithJSON(async (request) => {
+  const contents =
+    request.method === "GET" //
+      ? DEFAULT_FILE_CONTENTS
+      : await request.body
+  return await compileFile(contents)
+})
+const DEFAULT_FILE_CONTENTS = `## definition of a Card with nice english aliases for working with it
+a card is a thing
+## properties of cards
+// card ranks
+cards have a rank as one of ace, 2, 3, 4, 5, 6, 7, 8, 9, 10, jack, queen or king
+// card suits
+cards have a suit as one of clubs, diamonds, hearts or spades
+`

@@ -53,6 +53,10 @@ api.get("/projects/index/:projectId", projectUtils.request_getIndex)
 api.get("/projects/file/:projectId/:filePath*", projectUtils.request_getFile)
 api.post("/projects/file/:projectId/:filePath*", projectUtils.request_saveFile)
 
+// Compile random source file
+api.post("/compile/file", projectUtils.request_compileFile)
+api.get("/compile/file", projectUtils.request_compileFile)
+
 //----------------------------
 //  Tests to make sure api is working
 //----------------------------
