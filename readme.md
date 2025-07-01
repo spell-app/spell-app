@@ -22,6 +22,8 @@ Experimental [Deepwiki Documentation](https://deepwiki.com/oakjs/parser)
 - Open http://localhost:3000 in your web browser.
 - Check out the [Solitaire Example](http://localhost:3000/run/examples/Solitaire/Card.spell)
 - Click the `Edit Example` button to see the code.
+- To run tests:
+  - `docker compose run api-server yarn test`
 
 ### with local node/yarn installed
 
@@ -29,6 +31,8 @@ Experimental [Deepwiki Documentation](https://deepwiki.com/oakjs/parser)
 - Install node and yarn with volta (TODO)
 - `yarn docker-build`
 - `yarn docker` or `yarn docker-bg`
+- To run tests
+- `yarn test` or `yarn test:ui`
 
 ---
 

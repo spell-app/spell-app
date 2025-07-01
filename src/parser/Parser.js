@@ -337,7 +337,7 @@ export class Parser extends Derivative {
         else if (props.literal) constructor = Rules.Keyword
         else if (props.literals) constructor = Rules.Keywords
         else {
-          throw ParserError({
+          throw new ParserError({
             message: `You must pass 'constructor', 'syntax', 'pattern', 'literal', or 'literals'.`,
             context: this,
             activity: "defineRule",
@@ -367,7 +367,6 @@ export class Parser extends Derivative {
       // add under all of the names provided
       return this.addRule(rule, names)
     } catch (error) {
-      console.warn("error in defineRule()", error)
       // If not on the server, change to a warning instead
       if (!isNode) {
         console.warn("Error in defineRule():", error, "\nprops:", ruleProps)

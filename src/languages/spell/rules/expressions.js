@@ -2,9 +2,8 @@
 //  # Rules for expressions.
 //
 
-import { Sequence } from "~/parser/rule/Sequence"
-import { Match, Rule } from "~/parser"
 import { AST, SpellParser } from "~/languages/spell"
+import { Match } from "~/parser"
 import { SpellStatement } from "./Statement"
 
 /** Base class for all Spell expressions. */

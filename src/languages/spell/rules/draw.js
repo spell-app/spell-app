@@ -27,9 +27,7 @@ export const draw = new SpellParser({
     {
       name: "draw_items",
       alias: "expression",
-      // TODO: `draw its {plural_variable}` ?
-      syntax: "draw (each {variable}|(each|the|all) {plural_variable}) (of|in) {expression}",
-      precedence: 101,
+      syntax: "draw (each {variable}|(the|all)? {plural_variable}) (of|in) {expression}",
       constructor: class draw_items extends SpellStatement {
         getAST(match) {
           return new AST.CoreMethodInvocation(match, {
@@ -46,8 +44,8 @@ export const draw = new SpellParser({
           },
           tests: [
             { input: "draw each card in the deck", output: "spellCore.drawItems(deck)" },
+            { input: "draw cards of the deck", output: "spellCore.drawItems(deck)" },
             { input: "draw the cards of the deck", output: "spellCore.drawItems(deck)" },
-            { input: "draw each card of the deck", output: "spellCore.drawItems(deck)" },
             { input: "draw all cards of the deck", output: "spellCore.drawItems(deck)" }
           ]
         }
