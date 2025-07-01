@@ -6,3 +6,4 @@ yarn-error.log
 .cache
 dist
 _parser.code-workspace
+.yarn/install-state.gz
