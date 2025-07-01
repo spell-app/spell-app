@@ -227,11 +227,14 @@ export const lists = new SpellParser({
     {
       name: "starts_with",
       alias: "expression_suffix",
-      // TODO: `does not start with`?
-      syntax: "(operator:starts with) {expression:simple_expression}",
+      precedence: 11,
+      syntax:
+        "(operator:starts with|does not start with|doesnt start with|doesn't start with) {expression:simple_expression}",
       constructor: class starts_with extends InfixOperatorSuffix {
-        getAST(match) {
-          const { lhs, rhs } = match.groups
+        shouldNegateOutput(operator) {
+          return operator.value.includes("not") || operator.value.includes("doesn")
+        }
+        compileASTExpression(match, { lhs, rhs }) {
           return new AST.CoreMethodInvocation(match, {
             methodName: "startsWith",
             args: [lhs, rhs]
@@ -247,7 +250,10 @@ export const lists = new SpellParser({
           },
           tests: [
             ["my-list starts with thing", "spellCore.startsWith(my_list, thing)"],
-            ["[1,2,3] starts with 1", "spellCore.startsWith([1, 2, 3], 1)"]
+            ["[1,2,3] starts with 1", "spellCore.startsWith([1, 2, 3], 1)"],
+            ["[1,2,3] does not start with 10", "!spellCore.startsWith([1, 2, 3], 10)"],
+            ["[1,2,3] doesn't start with 10", "!spellCore.startsWith([1, 2, 3], 10)"],
+            ["[1,2,3] doesnt start with 10", "!spellCore.startsWith([1, 2, 3], 10)"]
           ]
         }
       ]
@@ -257,11 +263,12 @@ export const lists = new SpellParser({
     {
       name: "ends_with",
       alias: "expression_suffix",
-      // TODO: `does not end with`?
-      syntax: "(operator:ends with) {expression:simple_expression}",
+      syntax: "(operator:ends with|does not end with|doesnt end with|doesn't end with) {expression:simple_expression}",
       constructor: class ends_with extends InfixOperatorSuffix {
-        getAST(match) {
-          const { lhs, rhs } = match.groups
+        shouldNegateOutput(operator) {
+          return operator.value.includes("not") || operator.value.includes("doesn")
+        }
+        compileASTExpression(match, { lhs, rhs }) {
           return new AST.CoreMethodInvocation(match, {
             methodName: "endsWith",
             args: [lhs, rhs]
@@ -277,7 +284,10 @@ export const lists = new SpellParser({
           },
           tests: [
             ["my-list ends with thing", "spellCore.endsWith(my_list, thing)"],
-            ["[1,2,3] ends with 1", "spellCore.endsWith([1, 2, 3], 1)"]
+            ["[1,2,3] ends with 1", "spellCore.endsWith([1, 2, 3], 1)"],
+            ["[1,2,3] does not end with 10", "!spellCore.endsWith([1, 2, 3], 10)"],
+            ["[1,2,3] doesnt end with 10", "!spellCore.endsWith([1, 2, 3], 10)"],
+            ["[1,2,3] doesn't end with 10", "!spellCore.endsWith([1, 2, 3], 10)"]
           ]
         }
       ]
