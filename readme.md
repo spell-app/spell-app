@@ -10,7 +10,7 @@ At the root of this is a "Rule Syntax" which resembles regular expressions on st
 
 Experimental [Deepwiki Documentation](https://deepwiki.com/oakjs/parser)
 
-## To get started (including re-starting app when code changes)
+## Getting Started
 
 - Install Docker Desktop
 - Clone this repo and switch into the project directory
@@ -25,7 +25,7 @@ Experimental [Deepwiki Documentation](https://deepwiki.com/oakjs/parser)
 - To run tests:
   - `docker compose run api-server yarn test`
 
-### with local node/yarn installed
+### To install with local node/yarn/docker
 
 - Install Docker Desktop
 - Install node and yarn with volta (TODO)
