@@ -691,6 +691,47 @@ export const expressions = new SpellParser({
           ]
         }
       ]
+    },
+
+    {
+      name: "as_a_type",
+      alias: "expression_suffix",
+      precedence: 11,
+      syntax: ["as (a|an) (type:string|number|fraction|integer)", "as (type:text)"],
+      // es: "como (un|una) (type:cadena|numero|fracción|entero)"
+      description: "Convert a value to a specific type, e.g. an integer.",
+      constructor: class as_a_type extends PostfixOperatorSuffix {
+        compileASTExpression(match, { lhs }) {
+          const type = match.groups.type.value
+          if (type === "string" || type === "text") {
+            // Wrap the expression in backticks to conver it to a string.
+            // Output is something like: "`${EXPRESSION_VALUE}`"
+            return new AST.BackTickExpression(match, {
+              expression: new AST.BacktickSubstitution(match, { expression: lhs })
+            })
+          } else {
+            // Output will be e.g. `parseFloat(EXPRESSION_VALUE)`
+            const methodName = type === "integer" ? "parseInt" : "parseFloat"
+            return new AST.MethodInvocation(match, {
+              methodName,
+              args: [lhs]
+            })
+          }
+        }
+      },
+      tests: [
+        {
+          compileAs: "expression",
+          tests: [
+            ["1 as a string", "`${1}`"],
+            [`"hello" as a string`, '`${"hello"}`'],
+            ["1 as a number", "parseFloat(1)"],
+            ["1.3 as a fraction", "parseFloat(1.3)"],
+            ["1.4 as an integer", "parseInt(1.4)"],
+            [`"foo" as a number`, `parseFloat("foo")`]
+          ]
+        }
+      ]
     }
   ]
 })

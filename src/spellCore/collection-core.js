@@ -27,6 +27,7 @@ Object.assign(spellCore, {
   // TODO: `null` or `undefined`???
   isEmpty(collection) {
     if (!assert.isDefined(collection, "spellCore.isEmpty(collection)")) return true
+    if (typeof collection === "number") return isNaN(collection)
     return spellCore.itemCountOf(collection) === 0
   },
 

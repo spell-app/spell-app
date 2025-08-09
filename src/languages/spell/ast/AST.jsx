@@ -394,6 +394,35 @@ export class BackTickExpression extends Expression {
 }
 
 /**
+ * BacktickSubstitutionExpression -- use to wrap an `${expression}` for use in a backtick string.
+ */
+export class BacktickSubstitution extends Expression {
+  /*@readonly*/ /*@proto*/ get datatype() {
+    return "string"
+  }
+  set datatype(datatype) {
+    this.override("datatype", datatype)
+  }
+  constructor(match, props) {
+    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
+    super(match, props)
+    this.assertType("expression", Expression)
+  }
+  compile() {
+    return "${" + this.expression.compile() + "}"
+  }
+  renderChildren() {
+    return (
+      <>
+        <span className="literal">{"${"}</span>
+        <span className="expression">{this.expression.component}</span>
+        <span className="literal">{"}"}</span>
+      </>
+    )
+  }
+}
+
+/**
  * TripleBackTickExpression -- use to wrap `expression` AST in triple-back-ticks.
  */
 export class TripleBackTickExpression extends Expression {

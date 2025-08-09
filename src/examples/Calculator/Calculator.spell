@@ -1,11 +1,10 @@
-// TODO:
-// - addition doesn't work -- `as a number`
+// IDEAS FOR EXTENDING THIS
 // - check for NaN in total
 // - <delete> button
 // - blinking cursor in current field
 // - keyboard input
 // - `output` as getter
-// - tape
+// - tape to show past results
 
 a calculator is an app
 a calculator has an input
@@ -27,17 +26,20 @@ to update the total of (a calculator):
 	if its right is empty: 
 		set its output to ""
 	otherwise
+		set lhs to its left as a number
+		set rhs to its right as a number
 		if its operator is "+"
-			set its total to its left plus its right
-		else if its operator is "-"
-			set its total to its left minus its right
+			set its total to lhs + rhs
+		else if its operator is "–"
+			set its total to lhs - rhs
 		else if its operator is "x"
-			set its total to its left times its right
+			set its total to lhs times rhs
 		else
-			set its total to its left divided by its right
+			set its total to lhs divided by rhs
 		set its output to " = " + its total
 
 to append (digit) to (a calculator):
+	// TODO: handle digit = "DELETE"
 	if the digit is "."
 		if its input is empty
 			set its input to "0."
@@ -47,10 +49,10 @@ to append (digit) to (a calculator):
 		set its input to "" + its input + the digit
 	// add to left or right field as appropriate
 	if its operator is empty
-		set its left to its input
+		set its left to its input as a number
 	else
-		set its right to its input
-	update the total of it
+		set its right to its input as a number
+	update the total of the calculator
 
 to set the operator of (a calculator) to (op):
 	set its operator to the op
@@ -77,28 +79,28 @@ to draw (a calculator)
 			<td ><button className="ui button fluid red" onClick={clear it}>C</button></td>
 		</tr>
 		<tr>
-			<td><button className="ui button fluid" onClick={append "7" to it}>7</button></td>
+			<td><button className="ui button fluid" onClick={append 7 to it}>7</button></td>
 			<td><button className="ui button fluid" onClick={append 8 to it}>8</button></td>
 			<td><button className="ui button fluid" onClick={append 9 to it}>9</button></td>
-			<td><button className="ui button fluid orange" onClick={set the operator of it to "+"}>+</button></td>
+			<td><button className="ui button fluid orange" onClick={set its operator to "+"}>+</button></td>
 		</tr>
 		<tr>
 			<td><button className="ui button fluid" onClick={append 4 to it}>4</button></td>
 			<td><button className="ui button fluid" onClick={append 5 to it}>5</button></td>
 			<td><button className="ui button fluid" onClick={append 6 to it}>6</button></td>
-			<td><button className="ui button fluid orange" onClick={set the operator of it to "-"}>-</button></td>
+			<td><button className="ui button fluid orange" onClick={set its operator to "–"}>–</button></td>
 		</tr>
 		<tr>
 			<td><button className="ui button fluid" onClick={append 1 to it}>1</button></td>
 			<td><button  className="ui button fluid" onClick={append 2 to it}>2</button></td>
 			<td><button className="ui button fluid" onClick={append 3 to it}>3</button></td>
-			<td><button className="ui button fluid orange" onClick={set the operator of it to "x"}>x</button></td>
+			<td><button className="ui button fluid orange" onClick={set its operator to "x"}>x</button></td>
 		</tr>
 		<tr>
 			<td ><button className="ui button fluid" onClick={append 0 to it}>0</button></td>
 			<td><button className="ui button fluid" onClick={append "." to it}>.</button></td>
 			<td><button hidden className="ui button fluid" onClick={append "DELETE" to it}>DEL</button></td>
-			<td><button className="ui button fluid orange" onClick={set the operator of it to "÷"}>÷</button></td>
+			<td><button className="ui button fluid orange" onClick={set its operator to "÷"}>÷</button></td>
 		</tr>
 	</table>
   </div>
