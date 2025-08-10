@@ -132,7 +132,7 @@ export const ConsoleGroup = view(function ConsoleGroup({ line, indent }) {
   const icon = (
     <span className="ConsoleGroupIcon" style={{ width: NORMAL_LINE_SPACE }}>
       <span style={{ cursor: "pointer" }} onClick={toggle}>
-        {collapsed ? "▼" : "▶"}
+        {collapsed ? "▶" : "▼"}
       </span>
     </span>
   )
