@@ -81,7 +81,7 @@ to draw (a card):
 	</div>
 
 ## create a card instance with default properties
-to quietly test card setup
+to test card setup
 	the card is a new card whose rank is queen, suit is spades and direction is up
 	echo the card
 	expect the rank of the card to be queen

@@ -11,12 +11,12 @@ to set up (a deck)
 	set the is-set-up of the deck to yes
 
 to display (a deck)
-	set output to "deck"
+	set card-names to a new list
 	for each card in the deck
-		set output to output + ":" + the short-name of the card
-	return output
+		add the short-name of the card to card-names
+	echo "deck: " + card-names
 
-to quietly test deck creation
+to test deck creation
 	the deck is a new deck
 	set up the deck
 	expect the number of cards in the deck to be 52
@@ -26,16 +26,17 @@ to quietly test deck creation
 	expect the number of cards in the queens to be 4
 	expect the name of the bottom card of the deck to be "king-of-spades"
 	expect the short-name of the top card of the deck to be "A♣️"
+
+	echo "the deck before shuffling:"
+	display the deck
+	get the first card of the deck
+	expect it is the ace of clubs to be yes
+
+	shuffle the deck
+	shuffle the deck
+
+	echo "the deck after shuffling:"
+	display the deck
+	get the first card of the deck
+	expect it is the ace of clubs to be no
 test deck creation
-
-to quietly test deck shuffling
-	the deck is a new deck
-	set up the deck
-	echo display the deck
-	expect (the first card of the deck) is the ace of clubs to be yes
-	shuffle the deck
-	shuffle the deck
-	echo display the deck
-	expect (the first card of the deck) is the ace of clubs to be no
-test deck shuffling
-

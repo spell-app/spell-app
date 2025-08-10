@@ -260,7 +260,7 @@ SpellParser.Rules.MethodDefinition = class method_definition extends SpellParser
         new AST.MethodDefinition(match, {
           methodName,
           body: new AST.CoreMethodInvocation(match, {
-            methodName: asTest.value === "quietly test" ? "quietlyTest" : "test",
+            methodName: "test",
             args: [new AST.QuotedExpression(match, signature.methodBits.join(" ")), method]
           })
         })
@@ -487,7 +487,7 @@ export const methods = new SpellParser({
       name: "to_do_something",
       alias: "statement",
       // TODO: add tests for `test` case
-      syntax: `to (asTest:quietly? test)? {signature:method_signature} :?`,
+      syntax: `to (asTest:test)? {signature:method_signature} :?`,
       constructor: class to_do_something extends SpellParser.Rules.MethodDefinition {
         /*@proto*/ get inlineInitialType() {
           return true

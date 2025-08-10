@@ -196,7 +196,7 @@ spellCore.define(Card.prototype, 'draw', {
 //## create a card instance with default properties
 /* SPELL: added rule: `test card setup` */
 function test_card_setup() {
-	return spellCore.quietlyTest('test card setup', function test_card_setup() {
+	return spellCore.test('test card setup', function test_card_setup() {
 		spellCore.echoTestAction(`the card is a new card whose rank is queen, suit is spades and direction is up`)
 		let card = new Card({
 			rank: 'queen',
@@ -266,17 +266,17 @@ spellCore.define(Deck.prototype, 'set_up', {
 /* SPELL: added rule: `display {thisArg:expression}` */
 spellCore.define(Deck.prototype, 'display', {
 	value() {
-		let output = "deck"
+		let card_names = new List()
 		spellCore.map(this, (card) => {
-			output = ((output + ":") + card.short_name)
+			spellCore.append(card_names, card.short_name)
 		})
-		return output
+		spellCore.echo("deck: " + card_names)
 	}
 })
 
 /* SPELL: added rule: `test deck creation` */
 function test_deck_creation() {
-	return spellCore.quietlyTest('test deck creation', function test_deck_creation() {
+	return spellCore.test('test deck creation', function test_deck_creation() {
 		spellCore.echoTestAction(`the deck is a new deck`)
 		let deck = new Deck()
 		spellCore.echoTestAction(`set up the deck`)
@@ -292,29 +292,28 @@ function test_deck_creation() {
 		spellCore.expect(spellCore.itemCountOf(queens), `the number of cards in the queens`, 4, `4`)
 		spellCore.expect(spellCore.getItemOf(deck, -1).name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
 		spellCore.expect(spellCore.getItemOf(deck, 1).short_name, `the short-name of the top card of the deck`, "A♣️", `"A♣️"`)
+		
+		spellCore.echo("the deck before shuffling:")
+		spellCore.echoTestAction(`display the deck`)
+		deck.display()
+		spellCore.echoTestAction(`get the first card of the deck`)
+		let it = spellCore.getItemOf(deck, 1)
+		spellCore.expect(it.is_the_$rank_of_$suits('ace', 'clubs'), `it is the ace of clubs`, true, `yes`)
+		
+		spellCore.echoTestAction(`shuffle the deck`)
+		spellCore.randomize(deck)
+		spellCore.echoTestAction(`shuffle the deck`)
+		spellCore.randomize(deck)
+		
+		spellCore.echo("the deck after shuffling:")
+		spellCore.echoTestAction(`display the deck`)
+		deck.display()
+		spellCore.echoTestAction(`get the first card of the deck`)
+		it = spellCore.getItemOf(deck, 1)
+		spellCore.expect(it.is_the_$rank_of_$suits('ace', 'clubs'), `it is the ace of clubs`, false, `no`)
 	})
 }
 test_deck_creation()
-
-/* SPELL: added rule: `test deck shuffling` */
-function test_deck_shuffling() {
-	return spellCore.quietlyTest('test deck shuffling', function test_deck_shuffling() {
-		spellCore.echoTestAction(`the deck is a new deck`)
-		let deck = new Deck()
-		spellCore.echoTestAction(`set up the deck`)
-		deck.set_up()
-		spellCore.echo(deck.display())
-		spellCore.expect((spellCore.getItemOf(deck, 1)).is_the_$rank_of_$suits('ace', 'clubs'), `(the first card of the deck) is the ace of clubs`, true, `yes`)
-		spellCore.echoTestAction(`shuffle the deck`)
-		spellCore.randomize(deck)
-		spellCore.echoTestAction(`shuffle the deck`)
-		spellCore.randomize(deck)
-		spellCore.echo(deck.display())
-		spellCore.expect((spellCore.getItemOf(deck, 1)).is_the_$rank_of_$suits('ace', 'clubs'), `(the first card of the deck) is the ace of clubs`, false, `no`)
-	})
-}
-test_deck_shuffling()
-
 // -----------
 //## Pile of playing cards
 export class Pile extends List {}

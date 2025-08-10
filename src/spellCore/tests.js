@@ -3,22 +3,20 @@
 // ----------------------------
 import { spellCore } from "./core.js"
 
+// TODO: merge this with SpellCore.console so `print XXX` in a test goes to ACTIVE_TEST
+// TODO: print result of "executing" e.g. Executing `display the deck` returned `xxx`
 Object.assign(spellCore, {
   _getTestResultIcon(success) {
     if (success === undefined) return "❓"
     return !!success ? "✅" : "❌"
   },
   /** Dynamic test: prints to console for now... */
-  test(message, testMethod, collapse) {
+  test(message, testMethod, collapse = true) {
     spellCore.startTest(message, collapse)
     try {
       testMethod()
     } catch (e) {}
     spellCore.endTest()
-  },
-  /** Dynamic test: prints to console for now... */
-  quietlyTest(message, testMethod) {
-    return spellCore.test(message, testMethod, true)
   },
 
   startTest(message, collapse = true) {

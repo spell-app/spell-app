@@ -162,6 +162,13 @@ export class List extends Observable {
   }
 
   /**
+   * Convert to string by joining with comma.
+   */
+  toString() {
+    return this.items.join(", ")
+  }
+
+  /**
    * If we're asked for an iterator, use a copy of our `items`,
    * freezing the iteration to the initial state of `items`.
    */
