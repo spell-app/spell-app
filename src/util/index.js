@@ -1,6 +1,6 @@
 export * from "./constants"
 
-export * from "./Logger.ts"
+export * from "./Logger"
 export * from "./class"
 export * from "./prefs"
 export * from "./Derivative"

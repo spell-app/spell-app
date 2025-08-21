@@ -12,7 +12,7 @@ export class RootScope extends BlockScope {
   /** Scope `types`. */
   /*@memoize*/
   get types() {
-    return this.memoized(
+    return this.derived(
       "types",
       () =>
         new IndexedList({
@@ -32,7 +32,7 @@ export class RootScope extends BlockScope {
   /** Scope `constants`. */
   /*@memoize*/
   get constants() {
-    return this.memoized(
+    return this.derived(
       "constants",
       () =>
         new IndexedList({
@@ -52,7 +52,7 @@ export class RootScope extends BlockScope {
   /** Scope `rules`. */
   /*@memoize*/
   get rules() {
-    return this.memoized(
+    return this.derived(
       "rules",
       () =>
         new IndexedList({

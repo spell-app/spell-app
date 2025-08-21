@@ -88,7 +88,7 @@ export class Match extends Assertable {
   // NOTE: ALWAYS GET THIS FROM THE MATCH!!!
   /*@memoize*/
   get groups() {
-    return this.memoized("groups", () => this.rule.gatherGroups?.(this))
+    return this.derived("groups", () => this.rule.gatherGroups?.(this))
   }
 
   /**
@@ -119,7 +119,7 @@ export class Match extends Assertable {
   // NOTE: ALWAYS GET THIS FROM THE MATCH!!!
   /*@memoize*/
   get nestedScope() {
-    return this.memoized("nestedScope", () => this.rule.getNestedScope?.(this))
+    return this.derived("nestedScope", () => this.rule.getNestedScope?.(this))
   }
 
   /**
@@ -153,7 +153,7 @@ export class Match extends Assertable {
   // Return the Abstract Syntax Tree for this match.
   /*@memoize*/
   get AST() {
-    return this.memoized("AST", () => {
+    return this.derived("AST", () => {
       if (!this.rule.getAST) {
         console.warn("No getAST() method defined for rule: ", this.rule)
         return undefined

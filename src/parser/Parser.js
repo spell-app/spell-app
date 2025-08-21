@@ -13,8 +13,8 @@ import { Rule, Rules, rulex, Token, Tokenizer, WhitespacePolicy, Scope } from "~
 export class ParserError extends CustomError {}
 
 export class Parser extends Derivative {
-  // Name of our default rule to parse if calling `parser.parse(text)`.
-  /*@proto*/ get defaultRule() {
+  /**  Name of our default rule to parse if calling `parser.parse(text)`. */
+  get defaultRule() {
     return "block"
   }
   set defaultRule(defaultRule) {
@@ -47,7 +47,7 @@ export class Parser extends Derivative {
    * Override in your subclass if parsing with different policies.
    */
   get tokenizer() {
-    return this.memoized("tokenizer", () => new Tokenizer({ whitespacePolicy: WhitespacePolicy.LEADING_ONLY }))
+    return this.derived("tokenizer", () => new Tokenizer({ whitespacePolicy: WhitespacePolicy.LEADING_ONLY }))
   }
 
   // Tokenize `input` as:
@@ -126,7 +126,7 @@ export class Parser extends Derivative {
   /*@memoize*/
   // REFACTOR: derived() instead?
   get rules() {
-    return this.memoized("rules", () => {
+    return this.derived("rules", () => {
       if (!this.imports) return { ...this.#ownRules }
       return this.mergeRuleSets(this.#ownRules, ...this.imports.map((parser) => parser.rules))
     })

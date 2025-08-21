@@ -46,7 +46,7 @@ export class SpellProject extends JSON5File {
   /*@forward("projectId", "owner", "projectName", "isSystemProject", "isUserProject")*/
   /*@memoize*/
   get location() {
-    return this.memoized("location", () => new SpellLocation(this.path))
+    return this.derived("location", () => new SpellLocation(this.path))
   }
   get projectId() {
     return this.location.projectId
@@ -67,7 +67,7 @@ export class SpellProject extends JSON5File {
   /*@forward("type", "Type")*/
   /*@memoize*/
   get projectRoot() {
-    return this.memoized("projectRoot", () => new SpellProjectRoot(this.location.projectRoot))
+    return this.derived("projectRoot", () => new SpellProjectRoot(this.location.projectRoot))
   }
   get type() {
     return this.projectRoot.type
@@ -98,7 +98,7 @@ export class SpellProject extends JSON5File {
 
   /*@memoize*/
   get outputFile() {
-    return this.memoized("outputFile", () => {
+    return this.derived("outputFile", () => {
       const location = this.getFileLocation(".output.js")
       return new SpellJSFile(location.path)
     })
@@ -141,7 +141,7 @@ export class SpellProject extends JSON5File {
    */
   /*@memoize*/
   get parser() {
-    return this.memoized("parser", () => {
+    return this.derived("parser", () => {
       return new TaskList({
         name: `Parsing ${this.type}: ${this.projectName}`,
         tasks: [
@@ -174,7 +174,7 @@ export class SpellProject extends JSON5File {
    */
   /*@memoize*/
   get compiler() {
-    return this.memoized("compiler", () => {
+    return this.derived("compiler", () => {
       return new TaskList({
         debug: true,
         name: `Compiling ${this.type}: ${this.projectName}`,
@@ -310,7 +310,7 @@ export class SpellProject extends JSON5File {
    */
   /*@memoizeForProp("contents")*/
   get manifest() {
-    return this.derived(
+    return this.derivedFrom(
       "manifest",
       () => {
         if (!this.contents?.manifest) return {}
@@ -332,7 +332,7 @@ export class SpellProject extends JSON5File {
    */
   /*@memoizeForProp("contents")*/
   get files() {
-    return this.derived(
+    return this.derivedFrom(
       "files",
       () => {
         console.info("getFiles", this, this.manifest)
@@ -355,7 +355,7 @@ export class SpellProject extends JSON5File {
    */
   /*@memoizeForProp("contents")*/
   get imports() {
-    return this.derived(
+    return this.derivedFrom(
       "imports",
       () => {
         if (!this.contents?.imports) return []
@@ -381,7 +381,7 @@ export class SpellProject extends JSON5File {
    */
   /*@memoizeForProp("contents")*/
   get activeImports() {
-    return this.derived(
+    return this.derivedFrom(
       "activeImports",
       () => {
         const { manifest } = this

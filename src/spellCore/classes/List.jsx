@@ -37,7 +37,7 @@ export class List extends Observable {
 
   /*@memoize*/
   get Component() {
-    return this.memoized("Component", () => {
+    return this.derived("Component", () => {
       const render = () => this.draw()
       class ListC extends React.Component {
         render = render

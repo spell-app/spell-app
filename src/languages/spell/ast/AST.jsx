@@ -64,7 +64,7 @@ export class ASTNode extends Assertable {
   /** Return rendered react component which draws this node as syntax-colored Javascript. */
   /*@memoize*/
   get component() {
-    return this.memoized("component", () => render.Node(this))
+    return this.derived("component", () => render.Node(this))
   }
 
   /**
@@ -1538,7 +1538,7 @@ export class PropertyDefinition extends Statement {
   // Return `CoreMethodInvocation` which we'll use to render as JS or component
   /*@memoize*/
   get definition() {
-    return this.memoized("definition", () => {
+    return this.derived("definition", () => {
       const { match, thing, property, value, get, set, initializer } = this
       const propName = new QuotedExpression(property.match, { expression: property })
 
@@ -1726,7 +1726,7 @@ export class JSXElement extends Expression {
   // Return `spellCore.createElement()` which we'll use to render as JS or component
   /*@memoize*/
   get output() {
-    return this.memoized("output", () => {
+    return this.derived("output", () => {
       const properties = [
         new ObjectLiteralProperty(this.match, {
           property: "tag",
@@ -1786,7 +1786,7 @@ export class JSXAttribute extends Expression {
   }
   /*@memoize*/
   get output() {
-    return this.memoized("output", () => {
+    return this.derived("output", () => {
       // If we didn't get a value:
       //  if we have a parse error, return `undefined`
       //  otherwise return `true` as per spec for an empty attribute
@@ -1827,7 +1827,7 @@ export class JSXText extends Expression {
   }
   /*@memoize*/
   get output() {
-    return this.memoized("output", () => {
+    return this.derived("output", () => {
       return new StringLiteral(this.match, this.value)
     })
   }
@@ -1844,7 +1844,7 @@ export class JSXExpression extends Expression {
   }
   /*@memoize*/
   get output() {
-    return this.memoized("output", () => {
+    return this.derived("output", () => {
       if (this.error) {
         const expression = this.expression || new NullLiteral(this.match)
         return new ExpressionWithComment(this.match, {

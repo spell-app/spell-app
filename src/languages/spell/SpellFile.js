@@ -45,7 +45,7 @@ export class SpellFile extends TextFile {
   /*@forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")*/
   /*@memoize*/
   get location() {
-    return this.memoized("location", () => new SpellLocation(this.path))
+    return this.derived("location", () => new SpellLocation(this.path))
   }
   get projectId() {
     return this.location.projectId
@@ -74,7 +74,7 @@ export class SpellFile extends TextFile {
    */
   /*@memoize*/
   get project() {
-    return this.memoized("project", () => new SpellProject(this.projectId))
+    return this.derived("project", () => new SpellProject(this.projectId))
   }
 
   /**

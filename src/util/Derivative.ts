@@ -1,22 +1,22 @@
 /**
- * Base class to add `@memoized`, `@derived`, `@override` functionality to class instances.
+ * Base class to add `@derived`, `@derivedFrom`, `@override` functionality to class instances.
  * - Call as: `class MyClass extends Derivative {...}`
  */
 export class Derivative {
   private __derived__: Record<string, any> = {}
   /**
-   * Return memoized `property` for this object by calling `getter()`.
+   * Return derived `property` for this object by calling `getter()`.
    * returning the exact same value each time.
    * - To reset the value:
    *   - Call `this.clearDerived()` to reset all derived properties.
    *   - Call `this.clearDerived(property)` to reset just that property.
    */
-  memoized<T = any>(property: string, getter: () => T): T {
-    if (!this.__derived__[property]) this.__derived__[property] = getter.apply(this)
+  derived<T = any>(property: string, getter: () => T): T {
+    if (!(property in this.__derived__)) this.__derived__[property] = getter.apply(this)
     return this.__derived__[property]
   }
   /**
-   * Return derived `property` for this object by calling `getter()`.
+   * Return derived `property`, calling `getter()` again whenever `dependencies` change.
    * - By default, the same value will be returned each time.
    * - To reset the value:
    *   - Call `this.clearDerived()` to reset all derived properties.
@@ -24,8 +24,8 @@ export class Derivative {
    *   - Pass a `dependencies` array -- the value will change
    *     whenever any of the dependencies change.
    */
-  derived<T = any>(property: string, getter: () => T, dependencies?: string[]): T {
-    return derived(this, property, getter, dependencies)
+  derivedFrom<T = any>(property: string, getter: () => T, dependencies?: string[]): T {
+    return derivedFrom(this, property, getter, dependencies)
   }
   /**
    * Clear derived properties, recalculating them next time they are accessed.
@@ -71,7 +71,7 @@ export function clearDerived(target: any, property: string) {
  * returning exactly the same value across calls.
  * - To recalculate the value, call `clearDerived()`.
  */
-export function memoized<T>(target: any, property: string, getter: () => T): T {
+export function derived<T>(target: any, property: string, getter: () => T): T {
   const derived = initDerived(target)
   if (!Object.hasOwn(derived, property)) derived[property] = getter()
   return derived[property]
@@ -81,22 +81,19 @@ export function memoized<T>(target: any, property: string, getter: () => T): T {
  * remembering value across calls.  We will recalculate value automatically
  * when `dependencies` change across calls.
  */
-export function derived<T>(target: any, property: string, getter: () => T, dependencies?: string[]): T {
+export function derivedFrom<T>(target: any, property: string, getter: () => T, dependencies?: string[]): T {
   if (!dependencies) {
-    return memoized(target, property, getter)
+    return derived(target, property, getter)
   }
-  const derived = initDerived(target)
-  const lastValue = derived[property]
+  const _derived_ = initDerived(target)
+  const lastValue = _derived_[property]
   // convert Object dependencies to WeakRefs to avoid circular references
   dependencies = dependencies.map(convertObjectToWeakRef)
   const recalculate = !lastValue || !dependenciesMatch(dependencies, lastValue.dependencies)
   if (recalculate) {
-    derived[property] = {
-      value: getter(),
-      dependencies
-    }
+    _derived_[property] = { value: getter(), dependencies }
   }
-  return derived[property].value
+  return _derived_[property].value
 }
 
 export function convertObjectToWeakRef(thing: any) {

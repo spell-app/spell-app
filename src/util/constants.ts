@@ -29,7 +29,7 @@ export const KNOWN_FORMATS = {
   jpeg: "image/jpeg",
   svg: "image/svg+xml",
   binary: "binary" // generic "binary" response, not an actual mime type
-}
+} as const
 
 /** Response types which will return a `blob()` response.
  * OK to update this in other files.
@@ -41,4 +41,4 @@ export const BINARY_FORMATS = [
   KNOWN_FORMATS.png,
   KNOWN_FORMATS.jpeg,
   KNOWN_FORMATS.binary
-]
+] as const

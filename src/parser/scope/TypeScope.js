@@ -30,7 +30,7 @@ export class TypeScope extends BlockScope {
   /** Scope `classVariables`. */
   /*@memoize*/
   get classVariables() {
-    return this.memoized(
+    return this.derived(
       "classVariables",
       () =>
         new IndexedList({
@@ -50,7 +50,7 @@ export class TypeScope extends BlockScope {
   /** Scope `classMethods`. */
   /*@memoize*/
   get classMethods() {
-    return this.memoized(
+    return this.derived(
       "classMethods",
       () =>
         new IndexedList({
