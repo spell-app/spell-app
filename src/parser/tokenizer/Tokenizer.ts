@@ -1,7 +1,7 @@
 /* eslint-disable no-continue */
-//import { addDebugMethods } from "~/util"
 import * as Tokens from "./Tokens.ts"
 import { Token } from "./Tokens.ts"
+import { Logger } from "~/util/Logger.ts"
 import { WhitespacePolicy, BACKSLASH, DOUBLE_QUOTE, SINGLE_QUOTE } from "../types.js"
 
 type TokenizerProps = {
@@ -24,7 +24,7 @@ export class Tokenizer {
   quoteSymbols = [DOUBLE_QUOTE, SINGLE_QUOTE] as const
 
   /** Debug logger. */
-  // logger = addDebugMethods({}, "tokenizer", "ERROR")
+  logger = new Logger({ prefix: "tokenizer", level: Logger.ERROR })
 
   constructor(props: TokenizerProps = {}) {
     Object.assign(this, props)
@@ -49,7 +49,7 @@ export class Tokenizer {
 
     const lastEnd = tokens[tokens.length - 1].end
     if (lastEnd !== end) {
-      // this.logger.warn("tokenize(): didn't consume: `", text.slice(start, end), "`")
+      this.logger.warn("tokenize(): didn't consume: `", text.slice(start, end), "`")
     }
 
     // Iterate through tokens setting `line` and `ch`(ar),
@@ -130,7 +130,7 @@ export class Tokenizer {
       results.push(token)
 
       if (token.end === nextStart) {
-        // this.logger.warn("error: got token but didn't advance in stream")
+        this.logger.warn("error: got token but didn't advance in stream")
         break
       }
       nextStart = token.end
@@ -173,7 +173,7 @@ export class Tokenizer {
     const props = {
       value,
       raw: value,
-      offset: start,
+      offset: start
     }
     // if at start of text or after a newline, return an `Indent` token
     if (start === 0 || text[start - 1] === "\n") return new Tokens.Indent(props)
@@ -235,7 +235,7 @@ export class Tokenizer {
     return new Tokens.Symbol({
       value,
       raw: value,
-      offset: start,
+      offset: start
     })
   }
 
@@ -270,7 +270,7 @@ export class Tokenizer {
     return new Tokens.Text({
       value,
       raw: value,
-      offset: start,
+      offset: start
     })
   }
 
@@ -301,7 +301,7 @@ export class Tokenizer {
     return new Tokens.Number({
       value,
       raw: input,
-      offset: start,
+      offset: start
     })
   }
 
@@ -386,7 +386,7 @@ export class Tokenizer {
         if (endBitMatch[1] === "/>") jsxElement.record.isUnaryTag = true
         nextStart += endBitMatch[0].length
       } else {
-        // this.logger.warn("Missing expected end `>` for jsxElement", jsxElement, `\`${text.slice(start, nextStart)}\``)
+        this.logger.warn("Missing expected end `>` for jsxElement", jsxElement, `\`${text.slice(start, nextStart)}\``)
         jsxElement.record.error = "No end >"
       }
     }
@@ -420,8 +420,9 @@ export class Tokenizer {
       }
     }
     // TODO: how to surface this error???
-    // if (nesting !== 0)
-    //   this.logger.warn(`matchJSXChildren(${text.slice(start, nextStart + 10)}: didn't match end child!`)
+    if (nesting !== 0) {
+      this.logger.warn(`matchJSXChildren(${text.slice(start, nextStart + 10)}: didn't match end child!`)
+    }
 
     return children
   }
@@ -459,7 +460,7 @@ export class Tokenizer {
     return new Tokens.JSXEndTag({
       raw: text.slice(start, end),
       tagName: endTagName,
-      offset: start,
+      offset: start
     })
   }
 
@@ -521,7 +522,7 @@ export class Tokenizer {
       // TODO: `contents` as the token???
       contents,
       raw: contents.value,
-      offset: start,
+      offset: start
     })
   }
 
@@ -545,7 +546,7 @@ export class Tokenizer {
     return new Tokens.JSXExpression({
       contents,
       raw: text.slice(start, endIndex + 1),
-      offset: start,
+      offset: start
     })
   }
 
@@ -565,7 +566,7 @@ export class Tokenizer {
 
     // if no match, we've got some sort of error
     if (endIndex === undefined) {
-      // this.logger.warn(`matchJSXText(${text.slice(start, start + 50)}): JSX seems to be unbalanced.`)
+      this.logger.warn(`matchJSXText(${text.slice(start, start + 50)}): JSX seems to be unbalanced.`)
       return undefined
     }
 
@@ -574,7 +575,7 @@ export class Tokenizer {
     return new Tokens.JSXText({
       value,
       raw: value,
-      offset: start,
+      offset: start
     })
   }
 
@@ -605,7 +606,7 @@ export class Tokenizer {
       commentSymbol, // actual comment symbol
       initialWhitespace, // whitespace between commentSymbol and comment value
       raw,
-      offset: start,
+      offset: start
     })
   }
 
@@ -622,7 +623,7 @@ export class Tokenizer {
       line: 0,
       ch: 0,
       // indent is -1 as flag that we haven't set it yet
-      indent: -1,
+      indent: -1
     })
     lines.push(line)
     tokens.forEach((token) => {
@@ -635,7 +636,7 @@ export class Tokenizer {
           line: token.line! + 1,
           ch: 0,
           // indent is -1 as flag that we haven't set it yet
-          indent: -1,
+          indent: -1
         })
         lines.push(line)
       } else if (token instanceof Tokens.Indent) {
@@ -693,7 +694,7 @@ export class Tokenizer {
       line: 0,
       ch: 0,
       indent: Math.min(...lines.map((line) => line.indent ?? 0)),
-      tokens: [],
+      tokens: []
     })
 
     // Stack of blocks -- we'll push and pop blocks on the stack as indent changes
@@ -707,7 +708,7 @@ export class Tokenizer {
           line: line.line,
           ch: line.ch,
           indent: topBlock.indent + 1,
-          tokens: [],
+          tokens: []
         })
         topBlock.tokens.push(newBlock)
         stack.push(newBlock)
