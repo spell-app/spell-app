@@ -1,3 +1,5 @@
+import { Prettify } from "~/types"
+
 /** Operation or resource is optional */
 export const OPTIONAL = "OPTIONAL"
 
@@ -30,6 +32,9 @@ export const KNOWN_FORMATS = {
   svg: "image/svg+xml",
   binary: "binary" // generic "binary" response, not an actual mime type
 } as const
+export type KnownFormatKey = keyof typeof KNOWN_FORMATS
+export type KnownFormatType = (typeof KNOWN_FORMATS)[keyof typeof KNOWN_FORMATS]
+export type KnownFormat = Prettify<KnownFormatKey | KnownFormatType>
 
 /** Response types which will return a `blob()` response.
  * OK to update this in other files.
@@ -42,3 +47,4 @@ export const BINARY_FORMATS = [
   KNOWN_FORMATS.jpeg,
   KNOWN_FORMATS.binary
 ] as const
+export type BinaryFormats = (typeof BINARY_FORMATS)[number]

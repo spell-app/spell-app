@@ -35,9 +35,8 @@ import { UIError } from "./CustomError"
  *    return finalResult ?? die("Last minute failure")
  *  }
  */
-export function getDier(context, activity, params) {
-  function die(message, originalError) {
-    const output = []
+export function getDier(context: any, activity: string, params: any) {
+  function die(message: string, originalError?: any) {
     throw new UIError(
       {
         message,

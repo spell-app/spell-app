@@ -1,5 +1,3 @@
-import lowerFirst from "lodash/lowerFirst"
-
 import { IndexedList, typeCase, instanceCase, snakeCase } from "~/util"
 import { MethodScope, ScopeVariable } from "~/parser"
 import { BlockScope } from "."

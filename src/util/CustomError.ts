@@ -1,4 +1,18 @@
 import global from "global"
+
+export type CustomErrorProps = {
+  /** Required: single error message string or array of strings. */
+  message?: string
+  /** Context in which the error happened, e.g. an instance. */
+  context?: any
+  /** Name of the method or action which failed. */
+  activity?: string
+  /** Any relevant parameters for the activity. */
+  params?: any
+  /** Original error thrown. */
+  error?: any
+}
+
 /**
  * Generic `CustomError` class you can subclass which sets stack trace up property, etc.
  * You can pass in any properties you like, but it can be helpful to see:
@@ -7,11 +21,17 @@ import global from "global"
  * - `activity`   Name of the method or action which failed.
  * - `params`     Any relevant parameters for the action.
  */
-export class CustomError extends Error {
-  constructor(props = {}, startStackAt) {
-    super()
-    if (typeof props === "string") this.message = props
-    else Object.assign(this, props)
+
+export class CustomError<Props extends CustomErrorProps = CustomErrorProps> extends Error {
+  props: Props
+  constructor(props: string | Props, startStackAt?: Function) {
+    if (typeof props === "string") {
+      super(props)
+      this.props = { message: props } as Props
+    } else {
+      super(props.message)
+      this.props = props
+    }
 
     // Hook stack trace up to where error was actually called, rather than this function.
     // NOTE: This is v8-specific!
@@ -31,16 +51,15 @@ export class CustomError extends Error {
 
   /** Return `header` for this error, e.g. for `<ErrorDisplay>`. */
   get header() {
-    const { name, activity } = this
-    if (activity) return `${name} ${activity}`
-    return name
+    if (this.props.activity) return `${this.name} ${this.props.activity}`
+    return this.name
   }
 }
 
 /** UI error -- something the user tried to do went wrong. */
 export class UIError extends CustomError {
   get name() {
-    return "Error"
+    return "UIError"
   }
 }
 

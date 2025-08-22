@@ -277,7 +277,7 @@ export class SpellProject extends JSON5File {
    * HACK HACK HACK
    * When our `contents` are updated,
    * immediately re-calculate derived properties below
-   * to try to avoid react-easy-state rendering errors  :-(
+   * to to avoid react-easy-state rendering errors  :-(
    */
   onContentsUpdated() {
     // eslint-disable-next-line no-unused-vars

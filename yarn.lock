@@ -992,6 +992,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/pluralize@npm:^0.0.33":
+  version: 0.0.33
+  resolution: "@types/pluralize@npm:0.0.33"
+  checksum: 10c0/24899caf85b79dd291a6b6e9b9f3b67b452b18d578d0ac0d531a705bf5ee0361d9386ea1f8532c64de9e22c6e9606c5497787bb5e31bd299c487980436c59785
+  languageName: node
+  linkType: hard
+
 "@types/prop-types@npm:*":
   version: 15.7.15
   resolution: "@types/prop-types@npm:15.7.15"
@@ -3902,6 +3909,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"node-storage-shim@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "node-storage-shim@npm:2.0.1"
+  checksum: 10c0/201e1036abf1c26787595b609058f0481ff90fc432df683f4db67dcfd0a4d59d4248ccb31015f061361d8be71eaac53e55eb60812100230862632a000291a9be
+  languageName: node
+  linkType: hard
+
 "nopt@npm:^8.0.0":
   version: 8.1.0
   resolution: "nopt@npm:8.1.0"
@@ -4132,6 +4146,13 @@ __metadata:
   version: 4.0.1
   resolution: "pify@npm:4.0.1"
   checksum: 10c0/6f9d404b0d47a965437403c9b90eca8bb2536407f03de165940e62e72c8c8b75adda5516c6b9b23675a5877cc0bcac6bdfb0ef0e39414cd2476d5495da40e7cf
+  languageName: node
+  linkType: hard
+
+"pluralize@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "pluralize@npm:8.0.0"
+  checksum: 10c0/2044cfc34b2e8c88b73379ea4a36fc577db04f651c2909041b054c981cd863dd5373ebd030123ab058d194ae615d3a97cfdac653991e499d10caf592e8b3dc33
   languageName: node
   linkType: hard
 
@@ -4906,6 +4927,7 @@ __metadata:
     "@types/fs-extra": "npm:^11.0.4"
     "@types/lodash": "npm:^4.17.17"
     "@types/node": "npm:^20.11.24"
+    "@types/pluralize": "npm:^0.0.33"
     "@types/proper-lockfile": "npm:^4.1.4"
     "@types/react": "npm:^18.2.56"
     "@types/react-dom": "npm:^18.2.19"
@@ -4938,7 +4960,9 @@ __metadata:
     lodash: "npm:^4.17.21"
     lodash-inflection: "npm:^1.5.0"
     node-filter-async: "npm:^3.0.0"
+    node-storage-shim: "npm:^2.0.1"
     path: "npm:^0.12.7"
+    pluralize: "npm:^8.0.0"
     prettier: "npm:^3.2.5"
     prop-types: "npm:^15.8.1"
     proper-lockfile: "npm:^3.2.0"

@@ -27,6 +27,7 @@
   "dependencies": {
     "@reach/router": "^1.3.4",
     "@risingstack/react-easy-state": "^6.3.0",
+    "@types/pluralize": "^0.0.33",
     "any-base": "^1.1.0",
     "assert": "^2.0.0",
     "body-parser": "^1.19.0",
@@ -45,7 +46,9 @@
     "lodash": "^4.17.21",
     "lodash-inflection": "^1.5.0",
     "node-filter-async": "^3.0.0",
+    "node-storage-shim": "^2.0.1",
     "path": "^0.12.7",
+    "pluralize": "^8.0.0",
     "prop-types": "^15.8.1",
     "proper-lockfile": "^3.2.0",
     "query-string": "^6.12.1",

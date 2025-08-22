@@ -1,0 +1,140 @@
+import _get from "lodash/get"
+import _set from "lodash/set"
+import queryString from "query-string"
+
+import { parseJSON, parseJSON5 } from "./json"
+import { abortableFetch, isAbortError } from "./abortableFetch"
+import { KNOWN_FORMATS, BINARY_FORMATS, KnownFormatKey } from "./constants"
+import {
+  ResponseError,
+  OfflineError,
+  MissingResourceError,
+  AuthenticationError,
+  ResponseParseError,
+  AbortedRequestError
+} from "./ResponseErrors.ts"
+
+/** Merge multiple sets of `$fetch()` `params` and set up defaults. */
+export function merge$fetchParms(...allParams: RequestInit[]) {
+  const output: RequestInit = {}
+  allParams.forEach((params) => {
+    if (!params) return
+    Object.keys(params).forEach((key) => {
+      const value = _get(params, key)
+      if (typeof value === "object") {
+        if (key in output) _set(output, key, value)
+        else _set(output, key, { ...value })
+      } else if (value !== undefined) {
+        _set(output, key, value)
+      }
+    })
+  })
+  return output
+}
+
+export type $FetchParams = {
+  /** URL to load. */
+  url: string
+  /** URL query params, as string or object which will be serialized. */
+  query?: string | Record<string, any>
+  /**  Request body as string or object which will be `JSON.stringify()`ed. */
+  contents?: string | Record<string, any>
+  /** HTTP method.  Defaults to `POST` if `contents` provided, otherwise `GET`. */
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
+  /** HTTP headers. */
+  headers?: Record<string, any>
+  /** Input format, used to set `Content-Type` header. See KNOWN_FORMATS. */
+  requestFormat?: KnownFormatKey
+  /** Output format, used to format output.  Defaults to `text`. See KNOWN_FORMATS. */
+  format?: string
+  /** On a 404, return `defaultContents` rather than throwing. */
+  defaultContents?: any
+}
+
+/**
+ * Fetch some `url` and return the decoded results.
+ * Server errors (404 etc) will be `reject()`ed.
+ * Returned promise has a `cancel()` method (see `abortableFetch` for caveats).
+ *
+ * `$params` consists of the following (all optional except for `url`):
+ * - `url`              URL to load.
+ * - `query`            URL query params, as string or object which will be serialized.
+ * - `contents`         Request body as string or object which will be `JSON.stringify()`ed.
+ * - `method`           HTTP method.  Defaults to `POST` if `contents` provided, otherwise `GET`.
+ * - `headers`          HTTP headers.
+ * - `requestFormat`    Input format, used to set `Content-Type` header. See KNOWN_FORMATS.
+ * - `format`           Output format, used to format output.  Defaults to `text`. See KNOWN_FORMATS.
+ * - `defaultContents`  On a 404, return `defaultContents` rather than throwing.
+ */
+export function $fetch<T = any>($params: $FetchParams): Promise<T> {
+  const {
+    url,
+    query,
+    contents,
+    method = contents != null ? "POST" : "GET",
+    headers = {},
+    requestFormat,
+    format = "text",
+    defaultContents
+  } = $params
+
+  const fetchParams: RequestInit = { method }
+  // Set Content-Type header if necessary
+  if (requestFormat) headers["Content-Type"] = KNOWN_FORMATS[requestFormat] || requestFormat
+  fetchParams.headers = headers
+
+  // Set up body if provided
+  if (contents != null) {
+    fetchParams.body = typeof contents === "string" ? contents : JSON.stringify(contents)
+  }
+
+  let fullURL = url
+  if (typeof query === "string") fullURL += `?${query}`
+  else if (query) fullURL += queryString.stringify(query)
+  // console.warn("$fetch:", fullURL, fetchParams)
+  const request = abortableFetch(fullURL, fetchParams)
+
+  /** The response completed, but it might actually be signalling an error.. */
+  async function success(response: Response) {
+    const errorParams = { url, status: response.status, ...fetchParams }
+    if (!response.ok) {
+      const message = await response.text()
+      switch (response.status) {
+        // If we got a `resource-not-found` error and we have `defaultContents`
+        // return that as a successful response.
+        case 404:
+          if (defaultContents !== undefined) return defaultContents
+          throw new MissingResourceError({ ...errorParams, message })
+
+        case 401:
+        case 403:
+          throw new AuthenticationError({ ...errorParams, message })
+
+        default:
+          throw new ResponseError({ ...errorParams, message })
+      }
+    }
+
+    // Attempt to process the response according to our format
+    // TODO: attempt to determine format from `Content-Type` in response header
+    try {
+      if (BINARY_FORMATS.includes(format as any)) return await response.blob()
+      // Pull text out to process json/json5 separately below.
+      const text = await response.text()
+      if (format === KNOWN_FORMATS.json || format.toLowerCase() === "json") return parseJSON(text)
+      if (format === KNOWN_FORMATS.json5 || format.toLowerCase() === "json5") return parseJSON5(text)
+      return text
+    } catch (error) {
+      throw new ResponseParseError({ ...errorParams, error })
+    }
+  }
+
+  /** Transport failure, e.g. if we're offline or the request was aborted. */
+  async function failure(error: Error) {
+    if (defaultContents !== undefined) return defaultContents
+    if (isAbortError(error)) throw new AbortedRequestError({ url, error, ...fetchParams })
+    throw new OfflineError({ url, error, ...fetchParams })
+  }
+
+  return request.then(success, failure)
+}

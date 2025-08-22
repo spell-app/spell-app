@@ -1,9 +1,8 @@
 import global from "global"
 
 /** Return `true` if an Error is the result of an `AbortController.abort()` call. */
-export function isAbortError(error) {
+export function isAbortError(error: Error) {
   if (error.name === "AbortError") return true
-  if (error.error && error.error.name === "AbortError") return true
   return false
 }
 
@@ -39,13 +38,14 @@ export function isAbortError(error) {
  *    const promise = loadIt()
  *    promise.cancel() <<<<< `cancel` will not be defined
  */
-export function abortableFetch(url, fetchParams = {}) {
+export function abortableFetch(url: string, fetchParams: RequestInit = {}) {
   // Semaphore set first thing when `fetch()` completes.
   let completed = false
   const abortController = new global.AbortController()
-  function hookup(newPromise) {
-    // console.warn("hooking up", newPromise)
-    return Object.assign(newPromise, {
+
+  function wrapPromise(promise: Promise<unknown>) {
+    // console.warn("wrapping promise", promise)
+    return Object.assign(promise, {
       cancel() {
         if (!completed) {
           console.warn(`Cancelling abortable fetch to ${url}:`)
@@ -53,14 +53,14 @@ export function abortableFetch(url, fetchParams = {}) {
         }
         return this
       },
-      then(...args) {
-        return hookup(Promise.prototype.then.apply(this, args))
+      then(onResolved: (value: any) => unknown, onRejected: (reason: any) => unknown) {
+        return wrapPromise(Promise.prototype.then.apply(this, [onResolved, onRejected]))
       },
-      catch(...args) {
-        return hookup(Promise.prototype.catch.apply(this, args))
+      catch(onRejected: (reason: any) => unknown) {
+        return wrapPromise(Promise.prototype.catch.apply(this, [onRejected]))
       },
-      finally(...args) {
-        return hookup(Promise.prototype.finally.apply(this, args))
+      finally(onFinally: () => void) {
+        return wrapPromise(Promise.prototype.finally.apply(this, [onFinally]))
       }
     })
   }
@@ -70,5 +70,5 @@ export function abortableFetch(url, fetchParams = {}) {
   promise.finally(() => {
     completed = true
   })
-  return hookup(promise)
+  return wrapPromise(promise)
 }

@@ -2,7 +2,7 @@ import global from "global"
 import { navigate } from "@reach/router"
 
 import { FileScope } from "~/parser"
-import { createStore, setPrefKey, getSetPref, CONFIRM } from "~/util"
+import { createStore, setPrefKey, getPref, setPref, CONFIRM } from "~/util"
 import { spellCore } from "~/spellCore"
 import { SpellProjectRoot, SpellProject, SpellLocation } from "~/languages/spell"
 import { UI } from "~/app/components/ui"
@@ -19,7 +19,10 @@ export const store = createStore({
    */
   projectRoot: undefined,
   /** Get/save last viewed `projectPath` for `projectRootPath`. */
-  lastProjectForRoot: getSetPref("projectRootPath", "projectPath"),
+  lastProjectForRoot(projectRootPath, projectPath) {
+    if (arguments.length === 1) return getPref(projectRootPath, projectPath)
+    return setPref(projectRootPath, projectRootPath)
+  },
   get appType() {
     return store.projectRoot?.Type || "Project"
   },
@@ -30,7 +33,10 @@ export const store = createStore({
    */
   project: undefined,
   /** Get/save last viewed full `filePath` for `projectPath`. */
-  lastFileForProject: getSetPref("projectPath", "filePath"),
+  lastFileForProject(projectPath, filePath) {
+    if (arguments.length === 1) return getPref(projectPath, filePath)
+    return setPref(projectPath, projectPath)
+  },
 
   /**
    * `SpellFile` etc shown in `SpellEditor`.
@@ -38,7 +44,10 @@ export const store = createStore({
    */
   file: undefined,
   /** Get/save last `selection` for `filePath`.  */
-  lastSelectionForFile: getSetPref("filePath", "selection"),
+  lastSelectionForFile(filePath, selection) {
+    if (arguments.length === 1) return getPref(filePath, selection)
+    return setPref(filePath, selection)
+  },
 
   /**
    * Show the project / example / guide chooser page.
