@@ -115,12 +115,14 @@ export function getProps(target: any) {
 }
 
 /** Return reactive `property`, defaulting to `initializer` if never set. */
+export function getProp<T>(target: any, property: string): T | undefined
+export function getProp<T>(target: any, property: string, initializer?: () => T): T
 export function getProp<T>(target: any, property: string, initializer?: () => T) {
   const props = propsFor(target)
   if (!hasOwnProp(props.map, property) && initializer) {
     props.map[property] = initializer.call(target)
   }
-  return props.$store[property] as T | undefined
+  return props.$store[property]
 }
 /**
  * Set reactive `property` to `value`.
@@ -166,12 +168,14 @@ function stateFor(target: any) {
 }
 
 /** Return reactive `property`, defaulting to `initializer` if never set. */
+export function getState<T>(target: any, property: string): T | undefined
+export function getState<T>(target: any, property: string, initializer?: () => T): T
 export function getState<T>(target: any, property: string, initializer?: () => T) {
   const state = stateFor(target)
   if (!hasOwnProp(state.map, property) && initializer) {
     state.map[property] = initializer.call(target)
   }
-  return state.$store[property] as T
+  return state.$store[property]
 }
 /**
  * Set reactive `property` to `value`.

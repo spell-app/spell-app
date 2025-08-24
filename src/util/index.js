@@ -20,7 +20,6 @@ export * from "./Observable"
 export * from "./Loadable"
 export * from "./LoadableFile"
 
-export * from "./react"
 export * from "./DOM"
 
 export * from "./Task"

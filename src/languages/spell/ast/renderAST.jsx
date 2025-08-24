@@ -10,12 +10,33 @@
  *    etc
  */
 import React from "react"
-import { Fragment, getNamedComponent } from "~/util"
+
+///////////////////
+// UTILITY FUNCTIONS
+///////////////////
 
 /**
- * Re-export `Fragment` which lets us render an array of components consisely.
+ * Draw a React.Fragment which encompasses the arguments.
+ * Simpler implementations seem to have problems in babel.
  */
-export { Fragment }
+// Helper to draw a fragment from a bunch of children
+// Much more concise due to spammy prettier formatting.
+export function Fragment() {
+  const args = [React.Fragment, null]
+  for (var i = 0; i < arguments.length; i++) args.push(arguments[i])
+  return React.createElement.apply(React, args)
+}
+
+/**
+ * Return a React functional component which will show as `name` in a rendering error, etc.
+ * TODOC
+ */
+export function getNamedComponent(name, renderFn) {
+  Object.defineProperty(renderFn, "name", { value: name })
+  return renderFn
+}
+
+///////////////////
 
 /** Default render for a single ASTNode. */
 export function Node(astNode) {
