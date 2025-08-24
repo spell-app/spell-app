@@ -4,40 +4,44 @@ import { batch } from "@risingstack/react-easy-state"
 
 import { Observable } from "./Observable"
 
-export type LoadableProps = {
+export type LoadableProps<ContentType extends any> = {
+  contents: ContentType
   cacheDuration?: number
-  // TODO: default contents?
-  contents: any
-  isLoaded: boolean
-  isDirty: boolean
-  isSaving: boolean
 }
-export type LoadableState = {
+export type LoadableState<ContentType extends any, SaveResult extends any> = {
+  loadState: LoadState<ContentType, SaveResult>
+}
+
+export type LoadState<ContentType, SaveResult> = {
   ////// Loading //////
   /** `true` if we have successfully loaded. */
   isLoaded?: boolean
-  /** Promise used for the current in-flight `load()`. */
-  loader?: Promise<any>
-  /** Params passed to current in-flight `load()`. */
+  /** Promise used for the current, in-flight `load()`. */
+  loader?: Promise<ContentType>
+  /** Params passed to last successful `load()`. */
   loadParams?: any
-  /** Error returned during last load. */
+  /** Error returned during last failed load. */
   loadError?: Error
-  /** Time last `load()` succeeded or failed. */
-  loadTime?: number
+  /**
+   * Time last `load()` succeeded or failed,
+   * or when `contents` are set manually.
+   */
+  lastLoaded?: number
 
   ////// Saving //////
+  // TODO: `changes` concept!!!
   /** `true` if we need to be saved. */
   isDirty?: boolean
-  /** Promise used for current in-flight `save()`. */
-  saver?: Promise<any>
-  /** Params passed to current in-flight `save()`. */
+  /** Promise used for current, in-flight `save()`. */
+  saver?: Promise<SaveResult>
+  /** Params passed for currrent, in-flight `save()`. */
   saveParams?: any
   /** Error returned during last successful `save()`. */
   saveResult?: any
   /** Error returned during last failed `save()`. */
   saveError?: Error
   /** Time last `save()` succeeded or failed. */
-  saveTime?: number
+  lastSaveCompleted?: number
 
   ////// Both //////
   /** Cancel any in-flight load or save. */
@@ -52,11 +56,44 @@ export type LoadableState = {
  *
  * Use `LoadableFile` and the like to load a single file by URL.
  */
-export abstract class Loadable<ContentType extends any, SaveResult extends any> extends Observable<LoadableProps> {
+export abstract class Loadable<ContentType extends any, SaveResult extends any> extends Observable<
+  LoadableProps<ContentType>,
+  LoadableState<ContentType, SaveResult>
+> {
   /** Contents of the last successful `load()`. */
   get contents(): ContentType | undefined {
-    return this.getState("contents", () => undefined)
+    return this.getProp("contents")
   }
+  /**
+   * You can set contents manually, e.g. for a new object
+   * or if loading one thing provided data for something else.
+   */
+  set contents(contents: ContentType | undefined) {
+    batch(() => {
+      this.stopInflightLoadOrSave()
+      this.setProp("contents", contents)
+      if (contents !== undefined) {
+        this.updateLoadState({
+          isLoaded: true,
+          lastLoaded: Date.now(),
+          loadError: undefined
+        })
+      } else {
+        this.updateLoadState({
+          isLoaded: false,
+          lastLoaded: undefined,
+          loadError: undefined
+        })
+      }
+      this.onContentsUpdated()
+    })
+  }
+
+  /**
+   * Our `contents` were just updated -- recalculate any dependent variables, etc.
+   * Happens inside the `batch()` where contents / load props are set.
+   */
+  onContentsUpdated() {}
 
   //-----------------
   // Cleanup
@@ -67,28 +104,12 @@ export abstract class Loadable<ContentType extends any, SaveResult extends any> 
   }
 
   //-----------------
-  // State
+  // Load State
   //-----------------
-
-  protected get loadState(): LoadableState {
-    return this.getState("loadState", () => ({ isLoaded: false }))
-  }
-  protected updateLoadState(props: Partial<LoadableState>) {
-    if (!props) return
-    batch(() => {
-      Object.entries(props).forEach(([key, value]) => this.setState(`loadState.${key}`, value))
-    })
-  }
-
-  /** Are we unloaded? */
-  get isUnloaded() {
-    return !this.isLoading && !this.loadState.isLoaded
-  }
 
   /** Have we been successfully loaded? */
   get isLoaded() {
-    const { isLoaded, loader } = this.loadState
-    return isLoaded && !loader
+    return !!this.loadState.isLoaded
   }
 
   /** Are we currently loading? */
@@ -96,13 +117,26 @@ export abstract class Loadable<ContentType extends any, SaveResult extends any> 
     return !!this.loadState.loader
   }
 
-  /** Do we need to save? */
+  /** Do we need to be saved? */
   get isDirty() {
     return !!this.loadState.isDirty
+  }
+  set isDirty(isDirty: boolean) {
+    this.updateLoadState({ isDirty })
   }
   /** Are we currently saving? */
   get isSaving() {
     return !!this.loadState.saver
+  }
+
+  protected get loadState(): LoadState<ContentType, SaveResult> {
+    return this.getState("loadState", () => ({ isLoaded: false }))
+  }
+  protected updateLoadState(props: Partial<LoadState<ContentType, SaveResult>>) {
+    if (!props) return
+    batch(() => {
+      Object.entries(props).forEach(([key, value]) => this.setState(`loadState.${key}`, value))
+    })
   }
 
   //-----------------
@@ -110,27 +144,33 @@ export abstract class Loadable<ContentType extends any, SaveResult extends any> 
   //-----------------
 
   /**
-   * How long to keep cached load results before reloading.
-   * - `Infinity` means never reload.
-   * - `0` means always reload.
+   * How long to keep cached load results before `reload()`ing automatically on `load()`.
    * - `number` means reload after that many seconds.
+   * - `0` means always reload.
+   * - `-1` (default) means never reload.
    */
   get cacheDuration() {
-    return this.getProp<number>("cacheDuration", () => Infinity)
+    // Default to cache forever
+    return this.getProp<number>("cacheDuration", () => -1)
   }
   set cacheDuration(cacheDuration: number) {
     this.setProp("cacheDuration", cacheDuration)
   }
 
   /**
-   * Assuming our load params are the same as last time, should we reload?
+   * Are our cached contents still valid?
    */
-  get isExpired() {
-    if (this.cacheDuration === 0 || !this.loadState.loadTime) return true
-    if (this.cacheDuration === Infinity) return false
-    const expiryTime = this.loadState.loadTime + this.cacheDuration * 1000 // TODO: use `Date.now()` instead of `Date.now()`
-    if (isNaN(expiryTime)) return undefined
-    return Date.now() > expiryTime
+  get cacheIsValid() {
+    // if we've never loaded, we should reload
+    if (!this.loadState.lastLoaded) return false
+    // if we should cache forever, we shouldn't reload
+    if (this.cacheDuration < 0) return true
+    // if we should never cache, we should reload
+    if (this.cacheDuration === 0) return false
+    // reload if we're past the expiry time
+    const expiryTime = this.loadState.lastLoaded + this.cacheDuration * 1000
+    if (isNaN(expiryTime)) return false
+    return expiryTime > Date.now()
   }
 
   /**
@@ -150,7 +190,7 @@ export abstract class Loadable<ContentType extends any, SaveResult extends any> 
       // If we're currently loading, return the current loader
       if (this.loadState.loader) return this.loadState.loader
       // If the cached version is still good
-      if (!this.isExpired) {
+      if (this.cacheIsValid) {
         // if loaded, resolve with last contents
         if (this.isLoaded) return Promise.resolve(this.contents)
         // if load error, reject with last error
@@ -164,7 +204,11 @@ export abstract class Loadable<ContentType extends any, SaveResult extends any> 
     const onSuccess = async (contents: ContentType) => {
       // Only update if the same `loader` is active
       if (this.loadState.loader === loader) {
-        this.setContents(contents, { loadParams })
+        batch(() => {
+          this.contents = contents
+          // remember params used to load for caching
+          this.updateLoadState({ loadParams })
+        })
       }
       return this.contents
     }
@@ -172,8 +216,10 @@ export abstract class Loadable<ContentType extends any, SaveResult extends any> 
     const onError = async (loadError: Error) => {
       // Only update if the same `loader` is active
       if (loader === this.loadState.loader) {
-        this.setContents(undefined, { isLoaded: false, loadError })
-        this.updateLoadState({})
+        batch(() => {
+          this.contents = undefined
+          this.updateLoadState({ loadError })
+        })
       }
       if (this.loadState.loadError) throw this.loadState.loadError
       return this.contents
@@ -181,7 +227,6 @@ export abstract class Loadable<ContentType extends any, SaveResult extends any> 
 
     try {
       loader = this.getLoader(loadParams)
-      // TODO: get `cancel` object from promise if there is one
       if (!loader || !loader.then) throw new TypeError(`${this.constructor.name}.getLoader() didn't return a loader!`)
       // Save cancel method, e.g. from `AbortableFetch`
       const cancel = (loader as any)["cancel"] as (() => void) | undefined
@@ -192,11 +237,14 @@ export abstract class Loadable<ContentType extends any, SaveResult extends any> 
     }
   }
 
-  /** Force reload of the resource, ignoring expiration logic. */
-  reload(loadParams: any) {
+  /**
+   * Force reload of the resource, ignoring expiration logic.
+   * - If you pass `loadParams`, we'll use that for the new `load()`
+   * - If you don't, we'll re-use the last `loadParams`.
+   */
+  reload(loadParams: any = this.loadState.loadParams) {
     return batch(() => {
-      // TODO: don't unload, just reset loadTime?
-      this.unload()
+      this.updateLoadState({ lastLoaded: undefined })
       return this.load(loadParams)
     })
   }
@@ -242,7 +290,7 @@ export abstract class Loadable<ContentType extends any, SaveResult extends any> 
           saveParams: undefined,
           saveResult,
           saveError: undefined,
-          saveTime: Date.now()
+          lastSaveCompleted: Date.now()
         })
         // console.warn("saved after:", { ...this.loadState })
       }
@@ -257,7 +305,7 @@ export abstract class Loadable<ContentType extends any, SaveResult extends any> 
           saveParams: undefined,
           saveResult: undefined,
           saveError,
-          saveTime: Date.now()
+          lastSaveCompleted: Date.now()
         })
       }
       if (this.loadState.saveError) throw this.loadState.saveError
@@ -277,67 +325,21 @@ export abstract class Loadable<ContentType extends any, SaveResult extends any> 
   }
 
   //-----------------
-  // Manually setting contents
-  //-----------------
-
-  /**
-   * Manually set `contents` and adjust `loadState` as necessary.
-   * Cancels in-flight operations if necessary.
-   */
-  setContents(contents: ContentType | undefined, loadableProps: Partial<LoadableState>) {
-    batch(() => {
-      // The following will also clear active loader/saver
-      this.stopInflightLoadOrSave()
-      this.setState("contents", contents)
-      this.updateLoadState({
-        isLoaded: contents !== undefined,
-        isDirty: false,
-        loadError: undefined,
-        loadTime: Date.now(),
-        ...loadableProps
-      })
-      this.onContentsUpdated()
-    })
-    return this
-  }
-
-  /**
-   * Our `contents` were just updated -- recalculate any dependent variables, etc.
-   * Happens inside the `batch()` where contents / load props are set.
-   */
-  onContentsUpdated() {}
-
-  //-----------------
   // Internal
   //-----------------
 
   /**
-   * Attempt to cancel the current in-flight load.
-   * No-op if not loading. Attempts to minimally clean up load variables.
+   * Attempt to cancel the current in-flight load or save.
+   * Does not clean up other load state variables.
    */
   stopInflightLoadOrSave() {
     batch(() => {
-      const { loader, saver } = this.loadState
       if (this.loadState.cancelInFlightAction) this.loadState.cancelInFlightAction()
-
-      const newState: Partial<LoadableState> = {
+      this.updateLoadState({
+        loader: undefined,
+        saver: undefined,
         cancelInFlightAction: undefined
-      }
-      if (loader) {
-        Object.assign(newState, {
-          loader: undefined,
-          loadParams: undefined,
-          loadError: undefined
-        })
-      }
-      if (saver) {
-        Object.assign(newState, {
-          saver: undefined,
-          saveParams: false,
-          saveError: undefined
-        })
-      }
-      this.updateLoadState(newState)
+      })
     })
     return this
   }

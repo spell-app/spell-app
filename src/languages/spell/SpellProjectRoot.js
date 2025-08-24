@@ -158,7 +158,7 @@ export class SpellProjectRoot extends JSON5File {
         requestFormat: "json",
         format: "json"
       })
-      this.setContents(newContents)
+      this.contents = newContents
     } catch (e) {
       die(`Server error creating ${this.type}`, e)
     }
@@ -194,7 +194,7 @@ export class SpellProjectRoot extends JSON5File {
         requestFormat: "json",
         format: "json"
       })
-      this.setContents(newContents)
+      this.contents = newContents
     } catch (e) {
       die(`Server error duplicating ${this.type}`, e)
     }
@@ -231,7 +231,7 @@ export class SpellProjectRoot extends JSON5File {
         requestFormat: "json",
         format: "json"
       })
-      this.setContents(newContents)
+      this.contents = newContents
       // Have the project clean itself up in a tick (delay is so React doesn't barf on hooks).
       setTimeout(() => project.onRemove(), 10)
     } catch (e) {
@@ -266,7 +266,7 @@ export class SpellProjectRoot extends JSON5File {
         requestFormat: "json",
         format: "json"
       })
-      this.setContents(newContents)
+      this.contents = newContents
     } catch (e) {
       die(`Server error deleting ${this.type}`, e)
     }

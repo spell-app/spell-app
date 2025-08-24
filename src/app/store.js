@@ -591,7 +591,8 @@ export const store = createStore({
 
   /** Handle change event from our inputEditor. */
   onInputChanged(codeMirror, change, value) {
-    store.file.setContents(value, { isDirty: true })
+    store.file.contents = value
+    store.file.isDirty = true
     store.project.updatedContentsFor(store.file)
     // auto-compile 2 seconds after input settles
     store.compileAppSoon(2)

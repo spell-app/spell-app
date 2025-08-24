@@ -200,7 +200,7 @@ export class SpellProject extends JSON5File {
           new Task({
             name: "Saving compiled output",
             run: async (compiled) => {
-              this.outputFile.setContents(compiled)
+              this.outputFile.contents = compiled
               return await this.outputFile.save()
             }
           })
@@ -362,7 +362,7 @@ export class SpellProject extends JSON5File {
         return this.contents.imports.map(({ path, active, contents }) => {
           const location = SpellLocation.getFileLocation(this.projectId, path)
           const file = SpellProject.getFileForPath(location.path)
-          if (contents !== undefined) file.setContents(contents)
+          if (contents !== undefined) file.conents = contents
           return {
             path: location.path,
             active,
@@ -493,7 +493,7 @@ export class SpellProject extends JSON5File {
         requestFormat: "json",
         format: "json"
       })
-      this.setContents(newIndex)
+      this.contents = contents
     } catch (e) {
       die("Server error creating file", e)
     }
@@ -554,7 +554,7 @@ export class SpellProject extends JSON5File {
         requestFormat: "json",
         format: "json"
       })
-      this.setContents(newIndex)
+      this.contents = contents
     } catch (e) {
       die("Server error renaming file", e)
     }
@@ -593,7 +593,7 @@ export class SpellProject extends JSON5File {
         requestFormat: "json",
         format: "json"
       })
-      this.setContents(newIndex)
+      this.contents = contents
     } catch (e) {
       die("Server error deleting file", e)
     }
