@@ -1,9 +1,10 @@
+import { clearDerived, getDerived, getDerivedFrom, override } from "./extendObject"
+
 /**
  * Base class to add `@derived`, `@derivedFrom`, `@override` functionality to class instances.
  * - Call as: `class MyClass extends Derivative {...}`
  */
 export class Derivative {
-  private __derived__: Record<string, any> = {}
   /**
    * Return derived `property` for this object by calling `getter()`.
    * returning the exact same value each time.
@@ -12,8 +13,7 @@ export class Derivative {
    *   - Call `this.clearDerived(property)` to reset just that property.
    */
   derived<T = any>(property: string, getter: () => T): T {
-    if (!(property in this.__derived__)) this.__derived__[property] = getter.apply(this)
-    return this.__derived__[property]
+    return getDerived(this, property, getter)
   }
   /**
    * Return derived `property`, calling `getter()` again whenever `dependencies` change.
@@ -25,7 +25,7 @@ export class Derivative {
    *     whenever any of the dependencies change.
    */
   derivedFrom<T = any>(property: string, getter: () => T, dependencies?: string[]): T {
-    return derivedFrom(this, property, getter, dependencies)
+    return getDerivedFrom(this, property, getter, dependencies)
   }
   /**
    * Clear derived properties, recalculating them next time they are accessed.
@@ -39,101 +39,4 @@ export class Derivative {
   override<T>(property: string, value: T) {
     override(this, property, value)
   }
-}
-
-/**
- * Set `target` object up for use with derived properties.
- * - NOTE: you can safely call this repeatedly with the same `target`.
- */
-export function initDerived(target: any) {
-  if (!Object.hasOwn(target, "__derived__")) {
-    // TODO: add to FinalizationRegistry to clearDerived() when deallocated?
-    Object.defineProperty(target, "__derived__", { value: {}, writable: true })
-  }
-  return target.__derived__
-}
-
-/**
- * Clear derived property/ies of `target` object,
- * causing derived values to be recalculated next time they're called for.
- *
- * - Pass string `property` to clear a single property.
- * - Call with no arguments to clear all derived properties.
- */
-export function clearDerived(target: any, property: string) {
-  if (!Object.hasOwn(target, "__derived__")) return
-  if (property) delete target.__derived__[property]
-  else target.__derived__ = {}
-}
-
-/**
- * Memoize value of `property` for `target` obtained by calling `getter()`,
- * returning exactly the same value across calls.
- * - To recalculate the value, call `clearDerived()`.
- */
-export function derived<T>(target: any, property: string, getter: () => T): T {
-  const derived = initDerived(target)
-  if (!Object.hasOwn(derived, property)) derived[property] = getter()
-  return derived[property]
-}
-/**
- * Get derived value of `property` for `target` obtained by calling `getter()`,
- * remembering value across calls.  We will recalculate value automatically
- * when `dependencies` change across calls.
- */
-export function derivedFrom<T>(target: any, property: string, getter: () => T, dependencies?: string[]): T {
-  if (!dependencies) {
-    return derived(target, property, getter)
-  }
-  const _derived_ = initDerived(target)
-  const lastValue = _derived_[property]
-  // convert Object dependencies to WeakRefs to avoid circular references
-  dependencies = dependencies.map(convertObjectToWeakRef)
-  const recalculate = !lastValue || !dependenciesMatch(dependencies, lastValue.dependencies)
-  if (recalculate) {
-    _derived_[property] = { value: getter(), dependencies }
-  }
-  return _derived_[property].value
-}
-
-export function convertObjectToWeakRef(thing: any) {
-  if (thing instanceof Object) return new WeakRef(thing)
-  return thing
-}
-export function convertObjectFromWeakRef(thing: any) {
-  if (thing instanceof WeakRef) return thing.deref()
-  return thing
-}
-
-export function dependenciesMatch(list1: any[], list2: any[]) {
-  // Quick exit if either is not an array or lengths don't match.
-  if (
-    !Array.isArray(list1) || //
-    !Array.isArray(list2) ||
-    list1.length !== list2.length
-  ) {
-    return false
-  }
-  for (let i = 0; i < list1.length; i++) {
-    const item1 = convertObjectFromWeakRef(list1[i])
-    const item2 = convertObjectFromWeakRef(list2[i])
-    return item1 === item2
-  }
-}
-
-/**
- * Override getter defined for `property` on `target`,
- * returning explicit `value` instead.
- * - Note that you can call this repeatedly.
- */
-export function override(target: any, property: string, value: any) {
-  Object.defineProperty(target, property, {
-    get() {
-      return value
-    },
-    set(value) {
-      override(this, property, value)
-    },
-    configurable: true
-  })
 }
