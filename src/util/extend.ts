@@ -9,7 +9,7 @@ export type ExtendedData = {
   props?: { map: Record<string, any>; $store: Record<string, any> }
   state?: { map: Record<string, any>; $store: Record<string, any> }
 }
-export const EXTEND_MAP = new WeakMap<any, Record<string, any>>()
+export const EXTEND_MAP = new Map<any, Record<string, any>>()
 
 /** Set up `ExtendedData` for the `target` object. */
 export function extendedFor(target: any): ExtendedData {
@@ -171,16 +171,16 @@ export function getState<T>(target: any, property: string, initializer?: () => T
   if (!hasOwnProp(state.map, property) && initializer) {
     state.map[property] = initializer.bind(target)
   }
-  return state.$store[property]
+  return state.$store[property] as T
 }
 /**
  * Set reactive `property` to `value`.
  * - If `value` is `undefined`, deletes the property instead.
  */
 export function setState<T>(target: any, property: string, value: T) {
-  const state = stateFor(target)
-  if (value === undefined) _unset(state.$store, property)
-  else _set(state.$store, property, value)
+  const { $store } = stateFor(target)
+  if (value === undefined) _unset($store, property)
+  else _set($store, property, value)
   return value
 }
 

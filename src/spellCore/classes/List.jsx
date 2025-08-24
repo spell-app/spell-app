@@ -4,7 +4,7 @@
 import React from "react"
 import _ from "lodash"
 
-import { Observable, view } from "~/util"
+import { Observable, override, view } from "~/util"
 import { spellCore } from ".."
 
 //----------------------------
@@ -29,10 +29,10 @@ export class List extends Observable {
 
   // Default `type` to the name of our constructor.  Instances can override.
   get type() {
-    return "type" in this.$props ? this.$props.type : this.constructor.name
+    return this.constructor.name
   }
   set type(type) {
-    this.$props.type = type
+    override(this, "type", type)
   }
 
   /*@memoize*/

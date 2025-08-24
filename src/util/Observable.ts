@@ -15,6 +15,9 @@ global.createStore = createStore
 global.autoEffect = autoEffect
 global.clearEffect = clearEffect
 
+const newProps = false
+const newState = false
+
 /**
  * Methodology:
  * - Create a subclass of `Observable`.
@@ -60,22 +63,23 @@ export class Observable<
 
   /** Return reactive `property`, defaulting to `initializer` if never set. */
   protected getProp<T>(property: string, initializer?: () => T) {
+    if (newProps) return extend.getProp(this, property, initializer)
+
     if (!hasOwnProp(this.$props, property) && initializer) {
       // @ts-ignore
       this.__props__[property] = initializer()
     }
     return this.$props[property]
-    // return extend.getProp(this, property, initializer)
   }
   /**
    * Set reactive `property` to `value`.
    * - If `value` is `undefined`, deletes the property instead.
    */
   protected setProp<T>(property: string, value: T) {
+    if (newProps) return extend.setProp(this, property, value)
+
     if (value === undefined) delete this.$props[property]
     else this.$props[property] = value
-
-    // return extend.setProp(this, property, value)
   }
 
   //-----------------
@@ -84,13 +88,13 @@ export class Observable<
 
   /** Get state `property`, defaulting to `initializer` if never set. */
   protected getState<T>(property: string, initializer?: () => T): T {
+    if (newState) return extend.getState(this, property, initializer)
+
     if (!hasOwnProp(this.__state__, property) && initializer) {
       // @ts-ignore
       this.__state__[property] = initializer()
     }
     return this.$state[property] as T
-
-    // return extend.getState(this, property, initializer)
   }
   /**
    * Set property `property` on our `$state` to `value`.
@@ -98,12 +102,12 @@ export class Observable<
    * - `property` can be a dotted path.
    */
   protected setState<T>(property: string, value: T) {
+    if (newState) return extend.setState(this, property, value)
+
     const { $state } = this
     if (value === undefined) _unset($state, property)
     else _set($state, property, value)
     return value
-
-    // return extend.setState(this, property, value)
   }
 
   /**
@@ -112,12 +116,12 @@ export class Observable<
    * - Pass specific string `properties` path(s) to clear just those.
    */
   protected resetState(...properties: string[]) {
+    if (newState) return extend.resetState(this, ...properties)
+
     batch(() => {
       if (properties.length === 0) properties = Object.keys(this.__state__)
       properties.forEach((property) => this.setState(property, undefined))
     })
-
-    //    extend.resetState(this, ...properties)
   }
 
   /**

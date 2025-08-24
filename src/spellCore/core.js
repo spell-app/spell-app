@@ -6,7 +6,7 @@ import forEach from "lodash/forEach"
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
 
-import { hasOwnProp } from "~/util"
+import { hasOwnProp, extend } from "~/util"
 import { assert } from "."
 
 // Create the `spellCore` singeton, using a class for recognition when debugging.
@@ -41,6 +41,11 @@ Object.assign(spellCore, {
    */
   defineProperty(thing, { property, value, type, initializer, enumeration, enumerationProp /* get, set, */ }) {
     const descriptor = { configurable: true }
+    function baseGet() {
+      if (!hasOwnProp(this, "$props")) this.$props = {}
+      if (hasOwnProp(this.$props, property)) return this.$props[property]
+      return initializer?.call(this)
+    }
     function baseSet(newValue) {
       if (!hasOwnProp(this, "$props")) this.$props = {}
       this.$props[property] = newValue
@@ -48,22 +53,7 @@ Object.assign(spellCore, {
 
     // If we get an `initializer()`, call it to get a value for each instance,
     // store that in `$props`
-    if (initializer) {
-      descriptor.get = function () {
-        const instanceValue = initializer.apply(this)
-        // On initial `get()`, run the initializer and `set` the value in $props.
-        baseSet.call(this, instanceValue)
-        // Define a getter to return the value from props, preserving `set`
-        Object.defineProperty(this, property, {
-          configurable: true,
-          get() {
-            return this.$props[property]
-          },
-          set: descriptor.set
-        })
-        return instanceValue
-      }
-    } else if (type) {
+    if (type) {
       descriptor.set = function (newValue) {
         if (!spellCore.isOfType(newValue, type)) {
           spellCore.console.warn(`Expected ${property} to be type '${type}', got:`, newValue)
@@ -83,11 +73,7 @@ Object.assign(spellCore, {
         baseSet.call(this, newValue)
       }
     }
-    if (!descriptor.get) {
-      descriptor.get = function () {
-        return hasOwnProp(this.$props, property) ? this.$props[property] : value
-      }
-    }
+    if (!descriptor.get) descriptor.get = baseGet
     if (!descriptor.set) descriptor.set = baseSet
     spellCore.define(thing, property, descriptor)
   },
