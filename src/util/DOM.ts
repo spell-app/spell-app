@@ -1,10 +1,18 @@
 /** Browser DOM Utilities */
 import global from "global"
 
-export function scrollForElement(element, direction = "vertical") {
+export type ElementScroll = {
+  percent: number
+  max: number
+  current: number
+  total: number
+  visible: number
+}
+
+export function scrollForElement(element: Element, direction = "vertical") {
   if (!element) return undefined
   // allocate this way to make percent and max the first thing displayed in console
-  const scroll = { percent: 0, max: 0 }
+  const scroll = { percent: 0, max: 0 } as ElementScroll
   if (direction === "vertical") {
     scroll.current = element.scrollTop
     scroll.total = element.scrollHeight
@@ -15,7 +23,7 @@ export function scrollForElement(element, direction = "vertical") {
     scroll.visible = element.clientWidth
   }
   scroll.max = scroll.total - scroll.visible
-  scroll.percent = parseFloat((scroll.current / scroll.max).toPrecision(4), 10)
+  scroll.percent = parseFloat((scroll.current / scroll.max).toPrecision(4))
   return scroll
 }
 
@@ -23,9 +31,12 @@ export function scrollForElement(element, direction = "vertical") {
  * Return the `offsetTop` of `element` relative to `parent` element (which defaults to `<body>`)
  * Will not be accurate if `parent` is not an ancestor or not `position:relative` or `position:absolute`.
  */
-export function offsetTopRelativeTo(element, parent = document.querySelector("body")) {
+export function offsetTopRelativeTo(
+  element: Element | null,
+  parent: HTMLElement | null = document.querySelector("body")
+) {
   let top = 0
-  while (element && element !== parent) {
+  while (element && element instanceof HTMLElement && element !== parent) {
     top += element.offsetTop
     element = element.offsetParent
   }
@@ -36,7 +47,7 @@ export function offsetTopRelativeTo(element, parent = document.querySelector("bo
  * Center `element` vertically in its `parent` element by scrolling `parent`.
  * NOTE: always scrolls to the far left horizontally.
  */
-export function centerElementInParent(element, parent) {
+export function centerElementInParent(element: Element | null, parent?: HTMLElement | null) {
   if (!element || !parent) return
   const elementTop = offsetTopRelativeTo(element, parent)
   const elementHeight = element.clientHeight
@@ -59,7 +70,7 @@ export function centerElementInParent(element, parent) {
  * NOTE: These objects may not be completely consistent cross-browser!
  * See: https://developer.mozilla.org/en-US/docs/Web/API/Window/getComputedStyle#Notes
  */
-export function getComputedStyle(element) {
+export function getComputedStyle(element: Element | CSSStyleDeclaration) {
   try {
     if (element instanceof global.CSSStyleDeclaration) return element
     return global.getComputedStyle(element)
@@ -77,7 +88,7 @@ export class CSS_TLBR_VALUES {
   #right
   #bottom
   #left
-  constructor(prefix = "", elementOrStyle, suffix = "") {
+  constructor(prefix = "", elementOrStyle: Element | CSSStyleDeclaration, suffix = "") {
     const style = getComputedStyle(elementOrStyle)
     this.#top = style[`${prefix}top${suffix}`]
     this.#right = style[`${prefix}right${suffix}`]
@@ -85,16 +96,16 @@ export class CSS_TLBR_VALUES {
     this.#left = style[`${prefix}left${suffix}`]
   }
   get top() {
-    return parseFloat(this.#top, 10)
+    return parseFloat(this.#top)
   }
   get right() {
-    return parseFloat(this.#right, 10)
+    return parseFloat(this.#right)
   }
   get bottom() {
-    return parseFloat(this.#bottom, 10)
+    return parseFloat(this.#bottom)
   }
   get left() {
-    return parseFloat(this.#left, 10)
+    return parseFloat(this.#left)
   }
   get vertical() {
     return this.top + this.bottom
@@ -112,7 +123,7 @@ export class CSS_TLBR_VALUES {
  * NOTE: Values will be `NaN` if you pass an invalid `element`.
  */
 class margin extends CSS_TLBR_VALUES {}
-export function getMargin(element) {
+export function getMargin(element: Element) {
   return new margin("margin-", element)
 }
 global.getMargin = getMargin // DEBUG
@@ -125,7 +136,7 @@ global.getMargin = getMargin // DEBUG
  * NOTE: Values will be `NaN` if you pass an invalid `element`.
  */
 class borderSize extends CSS_TLBR_VALUES {}
-export function getBorderSize(element) {
+export function getBorderSize(element: Element) {
   return new borderSize("border-", element, "-width")
 }
 global.getBorderSize = getBorderSize // DEBUG
@@ -138,7 +149,7 @@ global.getBorderSize = getBorderSize // DEBUG
  * NOTE: Values will be `NaN` if you pass an invalid `element`.
  */
 class padding extends CSS_TLBR_VALUES {}
-export function getPadding(element) {
+export function getPadding(element: Element) {
   return new padding("padding-", element)
 }
 global.getPadding = getPadding // DEBUG
