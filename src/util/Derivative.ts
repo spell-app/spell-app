@@ -1,4 +1,4 @@
-import { clearDerived, getDerived, getDerivedFrom, override } from "./extendObject"
+import { clearDerived, getDerived, getDerivedFrom, override } from "./extend"
 
 /**
  * Base class to add `@derived`, `@derivedFrom`, `@override` functionality to class instances.
