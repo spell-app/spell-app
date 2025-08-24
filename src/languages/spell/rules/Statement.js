@@ -10,35 +10,23 @@ import { SpellParser } from "~/languages/spell"
 // Note: Access this as `SpellParser.Rules.Statement`.
 export class SpellStatement extends Rules.Sequence {
   // Set to true if this statement wants to attempt to read an inline statement on the same line.
-  /*@proto*/ get wantsInlineStatement() {
+  get wantsInlineStatement() {
     return false
-  }
-  set wantsInlineStatement(wantsInlineStatement) {
-    this.override("wantsInlineStatement", wantsInlineStatement)
   }
 
   // Rule to parse inline statement as -- see `parseInlineStatement()`
-  /*@proto*/ get parseInlineStatementAs() {
+  get parseInlineStatementAs() {
     return "statement"
-  }
-  set parseInlineStatementAs(parseInlineStatementAs) {
-    this.override("parseInlineStatementAs", parseInlineStatementAs)
   }
 
   // Set to true if this statement wants to attempt to read an nested block starting on the next line.
-  /*@proto*/ get wantsNestedBlock() {
+  get wantsNestedBlock() {
     return false
-  }
-  set wantsNestedBlock(wantsNestedBlock) {
-    this.override("wantsNestedBlock", wantsNestedBlock)
   }
 
   // Rule to parse a nested block as -- see `parseNestedBlock()`
-  /*@proto*/ get parseNestedBlockAs() {
+  get parseNestedBlockAs() {
     return "block"
-  }
-  set parseNestedBlockAs(parseNestedBlockAs) {
-    this.override("parseNestedBlockAs", parseNestedBlockAs)
   }
 
   // Parse the staement itself -- assume comment was already popped off the end.

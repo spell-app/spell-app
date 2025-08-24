@@ -45,20 +45,15 @@ const DynamicMethodRule = class dynamic_method extends SpellStatement {
 
 /** Base for method definitions with dynamic syntax via `method_signature`.  See `to_do_something` below. */
 SpellParser.Rules.MethodDefinition = class method_definition extends SpellParser.Rules.Statement {
-  /*@proto*/ get wantsInlineStatement() {
+  get wantsInlineStatement() {
     return true
   }
-  set wantsInlineStatement(wantsInlineStatement) {
-    this.override("wantsInlineStatement", wantsInlineStatement)
-  }
-  /*@proto*/ get wantsNestedBlock() {
+  get wantsNestedBlock() {
     return true
-  }
-  set wantsNestedBlock(wantsNestedBlock) {
-    this.override("wantsNestedBlock", wantsNestedBlock)
   }
   // Set to `true` in rule definition to make into an instance method on first simple type found in `signature`
-  /*@proto*/ get inlineInitialType() {
+  /*@proto*/
+  get inlineInitialType() {
     return false
   }
   set inlineInitialType(inlineInitialType) {
@@ -1015,8 +1010,10 @@ export const methods = new SpellParser({
       precedence: 9, // defer to more-specific methods in `classes`, e.g. `define_property_has`, ...
       alias: "statement",
       syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} (if|is)? :?",
-      parseInlineStatementAs: "expression",
       constructor: class quoted_type_expression extends SpellParser.Rules.MethodDefinition {
+        get parseInlineStatementAs() {
+          return "expression"
+        }
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
           if (match) {

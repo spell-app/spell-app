@@ -183,9 +183,13 @@ export const assignment = new SpellParser({
       alias: "statement",
       syntax: "(return|exit with?) {expression}?",
       testRule: "(return|exit)",
-      wantsNestedBlock: true,
-      parseNestedBlockAs: "expression",
       constructor: class return_statement extends SpellStatement {
+        get wantsNestedBlock() {
+          return true
+        }
+        get parseNestedBlockAs() {
+          return "expression"
+        }
         getNestedScope(match) {
           return match.scope
         }

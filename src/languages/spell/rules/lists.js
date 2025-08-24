@@ -600,10 +600,18 @@ export const lists = new SpellParser({
       syntax: "the? {arg:plural_variable} (in|of) {list:expression} where",
       testRule: "…where",
       precedence: 2,
-      wantsInlineStatement: true,
-      parseInlineStatementAs: "expression",
-      // TODO: wantsInlineBlock
       constructor: class list_filter extends SpellExpression {
+        get wantsInlineStatement() {
+          return true
+        }
+        get parseInlineStatementAs() {
+          return "expression"
+        }
+        // TODO
+        // get wantsNestedBlock() {
+        //   return true
+        // }
+
         getNestedScope(match) {
           const arg = singularize(match.groups.arg.value)
           return new MethodScope({
@@ -664,9 +672,13 @@ export const lists = new SpellParser({
       syntax: "{list:simple_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_variable} where",
       testRule: "…(has|have)",
       precedence: 2,
-      wantsInlineStatement: true,
-      parseInlineStatementAs: "expression",
       constructor: class list_membership_test extends SpellExpression {
+        get wantsInlineStatement() {
+          return true
+        }
+        get parseInlineStatementAs() {
+          return "expression"
+        }
         getNestedScope(match) {
           const arg = singularize(match.groups.arg.value)
           return new MethodScope({
@@ -1062,9 +1074,13 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "remove {arg:plural_variable} (in|of|from) {list:expression} where",
       testRule: "remove",
-      wantsInlineStatement: true,
-      parseInlineStatementAs: "expression",
       constructor: class list_remove_where extends SpellStatement {
+        get wantsInlineStatement() {
+          return true
+        }
+        get parseInlineStatementAs() {
+          return "expression"
+        }
         getNestedScope(match) {
           const arg = singularize(match.groups.arg.value)
           return new MethodScope({
@@ -1189,9 +1205,13 @@ export const lists = new SpellParser({
       alias: ["statement", "expression"],
       syntax: "repeat {number:expression} (time|times) :?",
       testRule: "repeat",
-      wantsInlineStatement: true,
-      wantsNestedBlock: true,
       constructor: class repeat_n_times extends SpellStatement {
+        get wantsInlineStatement() {
+          return true
+        }
+        get wantsNestedBlock() {
+          return true
+        }
         getNestedScope(match) {
           return new MethodScope({
             scope: match.scope,
@@ -1265,9 +1285,13 @@ export const lists = new SpellParser({
       alias: ["statement", "expression"],
       syntax: "for each? {item:singular_variable} ((and|,) {position:singular_variable})? (in|of) {list:expression} :?",
       testRule: "for",
-      wantsInlineStatement: true,
-      wantsNestedBlock: true,
       constructor: class list_iteration extends SpellStatement {
+        get wantsInlineStatement() {
+          return true
+        }
+        get wantsNestedBlock() {
+          return true
+        }
         getNestedScope(match) {
           const { item, position } = match.groups
           const args = [{ name: item.value }]
@@ -1381,9 +1405,13 @@ export const lists = new SpellParser({
       alias: "statement",
       syntax: "for each? {item:singular_variable} from {start:expression} down? to {end:expression} :?",
       testRule: "for",
-      wantsInlineStatement: true,
-      wantsNestedBlock: true,
       constructor: class list_range_iteration extends SpellStatement {
+        get wantsInlineStatement() {
+          return true
+        }
+        get wantsNestedBlock() {
+          return true
+        }
         getNestedScope(match) {
           const arg = singularize(match.groups.item.value)
           return new MethodScope({
