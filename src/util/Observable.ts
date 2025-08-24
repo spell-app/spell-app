@@ -17,7 +17,7 @@ global.clearEffect = clearEffect
 /**
  * Methodology:
  * - Create a subclass of `Observable`.
- * - Observable public properties should be declated as `@prop key defaulValue`
+ * - Observable public properties should be declared as `@prop key defaulValue`
  * - Observable transient private properties are declared as `@state key defaulValue`
  * - "Normal" getters/setters will be reactive if they reference a `@prop` or `@state` variable.
  * - As for all classes, non-observable SHARED properties or defaults can be defined with `@proto`
@@ -31,35 +31,42 @@ global.clearEffect = clearEffect
  *    - To update the value, do `this.setState("runCount", this.runCount + 1)`
  *    - Use `this.resetState()` or `this.resetState(<stateKey>...)` to reset state.
  */
-export class Observable<Props extends Record<string, any> = Record<string, any>> extends Derivative {
-  /** INTERNAL non-reactive state object, only for manipulation in this file. */
-  private __props__: Record<string, any> = { $state: {} }
-  /** Reactive store of `props` and `state`. */
+export class Observable<
+  Props extends Record<string, any> = Record<string, any>,
+  State extends Record<string, any> = Record<string, any>
+> extends Derivative {
+  /** INTERNAL non-reactive props object, only for manipulation in this file. */
+  private __props__ = {} as Props
+  /** Reactive store of `props`. */
   protected $props: Record<string, any> = createStore(this.__props__)
-  /** Pointer to our reactive `$state` object, a subset of `$props`. */
-  protected get $state() {
-    return this.$props.$state
-  }
 
-  constructor(props: Props) {
+  /** INTERNAL non-reactive state object, only for manipulation in this file. */
+  private __state__ = {} as State
+  /** Reactive store of `state`. */
+  protected $state: Record<string, any> = createStore(this.__state__)
+
+  /** On construction, assign `props` passed in to our instance. */
+  constructor(props: Partial<Props & State>) {
     super()
-    // Assign properties to our instance -- invoking our getter/setters for `props`
+    // Assign properties to our instance -- invoking our getter/setters for `props` or `state`.
     Object.assign(this, props)
   }
 
-  /**
-   * Get state `property`, defaulting to `initializer` if never set.
-   * - `property` can be a dotted path.
-   */
-  protected getState<T>(property: string, initializer?: () => T) {
-    if (!hasOwnProp(this.__props__.$state, property) && initializer) {
-      this.__props__.$state[property] = initializer()
+  //-----------------
+  // State
+  //-----------------
+
+  /** Get state `property`, defaulting to `initializer` if never set. */
+  protected getState<T>(property: string, initializer?: () => T): T {
+    if (!hasOwnProp(this.__state__, property) && initializer) {
+      // @ts-ignore
+      this.__state__[property] = initializer()
     }
-    return this.$state[property]
+    return this.$state[property] as T
   }
   /**
    * Set property `property` on our `$state` to `value`.
-   * - If `value` is `undefined`, deletes instead.
+   * - If `value` is `undefined`, deletes the property instead.
    * - `property` can be a dotted path.
    */
   protected setState<T>(property: string, value: T) {
@@ -71,11 +78,14 @@ export class Observable<Props extends Record<string, any> = Record<string, any>>
 
   /**
    * Reset our `state` to its defaults.
-   * By default we totally clear state, pass specific string `properties` array to clear just those.
+   * - By default we clear state entirely.
+   * - Pass specific string `properties` path(s) to clear just those.
    */
   protected resetState(...properties: string[]) {
-    if (arguments.length === 0) this.__props__.$state = {}
-    else properties.forEach((property) => this.setState(property, undefined))
+    batch(() => {
+      if (properties.length === 0) properties = Object.keys(this.__state__)
+      properties.forEach((property) => this.setState(property, undefined))
+    })
   }
 
   /**
@@ -91,27 +101,25 @@ export class Observable<Props extends Record<string, any> = Record<string, any>>
     return nonStateProps
   }
 
-  /** Return reactive `property`, starting with `initializer` if not already set. */
+  //-----------------
+  // Props
+  //-----------------
+
+  /** Return reactive `property`, defaulting to `initializer` if never set. */
   protected getProp<T>(property: string, initializer?: () => T) {
     if (!hasOwnProp(this.$props, property) && initializer) {
-      this.$props[property] = initializer()
+      // @ts-ignore
+      this.__props__[property] = initializer()
     }
     return this.$props[property]
   }
   /**
    * Set reactive `property` to `value`.
-   * - NOTE: if setting to `undefined`, we'll delete the property instead.
+   * - If `value` is `undefined`, deletes the property instead.
    */
   protected setProp<T>(property: string, value: T) {
-    if (value === undefined) {
-      if (hasOwnProp(this.$props, property)) delete this.$props[property]
-      // // TODO: necessary?
-      // if (hasOwnProp(this, property)) delete this[property]
-      // // TODO: necessary?
-      // if (hasOwnProp(this.$state, property)) delete this.$state[property]
-    } else {
-      this.$props[property] = value
-    }
+    if (value === undefined) delete this.$props[property]
+    else this.$props[property] = value
   }
 }
 global.Observable = Observable
