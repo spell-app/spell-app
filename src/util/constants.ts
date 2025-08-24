@@ -1,5 +1,3 @@
-import { Prettify } from "~/types"
-
 /** Operation or resource is optional */
 export const OPTIONAL = "OPTIONAL"
 
@@ -10,18 +8,23 @@ export const REQUIRED = "REQUIRED"
 export const CONFIRM = "CONFIRM"
 
 /** Task status */
-export const UNSTARTED = "UNSTARTED"
-export const ACTIVE = "ACTIVE"
-export const SUCCESS = "SUCCESS"
-export const FAILURE = "FAILURE"
-export const CANCELLED = "CANCELLED"
+export const TaskStatus = {
+  UNSTARTED: "UNSTARTED",
+  ACTIVE: "ACTIVE",
+  SUCCESS: "SUCCESS",
+  FAILURE: "FAILURE"
+} as const
+export type TaskStatus = keyof typeof TaskStatus
 
 /** ResolveWith. */
-export const LAST = "LAST"
-export const RESULTS = "RESULTS"
+export const TaskResolveWith = {
+  LAST_TASK: "LAST_TASK",
+  RESULTS: "RESULTS"
+} as const
+export type TaskResolveWith = keyof typeof TaskResolveWith
 
 /** Well-known file formats as mime-types. */
-export const KNOWN_FORMATS = {
+export const KnownFormat = {
   text: "text/plain",
   json: "application/json",
   json5: "application/json5",
@@ -32,9 +35,9 @@ export const KNOWN_FORMATS = {
   svg: "image/svg+xml",
   binary: "binary" // generic "binary" response, not an actual mime type
 } as const
-export type KnownFormatName = keyof typeof KNOWN_FORMATS
-export type KnownFormatMimeType = (typeof KNOWN_FORMATS)[keyof typeof KNOWN_FORMATS]
-export type KnownFormat = Prettify<KnownFormatName | KnownFormatMimeType>
+export type KnownFormatName = keyof typeof KnownFormat
+export type KnownFormatMimeType = (typeof KnownFormat)[keyof typeof KnownFormat]
+export type KnownFormat = KnownFormatMimeType
 
 /** Response types which will return a `blob()` response.
  * OK to update this in other files.
@@ -42,9 +45,9 @@ export type KnownFormat = Prettify<KnownFormatName | KnownFormatMimeType>
 export const BINARY_FORMATS = [
   "binary",
   "blob",
-  KNOWN_FORMATS.gif,
-  KNOWN_FORMATS.png,
-  KNOWN_FORMATS.jpeg,
-  KNOWN_FORMATS.binary
+  KnownFormat.gif,
+  KnownFormat.png,
+  KnownFormat.jpeg,
+  KnownFormat.binary
 ] as const
 export type BinaryFormats = (typeof BINARY_FORMATS)[number]

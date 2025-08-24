@@ -1,6 +1,40 @@
 import global from "global"
-import { UNSTARTED, ACTIVE, SUCCESS, FAILURE } from "./constants"
+import { TaskStatus } from "./constants"
 import { Observable, batch } from "./Observable"
+import type { TaskList } from "./TaskList"
+
+export type TaskProps<TaskResult = any> = {
+  /** Method to `run()` when executing this task. */
+  run: (inputValue: unknown) => Promise<TaskResult>
+  /** Optional name, for TaskList display. */
+  name?: string
+  /** Is this task optional?  If so, a failure will not cancel a TaskList. */
+  optional?: boolean
+  /** Set to `true` to debug task execution. */
+  debug?: boolean
+  /** Pointer to TaskList which contains us. */
+  taskList?: TaskList
+}
+
+/** */
+export type TaskExecution<TaskResult> = {
+  complete: (status: TaskStatus, result: TaskResult | Error) => void
+  promise: Promise<unknown>
+  resolve: (result: unknown) => void
+  reject: (reason: unknown) => void
+  cancel?: () => void
+}
+
+export type TaskState<TaskResult> = {
+  /** Current status. */
+  status?: TaskStatus
+  /** Last result if successful. */
+  result?: TaskResult
+  /** Last error if unsuccesful. */
+  error?: Error
+  /** Current execution context of Task. */
+  execution?: TaskExecution<TaskResult>
+}
 
 /**
  * A `Task` is the concrete manifestation of an asynchronous process.
@@ -14,8 +48,8 @@ import { Observable, batch } from "./Observable"
  * - `run`          Function which returns a `Promise` to execute the task.
  *                  NOTE: You can pass just a function to set `task.run`.
  * You may also pass:
- * - `name`             String name for the task, e.g. to display as part of the taskList.
- * - `isOptional`       If `true`, a `TaskList` that's executing us will continue even if we fail.
+ * - `name`         String name for the task, e.g. to display as part of the taskList.
+ * - `optional`     If `true`, a `TaskList` that's executing us will continue even if we fail.
  *
  * Use `task.start(intialValue)` to execute the task with `intialValue`.
  * This returns a promise that always `resolve()`s or `rejects()`s as normal.
@@ -30,85 +64,95 @@ import { Observable, batch } from "./Observable"
  * TODO: `retry` to retry N times if we fail.
  * TODO: `failAfter` to fail a promise if it doesn't complete for certain amount of time.
  */
-export class Task extends Observable {
+export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
+  /**
+   * Construct with `{ run, name?, optional? }`
+   * or pass just a function for `{ run }`.
+   */
+  constructor(props: Partial<TaskProps> | (() => Promise<any>)) {
+    if (typeof props === "function") props = { run: props }
+    super(props)
+    if (typeof this.run !== "function") {
+      throw new TypeError("Tasks must be created with an `run` function.")
+    }
+  }
+
   //-----------------
   // Props
   //-----------------
   /** (required) Function which returns a `Promise` to execute this task. */
-  /*@proto*/ get run() {
-    return undefined
+  /*@proto*/
+  get run() {
+    return this.getProp("run")
   }
-  set run(run) {
-    this.override("run", run)
-  }
-  /** Name for this task (which will be displayed by the TaskList while we're executing). */
-  /*@proto*/ get name() {
-    return undefined
-  }
-  set name(name) {
-    this.override("name", name)
-  }
-  /** If `true`, a TaskList will continue executing even if we fail. */
-  /*@proto*/ get isOptional() {
-    return false
-  }
-  set isOptional(isOptional) {
-    this.override("isOptional", isOptional)
+  set run(run: (inputValue: unknown) => Promise<TaskResult>) {
+    this.setProp("run", run)
   }
 
-  /**
-   * Construct with `{ run, name?, isOptional? }`
-   * or pass just a function for `{ run }`.
-   */
-  constructor(props) {
-    if (typeof props === "function") props = { run: props }
-    super(props)
-    if (typeof this.run !== "function") {
-      this.run = (value) => {
-        return new Promise((resolve) => setTimeout(() => resolve(value), 2000))
-      }
-      // throw new TypeError("Tasks must be created with an `run` function.")
-    }
+  /** Name for this task (which will be displayed by the TaskList while we're executing). */
+  get name() {
+    return this.getProp("name")
+  }
+  set name(name: string | undefined) {
+    this.setProp("name", name)
+  }
+
+  /** If `true`, a TaskList will continue executing even if we fail. */
+  get optional() {
+    return this.getProp("optional", () => false)
+  }
+  set optional(optional: boolean) {
+    this.override("optional", optional)
   }
 
   //-----------------
   // State.  Note: these are the values after `reset()`.
   //-----------------
   /** Result set when we `resolve()`. */
-  /*@state*/ get result() {
+  get result() {
     return this.getState("result", () => undefined)
   }
-  set result(result) {
+  set result(result: TaskResult | undefined) {
     this.setState("result", result)
   }
   /** Error set when we `reject()`. */
-  /*@state*/ get error() {
+  get error() {
     return this.getState("error", () => undefined)
   }
-  set error(error) {
+  set error(error: Error | undefined) {
     this.setState("error", error)
   }
 
   /* Current status:  `UNSTARTED`, `ACTIVE`, `SUCCESS` or `FAILURE` */
-  /*@state*/ get status() {
-    return this.getState("status", () => UNSTARTED)
+  get status() {
+    return this.getState("status", () => TaskStatus.UNSTARTED)
   }
-  set status(status) {
+  set status(status: TaskStatus) {
     this.setState("status", status)
   }
+
   /* Was our last run cancelled? */
-  /*@state*/ get wasCancelled() {
+  // TODO: status = cancelled?
+  get wasCancelled() {
     return this.getState("wasCancelled", () => false)
   }
   set wasCancelled(wasCancelled) {
     this.setState("wasCancelled", wasCancelled)
   }
+
   /* Current task run */
-  /*@state*/ get execution() {
+  get execution() {
     return this.getState("execution", () => undefined)
   }
-  set execution(execution) {
+  set execution(execution: TaskExecution<TaskResult> | undefined) {
     this.setState("execution", execution)
+  }
+
+  get taskList() {
+    return this.getProp("taskList")
+  }
+  set taskList(taskList: TaskList | undefined) {
+    this.setProp("taskList", taskList)
   }
 
   //-----------------
@@ -116,16 +160,16 @@ export class Task extends Observable {
   //-----------------
 
   get hasStarted() {
-    return this.status !== UNSTARTED
+    return this.status !== TaskStatus.UNSTARTED
   }
   get isActive() {
-    return this.status === ACTIVE
+    return this.status === TaskStatus.ACTIVE
   }
   get hasSucceeded() {
-    return this.status === SUCCESS
+    return this.status === TaskStatus.SUCCESS
   }
   get hasFailed() {
-    return this.status === FAILURE
+    return this.status === TaskStatus.FAILURE
   }
   get hasCompleted() {
     return this.hasSucceeded || this.hasFailed
@@ -139,7 +183,7 @@ export class Task extends Observable {
    * Start this task by calling `this.run(inputValue)`.
    * Returns a promise which you can use as normal.
    */
-  start(inputValue) {
+  start(inputValue: unknown) {
     // If we're currently running, just return our active promise.
     // TODO: throw???
     if (this.execution) {
@@ -159,13 +203,14 @@ export class Task extends Observable {
           if (execution !== this.execution) return
           this.setState("execution", undefined)
           this.setState("status", status)
-          this.setState(status === SUCCESS ? "result" : "error", result)
+          this.setState(status === TaskStatus.SUCCESS ? "result" : "error", result)
           this.afterFinish()
-          if (status === SUCCESS) execution.resolve(this.result)
+          if (status === TaskStatus.SUCCESS) execution.resolve(this.result)
           else execution.reject(this.error)
         })
       }
-    }
+    } as TaskExecution<TaskResult>
+
     this.setState("execution", execution)
     execution.promise = new Promise((resolve, reject) => {
       // squirrel away the resolve/reject methods for `complete()` above
@@ -173,20 +218,20 @@ export class Task extends Observable {
       execution.reject = reject
 
       try {
-        this.setState("status", ACTIVE)
+        this.setState("status", TaskStatus.ACTIVE)
         this.beforeStart(inputValue)
         let promise = this.run(inputValue)
         // Grab the `cancel` method from the promise, if any
-        execution.cancel = promise?.cancel
+        execution.cancel = (promise as any)?.cancel
         // wrap non-promise value in a promise for consistency below
         if (!promise.then) promise = Promise.resolve(promise)
         // send success or failure to `complete()` above
         promise.then(
-          (result) => execution.complete(SUCCESS, result),
-          (error) => execution.complete(FAILURE, error)
+          (result) => execution.complete(TaskStatus.SUCCESS, result),
+          (error) => execution.complete(TaskStatus.FAILURE, error)
         )
       } catch (errorInExecutor) {
-        execution.complete(FAILURE, errorInExecutor)
+        execution.complete(TaskStatus.FAILURE, errorInExecutor as Error)
       }
     })
     // This is the actual promise you'll wait on.
@@ -203,7 +248,7 @@ export class Task extends Observable {
    * Note that there's no guarantee that `cancel()`ing a task will actually
    * stop any side effects that have already been enacted by the task!
    */
-  cancel(result, status = SUCCESS) {
+  cancel(result?: any, status = TaskStatus.SUCCESS) {
     batch(() => {
       const { execution } = this
       if (execution) {
@@ -215,11 +260,17 @@ export class Task extends Observable {
     })
   }
 
+  /** Reset the task so it can be started again. */
+  reset() {
+    this.cancel()
+    return this.resetState()
+  }
+
   /**
    * Restart this task, `cancel()`ing it if it's running.
    * Does default `cancel()` behavior, call `cancel()` manually to do something else.
    */
-  restart(inputValue) {
+  restart(inputValue: any) {
     batch(() => {
       this.cancel()
       this.resetState()
@@ -232,21 +283,15 @@ export class Task extends Observable {
   //-----------------
 
   /** Set to true to debug to the console as we operate. */
-  /*@proto*/ get debug() {
-    return false
+  get debug() {
+    return this.getProp("debug", () => false)
   }
-  set debug(debug) {
-    this.override("debug", debug)
-  }
-  /*@proto*/ get debugOutput() {
-    return false
-  }
-  set debugOutput(debugOutput) {
-    this.override("debugOutput", debugOutput)
+  set debug(debug: boolean) {
+    this.setProp("debug", debug)
   }
 
   /** Called before we start executing. */
-  beforeStart(inputValue) {
+  beforeStart(inputValue: any) {
     if (this.debug) {
       const { name } = this
       console.info(`> Task: ${name}\n     `, { task: this, inputValue })
@@ -254,7 +299,7 @@ export class Task extends Observable {
   }
   /** Called after we finish executing. Yu can examine `this.hasSucceeded`, `this.result`, etc. */
   afterFinish() {
-    if (this.debugOutput) {
+    if (this.debug) {
       const { name, status, result, error, wasCancelled } = this
       console.info(`< Task: ${name}\n     `, { task: this, status, result, error, wasCancelled })
     }

@@ -1,6 +1,23 @@
 import global from "global"
-import { LAST, RESULTS } from "./constants"
-import { Task } from "./Task"
+
+import { Prettify } from "~/global_types"
+import { TaskStatus, TaskResolveWith } from "./constants"
+import { Task, type TaskProps, type TaskState } from "./Task"
+
+export type TaskListProps = Prettify<
+  {
+    tasks?: Task[]
+    delayBetweenTasks?: number
+    resolveWith?: TaskResolveWith
+    continueOnError?: boolean
+  } & TaskProps
+>
+
+export type TaskListState = Prettify<
+  {
+    index: number
+  } & TaskState<any>
+>
 
 /**
  * TaskList -- a Task which executes a list of other `Tasks` in sequence.
@@ -11,7 +28,7 @@ import { Task } from "./Task"
  * Normally if a task in the list fails, we'll stop the taskList and not run subsequent tasks.
  * However, if:
  *  - `taskList.continueOnError === true` or
- *  - `task.isOptional === true`
+ *  - `task.optional === true`
  * we'll continue to the next task in the list, passing the failed task's `error` instead.
  *
  * Note that you can add `tasks` to the end of a running taskList and they will get executed,
@@ -27,56 +44,68 @@ import { Task } from "./Task"
  * TODO: https://github.com/wbinnssmith/awesome-promises
  */
 export class TaskList extends Task {
+  constructor(props: Partial<TaskListProps> = {}) {
+    const { tasks, ...otherProps } = props
+    super(otherProps)
+    if (tasks) this.addTasks(...tasks)
+  }
+
   //-----------------
   // Props
   //-----------------
 
   /** Queue of `Tasks` to run. Note we can also say `taskList.length` */
-  /*@forward("length")*/
-  tasks = []
+  get tasks() {
+    return this.getProp("tasks", () => [])
+  }
+  set tasks(tasks: Task[]) {
+    this.setProp("tasks", tasks)
+  }
+
+  /** Number of tasks to be executed. */
   get length() {
     return this.tasks.length
   }
 
   /** Delay between tasks, in milliseconds. */
-  /*@proto*/ get delayBetweenTasks() {
-    return 0
+  get delayBetweenTasks() {
+    return this.getProp("delayBetweenTasks", () => 0)
   }
-  set delayBetweenTasks(delayBetweenTasks) {
-    this.override("delayBetweenTasks", delayBetweenTasks)
+  set delayBetweenTasks(delayBetweenTasks: number) {
+    this.setProp("delayBetweenTasks", delayBetweenTasks)
   }
 
   /**
    * On success, should we `resolve()` with the value of the `LAST` task
    * or the `RESULTS` of all of the tasks?
    */
-  /*@proto*/ get resolveWith() {
-    return LAST
+  get resolveWith() {
+    return this.getProp("resolveWith", () => TaskResolveWith.LAST_TASK)
   }
-  set resolveWith(resolveWith) {
-    this.override("resolveWith", resolveWith)
+  set resolveWith(resolveWith: TaskResolveWith) {
+    this.setProp("resolveWith", resolveWith)
   }
 
   /**
    * Should we continue when we encounter an error (failed task)?
-   * Note that we'll also ignore errors if an individual `task.isOptional`.
+   * Note that we'll also ignore errors if an individual `task.optional`.
    */
-  /*@proto*/ get continueOnError() {
-    return false
+  get continueOnError() {
+    return this.getProp("continueOnError", () => false)
   }
-  set continueOnError(continueOnError) {
-    this.override("continueOnError", continueOnError)
+  set continueOnError(continueOnError: boolean) {
+    this.setProp("continueOnError", continueOnError)
   }
 
   //-----------------
   // State
   //-----------------
 
-  /** Index of the active task. */
-  /*@state*/ get index() {
+  /** Index of the active task.  `-1` = unstarted. */
+  get index() {
     return this.getState("index", () => -1)
   }
-  set index(index) {
+  set index(index: number) {
     this.setState("index", index)
   }
 
@@ -117,14 +146,6 @@ export class TaskList extends Task {
   // Task manipulation
   //-----------------
 
-  constructor(props = {}) {
-    if (typeof props === "function" || props.run)
-      throw new TypeError("TaskLists should be created with a list of 'tasks', not an 'run' function.")
-    const { tasks, ...otherProps } = props
-    super(otherProps)
-    if (tasks) this.addTasks(...tasks)
-  }
-
   /**
    * Return the list of `tasks` just prior to our `run()`.
    * Override to set tasks dynamically (e.g. see `TaskList.forEach`).
@@ -134,7 +155,7 @@ export class TaskList extends Task {
   }
 
   /** Add one or more `Tasks` to our queue. */
-  addTasks(...newTasks) {
+  addTasks(...newTasks: Task[]) {
     newTasks.forEach((task) => {
       if (!(task instanceof Task)) throw new TypeError("TaskList.addTasks() added non-task")
       // Make the task point back to us!
@@ -148,49 +169,52 @@ export class TaskList extends Task {
   //-----------------
 
   /** `run()` the TaskList with `intialValue` passed to `start()`. */
-  run(initialValue) {
-    // Reset list of tasks
-    this.tasks = this.getTasks()
+  get run() {
+    return (initialValue: unknown) => {
+      // Reset list of tasks
+      this.tasks = this.getTasks()
 
-    // `resetState()` will have been called.
-    // `this.taskRun` will be set
-    // `this.taskRun.resolve/reject` will be available
-    return new Promise((resolve, reject) => {
-      const complete = () => {
-        if (this.resolveWith === LAST) resolve(this.lastTask?.result)
-        else resolve(this.results)
-      }
-      const processNextTask = async (lastValue) => {
-        // Bail if we were explicitly cancelled
-        if (this.wasCancelled) return complete()
-
-        // This shouldn't happen... ???
-        if (!this.isActive) {
-          console.warn("processNextTask for inActive, non-cancelled task", this)
-          return complete()
+      // `resetState()` will have been called.
+      // `this.taskRun` will be set
+      // `this.taskRun.resolve/reject` will be available
+      return new Promise((resolve, reject) => {
+        const complete = () => {
+          console.info("complete", this.name, this.resolveWith, this.lastTask, this.results)
+          if (this.resolveWith === TaskResolveWith.LAST_TASK) resolve(this.lastTask?.result)
+          else resolve(this.results)
         }
+        const processNextTask = async (lastValue: unknown) => {
+          // Bail if we were explicitly cancelled
+          if (this.wasCancelled) return complete()
 
-        // Advance to the next task in the queue
-        this.setState("index", this.index + 1)
+          // This shouldn't happen... ???
+          if (!this.isActive) {
+            console.warn("processNextTask for inActive, non-cancelled task", this)
+            return complete()
+          }
 
-        // If we ran out of tasks, we're done!
-        if (!this.activeTask) return complete()
+          // Advance to the next task in the queue
+          this.setState("index", this.index + 1)
 
-        let result
-        try {
-          // Start the task, continuing to the next when it completes
-          result = await this.activeTask.start(lastValue)
-        } catch (error) {
-          if (!this.continueOnError && !this.activeTask.isOptional) return reject(error)
-          result = error
+          // If we ran out of tasks, we're done!
+          if (!this.activeTask) return complete()
+
+          let result
+          try {
+            // Start the task, continuing to the next when it completes
+            result = await this.activeTask.start(lastValue)
+          } catch (error) {
+            if (!this.continueOnError && !this.activeTask.optional) return reject(error)
+            result = error
+          }
+
+          // Execute the next task on a slight delay to allow the UI to catch up
+          return setTimeout(() => processNextTask(result), this.delayBetweenTasks || 0)
         }
-
-        // Execute the next task on a slight delay to allow the UI to catch up
-        return setTimeout(() => processNextTask(result), this.delayBetweenTasks || 0)
-      }
-      // Get the party started in the next tick
-      setTimeout(() => processNextTask(initialValue), 0)
-    })
+        // Get the party started in the next tick
+        setTimeout(() => processNextTask(initialValue), 0)
+      })
+    }
   }
 
   /**
@@ -203,7 +227,7 @@ export class TaskList extends Task {
    * By default, we'll succeed (resolve) with an `undefined` result.
    * You can pass a different `result` and/or `status = FAILURE` to reject.
    */
-  cancel(result, status) {
+  cancel(result?: any, status = TaskStatus.SUCCESS) {
     // Cancel our activeTask with the same status as we received.
     if (this.activeTask) this.activeTask.cancel(undefined, status)
     super.cancel(result, status)
@@ -212,27 +236,11 @@ export class TaskList extends Task {
   /** Reset the taskList for another run. */
   resetState() {
     super.resetState()
-    this.tasks.forEach((task) => task.resetState())
-  }
-
-  //-----------------
-  // Debugging
-  //-----------------
-  /*@proto*/ get debug() {
-    return false
-  }
-  set debug(debug) {
-    this.override("debug", debug)
-  }
-  /*@proto*/ get debugOutput() {
-    return false
-  }
-  set debugOutput(debugOutput) {
-    this.override("debugOutput", debugOutput)
+    this.tasks.forEach((task) => task.reset())
   }
 
   /** Called before we start executing. */
-  beforeStart(inputValue) {
+  beforeStart(inputValue: any) {
     if (this.debug) {
       const { name } = this
       console.group(`> TaskList: ${name}\n     `, { taskList: this, inputValue })
@@ -240,7 +248,7 @@ export class TaskList extends Task {
   }
   /** Called after we finish executing. Yu can examine `this.hasSucceeded`, `this.result`, etc. */
   afterFinish() {
-    if (this.debugOutput) {
+    if (this.debug) {
       const { name, status, result, error, wasCancelled } = this
       console.info(`< TaskList: ${name}\n     `, { taskList: this, status, result, error, wasCancelled })
     }
@@ -256,14 +264,15 @@ export class TaskList extends Task {
    * `list` can be an array or a `function` which returns an array dynamically.
    * All other props will be passed directly to the taskList.
    */
-  static forEach({ list, getTask, ...props }) {
+  static forEach<T>({
+    list,
+    getTask,
+    ...props
+  }: { list: T[] | (() => T[]); getTask: (input: T) => Task<unknown> } & TaskListProps) {
+    const inputs = typeof list === "function" ? [...list()] : [...list]
     return new TaskList({
-      resolveWith: RESULTS,
-      getTasks() {
-        // Handle `list` as a function.  Clone the list in case it mutates.
-        const items = typeof list === "function" ? [...list()] : [...list]
-        return items.map((item, index) => getTask(item, index))
-      },
+      resolveWith: TaskResolveWith.RESULTS,
+      tasks: inputs.map((input) => getTask(input)),
       ...props
     })
   }

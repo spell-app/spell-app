@@ -1,5 +1,5 @@
 import * as extend from "./extend"
-import { KNOWN_FORMATS, type KnownFormatMimeType } from "./constants"
+import { KnownFormat, type KnownFormatMimeType } from "./constants"
 import { $fetch, merge$fetchParms, type $FetchParams, type $FetchRequestParams } from "./$fetch"
 import { Loadable, LoadableProps } from "./Loadable"
 import { Prettify } from "~/global_types"
@@ -159,15 +159,15 @@ export class TextFile extends LoadableFile<string> {}
 export class JSONFile<JSONFileType> extends LoadableFile<JSONFileType> {
   get loadParams() {
     return {
-      requestFormat: KNOWN_FORMATS.json,
-      format: KNOWN_FORMATS.json
+      requestFormat: KnownFormat.json,
+      format: KnownFormat.json
     }
   }
   /*@proto*/
   get saveParams() {
     return {
-      requestFormat: KNOWN_FORMATS.json,
-      format: KNOWN_FORMATS.json
+      requestFormat: KnownFormat.json,
+      format: KnownFormat.json
     }
   }
 }
@@ -177,15 +177,15 @@ export class JSON5File<JSONFileType> extends LoadableFile<JSONFileType> {
   /*@proto*/
   get loadParams() {
     return {
-      requestFormat: KNOWN_FORMATS.json5,
-      format: KNOWN_FORMATS.json5
+      requestFormat: KnownFormat.json5,
+      format: KnownFormat.json5
     }
   }
   /*@proto*/
   get saveParams() {
     return {
-      requestFormat: KNOWN_FORMATS.json5,
-      format: KNOWN_FORMATS.json5
+      requestFormat: KnownFormat.json5,
+      format: KnownFormat.json5
     }
   }
 }
@@ -198,15 +198,15 @@ export class ImageFile extends LoadableFile<any> {
     switch (this.extension) {
       case "jpg":
       case "jpeg":
-        return KNOWN_FORMATS.jpg
+        return KnownFormat.jpg
       case "png":
-        return KNOWN_FORMATS.png
+        return KnownFormat.png
       case "gif":
-        return KNOWN_FORMATS.gif
+        return KnownFormat.gif
       case "svg":
-        return KNOWN_FORMATS.svg
+        return KnownFormat.svg
       default:
-        return KNOWN_FORMATS.binary
+        return KnownFormat.binary
     }
   }
   set format(format) {

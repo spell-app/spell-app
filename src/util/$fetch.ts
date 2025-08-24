@@ -4,7 +4,7 @@ import queryString from "query-string"
 
 import { parseJSON, parseJSON5 } from "./json"
 import { abortableFetch, isAbortError } from "./abortableFetch"
-import { KNOWN_FORMATS, BINARY_FORMATS, KnownFormatName, KnownFormatMimeType } from "./constants"
+import { KnownFormat, BINARY_FORMATS, type KnownFormatMimeType } from "./constants"
 import {
   ResponseError,
   OfflineError,
@@ -38,7 +38,7 @@ export type $FetchRequestParams = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
   /** HTTP headers. */
   headers?: Record<string, any>
-  /** Input format, used to set `Content-Type` header. See KNOWN_FORMATS. */
+  /** Input format, used to set `Content-Type` header. See KnownFormat. */
   requestFormat?: KnownFormatMimeType
   /** URL query params, as string or object which will be serialized. */
   query?: string | Record<string, any>
@@ -51,7 +51,7 @@ export type $FetchParams = Prettify<
   } & $FetchRequestParams & {
       /**  Request body as string or object which will be `JSON.stringify()`ed. */
       contents?: string | any
-      /** Output format, used to format output.  Defaults to `text`. See KNOWN_FORMATS. */
+      /** Output format, used to format output.  Defaults to `text`. See KnownFormat. */
       format?: string
       /** On a 404, return `defaultContents` rather than throwing. */
       defaultContents?: any
@@ -69,8 +69,8 @@ export type $FetchParams = Prettify<
  * - `contents`         Request body as string or object which will be `JSON.stringify()`ed.
  * - `method`           HTTP method.  Defaults to `POST` if `contents` provided, otherwise `GET`.
  * - `headers`          HTTP headers.
- * - `requestFormat`    Input format, used to set `Content-Type` header. See KNOWN_FORMATS.
- * - `format`           Output format, used to format output.  Defaults to `text`. See KNOWN_FORMATS.
+ * - `requestFormat`    Input format, used to set `Content-Type` header. See KnownFormat.
+ * - `format`           Output format, used to format output.  Defaults to `text`. See KnownFormat.
  * - `defaultContents`  On a 404, return `defaultContents` rather than throwing.
  */
 export function $fetch<T = any>($params: $FetchParams): Promise<T> {
@@ -128,8 +128,8 @@ export function $fetch<T = any>($params: $FetchParams): Promise<T> {
       if (BINARY_FORMATS.includes(format as any)) return await response.blob()
       // Pull text out to process json/json5 separately below.
       const text = await response.text()
-      if (format === KNOWN_FORMATS.json || format.toLowerCase() === "json") return parseJSON(text)
-      if (format === KNOWN_FORMATS.json5 || format.toLowerCase() === "json5") return parseJSON5(text)
+      if (format === KnownFormat.json || format.toLowerCase() === "json") return parseJSON(text)
+      if (format === KnownFormat.json5 || format.toLowerCase() === "json5") return parseJSON5(text)
       return text
     } catch (error) {
       throw new ResponseParseError({ ...errorParams, error })

@@ -17,7 +17,6 @@ import { Derivative } from "~/util/Derivative.ts"
 import { TestLocation } from "~/parser/constants"
 
 /** Abstract Rule class. */
-// TODOC
 export class Rule extends Derivative {
   /**
    * Main `name` of the rule.

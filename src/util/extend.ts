@@ -5,7 +5,6 @@ import _unset from "lodash/unset"
 import { hasOwnProp } from "./class"
 
 export type ExtendedData = {
-  derived?: Map<string, { value: any; dependencies?: WeakRef<any>[] }>
   props?: { map: Record<string, any>; $store: Record<string, any> }
   state?: { map: Record<string, any>; $store: Record<string, any> }
 }
@@ -44,8 +43,10 @@ export function initializeExtended(target: any, ...what: Array<"derived" | "prop
 
 /** Return raw `derived` map for `target` object. */
 function derivedFor(target: any) {
-  const extended = extendedFor(target)
-  return extended.derived ?? (extended.derived = new Map())
+  if (!target.__derived__) {
+    Object.defineProperty(target, "__derived__", { value: {} })
+  }
+  return target.__derived__
 }
 
 /**
@@ -56,8 +57,8 @@ function derivedFor(target: any) {
  */
 export function getDerived<T>(target: any, property: string, getter: () => T): T {
   const derived = derivedFor(target)
-  if (!derived.has(property)) derived.set(property, { value: getter.apply(target) })
-  return derived.get(property).value as T
+  if (!hasOwnProp(derived, property)) derived[property] = { value: getter.apply(target) }
+  return derived[property].value as T
 }
 
 /**
@@ -72,15 +73,15 @@ export function getDerivedFrom<T>(target: any, property: string, getter: () => T
     return getDerived(target, property, getter)
   }
   const derived = derivedFor(target)
-  let entry = derived.get(property)
+  let entry = derived[property]
   // convert Object dependencies to WeakRefs to avoid circular references
   dependencies = dependencies.map(objectToWeakRef)
-  const recalculate = !entry || !dependenciesMatch(dependencies, entry.dependencies)
+  const recalculate = !entry?.dependencies || !dependenciesMatch(dependencies, entry.dependencies)
   if (recalculate) {
     entry = { value: getter.apply(target), dependencies }
-    derived.set(property, entry)
+    derived[property] = entry
   }
-  return entry.value
+  return entry.value as T
 }
 
 /**
@@ -88,11 +89,9 @@ export function getDerivedFrom<T>(target: any, property: string, getter: () => T
  * - If no `properties` are passed, clears all derived properties.
  */
 export function clearDerived(target: any, ...properties: string[]) {
-  const extended = extendedFor(target)
-  if (properties.length === 0) extended.derived = new Map()
-  else if (extended.derived) {
-    properties.forEach((property) => extended.derived?.delete(property))
-  }
+  const derived = derivedFor(target)
+  if (properties.length === 0) properties = Object.keys(derived)
+  properties.forEach((property) => delete derived[property])
 }
 
 //-----------------
@@ -105,6 +104,8 @@ function propsFor(target: any) {
   if (!extended.props) {
     const map = {}
     extended.props = { map, $store: createStore(map) }
+    // DEBUG
+    Object.defineProperty(target, "$props", { value: map })
   }
   return extended.props
 }
@@ -163,6 +164,7 @@ function stateFor(target: any) {
   if (!extended.state) {
     const map = {}
     extended.state = { map, $store: createStore(map) }
+    Object.defineProperty(target, "$state", { value: map })
   }
   return extended.state
 }
