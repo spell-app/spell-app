@@ -5,6 +5,7 @@ import { store as createStore, view, batch, autoEffect, clearEffect } from "@ris
 
 import { hasOwnProp } from "./class"
 import { Derivative } from "./Derivative"
+import * as extend from "./extend"
 
 // re-export react-easy-state props for convenience
 export { createStore, view, batch, autoEffect, clearEffect }
@@ -48,57 +49,9 @@ export class Observable<
   /** On construction, assign `props` passed in to our instance. */
   constructor(props: Partial<Props & State>) {
     super()
+    extend.initializeExtended(this, "props", "state")
     // Assign properties to our instance -- invoking our getter/setters for `props` or `state`.
     Object.assign(this, props)
-  }
-
-  //-----------------
-  // State
-  //-----------------
-
-  /** Get state `property`, defaulting to `initializer` if never set. */
-  protected getState<T>(property: string, initializer?: () => T): T {
-    if (!hasOwnProp(this.__state__, property) && initializer) {
-      // @ts-ignore
-      this.__state__[property] = initializer()
-    }
-    return this.$state[property] as T
-  }
-  /**
-   * Set property `property` on our `$state` to `value`.
-   * - If `value` is `undefined`, deletes the property instead.
-   * - `property` can be a dotted path.
-   */
-  protected setState<T>(property: string, value: T) {
-    const { $state } = this
-    if (value === undefined) _unset($state, property)
-    else _set($state, property, value)
-    return value
-  }
-
-  /**
-   * Reset our `state` to its defaults.
-   * - By default we clear state entirely.
-   * - Pass specific string `properties` path(s) to clear just those.
-   */
-  protected resetState(...properties: string[]) {
-    batch(() => {
-      if (properties.length === 0) properties = Object.keys(this.__state__)
-      properties.forEach((property) => this.setState(property, undefined))
-    })
-  }
-
-  /**
-   * Clean up this object when it's being "removed".
-   * Note that this must be called manually.
-   * TODO: finalizer???
-   */
-  onRemove() {}
-
-  /** Output our non-state `props` when serializing to JSON. */
-  toJSON() {
-    const { $state, ...nonStateProps } = this.__props__
-    return nonStateProps
   }
 
   //-----------------
@@ -112,6 +65,7 @@ export class Observable<
       this.__props__[property] = initializer()
     }
     return this.$props[property]
+    // return extend.getProp(this, property, initializer)
   }
   /**
    * Set reactive `property` to `value`.
@@ -120,66 +74,65 @@ export class Observable<
   protected setProp<T>(property: string, value: T) {
     if (value === undefined) delete this.$props[property]
     else this.$props[property] = value
+
+    // return extend.setProp(this, property, value)
+  }
+
+  //-----------------
+  // State
+  //-----------------
+
+  /** Get state `property`, defaulting to `initializer` if never set. */
+  protected getState<T>(property: string, initializer?: () => T): T {
+    if (!hasOwnProp(this.__state__, property) && initializer) {
+      // @ts-ignore
+      this.__state__[property] = initializer()
+    }
+    return this.$state[property] as T
+
+    // return extend.getState(this, property, initializer)
+  }
+  /**
+   * Set property `property` on our `$state` to `value`.
+   * - If `value` is `undefined`, deletes the property instead.
+   * - `property` can be a dotted path.
+   */
+  protected setState<T>(property: string, value: T) {
+    const { $state } = this
+    if (value === undefined) _unset($state, property)
+    else _set($state, property, value)
+    return value
+
+    // return extend.setState(this, property, value)
+  }
+
+  /**
+   * Reset our `state` to its defaults.
+   * - By default we clear state entirely.
+   * - Pass specific string `properties` path(s) to clear just those.
+   */
+  protected resetState(...properties: string[]) {
+    batch(() => {
+      if (properties.length === 0) properties = Object.keys(this.__state__)
+      properties.forEach((property) => this.setState(property, undefined))
+    })
+
+    //    extend.resetState(this, ...properties)
+  }
+
+  /**
+   * Clean up this object when it's being "removed".
+   * Note that this must be called manually.
+   * TODO: finalizer???
+   */
+  onRemove() {}
+
+  /** Output our non-state `props` when serializing to JSON. */
+  toJSON() {
+    const { $state, ...nonStateProps } = this.__props__
+    return nonStateProps
+
+    //    return extend.getProps(this)
   }
 }
 global.Observable = Observable
-
-// /**
-//  * A `@prop` is a (semi-) permanent reactive property defined on an `Observable`,
-//  * stored in `$props`.  You can get and set it as if it's a normal property.
-//  */
-// export function prop(target, property, descriptor) {
-//   // console.warn("@prop", key, descriptor, target)
-//   if (descriptor.get || descriptor.set) {
-//     console.warn("cant do @prop descriptor with get or set", descriptor)
-//     return descriptor
-//   }
-//   const { initializer, value, writable, configurable } = descriptor
-//   console.info("@prop", { target, key, initializer, value, writable, configurable })
-//   const get = function () {
-//     if (!hasOwnProp(this.$props, key)) this.$props[key] = initializer ? initializer() : value
-//     return this.$props[key]
-//   }
-//   let set
-//   if (writable) {
-//     set = function (newValue) {
-//       if (newValue === undefined) {
-//         if (hasOwnProp(this, key)) delete this[key]
-//         if (hasOwnProp(this.$props, key)) delete this.$props[key]
-//         if (hasOwnProp(this.$state, key)) delete this.$state[key]
-//       } else {
-//         this.$props[key] = newValue
-//       }
-//     }
-//   } else {
-//     set = function (newValue) {
-//       console.warn(`Attempting to set readonly property '${key}' of`, this, "to", newValue)
-//     }
-//   }
-//   return { get, set, enumerable: true, configurable }
-// }
-
-// /**
-//  * A `@state` is a transient reactive property defined on an `Observable`,
-//  * stored in `.$props.$state` (which is set during object construction).
-//  * You cannot modify `@state` directy!  Instead do `this.setState("prop", newValue)`.
-//  * Call `this.resetState()` to reset all state variables to their default
-//  * or `this.resetState(<key>...)` to reset certain state variables.
-//  */
-// export function state(target, key, descriptor) {
-//   // console.warn("@state", key, descriptor, target)
-//   if (descriptor.get || descriptor.set) {
-//     console.warn("cant do @state descriptor with get or set", descriptor)
-//     return descriptor
-//   }
-
-//   const { initializer, value, configurable /* writable, */ } = descriptor
-//   const get = function () {
-//     if (!hasOwnProp(this.$state, key)) this.$state[key] = initializer ? initializer() : value
-//     return this.$state[key]
-//   }
-//   const set = function (newValue) {
-//     console.warn(`Attempting to set readonly state '${key}' of`, this, "to", newValue)
-//   }
-//   return { get, set, enumerable: false, configurable }
-// }

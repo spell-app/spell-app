@@ -181,6 +181,7 @@ export function setState<T>(target: any, property: string, value: T) {
   const state = stateFor(target)
   if (value === undefined) _unset(state.$store, property)
   else _set(state.$store, property, value)
+  return value
 }
 
 /**
