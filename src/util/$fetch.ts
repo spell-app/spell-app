@@ -4,7 +4,7 @@ import queryString from "query-string"
 
 import { parseJSON, parseJSON5 } from "./json"
 import { abortableFetch, isAbortError } from "./abortableFetch"
-import { KNOWN_FORMATS, BINARY_FORMATS, KnownFormatKey } from "./constants"
+import { KNOWN_FORMATS, BINARY_FORMATS, KnownFormatName, KnownFormatMimeType } from "./constants"
 import {
   ResponseError,
   OfflineError,
@@ -13,9 +13,10 @@ import {
   ResponseParseError,
   AbortedRequestError
 } from "./ResponseErrors.ts"
+import { Prettify } from "~/global_types.ts"
 
 /** Merge multiple sets of `$fetch()` `params` and set up defaults. */
-export function merge$fetchParms(...allParams: RequestInit[]) {
+export function merge$fetchParms(...allParams: Array<Partial<$FetchParams>>) {
   const output: RequestInit = {}
   allParams.forEach((params) => {
     if (!params) return
@@ -29,27 +30,33 @@ export function merge$fetchParms(...allParams: RequestInit[]) {
       }
     })
   })
-  return output
+  return output as $FetchParams
 }
 
-export type $FetchParams = {
-  /** URL to load. */
-  url: string
-  /** URL query params, as string or object which will be serialized. */
-  query?: string | Record<string, any>
-  /**  Request body as string or object which will be `JSON.stringify()`ed. */
-  contents?: string | Record<string, any>
+export type $FetchRequestParams = {
   /** HTTP method.  Defaults to `POST` if `contents` provided, otherwise `GET`. */
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"
   /** HTTP headers. */
   headers?: Record<string, any>
   /** Input format, used to set `Content-Type` header. See KNOWN_FORMATS. */
-  requestFormat?: KnownFormatKey
-  /** Output format, used to format output.  Defaults to `text`. See KNOWN_FORMATS. */
-  format?: string
-  /** On a 404, return `defaultContents` rather than throwing. */
-  defaultContents?: any
+  requestFormat?: KnownFormatMimeType
+  /** URL query params, as string or object which will be serialized. */
+  query?: string | Record<string, any>
 }
+
+export type $FetchParams = Prettify<
+  {
+    /** URL to load. */
+    url: string
+  } & $FetchRequestParams & {
+      /**  Request body as string or object which will be `JSON.stringify()`ed. */
+      contents?: string | any
+      /** Output format, used to format output.  Defaults to `text`. See KNOWN_FORMATS. */
+      format?: string
+      /** On a 404, return `defaultContents` rather than throwing. */
+      defaultContents?: any
+    }
+>
 
 /**
  * Fetch some `url` and return the decoded results.
@@ -74,13 +81,13 @@ export function $fetch<T = any>($params: $FetchParams): Promise<T> {
     method = contents != null ? "POST" : "GET",
     headers = {},
     requestFormat,
-    format = "text",
+    format = "text/plain",
     defaultContents
   } = $params
 
   const fetchParams: RequestInit = { method }
   // Set Content-Type header if necessary
-  if (requestFormat) headers["Content-Type"] = KNOWN_FORMATS[requestFormat] || requestFormat
+  if (requestFormat) headers["Content-Type"] = requestFormat
   fetchParams.headers = headers
 
   // Set up body if provided

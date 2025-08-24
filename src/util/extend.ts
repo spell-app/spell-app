@@ -120,7 +120,7 @@ export function getProp<T>(target: any, property: string, initializer?: () => T)
   if (!hasOwnProp(props.map, property) && initializer) {
     props.map[property] = initializer.call(target)
   }
-  return props.$store[property]
+  return props.$store[property] as T | undefined
 }
 /**
  * Set reactive `property` to `value`.

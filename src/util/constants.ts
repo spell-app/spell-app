@@ -32,9 +32,9 @@ export const KNOWN_FORMATS = {
   svg: "image/svg+xml",
   binary: "binary" // generic "binary" response, not an actual mime type
 } as const
-export type KnownFormatKey = keyof typeof KNOWN_FORMATS
-export type KnownFormatType = (typeof KNOWN_FORMATS)[keyof typeof KNOWN_FORMATS]
-export type KnownFormat = Prettify<KnownFormatKey | KnownFormatType>
+export type KnownFormatName = keyof typeof KNOWN_FORMATS
+export type KnownFormatMimeType = (typeof KNOWN_FORMATS)[keyof typeof KNOWN_FORMATS]
+export type KnownFormat = Prettify<KnownFormatName | KnownFormatMimeType>
 
 /** Response types which will return a `blob()` response.
  * OK to update this in other files.
