@@ -1,4 +1,4 @@
-import { clearDerived, getDerived, getDerivedFrom, override } from "./extend"
+import * as extend from "./extend"
 
 /**
  * Base class to add `@derived`, `@derivedFrom`, `@override` functionality to class instances.
@@ -13,7 +13,7 @@ export class Derivative {
    *   - Call `this.clearDerived(property)` to reset just that property.
    */
   derived<T = any>(property: string, getter: () => T): T {
-    return getDerived(this, property, getter)
+    return extend.getDerived(this, property, getter)
   }
   /**
    * Return derived `property`, calling `getter()` again whenever `dependencies` change.
@@ -25,7 +25,7 @@ export class Derivative {
    *     whenever any of the dependencies change.
    */
   derivedFrom<T = any>(property: string, getter: () => T, dependencies?: string[]): T {
-    return getDerivedFrom(this, property, getter, dependencies)
+    return extend.getDerivedFrom(this, property, getter, dependencies)
   }
   /**
    * Clear derived properties, recalculating them next time they are accessed.
@@ -33,10 +33,10 @@ export class Derivative {
    * - Pass a specific `property` to clear just that property.
    */
   clearDerived(property: string) {
-    clearDerived(this, property)
+    extend.clearDerived(this, property)
   }
   /** Overide getter for `property`, returning explicit `value` instead. */
   override<T>(property: string, value: T) {
-    override(this, property, value)
+    extend.overrideProp(this, property, value)
   }
 }

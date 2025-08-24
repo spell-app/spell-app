@@ -9,7 +9,7 @@ export type ExtendedData = {
   props?: { map: Record<string, any>; $store: Record<string, any> }
   state?: { map: Record<string, any>; $store: Record<string, any> }
 }
-export const EXTEND_MAP = new Map<any, Record<string, any>>()
+export const EXTEND_MAP = new WeakMap<any, Record<string, any>>()
 
 /** Set up `ExtendedData` for the `target` object. */
 export function extendedFor(target: any): ExtendedData {
@@ -118,7 +118,7 @@ export function getProps(target: any) {
 export function getProp<T>(target: any, property: string, initializer?: () => T) {
   const props = propsFor(target)
   if (!hasOwnProp(props.map, property) && initializer) {
-    props.map[property] = initializer.bind(target)
+    props.map[property] = initializer.call(target)
   }
   return props.$store[property]
 }
@@ -169,7 +169,7 @@ function stateFor(target: any) {
 export function getState<T>(target: any, property: string, initializer?: () => T) {
   const state = stateFor(target)
   if (!hasOwnProp(state.map, property) && initializer) {
-    state.map[property] = initializer.bind(target)
+    state.map[property] = initializer.call(target)
   }
   return state.$store[property] as T
 }
@@ -206,13 +206,13 @@ export function resetState<T>(target: any, ...properties: string[]) {
  * returning explicit `value` instead.
  * - Note that you can call this repeatedly.
  */
-export function override(target: any, property: string, value: any) {
+export function overrideProp(target: any, property: string, value: any) {
   Object.defineProperty(target, property, {
     get() {
       return value
     },
     set(value) {
-      override(this, property, value)
+      overrideProp(this, property, value)
     },
     configurable: true
   })

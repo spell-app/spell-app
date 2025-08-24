@@ -3,7 +3,7 @@
 //--------
 import React from "react"
 
-import { Observable, view, override } from "~/util"
+import { Observable, view } from "~/util"
 import { spellCore, Eventful } from ".."
 
 /**
@@ -33,7 +33,7 @@ export class Thing extends Eventful(Observable) {
     return this.constructor.name
   }
   set type(type) {
-    override(this, "type", type)
+    this.override("type", type)
   }
 
   /**

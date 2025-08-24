@@ -3,7 +3,6 @@ import _set from "lodash/set"
 import _unset from "lodash/unset"
 import { store as createStore, view, batch, autoEffect, clearEffect } from "@risingstack/react-easy-state"
 
-import { hasOwnProp } from "./class"
 import { Derivative } from "./Derivative"
 import * as extend from "./extend"
 
@@ -14,9 +13,6 @@ export { createStore, view, batch, autoEffect, clearEffect }
 global.createStore = createStore
 global.autoEffect = autoEffect
 global.clearEffect = clearEffect
-
-const newProps = false
-const newState = false
 
 /**
  * Methodology:
@@ -39,16 +35,6 @@ export class Observable<
   Props extends Record<string, any> = Record<string, any>,
   State extends Record<string, any> = Record<string, any>
 > extends Derivative {
-  /** INTERNAL non-reactive props object, only for manipulation in this file. */
-  private __props__ = {} as Props
-  /** Reactive store of `props`. */
-  protected $props: Record<string, any> = createStore(this.__props__)
-
-  /** INTERNAL non-reactive state object, only for manipulation in this file. */
-  private __state__ = {} as State
-  /** Reactive store of `state`. */
-  protected $state: Record<string, any> = createStore(this.__state__)
-
   /** On construction, assign `props` passed in to our instance. */
   constructor(props: Partial<Props & State>) {
     super()
@@ -63,23 +49,14 @@ export class Observable<
 
   /** Return reactive `property`, defaulting to `initializer` if never set. */
   protected getProp<T>(property: string, initializer?: () => T) {
-    if (newProps) return extend.getProp(this, property, initializer)
-
-    if (!hasOwnProp(this.$props, property) && initializer) {
-      // @ts-ignore
-      this.__props__[property] = initializer()
-    }
-    return this.$props[property]
+    return extend.getProp(this, property, initializer)
   }
   /**
    * Set reactive `property` to `value`.
    * - If `value` is `undefined`, deletes the property instead.
    */
   protected setProp<T>(property: string, value: T) {
-    if (newProps) return extend.setProp(this, property, value)
-
-    if (value === undefined) delete this.$props[property]
-    else this.$props[property] = value
+    return extend.setProp(this, property, value)
   }
 
   //-----------------
@@ -88,13 +65,7 @@ export class Observable<
 
   /** Get state `property`, defaulting to `initializer` if never set. */
   protected getState<T>(property: string, initializer?: () => T): T {
-    if (newState) return extend.getState(this, property, initializer)
-
-    if (!hasOwnProp(this.__state__, property) && initializer) {
-      // @ts-ignore
-      this.__state__[property] = initializer()
-    }
-    return this.$state[property] as T
+    return extend.getState(this, property, initializer)
   }
   /**
    * Set property `property` on our `$state` to `value`.
@@ -102,12 +73,7 @@ export class Observable<
    * - `property` can be a dotted path.
    */
   protected setState<T>(property: string, value: T) {
-    if (newState) return extend.setState(this, property, value)
-
-    const { $state } = this
-    if (value === undefined) _unset($state, property)
-    else _set($state, property, value)
-    return value
+    return extend.setState(this, property, value)
   }
 
   /**
@@ -116,12 +82,7 @@ export class Observable<
    * - Pass specific string `properties` path(s) to clear just those.
    */
   protected resetState(...properties: string[]) {
-    if (newState) return extend.resetState(this, ...properties)
-
-    batch(() => {
-      if (properties.length === 0) properties = Object.keys(this.__state__)
-      properties.forEach((property) => this.setState(property, undefined))
-    })
+    return extend.resetState(this, ...properties)
   }
 
   /**
@@ -133,10 +94,7 @@ export class Observable<
 
   /** Output our non-state `props` when serializing to JSON. */
   toJSON() {
-    const { $state, ...nonStateProps } = this.__props__
-    return nonStateProps
-
-    //    return extend.getProps(this)
+    return extend.getProps(this)
   }
 }
 global.Observable = Observable

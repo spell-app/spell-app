@@ -41,15 +41,6 @@ Object.assign(spellCore, {
    */
   defineProperty(thing, { property, value, type, initializer, enumeration, enumerationProp /* get, set, */ }) {
     const descriptor = { configurable: true }
-    function baseGet() {
-      if (!hasOwnProp(this, "$props")) this.$props = {}
-      if (hasOwnProp(this.$props, property)) return this.$props[property]
-      return initializer?.call(this)
-    }
-    function baseSet(newValue) {
-      if (!hasOwnProp(this, "$props")) this.$props = {}
-      this.$props[property] = newValue
-    }
 
     // If we get an `initializer()`, call it to get a value for each instance,
     // store that in `$props`
@@ -58,7 +49,7 @@ Object.assign(spellCore, {
         if (!spellCore.isOfType(newValue, type)) {
           spellCore.console.warn(`Expected ${property} to be type '${type}', got:`, newValue)
         }
-        baseSet.call(this, newValue)
+        extend.setProp(this, property, newValue)
       }
     } else if (enumeration) {
       // If the specified an `enumerationProp`, define the enumeration on the object and its constructor
@@ -70,11 +61,19 @@ Object.assign(spellCore, {
         if (!enumeration.includes(newValue)) {
           spellCore.console.warn(`Expected ${property} to be one of '${enumeration}', got:`, newValue)
         }
-        baseSet.call(this, newValue)
+        extend.setProp(this, property, newValue)
       }
     }
-    if (!descriptor.get) descriptor.get = baseGet
-    if (!descriptor.set) descriptor.set = baseSet
+    if (!descriptor.get) {
+      descriptor.get = function () {
+        return extend.getProp(this, property, initializer)
+      }
+    }
+    if (!descriptor.set) {
+      descriptor.set = function (newValue) {
+        extend.setProp(this, property, newValue)
+      }
+    }
     spellCore.define(thing, property, descriptor)
   },
 

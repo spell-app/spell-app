@@ -4,7 +4,7 @@
 import React from "react"
 import _ from "lodash"
 
-import { Observable, override, view } from "~/util"
+import { Observable, view } from "~/util"
 import { spellCore } from ".."
 
 //----------------------------
@@ -32,7 +32,7 @@ export class List extends Observable {
     return this.constructor.name
   }
   set type(type) {
-    override(this, "type", type)
+    this.override("type", type)
   }
 
   /*@memoize*/
