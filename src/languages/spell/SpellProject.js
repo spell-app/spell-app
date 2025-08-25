@@ -429,8 +429,12 @@ export class SpellProject extends JSON5File {
     if (path instanceof SpellLocation) {
       location = path
     } else if (typeof path === "string") {
-      if (path.startsWith("@")) location = SpellLocation.getFileLocation(path)
-      else location = SpellLocation.getFileLocation(this.projectId, path)
+      try {
+        if (path.startsWith("@")) location = SpellLocation.getFileLocation(path)
+        else location = SpellLocation.getFileLocation(this.projectId, path)
+      } catch (e) {
+        return undefined
+      }
     }
     if (location?.isFilePath) return location
   }
