@@ -3,11 +3,17 @@
 //
 // NOTE: many of the below are created as custom Pattern subclasses for debugging.
 //
+import global from "global"
 import { Parser, Rules, TestLocation, Tokens, Tokenizer, WhitespacePolicy } from "~/parser"
 
 const { ANYWHERE, AT_START } = TestLocation
 
 export class RulexParser extends Parser {
+  /**  Name of our default rule to parse if calling `parser.parse(text)`. */
+  get defaultRule() {
+    return "sequence"
+  }
+
   // Apply flags from `match` to the `rule` passed in, possibly returning a new rule!
   applyFlags(rule, match) {
     const repeatFlag = match.groups.repeatFlag?.compile()
@@ -63,12 +69,11 @@ export class RulexParser extends Parser {
     return array
   }
 }
-RulexParser.prototype.module = "rulex"
-RulexParser.prototype.defaultRule = "statement"
 
 // Create core `rulex` parser.
 // NOTE: THIS INSTANCE is used by other parsers, to pick up the rules defined below.
-export const rulex = new RulexParser()
+export const rulex = new RulexParser({ module: "rulex" })
+global.rulex = rulex
 
 // Define base rules `testLocation`, `argument` and `repeatFlag`
 rulex.defineRules(
@@ -364,7 +369,7 @@ rulex.defineRules(
         end: new Rules.Symbol(")"),
         delimiter: new Rules.Symbol("|"),
         prefix: new Rules.Sequence({ rules: [argument], optional: true }),
-        rule: new Rules.Subrule({ rule: "statement", argument: "choices" })
+        rule: new Rules.Subrule({ rule: "sequence", argument: "choices" })
       }),
       repeatFlag
     ],
@@ -420,11 +425,13 @@ rulex.defineRules(
           ["(a|b|c)?", new Rules.Keyword({ literal: ["a", "b", "c"], optional: true })],
           [
             "(a|b|c?)",
-            new Rules.Choice(
-              new Rules.Keyword("a"),
-              new Rules.Keyword("b"),
-              new Rules.Keyword({ literal: "c", optional: true })
-            )
+            new Rules.Choice({
+              rules: [
+                new Rules.Keyword("a"),
+                new Rules.Keyword("b"),
+                new Rules.Keyword({ literal: "c", optional: true })
+              ]
+            })
           ]
         ]
       },
@@ -432,7 +439,7 @@ rulex.defineRules(
         title: "multiple choices",
         compileAs: "rule",
         tests: [
-          ["(>|a)", new Rules.Choice(new Rules.Symbol(">"), new Rules.Keyword("a"))],
+          ["(>|a)", new Rules.Choice({ rules: [new Rules.Symbol(">"), new Rules.Keyword("a")] })],
 
           [
             "…(>|a)",
@@ -459,10 +466,15 @@ rulex.defineRules(
         title: "nested choices",
         compileAs: "rule",
         tests: [
-          ["(>|(b|c|d))", new Rules.Choice(new Rules.Symbol(">"), new Rules.Keyword(["b", "c", "d"]))],
+          ["(>|(b|c|d))", new Rules.Choice({ rules: [new Rules.Symbol(">"), new Rules.Keyword(["b", "c", "d"])] })],
           [
             "(>|({sub}|ab))",
-            new Rules.Choice(new Rules.Symbol(">"), new Rules.Choice(new Rules.Subrule("sub"), new Rules.Keyword("ab")))
+            new Rules.Choice({
+              rules: [
+                new Rules.Symbol(">"),
+                new Rules.Choice({ rules: [new Rules.Subrule("sub"), new Rules.Keyword("ab")] })
+              ]
+            })
           ]
         ]
       }
@@ -470,14 +482,14 @@ rulex.defineRules(
   },
 
   /**
-   * `Statement`: a sequence of rules -- our top-level rule.
-   * - NO test rule, otherwise we can't start a statement with a special character.
+   * `sequence`: a sequence of rules -- our top-level rule.
+   * - NO test rule, otherwise we can't start a sequence with a special character.
    * - TODO: `consume all tokens`...
    */
   {
-    name: "statement",
+    name: "sequence",
     rule: new Rules.Subrule("rule"),
-    constructor: class statement extends Rules.Repeat {
+    constructor: class sequence extends Rules.Repeat {
       compile(match) {
         let matched = match.matched.map((nextMatch) => nextMatch.compile())
 

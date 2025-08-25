@@ -1,5 +1,6 @@
 // Spell "parser" class.
 //
+import global from "global"
 import { isNode } from "browser-or-node"
 import isEqual from "lodash/isEqual"
 import flatten from "lodash/flatten"
@@ -491,3 +492,5 @@ export class Parser extends Derivative {
     return results
   }
 }
+global.Parser = Parser
+global.Rules = Rules

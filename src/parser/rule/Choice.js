@@ -14,12 +14,9 @@ const DEBUG_CHOICES = false
  * After parsing we'll return the rule which is the "best match" (rather than cloning this rule).
  */
 export class Choice extends Rule {
-  constructor(...args) {
-    let [props] = args
-    if (arguments.length > 1) props = args
-    if (Array.isArray(props)) props = { rules: props }
+  constructor(props) {
+    props.rules = Array.isArray(props.rules) ? [...props.rules] : []
     super(props)
-    if (!this.rules) this.rules = []
   }
 
   /**

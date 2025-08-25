@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest"
 import { Parser, Rules, TestLocation, Tokenizer, WhitespacePolicy } from "~/parser"
 
 const tokenizer = new Tokenizer({
-  whitespacePolicy: WhitespacePolicy.NONE,
+  whitespacePolicy: WhitespacePolicy.NONE
 })
 const { tokenize } = tokenizer
 
@@ -310,12 +310,12 @@ describe("Rules.Pattern", () => {
   // test with "word" pattern
   const ruleAtStart = new Rules.Pattern({
     pattern: /^[a-z][\w\-]*$/,
-    blacklist: ["nope"],
+    blacklist: ["nope"]
   })
   const ruleAnywhere = new Rules.Pattern({
     pattern: /^[a-z][\w\-]*$/,
     blacklist: ["nope"],
-    testLocation: TestLocation.ANYWHERE,
+    testLocation: TestLocation.ANYWHERE
   })
 
   test("converts array blacklist to a map", () => {
@@ -386,10 +386,7 @@ describe("Rules.Subrule", () => {
     {
       name: "sequence",
       syntax: "{this} {that}",
-      testRule: new Rules.Keywords(["this", "that"]),
-      compile(results) {
-        return "COMPILED"
-      },
+      testRule: new Rules.Keywords(["this", "that"])
     }
   )
 
@@ -489,7 +486,7 @@ describe("Rules.Subrule", () => {
       test("parses at the start of tokens", () => {
         const match = rule.parse({ parser }, tokenize("this that"))
         expect(match.length).toBe(2)
-        expect(match.compile()).toBe("COMPILED")
+        expect(match.compile()).toStrictEqual({ this: "this", that: "that" })
       })
 
       test("does not parse in the middle of tokens", () => {
@@ -505,13 +502,13 @@ describe("Rules.Choice", () => {
 
   const ruleStart = new Rules.Choice({
     rules: [new Rules.Keywords("this"), new Rules.Keywords("that"), new Rules.Keywords("other")],
-    argument: "arg",
+    argument: "arg"
   })
 
   const ruleAnywhere = new Rules.Choice({
     rules: [new Rules.Keywords("this"), new Rules.Keywords("that"), new Rules.Keywords("other")],
     argument: "arg",
-    testLocation: TestLocation.ANYWHERE,
+    testLocation: TestLocation.ANYWHERE
   })
 
   describe("test() method", () => {
@@ -583,16 +580,16 @@ describe("Rules.Repeat", () => {
   const ruleNoTest = new Rules.Repeat(new Rules.Keywords("word"))
   const ruleStart = new Rules.Repeat({
     testRule: new Rules.Keywords("word"),
-    rule: new Rules.Keywords("word"),
+    rule: new Rules.Keywords("word")
   })
   const ruleAnywhere = new Rules.Repeat({
     testRule: new Rules.Keywords("word"),
     rule: new Rules.Keywords("word"),
-    testLocation: TestLocation.ANYWHERE,
+    testLocation: TestLocation.ANYWHERE
   })
   const ruleDelimiter = new Rules.Repeat({
     rule: new Rules.Keywords("word"),
-    delimiter: new Rules.Symbol(","),
+    delimiter: new Rules.Symbol(",")
   })
 
   describe("test() method", () => {
@@ -704,25 +701,22 @@ describe("Rules.Sequence", () => {
     new Rules.Keywords({ name: "other", literals: "other" }),
     {
       name: "noTest",
-      syntax: "this {that} the {other}",
+      syntax: "this {that} the {other}"
     },
     {
       name: "atStart",
       syntax: "this {that} the {other}",
-      testRule: new Rules.Keywords("this"),
-      compile() {
-        return "COMPILED"
-      },
+      testRule: new Rules.Keywords("this")
     },
     {
       name: "anywhere",
       syntax: "this {that} the {other}",
       testRule: new Rules.Keywords("this"),
-      testLocation: TestLocation.ANYWHERE,
+      testLocation: TestLocation.ANYWHERE
     },
     {
       name: "noCompile",
-      syntax: "this {that} the {other}",
+      syntax: "this {that} the {other}"
     }
   )
 
@@ -781,7 +775,10 @@ describe("Rules.Sequence", () => {
       test("parses at the start of tokens", () => {
         const match = rule.parse({ parser }, tokenize("this that the other"))
         expect(match.length).toBe(4)
-        expect(match.compile()).toBe("COMPILED")
+        expect(match.compile()).toStrictEqual({
+          other: "other",
+          that: "that"
+        })
         const { groups } = match
         expect(groups.that.value).toBe("that")
         expect(groups.other.value).toBe("other")

@@ -102,7 +102,7 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
     return this.getProp("optional", () => false)
   }
   set optional(optional: boolean) {
-    this.override("optional", optional)
+    this.setProp("optional", optional)
   }
 
   //-----------------
@@ -284,7 +284,7 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
 
   /** Set to true to debug to the console as we operate. */
   get debug() {
-    return this.getProp("debug", () => false)
+    return this.getProp("debug", () => true)
   }
   set debug(debug: boolean) {
     this.setProp("debug", debug)

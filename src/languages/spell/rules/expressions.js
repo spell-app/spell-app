@@ -8,7 +8,9 @@ import { SpellStatement } from "./Statement"
 
 /** Base class for all Spell expressions. */
 export class SpellExpression extends SpellStatement {
-  // TODO:       isLeftRecursive: true
+  get isLeftRecursive() {
+    return false
+  }
 }
 
 /** TODOC!!! */
@@ -148,10 +150,12 @@ export const expressions = new SpellParser({
     {
       name: "compound_expression",
       alias: "expression",
-      isLeftRecursive: true,
       precedence: 12,
       syntax: "{lhs:simple_expression} {rhsChain:expression_suffix}+",
       constructor: class compound_expression extends SpellExpression {
+        get isLeftRecursive() {
+          return true
+        }
         getAST(match) {
           function applyOperatorToRule({ match: ruleMatch, operator, rhs, lhs }) {
             function compile(thing) {

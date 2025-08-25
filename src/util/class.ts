@@ -27,3 +27,16 @@ export function getSuperHierarchy(thing: any, stopAt: any = Object) {
   }
   return supers
 }
+
+export function hasDescriptor(thing: any, property: string, type?: "get" | "set") {
+  while (thing) {
+    const desc = Object.getOwnPropertyDescriptor(thing, property)
+    if (desc) {
+      if (!type) return desc
+      else if (type === "get" && desc.get) return desc
+      else if (type === "set" && desc.set) return desc
+    }
+    thing = thing.__proto__
+  }
+  return false
+}

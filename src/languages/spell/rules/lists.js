@@ -668,11 +668,13 @@ export const lists = new SpellParser({
     {
       name: "list_membership_test",
       alias: "expression",
-      isLeftRecursive: true,
       syntax: "{list:simple_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_variable} where",
       testRule: "…(has|have)",
       precedence: 2,
       constructor: class list_membership_test extends SpellExpression {
+        get isLeftRecursive() {
+          return true
+        }
         get wantsInlineStatement() {
           return true
         }

@@ -99,6 +99,7 @@ describe("Parser.import()", () => {
     foo.defineRule({ name: "rule1", syntax: "foo1" })
     foo.defineRule({ name: "rule1", syntax: "foo1a" })
     const foo1OriginalGroup = foo.rules.rule1
+    const foo1OriginalGroupRules = [...foo1OriginalGroup.rules]
 
     const bar = new Parser({ module: "bar" })
     bar.defineRule({ name: "rule1", syntax: "bar1" })
@@ -109,7 +110,7 @@ describe("Parser.import()", () => {
     expect(foo.rules.rule1).not.toBe(foo1OriginalGroup)
     expect(foo.rules.rule1.rules.length).toBe(3)
 
-    const allRules = foo1OriginalGroup.rules.concat(bar.rules.rule1)
+    const allRules = foo1OriginalGroupRules.concat(bar.rules.rule1)
     expect(foo.rules.rule1.rules).toEqual(allRules)
   })
 })
@@ -121,17 +122,13 @@ const statements = new Rules.Repeat({ name: "block", rule: new Rules.Subrule("st
 parser.defineRules(
   statement,
   statements,
-
   { name: "dog", syntax: "dog" },
   { name: "cat", syntax: "cat" },
   {
     name: "dog_and_cat",
-    alias: "statement",
+    alias: ["statement"],
     syntax: "{dog} and {cat}",
-    testRule: "{dog}",
-    compile() {
-      return "dog && cat"
-    }
+    testRule: "{dog}"
   }
 )
 
@@ -159,12 +156,12 @@ describe("parser.parse()", () => {
 describe("parser.compile()", () => {
   test("takes an explicit start rule", () => {
     const result = parser.compile("dog and cat", "statement")
-    expect(result).toEqual("dog && cat")
+    expect(result).toStrictEqual({ dog: "dog", cat: "cat" })
   })
 
   test("defaults to 'statements' if not passed a start rule", () => {
     const result = parser.compile("dog and cat")
-    expect(result).toEqual(["dog && cat"])
+    expect(result).toStrictEqual([{ dog: "dog", cat: "cat" }])
   })
 
   test("throws if text can't be parsed", () => {

@@ -12,7 +12,8 @@ import { SpellExpression, PostfixOperatorSuffix, InfixOperatorSuffix } from "./e
  */
 const DynamicMethodRule = class dynamic_method extends SpellStatement {
   // Name of the method to call
-  /*@proto*/ get methodName() {
+  /*@proto*/
+  get methodName() {
     return undefined
   }
   set methodName(methodName) {
@@ -129,8 +130,10 @@ SpellParser.Rules.MethodDefinition = class method_definition extends SpellParser
         precedence: 20,
         alias: "expression_suffix",
         syntax,
-        shouldNegateOutput,
         constructor: class _dynamicMethodRulePostfix extends PostfixOperatorSuffix {
+          shouldNegateOutput(operator) {
+            return shouldNegateOutput(operator)
+          }
           compileASTExpression(_match, { lhs }) {
             return new AST.PropertyExpression(_match, {
               object: lhs,
@@ -147,8 +150,10 @@ SpellParser.Rules.MethodDefinition = class method_definition extends SpellParser
         alias: "expression_suffix",
         syntax,
         parenthesize: true,
-        shouldNegateOutput,
         constructor: class _dynamicMethodRuleInfix extends InfixOperatorSuffix {
+          shouldNegateOutput(operator) {
+            return shouldNegateOutput(operator)
+          }
           compileASTExpression(_match, { lhs, rhs }) {
             return new AST.ScopedMethodInvocation(match, {
               thing: lhs,
