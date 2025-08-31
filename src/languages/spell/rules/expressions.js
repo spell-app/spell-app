@@ -8,8 +8,9 @@ import { SpellStatement } from "./Statement"
 
 /** Base class for all Spell expressions. */
 export class SpellExpression extends SpellStatement {
-  get isLeftRecursive() {
-    return false
+  static {
+    Object.defineProperty(this.prototype, "isLeftRecursive", { value: false, writable: true })
+    Object.defineProperty(this.prototype, "parenthesize", { value: false, writable: true })
   }
 }
 
@@ -17,27 +18,19 @@ export class SpellExpression extends SpellStatement {
 export class InfixOperatorSuffix extends SpellExpression {
   // set `outputDatatype` to specify explicit datatype in standard `getAST()`
 
-  /** If `true`, we'll wrap output expression in parenthesis. */
-  /*@proto*/ get parenthesize() {
-    return false
-  }
-  set parenthesize(parenthesize) {
-    this.override("parenthesize", parenthesize)
-  }
-
-  /** Return output operator from `operator` match. Override for more complex logic.
-   * TODO: this is language-dependent!
+  /**
+   * Return output operator from `operator` match.
+   * - Default just returns the input string of the operator, override for more complex logic.
+   * - NOTE: language-dependent!
    */
-  // TODO: @override
   getOutputOperator(operator) {
-    // Default to just use input string
     return operator.value
   }
 
-  /** Return `true` if we should "negate" the output expression based on `operator`.
-   * TODO: this is language-dependent!
+  /**
+   * Return `true` if we should "negate" the output expression based on `operator`.
+   * - NOTE: language-dependent!
    */
-  // TODO: @override
   shouldNegateOutput(operator) {
     return false
   }

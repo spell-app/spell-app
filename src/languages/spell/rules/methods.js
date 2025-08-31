@@ -11,13 +11,8 @@ import { SpellExpression, PostfixOperatorSuffix, InfixOperatorSuffix } from "./e
  * Abstract class for a dynamic method created with `to_do_something` below.
  */
 const DynamicMethodRule = class dynamic_method extends SpellStatement {
-  // Name of the method to call
-  /*@proto*/
-  get methodName() {
-    return undefined
-  }
-  set methodName(methodName) {
-    this.override("methodName", methodName)
+  static {
+    Object.defineProperty(this.prototype, "methodName", { value: undefined, writable: true })
   }
 
   // Normalize `callArgs` to an array
@@ -46,19 +41,10 @@ const DynamicMethodRule = class dynamic_method extends SpellStatement {
 
 /** Base for method definitions with dynamic syntax via `method_signature`.  See `to_do_something` below. */
 SpellParser.Rules.MethodDefinition = class method_definition extends SpellParser.Rules.Statement {
-  get wantsInlineStatement() {
-    return true
-  }
-  get wantsNestedBlock() {
-    return true
-  }
-  // Set to `true` in rule definition to make into an instance method on first simple type found in `signature`
-  /*@proto*/
-  get inlineInitialType() {
-    return false
-  }
-  set inlineInitialType(inlineInitialType) {
-    this.override("inlineInitialType", inlineInitialType)
+  static {
+    Object.defineProperty(this.prototype, "inlineInitialType", { value: false, writable: true })
+    Object.defineProperty(this.prototype, "wantsInlineStatement", { value: true, writable: true })
+    Object.defineProperty(this.prototype, "wantsNestedBlock", { value: true, writable: true })
   }
 
   // Iniline initial type epression, making an instance method?
@@ -489,11 +475,8 @@ export const methods = new SpellParser({
       // TODO: add tests for `test` case
       syntax: `to (asTest:test)? {signature:method_signature} :?`,
       constructor: class to_do_something extends SpellParser.Rules.MethodDefinition {
-        /*@proto*/ get inlineInitialType() {
-          return true
-        }
-        set inlineInitialType(inlineInitialType) {
-          this.override("inlineInitialType", inlineInitialType)
+        static {
+          Object.defineProperty(this.prototype, "inlineInitialType", { value: true, writable: true })
         }
       },
       tests: [
@@ -959,9 +942,9 @@ export const methods = new SpellParser({
         /*@proto*/ get inlineInitialType() {
           return true
         }
-        set inlineInitialType(inlineInitialType) {
-          this.override("inlineInitialType", inlineInitialType)
-        }
+        // set inlineInitialType(inlineInitialType) {
+        //   this.override("inlineInitialType", inlineInitialType)
+        // }
       },
       tests: [
         {

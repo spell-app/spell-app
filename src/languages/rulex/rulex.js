@@ -9,9 +9,8 @@ import { Parser, Rules, TestLocation, Tokens, Tokenizer, WhitespacePolicy } from
 const { ANYWHERE, AT_START } = TestLocation
 
 export class RulexParser extends Parser {
-  /**  Name of our default rule to parse if calling `parser.parse(text)`. */
-  get defaultRule() {
-    return "sequence"
+  static {
+    Object.defineProperty(this.prototype, "defaultRule", { value: "sequence", writable: true })
   }
 
   // Apply flags from `match` to the `rule` passed in, possibly returning a new rule!

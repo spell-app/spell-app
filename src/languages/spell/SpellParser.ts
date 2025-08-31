@@ -1,4 +1,5 @@
 import { getDerived } from "~/util"
+import { Rule, Scope, Token, Match } from "~/parser"
 import { RootScope, ProjectScope, Parser, Tokenizer, WhitespacePolicy } from "~/parser"
 import { spellParser } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
@@ -7,20 +8,8 @@ export class SpellParser extends Parser {
   /** Add language-specific top-level rules to this object. */
   static Rules = {}
 
-  // Name of the module in which we were defined.
-  /*@proto*/ get module() {
-    return undefined
-  }
-  set module(module) {
-    this.override("module", module)
-  }
-
-  // Name of our default rule to parse if calling `parser.parse(text)`.
-  /*@proto*/ get defaultRule() {
-    return "block"
-  }
-  set defaultRule(defaultRule) {
-    this.override("defaultRule", defaultRule)
+  static {
+    Object.defineProperty(this.prototype, "defaultRule", { value: "block", writable: true })
   }
 
   get tokenizer() {
@@ -38,12 +27,12 @@ export class SpellParser extends Parser {
   }
 
   /** Override `addRule` to also add to `simple_expression` or `simple_statement` as necessary. */
-  addRule(rule, names) {
-    if (Array.isArray(names) && !rule.isLeftRecursive) {
+  addRule(rule: Rule, names: string | string[]) {
+    if (Array.isArray(names) && !rule["isLeftRecursive"]) {
       if (names.includes("expression")) names.push("simple_expression")
       if (names.includes("statement")) names.push("simple_statement")
     }
-    super.addRule(rule, names)
+    return super.addRule(rule, names)
   }
 
   /**
@@ -74,13 +63,13 @@ export class SpellParser extends Parser {
   }
 
   // If we're tokenizing "block", parse them into blocks.
-  tokenize(input, ruleName) {
+  tokenize(input: string, ruleName: string) {
     const tokens = super.tokenize(input)
     if (typeof input === "string" && ruleName === "block") return this.tokenizer.breakIntoIndentedBlocks(tokens)
     return tokens
   }
 
-  createParseError(scope, tokens, message) {
+  createParseError(scope: Scope, tokens: Token[], message: string) {
     const rule = this.getRuleOrDie("parse_error")
     return new Match({
       scope,

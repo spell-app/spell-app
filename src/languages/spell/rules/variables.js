@@ -9,9 +9,7 @@ import { identifierBlacklist } from "./identifier-blacklist"
 import { Sequence } from "~/parser/rule/Sequence"
 import { SpellStatement } from "./Statement"
 import { SpellExpression } from "./expressions"
-
-// Alpha-numeric word, including dashes or underscores.
-const WORD = /^[a-zA-Z][\w\-]*$/
+import { ALPHANUMERIC_WORD_WITH_DASHES } from "~/parser/types"
 
 // Single word variable name, known or unknown.
 // NOTE: when compiling, we'll look for `scope.variables.get(varName)`:
@@ -19,17 +17,10 @@ const WORD = /^[a-zA-Z][\w\-]*$/
 // TODO: type based on scope variable type?
 // TODO: higher precedence if variable is known?
 class VariableIdentifier extends Pattern {
-  /*@proto*/ get pattern() {
-    return WORD
-  }
-  set pattern(pattern) {
-    this.override("pattern", pattern)
-  }
-  /*@proto*/ get blacklist() {
-    return identifierBlacklist
-  }
-  set blacklist(blacklist) {
-    this.override("blacklist", blacklist)
+  static {
+    // Alpha-numeric word, including dashes or underscores.
+    Object.defineProperty(this.prototype, "pattern", { value: ALPHANUMERIC_WORD_WITH_DASHES, writable: true })
+    Object.defineProperty(this.prototype, "blacklist", { value: identifierBlacklist, writable: true })
   }
 
   /** Map value by converting dashes and whitespace to underscores. */

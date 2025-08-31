@@ -8,44 +8,46 @@ import { identifierBlacklist } from "./identifier-blacklist"
 import { Sequence } from "~/parser/rule/Sequence"
 import { SpellStatement } from "./Statement"
 import { SpellExpression } from "./expressions"
+import { ALPHANUMERIC_WORD_WITH_DASHES } from "~/parser/types"
 
-// Alpha-numeric word, including dashes or underscores.
-const WORD = /^[a-zA-Z][\w\-]*$/
+const TYPE_VALUE_MAP = {
+  object: "Object",
+  Object: "Object",
+  list: "List",
+  List: "List",
+  number: "number",
+  numbers: "number",
+  Number: "number",
+  Numbers: "number",
+  integer: "integer",
+  integers: "integer",
+  Integer: "integer",
+  Integers: "integer",
+  // decimal: "number",
+  // Decimal: "number",
+  text: "text",
+  Text: "text",
+  character: "character",
+  characters: "character",
+  Character: "character",
+  Characters: "character",
+  boolean: "boolean",
+  booleans: "boolean",
+  Boolean: "boolean",
+  Booleans: "boolean",
+  choice: "boolean",
+  choices: "boolean",
+  Choice: "boolean",
+  Choices: "boolean"
+}
 
 export class SpellType extends Pattern {
-  pattern = WORD
-  datatype = "type"
-  blacklist = identifierBlacklist
-  // TODO: review this with Ken
-  VALUE_MAP = {
-    object: "Object",
-    Object: "Object",
-    list: "List",
-    List: "List",
-    number: "number",
-    numbers: "number",
-    Number: "number",
-    Numbers: "number",
-    integer: "integer",
-    integers: "integer",
-    Integer: "integer",
-    Integers: "integer",
-    // decimal: "number",
-    // Decimal: "number",
-    text: "text",
-    Text: "text",
-    character: "character",
-    characters: "character",
-    Character: "character",
-    Characters: "character",
-    boolean: "boolean",
-    booleans: "boolean",
-    Boolean: "boolean",
-    Booleans: "boolean",
-    choice: "boolean",
-    choices: "boolean",
-    Choice: "boolean",
-    Choices: "boolean"
+  static {
+    // Alpha-numeric word, including dashes or underscores.
+    Object.defineProperty(this.prototype, "pattern", { value: ALPHANUMERIC_WORD_WITH_DASHES, writable: true })
+    Object.defineProperty(this.prototype, "datatype", { value: "type", writable: true })
+    Object.defineProperty(this.prototype, "blacklist", { value: identifierBlacklist, writable: true })
+    Object.defineProperty(this.prototype, "VALUE_MAP", { value: TYPE_VALUE_MAP, writable: true })
   }
 
   // Is `typeName` a simple type, (e.g. `number` etc).

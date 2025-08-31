@@ -15,3 +15,6 @@ export type WhitespacePolicy = (typeof WhitespacePolicy)[keyof typeof Whitespace
 export const BACKSLASH = `\\` as const
 export const DOUBLE_QUOTE = `"` as const
 export const SINGLE_QUOTE = `'` as const
+
+/** Alpha-numeric word, including dashes or underscores. */
+export const ALPHANUMERIC_WORD_WITH_DASHES = /^[a-zA-Z][\w\-]*$/

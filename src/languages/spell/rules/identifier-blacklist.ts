@@ -1,5 +1,7 @@
+import { IdentifierBlacklist } from "~/parser/types.ts"
+
 // Blacklist of common english words which may not be used as single-word identifiers.
-export const identifierBlacklist = {
+export const identifierBlacklist: IdentifierBlacklist = {
   // Common english verbs:
   are: 1,
   do: 1,
@@ -115,10 +117,10 @@ export const identifierBlacklist = {
   first: 1,
   second: 1,
   third: 1,
-  fourth: 2,
-  fifth: 2,
-  sixth: 2,
-  seventh: 2,
+  fourth: 1,
+  fifth: 1,
+  sixth: 1,
+  seventh: 1,
   eighth: 1,
   ninth: 1,
   tenth: 1

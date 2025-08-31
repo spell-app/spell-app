@@ -5,23 +5,14 @@ import { Pattern } from "~/parser/rule/Pattern"
 import { Rule, ScopeConstant } from "~/parser"
 import { AST, SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"
-
-// Alpha-numeric word, including dashes or underscores.
-const WORD = /^[a-zA-Z][\w\-]*$/
+import { ALPHANUMERIC_WORD_WITH_DASHES } from "~/parser/types"
 
 class SpellConstant extends Pattern {
-  name = "constant"
-  /*@proto*/ get pattern() {
-    return WORD
-  }
-  set pattern(pattern) {
-    this.override("pattern", pattern)
-  }
-  /*@proto*/ get blacklist() {
-    return identifierBlacklist
-  }
-  set blacklist(blacklist) {
-    this.override("blacklist", blacklist)
+  static {
+    Object.defineProperty(this.prototype, "name", { value: "constant", writable: true })
+    // Alpha-numeric word, including dashes or underscores.
+    Object.defineProperty(this.prototype, "pattern", { value: ALPHANUMERIC_WORD_WITH_DASHES, writable: true })
+    Object.defineProperty(this.prototype, "blacklist", { value: identifierBlacklist, writable: true })
   }
 
   parse(scope, tokens) {

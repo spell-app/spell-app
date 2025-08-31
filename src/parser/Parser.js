@@ -14,12 +14,9 @@ import { Rule, Rules, rulex, Token, Tokenizer, WhitespacePolicy, Scope } from "~
 export class ParserError extends CustomError {}
 
 export class Parser extends Derivative {
-  /**  Name of our default rule to parse if calling `parser.parse(text)`. */
-  get defaultRule() {
-    return "block"
-  }
-  set defaultRule(defaultRule) {
-    this.override("defaultRule", defaultRule)
+  static {
+    Object.defineProperty(this.prototype, "module", { value: undefined, writable: true })
+    Object.defineProperty(this.prototype, "defaultRule", { value: "block", writable: true })
   }
 
   // Constructor.
