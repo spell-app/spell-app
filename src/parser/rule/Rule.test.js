@@ -33,19 +33,19 @@ describe("Rules.Symbols", () => {
     test("creates proper rule when passed literals as an object", () => {
       const rule = new Rules.Symbols({ literals: [">"] })
       expect(rule).toBeInstanceOf(Rules.Symbols)
-      expect(rule.literals).toEqual([">"])
+      expect(rule.literals).toEqual([{ literal: ">" }])
     })
 
     test("creates proper rule when passed single symbol as a string", () => {
       const rule = new Rules.Symbols(">")
       expect(rule).toBeInstanceOf(Rules.Symbols)
-      expect(rule.literals).toEqual([">"])
+      expect(rule.literals).toEqual([{ literal: ">" }])
     })
 
     test("creates proper rule when passed multiple symbols as a string", () => {
       const rule = new Rules.Symbols([">", "="])
       expect(rule).toBeInstanceOf(Rules.Symbols)
-      expect(rule.literals).toEqual([">", "="])
+      expect(rule.literals).toEqual([{ literal: ">" }, { literal: "=" }])
     })
   })
 
@@ -180,25 +180,25 @@ describe("Rules.Keywords", () => {
     test("creates proper rule when passed literals string as an object", () => {
       const rule = new Rules.Keywords({ literals: "this" })
       expect(rule).toBeInstanceOf(Rules.Keywords)
-      expect(rule.literals).toEqual(["this"])
+      expect(rule.literals).toEqual([{ literal: "this" }])
     })
 
     test("creates proper rule when passed literals array as an object", () => {
       const rule = new Rules.Keywords({ literals: ["this", "that"] })
       expect(rule).toBeInstanceOf(Rules.Keywords)
-      expect(rule.literals).toEqual(["this", "that"])
+      expect(rule.literals).toEqual([{ literal: "this" }, { literal: "that" }])
     })
 
     test("creates proper rule when passed single keyword as a string", () => {
       const rule = new Rules.Keywords("this")
       expect(rule).toBeInstanceOf(Rules.Keywords)
-      expect(rule.literals).toEqual(["this"])
+      expect(rule.literals).toEqual([{ literal: "this" }])
     })
 
     test("creates proper rule when passed multiple keywords as an array", () => {
       const rule = new Rules.Keywords(["this", "that"])
       expect(rule).toBeInstanceOf(Rules.Keywords)
-      expect(rule.literals).toEqual(["this", "that"])
+      expect(rule.literals).toEqual([{ literal: "this" }, { literal: "that" }])
     })
   })
 

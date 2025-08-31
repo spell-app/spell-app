@@ -50,7 +50,7 @@ export class RulexParser extends Parser {
             if (!nextRule.optional) return literal
 
             // make sure optionals are arrays and add the optional flag to the array
-            return rulex.makeOptionalArray(literal)
+            return { literal, optional: true }
           })
           rule = new GroupConstructor(literals)
           start = end
@@ -59,14 +59,6 @@ export class RulexParser extends Parser {
       output.push(rule)
     }
     return output
-  }
-
-  // Given a value as an array or a single value, turn it into an `optional` array.
-  makeOptionalArray(value) {
-    // HACK HACK HACK -- decorating a JS `array`, which is not type-friendly.
-    const array = Array.isArray(value) ? value.concat() : [value]
-    array.optional = true
-    return array
   }
 }
 
@@ -518,7 +510,7 @@ rulex.defineRules(
         title: "sequences",
         showAll: true,
         tests: [
-          ["aa bb cc", new Rules.Keywords("aa", "bb", "cc")],
+          ["aa bb cc", new Rules.Keywords(["aa", "bb", "cc"])],
           ["aa {bb} cc", new Rules.Sequence(new Rules.Keyword("aa"), new Rules.Subrule("bb"), new Rules.Keyword("cc"))],
           [
             "aa? {bb} cc",
@@ -542,13 +534,13 @@ rulex.defineRules(
         showAll: true,
         tests: [
           [">=", new Rules.Symbols([">", "="])],
-          [">(=)?", new Rules.Symbols([">", rulex.makeOptionalArray("=")])],
-          ["(>|<) (=)?", new Rules.Symbols([[">", "<"], rulex.makeOptionalArray("=")])],
+          [">(=)?", new Rules.Symbols([">", { optional: true, literal: "=" }])],
+          ["(>|<) (=)?", new Rules.Symbols([[">", "<"], { optional: true, literal: "=" }])],
 
           ["a b c", new Rules.Keywords(["a", "b", "c"])],
-          ["a? b c", new Rules.Keywords([rulex.makeOptionalArray("a"), "b", "c"])],
-          ["a b? c", new Rules.Keywords(["a", rulex.makeOptionalArray("b"), "c"])],
-          ["a b c?", new Rules.Keywords(["a", "b", rulex.makeOptionalArray("c")])],
+          ["a? b c", new Rules.Keywords([{ optional: true, literal: "a" }, "b", "c"])],
+          ["a b? c", new Rules.Keywords(["a", { optional: true, literal: "b" }, "c"])],
+          ["a b c?", new Rules.Keywords(["a", "b", { optional: true, literal: "c" }])],
 
           [
             "a (arg:b) c",
@@ -561,7 +553,12 @@ rulex.defineRules(
 
           [
             "(a|b) c? d (e|f)?",
-            new Rules.Keywords([["a", "b"], rulex.makeOptionalArray("c"), "d", rulex.makeOptionalArray(["e", "f"])])
+            new Rules.Keywords([
+              ["a", "b"],
+              { optional: true, literal: "c" },
+              "d",
+              { optional: true, literal: ["e", "f"] }
+            ])
           ]
         ]
       }

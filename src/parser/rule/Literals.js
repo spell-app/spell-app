@@ -15,22 +15,23 @@ export class Literals extends Rule {
     this.override("literalSeparator", literalSeparator)
   }
 
-  constructor(...args) {
-    let [props] = args
-    if (args.length > 1) props = args
-    if (Array.isArray(props)) props = { literals: props }
-    if (typeof props === "string") props = { literals: props }
+  constructor(props) {
+    if (Array.isArray(props) || typeof props === "string") props = { literals: props }
     if (typeof props.literals === "string") props.literals = [props.literals]
+    props.literals = props.literals.map((input) => {
+      if (typeof input === "string" || Array.isArray(input)) return { literal: input }
+      return input
+    })
     super(props)
   }
 
   // Return the NUMBER OF TOKENS MATCHED.  `0` = no match.
   testAtStart(scope, tokens, start = 0) {
-    for (let i = 0, literal; (literal = this.literals[i]); i++) {
-      // console.info(i, literal, start, tokens[start]);
-      const matched = tokens[start]?.matchesLiteral(literal)
+    for (let i = 0, matcher; (matcher = this.literals[i]); i++) {
+      // console.info(i, matcher, start, tokens[start]);
+      const matched = tokens[start]?.matchesLiteral(matcher.literal)
       if (matched) start++
-      else if (!literal.optional) return false
+      else if (!matcher.optional) return false
     }
     return start
   }
@@ -57,7 +58,7 @@ export class Literals extends Rule {
     const { testLocation, argument, optional } = this.getSyntaxFlags()
 
     const literalStrings = this.literals
-      .map((literal) => {
+      .map(({ literal, optional }) => {
         if (typeof literal === "string") return literal
         const optionalOperator = literal.optional ? "?" : ""
         if (literal.length === 1) return `${literal}${optionalOperator}`
