@@ -1,7 +1,7 @@
 /**
  * Blacklist of common english words which may not be used as single-word identifiers.
  */
-export type IdentifierBlacklist = Record<string, 1>
+export type IdentifierBlacklist = Record<string, true | 1>
 
 /** Policy for automatically removing whitespace from the token stream. */
 // REFACTOR: idiomatic TS enum string pattern?

@@ -1,26 +1,42 @@
 import { Match } from "~/parser/Match.js"
+import { ParserScope } from "~/parser/rule/Rule.js"
+import { Token } from "~/parser/tokenizer/Tokens.js"
 import { Rule } from "./Rule.js"
 
-// Recursively find balanced instances of `start` and `end`,
-// then split by `delimiter` and apply `rule` to each, returning an array of matches.
-// If you provide a `prefix`, we'll look for that after `start`.
-//
-// `start` (required) is the start token string
-// `end` (required) is the end token string
-// `rule` (required) is the middle bit, which is probably a sequence
-// `delimiter` (optional) if provided, we'll split on this string and apply `rule` to each item inside
-// `prefix` (optional) optional array of rules to match inside the FIRST item
-//
-// If nested start/end blocks are found, WHAT WILL HAPPEN???
+/**
+ * Recursively find balanced instances of `start` and `end`,
+ * then split by `delimiter` and apply `rule` to each, returning an array of matches.
+ *
+ * If you provide a `prefix`, we'll look for that after `start`.
+ *
+ * - `start` (required) is the start token string.
+ * - `end` (required) is the end token string.
+ * - `rule` (required) is the middle bit, which is probably a sequence.
+ * - `delimiter` (optional) if provided, we'll split on this string and apply `rule` to each item inside.
+ * - `prefix` (optional) optional array of rules to match inside the FIRST item.
+ *
+ * If nested start/end blocks are found, WHAT WILL HAPPEN???
+ */
 export class NestedSplit extends Rule {
-  parse(scope, tokens) {
+  /** Start rule, e.g. `Symbol("(")`. */
+  declare start: Rule
+  /** Middle-bit to match inside start/end, probably a sequence or subrule. */
+  declare rule: Rule
+  /** End rule, e.g. `Symbol(")")`. */
+  declare end: Rule
+  /** Optional delimiter to split on, e.g. `Symbol("|")`. */
+  declare delimiter: Rule
+  /** Optional rule to match inside the FIRST item, e.g. right after the. */
+  declare prefix: Rule
+
+  parse(scope: ParserScope, tokens: Token[]) {
     const end = this.findNestedEnd(scope, tokens)
     if (end === undefined) return undefined
 
     const tokenSets = this.splitTokens(scope, tokens.slice(1, end))
     if (tokenSets === undefined) return undefined
 
-    let prefix
+    let prefix: Match | undefined
     const items = []
     for (let i = 0, tokenSet; (tokenSet = tokenSets[i]); i++) {
       // For the first item only, match the `prefix` rules if supplied
@@ -50,7 +66,7 @@ export class NestedSplit extends Rule {
   }
 
   // Return `results` for someone else to consume.
-  compile(match) {
+  compile(match: Match) {
     const { rule, prefix, items } = match
     const results = (prefix && prefix.compile()) || {}
     const name = rule.rule.argument || rule.rule.name
@@ -61,7 +77,7 @@ export class NestedSplit extends Rule {
   // If tokens starts with our `start` literal,
   //  find the index of the token which matches our `end` literal.
   // Returns `undefined` if not found or not balanced.
-  findNestedEnd(scope, tokens, start = 0) {
+  findNestedEnd(scope: ParserScope, tokens: Token[], start = 0) {
     if (!this.start.testAtStart(scope, tokens, start)) return undefined
     let nesting = 0
     for (let end = start + 1, last = tokens.length; end < last; end++) {
@@ -79,9 +95,9 @@ export class NestedSplit extends Rule {
   // If tokens starts with our `start` literal,
   //  find the index of the token which matches our `end` literal.
   // Returns `undefined` if not found or not balanced.
-  splitTokens(scope, tokens) {
+  splitTokens(scope: ParserScope, tokens: Token[]) {
     const items = []
-    let current = []
+    let current: Token[] = []
     for (let i = 0, token; (token = tokens[i]); i++) {
       // handle alternate marker
       if (this.delimiter.testAtStart(scope, tokens, i)) {

@@ -1,43 +1,50 @@
-//  # Parser Rules
-//  Rules can be as simple as a string `Keyword` or a complex sequence of (nested) rules.
-//
-//  Parse a rule with `rule.parse(scope, tokens)`.
-//  If UNSUCCESSFUL, it will return `undefined`
-//  If SUCCESSFUL,   it will return a new `Match()` object which is guaranteed to have:
-//    - `match.rule`        : pointer back to the rule.
-//    - `match.matched`     : array of *significant* tokens that were actually matched.
-//    - `match.length` : number of tokens actually consumed (`matched` may not contain them all)
-//    ... and other rule-specific values.
-//
-//  The match returned can be manipulated with:
-//    - `match.compile()`    Return javascript source to interpret the rule.
-//
 import flattenDeep from "lodash/flattenDeep"
 
-import { Match } from "~/parser/Match.js"
-import { Rule } from "./Rule.js"
+import { Prettify } from "~/global_types.js"
+import { Rule, type RuleProps, type ParserScope } from "./Rule.js"
+import { Token } from "~/parser/tokenizer/Tokens.js"
 import { Rules } from "./index.js"
+import { Match } from "~/parser/Match.js"
 
-// Repeating rule.
-//  `this.rule` is the rule that repeats.
-//  `rule.delimiter` (optional) if provided, we'll look for one of these
-//      between each instance of `rule`. The delimiter at the end is optional.
-//      Note that the delimiters are NOT added to the `matched` array.
-//  `this.optional` is true if the prodution is optional.
-//  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
-//  `rule.minCount` is the minimum number we need to match successfully.
-//  `rule.maxCount` is the maximum number we need to match successfully.
-//
-//  In our `Match`, `items` will be just he bits matched without the delimiter.
-//
-//  Note: Returns `undefined` if we don't match at least once.
+export type RepeatProps = Prettify<
+  RuleProps & {
+    rule: Rule
+    delimiter?: Rule
+    minCount?: number
+    maxCount?: number
+  }
+>
+
+/**
+ * Repeating rule.  Returns `undefined` if we don't match at least once.
+ * - `repeat.rule` is pointer to the rule that repeats.
+ * - `repeat.delimiter` (optional) if provided, we'll look for one of these
+ *    between each instance of `rule`.
+ *    - The delimiter at the end is optional.
+ *    - Note that the delimiters are NOT added to the `matched` array.
+ * - `repeat.minCount` (optional) is the minimum number we need to match successfully.
+ * - `repeat.maxCount` (optional) is the maximum number we need to match successfully.
+ *
+ * In the resulting match
+ * - `match.items` will be just he `rule` matches, ignoring delimiters,
+ * - `match.matched` will include delimiters.
+ */
 export class Repeat extends Rule {
-  constructor(props) {
+  /** The rule that repeats. */
+  declare rule: Rule
+  /** The delimiter between each instance of the rule. */
+  declare delimiter: Rule
+  /** The minimum number of times the rule must match. */
+  declare minCount: number
+  /** The maximum number of times the rule must match. */
+  declare maxCount: number
+
+  constructor(props: RepeatProps) {
     if (props instanceof Rule) props = { rule: props }
     super(props)
   }
 
-  parse(scope, tokens) {
+  parse(scope: ParserScope, tokens: Token[]) {
     if (this.testAtStart(scope, tokens, 0) === false) return undefined
 
     // everything that was matched
@@ -76,13 +83,13 @@ export class Repeat extends Rule {
       items,
       input: flattenDeep(matched.map((next) => next.input)),
       length,
-      scope,
+      scope
     })
     if (this.argument) match.argument = this.argument
     return match
   }
 
-  compile(match) {
+  compile(match: Match) {
     return match.items.map((next) => next.compile())
   }
 

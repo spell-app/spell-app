@@ -60,7 +60,6 @@ export abstract class Rule<
   /** ---------------
    * ## Properties
    *  --------------- */
-
   /** Name of source file this rule was defined in. */
   declare module: string | undefined
   /** Rule name, must be unique if defined. */

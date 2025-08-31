@@ -1,8 +1,17 @@
+import { Prettify } from "~/types.js"
 import { Tokenizer } from "~/parser/tokenizer/Tokenizer.ts"
-import { Rule } from "./Rule.js"
+import { Token } from "~/parser/tokenizer/Tokens.ts"
+import { Rule, type RuleProps, type ParserScope } from "./Rule.js"
+import { Match } from "~/parser/Match.ts"
 
 // Turn on debugging of choice / precedence semantics
 const DEBUG_CHOICES = false
+
+export type ChoiceProps = Prettify<
+  RuleProps & {
+    rules: Rule[]
+  }
+>
 
 /**
  * Alternative syntax, matching one of a number of different rules.
@@ -13,24 +22,32 @@ const DEBUG_CHOICES = false
  *
  * After parsing we'll return the rule which is the "best match" (rather than cloning this rule).
  */
-export class Choice extends Rule {
-  constructor(props) {
+export class Choice extends Rule<ChoiceProps> {
+  /** List of rules, any of which will match. */
+  declare rules: Rule[]
+
+  constructor(props: ChoiceProps) {
     props.rules = Array.isArray(props.rules) ? [...props.rules] : []
     super(props)
+  }
+
+  compile(match: Match) {
+    throw new TypeError(`Choice.compile() is not implemented`)
+    return ""
   }
 
   /**
    * Add one or more `rules` to the list of choices.
    * `parser` is the parser instance that's calling this.
    */
-  addChoice(parser, ...rules) {
+  addChoice(parser: ParserScope, ...rules: Rule[]) {
     this.rules = [...this.rules, ...rules]
   }
 
   // Return (`true` or index) if ANY of our rules is found.
   // If ANY rules return `undefined`, this will return `undefined`.
   // If ALL rules return `false`, this will return `false`.
-  testAtStart(scope, tokens, start = 0) {
+  testAtStart(scope: ParserScope, tokens: Token[], start = 0) {
     if (start >= tokens.length) return false
     let undefinedFound = false
     for (let i = 0, rule; (rule = this.rules[i]); i++) {
@@ -43,14 +60,14 @@ export class Choice extends Rule {
   }
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
-  parse(scope, tokens) {
+  parse(scope: ParserScope, tokens: Token[]) {
     const CHOICE = `choice '${this.name || this.argument}:'`
     if (DEBUG_CHOICES) console.group(`${CHOICE} start matching '${Tokenizer.join(tokens)}'`, this)
 
     // Try to match each rule in turn.
     // For efficiency, complicated rules (e.g. sequences or recursive rules)
     //  should exit quickly via a `testRule` or similar mechanism.
-    const matches = []
+    const matches: Match[] = []
     for (let i = 0, rule; (rule = this.rules[i++]); ) {
       if (DEBUG_CHOICES) console.group("parsing rule", rule.name)
       const match = rule.parse(scope, tokens)
@@ -58,7 +75,7 @@ export class Choice extends Rule {
       if (DEBUG_CHOICES) console.groupEnd()
     }
 
-    let match = matches[0]
+    let match: Match | undefined = matches[0]
     if (DEBUG_CHOICES) {
       if (matches.length === 0) {
         console.debug(`${CHOICE} nothing matched`)
@@ -86,13 +103,13 @@ export class Choice extends Rule {
   // First we find the match(es) with the highest preceedence.
   // Then we take the one with the longest matched string.
   // If more than one rule with same length, takes LATEST one.
-  getBestMatch(matches) {
+  getBestMatch(matches: Match[]) {
     if (matches.length === 1) return matches[0]
 
     // Filter to rules with highest precedence.
     // NOTE: we run this BACKWARDS to put later-defined rules first
     let match
-    let highPriority = []
+    let highPriority: Match[] = []
     for (let max = -Infinity, i = 0; (match = matches[i++]); ) {
       const { precedence } = match.rule
       if (precedence > max) {
@@ -125,7 +142,7 @@ export class Choice extends Rule {
  * when implicitly combining multiple rules under the same name.
  *
  * This lets us distinguish between:
- *  - actually defining a semantically-meaning "choices" and
- *  - smooshing rules together because they share the same name
+ *  - actually defining a semantically-meaning "choices", and
+ *  - smooshing rules together because they share the same name.
  */
 export class Group extends Choice {}

@@ -14,22 +14,35 @@
 //
 import flattenDeep from "lodash/flattenDeep"
 
+import { Prettify } from "~/global_types.js"
 import { Match } from "~/parser/Match.js"
-import { Rule } from "./Rule.js"
+import { Rule, RuleProps, ParserScope } from "./Rule.js"
+import { Token } from "../tokenizer/Tokens.js"
+
+export type SequenceProps = Prettify<
+  RuleProps & {
+    rules: Rule[]
+  }
+>
 
 // Sequence of rules to match.
 //  `rule.rules` is the array of rules to match.
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
-export class Sequence extends Rule {
-  constructor(...args) {
-    let [props] = args
-    if (arguments.length > 1) props = { rules: args }
-    if (Array.isArray(props)) props = { rules: props }
-    if (!props.rules) throw new TypeError(`Sequence '${props.name}' created without specifying 'rules'!`)
-    super(props)
+export class Sequence extends Rule<SequenceProps> {
+  /** The array of rules to match. */
+  declare rules: Rule[]
+
+  constructor(...args: [SequenceProps] | Rule[]) {
+    if (args.length > 1) super({ rules: args as Rule[] })
+    else if (Array.isArray(args[0])) super({ rules: args[0] })
+    else super(args[0] as SequenceProps)
+
+    if (!this.rules) {
+      throw new TypeError(`Sequence '${this.name}' created without specifying 'rules'!`)
+    }
   }
 
-  parse(scope, tokens) {
+  parse(scope: ParserScope, tokens: Token[]) {
     if (this.test(scope, tokens) === false) return undefined
 
     const matched = []
@@ -70,15 +83,15 @@ export class Sequence extends Rule {
 
   // If no explcit compile method, gather our groups and return the compiled output of each.
   // TODO: ... ??
-  compile(match) {
+  compile(match: Match) {
     return this._addGroups({}, match.matched, (nextMatch) => nextMatch.compile())
   }
 
-  gatherGroups(match) {
+  gatherGroups(match: Match) {
     return this._addGroups({}, match.matched)
   }
 
-  _addGroups(results, matched, callback) {
+  _addGroups(results: Record<string, any>, matched: Match[], callback?: (match: Match) => any) {
     for (let i = 0, match; (match = matched[i]); i++) {
       const { name, rule } = match
       // if the match has a name:

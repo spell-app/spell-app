@@ -1,0 +1,111 @@
+import { Prettify } from "~/types.js"
+import { Match } from "~/parser/Match.js"
+import { Rule, type RuleProps, type ParserScope } from "./Rule.js"
+import { Token } from "../tokenizer/index.js"
+
+export type LiteralMatcher = { literal: string | string[]; optional?: boolean }
+
+export type LiteralsProps = Prettify<
+  RuleProps & {
+    literals: LiteralMatcher[]
+  }
+>
+
+function makeMatcher(matcher: string | string[] | LiteralMatcher): LiteralMatcher {
+  if (typeof matcher === "string" || Array.isArray(matcher)) return { literal: matcher }
+  return matcher
+}
+
+/**
+ * Abstract rule for to match one or more sequential literal tokens.
+ * - `rule.literals` is the array of Literals to match.
+ *
+ * After matching, `match.value` will be the literal string matched.
+ *
+ * NOTE: Don't use this -- use `Rules.Keywords` or `Rules.Symbols` instead!
+ */
+export abstract class Literals extends Rule<LiteralsProps> {
+  declare literals: LiteralMatcher[]
+
+  constructor(input: LiteralsProps | string | string[]) {
+    const props = (typeof input === "string" || Array.isArray(input) ? { literals: input } : input) as LiteralsProps
+    if (typeof props.literals === "string") props.literals = [props.literals]
+    props.literals = props.literals.map(makeMatcher)
+    super(props)
+    if (!Array.isArray(this.literals)) {
+      console.info(props)
+      console.info({ ...this })
+      console.trace()
+    }
+  }
+
+  testAtStart(scope: ParserScope, tokens: Token[], start = 0) {
+    return this.matchAtStart(tokens, start) > 0
+  }
+
+  /**
+   * Return the number of tokens matched at `start` or `0` if no match.
+   * - NOTE: this must match ALL non-optional literals in order.
+   */
+  matchAtStart(tokens: Token[], start = 0) {
+    for (let i = 0, matcher; (matcher = this.literals[i]); i++) {
+      const matched = tokens[start]?.matchesLiteral(matcher.literal)
+      if (matched) start++
+      else if (!matcher.optional) return 0
+    }
+    return start
+  }
+
+  parse(scope: ParserScope, tokens: Token[]) {
+    const tokensMatched = this.matchAtStart(tokens, 0)
+    if (!tokensMatched) return undefined
+    const matched = tokens.slice(0, tokensMatched)
+    return new Match({
+      rule: this,
+      matched,
+      value: matched.join("").trim(),
+      input: [...matched],
+      length: tokensMatched,
+      scope
+    })
+  }
+
+  compile(match: Match) {
+    return match.value
+  }
+
+  abstract get literalSeparator(): string
+  toSyntax() {
+    const { testLocation, argument, optional } = this.getSyntaxFlags()
+
+    const literalStrings = this.literals
+      .map(({ literal, optional }) => {
+        const matchString = typeof literal === "string" ? literal : literal.join("|")
+        if (optional) return `(${matchString})?`
+        return matchString
+      })
+      .join(this.literalSeparator)
+
+    const wrapInParens = argument || ((testLocation || optional) && this.literals.length > 1)
+    if (wrapInParens) return `${testLocation}(${argument}${literalStrings})${optional}`
+    return `${testLocation}${literalStrings}${optional}`
+  }
+}
+
+// One or more literal symbols: `<`, `%` etc.
+// Symbols join WITHOUT spaces.
+export class Symbols extends Literals {
+  /** Join symbols with no space in-between. */
+  get literalSeparator() {
+    return ""
+  }
+}
+
+// One or more literal keywords.
+// Keywords join WITH spaces.
+export class Keywords extends Literals {
+  /** Join keywords with a space in-between. */
+  get literalSeparator() {
+    return " "
+  }
+}
