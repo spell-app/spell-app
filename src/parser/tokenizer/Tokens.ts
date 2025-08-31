@@ -27,11 +27,12 @@ export type TokenRecord<ValueType = any> = {
  */
 export class Token<ValueType = any, TRT extends TokenRecord<ValueType> = TokenRecord<ValueType>> {
   /**
-   * Record of token properties.
+   * Immutable record of token properties.
    * - While this is technically public and read/write, only `Tokenizer` should write to it!
    */
   readonly record: TRT
 
+  // TODO: do speed test to see if using getters is slower than direct assignment.
   constructor(record: TRT) {
     this.record = record
   }

@@ -37,6 +37,7 @@ export class RulexParser extends Parser {
 
     const output = []
     for (let start = 0, rule; (rule = rules[start]); start++) {
+      // TODO: inline `isAdorned`
       if (rule instanceof constructor && !rule.isAdorned) {
         // find the end of the run
         let end = start
@@ -73,7 +74,7 @@ rulex.defineRules(
     name: "testLocation",
     literal: ["…", "^"],
     optional: true,
-    constructor: class testLocation extends Rules.Literal {
+    constructor: class testLocation extends Rules.Symbol {
       compile(match) {
         return match.matched[0].value === "…" ? ANYWHERE : AT_START
       }
@@ -91,7 +92,7 @@ rulex.defineRules(
   },
   {
     name: "argument",
-    rules: [new Rules.Word({ argument: "argument" }), new Rules.Literal(":")],
+    rules: [new Rules.Word({ argument: "argument" }), new Rules.Symbol(":")],
     optional: true,
     constructor: class argument extends Rules.Sequence {
       compile(match) {
@@ -112,7 +113,7 @@ rulex.defineRules(
     name: "repeatFlag",
     literal: ["?", "*", "+"],
     optional: true,
-    constructor: class repeatFlag extends Rules.Literal {
+    constructor: class repeatFlag extends Rules.Symbol {
       compile(match) {
         return match.matched[0].value
       }
