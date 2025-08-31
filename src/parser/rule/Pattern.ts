@@ -1,5 +1,5 @@
 import { Match } from "~/parser/Match.js"
-import { Rule, type RuleProps, type ParserScope } from "./Rule.js"
+import { Rule, type RuleProps, type Scope } from "./Rule.js"
 import { Token } from "~/parser/tokenizer/Tokens.js"
 import { Prettify } from "~/global_types.js"
 import { IdentifierBlacklist } from "~/parser/types.js"
@@ -20,7 +20,7 @@ export type PatternProps = Prettify<
  * - (optional) `blacklist` is a map of `{ key: true }` for strings which will NOT be accepted.
  * - (optional) `mapValue` (optional) is a `function(value) => newValue` used to transform the matched value.
  */
-export class Pattern extends Rule {
+export class Pattern extends Rule<PatternProps> {
   /**
    * Regular expression to match.
    * - Note that you MUST start your pattern with `^` and end with `$` to make sure it matches the entire token.
@@ -43,12 +43,12 @@ export class Pattern extends Rule {
     super(props)
   }
 
-  testAtStart(scope: ParserScope, tokens: Token[], start = 0) {
+  testAtStart(scope: Scope, tokens: Token[], start = 0) {
     if (start >= tokens.length) return false
     return tokens[start].matchesPattern(this.pattern, this.blacklist)
   }
 
-  parse(scope: ParserScope, tokens: Token[]) {
+  parse(scope: Scope, tokens: Token[]) {
     if (!this.testAtStart(scope, tokens, 0)) return undefined
     const raw = tokens[0].value // raw value, used by subclasses
     const value = this.mapValue(raw) // possibly normalized value, used by subclasses

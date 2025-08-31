@@ -1,7 +1,18 @@
+import { Prettify } from "~/types.js"
 import { Match } from "~/parser/Match.js"
-import { ParserScope } from "~/parser/rule/Rule.js"
+import { Scope, RuleProps } from "~/parser/rule/Rule.js"
 import { Token } from "~/parser/tokenizer/Tokens.js"
 import { Rule } from "./Rule.js"
+
+export type NestedSplitProps = Prettify<
+  RuleProps & {
+    start: Rule
+    rule: Rule
+    end: Rule
+    delimiter: Rule
+    prefix: Rule
+  }
+>
 
 /**
  * Recursively find balanced instances of `start` and `end`,
@@ -17,7 +28,7 @@ import { Rule } from "./Rule.js"
  *
  * If nested start/end blocks are found, WHAT WILL HAPPEN???
  */
-export class NestedSplit extends Rule {
+export class NestedSplit extends Rule<NestedSplitProps> {
   /** Start rule, e.g. `Symbol("(")`. */
   declare start: Rule
   /** Middle-bit to match inside start/end, probably a sequence or subrule. */
@@ -29,7 +40,7 @@ export class NestedSplit extends Rule {
   /** Optional rule to match inside the FIRST item, e.g. right after the. */
   declare prefix: Rule
 
-  parse(scope: ParserScope, tokens: Token[]) {
+  parse(scope: Scope, tokens: Token[]) {
     const end = this.findNestedEnd(scope, tokens)
     if (end === undefined) return undefined
 
@@ -77,7 +88,7 @@ export class NestedSplit extends Rule {
   // If tokens starts with our `start` literal,
   //  find the index of the token which matches our `end` literal.
   // Returns `undefined` if not found or not balanced.
-  findNestedEnd(scope: ParserScope, tokens: Token[], start = 0) {
+  findNestedEnd(scope: Scope, tokens: Token[], start = 0) {
     if (!this.start.testAtStart(scope, tokens, start)) return undefined
     let nesting = 0
     for (let end = start + 1, last = tokens.length; end < last; end++) {
@@ -95,7 +106,7 @@ export class NestedSplit extends Rule {
   // If tokens starts with our `start` literal,
   //  find the index of the token which matches our `end` literal.
   // Returns `undefined` if not found or not balanced.
-  splitTokens(scope: ParserScope, tokens: Token[]) {
+  splitTokens(scope: Scope, tokens: Token[]) {
     const items = []
     let current: Token[] = []
     for (let i = 0, token; (token = tokens[i]); i++) {

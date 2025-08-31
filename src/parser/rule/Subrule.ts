@@ -1,5 +1,5 @@
 import { Prettify } from "~/types.js"
-import { Rule, type RuleProps, type ParserScope } from "./Rule.js"
+import { Rule, type RuleProps, type Scope } from "./Rule.js"
 import { Token } from "~/parser/tokenizer/Tokens.ts"
 import { Match } from "~/parser/Match.ts"
 
@@ -24,12 +24,12 @@ export class Subrule extends Rule<SubruleProps> {
   }
 
   // Ask the subrule to figure out if a match is possible.
-  test(scope: ParserScope, tokens: Token[], testLocation = this.testLocation) {
+  test(scope: Scope, tokens: Token[], testLocation = this.testLocation) {
     const rule = scope.parser.getRuleOrDie(this.rule)
     return rule.test(scope, tokens, testLocation)
   }
 
-  parse(scope: ParserScope, tokens: Token[]) {
+  parse(scope: Scope, tokens: Token[]) {
     if (!tokens.length) return undefined
     const rule = scope.parser.getRuleOrDie(this.rule)
 

@@ -1,6 +1,6 @@
 import { Prettify } from "~/types.js"
 import { Match } from "~/parser/Match.js"
-import { Rule, type RuleProps, type ParserScope } from "./Rule.js"
+import { Rule, type RuleProps, type Scope } from "./Rule.js"
 import { Token } from "../tokenizer/index.js"
 
 export type LiteralMatcher = { literal: string | string[]; optional?: boolean }
@@ -39,7 +39,7 @@ export abstract class Literals extends Rule<LiteralsProps> {
     }
   }
 
-  testAtStart(scope: ParserScope, tokens: Token[], start = 0) {
+  testAtStart(scope: Scope, tokens: Token[], start = 0) {
     return this.matchAtStart(tokens, start) > 0
   }
 
@@ -56,7 +56,7 @@ export abstract class Literals extends Rule<LiteralsProps> {
     return start
   }
 
-  parse(scope: ParserScope, tokens: Token[]) {
+  parse(scope: Scope, tokens: Token[]) {
     const tokensMatched = this.matchAtStart(tokens, 0)
     if (!tokensMatched) return undefined
     const matched = tokens.slice(0, tokensMatched)

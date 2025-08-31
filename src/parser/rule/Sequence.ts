@@ -16,7 +16,7 @@ import flattenDeep from "lodash/flattenDeep"
 
 import { Prettify } from "~/global_types.js"
 import { Match } from "~/parser/Match.js"
-import { Rule, RuleProps, ParserScope } from "./Rule.js"
+import { Rule, RuleProps, Scope } from "./Rule.js"
 import { Token } from "../tokenizer/Tokens.js"
 
 export type SequenceProps = Prettify<
@@ -42,7 +42,7 @@ export class Sequence extends Rule<SequenceProps> {
     }
   }
 
-  parse(scope: ParserScope, tokens: Token[]) {
+  parse(scope: Scope, tokens: Token[]) {
     if (this.test(scope, tokens) === false) return undefined
 
     const matched = []

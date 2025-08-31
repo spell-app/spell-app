@@ -1,7 +1,7 @@
 import flattenDeep from "lodash/flattenDeep"
 
 import { Prettify } from "~/global_types.js"
-import { Rule, type RuleProps, type ParserScope } from "./Rule.js"
+import { Rule, type RuleProps, type Scope } from "./Rule.js"
 import { Token } from "~/parser/tokenizer/Tokens.js"
 import { Rules } from "./index.js"
 import { Match } from "~/parser/Match.js"
@@ -29,7 +29,7 @@ export type RepeatProps = Prettify<
  * - `match.items` will be just he `rule` matches, ignoring delimiters,
  * - `match.matched` will include delimiters.
  */
-export class Repeat extends Rule {
+export class Repeat extends Rule<RepeatProps> {
   /** The rule that repeats. */
   declare rule: Rule
   /** The delimiter between each instance of the rule. */
@@ -44,7 +44,7 @@ export class Repeat extends Rule {
     super(props)
   }
 
-  parse(scope: ParserScope, tokens: Token[]) {
+  parse(scope: Scope, tokens: Token[]) {
     if (this.testAtStart(scope, tokens, 0) === false) return undefined
 
     // everything that was matched

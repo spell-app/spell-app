@@ -1,5 +1,5 @@
 import { Match } from "~/parser/Match.js"
-import { Rule, type RuleProps, type ParserScope } from "./Rule.js"
+import { Rule, type RuleProps, type Scope } from "./Rule.js"
 import { Token } from "../tokenizer/index.js"
 import { Prettify } from "~/types.js"
 
@@ -14,15 +14,15 @@ export type TokenTypeProps = Prettify<
 /**
  * Abstract rule for matching tokens of a particular type.
  */
-export class TokenType extends Rule {
+export class TokenType extends Rule<TokenTypeProps> {
   /** Constructor for the token type we match. */
   declare tokenType: TokenConstructor
 
-  testAtStart(scope: ParserScope, tokens: Token[], start = 0) {
+  testAtStart(scope: Scope, tokens: Token[], start = 0) {
     return tokens[start] instanceof this.tokenType
   }
 
-  parse(scope: ParserScope, tokens: Token[]) {
+  parse(scope: Scope, tokens: Token[]) {
     if (!this.testAtStart(scope, tokens, 0)) return undefined
     return new Match({
       rule: this,

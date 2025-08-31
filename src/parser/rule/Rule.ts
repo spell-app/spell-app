@@ -5,6 +5,10 @@ import { Derivative } from "~/util/Derivative.ts"
 import { TestLocation } from "~/parser/constants"
 import type { Token } from "~/parser/tokenizer/Tokens.ts"
 import type { Match } from "~/parser/Match.ts"
+import type { Scope } from "~/parser/scope/Scope.ts"
+
+// Re-export Scope
+export type { Scope } from "~/parser/scope/Scope.ts"
 
 export type RuleProps = {
   module?: string
@@ -17,14 +21,13 @@ export type RuleProps = {
   testRule?: Rule
   testLocation?: TestLocation
   tests?: RuleTests
-  scope?: ParserScope
+  scope?: Scope
 
   argument?: string
   optional?: boolean
   isEscaped?: boolean
 }
 
-export type ParserScope = any
 export type RuleTests = Array<any>
 
 /** Syntax flags for outputting a rule in rulex syntax. */
@@ -53,10 +56,7 @@ export type SyntaxFlags = {
  *  To output the result of a match, use `match.compile()` which calls `rule.compile()`
  *  to actually generate the output.
  */
-export abstract class Rule<
-  Props extends RuleProps = RuleProps,
-  Scope extends ParserScope = ParserScope
-> extends Derivative {
+export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivative {
   /** ---------------
    * ## Properties
    *  --------------- */

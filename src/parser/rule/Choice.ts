@@ -1,7 +1,7 @@
 import { Prettify } from "~/types.js"
 import { Tokenizer } from "~/parser/tokenizer/Tokenizer.ts"
 import { Token } from "~/parser/tokenizer/Tokens.ts"
-import { Rule, type RuleProps, type ParserScope } from "./Rule.js"
+import { Rule, type RuleProps, type Scope } from "./Rule.js"
 import { Match } from "~/parser/Match.ts"
 
 // Turn on debugging of choice / precedence semantics
@@ -40,14 +40,14 @@ export class Choice extends Rule<ChoiceProps> {
    * Add one or more `rules` to the list of choices.
    * `parser` is the parser instance that's calling this.
    */
-  addChoice(parser: ParserScope, ...rules: Rule[]) {
+  addChoice(parser: Scope, ...rules: Rule[]) {
     this.rules = [...this.rules, ...rules]
   }
 
   // Return (`true` or index) if ANY of our rules is found.
   // If ANY rules return `undefined`, this will return `undefined`.
   // If ALL rules return `false`, this will return `false`.
-  testAtStart(scope: ParserScope, tokens: Token[], start = 0) {
+  testAtStart(scope: Scope, tokens: Token[], start = 0) {
     if (start >= tokens.length) return false
     let undefinedFound = false
     for (let i = 0, rule; (rule = this.rules[i]); i++) {
@@ -60,7 +60,7 @@ export class Choice extends Rule<ChoiceProps> {
   }
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
-  parse(scope: ParserScope, tokens: Token[]) {
+  parse(scope: Scope, tokens: Token[]) {
     const CHOICE = `choice '${this.name || this.argument}:'`
     if (DEBUG_CHOICES) console.group(`${CHOICE} start matching '${Tokenizer.join(tokens)}'`, this)
 

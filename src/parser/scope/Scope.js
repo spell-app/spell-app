@@ -1,4 +1,5 @@
 import { Derivative } from "~/util"
+
 /**
  * We create a `Scope` when starting a parse run to allow the parser
  * to keep state as it descends up and down.
