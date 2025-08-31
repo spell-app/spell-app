@@ -39,7 +39,7 @@ export const ProjectChooser = React.memo(function ProjectChooser() {
               <Row>
                 <Column>
                   <h1>Welcome to Spell!</h1>
-                  <p>Blah blah blah!</p>
+                  {/* <p>Blah blah blah!</p> */}
                 </Column>
               </Row>
 

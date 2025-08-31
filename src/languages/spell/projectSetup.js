@@ -17,7 +17,7 @@ class SpellSetup {
       title: "Projects",
       Type: "Project",
       type: "project",
-      description: "User projects blah blah blah",
+      description: "User projects",
       icon: "app store ios"
     },
     "@system:examples": {
