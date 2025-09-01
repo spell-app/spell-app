@@ -119,8 +119,9 @@ export class Match extends Assertable {
   ////////////////////
 
   /**
-   * Return match `groups` for this match, according to the rule matched.
-   * - NOTE: ALWAYS GET THIS FROM THE MATCH rather than the rule!!!
+   * Return match `groups` for this match.
+   * - Some rules derive additional groups based on analysis of "normal" groups.
+   * - NOTE: always use `match.groups` to access so we re-use the same `groups` object.
    */
   get groups() {
     return this.derived("groups", () => this.rule.getGroupsForMatch(this))
@@ -181,8 +182,9 @@ export class Match extends Assertable {
 
   /**
    * Return `scope` to use to parse "nested" contents of the match,
-   * e.g. a method signature will define a nested MethodScope to compile the method body
-   * which includes the method arguments.
+   * - By default, we just return the `match.scope`, but some rules may derive a new scope.
+   * - For example, matching a method signature will define a nested MethodScope to compile the method body
+   *   which includes the method arguments.
    * - NOTE: always use `match.nestedScope` to access so we re-use the scope object.
    */
   get nestedScope() {
@@ -208,13 +210,6 @@ export class Match extends Assertable {
    */
   getScopeOfType(scopeConstructor: ScopeConstructor) {
     return this.scopes.find((scope) => scope instanceof scopeConstructor)
-  }
-
-  // Have the match call `mutateScope()` if it can.
-  // TODOC
-  // NOTE: ONLY CALL THIS FROM THE MATCH!!!
-  mutateScope() {
-    return this.rule.mutateScope?.(this)
   }
 
   ////////////////////

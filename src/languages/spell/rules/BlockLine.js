@@ -31,7 +31,7 @@ SpellParser.Rules.BlockLine = class line extends Rule {
           matched: [token],
           length: 1,
           input: [token],
-          scope,
+          scope
         })
       )
     }
@@ -65,9 +65,9 @@ SpellParser.Rules.BlockLine = class line extends Rule {
       }
 
       if (statement) {
-        // We've locked in this statement -- have it update scope if necessary.
+        // We've locked in this statement -- update scope if necessary.
         // This is used, e.g. by assignment to add new variables to the scope, etc.
-        statement.mutateScope()
+        statement.rule.mutateScope(statement)
 
         // Some statements `.wantsNestedBlock` -- give it a chance to parse the next item.
         const nextItem = lines[1]
@@ -114,7 +114,7 @@ SpellParser.Rules.BlockLine = class line extends Rule {
       errors: errors.length ? errors : undefined,
       input,
       length: input.length,
-      scope,
+      scope
     })
   }
 
@@ -123,7 +123,7 @@ SpellParser.Rules.BlockLine = class line extends Rule {
     if (match.matched.length === 1) return match.matched[0].AST
     // otherwise
     return new AST.StatementGroup(match, {
-      statements: match.matched.map((item) => item.AST),
+      statements: match.matched.map((item) => item.AST)
     })
   }
 }

@@ -215,14 +215,21 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
 
   /**
    * Return `scope` to use to parse "nested" contents of the match,
-   * e.g. a method signature will define a nested MethodScope to compile the method body
-   * which includes the method arguments.
-   * - By default, we just return the `match.scope` -- some rules may derive a new scope.
+   * - By default, we just return the `match.scope`, but some rules may derive a new scope.
+   * - For example, matching a method signature will define a nested MethodScope to compile the method body
+   *   which includes the method arguments.
    * - NOTE: always use `match.nestedScope` to access so we re-use the scope object.
    */
   getNestedScopeForMatch(match: Match) {
     return match.scope
   }
+
+  /**
+   * Mutate `match.scope` based on the semantics for this rule..
+   * - By default, we don't change anything, but some rules
+   *   may add new variables, methods, rules, etc. to the scope.
+   */
+  mutateScope(match: Match) {}
 
   ////////////////////
   // ## Rulex syntax

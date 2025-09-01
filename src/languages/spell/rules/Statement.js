@@ -39,8 +39,8 @@ export class SpellStatement extends Rules.Sequence {
     const inlineStatement = statement.nestedScope.parse(unparsed, parseAs)
     if (inlineStatement) {
       statement.addMatch(inlineStatement, "inlineStatement")
-      // TODO: ???  call `mutateScope()` to initialize any variables/rules/etc
-      inlineStatement.mutateScope()
+      // Call `mutateScope()` to initialize any variables/rules/etc
+      inlineStatement.rule.mutateScope(inlineStatement)
     }
     return inlineStatement
   }
