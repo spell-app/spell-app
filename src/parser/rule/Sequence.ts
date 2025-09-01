@@ -84,37 +84,11 @@ export class Sequence extends Rule<SequenceProps> {
   // If no explcit compile method, gather our groups and return the compiled output of each.
   // TODO: ... ??
   compile(match: Match) {
-    return this._addGroups({}, match.matched, (nextMatch) => nextMatch.compile())
+    return match.addMatchedToGroups({}, match.matched, (nextMatch) => nextMatch.compile())
   }
 
-  gatherGroups(match: Match) {
-    return this._addGroups({}, match.matched)
-  }
-
-  _addGroups(results: Record<string, any>, matched: Match[], callback?: (match: Match) => any) {
-    for (let i = 0, match; (match = matched[i]); i++) {
-      const { name, rule } = match
-      // if the match has a name:
-      if (name) {
-        const value = callback ? callback(match) : match
-        // If arg already exists, convert to an array
-        if (name in results) {
-          if (!Array.isArray(results[name])) {
-            results[name] = [results[name]]
-          }
-          results[name].push(value)
-        } else {
-          results[name] = value
-        }
-      }
-      // if it's an anonymous sequence, promote it to the main map
-      if (!name && rule instanceof Sequence) {
-        this._addGroups(results, match.matched, callback)
-      }
-      // ignore other anonymous bits
-      // else {}
-    }
-    return results
+  getGroupsForMatch(match: Match) {
+    return match.addMatchedToGroups({}, match.matched)
   }
 
   // Echo this rule back out.

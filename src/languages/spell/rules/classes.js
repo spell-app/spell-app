@@ -674,8 +674,8 @@ export const classes = new SpellParser({
         }
 
         // When gathering the match groups, figure out `bits` for making rules and AST nodes
-        gatherGroups(match) {
-          const groups = super.gatherGroups(match)
+        getGroupsForMatch(match) {
+          const groups = super.getGroupsForMatch(match)
           const alias = groups.alias.value
           const type = groups.type.value
           const sources = groups.sources.items

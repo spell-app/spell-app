@@ -16,8 +16,8 @@ const DynamicMethodRule = class dynamic_method extends SpellStatement {
   }
 
   // Normalize `callArgs` to an array
-  gatherGroups(match) {
-    const groups = super.gatherGroups(match)
+  getGroupsForMatch(match) {
+    const groups = super.getGroupsForMatch(match)
     const { callArgs } = groups
     if (callArgs && !Array.isArray(callArgs)) groups.callArgs = [callArgs]
     return groups
@@ -68,8 +68,8 @@ SpellParser.Rules.MethodDefinition = class method_definition extends SpellParser
     return signature
   }
 
-  gatherGroups(match) {
-    const groups = super.gatherGroups(match)
+  getGroupsForMatch(match) {
+    const groups = super.getGroupsForMatch(match)
     if (groups.signature) {
       const signature = this.processSignature(groups, groups.signature.groups)
       signature.methodName = signature.methodBits.join("_")
@@ -281,7 +281,7 @@ export const methods = new SpellParser({
         mapValue(value) {
           return `${value}`.replace(/\-/g, "_")
         }
-        gatherGroups(match) {
+        getGroupsForMatch(match) {
           return {
             keyword: match,
             method: match.value,
@@ -294,7 +294,7 @@ export const methods = new SpellParser({
       name: "var_method_arg",
       alias: ["method_arg", "simple_method_arg"],
       constructor: class method_arg extends SpellParser.Rules.VariableIdentifier {
-        gatherGroups(match) {
+        getGroupsForMatch(match) {
           return {
             variable: match,
             method: `$${match.value}`,
@@ -309,7 +309,7 @@ export const methods = new SpellParser({
       alias: ["method_arg", "simple_method_arg"],
       syntax: `{variable_identifier} (=|is|of|as|set to) {value:expression}`,
       constructor: class valued_var_method_arg extends SpellStatement {
-        gatherGroups(match) {
+        getGroupsForMatch(match) {
           const [variable, _ignore, value] = match.matched
           const groups = {
             variable,
@@ -327,7 +327,7 @@ export const methods = new SpellParser({
       alias: ["method_arg", "simple_method_arg"],
       syntax: `(a|an) {type}`,
       constructor: class type_method_arg extends Rules.Sequence {
-        gatherGroups(match) {
+        getGroupsForMatch(match) {
           const type = match.matched[1]
           return {
             type,
@@ -343,7 +343,7 @@ export const methods = new SpellParser({
       alias: ["method_arg", "simple_method_arg"],
       syntax: `{variable_identifier} as (a|an)? {type}`,
       constructor: class type_method_arg extends Rules.Sequence {
-        gatherGroups(match) {
+        getGroupsForMatch(match) {
           const [variable, _ignore, type] = match.matched
           return {
             variable,
@@ -360,7 +360,7 @@ export const methods = new SpellParser({
       alias: ["method_arg"],
       syntax: "with [{simple_method_arg}(,|and)]",
       constructor: class type_method_arg extends Rules.Sequence {
-        gatherGroups(match) {
+        getGroupsForMatch(match) {
           const { items } = match.matched[1]
           const props = items.map((item) => item.groups.arg)
           const groups = {
@@ -388,13 +388,13 @@ export const methods = new SpellParser({
           if (match && match.groups.foundKeyword) return match
           return undefined
         }
-        gatherGroups(match) {
+        getGroupsForMatch(match) {
           const groups = {
             items: match.items.map((item) => (item.matched.length === 1 ? item.groups : item.matched[1].groups)),
             // calculated as we run through the keywords
             startsWithKeyword: false, // `true` if first item is a keyword.
             foundKeyword: false, // `true` if we found at least one keyword.  arg-only signatures are invalid!
-            methodBits: [], // method signature bits.  Converted to `methodName` string at end of gatherGroups().
+            methodBits: [], // method signature bits.  Converted to `methodName` string at end of getGroupsForMatch().
             syntaxBits: [], // rule syntax bits.  Converted to string at end of this method.
             types: [], // types we found, as `{ raw: instanceCase, simple, arg: number, method: number, syntax: number }`
             args: [], // method arguments, as `AST.VariableExpression`s

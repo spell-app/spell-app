@@ -1,9 +1,11 @@
 import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
 
-import { Rule, Token } from "~/parser"
+import { Rule, Token, Rules } from "~/parser"
 import { Assertable } from "~/util"
 import { Scope, ScopeConstructor } from "./scope/Scope"
+
+export type MatchGroups = Record<string, any>
 
 export type MatchProps = {
   scope: Scope
@@ -27,6 +29,7 @@ export class Match extends Assertable {
   static DEBUG_MATCH_INITIALIZATION = true
 
   declare rule: Rule
+  /** Raw input tokens that were matched. */
   declare input: Token[]
   declare matched: (Match | Token)[]
   declare items: any[]
@@ -56,6 +59,11 @@ export class Match extends Assertable {
     return this.argument || this.rule.argument || this.rule.name
   }
 
+  // Return the `name` for our rule, using `rule.constructor.name` for anonymous rules.
+  get ruleName(): string | undefined {
+    return this.rule.name || this.rule.constructor.name
+  }
+
   /** Raw input text, including whitespace. */
   get inputText(): string {
     return this.input?.join("") || ""
@@ -82,11 +90,6 @@ export class Match extends Assertable {
     return start === undefined ? undefined : start + inputText.length
   }
 
-  // Return the `name` for our rule, using `rule.constructor.name` for anonymous rules.
-  get ruleName(): string | undefined {
-    return this.rule.name || this.rule.constructor.name
-  }
-
   // Return our `matched` which encompasses `offset`.
   // Returns `undefined` if nothing works.
   matchForOffset(offset: number) {
@@ -111,12 +114,16 @@ export class Match extends Assertable {
     return stack
   }
 
-  // Syntactic sugar to easily get `groups` of the match for sequences, etc.
-  // Only works for some rule types.
-  // NOTE: ALWAYS GET THIS FROM THE MATCH!!!
-  /*@memoize*/
+  ////////////////////
+  // ## Match groups
+  ////////////////////
+
+  /**
+   * Return match `groups` for this match, according to the rule matched.
+   * - NOTE: ALWAYS GET THIS FROM THE MATCH rather than the rule!!!
+   */
   get groups() {
-    return this.derived("groups", () => this.rule.gatherGroups?.(this))
+    return this.derived("groups", () => this.rule.getGroupsForMatch(this))
   }
 
   /**
@@ -139,9 +146,38 @@ export class Match extends Assertable {
     this.input.push(...match.input)
     this.length += match.length
 
-    // if OUR rule has `_addGroups` defined, add the match to existing groups
-    if (groups && this.rule._addGroups) this.rule._addGroups(groups, [match])
+    // Add the match to existing groups
+    if (groups) this.addMatchedToGroups(groups, [match])
   }
+
+  addMatchedToGroups(groups: MatchGroups, matched: Array<Match | Token>, callback?: (match: Match) => any) {
+    for (let i = 0, match; (match = matched[i]); i++) {
+      if (match instanceof Token) continue
+      // if the match has a name:
+      const { name } = match
+      if (name) {
+        const value = callback ? callback(match) : match
+        // If arg already exists, convert to an array
+        if (name in groups) {
+          if (!Array.isArray(groups[name])) {
+            groups[name] = [groups[name]]
+          }
+          groups[name].push(value)
+        } else {
+          groups[name] = value
+        }
+      }
+      // if it's an anonymous sequence, promote it to the main map
+      else if (match.rule instanceof Rules.Sequence) {
+        this.addMatchedToGroups(groups, match.matched, callback)
+      }
+    }
+    return groups
+  }
+
+  ////////////////////
+  // ## Scopes
+  ////////////////////
 
   // Return nested scope for nested block statements.
   // NOTE: ALWAYS GET THIS FROM THE MATCH!!!
@@ -151,7 +187,7 @@ export class Match extends Assertable {
   }
 
   /**
-   * Return array of `scope` and their parent scopes, with this scope first.
+   * Return array of `scope` by looking up parentScope chains, with our scope first.
    */
   get scopes() {
     const scopes = []
@@ -177,6 +213,10 @@ export class Match extends Assertable {
   mutateScope() {
     return this.rule.mutateScope?.(this)
   }
+
+  ////////////////////
+  // ## Compilation
+  ////////////////////
 
   // Return the Abstract Syntax Tree for this match.
   /*@memoize*/
@@ -215,7 +255,7 @@ export class Match extends Assertable {
   }
 
   // DEBUG: convert to JSON
-  toJSON(key) {
+  toJSON() {
     const { name, rule, scope, raw, value, matched, items } = this
     return {
       name,

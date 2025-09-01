@@ -4,7 +4,7 @@
 import { Derivative } from "~/util/Derivative"
 import { TestLocation } from "~/parser/constants"
 import type { Token } from "~/parser/tokenizer/Tokens"
-import type { Match } from "~/parser/Match"
+import type { Match, MatchGroups } from "~/parser/Match"
 import type { Scope } from "~/parser/scope/Scope"
 
 // Re-export Scope
@@ -204,8 +204,8 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
   // ## Match groups
   ////////////////////
 
-  getGroupsForMatch(match: Match, callback?: (match: Match) => any) {
-    return match.addMatchedToGroups({}, [match], callback)
+  getGroupsForMatch(match: Match) {
+    return match.addMatchedToGroups({}, [match])
   }
 
   ////////////////////
