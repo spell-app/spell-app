@@ -551,7 +551,7 @@ export class AwaitExpression extends Expression {
     // Work our way up the scope chain
     // -- if we find a MethodScope, mark it as asynchronous
     let scope = this.parentScope
-    while (scope && !(scope instanceof MethodScope)) scope = scope.scope
+    while (scope && !(scope instanceof MethodScope)) scope = scope.parentScope
     if (scope instanceof MethodScope) {
       scope.async = true
     }

@@ -597,7 +597,7 @@ export const classes = new SpellParser({
         getNestedScope(match) {
           const { type } = match.groups
           return new MethodScope({
-            scope: match.scope,
+            parentScope: match.scope,
             thisVar: type.type.instanceName,
             mapItTo: "this"
           })

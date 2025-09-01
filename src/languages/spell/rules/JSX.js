@@ -248,7 +248,7 @@ export const JSX = new SpellParser({
             // parse "onXXX" as an inline method with an `event` argument
             if (match.attribute.startsWith("on")) {
               const methodScope = new MethodScope({
-                scope,
+                parentScope: scope,
                 args: ["event"],
                 mapItTo: "this"
               })

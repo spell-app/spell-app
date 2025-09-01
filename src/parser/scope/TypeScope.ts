@@ -2,27 +2,48 @@ import { IndexedList, typeCase, instanceCase, snakeCase } from "~/util"
 import { MethodScope, ScopeVariable } from "~/parser"
 import { BlockScope } from "."
 
+export type TypeScopeProps = {
+  name: string
+  superType?: string
+  stub?: boolean
+  methods?: MethodScope[]
+  variables?: ScopeVariable[]
+}
+
 /**
  * `TypeScope` -- a scope which encapsulates a known class or type.
- *  - `name` is the name of the type, which should be singular and will be normalized to TypeCase.
- *  - `superClass` is name of superclass, if provided, and should be singular and will be TypeCased.
- *  - `stub` is `true` if the type was created as a stub. DOCME
+ *  - `name` is the name of the type.
+ *  - `superType` is name of the superclass, if any.
  *  - `methods` (from BlockScope) are instance methods, including `constructor` if provided.
  *  - `variables` (from BlockScope) are instance variables
  *  - `classMethods` and `classVariables` are static to the class.
  */
 export class TypeScope extends BlockScope {
-  constructor(props) {
-    // If you just pass a string we'll assume it's the type name.
-    if (typeof props === "string") props = { name: props }
-    if (typeof props.name !== "string" || !props.name) {
-      throw new TypeError("Types must be created with a 'name'")
-    }
-    // Make sure type `name` and `superType` are in `Type_Case`
-    props.name = typeCase(props.name)
-    if (props.superType) props.superType = typeCase(props.superType)
+  /** Name of the type, which should be singular.  Will be normalized to TypeCase. */
+  declare name: string
+  /** Name of superclass, which should be singular.  Will be normalized to TypeCased. */
+  declare superType?: string
+  /** If true, the type was created as a stub. */
+  declare stub?: boolean
 
-    super(props)
+  constructor(typeName: string)
+  constructor(props: TypeScopeProps)
+  constructor(input: string | TypeScopeProps) {
+    // If passed in as a string, use it as the name
+    if (typeof input === "string") super({ name: input })
+    else super(input)
+
+    if (!this.name) throw new TypeError("Types must be created with a 'name'")
+
+    // Make sure type `name` and `superType` are in `Type_Case`
+    this.name = this.name = typeCase(this.name)
+    if (this.superType) this.superType = typeCase(this.superType)
+  }
+
+  // Syntactic sugar for the type name.
+  // e.g. if the type name is `Card`, the instanceName would be `card`.
+  get instanceName() {
+    return instanceCase(this.name)
   }
 
   /** Scope `classVariables`. */
@@ -57,17 +78,11 @@ export class TypeScope extends BlockScope {
           normalizeKey: snakeCase,
           transformer(item) {
             if (!(item instanceof MethodScope)) item = new MethodScope(item)
-            item.scope = this.target
+            item.parentScope = this.target
             item.kind = "static"
             return item
           }
         })
     )
-  }
-
-  // Syntactic sugar for the type name.
-  // e.g. if the type name is `Card`, the instanceName would be `card`.
-  get instanceName() {
-    return instanceCase(this.name)
   }
 }

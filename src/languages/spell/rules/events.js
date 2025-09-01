@@ -65,7 +65,7 @@ export const events = new SpellParser({
           const args = ["event"]
           if (props) args.push(...props.groups.props.map(({ name }) => name))
           return new MethodScope({
-            scope: match.scope,
+            parentScope: match.scope,
             name: eventName.value,
             args
           })

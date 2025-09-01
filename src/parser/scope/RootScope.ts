@@ -1,6 +1,7 @@
 import { IndexedList, typeCase, snakeCase } from "~/util"
-import { Rule, TypeScope, ScopeConstant } from "~/parser"
+import { Rule } from "~/parser/rule/Rule"
 import { BlockScope } from "./BlockScope"
+import { TypeScope, ScopeConstant, type ScopeConstantProps } from "."
 /**
  * A `RootScope` is the root scope for a parser.
  * It manages built-in `.rules`, `.types` and `.constants`,
@@ -10,19 +11,18 @@ import { BlockScope } from "./BlockScope"
  */
 export class RootScope extends BlockScope {
   /** Scope `types`. */
-  /*@memoize*/
-  get types() {
+  get types(): IndexedList<TypeScope, TypeScope> {
     return this.derived(
       "types",
       () =>
         new IndexedList({
           target: this,
           keyProp: "name",
-          parentProp: "scope.types",
+          parentProp: "parentScope.types",
           normalizeKey: typeCase,
           transformer(item) {
             if (!(item instanceof TypeScope)) item = new TypeScope(item)
-            item.scope = this.target
+            item.parentScope = this.target
             return item
           }
         })
@@ -30,15 +30,14 @@ export class RootScope extends BlockScope {
   }
 
   /** Scope `constants`. */
-  /*@memoize*/
-  get constants() {
+  get constants(): IndexedList<ScopeConstant, string | ScopeConstant | ScopeConstantProps> {
     return this.derived(
       "constants",
       () =>
         new IndexedList({
           target: this,
           keyProp: "name",
-          parentProp: "scope.constants",
+          parentProp: "parentScope.constants",
           normalizeKey: snakeCase,
           transformer(item) {
             if (!(item instanceof ScopeConstant)) item = new ScopeConstant(item)
@@ -50,8 +49,7 @@ export class RootScope extends BlockScope {
   }
 
   /** Scope `rules`. */
-  /*@memoize*/
-  get rules() {
+  get rules(): IndexedList<Rule, Rule> {
     return this.derived(
       "rules",
       () =>

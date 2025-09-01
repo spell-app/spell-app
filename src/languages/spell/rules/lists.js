@@ -615,7 +615,7 @@ export const lists = new SpellParser({
         getNestedScope(match) {
           const arg = singularize(match.groups.arg.value)
           return new MethodScope({
-            scope: match.scope,
+            parentScope: match.scope,
             args: [arg],
             mapItTo: arg
           })
@@ -684,7 +684,7 @@ export const lists = new SpellParser({
         getNestedScope(match) {
           const arg = singularize(match.groups.arg.value)
           return new MethodScope({
-            scope: match.scope,
+            parentScope: match.scope,
             args: [arg],
             mapItTo: arg
           })
@@ -1086,7 +1086,7 @@ export const lists = new SpellParser({
         getNestedScope(match) {
           const arg = singularize(match.groups.arg.value)
           return new MethodScope({
-            scope: match.scope,
+            parentScope: match.scope,
             args: [arg],
             mapItTo: arg
           })
@@ -1216,7 +1216,7 @@ export const lists = new SpellParser({
         }
         getNestedScope(match) {
           return new MethodScope({
-            scope: match.scope,
+            parentScope: match.scope,
             args: ["number"],
             mapItTo: "number"
           })
@@ -1299,7 +1299,7 @@ export const lists = new SpellParser({
           const args = [{ name: item.value }]
           if (position) args.push({ name: position.value, type: "number" })
           return new MethodScope({
-            scope: match.scope,
+            parentScope: match.scope,
             args,
             mapItTo: item.value
           })
@@ -1417,7 +1417,7 @@ export const lists = new SpellParser({
         getNestedScope(match) {
           const arg = singularize(match.groups.item.value)
           return new MethodScope({
-            scope: match.scope,
+            parentScope: match.scope,
             args: [arg]
           })
         }

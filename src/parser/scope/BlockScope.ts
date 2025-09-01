@@ -1,6 +1,6 @@
 import { IndexedList, snakeCase } from "~/util"
-import { MethodScope, ScopeVariable } from "~/parser"
-import { Scope } from "."
+import { Scope } from "./Scope"
+import { MethodScope, type MethodScopeProps, ScopeVariable, type ScopeVariableProps } from "."
 
 /**
  * `BlockScope` -- a scope which encapsulates a block of statements.
@@ -9,15 +9,14 @@ import { Scope } from "."
  */
 export class BlockScope extends Scope {
   /** Scope `variables`. */
-  /*@memoize*/
-  get variables() {
+  get variables(): IndexedList<ScopeVariable, string | ScopeVariable | ScopeVariableProps> {
     return this.derived(
       "variables",
       () =>
         new IndexedList({
           target: this,
           keyProp: "name",
-          parentProp: "scope.variables",
+          parentProp: "parentScope.variables",
           normalizeKey: snakeCase,
           transformer(item) {
             if (!(item instanceof ScopeVariable)) item = new ScopeVariable(item)
@@ -29,19 +28,18 @@ export class BlockScope extends Scope {
   }
 
   /** Scope `methods`. */
-  /*@memoize*/
-  get methods() {
+  get methods(): IndexedList<MethodScope, MethodScope | MethodScopeProps> {
     return this.derived(
       "methods",
       () =>
         new IndexedList({
           target: this,
           keyProp: "name",
-          parentProp: "scope.methods",
+          parentProp: "parentScope.methods",
           normalizeKey: snakeCase,
           transformer(item) {
             if (!(item instanceof MethodScope)) item = new MethodScope(item)
-            item.scope = this.target
+            item.parentScope = this.target
             return item
           }
         })

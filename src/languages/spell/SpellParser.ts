@@ -58,7 +58,7 @@ export class SpellParser extends Parser {
     return new ProjectScope({
       name: moduleName,
       parser,
-      scope: SpellParser.rootScope
+      parentScope: SpellParser.rootScope
     })
   }
 

@@ -82,7 +82,7 @@ SpellParser.Rules.MethodDefinition = class method_definition extends SpellParser
   getNestedScope(match) {
     const { methodName, args, extraVars, instanceType } = match.groups.signature
     const methodScope = new MethodScope({
-      scope: match.scope,
+      parentScope: match.scope,
       name: methodName,
       args: args.map((arg) => arg.name),
       thisVar: instanceType,

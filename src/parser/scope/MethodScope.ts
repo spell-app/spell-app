@@ -1,5 +1,11 @@
-import { ScopeVariable } from "~/parser"
 import { BlockScope } from "./BlockScope"
+import { ScopeProps, ScopeVariable } from "."
+
+export type MethodScopeProps = {
+  args?: ScopeVariable[]
+  thisVar?: string
+  mapItTo?: string
+}
 
 /**
  * `MethodScope` -- a scope which encapsulates a method definition.
@@ -12,31 +18,39 @@ import { BlockScope } from "./BlockScope"
  *  - `mapItTo` (optional) map `it` to output var name.
  */
 export class MethodScope extends BlockScope {
-  constructor({ args, ...props }) {
-    super(props)
+  declare thisVar: string
+  declare mapItTo: string
+
+  constructor({ args, ...props }: MethodScopeProps) {
+    super(props as ScopeProps)
     // Add `args` to our variables list
     if (args && args.length) {
-      args.forEach(arg => {
+      args.forEach((arg: ScopeVariable) => {
         if (!(arg instanceof ScopeVariable)) arg = new ScopeVariable(arg)
         arg.kind = "argument"
         return this.variables.add(arg)
       })
     }
-    // Define variables for thisVar and `it`.  Note that `its` automatically maps to `this`.
+    // Define variables for thisVar and `it`.
+    // Note that `its` automatically maps to `this`.
     const { thisVar, mapItTo } = this
-    if (thisVar && !this.variables.get(thisVar, "LOCAL")) {
+    if (thisVar && !this.variables.get(thisVar, "LOCAL_ONLY")) {
+      // TODO: scope:this ??
       this.variables.add({ name: thisVar, output: "this", isAlias: true })
     }
-    if (mapItTo && !this.variables.get("it", "LOCAL")) {
+    if (mapItTo && !this.variables.get("it", "LOCAL_ONLY")) {
+      // TODO: scope:this ??
       this.variables.add({ name: "it", output: mapItTo, isAlias: true })
     }
   }
 
   // Call without arguments: returns all argument Variables.
   // Call with string `name`, returns named argument or `undefined`.
-  args(name) {
-    const args = this.variables.get().filter(variable => variable.kind === "argument")
+  args(): ScopeVariable[]
+  args(name: string): ScopeVariable
+  args(name?: string) {
+    const args = this.variables.get().filter((variable) => variable.kind === "argument")
     if (arguments.length === 0) return args
-    return args.find(arg => arg.name === name)
+    return args.find((arg) => arg.name === name)
   }
 }

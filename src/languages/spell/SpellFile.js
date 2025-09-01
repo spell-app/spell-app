@@ -145,7 +145,7 @@ export class SpellFile extends TextFile {
       return new FileScope({
         name: this.file,
         path: this.path,
-        scope: parentScope
+        parentScope
       })
     }
     // Otherwise set up as an ad-hoc `Project` and clone `SpellParser.rootScope.parser`
@@ -154,7 +154,7 @@ export class SpellFile extends TextFile {
       name: this.file,
       path: this.path,
       parser: SpellParser.rootScope.parser.clone({ module: this.path }),
-      scope: SpellParser.rootScope
+      parentScope: SpellParser.rootScope
     })
   }
 

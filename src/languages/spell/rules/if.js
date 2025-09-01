@@ -23,7 +23,7 @@ export const _if_ = new SpellParser({
           return true
         }
         getNestedScope(match) {
-          return new BlockScope({ name: "if", scope: match.scope })
+          return new BlockScope({ name: "if", parentScope: match.scope })
         }
         getAST(match) {
           const { condition, inlineStatement, nestedBlock } = match.groups
@@ -112,7 +112,7 @@ export const _if_ = new SpellParser({
           return true
         }
         getNestedScope(match) {
-          return new BlockScope({ name: "elseif", scope: match.scope })
+          return new BlockScope({ name: "elseif", parentScope: match.scope })
         }
         getAST(match) {
           const { condition, inlineStatement, nestedBlock } = match.groups
@@ -193,7 +193,7 @@ export const _if_ = new SpellParser({
           return true
         }
         getNestedScope(match) {
-          return new BlockScope({ name: "else", scope: match.scope })
+          return new BlockScope({ name: "else", parentScope: match.scope })
         }
         getAST(match) {
           const { inlineStatement, nestedBlock } = match.groups

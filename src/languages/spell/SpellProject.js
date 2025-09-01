@@ -131,7 +131,7 @@ export class SpellProject extends JSON5File {
       name: this.projectName,
       path: this.path,
       parser,
-      scope: parentScope
+      parentScope
     })
   }
 

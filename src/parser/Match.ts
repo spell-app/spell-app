@@ -3,17 +3,41 @@ import omit from "lodash/omit"
 
 import { Rule, Token } from "~/parser"
 import { Assertable } from "~/util"
+import { Scope, ScopeConstructor } from "./scope/Scope"
 
-// Result of a successful `rule.parse()`.
-// This is a flyweight object which links a rule with the tokens that it successfully matched.
-//
-// - `match.rule`     - Rule (required)                 Immutable Rule instance that was matched.
-// - `match.input`    - [Token] (required)              Array of tokens that were matched
-// - `match.matched`  - [Match or Token] (required)     Array of Matches or Tokens matched.
-//
+export type MatchProps = {
+  scope: Scope
+  rule: Rule
+  input: Token[]
+  matched: (Match | Token)[]
+  length: number
+  argument?: string
+  raw?: string
+  value?: any
+  message?: string
+}
+/**
+ * Result of a successful `rule.parse()`.
+ * This is a flyweight object which links a rule with the tokens that it successfully matched.
+ * - `match.rule`     - (required) Immutable `Rule` instance that was matched.
+ * - `match.input`    - (required) Array of `Tokens` that were matched
+ * - `match.matched`  - (required) Array of `Matches` or `Tokens` matched.
+ */
 export class Match extends Assertable {
-  static DEBUG_MATCH_INITIALIZATION = false
-  constructor(props) {
+  static DEBUG_MATCH_INITIALIZATION = true
+
+  declare rule: Rule
+  declare input: Token[]
+  declare matched: (Match | Token)[]
+  declare items: any[]
+  declare length: number
+  declare scope: Scope
+  declare argument: string | undefined
+  declare raw: string | undefined
+  declare value: any
+  declare message: string | undefined
+
+  constructor(props: MatchProps) {
     super()
     Object.assign(this, props)
 
@@ -23,57 +47,61 @@ export class Match extends Assertable {
       this.assertArrayType("input", Token)
       this.assertType("length", "number")
       this.assert(this.length === this.input.length, "length does not match input length")
-      // this.assertType("scope", Scope)
+      this.assertType("scope", Scope)
     }
   }
 
-  // "name" for this match.  Explicit `argument` set on creation or rule name.
-  get name() {
+  /** "name" for this match.  Explicit `argument` set on creation or rule name. */
+  get name(): string | undefined {
     return this.argument || this.rule.argument || this.rule.name
   }
 
-  // Raw input text, including whitespace.
-  get inputText() {
+  /** Raw input text, including whitespace. */
+  get inputText(): string {
     return this.input?.join("") || ""
   }
 
-  // Start line number in the source stream.
-  get line() {
+  /** Start line number in the source stream. Start line number in the source stream.*/
+  get line(): number | undefined {
     return this.input[0]?.line
   }
 
-  // Start char number within our `line` in the source stream.
-  get char() {
+  /** Start char number within our `line` in the source stream. */
+  get char(): number | undefined {
     return this.input[0]?.ch
   }
 
-  // Character offset of start position in the source stream.
-  get start() {
+  /** Character offset of start position in the source stream. */
+  get start(): number | undefined {
     return this.input[0]?.offset
   }
 
-  // Character offset of end position in the source stream.
-  get end() {
+  /** Character offset of end position in the source stream. */
+  get end(): number | undefined {
     const { start, inputText } = this
     return start === undefined ? undefined : start + inputText.length
   }
 
   // Return the `name` for our rule, using `rule.constructor.name` for anonymous rules.
-  get ruleName() {
+  get ruleName(): string | undefined {
     return this.rule.name || this.rule.constructor.name
   }
 
   // Return our `matched` which encompasses `offset`.
   // Returns `undefined` if nothing works.
-  matchForOffset(offset) {
-    return this.matched.find((match) => match.start <= offset && match.end > offset)
+  matchForOffset(offset: number) {
+    return this.matched.find((match) => {
+      if (match instanceof Token) return false
+      const { start, end } = match
+      return start !== undefined && start <= offset && end !== undefined && end > offset
+    }) as Match | undefined
   }
 
   // Return stack of our `matched` which encompasses `offset` with us first.
   // Returns empty array if `offset` is not within us.
-  matchStackForOffset(offset) {
+  matchStackForOffset(offset: number) {
     const stack = []
-    let match = this
+    let match = this as Match | undefined
     while (match instanceof Match) {
       match = match.matchForOffset(offset)
       if (!match) break
@@ -98,7 +126,7 @@ export class Match extends Assertable {
    * Use this to, e.g., add a comment or error to an existing `match`.
    * Makes sure length and tokens are updated, groups are updated, etc.
    */
-  addMatch(match, argument) {
+  addMatch(match: Match, argument: string | undefined) {
     if (match === undefined) {
       console.warn("addMatch() called with undefined match", { match, argument })
       return
@@ -127,10 +155,10 @@ export class Match extends Assertable {
    */
   get scopes() {
     const scopes = []
-    let scope = this.scope
+    let scope: Scope | undefined = this.scope
     while (scope) {
       scopes.push(scope)
-      scope = scope.scope
+      scope = scope.parentScope
     }
     return scopes
   }
@@ -139,7 +167,7 @@ export class Match extends Assertable {
    * Return first item in `scopes` which matches `scopeConstructor`.
    * Returns `undefined` if not found.
    */
-  getScopeOfType(scopeConstructor) {
+  getScopeOfType(scopeConstructor: ScopeConstructor) {
     return this.scopes.find((scope) => scope instanceof scopeConstructor)
   }
 

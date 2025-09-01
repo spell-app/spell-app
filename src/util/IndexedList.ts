@@ -48,7 +48,9 @@ export class IndexedList<ListType = any, InputType = ListType> {
    * Get first item by (normalized) `key`.
    * If `localOnly` is truthy and our `parentProp` is set, we'll delegate to our parent.
    */
-  get(key: string, localOnly?: "LOCAL_ONLY") {
+  get(): ListType[]
+  get(key: string, localOnly?: "LOCAL_ONLY"): ListType
+  get(key?: string, localOnly?: "LOCAL_ONLY") {
     // TODO: this doesn't seem like a good idea...
     if (key === undefined) return this.#items
     key = this.normalizeKey(key)
