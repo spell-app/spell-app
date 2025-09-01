@@ -75,8 +75,8 @@ export abstract class Literals extends Rule<LiteralsProps> {
   }
 
   abstract get literalSeparator(): string
-  toSyntax() {
-    const { testLocation, argument, optional } = this.getSyntaxFlags()
+  toRulexSyntax() {
+    const { testLocation, argument, optional } = this.getRulexFlags()
 
     const literalStrings = this.literals
       .map(({ literal, optional }) => {

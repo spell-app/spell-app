@@ -1,6 +1,6 @@
 import { Rules, Tokens, MethodScope } from "~/parser"
 import { SpellParser } from "~/languages/spell"
-import { AST } from "../ast"
+import { AST } from "../../../parser/ast"
 import { Sequence } from "~/parser/rule/Sequence"
 import { SpellStatement } from "./Statement"
 import { SpellExpression } from "./expressions"

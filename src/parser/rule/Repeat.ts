@@ -93,14 +93,14 @@ export class Repeat extends Rule<RepeatProps> {
     return match.items.map((next) => next.compile())
   }
 
-  toSyntax() {
-    const { argument, optional } = this.getSyntaxFlags()
+  toRulexSyntax() {
+    const { argument, optional } = this.getRulexFlags()
     const repeatSymbol = this.optional ? "*" : "+"
 
     // don't double-up on parens
-    let rule = this.rule.toSyntax()
+    let rule = this.rule.toRulexSyntax()
     if (this.delimiter) {
-      const delimiter = this.delimiter.toSyntax()
+      const delimiter = this.delimiter.toRulexSyntax()
       return `[${argument}${rule}${delimiter}]${optional}`
     }
 

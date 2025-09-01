@@ -86,15 +86,19 @@ export class Sequence extends Rule<SequenceProps> {
   compile(match: Match) {
     return match.addMatchedToGroups({}, match.matched, (nextMatch) => nextMatch.compile())
   }
+  /** Compile the output of the match groups for `match`. */
+  compileGroups(match: Match) {
+    return match.addMatchedToGroups({}, match.matched, (nextMatch) => nextMatch.compile())
+  }
 
   getGroupsForMatch(match: Match) {
     return match.addMatchedToGroups({}, match.matched)
   }
 
   // Echo this rule back out.
-  toSyntax() {
-    const { argument, optional } = this.getSyntaxFlags()
-    const rules = this.rules.map((rule) => rule.toSyntax()).join(" ")
+  toRulexSyntax() {
+    const { argument, optional } = this.getRulexFlags()
+    const rules = this.rules.map((rule) => rule.toRulexSyntax()).join(" ")
     if (optional || argument) return `(${argument}${rules})${optional}`
     return `${rules}${optional}`
   }

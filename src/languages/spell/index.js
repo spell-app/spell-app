@@ -4,7 +4,7 @@
 //  or risk circular import problems.
 //
 
-export { AST } from "./ast"
+export { AST } from "../../parser/ast"
 // Base parser class
 export { SpellParser } from "./SpellParser"
 // Instance of parser with "core" rules applied

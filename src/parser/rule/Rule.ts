@@ -4,8 +4,9 @@
 import { Derivative } from "~/util/Derivative"
 import { TestLocation } from "~/parser/constants"
 import type { Token } from "~/parser/tokenizer/Tokens"
-import type { Match, MatchGroups } from "~/parser/Match"
+import type { Match } from "~/parser/Match"
 import type { Scope } from "~/parser/scope/Scope"
+import type { ASTNode } from "~/parser/ast/AST"
 
 // Re-export Scope
 export type { Scope } from "~/parser/scope/Scope"
@@ -92,19 +93,19 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
   // Define properties on prototype to keep instances as small as possible
   // and so that `Object.keys()` only returns properties defined in the instance.
   static {
-    Object.defineProperty(this.prototype, "module", { writable: true })
-    Object.defineProperty(this.prototype, "name", { writable: true })
-    Object.defineProperty(this.prototype, "description", { writable: true })
-    Object.defineProperty(this.prototype, "alias", { writable: true })
     Object.defineProperty(this.prototype, "precedence", { value: 0, writable: true })
-    Object.defineProperty(this.prototype, "datatype", { writable: true })
-    Object.defineProperty(this.prototype, "syntax", { writable: true })
-    Object.defineProperty(this.prototype, "testRule", { writable: true })
-    Object.defineProperty(this.prototype, "testLocation", { writable: true })
-    Object.defineProperty(this.prototype, "argument", { writable: true })
-    Object.defineProperty(this.prototype, "optional", { writable: true })
-    Object.defineProperty(this.prototype, "tests", { writable: true })
-    Object.defineProperty(this.prototype, "scope", { writable: true })
+    // Object.defineProperty(this.prototype, "module", { writable: true })
+    // Object.defineProperty(this.prototype, "name", { writable: true })
+    // Object.defineProperty(this.prototype, "description", { writable: true })
+    // Object.defineProperty(this.prototype, "alias", { writable: true })
+    // Object.defineProperty(this.prototype, "datatype", { writable: true })
+    // Object.defineProperty(this.prototype, "syntax", { writable: true })
+    // Object.defineProperty(this.prototype, "testRule", { writable: true })
+    // Object.defineProperty(this.prototype, "testLocation", { writable: true })
+    // Object.defineProperty(this.prototype, "argument", { writable: true })
+    // Object.defineProperty(this.prototype, "optional", { writable: true })
+    // Object.defineProperty(this.prototype, "tests", { writable: true })
+    // Object.defineProperty(this.prototype, "scope", { writable: true })
   }
 
   // props: Record<string,any>
@@ -142,6 +143,14 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
    * You may want to look at `match.matched` or `match.results`, etc.
    */
   abstract compile(match: Match): string
+
+  /**
+   * Some parsers compile by generating an "Abstract Syntax Tree" (AST) first,
+   * then calling `AST.compile()`.
+   *
+   * If you implement this, you must return an `ASTNode` object.
+   */
+  declare getAST?: (match: Match) => ASTNode
 
   ////////////////////
   // ## Quick testing methods
@@ -246,10 +255,13 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
     return !!(this.argument || this.testLocation)
   }
 
-  // Return syntax string for this rule (doesn't apply to all rule types).
-  // The base implementation takes care of the "adornments" and returns an object with:
-  //  `{ testLocation, argument, optional }`
-  getSyntaxFlags(): SyntaxFlags {
+  /** Return rulex string for this rule. */
+  toRulexSyntax(): string {
+    return ""
+  }
+
+  /** Return rulex syntax strings for rule flags. */
+  getRulexFlags(): SyntaxFlags {
     const { testLocation, argument, optional } = this
     return {
       testLocation: testLocation === TestLocation.AT_START ? "…" : testLocation === TestLocation.ANYWHERE ? "^" : "",

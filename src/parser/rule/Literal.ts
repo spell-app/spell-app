@@ -57,13 +57,13 @@ export abstract class Literal extends Rule<LiteralProps> {
     return match.value
   }
 
-  toSyntax() {
+  toRulexSyntax() {
     const isVariable = Array.isArray(this.literal)
     let literalString = this.literal
     if (isVariable) literalString = (this.literal as string[]).join("|")
     else if (this.isEscaped) literalString = `\\${this.literal}`
 
-    const { testLocation, argument, optional } = this.getSyntaxFlags()
+    const { testLocation, argument, optional } = this.getRulexFlags()
     const wrapInParens = isVariable || argument || (this.isEscaped && optional)
     if (wrapInParens) return `${testLocation}(${argument}${literalString})${optional}`
     return `${testLocation}${literalString}${optional}`

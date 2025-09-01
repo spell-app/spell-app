@@ -130,9 +130,9 @@ export class Choice extends Rule<ChoiceProps> {
     return longest
   }
 
-  toSyntax() {
-    const { testLocation, argument, optional } = this.getSyntaxFlags()
-    const rules = this.rules.map((rule) => rule.toSyntax()).join("|")
+  toRulexSyntax() {
+    const { testLocation, argument, optional } = this.getRulexFlags()
+    const rules = this.rules.map((rule) => rule.toRulexSyntax()).join("|")
     return `${testLocation}(${argument}${rules})${optional}`
   }
 }

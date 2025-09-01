@@ -4,6 +4,7 @@ import omit from "lodash/omit"
 import { Rule, Token, Rules } from "~/parser"
 import { Assertable } from "~/util"
 import { Scope, ScopeConstructor } from "./scope/Scope"
+import type { ASTNode } from "./ast/AST"
 
 export type MatchGroups = Record<string, any>
 
@@ -28,16 +29,27 @@ export type MatchProps = {
 export class Match extends Assertable {
   static DEBUG_MATCH_INITIALIZATION = true
 
+  /** Main rule that matched. */
   declare rule: Rule
   /** Raw input tokens that were matched. */
   declare input: Token[]
+  /** Things what were matched, which may be `Matches` or `Tokens`. */
+  // TODO: can we get `tokens` out of here?
   declare matched: (Match | Token)[]
+  /** Additional items that were matched, which may be `Matches` or `Tokens`. */
   declare items: any[]
+  /** Length of the match in tokens. */
   declare length: number
+  /** Scope in which the match was made. */
   declare scope: Scope
+  /** Argument for this match. */
   declare argument: string | undefined
+  /** Raw input text that was matched. */
   declare raw: string | undefined
+  /** Value of the match. */
   declare value: any
+  /** Message for this match. */
+  // REFACTOR: errorMessage?
   declare message: string | undefined
 
   constructor(props: MatchProps) {
@@ -94,7 +106,7 @@ export class Match extends Assertable {
   // Returns `undefined` if nothing works.
   matchForOffset(offset: number) {
     return this.matched.find((match) => {
-      if (match instanceof Token) return false
+      if (!(match instanceof Match)) return false
       const { start, end } = match
       return start !== undefined && start <= offset && end !== undefined && end > offset
     }) as Match | undefined
@@ -153,7 +165,7 @@ export class Match extends Assertable {
 
   addMatchedToGroups(groups: MatchGroups, matched: Array<Match | Token>, callback?: (match: Match) => any) {
     for (let i = 0, match; (match = matched[i]); i++) {
-      if (match instanceof Token) continue
+      if (!(match instanceof Match)) continue
       // if the match has a name:
       const { name } = match
       if (name) {
@@ -216,9 +228,12 @@ export class Match extends Assertable {
   // ## Compilation
   ////////////////////
 
-  // Return the Abstract Syntax Tree for this match.
-  /*@memoize*/
-  get AST() {
+  /**
+   * Return the Abstract Syntax Tree (AST) node for this match.
+   * - Some languages (e.g. Spell) convert to an AST first, then compile().
+   * - NOTE: always use `match.AST` to access so we re-use the AST object.
+   */
+  get AST(): ASTNode | undefined {
     return this.derived("AST", () => {
       if (!this.rule.getAST) {
         console.warn("No getAST() method defined for rule: ", this.rule)
@@ -228,20 +243,23 @@ export class Match extends Assertable {
     })
   }
 
-  // Compile the output of the match.
-  compile() {
+  /** Compile the output of the match and return as a string. */
+  compile(): string | undefined {
     // Some languages (e.g. Spell) convert to an AST first, then compile().
     if (this.rule.getAST) {
-      return this.AST.compile()
+      return this.AST?.compile() as string | undefined
     }
-    // NOTE: this should NOT be used for spell, but will be used for other languages
     return this.rule.compile(this)
   }
 
-  // Syntactic sugar to compile the match w/o calling a function.
-  get js() {
+  /** Syntactic sugar to compile the match w/o calling a function. */
+  get js(): string | undefined {
     return this.compile()
   }
+
+  ////////////////////
+  // ## Debug
+  ////////////////////
 
   // DEBUG: Call this when printing to the console to eliminate the big bits in node.
   toPrint() {

@@ -43,8 +43,8 @@ export class Subrule extends Rule<SubruleProps> {
     return ""
   }
 
-  toSyntax() {
-    const { testLocation, argument, optional } = this.getSyntaxFlags()
+  toRulexSyntax() {
+    const { testLocation, argument, optional } = this.getRulexFlags()
     return `${testLocation}{${argument}${this.rule}}${optional}`
   }
 }
