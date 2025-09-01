@@ -10,7 +10,7 @@ import nodejs_path from "path"
 import fse, { Stats, CopyOptions, MoveOptions } from "fs-extra"
 import filterAsync from "node-filter-async"
 
-import { isFileOrFolderNotFoundError } from "./response-utils.ts"
+import { isFileOrFolderNotFoundError } from "./response-utils"
 
 //----------------------------
 //  File encoding formats for `readFile()`, `writeFile()`, etc.
@@ -18,7 +18,7 @@ import { isFileOrFolderNotFoundError } from "./response-utils.ts"
 export const FORMAT = {
   TEXT: "utf8",
   BINARY: "binary",
-  BASE64: "base64",
+  BASE64: "base64"
 } as const
 // REFACTOR: rename?  Get this from somewhere else?
 type EncodingFormat = (typeof FORMAT)[keyof typeof FORMAT]
@@ -223,7 +223,7 @@ export async function getFolderContents(path: string, options: GetFolderContents
     namesOnly = false,
     ignoreHidden = false,
     ignoreEmptyFolders = false,
-    pattern,
+    pattern
   } = options
 
   // get "paths" and convert to full paths

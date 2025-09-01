@@ -1,8 +1,8 @@
 import { Prettify } from "~/types.js"
-import { Tokenizer } from "~/parser/tokenizer/Tokenizer.ts"
-import { Token } from "~/parser/tokenizer/Tokens.ts"
+import { Tokenizer } from "~/parser/tokenizer/Tokenizer"
+import { Token } from "~/parser/tokenizer/Tokens"
 import { Rule, type RuleProps, type Scope } from "./Rule.js"
-import { Match } from "~/parser/Match.ts"
+import { Match } from "~/parser/Match"
 
 // Turn on debugging of choice / precedence semantics
 const DEBUG_CHOICES = false

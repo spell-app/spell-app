@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest"
-import * as Tokens from "./Tokens.ts"
-import { Tokenizer } from "./Tokenizer.ts"
+import * as Tokens from "./Tokens"
+import { Tokenizer } from "./Tokenizer"
 
 // Turn off tokenizer warnings in the console
 // Tokenizer.prototype.logger.setDebugLevel("ERROR")

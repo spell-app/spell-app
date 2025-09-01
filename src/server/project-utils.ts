@@ -4,9 +4,9 @@
  */
 import { Request, Response } from "express"
 import environment from "~/environment.js"
-import * as fileUtils from "./file-utils.ts"
-import * as responseUtils from "./response-utils.ts"
-import { SpellLocation } from "~/languages/spell/SpellLocation.ts"
+import * as fileUtils from "./file-utils"
+import * as responseUtils from "./response-utils"
+import { SpellLocation } from "~/languages/spell/SpellLocation"
 import { spellParser } from "~/languages/spell"
 
 const { respondWithJSON } = responseUtils

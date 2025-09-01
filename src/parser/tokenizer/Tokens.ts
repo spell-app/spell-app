@@ -1,4 +1,4 @@
-import { Prettify } from "~/global_types.ts"
+import { Prettify } from "~/global_types"
 import type { IdentifierBlacklist } from "../types"
 
 /**

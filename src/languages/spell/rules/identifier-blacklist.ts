@@ -1,4 +1,4 @@
-import { IdentifierBlacklist } from "~/parser/types.ts"
+import { IdentifierBlacklist } from "~/parser/types"
 
 // Blacklist of common english words which may not be used as single-word identifiers.
 export const identifierBlacklist: IdentifierBlacklist = {

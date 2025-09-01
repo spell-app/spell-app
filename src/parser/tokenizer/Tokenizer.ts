@@ -1,7 +1,7 @@
 /* eslint-disable no-continue */
-import * as Tokens from "./Tokens.ts"
-import { Token } from "./Tokens.ts"
-import { Logger } from "~/util/Logger.ts"
+import * as Tokens from "./Tokens"
+import { Token } from "./Tokens"
+import { Logger } from "~/util/Logger"
 import { WhitespacePolicy, BACKSLASH, DOUBLE_QUOTE, SINGLE_QUOTE } from "../types.js"
 
 type TokenizerProps = {

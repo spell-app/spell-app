@@ -7,7 +7,7 @@
 export { Rule } from "./Rule"
 
 // The following subclasses of rule are ALWAYS accessed as `Rules.XXX`
-export { BlankLine } from "./BlankLine.ts"
+export { BlankLine } from "./BlankLine"
 export { Choice, Group } from "./Choice"
 export { Literal, Keyword, Symbol } from "./Literal"
 export { Literals, Keywords, Symbols } from "./Literals"

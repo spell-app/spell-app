@@ -4,7 +4,7 @@ import express_json5 from "express-json5"
 import path from "path"
 
 import environment from "../environment.js"
-import { api } from "./api.ts"
+import { api } from "./api"
 
 const app = express()
 
@@ -25,12 +25,12 @@ app.get("/hello", (request: Request, response: Response) => {
 app.use("/api", api)
 
 // Serve static files from the dist directory in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(process.cwd(), 'dist')))
-  
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(process.cwd(), "dist")))
+
   // Serve index.html for all non-API routes (SPA routing)
-  app.get('*', (req: Request, res: Response) => {
-    res.sendFile(path.join(process.cwd(), 'dist', 'index.html'))
+  app.get("*", (req: Request, res: Response) => {
+    res.sendFile(path.join(process.cwd(), "dist", "index.html"))
   })
 } else {
   // Development: serve static files from the static directory

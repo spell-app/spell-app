@@ -1,7 +1,7 @@
 import { Prettify } from "~/types.js"
 import { Rule, type RuleProps, type Scope } from "./Rule.js"
-import { Token } from "~/parser/tokenizer/Tokens.ts"
-import { Match } from "~/parser/Match.ts"
+import { Token } from "~/parser/tokenizer/Tokens"
+import { Match } from "~/parser/Match"
 
 export type SubruleProps = Prettify<
   RuleProps & {

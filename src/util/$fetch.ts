@@ -12,8 +12,8 @@ import {
   AuthenticationError,
   ResponseParseError,
   AbortedRequestError
-} from "./ResponseErrors.ts"
-import { Prettify } from "~/global_types.ts"
+} from "./ResponseErrors"
+import { Prettify } from "~/global_types"
 
 /** Merge multiple sets of `$fetch()` `params` and set up defaults. */
 export function merge$fetchParms(...allParams: Array<Partial<$FetchParams>>) {

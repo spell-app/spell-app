@@ -1,14 +1,14 @@
 //  # Parser Rules
 //
 
-import { Derivative } from "~/util/Derivative.ts"
+import { Derivative } from "~/util/Derivative"
 import { TestLocation } from "~/parser/constants"
-import type { Token } from "~/parser/tokenizer/Tokens.ts"
-import type { Match } from "~/parser/Match.ts"
-import type { Scope } from "~/parser/scope/Scope.ts"
+import type { Token } from "~/parser/tokenizer/Tokens"
+import type { Match } from "~/parser/Match"
+import type { Scope } from "~/parser/scope/Scope"
 
 // Re-export Scope
-export type { Scope } from "~/parser/scope/Scope.ts"
+export type { Scope } from "~/parser/scope/Scope"
 
 export type RuleProps = {
   module?: string
@@ -199,6 +199,18 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
     if (undefinedFound) return undefined
     return false
   }
+
+  ////////////////////
+  // ## Match groups
+  ////////////////////
+
+  getGroupsForMatch(match: Match, callback?: (match: Match) => any) {
+    return match.addMatchedToGroups({}, [match], callback)
+  }
+
+  ////////////////////
+  // ## Rulex syntax
+  ////////////////////
 
   /**
    * We attempt to merge literals or sequences together when creating rules.

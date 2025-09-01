@@ -1,4 +1,4 @@
-import type { Prettify, SplitString } from "~/types.ts"
+import type { Prettify, SplitString } from "~/types"
 
 /** Given a list of group names separated by `:`, return an object which represents the available groups. */
 type MatchGroups<GroupString extends string, ValueType = string> = Prettify<

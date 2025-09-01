@@ -6,8 +6,8 @@ import express, { Request, Response, NextFunction } from "express"
 import chalk from "chalk"
 import JSON5 from "json5"
 
-import * as responseUtils from "./response-utils.ts"
-import * as projectUtils from "./project-utils.ts"
+import * as responseUtils from "./response-utils"
+import * as projectUtils from "./project-utils"
 
 // Create the api api.
 export const api = express.Router()

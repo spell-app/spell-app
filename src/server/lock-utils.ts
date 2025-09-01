@@ -1,6 +1,6 @@
 import lockfile from "proper-lockfile"
-import { getPathFolder, makeFolder, saveFile } from "./file-utils.ts"
-import { isFileOrFolderNotFoundError } from "./response-utils.ts"
+import { getPathFolder, makeFolder, saveFile } from "./file-utils"
+import { isFileOrFolderNotFoundError } from "./response-utils"
 
 //----------------------------
 //  Locking / Unlocking files

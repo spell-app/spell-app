@@ -1,5 +1,5 @@
 export * from "./constants"
-export * from "./types.ts"
+export * from "./types"
 export * from "./tokenizer"
 export { Match } from "./Match"
 export * from "./rule"
