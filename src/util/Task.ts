@@ -284,7 +284,7 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
 
   /** Set to true to debug to the console as we operate. */
   get debug() {
-    return this.getProp("debug", () => true)
+    return this.getProp("debug", () => false)
   }
   set debug(debug: boolean) {
     this.setProp("debug", debug)

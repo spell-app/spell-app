@@ -176,7 +176,7 @@ export class SpellProject extends JSON5File {
   get compiler() {
     return this.derived("compiler", () => {
       return new TaskList({
-        debug: true,
+        debug: false,
         name: `Compiling ${this.type}: ${this.projectName}`,
         tasks: [
           this.parser,
