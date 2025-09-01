@@ -82,7 +82,6 @@ export class Repeat extends Rule<RepeatProps> {
       matched,
       items,
       tokens: flattenDeep(matched.map((next) => next.tokens)),
-      length,
       scope
     })
     if (this.argument) match.argument = this.argument

@@ -29,7 +29,6 @@ SpellParser.Rules.BlockLine = class line extends Rule {
         new Match({
           rule: scope.parser.getRuleOrDie("blank_line"),
           matched: [token],
-          length: 1,
           tokens: [token],
           scope
         })
@@ -113,7 +112,6 @@ SpellParser.Rules.BlockLine = class line extends Rule {
       matched,
       errors: errors.length ? errors : undefined,
       tokens: tokensMatched,
-      length: tokensMatched.length,
       scope
     })
   }

@@ -79,7 +79,6 @@ export class NestedSplit extends Rule<NestedSplitProps> {
       items, // the items we matched
       matched, // optional prefix + items matched
       tokens: tokens_used,
-      length: end + 1,
       scope
     })
   }

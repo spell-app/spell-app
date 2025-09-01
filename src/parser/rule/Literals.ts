@@ -66,7 +66,6 @@ export abstract class Literals extends Rule<LiteralsProps> {
       matched,
       value: matched.join("").trim(),
       tokens: [...matched],
-      length: tokensMatched,
       scope
     })
   }

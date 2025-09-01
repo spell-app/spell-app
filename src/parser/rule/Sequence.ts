@@ -81,7 +81,6 @@ export class Sequence extends Rule<SequenceProps> {
       // TODOC: WHY??  FOR USE AS A LITERAL STRING??
       value: usedTokens.join("").trim(),
       tokens: flattenDeep(matched.map((next) => next.tokens)),
-      length,
       scope
     })
   }

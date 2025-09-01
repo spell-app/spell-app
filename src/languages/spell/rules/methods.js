@@ -457,14 +457,11 @@ export const methods = new SpellParser({
       constructor: class quoted_method_signature extends Rules.TokenType {
         parse(scope, tokens) {
           const match = super.parse(scope, tokens)
-          // TODO: returned match is off in terms of char positions matched
           const signature = match && scope.parse(JSON.parse(match.value), "method_signature")
           if (!signature || !signature.groups.foundKeyword) return undefined
-          // HACK: swizzle matched, input and length to reflect that we actually matched a string
-          // TODO: necessary???
+          // Swizzle tokens & matched to reflect the original match
           signature.tokens = match.tokens
           signature.matched = [match]
-          signature.length = 1
           return signature
         }
       }

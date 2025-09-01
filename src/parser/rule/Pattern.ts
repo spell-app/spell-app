@@ -58,7 +58,6 @@ export class Pattern extends Rule<PatternProps> {
       raw,
       value,
       tokens: [tokens[0]],
-      length: 1,
       scope
     })
   }

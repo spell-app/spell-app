@@ -12,7 +12,7 @@ export type TokenTypeProps = Prettify<
 >
 
 /**
- * Abstract rule for matching tokens of a particular type.
+ * Abstract rule for matching a single token of a particular type.
  */
 export class TokenType extends Rule<TokenTypeProps> {
   /** Constructor for the token type we match. */
@@ -30,7 +30,6 @@ export class TokenType extends Rule<TokenTypeProps> {
       raw: tokens[0].raw,
       value: tokens[0].value,
       tokens: [tokens[0]],
-      length: 1,
       scope
     })
   }

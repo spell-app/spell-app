@@ -14,7 +14,6 @@ export type MatchProps = {
   tokens: Token[]
   matched: (Match | Token)[]
   items?: Match[]
-  length: number
   argument?: string
   raw?: string
   value?: any
@@ -39,15 +38,13 @@ export class Match extends Assertable {
   declare matched: (Match | Token)[]
   /** Additional items that were matched, which may be `Matches` or `Tokens`. */
   declare items: any[]
-  /** Length of the match in tokens. */
-  declare length: number
   /** Scope in which the match was made. */
   declare scope: Scope
   /** Argument for this match. */
   declare argument: string | undefined
-  /** Raw input text that was matched. */
+  /** Raw input text that was matched, not including trailing whitespace. */
   declare raw: string | undefined
-  /** Value of the match. */
+  /** Value of the match. For a Pattern, this will be `match.raw` run through VALUE_MAP. */
   declare value: any
   /** Message for this match. */
   // REFACTOR: errorMessage?
@@ -62,8 +59,6 @@ export class Match extends Assertable {
       this.assertType("scope", Scope)
       this.assertType("rule", Rule)
       this.assertArrayType("tokens", Token)
-      this.assertType("length", "number")
-      this.assert(this.length === this.tokens.length, "length does not match input length")
     }
   }
 
@@ -75,6 +70,11 @@ export class Match extends Assertable {
   // Return the `name` for our rule, using `rule.constructor.name` for anonymous rules.
   get ruleName(): string | undefined {
     return this.rule.name || this.rule.constructor.name
+  }
+
+  /** Number of tokens matched. */
+  get length() {
+    return this.tokens.length
   }
 
   /** Raw input text, including whitespace. */
@@ -158,7 +158,6 @@ export class Match extends Assertable {
     if (argument) match.argument = argument
     this.matched.push(match)
     this.tokens.push(...match.tokens)
-    this.length += match.length
 
     // Add the match to existing groups
     if (groups) this.addMatchedToGroups(groups, [match])
