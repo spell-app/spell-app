@@ -81,7 +81,7 @@ export class Repeat extends Rule<RepeatProps> {
       rule: this,
       matched,
       items,
-      input: flattenDeep(matched.map((next) => next.input)),
+      tokens: flattenDeep(matched.map((next) => next.tokens)),
       length,
       scope
     })

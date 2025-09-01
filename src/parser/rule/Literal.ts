@@ -47,7 +47,7 @@ export abstract class Literal extends Rule<LiteralProps> {
       rule: this,
       matched: [tokens[0]],
       value: tokens[0].value,
-      input: [tokens[0]],
+      tokens: [tokens[0]],
       length: 1,
       scope
     })

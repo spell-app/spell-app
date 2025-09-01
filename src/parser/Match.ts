@@ -11,7 +11,7 @@ export type MatchGroups = Record<string, any>
 export type MatchProps = {
   scope: Scope
   rule: Rule
-  input: Token[]
+  tokens: Token[]
   matched: (Match | Token)[]
   items?: Match[]
   length: number
@@ -24,7 +24,7 @@ export type MatchProps = {
  * Result of a successful `rule.parse()`.
  * This is a flyweight object which links a rule with the tokens that it successfully matched.
  * - `match.rule`     - (required) Immutable `Rule` instance that was matched.
- * - `match.input`    - (required) Array of `Tokens` that were matched
+ * - `match.tokens`   - (required) Array of `Tokens` that were matched
  * - `match.matched`  - (required) Array of `Matches` or `Tokens` matched.
  */
 export class Match extends Assertable {
@@ -33,7 +33,7 @@ export class Match extends Assertable {
   /** Main rule that matched. */
   declare rule: Rule
   /** Raw input tokens that were matched. */
-  declare input: Token[]
+  declare tokens: Token[]
   /** Things what were matched, which may be `Matches` or `Tokens`. */
   // TODO: can we get `tokens` out of here?
   declare matched: (Match | Token)[]
@@ -61,9 +61,9 @@ export class Match extends Assertable {
     if (Match.DEBUG_MATCH_INITIALIZATION) {
       this.assertType("scope", Scope)
       this.assertType("rule", Rule)
-      this.assertArrayType("input", Token)
+      this.assertArrayType("tokens", Token)
       this.assertType("length", "number")
-      this.assert(this.length === this.input.length, "length does not match input length")
+      this.assert(this.length === this.tokens.length, "length does not match input length")
     }
   }
 
@@ -79,22 +79,22 @@ export class Match extends Assertable {
 
   /** Raw input text, including whitespace. */
   get inputText(): string {
-    return this.input?.join("") || ""
+    return this.tokens?.join("") || ""
   }
 
   /** Start line number in the source stream. Start line number in the source stream.*/
   get line(): number | undefined {
-    return this.input[0]?.line
+    return this.tokens[0]?.line
   }
 
   /** Start char number within our `line` in the source stream. */
   get char(): number | undefined {
-    return this.input[0]?.ch
+    return this.tokens[0]?.ch
   }
 
   /** Character offset of start position in the source stream. */
   get start(): number | undefined {
-    return this.input[0]?.offset
+    return this.tokens[0]?.offset
   }
 
   /** Character offset of end position in the source stream. */
@@ -157,7 +157,7 @@ export class Match extends Assertable {
 
     if (argument) match.argument = argument
     this.matched.push(match)
-    this.input.push(...match.input)
+    this.tokens.push(...match.tokens)
     this.length += match.length
 
     // Add the match to existing groups

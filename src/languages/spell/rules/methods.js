@@ -462,7 +462,7 @@ export const methods = new SpellParser({
           if (!signature || !signature.groups.foundKeyword) return undefined
           // HACK: swizzle matched, input and length to reflect that we actually matched a string
           // TODO: necessary???
-          signature.input = match.input
+          signature.tokens = match.tokens
           signature.matched = [match]
           signature.length = 1
           return signature

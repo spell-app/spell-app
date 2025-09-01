@@ -70,7 +70,7 @@ export function TokenView({ token }) {
 
 export function JSXElementView({ match }) {
   const { ruleName } = match
-  const { tagName, isUnaryTag } = match.input[0]
+  const { tagName, isUnaryTag } = match.tokens[0]
   // console.info({ match, ruleName, rule: match.rule, tagName })
   if (ruleName === "jsxText") return <JSXTextView match={match} />
   if (ruleName === "jsxExpression") return <JSXExpressionView match={match} />

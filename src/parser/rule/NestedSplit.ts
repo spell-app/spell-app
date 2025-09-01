@@ -73,12 +73,12 @@ export class NestedSplit extends Rule<NestedSplitProps> {
     }
     if (!matched.length) return undefined
 
-    const input = tokens.slice(0, end + 1)
+    const tokens_used = tokens.slice(0, end + 1)
     return new Match({
       rule: this,
       items, // the items we matched
       matched, // optional prefix + items matched
-      input,
+      tokens: tokens_used,
       length: end + 1,
       scope
     })

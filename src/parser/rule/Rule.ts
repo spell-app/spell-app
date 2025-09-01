@@ -50,7 +50,7 @@ export type SyntaxFlags = {
  *    - `match.rule`        : pointer back to the matched rule.
  *    - `match.scope`       : the scope in which the rule was matched.
  *    - `match.matched`     : array of *significant* tokens that were actually matched.
- *    - `match.input`       : array of all tokens that were consumed.
+ *    - `match.tokens`      : array of all tokens that were consumed.
  *    - `match.value`       : the "value" of the match, which is rule-specific.
  *    ... and other rule-specific values.
  *

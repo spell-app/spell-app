@@ -57,7 +57,7 @@ export class Pattern extends Rule<PatternProps> {
       matched: [tokens[0]],
       raw,
       value,
-      input: [tokens[0]],
+      tokens: [tokens[0]],
       length: 1,
       scope
     })

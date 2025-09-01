@@ -75,7 +75,7 @@ export class SpellParser extends Parser {
       scope,
       rule,
       matched: tokens,
-      input: [...tokens],
+      tokens: [...tokens],
       length: tokens.length,
       message
     })

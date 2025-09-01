@@ -20,7 +20,7 @@ SpellParser.Rules.BlockLine = class line extends Rule {
     if (!line) return undefined
     const matched = []
     const errors = []
-    const input = [line]
+    const tokensMatched = [line]
     const { tokens } = line
     // Blank line
     if (tokens.length === 0) {
@@ -30,7 +30,7 @@ SpellParser.Rules.BlockLine = class line extends Rule {
           rule: scope.parser.getRuleOrDie("blank_line"),
           matched: [token],
           length: 1,
-          input: [token],
+          tokens: [token],
           scope
         })
       )
@@ -76,8 +76,8 @@ SpellParser.Rules.BlockLine = class line extends Rule {
           if (nestedBlock) {
             // add any errors in the nestedBlock to `errors`
             if (nestedBlock.errors) errors.push(...nestedBlock.errors)
-            // add the nestedBlock to `input` to account for it in the output
-            input.push(nextItem)
+            // add the nestedBlock to `tokensMatched` to account for it in the output
+            tokensMatched.push(nextItem)
           }
         }
 
@@ -112,8 +112,8 @@ SpellParser.Rules.BlockLine = class line extends Rule {
       rule: this,
       matched,
       errors: errors.length ? errors : undefined,
-      input,
-      length: input.length,
+      tokens: tokensMatched,
+      length: tokensMatched.length,
       scope
     })
   }

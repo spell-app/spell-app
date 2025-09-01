@@ -52,7 +52,7 @@ SpellParser.Rules.Block = class block extends Rule {
       matched,
       errors: errors.length ? errors : undefined,
       scope,
-      input: [block],
+      tokens: [block],
       length: 1, // matched one OUTER block...
     })
   }

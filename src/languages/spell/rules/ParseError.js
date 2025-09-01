@@ -12,7 +12,7 @@ export const ParseError = class parse_error extends Rule {
       scope,
       rule: this,
       matched: tokens,
-      input: [...tokens],
+      tokens: [...tokens],
       length: tokens.length
     })
   }
@@ -34,7 +34,7 @@ Object.defineProperty(SpellParser.prototype, "createParseError", {
       scope,
       rule,
       matched: tokens,
-      input: [...tokens],
+      tokens: [...tokens],
       length: tokens.length,
       message
     })
