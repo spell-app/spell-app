@@ -201,11 +201,27 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
   }
 
   ////////////////////
-  // ## Match groups
+  // ## Match groups & scopes
   ////////////////////
 
+  /**
+   * Return match `groups` for this match.
+   * - Some rules derive additional groups based on analysis of "normal" groups.
+   * - NOTE: always use `match.groups` to access so we re-use the same `groups` object.
+   */
   getGroupsForMatch(match: Match) {
     return match.addMatchedToGroups({}, [match])
+  }
+
+  /**
+   * Return `scope` to use to parse "nested" contents of the match,
+   * e.g. a method signature will define a nested MethodScope to compile the method body
+   * which includes the method arguments.
+   * - By default, we just return the `match.scope` -- some rules may derive a new scope.
+   * - NOTE: always use `match.nestedScope` to access so we re-use the scope object.
+   */
+  getNestedScopeForMatch(match: Match) {
+    return match.scope
   }
 
   ////////////////////

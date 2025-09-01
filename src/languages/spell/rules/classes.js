@@ -584,17 +584,11 @@ export const classes = new SpellParser({
       name: "property_value_getter",
       alias: "statement",
       syntax: "the {property} of (a|an) {type:known_type} is :?",
+      wantsInlineStatement: true,
+      parseInlineStatementAs: "expression",
+      wantsNestedBlock: true,
       constructor: class property_value_getter extends SpellStatement {
-        get wantsInlineStatement() {
-          return true
-        }
-        get parseInlineStatementAs() {
-          return "expression"
-        }
-        get wantsNestedBlock() {
-          return true
-        }
-        getNestedScope(match) {
+        getNestedScopeForMatch(match) {
           const { type } = match.groups
           return new MethodScope({
             parentScope: match.scope,

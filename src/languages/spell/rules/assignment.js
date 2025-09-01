@@ -183,16 +183,11 @@ export const assignment = new SpellParser({
       alias: "statement",
       syntax: "(return|exit with?) {expression}?",
       testRule: "(return|exit)",
+      wantsInlineStatement: true,
+      parseInlineStatementAs: "expression",
+      wantsNestedBlock: true,
+      parseNestedBlockAs: "expression",
       constructor: class return_statement extends SpellStatement {
-        get wantsNestedBlock() {
-          return true
-        }
-        get parseNestedBlockAs() {
-          return "expression"
-        }
-        getNestedScope(match) {
-          return match.scope
-        }
         getAST(match) {
           const result = match.groups.expression || match.groups.nestedBlock
           return new AST.ReturnStatement(match, { value: result?.AST })

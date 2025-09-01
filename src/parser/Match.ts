@@ -179,15 +179,18 @@ export class Match extends Assertable {
   // ## Scopes
   ////////////////////
 
-  // Return nested scope for nested block statements.
-  // NOTE: ALWAYS GET THIS FROM THE MATCH!!!
-  /*@memoize*/
+  /**
+   * Return `scope` to use to parse "nested" contents of the match,
+   * e.g. a method signature will define a nested MethodScope to compile the method body
+   * which includes the method arguments.
+   * - NOTE: always use `match.nestedScope` to access so we re-use the scope object.
+   */
   get nestedScope() {
-    return this.derived("nestedScope", () => this.rule.getNestedScope?.(this))
+    return this.derived("nestedScope", () => this.rule.getNestedScopeForMatch(this))
   }
 
   /**
-   * Return array of `scope` by looking up parentScope chains, with our scope first.
+   * Return array of `scopes` by looking up parentScope chains, with our scope first.
    */
   get scopes() {
     const scopes = []

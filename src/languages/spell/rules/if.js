@@ -15,14 +15,10 @@ export const _if_ = new SpellParser({
       alias: "statement",
       syntax: "if {condition:expression} (then|:)?",
       testRule: "if",
+      wantsInlineStatement: true,
+      wantsNestedBlock: true,
       constructor: class _if extends SpellStatement {
-        get wantsInlineStatement() {
-          return true
-        }
-        get wantsNestedBlock() {
-          return true
-        }
-        getNestedScope(match) {
+        getNestedScopeForMatch(match) {
           return new BlockScope({ name: "if", parentScope: match.scope })
         }
         getAST(match) {
@@ -104,14 +100,10 @@ export const _if_ = new SpellParser({
       syntax: "(else|otherwise) if {condition:expression} (then|:)?",
       testRule: "(else|otherwise)",
       precedence: 1,
+      wantsInlineStatement: true,
+      wantsNestedBlock: true,
       constructor: class else_if extends SpellStatement {
-        get wantsInlineStatement() {
-          return true
-        }
-        get wantsNestedBlock() {
-          return true
-        }
-        getNestedScope(match) {
+        getNestedScopeForMatch(match) {
           return new BlockScope({ name: "elseif", parentScope: match.scope })
         }
         getAST(match) {
@@ -185,14 +177,10 @@ export const _if_ = new SpellParser({
       alias: "statement",
       syntax: "(else|otherwise) :?",
       testRule: "(else|otherwise)",
+      wantsInlineStatement: true,
+      wantsNestedBlock: true,
       constructor: class _else extends SpellStatement {
-        get wantsInlineStatement() {
-          return true
-        }
-        get wantsNestedBlock() {
-          return true
-        }
-        getNestedScope(match) {
+        getNestedScopeForMatch(match) {
           return new BlockScope({ name: "else", parentScope: match.scope })
         }
         getAST(match) {

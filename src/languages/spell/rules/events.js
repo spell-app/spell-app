@@ -53,14 +53,10 @@ export const events = new SpellParser({
       alias: "statement",
       syntax: "on event? {eventName:keyword} {props:with_props_arg}? :?",
       //syntax: "on event? {eventName:keyword}:?",
+      wantsInlineStatement: true,
+      wantsNestedBlock: true,
       constructor: class on extends SpellStatement {
-        get wantsInlineStatement() {
-          return true
-        }
-        get wantsNestedBlock() {
-          return true
-        }
-        getNestedScope(match) {
+        getNestedScopeForMatch(match) {
           const { eventName, props } = match.groups
           const args = ["event"]
           if (props) args.push(...props.groups.props.map(({ name }) => name))

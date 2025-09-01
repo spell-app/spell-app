@@ -32,18 +32,11 @@ export class SpellStatement extends Rules.Sequence {
     return statement
   }
 
-  // Return nested scope to use when parsing an inlineStatement or nestedBlock.
-  // Override in your instance.
-  getNestedScope(match) {
-    return undefined
-    // throw new TypeError("You must override getNestedScope()")
-  }
-
   // If a parsed `statement` match `.wantsInlineStatement`,
   // attempt to parse `unparsed` tokens from the end of the input line.
   // Returns `inlineStatement` match if successful.
   parseInlineStatement(statement, unparsed, parseAs = this.parseInlineStatementAs) {
-    const inlineStatement = statement.nestedScope?.parse(unparsed, parseAs)
+    const inlineStatement = statement.nestedScope.parse(unparsed, parseAs)
     if (inlineStatement) {
       statement.addMatch(inlineStatement, "inlineStatement")
       // TODO: ???  call `mutateScope()` to initialize any variables/rules/etc
@@ -56,7 +49,7 @@ export class SpellStatement extends Rules.Sequence {
   // attempt to parse `nestedBlock` from `block.contents`.
   // Returns `nestedBlock` match if successful.
   // TODO: complain if we also have an inlineStatement???
-  // NOTE: this will throw if rule does not implement `getNestedScope`
+  // NOTE: this will throw if rule does not implement `getNestedScopeForMatch`
   parseNestedBlock(statement, nestedBlock, parseAs = this.parseNestedBlockAs) {
     let result
     if (parseAs === "block") {
