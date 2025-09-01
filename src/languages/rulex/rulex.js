@@ -358,17 +358,17 @@ rulex.defineRules(
       new Rules.NestedSplit({
         argument: "split",
         start: new Rules.Symbol("("),
-        end: new Rules.Symbol(")"),
+        prefix: argument,
+        item: new Rules.Subrule({ rule: "sequence", argument: "choices" }),
         delimiter: new Rules.Symbol("|"),
-        prefix: new Rules.Sequence({ rules: [argument], optional: true }),
-        rule: new Rules.Subrule({ rule: "sequence", argument: "choices" })
+        end: new Rules.Symbol(")")
       }),
       repeatFlag
     ],
     constructor: class choices extends Rules.Sequence {
       compile(match) {
-        const split = match.groups.split.compile()
-        let { choices } = split
+        const { items, prefix: argument } = match.groups.split.groups
+        let choices = items.map((item) => item.compile())
 
         // Combine single keyword, keywords, symbol, symbols
         choices = rulex.consolidateLiterals(choices, Rules.Keyword, "literal")
@@ -385,7 +385,7 @@ rulex.defineRules(
         }
 
         rule = rulex.applyFlags(rule, match)
-        if (split.argument) rule.argument = split.argument
+        if (argument) rule.argument = argument.compile()
         return rule
       }
     },

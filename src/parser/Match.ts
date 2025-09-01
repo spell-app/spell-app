@@ -13,6 +13,7 @@ export type MatchProps = {
   rule: Rule
   input: Token[]
   matched: (Match | Token)[]
+  items?: Match[]
   length: number
   argument?: string
   raw?: string
@@ -58,11 +59,11 @@ export class Match extends Assertable {
 
     // Only run tests if flag is set
     if (Match.DEBUG_MATCH_INITIALIZATION) {
+      this.assertType("scope", Scope)
       this.assertType("rule", Rule)
       this.assertArrayType("input", Token)
       this.assertType("length", "number")
       this.assert(this.length === this.input.length, "length does not match input length")
-      this.assertType("scope", Scope)
     }
   }
 

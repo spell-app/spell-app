@@ -31,6 +31,12 @@ export type SequenceProps = Prettify<
 export class Sequence extends Rule<SequenceProps> {
   /** The array of rules to match. */
   declare rules: Rule[]
+  /** Separtor string for base compile() rule which just joins the `matched` outputs. */
+  declare compileSeparator: string
+
+  static {
+    Object.defineProperty(this.prototype, "compileSeparator", { value: " ", writable: true })
+  }
 
   constructor(...args: [SequenceProps] | Rule[]) {
     if (args.length > 1) super({ rules: args as Rule[] })
@@ -72,7 +78,6 @@ export class Sequence extends Rule<SequenceProps> {
     return new Match({
       rule: this,
       matched,
-      // tokens: usedTokens,
       // TODOC: WHY??  FOR USE AS A LITERAL STRING??
       value: usedTokens.join("").trim(),
       input: flattenDeep(matched.map((next) => next.input)),
@@ -81,17 +86,19 @@ export class Sequence extends Rule<SequenceProps> {
     })
   }
 
-  // If no explcit compile method, gather our groups and return the compiled output of each.
-  // TODO: ... ??
+  /**
+   * Best we can do generically for sequences is join the `matched` outputs.
+   * Implement in your subclass if you want something else.
+   */
   compile(match: Match) {
-    return match.addMatchedToGroups({}, match.matched, (nextMatch) => nextMatch.compile())
-  }
-  /** Compile the output of the match groups for `match`. */
-  compileGroups(match: Match) {
-    return match.addMatchedToGroups({}, match.matched, (nextMatch) => nextMatch.compile())
+    return match.matched
+      .filter((it) => it instanceof Match)
+      .map((next) => next.compile())
+      .join(this.compileSeparator)
   }
 
   getGroupsForMatch(match: Match) {
+    // Sequences add child matches to their groups, ignoring the "outer" match.
     return match.addMatchedToGroups({}, match.matched)
   }
 

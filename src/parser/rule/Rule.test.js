@@ -499,7 +499,7 @@ describe("Rules.Subrule", () => {
       test("parses at the start of tokens", () => {
         const match = rule.parse({ parser }, tokenize("this that"))
         expect(match.length).toBe(2)
-        expect(match.compile()).toStrictEqual({ this: "this", that: "that" })
+        expect(match.compile()).toStrictEqual("this that")
       })
 
       test("does not parse in the middle of tokens", () => {
@@ -735,9 +735,9 @@ describe("Rules.Sequence", () => {
 
   describe("sequences without a compile method", () => {
     const rule = parser.rules.noCompile
-    test("return 'match.results' on compile", () => {
+    test("return matched strings on compile", () => {
       const match = rule.parse({ parser }, tokenize("this that the other"))
-      expect(match.compile()).toEqual({ that: "that", other: "other" })
+      expect(match.compile()).toEqual("this that the other")
     })
   })
 
@@ -788,10 +788,7 @@ describe("Rules.Sequence", () => {
       test("parses at the start of tokens", () => {
         const match = rule.parse({ parser }, tokenize("this that the other"))
         expect(match.length).toBe(4)
-        expect(match.compile()).toStrictEqual({
-          other: "other",
-          that: "that"
-        })
+        expect(match.compile()).toStrictEqual("this that the other")
         const { groups } = match
         expect(groups.that.value).toBe("that")
         expect(groups.other.value).toBe("other")

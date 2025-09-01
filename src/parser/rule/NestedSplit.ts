@@ -15,30 +15,32 @@ export type NestedSplitProps = Prettify<
 >
 
 /**
- * Recursively find balanced instances of `start` and `end`,
- * then split by `delimiter` and apply `rule` to each, returning an array of matches.
+ * Recursively find balanced instances of `start` and `end` rule,
+ * then split by `delimiter` and apply `rule` to each,
+ * returning an array of the `rule` matches.
  *
- * If you provide a `prefix`, we'll look for that after `start`.
+ * - `start` (required) is the start rule.
+ * - `prefix` (optional) rule to look for immediately after `start`.
+ *    If provied and non-optional, we won't match if prefix is not found.
+ * - `item` (required) is the middle rule which is matched repeatedly inside start/end.
+ * - `delimiter` (required) used to split the middle bit into `items`.
+ * - `end` (required) is the end rule.
  *
- * - `start` (required) is the start token string.
- * - `end` (required) is the end token string.
- * - `rule` (required) is the middle bit, which is probably a sequence.
- * - `delimiter` (optional) if provided, we'll split on this string and apply `rule` to each item inside.
- * - `prefix` (optional) optional array of rules to match inside the FIRST item.
- *
- * If nested start/end blocks are found, WHAT WILL HAPPEN???
+ * Use `match.groups` to work with the resulting match:
+ * - `prefix` will be the prefix match, if any.
+ * - `items` will be the instances of `rule` which were matched.
  */
 export class NestedSplit extends Rule<NestedSplitProps> {
   /** Start rule, e.g. `Symbol("(")`. */
   declare start: Rule
-  /** Middle-bit to match inside start/end, probably a sequence or subrule. */
-  declare rule: Rule
-  /** End rule, e.g. `Symbol(")")`. */
-  declare end: Rule
-  /** Optional delimiter to split on, e.g. `Symbol("|")`. */
-  declare delimiter: Rule
   /** Optional rule to match inside the FIRST item, e.g. right after the. */
   declare prefix: Rule
+  /** Middle-bit to match inside start/end, probably a sequence or subrule. */
+  declare item: Rule
+  /** Optional delimiter to split on, e.g. `Symbol("|")`. */
+  declare delimiter: Rule
+  /** End rule, e.g. `Symbol(")")`. */
+  declare end: Rule
 
   parse(scope: Scope, tokens: Token[]) {
     const end = this.findNestedEnd(scope, tokens)
@@ -47,42 +49,54 @@ export class NestedSplit extends Rule<NestedSplitProps> {
     const tokenSets = this.splitTokens(scope, tokens.slice(1, end))
     if (tokenSets === undefined) return undefined
 
-    let prefix: Match | undefined
-    const items = []
-    for (let i = 0, tokenSet; (tokenSet = tokenSets[i]); i++) {
-      // For the first item only, match the `prefix` rules if supplied
-      if (i === 0 && this.prefix) {
-        prefix = this.prefix.parse(scope, tokenSet)
-        if (!prefix && !prefix.optional) return undefined
-        if (prefix) tokenSet = tokenSet.slice(prefix.length)
+    let prefixMatch: Match | undefined
+    // everything that we matched, including prefix
+    const matched: Match[] = []
+    // split items only
+    const items: Match[] = []
+    if (this.prefix) {
+      const firstTokenSet = tokenSets[0]!
+      prefixMatch = this.prefix.parse(scope, firstTokenSet)
+      if (!prefixMatch && !this.prefix.optional) return undefined
+      if (prefixMatch) {
+        // remove prefix tokens from the first token set
+        tokenSets[0] = firstTokenSet.slice(prefixMatch.length)
+        matched.push(prefixMatch)
       }
-      const match = this.rule.parse(scope, tokenSet)
-      if (!match) return undefined
-
-      if (match.length !== tokenSet.length) {
-        return undefined
-      }
-      items.push(match)
     }
-    const matched = tokens.slice(0, end + 1)
+    for (let i = 0, tokenSet; (tokenSet = tokenSets[i]); i++) {
+      const match = this.item.parse(scope, tokenSet)
+      // forget it if we didn't match the whole token set
+      if (!match || match.length !== tokenSet.length) return undefined
+      items.push(match)
+      matched.push(match)
+    }
+    if (!matched.length) return undefined
+
+    const input = tokens.slice(0, end + 1)
     return new Match({
       rule: this,
-      prefix,
-      items,
-      matched,
-      input: matched,
+      items, // the items we matched
+      matched, // optional prefix + items matched
+      input,
       length: end + 1,
       scope
     })
   }
+  getGroupsForMatch(match: Match) {
+    const groups = super.getGroupsForMatch(match)
+    const { items, matched } = match
+    if (items.length !== matched.length) {
+      groups.prefix = matched[0]
+    }
+    groups.items = items
+    return groups
+  }
 
-  // Return `results` for someone else to consume.
+  /** Don't use `nestedSplit.compile()` -- use `match.groups` instead. */
   compile(match: Match) {
-    const { rule, prefix, items } = match
-    const results = (prefix && prefix.compile()) || {}
-    const name = rule.rule.argument || rule.rule.name
-    results[name] = items.map((item) => item.compile())
-    return results
+    throw new TypeError("don't use nestedSplit.compile() -- check `match.groups` instead.")
+    return ""
   }
 
   // If tokens starts with our `start` literal,

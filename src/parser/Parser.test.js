@@ -156,12 +156,12 @@ describe("parser.parse()", () => {
 describe("parser.compile()", () => {
   test("takes an explicit start rule", () => {
     const result = parser.compile("dog and cat", "statement")
-    expect(result).toStrictEqual({ dog: "dog", cat: "cat" })
+    expect(result).toStrictEqual("dog and cat")
   })
 
   test("defaults to 'statements' if not passed a start rule", () => {
     const result = parser.compile("dog and cat")
-    expect(result).toStrictEqual([{ dog: "dog", cat: "cat" }])
+    expect(result).toStrictEqual(["dog and cat"])
   })
 
   test("throws if text can't be parsed", () => {

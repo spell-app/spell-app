@@ -26,6 +26,7 @@ function makeMatcher(matcher: string | string[] | LiteralMatcher): LiteralMatche
  */
 export abstract class Literals extends Rule<LiteralsProps> {
   declare literals: LiteralMatcher[]
+  declare literalSeparator: string
 
   constructor(input: LiteralsProps | string | string[]) {
     const props = (typeof input === "string" || Array.isArray(input) ? { literals: input } : input) as LiteralsProps
@@ -74,7 +75,6 @@ export abstract class Literals extends Rule<LiteralsProps> {
     return match.value
   }
 
-  abstract get literalSeparator(): string
   toRulexSyntax() {
     const { testLocation, argument, optional } = this.getRulexFlags()
 
@@ -95,17 +95,17 @@ export abstract class Literals extends Rule<LiteralsProps> {
 // One or more literal symbols: `<`, `%` etc.
 // Symbols join WITHOUT spaces.
 export class Symbols extends Literals {
-  /** Join symbols with no space in-between. */
-  get literalSeparator() {
-    return ""
+  static {
+    /** Join symbols with no space in-between. */
+    Object.defineProperty(this.prototype, "literalSeparator", { value: "", writable: true })
   }
 }
 
 // One or more literal keywords.
 // Keywords join WITH spaces.
 export class Keywords extends Literals {
-  /** Join keywords with a space in-between. */
-  get literalSeparator() {
-    return " "
+  static {
+    /** Join symbols with a single space in-between. */
+    Object.defineProperty(this.prototype, "literalSeparator", { value: " ", writable: true })
   }
 }
