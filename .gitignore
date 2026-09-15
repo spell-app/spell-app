@@ -7,3 +7,4 @@ yarn-error.log
 dist
 _parser.code-workspace
 .yarn/install-state.gz
+graphify-out/cost.json

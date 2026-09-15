@@ -1,11 +1,10 @@
-// TODO:
-// - addition doesn't work -- `as a number`
+// IDEAS FOR EXTENDING THIS
 // - check for NaN in total
 // - <delete> button
 // - blinking cursor in current field
 // - keyboard input
 // - `output` as getter
-// - tape
+// - tape to show past results
 
 export class Calculator extends App {}
 spellCore.addExport('Calculator', Calculator)
@@ -33,10 +32,12 @@ spellCore.define(Calculator.prototype, 'update_the_total_of', {
 	value() {
 		if (spellCore.isEmpty(this.right)) { this.output = "" }
 		else {
-			if (this.operator == "+") { this.total = (this.left + this.right) }
-			else if (this.operator == "-") { this.total = (this.left - this.right) }
-			else if (this.operator == "x") { this.total = (this.left * this.right) }
-			else { this.total = (this.left / this.right) }
+			let lhs = parseFloat(this.left)
+			let rhs = parseFloat(this.right)
+			if (this.operator == "+") { this.total = (lhs + rhs) }
+			else if (this.operator == "–") { this.total = (lhs - rhs) }
+			else if (this.operator == "x") { this.total = (lhs * rhs) }
+			else { this.total = (lhs / rhs) }
 			this.output = (" = " + this.total)
 		}
 	}
@@ -45,14 +46,15 @@ spellCore.define(Calculator.prototype, 'update_the_total_of', {
 /* SPELL: added rule: `append {callArgs:expression} to {thisArg:expression}` */
 spellCore.define(Calculator.prototype, 'append_$digit_to', {
 	value(digit) {
+		// TODO: handle digit = "DELETE"
 		if (digit == ".") {
 			if (spellCore.isEmpty(this.input)) { this.input = "0." }
 			else if (!spellCore.includes(this.input, ".")) { this.input = (this.input + ".") }
 		}
 		else if (spellCore.isOfType(digit, 'number')) { this.input = (("" + this.input) + digit) }
 		// add to left or right field as appropriate
-		if (spellCore.isEmpty(this.operator)) { this.left = this.input }
-		else { this.right = this.input }
+		if (spellCore.isEmpty(this.operator)) { this.left = parseFloat(this.input) }
+		else { this.right = parseFloat(this.input) }
 		this.update_the_total_of()
 	}
 })
@@ -120,7 +122,7 @@ spellCore.define(Calculator.prototype, 'draw', {
 							props: {
 								className: "ui button fluid",
 								onClick: (event) => {
-									return this.append_$digit_to("7")
+									return this.append_$digit_to(7)
 								}
 							},
 							children: [
@@ -162,7 +164,7 @@ spellCore.define(Calculator.prototype, 'draw', {
 							props: {
 								className: "ui button fluid orange",
 								onClick: (event) => {
-									return this.set_the_operator_of_to_$op("+")
+									this.operator = "+"
 								}
 							},
 							children: [
@@ -220,11 +222,11 @@ spellCore.define(Calculator.prototype, 'draw', {
 							props: {
 								className: "ui button fluid orange",
 								onClick: (event) => {
-									return this.set_the_operator_of_to_$op("-")
+									this.operator = "–"
 								}
 							},
 							children: [
-								"-"
+								"–"
 							]
 						})
 					] })
@@ -278,7 +280,7 @@ spellCore.define(Calculator.prototype, 'draw', {
 							props: {
 								className: "ui button fluid orange",
 								onClick: (event) => {
-									return this.set_the_operator_of_to_$op("x")
+									this.operator = "x"
 								}
 							},
 							children: [
@@ -337,7 +339,7 @@ spellCore.define(Calculator.prototype, 'draw', {
 							props: {
 								className: "ui button fluid orange",
 								onClick: (event) => {
-									return this.set_the_operator_of_to_$op("÷")
+									this.operator = "÷"
 								}
 							},
 							children: [
