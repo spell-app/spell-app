@@ -1,12 +1,13 @@
 import { getDerived } from "~/util"
-import { Rule, Scope, Token, Match } from "~/parser"
+import { Rule, Scope, Token, Match, ParserError } from "~/parser"
 import { RootScope, ProjectScope, Parser, Tokenizer, WhitespacePolicy } from "~/parser"
 import { spellParser } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
+import type { SpellRuleRegistry } from "./rules/registry"
 
 export class SpellParser extends Parser {
-  /** Add language-specific top-level rules to this object. */
-  static Rules = {}
+  /** Registry of language-specific rule classes, populated by the modules in `./rules`. Debug aid only. */
+  static Rules: Partial<SpellRuleRegistry> = {}
 
   static {
     Object.defineProperty(this.prototype, "defaultRule", { value: "block", writable: true })
@@ -44,7 +45,7 @@ export class SpellParser extends Parser {
     return getDerived(this, "rootScope", () => {
       const scope = new RootScope({ name: "spellRoot", parser: spellParser })
       // Add all BASE_TYPES defined in `spellCore`.
-      // See: `src/spellCore/classes/index.js`
+      // See: `src/spellCore/classes/index.ts`
       spellCore.BASE_TYPES.forEach((type) => scope.types.add(type))
       return scope
     })
@@ -65,6 +66,7 @@ export class SpellParser extends Parser {
   // If we're tokenizing "block", parse them into blocks.
   tokenize(input: string, ruleName: string) {
     const tokens = super.tokenize(input)
+    if (!tokens) return undefined
     if (typeof input === "string" && ruleName === "block") return this.tokenizer.breakIntoIndentedBlocks(tokens)
     return tokens
   }
@@ -78,5 +80,23 @@ export class SpellParser extends Parser {
       tokens: [...tokens],
       message
     })
+  }
+
+  /**
+   * `Parser.compile()` returns `unknown` (e.g. `rulex` compiles to `Rule` objects),
+   * but spell always compiles down to a javascript source string.
+   * Narrow that here so `SpellFile`/`SpellProject` compile paths can rely on `string`.
+   */
+  compile(input: string | Token | Token[], ruleName?: string, scope?: Scope): string {
+    const result = super.compile(input, ruleName, scope)
+    if (typeof result !== "string") {
+      throw new ParserError({
+        message: "compile() did not return a string",
+        context: this,
+        activity: "compile",
+        params: { input, ruleName, scope, result }
+      })
+    }
+    return result
   }
 }

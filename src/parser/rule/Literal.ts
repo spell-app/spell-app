@@ -1,7 +1,8 @@
-import { Prettify } from "~/types.js"
-import { Match } from "~/parser/Match.js"
-import type { Token } from "~/parser/tokenizer/Tokens.js"
-import { Rule, type RuleProps, type Scope } from "./Rule.js"
+import { Prettify } from "~/types"
+import { Match } from "~/parser/Match"
+import type { Token } from "~/parser/tokenizer/Tokens"
+import { Rule, type RuleProps } from "./Rule"
+import type { Scope } from "~/parser/scope/Scope"
 
 export type LiteralProps = Prettify<
   RuleProps & {

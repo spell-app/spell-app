@@ -43,7 +43,7 @@ to draw (a todos-app)
 			</div>
 			<br/>
 			<table width="50%"><tbody>
-				{draw each of the tasks of the app}
+				{draw each task in the tasks of the app}
 			</tbody></table>
 			<br/>
 			<div>

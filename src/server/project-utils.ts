@@ -3,7 +3,7 @@
  * The `request_XXX` version can be passed directly to express.
  */
 import { Request, Response } from "express"
-import environment from "~/environment.js"
+import environment from "~/environment"
 import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"
 import { SpellLocation } from "~/languages/spell/SpellLocation"

@@ -1,18 +1,25 @@
-import { Prettify } from "~/types.js"
-import { Match } from "~/parser/Match.js"
-import { Scope, RuleProps } from "~/parser/rule/Rule.js"
-import { Token } from "~/parser/tokenizer/Tokens.js"
-import { Rule } from "./Rule.js"
+import { Prettify } from "~/types"
+import { Match, type MatchGroups } from "~/parser/Match"
+import { RuleProps } from "~/parser/rule/Rule"
+import type { Scope } from "~/parser/scope/Scope"
+import { Token } from "~/parser/tokenizer/Tokens"
+import { Rule } from "./Rule"
 
 export type NestedSplitProps = Prettify<
   RuleProps & {
     start: Rule
-    rule: Rule
-    end: Rule
+    prefix?: Rule
+    item: Rule
     delimiter: Rule
-    prefix: Rule
+    end: Rule
   }
 >
+
+/** `match.groups` for a `NestedSplit` match: the split `items` plus the optional `prefix` match. */
+export type NestedSplitGroups = MatchGroups & {
+  items: Match[]
+  prefix?: Match
+}
 
 /**
  * Recursively find balanced instances of `start` and `end` rule,
@@ -82,12 +89,11 @@ export class NestedSplit extends Rule<NestedSplitProps> {
       scope
     })
   }
-  getGroupsForMatch(match: Match) {
-    const groups = super.getGroupsForMatch(match)
+  getGroupsForMatch(match: Match): NestedSplitGroups {
+    const groups = super.getGroupsForMatch(match) as NestedSplitGroups
     const { items, matched } = match
-    if (items.length !== matched.length) {
-      groups.prefix = matched[0]
-    }
+    const prefix = matched[0]
+    if (items.length !== matched.length && prefix instanceof Match) groups.prefix = prefix
     groups.items = items
     return groups
   }

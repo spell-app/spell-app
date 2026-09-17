@@ -268,7 +268,7 @@ export class TaskList extends Task {
     list,
     getTask,
     ...props
-  }: { list: T[] | (() => T[]); getTask: (input: T) => Task<unknown> } & TaskListProps) {
+  }: { list: T[] | (() => T[]); getTask: (input: T) => Task<unknown> } & Omit<TaskListProps, "run">) {
     const inputs = typeof list === "function" ? [...list()] : [...list]
     return new TaskList({
       resolveWith: TaskResolveWith.RESULTS,

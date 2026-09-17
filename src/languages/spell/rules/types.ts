@@ -1,0 +1,219 @@
+//
+//  # Rules for constants, variables, type names, etc
+//
+import { typeCase, instanceCase, singularize, pluralize } from "~/util"
+import { Pattern } from "~/parser/rule/Pattern"
+import type { Match } from "~/parser/Match"
+import type { Scope } from "~/parser/scope/Scope"
+import type { RootScope } from "~/parser/scope/RootScope"
+import type { Token } from "~/parser/tokenizer/Tokens"
+import { AST, SpellParser } from "~/languages/spell"
+import { identifierBlacklist } from "./identifier-blacklist"
+import { ALPHANUMERIC_WORD_WITH_DASHES } from "~/parser/types"
+import "./match-fields.B"
+
+const TYPE_VALUE_MAP: Record<string, string> = {
+  object: "Object",
+  Object: "Object",
+  list: "List",
+  List: "List",
+  number: "number",
+  numbers: "number",
+  Number: "number",
+  Numbers: "number",
+  integer: "integer",
+  integers: "integer",
+  Integer: "integer",
+  Integers: "integer",
+  // decimal: "number",
+  // Decimal: "number",
+  text: "text",
+  Text: "text",
+  character: "character",
+  characters: "character",
+  Character: "character",
+  Characters: "character",
+  boolean: "boolean",
+  booleans: "boolean",
+  Boolean: "boolean",
+  Booleans: "boolean",
+  choice: "boolean",
+  choices: "boolean",
+  Choice: "boolean",
+  Choices: "boolean"
+}
+
+export class SpellType extends Pattern {
+  static {
+    // Alpha-numeric word, including dashes or underscores.
+    Object.defineProperty(this.prototype, "pattern", { value: ALPHANUMERIC_WORD_WITH_DASHES, writable: true })
+    Object.defineProperty(this.prototype, "datatype", { value: "type", writable: true })
+    Object.defineProperty(this.prototype, "blacklist", { value: identifierBlacklist, writable: true })
+    Object.defineProperty(this.prototype, "VALUE_MAP", { value: TYPE_VALUE_MAP, writable: true })
+  }
+
+  // Is `typeName` a simple type, (e.g. `number` etc).
+  static SIMPLE_TYPES: Record<string, number> = {
+    number: 1,
+    integer: 1,
+    text: 1,
+    character: 1,
+    boolean: 1,
+    choice: 1
+  }
+  static isSimpleType(typeName: string): boolean {
+    const instanceName = instanceCase(typeName)
+    return !!SpellType.SIMPLE_TYPES[instanceName]
+  }
+
+  // Convert value to singular type case, e.g. `Thing` or `Bank_Account`
+  mapValue<T = string>(value: string): T {
+    if (value in this.VALUE_MAP) return this.VALUE_MAP[value]
+    return typeCase(value) as T
+  }
+
+  parse(scope: Scope, tokens: Token[]) {
+    const match = super.parse(scope, tokens)
+    if (!match) return undefined
+    // Pick up `type` scope based on canonical, singular type name
+    match.type = scope.types?.get(match.value)
+    // NOTE: `match.type?.name` is the class name
+    //       `match.type?.instanceName` is the instance case name
+    return match
+  }
+
+  getAST(match: Match): AST.TypeExpression {
+    const { value, raw } = match
+    if (typeof value !== "string") throw new TypeError(`Expected a string value, got ${typeof value}`)
+    return new AST.TypeExpression(match, { raw, name: value })
+  }
+}
+SpellParser.Rules.Type = SpellType
+
+export const types = new SpellParser({
+  module: "types",
+  rules: [
+    // A possibly-unknown type identifier, singular or plural.
+    {
+      name: "type",
+      constructor: SpellType,
+      tests: [
+        {
+          tests: [
+            { title: "lower case", input: "thing", output: "Thing" },
+            { title: "upper case", input: "Thing", output: "Thing" },
+            { title: "multi-word, lower case", input: "bank-account", output: "Bank_Account" },
+            { title: "multi-word, mixed case", input: "Bank-account", output: "Bank_Account" },
+            { title: "multi-word, upper case", input: "Bank-Account", output: "Bank_Account" },
+            { title: "blacklisted word", input: "if", output: undefined }
+          ]
+        }
+      ]
+    },
+
+    // Possibly unknown type which MUST be singular.
+    {
+      name: "singular_type",
+      constructor: class singular_type extends SpellType {
+        parse(scope: Scope, tokens: Token[]) {
+          const match = super.parse(scope, tokens)
+          if (match && typeof match.raw === "string" && match.raw === singularize(match.raw)) return match
+          return undefined
+        }
+        getAST(match: Match): AST.TypeExpression {
+          const type = super.getAST(match)
+          type.plurality = "singular"
+          return type
+        }
+      },
+      tests: [
+        {
+          tests: [
+            { title: "singular, lower case", input: "thing", output: "Thing" },
+            { title: "singular, upper case", input: "Thing", output: "Thing" },
+            { title: "singular, multi-word, lower case", input: "bank-account", output: "Bank_Account" },
+            { title: "singular, multi-word, mixed case", input: "Bank-account", output: "Bank_Account" },
+
+            { title: "plural, lower case", input: "things", output: undefined },
+            { title: "plural, upper case", input: "Things", output: undefined },
+            { title: "plural, multi-word, lower case", input: "bank-accounts", output: undefined },
+            { title: "plural, multi-word, mixed case", input: "Bank-accounts", output: undefined }
+          ]
+        }
+      ]
+    },
+
+    // Possibly unknown type which MUST be plural.
+    // NOTE: the output type name will be SINGULAR!
+    {
+      name: "plural_type",
+      constructor: class plural_type extends SpellType {
+        parse(scope: Scope, tokens: Token[]) {
+          const match = super.parse(scope, tokens)
+          if (match && typeof match.raw === "string" && match.raw === pluralize(match.raw)) return match
+          return undefined
+        }
+        getAST(match: Match): AST.TypeExpression {
+          const type = super.getAST(match)
+          type.plurality = "plural"
+          return type
+        }
+      },
+      tests: [
+        {
+          tests: [
+            { title: "plural, lower case", input: "things", output: "Thing" },
+            { title: "plural, upper case", input: "Things", output: "Thing" },
+            { title: "plural, multi-word, lower case", input: "bank-accounts", output: "Bank_Account" },
+            { title: "plural, multi-word, mixed case", input: "Bank-accounts", output: "Bank_Account" },
+
+            { title: "singular, lower case", input: "thing", output: undefined },
+            { title: "singular, upper case", input: "Thing", output: undefined },
+            { title: "singular, multi-word, lower case", input: "bank-account", output: undefined },
+            { title: "singular, multi-word, mixed case", input: "Bank-account", output: undefined }
+          ]
+        }
+      ]
+    },
+
+    // A known type identifier, NOT including built-in types like 'Object'.
+    // `match.type` will be the existing `TypeScope`.
+    {
+      name: "known_type",
+      //      alias: "expression",
+      constructor: class known_type extends SpellType {
+        parse(scope: Scope, tokens: Token[]) {
+          const match = super.parse(scope, tokens)
+          // Only return match if we picked up an existing `type` scope
+          if (match && match.type) return match
+          return undefined
+        }
+      },
+      tests: [
+        {
+          beforeEach(scope: Scope) {
+            // `Scope.types` is typed narrowly (`IndexedList<TypeScope>`); the concrete `RootScope` accepts
+            // plain `TypeScopeProps` too -- see report.
+            const { types } = scope as RootScope
+            types.add({ name: "Thing" })
+            types.add({ name: "Bank-Account" })
+          },
+          tests: [
+            { title: "singular, known type, lower case", input: "thing", output: "Thing" },
+            { title: "singular, known type, upper case", input: "Thing", output: "Thing" },
+            { title: "singular, known, multi-word, lower case", input: "bank-account", output: "Bank_Account" },
+            { title: "singular, known, multi-word, mixed case", input: "Bank-account", output: "Bank_Account" },
+            { title: "singular, known, multi-word, upper case", input: "Bank-Account", output: "Bank_Account" },
+            { title: "plural, known type, lower case", input: "thing", output: "Thing" },
+            { title: "plural, known type, upper case", input: "Thing", output: "Thing" },
+            { title: "plural, known, multi-word, lower case", input: "bank-accounts", output: "Bank_Account" },
+            { title: "plural, known, multi-word, mixed case", input: "Bank-accounts", output: "Bank_Account" },
+            { title: "plural, known, multi-word, upper case", input: "Bank-Accounts", output: "Bank_Account" },
+            { title: "unknown", input: "nothing", output: undefined },
+            { title: "unknown. multi-word", input: "other-thing", output: undefined }
+          ]
+        }
+      ]
+    }
+  ]
+})

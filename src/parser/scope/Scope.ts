@@ -1,6 +1,16 @@
 import { Derivative, IndexedList } from "~/util"
 import { Parser, Rule } from "~/parser"
-import type { TypeScope, ScopeConstant, MethodScope, ScopeVariable } from "."
+import type { RuleDefinition } from "~/parser/Parser"
+import type {
+  TypeScope,
+  TypeScopeProps,
+  ScopeConstant,
+  ScopeConstantProps,
+  MethodScope,
+  MethodScopeProps,
+  ScopeVariable,
+  ScopeVariableProps
+} from "."
 
 export type ScopeConstructor = new (args: any) => Scope
 
@@ -42,19 +52,19 @@ export class Scope extends Derivative {
    * Note: We forward `.methods`, `.variables.`, `.types`, `.constants` and `.rules` to our parent scope.
    *       Subclasses may choose to implement these directly, generally as `IndexedList`s.
    */
-  get methods(): IndexedList<MethodScope> | undefined {
+  get methods(): IndexedList<MethodScope, MethodScope | MethodScopeProps> | undefined {
     return this.parentScope?.methods
   }
-  get variables(): IndexedList<ScopeVariable> | undefined {
+  get variables(): IndexedList<ScopeVariable, string | ScopeVariable | ScopeVariableProps> | undefined {
     return this.parentScope?.variables
   }
-  get types(): IndexedList<TypeScope> | undefined {
+  get types(): IndexedList<TypeScope, string | TypeScope | TypeScopeProps> | undefined {
     return this.parentScope?.types
   }
-  get constants(): IndexedList<ScopeConstant> | undefined {
+  get constants(): IndexedList<ScopeConstant, string | ScopeConstant | ScopeConstantProps> | undefined {
     return this.parentScope?.constants
   }
-  get rules(): IndexedList<Rule> | undefined {
+  get rules(): IndexedList<RuleDefinition> | undefined {
     return this.parentScope?.rules
   }
 
@@ -70,13 +80,20 @@ export class Scope extends Derivative {
     this._parser = parser
   }
 
+  /** Return named rule from our `parser`, throwing if there is no parser or no such rule. */
+  getRuleOrDie(ruleName: string): Rule {
+    const { parser } = this
+    if (!parser) throw new TypeError(`Scope '${this.name}' has no parser, can't get rule '${ruleName}'`)
+    return parser.getRuleOrDie(ruleName)
+  }
+
   /** Parse `text` using `parser` for this scope. */
-  parse(text: string, ruleName: string, scope = this) {
+  parse(text: string, ruleName?: string, scope = this) {
     return this.parser?.parse(text, ruleName, scope)
   }
 
   /** Compile `text` using `parser` for this scope. */
-  compile(text: string, ruleName: string, scope = this) {
+  compile(text: string, ruleName?: string, scope = this) {
     return this.parser?.compile(text, ruleName, scope)
   }
 }

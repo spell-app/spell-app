@@ -14,10 +14,11 @@
 //
 import flattenDeep from "lodash/flattenDeep"
 
-import { Prettify } from "~/global_types.js"
-import { Match } from "~/parser/Match.js"
-import { Rule, RuleProps, Scope } from "./Rule.js"
-import { Token } from "../tokenizer/Tokens.js"
+import { Prettify } from "~/global_types"
+import { Match, type MatchGroups } from "~/parser/Match"
+import { Rule, RuleProps } from "./Rule"
+import type { Scope } from "~/parser/scope/Scope"
+import { Token } from "../tokenizer/Tokens"
 
 export type SequenceProps = Prettify<
   RuleProps & {
@@ -38,7 +39,7 @@ export class Sequence extends Rule<SequenceProps> {
     Object.defineProperty(this.prototype, "compileSeparator", { value: " ", writable: true })
   }
 
-  constructor(...args: [SequenceProps] | Rule[]) {
+  constructor(...args: [SequenceProps] | [Rule[]] | Rule[]) {
     if (args.length > 1) super({ rules: args as Rule[] })
     else if (Array.isArray(args[0])) super({ rules: args[0] })
     else super(args[0] as SequenceProps)
@@ -89,16 +90,16 @@ export class Sequence extends Rule<SequenceProps> {
    * Best we can do generically for sequences is join the `matched` outputs.
    * Implement in your subclass if you want something else.
    */
-  compile(match: Match) {
+  compile(match: Match): unknown {
     return match.matched
       .filter((it) => it instanceof Match)
       .map((next) => next.compile())
       .join(this.compileSeparator)
   }
 
-  getGroupsForMatch(match: Match) {
+  getGroupsForMatch(match: Match): Record<string, unknown> {
     // Sequences add child matches to their groups, ignoring the "outer" match.
-    return match.addMatchedToGroups({}, match.matched)
+    return match.addMatchedToGroups<MatchGroups>({}, match.matched)
   }
 
   // Echo this rule back out.

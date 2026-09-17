@@ -1,5 +1,6 @@
-import { Prettify } from "~/types.js"
-import { Rule, type RuleProps, type Scope } from "./Rule.js"
+import { Prettify } from "~/types"
+import { Rule, type RuleProps } from "./Rule"
+import type { Scope } from "~/parser/scope/Scope"
 import { Token } from "~/parser/tokenizer/Tokens"
 import { Match } from "~/parser/Match"
 
@@ -18,20 +19,20 @@ export class Subrule extends Rule<SubruleProps> {
   /** Name of the rule to match. */
   declare rule: string
 
-  constructor(props: SubruleProps) {
+  constructor(props: SubruleProps | string) {
     if (typeof props === "string") super({ rule: props })
     else super(props)
   }
 
   // Ask the subrule to figure out if a match is possible.
   test(scope: Scope, tokens: Token[], testLocation = this.testLocation) {
-    const rule = scope.parser.getRuleOrDie(this.rule)
+    const rule = scope.getRuleOrDie(this.rule)
     return rule.test(scope, tokens, testLocation)
   }
 
   parse(scope: Scope, tokens: Token[]) {
     if (!tokens.length) return undefined
-    const rule = scope.parser.getRuleOrDie(this.rule)
+    const rule = scope.getRuleOrDie(this.rule)
 
     const match = rule.parse(scope, tokens)
     if (!match) return undefined

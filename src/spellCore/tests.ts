@@ -1,0 +1,115 @@
+// ----------------------------
+// Test utilites
+// ----------------------------
+import { spellCore } from "./core"
+import { defineSpellCoreModule } from "./SpellCore"
+
+/** State for the currently-running dynamic `test()`. */
+export type ActiveTest = {
+  message: unknown
+  collapse: boolean
+  result: boolean | undefined
+  output: unknown[]
+}
+
+/**
+ * Return message as to whether a runtime assertion is true or false.
+ * Message will start with `spellCore.TEST_SUCCESS` or `spellCore.TEST_FAILURE`
+ *
+ * - With 2 arguments:
+ *    - passes if `thing` is truthy
+ *    - `thingSource` is spell Expression source for `thing`
+ * - With 4 arguments:
+ *    - uses `spellCore.equals(thing, otherThing)`
+ *    - `thingSource` is spell Expression source for `thing`
+ *    - `otherSource` is spell Expression source for `otherThing`
+ */
+export function expect(thing: unknown, thingSource: string): void
+export function expect(thing: unknown, thingSource: string, otherThing: unknown, otherSource: string): void
+export function expect(thing: unknown, thingSource: string, otherThing?: unknown, otherSource?: string): void {
+  let success: boolean
+  if (arguments.length === 2) {
+    success = !!thing
+    otherSource = `truthy`
+  } else {
+    success = spellCore.equals(thing, otherThing)
+    otherSource = spellCore.backTickQuote(otherSource)
+  }
+
+  const output: unknown[] = [spellCore._getTestResultIcon(success)]
+  thingSource = spellCore.backTickQuote(thingSource)
+  if (success) {
+    output.push("As expected", thingSource, "is", otherSource)
+  } else {
+    output.push("Unexpected:", thingSource, "should be", otherSource, "but is actually", spellCore.backTickQuote(thing))
+  }
+
+  const test = spellCore.ACTIVE_TEST
+  if (test) {
+    if (test.result === undefined) test.result = success
+    else if (!success) test.result = false
+    test.output.push(output)
+  } else {
+    spellCore.console.log(...output)
+  }
+}
+
+// TODO: merge this with SpellCore.console so `print XXX` in a test goes to ACTIVE_TEST
+// TODO: print result of "executing" e.g. Executing `display the deck` returned `xxx`
+export const testMethods = defineSpellCoreModule({
+  /** Currently-running dynamic test, if any. */
+  ACTIVE_TEST: undefined as ActiveTest | undefined,
+
+  _getTestResultIcon(success: boolean | undefined): string {
+    if (success === undefined) return "❓"
+    return !!success ? "✅" : "❌"
+  },
+  /** Dynamic test: prints to console for now... */
+  test(message: unknown, testMethod: () => void, collapse = true): void {
+    spellCore.startTest(message, collapse)
+    try {
+      testMethod()
+    } catch (e) {
+      // TODO???
+    }
+    spellCore.endTest()
+  },
+
+  startTest(message: unknown, collapse = true): void {
+    if (spellCore.ACTIVE_TEST) spellCore.endTest()
+    spellCore.ACTIVE_TEST = {
+      message,
+      collapse,
+      result: undefined,
+      output: []
+    }
+  },
+  echo(message: unknown): void {
+    if (spellCore.ACTIVE_TEST) spellCore.ACTIVE_TEST.output.push(message)
+    else spellCore.console.info(message)
+  },
+  echoTestAction(message: unknown): void {
+    const output = ["▶️ Executing  ", spellCore.backTickQuote(message)]
+    if (spellCore.ACTIVE_TEST) {
+      spellCore.ACTIVE_TEST.output.push(output)
+    } else {
+      spellCore.console.info(...output)
+    }
+  },
+  endTest(): void {
+    const test = spellCore.ACTIVE_TEST
+    if (!test) return
+    spellCore.ACTIVE_TEST = undefined
+
+    const icon = spellCore._getTestResultIcon(test.result)
+    spellCore.console[test.collapse ? "groupCollapsed" : "group"](`${icon} ${test.message}`)
+    test.output.forEach((line) => {
+      if (Array.isArray(line)) spellCore.console.log(...line)
+      else spellCore.console.log(line)
+    })
+    spellCore.console.groupEnd()
+  },
+
+  expect
+})
+Object.assign(spellCore, testMethods)

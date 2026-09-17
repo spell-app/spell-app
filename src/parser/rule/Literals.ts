@@ -1,13 +1,14 @@
-import { Prettify } from "~/types.js"
-import { Match } from "~/parser/Match.js"
-import { Rule, type RuleProps, type Scope } from "./Rule.js"
-import { Token } from "../tokenizer/index.js"
+import { Prettify } from "~/types"
+import { Match } from "~/parser/Match"
+import { Rule, type RuleProps } from "./Rule"
+import type { Scope } from "~/parser/scope/Scope"
+import { Token } from "../tokenizer/index"
 
 export type LiteralMatcher = { literal: string | string[]; optional?: boolean }
 
 export type LiteralsProps = Prettify<
   RuleProps & {
-    literals: LiteralMatcher[]
+    literals: Array<string | string[] | LiteralMatcher>
   }
 >
 
@@ -28,7 +29,7 @@ export abstract class Literals extends Rule<LiteralsProps> {
   declare literals: LiteralMatcher[]
   declare literalSeparator: string
 
-  constructor(input: LiteralsProps | string | string[]) {
+  constructor(input: LiteralsProps | string | Array<string | string[] | LiteralMatcher>) {
     const props = (typeof input === "string" || Array.isArray(input) ? { literals: input } : input) as LiteralsProps
     if (typeof props.literals === "string") props.literals = [props.literals]
     props.literals = props.literals.map(makeMatcher)

@@ -1,7 +1,7 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 
-import environment from "./src/environment.js"
+import environment from "./src/environment"
 
 // https://vitejs.dev/config/
 export default defineConfig({

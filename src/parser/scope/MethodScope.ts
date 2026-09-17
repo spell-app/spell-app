@@ -1,10 +1,11 @@
 import { BlockScope } from "./BlockScope"
-import { ScopeProps, ScopeVariable } from "."
+import { ScopeProps, ScopeVariable, type ScopeVariableProps } from "."
 
-export type MethodScopeProps = {
-  args?: ScopeVariable[]
+export type MethodScopeProps = ScopeProps & {
+  args?: Array<ScopeVariable | string | ScopeVariableProps>
   thisVar?: string
   mapItTo?: string
+  async?: boolean
 }
 
 /**
@@ -20,15 +21,17 @@ export type MethodScopeProps = {
 export class MethodScope extends BlockScope {
   declare thisVar: string
   declare mapItTo: string
+  /** Set to `true` (e.g. by an `await` expression in the body) to compile the method as `async`. */
+  declare async: boolean | undefined
 
   constructor({ args, ...props }: MethodScopeProps) {
-    super(props as ScopeProps)
+    super(props)
     // Add `args` to our variables list
     if (args && args.length) {
-      args.forEach((arg: ScopeVariable) => {
-        if (!(arg instanceof ScopeVariable)) arg = new ScopeVariable(arg)
+      args.forEach((input) => {
+        const arg = input instanceof ScopeVariable ? input : new ScopeVariable(input)
         arg.kind = "argument"
-        return this.variables.add(arg)
+        this.variables.add(arg)
       })
     }
     // Define variables for thisVar and `it`.

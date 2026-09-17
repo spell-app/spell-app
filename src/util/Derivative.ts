@@ -24,7 +24,7 @@ export class Derivative {
    *   - Pass a `dependencies` array -- the value will change
    *     whenever any of the dependencies change.
    */
-  derivedFrom<T = any>(property: string, getter: () => T, dependencies?: string[]): T {
+  derivedFrom<T = any>(property: string, getter: () => T, dependencies?: unknown[]): T {
     return extend.getDerivedFrom(this, property, getter, dependencies)
   }
   /**

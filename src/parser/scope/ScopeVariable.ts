@@ -38,8 +38,6 @@ export class ScopeVariable {
   declare isAlias: boolean
 
   /** Create with a string name or `ScopeVariableProps` object. */
-  constructor(name: string)
-  constructor(props: ScopeVariableProps)
   constructor(input: string | ScopeVariableProps) {
     // If passed in as a string, use it as the name
     if (typeof input === "string") this.name = input

@@ -1,10 +1,11 @@
 import flattenDeep from "lodash/flattenDeep"
 
-import { Prettify } from "~/global_types.js"
-import { Rule, type RuleProps, type Scope } from "./Rule.js"
-import { Token } from "~/parser/tokenizer/Tokens.js"
-import { Rules } from "./index.js"
-import { Match } from "~/parser/Match.js"
+import { Prettify } from "~/global_types"
+import { Rule, type RuleProps } from "./Rule"
+import type { Scope } from "~/parser/scope/Scope"
+import { Token } from "~/parser/tokenizer/Tokens"
+import { Rules } from "./index"
+import { Match } from "~/parser/Match"
 
 export type RepeatProps = Prettify<
   RuleProps & {
@@ -39,9 +40,8 @@ export class Repeat extends Rule<RepeatProps> {
   /** The maximum number of times the rule must match. */
   declare maxCount: number
 
-  constructor(props: RepeatProps) {
-    if (props instanceof Rule) props = { rule: props }
-    super(props)
+  constructor(props: RepeatProps | Rule) {
+    super(props instanceof Rule ? { rule: props } : props)
   }
 
   parse(scope: Scope, tokens: Token[]) {
@@ -88,7 +88,8 @@ export class Repeat extends Rule<RepeatProps> {
     return match
   }
 
-  compile(match: Match) {
+  // Returns an array by default; subclasses (e.g. rulex `sequence`) may return other things.
+  compile(match: Match): unknown {
     return match.items.map((next) => next.compile())
   }
 

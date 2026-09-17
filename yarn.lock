@@ -887,6 +887,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/codemirror@npm:^5.60.18":
+  version: 5.60.18
+  resolution: "@types/codemirror@npm:5.60.18"
+  dependencies:
+    "@types/tern": "npm:*"
+  checksum: 10c0/f18a9683074c75d6307df77d4dacdeaff62c382b027b713d7d821d029969fb0e3bde4d0964b5e8195c4aa7fb26ebe58673bc3c568045edea6da228c47f086a8f
+  languageName: node
+  linkType: hard
+
 "@types/connect@npm:*":
   version: 3.4.38
   resolution: "@types/connect@npm:3.4.38"
@@ -900,6 +909,13 @@ __metadata:
   version: 4.0.2
   resolution: "@types/deep-eql@npm:4.0.2"
   checksum: 10c0/bf3f811843117900d7084b9d0c852da9a044d12eb40e6de73b552598a6843c21291a8a381b0532644574beecd5e3491c5ff3a0365ab86b15d59862c025384844
+  languageName: node
+  linkType: hard
+
+"@types/estree@npm:*":
+  version: 1.0.9
+  resolution: "@types/estree@npm:1.0.9"
+  checksum: 10c0/3ad3286ca2988cd550dafb8f2ad599c8474868e954fa601a36655bdfefd8039f7c714b8c1c7f2ae219ffbd58bd4660e66fa7479a0120fc02d4777057d4865387
   languageName: node
   linkType: hard
 
@@ -948,6 +964,13 @@ __metadata:
   version: 2.0.5
   resolution: "@types/http-errors@npm:2.0.5"
   checksum: 10c0/00f8140fbc504f47356512bd88e1910c2f07e04233d99c88c854b3600ce0523c8cd0ba7d1897667243282eb44c59abb9245959e2428b9de004f93937f52f7c15
+  languageName: node
+  linkType: hard
+
+"@types/jshint@npm:^2.12.4":
+  version: 2.12.4
+  resolution: "@types/jshint@npm:2.12.4"
+  checksum: 10c0/4e2186eb37355a315844b96dbc704f39f22807208a209ff3a28312d3b5341ab5758e3dbd9688d9de3a6128d66c679ab32cb296e16b8104ee7350ee45abf58050
   languageName: node
   linkType: hard
 
@@ -1029,12 +1052,30 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/reach__router@npm:^1.3.15":
+  version: 1.3.15
+  resolution: "@types/reach__router@npm:1.3.15"
+  dependencies:
+    "@types/react": "npm:*"
+  checksum: 10c0/4d1c867369d2620f0941b224d3fe36c644eab90505ca9a7fce470cda0cbe0c2ee7469d52f382e97ed91440674d83f356c6bd6347cdf7167c9152e2631d28b7d4
+  languageName: node
+  linkType: hard
+
 "@types/react-dom@npm:^18.2.19":
   version: 18.3.7
   resolution: "@types/react-dom@npm:18.3.7"
   peerDependencies:
     "@types/react": ^18.0.0
   checksum: 10c0/8bd309e2c3d1604a28a736a24f96cbadf6c05d5288cfef8883b74f4054c961b6b3a5e997fd5686e492be903c8f3380dba5ec017eff3906b1256529cd2d39603e
+  languageName: node
+  linkType: hard
+
+"@types/react@npm:*":
+  version: 19.3.0
+  resolution: "@types/react@npm:19.3.0"
+  dependencies:
+    csstype: "npm:^3.2.2"
+  checksum: 10c0/fbcabf303f935ca9f36ed2dcf81751cf84744098c5a683c8a62a0fa7edd31714b48d5c46b12fd0014f7f2dfe4d9ec6de428a850748eec719a70294e51029551b
   languageName: node
   linkType: hard
 
@@ -1073,6 +1114,15 @@ __metadata:
     "@types/node": "npm:*"
     "@types/send": "npm:*"
   checksum: 10c0/8ad86a25b87da5276cb1008c43c74667ff7583904d46d5fcaf0355887869d859d453d7dc4f890788ae04705c23720e9b6b6f3215e2d1d2a4278bbd090a9268dd
+  languageName: node
+  linkType: hard
+
+"@types/tern@npm:*":
+  version: 0.23.9
+  resolution: "@types/tern@npm:0.23.9"
+  dependencies:
+    "@types/estree": "npm:*"
+  checksum: 10c0/1d30ccfbb84362fe7a7edeea3ba5268f5a7a0965d504147c6b701092f0ea3f0833799ee753e2059a535ca06590f91dd2416e4bd94a6e8ad51eea127a0607c617
   languageName: node
   linkType: hard
 
@@ -1885,6 +1935,13 @@ __metadata:
   version: 3.1.3
   resolution: "csstype@npm:3.1.3"
   checksum: 10c0/80c089d6f7e0c5b2bd83cf0539ab41474198579584fa10d86d0cafe0642202343cbc119e076a0b1aece191989477081415d66c9fefbf3c957fc2fc4b7009f248
+  languageName: node
+  linkType: hard
+
+"csstype@npm:^3.2.2":
+  version: 3.2.3
+  resolution: "csstype@npm:3.2.3"
+  checksum: 10c0/cd29c51e70fa822f1cecd8641a1445bed7063697469d35633b516e60fe8c1bde04b08f6c5b6022136bb669b64c63d4173af54864510fbb4ee23281801841a3ce
   languageName: node
   linkType: hard
 
@@ -4923,12 +4980,15 @@ __metadata:
   dependencies:
     "@reach/router": "npm:^1.3.4"
     "@risingstack/react-easy-state": "npm:^6.3.0"
+    "@types/codemirror": "npm:^5.60.18"
     "@types/express": "npm:^4.17.21"
     "@types/fs-extra": "npm:^11.0.4"
+    "@types/jshint": "npm:^2.12.4"
     "@types/lodash": "npm:^4.17.17"
     "@types/node": "npm:^20.11.24"
     "@types/pluralize": "npm:^0.0.33"
     "@types/proper-lockfile": "npm:^4.1.4"
+    "@types/reach__router": "npm:^1.3.15"
     "@types/react": "npm:^18.2.56"
     "@types/react-dom": "npm:^18.2.19"
     "@typescript-eslint/eslint-plugin": "npm:^7.0.2"

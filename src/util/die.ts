@@ -9,7 +9,7 @@ import { UIError } from "./CustomError"
  *
  * This will give you back a `die` function that takes arguments:
  *  - `message` (required) text description for exactly what went wrong.
- *  - `originalError` (optional) Originally thrown error, e.g. `fetch` error, etc.
+ *  - `error` (optional) Originally thrown error, e.g. `fetch` error, etc.
  * The `die` function has a `params` object (a clone of `params` above, or an empty object if no params).
  * You can update `params` as you go, e.g. if you're figuring out unspecified params as you go along.
  *
@@ -36,14 +36,14 @@ import { UIError } from "./CustomError"
  *  }
  */
 export function getDier(context: any, activity: string, params: any) {
-  function die(message: string, originalError?: any) {
+  function die(message: string, error?: any): never {
     throw new UIError(
       {
         message,
         context,
         activity,
         params,
-        originalError
+        error
       },
       die
     )

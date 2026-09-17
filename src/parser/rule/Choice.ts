@@ -1,8 +1,10 @@
-import { Prettify } from "~/types.js"
+import { Prettify } from "~/types"
 import { Tokenizer } from "~/parser/tokenizer/Tokenizer"
 import { Token } from "~/parser/tokenizer/Tokens"
-import { Rule, type RuleProps, type Scope } from "./Rule.js"
+import { Rule, type RuleProps } from "./Rule"
+import type { Scope } from "~/parser/scope/Scope"
 import { Match } from "~/parser/Match"
+import type { Parser } from "~/parser/Parser"
 
 // Turn on debugging of choice / precedence semantics
 const DEBUG_CHOICES = false
@@ -40,7 +42,7 @@ export class Choice extends Rule<ChoiceProps> {
    * Add one or more `rules` to the list of choices.
    * `parser` is the parser instance that's calling this.
    */
-  addChoice(parser: Scope, ...rules: Rule[]) {
+  addChoice(_parser: Parser, ...rules: Rule[]) {
     this.rules = [...this.rules, ...rules]
   }
 

@@ -184,7 +184,7 @@ export abstract class Loadable<ContentType extends any, SaveResult extends any =
    * Public load method.
    * NOTE: don't override this, override `getLoader()` instead!
    */
-  load(loadParams: any) {
+  load(loadParams?: unknown) {
     // If loadParams are the same as last time:
     if (isEqual(loadParams, this.loadState.loadParams)) {
       // If we're currently loading, return the current loader

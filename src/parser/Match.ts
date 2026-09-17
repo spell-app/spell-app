@@ -6,7 +6,15 @@ import { Assertable } from "~/util"
 import { Scope, ScopeConstructor } from "./scope/Scope"
 import type { ASTNode } from "./ast/AST"
 
-export type MatchGroups = Record<string, any>
+/**
+ * Default shape of `match.groups`: named sub-matches, as a single `Match` or an array if the name repeats.
+ * - Rules narrow this per-rule, e.g. `Match<RulexGroups<"lhs:rhs">>` (see `~/parser/rulex.types`).
+ * - Rules may also derive extra, non-Match group values (see `Rule.getGroupsForMatch()`).
+ */
+export type MatchGroups = Record<string, Match | Match[] | undefined>
+
+/** A `Match` with any `groups` shape -- use for parameters which don't care about groups. */
+export type AnyMatch = Match<Record<string, unknown>>
 
 export type MatchProps = {
   scope: Scope
@@ -18,6 +26,7 @@ export type MatchProps = {
   raw?: string
   value?: any
   message?: string
+  choiceRule?: string
 }
 /**
  * Result of a successful `rule.parse()`.
@@ -26,7 +35,7 @@ export type MatchProps = {
  * - `match.tokens`   - (required) Array of `Tokens` that were matched
  * - `match.matched`  - (required) Array of `Matches` or `Tokens` matched.
  */
-export class Match extends Assertable {
+export class Match<Groups extends Record<string, unknown> = MatchGroups> extends Assertable {
   static DEBUG_MATCH_INITIALIZATION = true
 
   /** Main rule that matched. */
@@ -36,8 +45,8 @@ export class Match extends Assertable {
   /** Things what were matched, which may be `Matches` or `Tokens`. */
   // TODO: can we get `tokens` out of here?
   declare matched: (Match | Token)[]
-  /** Additional items that were matched, which may be `Matches` or `Tokens`. */
-  declare items: any[]
+  /** Significant sub-matches, e.g. the repeated items of a `Repeat` (not including delimiters). */
+  declare items: Match[]
   /** Scope in which the match was made. */
   declare scope: Scope
   /** Argument for this match. */
@@ -49,6 +58,8 @@ export class Match extends Assertable {
   /** Message for this match. */
   // REFACTOR: errorMessage?
   declare message: string | undefined
+  /** Name of the `Choice` rule which selected this match, if any. */
+  declare choiceRule: string | undefined
 
   constructor(props: MatchProps) {
     super()
@@ -136,8 +147,8 @@ export class Match extends Assertable {
    * - Some rules derive additional groups based on analysis of "normal" groups.
    * - NOTE: always use `match.groups` to access so we re-use the same `groups` object.
    */
-  get groups() {
-    return this.derived("groups", () => this.rule.getGroupsForMatch(this))
+  get groups(): Groups {
+    return this.derived("groups", () => this.rule.getGroupsForMatch(this) as Groups)
   }
 
   /**
@@ -163,7 +174,11 @@ export class Match extends Assertable {
     if (groups) this.addMatchedToGroups(groups, [match])
   }
 
-  addMatchedToGroups(groups: MatchGroups, matched: Array<Match | Token>, callback?: (match: Match) => any) {
+  addMatchedToGroups<G extends Record<string, unknown>>(
+    groups: G,
+    matched: Array<AnyMatch | Token>,
+    callback?: (match: AnyMatch) => Match
+  ): G {
     for (let i = 0, match; (match = matched[i]); i++) {
       if (!(match instanceof Match)) continue
       // if the match has a name:
@@ -171,14 +186,10 @@ export class Match extends Assertable {
       if (name) {
         const value = callback ? callback(match) : match
         // If arg already exists, convert to an array
-        if (name in groups) {
-          if (!Array.isArray(groups[name])) {
-            groups[name] = [groups[name]]
-          }
-          groups[name].push(value)
-        } else {
-          groups[name] = value
-        }
+        const existing = groups[name]
+        if (existing === undefined) (groups as Record<string, unknown>)[name] = value
+        else if (Array.isArray(existing)) existing.push(value)
+        else (groups as Record<string, unknown>)[name] = [existing, value]
       }
       // if it's an anonymous sequence, promote it to the main map
       else if (match.rule instanceof Rules.Sequence) {
@@ -243,17 +254,17 @@ export class Match extends Assertable {
     })
   }
 
-  /** Compile the output of the match and return as a string. */
-  compile(): string | undefined {
+  /** Compile the output of the match (a string for language parsers, arbitrary values for e.g. `rulex`). */
+  compile(): unknown {
     // Some languages (e.g. Spell) convert to an AST first, then compile().
     if (this.rule.getAST) {
-      return this.AST?.compile() as string | undefined
+      return this.AST?.compile()
     }
     return this.rule.compile(this)
   }
 
   /** Syntactic sugar to compile the match w/o calling a function. */
-  get js(): string | undefined {
+  get js(): unknown {
     return this.compile()
   }
 

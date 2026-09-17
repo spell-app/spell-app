@@ -1,14 +1,15 @@
-import { Match } from "~/parser/Match.js"
-import { Rule, type RuleProps, type Scope } from "./Rule.js"
-import { Token } from "~/parser/tokenizer/Tokens.js"
-import { Prettify } from "~/global_types.js"
-import { IdentifierBlacklist } from "~/parser/types.js"
+import { Match } from "~/parser/Match"
+import { Rule, type RuleProps } from "./Rule"
+import type { Scope } from "~/parser/scope/Scope"
+import { Token } from "~/parser/tokenizer/Tokens"
+import { Prettify } from "~/global_types"
+import { IdentifierBlacklist } from "~/parser/types"
 
 export type PatternProps = Prettify<
   RuleProps & {
     pattern?: RegExp
     VALUE_MAP?: Record<string, any>
-    blacklist?: IdentifierBlacklist
+    blacklist?: IdentifierBlacklist | string[]
   }
 >
 

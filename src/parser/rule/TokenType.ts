@@ -1,9 +1,10 @@
-import { Match } from "~/parser/Match.js"
-import { Rule, type RuleProps, type Scope } from "./Rule.js"
-import { Token } from "../tokenizer/index.js"
-import { Prettify } from "~/types.js"
+import { Match } from "~/parser/Match"
+import { Rule, type RuleProps } from "./Rule"
+import type { Scope } from "~/parser/scope/Scope"
+import { Token } from "../tokenizer/index"
+import { Prettify } from "~/types"
 
-export type TokenConstructor = (args: any) => Token
+export type TokenConstructor = new (args: any) => Token
 
 export type TokenTypeProps = Prettify<
   RuleProps & {
@@ -15,8 +16,18 @@ export type TokenTypeProps = Prettify<
  * Abstract rule for matching a single token of a particular type.
  */
 export class TokenType extends Rule<TokenTypeProps> {
+  // Accessor pair (rather than a plain field) so subclasses like `Word` can override the getter.
+  // Backing field is `declare`d because `Object.assign(this, props)` in `Rule` runs before subclass initializers.
+  declare private _tokenType: TokenConstructor | undefined
+
   /** Constructor for the token type we match. */
-  declare tokenType: TokenConstructor
+  get tokenType(): TokenConstructor {
+    return this._tokenType!
+  }
+
+  set tokenType(value: TokenConstructor) {
+    this._tokenType = value
+  }
 
   testAtStart(scope: Scope, tokens: Token[], start = 0) {
     return tokens[start] instanceof this.tokenType

@@ -68,7 +68,7 @@ export function getDerived<T>(target: any, property: string, getter: () => T): T
  *   - Call `this.clearDerived()` to reset all derived properties.
  *   - Call `this.clearDerived(property)` to reset just that property.
  */
-export function getDerivedFrom<T>(target: any, property: string, getter: () => T, dependencies?: string[]): T {
+export function getDerivedFrom<T>(target: any, property: string, getter: () => T, dependencies?: unknown[]): T {
   if (!dependencies) {
     return getDerived(target, property, getter)
   }
