@@ -2,17 +2,14 @@
 //  # Rules for assignment and returning values.
 //
 
-import type { Match } from "~/parser/Match"
-import type { BlockScope } from "~/parser/scope/BlockScope"
-import type { RootScope } from "~/parser/scope/RootScope"
-import type { RulexGroups } from "~/parser/rulex.types"
-import { SpellParser, AST } from "~/languages/spell"
+import { P, AST } from "~/parser"
+import { SpellParser } from "~/languages/spell"
 import { SpellStatement } from "./Statement"
 import "./match-fields.B"
 
-type AssignmentGroups = RulexGroups<"thing:value">
-type GetGroups = RulexGroups<"value">
-type ReturnGroups = RulexGroups<"expression"> & { nestedBlock?: Match }
+type AssignmentGroups = P.RulexGroups<"thing:value">
+type GetGroups = P.RulexGroups<"value">
+type ReturnGroups = P.RulexGroups<"expression"> & { nestedBlock?: P.Match }
 
 export const assignment = new SpellParser({
   module: "assignment",
@@ -28,7 +25,7 @@ export const assignment = new SpellParser({
       ],
       constructor: class assignment extends SpellStatement {
         // HACK: we also mutate scope in `getAST()`...  :-(
-        mutateScope(match: Match<AssignmentGroups>) {
+        mutateScope(match: P.Match<AssignmentGroups>) {
           const thing = match.groups.thing! // `thing` is required in every syntax variant above.
           // If `thing` is a variable...
           // TODO: this is not necessarily the best check...
@@ -36,11 +33,11 @@ export const assignment = new SpellParser({
             // get just the `identifier` bit to ignore leading "the "
             // `thing.rule.name` check above guarantees `thing` came from `variable`/`*_variable`, whose own
             // syntax always includes a single, non-repeated `{identifier}` group.
-            const identifier = thing.groups.identifier as Match
+            const identifier = thing.groups.identifier as P.Match
             const varName: string = identifier.value
             // `Scope.variables` is typed narrowly (`IndexedList<ScopeVariable>`); the concrete `BlockScope`
             // accepts a plain name string too -- see report.
-            const { variables } = match.scope as BlockScope
+            const { variables } = match.scope as P.BlockScope
             const scopeVar = variables.get(varName)
             match.isNewVariable = !scopeVar || scopeVar.isAlias
             // define a new variable in `scope` if not already defined
@@ -49,7 +46,7 @@ export const assignment = new SpellParser({
             match.originalVar = scopeVar
           }
         }
-        getAST(match: Match<AssignmentGroups>): AST.AssignmentStatement {
+        getAST(match: P.Match<AssignmentGroups>): AST.AssignmentStatement {
           const { thing, value } = match.groups
           const { originalVar } = match
           const ast = new AST.AssignmentStatement(match, {
@@ -62,7 +59,7 @@ export const assignment = new SpellParser({
           })
           // HACK: if `originalVar` was an alias, redefine as a normal variable.
           // We have to do this AFTER the above in case the alias variable was in the value expression.
-          if (originalVar?.isAlias) (match.scope as BlockScope).variables.replace(originalVar.name)
+          if (originalVar?.isAlias) (match.scope as P.BlockScope).variables.replace(originalVar.name)
           return ast
         }
       },
@@ -72,7 +69,7 @@ export const assignment = new SpellParser({
           beforeEach(scope) {
             // `Scope.variables`/`.types` are typed narrowly; the concrete `RootScope` accepts plain
             // name strings too -- see report.
-            const { variables, types } = scope as RootScope
+            const { variables, types } = scope as P.RootScope
             variables.add("thing")
             variables.add({ name: "it", output: "this", isAlias: true })
             types.add("Person")
@@ -125,10 +122,10 @@ export const assignment = new SpellParser({
       testRule: "get",
       constructor: class get extends SpellStatement {
         // NOTE: we also mutate scope in `getAST()`...  :-(
-        mutateScope(match: Match<GetGroups>) {
+        mutateScope(match: P.Match<GetGroups>) {
           // `Scope.variables` is typed narrowly (`IndexedList<ScopeVariable>`); the concrete `BlockScope`
           // accepts a plain name string too -- see report.
-          const { variables } = match.scope as BlockScope
+          const { variables } = match.scope as P.BlockScope
           // Did we have a LOCAL `it` variable?
           const itVar = variables.get("it", "LOCAL_ONLY")
           // Remember the original itVar for hackery in getAST() below
@@ -137,7 +134,7 @@ export const assignment = new SpellParser({
           // Define a new local "it" variable if we don't have one
           if (!itVar) variables.add("it")
         }
-        getAST(match: Match<GetGroups>): AST.AssignmentStatement {
+        getAST(match: P.Match<GetGroups>): AST.AssignmentStatement {
           const { value } = match.groups
           const ast = new AST.AssignmentStatement(match, {
             thing: new AST.VariableExpression(match, { name: "it" }),
@@ -146,7 +143,7 @@ export const assignment = new SpellParser({
           })
           // HACK: if `match.itVar` was an alias, redefine as a normal variable
           // We have to do this AFTER the above in case the alias `it` was in the value expression.
-          ;(match.scope as BlockScope).variables.replace("it")
+          ;(match.scope as P.BlockScope).variables.replace("it")
           return ast
         }
       },
@@ -155,7 +152,7 @@ export const assignment = new SpellParser({
           title: "`it` is not already defined",
           compileAs: "block",
           beforeEach(scope) {
-            ;(scope as BlockScope).variables.add("thing")
+            ;(scope as P.BlockScope).variables.add("thing")
           },
           tests: [
             ["get thing", "let it = thing"],
@@ -166,7 +163,7 @@ export const assignment = new SpellParser({
           title: "`it` is already defined",
           compileAs: "block",
           beforeEach(scope) {
-            const { variables } = scope as BlockScope
+            const { variables } = scope as P.BlockScope
             variables.add("it")
             variables.add("thing")
           },
@@ -179,7 +176,7 @@ export const assignment = new SpellParser({
           title: "`it` gets redefined if defined as an alias",
           compileAs: "block",
           beforeEach(scope) {
-            const { variables } = scope as BlockScope
+            const { variables } = scope as P.BlockScope
             variables.add({ name: "it", output: "this", isAlias: true })
             variables.add("thing")
           },
@@ -213,7 +210,7 @@ export const assignment = new SpellParser({
       wantsNestedBlock: true,
       parseNestedBlockAs: "expression",
       constructor: class return_statement extends SpellStatement {
-        getAST(match: Match<ReturnGroups>): AST.ReturnStatement {
+        getAST(match: P.Match<ReturnGroups>): AST.ReturnStatement {
           const result = match.groups.expression || match.groups.nestedBlock
           return new AST.ReturnStatement(match, { value: result?.AST as AST.Expression | undefined })
         }
@@ -223,7 +220,7 @@ export const assignment = new SpellParser({
           title: "Simple return with inline expression",
           compileAs: "statement",
           beforeEach(scope) {
-            ;(scope as BlockScope).variables.add("thing")
+            ;(scope as P.BlockScope).variables.add("thing")
           },
           tests: [
             ["return", "return"],

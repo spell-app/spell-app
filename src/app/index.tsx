@@ -9,7 +9,7 @@ import { spellCore } from "~/spellCore"
 import { Routes } from "./pages/routes"
 import { ErrorNotice } from "~/app/components/ErrorNotice"
 import { Notice } from "~/app/components/Notice"
-import { UI } from "~/app/components/ui"
+import * as UI from "~/app/components/ui"
 
 // Use the below to set up methods/etc in the browser for hacking
 import "./debug"

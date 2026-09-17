@@ -1,14 +1,14 @@
 import React from "react"
 import type { RouteComponentProps } from "@reach/router"
 
-import { SpellProjectRoot } from "~/languages/spell"
+import { SP } from "~/languages/spell"
 import { actions } from "~/app/actions"
-import { UI } from "~/app/components/ui"
+import * as UI from "~/app/components/ui"
 import { SpellPage } from "../components/SpellPage"
 
 export type ProjectRootDisplayProps = {
-  projectRoot: SpellProjectRoot
-  children?: React.ReactNode
+  projectRoot: SP.SpellProjectRoot
+  children?: ReactNode
   useRunner?: boolean
 }
 
@@ -32,7 +32,7 @@ export const ProjectRootDisplay = React.memo(({ projectRoot, children, useRunner
  */
 export const ProjectChooser = React.memo(function ProjectChooser() {
   const { Grid, Row, Column } = UI
-  const { projects, examples, guides } = SpellProjectRoot
+  const { projects, examples, guides } = SP.SpellProjectRoot
 
   return (
     <>

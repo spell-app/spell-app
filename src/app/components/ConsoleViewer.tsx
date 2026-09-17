@@ -1,15 +1,14 @@
-import React from "react"
 import classnames from "classnames"
 import global from "global"
 
 import { view, Observable } from "~/util"
-import { Match } from "~/parser"
+import { P } from "~/parser"
 import { spellCore } from "~/spellCore"
-import type { ConsoleLine, SpellConsoleGroup } from "~/spellCore/console"
-import { ParseError } from "~/languages/spell"
+import type { ConsoleLine as ConsoleLineData, SpellConsoleGroup } from "~/spellCore/console"
+import { SP } from "~/languages/spell"
 
 import { actions } from "~/app/actions"
-import { UI } from "./ui"
+import * as UI from "./ui"
 import { ErrorHandler } from "./ErrorHandler"
 import type { ErrorHandlerWrapperProps } from "./ErrorHandler"
 import { store } from "~/app/store"
@@ -113,7 +112,7 @@ const SPAN_OFFSET = -4
 
 export type ConsoleLinesProps = {
   indent?: number
-  lines: (ConsoleLine | SpellConsoleGroup)[]
+  lines: (ConsoleLineData | SpellConsoleGroup)[]
   collapsed?: boolean
   className?: string
 }
@@ -132,8 +131,8 @@ export function ConsoleLines({ indent = 0, lines, collapsed = false, className =
 }
 
 export type ConsoleLineProps = {
-  line: ConsoleLine | SpellConsoleGroup
-  icon?: React.ReactNode
+  line: ConsoleLineData | SpellConsoleGroup
+  icon?: ReactNode
   indent: number
 }
 
@@ -185,12 +184,12 @@ export function onObservableClick(thing: unknown): void {
   console.log(`it =`, thing)
 
   // If we got a match, try to select the text in the editor
-  if (thing instanceof Match) store.showMatch(thing)
+  if (thing instanceof P.Match) store.showMatch(thing)
 }
 
 export type ConsoleValueProps = {
   type: string
-  display: React.ReactNode
+  display: ReactNode
   observable?: unknown
 }
 export function ConsoleValue({ type, display, observable }: ConsoleValueProps) {
@@ -220,9 +219,9 @@ export function ConsoleObject({ thing }: ConsoleObjectProps) {
       // TODO: `List`, `match`
       if (obj instanceof Date) display = `Date (${obj})`
       else if (Array.isArray(obj)) display = `Array(${obj.length})`
-      else if (obj instanceof Match) {
+      else if (obj instanceof P.Match) {
         // Special display for ParseError matches
-        if (obj.rule instanceof ParseError) display = "ParseError"
+        if (obj.rule instanceof SP.ParseError) display = "ParseError"
         else display = "Match {...}"
       } else {
         try {

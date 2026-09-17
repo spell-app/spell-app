@@ -7,11 +7,14 @@ import { Form as SUIForm, Button as SUIButton, type FormProps as SUIFormProps } 
 import { UIError } from "~/util"
 import { spellCore } from "~/spellCore"
 
+/** Export everything including types as `F`. */
+export * as F from "./Form.tsx"
+
 // Generic function to recursively map children
 function recursivelyMapChildren(
-  children: React.ReactNode,
-  callback: (child: React.ReactElement, key: string | number) => React.ReactElement
-): React.ReactNode[] {
+  children: ReactNode,
+  callback: (child: ReactElement, key: string | number) => ReactElement
+): ReactNode[] {
   return React.Children.toArray(children).map((child, index) => {
     if (!React.isValidElement(child)) return child
     let mapped = callback(child, child.key || index)
@@ -118,7 +121,7 @@ export class Form<V extends object> extends React.Component<FormProps<V>> {
   // upgrade children to point back to us as their `form`???
   // TODO: we're assuming children never change???
   ////////////////////
-  enhanceFields = (children: React.ReactNode, parentPath = ""): React.ReactNode[] => {
+  enhanceFields = (children: ReactNode, parentPath = ""): ReactNode[] => {
     return React.Children.toArray(children).map((child, index) => {
       if (!React.isValidElement(child)) return child
       let enhanced = this.enhanceField(child, child.key || index, parentPath)
@@ -130,7 +133,7 @@ export class Form<V extends object> extends React.Component<FormProps<V>> {
       return enhanced
     })
   }
-  enhanceField = (child: React.ReactElement, key: string | number, parentPath: string): React.ReactElement => {
+  enhanceField = (child: ReactElement, key: string | number, parentPath: string): ReactElement => {
     const type = child.type as { injectForm?: boolean }
     if (!type?.injectForm) return child
     if (child.props.form === this) console.warn("enhanceField(): form is already set!", child)
@@ -261,7 +264,7 @@ const FieldWrapper = view(
     id = `spell-field-${fieldId++}`
 
     /** Component we should render. Subclasses hold heterogeneous SUI field components (Input/Checkbox/Dropdown/etc). */
-    get Component(): React.ComponentType<any> {
+    get Component(): ReactComponentType<any> {
       throw new TypeError("FieldWrapper subclasses must implement `get Component()`")
     }
 
@@ -416,7 +419,7 @@ const FieldWrapper = view(
  * It will be reactive, meaning it will draw when accessed form properties
  * (such as `defaultValue` or `error`) change.
  */
-export function WithField(Component: React.ComponentType<any>, defaultProps?: Record<string, unknown>) {
+export function WithField(Component: ReactComponentType<any>, defaultProps?: Record<string, unknown>) {
   return class WithField extends FieldWrapper {
     static defaultProps = defaultProps
     get Component() {
@@ -474,8 +477,8 @@ export class Select extends FieldWrapper {
 // WithForm wrapper
 /////////////////////
 
-export function WithForm<P extends object>(Component: React.ComponentType<P>) {
-  const formComponent = view(Component) as React.ComponentType<P> & { injectForm?: boolean }
+export function WithForm<P extends object>(Component: ReactComponentType<P>) {
+  const formComponent = view(Component) as ReactComponentType<P> & { injectForm?: boolean }
   formComponent.injectForm = true
   return formComponent
 }
@@ -519,7 +522,7 @@ function isMappable(value: unknown): value is Mappable {
  * TODO: how to render array index in child?
  */
 export const FormRepeat = WithForm(
-  class FormRepeat extends React.Component<WithFormProps & { children?: React.ReactNode }> {
+  class FormRepeat extends React.Component<WithFormProps & { children?: ReactNode }> {
     render() {
       const { form, path, children } = this.props
       const arrayValue = path ? form.getValue(path) : undefined

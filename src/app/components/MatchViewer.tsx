@@ -1,10 +1,10 @@
 import React from "react"
 
 import { view, scrollForElement, centerElementInParent } from "~/util"
-import { Token, Match } from "~/parser"
+import { P } from "~/parser"
 
 import { actions } from "~/app/actions"
-import { UI } from "./ui"
+import * as UI from "./ui"
 import { ErrorHandler } from "./ErrorHandler"
 import type { ErrorHandlerState, ErrorHandlerWrapperProps } from "./ErrorHandler"
 import type { EditorSelection } from "./ASTViewer"
@@ -54,12 +54,12 @@ export const MatchToolbar = React.memo(function MatchToolbar() {
 export type MatchViewerProps = {
   scrolling?: boolean
   compact?: boolean
-  match?: Match
+  match?: P.Match
   selection?: EditorSelection
   showError?: (error: unknown) => void
 }
 
-type MatchViewerState = ErrorHandlerState & { match?: Match }
+type MatchViewerState = ErrorHandlerState & { match?: P.Match }
 
 export class MatchViewer extends ErrorHandler<MatchViewerProps> {
   /** Clear `state.error` if `props.match` changes. */
@@ -113,9 +113,9 @@ export class MatchViewer extends ErrorHandler<MatchViewerProps> {
   /////////////////////////
 
   // Return element that corresponds to `matchOrToken`.
-  static elementForMatch(viewer: HTMLElement, matchOrToken: Match | Token): HTMLElement | null {
+  static elementForMatch(viewer: HTMLElement, matchOrToken: P.Match | P.Token): HTMLElement | null {
     let selector: string
-    if (matchOrToken instanceof Token) {
+    if (matchOrToken instanceof P.Token) {
       selector = `.Token.${matchOrToken.constructor.name}[data-start="${matchOrToken.start}"] > .value`
     } else {
       selector =
@@ -127,7 +127,7 @@ export class MatchViewer extends ErrorHandler<MatchViewerProps> {
   }
 
   /** Update scroll for `selection`. */
-  static updateScroll(viewer: HTMLElement, match: Match, selection: EditorSelection): void {
+  static updateScroll(viewer: HTMLElement, match: P.Match, selection: EditorSelection): void {
     const { scroll } = selection
     if (scroll?.event === "cursor" || typeof scroll?.percent !== "number") return
     const size = scrollForElement(viewer)
@@ -141,14 +141,14 @@ export class MatchViewer extends ErrorHandler<MatchViewerProps> {
     viewer.querySelectorAll(".highlight").forEach((el) => el.classList.remove("highlight"))
   }
   // Highlight `matches`.
-  static highlight(viewer: HTMLElement, ...matches: (Match | Token)[]): void {
+  static highlight(viewer: HTMLElement, ...matches: (P.Match | P.Token)[]): void {
     matches.forEach((match) => {
       const element = MatchViewer.elementForMatch(viewer, match)
       element?.classList.add("highlight")
     })
   }
   /** Update highlight for `match` and `selection` */
-  static updateHighlight(viewer: HTMLElement, match: Match, selection: EditorSelection): void {
+  static updateHighlight(viewer: HTMLElement, match: P.Match, selection: EditorSelection): void {
     const cursorOffset = selection.head?.offset
     if (typeof cursorOffset !== "number") return
 

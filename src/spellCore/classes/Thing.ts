@@ -39,7 +39,7 @@ export class Thing extends Eventful(Observable) {
   /**
    * Subclasses (or a spell-compiled `to draw` method) implement this to render themselves.
    */
-  draw(): React.ReactNode {
+  draw(): ReactNode {
     throw new Error(`${this.type} does not implement draw()`)
   }
 
@@ -48,7 +48,7 @@ export class Thing extends Eventful(Observable) {
    * Note that we use a class component to get around hook issues with `react-easy-state`.
    */
   /*@memoize*/
-  get Component(): React.ComponentType {
+  get Component(): ReactComponentType {
     return this.derived("Component", () => {
       const render = () => this.draw()
       class ThingComponent extends React.Component {

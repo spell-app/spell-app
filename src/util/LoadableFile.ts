@@ -1,8 +1,8 @@
-import * as extend from "./extend"
+import { extend } from "./extend"
 import { KnownFormat, type KnownFormatMimeType } from "./constants"
 import { $fetch, merge$fetchParms, type $FetchParams, type $FetchRequestParams } from "./$fetch"
 import { Loadable, LoadableProps } from "./Loadable"
-import { Prettify } from "~/global_types"
+
 import { RequestError } from "./ResponseErrors"
 
 export type LoadableFileProps<FileType> = Prettify<

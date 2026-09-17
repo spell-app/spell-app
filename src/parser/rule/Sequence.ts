@@ -14,7 +14,7 @@
 //
 import flattenDeep from "lodash/flattenDeep"
 
-import { Prettify } from "~/global_types"
+
 import { Match, type MatchGroups } from "~/parser/Match"
 import { Rule, RuleProps } from "./Rule"
 import type { Scope } from "~/parser/scope/Scope"

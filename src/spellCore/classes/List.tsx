@@ -36,7 +36,7 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   }
 
   /*@memoize*/
-  get Component(): React.ComponentType {
+  get Component(): ReactComponentType {
     return this.derived("Component", () => {
       const render = () => this.draw()
       class ListC extends React.Component {
@@ -60,7 +60,7 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
    * You can override in a subclass to render a wrapper element, etc
    * and use `draw items of {list}` or `draw each of {list}` to render items if desired.
    */
-  draw(): React.ReactNode {
+  draw(): ReactNode {
     return this.drawItems()
   }
 
@@ -68,9 +68,9 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
    * Draw items in the list items as react components.
    */
 
-  drawItems(): React.ReactNode {
+  drawItems(): ReactNode {
     return this.map((item, oneIndex) => {
-      const { Component } = item as { Component: React.ComponentType }
+      const { Component } = item as { Component: ReactComponentType }
       return <Component key={oneIndex} />
     })
   }

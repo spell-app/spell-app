@@ -4,12 +4,10 @@ import _ from "lodash"
 import JSON5 from "json5"
 import * as SUI from "semantic-ui-react"
 
-import { rulex } from "~/parser"
-import type { Token, Scope } from "~/parser"
+import { P } from "~/parser"
 import { spellCore } from "~/spellCore"
-import { spellParser, SpellParser } from "~/languages/spell"
+import { SP } from "~/languages/spell"
 import { store } from "~/app/store"
-import { parseExpression } from "~/languages/spell/rules"
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
@@ -17,14 +15,14 @@ Object.assign(global, {
   _, // lodash
   JSON5,
   spellCore,
-  SpellParser,
-  spellParser,
-  parse: spellParser.parse.bind(spellParser),
-  compile: spellParser.compile.bind(spellParser),
-  exp: parseExpression,
-  tokenizer: spellParser.tokenizer,
-  tokenize: spellParser.tokenize.bind(spellParser),
-  rulex,
+  SpellParser: SP.SpellParser,
+  spellParser: SP.spellParser,
+  parse: SP.spellParser.parse.bind(SP.spellParser),
+  compile: SP.spellParser.compile.bind(SP.spellParser),
+  exp: SP.parseExpression,
+  tokenizer: SP.spellParser.tokenizer,
+  tokenize: SP.spellParser.tokenize.bind(SP.spellParser),
+  rulex: P.rulex,
   store,
   SUI
 })

@@ -5,5 +5,5 @@ declare module "global" {
 
 interface Window {
   /** DEBUG: current `SpellProject`, set by `store.selectPath()` for console access. */
-  project?: import("~/languages/spell").SpellProject
+  project?: import("~/languages/spell").SP.SpellProject
 }

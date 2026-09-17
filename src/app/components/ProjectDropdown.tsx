@@ -2,62 +2,18 @@ import React from "react"
 import classnames from "classnames"
 import { Dropdown, Menu } from "semantic-ui-react"
 import type { DropdownProps, MenuProps } from "semantic-ui-react"
-
-import { view } from "~/util"
-import { SpellLocation } from "~/languages/spell"
-import type { SpellProject, SpellProjectRoot } from "~/languages/spell"
 import type { SemanticICONS } from "semantic-ui-react"
 
-import { UI } from "./ui"
+import { view } from "~/util"
+import { SP } from "~/languages/spell"
+
+import * as UI from "./ui"
 import { store } from "~/app/store"
 
-export type ProjectMenuItemProps = {
-  key?: string
-  text?: string
-  icon?: string
-  onClick?: () => void
-}
-
-export type GetProjectMenuItemsProps = {
-  paths: string[] | undefined
-  useRunner?: boolean
-  Component: React.ComponentType<ProjectMenuItemProps>
-  icon?: string
-  itemProps?: Partial<ProjectMenuItemProps>
-}
-
-/** Just the items for a Project/Examples/etc Menu or Dropdown, as an array */
-export function getProjectMenuItems({
-  paths,
-  useRunner,
-  Component,
-  icon = UI.PROJECT_ICON,
-  itemProps
-}: GetProjectMenuItemsProps): React.ReactElement[] {
-  if (!paths) return [<Component key="_loading_" text="Loading..." />]
-  return paths.map((path) => {
-    const location = new SpellLocation(path)
-    return (
-      <Component
-        key={path}
-        text={location.projectName}
-        icon={icon}
-        onClick={() => (useRunner ? store.showRunner(path) : store.showEditor(path))}
-        {...itemProps}
-      />
-    )
-  })
-}
-
-export type ProjectMenuProps = MenuProps & {
-  projectRoot?: SpellProjectRoot
-  useRunner?: boolean
-  itemProps?: Record<string, unknown>
-}
-
-/**
- * Normal Menu for all available projects for a random `projectRoot`, defaulting to `store.projectRoot`.
- */
+/****************
+ * ### `<ProjectMenu>`
+ * Reactive menu for all available projects for a random `projectRoot`, defaulting to `store.projectRoot`.
+ ****************/
 export const ProjectMenu = view(function ProjectDropdown({
   projectRoot = store.projectRoot,
   useRunner = false,
@@ -70,11 +26,11 @@ export const ProjectMenu = view(function ProjectDropdown({
   }, [projectRoot])
 
   const ready = projectRoot?.isLoaded
-  let items: React.ReactElement[]
+  let items: ReactElement[]
   if (ready && projectRoot) {
     const paths = projectRoot.projectPaths
     items = paths.map((path) => {
-      const location = new SpellLocation(path)
+      const location = new SP.SpellLocation(path)
       return (
         <Menu.Item
           key={path}
@@ -102,16 +58,16 @@ export const ProjectMenu = view(function ProjectDropdown({
   )
 })
 
-export type ProjectDropdownProps = DropdownProps & {
-  projectRoot?: SpellProjectRoot
-  project?: SpellProject
+export type ProjectMenuProps = MenuProps & {
+  projectRoot?: SP.SpellProjectRoot
   useRunner?: boolean
-  showLabel?: boolean
-  extraActions?: React.ReactElement[]
   itemProps?: Record<string, unknown>
 }
 
-/** Dropdown Menu of all available projects for a random projectRoot, defaulting to `store.projectRoot`. */
+/****************
+ * ### `<ProjectDropdown>`
+ * Reactive dropdown Menu of all available projects for a random projectRoot, defaulting to `store.projectRoot`.
+ ****************/
 export const ProjectDropdown = view(function ProjectDropdown({
   projectRoot = store.projectRoot,
   project = store.project,
@@ -127,11 +83,11 @@ export const ProjectDropdown = view(function ProjectDropdown({
   }, [projectRoot])
 
   const ready = projectRoot?.isLoaded && !!project
-  let items: React.ReactElement[]
+  let items: ReactElement[]
   if (ready && projectRoot) {
     const paths = projectRoot.projectPaths
     items = paths.map((path) => {
-      const location = new SpellLocation(path)
+      const location = new SP.SpellLocation(path)
       return (
         <Dropdown.Item
           key={path}
@@ -172,3 +128,56 @@ export const ProjectDropdown = view(function ProjectDropdown({
     </>
   )
 })
+
+export type ProjectDropdownProps = DropdownProps & {
+  projectRoot?: SP.SpellProjectRoot
+  project?: SP.SpellProject
+  useRunner?: boolean
+  showLabel?: boolean
+  extraActions?: ReactElement[]
+  itemProps?: Record<string, unknown>
+}
+
+////////////////
+// Helpers
+////////////////
+
+/**
+ * Return array of items for a Project/Examples/etc Menu or Dropdown.
+ */
+function getProjectMenuItems({
+  paths,
+  useRunner,
+  Component,
+  icon = UI.PROJECT_ICON,
+  itemProps
+}: GetProjectMenuItemsProps): ReactElement[] {
+  if (!paths) return [<Component key="_loading_" text="Loading..." />]
+  return paths.map((path) => {
+    const location = new SP.SpellLocation(path)
+    return (
+      <Component
+        key={path}
+        text={location.projectName}
+        icon={icon}
+        onClick={() => (useRunner ? store.showRunner(path) : store.showEditor(path))}
+        {...itemProps}
+      />
+    )
+  })
+}
+
+type GetProjectMenuItemsProps = {
+  paths: string[] | undefined
+  useRunner?: boolean
+  Component: ReactComponentType<ProjectMenuItemProps>
+  icon?: string
+  itemProps?: Partial<ProjectMenuItemProps>
+}
+
+type ProjectMenuItemProps = {
+  key?: string
+  text?: string
+  icon?: string
+  onClick?: () => void
+}

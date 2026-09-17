@@ -1,4 +1,3 @@
-import React from "react"
 import { Button, Menu } from "semantic-ui-react"
 
 import { spellCore } from "~/spellCore"
@@ -8,7 +7,7 @@ import type { AlertModalProps, ConfirmModalProps, PromptModalProps, ChooserModal
 
 /** Props for `<Action>` -- everything but `title`/`button` is forwarded to the underlying SUI component. */
 export type ActionProps = {
-  title?: React.ReactNode
+  title?: ReactNode
   button?: boolean
 } & Record<string, unknown>
 
@@ -279,8 +278,8 @@ export const actions = {
   //////////////////////
   // groups of actions
   //////////////////////
-  PROJECT_DROPDOWN_ACTIONS: undefined as React.ReactElement[] | undefined,
-  FILE_DROPDOWN_ACTIONS: undefined as React.ReactElement[] | undefined
+  PROJECT_DROPDOWN_ACTIONS: undefined as ReactElement[] | undefined,
+  FILE_DROPDOWN_ACTIONS: undefined as ReactElement[] | undefined
 }
 
 actions.PROJECT_DROPDOWN_ACTIONS = [

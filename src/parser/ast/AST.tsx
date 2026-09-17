@@ -1,7 +1,5 @@
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
-import React from "react"
 
-import type { Prettify } from "~/types"
 import { getSuperHierarchy, Assertable, OPTIONAL } from "~/util"
 import { Match, MethodScope, FileScope, ProjectScope, type AnyMatch } from "~/parser"
 import type { Scope, TypeScope, ScopeConstant, ScopeVariable } from "~/parser"
@@ -87,7 +85,7 @@ export class ASTNode<Props extends object = {}> extends Assertable {
 
   /** Return rendered react component which draws this node as syntax-colored Javascript. */
   /*@memoize*/
-  get component(): React.ReactElement {
+  get component(): ReactElement {
     return this.derived("component", () => render.Node(this))
   }
 
@@ -105,7 +103,7 @@ export class ASTNode<Props extends object = {}> extends Assertable {
    * Render children to render INSIDE the outer element,
    * which has `node.className` (e.g. `ASTNode Expression StringLiteral`) set.
    */
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return null
   }
 
@@ -129,7 +127,7 @@ export class BlankLine extends ASTNode {
   compile(): string {
     return "" // "\n"
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return null // render.NEWLINE
   }
 }
@@ -159,7 +157,7 @@ export class ExpressionWithComment extends Expression {
   compile(): string {
     return `${this.expression.compile()} ${this.comment.compile()}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(this.expression.component, render.SPACE, this.comment.component)
   }
 }
@@ -174,8 +172,8 @@ export class Literal extends Expression {
   compile(): unknown {
     return this.value
   }
-  renderChildren(): React.ReactNode {
-    return <span className="value">{this.value as React.ReactNode}</span>
+  renderChildren(): ReactNode {
+    return <span className="value">{this.value as ReactNode}</span>
   }
 }
 
@@ -225,7 +223,7 @@ export class BooleanLiteral extends Literal {
   compile(): string {
     return this.value ? "true" : "false"
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return this.value ? "true" : "false"
   }
 }
@@ -257,7 +255,7 @@ export class NullLiteral extends Literal {
   compile(): string {
     return "null"
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return <span className="value">null</span>
   }
 }
@@ -274,7 +272,7 @@ export class UndefinedLiteral extends Literal {
   compile(): string {
     return "undefined"
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return <span className="value">undefined</span>
   }
 }
@@ -284,7 +282,7 @@ export class ThisLiteral extends Literal {
   compile(): string {
     return "this"
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return <span className="value">this</span>
   }
 }
@@ -334,7 +332,7 @@ export class ArrayLiteral extends Literal {
     const { items, wrap } = this
     return stringify.Array({ items, wrap })
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return <render.Array items={this.items} wrap={this.wrap} />
   }
 }
@@ -356,7 +354,7 @@ export class Enumeration extends Literal {
   compile(): string {
     return stringify.Array({ items: this.enumeration })
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return <render.Array items={this.enumeration} />
   }
 }
@@ -382,7 +380,7 @@ export class QuotedExpression extends Expression {
   compile(): string {
     return stringify.InSingleQuotes({ children: String(this.expression.compile()) })
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return (
       <render.InSingleQuotes>
         <span className="expression">{this.expression.component}</span>
@@ -412,7 +410,7 @@ export class BackTickExpression extends Expression {
   compile(): string {
     return stringify.InBackTicks({ children: String(this.expression.compile()) })
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return (
       <render.InBackTicks>
         <span className="expression">{this.expression.component}</span>
@@ -442,7 +440,7 @@ export class BacktickSubstitution extends Expression {
   compile(): string {
     return "${" + this.expression.compile() + "}"
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return (
       <>
         <span className="literal">{"${"}</span>
@@ -474,7 +472,7 @@ export class TripleBackTickExpression extends Expression {
   compile(): string {
     return stringify.InTripleBackTicks({ children: String(this.expression.compile()) })
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return (
       <render.InTripleBackTicks>
         <span className="expression">{this.expression.component}</span>
@@ -508,7 +506,7 @@ export class PropertyLiteral extends Literal {
   get className(): string {
     return `${super.className} ${this.isLegalIdentifier ? "legal-identifier" : "non-legal-identifier"}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     const value = <span className="property">{this.value}</span>
     return this.isLegalIdentifier ? value : <render.InSingleQuotes>{value}</render.InSingleQuotes>
   }
@@ -535,7 +533,7 @@ export class PropertyExpression extends Expression {
     if (this.property.isLegalIdentifier) return `${this.object.compile()}.${prop}`
     return `${this.object.compile()}['${prop}']`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     const object = <span className="object">{this.object.component}</span>
     if (this.property.isLegalIdentifier) {
       return render.Fragment(object, render.PERIOD, this.property.component)
@@ -587,7 +585,7 @@ export class VariableExpression extends Expression {
     if (this.variable?.kind && !classes.includes(this.variable.kind)) classes.push(this.variable.kind)
     return classes.join(" ")
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     if (!this.default) return <span className="name">{this.name}</span>
     return render.Fragment(
       <span className="name">{this.name}</span>,
@@ -617,7 +615,7 @@ export class AwaitExpression extends Expression {
   compile(): string {
     return `await ${this.expression.compile()}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(render.AWAIT, this.expression.component)
   }
 }
@@ -651,7 +649,7 @@ export class LineComment extends Comment {
   get className(): string {
     return `${super.className}${this.commentSymbol !== "//" ? " header" : ""}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     let { commentSymbol = "" } = this
     if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
     return render.Fragment(
@@ -676,7 +674,7 @@ export class BlockComment extends Comment {
   compile(): string {
     return `/* ${this.value} */`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(render.OPEN_COMMENT, <span className="comment">{this.value}</span>, render.CLOSE_COMMENT)
   }
 }
@@ -694,7 +692,7 @@ export class ParserAnnotation extends BlockComment {
   compile(): string {
     return `/* ${this.annotation} ${this.value} */`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(
       render.OPEN_COMMENT,
       <span className="annotation">{this.annotation} </span>,
@@ -736,7 +734,7 @@ export class ParenthesizedExpression extends Expression {
   compile(): string {
     return stringify.InParens({ children: String(this.expression.compile()) })
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return (
       <render.InParens>
         <span className="expression">{this.expression.component}</span>
@@ -762,7 +760,7 @@ export class NotExpression extends Expression {
   compile(): string {
     return `!${this.expression.compile()}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(render.BANG, <span className="expression">{this.expression.component}</span>)
   }
 }
@@ -783,7 +781,7 @@ export class InfixExpression extends Expression {
   compile(): string {
     return `${this.lhs.compile()} ${this.operator} ${this.rhs.compile()}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(
       <span className="lhs">{this.lhs.component}</span>,
       <span className="operator"> {this.operator} </span>,
@@ -840,7 +838,7 @@ export class InvocationArgs extends ASTNode {
     const { args, wrap } = this
     return stringify.Args({ args, wrap })
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return <render.Args args={this.args} wrap={this.wrap} />
   }
 }
@@ -880,7 +878,7 @@ export class MethodInvocation extends Expression {
   compile(): string {
     return `${this.methodName}${this.args.compile()}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(<span className="method-name">{this.methodName}</span>, this.args.component)
   }
 }
@@ -903,7 +901,7 @@ export class ScopedMethodInvocation extends MethodInvocation {
   compile(): string {
     return `${this.thing.compile()}.${this.methodName}${this.args.compile()}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(
       <span className="method-scope">{this.thing.component}</span>,
       <span className="operator period">.</span>,
@@ -1090,7 +1088,7 @@ export class TypeExpression extends Expression {
   compile(): string {
     return this.name
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return <span className="type">{this.name}</span>
   }
 
@@ -1116,7 +1114,7 @@ export class PrototypeExpression extends Expression {
     const { type } = this
     return `${type.compile()}.prototype`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(this.type.component, render.PERIOD, render.PROTOTYPE)
   }
 }
@@ -1146,7 +1144,7 @@ export class ConstantExpression extends Expression {
   compile(): string {
     return this.output
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return <span className="constant">{this.output}</span>
   }
 }
@@ -1245,7 +1243,7 @@ export class MethodDefinition extends Expression {
     if (this.inline) return `${async}${args} => ${body}${error}`
     return `${async}function ${methodName}${args} ${body}${error}`
   }
-  renderError(): React.ReactNode {
+  renderError(): ReactNode {
     if (!this.error) return null
     return render.Fragment(
       <>
@@ -1254,7 +1252,7 @@ export class MethodDefinition extends Expression {
       </>
     )
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     const async = this.isAsync && render.ASYNC
     const methodName = !!this.methodName && <span className="method-name">{this.getMethodName()}</span>
     const args = <render.Args args={this.args} />
@@ -1349,7 +1347,7 @@ export class ObjectLiteral extends Expression {
       children: stringify.List({ items: this.properties, delimiter })
     })
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     if (!this.properties.length) return render.EMPTY_BLOCK
     const { wrap } = this
     const delimiter = wrap ? render.INDENTED_COMMA : render.SPACED_COMMA
@@ -1391,7 +1389,7 @@ export class ObjectLiteralProperty extends ASTNode {
     if (!this.value) return `${prop}${error}`
     return `${prop}: ${this.value.compile()}${error}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     // If no value, assume it's available as a local variable.
     const value =
       !!this.value && render.Fragment(render.COLON_AND_SPACE, <span className="value">{this.value.component}</span>)
@@ -1424,7 +1422,7 @@ export class StatementGroup extends Statement {
   compile(): string {
     return stringify.List({ items: this.statements, delimiter: stringify.NEWLINE })
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return <render.List items={this.statements} delimiter={render.NEWLINE} />
   }
 }
@@ -1464,7 +1462,7 @@ export class StatementBlock extends ASTNode {
       })
     })
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     if (!this.statements || !this.statements.length) return render.EMPTY_BLOCK
     return (
       <render.Block wrap={this.wrap}>
@@ -1516,9 +1514,9 @@ export class TryCatchBlock extends StatementGroup {
     if (finallyBlock) output.push(`finally ${finallyBlock.compile()}`)
     return output.join("\n")
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     const { body, catchBlock, finallyBlock } = this
-    const output: React.ReactNode[] = [render.TRY, <span className="try-block">{body.component}</span>]
+    const output: ReactNode[] = [render.TRY, <span className="try-block">{body.component}</span>]
     if (catchBlock)
       output.push(render.NEWLINE, render.CATCH, <span className="catch-block">{catchBlock.component}</span>)
     if (finallyBlock)
@@ -1574,7 +1572,7 @@ export class AssignmentStatement extends Statement {
       .filter(Boolean)
       .join(" ")
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(
       this.exportVar && render.EXPORT,
       !!this.isNewVariable && render.LET,
@@ -1619,7 +1617,7 @@ export class DestructuredAssignment extends Statement {
   get className(): string {
     return `${super.className}${this.isNewVariable ? " declaration" : ""}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(
       !!this.isNewVariable && render.LET,
       <render.InCurlies space>
@@ -1646,7 +1644,7 @@ export class ReturnStatement extends Statement {
     if (!this.value) return "return"
     return `return ${this.value.compile()}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     const value = !!this.value && render.Fragment(render.SPACE, <span className="value">{this.value.component}</span>)
     return render.Fragment(render.RETURN, value)
   }
@@ -1672,7 +1670,7 @@ export class ClassDeclaration extends Statement {
     const superDeclarator = superType ? `extends ${superType.name} ` : ""
     return `export class ${type.name} ${superDeclarator}{}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(
       render.EXPORT,
       render.CLASS,
@@ -1703,7 +1701,7 @@ export class NewInstanceExpression extends Expression {
     const props = stringify.InParens({ children: this.props?.compile() })
     return `new ${this.type.compile()}${props}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     const props = this.props ? <render.InParens>{this.props.component}</render.InParens> : render.EMPTY_PARENS
     return render.Fragment(render.NEW, <span className="type">{this.type.component}</span>, props)
   }
@@ -1725,7 +1723,7 @@ export class ListExpression extends Expression {
       children: stringify.List({ items: this.items })
     })
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return (
       <render.InSquareBrackets>
         <render.List items={this.items} />
@@ -1795,7 +1793,7 @@ export class PropertyDefinition extends Statement {
   compile(): string {
     return this.definition.compile()
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return this.definition.component
   }
 }
@@ -1826,7 +1824,7 @@ export class IfStatement extends Statement {
   compile(): string {
     return `if ${this.condition.compile()} ${this.statements.compile()}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(
       render.IF,
       <span className="condition">{this.condition.component}</span>,
@@ -1862,7 +1860,7 @@ export class ElseIfStatement extends Statement {
   compile(): string {
     return `else if ${this.condition.compile()} ${this.statements.compile()}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(
       render.ELSE,
       render.IF,
@@ -1887,7 +1885,7 @@ export class ElseStatement extends Statement {
   compile(): string {
     return `else ${this.statements.compile()}`
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return render.Fragment(render.ELSE, this.statements.component)
   }
 }
@@ -1915,7 +1913,7 @@ export class TernaryExpression extends Expression {
       children: `${condition.compile()} ? ${trueValue.compile()} : ${falseValue.compile()}`
     })
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return (
       <render.InParens>
         <span className="condition">{this.condition.component}</span>
@@ -2043,7 +2041,7 @@ export class JSXElement extends Expression {
   compile(): string {
     return this.output.compile()
   }
-  renderChildren(): React.ReactNode {
+  renderChildren(): ReactNode {
     return this.output.component
   }
 }

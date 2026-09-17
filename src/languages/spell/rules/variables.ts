@@ -2,16 +2,9 @@
 //  # Rules for variables
 //
 import { singularize, pluralize } from "~/util"
-import { Pattern } from "~/parser/rule/Pattern"
-import { Rules } from "~/parser"
-import type { Match } from "~/parser/Match"
-import type { Scope } from "~/parser/scope/Scope"
-import type { BlockScope } from "~/parser/scope/BlockScope"
-import type { Token } from "~/parser/tokenizer/Tokens"
-import type { RulexGroups } from "~/parser/rulex.types"
-import { AST, SpellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
+import { SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"
-import { ALPHANUMERIC_WORD_WITH_DASHES } from "~/parser/types"
 import "./match-fields.B"
 
 // Single word variable name, known or unknown.
@@ -19,10 +12,10 @@ import "./match-fields.B"
 //        - if we find one, you can override what's output with `variable.ouput`.
 // TODO: type based on scope variable type?
 // TODO: higher precedence if variable is known?
-export class VariableIdentifier extends Pattern {
+export class VariableIdentifier extends P.Rules.Pattern {
   static {
     // Alpha-numeric word, including dashes or underscores.
-    Object.defineProperty(this.prototype, "pattern", { value: ALPHANUMERIC_WORD_WITH_DASHES, writable: true })
+    Object.defineProperty(this.prototype, "pattern", { value: P.ALPHANUMERIC_WORD_WITH_DASHES, writable: true })
     Object.defineProperty(this.prototype, "blacklist", { value: identifierBlacklist, writable: true })
   }
 
@@ -31,7 +24,7 @@ export class VariableIdentifier extends Pattern {
     return `${value}`.replace(/-/g, "_").replace(/\s/g, "_") as T
   }
 
-  getAST(match: Match): AST.VariableExpression {
+  getAST(match: P.Match): AST.VariableExpression {
     // Get scope Variable, if there is one
     const variable = match.scope.variables?.get(match.value)
     // Allow variable to override name if it wants to (e.g. "it")
@@ -55,16 +48,16 @@ export const variables = new SpellParser({
     {
       name: "variable",
       syntax: "the? {identifier:variable_identifier}",
-      constructor: class variable extends Rules.Sequence {
-        parse(scope: Scope, tokens: Token[]): Match<RulexGroups<"identifier">> | undefined {
+      constructor: class variable extends P.Rules.Sequence {
+        parse(scope: P.Scope, tokens: P.Token[]): P.Match<P.RulexGroups<"identifier">> | undefined {
           // `identifier` is a required, non-repeated group per our `syntax` above.
-          const match = super.parse(scope, tokens) as Match<RulexGroups<"identifier">> | undefined
+          const match = super.parse(scope, tokens) as P.Match<P.RulexGroups<"identifier">> | undefined
           if (!match) return undefined
           // Set `match.variable` to the scope variable, if there is one.
           match.variable = scope.variables?.get(match.groups.identifier!.value) || null
           return match
         }
-        getAST(match: Match<RulexGroups<"identifier">>): AST.VariableExpression {
+        getAST(match: P.Match<P.RulexGroups<"identifier">>): AST.VariableExpression {
           return match.groups.identifier!.AST as AST.VariableExpression
         }
       },
@@ -88,27 +81,27 @@ export const variables = new SpellParser({
       alias: "expression",
       // NOTE: `match` returned is the `{variable_identifier}`, not this sequence.
       syntax: "the? {identifier:variable_identifier}",
-      constructor: class known_variable extends Rules.Sequence {
-        parse(scope: Scope, tokens: Token[]): Match<RulexGroups<"identifier">> | undefined {
+      constructor: class known_variable extends P.Rules.Sequence {
+        parse(scope: P.Scope, tokens: P.Token[]): P.Match<P.RulexGroups<"identifier">> | undefined {
           // `identifier` is a required, non-repeated group per our `syntax` above.
-          const match = super.parse(scope, tokens) as Match<RulexGroups<"identifier">> | undefined
+          const match = super.parse(scope, tokens) as P.Match<P.RulexGroups<"identifier">> | undefined
           if (!match) return undefined
           // Try to find the scope Variable associated with the identifier in canonical form
           match.variable = scope.variables?.get(match.groups.identifier!.value)
           if (!match.variable) return undefined
           return match
         }
-        getAST(match: Match<RulexGroups<"identifier">>): AST.VariableExpression {
+        getAST(match: P.Match<P.RulexGroups<"identifier">>): AST.VariableExpression {
           return match.groups.identifier!.AST as AST.VariableExpression
         }
       },
       tests: [
         {
           compileAs: "known_variable", // TODO: "expression"
-          beforeEach(scope: Scope) {
+          beforeEach(scope: P.Scope) {
             // `Scope.variables` is typed narrowly (`IndexedList<ScopeVariable>`); the concrete `BlockScope`
             // accepts a plain name string too -- see report.
-            const { variables } = scope as BlockScope
+            const { variables } = scope as P.BlockScope
             variables.add("thing")
             variables.add("bank-account")
           },
@@ -125,12 +118,12 @@ export const variables = new SpellParser({
     {
       name: "singular_variable",
       constructor: class singular_variable extends VariableIdentifier {
-        parse(scope: Scope, tokens: Token[]) {
+        parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (match && typeof match.raw === "string" && match.raw === singularize(match.raw)) return match
           return undefined
         }
-        getAST(match: Match): AST.VariableExpression {
+        getAST(match: P.Match): AST.VariableExpression {
           const variable = super.getAST(match)
           variable.plurality = "singular"
           return variable
@@ -152,12 +145,12 @@ export const variables = new SpellParser({
     {
       name: "plural_variable",
       constructor: class plural_variable extends VariableIdentifier {
-        parse(scope: Scope, tokens: Token[]) {
+        parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (match && typeof match.raw === "string" && match.raw === pluralize(match.raw)) return match
           return undefined
         }
-        getAST(match: Match): AST.VariableExpression {
+        getAST(match: P.Match): AST.VariableExpression {
           const variable = super.getAST(match)
           variable.plurality = "plural"
           return variable

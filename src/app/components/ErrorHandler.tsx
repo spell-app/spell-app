@@ -5,7 +5,7 @@ export type ErrorHandlerState = {
 }
 
 export type ErrorHandlerWrapperProps<Props> = {
-  component: React.ReactNode
+  component: ReactNode
   error?: Error
   props: Props
 }
@@ -27,7 +27,7 @@ export class ErrorHandler<Props extends object = object> extends React.Component
    * - `error` is the error, if any
    * - `props` are props passed in to this element
    */
-  Wrapper(props: ErrorHandlerWrapperProps<Props>): React.ReactNode {
+  Wrapper(props: ErrorHandlerWrapperProps<Props>): ReactNode {
     return props.component
   }
 
@@ -36,7 +36,7 @@ export class ErrorHandler<Props extends object = object> extends React.Component
    * You'll be passed all of the props as passed to the root element and:
    *  - `wrapperRef` DOM ref to the wrapper element.
    */
-  Component(_props: Props): React.ReactNode {
+  Component(_props: Props): ReactNode {
     return null
   }
 
@@ -45,7 +45,7 @@ export class ErrorHandler<Props extends object = object> extends React.Component
    * - `error` is the error which was caught
    * - will also contain all `props` passed to the root element.
    */
-  ErrorComponent({ error }: Props & { error: Error }): React.ReactNode {
+  ErrorComponent({ error }: Props & { error: Error }): ReactNode {
     return <h4>Error: {error.message}</h4>
   }
 

@@ -1,9 +1,9 @@
 import React from "react"
 import type { RouteComponentProps } from "@reach/router"
 
-import { SpellLocation } from "~/languages/spell"
+import { SP } from "~/languages/spell"
 import { actions } from "~/app/actions"
-import { UI } from "~/app/components/ui"
+import * as UI from "~/app/components/ui"
 import { AppRoot } from "~/app/components/AppContainer"
 import { ConsoleRoot } from "~/app/components/ConsoleViewer"
 import { SpellPage } from "../components/SpellPage"
@@ -52,7 +52,7 @@ export function RunnerToolbar() {
  */
 export function SpellRunnerRoute(props: RouteComponentProps<SpellRouteParams>) {
   const { domain, project, filePath } = props
-  const path = SpellLocation.pathForUrl({ domain, project, filePath })
+  const path = SP.SpellLocation.pathForUrl({ domain, project, filePath })
   // console.info("SpellRunnerRoute", path, props)
   // HACK: Actually navigate on a timeout to avoid hook / rerender problems.
   setTimeout(() => store.selectPath(path), 0)

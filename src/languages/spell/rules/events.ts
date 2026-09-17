@@ -2,11 +2,8 @@
 //  # Rules for creating variables, property access, etc
 //
 import global from "global"
-import { SpellParser, AST } from "~/languages/spell"
-import { MethodScope } from "~/parser/scope/MethodScope"
-import type { Match, ScopeVariable } from "~/parser"
-import type { MethodScopeProps } from "~/parser/scope/MethodScope"
-import type { RulexGroups } from "~/parser/rulex.types"
+import { SpellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
 import type { ASTNode, Expression, Statement, StatementBlock, VariableExpression } from "~/parser/ast/AST"
 import { SpellStatement } from "./Statement"
 
@@ -28,7 +25,7 @@ export const events = new SpellParser({
       alias: "statement",
       syntax: "(trigger|fire|send) event? {eventName:keyword} (with {props:object_literal_properties})?",
       constructor: class trigger extends SpellStatement {
-        getAST(match: Match<RulexGroups<"eventName:props">>) {
+        getAST(match: P.Match<P.RulexGroups<"eventName:props">>) {
           const { eventName, props } = match.groups
           // Use the `raw` eventName, dashes are ok!
           const args: Expression[] = [new AST.QuotedExpression(match, eventName!.raw!)]
@@ -66,7 +63,7 @@ export const events = new SpellParser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       constructor: class on extends SpellStatement {
-        getNestedScopeForMatch(match: Match<RulexGroups<"eventName:props">>) {
+        getNestedScopeForMatch(match: P.Match<P.RulexGroups<"eventName:props">>) {
           const { eventName, props } = match.groups
           const args: string[] = ["event"]
           if (props) {
@@ -82,11 +79,11 @@ export const events = new SpellParser({
           const methodScopeProps = {
             parentScope: match.scope,
             name: eventName!.value,
-            args: args as unknown as ScopeVariable[]
-          } as MethodScopeProps
-          return new MethodScope(methodScopeProps)
+            args: args as unknown as P.ScopeVariable[]
+          } as P.MethodScopeProps
+          return new P.MethodScope(methodScopeProps)
         }
-        getAST(match: Match<RulexGroups<"eventName:props:inlineStatement:nestedBlock">>) {
+        getAST(match: P.Match<P.RulexGroups<"eventName:props:inlineStatement:nestedBlock">>) {
           const { eventName, props, inlineStatement, nestedBlock } = match.groups
           // event variable
           const event = new AST.VariableExpression(match, { name: "event", type: "argument" })

@@ -1,14 +1,14 @@
 import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
 
-import { Rule, Token, Rules } from "~/parser"
 import { Assertable } from "~/util"
+import { Rule, Token, Rules } from "~/parser"
 import { Scope, ScopeConstructor } from "./scope/Scope"
 import type { ASTNode } from "./ast/AST"
 
 /**
  * Default shape of `match.groups`: named sub-matches, as a single `Match` or an array if the name repeats.
- * - Rules narrow this per-rule, e.g. `Match<RulexGroups<"lhs:rhs">>` (see `~/parser/rulex.types`).
+ * - Rules narrow this per-rule, e.g. `Match<RulexGroups<"lhs:rhs">>` (see `~/languages/rulex`).
  * - Rules may also derive extra, non-Match group values (see `Rule.getGroupsForMatch()`).
  */
 export type MatchGroups = Record<string, Match | Match[] | undefined>

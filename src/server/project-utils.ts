@@ -6,8 +6,7 @@ import { Request, Response } from "express"
 import environment from "~/environment"
 import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"
-import { SpellLocation } from "~/languages/spell/SpellLocation"
-import { spellParser } from "~/languages/spell"
+import { SP } from "~/languages/spell"
 
 const { respondWithJSON } = responseUtils
 
@@ -20,14 +19,14 @@ export type ManifestJSON = Record<string, ManifestEntryJSON>
 export type ProjectIndexJSON = { manifest: ManifestJSON; imports: ImportEntryJSON[] }
 
 // HACKY!!!
-// Make sure we don't save `SpellLocation` instances in the singleton registry or we'll leak memory!
+// Make sure we don't save `SP.SpellLocation` instances in the singleton registry or we'll leak memory!
 // TESTME: is this still needed?
-SpellLocation.useRegistry = false
+SP.SpellLocation.useRegistry = false
 
 /**
- * Add a getter to figure out the `serverPath` for a `SpellLocation`.
+ * Add a getter to figure out the `serverPath` for a `SP.SpellLocation`.
  */
-Object.defineProperty(SpellLocation.prototype, "serverPath", {
+Object.defineProperty(SP.SpellLocation.prototype, "serverPath", {
   get() {
     const path = [
       this.owner === "@system" ? environment.systemFilesRoot : environment.userFilesRoot,
@@ -52,7 +51,7 @@ const DEFAULT_FILE = {
  *   `[ "<project-path>"... ]`
  */
 export const getProjectList = async (domainId: string) => {
-  const domain = SpellLocation.getProjectRoot(domainId)
+  const domain = SP.SpellLocation.getProjectRoot(domainId)
   const options = { includeFolders: true, includeFiles: false, namesOnly: true, ignoreEmptyFolders: true }
   const projectNames = await fileUtils.getFolderContents(domain.serverPath, options)
   return projectNames.map((projectName) => `${domain.owner}:${domain.domain}:${projectName}`)
@@ -82,10 +81,10 @@ function isPreloadFile(name: string) {
 }
 
 /**
- * Return the `SpellLocation` for project `imports` file.
+ * Return the `SP.SpellLocation` for project `imports` file.
  */
 export function getImportsLocation(projectId: string) {
-  return SpellLocation.getFileLocation(projectId, ".imports.json")
+  return SP.SpellLocation.getFileLocation(projectId, ".imports.json")
 }
 
 /**
@@ -118,7 +117,7 @@ export const saveImports = async (projectId: string, contents: any) => {
  * and will be saved to disk as `.imports.json` if imports change.
  */
 export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => {
-  const location = SpellLocation.getProjectLocation(projectId)
+  const location = SP.SpellLocation.getProjectLocation(projectId)
 
   // Get non-hidden files in project which the front-end knows how to deal with
   const options = { includeFolders: false, ignoreHidden: true, namesOnly: true }
@@ -136,7 +135,7 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
   const manifest: ManifestJSON = {}
   await Promise.all(
     fileNames.map(async (name) => {
-      const location = SpellLocation.getFileLocation(projectId, name)
+      const location = SP.SpellLocation.getFileLocation(projectId, name)
       const { created, modified, size } = await fileUtils.getPathInfo(location.serverPath)
       manifest[location.path] = { created, modified, size }
     })
@@ -153,7 +152,7 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
     if (path.startsWith("@")) return true
 
     // Get the location relative to this project
-    const location = SpellLocation.getFileLocation(projectId, path)
+    const location = SP.SpellLocation.getFileLocation(projectId, path)
     // if not found, remove from imports
     if (!existingPaths[location.path]) {
       anythingChanged = true
@@ -167,7 +166,7 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
   // Anything left in `existingPaths` is MISSING from the imports,
   // add at the end of the imports as `active`.
   Object.keys(existingPaths).forEach((path) => {
-    const location = new SpellLocation(path)
+    const location = new SP.SpellLocation(path)
     if (!location.filePath) return
     // Record as a local `filePath` string, which includes the folder / leading slash
     importsFile.imports.push({ path: location.filePath, active: true })
@@ -183,7 +182,7 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
     importsFile.imports.map(async (entry) => {
       const { path, active } = entry
       if (!active || !isPreloadFile(path)) return
-      const location = SpellLocation.getFileLocation(projectId, path)
+      const location = SP.SpellLocation.getFileLocation(projectId, path)
       entry.contents = await fileUtils.loadFile(location.serverPath)
     })
   )
@@ -206,7 +205,7 @@ export const request_getIndex = respondWithJSON(async (request) => {
  */
 export const request_getFile = (request: Request, response: Response) => {
   const { projectId, filePath } = request.params
-  const location = SpellLocation.getFileLocation(projectId, filePath)
+  const location = SP.SpellLocation.getFileLocation(projectId, filePath)
   responseUtils.sendFile(response, location.serverPath, { dotfiles: "allow" })
 }
 
@@ -215,7 +214,7 @@ export const request_getFile = (request: Request, response: Response) => {
  * TODO: format according to extension!!!
  */
 export const saveFile = async (projectId: string, filePath: string, contents: any) => {
-  const location = SpellLocation.getFileLocation(projectId, filePath)
+  const location = SP.SpellLocation.getFileLocation(projectId, filePath)
   return await fileUtils.saveFile(location.serverPath, contents)
 }
 export const request_saveFile = respondWithJSON(async (request) => {
@@ -233,7 +232,7 @@ export const request_saveFile = respondWithJSON(async (request) => {
  * Request version returns updated project list.
  */
 export const createProject = async (projectId: string, filePath: string, contents: any) => {
-  const location = SpellLocation.getFileLocation(projectId, filePath || DEFAULT_FILE.filePath)
+  const location = SP.SpellLocation.getFileLocation(projectId, filePath || DEFAULT_FILE.filePath)
   return await fileUtils.saveFile(location.serverPath, contents || DEFAULT_FILE.contents)
 }
 export const request_createProject = respondWithJSON(async (request) => {
@@ -247,8 +246,8 @@ export const request_createProject = respondWithJSON(async (request) => {
  * Request version returns updated project list.
  */
 export const duplicateApp = async (projectId: string, newProjectId: string) => {
-  const location = SpellLocation.getProjectLocation(projectId)
-  const newLocation = SpellLocation.getProjectLocation(newProjectId)
+  const location = SP.SpellLocation.getProjectLocation(projectId)
+  const newLocation = SP.SpellLocation.getProjectLocation(newProjectId)
   return await fileUtils.copyPath(location.serverPath, newLocation.serverPath)
 }
 export const request_duplicateApp = respondWithJSON(async (request) => {
@@ -262,8 +261,8 @@ export const request_duplicateApp = respondWithJSON(async (request) => {
  * Request version returns updated project list.
  */
 export const renameApp = async (projectId: string, newProjectId: string) => {
-  const location = SpellLocation.getProjectLocation(projectId)
-  const newLocation = SpellLocation.getProjectLocation(newProjectId)
+  const location = SP.SpellLocation.getProjectLocation(projectId)
+  const newLocation = SP.SpellLocation.getProjectLocation(newProjectId)
   return await fileUtils.movePath(location.serverPath, newLocation.serverPath)
 }
 export const request_renameApp = respondWithJSON(async (request) => {
@@ -277,7 +276,7 @@ export const request_renameApp = respondWithJSON(async (request) => {
  * Request version returns updated project list.
  */
 export const deleteApp = async (projectId: string) => {
-  const location = SpellLocation.getProjectLocation(projectId)
+  const location = SP.SpellLocation.getProjectLocation(projectId)
   return await fileUtils.deletePath(location.serverPath)
 }
 export const request_deleteApp = respondWithJSON(async (request) => {
@@ -308,8 +307,8 @@ export const request_createFile = respondWithJSON(async (request) => {
  * Request version returns updated index.
  */
 export const renameFile = async (projectId: string, filePath: string, newFilePath: string) => {
-  const location = SpellLocation.getFileLocation(projectId, filePath)
-  const newLocation = SpellLocation.getFileLocation(projectId, newFilePath)
+  const location = SP.SpellLocation.getFileLocation(projectId, filePath)
+  const newLocation = SP.SpellLocation.getFileLocation(projectId, newFilePath)
   await fileUtils.movePath(location.serverPath, newLocation.serverPath)
 
   // update `imports` so file order stays the same
@@ -333,7 +332,7 @@ export const request_renameFile = respondWithJSON(async (request) => {
  * Request version returns updated index.
  */
 export const deleteFile = async (projectId: string, filePath: string) => {
-  const location = SpellLocation.getFileLocation(projectId, filePath)
+  const location = SP.SpellLocation.getFileLocation(projectId, filePath)
   return await fileUtils.deletePath(location.serverPath)
 }
 export const request_deleteFile = respondWithJSON(async (request) => {
@@ -347,7 +346,7 @@ export const request_deleteFile = respondWithJSON(async (request) => {
 //----------------------------
 
 export const compileFile = async (fileContents: string) => {
-  const compiled = spellParser.compile(fileContents)
+  const compiled = SP.spellParser.compile(fileContents)
   return compiled
 }
 export const request_compileFile = respondWithJSON(async (request) => {

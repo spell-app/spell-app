@@ -5,13 +5,11 @@ import global from "global"
 import { UIError } from "~/util"
 import { navigate } from "@reach/router"
 
-import { FileScope } from "~/parser"
-import type { Match } from "~/parser"
 import { createStore, setPrefKey, getPref, setPref, CONFIRM } from "~/util"
+import { P } from "~/parser"
 import { spellCore } from "~/spellCore"
-import { SpellProjectRoot, SpellProject, SpellLocation } from "~/languages/spell"
-import type { AnySpellFile } from "~/languages/spell"
-import { UI } from "~/app/components/ui"
+import { SP } from "~/languages/spell"
+import * as UI from "~/app/components/ui"
 import type {
   ModalComponentProps,
   AlertModalProps,
@@ -54,7 +52,7 @@ export type EditorSelection = {
  * Any of the file classes `store.file` can hold, plus the ad-hoc `initialSelection` that
  * `store.selectPath()` stashes on it to tell `<InputEditor>` where to restore the cursor.
  */
-export type StoreFile = AnySpellFile & { initialSelection?: EditorSelection }
+export type StoreFile = SP.AnySpellFile & { initialSelection?: EditorSelection }
 
 /** Loose prop bag passed to a modal shown with `store.showModal()`. */
 export type ModalProps = Record<string, unknown>
@@ -81,19 +79,19 @@ export type SpellStore = {
   //-----------------
 
   /**
-   * `SpellProjectRoot` shown in `SpellEditor`.
+   * `SP.SpellProjectRoot` shown in `SpellEditor`.
    * Update with `store.showEditor()
    */
-  projectRoot?: SpellProjectRoot
+  projectRoot?: SP.SpellProjectRoot
   /** Get/save last viewed `projectPath` for `projectRootPath`. */
   lastProjectForRoot: typeof lastProjectForRoot
   appType: string
 
   /**
-   * Current `SpellProject` shown in `SpellEditor`.
+   * Current `SP.SpellProject` shown in `SpellEditor`.
    * Update with `store.showEditor()`
    */
-  project?: SpellProject
+  project?: SP.SpellProject
   /** Get/save last viewed full `filePath` for `projectPath`. */
   lastFileForProject: typeof lastFileForProject
 
@@ -139,13 +137,13 @@ export type SpellStore = {
    * Given a `match`, attempt to show it and put the cursor in the right spot.
    * This may not be accurate if text has changed since
    */
-  showMatch(match: Match): Promise<void>
+  showMatch(match: P.Match): Promise<void>
 
   /**
    * Create an app for the specified `projectRoot`.
    * `projectId` is optional, if you don't specify we'll ask the user for one.
    */
-  createApp(projectRoot?: SpellProjectRoot, projectId?: string): Promise<void>
+  createApp(projectRoot?: SP.SpellProjectRoot, projectId?: string): Promise<void>
   duplicateApp(newProjectId?: string): Promise<void>
   renameApp(newProjectId?: string): Promise<void>
   deleteApp(): Promise<void>
@@ -418,7 +416,7 @@ export const store: SpellStore = createStore<SpellStore>({
     if (!path) path = store.file?.path
     // TODO: selection!!!!
     try {
-      navigate(new SpellLocation(path!).editorUrl)
+      navigate(new SP.SpellLocation(path!).editorUrl)
       store.compileApp()
     } catch {
       store.showError(`Path '${path}' is invalid!`)
@@ -428,7 +426,7 @@ export const store: SpellStore = createStore<SpellStore>({
   async showRunner(path) {
     if (!path) path = store.file?.path
     try {
-      await navigate(new SpellLocation(path!).runnerUrl)
+      await navigate(new SP.SpellLocation(path!).runnerUrl)
       store.compileApp()
     } catch {
       store.showError(`Path '${path}' is invalid!`)
@@ -458,17 +456,17 @@ export const store: SpellStore = createStore<SpellStore>({
   projectPage: "editor",
 
   async selectPath(path, selection) {
-    let location: SpellLocation
+    let location: SP.SpellLocation
     try {
-      location = new SpellLocation(path)
+      location = new SP.SpellLocation(path)
     } catch {
       console.warn(`store.selectPath('${path}'): invalid path`)
-      // default to user projects if `new SpellLocation()` throws
-      location = new SpellLocation("@user:projects")
+      // default to user projects if `new SP.SpellLocation()` throws
+      location = new SP.SpellLocation("@user:projects")
     }
     console.info("store.selectPath", { path, location })
 
-    const projectRoot = new SpellProjectRoot(location.projectRoot)
+    const projectRoot = new SP.SpellProjectRoot(location.projectRoot)
     const sameRoot = store.projectRoot === projectRoot
     if (!sameRoot) {
       console.info("selecting projectRoot", projectRoot)
@@ -484,7 +482,7 @@ export const store: SpellStore = createStore<SpellStore>({
         : store.lastProjectForRoot(location.projectRoot)
     if (!projectPath || !projectPaths.includes(projectPath)) projectPath = projectPaths[0]
     // TODO: what if no project???
-    const project = new SpellProject(projectPath)
+    const project = new SP.SpellProject(projectPath)
     // DEBUG: access globally as `window.project`
     window.project = project
     let sameProject = store.project === project
@@ -541,7 +539,7 @@ export const store: SpellStore = createStore<SpellStore>({
   },
 
   async showMatch(match) {
-    const path = match.getScopeOfType(FileScope)?.path
+    const path = match.getScopeOfType(P.FileScope)?.path
     if (!path) return
     const selection: EditorSelection = {
       anchor: { line: match.line ?? 0, ch: match.char ?? 0 },
@@ -665,21 +663,21 @@ export const store: SpellStore = createStore<SpellStore>({
   // Projects actions
   //-----------------
   createProject(projectId) {
-    return store.createApp(SpellProjectRoot.projects, projectId)
+    return store.createApp(SP.SpellProjectRoot.projects, projectId)
   },
 
   //-----------------
   // Examples actions
   //-----------------
   async createExample(projectId) {
-    return store.createApp(SpellProjectRoot.examples, projectId)
+    return store.createApp(SP.SpellProjectRoot.examples, projectId)
   },
 
   //-----------------
   // Guides actions
   //-----------------
   async createGuide(projectId) {
-    return store.createApp(SpellProjectRoot.guides, projectId)
+    return store.createApp(SP.SpellProjectRoot.guides, projectId)
   },
 
   //-----------------

@@ -1,7 +1,4 @@
-import { Rules, Tokens } from "~/parser"
-import type { Match } from "~/parser/Match"
-import type { Scope } from "~/parser/scope/Scope"
-import type { Token } from "~/parser/tokenizer/Tokens"
+import { P } from "~/parser"
 import { SpellParser } from "~/languages/spell"
 
 // In Spell, we generally match `statements` across the entire line.
@@ -11,7 +8,7 @@ import { SpellParser } from "~/languages/spell"
 //  or might have a nested block of statements.
 //
 // Note: Access this as `SpellParser.Rules.Statement`.
-export class SpellStatement extends Rules.Sequence {
+export class SpellStatement extends P.Rules.Sequence {
   /** Should we attempt to parse an `inlineStatement` at the end of this statement's line? */
   declare wantsInlineStatement: boolean
   /** Rule name to parse the `inlineStatement` as. */
@@ -31,7 +28,7 @@ export class SpellStatement extends Rules.Sequence {
   // Parse the staement itself -- assume comment was already popped off the end.
   // If we `wantsInlineStatement`, attempt to parse that and push onto the match.
   // `Block.parseStatement()` will worry about extra stuff at the end of the statement.
-  parse(scope: Scope, tokens: Token[]): Match | undefined {
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const statement = super.parse(scope, tokens)
     if (!statement) return undefined
 
@@ -48,10 +45,10 @@ export class SpellStatement extends Rules.Sequence {
   // attempt to parse `unparsed` tokens from the end of the input line.
   // Returns `inlineStatement` match if successful.
   parseInlineStatement(
-    statement: Match,
-    unparsed: Token[],
+    statement: P.Match,
+    unparsed: P.Token[],
     parseAs: string = this.parseInlineStatementAs
-  ): Match | undefined {
+  ): P.Match | undefined {
     // NOTE: `Scope.parse()` is typed for string input only; call `parser.parse()` directly
     // (exactly what `Scope.parse()` would do internally) so we can pass tokens instead.
     const { nestedScope } = statement
@@ -70,11 +67,11 @@ export class SpellStatement extends Rules.Sequence {
   // TODO: complain if we also have an inlineStatement???
   // NOTE: this will throw if rule does not implement `getNestedScopeForMatch`
   parseNestedBlock(
-    statement: Match,
-    nestedBlock: Tokens.Block,
+    statement: P.Match,
+    nestedBlock: P.Tokens.Block,
     parseAs: string = this.parseNestedBlockAs
-  ): Match | undefined {
-    let result: Match | undefined
+  ): P.Match | undefined {
+    let result: P.Match | undefined
     if (parseAs === "block") {
       const { nestedScope } = statement
       result = nestedScope.parser?.parse([nestedBlock], "block", nestedScope)
@@ -87,7 +84,7 @@ export class SpellStatement extends Rules.Sequence {
       // TODO: remove comment????
       const first = nestedBlock.tokens[0]
       // Only a `Line` (not a nested `Block`) can be parsed as a single rule here.
-      if (!(first instanceof Tokens.Line)) return undefined
+      if (!(first instanceof P.Tokens.Line)) return undefined
       const { tokens } = first
       // TODO: `statement.scope` or `statement.nestedScope` ???
       const { scope } = statement

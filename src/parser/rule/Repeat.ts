@@ -1,6 +1,6 @@
 import flattenDeep from "lodash/flattenDeep"
 
-import { Prettify } from "~/global_types"
+
 import { Rule, type RuleProps } from "./Rule"
 import type { Scope } from "~/parser/scope/Scope"
 import { Token } from "~/parser/tokenizer/Tokens"

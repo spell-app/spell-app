@@ -22,8 +22,8 @@ import "codemirror/addon/lint/javascript-lint"
 
 import "./CodeMirror.css"
 
-import { Tokens, Token } from "~/parser"
-import { spellParser } from "~/languages/spell"
+import { P } from "~/parser"
+import { SP } from "~/languages/spell"
 import { store } from "~/app/store"
 
 // Set up JSHINT for displaying compiled JS properly
@@ -72,32 +72,32 @@ export type SpellModeState = {
   /** spell string for the current line */
   string: string | undefined
   /** list of tokens for the current line */
-  tokens: Token[] | undefined
+  tokens: P.Token[] | undefined
 }
 
 CodeMirror.defineMode("spell", (): CodeMirror.Mode<SpellModeState> => {
   // Return the token that starts at numeric offset
-  function getToken(tokens: Token[] | undefined, offset: number): Token | undefined {
+  function getToken(tokens: P.Token[] | undefined, offset: number): P.Token | undefined {
     return tokens?.find((token) => token.offset >= offset)
   }
 
-  function advanceStreamPastToken(stream: StringStream, token: Token): void {
+  function advanceStreamPastToken(stream: StringStream, token: P.Token): void {
     const length = token.raw?.length || 0
     for (let i = 0; i < length; i++) stream.next()
   }
 
-  function getTokenType(token: Token): string | null {
-    if (token instanceof Tokens.Word) {
+  function getTokenType(token: P.Token): string | null {
+    if (token instanceof P.Tokens.Word) {
       //      if (blacklist[token.raw]) return "keyword"
       return "unknown"
     }
-    if (token instanceof Tokens.Symbol) return "operator"
-    if (token instanceof Tokens.Number) return "number"
-    if (token instanceof Tokens.Comment) {
+    if (token instanceof P.Tokens.Symbol) return "operator"
+    if (token instanceof P.Tokens.Number) return "number"
+    if (token instanceof P.Tokens.Comment) {
       if (token.commentSymbol === "##") return "comment header"
       return "comment"
     }
-    if (token instanceof Tokens.Text) return "string"
+    if (token instanceof P.Tokens.Text) return "string"
     // if (token instanceof Tokens.JSXElement) return null
     // if (token instanceof Tokens.JSXEndTag) return null
     // if (token instanceof Tokens.JSXAttribute) return null
@@ -126,8 +126,8 @@ CodeMirror.defineMode("spell", (): CodeMirror.Mode<SpellModeState> => {
         if (stream.string !== state.string) {
           state.string = stream.string
           // "" ruleName: we're tokenizing line-by-line, not the whole "block", so we don't want
-          // `spellParser.tokenize()`'s indented-block-breaking behavior (only triggered for "block").
-          state.tokens = spellParser.tokenize(stream.string, "")
+          // `SP.spellParser.tokenize()`'s indented-block-breaking behavior (only triggered for "block").
+          state.tokens = SP.spellParser.tokenize(stream.string, "")
         } else {
           //        console.info(stream)
         }

@@ -2,9 +2,9 @@ import React from "react"
 import { useHotkeys } from "react-hotkeys-hook"
 import type { RouteComponentProps } from "@reach/router"
 
-import { SpellLocation } from "~/languages/spell"
+import { SP } from "~/languages/spell"
 import { actions } from "~/app/actions"
-import { UI } from "~/app/components/ui"
+import * as UI from "~/app/components/ui"
 import { AppRoot } from "~/app/components/AppContainer"
 import { ASTRoot } from "~/app/components/ASTViewer"
 import { ConsoleRoot } from "~/app/components/ConsoleViewer"
@@ -98,7 +98,7 @@ export type SpellRouteParams = {
  */
 export function SpellEditorRoute(props: RouteComponentProps<SpellRouteParams>) {
   const { domain, project, filePath } = props
-  const path = SpellLocation.pathForUrl({ domain, project, filePath })
+  const path = SP.SpellLocation.pathForUrl({ domain, project, filePath })
   // console.info("SpellRoute", path, props)
   // HACK: Actually navigate on a timeout to avoid hook / rerender problems.
   setTimeout(() => store.selectPath(path), 0)

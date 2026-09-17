@@ -1,4 +1,4 @@
-import { Prettify } from "~/types"
+
 import { Match } from "~/parser/Match"
 import type { Token } from "~/parser/tokenizer/Tokens"
 import { Rule, type RuleProps } from "./Rule"

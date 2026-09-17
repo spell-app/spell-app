@@ -1,7 +1,7 @@
 import global from "global"
 
 import { TextFile, batch } from "~/util"
-import { ProjectScope, FileScope, type Scope, type Match } from "~/parser"
+import { P } from "~/parser"
 import type { ASTNode } from "~/parser/ast/AST"
 import { SpellProject, SpellParser, SpellLocation } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
@@ -11,7 +11,7 @@ import type { ProjectManifestEntry } from "./SpellProject"
  * `rules/Block.js` (still untyped JS) attaches an ad-hoc `errors` array of `Match`es
  * to the top-level `block` match on parse failures. It's not part of the core `Match` shape.
  */
-type MatchWithErrors = Match & { errors?: Match[] }
+type MatchWithErrors = P.Match & { errors?: P.Match[] }
 
 /**
  * Loadable file of spell code located at `path`.
@@ -100,10 +100,10 @@ export class SpellFile extends TextFile {
   //-----------------
 
   /** Our scope with which we've compiled. */
-  /*@state*/ get scope(): FileScope | ProjectScope | undefined {
+  /*@state*/ get scope(): P.FileScope | P.ProjectScope | undefined {
     return this.getState("scope", () => undefined)
   }
-  set scope(scope: FileScope | ProjectScope | undefined) {
+  set scope(scope: P.FileScope | P.ProjectScope | undefined) {
     this.setState("scope", scope)
   }
 
@@ -116,10 +116,10 @@ export class SpellFile extends TextFile {
   }
 
   /** Results of our last `parse()` as a `Match`. */
-  /*@state*/ get match(): Match | undefined {
+  /*@state*/ get match(): P.Match | undefined {
     return this.getState("match", () => undefined)
   }
-  set match(match: Match | undefined) {
+  set match(match: P.Match | undefined) {
     this.setState("match", match)
   }
 
@@ -149,10 +149,10 @@ export class SpellFile extends TextFile {
    * Note that if our `parentScope` is NOT the `rootScope`,
    * we'll use the same parser.  This will ensure that
    */
-  getScope(parentScope: Scope | undefined): FileScope | ProjectScope {
+  getScope(parentScope: P.Scope | undefined): P.FileScope | P.ProjectScope {
     // If we were passed a `parentScope` with `types`, set up as a `FileScope` and use same parser.
     if (parentScope && parentScope.types) {
-      return new FileScope({
+      return new P.FileScope({
         name: this.file,
         path: this.path,
         parentScope
@@ -160,7 +160,7 @@ export class SpellFile extends TextFile {
     }
     // Otherwise set up as an ad-hoc `Project` and clone `SpellParser.rootScope.parser`
     console.warn(`spellFile.getScope(): no parentScope for ${this.filePath}`)
-    return new ProjectScope({
+    return new P.ProjectScope({
       name: this.file,
       path: this.path,
       parser: SpellParser.rootScope.parser!.clone({ module: this.path }),
@@ -174,7 +174,7 @@ export class SpellFile extends TextFile {
    * Use `spellFile.resetCompiled()` to clear it.
    * Pass an explicit `parentScope` if the file is, e.g. building on other files.
    */
-  async parse(parentScope?: Scope): Promise<Match | undefined> {
+  async parse(parentScope?: P.Scope): Promise<P.Match | undefined> {
     if (this.match) return this.match
     await this.load(undefined)
     this.resetCompiled()
@@ -193,7 +193,7 @@ export class SpellFile extends TextFile {
           // TODO(ast): remove cast when AST/ASTNode typing lands -- `.value` is subclass-specific.
           const value = (error.AST as unknown as { value: string } | undefined)?.value
           let message = `${value} on line ${error.line! + 1}`
-          const fileScope = error.getScopeOfType(FileScope)
+          const fileScope = error.getScopeOfType(P.FileScope)
           if (fileScope) message += ` of ${fileScope.name}`
           spellCore.console.error(error, message)
         })
@@ -205,7 +205,7 @@ export class SpellFile extends TextFile {
   /**
    * Compile our content.
    */
-  async compile(parentScope?: Scope): Promise<string | undefined> {
+  async compile(parentScope?: P.Scope): Promise<string | undefined> {
     const match = await this.parse(parentScope)
     batch(() => {
       this.setState("AST", match?.AST)

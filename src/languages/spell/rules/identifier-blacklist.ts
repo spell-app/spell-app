@@ -1,7 +1,7 @@
-import { IdentifierBlacklist } from "~/parser/types"
+import { P } from "~/parser"
 
 // Blacklist of common english words which may not be used as single-word identifiers.
-export const identifierBlacklist: IdentifierBlacklist = {
+export const identifierBlacklist: P.IdentifierBlacklist = {
   // Common english verbs:
   are: 1,
   do: 1,

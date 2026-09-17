@@ -2,10 +2,8 @@
 //  # Rules for creating variables, property access, etc
 //
 
-import { Tokens, Rules } from "~/parser"
-import { SpellParser, AST } from "~/languages/spell"
-import type { Match } from "~/parser"
-import type { RulexGroups } from "~/parser/rulex.types"
+import { P, AST } from "~/parser"
+import { SpellParser } from "~/languages/spell"
 import type { ASTNode, Expression } from "~/parser/ast/AST"
 import { SpellStatement } from "./Statement"
 
@@ -32,7 +30,7 @@ export const UI = new SpellParser({
           "collapsed group": "groupCollapsed",
           default: "log"
         }
-        getAST(match: Match<RulexGroups<"operator:expressions">>) {
+        getAST(match: P.Match<P.RulexGroups<"operator:expressions">>) {
           const { operator, expressions } = match.groups
           const methodName = this.operatorMap[operator?.value || "default"]
           return new AST.ConsoleMethodInvocation(match, {
@@ -61,7 +59,7 @@ export const UI = new SpellParser({
       alias: "statement",
       syntax: "end print group",
       constructor: class end_print_group extends SpellStatement {
-        getAST(match: Match) {
+        getAST(match: P.Match) {
           return new AST.ConsoleMethodInvocation(match, { methodName: "groupEnd" })
         }
       },
@@ -82,7 +80,7 @@ export const UI = new SpellParser({
       syntax: "notify {message:expression} (with {okButton:text})?", // TODO: "with close" ?
       testRule: "notify",
       constructor: class notify extends SpellStatement {
-        getAST(match: Match<RulexGroups<"message:okButton">>) {
+        getAST(match: P.Match<P.RulexGroups<"message:okButton">>) {
           const { message, okButton } = match.groups
           const args: Expression[] = [ast<Expression>(message!.AST)]
           if (okButton) args.push(ast<Expression>(okButton.AST))
@@ -113,7 +111,7 @@ export const UI = new SpellParser({
       syntax: "alert {message:expression} (with {okButton:text})?",
       testRule: "alert",
       constructor: class alert extends SpellStatement {
-        getAST(match: Match<RulexGroups<"message:okButton">>) {
+        getAST(match: P.Match<P.RulexGroups<"message:okButton">>) {
           const { message, okButton } = match.groups
           const args: Expression[] = [ast<Expression>(message!.AST)]
           if (okButton) args.push(ast<Expression>(okButton.AST))
@@ -146,7 +144,7 @@ export const UI = new SpellParser({
       syntax: "warn {message:expression} (with {okButton:text})?",
       testRule: "warn",
       constructor: class warn extends SpellStatement {
-        getAST(match: Match<RulexGroups<"message:okButton">>) {
+        getAST(match: P.Match<P.RulexGroups<"message:okButton">>) {
           const { message, okButton } = match.groups
           const args: Expression[] = [ast<Expression>(message!.AST)]
           if (okButton) args.push(ast<Expression>(okButton.AST))
@@ -179,7 +177,7 @@ export const UI = new SpellParser({
       syntax: "confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})?)?",
       testRule: "confirm",
       constructor: class confirm extends SpellStatement {
-        getAST(match: Match<RulexGroups<"message:okButton:cancelButton">>) {
+        getAST(match: P.Match<P.RulexGroups<"message:okButton:cancelButton">>) {
           const { message, okButton, cancelButton } = match.groups
           const args: Expression[] = [ast<Expression>(message!.AST)]
           if (okButton) args.push(ast<Expression>(okButton.AST))
@@ -215,7 +213,7 @@ export const UI = new SpellParser({
       syntax: "prompt {message:expression} (with {defaultValue:expression})?",
       testRule: "prompt",
       constructor: class prompt extends SpellStatement {
-        getAST(match: Match<RulexGroups<"message:defaultValue">>) {
+        getAST(match: P.Match<P.RulexGroups<"message:defaultValue">>) {
           const { message, defaultValue } = match.groups
           const args: Expression[] = [ast<Expression>(message!.AST)]
           if (defaultValue) args.push(ast<Expression>(defaultValue.AST))
@@ -262,9 +260,9 @@ export const UI = new SpellParser({
     {
       name: "css",
       alias: "expression",
-      tokenType: Tokens.Text,
-      constructor: class css extends Rules.TokenType {
-        getAST(match: Match) {
+      tokenType: P.Tokens.Text,
+      constructor: class css extends P.Rules.TokenType {
+        getAST(match: P.Match) {
           // HACK: `name` comes from SpellCSSFile
           const { value, file } = match
           // munge returns to `¬`

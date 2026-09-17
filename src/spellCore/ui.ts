@@ -13,9 +13,9 @@ export type KnownElementsMap = Record<string, unknown>
 
 /** Spec accepted by `spellCore.element()`. */
 export type ElementSpec = {
-  tag?: React.ComponentType | string
+  tag?: ReactComponentType | string
   props?: Record<string, unknown> | null
-  children?: React.ReactNode[]
+  children?: ReactNode[]
 }
 
 export const uiMethods = defineSpellCoreModule({
@@ -58,14 +58,14 @@ export const uiMethods = defineSpellCoreModule({
   },
 
   /** Create a react element (ala `React.createElement()`) */
-  element({ tag, props, children = [] }: ElementSpec = {}): React.ReactElement {
+  element({ tag, props, children = [] }: ElementSpec = {}): ReactElement {
     if (typeof tag === "string") {
-      tag = (_get(spellCore.knownElements, tag) as React.ComponentType | string | undefined) || tag
+      tag = (_get(spellCore.knownElements, tag) as ReactComponentType | string | undefined) || tag
       if (typeof tag === "string" && tag.includes(".")) {
         console.warn(`spellCore.element(): Don't recognize tag '${tag}'`)
       }
     }
-    return React.createElement(tag as React.ComponentType | string, props, ...children)
+    return React.createElement(tag as ReactComponentType | string, props, ...children)
   },
 
   /**

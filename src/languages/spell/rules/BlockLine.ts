@@ -1,13 +1,10 @@
-import { Match, Rule, Rules, Tokens } from "~/parser"
-import type { AnyMatch } from "~/parser/Match"
-import type { Scope } from "~/parser/scope/Scope"
-import type { Token } from "~/parser/tokenizer/Tokens"
-import { SpellParser, AST, spellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
+import { SpellParser, spellParser } from "~/languages/spell"
 import { SpellStatement } from "./Statement"
 import "./match-fields.A"
 
 /** Update Rules.BlankLine to output AST properly. */
-Rules.BlankLine.prototype.getAST = function (match: Match) {
+P.Rules.BlankLine.prototype.getAST = function (match: P.Match) {
   return new AST.BlankLine(match)
 }
 
@@ -16,15 +13,15 @@ Rules.BlankLine.prototype.getAST = function (match: Match) {
 // - an optional `comment` at the end of the line
 // - if the `statement.wantsNestedBlock` and the next item in `lines` is a `Tokens.Block`
 //   we'll let the statement attempt to parse the next line as well.
-export class BlockLine extends Rule {
-  parse(scope: Scope, lines: Token[]): Match | undefined {
+export class BlockLine extends P.Rule {
+  parse(scope: P.Scope, lines: P.Token[]): P.Match | undefined {
     // eslint-disable-next-line no-shadow
     const line = lines[0]
     if (!line) return undefined
-    const matched: (Match | Token)[] = []
-    const errors: Match[] = []
-    const tokensMatched: Token[] = [line]
-    if (!(line instanceof Tokens.Line)) {
+    const matched: (P.Match | P.Token)[] = []
+    const errors: P.Match[] = []
+    const tokensMatched: P.Token[] = [line]
+    if (!(line instanceof P.Tokens.Line)) {
       console.warn("BlockLine.parse(): got non-line", line)
       return undefined
     }
@@ -37,7 +34,7 @@ export class BlockLine extends Rule {
       const token = line.newline
       if (token) {
         matched.push(
-          new Match({
+          new P.Match({
             rule: scope.getRuleOrDie("blank_line"),
             matched: [token],
             tokens: [token],
@@ -87,7 +84,7 @@ export class BlockLine extends Rule {
         if (
           statement.rule instanceof SpellStatement &&
           statement.rule.wantsNestedBlock &&
-          nextItem instanceof Tokens.Block
+          nextItem instanceof P.Tokens.Block
         ) {
           const nestedBlock = statement.rule.parseNestedBlock(statement, nextItem)
           if (nestedBlock) {
@@ -116,7 +113,7 @@ export class BlockLine extends Rule {
         if (inlineStatement && nestedBlock) {
           const error = spellParser.createParseError(
             scope,
-            [line, nextItem].filter((item): item is Token => item !== undefined),
+            [line, nextItem].filter((item): item is P.Token => item !== undefined),
             "Got both inline statement and nested block"
           )
           errors.push(error)
@@ -124,7 +121,7 @@ export class BlockLine extends Rule {
         }
       }
     }
-    const result = new Match({
+    const result = new P.Match({
       rule: this,
       matched,
       tokens: tokensMatched,
@@ -135,22 +132,22 @@ export class BlockLine extends Rule {
     return result
   }
 
-  compile(match: AnyMatch): unknown {
+  compile(match: P.AnyMatch): unknown {
     // `Match.compile()` always prefers `getAST()` (below) over calling `rule.compile()` directly,
     // but `Rule.compile()` is abstract, so provide the equivalent fallback for completeness.
     return match.AST?.compile()
   }
 
-  getAST(match: Match): AST.ASTNode {
+  getAST(match: P.Match): AST.ASTNode {
     // ???  If only one matched item, return it by itself
     const first = match.matched[0]
-    if (match.matched.length === 1 && first instanceof Match) return first.AST!
+    if (match.matched.length === 1 && first instanceof P.Match) return first.AST!
     // otherwise
     return new AST.StatementGroup(match, {
       // `match.matched` here is always `Match`es (never raw `Token`s) -- not staticaly representable.
-      statements: match.matched.filter((item): item is Match => item instanceof Match).map((item) => item.AST) as Array<
-        AST.Statement | AST.Expression | AST.Comment | AST.BlankLine
-      >
+      statements: match.matched
+        .filter((item): item is P.Match => item instanceof P.Match)
+        .map((item) => item.AST) as Array<AST.Statement | AST.Expression | AST.Comment | AST.BlankLine>
     })
   }
 }

@@ -13,7 +13,7 @@ import {
   ResponseParseError,
   AbortedRequestError
 } from "./ResponseErrors"
-import { Prettify } from "~/global_types"
+
 
 /** Merge multiple sets of `$fetch()` `params` and set up defaults. */
 export function merge$fetchParms(...allParams: Array<Partial<$FetchParams>>) {

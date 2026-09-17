@@ -19,3 +19,5 @@ import "./ui"
 export { spellCore, assert, SpellEvent, Eventful }
 export type { SpellCore } from "./SpellCore"
 export * from "./classes"
+
+export * as "$C" from "."

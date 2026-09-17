@@ -2,14 +2,9 @@
 //  # Rules for constants, variables, type names, etc
 //
 import { typeCase, instanceCase, singularize, pluralize } from "~/util"
-import { Pattern } from "~/parser/rule/Pattern"
-import type { Match } from "~/parser/Match"
-import type { Scope } from "~/parser/scope/Scope"
-import type { RootScope } from "~/parser/scope/RootScope"
-import type { Token } from "~/parser/tokenizer/Tokens"
-import { AST, SpellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
+import { SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"
-import { ALPHANUMERIC_WORD_WITH_DASHES } from "~/parser/types"
 import "./match-fields.B"
 
 const TYPE_VALUE_MAP: Record<string, string> = {
@@ -43,10 +38,10 @@ const TYPE_VALUE_MAP: Record<string, string> = {
   Choices: "boolean"
 }
 
-export class SpellType extends Pattern {
+export class SpellType extends P.Rules.Pattern {
   static {
     // Alpha-numeric word, including dashes or underscores.
-    Object.defineProperty(this.prototype, "pattern", { value: ALPHANUMERIC_WORD_WITH_DASHES, writable: true })
+    Object.defineProperty(this.prototype, "pattern", { value: P.ALPHANUMERIC_WORD_WITH_DASHES, writable: true })
     Object.defineProperty(this.prototype, "datatype", { value: "type", writable: true })
     Object.defineProperty(this.prototype, "blacklist", { value: identifierBlacklist, writable: true })
     Object.defineProperty(this.prototype, "VALUE_MAP", { value: TYPE_VALUE_MAP, writable: true })
@@ -72,7 +67,7 @@ export class SpellType extends Pattern {
     return typeCase(value) as T
   }
 
-  parse(scope: Scope, tokens: Token[]) {
+  parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     if (!match) return undefined
     // Pick up `type` scope based on canonical, singular type name
@@ -82,7 +77,7 @@ export class SpellType extends Pattern {
     return match
   }
 
-  getAST(match: Match): AST.TypeExpression {
+  getAST(match: P.Match): AST.TypeExpression {
     const { value, raw } = match
     if (typeof value !== "string") throw new TypeError(`Expected a string value, got ${typeof value}`)
     return new AST.TypeExpression(match, { raw, name: value })
@@ -115,12 +110,12 @@ export const types = new SpellParser({
     {
       name: "singular_type",
       constructor: class singular_type extends SpellType {
-        parse(scope: Scope, tokens: Token[]) {
+        parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (match && typeof match.raw === "string" && match.raw === singularize(match.raw)) return match
           return undefined
         }
-        getAST(match: Match): AST.TypeExpression {
+        getAST(match: P.Match): AST.TypeExpression {
           const type = super.getAST(match)
           type.plurality = "singular"
           return type
@@ -148,12 +143,12 @@ export const types = new SpellParser({
     {
       name: "plural_type",
       constructor: class plural_type extends SpellType {
-        parse(scope: Scope, tokens: Token[]) {
+        parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (match && typeof match.raw === "string" && match.raw === pluralize(match.raw)) return match
           return undefined
         }
-        getAST(match: Match): AST.TypeExpression {
+        getAST(match: P.Match): AST.TypeExpression {
           const type = super.getAST(match)
           type.plurality = "plural"
           return type
@@ -182,7 +177,7 @@ export const types = new SpellParser({
       name: "known_type",
       //      alias: "expression",
       constructor: class known_type extends SpellType {
-        parse(scope: Scope, tokens: Token[]) {
+        parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           // Only return match if we picked up an existing `type` scope
           if (match && match.type) return match
@@ -191,10 +186,10 @@ export const types = new SpellParser({
       },
       tests: [
         {
-          beforeEach(scope: Scope) {
+          beforeEach(scope: P.Scope) {
             // `Scope.types` is typed narrowly (`IndexedList<TypeScope>`); the concrete `RootScope` accepts
             // plain `TypeScopeProps` too -- see report.
-            const { types } = scope as RootScope
+            const { types } = scope as P.RootScope
             types.add({ name: "Thing" })
             types.add({ name: "Bank-Account" })
           },

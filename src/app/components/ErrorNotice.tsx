@@ -45,7 +45,7 @@ export function ErrorDisplay(allProps: ErrorDisplayProps) {
   const params = customProps?.params && Object.keys(customProps.params).length > 0 ? customProps.params : undefined
   const context = customProps?.context
 
-  const children: React.ReactNode[] = [
+  const children: ReactNode[] = [
     <Message.Header key="header">{header}</Message.Header>,
     <Message.Content key="message">{error.message}</Message.Content>
   ]

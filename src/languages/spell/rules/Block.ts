@@ -1,8 +1,5 @@
-import { Match, Rule, Tokens } from "~/parser"
-import type { AnyMatch } from "~/parser/Match"
-import type { Scope } from "~/parser/scope/Scope"
-import type { Token } from "~/parser/tokenizer/Tokens"
-import { SpellParser, AST } from "~/languages/spell"
+import { P, AST } from "~/parser"
+import { SpellParser } from "~/languages/spell"
 import "./match-fields.A"
 
 // `Blocks` are generally the root entity that we parse in spell.
@@ -10,30 +7,30 @@ import "./match-fields.A"
 //
 //  They are composed of `block_lines` and nested `blocks`,
 //  and correspond roughly to a `Scope` (see `parser/scope/Scope`).
-export class Block extends Rule {
-  parse(scope: Scope, tokens: Token[]): Match | undefined {
+export class Block extends P.Rule {
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     if (!tokens.length) return undefined
     if (tokens.length !== 1) console.warn(`Block.parse(): unexpectedly got ${tokens.length} tokens:`, tokens)
     // eslint-disable-next-line no-shadow
     const block = tokens[0]!
-    if (!(block instanceof Tokens.Block)) {
+    if (!(block instanceof P.Tokens.Block)) {
       console.warn("parseBlock: got non-block", block)
       return undefined
     }
 
     // build up matches for individual items
-    const matched: Match[] = []
-    const errors: Match[] = []
-    const items: (Tokens.Line | Tokens.Block)[] = [...block.tokens]
+    const matched: P.Match[] = []
+    const errors: P.Match[] = []
+    const items: (P.Tokens.Line | P.Tokens.Block)[] = [...block.tokens]
     while (items.length) {
-      let match: Match | undefined
+      let match: P.Match | undefined
       const first = items[0]!
       // recurse for nested block
-      if (first instanceof Tokens.Block) {
+      if (first instanceof P.Tokens.Block) {
         match = this.parse(scope, [first])
       }
       // process Line as "line" -- a statement with optional comment, etc.
-      else if (first instanceof Tokens.Line) {
+      else if (first instanceof P.Tokens.Line) {
         // NOTE: `Scope.parse()` is typed for string input only; call `parser.parse()` directly
         // (exactly what `Scope.parse()` would do internally) so we can pass tokens instead.
         match = scope.parser?.parse(items, "line", scope)
@@ -54,7 +51,7 @@ export class Block extends Rule {
     // Forget it if we didn't match anything
     if (matched.length === 0) return undefined
 
-    const result = new Match({
+    const result = new P.Match({
       rule: this,
       matched,
       scope,
@@ -65,18 +62,18 @@ export class Block extends Rule {
     return result
   }
 
-  compile(match: AnyMatch): unknown {
+  compile(match: P.AnyMatch): unknown {
     // `Match.compile()` always prefers `getAST()` (below) over calling `rule.compile()` directly,
     // but `Rule.compile()` is abstract, so provide the equivalent fallback for completeness.
     return match.AST?.compile()
   }
 
-  getAST(match: Match): AST.StatementBlock | AST.StatementGroup {
+  getAST(match: P.Match): AST.StatementBlock | AST.StatementGroup {
     // `Block.parse()` only ever pushes `Match`es (never raw `Token`s) onto `matched`,
     // and each of those is itself a `line`/nested `block` match whose rule always
     // implements `getAST()` returning a statement-shaped node -- not staticaly representable.
     const statements = match.matched
-      .filter((item): item is Match => item instanceof Match)
+      .filter((item): item is P.Match => item instanceof P.Match)
       .map((item) => item.AST) as Array<AST.Statement | AST.Expression | AST.Comment | AST.BlankLine>
     if (match.enclose) return new AST.StatementBlock(match, { statements })
     return new AST.StatementGroup(match, { statements })

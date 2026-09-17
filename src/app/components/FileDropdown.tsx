@@ -3,16 +3,16 @@ import { Dropdown } from "semantic-ui-react"
 import type { DropdownProps } from "semantic-ui-react"
 
 import { view } from "~/util"
-import type { SpellLocation, SpellProject, AnySpellFile } from "~/languages/spell"
+import type { SP } from "~/languages/spell"
 
 import { actions } from "~/app/actions"
-import { UI } from "./ui"
+import * as UI from "./ui"
 import { store } from "~/app/store"
 
 export type FileDropdownActionProps = {
   useRunner: boolean
   path: string
-  location: SpellLocation
+  location: SP.SpellLocation
   active: boolean
 }
 
@@ -39,7 +39,7 @@ export const FileDropdown = view(function FileDropdown({
   showLabel = true,
   showActions = false
 }: FileDropdownProps) {
-  const { project, file }: { project?: SpellProject; file?: AnySpellFile } = store
+  const { project, file }: { project?: SP.SpellProject; file?: SP.AnySpellFile } = store
   const ready = project?.isLoaded && !!file
   const dropdownProps: DropdownProps = {
     id: "FileDropdown",
@@ -52,7 +52,7 @@ export const FileDropdown = view(function FileDropdown({
     style: { minWidth: "8em", fontWeight: 700 }
   }
   if (ready && project) {
-    const menuItems: React.ReactElement[] = project.imports.map(({ path, location }) => (
+    const menuItems: ReactElement[] = project.imports.map(({ path, location }) => (
       <FileDropdownAction
         key={path}
         useRunner={useRunner}

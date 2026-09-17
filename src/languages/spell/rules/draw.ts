@@ -2,9 +2,8 @@
 // Draw utilities, tightly tied into App, Drawable and List.
 //--------
 
-import { AST, SpellParser } from "~/languages/spell"
-import type { Match } from "~/parser"
-import type { RulexGroups } from "~/parser/rulex.types"
+import { SpellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
 import type { ASTNode, Expression } from "~/parser/ast/AST"
 import { SpellStatement } from "./Statement"
 
@@ -23,7 +22,7 @@ export const draw = new SpellParser({
       syntax: "draw {expression}",
       precedence: 100,
       constructor: class draw_thing extends SpellStatement {
-        getAST(match: Match<RulexGroups<"expression">>) {
+        getAST(match: P.Match<P.RulexGroups<"expression">>) {
           return new AST.CoreMethodInvocation(match, {
             methodName: "drawThing",
             args: [ast<Expression>(match.groups.expression!.AST)]
@@ -37,7 +36,7 @@ export const draw = new SpellParser({
       alias: "expression",
       syntax: "draw (each {variable}|(the|all)? {plural_variable}) (of|in) {expression}",
       constructor: class draw_items extends SpellStatement {
-        getAST(match: Match<RulexGroups<"expression">>) {
+        getAST(match: P.Match<P.RulexGroups<"expression">>) {
           return new AST.CoreMethodInvocation(match, {
             methodName: "drawItems",
             args: [ast<Expression>(match.groups.expression!.AST)]
@@ -65,7 +64,7 @@ export const draw = new SpellParser({
       alias: "statement",
       syntax: "start {app:expression}",
       constructor: class start_app extends SpellStatement {
-        getAST(match: Match<RulexGroups<"app">>) {
+        getAST(match: P.Match<P.RulexGroups<"app">>) {
           return new AST.ScopedMethodInvocation(match, {
             thing: ast<Expression>(match.groups.app!.AST),
             methodName: "start"

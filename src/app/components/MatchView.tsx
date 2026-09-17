@@ -1,15 +1,13 @@
-import React from "react"
-import { Tokens, Match, Token } from "~/parser"
-import type { AnyMatch } from "~/parser"
+import { P } from "~/parser"
 
 /**
  * `rules/JSX.ts` (a concurrently-converting chunk, `src/languages/spell/rules/**`) attaches ad-hoc
  * `attributes`/`children`/`statement`/`expression`/`error` fields to JSX-related matches during
  * `parse()` -- these aren't part of the core `Match` shape, so we mirror them locally here.
  */
-type JSXMatch = AnyMatch
+type JSXMatch = P.AnyMatch
 
-export type MatchViewProps = { match?: AnyMatch }
+export type MatchViewProps = { match?: P.AnyMatch }
 
 /**
  * View for a particular `Match`.
@@ -19,16 +17,16 @@ export function MatchView({ match }: MatchViewProps) {
   const { rule, matched } = match
   let hasTokens = false
   let hasMatches = false
-  const contents: React.ReactElement[] = []
-  const blocks: React.ReactElement[] = []
+  const contents: ReactElement[] = []
+  const blocks: ReactElement[] = []
   matched.forEach((child, index) => {
-    const childRule = child instanceof Match ? child.rule?.name : undefined
+    const childRule = child instanceof P.Match ? child.rule?.name : undefined
     if (childRule === "block") {
-      blocks.push(<MatchView key={index} match={child as AnyMatch} />)
-    } else if (child instanceof Tokens.JSXElement) {
+      blocks.push(<MatchView key={index} match={child as P.AnyMatch} />)
+    } else if (child instanceof P.Tokens.JSXElement) {
       hasMatches = true
       contents.push(<JSXElementView key={index} match={match as JSXMatch} />)
-    } else if (child instanceof Token) {
+    } else if (child instanceof P.Token) {
       hasTokens = true
       contents.push(<TokenView key={index} token={child} />)
     } else {
@@ -43,7 +41,7 @@ export function MatchView({ match }: MatchViewProps) {
     hasTokens && "hasTokens",
     hasMatches && "hasMatches",
     blocks.length && "hasBlocks",
-    matched.length === 1 && matched[0] instanceof Match && matched[0].rule?.name === "blank_line" && "isBlankLine"
+    matched.length === 1 && matched[0] instanceof P.Match && matched[0].rule?.name === "blank_line" && "isBlankLine"
   ]
     .filter(Boolean)
     .join(" ")
@@ -66,7 +64,7 @@ export function MatchView({ match }: MatchViewProps) {
   )
 }
 
-export type TokenViewProps = { token?: Token }
+export type TokenViewProps = { token?: P.Token }
 export function TokenView({ token }: TokenViewProps) {
   if (!token) return null
   const className = ["Token", token.constructor.name, token.whitespace && "hasWhitespace"].filter(Boolean).join(" ")
@@ -81,7 +79,7 @@ export function TokenView({ token }: TokenViewProps) {
 export type JSXElementViewProps = { match: JSXMatch }
 export function JSXElementView({ match }: JSXElementViewProps) {
   const { ruleName } = match
-  const { tagName, isUnaryTag } = match.tokens[0] as Tokens.JSXElement
+  const { tagName, isUnaryTag } = match.tokens[0] as P.Tokens.JSXElement
   // console.info({ match, ruleName, rule: match.rule, tagName })
   if (ruleName === "jsxText") return <JSXTextView match={match} />
   if (ruleName === "jsxExpression") return <JSXExpressionView match={match} />
@@ -112,7 +110,7 @@ export function JSXElementView({ match }: JSXElementViewProps) {
 
 export type JSXAttributeViewProps = { match: JSXMatch }
 export function JSXAttributeView({ match }: JSXAttributeViewProps) {
-  const attribute = match.matched[0] as Tokens.JSXAttribute
+  const attribute = match.matched[0] as P.Tokens.JSXAttribute
   const attrMatch = match.statement || match.expression || match.error
   const className = [
     "JSXAttribute",
@@ -136,7 +134,7 @@ export function JSXAttributeView({ match }: JSXAttributeViewProps) {
   )
 }
 
-export type JSXTextViewProps = { match: AnyMatch }
+export type JSXTextViewProps = { match: P.AnyMatch }
 export function JSXTextView({ match }: JSXTextViewProps) {
   const value = match.value.trim()
   if (value === "") return null

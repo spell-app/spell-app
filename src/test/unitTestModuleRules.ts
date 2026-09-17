@@ -11,17 +11,16 @@ import { describe, test, expect } from "vitest"
 import groupBy from "lodash/groupBy"
 import isEqual from "lodash/isEqual"
 
-import { ParserError, Rules, normalizeRuleTest } from "~/parser"
-import type { Parser, Rule, RuleTestBlock, Scope } from "~/parser"
+import { P } from "~/parser"
 import { showWhitespace } from "~/util"
 
-type NormalizedRuleTest = ReturnType<typeof normalizeRuleTest>
+type NormalizedRuleTest = ReturnType<typeof P.normalizeRuleTest>
 
 /**
  * Unit test all rules for `moduleName` in `parser`.
  * If you pass `initializeContext` it will be executed before each rule.
  */
-export function unitTestModuleRules(parser: Parser, moduleName: string, initializeContext?: () => void) {
+export function unitTestModuleRules(parser: P.Parser, moduleName: string, initializeContext?: () => void) {
   describe(`rule unit tests`, () => {
     const rules = getTestableRulesForModule(moduleName)
     if (!rules || rules.length === 0) {
@@ -34,13 +33,13 @@ export function unitTestModuleRules(parser: Parser, moduleName: string, initiali
     rules.forEach((rule) => executeRuleTests(rule))
   })
 
-  function getTestableRulesForModule(module: string): Rule[] | undefined {
+  function getTestableRulesForModule(module: string): P.Rule[] | undefined {
     const testable = parser.rules._testable_
-    if (!(testable instanceof Rules.Group)) return undefined
+    if (!(testable instanceof P.Rules.Group)) return undefined
     return groupBy(testable.rules, "module")[module]
   }
 
-  function executeRuleTests({ name, tests }: Rule) {
+  function executeRuleTests({ name, tests }: P.Rule) {
     describe(`rule '${name}'`, () => {
       tests?.forEach((testBlock) => {
         if (testBlock.skip) return
@@ -50,7 +49,7 @@ export function unitTestModuleRules(parser: Parser, moduleName: string, initiali
     })
   }
 
-  function executeTestBlock(name: string | undefined, { compileAs = name, tests, beforeEach }: RuleTestBlock) {
+  function executeTestBlock(name: string | undefined, { compileAs = name, tests, beforeEach }: P.RuleTestBlock) {
     if (!compileAs) {
       test("compileAs property of test is defined", () => {
         expect(compileAs).toBeTruthy()
@@ -60,7 +59,7 @@ export function unitTestModuleRules(parser: Parser, moduleName: string, initiali
     const ruleName = compileAs
 
     tests
-      .map(normalizeRuleTest)
+      .map(P.normalizeRuleTest)
       // skip blank tests or where `skip` is true
       .filter(({ skip, input }) => !skip && input !== "")
       .forEach((test) => executeTest(test, ruleName, beforeEach))
@@ -69,7 +68,7 @@ export function unitTestModuleRules(parser: Parser, moduleName: string, initiali
   function executeTest(
     { input, output, title }: NormalizedRuleTest,
     ruleName: string,
-    beforeEach?: (scope: Scope) => void
+    beforeEach?: (scope: P.Scope) => void
   ) {
     // Run `initializeContext` method passed in to the test suite.
     if (initializeContext) initializeContext()
@@ -103,14 +102,14 @@ export function unitTestModuleRules(parser: Parser, moduleName: string, initiali
    * - Returns the error if `compile()` throws (unless it's a `ParserError` and no `output` is expected).
    * - Returns `undefined` if parsing fails or throws.
    */
-  function compileMatch(scope: Scope, ruleName: string, input: string, output: unknown): unknown {
+  function compileMatch(scope: P.Scope, ruleName: string, input: string, output: unknown): unknown {
     try {
       const match = scope.parse(input, ruleName)
       if (!match) return undefined
       try {
         return match.compile()
       } catch (e) {
-        if (e instanceof ParserError && output === undefined) return undefined
+        if (e instanceof P.ParserError && output === undefined) return undefined
         return e
       }
     } catch (e) {

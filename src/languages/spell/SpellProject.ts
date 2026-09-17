@@ -2,7 +2,7 @@ import global from "global"
 // import { observable, computed } from "mobx"
 
 import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, type KnownFormatMimeType } from "~/util"
-import { ProjectScope, type Scope } from "~/parser"
+import { P } from "~/parser"
 import { SpellParser, SpellLocation, SpellFile, SpellCSSFile, SpellJSFile, SpellProjectRoot } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
 
@@ -131,10 +131,10 @@ export class SpellProject extends JSON5File<ProjectManifest> {
   //-----------------
 
   /** Parser use for our last parse/compile. */
-  /*@state*/ get scope(): ProjectScope | undefined {
+  /*@state*/ get scope(): P.ProjectScope | undefined {
     return this.getState("scope", () => undefined)
   }
-  set scope(scope: ProjectScope | undefined) {
+  set scope(scope: P.ProjectScope | undefined) {
     this.setState("scope", scope)
   }
 
@@ -159,11 +159,11 @@ export class SpellProject extends JSON5File<ProjectManifest> {
     this.resetState("scope", "compiled")
   }
 
-  parse(parser?: Scope): Promise<unknown> {
+  parse(parser?: P.Scope): Promise<unknown> {
     this.parser.cancel()
     return this.parser.start(parser)
   }
-  compile(parser?: Scope): Promise<unknown> {
+  compile(parser?: P.Scope): Promise<unknown> {
     this.parser.cancel()
     this.compiler.cancel()
     return this.compiler.start(parser)
@@ -173,11 +173,11 @@ export class SpellProject extends JSON5File<ProjectManifest> {
    * Return base project scope, given a `parentScope`.
    * TODOC...
    */
-  getScope(parentScope: Scope = SpellParser.rootScope): ProjectScope {
+  getScope(parentScope: P.Scope = SpellParser.rootScope): P.ProjectScope {
     // Make a parser that depends on the parentScope's parser
     // This way rules added to the project won't leak out.
     const parser = parentScope.parser!.clone({ module: this.path })
-    return new ProjectScope({
+    return new P.ProjectScope({
       name: this.projectName,
       path: this.path,
       parser,
@@ -199,7 +199,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
             name: `Loading ${this.type}`,
             run: (parentScope) => {
               this.resetCompiled()
-              const scope = this.getScope(parentScope as Scope | undefined)
+              const scope = this.getScope(parentScope as P.Scope | undefined)
               this.setState("scope", scope)
               return this.load(undefined)
             }

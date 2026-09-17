@@ -1,5 +1,5 @@
 import global from "global"
-import { spellSetup } from "./projectSetup"
+import { spellSetup } from "./SpellSetup"
 /**
  * IMPORTANT: this file MUST NOT import from anything other than `spellSetup`
  * as it is used by the server, and we don't want to pull all of that crap in!

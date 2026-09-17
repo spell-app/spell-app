@@ -2,7 +2,7 @@ import { Match } from "~/parser/Match"
 import { Rule, type RuleProps } from "./Rule"
 import type { Scope } from "~/parser/scope/Scope"
 import { Token } from "~/parser/tokenizer/Tokens"
-import { Prettify } from "~/global_types"
+
 import { IdentifierBlacklist } from "~/parser/types"
 
 export type PatternProps = Prettify<

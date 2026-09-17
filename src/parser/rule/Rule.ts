@@ -3,7 +3,6 @@
 
 import { Derivative } from "~/util/Derivative"
 import { TestLocation } from "~/parser/constants"
-import type { Class } from "~/parser/helpers"
 import type { Token } from "~/parser/tokenizer/Tokens"
 import type { Match, AnyMatch, MatchGroups } from "~/parser/Match"
 import type { Scope } from "~/parser/scope/Scope"

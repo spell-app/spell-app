@@ -38,7 +38,7 @@ export type SplitPanelDimensions = {
 }
 
 export type SplitPanelProps = React.ComponentPropsWithoutRef<"div"> & {
-  children?: React.ReactNode
+  children?: ReactNode
   columns?: PanelSizeSpec // column sizes for horizontal split, as `true`, string or array.  See `normalizeSizes()`.
   rows?: PanelSizeSpec // row sizes for vertical split, as `true`, string or array.  See `normalizeSizes()`.
   fluid?: boolean // fill container in alternate axis?
@@ -152,7 +152,7 @@ export class SplitPanel extends React.Component<SplitPanelProps> {
       renderProps.className
     )
 
-    const kids: React.ReactNode[] = []
+    const kids: ReactNode[] = []
     const kidProps = { bordered, padded, light, rounded, scrolling }
     React.Children.forEach(children, (child, index) => {
       // add resizer or spacer
@@ -261,7 +261,7 @@ export class SplitPanel extends React.Component<SplitPanelProps> {
    * Utility method to convert `sizes` to css `flex` property.
    */
   static NUM_WITH_UNITS_PATTERN = /^([0-9]*\.?[0-9]+)(px|em|rem|%)?$/
-  static normalizeSizes(startSizes: unknown = [], children: React.ReactNode): PanelSize[] {
+  static normalizeSizes(startSizes: unknown = [], children: ReactNode): PanelSize[] {
     // TODO: `hidden` children shouldn't be counted!
     //  BUT: make sure we keep an entry in the array for them!!!
     // TODO: take `minSize` for child elements into account
@@ -465,7 +465,7 @@ export class SplitPanel extends React.Component<SplitPanelProps> {
 /////////////////////////////
 
 export type SplitPaneProps = React.ComponentPropsWithoutRef<"div"> & {
-  children?: React.ReactNode
+  children?: ReactNode
   bordered?: boolean // add border
   padded?: boolean | "tightly" | "loosely" // add padding, `true`, `tightly` or loosely`
   light?: boolean // show white background and shadow

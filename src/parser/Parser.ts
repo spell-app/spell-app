@@ -12,7 +12,7 @@ import type { RuleProps, RuleConstructor, RuleTest, RuleTestBlock } from "~/pars
 import type { TokenConstructor } from "~/parser/rule/TokenType"
 import type { LiteralMatcher } from "~/parser/rule/Literals"
 import type { IdentifierBlacklist } from "~/parser/types"
-import type { Prettify } from "~/types"
+
 
 /** Error we'll throw when setting up / executing parser. */
 export class ParserError extends CustomError {}

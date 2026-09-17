@@ -2,9 +2,8 @@
 //  # Rules for inline spell tests.
 //
 
-import { SpellParser, AST } from "~/languages/spell"
-import type { Match } from "~/parser"
-import type { RulexGroups } from "~/parser/rulex.types"
+import { SpellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
 import type { ASTNode, Expression } from "~/parser/ast/AST"
 import { SpellStatement } from "./Statement"
 
@@ -23,7 +22,7 @@ export const tests = new SpellParser({
       syntax: "expect that? {expression} (to be {value:expression})?",
       testRule: "expect",
       constructor: class expect_test extends SpellStatement {
-        getAST(match: Match<RulexGroups<"expression:value">>) {
+        getAST(match: P.Match<P.RulexGroups<"expression:value">>) {
           const { expression, value } = match.groups
           // `Match.raw` is a `declare`d field, always statically present, so `"raw" in value` can't narrow it here
           // (TS treats the "absent" branch as `never`); use nullish coalescing for the same runtime fallback.
@@ -66,7 +65,7 @@ export const tests = new SpellParser({
       alias: "statement",
       syntax: "start (quiet:quiet)? test {message:text}",
       constructor: class start_test extends SpellStatement {
-        getAST(match: Match<RulexGroups<"quiet:message">>) {
+        getAST(match: P.Match<P.RulexGroups<"quiet:message">>) {
           const { quiet, message } = match.groups
           return new AST.CoreMethodInvocation(match, {
             methodName: "startTest",
@@ -82,7 +81,7 @@ export const tests = new SpellParser({
       alias: "statement",
       syntax: "end test",
       constructor: class end_test extends SpellStatement {
-        getAST(match: Match) {
+        getAST(match: P.Match) {
           return new AST.CoreMethodInvocation(match, {
             methodName: "endTest"
           })
@@ -94,7 +93,7 @@ export const tests = new SpellParser({
       alias: ["statement"],
       syntax: "echo {expression}",
       constructor: class echo extends SpellStatement {
-        getAST(match: Match<RulexGroups<"expression">>) {
+        getAST(match: P.Match<P.RulexGroups<"expression">>) {
           const { expression } = match.groups
           return new AST.EchoInvocation(match, {
             expression: ast<Expression>(expression!.AST)

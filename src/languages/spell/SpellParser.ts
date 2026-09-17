@@ -1,11 +1,10 @@
 import { getDerived } from "~/util"
-import { Rule, Scope, Token, Match, ParserError } from "~/parser"
-import { RootScope, ProjectScope, Parser, Tokenizer, WhitespacePolicy } from "~/parser"
+import { P } from "~/parser"
 import { spellParser } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
 import type { SpellRuleRegistry } from "./rules/registry"
 
-export class SpellParser extends Parser {
+export class SpellParser extends P.Parser {
   /** Registry of language-specific rule classes, populated by the modules in `./rules`. Debug aid only. */
   static Rules: Partial<SpellRuleRegistry> = {}
 
@@ -17,18 +16,18 @@ export class SpellParser extends Parser {
     return this.derived(
       "tokenizer",
       () =>
-        new Tokenizer({
+        new P.Tokenizer({
           // Only support double-quotes as quote symbols (so we can do contractions with single quotes)
           // TODO: backtick as alternative quote, for embedding double quotes?
           quoteSymbols: [`"`],
           // Remove "normal" whitespace (leaving newlines and indents) when parsing
-          whitespacePolicy: WhitespacePolicy.LEADING_ONLY
+          whitespacePolicy: P.WhitespacePolicy.LEADING_ONLY
         })
     )
   }
 
   /** Override `addRule` to also add to `simple_expression` or `simple_statement` as necessary. */
-  addRule(rule: Rule, names: string | string[]) {
+  addRule(rule: P.Rule, names: string | string[]) {
     if (Array.isArray(names) && !rule["isLeftRecursive"]) {
       if (names.includes("expression")) names.push("simple_expression")
       if (names.includes("statement")) names.push("simple_statement")
@@ -43,7 +42,7 @@ export class SpellParser extends Parser {
   /*@memoize*/
   static get rootScope() {
     return getDerived(this, "rootScope", () => {
-      const scope = new RootScope({ name: "spellRoot", parser: spellParser })
+      const scope = new P.RootScope({ name: "spellRoot", parser: spellParser })
       // Add all BASE_TYPES defined in `spellCore`.
       // See: `src/spellCore/classes/index.ts`
       spellCore.BASE_TYPES.forEach((type) => scope.types.add(type))
@@ -56,7 +55,7 @@ export class SpellParser extends Parser {
   // DOCME
   getScope(moduleName = "ad_hoc") {
     const parser = this.clone({ module: moduleName })
-    return new ProjectScope({
+    return new P.ProjectScope({
       name: moduleName,
       parser,
       parentScope: SpellParser.rootScope
@@ -71,9 +70,9 @@ export class SpellParser extends Parser {
     return tokens
   }
 
-  createParseError(scope: Scope, tokens: Token[], message: string) {
+  createParseError(scope: P.Scope, tokens: P.Token[], message: string) {
     const rule = this.getRuleOrDie("parse_error")
-    return new Match({
+    return new P.Match({
       scope,
       rule,
       matched: tokens,
@@ -87,10 +86,10 @@ export class SpellParser extends Parser {
    * but spell always compiles down to a javascript source string.
    * Narrow that here so `SpellFile`/`SpellProject` compile paths can rely on `string`.
    */
-  compile(input: string | Token | Token[], ruleName?: string, scope?: Scope): string {
+  compile(input: string | P.Token | P.Token[], ruleName?: string, scope?: P.Scope): string {
     const result = super.compile(input, ruleName, scope)
     if (typeof result !== "string") {
-      throw new ParserError({
+      throw new P.ParserError({
         message: "compile() did not return a string",
         context: this,
         activity: "compile",

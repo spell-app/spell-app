@@ -3,9 +3,8 @@
 //  NOTE: this must come after "operators"
 //
 
-import { AST, SpellParser } from "~/languages/spell"
-import type { Match } from "~/parser"
-import type { RulexGroups } from "~/parser/rulex.types"
+import { SpellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
 import type { ASTNode, Expression } from "~/parser/ast/AST"
 import { SpellExpression, InfixOperatorSuffix } from "./expressions"
 
@@ -25,7 +24,7 @@ export const math = new SpellParser({
       // NOTE: output of `operator` will NOT have space between `>=`
       syntax: "(operator:(<|>) =?) {expression:simple_expression}",
       constructor: class gt_lt extends InfixOperatorSuffix {
-        getAST(match: Match<RulexGroups<"operator:expression">>) {
+        getAST(match: P.Match<P.RulexGroups<"operator:expression">>) {
           const { operator, expression } = match.groups
           return new AST.CoreMethodInvocation(match, {
             methodName: operator!.value,
@@ -66,10 +65,10 @@ export const math = new SpellParser({
       syntax: "(operator:is (greater|less) than (or equal to)?) {expression:simple_expression}",
       parenthesize: true,
       constructor: class is_gt_lt extends InfixOperatorSuffix {
-        getOutputOperator({ value }: Match) {
+        getOutputOperator({ value }: P.Match) {
           return (value.includes("greater") ? ">" : "<") + (value.includes("equal") ? "=" : "")
         }
-        getAST(match: Match<RulexGroups<"operator:expression">>) {
+        getAST(match: P.Match<P.RulexGroups<"operator:expression">>) {
           const { operator, expression } = match.groups
           return new AST.CoreMethodInvocation(match, {
             methodName: operator!.value,
@@ -209,7 +208,7 @@ export const math = new SpellParser({
       syntax: "(operator:the? absolute value of) {expression}",
       testRule: "…absolute",
       constructor: class divided_by extends InfixOperatorSuffix {
-        getAST(match: Match<RulexGroups<"expression">>) {
+        getAST(match: P.Match<P.RulexGroups<"expression">>) {
           const { expression } = match.groups
           return new AST.CoreMethodInvocation(match, {
             datatype: "number",
@@ -236,7 +235,7 @@ export const math = new SpellParser({
       syntax: "(operator:the? (biggest|largest)) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…(biggest|largest)",
       constructor: class max extends SpellExpression {
-        getAST(match: Match<RulexGroups<"expression">>) {
+        getAST(match: P.Match<P.RulexGroups<"expression">>) {
           const { expression } = match.groups
           return new AST.CoreMethodInvocation(match, {
             datatype: "number",
@@ -268,7 +267,7 @@ export const math = new SpellParser({
       syntax: "(operator:the? smallest) {argument:singular_variable}? (of|in) {expression}",
       testRule: "…smallest",
       constructor: class min extends SpellExpression {
-        getAST(match: Match<RulexGroups<"expression">>) {
+        getAST(match: P.Match<P.RulexGroups<"expression">>) {
           const { expression } = match.groups
           return new AST.CoreMethodInvocation(match, {
             datatype: "number",
@@ -299,7 +298,7 @@ export const math = new SpellParser({
       testRule: "round",
       precedence: 1,
       constructor: class round_number extends SpellExpression {
-        getAST(match: Match<RulexGroups<"expression:operator">>) {
+        getAST(match: P.Match<P.RulexGroups<"expression:operator">>) {
           const { expression, operator } = match.groups
           let methodName = "round"
           if (operator?.value === "up") methodName = "roundUp"

@@ -1,13 +1,10 @@
 // Module augmentation for ad-hoc `Match` fields set/read by chunk C's rule files
 // (JSX, math, properties, events, UI, async, draw, tests).
 // See the shared conversion brief for why these live outside `src/parser/Match.ts`.
-import type { MatchGroups } from "~/parser/Match"
-// Re-exported solely so the import above counts as "used" -- `noUnusedLocals` doesn't see references
-// to it that appear only inside the `declare module` augmentation below.
-export type { MatchGroups }
+import { P } from "~/parser"
 
 declare module "~/parser/Match" {
-  interface Match<Groups extends Record<string, unknown> = MatchGroups> {
+  interface Match<Groups extends Record<string, unknown> = P.MatchGroups> {
     /** Sub-expression match parsed out of the input, e.g. a JSX attribute/expression value. */
     expression?: Match
     /** Sub-statement match parsed out of the input, e.g. an inline event handler. */

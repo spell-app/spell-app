@@ -2,7 +2,7 @@ import { Match } from "~/parser/Match"
 import { Rule, type RuleProps } from "./Rule"
 import type { Scope } from "~/parser/scope/Scope"
 import { Token } from "../tokenizer/index"
-import { Prettify } from "~/types"
+
 
 export type TokenConstructor = new (args: any) => Token
 

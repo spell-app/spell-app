@@ -1,11 +1,11 @@
 import React from "react"
 
 import { view, scrollForElement, centerElementInParent } from "~/util"
-import type { AnyMatch } from "~/parser"
+import { P } from "~/parser"
 import type { ASTNode } from "~/parser/ast/AST"
 import { store } from "~/app/store"
 
-import { UI } from "./ui"
+import * as UI from "./ui"
 import { ErrorHandler } from "./ErrorHandler"
 import type { ErrorHandlerState, ErrorHandlerWrapperProps } from "./ErrorHandler"
 import "./ASTViewer.less"
@@ -122,12 +122,12 @@ export class ASTViewer extends ErrorHandler<ASTViewerProps> {
   /////////////////////////
 
   /** Return element that corresponds to `match`. */
-  static elementForMatch(viewer: HTMLElement, match: AnyMatch): HTMLElement | null {
+  static elementForMatch(viewer: HTMLElement, match: P.AnyMatch): HTMLElement | null {
     return viewer.querySelector(`.ASTNode[data-match="${match.ruleName}"][data-start="${match.start}"]`)
   }
 
   /** Update scroll for `selection`. */
-  static updateScroll(viewer: HTMLElement, match: AnyMatch, selection: EditorSelection): void {
+  static updateScroll(viewer: HTMLElement, match: P.AnyMatch, selection: EditorSelection): void {
     if (selection?.scroll?.event === "cursor" || typeof selection?.scroll?.percent !== "number") return
     const size = scrollForElement(viewer)
     // console.info(selection.scroll, size)
@@ -138,14 +138,14 @@ export class ASTViewer extends ErrorHandler<ASTViewerProps> {
   static clearHighlights(viewer: HTMLElement): void {
     viewer.querySelectorAll(".ASTNode.highlight").forEach((el) => el.classList.remove("highlight"))
   }
-  static highlight(viewer: HTMLElement, ...matches: AnyMatch[]): void {
+  static highlight(viewer: HTMLElement, ...matches: P.AnyMatch[]): void {
     matches.forEach((match) => {
       const element = ASTViewer.elementForMatch(viewer, match)
       if (element) element.classList.add("highlight")
     })
   }
   /** Update highlight for `match` and `selection` */
-  static updateHighlight(viewer: HTMLElement, match: AnyMatch, selection: EditorSelection): void {
+  static updateHighlight(viewer: HTMLElement, match: P.AnyMatch, selection: EditorSelection): void {
     const cursorOffset = selection.head?.offset
     if (typeof cursorOffset !== "number") return
 

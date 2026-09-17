@@ -2,16 +2,13 @@
 //  # Rules for if statements.
 //
 
-import { BlockScope } from "~/parser"
-import type { AnyMatch, Match } from "~/parser/Match"
-import type { Scope } from "~/parser/scope/Scope"
-import type { RulexGroups } from "~/parser/rulex.types"
-import { SpellParser, AST } from "~/languages/spell"
+import { P, AST } from "~/parser"
+import { SpellParser } from "~/languages/spell"
 import { SpellStatement } from "./Statement"
 import { InfixOperatorSuffix } from "./expressions"
 
-type IfGroups = RulexGroups<"condition"> & { inlineStatement?: Match; nestedBlock?: Match }
-type ElseGroups = { inlineStatement?: Match; nestedBlock?: Match }
+type IfGroups = P.RulexGroups<"condition"> & { inlineStatement?: P.Match; nestedBlock?: P.Match }
+type ElseGroups = { inlineStatement?: P.Match; nestedBlock?: P.Match }
 
 export const _if_ = new SpellParser({
   module: "if",
@@ -24,10 +21,10 @@ export const _if_ = new SpellParser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       constructor: class _if extends SpellStatement {
-        getNestedScopeForMatch(match: AnyMatch): Scope {
-          return new BlockScope({ name: "if", parentScope: match.scope })
+        getNestedScopeForMatch(match: P.AnyMatch): P.Scope {
+          return new P.BlockScope({ name: "if", parentScope: match.scope })
         }
-        getAST(match: Match<IfGroups>): AST.IfStatement {
+        getAST(match: P.Match<IfGroups>): AST.IfStatement {
           const { condition, inlineStatement, nestedBlock } = match.groups
           // Prefer nestedBlock if we get both
           return new AST.IfStatement(match, {
@@ -41,7 +38,7 @@ export const _if_ = new SpellParser({
           title: "correctly matches single-line if statements",
           compileAs: "block",
           beforeEach(scope) {
-            ;(scope as BlockScope).variables.add("a")
+            ;(scope as P.BlockScope).variables.add("a")
           },
           tests: [
             ["if a", "if (a) {}"],
@@ -56,7 +53,7 @@ export const _if_ = new SpellParser({
           title: "correctly matches multi-line if blocks",
           compileAs: "block",
           beforeEach(scope) {
-            ;(scope as BlockScope).variables.add("a")
+            ;(scope as P.BlockScope).variables.add("a")
           },
           tests: [
             {
@@ -109,10 +106,10 @@ export const _if_ = new SpellParser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       constructor: class else_if extends SpellStatement {
-        getNestedScopeForMatch(match: AnyMatch): Scope {
-          return new BlockScope({ name: "elseif", parentScope: match.scope })
+        getNestedScopeForMatch(match: P.AnyMatch): P.Scope {
+          return new P.BlockScope({ name: "elseif", parentScope: match.scope })
         }
-        getAST(match: Match<IfGroups>): AST.ElseIfStatement {
+        getAST(match: P.Match<IfGroups>): AST.ElseIfStatement {
           const { condition, inlineStatement, nestedBlock } = match.groups
           return new AST.ElseIfStatement(match, {
             condition: condition!.AST as AST.Expression,
@@ -125,7 +122,7 @@ export const _if_ = new SpellParser({
           title: "correctly matches single-line else_if statements",
           compileAs: "block",
           beforeEach(scope) {
-            ;(scope as BlockScope).variables.add("a")
+            ;(scope as P.BlockScope).variables.add("a")
           },
           tests: [
             ["else if a", "else if (a) {}"],
@@ -140,7 +137,7 @@ export const _if_ = new SpellParser({
           title: "correctly matches multi-line else_if blocks",
           compileAs: "block",
           beforeEach(scope) {
-            ;(scope as BlockScope).variables.add("a")
+            ;(scope as P.BlockScope).variables.add("a")
           },
           tests: [
             {
@@ -186,10 +183,10 @@ export const _if_ = new SpellParser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       constructor: class _else extends SpellStatement {
-        getNestedScopeForMatch(match: AnyMatch): Scope {
-          return new BlockScope({ name: "else", parentScope: match.scope })
+        getNestedScopeForMatch(match: P.AnyMatch): P.Scope {
+          return new P.BlockScope({ name: "else", parentScope: match.scope })
         }
-        getAST(match: Match<ElseGroups>): AST.ElseStatement {
+        getAST(match: P.Match<ElseGroups>): AST.ElseStatement {
           const { inlineStatement, nestedBlock } = match.groups
           return new AST.ElseStatement(match, {
             statements: (nestedBlock || inlineStatement)?.AST as AST.Statement | AST.StatementBlock | undefined
@@ -249,8 +246,8 @@ export const _if_ = new SpellParser({
       syntax: "if {operator:expression} (else|otherwise) {expression}",
       constructor: class backwards_if extends InfixOperatorSuffix {
         compileASTExpression(
-          match: Match,
-          { lhs, operator, rhs }: { lhs: AST.Expression; operator: Match; rhs: AST.Expression }
+          match: P.Match,
+          { lhs, operator, rhs }: { lhs: AST.Expression; operator: P.Match; rhs: AST.Expression }
         ): AST.TernaryExpression {
           return new AST.TernaryExpression(match, {
             condition: operator.AST as AST.Expression,
@@ -264,7 +261,7 @@ export const _if_ = new SpellParser({
           title: "correctly matches single-line backwards_if statements",
           compileAs: "block",
           beforeEach(scope) {
-            const { variables } = scope as BlockScope
+            const { variables } = scope as P.BlockScope
             variables.add("bar")
             variables.add("foo")
           },

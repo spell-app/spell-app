@@ -1,6 +1,6 @@
 import global from "global"
 
-import { Prettify } from "~/global_types"
+
 import { TaskStatus, TaskResolveWith } from "./constants"
 import { Task, type TaskProps, type TaskState } from "./Task"
 

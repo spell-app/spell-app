@@ -1,5 +1,5 @@
 import { TextFile, batch } from "~/util"
-import { Tokens, RootScope, type Scope, type Match } from "~/parser"
+import { P } from "~/parser"
 import type { ASTNode } from "~/parser/ast/AST"
 import { SpellLocation, SpellProject, SpellParser } from "~/languages/spell"
 import type { ProjectManifestEntry } from "./SpellProject"
@@ -89,18 +89,18 @@ export class SpellCSSFile extends TextFile {
   //-----------------
 
   /** Our scope with which we've compiled. */
-  /*@state*/ get scope(): RootScope | undefined {
+  /*@state*/ get scope(): P.RootScope | undefined {
     return this.getState("scope", () => undefined)
   }
-  set scope(scope: RootScope | undefined) {
+  set scope(scope: P.RootScope | undefined) {
     this.setState("scope", scope)
   }
 
   /** Results of our last `parse()` as a `Match`. */
-  /*@state*/ get match(): Match | undefined {
+  /*@state*/ get match(): P.Match | undefined {
     return this.getState("match", () => undefined)
   }
-  set match(match: Match | undefined) {
+  set match(match: P.Match | undefined) {
     this.setState("match", match)
   }
 
@@ -129,16 +129,16 @@ export class SpellCSSFile extends TextFile {
    * Return a `Scope` for parsing this file, which is always the `rootScope`.
    * TODO... ????
    */
-  getScope(_parentScope?: Scope): RootScope {
+  getScope(_parentScope?: P.Scope): P.RootScope {
     return SpellParser.rootScope
   }
 
   /** "parse" the css file */
-  async parse(parentScope?: Scope): Promise<Match | undefined> {
+  async parse(parentScope?: P.Scope): Promise<P.Match | undefined> {
     if (this.match) return this.match
     await this.load(undefined)
     this.resetCompiled()
-    const token = new Tokens.Text({ value: this.contents, raw: this.contents, offset: 0 })
+    const token = new P.Tokens.Text({ value: this.contents, raw: this.contents, offset: 0 })
     const scope = this.getScope(parentScope)
     // NOTE: `Scope.parse()` is typed for string input only; call `parser.parse()` directly
     // (exactly what `Scope.parse()` would do internally) so we can pass tokens instead.
@@ -151,7 +151,7 @@ export class SpellCSSFile extends TextFile {
   }
 
   /** "compile" the CSS file  */
-  async compile(parentScope?: Scope): Promise<string | undefined> {
+  async compile(parentScope?: P.Scope): Promise<string | undefined> {
     const match = await this.parse(parentScope)
     batch(() => {
       this.setState("AST", match?.AST)

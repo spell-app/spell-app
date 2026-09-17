@@ -5,11 +5,9 @@
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
 
-import { AST, SpellParser } from "~/languages/spell"
+import { SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"
-import { Rules } from "~/parser"
-import type { Match } from "~/parser"
-import type { RulexGroups } from "~/parser/rulex.types"
+import { P, AST } from "~/parser"
 import type { ASTNode, Expression, PropertyLiteral, ObjectLiteralProperty } from "~/parser/ast/AST"
 import { SpellExpression } from "./expressions"
 
@@ -31,14 +29,14 @@ export const properties = new SpellParser({
       name: "property",
       pattern: LOWER_INITIAL_WORD,
       blacklist: identifierBlacklist,
-      constructor: class property extends Rules.Pattern {
+      constructor: class property extends P.Rules.Pattern {
         // convert dashes to underscores
         // NOTE: `Rules.Pattern.mapValue` is generic (`<T = string>`) for subclasses that map to non-string
         // values; this rule always maps to a string, hence the cast.
         mapValue<T = string>(value: string): T {
           return `${value}`.replace(/-/g, "_") as T
         }
-        getAST(match: Match) {
+        getAST(match: P.Match) {
           return new AST.PropertyLiteral(match)
         }
       }
@@ -49,8 +47,8 @@ export const properties = new SpellParser({
       alias: "property_accessor",
       syntax: "the {property} of",
       testRule: "the",
-      constructor: class the_property_of extends Rules.Sequence {
-        getAST(match: Match<RulexGroups<"property">>) {
+      constructor: class the_property_of extends P.Rules.Sequence {
+        getAST(match: P.Match<P.RulexGroups<"property">>) {
           const { value, raw } = match.groups.property!
           return new AST.PropertyLiteral(match, { value, raw })
         }
@@ -64,7 +62,7 @@ export const properties = new SpellParser({
       syntax: "{property_accessor} {expression:simple_expression}",
       testRule: "{property_accessor}", // ???
       constructor: class property_expression extends SpellExpression {
-        getAST(match: Match<RulexGroups<"property_accessor:expression">>) {
+        getAST(match: P.Match<P.RulexGroups<"property_accessor:expression">>) {
           const { property_accessor, expression } = match.groups
           return new AST.PropertyExpression(match, {
             object: ast<Expression>(expression!.AST),
@@ -98,7 +96,7 @@ export const properties = new SpellParser({
       syntax: "its {property}",
       testRule: "its",
       constructor: class its_property extends SpellExpression {
-        getAST(match: Match<RulexGroups<"property">>) {
+        getAST(match: P.Match<P.RulexGroups<"property">>) {
           const property = ast<PropertyLiteral>(match.groups.property!.AST)
           const itVar = match.scope.variables?.get("it")
           const object = itVar
@@ -160,7 +158,7 @@ export const properties = new SpellParser({
       syntax: "its {ordinal} {arg:singular_variable}",
       testRule: "its",
       constructor: class its_ordinal extends SpellExpression {
-        getAST(match: Match<RulexGroups<"ordinal">>) {
+        getAST(match: P.Match<P.RulexGroups<"ordinal">>) {
           const { ordinal } = match.groups
           const itVar = match.scope.variables?.get("it")
           const object = itVar
@@ -214,8 +212,8 @@ export const properties = new SpellParser({
     {
       name: "object_literal_property",
       syntax: "{property} (=|is|of) {value:expression}",
-      constructor: class object_literal_property extends Rules.Sequence {
-        getAST(match: Match<RulexGroups<"property:value">>) {
+      constructor: class object_literal_property extends P.Rules.Sequence {
+        getAST(match: P.Match<P.RulexGroups<"property:value">>) {
           const { property, value } = match.groups
           return new AST.ObjectLiteralProperty(match, {
             property: ast<PropertyLiteral>(property!.AST),
@@ -250,8 +248,8 @@ export const properties = new SpellParser({
     {
       name: "object_literal_properties",
       syntax: "[{object_literal_property}(,|and)]",
-      constructor: class object_literal_properties extends Rules.Repeat {
-        getAST(match: Match) {
+      constructor: class object_literal_properties extends P.Rules.Repeat {
+        getAST(match: P.Match) {
           return new AST.ObjectLiteral(match, {
             properties: match.items.map((propMatch) => ast<ObjectLiteralProperty>(propMatch.AST))
           })

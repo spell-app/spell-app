@@ -4,5 +4,6 @@
 //  or risk circular import problems.
 //
 
-// Pull in parser/constructor
-export { rulex, RulexParser } from "./rulex"
+export { rulex, RulexParser, type RulexGroups } from "./rulex"
+
+export * as R from "./rulex"

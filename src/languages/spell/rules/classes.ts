@@ -1,18 +1,15 @@
-import { upperFirst, pluralize, singularize } from "~/util"
-import { SpellParser, AST } from "~/languages/spell"
-import { MethodScope, type MethodScopeProps, type ScopeProps } from "~/parser"
-import type { Match, Scope, TypeScope, Token, Rule, RuleDefinition, ScopeVariableProps } from "~/parser"
-import type { IndexedList } from "~/util"
-import { Literals } from "~/parser/rule/Literals"
-import { Sequence } from "~/parser/rule/Sequence"
-import type { RulexGroups } from "~/parser/rulex.types"
+import { upperFirst, pluralize, singularize, type IndexedList } from "~/util"
+
+import { P, AST } from "~/parser"
+
+import { SpellParser } from "~/languages/spell"
 import { SpellStatement } from "./Statement"
 import { InfixOperatorSuffix } from "./expressions"
 import { SpellConstant } from "./constants"
 import "./match-fields.E"
 
 // Ad-hoc fields this module sets/reads on `ScopeVariable` (src/parser/scope/ScopeVariable.ts), for a property
-// defined `as one of a, b, c` (see `define_property_has` below). Not covered by `ScopeVariableProps`, and not
+// defined `as one of a, b, c` (see `define_property_has` below). Not covered by `P.ScopeVariableProps`, and not
 // shared with any other chunk, so augmented locally here rather than in `match-fields.E.ts`.
 declare module "~/parser/scope/ScopeVariable" {
   interface ScopeVariable {
@@ -25,7 +22,7 @@ declare module "~/parser/scope/ScopeVariable" {
 
 // Groups added on top of a statement's rulex `syntax` groups by `SpellStatement.parseInlineStatement()` /
 // `.parseNestedBlock()` (see `rules/Statement.ts`) -- not derivable from `syntax` itself.
-type InlineBlockGroups = { inlineStatement?: Match; nestedBlock?: Match }
+type InlineBlockGroups = { inlineStatement?: P.Match; nestedBlock?: P.Match }
 
 // What `AST.MethodDefinition`'s `body` prop accepts.
 type MethodBody = AST.StatementBlock | AST.Statement | AST.Expression
@@ -35,19 +32,19 @@ type MethodBody = AST.StatementBlock | AST.Statement | AST.Expression
  * parameterized per the specific rule a rulex group refers to -- only the rule's own semantics (which we know,
  * writing the rule) tell us which concrete node type comes back. Narrow once here instead of casting inline.
  */
-function astAs<T extends AST.ASTNode = AST.Expression>(match: Match): T
-function astAs<T extends AST.ASTNode = AST.Expression>(match: Match | undefined): T | undefined
-function astAs<T extends AST.ASTNode = AST.Expression>(match: Match | undefined): T | undefined {
+function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match): T
+function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match | undefined): T | undefined
+function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match | undefined): T | undefined {
   return match?.AST as T | undefined
 }
 
 /**
  * `MethodScopeProps` (src/parser/scope/MethodScope.ts) omits the base `ScopeProps` fields (e.g. `parentScope`)
  * even though its constructor forwards them to `Scope` via `super()`. Narrow once here rather than casting at
- * the one `new MethodScope({ parentScope, ... })` call site below.
+ * the one `new P.MethodScope({ parentScope, ... })` call site below.
  */
-function newMethodScope(props: MethodScopeProps & ScopeProps): MethodScope {
-  return new MethodScope(props)
+function newMethodScope(props: P.MethodScopeProps & P.ScopeProps): P.MethodScope {
+  return new P.MethodScope(props)
 }
 
 /**
@@ -56,11 +53,11 @@ function newMethodScope(props: MethodScopeProps & ScopeProps): MethodScope {
  * -- it expects a plain `RuleDefinition`-shaped object, which it forwards to `Parser.defineRule()` itself.
  * Narrow the input type once here rather than casting at each `scope.rules.add(...)` call site below.
  */
-function addRule(scope: Scope, rule: RuleDefinition): void {
-  ;(scope.rules as IndexedList<Rule, RuleDefinition> | undefined)?.add(rule)
+function addRule(scope: P.Scope, rule: P.RuleDefinition): void {
+  ;(scope.rules as IndexedList<P.Rule, P.RuleDefinition> | undefined)?.add(rule)
 }
 
-function getOrStubType(scope: Scope, typeName: string): TypeScope {
+function getOrStubType(scope: P.Scope, typeName: string): P.TypeScope {
   let typeScope = scope.types?.get(typeName)
   if (!typeScope) {
     ;[typeScope] = scope.types!.add({ name: typeName, stub: true })
@@ -68,10 +65,10 @@ function getOrStubType(scope: Scope, typeName: string): TypeScope {
   return typeScope
 }
 
-type DefinePropertyHasGroups = RulexGroups<"type:property:specifier">
+type DefinePropertyHasGroups = P.RulexGroups<"type:property:specifier">
 
-type PropertyValueEitherGroups = RulexGroups<"type_property", Match<RulexGroups<"property:type">>> &
-  RulexGroups<"value:condition:otherValue">
+type PropertyValueEitherGroups = P.RulexGroups<"type_property", P.Match<P.RulexGroups<"property:type">>> &
+  P.RulexGroups<"value:condition:otherValue">
 
 // Extra `bits` group `quoted_property_formula` derives in `getGroupsForMatch()` (see the brief's
 // custom-groups pattern) to hand off from there to `mutateScope()`/`getAST()`.
@@ -87,8 +84,8 @@ type QuotedPropertyFormulaBits = {
   vars: string[]
   property: string
 }
-type QuotedPropertyFormulaGroups = RulexGroups<"type:alias"> &
-  RulexGroups<"sources", Match<RulexGroups<"property">>> & { bits?: QuotedPropertyFormulaBits }
+type QuotedPropertyFormulaGroups = P.RulexGroups<"type:alias"> &
+  P.RulexGroups<"sources", P.Match<P.RulexGroups<"property">>> & { bits?: QuotedPropertyFormulaBits }
 
 export const classes = new SpellParser({
   module: "classes",
@@ -99,14 +96,14 @@ export const classes = new SpellParser({
       alias: "statement",
       syntax: "(a|an) {type} is (a|an) {superType:type}",
       constructor: class create_type extends SpellStatement {
-        mutateScope(match: Match<RulexGroups<"type:superType">>) {
+        mutateScope(match: P.Match<P.RulexGroups<"type:superType">>) {
           const { type, superType } = match.groups
           // Forget it if type is already defined.
           // TODO: complain if existing type is set up differently!
           if (match.scope.types?.get(type!.value)) return
           match.scope.types?.add({ name: type!.value, superType: superType?.value })
         }
-        getAST(match: Match<RulexGroups<"type:superType">>): AST.StatementGroup {
+        getAST(match: P.Match<P.RulexGroups<"type:superType">>): AST.StatementGroup {
           const { type, superType } = match.groups
           return new AST.StatementGroup(match, {
             statements: [
@@ -143,7 +140,7 @@ export const classes = new SpellParser({
         // TODO: "{plural_type} are a list of ..."
       ],
       constructor: class create_list_type extends SpellStatement {
-        mutateScope(match: Match<RulexGroups<"type:instanceType">>) {
+        mutateScope(match: P.Match<P.RulexGroups<"type:instanceType">>) {
           const { type } = match.groups
           // Forget it if type is already defined.
           // TODO: complain if existing type is set up differently!
@@ -151,7 +148,7 @@ export const classes = new SpellParser({
 
           match.scope.types?.add({ name: type!.value, superType: "list" })
         }
-        getAST(match: Match<RulexGroups<"type:instanceType">>): AST.StatementGroup {
+        getAST(match: P.Match<P.RulexGroups<"type:instanceType">>): AST.StatementGroup {
           const { type, instanceType } = match.groups
           return new AST.StatementGroup(match, {
             statements: [
@@ -197,7 +194,7 @@ export const classes = new SpellParser({
       alias: "expression",
       syntax: "a new {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       constructor: class new_thing extends SpellStatement {
-        getAST(match: Match<RulexGroups<"type:props">>): AST.NewInstanceExpression {
+        getAST(match: P.Match<P.RulexGroups<"type:props">>): AST.NewInstanceExpression {
           const { type, props } = match.groups
           return new AST.NewInstanceExpression(match, {
             type: astAs<AST.TypeExpression>(type!),
@@ -231,7 +228,7 @@ export const classes = new SpellParser({
       alias: "expression",
       syntax: "a new (list|List) (of {instanceType:type}?)",
       constructor: class new_list extends SpellStatement {
-        getAST(match: Match<RulexGroups<"instanceType">>): AST.NewInstanceExpression {
+        getAST(match: P.Match<P.RulexGroups<"instanceType">>): AST.NewInstanceExpression {
           const { instanceType } = match.groups
           return new AST.NewInstanceExpression(match, {
             type: new AST.TypeExpression(match, { name: "List" }),
@@ -273,7 +270,7 @@ export const classes = new SpellParser({
       syntax: "create (a|an) {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       testRule: "create",
       constructor: class create_thing extends SpellStatement {
-        getAST(match: Match<RulexGroups<"type:props">>): AST.NewInstanceExpression {
+        getAST(match: P.Match<P.RulexGroups<"type:props">>): AST.NewInstanceExpression {
           const { type, props } = match.groups
           return new AST.NewInstanceExpression(match, {
             type: astAs<AST.TypeExpression>(type!),
@@ -323,8 +320,8 @@ export const classes = new SpellParser({
       name: "type_specifier_enum",
       alias: "type_specifier",
       syntax: "as (either|one of) {enumeration:identifier_list}",
-      constructor: class type_specifier_enum extends Sequence {
-        getAST(match: Match<RulexGroups<"enumeration">>): AST.Enumeration {
+      constructor: class type_specifier_enum extends P.Rules.Sequence {
+        getAST(match: P.Match<P.RulexGroups<"enumeration">>): AST.Enumeration {
           const enumeration = match.groups.enumeration!.items.map((item) => astAs(item))
           return new AST.Enumeration(match, {
             enumeration,
@@ -349,8 +346,8 @@ export const classes = new SpellParser({
       name: "type_specifier_datatype",
       alias: "type_specifier",
       syntax: "as (a|an)? {datatype:singular_type}",
-      constructor: class type_specifier_datatype extends Sequence {
-        getAST(match: Match<RulexGroups<"datatype">>): AST.TypeExpression {
+      constructor: class type_specifier_datatype extends P.Rules.Sequence {
+        getAST(match: P.Match<P.RulexGroups<"datatype">>): AST.TypeExpression {
           return astAs<AST.TypeExpression>(match.groups.datatype!)
         }
       },
@@ -368,8 +365,8 @@ export const classes = new SpellParser({
       name: "type_specifier_instance",
       alias: "type_specifier",
       syntax: "as {new_thing}",
-      constructor: class type_specifier_instance extends Sequence {
-        getAST(match: Match<RulexGroups<"new_thing">>): AST.NewInstanceExpression {
+      constructor: class type_specifier_instance extends P.Rules.Sequence {
+        getAST(match: P.Match<P.RulexGroups<"new_thing">>): AST.NewInstanceExpression {
           return astAs<AST.NewInstanceExpression>(match.groups.new_thing!)
         }
       },
@@ -387,8 +384,8 @@ export const classes = new SpellParser({
       name: "type_specifier_yes_or_no",
       alias: "type_specifier",
       syntax: "as either? (yes or no|true or false)",
-      constructor: class type_specifier_yes_or_no extends Sequence {
-        getAST(match: Match): AST.TypeExpression {
+      constructor: class type_specifier_yes_or_no extends P.Rules.Sequence {
+        getAST(match: P.Match): AST.TypeExpression {
           return new AST.TypeExpression(match, { raw: "yes or no", name: "choice" })
         }
       },
@@ -408,7 +405,7 @@ export const classes = new SpellParser({
       ],
       testRule: "…(has|have)",
       constructor: class define_property_has extends SpellStatement {
-        mutateScope(match: Match<DefinePropertyHasGroups>) {
+        mutateScope(match: P.Match<DefinePropertyHasGroups>) {
           const { scope } = match
           const { type, property, specifier } = match.groups
           const specifierAST = specifier?.AST
@@ -421,7 +418,7 @@ export const classes = new SpellParser({
             const groupName = pluralize(upperFirst(property!.value))
 
             const { values } = specifierAST
-            const varProps: ScopeVariableProps & { enumeration: Array<string | number> } = {
+            const varProps: P.ScopeVariableProps & { enumeration: Array<string | number> } = {
               name: groupName,
               enumeration: values,
               initializer: `[${values.join(", ")}]`
@@ -445,8 +442,8 @@ export const classes = new SpellParser({
               precedence: 20,
               alias: "expression",
               literals,
-              constructor: class typename_groupname extends Literals {
-                getAST(_match: Match): AST.PropertyExpression {
+              constructor: class typename_groupname extends P.Rules.Literals {
+                getAST(_match: P.Match): AST.PropertyExpression {
                   return new AST.PropertyExpression(_match, {
                     object: astAs(type!),
                     property: new AST.PropertyLiteral(property!, groupName)
@@ -461,7 +458,7 @@ export const classes = new SpellParser({
             })
           }
         }
-        getAST(match: Match<DefinePropertyHasGroups>): AST.StatementGroup {
+        getAST(match: P.Match<DefinePropertyHasGroups>): AST.StatementGroup {
           const { type, property } = match.groups
 
           // output statements
@@ -574,13 +571,13 @@ export const classes = new SpellParser({
       name: "the_property_of_a_thing",
       alias: "type_property",
       syntax: "the {property} of (a|an) {type}",
-      constructor: class the_property_of_a_thing extends Sequence {}
+      constructor: class the_property_of_a_thing extends P.Rules.Sequence {}
     },
     {
       name: "a_things_property",
       alias: "type_property",
       syntax: "(a|an) {type:plural_type} {property}",
-      constructor: class a_things_property extends Sequence {}
+      constructor: class a_things_property extends P.Rules.Sequence {}
     },
 
     {
@@ -589,7 +586,7 @@ export const classes = new SpellParser({
       syntax:
         "{type_property} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
       constructor: class property_value_either extends SpellStatement {
-        mutateScope(match: Match<PropertyValueEitherGroups>) {
+        mutateScope(match: P.Match<PropertyValueEitherGroups>) {
           const { scope } = match
           const { value, otherValue, type_property } = match.groups
           const { type } = type_property!.groups
@@ -605,7 +602,7 @@ export const classes = new SpellParser({
             if (!constant) scope.constants?.add(otherValue.raw!)
           }
         }
-        getAST(match: Match<PropertyValueEitherGroups>): AST.PropertyDefinition {
+        getAST(match: P.Match<PropertyValueEitherGroups>): AST.PropertyDefinition {
           const { value, otherValue, type_property, condition } = match.groups
           const { type, property } = type_property!.groups
           const prototype = new AST.PrototypeExpression(type!, { type: astAs<AST.TypeExpression>(type!) })
@@ -671,7 +668,7 @@ export const classes = new SpellParser({
       parseInlineStatementAs: "expression",
       wantsNestedBlock: true,
       constructor: class property_value_getter extends SpellStatement {
-        getNestedScopeForMatch(match: Match<RulexGroups<"property:type">>): MethodScope {
+        getNestedScopeForMatch(match: P.Match<P.RulexGroups<"property:type">>): P.MethodScope {
           const { type } = match.groups
           return newMethodScope({
             parentScope: match.scope,
@@ -679,7 +676,7 @@ export const classes = new SpellParser({
             mapItTo: "this"
           })
         }
-        getAST(match: Match<RulexGroups<"property:type"> & InlineBlockGroups>): AST.PropertyDefinition {
+        getAST(match: P.Match<P.RulexGroups<"property:type"> & InlineBlockGroups>): AST.PropertyDefinition {
           const { type, property, inlineStatement, nestedBlock } = match.groups
           return new AST.PropertyDefinition(match, {
             thing: new AST.PrototypeExpression(match, { type: astAs<AST.TypeExpression>(type!) }),
@@ -741,17 +738,17 @@ export const classes = new SpellParser({
       //  NOTE: the first word in quotes must be "is" !!
       syntax: "(a|an) {type} {alias:text} for [sources:(its {property}) and]",
       constructor: class quoted_property_formula extends SpellStatement {
-        parse(scope: Scope, tokens: Token[]): Match | undefined {
+        parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
           // If first word of `alias` is not `is`, forget it
-          const alias = JSON.parse((match.groups.alias as Match).value).split(" ")
+          const alias = JSON.parse((match.groups.alias as P.Match).value).split(" ")
           if (alias[0] !== "is") return undefined
           return match
         }
 
         // When gathering the match groups, figure out `bits` for making rules and AST nodes
-        getGroupsForMatch(match: Match): QuotedPropertyFormulaGroups {
+        getGroupsForMatch(match: P.Match): QuotedPropertyFormulaGroups {
           const groups = super.getGroupsForMatch(match) as QuotedPropertyFormulaGroups
           const alias = groups.alias!.value
           const type = groups.type!.value
@@ -778,7 +775,7 @@ export const classes = new SpellParser({
 
               // Try to find the enumeration
               // NOTE: currently this only works for an enumeration defined on the type!!!
-              const propertyName = (sources[sourceNum]?.groups?.property as Match | undefined)?.value
+              const propertyName = (sources[sourceNum]?.groups?.property as P.Match | undefined)?.value
               const variable = match.scope.types?.get(type)?.variables.get(propertyName)
               const enumeration = variable?.enumeration
               // console.warn({ type, Type: scope.types.get(type), propertyName, variable, enumeration })
@@ -815,7 +812,7 @@ export const classes = new SpellParser({
           return groups
         }
 
-        mutateScope(match: Match<QuotedPropertyFormulaGroups>) {
+        mutateScope(match: P.Match<QuotedPropertyFormulaGroups>) {
           const { syntax, property, ruleData } = match.groups.bits!
 
           // Create an expression suffix to match the quoted statement, e.g. `is not? a queen`
@@ -825,20 +822,20 @@ export const classes = new SpellParser({
             alias: "expression_suffix",
             syntax,
             constructor: class _quoted_property_rule extends InfixOperatorSuffix {
-              shouldNegateOutput(operator: Match): boolean {
+              shouldNegateOutput(operator: P.Match): boolean {
                 return operator.value.includes("not")
               }
               compileASTExpression(
-                _match: Match,
+                _match: P.Match,
                 { lhs, rhs }: { lhs?: AST.Expression; rhs?: unknown }
               ): AST.ScopedMethodInvocation {
                 // This dynamically-generated rule's syntax repeats the `expression` group name (once per
                 // `$var` in the quoted alias), and each of those groups matches a plain keyword literal with
                 // no `getAST()` -- so the shunting-yard algorithm's `compile()` helper (`compound_expression`
-                // in expressions.ts) leaves `rhs` as the raw `Match[]` rather than resolving it to an
+                // in expressions.ts) leaves `rhs` as the raw `P.Match[]` rather than resolving it to an
                 // `Expression`. Neither shape is representable in `OperatorOperands`, which assumes a single
                 // already-resolved `Expression`.
-                const rhsMatches = (Array.isArray(rhs) ? rhs : [rhs]) as Match[]
+                const rhsMatches = (Array.isArray(rhs) ? rhs : [rhs]) as P.Match[]
                 const args = rhsMatches
                   .map((arg, index) => {
                     if (typeof arg.value === "string") {
@@ -876,7 +873,7 @@ export const classes = new SpellParser({
           })
         }
 
-        getAST(match: Match<QuotedPropertyFormulaGroups>): AST.StatementGroup {
+        getAST(match: P.Match<QuotedPropertyFormulaGroups>): AST.StatementGroup {
           const { type } = match.groups
           const { vars, property } = match.groups.bits!
           // Return AST for the instance method

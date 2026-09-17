@@ -18,13 +18,13 @@ export type Assert = {
 /** Assert that some `condition` is truthy:
  *  - if truthy, return `true`
  *  - if not truthy, calls `assert.failed(...message)` and returns `false`. */
-function assertFn(condition: unknown, ...message: unknown[]): boolean {
+function assertCondition(condition: unknown, ...message: unknown[]): boolean {
   if (spellCore.isTruthy(condition)) return true
   assert.failed(message)
   return false
 }
 
-export const assert: Assert = Object.assign(assertFn, {
+export const assert: Assert = Object.assign(assertCondition, {
   /** Method Called when an assertion fails.
    * Default is to log a warning to the console, overide method if you want. */
   failed(...message: unknown[]): void {

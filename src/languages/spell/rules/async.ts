@@ -3,9 +3,8 @@
 //  TODO: sort
 //
 
-import { AST, SpellParser } from "~/languages/spell"
-import type { Match } from "~/parser"
-import type { RulexGroups } from "~/parser/rulex.types"
+import { SpellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
 import type { ASTNode, Expression } from "~/parser/ast/AST"
 import { SpellStatement } from "./Statement"
 import { SpellExpression } from "./expressions"
@@ -29,7 +28,7 @@ export const _async = new SpellParser({
       alias: ["expression", "statement"],
       syntax: "(await|wait for) :? {expression}?",
       constructor: class _await extends SpellStatement {
-        getAST(match: Match<RulexGroups<"expression">>) {
+        getAST(match: P.Match<P.RulexGroups<"expression">>) {
           const { expression } = match.groups
           return new AST.AwaitExpression(match, {
             expression: (expression && ast<Expression>(expression.AST)) || new AST.UndefinedLiteral(match)
@@ -73,7 +72,7 @@ export const _async = new SpellParser({
       // TODO: "a second", "a little bit", "a while", "a noticeable amount"
       syntax: "pause for {number:expression} (units:second|seconds|sec|millisecond|milliseconds|msec|tick|ticks)",
       constructor: class pause extends SpellStatement {
-        getAST(match: Match<RulexGroups<"number:units">>) {
+        getAST(match: P.Match<P.RulexGroups<"number:units">>) {
           const { number, units } = match.groups
           return new AST.AwaitExpression(match, {
             expression: new AST.CoreMethodInvocation(match, {
@@ -102,7 +101,7 @@ export const _async = new SpellParser({
       alias: "statement",
       syntax: "start (operator:exclusive|non-exclusive|nonexclusive)? (animation|process) {name:constant}",
       constructor: class start_process extends SpellStatement {
-        getAST(match: Match<RulexGroups<"operator:name">>) {
+        getAST(match: P.Match<P.RulexGroups<"operator:name">>) {
           const { operator, name } = match.groups
           return new AST.StartProcessInvocation(match, {
             name: name!.value,
@@ -136,7 +135,7 @@ export const _async = new SpellParser({
       alias: "statement",
       syntax: "(stop|end|finish|cancel) (animation|process) {name:constant}",
       constructor: class stop_process extends SpellStatement {
-        getAST(match: Match<RulexGroups<"name">>) {
+        getAST(match: P.Match<P.RulexGroups<"name">>) {
           const { name } = match.groups
           const args = [new AST.QuotedExpression(match, name!.value)]
           return new AST.CoreMethodInvocation(match, {
@@ -165,7 +164,7 @@ export const _async = new SpellParser({
       alias: "expression",
       syntax: "(animation|process) {name:constant} (operator:is|is not|isn't|isnt) (running|active)",
       constructor: class check_process extends SpellExpression {
-        getAST(match: Match<RulexGroups<"operator:name">>) {
+        getAST(match: P.Match<P.RulexGroups<"operator:name">>) {
           const { operator, name } = match.groups
           const expression = new AST.CoreMethodInvocation(match, {
             methodName: "processIsRunning",

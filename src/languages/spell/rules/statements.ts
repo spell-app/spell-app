@@ -2,8 +2,8 @@
 //  # Random statements
 //
 
-import type { Match } from "~/parser/Match"
-import { AST, SpellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
+import { SpellParser } from "~/languages/spell"
 import { SpellStatement } from "./Statement"
 
 export const statements = new SpellParser({
@@ -15,7 +15,7 @@ export const statements = new SpellParser({
       alias: "statement",
       syntax: "do nothing",
       constructor: class do_nothing extends SpellStatement {
-        getAST(match: Match): AST.CoreMethodInvocation {
+        getAST(match: P.Match): AST.CoreMethodInvocation {
           return new AST.CoreMethodInvocation(match, { methodName: "doNothing" })
         }
       },

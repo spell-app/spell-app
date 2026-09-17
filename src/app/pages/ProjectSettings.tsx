@@ -1,15 +1,13 @@
-import React from "react"
-
 import { view } from "~/util"
-import { UI } from "~/app/components/ui"
+import * as UI from "~/app/components/ui"
 
 // `UI.FormGroup`/`FormRepeat`/`SubmitButton` get their `form` prop injected at runtime by the
 // enclosing `<UI.Form>` (see `WithForm()`/`injectForm` in `~/app/components/Form`), but their
 // exported prop types still require it explicitly. Narrow-cast here at the JSX boundary rather
 // than fabricating a fake `form` value.
-const FormGroup = UI.FormGroup as React.ComponentType<{ name?: string; children?: React.ReactNode }>
-const FormRepeat = UI.FormRepeat as React.ComponentType<{ name?: string; grouped?: boolean; children?: React.ReactNode }>
-const SubmitButton = UI.SubmitButton as React.ComponentType<{ children?: React.ReactNode }>
+const FormGroup = UI.FormGroup as ReactComponentType<{ name?: string; children?: ReactNode }>
+const FormRepeat = UI.FormRepeat as ReactComponentType<{ name?: string; grouped?: boolean; children?: ReactNode }>
+const SubmitButton = UI.SubmitButton as ReactComponentType<{ children?: ReactNode }>
 
 export const ProjectSettings = view(function ProjectSettings() {
   const values = {

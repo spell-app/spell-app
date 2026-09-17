@@ -20,7 +20,7 @@ import type { ASTNode } from "./AST"
  * Draw a React.Fragment which encompasses the arguments.
  * Simpler implementations seem to have problems in babel.
  */
-export function Fragment(...children: React.ReactNode[]): React.ReactElement {
+export function Fragment(...children: ReactNode[]): ReactElement {
   return React.createElement(React.Fragment, null, ...children)
 }
 
@@ -28,7 +28,7 @@ export function Fragment(...children: React.ReactNode[]): React.ReactElement {
  * Return a React functional component which will show as `name` in a rendering error, etc.
  * TODOC
  */
-export function getNamedComponent(name: string, renderFn: () => React.ReactElement): () => React.ReactElement {
+export function getNamedComponent(name: string, renderFn: () => ReactElement): () => ReactElement {
   Object.defineProperty(renderFn, "name", { value: name })
   return renderFn
 }
@@ -36,7 +36,7 @@ export function getNamedComponent(name: string, renderFn: () => React.ReactEleme
 ///////////////////
 
 /** Default render for a single ASTNode. */
-export function Node(astNode: ASTNode): React.ReactElement {
+export function Node(astNode: ASTNode): ReactElement {
   const { nodeType, className, match } = astNode
   const props = {
     className,
@@ -98,7 +98,7 @@ export const CATCH = <span className="keyword catch">{"catch "}</span>
 export const FINALLY = <span className="keyword finally">{"finally "}</span>
 
 /** Draw a single item in a list by having it render its component. */
-export const Item = ({ item }: { item?: ASTNode | null; index: number }): React.ReactNode =>
+export const Item = ({ item }: { item?: ASTNode | null; index: number }): ReactNode =>
   item != null ? item.component : null
 
 /** Draw a series of items with a delimiter between */
@@ -108,12 +108,12 @@ export const List = ({
   DrawItem = Item
 }: {
   items?: Array<ASTNode | null | undefined>
-  delimiter?: React.ReactNode
-  DrawItem?: React.ComponentType<{ item?: ASTNode | null; index: number }>
-}): React.ReactElement | null => {
+  delimiter?: ReactNode
+  DrawItem?: ReactComponentType<{ item?: ASTNode | null; index: number }>
+}): ReactElement | null => {
   if (!items || !items.length) return null
   // create `kids` array in funky way to get around key errors
-  const kids: React.ReactNode[] = []
+  const kids: ReactNode[] = []
   items.forEach((item, index) => {
     kids.push(<DrawItem item={item} index={index} />)
     if (index !== items.length - 1) kids.push(delimiter)
@@ -130,17 +130,17 @@ export const InParens = ({
   wrap = false,
   space = false
 }: {
-  children?: React.ReactNode
+  children?: ReactNode
   wrap?: boolean
   space?: boolean
-}): React.ReactElement => {
+}): ReactElement => {
   if (!children) return EMPTY_PARENS
   const delimiter = (wrap && NEWLINE) || (space && SPACE) || null
   return Fragment(LEFT_PAREN, delimiter, children, delimiter, RIGHT_PAREN)
 }
 
 /** Draw list of function `args` */
-export const Arg = ({ item, index }: { item?: ASTNode | null; index: number }): React.ReactElement => (
+export const Arg = ({ item, index }: { item?: ASTNode | null; index: number }): ReactElement => (
   <span key={index} className={`arg arg-${index}`}>
     <Item item={item} index={index} />
   </span>
@@ -152,7 +152,7 @@ export const Args = ({
 }: {
   args?: Array<ASTNode | null | undefined>
   wrap?: boolean
-}): React.ReactElement => {
+}): ReactElement => {
   const delimiter = wrap ? INDENTED_COMMA : SPACED_COMMA
   return (
     <span className={`ASTBlock ASTArgsBlock${wrap ? " indented" : ""}`}>
@@ -167,19 +167,19 @@ export const Args = ({
 
 /** Surround `children` in double quotes. */
 export const DOUBLE_QUOTE = <span className="punctuation double-quote">{'"'}</span>
-export const InDoubleQuotes = ({ children }: { children?: React.ReactNode }): React.ReactElement =>
+export const InDoubleQuotes = ({ children }: { children?: ReactNode }): ReactElement =>
   Fragment(DOUBLE_QUOTE, children, DOUBLE_QUOTE)
 
 /** Surround `children` in single quotes. */
 export const SINGLE_QUOTE = <span className="punctuation single-quote">{"'"}</span>
-export const InSingleQuotes = ({ children }: { children?: React.ReactNode }): React.ReactElement =>
+export const InSingleQuotes = ({ children }: { children?: ReactNode }): ReactElement =>
   Fragment(SINGLE_QUOTE, children, SINGLE_QUOTE)
 
 /** Surround `children` in back ticks. */
 export const BACK_TICK = <span className="punctuation back-tick">{"`"}</span>
-export const InBackTicks = ({ children }: { children?: React.ReactNode }): React.ReactElement =>
+export const InBackTicks = ({ children }: { children?: ReactNode }): ReactElement =>
   Fragment(BACK_TICK, children, BACK_TICK)
-export const InTripleBackTicks = ({ children }: { children?: React.ReactNode }): React.ReactElement =>
+export const InTripleBackTicks = ({ children }: { children?: ReactNode }): ReactElement =>
   Fragment(BACK_TICK, BACK_TICK, BACK_TICK, children, BACK_TICK, BACK_TICK, BACK_TICK)
 
 /** Surround `children` in curly brackets. */
@@ -190,10 +190,10 @@ export const InCurlies = ({
   wrap = false,
   space = false
 }: {
-  children?: React.ReactNode
+  children?: ReactNode
   wrap?: boolean
   space?: boolean
-}): React.ReactElement => {
+}): ReactElement => {
   const delimiter = (wrap && NEWLINE) || (space && SPACE) || null
   return Fragment(LEFT_CURLY, delimiter, children, delimiter, RIGHT_CURLY)
 }
@@ -208,10 +208,10 @@ export const Block = ({
   wrap = false,
   space = !wrap
 }: {
-  children?: React.ReactNode
+  children?: ReactNode
   wrap?: boolean
   space?: boolean
-}): React.ReactElement => {
+}): ReactElement => {
   if (!children) return EMPTY_BLOCK
   return (
     <span className={`ASTBlock${wrap ? " indented" : ""}`}>
@@ -230,10 +230,10 @@ export const InSquareBrackets = ({
   wrap = false,
   space = false
 }: {
-  children?: React.ReactNode
+  children?: ReactNode
   wrap?: boolean
   space?: boolean
-}): React.ReactElement => {
+}): ReactElement => {
   const delimiter = (wrap && NEWLINE) || (space && SPACE) || null
   return Fragment(LEFT_SQUARE_BRACKET, delimiter, children, delimiter, RIGHT_SQUARE_BRACKET)
 }
@@ -248,9 +248,9 @@ export const Array = ({
   wrap = false
 }: {
   items?: Array<ASTNode | null | undefined>
-  DrawItem?: React.ComponentType<{ item?: ASTNode | null; index: number }>
+  DrawItem?: ReactComponentType<{ item?: ASTNode | null; index: number }>
   wrap?: boolean
-}): React.ReactElement => {
+}): ReactElement => {
   if (!items || items.length === 0) return EMPTY_ARRAY
 
   const delimiter = wrap ? INDENTED_COMMA : SPACED_COMMA

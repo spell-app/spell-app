@@ -1,11 +1,8 @@
 import { isNode } from "browser-or-node"
 
 import { instanceCase, typeCase } from "~/util"
-import { Rules, Tokens, MethodScope, ScopeVariable } from "~/parser"
-import type { Scope, Token, RuleDefinition } from "~/parser"
-import { Match } from "~/parser/Match"
-import type { MatchGroups } from "~/parser/Match"
-import { SpellParser, AST } from "~/languages/spell"
+import { P, AST } from "~/parser"
+import { SpellParser } from "~/languages/spell"
 import { SpellStatement } from "./Statement"
 import { SpellType } from "./types"
 import { VariableIdentifier } from "./variables"
@@ -29,15 +26,15 @@ type MethodExtraVar = string | { name: string; output?: string; type?: string }
  * (`var_method_arg`, `valued_var_method_arg`, `type_method_arg`, `typed_method_arg`, `with_props_arg`)
  * and by `method_keyword`. Each of these rules only ever fills in a subset of these fields.
  */
-type MethodArgGroups = MatchGroups & {
-  keyword?: Match
-  variable?: Match
-  type?: Match
+type MethodArgGroups = P.MatchGroups & {
+  keyword?: P.Match
+  variable?: P.Match
+  type?: P.Match
   method?: string
   syntax?: string
   arg?: AST.VariableExpression
   props?: AST.VariableExpression[]
-  items?: Match[]
+  items?: P.Match[]
 }
 
 /**
@@ -71,31 +68,31 @@ type MethodSignatureData = {
   // Set by `MethodDefinition.processSignature()` / `quoted_type_expression.processSignature()`:
   asPostfixExpression?: boolean
   asInfixExpression?: boolean
-  shouldNegateOutput?: (operator: Match) => boolean
+  shouldNegateOutput?: (operator: P.Match) => boolean
 }
 
 /** `match.groups` returned by `method_signature`'s own `getGroupsForMatch()`. */
-type MethodSignatureGroups = MatchGroups & MethodSignatureData
+type MethodSignatureGroups = P.MatchGroups & MethodSignatureData
 
 /** `match.groups` for `MethodDefinition` (and subclasses), once `getGroupsForMatch()` has processed `signature`. */
-type MethodDefinitionGroups = MatchGroups & {
+type MethodDefinitionGroups = P.MatchGroups & {
   signature: MethodSignatureData
-  asTest?: Match
-  asAnimation?: Match
-  inlineStatement?: Match
-  nestedBlock?: Match
+  asTest?: P.Match
+  asAnimation?: P.Match
+  inlineStatement?: P.Match
+  nestedBlock?: P.Match
 }
 
 /** `match.groups` for `DynamicMethodRule`, once `getGroupsForMatch()` has normalized `callArgs` to an array. */
-type DynamicMethodRuleGroups = MatchGroups & {
-  thisArg?: Match
-  callArgs?: Match[]
-  props?: Match
+type DynamicMethodRuleGroups = P.MatchGroups & {
+  thisArg?: P.Match
+  callArgs?: P.Match[]
+  props?: P.Match
 }
 
 /** Operands passed to `compileASTExpression()` -- matches the (unexported) type of the same name in `./expressions`. */
 type OperatorOperands = {
-  operator: Match
+  operator: P.Match
   lhs?: AST.Expression
   rhs?: AST.Expression
 }
@@ -110,14 +107,14 @@ export class DynamicMethodRule extends SpellStatement {
   }
 
   // Normalize `callArgs` to an array
-  getGroupsForMatch(match: Match): DynamicMethodRuleGroups {
-    const groups = super.getGroupsForMatch(match) as MatchGroups
+  getGroupsForMatch(match: P.Match): DynamicMethodRuleGroups {
+    const groups = super.getGroupsForMatch(match) as P.MatchGroups
     const { callArgs } = groups
     if (callArgs && !Array.isArray(callArgs)) groups.callArgs = [callArgs]
     return groups as DynamicMethodRuleGroups
   }
 
-  getAST(match: Match<DynamicMethodRuleGroups>): AST.MethodInvocation | AST.ScopedMethodInvocation {
+  getAST(match: P.Match<DynamicMethodRuleGroups>): AST.MethodInvocation | AST.ScopedMethodInvocation {
     const { methodName } = this
     const { thisArg, callArgs, props } = match.groups
     const thing = thisArg?.AST as AST.Expression | undefined
@@ -146,7 +143,7 @@ export class MethodDefinition extends SpellStatement {
   }
 
   // Iniline initial type epression, making an instance method?
-  processSignature(groups: MatchGroups, signature: MethodSignatureData): MethodSignatureData {
+  processSignature(groups: P.MatchGroups, signature: MethodSignatureData): MethodSignatureData {
     const [initialType] = signature.types
     if (this.inlineInitialType && initialType && !initialType.isSimple) {
       signature.instanceType = initialType.name
@@ -166,10 +163,10 @@ export class MethodDefinition extends SpellStatement {
     return signature
   }
 
-  getGroupsForMatch(match: Match): MethodDefinitionGroups {
-    const groups = super.getGroupsForMatch(match) as MatchGroups
+  getGroupsForMatch(match: P.Match): MethodDefinitionGroups {
+    const groups = super.getGroupsForMatch(match) as P.MatchGroups
     const signatureMatch = groups.signature
-    if (!(signatureMatch instanceof Match)) return groups as MethodDefinitionGroups
+    if (!(signatureMatch instanceof P.Match)) return groups as MethodDefinitionGroups
 
     const signature = this.processSignature(groups, signatureMatch.groups as MethodSignatureGroups)
     signature.methodName = signature.methodBits.join("_")
@@ -180,12 +177,12 @@ export class MethodDefinition extends SpellStatement {
     return { ...groups, signature } as MethodDefinitionGroups
   }
 
-  getNestedScopeForMatch(match: Match<MethodDefinitionGroups>): MethodScope {
+  getNestedScopeForMatch(match: P.Match<MethodDefinitionGroups>): P.MethodScope {
     const { methodName, args, extraVars, instanceType } = match.groups.signature
-    const methodScope = new MethodScope({
+    const methodScope = new P.MethodScope({
       parentScope: match.scope,
       name: methodName,
-      args: args.map((arg) => new ScopeVariable(arg.name)),
+      args: args.map((arg) => new P.ScopeVariable(arg.name)),
       thisVar: instanceType,
       mapItTo: instanceType && "this"
     })
@@ -195,18 +192,18 @@ export class MethodDefinition extends SpellStatement {
     return methodScope
   }
 
-  mutateScope(match: Match<MethodDefinitionGroups>): void {
+  mutateScope(match: P.Match<MethodDefinitionGroups>): void {
     match.scope.rules?.add(this.getRule(match))
   }
 
-  getRuleAnnotation(match: Match<MethodDefinitionGroups>): string {
+  getRuleAnnotation(match: P.Match<MethodDefinitionGroups>): string {
     const { syntax, asPostfixExpression, asInfixExpression } = match.groups.signature
     if (asPostfixExpression) return `added expression \`{thing:simple_expression} ${syntax}\``
     if (asInfixExpression) return `added expression \`{thing:simple_expression} ${syntax}\``
     return `added rule: \`${match.groups.signature.syntax}\``
   }
 
-  getRule(match: Match<MethodDefinitionGroups>): RuleDefinition {
+  getRule(match: P.Match<MethodDefinitionGroups>): P.RuleDefinition {
     const {
       asTest,
       signature: {
@@ -225,10 +222,10 @@ export class MethodDefinition extends SpellStatement {
         alias: "expression_suffix",
         syntax,
         constructor: class _dynamicMethodRulePostfix extends PostfixOperatorSuffix {
-          shouldNegateOutput(operator: Match): boolean {
+          shouldNegateOutput(operator: P.Match): boolean {
             return shouldNegateOutput(operator)
           }
-          compileASTExpression(_match: Match, { lhs }: OperatorOperands): AST.Expression {
+          compileASTExpression(_match: P.Match, { lhs }: OperatorOperands): AST.Expression {
             return new AST.PropertyExpression(_match, {
               // `lhs` is always populated for a `PostfixOperatorSuffix`.
               object: lhs!,
@@ -246,10 +243,10 @@ export class MethodDefinition extends SpellStatement {
         syntax,
         parenthesize: true,
         constructor: class _dynamicMethodRuleInfix extends InfixOperatorSuffix {
-          shouldNegateOutput(operator: Match): boolean {
+          shouldNegateOutput(operator: P.Match): boolean {
             return shouldNegateOutput(operator)
           }
-          compileASTExpression(_match: Match, { lhs, rhs }: OperatorOperands): AST.Expression {
+          compileASTExpression(_match: P.Match, { lhs, rhs }: OperatorOperands): AST.Expression {
             // `lhs`/`rhs` are always populated for an `InfixOperatorSuffix`.
             return new AST.ScopedMethodInvocation(match, {
               thing: lhs!,
@@ -270,7 +267,7 @@ export class MethodDefinition extends SpellStatement {
   }
 
   /** If `signature.props` return `DestructuredAssignment` to pull those props into scope. */
-  getPropsAssignment(match: Match<MethodDefinitionGroups>): AST.DestructuredAssignment | undefined {
+  getPropsAssignment(match: P.Match<MethodDefinitionGroups>): AST.DestructuredAssignment | undefined {
     const { props } = match.groups.signature
     if (!props) return undefined
     return new AST.DestructuredAssignment(match, {
@@ -281,7 +278,7 @@ export class MethodDefinition extends SpellStatement {
     })
   }
 
-  getAST(match: Match<MethodDefinitionGroups>): AST.StatementGroup {
+  getAST(match: P.Match<MethodDefinitionGroups>): AST.StatementGroup {
     const { asTest, asAnimation, signature, inlineStatement, nestedBlock } = match.groups
     const { methodName = "", args, props, instanceType, asPostfixExpression } = signature
     const output: Array<AST.Statement | AST.Expression | AST.Comment | AST.BlankLine> = [
@@ -394,12 +391,12 @@ export const methods = new SpellParser({
     {
       name: "method_keyword",
       pattern: /^[a-zA-Z][\w\-]*$/,
-      constructor: class method_keyword extends Rules.Pattern {
+      constructor: class method_keyword extends P.Rules.Pattern {
         // convert dashes to underscores when compiling
         mapValue<T = string>(value: string): T {
           return `${value}`.replace(/\-/g, "_") as T
         }
-        getGroupsForMatch(match: Match): MethodArgGroups {
+        getGroupsForMatch(match: P.Match): MethodArgGroups {
           return {
             keyword: match,
             method: match.value,
@@ -412,7 +409,7 @@ export const methods = new SpellParser({
       name: "var_method_arg",
       alias: ["method_arg", "simple_method_arg"],
       constructor: class method_arg extends VariableIdentifier {
-        getGroupsForMatch(match: Match): MethodArgGroups {
+        getGroupsForMatch(match: P.Match): MethodArgGroups {
           return {
             variable: match,
             method: `$${match.value}`,
@@ -427,8 +424,8 @@ export const methods = new SpellParser({
       alias: ["method_arg", "simple_method_arg"],
       syntax: `{variable_identifier} (=|is|of|as|set to) {value:expression}`,
       constructor: class valued_var_method_arg extends SpellStatement {
-        getGroupsForMatch(match: Match): MethodArgGroups {
-          const [variable, , value] = match.matched as Match[]
+        getGroupsForMatch(match: P.Match): MethodArgGroups {
+          const [variable, , value] = match.matched as P.Match[]
           const groups = {
             variable,
             method: `$${variable.value}`,
@@ -448,9 +445,9 @@ export const methods = new SpellParser({
       name: "type_method_arg",
       alias: ["method_arg", "simple_method_arg"],
       syntax: `(a|an) {type}`,
-      constructor: class type_method_arg extends Rules.Sequence {
-        getGroupsForMatch(match: Match): MethodArgGroups {
-          const type = match.matched[1] as Match
+      constructor: class type_method_arg extends P.Rules.Sequence {
+        getGroupsForMatch(match: P.Match): MethodArgGroups {
+          const type = match.matched[1] as P.Match
           return {
             type,
             method: `$${type.raw}`, // TODO: instanceCase(type.value) ???
@@ -464,9 +461,9 @@ export const methods = new SpellParser({
       name: "typed_method_arg",
       alias: ["method_arg", "simple_method_arg"],
       syntax: `{variable_identifier} as (a|an)? {type}`,
-      constructor: class type_method_arg extends Rules.Sequence {
-        getGroupsForMatch(match: Match): MethodArgGroups {
-          const [variable, , type] = match.matched as Match[]
+      constructor: class type_method_arg extends P.Rules.Sequence {
+        getGroupsForMatch(match: P.Match): MethodArgGroups {
+          const [variable, , type] = match.matched as P.Match[]
           // `VariableExpressionProps` doesn't declare `datatype` (even though it's a real, settable field
           // inherited from `ASTNode`) -- set it via the accessor instead of the constructor props.
           const arg = new AST.VariableExpression(match, { name: variable.value, type: "argument" })
@@ -485,9 +482,9 @@ export const methods = new SpellParser({
       name: "with_props_arg",
       alias: ["method_arg"],
       syntax: "with [{simple_method_arg}(,|and)]",
-      constructor: class type_method_arg extends Rules.Sequence {
-        getGroupsForMatch(match: Match): MethodArgGroups {
-          const { items } = match.matched[1] as Match
+      constructor: class type_method_arg extends P.Rules.Sequence {
+        getGroupsForMatch(match: P.Match): MethodArgGroups {
+          const { items } = match.matched[1] as P.Match
           const props = items.map((item) => (item.groups as MethodArgGroups).arg) as AST.VariableExpression[]
           const groups = {
             items,
@@ -507,17 +504,17 @@ export const methods = new SpellParser({
     {
       name: "method_signature",
       syntax: `({method_keyword}|\\({method_arg}\\))+`,
-      constructor: class method_signature extends Rules.Repeat {
-        parse(scope: Scope, tokens: Token[]) {
-          const match = super.parse(scope, tokens) as Match<MethodSignatureGroups> | undefined
+      constructor: class method_signature extends P.Rules.Repeat {
+        parse(scope: P.Scope, tokens: P.Token[]) {
+          const match = super.parse(scope, tokens) as P.Match<MethodSignatureGroups> | undefined
           // forget it if we didn't find at least one keyword
           if (match && match.groups.foundKeyword) return match
           return undefined
         }
-        getGroupsForMatch(match: Match): MethodSignatureGroups {
+        getGroupsForMatch(match: P.Match): MethodSignatureGroups {
           const groups: MethodSignatureData = {
             items: match.items.map(
-              (item) => (item.matched.length === 1 ? item.groups : (item.matched[1] as Match).groups) as MethodArgGroups
+              (item) => (item.matched.length === 1 ? item.groups : (item.matched[1] as P.Match).groups) as MethodArgGroups
             ),
             // calculated as we run through the keywords
             startsWithKeyword: false, // `true` if first item is a keyword.
@@ -580,13 +577,13 @@ export const methods = new SpellParser({
     /** Method signature surrounded by quotes.  A "good idea"??? */
     {
       name: "quoted_method_signature",
-      tokenType: Tokens.Text,
-      constructor: class quoted_method_signature extends Rules.TokenType {
-        parse(scope: Scope, tokens: Token[]) {
+      tokenType: P.Tokens.Text,
+      constructor: class quoted_method_signature extends P.Rules.TokenType {
+        parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           const signature =
             match &&
-            (scope.parse(JSON.parse(match.value), "method_signature") as Match<MethodSignatureGroups> | undefined)
+            (scope.parse(JSON.parse(match.value), "method_signature") as P.Match<MethodSignatureGroups> | undefined)
           if (!signature || !signature.groups.foundKeyword) return undefined
           // Swizzle tokens & matched to reflect the original match
           signature.tokens = match.tokens
@@ -1129,8 +1126,8 @@ export const methods = new SpellParser({
         static {
           Object.defineProperty(this.prototype, "parseInlineStatementAs", { value: "expression", writable: true })
         }
-        parse(scope: Scope, tokens: Token[]) {
-          const match = super.parse(scope, tokens) as Match<MethodDefinitionGroups> | undefined
+        parse(scope: P.Scope, tokens: P.Token[]) {
+          const match = super.parse(scope, tokens) as P.Match<MethodDefinitionGroups> | undefined
           if (match) {
             const { signature } = match.groups
             if (!signature.startsWithKeyword) {
@@ -1148,7 +1145,7 @@ export const methods = new SpellParser({
           }
           return match
         }
-        processSignature(groups: MatchGroups & { type: Match }, signature: MethodSignatureData): MethodSignatureData {
+        processSignature(groups: P.MatchGroups & { type: P.Match }, signature: MethodSignatureData): MethodSignatureData {
           signature.instanceType = groups.type.raw
           if (signature.args.length === 0) {
             signature.asPostfixExpression = true
@@ -1164,7 +1161,7 @@ export const methods = new SpellParser({
           // convert "is", "has", "can", "will" to negatable expression
           if (signature.asPostfixExpression || signature.asInfixExpression) {
             let foundOne = false
-            const NEGATABLES: Record<string, [string, (operator: Match) => boolean]> = {
+            const NEGATABLES: Record<string, [string, (operator: P.Match) => boolean]> = {
               is: ["(operator:is not?|isn't|isnt)", (op) => op.value !== "is"],
               can: ["(operator:can not?|cannot|can't|cant)", (op) => op.value !== "can"],
               will: ["(operator:will not?|won't|wont)", (op) => op.value !== "will"],

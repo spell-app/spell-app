@@ -4,6 +4,9 @@ import _unset from "lodash/unset"
 
 import { hasOwnProp } from "./class"
 
+/** Export all `extend` functionality as a barrel. */
+export * as extend from "./extend"
+
 export type ExtendedData = {
   props?: { map: Record<string, any>; $store: Record<string, any> }
   state?: { map: Record<string, any>; $store: Record<string, any> }

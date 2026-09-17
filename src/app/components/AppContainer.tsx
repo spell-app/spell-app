@@ -11,7 +11,11 @@ export type AppRootProps = {
   padded?: boolean
 }
 
-export const AppRoot = React.memo(function AppRoot({ showToolbar = true, scrolling = true, padded = true }: AppRootProps) {
+export const AppRoot = React.memo(function AppRoot({
+  showToolbar = true,
+  scrolling = true,
+  padded = true
+}: AppRootProps) {
   return (
     <div className="AppRoot">
       {!!showToolbar && <AppToolbar />}

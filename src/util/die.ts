@@ -1,4 +1,14 @@
 import { UIError } from "./CustomError"
+
+/**
+ * Die with some error `message` and optional `params`.
+ * Simple error-throwing utility for quick failures.
+ */
+export function die(message: string, params?: any) {
+  console.warn(`DIE!  ${message}`, params || "(no params)")
+  return new Error(message)
+}
+
 /**
  * Return a function we'll use to `die()` when something goes wrong.
  *
