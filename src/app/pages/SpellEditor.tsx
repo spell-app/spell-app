@@ -3,17 +3,11 @@ import { useHotkeys } from "react-hotkeys-hook"
 import type { RouteComponentProps } from "@reach/router"
 
 import { SP } from "~/languages/spell"
-import { actions } from "~/app/actions"
-import * as UI from "~/app/components/ui"
-import { AppRoot } from "~/app/components/AppContainer"
-import { ASTRoot } from "~/app/components/ASTViewer"
-import { ConsoleRoot } from "~/app/components/ConsoleViewer"
-import { InputRoot } from "~/app/components/InputEditor"
-import { MatchRoot } from "~/app/components/MatchViewer"
-// import { ProjectSettings } from "./ProjectSettings"
-import { SpellPage } from "../components/SpellPage"
-import { SplitPanel } from "~/app/components/SplitPanel"
+import { Actions } from "~/app/actions"
+import { UI, AppRoot, ASTRoot, ConsoleRoot, InputRoot, MatchRoot, SpellPage, SplitPanel } from "~/app/components"
 import { store } from "~/app/store"
+
+// import { ProjectSettings } from "./ProjectSettings"
 
 /**
  * <SpellEditor />
@@ -68,17 +62,17 @@ export function EditorToolbar() {
     <UI.AppMenu>
       <UI.Submenu left spring>
         <UI.ProjectDropdown />
-        <actions.showRunner />
-        <actions.showProjectSettings />
+        <Actions.showRunner />
+        <Actions.showProjectSettings />
         <UI.ProjectActionsDropdown />
       </UI.Submenu>
       <UI.Submenu center spring>
-        <actions.showProjectChooser />
+        <Actions.showProjectChooser />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.aboutSpell />
-        {/* <actions.showHelp /> */}
-        <actions.showDocs />
+        <Actions.aboutSpell />
+        {/* <Actions.showHelp /> */}
+        <Actions.showDocs />
         <UI.MoreMenu stub />
       </UI.Submenu>
     </UI.AppMenu>

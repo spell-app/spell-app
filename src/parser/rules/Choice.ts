@@ -1,4 +1,3 @@
-
 import type { P } from "~/parser"
 import { Tokenizer } from "~/parser/tokenizer/Tokenizer"
 import { R } from "./index"
@@ -68,7 +67,7 @@ export class Choice extends Rule<ChoiceProps> {
     // For efficiency, complicated rules (e.g. sequences or recursive rules)
     //  should exit quickly via a `testRule` or similar mechanism.
     const matches: P.Match[] = []
-    for (let i = 0, rule; (rule = this.rules[i++]); ) {
+    for (let i = 0, rule; (rule = this.rules[i++]);) {
       if (DEBUG_CHOICES) console.group("parsing rule", rule.name)
       const match = rule.parse(scope, tokens)
       if (match) matches.push(match)
@@ -110,7 +109,7 @@ export class Choice extends Rule<ChoiceProps> {
     // NOTE: we run this BACKWARDS to put later-defined rules first
     let match
     let highPriority: P.Match[] = []
-    for (let max = -Infinity, i = 0; (match = matches[i++]); ) {
+    for (let max = -Infinity, i = 0; (match = matches[i++]);) {
       const { precedence } = match.rule
       if (precedence > max) {
         max = precedence
@@ -124,7 +123,7 @@ export class Choice extends Rule<ChoiceProps> {
 
     // Return the longest rule (???)
     let longest
-    for (let i = highPriority.length; (match = highPriority[--i]); ) {
+    for (let i = highPriority.length; (match = highPriority[--i]);) {
       if (!longest || match.length >= longest.length) longest = match
     }
     return longest

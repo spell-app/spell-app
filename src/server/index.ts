@@ -3,7 +3,7 @@ import express, { Request, Response } from "express"
 import express_json5 from "express-json5"
 import path from "path"
 
-import environment from "../environment"
+import environment from "~/environment"
 import { api } from "./api"
 
 const app = express()

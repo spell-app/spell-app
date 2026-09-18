@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from "vitest"
-import { assert } from "./assert.js"
+import { assert } from "./assert"
 
 beforeEach(() => {
   assert.failed = vi.fn()

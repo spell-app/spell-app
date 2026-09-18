@@ -1,13 +1,13 @@
 import React from "react"
-import { Dropdown } from "semantic-ui-react"
-import type { DropdownProps } from "semantic-ui-react"
+import * as SUI from "semantic-ui-react"
 
 import { view } from "~/util"
 import type { SP } from "~/languages/spell"
 
-import { actions } from "~/app/actions"
-import * as UI from "./ui"
+import { Actions } from "~/app/actions"
 import { store } from "~/app/store"
+
+import { UI } from "."
 
 export type FileDropdownActionProps = {
   useRunner: boolean
@@ -18,7 +18,7 @@ export type FileDropdownActionProps = {
 
 /* Single item in FileDropdown */
 const FileDropdownAction = React.memo(({ useRunner, path, location, active }: FileDropdownActionProps) => (
-  <Dropdown.Item
+  <SUI.Dropdown.Item
     text={location.file}
     value={path}
     icon={UI.FILE_ICON}
@@ -41,7 +41,7 @@ export const FileDropdown = view(function FileDropdown({
 }: FileDropdownProps) {
   const { project, file }: { project?: SP.SpellProject; file?: SP.AnySpellFile } = store
   const ready = project?.isLoaded && !!file
-  const dropdownProps: DropdownProps = {
+  const dropdownProps: SUI.DropdownProps = {
     id: "FileDropdown",
     basic: true,
     item: true,
@@ -61,12 +61,12 @@ export const FileDropdown = view(function FileDropdown({
         active={path === file.path}
       />
     ))
-    if (showActions && actions.FILE_DROPDOWN_ACTIONS) {
-      menuItems.push(<Dropdown.Divider key="divider" />, ...actions.FILE_DROPDOWN_ACTIONS)
+    if (showActions && Actions.FILE_DROPDOWN_ACTIONS) {
+      menuItems.push(<SUI.Dropdown.Divider key="divider" />, ...Actions.FILE_DROPDOWN_ACTIONS)
     }
-    dropdownProps.children = <Dropdown.Menu>{menuItems}</Dropdown.Menu>
+    dropdownProps.children = <SUI.Dropdown.Menu>{menuItems}</SUI.Dropdown.Menu>
   }
-  const dropdown = <Dropdown {...dropdownProps} />
+  const dropdown = <SUI.Dropdown {...dropdownProps} />
   if (!showLabel) return dropdown
   return (
     <>

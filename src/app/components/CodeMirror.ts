@@ -20,11 +20,12 @@ import "codemirror/addon/lint/lint"
 import "codemirror/addon/lint/lint.css"
 import "codemirror/addon/lint/javascript-lint"
 
-import "./CodeMirror.css"
-
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 import { store } from "~/app/store"
+
+// NOTE: kept last so it wins the cascade over codemirror's own stylesheets above.
+import "./CodeMirror.css"
 
 // Set up JSHINT for displaying compiled JS properly
 // REFACTOR: this was breaking page display

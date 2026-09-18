@@ -12,7 +12,7 @@ import { OPTIONAL } from "./constants"
  */
 export function checkType(value: any, type: any): boolean {
   if (Array.isArray(type)) return type.some((nextType: any) => checkType(value, nextType))
-   
+
   if (typeof type === "string") return typeof value === type
   if (type === null) return value === null
   if (type === undefined) return value === undefined

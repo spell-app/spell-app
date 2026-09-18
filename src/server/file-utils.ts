@@ -256,7 +256,9 @@ export async function getFolderContents(path: string, options: GetFolderContents
   if (sort) paths.sort(caseInsensitiveSort)
   return paths
 }
-export interface GetFolderContentsOptions {
+
+/** Filtering/formatting options for `getFolderContents()`.  All optional -- see each default below. */
+export type GetFolderContentsOptions = {
   /** Perform case-insensitive sort on results.  Default `true`. */
   sort?: boolean
   /** Include directories in results.  Default `false`. */

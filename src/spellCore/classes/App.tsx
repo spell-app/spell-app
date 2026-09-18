@@ -3,7 +3,7 @@
 //--------
 import { createRoot } from "react-dom/client"
 
-import { spellCore } from ".."
+import { spellCore } from "~/spellCore/core"
 import { Thing } from "./Thing"
 
 //----------------------------

@@ -79,7 +79,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
   /** We've been removed from the server -- clean up memory, etc.. */
   onRemove(): void {
     super.onRemove()
-     
+
     this.files.forEach((file) => file.onRemove())
     SpellProject.registry.clear()
   }

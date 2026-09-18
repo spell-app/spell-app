@@ -1,8 +1,17 @@
-import { spellCore } from ".."
+//
+//  ## Master import file for the classes `spellCore` exposes to compiled spell code.
+//
+//  NOTE: imports reach into `~/spellCore/core` and `~/spellCore/SpellCore` directly rather than
+//  the `~/spellCore` barrel -- this file helps BUILD that barrel, so going through it would
+//  re-enter it circularly.
+//
+
+import { spellCore } from "~/spellCore/core"
+import { defineSpellCoreModule } from "~/spellCore/SpellCore"
+
 import { Thing } from "./Thing"
 import { App } from "./App"
 import { List } from "./List"
-import { defineSpellCoreModule } from "../SpellCore"
 
 /** Anything with a `.Component` to render, e.g. a `Thing`. */
 export type Drawable = { Component?: ReactComponentType }

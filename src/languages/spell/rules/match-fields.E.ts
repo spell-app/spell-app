@@ -4,6 +4,8 @@ import { P } from "~/parser"
 import type { AST } from "~/parser"
 
 declare module "~/parser/Match" {
+  // NOTE: MUST stay an `interface` -- module augmentation merges into the declared `Match`,
+  // and `type` cannot merge.  Documented exception to the "always use `type`" rule.
   interface Match<Groups extends Record<string, unknown> = import("~/parser/Match").MatchGroups> {
     /**
      * Scope constant pointed to by a match whose rule is (a subclass of) `SpellConstant`.

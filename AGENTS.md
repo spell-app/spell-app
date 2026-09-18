@@ -46,6 +46,7 @@ when working with code in this repository.
 
 - ALWAYS use `type` rather than `interface`. Wrap with `Prettify` when combining types.
 - Centralize type definitions and helper functions in a single `types.ts` file in each folder, rather than spreading them amongst leaf files.
+  - Exception: class constructor parameter types can live in the class file.
 - If a particular file has complex type requirements, ok to define a `x.types.ts` file for it, and re-export from the main file. e.g. File `Match.types.ts` for `Match.ts` => `Match.ts` should `export * from ./Match.types`.
 - Create barrel `index.ts` for each folder, including most functionality in the folder. At the end of the barrel, come up with a 1-2 letter barrel name as `export * as P from "."`.
 
@@ -64,4 +65,4 @@ when working with code in this repository.
   - `~/util` and other general utilities, general-to-specific
   - imports from other sub-systems, barrels first
   - local models / helper files, barrels first
-  - css (`./` as `~/...`)
+  - css or less files (import as `./foo.css` if in same folder, else as `~/path/to/foo.less`)

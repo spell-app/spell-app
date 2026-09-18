@@ -14,7 +14,6 @@ import {
   AbortedRequestError
 } from "./ResponseErrors"
 
-
 /** Merge multiple sets of `$fetch()` `params` and set up defaults. */
 export function merge$fetchParms(...allParams: Array<Partial<$FetchParams>>) {
   const output: RequestInit = {}

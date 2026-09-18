@@ -3,10 +3,13 @@
  * The `request_XXX` version can be passed directly to express.
  */
 import { Request, Response } from "express"
+
 import environment from "~/environment"
+
+import { SP } from "~/languages/spell"
+
 import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"
-import { SP } from "~/languages/spell"
 
 const { respondWithJSON } = responseUtils
 

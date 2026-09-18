@@ -3,13 +3,15 @@ import React from "react"
 import { view, scrollForElement, centerElementInParent } from "~/util"
 import { P } from "~/parser"
 
-import { actions } from "~/app/actions"
-import * as UI from "./ui"
+import { Actions } from "~/app/actions"
+import { store } from "~/app/store"
+
+import { UI } from "."
 import { ErrorHandler } from "./ErrorHandler"
 import type { ErrorHandlerState, ErrorHandlerWrapperProps } from "./ErrorHandler"
 import type { EditorSelection } from "./ASTViewer"
 import { MatchView } from "./MatchView"
-import { store } from "~/app/store"
+
 import "./MatchViewer.less"
 
 export type MatchRootProps = {
@@ -44,7 +46,7 @@ export const MatchToolbar = React.memo(function MatchToolbar() {
         <UI.MenuHeader content="Matched Rules" />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.toggleMatchRuleNames />
+        <Actions.toggleMatchRuleNames />
         <UI.MoreMenu stub />
       </UI.Submenu>
     </UI.PanelMenu>

@@ -1,5 +1,6 @@
 import { view } from "~/util"
-import * as UI from "~/app/components/ui"
+
+import { UI } from "~/app/components"
 
 // `UI.FormGroup`/`FormRepeat`/`SubmitButton` get their `form` prop injected at runtime by the
 // enclosing `<UI.Form>` (see `WithForm()`/`injectForm` in `~/app/components/Form`), but their

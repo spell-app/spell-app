@@ -1,4 +1,3 @@
-
 import { CustomError, type CustomErrorProps } from "./CustomError"
 
 export type RequestErrorProps = Prettify<

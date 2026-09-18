@@ -2,12 +2,8 @@ import React from "react"
 import type { RouteComponentProps } from "@reach/router"
 
 import { SP } from "~/languages/spell"
-import { actions } from "~/app/actions"
-import * as UI from "~/app/components/ui"
-import { AppRoot } from "~/app/components/AppContainer"
-import { ConsoleRoot } from "~/app/components/ConsoleViewer"
-import { SpellPage } from "../components/SpellPage"
-import { SplitPanel } from "~/app/components/SplitPanel"
+import { Actions } from "~/app/actions"
+import { UI, AppRoot, ConsoleRoot, SpellPage, SplitPanel } from "~/app/components"
 import { store } from "~/app/store"
 import type { SpellRouteParams } from "./SpellEditor"
 
@@ -30,17 +26,17 @@ export function RunnerToolbar() {
     <UI.AppMenu>
       <UI.Submenu left spring>
         <UI.ProjectDropdown useRunner />
-        <actions.restartApp />
-        <actions.showEditor />
+        <Actions.restartApp />
+        <Actions.showEditor />
       </UI.Submenu>
       <UI.Submenu center spring>
-        <actions.showProjectChooser />
+        <Actions.showProjectChooser />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.aboutSpell />
-        <actions.showDocs />
-        {/* <actions.showHelp /> */}
-        {/* <actions.logIn /> */}
+        <Actions.aboutSpell />
+        <Actions.showDocs />
+        {/* <Actions.showHelp /> */}
+        {/* <Actions.logIn /> */}
         <UI.MoreMenu stub />
       </UI.Submenu>
     </UI.AppMenu>

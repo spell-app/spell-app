@@ -2,7 +2,7 @@ import React from "react"
 import cloneDeep from "lodash/cloneDeep"
 import { store, view } from "@risingstack/react-easy-state"
 
-import { Form as SUIForm, Button as SUIButton, type FormProps as SUIFormProps } from "semantic-ui-react"
+import * as SUI from "semantic-ui-react"
 
 import { UIError } from "~/util"
 import { spellCore } from "~/spellCore"
@@ -98,7 +98,7 @@ type MountedField = {
   validate?: () => void
 }
 
-export type FormProps<V extends object> = Omit<SUIFormProps, "onSubmit"> & {
+export type FormProps<V extends object> = Omit<SUI.FormProps, "onSubmit"> & {
   /** Existing store to use, e.g. one created outside the `<Form>` via `makeFormStore()`. */
   store?: FormStore<V>
   /** Initial form value, used to create a store if `store` isn't passed. */
@@ -229,7 +229,7 @@ export class Form<V extends object> extends React.Component<FormProps<V>> {
     // non-Field children computed from reactive values (e.g. a plain `<Button disabled={...}>`) pick up
     // fresh props each time our parent re-renders us with new `children`. `enhanceField()`/`React.cloneElement()`
     // reuse each child's existing `key`, so Field component instances stay mounted across renders.
-    return <SUIForm {...props}>{this.enhanceFields(children)}</SUIForm>
+    return <SUI.Form {...props}>{this.enhanceFields(children)}</SUI.Form>
   }
 }
 
@@ -432,13 +432,13 @@ export function WithField(Component: ReactComponentType<any>, defaultProps?: Rec
 // Field components
 /////////////////////
 
-export const Input = WithField(SUIForm.Input)
+export const Input = WithField(SUI.Form.Input)
 
-export const Output = WithField(SUIForm.Input, { readonly: true })
+export const Output = WithField(SUI.Form.Input, { readonly: true })
 
 export class Checkbox extends FieldWrapper {
   get Component() {
-    return SUIForm.Checkbox
+    return SUI.Form.Checkbox
   }
   getValueProps = () => {
     return {
@@ -459,7 +459,7 @@ export class Checkbox extends FieldWrapper {
  */
 export class Select extends FieldWrapper {
   get Component() {
-    return SUIForm.Dropdown
+    return SUI.Form.Dropdown
   }
   static defaultProps = {
     selection: true,
@@ -497,7 +497,7 @@ export type WithFormProps = {
  */
 export const SubmitButton = WithForm(function SubmitButton(props: WithFormProps & Record<string, unknown>) {
   const { form, path, ...btnProps } = props
-  return <SUIButton primary {...btnProps} disabled={form.hasErrors} onClick={() => form.submit()} />
+  return <SUI.Button primary {...btnProps} disabled={form.hasErrors} onClick={() => form.submit()} />
 })
 
 /**
@@ -506,7 +506,7 @@ export const SubmitButton = WithForm(function SubmitButton(props: WithFormProps 
  */
 export const FormGroup = WithForm(function FormGroup(props: WithFormProps & Record<string, unknown>) {
   const { form, path, ...groupProps } = props
-  return <SUIForm.Group data-path={path} {...groupProps} />
+  return <SUI.Form.Group data-path={path} {...groupProps} />
 })
 
 /** Anything with a `.map()` method, e.g. a plain array or a spellCore `List`. */
@@ -540,7 +540,7 @@ export const FormRepeat = WithForm(
           })
         })
         // console.warn(children, kids)
-        return React.createElement(SUIForm.Group, { key: index, "data-path": itemPath }, ...kids)
+        return React.createElement(SUI.Form.Group, { key: index, "data-path": itemPath }, ...kids)
       })
     }
   }

@@ -7,9 +7,10 @@
 
 import { P, R, AST } from "~/parser"
 
-import { SpellParser } from "~/languages/spell"
-import { identifierBlacklist } from "./identifier-blacklist"
 import type { ASTNode, Expression, PropertyLiteral, ObjectLiteralProperty } from "~/parser/ast/AST"
+import { SpellParser } from "~/languages/spell"
+
+import { identifierBlacklist } from "./identifier-blacklist"
 import { SpellExpression } from "./expressions"
 
 const LOWER_INITIAL_WORD = /^[a-z][\w-]*$/

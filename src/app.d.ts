@@ -4,9 +4,7 @@
  */
 
 /** Constructor type, e.g. `Class<Token>` represents a class that constructs `Token` instances. */
-interface Class<T> {
-  new (...args: any[]): T
-}
+type Class<T> = new (...args: any[]) => T
 
 /**
  * Make VSCode hover of `T` more readable.

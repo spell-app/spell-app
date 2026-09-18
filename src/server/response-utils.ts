@@ -1,4 +1,3 @@
- 
 //----------------------------
 //
 //  Express API utility functions to `send` various responses conveniently/consistently.
@@ -156,9 +155,9 @@ export function sendError(
     errors: [
       {
         message: errorMessage,
-        trace: error && error instanceof Error && error.stack,
-      },
-    ],
+        trace: error && error instanceof Error && error.stack
+      }
+    ]
   })
 }
 
@@ -179,6 +178,6 @@ export function getRequestDetails(request: Request) {
     url: request.originalUrl,
     query: Object.keys(query).length ? { ...query } : undefined,
     params: Object.keys(params).length ? { ...params } : undefined,
-    body: typeof body === "string" ? body : Object.keys(body).length ? { ...body } : undefined,
+    body: typeof body === "string" ? body : Object.keys(body).length ? { ...body } : undefined
   }
 }

@@ -5,7 +5,7 @@ import React from "react"
 import _ from "lodash"
 
 import { Observable, view } from "~/util"
-import { spellCore } from ".."
+import { spellCore } from "~/spellCore/core"
 
 //----------------------------
 // `List`: our array concept (1-based)

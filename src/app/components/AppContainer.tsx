@@ -1,8 +1,8 @@
 import React from "react"
 
 import { spellCore } from "~/spellCore"
-import { actions } from "~/app/actions"
-import { UI } from "./ui"
+import { Actions } from "~/app/actions"
+import { UI } from "."
 import "./AppContainer.less"
 
 export type AppRootProps = {
@@ -31,9 +31,9 @@ export function AppToolbar() {
         <UI.MenuHeader content="App" />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.restartApp />
-        {/* <actions.showRunner /> */}
-        <actions.publishApp />
+        <Actions.restartApp />
+        {/* <Actions.showRunner /> */}
+        <Actions.publishApp />
         <UI.MoreMenu stub />
       </UI.Submenu>
     </UI.PanelMenu>

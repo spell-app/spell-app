@@ -5,7 +5,7 @@ import { P } from "~/parser"
 import type { ASTNode } from "~/parser/ast/AST"
 import { store } from "~/app/store"
 
-import * as UI from "./ui"
+import { UI } from "."
 import { ErrorHandler } from "./ErrorHandler"
 import type { ErrorHandlerState, ErrorHandlerWrapperProps } from "./ErrorHandler"
 import "./ASTViewer.less"

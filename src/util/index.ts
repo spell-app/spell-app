@@ -1,3 +1,9 @@
+//
+//  ## Master import file for general-purpose utilities.
+//  Grouped below by rough concern: constants, app plumbing, language helpers,
+//  fetch/observable, DOM, tasks.
+//
+
 export * from "./constants"
 
 export * from "./Logger"

@@ -2,12 +2,13 @@ import React from "react"
 
 import { view } from "~/util"
 
-import { actions } from "~/app/actions"
-import * as UI from "./ui"
+import { Actions } from "~/app/actions"
+import { store } from "~/app/store"
+
+import { UI } from "."
 import { ErrorHandler } from "./ErrorHandler"
 import type { ErrorHandlerState, ErrorHandlerWrapperProps } from "./ErrorHandler"
 import { CodeMirror, inputOptions } from "./CodeMirror"
-import { store } from "~/app/store"
 
 import "./InputEditor.less"
 
@@ -34,10 +35,10 @@ export function InputToolbar() {
         <UI.FileDropdown />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.compileApp />
-        <actions.saveFile />
-        <actions.reloadFile />
-        <actions.createFile />
+        <Actions.compileApp />
+        <Actions.saveFile />
+        <Actions.reloadFile />
+        <Actions.createFile />
         <UI.FileActionsDropdown />
       </UI.Submenu>
     </UI.PanelMenu>
@@ -84,8 +85,13 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
    */
   Component = view(function InputEditorInner() {
     const { file } = store
-    // Call `store.onInputEffect()` to adjust selection on initial render
-    React.useEffect(store.onInputEffect)
+    // Call `store.onInputEffect()` after each render to adjust selection.
+    // NOTE: wrapped in an inline function rather than passed directly -- `store.onInputEffect` is an
+    // opaque store method, so the hooks lint rule can't see what it depends on.
+    // NOTE: intentionally no dep array -- selection must be re-applied on every render.
+    React.useEffect(() => {
+      store.onInputEffect()
+    })
     return (
       <CodeMirror
         key={file?.path || "loading"}
@@ -107,8 +113,13 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
   ErrorComponent = view(function InputEditorInner(_props: InputEditorProps & { error: Error }) {
     const { file } = store
 
-    // Call `store.onInputEffect()` to adjust selection on initial render
-    React.useEffect(store.onInputEffect)
+    // Call `store.onInputEffect()` after each render to adjust selection.
+    // NOTE: wrapped in an inline function rather than passed directly -- `store.onInputEffect` is an
+    // opaque store method, so the hooks lint rule can't see what it depends on.
+    // NOTE: intentionally no dep array -- selection must be re-applied on every render.
+    React.useEffect(() => {
+      store.onInputEffect()
+    })
 
     // if we got a CodeMirror `error` in a previous draw,
     // remove the `mode` or we'll get an endless loop of pain

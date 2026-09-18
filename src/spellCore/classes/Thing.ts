@@ -4,7 +4,8 @@
 import React from "react"
 
 import { Observable, view } from "~/util"
-import { spellCore, Eventful } from ".."
+import { spellCore } from "~/spellCore/core"
+import { Eventful } from "~/spellCore/SpellEvent"
 
 /**
  * `Thing`: base for all object-like things in spell.

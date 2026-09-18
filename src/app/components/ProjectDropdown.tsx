@@ -1,13 +1,13 @@
 import React from "react"
 import classnames from "classnames"
-import { Dropdown, Menu } from "semantic-ui-react"
-import type { DropdownProps, MenuProps } from "semantic-ui-react"
-import type { SemanticICONS } from "semantic-ui-react"
+import * as SUI from "semantic-ui-react"
 
 import { view } from "~/util"
+
 import { SP } from "~/languages/spell"
-import { UI } from "./ui"
 import { store } from "~/app/store"
+
+import { UI } from "."
 
 /****************
  * ### `<ProjectMenu>`
@@ -31,11 +31,11 @@ export const ProjectMenu = view(function ProjectDropdown({
     items = paths.map((path) => {
       const location = new SP.SpellLocation(path)
       return (
-        <Menu.Item
+        <SUI.Menu.Item
           key={path}
           content={
             <span>
-              <UI.Icon name={projectRoot.icon as SemanticICONS} />
+              <UI.Icon name={projectRoot.icon as SUI.SemanticICONS} />
               {location.projectName}
             </span>
           }
@@ -45,19 +45,19 @@ export const ProjectMenu = view(function ProjectDropdown({
       )
     })
     if (!items.length) {
-      items = [<Menu.Item key="_empty_" content={`No ${projectRoot.title} yet!`} />]
+      items = [<SUI.Menu.Item key="_empty_" content={`No ${projectRoot.title} yet!`} />]
     }
   } else {
-    items = [<Menu.Item key="_loading_" content="Loading..." />]
+    items = [<SUI.Menu.Item key="_loading_" content="Loading..." />]
   }
   return (
-    <Menu className={classnames("ProjectMenu", className)} {...menuProps}>
+    <SUI.Menu className={classnames("ProjectMenu", className)} {...menuProps}>
       {items}
-    </Menu>
+    </SUI.Menu>
   )
 })
 
-export type ProjectMenuProps = MenuProps & {
+export type ProjectMenuProps = SUI.MenuProps & {
   projectRoot?: SP.SpellProjectRoot
   useRunner?: boolean
   itemProps?: Record<string, unknown>
@@ -88,7 +88,7 @@ export const ProjectDropdown = view(function ProjectDropdown({
     items = paths.map((path) => {
       const location = new SP.SpellLocation(path)
       return (
-        <Dropdown.Item
+        <SUI.Dropdown.Item
           key={path}
           text={location.projectName}
           icon={projectRoot.icon}
@@ -98,15 +98,15 @@ export const ProjectDropdown = view(function ProjectDropdown({
       )
     })
     if (!items.length) {
-      items = [<Menu.Item key="_empty_" content={`No ${projectRoot.title} yet!`} />]
+      items = [<SUI.Menu.Item key="_empty_" content={`No ${projectRoot.title} yet!`} />]
     }
-    if (extraActions) items.push(<Dropdown.Divider key="divider" />, ...extraActions)
+    if (extraActions) items.push(<SUI.Dropdown.Divider key="divider" />, ...extraActions)
   } else {
-    items = [<Menu.Item key="_loading_" content="Loading..." />]
+    items = [<SUI.Menu.Item key="_loading_" content="Loading..." />]
   }
 
   const dropdown = (
-    <Dropdown
+    <SUI.Dropdown
       item
       loading={!ready}
       text={ready && project ? project.projectName : ""}
@@ -116,8 +116,8 @@ export const ProjectDropdown = view(function ProjectDropdown({
       className={classnames("ProjectDropdown", className)}
       {...dropdownProps}
     >
-      <Dropdown.Menu>{items}</Dropdown.Menu>
-    </Dropdown>
+      <SUI.Dropdown.Menu>{items}</SUI.Dropdown.Menu>
+    </SUI.Dropdown>
   )
   if (!showLabel) return dropdown
   return (
@@ -128,7 +128,7 @@ export const ProjectDropdown = view(function ProjectDropdown({
   )
 })
 
-export type ProjectDropdownProps = DropdownProps & {
+export type ProjectDropdownProps = SUI.DropdownProps & {
   projectRoot?: SP.SpellProjectRoot
   project?: SP.SpellProject
   useRunner?: boolean

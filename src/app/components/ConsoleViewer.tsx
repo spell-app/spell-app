@@ -7,11 +7,13 @@ import { spellCore } from "~/spellCore"
 import type { ConsoleLine as ConsoleLineData, SpellConsoleGroup } from "~/spellCore/console"
 import { SP } from "~/languages/spell"
 
-import { actions } from "~/app/actions"
-import * as UI from "./ui"
+import { Actions } from "~/app/actions"
+import { store } from "~/app/store"
+
+import { UI } from "."
 import { ErrorHandler } from "./ErrorHandler"
 import type { ErrorHandlerWrapperProps } from "./ErrorHandler"
-import { store } from "~/app/store"
+
 import "./ConsoleViewer.less"
 
 export type ConsoleRootProps = {
@@ -39,18 +41,18 @@ export function ConsoleToolbar() {
         <UI.MenuHeader content="Program Output" />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.alert title="" header="Header" message="Yo!" />
-        <actions.confirm title="" message="Yah?" ok="Yep" cancel="Nope" />
-        <actions.prompt title="" message="What is your name?" defaultValue="Bob" />
-        <actions.promptForNumber
+        <Actions.alert title="" header="Header" message="Yo!" />
+        <Actions.confirm title="" message="Yah?" ok="Yep" cancel="Nope" />
+        <Actions.prompt title="" message="What is your name?" defaultValue="Bob" />
+        <Actions.promptForNumber
           title=""
           header="Quantity needed:"
           message="How many did you want?"
           inputProps={{ min: 10, max: 100, step: 1, placeholder: "Between 10 and 100" }}
           callback={(value: unknown) => console.log(value, typeof value)}
         />
-        <actions.choose title="" header="Pick one" message="Message" options={["A", "B", "C"]} />
-        <actions.choose
+        <Actions.choose title="" header="Pick one" message="Message" options={["A", "B", "C"]} />
+        <Actions.choose
           title=""
           header="Pick many"
           message="Message"
@@ -58,7 +60,7 @@ export function ConsoleToolbar() {
           multiple
           defaultValue={["a", "b"]}
         />
-        <actions.clearConsole />
+        <Actions.clearConsole />
         <UI.MoreMenu stub />
       </UI.Submenu>
     </UI.PanelMenu>

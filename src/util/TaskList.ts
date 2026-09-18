@@ -1,6 +1,5 @@
 import global from "global"
 
-
 import { TaskStatus, TaskResolveWith } from "./constants"
 import { Task, type TaskProps, type TaskState } from "./Task"
 

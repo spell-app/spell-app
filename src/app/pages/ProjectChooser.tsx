@@ -2,9 +2,8 @@ import React from "react"
 import type { RouteComponentProps } from "@reach/router"
 
 import { SP } from "~/languages/spell"
-import { actions } from "~/app/actions"
-import * as UI from "~/app/components/ui"
-import { SpellPage } from "../components/SpellPage"
+import { Actions } from "~/app/actions"
+import { UI, SpellPage } from "~/app/components"
 
 export type ProjectRootDisplayProps = {
   projectRoot: SP.SpellProjectRoot
@@ -81,13 +80,13 @@ export const ProjectChooser = React.memo(function ProjectChooser() {
 
               <Row>
                 <Column>
-                  <actions.createProject button title="Create a New Project" fluid />
+                  <Actions.createProject button title="Create a New Project" fluid />
                 </Column>
                 <Column>
-                  <actions.createExample button title="Create a New Example" fluid />
+                  <Actions.createExample button title="Create a New Example" fluid />
                 </Column>
                 <Column>
-                  <actions.createGuide button title="Create a New Guide" fluid />
+                  <Actions.createGuide button title="Create a New Guide" fluid />
                 </Column>
               </Row>
             </Grid>
@@ -103,12 +102,12 @@ export function ChooserToolbar() {
     <UI.AppMenu>
       <UI.Submenu left spring />
       <UI.Submenu center spring>
-        <actions.showProjectChooser active />
+        <Actions.showProjectChooser active />
       </UI.Submenu>
       <UI.Submenu right spring>
-        <actions.aboutSpell />
-        {/* <actions.showHelp /> */}
-        <actions.showDocs />
+        <Actions.aboutSpell />
+        {/* <Actions.showHelp /> */}
+        <Actions.showDocs />
         <UI.MoreMenu stub />
       </UI.Submenu>
     </UI.AppMenu>

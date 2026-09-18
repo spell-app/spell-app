@@ -1,7 +1,9 @@
+import { Logger } from "~/util/Logger"
+
+import { WhitespacePolicy, BACKSLASH, DOUBLE_QUOTE, SINGLE_QUOTE } from "~/parser/types"
+
 import * as Tokens from "./Tokens"
 import { Token } from "./Tokens"
-import { Logger } from "~/util/Logger"
-import { WhitespacePolicy, BACKSLASH, DOUBLE_QUOTE, SINGLE_QUOTE } from "../types.js"
 
 type TokenizerProps = {
   whitespacePolicy?: WhitespacePolicy

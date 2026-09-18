@@ -1,5 +1,4 @@
-
-import type { IdentifierBlacklist } from "../types"
+import type { IdentifierBlacklist } from "~/parser/types"
 
 /**
  * Generic `Token` record.

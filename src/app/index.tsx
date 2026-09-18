@@ -6,10 +6,9 @@ import * as SUI from "semantic-ui-react"
 // Import parser bits
 import "~/parser"
 import { spellCore } from "~/spellCore"
+import { UI, ErrorNotice, Notice } from "~/app/components"
+
 import { Routes } from "./pages/routes"
-import { ErrorNotice } from "~/app/components/ErrorNotice"
-import { Notice } from "~/app/components/Notice"
-import * as UI from "~/app/components/ui"
 
 // Use the below to set up methods/etc in the browser for hacking
 import "./debug"
@@ -18,6 +17,9 @@ import "./debug"
 global.spellCore = spellCore
 
 // Register `UI` and `SUI` elements so we can use them in spell JSX.
+// NEVER rename the `UI` key -- `.spell` sources write `<UI.Form>`, `<UI.Button>` etc, so it is the
+// spell language's public namespace.  Renaming the barrel would silently break every spell program,
+// so if it ever changes, alias it back to `UI` here rather than following the rename.
 spellCore.registerElements({ UI, SUI })
 
 function renderApp() {

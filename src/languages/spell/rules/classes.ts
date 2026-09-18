@@ -12,6 +12,8 @@ import "./match-fields.E"
 // defined `as one of a, b, c` (see `define_property_has` below). Not covered by `P.ScopeVariableProps`, and not
 // shared with any other chunk, so augmented locally here rather than in `match-fields.E.ts`.
 declare module "~/parser/scope/ScopeVariable" {
+  // NOTE: MUST stay an `interface` -- module augmentation merges into the declared `ScopeVariable`,
+  // and `type` cannot merge.  Documented exception to the "always use `type`" rule.
   interface ScopeVariable {
     /** Raw enumerated values (as parsed), e.g. `["'clubs'", "'diamonds'", ...]` or `[1, 2, 3]`. */
     enumeration?: Array<string | number>

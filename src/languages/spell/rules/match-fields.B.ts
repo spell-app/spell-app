@@ -4,6 +4,8 @@
 import { P } from "~/parser"
 
 declare module "~/parser/Match" {
+  // NOTE: MUST stay an `interface` -- module augmentation merges into the declared `Match`,
+  // and `type` cannot merge.  Documented exception to the "always use `type`" rule.
   interface Match<Groups extends Record<string, unknown> = P.MatchGroups> {
     /** (`type` rules) Known `TypeScope` for this type name, if any -- picked up from `scope.types`. */
     type?: P.TypeScope

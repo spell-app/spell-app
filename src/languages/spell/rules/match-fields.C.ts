@@ -4,6 +4,8 @@
 import { P } from "~/parser"
 
 declare module "~/parser/Match" {
+  // NOTE: MUST stay an `interface` -- module augmentation merges into the declared `Match`,
+  // and `type` cannot merge.  Documented exception to the "always use `type`" rule.
   interface Match<Groups extends Record<string, unknown> = P.MatchGroups> {
     /** Sub-expression match parsed out of the input, e.g. a JSX attribute/expression value. */
     expression?: Match

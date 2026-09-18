@@ -1,4 +1,3 @@
-
 import type { P } from "~/parser"
 import { R } from "./index"
 import { Rule } from "./Rule"

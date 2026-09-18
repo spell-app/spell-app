@@ -14,7 +14,6 @@
 //
 import flattenDeep from "lodash/flattenDeep"
 
-
 import { Match } from "~/parser/Match"
 import type { P } from "~/parser"
 import { R } from "./index"
@@ -56,16 +55,14 @@ export class Sequence extends Rule<SequenceProps> {
     let length = 0
 
     let remainingTokens = tokens
-    for (let i = 0, rule; (rule = this.rules[i++]); ) {
+    for (let i = 0, rule; (rule = this.rules[i++]);) {
       // If we're out of tokens, bail if rule is not optional
       if (remainingTokens.length === 0) {
-         
         if (rule.optional) continue
         return undefined
       }
       const match = rule.parse(scope, remainingTokens)
       if (!match) {
-         
         if (rule.optional) continue
         return undefined
       }

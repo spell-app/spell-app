@@ -1,5 +1,5 @@
 import React from "react"
-import { Message } from "semantic-ui-react"
+import * as SUI from "semantic-ui-react"
 
 import { view } from "~/util"
 import { store } from "~/app/store"
@@ -12,18 +12,20 @@ export const Notice = view(function Notice({ autoHide = true }: NoticeProps) {
   const { notice } = store
 
   // autoHide on timeout
+  // NOTE: cleanup cancels the pending timer -- without it, toggling `autoHide` or swapping `notice`
+  // stacks up timers that outlive the notice they were created for.
   React.useEffect(() => {
     if (!autoHide || notice === null) return
-    // console.info("creating timer")
-    setTimeout(() => {
-      // console.info("timer firing for ", notice)
+    const timer = setTimeout(() => {
+      // Only hide if `store.notice` is still the one this timer was created for.
       if (store.notice === notice) store.hideNotice()
     }, 3000)
-  }, [notice])
+    return () => clearTimeout(timer)
+  }, [autoHide, notice])
 
   if (!notice) return null
   return (
-    <Message
+    <SUI.Message
       success
       onDismiss={store.hideNotice}
       header={notice}

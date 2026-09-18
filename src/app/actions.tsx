@@ -1,9 +1,29 @@
-import { Button, Menu } from "semantic-ui-react"
+import * as SUI from "semantic-ui-react"
+
+import { view } from "~/util"
 
 import { spellCore } from "~/spellCore"
-import { view } from "~/util"
 import { store } from "~/app/store"
-import type { AlertModalProps, ConfirmModalProps, PromptModalProps, ChooserModalProps } from "~/app/components/ui"
+import type { AlertModalProps, ConfirmModalProps, PromptModalProps, ChooserModalProps } from "~/app/components"
+
+/****************
+ * ### `<Action>`
+ * Action menu item or button with our semantics.
+ * - `title`      Required item title.
+ * - `icon`       Required item icon.
+ * - `button`     If `true` we'll make a SUI `Button`, otherwise a `Menu.Item`.
+ * - `className`  Custom className
+ * - ...everything else is passed directly to the item.
+ *
+ * NOTE: deliberately NOT a `view()`.  This render reads only its own props, so `view()`'s
+ * observer half would track nothing, and its `memo()` half never hits either -- every call site
+ * passes a fresh `onClick={() => ...}` closure, so the shallow prop compare always fails.
+ * Reactivity belongs on whichever entry in `Actions` derives props from the store.
+ ****************/
+export function Action({ title, button = false, ...props }: ActionProps) {
+  const Component = button ? SUI.Button : SUI.Menu.Item
+  return <Component content={title} {...props} />
+}
 
 /** Props for `<Action>` -- everything but `title`/`button` is forwarded to the underlying SUI component. */
 export type ActionProps = {
@@ -12,59 +32,42 @@ export type ActionProps = {
 } & Record<string, unknown>
 
 /**
- * Component to show action menu item or button with our semantics.
- * - `title`      Required item title.
- * - `icon`       Required item icon.
- * - `button`     If `true` we'll make a SUI `Button`, otherwise a `Menu.Item`.
- * - `className`  Custom className
- * ... everything else will be passed directly to the item
- * NOTE: we assume this will be memoized by the caller if appropriate.
+ * Constructors for `<Menu.Item>`s for public actions.
+ *
+ * NOTE: an entry MUST wrap itself in `view()` when it reads `store`/`spellCore` while computing
+ * the props it hands to `<Action>` -- `view()` only tracks observables read during that
+ * component's own render, and `<Action>` itself reads nothing but props.
+ * - e.g. `saveFile` reads `store.file?.isDirty` to colour itself -- drop its `view()` and the
+ *   button silently stops reacting when the file goes dirty.
+ * - Entries that only touch the store inside `onClick` stay plain -- those run after render.
  */
-export function Action({ title, button = false, ...props }: ActionProps) {
-  const Component = button ? Button : Menu.Item
-  return <Component content={title} {...props} />
-}
-
-/** Props shared by the dialog-showing actions (`alert`, `confirm`, `prompt`, `promptForNumber`, `choose`). */
-export type DialogActionProps<P> = P & {
-  callback?: (value: unknown) => void
-  title?: string
-  icon?: string
-  itemProps?: Record<string, unknown>
-}
-
-/**
- * Constructors for <Menu.Items> for public actions.
- */
-export const actions = {
+export const Actions = {
   //////////////////////
   // Navigation
   //////////////////////
 
-  aboutSpell: view((props: ActionProps) => (
+  aboutSpell: (props: ActionProps) => (
     <Action title="About Spell" icon="wizard" onClick={() => store.aboutSpell()} {...props} />
-  )),
+  ),
   showEditor: view((props: ActionProps) => (
     <Action title={`Edit ${store.appType}`} icon="edit outline" onClick={() => store.showEditor()} {...props} />
   )),
-  showRunner: view((props: ActionProps) => (
+  showRunner: (props: ActionProps) => (
     <Action title="Preview" icon="hand point up" onClick={() => store.showRunner()} {...props} />
-  )),
-  showProjectSettings: view((props: ActionProps) => (
+  ),
+  showProjectSettings: (props: ActionProps) => (
     <Action title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
-  )),
-  showProjectChooser: view((props: ActionProps) => (
+  ),
+  showProjectChooser: (props: ActionProps) => (
     <Action title="Open or Create..." icon="app store ios" onClick={() => store.showProjectChooser()} {...props} />
-  )),
-  showDocs: view((props: ActionProps) => (
+  ),
+  showDocs: (props: ActionProps) => (
     <Action title="Docs" icon="newspaper outline" onClick={() => store.showDocs()} {...props} />
-  )),
-  showHelp: view((props: ActionProps) => (
+  ),
+  showHelp: (props: ActionProps) => (
     <Action title="Help" icon="help circle" onClick={() => store.showHelp()} {...props} />
-  )),
-  logIn: view((props: ActionProps) => (
-    <Action title="Log In" icon="user outline" onClick={() => store.logIn()} {...props} />
-  )),
+  ),
+  logIn: (props: ActionProps) => <Action title="Log In" icon="user outline" onClick={() => store.logIn()} {...props} />,
 
   //////////////////////
   // App actions -- work on store.project, create according to `store.projectRoot`
@@ -86,9 +89,9 @@ export const actions = {
       {...props}
     />
   )),
-  appSettings: view((props: ActionProps) => (
+  appSettings: (props: ActionProps) => (
     <Action title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
-  )),
+  ),
   compileApp: view((props: ActionProps) => {
     const { file } = store
     // `compiled` only exists on `SpellFile`/`SpellCSSFile`, not `SpellJSFile`.
@@ -106,49 +109,49 @@ export const actions = {
       />
     )
   }),
-  publishApp: view((props: ActionProps) => (
+  publishApp: (props: ActionProps) => (
     <Action title="Publish" icon="world" onClick={() => store.publishApp()} {...props} />
-  )),
-  restartApp: view((props: ActionProps) => (
+  ),
+  restartApp: (props: ActionProps) => (
     <Action title="Restart" icon="redo" onClick={() => store.compileApp()} {...props} />
-  )),
+  ),
 
   //////////////////////
   // Project actions
   //////////////////////
-  createProject: view((props: ActionProps) => (
+  createProject: (props: ActionProps) => (
     <Action title="New Project" icon="pencil" onClick={() => store.createProject()} {...props} />
-  )),
+  ),
 
   //////////////////////
   // Examples actions
   //////////////////////
-  createExample: view((props: ActionProps) => (
+  createExample: (props: ActionProps) => (
     <Action title="New Example" icon="pencil" onClick={() => store.createExample()} {...props} />
-  )),
+  ),
 
   //////////////////////
   // Guides actions
   //////////////////////
-  createGuide: view((props: ActionProps) => (
+  createGuide: (props: ActionProps) => (
     <Action title="New Guide" icon="pencil" onClick={() => store.createGuide()} {...props} />
-  )),
+  ),
 
   //////////////////////
   // File Actions -- work on store.file
   //////////////////////
-  createFile: view((props: ActionProps) => (
+  createFile: (props: ActionProps) => (
     <Action title="New File" icon="pencil" onClick={() => store.createFile()} {...props} />
-  )),
-  duplicateFile: view((props: ActionProps) => (
+  ),
+  duplicateFile: (props: ActionProps) => (
     <Action title="Duplicate File" icon="clone outline" onClick={() => store.duplicateFile()} {...props} />
-  )),
-  renameFile: view((props: ActionProps) => (
+  ),
+  renameFile: (props: ActionProps) => (
     <Action title="Rename File" icon="edit outline" onClick={() => store.renameFile()} {...props} />
-  )),
-  deleteFile: view((props: ActionProps) => (
+  ),
+  deleteFile: (props: ActionProps) => (
     <Action title="Delete File" icon="trash alternate outline" onClick={() => store.deleteFile()} {...props} />
-  )),
+  ),
   saveFile: view((props: ActionProps) => {
     const fileIsDirty = store.file?.isDirty
     return (
@@ -214,67 +217,56 @@ export const actions = {
   // - `callback` will be executed with returned value (logs to console by default).
   // - other `props` will be passed to modal constructor. ???
   //////////////////////
-  alert: view(
-    ({
-      callback = console.log,
-      title = "Alert",
-      icon = "warning sign",
-      itemProps,
-      ...modalProps
-    }: DialogActionProps<AlertModalProps>) => {
-      itemProps = { title, icon, ...itemProps }
-      return <Action title={title} icon={icon} {...itemProps} onClick={() => store.alert(modalProps).then(callback)} />
-    }
-  ),
-  confirm: view(
-    ({
-      callback = console.log,
-      title = "Confirm",
-      icon = "question circle",
-      itemProps,
-      ...modalProps
-    }: DialogActionProps<ConfirmModalProps>) => {
-      itemProps = { title, icon, ...itemProps }
-      return <Action {...itemProps} onClick={() => store.confirm(modalProps).then(callback)} />
-    }
-  ),
-  prompt: view(
-    ({
-      callback = console.log,
-      title = "Prompt",
-      icon = "edit",
-      itemProps,
-      ...modalProps
-    }: DialogActionProps<PromptModalProps>) => {
-      itemProps = { title, icon, ...itemProps }
-      return <Action {...itemProps} onClick={() => store.prompt(modalProps).then(callback)} />
-    }
-  ),
-  promptForNumber: view(
-    ({
-      callback = console.log,
-      title = "Prompt Number",
-      icon = "hashtag",
-      itemProps,
-      ...modalProps
-    }: DialogActionProps<PromptModalProps>) => {
-      itemProps = { title, icon, ...itemProps }
-      return <Action {...itemProps} onClick={() => store.promptForNumber(modalProps).then(callback)} />
-    }
-  ),
-  choose: view(
-    ({
-      callback = console.log,
-      title = "Choose",
-      icon = "list",
-      itemProps,
-      ...modalProps
-    }: DialogActionProps<ChooserModalProps>) => {
-      itemProps = { title, icon, ...itemProps }
-      return <Action {...itemProps} onClick={() => store.choose(modalProps).then(callback)} />
-    }
-  ),
-
+  alert: ({
+    callback = console.log,
+    title = "Alert",
+    icon = "warning sign",
+    itemProps,
+    ...modalProps
+  }: DialogActionProps<AlertModalProps>) => {
+    itemProps = { title, icon, ...itemProps }
+    return <Action title={title} icon={icon} {...itemProps} onClick={() => store.alert(modalProps).then(callback)} />
+  },
+  confirm: ({
+    callback = console.log,
+    title = "Confirm",
+    icon = "question circle",
+    itemProps,
+    ...modalProps
+  }: DialogActionProps<ConfirmModalProps>) => {
+    itemProps = { title, icon, ...itemProps }
+    return <Action {...itemProps} onClick={() => store.confirm(modalProps).then(callback)} />
+  },
+  prompt: ({
+    callback = console.log,
+    title = "Prompt",
+    icon = "edit",
+    itemProps,
+    ...modalProps
+  }: DialogActionProps<PromptModalProps>) => {
+    itemProps = { title, icon, ...itemProps }
+    return <Action {...itemProps} onClick={() => store.prompt(modalProps).then(callback)} />
+  },
+  promptForNumber: ({
+    callback = console.log,
+    title = "Prompt Number",
+    icon = "hashtag",
+    itemProps,
+    ...modalProps
+  }: DialogActionProps<PromptModalProps>) => {
+    itemProps = { title, icon, ...itemProps }
+    return <Action {...itemProps} onClick={() => store.promptForNumber(modalProps).then(callback)} />
+  },
+  choose: ({
+    callback = console.log,
+    title = "Choose",
+    icon = "list",
+    itemProps,
+    ...modalProps
+  }: DialogActionProps<ChooserModalProps>) => {
+    itemProps = { title, icon, ...itemProps }
+    return <Action {...itemProps} onClick={() => store.choose(modalProps).then(callback)} />
+  },
   //////////////////////
   // groups of actions
   //////////////////////
@@ -282,16 +274,24 @@ export const actions = {
   FILE_DROPDOWN_ACTIONS: undefined as ReactElement[] | undefined
 }
 
-actions.PROJECT_DROPDOWN_ACTIONS = [
-  <actions.createApp key="createApp" />,
-  <actions.duplicateApp key="duplicateApp" />,
-  <actions.renameApp key="renameApp" />,
-  <actions.deleteApp key="deleteApp" />
+Actions.PROJECT_DROPDOWN_ACTIONS = [
+  <Actions.createApp key="createApp" />,
+  <Actions.duplicateApp key="duplicateApp" />,
+  <Actions.renameApp key="renameApp" />,
+  <Actions.deleteApp key="deleteApp" />
 ]
 
-actions.FILE_DROPDOWN_ACTIONS = [
-  <actions.createFile key="createFile" />,
-  <actions.duplicateFile key="duplicateFile" />,
-  <actions.renameFile key="renameFile" />,
-  <actions.deleteFile key="deleteFile" />
+Actions.FILE_DROPDOWN_ACTIONS = [
+  <Actions.createFile key="createFile" />,
+  <Actions.duplicateFile key="duplicateFile" />,
+  <Actions.renameFile key="renameFile" />,
+  <Actions.deleteFile key="deleteFile" />
 ]
+
+/** Props shared by the dialog-showing actions (`alert`, `confirm`, `prompt`, `promptForNumber`, `choose`). */
+export type DialogActionProps<P> = P & {
+  callback?: (value: unknown) => void
+  title?: string
+  icon?: string
+  itemProps?: Record<string, unknown>
+}

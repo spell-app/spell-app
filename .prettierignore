@@ -1,0 +1,9 @@
+# Generated spell-compiler output -- `yarn prettier` would otherwise rewrite these
+# to match our source style, producing noisy diffs that the next compile undoes.
+**/.output.js
+
+# Build artifacts and tool caches
+dist/
+build/
+.cache/
+src/graphify-out/

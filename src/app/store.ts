@@ -1,22 +1,24 @@
 import type { ComponentType } from "react"
 import type * as CodeMirror from "codemirror"
 import type { createRoot } from "react-dom/client"
-import global from "global"
-import { UIError } from "~/util"
 import { navigate } from "@reach/router"
 
-import { createStore, setPrefKey, getPref, setPref, CONFIRM } from "~/util"
+import { UIError, createStore, setPrefKey, getPref, setPref, CONFIRM } from "~/util"
+
 import { P } from "~/parser"
 import { spellCore } from "~/spellCore"
 import { SP } from "~/languages/spell"
-import * as UI from "~/app/components/ui"
+// NOTE: `UI` is only ever dereferenced inside store methods (`UI.Alert` etc), never at module
+// evaluation time.  That matters -- `~/app/components` imports back into `~/app/store`, so the
+// binding is still in its TDZ while this module is being evaluated.
+import { UI } from "~/app/components"
 import type {
   ModalComponentProps,
   AlertModalProps,
   ConfirmModalProps,
   PromptModalProps,
   ChooserModalProps
-} from "~/app/components/ui"
+} from "~/app/components"
 
 //-----------------
 // Supporting types
@@ -495,8 +497,7 @@ export const store: SpellStore = createStore<SpellStore>({
       await project.load(undefined)
       // Clear application display when switching projects
       const oldProjectRoot = document.getElementById(spellCore.REACT_APP_ROOT_ID) as
-        | (HTMLElement & { REACT_ROOT?: ReturnType<typeof createRoot> })
-        | null
+        (HTMLElement & { REACT_ROOT?: ReturnType<typeof createRoot> }) | null
       if (typeof oldProjectRoot?.REACT_ROOT?.unmount === "function") {
         oldProjectRoot.REACT_ROOT.unmount()
       }
@@ -892,4 +893,3 @@ export const store: SpellStore = createStore<SpellStore>({
     store.error = undefined
   }
 })
-global._store = store

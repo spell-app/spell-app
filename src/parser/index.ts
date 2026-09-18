@@ -12,7 +12,7 @@ export * from "./Match"
 export * from "./rules"
 export * from "./Parser"
 export * from "./scope"
-export * as AST from "./ast/AST"
+export * from "./ast"
 
 // Export `rulex` languge which is used by Parser to define rules easily.
 // Exporting it here makes circular import problems work out.

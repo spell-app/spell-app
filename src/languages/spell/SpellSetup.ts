@@ -1,6 +1,11 @@
 import global from "global"
 
-export interface ProjectRoot {
+/**
+ * One entry in the set of "roots" a project can live under.
+ * - Describes an `@owner:domain` pair plus the display strings the UI needs for it.
+ * - `Type`/`type` are both kept so callers can concatenate without case-munging at the call site.
+ */
+export type ProjectRoot = {
   /** Owner of project, as `@user` or `@system`. */
   owner: string
   /** Domain of project, as `projects`, `examples` or `guides`. */
@@ -17,9 +22,8 @@ export interface ProjectRoot {
   icon: string
 }
 
-export interface ProjectRootMap {
-  [key: string]: ProjectRoot
-}
+/** All known `ProjectRoot`s, keyed by their `@owner:domain` path prefix. */
+export type ProjectRootMap = Record<string, ProjectRoot>
 
 /**
  * Shared client/server setup for project roots and routines for working with paths.

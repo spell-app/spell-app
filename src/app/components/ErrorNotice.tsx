@@ -1,15 +1,14 @@
 import React from "react"
-import { Message } from "semantic-ui-react"
-import type { MessageProps } from "semantic-ui-react"
+import * as SUI from "semantic-ui-react"
 
 import { view, CustomError } from "~/util"
 import { store } from "~/app/store"
 
-export type ErrorDisplayProps = Omit<MessageProps, "error" | "onDismiss"> & {
+export type ErrorDisplayProps = Omit<SUI.MessageProps, "error" | "onDismiss"> & {
   /** `Error` to display. */
   error?: Error
   /** Callback when they click the `x` close button. */
-  onDismiss?: MessageProps["onDismiss"]
+  onDismiss?: SUI.MessageProps["onDismiss"]
   /** Auto-hide after a certain amount of time by calling `onDismiss`? */
   autoHide?: boolean
   /** Auto-hide delay, in msec. */
@@ -35,7 +34,7 @@ export function ErrorDisplay(allProps: ErrorDisplayProps) {
   React.useEffect(() => {
     if (!onDismiss || !autoHide || error === undefined) return
     setTimeout(onDismiss, autoHideDelay)
-  }, [error])
+  }, [autoHide, autoHideDelay, error, onDismiss])
 
   if (!error) return null
 
@@ -46,25 +45,25 @@ export function ErrorDisplay(allProps: ErrorDisplayProps) {
   const context = customProps?.context
 
   const children: ReactNode[] = [
-    <Message.Header key="header">{header}</Message.Header>,
-    <Message.Content key="message">{error.message}</Message.Content>
+    <SUI.Message.Header key="header">{header}</SUI.Message.Header>,
+    <SUI.Message.Content key="message">{error.message}</SUI.Message.Content>
   ]
 
   // add line break betweeen error and context/params
   if (params || context) children.push(<br key="break" />)
-  if (context) children.push(<Message.Content key="context">Context: {`${context}`}</Message.Content>)
+  if (context) children.push(<SUI.Message.Content key="context">Context: {`${context}`}</SUI.Message.Content>)
   if (params) {
-    children.push(<Message.Content key="params-label">Params:</Message.Content>)
+    children.push(<SUI.Message.Content key="params-label">Params:</SUI.Message.Content>)
     children.push(
-      <Message.List key="params">
+      <SUI.Message.List key="params">
         {Object.entries(params).map(([key, value], index) => (
-          <Message.Item key={index}>{`${key}: ${value}`}</Message.Item>
+          <SUI.Message.Item key={index}>{`${key}: ${value}`}</SUI.Message.Item>
         ))}
-      </Message.List>
+      </SUI.Message.List>
     )
   }
 
-  return <Message {...props} error onDismiss={onDismiss} children={children} />
+  return <SUI.Message {...props} error onDismiss={onDismiss} children={children} />
 }
 
 /**
