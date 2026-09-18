@@ -349,7 +349,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
   async loadOrDie(die: ReturnType<typeof getDier>): Promise<void> {
     if (this.isLoaded) return
     try {
-      this.load(undefined)
+      await this.load(undefined)
     } catch (e) {
       die(`Error loading ${this.type} index`, e)
     }

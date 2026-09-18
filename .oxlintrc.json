@@ -1,7 +1,17 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["react", "typescript", "oxc", "import"],
+
+  // `correctness` ~== what `eslint:recommended` + `tseslint:recommended` used to give us.
+  // NOTE: it also switches on the type-aware rules, but only when run with `--type-aware`
+  // (see the `lint` script) AND the `oxlint-tsgolint` package is installed.
   "categories": { "correctness": "error" },
+
+  // Type-aware rules, driven from the config so the CLI and the editor agree without
+  // anyone having to remember a flag.  Requires the `oxlint-tsgolint` package.
+  "options": { "typeAware": true },
+
+  // Mirrors `.oxfmtrc.json` -- vendored, generated and scratch trees.
   "ignorePatterns": [
     "build",
     "dist",
@@ -15,15 +25,50 @@
     "src/projects",
     "**/.output.js"
   ],
+
+  // NOTE: only rules that DIFFER from the `correctness` defaults belong here.  Anything listed
+  // as plain `"error"` was redundant and has been removed -- `categories` already enables it.
   "rules": {
+    ////////////////
+    // ## React
+    ////////////////
+
+    // MUST stay listed: unlike the other correctness rules, this one is NOT enabled by the
+    // category alone.  Verified -- delete this line and conditional hooks stop being reported.
     "react-hooks/rules-of-hooks": "error",
+    // Deliberately a warning rather than an error: dep-array fixes are judgement calls.
     "react-hooks/exhaustive-deps": "warn",
+
+    // Automatic JSX runtime (`"jsx": "react-jsx"`), so `React` need not be in scope.
     "react/react-in-jsx-scope": "off",
+    // `@risingstack/react-easy-state` components read/write the external `store` during render.
+    // The React-Compiler-era rules model components as pure, so they flag that by design.
     "react/immutability": "off",
     "react/exhaustive-effect-dependencies": "off",
+
+    ////////////////
+    // ## Core / TypeScript
+    ////////////////
+
+    // `tsc` already reports these via `noUnusedLocals` -- avoid duplicate diagnostics.
     "no-unused-vars": "off",
     "typescript/no-unused-vars": "off",
+    // spell is a dynamic language runtime; `any` is deliberate at its JS/spell bridges.
     "typescript/no-explicit-any": "off",
-    "prefer-const": ["error", { "destructuring": "all" }]
+
+    "prefer-const": ["error", { "destructuring": "all" }],
+
+    ////////////////
+    // ## Type-aware
+    ////////////////
+
+    // Passing a method reference is idiomatic throughout this codebase -- `store`/`spellCore` are
+    // singletons whose methods reach them by name rather than via `this`, and React components are
+    // handed prototype methods on purpose (see `ErrorHandler`).  ~37 hits, all intentional.
+    "typescript/unbound-method": "off",
+
+    // spellCore stringifies arbitrary values on purpose (`upperCase(thing)` etc), so this
+    // rule fires ~36 times on intended behaviour.  Individual risky spots are suppressed inline.
+    "typescript/restrict-template-expressions": "off"
   }
 }

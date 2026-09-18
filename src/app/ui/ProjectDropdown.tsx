@@ -21,7 +21,7 @@ export const ProjectMenu = view(function ProjectDropdown({
   ...menuProps
 }: ProjectMenuProps) {
   React.useEffect(() => {
-    if (projectRoot) projectRoot.load()
+    if (projectRoot) void projectRoot.load()
   }, [projectRoot])
 
   const ready = projectRoot?.isLoaded
@@ -72,13 +72,13 @@ export const ProjectDropdown = view(function ProjectDropdown({
   project = store.project,
   useRunner = false,
   showLabel = true,
-  extraActions = undefined,
+  extraActions,
   itemProps,
   className,
   ...dropdownProps
 }: ProjectDropdownProps) {
   React.useEffect(() => {
-    if (projectRoot) projectRoot.load()
+    if (projectRoot) void projectRoot.load()
   }, [projectRoot])
 
   const ready = projectRoot?.isLoaded && !!project

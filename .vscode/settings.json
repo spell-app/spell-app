@@ -1,17 +1,30 @@
 {
   // Linting is oxlint (see `.oxlintrc.json`); the ESLint extension is no longer used here.
   "oxc.enable": true,
-  // Formatting is oxfmt (see `.oxfmtrc.json`); the Prettier extension is no longer used here.
+  // Formatting is oxfmt (see `.oxfmtrc.json`), via the Oxc extension.
+  // NOTE: MUST keep `defaultFormatter` pointed at the Oxc extension.  If it names an extension
+  // that is not installed, VS Code silently falls back to another formatter -- and since
+  // `.prettierrc` no longer exists, the Prettier extension would reformat with ITS defaults
+  // (semicolons, 80 columns), fighting `.oxfmtrc.json` on every save.
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.formatOnSave": true,
   "oxc.lint.run": "onType",
-  "javascript.validate.enable": false,
-  "[javascript]": {
-    "editor.formatOnSave": true
-  },
-  "[javascriptreact]": {
-    "editor.formatOnSave": true
-  },
+  // Match the `lint` script's `--report-unused-disable-directives`, so a stale
+  // `// oxlint-disable-*` shows up in the editor rather than only failing in CI.
+  "oxc.unusedDisableDirectives": "warn",
+  // Pin the formatter per language as well as globally.  A per-language `editor.defaultFormatter`
+  // beats any extension that also registers for that language, so a stray Prettier/ESLint install
+  // cannot take over a save.  NOTE: markdown is deliberately absent -- `.oxfmtrc.json` ignores
+  // `**/*.md` because `AGENTS.md` and friends are hand-wrapped prose.
+  "[typescript]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[typescriptreact]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[javascript]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[javascriptreact]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[json]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[jsonc]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[css]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[less]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
+  "[yaml]": { "editor.defaultFormatter": "oxc.oxc-vscode", "editor.formatOnSave": true },
 
   // requires only if you use vetur plugin
   "vetur.validation.script": false,

@@ -33,8 +33,10 @@ export abstract class Literals extends Rule<LiteralsProps> {
     if (typeof props.literals === "string") props.literals = [props.literals]
     props.literals = props.literals.map(makeMatcher)
     super(props)
+    // CLAUDE TODO: make this an assert?
     if (!Array.isArray(this.literals)) {
       console.info(props)
+      // oxlint-disable-next-line typescript/no-misused-spread
       console.info({ ...this })
       console.trace()
     }
@@ -96,7 +98,10 @@ export abstract class Literals extends Rule<LiteralsProps> {
 export class Symbols extends Literals {
   static {
     /** Join symbols with no space in-between. */
-    Object.defineProperty(this.prototype, "literalSeparator", { value: "", writable: true })
+    Object.defineProperty(this.prototype, "literalSeparator", {
+      value: "",
+      writable: true
+    })
   }
 }
 
@@ -105,6 +110,9 @@ export class Symbols extends Literals {
 export class Keywords extends Literals {
   static {
     /** Join symbols with a single space in-between. */
-    Object.defineProperty(this.prototype, "literalSeparator", { value: " ", writable: true })
+    Object.defineProperty(this.prototype, "literalSeparator", {
+      value: " ",
+      writable: true
+    })
   }
 }

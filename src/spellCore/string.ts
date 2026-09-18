@@ -19,12 +19,12 @@ export const stringMethods = defineSpellCoreModule({
   /** Stringify and convert to UPPERCASE */
   upperCase(string: unknown): string {
     if (string == null) return ""
-    return `${string}`.toUpperCase()
+    return `${string as string}`.toUpperCase()
   },
   /** Stringify and convert to lowercase */
   lowerCase(string: unknown): string {
     if (string == null) return ""
-    return `${string}`.toLowerCase()
+    return `${string as string}`.toLowerCase()
   }
 })
 Object.assign(spellCore, stringMethods)

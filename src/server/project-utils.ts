@@ -209,7 +209,7 @@ export const request_getIndex = respondWithJSON(async (request) => {
 export const request_getFile = (request: Request, response: Response) => {
   const { projectId, filePath } = request.params
   const location = SP.SpellLocation.getFileLocation(projectId, filePath)
-  responseUtils.sendFile(response, location.serverPath, { dotfiles: "allow" })
+  void responseUtils.sendFile(response, location.serverPath, { dotfiles: "allow" })
 }
 
 /**

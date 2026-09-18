@@ -67,8 +67,8 @@ const initialStore = {
     if (!path) path = store.file?.path
     // TODO: selection!!!!
     try {
-      navigate(new SP.SpellLocation(path!).editorUrl)
-      store.compileApp()
+      void navigate(new SP.SpellLocation(path!).editorUrl)
+      void store.compileApp()
     } catch {
       store.showError(`Path '${path}' is invalid!`)
     }
@@ -79,7 +79,7 @@ const initialStore = {
     if (!path) path = store.file?.path
     try {
       await navigate(new SP.SpellLocation(path!).runnerUrl)
-      store.compileApp()
+      void store.compileApp()
     } catch {
       store.showError(`Path '${path}' is invalid!`)
     }
@@ -201,7 +201,7 @@ const initialStore = {
     store.file = file
     await file.load(undefined)
     // If we switched projects, recompile
-    if (!sameProject) store.compileApp()
+    if (!sameProject) void store.compileApp()
   },
 
   /**
@@ -374,7 +374,7 @@ const initialStore = {
     const { file } = store
     if (file) {
       await file.reload()
-      store.compileApp()
+      void store.compileApp()
     }
   },
   async createFile(filePath?: string, contents?: string): Promise<void> {
@@ -765,7 +765,7 @@ function showModal<P extends ModalProps, R = unknown>(
 
   if (store.debugModals) {
     // NOTE: don't put this in the promise returned to the caller
-    promise.then((value) => console.info("Modal resolved with:", value, "\nprops:", modalProps))
+    void promise.then((value) => console.info("Modal resolved with:", value, "\nprops:", modalProps))
     promise.catch((error) => console.info("Modal rejected with:", error, "\nprops:", modalProps))
   }
 

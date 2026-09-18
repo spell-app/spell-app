@@ -41,7 +41,7 @@ export class AppPrefStore {
   get<T>(key: string): T | undefined
   get<T>(key: string, _default: T): T
   get<T>(key: string, _default: T | undefined): T | undefined
-  get<T>(key: string, _default: T | undefined = undefined): T | undefined {
+  get<T>(key: string, _default?: T): T | undefined {
     if (!this.has(key)) return _default
     const value = this.#store.getItem(this.getStoreKey(key))!
     return JSON.parse(value) as T

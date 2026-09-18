@@ -3,5 +3,9 @@
     // Linting AND formatting -- replaces the ESLint + Prettier extensions.
     // Reads `.oxlintrc.json` and `.oxfmtrc.json`.
     "oxc.oxc-vscode"
-  ]
+  ],
+  // NOTE: this project has no ESLint or Prettier config any more.  Leaving those extensions
+  // enabled is actively harmful: with `.prettierrc` deleted, the Prettier extension formats
+  // using its OWN defaults (semicolons, 80 columns) and fights `.oxfmtrc.json`.
+  "unwantedRecommendations": ["esbenp.prettier-vscode", "dbaeumer.vscode-eslint"]
 }

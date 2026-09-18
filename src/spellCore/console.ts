@@ -114,6 +114,7 @@ export class SpellConsole extends Observable<Record<string, unknown>, { lines: C
 
   groupEnd(): void {
     const group = this.groups.shift()
+    // oxlint-disable-next-line typescript/no-misused-spread
     if (group) spellCore.trigger("console-log", { ...group, level: "groupEnd" })
     console.groupEnd()
   }

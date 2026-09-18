@@ -19,17 +19,17 @@ export const SpellEditor = React.memo(function SpellEditor() {
   // Note these are duplicated in CodeMirror.js
   useHotkeys("command+s", (event) => {
     event.preventDefault()
-    store.saveFile()
+    void store.saveFile()
   })
   useHotkeys("shift-command+r", () => {
-    store.reloadFile()
+    void store.reloadFile()
   })
   useHotkeys("command+enter", () => {
-    store.compileApp()
+    void store.compileApp()
   })
   useHotkeys("command+n", (event) => {
     event.preventDefault()
-    store.createFile()
+    void store.createFile()
   })
 
   return (

@@ -286,7 +286,7 @@ export class SpellLocation {
    * Return `true` if the `/`-delimited `path` passed in is "valid", ignoring any empty spots.
    */
   static isValidPath(path: string): boolean {
-    return typeof path === "string" && path.split("/").filter(Boolean).every(this.isValidPathSegment)
+    return typeof path === "string" && path.split("/").filter(Boolean).every(SpellLocation.isValidPathSegment)
   }
 
   //-----------------

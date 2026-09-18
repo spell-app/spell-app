@@ -49,7 +49,7 @@ export type $FetchParams = Prettify<
     url: string
   } & $FetchRequestParams & {
       /**  Request body as string or object which will be `JSON.stringify()`ed. */
-      contents?: string | any
+      contents?: any
       /** Output format, used to format output.  Defaults to `text`. See KnownFormat. */
       format?: string
       /** On a 404, return `defaultContents` rather than throwing. */

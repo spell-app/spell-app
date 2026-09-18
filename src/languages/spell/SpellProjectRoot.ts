@@ -104,7 +104,7 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
   async loadOrDie(die: ReturnType<typeof getDier>): Promise<void> {
     if (this.isLoaded) return
     try {
-      this.load(undefined)
+      await this.load(undefined)
     } catch (e) {
       die("Error loading project list", e)
     }

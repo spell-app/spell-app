@@ -295,8 +295,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
   // For object: `items` are string keys.
   removeItemsOf(collection?: unknown, ...items: Array<string | number>): void {
     if (!assert.isDefined(collection, "spellCore.removeItemsOf(collection)")) return
-    // reverse numeric keys so we don't have to worry about renumbering as we go
-    if (spellCore.isArrayLike(collection)) items = items.sort().reverse()
+    // Sort numeric keys DESCENDING so we don't have to worry about renumbering as we go.
+    // NOTE: MUST pass a comparator -- bare `.sort()` is lexicographic, so positions 2 and 10
+    // came back in the wrong order and removal renumbered the wrong items.
+    if (spellCore.isArrayLike(collection)) items = items.sort((a, b) => Number(b) - Number(a))
     items.forEach((item) => spellCore.removeItemOf(collection, item))
   },
 

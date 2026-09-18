@@ -67,7 +67,7 @@ export function abortableFetch(url: string, fetchParams: RequestInit = {}) {
   fetchParams.signal = abortController.signal
   const promise = fetch(url, fetchParams)
   // Set the `completed` semaphore when fetch completes, before anything else happens.
-  promise.finally(() => {
+  void promise.finally(() => {
     completed = true
   })
   return wrapPromise(promise)

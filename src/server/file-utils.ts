@@ -327,7 +327,7 @@ export async function loadTextFile(path: string, optional?: "OPTIONAL"): Promise
  * than normal `JSON.parse()` -- the output will be usable as normal `JSON`.
  */
 // REFACTOR: single `{ optional, validtor? }` parameter
-export async function loadJSONFile(path: string, optional?: "OPTIONAL"): Promise<any | null> {
+export async function loadJSONFile(path: string, optional?: "OPTIONAL"): Promise<any> {
   const contents = await loadFile(path, FORMAT.TEXT, optional)
   if (contents == null) return null
   return JSON5.parse(contents)

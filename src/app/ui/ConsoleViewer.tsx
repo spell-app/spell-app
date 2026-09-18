@@ -197,7 +197,7 @@ function onObservableClick(thing: unknown): void {
   console.log(`it =`, thing)
 
   // If we got a match, try to select the text in the editor
-  if (thing instanceof P.Match) store.showMatch(thing)
+  if (thing instanceof P.Match) void store.showMatch(thing)
 }
 
 export type ConsoleValueProps = {
@@ -232,6 +232,9 @@ export function ConsoleObject({ thing }: ConsoleObjectProps) {
           // exotic objects sometimes have `Symbol.toStringTag` property as their name
           if (Symbol.toStringTag in obj) display = `${tagged[Symbol.toStringTag]} {...}`
           // If it has a custom toString, use that
+          // NOTE: guarded -- only interpolate when the object has its OWN `toString`,
+          // so this can never produce '[object Object]'.
+          // oxlint-disable-next-line typescript/no-base-to-string
           else if (tagged.toString && tagged.toString !== Object.prototype.toString) display = `${obj}`
           // `Object {...}` or `Object {}` for empty object
           else display = `${type} {${Object.keys(obj).length || obj instanceof Observable ? "..." : ""}}`

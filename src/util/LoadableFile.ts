@@ -98,7 +98,7 @@ export class LoadableFile<FileType, SaveResult = any> extends Loadable<FileType,
     const $params = merge$fetchParms({ url, defaultContents, format }, loadParams, params)
     if (!$params.url) {
       throw new RequestError({
-        message: `${this}.getLoader(): you must specify "url".`,
+        message: `${this.constructor.name}.getLoader(): you must specify "url".`,
         context: this,
         params: $params
       })
@@ -118,7 +118,7 @@ export class LoadableFile<FileType, SaveResult = any> extends Loadable<FileType,
     const $params = merge$fetchParms({ url, contents, format }, saveParams, params)
     if (!$params.url) {
       throw new RequestError({
-        message: `${this}.getLoader(): you must specify "url".`,
+        message: `${this.constructor.name}.getLoader(): you must specify "url".`,
         context: this,
         params: $params
       })

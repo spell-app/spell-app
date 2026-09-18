@@ -275,7 +275,7 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
       this.cancel()
       this.resetState()
     })
-    this.start(inputValue)
+    void this.start(inputValue)
   }
 
   //-----------------
