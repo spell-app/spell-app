@@ -13,7 +13,6 @@ import type { TokenConstructor } from "~/parser/rule/TokenType"
 import type { LiteralMatcher } from "~/parser/rule/Literals"
 import type { IdentifierBlacklist } from "~/parser/types"
 
-
 /** Error we'll throw when setting up / executing parser. */
 export class ParserError extends CustomError {}
 
@@ -26,6 +25,7 @@ export class ParserError extends CustomError {}
 export type RuleDefinition = Prettify<
   Omit<RuleProps, "syntax" | "tests" | "testRule"> & {
     // `Function` is included because every object literal already has `Object` as its `constructor`.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     constructor?: RuleConstructor | Function
     skip?: boolean
     syntax?: string | Array<string | RuleDefinition>
@@ -353,8 +353,8 @@ export class Parser extends Derivative {
       // If passed in a Rule instance or rule constructor, addRule
       if (ruleProps instanceof Rule || typeof ruleProps === "function") return this.addRule(ruleProps)
 
-      // If `constructor` was not specified, it will be `Object`: we're expecting a Rule subclass, so clear it.
       let { skip, constructor: ctor, ...props } = ruleProps
+      // If `constructor` was not specified, it will be `Object`: we're expecting a Rule subclass, so clear it.
       let constructor = ctor === Object ? undefined : (ctor as RuleConstructor | undefined)
       if (skip) return undefined
 

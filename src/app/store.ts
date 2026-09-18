@@ -485,7 +485,7 @@ export const store: SpellStore = createStore<SpellStore>({
     const project = new SP.SpellProject(projectPath)
     // DEBUG: access globally as `window.project`
     window.project = project
-    let sameProject = store.project === project
+    const sameProject = store.project === project
     if (!sameProject) {
       console.info("selecting project", project)
       // stop current compilation

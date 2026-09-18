@@ -292,11 +292,11 @@ export const core = new SpellParser({
     // Case is not a factor, but it must start with a letter.
     {
       name: "keyword",
-      pattern: /^[a-zA-Z][\w\-]*$/,
+      pattern: /^[a-zA-Z][\w-]*$/,
       constructor: class keyword extends P.Rules.Pattern {
         // convert dashes to underscores when compiling
         mapValue<T = string>(value: string): T {
-          return `${value}`.replace(/\-/g, "_") as T
+          return `${value}`.replace(/-/g, "_") as T
         }
         getAST(match: P.Match): AST.KeywordLiteral {
           const { value, raw } = match

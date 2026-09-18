@@ -4,17 +4,18 @@
 //     or you risk circular import problems.
 //
 
-export { Rule } from "./Rule"
+/** Export all Rule classes and types as barrel `R`. */
+// export * as R from "./Rules"
 
-// The following subclasses of rule are ALWAYS accessed as `Rules.XXX`
-export { BlankLine } from "./BlankLine"
-export { Choice, Group } from "./Choice"
-export { Literal, Keyword, Symbol } from "./Literal"
-export { Literals, Keywords, Symbols } from "./Literals"
-export { NestedSplit } from "./NestedSplit"
-export { Pattern } from "./Pattern"
-export { Repeat } from "./Repeat"
-export { Sequence } from "./Sequence"
-export { Subrule } from "./Subrule"
-export { TokenType } from "./TokenType"
-export { Word } from "./Word"
+export * from "./Rule"
+export * from "./BlankLine"
+export * from "./Choice"
+export * from "./Literal"
+export * from "./Literals"
+export * from "./NestedSplit"
+export * from "./Pattern"
+export * from "./Repeat"
+export * from "./Sequence"
+export * from "./Subrule"
+export * from "./TokenType"
+export * from "./Word"

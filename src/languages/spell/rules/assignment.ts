@@ -89,7 +89,7 @@ export const assignment = new SpellParser({
             {
               title: "non-existing var: property set (won't work)",
               input: `let the name of unknown-var = "bob"`,
-              output: `/* PARSE ERROR: Don\'t understand "let the name of unknown-var = \"bob\"" */`
+              output: `/* PARSE ERROR: Don't understand "let the name of unknown-var = "bob"" */`
             },
 
             { title: "existing var: equals", input: "thing = yes", output: "thing = true" },

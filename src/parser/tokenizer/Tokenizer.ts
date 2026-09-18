@@ -1,4 +1,3 @@
-/* eslint-disable no-continue */
 import * as Tokens from "./Tokens"
 import { Token } from "./Tokens"
 import { Logger } from "~/util/Logger"
@@ -310,7 +309,7 @@ export class Tokenizer {
   //////////////////
 
   get JSX_TAG_START() {
-    return /^<([A-Za-z][\w-\.]*)(\s*\/>|\s*>|\s+)/
+    return /^<([A-Za-z][\w-.]*)(\s*\/>|\s*>|\s+)/
   }
   get JSX_TAG_START_END() {
     return /^\s*(\/>|>)/
@@ -358,7 +357,6 @@ export class Tokenizer {
     const tagMatch = this.matchExpressionAtHead(this.JSX_TAG_START, text, nextStart, end)
     if (!tagMatch) return undefined
 
-    // eslint-disable-next-line prefer-const
     let [matchText, tagName, endBit] = tagMatch
     nextStart += matchText.length
 

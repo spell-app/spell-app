@@ -325,11 +325,11 @@ describe("Rules.Pattern", () => {
   const scope = parser.getScope()
   // test with "word" pattern
   const ruleAtStart = new Rules.Pattern({
-    pattern: /^[a-z][\w\-]*$/,
+    pattern: /^[a-z][\w-]*$/,
     blacklist: ["nope"]
   })
   const ruleAnywhere = new Rules.Pattern({
-    pattern: /^[a-z][\w\-]*$/,
+    pattern: /^[a-z][\w-]*$/,
     blacklist: ["nope"],
     testLocation: TestLocation.ANYWHERE
   })

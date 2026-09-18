@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 /**
  *
  * Utilites for rendering things (e.g. `ASTNode`s) as React components.

@@ -4,11 +4,11 @@ import { batch } from "@risingstack/react-easy-state"
 
 import { Observable } from "./Observable"
 
-export type LoadableProps<ContentType extends any> = {
+export type LoadableProps<ContentType> = {
   contents?: ContentType
   cacheDuration?: number
 }
-export type LoadableState<ContentType extends any, SaveResult extends any> = {
+export type LoadableState<ContentType, SaveResult> = {
   loadState: LoadState<ContentType, SaveResult>
 }
 
@@ -56,7 +56,7 @@ export type LoadState<ContentType, SaveResult> = {
  *
  * Use `LoadableFile` and the like to load a single file by URL.
  */
-export abstract class Loadable<ContentType extends any, SaveResult extends any = unknown> extends Observable<
+export abstract class Loadable<ContentType, SaveResult = unknown> extends Observable<
   LoadableProps<ContentType>,
   LoadableState<ContentType, SaveResult>
 > {

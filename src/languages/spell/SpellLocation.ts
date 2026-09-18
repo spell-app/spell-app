@@ -112,7 +112,7 @@ export class SpellLocation {
       if (SpellLocation.useRegistry) SpellLocation.registry.set(path, this)
     } catch (string) {
       if (die) die(string as string)
-      throw new TypeError(`new SpellLocation('${path}'):: ${string}`)
+      throw new TypeError(`new SpellLocation('${path}'):: ${string}`, { cause: string })
     }
   }
 
@@ -218,7 +218,7 @@ export class SpellLocation {
     project?: string
     filePath?: string
   } = {}): string {
-    let root = spellSetup.projectRootForDomain(domain)
+    const root = spellSetup.projectRootForDomain(domain)
     let path = `${root.owner}:${root.domain}`
     if (project) {
       path += `:${project}`

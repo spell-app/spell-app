@@ -62,7 +62,7 @@ export const testMethods = defineSpellCoreModule({
 
   _getTestResultIcon(success: boolean | undefined): string {
     if (success === undefined) return "❓"
-    return !!success ? "✅" : "❌"
+    return success ? "✅" : "❌"
   },
   /** Dynamic test: prints to console for now... */
   test(message: unknown, testMethod: () => void, collapse = true): void {

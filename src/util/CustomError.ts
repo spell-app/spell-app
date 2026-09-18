@@ -24,6 +24,8 @@ export type CustomErrorProps = {
 
 export class CustomError<Props extends CustomErrorProps = CustomErrorProps> extends Error {
   props: Props
+  // `Function` matches the type Node's own `Error.captureStackTrace(target, constructorOpt?)` expects below.
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
   constructor(props: string | Props, startStackAt?: Function) {
     if (typeof props === "string") {
       super(props)

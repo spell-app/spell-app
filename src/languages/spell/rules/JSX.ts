@@ -159,7 +159,7 @@ export const JSX = new SpellParser({
             ],
             [
               `<div rank={unknown expression} value={another unknown expression}/>`,
-              `spellCore.element({ tag: "div", props: { rank: undefined /* PARSE ERROR: Don\'t understand \"unknown expression\" */, value: undefined /* PARSE ERROR: Don\'t understand \"another unknown expression\" */ } })`
+              `spellCore.element({ tag: "div", props: { rank: undefined /* PARSE ERROR: Don't understand "unknown expression" */, value: undefined /* PARSE ERROR: Don't understand "another unknown expression" */ } })`
             ],
             // DO parse a statement as an attribute expression
             [
@@ -178,7 +178,7 @@ export const JSX = new SpellParser({
             // don't match attribute expressions that don't eat the entire text
             [
               "<div foo={true true}/>",
-              `spellCore.element({ tag: "div", props: { foo: undefined /* PARSE ERROR: Don\'t understand \"true true\" */ } })`
+              `spellCore.element({ tag: "div", props: { foo: undefined /* PARSE ERROR: Don't understand "true true" */ } })`
             ],
             // ignore newlines in attribute expression
             // NOTE: this was previously a comma expression `(a, b)` instead of a `[a, b]` tuple, which JS

@@ -4,7 +4,7 @@
  */
 
 /** Constructor type, e.g. `Class<Token>` represents a class that constructs `Token` instances. */
-interface Class<T> extends Function {
+interface Class<T> {
   new (...args: any[]): T
 }
 
@@ -31,6 +31,8 @@ type SplitString<List, Delimiter extends string = ":"> = List extends `${infer H
  * Use e.g. `ReactNode` rather than `React.ReactNode`.
  */
 type ReactNode = import("react").ReactNode
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- mirrors upstream React.Component's own `P = {}, S = {}` defaults
 type ReactComponent<P = {}, S = {}> = import("react").Component<P, S>
-type ReactElement<P = any> = import("react").ReactElement<P>
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- mirrors upstream React.ComponentType's own `P = {}` default
 type ReactComponentType<P = {}> = import("react").ComponentType<P>
+type ReactElement<P = any> = import("react").ReactElement<P>

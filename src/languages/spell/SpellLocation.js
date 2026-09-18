@@ -108,7 +108,7 @@ export class SpellLocation {
       if (SpellLocation.useRegistry) SpellLocation.registry.set(path, this)
     } catch (string) {
       if (die) die(string)
-      throw new TypeError(`new SpellLocation('${path}'):: ${string}`)
+      throw new TypeError(`new SpellLocation('${path}'):: ${string}`, { cause: string })
     }
   }
 

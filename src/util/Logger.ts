@@ -51,7 +51,7 @@ export class Logger {
     if (messageLevel > loggerLevel) return
 
     if (this.prefix) args.unshift(chalk.hex(this.color)(this.prefix))
-    console[consoleMethod].apply(console, args)
+    console[consoleMethod](...args)
   }
 
   static readonly OFF = "OFF" as unknown as DebugLevel

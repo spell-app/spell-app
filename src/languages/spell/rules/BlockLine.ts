@@ -15,7 +15,7 @@ P.Rules.BlankLine.prototype.getAST = function (match: P.Match) {
 //   we'll let the statement attempt to parse the next line as well.
 export class BlockLine extends P.Rule {
   parse(scope: P.Scope, lines: P.Token[]): P.Match | undefined {
-    // eslint-disable-next-line no-shadow
+     
     const line = lines[0]
     if (!line) return undefined
     const matched: (P.Match | P.Token)[] = []

@@ -7,7 +7,7 @@ import * as stringify from "./stringifyAST"
 import * as render from "./renderAST"
 
 // TODO: define this in `constants` or some such?
-const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w\$]*$/
+const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w$]*$/
 function isLegalIdentifier(value: string): boolean {
   return LEGAL_PROPERTY_IDENTIFIER.test(value)
 }
@@ -25,7 +25,7 @@ function convertStatementsToBlock(
 /** Abstract root of all AST node types.
  *  - `type` is
  */
-export class ASTNode<Props extends object = {}> extends Assertable {
+export class ASTNode<Props extends object = object> extends Assertable {
   /** Match passed to `getAST()` method which produced this node. */
   declare match: AnyMatch
 
@@ -1056,7 +1056,8 @@ export class EchoInvocation extends CoreMethodInvocation {
     this.override("echoInTests", echoInTests)
   }
   constructor(match: AnyMatch, props: EchoInvocationProps) {
-    let { expression, methodName = "echo" } = props
+    const { methodName = "echo" } = props
+    let { expression } = props
     if (typeof expression === "string") expression = new StringLiteral(match, "`" + expression + "`")
     super(match, { methodName, args: [expression] })
   }

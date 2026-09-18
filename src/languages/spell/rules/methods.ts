@@ -390,11 +390,11 @@ export const methods = new SpellParser({
   rules: [
     {
       name: "method_keyword",
-      pattern: /^[a-zA-Z][\w\-]*$/,
+      pattern: /^[a-zA-Z][\w-]*$/,
       constructor: class method_keyword extends P.Rules.Pattern {
         // convert dashes to underscores when compiling
         mapValue<T = string>(value: string): T {
-          return `${value}`.replace(/\-/g, "_") as T
+          return `${value}`.replace(/-/g, "_") as T
         }
         getGroupsForMatch(match: P.Match): MethodArgGroups {
           return {
@@ -1187,17 +1187,17 @@ export const methods = new SpellParser({
             {
               title: "signature is empty",
               input: `a thing "" if`,
-              output: `/* PARSE ERROR: Don\'t understand "a thing "" if" */`
+              output: `/* PARSE ERROR: Don't understand "a thing "" if" */`
             },
             {
               title: "signature doesn't start with a keyword",
               input: `a thing "(thing)" if`,
-              output: `/* PARSE ERROR: Don\'t understand "a thing "(thing)" if" */`
+              output: `/* PARSE ERROR: Don't understand "a thing "(thing)" if" */`
             },
             {
               title: "more than one arg specified",
               input: `a thing "(thing) but (thing)" if`,
-              output: `/* PARSE ERROR: Don\'t understand "a thing "(thing) but (thing)" if" */`
+              output: `/* PARSE ERROR: Don't understand "a thing "(thing) but (thing)" if" */`
             }
           ]
         },

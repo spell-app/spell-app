@@ -93,29 +93,15 @@ export class ASTViewer extends ErrorHandler<ASTViewerProps> {
   /**
    * Wrapper class to manage scrolling and showing selection.
    */
-  Wrapper = ({ component, props }: ErrorHandlerWrapperProps<ASTViewerProps>) => {
-    const classNames = ["ASTViewer"]
-    if (props.scrolling) classNames.push("scrolling")
-    return <div className={classNames.join(" ")}>{component}</div>
-  }
+  Wrapper = ASTWrapper
 
-  /** Actual component which draws the root `ast` ASTNode passed in. */
-  Component({ ast, selection }: ASTViewerProps) {
-    // `ast.component` is memoized
-    const component = ast?.component || null
-
-    // Update view to match selection
-    React.useEffect(() => {
-      if (!ast || !selection) return
-      const viewer = document.querySelector<HTMLElement>(".ASTViewer")
-      if (!viewer) return
-      ASTViewer.updateScroll(viewer, ast.match, selection)
-      ASTViewer.updateHighlight(viewer, ast.match, selection)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [component, selection])
-
-    return component
-  }
+  /**
+   * Actual component which draws the root `ast` ASTNode passed in.
+   * This lives on the class prototype (see `ErrorHandler`'s class doc) but is used only as a
+   * detached function reference via `React.createElement(this.Component, props)` -- it's never
+   * called as `this.Component()`, so it's a plain function component and hooks are legal here.
+   */
+  Component = ASTComponent
 
   /////////////////////////
   //  Scroll / highlight management
@@ -178,4 +164,35 @@ export class ASTViewer extends ErrorHandler<ASTViewerProps> {
     if (innerItem) ASTViewer.highlight(viewer, innerItem)
     else if (firstElForLine) firstElForLine.classList.add("highlight")
   }
+}
+
+/**
+ * Wrapper class to manage scrolling and showing selection.
+ */
+function ASTWrapper({ component, props }: ErrorHandlerWrapperProps<ASTViewerProps>) {
+  const classNames = ["ASTViewer"]
+  if (props.scrolling) classNames.push("scrolling")
+  return <div className={classNames.join(" ")}>{component}</div>
+}
+
+/**
+ * Actual component which draws the root `ast` ASTNode passed in.
+ * This lives on the class prototype (see `ErrorHandler`'s class doc) but is used only as a
+ * detached function reference via `React.createElement(this.Component, props)` -- it's never
+ * called as `this.Component()`, so it's a plain function component and hooks are legal here.
+ */
+function ASTComponent({ ast, selection }: ASTViewerProps) {
+  // `ast.component` is memoized
+  const element = ast?.component || null
+
+  // Update view to match selection
+  React.useEffect(() => {
+    if (!ast || !selection) return
+    const viewer = document.querySelector<HTMLElement>(".ASTViewer")
+    if (!viewer) return
+    ASTViewer.updateScroll(viewer, ast.match, selection)
+    ASTViewer.updateHighlight(viewer, ast.match, selection)
+  }, [ast, element, selection])
+
+  return element
 }

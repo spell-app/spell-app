@@ -79,34 +79,16 @@ export class MatchViewer extends ErrorHandler<MatchViewerProps> {
    * This is automatically drawn by `ErrorHandler`,
    * and will be passed `Component` for the root `Match`.
    */
-  Wrapper = ({ component, props }: ErrorHandlerWrapperProps<MatchViewerProps>) => {
-    const classNames = ["MatchViewer"]
-    if (props.scrolling) classNames.push("scrolling")
-    if (props.compact) classNames.push("compact")
-    return <div className={classNames.join(" ")}>{component}</div>
-  }
+  Wrapper = MatchWrapper
 
   /**
    * Memoized top-level viewer for a Match, e.g. for a `spellFile.match`.
    * Create one of these and it will create <MatchView>s and <TokenView>s underneath it.
+   * This lives on the class prototype (see `ErrorHandler`'s class doc) but is used only as a
+   * detached function reference via `React.createElement(this.Component, props)` -- it's never
+   * called as `this.Component()`, so it's a plain function component and hooks are legal here.
    */
-  Component({ match, selection, compact }: MatchViewerProps) {
-    const component = React.useMemo(() => {
-      if (!match) return null
-      return <MatchView match={match} />
-    }, [match])
-
-    // If we're passed a specific `selection`, scroll that line into view and highlight it.
-    React.useEffect(() => {
-      const viewer = document.querySelector<HTMLElement>(".MatchViewer")
-      if (!viewer || !match || !selection?.scroll) return
-      MatchViewer.updateScroll(viewer, match, selection)
-      MatchViewer.updateHighlight(viewer, match, selection)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [component, match, selection, compact])
-
-    return component
-  }
+  Component = MatchComponent
 
   /////////////////////////
   //  Scroll / highlight management
@@ -174,4 +156,30 @@ export class MatchViewer extends ErrorHandler<MatchViewerProps> {
     const toHighlight = stack.slice(0, stack.indexOf(lineMatch) + 1)
     MatchViewer.highlight(viewer, ...toHighlight.reverse())
   }
+}
+
+/** Wrapper component for a Match. */
+function MatchWrapper({ component, props }: ErrorHandlerWrapperProps<MatchViewerProps>) {
+  const classNames = ["MatchViewer"]
+  if (props.scrolling) classNames.push("scrolling")
+  if (props.compact) classNames.push("compact")
+  return <div className={classNames.join(" ")}>{component}</div>
+}
+
+/** Component to render for a `Match`. */
+function MatchComponent({ match, selection, compact }: MatchViewerProps) {
+  const element = React.useMemo(() => {
+    if (!match) return null
+    return <MatchView match={match} />
+  }, [match])
+
+  // If we're passed a specific `selection`, scroll that line into view and highlight it.
+  React.useEffect(() => {
+    const viewer = document.querySelector<HTMLElement>(".MatchViewer")
+    if (!viewer || !match || !selection?.scroll) return
+    MatchViewer.updateScroll(viewer, match, selection)
+    MatchViewer.updateHighlight(viewer, match, selection)
+  }, [element, match, selection, compact])
+
+  return element
 }

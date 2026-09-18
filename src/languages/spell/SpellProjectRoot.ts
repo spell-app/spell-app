@@ -215,7 +215,7 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
     new SpellLocation(projectId, die)
 
     await this.loadOrDie(die)
-    this.getProject(projectId) || die(`${this.Type} does not exist.`)
+    if (!this.getProject(projectId)) die(`${this.Type} does not exist.`)
 
     if (!newProjectId) newProjectId = this.promptForProjectId({ projectId, die })
     if (!newProjectId) return undefined

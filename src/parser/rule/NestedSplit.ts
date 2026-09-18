@@ -133,7 +133,7 @@ export class NestedSplit extends Rule<NestedSplitProps> {
       if (this.delimiter.testAtStart(scope, tokens, i)) {
         items.push(current)
         current = []
-        // eslint-disable-next-line no-continue
+         
         continue
       }
       // handle nested start/emd
@@ -142,7 +142,7 @@ export class NestedSplit extends Rule<NestedSplitProps> {
         if (end) {
           current = current.concat(tokens.slice(i, end + 1))
           i = end
-          // eslint-disable-next-line no-continue
+           
           continue
         }
       }

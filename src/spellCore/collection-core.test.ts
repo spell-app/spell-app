@@ -1,4 +1,4 @@
-/* eslint-disable lines-between-class-members */
+ 
 import { describe, test, expect, beforeEach, vi } from "vitest"
 import { spellCore, assert } from "."
 

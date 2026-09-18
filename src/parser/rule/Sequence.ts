@@ -59,13 +59,13 @@ export class Sequence extends Rule<SequenceProps> {
     for (let i = 0, rule; (rule = this.rules[i++]); ) {
       // If we're out of tokens, bail if rule is not optional
       if (remainingTokens.length === 0) {
-        // eslint-disable-next-line no-continue
+         
         if (rule.optional) continue
         return undefined
       }
       const match = rule.parse(scope, remainingTokens)
       if (!match) {
-        // eslint-disable-next-line no-continue
+         
         if (rule.optional) continue
         return undefined
       }

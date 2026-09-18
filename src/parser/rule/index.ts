@@ -6,3 +6,4 @@
 
 export * from "./Rule"
 export * as Rules from "./Rules"
+export * as R from "./Rules"

@@ -312,7 +312,7 @@ export const renameFile = async (projectId: string, filePath: string, newFilePat
   await fileUtils.movePath(location.serverPath, newLocation.serverPath)
 
   // update `imports` so file order stays the same
-  let importsFile = await loadImports(projectId)
+  const importsFile = await loadImports(projectId)
   importsFile.imports = importsFile.imports.map((item) => {
     if (item.path === filePath) return { ...item, path: newFilePath }
     return item

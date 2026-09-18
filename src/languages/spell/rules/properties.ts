@@ -11,7 +11,7 @@ import { P, AST } from "~/parser"
 import type { ASTNode, Expression, PropertyLiteral, ObjectLiteralProperty } from "~/parser/ast/AST"
 import { SpellExpression } from "./expressions"
 
-const LOWER_INITIAL_WORD = /^[a-z][\w\-]*$/
+const LOWER_INITIAL_WORD = /^[a-z][\w-]*$/
 
 // `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass
 // that the referenced sub-rule's `getAST()` is known (by inspection) to always produce.

@@ -6,8 +6,7 @@ import type { SemanticICONS } from "semantic-ui-react"
 
 import { view } from "~/util"
 import { SP } from "~/languages/spell"
-
-import * as UI from "./ui"
+import { UI } from "./ui"
 import { store } from "~/app/store"
 
 /****************
@@ -142,42 +141,42 @@ export type ProjectDropdownProps = DropdownProps & {
 // Helpers
 ////////////////
 
-/**
- * Return array of items for a Project/Examples/etc Menu or Dropdown.
- */
-function getProjectMenuItems({
-  paths,
-  useRunner,
-  Component,
-  icon = UI.PROJECT_ICON,
-  itemProps
-}: GetProjectMenuItemsProps): ReactElement[] {
-  if (!paths) return [<Component key="_loading_" text="Loading..." />]
-  return paths.map((path) => {
-    const location = new SP.SpellLocation(path)
-    return (
-      <Component
-        key={path}
-        text={location.projectName}
-        icon={icon}
-        onClick={() => (useRunner ? store.showRunner(path) : store.showEditor(path))}
-        {...itemProps}
-      />
-    )
-  })
-}
+// /**
+//  * Return array of items for a Project/Examples/etc Menu or Dropdown.
+//  */
+// function getProjectMenuItems({
+//   paths,
+//   useRunner,
+//   Component,
+//   icon = UI.PROJECT_ICON,
+//   itemProps
+// }: GetProjectMenuItemsProps): ReactElement[] {
+//   if (!paths) return [<Component key="_loading_" text="Loading..." />]
+//   return paths.map((path) => {
+//     const location = new SP.SpellLocation(path)
+//     return (
+//       <Component
+//         key={path}
+//         text={location.projectName}
+//         icon={icon}
+//         onClick={() => (useRunner ? store.showRunner(path) : store.showEditor(path))}
+//         {...itemProps}
+//       />
+//     )
+//   })
+// }
 
-type GetProjectMenuItemsProps = {
-  paths: string[] | undefined
-  useRunner?: boolean
-  Component: ReactComponentType<ProjectMenuItemProps>
-  icon?: string
-  itemProps?: Partial<ProjectMenuItemProps>
-}
+// type GetProjectMenuItemsProps = {
+//   paths: string[] | undefined
+//   useRunner?: boolean
+//   Component: ReactComponentType<ProjectMenuItemProps>
+//   icon?: string
+//   itemProps?: Partial<ProjectMenuItemProps>
+// }
 
-type ProjectMenuItemProps = {
-  key?: string
-  text?: string
-  icon?: string
-  onClick?: () => void
-}
+// type ProjectMenuItemProps = {
+//   key?: string
+//   text?: string
+//   icon?: string
+//   onClick?: () => void
+// }

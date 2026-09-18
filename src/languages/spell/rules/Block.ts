@@ -11,7 +11,7 @@ export class Block extends P.Rule {
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     if (!tokens.length) return undefined
     if (tokens.length !== 1) console.warn(`Block.parse(): unexpectedly got ${tokens.length} tokens:`, tokens)
-    // eslint-disable-next-line no-shadow
+     
     const block = tokens[0]!
     if (!(block instanceof P.Tokens.Block)) {
       console.warn("parseBlock: got non-block", block)

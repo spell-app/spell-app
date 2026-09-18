@@ -8,7 +8,7 @@ import global from "global"
 import { P } from "~/parser"
 // Import the following directly to avoid circular import problems
 import { Parser } from "~/parser/Parser"
-import { Rules } from "~/parser/rule"
+import { R } from "~/parser/rule"
 import { Tokens } from "~/parser/tokenizer"
 
 /**
@@ -27,9 +27,9 @@ type FlagGroups = RulexGroups<"repeatFlag:argument:testLocation">
 
 /** Compile a rulex sub-`match`, which must yield a `Rule`. */
 // TODO CLAUDE: remove me!
-function compileMatchOrDie(match: P.Match | undefined): P.Rule {
+function compileMatchOrDie(match: P.Match | undefined): R.Rule {
   const rule = match?.compile()
-  if (!(rule instanceof P.Rule)) {
+  if (!(rule instanceof R.Rule)) {
     throw new P.ParserError({
       message: "Expected rulex match to compile to a Rule",
       context: rulex,
@@ -46,9 +46,9 @@ export class RulexParser extends Parser {
   }
 
   /** Compiling rulex syntax always yields a `Rule`. */
-  compile(input: string | P.Token | P.Token[], ruleName?: string, scope?: P.Scope): P.Rule {
+  compile(input: string | P.Token | P.Token[], ruleName?: string, scope?: P.Scope): R.Rule {
     const rule = super.compile(input, ruleName, scope)
-    if (!(rule instanceof P.Rule)) {
+    if (!(rule instanceof R.Rule)) {
       throw new P.ParserError({
         message: "rulex.compile() did not produce a Rule",
         context: this,
@@ -60,15 +60,15 @@ export class RulexParser extends Parser {
   }
 
   // Apply flags from `match` to the `rule` passed in, possibly returning a new rule!
-  applyFlags(rule: P.Rule, match: P.Match<FlagGroups>): P.Rule {
+  applyFlags(rule: R.Rule, match: P.Match<FlagGroups>): R.Rule {
     const repeatFlag = match.groups.repeatFlag?.compile()
     const argument = match.groups.argument?.compile()
     const testLocation = match.groups.testLocation?.compile()
 
     // handle repeat, which may nest the rule in a repeat
     if (repeatFlag === "?") rule.optional = true
-    else if (repeatFlag === "+") rule = new P.Rules.Repeat({ rule })
-    else if (repeatFlag === "*") rule = new P.Rules.Repeat({ rule, optional: true })
+    else if (repeatFlag === "+") rule = new R.Repeat({ rule })
+    else if (repeatFlag === "*") rule = new R.Repeat({ rule, optional: true })
 
     if (typeof argument === "string" && argument) rule.argument = argument
     if (testLocation === P.ANYWHERE || testLocation === P.AT_START) rule.testLocation = testLocation
@@ -78,26 +78,26 @@ export class RulexParser extends Parser {
 
   // Consolidate runs of literals in `rules` of type `constructor` together.
   consolidateLiterals(
-    rules: P.Rule[],
-    constructor: Class<P.Rules.Literal>,
+    rules: R.Rule[],
+    constructor: Class<R.Literal>,
     literalKey: "literal",
-    GroupConstructor: Class<P.Rule> = constructor
-  ): P.Rule[] {
+    GroupConstructor: Class<R.Rule> = constructor
+  ): R.Rule[] {
     if (rules.length === 1) return rules
 
-    const output: P.Rule[] = []
-    for (let start = 0, rule: P.Rule | undefined; (rule = rules[start]); start++) {
+    const output: R.Rule[] = []
+    for (let start = 0, rule: R.Rule | undefined; (rule = rules[start]); start++) {
       // TODO: inline `isAdorned`
       if (rule instanceof constructor && !rule.isAdorned) {
         // find the end of the run
         let end = start
-        for (let next: P.Rule | undefined; (next = rules[end + 1]); end++) {
+        for (let next: R.Rule | undefined; (next = rules[end + 1]); end++) {
           if (!(next instanceof constructor && !next.isAdorned)) break
         }
         if (end > start) {
           // combine literals into a single map
           const literals: Array<string | string[] | P.LiteralMatcher> = rules.slice(start, end + 1).map((nextRule) => {
-            const literal = (nextRule as P.Rules.Literal)[literalKey]
+            const literal = (nextRule as R.Literal)[literalKey]
             if (!nextRule.optional) return literal
 
             // make sure optionals are arrays and add the optional flag to the array
@@ -124,7 +124,7 @@ rulex.defineRules(
     name: "testLocation",
     literal: ["…", "^"],
     optional: true,
-    constructor: class testLocation extends Rules.Symbol {
+    constructor: class testLocation extends R.Symbol {
       compile(match: P.Match) {
         return match.matched[0]!.value === "…" ? P.ANYWHERE : P.AT_START
       }
@@ -142,9 +142,9 @@ rulex.defineRules(
   },
   {
     name: "argument",
-    rules: [new Rules.Word({ argument: "argument" }), new Rules.Symbol(":")],
+    rules: [new R.Word({ argument: "argument" }), new R.Symbol(":")],
     optional: true,
-    constructor: class argument extends Rules.Sequence {
+    constructor: class argument extends R.Sequence {
       compile(match: P.Match<P.RulexGroups<"argument">>) {
         return match.groups.argument!.value
       }
@@ -163,7 +163,7 @@ rulex.defineRules(
     name: "repeatFlag",
     literal: ["?", "*", "+"],
     optional: true,
-    constructor: class repeatFlag extends Rules.Symbol {
+    constructor: class repeatFlag extends R.Symbol {
       compile(match: P.Match) {
         return match.matched[0]!.value
       }
@@ -181,7 +181,7 @@ rulex.defineRules(
     ]
   }
 )
-const { testLocation, argument, repeatFlag } = rulex.rules as Record<"testLocation" | "argument" | "repeatFlag", P.Rule>
+const { testLocation, argument, repeatFlag } = rulex.rules as Record<"testLocation" | "argument" | "repeatFlag", R.Rule>
 
 ////////////////////
 //  Combo rules
@@ -194,14 +194,14 @@ rulex.defineRules(
     alias: "rule",
     rules: [
       testLocation,
-      new Rules.Pattern({ argument: "isEscaped", pattern: /^\\$/, optional: true }),
-      new Rules.TokenType({ tokenType: Tokens.Symbol, argument: "literal" }),
+      new R.Pattern({ argument: "isEscaped", pattern: /^\\$/, optional: true }),
+      new R.TokenType({ tokenType: Tokens.Symbol, argument: "literal" }),
       repeatFlag
     ],
-    constructor: class symbolRule extends Rules.Sequence {
+    constructor: class symbolRule extends R.Sequence {
       compile(match: P.Match<P.RulexGroups<"literal:isEscaped"> & FlagGroups>) {
         const { literal, isEscaped } = match.groups
-        const rule = new P.Rules.Symbol(literal!.value)
+        const rule = new R.Symbol(literal!.value)
         if (isEscaped) rule.isEscaped = true
         return rulex.applyFlags(rule, match)
       }
@@ -215,39 +215,36 @@ rulex.defineRules(
           ["…", undefined],
           ["^", undefined],
 
-          [":", new Rules.Symbol({ literal: ":" })],
+          [":", new R.Symbol({ literal: ":" })],
 
           // matches special chars by themselves if not escaped
-          ["(", new Rules.Symbol({ literal: "(" })],
-          ["[", new Rules.Symbol({ literal: "[" })],
-          ["?", new Rules.Symbol({ literal: "?" })],
-          ["*", new Rules.Symbol({ literal: "*" })],
-          ["+", new Rules.Symbol({ literal: "+" })],
+          ["(", new R.Symbol({ literal: "(" })],
+          ["[", new R.Symbol({ literal: "[" })],
+          ["?", new R.Symbol({ literal: "?" })],
+          ["*", new R.Symbol({ literal: "*" })],
+          ["+", new R.Symbol({ literal: "+" })],
 
           // only match the first one
-          ["::", new Rules.Symbol({ literal: ":" })],
+          ["::", new R.Symbol({ literal: ":" })],
 
           // escaped
-          ["\\:", new Rules.Symbol({ literal: ":", isEscaped: true })],
-          ["\\?", new Rules.Symbol({ literal: "?", isEscaped: true })],
-          ["\\(", new Rules.Symbol({ literal: "(", isEscaped: true })],
-          ["\\[", new Rules.Symbol({ literal: "[", isEscaped: true })],
+          ["\\:", new R.Symbol({ literal: ":", isEscaped: true })],
+          ["\\?", new R.Symbol({ literal: "?", isEscaped: true })],
+          ["\\(", new R.Symbol({ literal: "(", isEscaped: true })],
+          ["\\[", new R.Symbol({ literal: "[", isEscaped: true })],
 
           // testLocation
-          ["…:", new Rules.Symbol({ literal: ":", testLocation: P.ANYWHERE })],
-          ["^:", new Rules.Symbol({ literal: ":", testLocation: P.AT_START })],
-          ["…\\:", new Rules.Symbol({ literal: ":", isEscaped: true, testLocation: P.ANYWHERE })],
+          ["…:", new R.Symbol({ literal: ":", testLocation: P.ANYWHERE })],
+          ["^:", new R.Symbol({ literal: ":", testLocation: P.AT_START })],
+          ["…\\:", new R.Symbol({ literal: ":", isEscaped: true, testLocation: P.ANYWHERE })],
 
           // repeat
-          [">?", new Rules.Symbol({ literal: ">", optional: true })],
-          [">+", new Rules.Repeat(new Rules.Symbol({ literal: ">" }))],
-          [">*", new Rules.Repeat({ optional: true, rule: new Rules.Symbol({ literal: ">" }) })],
+          [">?", new R.Symbol({ literal: ">", optional: true })],
+          [">+", new R.Repeat(new R.Symbol({ literal: ">" }))],
+          [">*", new R.Repeat({ optional: true, rule: new R.Symbol({ literal: ">" }) })],
 
-          ["…>?", new Rules.Symbol({ testLocation: P.ANYWHERE, literal: ">", optional: true })],
-          [
-            "^>*",
-            new Rules.Repeat({ testLocation: P.AT_START, optional: true, rule: new Rules.Symbol({ literal: ">" }) })
-          ]
+          ["…>?", new R.Symbol({ testLocation: P.ANYWHERE, literal: ">", optional: true })],
+          ["^>*", new R.Repeat({ testLocation: P.AT_START, optional: true, rule: new R.Symbol({ literal: ">" }) })]
         ]
       }
     ]
@@ -256,11 +253,11 @@ rulex.defineRules(
   {
     name: "keyword",
     alias: "rule",
-    rules: [testLocation, new Rules.Word({ argument: "literal" }), repeatFlag],
-    constructor: class keyword extends Rules.Sequence {
+    rules: [testLocation, new R.Word({ argument: "literal" }), repeatFlag],
+    constructor: class keyword extends R.Sequence {
       compile(match: P.Match<P.RulexGroups<"literal"> & FlagGroups>) {
         const { literal } = match.groups
-        const rule = new P.Rules.Keyword(literal!.value)
+        const rule = new R.Keyword(literal!.value)
         return rulex.applyFlags(rule, match)
       }
     },
@@ -272,14 +269,14 @@ rulex.defineRules(
           ["11", undefined],
           [":", undefined],
 
-          ["word", new Rules.Keyword({ literal: "word" })],
+          ["word", new R.Keyword({ literal: "word" })],
 
-          ["…word", new Rules.Keyword({ literal: "word", testLocation: P.ANYWHERE })],
-          ["^word", new Rules.Keyword({ literal: "word", testLocation: P.AT_START })],
+          ["…word", new R.Keyword({ literal: "word", testLocation: P.ANYWHERE })],
+          ["^word", new R.Keyword({ literal: "word", testLocation: P.AT_START })],
 
-          ["word?", new Rules.Keyword({ literal: "word", optional: true })],
-          ["word+", new Rules.Repeat({ rule: new Rules.Keyword({ literal: "word" }) })],
-          ["word*", new Rules.Repeat({ optional: true, rule: new Rules.Keyword({ literal: "word" }) })]
+          ["word?", new R.Keyword({ literal: "word", optional: true })],
+          ["word+", new R.Repeat({ rule: new R.Keyword({ literal: "word" }) })],
+          ["word*", new R.Repeat({ optional: true, rule: new R.Keyword({ literal: "word" }) })]
         ]
       }
     ]
@@ -292,11 +289,11 @@ rulex.defineRules(
   {
     name: "number",
     alias: "rule",
-    rules: [testLocation, new Rules.TokenType({ tokenType: Tokens.Number, argument: "number" }), repeatFlag],
-    constructor: class numberRule extends Rules.Sequence {
+    rules: [testLocation, new R.TokenType({ tokenType: Tokens.Number, argument: "number" }), repeatFlag],
+    constructor: class numberRule extends R.Sequence {
       compile(match: P.Match<P.RulexGroups<"number"> & FlagGroups>) {
         const { number } = match.groups
-        const rule = new P.Rules.Keyword({ literal: number!.value })
+        const rule = new R.Keyword({ literal: number!.value })
         return rulex.applyFlags(rule, match)
       }
     },
@@ -304,14 +301,14 @@ rulex.defineRules(
       {
         title: "matches single keyword",
         tests: [
-          ["1", new Rules.Keyword({ literal: 1 as unknown as string })],
+          ["1", new R.Keyword({ literal: 1 as unknown as string })],
 
-          ["…1", new Rules.Keyword({ literal: 1 as unknown as string, testLocation: P.ANYWHERE })],
-          ["^1", new Rules.Keyword({ literal: 1 as unknown as string, testLocation: P.AT_START })],
+          ["…1", new R.Keyword({ literal: 1 as unknown as string, testLocation: P.ANYWHERE })],
+          ["^1", new R.Keyword({ literal: 1 as unknown as string, testLocation: P.AT_START })],
 
-          ["1?", new Rules.Keyword({ literal: 1 as unknown as string, optional: true })],
-          ["1+", new Rules.Repeat({ rule: new Rules.Keyword({ literal: 1 as unknown as string }) })],
-          ["1*", new Rules.Repeat({ optional: true, rule: new Rules.Keyword({ literal: 1 as unknown as string }) })]
+          ["1?", new R.Keyword({ literal: 1 as unknown as string, optional: true })],
+          ["1+", new R.Repeat({ rule: new R.Keyword({ literal: 1 as unknown as string }) })],
+          ["1*", new R.Repeat({ optional: true, rule: new R.Keyword({ literal: 1 as unknown as string }) })]
         ]
       }
     ]
@@ -322,16 +319,16 @@ rulex.defineRules(
     alias: "rule",
     rules: [
       testLocation,
-      new Rules.Symbol("{"),
+      new R.Symbol("{"),
       testLocation,
       argument,
-      new Rules.Word({ argument: "rule" }),
-      new Rules.Symbol("}"),
+      new R.Word({ argument: "rule" }),
+      new R.Symbol("}"),
       repeatFlag
     ],
-    constructor: class subrule extends Rules.Sequence {
+    constructor: class subrule extends R.Sequence {
       compile(match: P.Match<P.RulexGroups<"rule"> & FlagGroups>) {
-        const rule = new P.Rules.Subrule(String(match.groups.rule!.compile()))
+        const rule = new R.Subrule(String(match.groups.rule!.compile()))
         return rulex.applyFlags(rule, match)
       }
     },
@@ -341,17 +338,17 @@ rulex.defineRules(
         compileAs: "rule",
         tests: [
           ["", undefined],
-          ["{}", new Rules.Symbol("{")],
+          ["{}", new R.Symbol("{")],
 
-          ["{sub}", new Rules.Subrule({ rule: "sub" })],
+          ["{sub}", new R.Subrule({ rule: "sub" })],
 
-          ["…{sub}", new Rules.Subrule({ rule: "sub", testLocation: P.ANYWHERE })],
-          ["{…sub}", new Rules.Subrule({ rule: "sub", testLocation: P.ANYWHERE })],
-          ["{arg:sub}", new Rules.Subrule({ rule: "sub", argument: "arg" })],
+          ["…{sub}", new R.Subrule({ rule: "sub", testLocation: P.ANYWHERE })],
+          ["{…sub}", new R.Subrule({ rule: "sub", testLocation: P.ANYWHERE })],
+          ["{arg:sub}", new R.Subrule({ rule: "sub", argument: "arg" })],
 
-          ["{sub}?", new Rules.Subrule({ rule: "sub", optional: true })],
-          ["{sub}+", new Rules.Repeat({ rule: new Rules.Subrule({ rule: "sub" }) })],
-          ["{sub}*", new Rules.Repeat({ optional: true, rule: new Rules.Subrule({ rule: "sub" }) })]
+          ["{sub}?", new R.Subrule({ rule: "sub", optional: true })],
+          ["{sub}+", new R.Repeat({ rule: new R.Subrule({ rule: "sub" }) })],
+          ["{sub}*", new R.Repeat({ optional: true, rule: new R.Subrule({ rule: "sub" }) })]
         ]
       }
     ]
@@ -361,17 +358,17 @@ rulex.defineRules(
     name: "list",
     alias: "rule",
     rules: [
-      new Rules.Symbol("["),
+      new R.Symbol("["),
       argument,
-      new Rules.Subrule({ argument: "ruleName", rule: "rule" }),
-      new Rules.Subrule({ argument: "delimiter", rule: "rule" }),
-      new Rules.Symbol("]"),
-      new Rules.Symbol({ argument: "repeatFlag", literal: "?", optional: true })
+      new R.Subrule({ argument: "ruleName", rule: "rule" }),
+      new R.Subrule({ argument: "delimiter", rule: "rule" }),
+      new R.Symbol("]"),
+      new R.Symbol({ argument: "repeatFlag", literal: "?", optional: true })
     ],
-    constructor: class list extends Rules.Sequence {
+    constructor: class list extends R.Sequence {
       compile(match: P.Match<P.RulexGroups<"ruleName:delimiter"> & FlagGroups>) {
         const { ruleName, delimiter } = match.groups
-        const rule = new P.Rules.Repeat({ rule: compileMatchOrDie(ruleName), delimiter: compileMatchOrDie(delimiter) })
+        const rule = new R.Repeat({ rule: compileMatchOrDie(ruleName), delimiter: compileMatchOrDie(delimiter) })
         return rulex.applyFlags(rule, match)
       }
     },
@@ -381,21 +378,15 @@ rulex.defineRules(
         compileAs: "rule",
         tests: [
           ["", undefined],
-          ["[]", new Rules.Symbol("[")], // TODO: error for this?
-          ["[{sub}]", new Rules.Symbol("[")], // TODO: error for this?
+          ["[]", new R.Symbol("[")], // TODO: error for this?
+          ["[{sub}]", new R.Symbol("[")], // TODO: error for this?
 
-          ["[{sub},]", new Rules.Repeat({ rule: new Rules.Subrule("sub"), delimiter: new Rules.Symbol(",") })],
-          ["[{sub}or]", new Rules.Repeat({ rule: new Rules.Subrule("sub"), delimiter: new Rules.Keyword("or") })],
+          ["[{sub},]", new R.Repeat({ rule: new R.Subrule("sub"), delimiter: new R.Symbol(",") })],
+          ["[{sub}or]", new R.Repeat({ rule: new R.Subrule("sub"), delimiter: new R.Keyword("or") })],
 
-          [
-            "[arg:{sub},]",
-            new Rules.Repeat({ rule: new Rules.Subrule("sub"), delimiter: new Rules.Symbol(","), argument: "arg" })
-          ],
+          ["[arg:{sub},]", new R.Repeat({ rule: new R.Subrule("sub"), delimiter: new R.Symbol(","), argument: "arg" })],
 
-          [
-            "[{sub},]?",
-            new Rules.Repeat({ optional: true, rule: new Rules.Subrule("sub"), delimiter: new Rules.Symbol(",") })
-          ]
+          ["[{sub},]?", new R.Repeat({ optional: true, rule: new R.Subrule("sub"), delimiter: new R.Symbol(",") })]
         ]
       }
     ]
@@ -406,32 +397,32 @@ rulex.defineRules(
     alias: "rule",
     rules: [
       testLocation,
-      new Rules.NestedSplit({
+      new R.NestedSplit({
         argument: "split",
-        start: new Rules.Symbol("("),
+        start: new R.Symbol("("),
         prefix: argument,
-        item: new Rules.Subrule({ rule: "sequence", argument: "choices" }),
-        delimiter: new Rules.Symbol("|"),
-        end: new Rules.Symbol(")")
+        item: new R.Subrule({ rule: "sequence", argument: "choices" }),
+        delimiter: new R.Symbol("|"),
+        end: new R.Symbol(")")
       }),
       repeatFlag
     ],
-    constructor: class choices extends Rules.Sequence {
+    constructor: class choices extends R.Sequence {
       compile(match: P.Match<{ split?: P.Match<P.NestedSplitGroups> } & FlagGroups>) {
         const { items, prefix: argument } = match.groups.split!.groups
-        let choices: P.Rule[] = items.map((item) => compileMatchOrDie(item))
+        let choices: R.Rule[] = items.map((item) => compileMatchOrDie(item))
 
         // Combine single keyword, keywords, symbol, symbols
-        choices = rulex.consolidateLiterals(choices, P.Rules.Keyword, "literal")
-        choices = rulex.consolidateLiterals(choices, P.Rules.Symbol, "literal")
+        choices = rulex.consolidateLiterals(choices, R.Keyword, "literal")
+        choices = rulex.consolidateLiterals(choices, R.Symbol, "literal")
 
         // If we got exactly one choice, use that.
         // Note that the choice's flags will "beat" the rule's flags if they conflict.
-        let rule: P.Rule
+        let rule: R.Rule
         if (choices.length === 1) {
           rule = choices[0]!
         } else {
-          rule = new P.Rules.Choice({ rules: choices })
+          rule = new R.Choice({ rules: choices })
         }
 
         rule = rulex.applyFlags(rule, match)
@@ -446,33 +437,29 @@ rulex.defineRules(
         skip: true,
         tests: [
           ["", undefined],
-          ["()", new Rules.Symbol("(")],
+          ["()", new R.Symbol("(")],
 
           // If only one rule matched, return that rule
-          ["(>)", new Rules.Symbol(">")],
-          ["(word)", new Rules.Keyword("word")],
-          ["({sub})", new Rules.Subrule("sub")],
-          ["([{sub},])", new Rules.Repeat({ rule: new Rules.Subrule("sub"), delimiter: new Rules.Symbol(",") })],
+          ["(>)", new R.Symbol(">")],
+          ["(word)", new R.Keyword("word")],
+          ["({sub})", new R.Subrule("sub")],
+          ["([{sub},])", new R.Repeat({ rule: new R.Subrule("sub"), delimiter: new R.Symbol(",") })],
 
           // Pass flags whether they were set on the choices or the single rule (a bit confusing)
-          ["(…{sub})", new Rules.Subrule({ rule: "sub", testLocation: P.ANYWHERE })],
-          ["(arg:{sub})", new Rules.Subrule({ rule: "sub", argument: "arg" })],
-          ["({arg:sub})", new Rules.Subrule({ rule: "sub", argument: "arg" })],
-          ["({sub}?)", new Rules.Subrule({ rule: "sub", optional: true })],
-          ["({sub})?", new Rules.Subrule({ rule: "sub", optional: true })],
-          ["({sub}+)", new Rules.Repeat({ rule: new Rules.Subrule({ rule: "sub" }) })],
-          ["({sub}*)", new Rules.Repeat({ optional: true, rule: new Rules.Subrule({ rule: "sub" }) })],
+          ["(…{sub})", new R.Subrule({ rule: "sub", testLocation: P.ANYWHERE })],
+          ["(arg:{sub})", new R.Subrule({ rule: "sub", argument: "arg" })],
+          ["({arg:sub})", new R.Subrule({ rule: "sub", argument: "arg" })],
+          ["({sub}?)", new R.Subrule({ rule: "sub", optional: true })],
+          ["({sub})?", new R.Subrule({ rule: "sub", optional: true })],
+          ["({sub}+)", new R.Repeat({ rule: new R.Subrule({ rule: "sub" }) })],
+          ["({sub}*)", new R.Repeat({ optional: true, rule: new R.Subrule({ rule: "sub" }) })],
 
           // consolidate multiple keywords
-          ["(a|b|c)?", new Rules.Keyword({ literal: ["a", "b", "c"], optional: true })],
+          ["(a|b|c)?", new R.Keyword({ literal: ["a", "b", "c"], optional: true })],
           [
             "(a|b|c?)",
-            new Rules.Choice({
-              rules: [
-                new Rules.Keyword("a"),
-                new Rules.Keyword("b"),
-                new Rules.Keyword({ literal: "c", optional: true })
-              ]
+            new R.Choice({
+              rules: [new R.Keyword("a"), new R.Keyword("b"), new R.Keyword({ literal: "c", optional: true })]
             })
           ]
         ]
@@ -481,41 +468,32 @@ rulex.defineRules(
         title: "multiple choices",
         compileAs: "rule",
         tests: [
-          ["(>|a)", new Rules.Choice({ rules: [new Rules.Symbol(">"), new Rules.Keyword("a")] })],
+          ["(>|a)", new R.Choice({ rules: [new R.Symbol(">"), new R.Keyword("a")] })],
 
-          [
-            "…(>|a)",
-            new Rules.Choice({ testLocation: P.ANYWHERE, rules: [new Rules.Symbol(">"), new Rules.Keyword("a")] })
-          ],
+          ["…(>|a)", new R.Choice({ testLocation: P.ANYWHERE, rules: [new R.Symbol(">"), new R.Keyword("a")] })],
 
-          ["(arg:>|a)", new Rules.Choice({ argument: "arg", rules: [new Rules.Symbol(">"), new Rules.Keyword("a")] })],
+          ["(arg:>|a)", new R.Choice({ argument: "arg", rules: [new R.Symbol(">"), new R.Keyword("a")] })],
 
-          ["(>|a)?", new Rules.Choice({ optional: true, rules: [new Rules.Symbol(">"), new Rules.Keyword("a")] })],
+          ["(>|a)?", new R.Choice({ optional: true, rules: [new R.Symbol(">"), new R.Keyword("a")] })],
           [
             "(>|a)*",
-            new Rules.Repeat({
+            new R.Repeat({
               optional: true,
-              rule: new Rules.Choice({ rules: [new Rules.Symbol(">"), new Rules.Keyword("a")] })
+              rule: new R.Choice({ rules: [new R.Symbol(">"), new R.Keyword("a")] })
             })
           ],
-          [
-            "(>|a)+",
-            new Rules.Repeat({ rule: new Rules.Choice({ rules: [new Rules.Symbol(">"), new Rules.Keyword("a")] }) })
-          ]
+          ["(>|a)+", new R.Repeat({ rule: new R.Choice({ rules: [new R.Symbol(">"), new R.Keyword("a")] }) })]
         ]
       },
       {
         title: "nested choices",
         compileAs: "rule",
         tests: [
-          ["(>|(b|c|d))", new Rules.Choice({ rules: [new Rules.Symbol(">"), new Rules.Keyword(["b", "c", "d"])] })],
+          ["(>|(b|c|d))", new R.Choice({ rules: [new R.Symbol(">"), new R.Keyword(["b", "c", "d"])] })],
           [
             "(>|({sub}|ab))",
-            new Rules.Choice({
-              rules: [
-                new Rules.Symbol(">"),
-                new Rules.Choice({ rules: [new Rules.Subrule("sub"), new Rules.Keyword("ab")] })
-              ]
+            new R.Choice({
+              rules: [new R.Symbol(">"), new R.Choice({ rules: [new R.Subrule("sub"), new R.Keyword("ab")] })]
             })
           ]
         ]
@@ -530,19 +508,19 @@ rulex.defineRules(
    */
   {
     name: "sequence",
-    rule: new Rules.Subrule("rule"),
-    constructor: class sequence extends Rules.Repeat {
+    rule: new R.Subrule("rule"),
+    constructor: class sequence extends R.Repeat {
       compile(match: P.Match) {
-        let matched: P.Rule[] = match.items.map((item) => compileMatchOrDie(item))
+        let matched: R.Rule[] = match.items.map((item) => compileMatchOrDie(item))
 
         // Consolidate keywords and symbols
-        matched = rulex.consolidateLiterals(matched, P.Rules.Keyword, "literal", P.Rules.Keywords)
-        matched = rulex.consolidateLiterals(matched, P.Rules.Symbol, "literal", P.Rules.Symbols)
+        matched = rulex.consolidateLiterals(matched, R.Keyword, "literal", R.Keywords)
+        matched = rulex.consolidateLiterals(matched, R.Symbol, "literal", R.Symbols)
 
-        const rules: P.Rule[] = []
-        for (let start = 0, rule: P.Rule | undefined; (rule = matched[start]); start++) {
+        const rules: R.Rule[] = []
+        for (let start = 0, rule: R.Rule | undefined; (rule = matched[start]); start++) {
           // Consolidate sequences
-          if (rule instanceof P.Rules.Sequence && !rule.isAdorned && !rule.optional) {
+          if (rule instanceof R.Sequence && !rule.isAdorned && !rule.optional) {
             rules.push(...rule.rules)
           } else {
             rules.push(rule)
@@ -552,7 +530,7 @@ rulex.defineRules(
         // If we're down to just one rule, just return that.
         if (rules.length === 1) return rules[0]!
 
-        return new P.Rules.Sequence(rules)
+        return new R.Sequence(rules)
       }
     },
     tests: [
@@ -560,21 +538,21 @@ rulex.defineRules(
         title: "sequences",
         showAll: true,
         tests: [
-          ["aa bb cc", new Rules.Keywords(["aa", "bb", "cc"])],
-          ["aa {bb} cc", new Rules.Sequence(new Rules.Keyword("aa"), new Rules.Subrule("bb"), new Rules.Keyword("cc"))],
+          ["aa bb cc", new R.Keywords(["aa", "bb", "cc"])],
+          ["aa {bb} cc", new R.Sequence(new R.Keyword("aa"), new R.Subrule("bb"), new R.Keyword("cc"))],
           [
             "aa? {bb} cc",
-            new Rules.Sequence(
-              new Rules.Keyword({ literal: "aa", optional: true }),
-              new Rules.Subrule({ rule: "bb" }),
-              new Rules.Keyword("cc")
+            new R.Sequence(
+              new R.Keyword({ literal: "aa", optional: true }),
+              new R.Subrule({ rule: "bb" }),
+              new R.Keyword("cc")
             )
           ],
           [
             "aa? (bb|>)",
-            new Rules.Sequence(
-              new Rules.Keyword({ literal: "aa", optional: true }),
-              new Rules.Choice({ rules: [new Rules.Keyword("bb"), new Rules.Symbol(">")] })
+            new R.Sequence(
+              new R.Keyword({ literal: "aa", optional: true }),
+              new R.Choice({ rules: [new R.Keyword("bb"), new R.Symbol(">")] })
             )
           ]
         ]
@@ -583,32 +561,23 @@ rulex.defineRules(
         title: "consolidate multiple keywords and symbols",
         showAll: true,
         tests: [
-          [">=", new Rules.Symbols([">", "="])],
-          [">(=)?", new Rules.Symbols([">", { optional: true, literal: "=" }])],
-          ["(>|<) (=)?", new Rules.Symbols([[">", "<"], { optional: true, literal: "=" }])],
+          [">=", new R.Symbols([">", "="])],
+          [">(=)?", new R.Symbols([">", { optional: true, literal: "=" }])],
+          ["(>|<) (=)?", new R.Symbols([[">", "<"], { optional: true, literal: "=" }])],
 
-          ["a b c", new Rules.Keywords(["a", "b", "c"])],
-          ["a? b c", new Rules.Keywords([{ optional: true, literal: "a" }, "b", "c"])],
-          ["a b? c", new Rules.Keywords(["a", { optional: true, literal: "b" }, "c"])],
-          ["a b c?", new Rules.Keywords(["a", "b", { optional: true, literal: "c" }])],
+          ["a b c", new R.Keywords(["a", "b", "c"])],
+          ["a? b c", new R.Keywords([{ optional: true, literal: "a" }, "b", "c"])],
+          ["a b? c", new R.Keywords(["a", { optional: true, literal: "b" }, "c"])],
+          ["a b c?", new R.Keywords(["a", "b", { optional: true, literal: "c" }])],
 
           [
             "a (arg:b) c",
-            new Rules.Sequence([
-              new Rules.Keyword("a"),
-              new Rules.Keyword({ literal: "b", argument: "arg" }),
-              new Rules.Keyword("c")
-            ])
+            new R.Sequence([new R.Keyword("a"), new R.Keyword({ literal: "b", argument: "arg" }), new R.Keyword("c")])
           ],
 
           [
             "(a|b) c? d (e|f)?",
-            new Rules.Keywords([
-              ["a", "b"],
-              { optional: true, literal: "c" },
-              "d",
-              { optional: true, literal: ["e", "f"] }
-            ])
+            new R.Keywords([["a", "b"], { optional: true, literal: "c" }, "d", { optional: true, literal: ["e", "f"] }])
           ]
         ]
       }

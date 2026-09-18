@@ -16,7 +16,7 @@ export type LoadableFileProps<FileType> = Prettify<
 export type JSONFileType = Record<string, any> | Array<any>
 
 /** Load a single file from `url`, process according to `format` before returning. */
-export class LoadableFile<FileType, SaveResult extends any = any> extends Loadable<FileType, SaveResult> {
+export class LoadableFile<FileType, SaveResult = any> extends Loadable<FileType, SaveResult> {
   /** Initialize with just a string to set `url` only. */
   constructor(props: LoadableFileProps<FileType> | string) {
     super(typeof props === "string" ? { url: props } : props)
