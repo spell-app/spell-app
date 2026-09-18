@@ -1,3 +1,3 @@
-All Claude Code rules come from cross-model `agents.md` file.
+All Claude Code rules come from cross-model `AGENTS.md` file.
 
 @AGENTS.md
