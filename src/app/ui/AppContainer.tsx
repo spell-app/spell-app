@@ -1,15 +1,9 @@
 import React from "react"
 
 import { spellCore } from "~/spellCore"
-import { Actions } from "~/app/actions"
+import { Actions } from "./Actions"
 import { UI } from "."
 import "./AppContainer.less"
-
-export type AppRootProps = {
-  showToolbar?: boolean
-  scrolling?: boolean
-  padded?: boolean
-}
 
 export const AppRoot = React.memo(function AppRoot({
   showToolbar = true,
@@ -24,6 +18,11 @@ export const AppRoot = React.memo(function AppRoot({
   )
 })
 
+export type AppRootProps = {
+  showToolbar?: boolean
+  scrolling?: boolean
+  padded?: boolean
+}
 export function AppToolbar() {
   return (
     <UI.PanelMenu>
@@ -40,11 +39,6 @@ export function AppToolbar() {
   )
 }
 
-export type AppContainerProps = {
-  scrolling?: boolean
-  padded?: boolean
-}
-
 export function AppContainer({ scrolling, padded }: AppContainerProps) {
   const classNames = ["AppContainer"]
   if (scrolling) classNames.push("scrolling")
@@ -54,4 +48,9 @@ export function AppContainer({ scrolling, padded }: AppContainerProps) {
       <div id={spellCore.REACT_APP_ROOT_ID} className="App" />
     </div>
   )
+}
+
+export type AppContainerProps = {
+  scrolling?: boolean
+  padded?: boolean
 }

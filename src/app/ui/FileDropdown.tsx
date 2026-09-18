@@ -4,17 +4,10 @@ import * as SUI from "semantic-ui-react"
 import { view } from "~/util"
 import type { SP } from "~/languages/spell"
 
-import { Actions } from "~/app/actions"
 import { store } from "~/app/store"
 
 import { UI } from "."
-
-export type FileDropdownActionProps = {
-  useRunner: boolean
-  path: string
-  location: SP.SpellLocation
-  active: boolean
-}
+import { Actions } from "./Actions"
 
 /* Single item in FileDropdown */
 const FileDropdownAction = React.memo(({ useRunner, path, location, active }: FileDropdownActionProps) => (
@@ -27,10 +20,11 @@ const FileDropdownAction = React.memo(({ useRunner, path, location, active }: Fi
   />
 ))
 
-export type FileDropdownProps = {
-  useRunner?: boolean
-  showLabel?: boolean
-  showActions?: boolean
+export type FileDropdownActionProps = {
+  useRunner: boolean
+  path: string
+  location: SP.SpellLocation
+  active: boolean
 }
 
 /** Menu of all available files for the selected project. */
@@ -75,3 +69,9 @@ export const FileDropdown = view(function FileDropdown({
     </>
   )
 })
+
+export type FileDropdownProps = {
+  useRunner?: boolean
+  showLabel?: boolean
+  showActions?: boolean
+}

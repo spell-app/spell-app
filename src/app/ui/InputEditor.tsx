@@ -2,19 +2,14 @@ import React from "react"
 
 import { view } from "~/util"
 
-import { Actions } from "~/app/actions"
 import { store } from "~/app/store"
 
 import { UI } from "."
-import { ErrorHandler } from "./ErrorHandler"
-import type { ErrorHandlerState, ErrorHandlerWrapperProps } from "./ErrorHandler"
+import { Actions } from "./Actions"
+import { ErrorHandler, type ErrorHandlerState, type ErrorHandlerWrapperProps } from "./ErrorHandler"
 import { CodeMirror, inputOptions } from "./CodeMirror"
 
 import "./InputEditor.less"
-
-export type InputRootProps = {
-  showToolbar?: boolean
-}
 
 /**
  *  Root element to show the `<InputEditor/>` in `SpellEditor`
@@ -28,6 +23,9 @@ export const InputRoot = React.memo(function InputRoot({ showToolbar = true }: I
   )
 })
 
+export type InputRootProps = {
+  showToolbar?: boolean
+}
 export function InputToolbar() {
   return (
     <UI.PanelMenu>
@@ -44,14 +42,6 @@ export function InputToolbar() {
     </UI.PanelMenu>
   )
 }
-
-export type InputEditorProps = {
-  showError?: (error: unknown) => void
-  /** Never actually passed by `<InputRoot>` today; kept so `getDerivedStateFromProps` below still compiles/works. */
-  match?: unknown
-}
-
-type InputEditorState = ErrorHandlerState & { match?: unknown }
 
 export class InputEditor extends ErrorHandler<InputEditorProps> {
   /** Clear `state.error` if `props.match` changes. */
@@ -138,4 +128,11 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
       />
     )
   })
+}
+
+type InputEditorState = ErrorHandlerState & { match?: unknown }
+export type InputEditorProps = {
+  showError?: (error: unknown) => void
+  /** Never actually passed by `<InputRoot>` today; kept so `getDerivedStateFromProps` below still compiles/works. */
+  match?: unknown
 }

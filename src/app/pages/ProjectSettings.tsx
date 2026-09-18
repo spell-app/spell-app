@@ -1,9 +1,9 @@
 import { view } from "~/util"
 
-import { UI } from "~/app/components"
+import { UI } from "~/app/ui"
 
 // `UI.FormGroup`/`FormRepeat`/`SubmitButton` get their `form` prop injected at runtime by the
-// enclosing `<UI.Form>` (see `WithForm()`/`injectForm` in `~/app/components/Form`), but their
+// enclosing `<UI.Form>` (see `WithForm()`/`injectForm` in `~/app/ui/Form`), but their
 // exported prop types still require it explicitly. Narrow-cast here at the JSX boundary rather
 // than fabricating a fake `form` value.
 const FormGroup = UI.FormGroup as ReactComponentType<{ name?: string; children?: ReactNode }>

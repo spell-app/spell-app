@@ -6,7 +6,7 @@ import * as SUI from "semantic-ui-react"
 // Import parser bits
 import "~/parser"
 import { spellCore } from "~/spellCore"
-import { UI, ErrorNotice, Notice } from "~/app/components"
+import { UI, ErrorNotice, Notice } from "~/app/ui"
 
 import { Routes } from "./pages/routes"
 

@@ -3,16 +3,15 @@ import { useHotkeys } from "react-hotkeys-hook"
 import type { RouteComponentProps } from "@reach/router"
 
 import { SP } from "~/languages/spell"
-import { Actions } from "~/app/actions"
-import { UI, AppRoot, ASTRoot, ConsoleRoot, InputRoot, MatchRoot, SpellPage, SplitPanel } from "~/app/components"
+import { UI, Actions } from "~/app/ui"
 import { store } from "~/app/store"
 
-// import { ProjectSettings } from "./ProjectSettings"
-
 /**
- * <SpellEditor />
- * Note that this does not need to be a `view()`,
- * it redraws automatically when the file changes.
+ * ### `<SpellEditor />`
+ * DOCME
+ *
+ * - Note that this does not need to be a `view()`,
+ *   it redraws automatically when the file changes.
  */
 export const SpellEditor = React.memo(function SpellEditor() {
   store.projectPage = "editor"
@@ -35,29 +34,28 @@ export const SpellEditor = React.memo(function SpellEditor() {
 
   return (
     <>
-      <SpellPage id="SpellEditor" fillWindow dark rows>
+      <UI.SpellPage id="SpellEditor" fillWindow dark rows>
         <EditorToolbar />
-        <SplitPanel id="spellEditor-columns" columns resizable fluid spaced="tightly">
-          <SplitPanel id="spellEditor-left" rows="85%" resizable rounded>
-            <InputRoot />
-            {/* <SplitPane scrolling light>
-              <ProjectSettings />
-            </SplitPane> */}
-            <ConsoleRoot />
-          </SplitPanel>
-          <SplitPanel id="spellEditor-right" rows="60%" resizable rounded>
-            <AppRoot />
-            <ASTRoot />
-            <MatchRoot />
-          </SplitPanel>
-        </SplitPanel>
-      </SpellPage>
+        <UI.SplitPanel id="spellEditor-columns" columns resizable fluid spaced="tightly">
+          <UI.SplitPanel id="spellEditor-left" rows="85%" resizable rounded>
+            <UI.InputRoot />
+            {/* <UI.SplitPane scrolling light>
+              <UI.ProjectSettings />
+            </UI.SplitPane> */}
+            <UI.ConsoleRoot />
+          </UI.SplitPanel>
+          <UI.SplitPanel id="spellEditor-right" rows="60%" resizable rounded>
+            <UI.AppRoot />
+            <UI.ASTRoot />
+            <UI.MatchRoot />
+          </UI.SplitPanel>
+        </UI.SplitPanel>
+      </UI.SpellPage>
     </>
   )
 })
 
 export function EditorToolbar() {
-  // console.info("EditorToolbar", { file, fileIsDirty })
   return (
     <UI.AppMenu>
       <UI.Submenu left spring>
@@ -79,13 +77,6 @@ export function EditorToolbar() {
   )
 }
 
-/** Params parsed out of the `edit/:domain/:project/*filePath` routes. */
-export type SpellRouteParams = {
-  domain: string
-  project: string
-  filePath: string
-}
-
 /**
  * Reach-router `<Route/>` to show a project/example/etc by path.
  * Note that this will redraw the editor every time the route changes.
@@ -97,4 +88,11 @@ export function SpellEditorRoute(props: RouteComponentProps<SpellRouteParams>) {
   // HACK: Actually navigate on a timeout to avoid hook / rerender problems.
   setTimeout(() => store.selectPath(path), 0)
   return <SpellEditor />
+}
+
+/** Params parsed out of the `edit/:domain/:project/*filePath` routes. */
+export type SpellRouteParams = {
+  domain: string
+  project: string
+  filePath: string
 }

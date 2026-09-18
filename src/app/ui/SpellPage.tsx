@@ -3,19 +3,6 @@ import classnames from "classnames"
 
 import "./SpellPage.less"
 
-export type SpellPageProps = React.ComponentPropsWithoutRef<"div"> & {
-  bordered?: boolean // bordered variant
-  dark?: boolean // dark variant
-  fillWindow?: boolean // fill window completely.  alias for `full`
-  light?: boolean // light variant
-  rounded?: boolean // rounded variant
-  spaced?: boolean // spaced variant (around page)
-  padded?: boolean // padding (within page)
-  scrolling?: boolean // scrolling variant
-  rows?: boolean // use flexbox to lay children out in rows, down the page.
-  columns?: boolean // use flexbox to lay children out in columns, across the page.
-}
-
 /**
  * <SpellPage> component.
  * TODOC!
@@ -53,4 +40,17 @@ export function SpellPage(props: SpellPageProps) {
     renderProps.className
   )
   return <div {...renderProps} className={className} />
+}
+
+export type SpellPageProps = React.ComponentPropsWithoutRef<"div"> & {
+  bordered?: boolean // bordered variant
+  dark?: boolean // dark variant
+  fillWindow?: boolean // fill window completely.  alias for `full`
+  light?: boolean // light variant
+  rounded?: boolean // rounded variant
+  spaced?: boolean // spaced variant (around page)
+  padded?: boolean // padding (within page)
+  scrolling?: boolean // scrolling variant
+  rows?: boolean // use flexbox to lay children out in rows, down the page.
+  columns?: boolean // use flexbox to lay children out in columns, across the page.
 }

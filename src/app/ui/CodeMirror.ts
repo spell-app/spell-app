@@ -34,14 +34,6 @@ import "./CodeMirror.css"
 // Export `<CodeMirror>` component
 export { Controlled as CodeMirror } from "react-codemirror2"
 
-/**
- * `codemirror/addon/lint/lint` adds a `lint` option that isn't part of the base
- * `@types/codemirror` `EditorConfiguration` type.
- */
-export type SpellCodeMirrorOptions = CodeMirror.EditorConfiguration & {
-  lint?: boolean
-}
-
 export const codeMirrorOptions: SpellCodeMirrorOptions = {
   theme: "neat", // Owen favors: "solarized", "neo" and "neat"
   indentWithTabs: true,
@@ -66,14 +58,6 @@ export const outputOptions: SpellCodeMirrorOptions = {
   // eslint
   gutters: ["CodeMirror-lint-markers"],
   lint: true
-}
-
-/** State for our "spell" CodeMirror mode, cached per line. */
-export type SpellModeState = {
-  /** spell string for the current line */
-  string: string | undefined
-  /** list of tokens for the current line */
-  tokens: P.Token[] | undefined
 }
 
 CodeMirror.defineMode("spell", (): CodeMirror.Mode<SpellModeState> => {
@@ -155,3 +139,19 @@ CodeMirror.defineMode("spell", (): CodeMirror.Mode<SpellModeState> => {
 })
 CodeMirror.defineMIME("text/spell", "spell")
 CodeMirror.defineMIME("text/x-spell", "spell")
+
+/**
+ * `codemirror/addon/lint/lint` adds a `lint` option that isn't part of the base
+ * `@types/codemirror` `EditorConfiguration` type.
+ */
+export type SpellCodeMirrorOptions = CodeMirror.EditorConfiguration & {
+  lint?: boolean
+}
+
+/** State for our "spell" CodeMirror mode, cached per line. */
+export type SpellModeState = {
+  /** spell string for the current line */
+  string: string | undefined
+  /** list of tokens for the current line */
+  tokens: P.Token[] | undefined
+}

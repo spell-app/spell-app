@@ -1,15 +1,5 @@
 import React from "react"
 
-export type ErrorHandlerState = {
-  error?: Error
-}
-
-export type ErrorHandlerWrapperProps<Props> = {
-  component: ReactNode
-  error?: Error
-  props: Props
-}
-
 /**
  * Generic `ErrorHandler` component.
  * DOCME
@@ -87,4 +77,16 @@ export class ErrorHandler<Props extends object = object> extends React.Component
       : React.createElement(this.Component, props)
     return React.createElement(this.Wrapper, { component, error, props })
   }
+}
+
+/** Props `<ErrorHandler>` hands to a subclass's `Wrapper`, which frames the rendered component. */
+export type ErrorHandlerWrapperProps<Props> = {
+  component: ReactNode
+  error?: Error
+  props: Props
+}
+
+/** React state tracked by `<ErrorHandler>` and its subclasses. */
+export type ErrorHandlerState = {
+  error?: Error
 }

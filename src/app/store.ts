@@ -8,74 +8,24 @@ import { UIError, createStore, setPrefKey, getPref, setPref, CONFIRM } from "~/u
 import { P } from "~/parser"
 import { spellCore } from "~/spellCore"
 import { SP } from "~/languages/spell"
-// NOTE: `UI` is only ever dereferenced inside store methods (`UI.Alert` etc), never at module
-// evaluation time.  That matters -- `~/app/components` imports back into `~/app/store`, so the
-// binding is still in its TDZ while this module is being evaluated.
-import { UI } from "~/app/components"
-import type {
-  ModalComponentProps,
-  AlertModalProps,
-  ConfirmModalProps,
-  PromptModalProps,
-  ChooserModalProps
-} from "~/app/components"
+import type * as UIT from "~/app/ui/ui.types"
+// NOTE: import `Modals` directly rather than through `UI` barrel to avoid circular import.
+import * as Modals from "~/app/ui/modals"
 
 //-----------------
-// Supporting types
+// The store
 //-----------------
 
-/** Scroll state tracked alongside a cursor/scroll `EditorSelection`. */
-export type EditorScrollInfo = {
-  event: "cursor" | "scroll"
-  direction?: "up" | "down"
-  percent: number
-  max: number
-  current: number
-  total: number
-  visible: number
-}
-
-/** CodeMirror-style `{ line, ch }` position, augmented with pixel/offset info. */
-export type EditorPosition = {
-  line: number
-  ch: number
-  top?: number
-  offset?: number
-}
-
-/** Cursor/scroll selection remembered per-file, as stored/restored via `store.lastSelectionForFile()`. */
-export type EditorSelection = {
-  scroll?: EditorScrollInfo
-  anchor?: EditorPosition
-  head?: EditorPosition
-}
-
+setPrefKey("spellEditor:")
 /**
- * Any of the file classes `store.file` can hold, plus the ad-hoc `initialSelection` that
- * `store.selectPath()` stashes on it to tell `<InputEditor>` where to restore the cursor.
+ * Initial contents of the `store` singleton.
+ * - NOTE: `SpellStore` is derived from this with `typeof`,
+ *   so the docstrings below serve BOTH the constant and the type.
+ * - NOTE: methods reach the reactive proxy via `store.x`, NEVER `this` -- see `showModal()`.
+ * - MUST annotate any property whose initializer is narrower than its real type
+ *   (e.g. `undefined as Foo | undefined`), or `typeof` will infer the narrow one.
  */
-export type StoreFile = SP.AnySpellFile & { initialSelection?: EditorSelection }
-
-/** Loose prop bag passed to a modal shown with `store.showModal()`. */
-export type ModalProps = Record<string, unknown>
-
-/** A modal component (`UI.Alert`, `UI.Confirm`, etc), as rendered by `<UI.ModalRoot>`. */
-export type ModalComponent = ComponentType<ModalComponentProps<ModalProps, unknown>>
-
-/**
- * One entry in `store.modals`, the stack of currently-showing modals.
- * NOTE: this is a heterogeneous stack -- each entry's real `component` is typed for its own
- * specific props/resolve-value types (e.g. `UI.Confirm` wants `ModalComponentProps<ConfirmModalProps,
- * boolean>`) -- so `component`/`resolve`/`reject` are type-erased to `ModalComponent`/`unknown` here.
- */
-export type ModalEntry = {
-  props: ModalProps & { id: string }
-  component: ModalComponent
-  resolve: (value?: unknown) => void
-  reject: (reason?: unknown) => void
-}
-
-export type SpellStore = {
+const initialStore = {
   //-----------------
   // Project and project actions
   //-----------------
@@ -84,337 +34,36 @@ export type SpellStore = {
    * `SP.SpellProjectRoot` shown in `SpellEditor`.
    * Update with `store.showEditor()
    */
-  projectRoot?: SP.SpellProjectRoot
+  projectRoot: undefined as SP.SpellProjectRoot | undefined,
   /** Get/save last viewed `projectPath` for `projectRootPath`. */
-  lastProjectForRoot: typeof lastProjectForRoot
-  appType: string
+  lastProjectForRoot,
+  get appType(): string {
+    return store.projectRoot?.Type || "Project"
+  },
 
   /**
    * Current `SP.SpellProject` shown in `SpellEditor`.
    * Update with `store.showEditor()`
    */
-  project?: SP.SpellProject
+  project: undefined as SP.SpellProject | undefined,
   /** Get/save last viewed full `filePath` for `projectPath`. */
-  lastFileForProject: typeof lastFileForProject
+  lastFileForProject,
 
   /**
    * `SpellFile` etc shown in `SpellEditor`.
    * Update with `store.showEditor()`
    */
-  file?: StoreFile
+  file: undefined as StoreFile | undefined,
   /** Get/save last `selection` for `filePath`.  */
-  lastSelectionForFile: typeof lastSelectionForFile
-
-  /** Show the project / example / guide chooser page. */
-  showProjectChooser(): Promise<void>
-  /** Show `<SpellEditor>` for a `path` by updating the URL, which will eventually call `selectPath` */
-  showEditor(path?: string, selection?: EditorSelection): void
-  /** Show `<SpellRunner>` for a `path` by updating the URL, which will eventually call `selectPath` */
-  showRunner(path?: string): Promise<void>
-  /** Show settings for the current `project`. TODO: not yet implemented. */
-  showProjectSettings(): void
-  /** Show the "About Spell" dialog. TODO: not yet implemented. */
-  aboutSpell(): void
-  /** Show documentation. TODO: not yet implemented. */
-  showDocs(): void
-  /** Show help. TODO: not yet implemented. */
-  showHelp(): void
-  /** Log the user in. TODO: not yet implemented. */
-  logIn(): void
-  /** Publish the current `project`. TODO: not yet implemented. */
-  publishApp(): void
-
-  /**
-   * Last project page we were showing: "editor" or "runner".
-   * Set by `<SpellEditor>` or `<SpellRunner>`
-   */
-  projectPage: "editor" | "runner"
-
-  /**
-   * Select a `path` to show in the `<SpellEditor/>` or `<SpellRunner>`.
-   * Pass `selection` as `{ line, ch }` to set the cursor in the file.
-   */
-  selectPath(path: string, selection?: EditorSelection): Promise<void>
-  /**
-   * Given a `match`, attempt to show it and put the cursor in the right spot.
-   * This may not be accurate if text has changed since
-   */
-  showMatch(match: P.Match): Promise<void>
-
-  /**
-   * Create an app for the specified `projectRoot`.
-   * `projectId` is optional, if you don't specify we'll ask the user for one.
-   */
-  createApp(projectRoot?: SP.SpellProjectRoot, projectId?: string): Promise<void>
-  duplicateApp(newProjectId?: string): Promise<void>
-  renameApp(newProjectId?: string): Promise<void>
-  deleteApp(): Promise<void>
-
-  compileApp(): Promise<void>
-  executeCompiledApp(): Promise<void>
-  /** Timer id for a pending `compileAppSoon()`, if any. */
-  compileAppSoonTimer?: ReturnType<typeof setTimeout>
-  /** Compile after `delay` seconds. */
-  compileAppSoon(delay?: number): void
-  clearCompileAppSoon(): void
-
-  //-----------------
-  // Projects/Examples/Guides actions
-  //-----------------
-  createProject(projectId?: string): Promise<void>
-  createExample(projectId?: string): Promise<void>
-  createGuide(projectId?: string): Promise<void>
-
-  //-----------------
-  // File actions
-  //-----------------
-  saveFile(): Promise<void>
-  reloadFile(): Promise<void>
-  createFile(filePath?: string, contents?: string): Promise<void>
-  duplicateFile(newPath?: string): Promise<void>
-  renameFile(newPath?: string): Promise<void>
-  deleteFile(): Promise<void>
-
-  //-----------------
-  // Dialogs
-  //-----------------
-  testDialog(): Promise<void>
-
-  /**
-   * Get the user's answer to some question.
-   * `props`:
-   *  - `message` (required) Message to show.
-   *  - `header` (optional) Header for the dialog.  Default is no header.
-   *  - `ok` (optional) string or props for OK button.  Default is `"OK"`.
-   *  - `cancel` (optional) string or props for Cancel button.  Default is `"Cancel"`.
-   *  - any additional `props` will be passed to the `<Modal>`.s
-   * Instead of passing `props`, you can simply pass string `message` to use other defaults.
-   *
-   * `alert()` always resolves `undefined` (there's only an OK button).
-   * `confirm()` resolves `true`/`false` for the OK/Cancel buttons.
-   * `prompt()`/`promptForNumber()` resolve the field's string value, or `undefined` if cancelled.
-   */
-  alert(props: string | AlertModalProps): Promise<undefined>
-  confirm(props: string | ConfirmModalProps): Promise<boolean>
-  prompt(props: string | PromptModalProps): Promise<string | undefined>
-  // Prompt for a number, by default an integer.
-  // Pass e.g. `{ inputProps: { step, min, max }` to customize input.
-  promptForNumber(props: string | PromptModalProps): Promise<string | undefined>
-  // Show chooser dialog.
-  // You MUST pass at least `{ message, options }`.
-  choose(props?: ChooserModalProps): Promise<unknown>
-
-  /** Seqeuence to generate unique modal `id`s. */
-  modalId: number
-  /** Current stack of modals, topmost at start. */
-  modals: ModalEntry[]
-  debugModals: boolean
-  /**
-   * Generic method to show a `component` modal with `props`.
-   * Returns a promise which will resolve/reject as per `component` setup.
-   */
-  showModal: typeof showModal
-
-  //-----------------
-  // InputEditor event handlers
-  //-----------------
-
-  /**
-   * Pointer to the `codeMirror` instance for our InputEditor.
-   * TODO: generalize this for multiple editors!
-   */
-  inputEditor?: CodeMirror.Editor | null
-  /** Remember `inputEditor` in our <InputEditor editorDidMount /> event. */
-  onInputDidMount(codeMirror: CodeMirror.Editor): void
-  /** Forget `inputEditor` in our <InputEditor editorWillUnmount /> event. */
-  onInputWillUnmount(codeMirror: CodeMirror.Editor): void
-
-  /** Handle cursor move or scroll in our inputEditor, remembering the `selection`  */
-  selection?: EditorSelection
-  onInputCursor: typeof onInputCursor
-
-  /**
-   * Called from a `useEffect()` hook in our `<InputEditor />`,
-   * if `store.file.initialSelection` is set and things are ready to go
-   * scroll the codeMirror `inportEditor` and reset the selection.
-   */
-  onInputEffect(): void
-  /** Handle change event from our inputEditor. */
-  onInputChanged(codeMirror: CodeMirror.Editor, change: CodeMirror.EditorChange, value: string): void
-
-  //-----------------
-  // UI
-  //-----------------
-
-  /** Show rule names in MatchViewer? */
-  showingMatchRuleNames: boolean
-  toggleMatchRuleNames(on?: boolean): void
-
-  /** Single `notice` display. */
-  notice?: string
-  showNotice(notice: string): void
-  hideNotice(): void
-
-  /** Single error display. */
-  error?: Error
-  /** Show an error to the user. */
-  showError(error: unknown): void
-  hideError(): void
-}
-
-//-----------------
-// Overloaded helpers (`arguments.length`-sensitive, so plain `function`s rather than arrows)
-//-----------------
-
-/** Get/save last viewed `projectPath` for `projectRootPath`. */
-function lastProjectForRoot(projectRootPath: string): string | undefined
-function lastProjectForRoot(projectRootPath: string, projectPath: string): string
-function lastProjectForRoot(projectRootPath: string, projectPath?: string): string | undefined {
-  if (arguments.length === 1) return getPref(projectRootPath, projectPath)
-  // BUG FIX: was `setPref(projectRootPath, projectRootPath)`, which saved the key as the value.
-  return setPref(projectRootPath, projectPath)
-}
-
-/** Get/save last viewed full `filePath` for `projectPath`. */
-function lastFileForProject(projectPath: string): string | undefined
-function lastFileForProject(projectPath: string, filePath: string): string
-function lastFileForProject(projectPath: string, filePath?: string): string | undefined {
-  if (arguments.length === 1) return getPref(projectPath, filePath)
-  // BUG FIX: was `setPref(projectPath, projectPath)`, which saved the key as the value.
-  return setPref(projectPath, filePath)
-}
-
-/** Get/save last `selection` for `filePath`. */
-function lastSelectionForFile(filePath: string): EditorSelection | undefined
-function lastSelectionForFile(filePath: string, selection: EditorSelection): EditorSelection
-function lastSelectionForFile(filePath: string, selection?: EditorSelection): EditorSelection | undefined {
-  if (arguments.length === 1) return getPref(filePath, selection)
-  return setPref(filePath, selection)
-}
-
-/** Handle cursor move (`onCursorActivity`, one arg) or scroll (`onScroll`, two args) from CodeMirror. */
-function onInputCursor(codeMirror: CodeMirror.Editor): void
-function onInputCursor(codeMirror: CodeMirror.Editor, data: CodeMirror.ScrollInfo): void
-function onInputCursor(codeMirror: CodeMirror.Editor, _data?: CodeMirror.ScrollInfo): void {
-  const event: EditorScrollInfo["event"] = arguments.length === 1 ? "cursor" : "scroll"
-  const { direction, current: oldCurrent } = store.selection?.scroll || {}
-  // allocate this way to make console debugging easier
-  const scroll: EditorScrollInfo = { event, direction, percent: 0, max: 0, current: 0, total: 0, visible: 0 }
-
-  // NOTE: `.doc`/`.display` aren't part of the published `CodeMirror.Editor` types -- this is a
-  // real dynamic boundary onto CodeMirror's undocumented internals, narrowed to just what we use.
-  const cm = codeMirror as CodeMirror.Editor & {
-    doc: CodeMirror.Doc & {
-      scrollTop: number
-      height: number
-      sel: { ranges: { anchor: CodeMirror.Position; head: CodeMirror.Position }[] }
-    }
-    display: { lastWrapHeight: number }
-  }
-  scroll.current = Math.floor(cm.doc.scrollTop)
-  scroll.total = Math.floor(cm.doc.height)
-  scroll.visible = cm.display.lastWrapHeight
-  scroll.max = scroll.total - scroll.visible
-  scroll.percent = parseFloat((scroll.current / scroll.max).toPrecision(4))
-  // update "direction" if we can
-  if (typeof oldCurrent === "number" && oldCurrent !== scroll.current) {
-    scroll.direction = oldCurrent < scroll.current ? "down" : "up"
-  }
-
-  // Extra stuff we COULD get from codeMirror
-  // See:  https://codemirror.net/doc/manual.html#api_sizing
-  // scroll.lineHeight = codeMirror.defaultTextHeight()
-  // scroll.mouseLine = codeMirror.lineAtHeight(<global-mouse-position>, "window")
-
-  const range = cm.doc.sel.ranges[0]
-  const { file } = store
-  // `offsetForPosition()` only exists on `SpellFile`/`SpellCSSFile`, not `SpellJSFile`.
-  const offsetForPosition = (pos: CodeMirror.Position): number | undefined =>
-    file && "offsetForPosition" in file ? file.offsetForPosition(pos) : undefined
-
-  const anchor: EditorPosition = {
-    line: range.anchor.line,
-    ch: range.anchor.ch,
-    top: Math.floor(cm.cursorCoords(range.anchor, "local").top),
-    offset: offsetForPosition(range.anchor)
-  }
-
-  const head: EditorPosition = {
-    line: range.head.line,
-    ch: range.head.ch,
-    top: Math.floor(cm.cursorCoords(range.head, "local").top),
-    offset: offsetForPosition(range.head)
-  }
-
-  store.selection = { scroll, anchor, head }
-  // store selection as file `pref`, we'll reload it in `selectPath()` above.
-  if (file) store.lastSelectionForFile(file.path, store.selection)
-}
-
-/**
- * Generic method to show a `component` modal with `props`.
- * Returns a promise which will resolve/reject as per `component` setup.
- * `P`/`R` are inferred from `component`'s own type (e.g. `UI.Confirm` is typed for
- * `ModalComponentProps<ConfirmModalProps, boolean>`, so passing it infers `P = ConfirmModalProps`,
- * `R = boolean`).
- */
-function showModal<P extends ModalProps, R = unknown>(
-  props: P,
-  component: ComponentType<ModalComponentProps<P, R>>
-): Promise<R> {
-  let modalProps!: ModalEntry
-  const promise = new Promise<R>((resolve, reject) => {
-    modalProps = {
-      props: { ...props, id: `Modal-${store.modalId++}` },
-      // NOTE: `store.modals` is a heterogeneous stack whose entries are typed for different
-      // props/resolve-value types; type-erase to `ModalComponent`/`unknown` here, right at the
-      // boundary where we know which `component`/`props`/`resolve`/`reject` set actually belongs together.
-      component: component as unknown as ModalComponent,
-      resolve: (value?: unknown) => resolve(value as R),
-      reject: (reason?: unknown) => reject(reason)
-    }
-    store.modals = [modalProps, ...store.modals]
-  }).finally(() => {
-    // make sure `store.modals` gets cleaned up however we resolve the promise
-    store.modals = store.modals.filter((it) => it.props.id !== modalProps.props.id)
-  })
-
-  if (store.debugModals) {
-    // NOTE: don't put this in the promise returned to the caller
-    promise.then((value) => console.info("Modal resolved with:", value, "\nprops:", modalProps))
-    promise.catch((error) => console.info("Modal rejected with:", error, "\nprops:", modalProps))
-  }
-
-  return promise
-}
-
-//-----------------
-// The store
-//-----------------
-
-setPrefKey("spellEditor:")
-export const store: SpellStore = createStore<SpellStore>({
-  //-----------------
-  // Project and project actions
-  //-----------------
-
-  projectRoot: undefined,
-  lastProjectForRoot,
-  get appType() {
-    return store.projectRoot?.Type || "Project"
-  },
-
-  project: undefined,
-  lastFileForProject,
-
-  file: undefined,
   lastSelectionForFile,
 
-  showProjectChooser() {
+  /** Show the project / example / guide chooser page. */
+  showProjectChooser(): Promise<void> {
     return navigate("/")
   },
 
-  showEditor(path, selection) {
+  /** Show `<SpellEditor>` for a `path` by updating the URL, which will eventually call `selectPath` */
+  showEditor(path?: string, selection?: UIT.EditorSelection): void {
     if (!path) path = store.file?.path
     // TODO: selection!!!!
     try {
@@ -425,7 +74,8 @@ export const store: SpellStore = createStore<SpellStore>({
     }
   },
 
-  async showRunner(path) {
+  /** Show `<SpellRunner>` for a `path` by updating the URL, which will eventually call `selectPath` */
+  async showRunner(path?: string): Promise<void> {
     if (!path) path = store.file?.path
     try {
       await navigate(new SP.SpellLocation(path!).runnerUrl)
@@ -435,29 +85,43 @@ export const store: SpellStore = createStore<SpellStore>({
     }
   },
 
-  // TODO: these are referenced by `~/app/actions` but not yet implemented.
-  showProjectSettings() {
+  // TODO: these are referenced by `~/app/ui/Actions` but not yet implemented.
+  /** Show settings for the current `project`. TODO: not yet implemented. */
+  showProjectSettings(): void {
     console.warn("TODO: store.showProjectSettings() not yet implemented")
   },
-  aboutSpell() {
+  /** Show the "About Spell" dialog. TODO: not yet implemented. */
+  aboutSpell(): void {
     console.warn("TODO: store.aboutSpell() not yet implemented")
   },
-  showDocs() {
+  /** Show documentation. TODO: not yet implemented. */
+  showDocs(): void {
     console.warn("TODO: store.showDocs() not yet implemented")
   },
-  showHelp() {
+  /** Show help. TODO: not yet implemented. */
+  showHelp(): void {
     console.warn("TODO: store.showHelp() not yet implemented")
   },
-  logIn() {
+  /** Log the user in. TODO: not yet implemented. */
+  logIn(): void {
     console.warn("TODO: store.logIn() not yet implemented")
   },
-  publishApp() {
+  /** Publish the current `project`. TODO: not yet implemented. */
+  publishApp(): void {
     console.warn("TODO: store.publishApp() not yet implemented")
   },
 
-  projectPage: "editor",
+  /**
+   * Last project page we were showing: "editor" or "runner".
+   * Set by `<SpellEditor>` or `<SpellRunner>`
+   */
+  projectPage: "editor" as "editor" | "runner",
 
-  async selectPath(path, selection) {
+  /**
+   * Select a `path` to show in the `<SpellEditor/>` or `<SpellRunner>`.
+   * Pass `selection` as `{ line, ch }` to set the cursor in the file.
+   */
+  async selectPath(path: string, selection?: UIT.EditorSelection): Promise<void> {
     let location: SP.SpellLocation
     try {
       location = new SP.SpellLocation(path)
@@ -539,10 +203,14 @@ export const store: SpellStore = createStore<SpellStore>({
     if (!sameProject) store.compileApp()
   },
 
-  async showMatch(match) {
+  /**
+   * Given a `match`, attempt to show it and put the cursor in the right spot.
+   * This may not be accurate if text has changed since
+   */
+  async showMatch(match: P.Match): Promise<void> {
     const path = match.getScopeOfType(P.FileScope)?.path
     if (!path) return
-    const selection: EditorSelection = {
+    const selection: UIT.EditorSelection = {
       anchor: { line: match.line ?? 0, ch: match.char ?? 0 },
       head: { line: match.line ?? 0, ch: (match.char ?? 0) + match.inputText.length },
       // TODO: scroll!!!?!?!?!
@@ -554,7 +222,14 @@ export const store: SpellStore = createStore<SpellStore>({
     store.onInputEffect()
   },
 
-  async createApp(projectRoot = store.projectRoot!, projectId) {
+  /**
+   * Create an app for the specified `projectRoot`.
+   * `projectId` is optional, if you don't specify we'll ask the user for one.
+   */
+  async createApp(projectRoot?: SP.SpellProjectRoot, projectId?: string): Promise<void> {
+    // NOTE: defaulted here, NOT in the signature -- a default referencing `store` would make
+    // `typeof initialStore` circular, since defaults are part of the member's type.
+    projectRoot ??= store.projectRoot!
     try {
       const project = await projectRoot.createProject(projectId)
       if (project) {
@@ -566,7 +241,7 @@ export const store: SpellStore = createStore<SpellStore>({
     }
   },
 
-  async duplicateApp(newProjectId) {
+  async duplicateApp(newProjectId?: string): Promise<void> {
     try {
       const newProject = await store.projectRoot!.duplicateApp(store.project!.projectId, newProjectId)
       // console.warn({ newProject })
@@ -578,7 +253,7 @@ export const store: SpellStore = createStore<SpellStore>({
       store.showError(e)
     }
   },
-  async renameApp(newProjectId) {
+  async renameApp(newProjectId?: string): Promise<void> {
     try {
       const project = await store.projectRoot!.renameApp(store.project!.projectId, newProjectId)
       if (project) {
@@ -589,7 +264,7 @@ export const store: SpellStore = createStore<SpellStore>({
       store.showError(e)
     }
   },
-  async deleteApp() {
+  async deleteApp(): Promise<void> {
     try {
       const { projectRoot, project } = store
       const removed = await projectRoot!.deleteApp(project!.projectId, CONFIRM)
@@ -603,7 +278,7 @@ export const store: SpellStore = createStore<SpellStore>({
     }
   },
 
-  async compileApp() {
+  async compileApp(): Promise<void> {
     const { project, file } = store
     if (!project || !file) return
 
@@ -632,7 +307,7 @@ export const store: SpellStore = createStore<SpellStore>({
     }
   },
 
-  async executeCompiledApp() {
+  async executeCompiledApp(): Promise<void> {
     const { project } = store
     if (!project?.compiled) return
     spellCore.console.group(`Executing ${project.type}`)
@@ -649,35 +324,39 @@ export const store: SpellStore = createStore<SpellStore>({
   },
 
   // Compile after `delay` seconds.
-  compileAppSoon(delay = 1) {
+  /** Compile after `delay` seconds. */
+  /** Timer id for a pending `compileAppSoon()`, if any. */
+  compileAppSoonTimer: undefined as ReturnType<typeof setTimeout> | undefined,
+  /** Compile after `delay` seconds. */
+  compileAppSoon(delay: number = 1): void {
     store.clearCompileAppSoon()
     store.compileAppSoonTimer = setTimeout(store.compileApp, delay * 1000)
   },
-  clearCompileAppSoon() {
+  clearCompileAppSoon(): void {
     if (store.compileAppSoonTimer) {
       clearTimeout(store.compileAppSoonTimer)
-      delete store.compileAppSoonTimer
+      store.compileAppSoonTimer = undefined
     }
   },
 
   //-----------------
   // Projects actions
   //-----------------
-  createProject(projectId) {
+  createProject(projectId?: string): Promise<void> {
     return store.createApp(SP.SpellProjectRoot.projects, projectId)
   },
 
   //-----------------
   // Examples actions
   //-----------------
-  async createExample(projectId) {
+  async createExample(projectId?: string): Promise<void> {
     return store.createApp(SP.SpellProjectRoot.examples, projectId)
   },
 
   //-----------------
   // Guides actions
   //-----------------
-  async createGuide(projectId) {
+  async createGuide(projectId?: string): Promise<void> {
     return store.createApp(SP.SpellProjectRoot.guides, projectId)
   },
 
@@ -685,11 +364,11 @@ export const store: SpellStore = createStore<SpellStore>({
   // File actions
   //-----------------
 
-  async saveFile() {
+  async saveFile(): Promise<void> {
     const { file } = store
     if (file?.isLoaded) await file.save(undefined)
   },
-  async reloadFile() {
+  async reloadFile(): Promise<void> {
     store.clearCompileAppSoon()
     const { file } = store
     if (file) {
@@ -697,7 +376,7 @@ export const store: SpellStore = createStore<SpellStore>({
       store.compileApp()
     }
   },
-  async createFile(filePath, contents) {
+  async createFile(filePath?: string, contents?: string): Promise<void> {
     store.clearCompileAppSoon()
     try {
       const newFile = await store.project!.createFile(filePath, contents)
@@ -709,7 +388,7 @@ export const store: SpellStore = createStore<SpellStore>({
       store.showError(e)
     }
   },
-  async duplicateFile(newPath) {
+  async duplicateFile(newPath?: string): Promise<void> {
     store.clearCompileAppSoon()
     try {
       const newFile = await store.project!.duplicateFile(store.file!.filePath!, newPath)
@@ -721,7 +400,7 @@ export const store: SpellStore = createStore<SpellStore>({
       store.showError(e)
     }
   },
-  async renameFile(newPath) {
+  async renameFile(newPath?: string): Promise<void> {
     store.clearCompileAppSoon()
     try {
       const renamedFile = await store.project!.renameFile(store.file!.filePath!, newPath)
@@ -733,7 +412,7 @@ export const store: SpellStore = createStore<SpellStore>({
       store.showError(e)
     }
   },
-  async deleteFile() {
+  async deleteFile(): Promise<void> {
     store.clearCompileAppSoon()
     try {
       const project = store.project!
@@ -758,67 +437,98 @@ export const store: SpellStore = createStore<SpellStore>({
   // Dialogs
   //-----------------
 
-  async testDialog() {
+  async testDialog(): Promise<void> {
     const reply = await store.confirm({ header: "Header", message: "Message?", ok: "Yep", cancel: "Nope" })
     console.warn("testDialog resolved with ", reply)
   },
 
-  alert(props) {
+  /**
+   * Get the user's answer to some question.
+   * `props`:
+   *  - `message` (required) Message to show.
+   *  - `header` (optional) Header for the dialog.  Default is no header.
+   *  - `ok` (optional) string or props for OK button.  Default is `"OK"`.
+   *  - `cancel` (optional) string or props for Cancel button.  Default is `"Cancel"`.
+   *  - any additional `props` will be passed to the `<Modal>`.s
+   * Instead of passing `props`, you can simply pass string `message` to use other defaults.
+   *
+   * `alert()` always resolves `undefined` (there's only an OK button).
+   * `confirm()` resolves `true`/`false` for the OK/Cancel buttons.
+   * `prompt()`/`promptForNumber()` resolve the field's string value, or `undefined` if cancelled.
+   */
+  alert(props: string | Modals.AlertModalProps): Promise<undefined> {
     if (typeof props === "string") props = { message: props }
-    // `UI.Alert` always resolves `undefined` (only an OK button); narrow past `showModal()`'s
-    // generic `Promise<unknown>` (`UI.Alert`'s own `ModalComponentProps<AlertModalProps>` defaults
+    // `Modals.Alert` always resolves `undefined` (only an OK button); narrow past `showModal()`'s
+    // generic `Promise<unknown>` (`Modals.Alert`'s own `Modals.ModalComponentProps<Modals.AlertModalProps>` defaults
     // its resolve value to `unknown`).
-    return store.showModal(props, UI.Alert) as Promise<undefined>
+    return store.showModal(props, Modals.Alert) as Promise<undefined>
   },
 
-  confirm(props) {
+  confirm(props: string | Modals.ConfirmModalProps): Promise<boolean> {
     if (typeof props === "string") props = { message: props }
-    return store.showModal(props, UI.Confirm)
+    return store.showModal(props, Modals.Confirm)
   },
 
-  prompt(props) {
+  prompt(props: string | Modals.PromptModalProps): Promise<string | undefined> {
     if (typeof props === "string") props = { message: props }
-    return store.showModal(props, UI.Prompt)
+    return store.showModal(props, Modals.Prompt)
   },
 
-  promptForNumber(props) {
+  promptForNumber(props: string | Modals.PromptModalProps): Promise<string | undefined> {
     if (typeof props === "string") props = { message: props }
     props = { type: "number", inputProps: { step: 1 }, ...props }
-    return store.showModal(props, UI.Prompt)
+    return store.showModal(props, Modals.Prompt)
   },
 
-  choose(props) {
+  choose(props?: Modals.ChooserModalProps): Promise<unknown> {
     if (!props?.message || !props.options) {
       console.warn("store.choose(): must pass 'message' and 'options', got:", props)
       return Promise.reject(undefined)
     }
-    return store.showModal(props, UI.Chooser)
+    return store.showModal(props, Modals.Chooser)
   },
 
   modalId: 0, // Seqeuence to generate unique modal `id`s.
-  modals: [], // Current stack of modals, topmost at start.
+  /** Current stack of modals, topmost at start. */
+  modals: [] as ModalEntry[],
   debugModals: false,
+  /**
+   * Generic method to show a `component` modal with `props`.
+   * Returns a promise which will resolve/reject as per `component` setup.
+   */
   showModal,
 
   //-----------------
   // InputEditor event handlers
   //-----------------
 
-  inputEditor: undefined,
-  onInputDidMount(codeMirror) {
+  /**
+   * Pointer to the `codeMirror` instance for our InputEditor.
+   * TODO: generalize this for multiple editors!
+   */
+  inputEditor: undefined as CodeMirror.Editor | null | undefined,
+  /** Remember `inputEditor` in our <InputEditor editorDidMount /> event. */
+  onInputDidMount(codeMirror: CodeMirror.Editor): void {
     // console.info("initializing", { codeMirror })
     store.inputEditor = codeMirror
     codeMirror.on("refresh", store.onInputCursor)
   },
-  onInputWillUnmount(codeMirror) {
+  /** Forget `inputEditor` in our <InputEditor editorWillUnmount /> event. */
+  onInputWillUnmount(codeMirror: CodeMirror.Editor): void {
     store.inputEditor = null
     codeMirror.off("refresh", store.onInputCursor)
   },
 
-  selection: undefined,
+  /** Handle cursor move or scroll in our inputEditor, remembering the `selection`  */
+  selection: undefined as UIT.EditorSelection | undefined,
   onInputCursor,
 
-  onInputEffect() {
+  /**
+   * Called from a `useEffect()` hook in our `<InputEditor />`,
+   * if `store.file.initialSelection` is set and things are ready to go
+   * scroll the codeMirror `inportEditor` and reset the selection.
+   */
+  onInputEffect(): void {
     const { inputEditor, file } = store
     const { initialSelection, isLoaded } = file || {}
     if (!inputEditor || !isLoaded || !initialSelection) return
@@ -856,7 +566,8 @@ export const store: SpellStore = createStore<SpellStore>({
     // }
   },
 
-  onInputChanged(_codeMirror, _change, value) {
+  /** Handle change event from our inputEditor. */
+  onInputChanged(_codeMirror: CodeMirror.Editor, _change: CodeMirror.EditorChange, value: string): void {
     const { file, project } = store
     if (!file || !project) return
     file.contents = value
@@ -871,25 +582,191 @@ export const store: SpellStore = createStore<SpellStore>({
   //-----------------
 
   showingMatchRuleNames: true,
-  toggleMatchRuleNames(on = !store.showingMatchRuleNames) {
+  toggleMatchRuleNames(on?: boolean): void {
+    // NOTE: defaulted here rather than in the signature -- see `createApp()` above.
+    on ??= !store.showingMatchRuleNames
     store.showingMatchRuleNames = on
   },
 
-  notice: undefined,
-  showNotice(notice) {
+  /** Single `notice` display. */
+  notice: undefined as string | undefined,
+  showNotice(notice: string): void {
     console.info("showNotice:", notice)
     store.notice = notice
   },
-  hideNotice() {
+  hideNotice(): void {
     store.notice = undefined
   },
 
-  error: undefined,
-  showError(error) {
+  /** Single error display. */
+  error: undefined as Error | undefined,
+  /** Show an error to the user. */
+  showError(error: unknown): void {
     console.dir(error)
     store.error = error instanceof Error ? error : new UIError(String(error))
   },
-  hideError() {
+  hideError(): void {
     store.error = undefined
   }
-})
+}
+
+/** Type of the `store` singleton, derived from `initialStore` above. */
+export type SpellStore = typeof initialStore
+
+/** The `store` singleton -- a reactive proxy over `initialStore`. */
+export const store: SpellStore = createStore(initialStore)
+
+//-----------------
+// Supporting types
+//-----------------
+
+/**
+ * Any of the file classes `store.file` can hold, plus the ad-hoc `initialSelection` that
+ * `store.selectPath()` stashes on it to tell `<InputEditor>` where to restore the cursor.
+ */
+export type StoreFile = SP.AnySpellFile & { initialSelection?: UIT.EditorSelection }
+
+/** Loose prop bag passed to a modal shown with `store.showModal()`. */
+export type ModalProps = Record<string, unknown>
+
+/** A modal component (`Modals.Alert`, `Modals.Confirm`, etc), as rendered by `<Modals.ModalRoot>`. */
+export type ModalComponent = ComponentType<Modals.ModalComponentProps<ModalProps, unknown>>
+
+/**
+ * One entry in `store.modals`, the stack of currently-showing modals.
+ * NOTE: this is a heterogeneous stack -- each entry's real `component` is typed for its own
+ * specific props/resolve-value types (e.g. `Modals.Confirm` wants `Modals.ModalComponentProps<Modals.ConfirmModalProps,
+ * boolean>`) -- so `component`/`resolve`/`reject` are type-erased to `ModalComponent`/`unknown` here.
+ */
+export type ModalEntry = {
+  props: ModalProps & { id: string }
+  component: ModalComponent
+  resolve: (value?: unknown) => void
+  reject: (reason?: unknown) => void
+}
+
+//-----------------
+// Overloaded helpers (`arguments.length`-sensitive, so plain `function`s rather than arrows)
+//-----------------
+
+/** Get/save last viewed `projectPath` for `projectRootPath`. */
+function lastProjectForRoot(projectRootPath: string): string | undefined
+function lastProjectForRoot(projectRootPath: string, projectPath: string): string
+function lastProjectForRoot(projectRootPath: string, projectPath?: string): string | undefined {
+  if (arguments.length === 1) return getPref(projectRootPath, projectPath)
+  // BUG FIX: was `setPref(projectRootPath, projectRootPath)`, which saved the key as the value.
+  return setPref(projectRootPath, projectPath)
+}
+
+/** Get/save last viewed full `filePath` for `projectPath`. */
+function lastFileForProject(projectPath: string): string | undefined
+function lastFileForProject(projectPath: string, filePath: string): string
+function lastFileForProject(projectPath: string, filePath?: string): string | undefined {
+  if (arguments.length === 1) return getPref(projectPath, filePath)
+  // BUG FIX: was `setPref(projectPath, projectPath)`, which saved the key as the value.
+  return setPref(projectPath, filePath)
+}
+
+/** Get/save last `selection` for `filePath`. */
+function lastSelectionForFile(filePath: string): UIT.EditorSelection | undefined
+function lastSelectionForFile(filePath: string, selection: UIT.EditorSelection): UIT.EditorSelection
+function lastSelectionForFile(filePath: string, selection?: UIT.EditorSelection): UIT.EditorSelection | undefined {
+  if (arguments.length === 1) return getPref(filePath, selection)
+  return setPref(filePath, selection)
+}
+
+/** Handle cursor move (`onCursorActivity`, one arg) or scroll (`onScroll`, two args) from CodeMirror. */
+function onInputCursor(codeMirror: CodeMirror.Editor): void
+function onInputCursor(codeMirror: CodeMirror.Editor, data: CodeMirror.ScrollInfo): void
+function onInputCursor(codeMirror: CodeMirror.Editor, _data?: CodeMirror.ScrollInfo): void {
+  const event: UIT.EditorScrollInfo["event"] = arguments.length === 1 ? "cursor" : "scroll"
+  const { direction, current: oldCurrent } = store.selection?.scroll || {}
+  // allocate this way to make console debugging easier
+  const scroll: UIT.EditorScrollInfo = { event, direction, percent: 0, max: 0, current: 0, total: 0, visible: 0 }
+
+  // NOTE: `.doc`/`.display` aren't part of the published `CodeMirror.Editor` types -- this is a
+  // real dynamic boundary onto CodeMirror's undocumented internals, narrowed to just what we use.
+  const cm = codeMirror as CodeMirror.Editor & {
+    doc: CodeMirror.Doc & {
+      scrollTop: number
+      height: number
+      sel: { ranges: { anchor: CodeMirror.Position; head: CodeMirror.Position }[] }
+    }
+    display: { lastWrapHeight: number }
+  }
+  scroll.current = Math.floor(cm.doc.scrollTop)
+  scroll.total = Math.floor(cm.doc.height)
+  scroll.visible = cm.display.lastWrapHeight
+  scroll.max = scroll.total - scroll.visible
+  scroll.percent = parseFloat((scroll.current / scroll.max).toPrecision(4))
+  // update "direction" if we can
+  if (typeof oldCurrent === "number" && oldCurrent !== scroll.current) {
+    scroll.direction = oldCurrent < scroll.current ? "down" : "up"
+  }
+
+  // Extra stuff we COULD get from codeMirror
+  // See:  https://codemirror.net/doc/manual.html#api_sizing
+  // scroll.lineHeight = codeMirror.defaultTextHeight()
+  // scroll.mouseLine = codeMirror.lineAtHeight(<global-mouse-position>, "window")
+
+  const range = cm.doc.sel.ranges[0]
+  const { file } = store
+  // `offsetForPosition()` only exists on `SpellFile`/`SpellCSSFile`, not `SpellJSFile`.
+  const offsetForPosition = (pos: CodeMirror.Position): number | undefined =>
+    file && "offsetForPosition" in file ? file.offsetForPosition(pos) : undefined
+
+  const anchor: UIT.EditorPosition = {
+    line: range.anchor.line,
+    ch: range.anchor.ch,
+    top: Math.floor(cm.cursorCoords(range.anchor, "local").top),
+    offset: offsetForPosition(range.anchor)
+  }
+
+  const head: UIT.EditorPosition = {
+    line: range.head.line,
+    ch: range.head.ch,
+    top: Math.floor(cm.cursorCoords(range.head, "local").top),
+    offset: offsetForPosition(range.head)
+  }
+
+  store.selection = { scroll, anchor, head }
+  // store selection as file `pref`, we'll reload it in `selectPath()` above.
+  if (file) store.lastSelectionForFile(file.path, store.selection)
+}
+
+/**
+ * Generic method to show a `component` modal with `props`.
+ * Returns a promise which will resolve/reject as per `component` setup.
+ * `P`/`R` are inferred from `component`'s own type (e.g. `Modals.Confirm` is typed for
+ * `Modals.ModalComponentProps<Modals.ConfirmModalProps, boolean>`, so passing it infers `P = Modals.ConfirmModalProps`,
+ * `R = boolean`).
+ */
+function showModal<P extends ModalProps, R = unknown>(
+  props: P,
+  component: ComponentType<Modals.ModalComponentProps<P, R>>
+): Promise<R> {
+  let modalProps!: ModalEntry
+  const promise = new Promise<R>((resolve, reject) => {
+    modalProps = {
+      props: { ...props, id: `Modal-${store.modalId++}` },
+      // NOTE: `store.modals` is a heterogeneous stack whose entries are typed for different
+      // props/resolve-value types; type-erase to `ModalComponent`/`unknown` here, right at the
+      // boundary where we know which `component`/`props`/`resolve`/`reject` set actually belongs together.
+      component: component as unknown as ModalComponent,
+      resolve: (value?: unknown) => resolve(value as R),
+      reject: (reason?: unknown) => reject(reason)
+    }
+    store.modals = [modalProps, ...store.modals]
+  }).finally(() => {
+    // make sure `store.modals` gets cleaned up however we resolve the promise
+    store.modals = store.modals.filter((it) => it.props.id !== modalProps.props.id)
+  })
+
+  if (store.debugModals) {
+    // NOTE: don't put this in the promise returned to the caller
+    promise.then((value) => console.info("Modal resolved with:", value, "\nprops:", modalProps))
+    promise.catch((error) => console.info("Modal rejected with:", error, "\nprops:", modalProps))
+  }
+
+  return promise
+}

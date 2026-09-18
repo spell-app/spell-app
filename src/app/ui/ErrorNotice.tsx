@@ -4,17 +4,6 @@ import * as SUI from "semantic-ui-react"
 import { view, CustomError } from "~/util"
 import { store } from "~/app/store"
 
-export type ErrorDisplayProps = Omit<SUI.MessageProps, "error" | "onDismiss"> & {
-  /** `Error` to display. */
-  error?: Error
-  /** Callback when they click the `x` close button. */
-  onDismiss?: SUI.MessageProps["onDismiss"]
-  /** Auto-hide after a certain amount of time by calling `onDismiss`? */
-  autoHide?: boolean
-  /** Auto-hide delay, in msec. */
-  autoHideDelay?: number
-}
-
 /**
  * Display for a single `error`.
  * This can be inlined, stacked, etc.
@@ -66,6 +55,16 @@ export function ErrorDisplay(allProps: ErrorDisplayProps) {
   return <SUI.Message {...props} error onDismiss={onDismiss} children={children} />
 }
 
+export type ErrorDisplayProps = Omit<SUI.MessageProps, "error" | "onDismiss"> & {
+  /** `Error` to display. */
+  error?: Error
+  /** Callback when they click the `x` close button. */
+  onDismiss?: SUI.MessageProps["onDismiss"]
+  /** Auto-hide after a certain amount of time by calling `onDismiss`? */
+  autoHide?: boolean
+  /** Auto-hide delay, in msec. */
+  autoHideDelay?: number
+}
 /**
  * Display `store.error` over page content.
  */

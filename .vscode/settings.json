@@ -4,15 +4,16 @@
   "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
   "javascript.validate.enable": false,
   "[javascript]": {
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": true
   },
   "[javascriptreact]": {
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": true
   },
 
   // requires only if you use vetur plugin
   "vetur.validation.script": false,
   "prettier.arrowParens": "always",
   "prettier.printWidth": 120,
-  "prettier.semi": false
+  "prettier.semi": false,
+  "js/ts.experimental.useTsgo": true
 }

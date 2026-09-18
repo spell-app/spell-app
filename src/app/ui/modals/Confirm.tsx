@@ -1,6 +1,6 @@
 import * as SUI from "semantic-ui-react"
 
-import type { ModalComponentProps } from "./ModalRoot"
+import type { ModalComponentProps } from "./modals.types"
 
 /****************
  * ### `<Confirm>`

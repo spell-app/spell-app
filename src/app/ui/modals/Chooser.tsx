@@ -1,7 +1,8 @@
 import * as SUI from "semantic-ui-react"
 
-import { F } from "./Form"
-import type { ModalComponentProps } from "./ModalRoot"
+import { F } from "~/app/ui/forms"
+
+import type * as MT from "./modals.types"
 
 /****************
  * ### `<Chooser>`
@@ -29,7 +30,7 @@ import type { ModalComponentProps } from "./ModalRoot"
  * TODO: `allowAdditions` to add additional values
  * TODO: `value` for a multi-select is a proxy, not an array!
  ****************/
-export function Chooser({ props, resolve }: ModalComponentProps<ChooserModalProps>) {
+export function Chooser({ props, resolve }: MT.ModalComponentProps<ChooserModalProps>) {
   const {
     message,
     options: startOptions,
@@ -88,31 +89,6 @@ export function Chooser({ props, resolve }: ModalComponentProps<ChooserModalProp
   )
 }
 
-/** Props for `<Chooser>`.  Extra keys pass through to the underlying `SUI.Modal`. */
-export type ChooserModalProps = {
-  message: ReactNode
-  options: DropdownOptionInput[] | Record<string, string>
-  defaultValue?: unknown
-  multiple?: boolean
-  allowAdditions?: boolean
-  header?: ReactNode
-  inputProps?: Record<string, unknown>
-  ok?: string | SUI.ButtonProps
-  cancel?: string | SUI.ButtonProps
-} & Record<string, unknown>
-
-/** One `options` entry as callers may pass it -- before `normalizeSUIDropdownOptions()`. */
-export type DropdownOptionInput = string | number | NormalizedDropdownOption
-
-/** One `options` entry in the shape SUI's `<Dropdown>` actually wants. */
-export type NormalizedDropdownOption = Prettify<
-  {
-    key: string | number
-    text?: ReactNode
-    value?: unknown
-  } & Record<string, unknown>
->
-
 /**
  * Normalize `options` for SUI `<Dropdown/>`:
  * - array of objects passes through.  Expects `{ text, value, icon?, image? }`
@@ -122,8 +98,8 @@ export type NormalizedDropdownOption = Prettify<
  * Adds `key` to all returned values.
  */
 function normalizeSUIDropdownOptions(
-  options: DropdownOptionInput[] | Record<string, string>
-): NormalizedDropdownOption[] {
+  options: MT.DropdownOptionInput[] | Record<string, string>
+): MT.NormalizedDropdownOption[] {
   if (Array.isArray(options)) {
     return options.map((option, index) => {
       if (typeof option === "object") return { ...option, key: option.key ?? index }
@@ -134,3 +110,16 @@ function normalizeSUIDropdownOptions(
     return { key: value, value, text }
   })
 }
+
+/** Props for `<Chooser>`.  Extra keys pass through to the underlying `SUI.Modal`. */
+export type ChooserModalProps = {
+  message: ReactNode
+  options: MT.DropdownOptionInput[] | Record<string, string>
+  defaultValue?: unknown
+  multiple?: boolean
+  allowAdditions?: boolean
+  header?: ReactNode
+  inputProps?: Record<string, unknown>
+  ok?: string | SUI.ButtonProps
+  cancel?: string | SUI.ButtonProps
+} & Record<string, unknown>

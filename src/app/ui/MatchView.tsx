@@ -1,15 +1,6 @@
 import { P } from "~/parser"
 
 /**
- * `rules/JSX.ts` (a concurrently-converting chunk, `src/languages/spell/rules/**`) attaches ad-hoc
- * `attributes`/`children`/`statement`/`expression`/`error` fields to JSX-related matches during
- * `parse()` -- these aren't part of the core `Match` shape, so we mirror them locally here.
- */
-type JSXMatch = P.AnyMatch
-
-export type MatchViewProps = { match?: P.AnyMatch }
-
-/**
  * View for a particular `Match`.
  */
 export function MatchView({ match }: MatchViewProps) {
@@ -64,7 +55,13 @@ export function MatchView({ match }: MatchViewProps) {
   )
 }
 
-export type TokenViewProps = { token?: P.Token }
+export type MatchViewProps = { match?: P.AnyMatch }
+/**
+ * `rules/JSX.ts` (a concurrently-converting chunk, `src/languages/spell/rules/**`) attaches ad-hoc
+ * `attributes`/`children`/`statement`/`expression`/`error` fields to JSX-related matches during
+ * `parse()` -- these aren't part of the core `Match` shape, so we mirror them locally here.
+ */
+type JSXMatch = P.AnyMatch
 export function TokenView({ token }: TokenViewProps) {
   if (!token) return null
   const className = ["Token", token.constructor.name, token.whitespace && "hasWhitespace"].filter(Boolean).join(" ")
@@ -76,7 +73,7 @@ export function TokenView({ token }: TokenViewProps) {
   )
 }
 
-export type JSXElementViewProps = { match: JSXMatch }
+export type TokenViewProps = { token?: P.Token }
 export function JSXElementView({ match }: JSXElementViewProps) {
   const { ruleName } = match
   const { tagName, isUnaryTag } = match.tokens[0] as P.Tokens.JSXElement
@@ -108,7 +105,7 @@ export function JSXElementView({ match }: JSXElementViewProps) {
   )
 }
 
-export type JSXAttributeViewProps = { match: JSXMatch }
+export type JSXElementViewProps = { match: JSXMatch }
 export function JSXAttributeView({ match }: JSXAttributeViewProps) {
   const attribute = match.matched[0] as P.Tokens.JSXAttribute
   const attrMatch = match.statement || match.expression || match.error
@@ -134,14 +131,14 @@ export function JSXAttributeView({ match }: JSXAttributeViewProps) {
   )
 }
 
-export type JSXTextViewProps = { match: P.AnyMatch }
+export type JSXAttributeViewProps = { match: JSXMatch }
 export function JSXTextView({ match }: JSXTextViewProps) {
   const value = match.value.trim()
   if (value === "") return null
   return <span className="JSXText">{value}</span>
 }
 
-export type JSXExpressionViewProps = { match: JSXMatch }
+export type JSXTextViewProps = { match: P.AnyMatch }
 export function JSXExpressionView({ match }: JSXExpressionViewProps) {
   const className = ["JSXExpression", match.expression && "hasExpression", match.error && "hasError"]
     .filter(Boolean)
@@ -152,3 +149,5 @@ export function JSXExpressionView({ match }: JSXExpressionViewProps) {
     </span>
   )
 }
+
+export type JSXExpressionViewProps = { match: JSXMatch }

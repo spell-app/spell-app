@@ -16,16 +16,3 @@ export const ModalRoot = view(() => {
   const { component, props, resolve, reject } = modals[0]!
   return React.createElement(component, { key: props.id, props, resolve, reject })
 })
-
-/**
- * Props `<ModalRoot>` hands to whichever modal component it is showing.
- * - `P` is the modal's own prop bag, `Result` what its `resolve()` yields.
- * - NOTE: lives here rather than beside each modal since `Alert`/`Confirm`/`Prompt`/`Chooser`
- *   all share it -- and `store.ts` type-erases it to stack heterogeneous modals.
- */
-export type ModalComponentProps<P, Result = unknown> = {
-  id?: string | number
-  props: P
-  resolve: (value?: Result) => void
-  reject?: (reason?: unknown) => void
-}

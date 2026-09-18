@@ -4,7 +4,7 @@ import { view } from "~/util"
 
 import { spellCore } from "~/spellCore"
 import { store } from "~/app/store"
-import type { AlertModalProps, ConfirmModalProps, PromptModalProps, ChooserModalProps } from "~/app/components"
+import type { UI } from "."
 
 /****************
  * ### `<Action>`
@@ -20,16 +20,10 @@ import type { AlertModalProps, ConfirmModalProps, PromptModalProps, ChooserModal
  * passes a fresh `onClick={() => ...}` closure, so the shallow prop compare always fails.
  * Reactivity belongs on whichever entry in `Actions` derives props from the store.
  ****************/
-export function Action({ title, button = false, ...props }: ActionProps) {
+function Action({ title, button = false, ...props }: ActionProps) {
   const Component = button ? SUI.Button : SUI.Menu.Item
   return <Component content={title} {...props} />
 }
-
-/** Props for `<Action>` -- everything but `title`/`button` is forwarded to the underlying SUI component. */
-export type ActionProps = {
-  title?: ReactNode
-  button?: boolean
-} & Record<string, unknown>
 
 /**
  * Constructors for `<Menu.Item>`s for public actions.
@@ -223,7 +217,7 @@ export const Actions = {
     icon = "warning sign",
     itemProps,
     ...modalProps
-  }: DialogActionProps<AlertModalProps>) => {
+  }: DialogActionProps<UI.AlertModalProps>) => {
     itemProps = { title, icon, ...itemProps }
     return <Action title={title} icon={icon} {...itemProps} onClick={() => store.alert(modalProps).then(callback)} />
   },
@@ -233,7 +227,7 @@ export const Actions = {
     icon = "question circle",
     itemProps,
     ...modalProps
-  }: DialogActionProps<ConfirmModalProps>) => {
+  }: DialogActionProps<UI.ConfirmModalProps>) => {
     itemProps = { title, icon, ...itemProps }
     return <Action {...itemProps} onClick={() => store.confirm(modalProps).then(callback)} />
   },
@@ -243,7 +237,7 @@ export const Actions = {
     icon = "edit",
     itemProps,
     ...modalProps
-  }: DialogActionProps<PromptModalProps>) => {
+  }: DialogActionProps<UI.PromptModalProps>) => {
     itemProps = { title, icon, ...itemProps }
     return <Action {...itemProps} onClick={() => store.prompt(modalProps).then(callback)} />
   },
@@ -253,7 +247,7 @@ export const Actions = {
     icon = "hashtag",
     itemProps,
     ...modalProps
-  }: DialogActionProps<PromptModalProps>) => {
+  }: DialogActionProps<UI.PromptModalProps>) => {
     itemProps = { title, icon, ...itemProps }
     return <Action {...itemProps} onClick={() => store.promptForNumber(modalProps).then(callback)} />
   },
@@ -263,7 +257,7 @@ export const Actions = {
     icon = "list",
     itemProps,
     ...modalProps
-  }: DialogActionProps<ChooserModalProps>) => {
+  }: DialogActionProps<UI.ChooserModalProps>) => {
     itemProps = { title, icon, ...itemProps }
     return <Action {...itemProps} onClick={() => store.choose(modalProps).then(callback)} />
   },
@@ -273,6 +267,12 @@ export const Actions = {
   PROJECT_DROPDOWN_ACTIONS: undefined as ReactElement[] | undefined,
   FILE_DROPDOWN_ACTIONS: undefined as ReactElement[] | undefined
 }
+
+/** Props for `<Action>` -- everything but `title`/`button` is forwarded to the underlying SUI component. */
+export type ActionProps = {
+  title?: ReactNode
+  button?: boolean
+} & Record<string, unknown>
 
 Actions.PROJECT_DROPDOWN_ACTIONS = [
   <Actions.createApp key="createApp" />,
@@ -287,7 +287,6 @@ Actions.FILE_DROPDOWN_ACTIONS = [
   <Actions.renameFile key="renameFile" />,
   <Actions.deleteFile key="deleteFile" />
 ]
-
 /** Props shared by the dialog-showing actions (`alert`, `confirm`, `prompt`, `promptForNumber`, `choose`). */
 export type DialogActionProps<P> = P & {
   callback?: (value: unknown) => void

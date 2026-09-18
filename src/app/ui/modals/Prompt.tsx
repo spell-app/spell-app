@@ -1,7 +1,8 @@
 import * as SUI from "semantic-ui-react"
 
-import { F } from "./Form"
-import type { ModalComponentProps } from "./ModalRoot"
+import { F, makeFormStore } from "~/app/ui/forms"
+
+import type { ModalComponentProps } from "./modals.types"
 
 /****************
  * ### `<Prompt>`
@@ -23,7 +24,7 @@ import type { ModalComponentProps } from "./ModalRoot"
  ****************/
 export function Prompt({ props, resolve }: ModalComponentProps<PromptModalProps, string>) {
   const { message, ok = "OK", cancel = "Cancel", defaultValue, type = "text", inputProps, ...modalProps } = props
-  const formStore = F.makeFormStore({ input: defaultValue })
+  const formStore = makeFormStore({ input: defaultValue })
   const submit = () => !formStore.hasErrors && resolve(formStore.raw.input)
   const close = () => resolve(undefined)
   return (

@@ -7,19 +7,13 @@ import { spellCore } from "~/spellCore"
 import type { ConsoleLine as ConsoleLineData, SpellConsoleGroup } from "~/spellCore/console"
 import { SP } from "~/languages/spell"
 
-import { Actions } from "~/app/actions"
 import { store } from "~/app/store"
 
 import { UI } from "."
-import { ErrorHandler } from "./ErrorHandler"
-import type { ErrorHandlerWrapperProps } from "./ErrorHandler"
+import { Actions } from "./Actions"
+import { ErrorHandler, type ErrorHandlerWrapperProps } from "./ErrorHandler"
 
 import "./ConsoleViewer.less"
-
-export type ConsoleRootProps = {
-  showToolbar?: boolean
-  scrolling?: boolean
-}
 
 /**
  *  Root element to show the `<ConsoleViewer/>` in `SpellEditor`
@@ -34,6 +28,10 @@ export const ConsoleRoot = view(function ConsoleRoot({ showToolbar = true, scrol
   )
 })
 
+export type ConsoleRootProps = {
+  showToolbar?: boolean
+  scrolling?: boolean
+}
 export function ConsoleToolbar() {
   return (
     <UI.PanelMenu>
@@ -65,11 +63,6 @@ export function ConsoleToolbar() {
       </UI.Submenu>
     </UI.PanelMenu>
   )
-}
-
-export type ConsoleViewerProps = {
-  scrolling?: boolean
-  showError?: (error: unknown) => void
 }
 
 export class ConsoleViewer extends ErrorHandler<ConsoleViewerProps> {
@@ -108,16 +101,14 @@ export class ConsoleViewer extends ErrorHandler<ConsoleViewerProps> {
   })
 }
 
+export type ConsoleViewerProps = {
+  scrolling?: boolean
+  showError?: (error: unknown) => void
+}
 const NORMAL_LINE_SPACE = 20
 const INDENT_WIDTH = 12
 const SPAN_OFFSET = -4
 
-export type ConsoleLinesProps = {
-  indent?: number
-  lines: (ConsoleLineData | SpellConsoleGroup)[]
-  collapsed?: boolean
-  className?: string
-}
 export function ConsoleLines({ indent = 0, lines, collapsed = false, className = "ConsoleLines" }: ConsoleLinesProps) {
   return (
     <div className={className}>
@@ -132,10 +123,11 @@ export function ConsoleLines({ indent = 0, lines, collapsed = false, className =
   )
 }
 
-export type ConsoleLineProps = {
-  line: ConsoleLineData | SpellConsoleGroup
-  icon?: ReactNode
-  indent: number
+export type ConsoleLinesProps = {
+  indent?: number
+  lines: (ConsoleLineData | SpellConsoleGroup)[]
+  collapsed?: boolean
+  className?: string
 }
 
 /** Single console line for anything that is NOT a `group`. */
@@ -153,8 +145,9 @@ export function ConsoleLine({ line, icon, indent }: ConsoleLineProps) {
   )
 }
 
-export type ConsoleGroupProps = {
-  line: SpellConsoleGroup
+export type ConsoleLineProps = {
+  line: ConsoleLineData | SpellConsoleGroup
+  icon?: ReactNode
   indent: number
 }
 
@@ -178,8 +171,26 @@ export const ConsoleGroup = view(function ConsoleGroup({ line, indent }: Console
   )
 })
 
+export type ConsoleGroupProps = {
+  line: SpellConsoleGroup
+  indent: number
+}
+export function ConsoleValue({ type, display, observable }: ConsoleValueProps) {
+  const onClick = observable ? () => onObservableClick(observable) : () => {}
+  return (
+    <span className={`ConsoleValue ${type}${observable ? " observable" : ""}`} onClick={onClick}>
+      {display}
+    </span>
+  )
+}
+
+/**
+ * Click handler for an observable value shown in the console.
+ * - SIDE EFFECT: stashes `thing` on `global.it` and logs it, so it can be poked at in devtools.
+ * - Selects the matching source text when `thing` is a `P.Match`.
+ */
 // TODO: ObjectInspector popup or modal
-export function onObservableClick(thing: unknown): void {
+function onObservableClick(thing: unknown): void {
   if (!thing) return
   // Always log to the browser console for debugging
   global.it = thing
@@ -194,16 +205,6 @@ export type ConsoleValueProps = {
   display: ReactNode
   observable?: unknown
 }
-export function ConsoleValue({ type, display, observable }: ConsoleValueProps) {
-  const onClick = observable ? () => onObservableClick(observable) : () => {}
-  return (
-    <span className={`ConsoleValue ${type}${observable ? " observable" : ""}`} onClick={onClick}>
-      {display}
-    </span>
-  )
-}
-
-export type ConsoleObjectProps = { thing: unknown }
 export function ConsoleObject({ thing }: ConsoleObjectProps) {
   if (thing === null) return <ConsoleValue type="null" display="null" />
   switch (typeof thing) {
@@ -243,3 +244,5 @@ export function ConsoleObject({ thing }: ConsoleObjectProps) {
     }
   }
 }
+
+export type ConsoleObjectProps = { thing: unknown }

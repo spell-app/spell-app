@@ -2,58 +2,8 @@ import React from "react"
 import classnames from "classnames"
 
 import { getPadding, getPref, setPref, resetPref } from "~/util"
+
 import "./SplitPanel.less"
-
-// TODO:
-// - Check `hidden` of childen and drop as necessary (must be set in <SplitPanel> context).
-// - SplitPanel: `minSize` and/or `maxSizes` as percentage.
-// - SplitPane: `collapsible`
-// - SplitPane `fixed` so never resizable?
-// - Responsive sizing or alternative layouts for devices.
-// - `position:absolute` on pane child is a bit dodgy... ??
-// - test sizing logic in other browsers
-
-/** `columns`/`rows` size spec: `true` for equal sizes, a `"20%,2em,*"` string, or an array of sizes. */
-export type PanelSizeSpec = boolean | string | Array<string | number>
-
-/** A single normalized panel size, as `{ value, units }`, e.g. `{ value: 20, units: "%" }`. */
-export type PanelSize = { value: number; units: string }
-
-/** Sizing geometry calculated `onMouseDown`, used to do fast `onMouseMove` math. */
-export type SplitPanelDimensions = {
-  pane1: number
-  pane2: number
-  direction: "horizontal" | "vertical"
-  pageMin: number
-  pageMax: number
-  outerSize: number
-  innerSize: number
-  gap: number
-  gapOffset: number
-  pad1: number
-  pad2: number
-  activePercent: number
-  minPercent: number
-  maxPercent: number
-}
-
-export type SplitPanelProps = React.ComponentPropsWithoutRef<"div"> & {
-  children?: ReactNode
-  columns?: PanelSizeSpec // column sizes for horizontal split, as `true`, string or array.  See `normalizeSizes()`.
-  rows?: PanelSizeSpec // row sizes for vertical split, as `true`, string or array.  See `normalizeSizes()`.
-  fluid?: boolean // fill container in alternate axis?
-  spaced?: boolean | "tightly" | "loosely" // spacing around and between children.
-  resizable?: boolean // provide resize bars.  Will store `sizes` as preference if element has an `id`.
-  minSize?: number // minimum percent size for resizable panels
-
-  // The following will be passed down to SplitPanes which are automatically created.
-  // If you create a <SplitPane> manually, these settings are ignored.
-  bordered?: boolean // panes are borderd
-  padded?: boolean | "tightly" | "loosely" // padding in panes
-  light?: boolean // panes appeear light
-  rounded?: boolean // panes appear rounded
-  scrolling?: boolean // provide scrollbars in panes
-}
 
 /**
  * A `<SplitPanel>` manages its `children` to set their sizes.
@@ -531,3 +481,54 @@ export function SplitSizer({ onMouseDown }: SplitSizerProps) {
   return <div className="SplitPanelSizer" onMouseDown={onMouseDown} />
 }
 SplitPanel.Sizer = SplitSizer
+
+// TODO:
+// - Check `hidden` of childen and drop as necessary (must be set in <SplitPanel> context).
+// - SplitPanel: `minSize` and/or `maxSizes` as percentage.
+// - SplitPane: `collapsible`
+// - SplitPane `fixed` so never resizable?
+// - Responsive sizing or alternative layouts for devices.
+// - `position:absolute` on pane child is a bit dodgy... ??
+// - test sizing logic in other browsers
+
+export type SplitPanelProps = React.ComponentPropsWithoutRef<"div"> & {
+  children?: ReactNode
+  columns?: PanelSizeSpec // column sizes for horizontal split, as `true`, string or array.  See `normalizeSizes()`.
+  rows?: PanelSizeSpec // row sizes for vertical split, as `true`, string or array.  See `normalizeSizes()`.
+  fluid?: boolean // fill container in alternate axis?
+  spaced?: boolean | "tightly" | "loosely" // spacing around and between children.
+  resizable?: boolean // provide resize bars.  Will store `sizes` as preference if element has an `id`.
+  minSize?: number // minimum percent size for resizable panels
+
+  // The following will be passed down to SplitPanes which are automatically created.
+  // If you create a <SplitPane> manually, these settings are ignored.
+  bordered?: boolean // panes are borderd
+  padded?: boolean | "tightly" | "loosely" // padding in panes
+  light?: boolean // panes appeear light
+  rounded?: boolean // panes appear rounded
+  scrolling?: boolean // provide scrollbars in panes
+}
+
+/** `columns`/`rows` size spec: `true` for equal sizes, a `"20%,2em,*"` string, or an array of sizes. */
+type PanelSizeSpec = boolean | string | Array<string | number>
+
+/** A single normalized panel size, as `{ value, units }`, e.g. `{ value: 20, units: "%" }`. */
+type PanelSize = { value: number; units: string }
+
+/** Sizing geometry calculated `onMouseDown`, used to do fast `onMouseMove` math. */
+type SplitPanelDimensions = {
+  pane1: number
+  pane2: number
+  direction: "horizontal" | "vertical"
+  pageMin: number
+  pageMax: number
+  outerSize: number
+  innerSize: number
+  gap: number
+  gapOffset: number
+  pad1: number
+  pad2: number
+  activePercent: number
+  minPercent: number
+  maxPercent: number
+}

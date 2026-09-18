@@ -6,36 +6,9 @@ import type { ASTNode } from "~/parser/ast/AST"
 import { store } from "~/app/store"
 
 import { UI } from "."
-import { ErrorHandler } from "./ErrorHandler"
-import type { ErrorHandlerState, ErrorHandlerWrapperProps } from "./ErrorHandler"
+import { ErrorHandler, type ErrorHandlerState, type ErrorHandlerWrapperProps } from "./ErrorHandler"
+import type { EditorSelection } from "./ui.types"
 import "./ASTViewer.less"
-
-/** Shape of `store.selection`, as set by `store.onInputCursor()`/`store.showMatch()`. */
-export type EditorSelectionPoint = {
-  line?: number
-  ch?: number
-  top?: number
-  offset?: number
-}
-export type EditorSelectionScroll = {
-  event?: string
-  direction?: string
-  percent?: number
-  max?: number
-  current?: number
-  total?: number
-  visible?: number
-}
-export type EditorSelection = {
-  scroll?: EditorSelectionScroll
-  anchor?: EditorSelectionPoint
-  head?: EditorSelectionPoint
-}
-
-export type ASTRootProps = {
-  showToolbar?: boolean
-  scrolling?: boolean
-}
 
 /**
  *  Root element to show the `<ASTViewer/>` in `SpellEditor`
@@ -54,6 +27,10 @@ export const ASTRoot = view(function ASTRoot({ showToolbar = true, scrolling = t
   )
 })
 
+export type ASTRootProps = {
+  showToolbar?: boolean
+  scrolling?: boolean
+}
 export function ASTToolbar() {
   return (
     <UI.PanelMenu>
@@ -66,15 +43,6 @@ export function ASTToolbar() {
     </UI.PanelMenu>
   )
 }
-
-export type ASTViewerProps = {
-  scrolling?: boolean
-  ast?: ASTNode
-  selection?: EditorSelection
-  showError?: (error: unknown) => void
-}
-
-type ASTViewerState = ErrorHandlerState & { ast?: ASTNode }
 
 /** Top-level error handler. */
 export class ASTViewer extends ErrorHandler<ASTViewerProps> {
@@ -166,6 +134,7 @@ export class ASTViewer extends ErrorHandler<ASTViewerProps> {
   }
 }
 
+type ASTViewerState = ErrorHandlerState & { ast?: ASTNode }
 /**
  * Wrapper class to manage scrolling and showing selection.
  */
@@ -195,4 +164,11 @@ function ASTComponent({ ast, selection }: ASTViewerProps) {
   }, [ast, element, selection])
 
   return element
+}
+
+export type ASTViewerProps = {
+  scrolling?: boolean
+  ast?: ASTNode
+  selection?: EditorSelection
+  showError?: (error: unknown) => void
 }

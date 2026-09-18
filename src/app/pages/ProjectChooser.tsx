@@ -2,14 +2,8 @@ import React from "react"
 import type { RouteComponentProps } from "@reach/router"
 
 import { SP } from "~/languages/spell"
-import { Actions } from "~/app/actions"
-import { UI, SpellPage } from "~/app/components"
-
-export type ProjectRootDisplayProps = {
-  projectRoot: SP.SpellProjectRoot
-  children?: ReactNode
-  useRunner?: boolean
-}
+import { Actions } from "~/app/ui"
+import { UI, SpellPage } from "~/app/ui"
 
 export const ProjectRootDisplay = React.memo(({ projectRoot, children, useRunner }: ProjectRootDisplayProps) => {
   return (
@@ -25,6 +19,11 @@ export const ProjectRootDisplay = React.memo(({ projectRoot, children, useRunner
   )
 })
 
+export type ProjectRootDisplayProps = {
+  projectRoot: SP.SpellProjectRoot
+  children?: ReactNode
+  useRunner?: boolean
+}
 /**
  * <ProjectChooser />
  * Note that this does not need to be a `view()`.

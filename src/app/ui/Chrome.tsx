@@ -1,8 +1,8 @@
 //
-//  ## Generic SUI-derived chrome: menus, dropdowns, pass-through views.
+//  ## Generic SUI-derived app chrome: menus, submenus, dropdowns and pass-through views.
 //
-//  NOTE: this file used to BE the `UI` barrel (`export * as UI from "./ui.tsx"`), and re-exported
-//  `./Form`, `./ProjectDropdown`, `./FileDropdown` and `~/app/actions` for that barrel's benefit.
+//  NOTE: this was `ui.tsx`, and used to BE the `UI` barrel itself -- re-exporting `./Form`,
+//  `./ProjectDropdown`, `./FileDropdown` and `./Actions` so they showed up on it.
 //  `./index.ts` owns `UI` now, so this is a plain leaf module -- add new exports there, not here.
 //
 
@@ -10,8 +10,7 @@ import * as SUI from "semantic-ui-react"
 
 import { view } from "~/util"
 
-import { Actions } from "~/app/actions"
-
+import { Actions } from "./Actions"
 /** SUI pass-throughs as reactive views. */
 export const Button = view(SUI.Button)
 export const Card = view(SUI.Card)
@@ -59,7 +58,6 @@ export type SubmenuProps = Prettify<
     children?: ReactNode
   }
 >
-
 /**
  * Component: Menu header item.
  */
@@ -81,15 +79,6 @@ export const MoreMenu = view(
     )
   }
 )
-export type MoreMenuProps = Prettify<
-  SUI.DropdownProps & {
-    stub?: boolean
-    item?: boolean
-    icon?: string
-    children?: ReactNode
-  }
->
-
 /**
  * Component: Label that goes next to a dropdown.
  */
@@ -116,3 +105,11 @@ export const FileActionsDropdown = view((props: MoreMenuProps) => {
   return <MoreMenu {...props}>{Actions.FILE_DROPDOWN_ACTIONS}</MoreMenu>
 })
 export const FILE_ICON = "file code"
+export type MoreMenuProps = Prettify<
+  SUI.DropdownProps & {
+    stub?: boolean
+    item?: boolean
+    icon?: string
+    children?: ReactNode
+  }
+>

@@ -1,5 +1,4 @@
-import { Router as ReachRouter } from "@reach/router"
-import type { RouterProps } from "@reach/router"
+import { Router as ReachRouter, type RouterProps } from "@reach/router"
 
 import { ProjectChooserRoute } from "./ProjectChooser"
 import { SpellEditorRoute } from "./SpellEditor"

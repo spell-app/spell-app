@@ -25,6 +25,7 @@ when working with code in this repository.
 - Wrap comments at english phrase boundaries, not mid-clause. Avoid single or double widow words,
   wrap `e.g.` clauses if they don't fit on the original line, etc.
   and drop filler articles (`the`, `a`) that don't earn their place
+- Write or clarify docstrings and comments where you see marker `DOCME`.
 - Separate function code groups like so:
 
 ```
@@ -45,10 +46,12 @@ when working with code in this repository.
 ## Types / Exports
 
 - ALWAYS use `type` rather than `interface`. Wrap with `Prettify` when combining types.
-- Centralize type definitions and helper functions in a single `types.ts` file in each folder, rather than spreading them amongst leaf files.
-  - Exception: class constructor parameter types can live in the class file.
+- Types and helper functions should generally appear after the durable JS structure that uses them.
+- Centralize type definitions and exported helper functions in a single `types.ts` file in each folder, rather than spreading them amongst leaf files.
+  - Exception: class constructor parameter types and React component props should live in the defining file.
 - If a particular file has complex type requirements, ok to define a `x.types.ts` file for it, and re-export from the main file. e.g. File `Match.types.ts` for `Match.ts` => `Match.ts` should `export * from ./Match.types`.
-- Create barrel `index.ts` for each folder, including most functionality in the folder. At the end of the barrel, come up with a 1-2 letter barrel name as `export * as P from "."`.
+- Create barrel `index.ts` for each folder, including most functionality in the folder.
+- When refactoring imports and exports, especially with barrels, create smoke tests ensuring no circular import problems in TS/rollup/browser for various import patterns.
 
 ## Imports
 
@@ -66,3 +69,4 @@ when working with code in this repository.
   - imports from other sub-systems, barrels first
   - local models / helper files, barrels first
   - css or less files (import as `./foo.css` if in same folder, else as `~/path/to/foo.less`)
+- Combine normal and `type` imports in one line when it is semantically equivalent.

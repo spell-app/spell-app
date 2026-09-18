@@ -3,21 +3,15 @@ import React from "react"
 import { view, scrollForElement, centerElementInParent } from "~/util"
 import { P } from "~/parser"
 
-import { Actions } from "~/app/actions"
 import { store } from "~/app/store"
 
 import { UI } from "."
-import { ErrorHandler } from "./ErrorHandler"
-import type { ErrorHandlerState, ErrorHandlerWrapperProps } from "./ErrorHandler"
-import type { EditorSelection } from "./ASTViewer"
+import { Actions } from "./Actions"
+import { ErrorHandler, type ErrorHandlerState, type ErrorHandlerWrapperProps } from "./ErrorHandler"
+import type { EditorSelection } from "./ui.types"
 import { MatchView } from "./MatchView"
 
 import "./MatchViewer.less"
-
-export type MatchRootProps = {
-  showToolbar?: boolean
-  scrolling?: boolean
-}
 
 /**
  *  Root element to show the `<MatchViewer/>` in `SpellEditor`
@@ -39,6 +33,10 @@ export const MatchRoot = view(function MatchRoot({ showToolbar = true, scrolling
   )
 })
 
+export type MatchRootProps = {
+  showToolbar?: boolean
+  scrolling?: boolean
+}
 export const MatchToolbar = React.memo(function MatchToolbar() {
   return (
     <UI.PanelMenu>
@@ -52,16 +50,6 @@ export const MatchToolbar = React.memo(function MatchToolbar() {
     </UI.PanelMenu>
   )
 })
-
-export type MatchViewerProps = {
-  scrolling?: boolean
-  compact?: boolean
-  match?: P.Match
-  selection?: EditorSelection
-  showError?: (error: unknown) => void
-}
-
-type MatchViewerState = ErrorHandlerState & { match?: P.Match }
 
 export class MatchViewer extends ErrorHandler<MatchViewerProps> {
   /** Clear `state.error` if `props.match` changes. */
@@ -160,6 +148,7 @@ export class MatchViewer extends ErrorHandler<MatchViewerProps> {
   }
 }
 
+type MatchViewerState = ErrorHandlerState & { match?: P.Match }
 /** Wrapper component for a Match. */
 function MatchWrapper({ component, props }: ErrorHandlerWrapperProps<MatchViewerProps>) {
   const classNames = ["MatchViewer"]
@@ -184,4 +173,12 @@ function MatchComponent({ match, selection, compact }: MatchViewerProps) {
   }, [element, match, selection, compact])
 
   return element
+}
+
+export type MatchViewerProps = {
+  scrolling?: boolean
+  compact?: boolean
+  match?: P.Match
+  selection?: EditorSelection
+  showError?: (error: unknown) => void
 }
