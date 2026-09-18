@@ -3,9 +3,17 @@
   "plugins": ["react", "typescript", "oxc", "import"],
   "categories": { "correctness": "error" },
   "ignorePatterns": [
-    "build", "dist", ".cache", ".venv", ".yarn",
-    "graphify-out", "thoughts", "static",
-    "src/examples", "src/projects", "**/.output.js"
+    "build",
+    "dist",
+    ".cache",
+    ".venv",
+    ".yarn",
+    "graphify-out",
+    "thoughts",
+    "static",
+    "src/examples",
+    "src/projects",
+    "**/.output.js"
   ],
   "rules": {
     "react-hooks/rules-of-hooks": "error",

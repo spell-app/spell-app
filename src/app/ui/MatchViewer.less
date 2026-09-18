@@ -8,7 +8,7 @@
 
 .MatchViewer {
   position: relative;
-  background: white;  
+  background: white;
   padding: 8px;
 
   &.scrolling {
@@ -35,7 +35,7 @@
       border-top-width: 0 !important;
       margin: 0 !important;
     }
-    .name { 
+    .name {
       display: none !important;
     }
     .Match > .contents {
@@ -88,9 +88,9 @@
     text-align: center;
     border: 1px solid black;
     border-top-width: 0;
-    border-top-left-radius: 7px; 
+    border-top-left-radius: 7px;
     border-top-right-radius: 7px;
-    border-bottom-left-radius: 20px; 
+    border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
     transition: background 0.25s ease-in-out;
   }
@@ -139,7 +139,8 @@
   .Match.block > .name {
     position: absolute;
     display: block;
-    left: -4px; top: -17px;
+    left: -4px;
+    top: -17px;
     padding: 0 20px !important;
     background: black;
     color: white;
@@ -150,7 +151,7 @@
     border-bottom-right-radius: 0px;
     border-bottom-left-radius: 0px;
     border-top-width: 1px;
-  }   
+  }
 
   .Match.line {
     display: block;
@@ -183,7 +184,7 @@
     border-bottom-left-radius: 0px;
     border-top-width: 1px;
     opacity: 0.5;
-  }   
+  }
 
   .Match.hasTokens:not(.hasMatches) {
     padding: 0;
@@ -215,7 +216,6 @@
   .Token > .value {
     transition: background 0.25s ease-in-out;
   }
-
 
   //////////////////////
   // JSX Elements and Attributes
@@ -259,7 +259,7 @@
     display: inline-block;
     margin: 4px;
     border: 1px solid #666;
-    border-radius: 0 0 15px 15px ;
+    border-radius: 0 0 15px 15px;
     padding: 0 4px 4px 4px;
   }
 
@@ -273,30 +273,30 @@
 
   .Match.comment > .contents {
     opacity: 0.5;
-    .syntax-comment()
+    .syntax-comment();
   }
 
   .Token.symbol {
-    .syntax-punctuation()
-  } 
+    .syntax-punctuation();
+  }
 
   .Token.number {
-    .syntax-number()    
+    .syntax-number();
   }
 
   .Token.text {
-    .syntax-string()
+    .syntax-string();
   }
 
   .Match.boolean .Token.word {
     .syntax-boolean();
-  } 
+  }
 
-  .Match.Keyword > .contents, 
-  .Match.Symbol > .contents, 
-  .Match.Keywords > .contents, 
+  .Match.Keyword > .contents,
+  .Match.Symbol > .contents,
+  .Match.Keywords > .contents,
   .Match.Symbols > .contents {
-    .syntax-keyword()
+    .syntax-keyword();
   }
 
   .Match.type > .contents,
@@ -309,15 +309,15 @@
   .Match.plural_variable > .contents,
   .Match.singular_variable > .contents,
   .Match.variable_identifier > .contents {
-    .syntax-variable()
+    .syntax-variable();
   }
 
   .Match.property > .contents {
-    .syntax-property()
+    .syntax-property();
   }
 
   .Match.method_keyword > .contents {
-    .syntax-function()
+    .syntax-function();
   }
 
   .Match.ordinal > .contents {
@@ -326,7 +326,7 @@
 
   .Match.known_constant .Token,
   .Match.constant .Token {
-    .syntax-constant()
+    .syntax-constant();
   }
 
   .Match.parse_error {
@@ -338,12 +338,12 @@
     background: pink;
   }
 
-  .JSXElement > .startTag > .tagName, 
-  .JSXElement > .startTag > .startTagEnd, 
+  .JSXElement > .startTag > .tagName,
+  .JSXElement > .startTag > .startTagEnd,
   .JSXElement > .endTag {
     .syntax-tag-name();
   }
- 
+
   .JSXAttribute > .name {
     .syntax-tag-attribute();
   }

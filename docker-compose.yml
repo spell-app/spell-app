@@ -1,6 +1,6 @@
 services:
   app-server-dev:
-    env_file: 
+    env_file:
       - docker.env
     build:
       context: .
@@ -14,7 +14,7 @@ services:
       - spell-network
 
   api-server:
-    env_file: 
+    env_file:
       - docker.env
     build:
       context: .

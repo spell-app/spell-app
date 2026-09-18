@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "trailingComma": "none",
+  "semi": false,
+  "singleQuote": false,
+  "tabWidth": 2,
+  "printWidth": 120,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "**/.output.js",
+    "**/*.md",
+    "build/**",
+    "dist/**",
+    ".cache/**",
+    ".venv/**",
+    ".yarn/**",
+    ".claude/**",
+    "graphify-out/**",
+    "thoughts/**",
+    "static/**",
+    "src/examples/**",
+    "src/projects/**",
+    "src/graphify-out/**"
+  ]
+}

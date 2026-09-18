@@ -31,28 +31,30 @@
       z-index: 2;
       position: absolute;
       overflow: hidden;
-      top: -5px; bottom: 0;
+      top: -5px;
+      bottom: 0;
       width: 5px;
-      border: solid rgba(0,0,0,0.4);
+      border: solid rgba(0, 0, 0, 0.4);
       border-width: 0 0 1px 1px;
     }
   }
-  
+
   .ConsoleLine {
     z-index: 1;
-    border-bottom: 1px solid rgba(0,0,0,0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
     padding-right: 10px;
 
-    &.debug {}
+    &.debug {
+    }
 
     &.info {
-      background-color: hsla(200,100%,50%,0.15)
+      background-color: hsla(200, 100%, 50%, 0.15);
     }
     &.warn {
-      background-color: hsla(50,100%,50%,0.15)
+      background-color: hsla(50, 100%, 50%, 0.15);
     }
     &.error {
-      background-color: hsla(12,100%,50%,0.15)
+      background-color: hsla(12, 100%, 50%, 0.15);
     }
     &.group {
       font-weight: bold;
@@ -73,12 +75,12 @@
     &.observable {
       color: green;
       background: #eee;
-      box-shadow: 1px 1px 4px rgba(0,0,0,0.3);
+      box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.3);
       border-radius: 5px;
       padding: 0 5px;
       cursor: pointer;
       &:hover {
-        box-shadow: 1px 1px 4px rgba(0,0,0,0.8);
+        box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
       }
     }
   }

@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   spell-parser:
@@ -25,4 +25,4 @@ services:
 
 networks:
   spell-network:
-    driver: bridge 
+    driver: bridge

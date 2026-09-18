@@ -1,6 +1,9 @@
 {
   // Linting is oxlint (see `.oxlintrc.json`); the ESLint extension is no longer used here.
   "oxc.enable": true,
+  // Formatting is oxfmt (see `.oxfmtrc.json`); the Prettier extension is no longer used here.
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": true,
   "oxc.lint.run": "onType",
   "javascript.validate.enable": false,
   "[javascript]": {
@@ -12,8 +15,5 @@
 
   // requires only if you use vetur plugin
   "vetur.validation.script": false,
-  "prettier.arrowParens": "always",
-  "prettier.printWidth": 120,
-  "prettier.semi": false,
   "js/ts.experimental.useTsgo": false
 }

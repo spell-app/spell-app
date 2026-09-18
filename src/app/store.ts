@@ -161,7 +161,8 @@ const initialStore = {
       await project.load(undefined)
       // Clear application display when switching projects
       const oldProjectRoot = document.getElementById(spellCore.REACT_APP_ROOT_ID) as
-        (HTMLElement & { REACT_ROOT?: ReturnType<typeof createRoot> }) | null
+        | (HTMLElement & { REACT_ROOT?: ReturnType<typeof createRoot> })
+        | null
       if (typeof oldProjectRoot?.REACT_ROOT?.unmount === "function") {
         oldProjectRoot.REACT_ROOT.unmount()
       }

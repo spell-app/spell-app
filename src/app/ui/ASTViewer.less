@@ -37,71 +37,70 @@
         display: none;
       }
     }
-  /* end .ASTBlock */
-  }s
+    /* end .ASTBlock */
+  }
 
   .punctuation {
-    .syntax-punctuation()
+    .syntax-punctuation();
   }
   .operator {
-    .syntax-operator()
+    .syntax-operator();
   }
 
   .keyword,
-    &.NullLiteral,
-    &.UndefinedLiteral,
-    &.ThisLiteral {
-    .syntax-keyword()
+  &.NullLiteral,
+  &.UndefinedLiteral,
+  &.ThisLiteral {
+    .syntax-keyword();
   }
 
   &.LineComment,
   &.BlockComment {
-    .syntax-comment()
+    .syntax-comment();
   }
 
   &.LineComment.header {
-    .syntax-comment-header()
+    .syntax-comment-header();
   }
 
   &.ParserAnnotation {
-    .syntax-parser-annotation()
+    .syntax-parser-annotation();
   }
 
   &.ParseError {
-    .syntax-parse-error()
+    .syntax-parse-error();
   }
 
   &.StringLiteral,
   &.QuotedExpression,
   &.QuotedExpression .PropertyLiteral {
-    .syntax-string()
-  }  
+    .syntax-string();
+  }
 
   &.ConstantExpression {
-    .syntax-enum()
+    .syntax-enum();
   }
 
   &.NumericLiteral {
-    .syntax-number()
+    .syntax-number();
   }
 
   &.BooleanLiteral {
-    .syntax-boolean()
+    .syntax-boolean();
   }
 
   &.TypeExpression {
-    .syntax-class()
+    .syntax-class();
   }
   // &.PrototypeExpression .keyword.prototype {
   //   .syntax-class()
   // }
 
-
   &.VariableExpression > .name {
-    .syntax-variable()
+    .syntax-variable();
   }
   &.AssignmentStatement.declaration .VariableExpression > .name {
-    .syntax-variable-declaration()
+    .syntax-variable-declaration();
   }
 
   &.VariableExpression.argument > .name {
@@ -113,16 +112,13 @@
   }
 
   &.PropertyLiteral {
-    .syntax-property()
+    .syntax-property();
   }
 
   &.MethodDefinition > .method-name,
   &.MethodInvocation > .method-name {
-    .syntax-function()
+    .syntax-function();
   }
 
-/* end .ASTNode */
+  /* end .ASTNode */
 }
-
-
-
