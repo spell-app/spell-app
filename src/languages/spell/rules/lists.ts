@@ -4,8 +4,8 @@
 //
 
 import { singularize } from "~/util"
+import { P, R, AST } from "~/parser"
 import { SpellParser } from "~/languages/spell"
-import { P, AST } from "~/parser"
 import { SpellStatement } from "./Statement"
 import { SpellExpression, InfixOperatorSuffix } from "./expressions"
 import "./match-fields.E"
@@ -46,7 +46,7 @@ export const lists = new SpellParser({
       name: "identifier_list",
       syntax: "[({known_variable}|{constant}|{number})(,|or|and|nor)]",
       datatype: "array", // TODO: array of what?
-      constructor: class identifier_list extends P.Rules.Repeat {
+      constructor: class identifier_list extends R.Repeat {
         getAST(match: P.Match): AST.ListExpression {
           const { items } = match
           return new AST.ListExpression(match, { items: items.map((item) => astAs(item)) })
@@ -73,7 +73,7 @@ export const lists = new SpellParser({
       datatype: "array", // TODO: array of what?
       syntax: "\\[ [list:{expression},]? \\]",
       testRule: "\\[",
-      constructor: class bracketed_list extends P.Rules.Sequence {
+      constructor: class bracketed_list extends R.Sequence {
         getAST(match: P.Match<P.RulexGroups<"list">>): AST.ListExpression {
           const { list } = match.groups
           const items = list ? list.items.map((item) => astAs(item)) : undefined
@@ -350,7 +350,7 @@ export const lists = new SpellParser({
         top: 1,
         bottom: -1
       },
-      constructor: class ordinal extends P.Rules.Pattern {
+      constructor: class ordinal extends R.Pattern {
         getAST(match: P.Match): AST.NumericLiteral {
           const { value, raw } = match
           return new AST.NumericLiteral(match, { value, raw })

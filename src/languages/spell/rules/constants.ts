@@ -1,12 +1,12 @@
 //
 //  # Rules for constants, variables, type names, etc
 //
-import { P, AST } from "~/parser"
+import { P, R, AST } from "~/parser"
 import { SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"
 import "./match-fields.B"
 
-export class SpellConstant extends P.Rules.Pattern {
+export class SpellConstant extends R.Pattern {
   static {
     Object.defineProperty(this.prototype, "name", { value: "constant", writable: true })
     // Alpha-numeric word, including dashes or underscores.

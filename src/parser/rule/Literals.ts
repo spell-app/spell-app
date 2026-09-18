@@ -1,4 +1,3 @@
-
 import { Match } from "~/parser/Match"
 import { Rule, type RuleProps } from "./Rule"
 import type { Scope } from "~/parser/scope/Scope"
@@ -23,7 +22,7 @@ function makeMatcher(matcher: string | string[] | LiteralMatcher): LiteralMatche
  *
  * After matching, `match.value` will be the literal string matched.
  *
- * NOTE: Don't use this -- use `Rules.Keywords` or `Rules.Symbols` instead!
+ * NOTE: Don't use this -- use `R.Keywords` or `R.Symbols` instead!
  */
 export abstract class Literals extends Rule<LiteralsProps> {
   declare literals: LiteralMatcher[]

@@ -1,10 +1,10 @@
-import { P, AST } from "~/parser"
+import { P, R, AST } from "~/parser"
 import { SpellParser, spellParser } from "~/languages/spell"
 import { SpellStatement } from "./Statement"
 import "./match-fields.A"
 
 /** Update Rules.BlankLine to output AST properly. */
-P.Rules.BlankLine.prototype.getAST = function (match: P.Match) {
+R.BlankLine.prototype.getAST = function (match: P.Match) {
   return new AST.BlankLine(match)
 }
 
@@ -15,7 +15,6 @@ P.Rules.BlankLine.prototype.getAST = function (match: P.Match) {
 //   we'll let the statement attempt to parse the next line as well.
 export class BlockLine extends P.Rule {
   parse(scope: P.Scope, lines: P.Token[]): P.Match | undefined {
-     
     const line = lines[0]
     if (!line) return undefined
     const matched: (P.Match | P.Token)[] = []

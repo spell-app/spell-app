@@ -2,7 +2,7 @@
 //  # Rules for creating variables, property access, etc
 //
 
-import { P, AST } from "~/parser"
+import { P, R, AST } from "~/parser"
 import { SpellParser } from "~/languages/spell"
 import type { ASTNode, Expression } from "~/parser/ast/AST"
 import { SpellStatement } from "./Statement"
@@ -261,7 +261,7 @@ export const UI = new SpellParser({
       name: "css",
       alias: "expression",
       tokenType: P.Tokens.Text,
-      constructor: class css extends P.Rules.TokenType {
+      constructor: class css extends R.TokenType {
         getAST(match: P.Match) {
           // HACK: `name` comes from SpellCSSFile
           const { value, file } = match

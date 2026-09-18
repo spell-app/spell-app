@@ -2,7 +2,7 @@
 //  # Rules for constants, variables, type names, etc
 //
 import { typeCase, instanceCase, singularize, pluralize } from "~/util"
-import { P, AST } from "~/parser"
+import { P, R, AST } from "~/parser"
 import { SpellParser } from "~/languages/spell"
 import { identifierBlacklist } from "./identifier-blacklist"
 import "./match-fields.B"
@@ -38,7 +38,7 @@ const TYPE_VALUE_MAP: Record<string, string> = {
   Choices: "boolean"
 }
 
-export class SpellType extends P.Rules.Pattern {
+export class SpellType extends R.Pattern {
   static {
     // Alpha-numeric word, including dashes or underscores.
     Object.defineProperty(this.prototype, "pattern", { value: P.ALPHANUMERIC_WORD_WITH_DASHES, writable: true })

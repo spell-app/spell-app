@@ -1,4 +1,3 @@
-
 import { Match } from "~/parser/Match"
 import type { Token } from "~/parser/tokenizer/Tokens"
 import { Rule, type RuleProps } from "./Rule"
@@ -23,7 +22,7 @@ export type LiteralProps = Prettify<
  * For convenience, you can pass a single string or array of strings to the constructor
  * to automatically set the `literal` property.
  *
- * NOTE: Don't use this -- use `Rules.Keyword` or `Rules.Symbol` instead!
+ * NOTE: Don't use this -- use `R.Keyword` or `R.Symbol` instead!
  */
 export abstract class Literal extends Rule<LiteralProps> {
   /** Literal string or array of literal strings to match. */

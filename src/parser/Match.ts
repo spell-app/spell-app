@@ -2,7 +2,7 @@ import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
 
 import { Assertable } from "~/util"
-import { Rule, Token, Rules } from "~/parser"
+import { Rule, Token, R } from "~/parser"
 import { Scope, ScopeConstructor } from "./scope/Scope"
 import type { ASTNode } from "./ast/AST"
 
@@ -192,7 +192,7 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
         else (groups as Record<string, unknown>)[name] = [existing, value]
       }
       // if it's an anonymous sequence, promote it to the main map
-      else if (match.rule instanceof Rules.Sequence) {
+      else if (match.rule instanceof R.Sequence) {
         this.addMatchedToGroups(groups, match.matched, callback)
       }
     }

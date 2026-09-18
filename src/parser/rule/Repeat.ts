@@ -1,10 +1,9 @@
 import flattenDeep from "lodash/flattenDeep"
 
-
 import { Rule, type RuleProps } from "./Rule"
 import type { Scope } from "~/parser/scope/Scope"
 import { Token } from "~/parser/tokenizer/Tokens"
-import { Rules } from "./index"
+import { R } from "./index"
 import { Match } from "~/parser/Match"
 
 export type RepeatProps = Prettify<
@@ -105,9 +104,7 @@ export class Repeat extends Rule<RepeatProps> {
     }
 
     const wrapInParens =
-      argument ||
-      this.rule instanceof Rules.Sequence ||
-      (this.rule instanceof Rules.Literals && this.rule.literals.length > 1)
+      argument || this.rule instanceof R.Sequence || (this.rule instanceof R.Literals && this.rule.literals.length > 1)
 
     if (wrapInParens && rule.startsWith("(") && rule.endsWith(")")) rule = rule.slice(1, -1)
 

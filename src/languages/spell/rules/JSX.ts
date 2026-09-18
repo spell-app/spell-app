@@ -1,4 +1,4 @@
-import { P, AST } from "~/parser"
+import { P, R, AST } from "~/parser"
 import { SpellParser } from "~/languages/spell"
 import type {
   ASTNode,
@@ -26,7 +26,7 @@ export const JSX = new SpellParser({
       name: "jsxElement",
       alias: ["jsxChild", "expression"],
       tokenType: P.Tokens.JSXElement,
-      constructor: class SpellJSX extends P.Rules.TokenType {
+      constructor: class SpellJSX extends R.TokenType {
         parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
@@ -253,7 +253,7 @@ export const JSX = new SpellParser({
     {
       name: "jsxAttribute",
       tokenType: P.Tokens.JSXAttribute,
-      constructor: class SpellJSXAttribute extends P.Rules.TokenType {
+      constructor: class SpellJSXAttribute extends R.TokenType {
         parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
@@ -330,7 +330,7 @@ export const JSX = new SpellParser({
       name: "jsxText",
       alias: "jsxChild",
       tokenType: P.Tokens.JSXText,
-      constructor: class SpellJSXText extends P.Rules.TokenType {
+      constructor: class SpellJSXText extends R.TokenType {
         getAST(match: P.Match) {
           const { raw, quotedText } = match.matched[0] as P.Tokens.JSXText
           // `Rule.getAST()` is declared to always return an `ASTNode`, but this rule legitimately has
@@ -346,7 +346,7 @@ export const JSX = new SpellParser({
       name: "jsxEndTag",
       alias: "jsxChild",
       tokenType: P.Tokens.JSXEndTag,
-      constructor: class SpellJSXEndTag extends P.Rules.TokenType {
+      constructor: class SpellJSXEndTag extends R.TokenType {
         getAST(match: P.Match) {
           const { tagName } = match.matched[0] as P.Tokens.JSXEndTag
           return new AST.JSXEndTag(match, { tagName })
@@ -358,7 +358,7 @@ export const JSX = new SpellParser({
       name: "jsxExpression",
       alias: "jsxChild",
       tokenType: P.Tokens.JSXExpression,
-      constructor: class SpellJSXExpression extends P.Rules.TokenType {
+      constructor: class SpellJSXExpression extends R.TokenType {
         parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined

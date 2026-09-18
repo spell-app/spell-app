@@ -1,13 +1,12 @@
 // Spell "parser" class.
 //
-import global from "global"
 import { isNode } from "browser-or-node"
 import isEqual from "lodash/isEqual"
 import groupBy from "lodash/groupBy"
 import sum from "lodash/sum"
 
 import { CustomError, Derivative, showWhitespace } from "~/util"
-import { Rule, Rules, rulex, Token, Tokenizer, WhitespacePolicy, Scope, Match } from "~/parser"
+import { R, Rule, rulex, Token, Tokenizer, WhitespacePolicy, Scope, Match } from "~/parser"
 import type { RuleProps, RuleConstructor, RuleTest, RuleTestBlock } from "~/parser/rule/Rule"
 import type { TokenConstructor } from "~/parser/rule/TokenType"
 import type { LiteralMatcher } from "~/parser/rule/Literals"
@@ -236,7 +235,7 @@ export class Parser extends Derivative {
   }
 
   // Add a `rule` to our list of rules!
-  // Converts to `Rules.Group` on re-defining the same rule.
+  // Converts to `R.Group` on re-defining the same rule.
   addRule(rule: Rule | RuleConstructor, ruleName?: string | string[]): Rule | undefined {
     // Clear memoized "rules" so we'll recalculate them
     this.clearDerived("rules")
@@ -292,24 +291,24 @@ export class Parser extends Derivative {
 
   // Merge a single `rule` into map of `rules` by `ruleName`.
   // If `rules` already has a rule with that name:
-  //  - if `rules[ruleName]` is a Rules.Group, we'll just add the new rule to the group,
+  //  - if `rules[ruleName]` is a R.Group, we'll just add the new rule to the group,
   //  - or we'll convert `rules[ruleName]` to a group with the original + new rules.
   mergeRule(map: RuleMap, ruleName: string, rule: Rule) {
     const existing = map[ruleName]
     if (!existing) {
       // Always clone groups when adding.
-      if (rule instanceof Rules.Group) rule = rule.clone()
+      if (rule instanceof R.Group) rule = rule.clone()
       map[ruleName] = rule
       return
     }
 
     // Merge existing rule and rule passed in as a new Group
     const group =
-      existing instanceof Rules.Group ? existing.clone() : new Rules.Group({ rules: [existing], argument: ruleName })
+      existing instanceof R.Group ? existing.clone() : new R.Group({ rules: [existing], argument: ruleName })
     map[ruleName] = group
 
     // If rule is ALSO a group with the same argument, merge the groups.
-    if (rule instanceof Rules.Group && rule.argument === existing.argument) group.addChoice(this, ...rule.rules)
+    if (rule instanceof R.Group && rule.argument === existing.argument) group.addChoice(this, ...rule.rules)
     else group.addChoice(this, rule)
   }
 
@@ -396,7 +395,7 @@ export class Parser extends Derivative {
           })
 
         // If we're constructing a sequence, make sure we've got `rules`...
-        if (constructor && constructor.prototype instanceof Rules.Sequence && !(rule instanceof Rules.Sequence)) {
+        if (constructor && constructor.prototype instanceof R.Sequence && !(rule instanceof R.Sequence)) {
           props.rules = [rule]
         } else {
           props = { ...rule, ...props }
@@ -405,10 +404,10 @@ export class Parser extends Derivative {
       }
 
       if (!constructor) {
-        if (props.tokenType) constructor = Rules.TokenType
-        else if (props.pattern) constructor = Rules.Pattern
-        else if (props.literal) constructor = Rules.Keyword
-        else if (props.literals) constructor = Rules.Keywords
+        if (props.tokenType) constructor = R.TokenType
+        else if (props.pattern) constructor = R.Pattern
+        else if (props.literal) constructor = R.Keyword
+        else if (props.literals) constructor = R.Keywords
         else {
           throw new ParserError({
             message: `You must pass 'constructor', 'syntax', 'pattern', 'literal', or 'literals'.`,
@@ -506,7 +505,7 @@ export class Parser extends Derivative {
 
     // Get all of the testable rules in this parser.
     const testable = this.rules._testable_
-    let rules: Rule[] | undefined = testable instanceof Rules.Group ? testable.rules : testable ? [testable] : undefined
+    let rules: Rule[] | undefined = testable instanceof R.Group ? testable.rules : testable ? [testable] : undefined
     if (moduleName && rules) rules = groupBy(rules, "module")[moduleName]
     if (!rules) {
       if (debug) console.debug("no testable rules found")
@@ -563,5 +562,3 @@ export class Parser extends Derivative {
     return results
   }
 }
-global.Parser = Parser
-global.Rules = Rules

@@ -5,10 +5,9 @@
 //
 import global from "global"
 
-import { P } from "~/parser"
+import { P, R } from "~/parser"
 // Import the following directly to avoid circular import problems
 import { Parser } from "~/parser/Parser"
-import { R } from "~/parser/rule"
 import { Tokens } from "~/parser/tokenizer"
 
 /**

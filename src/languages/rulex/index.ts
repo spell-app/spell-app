@@ -5,5 +5,3 @@
 //
 
 export { rulex, RulexParser, type RulexGroups } from "./rulex"
-
-export * as R from "./rulex"
