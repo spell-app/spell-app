@@ -1,4 +1,4 @@
-import { Tokens } from "~/parser"
+import { Tokens } from "~/parser/tokenizer"
 import { TokenType, type TokenConstructor } from "./TokenType"
 
 // Match a single `Word` token.

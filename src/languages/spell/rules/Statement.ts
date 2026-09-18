@@ -1,5 +1,5 @@
 import { P } from "~/parser"
-import { Sequence } from "~/parser/rule/Sequence"
+import { Sequence } from "~/parser/rules/Sequence"
 import { SpellParser } from "~/languages/spell"
 
 // In Spell, we generally match `statements` across the entire line.

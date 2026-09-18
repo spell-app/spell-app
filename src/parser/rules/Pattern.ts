@@ -1,15 +1,13 @@
 import { Match } from "~/parser/Match"
-import { Rule, type RuleProps } from "./Rule"
-import type { Scope } from "~/parser/scope/Scope"
-import { Token } from "~/parser/tokenizer/Tokens"
-
-import { IdentifierBlacklist } from "~/parser/types"
+import type { P } from "~/parser"
+import { R } from "./index"
+import { Rule } from "./Rule"
 
 export type PatternProps = Prettify<
-  RuleProps & {
+  R.RuleProps & {
     pattern?: RegExp
     VALUE_MAP?: Record<string, any>
-    blacklist?: IdentifierBlacklist | string[]
+    blacklist?: P.IdentifierBlacklist | string[]
   }
 >
 
@@ -30,7 +28,7 @@ export class Pattern extends Rule<PatternProps> {
   /** Map of `{ matched: compiled }` to return `compiled` value for `matched` string. */
   declare VALUE_MAP: Record<string, any>
   /** Map of `{ key: true }` for strings which will NOT be accepted. */
-  declare blacklist: IdentifierBlacklist | undefined
+  declare blacklist: P.IdentifierBlacklist | undefined
 
   constructor(props: PatternProps) {
     if (props instanceof RegExp) props = { pattern: props }
@@ -39,17 +37,17 @@ export class Pattern extends Rule<PatternProps> {
       props.blacklist = props.blacklist.reduce((map, key) => {
         map[key] = true
         return map
-      }, {} as IdentifierBlacklist)
+      }, {} as P.IdentifierBlacklist)
     }
     super(props)
   }
 
-  testAtStart(scope: Scope, tokens: Token[], start = 0) {
+  testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
     if (start >= tokens.length) return false
     return tokens[start].matchesPattern(this.pattern, this.blacklist)
   }
 
-  parse(scope: Scope, tokens: Token[]) {
+  parse(scope: P.Scope, tokens: P.Token[]) {
     if (!this.testAtStart(scope, tokens, 0)) return undefined
     const raw = tokens[0].value // raw value, used by subclasses
     const value = this.mapValue(raw) // possibly normalized value, used by subclasses

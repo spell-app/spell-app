@@ -1,13 +1,12 @@
 import { Match } from "~/parser/Match"
-import { Rule, type RuleProps } from "./Rule"
-import type { Scope } from "~/parser/scope/Scope"
-import { Token } from "../tokenizer/index"
+import type { P } from "~/parser"
+import { R } from "./index"
+import { Rule } from "./Rule"
 
-
-export type TokenConstructor = new (args: any) => Token
+export type TokenConstructor = new (args: any) => P.Token
 
 export type TokenTypeProps = Prettify<
-  RuleProps & {
+  R.RuleProps & {
     tokenType?: TokenConstructor
   }
 >
@@ -29,11 +28,11 @@ export class TokenType extends Rule<TokenTypeProps> {
     this._tokenType = value
   }
 
-  testAtStart(scope: Scope, tokens: Token[], start = 0) {
+  testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
     return tokens[start] instanceof this.tokenType
   }
 
-  parse(scope: Scope, tokens: Token[]) {
+  parse(scope: P.Scope, tokens: P.Token[]) {
     if (!this.testAtStart(scope, tokens, 0)) return undefined
     return new Match({
       rule: this,

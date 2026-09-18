@@ -1,15 +1,14 @@
 import flattenDeep from "lodash/flattenDeep"
 
-import { Rule, type RuleProps } from "./Rule"
-import type { Scope } from "~/parser/scope/Scope"
-import { Token } from "~/parser/tokenizer/Tokens"
-import { R } from "./index"
 import { Match } from "~/parser/Match"
+import type { P } from "~/parser"
+import { R } from "./index"
+import { Rule } from "./Rule"
 
 export type RepeatProps = Prettify<
-  RuleProps & {
-    rule: Rule
-    delimiter?: Rule
+  R.RuleProps & {
+    rule: R.Rule
+    delimiter?: R.Rule
     minCount?: number
     maxCount?: number
   }
@@ -31,19 +30,19 @@ export type RepeatProps = Prettify<
  */
 export class Repeat extends Rule<RepeatProps> {
   /** The rule that repeats. */
-  declare rule: Rule
+  declare rule: R.Rule
   /** The delimiter between each instance of the rule. */
-  declare delimiter: Rule
+  declare delimiter: R.Rule
   /** The minimum number of times the rule must match. */
   declare minCount: number
   /** The maximum number of times the rule must match. */
   declare maxCount: number
 
-  constructor(props: RepeatProps | Rule) {
-    super(props instanceof Rule ? { rule: props } : props)
+  constructor(props: RepeatProps | R.Rule) {
+    super(props instanceof R.Rule ? { rule: props } : props)
   }
 
-  parse(scope: Scope, tokens: Token[]) {
+  parse(scope: P.Scope, tokens: P.Token[]) {
     if (this.testAtStart(scope, tokens, 0) === false) return undefined
 
     // everything that was matched

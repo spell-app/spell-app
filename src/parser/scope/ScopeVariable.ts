@@ -1,4 +1,4 @@
-import { Scope } from "./Scope"
+import type { P } from "~/parser"
 
 export type ScopeVariableProps = {
   name: string
@@ -7,7 +7,7 @@ export type ScopeVariableProps = {
   datatype?: string
   initializer?: string
   isAlias?: boolean
-  scope?: Scope
+  scope?: P.Scope
 }
 
 /**
@@ -15,7 +15,7 @@ export type ScopeVariableProps = {
  */
 export class ScopeVariable {
   /** Pointer to the scope where this variable was defined. */
-  declare scope: Scope
+  declare scope: P.Scope
   /** Required variable name, as used in spell. */
   declare name: string
   /**

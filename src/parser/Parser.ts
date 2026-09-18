@@ -7,10 +7,7 @@ import sum from "lodash/sum"
 
 import { CustomError, Derivative, showWhitespace } from "~/util"
 import { R, Rule, rulex, Token, Tokenizer, WhitespacePolicy, Scope, Match } from "~/parser"
-import type { RuleProps, RuleConstructor, RuleTest, RuleTestBlock } from "~/parser/rule/Rule"
-import type { TokenConstructor } from "~/parser/rule/TokenType"
-import type { LiteralMatcher } from "~/parser/rule/Literals"
-import type { IdentifierBlacklist } from "~/parser/types"
+import type { P } from "~/parser"
 
 /** Error we'll throw when setting up / executing parser. */
 export class ParserError extends CustomError {}
@@ -22,29 +19,29 @@ export class ParserError extends CustomError {}
  * - Rule-subclass-specific props (e.g. `wantsInlineStatement`) are allowed and passed through to the constructor.
  */
 export type RuleDefinition = Prettify<
-  Omit<RuleProps, "syntax" | "tests" | "testRule"> & {
+  Omit<R.RuleProps, "syntax" | "tests" | "testRule"> & {
     // `Function` is included because every object literal already has `Object` as its `constructor`.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-    constructor?: RuleConstructor | Function
+    constructor?: R.RuleConstructor | Function
     skip?: boolean
     syntax?: string | Array<string | RuleDefinition>
     /** Test rule, or rulex syntax string which will be compiled into one. */
     testRule?: Rule | string
     pattern?: RegExp
     VALUE_MAP?: Record<string, unknown>
-    blacklist?: IdentifierBlacklist | string[]
+    blacklist?: P.IdentifierBlacklist | string[]
     literal?: string | string[]
-    literals?: Array<string | string[] | LiteralMatcher>
-    tokenType?: TokenConstructor
+    literals?: Array<string | string[] | R.LiteralMatcher>
+    tokenType?: R.TokenConstructor
     rule?: Rule | string
     rules?: Rule[]
-    tests?: RuleTestBlock[]
+    tests?: R.RuleTestBlock[]
     [subclassProp: string]: unknown
   }
 >
 
 /** Anything `parser.defineRule()` accepts. */
-export type RuleInput = Rule | RuleConstructor | RuleDefinition
+export type RuleInput = Rule | R.RuleConstructor | RuleDefinition
 
 export type ParserProps = {
   module?: string
@@ -73,7 +70,7 @@ export type SpeedTestResults = Omit<TestResults, "time"> & {
 }
 
 /** Normalize a `RuleTest` tuple or object to a consistent object, joining array `input`/`output` with newlines. */
-export function normalizeRuleTest(test: RuleTest) {
+export function normalizeRuleTest(test: R.RuleTest) {
   const {
     input,
     output,
@@ -236,7 +233,7 @@ export class Parser extends Derivative {
 
   // Add a `rule` to our list of rules!
   // Converts to `R.Group` on re-defining the same rule.
-  addRule(rule: Rule | RuleConstructor, ruleName?: string | string[]): Rule | undefined {
+  addRule(rule: Rule | R.RuleConstructor, ruleName?: string | string[]): Rule | undefined {
     // Clear memoized "rules" so we'll recalculate them
     this.clearDerived("rules")
 
@@ -354,7 +351,7 @@ export class Parser extends Derivative {
 
       let { skip, constructor: ctor, ...props } = ruleProps
       // If `constructor` was not specified, it will be `Object`: we're expecting a Rule subclass, so clear it.
-      let constructor = ctor === Object ? undefined : (ctor as RuleConstructor | undefined)
+      let constructor = ctor === Object ? undefined : (ctor as R.RuleConstructor | undefined)
       if (skip) return undefined
 
       // If we received multiple syntax strings, recursively add under each string.
@@ -400,7 +397,7 @@ export class Parser extends Derivative {
         } else {
           props = { ...rule, ...props }
         }
-        if (!constructor) constructor = rule.constructor as RuleConstructor
+        if (!constructor) constructor = rule.constructor as R.RuleConstructor
       }
 
       if (!constructor) {

@@ -1,10 +1,10 @@
 import { Match } from "~/parser/Match"
-import type { Token } from "~/parser/tokenizer/Tokens"
-import { Rule, type RuleProps } from "./Rule"
-import type { Scope } from "~/parser/scope/Scope"
+import type { P } from "~/parser"
+import { R } from "./index"
+import { Rule } from "./Rule"
 
 export type LiteralProps = Prettify<
-  RuleProps & {
+  R.RuleProps & {
     literal: string | string[]
     isEscaped?: boolean
   }
@@ -36,12 +36,12 @@ export abstract class Literal extends Rule<LiteralProps> {
     } else super(props)
   }
 
-  testAtStart(scope: Scope, tokens: Token[], start = 0) {
+  testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
     if (start >= tokens.length) return false
     return tokens[start].matchesLiteral(this.literal)
   }
 
-  parse(scope: Scope, tokens: Token[]) {
+  parse(scope: P.Scope, tokens: P.Token[]) {
     if (!this.testAtStart(scope, tokens, 0)) return undefined
     return new Match({
       rule: this,

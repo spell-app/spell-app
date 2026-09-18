@@ -1,12 +1,12 @@
 import { Match } from "~/parser/Match"
-import { Rule, type RuleProps } from "./Rule"
-import type { Scope } from "~/parser/scope/Scope"
-import { Token } from "../tokenizer/index"
+import type { P } from "~/parser"
+import { R } from "./index"
+import { Rule } from "./Rule"
 
 export type LiteralMatcher = { literal: string | string[]; optional?: boolean }
 
 export type LiteralsProps = Prettify<
-  RuleProps & {
+  R.RuleProps & {
     literals: Array<string | string[] | LiteralMatcher>
   }
 >
@@ -40,7 +40,7 @@ export abstract class Literals extends Rule<LiteralsProps> {
     }
   }
 
-  testAtStart(scope: Scope, tokens: Token[], start = 0) {
+  testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
     return this.matchAtStart(tokens, start) > 0
   }
 
@@ -48,7 +48,7 @@ export abstract class Literals extends Rule<LiteralsProps> {
    * Return the number of tokens matched at `start` or `0` if no match.
    * - NOTE: this must match ALL non-optional literals in order.
    */
-  matchAtStart(tokens: Token[], start = 0) {
+  matchAtStart(tokens: P.Token[], start = 0) {
     for (let i = 0, matcher; (matcher = this.literals[i]); i++) {
       const matched = tokens[start]?.matchesLiteral(matcher.literal)
       if (matched) start++
@@ -57,7 +57,7 @@ export abstract class Literals extends Rule<LiteralsProps> {
     return start
   }
 
-  parse(scope: Scope, tokens: Token[]) {
+  parse(scope: P.Scope, tokens: P.Token[]) {
     const tokensMatched = this.matchAtStart(tokens, 0)
     if (!tokensMatched) return undefined
     const matched = tokens.slice(0, tokensMatched)

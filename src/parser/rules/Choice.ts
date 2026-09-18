@@ -1,17 +1,15 @@
 
+import type { P } from "~/parser"
 import { Tokenizer } from "~/parser/tokenizer/Tokenizer"
-import { Token } from "~/parser/tokenizer/Tokens"
-import { Rule, type RuleProps } from "./Rule"
-import type { Scope } from "~/parser/scope/Scope"
-import { Match } from "~/parser/Match"
-import type { Parser } from "~/parser/Parser"
+import { R } from "./index"
+import { Rule } from "./Rule"
 
 // Turn on debugging of choice / precedence semantics
 const DEBUG_CHOICES = false
 
 export type ChoiceProps = Prettify<
-  RuleProps & {
-    rules: Rule[]
+  R.RuleProps & {
+    rules: R.Rule[]
   }
 >
 
@@ -26,14 +24,14 @@ export type ChoiceProps = Prettify<
  */
 export class Choice extends Rule<ChoiceProps> {
   /** List of rules, any of which will match. */
-  declare rules: Rule[]
+  declare rules: R.Rule[]
 
   constructor(props: ChoiceProps) {
     props.rules = Array.isArray(props.rules) ? [...props.rules] : []
     super(props)
   }
 
-  compile(match: Match) {
+  compile(match: P.Match) {
     throw new TypeError(`Choice.compile() is not implemented`)
     return ""
   }
@@ -42,14 +40,14 @@ export class Choice extends Rule<ChoiceProps> {
    * Add one or more `rules` to the list of choices.
    * `parser` is the parser instance that's calling this.
    */
-  addChoice(_parser: Parser, ...rules: Rule[]) {
+  addChoice(_parser: P.Parser, ...rules: R.Rule[]) {
     this.rules = [...this.rules, ...rules]
   }
 
   // Return (`true` or index) if ANY of our rules is found.
   // If ANY rules return `undefined`, this will return `undefined`.
   // If ALL rules return `false`, this will return `false`.
-  testAtStart(scope: Scope, tokens: Token[], start = 0) {
+  testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
     if (start >= tokens.length) return false
     let undefinedFound = false
     for (let i = 0, rule; (rule = this.rules[i]); i++) {
@@ -62,14 +60,14 @@ export class Choice extends Rule<ChoiceProps> {
   }
 
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
-  parse(scope: Scope, tokens: Token[]) {
+  parse(scope: P.Scope, tokens: P.Token[]) {
     const CHOICE = `choice '${this.name || this.argument}:'`
     if (DEBUG_CHOICES) console.group(`${CHOICE} start matching '${Tokenizer.join(tokens)}'`, this)
 
     // Try to match each rule in turn.
     // For efficiency, complicated rules (e.g. sequences or recursive rules)
     //  should exit quickly via a `testRule` or similar mechanism.
-    const matches: Match[] = []
+    const matches: P.Match[] = []
     for (let i = 0, rule; (rule = this.rules[i++]); ) {
       if (DEBUG_CHOICES) console.group("parsing rule", rule.name)
       const match = rule.parse(scope, tokens)
@@ -77,7 +75,7 @@ export class Choice extends Rule<ChoiceProps> {
       if (DEBUG_CHOICES) console.groupEnd()
     }
 
-    let match: Match | undefined = matches[0]
+    let match: P.Match | undefined = matches[0]
     if (DEBUG_CHOICES) {
       if (matches.length === 0) {
         console.debug(`${CHOICE} nothing matched`)
@@ -105,13 +103,13 @@ export class Choice extends Rule<ChoiceProps> {
   // First we find the match(es) with the highest preceedence.
   // Then we take the one with the longest matched string.
   // If more than one rule with same length, takes LATEST one.
-  getBestMatch(matches: Match[]) {
+  getBestMatch(matches: P.Match[]) {
     if (matches.length === 1) return matches[0]
 
     // Filter to rules with highest precedence.
     // NOTE: we run this BACKWARDS to put later-defined rules first
     let match
-    let highPriority: Match[] = []
+    let highPriority: P.Match[] = []
     for (let max = -Infinity, i = 0; (match = matches[i++]); ) {
       const { precedence } = match.rule
       if (precedence > max) {

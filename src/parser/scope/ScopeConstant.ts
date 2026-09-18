@@ -1,9 +1,10 @@
-import { ParserError, Scope } from "~/parser"
+import { ParserError } from "~/parser"
+import type { P } from "~/parser"
 
 export type ScopeConstantProps = {
   name: string
   output?: string
-  scope?: Scope
+  scope?: P.Scope
 }
 
 /**
@@ -16,7 +17,7 @@ export type ScopeConstantProps = {
 export class ScopeConstant {
   declare name: string
   declare output: string
-  declare scope: Scope
+  declare scope: P.Scope
 
   constructor(name: string)
   constructor(props: ScopeConstantProps)

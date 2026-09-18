@@ -1,6 +1,7 @@
 import { IndexedList, snakeCase } from "~/util"
+import type { P } from "~/parser"
 import { Scope } from "./Scope"
-import { MethodScope, type MethodScopeProps, ScopeVariable, type ScopeVariableProps } from "."
+import { MethodScope, ScopeVariable } from "."
 
 /**
  * `BlockScope` -- a scope which encapsulates a block of statements.
@@ -9,7 +10,7 @@ import { MethodScope, type MethodScopeProps, ScopeVariable, type ScopeVariablePr
  */
 export class BlockScope extends Scope {
   /** Scope `variables`. */
-  get variables(): IndexedList<ScopeVariable, string | ScopeVariable | ScopeVariableProps> {
+  get variables(): IndexedList<ScopeVariable, string | ScopeVariable | P.ScopeVariableProps> {
     return this.derived(
       "variables",
       () =>
@@ -28,7 +29,7 @@ export class BlockScope extends Scope {
   }
 
   /** Scope `methods`. */
-  get methods(): IndexedList<MethodScope, MethodScope | MethodScopeProps> {
+  get methods(): IndexedList<MethodScope, MethodScope | P.MethodScopeProps> {
     return this.derived(
       "methods",
       () =>

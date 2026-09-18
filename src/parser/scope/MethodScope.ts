@@ -1,8 +1,9 @@
+import type { P } from "~/parser"
 import { BlockScope } from "./BlockScope"
-import { ScopeProps, ScopeVariable, type ScopeVariableProps } from "."
+import { ScopeVariable } from "."
 
-export type MethodScopeProps = ScopeProps & {
-  args?: Array<ScopeVariable | string | ScopeVariableProps>
+export type MethodScopeProps = P.ScopeProps & {
+  args?: Array<ScopeVariable | string | P.ScopeVariableProps>
   thisVar?: string
   mapItTo?: string
   async?: boolean

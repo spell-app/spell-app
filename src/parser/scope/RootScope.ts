@@ -1,8 +1,8 @@
 import { IndexedList, typeCase, snakeCase } from "~/util"
-import { Rule } from "~/parser/rule/Rule"
-import type { RuleDefinition } from "~/parser/Parser"
+import { Rule } from "~/parser"
+import type { P } from "~/parser"
 import { BlockScope } from "./BlockScope"
-import { TypeScope, ScopeConstant, type ScopeConstantProps, type TypeScopeProps } from "."
+import { TypeScope, ScopeConstant } from "."
 /**
  * A `RootScope` is the root scope for a parser.
  * It manages built-in `.rules`, `.types` and `.constants`,
@@ -12,7 +12,7 @@ import { TypeScope, ScopeConstant, type ScopeConstantProps, type TypeScopeProps 
  */
 export class RootScope extends BlockScope {
   /** Scope `types`. */
-  get types(): IndexedList<TypeScope, string | TypeScope | TypeScopeProps> {
+  get types(): IndexedList<TypeScope, string | TypeScope | P.TypeScopeProps> {
     return this.derived(
       "types",
       () =>
@@ -31,7 +31,7 @@ export class RootScope extends BlockScope {
   }
 
   /** Scope `constants`. */
-  get constants(): IndexedList<ScopeConstant, string | ScopeConstant | ScopeConstantProps> {
+  get constants(): IndexedList<ScopeConstant, string | ScopeConstant | P.ScopeConstantProps> {
     return this.derived(
       "constants",
       () =>
@@ -51,11 +51,11 @@ export class RootScope extends BlockScope {
 
   /** Scope `rules`. */
   /** Rule definitions added to this scope; each is also defined on the scope's `parser`. */
-  get rules(): IndexedList<RuleDefinition> {
+  get rules(): IndexedList<P.RuleDefinition> {
     return this.derived(
       "rules",
       () =>
-        new IndexedList<RuleDefinition>({
+        new IndexedList<P.RuleDefinition>({
           target: this,
           keyProp: "name",
           transformer(item) {

@@ -1,6 +1,6 @@
 // Core rules composed into a `spellParser` instance.
 import { P } from "~/parser"
-import { R } from "~/parser/rule"
+import { R } from "~/parser/rules"
 import { SpellParser } from "~/languages/spell/SpellParser"
 
 // The following add new Rule constructors to `SpellParser.Rule`

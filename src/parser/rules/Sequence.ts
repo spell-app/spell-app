@@ -15,14 +15,14 @@
 import flattenDeep from "lodash/flattenDeep"
 
 
-import { Match, type MatchGroups } from "~/parser/Match"
-import { Rule, RuleProps } from "./Rule"
-import type { Scope } from "~/parser/scope/Scope"
-import { Token } from "../tokenizer/Tokens"
+import { Match } from "~/parser/Match"
+import type { P } from "~/parser"
+import { R } from "./index"
+import { Rule } from "./Rule"
 
 export type SequenceProps = Prettify<
-  RuleProps & {
-    rules: Rule[]
+  R.RuleProps & {
+    rules: R.Rule[]
   }
 >
 
@@ -31,7 +31,7 @@ export type SequenceProps = Prettify<
 //  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
 export class Sequence extends Rule<SequenceProps> {
   /** The array of rules to match. */
-  declare rules: Rule[]
+  declare rules: R.Rule[]
   /** Separtor string for base compile() rule which just joins the `matched` outputs. */
   declare compileSeparator: string
 
@@ -39,8 +39,8 @@ export class Sequence extends Rule<SequenceProps> {
     Object.defineProperty(this.prototype, "compileSeparator", { value: " ", writable: true })
   }
 
-  constructor(...args: [SequenceProps] | [Rule[]] | Rule[]) {
-    if (args.length > 1) super({ rules: args as Rule[] })
+  constructor(...args: [SequenceProps] | [R.Rule[]] | R.Rule[]) {
+    if (args.length > 1) super({ rules: args as R.Rule[] })
     else if (Array.isArray(args[0])) super({ rules: args[0] })
     else super(args[0] as SequenceProps)
 
@@ -49,7 +49,7 @@ export class Sequence extends Rule<SequenceProps> {
     }
   }
 
-  parse(scope: Scope, tokens: Token[]) {
+  parse(scope: P.Scope, tokens: P.Token[]) {
     if (this.test(scope, tokens) === false) return undefined
 
     const matched = []
@@ -99,7 +99,7 @@ export class Sequence extends Rule<SequenceProps> {
 
   getGroupsForMatch(match: Match): Record<string, unknown> {
     // Sequences add child matches to their groups, ignoring the "outer" match.
-    return match.addMatchedToGroups<MatchGroups>({}, match.matched)
+    return match.addMatchedToGroups<P.MatchGroups>({}, match.matched)
   }
 
   // Echo this rule back out.

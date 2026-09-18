@@ -1,11 +1,10 @@
 
-import { Rule, type RuleProps } from "./Rule"
-import type { Scope } from "~/parser/scope/Scope"
-import { Token } from "~/parser/tokenizer/Tokens"
-import { Match } from "~/parser/Match"
+import type { P } from "~/parser"
+import { R } from "./index"
+import { Rule } from "./Rule"
 
 export type SubruleProps = Prettify<
-  RuleProps & {
+  R.RuleProps & {
     rule: string
   }
 >
@@ -25,12 +24,12 @@ export class Subrule extends Rule<SubruleProps> {
   }
 
   // Ask the subrule to figure out if a match is possible.
-  test(scope: Scope, tokens: Token[], testLocation = this.testLocation) {
+  test(scope: P.Scope, tokens: P.Token[], testLocation = this.testLocation) {
     const rule = scope.getRuleOrDie(this.rule)
     return rule.test(scope, tokens, testLocation)
   }
 
-  parse(scope: Scope, tokens: Token[]) {
+  parse(scope: P.Scope, tokens: P.Token[]) {
     if (!tokens.length) return undefined
     const rule = scope.getRuleOrDie(this.rule)
 
@@ -39,7 +38,7 @@ export class Subrule extends Rule<SubruleProps> {
     if (this.argument) match.argument = this.argument
     return match
   }
-  compile(match: Match) {
+  compile(match: P.Match) {
     throw new TypeError("Subrule cannot be compiled")
     return ""
   }

@@ -55,9 +55,13 @@ when working with code in this repository.
 - OK to import from direct peer directories: `import thing from "./thing`, but not subdirectories -- use `~/...` instead.
 - Prefer barrel-style imports, e.g. `import { P } from "~/parser`, `import React from "react"`.
   - Exception: Import base classes or other circular references directly from the file which defines them.
+  - Exception: files building a barrel (e.g. `~/parser/**` building `P`) must not import it as a VALUE --
+    circular reentry can silently corrupt it (e.g. broken `instanceof`). Use `import type { P }`, or import
+    the value directly (defining submodule or local `./index`); never via `P`/`R` in an `extends` clause.
+    Outside consumers import `P`/`R` as values normally.
 - Import order (blank line between groups):
   - node_modules
   - `~/util` and other general utilities, general-to-specific
-  - imports from other sub-systems
-  - local models / helper files
+  - imports from other sub-systems, barrels first
+  - local models / helper files, barrels first
   - css (`./` as `~/...`)
