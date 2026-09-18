@@ -21,7 +21,7 @@ export class ParserError extends CustomError {}
 export type RuleDefinition = Prettify<
   Omit<R.RuleProps, "syntax" | "tests" | "testRule"> & {
     // `Function` is included because every object literal already has `Object` as its `constructor`.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+    // NOTE: bare `Function` is deliberate here -- this is a dynamic boundary, not a known signature.
     constructor?: R.RuleConstructor | Function
     skip?: boolean
     syntax?: string | Array<string | RuleDefinition>

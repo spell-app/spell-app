@@ -32,7 +32,6 @@ export class Choice extends Rule<ChoiceProps> {
 
   compile(match: P.Match) {
     throw new TypeError(`Choice.compile() is not implemented`)
-    return ""
   }
 
   /**

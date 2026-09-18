@@ -40,8 +40,10 @@ export class SpellParser extends P.Parser {
    * All project scopes will point back to this.
    */
   /*@memoize*/
-  static get rootScope() {
-    return getDerived(this, "rootScope", () => {
+  // NOTE: return types are explicit because `rootScope` and `getScope()` reference each other.
+  // Without them TS cannot break the cycle and falls back to `any` (TS7022/7023/7024).
+  static get rootScope(): P.RootScope {
+    return getDerived(this, "rootScope", (): P.RootScope => {
       const scope = new P.RootScope({ name: "spellRoot", parser: spellParser })
       // Add all BASE_TYPES defined in `spellCore`.
       // See: `src/spellCore/classes/index.ts`
@@ -53,7 +55,7 @@ export class SpellParser extends P.Parser {
   // Return a scope with a new parser which depends on this parser.
   // This lets us update rules/etc as desired without affecting the original parser.
   // DOCME
-  getScope(moduleName = "ad_hoc") {
+  getScope(moduleName = "ad_hoc"): P.ProjectScope {
     const parser = this.clone({ module: moduleName })
     return new P.ProjectScope({
       name: moduleName,

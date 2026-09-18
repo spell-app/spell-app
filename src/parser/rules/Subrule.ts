@@ -39,7 +39,6 @@ export class Subrule extends Rule<SubruleProps> {
   }
   compile(match: P.Match) {
     throw new TypeError("Subrule cannot be compiled")
-    return ""
   }
 
   toRulexSyntax() {

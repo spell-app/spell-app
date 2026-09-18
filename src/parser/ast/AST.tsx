@@ -1517,11 +1517,28 @@ export class TryCatchBlock extends StatementGroup {
   }
   renderChildren(): ReactNode {
     const { body, catchBlock, finallyBlock } = this
-    const output: ReactNode[] = [render.TRY, <span className="try-block">{body.component}</span>]
+    const output: ReactNode[] = [
+      render.TRY,
+      <span key="try" className="try-block">
+        {body.component}
+      </span>
+    ]
     if (catchBlock)
-      output.push(render.NEWLINE, render.CATCH, <span className="catch-block">{catchBlock.component}</span>)
+      output.push(
+        render.NEWLINE,
+        render.CATCH,
+        <span key="catch" className="catch-block">
+          {catchBlock.component}
+        </span>
+      )
     if (finallyBlock)
-      output.push(render.NEWLINE, render.FINALLY, <span className="finally-block">{finallyBlock.component}</span>)
+      output.push(
+        render.NEWLINE,
+        render.FINALLY,
+        <span key="finally" className="finally-block">
+          {finallyBlock.component}
+        </span>
+      )
     return render.Fragment(...output)
   }
 }

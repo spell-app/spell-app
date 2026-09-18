@@ -1,7 +1,7 @@
 {
-  "eslint.alwaysShowStatus": true,
-  "eslint.useFlatConfig": true,
-  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  // Linting is oxlint (see `.oxlintrc.json`); the ESLint extension is no longer used here.
+  "oxc.enable": true,
+  "oxc.lint.run": "onType",
   "javascript.validate.enable": false,
   "[javascript]": {
     "editor.formatOnSave": true
@@ -15,5 +15,5 @@
   "prettier.arrowParens": "always",
   "prettier.printWidth": 120,
   "prettier.semi": false,
-  "js/ts.experimental.useTsgo": true
+  "js/ts.experimental.useTsgo": false
 }

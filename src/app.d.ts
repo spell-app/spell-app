@@ -29,8 +29,8 @@ type SplitString<List, Delimiter extends string = ":"> = List extends `${infer H
  * Use e.g. `ReactNode` rather than `React.ReactNode`.
  */
 type ReactNode = import("react").ReactNode
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- mirrors upstream React.Component's own `P = {}, S = {}` defaults
+// NOTE: empty `{}` defaults mirror upstream `React.Component`'s own `P = {}, S = {}`.
 type ReactComponent<P = {}, S = {}> = import("react").Component<P, S>
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type -- mirrors upstream React.ComponentType's own `P = {}` default
+// NOTE: empty `{}` default mirrors upstream `React.ComponentType`'s own `P = {}`.
 type ReactComponentType<P = {}> = import("react").ComponentType<P>
 type ReactElement<P = any> = import("react").ReactElement<P>

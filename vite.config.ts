@@ -1,7 +1,7 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 
-import environment from "./src/environment"
+import environment from "./src/environment.ts"
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -26,8 +26,8 @@ export default defineConfig({
     sourcemap: false,
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ["react", "react-dom"]
+        manualChunks(id: string) {
+          if (id.includes("/node_modules/react/") || id.includes("/node_modules/react-dom/")) return "vendor"
         }
       }
     }

@@ -99,7 +99,6 @@ export class NestedSplit extends Rule<NestedSplitProps> {
   /** Don't use `nestedSplit.compile()` -- use `match.groups` instead. */
   compile(match: Match) {
     throw new TypeError("don't use nestedSplit.compile() -- check `match.groups` instead.")
-    return ""
   }
 
   // If tokens starts with our `start` literal,

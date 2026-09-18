@@ -52,7 +52,11 @@ export function ErrorDisplay(allProps: ErrorDisplayProps) {
     )
   }
 
-  return <SUI.Message {...props} error onDismiss={onDismiss} children={children} />
+  return (
+    <SUI.Message {...props} error onDismiss={onDismiss}>
+      {children}
+    </SUI.Message>
+  )
 }
 
 export type ErrorDisplayProps = Omit<SUI.MessageProps, "error" | "onDismiss"> & {

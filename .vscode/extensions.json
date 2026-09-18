@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    // Linting -- replaces the ESLint extension, reads `.oxlintrc.json`.
+    "oxc.oxc-vscode",
+    "esbenp.prettier-vscode"
+  ]
+}

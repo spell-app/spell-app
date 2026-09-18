@@ -97,7 +97,7 @@ export const pathMethods = defineSpellCoreModule({
         if (step[0] === "[") {
           if (step.substr(-1) !== "]") throw "missing end ]"
           step = step.slice(1, -1).trim()
-          if (step[0] === '"' || step[0] === '"') {
+          if (step[0] === `"` || step[0] === `'`) {
             if (step.substr(-1) !== step[0]) throw `missing end ${step[0]}`
             step = step.slice(1, -1).trim()
           }
