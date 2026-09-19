@@ -11,6 +11,8 @@
  */
 export * as SP from "."
 
+export * from "./spell.types"
+
 export * from "./SpellLocation"
 export * from "./SpellProjectRoot"
 export * from "./SpellProject"

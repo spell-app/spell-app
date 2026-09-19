@@ -4,4 +4,5 @@
 //  or risk circular import problems.
 //
 
-export { rulex, RulexParser, type RulexGroups } from "./rulex"
+export * from "./RulexParser"
+export * from "./rulex"

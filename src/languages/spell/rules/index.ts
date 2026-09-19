@@ -1,6 +1,5 @@
 // Core rules composed into a `spellParser` instance.
 import { P } from "~/parser"
-import { R } from "~/parser/rules"
 import { SpellParser } from "~/languages/spell/SpellParser"
 
 // The following add new Rule constructors to `SpellParser.Rule`
@@ -49,7 +48,9 @@ export const parseExpression = (expression: string | P.Token | P.Token[], scope?
 /** Export ParseError so we can create them programmatically. */
 export { ParseError }
 
-spellParser.defineRule({ name: "blank_line", constructor: R.BlankLine })
+// Generic parser `BlankLine`
+spellParser.defineRule({ name: "blank_line", constructor: P.BlankLine })
+// Spell specfic classes for Block/BlockLine/ParserError
 spellParser.defineRule({ name: "block", constructor: Block })
 spellParser.defineRule({ name: "line", constructor: BlockLine })
 spellParser.defineRule({ name: "parse_error", constructor: ParseError })

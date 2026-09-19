@@ -5,6 +5,7 @@ import type { RouteComponentProps } from "@reach/router"
 import { SP } from "~/languages/spell"
 import { UI, Actions } from "~/app/ui"
 import { store } from "~/app/store"
+import type { SpellRouteParams } from "./pages.types"
 
 /**
  * ### `<SpellEditor />`
@@ -88,11 +89,4 @@ export function SpellEditorRoute(props: RouteComponentProps<SpellRouteParams>) {
   // HACK: Actually navigate on a timeout to avoid hook / rerender problems.
   setTimeout(() => store.selectPath(path), 0)
   return <SpellEditor />
-}
-
-/** Params parsed out of the `edit/:domain/:project/*filePath` routes. */
-export type SpellRouteParams = {
-  domain: string
-  project: string
-  filePath: string
 }

@@ -1,13 +1,4 @@
 /** Browser DOM Utilities */
-import global from "global"
-
-export type ElementScroll = {
-  percent: number
-  max: number
-  current: number
-  total: number
-  visible: number
-}
 
 export function scrollForElement(element: Element, direction = "vertical") {
   if (!element) return undefined
@@ -25,6 +16,14 @@ export function scrollForElement(element: Element, direction = "vertical") {
   scroll.max = scroll.total - scroll.visible
   scroll.percent = parseFloat((scroll.current / scroll.max).toPrecision(4))
   return scroll
+}
+
+export type ElementScroll = {
+  percent: number
+  max: number
+  current: number
+  total: number
+  visible: number
 }
 
 /**
@@ -84,12 +83,12 @@ export function getComputedStyle(element: Element | CSSStyleDeclaration) {
  * e.g. for `padding` or margin.
  */
 export class CSS_TLBR_VALUES {
-  #top
-  #right
-  #bottom
-  #left
+  #top: string
+  #right: string
+  #bottom: string
+  #left: string
   constructor(prefix = "", elementOrStyle: Element | CSSStyleDeclaration, suffix = "") {
-    const style = getComputedStyle(elementOrStyle)
+    const style = getComputedStyle(elementOrStyle) as Record<string, string>
     this.#top = style[`${prefix}top${suffix}`]
     this.#right = style[`${prefix}right${suffix}`]
     this.#bottom = style[`${prefix}bottom${suffix}`]
@@ -122,11 +121,11 @@ export class CSS_TLBR_VALUES {
  * NOTE: `element` can be a DOM element or a previously obtained `styleDeclaration`.
  * NOTE: Values will be `NaN` if you pass an invalid `element`.
  */
+// TODO: CASE?
 class margin extends CSS_TLBR_VALUES {}
 export function getMargin(element: Element) {
   return new margin("margin-", element)
 }
-global.getMargin = getMargin // DEBUG
 
 /**
  * Return `border` object for an `element` according to its `computedStyle`,
@@ -135,11 +134,11 @@ global.getMargin = getMargin // DEBUG
  * NOTE: `element` can be a DOM element or a previously obtained `styleDeclaration`.
  * NOTE: Values will be `NaN` if you pass an invalid `element`.
  */
+// TODO: CASE?
 class borderSize extends CSS_TLBR_VALUES {}
 export function getBorderSize(element: Element) {
   return new borderSize("border-", element, "-width")
 }
-global.getBorderSize = getBorderSize // DEBUG
 
 /**
  * Return `padding` object for an `element` according to its `computedStyle`,
@@ -148,8 +147,8 @@ global.getBorderSize = getBorderSize // DEBUG
  * NOTE: `element` can be a DOM element or a previously obtained `styleDeclaration`.
  * NOTE: Values will be `NaN` if you pass an invalid `element`.
  */
+// TODO: CASE?
 class padding extends CSS_TLBR_VALUES {}
 export function getPadding(element: Element) {
   return new padding("padding-", element)
 }
-global.getPadding = getPadding // DEBUG

@@ -1,11 +1,4 @@
-import { ParserError } from "~/parser"
-import type { P } from "~/parser"
-
-export type ScopeConstantProps = {
-  name: string
-  output?: string
-  scope?: P.Scope
-}
+import { P } from "~/parser"
 
 /**
  * `ScopeConstant` a variable defined within a `Scope`.
@@ -28,7 +21,7 @@ export class ScopeConstant {
     } else Object.assign(this, input)
 
     if (typeof this.name !== "string") {
-      throw new ParserError({
+      throw new P.ParserError({
         message: "Constants must be created with a 'name'",
         context: this,
         activity: "constructor",
@@ -49,4 +42,10 @@ export class ScopeConstant {
   toString() {
     return this.output
   }
+}
+
+export type ScopeConstantProps = {
+  name: string
+  output?: string
+  scope?: P.Scope
 }

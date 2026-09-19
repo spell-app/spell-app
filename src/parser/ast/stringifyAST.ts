@@ -10,6 +10,7 @@
  */
 import type { ASTNode } from "./AST"
 
+// TODO: move to `parser.types.ts` ?
 /** Draw a single space. */
 export const SPACE = " "
 /** Draw an indent as a list delimiter. */

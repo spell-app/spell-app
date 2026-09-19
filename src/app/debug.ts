@@ -22,7 +22,7 @@ Object.assign(global, {
   exp: SP.parseExpression,
   tokenizer: SP.spellParser.tokenizer,
   tokenize: SP.spellParser.tokenize.bind(SP.spellParser),
-  rulex: P.rulex,
+  rulex: P.Parser.rulexParser,
   store,
   SUI
 })

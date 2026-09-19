@@ -1,18 +1,8 @@
 import flattenDeep from "lodash/flattenDeep"
 
-import { Match } from "~/parser/Match"
-import type { P } from "~/parser"
-import { R } from "./index"
+import { P } from "~/parser"
+// Import directly to avoid circular import
 import { Rule } from "./Rule"
-
-export type RepeatProps = Prettify<
-  R.RuleProps & {
-    rule: R.Rule
-    delimiter?: R.Rule
-    minCount?: number
-    maxCount?: number
-  }
->
 
 /**
  * Repeating rule.  Returns `undefined` if we don't match at least once.
@@ -30,16 +20,16 @@ export type RepeatProps = Prettify<
  */
 export class Repeat extends Rule<RepeatProps> {
   /** The rule that repeats. */
-  declare rule: R.Rule
+  declare rule: P.Rule
   /** The delimiter between each instance of the rule. */
-  declare delimiter: R.Rule
+  declare delimiter: P.Rule
   /** The minimum number of times the rule must match. */
   declare minCount: number
   /** The maximum number of times the rule must match. */
   declare maxCount: number
 
-  constructor(props: RepeatProps | R.Rule) {
-    super(props instanceof R.Rule ? { rule: props } : props)
+  constructor(props: RepeatProps | P.Rule) {
+    super(props instanceof Rule ? { rule: props } : props)
   }
 
   parse(scope: P.Scope, tokens: P.Token[]) {
@@ -75,7 +65,7 @@ export class Repeat extends Rule<RepeatProps> {
     if (typeof this.minCount === "number" && matched.length < this.minCount) return undefined
     if (typeof this.maxCount === "number" && matched.length > this.maxCount) return undefined
 
-    const match = new Match({
+    const match = new P.Match({
       rule: this,
       matched,
       items,
@@ -87,7 +77,7 @@ export class Repeat extends Rule<RepeatProps> {
   }
 
   // Returns an array by default; subclasses (e.g. rulex `sequence`) may return other things.
-  compile(match: Match): unknown {
+  compile(match: P.Match): unknown {
     return match.items.map((next) => next.compile())
   }
 
@@ -103,7 +93,7 @@ export class Repeat extends Rule<RepeatProps> {
     }
 
     const wrapInParens =
-      argument || this.rule instanceof R.Sequence || (this.rule instanceof R.Literals && this.rule.literals.length > 1)
+      argument || this.rule instanceof P.Sequence || (this.rule instanceof P.Literals && this.rule.literals.length > 1)
 
     if (wrapInParens && rule.startsWith("(") && rule.endsWith(")")) rule = rule.slice(1, -1)
 
@@ -111,3 +101,12 @@ export class Repeat extends Rule<RepeatProps> {
     return `${rule}${repeatSymbol}`
   }
 }
+
+export type RepeatProps = Prettify<
+  P.RuleProps & {
+    rule: P.Rule
+    delimiter?: P.Rule
+    minCount?: number
+    maxCount?: number
+  }
+>

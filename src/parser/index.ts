@@ -1,19 +1,16 @@
 /**
  * Export all public `parser` code as a barrel.
  *
- * Prefer importing as `import { P } from "~/parser" when possible.
+ * Prefer importing like so when possible.
+ * - `import type { P } from "~/parser"`  (safer)
+ * - `import { P } from "~/parser"` (if you need class or functions from `P`)
  */
 export * as P from "."
 
-export * from "./constants"
-export * from "./types"
+export * from "./parser.types"
 export * from "./tokenizer"
 export * from "./Match"
 export * from "./rules"
 export * from "./Parser"
 export * from "./scope"
 export * from "./ast"
-
-// Export `rulex` languge which is used by Parser to define rules easily.
-// Exporting it here makes circular import problems work out.
-export * from "~/languages/rulex"

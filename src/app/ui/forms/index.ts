@@ -1,12 +1,14 @@
 //
 //  ## Master import file for the form system.
 //
-//  NOTE: `./wrappers` is deliberately NOT re-exported.  `FieldWrapper`/`WithField()`/`WithForm()`
-//  are the machinery `./components` is built from, not part of the app's UI surface -- import
-//  them from `~/app/ui/forms/wrappers` directly if you are building a new field component.
+//  NOTE: `./wrappers` (`FieldWrapper` / `WithField()` / `WithForm()`) is the machinery
+//  `./components` is built from.  Exported so peers can reach it as `F.WithField` etc --
+//  app code should generally stick to `F.Form`, `F.Input`, `F.Select`.
 //
 
 export * from "./Form"
+export * from "./FormStore"
+export * from "./wrappers"
 export * from "./components"
 
 /** Everything above as the `F` barrel, e.g. `F.Form`, `F.Input`, `F.Select`. */

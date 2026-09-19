@@ -2,10 +2,9 @@ import React from "react"
 import type { RouteComponentProps } from "@reach/router"
 
 import { SP } from "~/languages/spell"
-import { Actions } from "~/app/ui"
-import { UI, AppRoot, ConsoleRoot, SpellPage, SplitPanel } from "~/app/ui"
+import { UI, Actions, AppRoot, ConsoleRoot, SpellPage, SplitPanel } from "~/app/ui"
 import { store } from "~/app/store"
-import type { SpellRouteParams } from "./SpellEditor"
+import type { SpellRouteParams } from "./pages.types"
 
 /** Runner page. */
 export const SpellRunner = React.memo(function SpellRunner() {

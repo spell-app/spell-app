@@ -4,8 +4,7 @@
 // ----------------------------
 import { spellCore } from "./core"
 import { Eventful } from "./SpellEvent"
-import { defineSpellCoreModule } from "./SpellCore"
-import type { SpellCore } from "./SpellCore"
+import { defineSpellCoreModule, type SpellCore } from "./SpellCore"
 
 export class SpellRuntime extends Eventful() {
   // Delegate events to `spellCore`.

@@ -1,7 +1,6 @@
 import { IndexedList, snakeCase } from "~/util"
-import type { P } from "~/parser"
+import { P } from "~/parser"
 import { Scope } from "./Scope"
-import { MethodScope, ScopeVariable } from "."
 
 /**
  * `BlockScope` -- a scope which encapsulates a block of statements.
@@ -10,7 +9,7 @@ import { MethodScope, ScopeVariable } from "."
  */
 export class BlockScope extends Scope {
   /** Scope `variables`. */
-  get variables(): IndexedList<ScopeVariable, string | ScopeVariable | P.ScopeVariableProps> {
+  get variables(): IndexedList<P.ScopeVariable, string | P.ScopeVariable | P.ScopeVariableProps> {
     return this.derived(
       "variables",
       () =>
@@ -20,7 +19,7 @@ export class BlockScope extends Scope {
           parentProp: "parentScope.variables",
           normalizeKey: snakeCase,
           transformer(item) {
-            if (!(item instanceof ScopeVariable)) item = new ScopeVariable(item)
+            if (!(item instanceof P.ScopeVariable)) item = new P.ScopeVariable(item)
             item.scope = this.target
             return item
           }
@@ -29,7 +28,7 @@ export class BlockScope extends Scope {
   }
 
   /** Scope `methods`. */
-  get methods(): IndexedList<MethodScope, MethodScope | P.MethodScopeProps> {
+  get methods(): IndexedList<P.MethodScope, P.MethodScope | P.MethodScopeProps> {
     return this.derived(
       "methods",
       () =>
@@ -39,7 +38,7 @@ export class BlockScope extends Scope {
           parentProp: "parentScope.methods",
           normalizeKey: snakeCase,
           transformer(item) {
-            if (!(item instanceof MethodScope)) item = new MethodScope(item)
+            if (!(item instanceof P.MethodScope)) item = new P.MethodScope(item)
             item.parentScope = this.target
             return item
           }

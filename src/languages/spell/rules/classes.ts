@@ -1,8 +1,7 @@
 import { upperFirst, pluralize, singularize, type IndexedList } from "~/util"
-
-import { P, R, AST } from "~/parser"
-
-import { SpellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import { InfixOperatorSuffix } from "./expressions"
 import { SpellConstant } from "./constants"
@@ -322,7 +321,7 @@ export const classes = new SpellParser({
       name: "type_specifier_enum",
       alias: "type_specifier",
       syntax: "as (either|one of) {enumeration:identifier_list}",
-      constructor: class type_specifier_enum extends R.Sequence {
+      constructor: class type_specifier_enum extends P.Sequence {
         getAST(match: P.Match<P.RulexGroups<"enumeration">>): AST.Enumeration {
           const enumeration = match.groups.enumeration!.items.map((item) => astAs(item))
           return new AST.Enumeration(match, {
@@ -348,7 +347,7 @@ export const classes = new SpellParser({
       name: "type_specifier_datatype",
       alias: "type_specifier",
       syntax: "as (a|an)? {datatype:singular_type}",
-      constructor: class type_specifier_datatype extends R.Sequence {
+      constructor: class type_specifier_datatype extends P.Sequence {
         getAST(match: P.Match<P.RulexGroups<"datatype">>): AST.TypeExpression {
           return astAs<AST.TypeExpression>(match.groups.datatype!)
         }
@@ -367,7 +366,7 @@ export const classes = new SpellParser({
       name: "type_specifier_instance",
       alias: "type_specifier",
       syntax: "as {new_thing}",
-      constructor: class type_specifier_instance extends R.Sequence {
+      constructor: class type_specifier_instance extends P.Sequence {
         getAST(match: P.Match<P.RulexGroups<"new_thing">>): AST.NewInstanceExpression {
           return astAs<AST.NewInstanceExpression>(match.groups.new_thing!)
         }
@@ -386,7 +385,7 @@ export const classes = new SpellParser({
       name: "type_specifier_yes_or_no",
       alias: "type_specifier",
       syntax: "as either? (yes or no|true or false)",
-      constructor: class type_specifier_yes_or_no extends R.Sequence {
+      constructor: class type_specifier_yes_or_no extends P.Sequence {
         getAST(match: P.Match): AST.TypeExpression {
           return new AST.TypeExpression(match, { raw: "yes or no", name: "choice" })
         }
@@ -444,7 +443,7 @@ export const classes = new SpellParser({
               precedence: 20,
               alias: "expression",
               literals,
-              constructor: class typename_groupname extends R.Literals {
+              constructor: class typename_groupname extends P.Literals {
                 getAST(_match: P.Match): AST.PropertyExpression {
                   return new AST.PropertyExpression(_match, {
                     object: astAs(type!),
@@ -573,13 +572,13 @@ export const classes = new SpellParser({
       name: "the_property_of_a_thing",
       alias: "type_property",
       syntax: "the {property} of (a|an) {type}",
-      constructor: class the_property_of_a_thing extends R.Sequence {}
+      constructor: class the_property_of_a_thing extends P.Sequence {}
     },
     {
       name: "a_things_property",
       alias: "type_property",
       syntax: "(a|an) {type:plural_type} {property}",
-      constructor: class a_things_property extends R.Sequence {}
+      constructor: class a_things_property extends P.Sequence {}
     },
 
     {

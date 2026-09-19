@@ -1,15 +1,5 @@
 import { Logger } from "~/util/Logger"
-
-import { WhitespacePolicy, BACKSLASH, DOUBLE_QUOTE, SINGLE_QUOTE } from "~/parser/types"
-
-import * as Tokens from "./Tokens"
-import { Token } from "./Tokens"
-
-type TokenizerProps = {
-  whitespacePolicy?: WhitespacePolicy
-  quoteSymbols?: string[]
-}
-type TokenMatcher<T = Token> = (text: string, start?: number, end?: number) => T | undefined
+import { P, Tokens } from "~/parser"
 
 /**
  * Tokenizer class for parsing text into a stream of tokens.
@@ -17,19 +7,19 @@ type TokenMatcher<T = Token> = (text: string, start?: number, end?: number) => T
 // TODO: error checking / reporting, especially in JSX expressions.
 // TODO: have normal `tokenize` stick whitespace elements in the stream, then `tokenizeLines()` takes them out?
 export class Tokenizer {
-  // Leave all whitespace by default.
-  whitespacePolicy: WhitespacePolicy = WhitespacePolicy.ALL
-
-  /** Quote symbols. */
-  // REFACTOR: backtick?  left/right quotes, e.g. `""` and `''`?
-  quoteSymbols = [DOUBLE_QUOTE, SINGLE_QUOTE] as const
-
-  /** Debug logger. */
-  logger = new Logger({ prefix: "tokenizer", level: Logger.ERROR })
-
   constructor(props: TokenizerProps = {}) {
     Object.assign(this, props)
   }
+
+  // Leave all whitespace by default.
+  whitespacePolicy: P.WhitespacePolicy = P.WhitespacePolicy.ALL
+
+  /** Quote symbols. */
+  // REFACTOR: backtick?  left/right quotes, e.g. `""` and `''`?
+  quoteSymbols = [P.DOUBLE_QUOTE, P.SINGLE_QUOTE] as const
+
+  /** Debug logger. */
+  logger = new Logger({ prefix: "tokenizer", level: Logger.ERROR })
 
   /**
    * Tokenize `text` between `start` and `end` into an array of `Token`s.
@@ -70,9 +60,9 @@ export class Tokenizer {
 
     // Return tokens filtered according to our whitespace policy
     switch (this.whitespacePolicy) {
-      case WhitespacePolicy.NONE:
+      case P.WhitespacePolicy.NONE:
         return this.filterWhitespace(tokens, Tokens.Whitespace)
-      case WhitespacePolicy.LEADING_ONLY:
+      case P.WhitespacePolicy.LEADING_ONLY:
         return this.filterWhitespace(tokens, Tokens.InlineWhitespace)
       default:
         return tokens
@@ -84,7 +74,7 @@ export class Tokenizer {
    * - Pass `start` and `end` to restrict to a subset of `tokens`.
    * - NOTE: we `trim()` the result, which is generally what's desired.
    */
-  static join(tokens: Token[], start = 0, end = tokens.length) {
+  static join(tokens: P.Token[], start = 0, end = tokens.length) {
     if (start !== 0 || end !== tokens.length) tokens = tokens.slice(start, end)
     return tokens.join("").trim()
   }
@@ -95,7 +85,7 @@ export class Tokenizer {
    *   This allows us to reconstruct the stream exactly by just looking at the filtered tokens.
    * - NOTE: filtered whitespace tokens at the start will be lost.
    */
-  filterWhitespace(tokens: Token[], whitespaceType: typeof Tokens.Whitespace) {
+  filterWhitespace(tokens: P.Token[], whitespaceType: typeof Tokens.Whitespace) {
     const results = []
     for (let i = 0, token; (token = tokens[i]); i++) {
       if (token instanceof whitespaceType) {
@@ -113,8 +103,8 @@ export class Tokenizer {
    * Places matched results together in `results` array and returns `[results, nextStart]` for the entire set.
    * Stops if `method` doesn't return anything, or if calling `method` is unproductive.
    */
-  consume<T extends Token = Token>(
-    method: TokenMatcher<T>,
+  consume<T extends P.Token = P.Token>(
+    method: P.TokenMatcher<T>,
     text: string,
     start = 0,
     end?: number,
@@ -258,7 +248,7 @@ export class Tokenizer {
       const char = text[textEnd]
       if (char === quoteSymbol) break
       // if we get a backslash, consume next char if it's the same quote symbol
-      if (char === BACKSLASH && text[textEnd + 1] === quoteSymbol) textEnd++
+      if (char === P.BACKSLASH && text[textEnd + 1] === quoteSymbol) textEnd++
       textEnd++
     }
     // Forget it if we didn't end with the quote symbol
@@ -615,7 +605,7 @@ export class Tokenizer {
    * - Returns an array of lines WITHOUT the `Newline`s but WITH any leading `Indent` tokens.
    * - Lines which are composed solely of whitespace are treated as blank.
    */
-  breakIntoLines = (tokens: Token[]): Tokens.Line[] => {
+  breakIntoLines = (tokens: P.Token[]): Tokens.Line[] => {
     const lines: Tokens.Line[] = []
     let line = new Tokens.Line({
       tokens: [],
@@ -681,7 +671,7 @@ export class Tokenizer {
    * - first breaking into `Line` tokens and then
    * - creating nested `Block` tokens as `line.indent` changes.
    */
-  breakIntoIndentedBlocks = (tokens: Token[]): Tokens.Block[] => {
+  breakIntoIndentedBlocks = (tokens: P.Token[]): Tokens.Block[] => {
     // break into lines & return early if no lines
     const lines = this.breakIntoLines(tokens)
     if (lines.length === 0) return []
@@ -868,9 +858,14 @@ export class Tokenizer {
   /**
    * Given a set of tokens, slice whitespace (indent, newline or normal whitespace) from the front.
    */
-  removeLeadingWhitespace = (tokens: Token[], start = 0): Token[] => {
+  removeLeadingWhitespace = (tokens: P.Token[], start = 0): P.Token[] => {
     while (tokens[start] instanceof Tokens.Whitespace) start++
     if (start === 0) return tokens
     return tokens.slice(start)
   }
+}
+
+type TokenizerProps = {
+  whitespacePolicy?: P.WhitespacePolicy
+  quoteSymbols?: string[]
 }

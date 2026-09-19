@@ -7,17 +7,17 @@
 import React from "react"
 import * as SUI from "semantic-ui-react"
 
-import { FieldWrapper, WithField, WithForm, recursivelyMapChildren, type WithFormProps } from "./wrappers"
+import { F } from "~/app/ui/forms"
 
 /////////////////////
-// Field components
+// Wrapped simple fields
 /////////////////////
 
-export const Input = WithField(SUI.Form.Input)
+export const Input = F.WithField(SUI.Form.Input)
 
-export const Output = WithField(SUI.Form.Input, { readonly: true })
+export const Output = F.WithField(SUI.Form.Input, { readonly: true })
 
-export class Checkbox extends FieldWrapper {
+export class Checkbox extends F.FieldWrapper {
   get Component() {
     return SUI.Form.Checkbox
   }
@@ -38,7 +38,7 @@ export class Checkbox extends FieldWrapper {
  * TODO: auto-support for `allowAdditions` and `onAddItem()`
  * TODO: `autoFocus` (set: `search:true, searchInput:{{ autoFocus: true }}`)
  */
-export class Select extends FieldWrapper {
+export class Select extends F.FieldWrapper {
   get Component() {
     return SUI.Form.Dropdown
   }
@@ -57,7 +57,7 @@ export class Select extends FieldWrapper {
 /**
  * Submit button, disabled when `form` is invalid.
  */
-export const SubmitButton = WithForm(function SubmitButton(props: WithFormProps & Record<string, unknown>) {
+export const SubmitButton = F.WithForm(function SubmitButton(props: F.WithFormProps & Record<string, unknown>) {
   const { form, path, ...btnProps } = props
   return <SUI.Button primary {...btnProps} disabled={form.hasErrors} onClick={() => form.submit()} />
 })
@@ -66,26 +66,32 @@ export const SubmitButton = WithForm(function SubmitButton(props: WithFormProps 
  * FormGroup:
  * - set `name` to scope children's paths.
  */
-export const FormGroup = WithForm(function FormGroup(props: WithFormProps & Record<string, unknown>) {
+export const FormGroup = F.WithForm(function FormGroup(props: F.WithFormProps & Record<string, unknown>) {
   const { form, path, ...groupProps } = props
   return <SUI.Form.Group data-path={path} {...groupProps} />
 })
+
+/////////////////////
+// FormRepeat -- repeat a set of children elements
+/////////////////////
 
 /**
  * FormRepeat:
  * - repeat children for form array value
  * TODO: how to render array index in child?
  */
-export const FormRepeat = WithForm(
-  class FormRepeat extends React.Component<WithFormProps & { children?: ReactNode }> {
+export const FormRepeat = F.WithForm(
+  class FormRepeat extends React.Component<F.WithFormProps & { children?: ReactNode }> {
     render() {
       const { form, path, children } = this.props
-      const arrayValue = path ? form.getValue(path) : undefined
-      if (!isMappable(arrayValue)) return null
+      const arrayValue = path ? (form.getValue(path) as Array<any>) : undefined
+      if (!arrayValue || typeof arrayValue["map"] !== "function") {
+        return null
+      }
 
       return arrayValue.map((_, index) => {
         const itemPath = `${path}[${index}]`
-        const kids = recursivelyMapChildren(children, (child, key) => {
+        const kids = FormRepeat.recursivelyMapChildren(children, (child, key) => {
           const type = child.type as { injectForm?: boolean }
           if (!type?.injectForm || !child.props.path) return child
           const childPath = (child.props.path as string).substr((path as string).length)
@@ -98,13 +104,21 @@ export const FormRepeat = WithForm(
         return React.createElement(SUI.Form.Group, { key: index, "data-path": itemPath }, ...kids)
       })
     }
+
+    static recursivelyMapChildren(
+      children: ReactNode,
+      callback: (child: ReactElement, key: string | number) => ReactElement
+    ): ReactNode[] {
+      return React.Children.toArray(children).map((child, index) => {
+        if (!React.isValidElement(child)) return child
+        let result = callback(child, child.key || index)
+        if (result.props.children) {
+          const newKids = FormRepeat.recursivelyMapChildren(result.props.children, callback)
+          if (newKids !== result.props.children)
+            result = React.cloneElement(result, { key: result.key || index, children: newKids })
+        }
+        return result
+      })
+    }
   }
 )
-
-/** Narrow an unknown form value to something `<FormRepeat>` can iterate. */
-function isMappable(value: unknown): value is Mappable {
-  return typeof (value as Partial<Mappable> | null)?.map === "function"
-}
-
-/** Anything with a `.map()` method, e.g. a plain array or a spellCore `List`. */
-type Mappable = { map<T>(callback: (item: unknown, index: number) => T): T[] }

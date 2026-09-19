@@ -1,8 +1,6 @@
 import { TextFile, batch } from "~/util"
-import { P } from "~/parser"
-import type { ASTNode } from "~/parser/ast/AST"
-import { SpellLocation, SpellProject, SpellParser } from "~/languages/spell"
-import type { ProjectManifestEntry } from "./SpellProject"
+import { P, AST } from "~/parser"
+import { SP } from "~/languages/spell"
 
 /**
  * CSS file as part of SpellProject.
@@ -30,7 +28,7 @@ export class SpellCSSFile extends TextFile {
   onRemove(): void {
     super.onRemove()
     SpellCSSFile.registry.clear()
-    SpellLocation.registry.clear()
+    SP.SpellLocation.registry.clear()
   }
 
   /**
@@ -43,8 +41,8 @@ export class SpellCSSFile extends TextFile {
   /** `location` object which we can use to get various bits of the path. */
   /*@forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")*/
   /*@memoize*/
-  get location(): SpellLocation {
-    return this.derived("location", () => new SpellLocation(this.path))
+  get location(): SP.SpellLocation {
+    return this.derived("location", () => new SP.SpellLocation(this.path))
   }
   get projectId(): string {
     return this.location.projectId
@@ -72,15 +70,15 @@ export class SpellCSSFile extends TextFile {
    * Pointer to our `SpellProject`.
    */
   /*@memoize*/
-  get project(): SpellProject {
-    return this.derived("project", () => new SpellProject(this.projectId))
+  get project(): SP.SpellProject {
+    return this.derived("project", () => new SP.SpellProject(this.projectId))
   }
 
   /**
    * Return promise which yields our `info` record according to the project manifest.
    * Note that `modified` and `size` may be out of sync if we've been modified on the client.
    */
-  get info(): ProjectManifestEntry | undefined {
+  get info(): SP.ProjectManifestEntry | undefined {
     return this.project.getFileInfo(this.path)
   }
 
@@ -105,10 +103,10 @@ export class SpellCSSFile extends TextFile {
   }
 
   /** AST for our `compiled` output. */
-  /*@state*/ get AST(): ASTNode | undefined {
+  /*@state*/ get AST(): AST.ASTNode | undefined {
     return this.getState("AST", () => undefined)
   }
-  set AST(AST: ASTNode | undefined) {
+  set AST(AST: AST.ASTNode | undefined) {
     this.setState("AST", AST)
   }
 
@@ -130,7 +128,7 @@ export class SpellCSSFile extends TextFile {
    * TODO... ????
    */
   getScope(_parentScope?: P.Scope): P.RootScope {
-    return SpellParser.rootScope
+    return SP.SpellParser.rootScope
   }
 
   /** "parse" the css file */

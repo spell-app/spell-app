@@ -7,7 +7,9 @@
 //  a flat `export *` would silently drop every colliding name with no error.
 //
 
-/** AST node classes, e.g. `AST.Expression`, `AST.Statement`. */
+/** Export generic `ASTNode` directly. */
+export { ASTNode } from "./AST"
+/** Access other AST classes as e.g. `AST.Expression`, `AST.Statement`. */
 export * as AST from "./AST"
 
 /** Output backend emitting React elements, for syntax-highlighted display. */

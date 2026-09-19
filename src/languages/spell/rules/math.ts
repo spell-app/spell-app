@@ -3,14 +3,14 @@
 //  NOTE: this must come after "operators"
 //
 
-import { SpellParser } from "~/languages/spell"
 import { P, AST } from "~/parser"
-import type { ASTNode, Expression } from "~/parser/ast/AST"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellExpression, InfixOperatorSuffix } from "./expressions"
 
 // `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass
 // that the referenced sub-rule's `getAST()` is known (by inspection) to always produce.
-function ast<T extends ASTNode>(node: ASTNode | undefined): T {
+function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
   return node as T
 }
 
@@ -28,7 +28,7 @@ export const math = new SpellParser({
           const { operator, expression } = match.groups
           return new AST.CoreMethodInvocation(match, {
             methodName: operator!.value,
-            args: [ast<Expression>(expression!.AST)]
+            args: [ast<AST.Expression>(expression!.AST)]
           })
         }
       },
@@ -72,7 +72,7 @@ export const math = new SpellParser({
           const { operator, expression } = match.groups
           return new AST.CoreMethodInvocation(match, {
             methodName: operator!.value,
-            args: [ast<Expression>(expression!.AST)]
+            args: [ast<AST.Expression>(expression!.AST)]
           })
         }
       },
@@ -213,7 +213,7 @@ export const math = new SpellParser({
           return new AST.CoreMethodInvocation(match, {
             datatype: "number",
             methodName: "absoluteValue", // TODO: implement in spellCore
-            args: [ast<Expression>(expression!.AST)]
+            args: [ast<AST.Expression>(expression!.AST)]
           })
         }
       },
@@ -240,7 +240,7 @@ export const math = new SpellParser({
           return new AST.CoreMethodInvocation(match, {
             datatype: "number",
             methodName: "largestOf",
-            args: [ast<Expression>(expression!.AST)]
+            args: [ast<AST.Expression>(expression!.AST)]
           })
         }
       },
@@ -272,7 +272,7 @@ export const math = new SpellParser({
           return new AST.CoreMethodInvocation(match, {
             datatype: "number",
             methodName: "smallestOf",
-            args: [ast<Expression>(expression!.AST)]
+            args: [ast<AST.Expression>(expression!.AST)]
           })
         }
       },
@@ -306,7 +306,7 @@ export const math = new SpellParser({
           return new AST.CoreMethodInvocation(match, {
             datatype: "number",
             methodName, // TODO: implement in spellCore
-            args: [ast<Expression>(expression!.AST)]
+            args: [ast<AST.Expression>(expression!.AST)]
           })
         }
       },

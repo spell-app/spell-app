@@ -1,18 +1,3 @@
-import global from "global"
-
-export type CustomErrorProps = {
-  /** Required: single error message string or array of strings. */
-  message?: string
-  /** Context in which the error happened, e.g. an instance. */
-  context?: any
-  /** Name of the method or action which failed. */
-  activity?: string
-  /** Any relevant parameters for the activity. */
-  params?: any
-  /** Original error thrown. */
-  error?: any
-}
-
 /**
  * Generic `CustomError` class you can subclass which sets stack trace up property, etc.
  * You can pass in any properties you like, but it can be helpful to see:
@@ -65,5 +50,15 @@ export class UIError extends CustomError {
   }
 }
 
-// DEBUG
-global.CustomError = CustomError
+export type CustomErrorProps = {
+  /** Required: single error message string or array of strings. */
+  message?: string
+  /** Context in which the error happened, e.g. an instance. */
+  context?: any
+  /** Name of the method or action which failed. */
+  activity?: string
+  /** Any relevant parameters for the activity. */
+  params?: any
+  /** Original error thrown. */
+  error?: any
+}

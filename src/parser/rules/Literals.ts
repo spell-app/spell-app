@@ -1,35 +1,20 @@
-import { Match } from "~/parser/Match"
-import type { P } from "~/parser"
-import { R } from "./index"
+import { P } from "~/parser"
+// Import directly to avoid circular import
 import { Rule } from "./Rule"
-
-export type LiteralMatcher = { literal: string | string[]; optional?: boolean }
-
-export type LiteralsProps = Prettify<
-  R.RuleProps & {
-    literals: Array<string | string[] | LiteralMatcher>
-  }
->
-
-function makeMatcher(matcher: string | string[] | LiteralMatcher): LiteralMatcher {
-  if (typeof matcher === "string" || Array.isArray(matcher)) return { literal: matcher }
-  return matcher
-}
 
 /**
  * Abstract rule for to match one or more sequential literal tokens.
+ * NOTE: Don't use this -- use `Keywords` or `Symbols` instead!
+ *
  * - `rule.literals` is the array of Literals to match.
- *
- * After matching, `match.value` will be the literal string matched.
- *
- * NOTE: Don't use this -- use `R.Keywords` or `R.Symbols` instead!
+ * - After matching, `match.value` will be the literal string matched.
  */
-export abstract class Literals extends Rule<LiteralsProps> {
-  declare literals: LiteralMatcher[]
+export abstract class Literals extends Rule<P.LiteralsProps> {
+  declare literals: P.LiteralMatcher[]
   declare literalSeparator: string
 
-  constructor(input: LiteralsProps | string | Array<string | string[] | LiteralMatcher>) {
-    const props = (typeof input === "string" || Array.isArray(input) ? { literals: input } : input) as LiteralsProps
+  constructor(input: P.LiteralsProps | string | Array<string | string[] | P.LiteralMatcher>) {
+    const props = (typeof input === "string" || Array.isArray(input) ? { literals: input } : input) as P.LiteralsProps
     if (typeof props.literals === "string") props.literals = [props.literals]
     props.literals = props.literals.map(makeMatcher)
     super(props)
@@ -39,6 +24,11 @@ export abstract class Literals extends Rule<LiteralsProps> {
       // oxlint-disable-next-line typescript/no-misused-spread
       console.info({ ...this })
       console.trace()
+    }
+
+    function makeMatcher(matcher: string | string[] | P.LiteralMatcher): P.LiteralMatcher {
+      if (typeof matcher === "string" || Array.isArray(matcher)) return { literal: matcher }
+      return matcher
     }
   }
 
@@ -63,7 +53,7 @@ export abstract class Literals extends Rule<LiteralsProps> {
     const tokensMatched = this.matchAtStart(tokens, 0)
     if (!tokensMatched) return undefined
     const matched = tokens.slice(0, tokensMatched)
-    return new Match({
+    return new P.Match({
       rule: this,
       matched,
       value: matched.join("").trim(),
@@ -72,7 +62,7 @@ export abstract class Literals extends Rule<LiteralsProps> {
     })
   }
 
-  compile(match: Match) {
+  compile(match: P.Match) {
     return match.value
   }
 
@@ -90,29 +80,5 @@ export abstract class Literals extends Rule<LiteralsProps> {
     const wrapInParens = argument || ((testLocation || optional) && this.literals.length > 1)
     if (wrapInParens) return `${testLocation}(${argument}${literalStrings})${optional}`
     return `${testLocation}${literalStrings}${optional}`
-  }
-}
-
-// One or more literal symbols: `<`, `%` etc.
-// Symbols join WITHOUT spaces.
-export class Symbols extends Literals {
-  static {
-    /** Join symbols with no space in-between. */
-    Object.defineProperty(this.prototype, "literalSeparator", {
-      value: "",
-      writable: true
-    })
-  }
-}
-
-// One or more literal keywords.
-// Keywords join WITH spaces.
-export class Keywords extends Literals {
-  static {
-    /** Join symbols with a single space in-between. */
-    Object.defineProperty(this.prototype, "literalSeparator", {
-      value: " ",
-      writable: true
-    })
   }
 }

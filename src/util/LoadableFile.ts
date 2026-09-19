@@ -5,14 +5,6 @@ import { Loadable, LoadableProps } from "./Loadable"
 
 import { RequestError } from "./ResponseErrors"
 
-export type LoadableFileProps<FileType> = Prettify<
-  {
-    url?: string
-    defaultContents?: FileType
-    format?: KnownFormatMimeType
-  } & LoadableProps<FileType>
->
-
 export type JSONFileType = Record<string, any> | Array<any>
 
 /** Load a single file from `url`, process according to `format` before returning. */
@@ -147,6 +139,14 @@ export class LoadableFile<FileType, SaveResult = any> extends Loadable<FileType,
     this.override("extension", extension)
   }
 }
+
+export type LoadableFileProps<FileType> = Prettify<
+  {
+    url?: string
+    defaultContents?: FileType
+    format?: KnownFormatMimeType
+  } & LoadableProps<FileType>
+>
 
 /**
  * Syntactic sugar for various well-known file types.

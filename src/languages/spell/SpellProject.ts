@@ -1,58 +1,7 @@
-import global from "global"
-// import { observable, computed } from "mobx"
-
 import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, type KnownFormatMimeType } from "~/util"
 import { P } from "~/parser"
-import { SpellParser, SpellLocation, SpellFile, SpellCSSFile, SpellJSFile, SpellProjectRoot } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
-
-// NOTE: the server accepts the bare `"json"` string for `requestFormat` (which becomes the
-// `Content-Type` header); cast it once here against `$FetchRequestParams`'s stricter
-// `KnownFormatMimeType` type rather than changing the actual value sent to the server.
-const REQUEST_FORMAT_JSON = "json" as KnownFormatMimeType
-
-/** Any of the file classes a `SpellProject` can hold in its manifest. */
-export type AnySpellFile = SpellFile | SpellJSFile | SpellCSSFile
-
-/** The subset of `AnySpellFile` that can actually be `parse()`d/`compile()`d as spell source. */
-export type CompilableSpellFile = SpellFile | SpellCSSFile
-
-/** A single entry in `contents.manifest`, augmented with `path`/`location`/`file` once loaded. */
-export type ProjectManifestEntry = {
-  /** File creation time (ms epoch), from the server. */
-  created: number
-  /** File last-modified time (ms epoch), from the server. */
-  modified: number
-  /** File size in bytes, from the server. */
-  size: number
-  /** Full path, added by the `manifest` getter once loaded. */
-  path?: string
-  /** `SpellLocation` for `path`, added by the `manifest` getter once loaded. */
-  location?: SpellLocation
-  /** Pointer to the loaded file, added by the `manifest` getter once loaded. */
-  file?: AnySpellFile
-}
-
-/** A single entry in `contents.imports`. */
-export type ProjectManifestImport = {
-  path: string
-  active: boolean
-  contents?: string
-}
-
-/** JSON5 shape of a project's index file, as read/written by the server. */
-export type ProjectManifest = {
-  manifest: Record<string, ProjectManifestEntry>
-  imports: ProjectManifestImport[]
-}
-
-/** Derived (client-side) import reference, as returned by `project.imports`. */
-export type ProjectImportRef = {
-  path: string
-  active: boolean
-  location: SpellLocation
-  file: AnySpellFile
-}
+import { SP } from "~/languages/spell"
 
 /**
  * Controller for a `SpellProject`.
@@ -60,9 +9,21 @@ export type ProjectImportRef = {
  * Note that these are singleton instances --
  * you'll always get the same object back for a given `path`.
  */
-export class SpellProject extends JSON5File<ProjectManifest> {
+export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   /** Registry of known instances. */
   static registry = new Map<string, SpellProject>()
+
+  /**
+   * Format for client/server requests.
+   *
+   * NOTE: the server accepts the bare `"json"` string for `requestFormat` (which becomes the
+   * `Content-Type` header); cast it once here against `$FetchRequestParams`'s stricter
+   * `KnownFormatMimeType` type rather than changing the actual value sent to the server.
+   *
+   * CLAUDE TODO:  WTF is this?
+   */
+  static REQUEST_FORMAT_JSON = "json" as KnownFormatMimeType
+
   constructor(path: string) {
     // Return immediately from registry if already present.
     const existing = SpellProject.registry.get(path)
@@ -81,7 +42,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
     super.onRemove()
 
     this.files.forEach((file) => file.onRemove())
-    SpellProject.registry.clear()
+    SpellProject.registry.delete(this.path)
   }
 
   /*@writeOnce path*/
@@ -95,8 +56,8 @@ export class SpellProject extends JSON5File<ProjectManifest> {
    */
   /*@forward("projectId", "owner", "projectName", "isSystemProject", "isUserProject")*/
   /*@memoize*/
-  get location(): SpellLocation {
-    return this.derived("location", () => new SpellLocation(this.path))
+  get location(): SP.SpellLocation {
+    return this.derived("location", () => new SP.SpellLocation(this.path))
   }
   get projectId(): string {
     return this.location.projectId
@@ -116,8 +77,9 @@ export class SpellProject extends JSON5File<ProjectManifest> {
 
   /*@forward("type", "Type")*/
   /*@memoize*/
-  get projectRoot(): SpellProjectRoot {
-    return this.derived("projectRoot", () => new SpellProjectRoot(this.location.projectRoot))
+  get projectRoot(): SP.SpellProjectRoot {
+    // NOTE: this works because `new SpellProjectRoot()` will return an existing object...
+    return this.derived("projectRoot", () => new SP.SpellProjectRoot(this.location.projectRoot))
   }
   get type(): string {
     return this.projectRoot.type
@@ -147,10 +109,10 @@ export class SpellProject extends JSON5File<ProjectManifest> {
   }
 
   /*@memoize*/
-  get outputFile(): SpellJSFile {
+  get outputFile(): SP.SpellJSFile {
     return this.derived("outputFile", () => {
       const location = this.getFileLocation(".output.js")!
-      return new SpellJSFile(location.path)
+      return new SP.SpellJSFile(location.path)
     })
   }
 
@@ -173,7 +135,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
    * Return base project scope, given a `parentScope`.
    * TODOC...
    */
-  getScope(parentScope: P.Scope = SpellParser.rootScope): P.ProjectScope {
+  getScope(parentScope: P.Scope = SP.SpellParser.rootScope): P.ProjectScope {
     // Make a parser that depends on the parentScope's parser
     // This way rules added to the project won't leak out.
     const parser = parentScope.parser!.clone({ module: this.path })
@@ -207,10 +169,10 @@ export class SpellProject extends JSON5File<ProjectManifest> {
           TaskList.forEach({
             name: `Parsing imports`,
             list: () => this.activeImports,
-            getTask: (file: AnySpellFile) =>
+            getTask: (file: SP.AnySpellFile) =>
               new Task({
                 name: `Parsing import: ${file.file}`,
-                run: () => (file as CompilableSpellFile).parse(this.scope)
+                run: () => (file as SP.CompilableSpellFile).parse(this.scope)
               })
           })
         ]
@@ -233,10 +195,10 @@ export class SpellProject extends JSON5File<ProjectManifest> {
           TaskList.forEach({
             name: `Compiling imports`,
             list: () => this.activeImports,
-            getTask: (file: AnySpellFile) =>
+            getTask: (file: SP.AnySpellFile) =>
               new Task({
                 name: `Compiling import: ${file.file}`,
-                run: () => (file as CompilableSpellFile).compile()
+                run: () => (file as SP.CompilableSpellFile).compile()
               })
           }),
           new Task({
@@ -316,8 +278,8 @@ export class SpellProject extends JSON5File<ProjectManifest> {
    * One of our `file`s has updated its contents.
    * Have all of our files `resetCompiled()` so they'll compile again.
    */
-  updatedContentsFor(_file: AnySpellFile): void {
-    ;(this.activeImports as CompilableSpellFile[]).forEach((item) => item.resetCompiled())
+  updatedContentsFor(_file: SP.AnySpellFile): void {
+    ;(this.activeImports as SP.CompilableSpellFile[]).forEach((item) => item.resetCompiled())
   }
 
   //-----------------
@@ -368,7 +330,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
    *  - `size` as file size in bytes
    */
   /*@memoizeForProp("contents")*/
-  get manifest(): Record<string, ProjectManifestEntry> {
+  get manifest(): Record<string, SP.ProjectManifestEntry> {
     return this.derivedFrom(
       "manifest",
       () => {
@@ -376,7 +338,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
         // add useful stuff to manifest entries
         Object.entries(this.contents.manifest).forEach(([path, entry]) => {
           entry.path = path
-          entry.location = new SpellLocation(path)
+          entry.location = new SP.SpellLocation(path)
           entry.file = SpellProject.getFileForPath(path)
         })
         return this.contents.manifest
@@ -390,7 +352,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
    * Returns `[]` if we're not loaded.
    */
   /*@memoizeForProp("contents")*/
-  get files(): AnySpellFile[] {
+  get files(): SP.AnySpellFile[] {
     return this.derivedFrom(
       "files",
       () => {
@@ -413,13 +375,13 @@ export class SpellProject extends JSON5File<ProjectManifest> {
    *  - `contents` as file contents (NOTE: only for text files with certain extensions!)
    */
   /*@memoizeForProp("contents")*/
-  get imports(): ProjectImportRef[] {
+  get imports(): SP.ProjectImportRef[] {
     return this.derivedFrom(
       "imports",
       () => {
         if (!this.contents?.imports) return []
         return this.contents.imports.map(({ path, active }) => {
-          const location = SpellLocation.getFileLocation(this.projectId, path)
+          const location = SP.SpellLocation.getFileLocation(this.projectId, path)
           const file = SpellProject.getFileForPath(location.path)
           return {
             path: location.path,
@@ -438,14 +400,14 @@ export class SpellProject extends JSON5File<ProjectManifest> {
    * Returns `[]` if we're not loaded or index is malformed.
    */
   /*@memoizeForProp("contents")*/
-  get activeImports(): AnySpellFile[] {
+  get activeImports(): SP.AnySpellFile[] {
     return this.derivedFrom(
       "activeImports",
       () => {
         const { manifest } = this
         return this.imports //
           .filter((item) => item.active)
-          .map((item) => manifest[item.path]?.file) as AnySpellFile[]
+          .map((item) => manifest[item.path]?.file) as SP.AnySpellFile[]
       },
       [this.contents]
     )
@@ -456,17 +418,17 @@ export class SpellProject extends JSON5File<ProjectManifest> {
   //-----------------
 
   /** Given the `fullPath` to a file, return a `SpellFile` or `SpellCSSFile` etc. */
-  static extensionMap?: Record<string, new (path: string) => AnySpellFile>
-  static getFileForPath(fullPath: string): AnySpellFile {
+  static extensionMap?: Record<string, new (path: string) => SP.AnySpellFile>
+  static getFileForPath(fullPath: string): SP.AnySpellFile {
     if (!SpellProject.extensionMap) {
       SpellProject.extensionMap = {
-        ".css": SpellCSSFile,
-        ".js": SpellJSFile,
-        ".jsx": SpellJSFile,
-        default: SpellFile
+        ".css": SP.SpellCSSFile,
+        ".js": SP.SpellJSFile,
+        ".jsx": SP.SpellJSFile,
+        default: SP.SpellFile
       }
     }
-    const location = new SpellLocation(fullPath)
+    const location = new SP.SpellLocation(fullPath)
     if (!location.isFilePath) {
       throw new TypeError(`SpellProject.getFileForPath('${fullPath}'): path is not a file path.`)
     }
@@ -484,14 +446,14 @@ export class SpellProject extends JSON5File<ProjectManifest> {
    *
    * Returns `undefined` if not found, path is not valid or is not a file path.
    */
-  getFileLocation(path: string | SpellLocation): SpellLocation | undefined {
-    let location: SpellLocation | undefined
-    if (path instanceof SpellLocation) {
+  getFileLocation(path: string | SP.SpellLocation): SP.SP.SpellLocation | undefined {
+    let location: SP.SpellLocation | undefined
+    if (path instanceof SP.SpellLocation) {
       location = path
     } else if (typeof path === "string") {
       try {
-        if (path.startsWith("@")) location = SpellLocation.getFileLocation(path)
-        else location = SpellLocation.getFileLocation(this.projectId, path)
+        if (path.startsWith("@")) location = SP.SpellLocation.getFileLocation(path)
+        else location = SP.SpellLocation.getFileLocation(this.projectId, path)
       } catch {
         return undefined
       }
@@ -509,7 +471,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
    *
    * Returns `undefined` if file not found, couldn't load index, etc.
    */
-  getFileInfo(filePath: string | SpellLocation): ProjectManifestEntry | undefined {
+  getFileInfo(filePath: string | SP.SpellLocation): SP.ProjectManifestEntry | undefined {
     const location = this.getFileLocation(filePath)
     if (location) return this.manifest[location.path]
     return undefined
@@ -524,7 +486,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
    *
    * Returns `undefined` if file not found, couldn't load index, etc.
    */
-  getFile(filePath: string | SpellLocation): AnySpellFile | undefined {
+  getFile(filePath: string | SP.SpellLocation): SP.AnySpellFile | undefined {
     return this.getFileInfo(filePath)?.file
   }
 
@@ -542,7 +504,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
     contents: string | undefined,
     newFileName = "Untitled.spell",
     die?: ReturnType<typeof getDier>
-  ): Promise<AnySpellFile | undefined> {
+  ): Promise<SP.AnySpellFile | undefined> {
     if (!die) die = getDier(this, "creating file", { projectId: this.projectId, filePath })
 
     if (!filePath) filePath = prompt("Name for the new file?", newFileName) ?? undefined
@@ -554,14 +516,14 @@ export class SpellProject extends JSON5File<ProjectManifest> {
 
     // Tell the server to create the file, which returns updated index
     try {
-      const newIndex = await $fetch<ProjectManifest>({
+      const newIndex = await $fetch<SP.ProjectManifestJSON5>({
         url: `/api/projects/create/file`,
         contents: {
           projectId: this.projectId,
           filePath,
           contents: contents ?? `## This space intentionally left blank`
         },
-        requestFormat: REQUEST_FORMAT_JSON,
+        requestFormat: SpellProject.REQUEST_FORMAT_JSON,
         format: "json"
       })
       this.contents = newIndex
@@ -577,7 +539,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
    * Duplicate an existing file.
    * Returns pointer to new file.
    */
-  async duplicateFile(filePath: string, newFilePath: string | undefined): Promise<AnySpellFile | undefined> {
+  async duplicateFile(filePath: string, newFilePath: string | undefined): Promise<SP.AnySpellFile | undefined> {
     const die = getDier(this, "duplicating file", {
       projectId: this.projectId,
       originalFilePath: filePath,
@@ -599,7 +561,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
    * Rename an existing file.
    * Returns new file.
    */
-  async renameFile(filePath: string, newFilePath?: string): Promise<AnySpellFile | undefined> {
+  async renameFile(filePath: string, newFilePath?: string): Promise<SP.AnySpellFile | undefined> {
     const die = getDier(this, "renaming file", { projectId: this.projectId, filePath, newFilePath })
     await this.loadOrDie(die)
     const file = this.getFile(filePath) || die("File not found.")
@@ -607,7 +569,7 @@ export class SpellProject extends JSON5File<ProjectManifest> {
     if (!newFilePath) {
       const filename = prompt("New name for the file?", file.file)
       if (!filename) return undefined
-      newFilePath = SpellLocation.getFileLocation(this.projectId, filename).filePath!
+      newFilePath = SP.SpellLocation.getFileLocation(this.projectId, filename).filePath!
       if (newFilePath === filePath) return undefined
       die.params.newFilePath = newFilePath
     }
@@ -615,14 +577,14 @@ export class SpellProject extends JSON5File<ProjectManifest> {
 
     // Tell the server to rename the file, which returns the updated index.
     try {
-      const newIndex = await $fetch<ProjectManifest>({
+      const newIndex = await $fetch<SP.ProjectManifestJSON5>({
         url: `/api/projects/rename/file`,
         contents: {
           projectId: this.projectId,
           filePath,
           newFilePath
         },
-        requestFormat: REQUEST_FORMAT_JSON,
+        requestFormat: SpellProject.REQUEST_FORMAT_JSON,
         format: "json"
       })
       this.contents = newIndex
@@ -654,14 +616,14 @@ export class SpellProject extends JSON5File<ProjectManifest> {
     // console.warn("before:", { activeImports: this.activeImports })
     // Tell the server to delete the file, which returns the updated index.
     try {
-      const newIndex = await $fetch<ProjectManifest>({
+      const newIndex = await $fetch<SP.ProjectManifestJSON5>({
         url: `/api/projects/remove/file`,
         method: "DELETE",
         contents: {
           projectId: this.projectId,
           filePath
         },
-        requestFormat: REQUEST_FORMAT_JSON,
+        requestFormat: SpellProject.REQUEST_FORMAT_JSON,
         format: "json"
       })
       this.contents = newIndex
@@ -685,5 +647,3 @@ export class SpellProject extends JSON5File<ProjectManifest> {
     return `${this.constructor.name}: ${this.path}`
   }
 }
-
-global.SpellProject = SpellProject

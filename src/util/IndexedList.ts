@@ -1,26 +1,6 @@
 import _identity from "lodash/identity"
 import _get from "lodash/get"
 
-export type IndexedListProps<ListType = any, InputType = ListType> = {
-  /** Name of key to use for index. */
-  keyProp: string
-
-  /** Target object we're set up for.  Required if `parentProp`. */
-  target?: any
-
-  /**
-   * Optional name of key which yields instance "parent".
-   * - If lookup is not found on this list instance, we'll recursively look up valus in parents.
-   */
-  parentProp?: string
-
-  /** Optional method to use to normalize key. e.g. `_.snakeCase`. */
-  normalizeKey?: (key: string) => string
-
-  /** Optional method to transform raw input during `add()`. */
-  transformer?: (thing: ListType | InputType) => ListType
-}
-
 export class IndexedList<ListType = any, InputType = ListType> {
   #items: ListType[] = []
   props: IndexedListProps
@@ -88,4 +68,24 @@ export class IndexedList<ListType = any, InputType = ListType> {
     if (this.props.transformer) return this.props.transformer(item) as ListType
     return item as ListType
   }
+}
+
+export type IndexedListProps<ListType = any, InputType = ListType> = {
+  /** Name of key to use for index. */
+  keyProp: string
+
+  /** Target object we're set up for.  Required if `parentProp`. */
+  target?: any
+
+  /**
+   * Optional name of key which yields instance "parent".
+   * - If lookup is not found on this list instance, we'll recursively look up valus in parents.
+   */
+  parentProp?: string
+
+  /** Optional method to use to normalize key. e.g. `_.snakeCase`. */
+  normalizeKey?: (key: string) => string
+
+  /** Optional method to transform raw input during `add()`. */
+  transformer?: (thing: ListType | InputType) => ListType
 }

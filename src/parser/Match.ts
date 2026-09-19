@@ -2,9 +2,7 @@ import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
 
 import { Assertable } from "~/util"
-import { Rule, Token, R } from "~/parser"
-import { Scope, ScopeConstructor } from "./scope/Scope"
-import type { ASTNode } from "./ast/AST"
+import { P, AST } from "~/parser"
 
 /**
  * Default shape of `match.groups`: named sub-matches, as a single `Match` or an array if the name repeats.
@@ -14,20 +12,9 @@ import type { ASTNode } from "./ast/AST"
 export type MatchGroups = Record<string, Match | Match[] | undefined>
 
 /** A `Match` with any `groups` shape -- use for parameters which don't care about groups. */
+// CLAUDE TODO: can we get rid of this??
 export type AnyMatch = Match<Record<string, unknown>>
 
-export type MatchProps = {
-  scope: Scope
-  rule: Rule
-  tokens: Token[]
-  matched: (Match | Token)[]
-  items?: Match[]
-  argument?: string
-  raw?: string
-  value?: any
-  message?: string
-  choiceRule?: string
-}
 /**
  * Result of a successful `rule.parse()`.
  * This is a flyweight object which links a rule with the tokens that it successfully matched.
@@ -39,16 +26,16 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
   static DEBUG_MATCH_INITIALIZATION = true
 
   /** Main rule that matched. */
-  declare rule: Rule
+  declare rule: P.Rule
   /** Raw input tokens that were matched. */
-  declare tokens: Token[]
+  declare tokens: P.Token[]
   /** Things what were matched, which may be `Matches` or `Tokens`. */
   // TODO: can we get `tokens` out of here?
-  declare matched: (Match | Token)[]
+  declare matched: (Match | P.Token)[]
   /** Significant sub-matches, e.g. the repeated items of a `Repeat` (not including delimiters). */
   declare items: Match[]
   /** Scope in which the match was made. */
-  declare scope: Scope
+  declare scope: P.Scope
   /** Argument for this match. */
   declare argument: string | undefined
   /** Raw input text that was matched, not including trailing whitespace. */
@@ -67,9 +54,9 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
 
     // Only run tests if flag is set
     if (Match.DEBUG_MATCH_INITIALIZATION) {
-      this.assertType("scope", Scope)
-      this.assertType("rule", Rule)
-      this.assertArrayType("tokens", Token)
+      this.assertType("scope", P.Scope)
+      this.assertType("rule", P.Rule)
+      this.assertArrayType("tokens", P.Token)
     }
   }
 
@@ -176,7 +163,7 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
 
   addMatchedToGroups<G extends Record<string, unknown>>(
     groups: G,
-    matched: Array<AnyMatch | Token>,
+    matched: Array<AnyMatch | P.Token>,
     callback?: (match: AnyMatch) => Match
   ): G {
     for (let i = 0, match; (match = matched[i]); i++) {
@@ -192,7 +179,7 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
         else (groups as Record<string, unknown>)[name] = [existing, value]
       }
       // if it's an anonymous sequence, promote it to the main map
-      else if (match.rule instanceof R.Sequence) {
+      else if (match.rule instanceof P.Sequence) {
         this.addMatchedToGroups(groups, match.matched, callback)
       }
     }
@@ -219,7 +206,7 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
    */
   get scopes() {
     const scopes = []
-    let scope: Scope | undefined = this.scope
+    let scope: P.Scope | undefined = this.scope
     while (scope) {
       scopes.push(scope)
       scope = scope.parentScope
@@ -231,7 +218,7 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
    * Return first item in `scopes` which matches `scopeConstructor`.
    * Returns `undefined` if not found.
    */
-  getScopeOfType(scopeConstructor: ScopeConstructor) {
+  getScopeOfType(scopeConstructor: P.ScopeConstructor) {
     return this.scopes.find((scope) => scope instanceof scopeConstructor)
   }
 
@@ -244,7 +231,7 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
    * - Some languages (e.g. Spell) convert to an AST first, then compile().
    * - NOTE: always use `match.AST` to access so we re-use the AST object.
    */
-  get AST(): ASTNode | undefined {
+  get AST(): AST.ASTNode | undefined {
     return this.derived("AST", () => {
       if (!this.rule.getAST) {
         console.warn("No getAST() method defined for rule: ", this.rule)
@@ -294,4 +281,17 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
       items
     }
   }
+}
+
+export type MatchProps = {
+  scope: P.Scope
+  rule: P.Rule
+  tokens: P.Token[]
+  matched: (Match | P.Token)[]
+  items?: Match[]
+  argument?: string
+  raw?: string
+  value?: any
+  message?: string
+  choiceRule?: string
 }

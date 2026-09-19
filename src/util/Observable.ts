@@ -1,4 +1,3 @@
-import global from "global"
 import _set from "lodash/set"
 import _unset from "lodash/unset"
 import { store as createStore, view, batch, autoEffect, clearEffect } from "@risingstack/react-easy-state"
@@ -8,11 +7,6 @@ import * as extend from "./extend"
 
 // re-export react-easy-state props for convenience
 export { createStore, view, batch, autoEffect, clearEffect }
-
-// DEBUG
-global.createStore = createStore
-global.autoEffect = autoEffect
-global.clearEffect = clearEffect
 
 /**
  * Methodology:
@@ -97,4 +91,3 @@ export class Observable<
     return extend.getProps(this)
   }
 }
-global.Observable = Observable

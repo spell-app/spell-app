@@ -6,7 +6,7 @@ import type { SP } from "~/languages/spell"
 
 import { store } from "~/app/store"
 
-import { UI } from "."
+import { UI } from "~/app/ui"
 import { Actions } from "./Actions"
 
 /* Single item in FileDropdown */

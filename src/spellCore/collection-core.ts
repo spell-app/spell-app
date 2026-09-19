@@ -7,7 +7,7 @@
 //--------
 import _ from "lodash"
 import { spellCore } from "./core"
-import { assert } from "."
+import { assert } from "~/spellCore"
 import { defineSpellCoreModule } from "./SpellCore"
 
 /**

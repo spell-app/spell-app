@@ -1,9 +1,9 @@
 import { isNode } from "browser-or-node"
 
 import { instanceCase, typeCase } from "~/util"
-import { P, R, AST } from "~/parser"
-
-import { SpellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import { SpellType } from "./types"
 import { VariableIdentifier } from "./variables"
@@ -392,7 +392,7 @@ export const methods = new SpellParser({
     {
       name: "method_keyword",
       pattern: /^[a-zA-Z][\w-]*$/,
-      constructor: class method_keyword extends R.Pattern {
+      constructor: class method_keyword extends P.Pattern {
         // convert dashes to underscores when compiling
         mapValue<T = string>(value: string): T {
           return `${value}`.replace(/-/g, "_") as T
@@ -446,7 +446,7 @@ export const methods = new SpellParser({
       name: "type_method_arg",
       alias: ["method_arg", "simple_method_arg"],
       syntax: `(a|an) {type}`,
-      constructor: class type_method_arg extends R.Sequence {
+      constructor: class type_method_arg extends P.Sequence {
         getGroupsForMatch(match: P.Match): MethodArgGroups {
           const type = match.matched[1] as P.Match
           return {
@@ -462,7 +462,7 @@ export const methods = new SpellParser({
       name: "typed_method_arg",
       alias: ["method_arg", "simple_method_arg"],
       syntax: `{variable_identifier} as (a|an)? {type}`,
-      constructor: class type_method_arg extends R.Sequence {
+      constructor: class type_method_arg extends P.Sequence {
         getGroupsForMatch(match: P.Match): MethodArgGroups {
           const [variable, , type] = match.matched as P.Match[]
           // `VariableExpressionProps` doesn't declare `datatype` (even though it's a real, settable field
@@ -483,7 +483,7 @@ export const methods = new SpellParser({
       name: "with_props_arg",
       alias: ["method_arg"],
       syntax: "with [{simple_method_arg}(,|and)]",
-      constructor: class type_method_arg extends R.Sequence {
+      constructor: class type_method_arg extends P.Sequence {
         getGroupsForMatch(match: P.Match): MethodArgGroups {
           const { items } = match.matched[1] as P.Match
           const props = items.map((item) => (item.groups as MethodArgGroups).arg) as AST.VariableExpression[]
@@ -505,7 +505,7 @@ export const methods = new SpellParser({
     {
       name: "method_signature",
       syntax: `({method_keyword}|\\({method_arg}\\))+`,
-      constructor: class method_signature extends R.Repeat {
+      constructor: class method_signature extends P.Repeat {
         parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens) as P.Match<MethodSignatureGroups> | undefined
           // forget it if we didn't find at least one keyword
@@ -580,7 +580,7 @@ export const methods = new SpellParser({
     {
       name: "quoted_method_signature",
       tokenType: P.Tokens.Text,
-      constructor: class quoted_method_signature extends R.TokenType {
+      constructor: class quoted_method_signature extends P.TokenType {
         parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           const signature =

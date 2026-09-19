@@ -1,16 +1,9 @@
-import type { P } from "~/parser"
-import { Tokenizer } from "~/parser/tokenizer/Tokenizer"
-import { R } from "./index"
+import { P } from "~/parser"
+// Import directly to avoid circular import
 import { Rule } from "./Rule"
 
 // Turn on debugging of choice / precedence semantics
 const DEBUG_CHOICES = false
-
-export type ChoiceProps = Prettify<
-  R.RuleProps & {
-    rules: R.Rule[]
-  }
->
 
 /**
  * Alternative syntax, matching one of a number of different rules.
@@ -23,7 +16,7 @@ export type ChoiceProps = Prettify<
  */
 export class Choice extends Rule<ChoiceProps> {
   /** List of rules, any of which will match. */
-  declare rules: R.Rule[]
+  declare rules: P.Rule[]
 
   constructor(props: ChoiceProps) {
     props.rules = Array.isArray(props.rules) ? [...props.rules] : []
@@ -38,7 +31,7 @@ export class Choice extends Rule<ChoiceProps> {
    * Add one or more `rules` to the list of choices.
    * `parser` is the parser instance that's calling this.
    */
-  addChoice(_parser: P.Parser, ...rules: R.Rule[]) {
+  addChoice(_parser: P.Parser, ...rules: P.Rule[]) {
     this.rules = [...this.rules, ...rules]
   }
 
@@ -60,7 +53,7 @@ export class Choice extends Rule<ChoiceProps> {
   // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
   parse(scope: P.Scope, tokens: P.Token[]) {
     const CHOICE = `choice '${this.name || this.argument}:'`
-    if (DEBUG_CHOICES) console.group(`${CHOICE} start matching '${Tokenizer.join(tokens)}'`, this)
+    if (DEBUG_CHOICES) console.group(`${CHOICE} start matching '${P.Tokenizer.join(tokens)}'`, this)
 
     // Try to match each rule in turn.
     // For efficiency, complicated rules (e.g. sequences or recursive rules)
@@ -134,6 +127,12 @@ export class Choice extends Rule<ChoiceProps> {
     return `${testLocation}(${argument}${rules})${optional}`
   }
 }
+
+export type ChoiceProps = Prettify<
+  P.RuleProps & {
+    rules: P.Rule[]
+  }
+>
 
 /**
  * Alias for `Choice` used to merge choices together

@@ -7,11 +7,12 @@ import { hasOwnProp } from "./class"
 /** Export all `extend` functionality as a barrel. */
 export * as extend from "./extend"
 
+export const EXTEND_MAP = new WeakMap<any, Record<string, any>>()
+
 export type ExtendedData = {
   props?: { map: Record<string, any>; $store: Record<string, any> }
   state?: { map: Record<string, any>; $store: Record<string, any> }
 }
-export const EXTEND_MAP = new WeakMap<any, Record<string, any>>()
 
 /** Set up `ExtendedData` for the `target` object. */
 export function extendedFor(target: any): ExtendedData {

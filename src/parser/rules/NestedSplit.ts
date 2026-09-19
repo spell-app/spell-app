@@ -1,22 +1,11 @@
-import { Match } from "~/parser/Match"
-import type { P } from "~/parser"
-import { R } from "./index"
+import { P } from "~/parser"
+// Import directly to avoid circular import
 import { Rule } from "./Rule"
-
-export type NestedSplitProps = Prettify<
-  R.RuleProps & {
-    start: R.Rule
-    prefix?: R.Rule
-    item: R.Rule
-    delimiter: R.Rule
-    end: R.Rule
-  }
->
 
 /** `match.groups` for a `NestedSplit` match: the split `items` plus the optional `prefix` match. */
 export type NestedSplitGroups = P.MatchGroups & {
-  items: Match[]
-  prefix?: Match
+  items: P.Match[]
+  prefix?: P.Match
 }
 
 /**
@@ -37,15 +26,15 @@ export type NestedSplitGroups = P.MatchGroups & {
  */
 export class NestedSplit extends Rule<NestedSplitProps> {
   /** Start rule, e.g. `Symbol("(")`. */
-  declare start: R.Rule
+  declare start: P.Rule
   /** Optional rule to match inside the FIRST item, e.g. right after the. */
-  declare prefix: R.Rule
+  declare prefix: P.Rule
   /** Middle-bit to match inside start/end, probably a sequence or subrule. */
-  declare item: R.Rule
+  declare item: P.Rule
   /** Optional delimiter to split on, e.g. `Symbol("|")`. */
-  declare delimiter: R.Rule
+  declare delimiter: P.Rule
   /** End rule, e.g. `Symbol(")")`. */
-  declare end: R.Rule
+  declare end: P.Rule
 
   parse(scope: P.Scope, tokens: P.Token[]) {
     const end = this.findNestedEnd(scope, tokens)
@@ -54,11 +43,11 @@ export class NestedSplit extends Rule<NestedSplitProps> {
     const tokenSets = this.splitTokens(scope, tokens.slice(1, end))
     if (tokenSets === undefined) return undefined
 
-    let prefixMatch: Match | undefined
+    let prefixMatch: P.Match | undefined
     // everything that we matched, including prefix
-    const matched: Match[] = []
+    const matched: P.Match[] = []
     // split items only
-    const items: Match[] = []
+    const items: P.Match[] = []
     if (this.prefix) {
       const firstTokenSet = tokenSets[0]!
       prefixMatch = this.prefix.parse(scope, firstTokenSet)
@@ -79,7 +68,7 @@ export class NestedSplit extends Rule<NestedSplitProps> {
     if (!matched.length) return undefined
 
     const tokens_used = tokens.slice(0, end + 1)
-    return new Match({
+    return new P.Match({
       rule: this,
       items, // the items we matched
       matched, // optional prefix + items matched
@@ -87,17 +76,17 @@ export class NestedSplit extends Rule<NestedSplitProps> {
       scope
     })
   }
-  getGroupsForMatch(match: Match): NestedSplitGroups {
+  getGroupsForMatch(match: P.Match): NestedSplitGroups {
     const groups = super.getGroupsForMatch(match) as NestedSplitGroups
     const { items, matched } = match
     const prefix = matched[0]
-    if (items.length !== matched.length && prefix instanceof Match) groups.prefix = prefix
+    if (items.length !== matched.length && prefix instanceof P.Match) groups.prefix = prefix
     groups.items = items
     return groups
   }
 
   /** Don't use `nestedSplit.compile()` -- use `match.groups` instead. */
-  compile(match: Match) {
+  compile(match: P.Match) {
     throw new TypeError("don't use nestedSplit.compile() -- check `match.groups` instead.")
   }
 
@@ -153,3 +142,13 @@ export class NestedSplit extends Rule<NestedSplitProps> {
     return items
   }
 }
+
+export type NestedSplitProps = Prettify<
+  P.RuleProps & {
+    start: P.Rule
+    prefix?: P.Rule
+    item: P.Rule
+    delimiter: P.Rule
+    end: P.Rule
+  }
+>

@@ -1,11 +1,14 @@
-/** Export all Rule classes and types as barrel `R`. */
-export * as R from "./Rules"
+export * from "./rules.types"
 
 export * from "./Rule"
 export * from "./BlankLine"
 export * from "./Choice"
 export * from "./Literal"
+export * from "./Keyword"
+export * from "./Symbol"
 export * from "./Literals"
+export * from "./Keywords"
+export * from "./Symbols"
 export * from "./NestedSplit"
 export * from "./Pattern"
 export * from "./Repeat"

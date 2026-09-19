@@ -11,6 +11,10 @@
  * - Lives here rather than beside a component because it is the shared contract for ALL modals --
  *   no single one of them defines it.
  */
+////////////////
+// ## Modal contract
+////////////////
+
 export type ModalComponentProps<Props, Result = unknown> = {
   id?: string | number
   props: Props
@@ -19,6 +23,10 @@ export type ModalComponentProps<Props, Result = unknown> = {
 }
 
 /** One `options` entry as callers may pass it -- before `normalizeSUIDropdownOptions()`. */
+////////////////
+// ## `<Chooser>` options
+////////////////
+
 export type DropdownOptionInput = string | number | NormalizedDropdownOption
 
 /** One `options` entry in the shape SUI's `<Dropdown>` actually wants. */

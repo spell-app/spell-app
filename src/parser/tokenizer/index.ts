@@ -5,10 +5,11 @@
 //  names like `Token.Word` / `Token.Number` are generic enough to collide at the top level.
 //
 
-/** All token classes, e.g. `Tokens.Word`, `Tokens.Number`. */
-export * as Tokens from "./Tokens"
+export * from "./tokenizer.types"
 
-/** Base `Token` class, flattened since it is used constantly as a type. */
+/** Base `Token` class, flattened since it is used frequently as a type. */
 export { Token } from "./Tokens"
+/** Access all other tokens as `Tokens.Number` etc. */
+export * as Tokens from "./Tokens"
 
 export * from "./Tokenizer"

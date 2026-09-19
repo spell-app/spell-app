@@ -10,16 +10,9 @@ import { SP } from "~/languages/spell"
 
 import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"
+import type { ImportsFileJSON, ManifestJSON, ProjectIndexJSON } from "./server.types"
 
 const { respondWithJSON } = responseUtils
-
-export type ImportEntryJSON = { path: string; active: boolean; contents?: string | null }
-export type ImportsFileJSON = { imports: ImportEntryJSON[] }
-
-export type ManifestEntryJSON = { created: number; modified: number; size: number }
-export type ManifestJSON = Record<string, ManifestEntryJSON>
-
-export type ProjectIndexJSON = { manifest: ManifestJSON; imports: ImportEntryJSON[] }
 
 // HACKY!!!
 // Make sure we don't save `SP.SpellLocation` instances in the singleton registry or we'll leak memory!

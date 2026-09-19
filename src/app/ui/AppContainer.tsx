@@ -2,7 +2,7 @@ import React from "react"
 
 import { spellCore } from "~/spellCore"
 import { Actions } from "./Actions"
-import { UI } from "."
+import { UI } from "~/app/ui"
 import "./AppContainer.less"
 
 export const AppRoot = React.memo(function AppRoot({

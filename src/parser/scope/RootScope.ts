@@ -1,8 +1,7 @@
 import { IndexedList, typeCase, snakeCase } from "~/util"
-import { Rule } from "~/parser"
-import type { P } from "~/parser"
+import { P } from "~/parser"
+
 import { BlockScope } from "./BlockScope"
-import { TypeScope, ScopeConstant } from "."
 /**
  * A `RootScope` is the root scope for a parser.
  * It manages built-in `.rules`, `.types` and `.constants`,
@@ -12,7 +11,7 @@ import { TypeScope, ScopeConstant } from "."
  */
 export class RootScope extends BlockScope {
   /** Scope `types`. */
-  get types(): IndexedList<TypeScope, string | TypeScope | P.TypeScopeProps> {
+  get types(): IndexedList<P.TypeScope, string | P.TypeScope | P.TypeScopeProps> {
     return this.derived(
       "types",
       () =>
@@ -22,7 +21,7 @@ export class RootScope extends BlockScope {
           parentProp: "parentScope.types",
           normalizeKey: typeCase,
           transformer(item) {
-            if (!(item instanceof TypeScope)) item = new TypeScope(item)
+            if (!(item instanceof P.TypeScope)) item = new P.TypeScope(item)
             item.parentScope = this.target
             return item
           }
@@ -31,7 +30,7 @@ export class RootScope extends BlockScope {
   }
 
   /** Scope `constants`. */
-  get constants(): IndexedList<ScopeConstant, string | ScopeConstant | P.ScopeConstantProps> {
+  get constants(): IndexedList<P.ScopeConstant, string | P.ScopeConstant | P.ScopeConstantProps> {
     return this.derived(
       "constants",
       () =>
@@ -41,7 +40,7 @@ export class RootScope extends BlockScope {
           parentProp: "parentScope.constants",
           normalizeKey: snakeCase,
           transformer(item) {
-            if (!(item instanceof ScopeConstant)) item = new ScopeConstant(item)
+            if (!(item instanceof P.ScopeConstant)) item = new P.ScopeConstant(item)
             item.scope = this.target
             return item
           }
@@ -59,7 +58,7 @@ export class RootScope extends BlockScope {
           target: this,
           keyProp: "name",
           transformer(item) {
-            if (item instanceof Rule) throw new TypeError(`rules.add(): expected an Object, not a Rule.`)
+            if (item instanceof P.Rule) throw new TypeError(`rules.add(): expected an Object, not a Rule.`)
             if (!this.target.parser) throw new TypeError(`rules.add(): called on scope without a parser.`)
             // Define the rule at the parser level.
             this.target.parser.defineRule({ ...item, scope: this.target })

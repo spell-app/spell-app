@@ -1,5 +1,14 @@
 import { CustomError, type CustomErrorProps } from "./CustomError"
 
+/** Generic error found when instantiating request. */
+export class RequestError extends CustomError<RequestErrorProps> {
+  /** Derive HTTP status from response, if set. */
+  get status() {
+    if (this.props.response) return this.props.response.status
+    return undefined
+  }
+}
+
 export type RequestErrorProps = Prettify<
   Partial<CustomErrorProps> & {
     /** Request URL. */
@@ -14,15 +23,6 @@ export type RequestErrorProps = Prettify<
     body?: any
   }
 >
-
-/** Generic error found when instantiating request. */
-export class RequestError extends CustomError<RequestErrorProps> {
-  /** Derive HTTP status from response, if set. */
-  get status() {
-    if (this.props.response) return this.props.response.status
-    return undefined
-  }
-}
 
 /** Generic error found when proccessing a Response. */
 export class ResponseError extends CustomError<RequestErrorProps> {

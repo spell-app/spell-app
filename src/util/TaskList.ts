@@ -1,22 +1,5 @@
-import global from "global"
-
 import { TaskStatus, TaskResolveWith } from "./constants"
-import { Task, type TaskProps, type TaskState } from "./Task"
-
-export type TaskListProps = Prettify<
-  {
-    tasks?: Task[]
-    delayBetweenTasks?: number
-    resolveWith?: TaskResolveWith
-    continueOnError?: boolean
-  } & TaskProps
->
-
-export type TaskListState = Prettify<
-  {
-    index: number
-  } & TaskState<any>
->
+import { Task, type TaskProps } from "./Task"
 
 /**
  * TaskList -- a Task which executes a list of other `Tasks` in sequence.
@@ -277,4 +260,11 @@ export class TaskList extends Task {
   }
 }
 
-global.TaskList = TaskList
+export type TaskListProps = Prettify<
+  {
+    tasks?: Task[]
+    delayBetweenTasks?: number
+    resolveWith?: TaskResolveWith
+    continueOnError?: boolean
+  } & TaskProps
+>

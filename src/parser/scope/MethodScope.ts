@@ -1,13 +1,5 @@
-import type { P } from "~/parser"
+import { P } from "~/parser"
 import { BlockScope } from "./BlockScope"
-import { ScopeVariable } from "."
-
-export type MethodScopeProps = P.ScopeProps & {
-  args?: Array<ScopeVariable | string | P.ScopeVariableProps>
-  thisVar?: string
-  mapItTo?: string
-  async?: boolean
-}
 
 /**
  * `MethodScope` -- a scope which encapsulates a method definition.
@@ -30,7 +22,7 @@ export class MethodScope extends BlockScope {
     // Add `args` to our variables list
     if (args && args.length) {
       args.forEach((input) => {
-        const arg = input instanceof ScopeVariable ? input : new ScopeVariable(input)
+        const arg = input instanceof P.ScopeVariable ? input : new P.ScopeVariable(input)
         arg.kind = "argument"
         this.variables.add(arg)
       })
@@ -50,11 +42,18 @@ export class MethodScope extends BlockScope {
 
   // Call without arguments: returns all argument Variables.
   // Call with string `name`, returns named argument or `undefined`.
-  args(): ScopeVariable[]
-  args(name: string): ScopeVariable
+  args(): P.ScopeVariable[]
+  args(name: string): P.ScopeVariable
   args(name?: string) {
     const args = this.variables.get().filter((variable) => variable.kind === "argument")
     if (arguments.length === 0) return args
     return args.find((arg) => arg.name === name)
   }
+}
+
+export type MethodScopeProps = P.ScopeProps & {
+  args?: Array<P.ScopeVariable | string | P.ScopeVariableProps>
+  thisVar?: string
+  mapItTo?: string
+  async?: boolean
 }

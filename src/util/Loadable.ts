@@ -1,52 +1,7 @@
-import global from "global"
 import isEqual from "lodash/isEqual"
 import { batch } from "@risingstack/react-easy-state"
 
 import { Observable } from "./Observable"
-
-export type LoadableProps<ContentType> = {
-  contents?: ContentType
-  cacheDuration?: number
-}
-export type LoadableState<ContentType, SaveResult> = {
-  loadState: LoadState<ContentType, SaveResult>
-}
-
-export type LoadState<ContentType, SaveResult> = {
-  ////// Loading //////
-  /** `true` if we have successfully loaded. */
-  isLoaded?: boolean
-  /** Promise used for the current, in-flight `load()`. */
-  loader?: Promise<ContentType>
-  /** Params passed to last successful `load()`. */
-  loadParams?: any
-  /** Error returned during last failed load. */
-  loadError?: Error
-  /**
-   * Time last `load()` succeeded or failed,
-   * or when `contents` are set manually.
-   */
-  lastLoaded?: number
-
-  ////// Saving //////
-  // TODO: `changes` concept!!!
-  /** `true` if we need to be saved. */
-  isDirty?: boolean
-  /** Promise used for current, in-flight `save()`. */
-  saver?: Promise<SaveResult>
-  /** Params passed for currrent, in-flight `save()`. */
-  saveParams?: any
-  /** Error returned during last successful `save()`. */
-  saveResult?: any
-  /** Error returned during last failed `save()`. */
-  saveError?: Error
-  /** Time last `save()` succeeded or failed. */
-  lastSaveCompleted?: number
-
-  ////// Both //////
-  /** Cancel any in-flight load or save. */
-  cancelInFlightAction?: () => void
-}
 
 /**
  * Abstract class for a loadable / possibly saveable resource.
@@ -345,4 +300,51 @@ export abstract class Loadable<ContentType, SaveResult = unknown> extends Observ
   }
 }
 
-global.Loadable = Loadable
+export type LoadableProps<ContentType> = {
+  contents?: ContentType
+  cacheDuration?: number
+}
+
+////////////////
+// ## Loadable
+////////////////
+
+export type LoadableState<ContentType, SaveResult> = {
+  loadState: LoadState<ContentType, SaveResult>
+}
+
+export type LoadState<ContentType, SaveResult> = {
+  ////// Loading //////
+  /** `true` if we have successfully loaded. */
+  isLoaded?: boolean
+  /** Promise used for the current, in-flight `load()`. */
+  loader?: Promise<ContentType>
+  /** Params passed to last successful `load()`. */
+  loadParams?: any
+  /** Error returned during last failed load. */
+  loadError?: Error
+  /**
+   * Time last `load()` succeeded or failed,
+   * or when `contents` are set manually.
+   */
+  lastLoaded?: number
+
+  ////// Saving //////
+  // TODO: `changes` concept!!!
+  /** `true` if we need to be saved. */
+  isDirty?: boolean
+  /** Promise used for current, in-flight `save()`. */
+  saver?: Promise<SaveResult>
+  /** Params passed for currrent, in-flight `save()`. */
+  saveParams?: any
+  /** Error returned during last successful `save()`. */
+  saveResult?: any
+  /** Error returned during last failed `save()`. */
+  saveError?: Error
+  /** Time last `save()` succeeded or failed. */
+  lastSaveCompleted?: number
+
+  ////// Both //////
+  /** Cancel any in-flight load or save. */
+  cancelInFlightAction?: () => void
+}

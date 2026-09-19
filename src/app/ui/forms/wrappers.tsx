@@ -208,6 +208,10 @@ export function WithField(Component: ReactComponentType<any>, defaultProps?: Rec
   }
 }
 
+/////////////////////
+// WithForm wrapper
+/////////////////////
+
 export function WithForm<P extends object>(Component: ReactComponentType<P>) {
   const formComponent = view(Component) as ReactComponentType<P> & { injectForm?: boolean }
   formComponent.injectForm = true
@@ -221,23 +225,4 @@ export function WithForm<P extends object>(Component: ReactComponentType<P>) {
 export type WithFormProps = {
   form: Form<Record<string, unknown>>
   path?: string
-}
-
-/**
- * Recursively map `callback()` value for all `children` ReactNodes.
- */
-export function recursivelyMapChildren(
-  children: ReactNode,
-  callback: (child: ReactElement, key: string | number) => ReactElement
-): ReactNode[] {
-  return React.Children.toArray(children).map((child, index) => {
-    if (!React.isValidElement(child)) return child
-    let result = callback(child, child.key || index)
-    if (result.props.children) {
-      const newKids = recursivelyMapChildren(result.props.children, callback)
-      if (newKids !== result.props.children)
-        result = React.cloneElement(result, { key: result.key || index, children: newKids })
-    }
-    return result
-  })
 }

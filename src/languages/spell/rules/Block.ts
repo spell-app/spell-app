@@ -1,5 +1,6 @@
 import { P, AST } from "~/parser"
-import { SpellParser } from "~/languages/spell"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 import "./match-fields.A"
 
 // `Blocks` are generally the root entity that we parse in spell.

@@ -7,7 +7,7 @@
 //--------
 import _ from "lodash"
 import { spellCore } from "./core"
-import { assert } from "."
+import { assert } from "~/spellCore"
 import { defineSpellCoreModule } from "./SpellCore"
 
 /** A valid `{ start, end }` 1-based range, as computed by the `_validateRange*` helpers. */

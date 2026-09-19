@@ -1,15 +1,6 @@
-import { Match } from "~/parser/Match"
-import type { P } from "~/parser"
-import { R } from "./index"
+import { P } from "~/parser"
+// Import directly to avoid circular import
 import { Rule } from "./Rule"
-
-export type PatternProps = Prettify<
-  R.RuleProps & {
-    pattern?: RegExp
-    VALUE_MAP?: Record<string, any>
-    blacklist?: P.IdentifierBlacklist | string[]
-  }
->
 
 /**
  * Regex pattern to match a SINGLE token.
@@ -51,7 +42,7 @@ export class Pattern extends Rule<PatternProps> {
     if (!this.testAtStart(scope, tokens, 0)) return undefined
     const raw = tokens[0].value // raw value, used by subclasses
     const value = this.mapValue(raw) // possibly normalized value, used by subclasses
-    return new Match({
+    return new P.Match({
       rule: this,
       matched: [tokens[0]],
       raw,
@@ -67,7 +58,15 @@ export class Pattern extends Rule<PatternProps> {
     return value as T
   }
 
-  compile(match: Match) {
+  compile(match: P.Match) {
     return match.value
   }
 }
+
+export type PatternProps = Prettify<
+  P.RuleProps & {
+    pattern?: RegExp
+    VALUE_MAP?: Record<string, any>
+    blacklist?: P.IdentifierBlacklist | string[]
+  }
+>

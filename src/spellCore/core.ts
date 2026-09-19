@@ -7,9 +7,8 @@ import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
 
 import { extend } from "~/util"
-import { assert } from "."
-import { defineSpellCoreModule } from "./SpellCore"
-import type { SpellCore } from "./SpellCore"
+import { assert } from "~/spellCore"
+import { defineSpellCoreModule, type SpellCore } from "./SpellCore"
 
 /** Options accepted by `spellCore.defineProperty()`. */
 export type DefinePropertyOptions<T = unknown> = {

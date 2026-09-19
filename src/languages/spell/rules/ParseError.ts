@@ -1,5 +1,6 @@
 import { P, AST } from "~/parser"
-import { SpellParser } from "~/languages/spell"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 
 // Parser error representation in parser output.
 export class ParseError extends P.Rule {

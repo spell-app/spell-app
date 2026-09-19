@@ -1,14 +1,7 @@
 import { IndexedList, typeCase, instanceCase, snakeCase } from "~/util"
-import { MethodScope, ScopeVariable } from "~/parser"
-import { BlockScope } from "."
-
-export type TypeScopeProps = {
-  name: string
-  superType?: string
-  stub?: boolean
-  methods?: MethodScope[]
-  variables?: ScopeVariable[]
-}
+import { P } from "~/parser"
+// Import directly to avoid circular import
+import { BlockScope } from "./BlockScope"
 
 /**
  * `TypeScope` -- a scope which encapsulates a known class or type.
@@ -57,7 +50,7 @@ export class TypeScope extends BlockScope {
           keyProp: "name",
           normalizeKey: snakeCase,
           transformer(item) {
-            if (!(item instanceof ScopeVariable)) item = new ScopeVariable(item)
+            if (!(item instanceof P.ScopeVariable)) item = new P.ScopeVariable(item)
             item.scope = this.target
             item.kind = "static"
             return item
@@ -77,7 +70,7 @@ export class TypeScope extends BlockScope {
           keyProp: "name",
           normalizeKey: snakeCase,
           transformer(item) {
-            if (!(item instanceof MethodScope)) item = new MethodScope(item)
+            if (!(item instanceof P.MethodScope)) item = new P.MethodScope(item)
             item.parentScope = this.target
             item.kind = "static"
             return item
@@ -85,4 +78,12 @@ export class TypeScope extends BlockScope {
         })
     )
   }
+}
+
+export type TypeScopeProps = {
+  name: string
+  superType?: string
+  stub?: boolean
+  methods?: P.MethodScope[]
+  variables?: P.ScopeVariable[]
 }

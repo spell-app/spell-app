@@ -1,8 +1,7 @@
-import global from "global"
-import { spellSetup } from "./SpellSetup"
+import { SP } from "~/languages/spell"
 
 /**
- * IMPORTANT: this file MUST NOT import from anything other than `spellSetup`
+ * IMPORTANT: this file MUST NOT import from anything other than `SpellSetup`
  * as it is used by the server, and we don't want to pull all of that crap in!
  */
 
@@ -99,8 +98,8 @@ export class SpellLocation {
       }
 
       // Is this a valid path??  Let's take it in steps:
-      // 1. Does it match a `projectRoot` in `spellSetup`
-      const projectSetup = spellSetup.projectRoots[this.projectRoot as keyof typeof spellSetup.projectRoots]
+      // 1. Does it match a `projectRoot` in `SpellSetup`
+      const projectSetup = SP.SpellSetup.projectRoots[this.projectRoot]
       let isValid = !!projectSetup && projectSetup.owner === this.owner && projectSetup.domain === this.domain
       // 2. If it has a projectName, is that valid?
       if (isValid && this.projectName) isValid = SpellLocation.isValidPathSegment(this.projectName)
@@ -161,8 +160,8 @@ export class SpellLocation {
   /**
    * Return our `projectRoot` as `@user:projects` or `@system:examples`
    */
-  get projectRoot(): string {
-    return `${this.owner}:${this.domain}`
+  get projectRoot(): SP.ProjectRootPath {
+    return `${this.owner}:${this.domain}` as SP.ProjectRootPath
   }
 
   /**
@@ -208,7 +207,7 @@ export class SpellLocation {
    * Given `URLParams` of `{ domain, project, filePath }`
    * return the associated `path` string.
    */
-  // TESTME: changed pattern so we no longer pull in `spellSetup`SpellProjectRoot`!
+  // TESTME: changed pattern so we no longer pull in `SpellSetup`SpellProjectRoot`!
   static pathForUrl({
     domain,
     project,
@@ -218,7 +217,7 @@ export class SpellLocation {
     project?: string
     filePath?: string
   } = {}): string {
-    const root = spellSetup.projectRootForDomain(domain)
+    const root = SP.SpellSetup.projectSpecForDomain(domain)
     let path = `${root.owner}:${root.domain}`
     if (project) {
       path += `:${project}`
@@ -296,5 +295,3 @@ export class SpellLocation {
     return `SpellLocation: ${this.path}`
   }
 }
-
-global.SpellLocation = SpellLocation

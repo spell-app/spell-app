@@ -4,7 +4,7 @@ import { view } from "~/util"
 
 import { spellCore } from "~/spellCore"
 import { store } from "~/app/store"
-import type { UI } from "."
+import type { UI } from "~/app/ui"
 
 /****************
  * ### `<Action>`

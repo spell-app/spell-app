@@ -1,40 +1,6 @@
-import global from "global"
 import { TaskStatus } from "./constants"
 import { Observable, batch } from "./Observable"
 import type { TaskList } from "./TaskList"
-
-export type TaskProps<TaskResult = any> = {
-  /** Method to `run()` when executing this task. */
-  run: (inputValue: unknown) => Promise<TaskResult>
-  /** Optional name, for TaskList display. */
-  name?: string
-  /** Is this task optional?  If so, a failure will not cancel a TaskList. */
-  optional?: boolean
-  /** Set to `true` to debug task execution. */
-  debug?: boolean
-  /** Pointer to TaskList which contains us. */
-  taskList?: TaskList
-}
-
-/** */
-export type TaskExecution<TaskResult> = {
-  complete: (status: TaskStatus, result: TaskResult | Error) => void
-  promise: Promise<unknown>
-  resolve: (result: unknown) => void
-  reject: (reason: unknown) => void
-  cancel?: () => void
-}
-
-export type TaskState<TaskResult> = {
-  /** Current status. */
-  status?: TaskStatus
-  /** Last result if successful. */
-  result?: TaskResult
-  /** Last error if unsuccesful. */
-  error?: Error
-  /** Current execution context of Task. */
-  execution?: TaskExecution<TaskResult>
-}
 
 /**
  * A `Task` is the concrete manifestation of an asynchronous process.
@@ -306,5 +272,40 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
   }
 }
 
-// DEBUG
-global.Task = Task
+export type TaskProps<TaskResult = any> = {
+  /** Method to `run()` when executing this task. */
+  run: (inputValue: unknown) => Promise<TaskResult>
+  /** Optional name, for TaskList display. */
+  name?: string
+  /** Is this task optional?  If so, a failure will not cancel a TaskList. */
+  optional?: boolean
+  /** Set to `true` to debug task execution. */
+  debug?: boolean
+  /** Pointer to TaskList which contains us. */
+  taskList?: TaskList
+}
+
+export type TaskExecution<TaskResult> = {
+  complete: (status: TaskStatus, result: TaskResult | Error) => void
+  promise: Promise<unknown>
+  resolve: (result: unknown) => void
+  reject: (reason: unknown) => void
+  cancel?: () => void
+}
+
+export type TaskState<TaskResult> = {
+  /** Current status. */
+  status?: TaskStatus
+  /** Last result if successful. */
+  result?: TaskResult
+  /** Last error if unsuccesful. */
+  error?: Error
+  /** Current execution context of Task. */
+  execution?: TaskExecution<TaskResult>
+}
+
+export type TaskListState = Prettify<
+  {
+    index: number
+  } & TaskState<any>
+>

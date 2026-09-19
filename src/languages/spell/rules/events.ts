@@ -1,19 +1,17 @@
 //
 //  # Rules for creating variables, property access, etc
 //
-import global from "global"
-import { SpellParser } from "~/languages/spell"
 import { P, AST } from "~/parser"
-import type { ASTNode, Expression, Statement, StatementBlock, VariableExpression } from "~/parser/ast/AST"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 
 // `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass
 // that the referenced sub-rule's `getAST()` is known (by inspection) to always produce.
-function ast<T extends ASTNode>(node: ASTNode | undefined): T {
+function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
   return node as T
 }
 
-global.AST = AST
 export const events = new SpellParser({
   module: "events",
   rules: [
@@ -28,8 +26,8 @@ export const events = new SpellParser({
         getAST(match: P.Match<P.RulexGroups<"eventName:props">>) {
           const { eventName, props } = match.groups
           // Use the `raw` eventName, dashes are ok!
-          const args: Expression[] = [new AST.QuotedExpression(match, eventName!.raw!)]
-          if (props) args.push(ast<Expression>(props.AST))
+          const args: AST.Expression[] = [new AST.QuotedExpression(match, eventName!.raw!)]
+          if (props) args.push(ast<AST.Expression>(props.AST))
           return new AST.RuntimeMethodInvocation(match, {
             methodName: "trigger",
             args
@@ -70,7 +68,7 @@ export const events = new SpellParser({
             // `with_props_arg`'s custom `getGroupsForMatch()` (in methods.js) sets its own `props` group to an
             // array of `AST.VariableExpression`s directly, not `Match`es -- unrepresentable via the generic
             // `MatchGroups` shape, so we cast (each item still has a `.name`, same as `Match` would).
-            const propsList = props.groups.props as unknown as VariableExpression[]
+            const propsList = props.groups.props as unknown as AST.VariableExpression[]
             args.push(...propsList.map(({ name }) => name))
           }
           // NOTE: `MethodScopeProps` doesn't declare `parentScope`/`name` (only forwarded to `Scope` at
@@ -88,18 +86,18 @@ export const events = new SpellParser({
           // event variable
           const event = new AST.VariableExpression(match, { name: "event", type: "argument" })
           // Use the `raw` eventName, dashes are ok!
-          const args: Expression[] = [new AST.QuotedExpression(match, eventName!.raw!)]
+          const args: AST.Expression[] = [new AST.QuotedExpression(match, eventName!.raw!)]
           if (nestedBlock || inlineStatement) {
             const method = new AST.MethodDefinition(match, {
               inline: true,
-              body: ast<StatementBlock | Statement | Expression>((nestedBlock || inlineStatement)!.AST),
+              body: ast<AST.StatementBlock | AST.Statement | AST.Expression>((nestedBlock || inlineStatement)!.AST),
               args: [event]
             })
             // If they specified event props to pay attention to,
             // look them up at the start of the message
             if (props) {
               // See note above re: `with_props_arg`'s custom `props` group.
-              const propsList = props.groups.props as unknown as VariableExpression[]
+              const propsList = props.groups.props as unknown as AST.VariableExpression[]
               method.body.statements!.unshift(
                 new AST.DestructuredAssignment(props, {
                   thing: event,

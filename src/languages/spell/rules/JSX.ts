@@ -1,21 +1,10 @@
-import { P, R, AST } from "~/parser"
-import { SpellParser } from "~/languages/spell"
-import type {
-  ASTNode,
-  Expression,
-  Statement,
-  StatementBlock,
-  ParseError,
-  JSXAttribute,
-  JSXElement,
-  JSXEndTag,
-  JSXText,
-  JSXExpression
-} from "~/parser/ast/AST"
+import { P, AST } from "~/parser"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 
 // `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass
 // that the referenced sub-rule's `getAST()` is known (by inspection) to always produce.
-function ast<T extends ASTNode>(node: ASTNode | undefined): T {
+function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
   return node as T
 }
 
@@ -26,7 +15,7 @@ export const JSX = new SpellParser({
       name: "jsxElement",
       alias: ["jsxChild", "expression"],
       tokenType: P.Tokens.JSXElement,
-      constructor: class SpellJSX extends R.TokenType {
+      constructor: class SpellJSX extends P.TokenType {
         parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
@@ -44,10 +33,10 @@ export const JSX = new SpellParser({
 
         getAST(match: P.Match) {
           const { tagName } = match.matched[0] as P.Tokens.JSXElement
-          const attrs = match.attributes?.map((attr) => ast<JSXAttribute>(attr?.AST))
+          const attrs = match.attributes?.map((attr) => ast<AST.JSXAttribute>(attr?.AST))
           const children =
             match.children
-              ?.map((child) => ast<JSXElement | JSXEndTag | JSXText | JSXExpression>(child?.AST))
+              ?.map((child) => ast<AST.JSXElement | AST.JSXEndTag | AST.JSXText | AST.JSXExpression>(child?.AST))
               .filter(Boolean) ?? []
           return new AST.JSXElement(match, { tagName, attrs, children })
         }
@@ -253,7 +242,7 @@ export const JSX = new SpellParser({
     {
       name: "jsxAttribute",
       tokenType: P.Tokens.JSXAttribute,
-      constructor: class SpellJSXAttribute extends R.TokenType {
+      constructor: class SpellJSXAttribute extends P.TokenType {
         parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
@@ -299,15 +288,15 @@ export const JSX = new SpellParser({
 
         getAST(match: P.Match) {
           const { attribute, expression, statement, error, value } = match
-          let valueAST: Expression | undefined
-          if (expression) valueAST = ast<Expression>(expression.AST)
+          let valueAST: AST.Expression | undefined
+          if (expression) valueAST = ast<AST.Expression>(expression.AST)
           else if (statement) {
             valueAST = new AST.MethodDefinition(match, {
               inline: true,
               args: attribute!.toLowerCase().startsWith("on")
                 ? [new AST.VariableExpression(match, { name: "event" })]
                 : undefined,
-              body: ast<StatementBlock | Statement | Expression>(statement.AST)
+              body: ast<AST.StatementBlock | AST.Statement | AST.Expression>(statement.AST)
             })
           } else if (value === undefined) {
             valueAST = new AST.BooleanLiteral(match, { value: true })
@@ -320,7 +309,7 @@ export const JSX = new SpellParser({
           return new AST.JSXAttribute(match, {
             name: attribute!,
             value: valueAST,
-            error: error?.AST as ParseError | undefined
+            error: error?.AST as AST.ParseError | undefined
           })
         }
       }
@@ -330,7 +319,7 @@ export const JSX = new SpellParser({
       name: "jsxText",
       alias: "jsxChild",
       tokenType: P.Tokens.JSXText,
-      constructor: class SpellJSXText extends R.TokenType {
+      constructor: class SpellJSXText extends P.TokenType {
         getAST(match: P.Match) {
           const { raw, quotedText } = match.matched[0] as P.Tokens.JSXText
           // `Rule.getAST()` is declared to always return an `ASTNode`, but this rule legitimately has
@@ -346,7 +335,7 @@ export const JSX = new SpellParser({
       name: "jsxEndTag",
       alias: "jsxChild",
       tokenType: P.Tokens.JSXEndTag,
-      constructor: class SpellJSXEndTag extends R.TokenType {
+      constructor: class SpellJSXEndTag extends P.TokenType {
         getAST(match: P.Match) {
           const { tagName } = match.matched[0] as P.Tokens.JSXEndTag
           return new AST.JSXEndTag(match, { tagName })
@@ -358,7 +347,7 @@ export const JSX = new SpellParser({
       name: "jsxExpression",
       alias: "jsxChild",
       tokenType: P.Tokens.JSXExpression,
-      constructor: class SpellJSXExpression extends R.TokenType {
+      constructor: class SpellJSXExpression extends P.TokenType {
         parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
@@ -377,8 +366,8 @@ export const JSX = new SpellParser({
         getAST(match: P.Match) {
           const { expression, error } = match
           return new AST.JSXExpression(match, {
-            expression: expression?.AST as Expression | undefined,
-            error: error?.AST as ParseError | undefined
+            expression: expression?.AST as AST.Expression | undefined,
+            error: error?.AST as AST.ParseError | undefined
           })
         }
       }

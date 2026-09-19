@@ -1,6 +1,5 @@
 import { TextFile } from "~/util"
-import { SpellLocation, SpellProject } from "~/languages/spell"
-import type { ProjectManifestEntry } from "./SpellProject"
+import { SP } from "~/languages/spell"
 
 /**
  * JS / JSX file as part of SpellProject.
@@ -17,7 +16,7 @@ export class SpellJSFile extends TextFile {
     if (existing) return existing
 
     super({})
-    Object.assign(this, { path })
+    this.path = path
     if (!this.location.isFilePath) {
       throw new TypeError(`new SpellJSFile('${path}'): Must be initialized with valid file path.`)
     }
@@ -27,8 +26,8 @@ export class SpellJSFile extends TextFile {
   /** We've been removed from the server -- clean up memory, etc.. */
   onRemove(): void {
     super.onRemove()
-    SpellJSFile.registry.clear()
-    SpellLocation.registry.clear()
+    SpellJSFile.registry.delete(this.path)
+    SP.SpellLocation.registry.delete(this.path)
   }
 
   /**
@@ -41,8 +40,8 @@ export class SpellJSFile extends TextFile {
   /** `location` object which we can use to get various bits of the path. */
   /*@forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")*/
   /*@memoize*/
-  get location(): SpellLocation {
-    return this.derived("location", () => new SpellLocation(this.path))
+  get location(): SP.SpellLocation {
+    return this.derived("location", () => new SP.SpellLocation(this.path))
   }
   get projectId(): string {
     return this.location.projectId
@@ -70,15 +69,15 @@ export class SpellJSFile extends TextFile {
    * Pointer to our `SpellProject`.
    */
   /*@memoize*/
-  get project(): SpellProject {
-    return this.derived("project", () => new SpellProject(this.projectId))
+  get project(): SP.SpellProject {
+    return this.derived("project", () => new SP.SpellProject(this.projectId))
   }
 
   /**
    * Return promise which yields our `info` record according to the project manifest.
    * Note that `modified` and `size` may be out of sync if we've been modified on the client.
    */
-  get info(): ProjectManifestEntry | undefined {
+  get info(): SP.ProjectManifestEntry | undefined {
     return this.project.getFileInfo(this.path)
   }
 

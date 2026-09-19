@@ -3,15 +3,15 @@
 //  TODO: sort
 //
 
-import { SpellParser } from "~/languages/spell"
 import { P, AST } from "~/parser"
-import type { ASTNode, Expression } from "~/parser/ast/AST"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import { SpellExpression } from "./expressions"
 
 // `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass
 // that the referenced sub-rule's `getAST()` is known (by inspection) to always produce.
-function ast<T extends ASTNode>(node: ASTNode | undefined): T {
+function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
   return node as T
 }
 
@@ -31,7 +31,7 @@ export const _async = new SpellParser({
         getAST(match: P.Match<P.RulexGroups<"expression">>) {
           const { expression } = match.groups
           return new AST.AwaitExpression(match, {
-            expression: (expression && ast<Expression>(expression.AST)) || new AST.UndefinedLiteral(match)
+            expression: (expression && ast<AST.Expression>(expression.AST)) || new AST.UndefinedLiteral(match)
           })
         }
       },
@@ -77,7 +77,7 @@ export const _async = new SpellParser({
           return new AST.AwaitExpression(match, {
             expression: new AST.CoreMethodInvocation(match, {
               methodName: "pauseFor",
-              args: [ast<Expression>(number!.AST), new AST.QuotedExpression(units!, units!.value)]
+              args: [ast<AST.Expression>(number!.AST), new AST.QuotedExpression(units!, units!.value)]
             })
           })
         }

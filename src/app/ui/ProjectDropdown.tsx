@@ -7,7 +7,7 @@ import { view } from "~/util"
 import { SP } from "~/languages/spell"
 import { store } from "~/app/store"
 
-import { UI } from "."
+import { UI } from "~/app/ui"
 
 /****************
  * ### `<ProjectMenu>`
@@ -77,6 +77,7 @@ export const ProjectDropdown = view(function ProjectDropdown({
   className,
   ...dropdownProps
 }: ProjectDropdownProps) {
+  // Load projectRoot but don't wait for it
   React.useEffect(() => {
     if (projectRoot) void projectRoot.load()
   }, [projectRoot])

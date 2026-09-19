@@ -1,12 +1,12 @@
 import { getDerived } from "~/util"
 import { P } from "~/parser"
-import { spellParser } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
+import { SP } from "~/languages/spell"
 import type { SpellRuleRegistry } from "./rules/registry"
 
 export class SpellParser extends P.Parser {
   /** Registry of language-specific rule classes, populated by the modules in `./rules`. Debug aid only. */
-  static Rules: Partial<SpellRuleRegistry> = {}
+  static Rules = {} as SpellRuleRegistry
 
   static {
     Object.defineProperty(this.prototype, "defaultRule", { value: "block", writable: true })
@@ -40,11 +40,9 @@ export class SpellParser extends P.Parser {
    * All project scopes will point back to this.
    */
   /*@memoize*/
-  // NOTE: return types are explicit because `rootScope` and `getScope()` reference each other.
-  // Without them TS cannot break the cycle and falls back to `any` (TS7022/7023/7024).
   static get rootScope(): P.RootScope {
     return getDerived(this, "rootScope", (): P.RootScope => {
-      const scope = new P.RootScope({ name: "spellRoot", parser: spellParser })
+      const scope = new P.RootScope({ name: "spellRoot", parser: SP.spellParser })
       // Add all BASE_TYPES defined in `spellCore`.
       // See: `src/spellCore/classes/index.ts`
       spellCore.BASE_TYPES.forEach((type) => scope.types.add(type))

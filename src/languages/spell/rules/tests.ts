@@ -2,14 +2,14 @@
 //  # Rules for inline spell tests.
 //
 
-import { SpellParser } from "~/languages/spell"
 import { P, AST } from "~/parser"
-import type { ASTNode, Expression } from "~/parser/ast/AST"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 
 // `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass
 // that the referenced sub-rule's `getAST()` is known (by inspection) to always produce.
-function ast<T extends ASTNode>(node: ASTNode | undefined): T {
+function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
   return node as T
 }
 
@@ -28,9 +28,9 @@ export const tests = new SpellParser({
           // (TS treats the "absent" branch as `never`); use nullish coalescing for the same runtime fallback.
           const valueString: string | undefined = value ? (value.raw ?? value.value) : undefined
           return new AST.ExpectMethodInvocation(match, {
-            expression: ast<Expression>(expression!.AST),
+            expression: ast<AST.Expression>(expression!.AST),
             expressionString: expression!.value,
-            value: value && ast<Expression>(value.AST),
+            value: value && ast<AST.Expression>(value.AST),
             valueString
           })
         }
@@ -96,7 +96,7 @@ export const tests = new SpellParser({
         getAST(match: P.Match<P.RulexGroups<"expression">>) {
           const { expression } = match.groups
           return new AST.EchoInvocation(match, {
-            expression: ast<Expression>(expression!.AST)
+            expression: ast<AST.Expression>(expression!.AST)
           })
         }
       },

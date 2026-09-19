@@ -3,7 +3,8 @@
 //
 
 import { P, AST } from "~/parser"
-import { SpellParser } from "~/languages/spell"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 
 export const statements = new SpellParser({

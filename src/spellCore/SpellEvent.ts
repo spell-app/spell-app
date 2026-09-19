@@ -7,14 +7,10 @@
  */
 
 import _remove from "lodash/remove"
-import global from "global"
 import { spellCore } from "./core"
 
 /** Callback registered via `on`/`off`/`once`/`trigger`. */
 export type EventCallback = (event: SpellEvent, target: object) => unknown
-
-/** Extra properties that can be passed when constructing/triggering a `SpellEvent`. */
-export type SpellEventProps = Record<string, unknown> & { type?: string }
 
 /** Methods added to a target (or its prototype) to make it "eventful". */
 export type EventfulMethods = {
@@ -181,6 +177,9 @@ export class SpellEvent {
     Object.defineProperties(target, SpellEvent.instanceMethods)
   }
 }
+
+/** Extra properties that can be passed when constructing/triggering a `SpellEvent`. */
+export type SpellEventProps = Record<string, unknown> & { type?: string }
 // Make spellCore itself eventful.
 SpellEvent.makeEventful(spellCore)
 
@@ -197,7 +196,3 @@ export function Eventful<B extends new (...args: any[]) => object>(BaseClass?: B
   SpellEvent.makeEventful(newClass.prototype)
   return newClass
 }
-
-// debug
-global.SpellEvent = SpellEvent
-global.Eventful = Eventful

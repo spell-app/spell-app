@@ -1,11 +1,7 @@
-import global from "global"
-
 import { TextFile, batch } from "~/util"
-import { P } from "~/parser"
-import type { ASTNode } from "~/parser/ast/AST"
-import { SpellProject, SpellParser, SpellLocation } from "~/languages/spell"
+import { P, AST } from "~/parser"
+import { SP } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
-import type { ProjectManifestEntry } from "./SpellProject"
 
 /**
  * `rules/Block.js` (still untyped JS) attaches an ad-hoc `errors` array of `Match`es
@@ -39,7 +35,8 @@ export class SpellFile extends TextFile {
   onRemove(): void {
     super.onRemove()
     SpellFile.registry.clear()
-    SpellLocation.registry.clear()
+    // TODO: was SP.SpellLocation.registry.delete()
+    SP.SpellLocation.registry.delete(this.path)
   }
 
   /**
@@ -54,8 +51,8 @@ export class SpellFile extends TextFile {
    */
   /*@forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")*/
   /*@memoize*/
-  get location(): SpellLocation {
-    return this.derived("location", () => new SpellLocation(this.path))
+  get location(): SP.SpellLocation {
+    return this.derived("location", () => new SP.SpellLocation(this.path))
   }
   get projectId(): string {
     return this.location.projectId
@@ -83,15 +80,15 @@ export class SpellFile extends TextFile {
    * Pointer to our `SpellProject`.
    */
   /*@memoize*/
-  get project(): SpellProject {
-    return this.derived("project", () => new SpellProject(this.projectId))
+  get project(): SP.SpellProject {
+    return this.derived("project", () => new SP.SpellProject(this.projectId))
   }
 
   /**
    * Return promise which yields our `info` record according to the project manifest.
    * Note that `modified` and `size` may be out of sync if we've been modified on the client.
    */
-  get info(): ProjectManifestEntry | undefined {
+  get info(): SP.ProjectManifestEntry | undefined {
     return this.project.getFileInfo(this.path)
   }
 
@@ -124,10 +121,10 @@ export class SpellFile extends TextFile {
   }
 
   /** AST for our `compiled` output. */
-  /*@state*/ get AST(): ASTNode | undefined {
+  /*@state*/ get AST(): AST.ASTNode | undefined {
     return this.getState("AST", () => undefined)
   }
-  set AST(AST: ASTNode | undefined) {
+  set AST(AST: AST.ASTNode | undefined) {
     this.setState("AST", AST)
   }
 
@@ -163,8 +160,8 @@ export class SpellFile extends TextFile {
     return new P.ProjectScope({
       name: this.file,
       path: this.path,
-      parser: SpellParser.rootScope.parser!.clone({ module: this.path }),
-      parentScope: SpellParser.rootScope
+      parser: SP.SpellParser.rootScope.parser!.clone({ module: this.path }),
+      parentScope: SP.SpellParser.rootScope
     })
   }
 
@@ -292,5 +289,3 @@ export class SpellFile extends TextFile {
     return `${this.constructor.name}: ${this.path}`
   }
 }
-
-global.SpellFile = SpellFile

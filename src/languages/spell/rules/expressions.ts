@@ -2,8 +2,9 @@
 //  # Rules for expressions.
 //
 
-import { SpellParser } from "~/languages/spell"
 import { P, AST } from "~/parser"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 
 /** Base class for all Spell expressions. */

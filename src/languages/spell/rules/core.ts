@@ -2,8 +2,9 @@
 //  # Core `rules` -- simple datatypes, etc.
 //
 import { assert } from "~/util"
-import { P, R, AST } from "~/parser"
-import { SpellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 
 export const core = new SpellParser({
   module: "core",
@@ -16,7 +17,7 @@ export const core = new SpellParser({
       name: "eat_whitespace",
       syntax: "{whitespace}*",
       datatype: "string",
-      constructor: class eat_whitespace extends R.Subrule {}
+      constructor: class eat_whitespace extends P.Subrule {}
     },
 
     // Any whitespace.
@@ -24,7 +25,7 @@ export const core = new SpellParser({
       name: "whitespace",
       datatype: "string",
       tokenType: P.Tokens.Whitespace,
-      constructor: class whitespace extends R.TokenType {
+      constructor: class whitespace extends P.TokenType {
         getAST(match: P.Match): AST.StringLiteral {
           const { value, raw } = match
           return new AST.StringLiteral(match, { value: assert.string(value), raw })
@@ -37,7 +38,7 @@ export const core = new SpellParser({
       name: "indent",
       datatype: "string",
       tokenType: P.Tokens.Indent,
-      constructor: class indent extends R.TokenType {
+      constructor: class indent extends P.TokenType {
         getAST(match: P.Match): AST.StringLiteral {
           const { value, raw } = match
           return new AST.StringLiteral(match, { value: assert.string(value), raw })
@@ -50,7 +51,7 @@ export const core = new SpellParser({
       name: "newline",
       datatype: "string",
       tokenType: P.Tokens.Newline,
-      constructor: class newline extends R.TokenType {
+      constructor: class newline extends P.TokenType {
         getAST(match: P.Match): AST.StringLiteral {
           const { value, raw } = match
           return new AST.StringLiteral(match, { value: assert.string(value), raw })
@@ -64,7 +65,7 @@ export const core = new SpellParser({
       name: "inline_whitespace",
       datatype: "string",
       tokenType: P.Tokens.InlineWhitespace,
-      constructor: class inline_whitespace extends R.TokenType {
+      constructor: class inline_whitespace extends P.TokenType {
         getAST(match: P.Match): AST.StringLiteral {
           const { value, raw } = match
           return new AST.StringLiteral(match, { value: assert.string(value), raw })
@@ -83,7 +84,7 @@ export const core = new SpellParser({
       alias: "expression",
       datatype: "number",
       tokenType: P.Tokens.Number,
-      constructor: class numeric extends R.TokenType {
+      constructor: class numeric extends P.TokenType {
         getAST(match: P.Match): AST.NumericLiteral {
           const { value, raw } = match
           return new AST.NumericLiteral(match, { value: assert.number(value), raw })
@@ -137,7 +138,7 @@ export const core = new SpellParser({
         nine: 9,
         ten: 10
       },
-      constructor: class number_as_string extends R.Pattern {
+      constructor: class number_as_string extends P.Pattern {
         getAST(match: P.Match): AST.NumericLiteral {
           const { value, raw } = match
           return new AST.NumericLiteral(match, { value: assert.number(value), raw })
@@ -180,7 +181,7 @@ export const core = new SpellParser({
         always: true,
         never: false
       },
-      constructor: class _boolean extends R.Pattern {
+      constructor: class _boolean extends P.Pattern {
         getAST(match: P.Match): AST.BooleanLiteral {
           const { value, raw } = match
           return new AST.BooleanLiteral(match, { value: assert.boolean(value), raw })
@@ -220,7 +221,7 @@ export const core = new SpellParser({
       alias: "expression",
       datatype: "string",
       tokenType: P.Tokens.Text,
-      constructor: class text extends R.TokenType {
+      constructor: class text extends P.TokenType {
         getAST(match: P.Match): AST.StringLiteral {
           const { value, raw } = match
           return new AST.StringLiteral(match, { value: assert.string(value), raw })
@@ -243,7 +244,7 @@ export const core = new SpellParser({
     {
       name: "comment",
       tokenType: P.Tokens.Comment,
-      constructor: class comment extends R.TokenType {
+      constructor: class comment extends P.TokenType {
         getAST(match: P.Match): AST.LineComment {
           const [token] = match.matched
           // `tokenType: Tokens.Comment` guarantees the single matched token is a `Comment`.
@@ -272,7 +273,7 @@ export const core = new SpellParser({
       alias: "expression",
       datatype: "undefined",
       syntax: "(undefined|nothing)",
-      constructor: class undefined_literal extends R.Literal {
+      constructor: class undefined_literal extends P.Literal {
         getAST(match: P.Match): AST.UndefinedLiteral {
           return new AST.UndefinedLiteral(match)
         }
@@ -293,7 +294,7 @@ export const core = new SpellParser({
     {
       name: "keyword",
       pattern: /^[a-zA-Z][\w-]*$/,
-      constructor: class keyword extends R.Pattern {
+      constructor: class keyword extends P.Pattern {
         // convert dashes to underscores when compiling
         mapValue<T = string>(value: string): T {
           return `${value}`.replace(/-/g, "_") as T

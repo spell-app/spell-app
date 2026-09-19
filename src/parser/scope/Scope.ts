@@ -1,14 +1,5 @@
 import { Derivative, IndexedList } from "~/util"
-import type { P } from "~/parser"
-
-export type ScopeConstructor = new (args: any) => Scope
-
-export type ScopeProps = {
-  name?: string
-  path?: string
-  parser?: P.Parser
-  parentScope?: Scope
-}
+import { P } from "~/parser"
 
 /**
  * We create a `Scope` when starting a parse run to allow the parser
@@ -86,3 +77,12 @@ export class Scope extends Derivative {
     return this.parser?.compile(text, ruleName, scope)
   }
 }
+
+export type ScopeProps = {
+  name?: string
+  path?: string
+  parser?: P.Parser
+  parentScope?: Scope
+}
+
+export type ScopeConstructor = new (args: any) => P.Scope

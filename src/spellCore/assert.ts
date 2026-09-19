@@ -4,7 +4,7 @@
  */
 
 import isArrayLikeObject from "lodash/isArrayLikeObject"
-import { spellCore } from "."
+import { spellCore } from "~/spellCore"
 
 /** Callable `assert` function, plus extra assertion helpers hung off of it. */
 export type Assert = {

@@ -1,14 +1,6 @@
-import { Match } from "~/parser/Match"
-import type { P } from "~/parser"
-import { R } from "./index"
+import { P } from "~/parser"
+// import directly to avoid circult import
 import { Rule } from "./Rule"
-
-export type LiteralProps = Prettify<
-  R.RuleProps & {
-    literal: string | string[]
-    isEscaped?: boolean
-  }
->
 
 /**
  * Abstract rule to match a single literal string token.
@@ -22,17 +14,17 @@ export type LiteralProps = Prettify<
  * For convenience, you can pass a single string or array of strings to the constructor
  * to automatically set the `literal` property.
  *
- * NOTE: Don't use this -- use `R.Keyword` or `R.Symbol` instead!
+ * NOTE: Don't use this -- use `Keyword` or `Symbol` instead!
  */
-export abstract class Literal extends Rule<LiteralProps> {
+export abstract class Literal extends Rule<P.LiteralProps> {
   /** Literal string or array of literal strings to match. */
   declare literal: string | string[]
   /** Whether the literal must be escaped when converting to rulex syntax. */
   declare isEscaped: boolean | undefined
 
-  constructor(props: LiteralProps | string | string[]) {
+  constructor(props: P.LiteralProps | string | string[]) {
     if (Array.isArray(props) || typeof props === "string") {
-      super({ literal: props } as LiteralProps)
+      super({ literal: props } as P.LiteralProps)
     } else super(props)
   }
 
@@ -43,7 +35,7 @@ export abstract class Literal extends Rule<LiteralProps> {
 
   parse(scope: P.Scope, tokens: P.Token[]) {
     if (!this.testAtStart(scope, tokens, 0)) return undefined
-    return new Match({
+    return new P.Match({
       rule: this,
       matched: [tokens[0]],
       value: tokens[0].value,
@@ -52,7 +44,7 @@ export abstract class Literal extends Rule<LiteralProps> {
     })
   }
 
-  compile(match: Match) {
+  compile(match: P.Match) {
     return match.value
   }
 
@@ -68,13 +60,3 @@ export abstract class Literal extends Rule<LiteralProps> {
     return `${testLocation}${literalString}${optional}`
   }
 }
-
-/**
- * Rule which matches a single literal keyword string token.
- */
-export class Keyword extends Literal {}
-
-/**
- * Rule which matches a single literal symbol string token.
- */
-export class Symbol extends Literal {}

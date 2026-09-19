@@ -4,6 +4,9 @@
 //  All compiled spell modules can assume that `spell` and `assert` are in scope.
 //
 //----------------------------
+
+export * as SC from "."
+
 import { assert } from "./assert"
 import { spellCore } from "./core"
 import "./collection-core"
@@ -19,5 +22,3 @@ import "./ui"
 export { spellCore, assert, SpellEvent, Eventful }
 export type { SpellCore } from "./SpellCore"
 export * from "./classes"
-
-export * as "$C" from "."

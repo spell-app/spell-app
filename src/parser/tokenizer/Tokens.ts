@@ -1,30 +1,9 @@
-import type { IdentifierBlacklist } from "~/parser/types"
-
-/**
- * Generic `Token` record.
- * Some subclasses will have additional properties.
- */
-export type TokenRecord<ValueType = any> = {
-  /** Start character position in full source stream. */
-  offset: number
-  /** Raw input string which was matched, generally NOT including leading/trailing whitespace. */
-  raw?: string
-  /** Whitespace string which was matched between this token and the next in the stream. */
-  whitespace?: string
-  /** Line number in original source string, appended after match. */
-  line?: number
-  /** Start character in source `line`. */
-  ch?: number
-  /** Conceptual "value" of the token, according to the subclass. e.g. a number, string without quotes, etc. */
-  value?: ValueType
-  /** Error string encountered while parsing. */
-  error?: string
-}
+import type { P } from "~/parser"
 
 /**
  * `Token` -- root class for various specific `Token` classes.
  */
-export class Token<ValueType = any, TRT extends TokenRecord<ValueType> = TokenRecord<ValueType>> {
+export class Token<ValueType = any, TRT extends P.TokenProps<ValueType> = P.TokenProps<ValueType>> {
   /**
    * Immutable record of token properties.
    * - While this is technically public and read/write, only `Tokenizer` should write to it!
@@ -100,7 +79,7 @@ export class Token<ValueType = any, TRT extends TokenRecord<ValueType> = TokenRe
    * If `blacklist` is supplied, we'll return `false` if value is found in blacklist.
    * NOTE: valid for string types only.
    */
-  matchesPattern(pattern: RegExp, blacklist?: IdentifierBlacklist) {
+  matchesPattern(pattern: RegExp, blacklist?: P.IdentifierBlacklist) {
     if (typeof this.value !== "string") return false
     if (!pattern.test(this.value)) return false
     if (blacklist && blacklist[this.value]) return false
@@ -134,7 +113,7 @@ export class InlineWhitespace extends Whitespace {}
 
 /** `Newline` class, a single "return" character. */
 export class Newline extends Whitespace {
-  constructor(record: TokenRecord<string>) {
+  constructor(record: P.TokenProps<string>) {
     super(record)
   }
   get raw() {
@@ -195,8 +174,10 @@ export class Number extends Token<number> {}
 //  ### JSX expressions
 //////////////////
 
+export type JSXAttributeValue = JSXExpression | JSXText | Text | Number
+
 /** Common superclass for all JSX tokens. */
-export class JSXToken<ValueType = any, TRT extends TokenRecord<ValueType> = TokenRecord<ValueType>> extends Token<
+export class JSXToken<ValueType = any, TRT extends P.TokenProps<ValueType> = P.TokenProps<ValueType>> extends Token<
   ValueType,
   TRT
 > {}
@@ -207,7 +188,7 @@ export class JSXToken<ValueType = any, TRT extends TokenRecord<ValueType> = Toke
  *  - `element.attributes` is an array of `jsxAttribute` children
  *  - `element.children` is an array of child `jsxElement` instances.
  */
-export class JSXElement extends JSXToken<never, JSXElementTokenRecord> {
+export class JSXElement extends JSXToken<never, JSXElementTokenProps> {
   /** Tag name. */
   get tagName() {
     return this.record.tagName
@@ -225,7 +206,7 @@ export class JSXElement extends JSXToken<never, JSXElementTokenRecord> {
     return this.record.isUnaryTag
   }
 }
-export type JSXElementTokenRecord = Prettify<TokenRecord<never>> & {
+export type JSXElementTokenProps = Prettify<P.TokenProps<never>> & {
   /** Tag name. */
   tagName: string
   /** Does this represent a unary tag? */
@@ -240,13 +221,13 @@ export type JSXElementTokenRecord = Prettify<TokenRecord<never>> & {
  * Token for a single JSX end tag.
  *  - `element.tagName` is the tag name.
  */
-export class JSXEndTag extends JSXToken<never, JSXEndTagTokenRecord> {
+export class JSXEndTag extends JSXToken<never, JSXEndTagTokenProps> {
   /** Tag name. */
   get tagName() {
     return this.record.tagName
   }
 }
-export type JSXEndTagTokenRecord = Prettify<TokenRecord<never>> & {
+export type JSXEndTagTokenProps = Prettify<P.TokenProps<never>> & {
   /** Tag name. */
   tagName: string
 }
@@ -257,17 +238,16 @@ export type JSXEndTagTokenRecord = Prettify<TokenRecord<never>> & {
  *  - `attr.value` is the value of the attribute as... ???
  */
 // REFACTOR: type for `value`????
-export class JSXAttribute extends JSXToken<any, JSXAttributeTokenRecord> {
+export class JSXAttribute extends JSXToken<any, JSXAttributeTokenProps> {
   /** Attribute name. */
   get name() {
     return this.record.name
   }
 }
-export type JSXAttributeTokenRecord = Prettify<TokenRecord<JSXAttributeValue>> & {
+export type JSXAttributeTokenProps = Prettify<P.TokenProps<JSXAttributeValue>> & {
   /** Attribute name. */
   name: string
 }
-export type JSXAttributeValue = JSXExpression | JSXText | Text | Number
 
 /** Loose text in the middle of a JSX block
  * `text.value` is the actual text matched (including whitespace).
@@ -283,8 +263,8 @@ export class JSXText extends JSXToken<string> {
 
 /** JSX expression, composed of inline tokens which should yield an `expression` or `statement`. */
 // DOCME
-export class JSXExpression extends JSXToken<string, JSXExpressionTokenRecord> {
-  constructor(record: JSXExpressionTokenRecord) {
+export class JSXExpression extends JSXToken<string, JSXExpressionTokenProps> {
+  constructor(record: JSXExpressionTokenProps) {
     super(record)
     if (!this.value) this.record.value = ""
   }
@@ -293,7 +273,7 @@ export class JSXExpression extends JSXToken<string, JSXExpressionTokenRecord> {
     return this.record.contents
   }
 }
-export type JSXExpressionTokenRecord = Prettify<TokenRecord<string>> & {
+export type JSXExpressionTokenProps = Prettify<P.TokenProps<string>> & {
   /** Contents of the expression as string, including leading/trailing whitespace. */
   contents: string | Token
 }
@@ -307,7 +287,7 @@ export type JSXExpressionTokenRecord = Prettify<TokenRecord<string>> & {
  *  - `comment.initialWhitespace` is whitespace BETWEEN the comment symbol and the comment text.
  *  - `comment.value` is the comment text (until the end of the line).
  */
-export class Comment extends Token<string, CommentTokenRecord> {
+export class Comment extends Token<string, CommentTokenProps> {
   /** Initial comment symbol, e.g.  `--`, `//`, `##` */
   get commentSymbol() {
     return this.record.commentSymbol
@@ -318,7 +298,7 @@ export class Comment extends Token<string, CommentTokenRecord> {
     return this.record.initialWhitespace
   }
 }
-export type CommentTokenRecord = Prettify<TokenRecord<string>> & {
+export type CommentTokenProps = Prettify<P.TokenProps<string>> & {
   /** Initial comment symbol, e.g.  `--`, `//`, `##` */
   commentSymbol: string
   /** Whitespace between the comment symbol and the comment text. */
@@ -333,7 +313,7 @@ export type CommentTokenRecord = Prettify<TokenRecord<string>> & {
  *  - `.tokens` is (possibly empty) array of tokens other than indent/newline
  *  - `.newline` (optional) is newline token AT END OF LINE
  */
-export class Line extends Token<string, LineTokenRecord> {
+export class Line extends Token<string, LineTokenProps> {
   /** Leading whitespace at start of line. */
   get leading() {
     return this.record.leading
@@ -360,7 +340,7 @@ export class Line extends Token<string, LineTokenRecord> {
     return (this.leading || "") + this.tokens.join("") + (this.newline ? "\n" : "")
   }
 }
-export type LineTokenRecord = Prettify<TokenRecord<string>> & {
+export type LineTokenProps = Prettify<P.TokenProps<string>> & {
   /** Array of tokens other than indent/newline. */
   tokens: Token[]
   /** Indent level of the line. */
@@ -377,7 +357,7 @@ export type LineTokenRecord = Prettify<TokenRecord<string>> & {
  *  `.offset` is block start offset chart in source
  *  `.tokens` is (possibly empty) array of `Token.Line`s or `Token.Block`s.
  */
-export class Block extends Token<string, BlockTokenRecord> {
+export class Block extends Token<string, BlockTokenProps> {
   /** Array of tokens as `LineToken`s or `BlockToken`s. */
   get tokens() {
     return this.record.tokens
@@ -394,7 +374,7 @@ export class Block extends Token<string, BlockTokenRecord> {
     return this.tokens.join("\n")
   }
 }
-export type BlockTokenRecord = Prettify<TokenRecord<string>> & {
+export type BlockTokenProps = Prettify<P.TokenProps<string>> & {
   /** Array of tokens. */
   tokens: Array<Line | Block>
   /** Indent level of the block. */

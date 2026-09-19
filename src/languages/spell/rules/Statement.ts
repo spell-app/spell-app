@@ -1,6 +1,6 @@
 import { P } from "~/parser"
-import { Sequence } from "~/parser/rules/Sequence"
-import { SpellParser } from "~/languages/spell"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 
 // In Spell, we generally match `statements` across the entire line.
 //
@@ -9,7 +9,7 @@ import { SpellParser } from "~/languages/spell"
 //  or might have a nested block of statements.
 //
 // Note: Access this as `SpellParser.Rules.Statement`.
-export class SpellStatement extends Sequence {
+export class SpellStatement extends P.Sequence {
   /** Should we attempt to parse an `inlineStatement` at the end of this statement's line? */
   declare wantsInlineStatement: boolean
   /** Rule name to parse the `inlineStatement` as. */

@@ -1,22 +1,22 @@
-import global from "global"
-
 import { JSON5File, CONFIRM, $fetch, getDier, type KnownFormatMimeType } from "~/util"
-import { SpellLocation, SpellProject } from "~/languages/spell"
-import { spellSetup } from "./SpellSetup"
-
-// NOTE: the server accepts the bare `"json"` string for `requestFormat` (which becomes the
-// `Content-Type` header); cast it once here against `$FetchRequestParams`'s stricter
-// `KnownFormatMimeType` type rather than changing the actual value sent to the server.
-const REQUEST_FORMAT_JSON = "json" as KnownFormatMimeType
-
-/** Contents of a `SpellProjectRoot`: list of project paths, e.g. `@user:projects:Foo`. */
-export type ProjectPathList = string[]
+import { SP } from "~/languages/spell"
 
 /**
  * Loadable list of all `SpellProject`s available to this user.
  * NOTE: don't create these directly, use the ones set up by `SpellInstall`.
  */
-export class SpellProjectRoot extends JSON5File<ProjectPathList> {
+export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
+  /**
+   * Format for client/server requests.
+   *
+   * NOTE: the server accepts the bare `"json"` string for `requestFormat` (which becomes the
+   * `Content-Type` header); cast it once here against `$FetchRequestParams`'s stricter
+   * `KnownFormatMimeType` type rather than changing the actual value sent to the server.
+   *
+   * CLAUDE TODO:  WTF is this?
+   */
+  static REQUEST_FORMAT_JSON = "json" as KnownFormatMimeType
+
   /**
    * Singleton instances
    */
@@ -28,6 +28,13 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
   }
   static get guides(): SpellProjectRoot {
     return new SpellProjectRoot("@system:guides")
+  }
+
+  /**
+   * Return EXISTING singleton root for projectRoot `path` or `undefined`.
+   */
+  static rootForPath(rootPath: SP.ProjectRootPath) {
+    return this.registry.get(rootPath)
   }
 
   /**
@@ -68,29 +75,28 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
   /** Semantic UI icon of project. */
   declare icon: string
   /** Immutable `location` object which we use to get various bits of the path. */
-  declare location: SpellLocation
+  declare location: SP.SpellLocation
 
   /**
-   * Given a `path` as `@user:projects` etc, return a singleton `SpellProjectRoot`
-   * Throws if `path` is not in `spellSetup.projectRoots`.
+   * Given a `projectRoot` as `@user:projects` etc, return a singleton `SpellProjectRoot`
+   * Throws if `projectRoot` is not in `SpellSetup.projectRoots`.
    */
   /** Registry of known instances. */
   static registry = new Map<string, SpellProjectRoot>()
-  constructor(path: string, die?: (message: string) => never) {
+
+  // TODO: Calling this with `new ()` will return existing record.
+  //       This violates the principle of least surprise, move to `rootForProjectRootPath()`?
+  constructor(path: SP.ProjectRootPath) {
     // Return immediately from registry if already present.
     const existing = SpellProjectRoot.registry.get(path)
     if (existing) return existing
 
-    const setup = spellSetup.projectRoots[path]
-    if (!setup) {
-      const message = `Invalid domain path '${path}'.`
-      if (die) die(message)
-      throw new TypeError(message)
-    }
+    const setup = SP.SpellSetup.projectSpectForRootPath(path)
     super({})
-    Object.assign(this, { path, ...setup })
-    this.location = new SpellLocation(this.path)
-    SpellProjectRoot.registry.set(path, this)
+    // CLAUDE TODO: can this just be super(setup)
+    Object.assign(this, setup)
+    this.location = new SP.SpellLocation(this.path)
+    SpellProjectRoot.registry.set(this.path, this)
   }
 
   /** URL to load the project list. */
@@ -114,7 +120,7 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
    * List of paths for all available `SpellProject`s.
    */
   /*@memoizeForProp("contents")*/
-  get projectPaths(): ProjectPathList {
+  get projectPaths(): SP.ProjectPathList {
     return this.derivedFrom("projectPaths", () => this.contents || [], [this.contents])
   }
 
@@ -125,8 +131,8 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
    * TODOC: it's tricky to use this in a component!
    */
   /*@memoizeForProp("projectPaths")*/
-  get projects(): SpellProject[] {
-    return this.derivedFrom("projectPaths", () => this.projectPaths.map((path) => new SpellProject(path)), [
+  get projects(): SP.SpellProject[] {
+    return this.derivedFrom("projectPaths", () => this.projectPaths.map((path) => new SP.SpellProject(path)), [
       this.contents
     ])
   }
@@ -135,7 +141,7 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
    * Assuming we're loaded, return a known project by `path`.
    * Will return `undefined` if not found.
    */
-  getProject(path: string): SpellProject | undefined {
+  getProject(path: string): SP.SpellProject | undefined {
     return this.projects?.find((p) => p.path === path)
   }
 
@@ -159,7 +165,7 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
     message?: string
     die?: ReturnType<typeof getDier>
   } = {}): string | undefined {
-    const originalLocation = projectId ? new SpellLocation(projectId, die) : undefined
+    const originalLocation = projectId ? new SP.SpellLocation(projectId, die) : undefined
     if (!defaultName) defaultName = originalLocation?.projectName || "Untitled"
 
     const projectName = prompt(message, defaultName)
@@ -172,14 +178,14 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
    * Create a new project at `projectId`.
    * Returns new project, `undefined` if cancelled, or throws on error.
    */
-  async createProject(projectId?: string): Promise<SpellProject | undefined> {
+  async createProject(projectId?: string): Promise<SP.SpellProject | undefined> {
     const die = getDier(this, `creating ${this.type}`, { projectId })
 
     if (!projectId) projectId = this.promptForProjectId({ die })
     if (!projectId) return undefined
     die.params.projectId = projectId
 
-    const location = new SpellLocation(projectId, die)
+    const location = new SP.SpellLocation(projectId, die)
     if (!location.isProjectPath) die("You must pass a projectId.")
 
     await this.loadOrDie(die)
@@ -187,14 +193,14 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
 
     // Tell the server to create the project, which returns new projects list
     try {
-      const newContents = await $fetch<ProjectPathList>({
+      const newContents = await $fetch<SP.ProjectPathList>({
         url: `/api/projects/create/project`,
         contents: {
           projectId,
           filePath: "Untitled.spell",
           contents: "## this space intentionally left blank"
         },
-        requestFormat: REQUEST_FORMAT_JSON,
+        requestFormat: SpellProjectRoot.REQUEST_FORMAT_JSON,
         format: "json"
       })
       this.contents = newContents
@@ -209,10 +215,10 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
    * Duplicate an existing project.
    * Returns new project, `undefined` if cancelled, or throws on error.
    */
-  async duplicateApp(projectId: string, newProjectId?: string): Promise<SpellProject | undefined> {
+  async duplicateApp(projectId: string, newProjectId?: string): Promise<SP.SpellProject | undefined> {
     const die = getDier(this, `duplicating ${this.type}`, { projectId, newProjectId })
 
-    new SpellLocation(projectId, die)
+    new SP.SpellLocation(projectId, die)
 
     await this.loadOrDie(die)
     if (!this.getProject(projectId)) die(`${this.Type} does not exist.`)
@@ -221,16 +227,16 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
     if (!newProjectId) return undefined
     die.params.newProjectId = newProjectId
 
-    const newLocation = new SpellLocation(newProjectId, die)
+    const newLocation = new SP.SpellLocation(newProjectId, die)
     if (!newLocation.isProjectPath) die("You must pass a newProjectId.")
     if (this.getProject(newProjectId)) die(`New ${this.type} already exists.`)
 
     // Tell the server to duplicate the project, which returns new projects list
     try {
-      const newContents = await $fetch<ProjectPathList>({
+      const newContents = await $fetch<SP.ProjectPathList>({
         url: `/api/projects/duplicate/project`,
         contents: { projectId, newProjectId },
-        requestFormat: REQUEST_FORMAT_JSON,
+        requestFormat: SpellProjectRoot.REQUEST_FORMAT_JSON,
         format: "json"
       })
       this.contents = newContents
@@ -245,10 +251,10 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
    * Rename an existing project.
    * Returns new project, `undefined` if cancelled, or throws on error.
    */
-  async renameApp(projectId: string, newProjectId?: string): Promise<SpellProject | undefined> {
+  async renameApp(projectId: string, newProjectId?: string): Promise<SP.SpellProject | undefined> {
     const die = getDier(this, `renaming ${this.type}`, { projectId, newProjectId })
 
-    new SpellLocation(projectId, die)
+    new SP.SpellLocation(projectId, die)
 
     await this.loadOrDie(die)
     const project = this.getProject(projectId) || die(`${this.Type} does not exist.`)
@@ -258,16 +264,16 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
     if (!newProjectId || newProjectId === projectId) return undefined
     die.params.newProjectId = newProjectId
 
-    const newLocation = new SpellLocation(newProjectId, die)
+    const newLocation = new SP.SpellLocation(newProjectId, die)
     if (!newLocation.isProjectPath) die("You must pass a newProjectId.")
     if (this.getProject(newProjectId)) die(`New ${this.type} already exists.`)
 
     // Tell the server to duplicate the project, which returns new projects list
     try {
-      const newContents = await $fetch<ProjectPathList>({
+      const newContents = await $fetch<SP.ProjectPathList>({
         url: `/api/projects/rename/project`,
         contents: { projectId, newProjectId },
-        requestFormat: REQUEST_FORMAT_JSON,
+        requestFormat: SpellProjectRoot.REQUEST_FORMAT_JSON,
         format: "json"
       })
       this.contents = newContents
@@ -287,7 +293,7 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
    */
   async deleteApp(projectId: string, shouldConfirm?: typeof CONFIRM): Promise<boolean> {
     const die = getDier(this, `removing ${this.type}`, { projectId })
-    new SpellLocation(projectId, die)
+    new SP.SpellLocation(projectId, die)
 
     await this.loadOrDie(die)
     const project = this.getProject(projectId) || die(`${this.Type} does not exist.`)
@@ -298,11 +304,11 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
 
     // Tell the server to remove the project, which returns new projects list
     try {
-      const newContents = await $fetch<ProjectPathList>({
+      const newContents = await $fetch<SP.ProjectPathList>({
         url: `/api/projects/remove/project`,
         method: "DELETE",
         contents: { projectId },
-        requestFormat: REQUEST_FORMAT_JSON,
+        requestFormat: SpellProjectRoot.REQUEST_FORMAT_JSON,
         format: "json"
       })
       this.contents = newContents
@@ -325,5 +331,3 @@ export class SpellProjectRoot extends JSON5File<ProjectPathList> {
     return `${this.constructor.name}: ${this.path}`
   }
 }
-
-global.SpellProjectRoot = SpellProjectRoot

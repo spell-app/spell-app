@@ -9,7 +9,7 @@ import { SP } from "~/languages/spell"
 
 import { store } from "~/app/store"
 
-import { UI } from "."
+import { UI } from "~/app/ui"
 import { Actions } from "./Actions"
 import { ErrorHandler, type ErrorHandlerWrapperProps } from "./ErrorHandler"
 

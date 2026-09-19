@@ -2,8 +2,9 @@
 //  # Rules for variables
 //
 import { singularize, pluralize } from "~/util"
-import { P, R, AST } from "~/parser"
-import { SpellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
 import "./match-fields.B"
 
@@ -12,7 +13,7 @@ import "./match-fields.B"
 //        - if we find one, you can override what's output with `variable.ouput`.
 // TODO: type based on scope variable type?
 // TODO: higher precedence if variable is known?
-export class VariableIdentifier extends R.Pattern {
+export class VariableIdentifier extends P.Pattern {
   static {
     // Alpha-numeric word, including dashes or underscores.
     Object.defineProperty(this.prototype, "pattern", { value: P.ALPHANUMERIC_WORD_WITH_DASHES, writable: true })
@@ -48,7 +49,7 @@ export const variables = new SpellParser({
     {
       name: "variable",
       syntax: "the? {identifier:variable_identifier}",
-      constructor: class variable extends R.Sequence {
+      constructor: class variable extends P.Sequence {
         parse(scope: P.Scope, tokens: P.Token[]): P.Match<P.RulexGroups<"identifier">> | undefined {
           // `identifier` is a required, non-repeated group per our `syntax` above.
           const match = super.parse(scope, tokens) as P.Match<P.RulexGroups<"identifier">> | undefined
@@ -81,7 +82,7 @@ export const variables = new SpellParser({
       alias: "expression",
       // NOTE: `match` returned is the `{variable_identifier}`, not this sequence.
       syntax: "the? {identifier:variable_identifier}",
-      constructor: class known_variable extends R.Sequence {
+      constructor: class known_variable extends P.Sequence {
         parse(scope: P.Scope, tokens: P.Token[]): P.Match<P.RulexGroups<"identifier">> | undefined {
           // `identifier` is a required, non-repeated group per our `syntax` above.
           const match = super.parse(scope, tokens) as P.Match<P.RulexGroups<"identifier">> | undefined

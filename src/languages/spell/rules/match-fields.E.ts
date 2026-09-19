@@ -1,7 +1,6 @@
 // Ad-hoc `Match` fields set/read by chunk E (`rules/lists.ts`, `rules/classes.ts`).
 // See the shared conversion brief for why these live here instead of on `src/parser/Match.ts`.
-import { P } from "~/parser"
-import type { AST } from "~/parser"
+import { P, type AST } from "~/parser"
 
 declare module "~/parser/Match" {
   // NOTE: MUST stay an `interface` -- module augmentation merges into the declared `Match`,

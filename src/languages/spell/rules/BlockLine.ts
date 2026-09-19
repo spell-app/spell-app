@@ -1,10 +1,12 @@
-import { P, R, AST } from "~/parser"
-import { SpellParser, spellParser } from "~/languages/spell"
+import { P, AST } from "~/parser"
+import { SP } from "~/languages/spell"
+// Import directly to avoid circular import
+import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import "./match-fields.A"
 
 /** Update Rules.BlankLine to output AST properly. */
-R.BlankLine.prototype.getAST = function (match: P.Match) {
+P.BlankLine.prototype.getAST = function (match: P.Match) {
   return new AST.BlankLine(match)
 }
 
@@ -110,7 +112,7 @@ export class BlockLine extends P.Rule {
         // Add parse error if we got both a `nestedBlock` and an `inlineStatement`
         const { inlineStatement, nestedBlock } = statement.groups
         if (inlineStatement && nestedBlock) {
-          const error = spellParser.createParseError(
+          const error = SP.spellParser.createParseError(
             scope,
             [line, nextItem].filter((item): item is P.Token => item !== undefined),
             "Got both inline statement and nested block"

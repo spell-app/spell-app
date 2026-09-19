@@ -11,6 +11,7 @@ import fse, { Stats, CopyOptions, MoveOptions } from "fs-extra"
 import filterAsync from "node-filter-async"
 
 import { isFileOrFolderNotFoundError } from "./response-utils"
+import type { GetFolderContentsOptions } from "./server.types"
 
 //----------------------------
 //  File encoding formats for `readFile()`, `writeFile()`, etc.
@@ -255,24 +256,6 @@ export async function getFolderContents(path: string, options: GetFolderContents
   // Sort case-insensitive
   if (sort) paths.sort(caseInsensitiveSort)
   return paths
-}
-
-/** Filtering/formatting options for `getFolderContents()`.  All optional -- see each default below. */
-export type GetFolderContentsOptions = {
-  /** Perform case-insensitive sort on results.  Default `true`. */
-  sort?: boolean
-  /** Include directories in results.  Default `false`. */
-  includeFolders?: boolean
-  /** Include files in results.  Default `true`. */
-  includeFiles?: boolean
-  /** Return names only, `false` = return full path.  Default `false`. */
-  namesOnly?: boolean
-  /** Ignore hidden files.  Default `false`. */
-  ignoreHidden?: boolean
-  /** Ignore empty folders.  Default `false`. */
-  ignoreEmptyFolders?: boolean
-  /** Only return items where `pattern.test(path)` is `true` for the full path.  Default `undefined`. */
-  pattern?: RegExp
 }
 
 /**

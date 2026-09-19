@@ -1,14 +1,4 @@
-import type { P } from "~/parser"
-
-export type ScopeVariableProps = {
-  name: string
-  output?: string
-  kind?: "argument" | "static"
-  datatype?: string
-  initializer?: string
-  isAlias?: boolean
-  scope?: P.Scope
-}
+import { P } from "~/parser"
 
 /**
  * `ScopeVariable` a variable defined within a `Scope`.
@@ -44,4 +34,14 @@ export class ScopeVariable {
     else Object.assign(this, input)
     if (!this.name) throw new TypeError("Variables must be created with a 'name'")
   }
+}
+
+export type ScopeVariableProps = {
+  name: string
+  output?: string
+  kind?: "argument" | "static"
+  datatype?: string
+  initializer?: string
+  isAlias?: boolean
+  scope?: P.Scope
 }

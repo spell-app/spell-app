@@ -4,7 +4,9 @@
 //
 
 import { describe, test, expect } from "vitest"
-import { Parser, ParserError, Rule, R, type RuleConstructor } from "~/parser"
+import { P, Parser, ParserError, Rule, type RuleConstructor } from "~/parser"
+// These tests define rules with rulex `syntax`, so they must opt into the rulex parser.
+import "~/languages/rulex"
 
 describe("addRule() and rules", () => {
   test("parser.rules works when no rules are defined", () => {
@@ -41,10 +43,12 @@ describe("defineRule()", () => {
     expect(parser.rules).toEqual({})
   })
 
-  test("doesn't add rule if passed a Rule instance without a 'name' property", () => {
+  test("throws if passed a Rule instance without a 'name' property", () => {
     const parser = new Parser()
+    // NOTE: a `Rule` instance takes the early return straight to `addRule()`, which is OUTSIDE
+    // `defineRule()`'s try/catch -- so a missing name throws here rather than being swallowed.
     // Deliberately missing `literal` -- doesn't matter since it's not compiled/parsed.
-    parser.defineRule(new R.Symbol({} as any))
+    expect(() => parser.defineRule(new P.Symbol({} as any))).toThrow(ParserError)
     expect(parser.rules).toEqual({})
   })
 
@@ -90,8 +94,8 @@ describe("Parser.import()", () => {
     const bar1 = bar.rules.rule1
 
     foo.import(bar)
-    expect(foo.rules.rule1).toBeInstanceOf(R.Group)
-    const rule1 = foo.rules.rule1 as R.Group
+    expect(foo.rules.rule1).toBeInstanceOf(P.Group)
+    const rule1 = foo.rules.rule1 as P.Group
     expect(rule1.argument).toBe("rule1")
     expect(rule1.rules.length).toBe(2)
     expect(rule1.rules).toEqual([foo1, bar1])
@@ -101,15 +105,15 @@ describe("Parser.import()", () => {
     const foo = new Parser({ module: "foo" })
     foo.defineRule({ name: "rule1", syntax: "foo1" })
     foo.defineRule({ name: "rule1", syntax: "foo1a" })
-    const foo1OriginalGroup = foo.rules.rule1 as R.Group
+    const foo1OriginalGroup = foo.rules.rule1 as P.Group
     const foo1OriginalGroupRules = [...foo1OriginalGroup.rules]
 
     const bar = new Parser({ module: "bar" })
     bar.defineRule({ name: "rule1", syntax: "bar1" })
 
     foo.import(bar)
-    expect(foo.rules.rule1).toBeInstanceOf(R.Group)
-    const rule1 = foo.rules.rule1 as R.Group
+    expect(foo.rules.rule1).toBeInstanceOf(P.Group)
+    const rule1 = foo.rules.rule1 as P.Group
     expect(rule1.argument).toBe("rule1")
     expect(rule1).not.toBe(foo1OriginalGroup)
     expect(rule1.rules.length).toBe(3)
@@ -122,8 +126,8 @@ describe("Parser.import()", () => {
 // Set up parser used in the below
 const parser = new Parser()
 // `rules` defaults to `[]` at runtime if omitted; the props type doesn't reflect that.
-const statement = new R.Group({ name: "statement", argument: "statement" } as any)
-const statements = new R.Repeat({ name: "block", rule: new R.Subrule("statement") })
+const statement = new P.Group({ name: "statement", argument: "statement" } as any)
+const statements = new P.Repeat({ name: "block", rule: new P.Subrule("statement") })
 parser.defineRules(
   statement,
   statements,

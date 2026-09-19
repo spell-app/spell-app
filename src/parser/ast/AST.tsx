@@ -1,8 +1,8 @@
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 
 import { getSuperHierarchy, Assertable, OPTIONAL } from "~/util"
-import { Match, MethodScope, FileScope, ProjectScope, type AnyMatch } from "~/parser"
-import type { Scope, TypeScope, ScopeConstant, ScopeVariable } from "~/parser"
+import { P } from "~/parser"
+
 import * as stringify from "./stringifyAST"
 import * as render from "./renderAST"
 
@@ -13,7 +13,7 @@ function isLegalIdentifier(value: string): boolean {
 }
 
 function convertStatementsToBlock(
-  match: AnyMatch,
+  match: P.AnyMatch,
   statements: Statement | StatementBlock | Statement[] | undefined
 ): StatementBlock {
   if (!statements) return new StatementBlock(match)
@@ -27,7 +27,7 @@ function convertStatementsToBlock(
  */
 export class ASTNode<Props extends object = object> extends Assertable {
   /** Match passed to `getAST()` method which produced this node. */
-  declare match: AnyMatch
+  declare match: P.AnyMatch
 
   /** Backing field for the overridable `datatype` accessor. */
   declare private _datatype: string | RegExpConstructor | undefined
@@ -39,11 +39,11 @@ export class ASTNode<Props extends object = object> extends Assertable {
    *
    *  TODO: `datatype` as a function which turns into a getter?
    */
-  constructor(match: AnyMatch, props?: Props) {
+  constructor(match: P.AnyMatch, props?: Props) {
     super()
     if (props) Object.assign(this, props)
     this.match = match
-    this.assertType("match", Match)
+    this.assertType("match", P.Match)
   }
 
   /** Return our node type, which is the name of our constructor function. */
@@ -52,7 +52,7 @@ export class ASTNode<Props extends object = object> extends Assertable {
   }
 
   /** Scope of the top-level match. */
-  get parentScope(): Scope {
+  get parentScope(): P.Scope {
     return this.match.scope
   }
 
@@ -149,7 +149,7 @@ export type ExpressionWithCommentProps = Prettify<{
 export class ExpressionWithComment extends Expression {
   declare expression: Expression
   declare comment: BlockComment
-  constructor(match: AnyMatch, props: ExpressionWithCommentProps) {
+  constructor(match: P.AnyMatch, props: ExpressionWithCommentProps) {
     super(match, props)
     this.assertType("expression", Expression)
     this.assertType("comment", BlockComment)
@@ -185,7 +185,7 @@ export class NumericLiteral extends Literal {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "number"
   }
-  constructor(match: AnyMatch, props: number | NumericLiteralProps) {
+  constructor(match: P.AnyMatch, props: number | NumericLiteralProps) {
     if (typeof props === "number") props = { value: props }
     super(match, props)
     this.assertType("value", "number")
@@ -200,7 +200,7 @@ export class StringLiteral extends Literal {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "string"
   }
-  constructor(match: AnyMatch, props: string | StringLiteralProps) {
+  constructor(match: P.AnyMatch, props: string | StringLiteralProps) {
     if (typeof props === "string") props = { value: props }
     super(match, props)
     this.assertType("value", "string")
@@ -215,7 +215,7 @@ export class BooleanLiteral extends Literal {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "boolean"
   }
-  constructor(match: AnyMatch, props: boolean | BooleanLiteralProps) {
+  constructor(match: P.AnyMatch, props: boolean | BooleanLiteralProps) {
     if (typeof props === "boolean") props = { value: props }
     super(match, props)
     this.assertType("value", "boolean")
@@ -236,7 +236,7 @@ export class RegExpLiteral extends Literal {
   /*@readonly*/ /*@proto*/ get datatype(): RegExpConstructor {
     return RegExp
   }
-  constructor(match: AnyMatch, props: RegExpLiteralProps) {
+  constructor(match: P.AnyMatch, props: RegExpLiteralProps) {
     super(match, props)
     this.assertType("value", RegExp)
   }
@@ -248,7 +248,7 @@ export class NullLiteral extends Literal {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "null"
   }
-  constructor(match: AnyMatch, props?: object) {
+  constructor(match: P.AnyMatch, props?: object) {
     super(match, props)
     this.assertType("value", undefined)
   }
@@ -265,7 +265,7 @@ export class UndefinedLiteral extends Literal {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "undefined"
   }
-  constructor(match: AnyMatch, props?: object) {
+  constructor(match: P.AnyMatch, props?: object) {
     super(match, props)
     this.assertType("value", undefined)
   }
@@ -301,7 +301,7 @@ export class KeywordLiteral extends Literal {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  constructor(match: AnyMatch, props: KeywordLiteralProps) {
+  constructor(match: P.AnyMatch, props: KeywordLiteralProps) {
     super(match, props)
     this.assertType("value", "string")
     this.assertType("raw", "string", OPTIONAL)
@@ -316,7 +316,7 @@ export type ArrayLiteralProps = Prettify<{ items?: Expression[]; wrap?: boolean 
 
 export class ArrayLiteral extends Literal {
   declare items: Expression[] | undefined
-  constructor(match: AnyMatch, props: ArrayLiteralProps) {
+  constructor(match: P.AnyMatch, props: ArrayLiteralProps) {
     super(match, props)
     this.assertArrayType("items", Expression, OPTIONAL)
     this.assertType("wrap", "boolean", OPTIONAL)
@@ -346,7 +346,7 @@ export type EnumerationProps = Prettify<{ enumeration: Expression[]; values: Arr
 export class Enumeration extends Literal {
   declare enumeration: Expression[]
   declare values: Array<string | number>
-  constructor(match: AnyMatch, props: EnumerationProps) {
+  constructor(match: P.AnyMatch, props: EnumerationProps) {
     super(match, props)
     this.assertArrayType("enumeration", Expression)
     this.assertArrayType("values", ["string", "number"])
@@ -372,7 +372,7 @@ export class QuotedExpression extends Expression {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  constructor(match: AnyMatch, props: string | QuotedExpressionProps) {
+  constructor(match: P.AnyMatch, props: string | QuotedExpressionProps) {
     if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
     super(match, props)
     this.assertType("expression", Expression)
@@ -402,7 +402,7 @@ export class BackTickExpression extends Expression {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  constructor(match: AnyMatch, props: string | BackTickExpressionProps) {
+  constructor(match: P.AnyMatch, props: string | BackTickExpressionProps) {
     if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
     super(match, props)
     this.assertType("expression", Expression)
@@ -432,7 +432,7 @@ export class BacktickSubstitution extends Expression {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  constructor(match: AnyMatch, props: string | BacktickSubstitutionProps) {
+  constructor(match: P.AnyMatch, props: string | BacktickSubstitutionProps) {
     if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
     super(match, props)
     this.assertType("expression", Expression)
@@ -464,7 +464,7 @@ export class TripleBackTickExpression extends Expression {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  constructor(match: AnyMatch, props: string | TripleBackTickExpressionProps) {
+  constructor(match: P.AnyMatch, props: string | TripleBackTickExpressionProps) {
     if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
     super(match, props)
     this.assertType("expression", Expression)
@@ -489,7 +489,7 @@ export type PropertyLiteralProps = Prettify<{ value?: string; raw?: string }>
 
 export class PropertyLiteral extends Literal {
   declare value: string
-  constructor(match: AnyMatch, props?: string | PropertyLiteralProps) {
+  constructor(match: P.AnyMatch, props?: string | PropertyLiteralProps) {
     if (typeof props === "string") props = { value: props }
     super(match, props)
     if (this.value === undefined) this.value = this.match.value
@@ -522,7 +522,7 @@ export type PropertyExpressionProps = Prettify<{ object: Expression; property: s
 export class PropertyExpression extends Expression {
   declare object: Expression
   declare property: PropertyLiteral
-  constructor(match: AnyMatch, props: PropertyExpressionProps) {
+  constructor(match: P.AnyMatch, props: PropertyExpressionProps) {
     super(match, props)
     this.assertType("object", Expression)
     if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
@@ -557,7 +557,7 @@ export type VariableExpressionProps = Prettify<{
   type?: string
   datatype?: string
   raw?: string
-  variable?: ScopeVariable
+  variable?: P.ScopeVariable
   plurality?: "singular" | "plural"
 }>
 
@@ -566,9 +566,9 @@ export class VariableExpression extends Expression {
   declare default: Expression | undefined
   declare type: string | undefined
   declare raw: string | undefined
-  declare variable: ScopeVariable | undefined
+  declare variable: P.ScopeVariable | undefined
   declare plurality: "singular" | "plural" | undefined
-  constructor(match: AnyMatch, props?: VariableExpressionProps) {
+  constructor(match: P.AnyMatch, props?: VariableExpressionProps) {
     super(match, props)
     if (!this.name) this.name = this.match.value
     this.assertType("name", "string")
@@ -603,14 +603,14 @@ export type AwaitExpressionProps = Prettify<{ expression: Expression }>
 
 export class AwaitExpression extends Expression {
   declare expression: Expression
-  constructor(match: AnyMatch, props: AwaitExpressionProps) {
+  constructor(match: P.AnyMatch, props: AwaitExpressionProps) {
     super(match, props)
     this.assertType("expression", Expression)
     // Work our way up the scope chain
     // -- if we find a MethodScope, mark it as asynchronous
-    let scope: Scope | undefined = this.parentScope
-    while (scope && !(scope instanceof MethodScope)) scope = scope.parentScope
-    if (scope instanceof MethodScope) scope.async = true
+    let scope: P.Scope | undefined = this.parentScope
+    while (scope && !(scope instanceof P.MethodScope)) scope = scope.parentScope
+    if (scope instanceof P.MethodScope) scope.async = true
   }
   compile(): string {
     return `await ${this.expression.compile()}`
@@ -634,7 +634,7 @@ export class LineComment extends Comment {
   declare value: string
   declare commentSymbol: string | undefined
   declare initialWhitespace: string | undefined
-  constructor(match: AnyMatch, props: LineCommentProps) {
+  constructor(match: P.AnyMatch, props: LineCommentProps) {
     super(match, props)
     this.assertType("value", "string")
     this.assertType("commentSymbol", "string", OPTIONAL)
@@ -667,7 +667,7 @@ export type BlockCommentProps = Prettify<{ value: string }>
 
 export class BlockComment extends Comment {
   declare value: string
-  constructor(match: AnyMatch, props: BlockCommentProps) {
+  constructor(match: P.AnyMatch, props: BlockCommentProps) {
     super(match, props)
     this.assertType("value", "string")
   }
@@ -720,7 +720,7 @@ export type ParenthesizedExpressionProps = Prettify<{ expression: Expression }>
 
 export class ParenthesizedExpression extends Expression {
   declare expression: Expression
-  constructor(match: AnyMatch, props: ParenthesizedExpressionProps) {
+  constructor(match: P.AnyMatch, props: ParenthesizedExpressionProps) {
     super(match, props)
     this.assertType("expression", Expression)
     // Unwind nested parenthesis
@@ -753,7 +753,7 @@ export class NotExpression extends Expression {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "boolean"
   }
-  constructor(match: AnyMatch, props: NotExpressionProps) {
+  constructor(match: P.AnyMatch, props: NotExpressionProps) {
     super(match, props)
     this.assertType("expression", Expression)
   }
@@ -772,7 +772,7 @@ export class InfixExpression extends Expression {
   declare lhs: Expression
   declare operator: string
   declare rhs: Expression
-  constructor(match: AnyMatch, props: InfixExpressionProps) {
+  constructor(match: P.AnyMatch, props: InfixExpressionProps) {
     super(match, props)
     this.assertType("lhs", Expression)
     this.assertType("operator", "string")
@@ -792,7 +792,7 @@ export class InfixExpression extends Expression {
 
 /** Given an array of Expressions, join them all together with the same `operator`. */
 export function MultiInfixExpression(
-  match: AnyMatch,
+  match: P.AnyMatch,
   { expressions, operator }: { expressions: Expression[]; operator: string }
 ): Expression | undefined {
   // TODO: convert to class?
@@ -815,7 +815,7 @@ export type InvocationArgsProps = Prettify<{ args?: Expression[]; wrap?: boolean
 
 export class InvocationArgs extends ASTNode {
   declare args: Expression[] | undefined
-  constructor(match: AnyMatch, { wrap, ...props }: InvocationArgsProps) {
+  constructor(match: P.AnyMatch, { wrap, ...props }: InvocationArgsProps) {
     super(match, props)
     if (typeof wrap === "boolean") this.wrap = wrap
     this.assertArrayType("args", Expression, OPTIONAL)
@@ -869,7 +869,7 @@ export class MethodInvocation extends Expression {
     this._methodName = methodName
   }
 
-  constructor(match: AnyMatch, { args, wrap, ...props }: MethodInvocationProps) {
+  constructor(match: P.AnyMatch, { args, wrap, ...props }: MethodInvocationProps) {
     super(match, props)
     this.assertType("methodName", "string")
     this.assertType("datatype", "string", OPTIONAL)
@@ -893,7 +893,7 @@ export type ScopedMethodInvocationProps = Prettify<MethodInvocationProps & { thi
 
 export class ScopedMethodInvocation extends MethodInvocation {
   declare thing: Expression
-  constructor(match: AnyMatch, props: ScopedMethodInvocationProps) {
+  constructor(match: P.AnyMatch, props: ScopedMethodInvocationProps) {
     super(match, props)
     // `methodName`, `args`, wrap` and `datatype` are handled by MethodInvocation
     this.assertType("thing", Expression)
@@ -935,7 +935,7 @@ export class ConsoleMethodInvocation extends ScopedMethodInvocation {
   set echoInTests(echoInTests: boolean) {
     this.override("echoInTests", echoInTests)
   }
-  constructor(match: AnyMatch, props: ConsoleMethodInvocationProps) {
+  constructor(match: P.AnyMatch, props: ConsoleMethodInvocationProps) {
     const thing = new PropertyExpression(match, {
       object: new SpellCoreExpression(match),
       property: "console"
@@ -948,7 +948,7 @@ export class ConsoleMethodInvocation extends ScopedMethodInvocation {
  * Create a `Expression` that refers to `spellCore`
  */
 export class SpellCoreExpression extends VariableExpression {
-  constructor(match: AnyMatch) {
+  constructor(match: P.AnyMatch) {
     super(match, { name: "spellCore", type: "global" })
   }
 }
@@ -962,7 +962,7 @@ export class SpellCoreExpression extends VariableExpression {
 export type CoreMethodInvocationProps = MethodInvocationProps
 
 export class CoreMethodInvocation extends ScopedMethodInvocation {
-  constructor(match: AnyMatch, props: CoreMethodInvocationProps) {
+  constructor(match: P.AnyMatch, props: CoreMethodInvocationProps) {
     super(match, { ...props, thing: new SpellCoreExpression(match) })
   }
 }
@@ -971,7 +971,7 @@ export class CoreMethodInvocation extends ScopedMethodInvocation {
  * Create an `Expression` that refers to `spellCore.RUNTIME`
  */
 export class RuntimeExpression extends PropertyExpression {
-  constructor(match: AnyMatch) {
+  constructor(match: P.AnyMatch) {
     super(match, {
       object: new SpellCoreExpression(match),
       property: "RUNTIME"
@@ -988,7 +988,7 @@ export class RuntimeExpression extends PropertyExpression {
 export type RuntimeMethodInvocationProps = MethodInvocationProps
 
 export class RuntimeMethodInvocation extends ScopedMethodInvocation {
-  constructor(match: AnyMatch, props: RuntimeMethodInvocationProps) {
+  constructor(match: P.AnyMatch, props: RuntimeMethodInvocationProps) {
     super(match, { ...props, thing: new RuntimeExpression(match) })
   }
 }
@@ -1000,7 +1000,7 @@ export class RuntimeMethodInvocation extends ScopedMethodInvocation {
 export type ExportInvocationProps = Prettify<{ property: string | QuotedExpression; value: Expression }>
 
 export class ExportInvocation extends CoreMethodInvocation {
-  constructor(match: AnyMatch, props: ExportInvocationProps) {
+  constructor(match: P.AnyMatch, props: ExportInvocationProps) {
     let { property } = props
     if (typeof property === "string") property = new QuotedExpression(match, property)
     super(match, {
@@ -1036,7 +1036,7 @@ export class ExpectMethodInvocation extends CoreMethodInvocation {
   set echoInTests(echoInTests: boolean) {
     this.override("echoInTests", echoInTests)
   }
-  constructor(match: AnyMatch, props: ExpectMethodInvocationProps) {
+  constructor(match: P.AnyMatch, props: ExpectMethodInvocationProps) {
     const { expression, expressionString, value, valueString } = props
     const args = [expression, new StringLiteral(match, "`" + expressionString + "`")]
     if (value) args.push(value, new StringLiteral(match, "`" + valueString + "`"))
@@ -1055,7 +1055,7 @@ export class EchoInvocation extends CoreMethodInvocation {
   set echoInTests(echoInTests: boolean) {
     this.override("echoInTests", echoInTests)
   }
-  constructor(match: AnyMatch, props: EchoInvocationProps) {
+  constructor(match: P.AnyMatch, props: EchoInvocationProps) {
     const { methodName = "echo" } = props
     let { expression } = props
     if (typeof expression === "string") expression = new StringLiteral(match, "`" + expression + "`")
@@ -1081,7 +1081,7 @@ export class TypeExpression extends Expression {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  constructor(match: AnyMatch, props: TypeExpressionProps) {
+  constructor(match: P.AnyMatch, props: TypeExpressionProps) {
     super(match, props)
     this.assertType("name", "string")
     this.assertType("raw", "string", OPTIONAL)
@@ -1094,7 +1094,7 @@ export class TypeExpression extends Expression {
   }
 
   /** Pointer to the known Scope for this type, if available. ??? */
-  get scope(): TypeScope | undefined {
+  get scope(): P.TypeScope | undefined {
     return this.match.type
   }
 }
@@ -1106,7 +1106,7 @@ export type PrototypeExpressionProps = Prettify<{ type: string | TypeExpression 
 
 export class PrototypeExpression extends Expression {
   declare type: TypeExpression
-  constructor(match: AnyMatch, props: PrototypeExpressionProps) {
+  constructor(match: P.AnyMatch, props: PrototypeExpressionProps) {
     super(match, props)
     if (typeof this.type === "string") this.type = new TypeExpression(match, { name: this.type })
     this.assertType("type", TypeExpression)
@@ -1125,19 +1125,19 @@ export class PrototypeExpression extends Expression {
  *  - `output` is the constant string to output, including quotes.
  *  - `constant` is pointer to scope Constant, if there is one.
  */
-export type ConstantExpressionProps = Prettify<{ name: string; output: string; constant?: ScopeConstant }>
+export type ConstantExpressionProps = Prettify<{ name: string; output: string; constant?: P.ScopeConstant }>
 
 export class ConstantExpression extends Expression {
   declare name: string
   declare output: string
-  declare constant: ScopeConstant | undefined
+  declare constant: P.ScopeConstant | undefined
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "string"
   }
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  constructor(match: AnyMatch, props: ConstantExpressionProps) {
+  constructor(match: P.AnyMatch, props: ConstantExpressionProps) {
     super(match, props)
     this.assertType("name", "string")
     this.assertType("output", "string")
@@ -1185,7 +1185,7 @@ export class MethodDefinition extends Expression {
   declare methodName: string | undefined
   declare error: ParseError | undefined
   declare async: boolean | undefined
-  constructor(match: AnyMatch, props: MethodDefinitionProps) {
+  constructor(match: P.AnyMatch, props: MethodDefinitionProps) {
     super(match, props)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
     this.assertType("body", [StatementBlock, Statement, Expression], OPTIONAL)
@@ -1219,7 +1219,7 @@ export class MethodDefinition extends Expression {
   }
   get isAsync(): boolean {
     if (typeof this.async === "boolean") return this.async
-    return !!(this.match.nestedScope as (Scope & { async?: boolean }) | undefined)?.async
+    return !!(this.match.nestedScope as (P.Scope & { async?: boolean }) | undefined)?.async
   }
   getMethodName(): string {
     const { methodName } = this
@@ -1288,7 +1288,7 @@ export class ObjectLiteral extends Expression {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  constructor(match: AnyMatch, { properties, ...props }: ObjectLiteralProps = {}) {
+  constructor(match: P.AnyMatch, { properties, ...props }: ObjectLiteralProps = {}) {
     super(match, props)
     this.properties = []
     this.assertType("wrap", "boolean", OPTIONAL)
@@ -1375,7 +1375,7 @@ export class ObjectLiteralProperty extends ASTNode {
   declare property: PropertyLiteral
   declare value: Expression | undefined
   declare error: ParseError | undefined
-  constructor(match: AnyMatch, props: ObjectLiteralPropertyProps) {
+  constructor(match: P.AnyMatch, props: ObjectLiteralPropertyProps) {
     super(match, props)
     if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
@@ -1416,7 +1416,7 @@ export class StatementGroup extends Statement {
   set echoInTests(echoInTests: boolean) {
     this.override("echoInTests", echoInTests)
   }
-  constructor(match: AnyMatch, props?: StatementGroupProps) {
+  constructor(match: P.AnyMatch, props?: StatementGroupProps) {
     super(match, props)
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
   }
@@ -1439,7 +1439,7 @@ export type StatementBlockProps = Prettify<{
 
 export class StatementBlock extends ASTNode {
   declare statements: Array<Statement | Expression | Comment | BlankLine> | undefined
-  constructor(match: AnyMatch, props?: StatementBlockProps) {
+  constructor(match: P.AnyMatch, props?: StatementBlockProps) {
     super(match, props)
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
     // Unwind any single nested StatementGroups
@@ -1488,7 +1488,7 @@ export class TryCatchBlock extends StatementGroup {
   declare errorArg: VariableExpression | undefined
   declare catchBlock: StatementBlock | undefined
   declare finallyBlock: StatementBlock | undefined
-  constructor(match: AnyMatch, props: TryCatchBlockProps) {
+  constructor(match: P.AnyMatch, props: TryCatchBlockProps) {
     super(match, props as unknown as StatementGroupProps)
     this.assertType("body", [StatementBlock, Statement, Expression])
     this.assertType("errorArg", ["string", VariableExpression], OPTIONAL)
@@ -1554,7 +1554,7 @@ export class AssignmentStatement extends Statement {
   declare thing: Expression
   declare value: Expression
   declare isNewVariable: boolean | undefined
-  constructor(match: AnyMatch, props: AssignmentStatementProps) {
+  constructor(match: P.AnyMatch, props: AssignmentStatementProps) {
     super(match, props)
     this.assertType("thing", Expression)
     this.assertType("value", Expression)
@@ -1570,7 +1570,7 @@ export class AssignmentStatement extends Statement {
   get exportVar(): boolean {
     if (!AssignmentStatement.EXPORT_VARS || !this.isNewVariable) return false
     const { scope } = this.match
-    if (!(scope instanceof ProjectScope || scope instanceof FileScope)) return false
+    if (!(scope instanceof P.ProjectScope || scope instanceof P.FileScope)) return false
     const varName = String(this.thing.compile())
     return !AssignmentStatement.EXPORT_BLACKLIST[varName]
   }
@@ -1616,7 +1616,7 @@ export class DestructuredAssignment extends Statement {
   declare thing: Expression
   declare variables: VariableExpression[]
   declare isNewVariable: boolean | undefined
-  constructor(match: AnyMatch, props: DestructuredAssignmentProps) {
+  constructor(match: P.AnyMatch, props: DestructuredAssignmentProps) {
     super(match, props)
     this.assertType("thing", Expression)
     this.assertArrayType("variables", VariableExpression)
@@ -1654,7 +1654,7 @@ export type ReturnStatementProps = Prettify<{ value?: Expression }>
 
 export class ReturnStatement extends Statement {
   declare value: Expression | undefined
-  constructor(match: AnyMatch, props?: ReturnStatementProps) {
+  constructor(match: P.AnyMatch, props?: ReturnStatementProps) {
     super(match, props)
     this.assertType("value", Expression, OPTIONAL)
   }
@@ -1678,7 +1678,7 @@ export type ClassDeclarationProps = Prettify<{ type: TypeExpression; superType?:
 export class ClassDeclaration extends Statement {
   declare type: TypeExpression
   declare superType: TypeExpression | undefined
-  constructor(match: AnyMatch, props: ClassDeclarationProps) {
+  constructor(match: P.AnyMatch, props: ClassDeclarationProps) {
     super(match, props)
     this.assertType("type", TypeExpression)
     this.assertType("superType", TypeExpression, OPTIONAL)
@@ -1710,7 +1710,7 @@ export type NewInstanceExpressionProps = Prettify<{ type: TypeExpression; props?
 export class NewInstanceExpression extends Expression {
   declare type: TypeExpression
   declare props: ObjectLiteral | undefined
-  constructor(match: AnyMatch, props: NewInstanceExpressionProps) {
+  constructor(match: P.AnyMatch, props: NewInstanceExpressionProps) {
     super(match, props)
     this.assertType("type", TypeExpression)
     this.assertType("props", ObjectLiteral, OPTIONAL)
@@ -1732,7 +1732,7 @@ export type ListExpressionProps = Prettify<{ items?: Expression[] }>
 
 export class ListExpression extends Expression {
   declare items: Expression[] | undefined
-  constructor(match: AnyMatch, props: ListExpressionProps) {
+  constructor(match: P.AnyMatch, props: ListExpressionProps) {
     super(match, props)
     this.assertArrayType("items", Expression, OPTIONAL)
   }
@@ -1776,7 +1776,7 @@ export class PropertyDefinition extends Statement {
   declare initializer: MethodDefinition | undefined
   declare get: MethodDefinition | undefined
   declare set: MethodDefinition | undefined
-  constructor(match: AnyMatch, props: PropertyDefinitionProps) {
+  constructor(match: P.AnyMatch, props: PropertyDefinitionProps) {
     super(match, props)
     this.assertType("thing", Expression)
     if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
@@ -1828,7 +1828,7 @@ export type IfStatementProps = Prettify<{
 export class IfStatement extends Statement {
   declare condition: ParenthesizedExpression
   declare statements: StatementBlock
-  constructor(match: AnyMatch, props: IfStatementProps) {
+  constructor(match: P.AnyMatch, props: IfStatementProps) {
     super(match, props)
     this.assertType("condition", Expression)
     // wrap condition in parens if necessary
@@ -1864,7 +1864,7 @@ export type ElseIfStatementProps = Prettify<{
 export class ElseIfStatement extends Statement {
   declare condition: ParenthesizedExpression
   declare statements: StatementBlock
-  constructor(match: AnyMatch, props: ElseIfStatementProps) {
+  constructor(match: P.AnyMatch, props: ElseIfStatementProps) {
     super(match, props)
     this.assertType("condition", Expression)
     // wrap condition in parens if necessary
@@ -1896,7 +1896,7 @@ export type ElseStatementProps = Prettify<{ statements?: Statement | StatementBl
 
 export class ElseStatement extends Statement {
   declare statements: StatementBlock
-  constructor(match: AnyMatch, props?: ElseStatementProps) {
+  constructor(match: P.AnyMatch, props?: ElseStatementProps) {
     super(match, props)
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
@@ -1919,7 +1919,7 @@ export class TernaryExpression extends Expression {
   declare condition: Expression
   declare trueValue: Expression
   declare falseValue: Expression
-  constructor(match: AnyMatch, props: TernaryExpressionProps) {
+  constructor(match: P.AnyMatch, props: TernaryExpressionProps) {
     super(match, props)
     this.assertType("condition", Expression)
     this.assertType("trueValue", Expression)
@@ -1952,7 +1952,7 @@ export class TernaryExpression extends Expression {
 export type StartProcessInvocationProps = Prettify<{ name: string; exclusive?: boolean }>
 
 export class StartProcessInvocation extends StatementGroup {
-  constructor(match: AnyMatch, { name, exclusive = false, ...props }: StartProcessInvocationProps) {
+  constructor(match: P.AnyMatch, { name, exclusive = false, ...props }: StartProcessInvocationProps) {
     super(match, props)
     this.statements = []
     const nameArg = new QuotedExpression(match, name)
@@ -1986,7 +1986,7 @@ export class StartProcessInvocation extends StatementGroup {
 export type StopProcessInvocationProps = Prettify<{ name: string }>
 
 export class StopProcessInvocation extends CoreMethodInvocation {
-  constructor(match: AnyMatch, { name }: StopProcessInvocationProps) {
+  constructor(match: P.AnyMatch, { name }: StopProcessInvocationProps) {
     super(match, {
       methodName: "stopProcess",
       args: [new QuotedExpression(match, name)]
@@ -2009,7 +2009,7 @@ export class JSXElement extends Expression {
   declare tagName: string
   declare attrs: JSXAttribute[] | undefined
   declare children: Array<JSXElement | JSXEndTag | JSXText | JSXExpression>
-  constructor(match: AnyMatch, props: JSXElementProps) {
+  constructor(match: P.AnyMatch, props: JSXElementProps) {
     super(match, props)
     this.assertType("tagName", "string")
     this.assertArrayType("attrs", JSXAttribute, OPTIONAL)
@@ -2075,7 +2075,7 @@ export class JSXAttribute extends Expression {
   declare name: string
   declare value: Expression | undefined
   declare error: ParseError | undefined
-  constructor(match: AnyMatch, props: JSXAttributeProps) {
+  constructor(match: P.AnyMatch, props: JSXAttributeProps) {
     super(match, props)
     this.assertType("name", "string")
     this.assertType("value", Expression, OPTIONAL)
@@ -2111,7 +2111,7 @@ export type JSXEndTagProps = Prettify<{ tagName: string }>
 
 export class JSXEndTag extends Expression {
   declare tagName: string
-  constructor(match: AnyMatch, props: JSXEndTagProps) {
+  constructor(match: P.AnyMatch, props: JSXEndTagProps) {
     super(match, props)
     this.assertType("tagName", "string")
   }
@@ -2129,7 +2129,7 @@ export type JSXTextProps = Prettify<{ value: string; raw?: string }>
 export class JSXText extends Expression {
   declare value: string
   declare raw: string | undefined
-  constructor(match: AnyMatch, props: JSXTextProps) {
+  constructor(match: P.AnyMatch, props: JSXTextProps) {
     super(match, props)
     this.assertType("value", "string")
     this.assertType("raw", "string", OPTIONAL)
@@ -2150,7 +2150,7 @@ export type JSXExpressionProps = Prettify<{ expression?: Expression; error?: Par
 export class JSXExpression extends Expression {
   declare expression: Expression | undefined
   declare error: ParseError | undefined
-  constructor(match: AnyMatch, props: JSXExpressionProps) {
+  constructor(match: P.AnyMatch, props: JSXExpressionProps) {
     super(match, props)
     this.assertType("expression", Expression, OPTIONAL)
     this.assertType("error", ParseError, OPTIONAL)

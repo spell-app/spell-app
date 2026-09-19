@@ -1,29 +1,4 @@
-import global from "global"
-
-/**
- * One entry in the set of "roots" a project can live under.
- * - Describes an `@owner:domain` pair plus the display strings the UI needs for it.
- * - `Type`/`type` are both kept so callers can concatenate without case-munging at the call site.
- */
-export type ProjectRoot = {
-  /** Owner of project, as `@user` or `@system`. */
-  owner: string
-  /** Domain of project, as `projects`, `examples` or `guides`. */
-  domain: string
-  /** User-friendly title of project. */
-  title: string
-  /** Type of project for string concatenation, as `Project`, `Example` or `Guide`. */
-  Type: string
-  /** Type of project for string concatenation, as `project`, `example` or `guide`. */
-  type: string
-  /** User friendly description of project. */
-  description: string
-  /** Semantic UI icon of project. */
-  icon: string
-}
-
-/** All known `ProjectRoot`s, keyed by their `@owner:domain` path prefix. */
-export type ProjectRootMap = Record<string, ProjectRoot>
+import type * as SP from "./spell.types"
 
 /**
  * Shared client/server setup for project roots and routines for working with paths.
@@ -33,10 +8,11 @@ export type ProjectRootMap = Record<string, ProjectRoot>
  * See `src/languages/spell/SpellLocation` for how this breaks down.
  *
  */
-class SpellSetup {
-  /** TODOC:   */
-  projectRoots: ProjectRootMap = {
+export const SpellSetup = {
+  /** DOCME   */
+  projectRoots: {
     "@user:projects": {
+      path: "@user:projects",
       owner: "@user",
       domain: "projects",
       title: "Projects",
@@ -44,8 +20,9 @@ class SpellSetup {
       type: "project",
       description: "User projects",
       icon: "app store ios"
-    },
+    } satisfies SP.ProjectRootSpec,
     "@system:examples": {
+      path: "@system:examples",
       owner: "@system",
       domain: "examples",
       title: "Examples",
@@ -53,8 +30,9 @@ class SpellSetup {
       type: "example",
       description: "Example projects",
       icon: "app store ios"
-    },
+    } satisfies SP.ProjectRootSpec,
     "@system:guides": {
+      path: "@system:guides",
       owner: "@system",
       domain: "guides",
       title: "Guides",
@@ -62,16 +40,26 @@ class SpellSetup {
       type: "guide",
       description: "Usage guides",
       icon: "newspaper outline"
-    }
-  }
+    } satisfies SP.ProjectRootSpec
+  },
 
-  projectRootForDomain(domain: string | undefined): ProjectRoot {
-    const root = Object.values(this.projectRoots).find((root) => root.domain === domain)
-    if (!root) throw new TypeError(`Domain '${domain}' must be one of: "projects", "examples" or "guides"!`)
-    return root
-  }
-}
+  get projectRootPaths() {
+    return Object.keys(this.projectRoots)
+  },
 
-export const spellSetup = new SpellSetup()
-// HACK
-global.spellSetup = spellSetup
+  projectSpectForRootPath(path: SP.ProjectRootPath | undefined): SP.ProjectRootSpec {
+    const spec = SpellSetup.projectRoots[path!]
+    if (!spec) throw new TypeError(`Path '${path}' must be one of: "${this.projectRootPaths.join(`", "`)}"!`)
+    return spec
+  },
+
+  get domains() {
+    return Object.values(this.projectRoots).map((spec) => spec.domain)
+  },
+  projectSpecForDomain(domain: string | undefined): SP.ProjectRootSpec {
+    const spec = Object.values(this.projectRoots).find((spec) => spec.domain === domain)
+    if (!spec) throw new TypeError(`Domain '${domain}' must be one of: "${this.projectRootPaths.join(`", "`)}"!`)
+    return spec
+  }
+} as const
+export type SpellSetup = typeof SpellSetup

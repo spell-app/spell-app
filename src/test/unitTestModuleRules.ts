@@ -36,7 +36,7 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
 
   function getTestableRulesForModule(module: string): P.Rule[] | undefined {
     const testable = parser.rules._testable_
-    if (!(testable instanceof P.R.Group)) return undefined
+    if (!(testable instanceof P.Group)) return undefined
     return groupBy(testable.rules, "module")[module]
   }
 

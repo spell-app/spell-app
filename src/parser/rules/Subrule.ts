@@ -1,12 +1,5 @@
-import type { P } from "~/parser"
-import { R } from "./index"
+import { P } from "~/parser"
 import { Rule } from "./Rule"
-
-export type SubruleProps = Prettify<
-  R.RuleProps & {
-    rule: string
-  }
->
 
 // Subrule -- name of another rule to be called.
 // `rule.rule` is the name of the rule in `scope.rules`.
@@ -46,3 +39,9 @@ export class Subrule extends Rule<SubruleProps> {
     return `${testLocation}{${argument}${this.rule}}${optional}`
   }
 }
+
+export type SubruleProps = Prettify<
+  P.RuleProps & {
+    rule: string
+  }
+>
