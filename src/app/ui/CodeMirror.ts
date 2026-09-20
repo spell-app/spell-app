@@ -81,22 +81,22 @@ CodeMirror.defineMode("spell", (): CodeMirror.Mode<SpellModeState> => {
 
   /** Map a `Token` to its CodeMirror style class, or `null` for tokens we don't color. */
   function getTokenType(token: P.Token): string | null {
-    if (token instanceof P.Tokens.Word) {
+    if (token instanceof P.WordToken) {
       //      if (blacklist[token.raw]) return "keyword"
       return "unknown"
     }
-    if (token instanceof P.Tokens.Symbol) return "operator"
-    if (token instanceof P.Tokens.Number) return "number"
-    if (token instanceof P.Tokens.Comment) {
+    if (token instanceof P.SymbolToken) return "operator"
+    if (token instanceof P.NumberToken) return "number"
+    if (token instanceof P.CommentToken) {
       if (token.commentSymbol === "##") return "comment header"
       return "comment"
     }
-    if (token instanceof P.Tokens.Text) return "string"
-    // if (token instanceof Tokens.JSXElement) return null
-    // if (token instanceof Tokens.JSXEndTag) return null
-    // if (token instanceof Tokens.JSXAttribute) return null
-    // if (token instanceof Tokens.JSXExpression) return null
-    // if (token instanceof Tokens.Block) return null
+    if (token instanceof P.TextToken) return "string"
+    // if (token instanceof JSXElementToken) return null
+    // if (token instanceof JSXEndTagToken) return null
+    // if (token instanceof JSXAttributeToken) return null
+    // if (token instanceof JSXExpressionToken) return null
+    // if (token instanceof BlockToken) return null
     return null
   }
 

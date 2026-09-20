@@ -5,7 +5,7 @@
  *   rule here extends, and `compound_expression`, which runs the shunting-yard algorithm combining them.
  */
 
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
@@ -28,9 +28,9 @@ type OperatorOperands = {
   /** Operator `Match` -- rule-specific token(s) deciding the concrete operator, e.g. `is not exactly`. */
   operator: P.Match
   /** Left-hand-side AST -- always populated for infix operators; also populated for postfix operators. */
-  lhs?: AST.Expression
+  lhs?: P.ASTExpression
   /** Right-hand-side AST -- only populated for infix operators. */
-  rhs?: AST.Expression
+  rhs?: P.ASTExpression
 }
 
 /**
@@ -68,8 +68,8 @@ export class InfixOperatorSuffix extends SpellExpression {
    * - `operator` is operator `Match`.
    * - `rhs` is right-hand-side AST.
    */
-  compileASTExpression(match: P.Match, { lhs, operator, rhs }: OperatorOperands): AST.ASTNode {
-    return new AST.InfixExpression(match, {
+  compileASTExpression(match: P.Match, { lhs, operator, rhs }: OperatorOperands): P.ASTNode {
+    return new P.ASTInfixExpression(match, {
       // `lhs`/`rhs` are always populated here: this base implementation is only reached for
       // `InfixOperatorSuffix` rules, which the shunting-yard algorithm always calls with both sides.
       lhs: lhs!,
@@ -88,13 +88,13 @@ export class InfixOperatorSuffix extends SpellExpression {
    * - `operator` is operator `Match`.
    * - `rhs` (for `InfixOperatorSuffix` only) is right-hand-side AST.
    */
-  compileAST(match: P.Match, { operator, rhs, lhs }: OperatorOperands): AST.ASTNode {
+  compileAST(match: P.Match, { operator, rhs, lhs }: OperatorOperands): P.ASTNode {
     let expression = this.compileASTExpression(match, { lhs, operator, rhs })
-    if (this.parenthesize && !(expression instanceof AST.ParenthesizedExpression)) {
-      expression = new AST.ParenthesizedExpression(match, { expression: expression as AST.Expression })
+    if (this.parenthesize && !(expression instanceof P.ASTParenthesizedExpression)) {
+      expression = new P.ASTParenthesizedExpression(match, { expression: expression as P.ASTExpression })
     }
     if (this.shouldNegateOutput(operator)) {
-      expression = new AST.NotExpression(match, { expression: expression as AST.Expression })
+      expression = new P.ASTNotExpression(match, { expression: expression as P.ASTExpression })
     }
     return expression
   }
@@ -104,7 +104,7 @@ export class InfixOperatorSuffix extends SpellExpression {
    * matched `InfixOperatorSuffix`/`PostfixOperatorSuffix` instances instead of normal rule dispatch.
    * - Throws to catch any code path that still tries to call it the normal way.
    */
-  getAST(match: P.Match): AST.ASTNode {
+  getAST(match: P.Match): P.ASTNode {
     throw new TypeError("This should never be called")
   }
 }
@@ -120,7 +120,7 @@ export class PostfixOperatorSuffix extends InfixOperatorSuffix {
    * - `lhs` is left-hand-side match.
    * - `operator` is raw full input operator string.
    */
-  compileASTExpression(match: P.Match, { lhs, operator }: OperatorOperands): AST.ASTNode {
+  compileASTExpression(match: P.Match, { lhs, operator }: OperatorOperands): P.ASTNode {
     throw new TypeError("Must implement compileASTExpression()")
   }
 }
@@ -145,11 +145,11 @@ export const expressions = new SpellParser({
       syntax: "\\( {expression} \\)",
       testRule: "\\(",
       constructor: class parenthesized_expression extends SpellExpression {
-        getAST(match: P.Match<P.RulexGroups<"expression">>): AST.ParenthesizedExpression {
+        getAST(match: P.Match<P.RulexGroups<"expression">>): P.ASTParenthesizedExpression {
           const { expression } = match.groups
-          return new AST.ParenthesizedExpression(match, {
+          return new P.ASTParenthesizedExpression(match, {
             // `expression` is guaranteed present: it's the only (non-optional) group in this rule's syntax.
-            expression: expression!.AST as AST.Expression
+            expression: expression!.AST as P.ASTExpression
           })
         }
       },
@@ -212,7 +212,7 @@ export const expressions = new SpellParser({
          * - `compile()` normalizes a matched sub-`Match`/array down to plain `ASTNode`(s).
          * - `applyOperatorToRule()` calls the matched suffix rule's own `compileAST()`.
          */
-        getAST(match: P.Match<P.RulexGroups<"lhs"> & { rhsChain?: P.Match }>): AST.ASTNode {
+        getAST(match: P.Match<P.RulexGroups<"lhs"> & { rhsChain?: P.Match }>): P.ASTNode {
           function compile(thing: unknown): unknown {
             if (!thing) return undefined
             // TODO: we have one case ("is the queen of spades") where `thing` match is an array... :-(
@@ -231,7 +231,7 @@ export const expressions = new SpellParser({
             operator: P.Match
             rhs?: unknown
             lhs?: unknown
-          }): AST.ASTNode {
+          }): P.ASTNode {
             // Every match pushed onto `opStack` (below) came from an item whose `.rule` was already
             // confirmed `instanceof InfixOperatorSuffix`; re-assert that invariant here so `compileAST()`
             // is callable -- the base `Rule` type doesn't know about this language-specific method.
@@ -242,8 +242,8 @@ export const expressions = new SpellParser({
               operator,
               // `compile()` normalizes matches/arrays down to `ASTNode`s dynamically -- not statically
               // representable as `Expression`, but that's what every operand is in practice here.
-              rhs: compile(rhs) as AST.Expression | undefined,
-              lhs: compile(lhs) as AST.Expression | undefined
+              rhs: compile(rhs) as P.ASTExpression | undefined,
+              lhs: compile(lhs) as P.ASTExpression | undefined
             }
             const result = ruleMatch.rule.compileAST(ruleMatch, args)
             return result
@@ -316,7 +316,7 @@ export const expressions = new SpellParser({
             console.warn("Shunting yard ended up with too much output:", output)
           }
           // Dynamic: the shunting-yard reduction above always leaves exactly one `ASTNode`.
-          return output[0] as AST.ASTNode
+          return output[0] as P.ASTNode
         }
       },
       // test multiple infix expressions in a row
@@ -462,11 +462,11 @@ export const expressions = new SpellParser({
         shouldNegateOutput(operator: P.Match): boolean {
           return typeof operator.value === "string" && operator.value.includes("not")
         }
-        compileASTExpression(match: P.Match, { lhs, rhs }: OperatorOperands): AST.CoreMethodInvocation {
+        compileASTExpression(match: P.Match, { lhs, rhs }: OperatorOperands): P.ASTCoreMethodInvocation {
           // TODO: QuotedExpression feels wrong here...
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "isOfType",
-            args: [lhs!, new AST.QuotedExpression(match, { expression: rhs! })]
+            args: [lhs!, new P.ASTQuotedExpression(match, { expression: rhs! })]
           })
         }
       },
@@ -500,8 +500,8 @@ export const expressions = new SpellParser({
         shouldNegateOutput(operator: P.Match): boolean {
           return typeof operator.value === "string" && operator.value.includes("not")
         }
-        compileASTExpression(match: P.Match, { lhs, rhs }: OperatorOperands): AST.CoreMethodInvocation {
-          return new AST.CoreMethodInvocation(match, {
+        compileASTExpression(match: P.Match, { lhs, rhs }: OperatorOperands): P.ASTCoreMethodInvocation {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "matchesType",
             args: [lhs!, rhs!]
           })
@@ -541,8 +541,8 @@ export const expressions = new SpellParser({
           const { value } = operator
           return typeof value === "string" && (value.includes("not") || value.includes("neither"))
         }
-        compileASTExpression(match: P.Match, { lhs, rhs }: OperatorOperands): AST.CoreMethodInvocation {
-          return new AST.CoreMethodInvocation(match, {
+        compileASTExpression(match: P.Match, { lhs, rhs }: OperatorOperands): P.ASTCoreMethodInvocation {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "includes",
             args: [rhs!, lhs!]
           })
@@ -581,8 +581,8 @@ export const expressions = new SpellParser({
       precedence: 11,
       syntax: "(operator:includes|contains) {expression:simple_expression}",
       constructor: class includes extends InfixOperatorSuffix {
-        compileASTExpression(match: P.Match, { lhs, rhs }: OperatorOperands): AST.CoreMethodInvocation {
-          return new AST.CoreMethodInvocation(match, {
+        compileASTExpression(match: P.Match, { lhs, rhs }: OperatorOperands): P.ASTCoreMethodInvocation {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "includes",
             args: [lhs!, rhs!]
           })
@@ -616,8 +616,8 @@ export const expressions = new SpellParser({
         shouldNegateOutput(): boolean {
           return true
         }
-        compileASTExpression(match: P.Match, { lhs, rhs }: OperatorOperands): AST.CoreMethodInvocation {
-          return new AST.CoreMethodInvocation(match, {
+        compileASTExpression(match: P.Match, { lhs, rhs }: OperatorOperands): P.ASTCoreMethodInvocation {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "includes",
             args: [lhs!, rhs!]
           })
@@ -652,8 +652,8 @@ export const expressions = new SpellParser({
         shouldNegateOutput(operator: P.Match): boolean {
           return operator.value !== "is defined"
         }
-        compileASTExpression(match: P.Match, { lhs }: OperatorOperands): AST.CoreMethodInvocation {
-          return new AST.CoreMethodInvocation(match, {
+        compileASTExpression(match: P.Match, { lhs }: OperatorOperands): P.ASTCoreMethodInvocation {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "isDefined",
             args: [lhs!]
           })
@@ -687,8 +687,8 @@ export const expressions = new SpellParser({
         shouldNegateOutput(operator: P.Match): boolean {
           return operator.value !== "exists"
         }
-        compileASTExpression(match: P.Match, { lhs }: OperatorOperands): AST.CoreMethodInvocation {
-          return new AST.CoreMethodInvocation(match, {
+        compileASTExpression(match: P.Match, { lhs }: OperatorOperands): P.ASTCoreMethodInvocation {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "isDefined",
             args: [lhs!]
           })
@@ -721,15 +721,15 @@ export const expressions = new SpellParser({
       precedence: 11,
       syntax: "there (operator:is not? (a|an)|is no such) {expression}",
       constructor: class there_is_a extends SpellExpression {
-        getAST(match: P.Match<P.RulexGroups<"operator:expression">>): AST.ASTNode {
+        getAST(match: P.Match<P.RulexGroups<"operator:expression">>): P.ASTNode {
           const { operator } = match.groups
-          const expression = new AST.CoreMethodInvocation(match, {
+          const expression = new P.ASTCoreMethodInvocation(match, {
             methodName: "isDefined",
             // `expression` is guaranteed present: it's a required (non-optional) group in this rule's syntax.
-            args: [match.groups.expression!.AST as AST.Expression]
+            args: [match.groups.expression!.AST as P.ASTExpression]
           })
           if (operator && typeof operator.value === "string" && operator.value.includes("no")) {
-            return new AST.NotExpression(match, { expression })
+            return new P.ASTNotExpression(match, { expression })
           }
           return expression
         }
@@ -764,8 +764,8 @@ export const expressions = new SpellParser({
         shouldNegateOutput(operator: P.Match): boolean {
           return typeof operator.value === "string" && operator.value.includes("not")
         }
-        compileASTExpression(match: P.Match, { lhs }: OperatorOperands): AST.CoreMethodInvocation {
-          return new AST.CoreMethodInvocation(match, {
+        compileASTExpression(match: P.Match, { lhs }: OperatorOperands): P.ASTCoreMethodInvocation {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "isEmpty",
             args: [lhs!]
           })
@@ -796,8 +796,8 @@ export const expressions = new SpellParser({
       precedence: 11,
       syntax: "as (upper case|uppercase)",
       constructor: class as_uppercase extends PostfixOperatorSuffix {
-        compileASTExpression(match: P.Match, { lhs }: OperatorOperands): AST.CoreMethodInvocation {
-          return new AST.CoreMethodInvocation(match, {
+        compileASTExpression(match: P.Match, { lhs }: OperatorOperands): P.ASTCoreMethodInvocation {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "upperCase",
             args: [lhs!]
           })
@@ -820,8 +820,8 @@ export const expressions = new SpellParser({
       precedence: 11,
       syntax: "as (lower case|lowercase)",
       constructor: class as_lowercase extends PostfixOperatorSuffix {
-        compileASTExpression(match: P.Match, { lhs }: OperatorOperands): AST.CoreMethodInvocation {
-          return new AST.CoreMethodInvocation(match, {
+        compileASTExpression(match: P.Match, { lhs }: OperatorOperands): P.ASTCoreMethodInvocation {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "lowerCase",
             args: [lhs!]
           })
@@ -855,19 +855,19 @@ export const expressions = new SpellParser({
         compileASTExpression(
           match: P.Match<P.RulexGroups<"type">>,
           { lhs }: OperatorOperands
-        ): AST.BackTickExpression | AST.MethodInvocation {
+        ): P.ASTBackTickExpression | P.ASTMethodInvocation {
           // `type` is guaranteed present: it's a required (non-optional) group in this rule's syntax.
           const type = match.groups.type!.value
           if (type === "string" || type === "text") {
             // Wrap the expression in backticks to convert it to a string.
             // Output is something like: "`${EXPRESSION_VALUE}`"
-            return new AST.BackTickExpression(match, {
-              expression: new AST.BacktickSubstitution(match, { expression: lhs! })
+            return new P.ASTBackTickExpression(match, {
+              expression: new P.ASTBacktickSubstitution(match, { expression: lhs! })
             })
           } else {
             // Output will be e.g. `parseFloat(EXPRESSION_VALUE)`
             const methodName = type === "integer" ? "parseInt" : "parseFloat"
-            return new AST.MethodInvocation(match, {
+            return new P.ASTMethodInvocation(match, {
               methodName,
               args: [lhs!]
             })

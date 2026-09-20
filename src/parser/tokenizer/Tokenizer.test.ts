@@ -1,5 +1,19 @@
 import { describe, test, expect } from "vitest"
-import * as Tokens from "./Tokens"
+import {
+  CommentToken,
+  IndentToken,
+  JSXAttributeToken,
+  JSXElementToken,
+  JSXEndTagToken,
+  JSXExpressionToken,
+  JSXTextToken,
+  NewlineToken,
+  NumberToken,
+  SymbolToken,
+  TextToken,
+  WhitespaceToken,
+  WordToken
+} from "./Tokens"
 import { Tokenizer } from "./Tokenizer"
 
 // Turn off tokenizer warnings in the console
@@ -109,7 +123,7 @@ describe("matchWhitespace()", () => {
 
   test("Spaces are fine", () => {
     const token = tokenizer.matchWhitespace("   x")!
-    expect(token).toBeInstanceOf(Tokens.Whitespace)
+    expect(token).toBeInstanceOf(WhitespaceToken)
     expect(token.value).toBe("   ")
     expect(token.length).toBe(3)
     expect(token.end).toBe(3)
@@ -117,7 +131,7 @@ describe("matchWhitespace()", () => {
 
   test("Tabs are fine", () => {
     const token = tokenizer.matchWhitespace("\t\t\tx")!
-    expect(token).toBeInstanceOf(Tokens.Whitespace)
+    expect(token).toBeInstanceOf(WhitespaceToken)
     expect(token.value).toBe("\t\t\t")
     expect(token.length).toBe(3)
     expect(token.end).toBe(3)
@@ -125,7 +139,7 @@ describe("matchWhitespace()", () => {
 
   test("Mixed spaces and tabs are fine", () => {
     const token = tokenizer.matchWhitespace("\t \tx")!
-    expect(token).toBeInstanceOf(Tokens.Whitespace)
+    expect(token).toBeInstanceOf(WhitespaceToken)
     expect(token.value).toBe("\t \t")
     expect(token.length).toBe(3)
     expect(token.end).toBe(3)
@@ -138,14 +152,14 @@ describe("matchWhitespace()", () => {
 
   test("Matches in the middle of the string", () => {
     const token = tokenizer.matchWhitespace("  \n x", 3)!
-    expect(token).toBeInstanceOf(Tokens.Whitespace)
+    expect(token).toBeInstanceOf(WhitespaceToken)
     expect(token.value).toBe(" ")
     expect(token.end).toBe(4)
   })
 
   test("Doesn't go beyond the end", () => {
     const token = tokenizer.matchWhitespace("       ", 3, 4)!
-    expect(token).toBeInstanceOf(Tokens.Whitespace)
+    expect(token).toBeInstanceOf(WhitespaceToken)
     expect(token.value).toBe(" ")
     expect(token.end).toBe(4)
   })
@@ -162,29 +176,29 @@ describe("matchWhitespace()", () => {
 
   test("Matches if end is out of range", () => {
     const token = tokenizer.matchWhitespace("   ", 0, 100)!
-    expect(token).toBeInstanceOf(Tokens.Whitespace)
+    expect(token).toBeInstanceOf(WhitespaceToken)
     expect(token.value).toBe("   ")
     expect(token.end).toBe(3)
   })
 
   test("Whitespace at start `isIndent`", () => {
     const token = tokenizer.matchWhitespace(" ")!
-    expect(token).toBeInstanceOf(Tokens.Indent)
+    expect(token).toBeInstanceOf(IndentToken)
     expect(token.value).toBe(" ")
     expect(token.end).toBe(1)
   })
 
   test("Whitespace after newline `isIndent`", () => {
     const token = tokenizer.matchWhitespace(" \n\t", 2)!
-    expect(token).toBeInstanceOf(Tokens.Indent)
+    expect(token).toBeInstanceOf(IndentToken)
     expect(token.value).toBe("\t")
     expect(token.end).toBe(3)
   })
 
   test("Whitespace in middle of other stuff is not indent", () => {
     const token = tokenizer.matchWhitespace("x x", 1)!
-    expect(token).toBeInstanceOf(Tokens.Whitespace)
-    expect(token).not.toBeInstanceOf(Tokens.Indent)
+    expect(token).toBeInstanceOf(WhitespaceToken)
+    expect(token).not.toBeInstanceOf(IndentToken)
     expect(token.value).toBe(" ")
     expect(token.end).toBe(2)
   })
@@ -206,7 +220,7 @@ describe("matchNewline()", () => {
 
   test("Matches at beginning of string", () => {
     const token = tokenizer.matchNewline("\nx")!
-    expect(token).toBeInstanceOf(Tokens.Newline)
+    expect(token).toBeInstanceOf(NewlineToken)
     expect(token.end).toBe(1)
   })
 
@@ -222,7 +236,7 @@ describe("matchNewline()", () => {
 
   test("Matches in the middle of the string", () => {
     const token = tokenizer.matchNewline("  \n x", 2)!
-    expect(token).toBeInstanceOf(Tokens.Newline)
+    expect(token).toBeInstanceOf(NewlineToken)
     expect(token.end).toBe(3)
   })
 
@@ -248,7 +262,7 @@ describe("matchNewline()", () => {
 
   test("Matches if end is out of range", () => {
     const token = tokenizer.matchNewline("\n", 0, 100)!
-    expect(token).toBeInstanceOf(Tokens.Newline)
+    expect(token).toBeInstanceOf(NewlineToken)
     expect(token.end).toBe(1)
   })
 })
@@ -264,7 +278,7 @@ describe("matchSymbol()", () => {
 
   test("Match a single character.", () => {
     const token = tokenizer.matchSymbol(":")!
-    expect(token).toBeInstanceOf(Tokens.Symbol)
+    expect(token).toBeInstanceOf(SymbolToken)
     expect(token.value).toBe(":")
     expect(token.raw).toBe(":")
     expect(token.end).toBe(1)
@@ -292,7 +306,7 @@ describe("matchSymbol()", () => {
 
   test("Matches if end is out of range", () => {
     const token = tokenizer.matchSymbol(":", 0, 100)!
-    expect(token).toBeInstanceOf(Tokens.Symbol)
+    expect(token).toBeInstanceOf(SymbolToken)
     expect(token.value).toBe(":")
     expect(token.end).toBe(1)
   })
@@ -314,7 +328,7 @@ describe("matchWord()", () => {
 
   test("Matches single letter at beginning of string", () => {
     const token = tokenizer.matchWord("x ")!
-    expect(token).toBeInstanceOf(Tokens.Word)
+    expect(token).toBeInstanceOf(WordToken)
     expect(token.value).toBe("x")
     expect(token.raw).toBe("x")
     expect(token.end).toBe(1)
@@ -322,14 +336,14 @@ describe("matchWord()", () => {
 
   test("Matches multiple letters at beginning of string", () => {
     const token = tokenizer.matchWord("xxxx ")!
-    expect(token).toBeInstanceOf(Tokens.Word)
+    expect(token).toBeInstanceOf(WordToken)
     expect(token.value).toBe("xxxx")
     expect(token.end).toBe(4)
   })
 
   test("Matches multiple letters, numbers, underscores at beginning of string", () => {
     const token = tokenizer.matchWord("xxxx-XXX_y ")!
-    expect(token).toBeInstanceOf(Tokens.Word)
+    expect(token).toBeInstanceOf(WordToken)
     expect(token.value).toBe("xxxx-XXX_y")
     expect(token.end).toBe(10)
   })
@@ -351,7 +365,7 @@ describe("matchWord()", () => {
 
   test("Respects start parameter before match", () => {
     const token = tokenizer.matchWord("  xxx  ", 2)!
-    expect(token).toBeInstanceOf(Tokens.Word)
+    expect(token).toBeInstanceOf(WordToken)
     expect(token.value).toBe("xxx")
     expect(token.end).toBe(5)
   })
@@ -363,7 +377,7 @@ describe("matchWord()", () => {
 
   test("Doesn't go beyond the end", () => {
     const token = tokenizer.matchWord("   xxx", 3, 4)!
-    expect(token).toBeInstanceOf(Tokens.Word)
+    expect(token).toBeInstanceOf(WordToken)
     expect(token.value).toBe("x")
     expect(token.end).toBe(4)
   })
@@ -380,7 +394,7 @@ describe("matchWord()", () => {
 
   test("Matches if end is out of range", () => {
     const token = tokenizer.matchWord("xxx", 0, 100)!
-    expect(token).toBeInstanceOf(Tokens.Word)
+    expect(token).toBeInstanceOf(WordToken)
     expect(token.value).toBe("xxx")
     expect(token.end).toBe(3)
   })
@@ -402,7 +416,7 @@ describe("matchNumber()", () => {
 
   test("Matches integer at beginning of string", () => {
     const token = tokenizer.matchNumber("999 ")!
-    expect(token).toBeInstanceOf(Tokens.Number)
+    expect(token).toBeInstanceOf(NumberToken)
     expect(token.value).toBe(999)
     expect(token.raw).toBe("999")
     expect(token.end).toBe(3)
@@ -410,7 +424,7 @@ describe("matchNumber()", () => {
 
   test("Matches proper decimal at beginning of string", () => {
     const token = tokenizer.matchNumber("1.888 ")!
-    expect(token).toBeInstanceOf(Tokens.Number)
+    expect(token).toBeInstanceOf(NumberToken)
     expect(token.value).toBe(1.888)
     expect(token.raw).toBe("1.888")
     expect(token.end).toBe(5)
@@ -418,7 +432,7 @@ describe("matchNumber()", () => {
 
   test("Matches no-leading-zero decimal at beginning of string", () => {
     const token = tokenizer.matchNumber(".888 ")!
-    expect(token).toBeInstanceOf(Tokens.Number)
+    expect(token).toBeInstanceOf(NumberToken)
     expect(token.value).toBe(0.888)
     expect(token.raw).toBe(".888")
     expect(token.end).toBe(4)
@@ -426,7 +440,7 @@ describe("matchNumber()", () => {
 
   test("Ignores leading zeros at beginning of string", () => {
     const token = tokenizer.matchNumber("00888 ")!
-    expect(token).toBeInstanceOf(Tokens.Number)
+    expect(token).toBeInstanceOf(NumberToken)
     expect(token.value).toBe(888)
     expect(token.raw).toBe("00888")
     expect(token.end).toBe(5)
@@ -434,7 +448,7 @@ describe("matchNumber()", () => {
 
   test("Matches negative integer at beginning of string", () => {
     const token = tokenizer.matchNumber("-999 ")!
-    expect(token).toBeInstanceOf(Tokens.Number)
+    expect(token).toBeInstanceOf(NumberToken)
     expect(token.value).toBe(-999)
     expect(token.raw).toBe("-999")
     expect(token.end).toBe(4)
@@ -442,7 +456,7 @@ describe("matchNumber()", () => {
 
   test("Matches negative proper decimal at beginning of string", () => {
     const token = tokenizer.matchNumber("-1.888 ")!
-    expect(token).toBeInstanceOf(Tokens.Number)
+    expect(token).toBeInstanceOf(NumberToken)
     expect(token.value).toBe(-1.888)
     expect(token.raw).toBe("-1.888")
     expect(token.end).toBe(6)
@@ -450,7 +464,7 @@ describe("matchNumber()", () => {
 
   test("Matches no-leading-zero decimal at beginning of string", () => {
     const token = tokenizer.matchNumber("-.888 ")!
-    expect(token).toBeInstanceOf(Tokens.Number)
+    expect(token).toBeInstanceOf(NumberToken)
     expect(token.value).toBe(-0.888)
     expect(token.raw).toBe("-.888")
     expect(token.end).toBe(5)
@@ -458,7 +472,7 @@ describe("matchNumber()", () => {
 
   test("Ignores negative with leading zeros at beginning of string", () => {
     const token = tokenizer.matchNumber("-00888 ")!
-    expect(token).toBeInstanceOf(Tokens.Number)
+    expect(token).toBeInstanceOf(NumberToken)
     expect(token.value).toBe(-888)
     expect(token.raw).toBe("-00888")
     expect(token.end).toBe(6)
@@ -471,7 +485,7 @@ describe("matchNumber()", () => {
 
   test("Matches in the middle of the string", () => {
     const token = tokenizer.matchNumber("  999  ", 2)!
-    expect(token).toBeInstanceOf(Tokens.Number)
+    expect(token).toBeInstanceOf(NumberToken)
     expect(token.value).toBe(999)
     expect(token.end).toBe(5)
   })
@@ -483,7 +497,7 @@ describe("matchNumber()", () => {
 
   test("Doesn't go beyond the end", () => {
     const token = tokenizer.matchNumber("   999", 3, 4)!
-    expect(token).toBeInstanceOf(Tokens.Number)
+    expect(token).toBeInstanceOf(NumberToken)
     expect(token.value).toBe(9)
     expect(token.end).toBe(4)
   })
@@ -500,7 +514,7 @@ describe("matchNumber()", () => {
 
   test("Matches if end is out of range", () => {
     const token = tokenizer.matchNumber("999", 1, 100)!
-    expect(token).toBeInstanceOf(Tokens.Number)
+    expect(token).toBeInstanceOf(NumberToken)
     expect(token.value).toBe(99)
     expect(token.end).toBe(3)
   })
@@ -522,7 +536,7 @@ describe("matchText()", () => {
 
   test("Matches single quotes at beginning of string", () => {
     const token = tokenizer.matchText("'a'")!
-    expect(token).toBeInstanceOf(Tokens.Text)
+    expect(token).toBeInstanceOf(TextToken)
     expect(token.value).toBe("'a'")
     expect(token.innerText).toBe("a")
     expect(token.end).toBe(3)
@@ -530,7 +544,7 @@ describe("matchText()", () => {
 
   test("Matches double quotes at beginning of string", () => {
     const token = tokenizer.matchText('"aaaa"')!
-    expect(token).toBeInstanceOf(Tokens.Text)
+    expect(token).toBeInstanceOf(TextToken)
     expect(token.value).toBe('"aaaa"')
     expect(token.raw).toBe('"aaaa"')
     expect(token.innerText).toBe("aaaa")
@@ -539,7 +553,7 @@ describe("matchText()", () => {
 
   test("Matches single quotes with escape at beginning of string", () => {
     const token = tokenizer.matchText("'a\\'a'")!
-    expect(token).toBeInstanceOf(Tokens.Text)
+    expect(token).toBeInstanceOf(TextToken)
     expect(token.value).toBe("'a\\'a'")
     expect(token.raw).toBe("'a\\'a'")
     expect(token.innerText).toBe("a\\'a")
@@ -548,7 +562,7 @@ describe("matchText()", () => {
 
   test("Matches double quotes with escape at beginning of string", () => {
     const token = tokenizer.matchText('"a\\"a"')!
-    expect(token).toBeInstanceOf(Tokens.Text)
+    expect(token).toBeInstanceOf(TextToken)
     expect(token.value).toBe('"a\\"a"')
     expect(token.raw).toBe('"a\\"a"')
     expect(token.innerText).toBe('a\\"a')
@@ -557,7 +571,7 @@ describe("matchText()", () => {
 
   test("Matches in the middle of the string", () => {
     const token = tokenizer.matchText("  'aaa'  ", 2)!
-    expect(token).toBeInstanceOf(Tokens.Text)
+    expect(token).toBeInstanceOf(TextToken)
     expect(token.value).toBe("'aaa'")
     expect(token.innerText).toBe("aaa")
     expect(token.end).toBe(7)
@@ -585,7 +599,7 @@ describe("matchText()", () => {
 
   test("Matches if end is out of range", () => {
     const token = tokenizer.matchText("'aaa'", 0, 100)!
-    expect(token).toBeInstanceOf(Tokens.Text)
+    expect(token).toBeInstanceOf(TextToken)
     expect(token.value).toBe("'aaa'")
     expect(token.innerText).toBe("aaa")
     expect(token.end).toBe(5)
@@ -608,7 +622,7 @@ describe("matchComment()", () => {
 
   test("Matches `//` comment at beginning of string", () => {
     const token = tokenizer.matchComment("//comment here")!
-    expect(token).toBeInstanceOf(Tokens.Comment)
+    expect(token).toBeInstanceOf(CommentToken)
     expect(token.value).toBe("comment here")
     expect(token.initialWhitespace).toBe("")
     expect(token.commentSymbol).toBe("//")
@@ -617,7 +631,7 @@ describe("matchComment()", () => {
 
   test("Matches `--` comment at beginning of string", () => {
     const token = tokenizer.matchComment("-- comment here")!
-    expect(token).toBeInstanceOf(Tokens.Comment)
+    expect(token).toBeInstanceOf(CommentToken)
     expect(token.value).toBe("comment here")
     expect(token.initialWhitespace).toBe(" ")
     expect(token.commentSymbol).toBe("--")
@@ -626,7 +640,7 @@ describe("matchComment()", () => {
 
   test("Matches `##` comment at beginning of string", () => {
     const token = tokenizer.matchComment("##\tcomment here")!
-    expect(token).toBeInstanceOf(Tokens.Comment)
+    expect(token).toBeInstanceOf(CommentToken)
     expect(token.value).toBe("comment here")
     expect(token.initialWhitespace).toBe("\t")
     expect(token.commentSymbol).toBe("##")
@@ -635,7 +649,7 @@ describe("matchComment()", () => {
 
   test("Matches empty `//` comment", () => {
     const token = tokenizer.matchComment("//")!
-    expect(token).toBeInstanceOf(Tokens.Comment)
+    expect(token).toBeInstanceOf(CommentToken)
     expect(token.value).toBe("")
     expect(token.initialWhitespace).toBe("")
     expect(token.commentSymbol).toBe("//")
@@ -644,7 +658,7 @@ describe("matchComment()", () => {
 
   test("Matches empty `--` comment", () => {
     const token = tokenizer.matchComment("--")!
-    expect(token).toBeInstanceOf(Tokens.Comment)
+    expect(token).toBeInstanceOf(CommentToken)
     expect(token.value).toBe("")
     expect(token.initialWhitespace).toBe("")
     expect(token.commentSymbol).toBe("--")
@@ -653,7 +667,7 @@ describe("matchComment()", () => {
 
   test("Matches empty `##` comment", () => {
     const token = tokenizer.matchComment("##")!
-    expect(token).toBeInstanceOf(Tokens.Comment)
+    expect(token).toBeInstanceOf(CommentToken)
     expect(token.value).toBe("")
     expect(token.initialWhitespace).toBe("")
     expect(token.commentSymbol).toBe("##")
@@ -662,7 +676,7 @@ describe("matchComment()", () => {
 
   test("Matches in the middle of the string", () => {
     const token = tokenizer.matchComment("xxx//comment", 3)!
-    expect(token).toBeInstanceOf(Tokens.Comment)
+    expect(token).toBeInstanceOf(CommentToken)
     expect(token.value).toBe("comment")
     expect(token.initialWhitespace).toBe("")
     expect(token.commentSymbol).toBe("//")
@@ -676,7 +690,7 @@ describe("matchComment()", () => {
 
   test("Stops at newline", () => {
     const token = tokenizer.matchComment("//\tcomment here\n")!
-    expect(token).toBeInstanceOf(Tokens.Comment)
+    expect(token).toBeInstanceOf(CommentToken)
     expect(token.value).toBe("comment here")
     expect(token.initialWhitespace).toBe("\t")
     expect(token.commentSymbol).toBe("//")
@@ -685,7 +699,7 @@ describe("matchComment()", () => {
 
   test("Doesn't go beyond the end", () => {
     const token = tokenizer.matchComment("//\tcomment here\n", 0, 10)!
-    expect(token).toBeInstanceOf(Tokens.Comment)
+    expect(token).toBeInstanceOf(CommentToken)
     expect(token.value).toBe("comment")
     expect(token.initialWhitespace).toBe("\t")
     expect(token.commentSymbol).toBe("//")
@@ -704,7 +718,7 @@ describe("matchComment()", () => {
 
   test("Matches if end is out of range", () => {
     const token = tokenizer.matchComment("//\tcomment here\n", 0, 100)!
-    expect(token).toBeInstanceOf(Tokens.Comment)
+    expect(token).toBeInstanceOf(CommentToken)
     expect(token.value).toBe("comment here")
     expect(token.initialWhitespace).toBe("\t")
     expect(token.commentSymbol).toBe("//")
@@ -728,7 +742,7 @@ describe("matchJSXStartTag()", () => {
 
   test("Matches no-attribute start tag at beginning of string", () => {
     const token = tokenizer.matchJSXStartTag("<test>")!
-    expect(token).toBeInstanceOf(Tokens.JSXElement)
+    expect(token).toBeInstanceOf(JSXElementToken)
     expect(token.tagName).toBe("test")
     expect(token.isUnaryTag).toBe(undefined)
     expect(token.children).toBe(undefined)
@@ -738,7 +752,7 @@ describe("matchJSXStartTag()", () => {
 
   test("Matches no attribute unary tag at beginning of string", () => {
     const token = tokenizer.matchJSXStartTag("<test/>")!
-    expect(token).toBeInstanceOf(Tokens.JSXElement)
+    expect(token).toBeInstanceOf(JSXElementToken)
     expect(token.tagName).toBe("test")
     expect(token.isUnaryTag).toBe(true)
     expect(token.children).toBe(undefined)
@@ -753,7 +767,7 @@ describe("matchJSXStartTag()", () => {
 
   test("Matches start tag with attributes at beginning of string", () => {
     const token = tokenizer.matchJSXStartTag("<test a='a\\'a' bbb=1 c-0-a={tokens} d>")!
-    expect(token).toBeInstanceOf(Tokens.JSXElement)
+    expect(token).toBeInstanceOf(JSXElementToken)
     expect(token.tagName).toBe("test")
     expect(token.isUnaryTag).toBe(undefined)
     expect(token.children).toBe(undefined)
@@ -764,15 +778,15 @@ describe("matchJSXStartTag()", () => {
     expect(attributes.length).toEqual(4)
 
     expect(attributes[0].name).toEqual("a")
-    expect(attributes[0].value).toBeInstanceOf(Tokens.Text)
+    expect(attributes[0].value).toBeInstanceOf(TextToken)
     expect(attributes[0].value.value).toEqual("'a\\'a'")
 
     expect(attributes[1].name).toEqual("bbb")
-    expect(attributes[1].value).toBeInstanceOf(Tokens.Number)
+    expect(attributes[1].value).toBeInstanceOf(NumberToken)
     expect(attributes[1].value.value).toBe(1)
 
     expect(attributes[2].name).toEqual("c-0-a")
-    expect(attributes[2].value).toBeInstanceOf(Tokens.JSXExpression)
+    expect(attributes[2].value).toBeInstanceOf(JSXExpressionToken)
 
     expect(attributes[3].name).toEqual("d")
     expect(attributes[3].value).toBe(undefined)
@@ -780,7 +794,7 @@ describe("matchJSXStartTag()", () => {
 
   test("Matches unary tag with attributes at beginning of string", () => {
     const token = tokenizer.matchJSXStartTag("<test a='a\\'a' bbb=1 c-0-a={tokens} d/>")!
-    expect(token).toBeInstanceOf(Tokens.JSXElement)
+    expect(token).toBeInstanceOf(JSXElementToken)
     expect(token.tagName).toBe("test")
     expect(token.isUnaryTag).toBe(true)
     expect(token.children).toBe(undefined)
@@ -791,15 +805,15 @@ describe("matchJSXStartTag()", () => {
     expect(attributes.length).toEqual(4)
 
     expect(attributes[0].name).toEqual("a")
-    expect(attributes[0].value).toBeInstanceOf(Tokens.Text)
+    expect(attributes[0].value).toBeInstanceOf(TextToken)
     expect(attributes[0].value.value).toEqual("'a\\'a'")
 
     expect(attributes[1].name).toEqual("bbb")
-    expect(attributes[1].value).toBeInstanceOf(Tokens.Number)
+    expect(attributes[1].value).toBeInstanceOf(NumberToken)
     expect(attributes[1].value.value).toBe(1)
 
     expect(attributes[2].name).toEqual("c-0-a")
-    expect(attributes[2].value).toBeInstanceOf(Tokens.JSXExpression)
+    expect(attributes[2].value).toBeInstanceOf(JSXExpressionToken)
 
     expect(attributes[3].name).toEqual("d")
     expect(attributes[3].value).toBe(undefined)
@@ -807,7 +821,7 @@ describe("matchJSXStartTag()", () => {
 
   test("Matches in the middle of the string", () => {
     const token = tokenizer.matchJSXStartTag("xxx<test aprop/>xxx", 3)!
-    expect(token).toBeInstanceOf(Tokens.JSXElement)
+    expect(token).toBeInstanceOf(JSXElementToken)
     expect(token.tagName).toBe("test")
     expect(token.isUnaryTag).toBe(true)
     expect(token.children).toBe(undefined)
@@ -823,7 +837,7 @@ describe("matchJSXStartTag()", () => {
 
   test("Doesn't stop at newline", () => {
     const token = tokenizer.matchJSXStartTag("xxx<test aprop\n bprop/>xxx", 3)!
-    expect(token).toBeInstanceOf(Tokens.JSXElement)
+    expect(token).toBeInstanceOf(JSXElementToken)
     expect(token.tagName).toBe("test")
     expect(token.isUnaryTag).toBe(true)
     expect(token.children).toBe(undefined)
@@ -834,7 +848,7 @@ describe("matchJSXStartTag()", () => {
 
   test("Matches but doesn't go beyond the end", () => {
     const token = tokenizer.matchJSXStartTag("<test aprop\n bprop/>", 0, 10)!
-    expect(token).toBeInstanceOf(Tokens.JSXElement)
+    expect(token).toBeInstanceOf(JSXElementToken)
     expect(token.tagName).toBe("test")
     expect(token.isUnaryTag).toBe(undefined)
     expect(token.error).toBe("No end >")
@@ -857,7 +871,7 @@ describe("matchJSXStartTag()", () => {
 
   test("Matches if end is out of range", () => {
     const token = tokenizer.matchJSXStartTag("xxx<test aprop\n bprop/>xxx", 3, 100)!
-    expect(token).toBeInstanceOf(Tokens.JSXElement)
+    expect(token).toBeInstanceOf(JSXElementToken)
     expect(token.tagName).toBe("test")
     expect(token.isUnaryTag).toBe(true)
     expect(token.children).toBe(undefined)
@@ -883,7 +897,7 @@ describe("matchJSXEndTag()", () => {
 
   test("Matches specified end tag at beginning of string", () => {
     const token = tokenizer.matchJSXEndTag("test", "</test>")!
-    expect(token).toBeInstanceOf(Tokens.JSXEndTag)
+    expect(token).toBeInstanceOf(JSXEndTagToken)
     expect(token.tagName).toBe("test")
     expect(token.end).toBe(7)
   })
@@ -895,7 +909,7 @@ describe("matchJSXEndTag()", () => {
 
   test("Matches specified end tag in the middle of the string", () => {
     const token = tokenizer.matchJSXEndTag("test", "xxx</test>", 3)!
-    expect(token).toBeInstanceOf(Tokens.JSXEndTag)
+    expect(token).toBeInstanceOf(JSXEndTagToken)
     expect(token.tagName).toBe("test")
     expect(token.end).toBe(10)
   })
@@ -917,7 +931,7 @@ describe("matchJSXEndTag()", () => {
 
   test("Matches if end is out of range", () => {
     const token = tokenizer.matchJSXEndTag("test", "xxx</test>", 3, 100)!
-    expect(token).toBeInstanceOf(Tokens.JSXEndTag)
+    expect(token).toBeInstanceOf(JSXEndTagToken)
     expect(token.tagName).toBe("test")
     expect(token.end).toBe(10)
   })
@@ -939,7 +953,7 @@ describe("matchJSXAttribute()", () => {
 
   test("Matches no-value attribute at beginning of string", () => {
     const token = tokenizer.matchJSXAttribute("xyz ")!
-    expect(token).toBeInstanceOf(Tokens.JSXAttribute)
+    expect(token).toBeInstanceOf(JSXAttributeToken)
     expect(token.name).toEqual("xyz")
     expect(token.value).toEqual(undefined)
     expect(token.end).toEqual(4)
@@ -947,43 +961,43 @@ describe("matchJSXAttribute()", () => {
 
   test("Matches string attribute at beginning of string", () => {
     const token = tokenizer.matchJSXAttribute("xyz='abc' ")!
-    expect(token).toBeInstanceOf(Tokens.JSXAttribute)
+    expect(token).toBeInstanceOf(JSXAttributeToken)
     expect(token.name).toEqual("xyz")
-    expect(token.value).toBeInstanceOf(Tokens.Text)
+    expect(token.value).toBeInstanceOf(TextToken)
     expect(token.value.value).toEqual("'abc'")
     expect(token.end).toEqual(10)
   })
 
   test("Matches number attribute at beginning of string", () => {
     const token = tokenizer.matchJSXAttribute("xyz=0.33 ")!
-    expect(token).toBeInstanceOf(Tokens.JSXAttribute)
+    expect(token).toBeInstanceOf(JSXAttributeToken)
     expect(token.name).toEqual("xyz")
-    expect(token.value).toBeInstanceOf(Tokens.Number)
+    expect(token.value).toBeInstanceOf(NumberToken)
     expect(token.value.value).toBe(0.33)
     expect(token.end).toEqual(9)
   })
 
   test("Matches JSX Expression attribute at beginning of string", () => {
     const token = tokenizer.matchJSXAttribute("xyz={foo bar baz} ")!
-    expect(token).toBeInstanceOf(Tokens.JSXAttribute)
+    expect(token).toBeInstanceOf(JSXAttributeToken)
     expect(token.name).toEqual("xyz")
-    expect(token.value).toBeInstanceOf(Tokens.JSXExpression)
+    expect(token.value).toBeInstanceOf(JSXExpressionToken)
     expect(token.value.contents).toEqual("foo bar baz")
     expect(token.end).toEqual(18)
   })
 
   test("Matches identifier attribute at beginning of string", () => {
     const token = tokenizer.matchJSXAttribute("xyz=foo ")!
-    expect(token).toBeInstanceOf(Tokens.JSXAttribute)
+    expect(token).toBeInstanceOf(JSXAttributeToken)
     expect(token.name).toEqual("xyz")
-    expect(token.value).toBeInstanceOf(Tokens.JSXExpression)
+    expect(token.value).toBeInstanceOf(JSXExpressionToken)
     expect(token.value.contents.value).toEqual("foo")
     expect(token.end).toEqual(8)
   })
 
   test("Matches no-value attribute in the middle of the string", () => {
     const token = tokenizer.matchJSXAttribute("...xyz ", 3)!
-    expect(token).toBeInstanceOf(Tokens.JSXAttribute)
+    expect(token).toBeInstanceOf(JSXAttributeToken)
     expect(token.name).toEqual("xyz")
     expect(token.value).toEqual(undefined)
     expect(token.end).toEqual(7)
@@ -991,43 +1005,43 @@ describe("matchJSXAttribute()", () => {
 
   test("Matches string attribute in the middle of the string", () => {
     const token = tokenizer.matchJSXAttribute("...xyz='abc' ", 3)!
-    expect(token).toBeInstanceOf(Tokens.JSXAttribute)
+    expect(token).toBeInstanceOf(JSXAttributeToken)
     expect(token.name).toEqual("xyz")
-    expect(token.value).toBeInstanceOf(Tokens.Text)
+    expect(token.value).toBeInstanceOf(TextToken)
     expect(token.value.value).toEqual("'abc'")
     expect(token.end).toEqual(13)
   })
 
   test("Matches number attribute in the middle of the string", () => {
     const token = tokenizer.matchJSXAttribute("...xyz=0.33 ", 3)!
-    expect(token).toBeInstanceOf(Tokens.JSXAttribute)
+    expect(token).toBeInstanceOf(JSXAttributeToken)
     expect(token.name).toEqual("xyz")
-    expect(token.value).toBeInstanceOf(Tokens.Number)
+    expect(token.value).toBeInstanceOf(NumberToken)
     expect(token.value.value).toEqual(0.33)
     expect(token.end).toEqual(12)
   })
 
   test("Matches JSX Expression attribute in the middle of the string", () => {
     const token = tokenizer.matchJSXAttribute("...xyz={foo bar baz} ", 3)!
-    expect(token).toBeInstanceOf(Tokens.JSXAttribute)
+    expect(token).toBeInstanceOf(JSXAttributeToken)
     expect(token.name).toEqual("xyz")
-    expect(token.value).toBeInstanceOf(Tokens.JSXExpression)
+    expect(token.value).toBeInstanceOf(JSXExpressionToken)
     expect(token.value.contents).toEqual("foo bar baz")
     expect(token.end).toEqual(21)
   })
 
   test("Matches identifier attribute in the middle of the string", () => {
     const token = tokenizer.matchJSXAttribute("...xyz=foo ", 3)!
-    expect(token).toBeInstanceOf(Tokens.JSXAttribute)
+    expect(token).toBeInstanceOf(JSXAttributeToken)
     expect(token.name).toEqual("xyz")
-    expect(token.value).toBeInstanceOf(Tokens.JSXExpression)
+    expect(token.value).toBeInstanceOf(JSXExpressionToken)
     expect(token.value.contents.value).toEqual("foo")
     expect(token.end).toEqual(11)
   })
 
   test("Doesn't go beyond the end", () => {
     const token = tokenizer.matchJSXAttribute("...xyz ", 3, 4)!
-    expect(token).toBeInstanceOf(Tokens.JSXAttribute)
+    expect(token).toBeInstanceOf(JSXAttributeToken)
     expect(token.name).toEqual("x")
     expect(token.value).toEqual(undefined)
     expect(token.end).toEqual(4)
@@ -1045,9 +1059,9 @@ describe("matchJSXAttribute()", () => {
 
   test("Matches if end is out of range", () => {
     const token = tokenizer.matchJSXAttribute("xyz={foo bar baz} ")!
-    expect(token).toBeInstanceOf(Tokens.JSXAttribute)
+    expect(token).toBeInstanceOf(JSXAttributeToken)
     expect(token.name).toEqual("xyz")
-    expect(token.value).toBeInstanceOf(Tokens.JSXExpression)
+    expect(token.value).toBeInstanceOf(JSXExpressionToken)
     expect(token.value.contents).toEqual("foo bar baz")
     expect(token.end).toEqual(18)
   })
@@ -1068,15 +1082,15 @@ describe("matchJSXChild()", () => {
   })
 
   test("Matches JSX end tag at beginning of string", () => {
-    const token = tokenizer.matchJSXChild("foo", "</foo>")! as Tokens.JSXEndTag
-    expect(token).toBeInstanceOf(Tokens.JSXEndTag)
+    const token = tokenizer.matchJSXChild("foo", "</foo>")! as JSXEndTagToken
+    expect(token).toBeInstanceOf(JSXEndTagToken)
     expect(token.tagName).toBe("foo")
     expect(token.end).toBe(6)
   })
 
   test("Matches text & whitespace at beginning of string w/end delimiter", () => {
-    const token = tokenizer.matchJSXChild("foo", " some text here <")! as Tokens.JSXText
-    expect(token).toBeInstanceOf(Tokens.JSXText)
+    const token = tokenizer.matchJSXChild("foo", " some text here <")! as JSXTextToken
+    expect(token).toBeInstanceOf(JSXTextToken)
     expect(token.value).toBe(" some text here ")
     expect(token.quotedText).toBe('"some text here"')
     expect(token.end).toEqual(16)
@@ -1088,29 +1102,29 @@ describe("matchJSXChild()", () => {
   })
 
   test("Matches JSX element at beginning of string", () => {
-    const token = tokenizer.matchJSXChild("foo", "<bar/>  ")! as Tokens.JSXElement
-    expect(token).toBeInstanceOf(Tokens.JSXElement)
+    const token = tokenizer.matchJSXChild("foo", "<bar/>  ")! as JSXElementToken
+    expect(token).toBeInstanceOf(JSXElementToken)
     expect(token.tagName).toEqual("bar")
     expect(token.end).toEqual(6)
   })
 
   test("Matches JSX Expression at beginning of string", () => {
-    const token = tokenizer.matchJSXChild("foo", "{ foo bar baz } ")! as Tokens.JSXExpression
-    expect(token).toBeInstanceOf(Tokens.JSXExpression)
+    const token = tokenizer.matchJSXChild("foo", "{ foo bar baz } ")! as JSXExpressionToken
+    expect(token).toBeInstanceOf(JSXExpressionToken)
     expect(token.contents).toEqual(" foo bar baz ")
     expect(token.end).toEqual(15)
   })
 
   test("Matches JSX end tag in the middle of string", () => {
-    const token = tokenizer.matchJSXChild("foo", "...</foo>", 3)! as Tokens.JSXEndTag
-    expect(token).toBeInstanceOf(Tokens.JSXEndTag)
+    const token = tokenizer.matchJSXChild("foo", "...</foo>", 3)! as JSXEndTagToken
+    expect(token).toBeInstanceOf(JSXEndTagToken)
     expect(token.tagName).toBe("foo")
     expect(token.end).toBe(9)
   })
 
   test("Matches text & whitespace in the middle of string w/end delimiter", () => {
-    const token = tokenizer.matchJSXChild("foo", "...some text here <", 3)! as Tokens.JSXText
-    expect(token).toBeInstanceOf(Tokens.JSXText)
+    const token = tokenizer.matchJSXChild("foo", "...some text here <", 3)! as JSXTextToken
+    expect(token).toBeInstanceOf(JSXTextToken)
     expect(token.value).toBe("some text here ")
     expect(token.quotedText).toBe('"some text here"')
     expect(token.end).toEqual(18)
@@ -1122,15 +1136,15 @@ describe("matchJSXChild()", () => {
   })
 
   test("Matches JSX element in the middle of string", () => {
-    const token = tokenizer.matchJSXChild("foo", "...<bar/>  ", 3)! as Tokens.JSXElement
-    expect(token).toBeInstanceOf(Tokens.JSXElement)
+    const token = tokenizer.matchJSXChild("foo", "...<bar/>  ", 3)! as JSXElementToken
+    expect(token).toBeInstanceOf(JSXElementToken)
     expect(token.tagName).toEqual("bar")
     expect(token.end).toEqual(9)
   })
 
   test("Matches JSX Expression in the middle of string", () => {
-    const token = tokenizer.matchJSXChild("foo", "...{ foo bar baz } ", 3)! as Tokens.JSXExpression
-    expect(token).toBeInstanceOf(Tokens.JSXExpression)
+    const token = tokenizer.matchJSXChild("foo", "...{ foo bar baz } ", 3)! as JSXExpressionToken
+    expect(token).toBeInstanceOf(JSXExpressionToken)
     expect(token.contents).toEqual(" foo bar baz ")
     expect(token.end).toEqual(18)
   })
@@ -1151,8 +1165,8 @@ describe("matchJSXChild()", () => {
   })
 
   test("Matches if end is out of range", () => {
-    const token = tokenizer.matchJSXChild("foo", "</foo>", 0, 100)! as Tokens.JSXEndTag
-    expect(token).toBeInstanceOf(Tokens.JSXEndTag)
+    const token = tokenizer.matchJSXChild("foo", "</foo>", 0, 100)! as JSXEndTagToken
+    expect(token).toBeInstanceOf(JSXEndTagToken)
     expect(token.tagName).toBe("foo")
     expect(token.end).toBe(6)
   })

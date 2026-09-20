@@ -123,7 +123,7 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
 
   /**
    * Some parsers compile by generating an "Abstract Syntax Tree" (AST) first,
-   * then calling `AST.compile()`.
+   * then calling `ast.compile()`.
    *
    * If you implement this, return an `ASTNode` object (or `undefined` if the match yields no output).
    */

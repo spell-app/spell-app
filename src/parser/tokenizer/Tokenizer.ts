@@ -1,5 +1,5 @@
 import { Logger } from "~/util/Logger"
-import { P, Tokens } from "~/parser"
+import { P } from "~/parser"
 
 /**
  * Tokenizer class for parsing text into a stream of tokens.
@@ -56,7 +56,7 @@ export class Tokenizer {
       token.record.line = line
       token.record.ch = ch
       ch += token.length
-      if (token instanceof Tokens.Newline) {
+      if (token instanceof P.NewlineToken) {
         line++
         ch = 0
       }
@@ -65,9 +65,9 @@ export class Tokenizer {
     // Return tokens filtered according to our whitespace policy
     switch (this.whitespacePolicy) {
       case P.WhitespacePolicy.NONE:
-        return this.filterWhitespace(tokens, Tokens.Whitespace)
+        return this.filterWhitespace(tokens, P.WhitespaceToken)
       case P.WhitespacePolicy.LEADING_ONLY:
-        return this.filterWhitespace(tokens, Tokens.InlineWhitespace)
+        return this.filterWhitespace(tokens, P.InlineWhitespaceToken)
       default:
         return tokens
     }
@@ -89,7 +89,7 @@ export class Tokenizer {
    *   This allows us to reconstruct the stream exactly by just looking at the filtered tokens.
    * - NOTE: filtered whitespace tokens at the start will be lost.
    */
-  filterWhitespace(tokens: P.Token[], whitespaceType: typeof Tokens.Whitespace) {
+  filterWhitespace(tokens: P.Token[], whitespaceType: typeof P.WhitespaceToken) {
     const results = []
     for (let i = 0, token; (token = tokens[i]); i++) {
       if (token instanceof whitespaceType) {
@@ -153,10 +153,10 @@ export class Tokenizer {
 
   /**
    * Convert a run of spaces and/or tabs into:
-   * - a `Indent` token if it occurs at the begining of `text` or after a newline, or
-   * - a `InlineWhitespace` token if it occurs in the middle of a line.
+   * - an `IndentToken` if it occurs at the begining of `text` or after a newline, or
+   * - an `InlineWhitespaceToken` if it occurs in the middle of a line.
    */
-  matchWhitespace = (text: string, start = 0, end?: number): Tokens.Indent | Tokens.InlineWhitespace | undefined => {
+  matchWhitespace = (text: string, start = 0, end?: number): P.IndentToken | P.InlineWhitespaceToken | undefined => {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
 
@@ -170,40 +170,40 @@ export class Tokenizer {
       raw: value,
       offset: start
     }
-    // if at start of text or after a newline, return an `Indent` token
-    if (start === 0 || text[start - 1] === "\n") return new Tokens.Indent(props)
-    // otherwise, return an `InlineWhitespace` token
-    return new Tokens.InlineWhitespace(props)
+    // if at start of text or after a newline, return an `IndentToken`
+    if (start === 0 || text[start - 1] === "\n") return new P.IndentToken(props)
+    // otherwise, return an `InlineWhitespaceToken`
+    return new P.InlineWhitespaceToken(props)
   }
 
   /**
-   * Match a single newline character at `start` of `text`, as `Newline` token.
+   * Match a single newline character at `start` of `text`, as `NewlineToken`.
    * - NOTE: this assumes we're in utf-8 mode, so `\n` is a single character.
    */
-  matchNewline = (text: string, start = 0, end?: number): Tokens.Newline | undefined => {
+  matchNewline = (text: string, start = 0, end?: number): P.NewlineToken | undefined => {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end || text[start] !== "\n") return undefined
-    return new Tokens.Newline({ offset: start })
+    return new P.NewlineToken({ offset: start })
   }
 
   ////////////////
   // ## Word / Symbol / Text
   ////////////////
 
-  /** Regex matching first character allowed to start a `Word` -- ASCII letters only. */
+  /** Regex matching first character allowed to start a `WordToken` -- ASCII letters only. */
   get WORD_START() {
     return /[A-Za-z]/
   }
-  /** Regex matching subsequent `Word` characters -- letters, digits, `_` or `-`. */
+  /** Regex matching subsequent `WordToken` characters -- letters, digits, `_` or `-`. */
   get WORD_CHAR() {
     return /^[\w_-]/
   }
 
   /**
-   * Match a single `word` at `start` of `text` at character `start`, as `Word` token.
+   * Match a single `word` at `start` of `text` at character `start`, as `WordToken`.
    * - e.g. `hello`, `_world`, `foo-bar`, `foo_bar_3`, etc.
    */
-  matchWord = (text: string, start = 0, end?: number): Tokens.Word | undefined => {
+  matchWord = (text: string, start = 0, end?: number): P.WordToken | undefined => {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
 
@@ -217,19 +217,19 @@ export class Tokenizer {
     if (wordEnd === start) return undefined
 
     const value = text.slice(start, wordEnd)
-    return new Tokens.Word({ value, raw: value, offset: start })
+    return new P.WordToken({ value, raw: value, offset: start })
   }
 
   /**
-   * Match a single "symbol" character at `start` of `text`, as `Symbol` token.
+   * Match a single "symbol" character at `start` of `text`, as `SymbolToken`.
    * - NOTE: This does not do any checking, it just blindly uses the character in question.
    * - You should make sure all other possible rules have been exhausted first.
    */
-  matchSymbol = (text: string, start = 0, end?: number): Tokens.Symbol | undefined => {
+  matchSymbol = (text: string, start = 0, end?: number): P.SymbolToken | undefined => {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
     const value = text[start]
-    return new Tokens.Symbol({
+    return new P.SymbolToken({
       value,
       raw: value,
       offset: start
@@ -237,11 +237,11 @@ export class Tokenizer {
   }
 
   /**
-   * Match a quoted text literal string at `start` of `text`, as `Text` token.
+   * Match a quoted text literal string at `start` of `text`, as `TextToken`.
    * - e.g. `"hello"`, `'hello world'`, `"text \" with escaped quotes"`, etc.
    * - TESTME:  not sure the escaping logic is really right...
    */
-  matchText = (text: string, start = 0, end?: number): Tokens.Text | undefined => {
+  matchText = (text: string, start = 0, end?: number): P.TextToken | undefined => {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
 
@@ -264,7 +264,7 @@ export class Tokenizer {
 
     // Value includes the quotes, use `innerText` to get the actual text.
     const value = text.slice(start, textEnd)
-    return new Tokens.Text({
+    return new P.TextToken({
       value,
       raw: value,
       offset: start
@@ -275,18 +275,18 @@ export class Tokenizer {
   // ## Numbers
   ////////////////
 
-  /** Regex testing whether a character could begin a `Number` -- digit, `-` or `.`. */
+  /** Regex testing whether a character could begin a `NumberToken` -- digit, `-` or `.`. */
   get NUMBER_START() {
     return /[0-9-.]/
   }
 
-  /** Regex matching a `Number` literal at head of string -- optional leading `-`, optional decimal point. */
+  /** Regex matching a `NumberToken` literal at head of string -- optional leading `-`, optional decimal point. */
   get NUMBER() {
     return /^-?([0-9]*\.)?[0-9]+/
   }
 
-  /** Match a single number at `start` of `text`, as a `Number` token. */
-  matchNumber = (text: string, start = 0, end?: number): Tokens.Number | undefined => {
+  /** Match a single number at `start` of `text`, as a `NumberToken`. */
+  matchNumber = (text: string, start = 0, end?: number): P.NumberToken | undefined => {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
 
@@ -297,7 +297,7 @@ export class Tokenizer {
 
     const input = numberMatch[0]
     const value = parseFloat(input)
-    return new Tokens.Number({
+    return new P.NumberToken({
       value,
       raw: input,
       offset: start
@@ -324,16 +324,16 @@ export class Tokenizer {
   get JSX_ATTRIBUTE_START() {
     return /^\s*([\w-]+\b)\s*(=?)\s*/
   }
-  /** Characters which terminate a run of `JSXText`. */
+  /** Characters which terminate a run of `JSXTextToken`. */
   get JSX_TEXT_END_CHARS() {
     return ["{", "<", ">", "}"]
   }
 
   /**
-   * Match a single JSX element, including its children, at `start` of `text`, as `JSXElement` token.
+   * Match a single JSX element, including its children, at `start` of `text`, as `JSXElementToken`.
    * - Ignores leading whitespace.
    */
-  matchJSXElement = (text: string, start = 0, end?: number): Tokens.JSXElement | undefined => {
+  matchJSXElement = (text: string, start = 0, end?: number): P.JSXElementToken | undefined => {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
 
@@ -343,7 +343,7 @@ export class Tokenizer {
     if (!jsxElement.record.isUnaryTag) {
       const children = this.matchJSXChildren(jsxElement.tagName, text, jsxElement.end, end)
       if (children && children.length) {
-        jsxElement.record.children = children as Tokens.JSXElement[]
+        jsxElement.record.children = children as P.JSXElementToken[]
         jsxElement.record.raw = text.slice(start, children[children.length - 1].end)
       }
     }
@@ -352,7 +352,7 @@ export class Tokenizer {
   }
 
   /**
-   * Match a single JSX start tag at `start` of `text`, including internal attributes, as a `JSXElement` token.
+   * Match a single JSX start tag at `start` of `text`, including internal attributes, as a `JSXElementToken`.
    * - TODO: clean this stuff up, maybe with findFirstAtHead?
    * - TODO: check whitespace before/after tag
    */
@@ -370,7 +370,7 @@ export class Tokenizer {
     let [matchText, tagName, endBit] = tagMatch
     nextStart += matchText.length
 
-    const jsxElement = new Tokens.JSXElement({ tagName, offset: start })
+    const jsxElement = new P.JSXElementToken({ tagName, offset: start })
 
     // If unary tag, mark as such and return.
     endBit = endBit.trim()
@@ -403,7 +403,7 @@ export class Tokenizer {
   }
 
   /**
-   * Match JSX element children of `<endTagName>` at `start` of `text`, as an array of `JSXElement` token.
+   * Match JSX element children of `<endTagName>` at `start` of `text`, as an array of `JSXElementToken`.
    * - Matches nested children and stops after matching end tag: `</endTagName>`.
    */
   matchJSXChildren(endTagName: string, text: string, start: number, end?: number) {
@@ -421,7 +421,7 @@ export class Tokenizer {
       nextStart = child.end
 
       // If we got an endTag for endTagName, update nesting and break out of loop if nesting !== 0
-      if (child instanceof Tokens.JSXEndTag && child.tagName === endTagName) {
+      if (child instanceof P.JSXEndTagToken && child.tagName === endTagName) {
         nesting--
         if (nesting === 0) break
         continue
@@ -465,7 +465,7 @@ export class Tokenizer {
     if (!this.matchStringAtHead(endTag, text, nextStart, end)) return undefined
 
     end = nextStart + endTag.length
-    return new Tokens.JSXEndTag({
+    return new P.JSXEndTagToken({
       raw: text.slice(start, end),
       tagName: endTagName,
       offset: start
@@ -473,7 +473,7 @@ export class Tokenizer {
   }
 
   /**
-   * Match a single JSX element attribute at `start` of `text`, as a `JSXAttribute` token.
+   * Match a single JSX element attribute at `start` of `text`, as a `JSXAttributeToken`.
    * - `name` is the attribute name,
    * - `value` is the expression value as a single `Token`.
    */
@@ -489,7 +489,7 @@ export class Tokenizer {
     const [match, name, equals] = result
     if (!this.WORD_START.test(name)) return undefined
 
-    const attribute = new Tokens.JSXAttribute({ name, offset: start })
+    const attribute = new P.JSXAttributeToken({ name, offset: start })
     let nextStart = start + match.length
 
     // if there was an equals char, parse the value
@@ -510,7 +510,7 @@ export class Tokenizer {
    * Match JSX attribute value  at `start` of `text`.
    * - NOTE: this will be called immediately after the `=` (and subsequent whitespace).
    */
-  matchJSXAttributeValue(text: string, start: number, end?: number): Tokens.JSXAttributeValue | undefined {
+  matchJSXAttributeValue(text: string, start: number, end?: number): P.JSXAttributeValue | undefined {
     return (
       this.matchText(text, start, end) ||
       this.matchJSXExpression(text, start, end) ||
@@ -523,10 +523,10 @@ export class Tokenizer {
   /**
    * Match a single identifer as a JSX attribute value at `start` of `text`, as `JSXEpression`.
    */
-  matchJSXAttributeValueIdentifier = (text: string, start: number, end?: number): Tokens.JSXExpression | undefined => {
+  matchJSXAttributeValueIdentifier = (text: string, start: number, end?: number): P.JSXExpressionToken | undefined => {
     const contents = this.matchWord(text, start, end)
     if (!contents) return undefined
-    return new Tokens.JSXExpression({
+    return new P.JSXExpressionToken({
       // TODO: `contents` as the token???
       contents,
       raw: contents.value,
@@ -539,7 +539,7 @@ export class Tokenizer {
    * - Handles nested curlies, quotes, etc.
    * - Ignores leading whitespace.
    */
-  matchJSXExpression = (text: string, start = 0, end?: number): Tokens.JSXExpression | undefined => {
+  matchJSXExpression = (text: string, start = 0, end?: number): P.JSXExpressionToken | undefined => {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
 
@@ -551,7 +551,7 @@ export class Tokenizer {
     const contents = text.slice(nextStart + 1, endIndex)
 
     // return a new JSXExpression, advancing beyond the ending `}`.
-    return new Tokens.JSXExpression({
+    return new P.JSXExpressionToken({
       contents,
       raw: text.slice(start, endIndex + 1),
       offset: start
@@ -562,7 +562,7 @@ export class Tokenizer {
    * Match JSXText until one of `{`, `<`, `>` or `}`.
    * - NOTE: INCLUDES leading / trailing whitespace.
    */
-  matchJSXText = (text: string, start = 0, end?: number): Tokens.JSXText | undefined => {
+  matchJSXText = (text: string, start = 0, end?: number): P.JSXTextToken | undefined => {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
 
@@ -580,7 +580,7 @@ export class Tokenizer {
 
     // include leading whitespace in the output.
     const value = text.slice(start, endIndex)
-    return new Tokens.JSXText({
+    return new P.JSXTextToken({
       value,
       raw: value,
       offset: start
@@ -596,8 +596,8 @@ export class Tokenizer {
     return /^(##+|--+|\/\/+)(\s*)(.*)/
   }
 
-  /** Match a single-line comment at `start` of `text`, returning a `Comment` token if matched. */
-  matchComment = (text: string, start = 0, end?: number): Tokens.Comment | undefined => {
+  /** Match a single-line comment at `start` of `text`, returning a `CommentToken` if matched. */
+  matchComment = (text: string, start = 0, end?: number): P.CommentToken | undefined => {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
 
@@ -610,7 +610,7 @@ export class Tokenizer {
     if (!commentMatch) return undefined
 
     const [raw, commentSymbol, initialWhitespace, value] = commentMatch
-    return new Tokens.Comment({
+    return new P.CommentToken({
       value, // actual comment text
       commentSymbol, // actual comment symbol
       initialWhitespace, // whitespace between commentSymbol and comment value
@@ -620,13 +620,13 @@ export class Tokenizer {
   }
 
   /**
-   *  Break tokens into an array of arrays by `Newline` tokens.
-   * - Returns an array of lines WITHOUT the `Newline`s but WITH any leading `Indent` tokens.
+   *  Break tokens into an array of arrays by `NewlineToken`s.
+   * - Returns an array of lines WITHOUT the `NewlineToken`s but WITH any leading `IndentToken`s.
    * - Lines which are composed solely of whitespace are treated as blank.
    */
-  breakIntoLines = (tokens: P.Token[]): Tokens.Line[] => {
-    const lines: Tokens.Line[] = []
-    let line = new Tokens.Line({
+  breakIntoLines = (tokens: P.Token[]): P.LineToken[] => {
+    const lines: P.LineToken[] = []
+    let line = new P.LineToken({
       tokens: [],
       offset: 0,
       line: 0,
@@ -636,10 +636,10 @@ export class Tokenizer {
     })
     lines.push(line)
     tokens.forEach((token) => {
-      if (token instanceof Tokens.Newline) {
+      if (token instanceof P.NewlineToken) {
         line.record.newline = token
         if (line.indent === -1 && line.tokens.length) line.record.indent = 0
-        line = new Tokens.Line({
+        line = new P.LineToken({
           tokens: [],
           offset: token.offset + 1,
           line: token.line! + 1,
@@ -648,7 +648,7 @@ export class Tokenizer {
           indent: -1
         })
         lines.push(line)
-      } else if (token instanceof Tokens.Indent) {
+      } else if (token instanceof P.IndentToken) {
         // pull out leading whitespace as `line.indent`
         line.record.indent = token.length
         line.record.leading = token.raw
@@ -686,11 +686,11 @@ export class Tokenizer {
   }
 
   /**
-   * Break random `tokens` into array of `Block` tokens by:
-   * - first breaking into `Line` tokens and then
-   * - creating nested `Block` tokens as `line.indent` changes.
+   * Break random `tokens` into array of `BlockToken`s by:
+   * - first breaking into `LineToken`s and then
+   * - creating nested `BlockToken`s as `line.indent` changes.
    */
-  breakIntoIndentedBlocks = (tokens: P.Token[]): Tokens.Block[] => {
+  breakIntoIndentedBlocks = (tokens: P.Token[]): P.BlockToken[] => {
     // break into lines & return early if no lines
     const lines = this.breakIntoLines(tokens)
     if (lines.length === 0) return []
@@ -698,7 +698,7 @@ export class Tokenizer {
     // Establish the first block at the MINIMUM of all indents
     // in case the top of the block is indented LESS than somewhere below.
     // TODO: ??? seems like this should be a top-level error???
-    const block = new Tokens.Block({
+    const block = new P.BlockToken({
       offset: 0,
       line: 0,
       ch: 0,
@@ -712,7 +712,7 @@ export class Tokenizer {
       let topBlock = stack[stack.length - 1]
       // If indenting, push a new block
       while (line.indent > topBlock.indent) {
-        const newBlock = new Tokens.Block({
+        const newBlock = new P.BlockToken({
           offset: line.offset,
           line: line.line,
           ch: line.ch,
@@ -881,7 +881,7 @@ export class Tokenizer {
    * Given a set of tokens, slice whitespace (indent, newline or normal whitespace) from the front.
    */
   removeLeadingWhitespace = (tokens: P.Token[], start = 0): P.Token[] => {
-    while (tokens[start] instanceof Tokens.Whitespace) start++
+    while (tokens[start] instanceof P.WhitespaceToken) start++
     if (start === 0) return tokens
     return tokens.slice(start)
   }

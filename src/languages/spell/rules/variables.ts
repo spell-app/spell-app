@@ -3,7 +3,7 @@
  * a leading `the`.
  */
 import { singularize, pluralize } from "~/util"
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
@@ -28,13 +28,13 @@ export class VariableIdentifier extends P.Pattern {
     return `${value}`.replace(/-/g, "_").replace(/\s/g, "_") as T
   }
 
-  /** Build `AST.VariableExpression`, resolving `match.value` against `scope.variables` if possible. */
-  getAST(match: P.Match): AST.VariableExpression {
+  /** Build `P.ASTVariableExpression`, resolving `match.value` against `scope.variables` if possible. */
+  getAST(match: P.Match): P.ASTVariableExpression {
     // Get scope Variable, if there is one
     const variable = match.scope.variables?.get(match.value)
     // Allow variable to override name if it wants to (e.g. "it")
     const name = variable && variable.output ? variable.output : match.value
-    return new AST.VariableExpression(match, { raw: match.raw, name, variable })
+    return new P.ASTVariableExpression(match, { raw: match.raw, name, variable })
   }
 }
 SpellParser.Rules.VariableIdentifier = VariableIdentifier
@@ -68,8 +68,8 @@ export const variables = new SpellParser({
           match.variable = scope.variables?.get(match.groups.identifier!.value) || null
           return match
         }
-        getAST(match: P.Match<P.RulexGroups<"identifier">>): AST.VariableExpression {
-          return match.groups.identifier!.AST as AST.VariableExpression
+        getAST(match: P.Match<P.RulexGroups<"identifier">>): P.ASTVariableExpression {
+          return match.groups.identifier!.AST as P.ASTVariableExpression
         }
       },
       tests: [
@@ -106,8 +106,8 @@ export const variables = new SpellParser({
           if (!match.variable) return undefined
           return match
         }
-        getAST(match: P.Match<P.RulexGroups<"identifier">>): AST.VariableExpression {
-          return match.groups.identifier!.AST as AST.VariableExpression
+        getAST(match: P.Match<P.RulexGroups<"identifier">>): P.ASTVariableExpression {
+          return match.groups.identifier!.AST as P.ASTVariableExpression
         }
       },
       tests: [
@@ -138,7 +138,7 @@ export const variables = new SpellParser({
           if (match && typeof match.raw === "string" && match.raw === singularize(match.raw)) return match
           return undefined
         }
-        getAST(match: P.Match): AST.VariableExpression {
+        getAST(match: P.Match): P.ASTVariableExpression {
           const variable = super.getAST(match)
           variable.plurality = "singular"
           return variable
@@ -165,7 +165,7 @@ export const variables = new SpellParser({
           if (match && typeof match.raw === "string" && match.raw === pluralize(match.raw)) return match
           return undefined
         }
-        getAST(match: P.Match): AST.VariableExpression {
+        getAST(match: P.Match): P.ASTVariableExpression {
           const variable = super.getAST(match)
           variable.plurality = "plural"
           return variable

@@ -3,7 +3,7 @@
  * against `scope.types` when known.
  */
 import { typeCase, instanceCase, singularize, pluralize } from "~/util"
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
@@ -93,11 +93,11 @@ export class SpellType extends P.Pattern {
     return match
   }
 
-  /** Build `AST.TypeExpression` from `match.value` -- throws if the match somehow produced a non-string. */
-  getAST(match: P.Match): AST.TypeExpression {
+  /** Build `P.ASTTypeExpression` from `match.value` -- throws if the match somehow produced a non-string. */
+  getAST(match: P.Match): P.ASTTypeExpression {
     const { value, raw } = match
     if (typeof value !== "string") throw new TypeError(`Expected a string value, got ${typeof value}`)
-    return new AST.TypeExpression(match, { raw, name: value })
+    return new P.ASTTypeExpression(match, { raw, name: value })
   }
 }
 SpellParser.Rules.Type = SpellType
@@ -133,7 +133,7 @@ export const types = new SpellParser({
           if (match && typeof match.raw === "string" && match.raw === singularize(match.raw)) return match
           return undefined
         }
-        getAST(match: P.Match): AST.TypeExpression {
+        getAST(match: P.Match): P.ASTTypeExpression {
           const type = super.getAST(match)
           type.plurality = "singular"
           return type
@@ -168,7 +168,7 @@ export const types = new SpellParser({
           if (match && typeof match.raw === "string" && match.raw === pluralize(match.raw)) return match
           return undefined
         }
-        getAST(match: P.Match): AST.TypeExpression {
+        getAST(match: P.Match): P.ASTTypeExpression {
           const type = super.getAST(match)
           type.plurality = "plural"
           return type

@@ -2,7 +2,6 @@ import React from "react"
 
 import { view, scrollForElement, centerElementInParent } from "~/util"
 import { P } from "~/parser"
-import type { ASTNode } from "~/parser/ast/AST"
 import { store } from "~/app/store"
 
 import { UI } from "~/app/ui"
@@ -150,7 +149,7 @@ export class ASTViewer extends ErrorHandler<ASTViewerProps> {
 }
 
 /** State for `<ASTViewer>`: `ErrorHandlerState` plus the `ast` we're tracking for reset purposes. */
-type ASTViewerState = ErrorHandlerState & { ast?: ASTNode }
+type ASTViewerState = ErrorHandlerState & { ast?: P.ASTNode }
 
 /****************
  * ### `<ASTWrapper>`
@@ -190,7 +189,7 @@ export type ASTViewerProps = {
   /** Add scrolling className to wrapper. */
   scrolling?: boolean
   /** Root AST node to render. */
-  ast?: ASTNode
+  ast?: P.ASTNode
   /** Current editor selection, used to scroll/highlight the matching line. */
   selection?: EditorSelection
   /** Called with caught render error. */

@@ -1,5 +1,5 @@
 import { TextFile, batch } from "~/util"
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 
 /**
@@ -109,10 +109,10 @@ export class SpellCSSFile extends TextFile {
   }
 
   /** AST for our `compiled` output. */
-  /*@state*/ get AST(): AST.ASTNode | undefined {
+  /*@state*/ get AST(): P.ASTNode | undefined {
     return this.getState("AST", () => undefined)
   }
-  set AST(AST: AST.ASTNode | undefined) {
+  set AST(AST: P.ASTNode | undefined) {
     this.setState("AST", AST)
   }
 
@@ -139,14 +139,14 @@ export class SpellCSSFile extends TextFile {
   }
 
   /**
-   * "Parse" file -- really just wraps whole `contents` as one `P.Tokens.Text` token and feeds it to
+   * "Parse" file -- really just wraps whole `contents` as one `P.TextToken` token and feeds it to
    * `rootScope`'s `"css"` rule, since CSS isn't tokenized/parsed like spell source.
    */
   async parse(parentScope?: P.Scope): Promise<P.Match | undefined> {
     if (this.match) return this.match
     await this.load(undefined)
     this.resetCompiled()
-    const token = new P.Tokens.Text({ value: this.contents, raw: this.contents, offset: 0 })
+    const token = new P.TextToken({ value: this.contents, raw: this.contents, offset: 0 })
     const scope = this.getScope(parentScope)
     // NOTE: `Scope.parse()` is typed for string input only; call `parser.parse()` directly
     // (exactly what `Scope.parse()` would do internally) so we can pass tokens instead.

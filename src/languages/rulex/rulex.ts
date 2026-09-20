@@ -118,7 +118,7 @@ rulex.defineRules(
     rules: [
       testLocation,
       new P.Pattern({ argument: "isEscaped", pattern: /^\\$/, optional: true }),
-      new P.TokenType({ tokenType: P.Tokens.Symbol, argument: "literal" }),
+      new P.TokenType({ tokenType: P.SymbolToken, argument: "literal" }),
       repeatFlag
     ],
     constructor: class symbolRule extends P.Sequence {
@@ -218,7 +218,7 @@ rulex.defineRules(
   {
     name: "number",
     alias: "rule",
-    rules: [testLocation, new P.TokenType({ tokenType: P.Tokens.Number, argument: "number" }), repeatFlag],
+    rules: [testLocation, new P.TokenType({ tokenType: P.NumberToken, argument: "number" }), repeatFlag],
     constructor: class numberRule extends P.Sequence {
       compile(match: P.Match<P.RulexGroups<"number"> & P.FlagGroups>) {
         const { number } = match.groups

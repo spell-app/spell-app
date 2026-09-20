@@ -48,75 +48,75 @@
   }
 
   .keyword,
-  &.NullLiteral,
-  &.UndefinedLiteral,
-  &.ThisLiteral {
+  &.ASTNullLiteral,
+  &.ASTUndefinedLiteral,
+  &.ASTThisLiteral {
     .syntax-keyword();
   }
 
-  &.LineComment,
-  &.BlockComment {
+  &.ASTLineComment,
+  &.ASTBlockComment {
     .syntax-comment();
   }
 
-  &.LineComment.header {
+  &.ASTLineComment.header {
     .syntax-comment-header();
   }
 
-  &.ParserAnnotation {
+  &.ASTParserAnnotation {
     .syntax-parser-annotation();
   }
 
-  &.ParseError {
+  &.ASTParseError {
     .syntax-parse-error();
   }
 
-  &.StringLiteral,
-  &.QuotedExpression,
-  &.QuotedExpression .PropertyLiteral {
+  &.ASTStringLiteral,
+  &.ASTQuotedExpression,
+  &.ASTQuotedExpression .ASTPropertyLiteral {
     .syntax-string();
   }
 
-  &.ConstantExpression {
+  &.ASTConstantExpression {
     .syntax-enum();
   }
 
-  &.NumericLiteral {
+  &.ASTNumericLiteral {
     .syntax-number();
   }
 
-  &.BooleanLiteral {
+  &.ASTBooleanLiteral {
     .syntax-boolean();
   }
 
-  &.TypeExpression {
+  &.ASTTypeExpression {
     .syntax-class();
   }
-  // &.PrototypeExpression .keyword.prototype {
+  // &.ASTPrototypeExpression .keyword.prototype {
   //   .syntax-class()
   // }
 
-  &.VariableExpression > .name {
+  &.ASTVariableExpression > .name {
     .syntax-variable();
   }
-  &.AssignmentStatement.declaration .VariableExpression > .name {
+  &.ASTAssignmentStatement.declaration .ASTVariableExpression > .name {
     .syntax-variable-declaration();
   }
 
-  &.VariableExpression.argument > .name {
+  &.ASTVariableExpression.argument > .name {
     .syntax-parameter();
   }
 
-  &.VariableExpression.global > .name {
+  &.ASTVariableExpression.global > .name {
     .syntax-global-variable();
   }
 
-  &.PropertyLiteral {
+  &.ASTPropertyLiteral {
     .syntax-property();
   }
 
-  &.MethodDefinition > .method-name,
-  &.MethodInvocation > .method-name {
+  &.ASTMethodDefinition > .method-name,
+  &.ASTMethodInvocation > .method-name {
     .syntax-function();
   }
 

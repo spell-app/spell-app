@@ -3,16 +3,16 @@
  * plus inline `css` string installation.
  */
 
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 
 /**
- * Narrow `node` (typed generically as `AST.ASTNode | undefined`) to concrete AST subclass `T`.
+ * Narrow `node` (typed generically as `P.ASTNode | undefined`) to concrete AST subclass `T`.
  * - `T` is chosen by inspection: referenced sub-rule's `getAST()` is known to always produce it.
  */
-function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
+function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
   return node as T
 }
 
@@ -41,9 +41,9 @@ export const UI = new SpellParser({
         getAST(match: P.Match<P.RulexGroups<"operator:expressions">>) {
           const { operator, expressions } = match.groups
           const methodName = this.operatorMap[operator?.value || "default"]
-          return new AST.ConsoleMethodInvocation(match, {
+          return new P.ASTConsoleMethodInvocation(match, {
             methodName,
-            args: expressions?.items.map((item) => ast<AST.Expression>(item.AST))
+            args: expressions?.items.map((item) => ast<P.ASTExpression>(item.AST))
           })
         }
       },
@@ -68,7 +68,7 @@ export const UI = new SpellParser({
       syntax: "end print group",
       constructor: class end_print_group extends SpellStatement {
         getAST(match: P.Match) {
-          return new AST.ConsoleMethodInvocation(match, { methodName: "groupEnd" })
+          return new P.ASTConsoleMethodInvocation(match, { methodName: "groupEnd" })
         }
       },
       tests: [
@@ -92,9 +92,9 @@ export const UI = new SpellParser({
       constructor: class notify extends SpellStatement {
         getAST(match: P.Match<P.RulexGroups<"message:okButton">>) {
           const { message, okButton } = match.groups
-          const args: AST.Expression[] = [ast<AST.Expression>(message!.AST)]
-          if (okButton) args.push(ast<AST.Expression>(okButton.AST))
-          return new AST.CoreMethodInvocation(match, {
+          const args: P.ASTExpression[] = [ast<P.ASTExpression>(message!.AST)]
+          if (okButton) args.push(ast<P.ASTExpression>(okButton.AST))
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "notify",
             args
           })
@@ -125,10 +125,10 @@ export const UI = new SpellParser({
       constructor: class alert extends SpellStatement {
         getAST(match: P.Match<P.RulexGroups<"message:okButton">>) {
           const { message, okButton } = match.groups
-          const args: AST.Expression[] = [ast<AST.Expression>(message!.AST)]
-          if (okButton) args.push(ast<AST.Expression>(okButton.AST))
-          return new AST.AwaitExpression(match, {
-            expression: new AST.CoreMethodInvocation(match, {
+          const args: P.ASTExpression[] = [ast<P.ASTExpression>(message!.AST)]
+          if (okButton) args.push(ast<P.ASTExpression>(okButton.AST))
+          return new P.ASTAwaitExpression(match, {
+            expression: new P.ASTCoreMethodInvocation(match, {
               methodName: "alert",
               args
             })
@@ -160,10 +160,10 @@ export const UI = new SpellParser({
       constructor: class warn extends SpellStatement {
         getAST(match: P.Match<P.RulexGroups<"message:okButton">>) {
           const { message, okButton } = match.groups
-          const args: AST.Expression[] = [ast<AST.Expression>(message!.AST)]
-          if (okButton) args.push(ast<AST.Expression>(okButton.AST))
-          return new AST.AwaitExpression(match, {
-            expression: new AST.CoreMethodInvocation(match, {
+          const args: P.ASTExpression[] = [ast<P.ASTExpression>(message!.AST)]
+          if (okButton) args.push(ast<P.ASTExpression>(okButton.AST))
+          return new P.ASTAwaitExpression(match, {
+            expression: new P.ASTCoreMethodInvocation(match, {
               methodName: "warn",
               args
             })
@@ -195,11 +195,11 @@ export const UI = new SpellParser({
       constructor: class confirm extends SpellStatement {
         getAST(match: P.Match<P.RulexGroups<"message:okButton:cancelButton">>) {
           const { message, okButton, cancelButton } = match.groups
-          const args: AST.Expression[] = [ast<AST.Expression>(message!.AST)]
-          if (okButton) args.push(ast<AST.Expression>(okButton.AST))
-          if (cancelButton) args.push(ast<AST.Expression>(cancelButton.AST))
-          return new AST.AwaitExpression(match, {
-            expression: new AST.CoreMethodInvocation(match, {
+          const args: P.ASTExpression[] = [ast<P.ASTExpression>(message!.AST)]
+          if (okButton) args.push(ast<P.ASTExpression>(okButton.AST))
+          if (cancelButton) args.push(ast<P.ASTExpression>(cancelButton.AST))
+          return new P.ASTAwaitExpression(match, {
+            expression: new P.ASTCoreMethodInvocation(match, {
               methodName: "confirm",
               args
             })
@@ -233,10 +233,10 @@ export const UI = new SpellParser({
       constructor: class prompt extends SpellStatement {
         getAST(match: P.Match<P.RulexGroups<"message:defaultValue">>) {
           const { message, defaultValue } = match.groups
-          const args: AST.Expression[] = [ast<AST.Expression>(message!.AST)]
-          if (defaultValue) args.push(ast<AST.Expression>(defaultValue.AST))
-          return new AST.AwaitExpression(match, {
-            expression: new AST.CoreMethodInvocation(match, {
+          const args: P.ASTExpression[] = [ast<P.ASTExpression>(message!.AST)]
+          if (defaultValue) args.push(ast<P.ASTExpression>(defaultValue.AST))
+          return new P.ASTAwaitExpression(match, {
+            expression: new P.ASTCoreMethodInvocation(match, {
               methodName: "prompt",
               args
             })
@@ -275,25 +275,25 @@ export const UI = new SpellParser({
     //     }
 
     /**
-     * Parse CSS from a `Text` token WITHOUT quotes.
+     * Parse CSS from a `TextToken` WITHOUT quotes.
      * - Compiles to `spellCore.installStyles(file, css)`; newlines in `css` are escaped to `¬` so the
      *   value survives being embedded in a backtick template literal.
      */
     {
       name: "css",
       alias: "expression",
-      tokenType: P.Tokens.Text,
+      tokenType: P.TextToken,
       constructor: class css extends P.TokenType {
         getAST(match: P.Match) {
           // HACK: `name` comes from SpellCSSFile
           const { value, file } = match
           // munge returns to `¬`
           const safeValue = value.replace(/\n/g, "¬")
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "installStyles",
             args: [
-              file ? new AST.QuotedExpression(match, file) : new AST.UndefinedLiteral(match),
-              new AST.BackTickExpression(match, safeValue)
+              file ? new P.ASTQuotedExpression(match, file) : new P.ASTUndefinedLiteral(match),
+              new P.ASTBackTickExpression(match, safeValue)
             ]
           })
         }

@@ -2,7 +2,7 @@
  * Rules for constants -- e.g. `red`, `green`, either free-standing (possibly-unknown, quoted as a string
  * literal) or resolved against `scope.constants` (`known_constant`).
  */
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
@@ -29,11 +29,11 @@ export class SpellConstant extends P.Pattern {
     return match
   }
 
-  /** Build `AST.ConstantExpression`, falling back to a fresh, unnamed `ScopeConstant` if unknown. */
-  getAST(match: P.Match): AST.ConstantExpression {
+  /** Build `P.ASTConstantExpression`, falling back to a fresh, unnamed `ScopeConstant` if unknown. */
+  getAST(match: P.Match): P.ASTConstantExpression {
     const name: string = match.constant ? match.constant.name : match.value
     const scopeConst = match.constant || match.scope.constants?.get(name)
-    return new AST.ConstantExpression(match, {
+    return new P.ASTConstantExpression(match, {
       name,
       output: (scopeConst || new P.ScopeConstant(name)).toString(),
       constant: scopeConst

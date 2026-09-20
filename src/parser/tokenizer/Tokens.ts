@@ -3,18 +3,18 @@ import type { P } from "~/parser"
 /**
  * `Token` -- root class for various specific `Token` classes.
  */
-export class Token<ValueType = any, TRT extends P.TokenProps<ValueType> = P.TokenProps<ValueType>> {
+export class Token<ValueType = any, RecordType extends P.TokenProps<ValueType> = P.TokenProps<ValueType>> {
   /**
    * Immutable record of token properties.
    * - While this is technically public and read/write, only `Tokenizer` should write to it!
    */
-  readonly record: TRT
+  readonly record: RecordType
 
   /**
    * Build token wrapping `record`.
    * - TODO: do speed test to see if using getters is slower than direct assignment.
    */
-  constructor(record: TRT) {
+  constructor(record: RecordType) {
     this.record = record
   }
 
@@ -101,10 +101,10 @@ export class Token<ValueType = any, TRT extends P.TokenProps<ValueType> = P.Toke
 
 /**
  * Base `whitespace` class for all whitespace variants.
- * - You'll generally create one of `Token.InlineWhitespace`, `Token.Indent` or `Token.Newline` instead.
+ * - You'll generally create one of `InlineWhitespaceToken`, `IndentToken` or `NewlineToken` instead.
  * - `whitespace.value` is the actual whitespace string.
  */
-export class Whitespace extends Token<string> {
+export class WhitespaceToken extends Token<string> {
   /**
    * Return the "length" of this whitespace, eg for an indent.
    * - REFACTOR: this is overriding base `length` which includes whitespace.
@@ -114,15 +114,15 @@ export class Whitespace extends Token<string> {
   }
 }
 
-/** `Indent` token -- a run of spaces/tabs that occurs at the beginning of a line. */
-export class Indent extends Whitespace {}
+/** `IndentToken` -- a run of spaces/tabs that occurs at the beginning of a line. */
+export class IndentToken extends WhitespaceToken {}
 
-/** `InlineWhitespace` token -- a run of spaces/tabs that occurs in the middle of a line. */
-export class InlineWhitespace extends Whitespace {}
+/** `InlineWhitespaceToken` -- a run of spaces/tabs that occurs in the middle of a line. */
+export class InlineWhitespaceToken extends WhitespaceToken {}
 
-/** `Newline` class, a single "return" character. */
-export class Newline extends Whitespace {
-  /** Build a `Newline` token -- always represents a single `\n`, regardless of `record`. */
+/** `NewlineToken` class, a single "return" character. */
+export class NewlineToken extends WhitespaceToken {
+  /** Build a `NewlineToken` -- always represents a single `\n`, regardless of `record`. */
   constructor(record: P.TokenProps<string>) {
     super(record)
   }
@@ -146,20 +146,20 @@ export class Newline extends Whitespace {
  * - Note that the word MUST start with a letter.
  * - `literal.value` is the actual text matched.
  */
-export class Word extends Token<string> {}
+export class WordToken extends Token<string> {}
 
 /**
  * Literal string class which refers to a single non-alphanumeric symbol
  *  - `literal.value` is the actual text matched.
  */
-export class Symbol extends Token<string> {}
+export class SymbolToken extends Token<string> {}
 
 /**
- * `Text` class for a literal string, e.g. text inside quotes.
+ * `TextToken` class for a literal string, e.g. text inside quotes.
  *  - `text.value` is the original string, including outer quotes.
  *  - Use `text.innerText` to get just the bit inside the quotes.
  */
-export class Text extends Token<string> {
+export class TextToken extends Token<string> {
   /** Text without surrounding quotes -- strips one leading/trailing quote char if present. */
   get innerText() {
     const string = this.value
@@ -181,20 +181,20 @@ export class Text extends Token<string> {
  *  - `number.value` is the actual number matched.
  *  - `number.raw` is the input string.
  */
-export class Number extends Token<number> {}
+export class NumberToken extends Token<number> {}
 
 ////////////////
 // ## JSX expressions
 ////////////////
 
 /** Possible token types for a JSX attribute's value. */
-export type JSXAttributeValue = JSXExpression | JSXText | Text | Number
+export type JSXAttributeValue = JSXExpressionToken | JSXTextToken | TextToken | NumberToken
 
 /** Common superclass for all JSX tokens. */
-export class JSXToken<ValueType = any, TRT extends P.TokenProps<ValueType> = P.TokenProps<ValueType>> extends Token<
-  ValueType,
-  TRT
-> {}
+export class JSXToken<
+  ValueType = any,
+  RecordType extends P.TokenProps<ValueType> = P.TokenProps<ValueType>
+> extends Token<ValueType, RecordType> {}
 
 /**
  * Token for a single JSX element:
@@ -202,7 +202,7 @@ export class JSXToken<ValueType = any, TRT extends P.TokenProps<ValueType> = P.T
  *  - `element.attributes` is an array of `jsxAttribute` children
  *  - `element.children` is an array of child `jsxElement` instances.
  */
-export class JSXElement extends JSXToken<never, JSXElementTokenProps> {
+export class JSXElementToken extends JSXToken<never, JSXElementTokenProps> {
   /** Tag name. */
   get tagName() {
     return this.record.tagName
@@ -220,29 +220,29 @@ export class JSXElement extends JSXToken<never, JSXElementTokenProps> {
     return this.record.isUnaryTag
   }
 }
-/** Extra `record` props for `JSXElement`. */
+/** Extra `record` props for `JSXElementToken`. */
 export type JSXElementTokenProps = Prettify<P.TokenProps<never>> & {
   /** Tag name. */
   tagName: string
   /** Does this represent a unary tag? */
   isUnaryTag?: boolean
   /** Array of attributes. */
-  attributes?: JSXAttribute[]
+  attributes?: JSXAttributeToken[]
   /** Array of children. */
-  children?: JSXElement[]
+  children?: JSXElementToken[]
 }
 
 /**
  * Token for a single JSX end tag.
  *  - `element.tagName` is the tag name.
  */
-export class JSXEndTag extends JSXToken<never, JSXEndTagTokenProps> {
+export class JSXEndTagToken extends JSXToken<never, JSXEndTagTokenProps> {
   /** Tag name. */
   get tagName() {
     return this.record.tagName
   }
 }
-/** Extra `record` props for `JSXEndTag`. */
+/** Extra `record` props for `JSXEndTagToken`. */
 export type JSXEndTagTokenProps = Prettify<P.TokenProps<never>> & {
   /** Tag name. */
   tagName: string
@@ -254,13 +254,13 @@ export type JSXEndTagTokenProps = Prettify<P.TokenProps<never>> & {
  *  - `attr.value` is the value of the attribute as... ???
  * - REFACTOR: type for `value`????
  */
-export class JSXAttribute extends JSXToken<any, JSXAttributeTokenProps> {
+export class JSXAttributeToken extends JSXToken<any, JSXAttributeTokenProps> {
   /** Attribute name. */
   get name() {
     return this.record.name
   }
 }
-/** Extra `record` props for `JSXAttribute`. */
+/** Extra `record` props for `JSXAttributeToken`. */
 export type JSXAttributeTokenProps = Prettify<P.TokenProps<JSXAttributeValue>> & {
   /** Attribute name. */
   name: string
@@ -270,7 +270,7 @@ export type JSXAttributeTokenProps = Prettify<P.TokenProps<JSXAttributeValue>> &
  * Loose text in the middle of a JSX block.
  * - `text.value` is the actual text matched (including whitespace).
  */
-export class JSXText extends JSXToken<string> {
+export class JSXTextToken extends JSXToken<string> {
   /**
    * Trimmed `value` wrapped in double quotes, or `undefined` if blank.
    * - TODO: escape quotes!
@@ -283,9 +283,9 @@ export class JSXText extends JSXToken<string> {
 }
 
 /** JSX expression, composed of inline tokens which should yield an `expression` or `statement`. */
-export class JSXExpression extends JSXToken<string, JSXExpressionTokenProps> {
+export class JSXExpressionToken extends JSXToken<string, JSXExpressionTokenProps> {
   /**
-   * Build a `JSXExpression` from `record`.
+   * Build a `JSXExpressionToken` from `record`.
    * - SIDE EFFECT: defaults `record.value` to `""` when falsy, so `value` is always a string.
    */
   constructor(record: JSXExpressionTokenProps) {
@@ -300,7 +300,7 @@ export class JSXExpression extends JSXToken<string, JSXExpressionTokenProps> {
     return this.record.contents
   }
 }
-/** Extra `record` props for `JSXExpression`. */
+/** Extra `record` props for `JSXExpressionToken`. */
 export type JSXExpressionTokenProps = Prettify<P.TokenProps<string>> & {
   /**
    * Contents of the expression -- usually raw string (including leading/trailing whitespace), but can also
@@ -314,12 +314,12 @@ export type JSXExpressionTokenProps = Prettify<P.TokenProps<string>> & {
 ////////////////
 
 /**
- * Comment class for single-line comments.
+ * `CommentToken` class for single-line comments.
  * - `comment.commentSymbol` is initial comment symbol, one of `"--"`, `"//"`, `"##"`.
  * - `comment.initialWhitespace` is whitespace BETWEEN comment symbol and comment text.
  * - `comment.value` is comment text (until end of line).
  */
-export class Comment extends Token<string, CommentTokenProps> {
+export class CommentToken extends Token<string, CommentTokenProps> {
   /** Initial comment symbol, e.g.  `--`, `//`, `##` */
   get commentSymbol() {
     return this.record.commentSymbol
@@ -330,7 +330,7 @@ export class Comment extends Token<string, CommentTokenProps> {
     return this.record.initialWhitespace
   }
 }
-/** Extra `record` props for `Comment`. */
+/** Extra `record` props for `CommentToken`. */
 export type CommentTokenProps = Prettify<P.TokenProps<string>> & {
   /** Initial comment symbol, e.g.  `--`, `//`, `##` */
   commentSymbol: string
@@ -341,13 +341,13 @@ export type CommentTokenProps = Prettify<P.TokenProps<string>> & {
 // REFACTOR: multi-line comments?
 
 /**
- * `Line` class for `Tokenizer.breakIntoLines()`.
+ * `LineToken` class for `Tokenizer.breakIntoLines()`.
  * - `.offset` is line start offset in source.
  * - `.leading` (optional) is leading whitespace at start of line.
  * - `.tokens` is (possibly empty) array of tokens other than indent/newline.
  * - `.newline` (optional) is newline token AT END OF LINE.
  */
-export class Line extends Token<string, LineTokenProps> {
+export class LineToken extends Token<string, LineTokenProps> {
   /** Leading whitespace at start of line. */
   get leading() {
     return this.record.leading
@@ -378,7 +378,7 @@ export class Line extends Token<string, LineTokenProps> {
     return (this.leading || "") + this.tokens.join("") + (this.newline ? "\n" : "")
   }
 }
-/** Extra `record` props for `Line`. */
+/** Extra `record` props for `LineToken`. */
 export type LineTokenProps = Prettify<P.TokenProps<string>> & {
   /** Array of tokens other than indent/newline. */
   tokens: Token[]
@@ -390,15 +390,15 @@ export type LineTokenProps = Prettify<P.TokenProps<string>> & {
    * Newline token AT END OF LINE.
    * - REFACTOR: can this be `token.whitespace` instead?
    */
-  newline?: Newline
+  newline?: NewlineToken
 }
 
 /**
- * `Block` class for `Tokenizer.breakIntoIndentedBlocks()`.
+ * `BlockToken` class for `Tokenizer.breakIntoIndentedBlocks()`.
  * - `.offset` is block start offset char in source.
- * - `.tokens` is (possibly empty) array of `Token.Line`s or `Token.Block`s.
+ * - `.tokens` is (possibly empty) array of `LineToken`s or `BlockToken`s.
  */
-export class Block extends Token<string, BlockTokenProps> {
+export class BlockToken extends Token<string, BlockTokenProps> {
   /** Array of tokens as `LineToken`s or `BlockToken`s. */
   get tokens() {
     return this.record.tokens
@@ -417,10 +417,10 @@ export class Block extends Token<string, BlockTokenProps> {
     return this.tokens.join("\n")
   }
 }
-/** Extra `record` props for `Block`. */
+/** Extra `record` props for `BlockToken`. */
 export type BlockTokenProps = Prettify<P.TokenProps<string>> & {
   /** Array of tokens. */
-  tokens: Array<Line | Block>
+  tokens: Array<LineToken | BlockToken>
   /** Indent level of the block. */
   indent: number
 }

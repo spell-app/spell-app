@@ -1,5 +1,5 @@
 import { upperFirst, pluralize, singularize, type IndexedList } from "~/util"
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
@@ -29,17 +29,17 @@ declare module "~/parser/scope/ScopeVariable" {
  */
 type InlineBlockGroups = { inlineStatement?: P.Match; nestedBlock?: P.Match }
 
-/** What `AST.MethodDefinition`'s `body` prop accepts. */
-type MethodBody = AST.StatementBlock | AST.Statement | AST.Expression
+/** What `P.ASTMethodDefinition`'s `body` prop accepts. */
+type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
 
 /**
  * `Match.AST` (src/parser/Match.ts) is always typed as `ASTNode` because `Rule.getAST()`'s return type isn't
  * parameterized per the specific rule a rulex group refers to -- only the rule's own semantics (which we know,
  * writing the rule) tell us which concrete node type comes back. Narrow once here instead of casting inline.
  */
-function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match): T
-function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match | undefined): T | undefined
-function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match | undefined): T | undefined {
+function astAs<T extends P.ASTNode = P.ASTExpression>(match: P.Match): T
+function astAs<T extends P.ASTNode = P.ASTExpression>(match: P.Match | undefined): T | undefined
+function astAs<T extends P.ASTNode = P.ASTExpression>(match: P.Match | undefined): T | undefined {
   return match?.AST as T | undefined
 }
 
@@ -135,15 +135,15 @@ export const classes = new SpellParser({
           if (match.scope.types?.get(type!.value)) return
           match.scope.types?.add({ name: type!.value, superType: superType?.value })
         }
-        getAST(match: P.Match<P.RulexGroups<"type:superType">>): AST.StatementGroup {
+        getAST(match: P.Match<P.RulexGroups<"type:superType">>): P.ASTStatementGroup {
           const { type, superType } = match.groups
-          return new AST.StatementGroup(match, {
+          return new P.ASTStatementGroup(match, {
             statements: [
-              new AST.ClassDeclaration(match, {
-                type: astAs<AST.TypeExpression>(type!),
-                superType: astAs<AST.TypeExpression>(superType)
+              new P.ASTClassDeclaration(match, {
+                type: astAs<P.ASTTypeExpression>(type!),
+                superType: astAs<P.ASTTypeExpression>(superType)
               }),
-              new AST.ExportInvocation(match, {
+              new P.ASTExportInvocation(match, {
                 property: type!.value,
                 value: astAs(type!)
               })
@@ -189,21 +189,21 @@ export const classes = new SpellParser({
 
           match.scope.types?.add({ name: type!.value, superType: "list" })
         }
-        getAST(match: P.Match<P.RulexGroups<"type:instanceType">>): AST.StatementGroup {
+        getAST(match: P.Match<P.RulexGroups<"type:instanceType">>): P.ASTStatementGroup {
           const { type, instanceType } = match.groups
-          return new AST.StatementGroup(match, {
+          return new P.ASTStatementGroup(match, {
             statements: [
               // Declare the class
-              new AST.ClassDeclaration(match, {
-                type: astAs<AST.TypeExpression>(type!),
-                superType: new AST.TypeExpression(match, { raw: "list", name: "List" })
+              new P.ASTClassDeclaration(match, {
+                type: astAs<P.ASTTypeExpression>(type!),
+                superType: new P.ASTTypeExpression(match, { raw: "list", name: "List" })
               }),
-              new AST.ExportInvocation(match, {
+              new P.ASTExportInvocation(match, {
                 property: type!.value,
                 value: astAs(type!)
               }),
-              new AST.PropertyDefinition(match, {
-                thing: new AST.PrototypeExpression(match, { type: astAs<AST.TypeExpression>(type!) }),
+              new P.ASTPropertyDefinition(match, {
+                thing: new P.ASTPrototypeExpression(match, { type: astAs<P.ASTTypeExpression>(type!) }),
                 property: "instanceType",
                 value: astAs(instanceType!)
               })
@@ -238,11 +238,11 @@ export const classes = new SpellParser({
       alias: "expression",
       syntax: "a new {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       constructor: class new_thing extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"type:props">>): AST.NewInstanceExpression {
+        getAST(match: P.Match<P.RulexGroups<"type:props">>): P.ASTNewInstanceExpression {
           const { type, props } = match.groups
-          return new AST.NewInstanceExpression(match, {
-            type: astAs<AST.TypeExpression>(type!),
-            props: astAs<AST.ObjectLiteral>(props)
+          return new P.ASTNewInstanceExpression(match, {
+            type: astAs<P.ASTTypeExpression>(type!),
+            props: astAs<P.ASTObjectLiteral>(props)
           })
         }
       },
@@ -275,17 +275,17 @@ export const classes = new SpellParser({
       alias: "expression",
       syntax: "a new (list|List) (of {instanceType:type}?)",
       constructor: class new_list extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"instanceType">>): AST.NewInstanceExpression {
+        getAST(match: P.Match<P.RulexGroups<"instanceType">>): P.ASTNewInstanceExpression {
           const { instanceType } = match.groups
-          return new AST.NewInstanceExpression(match, {
-            type: new AST.TypeExpression(match, { name: "List" }),
+          return new P.ASTNewInstanceExpression(match, {
+            type: new P.ASTTypeExpression(match, { name: "List" }),
             props:
               instanceType &&
-              new AST.ObjectLiteral(instanceType, {
+              new P.ASTObjectLiteral(instanceType, {
                 properties: [
-                  new AST.ObjectLiteralProperty(instanceType, {
+                  new P.ASTObjectLiteralProperty(instanceType, {
                     property: "instanceType",
-                    value: new AST.StringLiteral(instanceType, { value: `"${instanceType.value}"` })
+                    value: new P.ASTStringLiteral(instanceType, { value: `"${instanceType.value}"` })
                   })
                 ]
               })
@@ -319,11 +319,11 @@ export const classes = new SpellParser({
       syntax: "create (a|an) {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
       testRule: "create",
       constructor: class create_thing extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"type:props">>): AST.NewInstanceExpression {
+        getAST(match: P.Match<P.RulexGroups<"type:props">>): P.ASTNewInstanceExpression {
           const { type, props } = match.groups
-          return new AST.NewInstanceExpression(match, {
-            type: astAs<AST.TypeExpression>(type!),
-            props: astAs<AST.ObjectLiteral>(props)
+          return new P.ASTNewInstanceExpression(match, {
+            type: astAs<P.ASTTypeExpression>(type!),
+            props: astAs<P.ASTObjectLiteral>(props)
           })
         }
       },
@@ -368,16 +368,16 @@ export const classes = new SpellParser({
     /**
      * `as either red or black` / `as one of clubs, diamonds, hearts, spades` -- specifies a property's
      * allowed values as an enumeration, for use by `define_property_has` below.
-     * - Compiles (via `getAST()`) to an `AST.Enumeration` array literal, e.g. `['red', 'black']`.
+     * - Compiles (via `getAST()`) to a `P.ASTEnumeration` array literal, e.g. `['red', 'black']`.
      */
     {
       name: "type_specifier_enum",
       alias: "type_specifier",
       syntax: "as (either|one of) {enumeration:identifier_list}",
       constructor: class type_specifier_enum extends P.Sequence {
-        getAST(match: P.Match<P.RulexGroups<"enumeration">>): AST.Enumeration {
+        getAST(match: P.Match<P.RulexGroups<"enumeration">>): P.ASTEnumeration {
           const enumeration = match.groups.enumeration!.items.map((item) => astAs(item))
-          return new AST.Enumeration(match, {
+          return new P.ASTEnumeration(match, {
             enumeration,
             // Every item here comes from `identifier_list`, which only ever matches `known_variable`,
             // `constant` or `number` leaves -- all `Literal` subclasses whose `compile()` returns the
@@ -405,8 +405,8 @@ export const classes = new SpellParser({
       alias: "type_specifier",
       syntax: "as (a|an)? {datatype:singular_type}",
       constructor: class type_specifier_datatype extends P.Sequence {
-        getAST(match: P.Match<P.RulexGroups<"datatype">>): AST.TypeExpression {
-          return astAs<AST.TypeExpression>(match.groups.datatype!)
+        getAST(match: P.Match<P.RulexGroups<"datatype">>): P.ASTTypeExpression {
+          return astAs<P.ASTTypeExpression>(match.groups.datatype!)
         }
       },
       tests: [
@@ -428,8 +428,8 @@ export const classes = new SpellParser({
       alias: "type_specifier",
       syntax: "as {new_thing}",
       constructor: class type_specifier_instance extends P.Sequence {
-        getAST(match: P.Match<P.RulexGroups<"new_thing">>): AST.NewInstanceExpression {
-          return astAs<AST.NewInstanceExpression>(match.groups.new_thing!)
+        getAST(match: P.Match<P.RulexGroups<"new_thing">>): P.ASTNewInstanceExpression {
+          return astAs<P.ASTNewInstanceExpression>(match.groups.new_thing!)
         }
       },
       tests: [
@@ -452,8 +452,8 @@ export const classes = new SpellParser({
       alias: "type_specifier",
       syntax: "as either? (yes or no|true or false)",
       constructor: class type_specifier_yes_or_no extends P.Sequence {
-        getAST(match: P.Match): AST.TypeExpression {
-          return new AST.TypeExpression(match, { raw: "yes or no", name: "choice" })
+        getAST(match: P.Match): P.ASTTypeExpression {
+          return new P.ASTTypeExpression(match, { raw: "yes or no", name: "choice" })
         }
       },
       tests: [
@@ -494,7 +494,7 @@ export const classes = new SpellParser({
           const typeScope = getOrStubType(scope, typeName)
 
           // If there is a specifier as enumerated values, add rules to match it
-          if (specifierAST instanceof AST.Enumeration) {
+          if (specifierAST instanceof P.ASTEnumeration) {
             const groupName = pluralize(upperFirst(property!.value))
 
             const { values } = specifierAST
@@ -523,44 +523,44 @@ export const classes = new SpellParser({
               alias: "expression",
               literals,
               constructor: class typename_groupname extends P.Literals {
-                getAST(_match: P.Match): AST.PropertyExpression {
-                  return new AST.PropertyExpression(_match, {
+                getAST(_match: P.Match): P.ASTPropertyExpression {
+                  return new P.ASTPropertyExpression(_match, {
                     object: astAs(type!),
-                    property: new AST.PropertyLiteral(property!, groupName)
+                    property: new P.ASTPropertyLiteral(property!, groupName)
                   })
                 }
               }
             })
 
             // Add comment string which we'll output below
-            match.ruleComment = new AST.ParserAnnotation(match, {
+            match.ruleComment = new P.ASTParserAnnotation(match, {
               value: `added rule: '${literals.map((group) => `(${group.join("|")})`).join(" ")}'`
             })
           }
         }
-        getAST(match: P.Match<DefinePropertyHasGroups>): AST.StatementGroup {
+        getAST(match: P.Match<DefinePropertyHasGroups>): P.ASTStatementGroup {
           const { type, property } = match.groups
 
           // output statements
-          const statements: Array<AST.Statement | AST.Expression | AST.Comment | AST.BlankLine> = []
-          const props = new AST.ObjectLiteral(match)
+          const statements: Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine> = []
+          const props = new P.ASTObjectLiteral(match)
           props.addProp("property", `'${property!.value}'`)
 
           // If there is a specifier, add as a condition to the assignment
           const specifier = match.groups.specifier?.AST
           if (specifier) {
             // Enumerated values as strings/numbers/etc
-            if (specifier instanceof AST.Enumeration) {
+            if (specifier instanceof P.ASTEnumeration) {
               // Add comment that we created a rule previously
               statements.push(match.ruleComment!)
               props.addProp("enumeration", specifier)
               props.addProp("enumerationProp", `'${pluralize(upperFirst(property!.value))}'`)
             }
             // instance specifier
-            else if (specifier instanceof AST.NewInstanceExpression) {
+            else if (specifier instanceof P.ASTNewInstanceExpression) {
               props.addMethod(
                 "initializer",
-                new AST.MethodDefinition(specifier.match, {
+                new P.ASTMethodDefinition(specifier.match, {
                   body: specifier
                 })
               )
@@ -570,19 +570,19 @@ export const classes = new SpellParser({
               // Only `type_specifier_datatype`/`type_specifier_yes_or_no` can produce a `specifier` that
               // reaches here, both of which return a `TypeExpression` -- not statically provable, since
               // `type_specifier`'s `getAST()` can only be typed as returning `ASTNode` in general.
-              const typeExpression = specifier as AST.TypeExpression
+              const typeExpression = specifier as P.ASTTypeExpression
               props.addProp("type", `'${typeExpression.name}'`)
             }
           }
 
           // getter and setter
           statements.push(
-            new AST.CoreMethodInvocation(match, {
+            new P.ASTCoreMethodInvocation(match, {
               methodName: "defineProperty",
-              args: [new AST.PrototypeExpression(type!, { type: astAs<AST.TypeExpression>(type!) }), props]
+              args: [new P.ASTPrototypeExpression(type!, { type: astAs<P.ASTTypeExpression>(type!) }), props]
             })
           )
-          return new AST.StatementGroup(match, { statements })
+          return new P.ASTStatementGroup(match, { statements })
         }
       },
       tests: [
@@ -695,26 +695,26 @@ export const classes = new SpellParser({
             if (!constant) scope.constants?.add(otherValue.raw!)
           }
         }
-        getAST(match: P.Match<PropertyValueEitherGroups>): AST.PropertyDefinition {
+        getAST(match: P.Match<PropertyValueEitherGroups>): P.ASTPropertyDefinition {
           const { value, otherValue, type_property, condition } = match.groups
           const { type, property } = type_property!.groups
-          const prototype = new AST.PrototypeExpression(type!, { type: astAs<AST.TypeExpression>(type!) })
-          const ifAST = new AST.IfStatement(match, {
+          const prototype = new P.ASTPrototypeExpression(type!, { type: astAs<P.ASTTypeExpression>(type!) })
+          const ifAST = new P.ASTIfStatement(match, {
             condition: astAs(condition!),
-            statements: new AST.ReturnStatement(match, { value: astAs(value!) })
+            statements: new P.ASTReturnStatement(match, { value: astAs(value!) })
           })
-          let getterBody: AST.Statement
+          let getterBody: P.ASTStatement
           if (!otherValue) {
             getterBody = ifAST
           } else {
-            getterBody = new AST.StatementGroup(match, {
-              statements: [ifAST, new AST.ReturnStatement(match, { value: astAs(otherValue) })]
+            getterBody = new P.ASTStatementGroup(match, {
+              statements: [ifAST, new P.ASTReturnStatement(match, { value: astAs(otherValue) })]
             })
           }
-          return new AST.PropertyDefinition(match, {
+          return new P.ASTPropertyDefinition(match, {
             thing: prototype,
-            property: astAs<AST.PropertyLiteral>(property!),
-            get: new AST.MethodDefinition(match, { body: getterBody })
+            property: astAs<P.ASTPropertyLiteral>(property!),
+            get: new P.ASTMethodDefinition(match, { body: getterBody })
           })
         }
       },
@@ -778,12 +778,12 @@ export const classes = new SpellParser({
             mapItTo: "this"
           })
         }
-        getAST(match: P.Match<P.RulexGroups<"property:type"> & InlineBlockGroups>): AST.PropertyDefinition {
+        getAST(match: P.Match<P.RulexGroups<"property:type"> & InlineBlockGroups>): P.ASTPropertyDefinition {
           const { type, property, inlineStatement, nestedBlock } = match.groups
-          return new AST.PropertyDefinition(match, {
-            thing: new AST.PrototypeExpression(match, { type: astAs<AST.TypeExpression>(type!) }),
-            property: astAs<AST.PropertyLiteral>(property!),
-            get: new AST.MethodDefinition(match, {
+          return new P.ASTPropertyDefinition(match, {
+            thing: new P.ASTPrototypeExpression(match, { type: astAs<P.ASTTypeExpression>(type!) }),
+            property: astAs<P.ASTPropertyLiteral>(property!),
+            get: new P.ASTMethodDefinition(match, {
               body: astAs<MethodBody>(nestedBlock || inlineStatement)
             })
           })
@@ -945,8 +945,8 @@ export const classes = new SpellParser({
               /** Map each matched placeholder word/number to its compiled enumeration value or literal. */
               compileASTExpression(
                 _match: P.Match,
-                { lhs, rhs }: { lhs?: AST.Expression; rhs?: unknown }
-              ): AST.ScopedMethodInvocation {
+                { lhs, rhs }: { lhs?: P.ASTExpression; rhs?: unknown }
+              ): P.ASTScopedMethodInvocation {
                 // This dynamically-generated rule's syntax repeats the `expression` group name (once per
                 // `$var` in the quoted alias), and each of those groups matches a plain keyword literal with
                 // no `getAST()` -- so the shunting-yard algorithm's `compile()` helper (`compound_expression`
@@ -962,21 +962,21 @@ export const classes = new SpellParser({
                       // `values` will be: `"clubs"`, `"spades"`, etc
                       const { enumeration, values } = ruleData[index]!
                       const valueIndex = enumeration.indexOf(arg.value)
-                      return new AST.ConstantExpression(arg, {
+                      return new P.ASTConstantExpression(arg, {
                         name: arg.value,
                         output: valueIndex !== -1 ? String(values[valueIndex]) : `'arg.value'`
                       })
                     }
                     if (typeof arg.value === "number") {
-                      return new AST.NumericLiteral(arg, {
+                      return new P.ASTNumericLiteral(arg, {
                         value: arg.value
                       })
                     }
                     console.warn("quoted_property_formula: don't understand arg", arg)
                     return undefined
                   })
-                  .filter((arg): arg is AST.ConstantExpression | AST.NumericLiteral => Boolean(arg))
-                return new AST.ScopedMethodInvocation(_match, {
+                  .filter((arg): arg is P.ASTConstantExpression | P.ASTNumericLiteral => Boolean(arg))
+                return new P.ASTScopedMethodInvocation(_match, {
                   thing: lhs!,
                   methodName: property,
                   args
@@ -986,43 +986,43 @@ export const classes = new SpellParser({
           })
 
           // Add comment string which we'll output below
-          match.ruleComment = new AST.ParserAnnotation(match, {
+          match.ruleComment = new P.ASTParserAnnotation(match, {
             value: `added expression: '${syntax}'`
           })
         }
 
-        getAST(match: P.Match<QuotedPropertyFormulaGroups>): AST.StatementGroup {
+        getAST(match: P.Match<QuotedPropertyFormulaGroups>): P.ASTStatementGroup {
           const { type } = match.groups
           const { vars, property } = match.groups.bits!
           // Return AST for the instance method
-          const args = vars.map((varName) => new AST.VariableExpression(match, { name: varName }))
-          const properties = vars.map((varName) => new AST.PropertyLiteral(match, varName))
+          const args = vars.map((varName) => new P.ASTVariableExpression(match, { name: varName }))
+          const properties = vars.map((varName) => new P.ASTPropertyLiteral(match, varName))
           const expressions = args.map(
             (variable, index) =>
-              new AST.InfixExpression(match, {
-                lhs: new AST.PropertyExpression(match, {
-                  object: new AST.ThisLiteral(match),
+              new P.ASTInfixExpression(match, {
+                lhs: new P.ASTPropertyExpression(match, {
+                  object: new P.ASTThisLiteral(match),
                   property: properties[index]
                 }),
                 operator: "===",
                 rhs: variable
               })
           )
-          const statements: Array<AST.Statement | AST.Expression | AST.Comment | AST.BlankLine> = [
+          const statements: Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine> = [
             match.ruleComment!,
-            new AST.PropertyDefinition(match, {
-              thing: new AST.PrototypeExpression(type!, { type: astAs<AST.TypeExpression>(type!) }),
+            new P.ASTPropertyDefinition(match, {
+              thing: new P.ASTPrototypeExpression(type!, { type: astAs<P.ASTTypeExpression>(type!) }),
               property,
-              value: new AST.MethodDefinition(match, {
+              value: new P.ASTMethodDefinition(match, {
                 args,
-                body: new AST.ReturnStatement(match, {
-                  value: AST.MultiInfixExpression(match, { expressions, operator: "&&" })
+                body: new P.ASTReturnStatement(match, {
+                  value: P.ASTMultiInfixExpression(match, { expressions, operator: "&&" })
                 }),
                 datatype: "boolean"
               })
             })
           ]
-          return new AST.StatementGroup(match, { statements })
+          return new P.ASTStatementGroup(match, { statements })
         }
       },
       tests: [

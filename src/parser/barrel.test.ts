@@ -22,7 +22,7 @@ const VALUES = [
   "normalizeRuleTest",
   // `./tokenizer`
   "Token",
-  "Tokens",
+  "WordToken",
   "Tokenizer",
   // `./Match`
   "Match",
@@ -42,7 +42,7 @@ const VALUES = [
   "ScopeVariable",
   // `./ast`
   "ASTNode",
-  "AST",
+  "ASTExpression",
   "render",
   "stringify",
   // self-namespace
@@ -64,7 +64,6 @@ const ENTRIES = [
   "~/parser/Parser",
   "~/parser/tokenizer/Tokens",
   "~/parser/scope/Scope",
-  "~/parser/ast",
   "~/parser/ast/AST"
 ]
 
@@ -80,6 +79,12 @@ const ENTRIES = [
  * - a sub-barrel silently truncates -- entering at `~/parser/scope` re-enters `./scope/index`
  *   after only `Scope` has been assigned, so the barrel never sees `BlockScope` and friends
  *
+ * NOTE: `export * from` is what makes the truncation permanent.  A named re-export
+ * (`export { X } from "./X"`) compiles to a LAZY getter, so the key exists on the sub-barrel
+ * even while the leaf is mid-body -- but `export *` has to read the leaf's key list EAGERLY,
+ * and a leaf that is mid-body still has none.  `~/parser/ast` moved here when its AST classes
+ * were flattened from `export * as AST` to `export *`; `~/parser/tokenizer` was already here.
+ *
  * NOTE: importing `~/parser` itself is always safe, which is why this is a latent hazard
  * rather than a live bug -- every consumer outside the barrel goes through `~/parser`.
  */
@@ -88,7 +93,8 @@ const BROKEN_ENTRIES = [
   "~/parser/rules/Rule",
   "~/parser/rules/Literal",
   "~/parser/tokenizer",
-  "~/parser/scope"
+  "~/parser/scope",
+  "~/parser/ast"
 ]
 
 /**
@@ -143,18 +149,17 @@ describe("~/parser barrel contents", () => {
   })
 
   test("namespaced sub-barrels stay separate and populated", async () => {
-    const { AST, ASTNode, render, stringify, Tokens, Token } = await freshBarrel()
+    const { ASTNode, ASTExpression, render, stringify, Token, WordToken } = await freshBarrel()
     // `render` and `stringify` deliberately export the SAME names -- flattening them
     // would silently drop one side, so assert both survive and stay distinct.
     expect(stringify.SPACE).toBe(" ")
     expect(typeof render.List).toBe("function")
     expect(typeof stringify.List).toBe("function")
     expect(render.List).not.toBe(stringify.List)
-    // `AST` / `Tokens` namespaces, plus the one name each flattens to the top level.
-    expect(AST.ASTNode).toBe(ASTNode)
-    expect(Tokens.Token).toBe(Token)
-    expect(typeof AST.Expression).toBe("function")
-    expect(typeof Tokens.Word).toBe("function")
+    // AST nodes and tokens are NOT namespaced -- their `ASTXxx` / `XxxToken` affixes
+    // keep them collision-free, so both must arrive flattened and correctly wired.
+    expect(ASTExpression.prototype).toBeInstanceOf(ASTNode)
+    expect(WordToken.prototype).toBeInstanceOf(Token)
   })
 })
 

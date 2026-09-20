@@ -1,7 +1,7 @@
 import { isNode } from "browser-or-node"
 
 import { instanceCase, typeCase } from "~/util"
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
@@ -49,10 +49,10 @@ type MethodArgGroups = P.MatchGroups & {
   method?: string
   /** Bit contributed to the rule's rulex `syntax`, e.g. a raw keyword or `{callArgs:expression}`. */
   syntax?: string
-  /** This arg as an `AST.VariableExpression`, used for the generated method's parameter list. */
-  arg?: AST.VariableExpression
+  /** This arg as a `P.ASTVariableExpression`, used for the generated method's parameter list. */
+  arg?: P.ASTVariableExpression
   /** `with_props_arg` only: the individual prop `arg`s pulled out of its comma/`and`-joined item list. */
-  props?: AST.VariableExpression[]
+  props?: P.ASTVariableExpression[]
   /** `with_props_arg` only: raw matched items behind `props`, before mapping to `arg`s. */
   items?: P.Match[]
 }
@@ -73,12 +73,12 @@ type MethodSignatureData = {
   syntaxBits: string[]
   /** Types we found in the signature. */
   types: MethodTypeInfo[]
-  /** Method arguments, as `AST.VariableExpression`s. */
-  args: AST.VariableExpression[]
+  /** Method arguments, as `P.ASTVariableExpression`s. */
+  args: P.ASTVariableExpression[]
   /** Random extra vars we should enable (e.g. aliases for `this`). */
   extraVars: MethodExtraVar[]
   /** `with_props_arg`'s props, if any. */
-  props: AST.VariableExpression[] | undefined
+  props: P.ASTVariableExpression[] | undefined
   /** Full methodName from `methodBits`, set at the end of `getGroupsForMatch()`. */
   methodName: string | undefined
   /** Full method syntax, set at the end of `getGroupsForMatch()`. */
@@ -132,9 +132,9 @@ type OperatorOperands = {
   /** Matched operator token, e.g. `is`/`isn't` -- passed to `shouldNegateOutput()`. */
   operator: P.Match
   /** Left-hand expression -- always populated for `PostfixOperatorSuffix`/`InfixOperatorSuffix`. */
-  lhs?: AST.Expression
+  lhs?: P.ASTExpression
   /** Right-hand expression -- always populated for `InfixOperatorSuffix`, never for a postfix suffix. */
-  rhs?: AST.Expression
+  rhs?: P.ASTExpression
 }
 
 /**
@@ -159,26 +159,26 @@ export class DynamicMethodRule extends SpellStatement {
   }
 
   /**
-   * Build the `AST.MethodInvocation` (loose function call) or `AST.ScopedMethodInvocation` (instance method
+   * Build the `P.ASTMethodInvocation` (loose function call) or `P.ASTScopedMethodInvocation` (instance method
    * call, when `thisArg` matched) for one call site.
    * - `props` (from a `with_props_arg`) is always appended as the LAST arg -- see the NOTE below on the
    *   required-args assumption this depends on.
    */
-  getAST(match: P.Match<DynamicMethodRuleGroups>): AST.MethodInvocation | AST.ScopedMethodInvocation {
+  getAST(match: P.Match<DynamicMethodRuleGroups>): P.ASTMethodInvocation | P.ASTScopedMethodInvocation {
     const { methodName } = this
     const { thisArg, callArgs, props } = match.groups
-    const thing = thisArg?.AST as AST.Expression | undefined
+    const thing = thisArg?.AST as P.ASTExpression | undefined
     // `match.AST` is typed as the generic `ASTNode` (from `Rule.getAST()`); `callArgs`/`props` are always
     // parsed via `{callArgs:expression}` / `object_literal_properties`, so their AST is always an Expression.
-    const args = (callArgs?.map((arg) => arg.AST) ?? []) as AST.Expression[]
+    const args = (callArgs?.map((arg) => arg.AST) ?? []) as P.ASTExpression[]
     // Add `props` to the end of the args if found.
     // NOTE: This assumes that all inline arguments are REQUIRED by the syntax.
     //       If we decide to match syntax with optional args we'll need to update this.
-    if (props) args.push(props.AST as AST.Expression)
+    if (props) args.push(props.AST as P.ASTExpression)
 
     // if `thing` is defined, method is scoped
-    if (thing) return new AST.ScopedMethodInvocation(match, { thing, methodName, args })
-    return new AST.MethodInvocation(match, { methodName, args })
+    if (thing) return new P.ASTScopedMethodInvocation(match, { thing, methodName, args })
+    return new P.ASTMethodInvocation(match, { methodName, args })
   }
 }
 SpellParser.Rules.DynamicMethodRule = DynamicMethodRule
@@ -326,11 +326,11 @@ export class MethodDefinition extends SpellStatement {
           shouldNegateOutput(operator: P.Match): boolean {
             return shouldNegateOutput(operator)
           }
-          compileASTExpression(_match: P.Match, { lhs }: OperatorOperands): AST.Expression {
-            return new AST.PropertyExpression(_match, {
+          compileASTExpression(_match: P.Match, { lhs }: OperatorOperands): P.ASTExpression {
+            return new P.ASTPropertyExpression(_match, {
               // `lhs` is always populated for a `PostfixOperatorSuffix`.
               object: lhs!,
-              property: new AST.PropertyLiteral(_match, methodName)
+              property: new P.ASTPropertyLiteral(_match, methodName)
             })
           }
         }
@@ -347,9 +347,9 @@ export class MethodDefinition extends SpellStatement {
           shouldNegateOutput(operator: P.Match): boolean {
             return shouldNegateOutput(operator)
           }
-          compileASTExpression(_match: P.Match, { lhs, rhs }: OperatorOperands): AST.Expression {
+          compileASTExpression(_match: P.Match, { lhs, rhs }: OperatorOperands): P.ASTExpression {
             // `lhs`/`rhs` are always populated for an `InfixOperatorSuffix`.
-            return new AST.ScopedMethodInvocation(match, {
+            return new P.ASTScopedMethodInvocation(match, {
               thing: lhs!,
               methodName,
               args: [rhs!]
@@ -368,19 +368,19 @@ export class MethodDefinition extends SpellStatement {
   }
 
   /** If `signature.props` return `DestructuredAssignment` to pull those props into scope. */
-  getPropsAssignment(match: P.Match<MethodDefinitionGroups>): AST.DestructuredAssignment | undefined {
+  getPropsAssignment(match: P.Match<MethodDefinitionGroups>): P.ASTDestructuredAssignment | undefined {
     const { props } = match.groups.signature
     if (!props) return undefined
-    return new AST.DestructuredAssignment(match, {
+    return new P.ASTDestructuredAssignment(match, {
       // `props` argument will be the last thing in args
-      thing: new AST.VariableExpression(match, { name: "props" }),
+      thing: new P.ASTVariableExpression(match, { name: "props" }),
       variables: props,
       isNewVariable: true
     })
   }
 
   /**
-   * Build the AST for a method DEFINITION: the annotation, the `AST.MethodDefinition` itself, and (depending
+   * Build the AST for a method DEFINITION: the annotation, the `P.ASTMethodDefinition` itself, and (depending
    * on `instanceType`/`asTest`/`asPostfixExpression`) either a `PropertyDefinition` on the type's prototype
    * or a loose function/`test(...)` wrapper.
    * - `asTest`: SIDE EFFECT -- rewrites the body to `echoInTests`-wrap every top-level statement/expression
@@ -395,33 +395,33 @@ export class MethodDefinition extends SpellStatement {
    *   `asPostfixExpression`, else a plain `value`.  No `instanceType`: emits a loose function, or (when
    *   `asTest`) a loose function whose body is itself a `test(...)` call.
    */
-  getAST(match: P.Match<MethodDefinitionGroups>): AST.StatementGroup {
+  getAST(match: P.Match<MethodDefinitionGroups>): P.ASTStatementGroup {
     const { asTest, asAnimation, signature, inlineStatement, nestedBlock } = match.groups
     const { methodName = "", args, props, instanceType, asPostfixExpression } = signature
-    const output: Array<AST.Statement | AST.Expression | AST.Comment | AST.BlankLine> = [
-      new AST.ParserAnnotation(match, {
+    const output: Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine> = [
+      new P.ASTParserAnnotation(match, {
         value: this.getRuleAnnotation(match)
       })
     ]
 
-    const method = new AST.MethodDefinition(match, {
+    const method = new P.ASTMethodDefinition(match, {
       methodName,
       args,
       // `nestedBlock`/`inlineStatement`'s `.AST` is generically typed `ASTNode`, but is always a
       // StatementBlock/Statement/Expression by construction of block / inline-statement parsing.
-      body: (nestedBlock || inlineStatement)?.AST as AST.StatementBlock | AST.Statement | AST.Expression | undefined
+      body: (nestedBlock || inlineStatement)?.AST as P.ASTStatementBlock | P.ASTStatement | P.ASTExpression | undefined
     })
 
     if (asTest) {
       // HACK: echo all non-console / non-expect lines inside the test so we can tell what's going on!
-      const statements: Array<AST.Statement | AST.Expression | AST.Comment | AST.BlankLine> = []
+      const statements: Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine> = []
       method.body.statements?.forEach((line) => {
         // `echoInTests` is only declared on some AST node subclasses (e.g. `EchoInvocation`, `StatementGroup`),
         // not on the shared `Statement`/`Expression` base -- read it duck-typed here.
         const echoInTests = (line as unknown as { echoInTests?: boolean }).echoInTests
-        if ((line instanceof AST.Statement || line instanceof AST.Expression) && echoInTests !== false) {
+        if ((line instanceof P.ASTStatement || line instanceof P.ASTExpression) && echoInTests !== false) {
           statements.push(
-            new AST.EchoInvocation(line.match, { methodName: "echoTestAction", expression: line.match.value })
+            new P.ASTEchoInvocation(line.match, { methodName: "echoTestAction", expression: line.match.value })
           )
         }
         statements.push(line)
@@ -437,12 +437,12 @@ export class MethodDefinition extends SpellStatement {
 
     if (asAnimation) {
       method.async = true
-      method.body = new AST.StatementBlock(match, {
+      method.body = new P.ASTStatementBlock(match, {
         statements: [
-          new AST.StartProcessInvocation(match, { name: methodName, exclusive: true }),
-          new AST.TryCatchBlock(match, {
-            body: method.body || new AST.StatementBlock(match),
-            finallyBlock: new AST.StopProcessInvocation(match, { name: methodName })
+          new P.ASTStartProcessInvocation(match, { name: methodName, exclusive: true }),
+          new P.ASTTryCatchBlock(match, {
+            body: method.body || new P.ASTStatementBlock(match),
+            finallyBlock: new P.ASTStopProcessInvocation(match, { name: methodName })
           })
         ]
       })
@@ -452,8 +452,8 @@ export class MethodDefinition extends SpellStatement {
       if (asPostfixExpression) {
         // console.warn("APE:", method)
         output.push(
-          new AST.PropertyDefinition(match, {
-            thing: new AST.PrototypeExpression(match, {
+          new P.ASTPropertyDefinition(match, {
+            thing: new P.ASTPrototypeExpression(match, {
               type: typeCase(instanceType)
             }),
             property: methodName,
@@ -462,8 +462,8 @@ export class MethodDefinition extends SpellStatement {
         )
       } else {
         output.push(
-          new AST.PropertyDefinition(match, {
-            thing: new AST.PrototypeExpression(match, {
+          new P.ASTPropertyDefinition(match, {
+            thing: new P.ASTPrototypeExpression(match, {
               type: typeCase(instanceType)
             }),
             property: methodName,
@@ -475,11 +475,11 @@ export class MethodDefinition extends SpellStatement {
     // No instance type: create as a loose function
     else if (asTest) {
       output.push(
-        new AST.MethodDefinition(match, {
+        new P.ASTMethodDefinition(match, {
           methodName,
-          body: new AST.CoreMethodInvocation(match, {
+          body: new P.ASTCoreMethodInvocation(match, {
             methodName: "test",
-            args: [new AST.QuotedExpression(match, signature.methodBits.join(" ")), method]
+            args: [new P.ASTQuotedExpression(match, signature.methodBits.join(" ")), method]
           })
         })
       )
@@ -487,7 +487,7 @@ export class MethodDefinition extends SpellStatement {
       output.push(method)
     }
 
-    return new AST.StatementGroup(match, { statements: output })
+    return new P.ASTStatementGroup(match, { statements: output })
   }
 }
 SpellParser.Rules.MethodDefinition = MethodDefinition
@@ -548,7 +548,7 @@ export const methods = new SpellParser({
             variable: match,
             method: `$${match.value}`,
             syntax: "{callArgs:expression}",
-            arg: new AST.VariableExpression(match, { name: match.value, type: "argument" })
+            arg: new P.ASTVariableExpression(match, { name: match.value, type: "argument" })
           } as MethodArgGroups
         }
       }
@@ -572,9 +572,9 @@ export const methods = new SpellParser({
             variable,
             method: `$${variable.value}`,
             syntax: "{callArgs:expression}",
-            arg: new AST.VariableExpression(match, {
+            arg: new P.ASTVariableExpression(match, {
               name: variable.value,
-              default: value.AST as AST.Expression,
+              default: value.AST as P.ASTExpression,
               type: "argument"
             })
           }
@@ -602,7 +602,7 @@ export const methods = new SpellParser({
             type,
             method: `$${type.raw}`, // TODO: instanceCase(type.value) ???
             syntax: "{callArgs:expression}",
-            arg: new AST.VariableExpression(match, { name: instanceCase(type.value), type: "argument" })
+            arg: new P.ASTVariableExpression(match, { name: instanceCase(type.value), type: "argument" })
           } as MethodArgGroups
         }
       }
@@ -626,7 +626,7 @@ export const methods = new SpellParser({
           // declares it too -- set here via the accessor after construction rather than through the
           // constructor props.
           // TODO: any reason not to just pass `datatype: type.value` into the constructor above?
-          const arg = new AST.VariableExpression(match, { name: variable.value, type: "argument" })
+          const arg = new P.ASTVariableExpression(match, { name: variable.value, type: "argument" })
           arg.datatype = type.value
           return {
             variable,
@@ -662,15 +662,15 @@ export const methods = new SpellParser({
          *  arg. */
         getGroupsForMatch(match: P.Match): MethodArgGroups {
           const { items } = match.matched[1] as P.Match
-          const props = items.map((item) => (item.groups as MethodArgGroups).arg) as AST.VariableExpression[]
+          const props = items.map((item) => (item.groups as MethodArgGroups).arg) as P.ASTVariableExpression[]
           const groups = {
             items,
             method: undefined, // not part of method signature
             syntax: "(with {props:object_literal_properties})?",
             props,
-            arg: new AST.VariableExpression(match, {
+            arg: new P.ASTVariableExpression(match, {
               name: "props",
-              default: new AST.ObjectLiteral(match),
+              default: new P.ASTObjectLiteral(match),
               type: "argument"
             })
           }
@@ -720,10 +720,10 @@ export const methods = new SpellParser({
             methodBits: [], // method signature bits.  Converted to `methodName` string at end of getGroupsForMatch().
             syntaxBits: [], // rule syntax bits.  Converted to string at end of this method.
             types: [], // types we found, as `{ raw: instanceCase, simple, arg: number, method: number, syntax: number }`
-            args: [], // method arguments, as `AST.VariableExpression`s
+            args: [], // method arguments, as `P.ASTVariableExpression`s
             extraVars: [], // random extra vars we should enable (e.g. aliases for `this`)
             // calculated at the end
-            props: undefined, // array of AST.VariableExpression for `with_props_arg`
+            props: undefined, // array of P.ASTVariableExpression for `with_props_arg`
             methodName: undefined, // full methodName from `methodBits` array, set elsewhere
             syntax: undefined, // full method syntax, set elsewhere
             instanceType: undefined // type to add instance method to, set elsewhere
@@ -783,7 +783,7 @@ export const methods = new SpellParser({
      */
     {
       name: "quoted_method_signature",
-      tokenType: P.Tokens.Text,
+      tokenType: P.TextToken,
       constructor: class quoted_method_signature extends P.TokenType {
         /**
          * Parse the token's text as JSON to get the raw signature string, then reparse THAT as
@@ -1415,7 +1415,7 @@ export const methods = new SpellParser({
          *   branch notes the unimplemented `{thisArg:simple_expression}` prefix for that case.
          * - Rewrites the FIRST `is`/`can`/`will`/`has` bit found (scanning signature order) into an
          *   `(operator:...)` alternation so all its negated spellings (`is not`, `isn't`, `isnt`, etc.) share
-         *   one compiled rule; `shouldNegateOutput()` then flips `AST.Expression` output for a match on
+         *   one compiled rule; `shouldNegateOutput()` then flips `P.ASTExpression` output for a match on
          *   anything other than the bare positive form.
          */
         processSignature(

@@ -3,7 +3,7 @@
  * tokens, and the `keyword` identifier pattern used by method/type definitions elsewhere.
  */
 import { assert } from "~/util"
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 
@@ -26,11 +26,11 @@ export const core = new SpellParser({
     {
       name: "whitespace",
       datatype: "string",
-      tokenType: P.Tokens.Whitespace,
+      tokenType: P.WhitespaceToken,
       constructor: class whitespace extends P.TokenType {
-        getAST(match: P.Match): AST.StringLiteral {
+        getAST(match: P.Match): P.ASTStringLiteral {
           const { value, raw } = match
-          return new AST.StringLiteral(match, { value: assert.string(value), raw })
+          return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
         }
       }
     },
@@ -39,11 +39,11 @@ export const core = new SpellParser({
     {
       name: "indent",
       datatype: "string",
-      tokenType: P.Tokens.Indent,
+      tokenType: P.IndentToken,
       constructor: class indent extends P.TokenType {
-        getAST(match: P.Match): AST.StringLiteral {
+        getAST(match: P.Match): P.ASTStringLiteral {
           const { value, raw } = match
-          return new AST.StringLiteral(match, { value: assert.string(value), raw })
+          return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
         }
       }
     },
@@ -52,11 +52,11 @@ export const core = new SpellParser({
     {
       name: "newline",
       datatype: "string",
-      tokenType: P.Tokens.Newline,
+      tokenType: P.NewlineToken,
       constructor: class newline extends P.TokenType {
-        getAST(match: P.Match): AST.StringLiteral {
+        getAST(match: P.Match): P.ASTStringLiteral {
           const { value, raw } = match
-          return new AST.StringLiteral(match, { value: assert.string(value), raw })
+          return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
         }
       }
     },
@@ -68,11 +68,11 @@ export const core = new SpellParser({
     {
       name: "inline_whitespace",
       datatype: "string",
-      tokenType: P.Tokens.InlineWhitespace,
+      tokenType: P.InlineWhitespaceToken,
       constructor: class inline_whitespace extends P.TokenType {
-        getAST(match: P.Match): AST.StringLiteral {
+        getAST(match: P.Match): P.ASTStringLiteral {
           const { value, raw } = match
-          return new AST.StringLiteral(match, { value: assert.string(value), raw })
+          return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
         }
       }
     },
@@ -89,11 +89,11 @@ export const core = new SpellParser({
       name: "number",
       alias: "expression",
       datatype: "number",
-      tokenType: P.Tokens.Number,
+      tokenType: P.NumberToken,
       constructor: class numeric extends P.TokenType {
-        getAST(match: P.Match): AST.NumericLiteral {
+        getAST(match: P.Match): P.ASTNumericLiteral {
           const { value, raw } = match
-          return new AST.NumericLiteral(match, { value: assert.number(value), raw })
+          return new P.ASTNumericLiteral(match, { value: assert.number(value), raw })
         }
       },
       tests: [
@@ -145,9 +145,9 @@ export const core = new SpellParser({
         ten: 10
       },
       constructor: class number_as_string extends P.Pattern {
-        getAST(match: P.Match): AST.NumericLiteral {
+        getAST(match: P.Match): P.ASTNumericLiteral {
           const { value, raw } = match
-          return new AST.NumericLiteral(match, { value: assert.number(value), raw })
+          return new P.ASTNumericLiteral(match, { value: assert.number(value), raw })
         }
       },
       tests: [
@@ -190,9 +190,9 @@ export const core = new SpellParser({
         never: false
       },
       constructor: class _boolean extends P.Pattern {
-        getAST(match: P.Match): AST.BooleanLiteral {
+        getAST(match: P.Match): P.ASTBooleanLiteral {
           const { value, raw } = match
-          return new AST.BooleanLiteral(match, { value: assert.boolean(value), raw })
+          return new P.ASTBooleanLiteral(match, { value: assert.boolean(value), raw })
         }
       },
       tests: [
@@ -230,11 +230,11 @@ export const core = new SpellParser({
       name: "text",
       alias: "expression",
       datatype: "string",
-      tokenType: P.Tokens.Text,
+      tokenType: P.TextToken,
       constructor: class text extends P.TokenType {
-        getAST(match: P.Match): AST.StringLiteral {
+        getAST(match: P.Match): P.ASTStringLiteral {
           const { value, raw } = match
-          return new AST.StringLiteral(match, { value: assert.string(value), raw })
+          return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
         }
       },
       tests: [
@@ -251,17 +251,17 @@ export const core = new SpellParser({
       ]
     },
 
-    /** Line comment token -- wraps a `Comment` token into a `LineComment` AST node, e.g. `// foo`. */
+    /** Line comment token -- wraps a `CommentToken` into a `LineComment` AST node, e.g. `// foo`. */
     {
       name: "comment",
-      tokenType: P.Tokens.Comment,
+      tokenType: P.CommentToken,
       constructor: class comment extends P.TokenType {
-        getAST(match: P.Match): AST.LineComment {
+        getAST(match: P.Match): P.ASTLineComment {
           const [token] = match.matched
-          // `tokenType: Tokens.Comment` guarantees the single matched token is a `Comment`.
-          if (!(token instanceof P.Tokens.Comment)) throw new TypeError("Expected a Comment token")
+          // `tokenType: CommentToken` guarantees the single matched token is a `CommentToken`.
+          if (!(token instanceof P.CommentToken)) throw new TypeError("Expected a CommentToken")
           const { commentSymbol, initialWhitespace, value } = token
-          return new AST.LineComment(match, { commentSymbol, initialWhitespace, value })
+          return new P.ASTLineComment(match, { commentSymbol, initialWhitespace, value })
         }
       },
       tests: [
@@ -285,8 +285,8 @@ export const core = new SpellParser({
       datatype: "undefined",
       syntax: "(undefined|nothing)",
       constructor: class undefined_literal extends P.Literal {
-        getAST(match: P.Match): AST.UndefinedLiteral {
-          return new AST.UndefinedLiteral(match)
+        getAST(match: P.Match): P.ASTUndefinedLiteral {
+          return new P.ASTUndefinedLiteral(match)
         }
       },
       tests: [
@@ -312,9 +312,9 @@ export const core = new SpellParser({
         mapValue<T = string>(value: string): T {
           return `${value}`.replace(/-/g, "_") as T
         }
-        getAST(match: P.Match): AST.KeywordLiteral {
+        getAST(match: P.Match): P.ASTKeywordLiteral {
           const { value, raw } = match
-          return new AST.KeywordLiteral(match, { value: assert.string(value), raw })
+          return new P.ASTKeywordLiteral(match, { value: assert.string(value), raw })
         }
       },
       tests: [

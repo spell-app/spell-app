@@ -70,8 +70,10 @@ when working with code in this repository.
   - `SC` ~== `~/spellCore`
   - NEVER create a second namespace for a sub-folder (no `R` for rules) -- flatten into parent.
   - Exception: namespace a file whose names would collide when flattened, and flatten only its base class:
-    `export { Token } from "./Tokens"` + `export * as Tokens from "./Tokens"`.
-    Same for `AST` / `ASTNode`, `render`, `stringify`.
+    `export { ASTNode } from "./AST"` + `export * as AST from "./AST"`.
+    Same for `render` / `stringify`.
+  - Prefer a disambiguating suffix over a namespace when the names allow it:
+    token classes are `WordToken` / `NumberToken` etc. and flatten straight into `~/parser`.
 - Barrels MUST NOT pull in optional sub-systems.  Make them opt-in via side-effect import,
   e.g. `import "~/languages/rulex"` registers itself on `Parser.rulexParser`.
 - When refactoring imports and exports, if you encounter circular import problems 

@@ -1,6 +1,6 @@
 /** Rules for assignment and returning values. */
 
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
@@ -66,20 +66,20 @@ export const assignment = new SpellParser({
           }
         }
         /**
-         * Build `AST.AssignmentStatement`.
+         * Build `P.ASTAssignmentStatement`.
          * - HACK: if `originalVar` was an alias (e.g. `it`), redefines it as a real variable in `scope`
          *   here -- must happen after building `thing`/`value` ASTs, in case the alias appeared inside
          *   `value` itself.
          */
-        getAST(match: P.Match<AssignmentGroups>): AST.AssignmentStatement {
+        getAST(match: P.Match<AssignmentGroups>): P.ASTAssignmentStatement {
           const { thing, value } = match.groups
           const { originalVar } = match
-          const ast = new AST.AssignmentStatement(match, {
+          const ast = new P.ASTAssignmentStatement(match, {
             // if we got an originalVar which was an alias, get a clean VariableExpression for the original name
             thing: originalVar?.isAlias
-              ? new AST.VariableExpression(match, { name: originalVar.name })
-              : (thing!.AST as AST.Expression),
-            value: value!.AST as AST.Expression,
+              ? new P.ASTVariableExpression(match, { name: originalVar.name })
+              : (thing!.AST as P.ASTExpression),
+            value: value!.AST as P.ASTExpression,
             isNewVariable: match.isNewVariable
           })
           // HACK: if `originalVar` was an alias, redefine as a normal variable.
@@ -172,17 +172,17 @@ export const assignment = new SpellParser({
           if (!itVar) variables.add("it")
         }
         /**
-         * Build `AST.AssignmentStatement` assigning `value` to `it`.
+         * Build `P.ASTAssignmentStatement` assigning `value` to `it`.
          * - HACK: unconditionally redefines `it` as a real (non-alias) variable in `scope` -- regardless
          *   of whether `match.itVar` was actually an alias, unlike `assignment.getAST()`'s guarded
          *   `if (originalVar?.isAlias)` equivalent.
          * - TODO: should this be guarded the same way?  As written a real `it` variable loses its `kind`/`datatype`.
          */
-        getAST(match: P.Match<GetGroups>): AST.AssignmentStatement {
+        getAST(match: P.Match<GetGroups>): P.ASTAssignmentStatement {
           const { value } = match.groups
-          const ast = new AST.AssignmentStatement(match, {
-            thing: new AST.VariableExpression(match, { name: "it" }),
-            value: value!.AST as AST.Expression,
+          const ast = new P.ASTAssignmentStatement(match, {
+            thing: new P.ASTVariableExpression(match, { name: "it" }),
+            value: value!.AST as P.ASTExpression,
             isNewVariable: match.isNewVariable
           })
           // HACK: redefine `it` as a normal variable -- unconditionally (see docstring above).
@@ -258,9 +258,9 @@ export const assignment = new SpellParser({
       wantsNestedBlock: true,
       parseNestedBlockAs: "expression",
       constructor: class return_statement extends SpellStatement {
-        getAST(match: P.Match<ReturnGroups>): AST.ReturnStatement {
+        getAST(match: P.Match<ReturnGroups>): P.ASTReturnStatement {
           const result = match.groups.expression || match.groups.nestedBlock
-          return new AST.ReturnStatement(match, { value: result?.AST as AST.Expression | undefined })
+          return new P.ASTReturnStatement(match, { value: result?.AST as P.ASTExpression | undefined })
         }
       },
       tests: [

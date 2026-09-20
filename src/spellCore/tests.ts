@@ -119,7 +119,7 @@ export const testMethods = defineSpellCoreModule({
   /**
    * Print `▶️ Executing` plus back-tick-quoted `message`, grouped under current test if one's running.
    * - Narrates each statement's source as it executes -- auto-injected before every statement inside
-   *   a method defined `to test ...` (see `AST.EchoInvocation` usage in `methods.ts`).
+   *   a method defined `to test ...` (see `P.ASTEchoInvocation` usage in `methods.ts`).
    */
   echoTestAction(message: unknown): void {
     const output = ["▶️ Executing  ", spellCore.backTickQuote(message)]

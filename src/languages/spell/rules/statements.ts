@@ -2,7 +2,7 @@
  * Random statements that didn't earn their own file.
  */
 
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
@@ -17,8 +17,8 @@ export const statements = new SpellParser({
       alias: "statement",
       syntax: "do nothing",
       constructor: class do_nothing extends SpellStatement {
-        getAST(match: P.Match): AST.CoreMethodInvocation {
-          return new AST.CoreMethodInvocation(match, { methodName: "doNothing" })
+        getAST(match: P.Match): P.ASTCoreMethodInvocation {
+          return new P.ASTCoreMethodInvocation(match, { methodName: "doNothing" })
         }
       },
       tests: [

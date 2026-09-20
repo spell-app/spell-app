@@ -20,19 +20,19 @@ function isLegalIdentifier(value: string): boolean {
 }
 
 /**
- * Normalize `statements` (single `Statement`, already-built `StatementBlock`, or array) into one
- * `StatementBlock`.
+ * Normalize `statements` (single `ASTStatement`, already-built `ASTStatementBlock`, or array) into one
+ * `ASTStatementBlock`.
  * - Used by anything that accepts a loose statement/array of statements for its body, e.g.
- *   `IfStatement`, `TryCatchBlock`.
+ *   `ASTIfStatement`, `ASTTryCatchBlock`.
  */
 function convertStatementsToBlock(
   match: P.AnyMatch,
-  statements: Statement | StatementBlock | Statement[] | undefined
-): StatementBlock {
-  if (!statements) return new StatementBlock(match)
-  if (statements instanceof StatementBlock) return statements
-  if (Array.isArray(statements)) return new StatementBlock(match, { statements })
-  return new StatementBlock(match, { statements: [statements] })
+  statements: ASTStatement | ASTStatementBlock | ASTStatement[] | undefined
+): ASTStatementBlock {
+  if (!statements) return new ASTStatementBlock(match)
+  if (statements instanceof ASTStatementBlock) return statements
+  if (Array.isArray(statements)) return new ASTStatementBlock(match, { statements })
+  return new ASTStatementBlock(match, { statements: [statements] })
 }
 
 ////////////////
@@ -82,8 +82,8 @@ export class ASTNode<Props extends object = object> extends Assertable {
 
   /**
    * Compile this AST into Javascript.  MUST override in subclass.
-   * - Most subclasses return a `string` of Javascript source, but `Literal` subclasses
-   *   (e.g. `NumericLiteral`) may return raw underlying value instead.
+   * - Most subclasses return a `string` of Javascript source, but `ASTLiteral` subclasses
+   *   (e.g. `ASTNumericLiteral`) may return raw underlying value instead.
    */
   compile(): unknown {
     throw new TypeError(`AST ${this.nodeType} must implement compile()`)
@@ -123,7 +123,7 @@ export class ASTNode<Props extends object = object> extends Assertable {
 
   /**
    * Render children to render INSIDE outer element, which has `node.className`
-   * (e.g. `ASTNode Expression StringLiteral`) set.
+   * (e.g. `ASTNode ASTExpression ASTStringLiteral`) set.
    */
   renderChildren(): ReactNode {
     return null
@@ -152,7 +152,7 @@ export class ASTNode<Props extends object = object> extends Assertable {
 ////////////////
 
 /** Blank line. */
-export class BlankLine extends ASTNode {
+export class ASTBlankLine extends ASTNode {
   compile(): string {
     return "" // "\n"
   }
@@ -164,24 +164,24 @@ export class BlankLine extends ASTNode {
 /** Base of all Expression types.  Useful for `instanceof`.
  *  - Try to figure out `datatype` if you can, either as a value or as a getter.
  */
-export class Expression extends ASTNode {}
+export class ASTExpression extends ASTNode {}
 
 /** Expression with attached comment.
  *  - `expression` is the wrapped Expression.
- *  - `comment` is comment attached after it, e.g. a `ParseError` explaining why it's suspect.
+ *  - `comment` is comment attached after it, e.g. an `ASTParseError` explaining why it's suspect.
  */
-export type ExpressionWithCommentProps = Prettify<{
-  expression: Expression
-  comment: BlockComment
+export type ASTExpressionWithCommentProps = Prettify<{
+  expression: ASTExpression
+  comment: ASTBlockComment
 }>
 
-export class ExpressionWithComment extends Expression {
-  declare expression: Expression
-  declare comment: BlockComment
-  constructor(match: P.AnyMatch, props: ExpressionWithCommentProps) {
+export class ASTExpressionWithComment extends ASTExpression {
+  declare expression: ASTExpression
+  declare comment: ASTBlockComment
+  constructor(match: P.AnyMatch, props: ASTExpressionWithCommentProps) {
     super(match, props)
-    this.assertType("expression", Expression)
-    this.assertType("comment", BlockComment)
+    this.assertType("expression", ASTExpression)
+    this.assertType("comment", ASTBlockComment)
   }
   compile(): string {
     return `${this.expression.compile()} ${this.comment.compile()}`
@@ -195,7 +195,7 @@ export class ExpressionWithComment extends Expression {
  *  - `value` is actual JS value, which by default we assume we can just output.
  *  - `raw` (optional) is raw input value.
  */
-export class Literal extends Expression {
+export class ASTLiteral extends ASTExpression {
   declare value: unknown
   declare raw: string | undefined
   compile(): unknown {
@@ -210,15 +210,15 @@ export class Literal extends Expression {
  *  - `value` is the number.
  *  - `raw` (optional) is original input string.
  */
-export type NumericLiteralProps = Prettify<{ value: number; raw?: string }>
+export type ASTNumericLiteralProps = Prettify<{ value: number; raw?: string }>
 
-export class NumericLiteral extends Literal {
+export class ASTNumericLiteral extends ASTLiteral {
   declare value: number
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "number"
   }
   /** Constructor also accepts a bare `number` as shorthand for `{ value }`. */
-  constructor(match: P.AnyMatch, props: number | NumericLiteralProps) {
+  constructor(match: P.AnyMatch, props: number | ASTNumericLiteralProps) {
     if (typeof props === "number") props = { value: props }
     super(match, props)
     this.assertType("value", "number")
@@ -229,15 +229,15 @@ export class NumericLiteral extends Literal {
  *  - `value` is the string.
  *  - `raw` (optional) is original input string.
  */
-export type StringLiteralProps = Prettify<{ value: string; raw?: string }>
+export type ASTStringLiteralProps = Prettify<{ value: string; raw?: string }>
 
-export class StringLiteral extends Literal {
+export class ASTStringLiteral extends ASTLiteral {
   declare value: string
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "string"
   }
   /** Constructor also accepts a bare `string` as shorthand for `{ value }`. */
-  constructor(match: P.AnyMatch, props: string | StringLiteralProps) {
+  constructor(match: P.AnyMatch, props: string | ASTStringLiteralProps) {
     if (typeof props === "string") props = { value: props }
     super(match, props)
     this.assertType("value", "string")
@@ -248,15 +248,15 @@ export class StringLiteral extends Literal {
  *  - `value` is the boolean.
  *  - `raw` (optional) is original input string.
  */
-export type BooleanLiteralProps = Prettify<{ value: boolean; raw?: string }>
+export type ASTBooleanLiteralProps = Prettify<{ value: boolean; raw?: string }>
 
-export class BooleanLiteral extends Literal {
+export class ASTBooleanLiteral extends ASTLiteral {
   declare value: boolean
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "boolean"
   }
   /** Constructor also accepts a bare `boolean` as shorthand for `{ value }`. */
-  constructor(match: P.AnyMatch, props: boolean | BooleanLiteralProps) {
+  constructor(match: P.AnyMatch, props: boolean | ASTBooleanLiteralProps) {
     if (typeof props === "boolean") props = { value: props }
     super(match, props)
     this.assertType("value", "boolean")
@@ -272,21 +272,21 @@ export class BooleanLiteral extends Literal {
 /** RegExpLiteral type.
  *  - `value` is the `RegExp`.
  */
-export type RegExpLiteralProps = Prettify<{ value: RegExp }>
+export type ASTRegExpLiteralProps = Prettify<{ value: RegExp }>
 
-export class RegExpLiteral extends Literal {
+export class ASTRegExpLiteral extends ASTLiteral {
   declare value: RegExp
   /*@readonly*/ /*@proto*/ get datatype(): RegExpConstructor {
     return RegExp
   }
-  constructor(match: P.AnyMatch, props: RegExpLiteralProps) {
+  constructor(match: P.AnyMatch, props: ASTRegExpLiteralProps) {
     super(match, props)
     this.assertType("value", RegExp)
   }
 }
 
 /** NullLiteral type.  TODO: ???? */
-export class NullLiteral extends Literal {
+export class ASTNullLiteral extends ASTLiteral {
   // TODO: ???
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "null"
@@ -304,7 +304,7 @@ export class NullLiteral extends Literal {
 }
 
 /** UndefinedLiteral type.  TODO: ???? */
-export class UndefinedLiteral extends Literal {
+export class ASTUndefinedLiteral extends ASTLiteral {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "undefined"
   }
@@ -321,7 +321,7 @@ export class UndefinedLiteral extends Literal {
 }
 
 /** ThisLiteral type -- represents JS `this`. */
-export class ThisLiteral extends Literal {
+export class ASTThisLiteral extends ASTLiteral {
   compile(): string {
     return "this"
   }
@@ -334,9 +334,9 @@ export class ThisLiteral extends Literal {
  *  - `value` is raw input converted into a JS-legal keyword.
  *  - `raw` (optional) is raw input string.
  */
-export type KeywordLiteralProps = Prettify<{ value: string; raw?: string }>
+export type ASTKeywordLiteralProps = Prettify<{ value: string; raw?: string }>
 
-export class KeywordLiteral extends Literal {
+export class ASTKeywordLiteral extends ASTLiteral {
   declare value: string
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "string"
@@ -345,7 +345,7 @@ export class KeywordLiteral extends Literal {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  constructor(match: P.AnyMatch, props: KeywordLiteralProps) {
+  constructor(match: P.AnyMatch, props: ASTKeywordLiteralProps) {
     super(match, props)
     this.assertType("value", "string")
     this.assertType("raw", "string", OPTIONAL)
@@ -356,13 +356,13 @@ export class KeywordLiteral extends Literal {
  *  - `items` (optional) is array of Expressions.
  *  - `wrap` (optional) is `true` if we should wrap children -- defaults to wrapping past 2 items.
  */
-export type ArrayLiteralProps = Prettify<{ items?: Expression[]; wrap?: boolean }>
+export type ASTArrayLiteralProps = Prettify<{ items?: ASTExpression[]; wrap?: boolean }>
 
-export class ArrayLiteral extends Literal {
-  declare items: Expression[] | undefined
-  constructor(match: P.AnyMatch, props: ArrayLiteralProps) {
+export class ASTArrayLiteral extends ASTLiteral {
+  declare items: ASTExpression[] | undefined
+  constructor(match: P.AnyMatch, props: ASTArrayLiteralProps) {
     super(match, props)
-    this.assertArrayType("items", Expression, OPTIONAL)
+    this.assertArrayType("items", ASTExpression, OPTIONAL)
     this.assertType("wrap", "boolean", OPTIONAL)
   }
   /** Default: wrap once there are more than 2 items.  Override via constructor or setter. */
@@ -386,14 +386,14 @@ export class ArrayLiteral extends Literal {
  *  - `enumeration` is array of Expressions (the AST for each item, for rendering/compiling).
  *  - `values` is parallel array of raw strings or numbers.
  */
-export type EnumerationProps = Prettify<{ enumeration: Expression[]; values: Array<string | number> }>
+export type ASTEnumerationProps = Prettify<{ enumeration: ASTExpression[]; values: Array<string | number> }>
 
-export class Enumeration extends Literal {
-  declare enumeration: Expression[]
+export class ASTEnumeration extends ASTLiteral {
+  declare enumeration: ASTExpression[]
   declare values: Array<string | number>
-  constructor(match: P.AnyMatch, props: EnumerationProps) {
+  constructor(match: P.AnyMatch, props: ASTEnumerationProps) {
     super(match, props)
-    this.assertArrayType("enumeration", Expression)
+    this.assertArrayType("enumeration", ASTExpression)
     this.assertArrayType("values", ["string", "number"])
   }
   compile(): string {
@@ -411,21 +411,21 @@ export class Enumeration extends Literal {
 /**
  * QuotedExpression -- use to wrap `expression` in single quotes.
  */
-export type QuotedExpressionProps = Prettify<{ expression: Expression }>
+export type ASTQuotedExpressionProps = Prettify<{ expression: ASTExpression }>
 
-export class QuotedExpression extends Expression {
-  declare expression: Expression
+export class ASTQuotedExpression extends ASTExpression {
+  declare expression: ASTExpression
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "string"
   }
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  /** Constructor also accepts a bare `string` as shorthand for `{ expression: new StringLiteral(value) }`. */
-  constructor(match: P.AnyMatch, props: string | QuotedExpressionProps) {
-    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
+  /** Constructor also accepts a bare `string` as shorthand for `{ expression: new ASTStringLiteral(value) }`. */
+  constructor(match: P.AnyMatch, props: string | ASTQuotedExpressionProps) {
+    if (typeof props === "string") props = { expression: new ASTStringLiteral(match, { value: props }) }
     super(match, props)
-    this.assertType("expression", Expression)
+    this.assertType("expression", ASTExpression)
   }
   compile(): string {
     return stringify.InSingleQuotes({ children: String(this.expression.compile()) })
@@ -442,21 +442,21 @@ export class QuotedExpression extends Expression {
 /**
  * BackTickExpression -- use to wrap `expression` AST in back-ticks.
  */
-export type BackTickExpressionProps = Prettify<{ expression: Expression }>
+export type ASTBackTickExpressionProps = Prettify<{ expression: ASTExpression }>
 
-export class BackTickExpression extends Expression {
-  declare expression: Expression
+export class ASTBackTickExpression extends ASTExpression {
+  declare expression: ASTExpression
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "string"
   }
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  /** Constructor also accepts a bare `string` as shorthand for `{ expression: new StringLiteral(value) }`. */
-  constructor(match: P.AnyMatch, props: string | BackTickExpressionProps) {
-    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
+  /** Constructor also accepts a bare `string` as shorthand for `{ expression: new ASTStringLiteral(value) }`. */
+  constructor(match: P.AnyMatch, props: string | ASTBackTickExpressionProps) {
+    if (typeof props === "string") props = { expression: new ASTStringLiteral(match, { value: props }) }
     super(match, props)
-    this.assertType("expression", Expression)
+    this.assertType("expression", ASTExpression)
   }
   compile(): string {
     return stringify.InBackTicks({ children: String(this.expression.compile()) })
@@ -473,21 +473,21 @@ export class BackTickExpression extends Expression {
 /**
  * BacktickSubstitutionExpression -- use to wrap an `${expression}` for use in a backtick string.
  */
-export type BacktickSubstitutionProps = Prettify<{ expression: Expression }>
+export type ASTBacktickSubstitutionProps = Prettify<{ expression: ASTExpression }>
 
-export class BacktickSubstitution extends Expression {
-  declare expression: Expression
+export class ASTBacktickSubstitution extends ASTExpression {
+  declare expression: ASTExpression
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "string"
   }
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  /** Constructor also accepts a bare `string` as shorthand for `{ expression: new StringLiteral(value) }`. */
-  constructor(match: P.AnyMatch, props: string | BacktickSubstitutionProps) {
-    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
+  /** Constructor also accepts a bare `string` as shorthand for `{ expression: new ASTStringLiteral(value) }`. */
+  constructor(match: P.AnyMatch, props: string | ASTBacktickSubstitutionProps) {
+    if (typeof props === "string") props = { expression: new ASTStringLiteral(match, { value: props }) }
     super(match, props)
-    this.assertType("expression", Expression)
+    this.assertType("expression", ASTExpression)
   }
   compile(): string {
     return "${" + this.expression.compile() + "}"
@@ -506,21 +506,21 @@ export class BacktickSubstitution extends Expression {
 /**
  * TripleBackTickExpression -- use to wrap `expression` AST in triple-back-ticks.
  */
-export type TripleBackTickExpressionProps = Prettify<{ expression: Expression }>
+export type ASTTripleBackTickExpressionProps = Prettify<{ expression: ASTExpression }>
 
-export class TripleBackTickExpression extends Expression {
-  declare expression: Expression
+export class ASTTripleBackTickExpression extends ASTExpression {
+  declare expression: ASTExpression
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "string"
   }
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  /** Constructor also accepts a bare `string` as shorthand for `{ expression: new StringLiteral(value) }`. */
-  constructor(match: P.AnyMatch, props: string | TripleBackTickExpressionProps) {
-    if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
+  /** Constructor also accepts a bare `string` as shorthand for `{ expression: new ASTStringLiteral(value) }`. */
+  constructor(match: P.AnyMatch, props: string | ASTTripleBackTickExpressionProps) {
+    if (typeof props === "string") props = { expression: new ASTStringLiteral(match, { value: props }) }
     super(match, props)
-    this.assertType("expression", Expression)
+    this.assertType("expression", ASTExpression)
   }
   compile(): string {
     return stringify.InTripleBackTicks({ children: String(this.expression.compile()) })
@@ -542,12 +542,12 @@ export class TripleBackTickExpression extends Expression {
  *  - `value` is normalized property name.  Inferred from `match` if not given.
  *  - `raw` (optional) is input property name.
  */
-export type PropertyLiteralProps = Prettify<{ value?: string; raw?: string }>
+export type ASTPropertyLiteralProps = Prettify<{ value?: string; raw?: string }>
 
-export class PropertyLiteral extends Literal {
+export class ASTPropertyLiteral extends ASTLiteral {
   declare value: string
   /** Constructor also accepts a bare `string` as shorthand for `{ value }`. */
-  constructor(match: P.AnyMatch, props?: string | PropertyLiteralProps) {
+  constructor(match: P.AnyMatch, props?: string | ASTPropertyLiteralProps) {
     if (typeof props === "string") props = { value: props }
     super(match, props)
     if (this.value === undefined) this.value = this.match.value
@@ -576,16 +576,16 @@ export class PropertyLiteral extends Literal {
  *  - `property` is normalized property name or PropertyLiteral.
  *  TODO: datatype???
  */
-export type PropertyExpressionProps = Prettify<{ object: Expression; property: string | PropertyLiteral }>
+export type ASTPropertyExpressionProps = Prettify<{ object: ASTExpression; property: string | ASTPropertyLiteral }>
 
-export class PropertyExpression extends Expression {
-  declare object: Expression
-  declare property: PropertyLiteral
-  constructor(match: P.AnyMatch, props: PropertyExpressionProps) {
+export class ASTPropertyExpression extends ASTExpression {
+  declare object: ASTExpression
+  declare property: ASTPropertyLiteral
+  constructor(match: P.AnyMatch, props: ASTPropertyExpressionProps) {
     super(match, props)
-    this.assertType("object", Expression)
-    if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
-    this.assertType("property", PropertyLiteral)
+    this.assertType("object", ASTExpression)
+    if (typeof this.property === "string") this.property = new ASTPropertyLiteral(this.match, this.property)
+    this.assertType("property", ASTPropertyLiteral)
   }
   /** Compiles as `object.property` when legal identifier, else `object['property']`. */
   compile(): string {
@@ -604,7 +604,7 @@ export class PropertyExpression extends Expression {
 
 /** VariableExpression -- pointer to a Variable object.
  *  - `name` is normalized type name: dashes and spaces converted to underscores.
- *  - `default` (optional) is AST for default value.  See `DestructuredAssignment`.
+ *  - `default` (optional) is AST for default value.  See `ASTDestructuredAssignment`.
  *  - `type` (optional) is `"argument"` or `"this"` etc.
  *
  *    CURRENTLY UNUSED
@@ -612,9 +612,9 @@ export class PropertyExpression extends Expression {
  *  - `variable` (optional) is pointer to scope Variable, if there is one.
  *  - `plurality` (optional) is `"singular"`, `"plural"` or `undefined`.  TODO: derive?
  */
-export type VariableExpressionProps = Prettify<{
+export type ASTVariableExpressionProps = Prettify<{
   name?: string
-  default?: Expression
+  default?: ASTExpression
   type?: string
   datatype?: string
   raw?: string
@@ -622,19 +622,19 @@ export type VariableExpressionProps = Prettify<{
   plurality?: "singular" | "plural"
 }>
 
-export class VariableExpression extends Expression {
+export class ASTVariableExpression extends ASTExpression {
   declare name: string
-  declare default: Expression | undefined
+  declare default: ASTExpression | undefined
   declare type: string | undefined
   declare raw: string | undefined
   declare variable: P.ScopeVariable | undefined
   declare plurality: "singular" | "plural" | undefined
   /** `name` defaults to `match.value` when not passed. */
-  constructor(match: P.AnyMatch, props?: VariableExpressionProps) {
+  constructor(match: P.AnyMatch, props?: ASTVariableExpressionProps) {
     super(match, props)
     if (!this.name) this.name = this.match.value
     this.assertType("name", "string")
-    this.assertType("default", Expression, OPTIONAL)
+    this.assertType("default", ASTExpression, OPTIONAL)
     this.assertType("raw", "string", OPTIONAL)
   }
   /** Compiles as `name` alone, or `name = default` when a default value is set. */
@@ -663,14 +663,14 @@ export class VariableExpression extends Expression {
  *  - `expression` is Expression to await.
  *  - NOTE: this marks `parentScope` as asynchronous!!!
  */
-export type AwaitExpressionProps = Prettify<{ expression: Expression }>
+export type ASTAwaitExpressionProps = Prettify<{ expression: ASTExpression }>
 
-export class AwaitExpression extends Expression {
-  declare expression: Expression
+export class ASTAwaitExpression extends ASTExpression {
+  declare expression: ASTExpression
   /** SIDE EFFECT: walks up scope chain to nearest `MethodScope` and marks it `async = true`. */
-  constructor(match: P.AnyMatch, props: AwaitExpressionProps) {
+  constructor(match: P.AnyMatch, props: ASTAwaitExpressionProps) {
     super(match, props)
-    this.assertType("expression", Expression)
+    this.assertType("expression", ASTExpression)
     // Work our way up the scope chain
     // -- if we find a MethodScope, mark it as asynchronous
     let scope: P.Scope | undefined = this.parentScope
@@ -690,20 +690,20 @@ export class AwaitExpression extends Expression {
 ////////////////
 
 /** Abstract comment type.  Useful for `instanceof`. */
-export class Comment extends ASTNode {}
+export class ASTComment extends ASTNode {}
 
 /** LineComment type.
  *  - `value` is text of comment (may be empty string).
  *  - `commentSymbol` is comment symbol used -- e.g. `""` for a plain `//`, or a header marker.
  *  - `initialWhitespace` is whitespace between `commentSymbol` and `value`.
  */
-export type LineCommentProps = Prettify<{ value: string; commentSymbol?: string; initialWhitespace?: string }>
+export type ASTLineCommentProps = Prettify<{ value: string; commentSymbol?: string; initialWhitespace?: string }>
 
-export class LineComment extends Comment {
+export class ASTLineComment extends ASTComment {
   declare value: string
   declare commentSymbol: string | undefined
   declare initialWhitespace: string | undefined
-  constructor(match: P.AnyMatch, props: LineCommentProps) {
+  constructor(match: P.AnyMatch, props: ASTLineCommentProps) {
     super(match, props)
     this.assertType("value", "string")
     this.assertType("commentSymbol", "string", OPTIONAL)
@@ -734,11 +734,11 @@ export class LineComment extends Comment {
 /** BlockComment type.
  *  - `value` is entire contents of original comment, including initial space and newlines.
  */
-export type BlockCommentProps = Prettify<{ value: string }>
+export type ASTBlockCommentProps = Prettify<{ value: string }>
 
-export class BlockComment extends Comment {
+export class ASTBlockComment extends ASTComment {
   declare value: string
-  constructor(match: P.AnyMatch, props: BlockCommentProps) {
+  constructor(match: P.AnyMatch, props: ASTBlockCommentProps) {
     super(match, props)
     this.assertType("value", "string")
   }
@@ -752,9 +752,9 @@ export class BlockComment extends Comment {
 
 /** ParserAnnotation type, used for parser annotations injected into output.
  *  - `value` is text of annotation.
- *  - `annotation` (overridable getter) is the leading tag, `"SPELL:"` by default -- `ParseError` overrides it.
+ *  - `annotation` (overridable getter) is the leading tag, `"SPELL:"` by default -- `ASTParseError` overrides it.
  */
-export class ParserAnnotation extends BlockComment {
+export class ASTParserAnnotation extends ASTBlockComment {
   /*@proto*/ get annotation(): string {
     return "SPELL:"
   }
@@ -774,10 +774,10 @@ export class ParserAnnotation extends BlockComment {
   }
 }
 
-/** ParseError type -- a `ParserAnnotation` tagged `"PARSE ERROR:"` instead of `"SPELL:"`.
+/** ParseError type -- an `ASTParserAnnotation` tagged `"PARSE ERROR:"` instead of `"SPELL:"`.
  *  - `value` is text of error.
  */
-export class ParseError extends ParserAnnotation {
+export class ASTParseError extends ASTParserAnnotation {
   /*@proto*/ get annotation(): string {
     return "PARSE ERROR:"
   }
@@ -793,16 +793,16 @@ export class ParseError extends ParserAnnotation {
 /** Parenthesized expression.
  *  - `expression` is contained AST Expression.
  */
-export type ParenthesizedExpressionProps = Prettify<{ expression: Expression }>
+export type ASTParenthesizedExpressionProps = Prettify<{ expression: ASTExpression }>
 
-export class ParenthesizedExpression extends Expression {
-  declare expression: Expression
-  /** SIDE EFFECT: unwinds nested `ParenthesizedExpression`s so we never double-wrap, e.g. `((x))` ~== `(x)`. */
-  constructor(match: P.AnyMatch, props: ParenthesizedExpressionProps) {
+export class ASTParenthesizedExpression extends ASTExpression {
+  declare expression: ASTExpression
+  /** SIDE EFFECT: unwinds nested `ASTParenthesizedExpression`s so we never double-wrap, e.g. `((x))` ~== `(x)`. */
+  constructor(match: P.AnyMatch, props: ASTParenthesizedExpressionProps) {
     super(match, props)
-    this.assertType("expression", Expression)
+    this.assertType("expression", ASTExpression)
     // Unwind nested parenthesis
-    while (this.expression instanceof ParenthesizedExpression) {
+    while (this.expression instanceof ASTParenthesizedExpression) {
       this.expression = this.expression.expression
     }
   }
@@ -826,16 +826,16 @@ export class ParenthesizedExpression extends Expression {
  *  - `expression` is contained AST Expression.
  *  - `datatype` is ALWAYS boolean.
  */
-export type NotExpressionProps = Prettify<{ expression: Expression }>
+export type ASTNotExpressionProps = Prettify<{ expression: ASTExpression }>
 
-export class NotExpression extends Expression {
-  declare expression: Expression
+export class ASTNotExpression extends ASTExpression {
+  declare expression: ASTExpression
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "boolean"
   }
-  constructor(match: P.AnyMatch, props: NotExpressionProps) {
+  constructor(match: P.AnyMatch, props: ASTNotExpressionProps) {
     super(match, props)
-    this.assertType("expression", Expression)
+    this.assertType("expression", ASTExpression)
   }
   compile(): string {
     return `!${this.expression.compile()}`
@@ -846,17 +846,17 @@ export class NotExpression extends Expression {
 }
 
 /** InfixExpression:  `<lhs> <operator> <rhs>`. */
-export type InfixExpressionProps = Prettify<{ lhs: Expression; operator: string; rhs: Expression }>
+export type ASTInfixExpressionProps = Prettify<{ lhs: ASTExpression; operator: string; rhs: ASTExpression }>
 
-export class InfixExpression extends Expression {
-  declare lhs: Expression
+export class ASTInfixExpression extends ASTExpression {
+  declare lhs: ASTExpression
   declare operator: string
-  declare rhs: Expression
-  constructor(match: P.AnyMatch, props: InfixExpressionProps) {
+  declare rhs: ASTExpression
+  constructor(match: P.AnyMatch, props: ASTInfixExpressionProps) {
     super(match, props)
-    this.assertType("lhs", Expression)
+    this.assertType("lhs", ASTExpression)
     this.assertType("operator", "string")
-    this.assertType("rhs", Expression)
+    this.assertType("rhs", ASTExpression)
   }
   compile(): string {
     return `${this.lhs.compile()} ${this.operator} ${this.rhs.compile()}`
@@ -873,21 +873,21 @@ export class InfixExpression extends Expression {
 /**
  * Given an array of Expressions, join them all together with same `operator`.
  * - Right-associates: repeatedly pops off the right end and nests it as `rhs` of a new
- *   `InfixExpression`, so `[a, b, c]` with `+` becomes `a + (b + c)` in tree shape
- *   (though `compile()` output has no visible parens since `InfixExpression` doesn't add them).
- * - Returns single expression unchanged (no `InfixExpression` wrapper) when `expressions.length < 2`.
+ *   `ASTInfixExpression`, so `[a, b, c]` with `+` becomes `a + (b + c)` in tree shape
+ *   (though `compile()` output has no visible parens since `ASTInfixExpression` doesn't add them).
+ * - Returns single expression unchanged (no `ASTInfixExpression` wrapper) when `expressions.length < 2`.
  * - TODO: convert to class?
  */
-export function MultiInfixExpression(
+export function ASTMultiInfixExpression(
   match: P.AnyMatch,
-  { expressions, operator }: { expressions: Expression[]; operator: string }
-): Expression | undefined {
+  { expressions, operator }: { expressions: ASTExpression[]; operator: string }
+): ASTExpression | undefined {
   if (expressions.length < 2) return expressions[0]
   const remaining = [...expressions]
-  let rhs = remaining.pop() as Expression
+  let rhs = remaining.pop() as ASTExpression
   while (remaining.length) {
-    const lhs = remaining.pop() as Expression
-    rhs = new InfixExpression(match, { lhs, operator, rhs })
+    const lhs = remaining.pop() as ASTExpression
+    rhs = new ASTInfixExpression(match, { lhs, operator, rhs })
   }
   return rhs
 }
@@ -901,19 +901,19 @@ export function MultiInfixExpression(
  *  - `wrap` (optional) is `true` to force-wrap args one-per-line -- defaults to wrapping past 3 args.
  *  - NOTE: this does not ensure that named method is actually defined in scope!!!!
  */
-export type InvocationArgsProps = Prettify<{ args?: Expression[]; wrap?: boolean }>
+export type ASTInvocationArgsProps = Prettify<{ args?: ASTExpression[]; wrap?: boolean }>
 
-export class InvocationArgs extends ASTNode {
-  declare args: Expression[] | undefined
-  /** SIDE EFFECT: unwinds any `ParenthesizedExpression` args, e.g. `foo((x))` ~== `foo(x)`. */
-  constructor(match: P.AnyMatch, { wrap, ...props }: InvocationArgsProps) {
+export class ASTInvocationArgs extends ASTNode {
+  declare args: ASTExpression[] | undefined
+  /** SIDE EFFECT: unwinds any `ASTParenthesizedExpression` args, e.g. `foo((x))` ~== `foo(x)`. */
+  constructor(match: P.AnyMatch, { wrap, ...props }: ASTInvocationArgsProps) {
     super(match, props)
     if (typeof wrap === "boolean") this.wrap = wrap
-    this.assertArrayType("args", Expression, OPTIONAL)
+    this.assertArrayType("args", ASTExpression, OPTIONAL)
     if (this.args) {
       // unwind parenthesized expressions in args
       this.args = this.args.map((arg) => {
-        while (arg instanceof ParenthesizedExpression) arg = arg.expression
+        while (arg instanceof ASTParenthesizedExpression) arg = arg.expression
         return arg
       })
     }
@@ -942,19 +942,19 @@ export class InvocationArgs extends ASTNode {
  *  - `wrap` (optional) set to control arg wrapping explicitly.
  *  - NOTE: this does not ensure that named method is actually defined in scope!!!!
  */
-export type MethodInvocationProps = Prettify<{
+export type ASTMethodInvocationProps = Prettify<{
   methodName: string
-  args?: Expression[]
+  args?: ASTExpression[]
   wrap?: boolean
   datatype?: string
 }>
 
-export class MethodInvocation extends Expression {
-  declare args: InvocationArgs
+export class ASTMethodInvocation extends ASTExpression {
+  declare args: ASTInvocationArgs
 
   /** Backing field for overridable `methodName` accessor. */
   declare private _methodName: string
-  /** `methodName` is a plain get/set pair here -- subclasses (e.g. `ConsoleMethodInvocation`) redefine it
+  /** `methodName` is a plain get/set pair here -- subclasses (e.g. `ASTConsoleMethodInvocation`) redefine it
    *  as an overridable `@proto` getter with a fixed default. */
   get methodName(): string {
     return this._methodName
@@ -963,11 +963,11 @@ export class MethodInvocation extends Expression {
     this._methodName = methodName
   }
 
-  constructor(match: P.AnyMatch, { args, wrap, ...props }: MethodInvocationProps) {
+  constructor(match: P.AnyMatch, { args, wrap, ...props }: ASTMethodInvocationProps) {
     super(match, props)
     this.assertType("methodName", "string")
     this.assertType("datatype", "string", OPTIONAL)
-    this.args = new InvocationArgs(match, { args, wrap })
+    this.args = new ASTInvocationArgs(match, { args, wrap })
   }
   compile(): string {
     return `${this.methodName}${this.args.compile()}`
@@ -983,14 +983,14 @@ export class MethodInvocation extends Expression {
  *  - `args` (optional) is a possibly empty list of Expressions.
  *  - Try to set `datatype` as string or getter if you can.
  */
-export type ScopedMethodInvocationProps = Prettify<MethodInvocationProps & { thing: Expression }>
+export type ASTScopedMethodInvocationProps = Prettify<ASTMethodInvocationProps & { thing: ASTExpression }>
 
-export class ScopedMethodInvocation extends MethodInvocation {
-  declare thing: Expression
-  constructor(match: P.AnyMatch, props: ScopedMethodInvocationProps) {
+export class ASTScopedMethodInvocation extends ASTMethodInvocation {
+  declare thing: ASTExpression
+  constructor(match: P.AnyMatch, props: ASTScopedMethodInvocationProps) {
     super(match, props)
     // `methodName`, `args`, wrap` and `datatype` are handled by MethodInvocation
-    this.assertType("thing", Expression)
+    this.assertType("thing", ASTExpression)
   }
   compile(): string {
     return `${this.thing.compile()}.${this.methodName}${this.args.compile()}`
@@ -1011,14 +1011,14 @@ export class ScopedMethodInvocation extends MethodInvocation {
  * - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
  *   (see `rules/methods.ts`) skips console calls since they already print something.
  */
-export type ConsoleMethodInvocationProps = Prettify<{
+export type ASTConsoleMethodInvocationProps = Prettify<{
   methodName?: string
-  args?: Expression[]
+  args?: ASTExpression[]
   wrap?: boolean
   datatype?: string
 }>
 
-export class ConsoleMethodInvocation extends ScopedMethodInvocation {
+export class ASTConsoleMethodInvocation extends ASTScopedMethodInvocation {
   /*@proto*/ get methodName(): string {
     return "log"
   }
@@ -1032,17 +1032,17 @@ export class ConsoleMethodInvocation extends ScopedMethodInvocation {
     this.override("echoInTests", echoInTests)
   }
   /** Builds `thing` as `spellCore.console` -- caller only supplies `methodName`/`args`. */
-  constructor(match: P.AnyMatch, props: ConsoleMethodInvocationProps) {
-    const thing = new PropertyExpression(match, {
-      object: new SpellCoreExpression(match),
+  constructor(match: P.AnyMatch, props: ASTConsoleMethodInvocationProps) {
+    const thing = new ASTPropertyExpression(match, {
+      object: new ASTSpellCoreExpression(match),
       property: "console"
     })
     super(match, { ...props, methodName: props.methodName as string, thing })
   }
 }
 
-/** Create an `Expression` that refers to `spellCore`. */
-export class SpellCoreExpression extends VariableExpression {
+/** Create an `ASTExpression` that refers to `spellCore`. */
+export class ASTSpellCoreExpression extends ASTVariableExpression {
   constructor(match: P.AnyMatch) {
     super(match, { name: "spellCore", type: "global" })
   }
@@ -1054,20 +1054,20 @@ export class SpellCoreExpression extends VariableExpression {
  *  - `args` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
  */
-export type CoreMethodInvocationProps = MethodInvocationProps
+export type ASTCoreMethodInvocationProps = ASTMethodInvocationProps
 
-export class CoreMethodInvocation extends ScopedMethodInvocation {
+export class ASTCoreMethodInvocation extends ASTScopedMethodInvocation {
   /** Builds `thing` as `spellCore` -- caller only supplies `methodName`/`args`. */
-  constructor(match: P.AnyMatch, props: CoreMethodInvocationProps) {
-    super(match, { ...props, thing: new SpellCoreExpression(match) })
+  constructor(match: P.AnyMatch, props: ASTCoreMethodInvocationProps) {
+    super(match, { ...props, thing: new ASTSpellCoreExpression(match) })
   }
 }
 
-/** Create an `Expression` that refers to `spellCore.RUNTIME`. */
-export class RuntimeExpression extends PropertyExpression {
+/** Create an `ASTExpression` that refers to `spellCore.RUNTIME`. */
+export class ASTRuntimeExpression extends ASTPropertyExpression {
   constructor(match: P.AnyMatch) {
     super(match, {
-      object: new SpellCoreExpression(match),
+      object: new ASTSpellCoreExpression(match),
       property: "RUNTIME"
     })
   }
@@ -1079,12 +1079,12 @@ export class RuntimeExpression extends PropertyExpression {
  *  - `args` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
  */
-export type RuntimeMethodInvocationProps = MethodInvocationProps
+export type ASTRuntimeMethodInvocationProps = ASTMethodInvocationProps
 
-export class RuntimeMethodInvocation extends ScopedMethodInvocation {
+export class ASTRuntimeMethodInvocation extends ASTScopedMethodInvocation {
   /** Builds `thing` as `spellCore.RUNTIME` -- caller only supplies `methodName`/`args`. */
-  constructor(match: P.AnyMatch, props: RuntimeMethodInvocationProps) {
-    super(match, { ...props, thing: new RuntimeExpression(match) })
+  constructor(match: P.AnyMatch, props: ASTRuntimeMethodInvocationProps) {
+    super(match, { ...props, thing: new ASTRuntimeExpression(match) })
   }
 }
 
@@ -1092,13 +1092,13 @@ export class RuntimeMethodInvocation extends ScopedMethodInvocation {
  *  - `property` is string or QuotedString for export name.
  *  - `value` is Expression being exported.
  */
-export type ExportInvocationProps = Prettify<{ property: string | QuotedExpression; value: Expression }>
+export type ASTExportInvocationProps = Prettify<{ property: string | ASTQuotedExpression; value: ASTExpression }>
 
-export class ExportInvocation extends CoreMethodInvocation {
-  /** Constructor also accepts a bare `string` `property` as shorthand for `new QuotedExpression(property)`. */
-  constructor(match: P.AnyMatch, props: ExportInvocationProps) {
+export class ASTExportInvocation extends ASTCoreMethodInvocation {
+  /** Constructor also accepts a bare `string` `property` as shorthand for `new ASTQuotedExpression(property)`. */
+  constructor(match: P.AnyMatch, props: ASTExportInvocationProps) {
     let { property } = props
-    if (typeof property === "string") property = new QuotedExpression(match, property)
+    if (typeof property === "string") property = new ASTQuotedExpression(match, property)
     super(match, {
       methodName: "addExport",
       args: [property, props.value]
@@ -1114,14 +1114,14 @@ export class ExportInvocation extends CoreMethodInvocation {
  *  - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
  *    (see `rules/methods.ts`) skips `expect(...)` calls since they already print an assertion result.
  */
-export type ExpectMethodInvocationProps = Prettify<{
-  expression: Expression
+export type ASTExpectMethodInvocationProps = Prettify<{
+  expression: ASTExpression
   expressionString: string
-  value?: Expression
+  value?: ASTExpression
   valueString?: string
 }>
 
-export class ExpectMethodInvocation extends CoreMethodInvocation {
+export class ASTExpectMethodInvocation extends ASTCoreMethodInvocation {
   /*@proto*/ get methodName(): string {
     return "expect"
   }
@@ -1134,34 +1134,34 @@ export class ExpectMethodInvocation extends CoreMethodInvocation {
   set echoInTests(echoInTests: boolean) {
     this.override("echoInTests", echoInTests)
   }
-  /** Wraps `expressionString`/`valueString` as backtick `StringLiteral`s and never wraps args. */
-  constructor(match: P.AnyMatch, props: ExpectMethodInvocationProps) {
+  /** Wraps `expressionString`/`valueString` as backtick `ASTStringLiteral`s and never wraps args. */
+  constructor(match: P.AnyMatch, props: ASTExpectMethodInvocationProps) {
     const { expression, expressionString, value, valueString } = props
-    const args = [expression, new StringLiteral(match, "`" + expressionString + "`")]
-    if (value) args.push(value, new StringLiteral(match, "`" + valueString + "`"))
+    const args = [expression, new ASTStringLiteral(match, "`" + expressionString + "`")]
+    if (value) args.push(value, new ASTStringLiteral(match, "`" + valueString + "`"))
     super(match, { methodName: "expect", args, wrap: false })
   }
 }
 
 /** EchoInvocation:  `spellCore.echo(...)` (or another named spellCore method) for test-mode logging.
- *  - `expression` is expression to output -- a bare `string` is wrapped as a backtick `StringLiteral`.
+ *  - `expression` is expression to output -- a bare `string` is wrapped as a backtick `ASTStringLiteral`.
  *  - `methodName` (optional) overrides which spellCore method to call, defaults to `"echo"`.
  *  - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
  *    (see `rules/methods.ts`) skips echo calls since they already print something.
  */
-export type EchoInvocationProps = Prettify<{ expression: string | Expression; methodName?: string }>
+export type ASTEchoInvocationProps = Prettify<{ expression: string | ASTExpression; methodName?: string }>
 
-export class EchoInvocation extends CoreMethodInvocation {
+export class ASTEchoInvocation extends ASTCoreMethodInvocation {
   /*@proto*/ get echoInTests(): boolean {
     return false
   }
   set echoInTests(echoInTests: boolean) {
     this.override("echoInTests", echoInTests)
   }
-  constructor(match: P.AnyMatch, props: EchoInvocationProps) {
+  constructor(match: P.AnyMatch, props: ASTEchoInvocationProps) {
     const { methodName = "echo" } = props
     let { expression } = props
-    if (typeof expression === "string") expression = new StringLiteral(match, "`" + expression + "`")
+    if (typeof expression === "string") expression = new ASTStringLiteral(match, "`" + expression + "`")
     super(match, { methodName, args: [expression] })
   }
 }
@@ -1176,9 +1176,9 @@ export class EchoInvocation extends CoreMethodInvocation {
  *  - `plurality` (optional) is `"singular"`, `"plural"` or `undefined`.
  *    TODO: ^^^ ???
  */
-export type TypeExpressionProps = Prettify<{ name: string; raw?: string; plurality?: "singular" | "plural" }>
+export type ASTTypeExpressionProps = Prettify<{ name: string; raw?: string; plurality?: "singular" | "plural" }>
 
-export class TypeExpression extends Expression {
+export class ASTTypeExpression extends ASTExpression {
   declare name: string
   declare raw: string | undefined
   declare plurality: "singular" | "plural" | undefined
@@ -1188,7 +1188,7 @@ export class TypeExpression extends Expression {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  constructor(match: P.AnyMatch, props: TypeExpressionProps) {
+  constructor(match: P.AnyMatch, props: ASTTypeExpressionProps) {
     super(match, props)
     this.assertType("name", "string")
     this.assertType("raw", "string", OPTIONAL)
@@ -1209,15 +1209,15 @@ export class TypeExpression extends Expression {
 /** PrototypeExpression:  `type.prototype`.
  *  - `type` is a TypeExpression.
  */
-export type PrototypeExpressionProps = Prettify<{ type: string | TypeExpression }>
+export type ASTPrototypeExpressionProps = Prettify<{ type: string | ASTTypeExpression }>
 
-export class PrototypeExpression extends Expression {
-  declare type: TypeExpression
-  /** Constructor also accepts a bare `string` `type` as shorthand for `new TypeExpression({ name: type })`. */
-  constructor(match: P.AnyMatch, props: PrototypeExpressionProps) {
+export class ASTPrototypeExpression extends ASTExpression {
+  declare type: ASTTypeExpression
+  /** Constructor also accepts a bare `string` `type` as shorthand for `new ASTTypeExpression({ name: type })`. */
+  constructor(match: P.AnyMatch, props: ASTPrototypeExpressionProps) {
     super(match, props)
-    if (typeof this.type === "string") this.type = new TypeExpression(match, { name: this.type })
-    this.assertType("type", TypeExpression)
+    if (typeof this.type === "string") this.type = new ASTTypeExpression(match, { name: this.type })
+    this.assertType("type", ASTTypeExpression)
   }
   compile(): string {
     const { type } = this
@@ -1233,9 +1233,9 @@ export class PrototypeExpression extends Expression {
  *  - `output` is constant string to output, including quotes.
  *  - `constant` is pointer to scope Constant, if there is one.
  */
-export type ConstantExpressionProps = Prettify<{ name: string; output: string; constant?: P.ScopeConstant }>
+export type ASTConstantExpressionProps = Prettify<{ name: string; output: string; constant?: P.ScopeConstant }>
 
-export class ConstantExpression extends Expression {
+export class ASTConstantExpression extends ASTExpression {
   declare name: string
   declare output: string
   declare constant: P.ScopeConstant | undefined
@@ -1245,7 +1245,7 @@ export class ConstantExpression extends Expression {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  constructor(match: P.AnyMatch, props: ConstantExpressionProps) {
+  constructor(match: P.AnyMatch, props: ASTConstantExpressionProps) {
     super(match, props)
     this.assertType("name", "string")
     this.assertType("output", "string")
@@ -1275,62 +1275,62 @@ export class ConstantExpression extends Expression {
  *   manipulating `body.statements`, e.g. `methodBody.body.statements.push(...)`.
  * - `inline` (optional) set to `true` to make a fat arrow function.
  * - `asProperty` (optional) set to `true` to use object literal property syntax.
- *   NOTE: this is done automatically by `ObjectLiteral.addMethod()`.
+ *   NOTE: this is done automatically by `ASTObjectLiteral.addMethod()`.
  * - `methodName` (optional) is the method's name -- required when `asProperty` or non-`inline`.
- * - `error` (optional) is a `ParseError` rendered/compiled right after the method body.
+ * - `error` (optional) is an `ASTParseError` rendered/compiled right after the method body.
  * - `datatype` (optional) is return datatype as string, try to set if you can.
  * - `async` (optional) set to `true` to force method to be async; if not set, we'll use
  *   `match.nestedScope.async`.
  */
-export type MethodDefinitionProps = Prettify<{
-  args?: VariableExpression[]
-  body?: StatementBlock | Statement | Expression
+export type ASTMethodDefinitionProps = Prettify<{
+  args?: ASTVariableExpression[]
+  body?: ASTStatementBlock | ASTStatement | ASTExpression
   inline?: boolean
   asProperty?: boolean
   methodName?: string
-  error?: ParseError
+  error?: ASTParseError
   datatype?: string
   async?: boolean
 }>
 
-export class MethodDefinition extends Expression {
-  declare args: VariableExpression[] | undefined
-  declare body: StatementBlock
+export class ASTMethodDefinition extends ASTExpression {
+  declare args: ASTVariableExpression[] | undefined
+  declare body: ASTStatementBlock
   declare inline: boolean | undefined
   declare asProperty: boolean | undefined
   declare methodName: string | undefined
-  declare error: ParseError | undefined
+  declare error: ASTParseError | undefined
   declare async: boolean | undefined
-  /** Normalizes `body` (Statement / StatementGroup / Expression / missing) into a wrapped `StatementBlock`. */
-  constructor(match: P.AnyMatch, props: MethodDefinitionProps) {
+  /** Normalizes `body` (Statement / StatementGroup / Expression / missing) into a wrapped `ASTStatementBlock`. */
+  constructor(match: P.AnyMatch, props: ASTMethodDefinitionProps) {
     super(match, props)
-    this.assertArrayType("args", VariableExpression, OPTIONAL)
-    this.assertType("body", [StatementBlock, Statement, Expression], OPTIONAL)
+    this.assertArrayType("args", ASTVariableExpression, OPTIONAL)
+    this.assertType("body", [ASTStatementBlock, ASTStatement, ASTExpression], OPTIONAL)
     this.assertType("inline", "boolean", OPTIONAL)
     this.assertType("asProperty", "boolean", OPTIONAL)
     this.assertType("methodName", "string", OPTIONAL)
-    this.assertType("error", ParseError, OPTIONAL)
+    this.assertType("error", ASTParseError, OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
     this.assertType("async", "boolean", OPTIONAL)
 
     // Default `body` to empty StatementBlock
     if (!this.body) {
-      this.body = new StatementBlock(match)
+      this.body = new ASTStatementBlock(match)
     }
     // convert Statement/StatementGroup to StatementBlock
-    else if (this.body instanceof Statement) {
-      this.body = new StatementBlock(match, {
+    else if (this.body instanceof ASTStatement) {
+      this.body = new ASTStatementBlock(match, {
         statements: [this.body]
       })
     }
     // convert non-inline Expression to `return <expression>` StatementBlock
-    else if (this.body instanceof Expression) {
-      this.body = new StatementBlock(match, {
-        statements: [new ReturnStatement(match, { value: this.body })]
+    else if (this.body instanceof ASTExpression) {
+      this.body = new ASTStatementBlock(match, {
+        statements: [new ASTReturnStatement(match, { value: this.body })]
       })
     }
     // Make sure we body ends up as a StatementBlock
-    this.assertType("body", StatementBlock)
+    this.assertType("body", ASTStatementBlock)
     // ALWAYS wrap the body
     this.body.wrap = true
   }
@@ -1403,21 +1403,21 @@ export class MethodDefinition extends Expression {
  *    or when any property is a method.
  *  TODO: datatype???
  */
-export type ObjectLiteralProps = Prettify<{
-  properties?: Array<ObjectLiteralProperty | MethodDefinition>
+export type ASTObjectLiteralProps = Prettify<{
+  properties?: Array<ASTObjectLiteralProperty | ASTMethodDefinition>
   wrap?: boolean
 }>
 
-export class ObjectLiteral extends Expression {
-  declare properties: Array<ObjectLiteralProperty | MethodDefinition>
+export class ASTObjectLiteral extends ASTExpression {
+  declare properties: Array<ASTObjectLiteralProperty | ASTMethodDefinition>
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "object"
   }
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
-  /** SIDE EFFECT: sets `asProperty = true` on any `MethodDefinition` passed in via `properties`. */
-  constructor(match: P.AnyMatch, { properties, ...props }: ObjectLiteralProps = {}) {
+  /** SIDE EFFECT: sets `asProperty = true` on any `ASTMethodDefinition` passed in via `properties`. */
+  constructor(match: P.AnyMatch, { properties, ...props }: ASTObjectLiteralProps = {}) {
     super(match, props)
     this.properties = []
     this.assertType("wrap", "boolean", OPTIONAL)
@@ -1425,18 +1425,18 @@ export class ObjectLiteral extends Expression {
     // validate any properties passed in
     if (properties)
       properties.forEach((property) => {
-        if (property instanceof ObjectLiteralProperty) {
+        if (property instanceof ASTObjectLiteralProperty) {
           this.properties.push(property)
-        } else if (property instanceof MethodDefinition) {
+        } else if (property instanceof ASTMethodDefinition) {
           this.assert(
             property.methodName,
-            "new AST.ObjectLiteral(): MethodDefinition must specify methodName",
+            "new ASTObjectLiteral(): ASTMethodDefinition must specify methodName",
             property
           )
           property.asProperty = true
           this.properties.push(property)
         } else {
-          this.assert(false, `new AST.ObjectLiteral(): invalid property`, property)
+          this.assert(false, `new ASTObjectLiteral(): invalid property`, property)
         }
       })
   }
@@ -1444,31 +1444,31 @@ export class ObjectLiteral extends Expression {
   /** Default: wrap past 2 properties, or if any property is a method.  Override via constructor or setter. */
   /*@overridable*/
   get wrap(): boolean {
-    return this.properties.length > 2 || this.properties.some((item) => item instanceof MethodDefinition)
+    return this.properties.length > 2 || this.properties.some((item) => item instanceof ASTMethodDefinition)
   }
   set wrap(wrap: boolean) {
     this.override("wrap", wrap)
   }
   /** Append a plain `property: value` pair.  SIDE EFFECT: mutates `this.properties`. */
-  addProp(property: string | PropertyLiteral, value: string | Expression): void {
+  addProp(property: string | ASTPropertyLiteral, value: string | ASTExpression): void {
     // convert string value to StringLiteral
-    const propertyValue = typeof value === "string" ? new StringLiteral(this.match, { value }) : value
+    const propertyValue = typeof value === "string" ? new ASTStringLiteral(this.match, { value }) : value
     this.assert(
-      propertyValue instanceof Expression,
-      `AST.ObjectLiteral.addProp(${property}): value must be an Expression`,
+      propertyValue instanceof ASTExpression,
+      `ASTObjectLiteral.addProp(${property}): value must be an ASTExpression`,
       propertyValue
     )
-    this.properties.push(new ObjectLiteralProperty(this.match, { property, value: propertyValue }))
+    this.properties.push(new ASTObjectLiteralProperty(this.match, { property, value: propertyValue }))
   }
   /**
    * Append `method` as a named method property.
    * SIDE EFFECT: mutates `this.properties`, and sets `method.methodName`/`method.asProperty` on `method`
    * itself (overwriting whatever was there).
    */
-  addMethod(property: string, method: MethodDefinition): void {
+  addMethod(property: string, method: ASTMethodDefinition): void {
     this.assert(
-      method instanceof MethodDefinition,
-      `AST.ObjectLiteral.addMethod(${property}): method must be a MethodDefinition`,
+      method instanceof ASTMethodDefinition,
+      `ASTObjectLiteral.addMethod(${property}): method must be an ASTMethodDefinition`,
       method
     )
     method.methodName = property
@@ -1502,23 +1502,23 @@ export class ObjectLiteral extends Expression {
  *    (`{ prop }` ~== `{ prop: prop }`), assuming a same-named local variable is in scope.
  *  - `error` (optional) is a parse error associated with this property.
  */
-export type ObjectLiteralPropertyProps = Prettify<{
-  property: string | PropertyLiteral
-  value?: Expression
-  error?: ParseError
+export type ASTObjectLiteralPropertyProps = Prettify<{
+  property: string | ASTPropertyLiteral
+  value?: ASTExpression
+  error?: ASTParseError
 }>
 
-export class ObjectLiteralProperty extends ASTNode {
-  declare property: PropertyLiteral
-  declare value: Expression | undefined
-  declare error: ParseError | undefined
-  /** Constructor also accepts a bare `string` `property` as shorthand for `new PropertyLiteral(property)`. */
-  constructor(match: P.AnyMatch, props: ObjectLiteralPropertyProps) {
+export class ASTObjectLiteralProperty extends ASTNode {
+  declare property: ASTPropertyLiteral
+  declare value: ASTExpression | undefined
+  declare error: ASTParseError | undefined
+  /** Constructor also accepts a bare `string` `property` as shorthand for `new ASTPropertyLiteral(property)`. */
+  constructor(match: P.AnyMatch, props: ASTObjectLiteralPropertyProps) {
     super(match, props)
-    if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
-    this.assertType("property", PropertyLiteral)
-    this.assertType("value", Expression, OPTIONAL)
-    this.assertType("error", ParseError, OPTIONAL)
+    if (typeof this.property === "string") this.property = new ASTPropertyLiteral(this.match, this.property)
+    this.assertType("property", ASTPropertyLiteral)
+    this.assertType("value", ASTExpression, OPTIONAL)
+    this.assertType("error", ASTParseError, OPTIONAL)
     // this.assert(this.property.isLegalIdentifier || !!this.value, "Non-legal identifiers must specify a value!")
   }
   /** Compiles as shorthand `prop` when `value` is missing, else `prop: value`. */
@@ -1543,27 +1543,29 @@ export class ObjectLiteralProperty extends ASTNode {
 ////////////////
 
 /** Statement abstract type. */
-export class Statement extends ASTNode {}
+export class ASTStatement extends ASTNode {}
 
 /** StatementGroup -- set of random statements which does NOT get indented with curly braces!
- *  - NOTE: you can use this interchangeably whenever something takes a single `Statement`.
+ *  - NOTE: you can use this interchangeably whenever something takes a single `ASTStatement`.
  *  - `statements` is a list of Statements.
  *  - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
  *    (see `rules/methods.ts`) skips groups since each inner statement is echoed individually.
  */
-export type StatementGroupProps = Prettify<{ statements?: Array<Statement | Expression | Comment | BlankLine> }>
+export type ASTStatementGroupProps = Prettify<{
+  statements?: Array<ASTStatement | ASTExpression | ASTComment | ASTBlankLine>
+}>
 
-export class StatementGroup extends Statement {
-  declare statements: Array<Statement | Expression | Comment | BlankLine> | undefined
+export class ASTStatementGroup extends ASTStatement {
+  declare statements: Array<ASTStatement | ASTExpression | ASTComment | ASTBlankLine> | undefined
   /*@proto*/ get echoInTests(): boolean {
     return false
   }
   set echoInTests(echoInTests: boolean) {
     this.override("echoInTests", echoInTests)
   }
-  constructor(match: P.AnyMatch, props?: StatementGroupProps) {
+  constructor(match: P.AnyMatch, props?: ASTStatementGroupProps) {
     super(match, props)
-    this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
+    this.assertArrayType("statements", [ASTStatement, ASTExpression, ASTComment, ASTBlankLine], OPTIONAL)
   }
   compile(): string {
     return stringify.List({ items: this.statements, delimiter: stringify.NEWLINE })
@@ -1577,19 +1579,19 @@ export class StatementGroup extends Statement {
  *  - `statements` (optional) is a list of Statements etc.
  *  - `wrap` (optional) set to explicitly control block wrapping -- defaults to wrapping past 1 statement.
  */
-export type StatementBlockProps = Prettify<{
-  statements?: Array<Statement | Expression | Comment | BlankLine>
+export type ASTStatementBlockProps = Prettify<{
+  statements?: Array<ASTStatement | ASTExpression | ASTComment | ASTBlankLine>
   wrap?: boolean
 }>
 
-export class StatementBlock extends ASTNode {
-  declare statements: Array<Statement | Expression | Comment | BlankLine> | undefined
-  /** SIDE EFFECT: unwinds a single nested `StatementGroup` into this block's own `statements`. */
-  constructor(match: P.AnyMatch, props?: StatementBlockProps) {
+export class ASTStatementBlock extends ASTNode {
+  declare statements: Array<ASTStatement | ASTExpression | ASTComment | ASTBlankLine> | undefined
+  /** SIDE EFFECT: unwinds a single nested `ASTStatementGroup` into this block's own `statements`. */
+  constructor(match: P.AnyMatch, props?: ASTStatementBlockProps) {
     super(match, props)
-    this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
+    this.assertArrayType("statements", [ASTStatement, ASTExpression, ASTComment, ASTBlankLine], OPTIONAL)
     // Unwind any single nested StatementGroups
-    while (this.statements?.length === 1 && this.statements[0] instanceof StatementGroup) {
+    while (this.statements?.length === 1 && this.statements[0] instanceof ASTStatementGroup) {
       this.statements = this.statements[0].statements
     }
   }
@@ -1628,38 +1630,41 @@ export class StatementBlock extends ASTNode {
  * - `finallyBlock` (optional) is the `finally` body.
  * - MUST provide at least one of `catchBlock`/`finallyBlock`.
  */
-export type TryCatchBlockProps = Prettify<{
-  body: StatementBlock | Statement | Expression
-  errorArg?: string | VariableExpression
-  catchBlock?: StatementBlock | Statement | Expression
-  finallyBlock?: StatementBlock | Statement | Expression
+export type ASTTryCatchBlockProps = Prettify<{
+  body: ASTStatementBlock | ASTStatement | ASTExpression
+  errorArg?: string | ASTVariableExpression
+  catchBlock?: ASTStatementBlock | ASTStatement | ASTExpression
+  finallyBlock?: ASTStatementBlock | ASTStatement | ASTExpression
 }>
 
-export class TryCatchBlock extends StatementGroup {
-  declare body: StatementBlock
-  declare errorArg: VariableExpression | undefined
-  declare catchBlock: StatementBlock | undefined
-  declare finallyBlock: StatementBlock | undefined
-  /** Normalizes `body`/`catchBlock`/`finallyBlock` into wrapped `StatementBlock`s, `errorArg` into a
-   *  `VariableExpression`.
+export class ASTTryCatchBlock extends ASTStatementGroup {
+  declare body: ASTStatementBlock
+  declare errorArg: ASTVariableExpression | undefined
+  declare catchBlock: ASTStatementBlock | undefined
+  declare finallyBlock: ASTStatementBlock | undefined
+  /** Normalizes `body`/`catchBlock`/`finallyBlock` into wrapped `ASTStatementBlock`s, `errorArg` into a
+   *  `ASTVariableExpression`.
    */
-  constructor(match: P.AnyMatch, props: TryCatchBlockProps) {
-    super(match, props as unknown as StatementGroupProps)
-    this.assertType("body", [StatementBlock, Statement, Expression])
-    this.assertType("errorArg", ["string", VariableExpression], OPTIONAL)
-    this.assertType("catchBlock", [StatementBlock, Statement, Expression], OPTIONAL)
-    this.assertType("finallyBlock", [StatementBlock, Statement, Expression], OPTIONAL)
+  constructor(match: P.AnyMatch, props: ASTTryCatchBlockProps) {
+    super(match, props as unknown as ASTStatementGroupProps)
+    this.assertType("body", [ASTStatementBlock, ASTStatement, ASTExpression])
+    this.assertType("errorArg", ["string", ASTVariableExpression], OPTIONAL)
+    this.assertType("catchBlock", [ASTStatementBlock, ASTStatement, ASTExpression], OPTIONAL)
+    this.assertType("finallyBlock", [ASTStatementBlock, ASTStatement, ASTExpression], OPTIONAL)
     this.assert(this.catchBlock || this.finallyBlock, "You must provide at least one catchBlock or finallyBlock")
 
-    if (typeof this.errorArg === "string") this.errorArg = new VariableExpression(match, { name: this.errorArg })
-    this.body = convertStatementsToBlock(this.match, this.body as unknown as Statement)
+    if (typeof this.errorArg === "string") this.errorArg = new ASTVariableExpression(match, { name: this.errorArg })
+    this.body = convertStatementsToBlock(this.match, this.body as unknown as ASTStatement)
     this.body.wrap = true
     if (this.catchBlock) {
-      this.catchBlock = convertStatementsToBlock(this.catchBlock.match, this.catchBlock as unknown as Statement)
+      this.catchBlock = convertStatementsToBlock(this.catchBlock.match, this.catchBlock as unknown as ASTStatement)
       this.catchBlock.wrap = true
     }
     if (this.finallyBlock) {
-      this.finallyBlock = convertStatementsToBlock(this.finallyBlock.match, this.finallyBlock as unknown as Statement)
+      this.finallyBlock = convertStatementsToBlock(
+        this.finallyBlock.match,
+        this.finallyBlock as unknown as ASTStatement
+      )
       this.finallyBlock.wrap = true
     }
   }
@@ -1707,16 +1712,20 @@ export class TryCatchBlock extends StatementGroup {
  *  - `value` is an Expression.
  *  - `isNewVariable` (optional) if true and `thing` is an Expression, we'll declare the var.
  */
-export type AssignmentStatementProps = Prettify<{ thing: Expression; value: Expression; isNewVariable?: boolean }>
+export type ASTAssignmentStatementProps = Prettify<{
+  thing: ASTExpression
+  value: ASTExpression
+  isNewVariable?: boolean
+}>
 
-export class AssignmentStatement extends Statement {
-  declare thing: Expression
-  declare value: Expression
+export class ASTAssignmentStatement extends ASTStatement {
+  declare thing: ASTExpression
+  declare value: ASTExpression
   declare isNewVariable: boolean | undefined
-  constructor(match: P.AnyMatch, props: AssignmentStatementProps) {
+  constructor(match: P.AnyMatch, props: ASTAssignmentStatementProps) {
     super(match, props)
-    this.assertType("thing", Expression)
-    this.assertType("value", Expression)
+    this.assertType("thing", ASTExpression)
+    this.assertType("value", ASTExpression)
     this.assertType("isNewVariable", "boolean", OPTIONAL)
   }
   /** Should we `export` top-level vars?  Global toggle -- flip to `false` to disable entirely. */
@@ -1727,11 +1736,11 @@ export class AssignmentStatement extends Statement {
   }
   /** `true` only for a new-variable declaration at `ProjectScope`/`FileScope` whose name isn't blacklisted. */
   get exportVar(): boolean {
-    if (!AssignmentStatement.EXPORT_VARS || !this.isNewVariable) return false
+    if (!ASTAssignmentStatement.EXPORT_VARS || !this.isNewVariable) return false
     const { scope } = this.match
     if (!(scope instanceof P.ProjectScope || scope instanceof P.FileScope)) return false
     const varName = String(this.thing.compile())
-    return !AssignmentStatement.EXPORT_BLACKLIST[varName]
+    return !ASTAssignmentStatement.EXPORT_BLACKLIST[varName]
   }
   compile(): string {
     const { thing, value, isNewVariable } = this
@@ -1765,20 +1774,20 @@ export class AssignmentStatement extends Statement {
  *  - `variables` are VariableExpressions, possibly with defaults.
  *  - `isNewVariable` (optional) if true and `thing` is an Expression, we'll declare the var.
  */
-export type DestructuredAssignmentProps = Prettify<{
-  thing: Expression
-  variables: VariableExpression[]
+export type ASTDestructuredAssignmentProps = Prettify<{
+  thing: ASTExpression
+  variables: ASTVariableExpression[]
   isNewVariable?: boolean
 }>
 
-export class DestructuredAssignment extends Statement {
-  declare thing: Expression
-  declare variables: VariableExpression[]
+export class ASTDestructuredAssignment extends ASTStatement {
+  declare thing: ASTExpression
+  declare variables: ASTVariableExpression[]
   declare isNewVariable: boolean | undefined
-  constructor(match: P.AnyMatch, props: DestructuredAssignmentProps) {
+  constructor(match: P.AnyMatch, props: ASTDestructuredAssignmentProps) {
     super(match, props)
-    this.assertType("thing", Expression)
-    this.assertArrayType("variables", VariableExpression)
+    this.assertType("thing", ASTExpression)
+    this.assertArrayType("variables", ASTVariableExpression)
     this.assertType("isNewVariable", "boolean", OPTIONAL)
   }
   /** Compiles as `{ variables } = thing`, or `let { variables } = thing` when `isNewVariable`. */
@@ -1810,13 +1819,13 @@ export class DestructuredAssignment extends Statement {
 /** ReturnStatement -- return a value.
  *  - `value` (optional) is an Expression to be returned.
  */
-export type ReturnStatementProps = Prettify<{ value?: Expression }>
+export type ASTReturnStatementProps = Prettify<{ value?: ASTExpression }>
 
-export class ReturnStatement extends Statement {
-  declare value: Expression | undefined
-  constructor(match: P.AnyMatch, props?: ReturnStatementProps) {
+export class ASTReturnStatement extends ASTStatement {
+  declare value: ASTExpression | undefined
+  constructor(match: P.AnyMatch, props?: ASTReturnStatementProps) {
     super(match, props)
-    this.assertType("value", Expression, OPTIONAL)
+    this.assertType("value", ASTExpression, OPTIONAL)
   }
   /** Compiles as bare `return` when `value` is missing, else `return value`. */
   compile(): string {
@@ -1838,17 +1847,17 @@ export class ReturnStatement extends Statement {
  *  - `superType` (optional) is a TypeExpression.
  *
  *    NOTE: doc previously also listed an `instanceType` prop "for lists of a certain type" -- no such
- *    prop exists on `ClassDeclarationProps`; removed here since it didn't match the code.
+ *    prop exists on `ASTClassDeclarationProps`; removed here since it didn't match the code.
  */
-export type ClassDeclarationProps = Prettify<{ type: TypeExpression; superType?: TypeExpression }>
+export type ASTClassDeclarationProps = Prettify<{ type: ASTTypeExpression; superType?: ASTTypeExpression }>
 
-export class ClassDeclaration extends Statement {
-  declare type: TypeExpression
-  declare superType: TypeExpression | undefined
-  constructor(match: P.AnyMatch, props: ClassDeclarationProps) {
+export class ASTClassDeclaration extends ASTStatement {
+  declare type: ASTTypeExpression
+  declare superType: ASTTypeExpression | undefined
+  constructor(match: P.AnyMatch, props: ASTClassDeclarationProps) {
     super(match, props)
-    this.assertType("type", TypeExpression)
-    this.assertType("superType", TypeExpression, OPTIONAL)
+    this.assertType("type", ASTTypeExpression)
+    this.assertType("superType", ASTTypeExpression, OPTIONAL)
   }
   compile(): string {
     const { type, superType } = this
@@ -1872,15 +1881,15 @@ export class ClassDeclaration extends Statement {
  * - `type` is a TypeExpression.
  * - `props` (optional) is an ObjectLiteral.
  */
-export type NewInstanceExpressionProps = Prettify<{ type: TypeExpression; props?: ObjectLiteral }>
+export type ASTNewInstanceExpressionProps = Prettify<{ type: ASTTypeExpression; props?: ASTObjectLiteral }>
 
-export class NewInstanceExpression extends Expression {
-  declare type: TypeExpression
-  declare props: ObjectLiteral | undefined
-  constructor(match: P.AnyMatch, props: NewInstanceExpressionProps) {
+export class ASTNewInstanceExpression extends ASTExpression {
+  declare type: ASTTypeExpression
+  declare props: ASTObjectLiteral | undefined
+  constructor(match: P.AnyMatch, props: ASTNewInstanceExpressionProps) {
     super(match, props)
-    this.assertType("type", TypeExpression)
-    this.assertType("props", ObjectLiteral, OPTIONAL)
+    this.assertType("type", ASTTypeExpression)
+    this.assertType("props", ASTObjectLiteral, OPTIONAL)
   }
   /** Compiles as `new Type()` (empty parens) when `props` is missing, else `new Type(props)`. */
   compile(): string {
@@ -1896,13 +1905,13 @@ export class NewInstanceExpression extends Expression {
 /** ListExpression -- `[items]`.
  * - `items` (optional) is a list of Expressions.
  */
-export type ListExpressionProps = Prettify<{ items?: Expression[] }>
+export type ASTListExpressionProps = Prettify<{ items?: ASTExpression[] }>
 
-export class ListExpression extends Expression {
-  declare items: Expression[] | undefined
-  constructor(match: P.AnyMatch, props: ListExpressionProps) {
+export class ASTListExpression extends ASTExpression {
+  declare items: ASTExpression[] | undefined
+  constructor(match: P.AnyMatch, props: ASTListExpressionProps) {
     super(match, props)
-    this.assertArrayType("items", Expression, OPTIONAL)
+    this.assertArrayType("items", ASTExpression, OPTIONAL)
   }
   compile(): string {
     return stringify.InSquareBrackets({
@@ -1931,53 +1940,53 @@ export class ListExpression extends Expression {
  * - `get` (optional) is a MethodDefinition for property `getter`.
  * - `set` (optional) is a MethodDefinition for `setter` (which should specify `arg`).
  */
-export type PropertyDefinitionProps = Prettify<{
-  thing: Expression
-  property: string | PropertyLiteral
-  value?: Expression
-  initializer?: MethodDefinition
-  get?: MethodDefinition
-  set?: MethodDefinition
+export type ASTPropertyDefinitionProps = Prettify<{
+  thing: ASTExpression
+  property: string | ASTPropertyLiteral
+  value?: ASTExpression
+  initializer?: ASTMethodDefinition
+  get?: ASTMethodDefinition
+  set?: ASTMethodDefinition
 }>
 
-export class PropertyDefinition extends Statement {
-  declare thing: Expression
-  declare property: PropertyLiteral
-  declare value: Expression | undefined
-  declare initializer: MethodDefinition | undefined
-  declare get: MethodDefinition | undefined
-  declare set: MethodDefinition | undefined
-  constructor(match: P.AnyMatch, props: PropertyDefinitionProps) {
+export class ASTPropertyDefinition extends ASTStatement {
+  declare thing: ASTExpression
+  declare property: ASTPropertyLiteral
+  declare value: ASTExpression | undefined
+  declare initializer: ASTMethodDefinition | undefined
+  declare get: ASTMethodDefinition | undefined
+  declare set: ASTMethodDefinition | undefined
+  constructor(match: P.AnyMatch, props: ASTPropertyDefinitionProps) {
     super(match, props)
-    this.assertType("thing", Expression)
-    if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
-    this.assertType("property", PropertyLiteral)
-    this.assertType("value", Expression, OPTIONAL)
-    this.assertType("initializer", MethodDefinition, OPTIONAL)
-    this.assertType("get", MethodDefinition, OPTIONAL)
-    this.assertType("set", MethodDefinition, OPTIONAL)
+    this.assertType("thing", ASTExpression)
+    if (typeof this.property === "string") this.property = new ASTPropertyLiteral(this.match, this.property)
+    this.assertType("property", ASTPropertyLiteral)
+    this.assertType("value", ASTExpression, OPTIONAL)
+    this.assertType("initializer", ASTMethodDefinition, OPTIONAL)
+    this.assertType("get", ASTMethodDefinition, OPTIONAL)
+    this.assertType("set", ASTMethodDefinition, OPTIONAL)
   }
   /**
-   * Builds -- and memoizes -- the `CoreMethodInvocation` (`spellCore.define(thing, 'property', {...})`)
+   * Builds -- and memoizes -- the `ASTCoreMethodInvocation` (`spellCore.define(thing, 'property', {...})`)
    * that `compile()`/`renderChildren()` delegate to.
    * - Descriptor object literal only gets `value`/`initializer`/`get`/`set` keys that were actually passed.
    */
   /*@memoize*/
-  get definition(): CoreMethodInvocation {
+  get definition(): ASTCoreMethodInvocation {
     return this.derived("definition", () => {
       const { match, thing, property, value, get, set, initializer } = this
-      const propName = new QuotedExpression(property.match, { expression: property })
+      const propName = new ASTQuotedExpression(property.match, { expression: property })
 
-      const descriptor = new ObjectLiteral(match)
+      const descriptor = new ASTObjectLiteral(match)
       if (value) {
-        if (value instanceof MethodDefinition) descriptor.addMethod("value", value)
+        if (value instanceof ASTMethodDefinition) descriptor.addMethod("value", value)
         else descriptor.addProp("value", value)
       }
       if (initializer) descriptor.addMethod("initializer", initializer)
       if (get) descriptor.addMethod("get", get)
       if (set) descriptor.addMethod("set", set)
 
-      return new CoreMethodInvocation(match, {
+      return new ASTCoreMethodInvocation(match, {
         methodName: "define",
         args: [thing, propName, descriptor]
       })
@@ -1999,23 +2008,23 @@ export class PropertyDefinition extends Statement {
  * - `condition` is an Expression.
  * - `statements` is a Statement or Expression.
  */
-export type IfStatementProps = Prettify<{
-  condition: Expression
-  statements?: Statement | StatementBlock | Statement[]
+export type ASTIfStatementProps = Prettify<{
+  condition: ASTExpression
+  statements?: ASTStatement | ASTStatementBlock | ASTStatement[]
 }>
 
-export class IfStatement extends Statement {
-  declare condition: ParenthesizedExpression
-  declare statements: StatementBlock
+export class ASTIfStatement extends ASTStatement {
+  declare condition: ASTParenthesizedExpression
+  declare statements: ASTStatementBlock
   /** SIDE EFFECT: wraps `condition` in parens (unless already parenthesized) and normalizes `statements`
-   *  into a `StatementBlock`. */
-  constructor(match: P.AnyMatch, props: IfStatementProps) {
+   *  into an `ASTStatementBlock`. */
+  constructor(match: P.AnyMatch, props: ASTIfStatementProps) {
     super(match, props)
-    this.assertType("condition", Expression)
+    this.assertType("condition", ASTExpression)
     // wrap condition in parens if necessary
-    if (!(this.condition instanceof ParenthesizedExpression)) {
-      this.condition = new ParenthesizedExpression((this.condition as Expression).match, {
-        expression: this.condition as Expression
+    if (!(this.condition instanceof ASTParenthesizedExpression)) {
+      this.condition = new ASTParenthesizedExpression((this.condition as ASTExpression).match, {
+        expression: this.condition as ASTExpression
       })
     }
     this.statements = convertStatementsToBlock(this.match, this.statements)
@@ -2037,23 +2046,23 @@ export class IfStatement extends Statement {
  * - `condition` is an Expression.
  * - `statements` is a Statement or Expression.
  */
-export type ElseIfStatementProps = Prettify<{
-  condition: Expression
-  statements?: Statement | StatementBlock | Statement[]
+export type ASTElseIfStatementProps = Prettify<{
+  condition: ASTExpression
+  statements?: ASTStatement | ASTStatementBlock | ASTStatement[]
 }>
 
-export class ElseIfStatement extends Statement {
-  declare condition: ParenthesizedExpression
-  declare statements: StatementBlock
+export class ASTElseIfStatement extends ASTStatement {
+  declare condition: ASTParenthesizedExpression
+  declare statements: ASTStatementBlock
   /** SIDE EFFECT: wraps `condition` in parens (unless already parenthesized) and normalizes `statements`
-   *  into a `StatementBlock`. */
-  constructor(match: P.AnyMatch, props: ElseIfStatementProps) {
+   *  into an `ASTStatementBlock`. */
+  constructor(match: P.AnyMatch, props: ASTElseIfStatementProps) {
     super(match, props)
-    this.assertType("condition", Expression)
+    this.assertType("condition", ASTExpression)
     // wrap condition in parens if necessary
-    if (!(this.condition instanceof ParenthesizedExpression)) {
-      this.condition = new ParenthesizedExpression((this.condition as Expression).match, {
-        expression: this.condition as Expression
+    if (!(this.condition instanceof ASTParenthesizedExpression)) {
+      this.condition = new ASTParenthesizedExpression((this.condition as ASTExpression).match, {
+        expression: this.condition as ASTExpression
       })
     }
     this.statements = convertStatementsToBlock(this.match, this.statements)
@@ -2075,11 +2084,11 @@ export class ElseIfStatement extends Statement {
 /** ElseStatement.
  * - `statements` is a Statement or Expression.
  */
-export type ElseStatementProps = Prettify<{ statements?: Statement | StatementBlock | Statement[] }>
+export type ASTElseStatementProps = Prettify<{ statements?: ASTStatement | ASTStatementBlock | ASTStatement[] }>
 
-export class ElseStatement extends Statement {
-  declare statements: StatementBlock
-  constructor(match: P.AnyMatch, props?: ElseStatementProps) {
+export class ASTElseStatement extends ASTStatement {
+  declare statements: ASTStatementBlock
+  constructor(match: P.AnyMatch, props?: ASTElseStatementProps) {
     super(match, props)
     this.statements = convertStatementsToBlock(this.match, this.statements)
   }
@@ -2096,17 +2105,21 @@ export class ElseStatement extends Statement {
  * - `trueValue` is an Expression.
  * - `falseValue` is an Expression.
  */
-export type TernaryExpressionProps = Prettify<{ condition: Expression; trueValue: Expression; falseValue: Expression }>
+export type ASTTernaryExpressionProps = Prettify<{
+  condition: ASTExpression
+  trueValue: ASTExpression
+  falseValue: ASTExpression
+}>
 
-export class TernaryExpression extends Expression {
-  declare condition: Expression
-  declare trueValue: Expression
-  declare falseValue: Expression
-  constructor(match: P.AnyMatch, props: TernaryExpressionProps) {
+export class ASTTernaryExpression extends ASTExpression {
+  declare condition: ASTExpression
+  declare trueValue: ASTExpression
+  declare falseValue: ASTExpression
+  constructor(match: P.AnyMatch, props: ASTTernaryExpressionProps) {
     super(match, props)
-    this.assertType("condition", Expression)
-    this.assertType("trueValue", Expression)
-    this.assertType("falseValue", Expression)
+    this.assertType("condition", ASTExpression)
+    this.assertType("trueValue", ASTExpression)
+    this.assertType("falseValue", ASTExpression)
   }
   compile(): string {
     const { condition, trueValue, falseValue } = this
@@ -2136,30 +2149,30 @@ export class TernaryExpression extends Expression {
  * - `name` (string) is the process name.
  * - `exclusive` (boolean, optional) if `true`, process can only be run once at a time.
  */
-export type StartProcessInvocationProps = Prettify<{ name: string; exclusive?: boolean }>
+export type ASTStartProcessInvocationProps = Prettify<{ name: string; exclusive?: boolean }>
 
-export class StartProcessInvocation extends StatementGroup {
+export class ASTStartProcessInvocation extends ASTStatementGroup {
   /** When `exclusive`, prepends a guard statement that `return`s early if process is already running. */
-  constructor(match: P.AnyMatch, { name, exclusive = false, ...props }: StartProcessInvocationProps) {
+  constructor(match: P.AnyMatch, { name, exclusive = false, ...props }: ASTStartProcessInvocationProps) {
     super(match, props)
     this.statements = []
-    const nameArg = new QuotedExpression(match, name)
+    const nameArg = new ASTQuotedExpression(match, name)
     const args = [nameArg]
-    if (exclusive) args.push(new QuotedExpression(match, "EXCLUSIVE"))
+    if (exclusive) args.push(new ASTQuotedExpression(match, "EXCLUSIVE"))
 
     if (exclusive) {
       this.statements.push(
-        new IfStatement(match, {
-          condition: new CoreMethodInvocation(match, {
+        new ASTIfStatement(match, {
+          condition: new ASTCoreMethodInvocation(match, {
             methodName: "processIsRunning",
             args: [nameArg]
           }),
-          statements: new ReturnStatement(match)
+          statements: new ASTReturnStatement(match)
         })
       )
     }
     this.statements.push(
-      new CoreMethodInvocation(match, {
+      new ASTCoreMethodInvocation(match, {
         methodName: "startProcess",
         args
       })
@@ -2171,13 +2184,13 @@ export class StartProcessInvocation extends StatementGroup {
  * Stop a `name`d process (or animation).
  * - `name` (string) is the process name
  */
-export type StopProcessInvocationProps = Prettify<{ name: string }>
+export type ASTStopProcessInvocationProps = Prettify<{ name: string }>
 
-export class StopProcessInvocation extends CoreMethodInvocation {
-  constructor(match: P.AnyMatch, { name }: StopProcessInvocationProps) {
+export class ASTStopProcessInvocation extends ASTCoreMethodInvocation {
+  constructor(match: P.AnyMatch, { name }: ASTStopProcessInvocationProps) {
     super(match, {
       methodName: "stopProcess",
-      args: [new QuotedExpression(match, name)]
+      args: [new ASTQuotedExpression(match, name)]
     })
   }
 }
@@ -2191,48 +2204,48 @@ export class StopProcessInvocation extends CoreMethodInvocation {
  * - `attrs` (optional) is array of JSXAttributes.
  * - `children` is array of child nodes -- JSXElement/JSXEndTag/JSXText/JSXExpression.
  */
-export type JSXElementProps = Prettify<{
+export type ASTJSXElementProps = Prettify<{
   tagName: string
-  attrs?: JSXAttribute[]
-  children: Array<JSXElement | JSXEndTag | JSXText | JSXExpression>
+  attrs?: ASTJSXAttribute[]
+  children: Array<ASTJSXElement | ASTJSXEndTag | ASTJSXText | ASTJSXExpression>
 }>
 
-export class JSXElement extends Expression {
+export class ASTJSXElement extends ASTExpression {
   declare tagName: string
-  declare attrs: JSXAttribute[] | undefined
-  declare children: Array<JSXElement | JSXEndTag | JSXText | JSXExpression>
-  constructor(match: P.AnyMatch, props: JSXElementProps) {
+  declare attrs: ASTJSXAttribute[] | undefined
+  declare children: Array<ASTJSXElement | ASTJSXEndTag | ASTJSXText | ASTJSXExpression>
+  constructor(match: P.AnyMatch, props: ASTJSXElementProps) {
     super(match, props)
     this.assertType("tagName", "string")
-    this.assertArrayType("attrs", JSXAttribute, OPTIONAL)
-    this.assertArrayType("children", [JSXElement, JSXEndTag, JSXText, JSXExpression])
+    this.assertArrayType("attrs", ASTJSXAttribute, OPTIONAL)
+    this.assertArrayType("children", [ASTJSXElement, ASTJSXEndTag, ASTJSXText, ASTJSXExpression])
   }
   /**
    * Builds -- and memoizes -- `spellCore.element({ tag, props, children })` CoreMethodInvocation that
    * `compile()`/`renderChildren()` delegate to.
    * - `props` key only appears when there's at least one attr; `children` key only when there's at
-   *   least one child whose own `output` isn't falsy (e.g. `JSXEndTag.output` is always `undefined`
+   *   least one child whose own `output` isn't falsy (e.g. `ASTJSXEndTag.output` is always `undefined`
    *   and gets filtered out).
    */
   /*@memoize*/
-  get output(): CoreMethodInvocation {
+  get output(): ASTCoreMethodInvocation {
     return this.derived("output", () => {
-      const properties: ObjectLiteralProperty[] = [
-        new ObjectLiteralProperty(this.match, {
+      const properties: ASTObjectLiteralProperty[] = [
+        new ASTObjectLiteralProperty(this.match, {
           property: "tag",
-          value: new StringLiteral(this.match, `"${this.tagName}"`)
+          value: new ASTStringLiteral(this.match, `"${this.tagName}"`)
         })
       ]
 
       const attrs =
         this.attrs &&
         this.attrs.length &&
-        new ObjectLiteral(this.match, {
+        new ASTObjectLiteral(this.match, {
           properties: this.attrs.map((attr) => attr.output)
         })
       if (attrs) {
         properties.push(
-          new ObjectLiteralProperty(this.match, {
+          new ASTObjectLiteralProperty(this.match, {
             property: "props",
             value: attrs
           })
@@ -2241,16 +2254,16 @@ export class JSXElement extends Expression {
       const items = this.children?.length && this.children.map((child) => child?.output).filter(Boolean)
       if (items && items.length) {
         properties.push(
-          new ObjectLiteralProperty(this.match, {
+          new ASTObjectLiteralProperty(this.match, {
             property: "children",
-            value: new ArrayLiteral(this.match, { items: items as Expression[], wrap: true })
+            value: new ASTArrayLiteral(this.match, { items: items as ASTExpression[], wrap: true })
           })
         )
       }
 
-      return new CoreMethodInvocation(this.match, {
+      return new ASTCoreMethodInvocation(this.match, {
         methodName: "element",
-        args: [new ObjectLiteral(this.match, { properties, wrap: (attrs && attrs.wrap) || false })]
+        args: [new ASTObjectLiteral(this.match, { properties, wrap: (attrs && attrs.wrap) || false })]
       })
     })
   }
@@ -2267,40 +2280,40 @@ export class JSXElement extends Expression {
  * - `value` (optional) is attribute value Expression -- missing means boolean-shorthand attr, e.g. bare `d`.
  * - `error` (optional) is parse error associated with this attribute.
  */
-export type JSXAttributeProps = Prettify<{ name: string; value?: Expression; error?: ParseError }>
+export type ASTJSXAttributeProps = Prettify<{ name: string; value?: ASTExpression; error?: ASTParseError }>
 
-export class JSXAttribute extends Expression {
+export class ASTJSXAttribute extends ASTExpression {
   declare name: string
-  declare value: Expression | undefined
-  declare error: ParseError | undefined
-  constructor(match: P.AnyMatch, props: JSXAttributeProps) {
+  declare value: ASTExpression | undefined
+  declare error: ASTParseError | undefined
+  constructor(match: P.AnyMatch, props: ASTJSXAttributeProps) {
     super(match, props)
     this.assertType("name", "string")
-    this.assertType("value", Expression, OPTIONAL)
-    this.assertType("error", ParseError, OPTIONAL)
+    this.assertType("value", ASTExpression, OPTIONAL)
+    this.assertType("error", ASTParseError, OPTIONAL)
   }
   /**
-   * Builds -- and memoizes -- this attribute as either a `MethodDefinition` (when `value` is one,
-   * i.e. an inline method prop) or a plain `ObjectLiteralProperty`, for use inside `JSXElement.output`'s
+   * Builds -- and memoizes -- this attribute as either an `ASTMethodDefinition` (when `value` is one,
+   * i.e. an inline method prop) or a plain `ASTObjectLiteralProperty`, for use inside `ASTJSXElement.output`'s
    * `props` object.
    * - If no `value`: `undefined` when there's a parse `error`, else `true` per JSX spec for an
    *   empty/boolean attribute.
    */
   /*@memoize*/
-  get output(): MethodDefinition | ObjectLiteralProperty {
+  get output(): ASTMethodDefinition | ASTObjectLiteralProperty {
     return this.derived("output", () => {
       // If we didn't get a value:
       //  if we have a parse error, return `undefined`
       //  otherwise return `true` as per spec for an empty attribute
-      const value: Expression =
-        this.value || (this.error ? new UndefinedLiteral(this.match) : new BooleanLiteral(this.match, true))
-      if (value instanceof MethodDefinition) {
+      const value: ASTExpression =
+        this.value || (this.error ? new ASTUndefinedLiteral(this.match) : new ASTBooleanLiteral(this.match, true))
+      if (value instanceof ASTMethodDefinition) {
         value.asProperty = true
         value.methodName = this.name
         if (this.error) value.error = this.error
         return value
       }
-      return new ObjectLiteralProperty(this.match, {
+      return new ASTObjectLiteralProperty(this.match, {
         property: this.name,
         value,
         error: this.error
@@ -2312,11 +2325,11 @@ export class JSXAttribute extends Expression {
 /** JSXEndTag -- a closing tag, e.g. `</div>`.  Parsed only to be discarded.
  * - `tagName` is closed tag's name.
  */
-export type JSXEndTagProps = Prettify<{ tagName: string }>
+export type ASTJSXEndTagProps = Prettify<{ tagName: string }>
 
-export class JSXEndTag extends Expression {
+export class ASTJSXEndTag extends ASTExpression {
   declare tagName: string
-  constructor(match: P.AnyMatch, props: JSXEndTagProps) {
+  constructor(match: P.AnyMatch, props: ASTJSXEndTagProps) {
     super(match, props)
     this.assertType("tagName", "string")
   }
@@ -2330,21 +2343,21 @@ export class JSXEndTag extends Expression {
  * - `value` is text content.
  * - `raw` (optional) is original unnormalized input string.
  */
-export type JSXTextProps = Prettify<{ value: string; raw?: string }>
+export type ASTJSXTextProps = Prettify<{ value: string; raw?: string }>
 
-export class JSXText extends Expression {
+export class ASTJSXText extends ASTExpression {
   declare value: string
   declare raw: string | undefined
-  constructor(match: P.AnyMatch, props: JSXTextProps) {
+  constructor(match: P.AnyMatch, props: ASTJSXTextProps) {
     super(match, props)
     this.assertType("value", "string")
     this.assertType("raw", "string", OPTIONAL)
   }
-  /** Wraps `value` as a plain `StringLiteral` -- memoized, but trivial enough it barely matters. */
+  /** Wraps `value` as a plain `ASTStringLiteral` -- memoized, but trivial enough it barely matters. */
   /*@memoize*/
-  get output(): StringLiteral {
+  get output(): ASTStringLiteral {
     return this.derived("output", () => {
-      return new StringLiteral(this.match, this.value)
+      return new ASTStringLiteral(this.match, this.value)
     })
   }
 }
@@ -2353,26 +2366,26 @@ export class JSXText extends Expression {
  * - `expression` (optional) is contained Expression -- missing paired with `error` for a broken `{}`.
  * - `error` (optional) is parse error associated with this expression.
  */
-export type JSXExpressionProps = Prettify<{ expression?: Expression; error?: ParseError }>
+export type ASTJSXExpressionProps = Prettify<{ expression?: ASTExpression; error?: ASTParseError }>
 
-export class JSXExpression extends Expression {
-  declare expression: Expression | undefined
-  declare error: ParseError | undefined
-  constructor(match: P.AnyMatch, props: JSXExpressionProps) {
+export class ASTJSXExpression extends ASTExpression {
+  declare expression: ASTExpression | undefined
+  declare error: ASTParseError | undefined
+  constructor(match: P.AnyMatch, props: ASTJSXExpressionProps) {
     super(match, props)
-    this.assertType("expression", Expression, OPTIONAL)
-    this.assertType("error", ParseError, OPTIONAL)
+    this.assertType("expression", ASTExpression, OPTIONAL)
+    this.assertType("error", ASTParseError, OPTIONAL)
   }
   /**
-   * `expression` as-is normally; when there's an `error`, wraps it (or a `NullLiteral` placeholder if
-   * `expression` is also missing) in an `ExpressionWithComment` so error surfaces in compiled output.
+   * `expression` as-is normally; when there's an `error`, wraps it (or an `ASTNullLiteral` placeholder if
+   * `expression` is also missing) in an `ASTExpressionWithComment` so error surfaces in compiled output.
    */
   /*@memoize*/
-  get output(): Expression | ExpressionWithComment | undefined {
+  get output(): ASTExpression | ASTExpressionWithComment | undefined {
     return this.derived("output", () => {
       if (this.error) {
-        const expression = this.expression || new NullLiteral(this.match)
-        return new ExpressionWithComment(this.match, {
+        const expression = this.expression || new ASTNullLiteral(this.match)
+        return new ASTExpressionWithComment(this.match, {
           expression,
           comment: this.error
         })

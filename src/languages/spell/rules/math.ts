@@ -4,7 +4,7 @@
  * - NOTE: this must come after "operators".
  */
 
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellExpression, InfixOperatorSuffix } from "./expressions"
@@ -14,7 +14,7 @@ import { SpellExpression, InfixOperatorSuffix } from "./expressions"
  * - `Match.AST` is typed generically as `ASTNode | undefined`; this asserts the referenced sub-rule's
  *   `getAST()` is known (by inspection) to always produce `T`, since that's not statically checkable here.
  */
-function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
+function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
   return node as T
 }
 
@@ -37,9 +37,9 @@ export const math = new SpellParser({
       constructor: class gt_lt extends InfixOperatorSuffix {
         getAST(match: P.Match<P.RulexGroups<"operator:expression">>) {
           const { operator, expression } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: operator!.value,
-            args: [ast<AST.Expression>(expression!.AST)]
+            args: [ast<P.ASTExpression>(expression!.AST)]
           })
         }
       },
@@ -86,9 +86,9 @@ export const math = new SpellParser({
         }
         getAST(match: P.Match<P.RulexGroups<"operator:expression">>) {
           const { operator, expression } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: operator!.value,
-            args: [ast<AST.Expression>(expression!.AST)]
+            args: [ast<P.ASTExpression>(expression!.AST)]
           })
         }
       },
@@ -238,10 +238,10 @@ export const math = new SpellParser({
       constructor: class absolute_value extends SpellExpression {
         getAST(match: P.Match<P.RulexGroups<"expression">>) {
           const { expression } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             datatype: "number",
             methodName: "absoluteValue", // TODO: implement in spellCore
-            args: [ast<AST.Expression>(expression!.AST)]
+            args: [ast<P.ASTExpression>(expression!.AST)]
           })
         }
       },
@@ -270,10 +270,10 @@ export const math = new SpellParser({
       constructor: class max extends SpellExpression {
         getAST(match: P.Match<P.RulexGroups<"expression">>) {
           const { expression } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             datatype: "number",
             methodName: "largestOf",
-            args: [ast<AST.Expression>(expression!.AST)]
+            args: [ast<P.ASTExpression>(expression!.AST)]
           })
         }
       },
@@ -306,10 +306,10 @@ export const math = new SpellParser({
       constructor: class min extends SpellExpression {
         getAST(match: P.Match<P.RulexGroups<"expression">>) {
           const { expression } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             datatype: "number",
             methodName: "smallestOf",
-            args: [ast<AST.Expression>(expression!.AST)]
+            args: [ast<P.ASTExpression>(expression!.AST)]
           })
         }
       },
@@ -345,10 +345,10 @@ export const math = new SpellParser({
           let methodName = "round"
           if (operator?.value === "up") methodName = "roundUp"
           else if (operator?.value === "down") methodName = "roundDown"
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             datatype: "number",
             methodName, // TODO: implement in spellCore
-            args: [ast<AST.Expression>(expression!.AST)]
+            args: [ast<P.ASTExpression>(expression!.AST)]
           })
         }
       },

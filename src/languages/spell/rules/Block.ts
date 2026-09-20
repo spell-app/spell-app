@@ -1,4 +1,4 @@
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import "./match-fields.A"
@@ -11,7 +11,7 @@ import "./match-fields.A"
  */
 export class Block extends P.Rule {
   /**
-   * Recurse into nested `Tokens.Block`s, parsing each `Tokens.Line` as `"line"` (via `BlockLine`).
+   * Recurse into nested `BlockToken`s, parsing each `LineToken` as `"line"` (via `BlockLine`).
    * - SIDE EFFECT: `console.warn`s (rather than throwing) on unproductive items, then skips past them --
    *   parsing tries to make progress through the whole file even when individual lines are broken.
    */
@@ -20,7 +20,7 @@ export class Block extends P.Rule {
     if (tokens.length !== 1) console.warn(`Block.parse(): unexpectedly got ${tokens.length} tokens:`, tokens)
 
     const block = tokens[0]!
-    if (!(block instanceof P.Tokens.Block)) {
+    if (!(block instanceof P.BlockToken)) {
       console.warn("parseBlock: got non-block", block)
       return undefined
     }
@@ -28,16 +28,16 @@ export class Block extends P.Rule {
     // build up matches for individual items
     const matched: P.Match[] = []
     const errors: P.Match[] = []
-    const items: (P.Tokens.Line | P.Tokens.Block)[] = [...block.tokens]
+    const items: (P.LineToken | P.BlockToken)[] = [...block.tokens]
     while (items.length) {
       let match: P.Match | undefined
       const first = items[0]!
       // recurse for nested block
-      if (first instanceof P.Tokens.Block) {
+      if (first instanceof P.BlockToken) {
         match = this.parse(scope, [first])
       }
       // process Line as "line" -- a statement with optional comment, etc.
-      else if (first instanceof P.Tokens.Line) {
+      else if (first instanceof P.LineToken) {
         // NOTE: `Scope.parse()` is typed for string input only; call `parser.parse()` directly
         // (exactly what `Scope.parse()` would do internally) so we can pass tokens instead.
         match = scope.parser?.parse(items, "line", scope)
@@ -77,16 +77,16 @@ export class Block extends P.Rule {
     return match.AST?.compile()
   }
 
-  /** Build `AST.StatementBlock` (wrapped in `{}`) if `match.enclose`, else a plain `AST.StatementGroup`. */
-  getAST(match: P.Match): AST.StatementBlock | AST.StatementGroup {
+  /** Build `P.ASTStatementBlock` (wrapped in `{}`) if `match.enclose`, else a plain `P.ASTStatementGroup`. */
+  getAST(match: P.Match): P.ASTStatementBlock | P.ASTStatementGroup {
     // `Block.parse()` only ever pushes `Match`es (never raw `Token`s) onto `matched`,
     // and each of those is itself a `line`/nested `block` match whose rule always
     // implements `getAST()` returning a statement-shaped node -- not staticaly representable.
     const statements = match.matched
       .filter((item): item is P.Match => item instanceof P.Match)
-      .map((item) => item.AST) as Array<AST.Statement | AST.Expression | AST.Comment | AST.BlankLine>
-    if (match.enclose) return new AST.StatementBlock(match, { statements })
-    return new AST.StatementGroup(match, { statements })
+      .map((item) => item.AST) as Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine>
+    if (match.enclose) return new P.ASTStatementBlock(match, { statements })
+    return new P.ASTStatementGroup(match, { statements })
   }
 }
 SpellParser.Rules.Block = Block

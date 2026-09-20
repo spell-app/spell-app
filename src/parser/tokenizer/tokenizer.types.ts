@@ -38,7 +38,7 @@ export const WhitespacePolicy = {
 } as const
 export type WhitespacePolicy = (typeof WhitespacePolicy)[keyof typeof WhitespacePolicy]
 
-/** Escape character used when matching quoted `Text` and delimited JSX expressions. */
+/** Escape character used when matching quoted `TextToken`s and delimited JSX expressions. */
 export const BACKSLASH = `\\` as const
 /** Double-quote symbol, one of the default `Tokenizer.quoteSymbols`. */
 export const DOUBLE_QUOTE = `"` as const

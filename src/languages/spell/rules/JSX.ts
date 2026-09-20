@@ -1,12 +1,12 @@
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 
 /**
- * Narrow `node` (typed generically as `AST.ASTNode | undefined`) to concrete AST subclass `T`.
+ * Narrow `node` (typed generically as `P.ASTNode | undefined`) to concrete AST subclass `T`.
  * - `T` is chosen by inspection: referenced sub-rule's `getAST()` is known to always produce it.
  */
-function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
+function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
   return node as T
 }
 
@@ -15,21 +15,21 @@ export const JSX = new SpellParser({
   rules: [
     /**
      * Match a JSX element (`<tag attr=.../>` or `<tag>...</tag>`) as an `expression`/`jsxChild`.
-     * - Delegates tokenizing entirely to `P.Tokens.JSXElement`; `parse()` re-parses each attribute/child
+     * - Delegates tokenizing entirely to `P.JSXElementToken`; `parse()` re-parses each attribute/child
      *   token through `jsxAttribute`/`jsxChild` (falling back to `parse_error` for unparseable children).
      * - Compiles to `spellCore.element({ tag, props, children })`.
      */
     {
       name: "jsxElement",
       alias: ["jsxChild", "expression"],
-      tokenType: P.Tokens.JSXElement,
+      tokenType: P.JSXElementToken,
       constructor: class SpellJSX extends P.TokenType {
         /** Parse element's `attributes`/`children` tokens (see note below re: calling `parser.parse()` directly). */
         parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
           if (match.matched.length !== 1) throw new TypeError("Can only handle a single JSXElement at a time!")
-          const [element] = match.matched as [P.Tokens.JSXElement]
+          const [element] = match.matched as [P.JSXElementToken]
           // `Scope.parse()` only accepts a `string` for `text`, but we have actual `Token`s here -- call
           // `scope.parser.parse()` directly instead (same workaround `SpellCSSFile.parse()` uses).
           match.attributes = element.attributes?.map((attr) => scope.parser?.parse(attr, "jsxAttribute", scope))
@@ -40,15 +40,15 @@ export const JSX = new SpellParser({
           return match
         }
 
-        /** Build `AST.JSXElement`; drops falsy child ASTs (e.g. blank `jsxText`) via `.filter(Boolean)`. */
+        /** Build `P.ASTJSXElement`; drops falsy child ASTs (e.g. blank `jsxText`) via `.filter(Boolean)`. */
         getAST(match: P.Match) {
-          const { tagName } = match.matched[0] as P.Tokens.JSXElement
-          const attrs = match.attributes?.map((attr) => ast<AST.JSXAttribute>(attr?.AST))
+          const { tagName } = match.matched[0] as P.JSXElementToken
+          const attrs = match.attributes?.map((attr) => ast<P.ASTJSXAttribute>(attr?.AST))
           const children =
             match.children
-              ?.map((child) => ast<AST.JSXElement | AST.JSXEndTag | AST.JSXText | AST.JSXExpression>(child?.AST))
+              ?.map((child) => ast<P.ASTJSXElement | P.ASTJSXEndTag | P.ASTJSXText | P.ASTJSXExpression>(child?.AST))
               .filter(Boolean) ?? []
-          return new AST.JSXElement(match, { tagName, attrs, children })
+          return new P.ASTJSXElement(match, { tagName, attrs, children })
         }
       },
       tests: [
@@ -257,7 +257,7 @@ export const JSX = new SpellParser({
      */
     {
       name: "jsxAttribute",
-      tokenType: P.Tokens.JSXAttribute,
+      tokenType: P.JSXAttributeToken,
       constructor: class SpellJSXAttribute extends P.TokenType {
         /**
          * Parse `value` as an expression, or (for `on*` attribute names) as a `statement` with an
@@ -268,12 +268,12 @@ export const JSX = new SpellParser({
           if (!match) return undefined
           if (match.matched.length !== 1) throw new TypeError("Can only handle a single JSXAttribute at a time!")
           // pull attribute name up to match
-          const attributeToken = match.matched[0] as P.Tokens.JSXAttribute
+          const attributeToken = match.matched[0] as P.JSXAttributeToken
           match.attribute = attributeToken.name
           // parse `value` if as a number or JSXExpression
           const { value } = match
           if (value) {
-            const inputIsExpression = value instanceof P.Tokens.JSXExpression
+            const inputIsExpression = value instanceof P.JSXExpressionToken
             // `JSXExpression.contents` is typed `string | Token` (a bare, un-braced attribute value is
             // tokenized via `matchJSXAttributeValueIdentifier`, which sets `contents` to a `Token`), but this
             // rule (as in the original JS) only ever handles the braced/string form here.
@@ -304,34 +304,34 @@ export const JSX = new SpellParser({
         }
 
         /**
-         * Build `AST.JSXAttribute`.
-         * - `statement` value becomes an inline `AST.MethodDefinition` (with an `event` arg for `on*` names).
+         * Build `P.ASTJSXAttribute`.
+         * - `statement` value becomes an inline `P.ASTMethodDefinition` (with an `event` arg for `on*` names).
          * - Missing `value` (bare attribute, e.g. `<input disabled/>`) becomes `true`.
          */
         getAST(match: P.Match) {
           const { attribute, expression, statement, error, value } = match
-          let valueAST: AST.Expression | undefined
-          if (expression) valueAST = ast<AST.Expression>(expression.AST)
+          let valueAST: P.ASTExpression | undefined
+          if (expression) valueAST = ast<P.ASTExpression>(expression.AST)
           else if (statement) {
-            valueAST = new AST.MethodDefinition(match, {
+            valueAST = new P.ASTMethodDefinition(match, {
               inline: true,
               args: attribute!.toLowerCase().startsWith("on")
-                ? [new AST.VariableExpression(match, { name: "event" })]
+                ? [new P.ASTVariableExpression(match, { name: "event" })]
                 : undefined,
-              body: ast<AST.StatementBlock | AST.Statement | AST.Expression>(statement.AST)
+              body: ast<P.ASTStatementBlock | P.ASTStatement | P.ASTExpression>(statement.AST)
             })
           } else if (value === undefined) {
-            valueAST = new AST.BooleanLiteral(match, { value: true })
-          } else if (value instanceof P.Tokens.Text) {
-            valueAST = new AST.StringLiteral(match, { value: value.value })
+            valueAST = new P.ASTBooleanLiteral(match, { value: true })
+          } else if (value instanceof P.TextToken) {
+            valueAST = new P.ASTStringLiteral(match, { value: value.value })
           } else if (!error) {
             console.warn("jsxAttribute.getAST: don't know how to render value", value, " for match ", match)
-            valueAST = new AST.UndefinedLiteral(match)
+            valueAST = new P.ASTUndefinedLiteral(match)
           }
-          return new AST.JSXAttribute(match, {
+          return new P.ASTJSXAttribute(match, {
             name: attribute!,
             value: valueAST,
-            error: error?.AST as AST.ParseError | undefined
+            error: error?.AST as P.ASTParseError | undefined
           })
         }
       }
@@ -341,15 +341,15 @@ export const JSX = new SpellParser({
     {
       name: "jsxText",
       alias: "jsxChild",
-      tokenType: P.Tokens.JSXText,
+      tokenType: P.JSXTextToken,
       constructor: class SpellJSXText extends P.TokenType {
-        /** Build `AST.JSXText`; returns `undefined` for blank text since there's nothing to render. */
+        /** Build `P.ASTJSXText`; returns `undefined` for blank text since there's nothing to render. */
         getAST(match: P.Match) {
-          const { raw, quotedText } = match.matched[0] as P.Tokens.JSXText
+          const { raw, quotedText } = match.matched[0] as P.JSXTextToken
           // Blank text has nothing to render -- return `undefined` for "no AST" (`Rule.getAST()`'s return
           // type already permits this; `Match.AST` treats a falsy return as "no AST").
           if (!quotedText) return undefined
-          return new AST.JSXText(match, { raw, value: quotedText })
+          return new P.ASTJSXText(match, { raw, value: quotedText })
         }
       }
     },
@@ -358,11 +358,11 @@ export const JSX = new SpellParser({
     {
       name: "jsxEndTag",
       alias: "jsxChild",
-      tokenType: P.Tokens.JSXEndTag,
+      tokenType: P.JSXEndTagToken,
       constructor: class SpellJSXEndTag extends P.TokenType {
         getAST(match: P.Match) {
-          const { tagName } = match.matched[0] as P.Tokens.JSXEndTag
-          return new AST.JSXEndTag(match, { tagName })
+          const { tagName } = match.matched[0] as P.JSXEndTagToken
+          return new P.ASTJSXEndTag(match, { tagName })
         }
       }
     },
@@ -375,7 +375,7 @@ export const JSX = new SpellParser({
     {
       name: "jsxExpression",
       alias: "jsxChild",
-      tokenType: P.Tokens.JSXExpression,
+      tokenType: P.JSXExpressionToken,
       constructor: class SpellJSXExpression extends P.TokenType {
         /** Parse `contents` as an `expression`; falls back to `parse_error` if it doesn't consume it all. */
         parse(scope: P.Scope, tokens: P.Token[]) {
@@ -383,7 +383,7 @@ export const JSX = new SpellParser({
           if (!match) return undefined
           // trim and remove newlines from expression (???)
           // See note above re: `JSXExpression.contents` being typed `string | Token`.
-          const input = ((match.matched[0] as P.Tokens.JSXExpression).contents as string).trim().replace(/\n/g, " ")
+          const input = ((match.matched[0] as P.JSXExpressionToken).contents as string).trim().replace(/\n/g, " ")
           // only match expression if we used all of the input
           const expression = scope.parse(input, "expression")
           if (expression && expression.inputText.length === input.length) {
@@ -395,9 +395,9 @@ export const JSX = new SpellParser({
         }
         getAST(match: P.Match) {
           const { expression, error } = match
-          return new AST.JSXExpression(match, {
-            expression: expression?.AST as AST.Expression | undefined,
-            error: error?.AST as AST.ParseError | undefined
+          return new P.ASTJSXExpression(match, {
+            expression: expression?.AST as P.ASTExpression | undefined,
+            error: error?.AST as P.ASTParseError | undefined
           })
         }
       }

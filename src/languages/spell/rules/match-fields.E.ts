@@ -6,7 +6,7 @@
  * - `classes.ts` additionally augments `Match` locally (rather than here) for a field only it uses --
  *   see the comment there.
  */
-import { P, type AST } from "~/parser"
+import { P } from "~/parser"
 
 declare module "~/parser/Match" {
   // NOTE: MUST stay an `interface` -- module augmentation merges into the declared `Match`,
@@ -30,6 +30,6 @@ declare module "~/parser/Match" {
      * echoed back out as an annotation in the compiled output.
      * Set/read in `rules/classes.ts` (`define_property_has`, `quoted_property_formula`).
      */
-    ruleComment?: AST.ParserAnnotation
+    ruleComment?: P.ASTParserAnnotation
   }
 }

@@ -1,4 +1,4 @@
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -7,17 +7,17 @@ import "./match-fields.A"
 
 /**
  * Patch generic `P.BlankLine` (which has no `getAST()` of its own) so a blank line compiles to
- * `AST.BlankLine` -- needed since spell always converts to AST before compiling.
+ * `P.ASTBlankLine` -- needed since spell always converts to AST before compiling.
  */
 P.BlankLine.prototype.getAST = function (match: P.Match) {
-  return new AST.BlankLine(match)
+  return new P.ASTBlankLine(match)
 }
 
 /**
- * Parse a single `Tokens.Line` in a `Tokens.Block` as:
+ * Parse a single `LineToken` in a `BlockToken` as:
  * - a `statement`
  * - an optional `comment` at the end of the line
- * - if `statement.wantsNestedBlock` and the next item in `lines` is a `Tokens.Block`, we'll let the
+ * - if `statement.wantsNestedBlock` and the next item in `lines` is a `BlockToken`, we'll let the
  *   statement attempt to parse that next line as well.
  */
 export class BlockLine extends P.Rule {
@@ -31,7 +31,7 @@ export class BlockLine extends P.Rule {
     const matched: (P.Match | P.Token)[] = []
     const errors: P.Match[] = []
     const tokensMatched: P.Token[] = [line]
-    if (!(line instanceof P.Tokens.Line)) {
+    if (!(line instanceof P.LineToken)) {
       console.warn("BlockLine.parse(): got non-line", line)
       return undefined
     }
@@ -94,7 +94,7 @@ export class BlockLine extends P.Rule {
         if (
           statement.rule instanceof SpellStatement &&
           statement.rule.wantsNestedBlock &&
-          nextItem instanceof P.Tokens.Block
+          nextItem instanceof P.BlockToken
         ) {
           const nestedBlock = statement.rule.parseNestedBlock(statement, nextItem)
           if (nestedBlock) {
@@ -151,16 +151,16 @@ export class BlockLine extends P.Rule {
   }
 
   /** If only one matched item (statement, comment, or blank line), return its AST directly; else group them. */
-  getAST(match: P.Match): AST.ASTNode {
+  getAST(match: P.Match): P.ASTNode {
     // ???  If only one matched item, return it by itself
     const first = match.matched[0]
     if (match.matched.length === 1 && first instanceof P.Match) return first.AST!
     // otherwise
-    return new AST.StatementGroup(match, {
+    return new P.ASTStatementGroup(match, {
       // `match.matched` here is always `Match`es (never raw `Token`s) -- not staticaly representable.
       statements: match.matched
         .filter((item): item is P.Match => item instanceof P.Match)
-        .map((item) => item.AST) as Array<AST.Statement | AST.Expression | AST.Comment | AST.BlankLine>
+        .map((item) => item.AST) as Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine>
     })
   }
 }

@@ -1,6 +1,6 @@
 /** Rules for `if`/`else if`/`else` statements, plus the backwards `if...else` ternary suffix. */
 
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
@@ -43,12 +43,12 @@ export const _if_ = new SpellParser({
         getNestedScopeForMatch(match: P.AnyMatch): P.Scope {
           return new P.BlockScope({ name: "if", parentScope: match.scope })
         }
-        getAST(match: P.Match<IfGroups>): AST.IfStatement {
+        getAST(match: P.Match<IfGroups>): P.ASTIfStatement {
           const { condition, inlineStatement, nestedBlock } = match.groups
           // Prefer nestedBlock if we get both
-          return new AST.IfStatement(match, {
-            condition: condition!.AST as AST.Expression,
-            statements: (nestedBlock || inlineStatement)?.AST as AST.Statement | AST.StatementBlock | undefined
+          return new P.ASTIfStatement(match, {
+            condition: condition!.AST as P.ASTExpression,
+            statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
           })
         }
       },
@@ -136,11 +136,11 @@ export const _if_ = new SpellParser({
         getNestedScopeForMatch(match: P.AnyMatch): P.Scope {
           return new P.BlockScope({ name: "elseif", parentScope: match.scope })
         }
-        getAST(match: P.Match<IfGroups>): AST.ElseIfStatement {
+        getAST(match: P.Match<IfGroups>): P.ASTElseIfStatement {
           const { condition, inlineStatement, nestedBlock } = match.groups
-          return new AST.ElseIfStatement(match, {
-            condition: condition!.AST as AST.Expression,
-            statements: (nestedBlock || inlineStatement)?.AST as AST.Statement | AST.StatementBlock | undefined
+          return new P.ASTElseIfStatement(match, {
+            condition: condition!.AST as P.ASTExpression,
+            statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
           })
         }
       },
@@ -219,10 +219,10 @@ export const _if_ = new SpellParser({
         getNestedScopeForMatch(match: P.AnyMatch): P.Scope {
           return new P.BlockScope({ name: "else", parentScope: match.scope })
         }
-        getAST(match: P.Match<ElseGroups>): AST.ElseStatement {
+        getAST(match: P.Match<ElseGroups>): P.ASTElseStatement {
           const { inlineStatement, nestedBlock } = match.groups
-          return new AST.ElseStatement(match, {
-            statements: (nestedBlock || inlineStatement)?.AST as AST.Statement | AST.StatementBlock | undefined
+          return new P.ASTElseStatement(match, {
+            statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
           })
         }
       },
@@ -279,7 +279,7 @@ export const _if_ = new SpellParser({
      * - `expression_suffix`: `lhs` (the value before `if`) is supplied by `compound_expression`'s
      *   shunting-yard; this rule's own `syntax` only spells out `operator` (actually the *condition*
      *   expression here) and the trailing `rhs` expression.
-     * - Compiles to `AST.TernaryExpression`.
+     * - Compiles to `P.ASTTernaryExpression`.
      */
     {
       name: "backwards_if",
@@ -288,10 +288,10 @@ export const _if_ = new SpellParser({
       constructor: class backwards_if extends InfixOperatorSuffix {
         compileASTExpression(
           match: P.Match,
-          { lhs, operator, rhs }: { lhs: AST.Expression; operator: P.Match; rhs: AST.Expression }
-        ): AST.TernaryExpression {
-          return new AST.TernaryExpression(match, {
-            condition: operator.AST as AST.Expression,
+          { lhs, operator, rhs }: { lhs: P.ASTExpression; operator: P.Match; rhs: P.ASTExpression }
+        ): P.ASTTernaryExpression {
+          return new P.ASTTernaryExpression(match, {
+            condition: operator.AST as P.ASTExpression,
             trueValue: lhs,
             falseValue: rhs
           })

@@ -81,7 +81,7 @@ export class SpellStatement extends P.Sequence {
    */
   parseNestedBlock(
     statement: P.Match,
-    nestedBlock: P.Tokens.Block,
+    nestedBlock: P.BlockToken,
     parseAs: string = this.parseNestedBlockAs
   ): P.Match | undefined {
     let result: P.Match | undefined
@@ -96,8 +96,8 @@ export class SpellStatement extends P.Sequence {
       // get line to process, minus leading whitespace
       // TODO: remove comment????
       const first = nestedBlock.tokens[0]
-      // Only a `Line` (not a nested `Block`) can be parsed as a single rule here.
-      if (!(first instanceof P.Tokens.Line)) return undefined
+      // Only a `LineToken` (not a nested `BlockToken`) can be parsed as a single rule here.
+      if (!(first instanceof P.LineToken)) return undefined
       const { tokens } = first
       // TODO: `statement.scope` or `statement.nestedScope` ???
       const { scope } = statement

@@ -2,7 +2,7 @@ import { isNode } from "browser-or-node"
 import omit from "lodash/omit"
 
 import { Assertable } from "~/util"
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 
 /**
  * Default shape of `match.groups`: named sub-matches, as a single `Match` or an array if the name repeats.
@@ -244,7 +244,7 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
    * - Some languages (e.g. Spell) convert to an AST first, then compile().
    * - NOTE: always use `match.AST` to access so we re-use the AST object.
    */
-  get AST(): AST.ASTNode | undefined {
+  get AST(): P.ASTNode | undefined {
     return this.derived("AST", () => {
       if (!this.rule.getAST) {
         console.warn("No getAST() method defined for rule: ", this.rule)

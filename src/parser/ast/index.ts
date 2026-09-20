@@ -6,11 +6,11 @@
 //  React elements vs plain strings.  They MUST stay namespaced rather than flattened:
 //  a flat `export *` would silently drop every colliding name with no error.
 //
+//  NOTE: the AST classes themselves ARE flattened -- their `ASTXxx` prefix keeps generic
+//  names like `ASTLiteral` / `ASTComment` from colliding at the top level.
+//
 
-/** Export generic `ASTNode` directly. */
-export { ASTNode } from "./AST"
-/** Access other AST classes as e.g. `AST.Expression`, `AST.Statement`. */
-export * as AST from "./AST"
+export * from "./AST"
 
 /** Output backend emitting React elements, for syntax-highlighted display. */
 export * as render from "./renderAST"

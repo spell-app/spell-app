@@ -6,7 +6,7 @@
  */
 
 import { singularize } from "~/util"
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
@@ -21,19 +21,19 @@ import "./match-fields.E"
  */
 type InlineBlockGroups = { inlineStatement?: P.Match; nestedBlock?: P.Match }
 
-/** What `AST.MethodDefinition`'s `body` prop accepts. */
-type MethodBody = AST.StatementBlock | AST.Statement | AST.Expression
+/** What `P.ASTMethodDefinition`'s `body` prop accepts. */
+type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
 
 /**
- * Narrow `match.AST` to a concrete `AST.ASTNode` subtype.
+ * Narrow `match.AST` to a concrete `P.ASTNode` subtype.
  * - `Match.AST` (`src/parser/Match.ts`) is always typed as `ASTNode` because `Rule.getAST()`'s return type
  *   isn't parameterized per the specific rule a rulex group refers to -- only the rule's own semantics
  *   (which we know, writing the rule) tell us which concrete node type comes back.
  * - Narrow once here instead of casting inline at every call site.
  */
-function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match): T
-function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match | undefined): T | undefined
-function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match | undefined): T | undefined {
+function astAs<T extends P.ASTNode = P.ASTExpression>(match: P.Match): T
+function astAs<T extends P.ASTNode = P.ASTExpression>(match: P.Match | undefined): T | undefined
+function astAs<T extends P.ASTNode = P.ASTExpression>(match: P.Match | undefined): T | undefined {
   return match?.AST as T | undefined
 }
 
@@ -59,9 +59,9 @@ export const lists = new SpellParser({
       syntax: "[({known_variable}|{constant}|{number})(,|or|and|nor)]",
       datatype: "array", // TODO: array of what?
       constructor: class identifier_list extends P.Repeat {
-        getAST(match: P.Match): AST.ListExpression {
+        getAST(match: P.Match): P.ASTListExpression {
           const { items } = match
-          return new AST.ListExpression(match, { items: items.map((item) => astAs(item)) })
+          return new P.ASTListExpression(match, { items: items.map((item) => astAs(item)) })
         }
       },
       tests: [
@@ -88,10 +88,10 @@ export const lists = new SpellParser({
       syntax: "\\[ [list:{expression},]? \\]",
       testRule: "\\[",
       constructor: class bracketed_list extends P.Sequence {
-        getAST(match: P.Match<P.RulexGroups<"list">>): AST.ListExpression {
+        getAST(match: P.Match<P.RulexGroups<"list">>): P.ASTListExpression {
           const { list } = match.groups
           const items = list ? list.items.map((item) => astAs(item)) : undefined
-          return new AST.ListExpression(match, { items })
+          return new P.ASTListExpression(match, { items })
         }
       },
       tests: [
@@ -127,11 +127,11 @@ export const lists = new SpellParser({
       alias: "expression",
       syntax: "a (copy|duplicate) of list? {expression} (as (a|an) {type:known_type})?",
       constructor: class copy_list extends SpellExpression {
-        getAST(match: P.Match<P.RulexGroups<"expression:type">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"expression:type">>): P.ASTCoreMethodInvocation {
           const { expression, type } = match.groups
           const args = [astAs(expression!)]
           if (type) args.push(astAs(type))
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "duplicateCollection",
             args
           })
@@ -161,11 +161,11 @@ export const lists = new SpellParser({
       alias: "expression",
       syntax: "merge lists? {expression} ((as|into) (a|an) new? {type:known_type})?",
       constructor: class merge_lists extends SpellExpression {
-        getAST(match: P.Match<P.RulexGroups<"expression:type">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"expression:type">>): P.ASTCoreMethodInvocation {
           const { expression, type } = match.groups
           const args = [astAs(expression!)]
           if (type) args.push(astAs(type))
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "mergeCollections",
             args
           })
@@ -212,9 +212,9 @@ export const lists = new SpellParser({
       testRule: "…(number of)",
       precedence: 3,
       constructor: class list_length extends SpellExpression {
-        getAST(match: P.Match<P.RulexGroups<"arg:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"arg:list">>): P.ASTCoreMethodInvocation {
           const { list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "itemCountOf",
             args: [astAs(list!)]
           })
@@ -250,9 +250,9 @@ export const lists = new SpellParser({
       testRule: "…(position of)",
       precedence: 3,
       constructor: class list_position extends SpellExpression {
-        getAST(match: P.Match<P.RulexGroups<"thing:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"thing:list">>): P.ASTCoreMethodInvocation {
           const { thing, list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "itemOf",
             args: [astAs(list!), astAs(thing!)]
           })
@@ -292,9 +292,9 @@ export const lists = new SpellParser({
         }
         compileASTExpression(
           match: P.Match,
-          { lhs, rhs }: { lhs?: AST.Expression; rhs?: AST.Expression }
-        ): AST.CoreMethodInvocation {
-          return new AST.CoreMethodInvocation(match, {
+          { lhs, rhs }: { lhs?: P.ASTExpression; rhs?: P.ASTExpression }
+        ): P.ASTCoreMethodInvocation {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "startsWith",
             args: [lhs!, rhs!]
           })
@@ -332,9 +332,9 @@ export const lists = new SpellParser({
         }
         compileASTExpression(
           match: P.Match,
-          { lhs, rhs }: { lhs?: AST.Expression; rhs?: AST.Expression }
-        ): AST.CoreMethodInvocation {
-          return new AST.CoreMethodInvocation(match, {
+          { lhs, rhs }: { lhs?: P.ASTExpression; rhs?: P.ASTExpression }
+        ): P.ASTCoreMethodInvocation {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "endsWith",
             args: [lhs!, rhs!]
           })
@@ -384,9 +384,9 @@ export const lists = new SpellParser({
         bottom: -1
       },
       constructor: class ordinal extends P.Pattern {
-        getAST(match: P.Match): AST.NumericLiteral {
+        getAST(match: P.Match): P.ASTNumericLiteral {
           const { value, raw } = match
-          return new AST.NumericLiteral(match, { value, raw })
+          return new P.ASTNumericLiteral(match, { value, raw })
         }
       },
       tests: [
@@ -427,9 +427,9 @@ export const lists = new SpellParser({
       syntax: "{arg:singular_variable} {position:expression} of {expression}",
       testRule: "…of",
       constructor: class position_expression extends SpellExpression {
-        getAST(match: P.Match<P.RulexGroups<"arg:position:expression">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"arg:position:expression">>): P.ASTCoreMethodInvocation {
           const { position, expression } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "getItemOf",
             args: [astAs(expression!), astAs(position!)]
           })
@@ -463,9 +463,9 @@ export const lists = new SpellParser({
       syntax: "the {ordinal} {arg:singular_variable} (in|of) {expression}",
       testRule: "…(in|of)",
       constructor: class ordinal_position_expression extends SpellExpression {
-        getAST(match: P.Match<P.RulexGroups<"ordinal:arg:expression">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"ordinal:arg:expression">>): P.ASTCoreMethodInvocation {
           const { ordinal, expression } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "getItemOf",
             args: [astAs(expression!), astAs(ordinal!)]
           })
@@ -499,9 +499,9 @@ export const lists = new SpellParser({
       syntax: "a random {arg:singular_variable} (of|from|in) {list:expression}",
       testRule: "a random",
       constructor: class random_item_expression extends SpellExpression {
-        getAST(match: P.Match<P.RulexGroups<"arg:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"arg:list">>): P.ASTCoreMethodInvocation {
           const { list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "randomItemOf",
             args: [astAs(list!)]
           })
@@ -535,9 +535,9 @@ export const lists = new SpellParser({
       syntax: "{number} random {arg:plural_variable} (of|from|in) {list:expression}",
       testRule: "…random",
       constructor: class random_items_expression extends SpellExpression {
-        getAST(match: P.Match<P.RulexGroups<"number:arg:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"number:arg:list">>): P.ASTCoreMethodInvocation {
           const { number, list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "randomItemsOf",
             args: [astAs(list!), astAs(number!)]
           })
@@ -572,9 +572,9 @@ export const lists = new SpellParser({
       syntax: "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:expression}",
       testRule: "…(of|in|from)",
       constructor: class range_between_expression extends SpellExpression {
-        getAST(match: P.Match<P.RulexGroups<"arg:start:end:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"arg:start:end:list">>): P.ASTCoreMethodInvocation {
           const { list, start, end } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "rangeBetween",
             args: [astAs(list!), astAs(start!), astAs(end!)]
           })
@@ -610,13 +610,13 @@ export const lists = new SpellParser({
       syntax: "{arg:plural_variable} (in|of) {list:expression} starting with {thing:expression}",
       testRule: "…(starting with)",
       constructor: class range_starting_with_expression extends SpellExpression {
-        getAST(match: P.Match<P.RulexGroups<"arg:list:thing">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"arg:list:thing">>): P.ASTCoreMethodInvocation {
           const { thing, list } = match.groups
-          const itemExpression = new AST.CoreMethodInvocation(match, {
+          const itemExpression = new P.ASTCoreMethodInvocation(match, {
             methodName: "itemOf",
             args: [astAs(list!), astAs(thing!)]
           })
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "rangeStartingAt",
             args: [astAs(list!), itemExpression]
           })
@@ -656,9 +656,9 @@ export const lists = new SpellParser({
       syntax: "{ordinal} {number} {arg:plural_variable} (of|in|from) {list:expression}",
       testRule: "…(of|in|from)",
       constructor: class range_count_expression extends SpellExpression {
-        getAST(match: P.Match<P.RulexGroups<"ordinal:number:arg:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"ordinal:number:arg:list">>): P.ASTCoreMethodInvocation {
           const { list, ordinal, number } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "rangeStartingAt",
             args: [astAs(list!), astAs(ordinal!), astAs(number!)]
           })
@@ -706,14 +706,14 @@ export const lists = new SpellParser({
             mapItTo: arg
           })
         }
-        getAST(match: P.Match<P.RulexGroups<"arg:list"> & InlineBlockGroups>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"arg:list"> & InlineBlockGroups>): P.ASTCoreMethodInvocation {
           const { arg, list, inlineStatement } = match.groups
-          const filter = new AST.MethodDefinition(inlineStatement || match, {
+          const filter = new P.ASTMethodDefinition(inlineStatement || match, {
             inline: true,
-            args: [new AST.VariableExpression(arg!, { name: singularize(arg!.value) })],
+            args: [new P.ASTVariableExpression(arg!, { name: singularize(arg!.value) })],
             body: astAs(inlineStatement)
           })
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "filter",
             args: [astAs(list!), filter]
           })
@@ -777,21 +777,21 @@ export const lists = new SpellParser({
             mapItTo: arg
           })
         }
-        getAST(match: P.Match<P.RulexGroups<"list:operator:arg"> & InlineBlockGroups>): AST.Expression {
+        getAST(match: P.Match<P.RulexGroups<"list:operator:arg"> & InlineBlockGroups>): P.ASTExpression {
           const { list, operator, arg, inlineStatement } = match.groups
-          const filter = new AST.MethodDefinition(inlineStatement || match, {
+          const filter = new P.ASTMethodDefinition(inlineStatement || match, {
             inline: true,
-            args: [new AST.VariableExpression(arg!, { name: singularize(arg!.value) })],
+            args: [new P.ASTVariableExpression(arg!, { name: singularize(arg!.value) })],
             body: astAs(inlineStatement)
           })
-          const expression = new AST.CoreMethodInvocation(match, {
+          const expression = new P.ASTCoreMethodInvocation(match, {
             methodName: "any",
             args: [astAs(list!), filter],
             datatype: "boolean"
           })
           // Wrap in NotExpression for some operators
           if (operator!.value === "has") return expression
-          return new AST.NotExpression(match, { expression })
+          return new P.ASTNotExpression(match, { expression })
         }
       },
       tests: [
@@ -849,10 +849,10 @@ export const lists = new SpellParser({
       syntax: "add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {list:expression}",
       testRule: "add",
       constructor: class list_add extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"thing:method:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"thing:method:list">>): P.ASTCoreMethodInvocation {
           const { thing, list, method } = match.groups
           const spellMethod = method && ["start", "front", "top"].includes(method.value) ? "prepend" : "append"
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: spellMethod,
             args: [astAs(list!), astAs(thing!)]
           })
@@ -886,9 +886,9 @@ export const lists = new SpellParser({
       syntax: "prepend {thing:expression} to {list:expression}",
       testRule: "prepend",
       constructor: class list_prepend extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"thing:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"thing:list">>): P.ASTCoreMethodInvocation {
           const { thing, list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "prepend",
             args: [astAs(list!), astAs(thing!)]
           })
@@ -913,9 +913,9 @@ export const lists = new SpellParser({
       syntax: "append {thing:expression} to {list:expression}",
       testRule: "append",
       constructor: class list_append extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"thing:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"thing:list">>): P.ASTCoreMethodInvocation {
           const { thing, list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "append",
             args: [astAs(list!), astAs(thing!)]
           })
@@ -952,20 +952,20 @@ export const lists = new SpellParser({
       syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
       testRule: "add",
       constructor: class list_add_relative extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"thing:list:operator:item">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"thing:list:operator:item">>): P.ASTCoreMethodInvocation {
           const { thing, list, operator, item } = match.groups
-          let position: AST.Expression = new AST.CoreMethodInvocation(match, {
+          let position: P.ASTExpression = new P.ASTCoreMethodInvocation(match, {
             methodName: "itemOf",
             args: [astAs(list!), astAs(item!)]
           })
           if (operator!.value === "after") {
-            position = new AST.InfixExpression(match, {
+            position = new P.ASTInfixExpression(match, {
               lhs: position,
               operator: "+",
-              rhs: new AST.NumericLiteral(match, { value: 1 })
+              rhs: new P.ASTNumericLiteral(match, { value: 1 })
             })
           }
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "addAtPosition",
             args: [astAs(list!), position, astAs(thing!)]
           })
@@ -1007,9 +1007,9 @@ export const lists = new SpellParser({
       syntax: "(empty|clear) {list:expression}",
       testRule: "(empty|clear)",
       constructor: class list_empty extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"list">>): P.ASTCoreMethodInvocation {
           const { list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "clear",
             args: [astAs(list!)]
           })
@@ -1041,9 +1041,9 @@ export const lists = new SpellParser({
       syntax: "remove the? {position:ordinal} {arg:singular_variable} of {list:expression}",
       testRule: "remove",
       constructor: class list_remove_ordinal extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"position:arg:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"position:arg:list">>): P.ASTCoreMethodInvocation {
           const { position, list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "removeItemOf",
             args: [astAs(list!), astAs(position!)]
           })
@@ -1075,9 +1075,9 @@ export const lists = new SpellParser({
       syntax: "remove {arg:singular_variable} {number:expression} of {list:expression}",
       testRule: "remove",
       constructor: class list_remove_position extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"arg:number:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"arg:number:list">>): P.ASTCoreMethodInvocation {
           const { number, list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "removeItemOf",
             args: [astAs(list!), astAs(number!)]
           })
@@ -1106,9 +1106,9 @@ export const lists = new SpellParser({
       syntax: "remove {arg:plural_variable} {start:expression} to {end:expression} of {list:expression}",
       testRule: "remove",
       constructor: class list_remove_range extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"arg:start:end:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"arg:start:end:list">>): P.ASTCoreMethodInvocation {
           const { start, end, list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "removeRangeBetween",
             args: [astAs(list!), astAs(start!), astAs(end!)]
           })
@@ -1136,9 +1136,9 @@ export const lists = new SpellParser({
       syntax: "remove {start:ordinal} to {end:ordinal} {arg:plural_variable} of {list:expression}",
       testRule: "remove",
       constructor: class list_remove_range_ordinal extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"start:end:arg:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"start:end:arg:list">>): P.ASTCoreMethodInvocation {
           const { start, end, list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "removeRangeBetween",
             args: [astAs(list!), astAs(start!), astAs(end!)]
           })
@@ -1169,9 +1169,9 @@ export const lists = new SpellParser({
       syntax: "remove {thing:expression} from {list:expression}",
       testRule: "remove",
       constructor: class list_remove extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"thing:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"thing:list">>): P.ASTCoreMethodInvocation {
           const { thing, list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "remove",
             args: [astAs(list!), astAs(thing!)]
           })
@@ -1212,14 +1212,14 @@ export const lists = new SpellParser({
           })
         }
 
-        getAST(match: P.Match<P.RulexGroups<"arg:list"> & InlineBlockGroups>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"arg:list"> & InlineBlockGroups>): P.ASTCoreMethodInvocation {
           const { arg, list, inlineStatement } = match.groups
-          const filter = new AST.MethodDefinition(inlineStatement || match, {
+          const filter = new P.ASTMethodDefinition(inlineStatement || match, {
             inline: true,
-            args: [new AST.VariableExpression(arg!, { name: singularize(arg!.value) })],
+            args: [new P.ASTVariableExpression(arg!, { name: singularize(arg!.value) })],
             body: astAs(inlineStatement)
           })
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "removeWhere",
             args: [astAs(list!), filter]
           })
@@ -1267,9 +1267,9 @@ export const lists = new SpellParser({
       syntax: "reverse ((the? {arg:plural_variable}) (in|of))? {list:expression}",
       testRule: "reverse",
       constructor: class list_reverse extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"arg:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"arg:list">>): P.ASTCoreMethodInvocation {
           const { list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "reverse",
             args: [astAs(list!)]
           })
@@ -1297,9 +1297,9 @@ export const lists = new SpellParser({
       syntax: "(randomize|shuffle) ((the? {arg:plural_variable}) (in|of))? {list:expression}",
       testRule: "(randomize|shuffle)",
       constructor: class list_shuffle extends SpellStatement {
-        getAST(match: P.Match<P.RulexGroups<"arg:list">>): AST.CoreMethodInvocation {
+        getAST(match: P.Match<P.RulexGroups<"arg:list">>): P.ASTCoreMethodInvocation {
           const { list } = match.groups
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "randomize",
             args: [astAs(list!)]
           })
@@ -1351,22 +1351,22 @@ export const lists = new SpellParser({
          * - SIDE EFFECT: switches to `forEachSequential` + wraps result in `AwaitExpression` when body's
          *   `method.isAsync` -- set by an `await` expression somewhere in body.
          */
-        getAST(match: P.Match<P.RulexGroups<"number"> & InlineBlockGroups>): AST.Expression {
+        getAST(match: P.Match<P.RulexGroups<"number"> & InlineBlockGroups>): P.ASTExpression {
           const { number, inlineStatement, nestedBlock } = match.groups
-          const method = new AST.MethodDefinition(match, {
+          const method = new P.ASTMethodDefinition(match, {
             inline: true,
-            args: [new AST.VariableExpression(match, { name: "number" })],
+            args: [new P.ASTVariableExpression(match, { name: "number" })],
             body: astAs<MethodBody>(nestedBlock || inlineStatement)
           })
-          const getRange = new AST.CoreMethodInvocation(match, {
+          const getRange = new P.ASTCoreMethodInvocation(match, {
             methodName: "getRange",
-            args: [new AST.NumericLiteral(match, 0), astAs(number!)]
+            args: [new P.ASTNumericLiteral(match, 0), astAs(number!)]
           })
-          const expression = new AST.CoreMethodInvocation(match, {
+          const expression = new P.ASTCoreMethodInvocation(match, {
             methodName: method.isAsync ? "forEachSequential" : "map",
             args: [getRange, method]
           })
-          if (method.isAsync) return new AST.AwaitExpression(match, { expression })
+          if (method.isAsync) return new P.ASTAwaitExpression(match, { expression })
           return expression
         }
       },
@@ -1442,11 +1442,11 @@ export const lists = new SpellParser({
          * - SIDE EFFECT: switches to `forEachSequential` + wraps result in `AwaitExpression` when body's
          *   `method.isAsync` -- set by an `await` expression somewhere in body.
          */
-        getAST(match: P.Match<P.RulexGroups<"item:position:list"> & InlineBlockGroups>): AST.Expression {
+        getAST(match: P.Match<P.RulexGroups<"item:position:list"> & InlineBlockGroups>): P.ASTExpression {
           const { list, item, position, inlineStatement, nestedBlock } = match.groups
-          const args = [new AST.VariableExpression(item!, { name: item!.value })]
-          if (position) args.push(new AST.VariableExpression(position))
-          const method = new AST.MethodDefinition(match, {
+          const args = [new P.ASTVariableExpression(item!, { name: item!.value })]
+          if (position) args.push(new P.ASTVariableExpression(position))
+          const method = new P.ASTMethodDefinition(match, {
             inline: true,
             args,
             body: astAs<MethodBody>(nestedBlock || inlineStatement)
@@ -1454,15 +1454,15 @@ export const lists = new SpellParser({
 
           if (method.isAsync) {
             // console.warn(match.inputText)
-            return new AST.AwaitExpression(match, {
-              expression: new AST.CoreMethodInvocation(match, {
+            return new P.ASTAwaitExpression(match, {
+              expression: new P.ASTCoreMethodInvocation(match, {
                 methodName: "forEachSequential",
                 args: [astAs(list!), method]
               })
             })
           }
 
-          return new AST.CoreMethodInvocation(match, {
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "map", // TODO...
             args: [astAs(list!), method]
           })
@@ -1564,22 +1564,22 @@ export const lists = new SpellParser({
             args: [new P.ScopeVariable(arg)]
           })
         }
-        getAST(match: P.Match<P.RulexGroups<"item:start:end"> & InlineBlockGroups>): AST.Expression {
+        getAST(match: P.Match<P.RulexGroups<"item:start:end"> & InlineBlockGroups>): P.ASTExpression {
           const { item, start, end, inlineStatement, nestedBlock } = match.groups
-          const getRange = new AST.CoreMethodInvocation(match, {
+          const getRange = new P.ASTCoreMethodInvocation(match, {
             methodName: "getRange",
             args: [astAs(start!), astAs(end!)]
           })
-          const method = new AST.MethodDefinition(match, {
+          const method = new P.ASTMethodDefinition(match, {
             inline: true,
-            args: [new AST.VariableExpression(item!)],
+            args: [new P.ASTVariableExpression(item!)],
             body: astAs<MethodBody>(nestedBlock || inlineStatement)
           })
-          const expression = new AST.CoreMethodInvocation(match, {
+          const expression = new P.ASTCoreMethodInvocation(match, {
             methodName: method.isAsync ? "forEachSequential" : "map",
             args: [getRange, method]
           })
-          if (method.isAsync) return new AST.AwaitExpression(match, { expression })
+          if (method.isAsync) return new P.ASTAwaitExpression(match, { expression })
           return expression
         }
       },

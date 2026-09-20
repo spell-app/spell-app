@@ -5,7 +5,7 @@ import { P } from "~/parser"
  * View for a particular `Match`, recursing into its `matched` children.
  * - `block` children are pulled out into a separate `blocks` list and rendered as siblings, rather
  *   than nested inside `.contents`, so blocks (indented sub-statements) lay out below their line.
- * - A `P.Tokens.JSXElement` child routes to `<JSXElementView>` instead of recursing into `<MatchView>`.
+ * - A `P.JSXElementToken` child routes to `<JSXElementView>` instead of recursing into `<MatchView>`.
  * - `data-line`/`data-char`/`data-start`/`data-end` attributes let `MatchViewer` locate this element
  *   for scroll/highlight by offset.
  ****************/
@@ -20,7 +20,7 @@ export function MatchView({ match }: MatchViewProps) {
     const childRule = child instanceof P.Match ? child.rule?.name : undefined
     if (childRule === "block") {
       blocks.push(<MatchView key={index} match={child as P.AnyMatch} />)
-    } else if (child instanceof P.Tokens.JSXElement) {
+    } else if (child instanceof P.JSXElementToken) {
       hasMatches = true
       contents.push(<JSXElementView key={index} match={match as JSXMatch} />)
     } else if (child instanceof P.Token) {
@@ -104,7 +104,7 @@ export type TokenViewProps = {
  ****************/
 export function JSXElementView({ match }: JSXElementViewProps) {
   const { ruleName } = match
-  const { tagName, isUnaryTag } = match.tokens[0] as P.Tokens.JSXElement
+  const { tagName, isUnaryTag } = match.tokens[0] as P.JSXElementToken
   // console.info({ match, ruleName, rule: match.rule, tagName })
   if (ruleName === "jsxText") return <JSXTextView match={match} />
   if (ruleName === "jsxExpression") return <JSXExpressionView match={match} />
@@ -145,7 +145,7 @@ export type JSXElementViewProps = {
  * for a plain string value or the general `<MatchView>` for an expression/error value.
  ****************/
 export function JSXAttributeView({ match }: JSXAttributeViewProps) {
-  const attribute = match.matched[0] as P.Tokens.JSXAttribute
+  const attribute = match.matched[0] as P.JSXAttributeToken
   const attrMatch = match.statement || match.expression || match.error
   const className = [
     "JSXAttribute",

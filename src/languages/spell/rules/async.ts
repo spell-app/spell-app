@@ -3,19 +3,19 @@
  * start/stop/check process.
  */
 
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import { SpellExpression } from "./expressions"
 
 /**
- * Narrow `node` from `AST.ASTNode | undefined` to concrete subtype `T`.
+ * Narrow `node` from `P.ASTNode | undefined` to concrete subtype `T`.
  * - `Match.AST` is typed generically as `ASTNode | undefined`; use this where a referenced sub-rule's
  *   `getAST()` is known (by inspection, not statically provable) to always produce `T`.
  * - Does not actually check `node`'s type or that it's defined -- purely a compile-time cast.
  */
-function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
+function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
   return node as T
 }
 
@@ -39,8 +39,8 @@ export const _async = new SpellParser({
       constructor: class _await extends SpellStatement {
         getAST(match: P.Match<P.RulexGroups<"expression">>) {
           const { expression } = match.groups
-          return new AST.AwaitExpression(match, {
-            expression: (expression && ast<AST.Expression>(expression.AST)) || new AST.UndefinedLiteral(match)
+          return new P.ASTAwaitExpression(match, {
+            expression: (expression && ast<P.ASTExpression>(expression.AST)) || new P.ASTUndefinedLiteral(match)
           })
         }
       },
@@ -86,10 +86,10 @@ export const _async = new SpellParser({
       constructor: class pause extends SpellStatement {
         getAST(match: P.Match<P.RulexGroups<"number:units">>) {
           const { number, units } = match.groups
-          return new AST.AwaitExpression(match, {
-            expression: new AST.CoreMethodInvocation(match, {
+          return new P.ASTAwaitExpression(match, {
+            expression: new P.ASTCoreMethodInvocation(match, {
               methodName: "pauseFor",
-              args: [ast<AST.Expression>(number!.AST), new AST.QuotedExpression(units!, units!.value)]
+              args: [ast<P.ASTExpression>(number!.AST), new P.ASTQuotedExpression(units!, units!.value)]
             })
           })
         }
@@ -120,7 +120,7 @@ export const _async = new SpellParser({
       constructor: class start_process extends SpellStatement {
         getAST(match: P.Match<P.RulexGroups<"operator:name">>) {
           const { operator, name } = match.groups
-          return new AST.StartProcessInvocation(match, {
+          return new P.ASTStartProcessInvocation(match, {
             name: name!.value,
             exclusive: operator?.value === "exclusive"
           })
@@ -154,8 +154,8 @@ export const _async = new SpellParser({
       constructor: class stop_process extends SpellStatement {
         getAST(match: P.Match<P.RulexGroups<"name">>) {
           const { name } = match.groups
-          const args = [new AST.QuotedExpression(match, name!.value)]
-          return new AST.CoreMethodInvocation(match, {
+          const args = [new P.ASTQuotedExpression(match, name!.value)]
+          return new P.ASTCoreMethodInvocation(match, {
             methodName: "stopProcess",
             args
           })
@@ -178,7 +178,7 @@ export const _async = new SpellParser({
     /**
      * Check whether a conceptual animation or process is currently running, e.g.
      * `animation dealing is running`.
-     * - `is not`/`isn't`/`isnt` negate the check via `AST.NotExpression`.
+     * - `is not`/`isn't`/`isnt` negate the check via `P.ASTNotExpression`.
      */
     {
       name: "check_process",
@@ -187,12 +187,12 @@ export const _async = new SpellParser({
       constructor: class check_process extends SpellExpression {
         getAST(match: P.Match<P.RulexGroups<"operator:name">>) {
           const { operator, name } = match.groups
-          const expression = new AST.CoreMethodInvocation(match, {
+          const expression = new P.ASTCoreMethodInvocation(match, {
             methodName: "processIsRunning",
-            args: [new AST.QuotedExpression(match, name!.value)]
+            args: [new P.ASTQuotedExpression(match, name!.value)]
           })
           if (operator!.value === "is") return expression
-          return new AST.NotExpression(match, { expression })
+          return new P.ASTNotExpression(match, { expression })
         }
       },
       tests: [

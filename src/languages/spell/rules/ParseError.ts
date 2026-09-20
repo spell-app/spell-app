@@ -1,4 +1,4 @@
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 
@@ -25,9 +25,9 @@ export class ParseError extends P.Rule {
     return match.AST?.compile()
   }
 
-  /** Build the `AST.ParseError` node, using `match.message` if set, else a generic "don't understand" message. */
-  getAST(match: P.Match): AST.ParseError {
-    return new AST.ParseError(match, {
+  /** Build the `P.ASTParseError` node, using `match.message` if set, else a generic "don't understand" message. */
+  getAST(match: P.Match): P.ASTParseError {
+    return new P.ASTParseError(match, {
       value: match.message || `Don't understand "${match.inputText}"`
     })
   }

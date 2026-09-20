@@ -1,5 +1,5 @@
 import { TextFile, batch } from "~/util"
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
 
@@ -124,10 +124,10 @@ export class SpellFile extends TextFile {
   }
 
   /** AST for our `compiled` output. */
-  /*@state*/ get AST(): AST.ASTNode | undefined {
+  /*@state*/ get AST(): P.ASTNode | undefined {
     return this.getState("AST", () => undefined)
   }
-  set AST(AST: AST.ASTNode | undefined) {
+  set AST(AST: P.ASTNode | undefined) {
     this.setState("AST", AST)
   }
 

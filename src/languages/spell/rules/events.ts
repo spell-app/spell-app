@@ -2,7 +2,7 @@
  * Rules for firing and watching global events on the `spellCore.RUNTIME` singleton -- `trigger`/`fire`/`send`
  * and `on`.
  */
-import { P, AST } from "~/parser"
+import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
@@ -11,7 +11,7 @@ import { SpellStatement } from "./Statement"
  * `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass that the
  * referenced sub-rule's `getAST()` is known (by inspection) to always produce.
  */
-function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
+function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
   return node as T
 }
 
@@ -32,9 +32,9 @@ export const events = new SpellParser({
         getAST(match: P.Match<P.RulexGroups<"eventName:props">>) {
           const { eventName, props } = match.groups
           // Use the `raw` eventName, dashes are ok!
-          const args: AST.Expression[] = [new AST.QuotedExpression(match, eventName!.raw!)]
-          if (props) args.push(ast<AST.Expression>(props.AST))
-          return new AST.RuntimeMethodInvocation(match, {
+          const args: P.ASTExpression[] = [new P.ASTQuotedExpression(match, eventName!.raw!)]
+          if (props) args.push(ast<P.ASTExpression>(props.AST))
+          return new P.ASTRuntimeMethodInvocation(match, {
             methodName: "trigger",
             args
           })
@@ -80,9 +80,9 @@ export const events = new SpellParser({
           const args: string[] = ["event"]
           if (props) {
             // `with_props_arg`'s custom `getGroupsForMatch()` (in methods.js) sets its own `props` group to an
-            // array of `AST.VariableExpression`s directly, not `Match`es -- unrepresentable via the generic
+            // array of `P.ASTVariableExpression`s directly, not `Match`es -- unrepresentable via the generic
             // `MatchGroups` shape, so we cast (each item still has a `.name`, same as `Match` would).
-            const propsList = props.groups.props as unknown as AST.VariableExpression[]
+            const propsList = props.groups.props as unknown as P.ASTVariableExpression[]
             args.push(...propsList.map(({ name }) => name))
           }
           const methodScopeProps: P.MethodScopeProps = {
@@ -95,22 +95,22 @@ export const events = new SpellParser({
         getAST(match: P.Match<P.RulexGroups<"eventName:props:inlineStatement:nestedBlock">>) {
           const { eventName, props, inlineStatement, nestedBlock } = match.groups
           // event variable
-          const event = new AST.VariableExpression(match, { name: "event", type: "argument" })
+          const event = new P.ASTVariableExpression(match, { name: "event", type: "argument" })
           // Use the `raw` eventName, dashes are ok!
-          const args: AST.Expression[] = [new AST.QuotedExpression(match, eventName!.raw!)]
+          const args: P.ASTExpression[] = [new P.ASTQuotedExpression(match, eventName!.raw!)]
           if (nestedBlock || inlineStatement) {
-            const method = new AST.MethodDefinition(match, {
+            const method = new P.ASTMethodDefinition(match, {
               inline: true,
-              body: ast<AST.StatementBlock | AST.Statement | AST.Expression>((nestedBlock || inlineStatement)!.AST),
+              body: ast<P.ASTStatementBlock | P.ASTStatement | P.ASTExpression>((nestedBlock || inlineStatement)!.AST),
               args: [event]
             })
             // If they specified event props to pay attention to,
             // look them up at the start of the message
             if (props) {
               // See note above re: `with_props_arg`'s custom `props` group.
-              const propsList = props.groups.props as unknown as AST.VariableExpression[]
+              const propsList = props.groups.props as unknown as P.ASTVariableExpression[]
               method.body.statements!.unshift(
-                new AST.DestructuredAssignment(props, {
+                new P.ASTDestructuredAssignment(props, {
                   thing: event,
                   variables: propsList,
                   isNewVariable: true
@@ -119,7 +119,7 @@ export const events = new SpellParser({
             }
             args.push(method)
           }
-          return new AST.RuntimeMethodInvocation(match, {
+          return new P.ASTRuntimeMethodInvocation(match, {
             methodName: "on",
             args
           })
