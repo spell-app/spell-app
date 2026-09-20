@@ -5,15 +5,13 @@ import { spellCore } from "~/spellCore"
 
 /**
  * `rules/Block.js` (still untyped JS) attaches an ad-hoc `errors` array of `Match`es
- * to the top-level `block` match on parse failures. It's not part of the core `Match` shape.
+ * to top-level `block` match on parse failures.  It's not part of core `Match` shape.
  */
 type MatchWithErrors = P.Match & { errors?: P.Match[] }
 
 /**
  * Loadable file of spell code located at `path`.
- *
- * Note that these are singleton instances --
- * you'll always get the same object back for a given `path`.
+ * - NOTE: these are singleton instances -- you'll always get the same object back for a given `path`.
  */
 export class SpellFile extends TextFile {
   /** Registry of known instances. */
@@ -31,7 +29,13 @@ export class SpellFile extends TextFile {
     SpellFile.registry.set(path, this)
   }
 
-  /** We've been removed from the server -- clean up memory, etc.. */
+  /**
+   * We've been removed from the server -- clean up memory, etc..
+   * - SIDE EFFECT: clears entire `SpellFile.registry`, not just this instance's entry.
+   *   TODO: was SP.SpellLocation.registry.delete() -- looks like it should be `.delete(this.path)`
+   *   instead, like `SpellJSFile.onRemove()` does; clearing the whole registry drops every OTHER
+   *   loaded `SpellFile` too.
+   */
   onRemove(): void {
     super.onRemove()
     SpellFile.registry.clear()
@@ -41,60 +45,63 @@ export class SpellFile extends TextFile {
 
   /**
    * Path to file, as specified by server.
-   * MUST be passed to constructor.
+   * - MUST be passed to constructor.
    */
   /*@writeOnce path*/
   declare path: string
 
-  /**
-   * Return `location` object as a SpellLocation which we use to get various bits of our `path`.
-   */
+  /** Return `location` as an `SP.SpellLocation`, so we can pull various bits out of our `path`. */
   /*@forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")*/
   /*@memoize*/
   get location(): SP.SpellLocation {
     return this.derived("location", () => new SP.SpellLocation(this.path))
   }
+  /** `projectId` from `location`. */
   get projectId(): string {
     return this.location.projectId
   }
+  /** `projectName` from `location`, if any. */
   get projectName(): string | undefined {
     return this.location.projectName
   }
+  /** `filePath` from `location`, if any. */
   get filePath(): string | undefined {
     return this.location.filePath
   }
+  /** `folder` from `location`, if any. */
   get folder(): string | undefined {
     return this.location.folder
   }
+  /** `file` from `location`, if any. */
   get file(): string | undefined {
     return this.location.file
   }
+  /** `fileName` from `location`, if any. */
   get fileName(): string | undefined {
     return this.location.fileName
   }
+  /** `extension` from `location`, if any. */
   get extension(): string | undefined {
     return this.location.extension
   }
 
-  /**
-   * Pointer to our `SpellProject`.
-   */
+  /** Pointer to our `SpellProject`. */
   /*@memoize*/
   get project(): SP.SpellProject {
     return this.derived("project", () => new SP.SpellProject(this.projectId))
   }
 
   /**
-   * Return promise which yields our `info` record according to the project manifest.
-   * Note that `modified` and `size` may be out of sync if we've been modified on the client.
+   * Our `info` record from project manifest, or `undefined` if not found there.
+   * - NOTE: `modified` and `size` may be stale if we've been modified on client since load.
    */
   get info(): SP.ProjectManifestEntry | undefined {
     return this.project.getFileInfo(this.path)
   }
 
-  //-----------------
-  // Parsing / Compiling
-  //-----------------
+  ////////////////
+  // ## Parsing / Compiling
+  ////////////////
 
   /** Our scope with which we've compiled. */
   /*@state*/ get scope(): P.FileScope | P.ProjectScope | undefined {
@@ -143,8 +150,10 @@ export class SpellFile extends TextFile {
 
   /**
    * Return a `Scope` for parsing this file.
-   * Note that if our `parentScope` is NOT the `rootScope`,
-   * we'll use the same parser.  This will ensure that
+   * - If `parentScope` has `types` (a real project scope), returns a `P.FileScope` under it, reusing its
+   *   parser.
+   * - Otherwise falls back to an ad-hoc `P.ProjectScope` cloned from `SpellParser.rootScope`'s parser --
+   *   logs a warning, since it means we don't know what project we belong to.
    */
   getScope(parentScope: P.Scope | undefined): P.FileScope | P.ProjectScope {
     // If we were passed a `parentScope` with `types`, set up as a `FileScope` and use same parser.
@@ -166,10 +175,10 @@ export class SpellFile extends TextFile {
   }
 
   /**
-   * Load our content and attempt to parse it!  Returns a `Match` (available as `this.match`).
-   * NOTE: if `this.match` is set, we'll assume that's OK.
-   * Use `spellFile.resetCompiled()` to clear it.
-   * Pass an explicit `parentScope` if the file is, e.g. building on other files.
+   * Load our content and attempt to parse it -- returns a `Match` (also available as `this.match`).
+   * - NOTE: if `this.match` is already set, we assume that's fine and return it as-is.  Call
+   *   `spellFile.resetCompiled()` first to force a re-parse.
+   * - Pass explicit `parentScope` if this file is, e.g. building on other files.
    */
   async parse(parentScope?: P.Scope): Promise<P.Match | undefined> {
     if (this.match) return this.match
@@ -199,9 +208,7 @@ export class SpellFile extends TextFile {
     return this.match
   }
 
-  /**
-   * Compile our content.
-   */
+  /** Compile our content. */
   async compile(parentScope?: P.Scope): Promise<string | undefined> {
     const match = await this.parse(parentScope)
     batch(() => {
@@ -211,7 +218,14 @@ export class SpellFile extends TextFile {
     return this.compiled
   }
 
-  /* Execute our `compiled` code. No-op if not compiled. */
+  /**
+   * Execute our `compiled` code.  No-op if not compiled.
+   * - SIDE EFFECT: creates (or replaces) a `<script type="module">` element in `document.body` and lets
+   *   it eval `compiled` as an ES module.
+   * - NOTE: browser-only -- touches `document` directly.  That's fine even though this whole module is
+   *   reachable from the server via `~/languages/spell`'s barrel (see `src/server/project-utils.ts`),
+   *   since the server never calls this method.
+   */
   executeCompiled(): void {
     const { contents, compiled } = this
     if (!compiled) return
@@ -244,11 +258,11 @@ export class SpellFile extends TextFile {
     setTimeout(() => console.groupEnd(), 100)
   }
 
-  //-----------------
-  //  Loading / Saving
-  //-----------------
+  ////////////////
+  // ## Loading / Saving
+  ////////////////
 
-  /** Update file contents when you  do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
+  /** Update file contents when you do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
   /*@proto*/ get autoUpdateContentsOnSave(): boolean {
     return true
   }
@@ -258,9 +272,9 @@ export class SpellFile extends TextFile {
     return `/api/projects/file/${this.projectId}${this.filePath}`
   }
 
-  //-----------------
-  //  Rendering utilities
-  //-----------------
+  ////////////////
+  // ## Rendering utilities
+  ////////////////
 
   /** Convert CodeMirror Position: `{ line, ch }` to char `offset`. */
   offsetForPosition({ line, ch }: { line: number; ch: number }): number | undefined {
@@ -269,7 +283,7 @@ export class SpellFile extends TextFile {
     return this.inputLines.slice(0, line).join("\n").length + 1 + ch
   }
 
-  /** Convert char `offset` to CodeMirror Position: `{ line, ch }` */
+  /** Convert char `offset` to CodeMirror Position: `{ line, ch }`. */
   positionForOffset(offset: number): { line: number; ch: number } {
     let line = 0
     let ch = 0
@@ -282,9 +296,11 @@ export class SpellFile extends TextFile {
     return { line, ch }
   }
 
-  //-----------------
-  //  Debug
-  //-----------------
+  ////////////////
+  // ## Debug
+  ////////////////
+
+  /** Debug string: `ClassName: path`. */
   toString(): string {
     return `${this.constructor.name}: ${this.path}`
   }

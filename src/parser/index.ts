@@ -4,6 +4,9 @@
  * Prefer importing like so when possible.
  * - `import type { P } from "~/parser"`  (safer)
  * - `import { P } from "~/parser"` (if you need class or functions from `P`)
+ *
+ * NOTE: `RulexParser` itself is NOT included here -- only its `type` is, via `parser.types`.  It's an
+ * optional sub-system: opt in with `import "~/languages/rulex"` to register `Parser.rulexParser`.
  */
 export * as P from "."
 

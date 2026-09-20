@@ -1,12 +1,18 @@
-//
-//  # Rules for constants, variables, type names, etc
-//
+/**
+ * Rules for constants -- e.g. `red`, `green`, either free-standing (possibly-unknown, quoted as a string
+ * literal) or resolved against `scope.constants` (`known_constant`).
+ */
 import { P, AST } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
 import "./match-fields.B"
 
+/**
+ * Base pattern rule for matching a single-word constant identifier (alpha-numeric, dashes/underscores).
+ * - Sets `match.constant` to the existing `ScopeConstant` looked up by `scope.constants`, if any --
+ *   subclasses (e.g. `known_constant`) use this to require/reject a known constant.
+ */
 export class SpellConstant extends P.Pattern {
   static {
     Object.defineProperty(this.prototype, "name", { value: "constant", writable: true })
@@ -15,6 +21,7 @@ export class SpellConstant extends P.Pattern {
     Object.defineProperty(this.prototype, "blacklist", { value: identifierBlacklist, writable: true })
   }
 
+  /** Match, then look up (but don't require) `match.constant` from `scope.constants`. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     if (!match) return undefined
@@ -22,6 +29,7 @@ export class SpellConstant extends P.Pattern {
     return match
   }
 
+  /** Build `AST.ConstantExpression`, falling back to a fresh, unnamed `ScopeConstant` if unknown. */
   getAST(match: P.Match): AST.ConstantExpression {
     const name: string = match.constant ? match.constant.name : match.value
     const scopeConst = match.constant || match.scope.constants?.get(name)
@@ -34,11 +42,15 @@ export class SpellConstant extends P.Pattern {
 }
 SpellParser.Rules.Constant = SpellConstant
 
+/** Rule module for constant rules (`constant`, `known_constant`). */
 export const constants = new SpellParser({
   module: "constants",
   rules: [
-    // A possibly-unknown constant.
-    // `match.constant` will be the existing ScopeConstant if one already exists.
+    /**
+     * Possibly-unknown constant identifier.
+     * - `match.constant` will be the existing `ScopeConstant` if one already exists.
+     * - Compiles to a quoted string literal of its own name when unknown, e.g. `red` => `'red'`.
+     */
     {
       name: "constant",
       constructor: class constant extends SpellConstant {},
@@ -53,8 +65,12 @@ export const constants = new SpellParser({
       ]
     },
 
-    // A known single-word constant.
-    // Note that this is defined as an "expression".
+    /**
+     * Single-word constant that MUST already be known in `scope.constants` -- fails otherwise.
+     * - Defined as an `expression`, unlike plain `constant`, precisely because it only matches when
+     *   resolvable, so it can't spuriously eat an unrelated identifier.
+     * - Compiles to the constant's own `output` if it set one, else a quoted string literal of its name.
+     */
     {
       name: "known_constant",
       alias: "expression",

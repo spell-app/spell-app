@@ -8,7 +8,10 @@ import { Scope } from "./Scope"
  *  - `variables` are variables defined in the block.
  */
 export class BlockScope extends Scope {
-  /** Scope `variables`. */
+  /**
+   * Named `ScopeVariable`s declared in this block, keyed by (snake_case-normalized) name.
+   * Falls through to `parentScope.variables` if not found locally.
+   */
   get variables(): IndexedList<P.ScopeVariable, string | P.ScopeVariable | P.ScopeVariableProps> {
     return this.derived(
       "variables",
@@ -27,7 +30,10 @@ export class BlockScope extends Scope {
     )
   }
 
-  /** Scope `methods`. */
+  /**
+   * Named `MethodScope`s declared in this block, keyed by (snake_case-normalized) name.
+   * Falls through to `parentScope.methods` if not found locally.
+   */
   get methods(): IndexedList<P.MethodScope, P.MethodScope | P.MethodScopeProps> {
     return this.derived(
       "methods",

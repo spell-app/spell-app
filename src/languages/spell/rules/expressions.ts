@@ -1,6 +1,9 @@
-//
-//  # Rules for expressions.
-//
+/**
+ * Rules for Spell boolean/comparison/type-check expression suffixes -- `and`, `or`, `is`, `is a`,
+ * `includes`, `is empty`, string-case conversion, type coercion, etc.
+ * - Also defines `InfixOperatorSuffix` / `PostfixOperatorSuffix`, the base classes every operator-suffix
+ *   rule here extends, and `compound_expression`, which runs the shunting-yard algorithm combining them.
+ */
 
 import { P, AST } from "~/parser"
 // Import directly to avoid circular import
@@ -22,14 +25,22 @@ export class SpellExpression extends SpellStatement {
 
 /** Operands passed to `compileASTExpression()`/`compileAST()` while running the shunting-yard algorithm. */
 type OperatorOperands = {
+  /** Operator `Match` -- rule-specific token(s) deciding the concrete operator, e.g. `is not exactly`. */
   operator: P.Match
-  /** Left-hand-side AST -- always populated for infix operators, populated for postfix operators. */
+  /** Left-hand-side AST -- always populated for infix operators; also populated for postfix operators. */
   lhs?: AST.Expression
   /** Right-hand-side AST -- only populated for infix operators. */
   rhs?: AST.Expression
 }
 
-/** TODOC!!! */
+/**
+ * Base class for expression-suffix rules that take an explicit `rhs`, e.g. `is`, `and`, `includes`.
+ * - Matched as part of `compound_expression`'s shunting-yard algorithm -- never parsed standalone.
+ * - Override `compileASTExpression()` to control output AST, `getOutputOperator()` for the operator
+ *   string, `shouldNegateOutput()` to negate the result, e.g. for `is not`.
+ * - `getAST()` deliberately throws: compilation always goes through `compileAST()`/`compileASTExpression()`,
+ *   called directly by `compound_expression`'s shunting-yard rather than through normal rule dispatch.
+ */
 export class InfixOperatorSuffix extends SpellExpression {
   // set `outputDatatype` to specify explicit datatype in standard `getAST()`
 
@@ -51,10 +62,11 @@ export class InfixOperatorSuffix extends SpellExpression {
   }
 
   /**
-   * - `lhs` is left-hand side AST
-   * - `operator` is operator Match
-   * - `rhs` is right-hand-side AST
-   * By default does an InfixExpression, override to e.g. do a CoreMethodInvocation()
+   * Build output AST for this operator from `lhs`/`operator`/`rhs`.
+   * - By default builds an `InfixExpression`; override to output something else, e.g. `CoreMethodInvocation`.
+   * - `lhs` is left-hand-side AST.
+   * - `operator` is operator `Match`.
+   * - `rhs` is right-hand-side AST.
    */
   compileASTExpression(match: P.Match, { lhs, operator, rhs }: OperatorOperands): AST.ASTNode {
     return new AST.InfixExpression(match, {
@@ -67,16 +79,14 @@ export class InfixOperatorSuffix extends SpellExpression {
   }
 
   /**
-   * While running the "shunting yard algorithm" in getAST(), we'll match
-   * `Infix-` and `PostfixOperatorSuffix` instances with args on left/right side.
-   * This routine delegates to rule-specific `compileASTExpression()` to actually output
-   * the particular AST for the rule.
-   *
-   * This routine also handles adding parenthesis and negating the output for you automatically.
-   *
-   * `lhs` is the left-hand-side Match AST (NOTE: already AST calculated!)
-   * `operator` is the operator Match
-   * `rhs` (for InfixOperatorSuffixes only) is the right-hand-side Match AST.
+   * Compile this operator's AST node, called by `compound_expression`'s shunting-yard for each matched
+   * `InfixOperatorSuffix` / `PostfixOperatorSuffix` instance with args from left/right side.
+   * - Delegates to rule-specific `compileASTExpression()` to build particular AST for rule.
+   * - Also wraps result in a `ParenthesizedExpression` when `parenthesize` is set, and negates via
+   *   `NotExpression` when `shouldNegateOutput()` returns `true` -- so subclasses don't need to.
+   * - `lhs` is left-hand-side AST -- NOTE: already AST-compiled, not a raw `Match`.
+   * - `operator` is operator `Match`.
+   * - `rhs` (for `InfixOperatorSuffix` only) is right-hand-side AST.
    */
   compileAST(match: P.Match, { operator, rhs, lhs }: OperatorOperands): AST.ASTNode {
     let expression = this.compileASTExpression(match, { lhs, operator, rhs })
@@ -89,17 +99,26 @@ export class InfixOperatorSuffix extends SpellExpression {
     return expression
   }
 
+  /**
+   * NEVER called in practice -- `compound_expression`'s shunting-yard calls `compileAST()` directly on
+   * matched `InfixOperatorSuffix`/`PostfixOperatorSuffix` instances instead of normal rule dispatch.
+   * - Throws to catch any code path that still tries to call it the normal way.
+   */
   getAST(match: P.Match): AST.ASTNode {
     throw new TypeError("This should never be called")
   }
 }
 SpellParser.Rules.InfixOperatorSuffix = InfixOperatorSuffix
 
-/** TODOC!!! */
+/**
+ * Base class for expression-suffix rules with no `rhs`, e.g. `is empty`, `is defined`, `exists`.
+ * - Same shunting-yard machinery as `InfixOperatorSuffix`, just without a right-hand side.
+ */
 export class PostfixOperatorSuffix extends InfixOperatorSuffix {
   /**
-   * - `lhs` is left-hand side match
-   * - `operator` is raw full input operator string
+   * Must be implemented by subclasses -- no default postfix behavior makes sense to fall back to.
+   * - `lhs` is left-hand-side match.
+   * - `operator` is raw full input operator string.
    */
   compileASTExpression(match: P.Match, { lhs, operator }: OperatorOperands): AST.ASTNode {
     throw new TypeError("Must implement compileASTExpression()")
@@ -107,13 +126,19 @@ export class PostfixOperatorSuffix extends InfixOperatorSuffix {
 }
 SpellParser.Rules.PostfixOperatorSuffix = PostfixOperatorSuffix
 
-////////////////////
-// Expression rules
-////////////////////
+////////////////
+// ## Expression rules
+////////////////
 
 export const expressions = new SpellParser({
   module: "expressions",
   rules: [
+    /**
+     * `(expression)` -- parenthesized sub-expression.
+     * - `testRule: "\\("` lets shunting-yard skip the full grammar when there's no leading `(`.
+     * - `getAST()` relies on `ParenthesizedExpression`'s own constructor to collapse nested parens,
+     *   e.g. `((thing))` compiles down to `(thing)`.
+     */
     {
       name: "parenthesized_expression",
       alias: "expression",
@@ -160,6 +185,18 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /**
+     * `{lhs:simple_expression} {rhsChain:expression_suffix}+` -- combines a leading simple expression
+     * with one or more operator suffixes (`and`, `is`, `+`, `is empty`, ...), applying a shunting-yard
+     * algorithm so mixed-precedence chains like `1 + 2 * 3` group correctly.
+     * - `isLeftRecursive: true` since `simple_expression` can itself expand back into `expression`.
+     * - `precedence: 12` disambiguates this rule against other `expression` alternatives (`there_is_a`,
+     *   `max`, `min`, ...) -- unrelated to each suffix rule's own `precedence`, which the shunting-yard
+     *   below compares directly.
+     * - `getAST()` runs the shunting-yard: pushes `lhs` onto `output`, then for each suffix match either
+     *   applies it immediately (postfix) or pushes it onto `opStack` and pops/applies higher-or-equal
+     *   precedence operators first (infix), finally draining `opStack` left to right.
+     */
     {
       name: "compound_expression",
       alias: "expression",
@@ -170,6 +207,11 @@ export const expressions = new SpellParser({
           Object.defineProperty(this.prototype, "isLeftRecursive", { value: true, writable: true })
         }
 
+        /**
+         * Runs shunting-yard over `rhsChain` to combine `lhs` with each suffix in precedence order.
+         * - `compile()` normalizes a matched sub-`Match`/array down to plain `ASTNode`(s).
+         * - `applyOperatorToRule()` calls the matched suffix rule's own `compileAST()`.
+         */
         getAST(match: P.Match<P.RulexGroups<"lhs"> & { rhsChain?: P.Match }>): AST.ASTNode {
           function compile(thing: unknown): unknown {
             if (!thing) return undefined
@@ -198,7 +240,7 @@ export const expressions = new SpellParser({
             }
             const args = {
               operator,
-              // `compile()` normalizes matches/arrays down to `ASTNode`s dynamically -- not staticaly
+              // `compile()` normalizes matches/arrays down to `ASTNode`s dynamically -- not statically
               // representable as `Expression`, but that's what every operand is in practice here.
               rhs: compile(rhs) as AST.Expression | undefined,
               lhs: compile(lhs) as AST.Expression | undefined
@@ -299,6 +341,7 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /** `{lhs} and {rhs}`, e.g. `thing and other` -- precedence 6, below `is`/`includes` etc, above `or`. */
     {
       name: "and",
       alias: "expression_suffix",
@@ -327,6 +370,7 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /** `{lhs} or {rhs}`, e.g. `thing or other` -- precedence 5, lowest of the boolean/comparison suffixes. */
     {
       name: "or",
       alias: "expression_suffix",
@@ -350,6 +394,7 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /** `{lhs} is [not] {rhs}`, e.g. `thing is other` -- compiles to `==`/`!=`. */
     {
       name: "is",
       alias: "expression_suffix",
@@ -376,6 +421,7 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /** `{lhs} is [not] exactly {rhs}`, e.g. `thing is exactly other` -- compiles to `===`/`!==`. */
     {
       name: "is_exactly",
       alias: "expression_suffix",
@@ -402,6 +448,11 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /**
+     * `{lhs} is [not] a`/`an {type}`, e.g. `thing is a Bee`.
+     * - `shouldNegateOutput()` handles `is not a`.
+     * - Compiles to `spellCore.isOfType(lhs, 'TypeName')`, wrapping type name via `QuotedExpression`.
+     */
     {
       name: "is_a",
       alias: "expression_suffix",
@@ -435,6 +486,14 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /**
+     * `{lhs} is [not] the same type as {rhs}`, e.g. `thing is the same type as other`.
+     * - Compiles to `spellCore.matchesType(lhs, rhs)`.
+     * - NOTE: `getOutputOperator()` computes `===`/`!==` but `compileASTExpression()` overrides the
+     *   default and never uses it or negates the output -- `is not the same type as` currently compiles
+     *   identically to the positive form (see test below).
+     *   TODO: is that intentional, or should `is not` negate the result?
+     */
     {
       name: "is_same_type_as",
       alias: "expression_suffix",
@@ -466,6 +525,14 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /**
+     * `{lhs} is [not] in`/`one of`/`either`/`neither ... nor {list}`, e.g. `thing is in theList`,
+     * `thing is neither red nor green`.
+     * - `expression` group accepts either a single `simple_expression` (a list variable) or an inline
+     *   `identifier_list`, e.g. `either red or green`.
+     * - `shouldNegateOutput()` negates for any variant containing `not` or `neither`.
+     * - Compiles to `spellCore.includes(list, lhs)` -- NOTE argument order is reversed from `lhs`/`rhs`.
+     */
     {
       name: "is_in",
       alias: "expression_suffix",
@@ -507,6 +574,10 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /**
+     * `{lhs} includes`/`contains {rhs}`, e.g. `theList includes thing`.
+     * - Compiles to `spellCore.includes(lhs, rhs)`.
+     */
     {
       name: "includes",
       alias: "expression_suffix",
@@ -535,6 +606,10 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /**
+     * `{lhs} does not include`/`contain {rhs}`, e.g. `theList does not include thing`.
+     * - Always negates via `shouldNegateOutput()`, then delegates to same `spellCore.includes()` as `includes`.
+     */
     {
       name: "does_not_include",
       alias: "expression_suffix",
@@ -566,6 +641,11 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /**
+     * `{lhs} is defined`/`undefined`/`not defined` postfix, e.g. `thing is defined`.
+     * - Negates for anything other than exactly `is defined`.
+     * - Compiles to `spellCore.isDefined(lhs)`, negated as needed.
+     */
     {
       name: "is_defined",
       alias: "expression_suffix",
@@ -597,6 +677,10 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /**
+     * `{lhs} exists`/`does not exist` postfix, e.g. `thing exists`.
+     * - Same underlying `spellCore.isDefined()` as `is_defined`, just different surface syntax.
+     */
     {
       name: "exists",
       alias: "expression_suffix",
@@ -627,6 +711,13 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /**
+     * `there is [not] a`/`an {expression}` or `there is no such {expression}`, e.g. `there is a thing`.
+     * - Unlike other rules here this is a plain `expression`, not an `expression_suffix` -- it has no
+     *   `lhs` to attach to, it stands on its own at the front of an expression.
+     * - Negates when `operator` contains `no`, covering both `is not a` and `is no such`.
+     * - Compiles to `spellCore.isDefined(expression)`, negated as needed.
+     */
     {
       name: "there_is_a",
       alias: "expression",
@@ -663,7 +754,10 @@ export const expressions = new SpellParser({
       ]
     },
 
-    /** Collection is empty */
+    /**
+     * `{lhs} is [not] empty` postfix, e.g. `thing is empty`.
+     * - Compiles to `spellCore.isEmpty(lhs)`, negated for `is not empty`.
+     */
     {
       name: "is_empty",
       alias: "expression_suffix",
@@ -694,7 +788,11 @@ export const expressions = new SpellParser({
       ]
     },
 
-    /** String utilities */
+    ////////////////
+    // ## String utilities
+    ////////////////
+
+    /** `as upper case`/`uppercase` postfix, e.g. `"foo" as upper case` -- compiles to `spellCore.upperCase(lhs)`. */
     {
       name: "as_uppercase",
       alias: "expression_suffix",
@@ -718,6 +816,7 @@ export const expressions = new SpellParser({
         }
       ]
     },
+    /** `as lower case`/`lowercase` postfix, e.g. `"foo" as lower case` -- compiles to `spellCore.lowerCase(lhs)`. */
     {
       name: "as_lowercase",
       alias: "expression_suffix",
@@ -742,6 +841,12 @@ export const expressions = new SpellParser({
       ]
     },
 
+    /**
+     * `as a`/`an {type}`, e.g. `1 as a string`, `1.4 as an integer` -- casts value to `string`/`number`/
+     * `fraction`/`integer`/`text`.
+     * - `string`/`text` wrap output in a template-literal `${...}` via `BackTickExpression`.
+     * - `number`/`fraction` compile to `parseFloat()`, `integer` to `parseInt()`.
+     */
     {
       name: "as_a_type",
       alias: "expression_suffix",
@@ -757,7 +862,7 @@ export const expressions = new SpellParser({
           // `type` is guaranteed present: it's a required (non-optional) group in this rule's syntax.
           const type = match.groups.type!.value
           if (type === "string" || type === "text") {
-            // Wrap the expression in backticks to conver it to a string.
+            // Wrap the expression in backticks to convert it to a string.
             // Output is something like: "`${EXPRESSION_VALUE}`"
             return new AST.BackTickExpression(match, {
               expression: new AST.BacktickSubstitution(match, { expression: lhs! })

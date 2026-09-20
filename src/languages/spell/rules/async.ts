@@ -1,7 +1,7 @@
-//
-//  # Rules for dealing with lists
-//  TODO: sort
-//
+/**
+ * Rules for async control flow and conceptual "processes" -- `await`, `pause for`, and
+ * start/stop/check process.
+ */
 
 import { P, AST } from "~/parser"
 // Import directly to avoid circular import
@@ -9,19 +9,28 @@ import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import { SpellExpression } from "./expressions"
 
-// `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass
-// that the referenced sub-rule's `getAST()` is known (by inspection) to always produce.
+/**
+ * Narrow `node` from `AST.ASTNode | undefined` to concrete subtype `T`.
+ * - `Match.AST` is typed generically as `ASTNode | undefined`; use this where a referenced sub-rule's
+ *   `getAST()` is known (by inspection, not statically provable) to always produce `T`.
+ * - Does not actually check `node`'s type or that it's defined -- purely a compile-time cast.
+ */
 function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
   return node as T
 }
 
+/** Rule module for async/process rules (`await`, `pause`, `start_process`, `stop_process`, `check_process`). */
 export const _async = new SpellParser({
   module: "async",
   rules: [
     /**
-     * Await some expression!
-     * TODO: add test to make sure parents are made async properly,
-     *       especially for `await` inside an if block, etc
+     * `await`/`wait for` an expression, with the expression itself optional (bare `await`).
+     * - `:?` in `syntax` is an optional literal colon in the source text (e.g. `await:`), matched but
+     *   discarded -- NOT the `name:rule` named-group colon.  The `(await|wait for)` keyword itself
+     *   stays required.
+     * - Bare `await` (no expression) compiles to `await undefined`.
+     * - TODO: add test to make sure parents are made async properly, especially for `await` inside an
+     *   if block, etc.
      */
     {
       name: "await",
@@ -65,11 +74,14 @@ export const _async = new SpellParser({
       ]
     },
 
-    /** Delay for a certain amount of time. */
+    /**
+     * Delay for a certain amount of time, e.g. `pause for 2 seconds`.
+     * - Compiles to `await spellCore.pauseFor(number, 'units')`.
+     * - TODO: "a second", "a little bit", "a while", "a noticeable amount".
+     */
     {
       name: "pause",
       alias: "statement",
-      // TODO: "a second", "a little bit", "a while", "a noticeable amount"
       syntax: "pause for {number:expression} (units:second|seconds|sec|millisecond|milliseconds|msec|tick|ticks)",
       constructor: class pause extends SpellStatement {
         getAST(match: P.Match<P.RulexGroups<"number:units">>) {
@@ -95,7 +107,12 @@ export const _async = new SpellParser({
       ]
     },
 
-    /** Start a conceptual animation or process. */
+    /**
+     * Start a conceptual animation or process, e.g. `start animation dealing`.
+     * - `exclusive` process guards against re-entry: compiles to an early `return` if the process is
+     *   already running, then starts it flagged `'EXCLUSIVE'`.
+     * - `animation`/`process` are synonyms in the syntax -- purely for readability at the call site.
+     */
     {
       name: "start_process",
       alias: "statement",
@@ -129,7 +146,7 @@ export const _async = new SpellParser({
       ]
     },
 
-    /** Stop a conceptual animation or process. */
+    /** Stop a conceptual animation or process, e.g. `stop animation dealing` => `spellCore.stopProcess('dealing')`. */
     {
       name: "stop_process",
       alias: "statement",
@@ -158,7 +175,11 @@ export const _async = new SpellParser({
       ]
     },
 
-    /** Check a conceptual animation or process. */
+    /**
+     * Check whether a conceptual animation or process is currently running, e.g.
+     * `animation dealing is running`.
+     * - `is not`/`isn't`/`isnt` negate the check via `AST.NotExpression`.
+     */
     {
       name: "check_process",
       alias: "expression",

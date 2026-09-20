@@ -1,6 +1,4 @@
-//
-//  # Rules for assignment and returning values.
-//
+/** Rules for assignment and returning values. */
 
 import { P, AST } from "~/parser"
 // Import directly to avoid circular import
@@ -8,13 +6,28 @@ import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import "./match-fields.B"
 
+/** Match groups for `assignment` -- `thing` (target) and `value` (expression to assign). */
 type AssignmentGroups = P.RulexGroups<"thing:value">
+/** Match groups for `get` -- just the `value` expression, which gets assigned to `it`. */
 type GetGroups = P.RulexGroups<"value">
+/** Match groups for `return_statement` -- inline `expression`, or an indented `nestedBlock` expression. */
 type ReturnGroups = P.RulexGroups<"expression"> & { nestedBlock?: P.Match }
 
 export const assignment = new SpellParser({
   module: "assignment",
   rules: [
+    /**
+     * Assignment, via any of 4 equivalent surface forms:  `{thing} = {value}`, `let {thing} = {value}`,
+     * `set {thing} to {value}`, or `{variable} is {value}`.
+     * - `thing` may be a plain `{variable}` (declares/updates a scope variable) or an arbitrary
+     *   `{expression}` (e.g. property assignment `let the name of X = ...`, which only compiles if `X`
+     *   already exists).
+     * - SIDE EFFECT: `mutateScope()` declares a new scope variable for `thing` if it's a `{variable}` and
+     *   isn't already declared (or is only an alias, e.g. `it`) -- see `isNewVariable`/`originalVar`.
+     * - HACK: also mutates `scope` again in `getAST()`, to redefine an alias `thing` as a real variable --
+     *   must happen after building the `value` AST, in case `value` itself refers to the alias.
+     * - Compiles to `let thing = value` (new variable) or `thing = value` (existing).
+     */
     {
       name: "assignment",
       alias: "statement",
@@ -25,7 +38,11 @@ export const assignment = new SpellParser({
         { syntax: "(thing:{variable}) is {value: expression}", testRule: "…is" }
       ],
       constructor: class assignment extends SpellStatement {
-        // HACK: we also mutate scope in `getAST()`...  :-(
+        /**
+         * HACK: we also mutate scope in `getAST()`...  :-(
+         * - Declares a new scope variable for `thing` (if it's a `{variable}` and not already declared,
+         *   or only an alias) so later statements in the block see it -- see rule doc above.
+         */
         mutateScope(match: P.Match<AssignmentGroups>) {
           const thing = match.groups.thing! // `thing` is required in every syntax variant above.
           // If `thing` is a variable...
@@ -36,8 +53,9 @@ export const assignment = new SpellParser({
             // syntax always includes a single, non-repeated `{identifier}` group.
             const identifier = thing.groups.identifier as P.Match
             const varName: string = identifier.value
-            // `Scope.variables` is typed narrowly (`IndexedList<ScopeVariable>`); the concrete `BlockScope`
-            // accepts a plain name string too -- see report.
+            // `match.scope` is typed as `P.Scope`, whose `.variables` getter can be `undefined` (it just
+            // forwards to `parentScope.variables`) -- cast to `P.BlockScope` for its non-optional override,
+            // which already accepts a plain name string as `.add()`/`.get()` input.
             const { variables } = match.scope as P.BlockScope
             const scopeVar = variables.get(varName)
             match.isNewVariable = !scopeVar || scopeVar.isAlias
@@ -47,6 +65,12 @@ export const assignment = new SpellParser({
             match.originalVar = scopeVar
           }
         }
+        /**
+         * Build `AST.AssignmentStatement`.
+         * - HACK: if `originalVar` was an alias (e.g. `it`), redefines it as a real variable in `scope`
+         *   here -- must happen after building `thing`/`value` ASTs, in case the alias appeared inside
+         *   `value` itself.
+         */
         getAST(match: P.Match<AssignmentGroups>): AST.AssignmentStatement {
           const { thing, value } = match.groups
           const { originalVar } = match
@@ -116,16 +140,27 @@ export const assignment = new SpellParser({
       ]
     },
 
+    /**
+     * `get {value}` -- assign `value` to (possibly-new) variable `it`.
+     * - SIDE EFFECT: `mutateScope()` declares a LOCAL `it` variable if one isn't already locally defined
+     *   (an inherited/aliased `it` from an outer scope doesn't count -- see `"LOCAL_ONLY"` lookup).
+     * - HACK: also mutates scope again in `getAST()` to redefine `it` as a real variable -- see there.
+     * - Compiles to `let it = value` (new) or `it = value` (existing).
+     */
     {
       name: "get",
       alias: ["assignment", "statement"],
       syntax: "get {value:expression}",
       testRule: "get",
       constructor: class get extends SpellStatement {
-        // NOTE: we also mutate scope in `getAST()`...  :-(
+        /**
+         * NOTE: we also mutate scope in `getAST()`...  :-(
+         * - Declares a LOCAL `it` variable if one isn't already locally defined.
+         */
         mutateScope(match: P.Match<GetGroups>) {
-          // `Scope.variables` is typed narrowly (`IndexedList<ScopeVariable>`); the concrete `BlockScope`
-          // accepts a plain name string too -- see report.
+          // `match.scope` is typed as `P.Scope`, whose `.variables` getter can be `undefined` (it just
+          // forwards to `parentScope.variables`) -- cast to `P.BlockScope` for its non-optional override,
+          // which already accepts a plain name string as `.add()`/`.get()` input.
           const { variables } = match.scope as P.BlockScope
           // Did we have a LOCAL `it` variable?
           const itVar = variables.get("it", "LOCAL_ONLY")
@@ -135,6 +170,13 @@ export const assignment = new SpellParser({
           // Define a new local "it" variable if we don't have one
           if (!itVar) variables.add("it")
         }
+        /**
+         * Build `AST.AssignmentStatement` assigning `value` to `it`.
+         * - HACK: unconditionally redefines `it` as a real (non-alias) variable in `scope` -- regardless
+         *   of whether `match.itVar` was actually an alias, unlike `assignment.getAST()`'s guarded
+         *   `if (originalVar?.isAlias)` equivalent.
+         * - TODO: should this be guarded the same way?  As written a real `it` variable loses its `kind`/`datatype`.
+         */
         getAST(match: P.Match<GetGroups>): AST.AssignmentStatement {
           const { value } = match.groups
           const ast = new AST.AssignmentStatement(match, {
@@ -142,7 +184,7 @@ export const assignment = new SpellParser({
             value: value!.AST as AST.Expression,
             isNewVariable: match.isNewVariable
           })
-          // HACK: if `match.itVar` was an alias, redefine as a normal variable
+          // HACK: redefine `it` as a normal variable -- unconditionally (see docstring above).
           // We have to do this AFTER the above in case the alias `it` was in the value expression.
           ;(match.scope as P.BlockScope).variables.replace("it")
           return ast
@@ -195,12 +237,16 @@ export const assignment = new SpellParser({
       ]
     },
 
-    //
-    //  ## Returns
-    //
+    ////////////////
+    // ## Returns
+    ////////////////
 
-    // Return a value.
-    // Accepts a single expression in a nested block.
+    /**
+     * `(return|exit with?) {expression}?` -- return a value.
+     * - `(return|exit with?)` accepts `return`, `exit`, or `exit with` as equivalent keywords.
+     * - Accepts the returned expression inline (`return thing`) or in a nested indented block
+     *   (`return\n\t1 + 2`), via `wantsInlineStatement`/`wantsNestedBlock` (both parsed as `"expression"`).
+     */
     {
       name: "return_statement",
       alias: "statement",

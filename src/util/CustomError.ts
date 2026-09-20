@@ -1,16 +1,18 @@
 /**
- * Generic `CustomError` class you can subclass which sets stack trace up property, etc.
- * You can pass in any properties you like, but it can be helpful to see:
- * - `messsage`   Required: single error message string or array of strings.
- * - `context`    Context in which the error happened, e.g. an instance.
- * - `activity`   Name of the method or action which failed.
- * - `params`     Any relevant parameters for the action.
+ * Generic error class you can subclass which sets stack trace up property, etc.
+ * - You can pass in any properties you like, but see `CustomErrorProps` below for common ones.
  */
-
 export class CustomError<Props extends CustomErrorProps = CustomErrorProps> extends Error {
+  /** Arbitrary properties passed at construction -- see `CustomErrorProps` for common ones. */
   props: Props
-  // `Function` matches the type Node's own `Error.captureStackTrace(target, constructorOpt?)` expects below.
-  // NOTE: bare `Function` is deliberate here -- this is a dynamic boundary, not a known signature.
+
+  /**
+   * Build error from either a plain `message` string or full `props` object.
+   * - `startStackAt` lets a wrapper function (e.g. `getDier()`'s returned `die()`) trim itself out of
+   *   the stack trace by passing itself as the point stack capture should start from.
+   * - `Function` matches type Node's own `Error.captureStackTrace(target, constructorOpt?)` expects below.
+   * - NOTE: bare `Function` is deliberate here -- this is a dynamic boundary, not a known signature.
+   */
   constructor(props: string | Props, startStackAt?: Function) {
     if (typeof props === "string") {
       super(props)
@@ -21,22 +23,21 @@ export class CustomError<Props extends CustomErrorProps = CustomErrorProps> exte
     }
 
     // Hook stack trace up to where error was actually called, rather than this function.
-    // NOTE: This is v8-specific!
+    // NOTE: this is v8-specific!
     if (Error.captureStackTrace) Error.captureStackTrace(this, startStackAt || this.constructor)
 
-    // Restore prototype chain to make stack traces work out ???
+    // Restore prototype chain to make stack traces work out.
     // See: https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
-    // TODO: WTF does this actually do?
-    // TODO: Which platforms need this???
+    // TODO: what does this actually do, and which platforms need it?
     Object.setPrototypeOf(this, new.target.prototype)
   }
 
-  // Make `error.name` reflect constructor name.
+  /** `error.name` reflects constructor name rather than base `Error`. */
   get name() {
     return this.constructor.name
   }
 
-  /** Return `header` for this error, e.g. for `<ErrorDisplay>`. */
+  /** `header` for this error, e.g. for `<ErrorDisplay>` -- includes `activity` when set. */
   get header() {
     if (this.props.activity) return `${this.name} ${this.props.activity}`
     return this.name
@@ -45,19 +46,24 @@ export class CustomError<Props extends CustomErrorProps = CustomErrorProps> exte
 
 /** UI error -- something the user tried to do went wrong. */
 export class UIError extends CustomError {
+  /** Hardcoded to `"UIError"` rather than deriving from constructor name like base `CustomError`. */
   get name() {
     return "UIError"
   }
 }
 
+/**
+ * Props for `CustomError` and subclasses.
+ * - None are required at the type level, but `message` should always be set in practice.
+ */
 export type CustomErrorProps = {
-  /** Required: single error message string or array of strings. */
+  /** Single error message string or array of strings. */
   message?: string
-  /** Context in which the error happened, e.g. an instance. */
+  /** Context in which error happened, e.g. an instance. */
   context?: any
-  /** Name of the method or action which failed. */
+  /** Name of method or action which failed. */
   activity?: string
-  /** Any relevant parameters for the activity. */
+  /** Any relevant parameters for activity. */
   params?: any
   /** Original error thrown. */
   error?: any

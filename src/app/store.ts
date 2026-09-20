@@ -12,9 +12,9 @@ import type * as UIT from "~/app/ui/ui.types"
 // NOTE: import `Modals` directly rather than through `UI` barrel to avoid circular import.
 import * as Modals from "~/app/ui/modals"
 
-//-----------------
-// The store
-//-----------------
+////////////////
+// ## The store
+////////////////
 
 setPrefKey("spellEditor:")
 /**
@@ -26,9 +26,9 @@ setPrefKey("spellEditor:")
  *   (e.g. `undefined as Foo | undefined`), or `typeof` will infer the narrow one.
  */
 const initialStore = {
-  //-----------------
-  // Project and project actions
-  //-----------------
+  ////////////////
+  // ## Project and project actions
+  ////////////////
 
   /**
    * `SP.SpellProjectRoot` shown in `SpellEditor`.
@@ -37,6 +37,7 @@ const initialStore = {
   projectRoot: undefined as SP.SpellProjectRoot | undefined,
   /** Get/save last viewed `projectPath` for `projectRootPath`. */
   lastProjectForRoot,
+  /** Human-readable type of current `projectRoot`, e.g. `"Example"` -- falls back to `"Project"` if none selected. */
   get appType(): string {
     return store.projectRoot?.Type || "Project"
   },
@@ -242,6 +243,7 @@ const initialStore = {
     }
   },
 
+  /** Duplicate current `project` under `newProjectId` (auto-generated if omitted) and show it. */
   async duplicateApp(newProjectId?: string): Promise<void> {
     try {
       const newProject = await store.projectRoot!.duplicateApp(store.project!.projectId, newProjectId)
@@ -254,6 +256,7 @@ const initialStore = {
       store.showError(e)
     }
   },
+  /** Rename current `project` to `newProjectId` and show it. */
   async renameApp(newProjectId?: string): Promise<void> {
     try {
       const project = await store.projectRoot!.renameApp(store.project!.projectId, newProjectId)
@@ -265,6 +268,7 @@ const initialStore = {
       store.showError(e)
     }
   },
+  /** Delete current `project` (after `CONFIRM`), then navigate to `projectRoot`, which selects another project. */
   async deleteApp(): Promise<void> {
     try {
       const { projectRoot, project } = store
@@ -279,6 +283,10 @@ const initialStore = {
     }
   },
 
+  /**
+   * Compile current `project` and, if compilation produced output, execute it.
+   * - SIDE EFFECT: clears `spellCore.console` and cancels any pending `compileAppSoon()` timer first.
+   */
   async compileApp(): Promise<void> {
     const { project, file } = store
     if (!project || !file) return
@@ -308,6 +316,10 @@ const initialStore = {
     }
   },
 
+  /**
+   * Execute already-`compiled` current `project`, logging result/errors to `spellCore.console`.
+   * - Throws if execution errored, so browser devtools print the right stack/line number too.
+   */
   async executeCompiledApp(): Promise<void> {
     const { project } = store
     if (!project?.compiled) return
@@ -324,8 +336,6 @@ const initialStore = {
     spellCore.console.info(`${project.Type} executed without errors.  exports =`, result)
   },
 
-  // Compile after `delay` seconds.
-  /** Compile after `delay` seconds. */
   /** Timer id for a pending `compileAppSoon()`, if any. */
   compileAppSoonTimer: undefined as ReturnType<typeof setTimeout> | undefined,
   /** Compile after `delay` seconds. */
@@ -333,6 +343,7 @@ const initialStore = {
     store.clearCompileAppSoon()
     store.compileAppSoonTimer = setTimeout(store.compileApp, delay * 1000)
   },
+  /** Cancel pending `compileAppSoon()` timer, if any. */
   clearCompileAppSoon(): void {
     if (store.compileAppSoonTimer) {
       clearTimeout(store.compileAppSoonTimer)
@@ -340,35 +351,40 @@ const initialStore = {
     }
   },
 
-  //-----------------
-  // Projects actions
-  //-----------------
+  ////////////////
+  // ## Projects actions
+  ////////////////
+  /** Create a new project under `SP.SpellProjectRoot.projects`. */
   createProject(projectId?: string): Promise<void> {
     return store.createApp(SP.SpellProjectRoot.projects, projectId)
   },
 
-  //-----------------
-  // Examples actions
-  //-----------------
+  ////////////////
+  // ## Examples actions
+  ////////////////
+  /** Create a new example under `SP.SpellProjectRoot.examples`. */
   async createExample(projectId?: string): Promise<void> {
     return store.createApp(SP.SpellProjectRoot.examples, projectId)
   },
 
-  //-----------------
-  // Guides actions
-  //-----------------
+  ////////////////
+  // ## Guides actions
+  ////////////////
+  /** Create a new guide under `SP.SpellProjectRoot.guides`. */
   async createGuide(projectId?: string): Promise<void> {
     return store.createApp(SP.SpellProjectRoot.guides, projectId)
   },
 
-  //-----------------
-  // File actions
-  //-----------------
+  ////////////////
+  // ## File actions
+  ////////////////
 
+  /** Save current `file` if it's loaded. */
   async saveFile(): Promise<void> {
     const { file } = store
     if (file?.isLoaded) await file.save(undefined)
   },
+  /** Reload current `file` from disk/storage and recompile. */
   async reloadFile(): Promise<void> {
     store.clearCompileAppSoon()
     const { file } = store
@@ -377,6 +393,7 @@ const initialStore = {
       void store.compileApp()
     }
   },
+  /** Create `filePath` (with optional `contents`) in current `project` and show it. */
   async createFile(filePath?: string, contents?: string): Promise<void> {
     store.clearCompileAppSoon()
     try {
@@ -389,6 +406,7 @@ const initialStore = {
       store.showError(e)
     }
   },
+  /** Duplicate current `file` to `newPath` and show it. */
   async duplicateFile(newPath?: string): Promise<void> {
     store.clearCompileAppSoon()
     try {
@@ -401,6 +419,7 @@ const initialStore = {
       store.showError(e)
     }
   },
+  /** Rename current `file` to `newPath` and show it. */
   async renameFile(newPath?: string): Promise<void> {
     store.clearCompileAppSoon()
     try {
@@ -413,6 +432,7 @@ const initialStore = {
       store.showError(e)
     }
   },
+  /** Delete current `file` (after `CONFIRM`), then show next import or `project`. */
   async deleteFile(): Promise<void> {
     store.clearCompileAppSoon()
     try {
@@ -434,10 +454,11 @@ const initialStore = {
     }
   },
 
-  //-----------------
-  // Dialogs
-  //-----------------
+  ////////////////
+  // ## Dialogs
+  ////////////////
 
+  /** Dev helper -- show a `confirm()` dialog and log the resolved answer. */
   async testDialog(): Promise<void> {
     const reply = await store.confirm({ header: "Header", message: "Message?", ok: "Yep", cancel: "Nope" })
     console.warn("testDialog resolved with ", reply)
@@ -465,22 +486,26 @@ const initialStore = {
     return store.showModal(props, Modals.Alert) as Promise<undefined>
   },
 
+  /** See `alert()` above for shared `props` docs.  Resolves `true`/`false` for OK/Cancel button. */
   confirm(props: string | Modals.ConfirmModalProps): Promise<boolean> {
     if (typeof props === "string") props = { message: props }
     return store.showModal(props, Modals.Confirm)
   },
 
+  /** See `alert()` above for shared `props` docs.  Resolves field's string value, or `undefined` if cancelled. */
   prompt(props: string | Modals.PromptModalProps): Promise<string | undefined> {
     if (typeof props === "string") props = { message: props }
     return store.showModal(props, Modals.Prompt)
   },
 
+  /** Like `prompt()`, but numeric input -- defaults `type: "number"` and `step: 1`. */
   promptForNumber(props: string | Modals.PromptModalProps): Promise<string | undefined> {
     if (typeof props === "string") props = { message: props }
     props = { type: "number", inputProps: { step: 1 }, ...props }
     return store.showModal(props, Modals.Prompt)
   },
 
+  /** Show a chooser modal.  Rejects instead of showing anything if `message`/`options` are missing. */
   choose(props?: Modals.ChooserModalProps): Promise<unknown> {
     if (!props?.message || !props.options) {
       console.warn("store.choose(): must pass 'message' and 'options', got:", props)
@@ -489,9 +514,11 @@ const initialStore = {
     return store.showModal(props, Modals.Chooser)
   },
 
-  modalId: 0, // Seqeuence to generate unique modal `id`s.
+  /** Sequence to generate unique modal `id`s. */
+  modalId: 0,
   /** Current stack of modals, topmost at start. */
   modals: [] as ModalEntry[],
+  /** When true, log each modal's resolve/reject value to console -- see `showModal()` below. */
   debugModals: false,
   /**
    * Generic method to show a `component` modal with `props`.
@@ -499,9 +526,9 @@ const initialStore = {
    */
   showModal,
 
-  //-----------------
-  // InputEditor event handlers
-  //-----------------
+  ////////////////
+  // ## InputEditor event handlers
+  ////////////////
 
   /**
    * Pointer to the `codeMirror` instance for our InputEditor.
@@ -522,6 +549,7 @@ const initialStore = {
 
   /** Handle cursor move or scroll in our inputEditor, remembering the `selection`  */
   selection: undefined as UIT.EditorSelection | undefined,
+  /** Track cursor/scroll position in `inputEditor` -- see `onInputCursor()` below. */
   onInputCursor,
 
   /**
@@ -578,11 +606,13 @@ const initialStore = {
     store.compileAppSoon(2)
   },
 
-  //-----------------
-  // UI
-  //-----------------
+  ////////////////
+  // ## UI
+  ////////////////
 
+  /** Whether `<MatchRoot>` shows rule names alongside matches. */
   showingMatchRuleNames: true,
+  /** Toggle (or force via `on`) `showingMatchRuleNames`. */
   toggleMatchRuleNames(on?: boolean): void {
     // NOTE: defaulted here rather than in the signature -- see `createApp()` above.
     on ??= !store.showingMatchRuleNames
@@ -591,10 +621,12 @@ const initialStore = {
 
   /** Single `notice` display. */
   notice: undefined as string | undefined,
+  /** Show `notice` banner with `notice` text. */
   showNotice(notice: string): void {
     console.info("showNotice:", notice)
     store.notice = notice
   },
+  /** Clear `notice` banner. */
   hideNotice(): void {
     store.notice = undefined
   },
@@ -606,6 +638,7 @@ const initialStore = {
     console.dir(error)
     store.error = error instanceof Error ? error : new UIError(String(error))
   },
+  /** Clear `error` banner. */
   hideError(): void {
     store.error = undefined
   }
@@ -617,9 +650,9 @@ export type SpellStore = typeof initialStore
 /** The `store` singleton -- a reactive proxy over `initialStore`. */
 export const store: SpellStore = createStore(initialStore)
 
-//-----------------
-// Supporting types
-//-----------------
+////////////////
+// ## Supporting types
+////////////////
 
 /**
  * Any of the file classes `store.file` can hold, plus the ad-hoc `initialSelection` that
@@ -640,15 +673,19 @@ export type ModalComponent = ComponentType<Modals.ModalComponentProps<ModalProps
  * boolean>`) -- so `component`/`resolve`/`reject` are type-erased to `ModalComponent`/`unknown` here.
  */
 export type ModalEntry = {
+  /** Props passed to `component`, plus generated `id` used to remove this entry from `store.modals`. */
   props: ModalProps & { id: string }
+  /** Modal component to render -- type-erased, see note above. */
   component: ModalComponent
+  /** Resolve promise `showModal()` returned for this entry. */
   resolve: (value?: unknown) => void
+  /** Reject promise `showModal()` returned for this entry. */
   reject: (reason?: unknown) => void
 }
 
-//-----------------
-// Overloaded helpers (`arguments.length`-sensitive, so plain `function`s rather than arrows)
-//-----------------
+////////////////
+// ## Overloaded helpers (`arguments.length`-sensitive, so plain `function`s rather than arrows)
+////////////////
 
 /** Get/save last viewed `projectPath` for `projectRootPath`. */
 function lastProjectForRoot(projectRootPath: string): string | undefined

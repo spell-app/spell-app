@@ -1,11 +1,11 @@
-//----------------------------
-//
-//  JSON utilities
-//
+/** JSON utilities. */
 import JSON5 from "json5"
 
-// Parse JSON, outputting a helpful error message if it doesn't work.
-// Re-throws `error` if encountered uniless `swallowError` is truthy.
+/**
+ * Parse JSON, outputting a helpful error message (with surrounding lines) if it doesn't work.
+ * - `context` is just a label for error output, e.g. filename `json` came from.
+ * - Re-throws `error` if encountered, unless `swallowError` is truthy, in which case returns `undefined`.
+ */
 export function parseJSON(json: string, context = "random text", swallowError?: boolean): unknown {
   try {
     return JSON.parse(json)
@@ -27,8 +27,11 @@ export function parseJSON(json: string, context = "random text", swallowError?: 
   }
 }
 
-// Parse JSON5, outputting a helpful error message if it doesn't work.
-// Re-throws `error` if encountered uniless `swallowError` is truthy.
+/**
+ * Parse JSON5, outputting a helpful error message (with surrounding lines) if it doesn't work.
+ * - `context` is just a label for error output, e.g. filename `json5` came from.
+ * - Re-throws `error` if encountered, unless `swallowError` is truthy, in which case returns `undefined`.
+ */
 export function parseJSON5(json5: string, context = "random text", swallowError?: boolean): unknown {
   try {
     return JSON5.parse(json5)

@@ -1,6 +1,7 @@
-//
-//  # Rules for constants, variables, type names, etc
-//
+/**
+ * Rules for type names -- e.g. `thing`, `bank-account`, singular or plural, possibly unknown, resolved
+ * against `scope.types` when known.
+ */
 import { typeCase, instanceCase, singularize, pluralize } from "~/util"
 import { P, AST } from "~/parser"
 // Import directly to avoid circular import
@@ -8,6 +9,13 @@ import { SpellParser } from "~/languages/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
 import "./match-fields.B"
 
+/**
+ * Map raw matched type-name text to its canonical output name.
+ * - Covers the built-in primitive types (`number`, `integer`, `text`, `character`, `boolean`) plus
+ *   `object`/`list`, in both singular/plural and lower/upper case forms.
+ * - `choice`/`choices` map to `boolean` -- spell treats a "choice" as a boolean under the hood.
+ * - Anything not listed here falls through to `typeCase()` in `SpellType.mapValue()` instead.
+ */
 const TYPE_VALUE_MAP: Record<string, string> = {
   object: "Object",
   Object: "Object",
@@ -39,6 +47,11 @@ const TYPE_VALUE_MAP: Record<string, string> = {
   Choices: "boolean"
 }
 
+/**
+ * Base pattern rule for matching a single type-name identifier (alpha-numeric, dashes/underscores),
+ * singular or plural, known or unknown.
+ * - Sets `match.type` to the existing `TypeScope` looked up by `scope.types`, if any.
+ */
 export class SpellType extends P.Pattern {
   static {
     // Alpha-numeric word, including dashes or underscores.
@@ -48,7 +61,7 @@ export class SpellType extends P.Pattern {
     Object.defineProperty(this.prototype, "VALUE_MAP", { value: TYPE_VALUE_MAP, writable: true })
   }
 
-  // Is `typeName` a simple type, (e.g. `number` etc).
+  /** Lookup table for `isSimpleType()` -- the built-in primitive type names, in canonical instance case. */
   static SIMPLE_TYPES: Record<string, number> = {
     number: 1,
     integer: 1,
@@ -57,17 +70,19 @@ export class SpellType extends P.Pattern {
     boolean: 1,
     choice: 1
   }
+  /** Is `typeName` one of the built-in primitive types (`number`, `text`, etc), as opposed to a user type? */
   static isSimpleType(typeName: string): boolean {
     const instanceName = instanceCase(typeName)
     return !!SpellType.SIMPLE_TYPES[instanceName]
   }
 
-  // Convert value to singular type case, e.g. `Thing` or `Bank_Account`
+  /** Convert value to singular type case, e.g. `Thing` or `Bank_Account`. */
   mapValue<T = string>(value: string): T {
     if (value in this.VALUE_MAP) return this.VALUE_MAP[value]
     return typeCase(value) as T
   }
 
+  /** Match, then look up `match.type` from `scope.types` by canonical, singular type name. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     if (!match) return undefined
@@ -78,6 +93,7 @@ export class SpellType extends P.Pattern {
     return match
   }
 
+  /** Build `AST.TypeExpression` from `match.value` -- throws if the match somehow produced a non-string. */
   getAST(match: P.Match): AST.TypeExpression {
     const { value, raw } = match
     if (typeof value !== "string") throw new TypeError(`Expected a string value, got ${typeof value}`)
@@ -86,10 +102,11 @@ export class SpellType extends P.Pattern {
 }
 SpellParser.Rules.Type = SpellType
 
+/** Rule module for type-name rules (`type`, `singular_type`, `plural_type`, `known_type`). */
 export const types = new SpellParser({
   module: "types",
   rules: [
-    // A possibly-unknown type identifier, singular or plural.
+    /** Possibly-unknown type identifier, singular or plural, e.g. `thing` or `things` => `Thing`. */
     {
       name: "type",
       constructor: SpellType,
@@ -107,7 +124,7 @@ export const types = new SpellParser({
       ]
     },
 
-    // Possibly unknown type which MUST be singular.
+    /** Possibly-unknown type identifier which MUST be singular -- fails on plural input. */
     {
       name: "singular_type",
       constructor: class singular_type extends SpellType {
@@ -139,8 +156,10 @@ export const types = new SpellParser({
       ]
     },
 
-    // Possibly unknown type which MUST be plural.
-    // NOTE: the output type name will be SINGULAR!
+    /**
+     * Possibly-unknown type identifier which MUST be plural -- fails on singular input.
+     * - NOTE: the output type name will be SINGULAR, e.g. `things` => `Thing`.
+     */
     {
       name: "plural_type",
       constructor: class plural_type extends SpellType {
@@ -172,8 +191,10 @@ export const types = new SpellParser({
       ]
     },
 
-    // A known type identifier, NOT including built-in types like 'Object'.
-    // `match.type` will be the existing `TypeScope`.
+    /**
+     * Known type identifier, NOT including built-in types like `Object`.
+     * - `match.type` will be the existing `TypeScope`.
+     */
     {
       name: "known_type",
       //      alias: "expression",

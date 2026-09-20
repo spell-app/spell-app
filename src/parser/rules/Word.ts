@@ -1,9 +1,10 @@
 import { P } from "~/parser"
-// import directly to avoid circult import
+// Import directly to avoid circular import
 import { TokenType } from "./TokenType"
 
-// Match a single `Word` token.
+/** Match a single `Word` token. */
 export class Word extends TokenType {
+  /** Fixed to `P.Tokens.Word` -- unlike base `TokenType`, this isn't settable. */
   get tokenType(): P.TokenConstructor {
     return P.Tokens.Word
   }

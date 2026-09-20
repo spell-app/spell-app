@@ -2,10 +2,8 @@ import { TextFile } from "~/util"
 import { SP } from "~/languages/spell"
 
 /**
- * JS / JSX file as part of SpellProject.
- *
- * Note that these are singleton instances --
- * you'll always get the same object back for a given `path`.
+ * JS / JSX file as part of `SpellProject`.
+ * - NOTE: these are singleton instances -- you'll always get the same object back for a given `path`.
  */
 export class SpellJSFile extends TextFile {
   /** Registry of known instances. */
@@ -23,7 +21,11 @@ export class SpellJSFile extends TextFile {
     SpellJSFile.registry.set(path, this)
   }
 
-  /** We've been removed from the server -- clean up memory, etc.. */
+  /**
+   * We've been removed from the server -- clean up memory, etc..
+   * - SIDE EFFECT: deletes this instance from `SpellJSFile.registry` and its `SpellLocation` from
+   *   `SP.SpellLocation.registry`.
+   */
   onRemove(): void {
     super.onRemove()
     SpellJSFile.registry.delete(this.path)
@@ -32,60 +34,65 @@ export class SpellJSFile extends TextFile {
 
   /**
    * Path to file, as specified by server.
-   * MUST be passed to constructor.
+   * - MUST be passed to constructor.
    */
   /*@writeOnce path*/
   declare path: string
 
-  /** `location` object which we can use to get various bits of the path. */
+  /** `location` object which we can use to get various bits of `path`. */
   /*@forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")*/
   /*@memoize*/
   get location(): SP.SpellLocation {
     return this.derived("location", () => new SP.SpellLocation(this.path))
   }
+  /** `projectId` from `location`. */
   get projectId(): string {
     return this.location.projectId
   }
+  /** `projectName` from `location`, if any. */
   get projectName(): string | undefined {
     return this.location.projectName
   }
+  /** `filePath` from `location`, if any. */
   get filePath(): string | undefined {
     return this.location.filePath
   }
+  /** `folder` from `location`, if any. */
   get folder(): string | undefined {
     return this.location.folder
   }
+  /** `file` from `location`, if any. */
   get file(): string | undefined {
     return this.location.file
   }
+  /** `fileName` from `location`, if any. */
   get fileName(): string | undefined {
     return this.location.fileName
   }
+  /** `extension` from `location`, if any. */
   get extension(): string | undefined {
     return this.location.extension
   }
 
-  /**
-   * Pointer to our `SpellProject`.
-   */
+  /** Pointer to our `SpellProject`. */
   /*@memoize*/
   get project(): SP.SpellProject {
     return this.derived("project", () => new SP.SpellProject(this.projectId))
   }
 
   /**
-   * Return promise which yields our `info` record according to the project manifest.
-   * Note that `modified` and `size` may be out of sync if we've been modified on the client.
+   * Our `info` record from project manifest, or `undefined` if not found there.
+   * - NOTE: `modified` and `size` may be stale if we've been modified on client since load.
    */
   get info(): SP.ProjectManifestEntry | undefined {
     return this.project.getFileInfo(this.path)
   }
 
-  //-----------------
-  //  Loading / Saving
-  //-----------------
+  ////////////////
+  // ## Loading / Saving
+  ////////////////
 
-  /** Update file contents when you  do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
+  /** Update file contents when you do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
   /*@proto*/ get autoUpdateContentsOnSave(): boolean {
     return true
   }
@@ -95,9 +102,11 @@ export class SpellJSFile extends TextFile {
     return `/api/projects/file/${this.projectId}${this.filePath}`
   }
 
-  //-----------------
-  //  Debug
-  //-----------------
+  ////////////////
+  // ## Debug
+  ////////////////
+
+  /** Debug string: `ClassName: path`. */
   toString(): string {
     return `${this.constructor.name}: ${this.path}`
   }

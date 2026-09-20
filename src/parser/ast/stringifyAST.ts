@@ -1,36 +1,44 @@
 /**
- *
- * Utilites for rendering things (e.g. `ASTNode`s) as strings.
- * Contract:
- *  - each thing has a GENERIC `getComponent(key?)` method which renders an outer container.
- * Usage:
- *    `import * as draw from ".../drawComponent"`
- * TODOC!!!
- *    etc
+ * Output backend for `ASTNode`s -- draws parens/lists/blocks/etc. as plain `string`s, for compiled JS output.
+ * - Mirrors `renderAST.tsx` export-for-export: same core names (`SPACE`, `COMMA`, `List`, `InParens`, `Block`, ...)
+ *   but returning `string` instead of `ReactElement`.  See barrel `index.ts` NOTE -- they MUST stay namespaced.
+ * - Usage: `import * as stringify from "./stringifyAST"`, then e.g. `stringify.Args({ args })`.
  */
 import type { ASTNode } from "./AST"
+
+////////////////
+// ## Whitespace & Delimiters
+////////////////
 
 // TODO: move to `parser.types.ts` ?
 /** Draw a single space. */
 export const SPACE = " "
-/** Draw an indent as a list delimiter. */
+/** Draw a single indent (tab) -- combined with `NEWLINE` below to build `INDENTED_NEWLINE`. */
 export const INDENT = "\t"
 /** Draw a newline as a list delimiter. */
 export const NEWLINE = "\n"
-/** Draw a newline as a list delimiter. */
+/** Draw a newline followed by an indent -- delimiter for wrapped/indented lists. */
 export const INDENTED_NEWLINE = `${NEWLINE}${INDENT}`
 
 /** Draw a comma as a list delimiter. */
 export const COMMA = ","
-/** Draw a comma and then a newline as a list delimiter. */
+/** Draw a comma and then a space as a list delimiter. */
 export const SPACED_COMMA = `${COMMA}${SPACE}`
 /** Draw a comma and then a newline as a list delimiter. */
 export const INDENTED_COMMA = `${COMMA}${NEWLINE}`
 
+////////////////
+// ## List Rendering
+////////////////
+
 /** Draw a single item in a list by having it render its component. */
 export const Item = ({ item }: { item?: ASTNode | null; index: number }): string => (item ? String(item.compile()) : "")
 
-/** Draw a series of items with a delimiter between */
+/**
+ * Draw a series of `items` joined by `delimiter` (default `SPACED_COMMA`).
+ * - Returns `""` when `items` is empty/absent.
+ * - `DrawItem` overridable per-item renderer, defaulting to `Item`.
+ */
 export const List = ({
   items,
   delimiter = SPACED_COMMA,
@@ -49,10 +57,23 @@ export const List = ({
   return kids.join("")
 }
 
-/** Surround `children` in parens. */
+////////////////
+// ## Parens & Call Args
+////////////////
+
+/** Opening paren token. */
 export const LEFT_PAREN = "("
+/** Closing paren token. */
 export const RIGHT_PAREN = ")"
+/** `()` -- returned by `InParens` when there's nothing to wrap. */
 export const EMPTY_PARENS = `${LEFT_PAREN}${RIGHT_PAREN}`
+/**
+ * Surround `children` in parens.
+ * - `wrap`: newline-delimited, and indents every line of `children` by one tab.
+ * - `space`: single-space delimiter instead -- ignored if `wrap`.
+ * - Returns `EMPTY_PARENS` if `children` is `null`/empty string, so callers of e.g. `Args`
+ *   don't need to special-case a zero-arg call.
+ */
 export const InParens = ({
   children = "",
   wrap = false,
@@ -68,7 +89,12 @@ export const InParens = ({
   return `${LEFT_PAREN}${delimiter}${children}${delimiter}${RIGHT_PAREN}`
 }
 
-/** Draw list of function `args` */
+/**
+ * Draw list of function `args`, comma-delimited and wrapped in parens.
+ * - Defaults to `wrap: true` once there are more than 3 args.
+ * - When wrapped and the joined args themselves span multiple lines, indents the whole
+ *   list by one more tab (nested wrapped content, e.g. a wrapped object literal arg).
+ */
 export const Args = ({
   args,
   wrap = (args?.length ?? 0) > 3
@@ -83,31 +109,55 @@ export const Args = ({
   return InParens({ wrap, children })
 }
 
-/** Surround `children` in double quotes. */
+////////////////
+// ## Quotes
+////////////////
+
+/** Double-quote token. */
 export const DOUBLE_QUOTE = '"'
+/**
+ * Surround `children` in double quotes.
+ * - NOTE: unlike `InParens`/`InCurlies`/`InSquareBrackets`, doesn't special-case empty `children` --
+ *   always emits both quotes.
+ */
 export const InDoubleQuotes = ({ children = "" }: { children?: string }): string => {
   return `${DOUBLE_QUOTE}${children}${DOUBLE_QUOTE}`
 }
 
-/** Surround `children` in single quotes. */
+/** Single-quote token. */
 export const SINGLE_QUOTE = "'"
+/** Surround `children` in single quotes.  See `InDoubleQuotes` NOTE re: empty `children`. */
 export const InSingleQuotes = ({ children = "" }: { children?: string }): string => {
   return `${SINGLE_QUOTE}${children}${SINGLE_QUOTE}`
 }
 
-/** Surround `children` in back ticks. */
+/** Back-tick token. */
 export const BACK_TICK = "`"
+/** Surround `children` in back ticks.  See `InDoubleQuotes` NOTE re: empty `children`. */
 export const InBackTicks = ({ children = "" }: { children?: string }): string => {
   return `${BACK_TICK}${children}${BACK_TICK}`
 }
+/** Surround `children` in triple back ticks, e.g. for a fenced code block. */
 export const InTripleBackTicks = ({ children = "" }: { children?: string }): string => {
   return `${BACK_TICK}${BACK_TICK}${BACK_TICK}${children}${BACK_TICK}${BACK_TICK}${BACK_TICK}`
 }
 
-/** Surround `children` in curly brackets. */
+////////////////
+// ## Curly Brackets & Blocks
+////////////////
+
+/** Opening curly-brace token. */
 export const LEFT_CURLY = "{"
+/** Closing curly-brace token. */
 export const RIGHT_CURLY = "}"
+/** `{}` -- returned by `InCurlies` when there's nothing to wrap. */
 export const EMPTY_BLOCK = `${LEFT_CURLY}${RIGHT_CURLY}`
+/**
+ * Surround `children` in curly brackets.
+ * - `wrap`: newline-delimited, and indents every line of `children` by one tab.
+ * - `space`: single-space delimiter instead -- ignored if `wrap`.
+ * - Returns `EMPTY_BLOCK` if `children` is `null`/empty string.
+ */
 export const InCurlies = ({
   children = "",
   wrap = false,
@@ -123,7 +173,11 @@ export const InCurlies = ({
   return `${LEFT_CURLY}${delimiter}${children}${delimiter}${RIGHT_CURLY}`
 }
 
-/** Draw a block surrounded by curlies. */
+/**
+ * Draw a block surrounded by curlies -- thin wrapper over `InCurlies` used for statement/object bodies.
+ * - `space` defaults to `!wrap`: a single-line block gets spaced curlies, a wrapped one doesn't need it
+ *   since the newlines already separate content from the braces.
+ */
 export const Block = ({
   children = "",
   wrap = false,
@@ -136,10 +190,22 @@ export const Block = ({
   return InCurlies({ wrap, space, children })
 }
 
-/** Surround `children` in square brackets. */
+////////////////
+// ## Square Brackets & Arrays
+////////////////
+
+/** Opening square-bracket token. */
 export const LEFT_SQUARE_BRACKET = "["
+/** Closing square-bracket token. */
 export const RIGHT_SQUARE_BRACKET = "]"
+/** `[]` -- returned by `InSquareBrackets` when there's nothing to wrap. */
 export const EMPTY_ARRAY = `${LEFT_SQUARE_BRACKET}${RIGHT_SQUARE_BRACKET}`
+/**
+ * Surround `children` in square brackets.
+ * - `wrap`: newline-delimited, and indents every line of `children` by one tab.
+ * - `space`: single-space delimiter instead -- ignored if `wrap`.
+ * - Returns `EMPTY_ARRAY` if `children` is `null`/empty string.
+ */
 export const InSquareBrackets = ({
   children = "",
   wrap = false,
@@ -157,6 +223,9 @@ export const InSquareBrackets = ({
 
 /**
  * Draw an array of `items` delimited by commas and surrounded by square brackets.
+ * - `wrap` picks comma+newline vs. comma+space between items -- no auto-wrap-at-N-items
+ *   threshold like `Args` has.
+ * - `DrawItem` overridable per-item renderer, defaulting to `Item`.
  */
 export const Array = ({
   items,

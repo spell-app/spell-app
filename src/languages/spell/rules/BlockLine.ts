@@ -5,17 +5,26 @@ import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import "./match-fields.A"
 
-/** Update Rules.BlankLine to output AST properly. */
+/**
+ * Patch generic `P.BlankLine` (which has no `getAST()` of its own) so a blank line compiles to
+ * `AST.BlankLine` -- needed since spell always converts to AST before compiling.
+ */
 P.BlankLine.prototype.getAST = function (match: P.Match) {
   return new AST.BlankLine(match)
 }
 
-// Use `BlockLine` to parse a single `Tokens.Line` in a `Tokens.Block` as:
-// - a `statement`
-// - an optional `comment` at the end of the line
-// - if the `statement.wantsNestedBlock` and the next item in `lines` is a `Tokens.Block`
-//   we'll let the statement attempt to parse the next line as well.
+/**
+ * Parse a single `Tokens.Line` in a `Tokens.Block` as:
+ * - a `statement`
+ * - an optional `comment` at the end of the line
+ * - if `statement.wantsNestedBlock` and the next item in `lines` is a `Tokens.Block`, we'll let the
+ *   statement attempt to parse that next line as well.
+ */
 export class BlockLine extends P.Rule {
+  /**
+   * SIDE EFFECT: calls `statement.rule.mutateScope()` on the parsed statement (and on any nested block's
+   * errors are folded in too), so a locked-in statement can e.g. add variables to `scope` as it's parsed.
+   */
   parse(scope: P.Scope, lines: P.Token[]): P.Match | undefined {
     const line = lines[0]
     if (!line) return undefined
@@ -128,17 +137,20 @@ export class BlockLine extends P.Rule {
       tokens: tokensMatched,
       scope
     })
-    // `errors` is an ad-hoc field (see `match-fields.a.ts`), not part of `MatchProps`.
+    // `errors` is an ad-hoc field (see `match-fields.A.ts`), not part of `MatchProps`.
     if (errors.length) result.errors = errors
     return result
   }
 
+  /**
+   * `Match.compile()` always prefers `getAST()` (below) over calling `rule.compile()` directly, but
+   * `Rule.compile()` is abstract, so provide the equivalent fallback for completeness.
+   */
   compile(match: P.AnyMatch): unknown {
-    // `Match.compile()` always prefers `getAST()` (below) over calling `rule.compile()` directly,
-    // but `Rule.compile()` is abstract, so provide the equivalent fallback for completeness.
     return match.AST?.compile()
   }
 
+  /** If only one matched item (statement, comment, or blank line), return its AST directly; else group them. */
   getAST(match: P.Match): AST.ASTNode {
     // ???  If only one matched item, return it by itself
     const first = match.matched[0]

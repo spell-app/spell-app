@@ -8,27 +8,30 @@ import type { TaskList } from "./TaskList"
  * Unlike a `Promise`, a `Task` can be inspected, `cancel()`ed, `restart()`ed, etc.
  *
  * A `Task` is especially useful as part of a `TaskList` -- a sequence of multiple actions.
- * By setting `task.name`, we can see the state of pending actions in a taskList, what's left to do, etc.
+ * Setting `task.name` lets us see state of pending actions in a taskList, what's left to do, etc.
  *
  * To create a task, pass:
- * - `run`          Function which returns a `Promise` to execute the task.
- *                  NOTE: You can pass just a function to set `task.run`.
+ * - `run` -- function which returns a `Promise` to execute the task.
+ *   NOTE: you can pass just a function to set `task.run`.
+ *
  * You may also pass:
- * - `name`         String name for the task, e.g. to display as part of the taskList.
- * - `optional`     If `true`, a `TaskList` that's executing us will continue even if we fail.
+ * - `name` -- string name for the task, e.g. to display as part of a taskList.
+ * - `optional` -- if `true`, a `TaskList` that's executing us will continue even if we fail.
  *
  * Use `task.start(intialValue)` to execute the task with `intialValue`.
- * This returns a promise that always `resolve()`s or `rejects()`s as normal.
+ * This returns a promise that always `resolve()`s or `reject()`s as normal.
  * After completion:
- *  - `task.result` will be the result of the last successful run.
- *  - `task.error` is the error returned on the last failed run.
- * You can also examine `task.hasSucceded`, `task.wasCancelled` etc to see what happened later.
+ * - `task.result` will be result of the last successful run.
+ * - `task.error` is error returned on the last failed run.
+ *
+ * You can also examine `task.hasSucceeded`, `task.wasCancelled` etc to see what happened later.
  *
  * You can call `task.cancel()` to abort a running task, see below for details.
- * Call `task.resetState()` to clear all prior state in prep for calling again. (??)
+ * Call `task.resetState()` to clear all prior state in prep for calling again.
  *
  * TODO: `retry` to retry N times if we fail.
  * TODO: `failAfter` to fail a promise if it doesn't complete for certain amount of time.
+ * TODO: does `resetState()` fully prepare us for calling again, or is manual `reset()` still needed?
  */
 export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
   /**
@@ -43,9 +46,10 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
     }
   }
 
-  //-----------------
-  // Props
-  //-----------------
+  ////////////////
+  // ## Props
+  ////////////////
+
   /** (required) Function which returns a `Promise` to execute this task. */
   /*@proto*/
   get run() {
@@ -71,9 +75,11 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
     this.setProp("optional", optional)
   }
 
-  //-----------------
-  // State.  Note: these are the values after `reset()`.
-  //-----------------
+  ////////////////
+  // ## State
+  ////////////////
+  // NOTE: these are the values after `reset()`.
+
   /** Result set when we `resolve()`. */
   get result() {
     return this.getState("result", () => undefined)
@@ -89,7 +95,7 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
     this.setState("error", error)
   }
 
-  /* Current status:  `UNSTARTED`, `ACTIVE`, `SUCCESS` or `FAILURE` */
+  /** Current status:  `UNSTARTED`, `ACTIVE`, `SUCCESS` or `FAILURE`. */
   get status() {
     return this.getState("status", () => TaskStatus.UNSTARTED)
   }
@@ -97,8 +103,10 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
     this.setState("status", status)
   }
 
-  /* Was our last run cancelled? */
-  // TODO: status = cancelled?
+  /**
+   * Was our last run cancelled?
+   * TODO: fold this into `status` as a `CANCELLED` value instead of a separate flag?
+   */
   get wasCancelled() {
     return this.getState("wasCancelled", () => false)
   }
@@ -106,7 +114,7 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
     this.setState("wasCancelled", wasCancelled)
   }
 
-  /* Current task run */
+  /** Bookkeeping for the current, in-flight run -- `undefined` when not running.  See `start()`. */
   get execution() {
     return this.getState("execution", () => undefined)
   }
@@ -114,6 +122,7 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
     this.setState("execution", execution)
   }
 
+  /** `TaskList` that contains us, if any -- set automatically by `TaskList.addTasks()`. */
   get taskList() {
     return this.getProp("taskList")
   }
@@ -121,29 +130,34 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
     this.setProp("taskList", taskList)
   }
 
-  //-----------------
-  // Syntactic sugar for our `status`
-  //-----------------
+  ////////////////
+  // ## Syntactic sugar for our `status`
+  ////////////////
 
+  /** Have we ever been `start()`ed? */
   get hasStarted() {
     return this.status !== TaskStatus.UNSTARTED
   }
+  /** Are we currently running? */
   get isActive() {
     return this.status === TaskStatus.ACTIVE
   }
+  /** Did our last run resolve successfully? */
   get hasSucceeded() {
     return this.status === TaskStatus.SUCCESS
   }
+  /** Did our last run fail? */
   get hasFailed() {
     return this.status === TaskStatus.FAILURE
   }
+  /** Have we finished, successfully or not? */
   get hasCompleted() {
     return this.hasSucceeded || this.hasFailed
   }
 
-  //-----------------
-  // Execution
-  //-----------------
+  ////////////////
+  // ## Execution
+  ////////////////
 
   /**
    * Start this task by calling `this.run(inputValue)`.
@@ -244,9 +258,9 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
     void this.start(inputValue)
   }
 
-  //-----------------
-  // Debugging
-  //-----------------
+  ////////////////
+  // ## Debugging
+  ////////////////
 
   /** Set to true to debug to the console as we operate. */
   get debug() {
@@ -263,7 +277,7 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
       console.info(`> Task: ${name}\n     `, { task: this, inputValue })
     }
   }
-  /** Called after we finish executing. Yu can examine `this.hasSucceeded`, `this.result`, etc. */
+  /** Called after we finish executing.  You can examine `this.hasSucceeded`, `this.result`, etc. */
   afterFinish() {
     if (this.debug) {
       const { name, status, result, error, wasCancelled } = this
@@ -272,6 +286,7 @@ export class Task<TaskResult = any> extends Observable<TaskProps<TaskResult>> {
   }
 }
 
+/** Constructor props accepted by `Task`. */
 export type TaskProps<TaskResult = any> = {
   /** Method to `run()` when executing this task. */
   run: (inputValue: unknown) => Promise<TaskResult>
@@ -285,14 +300,24 @@ export type TaskProps<TaskResult = any> = {
   taskList?: TaskList
 }
 
+/**
+ * Bookkeeping for one in-flight `run()` -- created fresh by `start()` each time and
+ * stashed as `task.execution` while active, `undefined` once it completes or is cancelled.
+ */
 export type TaskExecution<TaskResult> = {
+  /** Finish this run.  `status` required, `result` is result or error depending on `status`. */
   complete: (status: TaskStatus, result: TaskResult | Error) => void
+  /** Promise returned to the caller of `start()` -- resolves/rejects via `complete()`. */
   promise: Promise<unknown>
+  /** Resolver for `promise`, captured from its executor. */
   resolve: (result: unknown) => void
+  /** Rejecter for `promise`, captured from its executor. */
   reject: (reason: unknown) => void
+  /** `cancel` method lifted off `run()`'s returned promise, if it had one, e.g. `AbortableFetch`. */
   cancel?: () => void
 }
 
+/** Reactive state tracked per `Task` run. */
 export type TaskState<TaskResult> = {
   /** Current status. */
   status?: TaskStatus
@@ -304,8 +329,14 @@ export type TaskState<TaskResult> = {
   execution?: TaskExecution<TaskResult>
 }
 
+/**
+ * `TaskState` plus the running `index` into a `TaskList`'s tasks.
+ * TODO: appears unused -- `TaskList` doesn't parameterize `Observable`'s `State` with this, it just
+ * reads/writes an `"index"` state key directly.  Confirm whether this is dead code or a wiring gap.
+ */
 export type TaskListState = Prettify<
   {
+    /** Index of active task, `-1` before started.  See `TaskList.index`. */
     index: number
   } & TaskState<any>
 >

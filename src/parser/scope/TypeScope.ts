@@ -12,13 +12,14 @@ import { BlockScope } from "./BlockScope"
  *  - `classMethods` and `classVariables` are static to the class.
  */
 export class TypeScope extends BlockScope {
-  /** Name of the type, which should be singular.  Will be normalized to TypeCase. */
+  /** Name of the type, which should be singular.  Will be normalized to Type_Case. */
   declare name: string
-  /** Name of superclass, which should be singular.  Will be normalized to TypeCased. */
+  /** Name of superclass, which should be singular.  Will be normalized to Type_Case. */
   declare superType?: string
   /** If true, the type was created as a stub. */
   declare stub?: boolean
 
+  /** Create with a string `typeName`, or `TypeScopeProps` object; normalizes `name`/`superType` to Type_Case. */
   constructor(typeName: string)
   constructor(props: TypeScopeProps)
   constructor(input: string | TypeScopeProps) {
@@ -33,13 +34,15 @@ export class TypeScope extends BlockScope {
     if (this.superType) this.superType = typeCase(this.superType)
   }
 
-  // Syntactic sugar for the type name.
-  // e.g. if the type name is `Card`, the instanceName would be `card`.
+  /**
+   * Syntactic sugar for the type name.
+   * - e.g. if type name is `Card`, `instanceName` would be `card`.
+   */
   get instanceName() {
     return instanceCase(this.name)
   }
 
-  /** Scope `classVariables`. */
+  /** Named `ScopeVariable`s static to this class, keyed by (snake_case-normalized) name; `kind` set to `"static"`. */
   /*@memoize*/
   get classVariables() {
     return this.derived(
@@ -59,7 +62,7 @@ export class TypeScope extends BlockScope {
     )
   }
 
-  /** Scope `classMethods`. */
+  /** Named `MethodScope`s static to this class, keyed by (snake_case-normalized) name; `kind` set to `"static"`. */
   /*@memoize*/
   get classMethods() {
     return this.derived(
@@ -80,10 +83,16 @@ export class TypeScope extends BlockScope {
   }
 }
 
+/** Constructor props for `TypeScope`. */
 export type TypeScopeProps = {
+  /** Name of the type, which should be singular.  Will be normalized to Type_Case. */
   name: string
+  /** Name of superclass, which should be singular.  Will be normalized to Type_Case. */
   superType?: string
+  /** If true, the type was created as a stub. */
   stub?: boolean
+  /** Instance methods, including `constructor` if provided. */
   methods?: P.MethodScope[]
+  /** Instance variables. */
   variables?: P.ScopeVariable[]
 }

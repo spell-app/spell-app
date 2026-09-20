@@ -1,6 +1,4 @@
-//
-//  # Rules for if statements.
-//
+/** Rules for `if`/`else if`/`else` statements, plus the backwards `if...else` ternary suffix. */
 
 import { P, AST } from "~/parser"
 // Import directly to avoid circular import
@@ -8,12 +6,32 @@ import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import { InfixOperatorSuffix } from "./expressions"
 
+/**
+ * Match groups shared by `if`/`else_if`.
+ * - `condition` -- the boolean expression, from `P.RulexGroups<"condition">`.
+ * - `inlineStatement` -- single-line body, e.g. `if a then b = 1`.
+ * - `nestedBlock` -- indented multi-line body immediately following the `if`/`else if` line.
+ */
 type IfGroups = P.RulexGroups<"condition"> & { inlineStatement?: P.Match; nestedBlock?: P.Match }
+
+/**
+ * Match groups for `else` -- optional inline/nested-block statement, no `condition`.
+ * - `inlineStatement` -- single-line body, e.g. `else b = 1`.
+ * - `nestedBlock` -- indented multi-line body immediately following `else`.
+ */
 type ElseGroups = { inlineStatement?: P.Match; nestedBlock?: P.Match }
 
 export const _if_ = new SpellParser({
   module: "if",
   rules: [
+    /**
+     * `if {condition} (then|:)?` statement, with an inline statement or an indented nested block as body.
+     * - `wantsInlineStatement`/`wantsNestedBlock`: doesn't parse its own body -- `SpellStatement` parses a
+     *   trailing inline statement, or `BlockLine` parses a following indented block, into `match.groups`.
+     * - Compiles body in a nested `BlockScope` (named `"if"`) via `getNestedScopeForMatch()`.
+     * - Prefers `nestedBlock` over `inlineStatement` when (invalidly) given both.
+     * - Compiles to `if (condition) { ...statements }`.
+     */
     {
       name: "if",
       alias: "statement",
@@ -97,8 +115,16 @@ export const _if_ = new SpellParser({
       ]
     },
 
+    /**
+     * `(else|otherwise) if {condition} (then|:)?` -- else-if branch, chained after `if`.
+     * - NOTE: this MUST be before `else` or that will eat `else if` statements... :-(
+     * - `precedence: 1` (default 0) also biases resolution toward this rule over `_else` when ambiguous.
+     *   TODO: is `precedence` load-bearing here, or does rule-definition order (see NOTE above) suffice?
+     * - Compiles body in a nested `BlockScope` (named `"elseif"`) via `getNestedScopeForMatch()`.
+     * - Prefers `nestedBlock` over `inlineStatement` when (invalidly) given both.
+     * - Compiles to `else if (condition) { ...statements }`.
+     */
     {
-      // NOTE: this MUST be before `else` or that will eat `else if` statements... :-(
       name: "else_if",
       alias: "statement",
       syntax: "(else|otherwise) if {condition:expression} (then|:)?",
@@ -176,6 +202,12 @@ export const _if_ = new SpellParser({
       ]
     },
 
+    /**
+     * `(else|otherwise) :?` -- else branch; must be tried after `else_if` (see NOTE there) so this
+     * rule's bare `(else|otherwise)` prefix doesn't eat an `else if` statement.
+     * - Compiles body in a nested `BlockScope` (named `"else"`) via `getNestedScopeForMatch()`.
+     * - Compiles to `else { ...statements }`.
+     */
     {
       name: "_else",
       alias: "statement",
@@ -241,6 +273,14 @@ export const _if_ = new SpellParser({
       ]
     },
 
+    /**
+     * Postfix ternary: `{expr} if {condition} (else|otherwise) {expr}` -- English word order
+     * ("do X if Y else Z") rather than `condition ? then : else`.
+     * - `expression_suffix`: `lhs` (the value before `if`) is supplied by `compound_expression`'s
+     *   shunting-yard; this rule's own `syntax` only spells out `operator` (actually the *condition*
+     *   expression here) and the trailing `rhs` expression.
+     * - Compiles to `AST.TernaryExpression`.
+     */
     {
       name: "backwards_if",
       alias: "expression_suffix",

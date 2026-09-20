@@ -1,6 +1,9 @@
-// Module augmentation for ad-hoc `Match` fields set/read by chunk B's rule files
-// (core, types, variables, constants, assignment, statements, if).
-// See the shared conversion brief for why these live outside `src/parser/Match.ts`.
+/**
+ * Module augmentation for ad-hoc `Match` fields set/read by chunk B's rule files
+ * (`core`, `types`, `variables`, `constants`, `assignment`, `statements`, `if`).
+ * - See `match-fields.A.ts` for why these ad hoc fields live here (via TS interface merging) rather than
+ *   on `src/parser/Match.ts` directly, and why they're split across lettered "chunk" files.
+ */
 import { P } from "~/parser"
 
 declare module "~/parser/Match" {

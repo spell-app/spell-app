@@ -6,12 +6,25 @@ import { P } from "~/parser"
 import * as stringify from "./stringifyAST"
 import * as render from "./renderAST"
 
+////////////////
+// ## Helpers
+////////////////
+
 // TODO: define this in `constants` or some such?
+/** Regex for a string that is legal as a bare (unquoted) JS property identifier. */
 const LEGAL_PROPERTY_IDENTIFIER = /^[a-zA-Z][\w$]*$/
+
+/** `true` if `value` can be used as a bare JS property/identifier name without quoting. */
 function isLegalIdentifier(value: string): boolean {
   return LEGAL_PROPERTY_IDENTIFIER.test(value)
 }
 
+/**
+ * Normalize `statements` (single `Statement`, already-built `StatementBlock`, or array) into one
+ * `StatementBlock`.
+ * - Used by anything that accepts a loose statement/array of statements for its body, e.g.
+ *   `IfStatement`, `TryCatchBlock`.
+ */
 function convertStatementsToBlock(
   match: P.AnyMatch,
   statements: Statement | StatementBlock | Statement[] | undefined
@@ -22,8 +35,13 @@ function convertStatementsToBlock(
   return new StatementBlock(match, { statements: [statements] })
 }
 
-/** Abstract root of all AST node types.
- *  - `type` is
+////////////////
+// ## Base Node
+////////////////
+
+/**
+ * Abstract root of all AST node types.
+ * - TODO: original doc had dangling "`type` is" bullet -- unclear what it referred to.
  */
 export class ASTNode<Props extends object = object> extends Assertable {
   /** Match passed to `getAST()` method which produced this node. */
@@ -32,12 +50,14 @@ export class ASTNode<Props extends object = object> extends Assertable {
   /** Backing field for the overridable `datatype` accessor. */
   declare private _datatype: string | RegExpConstructor | undefined
 
-  /** On construction, pass:
-   *  - `match` passed to `getAST()` method,
-   *  - `props` as arbitrary properties to be assigned to the instance.
-   *  Use `this.assert()` or `this.assertType()` to validate input as much as you can.
+  /**
+   * On construction, pass:
+   * - `match` passed to `getAST()` method
+   * - `props` as arbitrary properties to be assigned to instance
    *
-   *  TODO: `datatype` as a function which turns into a getter?
+   * Use `this.assert()` or `this.assertType()` to validate input as much as you can.
+   *
+   * TODO: `datatype` as a function which turns into a getter?
    */
   constructor(match: P.AnyMatch, props?: Props) {
     super()
@@ -46,23 +66,25 @@ export class ASTNode<Props extends object = object> extends Assertable {
     this.assertType("match", P.Match)
   }
 
-  /** Return our node type, which is the name of our constructor function. */
+  /** Our node type, which is name of our constructor function. */
   get nodeType() {
     return this.constructor.name || (this.constructor as { displayName?: string }).displayName
   }
 
-  /** Scope of the top-level match. */
+  /** Scope of top-level match. */
   get parentScope(): P.Scope {
     return this.match.scope
   }
 
-  //-------------------------
-  // Rendering as JS text
-  //-------------------------
+  ////////////////
+  // ## Rendering as JS text
+  ////////////////
 
-  /** Compile this AST into Javascript.  You MUST override in a subclass.
-   *  - Most subclasses return a `string` of Javascript source, but `Literal` subclasses
-   *    (e.g. `NumericLiteral`) may return the raw underlying value instead. */
+  /**
+   * Compile this AST into Javascript.  MUST override in subclass.
+   * - Most subclasses return a `string` of Javascript source, but `Literal` subclasses
+   *   (e.g. `NumericLiteral`) may return raw underlying value instead.
+   */
   compile(): unknown {
     throw new TypeError(`AST ${this.nodeType} must implement compile()`)
   }
@@ -79,20 +101,20 @@ export class ASTNode<Props extends object = object> extends Assertable {
     this._datatype = datatype
   }
 
-  //-------------------------
-  // Rendering as React nodes
-  //-------------------------
+  ////////////////
+  // ## Rendering as React nodes
+  ////////////////
 
-  /** Return rendered react component which draws this node as syntax-colored Javascript. */
+  /** Rendered react component which draws this node as syntax-colored Javascript. */
   /*@memoize*/
   get component(): ReactElement {
     return this.derived("component", () => render.Node(this))
   }
 
   /**
-   * Return css className as concatenation of all superclass method names.
-   * Override in your subclass to add special stuff, e.g.
-   *  `get className() { return super.className + "foo bar baz" }`
+   * Css className as concatenation of all superclass method names.
+   * - Override in subclass to add special stuff, e.g.
+   *   `get className() { return super.className + "foo bar baz" }`
    */
   get className(): string {
     const supers = (getSuperHierarchy(this, ASTNode) as Array<{ name: string }>).reverse()
@@ -100,8 +122,8 @@ export class ASTNode<Props extends object = object> extends Assertable {
   }
 
   /**
-   * Render children to render INSIDE the outer element,
-   * which has `node.className` (e.g. `ASTNode Expression StringLiteral`) set.
+   * Render children to render INSIDE outer element, which has `node.className`
+   * (e.g. `ASTNode Expression StringLiteral`) set.
    */
   renderChildren(): ReactNode {
     return null
@@ -110,19 +132,26 @@ export class ASTNode<Props extends object = object> extends Assertable {
   // TEST: ensure that `compile()` output is the same as `ast.renderedText`
   // REFACTOR: was using enzyme to test component vs. compiled text, but enzyme was problematic
   //  so we're not using it anymore -- always return `true`.
+  /** Always `true` -- see REFACTOR note above `test()`. */
   test(): boolean {
     return true
   }
 
-  //-----------------
-  //  Debug
-  //-----------------
+  ////////////////
+  // ## Debug
+  ////////////////
+
+  /** Debug string, deliberately not including properties -- see subclasses for actual rendering. */
   toString(): string {
     return `${this.constructor.name} {...}`
   }
 }
 
-/** Blank line */
+////////////////
+// ## Literals
+////////////////
+
+/** Blank line. */
 export class BlankLine extends ASTNode {
   compile(): string {
     return "" // "\n"
@@ -138,8 +167,8 @@ export class BlankLine extends ASTNode {
 export class Expression extends ASTNode {}
 
 /** Expression with attached comment.
- *  - `expression`
- *  - `comment`
+ *  - `expression` is the wrapped Expression.
+ *  - `comment` is comment attached after it, e.g. a `ParseError` explaining why it's suspect.
  */
 export type ExpressionWithCommentProps = Prettify<{
   expression: Expression
@@ -163,8 +192,8 @@ export class ExpressionWithComment extends Expression {
 }
 
 /** Generic Literal type.  Useful for `instanceof`.
- *  - `value` is the actual JS value, which by default we assume we can just output.
- *  - `raw` (optional) is the raw input value.
+ *  - `value` is actual JS value, which by default we assume we can just output.
+ *  - `raw` (optional) is raw input value.
  */
 export class Literal extends Expression {
   declare value: unknown
@@ -177,7 +206,10 @@ export class Literal extends Expression {
   }
 }
 
-/** NumericLiteral type. */
+/** NumericLiteral type.
+ *  - `value` is the number.
+ *  - `raw` (optional) is original input string.
+ */
 export type NumericLiteralProps = Prettify<{ value: number; raw?: string }>
 
 export class NumericLiteral extends Literal {
@@ -185,6 +217,7 @@ export class NumericLiteral extends Literal {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "number"
   }
+  /** Constructor also accepts a bare `number` as shorthand for `{ value }`. */
   constructor(match: P.AnyMatch, props: number | NumericLiteralProps) {
     if (typeof props === "number") props = { value: props }
     super(match, props)
@@ -192,7 +225,10 @@ export class NumericLiteral extends Literal {
   }
 }
 
-/** StringLiteral type. */
+/** StringLiteral type.
+ *  - `value` is the string.
+ *  - `raw` (optional) is original input string.
+ */
 export type StringLiteralProps = Prettify<{ value: string; raw?: string }>
 
 export class StringLiteral extends Literal {
@@ -200,6 +236,7 @@ export class StringLiteral extends Literal {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "string"
   }
+  /** Constructor also accepts a bare `string` as shorthand for `{ value }`. */
   constructor(match: P.AnyMatch, props: string | StringLiteralProps) {
     if (typeof props === "string") props = { value: props }
     super(match, props)
@@ -207,7 +244,10 @@ export class StringLiteral extends Literal {
   }
 }
 
-/** BooleanLiteral type. */
+/** BooleanLiteral type.
+ *  - `value` is the boolean.
+ *  - `raw` (optional) is original input string.
+ */
 export type BooleanLiteralProps = Prettify<{ value: boolean; raw?: string }>
 
 export class BooleanLiteral extends Literal {
@@ -215,6 +255,7 @@ export class BooleanLiteral extends Literal {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "boolean"
   }
+  /** Constructor also accepts a bare `boolean` as shorthand for `{ value }`. */
   constructor(match: P.AnyMatch, props: boolean | BooleanLiteralProps) {
     if (typeof props === "boolean") props = { value: props }
     super(match, props)
@@ -228,7 +269,9 @@ export class BooleanLiteral extends Literal {
   }
 }
 
-/** RegExpLiteral type. */
+/** RegExpLiteral type.
+ *  - `value` is the `RegExp`.
+ */
 export type RegExpLiteralProps = Prettify<{ value: RegExp }>
 
 export class RegExpLiteral extends Literal {
@@ -242,7 +285,7 @@ export class RegExpLiteral extends Literal {
   }
 }
 
-/** NullLiteral type. TODO: ???? */
+/** NullLiteral type.  TODO: ???? */
 export class NullLiteral extends Literal {
   // TODO: ???
   /*@readonly*/ /*@proto*/ get datatype(): string {
@@ -260,7 +303,7 @@ export class NullLiteral extends Literal {
   }
 }
 
-/** UndefinedLiteral type. TODO: ???? */
+/** UndefinedLiteral type.  TODO: ???? */
 export class UndefinedLiteral extends Literal {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "undefined"
@@ -277,7 +320,7 @@ export class UndefinedLiteral extends Literal {
   }
 }
 
-/** ThisLiteral type. */
+/** ThisLiteral type -- represents JS `this`. */
 export class ThisLiteral extends Literal {
   compile(): string {
     return "this"
@@ -289,7 +332,7 @@ export class ThisLiteral extends Literal {
 
 /** KeywordLiteral type.
  *  - `value` is raw input converted into a JS-legal keyword.
- *  - `raw` (optional) is the raw input string
+ *  - `raw` (optional) is raw input string.
  */
 export type KeywordLiteralProps = Prettify<{ value: string; raw?: string }>
 
@@ -298,6 +341,7 @@ export class KeywordLiteral extends Literal {
   /*@readonly*/ /*@proto*/ get datatype(): string {
     return "string"
   }
+  /** SIDE EFFECT: routes through `this.override()` so a subclass instance can force a specific datatype. */
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
@@ -308,9 +352,9 @@ export class KeywordLiteral extends Literal {
   }
 }
 
-/** ArrayLiteral
- *  - `items` (optional) is an array of Expressions
- *  - `wrap` (optional) is boolean `true` if we should wrap children
+/** ArrayLiteral.
+ *  - `items` (optional) is array of Expressions.
+ *  - `wrap` (optional) is `true` if we should wrap children -- defaults to wrapping past 2 items.
  */
 export type ArrayLiteralProps = Prettify<{ items?: Expression[]; wrap?: boolean }>
 
@@ -321,6 +365,7 @@ export class ArrayLiteral extends Literal {
     this.assertArrayType("items", Expression, OPTIONAL)
     this.assertType("wrap", "boolean", OPTIONAL)
   }
+  /** Default: wrap once there are more than 2 items.  Override via constructor or setter. */
   /*@overridable*/
   get wrap(): boolean {
     return (this.items?.length ?? 0) > 2
@@ -337,9 +382,9 @@ export class ArrayLiteral extends Literal {
   }
 }
 
-/** Enumeration
- *  - `enumeration` is an array of Expressions
- *  - `values` is an strings or numbers
+/** Enumeration -- literal array where each item also has a plain string/number `value`.
+ *  - `enumeration` is array of Expressions (the AST for each item, for rendering/compiling).
+ *  - `values` is parallel array of raw strings or numbers.
  */
 export type EnumerationProps = Prettify<{ enumeration: Expression[]; values: Array<string | number> }>
 
@@ -359,6 +404,10 @@ export class Enumeration extends Literal {
   }
 }
 
+////////////////
+// ## Quoting / templating expressions
+////////////////
+
 /**
  * QuotedExpression -- use to wrap `expression` in single quotes.
  */
@@ -372,6 +421,7 @@ export class QuotedExpression extends Expression {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
+  /** Constructor also accepts a bare `string` as shorthand for `{ expression: new StringLiteral(value) }`. */
   constructor(match: P.AnyMatch, props: string | QuotedExpressionProps) {
     if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
     super(match, props)
@@ -402,6 +452,7 @@ export class BackTickExpression extends Expression {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
+  /** Constructor also accepts a bare `string` as shorthand for `{ expression: new StringLiteral(value) }`. */
   constructor(match: P.AnyMatch, props: string | BackTickExpressionProps) {
     if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
     super(match, props)
@@ -432,6 +483,7 @@ export class BacktickSubstitution extends Expression {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
+  /** Constructor also accepts a bare `string` as shorthand for `{ expression: new StringLiteral(value) }`. */
   constructor(match: P.AnyMatch, props: string | BacktickSubstitutionProps) {
     if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
     super(match, props)
@@ -464,6 +516,7 @@ export class TripleBackTickExpression extends Expression {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
+  /** Constructor also accepts a bare `string` as shorthand for `{ expression: new StringLiteral(value) }`. */
   constructor(match: P.AnyMatch, props: string | TripleBackTickExpressionProps) {
     if (typeof props === "string") props = { expression: new StringLiteral(match, { value: props }) }
     super(match, props)
@@ -481,14 +534,19 @@ export class TripleBackTickExpression extends Expression {
   }
 }
 
+////////////////
+// ## Properties & variables
+////////////////
+
 /** PropertyLiteral -- identifier which refers to some property of an object.
- *  - `value` is the normalized property name.  It will be inferred from the `match`.
- *  - `raw` (optional) is the input property name
+ *  - `value` is normalized property name.  Inferred from `match` if not given.
+ *  - `raw` (optional) is input property name.
  */
 export type PropertyLiteralProps = Prettify<{ value?: string; raw?: string }>
 
 export class PropertyLiteral extends Literal {
   declare value: string
+  /** Constructor also accepts a bare `string` as shorthand for `{ value }`. */
   constructor(match: P.AnyMatch, props?: string | PropertyLiteralProps) {
     if (typeof props === "string") props = { value: props }
     super(match, props)
@@ -496,6 +554,7 @@ export class PropertyLiteral extends Literal {
     this.assertType("value", "string")
     this.assertType("raw", "string", OPTIONAL)
   }
+  /** `true` if `value` can be output bare, `false` if it needs quoting/bracket access. */
   get isLegalIdentifier(): boolean {
     return isLegalIdentifier(this.value)
   }
@@ -513,8 +572,8 @@ export class PropertyLiteral extends Literal {
 }
 
 /** PropertyExpression -- named property of some object.
- *  - `object` is the thing to get the property from, as an Expression.
- *  - `property` is the normalized property name or PropertyLiteral.
+ *  - `object` is thing to get property from, as an Expression.
+ *  - `property` is normalized property name or PropertyLiteral.
  *  TODO: datatype???
  */
 export type PropertyExpressionProps = Prettify<{ object: Expression; property: string | PropertyLiteral }>
@@ -528,6 +587,7 @@ export class PropertyExpression extends Expression {
     if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
     this.assertType("property", PropertyLiteral)
   }
+  /** Compiles as `object.property` when legal identifier, else `object['property']`. */
   compile(): string {
     const prop = this.property.compile()
     if (this.property.isLegalIdentifier) return `${this.object.compile()}.${prop}`
@@ -543,13 +603,14 @@ export class PropertyExpression extends Expression {
 }
 
 /** VariableExpression -- pointer to a Variable object.
- *  - `name` is the normalized type name: dashes and spaces converted to underscores.
- *  - `default` (optional) AST for default value. See `DestructuredAssignment`
- *  - `type` (optional) "argument" or "this" etc
- *  CURRENTLY UNUSED
- *  - `raw` (optional) is the original input string, unnormalized.
+ *  - `name` is normalized type name: dashes and spaces converted to underscores.
+ *  - `default` (optional) is AST for default value.  See `DestructuredAssignment`.
+ *  - `type` (optional) is `"argument"` or `"this"` etc.
+ *
+ *    CURRENTLY UNUSED
+ *  - `raw` (optional) is original input string, unnormalized.
  *  - `variable` (optional) is pointer to scope Variable, if there is one.
- *  - `plurality` (optional) is "singular", "plural" or `undefined`  // TODO: derive?
+ *  - `plurality` (optional) is `"singular"`, `"plural"` or `undefined`.  TODO: derive?
  */
 export type VariableExpressionProps = Prettify<{
   name?: string
@@ -568,6 +629,7 @@ export class VariableExpression extends Expression {
   declare raw: string | undefined
   declare variable: P.ScopeVariable | undefined
   declare plurality: "singular" | "plural" | undefined
+  /** `name` defaults to `match.value` when not passed. */
   constructor(match: P.AnyMatch, props?: VariableExpressionProps) {
     super(match, props)
     if (!this.name) this.name = this.match.value
@@ -575,10 +637,12 @@ export class VariableExpression extends Expression {
     this.assertType("default", Expression, OPTIONAL)
     this.assertType("raw", "string", OPTIONAL)
   }
+  /** Compiles as `name` alone, or `name = default` when a default value is set. */
   compile(): string {
     if (this.default) return `${this.name} = ${this.default.compile()}`
     return this.name
   }
+  /** Adds `type` and the scope variable's `kind` (e.g. `let`/`const`) as extra css classes. */
   get className(): string {
     const classes = [super.className]
     if (this.type) classes.push(this.type)
@@ -597,12 +661,13 @@ export class VariableExpression extends Expression {
 
 /** AwaitExpression:  `await {expression}`.
  *  - `expression` is Expression to await.
- * NOTE: this marks the `parentScope` as asynchronous!!!
+ *  - NOTE: this marks `parentScope` as asynchronous!!!
  */
 export type AwaitExpressionProps = Prettify<{ expression: Expression }>
 
 export class AwaitExpression extends Expression {
   declare expression: Expression
+  /** SIDE EFFECT: walks up scope chain to nearest `MethodScope` and marks it `async = true`. */
   constructor(match: P.AnyMatch, props: AwaitExpressionProps) {
     super(match, props)
     this.assertType("expression", Expression)
@@ -620,13 +685,17 @@ export class AwaitExpression extends Expression {
   }
 }
 
-/** Abstract comment type. Useful for `instanceof`. */
+////////////////
+// ## Comments
+////////////////
+
+/** Abstract comment type.  Useful for `instanceof`. */
 export class Comment extends ASTNode {}
 
 /** LineComment type.
- *  - `value` is text of the comment (may be empty string).
- *  - `commentSymbol` is the comment symbol used
- *  - `initialWhitespace` is whitespace between the commentSymbol and the `value`
+ *  - `value` is text of comment (may be empty string).
+ *  - `commentSymbol` is comment symbol used -- e.g. `""` for a plain `//`, or a header marker.
+ *  - `initialWhitespace` is whitespace between `commentSymbol` and `value`.
  */
 export type LineCommentProps = Prettify<{ value: string; commentSymbol?: string; initialWhitespace?: string }>
 
@@ -640,12 +709,14 @@ export class LineComment extends Comment {
     this.assertType("commentSymbol", "string", OPTIONAL)
     this.assertType("initialWhitespace", "string", OPTIONAL)
   }
+  /** Prefixes `commentSymbol` with `//` unless it already IS exactly `//`. */
   compile(): string {
     const { initialWhitespace = " ", value } = this
     let { commentSymbol = "" } = this
     if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
     return `${commentSymbol}${initialWhitespace}${value}`
   }
+  /** Adds `"header"` css class for non-plain comment symbols, e.g. section-banner comments. */
   get className(): string {
     return `${super.className}${this.commentSymbol !== "//" ? " header" : ""}`
   }
@@ -661,7 +732,7 @@ export class LineComment extends Comment {
 }
 
 /** BlockComment type.
- *  - `value` is the entire contents of the original comment, including initial space and newlines.
+ *  - `value` is entire contents of original comment, including initial space and newlines.
  */
 export type BlockCommentProps = Prettify<{ value: string }>
 
@@ -679,8 +750,9 @@ export class BlockComment extends Comment {
   }
 }
 
-/** ParserAnnotation type, used for parser annotations injected into the output.
- *  - `value` is text of the annotation.
+/** ParserAnnotation type, used for parser annotations injected into output.
+ *  - `value` is text of annotation.
+ *  - `annotation` (overridable getter) is the leading tag, `"SPELL:"` by default -- `ParseError` overrides it.
  */
 export class ParserAnnotation extends BlockComment {
   /*@proto*/ get annotation(): string {
@@ -702,8 +774,8 @@ export class ParserAnnotation extends BlockComment {
   }
 }
 
-/** ParseError type.
- *  - `value` is text of the error
+/** ParseError type -- a `ParserAnnotation` tagged `"PARSE ERROR:"` instead of `"SPELL:"`.
+ *  - `value` is text of error.
  */
 export class ParseError extends ParserAnnotation {
   /*@proto*/ get annotation(): string {
@@ -714,12 +786,18 @@ export class ParseError extends ParserAnnotation {
   }
 }
 
+////////////////
+// ## Operators & expressions
+////////////////
+
 /** Parenthesized expression.
- *  - `expression` is the contained AST Expression. */
+ *  - `expression` is contained AST Expression.
+ */
 export type ParenthesizedExpressionProps = Prettify<{ expression: Expression }>
 
 export class ParenthesizedExpression extends Expression {
   declare expression: Expression
+  /** SIDE EFFECT: unwinds nested `ParenthesizedExpression`s so we never double-wrap, e.g. `((x))` ~== `(x)`. */
   constructor(match: P.AnyMatch, props: ParenthesizedExpressionProps) {
     super(match, props)
     this.assertType("expression", Expression)
@@ -728,6 +806,7 @@ export class ParenthesizedExpression extends Expression {
       this.expression = this.expression.expression
     }
   }
+  /** Passes through to wrapped `expression`'s datatype -- parens don't change type. */
   get datatype(): string | RegExpConstructor | undefined {
     return this.expression.datatype
   }
@@ -744,8 +823,9 @@ export class ParenthesizedExpression extends Expression {
 }
 
 /** Not expression.
- *  - `expression` is the contained AST Expression.
- *  - `datatype` is ALWAYS boolean. */
+ *  - `expression` is contained AST Expression.
+ *  - `datatype` is ALWAYS boolean.
+ */
 export type NotExpressionProps = Prettify<{ expression: Expression }>
 
 export class NotExpression extends Expression {
@@ -765,7 +845,7 @@ export class NotExpression extends Expression {
   }
 }
 
-/** InfixExpression:  <lhs> <operator> <rhs> */
+/** InfixExpression:  `<lhs> <operator> <rhs>`. */
 export type InfixExpressionProps = Prettify<{ lhs: Expression; operator: string; rhs: Expression }>
 
 export class InfixExpression extends Expression {
@@ -790,12 +870,18 @@ export class InfixExpression extends Expression {
   }
 }
 
-/** Given an array of Expressions, join them all together with the same `operator`. */
+/**
+ * Given an array of Expressions, join them all together with same `operator`.
+ * - Right-associates: repeatedly pops off the right end and nests it as `rhs` of a new
+ *   `InfixExpression`, so `[a, b, c]` with `+` becomes `a + (b + c)` in tree shape
+ *   (though `compile()` output has no visible parens since `InfixExpression` doesn't add them).
+ * - Returns single expression unchanged (no `InfixExpression` wrapper) when `expressions.length < 2`.
+ * - TODO: convert to class?
+ */
 export function MultiInfixExpression(
   match: P.AnyMatch,
   { expressions, operator }: { expressions: Expression[]; operator: string }
 ): Expression | undefined {
-  // TODO: convert to class?
   if (expressions.length < 2) return expressions[0]
   const remaining = [...expressions]
   let rhs = remaining.pop() as Expression
@@ -806,15 +892,20 @@ export function MultiInfixExpression(
   return rhs
 }
 
-/** InvocationArgs:  generic named method invocation.
+////////////////
+// ## Method invocations
+////////////////
+
+/** InvocationArgs:  parenthesized, comma-separated argument list for a method call.
  *  - `args` (optional) is a possibly empty list of Expressions.
- *  - `wrap` (optional) is return datatype as string, try to set if you can.
- * NOTE: this does not ensure that the named method is actually defined in scope!!!!
+ *  - `wrap` (optional) is `true` to force-wrap args one-per-line -- defaults to wrapping past 3 args.
+ *  - NOTE: this does not ensure that named method is actually defined in scope!!!!
  */
 export type InvocationArgsProps = Prettify<{ args?: Expression[]; wrap?: boolean }>
 
 export class InvocationArgs extends ASTNode {
   declare args: Expression[] | undefined
+  /** SIDE EFFECT: unwinds any `ParenthesizedExpression` args, e.g. `foo((x))` ~== `foo(x)`. */
   constructor(match: P.AnyMatch, { wrap, ...props }: InvocationArgsProps) {
     super(match, props)
     if (typeof wrap === "boolean") this.wrap = wrap
@@ -827,6 +918,7 @@ export class InvocationArgs extends ASTNode {
       })
     }
   }
+  /** Default: wrap once there are more than 3 args.  Override via constructor or setter. */
   /*@overridable*/
   get wrap(): boolean {
     return (this.args?.length ?? 0) > 3
@@ -843,12 +935,12 @@ export class InvocationArgs extends ASTNode {
   }
 }
 
-/** MethodInvocation:  generic named method invocation.
+/** MethodInvocation:  generic named method invocation, e.g. `methodName(args)`.
  *  - `methodName` is method name.
  *  - `args` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
- *  - `wrap` (optional) set to control arg wrapping explicitly
- * NOTE: this does not ensure that the named method is actually defined in scope!!!!
+ *  - `wrap` (optional) set to control arg wrapping explicitly.
+ *  - NOTE: this does not ensure that named method is actually defined in scope!!!!
  */
 export type MethodInvocationProps = Prettify<{
   methodName: string
@@ -860,8 +952,10 @@ export type MethodInvocationProps = Prettify<{
 export class MethodInvocation extends Expression {
   declare args: InvocationArgs
 
-  /** Backing field for the overridable `methodName` accessor. */
+  /** Backing field for overridable `methodName` accessor. */
   declare private _methodName: string
+  /** `methodName` is a plain get/set pair here -- subclasses (e.g. `ConsoleMethodInvocation`) redefine it
+   *  as an overridable `@proto` getter with a fixed default. */
   get methodName(): string {
     return this._methodName
   }
@@ -883,9 +977,9 @@ export class MethodInvocation extends Expression {
   }
 }
 
-/** Call a `method` on some `thing` with `args`.
- *  - `thing` is what we'll call the method on.
- *  - `methodName` is the method name.
+/** Call a `method` on some `thing` with `args`, e.g. `thing.methodName(args)`.
+ *  - `thing` is what we'll call method on.
+ *  - `methodName` is method name.
  *  - `args` (optional) is a possibly empty list of Expressions.
  *  - Try to set `datatype` as string or getter if you can.
  */
@@ -911,9 +1005,11 @@ export class ScopedMethodInvocation extends MethodInvocation {
   }
 }
 
-/** ConsoleMethodInvocation
- * - `methodName` is method name, e.g. `log` or `warn`
- * - `args` is an array of expressions
+/** ConsoleMethodInvocation:  `spellCore.console.methodName(args)`.
+ * - `methodName` is method name, e.g. `log` or `warn` -- defaults to `log`.
+ * - `args` is array of expressions.
+ * - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
+ *   (see `rules/methods.ts`) skips console calls since they already print something.
  */
 export type ConsoleMethodInvocationProps = Prettify<{
   methodName?: string
@@ -935,6 +1031,7 @@ export class ConsoleMethodInvocation extends ScopedMethodInvocation {
   set echoInTests(echoInTests: boolean) {
     this.override("echoInTests", echoInTests)
   }
+  /** Builds `thing` as `spellCore.console` -- caller only supplies `methodName`/`args`. */
   constructor(match: P.AnyMatch, props: ConsoleMethodInvocationProps) {
     const thing = new PropertyExpression(match, {
       object: new SpellCoreExpression(match),
@@ -944,9 +1041,7 @@ export class ConsoleMethodInvocation extends ScopedMethodInvocation {
   }
 }
 
-/**
- * Create a `Expression` that refers to `spellCore`
- */
+/** Create an `Expression` that refers to `spellCore`. */
 export class SpellCoreExpression extends VariableExpression {
   constructor(match: P.AnyMatch) {
     super(match, { name: "spellCore", type: "global" })
@@ -954,7 +1049,7 @@ export class SpellCoreExpression extends VariableExpression {
 }
 
 /**
- * CoreMethodInvocation:  calls a `spellCore` `method`.  Used for output languge independence.
+ * CoreMethodInvocation:  calls a `spellCore` `method`.  Used for output language independence.
  *  - `methodName` is spellcore method name.
  *  - `args` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
@@ -962,14 +1057,13 @@ export class SpellCoreExpression extends VariableExpression {
 export type CoreMethodInvocationProps = MethodInvocationProps
 
 export class CoreMethodInvocation extends ScopedMethodInvocation {
+  /** Builds `thing` as `spellCore` -- caller only supplies `methodName`/`args`. */
   constructor(match: P.AnyMatch, props: CoreMethodInvocationProps) {
     super(match, { ...props, thing: new SpellCoreExpression(match) })
   }
 }
 
-/**
- * Create an `Expression` that refers to `spellCore.RUNTIME`
- */
+/** Create an `Expression` that refers to `spellCore.RUNTIME`. */
 export class RuntimeExpression extends PropertyExpression {
   constructor(match: P.AnyMatch) {
     super(match, {
@@ -980,7 +1074,7 @@ export class RuntimeExpression extends PropertyExpression {
 }
 
 /**
- * RuntimeMethodInvocation:  calls a `spellCore.RUNTIME` `method`.  Used for output languge independence.
+ * RuntimeMethodInvocation:  calls a `spellCore.RUNTIME` `method`.  Used for output language independence.
  *  - `methodName` is spellcore method name.
  *  - `args` (optional) is a possibly empty list of Expressions.
  *  - `datatype` (optional) is return datatype as string, try to set if you can.
@@ -988,18 +1082,20 @@ export class RuntimeExpression extends PropertyExpression {
 export type RuntimeMethodInvocationProps = MethodInvocationProps
 
 export class RuntimeMethodInvocation extends ScopedMethodInvocation {
+  /** Builds `thing` as `spellCore.RUNTIME` -- caller only supplies `methodName`/`args`. */
   constructor(match: P.AnyMatch, props: RuntimeMethodInvocationProps) {
     super(match, { ...props, thing: new RuntimeExpression(match) })
   }
 }
 
-/** ExportInvocation:  `spellCore.addExport(property, value)`
- *  - `property` is string or QuotedString for export name
- *  - `datatype` (optional) is return datatype as string, try to set if you can.
+/** ExportInvocation:  `spellCore.addExport(property, value)`.
+ *  - `property` is string or QuotedString for export name.
+ *  - `value` is Expression being exported.
  */
 export type ExportInvocationProps = Prettify<{ property: string | QuotedExpression; value: Expression }>
 
 export class ExportInvocation extends CoreMethodInvocation {
+  /** Constructor also accepts a bare `string` `property` as shorthand for `new QuotedExpression(property)`. */
   constructor(match: P.AnyMatch, props: ExportInvocationProps) {
     let { property } = props
     if (typeof property === "string") property = new QuotedExpression(match, property)
@@ -1010,11 +1106,13 @@ export class ExportInvocation extends CoreMethodInvocation {
   }
 }
 
-/** ExpectMethodInvocation:  `spellCore.expect(...)`
- *  - `expression` is expression AST
- *  - `expressionString` is string for spell code used to generate expression
- *  - `value` (optional) is value to match AST
- *  - `valueString` (optional) is string for spell code used to generate value
+/** ExpectMethodInvocation:  `spellCore.expect(...)` -- used to assert a value in generated test output.
+ *  - `expression` is expression AST being tested.
+ *  - `expressionString` is string for spell code used to generate `expression`, shown in assertion output.
+ *  - `value` (optional) is expected value AST to match against.
+ *  - `valueString` (optional) is string for spell code used to generate `value`, shown in assertion output.
+ *  - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
+ *    (see `rules/methods.ts`) skips `expect(...)` calls since they already print an assertion result.
  */
 export type ExpectMethodInvocationProps = Prettify<{
   expression: Expression
@@ -1036,6 +1134,7 @@ export class ExpectMethodInvocation extends CoreMethodInvocation {
   set echoInTests(echoInTests: boolean) {
     this.override("echoInTests", echoInTests)
   }
+  /** Wraps `expressionString`/`valueString` as backtick `StringLiteral`s and never wraps args. */
   constructor(match: P.AnyMatch, props: ExpectMethodInvocationProps) {
     const { expression, expressionString, value, valueString } = props
     const args = [expression, new StringLiteral(match, "`" + expressionString + "`")]
@@ -1043,8 +1142,12 @@ export class ExpectMethodInvocation extends CoreMethodInvocation {
     super(match, { methodName: "expect", args, wrap: false })
   }
 }
-/** EchoMethodInvocation:  `spellCore.echo(...)`
- *  - `message` is string to ouput
+
+/** EchoInvocation:  `spellCore.echo(...)` (or another named spellCore method) for test-mode logging.
+ *  - `expression` is expression to output -- a bare `string` is wrapped as a backtick `StringLiteral`.
+ *  - `methodName` (optional) overrides which spellCore method to call, defaults to `"echo"`.
+ *  - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
+ *    (see `rules/methods.ts`) skips echo calls since they already print something.
  */
 export type EchoInvocationProps = Prettify<{ expression: string | Expression; methodName?: string }>
 
@@ -1063,11 +1166,15 @@ export class EchoInvocation extends CoreMethodInvocation {
   }
 }
 
+////////////////
+// ## Types & constants
+////////////////
+
 /** TypeExpression -- pointer to a Type object/scope.
- *  - `name` is the normalized type name: Typecase, singular and dashes to underscores.
- *  - `raw` (optional) is the original input string, unnormalized.
- *  - `plurality` (optional) is "singular", "plural" or `undefined`
- *  TODO: ^^^ ???
+ *  - `name` is normalized type name: Typecase, singular and dashes to underscores.
+ *  - `raw` (optional) is original input string, unnormalized.
+ *  - `plurality` (optional) is `"singular"`, `"plural"` or `undefined`.
+ *    TODO: ^^^ ???
  */
 export type TypeExpressionProps = Prettify<{ name: string; raw?: string; plurality?: "singular" | "plural" }>
 
@@ -1093,19 +1200,20 @@ export class TypeExpression extends Expression {
     return <span className="type">{this.name}</span>
   }
 
-  /** Pointer to the known Scope for this type, if available. ??? */
+  /** Pointer to known Scope for this type, if available. ??? */
   get scope(): P.TypeScope | undefined {
     return this.match.type
   }
 }
 
-/** PrototypeExpression:  type.prototype
- *  * - `type` is a TypeExpression
+/** PrototypeExpression:  `type.prototype`.
+ *  - `type` is a TypeExpression.
  */
 export type PrototypeExpressionProps = Prettify<{ type: string | TypeExpression }>
 
 export class PrototypeExpression extends Expression {
   declare type: TypeExpression
+  /** Constructor also accepts a bare `string` `type` as shorthand for `new TypeExpression({ name: type })`. */
   constructor(match: P.AnyMatch, props: PrototypeExpressionProps) {
     super(match, props)
     if (typeof this.type === "string") this.type = new TypeExpression(match, { name: this.type })
@@ -1121,8 +1229,8 @@ export class PrototypeExpression extends Expression {
 }
 
 /** ConstantExpression -- pointer to a Constant object.
- *  - `name` is the constant name (not normalized ???)
- *  - `output` is the constant string to output, including quotes.
+ *  - `name` is constant name (not normalized ???).
+ *  - `output` is constant string to output, including quotes.
  *  - `constant` is pointer to scope Constant, if there is one.
  */
 export type ConstantExpressionProps = Prettify<{ name: string; output: string; constant?: P.ScopeConstant }>
@@ -1142,6 +1250,7 @@ export class ConstantExpression extends Expression {
     this.assertType("name", "string")
     this.assertType("output", "string")
   }
+  /** Just outputs pre-baked `output` string verbatim -- `compile()` doesn't re-derive it from `name`. */
   compile(): string {
     return this.output
   }
@@ -1150,21 +1259,28 @@ export class ConstantExpression extends Expression {
   }
 }
 
+////////////////
+// ## Method definition
+////////////////
+
 /**
- * Method Definition
- * TODOC
- * - `args` (optional) is array of VariableExpressions
+ * Method Definition -- a function/method declaration, optionally as an inline arrow fn or object property.
+ * - `args` (optional) is array of VariableExpressions.
  * - `body` (optional) is:
- *    - a single Statement or StatementGroup
- *    - a StatementBlock
- *    - an Expression
- *    Note that we'll ALWAYS convert `body` to a StatementBlock on construction
- *    so you can change it by manipulating `body.statements`, e.g. `methodBody.body.statements.push(...)`
- *  - `inline` (optional) set to `true` to make a fat arrow function
- *  - `asProperty` (optional) set to `true` to use object literaly property syntax
- *                 Note: this is done automatically by `ObjectLiteral.addMethod()`.
- *  - `async` (optional) set to `true` to force the method to be async
- *            if not set, we'll use `match.nestedScope.async`
+ *   - a single Statement or StatementGroup
+ *   - a StatementBlock
+ *   - an Expression
+ *
+ *   NOTE: `body` is ALWAYS converted to a StatementBlock on construction, so you can change it by
+ *   manipulating `body.statements`, e.g. `methodBody.body.statements.push(...)`.
+ * - `inline` (optional) set to `true` to make a fat arrow function.
+ * - `asProperty` (optional) set to `true` to use object literal property syntax.
+ *   NOTE: this is done automatically by `ObjectLiteral.addMethod()`.
+ * - `methodName` (optional) is the method's name -- required when `asProperty` or non-`inline`.
+ * - `error` (optional) is a `ParseError` rendered/compiled right after the method body.
+ * - `datatype` (optional) is return datatype as string, try to set if you can.
+ * - `async` (optional) set to `true` to force method to be async; if not set, we'll use
+ *   `match.nestedScope.async`.
  */
 export type MethodDefinitionProps = Prettify<{
   args?: VariableExpression[]
@@ -1185,6 +1301,7 @@ export class MethodDefinition extends Expression {
   declare methodName: string | undefined
   declare error: ParseError | undefined
   declare async: boolean | undefined
+  /** Normalizes `body` (Statement / StatementGroup / Expression / missing) into a wrapped `StatementBlock`. */
   constructor(match: P.AnyMatch, props: MethodDefinitionProps) {
     super(match, props)
     this.assertArrayType("args", VariableExpression, OPTIONAL)
@@ -1217,16 +1334,19 @@ export class MethodDefinition extends Expression {
     // ALWAYS wrap the body
     this.body.wrap = true
   }
+  /** Explicit `async` prop wins; otherwise inherit from enclosing `match.nestedScope.async`. */
   get isAsync(): boolean {
     if (typeof this.async === "boolean") return this.async
     return !!(this.match.nestedScope as (P.Scope & { async?: boolean }) | undefined)?.async
   }
+  /** `methodName`, quoted when used `asProperty` with a non-legal-identifier name; `""` if unset. */
   getMethodName(): string {
     const { methodName } = this
     if (!methodName) return ""
     if (this.asProperty && !isLegalIdentifier(methodName)) return `'${methodName}'`
     return methodName
   }
+  /** SIDE EFFECT: `console.warn`s if `asProperty` is set but `methodName` is missing. */
   compile(): string {
     const async = this.isAsync ? "async " : ""
     const args = stringify.Args({ args: this.args })
@@ -1244,6 +1364,7 @@ export class MethodDefinition extends Expression {
     if (this.inline) return `${async}${args} => ${body}${error}`
     return `${async}function ${methodName}${args} ${body}${error}`
   }
+  /** Render `error` (if any) prefixed with a space -- `null` when there's no error. */
   renderError(): ReactNode {
     if (!this.error) return null
     return render.Fragment(
@@ -1253,6 +1374,7 @@ export class MethodDefinition extends Expression {
       </>
     )
   }
+  /** SIDE EFFECT: `console.warn`s if `asProperty` is set but `methodName` is missing. */
   renderChildren(): ReactNode {
     const async = this.isAsync && render.ASYNC
     const methodName = !!this.methodName && <span className="method-name">{this.getMethodName()}</span>
@@ -1271,9 +1393,15 @@ export class MethodDefinition extends Expression {
   }
 }
 
+////////////////
+// ## Object literals
+////////////////
+
 /** ObjectLiteral -- bag of properties.
- *  - `properties` is an array of PropertyValues
- * TODO: datatype???
+ *  - `properties` is an array of PropertyValues.
+ *  - `wrap` (optional) is `true` to force one-property-per-line -- defaults to wrapping past 2 properties
+ *    or when any property is a method.
+ *  TODO: datatype???
  */
 export type ObjectLiteralProps = Prettify<{
   properties?: Array<ObjectLiteralProperty | MethodDefinition>
@@ -1288,6 +1416,7 @@ export class ObjectLiteral extends Expression {
   set datatype(datatype: string) {
     this.override("datatype", datatype)
   }
+  /** SIDE EFFECT: sets `asProperty = true` on any `MethodDefinition` passed in via `properties`. */
   constructor(match: P.AnyMatch, { properties, ...props }: ObjectLiteralProps = {}) {
     super(match, props)
     this.properties = []
@@ -1312,6 +1441,7 @@ export class ObjectLiteral extends Expression {
       })
   }
   // Should we wrap properties block?
+  /** Default: wrap past 2 properties, or if any property is a method.  Override via constructor or setter. */
   /*@overridable*/
   get wrap(): boolean {
     return this.properties.length > 2 || this.properties.some((item) => item instanceof MethodDefinition)
@@ -1319,6 +1449,7 @@ export class ObjectLiteral extends Expression {
   set wrap(wrap: boolean) {
     this.override("wrap", wrap)
   }
+  /** Append a plain `property: value` pair.  SIDE EFFECT: mutates `this.properties`. */
   addProp(property: string | PropertyLiteral, value: string | Expression): void {
     // convert string value to StringLiteral
     const propertyValue = typeof value === "string" ? new StringLiteral(this.match, { value }) : value
@@ -1329,6 +1460,11 @@ export class ObjectLiteral extends Expression {
     )
     this.properties.push(new ObjectLiteralProperty(this.match, { property, value: propertyValue }))
   }
+  /**
+   * Append `method` as a named method property.
+   * SIDE EFFECT: mutates `this.properties`, and sets `method.methodName`/`method.asProperty` on `method`
+   * itself (overwriting whatever was there).
+   */
   addMethod(property: string, method: MethodDefinition): void {
     this.assert(
       method instanceof MethodDefinition,
@@ -1360,10 +1496,11 @@ export class ObjectLiteral extends Expression {
   }
 }
 
-/** ObjectLiteralProperty type
- *  - `property` is the normalized property name.
- *  - `value` (optional) is the property value.
- *  - `error` (optional) is a parse error associated with this property
+/** ObjectLiteralProperty type.
+ *  - `property` is normalized property name.
+ *  - `value` (optional) is property value.  If omitted, compiles as JS shorthand property
+ *    (`{ prop }` ~== `{ prop: prop }`), assuming a same-named local variable is in scope.
+ *  - `error` (optional) is a parse error associated with this property.
  */
 export type ObjectLiteralPropertyProps = Prettify<{
   property: string | PropertyLiteral
@@ -1375,6 +1512,7 @@ export class ObjectLiteralProperty extends ASTNode {
   declare property: PropertyLiteral
   declare value: Expression | undefined
   declare error: ParseError | undefined
+  /** Constructor also accepts a bare `string` `property` as shorthand for `new PropertyLiteral(property)`. */
   constructor(match: P.AnyMatch, props: ObjectLiteralPropertyProps) {
     super(match, props)
     if (typeof this.property === "string") this.property = new PropertyLiteral(this.match, this.property)
@@ -1383,6 +1521,7 @@ export class ObjectLiteralProperty extends ASTNode {
     this.assertType("error", ParseError, OPTIONAL)
     // this.assert(this.property.isLegalIdentifier || !!this.value, "Non-legal identifiers must specify a value!")
   }
+  /** Compiles as shorthand `prop` when `value` is missing, else `prop: value`. */
   compile(): string {
     const error = this.error ? ` ${this.error.compile()}` : ""
     const prop = this.property.compile()
@@ -1399,12 +1538,18 @@ export class ObjectLiteralProperty extends ASTNode {
   }
 }
 
+////////////////
+// ## Statements
+////////////////
+
 /** Statement abstract type. */
 export class Statement extends ASTNode {}
 
 /** StatementGroup -- set of random statements which does NOT get indented with curly braces!
- * NOTE: you can use this interchangably whenever something takes a single `Statement`.
+ *  - NOTE: you can use this interchangeably whenever something takes a single `Statement`.
  *  - `statements` is a list of Statements.
+ *  - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
+ *    (see `rules/methods.ts`) skips groups since each inner statement is echoed individually.
  */
 export type StatementGroupProps = Prettify<{ statements?: Array<Statement | Expression | Comment | BlankLine> }>
 
@@ -1430,7 +1575,7 @@ export class StatementGroup extends Statement {
 
 /** StatementBlock -- set of statements which outputs with curly braces around.
  *  - `statements` (optional) is a list of Statements etc.
- *  - `wrap` (optional) set to explicitly control block wrapping.
+ *  - `wrap` (optional) set to explicitly control block wrapping -- defaults to wrapping past 1 statement.
  */
 export type StatementBlockProps = Prettify<{
   statements?: Array<Statement | Expression | Comment | BlankLine>
@@ -1439,6 +1584,7 @@ export type StatementBlockProps = Prettify<{
 
 export class StatementBlock extends ASTNode {
   declare statements: Array<Statement | Expression | Comment | BlankLine> | undefined
+  /** SIDE EFFECT: unwinds a single nested `StatementGroup` into this block's own `statements`. */
   constructor(match: P.AnyMatch, props?: StatementBlockProps) {
     super(match, props)
     this.assertArrayType("statements", [Statement, Expression, Comment, BlankLine], OPTIONAL)
@@ -1447,6 +1593,7 @@ export class StatementBlock extends ASTNode {
       this.statements = this.statements[0].statements
     }
   }
+  /** Default: wrap once there's more than 1 statement.  Override via constructor or setter. */
   /*@overridable*/
   get wrap(): boolean {
     return (this.statements?.length ?? 0) > 1
@@ -1474,7 +1621,12 @@ export class StatementBlock extends ASTNode {
 }
 
 /**
- * try...catch...finally
+ * try...catch...finally.
+ * - `body` is the `try` body.
+ * - `errorArg` (optional) is caught error's variable name, used in `catch (errorArg)`.
+ * - `catchBlock` (optional) is the `catch` body.
+ * - `finallyBlock` (optional) is the `finally` body.
+ * - MUST provide at least one of `catchBlock`/`finallyBlock`.
  */
 export type TryCatchBlockProps = Prettify<{
   body: StatementBlock | Statement | Expression
@@ -1488,6 +1640,9 @@ export class TryCatchBlock extends StatementGroup {
   declare errorArg: VariableExpression | undefined
   declare catchBlock: StatementBlock | undefined
   declare finallyBlock: StatementBlock | undefined
+  /** Normalizes `body`/`catchBlock`/`finallyBlock` into wrapped `StatementBlock`s, `errorArg` into a
+   *  `VariableExpression`.
+   */
   constructor(match: P.AnyMatch, props: TryCatchBlockProps) {
     super(match, props as unknown as StatementGroupProps)
     this.assertType("body", [StatementBlock, Statement, Expression])
@@ -1543,9 +1698,13 @@ export class TryCatchBlock extends StatementGroup {
   }
 }
 
+////////////////
+// ## Assignment
+////////////////
+
 /** AssignmentStatement -- assign value to thing.
  *  - `thing` is an Expression.
- *  - `value` is an Expression
+ *  - `value` is an Expression.
  *  - `isNewVariable` (optional) if true and `thing` is an Expression, we'll declare the var.
  */
 export type AssignmentStatementProps = Prettify<{ thing: Expression; value: Expression; isNewVariable?: boolean }>
@@ -1560,13 +1719,13 @@ export class AssignmentStatement extends Statement {
     this.assertType("value", Expression)
     this.assertType("isNewVariable", "boolean", OPTIONAL)
   }
-  /** Should we `export` top-level vars? */
+  /** Should we `export` top-level vars?  Global toggle -- flip to `false` to disable entirely. */
   static EXPORT_VARS = true
-  /** Names of top-level vars that we NEVER export. */
+  /** Names of top-level vars that we NEVER export, e.g. Mocha's implicit `it`. */
   static EXPORT_BLACKLIST: Record<string, boolean> = {
     it: true
   }
-  /** Should we `export` this variable in the output? */
+  /** `true` only for a new-variable declaration at `ProjectScope`/`FileScope` whose name isn't blacklisted. */
   get exportVar(): boolean {
     if (!AssignmentStatement.EXPORT_VARS || !this.isNewVariable) return false
     const { scope } = this.match
@@ -1601,9 +1760,9 @@ export class AssignmentStatement extends Statement {
   }
 }
 
-/** DestructuredAssignment -- pull multiple variables with defaults out of a `thing`
+/** DestructuredAssignment -- pull multiple variables with defaults out of a `thing`.
  *  - `thing` is an Expression.
- *  - `variables` are VariableExpressions, possibly with defaults
+ *  - `variables` are VariableExpressions, possibly with defaults.
  *  - `isNewVariable` (optional) if true and `thing` is an Expression, we'll declare the var.
  */
 export type DestructuredAssignmentProps = Prettify<{
@@ -1622,6 +1781,7 @@ export class DestructuredAssignment extends Statement {
     this.assertArrayType("variables", VariableExpression)
     this.assertType("isNewVariable", "boolean", OPTIONAL)
   }
+  /** Compiles as `{ variables } = thing`, or `let { variables } = thing` when `isNewVariable`. */
   compile(): string {
     const declarator = this.isNewVariable ? "let " : ""
     const vars = stringify.InCurlies({
@@ -1658,6 +1818,7 @@ export class ReturnStatement extends Statement {
     super(match, props)
     this.assertType("value", Expression, OPTIONAL)
   }
+  /** Compiles as bare `return` when `value` is missing, else `return value`. */
   compile(): string {
     if (!this.value) return "return"
     return `return ${this.value.compile()}`
@@ -1668,10 +1829,16 @@ export class ReturnStatement extends Statement {
   }
 }
 
-/** ClassDeclaration
- * - `type` is a TypeExpression
- * - `superType` (optional) is a TypeExpression
- * - `instanceType` (optional) is a TypeExpression for lists of a certain type.
+////////////////
+// ## Classes & instances
+////////////////
+
+/** ClassDeclaration -- empty `export class Type extends SuperType {}` stub.
+ *  - `type` is a TypeExpression.
+ *  - `superType` (optional) is a TypeExpression.
+ *
+ *    NOTE: doc previously also listed an `instanceType` prop "for lists of a certain type" -- no such
+ *    prop exists on `ClassDeclarationProps`; removed here since it didn't match the code.
  */
 export type ClassDeclarationProps = Prettify<{ type: TypeExpression; superType?: TypeExpression }>
 
@@ -1701,9 +1868,9 @@ export class ClassDeclaration extends Statement {
   }
 }
 
-/** NewInstanceExpression
- * - `type` is a TypeExpression
- * - `props` (optional) is an ObjectLiteral
+/** NewInstanceExpression -- `new Type(props)`.
+ * - `type` is a TypeExpression.
+ * - `props` (optional) is an ObjectLiteral.
  */
 export type NewInstanceExpressionProps = Prettify<{ type: TypeExpression; props?: ObjectLiteral }>
 
@@ -1715,6 +1882,7 @@ export class NewInstanceExpression extends Expression {
     this.assertType("type", TypeExpression)
     this.assertType("props", ObjectLiteral, OPTIONAL)
   }
+  /** Compiles as `new Type()` (empty parens) when `props` is missing, else `new Type(props)`. */
   compile(): string {
     const props = stringify.InParens({ children: this.props?.compile() })
     return `new ${this.type.compile()}${props}`
@@ -1725,8 +1893,8 @@ export class NewInstanceExpression extends Expression {
   }
 }
 
-/** ListExpression
- * - `items` (optional) is a list of Expressions
+/** ListExpression -- `[items]`.
+ * - `items` (optional) is a list of Expressions.
  */
 export type ListExpressionProps = Prettify<{ items?: Expression[] }>
 
@@ -1750,15 +1918,18 @@ export class ListExpression extends Expression {
   }
 }
 
+////////////////
+// ## Property definition
+////////////////
+
 /**
- * PropertyDefinition: `spellCore.define(thing, property, {...})`
- * - `thing` (required) is an Expression
- * - `property` (required) is PropertyLiteral or string
- * - `value` (optional) is an Expression
- * - `initializer` (optional) is an initializer MethodDefintion
- * - `get` (optional) is a MethodDefintion for property `getter`
- * - `set` (optional)  is a MethodDefintion for `setter` (which should specify `arg`)
- * Define `@memoize get definition()` to return `spellCore.define()` statement.
+ * PropertyDefinition: `spellCore.define(thing, property, {...})`.
+ * - `thing` (required) is an Expression.
+ * - `property` (required) is PropertyLiteral or string.
+ * - `value` (optional) is an Expression.
+ * - `initializer` (optional) is an initializer MethodDefinition.
+ * - `get` (optional) is a MethodDefinition for property `getter`.
+ * - `set` (optional) is a MethodDefinition for `setter` (which should specify `arg`).
  */
 export type PropertyDefinitionProps = Prettify<{
   thing: Expression
@@ -1786,7 +1957,11 @@ export class PropertyDefinition extends Statement {
     this.assertType("get", MethodDefinition, OPTIONAL)
     this.assertType("set", MethodDefinition, OPTIONAL)
   }
-  // Return `CoreMethodInvocation` which we'll use to render as JS or component
+  /**
+   * Builds -- and memoizes -- the `CoreMethodInvocation` (`spellCore.define(thing, 'property', {...})`)
+   * that `compile()`/`renderChildren()` delegate to.
+   * - Descriptor object literal only gets `value`/`initializer`/`get`/`set` keys that were actually passed.
+   */
   /*@memoize*/
   get definition(): CoreMethodInvocation {
     return this.derived("definition", () => {
@@ -1816,9 +1991,13 @@ export class PropertyDefinition extends Statement {
   }
 }
 
-/** IfStatement
- * - `condition` is an Expression
- * - `statements` is a Statement or Expression
+////////////////
+// ## Conditionals
+////////////////
+
+/** IfStatement.
+ * - `condition` is an Expression.
+ * - `statements` is a Statement or Expression.
  */
 export type IfStatementProps = Prettify<{
   condition: Expression
@@ -1828,6 +2007,8 @@ export type IfStatementProps = Prettify<{
 export class IfStatement extends Statement {
   declare condition: ParenthesizedExpression
   declare statements: StatementBlock
+  /** SIDE EFFECT: wraps `condition` in parens (unless already parenthesized) and normalizes `statements`
+   *  into a `StatementBlock`. */
   constructor(match: P.AnyMatch, props: IfStatementProps) {
     super(match, props)
     this.assertType("condition", Expression)
@@ -1852,9 +2033,9 @@ export class IfStatement extends Statement {
   }
 }
 
-/** ElseIfStatement
- * - `condition` is an Expression
- * - `statements` is a Statement or Expression
+/** ElseIfStatement.
+ * - `condition` is an Expression.
+ * - `statements` is a Statement or Expression.
  */
 export type ElseIfStatementProps = Prettify<{
   condition: Expression
@@ -1864,6 +2045,8 @@ export type ElseIfStatementProps = Prettify<{
 export class ElseIfStatement extends Statement {
   declare condition: ParenthesizedExpression
   declare statements: StatementBlock
+  /** SIDE EFFECT: wraps `condition` in parens (unless already parenthesized) and normalizes `statements`
+   *  into a `StatementBlock`. */
   constructor(match: P.AnyMatch, props: ElseIfStatementProps) {
     super(match, props)
     this.assertType("condition", Expression)
@@ -1889,8 +2072,8 @@ export class ElseIfStatement extends Statement {
   }
 }
 
-/** ElseStatement
- * - `statements` is a Statement or Expression
+/** ElseStatement.
+ * - `statements` is a Statement or Expression.
  */
 export type ElseStatementProps = Prettify<{ statements?: Statement | StatementBlock | Statement[] }>
 
@@ -1908,10 +2091,10 @@ export class ElseStatement extends Statement {
   }
 }
 
-/** TernaryExpression
- * - `condition` is an Expression
- * - `trueValue` is an Expression
- * - `falseValue` is an Expression
+/** TernaryExpression:  `(condition ? trueValue : falseValue)`.
+ * - `condition` is an Expression.
+ * - `trueValue` is an Expression.
+ * - `falseValue` is an Expression.
  */
 export type TernaryExpressionProps = Prettify<{ condition: Expression; trueValue: Expression; falseValue: Expression }>
 
@@ -1944,14 +2127,19 @@ export class TernaryExpression extends Expression {
   }
 }
 
+////////////////
+// ## Processes
+////////////////
+
 /**
  * Start a `name`d process (or animation).
- * - `name` (string) is the process name
- * - `exclusive` (boolean, optional) if `true`, the process can only be run once at a time
+ * - `name` (string) is the process name.
+ * - `exclusive` (boolean, optional) if `true`, process can only be run once at a time.
  */
 export type StartProcessInvocationProps = Prettify<{ name: string; exclusive?: boolean }>
 
 export class StartProcessInvocation extends StatementGroup {
+  /** When `exclusive`, prepends a guard statement that `return`s early if process is already running. */
   constructor(match: P.AnyMatch, { name, exclusive = false, ...props }: StartProcessInvocationProps) {
     super(match, props)
     this.statements = []
@@ -1994,10 +2182,14 @@ export class StopProcessInvocation extends CoreMethodInvocation {
   }
 }
 
-/** JSXElement
- * - `tagName`
- * - `attrs`
- * - `children`
+////////////////
+// ## JSX
+////////////////
+
+/** JSXElement -- e.g. `<div a={1}>text</div>`, compiled to `spellCore.element({...})`.
+ * - `tagName` is element tag name, e.g. `"div"`.
+ * - `attrs` (optional) is array of JSXAttributes.
+ * - `children` is array of child nodes -- JSXElement/JSXEndTag/JSXText/JSXExpression.
  */
 export type JSXElementProps = Prettify<{
   tagName: string
@@ -2015,7 +2207,13 @@ export class JSXElement extends Expression {
     this.assertArrayType("attrs", JSXAttribute, OPTIONAL)
     this.assertArrayType("children", [JSXElement, JSXEndTag, JSXText, JSXExpression])
   }
-  // Return `spellCore.createElement()` which we'll use to render as JS or component
+  /**
+   * Builds -- and memoizes -- `spellCore.element({ tag, props, children })` CoreMethodInvocation that
+   * `compile()`/`renderChildren()` delegate to.
+   * - `props` key only appears when there's at least one attr; `children` key only when there's at
+   *   least one child whose own `output` isn't falsy (e.g. `JSXEndTag.output` is always `undefined`
+   *   and gets filtered out).
+   */
   /*@memoize*/
   get output(): CoreMethodInvocation {
     return this.derived("output", () => {
@@ -2064,10 +2262,10 @@ export class JSXElement extends Expression {
   }
 }
 
-/** JSXAttribute
- * - `name`
- * - `value`
- * - `error`
+/** JSXAttribute -- e.g. `a={1}` or bare `d` (boolean shorthand).
+ * - `name` is attribute name.
+ * - `value` (optional) is attribute value Expression -- missing means boolean-shorthand attr, e.g. bare `d`.
+ * - `error` (optional) is parse error associated with this attribute.
  */
 export type JSXAttributeProps = Prettify<{ name: string; value?: Expression; error?: ParseError }>
 
@@ -2081,6 +2279,13 @@ export class JSXAttribute extends Expression {
     this.assertType("value", Expression, OPTIONAL)
     this.assertType("error", ParseError, OPTIONAL)
   }
+  /**
+   * Builds -- and memoizes -- this attribute as either a `MethodDefinition` (when `value` is one,
+   * i.e. an inline method prop) or a plain `ObjectLiteralProperty`, for use inside `JSXElement.output`'s
+   * `props` object.
+   * - If no `value`: `undefined` when there's a parse `error`, else `true` per JSX spec for an
+   *   empty/boolean attribute.
+   */
   /*@memoize*/
   get output(): MethodDefinition | ObjectLiteralProperty {
     return this.derived("output", () => {
@@ -2104,8 +2309,8 @@ export class JSXAttribute extends Expression {
   }
 }
 
-/** JSXEndTag
- * - `tagName`
+/** JSXEndTag -- a closing tag, e.g. `</div>`.  Parsed only to be discarded.
+ * - `tagName` is closed tag's name.
  */
 export type JSXEndTagProps = Prettify<{ tagName: string }>
 
@@ -2121,8 +2326,9 @@ export class JSXEndTag extends Expression {
   }
 }
 
-/** JSXText
- * - `value`
+/** JSXText -- plain text content between tags.
+ * - `value` is text content.
+ * - `raw` (optional) is original unnormalized input string.
  */
 export type JSXTextProps = Prettify<{ value: string; raw?: string }>
 
@@ -2134,6 +2340,7 @@ export class JSXText extends Expression {
     this.assertType("value", "string")
     this.assertType("raw", "string", OPTIONAL)
   }
+  /** Wraps `value` as a plain `StringLiteral` -- memoized, but trivial enough it barely matters. */
   /*@memoize*/
   get output(): StringLiteral {
     return this.derived("output", () => {
@@ -2142,8 +2349,9 @@ export class JSXText extends Expression {
   }
 }
 
-/** JSXExpression
- * - `value`
+/** JSXExpression -- e.g. `{someExpression}` inside JSX children.
+ * - `expression` (optional) is contained Expression -- missing paired with `error` for a broken `{}`.
+ * - `error` (optional) is parse error associated with this expression.
  */
 export type JSXExpressionProps = Prettify<{ expression?: Expression; error?: ParseError }>
 
@@ -2155,6 +2363,10 @@ export class JSXExpression extends Expression {
     this.assertType("expression", Expression, OPTIONAL)
     this.assertType("error", ParseError, OPTIONAL)
   }
+  /**
+   * `expression` as-is normally; when there's an `error`, wraps it (or a `NullLiteral` placeholder if
+   * `expression` is also missing) in an `ExpressionWithComment` so error surfaces in compiled output.
+   */
   /*@memoize*/
   get output(): Expression | ExpressionWithComment | undefined {
     return this.derived("output", () => {

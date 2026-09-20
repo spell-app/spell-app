@@ -6,8 +6,8 @@ import { Observable } from "./Observable"
 /**
  * Abstract class for a loadable / possibly saveable resource.
  * Create subclasses and implement:
- *  - `getLoader()` to return loading promise and
- *  - `getSaver()` to return saving promise.
+ * - `getLoader()` to return loading promise.
+ * - `getSaver()` to return saving promise.
  *
  * Use `LoadableFile` and the like to load a single file by URL.
  */
@@ -50,17 +50,19 @@ export abstract class Loadable<ContentType, SaveResult = unknown> extends Observ
    */
   onContentsUpdated() {}
 
-  //-----------------
-  // Cleanup
-  //-----------------
+  ////////////////
+  // ## Cleanup
+  ////////////////
+
+  /** SIDE EFFECT: cancels any in-flight `load()` / `save()` before deferring to `super.onRemove()`. */
   onRemove() {
     super.onRemove()
     this.stopInflightLoadOrSave()
   }
 
-  //-----------------
-  // Load State
-  //-----------------
+  ////////////////
+  // ## Load State
+  ////////////////
 
   /** Have we been successfully loaded? */
   get isLoaded() {
@@ -84,9 +86,14 @@ export abstract class Loadable<ContentType, SaveResult = unknown> extends Observ
     return !!this.loadState.saver
   }
 
+  /** Raw `LoadState` bag, defaulting to `{ isLoaded: false }` on first access. */
   protected get loadState(): LoadState<ContentType, SaveResult> {
     return this.getState("loadState", () => ({ isLoaded: false }))
   }
+  /**
+   * Merge `props` into `loadState`, one `setState()` call per key.
+   * - SIDE EFFECT: wraps writes in `batch()` so observers only re-render once.
+   */
   protected updateLoadState(props: Partial<LoadState<ContentType, SaveResult>>) {
     if (!props) return
     batch(() => {
@@ -94,9 +101,9 @@ export abstract class Loadable<ContentType, SaveResult = unknown> extends Observ
     })
   }
 
-  //-----------------
-  // Loading
-  //-----------------
+  ////////////////
+  // ## Loading
+  ////////////////
 
   /**
    * How long to keep cached load results before `reload()`ing automatically on `load()`.
@@ -131,7 +138,7 @@ export abstract class Loadable<ContentType, SaveResult = unknown> extends Observ
   /**
    * Override in your subclass to return a promise used to `load()` this file.
    * Do any transformation of the result in this method.
-   * Don't call this directly, it'll be called from `load()`
+   * Don't call this directly, it'll be called from `load()`.
    */
   abstract getLoader(loadParams: any): Promise<ContentType>
 
@@ -194,7 +201,7 @@ export abstract class Loadable<ContentType, SaveResult = unknown> extends Observ
 
   /**
    * Force reload of the resource, ignoring expiration logic.
-   * - If you pass `loadParams`, we'll use that for the new `load()`
+   * - If you pass `loadParams`, we'll use that for the new `load()`.
    * - If you don't, we'll re-use the last `loadParams`.
    */
   reload(loadParams: any = this.loadState.loadParams) {
@@ -213,9 +220,9 @@ export abstract class Loadable<ContentType, SaveResult = unknown> extends Observ
     return this
   }
 
-  //-----------------
-  // Saving
-  //-----------------
+  ////////////////
+  // ## Saving
+  ////////////////
 
   /**
    * Override in your subclass to return a promise used to `save()` this file.
@@ -279,9 +286,9 @@ export abstract class Loadable<ContentType, SaveResult = unknown> extends Observ
     }
   }
 
-  //-----------------
-  // Internal
-  //-----------------
+  ////////////////
+  // ## Internal
+  ////////////////
 
   /**
    * Attempt to cancel the current in-flight load or save.
@@ -300,19 +307,25 @@ export abstract class Loadable<ContentType, SaveResult = unknown> extends Observ
   }
 }
 
+/** Constructor props accepted by `Loadable` and its subclasses. */
 export type LoadableProps<ContentType> = {
+  /** Initial contents, e.g. for a new object or when a preload already has data. */
   contents?: ContentType
+  /** How long (seconds) to trust a cached load before `reload()`ing.  See `cacheDuration` getter. */
   cacheDuration?: number
 }
 
 ////////////////
-// ## Loadable
+// ## Types
 ////////////////
 
+/** `Observable` state shape for `Loadable` -- just wraps `LoadState`. */
 export type LoadableState<ContentType, SaveResult> = {
+  /** See `Loadable.loadState`. */
   loadState: LoadState<ContentType, SaveResult>
 }
 
+/** Tracks in-flight and last-completed `load()` / `save()` for a `Loadable`. */
 export type LoadState<ContentType, SaveResult> = {
   ////// Loading //////
   /** `true` if we have successfully loaded. */

@@ -6,24 +6,17 @@ import { SP } from "~/languages/spell"
  */
 
 /**
- * Encapsulate a Spell File's `path` so we can get the various bits quickly and easily.
- * This is roughly analagous to the `window.location` object in the browser.
- *
- * It's impossible to make a `SpellLocation` with an invalid path --
- * it will throw on construction if the path passed in is invalid.
- *
- * If you're in the middle of a process with a `die()` routine, pass that to the constructor
- * to throw via your `die()` rather than creating a generic `TypeError`.
- *
- * These are immutable objects, and are stored in a registry.
- * Doing this repeatedly with the same `path` will always return the same object.
- *
- * Use `.isProjectRoot`, `.isProjectPath` or `.isFilePath` etc to figure the path type.
- *
- * Legal paths are in the form:
- *  `@owner:domain:projectName/folder/folder/fileName.extension`
- *
- * which corresponds to
+ * Encapsulate a Spell File's `path` so we can get various bits quickly and easily.
+ * - Roughly analagous to `window.location` object in browser.
+ * - It's impossible to make a `SpellLocation` with an invalid path -- throws on construction
+ *   if `path` passed in is invalid.
+ * - If you're in the middle of a process with a `die()` routine, pass that to constructor
+ *   to throw via your `die()` rather than creating a generic `TypeError`.
+ * - Immutable objects, stored in a registry.  Doing this repeatedly with same `path` will
+ *   always return same object.
+ * - Use `.isProjectRoot`, `.isProjectPath` or `.isFilePath` etc to figure path type.
+ * - Legal paths are in the form `@owner:domain:projectName/folder/folder/fileName.extension`,
+ *   which corresponds to:
  *  - `isValid`     `true`
  *  - `projectId`   `@owner:domain:projectName`
  *  - `projectRoot` `@owner:domain`
@@ -62,10 +55,16 @@ export class SpellLocation {
   readonly file?: string
   /** File name without extension, optional. */
   readonly fileName?: string
-  /** Extension of file as `.extension`, optional. */
-  // TESTME: check this for e.g. `file.foo.json`.
+  /**
+   * Extension of file as `.extension`, optional.
+   * - TESTME: check this for e.g. `file.foo.json`.
+   */
   readonly extension?: string
 
+  /**
+   * Parse `path` into its pieces, or return existing registry entry for `path` if `useRegistry`.
+   * - Throws `TypeError` if `path` is invalid -- or calls `die(reason)` instead, if provided.
+   */
   constructor(path: string, die?: (error: string) => never) {
     try {
       // Return from registry if present, add if not.
@@ -115,30 +114,22 @@ export class SpellLocation {
     }
   }
 
-  /**
-   * Is this a project DOMAIN path?
-   */
+  /** Is this a project DOMAIN path? */
   get isProjectRoot(): boolean {
     return !this.projectName && !this.folder && !this.filePath
   }
 
-  /**
-   * Is this a project path?
-   */
+  /** Is this a project path? */
   get isProjectPath(): boolean {
     return !!this.projectName && !this.folder && !this.file
   }
 
-  /**
-   * Is this a folder path (with no file)?
-   */
+  /** Is this a folder path (with no file)? */
   get isFolderPath(): boolean {
     return !!this.projectId && !!this.folder && !this.file
   }
 
-  /**
-   * Is this a file path?
-   */
+  /** Is this a file path? */
   get isFilePath(): boolean {
     return !!this.projectId && !!this.folder && !!this.file
   }
@@ -153,50 +144,42 @@ export class SpellLocation {
     return this.owner === "@user"
   }
 
-  //-----------------
-  //  Syntactic sugar
-  //-----------------
+  ////////////////
+  // ## Syntactic sugar
+  ////////////////
 
-  /**
-   * Return our `projectRoot` as `@user:projects` or `@system:examples`
-   */
+  /** Return our `projectRoot` as `@user:projects` or `@system:examples`. */
   get projectRoot(): SP.ProjectRootPath {
     return `${this.owner}:${this.domain}` as SP.ProjectRootPath
   }
 
-  /**
-   * Return our `projectPath` as `@user:projects:projectName` etc.
-   */
+  /** Return our `projectPath` as `@user:projects:projectName` etc. */
   get projectPath(): string | undefined {
     if (this.isProjectRoot) return undefined
     return `${this.projectRoot}:${this.projectName}`
   }
 
   /**
-   * Return the `serverPath` for this location, works on server only.
-   * - NOTE: this will throw on the client!
-   * - NOTE: we monkey-patch this in `server/project-utils` to work with the current install.
+   * Return `serverPath` for this location, works on server only.
+   * - NOTE: this will throw on client!
+   * - NOTE: we monkey-patch this in `server/project-utils` to work with current install.
    */
   get serverPath(): string {
     throw new TypeError(`serverPath is not available on the client!`)
   }
 
-  //-----------------
-  //  Navigation
-  //-----------------
+  ////////////////
+  // ## Navigation
+  ////////////////
 
-  /**
-   * Return the font-end `editorUrl` to load this location.
-   */
+  /** Return front-end `editorUrl` to load this location. */
   get editorUrl(): string {
     if (this.isProjectRoot) return `/edit/${this.domain}`
     if (this.isProjectPath) return `/edit/${this.domain}/${this.projectName}`.replace(/ /g, "+")
     return `/edit/${this.domain}/${this.projectName}${this.filePath}`.replace(/ /g, "+")
   }
 
-  /**
-   * Return the font-end `runnerUrl` to load this location.
-   */
+  /** Return front-end `runnerUrl` to load this location. */
   get runnerUrl(): string {
     if (this.isProjectRoot) return `/run/${this.domain}`
     if (this.isProjectPath) return `/run/${this.domain}/${this.projectName}`.replace(/ /g, "+")
@@ -206,8 +189,8 @@ export class SpellLocation {
   /**
    * Given `URLParams` of `{ domain, project, filePath }`
    * return the associated `path` string.
+   * - TESTME: changed pattern so we no longer pull in `SpellSetup`SpellProjectRoot`!
    */
-  // TESTME: changed pattern so we no longer pull in `SpellSetup`SpellProjectRoot`!
   static pathForUrl({
     domain,
     project,
@@ -226,9 +209,9 @@ export class SpellLocation {
     return path.replace(/\+/g, " ")
   }
 
-  //-----------------
-  //  Get a path of the specified type or throw on invalid path.
-  //-----------------
+  ////////////////
+  // ## Get a path of the specified type or throw on invalid path.
+  ////////////////
 
   /**
    * Get `SpellLocation` for the `domain` portion of any valid `path` string.
@@ -250,9 +233,8 @@ export class SpellLocation {
 
   /**
    * Get `SpellLocation` for a full file `path` or `projectId` and `filePath`.
-   *
-   * Note: unlike `getProjectLocation` and `getProjectRoot`,
-   *       this throws if it's not a valid FILE path.
+   * - NOTE: unlike `getProjectLocation` and `getProjectRoot`, this throws if it's not a valid
+   *   FILE path.
    */
   static getFileLocation(projectId: string, filePath?: string): SpellLocation {
     let fullPath = projectId
@@ -265,16 +247,15 @@ export class SpellLocation {
     return path
   }
 
-  //-----------------
-  //  Path validation
-  //-----------------
+  ////////////////
+  // ## Path validation
+  ////////////////
 
   /**
-   * Return `true` if the path `segment` passed in is "valid".
-   * TODO: enhance with regex?
+   * Return `true` if path `segment` passed in is "valid".
+   * - TODO: enhance with regex?
+   * - TODO: do we need to export this?
    */
-
-  // TODO: do we need to export this?
   static isValidPathSegment(segment: string): boolean {
     const LEGAL_SEGMENT_PATTERN = /^[\w\d-$. ]+$/
     const SEGMENT_BLACKLIST = [".", ".."]
@@ -288,9 +269,11 @@ export class SpellLocation {
     return typeof path === "string" && path.split("/").filter(Boolean).every(SpellLocation.isValidPathSegment)
   }
 
-  //-----------------
-  //  Debug
-  //-----------------
+  ////////////////
+  // ## Debug
+  ////////////////
+
+  /** Debug string, e.g. `SpellLocation: @user:projects:myProject`. */
   toString(): string {
     return `SpellLocation: ${this.path}`
   }

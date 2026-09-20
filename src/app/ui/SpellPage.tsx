@@ -3,10 +3,13 @@ import classnames from "classnames"
 
 import "./SpellPage.less"
 
-/**
- * <SpellPage> component.
+/****************
+ * ### `<SpellPage>`
+ * Generic full-page layout wrapper -- presentational style variants (bordered / dark / light / rounded /
+ * spaced / padded / scrolling) plus optional flexbox row/column layout for `children`.  Styled by
+ * `./SpellPage.less`.
  * TODOC!
- */
+ ****************/
 export function SpellPage(props: SpellPageProps) {
   const {
     bordered = false, // bordered variant
@@ -42,15 +45,26 @@ export function SpellPage(props: SpellPageProps) {
   return <div {...renderProps} className={className} />
 }
 
+/** Props for `<SpellPage>`.  Extra keys (`children`, `id`, `style`, aria-*, ...) pass through to the `<div>`. */
 export type SpellPageProps = React.ComponentPropsWithoutRef<"div"> & {
-  bordered?: boolean // bordered variant
-  dark?: boolean // dark variant
-  fillWindow?: boolean // fill window completely.  alias for `full`
-  light?: boolean // light variant
-  rounded?: boolean // rounded variant
-  spaced?: boolean // spaced variant (around page)
-  padded?: boolean // padding (within page)
-  scrolling?: boolean // scrolling variant
-  rows?: boolean // use flexbox to lay children out in rows, down the page.
-  columns?: boolean // use flexbox to lay children out in columns, across the page.
+  /** Bordered variant. */
+  bordered?: boolean
+  /** Dark variant. */
+  dark?: boolean
+  /** Fill window completely, via `.spell-fill-window()` in `~/app/ui/spell.less`. */
+  fillWindow?: boolean
+  /** Light variant. */
+  light?: boolean
+  /** Rounded variant. */
+  rounded?: boolean
+  /** Spaced variant (around page). */
+  spaced?: boolean
+  /** Padding (within page). */
+  padded?: boolean
+  /** Scrolling variant. */
+  scrolling?: boolean
+  /** Use flexbox to lay `children` out in rows, down the page. */
+  rows?: boolean
+  /** Use flexbox to lay `children` out in columns, across the page. */
+  columns?: boolean
 }

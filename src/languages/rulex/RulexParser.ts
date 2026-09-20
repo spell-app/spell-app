@@ -1,9 +1,10 @@
-//
-//  # Core `rules` -- simple datatypes, etc.
-//
-// NOTE: many of the below are created as custom Pattern subclasses for debugging.
-//
-
+/**
+ * `Parser` subclass for `rulex` -- our regex-like syntax for defining other parsers' `rules`.
+ * - Default rule is `sequence` (see `rulex.ts`), so `rulex.compile("foo? {bar}")` parses a whole rulex string.
+ * - `compile()` is narrowed to always return a `Rule`, since that's the only thing rulex syntax can produce.
+ * - The actual rule definitions (`symbol`, `keyword`, `subrule`, `list`, `choices`, `sequence`, ...) live in
+ *   `rulex.ts`; this file only holds the parser class and its helper methods.
+ */
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { Parser } from "~/parser/Parser"
@@ -13,7 +14,7 @@ export class RulexParser extends Parser {
     Object.defineProperty(this.prototype, "defaultRule", { value: "sequence", writable: true })
   }
 
-  /** Compiling rulex syntax always yields a `Rule`. */
+  /** Compiling rulex syntax always yields a `Rule` -- narrows `Parser.compile()`'s `unknown` return type. */
   compile(input: string | P.Token | P.Token[], ruleName?: string, scope?: P.Scope): P.Rule {
     const rule = super.compile(input, ruleName, scope)
     if (!(rule instanceof P.Rule)) {
@@ -27,7 +28,12 @@ export class RulexParser extends Parser {
     return rule
   }
 
-  // Apply flags from `match` to the `rule` passed in, possibly returning a new rule!
+  /**
+   * Apply `repeatFlag` / `argument` / `testLocation` groups from `match` onto `rule`.
+   * - SIDE EFFECT: mutates `rule` directly for `argument` and `testLocation`.
+   * - `repeatFlag` of `+` or `*` instead wraps `rule` in a new `P.Repeat` and returns that, since a single
+   *   rule can't represent "one or more" / "zero or more" on its own -- so the return value may not be `rule`.
+   */
   applyFlags(rule: P.Rule, match: P.Match<P.FlagGroups>): P.Rule {
     const repeatFlag = match.groups.repeatFlag?.compile()
     const argument = match.groups.argument?.compile()
@@ -44,7 +50,15 @@ export class RulexParser extends Parser {
     return rule
   }
 
-  // Consolidate runs of literals in `rules` of type `constructor` together.
+  /**
+   * Consolidate consecutive runs of `constructor` (`P.Keyword` / `P.Symbol`) literals in `rules` into a single
+   * `GroupConstructor` (`P.Keywords` / `P.Symbols`) instance, so e.g. `a b c` compiles to one `Keywords`
+   * instead of three separate `Keyword` sequence entries.
+   * - Skips rules that are `isAdorned` (have an `argument` or `testLocation`) -- those must stay separate since
+   *   the combined group can't carry a single rule's individual adornment.
+   * - An optional literal within a run is combined too, but recorded as `{ literal, optional: true }` so the
+   *   group knows that one entry is skippable.
+   */
   consolidateLiterals(
     rules: P.Rule[],
     constructor: Class<P.Literal>,

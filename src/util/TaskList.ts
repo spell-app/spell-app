@@ -2,41 +2,41 @@ import { TaskStatus, TaskResolveWith } from "./constants"
 import { Task, type TaskProps } from "./Task"
 
 /**
- * TaskList -- a Task which executes a list of other `Tasks` in sequence.
+ * `TaskList` -- a `Task` which executes a list of other `Task`s in sequence.
  *
- * The first task in the sequence will be passed the `initialValue` passed to `taskList.start()`.
- * Each subsequent task will be passed the `result` of the previous task (but see below).
+ * First task in sequence will be passed `initialValue` passed to `taskList.start()`.
+ * Each subsequent task will be passed `result` of previous task (but see below).
  *
  * Normally if a task in the list fails, we'll stop the taskList and not run subsequent tasks.
- * However, if:
- *  - `taskList.continueOnError === true` or
- *  - `task.optional === true`
- * we'll continue to the next task in the list, passing the failed task's `error` instead.
+ * However, we'll continue to the next task, passing the failed task's `error` instead, if:
+ * - `taskList.continueOnError === true`, or
+ * - `task.optional === true`.
  *
- * Note that you can add `tasks` to the end of a running taskList and they will get executed,
+ * NOTE: you can add `tasks` to the end of a running taskList and they will get executed,
  * but once it has completed they will not get executed.
  *
- * TODO: number of `concurrentTasks` to do at once
- * TODO: TaskQueue <= endlessly running, handles things put on it in order (or w/concurrency)
- * TODO: TaskList.forEach(list, createTaskForItem)
- * TODO: TaskList.while(condition, createTask)
- * TODO: TaskList.if(condition, task1, task2)
- * TODO: TaskList.confirm(message, okBtn, cancelBtn) <= rejects() if they cancel
- * TODO: TaskList.prompt(message, default, okBtn, cancelBtn) <= passes value to next
+ * TODO: number of `concurrentTasks` to do at once.
+ * TODO: `TaskQueue` ~== endlessly running, handles things put on it in order (or w/ concurrency).
+ * TODO: `TaskList.forEach(list, createTaskForItem)`.
+ * TODO: `TaskList.while(condition, createTask)`.
+ * TODO: `TaskList.if(condition, task1, task2)`.
+ * TODO: `TaskList.confirm(message, okBtn, cancelBtn)` ~== `reject()`s if they cancel.
+ * TODO: `TaskList.prompt(message, default, okBtn, cancelBtn)` ~== passes value to next.
  * TODO: https://github.com/wbinnssmith/awesome-promises
  */
 export class TaskList extends Task {
+  /** Construct with `{ tasks?, ...taskProps }` -- `tasks` are added via `addTasks()`. */
   constructor(props: Partial<TaskListProps> = {}) {
     const { tasks, ...otherProps } = props
     super(otherProps)
     if (tasks) this.addTasks(...tasks)
   }
 
-  //-----------------
-  // Props
-  //-----------------
+  ////////////////
+  // ## Props
+  ////////////////
 
-  /** Queue of `Tasks` to run. Note we can also say `taskList.length` */
+  /** Queue of `Task`s to run.  See also `taskList.length`. */
   get tasks() {
     return this.getProp("tasks", () => [])
   }
@@ -79,9 +79,9 @@ export class TaskList extends Task {
     this.setProp("continueOnError", continueOnError)
   }
 
-  //-----------------
-  // State
-  //-----------------
+  ////////////////
+  // ## State
+  ////////////////
 
   /** Index of the active task.  `-1` = unstarted. */
   get index() {
@@ -91,7 +91,7 @@ export class TaskList extends Task {
     this.setState("index", index)
   }
 
-  /** Pointer to the active task. if any. */
+  /** Pointer to the active task, if any. */
   get activeTask() {
     return this.tasks[this.index]
   }
@@ -104,9 +104,9 @@ export class TaskList extends Task {
     return this.tasks[this.index - 1]
   }
 
-  //-----------------
-  // Syntactic sugar for results of our tasks
-  //-----------------
+  ////////////////
+  // ## Syntactic sugar for results of our tasks
+  ////////////////
 
   /**
    * Return the `results` for each of our executed tasks.
@@ -124,9 +124,9 @@ export class TaskList extends Task {
     return this.tasks.map((task) => task.error)
   }
 
-  //-----------------
-  // Task manipulation
-  //-----------------
+  ////////////////
+  // ## Task manipulation
+  ////////////////
 
   /**
    * Return the list of `tasks` just prior to our `run()`.
@@ -146,9 +146,9 @@ export class TaskList extends Task {
     })
   }
 
-  //-----------------
-  // Execution
-  //-----------------
+  ////////////////
+  // ## Execution
+  ////////////////
 
   /** `run()` the TaskList with `intialValue` passed to `start()`. */
   get run() {
@@ -157,8 +157,7 @@ export class TaskList extends Task {
       this.tasks = this.getTasks()
 
       // `resetState()` will have been called.
-      // `this.taskRun` will be set
-      // `this.taskRun.resolve/reject` will be available
+      // `this.execution` will be set, with `this.execution.resolve/reject` available.
       return new Promise((resolve, reject) => {
         const complete = () => {
           console.info("complete", this.name, this.resolveWith, this.lastTask, this.results)
@@ -169,7 +168,7 @@ export class TaskList extends Task {
           // Bail if we were explicitly cancelled
           if (this.wasCancelled) return complete()
 
-          // This shouldn't happen... ???
+          // TODO: shouldn't happen -- investigate if this ever fires.
           if (!this.isActive) {
             console.warn("processNextTask for inActive, non-cancelled task", this)
             return complete()
@@ -228,7 +227,7 @@ export class TaskList extends Task {
       console.group(`> TaskList: ${name}\n     `, { taskList: this, inputValue })
     }
   }
-  /** Called after we finish executing. Yu can examine `this.hasSucceeded`, `this.result`, etc. */
+  /** Called after we finish executing.  You can examine `this.hasSucceeded`, `this.result`, etc. */
   afterFinish() {
     if (this.debug) {
       const { name, status, result, error, wasCancelled } = this
@@ -237,14 +236,14 @@ export class TaskList extends Task {
     if (this.debug) console.groupEnd()
   }
 
-  //-----------------
-  // Factory methods
-  //-----------------
+  ////////////////
+  // ## Factory methods
+  ////////////////
 
   /**
-   * Create a TaskList which iterates over `getTask(list[], n)` to get a list of tasks.
-   * `list` can be an array or a `function` which returns an array dynamically.
-   * All other props will be passed directly to the taskList.
+   * Create a `TaskList` from `list`, calling `getTask(item)` to build a `Task` per item.
+   * - `list` can be an array or a `function` which returns an array dynamically.
+   * - All other props are passed directly to the `TaskList`.
    */
   static forEach<T>({
     list,
@@ -260,11 +259,16 @@ export class TaskList extends Task {
   }
 }
 
+/** Constructor props accepted by `TaskList`. */
 export type TaskListProps = Prettify<
   {
+    /** Initial queue of `Task`s to run.  Added via `addTasks()` in the constructor. */
     tasks?: Task[]
+    /** Delay between tasks, in milliseconds.  See `delayBetweenTasks` getter. */
     delayBetweenTasks?: number
+    /** `LAST_TASK` or `RESULTS` -- what to `resolve()` with on success.  See `resolveWith` getter. */
     resolveWith?: TaskResolveWith
+    /** Keep running after a task fails?  See `continueOnError` getter. */
     continueOnError?: boolean
   } & TaskProps
 >

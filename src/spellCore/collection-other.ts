@@ -1,53 +1,68 @@
-//----------------------------
-// collections methods for spell
-//  - all array iteration is 1-based
-//  - collection methods work with objects as well as arrays unless specified
-//    - for objects: use natural key order for position
-//  - TODO: collections for `words`, `lines`, etc?
-//--------
+/**
+ * Composite / derived collection methods for `spell` -- built on top of the primitive
+ * accessors in `collection-core.ts` (`itemCountOf`, `getItemOf`, `getIteratorFor`, etc).
+ * - All array iteration is 1-based.
+ * - Collection methods work with objects as well as arrays, unless specified.
+ *   - For objects: use natural key order for position.
+ * - TODO: collections for `words`, `lines`, etc?
+ */
 import _ from "lodash"
 import { spellCore } from "./core"
 import { assert } from "~/spellCore"
 import { defineSpellCoreModule } from "./SpellCore"
 
 /** A valid `{ start, end }` 1-based range, as computed by the `_validateRange*` helpers. */
-export type Range = { start: number; end: number }
+export type Range = {
+  /** 1-based start position, inclusive. */
+  start: number
+  /** 1-based end position, inclusive. */
+  end: number
+}
 
 /** Iteration callback shared by `forEach`/`map`/`filter`/`all`/`any`/etc: `(value, item, collection) => ...` */
 export type CollectionIterationCallback = (value: unknown, item: string | number, collection: unknown) => unknown
 
 export const collectionOtherMethods = defineSpellCoreModule({
-  //----------------------------
-  // composite accessors
-  //----------
+  ////////////////
+  // ## composite accessors
+  ////////////////
 
-  // Does `collection` include ALL of the specified `values`?
-  // If more than one value specified, all must be included.
+  /**
+   * Does `collection` include ALL of the specified `values`?
+   * - If more than one value specified, all must be included.
+   * - Compiles from `theList includes thing` / `thing is in theList` / `thing is either red or green`
+   *   -- see `expressions.ts`.
+   */
   includes(collection?: unknown, ...values: unknown[]): boolean {
     if (!assert.isDefined(collection, "spellCore.includes(collection)")) return false
     if (!values.length) return false
     return spellCore.all(values, (value) => spellCore.itemOf(collection, value) !== undefined)
   },
 
-  // Does `collection` include any of the specified `values`?
-  // If more than one value specified, only one must be included.
+  /**
+   * Does `collection` include any of the specified `values`?
+   * - If more than one value specified, only one must be included.
+   */
   includesAny(collection?: unknown, ...values: unknown[]): boolean {
     if (!assert.isDefined(collection, "spellCore.includesAny(collection)")) return false
     return spellCore.any(values, (value) => spellCore.itemOf(collection, value) !== undefined)
   },
 
-  //----------------------------
-  // numeric iteration -- arrays only
-  //----------
+  ////////////////
+  // ## numeric iteration -- arrays only
+  ////////////////
 
-  // Return a duplicate of the collection.
+  /**
+   * Return a duplicate of the collection.
+   * - Compiles from `a copy of the piles` / `a duplicate of list the piles as a list` -- see `lists.ts`.
+   */
   duplicateCollection(collection?: unknown, constructor?: new () => unknown): unknown {
     if (!assert.isArrayLike(collection, "spellCore.duplicateCollection(collection)")) return false
     const result = constructor ? new constructor() : spellCore.newThingLike(collection)
     return spellCore.mergeCollectionsInto(result, collection)
   },
 
-  // Merge all `source` collection(s) into `destination`, in place.
+  /** Merge all `source` collection(s) into `destination`, in place. */
   mergeCollectionsInto(destination?: unknown, ...sources: unknown[]): unknown {
     if (!assert.isArrayLike(destination, "spellCore.mergeCollectionsInto(collection)")) return false
     sources.forEach((source) => {
@@ -56,7 +71,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return destination
   },
 
-  // Given a collection of collections, merge into a new one of the same type as the first in the list.
+  /**
+   * Given a collection of collections, merge into a new one of the same type as the first in the list.
+   * - Compiles from `merge the piles` / `merge the piles as a list` -- see `lists.ts`.
+   */
   mergeCollections(collections?: unknown, constructor?: new () => unknown): unknown {
     if (!assert.isArrayLike(collections, "spellCore.mergeCollections(collection)")) return undefined
     let merged: unknown
@@ -71,40 +89,44 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return merged
   },
 
-  //----------------------------
-  // numeric iteration -- arrays only
-  //----------
+  ////////////////
+  // ## numeric iteration -- arrays only
+  ////////////////
 
-  // Is `thing` the first thing in `collection`?
-  // Array only.
+  /**
+   * Is `thing` the first thing in `collection`?  Array only.
+   * - Compiles from `my-list starts with thing` -- see `lists.ts`.
+   */
   startsWith(collection?: unknown, thing?: unknown): boolean {
     if (!assert.isArrayLike(collection, "spellCore.startsWith(collection)")) return false
     if (thing == null) return false
     return spellCore.getItemOf(collection, 1) === thing
   },
 
-  // Is `thing` the last thing in `collection`?
-  // Array only.
+  /**
+   * Is `thing` the last thing in `collection`?  Array only.
+   * - Compiles from `my-list ends with thing` -- see `lists.ts`.
+   */
   endsWith(collection?: unknown, thing?: unknown): boolean {
     if (!assert.isArrayLike(collection, "spellCore.endsWith(collection)")) return false
     if (thing == null) return false
     return spellCore.getItemOf(collection, spellCore.itemCountOf(collection)) === thing
   },
 
-  // Add `things` to front of `collection`, pushing everything else down.
-  // Array only.
+  /** Add `things` to front of `collection`, pushing everything else down.  Array only. */
   prepend(collection?: unknown, ...things: unknown[]): void {
     spellCore.addAtPosition(collection, 1, ...things)
   },
 
-  // Add `things` to end of `collection`.
-  // Array only.
+  /** Add `things` to end of `collection`.  Array only. */
   append(collection?: unknown, ...things: unknown[]): void {
     spellCore.addAtPosition(collection, spellCore.itemCountOf(collection) + 1, ...things)
   },
 
-  // Set values of item starting with `start` as 1-based position.
-  // Replaces existing values.
+  /**
+   * Set values of item starting with `start` as 1-based position.
+   * - Replaces existing values.
+   */
   setItemsOf(collection?: unknown, start?: number, ...values: unknown[]): void {
     if (!assert.isArrayLike(collection, "spellCore.setItemsOf(collection)")) return
     values.forEach((value, index) => {
@@ -112,19 +134,19 @@ export const collectionOtherMethods = defineSpellCoreModule({
     })
   },
 
-  // Reverse list in-place.
-  // Array only.
+  /** Reverse list in-place.  Array only. */
   reverse(collection?: unknown): void {
     if (!assert.isArrayLike(collection, "spellCore.reverse(collection)")) return
     const reversed = spellCore.valuesOf(collection).reverse()
     spellCore.setItemsOf(collection, 1, ...reversed)
   },
 
-  // Given possible `start` and `end` 1-based position in collection,
-  //  as well as `itemCount` items in the collection, return:
-  //  `{ start, end }` for a valid range, or
-  //  `undefined` if an invalid range was specfified.
-  // If `start` is negative, we'll take from the end of the list, but in normal list order.
+  /**
+   * Given possible `start` and `end` 1-based position in collection, as well as `itemCount` items
+   * in the collection, return `{ start, end }` for a valid range, or `undefined` if an invalid
+   * range was specified.
+   * - If `start` is negative, we'll take from the end of the list, but in normal list order.
+   */
   _validateRangeBetween(
     start: number | null | undefined,
     end: number | null | undefined,
@@ -140,9 +162,11 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return { start, end }
   },
 
-  // Return subset of list from `start` to `end` as 1-based positions, inclusive.
-  // Note: this is positive numbers only, `rangeStartingAt()` deals with negatives. (???)
-  // Array only.
+  /**
+   * Return subset of list from `start` to `end` as 1-based positions, inclusive.  Array only.
+   * NOTE: this is positive numbers only, `rangeStartingAt()` deals with negatives. (???)
+   * - Compiles from `item 1 to 2 of my-list` -- see `lists.ts`.
+   */
   rangeBetween(collection?: unknown, start?: number | null, end?: number | null): unknown {
     if (!assert.isArrayLike(collection, "spellCore.rangeBetween(collection)")) return []
     const range = spellCore._validateRangeBetween(start, end, spellCore.itemCountOf(collection))
@@ -154,10 +178,12 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return results
   },
 
-  // Remove items from `collection` between 1-based positions `start` to `end`, inclusive.
-  // Note: this is positive numbers only. (???)
-  // Slides other items into the gaps.
-  // Array only
+  /**
+   * Remove items from `collection` between 1-based positions `start` to `end`, inclusive.  Array only.
+   * NOTE: this is positive numbers only. (???)
+   * - Slides other items into the gaps.
+   * - Compiles from `remove items 2 to 4 of my-list` -- see `lists.ts`.
+   */
   removeRangeBetween(collection?: unknown, start?: number | null, end?: number | null): void {
     if (!assert.isArrayLike(collection, "spellCore.rangeStartingAt(collection)")) return
     const range = spellCore._validateRangeBetween(start, end, spellCore.itemCountOf(collection))
@@ -166,11 +192,12 @@ export const collectionOtherMethods = defineSpellCoreModule({
     Array.prototype.splice.call(collection, range.start - 1, count)
   },
 
-  // Given possible `start` as 1-based position in collection,
-  // `count` as number of items (inclusive) and `itemCount` in collection:
-  //  `{ start, end }` for a valid range, or
-  //  `undefined` if an invalid range was specfified.
-  // If `start` is negative, we'll take from the end of the list, but in normal list order.
+  /**
+   * Given possible `start` as 1-based position in collection, `count` as number of items
+   * (inclusive) and `itemCount` in collection: return `{ start, end }` for a valid range, or
+   * `undefined` if an invalid range was specified.
+   * - If `start` is negative, we'll take from the end of the list, but in normal list order.
+   */
   _validateRangeStartingAt(
     start: number | null | undefined,
     count: number | null | undefined,
@@ -184,9 +211,12 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return spellCore._validateRangeBetween(start, end, itemCount)
   },
 
-  // Return `count` items from list starting with `start` as 1-based position.
-  // Negative `start` takes from the end of the list (but returns in list order)
-  // Array only.
+  /**
+   * Return `count` items from list starting with `start` as 1-based position.  Array only.
+   * - Negative `start` takes from the end of the list (but returns in list order).
+   * - Compiles from `top 2 items of my-list` / `first 2 words in "..."` / `last two cards from deck`
+   *   -- see `lists.ts`.
+   */
   rangeStartingAt(collection?: unknown, start?: number | null, count?: number | null): unknown {
     if (!assert.isArrayLike(collection, "spellCore.rangeStartingAt(collection)")) return []
     const range = spellCore._validateRangeStartingAt(start, count, spellCore.itemCountOf(collection))
@@ -194,11 +224,11 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return spellCore.rangeBetween(collection, range.start, range.end)
   },
 
-  //----------------------------
-  // iteration
-  //----------
+  ////////////////
+  // ## iteration
+  ////////////////
 
-  // Execute `method` for each item in `collection`, ignoring results.
+  /** Execute `method` for each item in `collection`, ignoring results. */
   forEach(collection?: unknown, method?: CollectionIterationCallback): void {
     if (!assert.isDefined(collection, "spellCore.forEach(collection)")) return
     if (!method) return
@@ -211,9 +241,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
   },
 
   /**
-   * Execute `method` for each item of map, `await`ing methods completion.
-   * The entire thing will finish when all waiting is done.
-   * Results are ignored.
+   * Execute `method` for each item of map, `await`ing method's completion.
+   * - The entire thing will finish when all waiting is done.
+   * - Results are ignored.
    */
   async forEachSequential(collection?: unknown, method?: CollectionIterationCallback): Promise<void> {
     if (!assert.isDefined(collection, "spellCore.map(collection)")) return
@@ -226,9 +256,12 @@ export const collectionOtherMethods = defineSpellCoreModule({
     }
   },
 
-  // Execute `method` for each item in `collection`, returning results in same type as `collection`
-  // Pass `results` as thing to put results into, defaults to new thing like `collection`.
-  // TODO: rename???
+  /**
+   * Execute `method` for each item in `collection`, returning results in same type as `collection`.
+   * - Compiles from `for each number from 1 to 10: ...` / `repeat 3 times: ...` as
+   *   `spellCore.map(spellCore.getRange(...), (number) => { ... })` -- see `lists.ts`.
+   * TODO: rename???
+   */
   map(collection?: unknown, method?: CollectionIterationCallback): unknown {
     if (!assert.isDefined(collection, "spellCore.map(collection)")) return undefined
     const results = spellCore.newThingLike(collection)
@@ -239,9 +272,12 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return results
   },
 
-  // Return new `collection` of only things which match `condition` filter.
-  // For array: returns a compacted collection of same type.
-  // For object: returns new type of collection with just specified keys.
+  /**
+   * Return new `collection` of only things which match `condition` filter.
+   * - For array: returns a compacted collection of same type.
+   * - For object: returns new type of collection with just specified keys.
+   * - Compiles from `words in "a word list" where ...` -- see `lists.ts`.
+   */
   filter(collection?: unknown, condition?: CollectionIterationCallback): unknown {
     if (!assert.isDefined(collection, "spellCore.all(collection)")) return undefined
     if (!condition) condition = (it) => it
@@ -260,8 +296,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return results
   },
 
-  // Return `true` if all items in collection match `condition`,
-  // called as `condition(value, item, collection)`
+  /**
+   * Return `true` if all items in collection match `condition`, called as
+   * `condition(value, item, collection)`.
+   */
   all(collection?: unknown, condition?: CollectionIterationCallback): boolean {
     if (!assert.isDefined(collection, "spellCore.all(collection)")) return false
     if (!condition) condition = (it) => it
@@ -275,8 +313,11 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return true
   },
 
-  // Return `true` if at least one item in collection matches `condition`
-  // called as `condition(value, item, collection)`
+  /**
+   * Return `true` if at least one item in collection matches `condition`, called as
+   * `condition(value, item, collection)`.
+   * - Compiles from `my-list has items where ...` -- see `lists.ts`.
+   */
   any(collection?: unknown, condition?: CollectionIterationCallback): boolean {
     if (!assert.isDefined(collection, "spellCore.any(collection)")) return false
     if (!condition) condition = (it) => it
@@ -290,9 +331,11 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return false
   },
 
-  // Remove `items` from `collection`.
-  // For array: `items` are 1-based positions.
-  // For object: `items` are string keys.
+  /**
+   * Remove `items` from `collection`.
+   * - For array: `items` are 1-based positions.
+   * - For object: `items` are string keys.
+   */
   removeItemsOf(collection?: unknown, ...items: Array<string | number>): void {
     if (!assert.isDefined(collection, "spellCore.removeItemsOf(collection)")) return
     // Sort numeric keys DESCENDING so we don't have to worry about renumbering as we go.
@@ -302,8 +345,11 @@ export const collectionOtherMethods = defineSpellCoreModule({
     items.forEach((item) => spellCore.removeItemOf(collection, item))
   },
 
-  // Remove all occurance of `things` from collection, in-place.
-  // For object: removes `values`
+  /**
+   * Remove all occurance of `things` from collection, in-place.
+   * - For object: removes `values`.
+   * - Compiles from `remove thing from my-list` -- see `lists.ts`.
+   */
   remove(collection?: unknown, ...things: unknown[]): void {
     if (!assert.isDefined(collection, "spellCore.remove(collection)")) return
     things.forEach((thing) => {
@@ -315,8 +361,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
     })
   },
 
-  // Remove items from `collection` which match `condition`.
-  // called as `condition(value, item, collection)`
+  /**
+   * Remove items from `collection` which match `condition`, called as `condition(value, item, collection)`.
+   * - Compiles from `remove items from my-list where ...` -- see `lists.ts`.
+   */
   removeWhere(collection?: unknown, condition?: CollectionIterationCallback): void {
     if (!assert.isDefined(collection, "spellCore.removeWhere(collection)")) return
     const itemsToRemove = spellCore.filter(collection, condition)
@@ -324,11 +372,11 @@ export const collectionOtherMethods = defineSpellCoreModule({
     else spellCore.removeItemsOf(collection, ...Object.keys(itemsToRemove as object))
   },
 
-  //----------------------------
-  // Randomizing / random item selection
-  //----------
+  ////////////////
+  // ## Randomizing / random item selection
+  ////////////////
 
-  // Return a random key of `collection`
+  /** Return a random key of `collection`. */
   _randomKeyOf(collection?: unknown): string | number | undefined {
     if (!assert.isDefined(collection, "spellCore._randomKeyOf(collection)")) return undefined
     if (spellCore.itemCountOf(collection) === 0) return undefined
@@ -337,7 +385,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return spellCore.keysOf(collection)[(item as number) - 1]
   },
 
-  // Return a single item from `collection`, picked randomly.
+  /**
+   * Return a single item from `collection`, picked randomly.
+   * - Compiles from `a random item of my-list` / `a random card from the deck` -- see `lists.ts`.
+   */
   randomItemOf(collection?: unknown): unknown {
     if (!assert.isDefined(collection, "spellCore.randomItemOf(collection)")) return undefined
     const key = spellCore._randomKeyOf(collection)
@@ -345,9 +396,11 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return spellCore.getItemOf(collection, key)
   },
 
-  // Return list of up to `count` items from `collection`, picked randomly,
-  // where each item can be returned only once.
-  // Returns same type as was passed in.
+  /**
+   * Return list of up to `count` items from `collection`, picked randomly, where each item can be
+   * returned only once.  Returns same type as was passed in.
+   * - Compiles from `2 random items of my-list` / `3 random cards from deck` -- see `lists.ts`.
+   */
   randomItemsOf(collection?: unknown, count?: number): unknown {
     if (!assert.isDefined(collection, "spellCore.randomItemsOf(collection)")) return undefined
     if (!spellCore.isANumber(count)) count = spellCore.itemCountOf(collection)
@@ -367,8 +420,11 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return results
   },
 
-  // Randomize `collection` in-place.
-  // No-op for collection
+  /**
+   * Randomize `collection` in-place.
+   * - No-op for a plain-object collection -- only array-like collections are reordered.
+   * - Compiles from `shuffle my-list` / `randomize my-list` -- see `lists.ts`.
+   */
   randomize(collection?: unknown): void {
     if (!assert.isDefined(collection, "spellCore.randomize(collection)")) return
     if (!spellCore.isArrayLike(collection)) return
@@ -376,7 +432,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
     spellCore.setItemsOf(collection, 1, ...(randomized as unknown[]))
   },
 
-  // Return smallest item of `collection` according to `<` comparison.
+  /**
+   * Return smallest item of `collection` according to `<` comparison.
+   * - Compiles from `smallest of prices` / `smallest value in prices` -- see `math.ts`.
+   */
   smallestOf(collection?: unknown): unknown {
     if (!assert.isDefined(collection, "spellCore.smallestOf(collection)")) return undefined
     if (spellCore.itemCountOf(collection) === 0) return undefined
@@ -384,7 +443,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
     return values.reduce((smallest, next) => (next < smallest ? next : smallest), values[0])
   },
 
-  // Return largest item of `collection` according to `>` comparison
+  /**
+   * Return largest item of `collection` according to `>` comparison.
+   * - Compiles from `largest of the prices` / `biggest in prices` -- see `math.ts`.
+   */
   largestOf(collection?: unknown): unknown {
     if (!assert.isDefined(collection, "spellCore.largestOf(collection)")) return undefined
     if (spellCore.itemCountOf(collection) === 0) return undefined

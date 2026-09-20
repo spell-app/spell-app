@@ -3,19 +3,22 @@ import { P, Tokens } from "~/parser"
 
 /**
  * Tokenizer class for parsing text into a stream of tokens.
+ * - TODO: error checking / reporting, especially in JSX expressions.
+ * - TODO: have normal `tokenize` stick whitespace elements in the stream, then `tokenizeLines()` takes them out?
  */
-// TODO: error checking / reporting, especially in JSX expressions.
-// TODO: have normal `tokenize` stick whitespace elements in the stream, then `tokenizeLines()` takes them out?
 export class Tokenizer {
+  /** Build a `Tokenizer`, copying any `props` (e.g. `whitespacePolicy`, `quoteSymbols`) onto `this`. */
   constructor(props: TokenizerProps = {}) {
     Object.assign(this, props)
   }
 
-  // Leave all whitespace by default.
+  /** Leave all whitespace by default. */
   whitespacePolicy: P.WhitespacePolicy = P.WhitespacePolicy.ALL
 
-  /** Quote symbols. */
-  // REFACTOR: backtick?  left/right quotes, e.g. `""` and `''`?
+  /**
+   * Quote symbols recognized by `matchText`.
+   * - REFACTOR: backtick?  left/right quotes, e.g. `""` and `''`?
+   */
   quoteSymbols = [P.DOUBLE_QUOTE, P.SINGLE_QUOTE] as const
 
   /** Debug logger. */
@@ -23,6 +26,7 @@ export class Tokenizer {
 
   /**
    * Tokenize `text` between `start` and `end` into an array of `Token`s.
+   * - NOTE: `¬` and `∆` are treated as stand-ins for `\n` and `\t` -- handy for compact test fixtures.
    */
   tokenize = (text: string, start = 0, end?: number) => {
     // Replace `¬` with `\n` and `∆` with `\t`.
@@ -143,9 +147,9 @@ export class Tokenizer {
     )
   }
 
-  //////////////////////
-  //  ### Whitespace
-  //////////////////////
+  ////////////////
+  // ## Whitespace
+  ////////////////
 
   /**
    * Convert a run of spaces and/or tabs into:
@@ -182,13 +186,15 @@ export class Tokenizer {
     return new Tokens.Newline({ offset: start })
   }
 
-  //////////////////////
-  //  ### Word / Symbol / Text
-  //////////////////////
+  ////////////////
+  // ## Word / Symbol / Text
+  ////////////////
 
+  /** Regex matching first character allowed to start a `Word` -- ASCII letters only. */
   get WORD_START() {
     return /[A-Za-z]/
   }
+  /** Regex matching subsequent `Word` characters -- letters, digits, `_` or `-`. */
   get WORD_CHAR() {
     return /^[\w_-]/
   }
@@ -233,8 +239,8 @@ export class Tokenizer {
   /**
    * Match a quoted text literal string at `start` of `text`, as `Text` token.
    * - e.g. `"hello"`, `'hello world'`, `"text \" with escaped quotes"`, etc.
+   * - TESTME:  not sure the escaping logic is really right...
    */
-  // TESTME:  not sure the escaping logic is really right...
   matchText = (text: string, start = 0, end?: number): Tokens.Text | undefined => {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -265,14 +271,16 @@ export class Tokenizer {
     })
   }
 
-  //////////////////////
-  //  ### Numbers
-  //////////////////////
+  ////////////////
+  // ## Numbers
+  ////////////////
 
+  /** Regex testing whether a character could begin a `Number` -- digit, `-` or `.`. */
   get NUMBER_START() {
     return /[0-9-.]/
   }
 
+  /** Regex matching a `Number` literal at head of string -- optional leading `-`, optional decimal point. */
   get NUMBER() {
     return /^-?([0-9]*\.)?[0-9]+/
   }
@@ -296,19 +304,27 @@ export class Tokenizer {
     })
   }
 
-  //////////////////
-  //  ### JSX expressions
-  //////////////////
+  ////////////////
+  // ## JSX expressions
+  ////////////////
 
+  /**
+   * Regex matching JSX opening tag head: `<TagName` plus either self-close `/>`, plain `>`, or trailing
+   * whitespace before attributes.
+   * - Capture groups: tag name, then end bit (`/>`, `>` or whitespace).
+   */
   get JSX_TAG_START() {
     return /^<([A-Za-z][\w-.]*)(\s*\/>|\s*>|\s+)/
   }
+  /** Regex matching the end of a JSX tag after attributes -- optional whitespace then `/>` or `>`. */
   get JSX_TAG_START_END() {
     return /^\s*(\/>|>)/
   }
+  /** Regex matching a JSX attribute name plus optional trailing `=`. */
   get JSX_ATTRIBUTE_START() {
     return /^\s*([\w-]+\b)\s*(=?)\s*/
   }
+  /** Characters which terminate a run of `JSXText`. */
   get JSX_TEXT_END_CHARS() {
     return ["{", "<", ">", "}"]
   }
@@ -335,9 +351,11 @@ export class Tokenizer {
     return jsxElement
   }
 
-  /** Match a single JSX start tag at `start` of `text`, including internal attributes, as a `JSXElement` token. */
-  // TODO: clean this stuff up, maybe with findFirstAtHead?
-  // TODO: check whitespace before/after tag
+  /**
+   * Match a single JSX start tag at `start` of `text`, including internal attributes, as a `JSXElement` token.
+   * - TODO: clean this stuff up, maybe with findFirstAtHead?
+   * - TODO: check whitespace before/after tag
+   */
   matchJSXStartTag(text: string, start = 0, end?: number) {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end) return undefined
@@ -569,10 +587,11 @@ export class Tokenizer {
     })
   }
 
-  //////////////////
-  //  ### Source Code - Comment, Line, Block
-  //////////////////
+  ////////////////
+  // ## Source Code -- Comment, Line, Block
+  ////////////////
 
+  /** Regex splitting a comment line into its symbol (`--`, `//`, `##`), leading whitespace and text. */
   get COMMENT_START() {
     return /^(##+|--+|\/\/+)(\s*)(.*)/
   }
@@ -718,11 +737,14 @@ export class Tokenizer {
     return [block]
   }
 
-  //////////////////
-  //  ### Utility functions
-  //////////////////
+  ////////////////
+  // ## Utility functions
+  ////////////////
 
-  // TODO: this creates a new array every time it's called.  We should cache it.
+  /**
+   * Characters treated as whitespace for tokenizing purposes -- space and tab.
+   * - TODO: this creates a new array every time it's called.  We should cache it.
+   */
   get WHITESPACE_CHARS() {
     return [" ", "\t"]
   }
@@ -788,8 +810,8 @@ export class Tokenizer {
    * - Matches nested delimiters and handles escaped delimiters, e.g.
    *   - `findMatchingDelimiter("{", "}", "{{}}")` => 4
    *   - `findMatchingDelimiter("{", "}", "{\\{}")` => 4
+   * - TESTME escaped delimiters, nested quotes
    */
-  // TESTME escaped delimiters, nested quotes
   findMatchingDelimiter = (
     startDelimiter: string,
     endDelimiter: string,
@@ -865,7 +887,10 @@ export class Tokenizer {
   }
 }
 
+/** Constructor props for `Tokenizer`. */
 type TokenizerProps = {
+  /** See `Tokenizer.whitespacePolicy`. */
   whitespacePolicy?: P.WhitespacePolicy
+  /** See `Tokenizer.quoteSymbols`. */
   quoteSymbols?: string[]
 }

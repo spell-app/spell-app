@@ -16,6 +16,7 @@ export function assertBoolean(value: unknown): boolean {
   return value
 }
 
+/** Grouped access to the `assertX` narrowing helpers above, e.g. `assert.string(value)`. */
 export const assert = {
   string: assertString,
   number: assertNumber,

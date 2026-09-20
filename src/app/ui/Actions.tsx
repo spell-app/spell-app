@@ -36,9 +36,9 @@ function Action({ title, button = false, ...props }: ActionProps) {
  * - Entries that only touch the store inside `onClick` stay plain -- those run after render.
  */
 export const Actions = {
-  //////////////////////
-  // Navigation
-  //////////////////////
+  ////////////////
+  // ## Navigation
+  ////////////////
 
   aboutSpell: (props: ActionProps) => (
     <Action title="About Spell" icon="wizard" onClick={() => store.aboutSpell()} {...props} />
@@ -63,9 +63,9 @@ export const Actions = {
   ),
   logIn: (props: ActionProps) => <Action title="Log In" icon="user outline" onClick={() => store.logIn()} {...props} />,
 
-  //////////////////////
-  // App actions -- work on store.project, create according to `store.projectRoot`
-  //////////////////////
+  ////////////////
+  // ## App actions -- work on `store.project`, create according to `store.projectRoot`
+  ////////////////
   createApp: view((props: ActionProps) => (
     <Action title={`Create ${store.appType}`} icon="pencil" onClick={() => store.createApp()} {...props} />
   )),
@@ -110,30 +110,30 @@ export const Actions = {
     <Action title="Restart" icon="redo" onClick={() => store.compileApp()} {...props} />
   ),
 
-  //////////////////////
-  // Project actions
-  //////////////////////
+  ////////////////
+  // ## Project actions
+  ////////////////
   createProject: (props: ActionProps) => (
     <Action title="New Project" icon="pencil" onClick={() => store.createProject()} {...props} />
   ),
 
-  //////////////////////
-  // Examples actions
-  //////////////////////
+  ////////////////
+  // ## Examples actions
+  ////////////////
   createExample: (props: ActionProps) => (
     <Action title="New Example" icon="pencil" onClick={() => store.createExample()} {...props} />
   ),
 
-  //////////////////////
-  // Guides actions
-  //////////////////////
+  ////////////////
+  // ## Guides actions
+  ////////////////
   createGuide: (props: ActionProps) => (
     <Action title="New Guide" icon="pencil" onClick={() => store.createGuide()} {...props} />
   ),
 
-  //////////////////////
-  // File Actions -- work on store.file
-  //////////////////////
+  ////////////////
+  // ## File Actions -- work on `store.file`
+  ////////////////
   createFile: (props: ActionProps) => (
     <Action title="New File" icon="pencil" onClick={() => store.createFile()} {...props} />
   ),
@@ -173,9 +173,9 @@ export const Actions = {
     )
   }),
 
-  //////////////////////
-  // Console
-  //////////////////////
+  ////////////////
+  // ## Console
+  ////////////////
 
   clearConsole: view((props: ActionProps) => {
     const consoleisEmpty = spellCore.console.lines.length === 0
@@ -190,9 +190,9 @@ export const Actions = {
     )
   }),
 
-  //////////////////////
-  // MatchViwer
-  //////////////////////
+  ////////////////
+  // ## MatchViewer
+  ////////////////
   toggleMatchRuleNames: view((props: ActionProps) => {
     const { showingMatchRuleNames: showNames } = store
     return (
@@ -205,12 +205,12 @@ export const Actions = {
     )
   }),
 
-  //////////////////////
-  // Modals
+  ////////////////
+  // ## Modals
+  ////////////////
   // - `title`, `icon`, `itemProps` will be passed to the item.
   // - `callback` will be executed with returned value (logs to console by default).
   // - other `props` will be passed to modal constructor. ???
-  //////////////////////
   alert: ({
     callback = console.log,
     title = "Alert",
@@ -261,16 +261,24 @@ export const Actions = {
     itemProps = { title, icon, ...itemProps }
     return <Action {...itemProps} onClick={() => store.choose(modalProps).then(callback)} />
   },
-  //////////////////////
-  // groups of actions
-  //////////////////////
+  ////////////////
+  // ## groups of actions
+  ////////////////
+  /**
+   * Ready-made project dropdown items.  Declared `undefined` here and assigned below --
+   * can't build the array inline because it references `Actions` entries defined above it in
+   * this same object literal, but not yet assigned to `Actions` while the literal is being built.
+   */
   PROJECT_DROPDOWN_ACTIONS: undefined as ReactElement[] | undefined,
+  /** Ready-made file dropdown items.  See `PROJECT_DROPDOWN_ACTIONS` for why this is assigned below. */
   FILE_DROPDOWN_ACTIONS: undefined as ReactElement[] | undefined
 }
 
 /** Props for `<Action>` -- everything but `title`/`button` is forwarded to the underlying SUI component. */
 export type ActionProps = {
+  /** Item title -- rendered as SUI `content`. */
   title?: ReactNode
+  /** If `true` render a SUI `Button`, otherwise a `Menu.Item`. */
   button?: boolean
 } & Record<string, unknown>
 
@@ -289,8 +297,12 @@ Actions.FILE_DROPDOWN_ACTIONS = [
 ]
 /** Props shared by the dialog-showing actions (`alert`, `confirm`, `prompt`, `promptForNumber`, `choose`). */
 export type DialogActionProps<P> = P & {
+  /** Called with dialog's resolved value once closed.  Defaults to `console.log`. */
   callback?: (value: unknown) => void
+  /** Menu item / button title. */
   title?: string
+  /** Menu item / button icon. */
   icon?: string
+  /** Extra props passed to underlying `<Action>` item -- `title`/`icon` above merge into this. */
   itemProps?: Record<string, unknown>
 }

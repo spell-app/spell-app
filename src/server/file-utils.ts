@@ -13,28 +13,28 @@ import filterAsync from "node-filter-async"
 import { isFileOrFolderNotFoundError } from "./response-utils"
 import type { GetFolderContentsOptions } from "./server.types"
 
-//----------------------------
-//  File encoding formats for `readFile()`, `writeFile()`, etc.
-//----------------------------
+////////////////
+// ## File encoding formats for `readFile()`, `writeFile()`, etc.
+////////////////
+
+/** Encoding names accepted by `fs-extra`'s `readFile()` / `writeFile()`, as used by `load*File()` / `save*File()`. */
 export const FORMAT = {
   TEXT: "utf8",
   BINARY: "binary",
   BASE64: "base64"
 } as const
+
+/** Value type for `FORMAT`. */
 // REFACTOR: rename?  Get this from somewhere else?
 type EncodingFormat = (typeof FORMAT)[keyof typeof FORMAT]
 
-//
-//----------------------------
-//  Path utlities.
-//  We wrap nodeJS `path` routines so they're easy to mock
-//  and to present a better semantic interface than the original screwy names.
-//----------------------------
-//
+////////////////
+// ## Path utilities.
+// We wrap nodeJS `path` routines so they're easy to mock
+// and to present a better semantic interface than the original screwy names.
+////////////////
 
-/**
- * Split server `path` according to native path separator for this platform.
- */
+/** Split server `path` according to native path separator for this platform. */
 export function splitPath(path: string) {
   return path.split(nodejs_path.sep)
 }
@@ -48,18 +48,13 @@ export function joinPath(...pathSegments: string[]) {
   return nodejs_path.join(...pathSegments)
 }
 
-/**
- * Normalize `...pathSegments` by resoving `..` and `.` segments, or squishing together `//`.
- * Returns the path as a single string.
- */
+/** Normalize `...pathSegments` by resolving `..` and `.` segments, or squishing together `//`, into single string. */
 export function normalizePath(...pathSegments: string[]) {
   const path = joinPath(...pathSegments)
   return nodejs_path.normalize(path)
 }
 
-/**
- * Split url `url` by `/`
- */
+/** Split url `url` by `/`. */
 export function splitURL(path: string) {
   return path.split("/")
 }
@@ -78,47 +73,35 @@ export function joinURL(...pathSegments: string[]) {
   return nodejs_path.normalize(path)
 }
 
-/**
- * Get folder path for a `path`, everything up to leaf file name.
- */
+/** Get folder path for a `path`, everything up to leaf file name. */
 export function getPathFolder(path: string) {
   return nodejs_path.dirname(path)
 }
 
-/**
- * Get leaf file name for a server `path`, e.g. `foo.html`.
- */
+/** Get leaf file name for a server `path`, e.g. `foo.html`. */
 export function getPathFile(path: string) {
   return nodejs_path.basename(path)
 }
 
 /**
  * Return extension name for a server `path`.
- * TODO: consider different semantics for this...
- * See: https://nodejs.org/api/path.html#path_path_extname_path
+ * - TODO: consider different semantics for this...  see https://nodejs.org/api/path.html#path_path_extname_path
  */
 export function getPathExtension(path: string) {
   return nodejs_path.extname(path)
 }
 
-//
-//----------------------------
-//  Generic File / Folder manipulation
-//  Proxied to: make easy to mock, return consistent results, provide semantic method names.
-//----------------------------
-//
+////////////////
+// ## Generic File / Folder manipulation.
+// Proxied to: make easy to mock, return consistent results, provide semantic method names.
+////////////////
 
-/**
- * Return `true` if file or folder at `path` exists.
- */
+/** Return `true` if file or folder at `path` exists. */
 export async function pathExists(path: string) {
   return fse.pathExists(path)
 }
 
-/**
- * Get disk info for a server `path`.
- * Returns `PathStatWrapper`, see its getters for possible values.
- */
+/** Get disk info for a server `path`, as a `PathStatWrapper` -- see its getters for possible values. */
 export async function getPathInfo(path: string) {
   const stats = await fse.stat(path)
   return new PathStatWrapper(path, stats)
@@ -126,8 +109,11 @@ export async function getPathInfo(path: string) {
 
 /** Wrapper for `fs.Stats` to provide more semantic properties. */
 class PathStatWrapper {
+  /** Server path this wraps stats for. */
   path: string
+  /** Raw node `fs.Stats` this wraps. */
   stats: Stats
+  /** Build wrapper directly from a `path` and its already-fetched `fs.Stats`. */
   constructor(path: string, stats: Stats) {
     this.path = path
     this.stats = stats
@@ -164,18 +150,15 @@ class PathStatWrapper {
 
 /**
  * Copy a file or folder from server `path` to `newPath`.
- * Promise resolves with `true` on success, rejects on error.
- * For `fseOptions` see: https://github.com/jprichardson/node-fs-extra/blob/HEAD/docs/copy.md
+ * - Promise resolves with `true` on success, rejects on error.
+ * - For `options` see https://github.com/jprichardson/node-fs-extra/blob/HEAD/docs/copy.md.
  */
 export async function copyPath(path: string, newPath: string, options?: CopyOptions) {
   await fse.copy(path, newPath, options)
   return true
 }
 
-/**
- * Delete a file or folder from server `path`.
- * Promise resolves with `true` on success, rejects on error.
- */
+/** Delete a file or folder from server `path`.  Promise resolves with `true` on success, rejects on error. */
 export async function deletePath(path: string) {
   await fse.remove(path)
   return true
@@ -183,29 +166,24 @@ export async function deletePath(path: string) {
 
 /**
  * Move / rename a file or folder from server `path` to `newPath`.
- * Pass `overwrite = true` to overwrite existing file/folder, otherwise it will reject.
- * Promise resolves with `true` on success, rejects on error.
+ * - Pass `options.overwrite = true` to overwrite existing file/folder, otherwise it'll reject.
+ * - Promise resolves with `true` on success, rejects on error.
  */
 export async function movePath(path: string, newPath: string, options?: MoveOptions) {
   await fse.move(path, newPath, options)
   return true
 }
 
-//----------------------------
-//  Folder utilities
-//----------------------------
+////////////////
+// ## Folder utilities
+////////////////
 
-/**
- * Return `true` if `path` is a folder (directory).
- */
+/** Return `true` if `path` is a folder (directory). */
 export async function pathIsAFolder(path: string) {
   return (await fse.stat(path)).isDirectory()
 }
 
-/**
- * Make folder at server `path` (if it doesn't already exist).
- * Promise resolves with `true` on success, rejects on error.
- */
+/** Make folder at server `path` (if it doesn't already exist).  Promise resolves with `true`, rejects on error. */
 export async function makeFolder(path: string) {
   await fse.ensureDir(path)
   return true
@@ -213,8 +191,8 @@ export async function makeFolder(path: string) {
 
 /**
  * Return array (single level of) files in folder at server `path`, as paths or filenames.
- * See method body for `options`.
- * TODO: `includeNested` to recurse down directories??
+ * - See `GetFolderContentsOptions` (`server.types.ts`) for `options`.
+ * - TODO: `includeNested` to recurse down directories??
  */
 export async function getFolderContents(path: string, options: GetFolderContentsOptions = {}) {
   const {
@@ -260,7 +238,7 @@ export async function getFolderContents(path: string, options: GetFolderContents
 
 /**
  * Case-insensitive sort callback, e.g. `array.sort(caseInsensitiveSort)`.
- * NOTE: treats numbers as numbers, anything else will be converted to a string!
+ * - NOTE: treats numbers as numbers, anything else will be converted to a string!
  */
 // REFACTOR: use locale-aware sort, which includes fuzzy matching and "numbers as numbers" functionality
 export function caseInsensitiveSort(a: any, b: any) {
@@ -269,15 +247,15 @@ export function caseInsensitiveSort(a: any, b: any) {
   return a === b ? 0 : a < b ? -1 : 1
 }
 
-//----------------------------
-//  Loading files
-//----------------------------
+////////////////
+// ## Loading files
+////////////////
 
 /**
  * Load file at `path`, resolving with file contents.
- * Default is to read as a text file, use `FORMAT.BINARY` to read as a binary file.
- * Promise will reject if something goes wrong or path does not exist.
- * Pass `optional = true` to instead resolve with `null` for missing files.
+ * - Default is to read as text file, use `FORMAT.BINARY` to read as binary file.
+ * - Promise will reject if something goes wrong or path does not exist.
+ * - Pass `optional = "OPTIONAL"` to instead resolve with `null` for missing files.
  */
 // REFACTOR: output will vary based on format, so we should return a typed object
 // REFACTOR: single `{ format, optional }` parameter
@@ -292,8 +270,8 @@ export async function loadFile(path: string, format: EncodingFormat = FORMAT.TEX
 
 /**
  * Load text file at `path`, resolving with file contents as text.
- * Promise will reject if something goes wrong or path does not exist.
- * Pass `optional = true` to instead resolve with `null` for missing files.
+ * - Promise will reject if something goes wrong or path does not exist.
+ * - Pass `optional = "OPTIONAL"` to instead resolve with `null` for missing files.
  */
 // REFACTOR: single `{ optional }` parameter
 export async function loadTextFile(path: string, optional?: "OPTIONAL"): Promise<string | null> {
@@ -301,13 +279,12 @@ export async function loadTextFile(path: string, optional?: "OPTIONAL"): Promise
 }
 
 /**
- * Load a JSON file at `path`, reslving with file contents as a JSON object.
- * If file is empty, we'll return `null`.
- * Promise will reject if JSON parse fails or path does not exist.
- * Pass `optional = true` to instead resolve with `null` for missing files.
- *
- * Note that we parse with `JSON5.parse()`, which is a bit more forgiving
- * than normal `JSON.parse()` -- the output will be usable as normal `JSON`.
+ * Load a JSON file at `path`, resolving with file contents as a JSON object.
+ * - If file is empty, we'll return `null`.
+ * - Promise will reject if JSON parse fails or path does not exist.
+ * - Pass `optional = "OPTIONAL"` to instead resolve with `null` for missing files.
+ * - Note that we parse with `JSON5.parse()`, which is bit more forgiving than normal `JSON.parse()` --
+ *   output will be usable as normal `JSON`.
  */
 // REFACTOR: single `{ optional, validtor? }` parameter
 export async function loadJSONFile(path: string, optional?: "OPTIONAL"): Promise<any> {
@@ -318,8 +295,8 @@ export async function loadJSONFile(path: string, optional?: "OPTIONAL"): Promise
 
 /**
  * Load binary file at `path`, resolving with file contents as binary BLOB.
- * Promise will reject if something goes wrong or path does not exist.
- * Pass `optional = true` to instead resolve with `null` for missing files.
+ * - Promise will reject if something goes wrong or path does not exist.
+ * - Pass `optional = "OPTIONAL"` to instead resolve with `null` for missing files.
  */
 // REFACTOR: unused
 // REFACTOR: single `{ optional }` parameter
@@ -330,22 +307,25 @@ export async function loadBinaryFile(path: string, optional?: "OPTIONAL") {
 
 /**
  * Load a list of `paths`, yielding a single promise whose result is an array of file contents.
- * Promise will reject if something goes wrong or ANY specified path does not exist.
- * Pass `optional = true` to instead resolve with `null` for any missing files.
+ * - Promise will reject if something goes wrong or ANY specified path does not exist.
+ * - Pass `optional = "OPTIONAL"` to instead resolve with `null` for any missing files.
  */
 export function loadFiles(paths: string[], format: EncodingFormat, optional?: "OPTIONAL") {
   const promises = paths.map((path) => loadFile(path, format, optional))
   return Promise.all(promises)
 }
 
-//----------------------------
-//  Saving files
-//----------------------------
+////////////////
+// ## Saving files
+////////////////
 
 /**
  * Write `fileData` to disk at server `path` according to file `format`.
- * Creates any intervening folders as necessary.
- * Resolves with `true` on succecss.
+ * - Creates any intervening folders as necessary.
+ * - Resolves with `true` on success.
+ * - SIDE EFFECT: overwrites any existing file at `path` with no merge/conflict check -- see `lock-utils.ts`
+ *   for a mechanism (currently unwired, see its TODO) meant to protect concurrent writers from clobbering
+ *   each other here.
  */
 export async function saveFile(path: string, fileData: any, format: EncodingFormat = FORMAT.TEXT): Promise<boolean> {
   // Make sure directory exists
@@ -354,19 +334,15 @@ export async function saveFile(path: string, fileData: any, format: EncodingForm
   return true
 }
 
-/**
- * Write `text` to disk at server `path` as utf-8 text.
- * Creates any intervening folders as necessary.
- * Resolves with `true` on succecss.
- */
+/** Write `text` to disk at server `path` as utf-8 text.  Creates any intervening folders, resolves `true`. */
 export async function saveTextFile(path: string, text: string): Promise<boolean> {
   return saveFile(path, text, FORMAT.TEXT)
 }
 
 /**
  * Save `json` data to file at server `path` as straight `JSON`.
- * Promise resolves with `true` on success, rejects on error.
- * Converts `json` to `JSON` string if necessary -- promise will reject is stringify throws.
+ * - Promise resolves with `true` on success, rejects on error.
+ * - Converts `json` to `JSON` string if necessary -- promise will reject if stringify throws.
  */
 export async function saveJSONFile(path: string, json: any): Promise<boolean> {
   if (typeof json !== "string") json = JSON.stringify(json, null, "  ")
@@ -375,35 +351,31 @@ export async function saveJSONFile(path: string, json: any): Promise<boolean> {
 
 /**
  * Save `json` data to file at server `path` as `JSON5`.
- * Promise resolves with `true` on success, rejects on error.
- * Converts `json` to `JSON5` string if necessary -- promise will reject is stringify throws.
+ * - Promise resolves with `true` on success, rejects on error.
+ * - Converts `json` to `JSON5` string if necessary -- promise will reject if stringify throws.
  */
 export async function saveJSON5File(path: string, json: any): Promise<boolean> {
   if (typeof json !== "string") json = JSON5.stringify(json, null, "  ")
   return saveTextFile(path, json)
 }
 
-/**
- * Write binary `blob` to disk at server `path` as binary.
- * Creates any intervening folders as necessary.
- * Resolves with `true` on succecss.
- */
+/** Write binary `blob` to disk at server `path` as binary.  Creates any intervening folders, resolves `true`. */
 export async function saveBinaryFile(path: string, blob: any) {
   return saveFile(path, blob, FORMAT.BINARY)
 }
 
-//----------------------------
-//  DEBUG
-//----------------------------
+////////////////
+// ## DEBUG
+////////////////
 
-// Log `jsonData` (object or string) to console with optional `message`
+/** Log `jsonData` (object or string) to console with optional `message`. */
 export function logJSON(message: string, jsonData: any = null) {
   if (typeof jsonData !== "string") jsonData = JSON5.stringify(jsonData, null, "  ")
   console.warn(chalk.bold(message))
   console.warn(chalk.grey(jsonData))
 }
 
-// Log `error` (Error) to console with optional `message`
+/** Log `error` (`Error`) to console with optional `message`. */
 export function logError(error: Error, message: string = error.message) {
   console.warn(chalk.red.bold.inverse("ERROR: ", message))
   console.warn(error)

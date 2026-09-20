@@ -49,12 +49,20 @@ export function makeFormStore<V extends object>(value: V): FormStore<V> {
  * - `raw` is the un-proxied value, for reading without subscribing.
  */
 export type FormStore<V extends object> = {
+  /** Reactive form value -- read/write directly for the whole object, or via `getValue()`/`setValue()` per path. */
   value: V
+  /** `cloneDeep(value)` -- un-proxied, so reading it does not subscribe to reactive updates. */
   readonly raw: V
+  /** Reactively get a value by nested `path` (e.g. `"a.b[0].c"`), via `spellCore.getPath()`. */
   getValue(path: string): unknown
+  /** Reactively set a value by nested `path`, via `spellCore.setPath()`. */
   setValue(path: string, value: unknown): void
+  /** Per-path validation errors, keyed by the same flat `path` strings as `getValue()`/`setValue()`. */
   errors: Record<string, string | undefined>
+  /** Reactively get the error for a field by `path`. */
   getError(path: string): string | undefined
+  /** Reactively set the error for a field by `path`.  `undefined` clears it. */
   setError(path: string, error: string | undefined): void
+  /** Whether any `path` currently has an error. */
   readonly hasErrors: boolean
 }

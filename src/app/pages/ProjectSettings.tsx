@@ -2,14 +2,22 @@ import { view } from "~/util"
 
 import { UI } from "~/app/ui"
 
-// `UI.FormGroup`/`FormRepeat`/`SubmitButton` get their `form` prop injected at runtime by the
-// enclosing `<UI.Form>` (see `WithForm()`/`injectForm` in `~/app/ui/Form`), but their
-// exported prop types still require it explicitly. Narrow-cast here at the JSX boundary rather
-// than fabricating a fake `form` value.
+/**
+ * `UI.FormGroup`/`FormRepeat`/`SubmitButton` get their `form` prop injected at runtime by the
+ * enclosing `<UI.Form>` (see `WithForm()`/`injectForm` in `~/app/ui/Form`), but their
+ * exported prop types still require it explicitly.  Narrow-cast here at the JSX boundary rather
+ * than fabricating a fake `form` value.
+ */
 const FormGroup = UI.FormGroup as ReactComponentType<{ name?: string; children?: ReactNode }>
 const FormRepeat = UI.FormRepeat as ReactComponentType<{ name?: string; grouped?: boolean; children?: ReactNode }>
 const SubmitButton = UI.SubmitButton as ReactComponentType<{ children?: ReactNode }>
 
+/****************
+ * ### `<ProjectSettings />`
+ * Form scaffold for project settings.
+ * - `values`/`onSubmit` are hardcoded placeholders -- not yet wired to a real project setting or
+ *   `store.showProjectSettings()` (still a TODO stub), and currently commented out of `<SpellEditor>`.
+ ****************/
 export const ProjectSettings = view(function ProjectSettings() {
   const values = {
     name: undefined,

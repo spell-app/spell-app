@@ -113,13 +113,25 @@ function normalizeSUIDropdownOptions(
 
 /** Props for `<Chooser>`.  Extra keys pass through to the underlying `SUI.Modal`. */
 export type ChooserModalProps = {
+  /** Message to show. */
   message: ReactNode
+  /**
+   * List of options -- array of primitive values, array of `{ value, text, icon, image }`,
+   * or map of `{ key: text }`.
+   */
   options: MT.DropdownOptionInput[] | Record<string, string>
+  /** Start value for field. */
   defaultValue?: unknown
+  /** Let them choose multiple values. */
   multiple?: boolean
+  /** NOTE: currently ignored -- see TODOs below. */
   allowAdditions?: boolean
+  /** Header for the dialog. */
   header?: ReactNode
+  /** Extra props to pass to the `<Select>`, e.g. `placeholder`, `multiple`, `allowAdditions`. */
   inputProps?: Record<string, unknown>
+  /** Text title or button props for OK button.  Default `"OK"`. */
   ok?: string | SUI.ButtonProps
+  /** Text title or button props for Cancel button.  Default `"Cancel"`. */
   cancel?: string | SUI.ButtonProps
 } & Record<string, unknown>

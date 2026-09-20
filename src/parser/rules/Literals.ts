@@ -10,9 +10,12 @@ import { Rule } from "./Rule"
  * - After matching, `match.value` will be the literal string matched.
  */
 export abstract class Literals extends Rule<P.LiteralsProps> {
+  /** Literals to match in order -- normalized from constructor input into `{ literal, optional? }` matchers. */
   declare literals: P.LiteralMatcher[]
+  /** String to join matched literals with in `toRulexSyntax()` -- set by subclass, e.g. `Keywords` uses `" "`. */
   declare literalSeparator: string
 
+  /** Bare string / array shorthand sets `literals` directly, otherwise pass a full `LiteralsProps` bag. */
   constructor(input: P.LiteralsProps | string | Array<string | string[] | P.LiteralMatcher>) {
     const props = (typeof input === "string" || Array.isArray(input) ? { literals: input } : input) as P.LiteralsProps
     if (typeof props.literals === "string") props.literals = [props.literals]
@@ -32,6 +35,7 @@ export abstract class Literals extends Rule<P.LiteralsProps> {
     }
   }
 
+  /** `true` if `matchAtStart()` consumed at least one token. */
   testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
     return this.matchAtStart(tokens, start) > 0
   }
@@ -49,6 +53,7 @@ export abstract class Literals extends Rule<P.LiteralsProps> {
     return start
   }
 
+  /** Match all our `literals` in sequence, starting at the beginning of `tokens`. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const tokensMatched = this.matchAtStart(tokens, 0)
     if (!tokensMatched) return undefined
@@ -62,10 +67,12 @@ export abstract class Literals extends Rule<P.LiteralsProps> {
     })
   }
 
+  /** Output is just the matched `match.value`. */
   compile(match: P.Match) {
     return match.value
   }
 
+  /** Return rulex string for this rule, joining literals with `literalSeparator` and applying rule flags. */
   toRulexSyntax() {
     const { testLocation, argument, optional } = this.getRulexFlags()
 

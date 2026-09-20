@@ -15,10 +15,10 @@ import { ErrorHandler, type ErrorHandlerWrapperProps } from "./ErrorHandler"
 
 import "./ConsoleViewer.less"
 
-/**
- *  Root element to show the `<ConsoleViewer/>` in `SpellEditor`
- */
-
+/****************
+ * ### `<ConsoleRoot>`
+ * Root element to show the `<ConsoleViewer/>` in `SpellEditor`.
+ ****************/
 export const ConsoleRoot = view(function ConsoleRoot({ showToolbar = true, scrolling = true }: ConsoleRootProps) {
   return (
     <div className="ConsoleRoot">
@@ -28,10 +28,18 @@ export const ConsoleRoot = view(function ConsoleRoot({ showToolbar = true, scrol
   )
 })
 
+/** Props for `<ConsoleRoot>`. */
 export type ConsoleRootProps = {
+  /** Show `<ConsoleToolbar>` above viewer. */
   showToolbar?: boolean
+  /** Pass through to `<ConsoleViewer>`. */
   scrolling?: boolean
 }
+
+/****************
+ * ### `<ConsoleToolbar>`
+ * Toolbar above `<ConsoleViewer>`: header plus alert/confirm/prompt/choose demo actions and `clearConsole`.
+ ****************/
 export function ConsoleToolbar() {
   return (
     <UI.PanelMenu>
@@ -65,13 +73,22 @@ export function ConsoleToolbar() {
   )
 }
 
+/****************
+ * ### `<ConsoleViewer>`
+ * Top-level error-handling wrapper around `spellCore.console`'s rendered lines.
+ ****************/
 export class ConsoleViewer extends ErrorHandler<ConsoleViewerProps> {
-  /** Clear `state.error` if ...??? */
+  /**
+   * NOTE: doesn't actually clear `state.error` on any prop change -- just returns `oldState`
+   * unchanged (or `{}` on the first call).  Unlike `MatchViewer`/`ASTViewer`'s versions of this
+   * method, `ConsoleViewerProps` has no data prop to key off of, so there's nothing to compare.
+   * TODO: is this needed at all, or can we drop it along with `ErrorHandlerState`'s reset behavior?
+   */
   static getDerivedStateFromProps(_props: unknown, oldState: unknown) {
     return oldState || {}
   }
 
-  /* Show error in UI when caught. */
+  /** Show error in UI when caught. */
   componentDidCatch(error: Error) {
     this.props.showError?.(error)
   }
@@ -92,8 +109,10 @@ export class ConsoleViewer extends ErrorHandler<ConsoleViewerProps> {
   }
 
   /**
-   * Memoized top-level viewer for a Console, e.g. for a `spellFile.match`.
-   * Create one of these and it will create <ConsoleView>s and <TokenView>s underneath it.
+   * Top-level viewer for the console: reads `spellCore.console.lines` (reactively, via `view()`)
+   * and hands them to `<ConsoleLines>`.
+   * NOTE: was previously worded as if for a `spellFile.match` producing `<ConsoleView>`/`<TokenView>`
+   * elements -- stale, copy-pasted from `MatchViewer`'s equivalent field.  Corrected here.
    */
   Component = view(() => {
     const lines = spellCore.console.lines
@@ -101,14 +120,25 @@ export class ConsoleViewer extends ErrorHandler<ConsoleViewerProps> {
   })
 }
 
+/** Props for `<ConsoleViewer>`. */
 export type ConsoleViewerProps = {
+  /** Add scrolling className to wrapper. */
   scrolling?: boolean
+  /** Called with caught render error, e.g. to surface it in a toast. */
   showError?: (error: unknown) => void
 }
+/** Left padding, in px, for a non-group console line (group lines get 0 -- their toggle icon fills the space). */
 const NORMAL_LINE_SPACE = 20
+/** Extra left padding, in px, per nesting `indent` level. */
 const INDENT_WIDTH = 12
+/** Horizontal offset, in px, of the vertical `.ConsoleGroupSpan` guide line relative to its indent. */
 const SPAN_OFFSET = -4
 
+/****************
+ * ### `<ConsoleLines>`
+ * Renders a list of console `lines` -- `group` lines recurse via `<ConsoleGroup>`, others via `<ConsoleLine>`.
+ * Also draws the `.ConsoleGroupSpan` vertical guide line for this indent level.
+ ****************/
 export function ConsoleLines({ indent = 0, lines, collapsed = false, className = "ConsoleLines" }: ConsoleLinesProps) {
   return (
     <div className={className}>
@@ -123,14 +153,22 @@ export function ConsoleLines({ indent = 0, lines, collapsed = false, className =
   )
 }
 
+/** Props for `<ConsoleLines>`. */
 export type ConsoleLinesProps = {
+  /** Nesting depth, used for left padding and to compute the child `indent` for a `group`. */
   indent?: number
+  /** Lines to render, in order -- a mix of plain lines and `group` lines. */
   lines: (ConsoleLineData | SpellConsoleGroup)[]
+  /** When `true`, render nothing (used for a collapsed `group`'s children). */
   collapsed?: boolean
+  /** Wrapper className. */
   className?: string
 }
 
-/** Single console line for anything that is NOT a `group`. */
+/****************
+ * ### `<ConsoleLine>`
+ * Single console line for anything that is NOT a `group`.
+ ****************/
 export function ConsoleLine({ line, icon, indent }: ConsoleLineProps) {
   const { message, level } = line
   const left = indent * INDENT_WIDTH + (level !== "group" ? NORMAL_LINE_SPACE : 0)
@@ -145,13 +183,21 @@ export function ConsoleLine({ line, icon, indent }: ConsoleLineProps) {
   )
 }
 
+/** Props for `<ConsoleLine>`. */
 export type ConsoleLineProps = {
+  /** Line data -- for a `group` line this is passed by `<ConsoleGroup>`, `icon` included. */
   line: ConsoleLineData | SpellConsoleGroup
+  /** Group-toggle disclosure triangle, passed in by `<ConsoleGroup>`; absent for a plain line. */
   icon?: ReactNode
+  /** Nesting depth, for left padding. */
   indent: number
 }
 
-/** Console `group`. */
+/****************
+ * ### `<ConsoleGroup>`
+ * Console `group` line: a toggleable disclosure triangle plus its (possibly collapsed) child `lines`.
+ * - SIDE EFFECT: `toggle` mutates `line.collapsed` directly (the console line objects are observable).
+ ****************/
 export const ConsoleGroup = view(function ConsoleGroup({ line, indent }: ConsoleGroupProps) {
   const { lines, collapsed } = line
   // console.info("group", line, lines, collapsed)
@@ -171,10 +217,19 @@ export const ConsoleGroup = view(function ConsoleGroup({ line, indent }: Console
   )
 })
 
+/** Props for `<ConsoleGroup>`. */
 export type ConsoleGroupProps = {
+  /** Group line data, including its `lines` and `collapsed` state. */
   line: SpellConsoleGroup
+  /** Nesting depth, for left padding. */
   indent: number
 }
+
+/****************
+ * ### `<ConsoleValue>`
+ * Single styled value within a console line's message (see `ConsoleObject`).
+ * - Clicking an `observable` value inspects it via `onObservableClick`.
+ ****************/
 export function ConsoleValue({ type, display, observable }: ConsoleValueProps) {
   const onClick = observable ? () => onObservableClick(observable) : () => {}
   return (
@@ -200,11 +255,21 @@ function onObservableClick(thing: unknown): void {
   if (thing instanceof P.Match) void store.showMatch(thing)
 }
 
+/** Props for `<ConsoleValue>`. */
 export type ConsoleValueProps = {
+  /** CSS class / kind tag for styling, e.g. `"string"`, `"number"`, a constructor name. */
   type: string
+  /** Rendered content. */
   display: ReactNode
+  /** Underlying value, if clicking should inspect it via `onObservableClick`. */
   observable?: unknown
 }
+
+/****************
+ * ### `<ConsoleObject>`
+ * Renders one logged `thing` as a `<ConsoleValue>`, picking a `type` label and `display` string
+ * appropriate to its runtime type (primitive, function, `Date`, `Array`, `P.Match`, or generic object).
+ ****************/
 export function ConsoleObject({ thing }: ConsoleObjectProps) {
   if (thing === null) return <ConsoleValue type="null" display="null" />
   switch (typeof thing) {
@@ -248,4 +313,8 @@ export function ConsoleObject({ thing }: ConsoleObjectProps) {
   }
 }
 
-export type ConsoleObjectProps = { thing: unknown }
+/** Props for `<ConsoleObject>`. */
+export type ConsoleObjectProps = {
+  /** Logged value to render -- any type is accepted since `console.log` accepts anything. */
+  thing: unknown
+}

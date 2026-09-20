@@ -1,16 +1,22 @@
-//----------------------------
-// Base classes for spell
-//--------
+/**
+ * Base classes for spell.
+ */
 import { createRoot } from "react-dom/client"
 
 import { spellCore } from "~/spellCore/core"
 import { Thing } from "./Thing"
 
-//----------------------------
-// `App`: a Drawable that renders a full application.
-//  Set `draw` method and start things with `start app`.
-//--------
+/**
+ * `App`: a `Thing` (Drawable) that renders a full application -- what `a game is an app` extends.
+ * - Set the `draw` method (e.g. via a spell-compiled `to draw`) and start things with `start the game`.
+ */
 export class App extends Thing {
+  /**
+   * Mount this app's `.Component` into the DOM, creating `spellCore.REACT_APP_ROOT_ID` container
+   * `div` if it doesn't already exist.
+   * - Compiles from `start the game` -- see `draw.ts` (a method call on the app instance, not a global).
+   * - SIDE EFFECT: appends a `div` to `document.body` the first time it's called.
+   */
   start(): void {
     let element = document.getElementById(spellCore.REACT_APP_ROOT_ID)
     if (!element) {

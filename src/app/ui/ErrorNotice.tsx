@@ -4,11 +4,10 @@ import * as SUI from "semantic-ui-react"
 import { view, CustomError } from "~/util"
 import { store } from "~/app/store"
 
-/**
- * Display for a single `error`.
- * This can be inlined, stacked, etc.
- * See also `<ErrorNotice>`.
- */
+/****************
+ * ### `<ErrorDisplay>`
+ * Display for a single `error`.  This can be inlined, stacked, etc.  See also `<ErrorNotice>`.
+ ****************/
 export function ErrorDisplay(allProps: ErrorDisplayProps) {
   const {
     error, // `Error` to display
@@ -69,10 +68,13 @@ export type ErrorDisplayProps = Omit<SUI.MessageProps, "error" | "onDismiss"> & 
   /** Auto-hide delay, in msec. */
   autoHideDelay?: number
 }
-/**
- * Display `store.error` over page content.
- */
+/** Fixed position/size for `<ErrorNotice>`'s `<ErrorDisplay>`, centered near the top of the page. */
 const FIXED_ERROR_STYLE = { position: "fixed", top: 60, left: "calc(50% - 250px)", width: 500, zIndex: 100 } as const
+
+/****************
+ * ### `<ErrorNotice>`
+ * Display `store.error` over page content, via `<ErrorDisplay>`.
+ ****************/
 export const ErrorNotice = view(function ErrorNotice() {
   const { error } = store
   if (!error) return null

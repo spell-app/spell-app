@@ -5,6 +5,12 @@ import { SP } from "~/languages/spell"
 import { Actions } from "~/app/ui"
 import { UI, SpellPage } from "~/app/ui"
 
+/****************
+ * ### `<ProjectRootDisplay />`
+ * Card-style summary of one `projectRoot` (title/description plus a `<UI.ProjectMenu>` to open one of
+ * its projects); `children` render below the menu.
+ * - NOTE: currently unused -- `ProjectChooser` below lays projects/examples/guides out inline instead.
+ ****************/
 export const ProjectRootDisplay = React.memo(({ projectRoot, children, useRunner }: ProjectRootDisplayProps) => {
   return (
     <div className="ProjectRoot">
@@ -19,15 +25,21 @@ export const ProjectRootDisplay = React.memo(({ projectRoot, children, useRunner
   )
 })
 
+/** Props for `<ProjectRootDisplay />`. */
 export type ProjectRootDisplayProps = {
+  /** Root (projects/examples/guides) to summarize. */
   projectRoot: SP.SpellProjectRoot
+  /** Extra content rendered below `<UI.ProjectMenu>`. */
   children?: ReactNode
+  /** Whether `<UI.ProjectMenu>` entries open the runner (vs editor). */
   useRunner?: boolean
 }
-/**
- * <ProjectChooser />
- * Note that this does not need to be a `view()`.
- */
+
+/****************
+ * ### `<ProjectChooser />`
+ * Landing page listing projects/examples/guides side by side, with "create new" actions for each.
+ * - Note that this does not need to be a `view()`.
+ ****************/
 export const ProjectChooser = React.memo(function ProjectChooser() {
   const { Grid, Row, Column } = UI
   const { projects, examples, guides } = SP.SpellProjectRoot
@@ -96,6 +108,10 @@ export const ProjectChooser = React.memo(function ProjectChooser() {
   )
 })
 
+/****************
+ * ### `<ChooserToolbar />`
+ * Top menu bar for `<ProjectChooser>` -- active "chooser" link plus about/docs actions.
+ ****************/
 export function ChooserToolbar() {
   return (
     <UI.AppMenu>
@@ -113,9 +129,10 @@ export function ChooserToolbar() {
   )
 }
 
-/**
- * Reach-router `<Route/>` to show the ProjectChooser
- */
+/****************
+ * ### `<ProjectChooserRoute />`
+ * Reach-router `<Route/>` wrapper to show `<ProjectChooser>`.
+ ****************/
 export function ProjectChooserRoute(_props: RouteComponentProps) {
   return <ProjectChooser />
 }

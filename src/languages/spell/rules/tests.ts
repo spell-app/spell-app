@@ -1,21 +1,33 @@
-//
-//  # Rules for inline spell tests.
-//
+/**
+ * Rules for inline spell tests -- `expect`/`start test`/`end test`/`echo`, used to write assertions and
+ * debug output directly in spell source rather than in a separate test language.
+ */
 
 import { P, AST } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 
-// `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass
-// that the referenced sub-rule's `getAST()` is known (by inspection) to always produce.
+/**
+ * Narrow `node` from `AST.ASTNode | undefined` to concrete subtype `T`.
+ * - `Match.AST` is typed generically as `ASTNode | undefined`; use this where a referenced sub-rule's
+ *   `getAST()` is known (by inspection, not statically provable) to always produce `T`.
+ * - Does not actually check `node`'s type or that it's defined -- purely a compile-time cast.
+ */
 function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
   return node as T
 }
 
+/** Rule module for inline test rules (`expect_test`, `start_test`, `end_test`, `echo`). */
 export const tests = new SpellParser({
   module: "tests",
   rules: [
+    /**
+     * `expect {expression}` or `expect {expression} to be {value}` -- an assertion.
+     * - `testRule: "expect"` is a quick keyword pre-check (compiled from rulex syntax) so the full
+     *   sequence match is only attempted when the line actually starts with `expect`.
+     * - e.g. `expect the rank of it to be "queen"` => `spellCore.expect(it.rank, ..., "queen", ...)`.
+     */
     {
       name: "expect_test",
       alias: ["statement"],
@@ -60,6 +72,10 @@ export const tests = new SpellParser({
         }
       ]
     },
+    /**
+     * `start test {message}` or `start quiet test {message}` -- marks beginning of a named test run.
+     * - `quiet` suppresses normal test output (e.g. for tests nested inside other tests).
+     */
     {
       name: "start_test",
       alias: "statement",
@@ -76,6 +92,7 @@ export const tests = new SpellParser({
         }
       }
     },
+    /** `end test` -- marks end of the current named test run started by `start_test`. */
     {
       name: "end_test",
       alias: "statement",
@@ -88,6 +105,7 @@ export const tests = new SpellParser({
         }
       }
     },
+    /** `echo {expression}` -- print `expression`'s value, e.g. for debugging. */
     {
       name: "echo",
       alias: ["statement"],

@@ -9,7 +9,10 @@ import { store } from "~/app/store"
 import { UI } from "~/app/ui"
 import { Actions } from "./Actions"
 
-/* Single item in FileDropdown */
+/****************
+ * ### `<FileDropdownAction>`
+ * Single item in `<FileDropdown>`'s menu, for one file `path` in the current project.
+ ****************/
 const FileDropdownAction = React.memo(({ useRunner, path, location, active }: FileDropdownActionProps) => (
   <SUI.Dropdown.Item
     text={location.file}
@@ -20,14 +23,22 @@ const FileDropdownAction = React.memo(({ useRunner, path, location, active }: Fi
   />
 ))
 
+/** Props for `<FileDropdownAction>`. */
 export type FileDropdownActionProps = {
+  /** Open `<SpellRunner>` instead of `<SpellEditor>` when clicked. */
   useRunner: boolean
+  /** File path this item selects. */
   path: string
+  /** Parsed location for `path`, used to show its file name. */
   location: SP.SpellLocation
+  /** Whether this is `store.file`, the currently selected file. */
   active: boolean
 }
 
-/** Menu of all available files for the selected project. */
+/****************
+ * ### `<FileDropdown>`
+ * Menu of all available files for the selected project (`store.project`).
+ ****************/
 export const FileDropdown = view(function FileDropdown({
   useRunner = false,
   showLabel = true,
@@ -70,8 +81,12 @@ export const FileDropdown = view(function FileDropdown({
   )
 })
 
+/** Props for `<FileDropdown>`. */
 export type FileDropdownProps = {
+  /** Open `<SpellRunner>` instead of `<SpellEditor>` when an item is clicked. */
   useRunner?: boolean
+  /** Prepend a `<UI.DropdownLabel>` before the dropdown. */
   showLabel?: boolean
+  /** Append `Actions.FILE_DROPDOWN_ACTIONS` after a divider. */
   showActions?: boolean
 }

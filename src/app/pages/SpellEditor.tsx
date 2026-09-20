@@ -7,13 +7,16 @@ import { UI, Actions } from "~/app/ui"
 import { store } from "~/app/store"
 import type { SpellRouteParams } from "./pages.types"
 
-/**
+/****************
  * ### `<SpellEditor />`
- * DOCME
- *
- * - Note that this does not need to be a `view()`,
- *   it redraws automatically when the file changes.
- */
+ * Main editing page: `<UI.InputRoot>` (code editor) plus `<UI.ConsoleRoot>` (compile/run log) on the left,
+ * `<UI.AppRoot>` (live rendered app) plus `<UI.ASTRoot>`/`<UI.MatchRoot>` (parse tree / match inspector)
+ * on the right.
+ * - SIDE EFFECT: sets `store.projectPage = "editor"` on every render.
+ * - Wires up save/reload/compile/new-file hotkeys that only fire outside CodeMirror -- CodeMirror.js
+ *   duplicates the same bindings for use inside the editor itself.
+ * - Note that this does not need to be a `view()`, it redraws automatically when the file changes.
+ ****************/
 export const SpellEditor = React.memo(function SpellEditor() {
   store.projectPage = "editor"
   // Set up hotkey when NOT in codemirror
@@ -56,6 +59,10 @@ export const SpellEditor = React.memo(function SpellEditor() {
   )
 })
 
+/****************
+ * ### `<EditorToolbar />`
+ * Top menu bar for `<SpellEditor>` -- project dropdown, runner/settings actions, and about/docs links.
+ ****************/
 export function EditorToolbar() {
   return (
     <UI.AppMenu>
@@ -78,10 +85,12 @@ export function EditorToolbar() {
   )
 }
 
-/**
+/****************
+ * ### `<SpellEditorRoute />`
  * Reach-router `<Route/>` to show a project/example/etc by path.
- * Note that this will redraw the editor every time the route changes.
- */
+ * - Note that this will redraw the editor every time the route changes.
+ * - HACK: navigates on a timeout to avoid hook/rerender problems.
+ ****************/
 export function SpellEditorRoute(props: RouteComponentProps<SpellRouteParams>) {
   const { domain, project, filePath } = props
   const path = SP.SpellLocation.pathForUrl({ domain, project, filePath })

@@ -1,16 +1,17 @@
-//
-//  # Random statements
-//
+/**
+ * Random statements that didn't earn their own file.
+ */
 
 import { P, AST } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 
+/** Rule module for miscellaneous statements (currently just `do_nothing`). */
 export const statements = new SpellParser({
   module: "statements",
   rules: [
-    /** Do nothing! */
+    /** No-op statement -- compiles to `spellCore.doNothing()`. */
     {
       name: "do_nothing",
       alias: "statement",

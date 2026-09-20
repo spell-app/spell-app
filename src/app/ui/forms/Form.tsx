@@ -10,19 +10,26 @@ import * as SUI from "semantic-ui-react"
 
 import { F } from "~/app/ui/forms"
 
+/****************
+ * ### `<Form>`
+ * Wraps `SUI.Form`, walking `children` to wire `form`/`path` props into any field whose type declares
+ * static `injectForm` (see `F.WithField()` / `F.WithForm()`), and backing them all with a shared
+ * `F.FormStore`.
+ ****************/
 export class Form<V extends object> extends React.Component<FormProps<V>> {
   /**
-   * Create react-easy-state store on construction
-   * NOTE: to get a handle to the store OUTSIDE the <Form>, do:
+   * Create react-easy-state store on construction.
+   * NOTE: to get a handle to the store OUTSIDE the `<Form>`, do:
    *       `myStore = makeFormStore()`
    *       `return <Form store={myStore}... />`
    */
   store: F.FormStore<V> = this.props.store || F.makeFormStore(this.props.value ?? ({} as V))
 
-  ////////////////////
-  // upgrade children to point back to us as their `form`???
-  // TODO: we're assuming children never change???
-  ////////////////////
+  /**
+   * Walk `children` recursively, calling `enhanceField()` on each element so it points back to us as
+   * its `form`.
+   * TODO: we're assuming children never change???
+   */
   enhanceFields = (children: ReactNode, parentPath = ""): ReactNode[] => {
     return React.Children.toArray(children).map((child, index) => {
       if (!React.isValidElement(child)) return child
@@ -35,6 +42,12 @@ export class Form<V extends object> extends React.Component<FormProps<V>> {
       return enhanced
     })
   }
+
+  /**
+   * Clone `child` with `form`/`path` props injected, if its type declares static `injectForm`
+   * (see `F.WithField()` / `F.WithForm()`).  Non-field children pass through unchanged.
+   * - `parentPath` scopes a nested field's dotted `path` under any enclosing `<F.FormGroup name=...>`.
+   */
   enhanceField = (child: ReactElement, key: string | number, parentPath: string): ReactElement => {
     const type = child.type as { injectForm?: boolean }
     if (!type?.injectForm) return child
@@ -50,16 +63,16 @@ export class Form<V extends object> extends React.Component<FormProps<V>> {
     return clone
   }
 
-  // Map of `{ <fieldId>: <fieldWrapper> }` set up when fields render.
+  /** Map of `{ <fieldId>: <fieldWrapper> }`, set up when fields render (see `FieldWrapper.render()`). */
   fields: Record<string, MountedField> = {}
 
-  // Have our fields re-render
+  /** Have our fields re-render. */
   updateFields() {
     Object.values(this.fields).forEach((field) => field.forceUpdate?.())
   }
 
   ////////////////////
-  // `value` API for children
+  // ## `value` API for children
   ////////////////////
 
   /**
@@ -94,24 +107,31 @@ export class Form<V extends object> extends React.Component<FormProps<V>> {
   }
 
   ////////////////////
-  // errors API as a FLAT object (e.g. no nesting of paths)
+  // ## Errors API as a FLAT object (e.g. no nesting of paths)
   ////////////////////
+
+  /** Reactively get the error for a field by nested `path`. */
   getError(path: string): string | undefined {
     return this.store.getError(path)
   }
+  /** Reactively set the error for a field by nested `path`.  `undefined` clears it. */
   setError(path: string, error: string | undefined): void {
     this.store.setError(path, error)
   }
+  /** Whether any field currently has an error. */
   get hasErrors(): boolean {
     return this.store.hasErrors
   }
 
   ////////////////////
-  // submission -- only submit if we're error free!!
+  // ## Submission -- only submit if we're error free!!
   ////////////////////
+
+  /** Force every mounted field to (re)validate, whether touched or not. */
   validateFields(): void {
     Object.values(this.fields).forEach((field) => field?.validate?.())
   }
+  /** Validate all fields, then call `props.onSubmit(raw)` unless any field has an error. */
   submit(): void {
     // Have all fields check their validation, whether touched or not
     this.validateFields()
@@ -121,9 +141,10 @@ export class Form<V extends object> extends React.Component<FormProps<V>> {
   }
 
   ////////////////////
-  // rendering
+  // ## Rendering
   ////////////////////
 
+  /** Render `SUI.Form` wrapping `enhanceFields(children)`. */
   render() {
     if (this.props.debug) console.info("Rendering form")
     const { store, value, children, onSubmit, debug, ...props } = this.props
@@ -135,6 +156,7 @@ export class Form<V extends object> extends React.Component<FormProps<V>> {
   }
 }
 
+/** Props for `<Form>`. */
 export type FormProps<V extends object> = Omit<SUI.FormProps, "onSubmit"> & {
   /** Existing store to use, e.g. one created outside the `<Form>` via `makeFormStore()`. */
   store?: F.FormStore<V>
@@ -142,10 +164,13 @@ export type FormProps<V extends object> = Omit<SUI.FormProps, "onSubmit"> & {
   value?: V
   /** Called with the form's raw POJO value on successful submission. */
   onSubmit?: (raw: V) => void
+  /** Log field renders / value changes / submit to the console. */
   debug?: boolean
 }
 /** Minimal duck-type for a mounted field, as registered in `form.fields`. */
 type MountedField = {
+  /** Force the field to re-render, e.g. after `form.setValue()`. */
   forceUpdate?: () => void
+  /** Re-run the field's validation, e.g. from `form.validateFields()`. */
   validate?: () => void
 }

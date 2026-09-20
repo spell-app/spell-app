@@ -7,10 +7,20 @@ import { hasOwnProp } from "./class"
 /** Export all `extend` functionality as a barrel. */
 export * as extend from "./extend"
 
+/**
+ * Per-object `props`/`state` storage, keyed by object identity rather than a property on
+ * `target` itself.
+ * - Lets us attach reactive `props`/`state` to any object without mutating its shape directly.
+ * - `WeakMap` means entries are garbage-collected along with `target` -- no manual cleanup needed.
+ * - NOTE: `derived` data is NOT kept here -- see `derivedFor()`, which stores directly on `target`.
+ */
 export const EXTEND_MAP = new WeakMap<any, Record<string, any>>()
 
+/** Lazily-created `props`/`state` storage for one object, as tracked in `EXTEND_MAP`. */
 export type ExtendedData = {
+  /** Reactive public `props` -- raw `map` plus the `react-easy-state` `$store` proxy over it. */
   props?: { map: Record<string, any>; $store: Record<string, any> }
+  /** Reactive private `state` -- raw `map` plus the `react-easy-state` `$store` proxy over it. */
   state?: { map: Record<string, any>; $store: Record<string, any> }
 }
 
@@ -20,7 +30,12 @@ export function extendedFor(target: any): ExtendedData {
   return EXTEND_MAP.get(target)!
 }
 
-/** Initialize `ExtendedData` for the `target` object. */
+/**
+ * Eagerly set up `ExtendedData` for `target`, for whichever of `"derived" | "props" | "state"`
+ * are named in `what`.
+ * - Needed before assigning props/state on a fresh instance -- e.g. `Observable`'s constructor
+ *   calls this before `Object.assign(this, props)`, so the reactive getters/setters already exist.
+ */
 export function initializeExtended(target: any, ...what: Array<"derived" | "props" | "state">) {
   if (!EXTEND_MAP.has(target)) EXTEND_MAP.set(target, {})
   if (what.includes("derived")) derivedFor(target)
@@ -28,9 +43,9 @@ export function initializeExtended(target: any, ...what: Array<"derived" | "prop
   if (what.includes("state")) stateFor(target)
 }
 
-//-----------------
-// Derived
-//-----------------
+////////////////
+// ## Derived
+////////////////
 
 // /** `@derived` decorator. */
 // export function derived(target: any, context: DecoratorContext) {
@@ -45,7 +60,11 @@ export function initializeExtended(target: any, ...what: Array<"derived" | "prop
 //   return () => getDerived(target, context.name, context.access.get as () => any)
 // }
 
-/** Return raw `derived` map for `target` object. */
+/**
+ * Return raw `derived` map for `target` object.
+ * - SIDE EFFECT: defines a non-enumerable `__derived__` property directly on `target` if missing --
+ *   unlike `props`/`state`, this is stored on `target` itself rather than in `EXTEND_MAP`.
+ */
 function derivedFor(target: any) {
   if (!target.__derived__) {
     Object.defineProperty(target, "__derived__", { value: {} })
@@ -98,17 +117,21 @@ export function clearDerived(target: any, ...properties: string[]) {
   properties.forEach((property) => delete derived[property])
 }
 
-//-----------------
-// Props
-//-----------------
+////////////////
+// ## Props
+////////////////
 
-/** Return raw `props` map for `target` object. */
+/**
+ * Return raw `props` map for `target` object.
+ * - SIDE EFFECT: on first call, also defines a non-enumerable `$props` property on `target`
+ *   pointing at the raw (non-reactive) map, for debugging/inspection.
+ */
 function propsFor(target: any) {
   const extended = extendedFor(target)
   if (!extended.props) {
     const map = {}
     extended.props = { map, $store: createStore(map) }
-    // DEBUG
+    // DEBUG: expose raw map as `$props` for inspection
     Object.defineProperty(target, "$props", { value: map })
   }
   return extended.props
@@ -129,6 +152,7 @@ export function getProp<T>(target: any, property: string, initializer?: () => T)
   }
   return props.$store[property]
 }
+
 /**
  * Set reactive `property` to `value`.
  * - If `value` is `undefined`, deletes the property instead.
@@ -139,15 +163,16 @@ export function setProp<T>(target: any, property: string, value: T) {
   else props.$store[property] = value
   return value
 }
+/** Set multiple reactive `props` at once, in a single `batch()` so reactive consumers only re-run once. */
 export function setProps(target: any, props: Record<string, any>) {
   batch(() => {
     Object.entries(props).forEach(([prop, value]) => setProp(target, prop, value))
   })
 }
 
-//-----------------
-// State
-//-----------------
+////////////////
+// ## State
+////////////////
 
 // /** `@state` decorator. */
 // export function state<T>(target: any, context: DecoratorContext) {
@@ -183,6 +208,7 @@ export function getState<T>(target: any, property: string, initializer?: () => T
   }
   return state.$store[property]
 }
+
 /**
  * Set reactive `property` to `value`.
  * - If `value` is `undefined`, deletes the property instead.
@@ -208,13 +234,12 @@ export function resetState<T>(target: any, ...properties: string[]) {
   })
 }
 
-//-----------------
-// Override
-//-----------------
+////////////////
+// ## Override
+////////////////
 /**
- * Override getter defined for `property` on `target`,
- * returning explicit `value` instead.
- * - Note that you can call this repeatedly.
+ * Override getter defined for `property` on `target`, returning explicit `value` instead.
+ * - NOTE: can call this repeatedly -- each call replaces the previous override.
  */
 export function overrideProp(target: any, property: string, value: any) {
   Object.defineProperty(target, property, {
@@ -228,19 +253,37 @@ export function overrideProp(target: any, property: string, value: any) {
   })
 }
 
-//-----------------
-// Utilities
-//-----------------
+////////////////
+// ## Utilities
+////////////////
 
+/**
+ * Wrap `thing` in a `WeakRef` if it's an object, otherwise pass it through unchanged.
+ * - Used to store `dependencies` arrays (see `getDerivedFrom()`) without holding strong
+ *   references, so a dependency doesn't leak or create circular references.
+ */
 export function objectToWeakRef(thing: any) {
   if (thing instanceof Object) return new WeakRef(thing)
   return thing
 }
+
+/**
+ * Unwrap a `WeakRef` back to its referent, otherwise pass `thing` through unchanged.
+ * - Inverse of `objectToWeakRef()`.
+ * - Returns `undefined` if the referent has been garbage-collected.
+ */
 export function objectFromWeakRef(thing: any) {
   if (thing instanceof WeakRef) return thing.deref()
   return thing
 }
 
+/**
+ * Return `true` if corresponding items of `list1` and `list2` are `===` equal, after unwrapping
+ * any `WeakRef`s (see `objectFromWeakRef()`).
+ * - Returns `false` if either isn't an array, or their lengths differ.
+ * - TODO: the loop `return`s on its first iteration, so only `list1[0]`/`list2[0]` actually get
+ *   compared -- looks like it should `continue` (or short-circuit only on mismatch) instead.
+ */
 export function dependenciesMatch(list1: any[], list2: any[]) {
   // Quick exit if either is not an array or lengths don't match.
   if (

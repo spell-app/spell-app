@@ -1,8 +1,9 @@
 import { UIError } from "./CustomError"
 
 /**
- * Die with some error `message` and optional `params`.
- * Simple error-throwing utility for quick failures.
+ * Return (does not throw) an `Error` with some `message`, warning to console with `params` first.
+ * - Simple error-building utility for quick failures -- caller decides whether to `throw` it.
+ * - For a richer version with `context`/`activity` tracking, see `getDier()` below.
  */
 export function die(message: string, params?: any) {
   console.warn(`DIE!  ${message}`, params || "(no params)")
@@ -10,18 +11,14 @@ export function die(message: string, params?: any) {
 }
 
 /**
- * Return a function we'll use to `die()` when something goes wrong.
- *
- * In `getDier()`:
- *  - `context` (required) is the object that owns the process, e.g. an instance or singleton.
- *  - `activity` (required) is the name of the activity you're performaing.
- *  - `params` (optional) are any relevant parameters.
- *
- * This will give you back a `die` function that takes arguments:
- *  - `message` (required) text description for exactly what went wrong.
- *  - `error` (optional) Originally thrown error, e.g. `fetch` error, etc.
- * The `die` function has a `params` object (a clone of `params` above, or an empty object if no params).
- * You can update `params` as you go, e.g. if you're figuring out unspecified params as you go along.
+ * Return a `die()` function scoped to some `context`/`activity`, for throwing a `UIError` when things go wrong.
+ * - `context` (required) is object that owns process, e.g. an instance or singleton.
+ * - `activity` (required) is name of activity you're performing.
+ * - `params` (optional) are any relevant parameters.
+ * - Returned `die` function takes `message` (required) and `error` (optional, e.g. a caught `fetch` error)
+ *   and throws -- return type `never` lets you write `getTheVal() ?? die("Couldn't get the val!")`.
+ * - Returned `die` function also carries a `.params` property (clone of `params` above, or `{}`), which you
+ *   can mutate as you discover more parameters along the way.
  *
  * e.g.
  *  async function doSomething(param1, param2) {
@@ -46,6 +43,7 @@ export function die(message: string, params?: any) {
  *  }
  */
 export function getDier(context: any, activity: string, params: any) {
+  /** Scoped `die()` returned by `getDier()` -- see there for details. */
   function die(message: string, error?: any): never {
     throw new UIError(
       {
@@ -58,7 +56,7 @@ export function getDier(context: any, activity: string, params: any) {
       die
     )
   }
-  // update `die.params` as you go
+  // Seed `die.params` with a clone of `params` -- callers mutate it as they go.
   die.params = { ...params }
   return die
 }

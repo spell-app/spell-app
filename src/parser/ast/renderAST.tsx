@@ -1,23 +1,20 @@
 /**
- *
- * Utilites for rendering things (e.g. `ASTNode`s) as React components.
- * Contract:
- *  - each thing has a GENERIC `getComponent(key?)` method which renders an outer container.
- * Usage:
- *    `import * as draw from ".../drawComponent"`
- * TODOC!!!
- *    etc
+ * Output backend for `ASTNode`s -- draws parens/lists/blocks/etc. as React elements, for syntax-highlighted display.
+ * - Mirrors `stringifyAST.ts` export-for-export: same core names (`SPACE`, `COMMA`, `List`, `InParens`, `Block`, ...)
+ *   but returning `ReactElement`/`ReactNode` instead of `string`.  See barrel `index.ts` NOTE -- they MUST
+ *   stay namespaced.
+ * - Usage: `import * as render from "./renderAST"`, then e.g. `render.Args({ args })`.
  */
 import React from "react"
 import type { ASTNode } from "./AST"
 
-///////////////////
-// UTILITY FUNCTIONS
-///////////////////
+////////////////
+// ## Utility Functions
+////////////////
 
 /**
- * Draw a React.Fragment which encompasses the arguments.
- * Simpler implementations seem to have problems in babel.
+ * Draw a `React.Fragment` which encompasses `children`.
+ * - Simpler implementations (e.g. plain array returns) seem to have problems in babel.
  */
 export function Fragment(...children: ReactNode[]): ReactElement {
   return React.createElement(React.Fragment, null, ...children)
@@ -25,14 +22,18 @@ export function Fragment(...children: ReactNode[]): ReactElement {
 
 /**
  * Return a React functional component which will show as `name` in a rendering error, etc.
- * TODOC
+ * - HACK: mutates the given `renderFn`'s `name` property via `defineProperty` (function `name` is normally
+ *   read-only) instead of declaring a real named function, so callers can pass an inline closure and still
+ *   get a useful name in React DevTools / error stacks.
  */
 export function getNamedComponent(name: string, renderFn: () => ReactElement): () => ReactElement {
   Object.defineProperty(renderFn, "name", { value: name })
   return renderFn
 }
 
-///////////////////
+////////////////
+// ## Node Rendering
+////////////////
 
 /** Default render for a single ASTNode. */
 export function Node(astNode: ASTNode): ReactElement {
@@ -54,23 +55,35 @@ export function Node(astNode: ASTNode): ReactElement {
   return React.createElement(Component)
 }
 
+////////////////
+// ## Whitespace & Delimiters
+////////////////
+
 /** Draw a single space. */
 export const SPACE = <span className="whitespace space"> </span>
-/** Draw an indent as a list delimiter. */
+/** Draw a single indent (tab) -- combined with `NEWLINE` below to build `INDENTED_NEWLINE`. */
 export const INDENT = <span className="whitespace indent">{"\t"}</span>
 /** Draw a newline as a list delimiter. */
 export const NEWLINE = <span className="whitespace newline">{"\n"}</span>
-/** Draw a newline as a list delimiter. */
+/** Draw a newline followed by an indent -- delimiter for wrapped/indented lists. */
 export const INDENTED_NEWLINE = Fragment(NEWLINE, INDENT)
 
 /** Draw a comma as a list delimiter. */
 export const COMMA = <span className="punctuation comma">,</span>
-/** Draw a comma and then a newline as a list delimiter. */
+/** Draw a comma and then a space as a list delimiter. */
 export const SPACED_COMMA = Fragment(COMMA, SPACE)
 /** Draw a comma and then a newline as a list delimiter. */
 export const INDENTED_COMMA = Fragment(COMMA, INDENTED_NEWLINE)
 
-/** Common symbols/etc */
+////////////////
+// ## Keyword & Operator Tokens
+////////////////
+
+/**
+ * Pre-built spans for keywords/operators/punctuation used across `renderChildren()` implementations in `AST.tsx`,
+ * each carrying a `className` for syntax-highlighting CSS.  No `stringifyAST.ts` equivalent -- plain-string
+ * compile output embeds these literally instead (e.g. `` `await ${expr}` ``).
+ */
 export const PERIOD = <span className="operator period">.</span>
 export const BANG = <span className="operator exclamation-point">!</span>
 export const EQUALS = <span className="operator equals">{" = "}</span>
@@ -96,11 +109,19 @@ export const TRY = <span className="keyword try">{"try "}</span>
 export const CATCH = <span className="keyword catch">{"catch "}</span>
 export const FINALLY = <span className="keyword finally">{"finally "}</span>
 
+////////////////
+// ## List Rendering
+////////////////
+
 /** Draw a single item in a list by having it render its component. */
 export const Item = ({ item }: { item?: ASTNode | null; index: number }): ReactNode =>
   item != null ? item.component : null
 
-/** Draw a series of items with a delimiter between */
+/**
+ * Draw a series of `items` joined by `delimiter` (default `SPACED_COMMA`).
+ * - Returns `null` when `items` is empty/absent.
+ * - `DrawItem` overridable per-item renderer, defaulting to `Item`.
+ */
 export const List = ({
   items,
   delimiter = SPACED_COMMA,
@@ -120,10 +141,23 @@ export const List = ({
   return React.createElement(React.Fragment, null, ...kids)
 }
 
-/** Surround `children` in parens. */
+////////////////
+// ## Parens & Call Args
+////////////////
+
+/** Opening-paren span. */
 export const LEFT_PAREN = <span className="punctuation open-paren">(</span>
+/** Closing-paren span. */
 export const RIGHT_PAREN = <span className="punctuation close-paren">)</span>
+/** `()` -- returned by `InParens` when there's nothing to wrap. */
 export const EMPTY_PARENS = Fragment(LEFT_PAREN, RIGHT_PAREN)
+/**
+ * Surround `children` in parens.
+ * - `wrap`: newline delimiter either side of `children` (indentation itself comes from CSS, unlike
+ *   `stringifyAST.ts`'s `InParens` which has to indent the string by hand).
+ * - `space`: single-space delimiter instead -- ignored if `wrap`.
+ * - Returns `EMPTY_PARENS` if `children` is falsy.
+ */
 export const InParens = ({
   children = null,
   wrap = false,
@@ -138,13 +172,19 @@ export const InParens = ({
   return Fragment(LEFT_PAREN, delimiter, children, delimiter, RIGHT_PAREN)
 }
 
-/** Draw list of function `args` */
+/** Draw one `Args` list item, wrapped in an `arg arg-{index}` span so each arg can be targeted by CSS. */
 export const Arg = ({ item, index }: { item?: ASTNode | null; index: number }): ReactElement => (
   <span key={index} className={`arg arg-${index}`}>
     <Item item={item} index={index} />
   </span>
 )
 
+/**
+ * Draw list of function `args`, comma-delimited and wrapped in parens.
+ * - Defaults to `wrap: true` once there are more than 3 args.
+ * - Unlike `stringifyAST.ts`'s `Args`, doesn't special-case empty `args` itself -- relies on
+ *   `InParens` returning `EMPTY_PARENS` when `List` renders `null` for an empty/absent list.
+ */
 export const Args = ({
   args,
   wrap = (args?.length ?? 0) > 3
@@ -164,26 +204,46 @@ export const Args = ({
   )
 }
 
-/** Surround `children` in double quotes. */
+////////////////
+// ## Quotes
+////////////////
+
+/** Double-quote span. */
 export const DOUBLE_QUOTE = <span className="punctuation double-quote">{'"'}</span>
+/** Surround `children` in double quotes. */
 export const InDoubleQuotes = ({ children }: { children?: ReactNode }): ReactElement =>
   Fragment(DOUBLE_QUOTE, children, DOUBLE_QUOTE)
 
-/** Surround `children` in single quotes. */
+/** Single-quote span. */
 export const SINGLE_QUOTE = <span className="punctuation single-quote">{"'"}</span>
+/** Surround `children` in single quotes. */
 export const InSingleQuotes = ({ children }: { children?: ReactNode }): ReactElement =>
   Fragment(SINGLE_QUOTE, children, SINGLE_QUOTE)
 
-/** Surround `children` in back ticks. */
+/** Back-tick span. */
 export const BACK_TICK = <span className="punctuation back-tick">{"`"}</span>
+/** Surround `children` in back ticks. */
 export const InBackTicks = ({ children }: { children?: ReactNode }): ReactElement =>
   Fragment(BACK_TICK, children, BACK_TICK)
+/** Surround `children` in triple back ticks, e.g. for a fenced code block. */
 export const InTripleBackTicks = ({ children }: { children?: ReactNode }): ReactElement =>
   Fragment(BACK_TICK, BACK_TICK, BACK_TICK, children, BACK_TICK, BACK_TICK, BACK_TICK)
 
-/** Surround `children` in curly brackets. */
+////////////////
+// ## Curly Brackets & Blocks
+////////////////
+
+/** Opening-curly-brace span. */
 export const LEFT_CURLY = <span className="punctuation left-curly-bracket">{"{"}</span>
+/** Closing-curly-brace span. */
 export const RIGHT_CURLY = <span className="punctuation right-curly-bracket">{"}"}</span>
+/**
+ * Surround `children` in curly brackets.
+ * - `wrap`: newline delimiter either side of `children`.
+ * - `space`: single-space delimiter instead -- ignored if `wrap`.
+ * - NOTE: unlike `stringifyAST.ts`'s `InCurlies`, does NOT special-case empty/falsy `children` --
+ *   that's handled one level up, by `Block` returning `EMPTY_BLOCK`.
+ */
 export const InCurlies = ({
   children,
   wrap = false,
@@ -196,12 +256,18 @@ export const InCurlies = ({
   const delimiter = (wrap && NEWLINE) || (space && SPACE) || null
   return Fragment(LEFT_CURLY, delimiter, children, delimiter, RIGHT_CURLY)
 }
-/** Draw a block surrounded by curlies. */
+/** `{}` -- returned by `Block` when there's nothing to wrap. */
 export const EMPTY_BLOCK = (
   <span className="ASTBlock empty">
     <InCurlies />
   </span>
 )
+/**
+ * Draw a block surrounded by curlies -- thin wrapper over `InCurlies` used for statement/object bodies.
+ * - `space` defaults to `!wrap`: a single-line block gets spaced curlies, a wrapped one doesn't need it
+ *   since the newlines already separate content from the braces.
+ * - Returns `EMPTY_BLOCK` if `children` is falsy (this is where the empty check `InCurlies` itself lacks lives).
+ */
 export const Block = ({
   children = null,
   wrap = false,
@@ -221,9 +287,21 @@ export const Block = ({
   )
 }
 
-/** Surround `children` in square brackets. */
+////////////////
+// ## Square Brackets & Arrays
+////////////////
+
+/** Opening-square-bracket span. */
 export const LEFT_SQUARE_BRACKET = <span className="punctuation left-square-bracket">[</span>
+/** Closing-square-bracket span. */
 export const RIGHT_SQUARE_BRACKET = <span className="punctuation right-square-bracket">]</span>
+/**
+ * Surround `children` in square brackets.
+ * - `wrap`: newline delimiter either side of `children`.
+ * - `space`: single-space delimiter instead -- ignored if `wrap`.
+ * - NOTE: unlike `stringifyAST.ts`'s `InSquareBrackets`, does NOT special-case empty/falsy `children` --
+ *   that's handled one level up, by `Array` returning `EMPTY_ARRAY`.
+ */
 export const InSquareBrackets = ({
   children = null,
   wrap = false,
@@ -237,10 +315,14 @@ export const InSquareBrackets = ({
   return Fragment(LEFT_SQUARE_BRACKET, delimiter, children, delimiter, RIGHT_SQUARE_BRACKET)
 }
 
+/** `[]` -- returned by `Array` when there's nothing to wrap. */
+const EMPTY_ARRAY = <InSquareBrackets />
 /**
  * Draw an array of `items` delimited by commas and surrounded by square brackets.
+ * - `wrap` picks comma+newline vs. comma+space between items -- no auto-wrap-at-N-items
+ *   threshold like `Args` has.
+ * - `DrawItem` overridable per-item renderer, defaulting to `Item`.
  */
-const EMPTY_ARRAY = <InSquareBrackets />
 export const Array = ({
   items,
   DrawItem = Item,

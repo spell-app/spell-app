@@ -3,43 +3,37 @@ import { SP } from "~/languages/spell"
 
 /**
  * Loadable list of all `SpellProject`s available to this user.
- * NOTE: don't create these directly, use the ones set up by `SpellInstall`.
+ * - NOTE: don't create these directly, use ones set up by `SpellInstall`.
  */
 export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
   /**
    * Format for client/server requests.
-   *
-   * NOTE: the server accepts the bare `"json"` string for `requestFormat` (which becomes the
-   * `Content-Type` header); cast it once here against `$FetchRequestParams`'s stricter
-   * `KnownFormatMimeType` type rather than changing the actual value sent to the server.
-   *
-   * CLAUDE TODO:  WTF is this?
+   * - NOTE: server accepts bare `"json"` string for `requestFormat` (which becomes `Content-Type`
+   *   header); cast it once here against `$FetchRequestParams`'s stricter `KnownFormatMimeType`
+   *   type rather than changing actual value sent to server.
+   * - CLAUDE TODO:  WTF is this?
    */
   static REQUEST_FORMAT_JSON = "json" as KnownFormatMimeType
 
-  /**
-   * Singleton instances
-   */
+  /** Singleton `@user:projects` root. */
   static get projects(): SpellProjectRoot {
     return new SpellProjectRoot("@user:projects")
   }
+  /** Singleton `@system:examples` root. */
   static get examples(): SpellProjectRoot {
     return new SpellProjectRoot("@system:examples")
   }
+  /** Singleton `@system:guides` root. */
   static get guides(): SpellProjectRoot {
     return new SpellProjectRoot("@system:guides")
   }
 
-  /**
-   * Return EXISTING singleton root for projectRoot `path` or `undefined`.
-   */
+  /** Return EXISTING singleton root for projectRoot `path` or `undefined`. */
   static rootForPath(rootPath: SP.ProjectRootPath) {
     return this.registry.get(rootPath)
   }
 
-  /**
-   * Return singleton root associated with `name` string.
-   */
+  /** Return singleton root associated with `name` string. */
   static getRoot(name: string | undefined): SpellProjectRoot | undefined {
     if (typeof name !== "string") return undefined
     if (name.startsWith("project")) return SpellProjectRoot.projects
@@ -70,22 +64,22 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
   declare Type: string
   /** Type of project for string concatenation, as `project`, `example` or `guide`. */
   declare type: string
-  /** User friendly description of project. */
+  /** User-friendly description of project. */
   declare description: string
   /** Semantic UI icon of project. */
   declare icon: string
   /** Immutable `location` object which we use to get various bits of the path. */
   declare location: SP.SpellLocation
 
-  /**
-   * Given a `projectRoot` as `@user:projects` etc, return a singleton `SpellProjectRoot`
-   * Throws if `projectRoot` is not in `SpellSetup.projectRoots`.
-   */
   /** Registry of known instances. */
   static registry = new Map<string, SpellProjectRoot>()
 
-  // TODO: Calling this with `new ()` will return existing record.
-  //       This violates the principle of least surprise, move to `rootForProjectRootPath()`?
+  /**
+   * Given `projectRoot` as `@user:projects` etc, return a singleton `SpellProjectRoot`.
+   * Throws if `projectRoot` is not in `SpellSetup.projectRoots`.
+   * - TODO: Calling this with `new ()` will return existing record.  This violates the principle
+   *   of least surprise, move to `rootForProjectRootPath()`?
+   */
   constructor(path: SP.ProjectRootPath) {
     // Return immediately from registry if already present.
     const existing = SpellProjectRoot.registry.get(path)
@@ -104,9 +98,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
     return `/api/projects/list/${this.path}`
   }
 
-  /**
-   * Load our index if necesssary, calling `die()` if something goes wrong.
-   */
+  /** Load our index if necessary, calling `die()` if something goes wrong. */
   async loadOrDie(die: ReturnType<typeof getDier>): Promise<void> {
     if (this.isLoaded) return
     try {
@@ -116,9 +108,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
     }
   }
 
-  /**
-   * List of paths for all available `SpellProject`s.
-   */
+  /** List of paths for all available `SpellProject`s. */
   /*@memoizeForProp("contents")*/
   get projectPaths(): SP.ProjectPathList {
     return this.derivedFrom("projectPaths", () => this.contents || [], [this.contents])
@@ -126,9 +116,8 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
 
   /**
    * Pointers to all available `SpellProject`s.
-   * NOTE: this will throw if server sends invalid paths!!!
-   *
-   * TODOC: it's tricky to use this in a component!
+   * - NOTE: this will throw if server sends invalid paths!!!
+   * - TODOC: it's tricky to use this in a component!
    */
   /*@memoizeForProp("projectPaths")*/
   get projects(): SP.SpellProject[] {
@@ -139,20 +128,20 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
 
   /**
    * Assuming we're loaded, return a known project by `path`.
-   * Will return `undefined` if not found.
+   * Returns `undefined` if not found.
    */
   getProject(path: string): SP.SpellProject | undefined {
     return this.projects?.find((p) => p.path === path)
   }
 
-  //-----------------
-  //  Project CRUD
-  //-----------------
+  ////////////////
+  // ## Project CRUD
+  ////////////////
 
   /**
    * Show `prompt()` to get new filename.
-   * If you're basing off of a different project, pass its `projectId` (which MUST be valid!!!)
-   * Returns `projectId` or `undefined`
+   * - If you're basing off of a different project, pass its `projectId` (which MUST be valid!!!).
+   * - Returns `projectId` or `undefined`.
    */
   promptForProjectId({
     projectId,
@@ -268,7 +257,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
     if (!newLocation.isProjectPath) die("You must pass a newProjectId.")
     if (this.getProject(newProjectId)) die(`New ${this.type} already exists.`)
 
-    // Tell the server to duplicate the project, which returns new projects list
+    // Tell the server to rename the project, which returns new projects list
     try {
       const newContents = await $fetch<SP.ProjectPathList>({
         url: `/api/projects/rename/project`,
@@ -324,9 +313,11 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
     return true
   }
 
-  //-----------------
-  //  Debug
-  //-----------------
+  ////////////////
+  // ## Debug
+  ////////////////
+
+  /** Debug string, e.g. `SpellProjectRoot: @user:projects`. */
   toString(): string {
     return `${this.constructor.name}: ${this.path}`
   }

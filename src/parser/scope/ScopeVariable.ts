@@ -14,16 +14,17 @@ export class ScopeVariable {
    * e.g. to map spell: `its` to javascript: `this`.
    */
   declare output: string | undefined
-  /** Variable kind, One of `"argument"`, `"static"` or `undefined` for a normal variable. */
+  /** Variable kind.  One of `"argument"`, `"static"` or `undefined` for a normal variable. */
   declare kind: "argument" | "static" | undefined
   /** Type of the variable.  Not consistently used (yet). */
   declare datatype: string | undefined
   /** String used to initialize the variable.  Not consistently used. */
   declare initializer: string | undefined
   /**
-   * If true, this is an "alias" for another variable,
-   * meaning we will need to declare the variable if it is assigned to.
-   * DOCME?
+   * `true` if this is an implicit "alias" for another variable rather than a genuinely-declared one,
+   * e.g. `it`/`its` mapped to `this` -- see `MethodScope` constructor.
+   * - Assigning to an alias' name declares a real variable in its place: the `assignment` rule (in
+   *   `~/languages/spell`) treats it as `isNewVariable` and `variables.replace()`s it.
    */
   declare isAlias: boolean
 
@@ -36,12 +37,24 @@ export class ScopeVariable {
   }
 }
 
+/** Constructor props for `ScopeVariable`. */
 export type ScopeVariableProps = {
+  /** Required variable name, as used in spell. */
   name: string
+  /**
+   * Variable output name in translated language.
+   * Use this to make an "alias" for the variable w/in its scope, e.g. to map spell: `its` to
+   * javascript: `this`.
+   */
   output?: string
+  /** Variable kind.  One of `"argument"`, `"static"` or `undefined` for a normal variable. */
   kind?: "argument" | "static"
+  /** Type of the variable.  Not consistently used (yet). */
   datatype?: string
+  /** String used to initialize the variable.  Not consistently used. */
   initializer?: string
+  /** See `ScopeVariable.isAlias`. */
   isAlias?: boolean
+  /** Pointer to the scope where this variable was defined. */
   scope?: P.Scope
 }

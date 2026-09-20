@@ -1,8 +1,14 @@
 import { P } from "~/parser"
 
-/**
- * View for a particular `Match`.
- */
+/****************
+ * ### `<MatchView>`
+ * View for a particular `Match`, recursing into its `matched` children.
+ * - `block` children are pulled out into a separate `blocks` list and rendered as siblings, rather
+ *   than nested inside `.contents`, so blocks (indented sub-statements) lay out below their line.
+ * - A `P.Tokens.JSXElement` child routes to `<JSXElementView>` instead of recursing into `<MatchView>`.
+ * - `data-line`/`data-char`/`data-start`/`data-end` attributes let `MatchViewer` locate this element
+ *   for scroll/highlight by offset.
+ ****************/
 export function MatchView({ match }: MatchViewProps) {
   if (!match) return null
   const { rule, matched } = match
@@ -55,13 +61,23 @@ export function MatchView({ match }: MatchViewProps) {
   )
 }
 
-export type MatchViewProps = { match?: P.AnyMatch }
+/** Props for `<MatchView>`. */
+export type MatchViewProps = {
+  /** Match to render; `null`/`undefined` renders nothing. */
+  match?: P.AnyMatch
+}
+
 /**
  * `rules/JSX.ts` (a concurrently-converting chunk, `src/languages/spell/rules/**`) attaches ad-hoc
  * `attributes`/`children`/`statement`/`expression`/`error` fields to JSX-related matches during
  * `parse()` -- these aren't part of the core `Match` shape, so we mirror them locally here.
  */
 type JSXMatch = P.AnyMatch
+
+/****************
+ * ### `<TokenView>`
+ * Leaf view for a single `Token`.  `data-start`/`data-end` let `MatchViewer` locate it by offset.
+ ****************/
 export function TokenView({ token }: TokenViewProps) {
   if (!token) return null
   const className = ["Token", token.constructor.name, token.whitespace && "hasWhitespace"].filter(Boolean).join(" ")
@@ -73,7 +89,19 @@ export function TokenView({ token }: TokenViewProps) {
   )
 }
 
-export type TokenViewProps = { token?: P.Token }
+/** Props for `<TokenView>`. */
+export type TokenViewProps = {
+  /** Token to render; `null`/`undefined` renders nothing. */
+  token?: P.Token
+}
+
+/****************
+ * ### `<JSXElementView>`
+ * View for a JSX element match -- routes to `<JSXTextView>`/`<JSXExpressionView>` for `jsxText`/
+ * `jsxExpression` children, renders nothing for `jsxEndTag` (its own start tag draws the closing
+ * tag text), and otherwise draws a start tag with `attributes`, nested `children`, and an end tag
+ * (skipped for `isUnaryTag`).
+ ****************/
 export function JSXElementView({ match }: JSXElementViewProps) {
   const { ruleName } = match
   const { tagName, isUnaryTag } = match.tokens[0] as P.Tokens.JSXElement
@@ -105,7 +133,17 @@ export function JSXElementView({ match }: JSXElementViewProps) {
   )
 }
 
-export type JSXElementViewProps = { match: JSXMatch }
+/** Props for `<JSXElementView>`. */
+export type JSXElementViewProps = {
+  /** JSX element match, with `JSX.ts`'s ad-hoc `attributes`/`children` fields (see `JSXMatch`). */
+  match: JSXMatch
+}
+
+/****************
+ * ### `<JSXAttributeView>`
+ * View for one JSX attribute -- renders its name, and (if given a value) either a `<JSXTextView>`
+ * for a plain string value or the general `<MatchView>` for an expression/error value.
+ ****************/
 export function JSXAttributeView({ match }: JSXAttributeViewProps) {
   const attribute = match.matched[0] as P.Tokens.JSXAttribute
   const attrMatch = match.statement || match.expression || match.error
@@ -131,14 +169,33 @@ export function JSXAttributeView({ match }: JSXAttributeViewProps) {
   )
 }
 
-export type JSXAttributeViewProps = { match: JSXMatch }
+/** Props for `<JSXAttributeView>`. */
+export type JSXAttributeViewProps = {
+  /** JSX attribute match, with `JSX.ts`'s ad-hoc `statement`/`expression`/`error` fields. */
+  match: JSXMatch
+}
+
+/****************
+ * ### `<JSXTextView>`
+ * Leaf view for JSX text content -- trims `value` and renders nothing for whitespace-only text.
+ ****************/
 export function JSXTextView({ match }: JSXTextViewProps) {
   const value = match.value.trim()
   if (value === "") return null
   return <span className="JSXText">{value}</span>
 }
 
-export type JSXTextViewProps = { match: P.AnyMatch }
+/** Props for `<JSXTextView>`. */
+export type JSXTextViewProps = {
+  /** Match whose `value` is the raw text. */
+  match: P.AnyMatch
+}
+
+/****************
+ * ### `<JSXExpressionView>`
+ * View for a `{expression}` inside JSX -- renders the parsed `expression`, or `error` if it failed
+ * to parse, via the general `<MatchView>`.
+ ****************/
 export function JSXExpressionView({ match }: JSXExpressionViewProps) {
   const className = ["JSXExpression", match.expression && "hasExpression", match.error && "hasError"]
     .filter(Boolean)
@@ -150,4 +207,8 @@ export function JSXExpressionView({ match }: JSXExpressionViewProps) {
   )
 }
 
-export type JSXExpressionViewProps = { match: JSXMatch }
+/** Props for `<JSXExpressionView>`. */
+export type JSXExpressionViewProps = {
+  /** JSX expression match, with `JSX.ts`'s ad-hoc `expression`/`error` fields. */
+  match: JSXMatch
+}

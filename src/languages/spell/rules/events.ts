@@ -1,13 +1,16 @@
-//
-//  # Rules for creating variables, property access, etc
-//
+/**
+ * Rules for firing and watching global events on the `spellCore.RUNTIME` singleton -- `trigger`/`fire`/`send`
+ * and `on`.
+ */
 import { P, AST } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 
-// `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass
-// that the referenced sub-rule's `getAST()` is known (by inspection) to always produce.
+/**
+ * `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass that the
+ * referenced sub-rule's `getAST()` is known (by inspection) to always produce.
+ */
 function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
   return node as T
 }
@@ -16,7 +19,10 @@ export const events = new SpellParser({
   module: "events",
   rules: [
     /**
-     * Trigger (fire) a global event on the `spellCore` singleton.
+     * `trigger card-click` / `fire event card-click with card = 1` -- fires a global event on the
+     * `spellCore.RUNTIME` singleton, optionally with a `props` object.
+     * - `eventName` is a bare `keyword`, so its `raw` form (with dashes) is used directly as the event name.
+     * - Compiles to `spellCore.RUNTIME.trigger(name, props?)`.
      */
     {
       name: "trigger",
@@ -50,8 +56,15 @@ export const events = new SpellParser({
     },
 
     /**
-     * Watch a global event on the `spellCore.RUNTIME` singleton.
-     * TODO: apply to instances?
+     * `on event card-click: ...` / `on event card-click with a card: ...` -- watches a global event on the
+     * `spellCore.RUNTIME` singleton, with an inline statement or nested block as the handler body.
+     * - TODO: apply to instances?
+     * - `eventName` is a bare `keyword`, so its `raw` form (with dashes) is used directly as the event name.
+     * - SIDE EFFECT: `getNestedScopeForMatch()` builds a `MethodScope` named for `eventName`, with `event`
+     *   as its first arg plus one arg per `with`-listed prop (see `with_props_arg` in methods.ts).
+     * - When `props` are given, the handler body destructures them off `event` at its top, e.g. `with a
+     *   card` => `let { card } = event`.
+     * - Compiles to `spellCore.RUNTIME.on(name, handler?)`; `handler` omitted entirely when there's no body.
      */
     {
       name: "on",
@@ -61,6 +74,7 @@ export const events = new SpellParser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       constructor: class on extends SpellStatement {
+        /** Nested scope for the handler body -- named for `eventName`, args are `event` plus any `props`. */
         getNestedScopeForMatch(match: P.Match<P.RulexGroups<"eventName:props">>) {
           const { eventName, props } = match.groups
           const args: string[] = ["event"]
@@ -71,9 +85,9 @@ export const events = new SpellParser({
             const propsList = props.groups.props as unknown as AST.VariableExpression[]
             args.push(...propsList.map(({ name }) => name))
           }
-          // NOTE: `MethodScopeProps` doesn't declare `parentScope`/`name` (only forwarded to `Scope` at
-          // runtime via a rest-spread) and types `args` as `ScopeVariable[]` though `MethodScope` also
-          // accepts plain strings -- see report.
+          // NOTE: `MethodScopeProps` is `P.ScopeProps & {...}` and already accepts plain strings for `args`
+          // (see `src/parser/scope/MethodScope.ts`), so the casts below look unnecessary.
+          // TODO: remove casts?
           const methodScopeProps = {
             parentScope: match.scope,
             name: eventName!.value,

@@ -31,15 +31,18 @@ import "./CodeMirror.css"
 // REFACTOR: this was breaking page display
 // import "./CodeMirror-JSHINT"
 
-// Export `<CodeMirror>` component
+/** Re-export react-codemirror2's `Controlled` component under our own name, `<CodeMirror>`. */
 export { Controlled as CodeMirror } from "react-codemirror2"
 
+/** Base CodeMirror options shared by `inputOptions` and `outputOptions`. */
 export const codeMirrorOptions: SpellCodeMirrorOptions = {
   theme: "neat", // Owen favors: "solarized", "neo" and "neat"
   indentWithTabs: true,
   indentUnit: 3,
   tabSize: 3
 }
+
+/** Options for `<InputEditor>`'s editable `spell` source `<CodeMirror>`. */
 export const inputOptions: SpellCodeMirrorOptions = {
   ...codeMirrorOptions,
   mode: "spell",
@@ -51,26 +54,32 @@ export const inputOptions: SpellCodeMirrorOptions = {
   scrollbarStyle: "native"
 }
 
+/**
+ * Options for `<OutputEditor>`'s read-only compiled-JS `<CodeMirror>`.
+ * - `lint` drives CodeMirror's `javascript-lint` addon, which needs the global `JSHINT` function --
+ *   see `CodeMirror-JSHINT.ts` (currently NOT imported anywhere -- see its `REFACTOR` note below).
+ */
 export const outputOptions: SpellCodeMirrorOptions = {
   ...codeMirrorOptions,
   mode: "javascript",
   readOnly: true,
-  // eslint
   gutters: ["CodeMirror-lint-markers"],
   lint: true
 }
 
 CodeMirror.defineMode("spell", (): CodeMirror.Mode<SpellModeState> => {
-  // Return the token that starts at numeric offset
+  /** Return token that starts at numeric `offset`, or `undefined` if none does. */
   function getToken(tokens: P.Token[] | undefined, offset: number): P.Token | undefined {
     return tokens?.find((token) => token.offset >= offset)
   }
 
+  /** Advance `stream` past `token`, one char at a time (CodeMirror has no bulk-advance API). */
   function advanceStreamPastToken(stream: StringStream, token: P.Token): void {
     const length = token.raw?.length || 0
     for (let i = 0; i < length; i++) stream.next()
   }
 
+  /** Map a `Token` to its CodeMirror style class, or `null` for tokens we don't color. */
   function getTokenType(token: P.Token): string | null {
     if (token instanceof P.Tokens.Word) {
       //      if (blacklist[token.raw]) return "keyword"
@@ -105,6 +114,12 @@ CodeMirror.defineMode("spell", (): CodeMirror.Mode<SpellModeState> => {
       return { ...state }
     },
 
+    /**
+     * Re-tokenize whole line via `SP.spellParser.tokenize()` when `stream.string` changes (CodeMirror
+     * calls `token()` once per token, not once per line), cache result on `state`, and step `stream`
+     * past whichever cached token starts at `stream.pos`.
+     * - Swallows any tokenizer error and just skips to end of line, so a bad parse can't wedge the editor.
+     */
     token(stream, state) {
       try {
         // update state tokens if string changes
@@ -145,6 +160,7 @@ CodeMirror.defineMIME("text/x-spell", "spell")
  * `@types/codemirror` `EditorConfiguration` type.
  */
 export type SpellCodeMirrorOptions = CodeMirror.EditorConfiguration & {
+  /** Turn on `codemirror/addon/lint/lint`'s `javascript-lint`, which needs global `JSHINT` defined. */
   lint?: boolean
 }
 

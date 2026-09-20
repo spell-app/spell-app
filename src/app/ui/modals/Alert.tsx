@@ -31,7 +31,10 @@ export function Alert({ props, resolve }: ModalComponentProps<AlertModalProps>) 
 
 /** Props for `<Alert>`.  Extra keys pass through to the underlying `SUI.Modal`. */
 export type AlertModalProps = {
+  /** Message to show. */
   message: ReactNode
+  /** Header for the dialog. */
   header?: ReactNode
+  /** Text title or button props for OK button.  Default `"OK"`. */
   ok?: string | SUI.ButtonProps
 } & Record<string, unknown>

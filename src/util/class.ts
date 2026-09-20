@@ -1,6 +1,6 @@
-//
-//  # Class utilities
-//
+////////////////
+// ## Class utilities
+////////////////
 
 /**
  * Return true if `thing` has own property `prop`.
@@ -11,8 +11,8 @@ export function hasOwnProp(thing: any, prop: string) {
 }
 
 /**
- * Return the class hierarchy for some instance, with the most-specific class first.
- * Stops when we hit `stopAt` constructor (inclusive).
+ * Return class hierarchy for some instance, most-specific class first.
+ * - Stops when we hit `stopAt` constructor (inclusive).
  * - Returns `undefined` if `thing` doesn't have a constructor.
  */
 export function getSuperHierarchy(thing: any, stopAt: any = Object) {
@@ -26,6 +26,12 @@ export function getSuperHierarchy(thing: any, stopAt: any = Object) {
   return supers
 }
 
+/**
+ * Walk `thing`'s prototype chain looking for an own property descriptor for `property`.
+ * - Pass `type` as `"get"` or `"set"` to require specifically a getter or setter.
+ * - Returns descriptor if found, `false` otherwise.
+ * - NOTE: walks via `__proto__` rather than `Object.getPrototypeOf`.
+ */
 export function hasDescriptor(thing: any, property: string, type?: "get" | "set") {
   while (thing) {
     const desc = Object.getOwnPropertyDescriptor(thing, property)

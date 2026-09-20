@@ -1,23 +1,37 @@
-//
-//  # Core `rules` -- simple datatypes, etc.
-//
-// NOTE: many of the below are created as custom Pattern subclasses for debugging.
-//
+/**
+ * Rule definitions for the `rulex` language itself -- the regex-like syntax used to build other parsers'
+ * `rules` (see `syntax:` in `Parser.defineRule()`).
+ * - Each `symbol` / `keyword` / `number` / `subrule` / `list` / `choices` rule below compiles a piece of rulex
+ *   syntax into the actual `P.Rule` (`P.Symbol`, `P.Keyword`, `P.Subrule`, `P.Repeat`, `P.Choice`, ...) it
+ *   describes.  `sequence` (the module's `defaultRule`) ties them together into the full grammar.
+ * - NOTE: many rules below are custom `Pattern` subclasses (rather than plain object literals) so they show up
+ *   with meaningful names for debugging.
+ */
 
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { Parser } from "~/parser/Parser"
 import { RulexParser } from "./RulexParser"
 
-// Create core `rulex` parser.
-// NOTE: THIS INSTANCE is used by other parsers, to pick up the rules defined below.
+/**
+ * Core `rulex` parser instance.
+ * - NOTE: THIS INSTANCE is used by other parsers -- see `Parser.rulexParser` -- to pick up the rules defined
+ *   in this file, so there's only ever one `rulex` grammar for the whole app.
+ */
 export const rulex = new RulexParser({ module: "rulex" })
 
-// Register `rulex` on `Parser` base class.
+// Register `rulex` on `Parser` base class -- SIDE EFFECT: this is the whole reason files import this module;
+// see `~/languages/rulex/index.ts` and `Parser.rulexParser`.
 Parser.rulexParser = rulex
 
 // Define base rules `testLocation`, `argument` and `repeatFlag`, used by the below.
 rulex.defineRules(
+  /**
+   * Optional test-location prefix `…` or `^`, adorning most other rules below.
+   * - Compiles to `P.ANYWHERE` for `…`, `P.AT_START` for `^`.
+   * - TODO: this mapping looks reversed from `Rule.getRulexFlags()` (`~/parser/rules/Rule.ts`), which
+   *   stringifies `AT_START` back to `…` and `ANYWHERE` back to `^` -- see `## Suspected bugs` in doc-pass report.
+   */
   {
     name: "testLocation",
     literal: ["…", "^"],
@@ -38,6 +52,10 @@ rulex.defineRules(
       }
     ]
   },
+  /**
+   * Optional `name:` prefix, adorning rules that can carry an `argument` (e.g. `{arg:sub}`, `(arg:a|b)`).
+   * - Compiles to just the name string, e.g. `"arg:"` => `"arg"`.
+   */
   {
     name: "argument",
     rules: [new P.Word({ argument: "argument" }), new P.Symbol(":")],
@@ -57,6 +75,10 @@ rulex.defineRules(
       }
     ]
   },
+  /**
+   * Optional trailing repeat flag `?` / `*` / `+`, adorning most other rules below.
+   * - Compiles to the matched flag character itself; `applyFlags()` interprets it into `optional` / `P.Repeat`.
+   */
   {
     name: "repeatFlag",
     literal: ["?", "*", "+"],
@@ -81,12 +103,15 @@ rulex.defineRules(
 )
 const { testLocation, argument, repeatFlag } = rulex.rules as Record<"testLocation" | "argument" | "repeatFlag", P.Rule>
 
-////////////////////
-//  Combo rules
-////////////////////
+////////////////
+// ## Combo rules
+////////////////
 
 rulex.defineRules(
-  /** A single symbol, or `\<symbol>` so we can escape special symbols like "?" and "*". */
+  /**
+   * A single symbol, or `\<symbol>` so we can escape special symbols like `?` and `*`.
+   * - Compiles to a `P.Symbol`, adorned by `testLocation` / `repeatFlag` via `applyFlags()`.
+   */
   {
     name: "symbol",
     alias: "rule",
@@ -147,7 +172,13 @@ rulex.defineRules(
       }
     ]
   },
-  /** One or more literal keywords with an optional repeat signifier at the end. */
+  /**
+   * A single keyword word, with an optional trailing repeat flag.
+   * - NOTE: matches only ONE word per occurrence in rulex syntax -- `repeatFlag` controls how many times the
+   *   resulting `P.Keyword` rule must match at parse time, not how many literal keywords this rulex token
+   *   stands for.
+   * - Compiles to a `P.Keyword`, adorned by `testLocation` / `repeatFlag` via `applyFlags()`.
+   */
   {
     name: "keyword",
     alias: "rule",
@@ -182,8 +213,8 @@ rulex.defineRules(
   /**
    * Match a SPECIFIC number literal.
    * - The returned rule is a `Keyword` rule, so it can be combined with alpha-numeric keywords.
+   * - TODO: how is this used?
    */
-  // TODO: how is this used?
   {
     name: "number",
     alias: "rule",
@@ -211,7 +242,10 @@ rulex.defineRules(
       }
     ]
   },
-  /** `Subrule`: match a named rule, as part of a larger sequence. */
+  /**
+   * `Subrule`: match a named rule, as part of a larger sequence.
+   * - `{name}` references rule `name`; `{arg:name}` also sets `argument` on the resulting `P.Subrule`.
+   */
   {
     name: "subrule",
     alias: "rule",
@@ -251,7 +285,11 @@ rulex.defineRules(
       }
     ]
   },
-  /** `List`: match a list of rules, separated by a delimiter, with an optional repeat flag. */
+  /**
+   * `[rule delimiter]`: match a list of `rule`, separated by `delimiter`, with an optional repeat flag.
+   * - Both `rule` and `delimiter` MUST themselves be `{subrule}` references, not inline rulex.
+   * - Compiles to a `P.Repeat` with `rule` / `delimiter` set from the two subrules.
+   */
   {
     name: "list",
     alias: "rule",
@@ -292,7 +330,15 @@ rulex.defineRules(
       }
     ]
   },
-  /** `Choices`: match one of a list of rules, separated by `|`, with an optional repeat flag. */
+  /**
+   * `(a|b|c)`: match one of a list of `sequence` rules, separated by `|`, with an optional repeat flag.
+   * - Uses `P.NestedSplit` to find the balanced `(...)` span and split its contents on `|`, so choices can
+   *   themselves contain nested parens, e.g. `(>|(b|c|d))`.
+   * - Consolidates runs of plain `Keyword` / `Symbol` choices into a single `Keyword` / `Symbol` with an array
+   *   literal, e.g. `(a|b|c)` compiles to one `P.Keyword({ literal: ["a", "b", "c"] })`, not a `P.Choice`.
+   * - If exactly one choice remains after consolidation, returns that rule directly instead of wrapping it in
+   *   a `P.Choice` -- NOTE: in that case the choice's own flags "beat" the rule's flags if they conflict.
+   */
   {
     name: "choices",
     alias: "rule",
@@ -403,8 +449,13 @@ rulex.defineRules(
   },
 
   /**
-   * `sequence`: a sequence of rules -- our top-level rule.
+   * `sequence`: a sequence of rules -- our top-level rule, and `rulex`'s `defaultRule`.
    * - NO test rule, otherwise we can't start a sequence with a special character.
+   * - Consolidates consecutive `Keyword` / `Symbol` matches into `P.Keywords` / `P.Symbols`, and flattens plain
+   *   (non-adorned, non-optional) nested `P.Sequence`s into this one, so e.g. `"aa bb cc"` compiles to a single
+   *   `P.Keywords`, not nested sequences.
+   * - If we're left with exactly one rule after consolidation, returns that rule directly rather than
+   *   wrapping it in a `P.Sequence`.
    * - TODO: `consume all tokens`...
    */
   {

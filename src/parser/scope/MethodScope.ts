@@ -12,11 +12,17 @@ import { BlockScope } from "./BlockScope"
  *  - `mapItTo` (optional) map `it` to output var name.
  */
 export class MethodScope extends BlockScope {
+  /** Variable name which will map to `this`, if set on construction. */
   declare thisVar: string
+  /** Map `it` to this output var name, if set on construction. */
   declare mapItTo: string
   /** Set to `true` (e.g. by an `await` expression in the body) to compile the method as `async`. */
   declare async: boolean | undefined
 
+  /**
+   * Create with optional `args` (added to `variables` with `kind: "argument"`), and set up `thisVar`/
+   * `mapItTo` as variable aliases if not already locally defined.
+   */
   constructor({ args, ...props }: MethodScopeProps) {
     super(props)
     // Add `args` to our variables list
@@ -40,8 +46,10 @@ export class MethodScope extends BlockScope {
     }
   }
 
-  // Call without arguments: returns all argument Variables.
-  // Call with string `name`, returns named argument or `undefined`.
+  /**
+   * Call with no `name` to return all argument `variables`.
+   * Call with `name` to return that named argument, or `undefined` if not found.
+   */
   args(): P.ScopeVariable[]
   args(name: string): P.ScopeVariable
   args(name?: string) {
@@ -51,9 +59,14 @@ export class MethodScope extends BlockScope {
   }
 }
 
+/** Constructor props for `MethodScope`. */
 export type MethodScopeProps = P.ScopeProps & {
+  /** Method arguments, added to `variables` with `kind: "argument"`. */
   args?: Array<P.ScopeVariable | string | P.ScopeVariableProps>
+  /** Variable name which will map to `this`. */
   thisVar?: string
+  /** Map `it` to this output var name. */
   mapItTo?: string
+  /** Compile method as `async`. */
   async?: boolean
 }

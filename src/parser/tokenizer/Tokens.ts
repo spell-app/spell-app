@@ -10,7 +10,10 @@ export class Token<ValueType = any, TRT extends P.TokenProps<ValueType> = P.Toke
    */
   readonly record: TRT
 
-  // TODO: do speed test to see if using getters is slower than direct assignment.
+  /**
+   * Build token wrapping `record`.
+   * - TODO: do speed test to see if using getters is slower than direct assignment.
+   */
   constructor(record: TRT) {
     this.record = record
   }
@@ -30,8 +33,10 @@ export class Token<ValueType = any, TRT extends P.TokenProps<ValueType> = P.Toke
     return this.record.offset
   }
 
-  /** Start character position in stream. */
-  // REFACTOR: why do we have both `start` and `offset`?
+  /**
+   * Start character position in stream.
+   * - REFACTOR: why do we have both `start` and `offset`?
+   */
   get start() {
     return this.offset
   }
@@ -66,18 +71,20 @@ export class Token<ValueType = any, TRT extends P.TokenProps<ValueType> = P.Toke
     return this.record.ch
   }
 
-  /** Do we match a `literal` value?
-   * If `literal` is an array, we'll return true if our `value` is included in the array.
-   * NOTE: not valid for all token types.
+  /**
+   * Do we match a `literal` value?
+   * - If `literal` is an array, returns `true` if `value` is included in it.
+   * - NOTE: not valid for all token types.
    */
   matchesLiteral(literal: string | string[]) {
     if (Array.isArray(literal)) return literal.includes(this.value as unknown as string)
     return this.value === literal
   }
 
-  /** Do we match a regular expression `pattern`?
-   * If `blacklist` is supplied, we'll return `false` if value is found in blacklist.
-   * NOTE: valid for string types only.
+  /**
+   * Do we match a regular expression `pattern`?
+   * - If `blacklist` is supplied, returns `false` if `value` is found in it.
+   * - NOTE: valid for string types only.
    */
   matchesPattern(pattern: RegExp, blacklist?: P.IdentifierBlacklist) {
     if (typeof this.value !== "string") return false
@@ -94,12 +101,14 @@ export class Token<ValueType = any, TRT extends P.TokenProps<ValueType> = P.Toke
 
 /**
  * Base `whitespace` class for all whitespace variants.
- * You'll generally create one of `Token.InlineWhitespace`, `Token.Indent` or `Token.Newline` instead.
- *  `whitespace.value` is the actual whitespace string.
+ * - You'll generally create one of `Token.InlineWhitespace`, `Token.Indent` or `Token.Newline` instead.
+ * - `whitespace.value` is the actual whitespace string.
  */
 export class Whitespace extends Token<string> {
-  /** Return the "length" of this whitespace, eg for an indent. */
-  // REFACTOR: this is overriding base `length` which includes whitespace.
+  /**
+   * Return the "length" of this whitespace, eg for an indent.
+   * - REFACTOR: this is overriding base `length` which includes whitespace.
+   */
   get length() {
     return this.value.length
   }
@@ -113,20 +122,23 @@ export class InlineWhitespace extends Whitespace {}
 
 /** `Newline` class, a single "return" character. */
 export class Newline extends Whitespace {
+  /** Build a `Newline` token -- always represents a single `\n`, regardless of `record`. */
   constructor(record: P.TokenProps<string>) {
     super(record)
   }
+  /** Always `"\n"`. */
   get raw() {
     return "\n"
   }
+  /** Always `"\n"`. */
   get value() {
     return "\n"
   }
 }
 
-//////////////////////
-//  ### Word, Symbol, Text
-//////////////////////
+////////////////
+// ## Word, Symbol, Text
+////////////////
 
 /**
  * Literal string class which refers to a alphanumeric word
@@ -148,9 +160,10 @@ export class Symbol extends Token<string> {}
  *  - Use `text.innerText` to get just the bit inside the quotes.
  */
 export class Text extends Token<string> {
+  /** Text without surrounding quotes -- strips one leading/trailing quote char if present. */
   get innerText() {
     const string = this.value
-    /** calculate `text` as the bits between the quotes. */
+    // calculate `text` as the bits between the quotes.
     let start = 0
     let end = string.length
     if (string[start] === '"' || string[start] === "'") start = 1
@@ -159,9 +172,9 @@ export class Text extends Token<string> {
   }
 }
 
-//////////////////////
-//  ### Numbers
-//////////////////////
+////////////////
+// ## Numbers
+////////////////
 
 /**
  * Numeric token class
@@ -170,10 +183,11 @@ export class Text extends Token<string> {
  */
 export class Number extends Token<number> {}
 
-//////////////////
-//  ### JSX expressions
-//////////////////
+////////////////
+// ## JSX expressions
+////////////////
 
+/** Possible token types for a JSX attribute's value. */
 export type JSXAttributeValue = JSXExpression | JSXText | Text | Number
 
 /** Common superclass for all JSX tokens. */
@@ -206,6 +220,7 @@ export class JSXElement extends JSXToken<never, JSXElementTokenProps> {
     return this.record.isUnaryTag
   }
 }
+/** Extra `record` props for `JSXElement`. */
 export type JSXElementTokenProps = Prettify<P.TokenProps<never>> & {
   /** Tag name. */
   tagName: string
@@ -227,6 +242,7 @@ export class JSXEndTag extends JSXToken<never, JSXEndTagTokenProps> {
     return this.record.tagName
   }
 }
+/** Extra `record` props for `JSXEndTag`. */
 export type JSXEndTagTokenProps = Prettify<P.TokenProps<never>> & {
   /** Tag name. */
   tagName: string
@@ -236,24 +252,29 @@ export type JSXEndTagTokenProps = Prettify<P.TokenProps<never>> & {
  * Token for a single JSX attribute:
  *  - `attr.name` is the name of the attribute.
  *  - `attr.value` is the value of the attribute as... ???
+ * - REFACTOR: type for `value`????
  */
-// REFACTOR: type for `value`????
 export class JSXAttribute extends JSXToken<any, JSXAttributeTokenProps> {
   /** Attribute name. */
   get name() {
     return this.record.name
   }
 }
+/** Extra `record` props for `JSXAttribute`. */
 export type JSXAttributeTokenProps = Prettify<P.TokenProps<JSXAttributeValue>> & {
   /** Attribute name. */
   name: string
 }
 
-/** Loose text in the middle of a JSX block
- * `text.value` is the actual text matched (including whitespace).
+/**
+ * Loose text in the middle of a JSX block.
+ * - `text.value` is the actual text matched (including whitespace).
  */
 export class JSXText extends JSXToken<string> {
-  /** TODO: escape quotes! */
+  /**
+   * Trimmed `value` wrapped in double quotes, or `undefined` if blank.
+   * - TODO: escape quotes!
+   */
   get quotedText() {
     const trimmed = this.value.trim()
     if (!trimmed) return undefined
@@ -262,30 +283,41 @@ export class JSXText extends JSXToken<string> {
 }
 
 /** JSX expression, composed of inline tokens which should yield an `expression` or `statement`. */
-// DOCME
 export class JSXExpression extends JSXToken<string, JSXExpressionTokenProps> {
+  /**
+   * Build a `JSXExpression` from `record`.
+   * - SIDE EFFECT: defaults `record.value` to `""` when falsy, so `value` is always a string.
+   */
   constructor(record: JSXExpressionTokenProps) {
     super(record)
     if (!this.value) this.record.value = ""
   }
-  /** Contents of the expression as string, including leading/trailing whitespace. */
+  /**
+   * Contents of the expression -- usually raw string (including leading/trailing whitespace), but can also
+   * be a `Token`, e.g. as set by `matchJSXAttributeValueIdentifier`.
+   */
   get contents() {
     return this.record.contents
   }
 }
+/** Extra `record` props for `JSXExpression`. */
 export type JSXExpressionTokenProps = Prettify<P.TokenProps<string>> & {
-  /** Contents of the expression as string, including leading/trailing whitespace. */
+  /**
+   * Contents of the expression -- usually raw string (including leading/trailing whitespace), but can also
+   * be a `Token`, e.g. as set by `matchJSXAttributeValueIdentifier`.
+   */
   contents: string | Token
 }
 
-//////////////////
-//  ### Source Code - Comment, Line, Block
-//////////////////
+////////////////
+// ## Source Code -- Comment, Line, Block
+////////////////
 
-/** Comment class for single-line comments.
- *  - `comment.commentSymbol` is the initial comment symbol, one of:  "--", "//", "##"
- *  - `comment.initialWhitespace` is whitespace BETWEEN the comment symbol and the comment text.
- *  - `comment.value` is the comment text (until the end of the line).
+/**
+ * Comment class for single-line comments.
+ * - `comment.commentSymbol` is initial comment symbol, one of `"--"`, `"//"`, `"##"`.
+ * - `comment.initialWhitespace` is whitespace BETWEEN comment symbol and comment text.
+ * - `comment.value` is comment text (until end of line).
  */
 export class Comment extends Token<string, CommentTokenProps> {
   /** Initial comment symbol, e.g.  `--`, `//`, `##` */
@@ -298,6 +330,7 @@ export class Comment extends Token<string, CommentTokenProps> {
     return this.record.initialWhitespace
   }
 }
+/** Extra `record` props for `Comment`. */
 export type CommentTokenProps = Prettify<P.TokenProps<string>> & {
   /** Initial comment symbol, e.g.  `--`, `//`, `##` */
   commentSymbol: string
@@ -307,11 +340,12 @@ export type CommentTokenProps = Prettify<P.TokenProps<string>> & {
 
 // REFACTOR: multi-line comments?
 
-/** `Line` class for `Tokenizer.breakIntoLines()`
- *  - `.offset` is line start offset in source
- *  - `.leading` (optional) is leading whitespace at start of line
- *  - `.tokens` is (possibly empty) array of tokens other than indent/newline
- *  - `.newline` (optional) is newline token AT END OF LINE
+/**
+ * `Line` class for `Tokenizer.breakIntoLines()`.
+ * - `.offset` is line start offset in source.
+ * - `.leading` (optional) is leading whitespace at start of line.
+ * - `.tokens` is (possibly empty) array of tokens other than indent/newline.
+ * - `.newline` (optional) is newline token AT END OF LINE.
  */
 export class Line extends Token<string, LineTokenProps> {
   /** Leading whitespace at start of line. */
@@ -331,15 +365,20 @@ export class Line extends Token<string, LineTokenProps> {
     return this.record.newline
   }
 
-  // REFACTOR: is this necessary?
+  /**
+   * Same as `toString()`.
+   * - REFACTOR: is this necessary?
+   */
   get raw() {
     return this.toString()
   }
 
+  /** Reconstruct source text for this line, including leading whitespace and trailing newline if present. */
   toString() {
     return (this.leading || "") + this.tokens.join("") + (this.newline ? "\n" : "")
   }
 }
+/** Extra `record` props for `Line`. */
 export type LineTokenProps = Prettify<P.TokenProps<string>> & {
   /** Array of tokens other than indent/newline. */
   tokens: Token[]
@@ -347,15 +386,17 @@ export type LineTokenProps = Prettify<P.TokenProps<string>> & {
   indent: number
   /** Leading whitespace at start of line. */
   leading?: string
-  /** Newline token AT END OF LINE. */
-  // REFACTOR: can this be `token.whitespace` instead?
+  /**
+   * Newline token AT END OF LINE.
+   * - REFACTOR: can this be `token.whitespace` instead?
+   */
   newline?: Newline
 }
 
 /**
- * Block class for `Tokenizer.breakIntoIndentedBlocks()`.
- *  `.offset` is block start offset chart in source
- *  `.tokens` is (possibly empty) array of `Token.Line`s or `Token.Block`s.
+ * `Block` class for `Tokenizer.breakIntoIndentedBlocks()`.
+ * - `.offset` is block start offset char in source.
+ * - `.tokens` is (possibly empty) array of `Token.Line`s or `Token.Block`s.
  */
 export class Block extends Token<string, BlockTokenProps> {
   /** Array of tokens as `LineToken`s or `BlockToken`s. */
@@ -366,14 +407,17 @@ export class Block extends Token<string, BlockTokenProps> {
   get indent() {
     return this.record.indent
   }
+  /** Same as `toString()`. */
   get raw() {
     return this.toString()
   }
 
+  /** Reconstruct source text for this block by joining child lines/blocks with newlines. */
   toString() {
     return this.tokens.join("\n")
   }
 }
+/** Extra `record` props for `Block`. */
 export type BlockTokenProps = Prettify<P.TokenProps<string>> & {
   /** Array of tokens. */
   tokens: Array<Line | Block>

@@ -57,9 +57,13 @@ export const ProjectMenu = view(function ProjectDropdown({
   )
 })
 
+/** Props for `<ProjectMenu>`.  Extra keys pass through to the underlying `SUI.Menu`. */
 export type ProjectMenuProps = SUI.MenuProps & {
+  /** Root whose projects to list.  Defaults to `store.projectRoot`. */
   projectRoot?: SP.SpellProjectRoot
+  /** Open `<SpellRunner>` instead of `<SpellEditor>` when an item is clicked. */
   useRunner?: boolean
+  /** Extra props spread onto each `SUI.Menu.Item`. */
   itemProps?: Record<string, unknown>
 }
 
@@ -129,17 +133,24 @@ export const ProjectDropdown = view(function ProjectDropdown({
   )
 })
 
+/** Props for `<ProjectDropdown>`.  Extra keys pass through to the underlying `SUI.Dropdown`. */
 export type ProjectDropdownProps = SUI.DropdownProps & {
+  /** Root whose projects to list.  Defaults to `store.projectRoot`. */
   projectRoot?: SP.SpellProjectRoot
+  /** Currently selected project, shown as the dropdown's text.  Defaults to `store.project`. */
   project?: SP.SpellProject
+  /** Open `<SpellRunner>` instead of `<SpellEditor>` when an item is clicked. */
   useRunner?: boolean
+  /** Prepend a `<UI.DropdownLabel>` before the dropdown. */
   showLabel?: boolean
+  /** Extra items appended after a divider, e.g. "New Project". */
   extraActions?: ReactElement[]
+  /** Extra props spread onto each `SUI.Dropdown.Item`. */
   itemProps?: Record<string, unknown>
 }
 
 ////////////////
-// Helpers
+// ## Helpers
 ////////////////
 
 // /**

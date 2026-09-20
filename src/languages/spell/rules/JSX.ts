@@ -2,8 +2,10 @@ import { P, AST } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 
-// `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass
-// that the referenced sub-rule's `getAST()` is known (by inspection) to always produce.
+/**
+ * Narrow `node` (typed generically as `AST.ASTNode | undefined`) to concrete AST subclass `T`.
+ * - `T` is chosen by inspection: referenced sub-rule's `getAST()` is known to always produce it.
+ */
 function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
   return node as T
 }
@@ -11,11 +13,18 @@ function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
 export const JSX = new SpellParser({
   module: "JSX",
   rules: [
+    /**
+     * Match a JSX element (`<tag attr=.../>` or `<tag>...</tag>`) as an `expression`/`jsxChild`.
+     * - Delegates tokenizing entirely to `P.Tokens.JSXElement`; `parse()` re-parses each attribute/child
+     *   token through `jsxAttribute`/`jsxChild` (falling back to `parse_error` for unparseable children).
+     * - Compiles to `spellCore.element({ tag, props, children })`.
+     */
     {
       name: "jsxElement",
       alias: ["jsxChild", "expression"],
       tokenType: P.Tokens.JSXElement,
       constructor: class SpellJSX extends P.TokenType {
+        /** Parse element's `attributes`/`children` tokens (see note below re: calling `parser.parse()` directly). */
         parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
@@ -31,6 +40,7 @@ export const JSX = new SpellParser({
           return match
         }
 
+        /** Build `AST.JSXElement`; drops falsy child ASTs (e.g. blank `jsxText`) via `.filter(Boolean)`. */
         getAST(match: P.Match) {
           const { tagName } = match.matched[0] as P.Tokens.JSXElement
           const attrs = match.attributes?.map((attr) => ast<AST.JSXAttribute>(attr?.AST))
@@ -239,10 +249,20 @@ export const JSX = new SpellParser({
       ]
     },
 
+    /**
+     * Match a single JSX attribute (`name`, `name=value`, or `name={expression}`).
+     * - `on*` attribute names (e.g. `onClick`) parse `value` as a `statement` inside a `MethodScope` with
+     *   an implicit `event` argument, producing an inline event-handler method rather than an expression.
+     * - Falls back to `parse_error` if neither an `expression` nor `on*` `statement` consumes the whole value.
+     */
     {
       name: "jsxAttribute",
       tokenType: P.Tokens.JSXAttribute,
       constructor: class SpellJSXAttribute extends P.TokenType {
+        /**
+         * Parse `value` as an expression, or (for `on*` attribute names) as a `statement` with an
+         * implicit `event` argument -- falls back to a `parse_error` match if neither consumes it all.
+         */
         parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined
@@ -260,9 +280,10 @@ export const JSX = new SpellParser({
             const input = inputIsExpression ? (value.contents as string).trim().replace(/\n/g, " ") : value
             // parse "onXXX" as an inline method with an `event` argument
             if (match.attribute.startsWith("on")) {
-              // NOTE: `MethodScopeProps` doesn't declare `parentScope` (only forwarded to `Scope` at runtime
-              // via a rest-spread) and types `args` as `ScopeVariable[]` though `MethodScope` also accepts
-              // plain strings -- see report.
+              // `MethodScopeProps` (via `P.ScopeProps`) already declares `parentScope`, and already types
+              // `args` as `Array<ScopeVariable | string | ScopeVariableProps>` -- the `as`/`as unknown as`
+              // casts below look unnecessary against the current type.
+              // TODO: remove casts?
               const methodScopeProps = {
                 parentScope: scope,
                 args: ["event"] as unknown as P.ScopeVariable[],
@@ -286,6 +307,11 @@ export const JSX = new SpellParser({
           return match
         }
 
+        /**
+         * Build `AST.JSXAttribute`.
+         * - `statement` value becomes an inline `AST.MethodDefinition` (with an `event` arg for `on*` names).
+         * - Missing `value` (bare attribute, e.g. `<input disabled/>`) becomes `true`.
+         */
         getAST(match: P.Match) {
           const { attribute, expression, statement, error, value } = match
           let valueAST: AST.Expression | undefined
@@ -315,22 +341,24 @@ export const JSX = new SpellParser({
       }
     },
 
+    /** Match literal text between JSX tags (`jsxChild`).  Blank text yields no AST node -- see below. */
     {
       name: "jsxText",
       alias: "jsxChild",
       tokenType: P.Tokens.JSXText,
       constructor: class SpellJSXText extends P.TokenType {
+        /** Build `AST.JSXText`; returns `undefined` for blank text since there's nothing to render. */
         getAST(match: P.Match) {
           const { raw, quotedText } = match.matched[0] as P.Tokens.JSXText
-          // `Rule.getAST()` is declared to always return an `ASTNode`, but this rule legitimately has
-          // nothing to render for blank text -- `Match.AST` already treats a falsy return as "no AST",
-          // so we cast to preserve that; see report.
+          // Blank text has nothing to render -- return `undefined` for "no AST" (`Rule.getAST()`'s return
+          // type already permits this; `Match.AST` treats a falsy return as "no AST").
           if (!quotedText) return undefined
           return new AST.JSXText(match, { raw, value: quotedText })
         }
       }
     },
 
+    /** Match a JSX closing tag (`</tag>`), tracked as a `jsxChild` alongside element/text/expression children. */
     {
       name: "jsxEndTag",
       alias: "jsxChild",
@@ -343,11 +371,17 @@ export const JSX = new SpellParser({
       }
     },
 
+    /**
+     * Match a `{...}` JSX expression container (a `jsxChild`, e.g. `<div>{1 + 2}</div>`).
+     * - Trims and collapses newlines in the raw contents before parsing as an `expression`.
+     * - Falls back to `parse_error` if the expression doesn't consume the entire contents.
+     */
     {
       name: "jsxExpression",
       alias: "jsxChild",
       tokenType: P.Tokens.JSXExpression,
       constructor: class SpellJSXExpression extends P.TokenType {
+        /** Parse `contents` as an `expression`; falls back to `parse_error` if it doesn't consume it all. */
         parse(scope: P.Scope, tokens: P.Token[]) {
           const match = super.parse(scope, tokens)
           if (!match) return undefined

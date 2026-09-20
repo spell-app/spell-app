@@ -2,7 +2,7 @@ import { P } from "~/parser"
 // Import directly to avoid circular import
 import { Rule } from "./Rule"
 
-// Turn on debugging of choice / precedence semantics
+/** Turn on debugging of choice / precedence semantics. */
 const DEBUG_CHOICES = false
 
 /**
@@ -18,11 +18,13 @@ export class Choice extends Rule<ChoiceProps> {
   /** List of rules, any of which will match. */
   declare rules: P.Rule[]
 
+  /** Copy `props.rules` into a new array (defaulting to `[]`) so callers can't mutate our list from outside. */
   constructor(props: ChoiceProps) {
     props.rules = Array.isArray(props.rules) ? [...props.rules] : []
     super(props)
   }
 
+  /** Always throws -- a `Choice` has no output of its own, use `match.groups` / the winning sub-match instead. */
   compile(match: P.Match) {
     throw new TypeError(`Choice.compile() is not implemented`)
   }
@@ -35,9 +37,11 @@ export class Choice extends Rule<ChoiceProps> {
     this.rules = [...this.rules, ...rules]
   }
 
-  // Return (`true` or index) if ANY of our rules is found.
-  // If ANY rules return `undefined`, this will return `undefined`.
-  // If ALL rules return `false`, this will return `false`.
+  /**
+   * Return `true` if ANY of our rules is found.
+   * - If ANY rules return `undefined`, this will return `undefined`.
+   * - If ALL rules return `false`, this will return `false`.
+   */
   testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
     if (start >= tokens.length) return false
     let undefinedFound = false
@@ -50,7 +54,7 @@ export class Choice extends Rule<ChoiceProps> {
     return false
   }
 
-  // Find all rules which match and delegate to `getBestMatch()` to pick the best one.
+  /** Find all rules which match and delegate to `getBestMatch()` to pick the best one. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const CHOICE = `choice '${this.name || this.argument}:'`
     if (DEBUG_CHOICES) console.group(`${CHOICE} start matching '${P.Tokenizer.join(tokens)}'`, this)
@@ -90,10 +94,12 @@ export class Choice extends Rule<ChoiceProps> {
     return match
   }
 
-  // Return the "best" match given more than one matches at the head of the tokens.
-  // First we find the match(es) with the highest preceedence.
-  // Then we take the one with the longest matched string.
-  // If more than one rule with same length, takes LATEST one.
+  /**
+   * Return the "best" match given more than one matches at the head of the tokens.
+   * - First we find the match(es) with the highest preceedence.
+   * - Then we take the one with the longest matched string.
+   * - If more than one rule with same length, takes LATEST one.
+   */
   getBestMatch(matches: P.Match[]) {
     if (matches.length === 1) return matches[0]
 
@@ -121,6 +127,7 @@ export class Choice extends Rule<ChoiceProps> {
     return longest
   }
 
+  /** Return rulex string for this rule:  `(rule1|rule2|...)`, with flags applied. */
   toRulexSyntax() {
     const { testLocation, argument, optional } = this.getRulexFlags()
     const rules = this.rules.map((rule) => rule.toRulexSyntax()).join("|")
@@ -128,8 +135,10 @@ export class Choice extends Rule<ChoiceProps> {
   }
 }
 
+/** Props bag accepted by `Choice`'s constructor. */
 export type ChoiceProps = Prettify<
   P.RuleProps & {
+    /** List of rules, any of which will match. */
     rules: P.Rule[]
   }
 >

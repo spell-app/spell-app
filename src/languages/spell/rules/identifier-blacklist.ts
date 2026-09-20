@@ -1,6 +1,12 @@
 import { P } from "~/parser"
 
-// Blacklist of common english words which may not be used as single-word identifiers.
+/**
+ * Blacklist of common english words which may not be used as single-word identifiers.
+ * - Shared by `SpellType`, `SpellConstant` and `VariableIdentifier` (all `P.Pattern` subclasses) so e.g.
+ *   `if` or `the` can't shadow a keyword by being parsed as a variable/type/constant name.
+ * - Grouped into commented categories below (verbs, control keywords, booleans, articles, prepositions,
+ *   number words, ordinals) purely for readability -- the map itself is flat.
+ */
 export const identifierBlacklist: P.IdentifierBlacklist = {
   // Common english verbs:
   are: 1,

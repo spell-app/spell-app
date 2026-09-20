@@ -1,22 +1,26 @@
-//----------------------------
-// Base classes for spell
-//--------
+/**
+ * Base classes for spell.
+ */
 import React from "react"
 import _ from "lodash"
 
 import { Observable, view } from "~/util"
 import { spellCore } from "~/spellCore/core"
 
-//----------------------------
-// `List`: our array concept (1-based)
-//--------
+/**
+ * `List`: our array concept (1-based) -- what `a deck is a list` extends.
+ * - Backed by reactive `items` state rather than a raw JS array, so mutations (`add`, `setItem`, ...)
+ *   trigger re-renders of anything observing this `List`.
+ * - Delegates JS collection duck-typing (`itemCount`, `getKeys`, `getItem`, ...) to `spellCore`'s
+ *   generic collection methods -- see `CollectionLike` in `collection-core.ts`.
+ */
 export class List extends Observable<Record<string, unknown>, { items: unknown[] }> {
   constructor(props: Record<string, unknown>) {
     super(props)
     this.create()
   }
 
-  /** `items` array as state */
+  /** `items` array as state. */
   /*@state*/ get items(): unknown[] {
     return this.getState<unknown[]>("items", () => [])
   }
@@ -24,10 +28,10 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
     this.setState<unknown[]>("items", items)
   }
 
-  // Called automatially at end of `List` constructor.
+  /** Called automatically at end of `List` constructor -- override in a subclass to set up initial state. */
   create(): void {}
 
-  // Default `type` to the name of our constructor.  Instances can override.
+  /** Default `type` to the name of our constructor.  Instances can override via the setter. */
   get type(): string {
     return this.constructor.name
   }
@@ -35,6 +39,12 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
     this.override("type", type)
   }
 
+  /**
+   * React component which renders this list, memoized so the same component identity is reused
+   * across renders (a fresh class each render would remount instead of updating).
+   * - NOTE: uses a class component, not a function component, to sidestep hook issues with
+   *   `react-easy-state`'s `view()` wrapper.
+   */
   /*@memoize*/
   get Component(): ReactComponentType {
     return this.derived("Component", () => {
@@ -57,8 +67,9 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
 
   /**
    * `list.draw()` returns list items as react components.
-   * You can override in a subclass to render a wrapper element, etc
-   * and use `draw items of {list}` or `draw each of {list}` to render items if desired.
+   * - You can override in a subclass to render a wrapper element, etc.
+   *   and use `draw items of {list}` or `draw each of {list}` to render items if desired.
+   * - Compiles from `draw the deck` -- see `draw.ts` (`spellCore.drawThing()` calls this via `.Component`).
    */
   draw(): ReactNode {
     return this.drawItems()
@@ -66,8 +77,9 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
 
   /**
    * Draw items in the list items as react components.
+   * - Compiles from `draw each card in the deck` / `draw cards of the deck` => `spellCore.drawItems(deck)`
+   *   -- see `draw.ts`.
    */
-
   drawItems(): ReactNode {
     return this.map((item, oneIndex) => {
       const { Component } = item as { Component: ReactComponentType }
@@ -75,34 +87,41 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
     })
   }
 
-  // syntactic sugar
+  /** Syntactic sugar for `itemCount()`. */
   get length(): number {
     return this.itemCount()
   }
 
+  /** Append `items` to the end of this list -- delegates to `spellCore.append()`. */
   add(...items: unknown[]): void {
     spellCore.append(this, ...items)
   }
 
-  // Map callback RETURNING AS A ZERO-BASED ARRAY ???
+  /**
+   * Map callback RETURNING AS A ZERO-BASED ARRAY ???
+   * - `oneIndex` passed to `callback` is still 1-based (matching this list's own indexing) even
+   *   though the returned array is zero-based -- NOTE the mismatch if you rely on both.
+   */
   map<T>(callback: (item: unknown, oneIndex: number, list: List) => T): T[] {
     return this.getKeys().map((oneIndex) => callback(this.getItem(oneIndex), oneIndex, this))
   }
 
-  /** Given a `oneIndex`, return the appropriate `zeroIndex`. */
+  /**
+   * Given a `oneIndex`, return the appropriate `zeroIndex`.
+   * NOTE: `oneIndex === 0` returns zeroIndex `1` (the SECOND item), not `0` -- looks off by one,
+   * but marked `???` by the original author too rather than treated as a confirmed bug.
+   */
   _getZeroIndex(oneIndex: number): number {
     if (oneIndex === 0) return 1 // ???
     if (oneIndex < 0) return this.items.length + oneIndex
     return oneIndex - 1
   }
 
-  //----------------------------
-  // Collection methods
-  //----------------------------
+  ////////////////
+  // ## Collection methods
+  ////////////////
 
-  /**
-   * Return the current number of `items`.
-   */
+  /** Return the current number of `items`. */
   itemCount(): number {
     return this.items.length || 0
   }
@@ -110,29 +129,21 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   getKeys(): number[] {
     return _.range(1, this.length + 1)
   }
-  /**
-   * Return a CLONE of our `items` as a normal `Array`.
-   */
+  /** Return a CLONE of our `items` as a normal `Array`. */
   getValues(): unknown[] {
     return [...this.items]
   }
-  /**
-   * Return the `oneIndex` for first occurance of `thing` in our list.
-   */
+  /** Return the `oneIndex` for first occurance of `thing` in our list. */
   itemOf(thing: unknown): number | undefined {
     const zeroIndex = this.items.indexOf(thing)
     if (zeroIndex === -1) return undefined
     return zeroIndex + 1
   }
-  /**
-   * Return item stored at `oneIndex` or `undefined`.
-   */
+  /** Return item stored at `oneIndex` or `undefined`. */
   getItem(oneIndex: number): unknown {
     return this.items[this._getZeroIndex(oneIndex)]
   }
-  /**
-   * Set item at `oneIndex` to `value`. Replaces whatever was there.
-   */
+  /** Set item at `oneIndex` to `value`.  Replaces whatever was there. */
   setItem(oneIndex: number, value: unknown): void {
     const items = [...this.items]
     const zeroIndex = this._getZeroIndex(oneIndex)
@@ -141,7 +152,7 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   }
   /**
    * Add one or more `things` to our items starting at oneIndex `start`.
-   * Pushes any items after `start` over to make room.
+   * - Pushes any items after `start` over to make room.
    */
   addAtPosition(start: number, ...things: unknown[]): void {
     const items = [...this.items]
@@ -149,24 +160,18 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
     items.splice(itemStart, 0, ...things)
     this.setState("items", items)
   }
-  /**
-   * Remove item at `oneIndex`, pulling in other objects to fill the gap.
-   */
+  /** Remove item at `oneIndex`, pulling in other objects to fill the gap. */
   removeItem(oneIndex: number): void {
     const items = [...this.items]
     items.splice(this._getZeroIndex(oneIndex), 1)
     this.setState("items", items)
   }
-  /**
-   * Clear all `items` from our list.
-   */
+  /** Clear all `items` from our list. */
   clear(): void {
     this.setState("items", [])
   }
 
-  /**
-   * Convert to string by joining with comma.
-   */
+  /** Convert to string by joining with comma. */
   toString(): string {
     return this.items.join(", ")
   }

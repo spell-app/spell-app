@@ -7,22 +7,23 @@ import { P, AST } from "~/parser"
 /**
  * Default shape of `match.groups`: named sub-matches, as a single `Match` or an array if the name repeats.
  * - Rules narrow this per-rule, e.g. `Match<RulexGroups<"lhs:rhs">>` (see `~/languages/rulex`).
- * - Rules may also derive extra, non-Match group values (see `Rule.getGroupsForMatch()`).
+ * - Rules may also derive extra, non-`Match` group values (see `Rule.getGroupsForMatch()`).
  */
 export type MatchGroups = Record<string, Match | Match[] | undefined>
 
-/** A `Match` with any `groups` shape -- use for parameters which don't care about groups. */
 // CLAUDE TODO: can we get rid of this??
+/** A `Match` with any `groups` shape -- use for parameters which don't care about groups. */
 export type AnyMatch = Match<Record<string, unknown>>
 
 /**
  * Result of a successful `rule.parse()`.
  * This is a flyweight object which links a rule with the tokens that it successfully matched.
  * - `match.rule`     - (required) Immutable `Rule` instance that was matched.
- * - `match.tokens`   - (required) Array of `Tokens` that were matched
+ * - `match.tokens`   - (required) Array of `Tokens` that were matched.
  * - `match.matched`  - (required) Array of `Matches` or `Tokens` matched.
  */
 export class Match<Groups extends Record<string, unknown> = MatchGroups> extends Assertable {
+  /** Set `false` to skip constructor `assertType`/`assertArrayType` checks, e.g. for production perf. */
   static DEBUG_MATCH_INITIALIZATION = true
 
   /** Main rule that matched. */
@@ -40,7 +41,7 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
   declare argument: string | undefined
   /** Raw input text that was matched, not including trailing whitespace. */
   declare raw: string | undefined
-  /** Value of the match. For a Pattern, this will be `match.raw` run through VALUE_MAP. */
+  /** Value of the match. For a `Pattern`, this will be `match.raw` run through `VALUE_MAP`. */
   declare value: any
   /** Message for this match. */
   // REFACTOR: errorMessage?
@@ -48,6 +49,10 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
   /** Name of the `Choice` rule which selected this match, if any. */
   declare choiceRule: string | undefined
 
+  /**
+   * Create from `props` (plumbing fields set directly onto `this`).
+   * - Asserts `scope`/`rule`/`tokens` types unless `DEBUG_MATCH_INITIALIZATION` is off.
+   */
   constructor(props: MatchProps) {
     super()
     Object.assign(this, props)
@@ -60,12 +65,12 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
     }
   }
 
-  /** "name" for this match.  Explicit `argument` set on creation or rule name. */
+  /** `name` for this match ~== explicit `argument` set on creation, else `rule.argument`, else `rule.name`. */
   get name(): string | undefined {
     return this.argument || this.rule.argument || this.rule.name
   }
 
-  // Return the `name` for our rule, using `rule.constructor.name` for anonymous rules.
+  /** `name` for our rule, using `rule.constructor.name` for anonymous rules. */
   get ruleName(): string | undefined {
     return this.rule.name || this.rule.constructor.name
   }
@@ -80,7 +85,7 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
     return this.tokens?.join("") || ""
   }
 
-  /** Start line number in the source stream. Start line number in the source stream.*/
+  /** Start line number in the source stream. */
   get line(): number | undefined {
     return this.tokens[0]?.line
   }
@@ -101,8 +106,10 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
     return start === undefined ? undefined : start + inputText.length
   }
 
-  // Return our `matched` which encompasses `offset`.
-  // Returns `undefined` if nothing works.
+  /**
+   * Return our `matched` which encompasses `offset`.
+   * Returns `undefined` if nothing works.
+   */
   matchForOffset(offset: number) {
     return this.matched.find((match) => {
       if (!(match instanceof Match)) return false
@@ -111,8 +118,10 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
     }) as Match | undefined
   }
 
-  // Return stack of our `matched` which encompasses `offset` with us first.
-  // Returns empty array if `offset` is not within us.
+  /**
+   * Return stack of our `matched` which encompasses `offset`, with us first.
+   * Returns empty array if `offset` is not within us.
+   */
   matchStackForOffset(offset: number) {
     const stack = []
     let match = this as Match | undefined
@@ -139,11 +148,10 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
   }
 
   /**
-   * Add an additional `match` to this match and our `groups`.
-   * `argument` is optional group name for the match.
-   *
-   * Use this to, e.g., add a comment or error to an existing `match`.
-   * Makes sure length and tokens are updated, groups are updated, etc.
+   * Add additional `match` to this match and our `groups`.
+   * - `argument` is optional group name for the match.
+   * - Use this to, e.g., add a comment or error to an existing `match`.
+   * - Makes sure length and tokens are updated, groups are updated, etc.
    */
   addMatch(match: Match, argument: string | undefined) {
     if (match === undefined) {
@@ -161,6 +169,13 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
     if (groups) this.addMatchedToGroups(groups, [match])
   }
 
+  /**
+   * Merge `matched` items into `groups`, keyed by each match's `name`.
+   * - Repeated name becomes an array of matches.
+   * - Anonymous `P.Sequence` matches are promoted: their own `matched` items are merged in directly
+   *   instead of the sequence itself.
+   * - `callback`, if given, transforms each match before it's stored (e.g. to derive a plain value).
+   */
   addMatchedToGroups<G extends Record<string, unknown>>(
     groups: G,
     matched: Array<AnyMatch | P.Token>,
@@ -191,19 +206,17 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
   ////////////////////
 
   /**
-   * Return `scope` to use to parse "nested" contents of the match,
+   * Return `scope` to use to parse "nested" contents of the match.
    * - By default, we just return the `match.scope`, but some rules may derive a new scope.
-   * - For example, matching a method signature will define a nested MethodScope to compile the method body
-   *   which includes the method arguments.
+   * - For example, matching a method signature will define a nested `MethodScope` to compile the method
+   *   body, which includes the method arguments.
    * - NOTE: always use `match.nestedScope` to access so we re-use the scope object.
    */
   get nestedScope() {
     return this.derived("nestedScope", () => this.rule.getNestedScopeForMatch(this))
   }
 
-  /**
-   * Return array of `scopes` by looking up parentScope chains, with our scope first.
-   */
+  /** Array of `scopes`, walking `parentScope` chain, with our scope first. */
   get scopes() {
     const scopes = []
     let scope: P.Scope | undefined = this.scope
@@ -259,7 +272,7 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
   // ## Debug
   ////////////////////
 
-  // DEBUG: Call this when printing to the console to eliminate the big bits in node.
+  /** DEBUG: Call this when printing to the console to eliminate the big bits in node. */
   toPrint() {
     if (!isNode) return this
     return {
@@ -268,7 +281,7 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
     }
   }
 
-  // DEBUG: convert to JSON
+  /** DEBUG: convert to JSON. */
   toJSON() {
     const { name, rule, scope, raw, value, matched, items } = this
     return {
@@ -283,15 +296,26 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
   }
 }
 
+/** Constructor props for `Match`. */
 export type MatchProps = {
+  /** Scope in which the match was made. */
   scope: P.Scope
+  /** Main rule that matched. */
   rule: P.Rule
+  /** Raw input tokens that were matched. */
   tokens: P.Token[]
+  /** Things what were matched, which may be `Matches` or `Tokens`. */
   matched: (Match | P.Token)[]
+  /** Significant sub-matches, e.g. the repeated items of a `Repeat` (not including delimiters). */
   items?: Match[]
+  /** Argument for this match. */
   argument?: string
+  /** Raw input text that was matched, not including trailing whitespace. */
   raw?: string
+  /** Value of the match. For a `Pattern`, this will be `match.raw` run through `VALUE_MAP`. */
   value?: any
+  /** Message for this match. */
   message?: string
+  /** Name of the `Choice` rule which selected this match, if any. */
   choiceRule?: string
 }

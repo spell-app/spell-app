@@ -37,6 +37,7 @@ when working with code in this repository.
 - Separate React components with a header like so:
 
 ```
+
 /****************
  * ### `<ComponentName>`
  * Description of the component.
@@ -97,7 +98,6 @@ when working with code in this repository.
   - Import base classes directly from the defining file, with comment:
     `// Import directly to avoid circular import`
   - Use `import type { P }` when file only needs types, e.g. `*.types.ts`, `Tokens.ts`.
-  - Files shared with server MUST stay light:  `import type * as SP from "./spell.types"`, never the barrel.
 - Import order:
   - node_modules
   - (blank line)

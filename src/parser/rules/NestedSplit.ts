@@ -27,15 +27,16 @@ export type NestedSplitGroups = P.MatchGroups & {
 export class NestedSplit extends Rule<NestedSplitProps> {
   /** Start rule, e.g. `Symbol("(")`. */
   declare start: P.Rule
-  /** Optional rule to match inside the FIRST item, e.g. right after the. */
+  /** Optional rule to match inside the FIRST item, e.g. right after `start`. */
   declare prefix: P.Rule
   /** Middle-bit to match inside start/end, probably a sequence or subrule. */
   declare item: P.Rule
-  /** Optional delimiter to split on, e.g. `Symbol("|")`. */
+  /** Delimiter to split on, e.g. `Symbol("|")`. */
   declare delimiter: P.Rule
   /** End rule, e.g. `Symbol(")")`. */
   declare end: P.Rule
 
+  /** Find balanced `start`/`end` span, split its contents on `delimiter`, then match `item` against each piece. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const end = this.findNestedEnd(scope, tokens)
     if (end === undefined) return undefined
@@ -76,6 +77,7 @@ export class NestedSplit extends Rule<NestedSplitProps> {
       scope
     })
   }
+  /** Add `groups.items` (the split `item` matches) and `groups.prefix` (if a `prefix` rule matched). */
   getGroupsForMatch(match: P.Match): NestedSplitGroups {
     const groups = super.getGroupsForMatch(match) as NestedSplitGroups
     const { items, matched } = match
@@ -90,9 +92,10 @@ export class NestedSplit extends Rule<NestedSplitProps> {
     throw new TypeError("don't use nestedSplit.compile() -- check `match.groups` instead.")
   }
 
-  // If tokens starts with our `start` literal,
-  //  find the index of the token which matches our `end` literal.
-  // Returns `undefined` if not found or not balanced.
+  /**
+   * If tokens starts with our `start` literal, find index of token which matches our `end` literal.
+   * - Returns `undefined` if not found or not balanced.
+   */
   findNestedEnd(scope: P.Scope, tokens: P.Token[], start = 0) {
     if (!this.start.testAtStart(scope, tokens, start)) return undefined
     let nesting = 0
@@ -108,9 +111,10 @@ export class NestedSplit extends Rule<NestedSplitProps> {
     return undefined
   }
 
-  // If tokens starts with our `start` literal,
-  //  find the index of the token which matches our `end` literal.
-  // Returns `undefined` if not found or not balanced.
+  /**
+   * Split `tokens` on `delimiter`, treating balanced `start`/`end` spans as opaque (not split on delimiters inside).
+   * - Returns `undefined` if nothing was produced.
+   */
   splitTokens(scope: P.Scope, tokens: P.Token[]) {
     const items = []
     let current: P.Token[] = []
@@ -143,12 +147,18 @@ export class NestedSplit extends Rule<NestedSplitProps> {
   }
 }
 
+/** Props bag accepted by `NestedSplit`'s constructor. */
 export type NestedSplitProps = Prettify<
   P.RuleProps & {
+    /** Start rule, e.g. `Symbol("(")`. */
     start: P.Rule
+    /** Optional rule to match inside the FIRST item, e.g. right after the. */
     prefix?: P.Rule
+    /** Middle-bit to match inside start/end, probably a sequence or subrule. */
     item: P.Rule
+    /** Delimiter to split on, e.g. `Symbol("|")`. */
     delimiter: P.Rule
+    /** End rule, e.g. `Symbol(")")`. */
     end: P.Rule
   }
 >

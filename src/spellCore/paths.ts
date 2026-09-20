@@ -8,8 +8,11 @@ export type PathStep = string | number
 
 export const pathMethods = defineSpellCoreModule({
   /**
-   * Given an `object` and a string `path`, walk the path to get the leaf value.
-   * Returns `undefined` on invalid path.
+   * Given an `object` and a string `path`, walk it to get the leaf value.
+   * - Returns `undefined` on invalid `path`.
+   * - NOTE: if a numeric step targets an object with a `getItem(key)` method (e.g. spell's `List`),
+   *   calls that instead of plain index access, so `path` can reach into custom collections too.
+   * - Used e.g. by `FormStore` to bind form fields to dotted `value` paths.
    */
   getPath(object: unknown, path: string): unknown {
     if (object == null) return object
@@ -29,10 +32,12 @@ export const pathMethods = defineSpellCoreModule({
   },
 
   /**
-   * Given an `object`, walk the `path` and set the leaf step to `value`.
-   * Will build objects or arrays if path steps are not defined.
-   *
-   * Returns `value`, or `undefined` if passed an invalid `path`.
+   * Given an `object`, walk `path` and set leaf step to `value`.
+   * - Builds objects or arrays along the way if path steps aren't defined yet.
+   * - NOTE: if a numeric step targets an object with a `setItem(key, value)` method (e.g. spell's
+   *   `List`), calls that instead of plain index assignment.
+   * - SIDE EFFECT: `value === undefined` deletes property instead of setting it to `undefined`.
+   * - Returns `value`, or `undefined` if passed an invalid `path`.
    */
   setPath(object: unknown, path: string, value: unknown): unknown {
     if (object == null) return object
@@ -72,12 +77,17 @@ export const pathMethods = defineSpellCoreModule({
     return value
   },
 
-  /** Registry of known path items. */
+  /** Memoization cache for `splitPath()`, keyed by raw `path` string. */
   PATH_REGISTRY: {} as Record<string, PathStep[] | undefined>,
 
   /**
-   * Split a `path` into an array of `steps`.
-   * We memoize the `steps` for a given `path` string.
+   * Split `path` into an array of `steps`.
+   * - We memoize `steps` for a given `path` string in `PATH_REGISTRY`.
+   * - Supports dotted (`a.b.c`) and bracketed (`a[0]`, `a["b c"]`) steps; a step that's exactly an
+   *   integer becomes a `number`, everything else stays a `string`.
+   * - NOTE: on a malformed `path` (unbalanced `[`/`]` or quote), logs an error and caches (and
+   *   returns) `undefined` -- but since `undefined` is falsy, the memo check above never
+   *   short-circuits on it, so a repeated invalid `path` re-parses (and re-logs) every time.
    */
   splitPath(path: unknown): PathStep[] | undefined {
     if (!path || typeof path !== "string") return undefined

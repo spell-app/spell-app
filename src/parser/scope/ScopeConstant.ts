@@ -1,17 +1,24 @@
 import { P } from "~/parser"
 
 /**
- * `ScopeConstant` a variable defined within a `Scope`.
+ * `ScopeConstant` a constant defined within a `Scope`.
  * - `name` (required) Constant name, quotes will be stripped.
  * - `output` Literal output string for constant when expressed in target language,
  *            with quotes as necessary.  Defaults to `'name'`.
  * - `scope` Where constant was defined.
  */
 export class ScopeConstant {
+  /** Constant name, quotes will be stripped. */
   declare name: string
+  /**
+   * Literal output string for constant when expressed in target language, with quotes as necessary.
+   * Defaults to `'name'`.
+   */
   declare output: string
+  /** Scope where constant was defined. */
   declare scope: P.Scope
 
+  /** Create with a string `name`, or `ScopeConstantProps` object; strips quotes and defaults `output`. */
   constructor(name: string)
   constructor(props: ScopeConstantProps)
   constructor(input: string | ScopeConstantProps) {
@@ -35,17 +42,26 @@ export class ScopeConstant {
     if (this.output === undefined) this.output = `'${this.name}'`
   }
 
+  /** Strip enclosing single or double quotes from `name`, if present. */
   static stripEnclosingQuotes(name: string) {
     return name.replace(/^['"](.*)['"]$/, "$1")
   }
 
+  /** String form of this constant ~== `output`, e.g. for template interpolation. */
   toString() {
     return this.output
   }
 }
 
+/** Constructor props for `ScopeConstant`. */
 export type ScopeConstantProps = {
+  /** Constant name, quotes will be stripped. */
   name: string
+  /**
+   * Literal output string for constant when expressed in target language, with quotes as necessary.
+   * Defaults to `'name'`.
+   */
   output?: string
+  /** Scope where constant was defined. */
   scope?: P.Scope
 }

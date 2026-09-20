@@ -6,7 +6,11 @@ import { UI, Actions, AppRoot, ConsoleRoot, SpellPage, SplitPanel } from "~/app/
 import { store } from "~/app/store"
 import type { SpellRouteParams } from "./pages.types"
 
-/** Runner page. */
+/****************
+ * ### `<SpellRunner />`
+ * Run page: `<UI.AppRoot>` (live rendered app, no editor toolbar) plus `<UI.ConsoleRoot>` (run log).
+ * - SIDE EFFECT: sets `store.projectPage = "runner"` on every render.
+ ****************/
 export const SpellRunner = React.memo(function SpellRunner() {
   store.projectPage = "runner"
   return (
@@ -19,7 +23,11 @@ export const SpellRunner = React.memo(function SpellRunner() {
     </SpellPage>
   )
 })
-/** RunnerToolbar. */
+
+/****************
+ * ### `<RunnerToolbar />`
+ * Top menu bar for `<SpellRunner>` -- project dropdown, restart/edit actions, and about/docs links.
+ ****************/
 export function RunnerToolbar() {
   return (
     <UI.AppMenu>
@@ -42,9 +50,11 @@ export function RunnerToolbar() {
   )
 }
 
-/**
+/****************
+ * ### `<SpellRunnerRoute />`
  * Reach-router `<Route/>` to show a project/example/etc by path.
- */
+ * - HACK: navigates on a timeout to avoid hook/rerender problems.
+ ****************/
 export function SpellRunnerRoute(props: RouteComponentProps<SpellRouteParams>) {
   const { domain, project, filePath } = props
   const path = SP.SpellLocation.pathForUrl({ domain, project, filePath })

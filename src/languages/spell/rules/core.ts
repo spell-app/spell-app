@@ -1,6 +1,7 @@
-//
-//  # Core `rules` -- simple datatypes, etc.
-//
+/**
+ * Core rules -- simple datatypes (`number`, `boolean`, `text`, `undefined`), whitespace/newline/comment
+ * tokens, and the `keyword` identifier pattern used by method/type definitions elsewhere.
+ */
 import { assert } from "~/util"
 import { P, AST } from "~/parser"
 // Import directly to avoid circular import
@@ -9,10 +10,11 @@ import { SpellParser } from "~/languages/spell/SpellParser"
 export const core = new SpellParser({
   module: "core",
   rules: [
-    //----------------------------
-    //  Various flavors of whitespace.
-    //
-    // Eat all whitespace at start of tokens.
+    ////////////////
+    // ## Various flavors of whitespace
+    ////////////////
+
+    /** Eats all whitespace at start of tokens -- used to skip leading indent/newlines before a real rule. */
     {
       name: "eat_whitespace",
       syntax: "{whitespace}*",
@@ -20,7 +22,7 @@ export const core = new SpellParser({
       constructor: class eat_whitespace extends P.Subrule {}
     },
 
-    // Any whitespace.
+    /** Any whitespace token -- space, tab, newline, etc., wrapped as-is into a `StringLiteral`. */
     {
       name: "whitespace",
       datatype: "string",
@@ -33,7 +35,7 @@ export const core = new SpellParser({
       }
     },
 
-    // Indent whitespace specifically.
+    /** Indent whitespace specifically, e.g. leading spaces/tabs at start of a line. */
     {
       name: "indent",
       datatype: "string",
@@ -46,7 +48,7 @@ export const core = new SpellParser({
       }
     },
 
-    // Newlines only.
+    /** Newlines only. */
     {
       name: "newline",
       datatype: "string",
@@ -59,8 +61,10 @@ export const core = new SpellParser({
       }
     },
 
-    // Inline whitespace only.
-    // Note that we normally filter this out when tokenizing.
+    /**
+     * Inline whitespace only, e.g. spaces/tabs between tokens on same line.
+     * - NOTE: normally filtered out when tokenizing, so this rule rarely matches in practice.
+     */
     {
       name: "inline_whitespace",
       datatype: "string",
@@ -73,12 +77,14 @@ export const core = new SpellParser({
       }
     },
 
-    //----------------------------
-    //  Simple types:  number, boolean, text (string), etc.
-    //
+    ////////////////
+    // ## Simple types:  number, boolean, text (string), etc.
+    ////////////////
 
-    // `number` as a float or integer token.
-    // TODO:  `integer` and `decimal`?  too techy?
+    /**
+     * `number` as a float or integer token.
+     * - TODO:  `integer` and `decimal`?  too techy?
+     */
     {
       name: "number",
       alias: "expression",
@@ -119,7 +125,7 @@ export const core = new SpellParser({
       ]
     },
 
-    // `number` as a string `zero` to `ten`
+    /** `number` spelled out as a string, `zero` to `ten` -- `VALUE_MAP` does the word-to-number lookup. */
     {
       name: "number_as_string",
       alias: ["expression", "number"],
@@ -164,8 +170,10 @@ export const core = new SpellParser({
       ]
     },
 
-    // Boolean literal.
-    // TODO: better name for this?  "flag"?  "truism"?
+    /**
+     * Boolean literal -- also accepts common synonyms like `yes`/`no`, `ok`/`cancel`, `always`/`never`.
+     * - TODO: better name for this?  "flag"?  "truism"?
+     */
     {
       name: "boolean",
       alias: "expression",
@@ -213,9 +221,11 @@ export const core = new SpellParser({
       ]
     },
 
-    // Literal `text` string.
-    // Note that in spell you must use DOUBLE QUOTES (`"`) -- single quotes are treated as a single symbol.
-    // Returned value has the original enclosing quotes.
+    /**
+     * Literal `text` string.
+     * - NOTE: in spell you must use DOUBLE QUOTES (`"`) -- single quotes are treated as a single symbol.
+     * - Returned value has original enclosing quotes.
+     */
     {
       name: "text",
       alias: "expression",
@@ -241,6 +251,7 @@ export const core = new SpellParser({
       ]
     },
 
+    /** Line comment token -- wraps a `Comment` token into a `LineComment` AST node, e.g. `// foo`. */
     {
       name: "comment",
       tokenType: P.Tokens.Comment,
@@ -267,7 +278,7 @@ export const core = new SpellParser({
       ]
     },
 
-    // `undefined` as an expression... ???
+    /** `undefined` as an expression... ??? */
     {
       name: "undefined",
       alias: "expression",
@@ -289,13 +300,15 @@ export const core = new SpellParser({
       ]
     },
 
-    // `keyword` = is a single alphanumeric word used as a keyword in, e.g. a method definition.
-    // Case is not a factor, but it must start with a letter.
+    /**
+     * Single alphanumeric word used as a keyword, e.g. in a method definition.
+     * - Case is not a factor, but it must start with a letter.
+     */
     {
       name: "keyword",
       pattern: /^[a-zA-Z][\w-]*$/,
       constructor: class keyword extends P.Pattern {
-        // convert dashes to underscores when compiling
+        /** Converts dashes to underscores when compiling, so `abc-def` outputs as valid JS identifier `abc_def`. */
         mapValue<T = string>(value: string): T {
           return `${value}`.replace(/-/g, "_") as T
         }

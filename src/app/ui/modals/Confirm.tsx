@@ -37,8 +37,12 @@ export function Confirm({ props, resolve }: ModalComponentProps<ConfirmModalProp
 
 /** Props for `<Confirm>`.  Extra keys pass through to the underlying `SUI.Modal`. */
 export type ConfirmModalProps = {
+  /** Message to show. */
   message: ReactNode
+  /** Header for the dialog. */
   header?: ReactNode
+  /** Text title for OK button.  Default `"OK"`. */
   ok?: string | SUI.ButtonProps
+  /** Text title for Cancel button.  Default `"Cancel"`. */
   cancel?: string | SUI.ButtonProps
 } & Record<string, unknown>

@@ -4,7 +4,7 @@ import { Literals } from "./Literals"
  * Rule to match one or more sequential literal `Keyword`s, with space in-between.
  *
  * - After matching, `match.value` will be the literal string matched.
- * - Symbols output WITH a single space in-between.
+ * - Keywords output WITH a single space in-between.
  */
 export class Keywords extends Literals {
   static {

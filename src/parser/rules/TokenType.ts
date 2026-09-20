@@ -6,8 +6,10 @@ import { Rule } from "./Rule"
  * Abstract rule for matching a single token of a particular type.
  */
 export class TokenType extends Rule<TokenTypeProps> {
-  // Accessor pair (rather than a plain field) so subclasses like `Word` can override the getter.
-  // Backing field is `declare`d because `Object.assign(this, props)` in `Rule` runs before subclass initializers.
+  /**
+   * Accessor pair (rather than a plain field) so subclasses like `Word` can override the getter.
+   * - Backing field is `declare`d because `Object.assign(this, props)` in `Rule` runs before subclass initializers.
+   */
   declare private _tokenType: P.TokenConstructor | undefined
 
   /** Constructor for the token type we match. */
@@ -19,10 +21,12 @@ export class TokenType extends Rule<TokenTypeProps> {
     this._tokenType = value
   }
 
+  /** `true` if token at `start` is an instance of `this.tokenType`. */
   testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
     return tokens[start] instanceof this.tokenType
   }
 
+  /** Match a single token whose type is `this.tokenType`. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     if (!this.testAtStart(scope, tokens, 0)) return undefined
     return new P.Match({
@@ -35,13 +39,16 @@ export class TokenType extends Rule<TokenTypeProps> {
     })
   }
 
+  /** Output is just the matched `match.value`. */
   compile(match: P.Match) {
     return match.value
   }
 }
 
+/** Props bag accepted by `TokenType`'s constructor. */
 export type TokenTypeProps = Prettify<
   P.RuleProps & {
+    /** Constructor for the token type we match. */
     tokenType?: P.TokenConstructor
   }
 >

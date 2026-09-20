@@ -3,10 +3,8 @@ import { P, AST } from "~/parser"
 import { SP } from "~/languages/spell"
 
 /**
- * CSS file as part of SpellProject.
- *
- * Note that these are singleton instances --
- * you'll always get the same object back for a given `path`.
+ * CSS file as part of `SpellProject`.
+ * - NOTE: these are singleton instances -- you'll always get the same object back for a given `path`.
  */
 export class SpellCSSFile extends TextFile {
   /** Registry of known instances. */
@@ -24,7 +22,13 @@ export class SpellCSSFile extends TextFile {
     SpellCSSFile.registry.set(path, this)
   }
 
-  /** We've been removed from the server -- clean up memory, etc.. */
+  /**
+   * We've been removed from the server -- clean up memory, etc..
+   * - SIDE EFFECT: clears entire `SpellCSSFile.registry` AND entire `SP.SpellLocation.registry` (shared
+   *   across every spell file type), not just this instance's entries.
+   *   TODO: looks like it should scope to `this.path` like `SpellJSFile.onRemove()` does -- as written,
+   *   removing ONE css file drops every other loaded `SpellCSSFile`/`SpellLocation` too.
+   */
   onRemove(): void {
     super.onRemove()
     SpellCSSFile.registry.clear()
@@ -33,58 +37,63 @@ export class SpellCSSFile extends TextFile {
 
   /**
    * Path to file, as specified by server.
-   * MUST be passed to constructor.
+   * - MUST be passed to constructor.
    */
   /*@writeOnce path*/
   declare path: string
 
-  /** `location` object which we can use to get various bits of the path. */
+  /** `location` object which we can use to get various bits of `path`. */
   /*@forward("projectId", "projectName", "filePath", "folder", "file", "fileName", "extension")*/
   /*@memoize*/
   get location(): SP.SpellLocation {
     return this.derived("location", () => new SP.SpellLocation(this.path))
   }
+  /** `projectId` from `location`. */
   get projectId(): string {
     return this.location.projectId
   }
+  /** `projectName` from `location`, if any. */
   get projectName(): string | undefined {
     return this.location.projectName
   }
+  /** `filePath` from `location`, if any. */
   get filePath(): string | undefined {
     return this.location.filePath
   }
+  /** `folder` from `location`, if any. */
   get folder(): string | undefined {
     return this.location.folder
   }
+  /** `file` from `location`, if any. */
   get file(): string | undefined {
     return this.location.file
   }
+  /** `fileName` from `location`, if any. */
   get fileName(): string | undefined {
     return this.location.fileName
   }
+  /** `extension` from `location`, if any. */
   get extension(): string | undefined {
     return this.location.extension
   }
 
-  /**
-   * Pointer to our `SpellProject`.
-   */
+  /** Pointer to our `SpellProject`. */
   /*@memoize*/
   get project(): SP.SpellProject {
     return this.derived("project", () => new SP.SpellProject(this.projectId))
   }
 
   /**
-   * Return promise which yields our `info` record according to the project manifest.
-   * Note that `modified` and `size` may be out of sync if we've been modified on the client.
+   * Our `info` record from project manifest, or `undefined` if not found there.
+   * - NOTE: `modified` and `size` may be stale if we've been modified on client since load.
    */
   get info(): SP.ProjectManifestEntry | undefined {
     return this.project.getFileInfo(this.path)
   }
 
-  //-----------------
-  //  Compiling/etc
-  //-----------------
+  ////////////////
+  // ## Compiling/etc
+  ////////////////
 
   /** Our scope with which we've compiled. */
   /*@state*/ get scope(): P.RootScope | undefined {
@@ -124,14 +133,18 @@ export class SpellCSSFile extends TextFile {
   }
 
   /**
-   * Return a `Scope` for parsing this file, which is always the `rootScope`.
-   * TODO... ????
+   * Return a `Scope` for parsing this file, which is always `rootScope`.
+   * - `_parentScope` is ignored -- kept only so the signature matches `SpellFile.getScope()`.
+   * - TODO... ????
    */
   getScope(_parentScope?: P.Scope): P.RootScope {
     return SP.SpellParser.rootScope
   }
 
-  /** "parse" the css file */
+  /**
+   * "Parse" file -- really just wraps whole `contents` as one `P.Tokens.Text` token and feeds it to
+   * `rootScope`'s `"css"` rule, since CSS isn't tokenized/parsed like spell source.
+   */
   async parse(parentScope?: P.Scope): Promise<P.Match | undefined> {
     if (this.match) return this.match
     await this.load(undefined)
@@ -148,7 +161,7 @@ export class SpellCSSFile extends TextFile {
     return this.match
   }
 
-  /** "compile" the CSS file  */
+  /** "Compile" file -- `parse()`, then `match.compile()`. */
   async compile(parentScope?: P.Scope): Promise<string | undefined> {
     const match = await this.parse(parentScope)
     batch(() => {
@@ -158,11 +171,11 @@ export class SpellCSSFile extends TextFile {
     return this.compiled
   }
 
-  //-----------------
-  //  Loading / Saving
-  //-----------------
+  ////////////////
+  // ## Loading / Saving
+  ////////////////
 
-  /** Update file contents when you  do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
+  /** Update file contents when you do `spellFile.save(contents)` or `spellFile.save({ contents })`. */
   /*@proto*/ get autoUpdateContentsOnSave(): boolean {
     return true
   }
@@ -175,19 +188,24 @@ export class SpellCSSFile extends TextFile {
     this.override("url", { get: () => url })
   }
 
-  //-----------------
-  //  Rendering utilities
-  //-----------------
+  ////////////////
+  // ## Rendering utilities
+  ////////////////
 
-  /** Convert CodeMirror Position: `{ line, ch }` to char `offset`. */
+  /**
+   * Convert CodeMirror Position: `{ line, ch }` to char `offset`.
+   * - NOTE: unlike `SpellFile`, always returns `undefined` here -- `SpellCSSFile` never tracks `inputLines`.
+   */
   offsetForPosition(_position: { line: number; ch: number }): number | undefined {
     // NOTE: unlike `SpellFile`, `SpellCSSFile` never tracks `inputLines`, so this always returns `undefined`.
     return undefined
   }
 
-  //-----------------
-  //  Debug
-  //-----------------
+  ////////////////
+  // ## Debug
+  ////////////////
+
+  /** Debug string: `ClassName: path`. */
   toString(): string {
     return `${this.constructor.name}: ${this.path}`
   }

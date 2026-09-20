@@ -1,14 +1,17 @@
-//
-//  # Rules for creating variables, property access, etc
-//
+/**
+ * Rules for user-facing I/O statements -- `print`, `notify`, `alert`, `warn`, `confirm`, `prompt` --
+ * plus inline `css` string installation.
+ */
 
 import { P, AST } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 
-// `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass
-// that the referenced sub-rule's `getAST()` is known (by inspection) to always produce.
+/**
+ * Narrow `node` (typed generically as `AST.ASTNode | undefined`) to concrete AST subclass `T`.
+ * - `T` is chosen by inspection: referenced sub-rule's `getAST()` is known to always produce it.
+ */
 function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
   return node as T
 }
@@ -16,12 +19,17 @@ function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
 export const UI = new SpellParser({
   module: "UI",
   rules: [
-    /** Print an expression (to the console currently) */
+    /**
+     * Print an expression (to the console currently).
+     * - `operator` (`info`/`warning`/`error`/`group`/`collapsed group`) selects the `console` method
+     *   via `operatorMap`; omitted operator defaults to `log`.
+     */
     {
       name: "print",
       alias: "statement",
       syntax: "print (operator:info|warning|error|collapsed? group)? [expressions: {expression} ,]",
       constructor: class print extends SpellStatement {
+        /** Maps `operator` group value to `console` method name; `default` is used when `operator` is absent. */
         operatorMap: Record<string, string> = {
           info: "info",
           warning: "warn",
@@ -71,9 +79,11 @@ export const UI = new SpellParser({
       ]
     },
 
-    // Notify user about `message` in a non-modal (popup?) interface.
-    // Returns a promise which `resolve()`s when notice is hidden (manually or otherwise).
-    // NOTE: we DO NOT actually `await` the promise! ???
+    /**
+     * Notify user about `message` in a non-modal (popup?) interface.
+     * - Returns a promise which `resolve()`s when notice is hidden (manually or otherwise).
+     * - NOTE: we DO NOT actually `await` the promise!  ???
+     */
     {
       name: "notify",
       alias: ["statement", "async"],
@@ -101,10 +111,12 @@ export const UI = new SpellParser({
       ]
     },
 
-    // Show user a `message` in a modal alert.
-    // Returns a promise which resolves when they click `ok`.
-    // NOTE: we'll `await` the promise!
-    // TODO: `the result = await ...` ?
+    /**
+     * Show user a `message` in a modal alert.
+     * - Returns a promise which resolves when they click `ok`.
+     * - NOTE: we'll `await` the promise!
+     * - TODO: `the result = await ...` ?
+     */
     {
       name: "alert",
       alias: ["statement", "async"],
@@ -134,10 +146,12 @@ export const UI = new SpellParser({
       ]
     },
 
-    // Warning message -- like alert but more dire.
-    // Returns a promise which resolves when they click `ok`.
-    // NOTE: we'll `await` the promise!
-    // TODO: `the result = await ...` ?
+    /**
+     * Warning message -- like alert but more dire.
+     * - Returns a promise which resolves when they click `ok`.
+     * - NOTE: we'll `await` the promise!
+     * - TODO: `the result = await ...` ?
+     */
     {
       name: "warn",
       alias: "statement",
@@ -167,10 +181,12 @@ export const UI = new SpellParser({
       ]
     },
 
-    // Confirm message -- present a question with two answers.
-    // Returns a promise which `resolve()`s when they `ok`, `reject()`s if they `cancel`.
-    // NOTE: we'll `await` the promise!
-    // TODO: `the result = await ...` ?
+    /**
+     * Confirm message -- present a question with two answers.
+     * - Returns a promise which `resolve()`s when they `ok`, `reject()`s if they `cancel`.
+     * - NOTE: we'll `await` the promise!
+     * - TODO: `the result = await ...` ?
+     */
     {
       name: "confirm",
       alias: "statement",
@@ -202,11 +218,13 @@ export const UI = new SpellParser({
       ]
     },
 
-    // Prompt user to specify a value in response to `message` with `defaultValue`.
-    // Returns a promise which `resolve()`s if they "OK", `reject()`s if they "cancel".
-    // TODO: `as number`, `as date`, etc?
-    // NOTE: we'll `await` the promise!
-    // TODO: `the result = await ...` ?
+    /**
+     * Prompt user to specify a value in response to `message` with `defaultValue`.
+     * - Returns a promise which `resolve()`s if they "OK", `reject()`s if they "cancel".
+     * - TODO: `as number`, `as date`, etc?
+     * - NOTE: we'll `await` the promise!
+     * - TODO: `the result = await ...` ?
+     */
     {
       name: "prompt",
       alias: "statement",
@@ -256,7 +274,11 @@ export const UI = new SpellParser({
     //          => `await spellCore.chooseMultiple(message, list, defaultValues)`
     //     }
 
-    /** Parse CSS from a `Text` token WITHOUT quotes. */
+    /**
+     * Parse CSS from a `Text` token WITHOUT quotes.
+     * - Compiles to `spellCore.installStyles(file, css)`; newlines in `css` are escaped to `¬` so the
+     *   value survives being embedded in a backtick template literal.
+     */
     {
       name: "css",
       alias: "expression",

@@ -21,6 +21,7 @@ export class Pattern extends Rule<PatternProps> {
   /** Map of `{ key: true }` for strings which will NOT be accepted. */
   declare blacklist: P.IdentifierBlacklist | undefined
 
+  /** Normalizes a bare `RegExp` into `{ pattern }`, and converts array `blacklist` into a lookup map. */
   constructor(props: PatternProps) {
     if (props instanceof RegExp) props = { pattern: props }
     // convert blacklist to a map if necessary
@@ -33,11 +34,13 @@ export class Pattern extends Rule<PatternProps> {
     super(props)
   }
 
+  /** `true` if token at `start` matches `this.pattern` and isn't in `this.blacklist`. */
   testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
     if (start >= tokens.length) return false
     return tokens[start].matchesPattern(this.pattern, this.blacklist)
   }
 
+  /** Match a single token against `this.pattern`, running its value through `mapValue()`. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     if (!this.testAtStart(scope, tokens, 0)) return undefined
     const raw = tokens[0].value // raw value, used by subclasses
@@ -58,15 +61,20 @@ export class Pattern extends Rule<PatternProps> {
     return value as T
   }
 
+  /** Output is just the (possibly mapped) `match.value`. */
   compile(match: P.Match) {
     return match.value
   }
 }
 
+/** Props bag accepted by `Pattern`'s constructor. */
 export type PatternProps = Prettify<
   P.RuleProps & {
+    /** Regular expression to match -- MUST start with `^` and end with `$`. */
     pattern?: RegExp
+    /** Map of `{ matched: compiled }` to return `compiled` value for `matched` string. */
     VALUE_MAP?: Record<string, any>
+    /** Map (or array) of strings which will NOT be accepted. */
     blacklist?: P.IdentifierBlacklist | string[]
   }
 >

@@ -1,11 +1,11 @@
-//  Helper scripts to test rules defined for a parser "module"
-//
-//  To make a rule testable, add a `tests` block to parser rules with `defineRules()`.
-//  Call `unitTestModuleRules(<moduleName>)` to test all rules in that module.
-//
-//  TODO: add `only` to test block to skip everything else in the file
-//  TODO: rules w/specific titles to `{ title, input, output }`
-//  TODO: output as a function?
+/**
+ * Helper scripts to test rules defined for a parser "module".
+ * - To make a rule testable, add a `tests` block to parser rules with `defineRules()`.
+ * - Call `unitTestModuleRules(<moduleName>)` to test all rules in that module.
+ * - TODO: add `only` to test block to skip everything else in the file.
+ * - TODO: rules w/specific titles to `{ title, input, output }`.
+ * - TODO: output as a function?
+ */
 
 import { describe, test, expect } from "vitest"
 import groupBy from "lodash/groupBy"
@@ -15,11 +15,12 @@ import { showWhitespace } from "~/util"
 
 import { P } from "~/parser"
 
+/** Shape of one test entry after `P.normalizeRuleTest()` fills in defaults (`title`, `skip`, etc). */
 type NormalizedRuleTest = ReturnType<typeof P.normalizeRuleTest>
 
 /**
  * Unit test all rules for `moduleName` in `parser`.
- * If you pass `initializeContext` it will be executed before each rule.
+ * - Pass `initializeContext` to have it run before each rule.
  */
 export function unitTestModuleRules(parser: P.Parser, moduleName: string, initializeContext?: () => void) {
   describe(`rule unit tests`, () => {
@@ -34,12 +35,14 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
     rules.forEach((rule) => executeRuleTests(rule))
   })
 
+  /** Return `parser`'s testable rules (its `_testable_` group) belonging to `module`, if any. */
   function getTestableRulesForModule(module: string): P.Rule[] | undefined {
     const testable = parser.rules._testable_
     if (!(testable instanceof P.Group)) return undefined
     return groupBy(testable.rules, "module")[module]
   }
 
+  /** Register a `describe()` block for one `rule`, running each of its (non-`skip`) `tests` entries. */
   function executeRuleTests({ name, tests }: P.Rule) {
     describe(`rule '${name}'`, () => {
       tests?.forEach((testBlock) => {
@@ -50,6 +53,10 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
     })
   }
 
+  /**
+   * Run one `tests` block -- `compileAs` (defaults to rule `name`) is the rule to parse each `input` as.
+   * - Fails loudly if `compileAs` couldn't be determined at all, rather than silently skipping.
+   */
   function executeTestBlock(name: string | undefined, { compileAs = name, tests, beforeEach }: P.RuleTestBlock) {
     if (!compileAs) {
       test("compileAs property of test is defined", () => {
@@ -66,6 +73,11 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
       .forEach((test) => executeTest(test, ruleName, beforeEach))
   }
 
+  /**
+   * Run a single normalized test case: parse+compile `input` as `ruleName` in a fresh scope, register
+   * a vitest `test()`/`describe()` comparing result to `output`.
+   * - Whitespace (returns/tabs) is made visible via `showWhitespace()` so mismatches are legible in output.
+   */
   function executeTest(
     { input, output, title }: NormalizedRuleTest,
     ruleName: string,

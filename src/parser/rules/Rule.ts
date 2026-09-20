@@ -45,8 +45,10 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
   declare testRule: Rule | undefined
   /** Test location to use to determine if this rule can be matched. */
   declare testLocation: P.TestLocation | undefined
-  /** Name for this rule in `match.groups`. */
-  // REFACTOR: `groupName`
+  /**
+   * Name for this rule in `match.groups`.
+   * - REFACTOR: `groupName`.
+   */
   declare argument: string | undefined
   /** Whether this rule is optional. */
   declare optional: boolean | undefined
@@ -54,12 +56,16 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
   declare isLeftRecursive: boolean | undefined
   /** Tests for this rule. */
   declare tests: P.RuleTests | undefined
-  /** Scope of this rule. */
-  // TODO: why is this needed?
+  /**
+   * Scope of this rule.
+   * - TODO: why is this needed?
+   */
   declare scope: P.Scope | undefined
 
-  // Define properties on prototype to keep instances as small as possible
-  // and so that `Object.keys()` only returns properties defined in the instance.
+  /**
+   * Define properties on prototype to keep instances as small as possible
+   * and so that `Object.keys()` only returns properties defined in the instance.
+   */
   static {
     Object.defineProperty(this.prototype, "precedence", { value: 0, writable: true })
     // Object.defineProperty(this.prototype, "module", { writable: true })
@@ -77,6 +83,7 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
   }
 
   // props: Record<string,any>
+  /** Assign `props` directly onto `this` -- subclasses may normalize `props` before calling `super()`. */
   constructor(props?: Props) {
     super()
     if (props) Object.assign(this, props)
@@ -95,9 +102,9 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
     return [this.name, ...alias].filter((it) => it !== undefined)
   }
 
-  ////////////////////
+  ////////////////
   // ## Parsing methods -- implement these in your subclasses!
-  ////////////////////
+  ////////////////
 
   /**
    * Attempt to match this rule at the start of `tokens`.
@@ -122,9 +129,9 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
    */
   getAST?(match: P.AnyMatch): P.ASTNode | undefined
 
-  ////////////////////
+  ////////////////
   // ## Quick testing methods
-  ////////////////////
+  ////////////////
 
   /**
    * Test to see if this rule is matched in `tokens`.
@@ -179,9 +186,9 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
     return false
   }
 
-  ////////////////////
+  ////////////////
   // ## Match groups & scopes
-  ////////////////////
+  ////////////////
 
   /**
    * Return match `groups` for this match.
@@ -210,17 +217,17 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
    */
   mutateScope(match: P.AnyMatch) {}
 
-  ////////////////////
+  ////////////////
   // ## Rulex syntax
-  ////////////////////
+  ////////////////
 
   /**
    * We attempt to merge literals or sequences together when creating rules.
    * We can only do that for rules that are not "adorned" with argument, etc.
    * - Note that `optional` doesn't matter in this case, because we can merge
    *   optional and non-optional rules.
+   * - DEPRECATED
    */
-  // DEPRECATED
   get isAdorned() {
     return !!(this.argument || this.testLocation)
   }
@@ -242,21 +249,43 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
   }
 }
 
+/** Props bag accepted by `Rule`'s constructor -- mirrors `Rule`'s own properties, see there for details. */
 export type RuleProps = {
+  /** Name of source file this rule was defined in. */
   module?: string
+  /** Rule name, must be unique if defined. */
   name?: string
+  /** Description of this rule. */
   description?: string
+  /** Name aliases -- indicates this rules works a part of collections such as `expression` or `statement`. */
   alias?: string | string[]
+  /** Datatype which rule result represents, e.g. `string`, `number`, custom type. */
   datatype?: string
+  /** Rulex syntax string(s) used to define this rule. */
   syntax?: string | string[]
+  /** Precedence of this rule, used to distinguish between ambiguous matches.  Default = 0. */
   precedence?: number
+  /** Test rule to use to quickly determine if this rule can be matched. */
   testRule?: Rule
+  /** Test location to use to determine if this rule can be matched. */
   testLocation?: P.TestLocation
+  /** Tests for this rule. */
   tests?: P.RuleTests
+  /**
+   * Scope of this rule.
+   * - TODO: why is this needed?
+   */
   scope?: P.Scope
 
+  /**
+   * Name for this rule in `match.groups`.
+   * - REFACTOR: `groupName`.
+   */
   argument?: string
+  /** Whether this rule is optional. */
   optional?: boolean
+  /** Whether literal must be escaped when converting to rulex syntax -- see `Literal.isEscaped`. */
   isEscaped?: boolean
+  /** Whether this rule is left-recursive (e.g. `{expression} + {expression}`). */
   isLeftRecursive?: boolean
 }

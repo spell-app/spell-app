@@ -1,13 +1,14 @@
-// ----------------------------
-// Runtime setup.
-// TODOC
-// ----------------------------
 import { spellCore } from "./core"
 import { Eventful } from "./SpellEvent"
 import { defineSpellCoreModule, type SpellCore } from "./SpellCore"
 
+/**
+ * Class backing `spellCore.RUNTIME` -- a live per-project state bag (see `SpellRuntimeState`) that's
+ * also eventful, so compiled `trigger`/`on event` spell statements (see `events.ts`), which emit
+ * `spellCore.RUNTIME.trigger(...)`/`spellCore.RUNTIME.on(...)`, work directly on it.
+ */
 export class SpellRuntime extends Eventful() {
-  // Delegate events to `spellCore`.
+  /** Delegate events to `spellCore`, so a listener registered via `spellCore.on(...)` also fires. */
   get eventParent(): SpellCore {
     return spellCore
   }
@@ -20,13 +21,14 @@ export type SpellRuntimeState = SpellRuntime & { [key: string]: unknown }
 export type ProcessFlags = Record<string, number | "!" | undefined>
 
 export const runtimeMethods = defineSpellCoreModule({
-  // Set to true to show debug messages for spellCore.RUNTIME actions
+  /** Set to `true` to show debug messages for `spellCore.RUNTIME` actions. */
   DEBUG_RUNTIME: false, // !isNode,
+  /** Set to `true` to show debug messages for process start/stop actions. */
   DEBUG_PROCESSES: false, // !isNode,
 
-  //----------------------------
-  // Runtime state
-  //--------
+  ////////////////
+  // ## Runtime State
+  ////////////////
 
   /** Global runtime state root. */
   RUNTIME: undefined as SpellRuntimeState | undefined,
@@ -41,7 +43,7 @@ export const runtimeMethods = defineSpellCoreModule({
     return spellCore.RUNTIME
   },
 
-  /** Clear the `spellCore.RUNTIME` */
+  /** Clear `spellCore.RUNTIME`. */
   clearRuntime(): void {
     if (spellCore.DEBUG_RUNTIME) console.info("Clearing spellCore.RUNTIME")
     spellCore.RUNTIME = undefined
@@ -80,9 +82,9 @@ export const runtimeMethods = defineSpellCoreModule({
     }
   },
 
-  //----------------------------
-  // process management
-  //--------
+  ////////////////
+  // ## Process Management
+  ////////////////
 
   /**
    * Initialize and return process flags for the current `spellCore.RUNTIME`.
@@ -97,6 +99,12 @@ export const runtimeMethods = defineSpellCoreModule({
 
   /**
    * Start a conceptual process by `name`.
+   * - Compiles from spell `start process X` / `start animation X` (see `async.ts`).
+   * - `exclusively`: pass any truthy value to flag it exclusive (compiled spell passes the literal
+   *   string `'EXCLUSIVE'`, not `true`) -- this unconditionally (re)flags the process, so exclusive
+   *   callers MUST check `processIsRunning()` first if they want re-entry guarded (compiled `start
+   *   exclusive process X` does this for you).
+   * - Non-exclusive calls instead bump a running count.
    */
   startProcess(name: string, exclusively?: boolean): void {
     const flags = spellCore.getProcessFlags()
@@ -110,7 +118,9 @@ export const runtimeMethods = defineSpellCoreModule({
   },
 
   /**
-   * Is a given a process running?
+   * Is a given process running?
+   * - Compiles from spell `X is running` / `X isn't running` (see `check_process` in `async.ts`);
+   *   the `isn't` form wraps this in a `NotExpression` rather than negating here.
    * TODO: second `exclusively` parameter so we can tell if it's running exclusively?
    */
   processIsRunning(name: string): boolean {
@@ -122,8 +132,9 @@ export const runtimeMethods = defineSpellCoreModule({
 
   /**
    * Stop a given process.
-   * If the process was not stopped exclusively, this decrements its counter.
-   * Returns `true` if the process is still running.
+   * - Compiles from spell `stop`/`end`/`finish`/`cancel` `process`/`animation` `X` (see `async.ts`).
+   * - If process was not started exclusively, this decrements its counter instead of clearing it.
+   * - Returns `true` if process is still running (non-exclusive counter still `> 0`).
    */
   stopProcess(name: string): boolean {
     const flags = spellCore.getProcessFlags()

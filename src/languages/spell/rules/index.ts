@@ -1,8 +1,17 @@
-// Core rules composed into a `spellParser` instance.
+/**
+ * Assembles every spell language rule module into the single `spellParser` instance.
+ * - Not a plain re-export barrel: this folder is a flat list of independent rule modules (each an
+ *   object literal describing one grammar rule), so there's nothing meaningful to `export *` --
+ *   instead this file imports each module for its side effect of registering rules, then combines them
+ *   via `spellParser.import(...)`.
+ * - NOTE: import order matters in a few places -- see the comment above the `ParseError` import, and
+ *   the comment on `SpellParser.Rules` fields registered directly below (`blank_line`/`block`/`line`/
+ *   `parse_error`) which must exist before the rest of `spellParser.import(...)` runs.
+ */
 import { P } from "~/parser"
 import { SpellParser } from "~/languages/spell/SpellParser"
 
-// The following add new Rule constructors to `SpellParser.Rule`
+// The following add new Rule constructors to `SpellParser.Rules`
 import { Block } from "./Block"
 import { BlockLine } from "./BlockLine"
 import "./Statement"
@@ -50,7 +59,7 @@ export { ParseError }
 
 // Generic parser `BlankLine`
 spellParser.defineRule({ name: "blank_line", constructor: P.BlankLine })
-// Spell specfic classes for Block/BlockLine/ParserError
+// Spell-specific classes for Block/BlockLine/ParserError
 spellParser.defineRule({ name: "block", constructor: Block })
 spellParser.defineRule({ name: "line", constructor: BlockLine })
 spellParser.defineRule({ name: "parse_error", constructor: ParseError })

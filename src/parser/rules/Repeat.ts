@@ -28,10 +28,12 @@ export class Repeat extends Rule<RepeatProps> {
   /** The maximum number of times the rule must match. */
   declare maxCount: number
 
+  /** Pass a bare `Rule` to repeat it with no delimiter / min / max, or a full `RepeatProps` bag. */
   constructor(props: RepeatProps | P.Rule) {
     super(props instanceof Rule ? { rule: props } : props)
   }
 
+  /** Greedily match `this.rule` (optionally separated by `this.delimiter`) as many times as possible. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     if (this.testAtStart(scope, tokens, 0) === false) return undefined
 
@@ -76,11 +78,15 @@ export class Repeat extends Rule<RepeatProps> {
     return match
   }
 
-  // Returns an array by default; subclasses (e.g. rulex `sequence`) may return other things.
+  /** Returns an array by default; subclasses (e.g. rulex `sequence`) may return other things. */
   compile(match: P.Match): unknown {
     return match.items.map((next) => next.compile())
   }
 
+  /**
+   * Return rulex string for this rule.
+   * - `rule+` / `rule*` normally, or `[rule delimiter]` (optionally suffixed `?`) when `delimiter` is set.
+   */
   toRulexSyntax() {
     const { argument, optional } = this.getRulexFlags()
     const repeatSymbol = this.optional ? "*" : "+"
@@ -102,11 +108,16 @@ export class Repeat extends Rule<RepeatProps> {
   }
 }
 
+/** Props bag accepted by `Repeat`'s constructor. */
 export type RepeatProps = Prettify<
   P.RuleProps & {
+    /** The rule that repeats. */
     rule: P.Rule
+    /** Delimiter to look for between each instance of `rule`; the trailing delimiter is optional. */
     delimiter?: P.Rule
+    /** Minimum number of times `rule` must match. */
     minCount?: number
+    /** Maximum number of times `rule` must match. */
     maxCount?: number
   }
 >

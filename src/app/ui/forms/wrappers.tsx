@@ -1,9 +1,9 @@
 //
 //  ## Field/form wrapper machinery.
 //
-//  NOTE: deliberately NOT re-exported from `./index` (and so not from `~/app/ui`).  This is what
-//  `./components` is BUILT from -- `FieldWrapper`, `WithField()`, `WithForm()` -- not part of the
-//  app's UI surface.  Import it from here if you are adding a new field component.
+//  NOTE: `FieldWrapper`, `WithField()`, `WithForm()` are what `./components` is BUILT from, not
+//  meant to be reached for directly by app code -- stick to `F.Form`, `F.Input`, `F.Select`, etc.
+//  Import from here if you are adding a new field component.
 //  NOTE: the `./Form` import is type-only, so this file has no runtime dependency on it.
 //
 
@@ -14,9 +14,15 @@ import { UIError } from "~/util"
 
 import type { Form } from "./Form"
 
-/** DOCME */
+/** Counter for `FieldWrapper.id`, incremented on each field instance so ids stay unique app-wide. */
 let fieldId = 0
 
+/****************
+ * ### `<FieldWrapper>`
+ * Base class every form field component subclasses (directly, or via `WithField()`).  Handles
+ * reading/writing its value and error either through an enclosing `form`/`path`, or standalone via
+ * `props.value`/`onChange` -- and validates itself against the DOM element's `validationMessage`.
+ ****************/
 export const FieldWrapper = view(
   class FieldWrapper extends React.Component<FieldWrapperProps> {
     static injectForm = true
@@ -48,8 +54,9 @@ export const FieldWrapper = view(
       }
     }
 
-    /** Form `error` for this field according to our `path`. */
+    /** Standalone error, used only when we're not inside a `form`/`path`. */
     _error?: string
+    /** Form `error` for this field according to our `path`. */
     getError(): string | undefined {
       const { form, path } = this.props
       if (form && path) return form.getError(path)
@@ -121,8 +128,8 @@ export const FieldWrapper = view(
     }
 
     /**
-     * Return props to for field `value` and `error` as they should be passed to the rendered component.  If a subclass sets a different property
-     * Some subclasses will set other properties, e.g. `checkbox` sets `{ checked, error }` instead.
+     * Return props for field `value` and `error` as they should be passed to the rendered component.
+     * Override in a subclass that needs different properties -- e.g. `Checkbox` sets `{ checked, error }` instead.
      */
     getValueProps(): Record<string, unknown> {
       return {
@@ -175,29 +182,39 @@ export const FieldWrapper = view(
   }
 )
 
+/** Props for `<FieldWrapper>` and its subclasses. */
 export type FieldWrapperProps = {
+  /** Enclosing form -- when set with `path`, value/error read and write through it instead of standalone. */
   form?: Form<Record<string, unknown>>
+  /** Dotted path into `form`'s value, e.g. set by `Form.enhanceField()` from a `name` prop. */
   path?: string
+  /** Field name -- `Form.enhanceField()` reads this to compute `path` when nested under a parent. */
   name?: string
+  /** `<input type>` -- also used by `getEventValue()` to parse `"number"`/`"range"` values as floats. */
   type?: string
+  /** Standalone value, used only when we're not inside a `form`/`path`. */
   value?: unknown
+  /** Standalone error, used only when we're not inside a `form`/`path`. */
   error?: string
+  /** Submit the enclosing `form` on Enter, instead of calling `onEnter`. */
   submitOnEnter?: boolean
+  /** Called with the current value on Enter, when `submitOnEnter` is not set. */
   onEnter?: (value: unknown) => void
+  /** Called with the new value on change, used only when we're not inside a `form`/`path`. */
   onChange?: (value: unknown) => void
 } & Record<string, unknown>
 
 /////////////////////
-// WithField wrapper
+// ## WithField wrapper
 /////////////////////
 
 /**
- * DOCME: NO LONGER TRUE
- * Take an ordinary `Component` and set it up as a `Field`,
- * where it will get the following props on instantiation:
- *  `{ form, defaultValue, error, id, onChange, onBlur, onKeyUp }`
- * It will be reactive, meaning it will draw when accessed form properties
- * (such as `defaultValue` or `error`) change.
+ * Take a plain `Component` (e.g. `SUI.Form.Input`) and make it a `Field`: a `FieldWrapper` subclass
+ * whose `Component` getter returns it, optionally seeded with `defaultProps`.
+ * - Reactive, because it subclasses `FieldWrapper`, which is already wrapped in `view()`.
+ * - `Component` is rendered with `id`/`onChange`/`onBlur`/`onKeyUp` (see `FieldWrapper.fieldProps`)
+ *   plus `value`/`error` (see `getValueProps()`) and any other props passed through -- but NOT
+ *   `form`/`path`/`submitOnEnter`/`onEnter`, which `FieldWrapper` consumes itself.
  */
 export function WithField(Component: ReactComponentType<any>, defaultProps?: Record<string, unknown>) {
   return class WithField extends FieldWrapper {
@@ -209,9 +226,13 @@ export function WithField(Component: ReactComponentType<any>, defaultProps?: Rec
 }
 
 /////////////////////
-// WithForm wrapper
+// ## WithForm wrapper
 /////////////////////
 
+/**
+ * Make a reactive `view()` of `Component` and flag it `injectForm`, so an enclosing `<Form>` will
+ * clone in `form`/`path` props via `Form.enhanceField()` -- see `<SubmitButton>`/`<FormGroup>`/`<FormRepeat>`.
+ */
 export function WithForm<P extends object>(Component: ReactComponentType<P>) {
   const formComponent = view(Component) as ReactComponentType<P> & { injectForm?: boolean }
   formComponent.injectForm = true
@@ -223,6 +244,8 @@ export function WithForm<P extends object>(Component: ReactComponentType<P>) {
  * - Mixed into `<SubmitButton>`/`<FormGroup>`/`<FormRepeat>` props as `WithFormProps & ...`.
  */
 export type WithFormProps = {
+  /** Enclosing form. */
   form: Form<Record<string, unknown>>
+  /** Dotted path this element was mounted under, if nested inside a named `<FormGroup>`/`<FormRepeat>`. */
   path?: string
 }

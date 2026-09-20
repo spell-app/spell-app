@@ -3,12 +3,18 @@ import { P, AST } from "~/parser"
 import { SpellParser } from "~/languages/spell/SpellParser"
 import "./match-fields.A"
 
-// `Blocks` are generally the root entity that we parse in spell.
-//  This is a top-level construct, e.g. used to parse an entire file.
-//
-//  They are composed of `block_lines` and nested `blocks`,
-//  and correspond roughly to a `Scope` (see `parser/scope/Scope`).
+/**
+ * `Block`s are generally the root entity that we parse in spell -- a top-level construct, e.g. used to
+ * parse an entire file.
+ * - Composed of `block_lines` and nested `blocks`, and correspond roughly to a `Scope`
+ *   (see `parser/scope/Scope`).
+ */
 export class Block extends P.Rule {
+  /**
+   * Recurse into nested `Tokens.Block`s, parsing each `Tokens.Line` as `"line"` (via `BlockLine`).
+   * - SIDE EFFECT: `console.warn`s (rather than throwing) on unproductive items, then skips past them --
+   *   parsing tries to make progress through the whole file even when individual lines are broken.
+   */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     if (!tokens.length) return undefined
     if (tokens.length !== 1) console.warn(`Block.parse(): unexpectedly got ${tokens.length} tokens:`, tokens)
@@ -58,17 +64,20 @@ export class Block extends P.Rule {
       scope,
       tokens: [block]
     })
-    // `errors` is an ad-hoc field (see `match-fields.a.ts`), not part of `MatchProps`.
+    // `errors` is an ad-hoc field (see `match-fields.A.ts`), not part of `MatchProps`.
     if (errors.length) result.errors = errors
     return result
   }
 
+  /**
+   * `Match.compile()` always prefers `getAST()` (below) over calling `rule.compile()` directly, but
+   * `Rule.compile()` is abstract, so provide the equivalent fallback for completeness.
+   */
   compile(match: P.AnyMatch): unknown {
-    // `Match.compile()` always prefers `getAST()` (below) over calling `rule.compile()` directly,
-    // but `Rule.compile()` is abstract, so provide the equivalent fallback for completeness.
     return match.AST?.compile()
   }
 
+  /** Build `AST.StatementBlock` (wrapped in `{}`) if `match.enclose`, else a plain `AST.StatementGroup`. */
   getAST(match: P.Match): AST.StatementBlock | AST.StatementGroup {
     // `Block.parse()` only ever pushes `Match`es (never raw `Token`s) onto `matched`,
     // and each of those is itself a `line`/nested `block` match whose rule always

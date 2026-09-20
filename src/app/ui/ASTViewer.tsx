@@ -10,9 +10,10 @@ import { ErrorHandler, type ErrorHandlerState, type ErrorHandlerWrapperProps } f
 import type { EditorSelection } from "./ui.types"
 import "./ASTViewer.less"
 
-/**
- *  Root element to show the `<ASTViewer/>` in `SpellEditor`
- */
+/****************
+ * ### `<ASTRoot>`
+ * Root element to show the `<ASTViewer/>` in `SpellEditor`.
+ ****************/
 export const ASTRoot = view(function ASTRoot({ showToolbar = true, scrolling = true }: ASTRootProps) {
   return (
     <div className="ASTRoot">
@@ -27,10 +28,18 @@ export const ASTRoot = view(function ASTRoot({ showToolbar = true, scrolling = t
   )
 })
 
+/** Props for `<ASTRoot>`. */
 export type ASTRootProps = {
+  /** Show `<ASTToolbar>` above viewer. */
   showToolbar?: boolean
+  /** Pass through to `<ASTViewer>`. */
   scrolling?: boolean
 }
+
+/****************
+ * ### `<ASTToolbar>`
+ * Toolbar above `<ASTViewer>`: just a header today (no actions).
+ ****************/
 export function ASTToolbar() {
   return (
     <UI.PanelMenu>
@@ -44,7 +53,10 @@ export function ASTToolbar() {
   )
 }
 
-/** Top-level error handler. */
+/****************
+ * ### `<ASTViewer>`
+ * Top-level error-handling wrapper around the rendered `ASTNode` tree.
+ ****************/
 export class ASTViewer extends ErrorHandler<ASTViewerProps> {
   /** Clear `state.error` if `props.ast` changes. */
   static getDerivedStateFromProps(props: ASTViewerProps, oldState: ASTViewerState): Partial<ASTViewerState> {
@@ -53,7 +65,7 @@ export class ASTViewer extends ErrorHandler<ASTViewerProps> {
     return newState
   }
 
-  /* Show error in UI when caught. */
+  /** Show error in UI when caught. */
   componentDidCatch(error: Error) {
     this.props.showError?.(error)
   }
@@ -71,9 +83,9 @@ export class ASTViewer extends ErrorHandler<ASTViewerProps> {
    */
   Component = ASTComponent
 
-  /////////////////////////
-  //  Scroll / highlight management
-  /////////////////////////
+  ////////////////
+  // ## Scroll / highlight management
+  ////////////////
 
   /** Return element that corresponds to `match`. */
   static elementForMatch(viewer: HTMLElement, match: P.AnyMatch): HTMLElement | null {
@@ -89,9 +101,12 @@ export class ASTViewer extends ErrorHandler<ASTViewerProps> {
     viewer.scrollTop = selection.scroll.percent * size.max
   }
 
+  /** Clear all highlighted nodes. */
   static clearHighlights(viewer: HTMLElement): void {
     viewer.querySelectorAll(".ASTNode.highlight").forEach((el) => el.classList.remove("highlight"))
   }
+
+  /** Highlight `matches`. */
   static highlight(viewer: HTMLElement, ...matches: P.AnyMatch[]): void {
     matches.forEach((match) => {
       const element = ASTViewer.elementForMatch(viewer, match)
@@ -134,22 +149,26 @@ export class ASTViewer extends ErrorHandler<ASTViewerProps> {
   }
 }
 
+/** State for `<ASTViewer>`: `ErrorHandlerState` plus the `ast` we're tracking for reset purposes. */
 type ASTViewerState = ErrorHandlerState & { ast?: ASTNode }
-/**
+
+/****************
+ * ### `<ASTWrapper>`
  * Wrapper class to manage scrolling and showing selection.
- */
+ ****************/
 function ASTWrapper({ component, props }: ErrorHandlerWrapperProps<ASTViewerProps>) {
   const classNames = ["ASTViewer"]
   if (props.scrolling) classNames.push("scrolling")
   return <div className={classNames.join(" ")}>{component}</div>
 }
 
-/**
+/****************
+ * ### `<ASTComponent>`
  * Actual component which draws the root `ast` ASTNode passed in.
- * This lives on the class prototype (see `ErrorHandler`'s class doc) but is used only as a
- * detached function reference via `React.createElement(this.Component, props)` -- it's never
- * called as `this.Component()`, so it's a plain function component and hooks are legal here.
- */
+ * - This lives on the class prototype (see `ErrorHandler`'s class doc) but is used only as a
+ *   detached function reference via `React.createElement(this.Component, props)` -- it's never
+ *   called as `this.Component()`, so it's a plain function component and hooks are legal here.
+ ****************/
 function ASTComponent({ ast, selection }: ASTViewerProps) {
   // `ast.component` is memoized
   const element = ast?.component || null
@@ -166,9 +185,14 @@ function ASTComponent({ ast, selection }: ASTViewerProps) {
   return element
 }
 
+/** Props for `<ASTViewer>`. */
 export type ASTViewerProps = {
+  /** Add scrolling className to wrapper. */
   scrolling?: boolean
+  /** Root AST node to render. */
   ast?: ASTNode
+  /** Current editor selection, used to scroll/highlight the matching line. */
   selection?: EditorSelection
+  /** Called with caught render error. */
   showError?: (error: unknown) => void
 }

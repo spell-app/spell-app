@@ -1,6 +1,4 @@
-//
-//  # Rules for property access.
-//
+/** Rules for property access -- reading a named property off an object, plus object-literal construction. */
 
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
@@ -11,10 +9,13 @@ import { SpellParser } from "~/languages/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
 import { SpellExpression } from "./expressions"
 
+/** Property name: single lower-case-initial word (optionally with `-`/digits), e.g. `foo`, `foo-bar2`. */
 const LOWER_INITIAL_WORD = /^[a-z][\w-]*$/
 
-// `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass
-// that the referenced sub-rule's `getAST()` is known (by inspection) to always produce.
+/**
+ * Narrow `node` (typed generically as `AST.ASTNode | undefined`) to concrete AST subclass `T`.
+ * - `T` is chosen by inspection: referenced sub-rule's `getAST()` is known to always produce it.
+ */
 function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
   return node as T
 }
@@ -22,17 +23,22 @@ function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
 export const properties = new SpellParser({
   module: "properties",
   rules: [
-    // Generic property name -- single word, initial-lower case, not in identifier blacklist.
-    // You can register multi-word property identifiers manually.
+    /**
+     * Generic property name -- single word, initial-lower-case, not in `identifierBlacklist`.
+     * - You can register multi-word property identifiers manually.
+     * - `mapValue()` converts dashes to underscores, e.g. `foo-bar` compiles as `foo_bar`.
+     */
     {
       // TODO: property_name
       name: "property",
       pattern: LOWER_INITIAL_WORD,
       blacklist: identifierBlacklist,
       constructor: class property extends P.Pattern {
-        // convert dashes to underscores
-        // NOTE: `Rules.Pattern.mapValue` is generic (`<T = string>`) for subclasses that map to non-string
-        // values; this rule always maps to a string, hence the cast.
+        /**
+         * Convert dashes to underscores.
+         * - NOTE: `Rules.Pattern.mapValue` is generic (`<T = string>`) for subclasses that map to non-string
+         *   values; this rule always maps to a string, hence the cast.
+         */
         mapValue<T = string>(value: string): T {
           return `${value}`.replace(/-/g, "_") as T
         }
@@ -42,6 +48,11 @@ export const properties = new SpellParser({
       }
     },
 
+    /**
+     * `the {property} of` -- prefix form of property access, paired with a following object expression
+     * by `property_expression` below.
+     * - Reuses `property`'s already-parsed `value`/`raw` group rather than re-deriving them.
+     */
     {
       name: "the_property_of",
       alias: "property_accessor",
@@ -55,8 +66,12 @@ export const properties = new SpellParser({
       }
     },
 
+    /**
+     * `{property_accessor} {expression}` -- combines a leading `the X of`/`its X` accessor with the object
+     * expression that follows, e.g. `the foo of the bar` ~== `bar.foo`.
+     * - TODO: multiple identifiers would be cool...
+     */
     {
-      // TODO: multiple identifiers would be cool...
       name: "property_expression",
       alias: "expression",
       syntax: "{property_accessor} {expression:simple_expression}",
@@ -87,9 +102,11 @@ export const properties = new SpellParser({
       ]
     },
 
-    // "its" as:
-    //  - possessive tracking `it`:  `get it / put its foo in the bar`
-    //  - a synonym for "this" if `it` is not defined.
+    /**
+     * `its {property}` -- possessive shorthand.
+     * - Tracks `it`:  `get it` / `put its foo in the bar`.
+     * - Synonym for `this` if `it` is not (yet) defined in scope.
+     */
     {
       name: "its_property",
       alias: "expression",
@@ -149,9 +166,12 @@ export const properties = new SpellParser({
       ]
     },
 
-    // "its first thing" as:
-    //  - possessive tracking `it`:  `get it / put its foo in the bar`
-    //  - a synonym for "this" if `it` is not defined.
+    /**
+     * `its {ordinal} {arg}` -- possessive-plus-ordinal shorthand, e.g. `its third card`.
+     * - Tracks `it`:  `get it` / `put its foo in the bar`.
+     * - Synonym for `this` if `it` is not (yet) defined in scope.
+     * - Compiles to `spellCore.getItemOf(object, ordinal)` rather than a plain property access.
+     */
     {
       name: "its_ordinal",
       alias: ["expression", "property_accessor"],
@@ -208,7 +228,7 @@ export const properties = new SpellParser({
       ]
     },
 
-    // Single object-literal property declaration
+    /** Single object-literal property declaration:  `{property} (=|is|of) {value}`. */
     {
       name: "object_literal_property",
       syntax: "{property} (=|is|of) {value:expression}",
@@ -243,8 +263,7 @@ export const properties = new SpellParser({
       ]
     },
 
-    // Object literal: creates an object with one or more property values.
-    //  `foo = 1 and bar is 2`
+    /** Object literal: creates an object with one or more property values, e.g. `foo = 1 and bar is 2`. */
     {
       name: "object_literal_properties",
       syntax: "[{object_literal_property}(,|and)]",

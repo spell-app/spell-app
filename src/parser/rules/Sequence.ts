@@ -4,24 +4,11 @@ import { P } from "~/parser"
 // Import directly to avoid circular import
 import { Rule } from "./Rule"
 
-//  # Parser Rules
-//  Rules can be as simple as a string `Keyword` or a complex sequence of (nested) rules.
-//
-//  Parse a rule with `rule.parse(scope, tokens)`.
-//  If UNSUCCESSFUL, it will return `undefined`
-//  If SUCCESSFUL,   it will return a new `Match()` object which is guaranteed to have:
-//    - `match.rule`        : pointer back to the rule.
-//    - `match.matched`     : array of *significant* tokens that were actually matched.
-//    - `match.length` : number of tokens actually consumed (`matched` may not contain them all)
-//    ... and other rule-specific values.
-//
-//  The match returned can be manipulated with:
-//    - `match.compile()`    Return javascript source to interpret the rule.
-//
-
-// Sequence of rules to match.
-//  `rule.rules` is the array of rules to match.
-//  `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
+/**
+ * Sequence of rules to match, in order.
+ * - `rule.rules` is the array of rules to match.
+ * - `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
+ */
 export class Sequence extends Rule<SequenceProps> {
   /** The array of rules to match. */
   declare rules: P.Rule[]
@@ -32,6 +19,10 @@ export class Sequence extends Rule<SequenceProps> {
     Object.defineProperty(this.prototype, "compileSeparator", { value: " ", writable: true })
   }
 
+  /**
+   * Accepts `props`, a bare array of `rules`, or `rules` spread as individual arguments.
+   * - Throws if no `rules` end up set.
+   */
   constructor(...args: [SequenceProps] | [P.Rule[]] | P.Rule[]) {
     if (args.length > 1) super({ rules: args as P.Rule[] })
     else if (Array.isArray(args[0])) super({ rules: args[0] })
@@ -42,6 +33,7 @@ export class Sequence extends Rule<SequenceProps> {
     }
   }
 
+  /** Match each rule in `this.rules` in order against `tokens`, bailing unless every non-optional rule matches. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     if (this.test(scope, tokens) === false) return undefined
 
@@ -88,12 +80,12 @@ export class Sequence extends Rule<SequenceProps> {
       .join(this.compileSeparator)
   }
 
+  /** Sequences add child matches to their groups, ignoring the "outer" match. */
   getGroupsForMatch(match: P.Match): Record<string, unknown> {
-    // Sequences add child matches to their groups, ignoring the "outer" match.
     return match.addMatchedToGroups<P.MatchGroups>({}, match.matched)
   }
 
-  // Echo this rule back out.
+  /** Echo this rule back out as rulex syntax, wrapping in parens only when `argument` or `optional` need it. */
   toRulexSyntax() {
     const { argument, optional } = this.getRulexFlags()
     const rules = this.rules.map((rule) => rule.toRulexSyntax()).join(" ")
@@ -102,8 +94,10 @@ export class Sequence extends Rule<SequenceProps> {
   }
 }
 
+/** Props bag accepted by `Sequence`'s constructor. */
 export type SequenceProps = Prettify<
   P.RuleProps & {
+    /** The array of rules to match, in order. */
     rules: P.Rule[]
   }
 >

@@ -1,6 +1,7 @@
-//
-//  # Rules for variables
-//
+/**
+ * Rules for variables -- single-word identifiers, known or unknown, singular or plural, with or without
+ * a leading `the`.
+ */
 import { singularize, pluralize } from "~/util"
 import { P, AST } from "~/parser"
 // Import directly to avoid circular import
@@ -8,11 +9,13 @@ import { SpellParser } from "~/languages/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
 import "./match-fields.B"
 
-// Single word variable name, known or unknown.
-// NOTE: when compiling, we'll look for `scope.variables.get(varName)`:
-//        - if we find one, you can override what's output with `variable.ouput`.
-// TODO: type based on scope variable type?
-// TODO: higher precedence if variable is known?
+/**
+ * Single word variable name, known or unknown.
+ * - NOTE: when compiling, we'll look for `scope.variables.get(varName)` -- if we find one, you can
+ *   override what's output with `variable.output`.
+ * - TODO: type based on scope variable type?
+ * - TODO: higher precedence if variable is known?
+ */
 export class VariableIdentifier extends P.Pattern {
   static {
     // Alpha-numeric word, including dashes or underscores.
@@ -25,6 +28,7 @@ export class VariableIdentifier extends P.Pattern {
     return `${value}`.replace(/-/g, "_").replace(/\s/g, "_") as T
   }
 
+  /** Build `AST.VariableExpression`, resolving `match.value` against `scope.variables` if possible. */
   getAST(match: P.Match): AST.VariableExpression {
     // Get scope Variable, if there is one
     const variable = match.scope.variables?.get(match.value)
@@ -35,17 +39,23 @@ export class VariableIdentifier extends P.Pattern {
 }
 SpellParser.Rules.VariableIdentifier = VariableIdentifier
 
+/** Rule module for variable rules (`variable_identifier`, `variable`, `known_variable`, plurality variants). */
 export const variables = new SpellParser({
   module: "variables",
   rules: [
-    // Variable identifier with no adornments.
-    // You won't generally use this, use `variable` or `unknown_variable` instead.
+    /**
+     * Variable identifier with no adornments (no leading `the`, no known/unknown check).
+     * - You won't generally use this directly -- use `variable` or `known_variable` instead.
+     */
     {
       name: "variable_identifier",
       constructor: VariableIdentifier
     },
 
-    // VariableIdentifier which may or may not be known, with optional `the` prefix.
+    /**
+     * `VariableIdentifier` which may or may not be known, with optional `the` prefix, e.g. `the thing`.
+     * - `match.variable` is set to the scope `ScopeVariable` if known, `null` if known absent.
+     */
     {
       name: "variable",
       syntax: "the? {identifier:variable_identifier}",
@@ -75,8 +85,12 @@ export const variables = new SpellParser({
       ]
     },
 
-    // Single word variable which is already known by our scope, with optional `the` prefix
-    // Note that we match this as an "expression".
+    /**
+     * Single word variable which is already known by our scope, with optional `the` prefix -- fails if
+     * unresolvable.
+     * - Matched as an `expression`, unlike plain `variable`, precisely because it only succeeds when
+     *   resolvable.
+     */
     {
       name: "known_variable",
       alias: "expression",
@@ -115,7 +129,7 @@ export const variables = new SpellParser({
       ]
     },
 
-    // Possibly unknown variable identifier which MUST be singular, WITHOUT `the`.
+    /** Possibly-unknown variable identifier which MUST be singular, WITHOUT `the` -- fails on plural input. */
     {
       name: "singular_variable",
       constructor: class singular_variable extends VariableIdentifier {
@@ -142,7 +156,7 @@ export const variables = new SpellParser({
       ]
     },
 
-    // Possibly unknown variable identifier which MUST be plural, WITHOUT `the`.
+    /** Possibly-unknown variable identifier which MUST be plural, WITHOUT `the` -- fails on singular input. */
     {
       name: "plural_variable",
       constructor: class plural_variable extends VariableIdentifier {

@@ -1,7 +1,9 @@
-//
-//  # Rules for dealing with lists
-//  TODO: sort
-//
+/**
+ * Rules for dealing with lists -- literals, membership, indexing, in-place mutation, iteration.
+ * - NOTE: several rules capture a `{arg:singular_variable}`/`{arg:plural_variable}` classifier noun
+ *   (e.g. `card`, `items`) that's matched for readability only and never read back out of `match.groups`.
+ * TODO: sort
+ */
 
 import { singularize } from "~/util"
 import { P, AST } from "~/parser"
@@ -11,17 +13,23 @@ import { SpellStatement } from "./Statement"
 import { SpellExpression, InfixOperatorSuffix } from "./expressions"
 import "./match-fields.E"
 
-// Groups added on top of a statement's rulex `syntax` groups by `SpellStatement.parseInlineStatement()` /
-// `.parseNestedBlock()` (see `rules/Statement.ts`) -- not derivable from `syntax` itself.
+/**
+ * Groups added on top of a statement's rulex `syntax` groups by `SpellStatement.parseInlineStatement()` /
+ * `.parseNestedBlock()` (see `rules/Statement.ts`) -- not derivable from `syntax` itself.
+ * - `inlineStatement` -- trailing statement parsed from same line, e.g. `if x: print x`.
+ * - `nestedBlock` -- indented block parsed from following lines.
+ */
 type InlineBlockGroups = { inlineStatement?: P.Match; nestedBlock?: P.Match }
 
-// What `AST.MethodDefinition`'s `body` prop accepts.
+/** What `AST.MethodDefinition`'s `body` prop accepts. */
 type MethodBody = AST.StatementBlock | AST.Statement | AST.Expression
 
 /**
- * `Match.AST` (src/parser/Match.ts) is always typed as `ASTNode` because `Rule.getAST()`'s return type isn't
- * parameterized per the specific rule a rulex group refers to -- only the rule's own semantics (which we know,
- * writing the rule) tell us which concrete node type comes back. Narrow once here instead of casting inline.
+ * Narrow `match.AST` to a concrete `AST.ASTNode` subtype.
+ * - `Match.AST` (`src/parser/Match.ts`) is always typed as `ASTNode` because `Rule.getAST()`'s return type
+ *   isn't parameterized per the specific rule a rulex group refers to -- only the rule's own semantics
+ *   (which we know, writing the rule) tell us which concrete node type comes back.
+ * - Narrow once here instead of casting inline at every call site.
  */
 function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match): T
 function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match | undefined): T | undefined
@@ -30,9 +38,10 @@ function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match | undefine
 }
 
 /**
- * `MethodScopeProps` (src/parser/scope/MethodScope.ts) omits the base `ScopeProps` fields (e.g. `parentScope`)
- * even though its constructor forwards them to `Scope` via `super()`. Narrow once here rather than casting at
- * every `new MethodScope({ parentScope, ... })` call site.
+ * Build a `MethodScope`, typed to accept `parentScope` etc. directly.
+ * - `P.MethodScopeProps` (`src/parser/scope/MethodScope.ts`) is itself `P.ScopeProps & {...}`, so it already
+ *   includes base `ScopeProps` fields (e.g. `parentScope`) -- the `& P.ScopeProps` here looks redundant.
+ * - TODO: confirm the intersection can be dropped, then just call `new P.MethodScope(props)` at call sites.
  */
 function newMethodScope(props: P.MethodScopeProps & P.ScopeProps): P.MethodScope {
   return new P.MethodScope(props)
@@ -41,8 +50,11 @@ function newMethodScope(props: P.MethodScopeProps & P.ScopeProps): P.MethodScope
 export const lists = new SpellParser({
   module: "lists",
   rules: [
-    // List of identifiers and/or numbers, e.g. "clubs or hearts", "jack, queen, king"
-    // Note that this is not a generic "expression" -- it's too generic.
+    /**
+     * List of identifiers and/or numbers, e.g. `clubs or hearts`, `jack, queen, king`.
+     * - NOTE: not a generic `expression` -- deliberately narrow to known variables / constants / numbers,
+     *   else it'd swallow anything.
+     */
     {
       name: "identifier_list",
       syntax: "[({known_variable}|{constant}|{number})(,|or|and|nor)]",
@@ -66,8 +78,10 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Bracketed list (array), eg:  `[1,2 , true,false ]`
-    // TODO: nested lists????
+    /**
+     * Bracketed list (array) literal, e.g. `[1,2 , true,false ]`.
+     * TODO: nested lists????
+     */
     {
       name: "bracketed_list",
       alias: "expression",
@@ -104,12 +118,14 @@ export const lists = new SpellParser({
       ]
     },
 
-    /** Duplicate a list. */
+    /**
+     * Duplicate a list, e.g. `a copy of the piles` => `spellCore.duplicateCollection(piles)`.
+     * - QUESTIONABLE SYNTAX: `as (a|an) {type}` clause ??? -- picks constructor for result, e.g.
+     *   `a duplicate of list the piles as a list` => `spellCore.duplicateCollection(piles, List)`.
+     */
     {
       name: "copy_list",
       alias: "expression",
-      // QUESTIONABLE SYNTAX
-      // "...as a {type}" ???
       syntax: "a (copy|duplicate) of list? {expression} (as (a|an) {type:known_type})?",
       constructor: class copy_list extends SpellExpression {
         getAST(match: P.Match<P.RulexGroups<"expression:type">>): AST.CoreMethodInvocation {
@@ -136,11 +152,14 @@ export const lists = new SpellParser({
       ]
     },
 
-    /** Merge a set of lists together. */
+    /**
+     * Merge a set of lists together, e.g. `merge the piles` => `spellCore.mergeCollections(piles)`.
+     * - QUESTIONABLE SYNTAX: `(as|into) (a|an) new? {type}` clause picks constructor for result, e.g.
+     *   `merge the piles as a list` => `spellCore.mergeCollections(piles, List)`.
+     */
     {
       name: "merge_lists",
       alias: "expression",
-      // QUESTIONABLE SYNTAX
       syntax: "merge lists? {expression} ((as|into) (a|an) new? {type:known_type})?",
       constructor: class merge_lists extends SpellExpression {
         getAST(match: P.Match<P.RulexGroups<"expression:type">>): AST.CoreMethodInvocation {
@@ -182,7 +201,11 @@ export const lists = new SpellParser({
     // TODO:  `Set` for a unique list?
     // TODO:  list which won't take null/undefined
 
-    // Return the length of a list.
+    /**
+     * Return length of a list, e.g. `number of items in my-list` => `spellCore.itemCountOf(my_list)`.
+     * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
+     * - `precedence: 3` -- preferred over lower-precedence expression rules when tokens are ambiguous.
+     */
     {
       name: "list_length",
       alias: "expression",
@@ -214,10 +237,13 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Return the first position of specified item in the list as an array.
-    // If item is not found, returns `undefined`.
-    // NOTE: this position returned is **1-based**.
-    // TODO: `positions`, `last position`, `after...`
+    /**
+     * Return position of an item in a list, e.g. `position of thing in my-list` => `spellCore.itemOf(my_list, thing)`.
+     * - NOTE: position returned is **1-based**.
+     * - Returns `undefined` if item is not found.
+     * - `precedence: 3` -- preferred over lower-precedence expression rules when tokens are ambiguous.
+     * TODO: `positions`, `last position`, `after...`
+     */
     {
       name: "list_position",
       alias: "expression",
@@ -250,7 +276,10 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Does list start with some value?.
+    /**
+     * Does list start with some value, e.g. `my-list starts with thing` => `spellCore.startsWith(my_list, thing)`.
+     * - `precedence: 11` -- high, so this infix suffix binds before lower-precedence operators.
+     */
     {
       name: "starts_with",
       alias: "expression_suffix",
@@ -258,6 +287,7 @@ export const lists = new SpellParser({
       syntax:
         "(operator:starts with|does not start with|doesnt start with|doesn't start with) {expression:simple_expression}",
       constructor: class starts_with extends InfixOperatorSuffix {
+        /** Negate result for the `does not` / `doesnt` / `doesn't` spellings of `operator`. */
         shouldNegateOutput(operator: P.Match): boolean {
           return operator.value.includes("not") || operator.value.includes("doesn")
         }
@@ -289,12 +319,15 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Does list start with some value?.
+    /**
+     * Does list end with some value, e.g. `my-list ends with thing` => `spellCore.endsWith(my_list, thing)`.
+     */
     {
       name: "ends_with",
       alias: "expression_suffix",
       syntax: "(operator:ends with|does not end with|doesnt end with|doesn't end with) {expression:simple_expression}",
       constructor: class ends_with extends InfixOperatorSuffix {
+        /** Negate result for the `does not` / `doesnt` / `doesn't` spellings of `operator`. */
         shouldNegateOutput(operator: P.Match): boolean {
           return operator.value.includes("not") || operator.value.includes("doesn")
         }
@@ -326,10 +359,10 @@ export const lists = new SpellParser({
       ]
     },
 
-    //
-    // Ordinal numbers (first, second, last, etc).
-    // TODO: sixty-fifth, two hundred forty ninth... with custom parser?
-    //
+    /**
+     * Ordinal numbers (`first`, `second`, `last`, etc.), mapped to numeric literals via `VALUE_MAP`.
+     * TODO: sixty-fifth, two hundred forty ninth... with custom parser?
+     */
     {
       name: "ordinal",
       argument: "ordinal",
@@ -382,16 +415,13 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Index expression: numeric position in some list.
-    //  e.g.  `card 1 of the pile`
-    //      `card #2 of the pile`
-    //      `the first card of the pile`
-    //
-    // NOTE: Negative numeric positions come from the END of the list.
-    //  e.g.  `card -1 of the pile`
-    //
-    // NOTE: Our positions are **1-based** and Javascript is **0-based**.
-    //     e.g. `item 1 of the array`  = `array[0]`
+    /**
+     * Numeric-position index expression, e.g. `card 1 of the pile`, `card #2 of the pile`.
+     * - `{arg}` (e.g. `card`) captured for readability only, unused in output.
+     * - NOTE: negative positions come from end of list, e.g. `card -1 of the pile`.
+     * - NOTE: positions are **1-based** while Javascript is **0-based**, e.g. `item 1 of the array` => `array[0]`.
+     * - Compiles to `spellCore.getItemOf(list, position)`.
+     */
     {
       name: "position_expression",
       alias: "expression",
@@ -423,6 +453,11 @@ export const lists = new SpellParser({
       ]
     },
 
+    /**
+     * Ordinal-word index expression, e.g. `the first item of my-list`, `the tenth card of deck`.
+     * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
+     * - Shares same `getItemOf` compile target as `position_expression`, with `{ordinal}` resolved to a number.
+     */
     {
       name: "ordinal_position_expression",
       alias: "expression",
@@ -454,7 +489,11 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Pick a SINGLE random item from the list.
+    /**
+     * Pick a single random item from list, e.g. `a random item of my-list`.
+     * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
+     * - Compiles to `spellCore.randomItemOf(list)`.
+     */
     {
       name: "random_item_expression",
       alias: "expression",
@@ -485,8 +524,12 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Pick a unique set of random items from the list, returning an array.
-    // TODO: `two random items...`
+    /**
+     * Pick a unique set of random items from list, returning an array.
+     * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
+     * - Compiles to `spellCore.randomItemsOf(list, count)`.
+     * TODO: `two random items...`
+     */
     {
       name: "random_items_expression",
       alias: "expression",
@@ -517,10 +560,13 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Range expression.
-    // Returns a new list.
-    // NOTE: `start` is **1-based**.
-    // NOTE: `end` is inclusive!
+    /**
+     * Range expression, e.g. `item 1 to 2 of my-list` => `spellCore.rangeBetween(my_list, 1, 2)`.
+     * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
+     * - Returns a new list.
+     * - NOTE: `start` is **1-based**.
+     * - NOTE: `end` is inclusive!
+     */
     {
       name: "range_between_expression",
       alias: "expression",
@@ -551,9 +597,14 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Range expression starting at some item in the list, inclusive.
-    // Returns a new list.
-    // If item is not found, returns an empty list. (???)
+    /**
+     * Range expression starting at some item in list, inclusive, e.g. `items in my-list starting with thing`.
+     * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
+     * - Returns a new list.
+     * - Compiles to `spellCore.rangeStartingAt(list, spellCore.itemOf(list, thing))` -- looks up `thing`'s
+     *   position first, then takes range from there to end.
+     * - If item is not found, returns an empty list. (???)
+     */
     {
       name: "range_starting_with_expression",
       alias: "expression",
@@ -593,9 +644,13 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Alternative form of range expression.
-    // Returns a new list.
-    // TODO: restrict ordinals to `first`, `last`, `final`, `top`, etc
+    /**
+     * Alternative form of range expression.
+     * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
+     * - Returns a new list.
+     * - e.g. `top 2 items of my-list` => `spellCore.rangeStartingAt(my_list, 1, 2)`.
+     * TODO: restrict ordinals to `first`, `last`, `final`, `top`, etc
+     */
     {
       name: "range_count_expression",
       alias: "expression",
@@ -626,7 +681,14 @@ export const lists = new SpellParser({
       ]
     },
 
-    // List filter.
+    /**
+     * List filter, e.g. `words in "a word list" where word starts with "a"`.
+     * - Trailing `where` expects an inline `{expression}` statement or nested block as filter body
+     *   (`wantsInlineStatement`), parsed in a nested `MethodScope` where singularized `{arg}` (e.g. `word`
+     *   for `words`) and `it` both map to current item.
+     * - `precedence: 2` -- preferred over lower-precedence expression rules when tokens are ambiguous.
+     * - Compiles to `spellCore.filter(list, (item) => { ... })`.
+     */
     {
       name: "list_filter",
       alias: "expression",
@@ -636,6 +698,7 @@ export const lists = new SpellParser({
       wantsInlineStatement: true,
       parseInlineStatementAs: "expression",
       constructor: class list_filter extends SpellExpression {
+        /** Nested scope for filter body -- singularized `{arg}` variable, also aliased from `it`. */
         getNestedScopeForMatch(match: P.Match<P.RulexGroups<"arg:list">>): P.MethodScope {
           const arg = singularize(match.groups.arg!.value)
           return newMethodScope({
@@ -687,8 +750,15 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Set membership (left recursive).
-    // TODO: this is a postfix_operator expression
+    /**
+     * Set membership test, e.g. `my-list has items where the item is 1`.
+     * - `isLeftRecursive` -- `{list}` on left, so chains after another expression (e.g. `bar.foo has items where`).
+     * - Trailing `where` expects an inline `{expression}` statement or nested block as predicate.
+     * - `precedence: 2` -- preferred over lower-precedence expression rules when tokens are ambiguous.
+     * - Compiles to `spellCore.any(list, (item) => { ... })`, negated (wrapped in `NotExpression`) unless
+     *   `operator` is exactly `has`.
+     * TODO: this is a postfix_operator expression
+     */
     {
       name: "list_membership_test",
       alias: "expression",
@@ -699,6 +769,7 @@ export const lists = new SpellParser({
         isLeftRecursive = true
         wantsInlineStatement = true
         parseInlineStatementAs = "expression"
+        /** Nested scope for predicate body -- singularized `{arg}` variable, also aliased from `it`. */
         getNestedScopeForMatch(match: P.Match<P.RulexGroups<"list:operator:arg">>): P.MethodScope {
           const arg = singularize(match.groups.arg!.value)
           return newMethodScope({
@@ -764,11 +835,15 @@ export const lists = new SpellParser({
       ]
     },
 
-    //
-    //  Adding to list (in-place)
-    //
+    ////////////////
+    // ## Adding to list (in-place)
+    ////////////////
 
-    // Add to list.
+    /**
+     * Add to list, e.g. `add thing to my-list`, `add thing to the front of my-list`.
+     * - Compiles to `spellCore.prepend(list, thing)` when `method` is `start`/`front`/`top`,
+     *   else `spellCore.append(list, thing)`.
+     */
     {
       name: "list_add",
       alias: "statement",
@@ -805,7 +880,7 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Prepend.
+    /** Prepend to list, e.g. `prepend thing to my-list` => `spellCore.prepend(my_list, thing)`. */
     {
       name: "list_prepend",
       alias: "statement",
@@ -832,7 +907,7 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Append.
+    /** Append to list, e.g. `append thing to my-list` => `spellCore.append(my_list, thing)`. */
     {
       name: "list_append",
       alias: "statement",
@@ -859,15 +934,19 @@ export const lists = new SpellParser({
       ]
     },
 
-    //
-    // Add to middle of list, pushing existing items out of the way.
-    //
+    ////////////////
+    // ## Add to middle of list, pushing existing items out of the way
+    ////////////////
 
     // TODO: Add to middle of list, pushing existing items out of the way.
     //       "add {thing:expression} to position {position:expression} of {list:expression}",
 
-    // Add to list before/after something else
-    // TODO: `relative_position_expression` rule?
+    /**
+     * Add to list before/after some other item, e.g. `add thing to my-list before other-thing`.
+     * - Compiles to `spellCore.addAtPosition(list, position, thing)`, where `position` is `other-thing`'s
+     *   index (via `itemOf`), `+ 1` for `after`.
+     * TODO: `relative_position_expression` rule?
+     */
     {
       name: "list_add_relative",
       alias: "statement",
@@ -915,12 +994,14 @@ export const lists = new SpellParser({
       ]
     },
 
-    //
-    //  Removing from list (in-place)
-    //
+    ////////////////
+    // ## Removing from list (in-place)
+    ////////////////
 
-    // Empty list.
-    // TODO: make `empty` and/or `clear` a generic statement???
+    /**
+     * Empty a list in-place, e.g. `empty my-list` => `spellCore.clear(my_list)`.
+     * TODO: make `empty` and/or `clear` a generic statement???
+     */
     {
       name: "list_empty",
       alias: "statement",
@@ -950,7 +1031,11 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Remove one item from list by position specified as an ordinal
+    /**
+     * Remove one item from list by ordinal position, e.g. `remove last card of deck` =>
+     * `spellCore.removeItemOf(deck, -1)`.
+     * - `{arg}` (e.g. `card`) captured for readability only, unused in output.
+     */
     {
       name: "list_remove_ordinal",
       alias: "statement",
@@ -979,7 +1064,12 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Remove one item from list by position.
+    /**
+     * Remove one item from list by numeric position.
+     * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
+     * - Compiles to `spellCore.removeItemOf(list, number)`, e.g. `remove item 4 of my-list` =>
+     *   `spellCore.removeItemOf(my_list, 4)`.
+     */
     {
       name: "list_remove_position",
       alias: "statement",
@@ -1005,9 +1095,12 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Remove range of things from list.
-    // NOTE: `start` is **1-based**.
-    // NOTE: `end` is inclusive!
+    /**
+     * Remove range of items from list, e.g. `remove items 2 to 4 of my-list`.
+     * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
+     * - NOTE: `start` is **1-based**.
+     * - NOTE: `end` is inclusive!
+     */
     {
       name: "list_remove_range",
       alias: "statement",
@@ -1033,6 +1126,11 @@ export const lists = new SpellParser({
       ]
     },
 
+    /**
+     * Remove range of items from list using ordinal words for both ends, e.g.
+     * `remove first to third cards of the deck` => `spellCore.removeRangeBetween(deck, 1, 3)`.
+     * - `{arg}` (e.g. `cards`) captured for readability only, unused in output.
+     */
     {
       name: "list_remove_range_ordinal",
       alias: "statement",
@@ -1061,7 +1159,11 @@ export const lists = new SpellParser({
     // TODO: `remove last card from the deck`
     // TODO: `remove last two cards from the deck`
 
-    // Remove all instances of something from a list.
+    /**
+     * Remove all instances of something from a list.
+     * - Compiles to `spellCore.remove(list, thing)`, e.g. `remove thing from my-list` =>
+     *   `spellCore.remove(my_list, thing)`.
+     */
     {
       name: "list_remove",
       alias: "statement",
@@ -1088,7 +1190,11 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Remove all items from list where condition is true.
+    /**
+     * Remove all items from list where condition is true, e.g. `remove items from my-list where item is not "ace"`.
+     * - Trailing `where` expects an inline `{expression}` statement or nested block as predicate.
+     * - Compiles to `spellCore.removeWhere(list, (item) => { ... })`.
+     */
     {
       name: "list_remove_where",
       alias: "statement",
@@ -1097,6 +1203,7 @@ export const lists = new SpellParser({
       constructor: class list_remove_where extends SpellStatement {
         wantsInlineStatement = true
         parseInlineStatementAs = "expression"
+        /** Nested scope for predicate body -- singularized `{arg}` variable, also aliased from `it`. */
         getNestedScopeForMatch(match: P.Match<P.RulexGroups<"arg:list">>): P.MethodScope {
           const arg = singularize(match.groups.arg!.value)
           return newMethodScope({
@@ -1150,11 +1257,11 @@ export const lists = new SpellParser({
       ]
     },
 
-    //
-    //  Random (in-place) list manipulation.
-    //
+    ////////////////
+    // ## Random (in-place) list manipulation
+    ////////////////
 
-    // Reverse list in-place.
+    /** Reverse list in-place, e.g. `reverse my-list` => `spellCore.reverse(my_list)`. */
     {
       name: "list_reverse",
       alias: "statement",
@@ -1184,7 +1291,7 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Shuffle list in-place.
+    /** Shuffle (randomize) list in-place, e.g. `shuffle my-list` => `spellCore.randomize(my_list)`. */
     {
       name: "list_shuffle",
       alias: "statement",
@@ -1215,7 +1322,14 @@ export const lists = new SpellParser({
       ]
     },
 
-    /** Repeat an action N times */
+    /**
+     * Repeat an action `N` times, e.g. `repeat 3 times: print the number`.
+     * - Both a `statement` and an `expression` -- usable inline or as a block.
+     * - Body runs as a nested block or inline statement (`wantsInlineStatement` / `wantsNestedBlock`);
+     *   current iteration number is available as `number` (also aliased from `it`).
+     * - Compiles to `spellCore.map(spellCore.getRange(0, number), (number) => { ... })`, or
+     *   `await spellCore.forEachSequential(...)` if body contains an `await` (`method.isAsync`).
+     */
     {
       name: "repeat_n_times",
       alias: ["statement", "expression"],
@@ -1224,6 +1338,7 @@ export const lists = new SpellParser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       constructor: class repeat_n_times extends SpellStatement {
+        /** Nested scope for body -- `number` variable (current iteration index), also aliased from `it`. */
         getNestedScopeForMatch(match: P.Match<P.RulexGroups<"number">>): P.MethodScope {
           return newMethodScope({
             parentScope: match.scope,
@@ -1232,6 +1347,11 @@ export const lists = new SpellParser({
           })
         }
 
+        /**
+         * Build `map`/`forEachSequential` call over `getRange(0, number)`.
+         * - SIDE EFFECT: switches to `forEachSequential` + wraps result in `AwaitExpression` when body's
+         *   `method.isAsync` -- set by an `await` expression somewhere in body.
+         */
         getAST(match: P.Match<P.RulexGroups<"number"> & InlineBlockGroups>): AST.Expression {
           const { number, inlineStatement, nestedBlock } = match.groups
           const method = new AST.MethodDefinition(match, {
@@ -1289,9 +1409,16 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Generic iteration
-    // TODO: can work for object enumeration as well (maybe with 'of'?)
-    // TODO: return values e.g. array.map() ???
+    /**
+     * Generic `for each` list iteration, e.g. `for each card in deck:`, `for item, index in my-list:`.
+     * - Optional `{position}` (`for item, index in ...`) adds a numeric index arg alongside `{item}`.
+     * - Both a `statement` and an `expression` -- usable inline or as a block.
+     * - Body runs as nested block or inline statement; `{item}`'s value is also aliased from `it`.
+     * - Compiles to `spellCore.map(list, (item, position?) => { ... })`, or `await
+     *   spellCore.forEachSequential(...)` if body contains an `await`.
+     * TODO: can work for object enumeration as well (maybe with 'of'?)
+     * TODO: return values e.g. array.map() ???
+     */
     {
       name: "list_iteration",
       alias: ["statement", "expression"],
@@ -1300,6 +1427,7 @@ export const lists = new SpellParser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       constructor: class list_iteration extends SpellStatement {
+        /** Nested scope for body -- `{item}` (and optional numeric `{position}`) vars, `it` aliased to `{item}`. */
         getNestedScopeForMatch(match: P.Match<P.RulexGroups<"item:position:list">>): P.MethodScope {
           const { item, position } = match.groups
           const args: P.ScopeVariable[] = [new P.ScopeVariable({ name: item!.value })]
@@ -1310,6 +1438,11 @@ export const lists = new SpellParser({
             mapItTo: item!.value
           })
         }
+        /**
+         * Build `map`/`forEachSequential` call over `{list}`.
+         * - SIDE EFFECT: switches to `forEachSequential` + wraps result in `AwaitExpression` when body's
+         *   `method.isAsync` -- set by an `await` expression somewhere in body.
+         */
         getAST(match: P.Match<P.RulexGroups<"item:position:list"> & InlineBlockGroups>): AST.Expression {
           const { list, item, position, inlineStatement, nestedBlock } = match.groups
           const args = [new AST.VariableExpression(item!, { name: item!.value })]
@@ -1405,9 +1538,13 @@ export const lists = new SpellParser({
       ]
     },
 
-    // Number range-specific iteration
-    // TODO: this only works if you `from 1 to 10`, a more general solution which also supports `in {list}` is needed.
-    // TODO: `down` is not accounted for in the output
+    /**
+     * Number range-specific iteration, e.g. `for each number from 1 to 10:`.
+     * - Compiles to `spellCore.map(spellCore.getRange(start, end), (item) => { ... })`, or `await
+     *   spellCore.forEachSequential(...)` if body contains an `await`.
+     * TODO: this only works if you `from 1 to 10`, a more general solution which also supports `in {list}` is needed.
+     * TODO: `down` is not accounted for in the output
+     */
     {
       name: "list_range_iteration",
       alias: "statement",
@@ -1416,6 +1553,11 @@ export const lists = new SpellParser({
       wantsInlineStatement: true,
       wantsNestedBlock: true,
       constructor: class list_range_iteration extends SpellStatement {
+        /**
+         * Nested scope for body -- singularized `{item}` variable.
+         * - NOTE: unlike sibling iteration rules (`repeat_n_times`, `list_iteration`), doesn't pass
+         *   `mapItTo` -- `it` is NOT aliased to `{item}` here, possibly a missed feature.
+         */
         getNestedScopeForMatch(match: P.Match<P.RulexGroups<"item:start:end">>): P.MethodScope {
           const arg = singularize(match.groups.item!.value)
           return newMethodScope({

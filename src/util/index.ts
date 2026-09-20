@@ -1,8 +1,11 @@
-//
-//  ## Master import file for general-purpose utilities.
-//  Grouped below by rough concern: constants, app plumbing, language helpers,
-//  fetch/observable, DOM, tasks.
-//
+/**
+ * Barrel for `~/util` -- general-purpose utilities with no dependency on rest of app.
+ * - Grouped below by rough concern: constants, app plumbing, language helpers, fetch/observable, DOM, tasks.
+ * - NOTE: `ResponseErrors.ts` is deliberately NOT re-exported here -- its error classes (`ResponseError`,
+ *   `MissingResourceError`, etc) are consumed directly by `$fetch.ts`/`LoadableFile.ts` via relative import,
+ *   not by outside callers, so they stay off this barrel's public surface.
+ *   TODO: confirm that's intentional rather than a gap -- no other file imports them today.
+ */
 
 export * from "./constants"
 

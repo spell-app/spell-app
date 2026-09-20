@@ -1,5 +1,11 @@
-// Ad-hoc `Match` fields set/read by chunk E (`rules/lists.ts`, `rules/classes.ts`).
-// See the shared conversion brief for why these live here instead of on `src/parser/Match.ts`.
+/**
+ * Module augmentation for ad-hoc `Match` fields set/read by chunk E's rule files
+ * (`rules/lists.ts`, `rules/classes.ts`).
+ * - See `match-fields.A.ts` for why these ad hoc fields live here (via TS interface merging) rather than
+ *   on `src/parser/Match.ts` directly, and why they're split across lettered "chunk" files.
+ * - `classes.ts` additionally augments `Match` locally (rather than here) for a field only it uses --
+ *   see the comment there.
+ */
 import { P, type AST } from "~/parser"
 
 declare module "~/parser/Match" {

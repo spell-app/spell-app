@@ -6,8 +6,8 @@ import * as extend from "./extend"
  */
 export class Derivative {
   /**
-   * Return derived `property` for this object by calling `getter()`.
-   * returning the exact same value each time.
+   * Return derived `property` for this object, calling `getter()` once and returning that
+   * same value every time after.
    * - To reset the value:
    *   - Call `this.clearDerived()` to reset all derived properties.
    *   - Call `this.clearDerived(property)` to reset just that property.
@@ -35,7 +35,7 @@ export class Derivative {
   clearDerived(property: string) {
     extend.clearDerived(this, property)
   }
-  /** Overide getter for `property`, returning explicit `value` instead. */
+  /** Override getter for `property`, returning explicit `value` instead. */
   override<T>(property: string, value: T) {
     extend.overrideProp(this, property, value)
   }

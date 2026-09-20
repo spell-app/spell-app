@@ -2,8 +2,8 @@
 //
 //  Express API utility functions to `send` various responses conveniently/consistently.
 //
-//  This is mostly generic express/node stuff.
-//  See `APP SPECIFIC` below for app-specific stuff.
+//  This is mostly generic express/node stuff -- see `project-utils.ts` for the app-specific handlers
+//  that use these.
 //
 //----------------------------
 import type { Request, Response } from "express"
@@ -11,13 +11,14 @@ import type { SendFileOptions } from "express-serve-static-core"
 // File manipulation utilities and path config
 import * as fileUtils from "./file-utils"
 
-//----------------------------
-//  Id utilities
-//----------------------------
+////////////////
+// ## Id utilities
+////////////////
 
-// If `id` passed in is a string which converts EXACTLY to a number, return the number.
-// Otherwise return the string.
-// Useful for dealing with provisional ids.
+/**
+ * If `id` passed in is a string which converts EXACTLY to a number, return the number.
+ * Otherwise return the string.  Useful for dealing with provisional ids.
+ */
 export function convertNumericId(id: string): number | string | undefined {
   if (id == null) return undefined
 
@@ -30,15 +31,17 @@ export function convertNumericId(id: string): number | string | undefined {
   throw new TypeError(`convertNumericId(): don't know how to process id: ${id}`)
 }
 
-// Given an express `request`, return an array of id properties.
-// Uses `convertNumericId` to convert to numbers as appropriate.
+/**
+ * Given an express `request`, return array of id properties.
+ * Uses `convertNumericId` to convert to numbers as appropriate.
+ */
 export function getIdParams(request: Request, ...idProperties: string[]) {
   return idProperties.map((property) => convertNumericId(request.params[property]))
 }
 
-//----------------------------
-//  Generic response wrappers
-//----------------------------
+////////////////
+// ## Generic response wrappers
+////////////////
 
 /**
  * Wrap `await callback(request, response)` in standard API semantics:
@@ -56,32 +59,34 @@ export function respondWithJSON(callback: (request: Request, response: Response)
   }
 }
 
-//----------------------------
-//  Text responses
-//----------------------------
+////////////////
+// ## Text responses
+////////////////
 
-// Return `text` as `response` to `request`.
+/** Return `text` as `response` to `request`. */
 export function sendText(response: Response, text: string) {
   response.set("Content-Type", "text/plain")
   return response.send(text)
 }
 
-// Return `javascript` as `response` to `request`.
+/** Return `javascript` as `response` to `request`. */
 export function sendJavascript(response: Response, javascript: string) {
   response.set("Content-Type", "application/javascript")
   return response.send(javascript)
 }
 
+/** `SendFileOptions` (express) plus our own `defaultValue` fallback -- see `sendFile()` / `sendTextFile()`. */
 type ExtendedSendFileOptions = SendFileOptions & {
+  /** Value to send instead of a 404 when file is not found.  `undefined` = still 404. */
   defaultValue?: any
 }
 
 /**
- * Return file at `path`as `response` to `request`.
- * Uses express `sendFile()` to do the magic, which should set mime type automatically.
- * Pass `options` as per: https://expressjs.com/en/api.html#res.sendFile
- * Sends a 404 if the file was not found, unless you set `options.defaultValue` string
- * in which case we'll return that instead of failing.
+ * Return file at `path` as `response` to `request`.
+ * - Uses express `sendFile()` to do the magic, which should set mime type automatically.
+ * - Pass `options` per https://expressjs.com/en/api.html#res.sendFile.
+ * - Sends a 404 if file was not found, unless you set `options.defaultValue` -- then we return
+ *   that instead of failing.
  */
 export async function sendFile(
   response: Response,
@@ -95,7 +100,10 @@ export async function sendFile(
   return sendError(response, 404, new Error(`File not found: '${path}'`))
 }
 
-// Return text file at `path` (as text/plain) as `response` to `request`.
+/**
+ * Return text file at `path` (as `text/plain`) as `response` to `request`.
+ * - Same `defaultValue` fallback as `sendFile()`.
+ */
 export async function sendTextFile(
   response: Response,
   path: string,
@@ -107,40 +115,53 @@ export async function sendTextFile(
   return sendError(response, 404, new Error(`File not found: '${path}'`))
 }
 
-// Return js file at `path` (as text/plain) as `response` to `request`.
+/**
+ * Return js file at `path` (as `application/javascript`) as `response` to `request`.
+ * - NOTE: comment historically said `text/plain`, but code sets `application/javascript` -- doc now matches code.
+ */
 export async function sendJSFile(response: Response, path: string, options: SendFileOptions = {}) {
   response.set("Content-Type", "application/javascript")
   if (await fileUtils.pathExists(path)) return response.sendFile(path, options)
   return sendError(response, 404, new Error(`File not found: '${path}'`))
 }
 
-//----------------------------
-//  JSON responses
-//----------------------------
+////////////////
+// ## JSON responses
+////////////////
 
-// Return `json` as string or object to stringify as `response` to `request`.
+/** Return `json` (string, or object to `JSON.stringify()`) as `response` to `request`. */
 export function sendJSON(response: Response, json: any) {
   response.set("Content-Type", "application/json")
   if (typeof json !== "string") json = JSON.stringify(json, null, "  ")
   return response.send(json)
 }
 
-// Return contents of a single file at `path` as as JSON `response` to `request`.
+/**
+ * Return contents of a single file at `path` as JSON `response` to `request`.
+ * - NOTE: unlike `sendFile()`, does not check `pathExists` first -- a missing file becomes
+ *   express's default `sendFile` error handling rather than our `sendError()` 404 shape.
+ */
 export function sendJSONFile(response: Response, path: string) {
   response.set("Content-Type", "application/json")
   console.warn("Sending JSON file:\n  ", path)
   return response.sendFile(path)
 }
 
-//----------------------------
-//  Error responses
-//----------------------------
+////////////////
+// ## Error responses
+////////////////
 
+/** `true` if `error` is node's `ENOENT` (file/folder not found) -- used to special-case missing-file handling. */
 export function isFileOrFolderNotFoundError(error: any): error is Error {
   return (error as any).code === "ENOENT"
 }
 
-// Return an error response.
+/**
+ * Return an error response: sets `statusCode`, logs `error` to console via `fileUtils.logError()`,
+ * and sends `{ errors: [{ message, trace }] }` as the body.
+ * - `trace` is `error.stack`, so this LEAKS server stack traces to client -- fine for a local dev
+ *   tool, would need locking down before any untrusted-network exposure.
+ */
 export function sendError(
   response: Response,
   statusCode: number,
@@ -161,16 +182,18 @@ export function sendError(
   })
 }
 
-//----------------------------
-//  Request utilities
-//----------------------------
+////////////////
+// ## Request utilities
+////////////////
 
-// Return a POJO with relevant details from the request:
-//  - url       URL called
-//  - method    "GET", "POST", etc
-//  - params    Clone of named request params from the router, if any provided.
-//  - query     Clone of query params from URL string, if any provided.
-//  - body      Body as string or CLONE OF body object, if any provided.
+/**
+ * Return a POJO with relevant details from `request`:
+ * - `url` -- URL called.
+ * - `method` -- `"GET"`, `"POST"`, etc.
+ * - `params` -- clone of named request params from router, if any provided.
+ * - `query` -- clone of query params from URL string, if any provided.
+ * - `body` -- body as string, or CLONE of body object, if any provided.
+ */
 export function getRequestDetails(request: Request) {
   const { query, params, body } = request
   return {

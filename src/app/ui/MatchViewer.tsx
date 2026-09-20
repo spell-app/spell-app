@@ -13,10 +13,10 @@ import { MatchView } from "./MatchView"
 
 import "./MatchViewer.less"
 
-/**
- *  Root element to show the `<MatchViewer/>` in `SpellEditor`
- */
-
+/****************
+ * ### `<MatchRoot>`
+ * Root element to show the `<MatchViewer/>` in `SpellEditor`.
+ ****************/
 export const MatchRoot = view(function MatchRoot({ showToolbar = true, scrolling = true }: MatchRootProps) {
   const { showingMatchRuleNames: showNames } = store
   return (
@@ -33,10 +33,18 @@ export const MatchRoot = view(function MatchRoot({ showToolbar = true, scrolling
   )
 })
 
+/** Props for `<MatchRoot>`. */
 export type MatchRootProps = {
+  /** Show `<MatchToolbar>` above viewer. */
   showToolbar?: boolean
+  /** Pass through to `<MatchViewer>`. */
   scrolling?: boolean
 }
+
+/****************
+ * ### `<MatchToolbar>`
+ * Toolbar above `<MatchViewer>`: header plus `toggleMatchRuleNames` action.
+ ****************/
 export const MatchToolbar = React.memo(function MatchToolbar() {
   return (
     <UI.PanelMenu>
@@ -51,6 +59,10 @@ export const MatchToolbar = React.memo(function MatchToolbar() {
   )
 })
 
+/****************
+ * ### `<MatchViewer>`
+ * Top-level error-handling wrapper around the matched-rule tree view (see `<MatchView>`).
+ ****************/
 export class MatchViewer extends ErrorHandler<MatchViewerProps> {
   /** Clear `state.error` if `props.match` changes. */
   static getDerivedStateFromProps(props: MatchViewerProps, oldState: MatchViewerState): Partial<MatchViewerState> {
@@ -59,7 +71,7 @@ export class MatchViewer extends ErrorHandler<MatchViewerProps> {
     return newState
   }
 
-  /* Show error in UI when caught. */
+  /** Show error in UI when caught. */
   componentDidCatch(error: Error) {
     this.props.showError?.(error)
   }
@@ -80,11 +92,11 @@ export class MatchViewer extends ErrorHandler<MatchViewerProps> {
    */
   Component = MatchComponent
 
-  /////////////////////////
-  //  Scroll / highlight management
-  /////////////////////////
+  ////////////////
+  // ## Scroll / highlight management
+  ////////////////
 
-  // Return element that corresponds to `matchOrToken`.
+  /** Return element that corresponds to `matchOrToken`. */
   static elementForMatch(viewer: HTMLElement, matchOrToken: P.Match | P.Token): HTMLElement | null {
     let selector: string
     if (matchOrToken instanceof P.Token) {
@@ -112,7 +124,8 @@ export class MatchViewer extends ErrorHandler<MatchViewerProps> {
   static clearHighlights(viewer: HTMLElement): void {
     viewer.querySelectorAll(".highlight").forEach((el) => el.classList.remove("highlight"))
   }
-  // Highlight `matches`.
+
+  /** Highlight `matches`. */
   static highlight(viewer: HTMLElement, ...matches: (P.Match | P.Token)[]): void {
     matches.forEach((match) => {
       const element = MatchViewer.elementForMatch(viewer, match)
@@ -148,8 +161,13 @@ export class MatchViewer extends ErrorHandler<MatchViewerProps> {
   }
 }
 
+/** State for `<MatchViewer>`: `ErrorHandlerState` plus the `match` we're tracking for reset purposes. */
 type MatchViewerState = ErrorHandlerState & { match?: P.Match }
-/** Wrapper component for a Match. */
+
+/****************
+ * ### `<MatchWrapper>`
+ * Wrapper component for a Match -- applies `scrolling`/`compact` classNames around `component`.
+ ****************/
 function MatchWrapper({ component, props }: ErrorHandlerWrapperProps<MatchViewerProps>) {
   const classNames = ["MatchViewer"]
   if (props.scrolling) classNames.push("scrolling")
@@ -157,7 +175,12 @@ function MatchWrapper({ component, props }: ErrorHandlerWrapperProps<MatchViewer
   return <div className={classNames.join(" ")}>{component}</div>
 }
 
-/** Component to render for a `Match`. */
+/****************
+ * ### `<MatchComponent>`
+ * Component to render for a `Match` -- builds the `<MatchView>` tree (memoized on `match`) and,
+ * when a `selection` is passed, scrolls/highlights the matching line via `MatchViewer.updateScroll`
+ * / `updateHighlight`.
+ ****************/
 function MatchComponent({ match, selection, compact }: MatchViewerProps) {
   const element = React.useMemo(() => {
     if (!match) return null
@@ -175,10 +198,16 @@ function MatchComponent({ match, selection, compact }: MatchViewerProps) {
   return element
 }
 
+/** Props for `<MatchViewer>`. */
 export type MatchViewerProps = {
+  /** Add scrolling className to wrapper. */
   scrolling?: boolean
+  /** Add compact className -- used when rule names are shown, to tighten spacing. */
   compact?: boolean
+  /** Root match to render. */
   match?: P.Match
+  /** Current editor selection, used to scroll/highlight the matching line. */
   selection?: EditorSelection
+  /** Called with caught render error. */
   showError?: (error: unknown) => void
 }

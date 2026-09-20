@@ -3,14 +3,15 @@ import { P } from "~/parser"
 
 import { BlockScope } from "./BlockScope"
 /**
- * A `RootScope` is the root scope for a parser.
- * It manages built-in `.rules`, `.types` and `.constants`,
- *
- * This gets the initial set of rules, built-in types, etc that come with the language.
- * which are available to `ProjectScope`s, etc underneath it.
+ * A `RootScope` is the root scope for a parser -- manages built-in `.rules`, `.types` and `.constants`.
+ * - Holds initial set of rules, built-in types, etc. that come with the language, available to
+ *   `ProjectScope`s, etc. underneath it.
  */
 export class RootScope extends BlockScope {
-  /** Scope `types`. */
+  /**
+   * Named `TypeScope`s known in this scope, keyed by (Type_Case-normalized) name.
+   * New entries get wrapped in `TypeScope` and parented here.
+   */
   get types(): IndexedList<P.TypeScope, string | P.TypeScope | P.TypeScopeProps> {
     return this.derived(
       "types",
@@ -29,7 +30,10 @@ export class RootScope extends BlockScope {
     )
   }
 
-  /** Scope `constants`. */
+  /**
+   * Named `ScopeConstant`s known in this scope, keyed by (snake_case-normalized) name.
+   * New entries get wrapped in `ScopeConstant`.
+   */
   get constants(): IndexedList<P.ScopeConstant, string | P.ScopeConstant | P.ScopeConstantProps> {
     return this.derived(
       "constants",
@@ -48,7 +52,6 @@ export class RootScope extends BlockScope {
     )
   }
 
-  /** Scope `rules`. */
   /** Rule definitions added to this scope; each is also defined on the scope's `parser`. */
   get rules(): IndexedList<P.RuleDefinition> {
     return this.derived(

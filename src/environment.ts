@@ -14,6 +14,9 @@ const environment = {
   api_server: process.env.API_SERVER || "localhost",
   srcDir,
   staticDir,
+  // NOTE: `systemFilesRoot`/`userFilesRoot` both point at `srcDir` for now -- `project-utils.ts` already
+  // picks between them by `owner` (`"@system"` vs user), so they're ready to diverge once user files
+  // move somewhere else.
   systemFilesRoot: srcDir,
   userFilesRoot: srcDir
 }

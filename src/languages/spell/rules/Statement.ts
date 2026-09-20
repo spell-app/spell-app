@@ -2,13 +2,13 @@ import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 
-// In Spell, we generally match `statements` across the entire line.
-//
-// An exception is `inline block` statements (like `if` or `forEach`),
-//  where the statement MIGHT have an inline statement at the end
-//  or might have a nested block of statements.
-//
-// Note: Access this as `SpellParser.Rules.Statement`.
+/**
+ * Base class for all spell statement rules.  In spell, we generally match `statements` across the
+ * entire line.
+ * - An exception is "inline block" statements (like `if` or `forEach`), where the statement might have
+ *   an inline statement at the end, or might have a nested block of statements.
+ * - Access this as `SpellParser.Rules.Statement`.
+ */
 export class SpellStatement extends P.Sequence {
   /** Should we attempt to parse an `inlineStatement` at the end of this statement's line? */
   declare wantsInlineStatement: boolean
@@ -26,9 +26,11 @@ export class SpellStatement extends P.Sequence {
     Object.defineProperty(this.prototype, "parseNestedBlockAs", { value: "block", writable: true })
   }
 
-  // Parse the staement itself -- assume comment was already popped off the end.
-  // If we `wantsInlineStatement`, attempt to parse that and push onto the match.
-  // `Block.parseStatement()` will worry about extra stuff at the end of the statement.
+  /**
+   * Parse the statement itself -- assume comment was already popped off the end.
+   * - If `this.wantsInlineStatement`, attempt to parse that and push onto the match.
+   * - `BlockLine.parse()` will worry about extra stuff at the end of the statement.
+   */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const statement = super.parse(scope, tokens)
     if (!statement) return undefined
@@ -42,9 +44,13 @@ export class SpellStatement extends P.Sequence {
     return statement
   }
 
-  // If a parsed `statement` match `.wantsInlineStatement`,
-  // attempt to parse `unparsed` tokens from the end of the input line.
-  // Returns `inlineStatement` match if successful.
+  /**
+   * If a parsed `statement` match `.wantsInlineStatement`, attempt to parse `unparsed` tokens from the
+   * end of the input line.
+   * - Returns `inlineStatement` match if successful.
+   * - SIDE EFFECT: on success, adds the `inlineStatement` match to `statement.groups` and calls
+   *   `mutateScope()` on it so any variables/rules/etc it declares are initialized.
+   */
   parseInlineStatement(
     statement: P.Match,
     unparsed: P.Token[],
@@ -62,11 +68,17 @@ export class SpellStatement extends P.Sequence {
     return inlineStatement
   }
 
-  // If a parsed `statement` match `.wantsNestedBlock`,
-  // attempt to parse `nestedBlock` from `block.contents`.
-  // Returns `nestedBlock` match if successful.
-  // TODO: complain if we also have an inlineStatement???
-  // NOTE: this will throw if rule does not implement `getNestedScopeForMatch`
+  /**
+   * If a parsed `statement` match `.wantsNestedBlock`, attempt to parse `nestedBlock` from
+   * `block.contents`.
+   * - Returns `nestedBlock` match if successful.
+   * - When `parseAs` ~== `"block"`, parses the whole nested block via `statement.nestedScope` and marks
+   *   the result `enclose`d (wrapped in `{}` when compiled).  Otherwise, only a single-line nested block
+   *   can be parsed, as `parseAs` directly (e.g. an `expression`).
+   * - SIDE EFFECT: on success, adds the `nestedBlock` match to `statement.groups`.
+   * - TODO: complain if we also have an inlineStatement???
+   * - NOTE: this will throw if rule does not implement `getNestedScopeForMatch`.
+   */
   parseNestedBlock(
     statement: P.Match,
     nestedBlock: P.Tokens.Block,
@@ -76,7 +88,7 @@ export class SpellStatement extends P.Sequence {
     if (parseAs === "block") {
       const { nestedScope } = statement
       result = nestedScope.parser?.parse([nestedBlock], "block", nestedScope)
-      // wrap output in parens
+      // wrap output in braces
       if (result) result.enclose = true
     } else {
       // if parsing as anything else, we can only handle a single line

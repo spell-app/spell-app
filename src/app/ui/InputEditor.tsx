@@ -11,9 +11,10 @@ import { CodeMirror, inputOptions } from "./CodeMirror"
 
 import "./InputEditor.less"
 
-/**
- *  Root element to show the `<InputEditor/>` in `SpellEditor`
- */
+/****************
+ * ### `<InputRoot>`
+ * Root element to show the `<InputEditor/>` in `SpellEditor`.
+ ****************/
 export const InputRoot = React.memo(function InputRoot({ showToolbar = true }: InputRootProps) {
   return (
     <div className="InputRoot">
@@ -23,9 +24,17 @@ export const InputRoot = React.memo(function InputRoot({ showToolbar = true }: I
   )
 })
 
+/** Props for `<InputRoot>`. */
 export type InputRootProps = {
+  /** Show `<InputToolbar>` above editor. */
   showToolbar?: boolean
 }
+
+/****************
+ * ### `<InputToolbar>`
+ * Toolbar above `<InputEditor>`: file dropdown, `compileApp`/`saveFile`/`reloadFile`/`createFile`
+ * actions and the file-actions dropdown.
+ ****************/
 export function InputToolbar() {
   return (
     <UI.PanelMenu>
@@ -43,6 +52,10 @@ export function InputToolbar() {
   )
 }
 
+/****************
+ * ### `<InputEditor>`
+ * Top-level error-handling wrapper around the CodeMirror `spell` source editor.
+ ****************/
 export class InputEditor extends ErrorHandler<InputEditorProps> {
   /** Clear `state.error` if `props.match` changes. */
   static getDerivedStateFromProps(props: InputEditorProps, oldState: InputEditorState): Partial<InputEditorState> {
@@ -51,7 +64,7 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
     return newState
   }
 
-  /* Show error in UI when caught. */
+  /** Show error in UI when caught. */
   componentDidCatch(error: Error) {
     this.props.showError?.(error)
   }
@@ -70,8 +83,10 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
   }
 
   /**
-   * Memoized top-level viewer for a Match, e.g. for a `spellFile.match`.
-   * Create one of these and it will create <MatchView>s and <TokenView>s underneath it.
+   * `<CodeMirror>` bound to `store.file`'s contents, wired to save/reload/compile keys and to
+   * push cursor/scroll/change events back into `store`.
+   * NOTE: was previously worded as if for a `spellFile.match` producing `<MatchView>`/`<TokenView>`
+   * elements -- stale, copy-pasted from `MatchViewer`'s equivalent field.  Corrected here.
    */
   Component = view(function InputEditorInner() {
     const { file } = store
@@ -97,8 +112,11 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
   })
 
   /**
-   * Memoized top-level viewer for a Match, e.g. for a `spellFile.match`.
-   * Create one of these and it will create <MatchView>s and <TokenView>s underneath it.
+   * Fallback `<CodeMirror>` rendered after a caught error.
+   * - SIDE EFFECT: strips `mode` from `inputOptions` -- re-attaching the `spell` mode after an
+   *   error previously caused an endless loop of pain (see inline comment below).
+   * NOTE: was previously worded as if for a `spellFile.match` producing `<MatchView>`/`<TokenView>`
+   * elements -- stale, copy-pasted from `MatchViewer`'s equivalent field.  Corrected here.
    */
   ErrorComponent = view(function InputEditorInner(_props: InputEditorProps & { error: Error }) {
     const { file } = store
@@ -130,8 +148,12 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
   })
 }
 
+/** State for `<InputEditor>`: `ErrorHandlerState` plus the (currently always-`undefined`) `match`. */
 type InputEditorState = ErrorHandlerState & { match?: unknown }
+
+/** Props for `<InputEditor>`. */
 export type InputEditorProps = {
+  /** Called with caught render error. */
   showError?: (error: unknown) => void
   /** Never actually passed by `<InputRoot>` today; kept so `getDerivedStateFromProps` below still compiles/works. */
   match?: unknown

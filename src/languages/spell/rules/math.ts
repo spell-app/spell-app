@@ -1,15 +1,19 @@
-//
-//  # Rules for math-y bits.
-//  NOTE: this must come after "operators"
-//
+/**
+ * Rules for math-y bits -- comparison operators (`<`, `is greater than`), arithmetic operators
+ * (`plus`, `times`, ...), and standalone math functions (`absolute value`, `max`/`min`, `round`).
+ * - NOTE: this must come after "operators".
+ */
 
 import { P, AST } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellExpression, InfixOperatorSuffix } from "./expressions"
 
-// `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass
-// that the referenced sub-rule's `getAST()` is known (by inspection) to always produce.
+/**
+ * Narrow `node` to concrete AST subclass `T`.
+ * - `Match.AST` is typed generically as `ASTNode | undefined`; this asserts the referenced sub-rule's
+ *   `getAST()` is known (by inspection) to always produce `T`, since that's not statically checkable here.
+ */
 function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
   return node as T
 }
@@ -17,11 +21,18 @@ function ast<T extends AST.ASTNode>(node: AST.ASTNode | undefined): T {
 export const math = new SpellParser({
   module: "math",
   rules: [
+    /**
+     * `<`, `>`, `<=`, `>=` comparison, e.g. `salary > expenses`.
+     * - NOTE: output of `operator` will NOT have space between `>=`.
+     * - `getAST()` below looks unreachable in practice: `InfixOperatorSuffix.getAST()` deliberately
+     *   throws, and `compound_expression`'s shunting-yard calls `compileAST()`/`compileASTExpression()`
+     *   directly on matched suffix rules, never `getAST()`.
+     *   TODO: confirm this is genuinely dead code, and if so remove it.
+     */
     {
       name: "gt_lt",
       alias: "expression_suffix",
       precedence: 11,
-      // NOTE: output of `operator` will NOT have space between `>=`
       syntax: "(operator:(<|>) =?) {expression:simple_expression}",
       constructor: class gt_lt extends InfixOperatorSuffix {
         getAST(match: P.Match<P.RulexGroups<"operator:expression">>) {
@@ -57,11 +68,16 @@ export const math = new SpellParser({
       ]
     },
 
+    /**
+     * `is greater than`, `is less than`, optionally `... or equal to`, e.g. `salary is greater than expenses`.
+     * - TODO: is *not* greater than???
+     * - `getOutputOperator()` maps `greater`/`less` + optional `equal` to `>`/`<`/`>=`/`<=`.
+     * - `getAST()` below looks unreachable in practice, same as `gt_lt` above -- see `TODO` there.
+     */
     {
       name: "is_gt_lt",
       alias: "expression_suffix",
       precedence: 11,
-      // TODO: is *not* greater than???
       syntax: "(operator:is (greater|less) than (or equal to)?) {expression:simple_expression}",
       parenthesize: true,
       constructor: class is_gt_lt extends InfixOperatorSuffix {
@@ -93,6 +109,7 @@ export const math = new SpellParser({
       ]
     },
 
+    /** `plus` / `+`, e.g. `price + tax` -- precedence 13, above comparison operators, below `*`/`/`. */
     {
       name: "plus",
       alias: "expression_suffix",
@@ -119,6 +136,11 @@ export const math = new SpellParser({
         }
       ]
     },
+    /**
+     * `minus` / `-`, e.g. `price - tax`.
+     * - NOTE: bare `-` requires surrounding spaces -- otherwise it'd clash with negative-number literals,
+     *   see commented-out test below.
+     */
     {
       name: "minus",
       alias: "expression_suffix",
@@ -146,6 +168,7 @@ export const math = new SpellParser({
       ]
     },
 
+    /** `*` / `times`, e.g. `price * taxRate` -- precedence 14, highest, alongside `/`. */
     {
       name: "times",
       alias: "expression_suffix",
@@ -172,6 +195,7 @@ export const math = new SpellParser({
         }
       ]
     },
+    /** `/` / `divided by`, e.g. `price / taxRate` -- precedence 14, same as `*`. */
     {
       name: "divided_by",
       alias: "expression_suffix",
@@ -198,10 +222,14 @@ export const math = new SpellParser({
         }
       ]
     },
-    //
-    //  Random math functions
-    //
+    ////////////////
+    // ## Random math functions
+    ////////////////
 
+    /**
+     * `the absolute value of {expression}`.
+     * - `testRule: "…absolute"` lets shunting-yard test for `absolute` occurring anywhere, not just at start.
+     */
     {
       name: "absolute_value",
       alias: "expression",
@@ -228,6 +256,11 @@ export const math = new SpellParser({
       ]
     },
 
+    /**
+     * `the biggest`/`largest` [thing] `of`/`in` {expression}, e.g. `largest of the prices`.
+     * - `precedence: 2` is low, so this only wins over other `expression` alternatives when nothing more
+     *   specific already claimed the tokens.
+     */
     {
       name: "max",
       alias: "expression",
@@ -260,6 +293,10 @@ export const math = new SpellParser({
       ]
     },
 
+    /**
+     * `the smallest` [thing] `of`/`in` {expression}, e.g. `smallest of prices`.
+     * - `precedence: 2`, same reasoning as `max` above.
+     */
     {
       name: "min",
       alias: "expression",
@@ -290,14 +327,19 @@ export const math = new SpellParser({
       ]
     },
 
+    /**
+     * `round {expression}`, optionally `off`/`up`/`down`, e.g. `round price up`.
+     * - TODO: precision:  to the nearest tenth ?
+     * - `precedence: 1`, lowest of the `expression` alternatives here.
+     */
     {
-      // TODO: precision:  to the nearest tenth ?
       name: "round_number",
       alias: "expression",
       syntax: "round {expression} (operator:off|up|down)?",
       testRule: "round",
       precedence: 1,
       constructor: class round_number extends SpellExpression {
+        /** Maps `off`/`up`/`down` suffix to `round`/`roundUp`/`roundDown` spellCore method. */
         getAST(match: P.Match<P.RulexGroups<"expression:operator">>) {
           const { expression, operator } = match.groups
           let methodName = "round"

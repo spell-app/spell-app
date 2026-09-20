@@ -51,11 +51,18 @@ export function Prompt({ props, resolve }: ModalComponentProps<PromptModalProps,
 
 /** Props for `<Prompt>`.  Extra keys pass through to the underlying `SUI.Modal`. */
 export type PromptModalProps = {
+  /** Message to show. */
   message: ReactNode
+  /** Header for the dialog. */
   header?: ReactNode
+  /** Start value for field.  Default `""`. */
   defaultValue?: string
+  /** `<Input type>`.  Default `"text"`. */
   type?: string
+  /** Extra props to pass to the `<Input>`, e.g. `{ min: 10, max: 100 }` with `type="number"`. */
   inputProps?: Record<string, unknown>
+  /** Text title for OK button.  Default `"OK"`. */
   ok?: string | SUI.ButtonProps
+  /** Text title for Cancel button.  Default `"Cancel"`. */
   cancel?: string | SUI.ButtonProps
 } & Record<string, unknown>

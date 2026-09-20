@@ -1,6 +1,9 @@
-//----------------------------
-//  `spell` base runtime library for use with classes created with spell
-//----------------------------
+/**
+ * `spell` base runtime library for use with classes created with spell.
+ * - Meta-programming (`define`, `defineProperty`, `newThingLike`), exports, type checks, get/set-by-path
+ *   stubs, `equals`, math and primitive iteration all live here -- collection-shaped methods
+ *   (`itemCountOf`, `forEach`, etc) live in `collection-core.ts` / `collection-other.ts` instead.
+ */
 import global from "global"
 import forEach from "lodash/forEach"
 import _isArrayLike from "lodash/isArrayLike"
@@ -12,19 +15,30 @@ import { defineSpellCoreModule, type SpellCore } from "./SpellCore"
 
 /** Options accepted by `spellCore.defineProperty()`. */
 export type DefinePropertyOptions<T = unknown> = {
+  /** Property name to define on `thing`. */
   property: string
+  /** Default value -- unused directly here, callers read it via their own `initializer`. */
   value?: T
+  /** Type name or Class -- if provided, warn (but still set) when a new value doesn't match. */
   type?: string
+  /** Called once per instance to produce a default value when property hasn't been set yet. */
   initializer?: () => T
+  /** Array of legal values -- if provided, warn (but still set) when a new value isn't included. */
   enumeration?: unknown[]
+  /**
+   * Property name -- if given, mirror `enumeration` onto `thing[enumerationProp]` and
+   * `thing.constructor[enumerationProp]`.
+   */
   enumerationProp?: string
 }
 
 /** Special methods for `isOfType()`, keyed by type name. */
 type IsOfTypeSpecials = Record<string, (thing: unknown) => boolean>
 
-// Random integer between `min` and `max` inclusive.
-// If you pass just one number, we'll do `1..min`
+/**
+ * Random integer between `min` and `max` inclusive.
+ * - Pass just one number and we'll treat it as `max`, ranging `1..max`.
+ */
 export function randomNumber(): number | undefined
 export function randomNumber(max: number): number | undefined
 export function randomNumber(min: number, max: number): number | undefined
@@ -42,16 +56,23 @@ export function randomNumber(min?: number, max?: number): number | undefined {
   return Math.floor(Math.random() * (max! - min! + 1)) + min!
 }
 
-// Create the `spellCore` singeton, using a class for recognition when debugging.
+/**
+ * The `spellCore` singleton -- compiled `spell` code calls `spellCore.foo(...)` for every built-in.
+ * - Built from an instance of an inline class (rather than a plain object) purely so it prints as
+ *   `spellCore {...}` -- not `Object {...}` -- when logged / inspected while debugging.
+ * - Cast to `SpellCore` since its real shape is assembled piecemeal by every module's `Object.assign()`
+ *   call below (and in `collection-core.ts`, `collection-other.ts`, etc) -- see `SpellCore.ts`.
+ */
 export const spellCore = new (class spellCore {})() as SpellCore
 
+/** Meta-programming, exports, type-checking, path access, equality, math and iteration primitives. */
 export const coreMethods = defineSpellCoreModule({
   /** Do nothing -- use this as a placeholder, e.g. in an `if` branch. */
   doNothing(): void {},
 
-  //----------------------------
-  // Meta-programming
-  //--------
+  ////////////////
+  // ## Meta-programming
+  ////////////////
 
   /**
    * Object.defineProperty alias.
@@ -63,15 +84,14 @@ export const coreMethods = defineSpellCoreModule({
   },
 
   /**
-   * Define a `property` on the `thing`.
-   * This is most useful for `Observable`s where `$props` is an observable proxy object.
-   * For everything else, we'll define `$props` as a plain object as necessary.
-   * - `thing` is object to define property on (likely a prototype)
-   * - `property` is property name
-   * - `value` is default value to use if not set
-   * - `type` is type name or Class. If provided, we'll only set property if value matches `type`
-   * - `enumeration` is array of legal values. If provided, we'll only set if value is in enumeration.
-   * - `enumerationProp` is property name -- if defined, we'll set `thing[enumerationProp]` and `thing.constructor[enumerationProp]`
+   * Define a `property` on `thing` (likely a prototype), via `options`.
+   * - Most useful for `Observable`s where `$props` is an observable proxy object -- for everything
+   *   else, we'll define `$props` as a plain object as necessary.
+   * - `options.type`: type name or Class -- if provided, warns (but still sets) when value doesn't match.
+   * - `options.enumeration`: array of legal values -- if provided, warns (but still sets) when value
+   *   isn't included.
+   * - `options.enumerationProp`: property name -- if given, mirrors `enumeration` onto
+   *   `thing[enumerationProp]` and `thing.constructor[enumerationProp]`.
    */
   defineProperty(thing: object, options: DefinePropertyOptions): void {
     const { property, type, initializer, enumeration, enumerationProp } = options
@@ -129,38 +149,47 @@ export const coreMethods = defineSpellCoreModule({
     }
   },
 
-  //----------------------------
-  // exports
-  //--------
+  ////////////////
+  // ## exports
+  ////////////////
 
-  // list of named exports
+  /** List of named exports, keyed by name -- populated by `addExport()`, e.g. by every `spell` class. */
   EXPORTS: {} as Record<string, unknown>,
 
-  // Add a named export (which may replace existing export).
-  // SIDE EFFECT: globalizes exports!
+  /**
+   * Add a named export (which may replace an existing export).
+   * - SIDE EFFECT: globalizes exports -- calls `globalizeExports()`, so `name` becomes a global immediately.
+   */
   addExport(name: string, thing: unknown): void {
     this.EXPORTS[name] = thing
     this.globalizeExports()
   },
 
-  // globalize all exports
+  /**
+   * Globalize all exports.
+   * - SIDE EFFECT: assigns every entry of `EXPORTS` onto `global`, so compiled `spell` code can
+   *   reference e.g. a class by its bare name without importing it.
+   */
   globalizeExports(): void {
     forEach(this.EXPORTS, (thing, name) => {
       global[name] = thing
     })
   },
 
-  //----------------------------
-  // types
-  //--------
+  ////////////////
+  // ## types
+  ////////////////
 
+  /** Maps a JS `typeof`/constructor-name result to the `spell`-facing type name shown to users. */
   TYPE_NAME_CONVERSIONS: {
     array: "list",
     boolean: "choice",
     string: "text"
   } as Record<string, string>,
 
-  /** Return string "type" of `thing`.
+  /**
+   * Return string "type" of `thing`, as shown to `spell` users -- e.g. `"text"` for a string,
+   * `"list"` for an array, or the lowercased constructor name for a custom class.
    * TODO:  Return type aliases, e.g. ["number", "integer"]
    * TODO:  Return inherited class types ?
    * TODO:  NaN => `unknown` ???
@@ -174,14 +203,20 @@ export const coreMethods = defineSpellCoreModule({
     return spellCore.TYPE_NAME_CONVERSIONS[type] || type
   },
 
-  /** Special methods for `isOfType()` */
+  /**
+   * Special methods for `isOfType()`, for type names `typeOf()` never actually returns
+   * (`integer`, `character`, `char`) -- checked instead of a plain `=== typeOf(thing)` comparison.
+   */
   IS_OF_TYPE_SPECIALS: {
     integer: (thing: unknown): boolean => spellCore.isAnInteger(thing),
     character: (thing: unknown): boolean => spellCore.typeOf(thing) === "text" && (thing as string).length === 1,
     char: (thing: unknown): boolean => spellCore.isOfType(thing, "character")
   } as IsOfTypeSpecials,
 
-  /** Is `thing` an instance of string `type` (as per `spellCore.typeOf()`)? */
+  /**
+   * Is `thing` an instance of string `type` (as per `spellCore.typeOf()`)?
+   * - Compiles from `thing is a Bee` => `spellCore.isOfType(thing, 'Bee')` -- see `expressions.ts`.
+   */
   isOfType(thing: unknown, type: string): boolean {
     // TODO: check for inherited types
     if (typeof type === "string") type = type.toLowerCase()
@@ -190,7 +225,10 @@ export const coreMethods = defineSpellCoreModule({
     return type === thingType
   },
 
-  /** Does the type of `thing` match the type of `otherThing`? */
+  /**
+   * Does the type of `thing` match the type of `otherThing`?
+   * - Compiles from `thing is the same type as other` -- see `expressions.ts`.
+   */
   matchesType(thing: unknown, otherThing: unknown): boolean {
     // TODO: check for inherited types
     return spellCore.typeOf(thing) === spellCore.typeOf(otherThing)
@@ -201,60 +239,72 @@ export const coreMethods = defineSpellCoreModule({
     return typeof thing === "number" && !isNaN(thing)
   },
 
-  /** Is `thing` a valid integer (doesn't include NaN)
-   * NOTE: treats `0` as an integer as well. ??? */
+  /**
+   * Is `thing` a valid integer (doesn't include NaN).
+   * NOTE: treats `0` as an integer as well. ???
+   */
   isAnInteger(thing: unknown): boolean {
     return typeof thing === "number" && !isNaN(thing) && parseInt(String(thing), 10) === thing
   },
 
   // TODO: isText, etc
 
-  // Is `thing` an array-like thing?
+  /** Is `thing` an array-like thing (`Array`, `arguments`, or anything with a numeric `length`)? */
   isArrayLike(thing: unknown): boolean {
     return _isArrayLike(thing)
   },
 
-  // Assert that `value` is not:
-  //  `false`
-  //  `null`
-  //  `undefined`
-  // NOTE: explicitly does NOT include `0`
+  /**
+   * Assert that `value` is not `false`, `null` or `undefined`.
+   * NOTE: explicitly does NOT include `0` -- unlike plain JS truthiness, `0` counts as truthy here.
+   */
   isTruthy(value: unknown): boolean {
     return value !== false && value !== null && value !== undefined
   },
 
-  // Return `true` if value is defined (e.g. not undefined).
-  // TESTME
+  /**
+   * Return `true` if `value` is defined (e.g. not `undefined`).
+   * - Compiles from `thing is defined` / `thing exists` / `there is a thing` -- see `expressions.ts`.
+   * TESTME
+   */
   isDefined(value: unknown): boolean {
     return typeof value !== "undefined"
   },
 
-  //----------------------------
-  // get/set access for paths
-  //--------
+  ////////////////
+  // ## get/set access for paths
+  ////////////////
+
+  /**
+   * Get `path` off `thing`.
+   * TODO: unimplemented stub -- always returns `undefined`, no caller wires this up yet.
+   */
   get(thing: unknown, path: string): unknown {
     return undefined
   },
 
+  /**
+   * Set `path` on `thing` to `value`.
+   * TODO: unimplemented stub -- currently a no-op, no caller wires this up yet.
+   */
   set(thing: unknown, path: string, value: unknown): void {},
 
-  //----------------------------
-  // operators
-  //--------
+  ////////////////
+  // ## operators
+  ////////////////
 
-  // Does `thing` conceptually equal `otherThing`?
-  // Uses lodash `isEqual` semantics.
+  /** Does `thing` conceptually equal `otherThing`?  Uses lodash `isEqual` semantics (deep, structural). */
   equals(thing: unknown, otherThing: unknown): boolean {
     return isEqual(thing, otherThing)
   },
 
-  //----------------------------
-  // math
-  //--------
+  ////////////////
+  // ## math
+  ////////////////
 
   randomNumber,
 
-  // Return a range of numbers from `start` to `end`, inclusive.
+  /** Return a range of numbers from `start` to `end`, inclusive -- counts down if `start > end`. */
   getRange(start: number, end: number): number[] {
     const range: number[] = []
     if (
@@ -275,9 +325,15 @@ export const coreMethods = defineSpellCoreModule({
     return range
   },
 
-  //----------------------------
-  // primitive iteration
-  //--------
+  ////////////////
+  // ## primitive iteration
+  ////////////////
+
+  /**
+   * Call `callback()` `count` times, ignoring its return value.
+   * TODO: `repeat {number} times` currently compiles to `spellCore.map(spellCore.getRange(...), ...)`
+   * instead (see `lists.ts`) -- no rule currently calls this method; confirm whether it's still needed.
+   */
   repeat(count: number, callback: () => void): void {
     for (let i = 0; i < count; i++) callback()
   }

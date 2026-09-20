@@ -1,4 +1,3 @@
-/** Base class with assertion methods */
 import _get from "lodash/get"
 import { Derivative } from "./Derivative"
 import { OPTIONAL } from "./constants"
@@ -21,7 +20,7 @@ export function checkType(value: any, type: any): boolean {
 
 /** Base class with assertion methods usable on construction. */
 export class Assertable extends Derivative {
-  /** Debug: assert that a condition is true, generally called on constructor as sanity check. */
+  /** Debug: assert that `expressionValue` is truthy, generally called in constructor as sanity check. */
   assert(expressionValue: any, ...message: any[]) {
     if (!expressionValue) console.warn(`Error creating ${this.constructor.name}: `, ...message)
   }
@@ -45,9 +44,11 @@ export class Assertable extends Derivative {
   }
 
   /**
-   * Debug: Assert that `this[property]` is an array, and that each item is of `type`
+   * Debug: assert that `this[property]` is an array, and that each item is of `type`.
    * - `property` can be a simple string or dotted/indexed path.
    * - See `checkType()` for possibilities for type.
+   * - TODO: `optional` param is accepted but not actually forwarded anywhere -- the array-level
+   *   check always passes `OPTIONAL` regardless, and per-item checks never receive it.  Intentional?
    */
   assertArrayType(property: string, type: any, optional?: typeof OPTIONAL) {
     this.assertType(property, Array, OPTIONAL)

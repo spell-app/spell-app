@@ -1,5 +1,5 @@
 import { P } from "~/parser"
-// import directly to avoid circult import
+// Import directly to avoid circular import
 import { Rule } from "./Rule"
 
 /**
@@ -22,17 +22,20 @@ export abstract class Literal extends Rule<P.LiteralProps> {
   /** Whether the literal must be escaped when converting to rulex syntax. */
   declare isEscaped: boolean | undefined
 
+  /** Bare string / array shorthand sets `literal` directly, otherwise pass a full `LiteralProps` bag. */
   constructor(props: P.LiteralProps | string | string[]) {
     if (Array.isArray(props) || typeof props === "string") {
       super({ literal: props } as P.LiteralProps)
     } else super(props)
   }
 
+  /** `true` if token at `start` equals `this.literal` (or one of them, when it's an array). */
   testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
     if (start >= tokens.length) return false
     return tokens[start].matchesLiteral(this.literal)
   }
 
+  /** Match a single token literally against `this.literal`. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     if (!this.testAtStart(scope, tokens, 0)) return undefined
     return new P.Match({
@@ -44,10 +47,12 @@ export abstract class Literal extends Rule<P.LiteralProps> {
     })
   }
 
+  /** Output is just the matched `match.value`. */
   compile(match: P.Match) {
     return match.value
   }
 
+  /** Return rulex string for this rule, escaping / wrapping in parens as `isEscaped` and rule flags require. */
   toRulexSyntax() {
     const isVariable = Array.isArray(this.literal)
     let literalString = this.literal

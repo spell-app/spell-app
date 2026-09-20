@@ -5,37 +5,35 @@ import { getPadding, getPref, setPref, resetPref } from "~/util"
 
 import "./SplitPanel.less"
 
-/**
- * A `<SplitPanel>` manages its `children` to set their sizes.
- *
- * Specify child sizes as EITHER `rows` or `columns` as:
- *  - `true` to give each child equal size, or
- *  - an array like: `["20%", "20%", "*", 100]`, or
- *  - a string like `30%,2em`.
- *
- * Panels will be sized like so:
- *  - numbers without units, or with units `px`, `em`, `rem`:  fixed size panel.
- *  - numbers with units of `%`:  will take up that percent of non-fixed space.
- *  - `*` or not specified:  Split left-over percentage of space equally amongst all `*` children.
- *  e.g. `80%,20%` (same as just `80%` for 2 panes)
- *  e.g. `*,*,200px` (same as `50%,50%,200px`)
- *
- * Provided `children` will be automatically wrapped in `<SplitPane>` elements,
- * with `bordered`, `padded`, `light`, `rounded` and `scrolling` applied as set on the panel.
- * You can manually wrap a child in a `<SplitPane>` to overide panel-level settings.
- *
- * If `<SplitPanel resizable />` we'll put `<SplitSizer>` elements in between provided children.
- * If `<SplitPanel spaced />` we'll put `<SplitSpacer>` elements in between provided children.
- * as well as add spacing around the children.
- *
- * Resizble `<SplitPanel>`s will automatically remember their sizes as "preferences"
- * if you specify an `id` property.  It's up to you to make this unique for your app.
- *
- * If you have a pointer to a `<SplitPanel>`, you can have it `updateSizes()` with a size string.
- */
+/****************
+ * ### `<SplitPanel>`
+ * Manages its `children` to set their sizes.
+ * - Specify child sizes as EITHER `rows` or `columns` as:
+ *   - `true` to give each child equal size, or
+ *   - an array like: `["20%", "20%", "*", 100]`, or
+ *   - a string like `30%,2em`.
+ * - Panels will be sized like so:
+ *   - numbers without units, or with units `px`, `em`, `rem`:  fixed size panel.
+ *   - numbers with units of `%`:  will take up that percent of non-fixed space.
+ *   - `*` or not specified:  Split left-over percentage of space equally amongst all `*` children.
+ *   e.g. `80%,20%` (same as just `80%` for 2 panes)
+ *   e.g. `*,*,200px` (same as `50%,50%,200px`)
+ * - Provided `children` will be automatically wrapped in `<SplitPane>` elements,
+ *   with `bordered`, `padded`, `light`, `rounded` and `scrolling` applied as set on the panel.
+ *   You can manually wrap a child in a `<SplitPane>` to overide panel-level settings.
+ * - If `<SplitPanel resizable />` we'll put `<SplitSizer>` elements in between provided children.
+ *   If `<SplitPanel spaced />` we'll put `<SplitSpacer>` elements in between provided children,
+ *   as well as add spacing around the children.
+ * - Resizble `<SplitPanel>`s will automatically remember their sizes as "preferences"
+ *   if you specify an `id` property.  It's up to you to make this unique for your app.
+ * - If you have a pointer to a `<SplitPanel>`, you can have it `updateSizes()` with a size string.
+ ****************/
 export class SplitPanel extends React.Component<SplitPanelProps> {
+  /** Alias for `SplitPane`, so consumers can write `<SplitPanel.Pane>`. */
   declare static Pane: typeof SplitPane
+  /** Alias for `SplitSpacer`, so consumers can write `<SplitPanel.Spacer>`. */
   declare static Spacer: typeof SplitSpacer
+  /** Alias for `SplitSizer`, so consumers can write `<SplitPanel.Sizer>`. */
   declare static Sizer: typeof SplitSizer
 
   /** Ref to the panel.  We use this to get pane elements for dynamic sizing. */
@@ -52,14 +50,20 @@ export class SplitPanel extends React.Component<SplitPanelProps> {
     return this.paneElements[index]
   }
 
+  /** Sync pane DOM elements to `sizes` once mounted. */
   componentDidMount() {
     this.updateSizes()
   }
 
+  /** Re-sync pane DOM elements to `sizes` after any update -- props/children may have changed. */
   componentDidUpdate() {
     this.updateSizes()
   }
 
+  /**
+   * Wrap `children` in `<SplitPane>`s (cloning `props` onto ones already provided), inserting
+   * `<SplitSizer>`/`<SplitSpacer>` between them per `resizable`/`spaced`, and load initial `sizes`.
+   */
   render() {
     const {
       children,
@@ -139,9 +143,9 @@ export class SplitPanel extends React.Component<SplitPanelProps> {
     )
   }
 
-  /////////////////////////////
-  // Size logic and calculations
-  /////////////////////////////
+  ////////////////
+  // ## Size logic and calculations
+  ////////////////
 
   /**
    * Currently calculated `sizes`, updated when drawn and on resize.
@@ -207,10 +211,15 @@ export class SplitPanel extends React.Component<SplitPanelProps> {
     })
   }
 
-  /**
-   * Utility method to convert `sizes` to css `flex` property.
-   */
+  /** Matches a single size token, e.g. `20`, `20px`, `20%` -- captures numeric value and optional units. */
   static NUM_WITH_UNITS_PATTERN = /^([0-9]*\.?[0-9]+)(px|em|rem|%)?$/
+
+  /**
+   * Convert raw `startSizes` (a `columns`/`rows` spec: `true`, a `"20%,2em,*"` string, or an array)
+   * into one `PanelSize` per child, padding/truncating to `children`'s count and defaulting missing
+   * or unparseable entries to `*`.
+   * - `*` entries share the percentage left over after fixed (`px`/`em`/`rem`) and `%` entries are subtracted.
+   */
   static normalizeSizes(startSizes: unknown = [], children: ReactNode): PanelSize[] {
     // TODO: `hidden` children shouldn't be counted!
     //  BUT: make sure we keep an entry in the array for them!!!
@@ -257,9 +266,9 @@ export class SplitPanel extends React.Component<SplitPanelProps> {
     return normalized as PanelSize[]
   }
 
-  /////////////////////////////
-  // Event handlers and utilites for resizing
-  /////////////////////////////
+  ////////////////
+  // ## Event handlers and utilites for resizing
+  ////////////////
 
   /** Return our `direction`. */
   get direction(): "horizontal" | "vertical" {
@@ -410,25 +419,34 @@ export class SplitPanel extends React.Component<SplitPanelProps> {
   }
 }
 
-/////////////////////////////
-// Sub-components
-/////////////////////////////
+////////////////
+// ## Sub-components
+////////////////
 
+/** Props for `<SplitPane>`. */
 export type SplitPaneProps = React.ComponentPropsWithoutRef<"div"> & {
+  /** Pane content. */
   children?: ReactNode
-  bordered?: boolean // add border
-  padded?: boolean | "tightly" | "loosely" // add padding, `true`, `tightly` or loosely`
-  light?: boolean // show white background and shadow
-  rounded?: boolean // round corners
-  scrolling?: boolean // add auto-scrolling
+  /** Add border around pane. */
+  bordered?: boolean
+  /** Add padding: `true`, `"tightly"` or `"loosely"`. */
+  padded?: boolean | "tightly" | "loosely"
+  /** Show white background and shadow. */
+  light?: boolean
+  /** Round corners. */
+  rounded?: boolean
+  /** Add auto-scrolling. */
+  scrolling?: boolean
 }
 
-/**
+/****************
+ * ### `<SplitPane>`
  * Single pane in a `<SplitPanel />`.
  * You don't need to create these, but you can if you want one particular panel
  * to override `bordered` etc set at the panel-level.
- */
+ ****************/
 export class SplitPane extends React.PureComponent<SplitPaneProps> {
+  /** Render pane `div`, translating `bordered`/`padded`/`light`/`rounded`/`scrolling` into classNames. */
   render() {
     const {
       children,
@@ -462,21 +480,25 @@ export class SplitPane extends React.PureComponent<SplitPaneProps> {
 }
 SplitPanel.Pane = SplitPane
 
-/**
+/****************
+ * ### `<SplitSpacer>`
  * Spacer auto-added between elements for `<SplitPanel spaced />` if not `resizable`.
- */
+ ****************/
 export function SplitSpacer() {
   return <div className="Spacer" />
 }
 SplitPanel.Spacer = SplitSpacer
 
+/** Props for `<SplitSizer>`. */
 export type SplitSizerProps = {
+  /** `onMouseDown` handler; `<SplitPanel>` wires this up to start a resize drag. */
   onMouseDown: (event: React.MouseEvent<HTMLDivElement>) => void
 }
 
-/**
+/****************
+ * ### `<SplitSizer>`
  * Sizer auto-added between elements for `<SplitPanel resizable />`.
- */
+ ****************/
 export function SplitSizer({ onMouseDown }: SplitSizerProps) {
   return <div className="SplitPanelSizer" onMouseDown={onMouseDown} />
 }
@@ -491,44 +513,78 @@ SplitPanel.Sizer = SplitSizer
 // - `position:absolute` on pane child is a bit dodgy... ??
 // - test sizing logic in other browsers
 
+/** Props for `<SplitPanel>`. */
 export type SplitPanelProps = React.ComponentPropsWithoutRef<"div"> & {
+  /** Children, auto-wrapped in `<SplitPane>` unless already one (or another `<SplitPanel>`). */
   children?: ReactNode
-  columns?: PanelSizeSpec // column sizes for horizontal split, as `true`, string or array.  See `normalizeSizes()`.
-  rows?: PanelSizeSpec // row sizes for vertical split, as `true`, string or array.  See `normalizeSizes()`.
-  fluid?: boolean // fill container in alternate axis?
-  spaced?: boolean | "tightly" | "loosely" // spacing around and between children.
-  resizable?: boolean // provide resize bars.  Will store `sizes` as preference if element has an `id`.
-  minSize?: number // minimum percent size for resizable panels
+  /** Column sizes for horizontal split, as `true`, string or array.  See `normalizeSizes()`. */
+  columns?: PanelSizeSpec
+  /** Row sizes for vertical split, as `true`, string or array.  See `normalizeSizes()`. */
+  rows?: PanelSizeSpec
+  /** Fill container in alternate axis. */
+  fluid?: boolean
+  /** Spacing around and between children.  `true`, `"tightly"` or `"loosely"`. */
+  spaced?: boolean | "tightly" | "loosely"
+  /** Provide resize bars.  Will store `sizes` as preference if element has an `id`. */
+  resizable?: boolean
+  /** Minimum percent size for resizable panels. */
+  minSize?: number
 
   // The following will be passed down to SplitPanes which are automatically created.
   // If you create a <SplitPane> manually, these settings are ignored.
-  bordered?: boolean // panes are borderd
-  padded?: boolean | "tightly" | "loosely" // padding in panes
-  light?: boolean // panes appeear light
-  rounded?: boolean // panes appear rounded
-  scrolling?: boolean // provide scrollbars in panes
+  /** Panes are bordered. */
+  bordered?: boolean
+  /** Padding in panes. */
+  padded?: boolean | "tightly" | "loosely"
+  /** Panes appear light. */
+  light?: boolean
+  /** Panes appear rounded. */
+  rounded?: boolean
+  /** Provide scrollbars in panes. */
+  scrolling?: boolean
 }
 
 /** `columns`/`rows` size spec: `true` for equal sizes, a `"20%,2em,*"` string, or an array of sizes. */
 type PanelSizeSpec = boolean | string | Array<string | number>
 
-/** A single normalized panel size, as `{ value, units }`, e.g. `{ value: 20, units: "%" }`. */
-type PanelSize = { value: number; units: string }
+/**
+ * A single normalized panel size, e.g. `{ value: 20, units: "%" }`.
+ */
+type PanelSize = {
+  /** Numeric magnitude, interpreted per `units`. */
+  value: number
+  /** `px`, `em`, `rem` or `%`. */
+  units: string
+}
 
 /** Sizing geometry calculated `onMouseDown`, used to do fast `onMouseMove` math. */
 type SplitPanelDimensions = {
+  /** Index of first pane in resize pair. */
   pane1: number
+  /** Index of second pane in resize pair. */
   pane2: number
+  /** Panel's `direction`, cached for the drag. */
   direction: "horizontal" | "vertical"
+  /** Page-coordinate start of resize region (`pane1`'s `top`/`left`). */
   pageMin: number
+  /** Page-coordinate end of resize region (`pane2`'s `bottom`/`right`). */
   pageMax: number
+  /** `pageMax - pageMin`. */
   outerSize: number
+  /** Space actually usable for resizing, after subtracting `gap` and padding. */
   innerSize: number
+  /** Gap between the two panes, in pixels. */
   gap: number
+  /** Half of `gap`, so the gap stays centered under the mouse while dragging. */
   gapOffset: number
+  /** `pane1`'s padding along `direction`. */
   pad1: number
+  /** `pane2`'s padding along `direction`. */
   pad2: number
+  /** Total percent available to redistribute between `pane1`/`pane2`. */
   activePercent: number
+  /** Minimum percent size for a pane, from panel's `minSize`. */
   minPercent: number
+  /** Maximum percent one pane can take: `activePercent - minPercent`. */
   maxPercent: number
 }

@@ -1,8 +1,8 @@
-//
-//  ## Master import file for parser scopes.
-//  `Scope` is the base class -- the rest are its subclasses plus the
-//  variable/constant records a scope holds.
-//
+/**
+ * Barrel for parser `scope` classes.
+ * - `Scope` is the base class -- rest are its subclasses, plus `ScopeVariable`/`ScopeConstant` records
+ *   that a scope holds.
+ */
 
 export * from "./Scope"
 export * from "./BlockScope"

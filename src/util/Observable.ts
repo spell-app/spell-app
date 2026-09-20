@@ -5,31 +5,32 @@ import { store as createStore, view, batch, autoEffect, clearEffect } from "@ris
 import { Derivative } from "./Derivative"
 import * as extend from "./extend"
 
-// re-export react-easy-state props for convenience
+/** Re-export `react-easy-state` primitives for convenience, so callers don't need a second import. */
 export { createStore, view, batch, autoEffect, clearEffect }
 
 /**
- * Methodology:
- * - Create a subclass of `Observable`.
- * - Observable public properties should be declared as `@prop key defaulValue`
- * - Observable transient private properties are declared as `@state key defaulValue`
- * - "Normal" getters/setters will be reactive if they reference a `@prop` or `@state` variable.
- * - As for all classes, non-observable SHARED properties or defaults can be defined with `@proto`
+ * Base class giving subclasses reactive `props` and `state`, backed by `react-easy-state`.
+ * - Subclass `Observable` and declare public properties as `@prop key defaultValue`.
+ * - Declare transient private properties as `@state key defaultValue`.
+ * - "Normal" getters/setters are reactive if they reference a `@prop` or `@state` variable.
+ * - As for all classes, non-observable SHARED properties or defaults can be defined with `@proto`.
+ * - NOTE: can't trap `delete this[<prop>]` -- do `this.<prop> = undefined` instead.
  *
- * - NOTE: We can't trap `delete this[<prop>]`, do `this.<prop> = undefined` instead.
- *
- * Props vs State
- * - `props` are "normal" reactive user gettable/settable properties, just assign to them to change reactively.
- * - `state` are transient internal state, e.g. `@state runCount = 0`
- *    - We set up a getter to access its value:  `print(this.runCount)`
- *    - To update the value, do `this.setState("runCount", this.runCount + 1)`
- *    - Use `this.resetState()` or `this.resetState(<stateKey>...)` to reset state.
+ * Props vs state:
+ * - `props` are "normal" reactive user gettable/settable properties -- just assign to change them reactively.
+ * - `state` is transient internal state, e.g. `@state runCount = 0`.
+ *   - We set up a getter to access its value: `print(this.runCount)`.
+ *   - To update the value, do `this.setState("runCount", this.runCount + 1)`.
+ *   - Use `this.resetState()` or `this.resetState(<stateKey>...)` to reset state.
  */
 export class Observable<
   Props extends Record<string, any> = Record<string, any>,
   State extends Record<string, any> = Record<string, any>
 > extends Derivative {
-  /** On construction, assign `props` passed in to our instance. */
+  /**
+   * On construction, assign `props` passed in to our instance.
+   * - `props` here can include `@state` keys too, since we don't distinguish them at the call site.
+   */
   constructor(props: Partial<Props & State>) {
     super()
     extend.initializeExtended(this, "props", "state")
@@ -37,9 +38,9 @@ export class Observable<
     Object.assign(this, props)
   }
 
-  //-----------------
-  // Props
-  //-----------------
+  ////////////////
+  // ## Props
+  ////////////////
 
   /** Return reactive `property`, defaulting to `initializer` if never set. */
   protected getProp<T>(property: string, initializer?: () => T) {
@@ -53,9 +54,9 @@ export class Observable<
     return extend.setProp(this, property, value)
   }
 
-  //-----------------
-  // State
-  //-----------------
+  ////////////////
+  // ## State
+  ////////////////
 
   /** Get state `property`, defaulting to `initializer` if never set. */
   protected getState<T>(property: string, initializer?: () => T): T {
@@ -81,8 +82,8 @@ export class Observable<
 
   /**
    * Clean up this object when it's being "removed".
-   * Note that this must be called manually.
-   * TODO: finalizer???
+   * - MUST be called manually -- there's no automatic hook that calls this for you.
+   * - TODO: finalizer???
    */
   onRemove() {}
 

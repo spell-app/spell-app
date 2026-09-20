@@ -5,6 +5,7 @@ import { Loadable, LoadableProps } from "./Loadable"
 
 import { RequestError } from "./ResponseErrors"
 
+/** Shape of a parsed JSON file:  plain object or array. */
 export type JSONFileType = Record<string, any> | Array<any>
 
 /** Load a single file from `url`, process according to `format` before returning. */
@@ -39,7 +40,7 @@ export class LoadableFile<FileType, SaveResult = any> extends Loadable<FileType,
 
   /**
    * Result type for auto-processing of results.
-   * Defaults implicitly in`$fetch()` to TEXT.
+   * Defaults implicitly in `$fetch()` to TEXT.
    */
   get format() {
     return extend.getProp<KnownFormatMimeType>(this, "format")
@@ -81,9 +82,11 @@ export class LoadableFile<FileType, SaveResult = any> extends Loadable<FileType,
   }
 
   /**
-   * DOCME!!!
    * Load file contents.  `params` is same as arguments to `$fetch()`.
-   * Note this promise returns `fetch()` results AFTER processing according to `format`.
+   * - Merges `url` / `defaultContents` / `format` with our `loadParams` getter and per-call `params`.
+   * - Note this promise returns `fetch()` results AFTER processing according to `format`.
+   * - Throws `RequestError` if no `url` resolves.
+   * - Called from `Loadable.load()` -- don't call this directly.
    */
   getLoader(params: $FetchParams) {
     const { url, defaultContents, format, loadParams } = this
@@ -99,11 +102,15 @@ export class LoadableFile<FileType, SaveResult = any> extends Loadable<FileType,
   }
 
   /**
-   * DOCME!!!
    * Save file contents.  Default is to POST our `contents` back to `url` they came from.
    * `params` is same format as `$fetch()` `params`.
-   * By default it will save our `defaultContents` if we've never been loaded.
-   * Note this promise returns `fetch()` results AFTER processing according to `format`
+   * - By default it will save our `defaultContents` if we've never been loaded.
+   * - Merges `url` / `contents` / `format` with our `saveParams` getter and per-call `params`.
+   * - Note this promise returns `fetch()` results AFTER processing according to `format`.
+   * - SIDE EFFECT: if `autoUpdateContentsOnSave`, updates our `contents` to what we just saved.
+   * - Throws `RequestError` if no `url` resolves.
+   * - Called from `Loadable.save()` -- don't call this directly.
+   * - NOTE: error message below says `getLoader()` instead of `getSaver()` -- looks like a copy/paste bug.
    */
   getSaver(params: $FetchParams) {
     const { url, contents = this.defaultContents, format, saveParams } = this
@@ -140,29 +147,41 @@ export class LoadableFile<FileType, SaveResult = any> extends Loadable<FileType,
   }
 }
 
+/** Constructor props accepted by `LoadableFile` and its subclasses. */
 export type LoadableFileProps<FileType> = Prettify<
   {
+    /** URL to load from. */
     url?: string
+    /** Default contents to use if loading results in a 404 or aborted promise. */
     defaultContents?: FileType
+    /** Result type for auto-processing of results. */
     format?: KnownFormatMimeType
   } & LoadableProps<FileType>
 >
 
-/**
- * Syntactic sugar for various well-known file types.
- */
+////////////////
+// ## Well-Known File Types
+////////////////
+// Syntactic sugar for various well-known file types.
 
 /** Loadable text file. */
 export class TextFile extends LoadableFile<string> {}
 
-/** Loadable JSON file. */
+/**
+ * Loadable JSON file.
+ * NOTE: generic parameter is named `JSONFileType`, shadowing the module-level `JSONFileType` type
+ * above -- looks unintentional.
+ * TODO: probably meant `extends LoadableFile<JSONFileType>` with no generic of its own?
+ */
 export class JSONFile<JSONFileType> extends LoadableFile<JSONFileType> {
+  /** `$fetch()` load params fixed to JSON in and out. */
   get loadParams() {
     return {
       requestFormat: KnownFormat.json,
       format: KnownFormat.json
     }
   }
+  /** `$fetch()` save params fixed to JSON in and out. */
   /*@proto*/
   get saveParams() {
     return {
@@ -172,8 +191,12 @@ export class JSONFile<JSONFileType> extends LoadableFile<JSONFileType> {
   }
 }
 
-/** Loadable JSON5 file. */
+/**
+ * Loadable JSON5 file.
+ * NOTE: generic parameter is named `JSONFileType`, same shadowing gotcha as `JSONFile` above.
+ */
 export class JSON5File<JSONFileType> extends LoadableFile<JSONFileType> {
+  /** `$fetch()` load params fixed to JSON5 in and out. */
   /*@proto*/
   get loadParams() {
     return {
@@ -181,6 +204,7 @@ export class JSON5File<JSONFileType> extends LoadableFile<JSONFileType> {
       format: KnownFormat.json5
     }
   }
+  /** `$fetch()` save params fixed to JSON5 in and out. */
   /*@proto*/
   get saveParams() {
     return {
