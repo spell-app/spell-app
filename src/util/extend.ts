@@ -79,9 +79,11 @@ function isInsideRender(): boolean {
  * - Creating a store here means someone reached an `Observable` whose `props`/`state` weren't set
  *   up by its constructor.  Build it before the render instead.
  * - Dev only:  the probe costs an allocation, and in production limping beats a white screen.
+ * - NEVER test this with `process.env.NODE_ENV` -- `vite.config.ts` replaces `process.env` with
+ *   `{}` for the browser, so it reads `undefined` there and the guard would stay armed in prod.
  */
 function assertCanCreateStore(target: any, which: "props" | "state") {
-  if (process.env.NODE_ENV === "production") return
+  if (import.meta.env?.PROD) return
   if (!isInsideRender()) return
   throw new Error(
     `extend.${which}For(): refusing to create a reactive '${which}' store for ` +
