@@ -13,7 +13,7 @@ import { UI } from "~/app/ui"
  * ### `<ProjectMenu>`
  * Reactive menu for all available projects for a random `projectRoot`, defaulting to `store.projectRoot`.
  ****************/
-export const ProjectMenu = view(function ProjectDropdown({
+export const ProjectMenu = view(function ProjectMenu({
   projectRoot = store.projectRoot,
   useRunner = false,
   itemProps,

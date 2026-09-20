@@ -1,3 +1,4 @@
+import { isObservable, observable, raw } from "@nx-js/observer-util"
 import { store as createStore, batch } from "@risingstack/react-easy-state"
 import _set from "lodash/set"
 import _unset from "lodash/unset"
@@ -12,6 +13,7 @@ export * as extend from "./extend"
  * `target` itself.
  * - Lets us attach reactive `props`/`state` to any object without mutating its shape directly.
  * - `WeakMap` means entries are garbage-collected along with `target` -- no manual cleanup needed.
+ * - MUST be keyed by the RAW object, never a proxy -- see `extendedFor()`.
  * - NOTE: `derived` data is NOT kept here -- see `derivedFor()`, which stores directly on `target`.
  */
 export const EXTEND_MAP = new WeakMap<any, Record<string, any>>()
@@ -24,8 +26,17 @@ export type ExtendedData = {
   state?: { map: Record<string, any>; $store: Record<string, any> }
 }
 
-/** Set up `ExtendedData` for the `target` object. */
+/**
+ * Set up `ExtendedData` for the `target` object.
+ * - MUST `raw()` first.  Reading an object out of a reactive store *while a `view()` is rendering*
+ *   hands you an `observer-util` proxy of it, not the instance -- so `target` here is a different
+ *   key than the one `Observable`'s constructor used.  Key on the proxy and we build a SECOND,
+ *   disconnected `props`/`state` pair: reads in a component and reads in plain code then see
+ *   different values for the same object, and the fresh `createStore()` lands mid-render as a
+ *   surprise React hook.  See `assertCanCreateStore()`.
+ */
 export function extendedFor(target: any): ExtendedData {
+  target = raw(target)
   if (!EXTEND_MAP.has(target)) EXTEND_MAP.set(target, {})
   return EXTEND_MAP.get(target)!
 }
@@ -37,10 +48,47 @@ export function extendedFor(target: any): ExtendedData {
  *   calls this before `Object.assign(this, props)`, so the reactive getters/setters already exist.
  */
 export function initializeExtended(target: any, ...what: Array<"derived" | "props" | "state">) {
-  if (!EXTEND_MAP.has(target)) EXTEND_MAP.set(target, {})
+  extendedFor(target)
   if (what.includes("derived")) derivedFor(target)
   if (what.includes("props")) propsFor(target)
   if (what.includes("state")) stateFor(target)
+}
+
+////////////////
+// ## Store safety
+////////////////
+
+/**
+ * Are we currently inside a `view()` render?
+ * - `observer-util` only wraps a nested object in a proxy while a reaction is running, and a
+ *   `view()` render IS a reaction -- so we probe for that behaviour.
+ * - NOTE: would be one call to `hasRunningReaction()`, but `observer-util` doesn't export it.
+ * - MUST build a throwaway probe per call.  `observer-util` caches the wrapper it hands back, so a
+ *   shared probe would keep answering `true` forever once any reaction had touched it.
+ */
+function isInsideRender(): boolean {
+  return isObservable(observable({ nested: {} }).nested)
+}
+
+/**
+ * Throw if we're about to build a `$store` mid-render.
+ * - `react-easy-state`'s `store()` quietly turns into a `useMemo()` when it's called while a
+ *   component is rendering.  A store created lazily on that path is therefore an extra React hook
+ *   that appears on some renders and not others, and React kills the tree with "Rendered more
+ *   hooks than during the previous render" -- pointing at the component, not at us.
+ * - Creating a store here means someone reached an `Observable` whose `props`/`state` weren't set
+ *   up by its constructor.  Build it before the render instead.
+ * - Dev only:  the probe costs an allocation, and in production limping beats a white screen.
+ */
+function assertCanCreateStore(target: any, which: "props" | "state") {
+  if (process.env.NODE_ENV === "production") return
+  if (!isInsideRender()) return
+  throw new Error(
+    `extend.${which}For(): refusing to create a reactive '${which}' store for ` +
+      `${target?.constructor?.name || typeof target} during a view() render -- ` +
+      `react-easy-state would turn it into a stray React hook.  ` +
+      `Call extend.initializeExtended() on it before rendering.`
+  )
 }
 
 ////////////////
@@ -64,8 +112,12 @@ export function initializeExtended(target: any, ...what: Array<"derived" | "prop
  * Return raw `derived` map for `target` object.
  * - SIDE EFFECT: defines a non-enumerable `__derived__` property directly on `target` if missing --
  *   unlike `props`/`state`, this is stored on `target` itself rather than in `EXTEND_MAP`.
+ * - `raw()` for the same reason `extendedFor()` does.  A non-writable non-configurable property
+ *   already reads through a proxy unchanged, so this is belt-and-braces -- but relying on that
+ *   invariant silently is how the `props`/`state` bug hid for so long.
  */
 function derivedFor(target: any) {
+  target = raw(target)
   if (!target.__derived__) {
     Object.defineProperty(target, "__derived__", { value: {} })
   }
@@ -129,6 +181,7 @@ export function clearDerived(target: any, ...properties: string[]) {
 function propsFor(target: any) {
   const extended = extendedFor(target)
   if (!extended.props) {
+    assertCanCreateStore(target, "props")
     const map = {}
     extended.props = { map, $store: createStore(map) }
     // DEBUG: expose raw map as `$props` for inspection
@@ -191,6 +244,7 @@ export function setProps(target: any, props: Record<string, any>) {
 function stateFor(target: any) {
   const extended = extendedFor(target)
   if (!extended.state) {
+    assertCanCreateStore(target, "state")
     const map = {}
     extended.state = { map, $store: createStore(map) }
     Object.defineProperty(target, "$state", { value: map })

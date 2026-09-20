@@ -5,6 +5,16 @@ when working with code in this repository.
 
 ## Overview
 
+## Long-term debt
+
+- `CODE-DEBT.md` tracks structural debt we have knowingly chosen NOT to fix yet.
+- Add an entry when a problem is structural, too big to fix in passing, and being tolerated
+  deliberately -- especially when a test or lint rule is pinned, skipped or widened to
+  accommodate it.  Record the mechanism, not a guess, so nobody rediscovers it.
+- NOT for local cleanups (inline `REFACTOR:` marker), suspected bugs (`SUSPECTED-BUGS.md`)
+  or tooling papercuts (`PAPERCUTS.md`).
+- See that file's header for the entry format.
+
 ## Documentation
 
 - Create and maintain a markdown docstring comments before:
@@ -26,9 +36,11 @@ when working with code in this repository.
   wrap `e.g.` clauses if they don't fit on the original line, etc.
   and drop filler articles (`the`, `a`) that don't earn their place
 - Write or clarify docstrings and comments where you see marker `DOCME`.
+- Always place a blank line before a group header like the below.
 - Separate function code groups like so:
 
 ```
+
 ////////////////
 // ## Group Name
 ////////////////
@@ -69,11 +81,13 @@ when working with code in this repository.
   - `F` ~== `~/app/ui/forms`
   - `SC` ~== `~/spellCore`
   - NEVER create a second namespace for a sub-folder (no `R` for rules) -- flatten into parent.
-  - Exception: namespace a file whose names would collide when flattened, and flatten only its base class:
-    `export { ASTNode } from "./AST"` + `export * as AST from "./AST"`.
-    Same for `render` / `stringify`.
-  - Prefer a disambiguating suffix over a namespace when the names allow it:
-    token classes are `WordToken` / `NumberToken` etc. and flatten straight into `~/parser`.
+  - Exception: namespace a file whose names would collide when flattened:
+    `export * as render from "./renderAST"` + `export * as stringify from "./stringifyAST"`,
+    which deliberately export the same names with different return types.
+  - Prefer a disambiguating affix over a namespace when the names allow it -- token and AST classes
+    are `WordToken` / `ASTLiteral` etc. and flatten straight into `~/parser`.
+  - NOTE: `export *` through a circular barrel is riskier than a named re-export -- it must read the
+    leaf's key list EAGERLY, so a mid-body leaf contributes nothing.  See `parser/barrel.test.ts`.
 - Barrels MUST NOT pull in optional sub-systems.  Make them opt-in via side-effect import,
   e.g. `import "~/languages/rulex"` registers itself on `Parser.rulexParser`.
 - When refactoring imports and exports, if you encounter circular import problems 
@@ -85,7 +99,7 @@ when working with code in this repository.
 - ALWAYS import starting from `~`, NEVER start import from `../`.
 - OK to import from direct peers: `import { Rule } from "./Rule"`, but not subdirectories -- use `~/...` instead.
 - Prefer ONE namespace import per sub-system and qualify at use site:
-  `import { P, AST } from "~/parser"` => `P.Match`, `new P.Symbol(...)`, `AST.Expression`.
+  `import { P } from "~/parser"` => `P.Match`, `new P.Symbol(...)`, `P.ASTExpression`.
   - Applies INSIDE the sub-system as well.
   - Self-import uses full path too, even from same folder as the barrel:
     `import { P } from "~/parser"`, NEVER `import { P } from "."`.
@@ -110,4 +124,4 @@ when working with code in this repository.
   - (blank line)
   - side-effect imports (`import "~/languages/rulex"`)
   - css or less files (`./foo.css` if in same folder, else `~/path/to/foo.less`)
-- One import statement per module.  Inline type imports:  `import { P, type AST } from "~/parser"`.
+- One import statement per module.  Inline type imports:  `import { P, type AnyMatch } from "~/parser"`.
