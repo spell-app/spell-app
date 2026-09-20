@@ -233,7 +233,7 @@ const initialStore = {
     // `typeof initialStore` circular, since defaults are part of the member's type.
     projectRoot ??= store.projectRoot!
     try {
-      const project = await projectRoot.createProject(projectId)
+      const project = await projectRoot.createApp(projectId)
       if (project) {
         store.showEditor(project.path)
         store.showNotice(`Created ${project.type} ${project.projectName}.`)

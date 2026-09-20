@@ -138,7 +138,6 @@ export class Parser extends Derivative {
   #ownRules: P.RuleMap = {}
 
   /** All rules, including those merged in from `imports`. */
-  // REFACTOR: derived() instead?
   get rules(): P.RuleMap {
     return this.derived("rules", () => {
       if (!this.imports) return { ...this.#ownRules }

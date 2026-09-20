@@ -18,11 +18,11 @@ import {
  * Merge multiple sets of `$fetch()` `params` and set up defaults.
  * - Later entries in `allParams` win.
  * - Falsy `params` entries are skipped, so callers can pass conditional spreads without filtering first.
- * - NOTE: a nested object value (e.g. `headers`) from a later `params` entirely replaces one from an
- *   earlier entry -- it does not get merged field-by-field.  Only its first occurrence is cloned, to
- *   avoid aliasing caller's original object.
- * - TODO: is the non-merge of nested objects across entries intentional, or should e.g. `headers` merge
- *   field-by-field like a real deep merge?
+ * - A plain-object value (e.g. `headers`) merges one level deep across entries -- a later entry's keys
+ *   win, but keys only set by an earlier entry survive.  The merged object is always a fresh clone, so
+ *   callers' originals are never aliased or mutated.
+ * - Arrays and other non-plain-object values are replaced wholesale by the later entry, same as any
+ *   scalar value.
  */
 export function merge$fetchParms(...allParams: Array<Partial<$FetchParams>>) {
   const output: RequestInit = {}
@@ -30,9 +30,9 @@ export function merge$fetchParms(...allParams: Array<Partial<$FetchParams>>) {
     if (!params) return
     Object.keys(params).forEach((key) => {
       const value = _get(params, key)
-      if (typeof value === "object") {
-        if (key in output) _set(output, key, value)
-        else _set(output, key, { ...value })
+      if (value !== null && typeof value === "object" && !Array.isArray(value)) {
+        const existing = _get(output, key)
+        _set(output, key, { ...(existing && typeof existing === "object" ? existing : {}), ...value })
       } else if (value !== undefined) {
         _set(output, key, value)
       }

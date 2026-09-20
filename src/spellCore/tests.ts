@@ -1,5 +1,5 @@
 import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./SpellCore"
+import { defineSpellCoreModule } from "./spellCore.types"
 
 /** State for the currently-running dynamic `test()`. */
 export type ActiveTest = {

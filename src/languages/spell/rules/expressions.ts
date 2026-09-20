@@ -488,11 +488,8 @@ export const expressions = new SpellParser({
 
     /**
      * `{lhs} is [not] the same type as {rhs}`, e.g. `thing is the same type as other`.
+     * - `shouldNegateOutput()` handles `is not the same type as`.
      * - Compiles to `spellCore.matchesType(lhs, rhs)`.
-     * - NOTE: `getOutputOperator()` computes `===`/`!==` but `compileASTExpression()` overrides the
-     *   default and never uses it or negates the output -- `is not the same type as` currently compiles
-     *   identically to the positive form (see test below).
-     *   TODO: is that intentional, or should `is not` negate the result?
      */
     {
       name: "is_same_type_as",
@@ -500,8 +497,8 @@ export const expressions = new SpellParser({
       precedence: 11,
       syntax: "(operator:is not? the same type as) {expression:simple_expression}",
       constructor: class is_same_type_as extends InfixOperatorSuffix {
-        getOutputOperator(operator: P.Match): string {
-          return typeof operator.value === "string" && operator.value.includes("not") ? "!==" : "==="
+        shouldNegateOutput(operator: P.Match): boolean {
+          return typeof operator.value === "string" && operator.value.includes("not")
         }
         compileASTExpression(match: P.Match, { lhs, rhs }: OperatorOperands): AST.CoreMethodInvocation {
           return new AST.CoreMethodInvocation(match, {
@@ -519,7 +516,7 @@ export const expressions = new SpellParser({
           },
           tests: [
             ["thing is the same type as other", "spellCore.matchesType(thing, other)"],
-            ["thing is not the same type as other", "spellCore.matchesType(thing, other)"]
+            ["thing is not the same type as other", "!spellCore.matchesType(thing, other)"]
           ]
         }
       ]

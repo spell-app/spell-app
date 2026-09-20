@@ -31,15 +31,11 @@ export class SpellFile extends TextFile {
 
   /**
    * We've been removed from the server -- clean up memory, etc..
-   * - SIDE EFFECT: clears entire `SpellFile.registry`, not just this instance's entry.
-   *   TODO: was SP.SpellLocation.registry.delete() -- looks like it should be `.delete(this.path)`
-   *   instead, like `SpellJSFile.onRemove()` does; clearing the whole registry drops every OTHER
-   *   loaded `SpellFile` too.
+   * - SIDE EFFECT: drops our entry from `SpellFile.registry` and shared `SP.SpellLocation.registry`.
    */
   onRemove(): void {
     super.onRemove()
-    SpellFile.registry.clear()
-    // TODO: was SP.SpellLocation.registry.delete()
+    SpellFile.registry.delete(this.path)
     SP.SpellLocation.registry.delete(this.path)
   }
 

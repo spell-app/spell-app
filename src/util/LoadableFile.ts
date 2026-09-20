@@ -110,14 +110,13 @@ export class LoadableFile<FileType, SaveResult = any> extends Loadable<FileType,
    * - SIDE EFFECT: if `autoUpdateContentsOnSave`, updates our `contents` to what we just saved.
    * - Throws `RequestError` if no `url` resolves.
    * - Called from `Loadable.save()` -- don't call this directly.
-   * - NOTE: error message below says `getLoader()` instead of `getSaver()` -- looks like a copy/paste bug.
    */
   getSaver(params: $FetchParams) {
     const { url, contents = this.defaultContents, format, saveParams } = this
     const $params = merge$fetchParms({ url, contents, format }, saveParams, params)
     if (!$params.url) {
       throw new RequestError({
-        message: `${this.constructor.name}.getLoader(): you must specify "url".`,
+        message: `${this.constructor.name}.getSaver(): you must specify "url".`,
         context: this,
         params: $params
       })

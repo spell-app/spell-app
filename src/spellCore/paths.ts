@@ -1,5 +1,5 @@
 import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./SpellCore"
+import { defineSpellCoreModule } from "./spellCore.types"
 
 const PATH_PATTERN = /(\.|\[[^\]]+\])/
 

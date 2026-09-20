@@ -189,7 +189,7 @@ export class SpellLocation {
   /**
    * Given `URLParams` of `{ domain, project, filePath }`
    * return the associated `path` string.
-   * - TESTME: changed pattern so we no longer pull in `SpellSetup`SpellProjectRoot`!
+   * - TESTME: changed pattern so we no longer pull in `SpellSetup`/`SpellProjectRoot`!
    */
   static pathForUrl({
     domain,

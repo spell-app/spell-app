@@ -9,7 +9,7 @@
 import _ from "lodash"
 import { spellCore } from "./core"
 import { assert } from "~/spellCore"
-import { defineSpellCoreModule } from "./SpellCore"
+import { defineSpellCoreModule } from "./spellCore.types"
 
 /**
  * Loose shape for the duck-typed "collection" concept used throughout `spellCore`:

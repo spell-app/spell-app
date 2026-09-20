@@ -1,6 +1,6 @@
 import { Observable } from "~/util/Observable"
 import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./SpellCore"
+import { defineSpellCoreModule } from "./spellCore.types"
 
 /** Kind of console line -- matches native `console.*` method names, plus `groupEnd` to close a group. */
 export type ConsoleLevel = "debug" | "info" | "warn" | "error" | "group" | "groupEnd"

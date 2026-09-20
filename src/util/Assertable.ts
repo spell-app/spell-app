@@ -51,7 +51,7 @@ export class Assertable extends Derivative {
    *   check always passes `OPTIONAL` regardless, and per-item checks never receive it.  Intentional?
    */
   assertArrayType(property: string, type: any, optional?: typeof OPTIONAL) {
-    this.assertType(property, Array, OPTIONAL)
+    this.assertType(property, Array, optional)
     const value = _get(this, property)
     if (Array.isArray(value)) {
       value.forEach((arg, index) => this.assertType(`${property}[${index}]`, type))

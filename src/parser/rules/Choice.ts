@@ -96,7 +96,7 @@ export class Choice extends Rule<ChoiceProps> {
 
   /**
    * Return the "best" match given more than one matches at the head of the tokens.
-   * - First we find the match(es) with the highest preceedence.
+   * - First we find the match(es) with the highest precedence.
    * - Then we take the one with the longest matched string.
    * - If more than one rule with same length, takes LATEST one.
    */

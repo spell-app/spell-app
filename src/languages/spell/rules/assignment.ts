@@ -92,8 +92,9 @@ export const assignment = new SpellParser({
         {
           compileAs: "block",
           beforeEach(scope) {
-            // `Scope.variables`/`.types` are typed narrowly; the concrete `RootScope` accepts plain
-            // name strings too -- see report.
+            // `scope` is typed as `P.Scope`, whose `.variables`/`.types` getters can be `undefined` --
+            // cast to `P.RootScope` for their non-optional override, which already accepts a plain
+            // name string as `.add()`/`.get()` input.
             const { variables, types } = scope as P.RootScope
             variables.add("thing")
             variables.add({ name: "it", output: "this", isAlias: true })

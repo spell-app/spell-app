@@ -328,15 +328,3 @@ export type TaskState<TaskResult> = {
   /** Current execution context of Task. */
   execution?: TaskExecution<TaskResult>
 }
-
-/**
- * `TaskState` plus the running `index` into a `TaskList`'s tasks.
- * TODO: appears unused -- `TaskList` doesn't parameterize `Observable`'s `State` with this, it just
- * reads/writes an `"index"` state key directly.  Confirm whether this is dead code or a wiring gap.
- */
-export type TaskListState = Prettify<
-  {
-    /** Index of active task, `-1` before started.  See `TaskList.index`. */
-    index: number
-  } & TaskState<any>
->

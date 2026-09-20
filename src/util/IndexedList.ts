@@ -1,4 +1,3 @@
-import _identity from "lodash/identity"
 import _get from "lodash/get"
 
 /**

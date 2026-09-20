@@ -39,11 +39,10 @@ function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match | undefine
 
 /**
  * Build a `MethodScope`, typed to accept `parentScope` etc. directly.
- * - `P.MethodScopeProps` (`src/parser/scope/MethodScope.ts`) is itself `P.ScopeProps & {...}`, so it already
- *   includes base `ScopeProps` fields (e.g. `parentScope`) -- the `& P.ScopeProps` here looks redundant.
- * - TODO: confirm the intersection can be dropped, then just call `new P.MethodScope(props)` at call sites.
+ * - TODO: drop this helper and just call `new P.MethodScope(props)` at call sites?  `classes.ts` has an
+ *   identical copy.
  */
-function newMethodScope(props: P.MethodScopeProps & P.ScopeProps): P.MethodScope {
+function newMethodScope(props: P.MethodScopeProps): P.MethodScope {
   return new P.MethodScope(props)
 }
 

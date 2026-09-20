@@ -3,7 +3,7 @@ import { SP } from "~/languages/spell"
 
 /**
  * Loadable list of all `SpellProject`s available to this user.
- * - NOTE: don't create these directly, use ones set up by `SpellInstall`.
+ * - NOTE: don't create these directly, use ones set up by `SpellSetup`.
  */
 export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
   /**
@@ -46,10 +46,11 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
   /*@writeOnce path*/
   /*@writeOnce owner*/
   /*@writeOnce domain*/
-  /*@writeOnce label*/
-  /*@writeOnce singular*/
+  /*@writeOnce title*/
+  /*@writeOnce Type*/
   /*@writeOnce type*/
   /*@writeOnce description*/
+  /*@writeOnce icon*/
   /*@writeOnce location*/
 
   /** Full path, e.g. `@user:projects`. */
@@ -167,7 +168,7 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
    * Create a new project at `projectId`.
    * Returns new project, `undefined` if cancelled, or throws on error.
    */
-  async createProject(projectId?: string): Promise<SP.SpellProject | undefined> {
+  async createApp(projectId?: string): Promise<SP.SpellProject | undefined> {
     const die = getDier(this, `creating ${this.type}`, { projectId })
 
     if (!projectId) projectId = this.promptForProjectId({ die })

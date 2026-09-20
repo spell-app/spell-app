@@ -4,6 +4,9 @@ import { spellCore } from "~/spellCore"
 import { SP } from "~/languages/spell"
 import type { SpellRuleRegistry } from "./rules/registry"
 
+// Registers `RulexParser` on `P.Parser.rulexParser` -- MUST load before any rule with a `syntax:` string.
+import "~/languages/rulex"
+
 /**
  * `P.Parser` subclass for the spell language.
  * - Holds spell's `tokenizer` (double-quote strings only, `LEADING_ONLY` whitespace so indentation stays

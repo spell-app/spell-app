@@ -242,7 +242,7 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
     const { testLocation, argument, optional } = this
     return {
       testLocation:
-        testLocation === P.TestLocation.AT_START ? "…" : testLocation === P.TestLocation.ANYWHERE ? "^" : "",
+        testLocation === P.TestLocation.ANYWHERE ? "…" : testLocation === P.TestLocation.AT_START ? "^" : "",
       argument: argument ? ":" : "",
       optional: optional ? "?" : ""
     }

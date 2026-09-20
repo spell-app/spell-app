@@ -85,14 +85,11 @@ export const events = new SpellParser({
             const propsList = props.groups.props as unknown as AST.VariableExpression[]
             args.push(...propsList.map(({ name }) => name))
           }
-          // NOTE: `MethodScopeProps` is `P.ScopeProps & {...}` and already accepts plain strings for `args`
-          // (see `src/parser/scope/MethodScope.ts`), so the casts below look unnecessary.
-          // TODO: remove casts?
-          const methodScopeProps = {
+          const methodScopeProps: P.MethodScopeProps = {
             parentScope: match.scope,
             name: eventName!.value,
-            args: args as unknown as P.ScopeVariable[]
-          } as P.MethodScopeProps
+            args
+          }
           return new P.MethodScope(methodScopeProps)
         }
         getAST(match: P.Match<P.RulexGroups<"eventName:props:inlineStatement:nestedBlock">>) {

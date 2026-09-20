@@ -2,7 +2,7 @@ import React from "react"
 import _get from "lodash/get"
 
 import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./SpellCore"
+import { defineSpellCoreModule } from "./spellCore.types"
 
 /** Registry of known React elements, addressable by (possibly dotted) name. */
 export type KnownElementsMap = Record<string, unknown>

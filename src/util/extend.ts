@@ -278,11 +278,9 @@ export function objectFromWeakRef(thing: any) {
 }
 
 /**
- * Return `true` if corresponding items of `list1` and `list2` are `===` equal, after unwrapping
- * any `WeakRef`s (see `objectFromWeakRef()`).
+ * Return `true` if EVERY corresponding item of `list1` and `list2` is `===` equal, after
+ * unwrapping any `WeakRef`s (see `objectFromWeakRef()`).
  * - Returns `false` if either isn't an array, or their lengths differ.
- * - TODO: the loop `return`s on its first iteration, so only `list1[0]`/`list2[0]` actually get
- *   compared -- looks like it should `continue` (or short-circuit only on mismatch) instead.
  */
 export function dependenciesMatch(list1: any[], list2: any[]) {
   // Quick exit if either is not an array or lengths don't match.
@@ -296,6 +294,7 @@ export function dependenciesMatch(list1: any[], list2: any[]) {
   for (let i = 0; i < list1.length; i++) {
     const item1 = objectFromWeakRef(list1[i])
     const item2 = objectFromWeakRef(list2[i])
-    return item1 === item2
+    if (item1 !== item2) return false
   }
+  return true
 }

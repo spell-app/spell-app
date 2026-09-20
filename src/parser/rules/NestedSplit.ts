@@ -152,7 +152,7 @@ export type NestedSplitProps = Prettify<
   P.RuleProps & {
     /** Start rule, e.g. `Symbol("(")`. */
     start: P.Rule
-    /** Optional rule to match inside the FIRST item, e.g. right after the. */
+    /** Optional rule to match inside the FIRST item, e.g. right after `start`. */
     prefix?: P.Rule
     /** Middle-bit to match inside start/end, probably a sequence or subrule. */
     item: P.Rule

@@ -219,16 +219,21 @@ export const request_getIndex = respondWithJSON(async (request) => {
  * - Returns: raw file body via express `sendFile()` (mime type set from extension); `{ dotfiles: "allow" }`
  *   so dotfiles like `.imports.json` can be fetched too.
  * - Failure: 404 (via `responseUtils.sendFile()`) if file not found; 500 if `projectId`/`filePath` don't
- *   resolve to a valid file path (thrown by `SpellLocation.getFileLocation()`).
- * - HACK: NOT wrapped in `respondWithJSON` and the `sendFile()` promise is `void`-discarded -- if `sendFile()`
- *   rejects for a reason other than the 404 it already handles internally (e.g. a permission error from
- *   `response.sendFile()`), that becomes an unhandled promise rejection and the client never gets a response.
+ *   resolve to a valid file path (thrown by `SpellLocation.getFileLocation()`) or if the send itself fails.
+ * - NOTE: deliberately NOT wrapped in `respondWithJSON` -- that would send a JSON body on top of the file
+ *   we already streamed.  We catch by hand instead so a rejection can't go unhandled and hang the client.
  * - TODO: return proper file type according to mime-type and/or request???!
  */
-export const request_getFile = (request: Request, response: Response) => {
+export const request_getFile = async (request: Request, response: Response) => {
   const { projectId, filePath } = request.params
-  const location = SP.SpellLocation.getFileLocation(projectId, filePath)
-  void responseUtils.sendFile(response, location.serverPath, { dotfiles: "allow" })
+  try {
+    const location = SP.SpellLocation.getFileLocation(projectId, filePath)
+    await responseUtils.sendFile(response, location.serverPath, { dotfiles: "allow" })
+  } catch (error) {
+    // Can't send an error body once the file has started streaming -- the client sees a truncated response.
+    if (response.headersSent) return
+    responseUtils.sendError(response, 500, error as Error)
+  }
 }
 
 /**
@@ -429,14 +434,12 @@ export const compileFile = async (fileContents: string) => {
  *   `DEFAULT_FILE_CONTENTS` instead (handy for hitting the route from a browser URL bar).
  * - Returns: compiled JS as a string.
  * - Failure: 500 (via `respondWithJSON`) with compiler error + stack trace if source doesn't parse/compile.
- * - NOTE: `await request.body` -- `body` is already a plain value (parsed by `bodyParser`), not a
- *   promise, so this `await` is a no-op left over from an earlier version.
  */
 export const request_compileFile = respondWithJSON(async (request) => {
   const contents =
     request.method === "GET" //
       ? DEFAULT_FILE_CONTENTS
-      : await request.body
+      : request.body
   return await compileFile(contents)
 })
 

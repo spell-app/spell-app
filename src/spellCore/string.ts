@@ -1,5 +1,5 @@
 import { spellCore } from "./core"
-import { defineSpellCoreModule } from "./SpellCore"
+import { defineSpellCoreModule } from "./spellCore.types"
 
 /** Assembled `spellCore` string-utility methods. */
 export const stringMethods = defineSpellCoreModule({

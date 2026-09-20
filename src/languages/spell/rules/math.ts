@@ -235,7 +235,7 @@ export const math = new SpellParser({
       alias: "expression",
       syntax: "(operator:the? absolute value of) {expression}",
       testRule: "…absolute",
-      constructor: class divided_by extends InfixOperatorSuffix {
+      constructor: class absolute_value extends SpellExpression {
         getAST(match: P.Match<P.RulexGroups<"expression">>) {
           const { expression } = match.groups
           return new AST.CoreMethodInvocation(match, {

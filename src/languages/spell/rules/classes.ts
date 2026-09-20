@@ -45,11 +45,10 @@ function astAs<T extends AST.ASTNode = AST.Expression>(match: P.Match | undefine
 
 /**
  * Construct a `P.MethodScope` for the property-getter's nested body below.
- * - NOTE: `P.MethodScopeProps` is `P.ScopeProps & {...}` already, so it already includes `parentScope` --
- *   the `& P.ScopeProps` here looks redundant.
- * - TODO: drop the intersection and this helper?  `lists.ts` has an identical copy.
+ * - TODO: drop this helper and just call `new P.MethodScope(props)` at call sites?  `lists.ts` has an
+ *   identical copy.
  */
-function newMethodScope(props: P.MethodScopeProps & P.ScopeProps): P.MethodScope {
+function newMethodScope(props: P.MethodScopeProps): P.MethodScope {
   return new P.MethodScope(props)
 }
 

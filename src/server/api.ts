@@ -87,5 +87,5 @@ api.get("/error", (request, response) => response.status(500).send("No soup for 
 // Log an error to the console for an unknown API path.
 // NOTE: THIS MUST BE AT THE END OF THE FILE!
 ////////////////
-api.get("*", (request, response) => response.status(500).send(`API routine not defined on server:   '${request.url}'`))
-api.post("*", (request, response) => response.status(500).send(`API routine not defined on server:   '${request.url}'`))
+api.get("*", (request, response) => response.status(404).send(`API routine not defined on server:   '${request.url}'`))
+api.post("*", (request, response) => response.status(404).send(`API routine not defined on server:   '${request.url}'`))

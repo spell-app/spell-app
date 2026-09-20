@@ -11,7 +11,7 @@ import isEqual from "lodash/isEqual"
 
 import { extend } from "~/util"
 import { assert } from "~/spellCore"
-import { defineSpellCoreModule, type SpellCore } from "./SpellCore"
+import { defineSpellCoreModule, type SpellCore } from "./spellCore.types"
 
 /** Options accepted by `spellCore.defineProperty()`. */
 export type DefinePropertyOptions<T = unknown> = {
@@ -61,7 +61,7 @@ export function randomNumber(min?: number, max?: number): number | undefined {
  * - Built from an instance of an inline class (rather than a plain object) purely so it prints as
  *   `spellCore {...}` -- not `Object {...}` -- when logged / inspected while debugging.
  * - Cast to `SpellCore` since its real shape is assembled piecemeal by every module's `Object.assign()`
- *   call below (and in `collection-core.ts`, `collection-other.ts`, etc) -- see `SpellCore.ts`.
+ *   call below (and in `collection-core.ts`, `collection-other.ts`, etc) -- see `spellCore.types.ts`.
  */
 export const spellCore = new (class spellCore {})() as SpellCore
 

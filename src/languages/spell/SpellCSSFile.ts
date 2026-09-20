@@ -24,15 +24,12 @@ export class SpellCSSFile extends TextFile {
 
   /**
    * We've been removed from the server -- clean up memory, etc..
-   * - SIDE EFFECT: clears entire `SpellCSSFile.registry` AND entire `SP.SpellLocation.registry` (shared
-   *   across every spell file type), not just this instance's entries.
-   *   TODO: looks like it should scope to `this.path` like `SpellJSFile.onRemove()` does -- as written,
-   *   removing ONE css file drops every other loaded `SpellCSSFile`/`SpellLocation` too.
+   * - SIDE EFFECT: drops our entry from `SpellCSSFile.registry` and shared `SP.SpellLocation.registry`.
    */
   onRemove(): void {
     super.onRemove()
-    SpellCSSFile.registry.clear()
-    SP.SpellLocation.registry.clear()
+    SpellCSSFile.registry.delete(this.path)
+    SP.SpellLocation.registry.delete(this.path)
   }
 
   /**

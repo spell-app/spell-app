@@ -8,7 +8,7 @@
  * re-enter it circularly.
  */
 import { spellCore } from "~/spellCore/core"
-import { defineSpellCoreModule } from "~/spellCore/SpellCore"
+import { defineSpellCoreModule } from "~/spellCore/spellCore.types"
 
 import { Thing } from "./Thing"
 import { App } from "./App"

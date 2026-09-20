@@ -57,7 +57,7 @@ export class UIError extends CustomError {
  * - None are required at the type level, but `message` should always be set in practice.
  */
 export type CustomErrorProps = {
-  /** Single error message string or array of strings. */
+  /** Error message string. */
   message?: string
   /** Context in which error happened, e.g. an instance. */
   context?: any

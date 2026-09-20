@@ -9,7 +9,7 @@
 import _ from "lodash"
 import { spellCore } from "./core"
 import { assert } from "~/spellCore"
-import { defineSpellCoreModule } from "./SpellCore"
+import { defineSpellCoreModule } from "./spellCore.types"
 
 /** A valid `{ start, end }` 1-based range, as computed by the `_validateRange*` helpers. */
 export type Range = {
@@ -185,7 +185,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `remove items 2 to 4 of my-list` -- see `lists.ts`.
    */
   removeRangeBetween(collection?: unknown, start?: number | null, end?: number | null): void {
-    if (!assert.isArrayLike(collection, "spellCore.rangeStartingAt(collection)")) return
+    if (!assert.isArrayLike(collection, "spellCore.removeRangeBetween(collection)")) return
     const range = spellCore._validateRangeBetween(start, end, spellCore.itemCountOf(collection))
     if (!range) return
     const count = range.end - range.start + 1
@@ -246,7 +246,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Results are ignored.
    */
   async forEachSequential(collection?: unknown, method?: CollectionIterationCallback): Promise<void> {
-    if (!assert.isDefined(collection, "spellCore.map(collection)")) return
+    if (!assert.isDefined(collection, "spellCore.forEachSequential(collection)")) return
     if (!method) return
     const iterator = spellCore.getIteratorFor(collection)
     let result = iterator.next()
@@ -279,7 +279,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Compiles from `words in "a word list" where ...` -- see `lists.ts`.
    */
   filter(collection?: unknown, condition?: CollectionIterationCallback): unknown {
-    if (!assert.isDefined(collection, "spellCore.all(collection)")) return undefined
+    if (!assert.isDefined(collection, "spellCore.filter(collection)")) return undefined
     if (!condition) condition = (it) => it
     const results = spellCore.newThingLike(collection)
     let filter: CollectionIterationCallback

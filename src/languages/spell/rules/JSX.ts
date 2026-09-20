@@ -280,15 +280,11 @@ export const JSX = new SpellParser({
             const input = inputIsExpression ? (value.contents as string).trim().replace(/\n/g, " ") : value
             // parse "onXXX" as an inline method with an `event` argument
             if (match.attribute.startsWith("on")) {
-              // `MethodScopeProps` (via `P.ScopeProps`) already declares `parentScope`, and already types
-              // `args` as `Array<ScopeVariable | string | ScopeVariableProps>` -- the `as`/`as unknown as`
-              // casts below look unnecessary against the current type.
-              // TODO: remove casts?
-              const methodScopeProps = {
+              const methodScopeProps: P.MethodScopeProps = {
                 parentScope: scope,
-                args: ["event"] as unknown as P.ScopeVariable[],
+                args: ["event"],
                 mapItTo: "this"
-              } as P.MethodScopeProps
+              }
               const methodScope = new P.MethodScope(methodScopeProps)
               const statement = methodScope.parse(input, "statement")
               if (statement && statement.inputText.length === input.length) {

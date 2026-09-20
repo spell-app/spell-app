@@ -14,7 +14,7 @@ export const Notice = view(function Notice({ autoHide = true }: NoticeProps) {
 
   // autoHide on timeout
   React.useEffect(() => {
-    if (!autoHide || notice === null) return
+    if (!autoHide || !notice) return
     const timer = setTimeout(() => {
       // Only hide if `store.notice` is still the one this timer was created for.
       if (store.notice === notice) store.hideNotice()

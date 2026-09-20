@@ -1,6 +1,6 @@
 import { spellCore } from "./core"
 import { Eventful } from "./SpellEvent"
-import { defineSpellCoreModule, type SpellCore } from "./SpellCore"
+import { defineSpellCoreModule, type SpellCore } from "./spellCore.types"
 
 /**
  * Class backing `spellCore.RUNTIME` -- a live per-project state bag (see `SpellRuntimeState`) that's
@@ -100,13 +100,12 @@ export const runtimeMethods = defineSpellCoreModule({
   /**
    * Start a conceptual process by `name`.
    * - Compiles from spell `start process X` / `start animation X` (see `async.ts`).
-   * - `exclusively`: pass any truthy value to flag it exclusive (compiled spell passes the literal
-   *   string `'EXCLUSIVE'`, not `true`) -- this unconditionally (re)flags the process, so exclusive
-   *   callers MUST check `processIsRunning()` first if they want re-entry guarded (compiled `start
-   *   exclusive process X` does this for you).
+   * - `exclusively`: pass `'EXCLUSIVE'` to flag it exclusive -- this unconditionally (re)flags the
+   *   process, so exclusive callers MUST check `processIsRunning()` first if they want re-entry guarded
+   *   (compiled `start exclusive process X` does this for you).
    * - Non-exclusive calls instead bump a running count.
    */
-  startProcess(name: string, exclusively?: boolean): void {
+  startProcess(name: string, exclusively?: "EXCLUSIVE"): void {
     const flags = spellCore.getProcessFlags()
     const wasRunning = flags[name]
     if (exclusively) flags[name] = "!"

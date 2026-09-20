@@ -30,7 +30,7 @@ export class TypeScope extends BlockScope {
     if (!this.name) throw new TypeError("Types must be created with a 'name'")
 
     // Make sure type `name` and `superType` are in `Type_Case`
-    this.name = this.name = typeCase(this.name)
+    this.name = typeCase(this.name)
     if (this.superType) this.superType = typeCase(this.superType)
   }
 

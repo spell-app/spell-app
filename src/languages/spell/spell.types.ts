@@ -1,13 +1,8 @@
 /**
- * Shared types for spell language layer, plus the `import "~/languages/rulex"` side-effect import below,
- * which registers `RulexParser` onto `P.Parser.rulexParser` -- needed before any rule using a `syntax:`
- * rulex string can be defined, e.g. every rule module under `./rules`.
- * - NOTE: that's the one value-level import in this file.  `<folder>.types.ts` files are otherwise
- *   `import type` only (see `AGENTS.md`) -- this is a deliberate exception, not an oversight.
+ * Shared types for spell language layer.
+ * - `import type` only, per `AGENTS.md` -- the `~/languages/rulex` registration this file used to carry
+ *   now lives in `SpellParser.ts`, which every rule module imports anyway.
  */
-
-// Import `rulex` language for constructing rules.
-import "~/languages/rulex"
 
 import type { SpellLocation } from "./SpellLocation"
 import type { SpellFile } from "./SpellFile"

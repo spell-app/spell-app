@@ -377,7 +377,6 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     return this.derivedFrom(
       "files",
       () => {
-        console.info("getFiles", this, this.manifest)
         return Object.values(this.manifest).map((item) => item.file!)
       },
       [this.contents]
@@ -466,7 +465,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    *
    * Returns `undefined` if not found, path is not valid or is not a file path.
    */
-  getFileLocation(path: string | SP.SpellLocation): SP.SP.SpellLocation | undefined {
+  getFileLocation(path: string | SP.SpellLocation): SP.SpellLocation | undefined {
     let location: SP.SpellLocation | undefined
     if (path instanceof SP.SpellLocation) {
       location = path
