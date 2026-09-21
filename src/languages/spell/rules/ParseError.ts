@@ -1,6 +1,4 @@
 import { P } from "~/parser"
-// Import directly to avoid circular import
-import { SpellParser } from "~/languages/spell/SpellParser"
 
 /**
  * Fallback rule matched (via `scope.parser.parse(tokens, "parse_error", scope)`) over tokens that no other
@@ -9,6 +7,8 @@ import { SpellParser } from "~/languages/spell/SpellParser"
  * - `SpellParser.createParseError()` builds one directly (with a custom `message`) rather than parsing.
  */
 export class ParseError extends P.Rule {
+  static ruleName = "parse_error"
+
   /** Eat all of `tokens` unconditionally -- never fails. */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match {
     return new P.Match({
@@ -19,17 +19,16 @@ export class ParseError extends P.Rule {
     })
   }
 
-  compile(match: P.AnyMatch): unknown {
+  compile(match: P.MatchFor<this>): unknown {
     // `Match.compile()` always prefers `getAST()` (below) over calling `rule.compile()` directly,
     // but `Rule.compile()` is abstract, so provide the equivalent fallback for completeness.
     return match.AST?.compile()
   }
 
   /** Build the `P.ASTParseError` node, using `match.message` if set, else a generic "don't understand" message. */
-  getAST(match: P.Match): P.ASTParseError {
+  getAST(match: P.MatchFor<this>): P.ASTParseError {
     return new P.ASTParseError(match, {
       value: match.message || `Don't understand "${match.inputText}"`
     })
   }
 }
-SpellParser.Rules.ParseError = ParseError

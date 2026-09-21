@@ -1,3 +1,5 @@
+import type { P } from "~/parser"
+// Import directly to avoid circular import
 import { Literals } from "./Literals"
 
 /**
@@ -6,7 +8,10 @@ import { Literals } from "./Literals"
  * - After matching, `match.value` will be the literal string matched.
  * - Keywords output WITH a single space in-between.
  */
-export class Keywords extends Literals {
+export class Keywords<
+  Groups extends string | P.AnyGroups = P.AnyGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends Literals<Groups, MatchData> {
   static {
     /** Join symbols with a single space in-between. */
     Object.defineProperty(this.prototype, "literalSeparator", {

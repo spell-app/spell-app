@@ -11,6 +11,7 @@ export * from "./constants"
 
 export * from "./Logger"
 export * from "./class"
+export * from "./decorators"
 export * from "./prefs"
 export * from "./AppPrefStore"
 

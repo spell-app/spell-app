@@ -1,5 +1,6 @@
 import flattenDeep from "lodash/flattenDeep"
 
+import { proto } from "~/util/decorators"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { Rule } from "./Rule"
@@ -9,15 +10,16 @@ import { Rule } from "./Rule"
  * - `rule.rules` is the array of rules to match.
  * - `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
  */
-export class Sequence extends Rule<SequenceProps> {
+export class Sequence<
+  Groups extends string | P.AnyGroups = P.AnyGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends Rule<SequenceProps, Groups, MatchData> {
   /** The array of rules to match. */
   declare rules: P.Rule[]
   /** Separtor string for base compile() rule which just joins the `matched` outputs. */
   declare compileSeparator: string
-
-  static {
-    Object.defineProperty(this.prototype, "compileSeparator", { value: " ", writable: true })
-  }
+  /** Class-level default for `compileSeparator`. */
+  @proto static compileSeparator = " "
 
   /**
    * Accepts `props`, a bare array of `rules`, or `rules` spread as individual arguments.
@@ -73,7 +75,7 @@ export class Sequence extends Rule<SequenceProps> {
    * Best we can do generically for sequences is join the `matched` outputs.
    * Implement in your subclass if you want something else.
    */
-  compile(match: P.Match): unknown {
+  compile(match: P.MatchFor<this>): unknown {
     return match.matched
       .filter((it) => it instanceof P.Match)
       .map((next) => next.compile())
@@ -81,15 +83,27 @@ export class Sequence extends Rule<SequenceProps> {
   }
 
   /** Sequences add child matches to their groups, ignoring the "outer" match. */
-  getGroupsForMatch(match: P.Match): Record<string, unknown> {
+  getGroupsForMatch(match: P.MatchFor<this>): Record<string, unknown> {
     return match.addMatchedToGroups<P.MatchGroups>({}, match.matched)
   }
 
-  /** Echo this rule back out as rulex syntax, wrapping in parens only when `argument` or `optional` need it. */
+  /** Whatever our child `rules` contribute, one after another. */
+  getGroupSpecEntries(): P.GroupSpecEntry[] {
+    return P.concatGroupSpecs(...this.rules.map((rule) => rule.getGroupSpecContribution()))
+  }
+
+  /** Anonymous sequence is promoted into containing rule's groups -- all optional if we are. */
+  getGroupSpecContribution(): P.GroupSpecEntry[] {
+    if (this.matchGroup || this.name) return super.getGroupSpecContribution()
+    const entries = this.getGroupSpecEntries()
+    return this.optional ? entries.map((entry) => ({ ...entry, optional: true })) : entries
+  }
+
+  /** Echo this rule back out as rulex syntax, wrapping in parens only when `matchGroup` or `optional` need it. */
   toRulexSyntax() {
-    const { argument, optional } = this.getRulexFlags()
+    const { matchGroup, optional } = this.getRulexFlags()
     const rules = this.rules.map((rule) => rule.toRulexSyntax()).join(" ")
-    if (optional || argument) return `(${argument}${rules})${optional}`
+    if (optional || matchGroup) return `(${matchGroup}${rules})${optional}`
     return `${rules}${optional}`
   }
 }

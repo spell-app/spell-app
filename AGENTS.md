@@ -56,6 +56,48 @@ when working with code in this repository.
  ****************/
 ```
 
+## Parser rules
+
+- Define rules as CLASSES, registered with `parser.addRule(RuleClass)` or `new Parser({ rules: [...] })`.
+  Order in `rules` matters:  when two rules tie, the LATER one wins.
+- Class name IS the rule name:  `class define_property_has` registers as `"define_property_has"`.
+  - `static ruleName = "if"` only for reserved words (`class _if`) or dynamically-named rules.
+  - Prod build MUST keep `output.keepNames` (`vite.config.ts`), pinned by `parser/build.test.ts`.
+- Definition goes in `@proto static` fields (`proto` from `~/util`) -- `syntax`, `alias`, `precedence`, `testRule`,
+  `datatype`, plus `pattern` / `literal` / `literals` / `tokenType` for leaf rules.
+  - `@proto` puts value on the class PROTOTYPE:  visible in base constructor (instance fields are NOT, they
+    initialize after `super()`), inherited by subclasses, and rule instances stay small plain objects.
+  - Forgetting `@proto` throws at registration.
+  - `ruleName`, `tests`, `skip` are plain `static`, NOT inherited.
+  - See top docstring in `parser/rules/Rule.ts` for all the ways to make a rule.
+- Type arguments:  `Rule<Props, Groups, MatchData>`, all defaulted so bare `P.Rule` / `P.Sequence` / `P.Match` work.
+  Rule base classes fix `Props` so authors write `SpellStatement<"type|property|specifier?", { ruleComment?: ... }>`.
+  - `rule.matchGroup` (was `argument`) is the name a rule's match goes under in `match.groups`, e.g. `{thing:expression}`.
+  - `Groups` is a `P.GroupsFor` spec:  `name` required, `name?` optional, `name[]` array.
+    Copy it from the module's `__snapshots__` file, which is computed from real `syntax` (`rule.groupSpec`).
+    Use an object type when `getGroupsForMatch()` derives non-`Match` values.
+  - `MatchData` is what rule stashes on its matches, read as `match.data.foo`.
+  - Hooks take `match: P.MatchFor<this>`.  To read another rule's match, narrow with `match.is(other_rule)`.
+- `match.groups` holds ONLY what the syntax matched (`Match | Match[]`).  Anything a rule works out for itself
+  goes in `match.data`, typically via a caching method:  `getBits(match) { return (match.data.bits ??= ...) }`.
+  NEVER override `getGroupsForMatch()` to add derived values.
+- In `match.data`, use `NONE` (from `~/util`) for "looked, not found" rather than `null`;  name scope lookups
+  `scopeVar` / `scopeConstant` / `scopeType`.
+- Tests live on the class as `static tests: P.RuleTests = [...]`, placed LAST.  The annotation is required:
+  without it TypeScript widens `[input, output]` tuples.  Each module needs a sibling `<module>.test.ts`
+  calling `unitTestModuleRules()`, or its tests never run.
+- Rules are IMMUTABLE (frozen on registration) and shared by every parse.
+  NEVER store per-parse state on a rule, NEVER add ad hoc fields to a `Match` -- use `match.data`.
+- Exception to "one exported class per file":  a rule module exports many snake_case rule classes.
+
+## Decorators
+
+- Use STANDARD (TC39 2023-11) decorators, NEVER `experimentalDecorators`.  General-purpose ones live in `~/util/decorators.ts`.
+- Lowered by esbuild via `vite.decorators.ts`, used by BOTH `vite.config.ts` and `vitest.config.ts` -- vite 8's own
+  transformer (oxc) doesn't do it yet.  Server is fine as `tsx` is esbuild already.
+- A decorator MUST be the first thing on its line (`@proto static alias = "x"` is fine, and preferred)
+  or that plugin won't notice the file.
+
 ## Types / Exports
 
 - ALWAYS use `type` rather than `interface`. Wrap with `Prettify` when combining types.

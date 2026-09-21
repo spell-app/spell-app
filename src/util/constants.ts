@@ -4,6 +4,12 @@ export const OPTIONAL = "OPTIONAL"
 /** Operation or resource is required -- we'll throw an error if it's not found. */
 export const REQUIRED = "REQUIRED"
 
+/**
+ * Marker for "we looked, and there isn't one" -- use instead of `null`, which is too easy to confuse
+ * with `undefined` ~== "we never looked".
+ */
+export const NONE = "NONE"
+
 /** Show confirmation dialog. */
 export const CONFIRM = "CONFIRM"
 

@@ -4,6 +4,7 @@
 //
 
 import { describe, test, expect } from "vitest"
+import { proto } from "~/util"
 import { P, Parser, ParserError, Rule, type RuleConstructor } from "~/parser"
 // These tests define rules with rulex `syntax`, so they must opt into the rulex parser.
 import "~/languages/rulex"
@@ -34,50 +35,28 @@ describe("addRule() and rules", () => {
     parser.import(new Parser())
     expect(parser.rules).not.toBe(startRules)
   })
-})
 
-describe("defineRule()", () => {
-  test("doesn't add rule if passed a 'skip' property", () => {
+  test("throws if a rule instance has neither 'name' nor an explicit ruleName", () => {
     const parser = new Parser()
-    parser.defineRule({ name: "foo", skip: true })
-    expect(parser.rules).toEqual({})
-  })
-
-  test("throws if passed a Rule instance without a 'name' property", () => {
-    const parser = new Parser()
-    // NOTE: a `Rule` instance takes the early return straight to `addRule()`, which is OUTSIDE
-    // `defineRule()`'s try/catch -- so a missing name throws here rather than being swallowed.
-    // Deliberately missing `literal` -- doesn't matter since it's not compiled/parsed.
-    expect(() => parser.defineRule(new P.Symbol({} as any))).toThrow(ParserError)
-    expect(parser.rules).toEqual({})
-  })
-
-  test("doesn't add rule if passed empty object (where constructor === Object)", () => {
-    const parser = new Parser()
-    parser.defineRule({})
-    expect(parser.rules).toEqual({})
-  })
-
-  test("doesn't add rule if passed constructor as undefined", () => {
-    const parser = new Parser()
-    parser.defineRule({ constructor: undefined })
-    expect(parser.rules).toEqual({})
-  })
-
-  test("returns undefined if not passed a 'name' property", () => {
-    const parser = new Parser()
-    parser.defineRule({ constructor: Rule })
+    // Deliberately missing `literal` -- doesn't matter since it's never compiled/parsed.
+    expect(() => parser.addRule(new P.Symbol({} as any))).toThrow(ParserError)
     expect(parser.rules).toEqual({})
   })
 })
 
 describe("Parser.import()", () => {
   test("adds new rules directly in either direction", () => {
+    class rule1 extends P.Sequence {
+      @proto static syntax = "foo1"
+    }
+    class rule2 extends P.Sequence {
+      @proto static syntax = "bar2"
+    }
     const foo = new Parser({ module: "foo" })
-    foo.defineRule({ name: "rule1", syntax: "foo1" })
+    foo.addRule(rule1)
 
     const bar = new Parser({ module: "bar" })
-    bar.defineRule({ name: "rule2", syntax: "bar2" })
+    bar.addRule(rule2)
 
     foo.import(bar)
     expect(foo.rules.rule1).toBe(foo.rules.rule1)
@@ -85,36 +64,56 @@ describe("Parser.import()", () => {
   })
 
   test("merges individual rules into a new group", () => {
+    class foo_rule1 extends P.Sequence {
+      static ruleName = "rule1"
+      @proto static syntax = "foo1"
+    }
+    class bar_rule1 extends P.Sequence {
+      static ruleName = "rule1"
+      @proto static syntax = "bar1"
+    }
     const foo = new Parser({ module: "foo" })
-    foo.defineRule({ name: "rule1", syntax: "foo1" })
+    foo.addRule(foo_rule1)
     const foo1 = foo.rules.rule1
 
     const bar = new Parser({ module: "bar" })
-    bar.defineRule({ name: "rule1", syntax: "bar1" })
+    bar.addRule(bar_rule1)
     const bar1 = bar.rules.rule1
 
     foo.import(bar)
     expect(foo.rules.rule1).toBeInstanceOf(P.Group)
     const rule1 = foo.rules.rule1 as P.Group
-    expect(rule1.argument).toBe("rule1")
+    expect(rule1.matchGroup).toBe("rule1")
     expect(rule1.rules.length).toBe(2)
     expect(rule1.rules).toEqual([foo1, bar1])
   })
 
   test("merges individual rules with existing groups", () => {
+    class foo_rule1 extends P.Sequence {
+      static ruleName = "rule1"
+      @proto static syntax = "foo1"
+    }
+    class foo_rule1a extends P.Sequence {
+      static ruleName = "rule1"
+      @proto static syntax = "foo1a"
+    }
+    class bar_rule1 extends P.Sequence {
+      static ruleName = "rule1"
+      @proto static syntax = "bar1"
+    }
     const foo = new Parser({ module: "foo" })
-    foo.defineRule({ name: "rule1", syntax: "foo1" })
-    foo.defineRule({ name: "rule1", syntax: "foo1a" })
+    foo.addRule(foo_rule1)
+    foo.addRule(foo_rule1a)
     const foo1OriginalGroup = foo.rules.rule1 as P.Group
     const foo1OriginalGroupRules = [...foo1OriginalGroup.rules]
 
     const bar = new Parser({ module: "bar" })
-    bar.defineRule({ name: "rule1", syntax: "bar1" })
+    bar.addRule(bar_rule1)
 
     foo.import(bar)
     expect(foo.rules.rule1).toBeInstanceOf(P.Group)
     const rule1 = foo.rules.rule1 as P.Group
-    expect(rule1.argument).toBe("rule1")
+    expect(rule1.matchGroup).toBe("rule1")
     expect(rule1).not.toBe(foo1OriginalGroup)
     expect(rule1.rules.length).toBe(3)
 
@@ -126,21 +125,25 @@ describe("Parser.import()", () => {
 // Set up parser used in the below
 const parser = new Parser()
 // `rules` defaults to `[]` at runtime if omitted; the props type doesn't reflect that.
-const statement = new P.Group({ name: "statement", argument: "statement" } as any)
+const statement = new P.Group({ name: "statement", matchGroup: "statement" } as any)
 const statements = new P.Repeat({ name: "block", rule: new P.Subrule("statement") })
-parser.defineRules(
-  statement,
-  statements,
-  { name: "dog", syntax: "dog" },
-  { name: "cat", syntax: "cat" },
-  {
-    name: "dog_and_cat",
-    alias: ["statement"],
-    syntax: "{dog} and {cat}",
-    // `defineRule()` accepts a rulex syntax string for `testRule` at runtime and compiles it.
-    testRule: "{dog}" as any
-  }
-)
+parser.addRule(statement)
+parser.addRule(statements)
+
+class dog extends P.Sequence {
+  @proto static syntax = "dog"
+}
+class cat extends P.Sequence {
+  @proto static syntax = "cat"
+}
+class dog_and_cat extends P.Sequence {
+  @proto static alias = ["statement"]
+  @proto static syntax = "{dog} and {cat}"
+  @proto static testRule = "{dog}"
+}
+parser.addRule(dog)
+parser.addRule(cat)
+parser.addRule(dog_and_cat)
 
 describe("parser.parse()", () => {
   test("takes an explicit start rule", () => {

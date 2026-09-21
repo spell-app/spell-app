@@ -6,14 +6,18 @@ import { P } from "~/parser"
 
 /**
  * Default shape of `match.groups`: named sub-matches, as a single `Match` or an array if the name repeats.
- * - Rules narrow this per-rule, e.g. `Match<RulexGroups<"lhs:rhs">>` (see `~/languages/rulex`).
- * - Rules may also derive extra, non-`Match` group values (see `Rule.getGroupsForMatch()`).
+ * - Rules narrow this with their `Groups` type argument, e.g. `P.Sequence<"lhs|rhs?">` -- see `P.GroupsFor`.
+ * - ONLY what the syntax matched.  Anything a rule works out for itself belongs in `match.data`.
  */
 export type MatchGroups = Record<string, Match | Match[] | undefined>
 
-// CLAUDE TODO: can we get rid of this??
-/** A `Match` with any `groups` shape -- use for parameters which don't care about groups. */
-export type AnyMatch = Match<Record<string, unknown>>
+/**
+ * A `Match` from ANY rule, whatever its `groups` / `data` -- use for parameters which don't care about either,
+ * e.g. AST node constructors.
+ * - Needed because bare `P.Match` means "default groups":  a typed match is assignable to it, but inside a
+ *   GENERIC rule class TypeScript can't prove that for the still-unresolved `P.MatchFor<this>`.
+ */
+export type AnyMatch = Match<P.AnyGroups>
 
 /**
  * Result of a successful `rule.parse()`.
@@ -22,7 +26,11 @@ export type AnyMatch = Match<Record<string, unknown>>
  * - `match.tokens`   - (required) Array of `Tokens` that were matched.
  * - `match.matched`  - (required) Array of `Matches` or `Tokens` matched.
  */
-export class Match<Groups extends Record<string, unknown> = MatchGroups> extends Assertable {
+export class Match<
+  // NOTE: constraint deliberately looser than the default -- see `P.AnyGroups`.
+  Groups extends P.AnyGroups = MatchGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends Assertable {
   /** Set `false` to skip constructor `assertType`/`assertArrayType` checks, e.g. for production perf. */
   static DEBUG_MATCH_INITIALIZATION = true
 
@@ -38,7 +46,7 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
   /** Scope in which the match was made. */
   declare scope: P.Scope
   /** Argument for this match. */
-  declare argument: string | undefined
+  declare matchGroup: string | undefined
   /** Raw input text that was matched, not including trailing whitespace. */
   declare raw: string | undefined
   /** Value of the match. For a `Pattern`, this will be `match.raw` run through `VALUE_MAP`. */
@@ -65,9 +73,9 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
     }
   }
 
-  /** `name` for this match ~== explicit `argument` set on creation, else `rule.argument`, else `rule.name`. */
+  /** `name` for this match ~== explicit `matchGroup` set on creation, else `rule.matchGroup`, else `rule.name`. */
   get name(): string | undefined {
-    return this.argument || this.rule.argument || this.rule.name
+    return this.matchGroup || this.rule.matchGroup || this.rule.name
   }
 
   /** `name` for our rule, using `rule.constructor.name` for anonymous rules. */
@@ -135,6 +143,32 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
   }
 
   ////////////////////
+  // ## Rule-specific data
+  ////////////////////
+
+  /**
+   * Facts our `rule` stashed on this match while parsing / mutating scope, e.g. `match.data.constant`.
+   * - Rules are immutable, so per-parse state MUST live here rather than on the rule.
+   * - Shape is declared by rule's `MatchData` type argument -- use `match.is(rule)` to narrow someone else's match.
+   * - Created lazily so matches which stash nothing stay small.
+   */
+  get data(): MatchData {
+    // HOT: identifier / constant / type rules stash on EVERY candidate match, so plain field rather than
+    // `derived()`, which costs a `defineProperty()` and two extra objects per match (~3% of parse time).
+    return (this._data ??= {} as MatchData)
+  }
+  /** Backing field for `data`.  `declare`d so matches which stash nothing don't even carry the slot. */
+  declare private _data: MatchData | undefined
+
+  /**
+   * Was this match produced by (a subclass of) `ruleConstructor`?
+   * - Type guard:  narrows `groups` and `data` to the shapes declared by that rule.
+   */
+  is<RuleType extends P.RuleTypeArgs>(ruleConstructor: AbstractClass<RuleType>): this is P.MatchFor<RuleType> {
+    return this.rule instanceof ruleConstructor
+  }
+
+  ////////////////////
   // ## Match groups
   ////////////////////
 
@@ -149,19 +183,19 @@ export class Match<Groups extends Record<string, unknown> = MatchGroups> extends
 
   /**
    * Add additional `match` to this match and our `groups`.
-   * - `argument` is optional group name for the match.
+   * - `matchGroup` is optional group name for the match.
    * - Use this to, e.g., add a comment or error to an existing `match`.
    * - Makes sure length and tokens are updated, groups are updated, etc.
    */
-  addMatch(match: Match, argument: string | undefined) {
+  addMatch(match: Match, matchGroup: string | undefined) {
     if (match === undefined) {
-      console.warn("addMatch() called with undefined match", { match, argument })
+      console.warn("addMatch() called with undefined match", { match, matchGroup })
       return
     }
     // get groups BEFORE adding the match (we'll add at the end)
     const { groups } = this
 
-    if (argument) match.argument = argument
+    if (matchGroup) match.matchGroup = matchGroup
     this.matched.push(match)
     this.tokens.push(...match.tokens)
 
@@ -309,7 +343,7 @@ export type MatchProps = {
   /** Significant sub-matches, e.g. the repeated items of a `Repeat` (not including delimiters). */
   items?: Match[]
   /** Argument for this match. */
-  argument?: string
+  matchGroup?: string
   /** Raw input text that was matched, not including trailing whitespace. */
   raw?: string
   /** Value of the match. For a `Pattern`, this will be `match.raw` run through `VALUE_MAP`. */

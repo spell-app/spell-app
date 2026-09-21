@@ -24,7 +24,10 @@ export type NestedSplitGroups = P.MatchGroups & {
  * - `prefix` will be the prefix match, if any.
  * - `items` will be the instances of `rule` which were matched.
  */
-export class NestedSplit extends Rule<NestedSplitProps> {
+export class NestedSplit<
+  Groups extends string | P.AnyGroups = P.AnyGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends Rule<NestedSplitProps, Groups, MatchData> {
   /** Start rule, e.g. `Symbol("(")`. */
   declare start: P.Rule
   /** Optional rule to match inside the FIRST item, e.g. right after `start`. */
@@ -78,7 +81,7 @@ export class NestedSplit extends Rule<NestedSplitProps> {
     })
   }
   /** Add `groups.items` (the split `item` matches) and `groups.prefix` (if a `prefix` rule matched). */
-  getGroupsForMatch(match: P.Match): NestedSplitGroups {
+  getGroupsForMatch(match: P.MatchFor<this>): NestedSplitGroups {
     const groups = super.getGroupsForMatch(match) as NestedSplitGroups
     const { items, matched } = match
     const prefix = matched[0]
@@ -88,7 +91,7 @@ export class NestedSplit extends Rule<NestedSplitProps> {
   }
 
   /** Don't use `nestedSplit.compile()` -- use `match.groups` instead. */
-  compile(match: P.Match) {
+  compile(match: P.MatchFor<this>) {
     throw new TypeError("don't use nestedSplit.compile() -- check `match.groups` instead.")
   }
 

@@ -59,6 +59,22 @@ export const pluralize = (text: string) => getExistingOrTransform(text, PLURALS,
 export const toPlural = (text: string) => _pluralize(text)
 const PLURALS: StringMap = {}
 
+/** Plurality of a word -- see `getPlurality()`. */
+export type Plurality = "singular" | "plural" | "either"
+
+/**
+ * Is `text` singular, plural, or `"either"` -- uncountable words like `sheep` are their own singular AND plural.
+ * - Memoized like everything else here:  parsers ask this about the same few words over and over.
+ */
+export function getPlurality(text: string): Plurality {
+  const existing = PLURALITIES[text]
+  if (existing !== undefined) return existing
+  const isSingular = text === singularize(text)
+  const isPlural = text === pluralize(text)
+  return (PLURALITIES[text] = isSingular && isPlural ? "either" : isSingular ? "singular" : "plural")
+}
+const PLURALITIES: Record<string, Plurality> = {}
+
 ////////////////
 // ## Whitespace
 ////////////////

@@ -1,6 +1,6 @@
 /**
  * Helper scripts to test rules defined for a parser "module".
- * - To make a rule testable, add a `tests` block to parser rules with `defineRules()`.
+ * - To make a rule testable, give its class a `static tests: P.RuleTests = [...]` block.
  * - Call `unitTestModuleRules(<moduleName>)` to test all rules in that module.
  * - TODO: add `only` to test block to skip everything else in the file.
  * - TODO: rules w/specific titles to `{ title, input, output }`.
@@ -34,6 +34,36 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
 
     rules.forEach((rule) => executeRuleTests(rule))
   })
+
+  describe(`rule group specs`, () => {
+    // Drift test:  `Groups` type arguments are erased, so nothing else notices when someone edits a `syntax`
+    // string and the groups its matches produce change.  Snapshot is ALSO what to write as the type argument.
+    test("match snapshot -- if this fails, update rule's `Groups` type argument, then the snapshot", () => {
+      expect(getGroupSpecsForModule(moduleName)).toMatchSnapshot()
+    })
+  })
+
+  /**
+   * Return `{ ruleName: groupSpec }` for rules in `module` whose syntax produces groups, variants merged.
+   * - NOTE: only knows syntax-derived groups -- see `Rule.groupSpec`.
+   */
+  function getGroupSpecsForModule(module: string): Record<string, string> {
+    const variants: Record<string, P.GroupSpecEntry[][]> = {}
+    const visit = (rule: P.Rule) => {
+      if (rule instanceof P.Group) rule.rules.forEach(visit)
+      else if (rule.module === module && rule.name) (variants[rule.name] ??= []).push(rule.getGroupSpecEntries())
+    }
+    // Rules are registered under aliases too, so de-dupe before visiting.
+    new Set(Object.values(parser.rules).flatMap((rule) => (rule instanceof P.Group ? rule.rules : [rule]))).forEach(
+      visit
+    )
+    const specs: Record<string, string> = {}
+    for (const name of Object.keys(variants).sort()) {
+      const spec = P.stringifyGroupSpec(P.mergeGroupSpecs(...variants[name]!))
+      if (spec) specs[name] = spec
+    }
+    return specs
+  }
 
   /** Return `parser`'s testable rules (its `_testable_` group) belonging to `module`, if any. */
   function getTestableRulesForModule(module: string): P.Rule[] | undefined {

@@ -13,6 +13,7 @@
 //  order no longer matters -- `export * as P from "."` may sit anywhere in the file.
 //
 import { describe, expect, test, vi } from "vitest"
+import { proto } from "~/util/decorators"
 
 /** Values the barrel MUST expose -- a representative slice, not the whole surface. */
 const VALUES = [
@@ -50,7 +51,7 @@ const VALUES = [
 ] as const
 
 /** Rules `rulex` defines at module scope -- the canary for the opt-in actually landing. */
-const RULEX_RULES = ["testLocation", "argument", "repeatFlag", "symbol", "keyword", "subrule", "sequence"]
+const RULEX_RULES = ["testLocation", "matchGroup", "repeatFlag", "symbol", "keyword", "subrule", "sequence"]
 
 /**
  * Modules which are safe to import BEFORE `~/parser`.
@@ -170,15 +171,20 @@ describe("rulex is opt-in", () => {
   })
 
   test("defining a `syntax` rule without rulex fails with a pointed error", async () => {
-    const { Parser } = await freshBarrel()
-    expect(() => new Parser().defineRule({ name: "foo", syntax: "bar" })).toThrow(/rulex/i)
+    // `Sequence` must come from the SAME fresh barrel as `Parser` -- a statically-imported
+    // one would carry its own, possibly already-rulex-equipped, `Parser.rulexParser`.
+    const { Parser, Sequence } = await freshBarrel()
+    class foo extends Sequence {
+      @proto static syntax = "bar"
+    }
+    expect(() => new Parser().addRule(foo)).toThrow(/rulex/i)
   })
 
   test("`import ~/languages/rulex` registers a fully-ruled parser on `Parser`", async () => {
     const { Parser } = await freshBarrel()
     const { rulex } = await import("~/languages/rulex")
     expect(Parser.rulexParser).toBe(rulex)
-    // Zero rules here means `defineRules()` threw at module scope and got swallowed.
+    // Zero rules here means `addRule()` threw at module scope and got swallowed.
     expect(RULEX_RULES.filter((name) => rulex.rules[name] === undefined)).toEqual([])
   })
 

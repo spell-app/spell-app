@@ -5,7 +5,13 @@ import { Rule } from "./Rule"
 /**
  * Abstract rule for matching a single token of a particular type.
  */
-export class TokenType extends Rule<TokenTypeProps> {
+export class TokenType<
+  Groups extends string | P.AnyGroups = P.AnyGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends Rule<TokenTypeProps, Groups, MatchData> {
+  /** Class-level `tokenType`, for rules defined as classes -- declare as `@proto static`. */
+  static tokenType?: P.TokenConstructor
+
   /**
    * Accessor pair (rather than a plain field) so subclasses like `Word` can override the getter.
    * - Backing field is `declare`d because `Object.assign(this, props)` in `Rule` runs before subclass initializers.
@@ -40,7 +46,7 @@ export class TokenType extends Rule<TokenTypeProps> {
   }
 
   /** Output is just the matched `match.value`. */
-  compile(match: P.Match) {
+  compile(match: P.MatchFor<this>) {
     return match.value
   }
 }

@@ -146,14 +146,14 @@ export class Parser extends Derivative {
   }
 
   /**
-   * Setting `rules` through assignment calls `defineRules()`, adding to our existing rules.
+   * Setting `rules` through assignment `addRule()`s each one, adding to our existing rules.
    * - You'll typically set default rules when initializing a parser:
-   *   `const myParser = new Parser({ module: "xxx", rules: [...] })`.
-   * TESTME!!!
+   *   `const myParser = new Parser({ module: "xxx", rules: [some_rule, other_rule] })`.
+   * - Order matters:  when two rules tie, the LATER one wins.
    */
-  set rules(rules: P.RuleDefinition[]) {
+  set rules(rules: P.RuleInput[]) {
     this.clearDerived("rules")
-    this.defineRules(...rules)
+    rules.forEach((rule) => this.addRule(rule))
   }
 
   /** Return a named rule from our parser. Throws if not found. */
@@ -171,14 +171,26 @@ export class Parser extends Derivative {
 
   /**
    * Add a `rule` to our list of rules!
+   * - Rule CLASS is `instantiate()`d -- one frozen instance per `syntax` variant -- and added under
+   *   its name + aliases, plus `_testable_` if it has tests.  Returns array if there are several.
+   * - Rule INSTANCE is added under `ruleName`, defaulting to `rule.name`.
    * - Converts to `P.Group` on re-defining the same rule.
+   * - Throws on anything unusable, e.g. bad `syntax` -- better at startup than a mystery parse failure later.
    */
-  addRule(rule: P.Rule | P.RuleConstructor, ruleName?: string | string[]): P.Rule | undefined {
+  addRule(rule: P.Rule | P.RuleConstructor, ruleName?: string | string[]): P.Rule | P.Rule[] | undefined {
     // Clear memoized "rules" so we'll recalculate them
     this.clearDerived("rules")
 
-    // If rule is a Rule subclass, instantiate it
-    if (typeof rule === "function") rule = new rule()
+    // If rule is a Rule subclass, instantiate it and add each instance under all of its names
+    if (typeof rule === "function") {
+      const ruleClass = rule as unknown as typeof P.Rule
+      const instances = ruleClass.instantiate(this.module ? { module: this.module } : undefined)
+      instances.forEach((instance) => {
+        const names: string[] = ruleName ? [ruleName].flat() : instance.names
+        this.addRule(instance, instance.tests ? [...names, "_testable_"] : names)
+      })
+      return instances.length === 1 ? instances[0] : instances.length ? instances : undefined
+    }
 
     // If we didn't get a ruleName, try `rule.name`
     if (!ruleName) {
@@ -194,8 +206,12 @@ export class Parser extends Derivative {
     }
 
     if (!(rule instanceof P.Rule)) {
-      console.warn("addRule() called with a non-rule.  Did you mean to call defineRule()?\n", rule)
-      return undefined
+      throw new P.ParserError({
+        message: "addRule() expects a Rule class or instance.",
+        context: this,
+        activity: "addRule",
+        params: { rule, ruleName }
+      })
     }
 
     // If we got an array of `ruleName`s, recursively add under each name with the same `rule`.
@@ -244,16 +260,16 @@ export class Parser extends Derivative {
 
     // Merge existing rule and rule passed in as a new Group
     const group =
-      existing instanceof P.Group ? existing.clone() : new P.Group({ rules: [existing], argument: ruleName })
+      existing instanceof P.Group ? existing.clone() : new P.Group({ rules: [existing], matchGroup: ruleName })
     map[ruleName] = group
 
-    // If rule is ALSO a group with the same argument, merge the groups.
-    if (rule instanceof P.Group && rule.argument === existing.argument) group.addChoice(this, ...rule.rules)
+    // If rule is ALSO a group with the same matchGroup, merge the groups.
+    if (rule instanceof P.Group && rule.matchGroup === existing.matchGroup) group.addChoice(this, ...rule.rules)
     else group.addChoice(this, rule)
   }
 
   ////////////////
-  // ## Defining rules using the "rulex" syntax
+  // ## Rulex -- regex-like syntax which rule classes use for `static syntax`
   ////////////////
 
   /**
@@ -263,145 +279,6 @@ export class Parser extends Derivative {
    *   `import ~/languages/rulex`.
    */
   static rulexParser: P.RulexParser | undefined
-
-  /**
-   * Define multiple rules at once.
-   * NOTE: it's better to do this using individual `defineRule()` calls
-   * as error stack traces will get you to the right line if there's a problem.
-   */
-  defineRules(...ruleProps: Array<P.RuleInput | P.RuleInput[]>): P.Rule[] {
-    return ruleProps.flat().flatMap((props) => this.defineRule(props) ?? [])
-  }
-
-  /**
-   * Simplified way to define and install a rule using one of:
-   * - `syntax` Rulex string to define rules using regex-like syntax
-   * - `pattern` for regular expressions
-   * - `literal` for a single literal string
-   * - `literals` for an array of literal strings
-   * - `tokenType` for a token type
-   *
-   * Other things you might specify:
-   * - `name` (required)  Base name of the rule.
-   * - `constructor` (`Rule` subclass) Class which will be used to instantiate the rule.
-   * - `alias` (string or `string[]`, optional) Other names to define rule under.
-   * - `syntax` (string, required) RuleSyntax string for this rule.
-   * - `pattern` (RegExp, optional) Regular expression for `Pattern` rules
-   * - `precedence` (number, optional) Precedence number for the rule (currently doesn't do anything)
-   * - `blacklist` (`string[]`, optional) Array of strings as blacklist for pattern rules.
-   * - `testRule` (Rule or string, optional) Rule or keywords string to use as a test rule.
-   *    Specifying this can let us jump out quickly if there is no possible match.
-   * - `skip` (boolean, optional) Set to true to skip this rule, e.g. if it's not working.
-   *
-   * TODO: separate out into `initRule()` and `addRule()`
-   */
-  defineRule(ruleProps: P.RuleInput): P.Rule | P.Rule[] | undefined {
-    // Clear memoized "rules" so we'll recalculate them
-    this.clearDerived("rules")
-    // If passed in a Rule instance or rule constructor, addRule
-    if (ruleProps instanceof P.Rule || typeof ruleProps === "function") return this.addRule(ruleProps)
-
-    // Make sure `rulex` parser is defined if we will need it.
-    if (!Parser.rulexParser && (typeof ruleProps.testRule === "string" || ruleProps.syntax)) {
-      throw new TypeError(
-        'Rulex parser is not installed.  Use `import "~/languages/rulex"` to import it and try again.'
-      )
-    }
-
-    try {
-      let { skip, constructor: ctor, ...props } = ruleProps
-      // If `constructor` was not specified, it will be `Object`: we're expecting a Rule subclass, so clear it.
-      let constructor = ctor === Object ? undefined : (ctor as P.RuleConstructor | undefined)
-      if (skip) return undefined
-
-      // If we received multiple syntax strings, recursively add under each string.
-      if (Array.isArray(props.syntax)) {
-        return props.syntax.flatMap((syntax, index) => {
-          // only add tests to the first one so we don't run the same tests repeatedly.
-          if (index > 0) delete props.tests
-          // handle syntax as a string
-          if (typeof syntax === "string") return this.defineRule({ ...props, syntax, constructor }) ?? []
-          // or as an object (e.g. so you can specify separate testRules)
-          return this.defineRule({ ...props, ...syntax, constructor }) ?? []
-        })
-      }
-
-      // Note the module that the rule was defined in
-      if (this.module) props.module = this.module
-
-      // Convert `testRule` to proper thing if necessary
-      const { testRule } = props
-      if (typeof testRule === "string") {
-        // Convert string using rule syntax
-        const compiled = Parser.rulexParser!.compile(testRule)
-        compiled.syntax = testRule
-        props.testRule = compiled
-      }
-
-      // Parse rulex `syntax` to create rules to work with
-      let rule: P.Rule
-      if (props.syntax) {
-        // Use the `rulex` compiler to generate a rule
-        rule = Parser.rulexParser!.compile(props.syntax)
-        if (!rule)
-          throw new P.ParserError({
-            message: `Didn't get a rule from rulex.compile('${props.syntax}')`,
-            context: this,
-            activity: "defineRule",
-            params: { ruleProps, syntax: props.syntax }
-          })
-
-        // If we're constructing a sequence, make sure we've got `rules`...
-        if (constructor && constructor.prototype instanceof P.Sequence && !(rule instanceof P.Sequence)) {
-          props.rules = [rule]
-        } else {
-          // oxlint-disable-next-line typescript/no-misused-spread
-          props = { ...rule, ...props }
-        }
-        if (!constructor) constructor = rule.constructor as P.RuleConstructor
-      }
-
-      if (!constructor) {
-        if (props.tokenType) constructor = P.TokenType
-        else if (props.pattern) constructor = P.Pattern
-        else if (props.literal) constructor = P.Keyword
-        else if (props.literals) constructor = P.Keywords
-        else {
-          throw new P.ParserError({
-            message: `You must pass 'constructor', 'syntax', 'pattern', 'literal', or 'literals'.`,
-            context: this,
-            activity: "defineRule",
-            params: { ruleProps }
-          })
-        }
-      }
-
-      // Create the rule instance
-      rule = new constructor(props)
-
-      // throw if name was not provided
-      const name = props.name
-      if (!name) {
-        throw new P.ParserError({
-          message: `You must pass 'rule.name'.`,
-          context: this,
-          activity: "defineRule",
-          params: { props }
-        })
-      }
-      // Combine aliases with the main name and add rule under all the names
-      const names = [name].concat(props.alias || [])
-      // Add to the list of testable rules if we have tests.
-      if (props.tests) names.push("_testable_")
-
-      // add under all of the names provided
-      return this.addRule(rule, names)
-    } catch (error) {
-      // If not on the server, change to a warning instead
-      console.warn("Error in defineRule():", error, "\nprops:", ruleProps)
-    }
-    return undefined
-  }
 
   ////////////////
   // ## Testing
@@ -529,8 +406,8 @@ export type ParserProps = {
   module?: string
   /** Rule to parse/compile with if none is specified. */
   defaultRule?: string
-  /** Rules to define immediately, via `defineRules()`. */
-  rules?: P.RuleDefinition[]
+  /** Rule classes (or instances) to add immediately, via `addRule()`. */
+  rules?: P.RuleInput[]
   /** Other parsers whose rules to import. */
   imports?: Parser[]
 }

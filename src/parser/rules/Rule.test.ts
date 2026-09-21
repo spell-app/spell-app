@@ -1,4 +1,5 @@
 import { describe, test, expect } from "vitest"
+import { proto } from "~/util"
 import { P, Match, Parser, TestLocation, Tokenizer, WhitespacePolicy } from "~/parser"
 // These tests define rules with rulex `syntax`, so they must opt into the rulex parser.
 import "~/languages/rulex"
@@ -399,15 +400,13 @@ describe("P.Pattern", () => {
 describe("P.Subrule", () => {
   const parser = new Parser()
   const scope = parser.getScope()
-  parser.defineRules(
-    new P.Keywords({ name: "this", literals: ["this"] }),
-    new P.Keywords({ name: "that", literals: ["that"] }),
-    {
-      name: "sequence",
-      syntax: "{this} {that}",
-      testRule: new P.Keywords(["this", "that"])
-    }
-  )
+  parser.addRule(new P.Keywords({ name: "this", literals: ["this"] }))
+  parser.addRule(new P.Keywords({ name: "that", literals: ["that"] }))
+  class sequence extends P.Sequence {
+    @proto static syntax = "{this} {that}"
+    @proto static testRule = "this that"
+  }
+  parser.addRule(sequence)
 
   describe("simple rules", () => {
     describe("test() method", () => {
@@ -522,12 +521,12 @@ describe("P.Choice", () => {
 
   const ruleStart = new P.Choice({
     rules: [new P.Keywords("this"), new P.Keywords("that"), new P.Keywords("other")],
-    argument: "arg"
+    matchGroup: "arg"
   })
 
   const ruleAnywhere = new P.Choice({
     rules: [new P.Keywords("this"), new P.Keywords("that"), new P.Keywords("other")],
-    argument: "arg",
+    matchGroup: "arg",
     testLocation: TestLocation.ANYWHERE
   })
 
@@ -588,9 +587,9 @@ describe("P.Choice", () => {
       expect(match).toBeUndefined()
     })
 
-    test("sets 'argument' on the result", () => {
+    test("sets 'matchGroup' on the result", () => {
       const match = ruleStart.parse(scope, tokenize("this"))!
-      expect(match.argument).toBe("arg")
+      expect(match.matchGroup).toBe("arg")
     })
   })
 })
@@ -718,29 +717,27 @@ describe("P.Repeat", () => {
 describe("P.Sequence", () => {
   const parser = new Parser()
   const scope = parser.getScope()
-  parser.defineRules(
-    new P.Keywords({ name: "that", literals: ["that"] }),
-    new P.Keywords({ name: "other", literals: ["other"] }),
-    {
-      name: "noTest",
-      syntax: "this {that} the {other}"
-    },
-    {
-      name: "atStart",
-      syntax: "this {that} the {other}",
-      testRule: new P.Keywords("this")
-    },
-    {
-      name: "anywhere",
-      syntax: "this {that} the {other}",
-      testRule: new P.Keywords("this"),
-      testLocation: TestLocation.ANYWHERE
-    },
-    {
-      name: "noCompile",
-      syntax: "this {that} the {other}"
-    }
-  )
+  parser.addRule(new P.Keywords({ name: "that", literals: ["that"] }))
+  parser.addRule(new P.Keywords({ name: "other", literals: ["other"] }))
+  class noTest extends P.Sequence {
+    @proto static syntax = "this {that} the {other}"
+  }
+  class atStart extends P.Sequence {
+    @proto static syntax = "this {that} the {other}"
+    @proto static testRule = "this"
+  }
+  class anywhere extends P.Sequence {
+    @proto static syntax = "this {that} the {other}"
+    @proto static testRule = "this"
+    @proto static testLocation = TestLocation.ANYWHERE
+  }
+  class noCompile extends P.Sequence {
+    @proto static syntax = "this {that} the {other}"
+  }
+  parser.addRule(noTest)
+  parser.addRule(atStart)
+  parser.addRule(anywhere)
+  parser.addRule(noCompile)
 
   describe("sequences without a compile method", () => {
     const rule = parser.rules.noCompile

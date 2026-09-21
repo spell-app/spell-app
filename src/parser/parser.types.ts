@@ -23,21 +23,72 @@ export type TestLocation = keyof typeof TestLocation
 /** Alpha-numeric word, including dashes or underscores. */
 export const ALPHANUMERIC_WORD_WITH_DASHES = /^[a-zA-Z][\w-]*$/
 
-// ## Rulex language
+// ## Match groups & data
 
 /**
- * Given a list of group names separated by `:`, return an object type for `match.groups`.
- * - e.g. `Match<RulexGroups<"lhs:rhs">>` gives `groups: { lhs?: Match; rhs?: Match }`
- * - Pass `ValueType` to override, e.g. `RulexGroups<"items", Match[]>` for repeated groups.
+ * Widest possible `match.groups` shape -- constraint and default for a RULE's `Groups` type argument.
+ * - MUST stay the top type:  `Rule<Props, X>` is only assignable to bare `P.Rule` if `X` is assignable to this,
+ *   and inside a generic rule class TypeScript can't prove anything narrower about unresolved `GroupsFor<...>`.
+ * - NOTE: by convention groups only ever hold `Match | Match[]` -- what the syntax matched.  Bare `P.Match`
+ *   defaults to `P.MatchGroups`, which says so.  Anything a rule works out for itself goes in `match.data`.
  */
-export type RulexGroups<GroupString extends string, ValueType = P.Match> = Prettify<
-  Partial<{
-    [Group in SplitString<GroupString>]: ValueType
-  }>
+export type AnyGroups = Record<string, unknown>
+
+/**
+ * Widest possible `match.data` shape -- default `MatchData` for bare `P.Rule` and `P.Match`.
+ * - Rules declare what they stash, e.g. `{ constant?: P.ScopeConstant }`;  readers narrow with `match.is(rule)`.
+ */
+export type AnyMatchData = Record<string, unknown>
+
+/**
+ * Object type for `match.groups` from a spec of group names separated by `|`.
+ * - `name` => required
+ * - `name?` => optional, e.g. for `{name:rule}?` or name missing from some `syntax` variant
+ * - `name[]` / `name[]?` => array of values, for a name which appears more than once in one sequence
+ * - e.g. `GroupsFor<"type|property|specifier?">` ~== `{ type: Match; property: Match; specifier?: Match }`
+ * - Pass `ValueType` to override, e.g. `GroupsFor<"props", P.ASTVariableExpression[]>`.
+ * - NOTE: lists / repeats are a SINGLE `Match` -- repeated items are in its `.items`.
+ */
+export type GroupsFor<Spec extends string, ValueType = P.Match> = Prettify<
+  {
+    [Key in SplitString<Spec, "|"> as Key extends `${string}?` ? never : GroupName<Key>]: GroupValue<Key, ValueType>
+  } & {
+    [Key in SplitString<Spec, "|"> as Key extends `${string}?` ? GroupName<Key> : never]?: GroupValue<Key, ValueType>
+  }
 >
 
-/** Groups for the optional `testLocation`, `argument` and `repeatFlag` rules which adorn most rulex rules. */
-export type FlagGroups = RulexGroups<"repeatFlag:argument:testLocation">
+/** Group name from one `GroupsFor` spec entry, minus `[]` / `?` adornments. */
+type GroupName<Key> = Key extends `${infer Name}[]?`
+  ? Name
+  : Key extends `${infer Name}[]`
+    ? Name
+    : Key extends `${infer Name}?`
+      ? Name
+      : Key
+
+/** Group value from one `GroupsFor` spec entry:  array if adorned with `[]`. */
+type GroupValue<Key, ValueType> = Key extends `${string}[]` | `${string}[]?` ? ValueType[] : ValueType
+
+/**
+ * Resolve a rule's `Groups` type argument, which may be:
+ * - `GroupsFor` spec string, e.g. `"lhs|rhs?"`
+ * - explicit object type, for shapes a flat spec can't say, e.g. a group whose value is itself a typed `Match`
+ * - NOTE: tuple-wrapped so `never` resolves to `{}` (no groups) rather than distributing to `never`.
+ */
+export type ResolveGroups<Groups extends string | AnyGroups> = [Groups] extends [string]
+  ? GroupsFor<Groups & string>
+  : Extract<Groups, AnyGroups>
+
+/**
+ * `Match` type produced by `RuleType`, with its `groups` and `data` shapes.
+ * - Use `P.MatchFor<this>` for `match` params of rule hooks (`getAST()`, `mutateScope()` etc).
+ * - Constraint is structural (just those type-only members) rather than `P.Rule<any, any, any>`:
+ *   inside a generic rule class, `this` has unresolved `Groups` which won't match `any`-instantiated `Rule`.
+ */
+export type MatchFor<RuleType extends RuleTypeArgs> = P.Match<RuleType["Groups"], RuleType["MatchData"]>
+
+/** Type-only members of `P.Rule` which re-publish its type arguments -- see `MatchFor`, `Rule.Groups`. */
+export type RuleTypeArgs = { readonly Groups: AnyGroups; readonly MatchData: AnyMatchData }
 
 // ## Errors
 

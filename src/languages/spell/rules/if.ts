@@ -1,5 +1,6 @@
 /** Rules for `if`/`else if`/`else` statements, plus the backwards `if...else` ternary suffix. */
 
+import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -7,318 +8,303 @@ import { SpellStatement } from "./Statement"
 import { InfixOperatorSuffix } from "./expressions"
 
 /**
- * Match groups shared by `if`/`else_if`.
- * - `condition` -- the boolean expression, from `P.RulexGroups<"condition">`.
- * - `inlineStatement` -- single-line body, e.g. `if a then b = 1`.
- * - `nestedBlock` -- indented multi-line body immediately following the `if`/`else if` line.
+ * `if {condition} (then|:)?` statement, with an inline statement or an indented nested block as body.
+ * - Named `_if` to avoid the reserved word `if` -- `static ruleName = "if"` keeps the actual rule name;
+ *   the module export below is `_if_` for the same reason.
+ * - `wantsInlineStatement`/`wantsNestedBlock`: doesn't parse its own body -- `SpellStatement` parses a
+ *   trailing inline statement, or `BlockLine` parses a following indented block, into `match.groups`.
+ * - Compiles body in a nested `BlockScope` (named `"if"`) via `getNestedScopeForMatch()`.
+ * - Prefers `nestedBlock` over `inlineStatement` when (invalidly) given both.
+ * - Compiles to `if (condition) { ...statements }`.
  */
-type IfGroups = P.RulexGroups<"condition"> & { inlineStatement?: P.Match; nestedBlock?: P.Match }
+export class _if extends SpellStatement<"condition|inlineStatement?|nestedBlock?"> {
+  static ruleName = "if"
+  @proto static alias = "statement"
+  @proto static syntax = "if {condition:expression} (then|:)?"
+  @proto static testRule = "if"
+  @proto static wantsInlineStatement = true
+  @proto static wantsNestedBlock = true
 
-/**
- * Match groups for `else` -- optional inline/nested-block statement, no `condition`.
- * - `inlineStatement` -- single-line body, e.g. `else b = 1`.
- * - `nestedBlock` -- indented multi-line body immediately following `else`.
- */
-type ElseGroups = { inlineStatement?: P.Match; nestedBlock?: P.Match }
+  getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
+    return new P.BlockScope({ name: "if", parentScope: match.scope })
+  }
+  getAST(match: P.MatchFor<this>): P.ASTIfStatement {
+    const { condition, inlineStatement, nestedBlock } = match.groups
+    // Prefer nestedBlock if we get both
+    return new P.ASTIfStatement(match, {
+      condition: condition.AST as P.ASTExpression,
+      statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
+    })
+  }
 
-export const _if_ = new SpellParser({
-  module: "if",
-  rules: [
-    /**
-     * `if {condition} (then|:)?` statement, with an inline statement or an indented nested block as body.
-     * - `wantsInlineStatement`/`wantsNestedBlock`: doesn't parse its own body -- `SpellStatement` parses a
-     *   trailing inline statement, or `BlockLine` parses a following indented block, into `match.groups`.
-     * - Compiles body in a nested `BlockScope` (named `"if"`) via `getNestedScopeForMatch()`.
-     * - Prefers `nestedBlock` over `inlineStatement` when (invalidly) given both.
-     * - Compiles to `if (condition) { ...statements }`.
-     */
+  static tests: P.RuleTests = [
     {
-      name: "if",
-      alias: "statement",
-      syntax: "if {condition:expression} (then|:)?",
-      testRule: "if",
-      wantsInlineStatement: true,
-      wantsNestedBlock: true,
-      constructor: class _if extends SpellStatement {
-        getNestedScopeForMatch(match: P.AnyMatch): P.Scope {
-          return new P.BlockScope({ name: "if", parentScope: match.scope })
-        }
-        getAST(match: P.Match<IfGroups>): P.ASTIfStatement {
-          const { condition, inlineStatement, nestedBlock } = match.groups
-          // Prefer nestedBlock if we get both
-          return new P.ASTIfStatement(match, {
-            condition: condition!.AST as P.ASTExpression,
-            statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
-          })
-        }
+      title: "correctly matches single-line if statements",
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        ;(scope as P.BlockScope).variables.add("a")
       },
       tests: [
-        {
-          title: "correctly matches single-line if statements",
-          compileAs: "block",
-          beforeEach(scope) {
-            ;(scope as P.BlockScope).variables.add("a")
-          },
-          tests: [
-            ["if a", "if (a) {}"],
-            ["if a then", "if (a) {}"],
-            ["if a:", "if (a) {}"],
-            ["if a then b = 1", "if (a) { let b = 1 }"],
-            ["if a: b = 1", "if (a) { let b = 1 }"],
-            ["if a : b = 1", "if (a) { let b = 1 }"]
-          ]
-        },
-        {
-          title: "correctly matches multi-line if blocks",
-          compileAs: "block",
-          beforeEach(scope) {
-            ;(scope as P.BlockScope).variables.add("a")
-          },
-          tests: [
-            {
-              title: "Separate blocks if no indentation on second line.",
-              input: ["if a:", "b = 1"],
-              output: ["if (a) {}", "export let b = 1"] // NOTE: this is correct!
-            },
-            {
-              title: "Single tabbed statement appears inline",
-              input: ["if a:", "\tb = 1"],
-              output: "if (a) { let b = 1 }"
-            },
-            {
-              title: "ANY number of spaces should count as indentation",
-              input: ["if a:", " b = 1"],
-              output: "if (a) { let b = 1 }"
-            },
-            {
-              title: "Indent with tab, output has tabs spaces",
-              input: ["if a:", "\tb = 1", "\tc=1"],
-              output: ["if (a) {", "\tlet b = 1", "\tlet c = 1", "}"]
-            },
-            {
-              title: "Multiple lines in the nested block",
-              input: ["if a:", "\tb = 1", "\tc = 2"],
-              output: ["if (a) {", "\tlet b = 1", "\tlet c = 2", "}"]
-            },
-            {
-              title: "Nested ifs work fine",
-              input: ["if a", "\tb = 1", "\tif b", "\t\tc = 2", "\t\td = 3"],
-              output: ["if (a) {", "\tlet b = 1", "\tif (b) {", "\t\tlet c = 2", "\t\tlet d = 3", "\t}", "}"]
-            },
-            {
-              title: "Show error if nested block AND inline statement. Prefer block.",
-              input: ["if a b = 1", "\tc = 2"],
-              output: ["if (a) { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"]
-            }
-          ]
-        }
+        ["if a", "if (a) {}"],
+        ["if a then", "if (a) {}"],
+        ["if a:", "if (a) {}"],
+        ["if a then b = 1", "if (a) { let b = 1 }"],
+        ["if a: b = 1", "if (a) { let b = 1 }"],
+        ["if a : b = 1", "if (a) { let b = 1 }"]
       ]
     },
-
-    /**
-     * `(else|otherwise) if {condition} (then|:)?` -- else-if branch, chained after `if`.
-     * - NOTE: this MUST be before `else` or that will eat `else if` statements... :-(
-     * - `precedence: 1` (default 0) also biases resolution toward this rule over `_else` when ambiguous.
-     *   TODO: is `precedence` load-bearing here, or does rule-definition order (see NOTE above) suffice?
-     * - Compiles body in a nested `BlockScope` (named `"elseif"`) via `getNestedScopeForMatch()`.
-     * - Prefers `nestedBlock` over `inlineStatement` when (invalidly) given both.
-     * - Compiles to `else if (condition) { ...statements }`.
-     */
     {
-      name: "else_if",
-      alias: "statement",
-      syntax: "(else|otherwise) if {condition:expression} (then|:)?",
-      testRule: "(else|otherwise)",
-      precedence: 1,
-      wantsInlineStatement: true,
-      wantsNestedBlock: true,
-      constructor: class else_if extends SpellStatement {
-        getNestedScopeForMatch(match: P.AnyMatch): P.Scope {
-          return new P.BlockScope({ name: "elseif", parentScope: match.scope })
-        }
-        getAST(match: P.Match<IfGroups>): P.ASTElseIfStatement {
-          const { condition, inlineStatement, nestedBlock } = match.groups
-          return new P.ASTElseIfStatement(match, {
-            condition: condition!.AST as P.ASTExpression,
-            statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
-          })
-        }
+      title: "correctly matches multi-line if blocks",
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        ;(scope as P.BlockScope).variables.add("a")
       },
       tests: [
         {
-          title: "correctly matches single-line else_if statements",
-          compileAs: "block",
-          beforeEach(scope) {
-            ;(scope as P.BlockScope).variables.add("a")
-          },
-          tests: [
-            ["else if a", "else if (a) {}"],
-            ["else if a:", "else if (a) {}"],
-            ["else if a then", "else if (a) {}"],
-            ["else if a b = 1", "else if (a) { let b = 1 }"],
-            ["else if a: b = 1", "else if (a) { let b = 1 }"],
-            ["else if a then b = 1", "else if (a) { let b = 1 }"]
-          ]
+          title: "Separate blocks if no indentation on second line.",
+          input: ["if a:", "b = 1"],
+          output: ["if (a) {}", "export let b = 1"] // NOTE: this is correct!
         },
         {
-          title: "correctly matches multi-line else_if blocks",
-          compileAs: "block",
-          beforeEach(scope) {
-            ;(scope as P.BlockScope).variables.add("a")
-          },
-          tests: [
-            {
-              title: "Separate blocks if no indentation on second line.",
-              input: ["else if a:", "b = 1"],
-              output: ["else if (a) {}", "export let b = 1"]
-            },
-            {
-              title: "Indent with tab",
-              input: ["else if a:", "\tb = 1"],
-              output: "else if (a) { let b = 1 }"
-            },
-            {
-              title: "ANY number of spaces should count as indentation",
-              input: ["else if a:", " b = 1"],
-              output: "else if (a) { let b = 1 }"
-            },
-            {
-              title: "Multiple lines in the nested block",
-              input: ["else if a:", "\tb = 1", "\tc = 2"],
-              output: ["else if (a) {", "\tlet b = 1", "\tlet c = 2", "}"]
-            },
-            {
-              title: "Nested else ifs work fine",
-              input: ["else if a", "\tif a", "\t\tc=2"],
-              output: "else if (a) { if (a) { let c = 2 } }"
-            },
-            {
-              title: "Show error if nested block AND inline statement. Prefer block.",
-              input: ["else if a b = 1", "\tc = 2"],
-              output: ["else if (a) { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"]
-            }
-          ]
-        }
-      ]
-    },
-
-    /**
-     * `(else|otherwise) :?` -- else branch; must be tried after `else_if` (see NOTE there) so this
-     * rule's bare `(else|otherwise)` prefix doesn't eat an `else if` statement.
-     * - Compiles body in a nested `BlockScope` (named `"else"`) via `getNestedScopeForMatch()`.
-     * - Compiles to `else { ...statements }`.
-     */
-    {
-      name: "_else",
-      alias: "statement",
-      syntax: "(else|otherwise) :?",
-      testRule: "(else|otherwise)",
-      wantsInlineStatement: true,
-      wantsNestedBlock: true,
-      constructor: class _else extends SpellStatement {
-        getNestedScopeForMatch(match: P.AnyMatch): P.Scope {
-          return new P.BlockScope({ name: "else", parentScope: match.scope })
-        }
-        getAST(match: P.Match<ElseGroups>): P.ASTElseStatement {
-          const { inlineStatement, nestedBlock } = match.groups
-          return new P.ASTElseStatement(match, {
-            statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
-          })
-        }
-      },
-      tests: [
-        {
-          title: "correctly matches single-line else statements",
-          compileAs: "block",
-          tests: [
-            ["else", "else {}"],
-            ["otherwise", "else {}"],
-            ["else: b = 1", "else { let b = 1 }"],
-            ["otherwise: b = 1", "else { let b = 1 }"],
-            ["else b = 1", "else { let b = 1 }"],
-            ["otherwise b = 1", "else { let b = 1 }"]
-          ]
+          title: "Single tabbed statement appears inline",
+          input: ["if a:", "\tb = 1"],
+          output: "if (a) { let b = 1 }"
         },
         {
-          title: "correctly matches multi-line else blocks",
-          compileAs: "block",
-          tests: [
-            {
-              title: "Separate blocks if no indentation on second line.",
-              input: ["else", "b = 1"],
-              output: ["else {}", "export let b = 1"]
-            },
-            {
-              title: "Indent with tab",
-              input: ["else", "\tb = 1"],
-              output: "else { let b = 1 }"
-            },
-            {
-              title: "ANY number of spaces should count as indentation",
-              input: ["else", " b = 1"],
-              output: "else { let b = 1 }"
-            },
-            {
-              title: "Multiple lines in the nested block",
-              input: ["else", "\tb = 1", "\tlet c = 2"],
-              output: ["else {", "\tlet b = 1", "\tlet c = 2", "}"]
-            },
-            {
-              title: "Show error if nested block AND inline statement. Prefer block.",
-              input: ["else b = 1", "\tc = 2"],
-              output: ["else { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"]
-            }
-          ]
-        }
-      ]
-    },
-
-    /**
-     * Postfix ternary: `{expr} if {condition} (else|otherwise) {expr}` -- English word order
-     * ("do X if Y else Z") rather than `condition ? then : else`.
-     * - `expression_suffix`: `lhs` (the value before `if`) is supplied by `compound_expression`'s
-     *   shunting-yard; this rule's own `syntax` only spells out `operator` (actually the *condition*
-     *   expression here) and the trailing `rhs` expression.
-     * - Compiles to `P.ASTTernaryExpression`.
-     */
-    {
-      name: "backwards_if",
-      alias: "expression_suffix",
-      syntax: "if {operator:expression} (else|otherwise) {expression}",
-      constructor: class backwards_if extends InfixOperatorSuffix {
-        compileASTExpression(
-          match: P.Match,
-          { lhs, operator, rhs }: { lhs: P.ASTExpression; operator: P.Match; rhs: P.ASTExpression }
-        ): P.ASTTernaryExpression {
-          return new P.ASTTernaryExpression(match, {
-            condition: operator.AST as P.ASTExpression,
-            trueValue: lhs,
-            falseValue: rhs
-          })
-        }
-      },
-      tests: [
+          title: "ANY number of spaces should count as indentation",
+          input: ["if a:", " b = 1"],
+          output: "if (a) { let b = 1 }"
+        },
         {
-          title: "correctly matches single-line backwards_if statements",
-          compileAs: "block",
-          beforeEach(scope) {
-            const { variables } = scope as P.BlockScope
-            variables.add("bar")
-            variables.add("foo")
-          },
-          tests: [
-            { input: "print 1 if bar else 2", output: "spellCore.console.log((bar ? 1 : 2))" },
-            {
-              input: "get the foo of the bar if bar is defined otherwise the bar of the foo",
-              output: "let it = (spellCore.isDefined(bar) ? bar.foo : foo.bar)"
-            },
-            {
-              input: `set color to "red" if 1 + 1 else "black"`,
-              output: `export let color = ((1 + 1) ? "red" : "black")`
-            }
-          ]
+          title: "Indent with tab, output has tabs spaces",
+          input: ["if a:", "\tb = 1", "\tc=1"],
+          output: ["if (a) {", "\tlet b = 1", "\tlet c = 1", "}"]
+        },
+        {
+          title: "Multiple lines in the nested block",
+          input: ["if a:", "\tb = 1", "\tc = 2"],
+          output: ["if (a) {", "\tlet b = 1", "\tlet c = 2", "}"]
+        },
+        {
+          title: "Nested ifs work fine",
+          input: ["if a", "\tb = 1", "\tif b", "\t\tc = 2", "\t\td = 3"],
+          output: ["if (a) {", "\tlet b = 1", "\tif (b) {", "\t\tlet c = 2", "\t\tlet d = 3", "\t}", "}"]
+        },
+        {
+          title: "Show error if nested block AND inline statement. Prefer block.",
+          input: ["if a b = 1", "\tc = 2"],
+          output: ["if (a) { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"]
         }
       ]
     }
   ]
+}
+
+/**
+ * `(else|otherwise) if {condition} (then|:)?` -- else-if branch, chained after `if`.
+ * - NOTE: this MUST be before `else` or that will eat `else if` statements... :-(
+ * - `precedence: 1` (default 0) also biases resolution toward this rule over `_else` when ambiguous.
+ *   TODO: is `precedence` load-bearing here, or does rule-definition order (see NOTE above) suffice?
+ * - Compiles body in a nested `BlockScope` (named `"elseif"`) via `getNestedScopeForMatch()`.
+ * - Prefers `nestedBlock` over `inlineStatement` when (invalidly) given both.
+ * - Compiles to `else if (condition) { ...statements }`.
+ */
+export class else_if extends SpellStatement<"condition|inlineStatement?|nestedBlock?"> {
+  @proto static alias = "statement"
+  @proto static syntax = "(else|otherwise) if {condition:expression} (then|:)?"
+  @proto static testRule = "(else|otherwise)"
+  @proto static precedence = 1
+  @proto static wantsInlineStatement = true
+  @proto static wantsNestedBlock = true
+
+  getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
+    return new P.BlockScope({ name: "elseif", parentScope: match.scope })
+  }
+  getAST(match: P.MatchFor<this>): P.ASTElseIfStatement {
+    const { condition, inlineStatement, nestedBlock } = match.groups
+    return new P.ASTElseIfStatement(match, {
+      condition: condition.AST as P.ASTExpression,
+      statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
+    })
+  }
+
+  static tests: P.RuleTests = [
+    {
+      title: "correctly matches single-line else_if statements",
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        ;(scope as P.BlockScope).variables.add("a")
+      },
+      tests: [
+        ["else if a", "else if (a) {}"],
+        ["else if a:", "else if (a) {}"],
+        ["else if a then", "else if (a) {}"],
+        ["else if a b = 1", "else if (a) { let b = 1 }"],
+        ["else if a: b = 1", "else if (a) { let b = 1 }"],
+        ["else if a then b = 1", "else if (a) { let b = 1 }"]
+      ]
+    },
+    {
+      title: "correctly matches multi-line else_if blocks",
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        ;(scope as P.BlockScope).variables.add("a")
+      },
+      tests: [
+        {
+          title: "Separate blocks if no indentation on second line.",
+          input: ["else if a:", "b = 1"],
+          output: ["else if (a) {}", "export let b = 1"]
+        },
+        {
+          title: "Indent with tab",
+          input: ["else if a:", "\tb = 1"],
+          output: "else if (a) { let b = 1 }"
+        },
+        {
+          title: "ANY number of spaces should count as indentation",
+          input: ["else if a:", " b = 1"],
+          output: "else if (a) { let b = 1 }"
+        },
+        {
+          title: "Multiple lines in the nested block",
+          input: ["else if a:", "\tb = 1", "\tc = 2"],
+          output: ["else if (a) {", "\tlet b = 1", "\tlet c = 2", "}"]
+        },
+        {
+          title: "Nested else ifs work fine",
+          input: ["else if a", "\tif a", "\t\tc=2"],
+          output: "else if (a) { if (a) { let c = 2 } }"
+        },
+        {
+          title: "Show error if nested block AND inline statement. Prefer block.",
+          input: ["else if a b = 1", "\tc = 2"],
+          output: ["else if (a) { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"]
+        }
+      ]
+    }
+  ]
+}
+
+/**
+ * `(else|otherwise) :?` -- else branch; must be tried after `else_if` (see NOTE there) so this
+ * rule's bare `(else|otherwise)` prefix doesn't eat an `else if` statement.
+ * - Compiles body in a nested `BlockScope` (named `"else"`) via `getNestedScopeForMatch()`.
+ * - Compiles to `else { ...statements }`.
+ */
+export class _else extends SpellStatement<"inlineStatement?|nestedBlock?"> {
+  @proto static alias = "statement"
+  @proto static syntax = "(else|otherwise) :?"
+  @proto static testRule = "(else|otherwise)"
+  @proto static wantsInlineStatement = true
+  @proto static wantsNestedBlock = true
+
+  getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
+    return new P.BlockScope({ name: "else", parentScope: match.scope })
+  }
+  getAST(match: P.MatchFor<this>): P.ASTElseStatement {
+    const { inlineStatement, nestedBlock } = match.groups
+    return new P.ASTElseStatement(match, {
+      statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
+    })
+  }
+
+  static tests: P.RuleTests = [
+    {
+      title: "correctly matches single-line else statements",
+      compileAs: "block",
+      tests: [
+        ["else", "else {}"],
+        ["otherwise", "else {}"],
+        ["else: b = 1", "else { let b = 1 }"],
+        ["otherwise: b = 1", "else { let b = 1 }"],
+        ["else b = 1", "else { let b = 1 }"],
+        ["otherwise b = 1", "else { let b = 1 }"]
+      ]
+    },
+    {
+      title: "correctly matches multi-line else blocks",
+      compileAs: "block",
+      tests: [
+        {
+          title: "Separate blocks if no indentation on second line.",
+          input: ["else", "b = 1"],
+          output: ["else {}", "export let b = 1"]
+        },
+        {
+          title: "Indent with tab",
+          input: ["else", "\tb = 1"],
+          output: "else { let b = 1 }"
+        },
+        {
+          title: "ANY number of spaces should count as indentation",
+          input: ["else", " b = 1"],
+          output: "else { let b = 1 }"
+        },
+        {
+          title: "Multiple lines in the nested block",
+          input: ["else", "\tb = 1", "\tlet c = 2"],
+          output: ["else {", "\tlet b = 1", "\tlet c = 2", "}"]
+        },
+        {
+          title: "Show error if nested block AND inline statement. Prefer block.",
+          input: ["else b = 1", "\tc = 2"],
+          output: ["else { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"]
+        }
+      ]
+    }
+  ]
+}
+
+/**
+ * Postfix ternary: `{expr} if {condition} (else|otherwise) {expr}` -- English word order
+ * ("do X if Y else Z") rather than `condition ? then : else`.
+ * - `expression_suffix`: `lhs` (the value before `if`) is supplied by `compound_expression`'s
+ *   shunting-yard; this rule's own `syntax` only spells out `operator` (actually the *condition*
+ *   expression here) and the trailing `rhs` expression.
+ * - Compiles to `P.ASTTernaryExpression`.
+ */
+export class backwards_if extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static alias = "expression_suffix"
+  @proto static syntax = "if {operator:expression} (else|otherwise) {expression}"
+
+  compileASTExpression(
+    match: P.Match,
+    { lhs, operator, rhs }: { lhs: P.ASTExpression; operator: P.Match; rhs: P.ASTExpression }
+  ): P.ASTTernaryExpression {
+    return new P.ASTTernaryExpression(match, {
+      condition: operator.AST as P.ASTExpression,
+      trueValue: lhs,
+      falseValue: rhs
+    })
+  }
+
+  static tests: P.RuleTests = [
+    {
+      title: "correctly matches single-line backwards_if statements",
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        const { variables } = scope as P.BlockScope
+        variables.add("bar")
+        variables.add("foo")
+      },
+      tests: [
+        { input: "print 1 if bar else 2", output: "spellCore.console.log((bar ? 1 : 2))" },
+        {
+          input: "get the foo of the bar if bar is defined otherwise the bar of the foo",
+          output: "let it = (spellCore.isDefined(bar) ? bar.foo : foo.bar)"
+        },
+        {
+          input: `set color to "red" if 1 + 1 else "black"`,
+          output: `export let color = ((1 + 1) ? "red" : "black")`
+        }
+      ]
+    }
+  ]
+}
+
+/** Rule module for `if`/`else if`/`else` statement rules, plus the `backwards_if` ternary suffix. */
+export const _if_ = new SpellParser({
+  module: "if",
+  rules: [_if, else_if, _else, backwards_if]
 })

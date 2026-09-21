@@ -13,6 +13,10 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 ## 1. Behavior bugs
 
+- `languages/spell/rules/UI.ts` `css`: reads `match.data.file` (was ad hoc `match.file`, documented as "set externally by `SpellCSSFile`") but NOTHING sets it -- `SpellCSSFile.parse()` doesn't.  So compiled output is always `spellCore.installStyles(undefined, ...)`.  Likely fix: `match.data.file = this.file` after parsing, but untested so left alone.
+
+- `languages/spell/rules/draw.ts` `draw_items`: `draw the cards of the deck` compiles to `spellCore.drawThing(deck.cards)`, test expects `spellCore.drawItems(deck)`.  `draw_thing` wins on `precedence: 100` (see §3).  Never noticed because `draw.ts` had no `draw.test.ts`, so its embedded tests never ran -- file added 2026-09-20, this one case marked `skip`.
+
 - [V] `languages/spell/rules/assignment.ts` `get.getAST`: `variables.replace("it")` unconditionally;
   sibling `assignment.getAST()` guards with `if (originalVar?.isAlias)`.  A real `it` variable loses `kind` / `datatype`.
 
@@ -64,6 +68,8 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 ## 4. Dead / redundant code
 
+- `parser/rules/Choice.ts` constructor: used to assign copied `rules` onto caller's `props` -- with `clone()` passing the rule itself, that re-wrote the ORIGINAL group's `rules` on every clone.  Harmless (equal copy) but fixed in passing.
+
 - `rules/methods.ts` `typed_method_arg`: post-construction `arg.datatype = type.value` workaround; `VariableExpressionProps` declares `datatype`.
 
 - `rules/math.ts` `gt_lt.getAST` / `is_gt_lt.getAST`: unreachable (output comes via `compileASTExpression()`).
@@ -73,6 +79,21 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 - `parser/rules/Pattern.ts` constructor: `instanceof RegExp` branch unreachable per types; only caller passes object.
 
 - `parser/parser.types.ts` `RuleTestBlock.showAll`: set at several call sites, never read.
+
+- `languages/spell/rules/assignment.ts` `get.mutateScope`: sets `match.data.itVar` (the original local
+  `it` `ScopeVariable`, if any), but `get.getAST` never reads it -- only `match.data.isNewVariable`.
+  Looks like dead state, found while converting the file to a rule class (2026-09-20).
+
+- `languages/spell/rules/core.ts` `eat_whitespace`: never referenced anywhere in `src` (grepped) -- dead.
+  Its old bag form (`constructor: class eat_whitespace extends P.Subrule {}`, `syntax: "{whitespace}*"`)
+  was actually broken: `{whitespace}*` compiles to a `Repeat`, not a `Subrule`, so the deprecated
+  `Parser.defineRule()` bag path's `props = { ...rule, ...props }` merge silently copied the compiled
+  `Repeat`'s own `.rule` (a `Subrule` instance) onto our instance's `.rule`, which `Subrule.parse()` expects
+  to be a rule-name STRING, not a nested `Rule` object -- would have thrown at parse time if ever exercised.
+  Converting to a class (`Rule.instantiate()` / `initFromSyntax()`) correctly rejects this mismatch instead
+  of silently mis-assembling it, so the class now extends `P.Repeat` (what the syntax actually compiles to)
+  to match its likely original intent.  No behavior change since nothing calls the rule either way
+  (found 2026-09-20 converting `core.ts` to rule classes).
 
 - `spellCore/core.ts`: `repeat()` has no compiling rule; `get()` / `set()` are stubs with no callers.
 
@@ -90,14 +111,13 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 ## 5. Structure / AGENTS.md conformance (your call)
 
-- `languages/spell/rules/match-fields.{A,B,C,E}.ts`: lettered split is leftover of phased TS conversion; no `D`;
-  nothing imports `C` (type-checks only via `tsconfig` `include`).  Candidate for consolidation.
-
 - `spellCore/index.ts` header claims `assert` is global for compiled spell; only `global.spellCore` assignment found.
 
 - `util/DOM.ts` uses ambient `global`; `abortableFetch.ts` imports `global` polyfill.
 
 ## 6. Open questions left as `TODO` in code
+
+- `parser/rules/Subrule.ts` `getGroupSpecContribution()`: assumes anonymous `{foo}` lands in `groups.foo`.  Not true if `foo` resolves to a single rule registered only under ALIAS `foo` -- match keeps that rule's own name.  Does real parsing have the same surprise?
 
 - `rules/if.ts` `else_if`: is `precedence` load-bearing, or does rule order suffice?
 

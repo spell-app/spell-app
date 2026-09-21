@@ -77,18 +77,6 @@ One `##` heading per item, `---` between items, then:
 
 ---
 
-## `match-fields.{A,B,C,E}.ts` lettered split
-
-- **Cost**: file names carry no meaning, there is no `D`, and `match-fields.C.ts` has zero
-  importers -- it type-checks only because `tsconfig` `include` reaches it.  Nobody can tell
-  which file a matcher belongs in.
-- **Cause**: leftover staging from the phased TypeScript conversion, never consolidated.
-- **Fix**: merge into one `match-fields.ts`, or split along real seams with real names.
-  Confirm `C`'s exports are genuinely dead before dropping them.
-- **Pinned at**: nothing -- currently invisible.  Also noted in `SUSPECTED-BUGS.md` section 5.
-
----
-
 ## `systemFilesRoot` / `userFilesRoot` are the same directory
 
 - **Cost**: the server's owner-based split between system and user files is a no-op.  Code that

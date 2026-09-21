@@ -16,11 +16,17 @@ import { Rule } from "./Rule"
  *
  * NOTE: Don't use this -- use `Keyword` or `Symbol` instead!
  */
-export abstract class Literal extends Rule<P.LiteralProps> {
+export abstract class Literal<
+  Groups extends string | P.AnyGroups = P.AnyGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends Rule<P.LiteralProps, Groups, MatchData> {
   /** Literal string or array of literal strings to match. */
   declare literal: string | string[]
   /** Whether the literal must be escaped when converting to rulex syntax. */
   declare isEscaped: boolean | undefined
+
+  /** Class-level `literal`, for rules defined as classes -- declare as `@proto static`. */
+  static literal?: string | string[]
 
   /** Bare string / array shorthand sets `literal` directly, otherwise pass a full `LiteralProps` bag. */
   constructor(props: P.LiteralProps | string | string[]) {
@@ -48,7 +54,7 @@ export abstract class Literal extends Rule<P.LiteralProps> {
   }
 
   /** Output is just the matched `match.value`. */
-  compile(match: P.Match) {
+  compile(match: P.MatchFor<this>) {
     return match.value
   }
 
@@ -59,9 +65,9 @@ export abstract class Literal extends Rule<P.LiteralProps> {
     if (isVariable) literalString = (this.literal as string[]).join("|")
     else if (this.isEscaped) literalString = `\\${this.literal}`
 
-    const { testLocation, argument, optional } = this.getRulexFlags()
-    const wrapInParens = isVariable || argument || (this.isEscaped && optional)
-    if (wrapInParens) return `${testLocation}(${argument}${literalString})${optional}`
+    const { testLocation, matchGroup, optional } = this.getRulexFlags()
+    const wrapInParens = isVariable || matchGroup || (this.isEscaped && optional)
+    if (wrapInParens) return `${testLocation}(${matchGroup}${literalString})${optional}`
     return `${testLocation}${literalString}${optional}`
   }
 }

@@ -1,15 +1,17 @@
+import { proto } from "~/util"
 import { P } from "~/parser"
-// Import directly to avoid circular import
-import { SpellParser } from "~/languages/spell/SpellParser"
+import { Block } from "./Block"
 
 /**
  * Base class for all spell statement rules.  In spell, we generally match `statements` across the
  * entire line.
  * - An exception is "inline block" statements (like `if` or `forEach`), where the statement might have
  *   an inline statement at the end, or might have a nested block of statements.
- * - Access this as `SpellParser.Rules.Statement`.
  */
-export class SpellStatement extends P.Sequence {
+export class SpellStatement<
+  Groups extends string | P.AnyGroups = P.AnyGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends P.Sequence<Groups, MatchData> {
   /** Should we attempt to parse an `inlineStatement` at the end of this statement's line? */
   declare wantsInlineStatement: boolean
   /** Rule name to parse the `inlineStatement` as. */
@@ -19,12 +21,11 @@ export class SpellStatement extends P.Sequence {
   /** Rule name to parse the `nestedBlock` as. */
   declare parseNestedBlockAs: string
 
-  static {
-    Object.defineProperty(this.prototype, "wantsInlineStatement", { value: false, writable: true })
-    Object.defineProperty(this.prototype, "parseInlineStatementAs", { value: "statement", writable: true })
-    Object.defineProperty(this.prototype, "wantsNestedBlock", { value: false, writable: true })
-    Object.defineProperty(this.prototype, "parseNestedBlockAs", { value: "block", writable: true })
-  }
+  // Class-level defaults -- override in rule classes as `@proto static`.
+  @proto static wantsInlineStatement = false
+  @proto static parseInlineStatementAs = "statement"
+  @proto static wantsNestedBlock = false
+  @proto static parseNestedBlockAs = "block"
 
   /**
    * Parse the statement itself -- assume comment was already popped off the end.
@@ -89,7 +90,7 @@ export class SpellStatement extends P.Sequence {
       const { nestedScope } = statement
       result = nestedScope.parser?.parse([nestedBlock], "block", nestedScope)
       // wrap output in braces
-      if (result) result.enclose = true
+      if (result?.is(Block)) result.data.enclose = true
     } else {
       // if parsing as anything else, we can only handle a single line
       if (nestedBlock.tokens.length > 1) return undefined
@@ -109,4 +110,3 @@ export class SpellStatement extends P.Sequence {
     return result
   }
 }
-SpellParser.Rules.Statement = SpellStatement

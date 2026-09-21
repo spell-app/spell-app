@@ -14,18 +14,34 @@ const DEBUG_CHOICES = false
  *
  * After parsing we'll return the rule which is the "best match" (rather than cloning this rule).
  */
-export class Choice extends Rule<ChoiceProps> {
+export class Choice<
+  Groups extends string | P.AnyGroups = P.AnyGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends Rule<ChoiceProps, Groups, MatchData> {
   /** List of rules, any of which will match. */
   declare rules: P.Rule[]
 
   /** Copy `props.rules` into a new array (defaulting to `[]`) so callers can't mutate our list from outside. */
   constructor(props: ChoiceProps) {
-    props.rules = Array.isArray(props.rules) ? [...props.rules] : []
     super(props)
+    // NOTE: set after `super()` rather than on `props`, which may be someone else's object (see `clone()`).
+    this.rules = Array.isArray(props.rules) ? [...props.rules] : []
+  }
+
+  /**
+   * Return a copy with its own `rules` list, so `addChoice()` on the copy leaves us alone.
+   * - Only `Choice` / `Group` are ever cloned (by `Parser.mergeRule()`) -- other rules are immutable and shared.
+   * - NOTE: choices themselves are shared, not copied.
+   */
+  clone(): this {
+    const constructor = this.constructor as new (props: ChoiceProps) => this
+    // HOT: every `parser.clone()` (so every new scope) clones every group -- keep this cheap.
+    // Own props (`rules`, `matchGroup`, `name`...) go straight through;  constructor copies `rules`.
+    return new constructor(this as unknown as ChoiceProps)
   }
 
   /** Always throws -- a `Choice` has no output of its own, use `match.groups` / the winning sub-match instead. */
-  compile(match: P.Match) {
+  compile(match: P.MatchFor<this>) {
     throw new TypeError(`Choice.compile() is not implemented`)
   }
 
@@ -54,9 +70,16 @@ export class Choice extends Rule<ChoiceProps> {
     return false
   }
 
+  /** Winning choice's match replaces ours:  named by our `matchGroup`, else whatever that choice contributes. */
+  getGroupSpecContribution(): P.GroupSpecEntry[] {
+    if (this.matchGroup) return super.getGroupSpecContribution()
+    const entries = P.mergeGroupSpecs(...this.rules.map((rule) => rule.getGroupSpecContribution()))
+    return this.optional ? entries.map((entry) => ({ ...entry, optional: true })) : entries
+  }
+
   /** Find all rules which match and delegate to `getBestMatch()` to pick the best one. */
   parse(scope: P.Scope, tokens: P.Token[]) {
-    const CHOICE = `choice '${this.name || this.argument}:'`
+    const CHOICE = `choice '${this.name || this.matchGroup}:'`
     if (DEBUG_CHOICES) console.group(`${CHOICE} start matching '${P.Tokenizer.join(tokens)}'`, this)
 
     // Try to match each rule in turn.
@@ -89,8 +112,8 @@ export class Choice extends Rule<ChoiceProps> {
     if (!match) return undefined
 
     // assign special properties to the result
-    match.choiceRule = this.argument || this.name
-    if (this.argument) match.argument = this.argument
+    match.choiceRule = this.matchGroup || this.name
+    if (this.matchGroup) match.matchGroup = this.matchGroup
     return match
   }
 
@@ -129,9 +152,9 @@ export class Choice extends Rule<ChoiceProps> {
 
   /** Return rulex string for this rule:  `(rule1|rule2|...)`, with flags applied. */
   toRulexSyntax() {
-    const { testLocation, argument, optional } = this.getRulexFlags()
+    const { testLocation, matchGroup, optional } = this.getRulexFlags()
     const rules = this.rules.map((rule) => rule.toRulexSyntax()).join("|")
-    return `${testLocation}(${argument}${rules})${optional}`
+    return `${testLocation}(${matchGroup}${rules})${optional}`
   }
 }
 
@@ -151,4 +174,7 @@ export type ChoiceProps = Prettify<
  *  - actually defining a semantically-meaning "choices", and
  *  - smooshing rules together because they share the same name.
  */
-export class Group extends Choice {}
+export class Group<
+  Groups extends string | P.AnyGroups = P.AnyGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends Choice<Groups, MatchData> {}

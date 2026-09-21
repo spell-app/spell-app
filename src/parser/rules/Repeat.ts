@@ -18,7 +18,10 @@ import { Rule } from "./Rule"
  * - `match.items` will be just he `rule` matches, ignoring delimiters,
  * - `match.matched` will include delimiters.
  */
-export class Repeat extends Rule<RepeatProps> {
+export class Repeat<
+  Groups extends string | P.AnyGroups = P.AnyGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends Rule<RepeatProps, Groups, MatchData> {
   /** The rule that repeats. */
   declare rule: P.Rule
   /** The delimiter between each instance of the rule. */
@@ -74,12 +77,12 @@ export class Repeat extends Rule<RepeatProps> {
       tokens: flattenDeep(matched.map((next) => next.tokens)),
       scope
     })
-    if (this.argument) match.argument = this.argument
+    if (this.matchGroup) match.matchGroup = this.matchGroup
     return match
   }
 
   /** Returns an array by default; subclasses (e.g. rulex `sequence`) may return other things. */
-  compile(match: P.Match): unknown {
+  compile(match: P.MatchFor<this>): unknown {
     return match.items.map((next) => next.compile())
   }
 
@@ -88,22 +91,24 @@ export class Repeat extends Rule<RepeatProps> {
    * - `rule+` / `rule*` normally, or `[rule delimiter]` (optionally suffixed `?`) when `delimiter` is set.
    */
   toRulexSyntax() {
-    const { argument, optional } = this.getRulexFlags()
+    const { matchGroup, optional } = this.getRulexFlags()
     const repeatSymbol = this.optional ? "*" : "+"
 
     // don't double-up on parens
     let rule = this.rule.toRulexSyntax()
     if (this.delimiter) {
       const delimiter = this.delimiter.toRulexSyntax()
-      return `[${argument}${rule}${delimiter}]${optional}`
+      return `[${matchGroup}${rule}${delimiter}]${optional}`
     }
 
     const wrapInParens =
-      argument || this.rule instanceof P.Sequence || (this.rule instanceof P.Literals && this.rule.literals.length > 1)
+      matchGroup ||
+      this.rule instanceof P.Sequence ||
+      (this.rule instanceof P.Literals && this.rule.literals.length > 1)
 
     if (wrapInParens && rule.startsWith("(") && rule.endsWith(")")) rule = rule.slice(1, -1)
 
-    if (wrapInParens) return `(${argument}${rule})${repeatSymbol}`
+    if (wrapInParens) return `(${matchGroup}${rule})${repeatSymbol}`
     return `${rule}${repeatSymbol}`
   }
 }

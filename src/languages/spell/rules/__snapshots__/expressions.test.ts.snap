@@ -1,0 +1,20 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`testing spell module expressions > rule group specs > match snapshot -- if this fails, update rule's \`Groups\` type argument, then the snapshot 1`] = `
+{
+  "and": "operator|expression",
+  "as_a_type": "type",
+  "compound_expression": "lhs|rhsChain",
+  "does_not_include": "operator|expression",
+  "includes": "operator|expression",
+  "is": "operator|expression",
+  "is_a": "operator|expression",
+  "is_empty": "operator",
+  "is_exactly": "operator|expression",
+  "is_in": "operator|expression",
+  "is_same_type_as": "operator|expression",
+  "or": "operator|expression",
+  "parenthesized_expression": "expression",
+  "there_is_a": "operator|expression",
+}
+`;

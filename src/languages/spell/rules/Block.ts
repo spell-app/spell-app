@@ -1,7 +1,4 @@
 import { P } from "~/parser"
-// Import directly to avoid circular import
-import { SpellParser } from "~/languages/spell/SpellParser"
-import "./match-fields.A"
 
 /**
  * `Block`s are generally the root entity that we parse in spell -- a top-level construct, e.g. used to
@@ -9,7 +6,28 @@ import "./match-fields.A"
  * - Composed of `block_lines` and nested `blocks`, and correspond roughly to a `Scope`
  *   (see `parser/scope/Scope`).
  */
-export class Block extends P.Rule {
+/**
+ * What `block` and `line` rules stash on their matches.
+ * - Shared by `Block` and `BlockLine` because errors bubble up through both.
+ */
+export type BlockMatchData = {
+  /** Parse errors found while parsing this block / line, including those from nested blocks. */
+  errors?: P.Match[]
+  /** Set on a `block` match by `SpellStatement.parseNestedBlock()` so it compiles wrapped in `{}`. */
+  enclose?: boolean
+}
+
+/**
+ * Parse errors collected on a `block` or `line` match, if any.
+ * - Use where you can't narrow with `match.is()`, e.g. `Block` can't import `BlockLine` without a cycle.
+ */
+export function getParseErrors(match: P.Match): P.Match[] | undefined {
+  return (match as P.Match<P.MatchGroups, BlockMatchData>).data.errors
+}
+
+export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
+  static ruleName = "block"
+
   /**
    * Recurse into nested `BlockToken`s, parsing each `LineToken` as `"line"` (via `BlockLine`).
    * - SIDE EFFECT: `console.warn`s (rather than throwing) on unproductive items, then skips past them --
@@ -47,7 +65,8 @@ export class Block extends P.Rule {
 
       if (match) {
         matched.push(match)
-        if (match.errors) errors.push(...match.errors)
+        // Bubble up errors from the line / nested block.
+        errors.push(...(getParseErrors(match) ?? []))
         // pop the matched items off of the list
         items.splice(0, match.length)
       } else {
@@ -58,14 +77,13 @@ export class Block extends P.Rule {
     // Forget it if we didn't match anything
     if (matched.length === 0) return undefined
 
-    const result = new P.Match({
+    const result: P.MatchFor<this> = new P.Match({
       rule: this,
       matched,
       scope,
       tokens: [block]
     })
-    // `errors` is an ad-hoc field (see `match-fields.A.ts`), not part of `MatchProps`.
-    if (errors.length) result.errors = errors
+    if (errors.length) result.data.errors = errors
     return result
   }
 
@@ -73,20 +91,19 @@ export class Block extends P.Rule {
    * `Match.compile()` always prefers `getAST()` (below) over calling `rule.compile()` directly, but
    * `Rule.compile()` is abstract, so provide the equivalent fallback for completeness.
    */
-  compile(match: P.AnyMatch): unknown {
+  compile(match: P.MatchFor<this>): unknown {
     return match.AST?.compile()
   }
 
   /** Build `P.ASTStatementBlock` (wrapped in `{}`) if `match.enclose`, else a plain `P.ASTStatementGroup`. */
-  getAST(match: P.Match): P.ASTStatementBlock | P.ASTStatementGroup {
+  getAST(match: P.MatchFor<this>): P.ASTStatementBlock | P.ASTStatementGroup {
     // `Block.parse()` only ever pushes `Match`es (never raw `Token`s) onto `matched`,
     // and each of those is itself a `line`/nested `block` match whose rule always
     // implements `getAST()` returning a statement-shaped node -- not staticaly representable.
     const statements = match.matched
       .filter((item): item is P.Match => item instanceof P.Match)
       .map((item) => item.AST) as Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine>
-    if (match.enclose) return new P.ASTStatementBlock(match, { statements })
+    if (match.data.enclose) return new P.ASTStatementBlock(match, { statements })
     return new P.ASTStatementGroup(match, { statements })
   }
 }
-SpellParser.Rules.Block = Block

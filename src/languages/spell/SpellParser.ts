@@ -2,7 +2,6 @@ import { getDerived } from "~/util"
 import { P } from "~/parser"
 import { spellCore } from "~/spellCore"
 import { SP } from "~/languages/spell"
-import type { SpellRuleRegistry } from "./rules/registry"
 
 // Registers `RulexParser` on `P.Parser.rulexParser` -- MUST load before any rule with a `syntax:` string.
 import "~/languages/rulex"
@@ -20,9 +19,6 @@ import "~/languages/rulex"
  *   globals at module-evaluation time.
  */
 export class SpellParser extends P.Parser {
-  /** Registry of language-specific rule classes, populated by the modules in `./rules`. Debug aid only. */
-  static Rules = {} as SpellRuleRegistry
-
   /**
    * Re-defines `defaultRule` as `"block"` directly on `SpellParser.prototype`.
    * - TODO: looks redundant -- `P.Parser`'s own static block already sets the same value on
@@ -56,8 +52,9 @@ export class SpellParser extends P.Parser {
    *   `simple_expression`/`simple_statement` in their own `syntax` to chain onto a prior expression, so
    *   adding them under those names too would let them recurse into themselves.
    */
-  addRule(rule: P.Rule, names: string | string[]) {
-    if (Array.isArray(names) && !rule["isLeftRecursive"]) {
+  addRule(rule: P.Rule | P.RuleConstructor, names?: string | string[]) {
+    // NOTE: a rule CLASS comes back through here once per instance, with its `names` array.
+    if (rule instanceof P.Rule && Array.isArray(names) && !rule.isLeftRecursive) {
       if (names.includes("expression")) names.push("simple_expression")
       if (names.includes("statement")) names.push("simple_statement")
     }

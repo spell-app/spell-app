@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`testing spell module math > rule group specs > match snapshot -- if this fails, update rule's \`Groups\` type argument, then the snapshot 1`] = `
+{
+  "absolute_value": "operator|expression",
+  "divided_by": "operator|expression",
+  "gt_lt": "operator|expression",
+  "is_gt_lt": "operator|expression",
+  "max": "operator|argument?|expression",
+  "min": "operator|argument?|expression",
+  "minus": "operator|expression",
+  "plus": "operator|expression",
+  "round_number": "expression|operator?",
+  "times": "operator|expression",
+}
+`;

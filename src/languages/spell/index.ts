@@ -31,4 +31,4 @@ export * from "./SpellParser"
  * you need the language's default parser.  Also re-exports `ParseError` (fallback "couldn't parse this"
  * rule) and `parseExpression()` (parse a bare expression string).
  */
-export { spellParser, ParseError, parseExpression } from "./rules"
+export { spellParser, ParseError, getParseErrors, parseExpression, type JSXMatchData } from "./rules"

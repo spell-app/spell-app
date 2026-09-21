@@ -1,19 +1,17 @@
 /**
  * Assembles every spell language rule module into the single `spellParser` instance.
- * - Not a plain re-export barrel: this folder is a flat list of independent rule modules (each an
- *   object literal describing one grammar rule), so there's nothing meaningful to `export *` --
- *   instead this file imports each module for its side effect of registering rules, then combines them
+ * - Not a plain re-export barrel: this folder is a flat list of independent rule modules, each exporting
+ *   its rule classes plus a `SpellParser` which registers them -- this file combines those parsers
  *   via `spellParser.import(...)`.
- * - NOTE: import order matters in a few places -- see the comment above the `ParseError` import, and
- *   the comment on `SpellParser.Rules` fields registered directly below (`blank_line`/`block`/`line`/
- *   `parse_error`) which must exist before the rest of `spellParser.import(...)` runs.
+ * - NOTE: import order matters in a few places -- see the comment above the `ParseError` import.
+ *   Structural rules (`blank_line` / `block` / `line` / `parse_error`) are added directly, below.
  */
 import { P } from "~/parser"
 import { SpellParser } from "~/languages/spell/SpellParser"
 
-// The following add new Rule constructors to `SpellParser.Rules`
-import { Block } from "./Block"
-import { BlockLine } from "./BlockLine"
+// Structural rule classes, registered directly below.
+import { Block, getParseErrors } from "./Block"
+import { BlockLine, blank_line } from "./BlockLine"
 import "./Statement"
 
 // The following define "modules" of rule sets, which will be combined below.
@@ -25,7 +23,7 @@ import { assignment } from "./assignment"
 import { expressions } from "./expressions"
 import { statements } from "./statements"
 import { _if_ } from "./if"
-import { JSX } from "./JSX"
+import { JSX, type JSXMatchData } from "./JSX"
 import { lists } from "./lists"
 import { math } from "./math"
 import { properties } from "./properties"
@@ -56,13 +54,17 @@ export const parseExpression = (expression: string | P.Token | P.Token[], scope?
 
 /** Export ParseError so we can create them programmatically. */
 export { ParseError }
+/** Export so callers can get at parse errors collected on a `block` / `line` match. */
+export { getParseErrors }
 
-// Generic parser `BlankLine`
-spellParser.defineRule({ name: "blank_line", constructor: P.BlankLine })
-// Spell-specific classes for Block/BlockLine/ParserError
-spellParser.defineRule({ name: "block", constructor: Block })
-spellParser.defineRule({ name: "line", constructor: BlockLine })
-spellParser.defineRule({ name: "parse_error", constructor: ParseError })
+/** `JSX.ts`'s `match.data` shape for `jsxElement`/`jsxAttribute`/`jsxExpression` matches -- e.g. for UI code that reads them. */
+export type { JSXMatchData }
+
+// Structural rules:  `blank_line`, `block`, `line`, `parse_error` (last three name themselves with `static ruleName`).
+spellParser.addRule(blank_line)
+spellParser.addRule(Block)
+spellParser.addRule(BlockLine)
+spellParser.addRule(ParseError)
 
 // Import the other rules defined above.
 spellParser.import(

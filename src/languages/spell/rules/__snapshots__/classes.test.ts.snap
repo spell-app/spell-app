@@ -1,0 +1,20 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`testing spell module classes > rule group specs > match snapshot -- if this fails, update rule's \`Groups\` type argument, then the snapshot 1`] = `
+{
+  "a_things_property": "type|property",
+  "create_list_type": "type|instanceType",
+  "create_thing": "type|props?",
+  "create_type": "type|superType",
+  "define_property_has": "type|property|specifier?",
+  "new_list": "instanceType?",
+  "new_thing": "type|props?",
+  "property_value_either": "type_property|value|condition|otherValue?",
+  "property_value_getter": "property|type",
+  "quoted_property_formula": "type|alias|sources",
+  "the_property_of_a_thing": "property|type",
+  "type_specifier_datatype": "datatype",
+  "type_specifier_enum": "enumeration",
+  "type_specifier_instance": "new_thing",
+}
+`;

@@ -2,6 +2,7 @@
 //
 
 import { Derivative } from "~/util/Derivative"
+import { proto } from "~/util/decorators"
 import { P } from "~/parser"
 
 /**
@@ -18,82 +19,270 @@ import { P } from "~/parser"
  *    - `match.matched`     : array of *significant* tokens that were actually matched.
  *    - `match.tokens`      : array of all tokens that were consumed.
  *    - `match.value`       : the "value" of the match, which is rule-specific.
- *    ... and other rule-specific values.
+ *    - `match.groups`      : named sub-matches, typed by rule's `Groups` type argument.
+ *    - `match.data`        : whatever rule stashed while parsing, typed by rule's `MatchData` type argument.
  *
  *  To output the result of a match, use `match.compile()` which calls `rule.compile()`
  *  to actually generate the output.
+ *
+ * ## Ways to make a rule
+ *
+ * ### 1. Named rule for a language ~== a class, registered with a parser  (the normal way)
+ * ```ts
+ * export class define_property_has extends SpellStatement<
+ *   "type|property|specifier?",                  // `Groups`:  see `P.GroupsFor`, copy from module's `__snapshots__`
+ *   { ruleComment?: P.ASTParserAnnotation }      // `MatchData`:  what we stash in `match.data`
+ * > {
+ *   @proto static alias = "statement"
+ *   @proto static precedence = 10
+ *   @proto static syntax = ["(a|an) {type} has {property} {specifier}?", "{type} have {property} {specifier}?"]
+ *   @proto static testRule = "…(has|have)"
+ *   static tests = [...]
+ *   getAST(match: P.MatchFor<this>) {...}
+ * }
+ * parser.addRule(define_property_has)             // or `new Parser({ rules: [define_property_has, ...] })`
+ * ```
+ * - Class name IS the rule name;  `static ruleName = "if"` for reserved words (`class _if`).
+ * - `@proto static` puts value on the PROTOTYPE:  inherited by subclasses and visible in our constructor,
+ *   which plain instance fields are not.  Forgetting `@proto` throws at registration.
+ * - `ruleName`, `tests`, `skip` are plain statics, NOT inherited.
+ * - `parser.addRule()` calls `instantiate()`:  one frozen instance per `syntax` variant.
+ *
+ * ### 2. Leaf rules take their structure the same way
+ * ```ts
+ * class color extends P.Keyword { @proto static literal = ["red", "green"] }
+ * class number_word extends P.Pattern { @proto static pattern = /^\d+$/ }
+ * class word extends P.TokenType { @proto static tokenType = P.WordToken }
+ * class yes_no extends P.Literal { @proto static syntax = "(yes|no)" }
+ * ```
+ *
+ * ### 3. Rule added WHILE PARSING ~== a closure class, added to scope
+ * ```ts
+ * match.scope.rules?.add(
+ *   class card_suits extends P.Keywords {
+ *     static ruleName = `${typeName}_${groupName}`   // computed name
+ *     @proto static alias = "expression"
+ *     @proto static literals = literals                // closes over current match
+ *     getAST(match: P.MatchFor<this>) {...}
+ *   }
+ * )
+ * ```
+ *
+ * ### 4. Anonymous building blocks ~== plain `new`
+ * ```ts
+ * new P.Keyword("give")
+ * new P.Subrule({ rule: "expression", matchGroup: "thing", optional: true })
+ * new P.Sequence(new P.Keyword("give"), new P.Subrule("thing"))
+ * ```
+ * - No `name`, so they stay out of `match.groups` unless given a `matchGroup`.  Not frozen unless they end up
+ *   inside a registered rule.  This is what rulex makes from a `syntax` string, and how rulex defines itself.
+ *
+ * ### 5. From rulex syntax directly
+ * ```ts
+ * P.Rule.compileSyntax("give {thing:expression} (to {recipient})?")   // anonymous, as in 4
+ * new give_statement()                                                   // class with single `syntax`, unregistered
+ * ```
  */
-export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivative {
-  /** ---------------
-   * ## Properties
-   *  --------------- */
-  /** Name of source file this rule was defined in. */
-  declare module: string | undefined
-  /** Rule name, must be unique if defined. */
-  declare name: string | undefined
-  /** Description of this rule. */
-  declare description: string | undefined
-  /** Name aliases -- indicates this rules works a part of collections such as `expression` or `statement`. */
-  declare alias: string | string[] | undefined
-  /** Precedence of this rule, used to distinguish between ambiguous matches.  Default = 0. */
-  declare precedence: number
-  /** Datatype which rule result represents, e.g. `string`, `number`, custom type. */
-  declare datatype: string | undefined
-  /** Rulex syntax string(s) used to define this rule. */
-  declare syntax: string | string[] | undefined
-  /** Test rule to use to quickly determine if this rule can be matched. */
-  declare testRule: Rule | undefined
-  /** Test location to use to determine if this rule can be matched. */
-  declare testLocation: P.TestLocation | undefined
-  /**
-   * Name for this rule in `match.groups`.
-   * - REFACTOR: `groupName`.
-   */
-  declare argument: string | undefined
-  /** Whether this rule is optional. */
-  declare optional: boolean | undefined
-  /** Whether this rule is left-recursive (e.g. `{expression} + {expression}`). */
-  declare isLeftRecursive: boolean | undefined
-  /** Tests for this rule. */
-  declare tests: P.RuleTests | undefined
-  /**
-   * Scope of this rule.
-   * - TODO: why is this needed?
-   */
-  declare scope: P.Scope | undefined
+export abstract class Rule<
+  Props extends RuleProps = RuleProps,
+  Groups extends string | P.AnyGroups = P.AnyGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends Derivative {
+  ////////////////
+  // ## Construction
+  ////////////////
 
   /**
-   * Define properties on prototype to keep instances as small as possible
-   * and so that `Object.keys()` only returns properties defined in the instance.
+   * Assign `props` directly onto `this` -- subclasses may normalize `props` before calling `super()`.
+   * - Class-level definition (`@proto static ...`) is already visible here, through our prototype.
+   * - String `testRule` is compiled with rulex.
+   * - SIDE EFFECT: given `syntax` but no structure, decomposes it right here -- see `initFromSyntax()`.
+   * - HOT: rules are constructed while parsing too (group clones, dynamic rules) -- keep this cheap.
    */
-  static {
-    Object.defineProperty(this.prototype, "precedence", { value: 0, writable: true })
-    // Object.defineProperty(this.prototype, "module", { writable: true })
-    // Object.defineProperty(this.prototype, "name", { writable: true })
-    // Object.defineProperty(this.prototype, "description", { writable: true })
-    // Object.defineProperty(this.prototype, "alias", { writable: true })
-    // Object.defineProperty(this.prototype, "datatype", { writable: true })
-    // Object.defineProperty(this.prototype, "syntax", { writable: true })
-    // Object.defineProperty(this.prototype, "testRule", { writable: true })
-    // Object.defineProperty(this.prototype, "testLocation", { writable: true })
-    // Object.defineProperty(this.prototype, "argument", { writable: true })
-    // Object.defineProperty(this.prototype, "optional", { writable: true })
-    // Object.defineProperty(this.prototype, "tests", { writable: true })
-    // Object.defineProperty(this.prototype, "scope", { writable: true })
-  }
-
-  // props: Record<string,any>
-  /** Assign `props` directly onto `this` -- subclasses may normalize `props` before calling `super()`. */
   constructor(props?: Props) {
     super()
     if (props) Object.assign(this, props)
+    const { testRule, syntax } = this as { testRule?: Rule | string; syntax?: unknown }
+    if (typeof testRule === "string") this.testRule = Rule.compileSyntax(testRule, this)
+    if (typeof syntax === "string" && !this.hasStructure) this.initFromSyntax(syntax)
   }
 
-  /** Return a clone of this rule (same constructor, all public properties). */
-  clone() {
-    const constructor = this.constructor as new (props?: any) => typeof this
-    return new constructor(this)
+  /**
+   * Create rule instance(s) from class-level definition:  one per `syntax` variant, else exactly one.
+   * - Why this exists rather than plain `new`:
+   *   - a constructor can only return ONE instance, `syntax` variants need several
+   *   - rule name comes from the CLASS here, `new` leaves rules anonymous on purpose (see `name`)
+   *   - `freeze()` has to wait until subclass constructors are done, base constructor is too early
+   * - `extraProps` are per-registration things only the caller knows, e.g. `module`.
+   * - Only first variant carries `tests` so we don't run same tests repeatedly.
+   * - Throws if definition is unusable, e.g. anonymous class with no `ruleName`, or forgotten `@proto`.
+   */
+  static instantiate(extraProps?: RuleProps): Rule[] {
+    if (Object.hasOwn(this, "skip") && this.skip) return []
+    const name = (Object.hasOwn(this, "ruleName") && this.ruleName) || this.name
+    if (!name) {
+      throw new P.ParserError({
+        message: "Rule class must have a name or `static ruleName`.",
+        context: this,
+        activity: "instantiate"
+      })
+    }
+    // Any own static data field which never reached our prototype is a forgotten `@proto`.
+    // NOTE: `ALL_CAPS` statics are taken to be constants / lookup tables, e.g. `SpellType.SIMPLE_TYPES`.
+    const forgotten = Object.keys(this).filter(
+      (key) => !PLAIN_STATICS.includes(key) && !/^[A-Z][A-Z0-9_]*$/.test(key) && !(key in this.prototype)
+    )
+    if (forgotten.length) {
+      throw new P.ParserError({
+        message: `Rule '${name}': use '@proto static ${forgotten[0]}' -- plain 'static' never reaches rule instances.`,
+        context: this,
+        activity: "instantiate",
+        params: { forgotten }
+      })
+    }
+    const { syntax } = this.prototype as { syntax?: string | Array<string | P.RuleSyntaxVariant> }
+    const variants: P.RuleSyntaxVariant[] =
+      syntax === undefined
+        ? [{}]
+        : (Array.isArray(syntax) ? syntax : [syntax]).map((it) => (typeof it === "string" ? { syntax: it } : it))
+    const tests = Object.hasOwn(this, "tests") ? this.tests : undefined
+    const constructor = this as unknown as new (props: RuleProps) => Rule
+    return variants.map((variant, index) => {
+      const props: RuleProps = { ...extraProps, name, ...variant }
+      if (index === 0 && tests) props.tests = tests
+      return new constructor(props).freeze()
+    })
   }
+
+  /**
+   * Decompose rulex `syntax` into our structural props, e.g. `rules` for a `Sequence`.
+   * - `Sequence` subclass whose syntax compiles to a single non-sequence rule wraps it as `rules: [rule]`.
+   * - Otherwise compiled rule must share a concrete base class with us, e.g. `"(a|b)"` compiles to `Keyword`
+   *   which is fine for any `Literal` -- throws if not, as its props would be meaningless to us.
+   * - Flags from syntax (`matchGroup`, `optional`, `testLocation`) come along, explicit props win.
+   */
+  protected initFromSyntax(syntax: string) {
+    const compiled = Rule.compileSyntax(syntax, this)
+    if (this instanceof P.Sequence && !(compiled instanceof P.Sequence)) {
+      Object.assign(this, { rules: [compiled] })
+      return
+    }
+    let base = compiled.constructor
+    while (base !== Rule && !(this instanceof base)) base = Object.getPrototypeOf(base)
+    if (base === Rule) {
+      throw new P.ParserError({
+        message: `Syntax '${syntax}' compiles to a ${compiled.constructor.name}, which ${this.constructor.name} does not extend.`,
+        context: this,
+        activity: "initFromSyntax",
+        params: { syntax, compiled }
+      })
+    }
+    // oxlint-disable-next-line typescript/no-misused-spread
+    const structure: Record<string, unknown> = { ...compiled }
+    for (const key of Object.keys(structure)) {
+      if ((this as Record<string, unknown>)[key] !== undefined) delete structure[key]
+    }
+    Object.assign(this, structure)
+  }
+
+  /** Have we got structural props already, from `props` or our prototype?  If so `syntax` is just a label. */
+  protected get hasStructure(): boolean {
+    return STRUCTURE_PROPS.some((key) => (this as Record<string, unknown>)[key] !== undefined)
+  }
+
+  /**
+   * Compile rulex `syntax` to a rule, remembering `syntax` on the result.
+   * - Throws if rulex parser is not installed -- it's opt-in, see `Parser.rulexParser`.
+   */
+  static compileSyntax(syntax: string, context?: unknown): Rule {
+    const { rulexParser } = P.Parser
+    if (!rulexParser) {
+      throw new TypeError(
+        'Rulex parser is not installed.  Use `import "~/languages/rulex"` to import it and try again.'
+      )
+    }
+    const compiled = rulexParser.compile(syntax)
+    if (!compiled) {
+      throw new P.ParserError({
+        message: `Didn't get a rule from rulex.compile('${syntax}')`,
+        context,
+        activity: "compileSyntax",
+        params: { syntax }
+      })
+    }
+    // Rulex builds fresh rules on every compile, so this is ours to label.
+    // NOTE: no `isFrozen` guard on purpose -- if rulex ever hands back a shared frozen rule, throw rather than skip.
+    compiled.syntax = syntax
+    return compiled
+  }
+
+  /**
+   * Make this rule (and rules nested inside it) immutable, returning `this`.
+   * - Rules are shared by every parse, so per-parse state MUST go in `match.data`, NEVER on the rule.
+   * - NOTE: `Group`s are the exception -- parser-owned containers, cloned before `addChoice()`.
+   */
+  freeze(): this {
+    if (Object.isFrozen(this)) return this
+    for (const value of Object.values(this)) {
+      if (value instanceof Rule) value.freeze()
+      else if (Array.isArray(value) && value.length && value.every((it) => it instanceof Rule)) {
+        value.forEach((it: Rule) => it.freeze())
+        Object.freeze(value)
+      }
+    }
+    return Object.freeze(this)
+  }
+
+  ////////////////
+  // ## Class-level definition -- declare in subclasses as `@proto static`, except as noted
+  ////////////////
+
+  /**
+   * Name to register rule under, if class name won't do.  Plain `static`, NOT inherited.
+   * - Defaults to class name, e.g. `class define_property_has` => `"define_property_has"`.
+   * - Set explicitly for reserved words (`class _if` => `"if"`) or dynamically-named rules.
+   */
+  static ruleName?: string
+  /** Tests for this rule.  Plain `static`, NOT inherited, or we'd re-run them for each subclass. */
+  static tests?: P.RuleTests
+  /** Set `true` to skip registering this rule, e.g. if it's not working.  Plain `static`, NOT inherited. */
+  static skip?: boolean
+
+  /** Name aliases -- inherited, so e.g. a `Statement` base class can set `"statement"` once. */
+  static alias?: string | string[]
+  /** Precedence.  Default lives on prototype, so only rules with non-default precedence carry their own. */
+  @proto static precedence?: number = 0
+  /** Datatype. */
+  static datatype?: string
+  /** Description. */
+  static description?: string
+  /**
+   * Rulex syntax string(s), decomposed into `rules` etc. at construction.
+   * - Array => one rule instance per variant, all registered under same name -- see `instantiate()`.
+   * - Variant may be `{ syntax, testRule }` to give it its own quick test.
+   */
+  static syntax?: string | Array<string | P.RuleSyntaxVariant>
+  /** Quick test rule, as `Rule` or rulex syntax string. */
+  static testRule?: Rule | string
+
+  ////////////////
+  // ## Identity -- what this rule is called and where it came from
+  ////////////////
+
+  /**
+   * Rule name, must be unique if defined.
+   * - NOTE: no fallback to class name -- anonymous rules (e.g. `new P.Keyword("a")`) MUST stay nameless
+   *   or they'd show up in `match.groups`.  `instantiate()` passes class name explicitly.
+   */
+  declare name: string | undefined
+  /** Name aliases -- indicates this rules works a part of collections such as `expression` or `statement`. */
+  declare alias: string | string[] | undefined
+  /** Name of parser module this rule was defined in. */
+  declare module: string | undefined
+  /** Description of this rule. */
+  declare description: string | undefined
+  /** Datatype which rule result represents, e.g. `string`, `number`, custom type. */
+  declare datatype: string | undefined
 
   /** Return array of `names` for this rule:  its `.name` + any `.alias`es. */
   get names() {
@@ -101,6 +290,46 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
     if (typeof alias === "string") alias = [alias]
     return [this.name, ...alias].filter((it) => it !== undefined)
   }
+
+  ////////////////
+  // ## Definition -- what this rule was made from
+  ////////////////
+
+  /** Rulex syntax string used to define this rule (this instance's variant, if class has several). */
+  declare syntax: string | string[] | undefined
+  /** Tests for this rule. */
+  declare tests: P.RuleTests | undefined
+
+  ////////////////
+  // ## Matching behavior
+  ////////////////
+
+  /** Precedence of this rule, used to distinguish between ambiguous matches.  Default = 0, from prototype. */
+  declare precedence: number
+  /** Test rule to use to quickly determine if this rule can be matched. */
+  declare testRule: Rule | undefined
+  /** Test location to use to determine if this rule can be matched. */
+  declare testLocation: P.TestLocation | undefined
+  /** Name our match goes under in containing rule's `match.groups`, e.g. `thing` for `{thing:expression}`. */
+  declare matchGroup: string | undefined
+  /** Whether this rule is optional. */
+  declare optional: boolean | undefined
+  /** Whether this rule is left-recursive (e.g. `{expression} + {expression}`). */
+  declare isLeftRecursive: boolean | undefined
+
+  ////////////////
+  // ## Type arguments -- type-only, nothing here exists at runtime
+  ////////////////
+
+  /**
+   * TYPE-ONLY: our `Groups` type argument, resolved to the object shape of `match.groups` -- see `P.GroupsFor`.
+   * - `declare` emits no code:  this property does NOT exist at runtime, NEVER read it.
+   * - Why:  TypeScript can't ask a class what type arguments it was given, only what members it has.
+   *   Re-publishing them as members is what lets `P.MatchFor<this>` and `match.is(rule)` recover them.
+   */
+  declare readonly Groups: P.ResolveGroups<Groups>
+  /** TYPE-ONLY: our `MatchData` type argument, shape of `match.data`.  Does NOT exist at runtime -- see `Groups`. */
+  declare readonly MatchData: MatchData
 
   ////////////////
   // ## Parsing methods -- implement these in your subclasses!
@@ -119,7 +348,7 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
    * - Language parsers generally return javascript source as a string.
    * - Other parsers (e.g. `rulex`) return arbitrary values, e.g. `Rule` instances.
    */
-  abstract compile(match: P.AnyMatch): unknown
+  abstract compile(match: P.MatchFor<this>): unknown
 
   /**
    * Some parsers compile by generating an "Abstract Syntax Tree" (AST) first,
@@ -127,7 +356,7 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
    *
    * If you implement this, return an `ASTNode` object (or `undefined` if the match yields no output).
    */
-  getAST?(match: P.AnyMatch): P.ASTNode | undefined
+  getAST?(match: P.MatchFor<this>): P.ASTNode | undefined
 
   ////////////////
   // ## Quick testing methods
@@ -195,8 +424,36 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
    * - Some rules derive additional groups based on analysis of "normal" groups.
    * - NOTE: always use `match.groups` to access so we re-use the same `groups` object.
    */
-  getGroupsForMatch(match: P.AnyMatch): Record<string, unknown> {
+  getGroupsForMatch(match: P.MatchFor<this>): Record<string, unknown> {
     return match.addMatchedToGroups<P.MatchGroups>({}, [match])
+  }
+
+  /**
+   * `P.GroupsFor` spec for groups our `syntax` will produce, e.g. `"type|property|specifier?"`.
+   * - Use to write / check `Groups` type argument -- type args are erased, this is computed from real structure.
+   * - Only knows what default `getGroupsForMatch()` does -- groups derived in an override are NOT included.
+   * - One instance ~== one `syntax` variant:  use `P.mergeGroupSpecs()` to combine variants.
+   */
+  get groupSpec(): string {
+    return P.stringifyGroupSpec(this.getGroupSpecEntries())
+  }
+
+  /**
+   * Entries for `groupSpec`.  Default (leaf rule) is none -- override in rules which contain other rules.
+   * - NOTE: technically a leaf's groups are `{ [name]: match }`, but nobody reads those.
+   */
+  getGroupSpecEntries(): P.GroupSpecEntry[] {
+    return []
+  }
+
+  /**
+   * Entries we add to the `groupSpec` of a rule which CONTAINS us, mirroring `match.addMatchedToGroups()`.
+   * - Named (by `matchGroup`, else `name`) => one entry, otherwise nothing.
+   * - Override where an anonymous match is promoted / replaced, e.g. `Sequence`, `Choice`, `Subrule`.
+   */
+  getGroupSpecContribution(): P.GroupSpecEntry[] {
+    const name = this.matchGroup || this.name
+    return name ? [{ name, optional: !!this.optional, array: false }] : []
   }
 
   /**
@@ -206,7 +463,7 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
    *   which includes the method arguments.
    * - NOTE: always use `match.nestedScope` to access so we re-use the scope object.
    */
-  getNestedScopeForMatch(match: P.AnyMatch): P.Scope {
+  getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
     return match.scope
   }
 
@@ -215,7 +472,7 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
    * - By default, we don't change anything, but some rules
    *   may add new variables, methods, rules, etc. to the scope.
    */
-  mutateScope(match: P.AnyMatch) {}
+  mutateScope(match: P.MatchFor<this>) {}
 
   ////////////////
   // ## Rulex syntax
@@ -223,13 +480,13 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
 
   /**
    * We attempt to merge literals or sequences together when creating rules.
-   * We can only do that for rules that are not "adorned" with argument, etc.
+   * We can only do that for rules that are not "adorned" with matchGroup, etc.
    * - Note that `optional` doesn't matter in this case, because we can merge
    *   optional and non-optional rules.
    * - DEPRECATED
    */
   get isAdorned() {
-    return !!(this.argument || this.testLocation)
+    return !!(this.matchGroup || this.testLocation)
   }
 
   /** Return rulex string for this rule. */
@@ -239,11 +496,11 @@ export abstract class Rule<Props extends RuleProps = RuleProps> extends Derivati
 
   /** Return rulex syntax strings for rule flags. */
   getRulexFlags(): P.SyntaxFlags {
-    const { testLocation, argument, optional } = this
+    const { testLocation, matchGroup, optional } = this
     return {
       testLocation:
         testLocation === P.TestLocation.ANYWHERE ? "…" : testLocation === P.TestLocation.AT_START ? "^" : "",
-      argument: argument ? ":" : "",
+      matchGroup: matchGroup ? ":" : "",
       optional: optional ? "?" : ""
     }
   }
@@ -265,23 +522,14 @@ export type RuleProps = {
   syntax?: string | string[]
   /** Precedence of this rule, used to distinguish between ambiguous matches.  Default = 0. */
   precedence?: number
-  /** Test rule to use to quickly determine if this rule can be matched. */
-  testRule?: Rule
+  /** Test rule to use to quickly determine if this rule can be matched, as rule or rulex syntax. */
+  testRule?: Rule | string
   /** Test location to use to determine if this rule can be matched. */
   testLocation?: P.TestLocation
   /** Tests for this rule. */
   tests?: P.RuleTests
-  /**
-   * Scope of this rule.
-   * - TODO: why is this needed?
-   */
-  scope?: P.Scope
-
-  /**
-   * Name for this rule in `match.groups`.
-   * - REFACTOR: `groupName`.
-   */
-  argument?: string
+  /** Name our match goes under in containing rule's `match.groups`. */
+  matchGroup?: string
   /** Whether this rule is optional. */
   optional?: boolean
   /** Whether literal must be escaped when converting to rulex syntax -- see `Literal.isEscaped`. */
@@ -289,3 +537,16 @@ export type RuleProps = {
   /** Whether this rule is left-recursive (e.g. `{expression} + {expression}`). */
   isLeftRecursive?: boolean
 }
+
+/**
+ * Props which rulex `syntax` decomposes into.
+ * - If any are present in constructor `props`, rule was already decomposed, so we leave `syntax` alone.
+ */
+const STRUCTURE_PROPS = ["rules", "rule", "literal", "literals"]
+
+/**
+ * Statics which are MEANT to be plain -- every other static data field on a rule class must be `@proto static`.
+ * - `instantiate()` throws otherwise, because a forgotten decorator means a rule which
+ *   silently ignores its own definition.
+ */
+const PLAIN_STATICS = ["ruleName", "tests", "skip"]

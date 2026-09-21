@@ -6,6 +6,9 @@
 /** Constructor type, e.g. `Class<Token>` represents a class that constructs `Token` instances. */
 type Class<T> = new (...args: any[]) => T
 
+/** Like `Class<T>` but also accepts `abstract` classes -- use for `instanceof` checks, NEVER for `new`. */
+type AbstractClass<T> = abstract new (...args: any[]) => T
+
 /**
  * Make VSCode hover of `T` more readable.
  * - e.g.:  `Prettify<SomeComplexType>`

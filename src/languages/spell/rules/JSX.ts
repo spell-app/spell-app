@@ -1,3 +1,4 @@
+import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -10,397 +11,420 @@ function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
   return node as T
 }
 
-export const JSX = new SpellParser({
-  module: "JSX",
-  rules: [
-    /**
-     * Match a JSX element (`<tag attr=.../>` or `<tag>...</tag>`) as an `expression`/`jsxChild`.
-     * - Delegates tokenizing entirely to `P.JSXElementToken`; `parse()` re-parses each attribute/child
-     *   token through `jsxAttribute`/`jsxChild` (falling back to `parse_error` for unparseable children).
-     * - Compiles to `spellCore.element({ tag, props, children })`.
-     */
+/**
+ * What JSX rules (`jsxElement`, `jsxAttribute`, `jsxExpression`) stash on their matches.
+ * - Shared by all three because they cross-reference each other's matches (e.g. `jsxElement` holds an
+ *   array of `jsxAttribute` matches) -- splitting per-rule would just mean re-importing one another's type.
+ */
+export type JSXMatchData = {
+  /** (`jsxAttribute`/`jsxExpression`) Sub-expression match parsed out of the attribute/expression value. */
+  expression?: P.Match
+  /** (`jsxAttribute`) Sub-statement match parsed out of an `on*` attribute value, e.g. an inline event handler. */
+  statement?: P.Match
+  /** (`jsxAttribute`/`jsxExpression`) `parse_error` match recorded when neither `expression` nor `statement` could be parsed. */
+  error?: P.Match
+  /** (`jsxElement`) Parsed `jsxAttribute` matches for the element. */
+  attributes?: Array<P.Match | undefined>
+  /** (`jsxAttribute`) Normalized attribute name. */
+  attribute?: string
+  /** (`jsxElement`) Parsed child matches (`jsxChild` or `parse_error`) for the element. */
+  children?: Array<P.Match | undefined>
+}
+
+/**
+ * Match a JSX element (`<tag attr=.../>` or `<tag>...</tag>`) as an `expression`/`jsxChild`.
+ * - Delegates tokenizing entirely to `P.JSXElementToken`; `parse()` re-parses each attribute/child
+ *   token through `jsxAttribute`/`jsxChild` (falling back to `parse_error` for unparseable children).
+ * - Compiles to `spellCore.element({ tag, props, children })`.
+ * - NOTE: rule name is `jsxElement`, kept distinct from class name `SpellJSX` (pre-existing convention).
+ */
+export class SpellJSX extends P.TokenType<never, JSXMatchData> {
+  static ruleName = "jsxElement"
+  @proto static alias = ["jsxChild", "expression"]
+  @proto static tokenType = P.JSXElementToken
+
+  /** Parse element's `attributes`/`children` tokens (see note below re: calling `parser.parse()` directly). */
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (!match) return undefined
+    if (match.matched.length !== 1) throw new TypeError("Can only handle a single JSXElement at a time!")
+    const [element] = match.matched as [P.JSXElementToken]
+    // `Scope.parse()` only accepts a `string` for `text`, but we have actual `Token`s here -- call
+    // `scope.parser.parse()` directly instead (same workaround `SpellCSSFile.parse()` uses).
+    match.data.attributes = element.attributes?.map((attr) => scope.parser?.parse(attr, "jsxAttribute", scope))
+    match.data.children = element.children?.map(
+      (child) => scope.parser?.parse(child, "jsxChild", scope) || scope.parser?.parse(child, "parse_error", scope)
+    )
+    // console.warn(match)
+    return match
+  }
+
+  /** Build `P.ASTJSXElement`; drops falsy child ASTs (e.g. blank `jsxText`) via `.filter(Boolean)`. */
+  getAST(match: P.MatchFor<this>) {
+    const { tagName } = match.matched[0] as P.JSXElementToken
+    const attrs = match.data.attributes?.map((attr) => ast<P.ASTJSXAttribute>(attr?.AST))
+    const children =
+      match.data.children
+        ?.map((child) => ast<P.ASTJSXElement | P.ASTJSXEndTag | P.ASTJSXText | P.ASTJSXExpression>(child?.AST))
+        .filter(Boolean) ?? []
+    return new P.ASTJSXElement(match, { tagName, attrs, children })
+  }
+
+  static tests: P.RuleTests = [
     {
-      name: "jsxElement",
-      alias: ["jsxChild", "expression"],
-      tokenType: P.JSXElementToken,
-      constructor: class SpellJSX extends P.TokenType {
-        /** Parse element's `attributes`/`children` tokens (see note below re: calling `parser.parse()` directly). */
-        parse(scope: P.Scope, tokens: P.Token[]) {
-          const match = super.parse(scope, tokens)
-          if (!match) return undefined
-          if (match.matched.length !== 1) throw new TypeError("Can only handle a single JSXElement at a time!")
-          const [element] = match.matched as [P.JSXElementToken]
-          // `Scope.parse()` only accepts a `string` for `text`, but we have actual `Token`s here -- call
-          // `scope.parser.parse()` directly instead (same workaround `SpellCSSFile.parse()` uses).
-          match.attributes = element.attributes?.map((attr) => scope.parser?.parse(attr, "jsxAttribute", scope))
-          match.children = element.children?.map(
-            (child) => scope.parser?.parse(child, "jsxChild", scope) || scope.parser?.parse(child, "parse_error", scope)
-          )
-          // console.warn(match)
-          return match
-        }
-
-        /** Build `P.ASTJSXElement`; drops falsy child ASTs (e.g. blank `jsxText`) via `.filter(Boolean)`. */
-        getAST(match: P.Match) {
-          const { tagName } = match.matched[0] as P.JSXElementToken
-          const attrs = match.attributes?.map((attr) => ast<P.ASTJSXAttribute>(attr?.AST))
-          const children =
-            match.children
-              ?.map((child) => ast<P.ASTJSXElement | P.ASTJSXEndTag | P.ASTJSXText | P.ASTJSXExpression>(child?.AST))
-              .filter(Boolean) ?? []
-          return new P.ASTJSXElement(match, { tagName, attrs, children })
-        }
-      },
+      title: "Simple nested elements",
+      compileAs: "expression",
       tests: [
-        {
-          title: "Simple nested elements",
-          compileAs: "expression",
-          tests: [
-            [`<a/>`, `spellCore.element({ tag: "a" })`],
-            [`<a></a>`, `spellCore.element({ tag: "a" })`],
-            [`<a b=1 c="ccc"/>`, `spellCore.element({ tag: "a", props: { b: 1, c: "ccc" } })`],
-            [
-              `<a b=1 c="ccc" d></a>`,
-              [
-                `spellCore.element({`,
-                `\ttag: "a",`,
-                `\tprops: {`,
-                `\t\tb: 1,`,
-                `\t\tc: "ccc",`,
-                `\t\td: true`,
-                `\t}`,
-                `})`
-              ]
-            ],
+        [`<a/>`, `spellCore.element({ tag: "a" })`],
+        [`<a></a>`, `spellCore.element({ tag: "a" })`],
+        [`<a b=1 c="ccc"/>`, `spellCore.element({ tag: "a", props: { b: 1, c: "ccc" } })`],
+        [
+          `<a b=1 c="ccc" d></a>`,
+          [`spellCore.element({`, `\ttag: "a",`, `\tprops: {`, `\t\tb: 1,`, `\t\tc: "ccc",`, `\t\td: true`, `\t}`, `})`]
+        ],
 
-            [`<a><b/></a>`, [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]],
-            [
-              `<a><b></b></a>`,
-              [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]
-            ],
-            [
-              `<a A=1><b c=1>foo</b></a>`,
-              [
-                `spellCore.element({ tag: "a", props: { A: 1 }, children: [`,
-                `\tspellCore.element({ tag: "b", props: { c: 1 }, children: [`,
-                `\t\t"foo"`,
-                `\t] })`,
-                `] })`
-              ]
-            ],
-            [
-              `<a><b><c>d</c></b></a>`,
-              [
-                `spellCore.element({ tag: "a", children: [`,
-                `\tspellCore.element({ tag: "b", children: [`,
-                `\t\tspellCore.element({ tag: "c", children: [`,
-                `\t\t\t"d"`,
-                `\t\t] })`,
-                `\t] })`,
-                `] })`
-              ]
-            ],
-            [
-              `<a>\n\tBBB\n\t<c/>\n\tDDD</a>`,
-              [
-                'spellCore.element({ tag: "a", children: [',
-                '\t"BBB",',
-                '\tspellCore.element({ tag: "c" }),',
-                '\t"DDD"',
-                "] })"
-              ]
-            ],
-            [
-              ["<ui-button ", "\thidden={1} ", "\tonPress={print 2}", "\t/>"],
-              [
-                "spellCore.element({",
-                '\ttag: "ui-button",',
-                "\tprops: {",
-                "\t\thidden: 1,",
-                "\t\tonPress: (event) => {",
-                "\t\t\treturn spellCore.console.log(2)",
-                "\t\t}",
-                "\t}",
-                "})"
-              ]
-            ],
-            [
-              '<input attrOnly text="text" number=1 boolean={yes} expression={1 + 1} onClick={print the value of the target of the event} />',
-              [
-                `spellCore.element({`,
-                `\ttag: "input",`,
-                `\tprops: {`,
-                `\t\tattrOnly: true,`,
-                `\t\ttext: "text",`,
-                `\t\tnumber: 1,`,
-                `\t\tboolean: true,`,
-                `\t\texpression: (1 + 1),`,
-                `\t\tonClick: (event) => {`,
-                `\t\t\treturn spellCore.console.log(event.target.value)`,
-                `\t\t}`,
-                `\t}`,
-                `})`
-              ]
-            ]
+        [`<a><b/></a>`, [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]],
+        [`<a><b></b></a>`, [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]],
+        [
+          `<a A=1><b c=1>foo</b></a>`,
+          [
+            `spellCore.element({ tag: "a", props: { A: 1 }, children: [`,
+            `\tspellCore.element({ tag: "b", props: { c: 1 }, children: [`,
+            `\t\t"foo"`,
+            `\t] })`,
+            `] })`
           ]
-        },
-        {
-          title: "Attribute expressions",
-          compileAs: "expression",
-          beforeEach(scope) {
-            scope.variables?.add("card")
-          },
-          tests: [
-            [`<div foo/>`, `spellCore.element({ tag: "div", props: { foo: true } })`],
-            [
-              `<div rank={the rank of the card} value={1 + 2 + 3}/>`,
-              `spellCore.element({ tag: "div", props: { rank: card.rank, value: ((1 + 2) + 3) } })`
-            ],
-            [
-              `<div rank={unknown expression} value={another unknown expression}/>`,
-              `spellCore.element({ tag: "div", props: { rank: undefined /* PARSE ERROR: Don't understand "unknown expression" */, value: undefined /* PARSE ERROR: Don't understand "another unknown expression" */ } })`
-            ],
-            // DO parse a statement as an attribute expression
-            [
-              `<div on-click={print 1024}/>`,
-              [
-                `spellCore.element({`,
-                `\ttag: "div",`,
-                `\tprops: {`,
-                `\t\t'on-click': (event) => {`,
-                `\t\t\treturn spellCore.console.log(1024)`,
-                `\t\t}`,
-                `\t}`,
-                `})`
-              ]
-            ],
-            // don't match attribute expressions that don't eat the entire text
-            [
-              "<div foo={true true}/>",
-              `spellCore.element({ tag: "div", props: { foo: undefined /* PARSE ERROR: Don't understand "true true" */ } })`
-            ],
-            // ignore newlines in attribute expression
-            // NOTE: this was previously a comma expression `(a, b)` instead of a `[a, b]` tuple, which JS
-            // silently evaluated to a single-element array (the comma operator discards `a`) -- a latent
-            // bug surfaced by `RuleTest`'s tuple typing. Fixed to the evidently-intended 2-tuple.
-            ["<div foo={\n1 + \n\t2\n\t}/>", `spellCore.element({ tag: "div", props: { foo: (1 + 2) } })`]
+        ],
+        [
+          `<a><b><c>d</c></b></a>`,
+          [
+            `spellCore.element({ tag: "a", children: [`,
+            `\tspellCore.element({ tag: "b", children: [`,
+            `\t\tspellCore.element({ tag: "c", children: [`,
+            `\t\t\t"d"`,
+            `\t\t] })`,
+            `\t] })`,
+            `] })`
           ]
-        },
-        {
-          title: "Inline expressions",
-          compileAs: "expression",
-          beforeEach(scope) {
-            scope.variables?.add("card")
-          },
-          tests: [
-            [
-              `<div foo={<a><b><c>{1}</c></b></a>}/>`,
-              [
-                'spellCore.element({ tag: "div", props: { foo: spellCore.element({ tag: "a", children: [',
-                '\tspellCore.element({ tag: "b", children: [',
-                '\t\tspellCore.element({ tag: "c", children: [',
-                "\t\t\t1",
-                "\t\t] })",
-                "\t] })",
-                "] }) } })"
-              ]
-            ],
-            // compound expression
-            [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]],
-            // multi-line expression is fine
-            [
-              "<div>{\n\t1 + \n2 + 3\t\n}</div>",
-              ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]
-            ],
-            //
-            [
-              `<div>{the rank of the card}</div>`,
-              ['spellCore.element({ tag: "div", children: [', "\tcard.rank", "] })"]
-            ],
-            // fail if we don't eat entire expression
-            [
-              `<div>{true true}</div>`,
-              [
-                'spellCore.element({ tag: "div", children: [',
-                '\tnull /* PARSE ERROR: Don\'t understand "true true" */',
-                "] })"
-              ]
-            ],
-            // fail on unknown expression
-            [
-              `<div>{unknown expression}</div>`,
-              [
-                'spellCore.element({ tag: "div", children: [',
-                '\tnull /* PARSE ERROR: Don\'t understand "unknown expression" */',
-                "] })"
-              ]
-            ],
-            // DO NOT parse a inline statement as a JSXExpression
-            [
-              `<div>{print 1024}</div>`,
-              [
-                'spellCore.element({ tag: "div", children: [',
-                '\tnull /* PARSE ERROR: Don\'t understand "print 1024" */',
-                "] })"
-              ]
-            ]
+        ],
+        [
+          `<a>\n\tBBB\n\t<c/>\n\tDDD</a>`,
+          [
+            'spellCore.element({ tag: "a", children: [',
+            '\t"BBB",',
+            '\tspellCore.element({ tag: "c" }),',
+            '\t"DDD"',
+            "] })"
           ]
-        }
+        ],
+        [
+          ["<ui-button ", "\thidden={1} ", "\tonPress={print 2}", "\t/>"],
+          [
+            "spellCore.element({",
+            '\ttag: "ui-button",',
+            "\tprops: {",
+            "\t\thidden: 1,",
+            "\t\tonPress: (event) => {",
+            "\t\t\treturn spellCore.console.log(2)",
+            "\t\t}",
+            "\t}",
+            "})"
+          ]
+        ],
+        [
+          '<input attrOnly text="text" number=1 boolean={yes} expression={1 + 1} onClick={print the value of the target of the event} />',
+          [
+            `spellCore.element({`,
+            `\ttag: "input",`,
+            `\tprops: {`,
+            `\t\tattrOnly: true,`,
+            `\t\ttext: "text",`,
+            `\t\tnumber: 1,`,
+            `\t\tboolean: true,`,
+            `\t\texpression: (1 + 1),`,
+            `\t\tonClick: (event) => {`,
+            `\t\t\treturn spellCore.console.log(event.target.value)`,
+            `\t\t}`,
+            `\t}`,
+            `})`
+          ]
+        ]
       ]
     },
-
-    /**
-     * Match a single JSX attribute (`name`, `name=value`, or `name={expression}`).
-     * - `on*` attribute names (e.g. `onClick`) parse `value` as a `statement` inside a `MethodScope` with
-     *   an implicit `event` argument, producing an inline event-handler method rather than an expression.
-     * - Falls back to `parse_error` if neither an `expression` nor `on*` `statement` consumes the whole value.
-     */
     {
-      name: "jsxAttribute",
-      tokenType: P.JSXAttributeToken,
-      constructor: class SpellJSXAttribute extends P.TokenType {
-        /**
-         * Parse `value` as an expression, or (for `on*` attribute names) as a `statement` with an
-         * implicit `event` argument -- falls back to a `parse_error` match if neither consumes it all.
-         */
-        parse(scope: P.Scope, tokens: P.Token[]) {
-          const match = super.parse(scope, tokens)
-          if (!match) return undefined
-          if (match.matched.length !== 1) throw new TypeError("Can only handle a single JSXAttribute at a time!")
-          // pull attribute name up to match
-          const attributeToken = match.matched[0] as P.JSXAttributeToken
-          match.attribute = attributeToken.name
-          // parse `value` if as a number or JSXExpression
-          const { value } = match
-          if (value) {
-            const inputIsExpression = value instanceof P.JSXExpressionToken
-            // `JSXExpression.contents` is typed `string | Token` (a bare, un-braced attribute value is
-            // tokenized via `matchJSXAttributeValueIdentifier`, which sets `contents` to a `Token`), but this
-            // rule (as in the original JS) only ever handles the braced/string form here.
-            const input = inputIsExpression ? (value.contents as string).trim().replace(/\n/g, " ") : value
-            // parse "onXXX" as an inline method with an `event` argument
-            if (match.attribute.startsWith("on")) {
-              const methodScopeProps: P.MethodScopeProps = {
-                parentScope: scope,
-                args: ["event"],
-                mapItTo: "this"
-              }
-              const methodScope = new P.MethodScope(methodScopeProps)
-              const statement = methodScope.parse(input, "statement")
-              if (statement && statement.inputText.length === input.length) {
-                match.statement = statement
-              }
-            } else {
-              const expression = scope.parse(input, "expression")
-              if (expression && (!inputIsExpression || expression.inputText.length === input.length)) {
-                match.expression = expression
-              }
-            }
-            // if neither worked, parse error
-            if (!match.expression && !match.statement) match.error = scope.parse(input, "parse_error")
-            // console.warn({ match, name: match.attribute, inputIsExpression, value, input })
-          }
-          return match
-        }
-
-        /**
-         * Build `P.ASTJSXAttribute`.
-         * - `statement` value becomes an inline `P.ASTMethodDefinition` (with an `event` arg for `on*` names).
-         * - Missing `value` (bare attribute, e.g. `<input disabled/>`) becomes `true`.
-         */
-        getAST(match: P.Match) {
-          const { attribute, expression, statement, error, value } = match
-          let valueAST: P.ASTExpression | undefined
-          if (expression) valueAST = ast<P.ASTExpression>(expression.AST)
-          else if (statement) {
-            valueAST = new P.ASTMethodDefinition(match, {
-              inline: true,
-              args: attribute!.toLowerCase().startsWith("on")
-                ? [new P.ASTVariableExpression(match, { name: "event" })]
-                : undefined,
-              body: ast<P.ASTStatementBlock | P.ASTStatement | P.ASTExpression>(statement.AST)
-            })
-          } else if (value === undefined) {
-            valueAST = new P.ASTBooleanLiteral(match, { value: true })
-          } else if (value instanceof P.TextToken) {
-            valueAST = new P.ASTStringLiteral(match, { value: value.value })
-          } else if (!error) {
-            console.warn("jsxAttribute.getAST: don't know how to render value", value, " for match ", match)
-            valueAST = new P.ASTUndefinedLiteral(match)
-          }
-          return new P.ASTJSXAttribute(match, {
-            name: attribute!,
-            value: valueAST,
-            error: error?.AST as P.ASTParseError | undefined
-          })
-        }
-      }
+      title: "Attribute expressions",
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add("card")
+      },
+      tests: [
+        [`<div foo/>`, `spellCore.element({ tag: "div", props: { foo: true } })`],
+        [
+          `<div rank={the rank of the card} value={1 + 2 + 3}/>`,
+          `spellCore.element({ tag: "div", props: { rank: card.rank, value: ((1 + 2) + 3) } })`
+        ],
+        [
+          `<div rank={unknown expression} value={another unknown expression}/>`,
+          `spellCore.element({ tag: "div", props: { rank: undefined /* PARSE ERROR: Don't understand "unknown expression" */, value: undefined /* PARSE ERROR: Don't understand "another unknown expression" */ } })`
+        ],
+        // DO parse a statement as an attribute expression
+        [
+          `<div on-click={print 1024}/>`,
+          [
+            `spellCore.element({`,
+            `\ttag: "div",`,
+            `\tprops: {`,
+            `\t\t'on-click': (event) => {`,
+            `\t\t\treturn spellCore.console.log(1024)`,
+            `\t\t}`,
+            `\t}`,
+            `})`
+          ]
+        ],
+        // don't match attribute expressions that don't eat the entire text
+        [
+          "<div foo={true true}/>",
+          `spellCore.element({ tag: "div", props: { foo: undefined /* PARSE ERROR: Don't understand "true true" */ } })`
+        ],
+        // ignore newlines in attribute expression
+        // NOTE: this was previously a comma expression `(a, b)` instead of a `[a, b]` tuple, which JS
+        // silently evaluated to a single-element array (the comma operator discards `a`) -- a latent
+        // bug surfaced by `RuleTest`'s tuple typing. Fixed to the evidently-intended 2-tuple.
+        ["<div foo={\n1 + \n\t2\n\t}/>", `spellCore.element({ tag: "div", props: { foo: (1 + 2) } })`]
+      ]
     },
-
-    /** Match literal text between JSX tags (`jsxChild`).  Blank text yields no AST node -- see below. */
     {
-      name: "jsxText",
-      alias: "jsxChild",
-      tokenType: P.JSXTextToken,
-      constructor: class SpellJSXText extends P.TokenType {
-        /** Build `P.ASTJSXText`; returns `undefined` for blank text since there's nothing to render. */
-        getAST(match: P.Match) {
-          const { raw, quotedText } = match.matched[0] as P.JSXTextToken
-          // Blank text has nothing to render -- return `undefined` for "no AST" (`Rule.getAST()`'s return
-          // type already permits this; `Match.AST` treats a falsy return as "no AST").
-          if (!quotedText) return undefined
-          return new P.ASTJSXText(match, { raw, value: quotedText })
-        }
-      }
-    },
-
-    /** Match a JSX closing tag (`</tag>`), tracked as a `jsxChild` alongside element/text/expression children. */
-    {
-      name: "jsxEndTag",
-      alias: "jsxChild",
-      tokenType: P.JSXEndTagToken,
-      constructor: class SpellJSXEndTag extends P.TokenType {
-        getAST(match: P.Match) {
-          const { tagName } = match.matched[0] as P.JSXEndTagToken
-          return new P.ASTJSXEndTag(match, { tagName })
-        }
-      }
-    },
-
-    /**
-     * Match a `{...}` JSX expression container (a `jsxChild`, e.g. `<div>{1 + 2}</div>`).
-     * - Trims and collapses newlines in the raw contents before parsing as an `expression`.
-     * - Falls back to `parse_error` if the expression doesn't consume the entire contents.
-     */
-    {
-      name: "jsxExpression",
-      alias: "jsxChild",
-      tokenType: P.JSXExpressionToken,
-      constructor: class SpellJSXExpression extends P.TokenType {
-        /** Parse `contents` as an `expression`; falls back to `parse_error` if it doesn't consume it all. */
-        parse(scope: P.Scope, tokens: P.Token[]) {
-          const match = super.parse(scope, tokens)
-          if (!match) return undefined
-          // trim and remove newlines from expression (???)
-          // See note above re: `JSXExpression.contents` being typed `string | Token`.
-          const input = ((match.matched[0] as P.JSXExpressionToken).contents as string).trim().replace(/\n/g, " ")
-          // only match expression if we used all of the input
-          const expression = scope.parse(input, "expression")
-          if (expression && expression.inputText.length === input.length) {
-            match.expression = expression
-          } else {
-            match.error = scope.parse(input, "parse_error")
-          }
-          return match
-        }
-        getAST(match: P.Match) {
-          const { expression, error } = match
-          return new P.ASTJSXExpression(match, {
-            expression: expression?.AST as P.ASTExpression | undefined,
-            error: error?.AST as P.ASTParseError | undefined
-          })
-        }
-      }
+      title: "Inline expressions",
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add("card")
+      },
+      tests: [
+        [
+          `<div foo={<a><b><c>{1}</c></b></a>}/>`,
+          [
+            'spellCore.element({ tag: "div", props: { foo: spellCore.element({ tag: "a", children: [',
+            '\tspellCore.element({ tag: "b", children: [',
+            '\t\tspellCore.element({ tag: "c", children: [',
+            "\t\t\t1",
+            "\t\t] })",
+            "\t] })",
+            "] }) } })"
+          ]
+        ],
+        // compound expression
+        [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]],
+        // multi-line expression is fine
+        [
+          "<div>{\n\t1 + \n2 + 3\t\n}</div>",
+          ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]
+        ],
+        //
+        [`<div>{the rank of the card}</div>`, ['spellCore.element({ tag: "div", children: [', "\tcard.rank", "] })"]],
+        // fail if we don't eat entire expression
+        [
+          `<div>{true true}</div>`,
+          [
+            'spellCore.element({ tag: "div", children: [',
+            '\tnull /* PARSE ERROR: Don\'t understand "true true" */',
+            "] })"
+          ]
+        ],
+        // fail on unknown expression
+        [
+          `<div>{unknown expression}</div>`,
+          [
+            'spellCore.element({ tag: "div", children: [',
+            '\tnull /* PARSE ERROR: Don\'t understand "unknown expression" */',
+            "] })"
+          ]
+        ],
+        // DO NOT parse a inline statement as a JSXExpression
+        [
+          `<div>{print 1024}</div>`,
+          [
+            'spellCore.element({ tag: "div", children: [',
+            '\tnull /* PARSE ERROR: Don\'t understand "print 1024" */',
+            "] })"
+          ]
+        ]
+      ]
     }
   ]
+}
+
+/**
+ * Match a single JSX attribute (`name`, `name=value`, or `name={expression}`).
+ * - `on*` attribute names (e.g. `onClick`) parse `value` as a `statement` inside a `MethodScope` with
+ *   an implicit `event` argument, producing an inline event-handler method rather than an expression.
+ * - Falls back to `parse_error` if neither an `expression` nor `on*` `statement` consumes the whole value.
+ * - NOTE: rule name is `jsxAttribute`, kept distinct from class name `SpellJSXAttribute` (pre-existing convention).
+ */
+export class SpellJSXAttribute extends P.TokenType<never, JSXMatchData> {
+  static ruleName = "jsxAttribute"
+  @proto static tokenType = P.JSXAttributeToken
+
+  /**
+   * Parse `value` as an expression, or (for `on*` attribute names) as a `statement` with an
+   * implicit `event` argument -- falls back to a `parse_error` match if neither consumes it all.
+   */
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (!match) return undefined
+    if (match.matched.length !== 1) throw new TypeError("Can only handle a single JSXAttribute at a time!")
+    // pull attribute name up to match
+    const attributeToken = match.matched[0] as P.JSXAttributeToken
+    match.data.attribute = attributeToken.name
+    // parse `value` if as a number or JSXExpression
+    const { value } = match
+    if (value) {
+      const inputIsExpression = value instanceof P.JSXExpressionToken
+      // `JSXExpression.contents` is typed `string | Token` (a bare, un-braced attribute value is
+      // tokenized via `matchJSXAttributeValueIdentifier`, which sets `contents` to a `Token`), but this
+      // rule (as in the original JS) only ever handles the braced/string form here.
+      const input = inputIsExpression ? (value.contents as string).trim().replace(/\n/g, " ") : value
+      // parse "onXXX" as an inline method with an `event` argument
+      if (match.data.attribute.startsWith("on")) {
+        const methodScopeProps: P.MethodScopeProps = {
+          parentScope: scope,
+          args: ["event"],
+          mapItTo: "this"
+        }
+        const methodScope = new P.MethodScope(methodScopeProps)
+        const statement = methodScope.parse(input, "statement")
+        if (statement && statement.inputText.length === input.length) {
+          match.data.statement = statement
+        }
+      } else {
+        const expression = scope.parse(input, "expression")
+        if (expression && (!inputIsExpression || expression.inputText.length === input.length)) {
+          match.data.expression = expression
+        }
+      }
+      // if neither worked, parse error
+      if (!match.data.expression && !match.data.statement) match.data.error = scope.parse(input, "parse_error")
+      // console.warn({ match, name: match.data.attribute, inputIsExpression, value, input })
+    }
+    return match
+  }
+
+  /**
+   * Build `P.ASTJSXAttribute`.
+   * - `statement` value becomes an inline `P.ASTMethodDefinition` (with an `event` arg for `on*` names).
+   * - Missing `value` (bare attribute, e.g. `<input disabled/>`) becomes `true`.
+   */
+  getAST(match: P.MatchFor<this>) {
+    const { attribute, expression, statement, error } = match.data
+    const { value } = match
+    let valueAST: P.ASTExpression | undefined
+    if (expression) valueAST = ast<P.ASTExpression>(expression.AST)
+    else if (statement) {
+      valueAST = new P.ASTMethodDefinition(match, {
+        inline: true,
+        // `attribute` is always set by `parse()` before this match can exist -- `!` because `JSXMatchData`
+        // shares the field with `jsxElement`/`jsxExpression` matches, which never set it, so it stays optional.
+        args: attribute!.toLowerCase().startsWith("on")
+          ? [new P.ASTVariableExpression(match, { name: "event" })]
+          : undefined,
+        body: ast<P.ASTStatementBlock | P.ASTStatement | P.ASTExpression>(statement.AST)
+      })
+    } else if (value === undefined) {
+      valueAST = new P.ASTBooleanLiteral(match, { value: true })
+    } else if (value instanceof P.TextToken) {
+      valueAST = new P.ASTStringLiteral(match, { value: value.value })
+    } else if (!error) {
+      console.warn("jsxAttribute.getAST: don't know how to render value", value, " for match ", match)
+      valueAST = new P.ASTUndefinedLiteral(match)
+    }
+    return new P.ASTJSXAttribute(match, {
+      name: attribute!,
+      value: valueAST,
+      error: error?.AST as P.ASTParseError | undefined
+    })
+  }
+}
+
+/**
+ * Match literal text between JSX tags (`jsxChild`).  Blank text yields no AST node -- see below.
+ * - NOTE: rule name is `jsxText`, kept distinct from class name `SpellJSXText` (pre-existing convention).
+ */
+export class SpellJSXText extends P.TokenType {
+  static ruleName = "jsxText"
+  @proto static alias = "jsxChild"
+  @proto static tokenType = P.JSXTextToken
+
+  /** Build `P.ASTJSXText`; returns `undefined` for blank text since there's nothing to render. */
+  getAST(match: P.MatchFor<this>) {
+    const { raw, quotedText } = match.matched[0] as P.JSXTextToken
+    // Blank text has nothing to render -- return `undefined` for "no AST" (`Rule.getAST()`'s return
+    // type already permits this; `Match.AST` treats a falsy return as "no AST").
+    if (!quotedText) return undefined
+    return new P.ASTJSXText(match, { raw, value: quotedText })
+  }
+}
+
+/**
+ * Match a JSX closing tag (`</tag>`), tracked as a `jsxChild` alongside element/text/expression children.
+ * - NOTE: rule name is `jsxEndTag`, kept distinct from class name `SpellJSXEndTag` (pre-existing convention).
+ */
+export class SpellJSXEndTag extends P.TokenType {
+  static ruleName = "jsxEndTag"
+  @proto static alias = "jsxChild"
+  @proto static tokenType = P.JSXEndTagToken
+
+  getAST(match: P.MatchFor<this>) {
+    const { tagName } = match.matched[0] as P.JSXEndTagToken
+    return new P.ASTJSXEndTag(match, { tagName })
+  }
+}
+
+/**
+ * Match a `{...}` JSX expression container (a `jsxChild`, e.g. `<div>{1 + 2}</div>`).
+ * - Trims and collapses newlines in the raw contents before parsing as an `expression`.
+ * - Falls back to `parse_error` if the expression doesn't consume the entire contents.
+ * - NOTE: rule name is `jsxExpression`, kept distinct from class name `SpellJSXExpression` (pre-existing convention).
+ */
+export class SpellJSXExpression extends P.TokenType<never, JSXMatchData> {
+  static ruleName = "jsxExpression"
+  @proto static alias = "jsxChild"
+  @proto static tokenType = P.JSXExpressionToken
+
+  /** Parse `contents` as an `expression`; falls back to `parse_error` if it doesn't consume it all. */
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (!match) return undefined
+    // trim and remove newlines from expression (???)
+    // See note above re: `JSXExpression.contents` being typed `string | Token`.
+    const input = ((match.matched[0] as P.JSXExpressionToken).contents as string).trim().replace(/\n/g, " ")
+    // only match expression if we used all of the input
+    const expression = scope.parse(input, "expression")
+    if (expression && expression.inputText.length === input.length) {
+      match.data.expression = expression
+    } else {
+      match.data.error = scope.parse(input, "parse_error")
+    }
+    return match
+  }
+  getAST(match: P.MatchFor<this>) {
+    const { expression, error } = match.data
+    return new P.ASTJSXExpression(match, {
+      expression: expression?.AST as P.ASTExpression | undefined,
+      error: error?.AST as P.ASTParseError | undefined
+    })
+  }
+}
+
+/**
+ * `match.data.error`, but only for matches from JSX rules that can ever carry one (`jsxAttribute` and
+ * `jsxExpression` -- `jsxElement` never sets it).  Lets a caller check an arbitrary match (e.g. a
+ * `statement` match of unknown concrete rule) for this without an ad hoc field on `Match` itself.
+ */
+export function getJSXParseError(match: P.Match): P.Match | undefined {
+  if (match.is(SpellJSXAttribute) || match.is(SpellJSXExpression)) return match.data.error
+  return undefined
+}
+
+export const JSX = new SpellParser({
+  module: "JSX",
+  rules: [SpellJSX, SpellJSXAttribute, SpellJSXText, SpellJSXEndTag, SpellJSXExpression]
 })

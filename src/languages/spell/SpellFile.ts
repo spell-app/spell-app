@@ -4,12 +4,6 @@ import { SP } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
 
 /**
- * `rules/Block.js` (still untyped JS) attaches an ad-hoc `errors` array of `Match`es
- * to top-level `block` match on parse failures.  It's not part of core `Match` shape.
- */
-type MatchWithErrors = P.Match & { errors?: P.Match[] }
-
-/**
  * Loadable file of spell code located at `path`.
  * - NOTE: these are singleton instances -- you'll always get the same object back for a given `path`.
  */
@@ -186,12 +180,13 @@ export class SpellFile extends TextFile {
       // HACK: things get wierd downstream if we don't get a `match` at all
       // If contents is empty, use a default comment so we'll at least match something.
       const contents = this.contents!.trim() ? this.contents! : `// Blank file ${this.file}`
-      const match = this.scope!.parse(contents, "block") as MatchWithErrors | undefined
+      const match = this.scope!.parse(contents, "block")
       // console.warn(this.filePath, match)
       this.setState("match", match)
       // Show errors on the console
-      if (match?.errors) {
-        match.errors.forEach((error) => {
+      const errors = match && SP.getParseErrors(match)
+      if (errors) {
+        errors.forEach((error) => {
           // TODO(ast): remove cast when AST/ASTNode typing lands -- `.value` is subclass-specific.
           const value = (error.AST as unknown as { value: string } | undefined)?.value
           let message = `${value} on line ${error.line! + 1}`

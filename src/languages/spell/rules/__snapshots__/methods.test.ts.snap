@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`testing spell module methods > rule group specs > match snapshot -- if this fails, update rule's \`Groups\` type argument, then the snapshot 1`] = `
+{
+  "create_animation": "asAnimation|signature",
+  "quoted_type_expression": "type|signature",
+  "to_do_something": "asTest?|signature",
+  "type_method_arg": "type",
+  "typed_method_arg": "variable_identifier|type",
+  "valued_var_method_arg": "variable_identifier|value",
+}
+`;

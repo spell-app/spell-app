@@ -9,18 +9,27 @@ import { Rule } from "./Rule"
  * - `rule.literals` is the array of Literals to match.
  * - After matching, `match.value` will be the literal string matched.
  */
-export abstract class Literals extends Rule<P.LiteralsProps> {
+export abstract class Literals<
+  Groups extends string | P.AnyGroups = P.AnyGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends Rule<P.LiteralsProps, Groups, MatchData> {
   /** Literals to match in order -- normalized from constructor input into `{ literal, optional? }` matchers. */
   declare literals: P.LiteralMatcher[]
   /** String to join matched literals with in `toRulexSyntax()` -- set by subclass, e.g. `Keywords` uses `" "`. */
   declare literalSeparator: string
 
+  /** Class-level `literals`, for rules defined as classes -- declare as `@proto static`. */
+  static literals?: Array<string | string[] | P.LiteralMatcher>
+
   /** Bare string / array shorthand sets `literals` directly, otherwise pass a full `LiteralsProps` bag. */
   constructor(input: P.LiteralsProps | string | Array<string | string[] | P.LiteralMatcher>) {
     const props = (typeof input === "string" || Array.isArray(input) ? { literals: input } : input) as P.LiteralsProps
     if (typeof props.literals === "string") props.literals = [props.literals]
-    props.literals = props.literals.map(makeMatcher)
+    // NOTE: no `literals` when they're coming from `syntax` -- `Rule` constructor decomposes it.
+    if (props.literals) props.literals = props.literals.map(makeMatcher)
     super(props)
+    // Class-level (`@proto static`) literals haven't been through `makeMatcher` -- give instance its own normalized list.
+    if (!Object.hasOwn(this, "literals") && Array.isArray(this.literals)) this.literals = this.literals.map(makeMatcher)
     // CLAUDE TODO: make this an assert?
     if (!Array.isArray(this.literals)) {
       console.info(props)
@@ -68,13 +77,13 @@ export abstract class Literals extends Rule<P.LiteralsProps> {
   }
 
   /** Output is just the matched `match.value`. */
-  compile(match: P.Match) {
+  compile(match: P.MatchFor<this>) {
     return match.value
   }
 
   /** Return rulex string for this rule, joining literals with `literalSeparator` and applying rule flags. */
   toRulexSyntax() {
-    const { testLocation, argument, optional } = this.getRulexFlags()
+    const { testLocation, matchGroup, optional } = this.getRulexFlags()
 
     const literalStrings = this.literals
       .map(({ literal, optional }) => {
@@ -84,8 +93,8 @@ export abstract class Literals extends Rule<P.LiteralsProps> {
       })
       .join(this.literalSeparator)
 
-    const wrapInParens = argument || ((testLocation || optional) && this.literals.length > 1)
-    if (wrapInParens) return `${testLocation}(${argument}${literalStrings})${optional}`
+    const wrapInParens = matchGroup || ((testLocation || optional) && this.literals.length > 1)
+    if (wrapInParens) return `${testLocation}(${matchGroup}${literalStrings})${optional}`
     return `${testLocation}${literalStrings}${optional}`
   }
 }

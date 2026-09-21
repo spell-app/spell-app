@@ -45,7 +45,7 @@ export class Scope extends Derivative {
     return this.parentScope?.constants
   }
   /** Forwards to `parentScope.rules`. */
-  get rules(): IndexedList<P.RuleDefinition> | undefined {
+  get rules(): IndexedList<P.Rule, P.RuleInput> | undefined {
     return this.parentScope?.rules
   }
 

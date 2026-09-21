@@ -1202,7 +1202,11 @@ export class ASTTypeExpression extends ASTExpression {
 
   /** Pointer to known Scope for this type, if available. ??? */
   get scope(): P.TypeScope | undefined {
-    return this.match.type
+    // Language's type rule stashes what it found as `match.data.scopeType` (e.g. spell's `SpellType`).
+    // NOTE: `instanceof` rather than `match.is()`, as we can't know language's rule classes here --
+    // also weeds out its "looked, not found" marker.
+    const { scopeType } = this.match.data
+    return scopeType instanceof P.TypeScope ? scopeType : undefined
   }
 }
 

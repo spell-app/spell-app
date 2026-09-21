@@ -1,16 +1,18 @@
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"
-// Import directly to avoid circular import
-import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
-import "./match-fields.A"
+import { Block, type BlockMatchData } from "./Block"
+import { getJSXParseError } from "./JSX"
 
 /**
- * Patch generic `P.BlankLine` (which has no `getAST()` of its own) so a blank line compiles to
- * `P.ASTBlankLine` -- needed since spell always converts to AST before compiling.
+ * Blank line, compiling to `P.ASTBlankLine` -- generic `P.BlankLine` has no `getAST()` of its own,
+ * and spell always converts to AST before compiling.
+ * - Subclass rather than patching `P.BlankLine.prototype`, which would change it for every language.
  */
-P.BlankLine.prototype.getAST = function (match: P.Match) {
-  return new P.ASTBlankLine(match)
+export class blank_line extends P.BlankLine {
+  getAST(match: P.MatchFor<this>) {
+    return new P.ASTBlankLine(match)
+  }
 }
 
 /**
@@ -20,7 +22,9 @@ P.BlankLine.prototype.getAST = function (match: P.Match) {
  * - if `statement.wantsNestedBlock` and the next item in `lines` is a `BlockToken`, we'll let the
  *   statement attempt to parse that next line as well.
  */
-export class BlockLine extends P.Rule {
+export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
+  static ruleName = "line"
+
   /**
    * SIDE EFFECT: calls `statement.rule.mutateScope()` on the parsed statement (and on any nested block's
    * errors are folded in too), so a locked-in statement can e.g. add variables to `scope` as it's parsed.
@@ -99,7 +103,7 @@ export class BlockLine extends P.Rule {
           const nestedBlock = statement.rule.parseNestedBlock(statement, nextItem)
           if (nestedBlock) {
             // add any errors in the nestedBlock to `errors`
-            if (nestedBlock.errors) errors.push(...nestedBlock.errors)
+            if (nestedBlock.is(Block) && nestedBlock.data.errors) errors.push(...nestedBlock.data.errors)
             // add the nestedBlock to `tokensMatched` to account for it in the output
             tokensMatched.push(nextItem)
           }
@@ -112,10 +116,11 @@ export class BlockLine extends P.Rule {
 
         // TODO: not sure if this is needed anymore
         // Check JSX, that seems to be setting it???
-        if (statement.error) {
+        const statementError = getJSXParseError(statement)
+        if (statementError) {
           console.warn("Got unexpected statement.error for", statement.rule.name)
-          errors.push(statement.error)
-          matched.push(statement.error)
+          errors.push(statementError)
+          matched.push(statementError)
         }
 
         // Add parse error if we got both a `nestedBlock` and an `inlineStatement`
@@ -131,14 +136,13 @@ export class BlockLine extends P.Rule {
         }
       }
     }
-    const result = new P.Match({
+    const result: P.MatchFor<this> = new P.Match({
       rule: this,
       matched,
       tokens: tokensMatched,
       scope
     })
-    // `errors` is an ad-hoc field (see `match-fields.A.ts`), not part of `MatchProps`.
-    if (errors.length) result.errors = errors
+    if (errors.length) result.data.errors = errors
     return result
   }
 
@@ -146,12 +150,12 @@ export class BlockLine extends P.Rule {
    * `Match.compile()` always prefers `getAST()` (below) over calling `rule.compile()` directly, but
    * `Rule.compile()` is abstract, so provide the equivalent fallback for completeness.
    */
-  compile(match: P.AnyMatch): unknown {
+  compile(match: P.MatchFor<this>): unknown {
     return match.AST?.compile()
   }
 
   /** If only one matched item (statement, comment, or blank line), return its AST directly; else group them. */
-  getAST(match: P.Match): P.ASTNode {
+  getAST(match: P.MatchFor<this>): P.ASTNode {
     // ???  If only one matched item, return it by itself
     const first = match.matched[0]
     if (match.matched.length === 1 && first instanceof P.Match) return first.AST!
@@ -164,4 +168,3 @@ export class BlockLine extends P.Rule {
     })
   }
 }
-SpellParser.Rules.BlockLine = BlockLine

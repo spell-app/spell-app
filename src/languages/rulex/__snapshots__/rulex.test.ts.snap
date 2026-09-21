@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`testing language rulex > rule group specs > match snapshot -- if this fails, update rule's \`Groups\` type argument, then the snapshot 1`] = `
+{
+  "choices": "testLocation?|split|repeatFlag?",
+  "keyword": "testLocation?|literal|repeatFlag?",
+  "list": "matchGroup?|ruleName|delimiter|repeatFlag?",
+  "matchGroup": "matchGroup",
+  "number": "testLocation?|number|repeatFlag?",
+  "subrule": "testLocation[]?|matchGroup?|rule|repeatFlag?",
+  "symbol": "testLocation?|isEscaped?|literal|repeatFlag?",
+}
+`;

@@ -10,7 +10,10 @@ import { Rule } from "./Rule"
  * - (optional) `blacklist` is a map of `{ key: true }` for strings which will NOT be accepted.
  * - (optional) `mapValue` (optional) is a `function(value) => newValue` used to transform the matched value.
  */
-export class Pattern extends Rule<PatternProps> {
+export class Pattern<
+  Groups extends string | P.AnyGroups = P.AnyGroups,
+  MatchData extends P.AnyMatchData = P.AnyMatchData
+> extends Rule<PatternProps, Groups, MatchData> {
   /**
    * Regular expression to match.
    * - Note that you MUST start your pattern with `^` and end with `$` to make sure it matches the entire token.
@@ -20,6 +23,11 @@ export class Pattern extends Rule<PatternProps> {
   declare VALUE_MAP: Record<string, any>
   /** Map of `{ key: true }` for strings which will NOT be accepted. */
   declare blacklist: P.IdentifierBlacklist | undefined
+
+  /** Class-level `pattern` / `VALUE_MAP` / `blacklist`, for rules defined as classes -- declare as `@proto static`. */
+  static pattern?: RegExp
+  static VALUE_MAP?: Record<string, unknown>
+  static blacklist?: P.IdentifierBlacklist | string[]
 
   /** Normalizes a bare `RegExp` into `{ pattern }`, and converts array `blacklist` into a lookup map. */
   constructor(props: PatternProps) {
@@ -32,6 +40,8 @@ export class Pattern extends Rule<PatternProps> {
       }, {} as P.IdentifierBlacklist)
     }
     super(props)
+    // Class-level (`@proto static`) blacklist may be an array too -- normalize ONCE, onto the prototype it came from.
+    if (Array.isArray(this.blacklist)) normalizeProtoBlacklist(this)
   }
 
   /** `true` if token at `start` matches `this.pattern` and isn't in `this.blacklist`. */
@@ -62,7 +72,7 @@ export class Pattern extends Rule<PatternProps> {
   }
 
   /** Output is just the (possibly mapped) `match.value`. */
-  compile(match: P.Match) {
+  compile(match: P.MatchFor<this>) {
     return match.value
   }
 }
@@ -78,3 +88,13 @@ export type PatternProps = Prettify<
     blacklist?: P.IdentifierBlacklist | string[]
   }
 >
+
+/** Convert array `blacklist` found on `rule`'s prototype chain into a lookup map, in place. */
+function normalizeProtoBlacklist(rule: Pattern) {
+  let proto = Object.getPrototypeOf(rule)
+  while (proto && !Object.hasOwn(proto, "blacklist")) proto = Object.getPrototypeOf(proto)
+  if (!proto) return
+  const map: P.IdentifierBlacklist = {}
+  for (const key of proto.blacklist as string[]) map[key] = true
+  proto.blacklist = map
+}

@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`testing spell module draw > rule group specs > match snapshot -- if this fails, update rule's \`Groups\` type argument, then the snapshot 1`] = `
+{
+  "draw_items": "variable?|plural_variable?|expression",
+  "draw_thing": "expression",
+  "start_app": "app",
+}
+`;

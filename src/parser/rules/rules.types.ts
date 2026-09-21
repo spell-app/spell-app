@@ -5,50 +5,11 @@ import type { P } from "~/parser"
 /** Constructor for a `Rule` subclass. */
 export type RuleConstructor = Class<P.Rule>
 
-/**
- * Props bag accepted by `parser.defineRule()`.
- * - `constructor` is the `Rule` subclass to instantiate (inferred from `syntax`/`pattern`/etc if not provided).
- * - `syntax` is rulex syntax string(s), or objects with `syntax` + overrides for that variant.
- * - Rule-subclass-specific props (e.g. `wantsInlineStatement`) are allowed and passed through to the constructor.
- */
-export type RuleDefinition = Prettify<
-  Omit<P.RuleProps, "syntax" | "tests" | "testRule"> & {
-    /**
-     * `Function` is included because every object literal already has `Object` as its `constructor`.
-     * - NOTE: bare `Function` is deliberate here -- this is a dynamic boundary, not a known signature.
-     */
-    constructor?: RuleConstructor | Function
-    /** Set to `true` to skip this rule, e.g. if it's not working. */
-    skip?: boolean
-    /** Rulex syntax string(s), or objects with `syntax` + overrides for that variant. */
-    syntax?: string | Array<string | RuleDefinition>
-    /** Test rule, or rulex syntax string which will be compiled into one. */
-    testRule?: P.Rule | string
-    /** Regular expression for `Pattern` rules. */
-    pattern?: RegExp
-    /** Map of `{ matched: compiled }` to return `compiled` value for `matched` string, for `Pattern` rules. */
-    VALUE_MAP?: Record<string, unknown>
-    /** Array of strings as blacklist for `Pattern` rules. */
-    blacklist?: IdentifierBlacklist | string[]
-    /** Single literal string (or alternatives) to match, for `Keyword` / `Symbol` rules. */
-    literal?: string | string[]
-    /** Sequential literal strings to match, for `Keywords` / `Symbols` rules. */
-    literals?: Array<string | string[] | LiteralMatcher>
-    /** Token type to match, for `TokenType` rules. */
-    tokenType?: P.TokenConstructor
-    /** Name (or instance) of rule to delegate to, for `Subrule` rules. */
-    rule?: P.Rule | string
-    /** Rules to match in sequence / as choices, for `Sequence` / `Choice` rules. */
-    rules?: P.Rule[]
-    /** Tests for this rule. */
-    tests?: P.RuleTestBlock[]
-    /** Rule-subclass-specific props (e.g. `wantsInlineStatement`) are allowed and passed through to constructor. */
-    [subclassProp: string]: unknown
-  }
->
+/** One variant of a rule class's `static syntax`, with its own quick `testRule` if needed. */
+export type RuleSyntaxVariant = { syntax?: string; testRule?: P.Rule | string }
 
-/** Anything `parser.defineRule()` accepts. */
-export type RuleInput = P.Rule | RuleConstructor | RuleDefinition
+/** Anything `parser.addRule()` accepts:  a rule class (the normal way) or a ready-made instance. */
+export type RuleInput = P.Rule | RuleConstructor
 
 /** Map of `{ ruleName: rule }`. */
 export type RuleMap = Record<string, P.Rule>
@@ -57,8 +18,8 @@ export type RuleMap = Record<string, P.Rule>
 export type SyntaxFlags = {
   /** `…` for `AT_START`, `^` for `ANYWHERE`, or `""`. */
   testLocation: string
-  /** `:` if rule has an `argument`, else `""`. */
-  argument: string
+  /** `:` if rule has an `matchGroup`, else `""`. */
+  matchGroup: string
   /** `?` if rule is `optional`, else `""`. */
   optional: string
 }
@@ -90,3 +51,50 @@ export type LiteralsProps = Prettify<
     literals: Array<string | string[] | LiteralMatcher>
   }
 >
+
+/** Copy of `props` without `undefined` values, so they don't clobber defaults when spread. */
+export function definedOnly<T extends Record<string, unknown>>(props: T): Partial<T> {
+  return Object.fromEntries(Object.entries(props).filter(([, value]) => value !== undefined)) as Partial<T>
+}
+
+// ### Group specs
+
+/**
+ * One group a rule's structure will produce in `match.groups` -- see `Rule.groupSpec`.
+ * - `optional` -- may be missing, e.g. `{name:rule}?`, or only in some variants / choices
+ * - `array` -- name appears more than once in same sequence, so value is `Match[]`
+ */
+export type GroupSpecEntry = { name: string; optional: boolean; array: boolean }
+
+/**
+ * Combine entries contributed by rules matched ONE AFTER ANOTHER, e.g. children of a `Sequence`.
+ * - Repeated name becomes `array`, and is only `optional` if every appearance is.
+ */
+export function concatGroupSpecs(...specs: GroupSpecEntry[][]): GroupSpecEntry[] {
+  const entries = new Map<string, GroupSpecEntry>()
+  for (const entry of specs.flat()) {
+    const existing = entries.get(entry.name)
+    if (!existing) entries.set(entry.name, { ...entry })
+    else entries.set(entry.name, { name: entry.name, array: true, optional: existing.optional && entry.optional })
+  }
+  return [...entries.values()]
+}
+
+/**
+ * Combine entries for ALTERNATIVES, e.g. `syntax` variants of one rule, or branches of a `Choice`.
+ * - Name is only required if required in EVERY alternative.
+ */
+export function mergeGroupSpecs(...specs: GroupSpecEntry[][]): GroupSpecEntry[] {
+  const entries = new Map<string, GroupSpecEntry>()
+  for (const entry of specs.flat()) {
+    const existing = entries.get(entry.name)
+    const inAll = specs.every((spec) => spec.some((it) => it.name === entry.name && !it.optional))
+    entries.set(entry.name, { name: entry.name, array: entry.array || !!existing?.array, optional: !inAll })
+  }
+  return [...entries.values()]
+}
+
+/** Entries as a `P.GroupsFor` spec string, e.g. `"type|property|specifier?"`. */
+export function stringifyGroupSpec(entries: GroupSpecEntry[]): string {
+  return entries.map(({ name, optional, array }) => `${name}${array ? "[]" : ""}${optional ? "?" : ""}`).join("|")
+}
